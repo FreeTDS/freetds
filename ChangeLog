@@ -1,3 +1,8 @@
+Sun Nov 24 13:00:39 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/iconv.c src/tds/read.c src/tds/threadsafe.c:
+	* src/tds/util.c:
+	- indent and fixes for comment
+
 Sun Nov 24 11:42:49 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/login.c:
 	- make tds_send_login and tds7_send_login static

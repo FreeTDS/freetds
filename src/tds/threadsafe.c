@@ -55,21 +55,21 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.20 2002-11-11 00:09:36 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: threadsafe.c,v 1.21 2002-11-24 12:01:16 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
 tds_timestamp_str(char *str, int maxlen)
 {
-struct tm  *tm;
-time_t      t;
+	struct tm *tm;
+	time_t t;
+
 #if HAVE_GETTIMEOFDAY
-struct timeval  tv;
-char usecs[10];
+	struct timeval tv;
+	char usecs[10];
 #endif
 #ifdef _REENTRANT
-struct tm res;
+	struct tm res;
 #endif
 
 #if HAVE_GETTIMEOFDAY
@@ -106,7 +106,7 @@ struct tm res;
 #ifndef _REENTRANT
 # ifndef NETDB_REENTRANT
 #  define NETDB_REENTRANT 1
-# endif /* NETDB_REENTRANT */
+# endif	/* NETDB_REENTRANT */
 #endif /* _REENTRANT */
 
 struct hostent *
@@ -119,11 +119,13 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 
 #if defined(HAVE_FUNC_GETHOSTBYNAME_R_6)
 	struct hostent result_buf;
+
 	gethostbyname_r(servername, &result_buf, buffer, buflen, &result, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_5)
 	gethostbyname_r(servername, result, buffer, buflen, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_3)
 	struct hostent_data data;
+
 	memset(&data, 0, sizeof(data));
 #ifdef HAVE_SETHOSTENT_R
 	sethostent_r(0, &data);
@@ -140,7 +142,7 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 	return result;
 }
 
-struct hostent   *
+struct hostent *
 tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
 
@@ -151,11 +153,13 @@ tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result,
 
 #if defined(HAVE_FUNC_GETHOSTBYADDR_R_8)
 	struct hostent result_buf;
+
 	gethostbyaddr_r(addr, len, type, &result_buf, buffer, buflen, &result, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYADDR_R_7)
 	gethostbyaddr_r(addr, len, type, result, buffer, buflen, h_errnop);
 #elif defined(HAVE_FUNC_GETHOSTBYADDR_R_5)
 	struct hostent_data data;
+
 	memset(&data, 0, sizeof(data));
 #ifdef HAVE_SETHOSTENT_R
 	sethostent_r(0, &data);
@@ -183,11 +187,13 @@ tds_getservbyname_r(const char *name, const char *proto, struct servent *result,
 
 #if defined(HAVE_FUNC_GETSERVBYNAME_R_6)
 	struct servent result_buf;
+
 	getservbyname_r(name, proto, &result_buf, buffer, buflen, &result);
 #elif defined(HAVE_FUNC_GETSERVBYNAME_R_5)
 	getservbyname_r(name, proto, result, buffer, buflen);
 #elif defined(HAVE_FUNC_GETSERVBYNAME_R_4)
 	struct servent_data data;
+
 	getservbyname_r(name, proto, result, &data);
 #else
 #error getservbyname_r style unknown
@@ -207,8 +213,8 @@ tds_get_homedir(void)
 {
 /* if is available getpwuid_r use it */
 #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID_R)
-struct passwd *pw, bpw;
-char buf[1024];
+	struct passwd *pw, bpw;
+	char buf[1024];
 
 	if (getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw))
 		return NULL;
@@ -216,14 +222,15 @@ char buf[1024];
 #else
 /* if getpwuid is available use it for no reentrant (getpwuid is not reentrant) */
 #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID) && !defined(_REENTRANT)
-struct passwd *pw;
+	struct passwd *pw;
 
 	pw = getpwuid(getuid());
-	if (!pw) 
+	if (!pw)
 		return NULL;
 	return strdup(pw->pw_dir);
 #else
-char *home;
+	char *home;
+
 	home = getenv("HOME");
 	if (!home || !home[0])
 		return NULL;

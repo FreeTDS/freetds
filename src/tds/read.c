@@ -57,9 +57,8 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: read.c,v 1.31 2002-11-10 12:40:49 freddy77 Exp $";
-static void *no_unused_var_warn[] = {software_version,
-                                     no_unused_var_warn};
+static char software_version[] = "$Id: read.c,v 1.32 2002-11-24 12:01:16 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
  * \defgroup network Network functions
@@ -75,63 +74,68 @@ static void *no_unused_var_warn[] = {software_version,
  * return -1 on failure 
  */
 static int
-goodread (TDSSOCKET *tds, unsigned char *buf, int buflen)
+goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
-int got = 0;
-int len, retcode;
-fd_set fds;
-time_t start, now;
-struct timeval selecttimeout;
+	int got = 0;
+	int len, retcode;
+	fd_set fds;
+	time_t start, now;
+	struct timeval selecttimeout;
 
-	FD_ZERO (&fds);
+	FD_ZERO(&fds);
 	if (tds->timeout) {
 		start = time(NULL);
 		now = start;
 
 		/* FIXME return even if not finished read if timeout */
-		while ((buflen > 0) && ((now-start) < tds->timeout)) {
-			int timeleft = tds->timeout;
+		while ((buflen > 0) && ((now - start) < tds->timeout)) {
+	int timeleft = tds->timeout;
+
 			len = 0;
 			retcode = 0;
 
 			do {
-				FD_SET (tds->s, &fds);
+				FD_SET(tds->s, &fds);
 				selecttimeout.tv_sec = timeleft;
 				selecttimeout.tv_usec = 0;
-				retcode = select (tds->s + 1, &fds, NULL, NULL, &selecttimeout);
+				retcode = select(tds->s + 1, &fds, NULL, NULL, &selecttimeout);
 				/* ignore EINTR errors */
 				if (retcode < 0 && errno == EINTR)
 					retcode = 0;
 
-				now = time (NULL);
-				timeleft = tds->timeout - (now-start);
-			} while((retcode == 0) && timeleft > 0);
-			len = READSOCKET(tds->s, buf+got, buflen);
+				now = time(NULL);
+				timeleft = tds->timeout - (now - start);
+			} while ((retcode == 0) && timeleft > 0);
+			len = READSOCKET(tds->s, buf + got, buflen);
 			if (len <= 0) {
-				if (len < 0 && errno == EINTR) len = 0;
-				else return (-1); /* SOCKET_ERROR */
+				if (len < 0 && errno == EINTR)
+					len = 0;
+				else
+					return (-1);	/* SOCKET_ERROR */
 			}
 
 			buflen -= len;
 			got += len;
-			now = time (NULL);
+			now = time(NULL);
 
 			if (tds->queryStarttime && tds->longquery_timeout) {
-				if ((now-(tds->queryStarttime)) >= tds->longquery_timeout) {
-					(*tds->longquery_func)(tds->longquery_param);
+				if ((now - (tds->queryStarttime)) >= tds->longquery_timeout) {
+					(*tds->longquery_func) (tds->longquery_param);
 				}
 			}
-		} /* while buflen... */
+		}		/* while buflen... */
 	} else {
 		/* got = READSOCKET(tds->s, buf, buflen); */
 		while (got < buflen) {
-			FD_SET (tds->s, &fds);
-			select (tds->s + 1, &fds, NULL, NULL, NULL);
+			FD_SET(tds->s, &fds);
+			select(tds->s + 1, &fds, NULL, NULL, NULL);
 			len = READSOCKET(tds->s, buf + got, buflen - got);
 			if (len <= 0) {
-				if (len < 0 && (errno == EINTR || errno == EINPROGRESS)) len = 0;
-				else return (-1); /* SOCKET_ERROR */
-			}  
+				if (len < 0 && (errno == EINTR || errno == EINPROGRESS))
+					len = 0;
+				else
+					return (-1);	/* SOCKET_ERROR */
+			}
 			got += len;
 		}
 
@@ -144,7 +148,7 @@ struct timeval selecttimeout;
 ** Return a single byte from the input buffer
 */
 unsigned char
-tds_get_byte(TDSSOCKET *tds)
+tds_get_byte(TDSSOCKET * tds)
 {
 int rc;
 
@@ -156,57 +160,63 @@ int rc;
 	}
 	return tds->in_buf[tds->in_pos++];
 }
-/*
-** Unget will always work as long as you don't call it twice in a row.  It
-** it may work if you call it multiple times as long as you don't backup
-** over the beginning of network packet boundary which can occur anywhere in
-** the token stream.
-*/
-void tds_unget_byte(TDSSOCKET *tds)
+
+/*+
+ * Unget will always work as long as you don't call it twice in a row.  It
+ * it may work if you call it multiple times as long as you don't backup
+ * over the beginning of network packet boundary which can occur anywhere in
+ * the token stream.
+ */
+void
+tds_unget_byte(TDSSOCKET * tds)
 {
 	/* this is a one trick pony...don't call it twice */
 	tds->in_pos--;
 }
 
-unsigned char tds_peek(TDSSOCKET *tds)
+unsigned char
+tds_peek(TDSSOCKET * tds)
 {
-   unsigned char   result = tds_get_byte(tds);
-   tds_unget_byte(tds);
-   return result;
-} /* tds_peek()  */
+unsigned char result = tds_get_byte(tds);
+
+	tds_unget_byte(tds);
+	return result;
+}				/* tds_peek()  */
 
 
-/*
-** Get an int16 from the server.
-*/
-TDS_SMALLINT tds_get_smallint(TDSSOCKET *tds)
+/**
+ * Get an int16 from the server.
+ */
+TDS_SMALLINT
+tds_get_smallint(TDSSOCKET * tds)
 {
 unsigned char bytes[2];
 
 	tds_get_n(tds, bytes, 2);
 #if WORDS_BIGENDIAN
 	if (tds->emul_little_endian) {
-		return TDS_BYTE_SWAP16(*(TDS_SMALLINT *)bytes);
+		return TDS_BYTE_SWAP16(*(TDS_SMALLINT *) bytes);
 	}
 #endif
-	return *(TDS_SMALLINT *)bytes;
+	return *(TDS_SMALLINT *) bytes;
 }
 
 
-/*
-** Get an int32 from the server.
-*/
-TDS_INT tds_get_int(TDSSOCKET *tds)
+/**
+ * Get an int32 from the server.
+ */
+TDS_INT
+tds_get_int(TDSSOCKET * tds)
 {
 unsigned char bytes[4];
 
 	tds_get_n(tds, bytes, 4);
 #if WORDS_BIGENDIAN
 	if (tds->emul_little_endian) {
-		return TDS_BYTE_SWAP32(*(TDS_INT *)bytes);
+		return TDS_BYTE_SWAP32(*(TDS_INT *) bytes);
 	}
 #endif
-	return *(TDS_INT *)bytes;
+	return *(TDS_INT *) bytes;
 }
 
 /**
@@ -217,97 +227,128 @@ unsigned char bytes[4];
  * @param need length to read (in characters)
  * @return buffer of character
  */
-char *tds_get_string(TDSSOCKET *tds, void *dest, int need)
+char *
+tds_get_string(TDSSOCKET * tds, void *dest, int need)
 {
-char temp[256];
-char *p;
-unsigned int bytes_left;
+	char temp[256];
+	char *p;
+	unsigned int bytes_left;
 
 	/*
-	** FIX: 02-Jun-2000 by Scott C. Gray (SCG)
-	**
-	** Bug to malloc(0) on some platforms.
-	*/
+	 * FIX: 02-Jun-2000 by Scott C. Gray (SCG)
+	 * 
+	 * Bug to malloc(0) on some platforms.
+	 */
 	if (need == 0) {
 		return dest;
 	}
 
 	if (IS_TDS7_PLUS(tds)) {
-		if (dest==NULL) {
-			tds_get_n(tds,NULL,need*2);
-			return(NULL);
+		if (dest == NULL) {
+			tds_get_n(tds, NULL, need * 2);
+			return (NULL);
 		}
-		p = (char*) dest;
-		while(need > 0) {
-			bytes_left = need > (sizeof(temp)/2) ? (sizeof(temp)/2) : need;
-			tds_get_n(tds, temp, bytes_left*2);
+		p = (char *) dest;
+		while (need > 0) {
+			bytes_left = need > (sizeof(temp) / 2) ? (sizeof(temp) / 2) : need;
+			tds_get_n(tds, temp, bytes_left * 2);
 			tds7_unicode2ascii(tds, temp, p, bytes_left);
 			p += bytes_left;
 			need -= bytes_left;
 		}
-		return(dest);
-		
+		return (dest);
+
 	} else {
-		return tds_get_n(tds,dest,need);
+		return tds_get_n(tds, dest, need);
 	}
 }
-/*
-** Get N bytes from the buffer and return them in the already allocated space  
-** given to us.  We ASSUME that the person calling this function has done the  
-** bounds checking for us since they know how many bytes they want here.
-** dest of NULL means we just want to eat the bytes.   (tetherow@nol.org)
-*/
-char *tds_get_n(TDSSOCKET *tds, void *dest, int need)
+
+/**
+ * Get N bytes from the buffer and return them in the already allocated space  
+ * given to us.  We ASSUME that the person calling this function has done the  
+ * bounds checking for us since they know how many bytes they want here.
+ * dest of NULL means we just want to eat the bytes.   (tetherow@nol.org)
+ */
+char *
+tds_get_n(TDSSOCKET * tds, void *dest, int need)
 {
-int pos,have;
+	int pos, have;
 
 	pos = 0;
 
-	have=(tds->in_len-tds->in_pos);
-	while (need>have) {
+	have = (tds->in_len - tds->in_pos);
+	while (need > have) {
 		/* We need more than is in the buffer, copy what is there */
-		if (dest!=NULL) {
-			memcpy((char*)dest+pos, tds->in_buf+tds->in_pos, have);
+		if (dest != NULL) {
+			memcpy((char *) dest + pos, tds->in_buf + tds->in_pos, have);
 		}
-		pos+=have;
-		need-=have;
+		pos += have;
+		need -= have;
 		tds_read_packet(tds);
-		have=tds->in_len;
+		have = tds->in_len;
 	}
-	if (need>0) {
+	if (need > 0) {
 		/* get the remainder if there is any */
-		if (dest!=NULL) {
-			memcpy((char*)dest+pos, tds->in_buf+tds->in_pos, need);
+		if (dest != NULL) {
+			memcpy((char *) dest + pos, tds->in_buf + tds->in_pos, need);
 		}
-		tds->in_pos+=need;
+		tds->in_pos += need;
 	}
 	return dest;
 }
 
-/*
-** Return the number of bytes needed by specified type.
-*/
+/**
+ * Return the number of bytes needed by specified type.
+ */
 int
 tds_get_size_by_type(int servertype)
 {
-   switch(servertype)
-   {
-      case SYBINT1:        return 1;  break;
-      case SYBINT2:        return 2;  break;
-      case SYBINT4:        return 4;  break;
-      case SYBINT8:        return 8;  break;
-      case SYBREAL:        return 4;  break;
-      case SYBFLT8:        return 8;  break;
-      case SYBDATETIME:    return 8;  break;
-      case SYBDATETIME4:   return 4;  break;
-      case SYBBIT:         return 1;  break;
-      case SYBBITN:        return 1;  break;
-      case SYBMONEY:       return 8;  break;
-      case SYBMONEY4:      return 4;  break;
-      case SYBUNIQUE:      return 16; break;
-      default:             return -1; break;
-   }
+	switch (servertype) {
+	case SYBINT1:
+		return 1;
+		break;
+	case SYBINT2:
+		return 2;
+		break;
+	case SYBINT4:
+		return 4;
+		break;
+	case SYBINT8:
+		return 8;
+		break;
+	case SYBREAL:
+		return 4;
+		break;
+	case SYBFLT8:
+		return 8;
+		break;
+	case SYBDATETIME:
+		return 8;
+		break;
+	case SYBDATETIME4:
+		return 4;
+		break;
+	case SYBBIT:
+		return 1;
+		break;
+	case SYBBITN:
+		return 1;
+		break;
+	case SYBMONEY:
+		return 8;
+		break;
+	case SYBMONEY4:
+		return 4;
+		break;
+	case SYBUNIQUE:
+		return 16;
+		break;
+	default:
+		return -1;
+		break;
+	}
 }
+
 /**
  * Read in one 'packet' from the server.  This is a wrapped outer packet of
  * the protocol (they bundle resulte packets into chunks and wrap them at
@@ -315,35 +356,36 @@ tds_get_size_by_type(int servertype)
  * up.   (tetherow\@nol.org)
  * @return bytes readed or -1 on failure
  */
-int tds_read_packet (TDSSOCKET *tds)
+int
+tds_read_packet(TDSSOCKET * tds)
 {
 unsigned char header[8];
-int           len;
-int           x = 0, have, need;
+int len;
+int x = 0, have, need;
 
 
 	/* Read in the packet header.  We use this to figure out our packet 
-	** length */
+	 * length */
 
 	/* Cast to int are needed because some compiler seem to convert
 	 * len to unsigned (as FreeBSD 4.5 one)*/
-	if ((len = goodread(tds, header, sizeof(header))) < (int)sizeof(header) ) {
+	if ((len = goodread(tds, header, sizeof(header))) < (int) sizeof(header)) {
 		/* GW ADDED */
-		if (len<0) {
+		if (len < 0) {
 			tds_client_msg(tds->tds_ctx, tds, 20004, 9, 0, 0, "Read from SQL server failed.");
 			tds_close_socket(tds);
-                	tds->in_len=0;
-			tds->in_pos=0;
+			tds->in_len = 0;
+			tds->in_pos = 0;
 			return -1;
 		}
 		/* GW ADDED */
 		/*  Not sure if this is the best way to do the error 
-		**  handling here but this is the way it is currently 
-		**  being done. */
-                tds->in_len=0;
-		tds->in_pos=0;
-		tds->last_packet=1;
-		if (len==0) {
+		 *  handling here but this is the way it is currently 
+		 *  being done. */
+		tds->in_len = 0;
+		tds->in_pos = 0;
+		tds->last_packet = 1;
+		if (len == 0) {
 			tds_close_socket(tds);
 		}
 		return -1;
@@ -351,36 +393,38 @@ int           x = 0, have, need;
 	tdsdump_log(TDS_DBG_NETWORK, "Received header @ %L\n%D\n", header, sizeof(header));
 
 /* Note:
-** this was done by Gregg, I don't think its the real solution (it breaks
-** under 5.0, but I haven't gotten a result big enough to test this yet.
-*/
+ * this was done by Gregg, I don't think its the real solution (it breaks
+ * under 5.0, but I haven't gotten a result big enough to test this yet.
+ */
 	if (IS_TDS42(tds)) {
-		if (header[0]!=0x04 && header[0]!=0x0f) {
+		if (header[0] != 0x04 && header[0] != 0x0f) {
 			tdsdump_log(TDS_DBG_ERROR, "Invalid packet header %d\n", header[0]);
 			/*  Not sure if this is the best way to do the error 
-			**  handling here but this is the way it is currently 
-			**  being done. */
-			tds->in_len=0;
-			tds->in_pos=0;
-			tds->last_packet=1;
-			return(-1);
+			 *  handling here but this is the way it is currently 
+			 *  being done. */
+			tds->in_len = 0;
+			tds->in_pos = 0;
+			tds->last_packet = 1;
+			return (-1);
 		}
 	}
- 
-        /* Convert our packet length from network to host byte order */
-        len = ((((unsigned int)header[2])<<8)|header[3])-8;
-        need=len;
 
-        /* If this packet size is the largest we have gotten allocate 
-	** space for it */
+	/* Convert our packet length from network to host byte order */
+	len = ((((unsigned int) header[2]) << 8) | header[3]) - 8;
+	need = len;
+
+	/* If this packet size is the largest we have gotten allocate 
+	 * space for it */
 	if (len > tds->in_buf_max) {
-		unsigned char *p;
-		if (! tds->in_buf) {
-			p = (unsigned char*)malloc(len);
+unsigned char *p;
+
+		if (!tds->in_buf) {
+			p = (unsigned char *) malloc(len);
 		} else {
-			p = (unsigned char*)realloc(tds->in_buf, len);
+			p = (unsigned char *) realloc(tds->in_buf, len);
 		}
-		if (!p) return -1; /* FIXME should close socket too */
+		if (!p)
+			return -1;	/* FIXME should close socket too */
 		tds->in_buf = p;
 		/* Set the new maximum packet size */
 		tds->in_buf_max = len;
@@ -390,36 +434,39 @@ int           x = 0, have, need;
 	memset(tds->in_buf, 0, tds->in_buf_max);
 
 	/* Now get exactly how many bytes the server told us to get */
-	have=0;
-	while(need>0) {
-		if ((x=goodread(tds, tds->in_buf+have, need))<1) {
+	have = 0;
+	while (need > 0) {
+		if ((x = goodread(tds, tds->in_buf + have, need)) < 1) {
 			/*  Not sure if this is the best way to do the error 
-			**  handling here but this is the way it is currently 
-			**  being done. */
-			tds->in_len=0;
-			tds->in_pos=0;
-			tds->last_packet=1;
-			if (len==0) {
+			 *  handling here but this is the way it is currently 
+			 *  being done. */
+			tds->in_len = 0;
+			tds->in_pos = 0;
+			tds->last_packet = 1;
+			if (len == 0) {
 				tds_close_socket(tds);
 			}
-			return(-1);
+			return (-1);
 		}
-		have+=x;
-		need-=x;
+		have += x;
+		need -= x;
 	}
-	if (x < 1 ) {
+	if (x < 1) {
 		/*  Not sure if this is the best way to do the error handling 
-		**  here but this is the way it is currently being done. */
-		tds->in_len=0;
-		tds->in_pos=0;
-		tds->last_packet=1;
+		 *  here but this is the way it is currently being done. */
+		tds->in_len = 0;
+		tds->in_pos = 0;
+		tds->last_packet = 1;
 		/* return 0 if header found but no payload */
 		return len ? -1 : 0;
 	}
 
 	/* Set the last packet flag */
-	if (header[1]) { tds->last_packet = 1; }
-	else           { tds->last_packet = 0; }
+	if (header[1]) {
+		tds->last_packet = 1;
+	} else {
+		tds->last_packet = 0;
+	}
 
 	/* Set the length and pos (not sure what pos is used for now */
 	tds->in_len = have;
@@ -428,4 +475,5 @@ int           x = 0, have, need;
 
 	return (tds->in_len);
 }
+
 /** \@} */
