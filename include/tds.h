@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.168 2004-01-27 21:56:44 freddy77 Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.169 2004-01-28 11:06:16 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -28,7 +28,7 @@ static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 #include <time.h>
 
 /* forward declaration */
-typedef struct tdsiconvinfo TDSICONVINFO;
+typedef struct tdsiconvinfo TDSICONV;
 typedef struct tds_socket TDSSOCKET;
 
 #include "tdsver.h"
@@ -806,7 +806,7 @@ typedef struct tds_column
 		TDS_INT column_size;
 	} on_server;
 
-	const TDSICONVINFO *iconv_info;	/**< refers to previously allocated iconv information */
+	const TDSICONV *iconv;	/**< refers to previously allocated iconv information */
 
 	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
@@ -853,7 +853,7 @@ typedef struct
 		TDS_SMALLINT column_type;	/**< type of data, saved from wire */
 		TDS_INT column_size;
 	} on_server;
-	const TDSICONVINFO *iconv_info;	/**< refers to previously allocated iconv information */
+	const TDSICONV *iconv;	/**< refers to previously allocated iconv information */
 	TDS_SMALLINT db_usertype;
 	TDS_TINYINT db_varint_size;
 	TDS_INT db_length;	/* size of field according to database */
@@ -1084,7 +1084,7 @@ struct tds_socket
 	char *date_fmt;
 	TDSCONTEXT *tds_ctx;
 	int iconv_info_count;
-	TDSICONVINFO **iconv_info;
+	TDSICONV **iconvs;
 
 	/** config for login stuff. After login this field is NULL */
 	TDSCONNECTION *connection;
@@ -1151,7 +1151,7 @@ void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);
 void tds7_srv_charset_changed(TDSSOCKET * tds, int lcid);
 int tds_iconv_alloc(TDSSOCKET * tds);
 void tds_iconv_free(TDSSOCKET * tds);
-TDSICONVINFO *tds_iconv_from_lcid(TDSSOCKET * tds, int lcid);
+TDSICONV *tds_iconv_from_lcid(TDSSOCKET * tds, int lcid);
 
 /* threadsafe.c */
 char *tds_timestamp_str(char *str, int maxlen);

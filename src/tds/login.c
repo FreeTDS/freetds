@@ -89,7 +89,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.119 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.120 2004-01-28 11:06:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -850,14 +850,14 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	tds_put_string(tds, tds_dstr_cstr(&connection->host_name), host_name_len);
 	if (!domain_login) {
-		TDSICONVINFO *iconv_info = tds->iconv_info[client2ucs2];
+		TDSICONV *iconv = tds->iconvs[client2ucs2];
 		tds_put_string(tds, tds_dstr_cstr(&connection->user_name), user_name_len);
 		p = tds_dstr_cstr(&connection->password);
 		punicode = unicode_string;
 		unicode_left = sizeof(unicode_string);
 
-		memset(&iconv_info->suppress, 0, sizeof(iconv_info->suppress));
-		if (tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &p, &password_len, &punicode, &unicode_left) ==
+		memset(&iconv->suppress, 0, sizeof(iconv->suppress));
+		if (tds_iconv(tds, tds->iconvs[client2ucs2], to_server, &p, &password_len, &punicode, &unicode_left) ==
 		    (size_t) - 1) {
 			tdsdump_log(TDS_DBG_INFO1, "%L password \"%s\" could not be converted to UCS-2\n", p);
 			assert(0);

@@ -1,3 +1,10 @@
+Wed Jan 28 12:06:58 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h include/tdsiconv.h src/dblib/bcp.c:
+	* src/server/login.c src/tds/iconv.c src/tds/login.c:
+	* src/tds/query.c src/tds/read.c src/tds/token.c:
+	* src/tds/write.c src/tds/unittests/utf8_2.c:
+	- continue normalization (TDSICONVINFO -> TDSICONV)
+
 Tue Jan 27 22:54:35 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h include/dblib.h include/tds.h:
 	* src/apps/tsql.c src/ctlib/ct.c src/ctlib/ctutil.c:

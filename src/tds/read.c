@@ -70,9 +70,9 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.83 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.84 2004-01-28 11:06:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
+static int read_and_convert(TDSSOCKET * tds, const TDSICONV * iconv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
 
 /**
@@ -334,7 +334,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 			return string_len;
 		}
 
-		return read_and_convert(tds, tds->iconv_info[client2ucs2], to_client, &wire_bytes, &dest, &dest_size);
+		return read_and_convert(tds, tds->iconvs[client2ucs2], to_client, &wire_bytes, &dest, &dest_size);
 	} else {
 		/* FIXME convert to client charset */
 		assert(dest_size >= string_len);
@@ -346,12 +346,12 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 /**
  * Fetch character data the wire.
  * Output is NOT null terminated.
- * If \a iconv_info is not NULL, convert data accordingly.
+ * If \a iconv is not NULL, convert data accordingly.
  * \param row_buffer  destination buffer in current_row. Can't be NULL
  * \param wire_size   size to read from wire (in bytes)
  * \param curcol      column information
  * \return TDS_SUCCEED or TDS_FAIL (probably memory error on text data)
- * \todo put a TDSICONVINFO structure in every TDSCOLUMN
+ * \todo put a TDSICONV structure in every TDSCOLUMN
  */
 int
 tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN * curcol)
@@ -382,7 +382,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		return TDS_SUCCEED;
 	}
 
-	if (curcol->iconv_info) {
+	if (curcol->iconv) {
 		/*
 		 * TODO The conversion should be selected from curcol and tds version
 		 * TDS8/single -> use curcol collation
@@ -393,7 +393,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
 		in_left = blob ? curcol->column_cur_size : curcol->column_size;
-		curcol->column_cur_size = read_and_convert(tds, curcol->iconv_info, to_client, &wire_size, &dest, &in_left);
+		curcol->column_cur_size = read_and_convert(tds, curcol->iconv, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %d on wire while reading %d into client. \n", 
 							 wire_size, curcol->column_cur_size);
@@ -650,7 +650,7 @@ tds_read_packet(TDSSOCKET * tds)
  * moved to the beginning, ptemp is adjusted to point just behind them, and the next chunk is read.
  */
 static int
-read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io, size_t * wire_size, char **outbuf,
+read_and_convert(TDSSOCKET * tds, const TDSICONV * iconv, TDS_ICONV_DIRECTION io, size_t * wire_size, char **outbuf,
 		 size_t * outbytesleft)
 {
 	TEMP_INIT(256);
@@ -664,9 +664,9 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 	const size_t max_output = *outbytesleft;
 
 	/* cast away const for message suppression sub-structure */
-	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &iconv_info->suppress;
+	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &iconv->suppress;
 
-	memset(suppress, 0, sizeof(iconv_info->suppress));
+	memset(suppress, 0, sizeof(iconv->suppress));
 	
 	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0; bufp = temp + bufleft) {
 		assert(bufp >= temp);
@@ -681,7 +681,7 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 		/* Convert chunk and write to dest. */
 		bufp = temp; /* always convert from start of buffer */
 		suppress->einval = *wire_size > 0; /* EINVAL matters only on the last chunk. */
-		if (-1 == tds_iconv(tds, iconv_info, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
+		if (-1 == tds_iconv(tds, iconv, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
 			tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: tds_iconv returned errno %d\n", errno);
 			if (errno != EILSEQ) {
 				tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: "

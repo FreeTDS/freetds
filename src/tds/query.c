@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.125 2004-01-27 21:56:45 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.126 2004-01-28 11:06:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -96,14 +96,14 @@ tds_to_quering(TDSSOCKET * tds)
 /**
  * Convert a string in an allocated buffer
  * \param tds        state information for the socket and the TDS protocol
- * \param iconv_info information about the encodings involved
+ * \param iconv      information about the encodings involved
  * \param s          input string
  * \param len        input string length (in bytes), -1 for null terminated
  * \param out_len    returned output length (in bytes)
  * \return string allocated (or input pointer if no conversion required)
  */
 static const char *
-tds_convert_string(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, const char *s, int len, int *out_len)
+tds_convert_string(TDSSOCKET * tds, const TDSICONV * iconv, const char *s, int len, int *out_len)
 {
 	char *buf;
 
@@ -111,18 +111,18 @@ tds_convert_string(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, const char 
 	char *ob;
 	size_t il, ol;
 	
-	/* iconv_info is only mostly const */
-	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &iconv_info->suppress;
+	/* iconv is only mostly const */
+	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &iconv->suppress;
 
 	if (len < 0)
 		len = strlen(s);
-	if (iconv_info->flags == TDS_ENCODING_MEMCPY) {
+	if (iconv->flags == TDS_ENCODING_MEMCPY) {
 		*out_len = len;
 		return s;
 	}
 
 	/* allocate needed buffer (+1 is to exclude 0 case) */
-	ol = len * iconv_info->server_charset.max_bytes_per_char / iconv_info->client_charset.min_bytes_per_char + 1;
+	ol = len * iconv->server_charset.max_bytes_per_char / iconv->client_charset.min_bytes_per_char + 1;
 	buf = (char *) malloc(ol);
 	if (!buf)
 		return NULL;
@@ -130,8 +130,8 @@ tds_convert_string(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, const char 
 	ib = s;
 	il = len;
 	ob = buf;
-	memset(suppress, 0, sizeof(iconv_info->suppress));
-	if (tds_iconv(tds, iconv_info, to_server, &ib, &il, &ob, &ol) == (size_t)-1) {
+	memset(suppress, 0, sizeof(iconv->suppress));
+	if (tds_iconv(tds, iconv, to_server, &ib, &il, &ob, &ol) == (size_t)-1) {
 		free(buf);
 		return NULL;
 	}
@@ -218,7 +218,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		if (!param_definition)
 			return TDS_FAIL;
 
-		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
+		converted_query = tds_convert_string(tds, tds->iconvs[client2ucs2], query, query_len, &converted_query_len);
 		if (!converted_query) {
 			free(param_definition);
 			return TDS_FAIL;
@@ -592,8 +592,8 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 		il = params->columns[i]->column_namelen;
 		ob = param_str + l;
 		ol = size - l;
-		memset(&tds->iconv_info[client2ucs2]->suppress, 0, sizeof(tds->iconv_info[client2ucs2]->suppress));
-		if (tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+		memset(&tds->iconvs[client2ucs2]->suppress, 0, sizeof(tds->iconvs[client2ucs2]->suppress));
+		if (tds_iconv(tds, tds->iconvs[client2ucs2], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
 			goto Cleanup;
 		l = size - ol;
 		param_str[l++] = ' ';
@@ -609,8 +609,8 @@ tds_build_params_definition(TDSSOCKET * tds, TDSPARAMINFO * params, int *out_len
 		il = strlen(declaration);
 		ob = param_str + l;
 		ol = size - l;
-		memset(&tds->iconv_info[iso2server_metadata]->suppress, 0, sizeof(tds->iconv_info[iso2server_metadata]->suppress));
-		if (tds_iconv(tds, tds->iconv_info[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+		memset(&tds->iconvs[iso2server_metadata]->suppress, 0, sizeof(tds->iconvs[iso2server_metadata]->suppress));
+		if (tds_iconv(tds, tds->iconvs[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
 			goto Cleanup;
 		l = size - ol;
 	}
@@ -776,7 +776,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 				return TDS_FAIL;
 		}
 
-		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
+		converted_query = tds_convert_string(tds, tds->iconvs[client2ucs2], query, query_len, &converted_query_len);
 		if (!converted_query) {
 			free(param_definition);
 			return TDS_FAIL;
@@ -877,7 +877,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 				return TDS_FAIL;
 		}
 
-		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2], query, query_len, &converted_query_len);
+		converted_query = tds_convert_string(tds, tds->iconvs[client2ucs2], query, query_len, &converted_query_len);
 		if (!converted_query) {
 			free(param_definition);
 			return TDS_FAIL;
@@ -994,7 +994,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 
 			/* TODO use a fixed buffer to avoid error ? */
 			converted_param =
-				tds_convert_string(tds, tds->iconv_info[client2ucs2], curcol->column_name, len,
+				tds_convert_string(tds, tds->iconvs[client2ucs2], curcol->column_name, len,
 						   &converted_param_len);
 			if (!converted_param)
 				return TDS_FAIL;
@@ -1129,19 +1129,19 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 
 		/* convert string if needed */
 		s = src;
-		if (curcol->iconv_info && curcol->iconv_info->flags != TDS_ENCODING_MEMCPY) {
+		if (curcol->iconv && curcol->iconv->flags != TDS_ENCODING_MEMCPY) {
 #if 0
 			/* TODO this case should be optimized */
 			/* we know converted bytes */
-			if (curcol->iconv_info->client_charset.min_bytes_per_char == curcol->iconv_info->client_charset.max_bytes_per_char 
-			    && curcol->iconv_info->server_charset.min_bytes_per_char == curcol->iconv_info->server_charset.max_bytes_per_char) {
-				converted_size = colsize * curcol->iconv_info->server_charset.min_bytes_per_char / curcol->iconv_info->client_charset.min_bytes_per_char;
+			if (curcol->iconv->client_charset.min_bytes_per_char == curcol->iconv->client_charset.max_bytes_per_char 
+			    && curcol->iconv->server_charset.min_bytes_per_char == curcol->iconv->server_charset.max_bytes_per_char) {
+				converted_size = colsize * curcol->iconv->server_charset.min_bytes_per_char / curcol->iconv->client_charset.min_bytes_per_char;
 
 			} else {
 #endif
 			/* we need to convert data before */
 			/* TODO this can be a waste of memory... */
-			s = tds_convert_string(tds, curcol->iconv_info, src, colsize, &colsize);
+			s = tds_convert_string(tds, curcol->iconv, src, colsize, &colsize);
 			if (!s) {
 				/* FIXME this is a bad place to return error... */
 				/* TODO on memory failure we should compute comverted size and use chunks */
@@ -1500,7 +1500,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
-		converted_name = tds_convert_string(tds, tds->iconv_info[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
+		converted_name = tds_convert_string(tds, tds->iconvs[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
 		if (!converted_name)
 			return TDS_FAIL;
 		tds_put_smallint(tds, converted_name_len / 2);
@@ -1734,7 +1734,7 @@ tds_cursor_open(TDSSOCKET * tds, int *something_to_send)
 	if (IS_TDS7_PLUS(tds)) {
 
 		/* cursor statement */
-		converted_query = tds_convert_string(tds, tds->iconv_info[client2ucs2],
+		converted_query = tds_convert_string(tds, tds->iconvs[client2ucs2],
 						     tds->cursor->query, strlen(tds->cursor->query), &converted_query_len);
 		if (!converted_query) {
 			return TDS_FAIL;
