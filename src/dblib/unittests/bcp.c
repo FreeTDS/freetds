@@ -27,7 +27,7 @@
 #include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.3 2003-12-21 08:06:34 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.4 2004-04-27 01:05:50 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -175,7 +175,7 @@ bind(DBPROCESS * dbproc)
 }
 
 int
-main(int argc, char **argv)
+main(int argc, const char *argv[])
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
@@ -185,7 +185,7 @@ main(int argc, char **argv)
 
 	set_malloc_options();
 
-	read_login_info();
+	read_login_info(argc, argv);
 
 	fprintf(stdout, "Start\n");
 	add_bread_crumb();

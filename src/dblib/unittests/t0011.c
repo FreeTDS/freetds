@@ -23,7 +23,7 @@
  */
 
 
-static char software_version[] = "$Id: t0011.c,v 1.7 2002-11-20 13:47:06 freddy77 Exp $";
+static char software_version[] = "$Id: t0011.c,v 1.8 2004-04-27 01:05:50 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -42,7 +42,7 @@ main(int argc, char **argv)
 	DBPROCESS *dbproc;
 	char cmd[2048];
 
-	read_login_info();
+	read_login_info(argc, argv);
 	fprintf(stdout, "Start\n");
 
 	dbinit();

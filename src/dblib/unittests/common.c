@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -25,7 +29,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.10 2002-12-14 14:47:46 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.11 2004-04-27 01:05:49 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -46,6 +50,7 @@ char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
 static char *DIRNAME = NULL;
+static char *BASENAME = NULL;
 
 #if HAVE_MALLOC_OPTIONS
 extern const char *malloc_options;
@@ -66,27 +71,57 @@ set_malloc_options(void)
 #endif /* HAVE_MALLOC_OPTIONS */
 }
 
-/**
- * pass argv[0].  Set up directory so we can find the PWD file, regardless of 
- * where it was invoked from.
- */
 int
-read_PWD(char invoked_as[])
+read_login_info(int argc, const char *argv[])
 {
-	if (invoked_as)
-		DIRNAME = dirname(invoked_as);
-
-	return read_login_info();
-}
-
-int
-read_login_info(void)
-{
+	extern char *optarg;
+	extern int optind;
+	
 	FILE *in;
+	int ch;
 	char line[512];
 	char *s1, *s2;
 	char filename[MAXPATHLEN];
 	static const char *PWD = "../../../PWD";
+	struct { char *username, *password, *servername, *database; char fverbose; } options;
+	
+	DIRNAME = dirname((char *)argv[0]);
+	BASENAME = basename((char *)argv[0]);
+	
+	memset(&options, 0, sizeof(options));
+	
+	/* process command line options (handy for manual testing) */
+	while ((ch = getopt(argc, (char**)argv, "U:P:S:D:f:v")) != -1) {
+		switch (ch) {
+		case 'U':
+			options.username = strdup(optarg);
+			break;
+		case 'P':
+			options.password = strdup(optarg);
+			break;
+		case 'S':
+			options.servername = strdup(optarg);
+			break;
+		case 'D':
+			options.database = strdup(optarg);
+			break;
+		case 'f': /* override default PWD file */
+			PWD = strdup(optarg);
+			break;
+		case 'v':
+			options.fverbose = 1; /* doesn't normally do anything */
+			break;
+		case '?':
+		default:
+			fprintf(stderr, "usage:  %s \n"
+					"        [-U username] [-P password]\n"
+					"        [-S servername] [-D database]\n"
+					"        [-i input filename] [-o output filename] [-e error filename]\n"
+					, BASENAME);
+			exit(1);
+		}
+	}
+
 
 	strcpy(filename, PWD);
 	in = fopen(filename, "r");
@@ -115,6 +150,25 @@ read_login_info(void)
 			strcpy(DATABASE, s2);
 		}
 	}
+	
+	/* apply command-line overrides */
+	if (options.username) {
+		strcpy(USER, options.username);
+		free(options.username);
+	}
+	if (options.password) {
+		strcpy(PASSWORD, options.password);
+		free(options.password);
+	}
+	if (options.servername) {
+		strcpy(SERVER, options.servername);
+		free(options.servername);
+	}
+	if (options.database) {
+		strcpy(DATABASE, options.database);
+		free(options.database);
+	}
+	
 	printf("found %s.%s for %s in \"%s\"\n", SERVER, DATABASE, USER, filename);
 	return 0;
 }

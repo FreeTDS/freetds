@@ -19,7 +19,7 @@
 
 
 
-static char software_version[] = "$Id: t0005.c,v 1.13 2003-03-07 15:04:41 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.14 2004-04-27 01:05:49 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -38,7 +38,7 @@ main(int argc, char **argv)
 
 	set_malloc_options();
 
-	read_login_info();
+	read_login_info(argc, argv);
 	fprintf(stdout, "Start\n");
 	add_bread_crumb();
 
