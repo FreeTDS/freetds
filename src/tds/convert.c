@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.45 2002-08-18 19:45:44 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.46 2002-08-21 12:42:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -71,7 +71,7 @@ static int  is_numeric_dateformat(char *);
 static TDS_UINT utf16len(const utf16_t* s);
 
 #define test_alloc(x) {if ((x)==NULL) return TDS_FAIL;}
-extern int g__numeric_bytes_per_prec[];
+extern const int g__numeric_bytes_per_prec[];
 
 #define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
 #define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )

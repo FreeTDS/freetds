@@ -24,7 +24,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.34 2002-08-21 12:19:18 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.35 2002-08-21 12:42:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -47,7 +47,7 @@ void tds_swap_datatype(int coltype, unsigned char *buf);
 ** tell us the number of bytes required to store the specified
 ** precision.
 */
-extern int g__numeric_bytes_per_prec[];
+extern const int g__numeric_bytes_per_prec[];
 
 
 /*

@@ -39,9 +39,9 @@ static char *array_to_string(unsigned char *array, int scale, char *s);
 ** The following little table is indexed by precision-1 and will
 ** tell us the number of bytes required to store the specified
 ** precision (with the sign).
+** Support precision up to 77 digits
 */
-/****
-int g__numeric_bytes_per_prec[] =
+const int g__numeric_bytes_per_prec[] =
 {
  -1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 
   6, 6, 6, 7, 7, 8, 8, 9, 9, 9,
@@ -52,16 +52,6 @@ int g__numeric_bytes_per_prec[] =
   26, 27, 27, 28, 28, 28, 29, 29, 30, 30,
   31, 31, 31, 32, 32, 33, 33, 33
 };
-int g__numeric_bytes_per_prec[] =
-{
- -1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
-  9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-  13, 13, 13, 13, 13, 13, 13, 13, 13, 
-  17, 17, 17, 17, 17, 17, 17, 17, 17, 17
-};
-****/
-
-int g__numeric_bytes_per_prec[39];
 
 /*
 ** money is a special case of numeric really...that why its here

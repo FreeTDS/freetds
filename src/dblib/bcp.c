@@ -41,9 +41,9 @@
 extern int (*g_dblib_msg_handler)();
 extern int (*g_dblib_err_handler)();
 
-extern int g__numeric_bytes_per_prec[];
+extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.8 2002-06-19 05:56:52 jklowden Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.9 2002-08-21 12:42:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 

@@ -21,10 +21,8 @@
 #include <tds.h>
 #include <tdsconvert.h>
 
-static char  software_version[]   = "$Id: t0008.c,v 1.1 2002-08-16 11:00:19 freddy77 Exp $";
+static char  software_version[]   = "$Id: t0008.c,v 1.2 2002-08-21 12:42:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
-
-extern int g__numeric_bytes_per_prec[39];
 
 int g_result = 0;
 
@@ -58,46 +56,6 @@ int main()
 	/* very long string for test buffer overflow */
 	int i;
 	char long_test[201];
-
-	g__numeric_bytes_per_prec[ 0] = -1;
-	g__numeric_bytes_per_prec[ 1] = 2;
-	g__numeric_bytes_per_prec[ 2] = 2;
-	g__numeric_bytes_per_prec[ 3] = 3;
-	g__numeric_bytes_per_prec[ 4] = 3;
-	g__numeric_bytes_per_prec[ 5] = 4;
-	g__numeric_bytes_per_prec[ 6] = 4;
-	g__numeric_bytes_per_prec[ 7] = 4;
-	g__numeric_bytes_per_prec[ 8] = 5;
-	g__numeric_bytes_per_prec[ 9] = 5;
-	g__numeric_bytes_per_prec[10] = 6;
-	g__numeric_bytes_per_prec[11] = 6;
-	g__numeric_bytes_per_prec[12] = 6;
-	g__numeric_bytes_per_prec[13] = 7;
-	g__numeric_bytes_per_prec[14] = 7;
-	g__numeric_bytes_per_prec[15] = 8;
-	g__numeric_bytes_per_prec[16] = 8;
-	g__numeric_bytes_per_prec[17] = 9;
-	g__numeric_bytes_per_prec[18] = 9;
-	g__numeric_bytes_per_prec[19] = 9;
-	g__numeric_bytes_per_prec[20] = 10;
-	g__numeric_bytes_per_prec[21] = 10;
-	g__numeric_bytes_per_prec[22] = 11;
-	g__numeric_bytes_per_prec[23] = 11;
-	g__numeric_bytes_per_prec[24] = 11;
-	g__numeric_bytes_per_prec[25] = 12;
-	g__numeric_bytes_per_prec[26] = 12;
-	g__numeric_bytes_per_prec[27] = 13;
-	g__numeric_bytes_per_prec[28] = 13;
-	g__numeric_bytes_per_prec[29] = 14;
-	g__numeric_bytes_per_prec[30] = 14;
-	g__numeric_bytes_per_prec[31] = 14;
-	g__numeric_bytes_per_prec[32] = 15;
-	g__numeric_bytes_per_prec[33] = 15;
-	g__numeric_bytes_per_prec[34] = 16;
-	g__numeric_bytes_per_prec[35] = 16;
-	g__numeric_bytes_per_prec[36] = 16;
-	g__numeric_bytes_per_prec[37] = 17;
-	g__numeric_bytes_per_prec[38] = 17;
 
 	printf("test some valid values..\n");
 	test("    1234",      "prec=18 scale=0 00 00 00 00 00 00 00 04 D2 00 00 00 00 00 00 00 00",18,0);
