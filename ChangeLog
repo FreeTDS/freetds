@@ -1,3 +1,7 @@
+Fri Sep 13 14:05:56 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/unittests/.cvsignore src/pool/.cvsignore:
+	- ignore more generated files.
+
 Fri Sep 13 13:57:42 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/tds.h.in src/ctlib/ct.c src/dblib/dblib.c
 	  src/pool/main.c src/pool/member.c src/tds/login.c
