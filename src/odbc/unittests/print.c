@@ -15,94 +15,63 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: print.c,v 1.1 2003-01-06 21:42:14 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.2 2003-01-07 10:27:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static SQLCHAR output[256];
+
+static void
+ReadError()
+{
+	if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL))) {
+		printf("SQLGetDiagRec should not fail\n");
+		exit(1);
+	}
+	printf("Message: %s\n", output);
+}
 
 int
 main(int argc, char *argv[])
 {
-
-	int res;
-	int i;
-
 	SQLINTEGER cnamesize;
-
-	SQLCHAR command[512];
-	SQLCHAR output[256];
+	const char *command;
 
 	Connect();
 
-	sprintf(command, "print 'Test message'");
+	/* issue print statement and test message returned */
+	command = "print 'Test message'";
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, command, SQL_NTS)
-	    != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		exit(1);
+	if (SQLExecDirect(Statement, command, SQL_NTS) != SQL_SUCCESS_WITH_INFO) {
+		printf("SQLExecDirect should return SQL_SUCCESS_WITH_INFO\n");
+		return 1;
+	}
+	ReadError();
+	if (!strstr(output, "Test message")) {
+		printf("Message invalid\n");
+		return 1;
 	}
 
-	sprintf(command, "insert #odbctestdata values ("
-		"'ABCDEFGHIJKLMNOP',"
-		"123456," "1234.56," "123456.78," "'Sep 11 2001 10:00AM'," "'just to check returned length...')");
-
+	/* issue invalid command and test error */
+	command = "SELECT donotexistsfield FROM donotexiststable";
 	printf("%s\n", command);
-	if (SQLExecDirect(Statement, command, SQL_NTS)
-	    != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		CheckReturn();
-		exit(1);
+	if (SQLExecDirect(Statement, command, SQL_NTS) != SQL_ERROR) {
+		printf("SQLExecDirect returned strange results\n");
+		return 1;
 	}
+	ReadError();
 
-	sprintf(command, "select * from #odbctestdata");
-
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, command, SQL_NTS)
-	    != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		CheckReturn();
-		exit(1);
+	/* test no data returned */
+	if (SQLFetch(Statement) != SQL_ERROR) {
+		printf("Row fetched ??\n");
+		return 1;
 	}
+	ReadError();
 
-	res = SQLFetch(Statement);
-	if (res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
-		printf("Unable to fetch row\n");
-		CheckReturn();
-		exit(1);
+	if (SQLGetData(Statement, 1, SQL_C_CHAR, output, sizeof(output), &cnamesize) != SQL_ERROR) {
+		printf("Data ??\n");
+		return 1;
 	}
-
-	for (i = 1; i <= 6; i++) {
-		if (SQLGetData(Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize) != SQL_SUCCESS) {
-			printf("Unable to get data col %d\n", i);
-			CheckReturn();
-			exit(1);
-		}
-
-		printf("output data >%s< len_or_ind = %d\n", output, (int) cnamesize);
-		if (cnamesize != strlen(output))
-			return 1;
-	}
-
-	res = SQLFetch(Statement);
-	if (res != SQL_NO_DATA) {
-		printf("Unable to fetch row\n");
-		CheckReturn();
-		exit(1);
-	}
-
-	res = SQLCloseCursor(Statement);
-	if (!SQL_SUCCEEDED(res)) {
-		printf("Unable to close cursr\n");
-		CheckReturn();
-		exit(1);
-	}
-
-	sprintf(command, "drop table #odbctestdata");
-	printf("%s\n", command);
-	if (SQLExecDirect(Statement, command, SQL_NTS)
-	    != SQL_SUCCESS) {
-		printf("Unable to drop table #odbctestdata \n");
-		CheckReturn();
-		exit(1);
-	}
+	ReadError();
 
 	Disconnect();
 

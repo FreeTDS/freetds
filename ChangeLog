@@ -1,3 +1,7 @@
+Tue Jan  7 11:25:00 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/common.c: small fix
+	* src/odbc/unittests/print.c: finished
+
 Mon Jan  6 22:41:37 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/error.c:
 	- fix error in SQLGetDiagRec not returning correct errors
