@@ -2,7 +2,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0004.c,v 1.1 2001-10-12 23:29:07 brianb Exp $";
+static char  software_version[]   = "$Id: t0004.c,v 1.2 2001-11-29 23:28:37 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* protos */
@@ -28,7 +28,9 @@ int main()
    CS_INT datalength;
    CS_SMALLINT ind;
    char query[1024];
-   CS_INT results[] = {CS_ROW_RESULT, CS_CMD_DONE, CS_END_RESULTS};
+   CS_INT insert_results[] = {CS_CMD_SUCCEED, CS_CMD_DONE};
+   CS_INT update_results[] = {CS_CMD_SUCCEED, CS_CMD_DONE};
+   CS_INT select_results[] = {CS_ROW_RESULT, CS_CMD_DONE};
    int result_num = 0;
    
    fprintf(stdout, "%s: Check ordering of returns from cs_results()\n", __FILE__);
@@ -44,9 +46,32 @@ int main()
    ret = run_command(cmd, "CREATE TABLE t0004 (id int)");
    if (ret != CS_SUCCEED) return 1;
    for (i=0;i<NUMROWS;i++) {
-	sprintf(query,"INSERT t0004 (id) VALUES (%d)",i);
-   	ret = run_command(cmd, query);
-   	if (ret != CS_SUCCEED) return 1;
+		sprintf(query,"INSERT t0004 (id) VALUES (%d)",i);
+
+   	ret = ct_command(cmd, CS_LANG_CMD,
+         query, CS_NULLTERM, CS_UNUSED);
+   	if (ret != CS_SUCCEED) {
+     	fprintf(stderr, "ct_command() failed\n");
+     	return 1;
+   	}
+   	ret = ct_send(cmd);
+   	if (ret != CS_SUCCEED) {
+     	fprintf(stderr, "ct_send() failed\n");
+     	return 1;
+   	}
+	
+		results_ret = do_results(cmd, insert_results);
+   	switch ((int) results_ret) {
+      		case CS_END_RESULTS:
+         	break;
+      	case CS_FAIL:
+         	fprintf(stderr,"ct_results() failed.\n");
+         	return 1;
+         	break;
+      	default:
+         	fprintf(stderr,"ct_results() unexpected return.\n");
+         	return 1;
+		}
    }
 
    ret = ct_command(cmd, CS_LANG_CMD,
@@ -61,23 +86,7 @@ int main()
      return 1;
    }
 
-   result_num = 0;
-   while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
-      if (result_type != results[result_num]) {
-         fprintf(stderr, "ct_results() expected %d received %d\n",
-                 results[result_num], result_type);
-         return 1;
-      }
-      switch ((int)result_type) {
-         case CS_ROW_RESULT:
-            if (do_fetch(cmd)) { return 1; }
-            break;
-         case CS_STATUS_RESULT:
-            if (do_fetch(cmd)) { return 1; }
-            break;
-      }
-   	result_num++;
-   }
+	results_ret = do_results(cmd, update_results);
    switch ((int) results_ret) {
       case CS_END_RESULTS:
          break;
@@ -90,6 +99,31 @@ int main()
          return 1;
    }
    
+	/* single row select */
+   ret = ct_command(cmd, CS_LANG_CMD,
+         "SELECT * FROM t0004 WHERE id = 1", CS_NULLTERM, CS_UNUSED);
+   if (ret != CS_SUCCEED) {
+     fprintf(stderr, "ct_command() failed\n");
+     return 1;
+   }
+   ret = ct_send(cmd);
+   if (ret != CS_SUCCEED) {
+     fprintf(stderr, "ct_send() failed\n");
+     return 1;
+   }
+
+	results_ret = do_results(cmd, select_results);
+   switch ((int) results_ret) {
+      case CS_END_RESULTS:
+         break;
+      case CS_FAIL:
+         fprintf(stderr,"ct_results() failed.\n");
+         return 1;
+         break;
+      default:
+         fprintf(stderr,"ct_results() unexpected return.\n");
+         return 1;
+   }
    if (verbose)         { fprintf(stdout, "Trying logout\n"); }
    ret = try_ctlogout(ctx, conn, cmd, verbose);
    if (ret != CS_SUCCEED) {
@@ -117,4 +151,29 @@ CS_RETCODE ret;
 		fprintf(stderr, "ct_fetch() unexpected return %d on row %d.\n", ret, row_count);
 		return 1;
 	}
+}
+CS_RETCODE do_results(CS_COMMAND *cmd, CS_INT *results)
+{
+int result_num;
+CS_RETCODE results_ret, result_type;
+
+   result_num = 0;
+   while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+		printf("result_ret %d result_type %d\n",results_ret,result_type);
+      if (result_type != results[result_num]) {
+         fprintf(stderr, "ct_results() expected %d received %d\n",
+                 results[result_num], result_type);
+         return CS_FAIL;
+      }
+      switch ((int)result_type) {
+         case CS_ROW_RESULT:
+            if (do_fetch(cmd)) { return CS_FAIL; }
+            break;
+         case CS_STATUS_RESULT:
+            if (do_fetch(cmd)) { return CS_FAIL; }
+            break;
+      }
+   	result_num++;
+	}
+	return results_ret;
 }

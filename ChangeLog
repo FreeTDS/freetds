@@ -1,3 +1,9 @@
+Thu Nov 29 18:13:01 EST 2001	Brian Bruns <camber@ais.org>
+
+	* src/dblib/unittests/t0009.c: changed varchar(10) to char(10)
+	* src/ctlib/unittests/t0004.c: fixed results order for update and added 
+	insert and select
+
 Mon Nov 26 16:06:05 EST 2001	Brian Bruns <camber@ais.org>
 	
 	* doc/userguide.sgml: added new chapter "advanced configurations"
