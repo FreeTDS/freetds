@@ -7,8 +7,8 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.7 2002-10-13 23:28:12 castellano Exp $";
-static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+static char software_version[] = "$Id: t0008.c,v 1.8 2002-11-20 13:57:15 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
  * ct_send SQL |select name = @@servername|
@@ -18,15 +18,15 @@ static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 int
 main(int argc, char **argv)
 {
-int verbose = 1;
-CS_CONTEXT *ctx; 
-CS_CONNECTION *conn; 
-CS_COMMAND *cmd; 
-CS_RETCODE ret;
-CS_DATAFMT srcfmt;
-CS_INT src = 32768;
-CS_DATAFMT dstfmt;
-CS_SMALLINT dst;
+	int verbose = 1;
+	CS_CONTEXT *ctx;
+	CS_CONNECTION *conn;
+	CS_COMMAND *cmd;
+	CS_RETCODE ret;
+	CS_DATAFMT srcfmt;
+	CS_INT src = 32768;
+	CS_DATAFMT dstfmt;
+	CS_SMALLINT dst;
 
 	fprintf(stdout, "%s: Testing context callbacks\n", __FILE__);
 	srcfmt.datatype = CS_INT_TYPE;
@@ -51,7 +51,7 @@ CS_SMALLINT dst;
 	}
 
 	if (ct_callback(ctx, NULL, CS_SET, CS_CLIENTMSG_CB, clientmsg_cb)
-		!= CS_SUCCEED) {
+	    != CS_SUCCEED) {
 		fprintf(stderr, "ct_callback() failed\n");
 		return 1;
 	}
@@ -69,7 +69,7 @@ CS_SMALLINT dst;
 		fprintf(stdout, "Trying cslibmsg_cb\n");
 	}
 	if (cs_config(ctx, CS_SET, CS_MESSAGE_CB, cslibmsg_cb, CS_UNUSED, NULL)
-		!= CS_SUCCEED) {
+	    != CS_SUCCEED) {
 		fprintf(stderr, "cs_config() failed\n");
 		return 1;
 	}
@@ -95,15 +95,14 @@ CS_SMALLINT dst;
 	}
 	ret = try_ctlogin(&ctx, &conn, &cmd, verbose);
 	if (ret != CS_SUCCEED) {
-	fprintf(stderr, "Login failed\n");
+		fprintf(stderr, "Login failed\n");
 		return 1;
 	}
 
 	if (verbose) {
 		fprintf(stdout, "Trying clientmsg_cb with connection\n");
 	}
-	ret = ct_callback(NULL, conn, CS_SET, CS_CLIENTMSG_CB,
-		(CS_VOID *) clientmsg_cb);
+	ret = ct_callback(NULL, conn, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) clientmsg_cb);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_callback() failed\n");
 		return 1;
@@ -122,8 +121,7 @@ CS_SMALLINT dst;
 	if (verbose) {
 		fprintf(stdout, "Trying servermsg_cb with connection\n");
 	}
-	ret = ct_callback(NULL, conn, CS_SET, CS_SERVERMSG_CB,
-		(CS_VOID *) servermsg_cb);
+	ret = ct_callback(NULL, conn, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) servermsg_cb);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_callback() failed\n");
 		return 1;

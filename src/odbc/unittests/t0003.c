@@ -12,29 +12,30 @@
 
 /* Test for SQLMoreResults */
 
-static char  software_version[]   = "$Id: t0003.c,v 1.5 2002-10-19 03:02:34 jklowden Exp $";
-static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
+static char software_version[] = "$Id: t0003.c,v 1.6 2002-11-20 14:00:43 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-int main( int argc, char * argv[] ) 
-{ 
+int
+main(int argc, char *argv[])
+{
 /* int res; */
-SQLCHAR command[512]; 
+	SQLCHAR command[512];
 
-    setenv("TDSDUMP","",1);
+	setenv("TDSDUMP", "", 1);
 
-    Connect();
+	Connect();
 
-	sprintf(command,"drop table #odbctestdata");
-	printf("%s\n",command);
-	if( SQLExecDirect( Statement, command, SQL_NTS ) 
-		!= SQL_SUCCESS ) { 
-		printf( "Unable to execute statement\n" ); 
-	} 
+	sprintf(command, "drop table #odbctestdata");
+	printf("%s\n", command);
+	if (SQLExecDirect(Statement, command, SQL_NTS)
+	    != SQL_SUCCESS) {
+		printf("Unable to execute statement\n");
+	}
 
-	Command(Statement,"create table #odbctestdata (i int)");
-//	Command(Statement,"insert #odbctestdata values (123)" );
+	Command(Statement, "create table #odbctestdata (i int)");
+//      Command(Statement,"insert #odbctestdata values (123)" );
 
-	Command(Statement,"select * from #odbctestdata select * from #odbctestdata");
+	Command(Statement, "select * from #odbctestdata select * from #odbctestdata");
 
 /*	if (SQLFetch(Statement) != SQL_SUCCESS) {
 		printf("Data expected\n");
@@ -75,11 +76,10 @@ SQLCHAR command[512];
 		exit(1);
 	}*/
 
-	Command(Statement,"drop table #odbctestdata");
+	Command(Statement, "drop table #odbctestdata");
 
 	Disconnect();
 
-	printf( "Done.\n" );
+	printf("Done.\n");
 	return 0;
-} 
-
+}
