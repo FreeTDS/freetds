@@ -1,6 +1,6 @@
 /*
- * This file produced from ./sybase_charsets.h.pl
- * $Id: sybase_character_sets.h,v 1.1 2003-04-15 02:59:37 jklowden Exp $
+ * This file produced from sybase_character_sets.h.pl
+ * $Id: sybase_character_sets.h,v 1.2 2003-06-07 18:24:55 freddy77 Exp $
  */
 	  {        "ISO-8859-1", "ascii_8"       }
 	, {             "BIG-5", "big5"          }
@@ -43,18 +43,18 @@
 	 /*                  "", "cp5035yen"     */
 	 /*                  "", "cp737"         */
 	 /*                  "", "cp775"         */
-	, {               "850", "cp850"         }
+	, {             "CP850", "cp850"         }
 	 /*                  "", "cp852"         */
 	 /*                  "", "cp855"         */
 	 /*                  "", "cp857"         */
 	 /*                  "", "cp858"         */
 	 /*                  "", "cp860"         */
 	 /*                  "", "cp861"         */
-	, {               "862", "cp862"         }
+	, {             "CP862", "cp862"         }
 	 /*                  "", "cp863"         */
 	 /*                  "", "cp864"         */
 	 /*                  "", "cp865"         */
-	, {               "866", "cp866"         }
+	, {             "CP866", "cp866"         }
 	 /*                  "", "cp869"         */
 	 /*                  "", "cp870"         */
 	 /*                  "", "cp871"         */
@@ -81,17 +81,17 @@
 	 /*                  "", "eucgb"         */
 	 /*                  "", "eucjis"        */
 	 /*                  "", "eucksc"        */
-	, {          "ECMA-118", "greek8"        }
+	, {        "ISO-8859-7", "greek8"        }
 	, {       "ISO-8859-10", "iso10"         }
 	, {       "ISO-8859-13", "iso13"         }
 	, {       "ISO-8859-14", "iso14"         }
 	, {       "ISO-8859-15", "iso15"         }
 	, {    "ANSI_X3.4-1968", "iso646"        }
 	, {        "ISO-8859-2", "iso88592"      }
-	, {          "CYRILLIC", "iso88595"      }
-	, {            "ARABIC", "iso88596"      }
-	, {          "ECMA-118", "iso88597"      }
-	, {            "HEBREW", "iso88598"      }
+	, {        "ISO-8859-5", "iso88595"      }
+	, {        "ISO-8859-6", "iso88596"      }
+	, {        "ISO-8859-7", "iso88597"      }
+	, {        "ISO-8859-8", "iso88598"      }
 	, {        "ISO-8859-9", "iso88599"      }
 	, {        "ISO-8859-1", "iso_1"         }
 	, {            "KOI8-R", "koi8"          }
@@ -102,10 +102,10 @@
 	, {          "MACGREEK", "macgreek"      }
 	, {           "MACTHAI", "macthai"       }
 	, {        "MACTURKISH", "macturk"       }
-	, {         "HP-ROMAN8", "roman8"        }
+	, {            "ROMAN8", "roman8"        }
 	 /*                  "", "roman9"        */
 	 /*                  "", "rcsu"          */
-	, {          "MS_KANJI", "sjis"          }
+	, {              "SJIS", "sjis"          }
 	, {        "ISO-IR-166", "tis620"        }
 	 /*                  "", "turkish8"      */
 	, {             "UTF-8", "utf8"          }

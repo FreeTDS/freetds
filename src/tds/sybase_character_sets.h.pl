@@ -29,7 +29,7 @@ while(<SYB>){
 
 print "/*\n";
 print " * This file produced from $0\n";
-print ' * $Id: sybase_character_sets.h.pl,v 1.2 2003-04-15 05:22:06 jklowden Exp $', "\n";
+print ' * $Id: sybase_character_sets.h.pl,v 1.3 2003-06-07 18:24:55 freddy77 Exp $', "\n";
 print " */\n";
 
 # look up the canonical name
@@ -63,7 +63,7 @@ while(<DATA>){
 
 		# grep for similar names, as an aid to the to programmer.  
 		$name =~ s/[\-\_]+//g;
-		print STDERR "$Name:  $name alternative_character_sets.h`;
+		print STDERR "$Name:  $name alternative_character_sets.h";
 	}
 	$comma = ',';
 }
