@@ -1,11 +1,47 @@
+README for FreeTDS 0.62.2
+Monday, 22 March 2004
+
+Notable repairs are logged here; the regular README follows below.  
+For further details, see ChangeLog or the mailing list archives.  
+
+ODBC
+----
+
+1.  SQLRowCount() often returned an error, even when none existed.  The 
+problem often manifested itself using DBD::ODBC as:
+
+    DBD::ODBC::st execute failed: [unixODBC][FreeTDS][SQL Server]
+    Invalid cursor state (SQL-24000)(DBD: st_execute/SQLRowCount err=-1)
+    	at /usr/bin/dbtransfer.pl line 336.
+
+2.  SQLTransact() and SQLEndTran() would fail, saying the 
+transaction couldn't be committed.  This problem was seen with unixODBC, 
+and the good folks maintaining unixODBC offered a patch, which we modified
+and applied.  
+
+The above problems are corrected in 0.62.2.  
+
+Known behavior: SQLFetch().  When a stored procedure returns 
+a result set *and* executes subsequent queries, errors from the ensuing 
+queries will not be reported.  SQLFetch() returns SUCCEED.  
+We hope to address this in 0.63.  
+
+Other issues
+------------
+
+*  Several VMS-related build issues were fixed.  
+*  A few alignment problems in libtds were fixed.
+*  Two buffer overflow conditions were addressed.  
+
+                   =======================================
+
 README for FreeTDS 0.62.1
 Saturday, 14 January 2004
 
 The 0.62 release included one late change that had not been thoroughly tested. 
 This 0.62.1 release corrects that error.  
 
-The regular README follows.  
-
+                   =======================================
 
 README for FreeTDS 0.62  
 Saturday, 10 January 2004
@@ -242,5 +278,5 @@ from all over. So if you live someplace neat (read: not Michigan) and
 want to send one, email him (brian@bruns.org) for his current snail mail
 address.
 
-$Id: README,v 1.8.4.4 2004-01-15 05:01:30 jklowden Exp $
+$Id: README,v 1.8.4.5 2004-03-22 22:02:27 jklowden Exp $
 

@@ -1,3 +1,6 @@
+Mon Mar 22 17:02:07 EST 2004	JK Lowden <jklowden@schemamania.org>
+	* README document 0.62.2 changes
+
 Fri Mar 19 17:00:49 EST 2004	JK Lowden <jklowden@schemamania.org>
 	* src/odbc/unittests/common.c src/odbc/unittests/common.h
 	* src/odbc/unittests/transaction.c
