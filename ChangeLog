@@ -1,3 +1,8 @@
+Mon Mar 31 17:54:34 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/rpc_ct_param.c:
+	* src/ctlib/unittests/rpc_ct_setparam.c:
+	- fix buffer overflow
+
 Mon Mar 31 15:13:19 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/read.c: add comment
 	* src/tds/token.c:

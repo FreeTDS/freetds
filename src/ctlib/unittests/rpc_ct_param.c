@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_param.c,v 1.3 2003-03-27 20:05:56 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_param.c,v 1.4 2003-03-31 15:55:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -358,6 +358,7 @@ main(int argc, char *argv[])
 					fprintf(stderr, "malloc coldata.value failed \n");
 					return 1;
 				}
+				coldata[i].value[0] = 0;
 
 				ret = ct_bind(cmd, (i + 1), &outdatafmt[i], coldata[i].value, &coldata[i].valuelen,
 					      (CS_SMALLINT *) & coldata[i].indicator);
