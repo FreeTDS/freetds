@@ -10,6 +10,27 @@ Sun Sep 22 09:55:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: handle some out of memory conditions
 	* src/tds/token.c: do not skip empty recordset
 
+Sat Sep 22 00:34:00 CDT 2002	Steve Langasek <vorlon@netexpress.net>
+	* src/dblib/bcp.c:
+	- we were memcpy()ing into the wrong variable on conversion!
+	  behold, the power of -Wall.
+
+Sat Sep 21 23:37:58 CDT 2002	Steve Langasek <vorlon@netexpress.net>
+	* dblib/Makefile.am:
+	- bump the soname on libsybdb, on account of the dbdead() symbol
+	  change
+
+Sat Sep 21 19:53:39 CDT 2002	Steve Langasek <vorlon@netexpress.net>
+	Cleanup after compiling with -Wall
+	* src/apps/tsql.c src/dblib/dblib.c odbc/odbc.c odbc/odbc_util.c:
+	- missing #includes for our prototypes
+	* src/ctlib/cs.c src/dblib/dblib.c odbc/convert_tds2sql.c
+	  odbc/odbc.c odbc/prepare_query.c tds/convert.c tds/token.c:
+	- make sure variables are always initialized before they're
+	  used
+	* odbc/odbc.c odbc/prepare_query.c:
+	- get rid of unused variables
+
 Sat Sep 21 03:38:09 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/pool/main.c:
 	- Use IS_TDSDEAD() for all dead socket checks.
