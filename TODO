@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.121 2005-01-12 08:46:36 freddy77 Exp $
+To Do List	$Id: TODO,v 1.122 2005-01-12 20:58:20 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -20,7 +20,6 @@ Broken:
 Working in progress:
 - ODBC fixing compute
 - logging bit flags to select levels and info types with defaults
-- fix timeout problem reported in ML
 
 Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().
@@ -55,11 +54,11 @@ Started in 0.63
 
 For future versions (in priority order within library):
   All:
+. fix timeout problem reported in ML
 . move error message macro/prototype to tds.h.in; use in dblib.c.
 . Remove old char(30) limitations to various sysnames e.g., tables, columns, 
   passwords (checks).  Is this done?  
 . Add missing constants needed for python and verify working
-  (work in progress)
 . Add missing constants needed for Gnome-DB and verify working 
 . conversion from ucs2 to utf8, provide for 2+ bytes/character
 . tdsping program for testing purposes
@@ -77,10 +76,12 @@ For future versions (in priority order within library):
   (too complicate, see ctlib bulk, cf "bulk copy and row buffer")
 . cursor support (limited support on ctlib)
 . support for named instances under mssql2k
+  . utility to get port
 . Autodetect TDS protocol when connecting (and cache somewhere?)
 . support for VARIANT type (requested one time, 2003-8-1)
 . support for NT named pipe (requested many time ago for mssql6.5 server, only
-  for completeness)
+  for completeness). If anybody knows a library to handle named pipes
+  compatible with LGPL please tell us.
 . NTLMv2 domain login support.  Cf. ML 5 Aug 2003 12:20:21 -0700 (PDT) 
   from bradleyb@u.washington.edu re: "Domain Login Support, connecting to MSSQL issue"
   and http://davenport.sourceforge.net/ntlm.html.  For now, document.
