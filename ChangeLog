@@ -1,3 +1,6 @@
+Tue Apr  8 15:42:21 EDT 2003	JK Lowden <jklowden@schemamania.org>
+	* src/tds/Makefile.am added character_sets.h
+
 Tue Apr  8 11:31:17 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h src/tds/login.c delete commented-out code
 

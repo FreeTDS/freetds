@@ -13,7 +13,7 @@ lib_LTLIBRARIES		=	libtds.la
 libtds_la_SOURCES	=
 libtds_la_LDFLAGS	= -version-info 2:0:0
 libtds_la_LIBADD 	= libtds_objects.la $(NETWORK_LIBS) $(LIBICONV) ../replacements/libreplacements.la
-noinst_HEADERS	= tds_willconvert.h
+noinst_HEADERS		= tds_willconvert.h character_sets.h
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox
