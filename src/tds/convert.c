@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.108 2002-12-11 21:44:27 freddy77 Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.109 2002-12-28 20:22:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -73,6 +73,15 @@ static TDS_INT tds_convert_int2(int srctype, const TDS_CHAR *src, int desttype, 
 static TDS_INT tds_convert_int4(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
 static TDS_INT tds_convert_int8(int srctype, const TDS_CHAR *src, int desttype, CONV_RESULT *cr);
 static int  string_to_datetime(const char *datestr, int desttype, CONV_RESULT *cr );
+
+#define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
+extern const int tds_numeric_bytes_per_prec[];
+
+#define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
+#define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )
+/* f77: I don't write -2147483648, some compiler seem to have some problem 
+ * with this constant although is a valid 32bit value */
+#define IS_INT(x) ( (-2147483647l-1l) <= (x) && (x) <= 2147483647l )
 
 /**
  * \defgroup convert Conversion
@@ -123,15 +132,13 @@ static TDS_UINT utf16len(const utf16_t* s);
 static const char *tds_prtype(int token);
 #endif
 
-#define test_alloc(x) {if ((x)==NULL) return TDS_CONVERT_NOMEM;}
-extern const int tds_numeric_bytes_per_prec[];
-
-#define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
-#define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )
-/* f77: I don't write -2147483648, some compiler seem to have some problem 
- * with this constant although is a valid 32bit value */
-#define IS_INT(x) ( (-2147483647l-1l) <= (x) && (x) <= 2147483647l )
-
+/**
+ * Return type suitable for conversions (convert all nullable types to 
+ * fixed type)
+ * @param srctype type to convert
+ * @param colsize size of type
+ * @result type for conversion
+ */
 int tds_get_conversion_type(int srctype, int colsize)
 {
 	switch(srctype)
@@ -1630,6 +1637,7 @@ char buf[37];
  * behaviour...
  * @param tds_ctx  context (used in conversion to data and to return messages)
  * @param srctype  type of source
+ * @param src      pointer to source data to convert
  * @param srclen   length in bytes of source (not counting terminator or strings)
  * @param desttype type of destination
  * @param cr       structure to hold result
@@ -2558,8 +2566,13 @@ TDS_INT tds_get_null_type(int srctype)
 	return srctype;
 }
  
-/*
+/**
  * format a date string according to an "extended" strftime formatting definition.
+ * @param buf     output buffer
+ * @param maxsize size of buffer in bytes (space include terminator)
+ * @param format  format string similar to strftime. %z for milliseconds
+ * @param dr      date to convert
+ * @return length of string returned, 0 for error
  */     
 size_t 
 tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC *dr)
@@ -2698,6 +2711,12 @@ SENSITIVITY T      T   T    F      F     F    F    F    F    F    F    F       F
 #endif
 /* *INDENT-ON* */
 
+/**
+ * Test if a conversion is possible
+ * @param srctype  source type
+ * @param desttype destination type
+ * @return 0 if not convertible
+ */
 unsigned char
 tds_willconvert(int srctype, int desttype)
 {
@@ -2720,6 +2739,14 @@ int i;
 	return 0;
 
 }
+
+/**
+ * Convert from db date format to a structured date format
+ * @param datetype source date type. SYBDATETIME or SYBDATETIME4
+ * @param di       source date
+ * @param dr       destination date
+ * @return TDS_FAIL or TDS_SUCCEED
+ */
 TDS_INT tds_datecrack( TDS_INT datetype, const void *di, TDSDATEREC *dr )
 {
 
