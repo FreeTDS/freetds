@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.6 2002-12-12 20:05:19 jklowden Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.7 2002-12-13 15:00:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve compute results */
@@ -216,6 +216,7 @@ main(int argc, char *argv[])
 				if (datafmt.maxlength > 1024) {
 					datafmt.maxlength = 1024;
 				}
+				compute_col1 = -1;
 				ret = ct_bind(cmd, 1, &datafmt, &compute_col1, &datalength, &ind);
 				if (ret != CS_SUCCEED) {
 					fprintf(stderr, "ct_bind() failed\n");
@@ -243,6 +244,7 @@ main(int argc, char *argv[])
 				datafmt.format = CS_FMT_NULLTERM;
 				datafmt.maxlength = 32;
 
+				compute_col3[0] = 0;
 				ret = ct_bind(cmd, 1, &datafmt, compute_col3, &datalength, &ind);
 				if (ret != CS_SUCCEED) {
 					fprintf(stderr, "ct_bind() failed\n");

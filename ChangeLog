@@ -1,3 +1,6 @@
+Fri Dec 13 15:59:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/t0009.c: avoid print garbage data
+
 Thu Dec 12 14:58:23 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* src/ctlib/ct.c ct_capabilities: remove redundant code.  
 	* src/ctlib/unittests/t0009.c check results of compute_id 2
