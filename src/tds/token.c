@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.190 2003-05-08 08:15:26 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.191 2003-05-12 18:57:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1708,62 +1708,61 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) num);
 		}
 
-	} else {
-		if (is_blob_type(curcol->column_type)) {
-			TDS_CHAR *p;
+	} else if (is_blob_type(curcol->column_type)) {
+		TDS_CHAR *p;
 
-			/* This seems wrong.  text and image have the same wire format, 
-			 * but I don't see any reason to convert image data.  --jkl
-			 */
-			blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
+		/* This seems wrong.  text and image have the same wire format, 
+		 * but I don't see any reason to convert image data.  --jkl
+		 */
+		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
 
-			p = blob_info->textvalue;
-			if (!p) {
-				p = (TDS_CHAR *) malloc(colsize);
-			} else {
-				p = (TDS_CHAR *) realloc(p, colsize);
-			}
-			if (!p)
-				return TDS_FAIL;
-			blob_info->textvalue = p;
-			if (is_char_type(curcol->column_type)) {
-				curcol->column_cur_size = colsize;
-				/* FIXME: test error */
-				tds_get_char_data(tds, (char *) blob_info, colsize, curcol);
-				/* just to make happy code below ... */
-				colsize = curcol->column_cur_size;
-			} else
-				tds_get_n(tds, blob_info->textvalue, colsize);
-		} else {	/* non-numeric and non-blob */
+		p = blob_info->textvalue;
+		if (!p) {
+			p = (TDS_CHAR *) malloc(colsize);
+		} else {
+			p = (TDS_CHAR *) realloc(p, colsize);
+		}
+		if (!p)
+			return TDS_FAIL;
+		blob_info->textvalue = p;
+		if (is_char_type(curcol->column_type)) {
+			curcol->column_cur_size = colsize;
+			/* FIXME: test error */
+			tds_get_char_data(tds, (char *) blob_info, colsize, curcol);
+			/* just to make happy code below ... */
+			colsize = curcol->column_cur_size;
+		} else
+			tds_get_n(tds, blob_info->textvalue, colsize);
+	} else {		/* non-numeric and non-blob */
+		dest = &(current_row[curcol->column_offset]);
+		if (is_char_type(curcol->column_type)) {
+			/* this shouldn't fail here */
+			tds_get_char_data(tds, (char *) dest, colsize, curcol);
+			/* just to make happy code below ... */
+			colsize = curcol->column_cur_size;
+		} else {
 			if (colsize > curcol->column_size)
 				return TDS_FAIL;
-			dest = &(current_row[curcol->column_offset]);
-			if (is_char_type(curcol->column_type)) {
-				/* this shouldn't fail here */
-				tds_get_char_data(tds, (char *) dest, colsize, curcol);
-				/* just to make happy code below ... */
-				colsize = curcol->column_cur_size;
-			} else
-				tds_get_n(tds, dest, colsize);
+			tds_get_n(tds, dest, colsize);
+		}
 
-			/* pad CHAR and BINARY types */
-			fillchar = 0;
-			switch (curcol->column_type) {
-			case SYBCHAR:
-			case XSYBCHAR:
-				/* FIXME use client charset */
-				fillchar = ' ';
-			case SYBBINARY:
-			case XSYBBINARY:
-				if (colsize < curcol->column_size)
-					memset(dest + colsize, fillchar, curcol->column_size - colsize);
-				colsize = curcol->column_size;
-				break;
-			}
+		/* pad CHAR and BINARY types */
+		fillchar = 0;
+		switch (curcol->column_type) {
+		case SYBCHAR:
+		case XSYBCHAR:
+			/* FIXME use client charset */
+			fillchar = ' ';
+		case SYBBINARY:
+		case XSYBBINARY:
+			if (colsize < curcol->column_size)
+				memset(dest + colsize, fillchar, curcol->column_size - colsize);
+			colsize = curcol->column_size;
+			break;
+		}
 
-			if (curcol->column_type == SYBDATETIME4) {
-				tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
-			}
+		if (curcol->column_type == SYBDATETIME4) {
+			tdsdump_log(TDS_DBG_INFO1, "%L datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
 		}
 	}
 

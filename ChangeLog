@@ -1,3 +1,8 @@
+Mon May 12 20:57:22 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c:
+	- fixed a bug that cause wire not readed converting from
+	  larger-size string (like ucs2 -> iso8859-1)
+
 Mon May 12 17:29:00 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: remove unused function
 
