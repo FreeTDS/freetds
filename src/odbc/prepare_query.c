@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: prepare_query.c,v 1.39 2003-11-22 17:22:25 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_query.c,v 1.39.2.1 2004-06-05 16:49:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -537,7 +537,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLINTEGE
 		blob_info->textvalue = p;
 		memcpy(blob_info->textvalue + curcol->column_cur_size, DataPtr, len);
 	} else {
-		memcpy(stmt->params->current_row + curcol->column_cur_size, DataPtr, len);
+		memcpy(stmt->params->current_row + curcol->column_offset + curcol->column_cur_size, DataPtr, len);
 	}
 	curcol->column_cur_size += len;
 

@@ -1,3 +1,6 @@
+Sat Jun 05 18:49:34 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/prepare_query.c: backported memory corruption fix
+
 Tue Jun 01 10:57:59 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: backported memory leak fix
 
