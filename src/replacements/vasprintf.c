@@ -4,21 +4,27 @@
  * public domain.  no warranty.  use at your own risk.  have a nice day.
  */
 
-#ifdef HAVE_CONFIG_H
+#if HAVE_CONFIG_H
 #include <config.h>
-#endif
+#endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
+#if HAVE_PATHS_H
+#include <paths.h>
+#endif /* HAVE_PATHS_H */
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: vasprintf.c,v 1.5 2002-10-07 15:44:58 freddy77 Exp $";
+static char  software_version[]   = "$Id: vasprintf.c,v 1.6 2002-10-11 14:46:34 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL "/dev/null"
+#endif
 
 #define CHUNKSIZE 512
 int
@@ -60,7 +66,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
   *ret = NULL;
 
 #ifdef _REENTRANT
-  if ((fp = fopen("/dev/null", "w")) == NULL)
+  if ((fp = fopen(_PATH_DEVNULL, "w")) == NULL)
     return -1;
 #else
   if ((fp == NULL) && ((fp = fopen("/dev/null", "w")) == NULL))
