@@ -3,16 +3,17 @@
 
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
-RELEASE = 0.60
+RELEASE = 0.60.1
 PRODUCT = FreeTDS
-# make already import all environment strings
-#DOCBOOK_DSL = $(DOCBOOK_DSL)
+DOCBOOK_DSL = /usr/share/sgml/docbook/dsssl-stylesheets/html/docbook.dsl
+#DOCBOOK_DSL = ${DOCBOOK}/dsssl/modular/html/docbook.dsl
+
 man_MANS	= freebcp.1 tsql.1
 
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt tds7.txt tds_layer.txt userguide.sgml \
 		basic_jdbc_question.html faq.html tds.html userguide.tgz \
-		freebcp.1 freebcp.txt tsql.1 tsql.txt CodingStyle
+		freebcp.1 tsql.1 CodingStyle
 
 html:: userguide.tgz
 
@@ -34,10 +35,10 @@ userguide.tgz: $(srcdir)/userguide.sgml
 
 man:	freebcp.1 tsql.1
 
-freebcp.1: freebcp.txt
+freebcp.1:
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/freebcp.txt >freebcp.1
 	
-tsql.1: tsql.txt
+tsql.1:
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(RELEASE) $(srcdir)/tsql.txt >tsql.1
 
 
