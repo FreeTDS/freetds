@@ -1,4 +1,4 @@
-$Id: README,v 1.10.2.1 2004-12-01 02:05:08 jklowden Exp $
+$Id: README,v 1.10.2.2 2005-02-07 10:54:33 jklowden Exp $
 README for FreeTDS 0.63
 Saturday, 27 November 2004
 
@@ -91,7 +91,7 @@ Support
 - OpenOffice
 - Oracle connector
 - DBD::ODBC improved
-- HP-UX and Mac OS X should compile flawlessy now
+- HP-UX and Mac OS X should compile flawlessly now
 
 
 Technical

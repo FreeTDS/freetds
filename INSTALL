@@ -1,8 +1,8 @@
 FreeTDS Installation
 
-   For complete instructions, see the FreeTDS Users Guide.  It is 
-   included in the distribution as "doc/userguide.tgz"; simply untar and
-   enjoy.  It is also online:
+   For complete instructions, see the FreeTDS Users Guide.  
+   "make install" installs it (and a reference manual), by default to
+   /usr/local/share/doc/freetds-<version>.  It is also online:
    
    	http://www.freetds.org/userguide/
 
