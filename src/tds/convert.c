@@ -36,7 +36,7 @@ atoll(const char *nptr)
 }
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.73 2002-09-17 22:13:02 castellano Exp $";
+static char  software_version[]   = "$Id: convert.c,v 1.74 2002-09-20 15:01:14 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -105,15 +105,11 @@ extern const int g__numeric_bytes_per_prec[];
 	tdsdump_log(TDS_DBG_ERROR, "error_handler: conversion from " \
 			"%d to %d not supported\n", srctype, desttype)
 
-#define CONVERSION_ERROR( socket, from, varchar, to ) \
-	send_conversion_error_msg( (socket), 249, __LINE__, (from), (varchar), (to) )
-
 /* eg "Syntax error during explicit conversion of VARCHAR value ' - 13 ' to a DATETIME field." */
 
 void
-send_conversion_error_msg(TDSSOCKET *tds, int err, int line, int from, char *varchar, int to)
+send_conversion_error_msg(TDSCONTEXT *tds_ctx, int err, int from, char *varchar, int to)
 {	
-	enum { level=16, state=1 };
 	/* TODO 249 is the standard explicit conversion error number. 
 	 * If this function is passed some other number, it should have a 
 	 * static lookup table of message strings (by number and locale). --jkl
@@ -125,7 +121,7 @@ send_conversion_error_msg(TDSSOCKET *tds, int err, int line, int from, char *var
 	
 	assert( strlen(buffer) < sizeof(buffer) );
 
-	tds_client_msg(tds->tds_ctx, tds, err, level, state, line, buffer); 
+	tds_client_msg(tds_ctx, NULL, err, 16, -1, -1, buffer); 
 }
 
 int tds_get_conversion_type(int srctype, int colsize)
@@ -1536,28 +1532,16 @@ tds_convert(TDSCONTEXT *tds_ctx, int srctype, const TDS_CHAR *src,
 		CONV_RESULT *cr)
 {
 int length;
-	
-/* For now, construct a TDSSOCKET.  It's what we should have been passed.
- * The only real consequence is that the user-supplied error handler's return
- * code can't be used to close the connection.  
- */
-TDSSOCKET fake_socket, *tds=&fake_socket;
 char varchar[2056];
 CONV_RESULT result;
 int len;
-		
-
-	/* FIXME this method can cause core dump, we call tds_client_msg with 
-	 * invalid socket structure but handler do not know this...*/
-	memset( &fake_socket, 0, sizeof(fake_socket) );
-	fake_socket.tds_ctx = tds_ctx;
 
 	length = tds_convert_noerror(tds_ctx,srctype,src,srclen,
 			desttype,destlen,cr);
 
 	switch(length) {
 	case TDS_CONVERT_NOAVAIL:
-		send_conversion_error_msg( tds, 20029, __LINE__, srctype, "[unable to display]", desttype );
+		tds_client_msg(tds_ctx, NULL, 20053, 4, -1, -1, "Requested data-conversion does not exist.");
 		LOG_CONVERT();
 		return TDS_FAIL;
 		break;
@@ -1588,7 +1572,12 @@ int len;
 			break;
 	}
 
-	CONVERSION_ERROR( tds, srctype, varchar, desttype );
+	/*
+	 * XXX This is not correct -- 249 is a server message not a
+	 * XXX client error!
+         */
+	send_conversion_error_msg(tds_ctx, 249, srctype, varchar, desttype);
+
 	return TDS_FAIL;
 }
 
