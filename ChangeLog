@@ -1,3 +1,15 @@
+Tue Nov 20 11:48:26 2001  James Cameron  <quozl@us.netrek.org>
+
+	* doc/userguide.sgml: adjust build instructions; gmake does not
+	work on some Linux systems, as GNU make is installed as make not
+	gmake.  Ensure that the instructions match against INSTALL.  Fix
+	name of GNU Project and software development tools therein.
+
+Tue Nov 20 11:41:40 2001  James Cameron  <quozl@us.netrek.org>
+
+	* INSTALL: simplify installation instructions in favour of user
+	guide, fix URL to guide.
+
 Tue Nov 20 11:34:54 2001  James Cameron  <quozl@us.netrek.org>
 
 	* README, doc/faq.html: fix User Guide URL

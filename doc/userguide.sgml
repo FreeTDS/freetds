@@ -189,12 +189,12 @@ If you build it they will come.
 </blockquote>
 		</para>
 		<sect1 id="gnu">
-			<title>The Gnu World</title>
+			<title>The GNU World</title>
 			<para>
-FreeTDS uses GNU Automake, Autconf, and LibTool for a somewhat portable package.
+FreeTDS uses GNU Automake, Autoconf, and libtool to increase portability.
 			</para>
 			<para>
-For many people, the preceding paragraph says it all (good or bad).  If you're familiar with the Gnu system, you can probably just download the tarball and get away with scanning the README impatiently and then following your instincts.  Because everyone is a beginner once and no one is an expert at everything, we'll try to explain things in plain English where possible, and to define our terms as we go along.
+For many people, the preceding paragraph says it all (good or bad).  If you're familiar with the GNU system, you can probably just download the tarball and get away with scanning the README impatiently and then following your instincts.  Because everyone is a beginner once and no one is an expert at everything, we'll try to explain things in plain English where possible, and to define our terms as we go along.
 			</para>
 			<para>
 If the following nevertheless reads like gibberish, you might very well want to use something prepackaged (see <link linkend="alternatives">Alternatives</link>).  If it reads like a vaguely intelligible alien script that might yield to intensive research, we've included links to some of the usual suspects at the end of this chapter.  If it reads like a bad explanation of something you could explain better, please send us your version!  
@@ -217,25 +217,25 @@ For those behind firewalls or otherwise unable to access CVS, nightly snapshots 
 			</para>
 		</sect1>
 		<sect1 id="config">
-    			<title>How to build: Configure and gmake</title>
+    			<title>How to build: Configure and make</title>
 			<para>
-If you've built other Gnu projects, building FreeTDS is a fairly straightforward process. We have a terse and verbose description; pick your poison.  
+If you've built other GNU projects, building FreeTDS is a fairly straightforward process. We have a terse and verbose description.  
 			</para>
-			<sect2><title>For the Impatient</title>
+			<sect2><title>For Experts</title>
 <screen>
 <prompt>$ </prompt><userinput>./configure --prefix=/usr/local/freetds</userinput>
-<prompt>$ </prompt><userinput>gmake</userinput>
+<prompt>$ </prompt><userinput>make</userinput>
 <prompt>$ </prompt><userinput>su root</userinput>
 <prompt>Password: </prompt>
-<prompt>$ </prompt><userinput>gmake install</userinput>
+<prompt>$ </prompt><userinput>make install</userinput>
 </screen>
 			<Important><para>
-The FreeTDS build process requires the GNU make <filename>gmake</filename>, so those who build on BSD systems or Unices that don't ship with gmake by default will need to grab it from <ulink url="ftp://ftp.gnu.org/gnu/make">ftp.gnu.org</ulink> 
+FreeTDS requires GNU make.  If your system's default make is not GNU make, type <filename>gmake</filename> instead of <filename>make</filename>.  If the <filename>gmake</filename> command does not work, install GNU make from <ulink url="ftp://ftp.gnu.org/gnu/make">ftp.gnu.org</ulink>.
 			</para></Important>
 			</sect2>
 			<sect2><title>For Everyone Else </title><TITLEABBREV>(FreeTDS for Dummies?)</TITLEABBREV>
 			<para>
-The Gnu system has its own <Command>make</Command>, <filename>gmake</filename> that of course uses a makefile.  It furthermore has a means called <Command>configure</Command> to configure (and generate) the makefile.  <Command>configure</Command> relies on some (pardon the expression) configuration files of its own, and accepts some command-line arguments.  In the case of FreeTDS, <Command>configure</Command>'s configuration files are provided as part of the package.  You may need to provide some command-line arguments, depending on what your environment looks like.  Once you've "configured" the project, gmake will do the heavy lifting for you.  
+The GNU system has its own <Command>make</Command>, <filename>gmake</filename> that uses a Makefile.  It furthermore has a means called <Command>configure</Command> to configure (and generate) the Makefile.  <Command>configure</Command> relies on some files of its own, and accepts some command-line arguments.  In the case of FreeTDS, <Command>configure</Command>'s input files are provided as part of the package.  You may need to provide some command-line arguments, depending on what your environment looks like.  Once you've "configured" the project, gmake will manage the rest of the build.  
 			</para>
 			<para>
 There are a few optional arguments to <Command>configure</Command> that may be important to you.
@@ -247,7 +247,7 @@ There are a few optional arguments to <Command>configure</Command> that may be i
 				<term><Parameter>--with-tdsver
 					</Parameter></term>
 				<listitem><para>Specifies the default TDS version.  (There are a couple of ways to set the TDS version at run-time.  This parameter takes effect if no run-time settings are found.) Acceptable values are 4.2, 4.6, 5.0, and 7.0.  </para>
-					<para>The default is 5.0 if this argument is not passed to configure.</para>
+					<para>The default is 5.0 if this argument is not passed to <Command>configure</Command>.</para>
 					</listitem>
 				</varlistentry>
 
@@ -359,7 +359,7 @@ If you install it they will stay?
 <Note><title>Confusing terminology</title>
 			<para>
 <quote>Configuring</quote> and <quote>installing</quote> 
-don't have absolute, context-free definitions.  In some circles, we install a product and then configure it.  In the Gnu world, we <command>configure</command> the package (generate the makefile), then we <command>make install</command> the package.  To  <emphasis>install the package</emphasis> is to copy the binaries to their appropriate run-time directories, copy the documentation to the <filename>doc</filename> directory, and maybe let the package manager know what's happened.  That's generally considered part of the <phrase>build process</phrase>, covered in the last chapter.  
+don't have absolute, context-free definitions.  In some circles, we install a product and then configure it.  In the GNU world, we <command>configure</command> the package (generate the Makefile), then we <command>make install</command> the package.  To  <emphasis>install the package</emphasis> is to copy the binaries to their appropriate run-time directories, copy the documentation to the <filename>doc</filename> directory, and maybe let the package manager know what's happened.  That's generally considered part of the <phrase>build process</phrase>, covered in the last chapter.  
 			</para>
 			<para>
 For lack of a better term, this chapter describes installing the <emphasis>product</emphasis>.  Put more specifically, once we're done with the package manager, we still have to tell FreeTDS about your database servers, and we still have to tell your client programs about FreeTDS.  
@@ -983,7 +983,7 @@ The following programs are known to work to some extent with FreeTDS, here you w
 SQSH is a command line based query tool written by Scott Gray to replace the program 'isql' that ships with Sybase ASE.  It makes a great diagnostic tool for FreeTDS as well.  If you are having trouble, grab SQSH and try getting that to work before more complicated arrangements.<tip><sidebar><para>That advice is so good, it bears repeating.  If you are having trouble, grab SQSH and get that to work. Not only will it help isolate the problem, it will give you a very capable tool that will make you question the worth of GUIs in general.  </para></sidebar></tip>
 			</para>
 			<para>
-After running configure in SQSH's directory (make sure you set the SYBASE environment variable first), look for the SYBASE_LIBS definition in the Makefile.  Change the line to match this example.
+After running <Command>configure</Command> in SQSH's directory (make sure you set the SYBASE environment variable first), look for the SYBASE_LIBS definition in the Makefile.  Change the line to match this example.
 <example>
 <title>The SQSH Makefile</title>
 <programlisting>
@@ -1007,7 +1007,7 @@ After running configure in SQSH's directory (make sure you set the SYBASE enviro
 SYBASE_LIBS   = -lct -ldl -lm
 </programlisting>
 </example>
-At this point you can also enable readline support if you didn't specify it on the configure command.
+At this point you can also enable readline support if you didn't specify it in the <Command>configure</Command> arguments.
 			</para>
 			<para>
 After that just type <command>make</command> and you are off and running.
