@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.4 2002-11-23 17:10:59 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.5 2002-11-24 21:53:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -94,26 +94,33 @@ main(int argc, char **argv)
 	
 	/* set up and send the rpc */
 	erc = dbrpcinit  (dbproc, proc, 0); /* no options */
+	printf("executing dbrpcinit\n");
 	if (erc == FAIL) fprintf(stderr, "Failed: dbrpcinit\n");
 
+	printf("executing dbrpcparam\n");
 	erc = dbrpcparam (dbproc, param, DBRPCRETURN, SYBINT4, /*maxlen=*/ -1, sizeof(retval), (BYTE*)&retval);
 	if (erc == FAIL) fprintf(stderr, "Failed: dbrpcparam\n");
 
+	printf("executing dbrpcsend\n");
 	erc = dbrpcsend (dbproc);
 	if (erc == FAIL) fprintf(stderr, "Failed: dbrpcsend\n");
 
 	/* wait for it to execute */
+	printf("executing dbsqlok\n");
 	erc = dbsqlok (dbproc);
 	if (erc == FAIL) fprintf(stderr, "Failed: dbsqlok\n");
 
 	add_bread_crumb();
 
 	/* retrieve outputs per usual */
+	printf("retrieving output parameter... ");
 	if (dbresults(dbproc) == FAIL) {
 		add_bread_crumb();
 		fprintf(stdout, "Was expecting a result set.\n");
 		exit(1);
 	}
+	printf("done\n");
+	
 	add_bread_crumb();
 
 	for (i = 1; i <= dbnumrets(dbproc); i++) {
