@@ -1,3 +1,8 @@
+Fri Sep 27 12:44:19 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/dblib/bcp.c:
+	- When bulk copying out, skip any column numbers that are out of
+	  range of the columns in the table.
+
 Fri Sep 27 09:52:43 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/apps/tsql.c: change handler return from 1 to 0, added sqsh-style 
 	  arguments to "go", added -t timer feature.

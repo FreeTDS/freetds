@@ -48,7 +48,7 @@ extern int (*g_dblib_err_handler)();
 
 extern const int g__numeric_bytes_per_prec[];
 
-static char  software_version[]   = "$Id: bcp.c,v 1.20 2002-09-27 03:09:50 castellano Exp $";
+static char  software_version[]   = "$Id: bcp.c,v 1.21 2002-09-27 16:45:47 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -511,6 +511,10 @@ int           rows_written;
            {
    
                hostcol = dbproc->host_columns[i];
+	       if ((hostcol->tab_colnum < 1)
+		   || (hostcol->tab_colnum > dbproc->bcp_colcount)) {
+			continue;
+	       }
    
                if (hostcol->tab_colnum)
                {
