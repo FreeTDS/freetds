@@ -337,10 +337,11 @@ string   SQL text
 
 <hr>
 <a name="p3"><b class="section">RPC packet (0x3 3)</b></a>
-<p>
-Do not mix RPC packet with RPC token. RPC packet is supported by all version of
-TDS while RPC token is supported by TDS5 (and has different format).
-This is the oldest (and the only one in mssql) way to call directly an RPC.
+
+<p> Do not confuse an RPC packet with an RPC token. The RPC packet is supported
+by all version of TDS; the RPC token is supported only by TDS 5.0 (and has
+different format). This is the oldest (and the only one in mssql) way to call
+directly an RPC.  Sybase also documents it, but as 0xE.  
 
 <pre>
   INT16         XCHAR[n]   INT16  
@@ -386,9 +387,11 @@ Data info structure
 
 name length   parameter name length (0 if unused)
 param name    parameter name
-flags         bit flags
-               0x1 1 output parameter
-               TODO finish
+flags         bit Name           Meaning
+              0x1 TDS_RPC_OUTPUT output parameter
+              0x2 TDS_RPC_NODEF  output parameter has no default value. 
+                                 Valid only with TDS_RPC_OUTPUT.
+
 usertype      usertype
 type          param type
 size          see <a href="#129">Results</a>
