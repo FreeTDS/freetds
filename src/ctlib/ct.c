@@ -34,7 +34,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.54 2002-12-11 10:55:25 freddy77 Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.55 2002-12-11 19:56:30 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1531,7 +1531,7 @@ CS_RETCODE ct_param(CS_COMMAND *cmd, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT 
 {
 TDSSOCKET *tds;
 TDSDYNAMIC *dyn;
-/* TDSINPUTPARAM *param; */
+/* TDSINPUTPARAM param; */
 
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_param()\n");
 	tdsdump_log(TDS_DBG_INFO1, "%L ct_param() data addr = %d data length = %d\n", data, datalen);
@@ -1557,12 +1557,221 @@ TDSDYNAMIC *dyn;
 	return CS_SUCCEED;
 */
 }
-CS_RETCODE ct_options(CS_CONNECTION *con, CS_INT action, CS_INT option, CS_VOID *param, CS_INT paramlen, CS_INT *outlen)
+
+CS_RETCODE 
+ct_options(CS_CONNECTION *con, CS_INT action, CS_INT option, CS_VOID *param, CS_INT paramlen, CS_INT *outlen)
 {
 	tdsdump_log(TDS_DBG_FUNC, "%L inside ct_options() action = %s option = %d\n",
 		CS_GET ? "CS_GET" : "CS_SET", option);
-	return CS_SUCCEED;
-}
+	
+	if (param == NULL) return CS_FAIL;
+
+	switch (option) {
+	case CS_OPT_ANSINULL:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_ANSIPERM:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_ARITHABORT:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_ARITHIGNORE:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+
+	case CS_OPT_AUTHOFF:
+	case CS_OPT_AUTHON:
+		break;
+
+	case CS_OPT_CHAINXACTS:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_CURCLOSEONXACT:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE:
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_DATEFIRST:
+		switch (*(int*) param) {
+		case  CS_OPT_SUNDAY:
+		case  CS_OPT_MONDAY:
+		case  CS_OPT_TUESDAY:
+		case  CS_OPT_WEDNESDAY:
+		case  CS_OPT_THURSDAY:
+		case  CS_OPT_FRIDAY:
+		case  CS_OPT_SATURDAY :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_DATEFORMAT:
+		switch (*(int*) param) {
+		case  CS_OPT_FMTMDY:
+		case  CS_OPT_FMTDMY:
+		case  CS_OPT_FMTYMD:
+		case  CS_OPT_FMTYDM:
+		case  CS_OPT_FMTMYD:
+		case  CS_OPT_FMTDYM :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_FIPSFLAG:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_FORCEPLAN:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_FORMATONLY:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_GETDATA:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_ISOLATION:
+		switch (*(int*) param) {
+		case  CS_OPT_LEVEL1:
+		case  CS_OPT_LEVEL0:
+		case  CS_OPT_LEVEL3:  /* CS_OPT_LEVEL0 requires SQL Server version 11.0 or later or Adaptive Server. */
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_NOCOUNT:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_NOEXEC:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_PARSEONLY:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_QUOTED_IDENT:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_RESTREES:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_SHOWPLAN:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_STATS_IO:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_STATS_TIME:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_STR_RTRUNC:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	case CS_OPT_TRUNCIGNORE:
+		switch (*(int*) param) {
+		case  CS_TRUE:
+		case  CS_FALSE :
+			break; /* end valid choices */
+		default:
+			return CS_FAIL;
+		}
+	}
+	tdsdump_log(TDS_DBG_FUNC, "%L ct_option: UNIMPLEMENTED %d\n", *(int*) param);
+	return CS_SUCCEED; 	/* return succeed for now unless inputs are wrong */
+	return CS_FAIL;
+
+} /* ct_options */
 
 CS_RETCODE
 ct_poll(CS_CONTEXT *ctx, CS_CONNECTION *connection, CS_INT milliseconds, CS_CONNECTION **compconn, CS_COMMAND **compcmd, CS_INT *compid, CS_INT *compstatus)

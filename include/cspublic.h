@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.21 2002-12-11 10:55:25 freddy77 Exp $";
+         "$Id: cspublic.h,v 1.22 2002-12-11 19:56:30 jklowden Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -599,6 +599,30 @@ typedef struct _cs_objdata {
 	CS_VOID *buffer;
 	CS_INT buflen;
 } CS_OBJDATA;
+
+/* Eventually, these should be in terms of TDS values */
+enum {
+        CS_OPT_SUNDAY,
+        CS_OPT_MONDAY,
+        CS_OPT_TUESDAY,
+        CS_OPT_WEDNESDAY,
+        CS_OPT_THURSDAY,
+        CS_OPT_FRIDAY,
+        CS_OPT_SATURDAY
+};
+enum {
+	CS_OPT_FMTMDY,
+	CS_OPT_FMTDMY,
+	CS_OPT_FMTYMD,
+	CS_OPT_FMTYDM,
+	CS_OPT_FMTMYD,
+	CS_OPT_FMTDYM
+};
+enum {
+	CS_OPT_LEVEL0,
+	CS_OPT_LEVEL1,
+	CS_OPT_LEVEL3
+};
 
 /* */
 #define CS_FALSE	0
