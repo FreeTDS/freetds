@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.69 2003-08-08 15:58:42 freddy77 Exp $
+To Do List	$Id: TODO,v 1.70 2003-08-30 17:53:10 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -100,6 +100,11 @@ For future versions (in priority order within library):
   directly)
 . autoinstall for RPM
 . test: all binding types (input and output)
+. test: new descriptors work
+  - ODBC 2 type returned (datetime)
+  - SQLDescribeCol return ODBC 2 type or 3 or based on configuration?
+  - what happen to SQL_DESC_DATETIME_INTERVAL_CODE and SQL_DESC_CONCISE_TYPE
+    changing only SQL_DESC_TYPE (with SQLSetDescField)
 
   pool
 . get connection pooling working with all protocol versions

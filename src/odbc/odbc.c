@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.238 2003-08-30 17:10:36 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.239 2003-08-30 17:53:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2080,6 +2080,7 @@ SQLCopyDesc(SQLHDESC hdesc, SQLHDESC htarget)
 
 	INIT_HDESC;
 
+	/* TODO test target not an IRD */
 	if (SQL_NULL_HDESC == htarget || !IS_HDESC(htarget))
 		return SQL_INVALID_HANDLE;
 	target = (TDS_DESC *) htarget;
@@ -3440,7 +3441,11 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
 		API__(SQL_API_SQLSETSCROLLOPTIONS);
+#ifdef ENABLE_DEVELOPING
+		API3X(SQL_API_SQLSETSTMTATTR);
+#else
 		API3_(SQL_API_SQLSETSTMTATTR);
+#endif
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API_X(SQL_API_SQLSPECIALCOLUMNS);
 		API_X(SQL_API_SQLSTATISTICS);
@@ -3532,7 +3537,11 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
 		API__(SQL_API_SQLSETSCROLLOPTIONS);
+#ifdef ENABLE_DEVELOPING
+		API3X(SQL_API_SQLSETSTMTATTR);
+#else
 		API3_(SQL_API_SQLSETSTMTATTR);
+#endif
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API_X(SQL_API_SQLSPECIALCOLUMNS);
 		API_X(SQL_API_SQLSTATISTICS);
@@ -3624,7 +3633,11 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 		API_X(SQL_API_SQLSETPARAM);
 		API__(SQL_API_SQLSETPOS);
 		API__(SQL_API_SQLSETSCROLLOPTIONS);
+#ifdef ENABLE_DEVELOPING
+		API3X(SQL_API_SQLSETSTMTATTR);
+#else
 		API3_(SQL_API_SQLSETSTMTATTR);
+#endif
 		API_X(SQL_API_SQLSETSTMTOPTION);
 		API_X(SQL_API_SQLSPECIALCOLUMNS);
 		API_X(SQL_API_SQLSTATISTICS);
@@ -4626,6 +4639,10 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	/* TODO - error checking and real functionality :-) */
 	switch (Attribute) {
 		/* TODO check HDESC (not associated, not NULL, from DBC) */
+		/* TODO ValuePtr is NULL original descriptor is associated */
+		/* TODO check SQLFreeHandle on descriptor. Is possible to free an associated descriptor ? */
+		/* TODO must be allocated by user, not implicit ones */
+		/* TODO setting original descriptor is like using NULL */
 	case SQL_ATTR_APP_PARAM_DESC:
 		stmt->apd = (SQLHDESC) ValuePtr;
 		break;
@@ -4651,12 +4668,15 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	case SQL_ATTR_FETCH_BOOKMARK_PTR:
 		stmt->attr.attr_fetch_bookmark_ptr = ValuePtr;
 		break;
+		/* TODO what's is this ??? */
 	case SQL_ATTR_KEYSET_SIZE:
 		stmt->attr.attr_keyset_size = ui;
 		break;
+		/* TODO what's is this ??? */
 	case SQL_ATTR_MAX_LENGTH:
 		stmt->attr.attr_max_length = ui;
 		break;
+		/* TODO what's is this ??? */
 	case SQL_ATTR_MAX_ROWS:
 		stmt->attr.attr_max_rows = ui;
 		break;
@@ -4665,60 +4685,66 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.attr_noscan = ui;
 		break;
 	case SQL_ATTR_PARAM_BIND_OFFSET_PTR:
-		stmt->attr.attr_param_bind_offset_ptr = uip;
+		stmt->apd->header.sql_desc_bind_offset_ptr = uip;
 		break;
 	case SQL_ATTR_PARAM_BIND_TYPE:
-		stmt->attr.attr_param_bind_type = ui;
+		stmt->apd->header.sql_desc_bind_type = ui;
 		break;
 	case SQL_ATTR_PARAM_OPERATION_PTR:
-		stmt->attr.attr_param_operation_ptr = usip;
+		stmt->apd->header.sql_desc_array_status_ptr = usip;
 		break;
 	case SQL_ATTR_PARAM_STATUS_PTR:
-		stmt->attr.attr_param_status_ptr = usip;
+		stmt->ipd->header.sql_desc_array_status_ptr = usip;
 		break;
 	case SQL_ATTR_PARAMS_PROCESSED_PTR:
-		stmt->attr.attr_params_processed_ptr = usip;
+		stmt->ipd->header.sql_desc_rows_processed_ptr = uip;
 		break;
 	case SQL_ATTR_PARAMSET_SIZE:
-		stmt->attr.attr_paramset_size = ui;
+		stmt->apd->header.sql_desc_array_size = ui;
 		break;
 		/* TODO use it !!! */
 	case SQL_ATTR_QUERY_TIMEOUT:
 		stmt->attr.attr_query_timeout = ui;
 		break;
+		/* TODO what's is this ??? */
 	case SQL_ATTR_RETRIEVE_DATA:
 		stmt->attr.attr_retrieve_data = ui;
 		break;
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:
-		stmt->attr.attr_row_bind_offset_ptr = uip;
+		stmt->ard->header.sql_desc_bind_offset_ptr = uip;
 		break;
 	case SQL_ATTR_ROW_BIND_TYPE:
-		stmt->attr.attr_row_bind_type = ui;
+		stmt->ard->header.sql_desc_bind_type = ui;
 		break;
 	case SQL_ATTR_ROW_NUMBER:
+		/* FIXME read only */
 		stmt->attr.attr_row_number = ui;
 		break;
 	case SQL_ATTR_ROW_OPERATION_PTR:
-		stmt->attr.attr_row_operation_ptr = uip;
+		stmt->ard->header.sql_desc_array_status_ptr = usip;
 		break;
 	case SQL_ATTR_ROW_STATUS_PTR:
-		stmt->attr.attr_row_status_ptr = uip;
+		stmt->ird->header.sql_desc_array_status_ptr = usip;
 		break;
 	case SQL_ATTR_ROWS_FETCHED_PTR:
-		stmt->attr.attr_rows_fetched_ptr = uip;
+		stmt->ird->header.sql_desc_rows_processed_ptr = uip;
 		break;
+		/* TODO accept only 1 */
 	case SQL_ATTR_ROW_ARRAY_SIZE:
-		stmt->attr.attr_row_array_size = ui;
+		stmt->ard->header.sql_desc_array_size = ui;
 		break;
+		/* TODO what's is this ??? */
 	case SQL_ATTR_SIMULATE_CURSOR:
 		stmt->attr.attr_simulate_cursor = ui;
 		break;
 	case SQL_ATTR_USE_BOOKMARKS:
 		stmt->attr.attr_use_bookmarks = ui;
 		break;
+		/* TODO do not allow change */
 	case SQL_ATTR_CURSOR_SCROLLABLE:
 		stmt->attr.attr_cursor_scrollable = ui;
 		break;
+		/* TODO do not allow change */
 	case SQL_ATTR_CURSOR_SENSITIVITY:
 		stmt->attr.attr_cursor_sensitivity = ui;
 		break;
@@ -4735,15 +4761,14 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 SQLRETURN SQL_API
 SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
-	return (_SQLSetStmtAttr(hstmt, Attribute, ValuePtr, StringLength));
+	return _SQLSetStmtAttr(hstmt, Attribute, ValuePtr, StringLength);
 }
 #endif
 
 SQLRETURN SQL_API
 SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLUINTEGER vParam)
 {
-	/* TODO check documentation for ODBC 2 */
-	return _SQLSetStmtAttr(hstmt, (SQLINTEGER) fOption, (SQLPOINTER) vParam, 0);
+	return _SQLSetStmtAttr(hstmt, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS);
 }
 #endif /* ENABLE_DEVELOPING */
 
