@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char  software_version[]   = "$Id: query.c,v 1.51 2002-11-25 21:59:54 jklowden Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.52 2002-11-28 20:19:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -315,17 +315,25 @@ TDSDYNAMIC *dyn;
 	return tds_flush_packet(tds);
 }
 
+
+#define TDS_PUT_DATA_USE_NAME 1
 /**
  * Put data information to wire
  * @param curcol column where to store information
+ * @param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
  * @return TDS_SUCCEED or TDS_FAIL
  */
 /* TODO add a flag for select if named used or not ?? */
 static int 
-tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
+tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol, int flags)
 {
-	/* TODO output parameter name */
-	tds_put_byte(tds,0x00); /* param name len*/
+	if (flags & TDS_PUT_DATA_USE_NAME) {
+		/* TODO use column_namelen ?? */
+		tds_put_byte(tds, strlen(curcol->column_name)); /* param name len*/
+		tds_put_string(tds, curcol->column_name, strlen(curcol->column_name));
+	} else {
+		tds_put_byte(tds,0x00); /* param name len*/
+	}
 	/* TODO store and use flags (output/use defaul null)*/
 	tds_put_byte(tds,0x00); /* status (input) */
 	if (!IS_TDS7_PLUS(tds)) tds_put_int(tds,curcol->column_usertype); /* usertype */
@@ -357,10 +365,11 @@ tds_put_data_info(TDSSOCKET *tds, TDSCOLINFO *curcol)
 /**
  * Calc information length in bytes (useful for calculating full packet length)
  * @param curcol column where to store information
+ * @param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
  * @return TDS_SUCCEED or TDS_FAIL
  */
 static int 
-tds_put_data_info_length(TDSSOCKET *tds, TDSCOLINFO *curcol)
+tds_put_data_info_length(TDSSOCKET *tds, TDSCOLINFO *curcol, int flags)
 {
 int len = 8;
 
@@ -369,6 +378,9 @@ int len = 8;
 		tdsdump_log(TDS_DBG_ERROR, "%L tds_put_data_info_length called with TDS7+\n");
 #endif
 
+	if (flags & TDS_PUT_DATA_USE_NAME)
+		/* TODO use column_namelen ? */
+		len += strlen(curcol->column_name);
 	if (is_numeric_type(curcol->column_type))
 		len += 2;
 	return len + curcol->column_varint_size;
@@ -484,7 +496,7 @@ int i, len;
 		info = dyn->params;
 		for (i=0;i<info->num_cols;i++) {
 			param = info->columns[i];
-			tds_put_data_info(tds, param);
+			tds_put_data_info(tds, param, 0);
 			tds_put_data(tds, param, info->current_row, i);
 		}
 
@@ -512,14 +524,14 @@ int i, len;
 	len = 2;
 	info = dyn->params;
 	for (i=0;i<info->num_cols;i++)
-		len += tds_put_data_info_length(tds, info->columns[i]);
+		len += tds_put_data_info_length(tds, info->columns[i], 0);
 	tds_put_smallint(tds, len);
 	/* number of parameters */
 	tds_put_smallint(tds,info->num_cols); 
 	/* column detail for each parameter */
 	for (i=0;i<info->num_cols;i++) {
 		/* FIXME add error handling */
-		tds_put_data_info(tds, info->columns[i]);
+		tds_put_data_info(tds, info->columns[i], 0);
 	}
 
 	/* row data */
@@ -596,7 +608,7 @@ tds_submit_rpc(TDSSOCKET *tds, const char *rpc_name, TDSPARAMINFO *params)
 		
 		for (i=0;i<params->num_cols;i++) {
 			param = params->columns[i];
-			tds_put_data_info(tds, param);
+			tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME);
 			tds_put_data(tds, param, params->current_row, i);
 		}
 

@@ -1,3 +1,6 @@
+Thu Nov 28 21:18:31 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: add flag to tds_put_data_info*
+
 Wed Nov 27 14:39:46 EST 2002	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c	support bcp_options for hints
 	* include/sybdb.h reordered bcp declarations
