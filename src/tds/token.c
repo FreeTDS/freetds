@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: token.c,v 1.23 2002-06-26 01:39:51 jklowden Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.24 2002-07-01 22:11:42 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -1159,6 +1159,9 @@ int len;
 int len_msg;
 int len_svr;
 int len_sqlstate;
+
+	/* make sure message has been freed */
+	tds_free_msg(tds->msg_info);
 
 	/* packet length */
 	len = tds_get_smallint(tds);

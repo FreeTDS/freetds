@@ -21,7 +21,7 @@
 #include "tds.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: mem.c,v 1.10 2002-05-25 01:20:52 brianb Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.11 2002-07-01 22:11:42 brianb Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -367,7 +367,10 @@ void tds_free_socket(TDSSOCKET *tds)
 		tds_free_all_results(tds);
 		tds_free_env(tds);
 		tds_free_dynamic(tds);
-		if (tds->msg_info) TDS_ZERO_FREE(tds->msg_info);
+		if (tds->msg_info) {
+			tds_free_msg(tds->msg_info); /* dnr */
+			TDS_ZERO_FREE(tds->msg_info);
+		}
 		if (tds->in_buf) TDS_ZERO_FREE(tds->in_buf);
 		if (tds->out_buf) TDS_ZERO_FREE(tds->out_buf);
 		if (tds->s) close(tds->s);
@@ -385,15 +388,22 @@ void tds_free_locale(TDSLOCINFO *locale)
 }
 void tds_free_config(TDSCONFIGINFO *config)
 {
-        if (config->server_name) free(config->server_name);
-        if (config->host_name) free(config->host_name);
-        if (config->ip_addr) free(config->ip_addr);
-        if (config->language) free(config->language);
-        if (config->char_set) free(config->char_set);
-        if (config->database) free(config->database);
-        if (config->dump_file) free(config->dump_file);
-        if (config->default_domain) free(config->default_domain);
-        if (config->client_charset) free(config->client_charset);
+	if (config->server_name) free(config->server_name);
+	if (config->host_name) free(config->host_name);
+	if (config->ip_addr) free(config->ip_addr);
+	if (config->language) free(config->language);
+	if (config->char_set) free(config->char_set);
+	if (config->database) free(config->database);
+	if (config->dump_file) free(config->dump_file);
+	if (config->default_domain) free(config->default_domain);
+	if (config->client_charset) free(config->client_charset);
+	/* dnr */
+	if (config->host) free(config->host);
+	if (config->app_name) free(config->app_name);
+	if (config->user_name) free(config->user_name);
+	if (config->password) free(config->password);
+	if (config->library) free(config->library);
+	/* !dnr */
 	TDS_ZERO_FREE(config);
 }
 TDSENVINFO *tds_alloc_env(TDSSOCKET *tds)

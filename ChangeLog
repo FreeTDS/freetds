@@ -1,3 +1,8 @@
+Mon Jul  1 18:06:23 EDT 2002	Brian Bruns <camber@ais.org>
+	*src/tds/mem.c: add fields to tds_free_config and call tds_free_msg in
+		tds_free_socket (dnr)
+	*src/tds/token.c(tds_process_msg): call tds_free_msg
+
 Sun Jun 30 20:35:41 EDT 2002	Brian Bruns <camber@ais.org>
 	*include/sybdb.h: add defines for severity levels
 
