@@ -1,3 +1,7 @@
+Mon Nov 26 16:06:05 EST 2001	Brian Bruns <camber@ais.org>
+	
+	* doc/userguide.sgml: added new chapter "advanced configurations"
+
 Sun Nov 25 18:02:24 CST 2001    Steve Langasek <vorlon@netexpress.net>
 
 	* added an explicit pointer check in tds/token.c when handling
