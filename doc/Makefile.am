@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.35 2003-12-26 18:10:56 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.36 2003-12-27 03:18:37 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -11,8 +11,7 @@ EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt tds_layer.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml \
 		freebcp.1 freebcp.txt tsql.1 tsql.txt  \
-		$(DOCDIR)/userguide $(DOCDIR)/reference \
-		userguide.dsl
+		$(DOCDIR)/userguide $(DOCDIR)/reference 
 
 man_MANS	= freebcp.1 tsql.1
 nobase_data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
@@ -49,6 +48,15 @@ install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/usergui
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
 
+clean-local:
+	rm -rf userguide.dsl doc doxy.log userguide reference \
+		dblib.api	\
+		ctlib.api	\
+		 odbc.api	\
+		dblib.api.sgml	\
+		ctlib.api.sgml	\
+		 odbc.api.sgml   
+
 ## In building the UG and reference manual, we confront several possible situations:
 ## 1.  CVS user (or developer) with or without jade/doxygen installed.
 ## 2.  Distribution user.  The distribution includes pre-built documentation, ready to install.
@@ -68,11 +76,17 @@ uninstall-local:
 DISTRIBUTED_UG_DIR = $(srcdir)/$(DOCDIR)/userguide
 
 # To make the userguide, export DOCBOOK_DSL to point to docbook.dsl.
-$(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml userguide.dsl 
+$(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml  $(srcdir)/userguide.dsl.in
+	sed -ne's!SYSTEM "docbook.dsl" CDATA!SYSTEM "${DOCBOOK_DSL}" CDATA!; p' \
+		$(srcdir)/userguide.dsl.in > .userguide.dsl
+	mv .userguide.dsl userguide.dsl
 	$(mkinstalldirs) $(DOCDIR)/userguide
 	touch $(DOCDIR)/userguide/t.htm
 	rm -f $(DOCDIR)/userguide/*
-# if we're not using jade, try linking to the distribution's userguide
+	make dblib.api.sgml
+	make ctlib.api.sgml
+	make odbc.api.sgml
+# if we're not using jade, copy the distribution's userguide
 	if test -z "${DOCBOOK_DSL}" ; then \
 		if test -e $(DISTRIBUTED_UG_DIR) -a ! -e $(DOCDIR)/userguide ; then \
 			cp -R $(DISTRIBUTED_UG_DIR) $(DOCDIR); \
@@ -81,7 +95,9 @@ $(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml userguide.dsl
 # try jade ...
 	cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
-	        openjade -d ../../../userguide.dsl -t sgml ../../../$(srcdir)/userguide.sgml; \
+		if test ! -r userguide.sgml; then ln -s ../../../$(srcdir)/userguide.sgml userguide.sgml; fi; \
+	        openjade -d ../../../userguide.dsl -t sgml userguide.sgml; \
+		if test -L userguide.sgml; then rm userguide.sgml; fi; \
 	fi
 # if still no joy, create a stub
 	if test ! -e $@ ; then \
@@ -91,19 +107,19 @@ $(DOCDIR)/userguide/index.htm: $(srcdir)/userguide.sgml userguide.dsl
 	fi
 	test -f $(DOCDIR)/userguide/index.htm
 	cd $(DOCDIR)/userguide && if test ! -L index.html ; then ln -s index.htm index.html; fi
+# for convenience, create a link in the build directory
+	if test -L userguide; then rm userguide; fi
+	ln -s $(DOCDIR)/userguide userguide
 
-userguide.dsl: $(srcdir)/userguide.dsl.in
-	sed -ne's!SYSTEM "docbook.dsl" CDATA!SYSTEM "${DOCBOOK_DSL}" CDATA!; p' \
-		$(srcdir)/userguide.dsl.in > .userguide.dsl
-	mv .userguide.dsl $@
-
+userguide: $(DOCDIR)/userguide/index.htm
 reference: $(DOCDIR)/reference/index.html
 
 DISTRIBUTED_REF_DIR = $(srcdir)/$(DOCDIR)/reference
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
-	cd .. && make doxy
-# if "make doxy" doesn't create anything, try linking to the distributed manual's HTML
+	cd .. && nohup make doxy
+	mv ../nohup.out doxy.log
+# if "make doxy" doesn't create anything, try to copy the distributed manual's HTML
 	if test -e $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
 		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \
 	fi
@@ -114,6 +130,103 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 			> .index.html &&  \
 		mv .index.html index.html; \
 	fi
+# for convenience, create a link in the build directory
+	if test -L reference; then rm reference; fi
+	ln -s $(DOCDIR)/reference reference
+
+#
+# The following sections generate API implementation reference tables as SGML "entities".
+# The entities are used a little bit like include files in the UG, e.g.:  
+#	<!ENTITY dblibapisgml SYSTEM "../../../dblib.api.sgml">
+#
+# and "dblibapisgml" is referred to later on:
+#	
+#	<sect1 id="dblib.api.summary">
+#		<title>db-lib API Implementation Summary</title>
+#		&dblibapisgml;
+#	</sect1>
+#
+# This lets us use the api_status.txt document in our SGML.
+#
+dblib.api.sgml: dblib.api 
+	echo '<table id="dblib.api"><title>db-lib API Implementation Summary</title>' > .dblib.api.head
+	echo '<tgroup cols=5><thead><row> \
+  		<entry>Category</> \
+  		<entry>Microsoft name</> \
+  		<entry>Sybase name</> \
+  		<entry>Status</> \
+  		<entry>Comments</> \
+		</row></thead> \
+		<tbody>' \
+			> .tableheader
+	sed -e' s!^dblib[	]!<row><entry>!; \
+		s![	][	]*!</> <entry>!g; \
+		s!$$!</></row>!; \
+	      ' dblib.api \
+			> .dblib.api.body
+	echo '</tbody></tgroup></table>' > .dblib.api.tail
+	cat .dblib.api.head .tableheader .dblib.api.body .dblib.api.tail >$@
+	rm  .dblib.api.head .tableheader .dblib.api.body .dblib.api.tail
+
+dblib.api: $(srcdir)/api_status.txt
+	grep ^dblib $(srcdir)/api_status.txt > .dblib.api
+	test -s  .dblib.api
+	mv .dblib.api dblib.api
+
+ctlib.api.sgml: ctlib.api 
+	echo '<table id="ctlib.api" colsep=0> \
+		<title>ct-lib API Implementation Summary</title>' \
+			> .ctlib.api.head
+	echo '<tgroup cols=4><thead><row> \
+  		<entry>Category</> \
+  		<entry>Function</> \
+  		<entry>Status</> \
+  		<entry>Comments</> \
+		</row></thead> \
+		<tbody>' \
+			> .tableheader
+	sed -e' s!^ctlib[	]!<row><entry>!; \
+		s![	]!</> <entry>!g; \
+		s!$$!</></row>!; \
+	      ' ctlib.api \
+			> .ctlib.api.body
+	echo '</tbody></tgroup></table>' \
+			> .ctlib.api.tail
+	cat .ctlib.api.head .tableheader .ctlib.api.body .ctlib.api.tail >$@
+	rm  .ctlib.api.head .tableheader .ctlib.api.body .ctlib.api.tail
+
+ctlib.api: $(srcdir)/api_status.txt
+	grep ^ctlib $(srcdir)/api_status.txt > .ctlib.api
+	test -s  .ctlib.api
+	mv .ctlib.api ctlib.api
+
+odbc.api.sgml: odbc.api 
+	echo '<table id="odbc.api"><title>ODBC API Implementation Summary</title>' \
+			> .odbc.api.head
+	echo '<tgroup cols=4><thead><row> \
+  		<entry>Category</> \
+  		<entry>Function</> \
+  		<entry>Status</> \
+  		<entry>Comments</> \
+		</row></thead> \
+		<tbody>' \
+			> .tableheader
+	sed -e' s!^odbc[	]!<row><entry>!; \
+		s![	][	]*!</> <entry>!g; \
+		s!$$!</></row>!; \
+	      ' odbc.api \
+			> .odbc.api.body
+	echo '</tbody></tgroup></table>' \
+			> .odbc.api.tail
+	cat .odbc.api.head .tableheader .odbc.api.body .odbc.api.tail >$@
+	rm  .odbc.api.head .tableheader .odbc.api.body .odbc.api.tail
+
+odbc.api: $(srcdir)/api_status.txt
+	grep ^odbc $(srcdir)/api_status.txt > .odbc.api
+	test -s  .odbc.api
+	mv .odbc.api odbc.api
+
+
 
 DISTCLEANFILES = $(DOCDIR)/userguide $(DOCDIR)/reference
 

@@ -1,9 +1,12 @@
 <!doctype book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+<!ENTITY dblibapisgml SYSTEM "../../../dblib.api.sgml">
+<!ENTITY ctlibapisgml SYSTEM "../../../ctlib.api.sgml">
+<!ENTITY  odbcapisgml SYSTEM "../../../odbc.api.sgml">
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2003-12-22 08:32:13 $</date>
-		<releaseinfo>$Revision: 1.76 $</releaseinfo>
+		<date>$Date: 2003-12-27 03:18:37 $</date>
+		<releaseinfo>$Revision: 1.77 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -48,9 +51,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.76 $</>
-<member>$Date: 2003-12-22 08:32:13 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.76 2003-12-22 08:32:13 freddy77 Exp $.</>
+<member>$Revision: 1.77 $</>
+<member>$Date: 2003-12-27 03:18:37 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.77 2003-12-27 03:18:37 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -523,7 +526,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2003-12-22 08:32:13 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
+  			<para>As of this writing ($Date: 2003-12-27 03:18:37 $), the regular distribution will not compile on OS X.  Current CVS code works, but the <command>libtool</> we use (1.4a) creates a small problem.  Eventually, we'll upgrade our libtool, but that's bound to have other ramifications we'd rather not deal with right now.  Instead, we offer the following patch to the distributed libtool.  </para>
 
 <figure id="fig.osx.patch"><title><command>libtool</> patch for OS X 10.3</title>	
 <programlisting>
@@ -2960,12 +2963,63 @@ What can <productname>FreeTDS</productname> do that can't be done any other way?
 Can be found on <ulink url="http://www.freetds.org/tds.html">www.freetds.org</ulink>
 			</para>
 		</sect1>
-		<sect1 id="APIreference"><title>TDS <acronym>API</> [future reference]</title>
+		<sect1 id="APIreference"><title>API Reference Manual</title>
 			<para>
-Basic API coverage information is available at <ulink url="http://www.freetds.org/api_status.txt">www.freetds.org</ulink>.
-libtds documentation can be compiled using <productname>Doxygen</productname> and issuing <command>make doxy</command> command.
+The <ulink url="../reference">reference manual</ulink> is installed as part of <productname>FreeTDS</>.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</>; make doc</command>.  
+			</para>
+			<para>
+The reference manual is a work in progress: only the db-lib library is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen website</>.  
+			</para>
+			<para>
+Basic <ulink url="http://www.freetds.org/api_status.txt">API coverage</ulink> information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</>, included in the source distribution.  For your convenience and enjoyment, we included that file in the following sections.  In each table, we note for the function
+	<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same 	function.  It is the intention of the <option>--enable-msdblib</> option to align
+	<productname>FreeTDS</> with one or the other's convention.</para></footnote>
+the extent to which it is implemented.  The <emphasis>Status</> field may be:
+
+<variablelist id="dblib.api.status">
+	<title>db-lib API function status domain</title>
+	<varlistentry>
+		<term>(blank)</term>
+		<listitem>
+			<para>Function is not implemented.</para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>	
+		<term>stub</term>
+		<listitem>
+			<para>Function is implemented as a stub.  Some such functions return <literal>SUCCEED</> even though they have no effect, to satisfy upper layers.  </para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>	
+		<term>Partial</term>
+		<listitem>
+			<para>Function is partly implemented.  We haven't dealt with every possible option, for instance.  </para>
+		</listitem>
+	</varlistentry>	
+	<varlistentry>	
+		<term>OK</term>
+		<listitem>
+			<para>Function is implemented.  Completely, we claim.  </para>
+		</listitem>
+	</varlistentry>	
+</variablelist>
 			</para>
 		</sect1>
+
+		<sect1 id="dblib.api.summary">
+			<title>db-lib API Implementation Summary</title>
+			&dblibapisgml;
+		</sect1>
+		<sect1 id="ctlib.api.summary">
+			<title>ct-lib API Implementation Summary</title>
+			&ctlibapisgml;
+		</sect1>
+	
+		<sect1 id="odbc.api.summary">
+			<title>ODBC API Implementation Summary</title>
+			&odbcapisgml;
+		</sect1>
+	
 		<sect1 id="samplecode">
     			<title>Examples [future reference]</title>
 			<para>
