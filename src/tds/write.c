@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.16 2002-09-26 11:26:36 freddy77 Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.17 2002-09-26 14:45:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -58,12 +58,15 @@ const unsigned char *bufp = buf;
 /**
  * Output a string to wire
  * automatic translate string to unicode if needed
+ * @param s   string to write
+ * @param len lenth of string or -1 for null terminated
  */
-int tds_put_string(TDSSOCKET *tds, const char *s)
+int tds_put_string(TDSSOCKET *tds, const char *s, int len)
 {
-int len = strlen(s),res;
+int res;
 char *temp;
-
+	
+	if (len < 0) len = strlen(s);
 	if (IS_TDS7_PLUS(tds)) {
 		/* FIXME handle allocation error, use chunk conversions */
 		temp = (char *) malloc(len*2);

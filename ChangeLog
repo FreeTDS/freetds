@@ -1,3 +1,7 @@
+Thu Sep 26 16:44:27 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h.in src/tds/query.c src/tds/write.c:
+	- completed and tested submit prepare statement using tds7+
+
 Thu Sep 26 13:24:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h.in src/tds/iconv.c src/tds/login.c:
 	* src/tds/read.c src/tds/write.c:

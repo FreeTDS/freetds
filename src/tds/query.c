@@ -25,7 +25,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: query.c,v 1.16 2002-09-25 20:26:08 freddy77 Exp $";
+static char  software_version[]   = "$Id: query.c,v 1.17 2002-09-26 14:45:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -167,9 +167,9 @@ int id_len, query_len;
 
 	if (!query || !id) return TDS_FAIL;
 
-	if (!IS_TDS50(tds) /*&& !IS_TDS7_PLUS(tds)*/ ) {
+	if (!IS_TDS50(tds) && !IS_TDS7_PLUS(tds)) {
 		tdsdump_log(TDS_DBG_ERROR,
-			"Dynamic placeholders only supported under TDS 5.0\n");
+			"Dynamic placeholders only supported under TDS 5.0 and TDS 7.0+\n");
 		return TDS_FAIL;
 	}
 	if (tds->state==TDS_PENDING) {
@@ -188,7 +188,7 @@ int id_len, query_len;
 	query_len = strlen(query);
 
 	/* FIXME add support for mssql, use RPC and sp_prepare */
-	if (0 && IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds)) {
 		int len,i,n;
 		const char *s,*e;
 
@@ -208,7 +208,7 @@ int id_len, query_len;
 		/* string with parameters types */
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,0);
-		tds_put_byte(tds,SYBTEXT); /* ms use ntext but we low bandwidth */
+		tds_put_byte(tds,SYBNTEXT); /* must be Ntype */
 		/* TODO build true param string from parameters */
 		/* for now we use all "@PX varchar(80)," for parameters */
 		n = tds_count_placeholders(query);
@@ -217,29 +217,29 @@ int id_len, query_len;
 		for(i=10;i<=n;i*=10) {
 			len += n-i+1;
 		}
-		tds_put_int(tds,len);
-		tds_put_int(tds,len);
+		tds_put_int(tds,len*2);
+		tds_put_int(tds,len*2);
 		for (i=1;i<=n;++i) {
 			char buf[24];
 			sprintf(buf,"%s@P%d varchar(80)",(i==1?"":","),i);
-			tds_put_n(tds,buf,strlen(buf));
+			tds_put_string(tds,buf,-1);
 		}
 	
 		/* string with sql statement */
 		/* replace placeholders with dummy parametes */
 		tds_put_byte(tds,0);
 		tds_put_byte(tds,0);
-		tds_put_byte(tds,SYBTEXT); /* ms use ntext but we low bandwidth */
+		tds_put_byte(tds,SYBNTEXT); /* must be Ntype */
 		len = (len+1-14*n)+query_len;
-		tds_put_int(tds,len);
-		tds_put_int(tds,len);
+		tds_put_int(tds,len*2);
+		tds_put_int(tds,len*2);
 		s = query;
 		for(i=1;i<=n;++i) {
 			char buf[24];
 			e = tds_next_placeholders(s);
-			tds_put_n(tds,s,e?e-s:strlen(s));
+			tds_put_string(tds,s,e?e-s:strlen(s));
 			sprintf(buf,"@P%d",i);
-			tds_put_n(tds,buf,strlen(buf));
+			tds_put_string(tds,buf,-1);
 			if (!e) return;
 			s = e+1;
 		}
