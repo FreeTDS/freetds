@@ -1,3 +1,12 @@
+Thu Jun 17 17:38:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* include/dblib.h include/sybdb.h include/tds.h:
+	* src/apps/freebcp.c src/apps/freebcp.h src/ctlib/blk.c:
+	* src/dblib/bcp.c src/dblib/dblib.c:
+	- applied Bill Thompson patch on dblib
+	 - This patch contains my rework of the dblibrary bcp api, 
+	 - and also enhancements to freebcp.
+	 - As a by-product, I also enhanced dbbind/dbnullbind
+	
 Tue Jun 15 15:15:06 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* src/server/login.c:
 	- fix compile error on HP-UX 11.00

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.179 2004-06-06 19:21:20 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.180 2004-06-17 15:39:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -68,7 +68,8 @@ static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
 static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
-static void _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen);
+static void _set_null_value(BYTE * varaddr, int datatype, int maxlen);
+static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
 
 /**
  * @file dblib.c
@@ -410,9 +411,9 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 		curcol = resinfo->columns[i];
 		if (curcol->column_nullbind) {
 			if (tds_get_null(resinfo->current_row, i)) {
-				*(curcol->column_nullbind) = -1;
+				*(DBINT *)(curcol->column_nullbind) = -1;
 			} else {
-				*(curcol->column_nullbind) = 0;
+				*(DBINT *)(curcol->column_nullbind) = 0;
 			}
 		}
 		if (curcol->column_varaddr) {
@@ -431,34 +432,14 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 			srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
 			if (tds_get_null(resinfo->current_row, i)) {
-				_set_null_value(dbproc, (BYTE *) curcol->column_varaddr, desttype, curcol->column_bindlen);
+				_set_null_value((BYTE *) curcol->column_varaddr, desttype, curcol->column_bindlen);
 			} else {
+				copy_data_to_host_var(dbproc, 
+								srctype, src, srclen, 
+								desttype, (BYTE *) curcol->column_varaddr, curcol->column_bindlen,
+								curcol->column_bindtype, curcol->column_nullbind);
 
-				/* FIXME use also curcol->column_bindlen, 
-				 * for CHARBIND, curcol->column_bindlen < 0 use srclen
-				 * check limit for other bind types */
-				switch (curcol->column_bindtype) {
-				case STRINGBIND:
-					destlen = -2;
-					break;
-				case NTBSTRINGBIND:
-					destlen = -1;
-					break;
-				default:
-					if (curcol->column_bindlen == 0)
-						destlen = -1;
-					else
-						destlen = curcol->column_bindlen;
-					break;
-				}
-
-				dbconvert(dbproc, srctype,	/* srctype  */
-					  src,	/* src      */
-					  srclen,	/* srclen   */
-					  desttype,	/* desttype */
-					  (BYTE *) curcol->column_varaddr,	/* dest     */
-					  destlen);	/* destlen  */
-			}	/* else not null */
+			}
 		}
 	}
 }				/* buffer_transfer_bound_data()  */
@@ -1219,27 +1200,23 @@ dbclose(DBPROCESS * dbproc)
 		fclose(dbproc->ftos);
 	}
 
-	if (dbproc->bcp.tablename)
-		free(dbproc->bcp.tablename);
-	if (dbproc->bcp.hostfile)
-		free(dbproc->bcp.hostfile);
-	if (dbproc->bcp.errorfile)
-		free(dbproc->bcp.errorfile);
-	if (dbproc->bcp.db_columns) {
-		for (i = 0; i < dbproc->bcp.db_colcount; i++) {
-			if (dbproc->bcp.db_columns[i]->data)
-				free(dbproc->bcp.db_columns[i]->data);
-			free(dbproc->bcp.db_columns[i]);
-		}
-		free(dbproc->bcp.db_columns);
+	if (dbproc->bcpinfo) {
+		if (dbproc->bcpinfo->tablename)
+			free(dbproc->bcpinfo->tablename);
 	}
-	if (dbproc->bcp.host_columns) {
-		for (i = 0; i < dbproc->bcp.host_colcount; i++) {
-			if (dbproc->bcp.host_columns[i]->terminator)
-				free(dbproc->bcp.host_columns[i]->terminator);
-			free(dbproc->bcp.host_columns[i]);
+	if (dbproc->hostfileinfo) {
+		if (dbproc->hostfileinfo->hostfile)
+			free(dbproc->hostfileinfo->hostfile);
+		if (dbproc->hostfileinfo->errorfile)
+			free(dbproc->hostfileinfo->errorfile);
+		if (dbproc->hostfileinfo->host_columns) {
+			for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
+				if (dbproc->hostfileinfo->host_columns[i]->terminator)
+					free(dbproc->hostfileinfo->host_columns[i]->terminator);
+				free(dbproc->hostfileinfo->host_columns[i]);
+			}
+			free(dbproc->hostfileinfo->host_columns);
 		}
-		free(dbproc->bcp.host_columns);
 	}
 
 	for (i = 0; i < DBNUMOPTIONS; i++) {
@@ -2157,7 +2134,7 @@ dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator)
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
 	colinfo = resinfo->columns[column - 1];
-	colinfo->column_nullbind = indicator;
+	colinfo->column_nullbind = (TDS_SMALLINT *)indicator;
 
 	return SUCCEED;
 }
@@ -2214,7 +2191,7 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
 	 *  XXX Need to check for possibly problems before assuming
 	 *  everything is okay
 	 */
-	curcol->column_nullbind = indicator;
+	curcol->column_nullbind = (TDS_SMALLINT *)indicator;
 
 	return SUCCEED;
 }
@@ -5956,7 +5933,7 @@ dbiowdesc(DBPROCESS * dbproc)
 }
 
 static void
-_set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen)
+_set_null_value(BYTE * varaddr, int datatype, int maxlen)
 {
 	switch (datatype) {
 	case SYBINT8:
@@ -5981,8 +5958,13 @@ _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen)
 		memset(varaddr, '\0', 8);
 		break;
 	case SYBCHAR:
+		if (varaddr)
+			varaddr[0] = '\0';
+		break;
 	case SYBVARCHAR:
-		varaddr[0] = '\0';
+		if (varaddr)
+			((DBVARYCHAR *)varaddr)->len = 0;
+			((DBVARYCHAR *)varaddr)->str[0] = '\0';
 		break;
 	}
 }
@@ -6132,4 +6114,317 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 	default: break;
 	}
 	return "(unknown)";
+}
+
+static void
+copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, 
+				int desttype, BYTE * dest, DBINT destlen,
+				int bindtype, DBSMALLINT *indicator)
+{
+	TDSSOCKET *tds = NULL;
+
+	CONV_RESULT dres;
+	DBINT ret;
+	int i;
+	int len;
+	DBNUMERIC *num;
+    DBSMALLINT indicator_value = 0;
+
+    int limited_dest_space = 0;
+
+	tdsdump_log(TDS_DBG_INFO1, "%L copy_data_to_host_var(%d [%s] len %d => %d [%s] len %d)\n", 
+		     srctype, tds_prdatatype(srctype), srclen, desttype, tds_prdatatype(desttype), destlen);
+
+	if (dbproc) {
+		tds = (TDSSOCKET *) dbproc->tds_socket;
+	}
+
+	if (src == NULL || (srclen == 0 && is_nullable_type(srctype))) {
+		_set_null_value(dest, desttype, destlen);
+		return;
+	}
+
+	if (destlen > 0) {
+		limited_dest_space = 1;
+	}
+
+	/* oft times we are asked to convert a data type to itself */
+
+	if ((srctype == desttype) ||
+		(is_similar_type(srctype, desttype))) {
+
+		tdsdump_log(TDS_DBG_INFO1, "%L copy_data_to_host_var() srctype == desttype\n");
+		switch (desttype) {
+
+		case SYBBINARY:
+		case SYBIMAGE:
+			if (srclen > destlen && destlen >= 0) {
+				_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+			} else {
+				memcpy(dest, src, srclen);
+				if (srclen < destlen)
+					memset(dest + srclen, 0, destlen - srclen);
+			}
+			break;
+
+		case SYBCHAR:
+		case SYBVARCHAR:
+		case SYBTEXT:
+
+			switch (bindtype) {
+				case NTBSTRINGBIND: /* strip trailing blanks, null term */
+					while (srclen && src[srclen - 1] == ' ') {
+						--srclen;
+					}
+					if (limited_dest_space) {
+						if (srclen + 1 > destlen) {
+							_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+							indicator_value = srclen + 1;
+							srclen = destlen - 1;
+						}
+					}
+					memcpy(dest, src, srclen);
+					dest[srclen] = '\0';
+					break;
+				case STRINGBIND:   /* pad with blanks, null term */
+					if (limited_dest_space) {
+						if (srclen + 1 > destlen) {
+							_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+							indicator_value = srclen + 1;
+							srclen = destlen - 1;
+						}
+					} else {
+						destlen = srclen; 
+					}
+					memcpy(dest, src, srclen);
+					for (i = srclen; i < destlen - 1; i++)
+						dest[i] = ' ';
+					dest[i] = '\0';
+					break;
+				case CHARBIND:   /* pad with blanks, NO null term */
+					if (limited_dest_space) {
+						if (srclen > destlen) {
+							_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+							indicator_value = srclen;
+							srclen = destlen;
+						}
+					} else {
+						destlen = srclen; 
+					}
+					memcpy(dest, src, srclen);
+					for (i = srclen; i < destlen; i++)
+						dest[i] = ' ';
+					break;
+				case VARYCHARBIND: /* strip trailing blanks, NO null term */
+					if (limited_dest_space) {
+						if (srclen > destlen) {
+							_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+							indicator_value = srclen;
+							srclen = destlen;
+						}
+					}
+					memcpy(((DBVARYCHAR *)dest)->str, src, srclen);
+					((DBVARYCHAR *)dest)->len = srclen;
+					break;
+			} 
+			break;
+		case SYBINT1:
+		case SYBINT2:
+		case SYBINT4:
+		case SYBINT8:
+		case SYBFLT8:
+		case SYBREAL:
+		case SYBBIT:
+		case SYBBITN:
+		case SYBMONEY:
+		case SYBMONEY4:
+		case SYBDATETIME:
+		case SYBDATETIME4:
+		case SYBUNIQUE:
+			ret = tds_get_size_by_type(desttype);
+			memcpy(dest, src, ret);
+			break;
+
+		case SYBNUMERIC:
+		case SYBDECIMAL:
+			memcpy(dest, src, sizeof(DBNUMERIC));
+			break;
+
+		default:
+			break;
+		}
+		if (indicator)
+			*(DBINT *)(indicator) = indicator_value;
+
+		return;
+
+	} /* end srctype == desttype */
+
+	assert(srctype != desttype);
+
+	if (is_numeric_type(desttype)) {
+		num = (DBNUMERIC *) dest;
+		if (num->precision == 0)
+			dres.n.precision = 18;
+		else
+			dres.n.precision = num->precision;
+		if (num->scale == 0)
+			dres.n.scale = 0;
+		else
+			dres.n.scale = num->scale;
+	}
+
+	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
+	tdsdump_log(TDS_DBG_INFO1, "%L copy_data_to_host_var() called tds_convert returned %d\n", len);
+
+	switch (len) {
+	case TDS_CONVERT_NOAVAIL:
+		_dblib_client_msg(dbproc, SYBERDCN, EXCONVERSION, "Requested data-conversion does not exist.");
+		return;
+		break;
+	case TDS_CONVERT_SYNTAX:
+		_dblib_client_msg(dbproc, SYBECSYN, EXCONVERSION, "Attempt to convert data stopped by syntax error in source field.");
+		return;
+		break;
+	case TDS_CONVERT_NOMEM:
+		_dblib_client_msg(dbproc, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		return;
+		break;
+	case TDS_CONVERT_OVERFLOW:
+		_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data conversion resulted in overflow.");
+		return;
+		break;
+	case TDS_CONVERT_FAIL:
+		return;
+		break;
+	default:
+		if (len < 0) {
+			return;
+		}
+		break;
+	}
+
+	switch (desttype) {
+	case SYBBINARY:
+	case SYBIMAGE:
+		if (len > destlen && destlen >= 0) {
+			_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+		} else {
+			memcpy(dest, dres.ib, len);
+			free(dres.ib);
+			if (len < destlen)
+				memset(dest + len, 0, destlen - len);
+		}
+		break;
+	case SYBINT1:
+		memcpy(dest, &(dres.ti), 1);
+		break;
+	case SYBINT2:
+		memcpy(dest, &(dres.si), 2);
+		break;
+	case SYBINT4:
+		memcpy(dest, &(dres.i), 4);
+		break;
+	case SYBINT8:
+		memcpy(dest, &(dres.bi), 8);
+		break;
+	case SYBFLT8:
+		memcpy(dest, &(dres.f), 8);
+		break;
+	case SYBREAL:
+		memcpy(dest, &(dres.r), 4);
+		break;
+	case SYBBIT:
+	case SYBBITN:
+		memcpy(dest, &(dres.ti), 1);
+		break;
+	case SYBMONEY:
+		memcpy(dest, &(dres.m), sizeof(TDS_MONEY));
+		break;
+	case SYBMONEY4:
+		memcpy(dest, &(dres.m4), sizeof(TDS_MONEY4));
+		break;
+	case SYBDATETIME:
+		memcpy(dest, &(dres.dt), sizeof(TDS_DATETIME));
+		break;
+	case SYBDATETIME4:
+		memcpy(dest, &(dres.dt4), sizeof(TDS_DATETIME4));
+		break;
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		memcpy(dest, &(dres.n), sizeof(TDS_NUMERIC));
+		break;
+	case SYBUNIQUE:
+		memcpy(dest, &(dres.u), sizeof(TDS_UNIQUE));
+		break;
+	case SYBCHAR:
+	case SYBVARCHAR:
+	case SYBTEXT:
+		tdsdump_log(TDS_DBG_INFO1, "%L copy_data_to_host_var() outputting %d bytes character data destlen = %d \n", len, destlen);
+		switch (bindtype) {
+			case NTBSTRINGBIND: /* strip trailing blanks, null term */
+				while (len && dres.c[len - 1] == ' ') {
+					--len;
+				}
+				if (limited_dest_space) {
+					if (len + 1 > destlen) {
+						_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+						len = destlen - 1;
+					}
+				}
+				memcpy(dest, dres.c, len);
+				dest[len] = '\0';
+				break;
+			case STRINGBIND:   /* pad with blanks, null term */
+				if (limited_dest_space) {
+					if (len + 1 > destlen) {
+						_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+						len = destlen - 1;
+					}
+				} else {
+					destlen = len; 
+				}
+				memcpy(dest, dres.c, len);
+				for (i = len; i < destlen - 1; i++)
+					dest[i] = ' ';
+				dest[i] = '\0';
+				break;
+			case CHARBIND:   /* pad with blanks, NO null term */
+				if (limited_dest_space) {
+					if (len > destlen) {
+						_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+						indicator_value = len;
+						len = destlen;
+					}
+				} else {
+					destlen = len; 
+				}
+				memcpy(dest, dres.c, len);
+				for (i = len; i < destlen; i++)
+					dest[i] = ' ';
+				break;
+			case VARYCHARBIND: /* strip trailing blanks, NO null term */
+				if (limited_dest_space) {
+					if (len > destlen) {
+						_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+						indicator_value = len;
+						len = destlen;
+					}
+				} 
+				memcpy(((DBVARYCHAR *)dest)->str, dres.c, len);
+				((DBVARYCHAR *)dest)->len = len;
+				break;
+		} 
+
+		free(dres.c);
+		break;
+	default:
+		tdsdump_log(TDS_DBG_INFO1, "%L error: dbconvert(): unrecognized desttype %d \n", desttype);
+		break;
+
+	}
+	if (indicator)
+		*(DBINT *)(indicator) = indicator_value;
+
+	return;
 }

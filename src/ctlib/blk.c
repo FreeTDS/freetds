@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.12 2004-06-13 13:18:28 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.13 2004-06-17 15:39:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -420,7 +420,6 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	bindinfo->row_size = resinfo->row_size;
 
 	bindinfo->columns = (TDSCOLUMN **) malloc(resinfo->num_cols * sizeof(TDSCOLUMN *));
-
 
 	for (i = 0; i < bindinfo->num_cols; i++) {
 
@@ -988,7 +987,12 @@ _blk_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 	case SYBNTEXT:
 		sprintf(column_type, "ntext");
 		break;
+	case SYBUNIQUE:
+		sprintf(column_type, "uniqueidentifier");
+		break;
 	default:
+		tdsdump_log(TDS_DBG_FUNC, "%L error: cannot build bulk insert statement. unrecognized server datatype %d\n",
+					bcpcol->on_server.column_type);
 		return CS_FAIL;
 	}
 
@@ -1180,6 +1184,7 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 						*record = textptr_size; record++;
 						memcpy(record, textptr, 16); record += 16;
 						memcpy(record, timestamp, 8); record += 8;
+						new_record_size += 25;
 					}
 					varint_4 = bindcol->bcp_column_data->datalen;
 #if WORDS_BIGENDIAN
@@ -1454,9 +1459,7 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 
 				row_pos += cpbytes;
 			}
-
 		}
-
 	}
 
 	if (num_cols) {	

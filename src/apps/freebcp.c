@@ -42,7 +42,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.30 2004-02-03 19:28:10 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.31 2004-06-17 15:39:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -80,14 +80,14 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	dbproc->bcp.firstrow = params.firstrow;
-	dbproc->bcp.lastrow = params.lastrow;
-	dbproc->bcp.maxerrs = params.maxerrors;
-
 	if (strcmp(params.dbdirection, "in") == 0) {
 		direction = DB_IN;
-	} else {
+	}
+	if (strcmp(params.dbdirection, "out") == 0) {
 		direction = DB_OUT;
+	}
+	if (strcmp(params.dbdirection, "queryout") == 0) {
+		direction = DB_QUERYOUT;
 	}
 
 	if (dbfcmd(dbproc, "set textsize %d", params.textsize) == FAIL) {
@@ -192,8 +192,10 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 
 	strcpy(pdata->dbdirection, argv[2]);
 
-	if (strcmp(pdata->dbdirection, "in") != 0 && strcmp(pdata->dbdirection, "out") != 0) {
-		fprintf(stderr, "Copy direction must be either 'in' or 'out'.\n");
+	if (strcmp(pdata->dbdirection, "in") != 0 && 
+		strcmp(pdata->dbdirection, "out") != 0 &&
+		strcmp(pdata->dbdirection, "queryout") != 0) {
+		fprintf(stderr, "Copy direction must be either 'in', 'out' or 'queryout'.\n");
 		return (FALSE);
 	}
 
@@ -271,6 +273,9 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 				break;
 			case 'c':
 				pdata->cflag++;
+				break;
+			case 'E':
+				pdata->Eflag++;
 				break;
 			case 'd':
 				tdsdump_open(NULL);
@@ -522,9 +527,16 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	int i;
 	int li_numcols = 0;
 
-	if (dbfcmd(dbproc, "select * from %s where 1=2", pdata->dbobject) == FAIL) {
-		printf("dbfcmd failed\n");
-		return FALSE;
+	if (dir == DB_QUERYOUT) {
+		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	} else {
+		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
 	}
 
 	if (dbsqlexec(dbproc) == FAIL) {
@@ -541,6 +553,27 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
+
+	if (pdata->Eflag) {
+
+		dbproc->bcpinfo->identity_insert_on = 1;
+	
+		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	
+		if (dbsqlexec(dbproc) == FAIL) {
+			printf("dbsqlexec failed\n");
+			return FALSE;
+		}
+
+		while (NO_MORE_RESULTS != dbresults(dbproc));
+	}
+
+	dbproc->hostfileinfo->firstrow = pdata->firstrow;
+	dbproc->hostfileinfo->lastrow = pdata->lastrow;
+	dbproc->hostfileinfo->maxerrs = pdata->maxerrors;
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
 		printf("Error in bcp_columns.\n");
@@ -584,9 +617,16 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	int li_coltype;
 	int li_collen;
 
-	if (dbfcmd(dbproc, "select * from %s where 1=2", pdata->dbobject) == FAIL) {
-		printf("dbfcmd failed\n");
-		return FALSE;
+	if (dir == DB_QUERYOUT) {
+		if (dbfcmd(dbproc, "SET FMTONLY ON %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	} else {
+		if (dbfcmd(dbproc, "SET FMTONLY ON select * from %s SET FMTONLY OFF", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
 	}
 
 	if (dbsqlexec(dbproc) == FAIL) {
@@ -603,6 +643,27 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
+
+	if (pdata->Eflag) {
+
+		dbproc->bcpinfo->identity_insert_on = 1;
+	
+		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	
+		if (dbsqlexec(dbproc) == FAIL) {
+			printf("dbsqlexec failed\n");
+			return FALSE;
+		}
+
+		while (NO_MORE_RESULTS != dbresults(dbproc));
+	}
+
+	dbproc->hostfileinfo->firstrow = pdata->firstrow;
+	dbproc->hostfileinfo->lastrow = pdata->lastrow;
+	dbproc->hostfileinfo->maxerrs = pdata->maxerrors;
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
 		printf("Error in bcp_columns.\n");
@@ -641,6 +702,27 @@ file_formatted(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
 
+	if (pdata->Eflag) {
+
+		dbproc->bcpinfo->identity_insert_on = 1;
+	
+		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
+			printf("dbfcmd failed\n");
+			return FALSE;
+		}
+	
+		if (dbsqlexec(dbproc) == FAIL) {
+			printf("dbsqlexec failed\n");
+			return FALSE;
+		}
+
+		while (NO_MORE_RESULTS != dbresults(dbproc));
+	}
+
+	dbproc->hostfileinfo->firstrow = pdata->firstrow;
+	dbproc->hostfileinfo->lastrow = pdata->lastrow;
+	dbproc->hostfileinfo->maxerrs = pdata->maxerrors;
+
 	if (FAIL == bcp_readfmt(dbproc, pdata->formatfile))
 		return FALSE;
 
@@ -665,10 +747,9 @@ pusage(void)
 	fprintf(stderr, "        [-F firstrow] [-L lastrow] [-b batchsize]\n");
 	fprintf(stderr, "        [-n] [-c] [-t field_terminator] [-r row_terminator]\n");
 	fprintf(stderr, "        [-U username] [-P password] [-I interfaces_file] [-S server]\n");
-	fprintf(stderr, "        [-a display_charset] [-q datafile_charset] [-z language] [-v] [-d]\n");
-	fprintf(stderr, "        [-A packet size] [-J client character set]\n");
-	fprintf(stderr, "        [-T text or image size] [-E] [-N] [-X]  [-y sybase_dir]\n");
-	fprintf(stderr, "        [-Mlabelname labelvalue] [-labeled]\n");
+	fprintf(stderr, "        [-v] [-d] [-h \"hint [,...]\" \n");
+	fprintf(stderr, "        [-A packet size] [-T text or image size] [-E]\n");
+	fprintf(stderr, "        \n");
 	fprintf(stderr, "example: freebcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");
 }
 

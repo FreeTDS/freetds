@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.60 2004-05-30 21:12:04 jklowden Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.61 2004-06-17 15:39:57 freddy77 Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -212,6 +212,7 @@ enum
 
 typedef unsigned char DBBOOL;
 typedef char DBCHAR;
+typedef unsigned char DBBIT;
 typedef unsigned char DBTINYINT;
 typedef tds_sysdep_int16_type DBSMALLINT;
 typedef tds_sysdep_int32_type DBINT;
@@ -220,12 +221,20 @@ typedef tds_sysdep_real32_type DBREAL;
 typedef tds_sysdep_real64_type DBFLT8;
 typedef unsigned tds_sysdep_int16_type DBUSMALLINT;
 
+typedef struct 
+{
+	DBINT len;
+    char  str[256];
+} DBVARYCHAR;
+   
 typedef struct
 {
 	unsigned char precision;
 	unsigned char scale;
 	unsigned char array[33];
 } DBNUMERIC;
+
+typedef DBNUMERIC DBDECIMAL;
 
 typedef struct
 {
@@ -435,6 +444,7 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 
 #define DB_IN  1
 #define DB_OUT 2
+#define DB_QUERYOUT 3
 
 #define DBSINGLE 0
 #define DBDOUBLE 1

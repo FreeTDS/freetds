@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static char rcsid_tds_h[] = "$Id: tds.h,v 1.180 2004-06-01 05:48:56 jklowden Exp $";
+static char rcsid_tds_h[] = "$Id: tds.h,v 1.181 2004-06-17 15:39:57 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -850,6 +850,9 @@ typedef struct tds_column
 	TDS_INT column_textpos;
 	TDS_INT column_text_sqlgetdatapos;
 	BCPCOLDATA *bcp_column_data;
+	TDS_INT bcp_prefix_len;
+	TDS_INT bcp_term_len;
+	TDS_CHAR *bcp_terminator;
 } TDSCOLUMN;
 
 typedef struct

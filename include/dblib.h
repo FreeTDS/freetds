@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.18 2004-05-30 21:12:04 jklowden Exp $";
+static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.19 2004-06-17 15:39:57 freddy77 Exp $";
 static void *no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 struct tds_dblib_loginrec
@@ -52,7 +52,6 @@ typedef struct tag_DBPROC_ROWBUF
 typedef struct
 {
 	int host_column;
-	void *host_var;
 	int datatype;
 	int prefix_len;
 	DBINT column_len;
@@ -60,8 +59,35 @@ typedef struct
 	int term_len;
 	int tab_colnum;
 	int column_error;
+	BCPCOLDATA *bcp_column_data;
 } BCP_HOSTCOLINFO;
 
+typedef struct 
+{
+	TDS_CHAR *hostfile;
+	TDS_CHAR *errorfile;
+	FILE *bcp_errfileptr;
+	TDS_INT host_colcount;
+	BCP_HOSTCOLINFO **host_columns;
+	TDS_INT firstrow;
+	TDS_INT lastrow;
+	TDS_INT maxerrs;
+	TDS_INT batch;
+} BCP_HOSTFILEINFO;
+
+typedef struct
+{
+	char *hint;
+	TDS_CHAR *tablename;
+	TDS_CHAR *insert_stmt;
+	TDS_INT direction;
+	TDS_INT queryout;
+	TDS_INT identity_insert_on;
+	TDS_INT xfer_init;
+	TDS_INT var_cols;
+	TDS_INT bind_count;
+	TDSRESULTINFO *bindinfo;
+} DB_BCPINFO;
 /* linked list of rpc parameters */
 
 typedef struct _DBREMOTE_PROC_PARAM
@@ -75,24 +101,6 @@ typedef struct _DBREMOTE_PROC_PARAM
 	DBINT datalen;
 	BYTE *value;
 } DBREMOTE_PROC_PARAM;
-
-typedef struct
-{
-	char *hint;
-	TDS_CHAR *hostfile;
-	TDS_CHAR *errorfile;
-	TDS_CHAR *tablename;
-	TDS_CHAR *insert_stmt;
-	TDS_INT direction;
-	TDS_INT db_colcount;
-	TDS_INT host_colcount;
-	BCP_COLINFO **db_columns;
-	BCP_HOSTCOLINFO **host_columns;
-	TDS_INT firstrow;
-	TDS_INT lastrow;
-	TDS_INT maxerrs;
-	TDS_INT batch;
-} DBBULKCOPY;
 
 typedef struct _DBREMOTE_PROC
 {
@@ -120,14 +128,12 @@ struct tds_dblib_dbprocess
 	int command_state;
 	TDS_INT text_size;
 	TDS_INT text_sent;
-	FILE *bcp_errfileptr;
-	TDS_INT sendrow_init;
-	TDS_INT var_cols;
 	DBTYPEINFO typeinfo;
 	unsigned char avail_flag;
 	DBOPTION *dbopts;
 	DBSTRING *dboptcmd;
-	DBBULKCOPY bcp;		/* see TODO, above */
+	BCP_HOSTFILEINFO *hostfileinfo;
+	DB_BCPINFO *bcpinfo;
 	DBREMOTE_PROC *rpc;
 	DBUSMALLINT envchange_rcv;
 	char dbcurdb[DBMAXNAME + 1];
