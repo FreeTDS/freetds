@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dbutil.c,v 1.26 2004-06-01 07:34:50 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.27 2004-10-19 11:15:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -139,13 +139,12 @@ _dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * ms
 			rc = INT_EXIT;
 			break;
 		case INT_CONTINUE:
-#ifndef MSDBLIB
-			/* Sybase behavior */
-			rc = INT_EXIT;
-#else
-			/* Microsoft behavior */
-			rc = INT_CANCEL;
-#endif
+			if (!dbproc || !dbproc->msdblib)
+				/* Sybase behavior */
+				rc = INT_EXIT;
+			else
+				/* Microsoft behavior */
+				rc = INT_CANCEL;
 			break;
 		default:
 			break;

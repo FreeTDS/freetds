@@ -70,7 +70,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.102 2004-09-20 08:21:17 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.103 2004-10-19 11:15:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -282,11 +282,10 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 {
 	BCP_HOSTCOLINFO *hostcol;
 
-#ifdef MSDBLIB
 	/* Microsoft specifies a "file_termlen" of zero if there's no terminator */
-	if (host_termlen == 0)
+	if (dbproc->msdblib && host_termlen == 0)
 		host_termlen = -1;
-#endif
+
 	if (dbproc->bcpinfo == NULL) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
 		return FAIL;

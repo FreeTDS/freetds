@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.19 2004-06-17 15:39:57 freddy77 Exp $";
+static char rcsid_dblib_h[] = "$Id: dblib.h,v 1.20 2004-10-19 11:15:01 freddy77 Exp $";
 static void *no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 struct tds_dblib_loginrec
@@ -141,6 +141,9 @@ struct tds_dblib_dbprocess
 	FILE *ftos;
 	DB_DBCHKINTR_FUNC dbchkintr;
 	DB_DBHNDLINTR_FUNC dbhndlintr;
+	
+	/** boolean use ms behaviour */
+	int msdblib;
 };
 
 #define DBLIB_INFO_MSG_TYPE 0

@@ -22,6 +22,10 @@
 
 #include "tds_sysdep_public.h"
 
+#ifndef MSDBLIB
+#define MSDBLIB 0
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -30,7 +34,7 @@ extern "C"
 #endif
 #endif
 
-static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.62 2004-10-06 09:34:41 freddy77 Exp $";
+static char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.63 2004-10-19 11:15:01 freddy77 Exp $";
 static void *no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -261,7 +265,7 @@ typedef struct
 	DBUSMALLINT minutes;
 } DBDATETIME4;
 
-#ifdef MSDBLIB
+#if MSDBLIB
 #define SQLCHAR SYBCHAR
 #endif
 
@@ -374,18 +378,7 @@ typedef struct tds_dblib_dbprocess DBPROCESS;
 
 typedef struct dbdaterec
 {
-#ifndef MSDBLIB
-	DBINT dateyear;
-	DBINT datemonth;
-	DBINT datedmonth;
-	DBINT datedyear;
-	DBINT datedweek;
-	DBINT datehour;
-	DBINT dateminute;
-	DBINT datesecond;
-	DBINT datemsecond;
-	DBINT datetzone;
-#else
+#if MSDBLIB
 	DBINT year;
 	DBINT month;
 	DBINT day;
@@ -396,6 +389,17 @@ typedef struct dbdaterec
 	DBINT second;
 	DBINT millisecond;
 	DBINT tzone;
+#else
+	DBINT dateyear;
+	DBINT datemonth;
+	DBINT datedmonth;
+	DBINT datedyear;
+	DBINT datedweek;
+	DBINT datehour;
+	DBINT dateminute;
+	DBINT datesecond;
+	DBINT datemsecond;
+	DBINT datetzone;
 #endif
 } DBDATEREC;
 
@@ -606,10 +610,14 @@ int dbnumcols(DBPROCESS * dbproc);
 int dbnumcompute(DBPROCESS * dbprocess);
 int DBNUMORDERS(DBPROCESS * dbprocess);
 int dbnumrets(DBPROCESS * dbproc);
-DBPROCESS *tdsdbopen(LOGINREC * login, char *server);
+DBPROCESS *tdsdbopen(LOGINREC * login, char *server, int msdblib);
 DBPROCESS *dbopen(LOGINREC * login, char *server);
 
-#define   dbopen(x,y) tdsdbopen((x),(y))
+#if MSDBLIB
+#define   dbopen(x,y) tdsdbopen((x),(y), 1)
+#else
+#define   dbopen(x,y) tdsdbopen((x),(y), 0)
+#endif
 int dbordercol(DBPROCESS * dbprocess, int order);
 RETCODE dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *return_reason);
 void dbprhead(DBPROCESS * dbproc);

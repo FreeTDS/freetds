@@ -1,3 +1,9 @@
+Tue Oct 19 13:13:36 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in include/dblib.h include/sybdb.h:
+	* include/tds_sysdep_public.h.in src/dblib/bcp.c:
+	* src/dblib/dblib.c src/dblib/dbutil.c:
+	- make --enable-msdblib binary compatible with default version
+
 Tue Oct 19 11:16:12 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: use -Bsymbolic only on Solaris, HP-UX and Linux
 	* src/apps/bsqldb.c src/tds/token.c:

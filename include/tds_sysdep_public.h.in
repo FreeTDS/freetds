@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h.in,v 1.7 2003-12-30 10:27:42 freddy77 Exp $";
+static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h.in,v 1.8 2004-10-19 11:15:01 freddy77 Exp $";
 static void *no_unused_tds_sysdep_public_h_warn[] = { rcsid_tds_sysdep_public_h, no_unused_tds_sysdep_public_h_warn };
 
 #ifdef __cplusplus
@@ -73,7 +73,11 @@ typedef int TDS_SYS_SOCKET;
 typedef SOCKET TDS_SYS_SOCKET;
 #define TDS_IS_SOCKET_INVALID(s) ((s) == INVALID_SOCKET)
 #endif
-	
+
+#ifndef MSDBLIB
+@msdblib_define@
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -48,6 +48,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#define MSDBLIB 0
 #include "tds.h"
 #include "sybfront.h"
 #include "sybdb.h"
@@ -60,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.185 2004-10-13 11:06:08 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.186 2004-10-19 11:15:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -918,7 +919,7 @@ init_dboptions(void)
  * \todo separate error messages for \em no-such-server and \em no-such-user. 
  */
 DBPROCESS *
-tdsdbopen(LOGINREC * login, char *server)
+tdsdbopen(LOGINREC * login, char *server, int msdblib)
 {
 	DBPROCESS *dbproc;
 	TDSCONNECTION *connection;
@@ -930,6 +931,7 @@ tdsdbopen(LOGINREC * login, char *server)
 		return NULL;
 	}
 	memset(dbproc, '\0', sizeof(DBPROCESS));
+	dbproc->msdblib = msdblib;
 
 	dbproc->dbopts = init_dboptions();
 	if (dbproc->dbopts == NULL) {
@@ -3282,7 +3284,6 @@ dbgetmaxprocs(void)
 RETCODE
 dbsettime(int seconds)
 {
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsettime()\n");
 	g_dblib_query_timeout = seconds;
 	return SUCCEED;
 }
@@ -4698,7 +4699,6 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
 
 	tds_datecrack(SYBDATETIME, datetime, &dr);
 
-#ifndef MSDBLIB
 	di->dateyear = dr.year;
 	di->datemonth = dr.month;
 	di->datedmonth = dr.day;
@@ -4708,17 +4708,10 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
 	di->dateminute = dr.minute;
 	di->datesecond = dr.second;
 	di->datemsecond = dr.millisecond;
-#else
-	di->year = dr.year;
-	di->month = dr.month + 1;
-	di->day = dr.day;
-	di->dayofyear = dr.dayofyear;
-	di->weekday = dr.weekday + 1;
-	di->hour = dr.hour;
-	di->minute = dr.minute;
-	di->second = dr.second;
-	di->millisecond = dr.millisecond;
-#endif
+	if (dbproc->msdblib) {
+		++di->datemonth;
+		++di->datedweek;
+	}
 	return SUCCEED;
 }
 
