@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.41 2003-05-22 20:37:44 castellano Exp $";
+static char software_version[] = "$Id: write.c,v 1.42 2003-06-03 15:35:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -79,15 +79,28 @@ static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
 int
 tds_put_n(TDSSOCKET * tds, const void *buf, int n)
 {
-	int i;
+	int left;
 	const unsigned char *bufp = (const unsigned char *) buf;
 
-	if (bufp) {
-		for (i = 0; i < n; i++)
-			tds_put_byte(tds, bufp[i]);
-	} else {
-		for (i = 0; i < n; i++)
-			tds_put_byte(tds, '\0');
+	assert(n >= 0);
+
+	for (; n;) {
+		left = tds->env->block_size - tds->out_pos;
+		if (left <= 0) {
+			tds_write_packet(tds, 0x0);
+			tds_init_write_buf(tds);
+			continue;
+		}
+		if (left > n)
+			left = n;
+		if (bufp) {
+			memcpy(tds->out_buf + tds->out_pos, bufp, left);
+			bufp += left;
+		} else {
+			memset(tds->out_buf + tds->out_pos, 0, left);
+		}
+		tds->out_pos += left;
+		n -= left;
 	}
 	return 0;
 }
@@ -103,7 +116,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 {
 	TDS_ENCODING *client;
 	char buffer[256];
-	const char * eob; 
+	const char *eob;
 	unsigned int output_size, bytes_out = 0;
 
 	client = &tds->iconv_info->client_charset;
@@ -228,21 +241,22 @@ tds_put_byte(TDSSOCKET * tds, unsigned char c)
  * \retval TDS_SUCCEED data written
  * \retval TDS_FAIL must not write null data non-null column
  * \remarks Most other write functions simply return zero.  
- */ 
+ */
 int
-tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO *bcpcol)
+tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO * bcpcol)
 {
 	static const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
 	static const unsigned char GEN_NULL = 0x00;
 	static const unsigned char textptr[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-						 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+	};
 	static const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-	
+
 	static const TDS_TINYINT textptr_size = 16;
 
 	TDS_TINYINT numeric_size;
-	
-	if (bcpcol->data_size == 0) {	
+
+	if (bcpcol->data_size == 0) {
 		if (!bcpcol->db_nullable) {
 			/* too bad if the column is not nullable */
 			return TDS_FAIL;
@@ -264,7 +278,7 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO *bcpcol)
 		}
 		return TDS_SUCCEED;	/* go home */
 	}
-	
+
 	switch (bcpcol->db_varint_size) {
 	case 4:
 		if (is_blob_type(bcpcol->db_type)) {
@@ -292,22 +306,20 @@ tds7_put_bcpcol(TDSSOCKET * tds, const BCP_COLINFO *bcpcol)
 	}
 
 #if WORDS_BIGENDIAN
-	tds_swap_datatype
-		(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length), bcpcol->data);
+	tds_swap_datatype(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length), bcpcol->data);
 #else
 	if (is_numeric_type(bcpcol->db_type)) {
-		tds_swap_datatype
-			(tds_get_conversion_type
-			 (bcpcol->db_type, bcpcol->db_length), bcpcol->data);
+		tds_swap_datatype(tds_get_conversion_type(bcpcol->db_type, bcpcol->db_length), bcpcol->data);
 	}
 #endif
 
 	if (is_numeric_type(bcpcol->db_type)) {
 		TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->data;
+
 		tds_put_n(tds, num->array, tds_numeric_bytes_per_prec[num->precision]);
 	} else
 		tds_put_n(tds, bcpcol->data, bcpcol->data_size);
-		
+
 	return TDS_SUCCEED;
 }
 

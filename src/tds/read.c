@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.53 2003-05-19 17:49:06 castellano Exp $";
+static char software_version[] = "$Id: read.c,v 1.54 2003-06-03 15:35:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -80,7 +80,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * return -1 on failure 
  */
 static int
-goodread(TDSSOCKET *tds, unsigned char *buf, int buflen)
+goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
 	int got = 0;
 	int len, retcode;
@@ -119,8 +119,8 @@ goodread(TDSSOCKET *tds, unsigned char *buf, int buflen)
 				(*tds->longquery_func) (tds->longquery_param);
 			}
 		}
-		if ((tds->chkintr) && ((*tds->chkintr)(tds)) && (tds->hndlintr)) {
-			switch ((*tds->hndlintr)(tds)) {
+		if ((tds->chkintr) && ((*tds->chkintr) (tds)) && (tds->hndlintr)) {
+			switch ((*tds->hndlintr) (tds)) {
 			case TDS_INT_EXIT:
 				exit(EXIT_FAILURE);
 				break;
@@ -133,7 +133,7 @@ goodread(TDSSOCKET *tds, unsigned char *buf, int buflen)
 			}
 		}
 
-	} /* while buflen... */
+	}			/* while buflen... */
 	return (got);
 }
 
@@ -414,17 +414,17 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, int wire_size, TDSCOLINFO * curco
 void *
 tds_get_n(TDSSOCKET * tds, void *dest, int need)
 {
-	int pos, have;
+	int have;
 
-	pos = 0;
+	assert(need >= 0);
 
 	have = (tds->in_len - tds->in_pos);
 	while (need > have) {
 		/* We need more than is in the buffer, copy what is there */
 		if (dest != NULL) {
-			memcpy((char *) dest + pos, tds->in_buf + tds->in_pos, have);
+			memcpy((char *) dest, tds->in_buf + tds->in_pos, have);
+			dest = (char *) dest + have;
 		}
-		pos += have;
 		need -= have;
 		tds_read_packet(tds);
 		have = tds->in_len;
@@ -432,7 +432,7 @@ tds_get_n(TDSSOCKET * tds, void *dest, int need)
 	if (need > 0) {
 		/* get the remainder if there is any */
 		if (dest != NULL) {
-			memcpy((char *) dest + pos, tds->in_buf + tds->in_pos, need);
+			memcpy((char *) dest, tds->in_buf + tds->in_pos, need);
 		}
 		tds->in_pos += need;
 	}

@@ -1,3 +1,7 @@
+Tue Jun 03 17:34:32 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/read.c src/tds/write.c:
+	- small optimization
+
 Tue Jun 03 11:47:44 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/t0003.c: test prepared too
 
