@@ -1,11 +1,11 @@
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 \
 			t0009 t0010 t0011 t0012 t0013 t0014 t0015 t0016 \
 			t0017 t0018 t0019 t0020 t0021 t0022 t0023 rpc \
-			dbmorecmds
+			dbmorecmds bcp
 check_PROGRAMS	=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 \
 			t0009 t0010 t0011 t0012 t0013 t0014 t0015 t0016 \
 			t0017 t0018 t0019 t0020 t0021 t0022 t0023 rpc \
-			dbmorecmds
+			dbmorecmds bcp
 
 t0001_SOURCES	=	t0001.c common.c common.h
 t0002_SOURCES	=	t0002.c common.c common.h
@@ -32,10 +32,11 @@ t0022_SOURCES	=	t0022.c common.c common.h
 t0023_SOURCES	=	t0023.c common.c common.h
 rpc_SOURCES	=	rpc.c common.c common.h
 dbmorecmds_SOURCES =	dbmorecmds.c common.c common.h
+bcp_SOURCES	=	bcp.c bcp.h common.c common.h 
 
 LIBS		=	../libsybdb.la @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include
 EXTRA_DIST	=	t0016.in t0017.in data.bin
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
-	t0016.err t0017.err
+				t0016.err t0017.err
 AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\"
