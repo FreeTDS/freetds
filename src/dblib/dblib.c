@@ -30,12 +30,12 @@
 #include <time.h>
 #include <stdarg.h>
 
-static char  software_version[]   = "$Id: dblib.c,v 1.38 2002-08-23 19:36:22 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.39 2002-08-27 05:15:24 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
 #if	!HAVE_VASPRINTF
-extern int asprintf(char **ret, const char *fmt, va_list ap);
+int vasprintf(char **ret, const char *fmt, va_list ap);
 #endif
 
 static int _db_get_server_type(int bindtype);
@@ -394,7 +394,7 @@ int            destlen;
 
 RETCODE dbinit()
 {
-	/* TDSCONTEXT stores a list of current connections so they may be closed
+	/* DBLIBCONTEXT stores a list of current connections so they may be closed
 	** with dbexit() */
 	g_dblib_ctx = (DBLIBCONTEXT *) malloc(sizeof(DBLIBCONTEXT));
 	memset(g_dblib_ctx,'\0',sizeof(DBLIBCONTEXT));
@@ -2275,41 +2275,60 @@ char *dbprtype(int token)
 {
    char  *result = NULL;
 
-
+	/* 
+	 * I added several types, but came up with my own result names
+	 * since I don't have an MS platform to compare to.	--jkl
+	 */
    switch (token)
    {
-      case SYBINT1:         result = "tinyint";         break;
-      case SYBINT2:         result = "smallint";        break;
-      case SYBINT4:         result = "int";             break;
-      case SYBMONEY:        result = "money";           break;
-      case SYBFLT8:         result = "float";           break;
-      case SYBDATETIME:     result = "datetime";        break;
-      case SYBBIT:          result = "bit";             break;
-      case SYBBITN:         result = "bit-null";        break;
-      case SYBCHAR:         result = "char";            break;
-      case SYBVARCHAR:      result = "varchar";         break;
-      case SYBTEXT:         result = "text";            break;
-      case SYBBINARY:       result = "binary";          break;
-      case SYBVARBINARY:    result = "varbinary";       break;
-      case SYBIMAGE:        result = "image";           break;
-      case SYBDECIMAL:      result = "decimal";         break;
-      case SYBNUMERIC:      result = "numeric";         break;
-      case SYBINTN:         result = "integer-null";    break;
-      case SYBDATETIMN:     result = "datetime-null";   break;
-      case SYBMONEYN:       result = "money-null";      break;
-      case SYBFLTN:         result = "float-null";      break;
-      case SYBAOPSUM:       result = "sum";             break;
-      case SYBAOPAVG:       result = "avg";             break;
-      case SYBAOPCNT:       result = "count";           break;
-      case SYBAOPMIN:       result = "min";             break;
-      case SYBAOPMAX:       result = "max";             break;
-      case SYBDATETIME4:    result = "smalldatetime";   break;
-      case SYBMONEY4:       result = "smallmoney";      break;
-      case SYBREAL:         result = "real";            break;
-      default:              result = "";                break;
+      case SYBAOPAVG:       result = "avg";             	break;
+      case SYBAOPCNT:       result = "count";           	break;
+      case SYBAOPMAX:       result = "max";             	break;
+      case SYBAOPMIN:       result = "min";             	break;
+      case SYBAOPSUM:       result = "sum";             	break;
+	 
+      case SYBBINARY:       result = "binary";          	break;
+      case SYBBIT:          result = "bit";             	break;
+      case SYBBITN:         result = "bit-null";        	break;
+      case SYBCHAR:         result = "char";            	break;
+      case SYBDATETIME4:    result = "smalldatetime";   	break;
+      case SYBDATETIME:     result = "datetime";        	break;
+      case SYBDATETIMN:     result = "datetime-null";   	break;
+      case SYBDECIMAL:      result = "decimal";         	break;
+      case SYBFLT8:         result = "float";           	break;
+      case SYBFLTN:         result = "float-null";      	break;
+      case SYBIMAGE:        result = "image";           	break;
+      case SYBINT1:         result = "tinyint";         	break;
+      case SYBINT2:         result = "smallint";        	break;
+      case SYBINT4:         result = "int";             	break;
+      case SYBINT8:         result = "long long";       	break;
+      case SYBINTN:         result = "integer-null";    	break;
+      case SYBMONEY4:       result = "smallmoney";      	break;
+      case SYBMONEY:        result = "money";           	break;
+      case SYBMONEYN:       result = "money-null";      	break;
+      case SYBNTEXT:  	   result = "UCS-2 text";      	break;
+      case SYBNVARCHAR:     result = "UCS-2 varchar";	 	break;
+      case SYBNUMERIC:      result = "numeric";         	break;
+      case SYBREAL:         result = "real";            	break;
+      case SYBTEXT:         result = "text";            	break;
+      case SYBUNIQUE:       result = "uniqueidentifier";	break;
+      case SYBVARBINARY:    result = "varbinary";       	break;
+      case SYBVARCHAR:      result = "varchar";         	break;
+
+      case SYBVARIANT  :    result = "variant ";	    		break;
+      case SYBVOID	   :    result = "void";	   		   	break;
+      case XSYBBINARY  :    result = "xbinary";	    		break;
+      case XSYBCHAR    :    result = "xchar";	    		break;
+      case XSYBNCHAR   :    result = "x UCS-2 char";		break;
+      case XSYBNVARCHAR:    result = "x UCS-2 varchar";	break;
+      case XSYBVARBINARY:   result = "xvarbinary";	    	break;
+      case XSYBVARCHAR :    result = "xvarchar ";	    		break;
+
+      default:              result = "";                	break;
    }
    return result;
-} /* dbprtype()  */
+} 
+
 DBBINARY *dbtxtimestamp(DBPROCESS *dbproc, int column)
 {
 TDSSOCKET *tds;
