@@ -1,3 +1,7 @@
+Sat Nov 23 15:11:09 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: 
+	- fix bug introduced token.c (output parameters not saved correctly)
+
 Sat Nov 23 14:54:15 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: remove warnings
 

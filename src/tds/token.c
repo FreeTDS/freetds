@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.116 2002-11-23 13:47:34 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.117 2002-11-23 14:12:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -48,7 +48,7 @@ static int tds_process_col_name(TDSSOCKET *tds);
 static int tds_process_col_info(TDSSOCKET *tds);
 static int tds_process_compute(TDSSOCKET *tds);
 static int tds_process_row(TDSSOCKET *tds);
-static int tds_process_param_result(TDSSOCKET *tds);
+static int tds_process_param_result(TDSSOCKET *tds, TDSPARAMINFO **info);
 static int tds7_process_result(TDSSOCKET *tds);
 static int tds_process_param_result_tokens(TDSSOCKET *tds);
 static int tds_process_params_result_token(TDSSOCKET *tds);
@@ -758,7 +758,7 @@ char ci_flags[4];
  * is no total number of parameters given, they just show up singley.
  */
 static int 
-tds_process_param_result(TDSSOCKET *tds)
+tds_process_param_result(TDSSOCKET *tds, TDSPARAMINFO **pinfo)
 {
 int hdrsize;
 TDSCOLINFO *curparam;
@@ -769,8 +769,8 @@ int i;
 	
 	/* limited to 64K but possible types are always smaller (not TEXT/IMAGE) */
 	hdrsize = tds_get_smallint(tds);
-	info = tds_alloc_param_result(tds->curr_resinfo);
-	tds->curr_resinfo = info;
+	info = tds_alloc_param_result(*pinfo);
+	*pinfo = info;
 	curparam = info->columns[info->num_cols - 1];
 
 	/* FIXME check support for tds7+ (seem to use same format of tds5 for data...)
@@ -793,15 +793,17 @@ static int
 tds_process_param_result_tokens(TDSSOCKET *tds)
 {
 int marker;
+TDSPARAMINFO **pinfo;
 
 	if (tds->cur_dyn)
-		tds->curr_resinfo = tds->cur_dyn->res_info;
+		pinfo = &(tds->cur_dyn->res_info);
 	else
-		tds->curr_resinfo = tds->param_info;
+		pinfo = &(tds->param_info);
 
 	while ((marker=tds_get_byte(tds))==TDS_PARAM_TOKEN) {
-		tds_process_param_result(tds);
+		tds_process_param_result(tds, pinfo);
 	}
+	tds->curr_resinfo = *pinfo;
 	tds_unget_byte(tds);
 	return TDS_SUCCEED;
 }
