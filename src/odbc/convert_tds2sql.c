@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.28 2003-01-02 20:12:37 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.29 2003-01-09 17:12:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -70,6 +70,8 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
 	nDestSybType = _odbc_get_server_type(desttype);
+	if (nDestSybType == TDS_FAIL)
+		return TDS_CONVERT_NOAVAIL;
 
 	if (is_numeric_type(nDestSybType)) {
 		ores.n.precision = 18;
@@ -77,11 +79,10 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	}
 
 
-	if (nDestSybType != TDS_FAIL) {
-		nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
-	}
+	nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
+	if (nRetVal < 0)
+		return nRetVal;
 
-	/* FIXME if tds_convert fail we not return failure but continue... */
 	switch (desttype) {
 
 	case SQL_C_CHAR:
@@ -107,6 +108,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 
 		break;
 
+	case SQL_C_TYPE_DATE:
 	case SQL_C_DATE:
 
 		/* we've already converted the returned value to a SYBDATETIME */
@@ -123,6 +125,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		ret = sizeof(DATE_STRUCT);
 		break;
 
+	case SQL_C_TYPE_TIME:
 	case SQL_C_TIME:
 
 		/* we've already converted the returned value to a SYBDATETIME */
@@ -139,6 +142,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		ret = sizeof(TIME_STRUCT);
 		break;
 
+	case SQL_C_TYPE_TIMESTAMP:
 	case SQL_C_TIMESTAMP:
 
 		/* we've already converted the returned value to a SYBDATETIME */

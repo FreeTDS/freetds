@@ -1,3 +1,8 @@
+Thu Jan  9 18:12:43 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_sql2string.c src/odbc/convert_tds2sql.c:
+	* src/odbc/odbc.c src/odbc/unittests/date.c:
+	- fix problem with SQL_C_TIMESTAMP
+
 Thu Jan  9 16:17:10 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/date.c(added):
 	- added test for date under ODBC (do not pass...)

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.121 2003-01-08 18:01:10 jklowden Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.122 2003-01-09 17:12:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -531,7 +531,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	/* ODBC has its own format */
 	if (ctx->locale->date_fmt)
 		free(ctx->locale->date_fmt);
-	ctx->locale->date_fmt = strdup("%Y-%m-%d");
+	ctx->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S");
 
 	*phenv = (SQLHENV) env;
 
@@ -1210,6 +1210,8 @@ SQLFetch(SQLHSTMT hstmt)
 					      tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 					      src,
 					      srclen, colinfo->column_bindtype, colinfo->column_varaddr, colinfo->column_bindlen);
+			if (len < 0)
+				return SQL_ERROR;
 		}
 		if (colinfo->column_lenbind) {
 			if (tds_get_null(resinfo->current_row, i))
@@ -1673,6 +1675,8 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		}
 		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax);
+		if (*pcbValue < 0)
+			return SQL_ERROR;
 
 		if (is_blob_type(colinfo->column_type)) {
 			/* calc how many bytes was readed */

@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert_sql2string.c,v 1.23 2003-01-02 20:04:19 freddy77 Exp $";
+static char software_version[] = "$Id: convert_sql2string.c,v 1.24 2003-01-09 17:12:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -108,6 +108,7 @@ _odbc_get_server_type(int c_type)
 	case SQL_C_TYPE_DATE:
 	case SQL_C_TYPE_TIME:
 	case SQL_C_TYPE_TIMESTAMP:
+		return SYBDATETIME;
 	case SQL_C_INTERVAL_YEAR:
 	case SQL_C_INTERVAL_MONTH:
 	case SQL_C_INTERVAL_DAY:
@@ -155,7 +156,7 @@ convert_datetime2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src,
 		src_tm.tm_hour = src_time->hour;
 		src_tm.tm_min = src_time->minute;
 		src_tm.tm_sec = src_time->second;
-		strcpy(&dfmt[0], "%I:%M:%S");
+		strcpy(&dfmt[0], "%H:%M:%S");
 		break;
 	case SQL_C_TIMESTAMP:
 	case SQL_C_TYPE_TIMESTAMP:
@@ -165,7 +166,7 @@ convert_datetime2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src,
 		src_tm.tm_hour = src_timestamp->hour;
 		src_tm.tm_min = src_timestamp->minute;
 		src_tm.tm_sec = src_timestamp->second;
-		strcpy(&dfmt[0], "%Y-%m-%d %I:%M:%S");
+		strcpy(&dfmt[0], "%Y-%m-%d %H:%M:%S");
 		break;
 	default:
 		return TDS_FAIL;
