@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.34 2003-01-08 18:00:33 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.35 2003-01-08 19:08:58 jklowden Exp $";
 static void *no_unused_var_warn[] = {
 	software_version,
 	no_unused_var_warn
@@ -70,11 +70,13 @@ tds_iconv_open(TDSSOCKET * tds, char *charset)
 	iconv_info->cdto = iconv_open("UCS-2LE", charset);
 	if (iconv_info->cdto == (iconv_t) - 1) {
 		iconv_info->use_iconv = 0;
+		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert to \"%s\"\n", charset);
 		return;
 	}
 	iconv_info->cdfrom = iconv_open(charset, "UCS-2LE");
 	if (iconv_info->cdfrom == (iconv_t) - 1) {
 		iconv_info->use_iconv = 0;
+		tdsdump_log(TDS_DBG_FUNC, "%L iconv_open: cannot convert from \"%s\"\n", charset);
 		return;
 	}
 	iconv_info->use_iconv = 1;
