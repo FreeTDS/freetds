@@ -55,7 +55,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.19 2002-11-10 17:34:41 freddy77 Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.20 2002-11-11 00:09:36 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -203,7 +203,7 @@ tds_getservbyname_r(const char *name, const char *proto, struct servent *result,
  * @return home directory or NULL if error. Should be freed with free
  */
 char *
-tds_get_homedir()
+tds_get_homedir(void)
 {
 /* if is available getpwuid_r use it */
 #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID_R)
@@ -225,7 +225,7 @@ struct passwd *pw;
 #else
 char *home;
 	home = getenv("HOME");
-	if (!home && !home[0])
+	if (!home || !home[0])
 		return NULL;
 	return strdup(home);
 #endif

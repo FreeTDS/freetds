@@ -1,3 +1,8 @@
+Sun Nov 10 19:07:58 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* threadsafe.c:
+	- Ansify declaration of tds_get_home()
+	- Fix logic error in tds_get_home()
+
 Sun Nov 10 19:05:06 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- fix a bug introduced after removing terminator from row
