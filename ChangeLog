@@ -1,3 +1,6 @@
+Thu Feb 20 16:37:33 CET 2003  Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c: fix a buffer overflow
+
 Wed Feb 19 20:38:00 CST 2003	Steve Langasek  <vorlon@netexpress.net>
 	* configure.in, src/apps/tsql.c: only include locale-related
 	  headers if found on the system
