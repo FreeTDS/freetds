@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.134 2004-12-03 20:15:38 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.135 2004-12-05 20:05:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -791,12 +791,9 @@ ct_send(CS_COMMAND * cmd)
 		int something_to_send = 0;
 		int cursor_open_sent  = 0;
 
-		cursor = tds->cursors;
-		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
-			cursor = cursor->next;
-
+		cursor = cmd->cursor;
 		if (!cursor) {
-			tdsdump_log(TDS_DBG_FUNC, "ct_send() : cannot find cursor_id %d\n", cmd->client_cursor_id);
+			tdsdump_log(TDS_DBG_FUNC, "ct_send() : cursor not present\n");
 			return CS_FAIL;
 		}
 
@@ -806,7 +803,7 @@ ct_send(CS_COMMAND * cmd)
 		}
 
 		if (cursor->status.declare == _CS_CURS_TYPE_REQUESTED) {
-			ret =  tds_cursor_declare(tds, cmd->client_cursor_id, &something_to_send);
+			ret =  tds_cursor_declare(tds, cursor, &something_to_send);
 			if (ret == CS_SUCCEED){
 				cursor->status.declare = _CS_CURS_TYPE_SENT; /* Cursor is declared */
 			}
@@ -819,7 +816,7 @@ ct_send(CS_COMMAND * cmd)
 		if (cursor->status.cursor_row == _CS_CURS_TYPE_REQUESTED && 
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
- 			ret = tds_cursor_setrows(tds, cmd->client_cursor_id, &something_to_send);
+ 			ret = tds_cursor_setrows(tds, cursor, &something_to_send);
 			if (ret == CS_SUCCEED){
 				cursor->status.cursor_row = _CS_CURS_TYPE_SENT; /* Cursor rows set */
 			}
@@ -832,7 +829,7 @@ ct_send(CS_COMMAND * cmd)
 		if (cursor->status.open == _CS_CURS_TYPE_REQUESTED && 
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
-			ret = tds_cursor_open(tds, cmd->client_cursor_id, &something_to_send);
+			ret = tds_cursor_open(tds, cursor, &something_to_send);
  			if (ret == CS_SUCCEED){
 				cursor->status.open = _CS_CURS_TYPE_SENT;
 				cursor_open_sent = 1;
@@ -855,14 +852,15 @@ ct_send(CS_COMMAND * cmd)
 		}
 
 		if (cursor->status.close == _CS_CURS_TYPE_REQUESTED){
-			ret = tds_cursor_close(tds, cmd->client_cursor_id);
+			ret = tds_cursor_close(tds, cursor);
 			cursor->status.close = _CS_CURS_TYPE_SENT;
 			if (cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED)
 				cursor->status.dealloc = _CS_CURS_TYPE_SENT;
 		}
 
 		if (cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED){
-			ret = tds_cursor_dealloc(tds, cmd->client_cursor_id);
+			ret = tds_cursor_dealloc(tds, cursor);
+			cmd->cursor = NULL;
 			tds_free_all_results(tds);
 		}
 		
@@ -1355,12 +1353,9 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 	if ( cmd->bind_count == CS_UNUSED ) 
 		cmd->bind_count = 1;
 
-	cursor = tds->cursors;
-	while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
-		cursor = cursor->next;
-
+	cursor = cmd->cursor;
 	if (!cursor) {
-		tdsdump_log(TDS_DBG_FUNC, "ct_send() : cannot find cursor_id %d\n", cmd->client_cursor_id);
+		tdsdump_log(TDS_DBG_FUNC, "ct_send() : cursor not present\n");
 		return CS_FAIL;
 	}
 
@@ -1373,7 +1368,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 		return CS_FAIL;
 	}
 
-	if ( tds_cursor_fetch(tds, cmd->client_cursor_id) == CS_SUCCEED) {
+	if ( tds_cursor_fetch(tds, cursor) == CS_SUCCEED) {
 		cursor->status.fetch = _CS_CURS_TYPE_SENT;
 	}
 	else {
@@ -3172,18 +3167,15 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 		cursor->status.close      = _CS_CURS_TYPE_UNACTIONED;
 		cursor->status.dealloc    = _CS_CURS_TYPE_UNACTIONED;
 
-		cmd->client_cursor_id = cursor->client_cursor_id;
+		cmd->cursor = cursor;
 		return CS_SUCCEED;
 		break;
 		
  	case CS_CURSOR_ROWS:
 
-		cursor = tds->cursors;
-		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
-			cursor = cursor->next;
-
+		cursor = cmd->cursor;
 		if (!cursor) {
-			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cannot find cursor_id %d\n", cmd->client_cursor_id);
+			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not present\n");
 			return CS_FAIL;
 		}
 		
@@ -3204,12 +3196,9 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 	case CS_CURSOR_OPEN:
 
-		cursor = tds->cursors;
-		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
-			cursor = cursor->next;
-
+		cursor = cmd->cursor;
 		if (!cursor) {
-			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cannot find cursor_id %d\n", cmd->client_cursor_id);
+			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not present\n");
 			return CS_FAIL;
 		}
 
@@ -3230,12 +3219,9 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 	case CS_CURSOR_CLOSE:
 
-		cursor = tds->cursors;
-		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
-			cursor = cursor->next;
-
+		cursor = cmd->cursor;
 		if (!cursor) {
-			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cannot find cursor_id %d\n", cmd->client_cursor_id);
+			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not present\n");
 			return CS_FAIL;
 		}
 
@@ -3250,12 +3236,9 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 
 	case CS_CURSOR_DEALLOC:
 
-		cursor = tds->cursors;
-		while (cursor && cursor->client_cursor_id != cmd->client_cursor_id)
-			cursor = cursor->next;
-
+		cursor = cmd->cursor;
 		if (!cursor) {
-			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cannot find cursor_id %d\n", cmd->client_cursor_id);
+			tdsdump_log(TDS_DBG_FUNC, "ct_cursor() : cursor not present\n");
 			return CS_FAIL;
 		}
 		cursor->status.dealloc   = _CS_CURS_TYPE_REQUESTED;

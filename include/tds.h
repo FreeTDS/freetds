@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.198 2004-12-03 20:15:37 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.199 2004-12-05 20:05:08 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -979,7 +979,6 @@ typedef struct _tds_cursor
 	TDS_TINYINT cursor_name_len;	/**< length of cursor name > 0 and <= 30  */
 	char *cursor_name;		/**< name of the cursor */
 	TDS_INT cursor_id;		/**< cursor id returned by the server after cursor declare */
-	TDS_INT client_cursor_id;       /**< cursor id used internally by client side */
 	TDS_TINYINT options;		/**< read only|updatable */
 	TDS_TINYINT hasargs;		/**< cursor parameters exists ? */
 	TDS_USMALLINT query_len;	/**< SQL query length */
@@ -1227,12 +1226,13 @@ int tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 int tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
 const char *tds_skip_quoted(const char *s);
-int tds_cursor_declare(TDSSOCKET * tds, TDS_INT cursor_id, int *send);
-int tds_cursor_setrows(TDSSOCKET * tds, TDS_INT cursor_id, int *send);
-int tds_cursor_open(TDSSOCKET * tds, TDS_INT cursor_id, int *send);
-int tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id);
-int tds_cursor_close(TDSSOCKET * tds, TDS_INT cursor_id);
-int tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT cursor_id);
+
+int tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
+int tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
+int tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
+int tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor);
+int tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
+int tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET * tds);

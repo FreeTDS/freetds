@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.124 2004-12-03 20:15:39 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.125 2004-12-05 20:05:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -630,30 +630,21 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	TDSCURSOR *cursor;
 	TDSCURSOR *pcursor;
 
-	int new_cursor_id = 0;
-
 	TEST_MALLOC(cursor, TDSCURSOR);
 	memset(cursor, '\0', sizeof(TDSCURSOR));
 
 	if ( tds->cursors == NULL ) {
-		++new_cursor_id;
-		tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : allocating cursor no. %d to head\n", new_cursor_id);
 		tds->cursors = cursor;
 	} else {
 		pcursor = tds->cursors;
 		for (;;) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : stepping thru existing cursors\n");
-			if (pcursor->client_cursor_id > new_cursor_id)
-				new_cursor_id = pcursor->client_cursor_id;
 			if (pcursor->next == NULL)
 				break;
 			pcursor = pcursor->next;
 		}
-		++new_cursor_id;
-		tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : allocating cursor no. %d\n", new_cursor_id);
 		pcursor->next = cursor;
 	}
-	cursor->client_cursor_id = new_cursor_id;
 
 	TEST_CALLOC(cursor->cursor_name, char, namelen + 1);
 
@@ -680,7 +671,7 @@ tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 	TDSCURSOR *prev = NULL;
 	TDSCURSOR *next = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor_id %d\n", cursor->client_cursor_id);
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : freeing cursor_id %d\n", cursor->cursor_id);
 	victim = tds->cursors;
 
 	if (tds->cur_cursor == cursor)
@@ -690,7 +681,7 @@ tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 		tds->current_results = NULL;
 
 	if (victim == NULL) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : no allocated cursors %d\n", cursor->client_cursor_id);
+		tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : no allocated cursors %d\n", cursor->cursor_id);
 		return;
 	}
 
@@ -700,12 +691,12 @@ tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 		prev = victim;
 		victim = victim->next;
 		if (victim == NULL) {
-			tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cannot find cursor_id %d\n", cursor->client_cursor_id);
+			tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cannot find cursor_id %d\n", cursor->cursor_id);
 			return;
 		}
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d found\n", cursor->client_cursor_id);
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d found\n", cursor->cursor_id);
 
 	next = victim->next;
 
@@ -734,7 +725,7 @@ tds_free_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 		tds->cursors = next;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : relinked list\n");
-	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d freed\n", cursor->client_cursor_id);
+	tdsdump_log(TDS_DBG_FUNC, "tds_free_cursor() : cursor_id %d freed\n", cursor->cursor_id);
 }
 
 TDSLOGIN *

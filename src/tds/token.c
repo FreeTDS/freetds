@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.271 2004-12-03 16:47:47 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.272 2004-12-05 20:05:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -619,8 +619,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flag
 						TDSCURSOR  *cursor = tds->cur_cursor; 
 
 						cursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
-						tdsdump_log(TDS_DBG_FUNC, "stored internal cursor id %d in client cursor id %d \n", 
-							    cursor->cursor_id, cursor->client_cursor_id);
+						tdsdump_log(TDS_DBG_FUNC, "stored internal cursor id %d\n", 
+							    cursor->cursor_id);
 					} 
 				}
 				if(tds->internal_sp_called == TDS_SP_PREPARE) {
@@ -3303,7 +3303,6 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	TDS_INT rowcount;
 	TDS_INT cursor_id;
 	TDS_TINYINT namelen;
-	char name[30];	
 	unsigned char cursor_cmd;
 	TDS_SMALLINT cursor_status;
 	TDSCURSOR *cursor;
@@ -3316,7 +3315,8 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	if (cursor_id == 0){
 		namelen = (int)tds_get_byte(tds);
 		hdrsize -= 1;
-		tds_get_n(tds, name, namelen);
+		/* discard name */
+		tds_get_n(tds, NULL, namelen);
 		hdrsize -= namelen;
 	}
 	cursor_cmd    = tds_get_byte(tds);

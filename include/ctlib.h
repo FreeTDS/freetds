@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.18 2004-10-28 12:42:11 freddy77 Exp $";
+static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.19 2004-12-05 20:05:08 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -186,7 +186,7 @@ struct _cs_command
 	CS_INT send_data_started;
 	CSREMOTE_PROC *rpc;
 	CS_PARAM *input_params;
-	CS_INT client_cursor_id;
+	TDSCURSOR *cursor;
 };
 
 struct _cs_blkdesc

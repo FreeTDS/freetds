@@ -1,3 +1,9 @@
+Sun Dec 05 21:03:50 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS: updated
+	* include/ctlib.h include/tds.h src/ctlib/ct.c:
+	* src/tds/mem.c src/tds/query.c src/tds/token.c:
+	- removed cursor_client_id, use direct TDSCURSOR*
+
 Fri Dec 03 21:14:48 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/tds/mem.c src/tds/query.c:
 	* src/tds/tds_checks.c:

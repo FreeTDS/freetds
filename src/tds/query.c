@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.147 2004-12-03 20:15:40 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.148 2004-12-05 20:05:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1654,24 +1654,16 @@ tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
 }
 
 int
-tds_cursor_declare(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_send)
+tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 {
-	TDSCURSOR *cursor;
-
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_declare() client cursor id = %d\n", client_cursor_id);
+	if (!cursor)
+		return TDS_FAIL;
+
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_declare() cursor id = %d\n", cursor->cursor_id);
 
 	tds->queryStarttime = time(NULL);
-
-	cursor = tds->cursors;
-	while (cursor && cursor->client_cursor_id != client_cursor_id)
-		cursor = cursor->next;
-
-	if (!cursor) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_declare() : cannot find cursor_id %d\n", client_cursor_id);
-		return TDS_FAIL;
-	}
 
 	if (tds->state == TDS_PENDING) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_declare (): state is PENDING\n");
@@ -1708,27 +1700,19 @@ tds_cursor_declare(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 }
 
 int
-tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_send)
+tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 {
 	int converted_query_len;
 	const char *converted_query;
-	TDSCURSOR *cursor;
 
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open() client cursor id = %d\n", client_cursor_id);
+	if (!cursor)
+		return TDS_FAIL;
+
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_open() cursor id = %d\n", cursor->cursor_id);
 
 	tds->queryStarttime = time(NULL);
-
-	cursor = tds->cursors;
-	while (cursor && cursor->client_cursor_id != client_cursor_id)
-		cursor = cursor->next;
-
-	if (!cursor) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_open() : cannot find cursor_id %d\n", client_cursor_id);
-		return TDS_FAIL;
-	}
-
 
 	if (tds->state == TDS_PENDING) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): state is PENDING\n");
@@ -1812,24 +1796,15 @@ tds_cursor_open(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_sen
 }
 
 int
-tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_send)
+tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 {
-	TDSCURSOR *cursor;
-
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows() client cursor id = %d\n", client_cursor_id);
-
-	cursor = tds->cursors;
-	while (cursor && cursor->client_cursor_id != client_cursor_id)
-		cursor = cursor->next;
-
-	if (!cursor) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_setrows() : cannot find cursor_id %d\n", client_cursor_id);
+	if (!cursor)
 		return TDS_FAIL;
-	}
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_setrows() internal cursor id = %d\n", cursor->cursor_id);
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_setrows() cursor id = %d\n", cursor->cursor_id);
+
 	tds->queryStarttime = time(NULL);
 
 	if (tds->state == TDS_PENDING) {
@@ -1872,24 +1847,15 @@ tds_cursor_setrows(TDSSOCKET * tds, TDS_INT client_cursor_id, int *something_to_
 
 
 int
-tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
+tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
-	TDSCURSOR *cursor;
-
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch() client cursor id = %d\n", client_cursor_id);
-
-	cursor = tds->cursors;
-	while (cursor && cursor->client_cursor_id != client_cursor_id)
-		cursor = cursor->next;
-
-	if (!cursor) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_fetch() : cannot find cursor_id %d\n", client_cursor_id);
+	if (!cursor)
 		return TDS_FAIL;
-	}
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_fetch() internal cursor id = %d\n", cursor->cursor_id);
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_fetch() cursor id = %d\n", cursor->cursor_id);
+
 	tds->queryStarttime = time(NULL);
 
 	if (tds->state == TDS_PENDING) {
@@ -1980,24 +1946,14 @@ tds_cursor_fetch(TDSSOCKET * tds, TDS_INT client_cursor_id)
 }
 
 int
-tds_cursor_close(TDSSOCKET * tds, TDS_INT client_cursor_id)
+tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
-	TDSCURSOR *cursor;
-
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close() client cursor id = %d\n", client_cursor_id);
-
-	cursor = tds->cursors;
-	while (cursor && cursor->client_cursor_id != client_cursor_id)
-		cursor = cursor->next;
-
-	if (!cursor) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_close() : cannot find cursor_id %d\n", client_cursor_id);
+	if (!cursor)
 		return TDS_FAIL;
-	}
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_cursor_close() internal cursor id = %d\n", cursor->cursor_id);
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_close() cursor id = %d\n", cursor->cursor_id);
 
 	tds->queryStarttime = time(NULL);
 
@@ -2058,23 +2014,16 @@ tds_cursor_close(TDSSOCKET * tds, TDS_INT client_cursor_id)
 }
 
 int
-tds_cursor_dealloc(TDSSOCKET * tds, TDS_INT client_cursor_id)
+tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
 	int res = TDS_SUCCEED;
-	TDSCURSOR *cursor;
 
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_ERROR, "inside tds_cursor_dealloc ():\n");
-
-	cursor = tds->cursors;
-	while (cursor && cursor->client_cursor_id != client_cursor_id)
-		cursor = cursor->next;
-
-	if (!cursor) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_dealloc() : cannot find cursor_id %d\n", client_cursor_id);
+	if (!cursor)
 		return TDS_FAIL;
-	}
+
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_dealloc() cursor id = %d\n", cursor->cursor_id);
 
 	tds->queryStarttime = time(NULL);
 

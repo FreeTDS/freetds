@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.8 2004-12-03 16:47:42 freddy77 Exp $
+$Id: NEWS,v 1.9 2004-12-05 20:05:05 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -9,6 +9,14 @@ libTDS API changes
 - TDSSOCKET->env it's no more a pointer
 - tds_free_compute_result and tds_free_compute_results are now static
 - removed TDSSOCKET->out_len, not used
+- renames TDSSOCKET->cursor to TDSSOCKET->cursors
+- added TDSSOCKET->cur_cursor (instead of removed TDSSOCKET->client_cursor_id)
+- TDSSOCKET->dyns now a pointer to a pointer to first dynamic allocated
+- added TDSDYNAMIC->next for linked list
+- removed TDSSOCKET->num_dyns (now useless with linked list)
+- removed TDSCURSOR->client_cursor_id
+- use TDSCURSOR* cursor instead of TDS_INT client_cursor_it in
+  tds_cursor_* functions
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information
