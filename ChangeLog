@@ -1,3 +1,8 @@
+Tue May 13 10:33:39 CEST 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/alternative_character_sets.h:
+	* src/tds/character_sets.h:
+	- add iso8859-7 (greek) charset
+
 Mon May 12 22:52:34 EDT 2003	JK Lowden <jklowden@schemamania.org>
 	* src/tds/iconv.c better logging of initialization failures
 
