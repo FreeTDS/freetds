@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.319 2004-04-21 09:11:17 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.320 2004-04-30 14:16:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3788,11 +3788,12 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	int is_ms = -1;
 	unsigned int smajor = 6;
 	SQLUINTEGER mssql7plus_mask = 0;
+	int out_len = -1;
 
-#define SIVAL *((SQLSMALLINT *) rgbInfoValue)
-#define USIVAL *((SQLUSMALLINT *) rgbInfoValue)
-#define IVAL *((SQLINTEGER *) rgbInfoValue)
-#define UIVAL *((SQLUINTEGER *) rgbInfoValue)
+#define SIVAL out_len = sizeof(SQLSMALLINT), *((SQLSMALLINT *) rgbInfoValue)
+#define USIVAL out_len = sizeof(SQLUSMALLINT), *((SQLUSMALLINT *) rgbInfoValue)
+#define IVAL out_len = sizeof(SQLINTEGER), *((SQLINTEGER *) rgbInfoValue)
+#define UIVAL out_len = sizeof(SQLUINTEGER), *((SQLUINTEGER *) rgbInfoValue)
 
 	INIT_HDBC;
 
@@ -4468,8 +4469,12 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	}
 
 	/* char data */
-	if (p)
+	if (p) {
 		ODBC_RETURN(dbc, odbc_set_string(rgbInfoValue, cbInfoValueMax, pcbInfoValue, p, -1));
+	} else {
+		if (out_len > 0 && pcbInfoValue)
+			*pcbInfoValue = out_len;
+	}
 
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 #undef SIVAL
