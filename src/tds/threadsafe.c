@@ -30,7 +30,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: threadsafe.c,v 1.3 2002-07-06 18:42:57 jklowden Exp $";
+static char  software_version[]   = "$Id: threadsafe.c,v 1.4 2002-07-07 22:42:42 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -86,7 +86,7 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 }
 
 struct hostent   *
-tds_gethostbyaddr_r(char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop)
+tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
 
 #ifdef _REENTRANT

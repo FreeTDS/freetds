@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	 "$Id: tds.h.in,v 1.18 2002-07-05 20:23:49 brianb Exp $";
+	 "$Id: tds.h.in,v 1.19 2002-07-07 22:42:42 jklowden Exp $";
 static void *no_unused_tds_h_warn[]={rcsid_tds_h, no_unused_tds_h_warn};
 
 #include "tds_configs.h"
@@ -655,9 +655,9 @@ extern char *tds7_unicode2ascii(TDSSOCKET *tds, const char *in_string, char *out
  
 /* threadsafe.c */
 char *tds_timestamp_str(char *str, int maxlen);
-struct hostent *tds_gethostbyname_r(char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop);
-struct hostent *tds_gethostbyaddr_r(char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop);
-struct servent *tds_getservbyname_r(char *name, char *proto, struct servent *result, char *buffer, int buflen);
+struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop);
+struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop);
+struct servent *tds_getservbyname_r(const char *name, char *proto, struct servent *result, char *buffer, int buflen);
 char *tds_strtok_r(char *s, const char *delim, char **ptrptr);
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
