@@ -1,3 +1,10 @@
+Thu Sep 26 13:24:46 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h.in src/tds/iconv.c src/tds/login.c:
+	* src/tds/read.c src/tds/write.c:
+	- renamed tds_put_string to tds_put_padded_cstring
+	- added tds_put_string to output string to wire
+	  (similar to tds_get_string)
+
 Wed Sep 25 22:25:40 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: continue work on mssql dynamic query
 

@@ -31,7 +31,7 @@
 #define WRITE(a,b,c) write(a,b,c)
 #endif
 
-static char  software_version[]   = "$Id: write.c,v 1.15 2002-09-25 17:59:14 castellano Exp $";
+static char  software_version[]   = "$Id: write.c,v 1.16 2002-09-26 11:26:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -54,7 +54,29 @@ const unsigned char *bufp = buf;
 	}
 	return 0;
 }
-int tds_put_string(TDSSOCKET *tds, const char *buf, int n)
+
+/**
+ * Output a string to wire
+ * automatic translate string to unicode if needed
+ */
+int tds_put_string(TDSSOCKET *tds, const char *s)
+{
+int len = strlen(s),res;
+char *temp;
+
+	if (IS_TDS7_PLUS(tds)) {
+		/* FIXME handle allocation error, use chunk conversions */
+		temp = (char *) malloc(len*2);
+		tds7_ascii2unicode(tds, s, temp, len*2);
+		res = tds_put_n(tds, temp, len*2);
+		free(temp);
+		return res;
+		
+	}
+	return tds_put_n(tds,s,len);
+}
+
+int tds_put_padded_cstring(TDSSOCKET *tds, const char *buf, int n)
 {
 int buf_len = ( buf ? strlen(buf) : 0);
 

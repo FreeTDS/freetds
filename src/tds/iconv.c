@@ -143,6 +143,9 @@ size_t lquest_mark;
  * tds7_ascii2unicode()
  * Convert a string to Unicode
  * Note: output string is not terminated
+ * @param in_string string to translate, null terminated
+ * @param out_string buffer to store translated string
+ * @param maxlen length of out_string buffer in bytes
  */
 unsigned char *
 tds7_ascii2unicode(TDSSOCKET *tds, const char *in_string, char *out_string, int maxlen)

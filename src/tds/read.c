@@ -32,7 +32,7 @@
 #include "tdsutil.h"
 
 
-static char  software_version[]   = "$Id: read.c,v 1.20 2002-09-25 17:59:14 castellano Exp $";
+static char  software_version[]   = "$Id: read.c,v 1.21 2002-09-26 11:26:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -208,7 +208,7 @@ char *temp;
 		return dest;
 	}
 
-	if (IS_TDS70(tds) || IS_TDS80(tds)) {
+	if (IS_TDS7_PLUS(tds)) {
 		if (dest==NULL) {
 			tds_get_n(tds,NULL,need*2);
 			return(NULL);

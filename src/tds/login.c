@@ -37,7 +37,7 @@
 #endif
 
 
-static char  software_version[]   = "$Id: login.c,v 1.44 2002-09-25 17:59:13 castellano Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.45 2002-09-26 11:26:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -366,10 +366,10 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    ** do this, (well...mine was a kludge actually) so here's mostly his
    */
    
-   rc=tds_put_string(tds,config->host_name,TDS_MAX_LOGIN_STR_SZ);   /* client host name */
-   rc|=tds_put_string(tds,config->user_name,TDS_MAX_LOGIN_STR_SZ);  /* account name */
-   rc|=tds_put_string(tds,config->password,TDS_MAX_LOGIN_STR_SZ);  /* account password */
-   rc|=tds_put_string(tds,"37876",TDS_MAX_LOGIN_STR_SZ);        /* host process */
+   rc=tds_put_padded_cstring(tds,config->host_name,TDS_MAX_LOGIN_STR_SZ);   /* client host name */
+   rc|=tds_put_padded_cstring(tds,config->user_name,TDS_MAX_LOGIN_STR_SZ);  /* account name */
+   rc|=tds_put_padded_cstring(tds,config->password,TDS_MAX_LOGIN_STR_SZ);  /* account password */
+   rc|=tds_put_padded_cstring(tds,"37876",TDS_MAX_LOGIN_STR_SZ);        /* host process */
 #ifdef WORDS_BIGENDIAN
    if (tds->emul_little_endian) {
       rc|=tds_put_n(tds,le1,6);
@@ -387,10 +387,10 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
       rc|=tds_put_int(tds,0);
    }
    rc|=tds_put_n(tds,magic3,3);
-   rc|=tds_put_string(tds,config->app_name,TDS_MAX_LOGIN_STR_SZ);
-   rc|=tds_put_string(tds,config->server_name,TDS_MAX_LOGIN_STR_SZ);
+   rc|=tds_put_padded_cstring(tds,config->app_name,TDS_MAX_LOGIN_STR_SZ);
+   rc|=tds_put_padded_cstring(tds,config->server_name,TDS_MAX_LOGIN_STR_SZ);
    if (IS_TDS42(tds)) {
-      rc|=tds_put_string(tds,config->password,255);
+      rc|=tds_put_padded_cstring(tds,config->password,255);
    } else {
 	 if(config->password == NULL) {
 		sprintf(passwdstr, "%c%c%s", 0, 0, "");
@@ -404,7 +404,7 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
    }
    
    rc|=tds_put_n(tds,protocol_version,4); /* TDS version; { 0x04,0x02,0x00,0x00 } */
-   rc|=tds_put_string(tds,config->library,10);  /* client program name */
+   rc|=tds_put_padded_cstring(tds,config->library,10);  /* client program name */
    if (IS_TDS42(tds)) { 
       rc|=tds_put_int(tds,0);
    } else {
@@ -419,15 +419,15 @@ int tds_send_login(TDSSOCKET *tds, TDSCONFIGINFO *config)
 #else
    rc|=tds_put_n(tds,le2,3);
 #endif
-   rc|=tds_put_string(tds,config->language,TDS_MAX_LOGIN_STR_SZ);  /* language */
+   rc|=tds_put_padded_cstring(tds,config->language,TDS_MAX_LOGIN_STR_SZ);  /* language */
    rc|=tds_put_byte(tds,config->suppress_language);
    rc|=tds_put_n(tds,magic5,2);
    rc|=tds_put_byte(tds,config->encrypted);
    rc|=tds_put_n(tds,magic6,10);
-   rc|=tds_put_string(tds,config->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
+   rc|=tds_put_padded_cstring(tds,config->char_set,TDS_MAX_LOGIN_STR_SZ);  /* charset */
    rc|=tds_put_byte(tds,magic7);
    sprintf(blockstr,"%d",config->block_size);
-   rc|=tds_put_string(tds,blockstr,6); /* network packet size */
+   rc|=tds_put_padded_cstring(tds,blockstr,6); /* network packet size */
    if (IS_TDS42(tds)) {
       rc|=tds_put_n(tds,magic42,8);
    } else if (IS_TDS46(tds)) {
