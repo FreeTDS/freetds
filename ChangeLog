@@ -1,3 +1,7 @@
+Tue Jul 15 10:03:50 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/login.c src/tds/read.c:
+	- fix some issue on win32
+
 Sun Jul 13 18:05:44 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/mem.c src/tds/token.c:
 	- save product name from wire

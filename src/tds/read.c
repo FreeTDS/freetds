@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.56 2003-07-11 15:08:11 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.57 2003-07-15 08:04:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIRECTION io, 
 			    size_t *wire_size, char **outbuf, size_t *outbytesleft);
@@ -103,7 +103,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		selecttimeout.tv_usec = 0;
 		retcode = select(tds->s + 1, &fds, NULL, NULL, &selecttimeout);
 		if (retcode < 0) {
-			if (errno != EINTR) {
+			if (sock_errno != EINTR) {
 				return (-1);
 			}
 		} else if (retcode > 0) {
@@ -111,7 +111,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			if (len > 0) {
 				buflen -= len;
 				got += len;
-			} else if ((len == 0) || ((errno != EINTR) && (errno != EINPROGRESS))) {
+			} else if ((len == 0) || ((sock_errno != EINTR) && (sock_errno != EINPROGRESS))) {
 				return (-1);
 			}
 		}
@@ -589,6 +589,7 @@ read_and_convert(TDSSOCKET *tds, const TDSICONVINFO *iconv_info, TDS_ICONV_DIREC
 		/* convert chunk, write to dest */
 		ptemp = temp;
 		if (-1 == tds_iconv(tds, tds->iconv_info, to_client, &ptemp, &templeft, outbuf, outbytesleft)) {
+			/* FIXME do not use errno, thread problems */
 			if (errno != EINVAL)
 				break;
 		}

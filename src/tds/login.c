@@ -81,7 +81,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.102 2003-07-05 15:09:19 jklowden Exp $";
+static char software_version[] = "$Id: login.c,v 1.103 2003-07-15 08:04:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTINFO * connect_info);
@@ -313,7 +313,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 			return TDS_FAIL;
 		}
 		retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
-		if (retval < 0 && errno == EINPROGRESS)
+		if (retval < 0 && sock_errno == EINPROGRESS)
 			retval = 0;
 		if (retval < 0) {
 			perror("src/tds/login.c: tds_connect (timed)");
@@ -327,7 +327,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTINFO * connect_info)
 			selecttimeout.tv_sec = connect_timeout - (now - start);
 			selecttimeout.tv_usec = 0;
 			retval = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-			if (retval < 0 && errno == EINTR)
+			if (retval < 0 && sock_errno == EINTR)
 				retval = 0;
 			now = time(NULL);
 		}
