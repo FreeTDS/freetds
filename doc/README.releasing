@@ -13,3 +13,13 @@ It's pretty simple, basically:
 5) check out tagged version, do a 'make distcheck', release tarball
 6) create rpm with 'rpm -ta freetds-0.61.tar.gz', post these to 
    ibiblio as well.
+   
+Announcements to:
+
+	freshmeat
+	comp.os.linux.announce
+	comp.databases.sybase
+	comp.databases.ms-sqlserver
+	linuxpr.com
+	
+	

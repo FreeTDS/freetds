@@ -1,3 +1,7 @@
+Wed Feb  5 23:53:25 EST 2003	JK Lowden <jklowden@schemamania.org>
+	* doc/README.releasing added places to send announcements
+	* src/dblib/Makefile.am  bumped .so again, will be 3.0.
+
 Wed Feb  5 14:12:47 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c don't copy null pointer in bcp_colfmt
 
