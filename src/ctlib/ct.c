@@ -36,7 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: ct.c,v 1.74 2003-02-10 22:07:00 jklowden Exp $";
+static char software_version[] = "$Id: ct.c,v 1.75 2003-02-10 22:36:53 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2006,7 +2006,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 
 	switch (option) {
 	case CS_OPT_ANSINULL:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2015,7 +2015,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_ANSIPERM:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2024,7 +2024,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_ARITHABORT:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2033,7 +2033,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_ARITHIGNORE:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2047,7 +2047,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		break;
 
 	case CS_OPT_CHAINXACTS:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2056,7 +2056,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_CURCLOSEONXACT:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2092,7 +2092,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_FIPSFLAG:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2101,7 +2101,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_FORCEPLAN:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2110,7 +2110,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_FORMATONLY:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2119,7 +2119,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_GETDATA:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2138,7 +2138,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_NOCOUNT:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2147,7 +2147,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_NOEXEC:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2156,7 +2156,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_PARSEONLY:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2165,7 +2165,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_QUOTED_IDENT:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2174,7 +2174,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_RESTREES:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2183,7 +2183,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_SHOWPLAN:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2192,7 +2192,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_STATS_IO:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2201,7 +2201,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_STATS_TIME:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2210,7 +2210,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_STR_RTRUNC:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */
@@ -2219,7 +2219,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		}
 		break;
 	case CS_OPT_TRUNCIGNORE:
-		switch (*(int *) param) {
+		switch (*(CS_BOOL *) param) {
 		case CS_TRUE:
 		case CS_FALSE:
 			break;	/* end valid choices */

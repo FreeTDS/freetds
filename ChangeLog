@@ -1,3 +1,8 @@
+Mon Feb 10 17:34:48 EST 2003	nsc <Nicholas_Castellano@acml.com>
+	* src/ctlib/ct.c:
+	- Fix alignment problem, use CS_BOOL param type where
+	  appropriate in ct_options().
+
 Mon Feb 10 17:04:14 EST 2003	JK Lowden <jklowden@schemamania.org>
 	* include/cspublic.h src/ctlib/ct.c sqsh 1.7 now behaves properly
 
