@@ -8,25 +8,15 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.84 2003-12-05 10:05:18 freddy77 Exp $
+To Do List	$Id: TODO,v 1.85 2003-12-06 17:03:50 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
 
 For 0.62 version:
 . iconv
-  - support different column charset under mssql2k
-    (write functions to append to and search the TDSSOCKET::iconv_info array)
-    DONE
-  - convert string using input parameters
-    DONE (some testing needed)
   - finish support for no-GNU iconv (indirect conversion see src/tds/iconv.c)
     (it affect UTF-8 client)
-  - borrow GNU's libiconv m4 macro to test/provide EILSEQ
-    (some iconv implementation do not return EILSEQ, some platforms do not
-    define EILSEQ)
-  - add test for locale_charset() to configure.in.  Use it if available
-    instead of nl_langinfo, because it implies we're using GNU iconv
 . ct_dynamic and friends needed for DBD::Sybase placeholder support (work in progress)
 . FAQ
   - multiple statemets question
@@ -37,19 +27,24 @@ For 0.62 version:
   - update table of working configurations
     server (vendor, version, platform) - client (freetds version, platform) 
     - protocol - charsets - date
-. UTF-8 unit tests (libTDS)
-  - very large column name (128 on mssql), no-english to UTF-8 client
 
 Postponed to 0.63 version
 . iconv
   - support string conversions for Sybase
   - input name "ASCII" must always have a canonical form (needed ??)
+  - borrow GNU's libiconv m4 macro to test/provide EILSEQ
+    (some iconv implementation do not return EILSEQ, some platforms do not
+    define EILSEQ)
+  - add test for locale_charset() to configure.in.  Use it if available
+    instead of nl_langinfo, because it implies we're using GNU iconv
 . add doc/htdoc/Makefile with "publish" target to commit cvs and update 
   freetds.org
 . drop txt2man from cvs, skip building man pages without it. 
 . Rename TDS 8.0 to TDS 7.1, to be consistent with Microsoft's name
 . Rationalize libtds structure and *_alloc functions (ML 5 December 2002, sb:"names")
 . be able to disable iconv for BCP (see Sybase documentation)
+. UTF-8 unit tests (libTDS)
+  - very large column name (128 on mssql), no-english to UTF-8 client
 
 For future versions (in priority order within library):
   All:
