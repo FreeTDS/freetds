@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.4 2003-05-19 10:27:56 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.5 2003-05-28 09:04:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -71,6 +71,78 @@ Fetch(SQLRETURN expected)
 	}
 }
 
+static void
+DoTest(int prepare)
+{
+	int n = 0;
+
+	if (prepare) {
+		if (SQLPrepare(Statement, (SQLCHAR *) "DECLARE @b INT SELECT @b = 25 "
+			       "SELECT * FROM #tmp1 WHERE i <= 2 "
+			       "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
+			       "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 2 "
+			       "SELECT * FROM #tmp1 WHERE i = 1", SQL_NTS) != SQL_SUCCESS) {
+			printf("Unable to prepare statement\n");
+			exit(1);
+		}
+		if (SQLExecute(Statement) != SQL_SUCCESS) {
+			printf("Unable to execute statement\n");
+			exit(1);
+		}
+	} else {
+
+		/* execute a batch command select insert insert select and check rows */
+		if (SQLExecDirect(Statement, (SQLCHAR *) "DECLARE @b INT SELECT @b = 25 "
+				  "SELECT * FROM #tmp1 WHERE i <= 2 "
+				  "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
+				  "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 2 "
+				  "SELECT * FROM #tmp1 WHERE i = 1", SQL_NTS) != SQL_SUCCESS) {
+			printf("Unable to execure direct statement\n");
+			exit(1);
+		}
+	}
+	if (!prepare) {
+		printf("Result %d\n", ++n);
+		CheckCols(0);
+		CheckRows(1);
+		NextResults(SQL_SUCCESS);
+	}
+	printf("Result %d\n", ++n);
+	CheckCols(1);
+	CheckRows(-1);
+	Fetch(SQL_SUCCESS);
+	Fetch(SQL_SUCCESS);
+	CheckCols(1);
+	CheckRows(-1);
+	Fetch(SQL_NO_DATA);
+	CheckCols(1);
+	CheckRows(2);
+	NextResults(SQL_SUCCESS);
+	if (!prepare) {
+		printf("Result %d\n", ++n);
+		CheckCols(0);
+		CheckRows(1);
+		NextResults(SQL_SUCCESS);
+		printf("Result %d\n", ++n);
+		CheckCols(0);
+		CheckRows(2);
+		NextResults(SQL_SUCCESS);
+	}
+	printf("Result %d\n", ++n);
+	CheckCols(1);
+	CheckRows(-1);
+	Fetch(SQL_SUCCESS);
+	CheckCols(1);
+	CheckRows(-1);
+	Fetch(SQL_NO_DATA);
+	CheckCols(1);
+	CheckRows(1);
+	NextResults(SQL_NO_DATA);
+	if (!prepare)
+		CheckCols(-1);
+	CheckRows(-2);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -82,56 +154,11 @@ main(int argc, char *argv[])
 	Command(Statement, "insert into #tmp1 values(2)");
 	Command(Statement, "insert into #tmp1 values(3)");
 
-	/* execute a batch command select insert insert select and check rows */
-	if (SQLExecDirect(Statement, (SQLCHAR *) "SELECT * FROM #tmp1 WHERE i <= 2 "
-			  "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
-			  "INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 2 "
-			  "SELECT * FROM #tmp1 WHERE i = 1", SQL_NTS) != SQL_SUCCESS) {
-		printf("Unable to execure direct statement\n");
-		return 1;
-	}
+	printf("Use direct statement\n");
+	DoTest(0);
 
-	printf("Result 1\n");
-	CheckCols(1);
-	CheckRows(-1);
-
-	Fetch(SQL_SUCCESS);
-	CheckRows(-1);
-	Fetch(SQL_SUCCESS);
-	CheckCols(1);
-	CheckRows(-1);
-	Fetch(SQL_NO_DATA);
-	CheckCols(1);
-	CheckRows(2);
-
-	NextResults(SQL_SUCCESS);
-
-	printf("Result 2\n");
-	CheckCols(0);
-	CheckRows(1);
-
-	NextResults(SQL_SUCCESS);
-
-	printf("Result 3\n");
-	CheckCols(0);
-	CheckRows(2);
-
-	NextResults(SQL_SUCCESS);
-
-	printf("Result 4\n");
-	CheckCols(1);
-	CheckRows(-1);
-	Fetch(SQL_SUCCESS);
-	CheckCols(1);
-	CheckRows(-1);
-	Fetch(SQL_NO_DATA);
-	CheckCols(1);
-	CheckRows(1);
-
-	NextResults(SQL_NO_DATA);
-
-	CheckCols(-1);
-	CheckRows(-2);
+	printf("Use prepared statement\n");
+	DoTest(1);
 
 	Disconnect();
 

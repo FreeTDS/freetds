@@ -1,3 +1,7 @@
+Wed May 28 11:03:34 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/moreandcount.c:
+	- improve test (do not pass)
+
 Tue May 27 22:16:05 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- update SQLExecute to fix funccall test
