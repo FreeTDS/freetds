@@ -28,7 +28,15 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: convert.c,v 1.29 2002-08-04 13:43:11 brianb Exp $";
+#ifndef HAVE_ATOLL
+static long int
+atoll(const char *nptr)
+{
+	return atol(nptr);
+}
+#endif
+
+static char  software_version[]   = "$Id: convert.c,v 1.30 2002-08-04 19:55:48 jklowden Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
