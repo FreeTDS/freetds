@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.48 2003-10-22 02:11:09 jklowden Exp $";
+static char software_version[] = "$Id: write.c,v 1.49 2003-11-16 08:21:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -155,7 +155,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	while (len > 0) {
 		inbytesleft = (len > max_iconv_input) ? max_iconv_input : len;
 		len -= inbytesleft;
-		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", len, s);
+		tdsdump_log(TDS_DBG_NETWORK, "%L tds_put_string converting %d bytes of \"%s\"\n", inbytesleft, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
 		if (-1 == tds_iconv(tds, tds->iconv_info[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft))

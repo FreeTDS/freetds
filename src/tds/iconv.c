@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.92 2003-11-15 16:12:04 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.93 2003-11-16 08:21:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -85,6 +85,12 @@ static const char *ucs2name;
 
 enum
 { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
+
+int
+tds_is_utf8(const TDS_ENCODING *encoding)
+{
+	return 0 == strcmp(encoding->name, canonic_charsets[TDS_CHARSET_UTF_8].name); 
+}	
 
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1

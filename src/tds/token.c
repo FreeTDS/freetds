@@ -30,6 +30,7 @@
 #endif /* HAVE_STDLIB_H */
 
 #include <assert.h>
+#include <libgen.h>
 
 #include "tds.h"
 #include "tdsconvert.h"
@@ -38,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.224 2003-11-13 19:15:47 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.225 2003-11-16 08:21:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -209,14 +210,14 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
 	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
-		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
+		tdsdump_log(TDS_DBG_WARN, "%L %s:%d: Eating %s token\n", basename(__FILE__), __LINE__, _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
 	case TDS_COLINFO_TOKEN:
 		return tds_process_colinfo(tds);
 		break;
 	case TDS_ORDERBY2_TOKEN:
-		tdsdump_log(TDS_DBG_WARN, "eating token %d\n", marker);
+		tdsdump_log(TDS_DBG_WARN, "%L %s:%d: Eating %s token\n", basename(__FILE__), __LINE__, _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
 	default:
@@ -1393,6 +1394,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 
 	/* Adjust column size according to client's encoding */
 	curcol->on_server.column_size = curcol->column_size;
+	adjust_character_column_size(tds, curcol);
 
 	/* numeric and decimal have extra info */
 	if (is_numeric_type(curcol->column_type)) {
@@ -1409,8 +1411,6 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 		curcol->iconv_info = tds_iconv_from_lcid(tds, curcol->column_collation[1] * 256 + curcol->column_collation[0]);
 	}
 
-	adjust_character_column_size(tds, curcol);
-
 	if (is_blob_type(curcol->column_type)) {
 		curcol->table_namelen =
 			tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
@@ -1423,12 +1423,17 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol)
 	curcol->column_namelen = colnamelen;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L tds7_get_data_info:%d: \n"
-		    "\ttype = %d (%s)\n"
-		    "\tcolumn_varint_size = %d\n"
 		    "\tcolname = %s (%d bytes)\n"
+		    "\ttype = %d (%s)\n"
+		    "\tserver's type = %d (%s)\n"
+		    "\tcolumn_varint_size = %d\n"
 		    "\tcolumn_size = %d (%d on server)\n",
-		    __LINE__, curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size,
-		    curcol->column_name, curcol->column_namelen, curcol->column_size, curcol->on_server.column_size);
+		    __LINE__, 
+		    curcol->column_name, curcol->column_namelen, 
+		    curcol->column_type, tds_prtype(curcol->column_type), 
+		    curcol->on_server.column_type, tds_prtype(curcol->on_server.column_type), 
+		    curcol->column_varint_size,
+		    curcol->column_size, curcol->on_server.column_size);
 
 	return TDS_SUCCEED;
 }
@@ -1796,7 +1801,7 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid)
 /**
  * Read a data from wire
  * @param curcol column where store column information
- * @param pointer to row data to store information
+ * @param current_row pointer to row data to store information
  * @param i column position in current_row
  * @return TDS_FAIL on error or TDS_SUCCEED
  */
@@ -1806,7 +1811,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	unsigned char *dest;
 	int len, colsize;
 	int fillchar;
-	TDSBLOBINFO *blob_info;
+	TDSBLOBINFO *blob_info = NULL;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
@@ -1823,7 +1828,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 			tds_set_null(current_row, i);
 			return TDS_SUCCEED;
 		}
-		/* Its a BLOB... */
+		/* It's a BLOB... */
 		len = tds_get_byte(tds);
 		blob_info = (TDSBLOBINFO *) & (current_row[curcol->column_offset]);
 		if (len == 16) {	/*  Jeff's hack */
@@ -1867,20 +1872,25 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	}
 
 	tds_clr_null(current_row, i);
-
+	
+	/* 
+	 * We're now set to read the data from the wire.  For varying types (e.g. char/varchar)
+	 * make sure that curcol->column_cur_size reflects the size of the read data, 
+	 * after any charset conversion.  tds_get_char_data() does that for you, 
+	 * but of course tds_get_n() doesn't.  
+	 *
+	 * colsize == wire_size, bytes to read
+	 * curcol->column_cur_size == sizeof destination buffer, room to write
+	 */
 	dest = &(current_row[curcol->column_offset]);
 	if (is_numeric_type(curcol->column_type)) {
-		TDS_NUMERIC *num;
-
 		/* 
-		 * handling NUMERIC datatypes: 
-		 * since these can be passed around independent
-		 * of the original column they were from, I decided
-		 * to embed the TDS_NUMERIC datatype in the row buffer
-		 * instead of using the wire representation even though
-		 * it uses a few more bytes
+		 * Handling NUMERIC datatypes: 
+		 * Since these can be passed around independent
+		 * of the original column they came from, we embed the TDS_NUMERIC datatype in the row buffer
+		 * instead of using the wire representation, even though it uses a few more bytes.  
 		 */
-		num = (TDS_NUMERIC *) dest;
+		TDS_NUMERIC *num = (TDS_NUMERIC *) dest;
 		memset(num, '\0', sizeof(TDS_NUMERIC));
 		num->precision = curcol->column_prec;
 		num->scale = curcol->column_scale;
@@ -1898,43 +1908,51 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		}
 
 	} else if (is_blob_type(curcol->column_type)) {
-		TDS_CHAR *p;
-
-		/* This seems wrong.  text and image have the same wire format, 
-		 * but I don't see any reason to convert image data.  --jkl
+		int new_blob_size;
+		assert(blob_info == (TDS_CHAR*) dest); 	/* cf. column_varint_size case 4, above */
+		assert(curcol->iconv_info);
+		
+		/* 
+		 * Blobs don't use a column's fixed buffer because the official maximum size is 2 GB.
+		 * Instead, they're reallocated as necessary, based on the data's size.  
+		 * Here we allocate memory, if need be.  
 		 */
-		blob_info = (TDSBLOBINFO *) dest;
-
-		p = blob_info->textvalue;
-		if (!p) {
-			p = (TDS_CHAR *) malloc(colsize);
+		new_blob_size = determine_adjusted_size(curcol->iconv_info, colsize);
+		
+		if (!blob_info->textvalue) {
+			blob_info->textvalue = (TDS_CHAR *) malloc(new_blob_size);
+			curcol->column_cur_size = new_blob_size;
 		} else {
-			p = (TDS_CHAR *) realloc(p, colsize);
+			if( new_blob_size > curcol->column_cur_size ) {
+				blob_info->textvalue = (TDS_CHAR *) realloc(blob_info->textvalue, new_blob_size);
+				curcol->column_cur_size = new_blob_size;
+			}
 		}
-		if (!p)
+		
+		if (!blob_info->textvalue) {
+			curcol->column_cur_size = 0;
 			return TDS_FAIL;
-		blob_info->textvalue = p;
+		}
+		curcol->column_cur_size = new_blob_size;
+		
+		/* read the data */
 		if (is_char_type(curcol->column_type)) {
-			curcol->column_cur_size = colsize;
-			/* FIXME: test error */
-			if (tds_get_char_data(tds, (char *) blob_info, colsize, curcol) == TDS_FAIL)
+			if (tds_get_char_data(tds, blob_info->textvalue, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
-			/* just to make happy code below ... */
-			colsize = curcol->column_cur_size;
-		} else
+		} else {
 			tds_get_n(tds, blob_info->textvalue, colsize);
+		}
 	} else {		/* non-numeric and non-blob */
 		if (is_char_type(curcol->column_type)) {
 			/* this shouldn't fail here */
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
-			/* just to make happy code below ... */
-			colsize = curcol->column_cur_size;
 		} else {
 			if (colsize > curcol->column_size)
 				return TDS_FAIL;
 			if (tds_get_n(tds, dest, colsize) == NULL)
 				return TDS_FAIL;
+			curcol->column_cur_size = colsize;
 		}
 
 		/* pad CHAR and BINARY types */
@@ -1959,8 +1977,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		}
 	}
 
-	/* Value used to properly know value in dbdatlen. (mlilback, 11/7/01) */
-	curcol->column_cur_size = colsize;
+	/* curcol->column_cur_size is used to properly know value in dbdatlen. (mlilback, 11/7/01) */
 
 #ifdef WORDS_BIGENDIAN
 	/* MS SQL Server 7.0 has broken date types from big endian 
@@ -3275,6 +3292,15 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLINFO * curcol)
 		curcol->on_server.column_size = curcol->column_size;
 		curcol->column_size = determine_adjusted_size(curcol->iconv_info, curcol->column_size);
 	}
+	tdsdump_log(TDS_DBG_INFO1, "%L adjust_character_column_size:\n"
+				   "\tServer charset: %s\n"
+				   "\tServer column_size: %d\n"
+				   "\tClient charset: %s\n"
+				   "\tClient column_size: %d\n", 
+				   curcol->iconv_info->server_charset.name, 
+				   curcol->on_server.column_size, 
+				   curcol->iconv_info->client_charset.name, 
+				   curcol->column_size);
 }
 
 /** 

@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.71 2003-11-15 16:12:04 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.72 2003-11-16 08:21:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -296,38 +296,24 @@ int
 tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * curcol)
 {
 	size_t in_left;
-	TDSBLOBINFO *blob_info = NULL;
 
-	if (is_blob_type(curcol->column_type))
-		blob_info = (TDSBLOBINFO *) dest;
-
+	/* 
+	 * dest is usually a column buffer, allocated when the column's metadata are processed 
+	 * and reused for each row.  
+	 * For blobs, dest is blob_info->textvalue, and can be reallocated or freed
+	 * TODO: reallocate if blob and no space 
+	 */
+	 
 	/* silly case, empty string */
 	if (wire_size == 0) {
 		curcol->column_cur_size = 0;
-		if (blob_info) {
-			free(blob_info->textvalue);
-			blob_info->textvalue = NULL;
+		if (is_blob_type(curcol->column_type)) {
+			free(dest);
+			dest = NULL;
 		}
 		return TDS_SUCCEED;
 	}
 
-	/* TODO: reallocate if blob and no space */
-	if (blob_info) {
-		dest = blob_info->textvalue;
-	}
-
-	/*
-	 * The next test is crude.  The question we're trying to answer is, 
-	 * "Should these data be converted, and if so, which TDSICONVINFO do we use?"  
-	 * A Microsoft server sends nchar data in UCS-2, and char/varchar data in the server's 
-	 * installed (single-byte) encoding.  SQL Server 2000 has per-column encodings.  
-	 *
-	 * The right way to answer this question is by passing sufficient metadata to this function.
-	 * The right way to do that is to put a TDSICONVINFO structure in every TDSCOLINFO, and teach
-	 * tds_iconv to copy input->output (IOW, to act transparently) if it doesn't have a valid 
-	 * conversion descriptor.  Then, with the metadata pre-established, we just pass everything to 
-	 * tds_iconv and let it do the Right Thing.  
-	 */
 	if (curcol->iconv_info) {
 		/*
 		 * TODO The conversion should be selected from curcol and tds version
@@ -338,7 +324,7 @@ tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLINFO * cu
 		 * TDS5/UTF-8 -> use server
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
-		in_left = (blob_info) ? curcol->column_cur_size : curcol->column_size;
+		in_left = (is_blob_type(curcol->column_type)) ? curcol->column_cur_size : curcol->column_size;
 		curcol->column_cur_size = read_and_convert(tds, curcol->iconv_info, to_client, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %d on wire while reading %d into client. \n", 
@@ -594,13 +580,12 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 	 */
 	const char *bufp;
 	size_t i, bufleft = 0;
-	const char * partial_character = NULL;
 	size_t partial_character_length = 0;
 	const size_t max_output = *outbytesleft;
 
-	static const short UTF8 = 0; /* for now */
+	const TDS_ENCODING *input_charset = (io == to_server)? &iconv_info->client_charset : &iconv_info->server_charset;
 
-	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0;) {
+	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0; bufp = temp + bufleft) {
 		assert(bufp >= temp);
 		/* read a chunk of data */
 		bufleft = TEMP_SIZE - bufleft;
@@ -612,50 +597,64 @@ read_and_convert(TDSSOCKET * tds, const TDSICONVINFO * iconv_info, TDS_ICONV_DIR
 
 		/* TODO: Determine charset, and do not ask tds_iconv to convert a partial character.  */
 		/*       loop compiles but never executes */
-		for (i=1; UTF8 && i <= 4; i++) {
-			/* FIXME if bufleft < 4 underflow */
+		for (i=1; tds_is_utf8(input_charset) && i <= 4 && i <= bufleft; i++) {
+			partial_character_length = 0;
 			if (temp[bufleft - i] & 0xC0) { /* guard byte is binary 11xxxxxx */
-				/* for interest, we can count the number of characters to come */
+				/* Count the number of characters to come. If not partial, do not exclude. */
 				int len; char mask = 0x40;
-				/* TODO if not partial do not exclude */
 				for (len=1; len < 7 && (temp[bufleft - i] & (mask >> len)); ++len);
-				partial_character = &temp[bufleft - i];
+				if (len == i) 
+					break;
 				partial_character_length = i;
 				bufleft -= partial_character_length;
 				break;
 			}
 		}
 
-		/* 
-		 * Convert chunk and write to dest.
-		 */
+		/* Convert chunk and write to dest. */
 		bufp = temp; /* always convert from start of buffer */
+		if( io == to_client && temp[0] == 'E') { /* debugging tds/unitest/utf_1 */
+			tdsdump_log(TDS_DBG_NETWORK, "\tDebugging: bufleft %d, outbytesleft %u\n", bufleft, *outbytesleft);
+			tdsdump_log(TDS_DBG_NETWORK, "\tDebugging: tds_iconv input buffer:\n\t%D", bufp, bufleft);
+
+		}		
 		if (-1 == tds_iconv(tds, iconv_info, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
-			/* FIXME do not use errno, thread problems */
-			if (errno != EINVAL)
-				break;
+			tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: tds_iconv returned errno %d\n", errno);
+			if (bufleft) {
+				tdsdump_log(TDS_DBG_NETWORK, "%L Error: read_and_convert: "
+							     "Gave up converting %d bytes due to error %d.\n", bufleft, errno);
+				tdsdump_log(TDS_DBG_NETWORK, "\tTroublesome bytes:\n\t%D\n", bufp, bufleft);
+				if (bufleft)
+					tdsdump_log(TDS_DBG_NETWORK, "%L Continuing with remaining %d bytes.\n", *wire_size);
+				bufp += bufleft;
+				bufleft = 0;
+			}
 		}
 
-		/* update for next chunk */
-		if (bufleft) {
-			if (bufleft >= 4) {
-				tdsdump_log(TDS_DBG_NETWORK, "read_and_convert: EINVAL: "
-					    "incomplete sequence at %d from end\n", *wire_size + (bufp - temp));
-				break;
-			}
-			memmove(temp, bufp, bufleft);
+		/* 
+		 * Update for next chunk.  The buffer looks something like this (not to scale):
+		 *
+		 *	|...converted...|...partial...|...(unused portion on last iteration)...|
+		 *	^               ^	      ^                                        ^ end of buffer
+		 *	+- &temp[0]     |	      +- bufp: end of data on good last iteration
+		 *	                +- bufp if no error, but partial character
+		 *
+		 * The count of "partial" is in partial_character_length.
+		 *
+		 * bufp points to the end (+1) of the converted data.  
+		 * bufleft should always be zero.  Anything else is an error.  
+		 *
+		 * We now move any partial character data at bufp to &temp[0], then read in another
+		 * chunk immediately following those bytes, convert that buffer, and come back here.  
+		 */
+
+		if (partial_character_length) { /* always false */
+			memmove(temp + bufleft, bufp, partial_character_length);
+			bufleft = partial_character_length;
 		}
-		
-		if (partial_character) { /* always false */
-			memmove(temp + bufleft, partial_character, partial_character_length);
-			bufleft += partial_character_length;
-			partial_character = NULL;
-		}
-		bufp = temp + bufleft;
 	}
 
-	/* keep FreeTDS in sync even on conversion errors */
-	tds_get_n(tds, NULL, *wire_size);
+	assert(*wire_size == 0 || *outbytesleft == 0)
 
 	TEMP_FREE;
 	return max_output - *outbytesleft;

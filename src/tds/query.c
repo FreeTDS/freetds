@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.111 2003-11-13 13:52:53 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.112 2003-11-16 08:21:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -805,7 +805,7 @@ int
 tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	int id_len, query_len;
-	TDSDYNAMIC *dyn;
+	TDSDYNAMIC *dyn = NULL;
 	TDSCOLINFO *param;
 
 	if (!query)
@@ -905,6 +905,8 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	}
 
 	tds->out_flag = 0x0F;
+	
+	assert(dyn);
 
 	id_len = strlen(dyn->id);
 	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
@@ -1873,7 +1875,7 @@ tds_cursor_close(TDSSOCKET * tds)
 		tds_put_smallint(tds, 5);	/* length of the data stream that follows */
 		tds_put_int(tds, tds->cursor->cursor_id);	/* cursor id returned by the server is available now */
 
-		if (tds->cursor->dealloc_status == 1)
+		if (tds->cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED)
 			tds_put_byte(tds, 0x01);	/* Close option: TDS_CUR_COPT_DEALLOC */
 		else
 			tds_put_byte(tds, 0x00);	/* Close option: TDS_CUR_COPT_UNUSED */
