@@ -192,30 +192,32 @@ byte  var type  description
   8   INT8[7]?	0000000
  15   INT8[4]	magic   0x0682f2f8
  19   INT8[4]	PID of client
- 23   INT8[13]  magic   0x00e003000088ffffff36040000 
+ 23   INT8[13]  magic  0x00e003000088ffffff36040000 
+                (seen  0x00e0030000c4ffffff10040000)
                 third byte is 0x83 for NT authentication
- 36   INT16	current_pos   86
+ 36   INT16	position of client hostname (86)
  38   INT16	hostname lenght
- 40   INT16	current_pos
+ 40   INT16	position of username
  42   INT16	username length
- 44   INT16	current_pos
+ 44   INT16	position of password
  46   INT16	password length
- 48   INT16	current_pos
+ 48   INT16	position of app name
  50   INT16	app name length
- 52   INT16	current_pos
+ 52   INT16	position of server name
  54   INT16	server name length
  56   INT16	0
  58   INT16	0
- 60   INT16	current_pos
+ 60   INT16	position of library name
  62   INT16	library name length
- 64   INT16	current_pos
+ 64   INT16	position of language
  66   INT16	language name
- 68   INT16	current_pos
+                (for italian "Italiano" coded UCS2)
+ 68   INT16	position of database name
  70   INT16	database name length
  72   INT8[6]	MAC address of client
- 78   INT16	current_pos
+ 78   INT16	position of auth portion
  80   INT16	NT authentication length
- 82   INT16	current_pos
+ 82   INT16	next position (same of total packet size)
  84   INT16	0
  86   UCS2LE[n] hostname
       UCS2LE[n]	username
@@ -239,7 +241,7 @@ NT Authentication packet
  28   INT32     hostname offset
  32   CHAR[n]   hostname
       CHAR[n]   domain
-See documentation on Samba for detail
+See documentation on Samba for detail (or search ntlm authentication for IIS)
 </pre>
 "current pos" is the starting byte address for a Unicode string within
 the packet.  The length of that Unicode string immediately follows.  
