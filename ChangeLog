@@ -1,3 +1,8 @@
+Fri Aug 08 12:18:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/raiseerror.c(added):
+	- added test for RAISEERROR in store (from Tom Rogers)
+
 Thu Aug 07 23:08:08 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- fixed bug calling SQLBindParam (reported by David Fraser)

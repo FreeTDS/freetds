@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.66 2003-08-06 19:27:12 freddy77 Exp $
+To Do List	$Id: TODO,v 1.67 2003-08-08 10:19:45 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -96,6 +96,7 @@ For future versions (in priority order within library):
 . SQLNativeSql and fill SQLGetInfo according (mssql7+ handle odbc escapes 
   directly)
 . autoinstall for RPM
+. test all binding types
 
   pool
 . get connection pooling working with all protocol versions
