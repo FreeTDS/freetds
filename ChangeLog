@@ -1,3 +1,9 @@
+Mon Aug  2 10:47:36 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix SQLGetTypeInfo columns names for ODBC 3
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/typeinfo.c(added):
+	- test for SQLGetTypeInfo
+
 Sun Aug  1 21:05:08 CET 2004    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO src/tds/query.c src/tds/token.c:
 	- comment style and updates

@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.114 2004-08-01 19:05:12 freddy77 Exp $
+To Do List	$Id: TODO,v 1.115 2004-08-02 08:50:35 freddy77 Exp $
 ------------
 Broken:
 . Undelimited data files should be read w/ tds_iconv_fread().
@@ -123,9 +123,6 @@ For future versions (in priority order within library):
 
 . test and fix: select with compute
 . test and fix: hidden fields (FOR BROWSE select)
-. test: check for SQLGetTypeInfo (test column names in versions 2 and 3 
-  of odbc, varchar/nvarchar should be before sysname, numeric type for data 
-  with different odbc versions)
 . test: all binding types (input and output)
 . test: new descriptors work
   - ODBC 2 type returned (datetime)

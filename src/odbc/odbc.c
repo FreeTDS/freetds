@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.337 2004-07-30 14:29:43 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.338 2004-08-02 08:50:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2588,6 +2588,7 @@ _SQLFetch(TDS_STMT * stmt)
 
 #define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
 	size_t row_offset = 0;
+
 	if (stmt->ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN && stmt->ard->header.sql_desc_bind_offset_ptr)
 		row_offset = *stmt->ard->header.sql_desc_bind_offset_ptr;
 
@@ -2656,12 +2657,13 @@ _SQLFetch(TDS_STMT * stmt)
 				continue;
 			}
 			if (tds_get_null(resinfo->current_row, i)) {
-				if (!drec_ard->sql_desc_indicator_ptr) {
+				if (drec_ard->sql_desc_indicator_ptr) {
+					*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLINTEGER) = SQL_NULL_DATA;
+				} else if (drec_ard->sql_desc_data_ptr) {
 					odbc_errs_add(&stmt->errs, "22002", NULL, NULL);
 					row_status = SQL_ROW_ERROR;
 					break;
 				}
-				*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLINTEGER) = SQL_NULL_DATA;
 				continue;
 			}
 			/* set indicator to 0 if data is not null */
@@ -4724,6 +4726,11 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	res = _SQLExecute(stmt);
 
 	odbc_upper_column_names(stmt);
+	if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
+		odbc_col_setname(stmt, 3, "COLUMN_SIZE");
+		odbc_col_setname(stmt, 11, "FIXED_PREC_SCALE");
+		odbc_col_setname(stmt, 12, "AUTO_UNIQUE_VALUE");
+	}
 
 	if (TDS_IS_MSSQL(stmt->dbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS)
 		ODBC_RETURN(stmt, res);
