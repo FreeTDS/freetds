@@ -66,7 +66,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.91 2002-11-21 14:19:08 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.92 2002-11-21 21:31:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1239,7 +1239,7 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 			{
 				marker=tds_get_byte(tds);
 				tds_process_default_tokens(tds,marker);
-			/* FIXME is DEAD loop do not end... */
+			/* FIXME is DEAD loop do not end...Put all in tds_submit_prepare ?? */
 			} while (tds->state != TDS_COMPLETED);
 
 			stmt->dyn = tds->cur_dyn;
@@ -1257,9 +1257,9 @@ struct _hstmt *stmt = (struct _hstmt *) hstmt;
 				param = odbc_find_param(stmt, i+1);
 				if (!param) return SQL_ERROR;
 				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
-				if (!(params=tds_alloc_param_result(dyn->new_params)))
+				if (!(params=tds_alloc_param_result(dyn->params)))
 					return SQL_ERROR;
-				dyn->new_params = params;
+				dyn->params = params;
 				fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);
 				/* add another type and copy data */
 				curcol = params->columns[i];

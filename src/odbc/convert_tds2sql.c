@@ -36,7 +36,7 @@
 #include "convert_tds2sql.h"
 #include <sqlext.h>
 
-static char software_version[] = "$Id: convert_tds2sql.c,v 1.23 2002-11-13 21:14:43 freddy77 Exp $";
+static char software_version[] = "$Id: convert_tds2sql.c,v 1.24 2002-11-21 21:31:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -257,6 +257,7 @@ int i, cplen;
 		ret = sizeof(TDS_REAL);
 		break;
 
+	case SQL_DECIMAL:
 	case SQL_C_NUMERIC:
 		/* ODBC numeric is quite different from TDS one ... */
 		num = (SQL_NUMERIC_STRUCT *) dest;
@@ -271,8 +272,16 @@ int i, cplen;
 			memset(num->val + i, 0, SQL_MAX_NUMERIC_LEN - i);
 		ret = sizeof(SQL_NUMERIC_STRUCT);
 		break;
-		/* TODO GUID */
 
+#ifdef SQL_C_GUID
+	case SQL_C_GUID:
+		memcpy(dest, &(ores.u), sizeof(TDS_UNIQUE));
+		ret = sizeof(TDS_UNIQUE);
+		break;
+#endif
+
+		/* TODO BINARY */
+	case SQL_C_BINARY:
 	default:
 		break;
 

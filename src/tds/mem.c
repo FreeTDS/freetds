@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: mem.c,v 1.52 2002-11-16 15:21:14 freddy77 Exp $";
+static char  software_version[]   = "$Id: mem.c,v 1.53 2002-11-21 21:31:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -128,12 +128,12 @@ void tds_free_input_params(TDSDYNAMIC *dyn)
 {
 TDSPARAMINFO *info;
 
-	info = dyn->new_params;
+	info = dyn->params;
 	if (info) {
 		if (info->columns) free(info->columns);
 		if (info->current_row) free(info->current_row);
 		free(info);
-		dyn->new_params = NULL;
+		dyn->params = NULL;
 	}
 }
 

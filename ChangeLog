@@ -1,3 +1,8 @@
+Thu Nov 21 22:30:15 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_tds2sql.c: add support for SQLGUID
+	* include/tds.h src/odbc/odbc.c src/tds/mem.c src/tds/query.c:
+	- renames new_params to params
+
 Thu Nov 21 16:01:27 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/ct.c:
 	- Fix return value from ct_cancel().

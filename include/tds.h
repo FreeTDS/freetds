@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.53 2002-11-21 20:48:43 freddy77 Exp $";
+	"$Id: tds.h,v 1.54 2002-11-21 21:31:05 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -591,7 +591,7 @@ typedef struct tds_dynamic {
 	/** numeric id for mssql7+*/
 	TDS_INT num_id;
 	TDSRESULTINFO *res_info;
-	TDSPARAMINFO *new_params;
+	TDSPARAMINFO *params;
 } TDSDYNAMIC;
 
 /* forward declaration */
