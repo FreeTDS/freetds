@@ -79,7 +79,7 @@ CONV_RESULT dres;
 				col = tds->res_info->columns[i];
 				ctype = tds_get_conversion_type(col->column_type, col->column_size);
 
-                    tds_convert(NULL,
+                    tds_convert(tds->tds_ctx,
  					ctype,
  					&tds->res_info->current_row[col->column_offset],
  					col->column_size,
