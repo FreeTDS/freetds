@@ -1,3 +1,7 @@
+Wed Oct  2 15:12:57 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* src/replacements/vasprintf.c:
+	- Remove extraneous close paren from expresison.
+
 Wed Oct  2 10:53:49 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/replacements/strtok_r.c src/tds/vstrbuild.c:
 	- Add CVS ident to strtok_r.c, and include replacements.h

@@ -15,7 +15,7 @@
 #include <string.h>
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: vasprintf.c,v 1.3 2002-09-30 14:25:35 castellano Exp $";
+static char  software_version[]   = "$Id: vasprintf.c,v 1.4 2002-10-02 19:14:02 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -71,7 +71,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
   if ((fp = fopen("/dev/null", "w")) == NULL)
     return -1;
 #else
-  if ((fp == NULL) && ((fp = fopen("/dev/null", "w")) == NULL)))
+  if ((fp == NULL) && ((fp = fopen("/dev/null", "w")) == NULL))
     return -1;
 #endif
 
