@@ -1,3 +1,7 @@
+Wed May 29 14:10:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/tds/query.c src/tds/token.c:
+	- some fix for prepare and RPC
+
 Wed May 28 21:59:04 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/odbc/odbc.c src/pool/member.c:
 	* src/tds/token.c src/tds/unittests/t0003.c:

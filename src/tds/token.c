@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.194 2003-05-28 19:57:55 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.195 2003-05-29 12:11:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -593,6 +593,8 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
 				*result_type = (done_flags & TDS_DONE_COUNT) ? TDS_CMD_DONE : TDS_CMD_SUCCEED;
 			else
 				*result_type = TDS_CMD_FAIL;
+			if (marker == TDS_DONEINPROC_TOKEN)
+				break;
 			return TDS_SUCCEED;
 			break;
 		default:

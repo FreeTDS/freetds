@@ -40,7 +40,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.92 2003-05-17 18:10:30 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.93 2003-05-29 12:11:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -436,11 +436,16 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, const char *param_defi
 	}
 	if (!param_definition) {
 		/* TODO put this code in caller and pass param_definition */
-		tds_put_int(tds, len * 2);
-		tds_put_int(tds, len * 2);
-		for (i = 1; i <= n; ++i) {
-			sprintf(buf, "%s@P%d varchar(80)", (i == 1 ? "" : ","), i);
-			tds_put_string(tds, buf, -1);
+		if (n) {
+			tds_put_int(tds, len * 2);
+			tds_put_int(tds, len * 2);
+			for (i = 1; i <= n; ++i) {
+				sprintf(buf, "%s@P%d varchar(80)", (i == 1 ? "" : ","), i);
+				tds_put_string(tds, buf, -1);
+			}
+		} else {
+			tds_put_int(tds, 0);
+			tds_put_int(tds, 0);
 		}
 	} else {
 		/* FIXME ICONV just to add some incompatibility with charset... see above */
@@ -634,13 +639,13 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 		tds_put_int(tds, curcol->column_size);
 		break;
 	}
-	if (is_numeric_type(curcol->column_type)) {
+	if (is_numeric_type(curcol->on_server.column_type)) {
 		tds_put_byte(tds, curcol->column_prec);
 		tds_put_byte(tds, curcol->column_scale);
 	}
 
 	/* TDS8 output collate information */
-	if (IS_TDS80(tds) && is_collate_type(curcol->column_type))
+	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type))
 		tds_put_n(tds, tds->collation, 5);
 
 	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
@@ -673,7 +678,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLINFO * curcol, int flags)
 	if (flags & TDS_PUT_DATA_USE_NAME)
 		/* TODO use column_namelen ? */
 		len += strlen(curcol->column_name);
-	if (is_numeric_type(curcol->column_type))
+	if (is_numeric_type(curcol->on_server.column_type))
 		len += 2;
 	return len + curcol->column_varint_size;
 }
@@ -694,8 +699,8 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 	TDSBLOBINFO *blob_info;
 	int colsize;
 	int is_null;
-	const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
-	const unsigned char GEN_NULL = 0x00;
+	static const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
+	static const unsigned char GEN_NULL = 0x00;
 
 /* I don't think this is working as tds_set_null is not being called prior to this...
    I can't figure out how where I should call tds_set_null() anyway....
@@ -717,7 +722,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 		if (is_null) {
 
 			tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: null param\n");
-			switch (curcol->column_type) {
+			switch (curcol->on_server.column_type) {
 			case XSYBCHAR:
 			case XSYBVARCHAR:
 			case XSYBBINARY:
@@ -728,6 +733,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				tds_put_n(tds, CHARBIN_NULL, 2);
 				break;
 			default:
+				/* FIXME good for all other types ??? */
 				tdsdump_log(TDS_DBG_INFO1, "%L tds_put_data: putting GEN_NULL\n");
 				tds_put_byte(tds, GEN_NULL);
 				break;
@@ -746,22 +752,24 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				tds_put_smallint(tds, colsize);
 				break;
 			case 1:
-				if (is_numeric_type(curcol->column_type))
+				if (is_numeric_type(curcol->on_server.column_type))
 					colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
 				tds_put_byte(tds, colsize);
 				break;
 			case 0:
-				colsize = tds_get_size_by_type(curcol->column_type);
+				/* TODO should be column_size */
+				colsize = tds_get_size_by_type(curcol->on_server.column_type);
 				break;
 			}
 
 			/* put real data */
-			if (is_numeric_type(curcol->column_type)) {
+			if (is_numeric_type(curcol->on_server.column_type)) {
 				TDS_NUMERIC buf;
 
 				num = (TDS_NUMERIC *) src;
 				memcpy(&buf, num, sizeof(buf));
 				tdsdump_log(TDS_DBG_INFO1, "%L swapping numeric data...\n");
+				/* TODO tds_get_conversion_type needed?? */
 				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), (unsigned char *) &buf);
 				num = &buf;
 				tds_put_n(tds, num->array, colsize);
@@ -814,6 +822,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLINFO * curcol, unsigned char *current_row, i
 				tds_put_byte(tds, 0);
 			break;
 		case 0:
+			/* TODO should be column_size */
 			colsize = tds_get_size_by_type(curcol->column_type);
 			break;
 		}
@@ -900,11 +909,12 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds_put_int(tds, dyn->num_id);
 
 		info = dyn->params;
-		for (i = 0; i < info->num_cols; i++) {
-			param = info->columns[i];
-			tds_put_data_info(tds, param, 0);
-			tds_put_data(tds, param, info->current_row, i);
-		}
+		if (info)
+			for (i = 0; i < info->num_cols; i++) {
+				param = info->columns[i];
+				tds_put_data_info(tds, param, 0);
+				tds_put_data(tds, param, info->current_row, i);
+			}
 
 		return tds_flush_packet(tds);
 	}

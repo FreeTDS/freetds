@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.174 2003-05-28 19:57:54 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.175 2003-05-29 12:11:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1247,6 +1247,8 @@ SQLExecute(SQLHSTMT hstmt)
 	TDS_INT result_type;
 	int ret, done;
 	SQLRETURN result = SQL_NO_DATA;
+	int i, nparam;
+	TDSPARAMINFO *params = NULL, *temp_params;
 #endif
 
 	INIT_HSTMT;
@@ -1254,128 +1256,124 @@ SQLExecute(SQLHSTMT hstmt)
 #ifdef ENABLE_DEVELOPING
 	tds = stmt->hdbc->tds_socket;
 
-	if (stmt->param_count > 0) {
-		/* TODO what happen if binding is dynamic (data incomplete?) */
+	/* TODO what happen if binding is dynamic (data incomplete?) */
 
-		/* TODO rebuild should be done for every bingings change, not every time */
-		int i, nparam;
-		TDSPARAMINFO *params = NULL, *temp_params;
+	/* TODO rebuild should be done for every bingings change, not every time */
 
-		/* build parameters list */
-		tdsdump_log(TDS_DBG_INFO1, "Setting input parameters\n");
-		for (i = (stmt->prepared_query_is_func ? 1 : 0), nparam = 0; ++i <= (int) stmt->param_count; ++nparam) {
-			/* find binded parameter */
-			param = odbc_find_param(stmt, i);
-			if (!param) {
-				tds_free_param_results(params);
-				return SQL_ERROR;
-			}
-
-			/* add a columns to parameters */
-			if (!(temp_params = tds_alloc_param_result(params))) {
-				tds_free_param_results(params);
-				odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
-				return SQL_ERROR;
-			}
-			params = temp_params;
-
-			/* add another type and copy data */
-			if (sql2tds(stmt->hdbc, param, params, nparam) < 0) {
-				tds_free_param_results(params);
-				return SQL_ERROR;
-			}
-		}
-
-		/* TODO test if two SQLPrepare on a statement */
-		/* TODO unprepare on statement free of connection close */
-		/* prepare dynamic query (only for first SQLExecute call) */
-		if (!stmt->dyn && !stmt->prepared_query_is_rpc) {
-			TDS_INT result_type;
-
-			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
-			/* TODO use tds_submit_prepexec */
-			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
-				tds_free_param_results(params);
-				return SQL_ERROR;
-			}
-			if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL) {
-				tds_free_param_results(params);
-				return SQL_ERROR;
-			}
-		}
-		if (!stmt->prepared_query_is_rpc) {
-			dyn = stmt->dyn;
-			tds_free_input_params(dyn);
-			dyn->params = params;
-			tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
-			/* TODO return error to client */
-			if (tds_submit_execute(tds, dyn) == TDS_FAIL)
-				return SQL_ERROR;
-		} else {
-			/* get rpc name */
-			/* TODO change method */
-			char *end = stmt->prepared_query, tmp;
-
-			if (*end == '[')
-				end = (char *) tds_skip_quoted(end);
-			else
-				while (!isspace(*++end));
-			tmp = *end;
-			*end = 0;
-			ret = tds_submit_rpc(tds, stmt->prepared_query, params);
-			*end = tmp;
+	/* build parameters list */
+	tdsdump_log(TDS_DBG_INFO1, "Setting input parameters\n");
+	for (i = (stmt->prepared_query_is_func ? 1 : 0), nparam = 0; ++i <= (int) stmt->param_count; ++nparam) {
+		/* find binded parameter */
+		param = odbc_find_param(stmt, i);
+		if (!param) {
 			tds_free_param_results(params);
-			if (ret != TDS_SUCCEED)
-				return SQL_ERROR;
+			return SQL_ERROR;
 		}
 
-		/* TODO copied from _SQLExecute, use a function... */
-		stmt->hdbc->current_statement = stmt;
-
-		done = 0;
-		while ((ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
-			switch (result_type) {
-			case TDS_COMPUTE_RESULT:
-			case TDS_ROW_RESULT:
-				result = SQL_SUCCESS;
-				done = 1;
-				break;
-			case TDS_CMD_FAIL:
-				result = SQL_ERROR;
-				done = 1;
-				break;
-
-			case TDS_CMD_DONE:
-				/* FIXME this skip first INSERT/UPDATE/DELETE (unwanted),  SELECT @var = value (unwanted), 
-				 * do a better job under mssql (it return operation type in DONE), 
-				 * see Sybase and MS ODBC exact behaviour, 
-				 * update moreandcount test  */
-				if (tds->res_info) {
-					result = SQL_SUCCESS;
-					done = 1;
-				}
-				break;
-
-			case TDS_STATUS_RESULT:
-				result = SQL_SUCCESS;
-				odbc_set_return_status(stmt);
-				break;
-
-			case TDS_PARAM_RESULT:
-			case TDS_COMPUTEFMT_RESULT:
-			case TDS_MSG_RESULT:
-			case TDS_ROWFMT_RESULT:
-			case TDS_DESCRIBE_RESULT:
-				result = SQL_SUCCESS;
-				break;
-
-			}
-			if (done)
-				break;
+		/* add a columns to parameters */
+		if (!(temp_params = tds_alloc_param_result(params))) {
+			tds_free_param_results(params);
+			odbc_errs_add(&stmt->errs, ODBCERR_MEMORY, NULL);
+			return SQL_ERROR;
 		}
-		return result;
+		params = temp_params;
+
+		/* add another type and copy data */
+		if (sql2tds(stmt->hdbc, param, params, nparam) < 0) {
+			tds_free_param_results(params);
+			return SQL_ERROR;
+		}
 	}
-#endif
+
+	/* TODO test if two SQLPrepare on a statement */
+	/* TODO unprepare on statement free of connection close */
+	/* prepare dynamic query (only for first SQLExecute call) */
+	if (!stmt->dyn && !stmt->prepared_query_is_rpc) {
+		TDS_INT result_type;
+
+		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
+		/* TODO use tds_submit_prepexec */
+		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
+			tds_free_param_results(params);
+			return SQL_ERROR;
+		}
+		if (tds_process_simple_query(tds, &result_type) == TDS_FAIL || result_type == TDS_CMD_FAIL) {
+			tds_free_param_results(params);
+			return SQL_ERROR;
+		}
+	}
+	if (!stmt->prepared_query_is_rpc) {
+		dyn = stmt->dyn;
+		tds_free_input_params(dyn);
+		dyn->params = params;
+		tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
+		/* TODO return error to client */
+		if (tds_submit_execute(tds, dyn) == TDS_FAIL)
+			return SQL_ERROR;
+	} else {
+		/* get rpc name */
+		/* TODO change method */
+		char *end = stmt->prepared_query, tmp;
+
+		if (*end == '[')
+			end = (char *) tds_skip_quoted(end);
+		else
+			while (!isspace(*++end));
+		tmp = *end;
+		*end = 0;
+		ret = tds_submit_rpc(tds, stmt->prepared_query, params);
+		*end = tmp;
+		tds_free_param_results(params);
+		if (ret != TDS_SUCCEED)
+			return SQL_ERROR;
+	}
+
+	/* TODO copied from _SQLExecute, use a function... */
+	stmt->hdbc->current_statement = stmt;
+
+	done = 0;
+	while ((ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
+		switch (result_type) {
+		case TDS_COMPUTE_RESULT:
+		case TDS_ROW_RESULT:
+			result = SQL_SUCCESS;
+			done = 1;
+			break;
+		case TDS_CMD_FAIL:
+			result = SQL_ERROR;
+			done = 1;
+			break;
+
+		case TDS_CMD_DONE:
+			/* FIXME this skip first INSERT/UPDATE/DELETE (unwanted),  SELECT @var = value (unwanted), 
+			 * do a better job under mssql (it return operation type in DONE), 
+			 * see Sybase and MS ODBC exact behaviour, 
+			 * update moreandcount test  */
+			if (tds->res_info) {
+				result = SQL_SUCCESS;
+				done = 1;
+			}
+			break;
+
+		case TDS_STATUS_RESULT:
+			result = SQL_SUCCESS;
+			odbc_set_return_status(stmt);
+			break;
+
+		case TDS_PARAM_RESULT:
+		case TDS_COMPUTEFMT_RESULT:
+		case TDS_MSG_RESULT:
+		case TDS_ROWFMT_RESULT:
+		case TDS_DESCRIBE_RESULT:
+			result = SQL_SUCCESS;
+			break;
+
+		}
+		if (done)
+			break;
+	}
+	return result;
+#else /* ENABLE_DEVELOPING */
 
 	if (stmt->prepared_query) {
 		SQLRETURN res = start_parse_prepared_query(stmt);
@@ -1385,6 +1383,7 @@ SQLExecute(SQLHSTMT hstmt)
 	}
 
 	return _SQLExecute(stmt);
+#endif
 }
 
 SQLRETURN SQL_API
