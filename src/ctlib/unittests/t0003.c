@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char  software_version[]   = "$Id: t0003.c,v 1.7 2002-10-13 23:28:12 castellano Exp $";
+static char  software_version[]   = "$Id: t0003.c,v 1.8 2002-10-15 13:38:12 castellano Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -126,8 +126,8 @@ main(int argc, char **argv)
                      return 1;
                   }
 		  if (datalength != strlen(name)+1) {
-			  fprintf(stderr, "Bad count:\n'%d'\n! =\n'%d'\n", 
-					  strlen(name)+1, count);
+			  fprintf(stderr, "Bad count:\n'%ld'\n! =\n'%d'\n", 
+					  (long) strlen(name)+1, count);
 			  return 1;
 		  }
                }
