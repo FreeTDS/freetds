@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: token.c,v 1.85 2002-10-27 07:07:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: token.c,v 1.86 2002-10-27 19:59:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -398,19 +398,13 @@ int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type)
 int marker;
 int more_results = 0;
 int cancelled;
-int retcode = TDS_SUCCEED;
-int res_type;
-int complete_result;
-
 
 	if (tds->state==TDS_COMPLETED) {
         tdsdump_log(TDS_DBG_FUNC, "%L inside tds_process_result_tokens() state is COMPLETED\n");
 		return TDS_NO_MORE_RESULTS;
 	}
 
-    complete_result = 0;
-
-    while (!complete_result ) {
+	for(;;) {
 
 		marker=tds_get_byte(tds);
 		tdsdump_log(TDS_DBG_INFO1, "%L processing result tokens.  marker is  %x\n", marker);
@@ -423,77 +417,77 @@ int complete_result;
 				break;
 			case TDS7_RESULT_TOKEN:
 					tds7_process_result(tds);
-                res_type = TDS_ROWFMT_RESULT;
-                complete_result = 1;
-				break;
+					*result_type = TDS_ROWFMT_RESULT;
+					return TDS_SUCCEED;
+					break;
 			case TDS_RESULT_TOKEN:
 					tds_process_result(tds);
-                res_type = TDS_ROWFMT_RESULT;
-                complete_result = 1;
+					*result_type = TDS_ROWFMT_RESULT;
+					return TDS_SUCCEED;
 				break;
 			case TDS_COL_NAME_TOKEN:
 					tds_process_col_name(tds);
                 break;
            case TDS_COL_INFO_TOKEN:
                 tds_process_col_info(tds); 
-                complete_result = 1;
-                res_type = TDS_ROWFMT_RESULT;
-                break;
+					*result_type = TDS_ROWFMT_RESULT;
+					return TDS_SUCCEED;
+					break;
            case TDS_PARAM_TOKEN: 
-					tds_unget_byte(tds);
-	            tds_process_param_result_tokens(tds);
-                complete_result = 1;
-                res_type = TDS_PARAM_RESULT;
+				tds_unget_byte(tds);
+				tds_process_param_result_tokens(tds);
+				*result_type = TDS_PARAM_RESULT;
+				return TDS_SUCCEED;
                 break;
            case TDS_COMPUTE_NAMES_TOKEN:
                 tds_process_compute_names(tds); 
                 break;
            case TDS_COMPUTE_RESULT_TOKEN:
                 tds_process_compute_result(tds); 
-                complete_result = 1;
-                res_type = TDS_COMPUTEFMT_RESULT;
+				*result_type = TDS_COMPUTEFMT_RESULT;
+				return TDS_SUCCEED;
                 break;
            case TDS7_COMPUTE_RESULT_TOKEN:
                 tds7_process_compute_result(tds); 
-                complete_result = 1;
-                res_type = TDS_COMPUTEFMT_RESULT;
+				*result_type = TDS_COMPUTEFMT_RESULT;
+				return TDS_SUCCEED;
 				break;
 			case TDS_ROW_TOKEN:
                 /* overstepped the mark...*/
-                res_type = TDS_ROW_RESULT;
-                complete_result = 1;
-					tds->res_info->rows_exist=1;
+				*result_type = TDS_ROW_RESULT;
+				tds->res_info->rows_exist=1;
                 tds->curr_resinfo = tds->res_info;
-					tds_unget_byte(tds);
+				tds_unget_byte(tds);
+				return TDS_SUCCEED;
                 break;
             case TDS_CMP_ROW_TOKEN:
-                res_type = TDS_COMPUTE_RESULT;
-                complete_result = 1;
+				*result_type = TDS_COMPUTE_RESULT;
                 tds->res_info->rows_exist = 1;
                 tds_unget_byte(tds);
+				return TDS_SUCCEED;
                 break;
 			case TDS_RET_STAT_TOKEN:
 				tds->has_status=1;
 				tds->ret_status=tds_get_int(tds);
-                res_type = TDS_STATUS_RESULT;
-                complete_result = 1;
+				*result_type = TDS_STATUS_RESULT;
+				return TDS_SUCCEED;
 				break;
 			case TDS5_DYN_TOKEN:
 				tds->cur_dyn_elem = tds_process_dynamic(tds);
 				break;
 			case TDS5_DYNRES_TOKEN:
 				tds_process_dyn_result(tds);
-                res_type = TDS_DESCRIBE_RESULT;
-                complete_result = 1;
+				*result_type = TDS_DESCRIBE_RESULT;
+				return TDS_SUCCEED;
 				break;
 			case TDS_DONE_TOKEN:
 			case TDS_DONEPROC_TOKEN:
 			case TDS_DONEINPROC_TOKEN:
                 if (tds_process_end(tds, marker, &more_results, &cancelled) == TDS_SUCCEED)
-                    res_type = TDS_CMD_DONE;
+					*result_type = TDS_CMD_DONE;
                 else
-                    res_type = TDS_CMD_FAIL;
-                complete_result = 1;
+					*result_type = TDS_CMD_FAIL;
+				return TDS_SUCCEED;
 				break;
 			default:
                 if (tds_process_default_tokens(tds,marker) == TDS_FAIL) {
@@ -502,9 +496,6 @@ int complete_result;
 				break;
 		}
     } 
-
-    *result_type = res_type;
-	return retcode;
 }
 
 /**
@@ -537,7 +528,6 @@ int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid)
 int marker;
 int   more_results;
 int   cancelled;
-int matched_row_to_result = 0;
 TDS_SMALLINT compute_id;
 TDSRESULTINFO *info;
 int i;
@@ -572,18 +562,15 @@ int i;
 
                 *rowtype = TDS_COMP_ROW;
                 compute_id = tds_get_smallint(tds);
-                matched_row_to_result = 0;
             
-                for ( i = 0; i < tds->num_comp_info ; i++ ) {
+                for ( i = 0;  ; ++i ) {
+                    if (i >= tds->num_comp_info)
+                       return TDS_FAIL;
                     info = tds->comp_info[i];
-                    if (info->computeid == compute_id) {
-                       matched_row_to_result = 1;
+                    if (info->computeid == compute_id)
                        break;
-                    }
                 }
-                if (!matched_row_to_result)
-                   return TDS_FAIL;
-            
+
                 tds->curr_resinfo = info;
                 tds_process_compute(tds); 
                 if (computeid)
@@ -832,7 +819,6 @@ TDSCOLINFO *curcol;
 TDSCOMPUTEINFO *info;
 int remainder;
 int             i;
-int             matched_compute_id = 0;
 
 
 	hdrsize = tds_get_smallint(tds);
@@ -851,17 +837,14 @@ int             matched_compute_id = 0;
 
 	num_cols = tds_get_byte(tds);
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return TDS_FAIL;
         info = tds->comp_info[i];
         tdsdump_log (TDS_DBG_FUNC, "%L in dbaltcolid() found computeid = %d\n", info->computeid);
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+        if (info->computeid == compute_id)
            break;
-		}
 	}
-
-    if (!matched_compute_id)
-       return TDS_FAIL;
 
     tdsdump_log(TDS_DBG_INFO1, "%L processing tds7 compute result. num_cols = %d\n", num_cols);
 

@@ -57,7 +57,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: dblib.c,v 1.88 2002-10-27 07:07:15 freddy77 Exp $";
+static char  software_version[]   = "$Id: dblib.c,v 1.89 2002-10-27 19:59:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -370,23 +370,19 @@ int            srctype;
 BYTE          *src;
 int            desttype;
 int            destlen;
-int            matched_compute_id = 0;
    
 	tds     = (TDSSOCKET *) dbproc->tds_socket;
     if (rowtype == TDS_REG_ROW) {
 	resinfo = tds->res_info;
     }
     else { /* TDS_COMP_ROW */
-       for ( i = 0; i < tds->num_comp_info ; i++ ) {
+       for ( i = 0; ; ++i ) {
+			if (i >= tds->num_comp_info)
+				return;
            resinfo = (TDSRESULTINFO *)tds->comp_info[i];
-           if (resinfo->computeid == compute_id) {
-              matched_compute_id = 1;
+			if (resinfo->computeid == compute_id)
               break;
-           }
        }
-       if (!matched_compute_id)
-          return ;
-   
     }
    
 	for (i=0;i<resinfo->num_cols;i++) {
@@ -1632,23 +1628,20 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *curcol;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 
     compute_id = computeid;
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbanullbind(%d,%d)\n", compute_id, column);
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbanullbind() num_comp_info = %d\n", tds->num_comp_info);
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return FAIL;
         info = tds->comp_info[i];
 	    tdsdump_log (TDS_DBG_FUNC, "%L in dbanullbind() found computeid = %d\n", info->computeid);
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+		if (info->computeid == compute_id)
            break;
-        }
     }
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbanullbind() num_cols = %d\n", info->num_cols);
-    if (!matched_compute_id)
-       return FAIL;
 
     if (column < 1 || column > info->num_cols)
        return FAIL;
@@ -1986,7 +1979,7 @@ dbprrow(DBPROCESS *dbproc)
   char *opname;
 
   /* these are for compute rows */
-  DBINT computeid, num_cols, matched_compute_id, colid;
+  DBINT computeid, num_cols, colid;
   TDS_SMALLINT *col_printlens = NULL;
 
   tds = (TDSSOCKET *) dbproc->tds_socket;
@@ -2051,17 +2044,14 @@ dbprrow(DBPROCESS *dbproc)
 
       computeid = status;
 
-      for (i = 0; i < tds->num_comp_info ; i++) {
-	resinfo = tds->comp_info[i];
-	if (resinfo->computeid == computeid) {
-	  matched_compute_id = 1;
-	  break;
-	}
-      }
-        
-      if (!matched_compute_id)
-	return FAIL;
-        
+		for (i = 0; ; ++i) {
+			if (i >= tds->num_comp_info)
+				return FAIL;
+			resinfo = tds->comp_info[i];
+			if (resinfo->computeid == computeid)
+				break;
+		}
+
       num_cols = dbnumalts(dbproc, computeid);
       tdsdump_log(TDS_DBG_FUNC, "%L dbprrow num compute cols = %d\n", num_cols);
 
@@ -2475,23 +2465,20 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *curcol;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 
     compute_id = computeid;
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbaltcolid(%d,%d)\n", compute_id, column);
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbaltcolid() num_comp_info = %d\n", tds->num_comp_info);
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+    for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return -1;
         info = tds->comp_info[i];
 	    tdsdump_log (TDS_DBG_FUNC, "%L in dbaltcolid() found computeid = %d\n", info->computeid);
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+		if (info->computeid == compute_id)
            break;
-        }
     }
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbaltcolid() num_cols = %d\n", info->num_cols);
-    if (!matched_compute_id)
-       return -1;
 
     if (column < 1 || column > info->num_cols)
 	return -1;
@@ -2509,25 +2496,20 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *colinfo;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 DBINT           ret;
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbadlen()\n");
     compute_id = computeid;
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+    for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return -1;
         info = tds->comp_info[i];
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+		if (info->computeid == compute_id)
            break;
-        }
 }
 
     /* if either the compute id or the column number are invalid, return -1 */
-
-    if (!matched_compute_id)
-       return -1;
-
     if (column < 1 || column > info->num_cols)
        return -1;
 
@@ -2551,24 +2533,19 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *colinfo;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbalttype()\n");
     compute_id = computeid;
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return -1;
         info = tds->comp_info[i];
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+        if (info->computeid == compute_id)
            break;
-        }
     }
 
     /* if either the compute id or the column number are invalid, return -1 */
-
-    if (!matched_compute_id)
-       return -1;
-
     if (column < 1 || column > info->num_cols)
        return -1;
 
@@ -2622,9 +2599,7 @@ TDS_SMALLINT   compute_id;
 
 int            srctype  = -1;   
 int            desttype = -1;   
-int            okay     = TRUE; /* so far, so good */
 int            i;
-int            matched_compute_id = 0;
 
 	tdsdump_log(TDS_DBG_INFO1, "%L dbaltbind() compteid %d column = %d %d %d\n",
                 computeid, column, vartype, varlen);
@@ -2633,47 +2608,39 @@ int            matched_compute_id = 0;
 
     compute_id = computeid;
 
-	okay = (dbproc != NULL && dbproc->tds_socket != NULL && varaddr != NULL);
+	if (dbproc == NULL || dbproc->tds_socket == NULL || varaddr == NULL)
+		goto Failed;
 
-	if (okay) {
-
-		tds = (TDSSOCKET *) dbproc->tds_socket;
-        for ( i = 0; i < tds->num_comp_info ; i++ ) {
-            info = tds->comp_info[i];
-            if (info->computeid == compute_id) {
-               matched_compute_id = 1;
-               break;
-            }
-        }
-    
-        /* if either the compute id or the column number are invalid, return -1 */
-    
-        if (!matched_compute_id)
-           okay = FALSE;
-    
-        if (column < 1 || column > info->num_cols)
-           okay = FALSE;
-       
+	tds = (TDSSOCKET *) dbproc->tds_socket;
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			goto Failed;
+		info = tds->comp_info[i];
+		if (info->computeid == compute_id)
+			break;
 	}
 
-	if (okay) {
-        colinfo = info->columns[column - 1];
-		srctype = tds_get_conversion_type(colinfo->column_type,
-					colinfo->column_size);
-		desttype = _db_get_server_type(vartype);
+	/* if either the compute id or the column number are invalid, return -1 */
+	if (column < 1 || column > info->num_cols)
+		goto Failed;
 
-		tdsdump_log(TDS_DBG_INFO1, "%L dbaltbind() srctype = %d desttype = %d \n",srctype, desttype);
+	colinfo = info->columns[column - 1];
+	srctype = tds_get_conversion_type(colinfo->column_type,
+				colinfo->column_size);
+	desttype = _db_get_server_type(vartype);
 
-		okay = okay && dbwillconvert(srctype, _db_get_server_type(vartype));
-	}
+	tdsdump_log(TDS_DBG_INFO1, "%L dbaltbind() srctype = %d desttype = %d \n",srctype, desttype);
 
-	if (okay) {   
-		colinfo->column_varaddr         = (char *)varaddr;
-		colinfo->column_bindtype = vartype;
-		colinfo->column_bindlen  = varlen;
-	}
+	if (!dbwillconvert(srctype, _db_get_server_type(vartype)))
+		goto Failed;
 
-	return okay ? SUCCEED : FAIL;
+	colinfo->column_varaddr         = (char *)varaddr;
+	colinfo->column_bindtype = vartype;
+	colinfo->column_bindlen  = varlen;
+
+	return SUCCEED;
+Failed:
+	return FAIL;
 } /* dbaltbind()  */
 
 
@@ -2684,25 +2651,20 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *colinfo;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 TDS_VARBINARY  *varbin;
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbadata()\n");
     compute_id = computeid;
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return (BYTE *)NULL;
         info = tds->comp_info[i];
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+		if (info->computeid == compute_id)
            break;
-        }
     }
 
     /* if either the compute id or the column number are invalid, return -1 */
-
-    if (!matched_compute_id)
-       return (BYTE *)NULL;
-
     if (column < 1 || column > info->num_cols)
        return (BYTE *)NULL;
 
@@ -2731,24 +2693,19 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *curcol;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbaltop()\n");
     compute_id = computeid;
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return -1;
         info = tds->comp_info[i];
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+		if (info->computeid == compute_id)
            break;
-        }
     }
 
     /* if either the compute id or the column number are invalid, return -1 */
-
-    if (!matched_compute_id)
-	return -1;
-
     if (column < 1 || column > info->num_cols)
        return -1;
 
@@ -2990,22 +2947,18 @@ TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 TDSCOMPUTEINFO *info;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 
     compute_id = computeid;
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return -1;
         info = tds->comp_info[i];
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+		if (info->computeid == compute_id)
            break;
-}
     }
-    if (!matched_compute_id)
-       return -1;
 
     return info->num_cols; 
-
 }
 
 int dbnumcompute(DBPROCESS *dbproc)
@@ -3022,22 +2975,19 @@ TDSSOCKET *tds = (TDSSOCKET *) dbproc->tds_socket;
 TDSCOMPUTEINFO *info;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbbylist() \n");
 
     compute_id = computeid;
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info) {
+			if (size) *size = 0;
+			return (BYTE *)NULL;
+		}
         info = tds->comp_info[i];
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+        if (info->computeid == compute_id)
            break;
-        }
-    }
-    if (!matched_compute_id) {
-	if (size) *size = 0;
-       return (BYTE *)NULL;
     }
 
     if (size) *size = info->by_cols;
@@ -3763,24 +3713,19 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *colinfo;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbaltutype()\n");
     compute_id = computeid;
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return -1;
         info = tds->comp_info[i];
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+		if (info->computeid == compute_id)
            break;
-        }
-}
+	}
 
     /* if either the compute id or the column number are invalid, return -1 */
-
-    if (!matched_compute_id)
-       return -1;
-
     if (column < 1 || column > info->num_cols)
        return -1;
 
@@ -3794,24 +3739,19 @@ TDSCOMPUTEINFO *info;
 TDSCOLINFO     *colinfo;
 TDS_SMALLINT    compute_id;
 int             i;
-int             matched_compute_id = 0;
 
 	tdsdump_log (TDS_DBG_FUNC, "%L in dbaltlen()\n");
     compute_id = computeid;
 
-    for ( i = 0; i < tds->num_comp_info ; i++ ) {
+	for ( i = 0; ; ++i ) {
+		if (i >= tds->num_comp_info)
+			return -1;
         info = tds->comp_info[i];
-        if (info->computeid == compute_id) {
-           matched_compute_id = 1;
+		if (info->computeid == compute_id)
            break;
-        }
     }
 
     /* if either the compute id or the column number are invalid, return -1 */
-
-    if (!matched_compute_id)
-       return -1;
-
     if (column < 1 || column > info->num_cols)
        return -1;
 

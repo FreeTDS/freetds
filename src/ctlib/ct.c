@@ -35,7 +35,7 @@
 #include "ctlib.h"
 #include "tdsutil.h"
 
-static char  software_version[]   = "$Id: ct.c,v 1.42 2002-10-27 19:09:22 castellano Exp $";
+static char  software_version[]   = "$Id: ct.c,v 1.43 2002-10-27 19:59:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -423,8 +423,6 @@ TDSSOCKET *tds;
 CS_CONTEXT    *context;
 
 int           tdsret;
-CS_RETCODE    retcode;
-int           done;
 int           rowtype;
 int           computeid;
 CS_INT        res_type;
@@ -440,14 +438,13 @@ CS_INT        res_type;
 	tds = cmd->con->tds_socket;
 
     cmd->row_prefetched = 0;
-    done = 0;
 
     /* see what "result" tokens we have. a "result" in ct-lib terms also  */
     /* includes row data. Some result types always get reported back  to  */
     /* the calling program, others are only reported back if the relevant */
     /* config flag is set.                                                */
 
-    while (!done) {
+	for (;;) {
 
 	   tdsret = tds_process_result_tokens(tds, &res_type); 
    
@@ -463,9 +460,8 @@ CS_INT        res_type;
                  case CS_COMPUTEFMT_RESULT:
                  case CS_ROWFMT_RESULT:
                       if (context->config.cs_expose_formats) {
-                         done = 1;
-                         retcode = CS_SUCCEED;
                          *result_type = res_type;
+                         return CS_SUCCEED;
 			}
                       break;
 
@@ -478,21 +474,19 @@ CS_INT        res_type;
 
                       tdsret = tds_process_row_tokens(tds, &rowtype, &computeid);
 
+                      *result_type = res_type;
                       if (tdsret == TDS_SUCCEED) {
                          if (rowtype == TDS_COMP_ROW) {
                             cmd->row_prefetched = 1;
-                            retcode = CS_SUCCEED;
+                            return CS_SUCCEED;
 				}
                          else {
                             /* this couldn't really happen, but... */
-                            retcode = CS_FAIL;
+                            return CS_FAIL;
 			}	
 				}
                       else
-                         retcode = CS_FAIL;
-
-                      done = 1;
-                      *result_type = res_type;
+                         return CS_FAIL;
                       break;
 
                  case CS_CMD_DONE:
@@ -506,30 +500,24 @@ CS_INT        res_type;
                       else
                          *result_type = CS_CMD_SUCCEED;
 
-                      retcode = CS_SUCCEED;
-                      done = 1;
+                      return CS_SUCCEED;
                       break;
                       
 
                  default:
-                      retcode = CS_SUCCEED;
                       *result_type = res_type;
-                      done = 1;
+                      return CS_SUCCEED;
                       break;
 			}
               break;
          case TDS_NO_MORE_RESULTS:
-              done    = 1;
-              retcode = CS_END_RESULTS;
+              return CS_END_RESULTS;
               break;
 		case TDS_FAIL:
-              done    = 1;
-              retcode = CS_FAIL;
+              return CS_FAIL;
               break;
 			}
 	}	
-   return (retcode);
-    
 }
 
 

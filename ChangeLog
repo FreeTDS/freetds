@@ -1,3 +1,9 @@
+Sun Oct 27  20:56:07 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c src/dblib/dblib.c src/odbc/connectparams.c:
+	* src/odbc/odbc.c src/tds/token.c src/tds/vstrbuild.c:
+	- cleanup for building with -Wall -Wstrict-prototypes 
+	  -Wmissing-prototypes -Werror
+
 Sun Oct 27 14:08:16 EST 2002	nsc <Nicholas_Castellano@acml.com>
 	* doc/api_status.txt include/ctpublic.h src/ctlib/ct.c:
 	- Add stub for ct_cursor().

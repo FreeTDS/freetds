@@ -33,7 +33,7 @@
 #include "connectparams.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: connectparams.c,v 1.18 2002-10-27 10:26:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: connectparams.c,v 1.19 2002-10-27 19:59:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
 
 #ifndef HAVEODBCINST
@@ -54,7 +54,7 @@ static void *no_unused_var_warn[] = {software_version, no_unused_var_warn};
  * @return file opened or NULL if error
  * @retval 1 worked
  */
-static FILE* tdoGetIniFileName();
+static FILE* tdoGetIniFileName(void);
 
 #endif
 

@@ -67,7 +67,7 @@
 #include "prepare_query.h"
 #include "replacements.h"
 
-static char  software_version[]   = "$Id: odbc.c,v 1.76 2002-10-27 10:26:31 freddy77 Exp $";
+static char  software_version[]   = "$Id: odbc.c,v 1.77 2002-10-27 19:59:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
     no_unused_var_warn};
 
@@ -1159,7 +1159,7 @@ _SQLExecute( SQLHSTMT hstmt)
     }
     stmt->hdbc->current_statement = stmt;
 
-    while (!done && (ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED)
+    while ((ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED)
     {
       switch (result_type) {
         case  TDS_COMPUTE_RESULT    :
@@ -1178,6 +1178,7 @@ _SQLExecute( SQLHSTMT hstmt)
               break;
 
       }
+      if (done) break;
     }
     if (ret==TDS_NO_MORE_RESULTS) {
         return SQL_SUCCESS;

@@ -35,7 +35,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: vstrbuild.c,v 1.5 2002-10-13 23:28:13 castellano Exp $";
+static char software_version[] = "$Id: vstrbuild.c,v 1.6 2002-10-27 19:59:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -98,7 +98,7 @@ int state;
 char **string_array = NULL;
 int pnum = 0;
 int pdigit;
-char *paramp;
+char *paramp = NULL;
 int rc = TDS_FAIL;
 
 	*resultlen = 0;
