@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.164 2005-02-20 09:19:27 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.165 2005-03-12 11:47:23 ppeterd Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1639,6 +1639,8 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 		if (c >= 'a' && c <= 'z')
 			continue;
 		if (c >= 'A' && c <= 'Z')
+			continue;
+		if (i > 0 && c >= '0' && c <= '9')
 			continue;
 		if (c == '_')
 			continue;
