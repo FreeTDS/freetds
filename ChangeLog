@@ -1,3 +1,7 @@
+Tue Oct  8 21:10:02 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* samples/odbc.ini:
+	- Update sample odbc.ini with new installation path.
+
 Mon Oct  8 21:21:49 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* doc/faq.html: updated
 
