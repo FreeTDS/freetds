@@ -1,3 +1,7 @@
+Tue Jul  1 22:22:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/native.c src/odbc/odbc.c:
+	- applied Peter Daecon patch
+
 Tue Jul  1 09:41:12 EDT 2003	Mark Lilback <mark@lilback.com>
 	* src/ctlib/ct.c added null check to tdsdump_log call in ct_connect
 

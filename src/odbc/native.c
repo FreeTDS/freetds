@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: native.c,v 1.11 2003-05-17 18:10:30 freddy77 Exp $";
+static char software_version[] = "$Id: native.c,v 1.12 2003-07-01 20:23:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -172,7 +172,7 @@ prepare_call(struct _hstmt *stmt)
 		s = (char *) tds_skip_quoted(s);
 	} else {
 		/* FIXME: stop at other characters ??? */
-		while (!isspace(*s))
+		while (*s && !isspace(*s))
 			++s;
 	}
 	--s;			/* trick, now s point to no blank */
