@@ -56,12 +56,13 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: dblib.c,v 1.156 2003-11-01 23:02:17 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.157 2003-12-18 16:39:05 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLINFO * colinfo);
 static char *_dbprdate(char *timestr);
+static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
 static void _set_null_value(DBPROCESS * dbproc, BYTE * varaddr, int datatype, int maxlen);
 
@@ -1609,8 +1610,6 @@ _db_get_server_type(int bindtype)
 /**
  * \ingroup dblib_api
  * \brief Convert one datatype to another.
- * 
- * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param srctype datatype of the data to convert. 
  * \param src buffer to convert
@@ -1618,7 +1617,13 @@ _db_get_server_type(int bindtype)
  * \param desttype target datatype
  * \param dest output buffer
  * \param destlen size of \a dest
- * \remarks Conversion functions are handled in the TDS layer.
+ * \returns	On success, the count of output bytes in \dest, else -1. On failure, it will call any user-supplied error handler. 
+ * \remarks 	 Causes of failure: 
+ * 		- No such conversion unavailable. 
+ * 		- Character data output was truncated, or numerical data overflowed or lost precision. 
+ * 		- In converting character data to one of the numeric types, the string could not be interpreted as a number.  
+ *		
+ * Conversion functions are handled in the TDS layer.
  * 
  * The main reason for this is that \c ct-lib and \c ODBC (and presumably \c DBI) need
  * to be able to do conversions between datatypes. This is possible because
@@ -1652,7 +1657,8 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	int len;
 	DBNUMERIC *num;
 
-	tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() srctype = %d desttype = %d\n", srctype, desttype);
+	tdsdump_log(TDS_DBG_INFO1, "%L dbconvert(%d [%s] len %d => %d [%s] len %d)\n", 
+		     srctype, tds_prdatatype(srctype), srclen, desttype, tds_prdatatype(desttype), destlen);
 
 	if (dbproc) {
 		tds = (TDSSOCKET *) dbproc->tds_socket;
@@ -1681,7 +1687,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	/* oft times we are asked to convert a data type to itself */
 
 	if (srctype == desttype) {
-
+		ret = -2;  /* to make sure we always set it */
 		tdsdump_log(TDS_DBG_INFO1, "%L dbconvert() srctype == desttype\n");
 		switch (desttype) {
 
@@ -1701,26 +1707,26 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		case SYBCHAR:
 		case SYBVARCHAR:
 		case SYBTEXT:
-
 			/* srclen of -1 means the source data is definitely NULL terminated */
-
 			if (srclen == -1)
 				srclen = strlen((const char *) src);
 
-			if (destlen == 0 || destlen < -2) {
-				ret = FAIL;
-			} else if (destlen == -1) {	/* rtrim and null terminate */
-				for (i = srclen - 1; i >= 0 && src[i] == ' '; --i) {
-					srclen = i;
+			switch (destlen) {
+			case  0:	/* nothing to copy */
+				ret = 0;
+				break;
+			case -1:	/* rtrim and null terminate */
+				while (srclen && src[srclen - 1] == ' ') {
+					--srclen;
 				}
+				/* fall thru */
+			case -2:	/* just null terminate */
 				memcpy(dest, src, srclen);
 				dest[srclen] = '\0';
 				ret = srclen;
-			} else if (destlen == -2) {	/* just null terminate */
-				memcpy(dest, src, srclen);
-				dest[srclen] = '\0';
-				ret = srclen;
-			} else {	/* destlen is > 0 */
+				break;
+			default:
+				assert(destlen > 0);
 				if (srclen > destlen) {
 					_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
 					ret = -1;
@@ -1730,8 +1736,8 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 						dest[i] = ' ';
 					ret = srclen;
 				}
+				break;
 			}
-
 			break;
 		case SYBINT1:
 		case SYBINT2:
@@ -1760,6 +1766,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			ret = -1;
 			break;
 		}
+		assert(ret > -2);
 		return ret;
 	}
 	/* end srctype == desttype */
@@ -5963,3 +5970,53 @@ _dbprdate(char *timestr)
 	return timestr;
 
 }
+
+static char *
+tds_prdatatype(TDS_SERVER_TYPE datatype_token)
+{
+	switch (datatype_token) {
+	case SYBCHAR:		return "SYBCHAR";
+	case SYBVARCHAR:		return "SYBVARCHAR";
+	case SYBINTN:		return "SYBINTN";
+	case SYBINT1:		return "SYBINT1";
+	case SYBINT2:		return "SYBINT2";
+	case SYBINT4:		return "SYBINT4";
+	case SYBINT8:		return "SYBINT8";
+	case SYBFLT8:		return "SYBFLT8";
+	case SYBDATETIME:		return "SYBDATETIME";
+	case SYBBIT:		return "SYBBIT";
+	case SYBTEXT:		return "SYBTEXT";
+	case SYBNTEXT:		return "SYBNTEXT";
+	case SYBIMAGE:		return "SYBIMAGE";
+	case SYBMONEY4:		return "SYBMONEY4";
+	case SYBMONEY:		return "SYBMONEY";
+	case SYBDATETIME4:		return "SYBDATETIME4";
+	case SYBREAL:		return "SYBREAL";
+	case SYBBINARY:		return "SYBBINARY";
+	case SYBVOID:		return "SYBVOID";
+	case SYBVARBINARY:		return "SYBVARBINARY";
+	case SYBNVARCHAR:		return "SYBNVARCHAR";
+	case SYBBITN:		return "SYBBITN";
+	case SYBNUMERIC:		return "SYBNUMERIC";
+	case SYBDECIMAL:		return "SYBDECIMAL";
+	case SYBFLTN:		return "SYBFLTN";
+	case SYBMONEYN:		return "SYBMONEYN";
+	case SYBDATETIMN:		return "SYBDATETIMN";
+	case XSYBCHAR:		return "XSYBCHAR";
+	case XSYBVARCHAR:		return "XSYBVARCHAR";
+	case XSYBNVARCHAR:		return "XSYBNVARCHAR";
+	case XSYBNCHAR:		return "XSYBNCHAR";
+	case XSYBVARBINARY:	return "XSYBVARBINARY";
+	case XSYBBINARY:		return "XSYBBINARY";
+	case SYBLONGBINARY:	return "SYBLONGBINARY";
+	case SYBSINT1:		return "SYBSINT1";
+	case SYBUINT2:		return "SYBUINT2";
+	case SYBUINT4:		return "SYBUINT4";
+	case SYBUINT8:		return "SYBUINT8";
+	case SYBUNIQUE:		return "SYBUNIQUE";
+	case SYBVARIANT:		return "SYBVARIANT";
+	default: break;
+	}
+	return "(unknown)";
+}
+	
