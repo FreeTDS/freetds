@@ -54,6 +54,7 @@
 #include "connectparams.h"
 #include "odbc_util.h"
 #include "convert_tds2sql.h"
+#include "convert_sql2string.h"
 #include "sql2tds.h"
 #include "prepare_query.h"
 #include "replacements.h"
@@ -62,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.131.2.2 2003-02-14 13:19:33 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.131.2.3 2003-05-20 10:46:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -454,7 +455,21 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 	cur->param_sqltype = fSqlType;
 	if (cur->param_bindtype == SQL_C_CHAR)
 		cur->param_bindlen = cbValueMax;
-	cur->param_lenbind = pcbValue;
+	if (!pcbValue) {
+		cur->param_inlen = 0;
+		cur->param_lenbind = &cur->param_inlen;
+		/* TODO add XML if defined */
+		if (cur->param_bindtype == SQL_C_CHAR || cur->param_bindtype == SQL_C_BINARY) {
+			cur->param_inlen = SQL_NTS;
+		} else {
+			int size = tds_get_size_by_type(odbc_get_server_type(cur->param_bindtype));
+
+			if (size > 0)
+				cur->param_inlen = size;
+		}
+	} else {
+		cur->param_lenbind = pcbValue;
+	}
 	cur->varaddr = (char *) rgbValue;
 
 	return SQL_SUCCESS;
