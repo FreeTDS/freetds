@@ -77,7 +77,7 @@
 #include <dmalloc.h>
 #endif
 
-static char  software_version[]   = "$Id: login.c,v 1.62 2002-11-10 16:18:26 freddy77 Exp $";
+static char  software_version[]   = "$Id: login.c,v 1.63 2002-11-22 10:09:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = {software_version,
                                      no_unused_var_warn};
 
@@ -295,7 +295,7 @@ int result_type;
         }
 	}
 	/* END OF NEW CODE */
-
+	
 	if (IS_TDS7_PLUS(tds)) {
 		tds->out_flag=0x10;
 		tds7_send_login(tds,connect_info);
@@ -642,8 +642,7 @@ unsigned const char *magic1 = magic1_server;
 	0x00,0x09,0x04,0x00,
 	0x00};
 #endif
-/* TODO read correct MAC address instead of using a dummy one */
-static const unsigned char hwaddr[] = {0x00,0x40,0x33,0x9a,0x6b,0x50};
+unsigned char hwaddr[6];
 /* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
 unsigned char unicode_string[255];
 int packet_size;
@@ -742,7 +741,8 @@ int auth_len = 0;
    tds_put_smallint(tds,0); 
 
    /* MAC address */
-   tds_put_n(tds,hwaddr,6);
+   tds_getmac(tds->s, hwaddr);
+   tds_put_n(tds, hwaddr, 6);
 
    /* authentication stuff */
    tds_put_smallint(tds, current_pos);

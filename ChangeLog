@@ -1,3 +1,8 @@
+Fri Nov 22 11:08:23 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/Makefile.am src/tds/login.c:
+	* src/tds/getmac.c (added):
+	- start writing code to get real MAC for TDS7+
+
 Fri Nov 22 10:49:19 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/mem.c src/tds/token.c:
 	- unified TDSRESULTINFO, TDSCOMPUTEINFO and TDSPARAMINFO

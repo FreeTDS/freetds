@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.55 2002-11-22 09:53:37 freddy77 Exp $";
+	"$Id: tds.h,v 1.56 2002-11-22 10:09:55 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -816,6 +816,9 @@ int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int text
 /* numeric.c */
 char *tds_money_to_string(const TDS_MONEY *money, char *s);
 char *tds_numeric_to_string(const TDS_NUMERIC *numeric, char *s);
+
+/* getmac.c */
+void tds_getmac(int s, unsigned char mac[6]);
 
 typedef struct tds_answer
 {
