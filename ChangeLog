@@ -1,3 +1,7 @@
+Tue Jan 28 15:27:20 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: add come todo for Python
+	* include/cspublic.h: add missing constants for Python
+
 Tue Jan 28 11:45:54 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h: add defines for Python
 

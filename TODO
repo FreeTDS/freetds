@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.37 2003-01-28 06:58:01 freddy77 Exp $
+To Do List	$Id: TODO,v 1.38 2003-01-28 14:28:49 freddy77 Exp $
 ------------
 Broken:
 
@@ -56,6 +56,8 @@ For future versions (in priority order within library):
   search "site:.sybase.com CS_VARBINARY ct_bind" on google for more info
 . support ct_command/CS_SEND_DATA_CMD, now crash
   (see http://manuals.sybase.com/onlinebooks/group-cn/cng1000e/ref/@Generic__BookTextView/50456)
+. support ct_diag (for Python)
+. complete sqlstate and other field in message (for Python)
 
   odbc
 . Someone broke early binding in ODBC 

@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.27 2003-01-28 10:45:48 freddy77 Exp $";
+         "$Id: cspublic.h,v 1.28 2003-01-28 14:28:52 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -716,6 +716,14 @@ enum {
 
 #define SRV_PROC	CS_VOID
 #define CS_BLK_ROW	CS_VOID
+
+/* constants required for ct_diag (not jet implemented) */
+#define CS_INIT 36
+#define CS_STATUS 37
+#define CS_MSGLIMIT 38
+#define CS_CLIENTMSG_TYPE 4700
+#define CS_SERVERMSG_TYPE 4701
+#define CS_ALLMSG_TYPE 4702
 
 CS_RETCODE cs_convert(CS_CONTEXT *ctx, CS_DATAFMT *srcfmt, CS_VOID *srcdata, CS_DATAFMT *destfmt, CS_VOID *destdata, CS_INT *resultlen);
 CS_RETCODE cs_ctx_alloc(CS_INT version, CS_CONTEXT **ctx);
