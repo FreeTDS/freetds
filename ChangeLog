@@ -1,3 +1,7 @@
+Fri Nov  8 15:22:51 EST 2002	nsc <Nicholas_Castellano@acml.com>
+	* doc/api_status.txt:
+	- Update status of dbcolutype() and BCP_SETL().
+
 Fri Nov  8 20:06:36 CEST 2002	Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/apps/tsql.c src/ctlib/ct.c:
 	* src/dblib/bcp.c src/dblib/dblib.c src/odbc/odbc.c:
