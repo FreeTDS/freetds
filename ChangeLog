@@ -1,3 +1,8 @@
+Tue Oct 15 11:30:04 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* configure.in:
+	- Use newest LTLIBOBJS hack, fixes support for autoconf 2.53
+	  and maintains compatibility with 2.54.
+
 Tue Oct 15 09:37:03 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* src/ctlib/unittests/t0003.c src/ctlib/unittests/t0007.c:
 	- Fix type warnings on osf1.

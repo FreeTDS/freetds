@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.62 2002-10-15 04:14:06 castellano Exp $
+dnl $Id: configure.in,v 1.63 2002-10-15 15:31:55 castellano Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -11,7 +11,7 @@ dnl ------------------------------------------------------------
 dnl Initialization
 dnl ------------------------------------------------------------
 AC_INIT(src/dblib/dblib.c)
-AC_PREREQ(2.54)
+AC_PREREQ(2.53)
 AM_INIT_AUTOMAKE(freetds, 0.60)
 AM_CONFIG_HEADER(include/config.h)
 AC_PREFIX_DEFAULT(/usr/local)
@@ -259,6 +259,17 @@ fi
 AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
 AC_raf_FUNC_WHICH_GETSERVBYNAME_R
 AC_tds_FUNC_WHICH_GETHOSTBYADDR_R
+
+dnl ------------------------------------------------------------
+dnl LTLIBOBJS hack (for autoconf-2.53)
+dnl ------------------------------------------------------------
+# This is necessary so that .o files in LIBOBJS are also built via
+# the ANSI2KNR-filtering rules.
+LIB@&t@OBJS=`echo "$LIB@&t@OBJS" |
+             sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
+LTLIBOBJS=`echo "$LIB@&t@OBJS" |
+           sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
+AC_SUBST(LTLIBOBJS)
 
 AC_MSG_RESULT(done)
 dnl ------------------------------------------------------------
