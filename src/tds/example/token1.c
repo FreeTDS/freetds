@@ -7,7 +7,7 @@ done = 0;
 
 while (!done) {
 
-	tdsret = tds_process_result_tokens(tds, &res_type);
+	tdsret = tds_process_result_tokens(tds, &res_type, NULL);
 
 	switch (tdsret) {
 
@@ -47,7 +47,9 @@ while (!done) {
 			*result_type = res_type;
 			break;
 
-		case TDS_CMD_DONE:
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+		case TDS_DONEINPROC_RESULT:
 
 			/* there's a distinction in ct-library     */
 			/* depending on whether a command returned */

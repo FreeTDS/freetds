@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.6 2003-04-21 16:06:10 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.7 2003-06-11 20:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -46,7 +46,8 @@ main(int argc, char **argv)
 		int srctype;
 		int desttype;
 		int yn;
-	} ANSWER;
+	}
+	ANSWER;
 	const static ANSWER answers[] = {
 #	include "../tds_willconvert.h"
 	};

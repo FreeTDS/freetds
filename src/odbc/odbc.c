@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: odbc.c,v 1.181 2003-06-06 09:19:19 freddy77 Exp $";
+static char software_version[] = "$Id: odbc.c,v 1.182 2003-06-11 20:10:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -346,6 +346,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	TDS_INT result_type;
 	int tdsret;
 	TDS_INT rowtype;
+	int done_flags;
 
 	INIT_HSTMT;
 
@@ -353,7 +354,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 	/* try to go to the next recordset */
 	for (;;) {
-		switch (tds_process_result_tokens(tds, &result_type)) {
+		switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
 		case TDS_NO_MORE_RESULTS:
 			if (stmt->hdbc->current_statement == stmt)
 				stmt->hdbc->current_statement = NULL;
@@ -367,17 +368,15 @@ SQLMoreResults(SQLHSTMT hstmt)
 				if (tdsret == TDS_FAIL)
 					return SQL_ERROR;
 				break;
-			case TDS_CMD_FAIL:
-				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
-				stmt->row = 0;
-				return SQL_SUCCESS;
-
 			case TDS_STATUS_RESULT:
 				odbc_set_return_status(stmt);
 				break;
 
-				/* ?? */
-			case TDS_CMD_DONE:
+			case TDS_DONE_RESULT:
+			case TDS_DONEPROC_RESULT:
+				if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
+					break;
+				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 				stmt->row = 0;
 				/* FIXME here ??? */
 				tds_free_all_results(tds);
@@ -1141,6 +1140,7 @@ _SQLExecute(TDS_STMT * stmt)
 	TDS_INT result_type;
 	TDS_INT done = 0;
 	SQLRETURN result = SQL_SUCCESS;
+	int done_flags;
 
 	stmt->row = 0;
 
@@ -1165,7 +1165,7 @@ _SQLExecute(TDS_STMT * stmt)
 	stmt->hdbc->current_statement = stmt;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
-	while ((ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
+	while ((ret = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_COMPUTE_RESULT:
 		case TDS_PARAM_RESULT:
@@ -1175,14 +1175,16 @@ _SQLExecute(TDS_STMT * stmt)
 		case TDS_STATUS_RESULT:
 			odbc_set_return_status(stmt);
 			break;
-		case TDS_CMD_FAIL:
-			result = SQL_ERROR;
+
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+			if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
+				break;
+			if (done_flags & TDS_DONE_ERROR)
+				result = SQL_ERROR;
 			done = 1;
 			break;
 
-		case TDS_CMD_DONE:
-			done = 1;
-			break;
 			/* ignore metadata, stop at done or row */
 		case TDS_COMPUTEFMT_RESULT:
 		case TDS_ROWFMT_RESULT:
@@ -1250,7 +1252,7 @@ SQLExecute(SQLHSTMT hstmt)
 	TDSDYNAMIC *dyn;
 	struct _sql_param_info *param;
 	TDS_INT result_type;
-	int ret, done;
+	int ret, done, done_flags;
 	SQLRETURN result = SQL_NO_DATA;
 	int i, nparam;
 	TDSPARAMINFO *params = NULL, *temp_params;
@@ -1335,20 +1337,22 @@ SQLExecute(SQLHSTMT hstmt)
 	stmt->hdbc->current_statement = stmt;
 
 	done = 0;
-	while ((ret = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
+	while ((ret = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_COMPUTE_RESULT:
 		case TDS_ROW_RESULT:
 			result = SQL_SUCCESS;
 			done = 1;
 			break;
-		case TDS_CMD_FAIL:
-			result = SQL_ERROR;
-			done = 1;
-			break;
 
-		case TDS_CMD_DONE:
-			result = SQL_SUCCESS;
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+			if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
+				break;
+			if (done_flags & TDS_DONE_ERROR)
+				result = SQL_ERROR;
+			else
+				result = SQL_SUCCESS;
 			done = 1;
 			break;
 
@@ -1864,7 +1868,8 @@ SQLRETURN SQL_API
 SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT fSqlType, SQLUINTEGER cbParamDef,
 	    SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLINTEGER FAR * pcbValue)
 {
-	return SQLBindParameter(hstmt, ipar, SQL_PARAM_INPUT_OUTPUT, fCType, fSqlType, cbParamDef, ibScale, rgbValue, SQL_SETPARAM_VALUE_MAX, pcbValue);
+	return SQLBindParameter(hstmt, ipar, SQL_PARAM_INPUT_OUTPUT, fCType, fSqlType, cbParamDef, ibScale, rgbValue,
+				SQL_SETPARAM_VALUE_MAX, pcbValue);
 }
 
 /************************

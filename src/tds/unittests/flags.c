@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.4 2003-04-29 08:46:12 freddy77 Exp $";
+static char software_version[] = "$Id: flags.c,v 1.5 2003-06-11 20:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -79,7 +79,7 @@ test_begin(const char *cmd)
 	if (tds_submit_query(tds, cmd, NULL) != TDS_SUCCEED)
 		fatal_error("tds_submit_query() failed");
 
-	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED)
+	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED)
 		fatal_error("tds_process_result_tokens() failed");
 
 	if (result_type != TDS_ROWFMT_RESULT)
@@ -94,14 +94,18 @@ static void
 test_end(void)
 {
 	TDS_INT result_type;
+	int done_flags;
 
-	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED)
+	if (tds_process_result_tokens(tds, &result_type, &done_flags) != TDS_SUCCEED)
 		fatal_error("tds_process_result_tokens() failed");
 
-	if (result_type != TDS_CMD_DONE)
+	if (result_type != TDS_DONE_RESULT)
 		fatal_error("expected done failed");
 
-	if (tds_process_result_tokens(tds, &result_type) != TDS_NO_MORE_RESULTS)
+	if (done_flags & TDS_DONE_ERROR)
+		fatal_error("query failed");
+
+	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_NO_MORE_RESULTS)
 		fatal_error("tds_process_result_tokens() failed");
 }
 

@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.4 2003-05-22 19:05:11 castellano Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.5 2003-06-11 20:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -39,6 +39,7 @@ test(const char *type, const char *value, const char *result)
 	TDS_INT result_type;
 	TDS_INT row_type;
 	TDS_INT compute_id;
+	int done_flags;
 
 	if (!result)
 		result = value;
@@ -53,7 +54,7 @@ test(const char *type, const char *value, const char *result)
 		exit(1);
 	}
 
-	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED) {
+	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {
 		fprintf(stderr, "tds_process_result_tokens() failed\n");
 		exit(1);
 	}
@@ -63,7 +64,7 @@ test(const char *type, const char *value, const char *result)
 		exit(1);
 	}
 
-	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED) {
+	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {
 		fprintf(stderr, "tds_process_result_tokens() failed\n");
 		exit(1);
 	}
@@ -102,13 +103,16 @@ test(const char *type, const char *value, const char *result)
 		exit(1);
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
+	while ((rc = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
 		switch (result_type) {
-		case TDS_CMD_DONE:
-			break;
-
 		case TDS_NO_MORE_RESULTS:
 			return;
+
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+		case TDS_DONEINPROC_RESULT:
+			if (!(done_flags & TDS_DONE_ERROR))
+				break;
 
 		default:
 			fprintf(stderr, "tds_process_result_tokens() unexpected result_type\n");

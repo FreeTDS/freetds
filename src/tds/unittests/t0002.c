@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.10 2003-04-21 16:06:10 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.11 2003-06-11 20:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -59,7 +59,7 @@ main(int argc, char **argv)
 	TDS_INT row_type;
 	TDS_INT compute_id;
 	int rc;
-	int i;
+	int i, done_flags;
 
 	fprintf(stdout, "%s: Test basic submit query, results\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
@@ -74,7 +74,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
+	while ((rc = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			if (tds->res_info->num_cols != num_cols) {
@@ -107,8 +107,11 @@ main(int argc, char **argv)
 			}
 			break;
 
-		case TDS_CMD_DONE:
-			break;
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+		case TDS_DONEINPROC_RESULT:
+			if (!(done_flags & TDS_DONE_ERROR))
+				break;
 
 		default:
 			fprintf(stderr, "tds_process_result_tokens() unexpected result_type\n");

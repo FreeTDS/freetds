@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.198 2003-06-06 19:13:59 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.199 2003-06-11 20:10:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -114,10 +114,6 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_DONEPROC_TOKEN:
 	case TDS_DONEINPROC_TOKEN:
 		tds_process_end(tds, marker, &done_flags);
-		if (!(done_flags & TDS_DONE_MORE_RESULTS)) {
-			tdsdump_log(TDS_DBG_FUNC, "%L tds_process_default_tokens() setting state to COMPLETED\n");
-			tds->state = TDS_IDLE;
-		}
 		break;
 	case TDS_PROCID_TOKEN:
 		tds_get_n(tds, NULL, 8);
@@ -237,7 +233,7 @@ tds_set_spid(TDSSOCKET * tds)
 	if (tds_submit_query(tds, "select @@spid", NULL) != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
-	if (tds_process_result_tokens(tds, &result_type) != TDS_SUCCEED) {
+	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {
 		return TDS_FAIL;
 	}
 	if (tds->res_info->num_cols != 1) {
@@ -256,7 +252,7 @@ tds_set_spid(TDSSOCKET * tds)
 	if (tds_process_row_tokens(tds, &row_type, &compute_id) != TDS_NO_MORE_ROWS) {
 		return TDS_FAIL;
 	}
-	if (tds_process_result_tokens(tds, &result_type) != TDS_NO_MORE_RESULTS) {
+	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_NO_MORE_RESULTS) {
 		return TDS_FAIL;
 	}
 	return TDS_SUCCEED;
@@ -420,9 +416,9 @@ tds_process_auth(TDSSOCKET * tds)
  *  @par
  *  <b>Values that indicate command status</b>
  *  <table>
- *   <tr><td>TDS_CMD_SUCCEED</td><td>The results of a  command have been completely processed. This command return no rows.</td></tr>
- *   <tr><td>TDS_CMD_DONE</td><td>The results of a  command have been completely processed. This command return rows.</td></tr>
- *   <tr><td>TDS_CMD_FAIL</td><td>The server encountered an error while executing a command</td></tr>
+ *   <tr><td>TDS_DONE_RESULT</td><td>The results of a command have been completely processed. This command return no rows.</td></tr>
+ *   <tr><td>TDS_DONEPROC_RESULT</td><td>The results of a  command have been completely processed. This command return rows.</td></tr>
+ *   <tr><td>TDS_DONEINPROC_RESULT</td><td>The results of a  command have been completely processed. This command return rows.</td></tr>
  *  </table>
  *  <b>Values that indicate results information is available</b>
  *  <table><tr>
@@ -459,14 +455,13 @@ tds_process_auth(TDSSOCKET * tds)
  * @include token1.c
  */
 int
-tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
+tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags)
 {
 	int marker;
-	int done_flags;
 
 	if (tds->state == TDS_IDLE) {
 		tdsdump_log(TDS_DBG_FUNC, "%L tds_process_result_tokens() state is COMPLETED\n");
-		*result_type = TDS_CMD_DONE;
+		*result_type = TDS_DONE_RESULT;
 		return TDS_NO_MORE_RESULTS;
 	}
 
@@ -586,15 +581,17 @@ tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type)
 			return TDS_SUCCEED;
 			break;
 		case TDS_DONE_TOKEN:
+			tds_process_end(tds, marker, done_flags);
+			*result_type = TDS_DONE_RESULT;
+			return TDS_SUCCEED;
 		case TDS_DONEPROC_TOKEN:
+			tds_process_end(tds, marker, done_flags);
+			*result_type = TDS_DONEPROC_RESULT;
+			return TDS_SUCCEED;
 		case TDS_DONEINPROC_TOKEN:
 			/* FIXME should we free results ?? */
-			if (tds_process_end(tds, marker, &done_flags) == TDS_SUCCEED)
-				*result_type = (done_flags & TDS_DONE_COUNT) ? TDS_CMD_DONE : TDS_CMD_SUCCEED;
-			else
-				*result_type = TDS_CMD_FAIL;
-			if (marker == TDS_DONEINPROC_TOKEN)
-				break;
+			tds_process_end(tds, marker, done_flags);
+			*result_type = TDS_DONEINPROC_RESULT;
 			return TDS_SUCCEED;
 			break;
 		default:
@@ -672,9 +669,11 @@ tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
 		case TDS_DONE_TOKEN:
 		case TDS_DONEPROC_TOKEN:
 		case TDS_DONEINPROC_TOKEN:
-			/* FIXME should we just return without reading token ?? */
 			tds_process_end(tds, marker, NULL);
 			*rowtype = TDS_NO_MORE_ROWS;
+
+/*			tds_unget_byte(tds);
+			*rowtype = TDS_END_ROW; */
 			return TDS_NO_MORE_ROWS;
 
 		default:
@@ -764,10 +763,10 @@ tds_process_simple_query(TDSSOCKET * tds)
 {
 	TDS_INT res_type;
 	TDS_INT rowtype;
-	int tdsret;
+	int tdsret, done_flags;
 
 	for (;;) {
-		switch (tdsret = tds_process_result_tokens(tds, &res_type)) {
+		switch (tdsret = tds_process_result_tokens(tds, &res_type, &done_flags)) {
 		case TDS_SUCCEED:
 			switch (res_type) {
 			case TDS_ROW_RESULT:
@@ -780,14 +779,13 @@ tds_process_simple_query(TDSSOCKET * tds)
 
 				break;
 
-			case TDS_CMD_DONE:
-				break;
-
+			case TDS_DONE_RESULT:
+			case TDS_DONEPROC_RESULT:
+			case TDS_DONEINPROC_RESULT:
 				/* some command went wrong */
-			case TDS_CMD_FAIL:
-				return TDS_FAIL;
+				if (done_flags & TDS_DONE_ERROR)
+					return TDS_FAIL;
 				break;
-
 
 				/* ignore */
 			case TDS_COMPUTEFMT_RESULT:
@@ -817,6 +815,7 @@ int
 tds_do_until_done(TDSSOCKET * tds)
 {
 	int marker, rows_affected;
+
 	do {
 		marker = tds_get_byte(tds);
 		if (marker == TDS_DONE_TOKEN) {
@@ -1898,11 +1897,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		tds->rows_affected = TDS_NO_COUNT;
 	}
 
-	/* TODO return only success and client should check flags */
-	if (error)
-		return TDS_FAIL;
-	else
-		return TDS_SUCCEED;
+	return TDS_SUCCEED;
 }
 
 

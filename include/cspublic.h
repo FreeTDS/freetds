@@ -27,7 +27,7 @@ extern "C" {
 #endif 
 
 static char  rcsid_cspublic_h [ ] =
-         "$Id: cspublic.h,v 1.39 2003-04-13 16:08:41 jklowden Exp $";
+         "$Id: cspublic.h,v 1.40 2003-06-11 20:10:36 freddy77 Exp $";
 static void *no_unused_cspublic_h_warn[]={rcsid_cspublic_h, no_unused_cspublic_h_warn};
 
 typedef int CS_RETCODE ;
@@ -567,9 +567,9 @@ enum {
 #define CS_ROW_FAIL	9
 #define CS_END_DATA	10
 #define CS_END_ITEM 11
-#define CS_CMD_SUCCEED	TDS_CMD_SUCCEED
-#define CS_CMD_FAIL	TDS_CMD_FAIL
-#define CS_CMD_DONE	TDS_CMD_DONE
+#define CS_CMD_SUCCEED	4047
+#define CS_CMD_FAIL	4048
+#define CS_CMD_DONE	4046
 #define CS_END_RESULTS	15
 #define CS_VERSION_100	16
 #define CS_FORCE_EXIT	17
@@ -852,4 +852,3 @@ CS_RETCODE cs_will_convert(CS_CONTEXT *ctx, CS_INT srctype, CS_INT desttype, CS_
 #endif 
 
 #endif
-

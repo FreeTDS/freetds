@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.8 2003-04-30 13:49:26 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.9 2003-06-11 20:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -145,12 +145,12 @@ discard_result(TDSSOCKET * tds)
 	int rc;
 	int result_type;
 
-	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
+	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
 
 		switch (result_type) {
-		case TDS_CMD_DONE:
-		case TDS_CMD_SUCCEED:
-		case TDS_CMD_FAIL:
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+		case TDS_DONEINPROC_RESULT:
 		case TDS_DESCRIBE_RESULT:
 		case TDS_STATUS_RESULT:
 		case TDS_PARAM_RESULT:

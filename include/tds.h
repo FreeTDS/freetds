@@ -21,7 +21,7 @@
 #define _tds_h_
 
 static char rcsid_tds_h[]=
-	"$Id: tds.h,v 1.130 2003-06-06 09:18:41 freddy77 Exp $";
+	"$Id: tds.h,v 1.131 2003-06-11 20:10:37 freddy77 Exp $";
 static void *no_unused_tds_h_warn[] = {
 	rcsid_tds_h,
 	no_unused_tds_h_warn};
@@ -183,14 +183,17 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_SUCCEED          1
 #define TDS_FAIL             0
 #define TDS_NO_MORE_RESULTS  2
+
 #define TDS_REG_ROW          -1
 #define TDS_NO_MORE_ROWS     -2
 #define TDS_COMP_ROW         -3
+#define TDS_END_ROW          -4
 
 #define TDS_INT_EXIT 0
 #define TDS_INT_CONTINUE 1
 #define TDS_INT_CANCEL 2
 #define TDS_INT_TIMEOUT 3
+
 
 #define TDS_NO_COUNT         -1
 
@@ -199,12 +202,12 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_STATUS_RESULT     4043
 #define TDS_MSG_RESULT        4044
 #define TDS_COMPUTE_RESULT    4045
-#define TDS_CMD_DONE          4046
-#define TDS_CMD_SUCCEED       4047
-#define TDS_CMD_FAIL          4048
 #define TDS_ROWFMT_RESULT     4049
 #define TDS_COMPUTEFMT_RESULT 4050
 #define TDS_DESCRIBE_RESULT   4051
+#define TDS_DONE_RESULT       4052
+#define TDS_DONEPROC_RESULT   4053
+#define TDS_DONEINPROC_RESULT 4054
 
 enum tds_end {
 	TDS_DONE_FINAL = 0,
@@ -702,6 +705,8 @@ struct tdsiconvinfo
 #if HAVE_ICONV
 	iconv_t to_wire;   /* conversion from client charset to server's format */
 	iconv_t from_wire; /* conversion from server's format to client charset */
+#define TDS_ENCODING_INDIRECT 1
+	unsigned int flags;
 #endif
 };
 
@@ -1056,7 +1061,7 @@ int tds_process_login_tokens(TDSSOCKET *tds);
 void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLINFO * curcol);
 int tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG *tds_argument, TDS_INT *tds_argsize);
-int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type);
+int tds_process_result_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags);
 int tds_process_row_tokens(TDSSOCKET *tds, TDS_INT *rowtype, TDS_INT *computeid);
 int tds_process_trailing_tokens(TDSSOCKET *tds);
 int tds_client_msg(TDSCONTEXT *tds_ctx, TDSSOCKET *tds, int msgnum, int level, int state, int line, const char *message);

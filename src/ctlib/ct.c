@@ -37,7 +37,7 @@
 #include "ctlib.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: ct.c,v 1.99 2003-06-06 09:18:41 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.100 2003-06-11 20:10:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -767,6 +767,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 	int tdsret;
 	int rowtype;
 	int computeid;
+	int done_flags;
 	CS_INT res_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "%L ct_results()\n");
@@ -796,7 +797,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 	for (;;) {
 
-		tdsret = tds_process_result_tokens(tds, &res_type);
+		tdsret = tds_process_result_tokens(tds, &res_type, &done_flags);
 
 		tdsdump_log(TDS_DBG_FUNC, "%L ct_results() process_result_tokens returned %d (type %d) \n", tdsret, res_type);
 
@@ -837,14 +838,17 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 					return CS_FAIL;
 				break;
 
-			case CS_CMD_SUCCEED:
-			case CS_CMD_DONE:
+			case TDS_DONE_RESULT:
+			case TDS_DONEPROC_RESULT:
+			case TDS_DONEINPROC_RESULT:
 
 				/* there's a distinction in ct-library     */
 				/* depending on whether a command returned */
 				/* results or not...                          */
 
-				if (tds->res_info) {
+				if (done_flags & TDS_DONE_ERROR) {
+					*result_type = CS_CMD_FAIL;
+				} else if (tds->res_info) {
 					if (!tds->res_info->rows_exist) {
 						if (cmd->empty_result) {
 							cmd->empty_result = 0;
@@ -2424,7 +2428,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		CS_INT option;
 		TDS_OPTION tds_option;
 	}
-	tds_bool_option_map[] = {
+	tds_bool_option_map[] =
+	{
 		{
 		CS_OPT_ANSINULL, TDS_OPT_ANSINULL}
 		, {

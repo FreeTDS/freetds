@@ -1,3 +1,16 @@
+Wed Jun 11 22:09:02 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h include/tds.h src/apps/tsql.c:
+	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
+	* src/odbc/odbc.c src/tds/token.c src/tds/example/token1.c:
+	* src/tds/unittests/common.c src/tds/unittests/convert.c:
+	* src/tds/unittests/dataread.c src/tds/unittests/dynamic1.c:
+	* src/tds/unittests/flags.c src/tds/unittests/t0002.c:
+	* src/tds/unittests/t0004.c src/tds/unittests/t0005.c:
+	* src/tds/unittests/t0006.c:
+	- start merging some Bill Thompson work. This change merge some
+	  TDS_DONE handling (mainly tds_process_result_tokens accept
+	  an additional parameter, done_flags to return DONE flags)
+
 Tue Jun 10 21:06:52 CET 2003	Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/Makefile.am: fix distribution problem
 

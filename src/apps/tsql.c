@@ -66,7 +66,7 @@
 #include "tds.h"
 #include "tdsconvert.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.63 2003-06-04 21:39:26 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.64 2003-06-11 20:10:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -137,7 +137,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 		return 1;
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &resulttype)) == TDS_SUCCEED) {
+	while ((rc = tds_process_result_tokens(tds, &resulttype, NULL)) == TDS_SUCCEED) {
 		if (opt_flags & OPT_TIMER) {
 			gettimeofday(&start, NULL);
 			print_rows = 0;

@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.14 2003-04-21 16:06:10 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.15 2003-06-11 20:11:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -86,7 +86,7 @@ main(int argc, char **argv)
 		fprintf(stdout, "block size %d\n", tds->env->block_size);
 	}
 	rc = tds_submit_query(tds, long_query, NULL);
-	while ((rc = tds_process_result_tokens(tds, &result_type)) == TDS_SUCCEED) {
+	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			if (tds->res_info->columns[0]->column_type != SYBVARCHAR) {
