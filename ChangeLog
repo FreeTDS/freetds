@@ -1,3 +1,9 @@
+Tue Oct 15 16:06:02 EDT 2002	nsc <Nicholas_Castellano@acml.com>
+	* Makefile.am src/pool/Makefile.am:
+	- Undo the dist_sysconf_DATA change made earlier, so we don't
+	  overwrite users' local configuration.  Instead, just fix the
+	  ETC definition so we don't get extraneous slashes.
+
 Tue Oct 15 15:04:11 EDT 2002	nsc <Nicholas_Castellano@acml.com>
 	* include/Makefile.am:
 	- Use noinst_HEADERS instead of EXTRA_DIST to specify our
