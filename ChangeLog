@@ -1,3 +1,10 @@
+Sun Sep  8 19:41:41 EDT 2002	JK Lowden <jklowden@schemamania.org>
+	* doc/userguide.sgml	conforms to release 0.60, added locale
+	* doc/Makefile		removed
+	* doc/Makefile.am	added, puts doc directory into the main make
+	* Makefile.am		added doc directory and userguide.tgz
+	* configure.in		added doc directory
+
 Sun Sep  8 08:54:07 EDT 2002	Brian Bruns <camber@ais.org>
 	* src/tds/read.c(tds_get_byte): change precedence on empty packet sink.
 	* src/tds/config.c(tds_read_conf_file): consolidated redundant code into 
