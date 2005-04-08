@@ -1,3 +1,7 @@
+Fri Apr  8 16:56:06 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* src/odbc/unittests/raiserror.c slight reformatting
+	* samples/odbc_rpc.pl added error handler
+
 Fri Apr  8 15:46:13 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c:
 	- comments style update

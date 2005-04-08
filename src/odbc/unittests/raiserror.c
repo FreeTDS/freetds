@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.6 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.7 2005-04-08 20:59:02 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -18,7 +18,8 @@ static const char create_proc[] =
 	"AS\n"
 	"%s"
 	"     SET @OutParam = @InParam\n"
-	"     SET @OutString = 'This is bogus!'\n" "     RAISERROR('An error occurred.', @InParam, 1)\n" "     RETURN (0)";
+	"     SET @OutString = 'This is bogus!'\n" 
+	"     RAISERROR('An error occurred.', @InParam, 1)\n" "     RETURN (0)";
 
 static SQLSMALLINT ReturnCode;
 
