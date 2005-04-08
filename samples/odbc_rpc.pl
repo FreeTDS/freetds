@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.4 2005-04-06 16:24:35 jklowden Exp $
+# $Id: odbc_rpc.pl,v 1.5 2005-04-08 20:59:07 jklowden Exp $
 #
 # Contributed by James K. Lowden and is hereby placed in 
 # the public domain.  No rights reserved.  
@@ -43,6 +43,8 @@ die qq(Syntax: \t$program [-D dsn] [-U username] [-P password] procedure [arg1[,
 # Connect
 my $dbh = DBI->connect($dsn, $user, $pass, {RaiseError => 0, PrintError => 1, AutoCommit => 1})
 	or die "Unable for connect to $dsn $DBI::errstr";
+
+setup_error_handler($dbh);
 
 # Construct an odbc placeholder list like (?, ?, ?)
 # for any arguments after $ARGV[0]. 
@@ -100,3 +102,21 @@ while ( $sth->{Active} ) {
 $dbh->disconnect();
 
 exit 0;
+
+# Stolen shamelessly from DBI: testerrhandler.pl
+
+sub err_handler {
+   my ($state, $msg) = @_;
+   # Strip out all of the driver ID stuff
+   $msg =~ s/^(\[[\w\s]*\])+//;
+   print "===> state: $state msg: $msg\n";
+   return 0;
+}
+
+sub setup_error_handler()
+{ my ($dbh) = @_;
+
+	$dbh->{odbc_err_handler} = \&err_handler;
+	$dbh->{odbc_async_exec} = 1;
+	print "odbc_async_exec is: $dbh->{odbc_async_exec}\n";
+}
