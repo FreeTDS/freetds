@@ -1,6 +1,13 @@
+Sat Apr  9 10:11:21 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: bump version to avoid clash
+	* src/dblib/bcp.c:
+	- backported important fix from 0.64
+	 - small buffer underflow
+	 - check better column numbers
+
 Tue Mar 29 19:36:38 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* configure.in release 0.63
-	
+
 Tue Mar 29 11:58:15 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* README small changes for idiom.
 	* configure.in 0.63RC11

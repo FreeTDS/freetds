@@ -75,7 +75,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.104.2.3 2005-02-03 08:25:17 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.104.2.4 2005-04-09 08:12:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -237,7 +237,7 @@ bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 		return FAIL;
 	}
 
-	if (table_column < 0 || table_column > dbproc->bcpinfo->bindinfo->num_cols)
+	if (table_column <= 0 || table_column > dbproc->bcpinfo->bindinfo->num_cols)
 		return FAIL;
 
 	curcol = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
@@ -457,7 +457,7 @@ bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column)
 		return FAIL;
 	}
 
-	if (table_column < 0 || table_column > dbproc->bcpinfo->bindinfo->num_cols)
+	if (table_column <= 0 || table_column > dbproc->bcpinfo->bindinfo->num_cols)
 		return FAIL;
 
 	curcol = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
@@ -2095,6 +2095,19 @@ _bcp_send_colmetadata(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
+static char *
+_bcp_fgets(char *buffer, size_t size, FILE *f)
+{
+	char *p = fgets(buffer, size, f);
+	if (p == NULL)
+		return p;
+
+	/* discard newline */
+	p = strchr(buffer, 0) - 1;
+	if (p >= buffer && *p == '\n')
+		*p = 0;
+	return buffer;
+}
 
 RETCODE
 bcp_readfmt(DBPROCESS * dbproc, char *filename)
@@ -2127,20 +2140,15 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 		return (FAIL);
 	}
 
-	if ((fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
-		buffer[strlen(buffer) - 1] = '\0';	/* discard newline */
+	if ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
 		lf_version = atof(buffer);
 	}
 
-	if ((fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
-		buffer[strlen(buffer) - 1] = '\0';	/* discard newline */
+	if ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
 		li_numcols = atoi(buffer);
 	}
 
-	while ((fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
-
-		buffer[strlen(buffer) - 1] = '\0';	/* discard newline */
-
+	while ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != (char *) NULL) {
 
 		if (topptr == (struct fflist *) NULL) {	/* first time */
 			if ((topptr = (struct fflist *) malloc(sizeof(struct fflist))) == (struct fflist *) NULL) {
@@ -2454,7 +2462,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 		return FAIL;
 	}
 
-	if (table_column > dbproc->bcpinfo->bindinfo->num_cols)
+	if (table_column <= 0 || table_column > dbproc->bcpinfo->bindinfo->num_cols)
 		return FAIL;
 	}
 
