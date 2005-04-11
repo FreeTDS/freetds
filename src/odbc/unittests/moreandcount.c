@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.11 2005-01-14 15:03:12 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.12 2005-04-11 09:36:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -33,11 +33,16 @@ static void
 DoTest(int prepare)
 {
 	int n = 0;
-	static const char query[] = "DECLARE @b INT SELECT @b = 25 "
+	static const char query[] =
+		/* on prepared this recordset should be skipped */
+		"DECLARE @b INT SELECT @b = 25 "
 		"SELECT * FROM #tmp1 WHERE i <= 3 "
+		/* on prepare we cannot distinguish these recordset */
 		"INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i = 1 "
 		"INSERT INTO #tmp2 SELECT * FROM #tmp1 WHERE i <= 3 "
-		"SELECT * FROM #tmp1 WHERE i = 1 " "UPDATE #tmp1 SET i=i+1 WHERE i >= 2";
+		"SELECT * FROM #tmp1 WHERE i = 1 "
+		/* but FreeTDS can detect last recordset */
+		"UPDATE #tmp1 SET i=i+1 WHERE i >= 2";
 
 	if (prepare) {
 		if (SQLPrepare(Statement, (SQLCHAR *) query, SQL_NTS) != SQL_SUCCESS) {

@@ -1,3 +1,12 @@
+Mon Apr 11 11:34:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.spec.in:
+	- cleanup
+	- put *.so file in -devel package
+	* src/odbc/unittests/moreandcount.c:
+	- add some comments
+	* src/odbc/unittests/raiserror.c:
+	- update to catch some problems
+
 Fri Apr  8 16:56:06 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/odbc/unittests/raiserror.c slight reformatting
 	* samples/odbc_rpc.pl added error handler

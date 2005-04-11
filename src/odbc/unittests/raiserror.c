@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.7 2005-04-08 20:59:02 jklowden Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.8 2005-04-11 09:36:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -18,8 +18,11 @@ static const char create_proc[] =
 	"AS\n"
 	"%s"
 	"     SET @OutParam = @InParam\n"
-	"     SET @OutString = 'This is bogus!'\n" 
-	"     RAISERROR('An error occurred.', @InParam, 1)\n" "     RETURN (0)";
+	"     SET @OutString = 'This is bogus!'\n"
+	"     SELECT 'Here is the first row' AS FirstResult\n"
+	"     RAISERROR('An error occurred.', @InParam, 1)\n"
+	"     SELECT 'Here is the last row' AS LastResult\n"
+	"     RETURN (0)";
 
 static SQLSMALLINT ReturnCode;
 
@@ -40,7 +43,8 @@ TestResult(SQLRETURN result, int level, const char *func)
 	MessageText[0] = 0;
 	NativeError = 0;
 	/* result = SQLError(SQL_NULL_HENV, SQL_NULL_HDBC, Statement, SqlState, &NativeError, MessageText, 1000, &TextLength); */
-	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *)MessageText, sizeof(MessageText), &TextLength);
+	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText),
+			       &TextLength);
 	printf("Result=%d DIAG REC 1: State=%s Error=%d: %s\n", (int) result, SqlState, (int) NativeError, MessageText);
 	if (!SQL_SUCCEEDED(result)) {
 		fprintf(stderr, "SQLGetDiagRec error!\n");
@@ -52,6 +56,26 @@ TestResult(SQLRETURN result, int level, const char *func)
 		fprintf(stderr, "Error returned: %s\n", MessageText);
 		exit(1);
 	}
+}
+
+static void
+CheckData(const char *s)
+{
+	char buf[80];
+	SQLINTEGER ind;
+	SQLRETURN result;
+
+	result = SQLGetData(Statement, 1, SQL_C_CHAR, buf, sizeof(buf), &ind);
+	if (result != SQL_SUCCESS && result != SQL_ERROR)
+		ODBC_REPORT_ERROR("SQLFetch invalid result");
+
+	if (result == SQL_ERROR) {
+		buf[0] = 0;
+		ind = 0;
+	}
+
+	if (strlen(s) != ind || strcmp(buf, s) != 0)
+		ODBC_REPORT_ERROR("Invalid result");
 }
 
 static void
@@ -89,11 +113,38 @@ Test(int level)
 
 	result = SQLExecute(Statement);
 
+	if (result != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("query should success");
+
+	CheckData("");
+	if (SQLFetch(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLFetch returned failure");
+	CheckData("Here is the first row");
+
+	if (SQLFetch(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("SQLFetch returned failure");
+	CheckData("");
+
+	result = SQLMoreResults(Statement);
+
 	printf("SpDateTest Output:\n");
 	printf("   Result = %d\n", (int) result);
 	printf("   Return Code = %d\n", (int) ReturnCode);
 
-	TestResult(result, level, "SQLExecute");
+	TestResult(result, level, "SQLMoreResults");
+
+	CheckData("");
+	if (SQLFetch(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLFetch returned failure");
+	CheckData("Here is the last row");
+
+	if (SQLFetch(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("SQLFetch returned failure");
+	CheckData("");
+
+	if (SQLMoreResults(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("SQLMoreResults return other data");
+	CheckData("");
 }
 
 static void

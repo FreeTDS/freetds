@@ -64,7 +64,7 @@ and can be installed even if FreeTDS main package is not installed
 %setup 
  
 %build 
-%configure --with-tdsver=4.2 --prefix=/usr --with-unixodbc=/usr/local --sysconfdir=%{_sysconfdir}
+%configure --with-tdsver=4.2 --with-unixodbc=/usr/local
 make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
  
 %install 
@@ -73,7 +73,10 @@ make DESTDIR="$RPM_BUILD_ROOT" install
 rm -rf "$RPM_BUILD_ROOT/%{_docdir}/freetds-%{version}"
 
 %post 
-/sbin/ldconfig 
+/sbin/ldconfig 2> /dev/null
+
+%postun
+/sbin/ldconfig 2> /dev/null
 
 %post unixodbc
 echo "[FreeTDS]
@@ -89,34 +92,26 @@ Setup = %{_libdir}/libtdsodbc.so.0" | odbcinst -i -d -r > /dev/null 2>&1 || true
 odbcinst -u -d -n 'FreeTDS' > /dev/null 2>&1 || true
 odbcinst -u -d -n 'SQL Server' > /dev/null 2>&1 || true
 
- 
 %clean 
 rm -rf $RPM_BUILD_ROOT 
  
 %files 
 %defattr(-,root,root) 
-%doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README TODO 
+%doc AUTHORS BUGS COPYING* ChangeLog INSTALL NEWS README TODO 
 %{_bindir}/*
-%{_mandir}/man1/*
-%{_libdir}/libct.so*
-%{_libdir}/libsybdb.so*
-%{_libdir}/libtds.so*
-%{_libdir}/libtdssrv.so*
+%{_mandir}/man?/*
+%{_libdir}/libct.so.*
+%{_libdir}/libsybdb.so.*
+%{_libdir}/libtds.so.*
+%{_libdir}/libtdssrv.so.*
 %config %{_sysconfdir}/*
  
 %files devel 
 %defattr (-,root,root) 
+%{_libdir}/*.a
+%{_libdir}/*.la
+%{_libdir}/*.so
 %{_includedir}/*
-%{_libdir}/libct.a
-%{_libdir}/libct.la
-%{_libdir}/libsybdb.a
-%{_libdir}/libsybdb.la
-%{_libdir}/libtds.a
-%{_libdir}/libtds.la
-%{_libdir}/libtdsodbc.a
-%{_libdir}/libtdsodbc.la
-%{_libdir}/libtdssrv.a
-%{_libdir}/libtdssrv.la
 
 %files unixodbc
 %defattr(-,root,root)
