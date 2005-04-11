@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.361 2005-03-29 15:19:34 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.362 2005-04-11 11:06:39 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -546,6 +546,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				/* in normal row, put in compute status */
 				case AFTER_COMPUTE_ROW:
 				case IN_NORMAL_ROW:
+				case PRE_NORMAL_ROW:
 					stmt->row_status = IN_COMPUTE_ROW;
 					if (tds_process_row_tokens(tds, &rowtype, NULL) == TDS_FAIL)
 						ODBC_RETURN(stmt, SQL_ERROR);
@@ -565,7 +566,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				}
 				break;
 			case TDS_ROW_RESULT:
-				if (in_row || stmt->row_status != IN_NORMAL_ROW) {
+				if (in_row || (stmt->row_status != IN_NORMAL_ROW && stmt->row_status != PRE_NORMAL_ROW)) {
 					stmt->row_status = IN_NORMAL_ROW;
 					odbc_populate_ird(stmt);
 					ODBC_RETURN_(stmt);
@@ -632,7 +633,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				stmt->row = 0;
 				stmt->row_count = TDS_NO_COUNT;
 				/* we expect a row */
-				stmt->row_status = IN_NORMAL_ROW;
+				stmt->row_status = PRE_NORMAL_ROW;
 				in_row = 1;
 				break;
 
@@ -2556,7 +2557,7 @@ _SQLExecute(TDS_STMT * stmt)
 			}
 			stmt->row = 0;
 			stmt->row_count = TDS_NO_COUNT;
-			stmt->row_status = IN_NORMAL_ROW;
+			stmt->row_status = PRE_NORMAL_ROW;
 			in_row = 1;
 			break;
 
@@ -2681,7 +2682,7 @@ _SQLFetch(TDS_STMT * stmt)
 
 	ard = stmt->ard;
 
-	if (stmt->dbc->current_statement != stmt) {
+	if (stmt->dbc->current_statement != stmt || stmt->row_status == NOT_IN_ROW) {
 		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
@@ -2742,6 +2743,10 @@ _SQLFetch(TDS_STMT * stmt)
 			switch (tds_process_row_tokens(stmt->dbc->tds_socket, NULL, NULL)) {
 			case TDS_NO_MORE_ROWS:
 				stmt->row_count = tds->rows_affected;
+				/* 
+				 * NOTE do not set row_status to NOT_IN_ROW, 
+				 * if compute tds_process_row_tokens above returns TDS_NO_MORE_ROWS
+				 */
 				stmt->special_row = 0;
 				odbc_populate_ird(stmt);
 				tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
@@ -2751,6 +2756,8 @@ _SQLFetch(TDS_STMT * stmt)
 				ODBC_RETURN(stmt, SQL_ERROR);
 				break;
 			}
+
+			stmt->row_status = IN_NORMAL_ROW;
 
 			/* handle special row */
 			switch (stmt->special_row) {
@@ -3718,7 +3725,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	INIT_HSTMT;
 
 	/* read data from TDS only if current statement */
-	if (stmt->dbc->current_statement != stmt) {
+	if (stmt->dbc->current_statement != stmt || stmt->row_status == PRE_NORMAL_ROW || stmt->row_status == NOT_IN_ROW) {
 		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}

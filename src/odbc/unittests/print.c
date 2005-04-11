@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.13 2005-02-20 09:19:27 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.14 2005-04-11 11:06:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -52,16 +52,26 @@ main(int argc, char *argv[])
 
 	/* SQLMoreResults return NO DATA ... */
 	rc = SQLMoreResults(Statement);
+#ifndef TDS_NO_DM
 	if (rc != SQL_NO_DATA && rc != SQL_SUCCESS_WITH_INFO)
+#else
+	if (rc != SQL_NO_DATA)
+#endif
 		ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
 
-	/* ... but read error */
+	/*
+	 * ... but read error
+	 * (unixODBC till 2.2.11 do not read errors on NO DATA, skip test)
+	 */
+#ifdef TDS_NO_DM
 	ReadError();
 	if (!strstr((char *) output, "END")) {
 		printf("Message invalid\n");
 		return 1;
 	}
 	output[0] = 0;
+#endif
+
 #ifdef ENABLE_DEVELOPING
 	CHECK_COLS(-1);
 	CHECK_ROWS(-2);

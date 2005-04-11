@@ -1,3 +1,8 @@
+Mon Apr 11 13:05:39 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- do not return data if not present
+	* src/odbc/unittests/print.c: updated
+
 Mon Apr 11 11:34:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.spec.in:
 	- cleanup

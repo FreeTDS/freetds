@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.79 2005-03-12 11:42:37 ppeterd Exp $ */
+/* $Id: tdsodbc.h,v 1.80 2005-04-11 11:06:39 freddy77 Exp $ */
 
 struct _sql_error
 {
@@ -289,7 +289,8 @@ typedef enum
 	NOT_IN_ROW,
 	IN_NORMAL_ROW,
 	IN_COMPUTE_ROW,
-	AFTER_COMPUTE_ROW
+	AFTER_COMPUTE_ROW,
+	PRE_NORMAL_ROW
 } TDS_ODBC_ROW_STATUS;
 
 struct _hstmt
