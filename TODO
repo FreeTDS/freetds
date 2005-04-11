@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.140 2005-04-05 09:16:01 freddy77 Exp $
+To Do List	$Id: TODO,v 1.141 2005-04-11 13:51:15 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -17,18 +17,10 @@ Broken:
   and doesn't convert correctly.
 
 Working in progress:
-. ct_dynamic and friends needed for DBD::Sybase placeholder support
-  done ??
 . constants parameters in call syntax (ie {?=func(10,?)} ) 
-. support for named instances under mssql2k
-  . utility to get port
-  done ??
-  add documentation
 . cancellation
   . ctlib seems to hang reading row while in IDLE state
     (tds_peek if not in pending state hang... update)
-  . tdsdump_log is not reentrant, cancellation core if logging enabled ...
-    fixed ??
 . fix timeout problem reported in ML
   . check dblib behavior
 . support encrypted connections

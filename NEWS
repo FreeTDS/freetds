@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.21 2005-04-05 09:16:01 freddy77 Exp $
+$Id: NEWS,v 1.22 2005-04-11 13:51:15 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -17,6 +17,7 @@ $Id: NEWS,v 1.21 2005-04-05 09:16:01 freddy77 Exp $
 - improved numeric conversions performance
 - improved debug logging (added "debug flags" option)
 - support long password on tsql for all platforms
+- ct_dynamic and friends (placeholder support under ctlib)
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure

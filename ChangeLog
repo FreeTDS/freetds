@@ -1,3 +1,6 @@
+Mon Apr 11 15:50:35 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO: update
+
 Mon Apr 11 13:05:39 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- do not return data if not present
