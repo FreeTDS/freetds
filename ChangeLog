@@ -1,3 +1,11 @@
+Tue Apr 12 09:17:06 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- proper cursor state check
+	- fix print and compute tests
+	* src/odbc/unittests/common.c: error to error stream
+	* src/odbc/unittests/prepare_results.c: reuse and update
+	* src/odbc/unittests/print.c: update
+
 Mon Apr 11 15:50:35 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO: update
 

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.362 2005-04-11 11:06:39 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.363 2005-04-12 07:19:09 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -534,6 +534,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 			tds_free_all_results(tds);
 #endif
 			odbc_populate_ird(stmt);
+			if (!got_rows)
+				stmt->row_status = NOT_IN_ROW;
 			if (!got_rows && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 			ODBC_RETURN_(stmt);
@@ -2508,6 +2510,7 @@ _SQLExecute(TDS_STMT * stmt)
 			ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	stmt->row_count = TDS_NO_COUNT;
+	stmt->row_status = PRE_NORMAL_ROW;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
 	/* TODO perhaps we should return SQL_NO_DATA if no data available... see old SQLExecute code */
@@ -2747,6 +2750,7 @@ _SQLFetch(TDS_STMT * stmt)
 				 * NOTE do not set row_status to NOT_IN_ROW, 
 				 * if compute tds_process_row_tokens above returns TDS_NO_MORE_ROWS
 				 */
+				stmt->row_status = AFTER_COMPUTE_ROW;
 				stmt->special_row = 0;
 				odbc_populate_ird(stmt);
 				tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
@@ -3312,6 +3316,10 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	 * 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
 	 * generating queries such as 'drop table'
 	 */
+	if (stmt->row_status == NOT_IN_ROW) {
+		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 	*pccol = stmt->ird->header.sql_desc_count;
 	ODBC_RETURN_(stmt);
 }
@@ -3459,6 +3467,10 @@ _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 	INIT_HSTMT;
 
 	tds = stmt->dbc->tds_socket;
+	if (stmt->row_status == NOT_IN_ROW) {
+		odbc_errs_add(&stmt->errs, "24000", NULL, NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
 	*pcrow = -1;
 	if (stmt->row_count != TDS_NO_COUNT)
