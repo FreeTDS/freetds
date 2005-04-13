@@ -27,7 +27,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.13 2005-04-13 18:37:40 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.14 2005-04-13 19:01:23 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -171,18 +171,31 @@ main(int argc, char **argv)
 		add_bread_crumb();
 
 		for (i=0; i < rows_to_add; ) {
+			do {
+				int rc;
+				i++;
+#if 0
+			/* 
+			 * If dbclrbuf works properly, enable this section.  
+			 * It is permissible to call it when no rows are buffered.  
+			 * Broken as of 12 April 2005, and probably earlier.  
+			 */
 			fprintf(stdout, "clearing %i rows from buffer\n", buffer_count);
 			dbclrbuf(dbproc, buffer_count);
-			for (i++; i % buffer_count; i++) {
+#endif
 				add_bread_crumb();
-				if (REG_ROW != dbnextrow(dbproc)) {
+				if (REG_ROW != (rc = dbnextrow(dbproc))) {
 					failed = 1;
-					fprintf(stderr, "Failed.  Expected a row\n");
+					fprintf(stderr, "Failed: Expected a row (%s:%d)\n", __FILE__, __LINE__);
+					if (rc == BUF_FULL)
+						fprintf(stderr, "Failed: dbnextrow returned BUF_FULL (%d).  Fix dbclrbuf.\n", rc);
 					exit(1);
 				}
 				add_bread_crumb();
 				verify(i, testint, teststr);
-			}
+			} while (i % buffer_count);
+			fprintf(stdout, "clearing %i rows from buffer\n", buffer_count);
+			dbclrbuf(dbproc, buffer_count);
 		}
 	}
 
