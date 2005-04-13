@@ -27,7 +27,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.12 2005-04-13 18:24:06 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.13 2005-04-13 18:37:40 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -170,18 +170,20 @@ main(int argc, char **argv)
 		dbbind(dbproc, 2, STRINGBIND, -1, (BYTE *) teststr);
 		add_bread_crumb();
 
-		for (i=1; i <= buffer_count; i++) {
-			add_bread_crumb();
-			if (REG_ROW != dbnextrow(dbproc)) {
-				failed = 1;
-				fprintf(stderr, "Failed.  Expected a row\n");
-				exit(1);
+		for (i=0; i < rows_to_add; ) {
+			fprintf(stdout, "clearing %i rows from buffer\n", buffer_count);
+			dbclrbuf(dbproc, buffer_count);
+			for (i++; i % buffer_count; i++) {
+				add_bread_crumb();
+				if (REG_ROW != dbnextrow(dbproc)) {
+					failed = 1;
+					fprintf(stderr, "Failed.  Expected a row\n");
+					exit(1);
+				}
+				add_bread_crumb();
+				verify(i, testint, teststr);
 			}
-			add_bread_crumb();
-			verify(i, testint, teststr);
 		}
-		fprintf(stdout, "clearing %i rows from buffer\n", buffer_count);
-		dbclrbuf(dbproc, buffer_count);
 	}
 
 	rc = dbgetrow(dbproc, 1);
