@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.8 2005-04-11 09:36:17 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.9 2005-04-13 17:00:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -123,7 +123,9 @@ Test(int level)
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
+#ifdef ENABLE_DEVELOPING
 	CheckData("");
+#endif
 
 	result = SQLMoreResults(Statement);
 
@@ -133,14 +135,18 @@ Test(int level)
 
 	TestResult(result, level, "SQLMoreResults");
 
+#ifdef ENABLE_DEVELOPING
 	CheckData("");
+#endif
 	if (SQLFetch(Statement) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
 	CheckData("Here is the last row");
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
+#ifdef ENABLE_DEVELOPING
 	CheckData("");
+#endif
 
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults return other data");

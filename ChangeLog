@@ -1,3 +1,9 @@
+Wed Apr 13 18:57:21 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/token.c:
+	- added tds_process_tokens function
+	- use new function to code old one
+	* src/odbc/unittests/moreandcount.c: more verbose
+
 Tue Apr 12 09:17:06 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- proper cursor state check

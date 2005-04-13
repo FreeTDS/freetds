@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.223 2005-03-24 14:44:09 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.224 2005-04-13 17:00:44 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -214,6 +214,35 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_DONE_RESULT       4052
 #define TDS_DONEPROC_RESULT   4053
 #define TDS_DONEINPROC_RESULT 4054
+#define TDS_OTHERS_RESULT     4055
+
+enum tds_token_results
+{
+	TDS_TOKEN_RES_OTHERS,
+	TDS_TOKEN_RES_ROWFMT,
+	TDS_TOKEN_RES_COMPUTEFMT,
+	TDS_TOKEN_RES_PARAMFMT,
+	TDS_TOKEN_RES_DONE,
+	TDS_TOKEN_RES_ROW,
+	TDS_TOKEN_RES_COMPUTE,
+	TDS_TOKEN_RES_PROC
+};
+
+#define TDS_TOKEN_FLAG(flag) TDS_RETURN_##flag = (1 << (TDS_TOKEN_RES_##flag*2)), TDS_STOPAT_##flag = (2 << (TDS_TOKEN_RES_##flag*2))
+
+enum tds_token_flags
+{
+	TDS_HANDLE_ALL = 0,
+	TDS_TOKEN_FLAG(OTHERS),
+	TDS_TOKEN_FLAG(ROWFMT),
+	TDS_TOKEN_FLAG(COMPUTEFMT),
+	TDS_TOKEN_FLAG(PARAMFMT),
+	TDS_TOKEN_FLAG(DONE),
+	TDS_TOKEN_FLAG(ROW),
+	TDS_TOKEN_FLAG(COMPUTE),
+	TDS_TOKEN_FLAG(PROC)
+};
+
 
 enum tds_end
 {
@@ -1263,6 +1292,7 @@ int tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * compute
 int tds_process_row_tokens_ct(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT *computeid);
 int tds_process_trailing_tokens(TDSSOCKET * tds);
 int tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *message);
+int tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsigned flag);
 
 /* data.c */
 void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
