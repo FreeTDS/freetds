@@ -1,3 +1,7 @@
+Wed Apr 13 18:20:57 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c src/dblib/unittests/t0002.c
+	- fixed dbclrbuf, probably.  dbgetrow is broken.
+
 Wed Apr 13 13:44:58 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/t0002.c 
 	- changed to test multiple resultsets. 

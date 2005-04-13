@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.210 2005-04-03 13:37:26 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.211 2005-04-13 22:23:13 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -71,6 +71,7 @@ static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
 static void _set_null_value(BYTE * varaddr, int datatype, int maxlen);
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
+static void buffer_struct_print(DBPROC_ROWBUF *buf);
 
 /**
  * @file dblib.c
@@ -182,7 +183,7 @@ buffer_init(DBPROC_ROWBUF * buf)
 	buf->rows_in_buf = 0;
 	buf->rows = NULL;
 	buf->next_row = 1;
-}				/* buffer_init()  */
+}
 
 static void
 buffer_clear(DBPROC_ROWBUF * buf)
@@ -194,7 +195,7 @@ buffer_clear(DBPROC_ROWBUF * buf)
 	buf->rows_in_buf = 0;
 	if (buf->rows)
 		TDS_ZERO_FREE(buf->rows);
-}				/* buffer_clear()  */
+}
 
 
 static void
@@ -202,15 +203,14 @@ buffer_free(DBPROC_ROWBUF * buf)
 {
 	if (buf->rows != NULL)
 		TDS_ZERO_FREE(buf->rows);
-}				/* clear_buffer()  */
+}
 
 static void
-buffer_delete_rows(DBPROC_ROWBUF * buf,	/* (U) buffer to clear             */
-		   int count)
-{				/* (I) number of elements to purge */
+buffer_delete_rows(DBPROC_ROWBUF * buf,	int count)
+{
 	assert(count <= buf->elcount);	/* possibly a little to pedantic */
 
-	if (count > buf->rows_in_buf) {
+	if (count < 0 || count > buf->rows_in_buf) {
 		count = buf->rows_in_buf;
 	}
 
@@ -219,9 +219,30 @@ buffer_delete_rows(DBPROC_ROWBUF * buf,	/* (U) buffer to clear             */
 	buf->rows_in_buf -= count;
 	buf->first_in_buf = count == buf->rows_in_buf ? buf->next_row - 1 : buf->first_in_buf + count;
 
+	if(buf->first_in_buf < 0) {
+		printf("count (to delete) = %d\n", count);
+		buffer_struct_print(buf);
+		assert(buf->first_in_buf >= 0);
+	}
+}
 
-	assert(buf->first_in_buf >= 0);
-}				/* buffer_delete_rows() */
+static void 
+buffer_struct_print(DBPROC_ROWBUF *buf)
+{
+	assert(buf);
+
+	printf("buffering_on = %d\n", 	buf->buffering_on);
+	printf("first_in_buf = %d\n", 	buf->first_in_buf);
+	printf("next_row = %d\n",	buf->next_row);
+	printf("newest = %d\n", 	buf->newest);
+	printf("oldest = %d\n", 	buf->oldest);
+	printf("elcount = %d\n", 	buf->elcount);
+	printf("element_size = %d\n", 	buf->element_size);
+	printf("rows_in_buf = %d\n", 	buf->rows_in_buf);
+	printf("rows = %x\n", 		buf->rows);
+}
+
+
 
 
 static int
@@ -249,14 +270,7 @@ buffer_start_resultset(DBPROC_ROWBUF * buf,	/* (U) buffer to clear */
 	buf->rows = malloc(space_needed);
 
 	return buf->rows == NULL ? FAIL : SUCCEED;
-}				/* buffer_start_resultset()  */
-
-
-static void
-buffer_delete_all_rows(DBPROC_ROWBUF * buf)
-{				/* (U) buffer to clear */
-	buffer_delete_rows(buf, buf->rows_in_buf);
-}				/* delete_all_buffer_rows() */
+}
 
 static int
 buffer_index_of_resultset_row(DBPROC_ROWBUF * buf,	/* (U) buffer to clear                 */
@@ -273,7 +287,7 @@ buffer_index_of_resultset_row(DBPROC_ROWBUF * buf,	/* (U) buffer to clear       
 			  + buf->oldest) % buf->elcount;
 	}
 	return result;
-}				/* buffer_index_of_resultset_row()  */
+}
 
 
 static void *
@@ -293,7 +307,7 @@ buffer_row_address(DBPROC_ROWBUF * buf,	/* (U) buffer to clear                 *
 		result = (char *) buf->rows + offset;
 	}
 	return result;
-}				/* buffer_row_address()  */
+}
 
 
 static void
@@ -332,20 +346,20 @@ buffer_add_row(DBPROC_ROWBUF * buf,	/* (U) buffer to add row into  */
 
 	dest = buffer_row_address(buf, buf->newest);
 	memcpy(dest, row, row_size);
-}				/* buffer_add_row()  */
+}
 
 
 static int
 buffer_is_full(DBPROC_ROWBUF * buf)
 {
 	return buf->rows_in_buf == buf->elcount;
-}				/* buffer_is_full()  */
+}
 
 static void
-buffer_set_buffering(DBPROC_ROWBUF * buf,	/* (U)                                         */
-		     int buf_size)
-{				/* (I) number of rows to buffer, 0 to turn off */
-	/* XXX If the user calls this routine in the middle of 
+buffer_set_buffering(DBPROC_ROWBUF * buf, int nrows)
+{
+	/* 
+	 * XXX If the user calls this routine in the middle of 
 	 * a result set and changes the size of the buffering
 	 * they are pretty much toast.
 	 *
@@ -354,28 +368,27 @@ buffer_set_buffering(DBPROC_ROWBUF * buf,	/* (U)                                
 	 * what should happen to the current row, etc?
 	 */
 
-	assert(buf_size >= 0);
+	assert(nrows >= 0);
 
-	if (buf_size < 0) {
-		buf_size = 100;	/* the default according to Microsoft */
-	}
-
-	if (buf_size == 0) {
-		buf->buffering_on = 0;
+	buf->buffering_on = nrows > 0;
+	
+	if (!buf->buffering_on) {	/* turn off buffering */
+		buffer_delete_rows(buf, buf->rows_in_buf);
 		buf->elcount = 1;
-		buffer_delete_all_rows(buf);
-	} else {
-		buf->buffering_on = 1;
-		buffer_clear(buf);
-		buffer_free(buf);
-		buf->elcount = buf_size;
-		if (buf->element_size > 0) {
-			buf->rows = malloc(buf->element_size * buf->elcount);
-		} else {
-			buf->rows = NULL;
-		}
+		return;
 	}
-}				/* buffer_set_buffering()  */
+
+	buffer_clear(buf);
+	buffer_free(buf);
+
+	buf->elcount = nrows;	/* set the buffer size (number of rows to buffer) */
+
+	if (buf->element_size > 0) {
+		buf->rows = malloc(buf->element_size * buf->elcount);
+	} else {
+		buf->rows = NULL;
+	}
+}
 
 static void
 buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * buf,	/* (U)                                         */
@@ -439,7 +452,7 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 			}
 		}
 	}
-}				/* buffer_transfer_bound_data()  */
+}	/* end buffer_transfer_bound_data()  */
 
 static void
 db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
@@ -3790,11 +3803,24 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		/* dblib option */
 		break;
 	case DBBUFFER:
-		/* dblib option */
-		/* requires param "0" to "2147483647" */
-		/* XXX should be more robust than just a atoi() */
-		buffer_set_buffering(&(dbproc->row_buf), atoi(char_param));
-		return SUCCEED;
+		/* 
+		 * Requires param "2" to "2147483647" 
+		 * (0 or 1 is an error, < 0 yields the default 100) 
+		 */
+		{ 
+			/* 100 is the default, according to Microsoft */
+			if( !char_param )
+				char_param = "100";
+
+			int nrows = atoi(char_param);
+
+			nrows = (nrows < 0 )? 100 : nrows;
+
+			if( 1 < nrows && nrows <= 2147483647 ) {
+				buffer_set_buffering(&(dbproc->row_buf), nrows);
+				return SUCCEED;
+			}
+		}
 		break;
 	case DBPRCOLSEP:
 	case DBPRLINELEN:

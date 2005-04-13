@@ -27,7 +27,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.15 2005-04-13 19:59:40 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.16 2005-04-13 22:23:13 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -171,10 +171,10 @@ main(int argc, char **argv)
 		add_bread_crumb();
 
 		/* Fetch a result set */
-		for (i=0; i < rows_to_add - buffer_count;) {
+		for (i=0; i < rows_to_add - (iresults == 2 ? 2 * buffer_count : 0);) {
 			do {
 				int rc;
-#if 0
+#if 1
 				/* 
 				 * If dbclrbuf works properly, enable this section.  
 				 * It is permissible to call it when no rows are buffered.  
@@ -196,10 +196,19 @@ main(int argc, char **argv)
 				verify(i, testint, teststr);
 			} while (i % buffer_count);
 
-			if (i < buffer_count) {
+			if (iresults == 1 || i < rows_to_add - buffer_count) {
 				fprintf(stdout, "clearing %i rows from buffer\n", buffer_count);
 				dbclrbuf(dbproc, 2 * buffer_count);
 			}
+
+			if (iresults == 1 && i == rows_to_add) {
+				while ((rc = dbnextrow(dbproc)) != NO_MORE_ROWS) {
+					/* We fetched 50 rows, but weren't yet told   */
+					assert(rc != NO_MORE_ROWS);
+					exit(1);
+				}
+			}
+				
 		}
 	}
 
@@ -209,6 +218,8 @@ main(int argc, char **argv)
 	 */
 	rc = dbgetrow(dbproc, 1);
 	add_bread_crumb();
+	if(rc != REG_ROW)
+		fprintf(stderr, "Failed: dbgetrow returned %d.\n", rc);
 	assert(rc == REG_ROW);
 	verify(31, testint, teststr);	/* first buffered row should be 31 */
 
