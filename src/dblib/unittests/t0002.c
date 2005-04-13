@@ -27,7 +27,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.11 2005-04-13 17:46:29 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.12 2005-04-13 18:24:06 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -59,9 +59,10 @@ main(int argc, char **argv)
 	DBPROCESS *dbproc;
 	DBINT testint;
 	STATUS rc;
-	int i;
+	int i, iresults;
 	char teststr[1024];
 
+	const int buffer_count = 10;
 	const int rows_to_add = 50;
 	const char tablename[] = "#dblib0002";
 	const char drop_if_exists[] = "if exists ( select 1 "
@@ -127,7 +128,7 @@ main(int argc, char **argv)
 		/* nop */
 	}
 
-	fprintf(stdout, "insert into %s [10 rows]\n", tablename);
+	fprintf(stdout, "insert into %s [%d rows]\n", tablename, rows_to_add);
 	for (i = 1; i <= rows_to_add; i++) {
 	char cmd[1024];
 
@@ -140,39 +141,47 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "select * from %s order by i\n", tablename);
-	dbfcmd(dbproc,  "select * from %s order by i", tablename);
+	dbfcmd(dbproc,  "select * from %s order by i\n", tablename);
+	dbfcmd(dbproc,  "select * from %s order by i\n", tablename);	/* two result sets */
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
 
-	if (dbresults(dbproc) != SUCCEED) {
-		add_bread_crumb();
-		fprintf(stderr, "Was expecting a result set.");
-		exit(1);
-	}
-	add_bread_crumb();
-
-	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		add_bread_crumb();
-		printf("col %d is [%s]\n", i, dbcolname(dbproc, i));
-		add_bread_crumb();
-	}
-
-	add_bread_crumb();
-	dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint);
-	add_bread_crumb();
-	dbbind(dbproc, 2, STRINGBIND, -1, (BYTE *) teststr);
-	add_bread_crumb();
-
-	for (i = 1; i <= 10; i++) {
-		add_bread_crumb();
-		if (REG_ROW != dbnextrow(dbproc)) {
-			failed = 1;
-			fprintf(stderr, "Failed.  Expected a row\n");
+	for (iresults=1; iresults <= 2; iresults++ ) {
+		fprintf(stdout, "fetching resultset %i\n", iresults);
+		if (dbresults(dbproc) != SUCCEED) {
+			add_bread_crumb();
+			fprintf(stderr, "Was expecting a result set %d.\n", iresults);
+			if( iresults == 2 )
+				fprintf(stderr, "Buffering with multiple resultsets is broken.\n");
 			exit(1);
 		}
 		add_bread_crumb();
-		verify(i, testint, teststr);
+
+		for (i = 1; i <= dbnumcols(dbproc); i++) {
+			add_bread_crumb();
+			printf("col %d is [%s]\n", i, dbcolname(dbproc, i));
+			add_bread_crumb();
+		}
+
+		add_bread_crumb();
+		dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint);
+		add_bread_crumb();
+		dbbind(dbproc, 2, STRINGBIND, -1, (BYTE *) teststr);
+		add_bread_crumb();
+
+		for (i=1; i <= buffer_count; i++) {
+			add_bread_crumb();
+			if (REG_ROW != dbnextrow(dbproc)) {
+				failed = 1;
+				fprintf(stderr, "Failed.  Expected a row\n");
+				exit(1);
+			}
+			add_bread_crumb();
+			verify(i, testint, teststr);
+		}
+		fprintf(stdout, "clearing %i rows from buffer\n", buffer_count);
+		dbclrbuf(dbproc, buffer_count);
 	}
 
 	rc = dbgetrow(dbproc, 1);
