@@ -27,7 +27,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.16 2005-04-13 22:23:13 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.17 2005-04-13 22:40:36 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -196,7 +196,7 @@ main(int argc, char **argv)
 				verify(i, testint, teststr);
 			} while (i % buffer_count);
 
-			if (iresults == 1 || i < rows_to_add - buffer_count) {
+			if (iresults == 1 || i < rows_to_add - 2 * buffer_count) {
 				fprintf(stdout, "clearing %i rows from buffer\n", buffer_count);
 				dbclrbuf(dbproc, 2 * buffer_count);
 			}
