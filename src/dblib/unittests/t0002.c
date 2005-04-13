@@ -27,7 +27,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.17 2005-04-13 22:40:36 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.18 2005-04-13 22:59:46 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -171,18 +171,15 @@ main(int argc, char **argv)
 		add_bread_crumb();
 
 		/* Fetch a result set */
-		for (i=0; i < rows_to_add - (iresults == 2 ? 2 * buffer_count : 0);) {
+		/* Second resultset stops at row 40 */
+		for (i=0; i < rows_to_add - (iresults == 2 ? buffer_count : 0);) {
+
+			fprintf(stdout, "clearing %d rows from buffer\n", buffer_count);
+			dbclrbuf(dbproc, buffer_count);
+
 			do {
 				int rc;
-#if 1
-				/* 
-				 * If dbclrbuf works properly, enable this section.  
-				 * It is permissible to call it when no rows are buffered.  
-				 * Broken as of 12 April 2005, and probably earlier.  
-				 */
-				fprintf(stdout, "clearing %d rows from buffer\n", buffer_count);
-				dbclrbuf(dbproc, buffer_count);
-#endif
+
 				i++;
 				add_bread_crumb();
 				if (REG_ROW != (rc = dbnextrow(dbproc))) {
@@ -196,14 +193,9 @@ main(int argc, char **argv)
 				verify(i, testint, teststr);
 			} while (i % buffer_count);
 
-			if (iresults == 1 || i < rows_to_add - 2 * buffer_count) {
-				fprintf(stdout, "clearing %i rows from buffer\n", buffer_count);
-				dbclrbuf(dbproc, 2 * buffer_count);
-			}
-
 			if (iresults == 1 && i == rows_to_add) {
 				while ((rc = dbnextrow(dbproc)) != NO_MORE_ROWS) {
-					/* We fetched 50 rows, but weren't yet told   */
+					/* We fetched 50 rows, but weren't yet told NO_MORE_ROWS  */
 					assert(rc != NO_MORE_ROWS);
 					exit(1);
 				}
