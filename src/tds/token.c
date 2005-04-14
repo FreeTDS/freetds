@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.292 2005-04-14 11:35:46 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.293 2005-04-14 13:28:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -823,40 +823,6 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 			return TDS_FAIL;
 		}
 	}
-}
-
-/**
- * tds_process_trailing_tokens() is called to discard messages that may
- * be left unprocessed at the end of a result "batch". In dblibrary, it is 
- * valid to process all the data rows that a command may have returned but 
- * to leave end tokens etc. unprocessed (at least explicitly)
- * This function is called to discard such tokens. If it comes across a token
- * that does not fall into the category of valid "trailing" tokens, it will 
- * return TDS_FAIL, allowing the calling dblibrary function to return a 
- * "results pending" message. 
- * The valid "trailing" tokens are :
- *
- * TDS_DONE_TOKEN
- * TDS_DONEPROC_TOKEN
- * TDS_DONEINPROC_TOKEN
- * TDS_RETURNSTATUS_TOKEN
- * TDS_PARAM_TOKEN
- * TDS5_PARAMFMT_TOKEN
- * TDS5_PARAMS_TOKEN
- */
-int
-tds_process_trailing_tokens(TDSSOCKET * tds)
-{
-	TDS_INT result_type;
-	int done_flags;
-
-	CHECK_TDS_EXTRA(tds);
-
-	tdsdump_log(TDS_DBG_FUNC, "tds_process_trailing_tokens() \n");
-
-	if (tds_process_tokens(tds, &result_type, &done_flags, TDS_STOPAT_ROWFMT | TDS_STOPAT_COMPUTEFMT | TDS_STOPAT_ROW | TDS_STOPAT_COMPUTE | TDS_STOPAT_OTHERS) == TDS_NO_MORE_RESULTS)
-		return TDS_SUCCEED;
-	return TDS_FAIL;
 }
 
 /**

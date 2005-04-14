@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_1.c,v 1.10 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_1.c,v 1.11 2005-04-14 13:28:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -119,7 +119,6 @@ test(const char *type, const char *test_name)
 	const char **s;
 	int rc;
 	TDS_INT result_type;
-	TDS_INT row_type;
 	int done_flags;
 
 	sprintf(buf, "CREATE TABLE #tmp (i INT, t %s)", type);

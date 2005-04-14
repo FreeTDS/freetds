@@ -1,4 +1,13 @@
 Thu Apr 14 13:33:14 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c: check proper result type for rows
+	* include/tds.h src/dblib/dblib.c src/odbc/odbc.c:
+	* src/tds/token.c:
+	- removed tds_process_trailing_tokens
+	* src/tds/unittests/t0005.c src/tds/unittests/t0006.c:
+	* src/tds/unittests/utf8_1.c:
+	- remove warnings
+
+Thu Apr 14 13:33:14 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS include/tds.h src/apps/tsql.c src/ctlib/blk.c:
 	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
 	* src/odbc/odbc.c src/tds/token.c src/tds/example/token1.c:

@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.212 2005-04-14 11:35:44 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.213 2005-04-14 13:28:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1582,6 +1582,7 @@ dbnextrow(DBPROCESS * dbproc)
 	} else {
 		/* If no rows are read, DBROWTYPE() will report NO_MORE_ROWS. */
 		dbproc->row_type = NO_MORE_ROWS; 
+		computeid = REG_ROW;
 
 		/*
 		 * Try to get the dbproc->row_buf.next_row item into the row buffer.
@@ -1595,7 +1596,6 @@ dbnextrow(DBPROCESS * dbproc)
 		} else {
 
 			/* Get the row from the TDS stream.  */
-			computeid = REG_ROW;
 
 			switch (tds_process_tokens(dbproc->tds_socket, &res_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) {
 			case TDS_SUCCEED:
@@ -3909,6 +3909,7 @@ int
 dbnumrets(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds;
+	TDS_INT result_type;
 
 	tds = dbproc->tds_socket;
 
@@ -3916,7 +3917,7 @@ dbnumrets(DBPROCESS * dbproc)
 
 	/* try to fetch output parameters and return status, if we have not already done so */
 	if (!tds->param_info) 
-		tds_process_trailing_tokens(tds);
+		tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_TRAILING);
 		
 	if (!tds->param_info)
 		return 0;
@@ -5450,6 +5451,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 {
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
+	TDS_INT result_type;
 
 	if (IS_TDSDEAD(dbproc->tds_socket))
 		return FAIL;
@@ -5464,7 +5466,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 
     if (dbproc->tds_socket->state == TDS_PENDING) {
 
-        if (tds_process_trailing_tokens(dbproc->tds_socket) != TDS_SUCCEED) {
+        if (tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_TOKEN_TRAILING) != TDS_NO_MORE_RESULTS) {
             _dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
             dbproc->command_state = DBCMDSENT;
             return FAIL;
@@ -5850,7 +5852,7 @@ dbsqlsend(DBPROCESS * dbproc)
 
 	if (tds->state == TDS_PENDING) {
 
-		if (tds_process_trailing_tokens(tds) != TDS_SUCCEED) {
+		if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_TRAILING) != TDS_NO_MORE_RESULTS) {
 			_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
 			dbproc->command_state = DBCMDSENT;
 			return FAIL;

@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.23 2005-04-14 11:35:43 freddy77 Exp $
+$Id: NEWS,v 1.24 2005-04-14 13:28:35 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -52,6 +52,7 @@ libTDS API changes
  - tds_process_result_tokens
  - tds_process_row_tokens
  - tds_process_row_tokens_ct
+ - tds_process_trailing_tokens
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information

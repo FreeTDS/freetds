@@ -19,7 +19,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.23 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.24 2005-04-14 13:28:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -51,7 +51,7 @@ main(int argc, char **argv)
 	float sybreal[5];
 	int num_sybflt8 = 7;
 	double sybflt8[7];
-	int result_type, row_type;
+	int result_type;
 
 	memset(&ctx, 0, sizeof(ctx));
 

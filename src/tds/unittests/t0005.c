@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.16 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.17 2005-04-14 13:28:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -32,7 +32,7 @@ main(int argc, char **argv)
 	int rc;
 	int i;
 
-	int result_type, row_type;
+	int result_type;
 
 	const char *len200 =
 		"01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
