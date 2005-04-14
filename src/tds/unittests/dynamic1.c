@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.14 2005-02-09 19:47:16 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.15 2005-04-14 11:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -146,7 +146,7 @@ discard_result(TDSSOCKET * tds)
 	int rc;
 	int result_type;
 
-	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 
 		switch (result_type) {
 		case TDS_DONE_RESULT:
@@ -162,10 +162,10 @@ discard_result(TDSSOCKET * tds)
 		}
 	}
 	if (rc == TDS_FAIL) {
-		fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL\n");
+		fprintf(stderr, "tds_process_tokens() returned TDS_FAIL\n");
 		return TDS_FAIL;
 	} else if (rc != TDS_NO_MORE_RESULTS) {
-		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 		return TDS_FAIL;
 	}
 

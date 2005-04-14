@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.24 2004-11-28 20:44:19 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.25 2005-04-14 11:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -135,7 +135,7 @@ run_query(TDSSOCKET * tds, const char *query)
 		return TDS_FAIL;
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 
 		switch (result_type) {
 		case TDS_DONE_RESULT:
@@ -150,10 +150,10 @@ run_query(TDSSOCKET * tds, const char *query)
 		}
 	}
 	if (rc == TDS_FAIL) {
-		fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL for '%s'\n", query);
+		fprintf(stderr, "tds_process_tokens() returned TDS_FAIL for '%s'\n", query);
 		return TDS_FAIL;
 	} else if (rc != TDS_NO_MORE_RESULTS) {
-		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 		return TDS_FAIL;
 	}
 

@@ -1,3 +1,16 @@
+Thu Apr 14 13:33:14 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS include/tds.h src/apps/tsql.c src/ctlib/blk.c:
+	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/dblib.c:
+	* src/odbc/odbc.c src/tds/token.c src/tds/example/token1.c:
+	* src/tds/example/token2.c src/tds/unittests/common.c:
+	* src/tds/unittests/dataread.c src/tds/unittests/dynamic1.c:
+	* src/tds/unittests/flags.c src/tds/unittests/t0002.c:
+	* src/tds/unittests/t0004.c src/tds/unittests/t0005.c:
+	* src/tds/unittests/t0006.c src/tds/unittests/utf8_1.c:
+	* src/tds/unittests/utf8_2.c src/tds/unittests/utf8_3.c:
+	- reuse new tds_process_tokens
+	* src/odbc/unittests/moreandcount.c: more verbose
+
 Wed Apr 13 18:20:57 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c src/dblib/unittests/t0002.c
 	- fixed dbclrbuf, probably.  dbgetrow is broken.

@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_1.c,v 1.9 2005-03-29 15:19:37 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_1.c,v 1.10 2005-04-14 11:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -120,7 +120,6 @@ test(const char *type, const char *test_name)
 	int rc;
 	TDS_INT result_type;
 	TDS_INT row_type;
-	TDS_INT compute_id;
 	int done_flags;
 
 	sprintf(buf, "CREATE TABLE #tmp (i INT, t %s)", type);
@@ -139,8 +138,8 @@ test(const char *type, const char *test_name)
 		exit(1);
 	}
 
-	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {
-		fprintf(stderr, "tds_process_result_tokens() failed\n");
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
 
@@ -149,8 +148,8 @@ test(const char *type, const char *test_name)
 		exit(1);
 	}
 
-	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {
-		fprintf(stderr, "tds_process_result_tokens() failed\n");
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
 
@@ -160,39 +159,47 @@ test(const char *type, const char *test_name)
 	}
 
 	i = 0;
-	while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROWFMT|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
 
-		TDSCOLUMN *curcol = tds->current_results->columns[0];
-		char *src = (char *) tds->current_results->current_row + curcol->column_offset;
+		switch (result_type) {
+		case TDS_ROW_RESULT: {
+			TDSCOLUMN *curcol = tds->current_results->columns[0];
+			char *src = (char *) tds->current_results->current_row + curcol->column_offset;
 
-		if (is_blob_type(curcol->column_type)) {
-			TDSBLOB *blob = (TDSBLOB *) src;
+			if (is_blob_type(curcol->column_type)) {
+				TDSBLOB *blob = (TDSBLOB *) src;
 
-			src = blob->textvalue;
-		}
+				src = blob->textvalue;
+			}
 
-		strcpy(buf, to_utf8(strings[i], tmp));
+			strcpy(buf, to_utf8(strings[i], tmp));
 
-		if (strlen(buf) != curcol->column_cur_size || strncmp(buf, src, curcol->column_cur_size) != 0) {
-			int l = curcol->column_cur_size;
+			if (strlen(buf) != curcol->column_cur_size || strncmp(buf, src, curcol->column_cur_size) != 0) {
+				int l = curcol->column_cur_size;
 
-			if (l > 200)
-				l = 200;
-			strncpy(tmp, src, l);
-			tmp[l] = 0;
-			fprintf(stderr, "Wrong result in test %s\n Got: '%s' len %d\n Expected: '%s' len %u\n", test_name, tmp,
-				curcol->column_cur_size, buf, (unsigned int) strlen(buf));
+				if (l > 200)
+					l = 200;
+				strncpy(tmp, src, l);
+				tmp[l] = 0;
+				fprintf(stderr, "Wrong result in test %s\n Got: '%s' len %d\n Expected: '%s' len %u\n", test_name, tmp,
+					curcol->column_cur_size, buf, (unsigned int) strlen(buf));
+				exit(1);
+			}
+			++i;
+			} break;
+		default:
+			fprintf(stderr, "Unexpected result\n");
 			exit(1);
+			break;
 		}
-		++i;
 	}
 
-	if (rc != TDS_NO_MORE_ROWS) {
-		fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
+	if (rc != TDS_NO_MORE_RESULTS) {
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 		exit(1);
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_NO_MORE_RESULTS:
 			return;
@@ -204,7 +211,7 @@ test(const char *type, const char *test_name)
 				break;
 
 		default:
-			fprintf(stderr, "tds_process_result_tokens() unexpected result_type\n");
+			fprintf(stderr, "tds_process_tokens() unexpected result_type\n");
 			exit(1);
 			break;
 		}

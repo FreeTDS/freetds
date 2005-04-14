@@ -68,7 +68,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.75 2005-02-09 16:15:12 jklowden Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.76 2005-04-14 11:35:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -131,9 +131,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 	CONV_RESULT dres;
 	unsigned char *src;
 	TDS_INT srclen;
-	TDS_INT rowtype;
 	TDS_INT resulttype;
-	TDS_INT computeid;
 	struct timeval start, stop;
 	int print_rows = 1;
 	char message[128];
@@ -144,7 +142,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 		return 1;
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &resulttype, NULL)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &resulttype, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 		if (opt_flags & OPT_TIMER) {
 			gettimeofday(&start, NULL);
 			print_rows = 0;
@@ -158,9 +156,10 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 				fprintf(stdout, "\n");
 			}
 			break;
+		case TDS_COMPUTE_RESULT:
 		case TDS_ROW_RESULT:
 			rows = 0;
-			while ((rc = tds_process_row_tokens(tds, &rowtype, &computeid)) == TDS_SUCCEED) {
+			while ((rc = tds_process_tokens(tds, &resulttype, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
 				rows++;
 
 				if (!tds->current_results)

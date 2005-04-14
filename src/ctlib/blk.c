@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.28 2005-03-29 15:19:33 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.29 2005-04-14 11:35:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
@@ -397,7 +397,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 		return CS_FAIL;
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &result_type, NULL))
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 		   == TDS_SUCCEED) {
 	}
 	if (rc != TDS_NO_MORE_RESULTS) {
@@ -465,7 +465,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 			return CS_FAIL;
 		}
 	
-		while ((rc = tds_process_result_tokens(tds, &result_type, NULL))
+		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 			   == TDS_SUCCEED) {
 		}
 		if (rc != TDS_NO_MORE_RESULTS) {
@@ -610,8 +610,6 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 	TDSSOCKET *tds;
 	TDS_INT result_type;
 	TDS_INT ret;
-	TDS_INT rowtype;
-	TDS_INT computeid;
 	TDS_INT temp_count;
 	TDS_INT row_of_query;
 	TDS_INT rows_written;
@@ -636,7 +634,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 			return CS_FAIL;
 		}
 	
-		while ((ret = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
+		while ((ret = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 			if (result_type == TDS_ROW_RESULT)
 				break;
 		}
@@ -657,28 +655,29 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 	for (temp_count = 0; temp_count < rows_to_xfer; temp_count++) {
 
-		ret = tds_process_row_tokens_ct(tds, &rowtype, &computeid);
+		ret = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 
 		tdsdump_log(TDS_DBG_FUNC, "blk_rowxfer_out() process_row_tokens returned %d\n", ret);
 
 		switch (ret) {
-			case TDS_SUCCEED: 
-				if (rowtype == TDS_REG_ROW) {
+		case TDS_SUCCEED:
+			if (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT) {
+				if (result_type == TDS_ROW_RESULT) {
 					if (_ct_bind_data( blkdesc->con->ctx, tds->current_results, blkdesc->bindinfo, temp_count))
 						return CS_ROW_FAIL;
 					if (rows_xferred)
 						*rows_xferred = *rows_xferred + 1;
 				}
 				break;
-		
-			case TDS_NO_MORE_ROWS: 
-				return CS_END_DATA;
-				break;
+			}
+		case TDS_NO_MORE_RESULTS: 
+			return CS_END_DATA;
+			break;
 
-			default:
-				_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
-				return CS_FAIL;
-				break;
+		default:
+			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
+			return CS_FAIL;
+			break;
 		}
 	} 
 

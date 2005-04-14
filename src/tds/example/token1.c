@@ -7,7 +7,7 @@ done = 0;
 
 while (!done) {
 
-	tdsret = tds_process_result_tokens(tds, &res_type, NULL);
+	tdsret = tds_process_tokens(tds, &res_type, NULL, TDS_TOKEN_RESULTS);
 
 	switch (tdsret) {
 
@@ -31,7 +31,7 @@ while (!done) {
 			/* result format...the user may call ct_res_info() & friends */
 			/* after getting back a compute "result".                    */
 
-			tdsret = tds_process_row_tokens(tds, &rowtype, &computeid);
+			tdsret = tds_process_row_tokens(tds, &rowtype);
 
 			if (tdsret == TDS_SUCCEED) {
 				if (rowtype == TDS_COMP_ROW) {

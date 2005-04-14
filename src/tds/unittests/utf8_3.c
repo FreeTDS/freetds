@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_3.c,v 1.5 2005-02-22 12:30:50 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_3.c,v 1.6 2005-04-14 11:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -81,8 +81,6 @@ test(const char *buf)
 	int i;
 	int rc;
 	TDS_INT result_type;
-	TDS_INT row_type;
-	TDS_INT compute_id;
 	int done_flags;
 
 	to_utf8(buf, tmp);
@@ -95,8 +93,8 @@ test(const char *buf)
 		exit(1);
 	}
 
-	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {
-		fprintf(stderr, "tds_process_result_tokens() failed\n");
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
 
@@ -105,8 +103,8 @@ test(const char *buf)
 		exit(1);
 	}
 
-	if (tds_process_result_tokens(tds, &result_type, NULL) != TDS_SUCCEED) {
-		fprintf(stderr, "tds_process_result_tokens() failed\n");
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
 
@@ -116,9 +114,14 @@ test(const char *buf)
 	}
 
 	i = 0;
-	while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
 
-		TDSCOLUMN *curcol = tds->current_results->columns[0];
+		TDSCOLUMN *curcol;
+
+		if (result_type != TDS_ROW_RESULT)
+			break;
+
+		curcol = tds->current_results->columns[0];
 
 		if (strlen(tmp) != curcol->column_namelen || strncmp(tmp, curcol->column_name, curcol->column_namelen) != 0) {
 			int l = curcol->column_namelen;
@@ -134,12 +137,12 @@ test(const char *buf)
 		++i;
 	}
 
-	if (rc != TDS_NO_MORE_ROWS) {
-		fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
+	if (rc != TDS_SUCCEED || result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT) {
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 		exit(1);
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_NO_MORE_RESULTS:
 			return;
@@ -151,7 +154,7 @@ test(const char *buf)
 				break;
 
 		default:
-			fprintf(stderr, "tds_process_result_tokens() unexpected result_type\n");
+			fprintf(stderr, "tds_proces_tokens() unexpected result_type\n");
 			exit(1);
 			break;
 		}

@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.123 2005-04-08 13:47:33 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.124 2005-04-14 11:35:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -158,7 +158,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		}
 	
 		/* TODO check what happen if table is not present, cleanup on error */
-		while ((rc = tds_process_result_tokens(tds, &result_type, NULL))
+		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 		       == TDS_SUCCEED) {
 		}
 		if (rc != TDS_NO_MORE_RESULTS) {
@@ -534,8 +534,6 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	int destlen;
 	int plen;
 
-	TDS_INT rowtype;
-	TDS_INT computeid;
 	TDS_INT result_type;
 
 	TDS_TINYINT ti;
@@ -570,7 +568,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		}
 	}
 
-	if (tds_process_result_tokens(tds, &result_type, NULL) == TDS_FAIL) {
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) == TDS_FAIL) {
 		fclose(hostfile);
 		return FAIL;
 	}
@@ -717,7 +715,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	 * to file.. avoid all that passages...
 	 */
 
-	while (tds_process_row_tokens(tds, &rowtype, &computeid) == TDS_SUCCEED) {
+	while (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) == TDS_SUCCEED) {
+
+		if (result_type != TDS_ROW_RESULT && result_type != TDS_COMPUTE_RESULT)
+			break;
 
 		row_of_query++;
 

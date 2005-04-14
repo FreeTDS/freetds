@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.15 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.16 2005-04-14 11:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -32,7 +32,7 @@ main(int argc, char **argv)
 	int rc;
 	int i;
 
-	int result_type, row_type, compute_id;
+	int result_type, row_type;
 
 	const char *len200 =
 		"01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
@@ -72,33 +72,25 @@ main(int argc, char **argv)
 	 * The heart of the test
 	 */
 	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
-	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
-			while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
-				for (i = 0; i < tds->res_info->num_cols; i++) {
-					if (verbose) {
-						printf("col %i is %s\n", i, value_as_string(tds, i));
-					}
+			for (i = 0; i < tds->res_info->num_cols; i++) {
+				if (verbose) {
+					printf("col %i is %s\n", i, value_as_string(tds, i));
 				}
-			}
-			if (rc == TDS_FAIL) {
-				fprintf(stderr, "tds_process_row_tokens() returned TDS_FAIL\n");
-				return 1;
-			} else if (rc != TDS_NO_MORE_ROWS) {
-				fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
-				return 1;
 			}
 			break;
 		default:
+			fprintf(stderr, "tds_process_tokens() returned unexpected result\n");
 			break;
 		}
 	}
 	if (rc == TDS_FAIL) {
-		fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL for SELECT\n");
+		fprintf(stderr, "tds_process_tokens() returned TDS_FAIL for SELECT\n");
 		return 1;
 	} else if (rc != TDS_NO_MORE_RESULTS) {
-		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 	}
 
 	/* do not test error, remove always table */

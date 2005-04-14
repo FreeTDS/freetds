@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.363 2005-04-12 07:19:09 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.364 2005-04-14 11:35:45 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -500,7 +500,6 @@ SQLMoreResults(SQLHSTMT hstmt)
 	TDSSOCKET *tds;
 	TDS_INT result_type;
 	int tdsret;
-	TDS_INT rowtype;
 	int in_row = 0;
 	int done_flags;
 	int got_rows = 0;
@@ -526,7 +525,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 		in_row = 1;
 	}
 	for (;;) {
-		switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
+		switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) {
 		case TDS_NO_MORE_RESULTS:
 			if (stmt->dbc->current_statement == stmt)
 				stmt->dbc->current_statement = NULL;
@@ -550,7 +549,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				case IN_NORMAL_ROW:
 				case PRE_NORMAL_ROW:
 					stmt->row_status = IN_COMPUTE_ROW;
-					if (tds_process_row_tokens(tds, &rowtype, NULL) == TDS_FAIL)
+					if (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) == TDS_FAIL)
 						ODBC_RETURN(stmt, SQL_ERROR);
 					odbc_populate_ird(stmt);
 					ODBC_RETURN_(stmt);
@@ -574,8 +573,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 					ODBC_RETURN_(stmt);
 				}
 				/* Skipping current result set's rows to access next resultset or proc's retval */
-				/* FIXME do not skip compute rows !!! */
-				while ((tdsret = tds_process_row_tokens(tds, NULL, NULL)) == TDS_SUCCEED);
+				tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_STOPAT_COMPUTE);
 				/* TODO should we set in_row ?? */
 				if (tdsret == TDS_FAIL)
 					ODBC_RETURN(stmt, SQL_ERROR);
@@ -637,11 +635,6 @@ SQLMoreResults(SQLHSTMT hstmt)
 				/* we expect a row */
 				stmt->row_status = PRE_NORMAL_ROW;
 				in_row = 1;
-				break;
-
-			case TDS_COMPUTEFMT_RESULT:
-			case TDS_MSG_RESULT:
-			case TDS_DESCRIBE_RESULT:
 				break;
 			}
 		default:
@@ -2514,7 +2507,7 @@ _SQLExecute(TDS_STMT * stmt)
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
 	/* TODO perhaps we should return SQL_NO_DATA if no data available... see old SQLExecute code */
-	while ((ret = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
+	while ((ret = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_COMPUTE_RESULT:
 		case TDS_ROW_RESULT:
@@ -2723,6 +2716,8 @@ _SQLFetch(TDS_STMT * stmt)
 
 	curr_row = 0;
 	do {
+		TDS_INT result_type;
+
 		row_status = SQL_ROW_SUCCESS;
 
 		/* do not get compute row if we are not expecting a compute row */
@@ -2743,12 +2738,15 @@ _SQLFetch(TDS_STMT * stmt)
 
 		default:
 			/* FIXME stmt->row_count set correctly ?? TDS_DONE_COUNT not checked */
-			switch (tds_process_row_tokens(stmt->dbc->tds_socket, NULL, NULL)) {
-			case TDS_NO_MORE_ROWS:
+			switch (tds_process_tokens(stmt->dbc->tds_socket, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_STOPAT_COMPUTE)) {
+			case TDS_SUCCEED:
+				if (result_type == TDS_ROW_RESULT)
+					break;
+			case TDS_NO_MORE_RESULTS:
 				stmt->row_count = tds->rows_affected;
 				/* 
 				 * NOTE do not set row_status to NOT_IN_ROW, 
-				 * if compute tds_process_row_tokens above returns TDS_NO_MORE_ROWS
+				 * if compute tds_process_tokens above returns TDS_NO_MORE_RESULTS
 				 */
 				stmt->row_status = AFTER_COMPUTE_ROW;
 				stmt->special_row = 0;
@@ -3352,7 +3350,6 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		TDSDYNAMIC *dyn;
 
 		TDS_INT result_type;
-		TDS_INT rowtype;
 		int in_row = 0;
 		int done_flags;
 		TDSPARAMINFO *params = NULL;
@@ -3403,24 +3400,13 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		/* TODO merge with similar code */
 		desc_free_records(stmt->ird);
 		for (;;) {
-			switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
+			switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_DONE)) {
 			case TDS_NO_MORE_RESULTS:
 				if (stmt->dbc->current_statement == stmt)
 					stmt->dbc->current_statement = NULL;
 				ODBC_RETURN_(stmt);
 			case TDS_SUCCEED:
 				switch (result_type) {
-				case TDS_COMPUTEFMT_RESULT:
-				case TDS_STATUS_RESULT:
-				case TDS_PARAM_RESULT:
-				case TDS_MSG_RESULT:
-				case TDS_DESCRIBE_RESULT:
-					break;
-				case TDS_ROW_RESULT:	/* this should never happen */
-				case TDS_COMPUTE_RESULT:
-					while (tds_process_row_tokens(tds, &rowtype, NULL) == TDS_SUCCEED);
-					break;
-
 				case TDS_DONE_RESULT:
 				case TDS_DONEPROC_RESULT:
 				case TDS_DONEINPROC_RESULT:
@@ -4900,7 +4886,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 {
 	SQLRETURN res;
 	TDSSOCKET *tds;
-	TDS_INT row_type;
+	TDS_INT result_type;
 	TDS_INT compute_id;
 	int varchar_pos = -1, n;
 	static const char sql_templ[] = "EXEC sp_datatype_info %d";
@@ -4956,8 +4942,8 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		if (n == (varchar_pos - 1))
 			break;
 
-		switch (tds_process_row_tokens(stmt->dbc->tds_socket, &row_type, &compute_id)) {
-		case TDS_NO_MORE_ROWS:
+		switch (tds_process_tokens(stmt->dbc->tds_socket, &result_type, &compute_id, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW)) {
+		case TDS_NO_MORE_RESULTS:
 			/* discard other tokens */
 			tds_process_simple_query(tds);
 			if (n >= varchar_pos && varchar_pos > 0)

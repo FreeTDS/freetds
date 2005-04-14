@@ -2,17 +2,17 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.12 2005-04-11 09:36:17 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.13 2005-04-14 11:35:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
-NextResults(SQLRETURN expected)
+NextResults(SQLRETURN expected, int line)
 {
 	if (SQLMoreResults(Statement) != expected) {
 		if (expected == SQL_SUCCESS)
-			fprintf(stderr, "Expected another recordset\n");
+			fprintf(stderr, "Expected another recordset line %d\n", line);
 		else
-			fprintf(stderr, "Not expected another recordset\n");
+			fprintf(stderr, "Not expected another recordset line %d\n", line);
 		exit(1);
 	}
 }
@@ -65,7 +65,7 @@ DoTest(int prepare)
 		printf("Result %d\n", ++n);
 		CHECK_COLS(0);
 		CHECK_ROWS(1);
-		NextResults(SQL_SUCCESS);
+		NextResults(SQL_SUCCESS, __LINE__);
 	}
 	printf("Result %d\n", ++n);
 	CHECK_COLS(1);
@@ -77,16 +77,16 @@ DoTest(int prepare)
 	Fetch(SQL_NO_DATA);
 	CHECK_COLS(1);
 	CHECK_ROWS(2);
-	NextResults(SQL_SUCCESS);
+	NextResults(SQL_SUCCESS, __LINE__);
 	if (!prepare) {
 		printf("Result %d\n", ++n);
 		CHECK_COLS(0);
 		CHECK_ROWS(1);
-		NextResults(SQL_SUCCESS);
+		NextResults(SQL_SUCCESS, __LINE__);
 		printf("Result %d\n", ++n);
 		CHECK_COLS(0);
 		CHECK_ROWS(2);
-		NextResults(SQL_SUCCESS);
+		NextResults(SQL_SUCCESS, __LINE__);
 	}
 	printf("Result %d\n", ++n);
 	CHECK_COLS(1);
@@ -102,18 +102,18 @@ DoTest(int prepare)
 			CHECK_ROWS(2);
 		} else {
 			CHECK_ROWS(1);
-			NextResults(SQL_SUCCESS);
+			NextResults(SQL_SUCCESS, __LINE__);
 			CHECK_ROWS(2);
 			CHECK_COLS(0);
 		}
 	} else {
 		CHECK_ROWS(1);
-		NextResults(SQL_SUCCESS);
+		NextResults(SQL_SUCCESS, __LINE__);
 		CHECK_COLS(0);
 		CHECK_ROWS(2);
 	}
 
-	NextResults(SQL_NO_DATA);
+	NextResults(SQL_NO_DATA, __LINE__);
 #ifndef TDS_NO_DM
 	if (!prepare)
 		CHECK_COLS(-1);

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.147 2005-04-03 13:37:25 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.148 2005-04-14 11:35:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1078,8 +1078,6 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 	CS_CONTEXT *context;
 
 	int tdsret;
-	int rowtype;
-	int computeid;
 	CS_INT res_type;
 	CS_INT done_flags;
 
@@ -1099,7 +1097,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 	/*
 	 * depending on the current results state, we may
-	 * not need to call tds_process_result_tokens...
+	 * not need to call tds_process_tokens...
 	 */
 
 	switch (cmd->results_state) {
@@ -1135,7 +1133,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 	for (;;) {
 
-		tdsret = tds_process_result_tokens(tds, &res_type, &done_flags);
+		tdsret = tds_process_tokens(tds, &res_type, &done_flags, TDS_TOKEN_RESULTS);
 
 		tdsdump_log(TDS_DBG_FUNC, "ct_results() process_result_tokens returned %d (type %d) \n",
 			    tdsret, res_type);
@@ -1205,15 +1203,15 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 					return CS_SUCCEED;
 				}
 
-				tdsret = tds_process_row_tokens(tds, &rowtype, &computeid);
+				tdsret = tds_process_tokens(tds, &res_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 
 				/* set results state to show that the result set has rows... */
 
 				cmd->results_state = _CS_RES_RESULTSET_ROWS;
 
 				*result_type = res_type;
-				if (tdsret == TDS_SUCCEED) {
-					if (rowtype == TDS_COMP_ROW) {
+				if (tdsret == TDS_SUCCEED && (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT)) {
+					if (res_type == TDS_COMPUTE_RESULT) {
 						cmd->row_prefetched = 1;
 						return CS_SUCCEED;
 					} else {
@@ -1456,8 +1454,7 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 CS_RETCODE
 ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read)
 {
-	TDS_INT rowtype;
-	TDS_INT computeid;
+	TDS_INT ret_type;
 	TDS_INT ret;
 	TDS_INT marker;
 	TDS_INT temp_count;
@@ -1523,23 +1520,22 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 
 	for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
 
-		ret = tds_process_row_tokens_ct(tds, &rowtype, &computeid);
+		ret = tds_process_tokens(tds, &ret_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 
 		tdsdump_log(TDS_DBG_FUNC, "inside ct_fetch()process_row_tokens returned %d\n", ret);
 
 		switch (ret) {
 			case TDS_SUCCEED:
-				cmd->get_data_item = 0;
-				cmd->get_data_bytes_returned = 0;
-				if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
+				if (ret_type == TDS_ROW_RESULT || ret_type == TDS_COMPUTE_RESULT) {
+					cmd->get_data_item = 0;
+					cmd->get_data_bytes_returned = 0;
 					if (_ct_bind_data(cmd->con->ctx, tds->current_results, tds->current_results, temp_count))
 						return CS_ROW_FAIL;
 					if (rows_read)
 						*rows_read = *rows_read + 1;
+					break;
 				}
-				break;
-
-			case TDS_NO_MORE_ROWS:
+			case TDS_NO_MORE_RESULTS:
 				return CS_END_DATA;
 				break;
 
@@ -1568,8 +1564,6 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 	TDSSOCKET * tds;
 	TDSCURSOR *cursor;
 	TDS_INT restype;
-	TDS_INT rowtype;
-	TDS_INT computeid;
 	TDS_INT ret;
 	TDS_INT temp_count;
 	TDS_INT done_flags;
@@ -1613,30 +1607,29 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 
 	tds->cur_cursor = cursor;
 
-	while ((tds_process_result_tokens(tds, &restype, &done_flags)) == TDS_SUCCEED) {
+	while ((tds_process_tokens(tds, &restype, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 		switch (restype) {
 			case CS_ROWFMT_RESULT:
 				break;
 			case CS_ROW_RESULT:
 				for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
 
-					ret = tds_process_row_tokens_ct(tds, &rowtype, &computeid);
+					ret = tds_process_tokens(tds, &restype, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 
-					tdsdump_log(TDS_DBG_FUNC, "_ct_fetch_cursor() tds_process_row_tokens returned %d\n", ret);
+					tdsdump_log(TDS_DBG_FUNC, "_ct_fetch_cursor() tds_process_tokens returned %d\n", ret);
 
-					if (ret == TDS_SUCCEED) {
+					if (ret == TDS_SUCCEED && (restype == TDS_ROW_RESULT || restype == TDS_COMPUTE_RESULT)) {
 						cmd->get_data_item = 0;
 						cmd->get_data_bytes_returned = 0;
-						if (rowtype == TDS_REG_ROW) {
+						if (restype == TDS_ROW_RESULT) {
 							if (_ct_bind_data(cmd->con->ctx, tds->current_results, tds->current_results, temp_count))
 								return CS_ROW_FAIL;
 							if (rows_read)
 								*rows_read = *rows_read + 1;
 							rows_this_fetch++;
 						}
-					}
-					else {
-						if (ret == TDS_NO_MORE_ROWS) {
+					} else {
+						if (ret != TDS_FAIL) {
 							break;
 						} else {
 							return CS_FAIL;

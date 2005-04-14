@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.18 2004-12-02 13:20:45 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.19 2005-04-14 11:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -46,8 +46,6 @@ main(int argc, char **argv)
 	int rc;
 
 	int result_type;
-	int row_type;
-	int compute_id;
 	int rows_returned = 0;
 
 	const char *len200 =
@@ -87,7 +85,7 @@ main(int argc, char **argv)
 		fprintf(stdout, "block size %d\n", tds->env.block_size);
 	}
 	rc = tds_submit_query(tds, long_query);
-	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			if (tds->res_info->columns[0]->column_type != SYBVARCHAR) {
@@ -96,18 +94,9 @@ main(int argc, char **argv)
 			}
 			break;
 		case TDS_ROW_RESULT:
-			while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
-				++rows_returned;
-				if (verbose) {
-					printf("col 0 is %s\n", varchar_as_string(tds, 0));
-				}
-			}
-			if (rc == TDS_FAIL) {
-				fprintf(stderr, "tds_process_row_tokens() returned TDS_FAIL\n");
-				return 1;
-			} else if (rc != TDS_NO_MORE_ROWS) {
-				fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
-				return 1;
+			++rows_returned;
+			if (verbose) {
+				printf("col 0 is %s\n", varchar_as_string(tds, 0));
 			}
 			break;
 		default:
@@ -115,10 +104,10 @@ main(int argc, char **argv)
 		}
 	}
 	if (rc == TDS_FAIL) {
-		fprintf(stderr, "tds_process_result_tokens() returned TDS_FAIL for long query\n");
+		fprintf(stderr, "tds_process_tokens() returned TDS_FAIL for long query\n");
 		return 1;
 	} else if (rc != TDS_NO_MORE_RESULTS) {
-		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 	}
 
 	if (rows_returned != 1) {

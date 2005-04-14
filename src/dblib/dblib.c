@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.211 2005-04-13 22:23:13 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.212 2005-04-14 11:35:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -239,7 +239,7 @@ buffer_struct_print(DBPROC_ROWBUF *buf)
 	printf("elcount = %d\n", 	buf->elcount);
 	printf("element_size = %d\n", 	buf->element_size);
 	printf("rows_in_buf = %d\n", 	buf->rows_in_buf);
-	printf("rows = %x\n", 		buf->rows);
+	printf("rows = %p\n", 		buf->rows);
 }
 
 
@@ -391,7 +391,7 @@ buffer_set_buffering(DBPROC_ROWBUF * buf, int nrows)
 }
 
 static void
-buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * buf,	/* (U)                                         */
+buffer_transfer_bound_data(TDS_INT res_type, TDS_INT compute_id, DBPROC_ROWBUF * buf,	/* (U)                                         */
 			   DBPROCESS * dbproc,	/* (I)                                         */
 			   int row_num)
 {				/* (I) resultset row number                    */
@@ -405,9 +405,9 @@ buffer_transfer_bound_data(TDS_INT rowtype, TDS_INT compute_id, DBPROC_ROWBUF * 
 	int desttype;
 
 	tds = dbproc->tds_socket;
-	if (rowtype == TDS_REG_ROW) {
+	if (res_type == TDS_ROW_RESULT) {
 		resinfo = tds->res_info;
-	} else {		/* TDS_COMP_ROW */
+	} else {		/* TDS_COMPUTE_RESULT */
 		for (i = 0;; ++i) {
 			if (i >= tds->num_comp_info)
 				return;
@@ -1334,7 +1334,7 @@ dbresults(DBPROCESS * dbproc)
 
 	for (;;) {
 
-		retcode = tds_process_result_tokens(tds, &result_type, &done_flags);
+		retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
 
 		tdsdump_log(TDS_DBG_FUNC, "dbresults() process_result_tokens returned result_type = %d retcode = %d\n", 
 								  result_type, retcode);
@@ -1524,7 +1524,7 @@ dbgetrow(DBPROCESS * dbproc, DBINT row)
 		result = NO_MORE_ROWS;
 	} else {
 		dbproc->row_buf.next_row = row;
-		buffer_transfer_bound_data(TDS_REG_ROW, 0, &(dbproc->row_buf), dbproc, row);
+		buffer_transfer_bound_data(TDS_ROW_RESULT, 0, &(dbproc->row_buf), dbproc, row);
 		dbproc->row_buf.next_row++;
 		result = REG_ROW;
 	}
@@ -1551,9 +1551,8 @@ dbnextrow(DBPROCESS * dbproc)
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	RETCODE result = FAIL;
-	TDS_INT rowtype;
+	TDS_INT res_type;
 	TDS_INT computeid;
-	TDS_INT ret;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnextrow()\n");
 
@@ -1592,36 +1591,38 @@ dbnextrow(DBPROCESS * dbproc)
 			 * Cool, the item we want is already there
 			 */
 			result = dbproc->row_type = REG_ROW;
-			rowtype = TDS_REG_ROW;
+			res_type = TDS_ROW_RESULT;
 		} else {
 
 			/* Get the row from the TDS stream.  */
+			computeid = REG_ROW;
 
-			if ((ret = tds_process_row_tokens(dbproc->tds_socket, &rowtype, &computeid)) == TDS_SUCCEED) {
-				switch (rowtype) {
-				case TDS_REG_ROW:
-				case TDS_COMP_ROW:
+			switch (tds_process_tokens(dbproc->tds_socket, &res_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) {
+			case TDS_SUCCEED:
+				if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
+					if (res_type == TDS_COMPUTE_RESULT)
+						computeid = tds->current_results->computeid;
 					/* Add the row to the row buffer */
 					resinfo = tds->current_results;
 					buffer_add_row(&(dbproc->row_buf), resinfo->current_row, resinfo->row_size);
-					result = dbproc->row_type = (rowtype == TDS_REG_ROW)? REG_ROW : computeid;
-					break;
-				default:
-					result = FAIL;
+					result = dbproc->row_type = (res_type == TDS_ROW_RESULT)? REG_ROW : computeid;
 					break;
 				}
-			} else if (ret == TDS_NO_MORE_ROWS) {
+			case TDS_NO_MORE_RESULTS:
 				dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
 				result = NO_MORE_ROWS;
-			} else
+				break;
+			default:
 				result = FAIL;
+				break;
+			}
 		}
 
-		if (rowtype == TDS_REG_ROW || rowtype == TDS_COMP_ROW) {
+		if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
 			/*
 			 * Transfer the data from the row buffer to the bound variables.  
 			 */
-			buffer_transfer_bound_data(rowtype, computeid, &(dbproc->row_buf), dbproc, dbproc->row_buf.next_row);
+			buffer_transfer_bound_data(res_type, computeid, &(dbproc->row_buf), dbproc, dbproc->row_buf.next_row);
 			dbproc->row_buf.next_row++;
 		}
 	}
@@ -4062,7 +4063,7 @@ dbsqlok(DBPROCESS * dbproc)
 		/* we have to process the end token to extract the    */
 		/* status code therein....but....                     */
 
-		switch (tds_process_result_tokens(tds, &result_type, &done_flags)) {
+		switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) {
 		case TDS_NO_MORE_RESULTS:
 			return SUCCEED;
 			break;
@@ -5000,8 +5001,7 @@ dbcanquery(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds;
 	int rc;
-	TDS_INT rowtype;
-	TDS_INT computeid;
+	TDS_INT result_type;
 
 	if (dbproc == NULL)
 		return FAIL;
@@ -5011,7 +5011,7 @@ dbcanquery(DBPROCESS * dbproc)
 
 	/* Just throw away all pending rows from the last query */
 
-	while ((rc = tds_process_row_tokens(dbproc->tds_socket, &rowtype, &computeid)) == TDS_SUCCEED);
+	rc = tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE);
 
 	if (rc == TDS_FAIL)
 		return FAIL;
@@ -5525,9 +5525,8 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 {
 	TDSSOCKET *tds;
 	TDSCOLUMN *curcol;
-	int cpbytes, bytes_avail, rc;
-	TDS_INT rowtype;
-	TDS_INT computeid;
+	int cpbytes, bytes_avail;
+	TDS_INT result_type;
 	TDSRESULTINFO *resinfo;
 
 	tds = dbproc->tds_socket;
@@ -5554,8 +5553,13 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 	 */
 
 	if (curcol->column_textpos == 0) {
-		rc = tds_process_row_tokens(dbproc->tds_socket, &rowtype, &computeid);
-		if (rc == TDS_NO_MORE_ROWS) {
+		switch (tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) {
+		case TDS_FAIL:
+			return -1;
+		case TDS_SUCCEED:
+			if (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT)
+				break;
+		case TDS_NO_MORE_RESULTS:
 			return NO_MORE_ROWS;
 		}
 	}
@@ -5863,7 +5867,7 @@ dbsqlsend(DBPROCESS * dbproc)
 		if (rc != TDS_SUCCEED) {
 			return FAIL;
 		}
-		while ((rc = tds_process_result_tokens(tds, &result_type, NULL))
+		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 		       == TDS_SUCCEED);
 		if (rc != TDS_NO_MORE_RESULTS) {
 			return FAIL;

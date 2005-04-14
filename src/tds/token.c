@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.291 2005-04-13 17:00:46 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.292 2005-04-14 11:35:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -244,8 +244,6 @@ tds_set_spid(TDSSOCKET * tds)
 {
 	TDS_INT result_type;
 	TDS_INT done_flags;
-	TDS_INT row_type;
-	TDS_INT compute_id;
 	TDS_INT rc;
 	TDSCOLUMN *curcol;
 
@@ -255,7 +253,7 @@ tds_set_spid(TDSSOCKET * tds)
 		return TDS_FAIL;
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_ROW|TDS_RETURN_DONE)) == TDS_SUCCEED) {
 
 		switch (result_type) {
 
@@ -265,11 +263,6 @@ tds_set_spid(TDSSOCKET * tds)
 				break;
 
 			case TDS_ROW_RESULT:
-				while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED);
-
-				if (rc != TDS_NO_MORE_ROWS)
-					return TDS_FAIL;
-
 				curcol = tds->res_info->columns[0];
 				if (curcol->column_type == SYBINT2 || (curcol->column_type == SYBINTN && curcol->column_size == 2)) {
 					tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row + curcol->column_offset));
@@ -454,7 +447,7 @@ tds_process_auth(TDSSOCKET * tds)
  * populate tds->res_info if appropriate (some query have no result sets)
  * @param tds A pointer to the TDSSOCKET structure managing a client/server operation.
  * @param result_type A pointer to an integer variable which 
- *        tds_process_result_tokens sets to indicate the current type of result.
+ *        tds_process_tokens sets to indicate the current type of result.
  *  @par
  *  <b>Values that indicate command status</b>
  *  <table>
@@ -517,7 +510,7 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 	CHECK_TDS_EXTRA(tds);
 
 	if (tds->state == TDS_IDLE) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens() state is COMPLETED\n");
+		tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens() state is COMPLETED\n");
 		*result_type = TDS_DONE_RESULT;
 		return TDS_NO_MORE_RESULTS;
 	}
@@ -669,7 +662,7 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 				TDSCURSOR  *cursor = tds->cur_cursor; 
 
 				tds->current_results = cursor->res_info;
-				tdsdump_log(TDS_DBG_INFO1, "tds_process_result_tokens(). set current_results to cursor->res_info\n");
+				tdsdump_log(TDS_DBG_INFO1, "tds_process_tokens(). set current_results to cursor->res_info\n");
 			} else {
 				/* assure that we point to row, not to compute */
 				if (tds->res_info)
@@ -702,7 +695,7 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 				SET_RETURN(TDS_STATUS_RESULT, PROC);
 				tds->has_status = 1;
 				tds->ret_status = ret_status;
-				tdsdump_log(TDS_DBG_FUNC, "tds_process_result_tokens: return status is %d\n", tds->ret_status);
+				tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens: return status is %d\n", tds->ret_status);
 				rc = TDS_SUCCEED;
 			}
 			break;
@@ -833,170 +826,6 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 }
 
 /**
- * process TDS result-type message streams.
- * tds_process_result_tokens() is called after submitting a query with
- * tds_submit_query() and is responsible for calling the routines to
- * populate tds->res_info if appropriate (some query have no result sets)
- * @param tds A pointer to the TDSSOCKET structure managing a client/server operation.
- * @param result_type A pointer to an integer variable which 
- *        tds_process_result_tokens sets to indicate the current type of result.
- *  @par
- *  <b>Values that indicate command status</b>
- *  <table>
- *   <tr><td>TDS_DONE_RESULT</td><td>The results of a command have been completely processed. This command return no rows.</td></tr>
- *   <tr><td>TDS_DONEPROC_RESULT</td><td>The results of a  command have been completely processed. This command return rows.</td></tr>
- *   <tr><td>TDS_DONEINPROC_RESULT</td><td>The results of a  command have been completely processed. This command return rows.</td></tr>
- *  </table>
- *  <b>Values that indicate results information is available</b>
- *  <table><tr>
- *    <td>TDS_ROWFMT_RESULT</td><td>Regular Data format information</td>
- *    <td>tds->res_info now contains the result details ; tds->current_results now points to that data</td>
- *   </tr><tr>
- *    <td>TDS_COMPUTEFMT_ RESULT</td><td>Compute data format information</td>
- *    <td>tds->comp_info now contains the result data; tds->current_results now points to that data</td>
- *   </tr><tr>
- *    <td>TDS_DESCRIBE_RESULT</td><td></td>
- *    <td></td>
- *  </tr></table>
- *  <b>Values that indicate data is available</b>
- *  <table><tr>
- *   <td><b>Value</b></td><td><b>Meaning</b></td><td><b>Information returned</b></td>
- *   </tr><tr>
- *    <td>TDS_ROW_RESULT</td><td>Regular row results</td>
- *    <td>1 or more rows of regular data can now be retrieved</td>
- *   </tr><tr>
- *    <td>TDS_COMPUTE_RESULT</td><td>Compute row results</td>
- *    <td>A single row of compute data can now be retrieved</td>
- *   </tr><tr>
- *    <td>TDS_PARAM_RESULT</td><td>Return parameter results</td>
- *    <td>param_info or cur_dyn->params contain returned parameters</td>
- *   </tr><tr>
- *    <td>TDS_STATUS_RESULT</td><td>Stored procedure status results</td>
- *    <td>tds->ret_status contain the returned code</td>
- *  </tr></table>
- * @todo Complete TDS_DESCRIBE_RESULT description
- * @retval TDS_SUCCEED if a result set is available for processing.
- * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.
- * @par Examples
- * The following code is cut from ct_results(), the ct-library function
- * @include token1.c
- */
-int
-tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags)
-{
-	return tds_process_tokens(tds, result_type, done_flags, TDS_RETURN_ROWFMT | TDS_RETURN_COMPUTEFMT | TDS_RETURN_DONE | TDS_STOPAT_ROW | TDS_STOPAT_COMPUTE | TDS_RETURN_PROC);
-}
-
-/**
- * process TDS row-type message streams.
- * tds_process_row_tokens() is called once a result set has been obtained
- * with tds_process_result_tokens(). It calls tds_process_row() to copy
- * data into the row buffer.
- * @param tds A pointer to the TDSSOCKET structure managing a 
- *    client/server operation.
- * @param rowtype A pointer to an integer variable which 
- *    tds_process_row_tokens sets to indicate the current type of row
- * @param computeid A pointer to an integer variable which 
- *    tds_process_row_tokens sets to identify the compute_id of the row 
- *    being returned. A compute row is a row that is generated by a 
- *    compute clause. The compute_id matches the number of the compute row 
- *    that was read; the first compute row is 1, the second is 2, and so forth.
- * @par Possible values of *rowtype
- *        @li @c TDS_REG_ROW      A regular data row
- *        @li @c TDS_COMP_ROW     A row of compute data
- *        @li @c TDS_NO_MORE_ROWS There are no more rows of data in this result set
- * @retval TDS_SUCCEED A row of data is available for processing.
- * @retval TDS_NO_MORE_ROWS All rows have been completely processed.
- * @retval TDS_FAIL An unexpected error occurred
- * @par Examples
- * The following code is cut from dbnextrow(), the db-library function
- * @include token2.c
- */
-int
-tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
-{
-	TDS_INT result_type, dummy_type;
-	int done_flags;
-	int result;
-
-	/*
-	 * call internal function, with last parameter 1
-	 * meaning read & process the end token
-	 */
-	CHECK_TDS_EXTRA(tds);
-
-	result = tds_process_tokens(tds, &result_type, &done_flags, TDS_STOPAT_ROWFMT | TDS_RETURN_DONE | TDS_RETURN_ROW | (rowtype ? TDS_RETURN_COMPUTE : TDS_STOPAT_COMPUTE ));
-
-	if (!rowtype)
-		rowtype = &dummy_type;
-
-	switch (result) {
-	case TDS_FAIL:
-		return TDS_FAIL;
-	case TDS_NO_MORE_RESULTS:
-		*rowtype = TDS_NO_MORE_ROWS;
-		return TDS_NO_MORE_ROWS;
-	}
-	switch (result_type) {
-	case TDS_ROW_RESULT:
-		*rowtype = TDS_REG_ROW;
-		return TDS_SUCCEED;
-	case TDS_COMPUTE_RESULT:
-		if (rowtype != &dummy_type) {
-			if (computeid)
-				*computeid = tds->current_results->computeid;
-			*rowtype = TDS_COMP_ROW;
-			return TDS_SUCCEED;
-		}
-	default:
-		*rowtype = TDS_NO_MORE_ROWS;
-		return TDS_NO_MORE_ROWS;
-	}
-}
-
-int
-tds_process_row_tokens_ct(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid)
-{
-	TDS_INT result_type, dummy_type;
-	int done_flags;
-	int result;
-
-	/*
-	 * call internal function, with last parameter 1
-	 * meaning read & process the end token
-	 */
-	CHECK_TDS_EXTRA(tds);
-
-	result = tds_process_tokens(tds, &result_type, &done_flags, TDS_STOPAT_ROWFMT | TDS_STOPAT_DONE | TDS_RETURN_ROW | (rowtype ? TDS_RETURN_COMPUTE : TDS_STOPAT_COMPUTE ));
-
-	if (!rowtype)
-		rowtype = &dummy_type;
-
-	switch (result) {
-	case TDS_FAIL:
-		return TDS_FAIL;
-	case TDS_NO_MORE_RESULTS:
-		*rowtype = TDS_NO_MORE_ROWS;
-		return TDS_NO_MORE_ROWS;
-	}
-	switch (result_type) {
-	case TDS_ROW_RESULT:
-		*rowtype = TDS_REG_ROW;
-		return TDS_SUCCEED;
-	case TDS_COMPUTE_RESULT:
-		if (rowtype != &dummy_type) {
-			if (computeid)
-				*computeid = tds->current_results->computeid;
-			*rowtype = TDS_COMP_ROW;
-			return TDS_SUCCEED;
-		}
-	default:
-		*rowtype = TDS_NO_MORE_ROWS;
-		return TDS_NO_MORE_ROWS;
-	}
-}
-
-/**
  * tds_process_trailing_tokens() is called to discard messages that may
  * be left unprocessed at the end of a result "batch". In dblibrary, it is 
  * valid to process all the data rows that a command may have returned but 
@@ -1038,31 +867,19 @@ tds_process_trailing_tokens(TDSSOCKET * tds)
  * (which caused problems such as ignoring query errors).
  * Results are read until idle state or severe failure (do not stop for 
  * statement failure).
- * @return see tds_process_result_tokens for results (TDS_NO_MORE_RESULTS is never returned)
+ * @return see tds_process_tokens for results (TDS_NO_MORE_RESULTS is never returned)
  */
 int
 tds_process_simple_query(TDSSOCKET * tds)
 {
 	TDS_INT res_type;
 	TDS_INT done_flags;
-	TDS_INT row_type;
 	int     rc;
 
 	CHECK_TDS_EXTRA(tds);
 
-	while ((rc = tds_process_result_tokens(tds, &res_type, &done_flags)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &res_type, &done_flags, TDS_RETURN_DONE)) == TDS_SUCCEED) {
 		switch (res_type) {
-
-			case TDS_ROW_RESULT:
-			case TDS_COMPUTE_RESULT:
-
-				/* discard all this information */
-				while ((rc = tds_process_row_tokens_ct(tds, &row_type, NULL)) == TDS_SUCCEED);
-
-				if (rc != TDS_NO_MORE_ROWS)
-					return TDS_FAIL;
-
-				break;
 
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:

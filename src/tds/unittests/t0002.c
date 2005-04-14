@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.12 2003-09-25 21:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.13 2005-04-14 11:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -56,8 +56,6 @@ main(int argc, char **argv)
 	int verbose = 0;
 	int num_cols = 2;
 	TDS_INT result_type;
-	TDS_INT row_type;
-	TDS_INT compute_id;
 	int rc;
 	int i, done_flags;
 
@@ -74,7 +72,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	while ((rc = tds_process_result_tokens(tds, &result_type, &done_flags)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			if (tds->res_info->num_cols != num_cols) {
@@ -95,15 +93,17 @@ main(int argc, char **argv)
 
 		case TDS_ROW_RESULT:
 
-			while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
+			while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
+				if (result_type != TDS_ROW_RESULT || result_type != TDS_COMPUTE_RESULT)
+					break;
 				if (verbose) {
 					for (i = 0; i < num_cols; i++) {
 						printf("col %i is %s\n", i, value_as_string(tds, i));
 					}
 				}
 			}
-			if (rc != TDS_NO_MORE_ROWS) {
-				fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
+			if (rc != TDS_SUCCEED) {
+				fprintf(stderr, "tds_process_tokens() unexpected return\n");
 			}
 			break;
 
@@ -114,12 +114,12 @@ main(int argc, char **argv)
 				break;
 
 		default:
-			fprintf(stderr, "tds_process_result_tokens() unexpected result_type\n");
+			fprintf(stderr, "tds_process_tokens() unexpected result_type\n");
 			break;
 		}
 	}
 	if (rc != TDS_NO_MORE_RESULTS) {
-		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 	}
 
 	try_tds_logout(login, tds, verbose);

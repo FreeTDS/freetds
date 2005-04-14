@@ -19,7 +19,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.22 2004-05-17 15:34:40 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.23 2005-04-14 11:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -51,7 +51,7 @@ main(int argc, char **argv)
 	float sybreal[5];
 	int num_sybflt8 = 7;
 	double sybflt8[7];
-	int result_type, row_type, compute_id;
+	int result_type, row_type;
 
 	memset(&ctx, 0, sizeof(ctx));
 
@@ -77,9 +77,9 @@ main(int argc, char **argv)
 	}
 
 
-   /** 
-    ** SYBREAL tests
-    **/
+	/*
+	 * SYBREAL tests
+	 */
 	if (verbose)
 		printf("Starting SYBREAL tests\n");
 	rc = run_query(tds, "DROP TABLE #test_table");
@@ -104,61 +104,51 @@ main(int argc, char **argv)
 	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
 
 	row_count = 0;
-	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
-			while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
-				if (row_type == TDS_REG_ROW) {
-					resinfo = tds->res_info;
-					for (i = 0; i < resinfo->num_cols; i++) {
-						curcol = resinfo->columns[i];
-						src = &(resinfo->current_row[curcol->column_offset]);
-						if (verbose) {
-							srctype = curcol->column_type;
-							srclen = curcol->column_size;
-							tds_convert(&ctx, srctype, (TDS_CHAR *) src, srclen, SYBCHAR, &cr);
-							printf("col %i is %s\n", i, cr.c);
-						}
-						if (i == 0) {
-							src_id = *(int *) src;
-						} else {
-							src_val = *(float *) src;
-							src_err = src_val - sybreal[src_id];
-							if (src_err != 0.0) {
-								src_err = src_err / src_val;
-							}
-							if (src_err < -tolerance || src_err > tolerance) {
-								fprintf(stderr, "SYBREAL expected %.8g  got %.8g\n",
-									sybreal[src_id], src_val);
-								fprintf(stderr, "Error was %.4g%%\n", 100 * src_err);
-								return 1;
-							}
-						}
+			resinfo = tds->res_info;
+			for (i = 0; i < resinfo->num_cols; i++) {
+				curcol = resinfo->columns[i];
+				src = &(resinfo->current_row[curcol->column_offset]);
+				if (verbose) {
+					srctype = curcol->column_type;
+					srclen = curcol->column_size;
+					tds_convert(&ctx, srctype, (TDS_CHAR *) src, srclen, SYBCHAR, &cr);
+					printf("col %i is %s\n", i, cr.c);
+				}
+				if (i == 0) {
+					src_id = *(int *) src;
+				} else {
+					src_val = *(float *) src;
+					src_err = src_val - sybreal[src_id];
+					if (src_err != 0.0) {
+						src_err = src_err / src_val;
 					}
-					row_count++;
-				} else
-					continue;
+					if (src_err < -tolerance || src_err > tolerance) {
+						fprintf(stderr, "SYBREAL expected %.8g  got %.8g\n",
+							sybreal[src_id], src_val);
+						fprintf(stderr, "Error was %.4g%%\n", 100 * src_err);
+						return 1;
+					}
+				}
 			}
-			if (rc == TDS_FAIL) {
-				fprintf(stderr, "tds_process_row_tokens() returned TDS_FAIL\n");
-				return 1;
-			} else if (rc != TDS_NO_MORE_ROWS) {
-				fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
-				return 1;
-			}
+			row_count++;
+		case TDS_COMPUTE_RESULT:
 			break;
 		default:
+			fprintf(stderr, "tds_process_tokens() unexpected result\n");
 			break;
 		}
 	}
 	if (rc != TDS_NO_MORE_RESULTS) {
-		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 	}
 
 
-   /** 
-    ** SYBFLT8 tests
-    **/
+	/*
+	 * SYBFLT8 tests
+	 */
 	if (verbose)
 		printf("Starting SYBFLT8 tests\n");
 	rc = run_query(tds, "DROP TABLE #test_table");
@@ -181,54 +171,44 @@ main(int argc, char **argv)
 	}
 
 	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
-	while ((rc = tds_process_result_tokens(tds, &result_type, NULL)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
-			while ((rc = tds_process_row_tokens(tds, &row_type, &compute_id)) == TDS_SUCCEED) {
-				if (row_type == TDS_REG_ROW) {
-					resinfo = tds->res_info;
-					for (i = 0; i < resinfo->num_cols; i++) {
-						curcol = resinfo->columns[i];
-						src = &(resinfo->current_row[curcol->column_offset]);
-						if (verbose) {
-							srctype = curcol->column_type;
-							srclen = curcol->column_size;
-							tds_convert(&ctx, srctype, (TDS_CHAR *) src, srclen, SYBCHAR, &cr);
-							printf("col %i is %s\n", i, cr.c);
-						}
-						if (i == 0) {
-							src_id = *(int *) src;
-						} else {
-							memcpy(&src_val, src, 8);
-							src_err = src_val - sybflt8[src_id];
-							if (src_err != 0.0) {
-								src_err = src_err / src_val;
-							}
-							if (src_err < -tolerance || src_err > tolerance) {
-								fprintf(stderr, "SYBFLT8 expected %.16g  got %.16g\n",
-									sybflt8[src_id], src_val);
-								fprintf(stderr, "Error was %.4g%%\n", 100 * src_err);
-								return 1;
-							}
-						}
+			resinfo = tds->res_info;
+			for (i = 0; i < resinfo->num_cols; i++) {
+				curcol = resinfo->columns[i];
+				src = &(resinfo->current_row[curcol->column_offset]);
+				if (verbose) {
+					srctype = curcol->column_type;
+					srclen = curcol->column_size;
+					tds_convert(&ctx, srctype, (TDS_CHAR *) src, srclen, SYBCHAR, &cr);
+					printf("col %i is %s\n", i, cr.c);
+				}
+				if (i == 0) {
+					src_id = *(int *) src;
+				} else {
+					memcpy(&src_val, src, 8);
+					src_err = src_val - sybflt8[src_id];
+					if (src_err != 0.0) {
+						src_err = src_err / src_val;
 					}
-				} else
-					continue;
+					if (src_err < -tolerance || src_err > tolerance) {
+						fprintf(stderr, "SYBFLT8 expected %.16g  got %.16g\n",
+							sybflt8[src_id], src_val);
+						fprintf(stderr, "Error was %.4g%%\n", 100 * src_err);
+						return 1;
+					}
+				}
 			}
-			if (rc == TDS_FAIL) {
-				fprintf(stderr, "tds_process_row_tokens() returned TDS_FAIL\n");
-				return 1;
-			} else if (rc != TDS_NO_MORE_ROWS) {
-				fprintf(stderr, "tds_process_row_tokens() unexpected return\n");
-				return 1;
-			}
+		case TDS_COMPUTE_RESULT:
 			break;
 		default:
+			fprintf(stderr, "tds_process_tokens() returned unexpected result\n");
 			break;
 		}
 	}
 	if (rc != TDS_NO_MORE_RESULTS) {
-		fprintf(stderr, "tds_process_result_tokens() unexpected return\n");
+		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 	}
 
 	try_tds_logout(login, tds, verbose);

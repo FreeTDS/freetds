@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.224 2005-04-13 17:00:44 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.225 2005-04-14 11:35:43 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -187,11 +187,6 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_FAIL             0
 #define TDS_NO_MORE_RESULTS  2
 
-#define TDS_REG_ROW          -1
-#define TDS_NO_MORE_ROWS     -2
-#define TDS_COMP_ROW         -3
-#define TDS_END_ROW          -4
-
 #define TDS_INT_EXIT 0
 #define TDS_INT_CONTINUE 1
 #define TDS_INT_CANCEL 2
@@ -240,9 +235,10 @@ enum tds_token_flags
 	TDS_TOKEN_FLAG(DONE),
 	TDS_TOKEN_FLAG(ROW),
 	TDS_TOKEN_FLAG(COMPUTE),
-	TDS_TOKEN_FLAG(PROC)
+	TDS_TOKEN_FLAG(PROC),
+	TDS_TOKEN_RESULTS = TDS_RETURN_ROWFMT|TDS_RETURN_COMPUTEFMT|TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE|TDS_RETURN_PROC,
+	TDS_TOKEN_TRAILING = TDS_STOPAT_ROWFMT|TDS_STOPAT_COMPUTEFMT|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE|TDS_STOPAT_OTHERS
 };
-
 
 enum tds_end
 {
@@ -1287,9 +1283,6 @@ void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLUMN * curcol);
 int tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,
 			TDS_INT * tds_argsize);
-int tds_process_result_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags);
-int tds_process_row_tokens(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT * computeid);
-int tds_process_row_tokens_ct(TDSSOCKET * tds, TDS_INT * rowtype, TDS_INT *computeid);
 int tds_process_trailing_tokens(TDSSOCKET * tds);
 int tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *message);
 int tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsigned flag);
