@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.11 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.12 2005-04-15 20:30:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -174,7 +174,7 @@ test(int n, int type)
 }
 
 static int
-err_handler(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+err_handler(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	int error = 0;
 
@@ -207,6 +207,8 @@ main(int argc, char **argv)
 	int ret;
 	int verbose = 0;
 	int i;
+	typedef int (*perr)(const TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
+	const perr * my_err;
 
 	/* use ISO8859-1 as our coding */
 	strcpy(CHARSET, "ISO8859-1");
@@ -217,7 +219,9 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	tds->tds_ctx->err_handler = err_handler;
+	/* override a const in a safe way */
+	my_err = &tds->tds_ctx->err_handler;
+	*((perr*)my_err) = err_handler;
 
 	/* prepend some characters to check part of sequence error */
 	einval_error = 1;
