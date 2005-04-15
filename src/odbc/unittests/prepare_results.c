@@ -2,7 +2,7 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.6 2005-04-12 07:19:10 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_results.c,v 1.7 2005-04-15 13:33:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -16,6 +16,23 @@ main(int argc, char *argv[])
 
 	Command(Statement, "create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
 
+	/* reset state */
+	Command(Statement, "select * from #odbctestdata");
+	SQLFetch(Statement);
+	SQLMoreResults(Statement);
+
+	/* test query returns column information for update */
+	if (SQLPrepare(Statement, (SQLCHAR *) "update #odbctestdata set i = 20", SQL_NTS) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLPrepare return failure");
+
+	if (SQLNumResultCols(Statement, &count) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLNumResultCols return failure");
+
+	if (count != 0) {
+		fprintf(stderr, "Wrong number of columns returned. Got %d expected 0\n", (int) count);
+		exit(1);
+	}
+
 	/* test query returns column information */
 	if (SQLPrepare(Statement, (SQLCHAR *) "select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("SQLPrepare return failure");
@@ -24,7 +41,7 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("SQLNumResultCols return failure");
 
 	if (count != 3) {
-		fprintf(stderr, "Wrong number of columns returned. Got %d expected 2\n", (int) count);
+		fprintf(stderr, "Wrong number of columns returned. Got %d expected 3\n", (int) count);
 		exit(1);
 	}
 

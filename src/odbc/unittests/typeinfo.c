@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.6 2005-02-18 12:56:44 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.7 2005-04-15 13:33:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -137,6 +137,10 @@ DoTest(int version3)
 	SQLCloseCursor(Statement);
 
 #define CHECK_TYPE(in,out) CheckType(in, out, #in, __LINE__)
+
+	/* under Sybase this type require extra handling, check it */
+	CHECK_TYPE(SQL_VARCHAR, SQL_VARCHAR);
+
 	CHECK_TYPE(SQL_DATE, date_time_supported && !version3 ? SQL_DATE : SQL_UNKNOWN_TYPE);
 	CHECK_TYPE(SQL_TIME, date_time_supported && !version3 ? SQL_TIME : SQL_UNKNOWN_TYPE);
 	CHECK_TYPE(SQL_TYPE_DATE, date_time_supported && version3 ? SQL_TYPE_DATE : SQL_UNKNOWN_TYPE);

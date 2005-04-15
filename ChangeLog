@@ -1,3 +1,8 @@
+Fri Apr 15 15:33:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/prepare_results.c:
+	* src/odbc/unittests/typeinfo.c:
+	- imported some tests from DBD::ODBC (fixed)
+
 Fri Apr 15 13:48:06 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h include/dblib.h include/tds.h:
 	* include/tdsconvert.h src/apps/tsql.c src/ctlib/cs.c:

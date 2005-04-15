@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.366 2005-04-15 11:51:59 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.367 2005-04-15 13:33:30 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -3396,6 +3396,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		/* try to go to the next recordset */
 		/* TODO merge with similar code */
 		desc_free_records(stmt->ird);
+		stmt->row_status = PRE_NORMAL_ROW;
 		for (;;) {
 			switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_DONE)) {
 			case TDS_NO_MORE_RESULTS:
@@ -3424,6 +3425,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 						odbc_populate_ird(stmt);
 					stmt->row = 0;
 					stmt->row_count = TDS_NO_COUNT;
+					stmt->row_status = PRE_NORMAL_ROW;
 					in_row = 1;
 					break;
 				}
@@ -4937,7 +4939,10 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		if (n == (varchar_pos - 1))
 			break;
 
-		switch (tds_process_tokens(stmt->dbc->tds_socket, &result_type, &compute_id, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW)) {
+		switch (tds_process_tokens(stmt->dbc->tds_socket, &result_type, &compute_id, TDS_STOPAT_ROWFMT|TDS_RETURN_ROW)) {
+		case TDS_SUCCEED:
+			if (result_type == TDS_ROW_RESULT)
+				break;
 		case TDS_NO_MORE_RESULTS:
 			/* discard other tokens */
 			tds_process_simple_query(tds);
