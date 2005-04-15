@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.365 2005-04-14 13:28:39 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.366 2005-04-15 11:51:59 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -92,7 +92,7 @@ SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt);
 static int query_timeout_cancel(void *param);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
-static int odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
+static int odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
 static void odbc_upper_column_names(TDS_STMT * stmt);
 static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
@@ -1081,13 +1081,12 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	/* TODO use it */
 	env->attr.output_nts = SQL_TRUE;
 
-	ctx = tds_alloc_context();
+	ctx = tds_alloc_context(env);
 	if (!ctx) {
 		free(env);
 		return SQL_ERROR;
 	}
 	env->tds_ctx = ctx;
-	tds_ctx_set_parent(ctx, env);
 	ctx->msg_handler = odbc_errmsg_handler;
 	ctx->err_handler = odbc_errmsg_handler;
 
@@ -1704,7 +1703,7 @@ SQLDisconnect(SQLHDBC hdbc)
 }
 
 static int
-odbc_errmsg_handler(TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc = NULL;
@@ -2665,7 +2664,6 @@ _SQLFetch(TDS_STMT * stmt)
 	int srclen;
 	struct _drecord *drec_ard;
 	TDS_DESC *ard;
-	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	SQLULEN dummy, *fetched_ptr;
 	SQLUSMALLINT *status_ptr, row_status;
@@ -2694,7 +2692,6 @@ _SQLFetch(TDS_STMT * stmt)
 	tds = stmt->dbc->tds_socket;
 
 	context = stmt->dbc->env->tds_ctx;
-	locale = context->locale;
 
 	stmt->row++;
 
@@ -3715,7 +3712,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	TDSSOCKET *tds;
 	TDS_CHAR *src;
 	int srclen;
-	TDSLOCALE *locale;
 	TDSCONTEXT *context;
 	SQLLEN dummy_cb;
 	int nSybType;
@@ -3735,7 +3731,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 	tds = stmt->dbc->tds_socket;
 	context = stmt->dbc->env->tds_ctx;
-	locale = context->locale;
 	resinfo = tds->current_results;
 	if (!resinfo) {
 		odbc_errs_add(&stmt->errs, "HY010", NULL, NULL);

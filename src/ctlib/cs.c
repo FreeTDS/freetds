@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.58 2005-04-03 13:37:25 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.59 2005-04-15 11:51:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -197,8 +197,11 @@ TDSCONTEXT *tds_ctx;
 
 	*ctx = (CS_CONTEXT *) malloc(sizeof(CS_CONTEXT));
 	memset(*ctx, '\0', sizeof(CS_CONTEXT));
-	tds_ctx = tds_alloc_context();
-	tds_ctx_set_parent(tds_ctx, *ctx);
+	tds_ctx = tds_alloc_context(*ctx);
+	if (!tds_ctx) {
+		free(*ctx);
+		return CS_FAIL;
+	}
 	(*ctx)->tds_ctx = tds_ctx;
 	if (tds_ctx->locale && !tds_ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */

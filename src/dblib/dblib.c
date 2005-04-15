@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.213 2005-04-14 13:28:38 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.214 2005-04-15 11:51:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -528,8 +528,7 @@ dbinit(void)
 	g_dblib_ctx.connection_list_size_represented = TDS_MAX_CONN;
 
 
-	g_dblib_ctx.tds_ctx = tds_alloc_context();
-	tds_ctx_set_parent(g_dblib_ctx.tds_ctx, &g_dblib_ctx);
+	g_dblib_ctx.tds_ctx = tds_alloc_context(&g_dblib_ctx);
 
 	/* 
 	 * Set the functions in the TDS layer to point to the correct info/err

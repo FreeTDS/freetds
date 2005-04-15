@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.141 2005-04-03 13:37:28 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.142 2005-04-15 11:52:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -465,7 +465,7 @@ tds_free_all_results(TDSSOCKET * tds)
 }
 
 TDSCONTEXT *
-tds_alloc_context(void)
+tds_alloc_context(void * parent)
 {
 	TDSCONTEXT *context;
 	TDSLOCALE *locale;
@@ -481,6 +481,7 @@ tds_alloc_context(void)
 	}
 	memset(context, '\0', sizeof(TDSCONTEXT));
 	context->locale = locale;
+	context->parent = parent;
 
 	return context;
 }

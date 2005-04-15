@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: util.c,v 1.59 2005-03-12 11:47:37 ppeterd Exp $";
+static char software_version[] = "$Id: util.c,v 1.60 2005-04-15 11:52:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* for now all messages go to the log */
@@ -92,19 +92,6 @@ void *
 tds_get_parent(TDSSOCKET * tds)
 {
 	return (tds->parent);
-}
-
-void
-tds_ctx_set_parent(TDSCONTEXT * ctx, void *the_parent)
-{
-	if (ctx)
-		ctx->parent = the_parent;
-}
-
-void *
-tds_ctx_get_parent(TDSCONTEXT * ctx)
-{
-	return (ctx->parent);
 }
 
 /**

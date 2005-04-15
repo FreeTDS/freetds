@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_tdsconvert_h[] = "$Id: tdsconvert.h,v 1.20 2004-10-28 12:42:12 freddy77 Exp $";
+static const char rcsid_tdsconvert_h[] = "$Id: tdsconvert.h,v 1.21 2005-04-15 11:51:56 freddy77 Exp $";
 static const void *const no_unused_tdsconvert_h_warn[] = { rcsid_tdsconvert_h, no_unused_tdsconvert_h_warn };
 
 typedef union conv_result
@@ -73,7 +73,7 @@ struct tds_time
 unsigned char tds_willconvert(int srctype, int desttype);
 
 TDS_INT tds_get_null_type(int srctype);
-TDS_INT tds_convert(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr);
+TDS_INT tds_convert(const TDSCONTEXT * context, int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr);
 
 size_t tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * timeptr);
 

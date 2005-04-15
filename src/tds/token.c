@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.293 2005-04-14 13:28:40 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.294 2005-04-15 11:52:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2172,7 +2172,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
  * 	The general approach is to emit ct-lib error information and let db-lib and ODBC map that to their number and text.  
  */
 int
-tds_client_msg(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *msg_text)
+tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *msg_text)
 {
 	int ret;
 	TDSMESSAGE msg;

@@ -31,7 +31,7 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: ctutil.c,v 1.22 2004-03-23 08:51:32 freddy77 Exp $";
+static char software_version[] = "$Id: ctutil.c,v 1.23 2005-04-15 11:51:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -88,7 +88,7 @@ TEST_ATTRIBUTE(t34,TDS_VARBINARY,array,CS_VARBINARY,array);
 
 /* error handler */
 int
-_ct_handle_client_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
+_ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	CS_CLIENTMSG errmsg;
 	CS_CONNECTION *con = NULL;
@@ -119,7 +119,7 @@ _ct_handle_client_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * ms
 
 /* message handler */
 int
-_ct_handle_server_message(TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
+_ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	CS_SERVERMSG errmsg;
 	CS_CONNECTION *con = NULL;

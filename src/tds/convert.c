@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.154 2005-04-05 14:56:46 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.155 2005-04-15 11:52:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1225,7 +1225,7 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 }
 
 static TDS_INT
-tds_convert_datetime(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
 
 	unsigned int dt_days, dt_time;
@@ -1299,7 +1299,7 @@ int year;
 */
 
 static TDS_INT
-tds_convert_datetime4(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_datetime4(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
 
 	TDS_USMALLINT dt_days, dt_mins;
@@ -1594,7 +1594,7 @@ tds_convert_unique(int srctype, const TDS_CHAR * src, TDS_INT srclen, int destty
  * @return length of result or TDS_CONVERT_* failure code on failure. All TDS_CONVERT_* constants are <0.
  */
 TDS_INT
-tds_convert(TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
+tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
 {
 	TDS_INT length = 0;
 

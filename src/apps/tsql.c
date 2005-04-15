@@ -68,7 +68,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.77 2005-04-14 13:28:38 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.78 2005-04-15 11:51:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -87,7 +87,7 @@ int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
 static void tsql_print_usage(const char *progname);
 int get_opt_flags(char *s, int *opt_flags);
 void populate_login(TDSLOGIN * login, int argc, char **argv);
-int tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
+static int tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
 void slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line);
 
 #ifndef HAVE_READLINE
@@ -433,8 +433,8 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		free(servername);
 }
 
-int
-tsql_handle_message(TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg)
+static int
+tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	if (msg->msg_number == 0) {
 		fprintf(stderr, "%s\n", msg->message);
@@ -494,7 +494,7 @@ main(int argc, char **argv)
 	/* grab a login structure */
 	login = tds_alloc_login();
 
-	context = tds_alloc_context();
+	context = tds_alloc_context(NULL);
 	if (context->locale && !context->locale->date_fmt) {
 		/* set default in case there's no locale file */
 		context->locale->date_fmt = strdup("%b %e %Y %I:%M%p");

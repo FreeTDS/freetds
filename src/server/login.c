@@ -53,7 +53,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.40 2004-06-15 13:16:55 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.41 2005-04-15 11:52:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -97,7 +97,7 @@ tds_listen(int ip_port)
 		perror("accept");
 		exit(1);
 	}
-	context = tds_alloc_context();
+	context = tds_alloc_context(NULL);
 	tds = tds_alloc_socket(context, 8192);
 	tds->s = fd;
 	tds->out_flag = 0x02;

@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.25 2005-04-04 08:35:22 freddy77 Exp $";
+static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.26 2005-04-15 11:51:55 freddy77 Exp $";
 static const void *const no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 enum {
@@ -161,8 +161,8 @@ struct tds_dblib_dbprocess
 /*
 ** internal prototypes
 */
-int _dblib_handle_info_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
-int _dblib_handle_err_message(TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
+int _dblib_handle_info_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
+int _dblib_handle_err_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
 int _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberrstr);
 void _dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version);
 

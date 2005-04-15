@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dbutil.c,v 1.28 2004-12-17 06:38:17 jklowden Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.29 2005-04-15 11:51:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -78,7 +78,7 @@ TEST_ATTRIBUTE(t30,TDS_NUMERIC,array,DBNUMERIC,array);
  * know what it really was.  
  */
 int
-_dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+_dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	DBPROCESS *dbproc = (tds && tds->parent)? (DBPROCESS *) tds->parent : NULL;
 
@@ -107,7 +107,7 @@ _dblib_handle_info_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * m
 }
 
 int
-_dblib_handle_err_message(TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
+_dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	DBPROCESS *dbproc = NULL;
 	int rc = INT_CANCEL;
