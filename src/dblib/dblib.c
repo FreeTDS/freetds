@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.214 2005-04-15 11:51:57 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.215 2005-04-16 23:57:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -71,7 +71,6 @@ static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
 static void _set_null_value(BYTE * varaddr, int datatype, int maxlen);
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
-static void buffer_struct_print(DBPROC_ROWBUF *buf);
 
 /**
  * @file dblib.c
@@ -169,290 +168,12 @@ dblib_del_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
 	}
 }
 
-static void
-buffer_init(DBPROC_ROWBUF * buf)
-{
-	memset(buf, 0xad, sizeof(*buf));
-
-	buf->buffering_on = 0;
-	buf->first_in_buf = 0;
-	buf->newest = -1;
-	buf->oldest = 0;
-	buf->elcount = 0;
-	buf->element_size = 0;
-	buf->rows_in_buf = 0;
-	buf->rows = NULL;
-	buf->next_row = 1;
-}
-
-static void
-buffer_clear(DBPROC_ROWBUF * buf)
-{
-	buf->next_row = 1;
-	buf->first_in_buf = 0;
-	buf->newest = -1;
-	buf->oldest = 0;
-	buf->rows_in_buf = 0;
-	if (buf->rows)
-		TDS_ZERO_FREE(buf->rows);
-}
-
-
-static void
-buffer_free(DBPROC_ROWBUF * buf)
-{
-	if (buf->rows != NULL)
-		TDS_ZERO_FREE(buf->rows);
-}
-
-static void
-buffer_delete_rows(DBPROC_ROWBUF * buf,	int count)
-{
-	assert(count <= buf->elcount);	/* possibly a little to pedantic */
-
-	if (count < 0 || count > buf->rows_in_buf) {
-		count = buf->rows_in_buf;
-	}
-
-
-	buf->oldest = (buf->oldest + count) % buf->elcount;
-	buf->rows_in_buf -= count;
-	buf->first_in_buf = count == buf->rows_in_buf ? buf->next_row - 1 : buf->first_in_buf + count;
-
-	if(buf->first_in_buf < 0) {
-		printf("count (to delete) = %d\n", count);
-		buffer_struct_print(buf);
-		assert(buf->first_in_buf >= 0);
-	}
-}
-
-static void 
-buffer_struct_print(DBPROC_ROWBUF *buf)
-{
-	assert(buf);
-
-	printf("buffering_on = %d\n", 	buf->buffering_on);
-	printf("first_in_buf = %d\n", 	buf->first_in_buf);
-	printf("next_row = %d\n",	buf->next_row);
-	printf("newest = %d\n", 	buf->newest);
-	printf("oldest = %d\n", 	buf->oldest);
-	printf("elcount = %d\n", 	buf->elcount);
-	printf("element_size = %d\n", 	buf->element_size);
-	printf("rows_in_buf = %d\n", 	buf->rows_in_buf);
-	printf("rows = %p\n", 		buf->rows);
-}
-
-
-
-
-static int
-buffer_start_resultset(DBPROC_ROWBUF * buf,	/* (U) buffer to clear */
-		       int element_size)
-{				/*                     */
-	int space_needed = -1;
-
-	assert(element_size > 0);
-
-	if (buf->rows != NULL) {
-		/* TODO why ?? memory bug chech ?? security ?? */
-		memset(buf->rows, 0xad, buf->element_size * buf->rows_in_buf);
-		free(buf->rows);
-	}
-
-	buf->first_in_buf = 0;
-	buf->next_row = 1;
-	buf->newest = -1;
-	buf->oldest = 0;
-	buf->elcount = buf->buffering_on ? buf->elcount : 1;
-	buf->element_size = element_size;
-	buf->rows_in_buf = 0;
-	space_needed = element_size * buf->elcount;
-	buf->rows = malloc(space_needed);
-
-	return buf->rows == NULL ? FAIL : SUCCEED;
-}
-
-static int
-buffer_index_of_resultset_row(DBPROC_ROWBUF * buf,	/* (U) buffer to clear                 */
-			      int row_number)
-{				/* (I)                                 */
-	int result = -1;
-
-	if (row_number < buf->first_in_buf) {
-		result = -1;
-	} else if (row_number > ((buf->rows_in_buf + buf->first_in_buf) - 1)) {
-		result = -1;
-	} else {
-		result = ((row_number - buf->first_in_buf)
-			  + buf->oldest) % buf->elcount;
-	}
-	return result;
-}
-
-
-static void *
-buffer_row_address(DBPROC_ROWBUF * buf,	/* (U) buffer to clear                 */
-		   int idx)
-{				/* (I) raw index of row to return      */
-	void *result = NULL;
-
-	assert(idx >= 0);
-	assert(idx < buf->elcount);
-
-	if (idx >= buf->elcount || idx < 0) {
-		result = NULL;
-	} else {
-		int offset = buf->element_size * (idx % buf->elcount);
-
-		result = (char *) buf->rows + offset;
-	}
-	return result;
-}
-
-
-static void
-buffer_add_row(DBPROC_ROWBUF * buf,	/* (U) buffer to add row into  */
-	       void *row,	/* (I) pointer to the row data */
-	       int row_size)
-{
-	void *dest = NULL;
-
-	assert(row_size > 0);
-	assert(row_size <= buf->element_size);
-
-	assert(buf->elcount >= 1);
-
-	buf->newest = (buf->newest + 1) % buf->elcount;
-	if (buf->rows_in_buf == 0 && buf->first_in_buf == 0) {
-		buf->first_in_buf = 1;
-	}
-	buf->rows_in_buf++;
-
-	/* 
-	 * if we have wrapped around we need to adjust oldest
-	 * and rows_in_buf
-	 */
-	if (buf->rows_in_buf > buf->elcount) {
-		buf->oldest = (buf->oldest + 1) % buf->elcount;
-		buf->first_in_buf++;
-		buf->rows_in_buf--;
-	}
-
-	assert(buf->elcount >= buf->rows_in_buf);
-	assert(buf->rows_in_buf == 0 || (((buf->oldest + buf->rows_in_buf) - 1) % buf->elcount) == buf->newest);
-	assert(buf->rows_in_buf > 0 || (buf->first_in_buf == buf->next_row - 1));
-	assert(buf->rows_in_buf == 0 || (buf->first_in_buf <= buf->next_row));
-	assert(buf->next_row - 1 <= (buf->first_in_buf + buf->rows_in_buf));
-
-	dest = buffer_row_address(buf, buf->newest);
-	memcpy(dest, row, row_size);
-}
-
-
-static int
-buffer_is_full(DBPROC_ROWBUF * buf)
-{
-	return buf->rows_in_buf == buf->elcount;
-}
-
-static void
-buffer_set_buffering(DBPROC_ROWBUF * buf, int nrows)
-{
-	/* 
-	 * XXX If the user calls this routine in the middle of 
-	 * a result set and changes the size of the buffering
-	 * they are pretty much toast.
-	 *
-	 * We need to figure out what to do if the user shrinks the 
-	 * size of the row buffer.  What rows should be thrown out, 
-	 * what should happen to the current row, etc?
-	 */
-
-	assert(nrows >= 0);
-
-	buf->buffering_on = nrows > 0;
-	
-	if (!buf->buffering_on) {	/* turn off buffering */
-		buffer_delete_rows(buf, buf->rows_in_buf);
-		buf->elcount = 1;
-		return;
-	}
-
-	buffer_clear(buf);
-	buffer_free(buf);
-
-	buf->elcount = nrows;	/* set the buffer size (number of rows to buffer) */
-
-	if (buf->element_size > 0) {
-		buf->rows = malloc(buf->element_size * buf->elcount);
-	} else {
-		buf->rows = NULL;
-	}
-}
-
-static void
-buffer_transfer_bound_data(TDS_INT res_type, TDS_INT compute_id, DBPROC_ROWBUF * buf,	/* (U)                                         */
-			   DBPROCESS * dbproc,	/* (I)                                         */
-			   int row_num)
-{				/* (I) resultset row number                    */
-
-	int i;
-	TDSCOLUMN *curcol;
-	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
-	int srctype;
-	BYTE *src;
-	int desttype;
-
-	tds = dbproc->tds_socket;
-	if (res_type == TDS_ROW_RESULT) {
-		resinfo = tds->res_info;
-	} else {		/* TDS_COMPUTE_RESULT */
-		for (i = 0;; ++i) {
-			if (i >= tds->num_comp_info)
-				return;
-			resinfo = (TDSRESULTINFO *) tds->comp_info[i];
-			if (resinfo->computeid == compute_id)
-				break;
-		}
-	}
-
-	for (i = 0; i < resinfo->num_cols; i++) {
-		curcol = resinfo->columns[i];
-		if (curcol->column_nullbind) {
-			if (curcol->column_cur_size < 0) {
-				*(DBINT *)(curcol->column_nullbind) = -1;
-			} else {
-				*(DBINT *)(curcol->column_nullbind) = 0;
-			}
-		}
-		if (curcol->column_varaddr) {
-			DBINT srclen;
-			int idx = buffer_index_of_resultset_row(buf, row_num);
-
-			assert(idx >= 0);
-			/* XXX now what? */
-
-			src = ((BYTE *) buffer_row_address(buf, idx)) + curcol->column_offset;
-			srclen = curcol->column_cur_size;
-			if (is_blob_type(curcol->column_type)) {
-				src = (BYTE *) ((TDSBLOB *) src)->textvalue;
-			}
-			desttype = _db_get_server_type(curcol->column_bindtype);
-			srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
-
-			if (srclen < 0) {
-				_set_null_value((BYTE *) curcol->column_varaddr, desttype, curcol->column_bindlen);
-			} else {
-				copy_data_to_host_var(dbproc, 
-								srctype, src, srclen, 
-								desttype, (BYTE *) curcol->column_varaddr, curcol->column_bindlen,
-								curcol->column_bindtype, curcol->column_nullbind);
-
-			}
-		}
-	}
-}	/* end buffer_transfer_bound_data()  */
+#define USE_OLD_BUFFERING 0
+#if USE_OLD_BUFFERING
+# include "old_buffering.h"
+#else
+# include "buffering.h"
+#endif
 
 static void
 db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
@@ -989,7 +710,8 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 		return NULL;
 	}
 
-	buffer_init(&(dbproc->row_buf));
+	/* set the DBBUFFER capacity to nil */
+	buffer_set_capacity(dbproc, 0);
 
 	if (g_dblib_ctx.recftos_filename != NULL) {
 		char *temp_filename = NULL;
@@ -1302,8 +1024,6 @@ dbresults(DBPROCESS * dbproc)
 	if (dbproc == NULL)
 		return FAIL;
 
-	buffer_clear(&(dbproc->row_buf));
-
 	tds = dbproc->tds_socket;
 
 	if (IS_TDSDEAD(tds))
@@ -1345,7 +1065,8 @@ dbresults(DBPROCESS * dbproc)
 			switch (result_type) {
 	
 			case TDS_ROWFMT_RESULT:
-				retcode = buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
+				buffer_free(&dbproc->row_buf);
+				buffer_alloc(dbproc, tds->res_info->row_size);
 				dbproc->dbresults_state = _DB_RES_RESULTSET_EMPTY;
 				break;
 	
@@ -1517,18 +1238,30 @@ RETCODE
 dbgetrow(DBPROCESS * dbproc, DBINT row)
 {
 	RETCODE result = FAIL;
-	int idx = buffer_index_of_resultset_row(&(dbproc->row_buf), row);
+	const int idx = buffer_row2idx(&dbproc->row_buf, row);
 
-	if (-1 == idx) {
-		result = NO_MORE_ROWS;
-	} else {
-		dbproc->row_buf.next_row = row;
-		buffer_transfer_bound_data(TDS_ROW_RESULT, 0, &(dbproc->row_buf), dbproc, row);
-		dbproc->row_buf.next_row++;
-		result = REG_ROW;
-	}
+	if (-1 == idx)
+		return NO_MORE_ROWS;
+
+	dbproc->row_buf.current = idx;
+	buffer_transfer_bound_data(&dbproc->row_buf, TDS_ROW_RESULT, 0, dbproc, idx);
+	result = REG_ROW;
 
 	return result;
+}
+
+RETCODE
+dbsetrow(DBPROCESS * dbproc, DBINT row)
+{
+	const int idx = buffer_row2idx(&dbproc->row_buf, row);
+
+	if (-1 == idx)
+		return NO_MORE_ROWS;
+		
+	dbproc->row_buf.current = idx;
+		
+	/* FIXME: should determine REG_ROW or compute_id; */
+	return REG_ROW;	
 }
 
 /**
@@ -1552,6 +1285,7 @@ dbnextrow(DBPROCESS * dbproc)
 	RETCODE result = FAIL;
 	TDS_INT res_type;
 	TDS_INT computeid;
+	int idx; /* row buffer index.  Unless DBUFFER is on, idx will always be 0. */
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnextrow()\n");
 
@@ -1566,64 +1300,64 @@ dbnextrow(DBPROCESS * dbproc)
 
 	resinfo = tds->res_info;
 
-	/* no result set or result set empty (no rows) */
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnextrow() dbresults_state = %d\n", dbproc->dbresults_state);
 
 	if (!resinfo || dbproc->dbresults_state != _DB_RES_RESULTSET_ROWS) {
+		/* no result set or result set empty (no rows) */
 		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %d\n", NO_MORE_ROWS);
 		return dbproc->row_type = NO_MORE_ROWS;
 	}
 
-	if (dbproc->row_buf.buffering_on && buffer_is_full(&(dbproc->row_buf))
-	    && (-1 == buffer_index_of_resultset_row(&(dbproc->row_buf), dbproc->row_buf.next_row))) {
-		result = BUF_FULL;
-	} else {
-		/* If no rows are read, DBROWTYPE() will report NO_MORE_ROWS. */
-		dbproc->row_type = NO_MORE_ROWS; 
-		computeid = REG_ROW;
 
+	/*
+	 * Try to get the dbproc->row_buf.current item from the buffered rows, if any.  
+	 * Else read from the stream, unless the buffer is exhausted.  
+	 * If no rows are read, DBROWTYPE() will report NO_MORE_ROWS. 
+	 */
+	dbproc->row_type = NO_MORE_ROWS; 
+	computeid = REG_ROW;
+	if (-1 != (idx = buffer_current_index(dbproc))) {			
 		/*
-		 * Try to get the dbproc->row_buf.next_row item into the row buffer.
+		 * Cool, the item we want is already there
 		 */
-		if (-1 != buffer_index_of_resultset_row(&(dbproc->row_buf), dbproc->row_buf.next_row)) {
-			/*
-			 * Cool, the item we want is already there
-			 */
-			result = dbproc->row_type = REG_ROW;
-			res_type = TDS_ROW_RESULT;
-		} else {
+		result = dbproc->row_type = REG_ROW;
+		res_type = TDS_ROW_RESULT;
+		
+	} else if (buffer_is_full(&dbproc->row_buf)) {
+		
+		result = BUF_FULL;
 
-			/* Get the row from the TDS stream.  */
+	} else {
+		/* Get the row from the TDS stream.  */
 
-			switch (tds_process_tokens(dbproc->tds_socket, &res_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) {
-			case TDS_SUCCEED:
-				if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
-					if (res_type == TDS_COMPUTE_RESULT)
-						computeid = tds->current_results->computeid;
-					/* Add the row to the row buffer */
-					resinfo = tds->current_results;
-					buffer_add_row(&(dbproc->row_buf), resinfo->current_row, resinfo->row_size);
-					result = dbproc->row_type = (res_type == TDS_ROW_RESULT)? REG_ROW : computeid;
-					break;
-				}
-			case TDS_NO_MORE_RESULTS:
-				dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
-				result = NO_MORE_ROWS;
-				break;
-			default:
-				result = FAIL;
+		switch (tds_process_tokens(dbproc->tds_socket, &res_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) {
+		case TDS_SUCCEED:
+			if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
+				if (res_type == TDS_COMPUTE_RESULT)
+					computeid = tds->current_results->computeid;
+				/* Add the row to the row buffer, whose capacity is always at least 1 */
+				resinfo = tds->current_results;
+				idx = buffer_add_row(dbproc, resinfo->current_row, resinfo->row_size);
+				assert(idx != -1);
+				result = dbproc->row_type = (res_type == TDS_ROW_RESULT)? REG_ROW : computeid;
 				break;
 			}
+		case TDS_NO_MORE_RESULTS:
+			dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+			result = NO_MORE_ROWS;
+			break;
+		default:
+			result = FAIL;
+			break;
 		}
+	}
 
-		if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
-			/*
-			 * Transfer the data from the row buffer to the bound variables.  
-			 */
-			buffer_transfer_bound_data(res_type, computeid, &(dbproc->row_buf), dbproc, dbproc->row_buf.next_row);
-			dbproc->row_buf.next_row++;
-		}
+	if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
+		/*
+		 * Transfer the data from the row buffer to the bound variables.  
+		 */
+		buffer_transfer_bound_data(&dbproc->row_buf, res_type, computeid, dbproc, idx);
 	}
 	
 	tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %d\n", result);
@@ -2290,12 +2024,8 @@ dbclrbuf(DBPROCESS * dbproc, DBINT n)
 	if (n <= 0)
 		return;
 
-	if (dbproc->row_buf.buffering_on) {
-		if (n >= dbproc->row_buf.rows_in_buf) {
-			buffer_delete_rows(&(dbproc->row_buf), dbproc->row_buf.rows_in_buf - 1);
-		} else {
-			buffer_delete_rows(&(dbproc->row_buf), n);
-		}
+	if (dbproc->dbopts[DBBUFFER].optactive) {
+		buffer_delete_rows(&(dbproc->row_buf), n);
 	}
 }
 
@@ -3807,17 +3537,19 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		 * Requires param "2" to "2147483647" 
 		 * (0 or 1 is an error, < 0 yields the default 100) 
 		 */
-		{ 
+		{
+			int nrows; 
+			
 			/* 100 is the default, according to Microsoft */
 			if( !char_param )
 				char_param = "100";
 
-			int nrows = atoi(char_param);
+			nrows = atoi(char_param);
 
 			nrows = (nrows < 0 )? 100 : nrows;
 
 			if( 1 < nrows && nrows <= 2147483647 ) {
-				buffer_set_buffering(&(dbproc->row_buf), nrows);
+				buffer_set_capacity(dbproc, nrows);
 				return SUCCEED;
 			}
 		}
@@ -5088,6 +4820,10 @@ dbclropt(DBPROCESS * dbproc, int option, char *param)
 		dbstring_concat(&(dbproc->dboptcmd), cmd);
 		free(cmd);
 		break;
+	case DBBUFFER:
+		buffer_set_capacity(dbproc, 1); /* frees row_buf->rows */
+		return SUCCEED;
+		break;
 	default:
 		break;
 	}
@@ -5996,38 +5732,6 @@ dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *re
 
 /** \internal
  * \ingroup dblib_internal
- * \brief Get number of the last row in the row buffer.
- * 
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa DBLASTROW(), dbclrbuf(), DBCURROW(), DBFIRSTROW(), dbgetrow(), dbnextrow(), dbsetopt(). 
- */
-DBINT
-dblastrow(DBPROCESS * dbproc)
-{
-	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
-
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	return resinfo->row_count;
-#if 0
-	DBINT result;
-
-	if (dbproc->row_buf.rows_in_buf == 0) {
-		result = 0;
-	} else {
-		/*
-		 * rows returned from the row buffer start with 1 instead of 0
-		 * newest is 0 based.
-		 */
-		result = dbproc->row_buf.newest + 1;
-	}
-	return result;
-#endif
-}
-
-/** \internal
- * \ingroup dblib_internal
  * \brief Get number of the first row in the row buffer.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -6036,14 +5740,29 @@ dblastrow(DBPROCESS * dbproc)
 DBINT
 dbfirstrow(DBPROCESS * dbproc)
 {
-	DBINT result;
+	return buffer_idx2row(&dbproc->row_buf, dbproc->row_buf.tail);
+}
 
-	if (dbproc->row_buf.rows_in_buf == 0) {
-		result = 0;
+/** \internal
+ * \ingroup dblib_internal
+ * \brief Get number of the last row in the row buffer.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \sa DBLASTROW(), dbclrbuf(), DBCURROW(), DBFIRSTROW(), dbgetrow(), dbnextrow(), dbsetopt(). 
+ */
+DBINT
+dblastrow(DBPROCESS * dbproc)
+{
+	int idx = -1;
+	if (dbproc->row_buf.head == dbproc->row_buf.tail) {
+		idx = dbproc->row_buf.head;
 	} else {
-		result = dbproc->row_buf.oldest;
+		idx = dbproc->row_buf.head;
+		if (--idx < 0) 
+			idx = dbproc->row_buf.capacity - 1;
 	}
-	return result;
+	assert(idx >= 0);
+	return buffer_idx2row(&dbproc->row_buf, idx);
 }
 
 /** \internal

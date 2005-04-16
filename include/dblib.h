@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.26 2005-04-15 11:51:55 freddy77 Exp $";
+static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.27 2005-04-16 23:57:38 jklowden Exp $";
 static const void *const no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
 
 enum {
@@ -47,15 +47,13 @@ struct tds_dblib_loginrec
 
 typedef struct tag_DBPROC_ROWBUF
 {
-	int buffering_on;	/* (boolean) is row buffering turned on?     */
-	int first_in_buf;	/* result set row number of first row in buf */
-	int next_row;		/* result set row number of next row         */
-	int newest;		/* index of most recent item in queue        */
-	int oldest;		/* index of least recent item in queue       */
-	int elcount;		/* max element count that buffer can hold    */
-	int element_size;	/* size in bytes of each element in queue    */
-	int rows_in_buf;	/* # of rows currently in buffer             */
-	void *rows;		/* pointer to the row storage                */
+	int received;	  	/* how many rows have been received for this result set */
+	int head;	  	/* queue insertion point */
+	int tail;	  	/* oldest item in queue	*/
+	int current;		/* dbnextrow() reads this row */
+	int capacity;		/* how many elements the queue can hold  */
+	int element_size;	/* size in bytes of each element in queue */
+	void *rows;		/* pointer to the row storage */
 } DBPROC_ROWBUF;
 
 typedef struct

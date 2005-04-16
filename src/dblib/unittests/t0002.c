@@ -27,7 +27,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.18 2005-04-13 22:59:46 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.19 2005-04-16 23:57:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -194,13 +194,17 @@ main(int argc, char **argv)
 			} while (i % buffer_count);
 
 			if (iresults == 1 && i == rows_to_add) {
-				while ((rc = dbnextrow(dbproc)) != NO_MORE_ROWS) {
-					/* We fetched 50 rows, but weren't yet told NO_MORE_ROWS  */
-					assert(rc != NO_MORE_ROWS);
-					exit(1);
-				}
+				/* The buffer should be full */
+				assert(BUF_FULL == dbnextrow(dbproc));
 			}
 				
+		}
+		if (iresults == 1) {
+			fprintf(stdout, "clearing %d rows from buffer\n", buffer_count);
+			dbclrbuf(dbproc, buffer_count);
+			while (dbnextrow(dbproc) != NO_MORE_ROWS) {
+				abort(); /* All rows were read: should not enter loop */
+			}
 		}
 	}
 
@@ -210,6 +214,12 @@ main(int argc, char **argv)
 	 */
 	rc = dbgetrow(dbproc, 1);
 	add_bread_crumb();
+	if(rc != NO_MORE_ROWS)	/* row 1 is not among the 31-40 in the buffer */
+		fprintf(stderr, "Failed: dbgetrow returned %d.\n", rc);
+	assert(rc == NO_MORE_ROWS);
+
+	rc = dbgetrow(dbproc, 31);
+	add_bread_crumb();
 	if(rc != REG_ROW)
 		fprintf(stderr, "Failed: dbgetrow returned %d.\n", rc);
 	assert(rc == REG_ROW);
@@ -217,6 +227,8 @@ main(int argc, char **argv)
 
 	rc = dbnextrow(dbproc);
 	add_bread_crumb();
+	if(rc != REG_ROW)
+		fprintf(stderr, "Failed: dbgetrow returned %d.\n", rc);
 	assert(rc == REG_ROW);
 	verify(32, testint, teststr);	/* next buffered row should be 32 */
 
@@ -224,7 +236,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 	assert(rc == NO_MORE_ROWS);	/* only 10 (not 11) rows buffered */
 
-	rc = dbgetrow(dbproc, 10);
+	rc = dbgetrow(dbproc, 40);
 	add_bread_crumb();
 	assert(rc == REG_ROW);
 	verify(40, testint, teststr);	/* last buffered row should be 40 */
@@ -248,7 +260,7 @@ main(int argc, char **argv)
 	/* buffer contains 9 rows (34-42) try removing 10 rows */
 	dbclrbuf(dbproc, buffer_count);
 
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+	while (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		/* waste rows 43-50 */
 	}
 
