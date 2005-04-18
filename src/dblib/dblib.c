@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.215 2005-04-16 23:57:38 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.216 2005-04-18 09:36:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1327,6 +1327,7 @@ dbnextrow(DBPROCESS * dbproc)
 	} else if (buffer_is_full(&dbproc->row_buf)) {
 		
 		result = BUF_FULL;
+		res_type = TDS_ROWFMT_RESULT;
 
 	} else {
 		/* Get the row from the TDS stream.  */

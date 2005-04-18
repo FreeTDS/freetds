@@ -1,3 +1,6 @@
+Mon Apr 18 11:34:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: fix a small error in dblib
+
 Mon Apr 18 01:14:40 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* configure.in exclude vms from outputs (use EXTRA_DIST)
 
@@ -5,7 +8,7 @@ Sat Apr 16 19:52:13 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* Makefile.am vms/Makefile.am don't try to generate a vms makefile
 	* include/dblib.h src/dblib/dblib.c src/dblib/buffering.h 
 	* src/dblib/unittests/t0002.c New buffering algorithm
-	
+
 Fri Apr 15 15:33:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/prepare_results.c:
 	* src/odbc/unittests/typeinfo.c:
