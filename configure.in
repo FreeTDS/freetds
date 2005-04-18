@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.in,v 1.156 2005-04-05 14:56:30 freddy77 Exp $
+dnl $Id: configure.in,v 1.157 2005-04-18 05:17:09 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -12,7 +12,7 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 AC_INIT(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.156 $)
+AC_REVISION($Revision: 1.157 $)
 
 define(TDSDATE, esyscmd(echo -n $(date +"%Y%m%d")))
 AM_INIT_AUTOMAKE(freetds, 0.64.dev.TDSDATE)
@@ -563,7 +563,6 @@ AC_OUTPUT(include/tdsver.h \
 	src/odbc/unittests/Makefile \
 	src/apps/Makefile \
 	freetds.spec \
-	vms/Makefile \
 	win32/Makefile win32/msvc6/Makefile win32/dev-cpp/Makefile \
 	win32/version.rc win32/freetds.nsh
 )
