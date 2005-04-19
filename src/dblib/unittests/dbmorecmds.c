@@ -1,7 +1,8 @@
-/*
- * dbmorecmds.c: Test behaviour of dbmorecmds()
- *
+/* 
+ * Purpose: Test behaviour of dbmorecmds()
+ * Functions: dbmorecmds 
  */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -21,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.8 2004-12-01 03:55:13 jklowden Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.9 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;

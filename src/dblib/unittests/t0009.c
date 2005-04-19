@@ -1,9 +1,6 @@
-/* ================================= t0009.c =================================
- * 
- *  Def:   Test to see if dbbind can handle a varlen of 0 with a 
- *         column bound as STRINGBIND and a database column of CHAR.
- * 
- * ===========================================================================
+/* 
+ * Purpose: Test if dbbind can handle a varlen of 0 with a column bound as STRINGBIND and a database column of CHAR.
+ * Functions: dbbind dbcmd dbnextrow dbnumcols dbopen dbresults dbsqlexec 
  */
 
 #if HAVE_CONFIG_H
@@ -27,7 +24,7 @@
 
 
 
-static char software_version[] = "$Id: t0009.c,v 1.11 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.12 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

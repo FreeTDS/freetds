@@ -1,7 +1,8 @@
-/*
- * ** t0019.c: Some conversion, check trimming error and results
- * **
- * */
+/* 
+ * Purpose: Test Some conversion, check trimming error and results
+ * Functions: dbconvert dberrhandle dbmsghandle dbinit dbexit
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -22,7 +23,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0019.c,v 1.10 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0019.c,v 1.11 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failure = 0;

@@ -1,3 +1,9 @@
+/* 
+ * Purpose: Test binding of string types
+ * Functions: dbbind dbcmd dbcolname dbnextrow dbnumcols dbopen dbresults dbsqlexec 
+
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -17,16 +23,8 @@
 
 #include "common.h"
 
-/*
- * Test binding of string types
- *
- */
-
-
-static char software_version[] = "$Id: t0011.c,v 1.9 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0011.c,v 1.10 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-
 
 int failed = 0;
 const char long_column[] = "This is a really long column to ensure that the next row ends properly.";

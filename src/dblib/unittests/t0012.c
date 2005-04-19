@@ -1,3 +1,8 @@
+/* 
+ * Purpose: Test datetime conversion as well as dbdata() & dbdatlen()
+ * Functions: dbcmd dbdata dbdatecrack dbdatlen dbnextrow dbresults dbsqlexec
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -17,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0012.c,v 1.17 2004-11-28 09:27:14 freddy77 Exp $";
+static char software_version[] = "$Id: t0012.c,v 1.18 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 

@@ -1,7 +1,8 @@
-/*
-** t0018.c: Test behaviour of DBCOUNT() for updates and inserts
-**
-*/
+/* 
+ * Purpose: Test behaviour of DBCOUNT() for updates and inserts
+ * Functions: DBCOUNT dbbind dbnextrow dbnumcols dbopen dbresults dbsqlexec 
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -21,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0018.c,v 1.14 2005-01-09 13:51:57 freddy77 Exp $";
+static char software_version[] = "$Id: t0018.c,v 1.15 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

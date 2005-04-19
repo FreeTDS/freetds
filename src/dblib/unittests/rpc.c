@@ -1,3 +1,8 @@
+/* 
+ * Purpose: Test remote procedure calls
+ * Functions:  dbretdata dbretlen dbretname dbretstatus dbrettype dbrpcinit dbrpcparam dbrpcsend 
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -21,7 +26,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.20 2005-04-03 13:37:27 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.21 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];

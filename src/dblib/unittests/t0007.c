@@ -1,3 +1,8 @@
+/* 
+ * Purpose: Test binding strings and ints, attempt 2nd query with results pending. 
+ * Functions: dbbind dbcmd dbnextrow dbopen dbresults dbsqlexec 
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -18,7 +23,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0007.c,v 1.12 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.13 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

@@ -1,3 +1,8 @@
+/* 
+ * Purpose: Test bcp functions
+ * Functions: bcp_batch bcp_bind bcp_done bcp_init bcp_sendrow 
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -27,7 +32,7 @@
 #include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.7 2005-03-29 15:19:34 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.8 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];

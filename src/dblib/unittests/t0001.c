@@ -1,3 +1,8 @@
+/* 
+ * Purpose: Log in, create a table, insert a few rows, select them, and log out.   
+ * Functions: dbbind dbcmd dbcolname dberrhandle dbisopt dbmsghandle dbnextrow dbnumcols dbopen dbresults dbsetlogintime dbsqlexec dbuse 
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -17,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.18 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.19 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

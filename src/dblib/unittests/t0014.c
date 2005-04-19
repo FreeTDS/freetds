@@ -1,3 +1,8 @@
+/* 
+ * Purpose: Test sending and receiving TEXT datatype
+ * Functions: dbbind dbmoretext dbreadtext dbtxptr dbtxtimestamp dbwritetext 
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -17,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.22 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.23 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096

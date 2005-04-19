@@ -1,3 +1,8 @@
+/* 
+ * Purpose: Test data retrieval accuracy and cancelling results
+ * Functions: dbbind dbcancel dbcmd dbcolname dbnextrow dbnumcols dbresults dbsqlexec 
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -17,12 +22,8 @@
 
 #include "common.h"
 
-
-
-static char software_version[] = "$Id: t0005.c,v 1.15 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.16 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-
 
 int
 main(int argc, char **argv)

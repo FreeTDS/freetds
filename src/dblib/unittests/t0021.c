@@ -1,6 +1,8 @@
 /* 
-** test for proper return code from dbsqlexec()
-*/
+ * Purpose: Test dbsafestr()
+ * Functions: dbsafestr 
+ */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -20,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0021.c,v 1.10 2002-11-23 17:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: t0021.c,v 1.11 2005-04-19 03:51:04 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
