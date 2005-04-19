@@ -1,3 +1,7 @@
+Tue Apr 19 13:52:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/raiserror.c:
+	- fix problem reading data before and after SQLFetch
+
 Mon Apr 18 23:47:09 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/bcp.c src/dblib/unittests/dbmorecmds.c
 	* src/dblib/unittests/rpc.c src/dblib/unittests/t0001.c
@@ -14,7 +18,7 @@ Mon Apr 18 23:47:09 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/t0023.c
 	- add comments in a standard form to describe the purpose of
 	- the test and the functions tested.
-	
+
 Mon Apr 18 11:34:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: fix a small error in dblib
 

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.367 2005-04-15 13:33:30 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.368 2005-04-19 11:53:31 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -529,11 +529,11 @@ SQLMoreResults(SQLHSTMT hstmt)
 		case TDS_NO_MORE_RESULTS:
 			if (stmt->dbc->current_statement == stmt)
 				stmt->dbc->current_statement = NULL;
-#if !UNIXODBC
+//#if !UNIXODBC
 			tds_free_all_results(tds);
-#endif
+//#endif
 			odbc_populate_ird(stmt);
-			if (!got_rows)
+			if (!got_rows && !in_row)
 				stmt->row_status = NOT_IN_ROW;
 			if (!got_rows && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 				ODBC_RETURN(stmt, SQL_NO_DATA);
@@ -568,7 +568,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				break;
 			case TDS_ROW_RESULT:
 				if (in_row || (stmt->row_status != IN_NORMAL_ROW && stmt->row_status != PRE_NORMAL_ROW)) {
-					stmt->row_status = IN_NORMAL_ROW;
+					stmt->row_status = PRE_NORMAL_ROW;
 					odbc_populate_ird(stmt);
 					ODBC_RETURN_(stmt);
 				}
@@ -2745,7 +2745,7 @@ _SQLFetch(TDS_STMT * stmt)
 				 * NOTE do not set row_status to NOT_IN_ROW, 
 				 * if compute tds_process_tokens above returns TDS_NO_MORE_RESULTS
 				 */
-				stmt->row_status = AFTER_COMPUTE_ROW;
+				stmt->row_status = PRE_NORMAL_ROW;
 				stmt->special_row = 0;
 				odbc_populate_ird(stmt);
 				tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");

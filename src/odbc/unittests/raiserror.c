@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.9 2005-04-13 17:00:49 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.10 2005-04-19 11:53:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -58,8 +58,10 @@ TestResult(SQLRETURN result, int level, const char *func)
 	}
 }
 
+#define MY_ERROR(msg) ReportError(msg, line, __FILE__)
+
 static void
-CheckData(const char *s)
+CheckData(const char *s, int line)
 {
 	char buf[80];
 	SQLINTEGER ind;
@@ -67,7 +69,7 @@ CheckData(const char *s)
 
 	result = SQLGetData(Statement, 1, SQL_C_CHAR, buf, sizeof(buf), &ind);
 	if (result != SQL_SUCCESS && result != SQL_ERROR)
-		ODBC_REPORT_ERROR("SQLFetch invalid result");
+		MY_ERROR("SQLFetch invalid result");
 
 	if (result == SQL_ERROR) {
 		buf[0] = 0;
@@ -75,8 +77,10 @@ CheckData(const char *s)
 	}
 
 	if (strlen(s) != ind || strcmp(buf, s) != 0)
-		ODBC_REPORT_ERROR("Invalid result");
+		MY_ERROR("Invalid result");
 }
+
+#define CheckData(s) CheckData(s, __LINE__)
 
 static void
 Test(int level)
@@ -123,9 +127,7 @@ Test(int level)
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
-#ifdef ENABLE_DEVELOPING
 	CheckData("");
-#endif
 
 	result = SQLMoreResults(Statement);
 
@@ -135,18 +137,14 @@ Test(int level)
 
 	TestResult(result, level, "SQLMoreResults");
 
-#ifdef ENABLE_DEVELOPING
 	CheckData("");
-#endif
 	if (SQLFetch(Statement) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
 	CheckData("Here is the last row");
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
-#ifdef ENABLE_DEVELOPING
 	CheckData("");
-#endif
 
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults return other data");
