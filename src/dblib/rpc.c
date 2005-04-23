@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.41 2005-04-03 13:37:27 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.42 2005-04-23 20:52:46 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -288,19 +288,25 @@ static const unsigned char *
 param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *value, int size)
 {
 	const unsigned char *row = tds_alloc_param_row(params, curcol);
-	tdsdump_log(TDS_DBG_INFO1, "param_row_alloc, size = %d, offset = %d, row_size = %d\n",
-                size, curcol->column_offset,
-                params->row_size);
-
+	tdsdump_log(TDS_DBG_INFO1, "parameter size = %d, offset = %d, row_size = %d\n",
+				   size, curcol->column_offset, params->row_size);
 	if (!row)
 		return NULL;
-	tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): doing data from value\n");
 	if (size > 0 && value) {
-		tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): copying %d bytes of data to parameter #%d\n", size, param_num);
-		memcpy(&params->current_row[curcol->column_offset], value, size);
+		tdsdump_log(TDS_DBG_FUNC, "copying %d bytes of data to parameter #%d\n", size, param_num);
+		if (!is_blob_type(curcol->column_type)) {
+			memcpy(&params->current_row[curcol->column_offset], value, size);
+		} else {
+			TDSBLOB *blob = (TDSBLOB *) &params->current_row[curcol->column_offset];
+			blob->textvalue = malloc(size);
+			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, textvalue pointer is %p\n", size, blob->textvalue);
+			if (!blob->textvalue)
+				return NULL;
+			memcpy(blob->textvalue, value, size);
+		}
 	}
 	else {
-		tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): setting parameter #%d to NULL\n", param_num);
+		tdsdump_log(TDS_DBG_FUNC, "setting parameter #%d to NULL\n", param_num);
 		curcol->column_cur_size = -1;
 	}
 
