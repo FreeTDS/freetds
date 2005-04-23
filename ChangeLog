@@ -1,3 +1,7 @@
+Sat Apr 23 16:45:32 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* src/tds/Makefile.am $(srcdir) not needed on make variables
+	* src/dblib/rpc.c blobs as parameters (thanks, Frediano)
+
 Tue Apr 19 13:52:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/raiserror.c:
 	- fix problem reading data before and after SQLFetch
@@ -45,7 +49,6 @@ Fri Apr 15 13:48:06 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	- TDSCONTEXT constification
 	- removed tds_ctx_set_parent/tds_ctx_get_parent
 	- add parent argument to tds_alloc_context
-	
 
 Thu Apr 14 13:33:14 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c: check proper result type for rows

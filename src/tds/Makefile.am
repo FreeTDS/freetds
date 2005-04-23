@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.52 2005-04-06 06:44:33 jklowden Exp $
+# $Id: Makefile.am,v 1.53 2005-04-23 20:52:40 jklowden Exp $
 
 SUBDIRS			=	unittests
 
@@ -52,13 +52,13 @@ clean-local:
 	
 tds_willconvert.h: tds_willconvert.pl Makefile
 	perl $(srcdir)/tds_willconvert.pl > $@.tmp
-	mv $@.tmp $(srcdir)/$@
+	mv $@.tmp $@
 
 encodings.h: encodings.pl alternative_character_sets.h Makefile
 	perl $(srcdir)/encodings.pl $(srcdir) > $@.tmp
 	mv $@.tmp $@
 
 num_limits.h: num_limits.pl Makefile
-	perl $(srcdir)/num_limits.pl > .$@
-	mv .$@ $(srcdir)/$@
+	perl $(srcdir)/num_limits.pl > $@.tmp
+	mv $@.tmp $@
 endif
