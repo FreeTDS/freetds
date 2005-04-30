@@ -1,3 +1,7 @@
+Sat Apr 30 18:45:49 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/index.html doc/htdoc/news.html doc/htdoc/software.html
+	- update the website for 0.63. 
+
 Sat Apr 23 16:45:32 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/tds/Makefile.am $(srcdir) not needed on make variables
 	* src/dblib/rpc.c blobs as parameters (thanks, Frediano)
