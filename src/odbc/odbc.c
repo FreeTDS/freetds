@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.369 2005-05-03 11:53:27 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.370 2005-05-03 15:05:24 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -526,8 +526,10 @@ SQLMoreResults(SQLHSTMT hstmt)
 		in_row = 1;
 	}
 	for (;;) {
-		switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) {
-		case TDS_NO_MORE_RESULTS:
+		result_type = odbc_process_tokens(stmt, TDS_TOKEN_RESULTS);
+		switch (result_type) {
+		case TDS_CMD_DONE:
+			got_rows = (stmt->row_count != TDS_NO_COUNT);
 			if (stmt->dbc->current_statement == stmt)
 				stmt->dbc->current_statement = NULL;
 //#if !UNIXODBC
@@ -546,107 +548,80 @@ SQLMoreResults(SQLHSTMT hstmt)
 			if (!got_rows && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 			ODBC_RETURN_(stmt);
-		case TDS_FAIL:
+		case TDS_CMD_FAIL:
 			ODBC_RETURN(stmt, SQL_ERROR);
-		case TDS_SUCCEED:
-			switch (result_type) {
-			case TDS_COMPUTE_RESULT:
-				switch (stmt->row_status) {
-				/* in normal row, put in compute status */
-				case AFTER_COMPUTE_ROW:
-				case IN_NORMAL_ROW:
-				case PRE_NORMAL_ROW:
-					stmt->row_status = IN_COMPUTE_ROW;
-					if (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) == TDS_FAIL)
-						ODBC_RETURN(stmt, SQL_ERROR);
-					odbc_populate_ird(stmt);
-					ODBC_RETURN_(stmt);
-				/* skip this recordset */
-				case IN_COMPUTE_ROW:
-					stmt->row_status = AFTER_COMPUTE_ROW;
-					/* TODO here we should set current_results to normal results */
-					in_row = 1;
-					/* FIXME here we should set IRD but we can't... TODO */
-					break;
-				case NOT_IN_ROW:
-					/* this should never happen */
+		case TDS_COMPUTE_RESULT:
+			switch (stmt->row_status) {
+			/* in normal row, put in compute status */
+			case AFTER_COMPUTE_ROW:
+			case IN_NORMAL_ROW:
+			case PRE_NORMAL_ROW:
+				stmt->row_status = IN_COMPUTE_ROW;
+				if (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) == TDS_FAIL)
 					ODBC_RETURN(stmt, SQL_ERROR);
-					break;
-				}
-				break;
-			case TDS_ROW_RESULT:
-				if (in_row || (stmt->row_status != IN_NORMAL_ROW && stmt->row_status != PRE_NORMAL_ROW)) {
-					stmt->row_status = PRE_NORMAL_ROW;
-					odbc_populate_ird(stmt);
-					ODBC_RETURN_(stmt);
-				}
-				/* Skipping current result set's rows to access next resultset or proc's retval */
-				tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_STOPAT_COMPUTE);
-				/* TODO should we set in_row ?? */
-				if (tdsret == TDS_FAIL)
-					ODBC_RETURN(stmt, SQL_ERROR);
-				break;
-			case TDS_STATUS_RESULT:
-				odbc_set_return_status(stmt);
-				break;
-			case TDS_PARAM_RESULT:
-				odbc_set_return_params(stmt);
-				break;
-
-			case TDS_DONE_RESULT:
-			case TDS_DONEPROC_RESULT:
-				if (done_flags & TDS_DONE_COUNT) {
-					got_rows = 1;
-					stmt->row_count = tds->rows_affected;
-				}
-				if (!in_row && !(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
-					break;
-				if (done_flags & TDS_DONE_ERROR)
-					stmt->errs.lastrc = SQL_ERROR;
-				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
-				stmt->row = 0;
-				/* FIXME here ??? */
-				if (!in_row)
-					tds_free_all_results(tds);
 				odbc_populate_ird(stmt);
 				ODBC_RETURN_(stmt);
-				break;
-
-				/*
-				 * TODO test flags ? check error and change result ? 
-				 * see also other DONEINPROC handle (below)
-				 */
-			case TDS_DONEINPROC_RESULT:
-				if (done_flags & TDS_DONE_COUNT) {
-					got_rows = 1;
-					stmt->row_count = tds->rows_affected;
-				}
-				if (done_flags & TDS_DONE_ERROR)
-					stmt->errs.lastrc = SQL_ERROR;
-				if (in_row) {
-					odbc_populate_ird(stmt);
-					ODBC_RETURN_(stmt);
-				}
-				/* TODO perhaps it can be a problem if SET NOCOUNT ON, test it */
-				tds_free_all_results(tds);
-				odbc_populate_ird(stmt);
-				break;
-
-				/* do not stop at metadata, an error can follow... */
-			case TDS_ROWFMT_RESULT:
-				if (in_row) {
-					odbc_populate_ird(stmt);
-					ODBC_RETURN_(stmt);
-				}
-				stmt->row = 0;
-				stmt->row_count = TDS_NO_COUNT;
-				stmt->next_row_count = TDS_NO_COUNT;
-				/* we expect a row */
-				stmt->row_status = PRE_NORMAL_ROW;
+			/* skip this recordset */
+			case IN_COMPUTE_ROW:
+				stmt->row_status = AFTER_COMPUTE_ROW;
+				/* TODO here we should set current_results to normal results */
 				in_row = 1;
+				/* FIXME here we should set IRD but we can't... TODO */
+				break;
+			case NOT_IN_ROW:
+				/* this should never happen */
+				ODBC_RETURN(stmt, SQL_ERROR);
 				break;
 			}
-		default:
+			break;
+		case TDS_ROW_RESULT:
+			if (in_row || (stmt->row_status != IN_NORMAL_ROW && stmt->row_status != PRE_NORMAL_ROW)) {
+				stmt->row_status = PRE_NORMAL_ROW;
+				odbc_populate_ird(stmt);
+				ODBC_RETURN_(stmt);
+			}
+			/* Skipping current result set's rows to access next resultset or proc's retval */
+			tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_STOPAT_COMPUTE);
+			/* TODO should we set in_row ?? */
+			if (tdsret == TDS_FAIL)
+				ODBC_RETURN(stmt, SQL_ERROR);
+			break;
+
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+			/* FIXME here ??? */
+			if (!in_row)
+				tds_free_all_results(tds);
+			odbc_populate_ird(stmt);
+			ODBC_RETURN_(stmt);
+			break;
+
+			/*
+			 * TODO test flags ? check error and change result ? 
+			 * see also other DONEINPROC handle (below)
+			 */
+		case TDS_DONEINPROC_RESULT:
+			if (in_row) {
+				odbc_populate_ird(stmt);
+				ODBC_RETURN_(stmt);
+			}
+			/* TODO perhaps it can be a problem if SET NOCOUNT ON, test it */
+			tds_free_all_results(tds);
+			odbc_populate_ird(stmt);
+			break;
+
+			/* do not stop at metadata, an error can follow... */
+		case TDS_ROWFMT_RESULT:
+			if (in_row) {
+				odbc_populate_ird(stmt);
+				ODBC_RETURN_(stmt);
+			}
+			stmt->row = 0;
+			stmt->row_count = TDS_NO_COUNT;
+			stmt->next_row_count = TDS_NO_COUNT;
+			/* we expect a row */
+			stmt->row_status = PRE_NORMAL_ROW;
+			in_row = 1;
 			break;
 		}
 	}
@@ -2700,7 +2675,6 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			stmt->row = 0;
 //			tds_free_all_results(tds);
 //			odbc_populate_ird(stmt);
-//			ODBC_RETURN_(stmt);
 			return result_type;
 			break;
 
@@ -2720,6 +2694,8 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			/* TODO perhaps it can be a problem if SET NOCOUNT ON, test it */
 //			tds_free_all_results(tds);
 //			odbc_populate_ird(stmt);
+			if (stmt->row_status == PRE_NORMAL_ROW)
+				return result_type;
 			break;
 
 		default:
