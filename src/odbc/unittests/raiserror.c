@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.10 2005-04-19 11:53:31 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.11 2005-05-03 11:47:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -125,17 +125,18 @@ Test(int level)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
 	CheckData("Here is the first row");
 
-	if (SQLFetch(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("SQLFetch returned failure");
-	CheckData("");
+	result = SQLFetch(Statement);
+	TestResult(result == SQL_NO_DATA ? SQL_SUCCESS_WITH_INFO : result, level, "SQLFetch");
 
-	result = SQLMoreResults(Statement);
+	if (driver_is_freetds())
+		CheckData("");
+
+	if (SQLMoreResults(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLMoreResults returned failure");
 
 	printf("SpDateTest Output:\n");
 	printf("   Result = %d\n", (int) result);
 	printf("   Return Code = %d\n", (int) ReturnCode);
-
-	TestResult(result, level, "SQLMoreResults");
 
 	CheckData("");
 	if (SQLFetch(Statement) != SQL_SUCCESS)
@@ -146,8 +147,12 @@ Test(int level)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
 	CheckData("");
 
+	/* FIXME how to handle return in store procedure ??  */
+	SQLMoreResults(Statement);
+#if 0
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults return other data");
+#endif
 	CheckData("");
 }
 

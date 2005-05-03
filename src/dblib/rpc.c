@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.42 2005-04-23 20:52:46 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.43 2005-05-03 11:47:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -299,7 +299,7 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 		} else {
 			TDSBLOB *blob = (TDSBLOB *) &params->current_row[curcol->column_offset];
 			blob->textvalue = malloc(size);
-			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, textvalue pointer is %p\n", size, blob->textvalue);
+			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n", size, blob->textvalue);
 			if (!blob->textvalue)
 				return NULL;
 			memcpy(blob->textvalue, value, size);

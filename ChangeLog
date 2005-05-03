@@ -1,3 +1,7 @@
+Tue May  3 13:47:56 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c: fix dump
+	* src/odbc/unittests/raiserror.c: update
+
 Tue May  3 10:01:15 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/Makefile.am src/tds/Makefile.am:
 	- ignore warnings
