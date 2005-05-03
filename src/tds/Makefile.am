@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.53 2005-04-23 20:52:40 jklowden Exp $
+# $Id: Makefile.am,v 1.54 2005-05-03 08:01:54 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -55,7 +55,7 @@ tds_willconvert.h: tds_willconvert.pl Makefile
 	mv $@.tmp $@
 
 encodings.h: encodings.pl alternative_character_sets.h Makefile
-	perl $(srcdir)/encodings.pl $(srcdir) > $@.tmp
+	perl $(srcdir)/encodings.pl $(srcdir) > $@.tmp 2> /dev/null
 	mv $@.tmp $@
 
 num_limits.h: num_limits.pl Makefile

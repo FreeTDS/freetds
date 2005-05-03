@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.51 2005-02-14 12:44:30 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.52 2005-05-03 08:01:50 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -32,7 +32,7 @@ man:	freebcp.1 tsql.1 bsqldb.1 defncopy.1
 installdirs: 
 	$(mkinstalldirs)	$(TARGET_DOCDIR)/userguide    \
 				$(TARGET_DOCDIR)/reference    \
-				$(TARGET_DOCDIR)/images
+				$(TARGET_DOCDIR)/images 2>&1
 
 freebcp.1: freebcp.txt
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/freebcp.txt >.$@
@@ -61,7 +61,7 @@ defncopy.1: defncopy.txt
 # If we built the documentation ourselves, install that, 
 # else if we have access to distributed documentation, install that.  
 install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
-	$(mkinstalldirs) $(DOCDIR)
+	$(mkinstalldirs) $(DOCDIR) 2>&1
 	if test -r $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/userguide \( -type f -o -type l \) -exec \
 		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/userguide ';'
@@ -103,7 +103,7 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 	sed -ne's!SYSTEM "docbook.dsl" CDATA!SYSTEM "${DOCBOOK_DSL}" CDATA!; p' \
 		$(srcdir)/userguide.dsl.in > .userguide.dsl
 	mv .userguide.dsl userguide.dsl
-	$(mkinstalldirs) $(DOCDIR)/userguide
+	$(mkinstalldirs) $(DOCDIR)/userguide 2>&1
 	touch $(DOCDIR)/userguide/t.htm
 	rm -f $(DOCDIR)/userguide/*
 	$(MAKE) dblib.api.sgml
@@ -140,14 +140,14 @@ reference: $(DOCDIR)/reference/index.html
 DISTRIBUTED_REF_DIR = $(srcdir)/$(DOCDIR)/reference
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
-	$(mkinstalldirs) $(DOCDIR)
+	$(mkinstalldirs) $(DOCDIR) 2>&1
 	cd .. && $(MAKE) doxy 2> doc/doxy.log
 # if "make doxy" doesn't create anything, try to copy the distributed manual's HTML
 	if test -r $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
 		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \
 	fi
 # if we don't find the source, generate a stub
-	$(mkinstalldirs) $(DOCDIR)/reference
+	$(mkinstalldirs) $(DOCDIR)/reference 2>&1
 	if test ! -r $@ ; then \
 		cd $(DOCDIR)/reference && \
 		echo '<html><P>at <a HREF="http://www.freetds.org/reference/">www.freetds.org</a></html>' 	\
