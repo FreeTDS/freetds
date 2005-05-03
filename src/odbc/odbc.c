@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.368 2005-04-19 11:53:31 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.369 2005-05-03 11:53:27 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -99,6 +99,7 @@ static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
+static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
 
 #if ENABLE_EXTRA_CHECKS
 static void odbc_ird_check(TDS_STMT * stmt);
@@ -533,8 +534,15 @@ SQLMoreResults(SQLHSTMT hstmt)
 			tds_free_all_results(tds);
 //#endif
 			odbc_populate_ird(stmt);
-			if (!got_rows && !in_row)
+			if (!got_rows && !in_row) {
 				stmt->row_status = NOT_IN_ROW;
+				if (stmt->next_row_count != TDS_NO_COUNT) {
+					got_rows = 1;
+					stmt->row_count = stmt->next_row_count;
+					stmt->row_status = PRE_NORMAL_ROW;
+				}
+			}
+			stmt->next_row_count = TDS_NO_COUNT;
 			if (!got_rows && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 			ODBC_RETURN_(stmt);
@@ -632,6 +640,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				}
 				stmt->row = 0;
 				stmt->row_count = TDS_NO_COUNT;
+				stmt->next_row_count = TDS_NO_COUNT;
 				/* we expect a row */
 				stmt->row_status = PRE_NORMAL_ROW;
 				in_row = 1;
@@ -1223,6 +1232,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
 
 	stmt->row_count = TDS_NO_COUNT;
+	stmt->next_row_count = TDS_NO_COUNT;
 	stmt->row_status = NOT_IN_ROW;
 
 	/* insert into list */
@@ -1309,6 +1319,12 @@ SQLCancel(SQLHSTMT hstmt)
 {
 	TDSSOCKET *tds;
 
+	/*
+	 * FIXME this function can be called from other thread, do not free 
+	 * errors for this function
+	 * If function is called from another thread errors are not touched
+	 */
+	/* TODO some tests required */
 	INIT_HSTMT;
 	tds = stmt->dbc->tds_socket;
 
@@ -2502,6 +2518,7 @@ _SQLExecute(TDS_STMT * stmt)
 			ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	stmt->row_count = TDS_NO_COUNT;
+	stmt->next_row_count = TDS_NO_COUNT;
 	stmt->row_status = PRE_NORMAL_ROW;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
@@ -2552,6 +2569,7 @@ _SQLExecute(TDS_STMT * stmt)
 			}
 			stmt->row = 0;
 			stmt->row_count = TDS_NO_COUNT;
+			stmt->next_row_count = TDS_NO_COUNT;
 			stmt->row_status = PRE_NORMAL_ROW;
 			in_row = 1;
 			break;
@@ -2639,6 +2657,75 @@ SQLExecute(SQLHSTMT hstmt)
 	/* TODO test unprepare on statement free or connection close */
 
 	return _SQLExecute(stmt);
+}
+
+static int
+odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
+{
+	TDS_INT result_type;
+	int done_flags;
+	int got_rows;
+	TDSSOCKET * tds = stmt->dbc->tds_socket;
+
+	flag |= TDS_RETURN_DONE | TDS_RETURN_PROC;
+	for (;;) {
+		switch (tds_process_tokens(tds, &result_type, &done_flags, flag)) {
+		case TDS_NO_MORE_RESULTS:
+			return TDS_CMD_DONE;
+		case TDS_FAIL:
+			return TDS_CMD_FAIL;
+		}
+
+		switch (result_type) {
+		case TDS_STATUS_RESULT:
+			odbc_set_return_status(stmt);
+			break;
+		case TDS_PARAM_RESULT:
+			odbc_set_return_params(stmt);
+			break;
+
+		case TDS_DONE_RESULT:
+		case TDS_DONEPROC_RESULT:
+			if (done_flags & TDS_DONE_COUNT) {
+				if (stmt->row_count == TDS_NO_COUNT)
+					stmt->row_count = tds->rows_affected;
+				else
+					stmt->next_row_count = tds->rows_affected;
+			}
+			if (done_flags & TDS_DONE_ERROR)
+				stmt->errs.lastrc = SQL_ERROR;
+			if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
+				break;
+			/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
+			stmt->row = 0;
+//			tds_free_all_results(tds);
+//			odbc_populate_ird(stmt);
+//			ODBC_RETURN_(stmt);
+			return result_type;
+			break;
+
+		/*
+		 * TODO test flags ? check error and change result ?
+		 * see also other DONEINPROC handle (below)
+		 */
+		case TDS_DONEINPROC_RESULT:
+			if (done_flags & TDS_DONE_COUNT) {
+				if (stmt->row_count == TDS_NO_COUNT)
+					stmt->row_count = tds->rows_affected;
+				else
+					stmt->next_row_count = tds->rows_affected;
+			}
+			if (done_flags & TDS_DONE_ERROR)
+				stmt->errs.lastrc = SQL_ERROR;
+			/* TODO perhaps it can be a problem if SET NOCOUNT ON, test it */
+//			tds_free_all_results(tds);
+//			odbc_populate_ird(stmt);
+			break;
+
+		default:
+			return result_type;
+		}
+	}
 }
 
 /*
@@ -2735,23 +2822,22 @@ _SQLFetch(TDS_STMT * stmt)
 
 		default:
 			/* FIXME stmt->row_count set correctly ?? TDS_DONE_COUNT not checked */
-			switch (tds_process_tokens(stmt->dbc->tds_socket, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_STOPAT_COMPUTE)) {
-			case TDS_SUCCEED:
-				if (result_type == TDS_ROW_RESULT)
-					break;
-			case TDS_NO_MORE_RESULTS:
-				stmt->row_count = tds->rows_affected;
+			switch (odbc_process_tokens(stmt, TDS_STOPAT_ROWFMT|TDS_RETURN_ROW|TDS_STOPAT_COMPUTE)) {
+			case TDS_ROW_RESULT:
+				break;
+			default:
+//				stmt->row_count = tds->rows_affected;
 				/* 
 				 * NOTE do not set row_status to NOT_IN_ROW, 
 				 * if compute tds_process_tokens above returns TDS_NO_MORE_RESULTS
 				 */
 				stmt->row_status = PRE_NORMAL_ROW;
 				stmt->special_row = 0;
-				odbc_populate_ird(stmt);
+//				odbc_populate_ird(stmt);
 				tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
 				goto all_done;
 				break;
-			case TDS_FAIL:
+			case TDS_CMD_FAIL:
 				ODBC_RETURN(stmt, SQL_ERROR);
 				break;
 			}
@@ -2880,7 +2966,7 @@ _SQLFetch(TDS_STMT * stmt)
 	} while (++curr_row < num_rows);
 
       all_done:
-	if (*fetched_ptr == 0 && stmt->errs.lastrc == SQL_SUCCESS)
+	if (*fetched_ptr == 0 && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 		ODBC_RETURN(stmt, SQL_NO_DATA);
 	if (stmt->errs.lastrc == SQL_ERROR && (*fetched_ptr > 1 || (*fetched_ptr == 1 && row_status != SQL_ROW_ERROR)))
 		ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
@@ -3425,6 +3511,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 						odbc_populate_ird(stmt);
 					stmt->row = 0;
 					stmt->row_count = TDS_NO_COUNT;
+					stmt->next_row_count = TDS_NO_COUNT;
 					stmt->row_status = PRE_NORMAL_ROW;
 					in_row = 1;
 					break;

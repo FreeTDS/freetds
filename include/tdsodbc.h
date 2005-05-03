@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.80 2005-04-11 11:06:39 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.81 2005-05-03 11:53:27 freddy77 Exp $ */
 
 struct _sql_error
 {
@@ -323,6 +323,7 @@ struct _hstmt
 	int row;
 	/** row count to return */
 	int row_count;
+	int next_row_count;
 	/** status of row, it can happen that this flag mark that we are still parsing row, this it's normal */
 	TDS_ODBC_ROW_STATUS row_status;
 	/* do NOT free dynamic, free from socket or attach to connection */

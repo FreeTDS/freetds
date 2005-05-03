@@ -1,3 +1,7 @@
+Tue May  3 13:52:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- read as much tokens as it can (like ms one)
+
 Tue May  3 13:47:56 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: fix dump
 	* src/odbc/unittests/raiserror.c: update
