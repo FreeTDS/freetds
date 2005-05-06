@@ -1,3 +1,6 @@
+Tue May  6 08:51:13 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: other reuse
+
 Tue May  3 17:04:31 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- reuse odbc_process_tokens

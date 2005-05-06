@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.370 2005-05-03 15:05:24 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.371 2005-05-06 06:51:57 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -502,7 +502,6 @@ SQLMoreResults(SQLHSTMT hstmt)
 	TDS_INT result_type;
 	int tdsret;
 	int in_row = 0;
-	int done_flags;
 	int got_rows = 0;
 
 	INIT_HSTMT;
@@ -526,7 +525,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 		in_row = 1;
 	}
 	for (;;) {
-		result_type = odbc_process_tokens(stmt, TDS_TOKEN_RESULTS);
+		result_type = odbc_process_tokens(stmt, (TDS_TOKEN_RESULTS & (~TDS_STOPAT_COMPUTE)) | TDS_RETURN_COMPUTE);
 		switch (result_type) {
 		case TDS_CMD_DONE:
 			got_rows = (stmt->row_count != TDS_NO_COUNT);
@@ -548,32 +547,31 @@ SQLMoreResults(SQLHSTMT hstmt)
 			if (!got_rows && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 			ODBC_RETURN_(stmt);
+
 		case TDS_CMD_FAIL:
 			ODBC_RETURN(stmt, SQL_ERROR);
+
 		case TDS_COMPUTE_RESULT:
 			switch (stmt->row_status) {
+			/* skip this recordset */
+			case IN_COMPUTE_ROW:
+				/* TODO here we should set current_results to normal results */
+				in_row = 1;
+				/* fall throgh */
 			/* in normal row, put in compute status */
 			case AFTER_COMPUTE_ROW:
 			case IN_NORMAL_ROW:
 			case PRE_NORMAL_ROW:
 				stmt->row_status = IN_COMPUTE_ROW;
-				if (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) == TDS_FAIL)
-					ODBC_RETURN(stmt, SQL_ERROR);
 				odbc_populate_ird(stmt);
 				ODBC_RETURN_(stmt);
-			/* skip this recordset */
-			case IN_COMPUTE_ROW:
-				stmt->row_status = AFTER_COMPUTE_ROW;
-				/* TODO here we should set current_results to normal results */
-				in_row = 1;
-				/* FIXME here we should set IRD but we can't... TODO */
-				break;
 			case NOT_IN_ROW:
-				/* this should never happen */
+				/* this should never happen, protocol error */
 				ODBC_RETURN(stmt, SQL_ERROR);
 				break;
 			}
 			break;
+
 		case TDS_ROW_RESULT:
 			if (in_row || (stmt->row_status != IN_NORMAL_ROW && stmt->row_status != PRE_NORMAL_ROW)) {
 				stmt->row_status = PRE_NORMAL_ROW;
@@ -2396,7 +2394,6 @@ _SQLExecute(TDS_STMT * stmt)
 	TDS_INT result_type;
 	TDS_INT done = 0;
 	int in_row = 0;
-	int done_flags;
 	int got_rows = 0;
 
 	stmt->row = 0;
@@ -2498,40 +2495,22 @@ _SQLExecute(TDS_STMT * stmt)
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
 	/* TODO perhaps we should return SQL_NO_DATA if no data available... see old SQLExecute code */
-	while ((ret = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	for (;;) {
+		result_type = odbc_process_tokens(stmt, TDS_TOKEN_RESULTS);
 		switch (result_type) {
+		case TDS_CMD_FAIL:
+		case TDS_CMD_DONE:
 		case TDS_COMPUTE_RESULT:
 		case TDS_ROW_RESULT:
 			done = 1;
 			break;
 
-		case TDS_STATUS_RESULT:
-			odbc_set_return_status(stmt);
-			break;
-		case TDS_PARAM_RESULT:
-			odbc_set_return_params(stmt);
-			break;
-
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
-			if (done_flags & TDS_DONE_COUNT) {
-				got_rows = 1;
-				stmt->row_count = tds->rows_affected;
-			}
-			if (!in_row && !(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
-				break;
-			if (done_flags & TDS_DONE_ERROR)
-				stmt->errs.lastrc = SQL_ERROR;
 			done = 1;
 			break;
 
 		case TDS_DONEINPROC_RESULT:
-			if (done_flags & TDS_DONE_COUNT) {
-				got_rows = 1;
-				stmt->row_count = tds->rows_affected;
-			}
-			if (done_flags & TDS_DONE_ERROR)
-				stmt->errs.lastrc = SQL_ERROR;
 			if (in_row)
 				done = 1;
 			break;
@@ -2548,34 +2527,30 @@ _SQLExecute(TDS_STMT * stmt)
 			stmt->row_status = PRE_NORMAL_ROW;
 			in_row = 1;
 			break;
-
-		case TDS_COMPUTEFMT_RESULT:
-		case TDS_MSG_RESULT:
-		case TDS_DESCRIBE_RESULT:
-			break;
 		}
 		if (done)
 			break;
 	}
+	got_rows = (stmt->row_count != TDS_NO_COUNT);
 	tds->query_timeout = 0;
 	tds->query_timeout_param = NULL;
 	tds->query_timeout_func = NULL;
 
 	odbc_populate_ird(stmt);
-	switch (ret) {
-	case TDS_NO_MORE_RESULTS:
+	switch (result_type) {
+	case TDS_CMD_DONE:
 		if (stmt->dbc->current_statement == stmt)
 			stmt->dbc->current_statement = NULL;
 		if (stmt->errs.lastrc == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && !got_rows)
 			ODBC_RETURN(stmt, SQL_NO_DATA);
-		ODBC_RETURN_(stmt);
-	case TDS_SUCCEED:
-		ODBC_RETURN_(stmt);
-	default:
+		break;
+
+	case TDS_CMD_FAIL:
 		/* TODO test what happened, report correct error to client */
 		tdsdump_log(TDS_DBG_INFO1, "SQLExecute: bad results\n");
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
+	ODBC_RETURN_(stmt);
 }
 
 SQLRETURN SQL_API
@@ -2639,7 +2614,6 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 {
 	TDS_INT result_type;
 	int done_flags;
-	int got_rows;
 	TDSSOCKET * tds = stmt->dbc->tds_socket;
 
 	flag |= TDS_RETURN_DONE | TDS_RETURN_PROC;
@@ -2781,7 +2755,6 @@ _SQLFetch(TDS_STMT * stmt)
 		row_status = SQL_ROW_SUCCESS;
 
 		/* do not get compute row if we are not expecting a compute row */
-		/* TODO I don't like this way of libTDS using but works -- freddy77 */
 		switch (stmt->row_status) {
 		case AFTER_COMPUTE_ROW:
 			/* handle done if needed */
