@@ -17,7 +17,8 @@ noinst_HEADERS	=	tds_configs.h \
 			tdsodbc.h \
 			tdsiconv.h \
 			dblib.h \
-			ctlib.h
+			ctlib.h \
+			tdsthread.h
 
 DISTCLEANFILES	=	tds_sysdep_public.h freetds_sysconfdir.h
 

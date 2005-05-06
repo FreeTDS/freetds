@@ -1,3 +1,8 @@
+Tue May  6 14:21:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsthread.h(added) include/Makefile.am src/dblib/dblib.c:
+	* src/tds/util.c:
+	- merge partially Liam Widdowson patch on thread safety
+
 Tue May  6 10:38:31 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/config.c src/dblib/dblib.c include/tds.h:
 	- add "query timeout" configuration

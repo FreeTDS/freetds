@@ -50,6 +50,7 @@
 
 #define SYBDBLIB 1
 #include "tds.h"
+#include "tdsthread.h"
 #include "sybfront.h"
 #include "sybdb.h"
 #include "syberror.h"
@@ -61,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.217 2005-05-06 08:39:39 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.218 2005-05-06 12:22:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -110,10 +111,13 @@ typedef struct dblib_context
 	int connection_list_size_represented;
 	char *recftos_filename;
 	int recftos_filenum;
+	int login_timeout;	/* not used unless positive */
+	int query_timeout;	/* not used unless positive */
 }
 DBLIBCONTEXT;
 
 static DBLIBCONTEXT g_dblib_ctx;
+static TDS_MUTEX_DECLARE_RECURSIVE(dblib_mutex);
 
 static int g_dblib_version =
 #ifdef TDS42
@@ -132,8 +136,6 @@ DBVERSION_70;
 DBVERSION_80;
 #endif
 
-static int g_dblib_login_timeout = -1;	/* not used unless positive */
-static int g_dblib_query_timeout = -1;	/* not used unless positive */
 
 static int
 dblib_add_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
@@ -263,6 +265,11 @@ dbinit(void)
 		/* set default in case there's no locale file */
 		g_dblib_ctx.tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M:%S:%z%p");
 	}
+
+	g_dblib_ctx.login_timeout = -1;
+	g_dblib_ctx.query_timeout = -1;
+
+//	TDS_MUTEX_INIT_RECURSIVE(&dblib_mutex);
 
 	return SUCCEED;
 }
@@ -664,7 +671,10 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	tds_set_server(login->tds_login, server);
 
+//	TDS_MUTEX_LOCK(&dblib_mutex);
 	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx.tds_ctx, 512);
+//	TDS_MUTEX_UNLOCK(&dblib_mutex);
+
 	tds_set_parent(dbproc->tds_socket, (void *) dbproc);
 	dbproc->tds_socket->option_flag2 &= ~0x02;	/* we're not an ODBC driver */
 	dbproc->tds_socket->env_chg_func = db_env_chg;
@@ -675,16 +685,6 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 	connection = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx.tds_ctx->locale);
 	if (!connection)
 		return NULL;
-
-	/* override connection timeout if dbsetlogintime() was called */
-	if (g_dblib_login_timeout >= 0) {
-		connection->connect_timeout = g_dblib_login_timeout;
-	}
-
-	/* override query timeout if dbsettime() was called */
-	if (g_dblib_query_timeout >= 0) {
-		connection->query_timeout = g_dblib_query_timeout;
-	}
 
 	dbproc->dbchkintr = NULL;
 	dbproc->dbhndlintr = NULL;
@@ -697,13 +697,34 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 		tds_free_connection(connection);
 		return NULL;
 	}
+
+//	dbproc->tds_socket->timeout = connection->timeout;
+	dbproc->tds_socket->query_timeout = connection->query_timeout;
+
+	TDS_MUTEX_LOCK(&dblib_mutex);
+
+	/* override connection timeout if dbsetlogintime() was called */
+	if (g_dblib_ctx.login_timeout > 0) {
+		connection->connect_timeout = g_dblib_ctx.login_timeout;
+	}
+
+	/* override query timeout if dbsettime() was called */
+	if (g_dblib_ctx.query_timeout > 0) {
+		connection->query_timeout = g_dblib_ctx.query_timeout;
+	}
+
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
+
 	tds_free_connection(connection);
+
 	dbproc->dbbuf = NULL;
 	dbproc->dbbufsz = 0;
 
 	if (dbproc->tds_socket) {
 		/* tds_set_parent( dbproc->tds_socket, dbproc); */
+		TDS_MUTEX_LOCK(&dblib_mutex);
 		dblib_add_connection(&g_dblib_ctx, dbproc->tds_socket);
+		TDS_MUTEX_UNLOCK(&dblib_mutex);
 	} else {
 		fprintf(stderr, "DB-Library: Login incorrect.\n");
 		free(dbproc);	/* memory leak fix (mlilback, 11/17/01) */
@@ -712,6 +733,8 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	/* set the DBBUFFER capacity to nil */
 	buffer_set_capacity(dbproc, 0);
+
+	TDS_MUTEX_LOCK(&dblib_mutex);
 
 	if (g_dblib_ctx.recftos_filename != NULL) {
 		char *temp_filename = NULL;
@@ -727,6 +750,9 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 			free(temp_filename);
 		}
 	}
+
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
+
 	return dbproc;
 }
 
@@ -961,7 +987,9 @@ dbclose(DBPROCESS * dbproc)
 	dbstring_free(&(dbproc->dboptcmd));
 
 	dbfreebuf(dbproc);
+	TDS_MUTEX_LOCK(&dblib_mutex);
 	dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
 	free(dbproc);
 
 	return;
@@ -982,8 +1010,10 @@ dbexit()
 	int i;
 	const int list_size = g_dblib_ctx.connection_list_size;
 
-
 	/* FIX ME -- this breaks if ctlib/dblib used in same process */
+
+	TDS_MUTEX_LOCK(&dblib_mutex);
+
 	for (i = 0; i < list_size; i++) {
 		tds = g_dblib_ctx.connection_list[i];
 		if (tds) {
@@ -1001,6 +1031,8 @@ dbexit()
 		tds_free_context(g_dblib_ctx.tds_ctx);
 		g_dblib_ctx.tds_ctx = NULL;
 	}
+
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
 }
 
 /**
@@ -1614,7 +1646,9 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	tdsdump_log(TDS_DBG_INFO1, "dbconvert() calling tds_convert\n");
 
+//	TDS_MUTEX_LOCK(&dblib_mutex);
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
+//	TDS_MUTEX_UNLOCK(&dblib_mutex);
 	tdsdump_log(TDS_DBG_INFO1, "dbconvert() called tds_convert returned %d\n", len);
 
 	switch (len) {
@@ -3036,6 +3070,9 @@ dbsetmaxprocs(int maxprocs)
 	TDSSOCKET **old_list = g_dblib_ctx.connection_list;
 
 	tdsdump_log(TDS_DBG_FUNC, "UNTESTED dbsetmaxprocs()\n");
+
+	TDS_MUTEX_LOCK(&dblib_mutex);
+
 	/*
 	 * Don't reallocate less memory.  
 	 * If maxprocs is less than was initially allocated, just reduce the represented list size.  
@@ -3044,6 +3081,7 @@ dbsetmaxprocs(int maxprocs)
 	 */
 	if (maxprocs < g_dblib_ctx.connection_list_size) {
 		g_dblib_ctx.connection_list_size_represented = maxprocs;
+		TDS_MUTEX_UNLOCK(&dblib_mutex);
 		return SUCCEED;
 	}
 
@@ -3051,6 +3089,7 @@ dbsetmaxprocs(int maxprocs)
 
 	if (g_dblib_ctx.connection_list == NULL) {
 		g_dblib_ctx.connection_list = old_list;
+		TDS_MUTEX_UNLOCK(&dblib_mutex);
 		return FAIL;
 	}
 
@@ -3060,6 +3099,8 @@ dbsetmaxprocs(int maxprocs)
 
 	g_dblib_ctx.connection_list_size = maxprocs;
 	g_dblib_ctx.connection_list_size_represented = maxprocs;
+
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
 	return SUCCEED;
 }
@@ -3074,7 +3115,11 @@ dbsetmaxprocs(int maxprocs)
 int
 dbgetmaxprocs(void)
 {
-	return g_dblib_ctx.connection_list_size_represented;
+	int r;
+	TDS_MUTEX_LOCK(&dblib_mutex);
+	r = g_dblib_ctx.connection_list_size_represented;
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	return r;
 }
 
 /**
@@ -3089,7 +3134,9 @@ dbgetmaxprocs(void)
 RETCODE
 dbsettime(int seconds)
 {
-	g_dblib_query_timeout = seconds;
+	TDS_MUTEX_LOCK(&dblib_mutex);
+	g_dblib_ctx.query_timeout = seconds;
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
 	return SUCCEED;
 }
 
@@ -3104,7 +3151,9 @@ dbsettime(int seconds)
 RETCODE
 dbsetlogintime(int seconds)
 {
-	g_dblib_login_timeout = seconds;
+	TDS_MUTEX_LOCK(&dblib_mutex);
+	g_dblib_ctx.login_timeout = seconds;
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
 	return SUCCEED;
 }
 
@@ -3464,6 +3513,10 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 {
 	char *cmd;
 	RETCODE rc;
+
+	if (dbproc == NULL) {
+		return FAIL;
+	}
 
 	if ((option < 0) || (option >= DBNUMOPTIONS)) {
 		_dblib_client_msg(dbproc, SYBEUNOP, EXNONFATAL, "Unknown option passed to dbsetopt().");
@@ -5344,11 +5397,17 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 void
 dbrecftos(char *filename)
 {
-	g_dblib_ctx.recftos_filename = malloc(strlen(filename) + 1);
-	if (g_dblib_ctx.recftos_filename != NULL) {
-		strcpy(g_dblib_ctx.recftos_filename, filename);
-		g_dblib_ctx.recftos_filenum = 0;
-	}
+	char *f = strdup(filename);
+
+	if (!f)
+		return;
+
+	TDS_MUTEX_LOCK(&dblib_mutex);
+	if (g_dblib_ctx.recftos_filename)
+		free(g_dblib_ctx.recftos_filename);
+	g_dblib_ctx.recftos_filename = f;
+	g_dblib_ctx.recftos_filenum = 0;
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
 }
 
 /** \internal
@@ -5908,10 +5967,15 @@ int
 _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberrstr)
 {
 	TDSSOCKET *tds = NULL;
+	int r;
 
 	if (dbproc)
 		tds = dbproc->tds_socket;
-	return tds_client_msg(g_dblib_ctx.tds_ctx, tds, dberr, severity, -1, -1, dberrstr);
+//	TDS_MUTEX_LOCK(&dblib_mutex);
+	r = tds_client_msg(g_dblib_ctx.tds_ctx, tds, dberr, severity, -1, -1, dberrstr);
+
+//	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	return r;
 }
 
 static char *
@@ -6134,7 +6198,10 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 			dres.n.scale = num->scale;
 	}
 
+//	TDS_MUTEX_LOCK(&dblib_mutex);
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
+//	TDS_MUTEX_UNLOCK(&dblib_mutex);
+
 	tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var() called tds_convert returned %d\n", len);
 
 	switch (len) {
