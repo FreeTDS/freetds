@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.216 2005-04-18 09:36:24 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.217 2005-05-06 08:39:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -683,7 +683,7 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	/* override query timeout if dbsettime() was called */
 	if (g_dblib_query_timeout >= 0) {
-		connection->timeout = g_dblib_query_timeout;
+		connection->query_timeout = g_dblib_query_timeout;
 	}
 
 	dbproc->dbchkintr = NULL;

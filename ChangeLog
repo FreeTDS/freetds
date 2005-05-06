@@ -1,3 +1,10 @@
+Tue May  6 10:38:31 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/config.c src/dblib/dblib.c include/tds.h:
+	- add "query timeout" configuration
+	- remove timeout member from TDSCONNECTION
+	* src/odbc/unittests/timeout.c:
+	- report error with correct statement
+
 Tue May  6 08:51:13 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: other reuse
 

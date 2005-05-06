@@ -3,7 +3,7 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.5 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.6 2005-05-06 08:39:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -74,15 +74,11 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("SQLExecute success ??");
 	EndTransaction(SQL_ROLLBACK);
 
-	/* TODO should return error S1T00 Timeout expired */
+	/* TODO should return error S1T00 Timeout expired, test error message */
 	ret = CommandWithResult(Statement, "update test_timeout set t = 'bad' where n = 1");
-	if (ret != SQL_ERROR) {
-		Disconnect();
-		Environment = env;
-		Connection = dbc;
-		Statement = stmt;
+	if (ret != SQL_ERROR)
 		ODBC_REPORT_ERROR("SQLExecDirect success ??");
-	}
+
 	EndTransaction(SQL_ROLLBACK);
 
 	Disconnect();

@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.107 2005-03-12 11:49:35 ppeterd Exp $";
+static char software_version[] = "$Id: config.c,v 1.108 2005-05-06 08:39:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -430,9 +430,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		l = strtol(value, &end, 0);
 		if (errno == 0 && *end == 0)
 			connection->debug_flags = l;
-	} else if (!strcmp(option, TDS_STR_TIMEOUT)) {
+	} else if (!strcmp(option, TDS_STR_TIMEOUT) || !strcmp(option, TDS_STR_QUERY_TIMEOUT)) {
 		if (atoi(value))
-			connection->timeout = atoi(value);
+			connection->query_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_CONNTIMEOUT)) {
 		if (atoi(value))
 			connection->connect_timeout = atoi(value);
@@ -534,8 +534,10 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 	if (login->connect_timeout)
 		connection->connect_timeout = login->connect_timeout;
 
+	if (login->query_timeout)
+		connection->query_timeout = login->query_timeout;
+
 	/* copy other info not present in configuration file */
-	connection->query_timeout = login->query_timeout;
 	connection->query_timeout_func = login->query_timeout_func;
 	connection->query_timeout_param = login->query_timeout_param;
 	memcpy(connection->capabilities, login->capabilities, TDS_MAX_CAPABILITY);

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.227 2005-04-15 11:51:55 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.228 2005-05-06 08:39:58 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -674,6 +674,7 @@ enum TDS_OPT_ISOLATION_CHOICE
 #define TDS_STR_DEBUGLVL "debug level"
 #define TDS_STR_DEBUGFLAGS "debug flags"
 #define TDS_STR_TIMEOUT  "timeout"
+#define TDS_STR_QUERY_TIMEOUT  "query timeout"
 #define TDS_STR_CONNTIMEOUT "connect timeout"
 #define TDS_STR_HOSTNAME "hostname"
 #define TDS_STR_HOST     "host"
@@ -756,7 +757,6 @@ typedef struct tds_connection
 	DSTR instance_name;
 	DSTR database;
 	DSTR dump_file;
-	int timeout;
 	int debug_flags;
 	int text_size;
 	int broken_dates;
