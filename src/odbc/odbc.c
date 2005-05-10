@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.371 2005-05-06 06:51:57 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.372 2005-05-10 12:56:01 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2434,6 +2434,7 @@ _SQLExecute(TDS_STMT * stmt)
 			end = (char *) tds_skip_quoted(end);
 		else
 			while (!isspace((unsigned char) *++end) && *end);
+		stmt->prepared_pos = end;
 		tmp = *end;
 		*end = 0;
 		ret = tds_submit_rpc(tds, name, stmt->params);
@@ -5025,7 +5026,7 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 			ODBC_RETURN(stmt, SQL_NEED_DATA);
 		}
 		++stmt->param_num;
-		switch (res = parse_prepared_query(stmt, 0, 1)) {
+		switch (res = parse_prepared_query(stmt, 1)) {
 		case SQL_NEED_DATA:
 			*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
 			ODBC_RETURN(stmt, SQL_NEED_DATA);

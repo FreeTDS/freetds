@@ -32,6 +32,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <ctype.h>
+
 #include "tds.h"
 #include "tdsodbc.h"
 #include "prepare_query.h"
@@ -45,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: prepare_query.c,v 1.45 2004-10-28 12:42:12 freddy77 Exp $";
+static const char software_version[] = "$Id: prepare_query.c,v 1.46 2005-05-10 12:56:03 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -443,12 +445,98 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 }
 #endif
 
+#define TDS_ISSPACE(c) isspace((unsigned char) (c))
+
+static int
+prepared_rpc(struct _hstmt *stmt, int compute_row)
+{
+	int nparam = stmt->params ? stmt->params->num_cols : 0;
+	const char *p = stmt->prepared_pos - 1;
+
+	for (;;) {
+		TDSPARAMINFO *temp_params;
+		TDSCOLUMN *curcol;
+
+		while (TDS_ISSPACE(*++p));
+		if (!*p)
+			return SQL_SUCCESS;
+
+		/* we have certainly a parameter */
+		if (!(temp_params = tds_alloc_param_result(stmt->params))) {
+			odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
+			return SQL_ERROR;
+		}
+		stmt->params = temp_params;
+		curcol = temp_params->columns[nparam];
+
+		if (*p != '?') {
+			/* add next parameter to list */
+			const char *start = p;
+
+			if (!(p = skip_const_param(p)))
+				return SQL_ERROR;
+			tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBVARCHAR);
+			curcol->column_size = p - start;
+			/* TODO support other type other than VARCHAR, do not strip escape in prepare_call */
+			if (compute_row) {
+				char *dest;
+
+				if (!tds_alloc_param_row(temp_params, curcol))
+					return SQL_ERROR;
+				dest = (char *) &temp_params->current_row[curcol->column_offset];
+				if (*start != '\'') {
+					memcpy(dest, start, p - start);
+					curcol->column_cur_size = p - start;
+				} else {
+					++start;
+					for (;;) {
+						if (*start == '\'')
+							++start;
+						if (start >= p)
+							break;
+						*dest++ = *start++;
+					}
+					curcol->column_cur_size =
+						dest - (char *) (&temp_params->current_row[curcol->column_offset]);
+				}
+			}
+			--p;
+		} else {
+			/* find binded parameter */
+			if (stmt->param_num > stmt->apd->header.sql_desc_count
+			    || stmt->param_num > stmt->ipd->header.sql_desc_count) {
+				/* TODO set error */
+				return SQL_ERROR;
+			}
+
+			switch (sql2tds
+				(stmt->dbc, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
+				 stmt->params, nparam, compute_row)) {
+			case SQL_ERROR:
+				return SQL_ERROR;
+			case SQL_NEED_DATA:
+				return SQL_NEED_DATA;
+			}
+			++stmt->param_num;
+		}
+		++nparam;
+
+		while (TDS_ISSPACE(*++p));
+		if (!*p || *p != ',')
+			return SQL_SUCCESS;
+		stmt->prepared_pos = (char *) p + 1;
+	}
+}
+
 int
-parse_prepared_query(struct _hstmt *stmt, int start, int compute_row)
+parse_prepared_query(struct _hstmt *stmt, int compute_row)
 {
 	/* try setting this parameter */
 	TDSPARAMINFO *temp_params;
-	int nparam = stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1);
+	int nparam = stmt->params ? stmt->params->num_cols : 0;
+
+	if (stmt->prepared_pos)
+		return prepared_rpc(stmt, compute_row);
 
 	for (; stmt->param_num <= stmt->param_count; ++nparam, ++stmt->param_num) {
 		/* find binded parameter */
@@ -487,7 +575,7 @@ start_parse_prepared_query(struct _hstmt *stmt, int compute_row)
 	if (!stmt->param_count)
 		return SQL_SUCCESS;
 	stmt->param_num = stmt->prepared_query_is_func ? 2 : 1;
-	return parse_prepared_query(stmt, 1, compute_row);
+	return parse_prepared_query(stmt, compute_row);
 }
 
 int

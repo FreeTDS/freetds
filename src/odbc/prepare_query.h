@@ -34,13 +34,15 @@
 #endif
 
 
-/* $Id: prepare_query.h,v 1.12 2005-02-08 12:14:14 freddy77 Exp $ */
+/* $Id: prepare_query.h,v 1.13 2005-05-10 12:56:03 freddy77 Exp $ */
 
 
 SQLRETURN prepare_call(struct _hstmt *stmt);
 SQLRETURN native_sql(struct _hdbc *dbc, char *s);
-int parse_prepared_query(struct _hstmt *stmt, int start, int compute_row);
+int parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int start_parse_prepared_query(struct _hstmt *stmt, int compute_row);
 int continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind);
+const char *skip_const_param(const char * s);
+
 
 #endif

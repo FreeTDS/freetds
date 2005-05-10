@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: native.c,v 1.19 2005-02-08 12:14:14 freddy77 Exp $";
+static const char software_version[] = "$Id: native.c,v 1.20 2005-05-10 12:56:01 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -163,11 +163,39 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 	return SQL_SUCCESS;
 }
 
+const char *
+skip_const_param(const char *s)
+{
+	/* binary */
+	if (strncasecmp(s, "0x", 2) == 0) {
+		s += 2;
+		while (isxdigit(*s))
+			++s;
+		return s;
+	}
+
+	/* integer */
+	if (isdigit(*s)) {
+		while (isdigit(*++s));
+		return s;
+	}
+
+	/* string */
+	if (*s == '\'')
+		return tds_skip_quoted(s);
+
+	/* TODO date, time */
+
+	return NULL;
+}
+
 SQLRETURN
 prepare_call(struct _hstmt * stmt)
 {
-	char *s, *d, *p, *buf;
+	const char *s, *p, *param_start;
+	char *buf;
 	SQLRETURN rc;
+	int got_params;
 
 	if (stmt->prepared_query)
 		buf = stmt->prepared_query;
@@ -178,9 +206,6 @@ prepare_call(struct _hstmt * stmt)
 
 	if ((rc = to_native(stmt->dbc, stmt, buf)) != SQL_SUCCESS)
 		return rc;
-
-	/* TODO optimize ? */
-	d = strchr(buf, 0);
 
 	/* now detect RPC */
 	stmt->prepared_query_is_rpc = 0;
@@ -206,25 +231,34 @@ prepare_call(struct _hstmt * stmt)
 		while (*s && !TDS_ISSPACE(*s))
 			++s;
 	}
+	param_start = s;
 	--s;			/* trick, now s point to no blank */
 	/* TODO support constant and empty parameters */
+	got_params = 0;
 	for (;;) {
 		while (TDS_ISSPACE(*++s));
 		if (!*s)
 			break;
-		if (*s != '?')
-			return SQL_SUCCESS;
+		if (*s != '?') {
+			if (!(s = skip_const_param(s)))
+				return SQL_SUCCESS;
+			--s;
+		} else {
+			got_params = 1;
+		}
 		while (TDS_ISSPACE(*++s));
 		if (!*s)
 			break;
 		if (*s != ',')
 			return SQL_SUCCESS;
 	}
+	if (!got_params)
+		return SQL_SUCCESS;
 	stmt->prepared_query_is_rpc = 1;
 
 	/* remove unneeded exec */
-	assert(!*d);
-	memmove(buf, p, d - p + 1);
+	memmove(buf, p, strlen(p) + 1);
+	stmt->prepared_pos = buf + (param_start - p);
 
 	return SQL_SUCCESS;
 }

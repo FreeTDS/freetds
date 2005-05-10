@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.2 2005-01-21 11:38:12 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.3 2005-05-10 12:56:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -36,8 +36,7 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("Unable to bind output parameter");
 
 	/* TODO use {ts ...} for date */
-	/* FIXME remove output !!! */
-	if (SQLPrepare(Statement, (SQLCHAR *) "{call constParam(?, 13579, '2004-10-15 12:09:08', 'foo', ? output)}", SQL_NTS) !=
+	if (SQLPrepare(Statement, (SQLCHAR *) "{call constParam(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS) !=
 	    SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 
@@ -65,7 +64,7 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("Unable to bind output parameter");
 
 	/* TODO use {ts ...} for date */
-	if (SQLPrepare(Statement, (SQLCHAR *) "{?=call constParam(?, 13579, '2004-10-15 12:09:08', 'foo', ? output)}", SQL_NTS) !=
+	if (SQLPrepare(Statement, (SQLCHAR *) "{?=call constParam(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS) !=
 	    SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc_util.c,v 1.74 2005-02-09 16:15:16 jklowden Exp $";
+static const char software_version[] = "$Id: odbc_util.c,v 1.75 2005-05-10 12:56:02 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -74,6 +74,7 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const char *sql, int sql_len)
 	stmt->param_count = 0;
 	stmt->prepared_query_is_func = 0;
 	stmt->prepared_query_is_rpc = 0;
+	stmt->prepared_pos = NULL;
 
 	if (stmt->prepared_query)
 		TDS_ZERO_FREE(stmt->prepared_query);
