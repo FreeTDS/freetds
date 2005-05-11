@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.228 2005-05-06 08:39:58 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.229 2005-05-11 12:03:28 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -600,13 +600,14 @@ enum TDS_OPT_ISOLATION_CHOICE
 			x==SYBINT2      || \
 			x==SYBINT4      || \
 			x==SYBINT8      || \
-			x==SYBREAL	 || \
+			x==SYBREAL      || \
 			x==SYBFLT8      || \
 			x==SYBDATETIME  || \
 			x==SYBDATETIME4 || \
 			x==SYBBIT       || \
 			x==SYBMONEY     || \
 			x==SYBMONEY4    || \
+			x==SYBVOID      || \
 			x==SYBUNIQUE)
 #define is_nullable_type(x) ( \
 			x==SYBBITN      || \

@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.141 2005-04-11 13:51:15 freddy77 Exp $
+To Do List	$Id: TODO,v 1.142 2005-05-11 12:03:25 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -121,7 +121,7 @@ For future versions (in priority order within library):
 
 . test and fix: hidden fields (FOR BROWSE select, see flag test on tds)
 . test: all binding types (input and output)
-. test: new descriptors work
+. test: descriptors work
   - ODBC 2 type returned (datetime)
   - SQLDescribeCol return ODBC 2 type or 3 or based on configuration?
   - what happen to SQL_DESC_DATETIME_INTERVAL_CODE and SQL_DESC_CONCISE_TYPE

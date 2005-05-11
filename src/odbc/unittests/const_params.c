@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.5 2005-05-11 08:55:31 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.6 2005-05-11 12:03:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("Unable to bind output parameter");
 
 	/* TODO use {ts ...} for date */
-	if (SQLPrepare(Statement, (SQLCHAR *) "{?=call const_param(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS) !=
+	if (SQLPrepare(Statement, (SQLCHAR *) "{?=call const_param(?, , '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS) !=
 	    SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 

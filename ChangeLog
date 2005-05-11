@@ -1,3 +1,9 @@
+Wed May 11 14:01:29 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO: update
+	* include/tds.h src/odbc/native.c src/odbc/prepare_query.c:
+	* src/odbc/unittests/const_params.c src/tds/tds_checks.c:
+	- support empty parameters in odbc rpc
+
 Wed May 11 10:54:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- cleanup and minor fixes

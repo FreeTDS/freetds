@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: native.c,v 1.21 2005-05-11 08:55:31 freddy77 Exp $";
+static const char software_version[] = "$Id: native.c,v 1.22 2005-05-11 12:03:28 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -247,19 +247,23 @@ prepare_call(struct _hstmt * stmt)
 	}
 	param_start = s;
 	--s;			/* trick, now s point to no blank */
-	/* TODO support constant and empty parameters */
 	got_params = 0;
 	for (;;) {
 		while (TDS_ISSPACE(*++s));
 		if (!*s)
 			break;
-		/* TODO support empty parameters */
-		if (*s != '?') {
+		switch (*s) {
+		case '?':
+			got_params = 1;
+			break;
+		case ',':
+			--s;
+			break;
+		default:
 			if (!(s = skip_const_param(s)))
 				return SQL_SUCCESS;
 			--s;
-		} else {
-			got_params = 1;
+			break;
 		}
 		while (TDS_ISSPACE(*++s));
 		if (!*s)

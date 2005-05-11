@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.10 2005-02-09 16:15:19 jklowden Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.11 2005-05-11 12:03:29 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -196,8 +196,8 @@ tds_check_column_extra(const TDSCOLUMN * column)
 
 	/* check size of fixed type correct */
 	size = tds_get_size_by_type(column->column_type);
-	assert(size != 0);
-	if (size > 0 && column->column_type != SYBBITN) {
+	assert(size != 0 || column->column_type == SYBVOID);
+	if (size >= 0 && column->column_type != SYBBITN) {
 		/* check macro */
 		assert(is_fixed_type(column->column_type));
 		/* check current size */

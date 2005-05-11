@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: prepare_query.c,v 1.46 2005-05-10 12:56:03 freddy77 Exp $";
+static const char software_version[] = "$Id: prepare_query.c,v 1.47 2005-05-11 12:03:28 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -456,6 +456,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 	for (;;) {
 		TDSPARAMINFO *temp_params;
 		TDSCOLUMN *curcol;
+		const char *start;
 
 		while (TDS_ISSPACE(*++p));
 		if (!*p)
@@ -469,9 +470,18 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 		stmt->params = temp_params;
 		curcol = temp_params->columns[nparam];
 
-		if (*p != '?') {
+		switch (*p) {
+		case ',':
+			tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBVOID);
+			curcol->column_size = curcol->column_cur_size = 0;
+			if (compute_row)
+				if (!tds_alloc_param_row(temp_params, curcol))
+					return SQL_ERROR;
+			--p;
+			break;
+		default:
 			/* add next parameter to list */
-			const char *start = p;
+			start = p;
 
 			if (!(p = skip_const_param(p)))
 				return SQL_ERROR;
@@ -501,7 +511,8 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				}
 			}
 			--p;
-		} else {
+			break;
+		case '?':
 			/* find binded parameter */
 			if (stmt->param_num > stmt->apd->header.sql_desc_count
 			    || stmt->param_num > stmt->ipd->header.sql_desc_count) {
@@ -518,6 +529,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				return SQL_NEED_DATA;
 			}
 			++stmt->param_num;
+			break;
 		}
 		++nparam;
 
