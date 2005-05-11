@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.3 2005-05-10 12:56:03 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.4 2005-05-11 07:56:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -17,10 +17,10 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	if (CommandWithResult(Statement, "drop proc constParam") != SQL_SUCCESS)
+	if (CommandWithResult(Statement, "drop proc const_param") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
 
-	Command(Statement, "create proc constParam @in1 int, @in2 int, @in3 datetime, @in4 varchar(10), @out int output as\n"
+	Command(Statement, "create proc const_param @in1 int, @in2 int, @in3 datetime, @in4 varchar(10), @out int output as\n"
 		"begin\n"
 		" set nocount on\n"
 		" select @out = 7654321\n"
@@ -36,7 +36,7 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("Unable to bind output parameter");
 
 	/* TODO use {ts ...} for date */
-	if (SQLPrepare(Statement, (SQLCHAR *) "{call constParam(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS) !=
+	if (SQLPrepare(Statement, (SQLCHAR *) "{call const_param(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS) !=
 	    SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 
@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("Unable to bind output parameter");
 
 	/* TODO use {ts ...} for date */
-	if (SQLPrepare(Statement, (SQLCHAR *) "{?=call constParam(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS) !=
+	if (SQLPrepare(Statement, (SQLCHAR *) "{?=call const_param(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS) !=
 	    SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 
@@ -84,7 +84,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (CommandWithResult(Statement, "drop proc constParam") != SQL_SUCCESS)
+	if (CommandWithResult(Statement, "drop proc const_param") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
 
 	Disconnect();

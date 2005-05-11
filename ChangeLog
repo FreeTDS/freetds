@@ -1,22 +1,31 @@
+Wed May 11 09:52:59 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/rpc_ct_param.c:
+	* src/ctlib/unittests/rpc_ct_setparam.c:
+	* src/dblib/unittests/t0005.c:
+	* src/dblib/unittests/t0014.c:
+	* src/dblib/unittests/t0022.c:
+	* src/odbc/unittests/const_params.c:
+	- more cleanup of tables and procs in tests
+
 Tue May 10 14:54:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/native.c src/odbc/odbc.c src/odbc/odbc_checks.c:
 	* src/odbc/odbc_util.c src/odbc/prepare_query.c:
 	* src/odbc/prepare_query.h src/odbc/unittests/const_params.c:
 	- initial support for constant parameters in rpc calls
 
-Tue May  6 14:21:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+Fri May  6 14:21:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsthread.h(added) include/Makefile.am src/dblib/dblib.c:
 	* src/tds/util.c:
 	- merge partially Liam Widdowson patch on thread safety
 
-Tue May  6 10:38:31 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+Fri May  6 10:38:31 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/config.c src/dblib/dblib.c include/tds.h:
 	- add "query timeout" configuration
 	- remove timeout member from TDSCONNECTION
 	* src/odbc/unittests/timeout.c:
 	- report error with correct statement
 
-Tue May  6 08:51:13 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+Fri May  6 08:51:13 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: other reuse
 
 Tue May  3 17:04:31 CET 2005    Frediano Ziglio <freddy77@angelfire.com>

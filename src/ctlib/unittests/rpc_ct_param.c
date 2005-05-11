@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_param.c,v 1.5 2003-05-30 10:08:25 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_param.c,v 1.6 2005-05-11 07:56:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -526,6 +526,8 @@ main(int argc, char *argv[])
 		fprintf(stderr, "ct_results returned unexpected result type.");
 		break;
 	}
+
+	run_command(cmd, "DROP PROCEDURE sample_rpc");
 
 	if (verbose) {
 		fprintf(stdout, "Trying logout\n");

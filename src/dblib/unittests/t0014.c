@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.23 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.24 2005-05-11 07:56:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -263,6 +263,14 @@ main(int argc, char **argv)
 	}
 
 	free(blob);
+
+	fprintf(stdout, "Dropping table\n");
+	dbcmd(dbproc, "drop table dblib0014");
+	dbsqlexec(dbproc);
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
+
 	dbexit();
 
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);

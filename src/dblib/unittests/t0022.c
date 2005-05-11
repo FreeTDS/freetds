@@ -23,7 +23,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0022.c,v 1.18 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.19 2005-05-11 07:56:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -114,6 +114,11 @@ main(int argc, char **argv)
 		fprintf(stdout, "WARNING:  This is likely due to a bug in Microsoft\n");
 		fprintf(stdout, "WARNING:  SQL Server 7.0 SP3 and later.\n");
 		fprintf(stdout, "WARNING:  Please try again using TDS protocol 4.2.\n");
+		dbcmd(dbproc, "drop proc t0022");
+		dbsqlexec(dbproc);
+		while (dbresults(dbproc) != NO_MORE_RESULTS) {
+			/* nop */
+		}
 		dbexit();
 		free_bread_crumb();
 		exit(0);

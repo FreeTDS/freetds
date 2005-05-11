@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.16 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.17 2005-05-11 07:56:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -348,6 +348,12 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	dbcancel(dbproc);
+
+	dbcmd(dbproc, "drop procedure t0005_proc");
+	dbsqlexec(dbproc);
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
 
 	dbexit();
 	add_bread_crumb();
