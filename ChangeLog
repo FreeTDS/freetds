@@ -1,3 +1,13 @@
+Wed May 11 10:54:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- cleanup and minor fixes
+	* src/odbc/native.c:
+	- better support for numeric constants
+	* src/odbc/unittests/const_params.c:
+	- do more developing stuff
+	* src/tds/read.c:
+	- add support for VOID type
+
 Wed May 11 09:52:59 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/rpc_ct_param.c:
 	* src/ctlib/unittests/rpc_ct_setparam.c:

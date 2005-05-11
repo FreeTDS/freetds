@@ -22,9 +22,17 @@
 #include <config.h>
 #endif
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
+
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
 
 #include <ctype.h>
 #include <assert.h>
@@ -37,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: native.c,v 1.20 2005-05-10 12:56:01 freddy77 Exp $";
+static const char software_version[] = "$Id: native.c,v 1.21 2005-05-11 08:55:31 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -166,6 +174,8 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 const char *
 skip_const_param(const char *s)
 {
+	char *end;
+
 	/* binary */
 	if (strncasecmp(s, "0x", 2) == 0) {
 		s += 2;
@@ -174,15 +184,19 @@ skip_const_param(const char *s)
 		return s;
 	}
 
-	/* integer */
-	if (isdigit(*s)) {
-		while (isdigit(*++s));
-		return s;
-	}
-
 	/* string */
 	if (*s == '\'')
 		return tds_skip_quoted(s);
+
+	/* integer/float */
+	if (isdigit(*s) || *s == '+' || *s == '-') {
+		strtod(s, &end);
+		if (end != s && errno == 0)
+			return end;
+		strtol(s, &end, 10);
+		if (end != s && errno == 0)
+			return end;
+	}
 
 	/* TODO date, time */
 
@@ -239,6 +253,7 @@ prepare_call(struct _hstmt * stmt)
 		while (TDS_ISSPACE(*++s));
 		if (!*s)
 			break;
+		/* TODO support empty parameters */
 		if (*s != '?') {
 			if (!(s = skip_const_param(s)))
 				return SQL_SUCCESS;

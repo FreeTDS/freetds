@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.218 2005-05-06 12:22:35 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.219 2005-05-11 08:55:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -208,13 +208,11 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 static int
 dblib_query_timeout(void *param)
 {
-	TDSSOCKET * tds = (TDSSOCKET *) param;
-	DBPROCESS *dbproc;
+	DBPROCESS *dbproc = (DBPROCESS*) param;
 
-	if (!tds || !tds->parent)
+	if (!dbproc)
 		return TDS_INT_CONTINUE;
 
-	dbproc = (DBPROCESS *) tds->parent;
 	if (dbproc->dbchkintr == NULL || !((*dbproc->dbchkintr) (dbproc)) )
 		return TDS_INT_CONTINUE;
 
@@ -675,7 +673,7 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx.tds_ctx, 512);
 //	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
-	tds_set_parent(dbproc->tds_socket, (void *) dbproc);
+	tds_set_parent(dbproc->tds_socket, dbproc);
 	dbproc->tds_socket->option_flag2 &= ~0x02;	/* we're not an ODBC driver */
 	dbproc->tds_socket->env_chg_func = db_env_chg;
 	dbproc->envchange_rcv = 0;
@@ -683,23 +681,15 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 	dbproc->servcharset[0] = '\0';
 
 	connection = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx.tds_ctx->locale);
-	if (!connection)
-		return NULL;
-
-	dbproc->dbchkintr = NULL;
-	dbproc->dbhndlintr = NULL;
-	dbproc->tds_socket->query_timeout_param = dbproc->tds_socket;
-	dbproc->tds_socket->query_timeout_func = dblib_query_timeout;
-
-	if (tds_connect(dbproc->tds_socket, connection) == TDS_FAIL) {
-		tds_free_socket(dbproc->tds_socket);
-		dbproc->tds_socket = NULL;
-		tds_free_connection(connection);
+	if (!connection) {
+		free(dbproc);
 		return NULL;
 	}
 
-//	dbproc->tds_socket->timeout = connection->timeout;
-	dbproc->tds_socket->query_timeout = connection->query_timeout;
+	dbproc->dbchkintr = NULL;
+	dbproc->dbhndlintr = NULL;
+	connection->query_timeout_param = dbproc;
+	connection->query_timeout_func = dblib_query_timeout;
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
 
@@ -715,21 +705,23 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
+	if (tds_connect(dbproc->tds_socket, connection) == TDS_FAIL) {
+		tds_free_socket(dbproc->tds_socket);
+		dbproc->tds_socket = NULL;
+		tds_free_connection(connection);
+		free(dbproc);
+		return NULL;
+	}
 	tds_free_connection(connection);
+
+//	dbproc->tds_socket->timeout = connection->timeout;
 
 	dbproc->dbbuf = NULL;
 	dbproc->dbbufsz = 0;
 
-	if (dbproc->tds_socket) {
-		/* tds_set_parent( dbproc->tds_socket, dbproc); */
-		TDS_MUTEX_LOCK(&dblib_mutex);
-		dblib_add_connection(&g_dblib_ctx, dbproc->tds_socket);
-		TDS_MUTEX_UNLOCK(&dblib_mutex);
-	} else {
-		fprintf(stderr, "DB-Library: Login incorrect.\n");
-		free(dbproc);	/* memory leak fix (mlilback, 11/17/01) */
-		return NULL;
-	}
+	TDS_MUTEX_LOCK(&dblib_mutex);
+	dblib_add_connection(&g_dblib_ctx, dbproc->tds_socket);
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
 	/* set the DBBUFFER capacity to nil */
 	buffer_set_capacity(dbproc, 0);
@@ -948,6 +940,14 @@ dbclose(DBPROCESS * dbproc)
 	int i;
 	char timestr[256];
 
+	/* 
+	 * this MUST be done before socket destruction
+	 * it is possible that a TDSSOCKET is allocated on same position
+	 */
+	TDS_MUTEX_LOCK(&dblib_mutex);
+	dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
+
 	tds = dbproc->tds_socket;
 	if (tds) {
 		buffer_free(&(dbproc->row_buf));
@@ -987,9 +987,6 @@ dbclose(DBPROCESS * dbproc)
 	dbstring_free(&(dbproc->dboptcmd));
 
 	dbfreebuf(dbproc);
-	TDS_MUTEX_LOCK(&dblib_mutex);
-	dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
 	free(dbproc);
 
 	return;

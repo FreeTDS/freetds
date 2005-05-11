@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.92 2004-11-28 14:28:20 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.93 2005-05-11 08:55:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -338,6 +338,10 @@ tds_get_size_by_type(int servertype)
 		break;
 	case SYBUNIQUE:
 		return 16;
+		break;
+	/* this strange type is used just for null placeholder in rpc */
+	case SYBVOID:
+		return 0;
 		break;
 	default:
 		return -1;
