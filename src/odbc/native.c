@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: native.c,v 1.22 2005-05-11 12:03:28 freddy77 Exp $";
+static const char software_version[] = "$Id: native.c,v 1.23 2005-05-11 19:52:14 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -190,9 +190,11 @@ skip_const_param(const char *s)
 
 	/* integer/float */
 	if (isdigit(*s) || *s == '+' || *s == '-') {
+		errno = 0;
 		strtod(s, &end);
 		if (end != s && errno == 0)
 			return end;
+		errno = 0;
 		strtol(s, &end, 10);
 		if (end != s && errno == 0)
 			return end;

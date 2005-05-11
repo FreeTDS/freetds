@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.6 2005-05-11 12:03:28 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.7 2005-05-11 19:52:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -20,7 +20,7 @@ main(int argc, char *argv[])
 		"begin\n"
 		" set nocount on\n"
 		" select @out = 7654321\n"
-		" if @in1 <> @in2 or @in3 <> cast('2004-10-15 12:09:08' as datetime) or @in4 <> 'foo'\n"
+		" if @in1 <> @in2 or @in3 <> convert(datetime, '2004-10-15 12:09:08') or @in4 <> 'foo'\n"
 		"  select @out = 1234567\n"
 		" return 24680\n"
 		"end");

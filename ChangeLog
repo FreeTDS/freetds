@@ -1,3 +1,7 @@
+Wed May 11 21:52:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/native.c src/odbc/unittests/const_params.c:
+	- fix portability problems
+
 Wed May 11 14:01:29 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO: update
 	* include/tds.h src/odbc/native.c src/odbc/prepare_query.c:
