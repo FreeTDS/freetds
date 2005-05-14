@@ -95,7 +95,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.16 2005-03-13 10:21:02 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.17 2005-05-14 05:45:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -116,10 +116,13 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 /* On early Linux use TCP_CORK if available */
 #elif defined(__linux__) && defined(TCP_CORK)
 #define USE_CORK 1
-/* On *BSD use TCP_NOPUSH (same bahavior of TCP_CORK) */
-#elif (defined(__FreeBSD__) || defined(__GNU_FreeBSD__) || defined(__OpenBSD__)) && defined(TCP_NOPUSH)
+/* On *BSD try to use TCP_CORK */
+/*
+ * NOPUSH flag do not behave in the same way
+ * cf ML "FreeBSD 5.0 performance problems with TCP_NOPUSH"
+ */
+#elif (defined(__FreeBSD__) || defined(__GNU_FreeBSD__) || defined(__OpenBSD__)) && defined(TCP_CORK)
 #define USE_CORK 1
-#define TCP_CORK TCP_NOPUSH
 /* otherwise use NODELAY */
 #elif defined(TCP_NODELAY) && defined(SOL_TCP)
 #define USE_NODELAY 1
