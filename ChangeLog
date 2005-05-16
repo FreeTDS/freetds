@@ -1,3 +1,8 @@
+Mon May 16 14:29:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/array.c(added) src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am:
+	- added a test for array binding
+
 Mon May 16 09:15:52 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c: small fixes
 
