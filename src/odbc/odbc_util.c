@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc_util.c,v 1.75 2005-05-10 12:56:02 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc_util.c,v 1.76 2005-05-16 07:16:37 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -405,8 +405,8 @@ void
 odbc_set_sql_type_info(TDSCOLUMN * col, int odbc_ver, struct _drecord *drec)
 {
 #define SET_INFO(type, prefix, suffix) \
-	drec->sql_desc_literal_prefix = ""; \
-	drec->sql_desc_literal_suffix = ""; \
+	drec->sql_desc_literal_prefix = prefix; \
+	drec->sql_desc_literal_suffix = suffix; \
 	drec->sql_desc_type_name = type; \
 	return;
 
@@ -534,7 +534,7 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 		break;
 #endif
 	default:
-		/* FIXME TODO finish, should support ALL types (interval) */
+		/* FIXME TODO finish, should support ALL types (interval, binary) */
 		size = 40;
 		tdsdump_log(TDS_DBG_INFO1, "odbc_sql_to_displaysize: unknown sql type %d\n", (int) sqltype);
 		break;
