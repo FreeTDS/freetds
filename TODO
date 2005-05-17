@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.142 2005-05-11 12:03:25 freddy77 Exp $
+To Do List	$Id: TODO,v 1.143 2005-05-17 05:11:46 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -27,6 +27,7 @@ Working in progress:
   . mssql
   . sybase
     mssql done, require docs update (patch to gnutls)
+    add openssl support
 
 Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().
