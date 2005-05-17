@@ -21,18 +21,20 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.1 2005-05-06 12:22:35 freddy77 Exp $ */
+/* $Id: tdsthread.h,v 1.2 2005-05-17 12:10:18 freddy77 Exp $ */
 
-#ifdef _THREAD_SAFE
+#if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
 
 #include <pthread.h>
 
-//#define TDS_MUTEXATTR_T pthread_mutexattr_t
-//#define TDS_MUTEX_INIT(a,b) pthread_mutex_init(a,b)
-//#define TDS_MUTEXATTR_INIT(a) pthread_mutexattr_init(a)
-//#define TDS_MUTEXATTR_SETTYPE(a,b) pthread_mutexattr_settype(a,b)
-//#define TDS_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
-//#define TDS_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+#if 0
+#define TDS_MUTEXATTR_T pthread_mutexattr_t
+#define TDS_MUTEX_INIT(a,b) pthread_mutex_init(a,b)
+#define TDS_MUTEXATTR_INIT(a) pthread_mutexattr_init(a)
+#define TDS_MUTEXATTR_SETTYPE(a,b) pthread_mutexattr_settype(a,b)
+#define TDS_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
+#define TDS_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+#endif
 
 #define TDS_MUTEX_DECLARE(name) pthread_mutex_t name = PTHREAD_MUTEX_INITIALIZER;
 #define TDS_MUTEX_LOCK(a) pthread_mutex_lock(a)
@@ -48,12 +50,14 @@
 	} while(0)
 #else
 
-//#define TDS_MUTEXATTR_T int
-//#define TDS_MUTEX_INIT(a,b) 
-//#define TDS_MUTEXATTR_INIT(a)
-//#define TDS_MUTEXATTR_SETTYPE(a,b)
-//#define TDS_MUTEX_RECURSIVE 
-//#define TDS_MUTEX_INITIALIZER 
+#if 0
+#define TDS_MUTEXATTR_T int
+#define TDS_MUTEX_INIT(a,b) 
+#define TDS_MUTEXATTR_INIT(a)
+#define TDS_MUTEXATTR_SETTYPE(a,b)
+#define TDS_MUTEX_RECURSIVE 
+#define TDS_MUTEX_INITIALIZER 
+#endif
 
 #define TDS_MUTEX_DECLARE(name) int name;
 #define TDS_MUTEX_LOCK(a)

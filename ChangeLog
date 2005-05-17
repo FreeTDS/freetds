@@ -1,3 +1,11 @@
+Tue May 17 14:08:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/thread.c(added) src/dblib/unittests/.cvsignore:
+	* src/dblib/unittests/Makefile.am src/dblib/dblib.c:
+	* include/tdsthread.h configure.in:
+	- improve pthread support and detection
+	- add dblib test for thread safety
+	- recursive dbinit/dbexit calls
+
 Tue May 17 11:12:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- fix leaks on connection error

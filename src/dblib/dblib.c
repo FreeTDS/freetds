@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.220 2005-05-17 09:13:26 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.221 2005-05-17 12:10:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -105,14 +105,22 @@ EHANDLEFUNC _dblib_err_handler = NULL;
 
 typedef struct dblib_context
 {
+	/** reference count, time dbinit called */
+	int ref_count;
+
+	/** libTDS context */
 	TDSCONTEXT *tds_ctx;
+	/** libTDS context reference counter */
+	int tds_ctx_ref_count;
+
+	/* save all connection in a list */
 	TDSSOCKET **connection_list;
 	int connection_list_size;
 	int connection_list_size_represented;
 	char *recftos_filename;
 	int recftos_filenum;
-	int login_timeout;	/* not used unless positive */
-	int query_timeout;	/* not used unless positive */
+	int login_timeout;	/**< not used unless positive */
+	int query_timeout;	/**< not used unless positive */
 }
 DBLIBCONTEXT;
 
@@ -168,6 +176,41 @@ dblib_del_connection(DBLIBCONTEXT * ctx, TDSSOCKET * tds)
 		/* remove it */
 		ctx->connection_list[i] = NULL;
 	}
+}
+
+static TDSCONTEXT*
+dblib_get_tds_ctx(void)
+{
+	TDS_MUTEX_LOCK(&dblib_mutex);
+	++g_dblib_ctx.tds_ctx_ref_count;
+	if (g_dblib_ctx.tds_ctx == NULL) {
+		g_dblib_ctx.tds_ctx = tds_alloc_context(&g_dblib_ctx);
+
+		/*
+		 * Set the functions in the TDS layer to point to the correct info/err
+		 * message handler functions
+		 */
+		g_dblib_ctx.tds_ctx->msg_handler = _dblib_handle_info_message;
+		g_dblib_ctx.tds_ctx->err_handler = _dblib_handle_err_message;
+
+		if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
+			/* set default in case there's no locale file */
+			g_dblib_ctx.tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M:%S:%z%p");
+		}
+	}
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	return g_dblib_ctx.tds_ctx;
+}
+
+static void
+dblib_release_tds_ctx(void)
+{
+	TDS_MUTEX_LOCK(&dblib_mutex);
+	if (--g_dblib_ctx.tds_ctx_ref_count == 0) {
+		tds_free_context(g_dblib_ctx.tds_ctx);
+		g_dblib_ctx.tds_ctx = NULL;
+	}
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
 }
 
 #define USE_OLD_BUFFERING 0
@@ -234,40 +277,32 @@ dblib_query_timeout(void *param)
 RETCODE
 dbinit(void)
 {
+	TDS_MUTEX_LOCK(&dblib_mutex);
+
+	if (++g_dblib_ctx.ref_count != 1) {
+		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		return SUCCEED;
+	}
 	/* 
 	 * DBLIBCONTEXT stores a list of current connections so they may be closed
 	 * with dbexit() 
 	 */
-	memset(&g_dblib_ctx, '\0', sizeof(DBLIBCONTEXT));
 
 	g_dblib_ctx.connection_list = (TDSSOCKET **) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
 	if (g_dblib_ctx.connection_list == NULL) {
 		tdsdump_log(TDS_DBG_FUNC, "dbinit: out of memory\n");
+		TDS_MUTEX_UNLOCK(&dblib_mutex);
 		return FAIL;
 	}
 	g_dblib_ctx.connection_list_size = TDS_MAX_CONN;
 	g_dblib_ctx.connection_list_size_represented = TDS_MAX_CONN;
 
-
-	g_dblib_ctx.tds_ctx = tds_alloc_context(&g_dblib_ctx);
-
-	/* 
-	 * Set the functions in the TDS layer to point to the correct info/err
-	 * message handler functions 
-	 */
-	g_dblib_ctx.tds_ctx->msg_handler = _dblib_handle_info_message;
-	g_dblib_ctx.tds_ctx->err_handler = _dblib_handle_err_message;
-
-
-	if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
-		/* set default in case there's no locale file */
-		g_dblib_ctx.tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M:%S:%z%p");
-	}
-
 	g_dblib_ctx.login_timeout = -1;
 	g_dblib_ctx.query_timeout = -1;
 
-//	TDS_MUTEX_INIT_RECURSIVE(&dblib_mutex);
+	TDS_MUTEX_UNLOCK(&dblib_mutex);
+
+	dblib_get_tds_ctx();
 
 	return SUCCEED;
 }
@@ -669,9 +704,7 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	tds_set_server(login->tds_login, server);
 
-//	TDS_MUTEX_LOCK(&dblib_mutex);
-	dbproc->tds_socket = tds_alloc_socket(g_dblib_ctx.tds_ctx, 512);
-//	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	dbproc->tds_socket = tds_alloc_socket(dblib_get_tds_ctx(), 512);
 
 	tds_set_parent(dbproc->tds_socket, dbproc);
 	dbproc->tds_socket->option_flag2 &= ~0x02;	/* we're not an ODBC driver */
@@ -706,8 +739,6 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
 	if (tds_connect(dbproc->tds_socket, connection) == TDS_FAIL) {
-		tds_free_socket(dbproc->tds_socket);
-		dbproc->tds_socket = NULL;
 		tds_free_connection(connection);
 		dbclose(dbproc);
 		return NULL;
@@ -952,6 +983,7 @@ dbclose(DBPROCESS * dbproc)
 
 		buffer_free(&(dbproc->row_buf));
 		tds_free_socket(tds);
+		dblib_release_tds_ctx();
 	}
 
 	if (dbproc->ftos != NULL) {
@@ -1004,12 +1036,16 @@ dbexit()
 {
 	TDSSOCKET *tds;
 	DBPROCESS *dbproc;
-	int i;
-	const int list_size = g_dblib_ctx.connection_list_size;
-
-	/* FIX ME -- this breaks if ctlib/dblib used in same process */
+	int i, list_size;
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
+
+	if (--g_dblib_ctx.ref_count != 0) {
+		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		return;
+	}
+
+	list_size = g_dblib_ctx.connection_list_size;
 
 	for (i = 0; i < list_size; i++) {
 		tds = g_dblib_ctx.connection_list[i];
@@ -1024,12 +1060,10 @@ dbexit()
 		TDS_ZERO_FREE(g_dblib_ctx.connection_list);
 		g_dblib_ctx.connection_list_size = 0;
 	}
-	if (g_dblib_ctx.tds_ctx) {
-		tds_free_context(g_dblib_ctx.tds_ctx);
-		g_dblib_ctx.tds_ctx = NULL;
-	}
 
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
+
+	dblib_release_tds_ctx();
 }
 
 /**
@@ -1643,9 +1677,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	tdsdump_log(TDS_DBG_INFO1, "dbconvert() calling tds_convert\n");
 
-//	TDS_MUTEX_LOCK(&dblib_mutex);
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
-//	TDS_MUTEX_UNLOCK(&dblib_mutex);
 	tdsdump_log(TDS_DBG_INFO1, "dbconvert() called tds_convert returned %d\n", len);
 
 	switch (len) {
@@ -5964,15 +5996,10 @@ int
 _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberrstr)
 {
 	TDSSOCKET *tds = NULL;
-	int r;
 
 	if (dbproc)
 		tds = dbproc->tds_socket;
-//	TDS_MUTEX_LOCK(&dblib_mutex);
-	r = tds_client_msg(g_dblib_ctx.tds_ctx, tds, dberr, severity, -1, -1, dberrstr);
-
-//	TDS_MUTEX_UNLOCK(&dblib_mutex);
-	return r;
+	return tds_client_msg(g_dblib_ctx.tds_ctx, tds, dberr, severity, -1, -1, dberrstr);
 }
 
 static char *
@@ -6195,9 +6222,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 			dres.n.scale = num->scale;
 	}
 
-//	TDS_MUTEX_LOCK(&dblib_mutex);
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
-//	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
 	tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var() called tds_convert returned %d\n", len);
 
