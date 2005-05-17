@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.219 2005-05-11 08:55:30 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.220 2005-05-17 09:13:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -682,7 +682,7 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	connection = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx.tds_ctx->locale);
 	if (!connection) {
-		free(dbproc);
+		dbclose(dbproc);
 		return NULL;
 	}
 
@@ -709,7 +709,7 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 		tds_free_socket(dbproc->tds_socket);
 		dbproc->tds_socket = NULL;
 		tds_free_connection(connection);
-		free(dbproc);
+		dbclose(dbproc);
 		return NULL;
 	}
 	tds_free_connection(connection);
@@ -940,16 +940,16 @@ dbclose(DBPROCESS * dbproc)
 	int i;
 	char timestr[256];
 
-	/* 
-	 * this MUST be done before socket destruction
-	 * it is possible that a TDSSOCKET is allocated on same position
-	 */
-	TDS_MUTEX_LOCK(&dblib_mutex);
-	dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
-
 	tds = dbproc->tds_socket;
 	if (tds) {
+		/* 
+		 * this MUST be done before socket destruction
+		 * it is possible that a TDSSOCKET is allocated on same position
+		 */
+		TDS_MUTEX_LOCK(&dblib_mutex);
+		dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
+		TDS_MUTEX_UNLOCK(&dblib_mutex);
+
 		buffer_free(&(dbproc->row_buf));
 		tds_free_socket(tds);
 	}

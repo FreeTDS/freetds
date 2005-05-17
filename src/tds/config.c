@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.108 2005-05-06 08:39:39 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.109 2005-05-17 09:13:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -711,13 +711,7 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	if (host) {
 		struct in_addr *ptr = (struct in_addr *) host->h_addr;
 
-#if defined(AF_INET) && HAVE_INET_NTOP
-		inet_ntop(AF_INET, ptr, ip, 17);
-#elif HAVE_INET_NTOA_R
-		inet_ntoa_r(*ptr, ip, 17);
-#else
-		strncpy(ip, inet_ntoa(*ptr), 17);
-#endif
+		tds_inet_ntoa_r(*ptr, ip, 17);
 	}
 }				/* tds_lookup_host()  */
 

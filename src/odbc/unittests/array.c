@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.1 2005-05-16 12:30:50 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.2 2005-05-17 09:13:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -43,7 +43,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens);
 	SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, DESC_LEN - 1, 0, descs, DESC_LEN, desc_lens);
 
-	processed = -1;
+	processed = ARRAY_SIZE + 1;
 	for (i = 0; i < ARRAY_SIZE; i++) {
 		statuses[i] = SQL_PARAM_DIAG_UNAVAILABLE;
 		ids[i] = i * 132;
@@ -64,7 +64,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	for (i = 0; i < ARRAY_SIZE; i++)
 		SQLMoreResults(Statement);
 
-	assert(processed >= 0 && processed <= ARRAY_SIZE);
+	assert(processed <= ARRAY_SIZE);
 
 	for (i = 0; i < processed; ++i) {
 		switch (statuses[i]) {

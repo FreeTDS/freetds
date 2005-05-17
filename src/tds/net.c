@@ -95,7 +95,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.17 2005-05-14 05:45:19 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.18 2005-05-17 09:13:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -137,6 +137,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	fd_set fds;
 	time_t start, now;
 	int len, retval;
+	char ip[20];
 #ifdef WIN32
 	int optlen;
 #else
@@ -154,7 +155,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(port);
 
-	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d.\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d.\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port));
 
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
@@ -207,7 +208,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	}
 
 	if (retval < 0 || (now - start) >= timeout) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port), strerror(sock_errno));
 		tds_close_socket(tds);
 		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
 		return TDS_FAIL;

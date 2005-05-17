@@ -68,6 +68,10 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
+
 #ifdef WIN32
 #include <shlobj.h>
 #endif
@@ -77,7 +81,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.35 2004-05-03 20:02:47 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.36 2005-05-17 09:13:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -309,6 +313,20 @@ tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result,
 #else
 #error gethostbyaddr_r style unknown
 #endif
+}
+
+const char *
+tds_inet_ntoa_r(struct in_addr iaddr, char *ip, size_t len)
+{
+#if defined(AF_INET) && HAVE_INET_NTOP
+	inet_ntop(AF_INET, &iaddr, ip, len);
+#elif HAVE_INET_NTOA_R
+	inet_ntoa_r(iaddr, ip, len);
+#else
+	strncpy(ip, inet_ntoa(iaddr), len);
+	ip[len-1] = 0;
+#endif
+	return ip;
 }
 
 struct servent *

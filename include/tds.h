@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.229 2005-05-11 12:03:28 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.230 2005-05-17 09:13:26 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1214,6 +1214,9 @@ struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *resu
 struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen,
 				    int *h_errnop);
 struct servent *tds_getservbyname_r(const char *name, const char *proto, struct servent *result, char *buffer, int buflen);
+#ifdef INADDR_NONE
+const char *tds_inet_ntoa_r(struct in_addr iaddr, char *ip, size_t len);
+#endif
 char *tds_get_homedir(void);
 
 /* mem.c */
