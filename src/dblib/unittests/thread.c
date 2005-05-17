@@ -1,6 +1,5 @@
 /* 
- * Purpose: Log in, create a table, insert a few rows, select them, and log out.   
- * Functions: dbbind dbcmd dbcolname dberrhandle dbisopt dbmsghandle dbnextrow dbnumcols dbopen dbresults dbsetlogintime dbsqlexec dbuse 
+ * Purpose: Test dblib thread safety
  */
 
 #if HAVE_CONFIG_H
@@ -27,7 +26,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: thread.c,v 1.1 2005-05-17 12:10:17 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.2 2005-05-17 14:03:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_MUTEX_DECLARE(mutex);

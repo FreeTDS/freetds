@@ -121,7 +121,7 @@ buffer_row_address(const DBPROC_ROWBUF * buf, int idx)
 		assert(idx < buf->capacity);
 	}
 	
-	return buf->rows + offset;
+	return ((char *) buf->rows) + offset;
 }
 
 /**

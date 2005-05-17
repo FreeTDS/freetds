@@ -95,7 +95,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.18 2005-05-17 09:13:27 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.19 2005-05-17 14:03:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -125,6 +125,10 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #define USE_CORK 1
 /* otherwise use NODELAY */
 #elif defined(TCP_NODELAY) && defined(SOL_TCP)
+#define USE_NODELAY 1
+/* under VMS we have to define TCP_NODELAY */
+#elif defined(__VMS)
+#define TCP_NODELAY 1
 #define USE_NODELAY 1
 #endif
 

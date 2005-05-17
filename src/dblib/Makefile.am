@@ -1,11 +1,11 @@
-# $Id: Makefile.am,v 1.31 2004-12-13 10:59:58 freddy77 Exp $
+# $Id: Makefile.am,v 1.32 2005-05-17 14:03:11 freddy77 Exp $
 SUBDIRS		=	unittests
 
 lib_LTLIBRARIES	=	libsybdb.la
 if SYBASE_COMPAT
 DBOPEN=dbopen.c
 endif
-EXTRA_DIST	=	dbopen.c
+EXTRA_DIST	=	dbopen.c buffering.h
 libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c $(DBOPEN)
 # version bumped for 0.63, I hope we'll bump it less in the future -- freddy77
 libsybdb_la_LDFLAGS=	-version-info 5:0:0 -export-symbols-regex '^(db|bcp_|tdsdump_open|tdsdbopen|.*_xact|close_commit|open_commit|.?asprintf).*' $(FREETDS_SYMBOLIC)
