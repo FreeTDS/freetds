@@ -6,7 +6,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.8 2002-11-20 13:57:15 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.9 2005-05-18 12:00:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* protos */
@@ -43,8 +43,6 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	/* do not test error */
-	ret = run_command(cmd, "DROP TABLE #t0004");
 	ret = run_command(cmd, "CREATE TABLE #t0004 (id int)");
 	if (ret != CS_SUCCEED)
 		return 1;

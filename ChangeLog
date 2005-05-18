@@ -1,3 +1,18 @@
+Wed May 18 13:59:41 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/array_bind.c src/ctlib/unittests/cancel.c:
+	* src/ctlib/unittests/ct_diagall.c:
+	* src/ctlib/unittests/ct_diagclient.c:
+	* src/ctlib/unittests/ct_diagserver.c:
+	* src/ctlib/unittests/get_send_data.c:
+	* src/ctlib/unittests/lang_ct_param.c:
+	* src/ctlib/unittests/rpc_ct_param.c:
+	* src/ctlib/unittests/rpc_ct_setparam.c:
+	* src/ctlib/unittests/t0003.c:
+	* src/ctlib/unittests/t0004.c:
+	* src/ctlib/unittests/t0009.c:
+	- remove warnings dropping objects
+	* src/dblib/unittests/thread.c: fix syntax on Sybase
+
 Tue May 17 16:02:20 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/Makefile.am: fix distro
 	* src/dblib/buffering.h src/tds/net.c:

@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.9 2002-11-20 13:57:15 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.10 2005-05-18 12:00:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -56,8 +56,6 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	/* do not test error */
-	ret = run_command(cmd, "DROP TABLE #test_table");
 	ret = run_command(cmd, "CREATE TABLE #test_table (id int, name text)");
 	if (ret != CS_SUCCEED)
 		return 1;

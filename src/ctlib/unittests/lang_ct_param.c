@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.2 2003-11-01 23:02:16 jklowden Exp $";
+static char software_version[] = "$Id: lang_ct_param.c,v 1.3 2005-05-18 12:00:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
@@ -50,9 +50,6 @@ main(int argc, char *argv[])
 	ct_callback(ctx, NULL, CS_SET, CS_CLIENTMSG_CB, (CS_VOID *) ex_clientmsg_cb);
 
 	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
-
-	/* do not test error */
-	ret = run_command(cmd, "DROP table #ctparam_lang");
 
 	strcpy(cmdbuf, "create table #ctparam_lang (id numeric identity not null, \
         name varchar(30), age int, cost money, bdate datetime, fval float) ");

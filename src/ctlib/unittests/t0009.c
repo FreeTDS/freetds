@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.11 2004-01-31 16:07:14 freddy77 Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.12 2005-05-18 12:00:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve compute results */
@@ -50,9 +50,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Login failed\n");
 		return 1;
 	}
-
-	/* do not test error */
-	ret = run_command(cmd, "DROP TABLE #ctlib0009");
 
 	ret = run_command(cmd, "CREATE TABLE #ctlib0009 (col1 int not null,  col2 char(1) not null, col3 datetime not null)");
 	if (ret != CS_SUCCEED)

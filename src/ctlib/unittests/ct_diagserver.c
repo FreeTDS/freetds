@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagserver.c,v 1.3 2004-09-08 12:51:24 freddy77 Exp $";
+static char software_version[] = "$Id: ct_diagserver.c,v 1.4 2005-05-18 12:00:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Server messages limit */
@@ -46,15 +46,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "ct_diag(CS_STATUS) failed\n");
 		return 1;
 	}
-
-	/* do not test error */
-	ret = run_command(cmd, "DROP TABLE #ctlibarray1");
-	ret = run_command(cmd, "DROP TABLE #ctlibarray2");
-	ret = run_command(cmd, "DROP TABLE #ctlibarray3");
-	ret = run_command(cmd, "DROP TABLE #ctlibarray4");
-	ret = run_command(cmd, "DROP TABLE #ctlibarray5");
-	ret = run_command(cmd, "DROP TABLE #ctlibarray6");
-	ret = run_command(cmd, "DROP TABLE #ctlibarray7");
 
 	fprintf(stdout, "Maximum message limit is set to %d.\n", totMsgs);
 

@@ -26,7 +26,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: thread.c,v 1.2 2005-05-17 14:03:11 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.3 2005-05-18 12:00:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_MUTEX_DECLARE(mutex);
@@ -77,7 +77,7 @@ test(void)
 		dbuse(dbproc, DATABASE);
 
 	/* fprintf(stdout, "select\n"); */
-	dbcmd(dbproc, "select * from dblib_thread(nolock) order by i");
+	dbcmd(dbproc, "select * from dblib_thread order by i");
 	dbsqlexec(dbproc);
 
 

@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagclient.c,v 1.6 2004-08-16 09:59:04 freddy77 Exp $";
+static char software_version[] = "$Id: ct_diagclient.c,v 1.7 2005-05-18 12:00:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Client Messages */
@@ -63,9 +63,6 @@ main(int argc, char *argv[])
 	}
 
 	fprintf(stdout, "Maximum message limit is set to: %d\n", totmsgs);
-
-	/* do not test error */
-	ret = run_command(cmd, "DROP TABLE #ctlibarray");
 
 	ret = run_command(cmd, "CREATE TABLE #ctlibarray (col1 int not null,  col2 char(4) not null, col3 datetime not null)");
 	if (ret != CS_SUCCEED)

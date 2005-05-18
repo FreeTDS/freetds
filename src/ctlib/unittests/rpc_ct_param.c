@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_param.c,v 1.6 2005-05-11 07:56:44 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_param.c,v 1.7 2005-05-18 12:00:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
 
 	/* do not test error */
-	ret = run_command(cmd, "DROP PROCEDURE sample_rpc");
+	ret = run_command(cmd, "IF EXISTS(SELECT * FROM SYSOBJECTS WHERE name = 'sample_rpc' AND type = 'P') DROP PROCEDURE sample_rpc");
 
 	strcpy(cmdbuf, "create proc sample_rpc (@intparam int, \
         @sintparam smallint output, @floatparam float output, \
