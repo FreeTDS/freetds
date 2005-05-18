@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.8 2005-05-18 12:00:04 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.9 2005-05-18 15:54:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* protos */
@@ -23,11 +23,13 @@ static volatile CS_COMMAND *g_cmd = NULL;
 void
 catch_alrm(int sig_num)
 {
-	/* signal(SIGALRM, catch_alrm); */
+	signal(SIGALRM, catch_alrm);
+
 	fprintf(stdout, "- SIGALRM\n");
 
 	/* Cancel current command */
-	ct_cancel(NULL, (CS_COMMAND *) g_cmd, CS_CANCEL_ATTN);
+	if (g_cmd)
+		ct_cancel(NULL, (CS_COMMAND *) g_cmd, CS_CANCEL_ATTN);
 
 	fflush(stdout);
 }
@@ -91,14 +93,14 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	/* Save a global reference for the interrupt handler */
-	g_cmd = cmd;
-
 	ret = ct_send(cmd);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_send() failed.\n");
 		return 1;
 	}
+
+	/* Save a global reference for the interrupt handler */
+	g_cmd = cmd;
 
 	while ((ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		printf("More results?...\n");
@@ -128,8 +130,10 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	/* Issue another command, this will be executed after a ct_cancel, 
-	 *       * to test if wire state is consistent */
+	/*
+	 * Issue another command, this will be executed after a ct_cancel, 
+	 * to test if wire state is consistent 
+	 */
 	ret = ct_command(cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3, #t0010 t4", CS_NULLTERM, CS_UNUSED);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_command() failed.\n");

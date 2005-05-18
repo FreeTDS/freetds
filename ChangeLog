@@ -1,3 +1,7 @@
+Wed May 18 17:54:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/cancel.c:
+	- do not fail if ct_send is very slow
+
 Wed May 18 13:59:41 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/array_bind.c src/ctlib/unittests/cancel.c:
 	* src/ctlib/unittests/ct_diagall.c:
