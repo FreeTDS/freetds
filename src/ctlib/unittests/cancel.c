@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.9 2005-05-18 15:54:18 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.10 2005-05-20 12:37:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* protos */
@@ -95,7 +95,7 @@ main(int argc, char **argv)
 
 	ret = ct_send(cmd);
 	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed.\n");
+		fprintf(stderr, "first ct_send() failed.\n");
 		return 1;
 	}
 
@@ -134,7 +134,7 @@ main(int argc, char **argv)
 	 * Issue another command, this will be executed after a ct_cancel, 
 	 * to test if wire state is consistent 
 	 */
-	ret = ct_command(cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3, #t0010 t4", CS_NULLTERM, CS_UNUSED);
+	ret = ct_command(cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3", CS_NULLTERM, CS_UNUSED);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_command() failed.\n");
 		return 1;
@@ -142,7 +142,7 @@ main(int argc, char **argv)
 
 	ret = ct_send(cmd);
 	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_send() failed.\n");
+		fprintf(stderr, "second ct_send() failed.\n");
 		return 1;
 	}
 
@@ -158,7 +158,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (10000 != cnt) {
+	if (1000 != cnt) {
 		/* This time, all rows must have been received */
 		fprintf(stderr, "Incorrect number of rows read.\n");
 		return 1;

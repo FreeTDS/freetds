@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.124 2005-04-14 11:35:44 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.125 2005-05-20 12:37:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -545,6 +545,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	int row_of_query;
 	int rows_written;
 	char *bcpdatefmt = NULL;
+	int tdsret;
 
 	tds = dbproc->tds_socket;
 	assert(tds);
@@ -568,7 +569,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		}
 	}
 
-	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) == TDS_FAIL) {
+	tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS);
+	if (tdsret == TDS_FAIL || tdsret == TDS_CANCELLED) {
 		fclose(hostfile);
 		return FAIL;
 	}

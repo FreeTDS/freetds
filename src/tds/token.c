@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.294 2005-04-15 11:52:01 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.295 2005-05-20 12:37:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -814,9 +814,8 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 			return rc;
 		}
 
-		/* correct to return TDS_FAIL ?? */
 		if (tds->state == TDS_IDLE)
-			return cancel_seen ? TDS_FAIL : TDS_NO_MORE_RESULTS;
+			return cancel_seen ? TDS_CANCELLED : TDS_NO_MORE_RESULTS;
 
 		if (tds->state == TDS_DEAD) {
 			/* TODO free all results ?? */
@@ -2546,6 +2545,7 @@ tds_process_cancel(TDSSOCKET * tds)
 		switch (tds_process_tokens(tds, &result_type, NULL, 0)) {
 		case TDS_FAIL:
 			return TDS_FAIL;
+		case TDS_CANCELLED:
 		case TDS_SUCCEED:
 		case TDS_NO_MORE_RESULTS:
 			return TDS_SUCCEED;

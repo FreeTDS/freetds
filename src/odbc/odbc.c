@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.372 2005-05-10 12:56:01 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.373 2005-05-20 12:37:54 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -581,7 +581,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			/* Skipping current result set's rows to access next resultset or proc's retval */
 			tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_STOPAT_COMPUTE);
 			/* TODO should we set in_row ?? */
-			if (tdsret == TDS_FAIL)
+			if (tdsret == TDS_FAIL || tdsret == TDS_CANCELLED)
 				ODBC_RETURN(stmt, SQL_ERROR);
 			break;
 
@@ -2338,7 +2338,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 
 		/* TODO other types for date ?? SQL_TYPE_DATE, SQL_TYPE_TIME */
 		if (drec->sql_desc_concise_type == SQL_TIMESTAMP)
-			drec->sql_desc_length = strlen("2000-01-01 12:00:00.0000");
+			drec->sql_desc_length = sizeof("2000-01-01 12:00:00.0000")-1;
 		else
 			drec->sql_desc_length = col->column_size;
 		odbc_set_sql_type_info(col, stmt->dbc->env->attr.odbc_version, drec);
@@ -2622,6 +2622,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 		switch (tds_process_tokens(tds, &result_type, &done_flags, flag)) {
 		case TDS_NO_MORE_RESULTS:
 			return TDS_CMD_DONE;
+		case TDS_CANCELLED:
 		case TDS_FAIL:
 			return TDS_CMD_FAIL;
 		}

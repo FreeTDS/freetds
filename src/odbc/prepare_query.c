@@ -35,6 +35,7 @@
 #include <ctype.h>
 
 #include "tds.h"
+#include "tdsconvert.h"
 #include "tdsodbc.h"
 #include "prepare_query.h"
 #if 0
@@ -47,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: prepare_query.c,v 1.47 2005-05-11 12:03:28 freddy77 Exp $";
+static const char software_version[] = "$Id: prepare_query.c,v 1.48 2005-05-20 12:37:55 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -456,6 +457,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 	for (;;) {
 		TDSPARAMINFO *temp_params;
 		TDSCOLUMN *curcol;
+		TDS_SERVER_TYPE type;
 		const char *start;
 
 		while (TDS_ISSPACE(*++p));
@@ -483,31 +485,64 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 			/* add next parameter to list */
 			start = p;
 
-			if (!(p = skip_const_param(p)))
+			if (!(p = parse_const_param(p, &type)))
 				return SQL_ERROR;
-			tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBVARCHAR);
-			curcol->column_size = p - start;
+			tds_set_param_type(stmt->dbc->tds_socket, curcol, type);
+			switch (type) {
+			case SYBVARCHAR:
+				curcol->column_size = p - start;
+				break;
+			case SYBVARBINARY:
+				curcol->column_size = (p - start) / 2 -1;
+				break;
+			default:
+				assert(0);
+			case SYBINT4:
+			case SYBFLT8:
+				break;
+			}
 			/* TODO support other type other than VARCHAR, do not strip escape in prepare_call */
 			if (compute_row) {
 				char *dest;
+				int len;
+				CONV_RESULT cr;
 
 				if (!tds_alloc_param_row(temp_params, curcol))
 					return SQL_ERROR;
 				dest = (char *) &temp_params->current_row[curcol->column_offset];
-				if (*start != '\'') {
-					memcpy(dest, start, p - start);
-					curcol->column_cur_size = p - start;
-				} else {
-					++start;
-					for (;;) {
-						if (*start == '\'')
-							++start;
-						if (start >= p)
-							break;
-						*dest++ = *start++;
+				switch (type) {
+				case SYBVARCHAR:
+					if (*start != '\'') {
+						memcpy(dest, start, p - start);
+						curcol->column_cur_size = p - start;
+					} else {
+						++start;
+						for (;;) {
+							if (*start == '\'')
+								++start;
+							if (start >= p)
+								break;
+							*dest++ = *start++;
+						}
+						curcol->column_cur_size =
+							dest - (char *) (&temp_params->current_row[curcol->column_offset]);
 					}
-					curcol->column_cur_size =
-						dest - (char *) (&temp_params->current_row[curcol->column_offset]);
+					break;
+				case SYBVARBINARY:
+					len = tds_convert(NULL, SYBVARCHAR, start, p - start, SYBVARBINARY, &cr);
+					if (len >= 0) {
+						memcpy(dest, cr.ib, len);
+						free(cr.ib);
+					}
+					break;
+				case SYBINT4:
+					*((TDS_INT *) dest) = strtol(start, NULL, 10);
+					break;
+				case SYBFLT8:
+					*((TDS_FLOAT *) dest) = strtod(start, NULL);
+					break;
+				default:
+					break;
 				}
 			}
 			--p;

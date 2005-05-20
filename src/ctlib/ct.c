@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.148 2005-04-14 11:35:44 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.149 2005-05-20 12:37:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -1388,6 +1388,11 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 			return CS_END_RESULTS;
 			break;
 
+		case TDS_CANCELLED:
+			cmd->cancel_state = _CS_CANCEL_NOCANCEL;
+			return CS_CANCELED;
+			break;
+
 		case TDS_FAIL:
 		default:
 			return CS_FAIL;
@@ -1537,6 +1542,11 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 				}
 			case TDS_NO_MORE_RESULTS:
 				return CS_END_DATA;
+				break;
+
+			case TDS_CANCELLED:
+				cmd->cancel_state = _CS_CANCEL_NOCANCEL;
+				return CS_CANCELED;
 				break;
 
 			default:

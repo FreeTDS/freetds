@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.222 2005-05-20 06:55:19 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.223 2005-05-20 12:37:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1219,6 +1219,7 @@ dbresults(DBPROCESS * dbproc)
 			}
 			break;
 
+		case TDS_CANCELLED:
 		case TDS_FAIL:
 			dbproc->dbresults_state = _DB_RES_INIT;
 			return FAIL;

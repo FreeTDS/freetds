@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: native.c,v 1.23 2005-05-11 19:52:14 freddy77 Exp $";
+static const char software_version[] = "$Id: native.c,v 1.24 2005-05-20 12:37:55 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -172,7 +172,7 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 }
 
 const char *
-skip_const_param(const char *s)
+parse_const_param(const char *s, TDS_SERVER_TYPE *type)
 {
 	char *end;
 
@@ -181,23 +181,31 @@ skip_const_param(const char *s)
 		s += 2;
 		while (isxdigit(*s))
 			++s;
+		*type = SYBVARBINARY;
 		return s;
 	}
 
 	/* string */
-	if (*s == '\'')
+	if (*s == '\'') {
+		*type = SYBVARCHAR;
 		return tds_skip_quoted(s);
+	}
 
 	/* integer/float */
 	if (isdigit(*s) || *s == '+' || *s == '-') {
 		errno = 0;
 		strtod(s, &end);
-		if (end != s && errno == 0)
+		if (end != s && strcspn(s, ".eE") < (end-s)&& errno == 0) {
+			*type = SYBFLT8;
 			return end;
+		}
 		errno = 0;
+		/* FIXME success if long is 64bit */
 		strtol(s, &end, 10);
-		if (end != s && errno == 0)
+		if (end != s && errno == 0) {
+			*type = SYBINT4;
 			return end;
+		}
 	}
 
 	/* TODO date, time */
@@ -212,6 +220,7 @@ prepare_call(struct _hstmt * stmt)
 	char *buf;
 	SQLRETURN rc;
 	int got_params;
+	TDS_SERVER_TYPE type;
 
 	if (stmt->prepared_query)
 		buf = stmt->prepared_query;
@@ -262,7 +271,7 @@ prepare_call(struct _hstmt * stmt)
 			--s;
 			break;
 		default:
-			if (!(s = skip_const_param(s)))
+			if (!(s = parse_const_param(s, &type)))
 				return SQL_SUCCESS;
 			--s;
 			break;

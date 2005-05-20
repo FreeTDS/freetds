@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.230 2005-05-17 09:13:26 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.231 2005-05-20 12:37:53 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -186,6 +186,7 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_SUCCEED          1
 #define TDS_FAIL             0
 #define TDS_NO_MORE_RESULTS  2
+#define TDS_CANCELLED        3
 
 #define TDS_INT_EXIT 0
 #define TDS_INT_CONTINUE 1
