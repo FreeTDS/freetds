@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.25 2005-04-15 11:51:37 freddy77 Exp $
+$Id: NEWS,v 1.26 2005-05-20 15:16:03 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -18,6 +18,7 @@ $Id: NEWS,v 1.25 2005-04-15 11:51:37 freddy77 Exp $
 - improved debug logging (added "debug flags" option)
 - support long password on tsql for all platforms
 - ct_dynamic and friends (placeholder support under ctlib)
+- constant parameters in odbc rpc (ie {?=call func(10,?)} )
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure
@@ -55,6 +56,7 @@ libTDS API changes
  - tds_process_trailing_tokens
 - removed tds_ctx_set_parent/tds_ctx_get_parent, use parent member
 - added void * parent argument to tds_alloc_context
+- tds_process_tokens return a TDS_CANCELLED if handle cancellation
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information

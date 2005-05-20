@@ -1,3 +1,9 @@
+Fri May 20 17:15:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO: updated
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/array_out.c(added):
+	- added test for array binding
+
 Fri May 20 14:36:52 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/ctlib/unittests/cancel.c:
 	* src/dblib/bcp.c src/dblib/dblib.c src/odbc/odbc.c:
