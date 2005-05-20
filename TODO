@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.144 2005-05-20 15:16:03 freddy77 Exp $
+To Do List	$Id: TODO,v 1.145 2005-05-20 17:04:48 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -22,11 +22,14 @@ Working in progress:
     (tds_peek if not in pending state hang... update)
 . fix timeout problem reported in ML
   . check dblib behavior
+  . merge with Liam patch
 . support encrypted connections
   . mssql
   . sybase
     mssql done, require docs update (patch to gnutls)
-    add openssl support
+  . add openssl support
+. finish dblib thread safety
+. odbc array binding (see odbc tests)
 
 Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().
