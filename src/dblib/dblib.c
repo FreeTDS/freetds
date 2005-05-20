@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.221 2005-05-17 12:10:17 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.222 2005-05-20 06:55:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3095,12 +3095,32 @@ dbgetpacket(DBPROCESS * dbproc)
 RETCODE
 dbsetmaxprocs(int maxprocs)
 {
-	int i;
-	TDSSOCKET **old_list = g_dblib_ctx.connection_list;
+	int i, j;
+	TDSSOCKET **old_list;
 
 	tdsdump_log(TDS_DBG_FUNC, "UNTESTED dbsetmaxprocs()\n");
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
+
+	old_list = g_dblib_ctx.connection_list;
+
+	/* "compress" array */
+	for (i = 0; i < g_dblib_ctx.connection_list_size; ++i) {
+		/* if empty replace with first no-empty */
+		if (old_list[i])
+			continue;
+		for (j = i + 1; j < g_dblib_ctx.connection_list_size; ++j)
+			if (old_list[j]) {
+				old_list[i] = old_list[j];
+				old_list[j] = NULL;
+				break;
+			}
+		if (j >= g_dblib_ctx.connection_list_size)
+			break;
+	}
+	/* do not restrict too much, i here contains minimun size */
+	if (maxprocs < i)
+		maxprocs = i;
 
 	/*
 	 * Don't reallocate less memory.  
@@ -3108,7 +3128,7 @@ dbsetmaxprocs(int maxprocs)
 	 * If larger, reallocate and copy.
 	 * We probably should check for valid connections beyond the new max.
 	 */
-	if (maxprocs < g_dblib_ctx.connection_list_size) {
+	if (maxprocs <= g_dblib_ctx.connection_list_size) {
 		g_dblib_ctx.connection_list_size_represented = maxprocs;
 		TDS_MUTEX_UNLOCK(&dblib_mutex);
 		return SUCCEED;

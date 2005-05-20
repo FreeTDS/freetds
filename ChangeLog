@@ -1,3 +1,6 @@
+Fri May 20 08:54:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: thread safe fix
+
 Wed May 18 17:54:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/cancel.c:
 	- do not fail if ct_send is very slow
