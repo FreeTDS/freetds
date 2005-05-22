@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.26 2005-05-20 15:16:03 freddy77 Exp $
+$Id: NEWS,v 1.27 2005-05-22 09:03:36 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -19,6 +19,7 @@ $Id: NEWS,v 1.26 2005-05-20 15:16:03 freddy77 Exp $
 - support long password on tsql for all platforms
 - ct_dynamic and friends (placeholder support under ctlib)
 - constant parameters in odbc rpc (ie {?=call func(10,?)} )
+- configure use automatically odbc_config if available
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure

@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.145 2005-05-20 17:04:48 freddy77 Exp $
+To Do List	$Id: TODO,v 1.146 2005-05-22 09:03:37 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -116,7 +116,6 @@ For future versions (in priority order within library):
   optimize ODBC_RETURN (remove useless)
 . handle no termination on odbc_set_string*
 . cursors support
-. use odbc_config if available
 . *W functions support (wide version, ODBC 3.51)
 . handle async flags ??
 . it seems that if statement it's wrong and we issue SQLPrepare on SQLExecute
@@ -135,7 +134,6 @@ For future versions (in priority order within library):
   - no bind and sqlgetdata
   - before first fetch
   - after last fetch
-. test: bind offset + tests
 . test: PARAMSET_SIZE and related
 
 
