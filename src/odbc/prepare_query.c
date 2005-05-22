@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: prepare_query.c,v 1.48 2005-05-20 12:37:55 freddy77 Exp $";
+static const char software_version[] = "$Id: prepare_query.c,v 1.49 2005-05-22 08:28:00 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -474,8 +474,15 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 
 		switch (*p) {
 		case ',':
-			tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBVOID);
-			curcol->column_size = curcol->column_cur_size = 0;
+			if (IS_TDS7_PLUS(stmt->dbc->tds_socket)) {
+				tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBVOID);
+				curcol->column_size = curcol->column_cur_size = 0;
+			} else {
+				/* TODO is there a better type ? */
+				tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBINTN);
+				curcol->column_size = curcol->on_server.column_size = 4;
+				curcol->column_cur_size = -1;
+			}
 			if (compute_row)
 				if (!tds_alloc_param_row(temp_params, curcol))
 					return SQL_ERROR;

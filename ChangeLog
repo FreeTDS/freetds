@@ -1,3 +1,8 @@
+Sun May 22 10:26:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/prepare_query.c src/odbc/unittests/const_params.c:
+	- fix problems with Sybase
+	* src/odbc/unittests/array_out.c: remove warning compiling
+
 Fri May 20 17:15:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO: updated
 	* src/odbc/unittests/Makefile.am:
