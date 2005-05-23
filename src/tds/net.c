@@ -95,7 +95,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.19 2005-05-17 14:03:12 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.20 2005-05-23 11:08:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -804,4 +804,181 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	return port;
 }
 
+#ifdef HAVE_GNUTLS
+
+static ssize_t 
+tds_pull_func(gnutls_transport_ptr ptr, void* data, size_t len)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) ptr;
+	int have;
+
+	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func\n");
+	
+	/* if we have some data send it */
+	if (tds->out_pos > 8)
+		tds_flush_packet(tds);
+
+	if (tds->tls_session) {
+		/* read directly from socket */
+		return tds_goodread(tds, data, len, 1);
+	}
+
+	for(;;) {
+		have = tds->in_len - tds->in_pos;
+		tdsdump_log(TDS_DBG_INFO1, "have %d\n", have);
+		assert(have >= 0);
+		if (have > 0)
+			break;
+		tdsdump_log(TDS_DBG_INFO1, "before read\n");
+		if (tds_read_packet(tds) < 0)
+			return -1;
+		tdsdump_log(TDS_DBG_INFO1, "after read\n");
+	}
+	if (len > have)
+		len = have;
+	tdsdump_log(TDS_DBG_INFO1, "read %d bytes\n", len);
+	memcpy(data, tds->in_buf + tds->in_pos, len);
+	tds->in_pos += len;
+	return len;
+}
+
+static ssize_t 
+tds_push_func(gnutls_transport_ptr ptr, const void* data, size_t len)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) ptr;
+	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
+	
+	if (tds->tls_session) {
+		/* write to socket directly */
+		return tds_goodwrite(tds, data, len, 1);
+	}
+	tds_put_n(tds, data, len);
+	return len;
+}
+
+
+static void
+tds_tls_log( int level, const char* s)
+{
+	tdsdump_log(TDS_DBG_INFO1, "GNUTLS: level %d:\n  %s", level, s);
+}
+
+static int tls_initialized = 0;
+
+#ifdef TDS_ATTRIBUTE_DESTRUCTOR
+static void __attribute__((destructor))
+tds_tls_deinit(void)
+{
+	if (tls_initialized)
+		gnutls_global_deinit();
+}
+#endif
+
+int
+tds_ssl_init(TDSSOCKET *tds)
+{
+	gnutls_session session;
+	gnutls_certificate_credentials xcred;
+
+	static const int kx_priority[] = {
+		GNUTLS_KX_RSA_EXPORT, 
+		GNUTLS_KX_RSA, GNUTLS_KX_DHE_DSS, GNUTLS_KX_DHE_RSA, 
+		0
+	};
+	static const int cipher_priority[] = {
+		GNUTLS_CIPHER_ARCFOUR_40,
+		GNUTLS_CIPHER_DES_CBC,
+/*	GNUTLS_CIPHER_AES_256_CBC, GNUTLS_CIPHER_AES_128_CBC,
+	GNUTLS_CIPHER_3DES_CBC, GNUTLS_CIPHER_ARCFOUR_128,
+*/
+		0
+	};
+	static const int comp_priority[] = { GNUTLS_COMP_NULL, 0 };
+	static const int mac_priority[] = {
+		GNUTLS_MAC_SHA, GNUTLS_MAC_MD5, 0
+	};
+	int ret;
+	const char *tls_msg;
+
+	xcred = NULL;
+	session = NULL;	
+	tls_msg = "initializing tls";
+
+	/* FIXME place somewhere else, deinit at end */
+	ret = 0;
+	if (!tls_initialized)
+		ret = gnutls_global_init();
+	if (ret == 0) {
+		tls_initialized = 1;
+
+		gnutls_global_set_log_level(11);
+		gnutls_global_set_log_function(tds_tls_log);
+		tls_msg = "allocating credentials";
+		ret = gnutls_certificate_allocate_credentials(&xcred);
+	}
+
+	if (ret == 0) {
+		/* Initialize TLS session */
+		tls_msg = "initializing session";
+		ret = gnutls_init(&session, GNUTLS_CLIENT);
+	}
+	
+	if (ret == 0) {
+		gnutls_transport_set_ptr(session, tds);
+		gnutls_transport_set_pull_function(session, tds_pull_func);
+		gnutls_transport_set_push_function(session, tds_push_func);
+
+		/* NOTE: there functions return int however they cannot fail */
+
+		/* use default priorities... */
+		gnutls_set_default_priority(session);
+
+		/* ... but overwrite some */
+		gnutls_cipher_set_priority(session, cipher_priority);
+		gnutls_compression_set_priority(session, comp_priority);
+		gnutls_kx_set_priority(session, kx_priority);
+		gnutls_mac_set_priority(session, mac_priority);
+		
+		/* put the anonymous credentials to the current session */
+		tls_msg = "setting credential";
+		ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, xcred);
+	}
+	
+	if (ret == 0) {
+		/* Perform the TLS handshake */
+		tls_msg = "handshake";
+		ret = gnutls_handshake (session);
+	}
+
+	if (ret != 0) {
+		if (session)
+			gnutls_deinit(session);
+		if (xcred)
+			gnutls_certificate_free_credentials(xcred);
+		tdsdump_log(TDS_DBG_ERROR, "%s failed: %s\n", tls_msg, gnutls_strerror (ret));
+		return TDS_FAIL;
+	}
+
+	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
+	tds->tls_session = session;
+	tds->tls_credentials = xcred;
+
+	return TDS_SUCCEED;
+}
+
+void
+tds_ssl_deinit(TDSSOCKET *tds)
+{
+	if (tds->tls_session) {
+		gnutls_deinit(tds->tls_session);
+		tds->tls_session = NULL;
+	}
+	if (tds->tls_credentials) {
+		gnutls_certificate_free_credentials(tds->tls_credentials);
+		tds->tls_credentials = NULL;
+	}
+}
+
+#endif
 /** \@} */
+

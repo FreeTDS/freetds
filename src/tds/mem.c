@@ -36,10 +36,6 @@
 
 #include <assert.h>
 
-#ifdef HAVE_GNUTLS
-#include <gnutls/gnutls.h>
-#endif
-
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsstring.h"
@@ -47,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.142 2005-04-15 11:52:01 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.143 2005-05-23 11:08:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -783,10 +779,7 @@ tds_free_socket(TDSSOCKET * tds)
 		if (tds->out_buf)
 			free(tds->out_buf);
 #ifdef HAVE_GNUTLS
-		if (tds->tls_session)
-			gnutls_deinit(tds->tls_session);
-		if (tds->tls_credentials)
-			gnutls_certificate_free_credentials(tds->tls_credentials);
+		tds_ssl_deinit(tds);
 #endif
 		tds_close_socket(tds);
 		if (tds->date_fmt)

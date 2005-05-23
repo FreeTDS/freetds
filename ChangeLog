@@ -1,4 +1,9 @@
 Mon May 23 10:04:25 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/login.c src/tds/mem.c src/tds/net.c:
+	- move ssl code in net.c
+	- fix query_timeout setting during connect
+
+Mon May 23 10:04:25 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/dbmorecmds.c src/dblib/unittests/rpc.c:
 	* src/dblib/unittests/t0001.c src/dblib/unittests/t0003.c:
 	* src/dblib/unittests/t0004.c src/dblib/unittests/t0005.c:
