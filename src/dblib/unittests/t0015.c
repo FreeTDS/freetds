@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0015.c,v 1.14 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: t0015.c,v 1.15 2005-05-23 08:06:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -69,17 +69,6 @@ main(int argc, char **argv)
 		dbuse(dbproc, DATABASE);
 	add_bread_crumb();
 	dbloginfree(login);
-	add_bread_crumb();
-
-	fprintf(stdout, "Dropping table\n");
-	add_bread_crumb();
-	dbcmd(dbproc, "drop table #dblib0015");
-	add_bread_crumb();
-	dbsqlexec(dbproc);
-	add_bread_crumb();
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
-	}
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");

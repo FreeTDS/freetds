@@ -1,3 +1,15 @@
+Mon May 23 10:04:25 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/dbmorecmds.c src/dblib/unittests/rpc.c:
+	* src/dblib/unittests/t0001.c src/dblib/unittests/t0003.c:
+	* src/dblib/unittests/t0004.c src/dblib/unittests/t0005.c:
+	* src/dblib/unittests/t0006.c src/dblib/unittests/t0007.c:
+	* src/dblib/unittests/t0008.c src/dblib/unittests/t0009.c:
+	* src/dblib/unittests/t0010.c src/dblib/unittests/t0012.c:
+	* src/dblib/unittests/t0013.c src/dblib/unittests/t0015.c:
+	* src/dblib/unittests/t0016.c src/dblib/unittests/t0017.c:
+	* src/dblib/unittests/t0018.c src/dblib/unittests/t0023.c:
+	- do not delete temporary table
+
 Sun May 22 11:03:16 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO configure.in: use odbc_config if possible
 

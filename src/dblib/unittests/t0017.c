@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0017.c,v 1.19 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.20 2005-05-23 08:06:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -71,13 +71,6 @@ main(int argc, char *argv[])
 	}
 	dbloginfree(login);
 	fprintf(stdout, "After logon\n");
-
-	fprintf(stdout, "Dropping table\n");
-	dbcmd(dbproc, "drop table #dblib0017");
-	dbsqlexec(dbproc);
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
-	}
 
 	fprintf(stdout, "Creating table\n");
 	dbcmd(dbproc, "create table #dblib0017 (c1 int, c2 text)");

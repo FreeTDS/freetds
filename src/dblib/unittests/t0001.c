@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.19 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.20 2005-05-23 08:06:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -91,17 +91,6 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
 	
-	fprintf(stdout, "Dropping table\n");
-	add_bread_crumb();
-	dbcmd(dbproc, "drop table #dblib0001");
-	add_bread_crumb();
-	dbsqlexec(dbproc);
-	add_bread_crumb();
-	while (dbresults(dbproc) == SUCCEED) {
-		/* nop */
-	}
-	add_bread_crumb();
-
 	fprintf(stdout, "creating table\n");
 	dbcmd(dbproc, "create table #dblib0001 (i int not null, s char(10) not null)");
 	dbsqlexec(dbproc);

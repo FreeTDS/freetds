@@ -24,7 +24,7 @@
 
 
 
-static char software_version[] = "$Id: t0008.c,v 1.12 2005-05-14 06:31:12 freddy77 Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.13 2005-05-23 08:06:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -78,17 +78,6 @@ main(int argc, char **argv)
 #else
 	dbsetopt(dbproc, DBBUFFER, "25", 0);
 #endif
-	add_bread_crumb();
-
-	fprintf(stdout, "Dropping table\n");
-	add_bread_crumb();
-	dbcmd(dbproc, "drop table #dblib0008");
-	add_bread_crumb();
-	dbsqlexec(dbproc);
-	add_bread_crumb();
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
-	}
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
@@ -189,7 +178,10 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stderr, "dblib %s for %s\n", last_read == rows_to_add - 1 ? "okay" : "failed", __FILE__);
+	if (last_read == rows_to_add - 1)
+		printf("dblib okay for %s\n", __FILE__);
+	else
+		fprintf(stderr, "dblib failed for %s\n", __FILE__);
 	free_bread_crumb();
 	return (last_read == rows_to_add - 1) ? 0 : 1;
 }

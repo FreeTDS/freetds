@@ -26,7 +26,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.21 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.22 2005-05-23 08:06:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -62,17 +62,19 @@ init_proc(DBPROCESS * dbproc, const char *name)
 {
 	int res = 0;
 
-	fprintf(stdout, "Dropping procedure %s\n", name);
-	add_bread_crumb();
-	sprintf(cmd, "DROP PROCEDURE %s", name);
-	dbcmd(dbproc, cmd);
-	add_bread_crumb();
-	dbsqlexec(dbproc);
-	add_bread_crumb();
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
+	if (name[0] != '#') {
+		fprintf(stdout, "Dropping procedure %s\n", name);
+		add_bread_crumb();
+		sprintf(cmd, "DROP PROCEDURE %s", name);
+		dbcmd(dbproc, cmd);
+		add_bread_crumb();
+		dbsqlexec(dbproc);
+		add_bread_crumb();
+		while (dbresults(dbproc) != NO_MORE_RESULTS) {
+			/* nop */
+		}
+		add_bread_crumb();
 	}
-	add_bread_crumb();
 
 	fprintf(stdout, "Creating procedure %s\n", name);
 	sprintf(cmd, procedure_sql, name);

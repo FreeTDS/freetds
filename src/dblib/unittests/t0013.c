@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.20 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.21 2005-05-23 08:06:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -96,13 +96,6 @@ main(int argc, char **argv)
 	blob = (char *) malloc(isiz);
 	fread((void *) blob, isiz, 1, fp);
 	fclose(fp);
-
-	fprintf(stdout, "Dropping table\n");
-	dbcmd(dbproc, "drop table #dblib0013");
-	dbsqlexec(dbproc);
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
-	}
 
 	fprintf(stdout, "creating table\n");
 	dbcmd(dbproc, "create table #dblib0013 (i int not null, PigTure image not null)");
