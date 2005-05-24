@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.144 2005-05-23 11:08:11 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.145 2005-05-24 10:54:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -798,7 +798,7 @@ tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_p
 static int
 tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-#ifndef HAVE_GNUTLS
+#if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
 	/*
 	 * In case we do not have SSL enabled do not send pre-login so
 	 * if server has certificate but no force encryption login success

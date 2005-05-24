@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.143 2005-05-23 11:08:11 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.144 2005-05-24 10:54:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -778,7 +778,7 @@ tds_free_socket(TDSSOCKET * tds)
 			free(tds->in_buf);
 		if (tds->out_buf)
 			free(tds->out_buf);
-#ifdef HAVE_GNUTLS
+#if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 		tds_ssl_deinit(tds);
 #endif
 		tds_close_socket(tds);

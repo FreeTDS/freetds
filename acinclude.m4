@@ -101,6 +101,44 @@ size_t iconv();
 ])
 
 
+# OpenSSL check
+
+AC_DEFUN([CHECK_OPENSSL],
+[AC_MSG_CHECKING(if openssl is wanted)
+AC_ARG_WITH(openssl,
+AC_HELP_STRING([--with-openssl], [enable ssl with OpenSSL (will check /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr)])
+,
+[   AC_MSG_RESULT(yes)
+    for dir in $withval /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
+        ssldir="$dir"
+        if test -f "$dir/include/openssl/ssl.h"; then
+            found_ssl="yes"
+            CFLAGS="$CFLAGS -I$ssldir/include/openssl"
+            break
+        fi
+        if test -f "$dir/include/ssl.h"; then
+            found_ssl="yes"
+            CFLAGS="$CFLAGS -I$ssldir/include"
+            break
+        fi
+    done
+    if test x_$found_ssl != x_yes; then
+        AC_MSG_ERROR(Cannot find OpenSSL libraries)
+    else
+        echo "OpenSSL found in $ssldir"
+        NETWORK_LIBS="$NETWORK_LIBS -lssl -lcrypto"
+        LDFLAGS="$LDFLAGS -L$ssldir/lib"
+        HAVE_OPENSSL=yes
+        AC_DEFINE(HAVE_OPENSSL, 1, [Define if you have the OpenSSL.])
+    fi
+    AC_SUBST(HAVE_OPENSSL)
+],
+[
+    AC_MSG_RESULT(no)
+])
+])
+
+
 ##
 # Found on autoconf archive
 # Based on Caolan McNamara's gethostbyname_r macro. 
@@ -177,7 +215,7 @@ CFLAGS=$ac_save_CFLAGS
 # exists. These example files found at
 # http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 #
-# @version $Id: acinclude.m4,v 1.26 2004-12-13 10:59:53 freddy77 Exp $
+# @version $Id: acinclude.m4,v 1.27 2005-05-24 10:54:30 freddy77 Exp $
 # @author Caolan McNamara <caolan@skynet.ie>
 #
 # based on David Arnold's autoconf suggestion in the threads faq

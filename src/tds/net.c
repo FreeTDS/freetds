@@ -89,13 +89,15 @@
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
+#elif defined(HAVE_OPENSSL)
+#include <openssl/ssl.h>
 #endif
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.20 2005-05-23 11:08:11 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.21 2005-05-24 10:54:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -389,6 +391,9 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 #ifdef HAVE_GNUTLS
 	if (tds->tls_session)
 		return gnutls_record_recv(tds->tls_session, buf, buflen);
+#elif defined(HAVE_OPENSSL)
+	if (tds->tls_session)
+		return SSL_read((SSL*) tds->tls_session, buf, buflen);
 #endif
 	return tds_goodread(tds, buf, buflen, 0);
 }
@@ -672,6 +677,10 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	if (tds->tls_session)
 		sent = gnutls_record_send(tds->tls_session, tds->out_buf, tds->out_pos);
 	else
+#elif defined(HAVE_OPENSSL)
+	if (tds->tls_session)
+		sent = SSL_write((SSL*) tds->tls_session, tds->out_buf, tds->out_pos);
+	else
 #endif
 		sent = tds_goodwrite(tds, tds->out_buf, tds->out_pos, final);
 
@@ -804,12 +813,20 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	return port;
 }
 
-#ifdef HAVE_GNUTLS
+#if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 
+#ifdef HAVE_GNUTLS
 static ssize_t 
 tds_pull_func(gnutls_transport_ptr ptr, void* data, size_t len)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) ptr;
+#else
+static int
+tds_ssl_read(BIO *b, char* data, int len)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
+#endif
+
 	int have;
 
 	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func\n");
@@ -842,12 +859,19 @@ tds_pull_func(gnutls_transport_ptr ptr, void* data, size_t len)
 	return len;
 }
 
+#ifdef HAVE_GNUTLS
 static ssize_t 
 tds_push_func(gnutls_transport_ptr ptr, const void* data, size_t len)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) ptr;
+#else
+static int
+tds_ssl_write(BIO *b, const char* data, int len)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
+#endif
 	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
-	
+
 	if (tds->tls_session) {
 		/* write to socket directly */
 		return tds_goodwrite(tds, data, len, 1);
@@ -856,6 +880,7 @@ tds_push_func(gnutls_transport_ptr ptr, const void* data, size_t len)
 	return len;
 }
 
+#ifdef HAVE_GNUTLS
 
 static void
 tds_tls_log( int level, const char* s)
@@ -978,6 +1003,135 @@ tds_ssl_deinit(TDSSOCKET *tds)
 		tds->tls_credentials = NULL;
 	}
 }
+
+#else
+static long
+tds_ssl_ctrl(BIO *b, int cmd, long num, void *ptr)
+{
+	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
+
+	switch (cmd) {
+	case BIO_CTRL_FLUSH:
+		if (tds->out_pos > 8)
+			tds_flush_packet(tds);
+		return 1;
+	}
+	return 0;
+}
+
+static BIO_METHOD tds_method =
+{
+	BIO_TYPE_MEM,
+	"tds",
+	tds_ssl_write,
+	tds_ssl_read,
+	NULL,
+	NULL,
+	tds_ssl_ctrl,
+	NULL,
+	NULL,
+	NULL,
+};
+
+static SSL_CTX *ssl_ctx;
+
+static int
+tds_init_openssl(void)
+{
+	SSL_METHOD *meth;
+
+	SSL_load_error_strings();
+	SSL_library_init ();
+	meth = TLSv1_client_method ();
+	if (meth == NULL)
+		return 1;
+	ssl_ctx = SSL_CTX_new (meth);
+	if (ssl_ctx == NULL)
+		return 1;
+	return 0;
+}
+
+#ifdef TDS_ATTRIBUTE_DESTRUCTOR
+static void __attribute__((destructor))
+tds_tls_deinit(void)
+{
+	if (ssl_ctx)
+		SSL_CTX_free (ssl_ctx);
+}
+#endif
+
+int
+tds_ssl_init(TDSSOCKET *tds)
+{
+	SSL *con;
+	BIO *b;
+
+	int ret;
+	const char *tls_msg;
+
+	con = NULL;
+	b = NULL;
+	tls_msg = "initializing tls";
+
+	/* FIXME place somewhere else, deinit at end */
+	ret = 0;
+	if (!ssl_ctx)
+		ret = tds_init_openssl();
+
+	if (ret == 0) {
+		/* Initialize TLS session */
+		tls_msg = "initializing session";
+		con = SSL_new(ssl_ctx);
+	}
+	
+	if (con) {
+		tls_msg = "creating bio";
+		b = BIO_new(&tds_method);
+	}
+
+	ret = 0;
+	if (b) {
+		b->shutdown=1;
+		b->init=1;
+		b->num= -1;
+		b->ptr = tds;
+		SSL_set_bio(con, b, b);
+
+		/* use priorities... */
+		SSL_set_cipher_list(con, "DES-CBC-SHA");
+
+		/* Perform the TLS handshake */
+		tls_msg = "handshake";
+		SSL_set_connect_state(con);
+		ret = SSL_connect(con) != 1 || con->state != SSL_ST_OK;
+	}
+
+	if (ret != 0) {
+		if (con) {
+			SSL_shutdown(con);
+			SSL_free(con);
+		}
+		tdsdump_log(TDS_DBG_ERROR, "%s failed\n", tls_msg);
+		return TDS_FAIL;
+	}
+
+	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
+	tds->tls_session = con;
+	tds->tls_credentials = NULL;
+
+	return TDS_SUCCEED;
+}
+
+void
+tds_ssl_deinit(TDSSOCKET *tds)
+{
+	if (tds->tls_session) {
+		/* NOTE do not call SSL_shutdown here */
+		SSL_free(tds->tls_session);
+		tds->tls_session = NULL;
+	}
+}
+#endif
 
 #endif
 /** \@} */
