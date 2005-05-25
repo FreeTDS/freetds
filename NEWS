@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.27 2005-05-22 09:03:36 freddy77 Exp $
+$Id: NEWS,v 1.28 2005-05-25 10:04:56 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -9,6 +9,7 @@ $Id: NEWS,v 1.27 2005-05-22 09:03:36 freddy77 Exp $
 - add named instance support (mssql2k)
 - fixed cancel and timeout
 - add support for encrypted connection using mssql
+  (using either GnuTLS or OpenSSL)
 - RPMs
  - ODBC driver registration (in odbcinst.ini)
  - better dependency for RedHat and SUSE

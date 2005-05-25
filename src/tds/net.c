@@ -97,7 +97,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.21 2005-05-24 10:54:32 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.22 2005-05-25 10:04:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -1019,6 +1019,13 @@ tds_ssl_ctrl(BIO *b, int cmd, long num, void *ptr)
 	return 0;
 }
 
+static int
+tds_ssl_free(BIO *a)
+{
+	/* nothing to do but required */
+	return 1;
+}
+
 static BIO_METHOD tds_method =
 {
 	BIO_TYPE_MEM,
@@ -1029,7 +1036,7 @@ static BIO_METHOD tds_method =
 	NULL,
 	tds_ssl_ctrl,
 	NULL,
-	NULL,
+	tds_ssl_free,
 	NULL,
 };
 
@@ -1040,7 +1047,6 @@ tds_init_openssl(void)
 {
 	SSL_METHOD *meth;
 
-	SSL_load_error_strings();
 	SSL_library_init ();
 	meth = TLSv1_client_method ();
 	if (meth == NULL)
@@ -1063,6 +1069,15 @@ tds_tls_deinit(void)
 int
 tds_ssl_init(TDSSOCKET *tds)
 {
+#define OPENSSL_CIPHERS \
+	SSL3_TXT_RSA_DES_64_CBC_SHA " " \
+	TLS1_TXT_RSA_EXPORT1024_WITH_RC4_56_SHA " " \
+	TLS1_TXT_RSA_EXPORT1024_WITH_DES_CBC_SHA " " \
+	SSL3_TXT_RSA_RC4_40_MD5 " " \
+	SSL3_TXT_RSA_RC2_40_MD5 " " \
+	SSL3_TXT_EDH_DSS_DES_64_CBC_SHA " " \
+	TLS1_TXT_DHE_DSS_EXPORT1024_WITH_DES_CBC_SHA
+
 	SSL *con;
 	BIO *b;
 
@@ -1098,7 +1113,7 @@ tds_ssl_init(TDSSOCKET *tds)
 		SSL_set_bio(con, b, b);
 
 		/* use priorities... */
-		SSL_set_cipher_list(con, "DES-CBC-SHA");
+		SSL_set_cipher_list(con, OPENSSL_CIPHERS);
 
 		/* Perform the TLS handshake */
 		tls_msg = "handshake";

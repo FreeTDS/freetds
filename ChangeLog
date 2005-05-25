@@ -1,3 +1,8 @@
+Wed May 25 12:02:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/net.c TODO NEWS:
+	- fix leak using OpenSSL
+	- use correct cipher with OpenSSL
+
 Tue May 24 12:53:16 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 configure.in src/tds/login.c src/tds/mem.c:
 	* src/tds/net.c:
