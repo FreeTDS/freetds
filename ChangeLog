@@ -1,9 +1,12 @@
+Thu May 26 14:45:23 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/net.c: changed ciphers using GnuTLS
+
 Thu May 26 00:55:57 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/contrib.html doc/htdoc/docs.html doc/htdoc/faq.html
 	* doc/htdoc/index.html doc/htdoc/news.html doc/htdoc/software.html
 	* doc/htdoc/support.html doc/htdoc/which_api.html
 	- cleaned up html, some reformatting.
-	
+
 Wed May 25 12:02:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/net.c TODO NEWS:
 	- fix leak using OpenSSL

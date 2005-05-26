@@ -97,7 +97,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.22 2005-05-25 10:04:57 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.23 2005-05-26 12:46:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -911,10 +911,10 @@ tds_ssl_init(TDSSOCKET *tds)
 		0
 	};
 	static const int cipher_priority[] = {
-		GNUTLS_CIPHER_ARCFOUR_40,
+		GNUTLS_CIPHER_AES_256_CBC, GNUTLS_CIPHER_AES_128_CBC,
+		GNUTLS_CIPHER_3DES_CBC, GNUTLS_CIPHER_ARCFOUR_128,
+/*		GNUTLS_CIPHER_ARCFOUR_40,
 		GNUTLS_CIPHER_DES_CBC,
-/*	GNUTLS_CIPHER_AES_256_CBC, GNUTLS_CIPHER_AES_128_CBC,
-	GNUTLS_CIPHER_3DES_CBC, GNUTLS_CIPHER_ARCFOUR_128,
 */
 		0
 	};
