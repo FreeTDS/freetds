@@ -1,3 +1,6 @@
+Thu May 26 17:03:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* TODO doc/userguide.sgml: update for SSL support
+
 Thu May 26 14:45:23 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/net.c: changed ciphers using GnuTLS
 
