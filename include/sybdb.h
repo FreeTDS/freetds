@@ -22,15 +22,19 @@
 
 #include "tds_sysdep_public.h"
 
+#undef TDS_STATIC_CAST
 #ifdef __cplusplus
+#define TDS_STATIC_CAST(type, a) static_cast<type>(a)
 extern "C"
 {
 #if 0
 }
 #endif
+#else
+#define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.67 2004-12-15 09:59:51 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.68 2005-05-28 10:48:26 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -448,8 +452,8 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define DBBOTH   2
 
 /* remote procedure call (rpc) options */
-#define DBRPCRECOMPILE ((DBSMALLINT) 0x0001)
-#define DBRPCRESET ((DBSMALLINT) 0x0002)
+#define DBRPCRECOMPILE TDS_STATIC_CAST(DBSMALLINT, 0x0001)
+#define DBRPCRESET TDS_STATIC_CAST(DBSMALLINT, 0x0002)
 
 DBBOOL db12hour(DBPROCESS * dbprocess, char *language);
 BYTE *dbadata(DBPROCESS * dbproc, int computeid, int column);

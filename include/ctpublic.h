@@ -22,70 +22,74 @@
 
 #include <cspublic.h>
 
-/*
-** define for each CT-Lib API
-*/
-#define CT_BIND         (CS_INT) 0
-#define CT_BR_COLUMN        (CS_INT) 1
-#define CT_BR_TABLE     (CS_INT) 2
-#define CT_CALLBACK     (CS_INT) 3
-#define CT_CANCEL       (CS_INT) 4
-#define CT_CAPABILITY       (CS_INT) 5
-#define CT_CLOSE        (CS_INT) 6
-#define CT_CMD_ALLOC        (CS_INT) 7
-#define CT_CMD_DROP     (CS_INT) 8
-#define CT_CMD_PROPS        (CS_INT) 9
-#define CT_COMMAND      (CS_INT) 10
-#define CT_COMPUTE_INFO     (CS_INT) 11
-#define CT_CON_ALLOC        (CS_INT) 12
-#define CT_CON_DROP     (CS_INT) 13
-#define CT_CON_PROPS        (CS_INT) 14
-#define CT_CON_XFER     (CS_INT) 15
-#define CT_CONFIG       (CS_INT) 16
-#define CT_CONNECT      (CS_INT) 17
-#define CT_CURSOR       (CS_INT) 18
-#define CT_DATA_INFO        (CS_INT) 19
-#define CT_DEBUG        (CS_INT) 20
-#define CT_DESCRIBE     (CS_INT) 21
-#define CT_DIAG         (CS_INT) 22
-#define CT_DYNAMIC      (CS_INT) 23
-#define CT_DYNDESC      (CS_INT) 24
-#define CT_EXIT         (CS_INT) 25
-#define CT_FETCH        (CS_INT) 26
-#define CT_GET_DATA     (CS_INT) 27
-#define CT_GETFORMAT        (CS_INT) 28
-#define CT_GETLOGINFO       (CS_INT) 29
-#define CT_INIT         (CS_INT) 30
-#define CT_KEYDATA      (CS_INT) 31
-#define CT_OPTIONS      (CS_INT) 32
-#define CT_PARAM        (CS_INT) 33
-#define CT_POLL         (CS_INT) 34
-#define CT_RECVPASSTHRU     (CS_INT) 35
-#define CT_REMOTE_PWD       (CS_INT) 36
-#define CT_RES_INFO     (CS_INT) 37
-#define CT_RESULTS      (CS_INT) 38
-#define CT_SEND         (CS_INT) 39
-#define CT_SEND_DATA        (CS_INT) 40
-#define CT_SENDPASSTHRU     (CS_INT) 41
-#define CT_SETLOGINFO       (CS_INT) 42
-#define CT_WAKEUP       (CS_INT) 43
-#define CT_LABELS       (CS_INT) 44
-#define CT_DS_LOOKUP        (CS_INT) 45
-#define CT_DS_DROP      (CS_INT) 46
-#define CT_DS_OBJINFO       (CS_INT) 47
-#define CT_SETPARAM     (CS_INT) 48
-#define CT_DYNSQLDA     (CS_INT) 49
-#define CT_NOTIFICATION     (CS_INT) 1000
-
+#undef TDS_STATIC_CAST
 #ifdef __cplusplus
+#define TDS_STATIC_CAST(type, a) static_cast<type>(a)
 extern "C"
 {
 #if 0
 }
 #endif
+#else
+#define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_ctpublic_h[] = "$Id: ctpublic.h,v 1.13 2005-02-11 13:15:54 freddy77 Exp $";
+/*
+** define for each CT-Lib API
+*/
+#define CT_BIND         TDS_STATIC_CAST(CS_INT, 0)
+#define CT_BR_COLUMN    TDS_STATIC_CAST(CS_INT, 1)
+#define CT_BR_TABLE     TDS_STATIC_CAST(CS_INT, 2)
+#define CT_CALLBACK     TDS_STATIC_CAST(CS_INT, 3)
+#define CT_CANCEL       TDS_STATIC_CAST(CS_INT, 4)
+#define CT_CAPABILITY   TDS_STATIC_CAST(CS_INT, 5)
+#define CT_CLOSE        TDS_STATIC_CAST(CS_INT, 6)
+#define CT_CMD_ALLOC    TDS_STATIC_CAST(CS_INT, 7)
+#define CT_CMD_DROP     TDS_STATIC_CAST(CS_INT, 8)
+#define CT_CMD_PROPS    TDS_STATIC_CAST(CS_INT, 9)
+#define CT_COMMAND      TDS_STATIC_CAST(CS_INT, 10)
+#define CT_COMPUTE_INFO TDS_STATIC_CAST(CS_INT, 11)
+#define CT_CON_ALLOC    TDS_STATIC_CAST(CS_INT, 12)
+#define CT_CON_DROP     TDS_STATIC_CAST(CS_INT, 13)
+#define CT_CON_PROPS    TDS_STATIC_CAST(CS_INT, 14)
+#define CT_CON_XFER     TDS_STATIC_CAST(CS_INT, 15)
+#define CT_CONFIG       TDS_STATIC_CAST(CS_INT, 16)
+#define CT_CONNECT      TDS_STATIC_CAST(CS_INT, 17)
+#define CT_CURSOR       TDS_STATIC_CAST(CS_INT, 18)
+#define CT_DATA_INFO    TDS_STATIC_CAST(CS_INT, 19)
+#define CT_DEBUG        TDS_STATIC_CAST(CS_INT, 20)
+#define CT_DESCRIBE     TDS_STATIC_CAST(CS_INT, 21)
+#define CT_DIAG         TDS_STATIC_CAST(CS_INT, 22)
+#define CT_DYNAMIC      TDS_STATIC_CAST(CS_INT, 23)
+#define CT_DYNDESC      TDS_STATIC_CAST(CS_INT, 24)
+#define CT_EXIT         TDS_STATIC_CAST(CS_INT, 25)
+#define CT_FETCH        TDS_STATIC_CAST(CS_INT, 26)
+#define CT_GET_DATA     TDS_STATIC_CAST(CS_INT, 27)
+#define CT_GETFORMAT    TDS_STATIC_CAST(CS_INT, 28)
+#define CT_GETLOGINFO   TDS_STATIC_CAST(CS_INT, 29)
+#define CT_INIT         TDS_STATIC_CAST(CS_INT, 30)
+#define CT_KEYDATA      TDS_STATIC_CAST(CS_INT, 31)
+#define CT_OPTIONS      TDS_STATIC_CAST(CS_INT, 32)
+#define CT_PARAM        TDS_STATIC_CAST(CS_INT, 33)
+#define CT_POLL         TDS_STATIC_CAST(CS_INT, 34)
+#define CT_RECVPASSTHRU TDS_STATIC_CAST(CS_INT, 35)
+#define CT_REMOTE_PWD   TDS_STATIC_CAST(CS_INT, 36)
+#define CT_RES_INFO     TDS_STATIC_CAST(CS_INT, 37)
+#define CT_RESULTS      TDS_STATIC_CAST(CS_INT, 38)
+#define CT_SEND         TDS_STATIC_CAST(CS_INT, 39)
+#define CT_SEND_DATA    TDS_STATIC_CAST(CS_INT, 40)
+#define CT_SENDPASSTHRU TDS_STATIC_CAST(CS_INT, 41)
+#define CT_SETLOGINFO   TDS_STATIC_CAST(CS_INT, 42)
+#define CT_WAKEUP       TDS_STATIC_CAST(CS_INT, 43)
+#define CT_LABELS       TDS_STATIC_CAST(CS_INT, 44)
+#define CT_DS_LOOKUP    TDS_STATIC_CAST(CS_INT, 45)
+#define CT_DS_DROP      TDS_STATIC_CAST(CS_INT, 46)
+#define CT_DS_OBJINFO   TDS_STATIC_CAST(CS_INT, 47)
+#define CT_SETPARAM     TDS_STATIC_CAST(CS_INT, 48)
+#define CT_DYNSQLDA     TDS_STATIC_CAST(CS_INT, 49)
+#define CT_NOTIFICATION TDS_STATIC_CAST(CS_INT, 1000)
+
+static const char rcsid_ctpublic_h[] = "$Id: ctpublic.h,v 1.14 2005-05-28 10:48:26 freddy77 Exp $";
 static const void *const no_unused_ctpublic_h_warn[] = { rcsid_ctpublic_h, no_unused_ctpublic_h_warn };
 
 

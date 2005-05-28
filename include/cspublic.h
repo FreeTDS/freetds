@@ -20,18 +20,22 @@
 #ifndef _cspublic_h_
 #define _cspublic_h_
 
+#include <cstypes.h>
+
+#undef TDS_STATIC_CAST
 #ifdef __cplusplus
+#define TDS_STATIC_CAST(type, a) static_cast<type>(a)
 extern "C"
 {
 #if 0
 }
 #endif
+#else
+#define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.54 2005-02-11 13:15:53 freddy77 Exp $";
+static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.55 2005-05-28 10:48:26 freddy77 Exp $";
 static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
-
-#include <cstypes.h>
 
 #define CS_PUBLIC
 #define CS_STATIC static
@@ -59,7 +63,7 @@ typedef CS_RETCODE(*CS_CLIENTMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_CLIENT
 typedef CS_RETCODE(*CS_SERVERMSG_FUNC) (CS_CONTEXT *, CS_CONNECTION *, CS_SERVERMSG *);
 
 
-#define CS_IODATA          (CS_INT)1600
+#define CS_IODATA          TDS_STATIC_CAST(CS_INT, 1600)
 #define CS_SRC_VALUE   -2562
 
 
@@ -265,24 +269,24 @@ enum
 #define CS_IMPLICIT_CURSOR 8
 #define CS_CURSOR_CLOSE    9
 
-#define CS_FOR_UPDATE   (CS_INT)0x1
-#define CS_READ_ONLY    (CS_INT)0x2
-#define CS_RESTORE_OPEN (CS_INT)0x8 
+#define CS_FOR_UPDATE   TDS_STATIC_CAST(CS_INT, 0x1)
+#define CS_READ_ONLY    TDS_STATIC_CAST(CS_INT, 0x2)
+#define CS_RESTORE_OPEN TDS_STATIC_CAST(CS_INT, 0x8)
 
 
-#define CS_CURSTAT_NONE      (CS_INT)0x0
-#define CS_CURSTAT_DECLARED  (CS_INT)0x1
-#define CS_CURSTAT_OPEN      (CS_INT)0x2
-#define CS_CURSTAT_CLOSED    (CS_INT)0x4
-#define CS_CURSTAT_RDONLY    (CS_INT)0x8
-#define CS_CURSTAT_UPDATABLE (CS_INT)0x10
-#define CS_CURSTAT_ROWCOUNT  (CS_INT)0x20
-#define CS_CURSTAT_DEALLOC   (CS_INT)0x40
+#define CS_CURSTAT_NONE      TDS_STATIC_CAST(CS_INT, 0x0)
+#define CS_CURSTAT_DECLARED  TDS_STATIC_CAST(CS_INT, 0x1)
+#define CS_CURSTAT_OPEN      TDS_STATIC_CAST(CS_INT, 0x2)
+#define CS_CURSTAT_CLOSED    TDS_STATIC_CAST(CS_INT, 0x4)
+#define CS_CURSTAT_RDONLY    TDS_STATIC_CAST(CS_INT, 0x8)
+#define CS_CURSTAT_UPDATABLE TDS_STATIC_CAST(CS_INT, 0x10)
+#define CS_CURSTAT_ROWCOUNT  TDS_STATIC_CAST(CS_INT, 0x20)
+#define CS_CURSTAT_DEALLOC   TDS_STATIC_CAST(CS_INT, 0x40)
 
-#define CS_CUR_STATUS        (CS_INT)9126
-#define CS_CUR_ID            (CS_INT)9127
-#define CS_CUR_NAME          (CS_INT)9128
-#define CS_CUR_ROWCOUNT      (CS_INT)9129
+#define CS_CUR_STATUS        TDS_STATIC_CAST(CS_INT, 9126)
+#define CS_CUR_ID            TDS_STATIC_CAST(CS_INT, 9127)
+#define CS_CUR_NAME          TDS_STATIC_CAST(CS_INT, 9128)
+#define CS_CUR_ROWCOUNT      TDS_STATIC_CAST(CS_INT, 9129)
 
 /* options accepted by ct_options() */
 #define CS_OPT_ANSINULL		1
@@ -471,14 +475,14 @@ enum
 #define CS_DEF_PREC     18
 
 /* Error Severities  */
-#define CS_SV_INFORM        (CS_INT)0
-#define CS_SV_API_FAIL      (CS_INT)1
-#define CS_SV_RETRY_FAIL    (CS_INT)2
-#define CS_SV_RESOURCE_FAIL (CS_INT)3
-#define CS_SV_CONFIG_FAIL   (CS_INT)4
-#define CS_SV_COMM_FAIL     (CS_INT)5
-#define CS_SV_INTERNAL_FAIL (CS_INT)6
-#define CS_SV_FATAL     (CS_INT)7
+#define CS_SV_INFORM        TDS_STATIC_CAST(CS_INT, 0)
+#define CS_SV_API_FAIL      TDS_STATIC_CAST(CS_INT, 1)
+#define CS_SV_RETRY_FAIL    TDS_STATIC_CAST(CS_INT, 2)
+#define CS_SV_RESOURCE_FAIL TDS_STATIC_CAST(CS_INT, 3)
+#define CS_SV_CONFIG_FAIL   TDS_STATIC_CAST(CS_INT, 4)
+#define CS_SV_COMM_FAIL     TDS_STATIC_CAST(CS_INT, 5)
+#define CS_SV_INTERNAL_FAIL TDS_STATIC_CAST(CS_INT, 6)
+#define CS_SV_FATAL         TDS_STATIC_CAST(CS_INT, 7)
 
 /* result_types */
 #define CS_COMPUTE_RESULT	4045
@@ -492,36 +496,36 @@ enum
 #define CS_DESCRIBE_RESULT	4051
 
 /* bind types */
-#define CS_ILLEGAL_TYPE     (CS_INT)(-1)
-#define CS_CHAR_TYPE        (CS_INT)0
-#define CS_BINARY_TYPE      (CS_INT)1
-#define CS_LONGCHAR_TYPE    (CS_INT)2
-#define CS_LONGBINARY_TYPE  (CS_INT)3
-#define CS_TEXT_TYPE        (CS_INT)4
-#define CS_IMAGE_TYPE       (CS_INT)5
-#define CS_TINYINT_TYPE     (CS_INT)6
-#define CS_SMALLINT_TYPE    (CS_INT)7
-#define CS_INT_TYPE         (CS_INT)8
-#define CS_REAL_TYPE        (CS_INT)9
-#define CS_FLOAT_TYPE       (CS_INT)10
-#define CS_BIT_TYPE         (CS_INT)11
-#define CS_DATETIME_TYPE    (CS_INT)12
-#define CS_DATETIME4_TYPE   (CS_INT)13
-#define CS_MONEY_TYPE       (CS_INT)14
-#define CS_MONEY4_TYPE      (CS_INT)15
-#define CS_NUMERIC_TYPE     (CS_INT)16
-#define CS_DECIMAL_TYPE     (CS_INT)17
-#define CS_VARCHAR_TYPE     (CS_INT)18
-#define CS_VARBINARY_TYPE   (CS_INT)19
-#define CS_LONG_TYPE        (CS_INT)20
-#define CS_SENSITIVITY_TYPE (CS_INT)21
-#define CS_BOUNDARY_TYPE    (CS_INT)22
-#define CS_VOID_TYPE        (CS_INT)23
-#define CS_USHORT_TYPE      (CS_INT)24
-#define CS_UNIQUE_TYPE	    (CS_INT)25
-#define CS_UNICHAR_TYPE     (CS_INT)26
+#define CS_ILLEGAL_TYPE     TDS_STATIC_CAST(CS_INT, -1)
+#define CS_CHAR_TYPE        TDS_STATIC_CAST(CS_INT, 0)
+#define CS_BINARY_TYPE      TDS_STATIC_CAST(CS_INT, 1)
+#define CS_LONGCHAR_TYPE    TDS_STATIC_CAST(CS_INT, 2)
+#define CS_LONGBINARY_TYPE  TDS_STATIC_CAST(CS_INT, 3)
+#define CS_TEXT_TYPE        TDS_STATIC_CAST(CS_INT, 4)
+#define CS_IMAGE_TYPE       TDS_STATIC_CAST(CS_INT, 5)
+#define CS_TINYINT_TYPE     TDS_STATIC_CAST(CS_INT, 6)
+#define CS_SMALLINT_TYPE    TDS_STATIC_CAST(CS_INT, 7)
+#define CS_INT_TYPE         TDS_STATIC_CAST(CS_INT, 8)
+#define CS_REAL_TYPE        TDS_STATIC_CAST(CS_INT, 9)
+#define CS_FLOAT_TYPE       TDS_STATIC_CAST(CS_INT, 10)
+#define CS_BIT_TYPE         TDS_STATIC_CAST(CS_INT, 11)
+#define CS_DATETIME_TYPE    TDS_STATIC_CAST(CS_INT, 12)
+#define CS_DATETIME4_TYPE   TDS_STATIC_CAST(CS_INT, 13)
+#define CS_MONEY_TYPE       TDS_STATIC_CAST(CS_INT, 14)
+#define CS_MONEY4_TYPE      TDS_STATIC_CAST(CS_INT, 15)
+#define CS_NUMERIC_TYPE     TDS_STATIC_CAST(CS_INT, 16)
+#define CS_DECIMAL_TYPE     TDS_STATIC_CAST(CS_INT, 17)
+#define CS_VARCHAR_TYPE     TDS_STATIC_CAST(CS_INT, 18)
+#define CS_VARBINARY_TYPE   TDS_STATIC_CAST(CS_INT, 19)
+#define CS_LONG_TYPE        TDS_STATIC_CAST(CS_INT, 20)
+#define CS_SENSITIVITY_TYPE TDS_STATIC_CAST(CS_INT, 21)
+#define CS_BOUNDARY_TYPE    TDS_STATIC_CAST(CS_INT, 22)
+#define CS_VOID_TYPE        TDS_STATIC_CAST(CS_INT, 23)
+#define CS_USHORT_TYPE      TDS_STATIC_CAST(CS_INT, 24)
+#define CS_UNIQUE_TYPE      TDS_STATIC_CAST(CS_INT, 25)
+#define CS_UNICHAR_TYPE     TDS_STATIC_CAST(CS_INT, 26)
 
-#define CS_USER_TYPE        (CS_INT)100
+#define CS_USER_TYPE        TDS_STATIC_CAST(CS_INT, 100)
 /* cs_dt_info type values */
 enum
 {

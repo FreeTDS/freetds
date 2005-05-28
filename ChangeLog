@@ -1,3 +1,8 @@
+Sat May 28 12:46:34 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h include/ctpublic.h include/sybdb.h:
+	- applied modified patch from Christos Zoulas to use
+	  -Wold-style-cast with g++
+
 Thu May 26 17:03:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* TODO doc/userguide.sgml: update for SSL support
 
