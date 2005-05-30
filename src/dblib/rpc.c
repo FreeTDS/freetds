@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.32.2.6 2005-01-10 09:34:59 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.32.2.7 2005-05-30 08:19:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -297,7 +297,15 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 	tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): doing data from value\n");
 	if (size > 0 && value) {
 		tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): copying %d bytes of data to parameter #%d\n", size, param_num);
-		memcpy(&params->current_row[curcol->column_offset], value, size);
+		if (!is_blob_type(curcol->column_type)) {
+			memcpy(&params->current_row[curcol->column_offset], value, size);
+		} else {
+			TDSBLOB *blob = (TDSBLOB *) &params->current_row[curcol->column_offset];
+			blob->textvalue = malloc(size);
+			if (!blob->textvalue)
+				return NULL;
+			memcpy(blob->textvalue, value, size);
+		}
 	}
 	else {
 		tdsdump_log(TDS_DBG_FUNC, "param_row_alloc(): setting parameter #%d to NULL\n", param_num);

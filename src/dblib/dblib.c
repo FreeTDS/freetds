@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.187.2.4 2005-01-07 16:34:39 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.187.2.5 2005-05-30 08:19:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -5906,7 +5906,7 @@ dblastrow(DBPROCESS * dbproc)
 
 	tds = (TDSSOCKET *) dbproc->tds_socket;
 	resinfo = tds->res_info;
-	return resinfo->row_count;
+	return resinfo ? resinfo->row_count : 0;
 #if 0
 	DBINT result;
 

@@ -23,7 +23,7 @@ EXPORTS
 	SQLError
 	SQLExecDirect
 	SQLExecute
-;	SQLExtendedFetch
+	SQLExtendedFetch
 	SQLFetch
 	SQLFetchScroll
 	SQLForeignKeys
