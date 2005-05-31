@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.224 2005-05-31 07:26:04 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.225 2005-05-31 09:31:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -5275,6 +5275,78 @@ dbprtype(int token)
 
 	return tds_prtype(token);
 
+}
+
+/**
+ * \ingroup dblib_api
+ * \brief describe table column attributes with a single call (Freetds-only API function modelled on dbcolinfo)
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param column Nth in the result set, starting from 1.
+ * \param pdbcol address of structure to be populated by this function.  
+ * \return SUCCEED or FAIL. 
+ * \sa dbcolinfo().
+ */
+DBINT
+dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
+{
+	TDSRESULTINFO *resinfo;
+	TDSCOLUMN *colinfo;
+
+	if (!dbproc || !pdbcol)
+		return FAIL;
+
+	resinfo = dbproc->tds_socket->res_info;
+
+	if (!resinfo || column < 1 || column > resinfo->num_cols)
+		return FAIL;
+
+	colinfo = resinfo->columns[column - 1];
+
+	tds_strlcpy(pdbcol->Name, colinfo->column_name, sizeof(pdbcol->Name));
+	tds_strlcpy(pdbcol->ActualName, colinfo->column_name, sizeof(pdbcol->ActualName));
+
+	pdbcol->Type = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+	pdbcol->UserType = colinfo->column_usertype;
+	pdbcol->MaxLength = colinfo->column_size;
+	if (colinfo->column_nullable)
+		pdbcol->Null = TRUE;
+	else
+		pdbcol->Null = FALSE;
+
+	pdbcol->VarLength = FALSE;
+
+	if (colinfo->column_nullable)
+		pdbcol->VarLength = TRUE;
+	
+	switch (colinfo->column_type) {
+	case SYBNVARCHAR:
+	case SYBVARBINARY:
+	case SYBVARCHAR:
+	case SYBBITN:
+	case SYBDATETIMN:
+	case SYBDECIMAL:
+	case SYBFLTN:
+	case SYBINTN:
+	case SYBMONEYN:
+	case SYBNUMERIC:
+	case SYBIMAGE:
+	case SYBNTEXT:
+	case SYBTEXT:
+		pdbcol->VarLength = TRUE;
+		break;
+	default:
+		break;
+
+	}
+
+	pdbcol->Precision = colinfo->column_prec;
+	pdbcol->Scale = colinfo->column_scale;
+
+	pdbcol->Updatable = colinfo->column_writeable ? TRUE : FALSE;
+	pdbcol->Identity = colinfo->column_identity ? TRUE : FALSE;
+
+	return SUCCEED;
 }
 
 /**

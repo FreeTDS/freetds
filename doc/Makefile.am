@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.52 2005-05-03 08:01:50 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.53 2005-05-31 09:31:57 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -10,13 +10,13 @@ TARGET_DOCDIR = $(DESTDIR)$(datadir)/$(DOCDIR)
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml \
-		freebcp.1 freebcp.txt tsql.1 tsql.txt  \
-		bsqldb.1 bsqldb.txt defncopy.1 defncopy.txt  \
+		$(man_MANS) freebcp.txt tsql.txt \
+		bsqldb.txt defncopy.txt datacopy.txt \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
 		images/important.gif images/note.gif images/tip.gif \
 		tds_ssl.html
 
-man_MANS	= freebcp.1 tsql.1 bsqldb.1 defncopy.1
+man_MANS	= freebcp.1 tsql.1 bsqldb.1 defncopy.1 datacopy.1
 nobase_data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 
 $(DOCDIR)/userguide: $(DOCDIR)/userguide/index.htm
@@ -27,7 +27,7 @@ doc:  $(DOCDIR)/userguide $(DOCDIR)/reference
 
 dist:	man
 
-man:	freebcp.1 tsql.1 bsqldb.1 defncopy.1
+man:	$(man_MANS)
 
 installdirs: 
 	$(mkinstalldirs)	$(TARGET_DOCDIR)/userguide    \
@@ -54,6 +54,12 @@ bsqldb.1: bsqldb.txt
 
 defncopy.1: defncopy.txt
 	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/defncopy.txt >.$@
+	if test ! -s .$@; then echo 'unable to generate $@'; fi
+	test -s .$@
+	mv .$@ $@
+
+datacopy.1: datacopy.txt
+	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/datacopy.txt >.$@
 	if test ! -s .$@; then echo 'unable to generate $@'; fi
 	test -s .$@
 	mv .$@ $@

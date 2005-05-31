@@ -1,3 +1,10 @@
+Tue May 31 11:30:15 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/datacopy.txt(added) doc/Makefile.am src/apps/datacopy.c(added):
+	* src/apps/Makefile.am:
+	- add datacopy program and man page
+	* include/sybdb.h src/dblib/dblib.c:
+	- add dbtablecolinfo required for datacopy
+
 Tue May 31 09:24:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- fix dbstrcpy and dbvarylen

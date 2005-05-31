@@ -1,0 +1,66 @@
+NAME
+  datacopy - move table data between two servers
+SYNOPSIS
+  datacopy [-t | -a | -c owner] [-b batchsize] [-p packetsize] [-v] [-d]
+           [-S server/username/password/database/table|view]
+           [-D server/username/password/database/table]
+
+DESCRIPTION
+  datacopy is a utility program distributed with FreeTDS. 
+  datacopy will move table data from one server to another, without
+  the need for intermediate files. Using datacopy will be much faster
+  and more efficient than using freebcp out/in.
+
+  datacopy makes use of the dblib bcp api built into FreeTDS. This 
+  api is also available to application developers.
+
+  datacopy can be used to migrate data between Sybase ASE and SQL Server
+  or vice versa.
+
+OPTIONS
+  -t            truncate target table before loading data
+
+  -a            append data to target table
+  
+  -c owner      create the target table with the same schema as the source
+                table. datacopy will submit a 'create table' command on 
+                the target server/database using the specified owner in 
+                the command, e.g. create table owner.table (...
+
+  -b batchsize  is the number of rows per batch of data copied. 
+                Each batch of data is effectively 'committed'
+                into the database. the default value for batchsize is 1000. 
+
+  -p packetsize Specifies the number of bytes, per network packet, sent to 
+                and from the server(s). Increased packet size can enhance 
+                performance.
+
+  -v            produce verbose output, including diagnostic timings.
+
+  -d            produce freetds TDSDUMP output (serious debug only!)
+
+  -S ...        specifies the connection information for the source server
+                and the location/name of the table (or view) to be copied.
+                The argument to the -S option is in the format:
+
+                server/username/password/database/table|view
+
+                If the -S option is not specified, datacopy will prompt the 
+                user to enter this data.
+
+  -D ...        specifies the connection information for the destination server
+                and the location/name of the target table.
+                The argument to the -D option is in the format:
+
+                server/username/password/database/table
+
+                If the -D option is not specified, datacopy will prompt the 
+                user to enter this data.
+
+HISTORY
+  datacopy first appeared in FreeTDS 0\.64
+
+AUTHORS
+  The datacopy utility was written by Bill Thompson
+  (thompbil@exchange.uk.ml.com)
+

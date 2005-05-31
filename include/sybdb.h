@@ -34,7 +34,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.68 2005-05-28 10:48:26 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.69 2005-05-31 09:31:57 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -484,6 +484,7 @@ RETCODE dbcmdrow(DBPROCESS * dbproc);
 #define DBCMDROW(x) dbcmdrow((x))
 DBBOOL dbcolbrowse(DBPROCESS * dbprocess, int colnum);
 RETCODE	dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL *pdbcol);
+RETCODE dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol );
 DBINT dbcollen(DBPROCESS * dbproc, int column);
 char *dbcolname(DBPROCESS * dbproc, int column);
 char *dbcolsource(DBPROCESS * dbproc, int colnum);
