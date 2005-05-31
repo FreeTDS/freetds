@@ -62,12 +62,13 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.223 2005-05-20 12:37:54 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.224 2005-05-31 07:26:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
+static int _dbnullable(DBPROCESS * dbproc, int column);
 static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
 static void _set_null_value(BYTE * varaddr, int datatype, int maxlen);
@@ -235,12 +236,10 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	dbproc->envchange_rcv |= (1 << (type - 1));
 	switch (type) {
 	case TDS_ENV_DATABASE:
-		strncpy(dbproc->dbcurdb, newval, DBMAXNAME);
-		dbproc->dbcurdb[DBMAXNAME] = '\0';
+		tds_strlcpy(dbproc->dbcurdb, newval, sizeof(dbproc->dbcurdb));
 		break;
 	case TDS_ENV_CHARSET:
-		strncpy(dbproc->servcharset, newval, DBMAXNAME);
-		dbproc->servcharset[DBMAXNAME] = '\0';
+		tds_strlcpy(dbproc->servcharset, newval, sizeof(dbproc->servcharset));
 		break;
 	default:
 		break;
@@ -647,8 +646,7 @@ init_dboptions(void)
 		return NULL;
 	}
 	for (i = 0; i < DBNUMOPTIONS; i++) {
-		strncpy(dbopts[i].opttext, opttext[i], MAXOPTTEXT);
-		dbopts[i].opttext[MAXOPTTEXT - 1] = '\0';
+		tds_strlcpy(dbopts[i].opttext, opttext[i], MAXOPTTEXT);
 		dbopts[i].optparam = NULL;
 		dbopts[i].optstatus = 0;	/* XXX */
 		dbopts[i].optactive = FALSE;
@@ -2192,49 +2190,117 @@ dbcoltypeinfo(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
  * \brief Get a bunch of column attributes with a single call (Microsoft-compatibility feature).  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param type must be CI_REGULAR.  (CI_ALTERNATE and CI_CURSOR are defined by the vendor, but are not yet implemented).
+ * \param type must be CI_REGULAR or CI_ALTERNATE (CI_CURSOR is defined by the vendor, but is not yet implemented).
  * \param column Nth in the result set, starting from 1.
  * \param computeid (ignored)
  * \param pdbcol address of structure to be populated by this function.  
  * \return SUCCEED or FAIL. 
  * \sa dbcolbrowse(), dbqual(), dbtabbrowse(), dbtabcount(), dbtabname(), dbtabsource(), dbtsnewlen(), dbtsnewval(), dbtsput().
- * \todo Support compute and cursor rows. 
+ * \todo Support cursor rows. 
  */
 DBINT	
 dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL *pdbcol )
 {
 	DBTYPEINFO *ps;
+	TDSSOCKET *tds = dbproc->tds_socket;
+	TDSCOMPUTEINFO *info;
+	TDSCOLUMN *colinfo;
+	int i;
 
 	if (!dbproc || !pdbcol)
 		return FAIL;
 
-	strcpy(pdbcol->Name, dbcolname(dbproc, column));
-	strcpy(pdbcol->ActualName, dbcolname(dbproc, column));
-	
-	pdbcol->Type = dbcoltype(dbproc, column);
-	pdbcol->UserType = dbcolutype(dbproc, column);
-	pdbcol->MaxLength = dbcollen(dbproc, column);
-	pdbcol->Null = pdbcol->VarLength = dbvarylen(dbproc, column);
+	if (type == CI_REGULAR) {
 
-	ps = dbcoltypeinfo(dbproc, column);
+		tds_strlcpy(pdbcol->Name, dbcolname(dbproc, column), sizeof(pdbcol->Name));
+		tds_strlcpy(pdbcol->ActualName, dbcolname(dbproc, column), sizeof(pdbcol->ActualName));
 
-	if( ps ) {
-		pdbcol->Precision = ps->precision;
-		pdbcol->Scale = ps->scale;
+		pdbcol->Type = dbcoltype(dbproc, column);
+		pdbcol->UserType = dbcolutype(dbproc, column);
+		pdbcol->MaxLength = dbcollen(dbproc, column);
+		pdbcol->Null = _dbnullable(dbproc, column);
+		pdbcol->VarLength = dbvarylen(dbproc, column);
+
+		ps = dbcoltypeinfo(dbproc, column);
+
+		if( ps ) {
+			pdbcol->Precision = ps->precision;
+			pdbcol->Scale = ps->scale;
+		}
+
+		return SUCCEED;
+	}
+  
+	if (type == CI_ALTERNATE) {
+
+		if (computeid == 0)
+			return FAIL;
+
+		for (i = 0;; ++i) {
+			if (i >= tds->num_comp_info)
+				return FAIL;
+			info = tds->comp_info[i];
+			if (info->computeid == computeid)
+				break;
+		}
+
+		/* if either the compute id or the column number are invalid, return -1 */
+		if (column < 1 || column > info->num_cols)
+			return FAIL;
+
+		colinfo = info->columns[column - 1];
+
+		tds_strlcpy(pdbcol->Name, colinfo->column_name, sizeof(pdbcol->Name));
+		tds_strlcpy(pdbcol->ActualName, colinfo->column_name, sizeof(pdbcol->ActualName));
+
+		pdbcol->Type = dbalttype(dbproc, computeid, column);
+		pdbcol->UserType = dbaltutype(dbproc, computeid, column);
+		pdbcol->MaxLength = dbaltlen(dbproc, computeid, column);
+		if (colinfo->column_nullable) 
+			pdbcol->Null = TRUE;
+		else
+			pdbcol->Null = FALSE;
+
+		pdbcol->VarLength = FALSE;
+
+		if (colinfo->column_nullable)
+			pdbcol->VarLength = TRUE;
+
+		switch (colinfo->column_type) {
+		case SYBNVARCHAR:
+		case SYBVARBINARY:
+		case SYBVARCHAR:
+		case SYBBITN:
+		case SYBDATETIMN:
+		case SYBDECIMAL:
+		case SYBFLTN:
+		case SYBINTN:
+		case SYBMONEYN:
+		case SYBNUMERIC:
+		case SYBIMAGE:
+		case SYBNTEXT:
+		case SYBTEXT:
+			pdbcol->VarLength = TRUE;
+			break;
+		default:
+			break;
+		}
+
+		pdbcol->Precision = colinfo->column_prec;
+		pdbcol->Scale = colinfo->column_scale;
+  
+		pdbcol->Updatable = colinfo->column_writeable ? TRUE : FALSE ;
+		pdbcol->Identity = colinfo->column_identity ? TRUE : FALSE ;
+
+		return SUCCEED;
 	}
 
-	if( computeid ) {
-		strcpy(pdbcol->TableName, dbcolname(dbproc, column));
-	}
-
-	return SUCCEED;
+	return FAIL;
 }
-
-
+ 
 /**
  * \ingroup dblib_api
  * \brief Get base database column name for a result set column.  
@@ -2312,7 +2378,7 @@ dbvarylen(DBPROCESS * dbproc, int column)
 		return FALSE;
 	colinfo = resinfo->columns[column - 1];
 
-	if (colinfo->column_cur_size < 0)
+	if (colinfo->column_nullable)
 		return TRUE;
 
 	switch (colinfo->column_type) {
@@ -5117,13 +5183,14 @@ dbstrcpy(DBPROCESS * dbproc, int start, int numbytes, char *dest)
 		return FAIL;
 	}
 	dest[0] = 0;		/* start with empty string being returned */
-	if (numbytes == -1) {
-		numbytes = dbproc->dbbufsz;
+	if (dbproc->dbbufsz > 0 && start < dbproc->dbbufsz) {
+		if (numbytes == -1)
+			numbytes = dbproc->dbbufsz - start;
+		if (start + numbytes > dbproc->dbbufsz)
+			numbytes = dbproc->dbbufsz - start;
+		memcpy(dest, (char *) &dbproc->dbbuf[start], numbytes);
+		dest[numbytes] = '\0';
 	}
-	if (dbproc->dbbufsz > 0) {
-		strncpy(dest, (char *) &dbproc->dbbuf[start], numbytes);
-	}
-	dest[numbytes] = '\0';
 	return SUCCEED;
 }
 
@@ -6034,6 +6101,23 @@ _dbprdate(char *timestr)
 	timestr[strlen(timestr) - 1] = '\0';	/* remove newline */
 	return timestr;
 
+}
+
+static DBINT
+_dbnullable(DBPROCESS * dbproc, int column)
+{
+	TDSCOLUMN *colinfo;
+	TDSRESULTINFO *resinfo;
+	TDSSOCKET *tds = dbproc->tds_socket;
+
+	resinfo = tds->res_info;
+	if (!resinfo || column < 1 || column > resinfo->num_cols)
+		return FALSE;
+	colinfo = resinfo->columns[column - 1];
+
+	if (colinfo->column_nullable) 
+		return TRUE;
+	return FALSE;
 }
 
 static char *

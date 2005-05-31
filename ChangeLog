@@ -1,3 +1,10 @@
+Tue May 31 09:24:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- fix dbstrcpy and dbvarylen
+	- reuse tds_strlcpy
+	- import new dbcolinfo implementation from Bill patch
+	* src/apps/Makefile.am: add replacement lib
+
 Tue May 31 08:57:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/replacements/strl.c(added) configure.in include/replacements.h:
 	* src/apps/defncopy.c src/ctlib/ct.c src/ctlib/ctutil.c:
