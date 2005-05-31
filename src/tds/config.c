@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.109 2005-05-17 09:13:27 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.110 2005-05-31 07:01:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -701,7 +701,7 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	 * mlilback 3/2/02 */
 	ip_addr = inet_addr(servername);
 	if (ip_addr != INADDR_NONE) {
-		strncpy(ip, servername, 17);
+		tds_strlcpy(ip, servername, 17);
 		return;
 	}
 

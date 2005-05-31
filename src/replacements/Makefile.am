@@ -1,6 +1,6 @@
-# $Id: Makefile.am,v 1.7 2004-12-15 15:03:19 freddy77 Exp $
+# $Id: Makefile.am,v 1.8 2005-05-31 07:01:01 freddy77 Exp $
 noinst_LTLIBRARIES=		libreplacements.la
-libreplacements_la_SOURCES=	iconv.c
+libreplacements_la_SOURCES=	iconv.c strl.c
 libreplacements_la_LDFLAGS=
 libreplacements_la_LIBADD=	@LTLIBOBJS@
 INCLUDES=			-I$(top_srcdir)/include

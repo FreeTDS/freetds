@@ -83,6 +83,7 @@
 
 #include "tds.h"
 #include "tdsstring.h"
+#include "replacements.h"
 
 #include <signal.h>
 #include <assert.h>
@@ -97,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.23 2005-05-26 12:46:03 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.24 2005-05-31 07:01:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -744,8 +745,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	for (num_try = 0; num_try < 16; ++num_try) {
 		/* request instance information */
 		msg[0] = 4;
-		strncpy(msg + 1, instance, sizeof(msg) - 2);
-		msg[sizeof(msg) - 1] = 0;
+		tds_strlcpy(msg + 1, instance, sizeof(msg) - 1);
 		sendto(s, msg, strlen(msg) + 1, 0, (struct sockaddr *) &sin, sizeof(sin));
 
 		FD_ZERO(&fds);

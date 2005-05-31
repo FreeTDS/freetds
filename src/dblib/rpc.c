@@ -43,12 +43,13 @@
 #include "sybfront.h"
 #include "sybdb.h"
 #include "dblib.h"
+#include "replacements.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.43 2005-05-03 11:47:50 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.44 2005-05-31 07:01:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -375,8 +376,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 
 		/* meta data */
 		if (p->name) {
-			strncpy(pcol->column_name, p->name, sizeof(pcol->column_name));
-			pcol->column_name[sizeof(pcol->column_name) - 1] = 0;
+			tds_strlcpy(pcol->column_name, p->name, sizeof(pcol->column_name));
 			pcol->column_namelen = strlen(pcol->column_name);
 		}
 

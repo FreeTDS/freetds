@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.149 2005-05-20 12:37:53 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.150 2005-05-31 07:01:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -440,49 +440,29 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 	} else if (action == CS_GET) {
 		switch (property) {
 		case CS_USERNAME:
-			maxcp = tds_dstr_len(&tds_login->user_name);
 			if (out_len)
-				*out_len = maxcp;
-			if (maxcp >= buflen)
-				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->user_name), maxcp);
-			((char *) buffer)[maxcp] = '\0';
+				*out_len = tds_dstr_len(&tds_login->user_name);
+			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->user_name), buflen);
 			break;
 		case CS_PASSWORD:
-			maxcp = tds_dstr_len(&tds_login->password);
 			if (out_len)
-				*out_len = maxcp;
-			if (maxcp >= buflen)
-				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->password), maxcp);
-			((char *) buffer)[maxcp] = '\0';
+				*out_len = tds_dstr_len(&tds_login->password);
+			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->password), buflen);
 			break;
 		case CS_APPNAME:
-			maxcp = tds_dstr_len(&tds_login->app_name);
 			if (out_len)
-				*out_len = maxcp;
-			if (maxcp >= buflen)
-				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->app_name), maxcp);
-			((char *) buffer)[maxcp] = '\0';
+				*out_len = tds_dstr_len(&tds_login->app_name);
+			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->app_name), buflen);
 			break;
 		case CS_HOSTNAME:
-			maxcp = tds_dstr_len(&tds_login->host_name);
 			if (out_len)
-				*out_len = maxcp;
-			if (maxcp >= buflen)
-				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->host_name), maxcp);
-			((char *) buffer)[maxcp] = '\0';
+				*out_len = tds_dstr_len(&tds_login->host_name);
+			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->host_name), buflen);
 			break;
 		case CS_SERVERNAME:
-			maxcp = tds_dstr_len(&tds_login->server_name);
 			if (out_len)
-				*out_len = maxcp;
-			if (maxcp >= buflen)
-				maxcp = buflen - 1;
-			strncpy((char *) buffer, tds_dstr_cstr(&tds_login->server_name), maxcp);
-			((char *) buffer)[maxcp] = '\0';
+				*out_len = tds_dstr_len(&tds_login->server_name);
+			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->server_name), buflen);
 			break;
 		case CS_LOC_PROP:
 			buffer = (CS_VOID *) con->locale;
@@ -585,6 +565,8 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		server[snamelen] = '\0';
 	}
 	tds_set_server(con->tds_login, server);
+	if (needfree)
+		free(server);
 	ctx = con->ctx;
 	if (!(con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512)))
 		return CS_FAIL;
@@ -598,15 +580,10 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		tds_free_socket(con->tds_socket);
 		con->tds_socket = NULL;
 		tds_free_connection(connection);
-		if (needfree)
-			free(server);
 		tdsdump_log(TDS_DBG_FUNC, "leaving ct_connect() returning %d\n", CS_FAIL);
 		return CS_FAIL;
 	}
 	tds_free_connection(connection);
-
-	if (needfree)
-		free(server);
 
 	tdsdump_log(TDS_DBG_FUNC, "leaving ct_connect() returning %d\n", CS_SUCCEED);
 	return CS_SUCCEED;
@@ -4090,9 +4067,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		/* meta data */
 		pcol->column_namelen = 0;
 		if (p->name) {
-			/* TODO seem complicate ... routine or something ? */
-			strncpy(pcol->column_name, p->name, sizeof(pcol->column_name));
-			pcol->column_name[sizeof(pcol->column_name) - 1] = 0;
+			tds_strlcpy(pcol->column_name, p->name, sizeof(pcol->column_name));
 			pcol->column_namelen = strlen(pcol->column_name);
 		}
 

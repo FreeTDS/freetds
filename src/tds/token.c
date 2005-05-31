@@ -36,11 +36,12 @@
 #include "tdsconvert.h"
 #include "tdsiconv.h"
 #include "tds_checks.h"
+#include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.295 2005-05-20 12:37:56 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.296 2005-05-31 07:01:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -945,8 +946,7 @@ tds_process_col_name(TDSSOCKET * tds)
 	} else {
 		for (col = 0; col < info->num_cols; col++) {
 			curcol = info->columns[col];
-			strncpy(curcol->column_name, cur->column_name, sizeof(curcol->column_name));
-			curcol->column_name[sizeof(curcol->column_name) - 1] = 0;
+			tds_strlcpy(curcol->column_name, cur->column_name, sizeof(curcol->column_name));
 			curcol->column_namelen = strlen(curcol->column_name);
 			prev = cur;
 			cur = cur->next;

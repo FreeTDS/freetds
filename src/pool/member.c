@@ -48,12 +48,13 @@
 #endif /* HAVE_ARPA_INET_H */
 
 #include "pool.h"
+#include "replacements.h"
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.37 2005-04-15 11:52:00 freddy77 Exp $";
+static char software_version[] = "$Id: member.c,v 1.38 2005-05-31 07:01:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
@@ -80,8 +81,7 @@ pool_mbr_login(TDS_POOL * pool)
 #if HAVE_GETHOSTNAME
 	if (gethostname(hostname, MAXHOSTNAMELEN) < 0)
 #endif
-		strncpy(hostname, "tdspool", MAXHOSTNAMELEN);
-	hostname[MAXHOSTNAMELEN - 1] = '\0';
+		tds_strlcpy(hostname, "tdspool", MAXHOSTNAMELEN);
 	tds_set_host(login, hostname);
 	tds_set_library(login, "TDS-Library");
 	tds_set_server(login, pool->server);

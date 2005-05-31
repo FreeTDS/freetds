@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_replacements_h[] = "$Id: replacements.h,v 1.10 2005-01-25 08:53:39 freddy77 Exp $";
+static const char rcsid_replacements_h[] = "$Id: replacements.h,v 1.11 2005-05-31 07:01:02 freddy77 Exp $";
 static const void *const no_unused_replacements_h_warn[] = { rcsid_replacements_h, no_unused_replacements_h_warn };
 
 #include <stdarg.h>
@@ -58,6 +58,18 @@ char *strtok_r(char *str, const char *sep, char **lasts);
 # include <../src/replacements/readpassphrase.h>
 #else
 # include <readpassphrase.h>
+#endif
+
+#if HAVE_STRLCPY
+#define tds_strlcpy(d,s,l) strlcpy(d,s,l)
+#else
+size_t tds_strlcpy(char *dest, const char *src, size_t len);
+#endif
+
+#if HAVE_STRLCAT
+#define tds_strlcat(d,s,l) strlcat(d,s,l)
+#else
+size_t tds_strlcat(char *dest, const char *src, size_t len);
 #endif
 
 #ifdef __cplusplus

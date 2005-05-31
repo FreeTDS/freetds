@@ -1,3 +1,12 @@
+Tue May 31 08:57:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/replacements/strl.c(added) configure.in include/replacements.h:
+	* src/apps/defncopy.c src/ctlib/ct.c src/ctlib/ctutil.c:
+	* src/dblib/rpc.c src/odbc/connectparams.c src/odbc/error.c:
+	* src/pool/member.c src/replacements/Makefile.am src/tds/config.c:
+	* src/tds/iconv.c src/tds/mem.c src/tds/net.c src/tds/threadsafe.c:
+	* src/tds/token.c:
+	- use new tds_strlcpy/tds_strlcat functions
+
 Sat May 28 12:46:34 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/cspublic.h include/ctpublic.h include/sybdb.h:
 	- applied modified patch from Christos Zoulas to use

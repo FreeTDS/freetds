@@ -77,11 +77,12 @@
 #endif
 
 #include "tds.h"
+#include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: threadsafe.c,v 1.36 2005-05-17 09:13:27 freddy77 Exp $";
+static char software_version[] = "$Id: threadsafe.c,v 1.37 2005-05-31 07:01:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *
@@ -323,8 +324,7 @@ tds_inet_ntoa_r(struct in_addr iaddr, char *ip, size_t len)
 #elif HAVE_INET_NTOA_R
 	inet_ntoa_r(iaddr, ip, len);
 #else
-	strncpy(ip, inet_ntoa(iaddr), len);
-	ip[len-1] = 0;
+	tds_strlcpy(ip, inet_ntoa(iaddr), len);
 #endif
 	return ip;
 }

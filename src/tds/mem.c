@@ -39,11 +39,12 @@
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsstring.h"
+#include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.144 2005-05-24 10:54:32 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.145 2005-05-31 07:01:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -104,8 +105,7 @@ tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
 	dyn->next = tds->dyns;
 	tds->dyns = dyn;
 
-	strncpy(dyn->id, id, TDS_MAX_DYNID_LEN);
-	dyn->id[TDS_MAX_DYNID_LEN - 1] = '\0';
+	tds_strlcpy(dyn->id, id, TDS_MAX_DYNID_LEN);
 
 	return dyn;
 }

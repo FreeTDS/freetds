@@ -28,10 +28,11 @@
 #include "cspublic.h"
 #include "ctlib.h"
 #include "tds.h"
+#include "replacements.h"
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: ctutil.c,v 1.23 2005-04-15 11:51:57 freddy77 Exp $";
+static char software_version[] = "$Id: ctutil.c,v 1.24 2005-05-31 07:01:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -132,25 +133,22 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 
 	memset(&errmsg, '\0', sizeof(errmsg));
 	errmsg.msgnumber = msg->msg_number;
-	strncpy(errmsg.text, msg->message, sizeof(errmsg.text));
-	errmsg.text[sizeof(errmsg.text)-1] = 0;
+	tds_strlcpy(errmsg.text, msg->message, sizeof(errmsg.text));
 	errmsg.textlen = strlen(errmsg.text);
 	errmsg.sqlstate[0] = 0;
-	if (msg->sql_state) {
-		strncpy(errmsg.sqlstate, msg->sql_state, sizeof(errmsg.sqlstate));
-		errmsg.sqlstate[sizeof(errmsg.sqlstate)-1] = 0;
-	}
+	if (msg->sql_state)
+		tds_strlcpy(errmsg.sqlstate, msg->sql_state, sizeof(errmsg.sqlstate));
 	errmsg.sqlstatelen = strlen(errmsg.sqlstate);
 	errmsg.state = msg->msg_state;
 	errmsg.severity = msg->msg_level;
 	errmsg.line = msg->line_number;
 	if (msg->server) {
 		errmsg.svrnlen = strlen(msg->server);
-		strncpy(errmsg.svrname, msg->server, CS_MAX_NAME);
+		tds_strlcpy(errmsg.svrname, msg->server, CS_MAX_NAME);
 	}
 	if (msg->proc_name) {
 		errmsg.proclen = strlen(msg->proc_name);
-		strncpy(errmsg.proc, msg->proc_name, CS_MAX_NAME);
+		tds_strlcpy(errmsg.proc, msg->proc_name, CS_MAX_NAME);
 	}
 	/* if there is no connection, attempt to call the context handler */
 	if (!con) {

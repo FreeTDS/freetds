@@ -47,13 +47,11 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.119 2005-02-27 08:49:50 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.120 2005-05-31 07:01:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
-
-#define SAFECPY(d, s) 	strncpy((d), (s), sizeof(d)); (d)[sizeof(d) - 1] = '\0'
 
 
 #if !HAVE_ICONV_ALWAYS

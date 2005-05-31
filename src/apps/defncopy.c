@@ -48,7 +48,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: defncopy.c,v 1.6 2004-11-07 08:59:33 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.7 2005-05-31 07:01:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -205,14 +205,16 @@ parse_argument(const char argument[], PROCEDURE* procedure)
 	const char *s = strchr(argument, '.');
 	
 	if (s) {
-		const int len = s - argument;
-		strncpy(procedure->owner, argument, len);
+		size_t len = s - argument;
+		if (len > sizeof(procedure->owner) - 1)
+			len = sizeof(procedure->owner) - 1;
+		memcpy(procedure->owner, argument, len);
 		procedure->owner[len] = '\0';
 
-		strncpy(procedure->name, s+1, sizeof(procedure->name));
+		tds_strlcpy(procedure->name, s+1, sizeof(procedure->name));
 	} else {
 		strcpy(procedure->owner, "dbo");
-		strncpy(procedure->name, argument, sizeof(procedure->name));
+		tds_strlcpy(procedure->name, argument, sizeof(procedure->name));
 	}
 }
 

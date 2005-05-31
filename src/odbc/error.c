@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: error.c,v 1.38 2005-03-13 17:22:29 ppeterd Exp $";
+static const char software_version[] = "$Id: error.c,v 1.39 2005-05-31 07:01:03 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -331,16 +331,15 @@ odbc_get_v2state(const char *sqlstate, char *dest_state)
 {
 	const struct s_v3to2map *pmap = v3to2map;
 
-	dest_state[5] = 0;
 	while (pmap->v3[0]) {
 		if (!strcasecmp(pmap->v3, sqlstate)) {
-			strncpy(dest_state, pmap->v2, 5);
+			tds_strlcpy(dest_state, pmap->v2, 6);
 			return;
 		}
 		++pmap;
 	}
 	/* return the original if a v2 state is not found */
-	strncpy(dest_state, sqlstate, 5);
+	tds_strlcpy(dest_state, sqlstate, 6);
 }
 
 void
@@ -404,8 +403,7 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg, c
 
 	memset(&errs->errs[n], 0, sizeof(struct _sql_error));
 	errs->errs[n].native = 0;
-	strncpy(errs->errs[n].state3, sqlstate, 5);
-	errs->errs[n].state3[5] = '\0';
+	tds_strlcpy(errs->errs[n].state3, sqlstate, 6);
 	odbc_get_v2state(errs->errs[n].state3, errs->errs[n].state2);
 
 	/* TODO why driver ?? -- freddy77 */
@@ -432,10 +430,9 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlst
 
 	memset(&errs->errs[n], 0, sizeof(struct _sql_error));
 	errs->errs[n].native = native;
-	if (sqlstate) {
-		strncpy(errs->errs[n].state2, sqlstate, 5);
-		errs->errs[n].state2[5] = '\0';
-	} else
+	if (sqlstate)
+		tds_strlcpy(errs->errs[n].state2, sqlstate, 6);
+	else
 		errs->errs[n].state2[0] = '\0';
 	strcpy(errs->errs[n].state3, errs->errs[n].state2);
 	sqlstate2to3(errs->errs[n].state3);
