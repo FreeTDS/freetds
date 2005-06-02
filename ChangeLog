@@ -1,3 +1,6 @@
+Thu Jun 02 14:01:23 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: check sizeof wchar_t and SQLWCHAR
+
 Tue May 31 11:30:15 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/datacopy.txt(added) doc/Makefile.am src/apps/datacopy.c(added):
 	* src/apps/Makefile.am:
