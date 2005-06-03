@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.28 2005-05-25 10:04:56 freddy77 Exp $
+$Id: NEWS,v 1.29 2005-06-03 09:01:38 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -59,6 +59,8 @@ libTDS API changes
 - removed tds_ctx_set_parent/tds_ctx_get_parent, use parent member
 - added void * parent argument to tds_alloc_context
 - tds_process_tokens return a TDS_CANCELLED if handle cancellation
+- removed query_timeout_func and query_timeout_param from 
+  TDSCONNECTION and TDSLOGIN
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information

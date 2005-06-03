@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: login.c,v 1.145 2005-05-24 10:54:32 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.146 2005-06-03 09:01:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -203,8 +203,6 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* Jeff's hack - begin */
 	tds->query_timeout = connect_timeout ? connect_timeout : connection->query_timeout;
-	tds->query_timeout_func = connection->query_timeout_func;
-	tds->query_timeout_param = connection->query_timeout_param;
 	/* end */
 
 	/* verify that ip_addr is not NULL */

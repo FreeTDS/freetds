@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.225 2005-05-31 09:31:58 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.226 2005-06-03 09:01:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -248,7 +248,7 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 }
 
 static int
-dblib_query_timeout(void *param)
+dblib_query_timeout(void *param, unsigned int total_timeout)
 {
 	DBPROCESS *dbproc = (DBPROCESS*) param;
 
@@ -719,8 +719,8 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	dbproc->dbchkintr = NULL;
 	dbproc->dbhndlintr = NULL;
-	connection->query_timeout_param = dbproc;
-	connection->query_timeout_func = dblib_query_timeout;
+	dbproc->tds_socket->query_timeout_param = dbproc;
+	dbproc->tds_socket->query_timeout_func = dblib_query_timeout;
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
 
@@ -742,8 +742,6 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 		return NULL;
 	}
 	tds_free_connection(connection);
-
-//	dbproc->tds_socket->timeout = connection->timeout;
 
 	dbproc->dbbuf = NULL;
 	dbproc->dbbufsz = 0;

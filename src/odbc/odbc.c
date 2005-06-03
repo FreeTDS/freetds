@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.374 2005-06-03 07:16:22 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.375 2005-06-03 09:01:58 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -90,7 +90,7 @@ static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQL
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc);
 SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt);
-static int query_timeout_cancel(void *param);
+static int query_timeout_cancel(void *param, unsigned int total_timeout);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
@@ -2370,7 +2370,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 }
 
 static int
-query_timeout_cancel(void *param)
+query_timeout_cancel(void *param, unsigned int total_timeout)
 {
 	TDS_STMT *stmt = (TDS_STMT *) param;
 

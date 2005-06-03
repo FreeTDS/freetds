@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.148 2005-05-26 15:04:04 freddy77 Exp $
+To Do List	$Id: TODO,v 1.149 2005-06-03 09:01:37 freddy77 Exp $
 ------------
 Broken:
 . Passing invalid character set names to server with tsql?
@@ -22,8 +22,6 @@ Working in progress:
     (tds_peek if not in pending state hang... update)
 . fix timeout problem reported in ML
   . check dblib behavior
-  . merge with Liam patch
-. finish dblib thread safety
 . odbc array binding (see odbc tests)
 
 Postponed to 0.64 version

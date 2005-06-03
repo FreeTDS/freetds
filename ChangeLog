@@ -1,3 +1,11 @@
+Fri Jun 03 11:01:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO include/tds.h src/dblib/dblib.c src/odbc/odbc.c:
+	* src/tds/config.c src/tds/login.c src/tds/net.c:
+	- removed query_timeout_func and query_timeout_param from
+	  TDSLOGIN and TDSCONNECTION (rarely used)
+	- merged Liam patch for timeout
+	- add a total_timeout parameter to query_timeout_func
+
 Fri Jun 03 09:15:19 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/array.c:
 	* src/odbc/unittests/array_out.c:

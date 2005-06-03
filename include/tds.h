@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.232 2005-05-23 11:08:11 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.233 2005-06-03 09:01:47 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -723,8 +723,6 @@ typedef struct tds_login
 	TDS_TINYINT encrypted;
 
 	TDS_INT query_timeout;
-	int (*query_timeout_func) (void *param);
-	void *query_timeout_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	DSTR client_charset;
 } TDSLOGIN;
@@ -750,8 +748,6 @@ typedef struct tds_connection
 	TDS_TINYINT encrypted;
 
 	TDS_INT query_timeout;
-	int (*query_timeout_func) (void *param);
-	void *query_timeout_param;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	DSTR client_charset;
 
@@ -1126,7 +1122,7 @@ struct tds_socket
 	int rows_affected;
 	/* timeout stuff from Jeff */
 	TDS_INT query_timeout;
-	int (*query_timeout_func) (void *param);
+	int (*query_timeout_func) (void *param, unsigned int total_timeout);
 	void *query_timeout_param;
 	time_t query_start_time;
 	TDSENV env;
