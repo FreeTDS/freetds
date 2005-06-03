@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.373 2005-05-20 12:37:54 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.374 2005-06-03 07:16:22 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2740,9 +2740,6 @@ _SQLFetch(TDS_STMT * stmt)
 	*fetched_ptr = 0;
 
 	num_rows = stmt->ard->header.sql_desc_array_size;
-#ifndef ENABLE_DEVELOPING
-	num_rows = 1;
-#endif
 	status_ptr = stmt->ird->header.sql_desc_array_status_ptr;
 	if (status_ptr) {
 		for (i = 0; i < num_rows; ++i)
@@ -5315,13 +5312,6 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.retrieve_data = ui;
 		break;
 	case SQL_ATTR_ROW_ARRAY_SIZE:
-#ifndef ENABLE_DEVELOPING
-		assert(stmt->ard->header.sql_desc_array_size == 1);
-		if (stmt->ard->header.sql_desc_array_size != ui) {
-			odbc_errs_add(&stmt->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
-		}
-#endif
 		stmt->ard->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_ROW_BIND_OFFSET_PTR:

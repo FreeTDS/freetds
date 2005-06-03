@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.2 2005-05-17 09:13:26 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.3 2005-06-03 07:16:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -100,6 +100,10 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 int
 main(int argc, char *argv[])
 {
+#ifndef ENABLE_DEVELOPING
+	return 0;
+#endif
+
 	use_odbc_version3 = 1;
 	Connect();
 

@@ -1,3 +1,8 @@
+Fri Jun 03 09:15:19 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/array.c:
+	* src/odbc/unittests/array_out.c:
+	- SQL_ATTR_ROW_ARRAY_SIZE is no more developing stuff
+
 Thu Jun 02 14:01:23 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: check sizeof wchar_t and SQLWCHAR
 

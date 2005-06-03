@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.2 2005-05-22 08:28:00 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.3 2005-06-03 07:16:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -172,10 +172,12 @@ main(int argc, char *argv[])
 	printf("test line %d\n", __LINE__);
 	query_test(SQL_SUCCESS, "VVVVVVVVVV");
 
+#ifdef ENABLE_DEVELOPING
 	/* row and truncation */
 	truncate = 1;
 	printf("test line %d\n", __LINE__);
 	query_test(SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
+#endif
 
 	/* TODO bind offset, SQLGetData, no bind, error */
 
