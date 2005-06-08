@@ -1,3 +1,8 @@
+Wed Jun 08 08:38:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/native.c: use rpc only for rpc
+	* src/tds/query.c src/tds/tds_checks.c:
+	- use on_server to send parameters
+
 Fri Jun 03 11:01:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* NEWS TODO include/tds.h src/dblib/dblib.c src/odbc/odbc.c:
 	* src/tds/config.c src/tds/login.c src/tds/net.c:

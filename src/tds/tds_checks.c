@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: tds_checks.c,v 1.11 2005-05-11 12:03:29 freddy77 Exp $";
+static const char software_version[] = "$Id: tds_checks.c,v 1.12 2005-06-08 06:40:22 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if ENABLE_EXTRA_CHECKS
@@ -211,6 +211,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		assert(column->column_varint_size == 0 || (column->column_type == SYBUNIQUE && column->column_varint_size == 1));
 	} else {
 		assert(!is_fixed_type(column->column_type));
+		assert(column->char_conv || (column->on_server.column_size == column->column_size || column->on_server.column_size == 0));
 		assert(column->column_varint_size != 0);
 	}
 

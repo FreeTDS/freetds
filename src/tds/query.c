@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.166 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.167 2005-06-08 06:40:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -352,6 +352,27 @@ tds_count_placeholders(const char *query)
 }
 
 static const char *
+tds_skip_comment_ucs2le(const char *s, const char *end)
+{
+	const char *p = s;
+
+	if (p+4 <= end && memcmp(p, "-\0-", 4) == 0) {
+		for (;(p+=2) < end;)
+			if (p[0] == '\n' && p[1] == 0)
+				return p;
+	} else if (p+4 <= end && memcmp(p, "/\0*", 4) == 0) {
+		p += 2;
+		for(;(p+=2) < end;)
+			if (memcmp(p, "*\0/", 4) == 0)
+				return p + 4;
+	} else
+		p += 2;
+
+	return p;
+}
+
+
+static const char *
 tds_skip_quoted_ucs2le(const char *s, const char *end)
 {
 	const char *p = s;
@@ -387,7 +408,12 @@ tds_next_placeholders_ucs2le(const char *start, const char *end)
 		case '[':
 			p = tds_skip_quoted_ucs2le(p, end);
 			break;
-		/* FIXME handle comments here */
+
+		case '-':
+		case '/':
+			p = tds_skip_comment_ucs2le(p, end);
+			break;
+
 		case '?':
 			return p;
 		default:
@@ -425,7 +451,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
+	switch (tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size)) {
 	case XSYBCHAR:
 	case SYBCHAR:
 		fmt = "CHAR(%d)";
@@ -493,12 +519,22 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		return TDS_SUCCEED;
 		break;
 	case SYBUNIQUE:
-		if (IS_TDS7_PLUS(tds)) {
+		if (IS_TDS7_PLUS(tds))
 			fmt = "UNIQUEIDENTIFIER";
-			break;
-		}
-		out[0] = 0;
-		return TDS_FAIL;
+		break;
+	case SYBNTEXT:
+		if (IS_TDS7_PLUS(tds))
+			fmt = "NTEXT";
+		break;
+	case SYBNVARCHAR:
+	case XSYBNVARCHAR:
+		if (IS_TDS7_PLUS(tds))
+			fmt = "NVARCHAR";
+		break;
+	case XSYBNCHAR:
+		if (IS_TDS7_PLUS(tds))
+			fmt = "NCHAR";
+		break;
 		/* nullable types should not occur here... */
 	case SYBFLTN:
 	case SYBMONEYN:
@@ -507,24 +543,26 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBINTN:
 		assert(0);
 		/* TODO... */
-	case SYBNTEXT:
 	case SYBVOID:
-	case SYBNVARCHAR:
-	case XSYBNVARCHAR:
-	case XSYBNCHAR:
 	case SYBSINT1:
 	case SYBUINT2:
 	case SYBUINT4:
 	case SYBUINT8:
 	case SYBVARIANT:
-		out[0] = 0;
-		return TDS_FAIL;
 		break;
 	}
 
-	/* fill out */
-	sprintf(out, fmt, curcol->column_size > 0 ? curcol->column_size : 1);
-	return TDS_SUCCEED;
+	if (fmt) {
+		TDS_INT size = curcol->on_server.column_size;
+		if (!size)
+			size = curcol->column_size;
+		/* fill out */
+		sprintf(out, fmt, size > 0 ? size : 1);
+		return TDS_SUCCEED;
+	}
+
+	out[0] = 0;
+	return TDS_FAIL;
 }
 
 /**
@@ -2127,6 +2165,8 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 		tds_put_n(tds, buf, i);
 		break;
 	/* char, quote as necessary */
+	case SYBNVARCHAR: case SYBNTEXT: case XSYBNCHAR: case XSYBNVARCHAR:
+		tds_put_n(tds, "N", 1);
 	case SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR:
 		tds_put_n(tds, "\'", 1);
 		tds_quote_and_put(tds, src, src + src_len);

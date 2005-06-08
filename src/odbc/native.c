@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: native.c,v 1.24 2005-05-20 12:37:55 freddy77 Exp $";
+static const char software_version[] = "$Id: native.c,v 1.25 2005-06-08 06:40:22 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -133,6 +133,8 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 			if (strncasecmp(pcall, "call ", 5) != 0)
 				pcall = NULL;
 
+			if (stmt)
+				stmt->prepared_query_is_rpc = 1;
 			++nest_syntax;
 			is_calls <<= 1;
 			if (!pcall) {
@@ -219,7 +221,6 @@ prepare_call(struct _hstmt * stmt)
 	const char *s, *p, *param_start;
 	char *buf;
 	SQLRETURN rc;
-	int got_params;
 	TDS_SERVER_TYPE type;
 
 	if (stmt->prepared_query)
@@ -233,7 +234,10 @@ prepare_call(struct _hstmt * stmt)
 		return rc;
 
 	/* now detect RPC */
+	if (stmt->prepared_query_is_rpc == 0)
+		return SQL_SUCCESS;
 	stmt->prepared_query_is_rpc = 0;
+
 	s = buf;
 	while (TDS_ISSPACE(*s))
 		++s;
@@ -242,8 +246,10 @@ prepare_call(struct _hstmt * stmt)
 			s += 5;
 		else if (strncasecmp(s, "execute", 7) == 0 && TDS_ISSPACE(s[7]))
 			s += 8;
-		else
+		else {
+			stmt->prepared_query_is_func = 0;
 			return SQL_SUCCESS;
+		}
 	}
 	while (TDS_ISSPACE(*s))
 		++s;
@@ -258,32 +264,32 @@ prepare_call(struct _hstmt * stmt)
 	}
 	param_start = s;
 	--s;			/* trick, now s point to no blank */
-	got_params = 0;
 	for (;;) {
 		while (TDS_ISSPACE(*++s));
 		if (!*s)
 			break;
 		switch (*s) {
 		case '?':
-			got_params = 1;
 			break;
 		case ',':
 			--s;
 			break;
 		default:
-			if (!(s = parse_const_param(s, &type)))
+			if (!(s = parse_const_param(s, &type))) {
+				stmt->prepared_query_is_func = 0;
 				return SQL_SUCCESS;
+			}
 			--s;
 			break;
 		}
 		while (TDS_ISSPACE(*++s));
 		if (!*s)
 			break;
-		if (*s != ',')
+		if (*s != ',') {
+			stmt->prepared_query_is_func = 0;
 			return SQL_SUCCESS;
+		}
 	}
-	if (!got_params)
-		return SQL_SUCCESS;
 	stmt->prepared_query_is_rpc = 1;
 
 	/* remove unneeded exec */
