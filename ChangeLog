@@ -1,3 +1,6 @@
+Sat Jun 11 14:40:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c: minor fixes and comments
+
 Wed Jun 08 08:38:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/native.c: use rpc only for rpc
 	* src/tds/query.c src/tds/tds_checks.c:
