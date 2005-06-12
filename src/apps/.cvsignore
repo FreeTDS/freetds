@@ -6,3 +6,5 @@ bsqldb
 defncopy
 .libs
 .deps
+datacopy
+
