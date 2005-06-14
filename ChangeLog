@@ -1,3 +1,6 @@
+Mon Jun 13 22:39:04 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/rpc.c added better Doxygen comments
+
 Mon Jun 13 22:18:58 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* doc/api_status.txt doc/userguide.sgml small fixes
 	* doc/htdoc/faq.html added output parameters

@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.44 2005-05-31 07:01:03 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.45 2005-06-14 02:40:13 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -58,11 +58,19 @@ static void param_clear(DBREMOTE_PROC_PARAM * pparam);
 static TDSPARAMINFO *param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc);
 
 /**
- * Initialize a remote procedure call. 
+ * \ingroup dblib_api
+ * \brief Initialize a remote procedure call. 
  *
- * Only supported option would be DBRPCRECOMPILE, 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param rpcname name of the stored procedure to be run.  
+ * \param options Only supported option would be DBRPCRECOMPILE, 
  * which causes the stored procedure to be recompiled before executing.
- * FIXME: I don't know the value for DBRPCRECOMPILE and have not added it to sybdb.h
+ * \remark The RPC functions are the only way to get back OUTPUT parameter data with db-lib 
+ * from modern Microsoft servers.  
+ * \todo I don't know the value for DBRPCRECOMPILE and have not added it to sybdb.h
+ * \retval SUCCEED normal.
+ * \retval FAIL on error
+ * \sa dbrpcparam(), dbrpcsend()
  */
 
 RETCODE
@@ -238,7 +246,13 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 }
 
 /**
- * Execute the procedure and free associated memory
+ * \ingroup dblib_api
+ * \brief Execute the procedure and free associated memory
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \retval SUCCEED normal.
+ * \retval FAIL on error
+ * \sa dbrpcinit(), dbrpcparam()
  */
 RETCODE
 dbrpcsend(DBPROCESS * dbproc)
