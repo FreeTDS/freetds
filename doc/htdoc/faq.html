@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.11 2005-05-26 05:10:03 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.12 2005-06-14 02:23:17 jklowden Exp $ -->
 
 <head>
   <meta name="generator" content=
@@ -43,7 +43,7 @@
   some).</p>
 
   <div align="right">
-    <i>$Id: faq.html,v 1.11 2005-05-26 05:10:03 jklowden Exp $</i>
+    <i>$Id: faq.html,v 1.12 2005-06-14 02:23:17 jklowden Exp $</i>
   </div>
 
   <ol>
@@ -134,7 +134,11 @@
         why do I sometimes get an unexpected 1-column result
         set?</a></li>
 
-        <li><a href="#unknownmarker">What does this <tt>unknown
+         <li><a href="#ms.output.parameters">
+         I'm not getting my output parameters returned</a>, but I seem
+         to be doing everything right!</li>
+
+       <li><a href="#unknownmarker">What does this <tt>unknown
         marker</tt> message mean?</a></li>
 
         <li><a href="#connectionrefused">What if I get a
@@ -564,8 +568,8 @@
 
   <p>If you are accustomed to programming with other database
   servers, you may be surprised when you first encounter this
-  aspect of the TDS protocol. When a TDS server -- be it by
-  Microsoft or Sybase -- responds to a query, it may send a result
+  aspect of the TDS protocol. When a TDS server&mdash;be it by
+  Microsoft or Sybase&mdash;responds to a query, it may send a result
   set to the client. The server does not construct a complete
   result set first, unless it needs to (say, to execute an
   <tt>ORDER BY</tt> clause). Instead, it sends the rows as they're
@@ -602,8 +606,8 @@
   their accumulation into a container of some sort are two
   different functions. A TDS server issues its results a row at a
   time, which the client library dutifully makes available to the
-  application on arrival. It's up to the application -- or a
-  higher-level library -- to form a "rowset" of some kind if
+  application on arrival. It's up to the application&mdash;or a
+  higher-level library&mdash;to form a "rowset" of some kind if
   desired.
 
   <h4>PHP note</h4>If you use PHP, you will still run into this
@@ -638,9 +642,17 @@
   unexpected 1-column result set?</h3>
 
   <p>Use a more recent release of FreeTDS. This problem was
-  corrected with version 0.63.</p><a name="unknownmarker" id=
-  "unknownmarker"></a>
+  corrected with version 0.63.</p>
 
+  <a name="ms.output.parameters" id="ms.output.parameters">
+  <h3>Output Parameters</h3>
+  <p><i>I'm not getting my output parameters returned, but I seem
+         to be doing everything right!</i> </p> 
+  <p>That's not a question!</p>
+  <p>Microsoft SQL Server 7 with SP3, and later versions, quietly changed (which is to say, broke) how they respond to queries that execute stored procedures with output parameters.  Earlier servers let you send a query like <font size="-1"><code>EXECUTE A @P OUTPUT</code></font> and fetch the output parameter as a special result row (technique varying by library).  Newer servers simply don't send back that data.  To elicit output parameters from them, you have to use the RPC protocols such as the db-lib <a href="reference/a00336.html#a129">dbrpcparam</a>.  
+  </p>
+         
+  <a name="unknownmarker" id="unknownmarker"></a>  
   <h3>What does this <tt>unknown marker</tt> message mean?</h3>
 
   <p>Most of the time, it means you're not using the right protocol
