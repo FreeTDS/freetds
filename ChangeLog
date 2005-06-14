@@ -1,3 +1,7 @@
+Mon Jun 13 22:18:58 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/api_status.txt doc/userguide.sgml small fixes
+	* doc/htdoc/faq.html added output parameters
+
 Sat Jun 11 14:40:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c: minor fixes and comments
 

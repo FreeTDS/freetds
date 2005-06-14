@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2005-05-26 15:04:16 $</date>
-		<releaseinfo>$Revision: 1.94 $</releaseinfo>
+		<date>$Date: 2005-06-14 02:22:55 $</date>
+		<releaseinfo>$Revision: 1.95 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.94 $</>
-<member>$Date: 2005-05-26 15:04:16 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.94 2005-05-26 15:04:16 freddy77 Exp $.</>
+<member>$Revision: 1.95 $</>
+<member>$Date: 2005-06-14 02:22:55 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.95 2005-06-14 02:22:55 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -449,7 +449,7 @@ There are a few optional arguments to <Command>configure</> that may be importan
 
 			<varlistentry>
 				<term><Option>--enable-extra-checks</Option></term>
-				<listitem><para>This enables some extra checks in <productname>FreeTDS</productname> code. Intended for debugging purposes. 
+				<listitem><para>Intended for debugging purposes, enables certain internal consistency checks against problems like memory corruption and buffer exhaustion.  
 				</para></listitem>
 				</varlistentry>
 
@@ -463,13 +463,13 @@ There are a few optional arguments to <Command>configure</> that may be importan
 			<variablelist id="tab.ssl"><title>SSL support</title>
 			<varlistentry>
 				<term><Option>--with-gnutls</Option></term>
-				<listitem><para>Enable SSL support for MSSQL using GnuTLS. Use version 1.2.3 or newer.</para>
+				<listitem><para>Enable SSL using GnuTLS. Use version 1.2.3 or newer.</para>
 					</listitem>
 				</varlistentry>
 
 			<varlistentry>
 				<term><Option>--with-openssl=<replaceable>DIR</></Option></term>
-				<listitem><para>Enable SSL support for MSSQL using OpenSSL. OpenSSL is not LGPL like <productname>FreeTDS</productname> so please read <ulink url="http://www.openssl.org/source/license.html">OpenSSL license</ulink> before using this option. </para>
+				<listitem><para>Enable SSL using OpenSSL. Unlike <productname>FreeTDS</productname>, OpenSSL does not use the LGPL.  Please read the <ulink url="http://www.openssl.org/source/license.html">OpenSSL license</ulink> before distributing binaries compiled with this option.  </para>
 					</listitem>
 			</varlistentry>
 
@@ -565,7 +565,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2005-05-26 15:04:16 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2005-06-14 02:22:55 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
