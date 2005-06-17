@@ -1,6 +1,11 @@
+Fri Jun 17 10:27:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c:
+	- fix typo
+	- remove useless comments
+
 Thu Jun 16 23:58:05 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/tds/query.c added tds_put_n_as_ucs2, removed USC2 data
-	
+
 Mon Jun 13 22:39:04 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/rpc.c added better Doxygen comments
 

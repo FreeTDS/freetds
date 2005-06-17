@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.168 2005-06-17 03:59:50 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.169 2005-06-17 08:29:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -74,7 +74,7 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
  */
 
 /**
- * Accept an ACSII string, convert it to UCS2-LE, and call tds_put_n
+ * Accept an ASCII string, convert it to UCS2-LE, and call tds_put_n
  * The input is null-terminated, but the output excludes the null.
  * \tds socket representing the connection
  * \param buf string to write
@@ -243,7 +243,6 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			tds_put_smallint(tds, TDS_SP_EXECUTESQL);
 		} else {
 			tds_put_smallint(tds, 13);
-			/* sp_executesql */
 			tds_put_n_as_ucs2(tds, "sp_executesql");
 		}
 		tds_put_smallint(tds, 0);
@@ -818,7 +817,6 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 			tds_put_smallint(tds, TDS_SP_PREPARE);
 		} else {
 			tds_put_smallint(tds, 10);
-			/* sp_prepare */
 			tds_put_n_as_ucs2(tds, "sp_prepare");
 		}
 		tds_put_smallint(tds, 0);
@@ -920,7 +918,6 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			tds_put_smallint(tds, TDS_SP_EXECUTESQL);
 		} else {
 			tds_put_smallint(tds, 13);
-			/* sp_executesql */
 			tds_put_n_as_ucs2(tds, "sp_executesql");
 		}
 		tds_put_smallint(tds, 0);
@@ -1343,7 +1340,6 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds->out_flag = 3;	/* RPC */
 		/* procedure name */
 		tds_put_smallint(tds, 10);
-		/* sp_execute */
 		/* NOTE do not call this procedure using integer name (TDS_SP_EXECUTE) on mssql2k, it doesn't work! */
 		tds_put_n_as_ucs2(tds, "sp_execute");
 		tds_put_smallint(tds, 0);	/* flags */
@@ -1496,7 +1492,6 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			tds_put_smallint(tds, TDS_SP_UNPREPARE);
 		} else {
 			tds_put_smallint(tds, 12);
-			/* sp_unprepare */
 			tds_put_n_as_ucs2(tds, "sp_unprepare");
 		}
 		tds_put_smallint(tds, 0);	/* flags */
@@ -1838,7 +1833,6 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 			tds_put_smallint(tds, TDS_SP_CURSOROPEN);
 		} else {
 			tds_put_smallint(tds, 13);
-			/* sp_cursoropen */
 			tds_put_n_as_ucs2(tds, "sp_cursoropen");
 		}
 
@@ -1971,7 +1965,6 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 			tds_put_smallint(tds, TDS_SP_CURSORFETCH);
 		} else {
 			tds_put_smallint(tds, 14);
-			/* sp_cursorfetch */
 			tds_put_n_as_ucs2(tds, "sp_cursorfetch");
 		}
 
@@ -2057,7 +2050,6 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 			tds_put_smallint(tds, TDS_SP_CURSORCLOSE);
 		} else {
 			tds_put_smallint(tds, 14);
-			/* sp_cursorclose */
 			tds_put_n_as_ucs2(tds, "sp_cursorclose");
 		}
 
