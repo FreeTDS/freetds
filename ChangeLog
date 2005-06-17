@@ -1,3 +1,6 @@
+Thu Jun 16 23:58:05 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* src/tds/query.c added tds_put_n_as_ucs2, removed USC2 data
+	
 Mon Jun 13 22:39:04 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/rpc.c added better Doxygen comments
 
