@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.51 2005-06-14 02:22:55 jklowden Exp $s
+# $Id: api_status.txt,v 1.52 2005-06-19 05:48:22 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -267,9 +267,9 @@ dblib	bcp      	n/a				bcp_getl	OK
 dblib	bcp      	bcp_init			(same)		OK
 dblib	bcp      	bcp_moretext			(same)		stub
 dblib	bcp      	n/a				bcp_options	partial
-dblib	bcp      	bcp_readfmt			n/a		OK
-dblib	bcp      	bcp_sendrow			n/a		OK
-dblib	bcp      	BCP_SETL			n/a		OK
+dblib	bcp      	bcp_readfmt			(same)		OK
+dblib	bcp      	bcp_sendrow			(same)		OK
+dblib	bcp      	BCP_SETL			(same)		OK
 dblib	browse   	dbcolbrowse			(same)		
 dblib	browse   	dbcolsource			(same)		OK
 dblib	browse   	dbfreequal			(same)		
@@ -334,31 +334,31 @@ dblib	core     	dbiscount			n/a
 dblib	core     	dbisopt				(same)		partial
 dblib	core     	dblastrow			DBLASTROW	OK
 dblib	core     	dblogin				(same)		OK
-dblib	core     	dbloginfree			(same)		OK
-dblib	core     	dbmny4add			(same)		OK
-dblib	core     	dbmny4cmp			(same)		OK
-dblib	core     	dbmny4copy			(same)		OK
-dblib	core     	dbmny4divide			(same)		stub
-dblib	core     	dbmny4minus			(same)		OK
-dblib	core     	dbmny4mul			(same)		stub
-dblib	core     	dbmny4sub			(same)		OK
-dblib	core     	dbmny4zero			(same)		OK
-dblib	core     	dbmnyadd			(same)		stub
-dblib	core     	dbmnycmp			(same)		OK
-dblib	core     	dbmnycopy			(same)		OK
-dblib	core     	dbmnydec			(same)		OK
-dblib	core     	dbmnydivide			(same)		stub
-dblib	core     	dbmnydown			(same)		stub
-dblib	core     	dbmnyinc			(same)		OK
-dblib	core     	dbmnyinit			(same)		stub
-dblib	core     	dbmnymaxneg			(same)		OK
-dblib	core     	dbmnymaxpos			(same)		OK
-dblib	core     	dbmnyminus			(same)		OK
-dblib	core     	dbmnymul			(same)		stub
-dblib	core     	dbmnyndigit			(same)		stub
-dblib	core     	dbmnyscale			(same)		stub
-dblib	core     	dbmnysub			(same)		stub
-dblib	core     	dbmnyzero			(same)		OK
+dblib	core     	dbfreelogin			dbloginfree	OK
+dblib	money		n/a				dbmny4add	OK
+dblib	money		n/a				dbmny4cmp	OK
+dblib	money		n/a				dbmny4copy	OK
+dblib	money		n/a				dbmny4divide	stub
+dblib	money		n/a				dbmny4minus	OK
+dblib	money		n/a				dbmny4mul	stub
+dblib	money		n/a				dbmny4sub	OK
+dblib	money		n/a				dbmny4zero	OK
+dblib	money		n/a				dbmnyadd	stub
+dblib	money		n/a				dbmnycmp	OK
+dblib	money		n/a				dbmnycopy	OK
+dblib	money		n/a				dbmnydec	OK
+dblib	money		n/a				dbmnydivide	stub
+dblib	money		n/a				dbmnydown	stub
+dblib	money		n/a				dbmnyinc	OK
+dblib	money		n/a				dbmnyinit	stub
+dblib	money		n/a				dbmnymaxneg	OK
+dblib	money		n/a				dbmnymaxpos	OK
+dblib	money		n/a				dbmnyminus	OK
+dblib	money		n/a				dbmnymul	stub
+dblib	money		n/a				dbmnyndigit	stub
+dblib	money		n/a				dbmnyscale	stub
+dblib	money		n/a				dbmnysub	stub
+dblib	money		n/a				dbmnyzero	OK
 dblib	core     	dbmorecmds			DBMORECMDS	OK
 dblib	core     	dbmsghandle			(same)		OK
 dblib	core     	dbname				(same)		OK
@@ -379,7 +379,7 @@ dblib	core     	dbprtype			(same)		OK
 dblib	core     	dbresults			(same)		OK
 dblib	core     	dbrows				DBROWS		OK
 dblib	core     	dbrowtype			DBROWTYPE	OK
-dblib	core     	dbservcharset			(same)		OK
+dblib	core     	n/a				dbservcharset	OK
 dblib	core     	dbserverenum			n/a		
 dblib	core     	dbsetavail			(same)		OK
 dblib	core     	dbsetlapp			DBSETLAPP	OK
@@ -398,17 +398,17 @@ dblib	core     	dbsetnull			(same)
 dblib	core     	dbsetopt			(same)		partial
 dblib	core     	dbsettime			(same)		OK
 dblib	core     	dbsetuserdata			(same)		OK
-dblib	core     	dbspid				(same)		OK
+dblib	core     	n/a				dbspid		OK
 dblib	core     	dbsqlexec			(same)		OK
 dblib	core     	dbsqlok				(same)		OK
 dblib	core     	dbsqlsend			(same)		OK
-dblib	core     	dbstrbuild			(same)		OK
+dblib	core     	n/a				dbstrbuild	OK
 dblib	core     	dbstrcpy			(same)		OK
 dblib	core     	dbstrlen			(same)		OK
-dblib	core     	dbtds				DBTDS		OK
+dblib	core     	n/a				DBTDS		OK
 dblib	core     	dbuse				(same)		OK
 dblib	core     	dbvarylen			(same)		OK
-dblib	core     	dbversion			(same)		OK
+dblib	core     	n/a				dbversion	OK
 dblib	core     	dbwillconvert			(same)		OK
 dblib	core     	dbwinexit (Windows only)	n/a		
 dblib	cursor   	dbcursor			(same)		

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.226 2005-06-03 09:01:47 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.227 2005-06-19 05:48:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -75,11 +75,11 @@ static void _set_null_value(BYTE * varaddr, int datatype, int maxlen);
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
 
 /**
- * @file dblib.c
+ * \file dblib.c
  * Main implementation file for \c db-lib.
  */
 /**
- * @file bcp.c
+ * \file bcp.c
  * Implementation of \c db-lib bulk copy functions.
  */
 /**
@@ -89,16 +89,28 @@ static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BY
  * The \c db_lib interface is implemented by both Sybase and Microsoft.  FreeTDS seeks to implement 
  * first the intersection of the functions defined by the vendors.  
  */
+ 
+/**
+ * \ingroup dblib_api
+ * \defgroup dblib_sybase Sybase db-lib functions
+ * Functions defined only by Sybase.  
+*/
+/**
+ * \ingroup dblib_api
+ * \defgroup dblib_microsoft Microsoft db-lib functions
+ * Functions defined only by Microsoft.  
+*/
+/**
+ * \ingroup dblib_api
+ * \defgroup dblib_bcp db-lib bulk copy functions
+ * Functions to bulk-copy (a/k/a \em bcp) data to/from the database.  
+*/
 /**
  * \ingroup dblib_api
  * \defgroup dblib_internal db-lib internals
  * Functions called within \c db-lib for self-help.  
+ * These functions are of interest only to people hacking on the FreeTDS db-lib implementation.  
  */
-/**
- * \ingroup dblib_api
- * \defgroup dblib_bcp db-lib bulk copy functions.  
- * Functions to bulk-copy (a/k/a \em bcp) data to/from the database.  
-*/
 
 /* info/err message handler functions (or rather pointers to them) */
 MHANDLEFUNC _dblib_msg_handler = NULL;
@@ -336,7 +348,7 @@ dblogin(void)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_sybase
  * \brief free the \c LOGINREC
  */
 void
@@ -447,9 +459,11 @@ dbsetlshort(LOGINREC * login, int value, int which)
  * Called by various macros to populate \a login.  
  * \param login the \c LOGINREC* to modify.
  * \param value the value to set it to.  
- * \param which the field to set.  
+ * \param which the field to set. 
+ * \remark Only DBSETBCP is implemented.  
  * \retval SUCCEED the value was set.
  * \retval FAIL invalid value passed for \a which.  
+ * \todo DBSETNOSHORT, DBSETENCRYPT, DBSETLABELED
  */
 RETCODE
 dbsetlbool(LOGINREC * login, int value, int which)
@@ -471,7 +485,7 @@ dbsetlbool(LOGINREC * login, int value, int which)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_microsoft
  * \brief Set TDS version for future connections
  */
 RETCODE 
@@ -672,6 +686,7 @@ init_dboptions(void)
  * \param server name of the dataserver to connect to.  
  * \return valid pointer on successful login.  
  * \retval NULL insufficient memory, unable to connect for any reason.
+ * \sa dbopen()
  * \todo use \c asprintf() to avoid buffer overflow.
  * \todo separate error messages for \em no-such-server and \em no-such-user. 
  */
@@ -1281,7 +1296,7 @@ dbcolname(DBPROCESS * dbproc, int column)
  * \brief Read a row from the row buffer.
  * 
  * When row buffering is enabled (DBBUFFER option is on), the client can use dbgetrow() to re-read a row previously fetched 
- * with dbnextrow().  The effect is to move the row pointer -- analagous to fseek() -- back to \a row.  
+ * with dbnextrow().  The effect is to move the row pointer -- analogous to fseek() -- back to \a row.  
  * Calls to dbnextrow() read from \a row + 1 until the buffer is exhausted, at which point it resumes
  * its normal behavior, except that as each row is fetched from the server, it is added to the row
  * buffer (in addition to being returned to the client).  When the buffer is filled, dbnextrow()  returns 
@@ -1310,6 +1325,16 @@ dbgetrow(DBPROCESS * dbproc, DBINT row)
 	return result;
 }
 
+/**
+ * \ingroup dblib_api
+ * \brief Make a buffered row "current" without fetching it into bound variables.  
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \retval MORE_ROWS row found
+ * \retval NO_MORE_ROWS row not found
+ * \retval FAIL \a dbproc is dead or not enabled
+ * \sa dbaltbind(), dbbind(), dbcanquery(), dbclrbuf(), dbgetrow(), dbnextrow(), dbprrow().
+ */
 RETCODE
 dbsetrow(DBPROCESS * dbproc, DBINT row)
 {
@@ -1327,8 +1352,6 @@ dbsetrow(DBPROCESS * dbproc, DBINT row)
 /**
  * \ingroup dblib_api
  * \brief Read result row into the row buffer and into any bound host variables.
-
- * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \retval REG_ROW regular row has been read.
@@ -3243,7 +3266,6 @@ dbgetmaxprocs(void)
  * \param seconds New limit for application.  
  * \retval SUCCEED Always.  
  * \sa dberrhandle(), DBGETTIME(), dbsetlogintime(), dbsqlexec(), dbsqlok(), dbsqlsend().
- * \todo Unimplemented.
  */
 RETCODE
 dbsettime(int seconds)

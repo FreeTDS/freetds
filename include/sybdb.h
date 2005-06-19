@@ -17,6 +17,13 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/** \file sybdb.h
+ *  \brief Primary include file for db-lib applications.
+ *  
+ *  Declares macros, functions, enumerated types, and defined tokens 
+ *  used by the db-lib API.
+ */
+
 #ifndef _sybdb_h_
 #define _sybdb_h_
 
@@ -34,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.69 2005-05-31 09:31:57 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.70 2005-06-19 05:48:22 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 /**
@@ -544,7 +551,9 @@ char *dbgetnatlanf(DBPROCESS * dbprocess);
 int dbgetoff(DBPROCESS * dbprocess, DBUSMALLINT offtype, int startfrom);
 int dbgetpacket(DBPROCESS * dbproc);
 RETCODE dbgetrow(DBPROCESS * dbproc, DBINT row);
-int DBGETTIME(void);
+#if 0
+  int DBGETTIME(void); /* unimplemented */
+#endif
 BYTE *dbgetuserdata(DBPROCESS * dbproc);
 DBBOOL dbhasretstat(DBPROCESS * dbproc);
 RETCODE dbinit(void);
@@ -1032,18 +1041,23 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 
 #define DBSETHOST		1
 #define DBSETLHOST(x,y)		dbsetlname((x), (y), DBSETHOST)
+#define dbsetlhost(x,y)		dbsetlname((x), (y), DBSETHOST)
 #define DBSETUSER		2
 #define DBSETLUSER(x,y)		dbsetlname((x), (y), DBSETUSER)
+#define dbsetluser(x,y)		dbsetlname((x), (y), DBSETUSER)
 #define DBSETPWD		3
 #define DBSETLPWD(x,y)		dbsetlname((x), (y), DBSETPWD)
+#define dbsetlpwd(x,y)		dbsetlname((x), (y), DBSETPWD)
 #define DBSETHID		4	/* not implemented */
 #define DBSETLHID(x,y)		dbsetlname((x), (y), DBSETHID)
 #define DBSETAPP		5
 #define DBSETLAPP(x,y)		dbsetlname((x), (y), DBSETAPP)
+#define dbsetlapp(x,y)		dbsetlname((x), (y), DBSETAPP)
 #define DBSETBCP		6
 #define BCP_SETL(x,y)		dbsetlbool((x), (y), DBSETBCP)
 #define DBSETNATLANG		7
 #define DBSETLNATLANG(x,y)	dbsetlname((x), (y), DBSETNATLANG)
+#define dbsetlnatlang(x,y)	dbsetlname((x), (y), DBSETNATLANG)
 #define DBSETNOSHORT		8	/* not implemented */
 #define DBSETLNOSHORT(x,y)	dbsetlbool((x), (y), DBSETNOSHORT)
 #define DBSETHIER		9	/* not implemented */
@@ -1052,6 +1066,7 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETLCHARSET(x,y)	dbsetlname((x), (y), DBSETCHARSET)
 #define DBSETPACKET		11
 #define DBSETLPACKET(x,y)	dbsetllong((x), (y), DBSETPACKET)
+#define dbsetlpacket(x,y)	dbsetllong((x), (y), DBSETPACKET)
 #define DBSETENCRYPT		12
 #define DBSETLENCRYPT(x,y)	dbsetlbool((x), (y), DBSETENCRYPT)
 #define DBSETLABELED		13

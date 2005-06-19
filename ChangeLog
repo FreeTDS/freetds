@@ -1,3 +1,9 @@
+Sun Jun 19 01:44:59 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* tds.dox doc/api_status.txt
+	* include/sybdb.h include/sybdb.dox.h  src/dblib/dblib.c
+	- Documentation fixes.  Added lowercase macros to define
+	- as Microsoft does. 
+	
 Fri Jun 17 10:27:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c:
 	- fix typo
