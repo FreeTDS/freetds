@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.150 2005-05-31 07:01:02 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.151 2005-06-20 06:36:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -2743,9 +2743,9 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 
 		/* submit the "writetext bulk" command */
 
-		sprintf(writetext_cmd, "writetext bulk %s 0x%s timestamp = 0x%s %s",
+		sprintf(writetext_cmd, "writetext bulk %s 0x%s timestamp = 0x%s%s",
 			cmd->iodesc->name,
-			textptr_string, timestamp_string, ((cmd->iodesc->log_on_update == CS_TRUE) ? "with log" : "")
+			textptr_string, timestamp_string, ((cmd->iodesc->log_on_update == CS_TRUE) ? " with log" : "")
 			);
 
 		if (tds_submit_query(tds, writetext_cmd) != TDS_SUCCEED) {

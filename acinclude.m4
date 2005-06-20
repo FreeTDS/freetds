@@ -105,10 +105,9 @@ size_t iconv();
 
 AC_DEFUN([CHECK_OPENSSL],
 [AC_MSG_CHECKING(if openssl is wanted)
-AC_ARG_WITH(openssl,
-AC_HELP_STRING([--with-openssl], [enable ssl with OpenSSL (will check /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr)])
-,
-[   AC_MSG_RESULT(yes)
+if test "${with_openssl+set}" = set; then
+    withval="$with_openssl"
+    AC_MSG_RESULT(yes)
     for dir in $withval /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
         ssldir="$dir"
         if test -f "$dir/include/openssl/ssl.h"; then
@@ -132,10 +131,9 @@ AC_HELP_STRING([--with-openssl], [enable ssl with OpenSSL (will check /usr/local
         AC_DEFINE(HAVE_OPENSSL, 1, [Define if you have the OpenSSL.])
     fi
     AC_SUBST(HAVE_OPENSSL)
-],
-[
+else
     AC_MSG_RESULT(no)
-])
+fi
 ])
 
 
@@ -215,7 +213,7 @@ CFLAGS=$ac_save_CFLAGS
 # exists. These example files found at
 # http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 #
-# @version $Id: acinclude.m4,v 1.27 2005-05-24 10:54:30 freddy77 Exp $
+# @version $Id: acinclude.m4,v 1.28 2005-06-20 06:36:27 freddy77 Exp $
 # @author Caolan McNamara <caolan@skynet.ie>
 #
 # based on David Arnold's autoconf suggestion in the threads faq
