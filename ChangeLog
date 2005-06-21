@@ -1,3 +1,6 @@
+Tue Jun 21 22:50:20 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: updated comments
+
 Mon Jun 20 08:34:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4: do not suggest openssl for SSL support
 	* src/ctlib/ct.c: small optimization

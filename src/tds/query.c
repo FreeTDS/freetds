@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.169 2005-06-17 08:29:17 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.170 2005-06-21 20:51:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -874,7 +874,7 @@ failure:
 }
 
 /**
- * Currently works with TDS 5.0 and TDS7+
+ * Submit a prepared query with parameters
  * \param tds     state information for the socket and the TDS protocol
  * \param query   language query with given placeholders (?)
  * \param params  parameters to send
@@ -1043,9 +1043,11 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	} else {
 		tds_put_byte(tds, 0x00);	/* param name len */
 	}
-	/* TODO support other flags (use defaul null/no metadata)
+	/*
+	 * TODO support other flags (use defaul null/no metadata)
 	 * bit 1 (2 as flag) in TDS7+ is "default value" bit 
-	 * (what's the meaning of "default value" ?) */
+	 * (what's the meaning of "default value" ?)
+	 */
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info putting status \n");
 	tds_put_byte(tds, curcol->column_output);	/* status (input) */
@@ -1312,7 +1314,6 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 /**
  * tds_submit_execute() sends a previously prepared dynamic statement to the 
  * server.
- * Currently works with TDS 5.0 or TDS7+
  * \param tds state information for the socket and the TDS protocol
  * \param dyn dynamic proc to execute. Must build from same tds.
  */
