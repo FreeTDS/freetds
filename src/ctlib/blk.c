@@ -43,13 +43,13 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-static char software_version[] = "$Id: blk.c,v 1.29 2005-04-14 11:35:44 freddy77 Exp $";
+static char software_version[] = "$Id: blk.c,v 1.30 2005-06-22 08:41:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
 static CS_RETCODE _blk_add_fixed_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start);
-static CS_RETCODE _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len);
+static CS_RETCODE _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset);
 static CS_RETCODE _blk_send_colmetadata(CS_BLKDESC * blkdesc);
 static CS_RETCODE _blk_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first);
 static CS_RETCODE _rowxfer_in_init(CS_BLKDESC * blkdesc);
@@ -690,8 +690,6 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 
 	TDSSOCKET *tds;
 	TDS_INT each_row;
-	TDS_INT record_len;
-	const unsigned char row_token = 0xd1;
 
 	if (!blkdesc)
 		return CS_FAIL;
@@ -726,12 +724,8 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 
 	for (each_row = 0; each_row < rows_to_xfer; each_row++ ) {
 
-		if (_blk_build_bcp_record(blkdesc, each_row, &record_len) == CS_SUCCEED) {
+		if (_blk_build_bcp_record(blkdesc, each_row) == CS_SUCCEED) {
 	
-			if (IS_TDS7_PLUS(tds)) {
-				tds_put_byte(tds, row_token);	/* 0xd1 */
-				tds_put_n(tds, blkdesc->bindinfo->current_row, record_len);
-			} 
 		}
 	}
 
@@ -1110,7 +1104,7 @@ _blk_send_colmetadata(CS_BLKDESC * blkdesc)
 }
 
 static CS_RETCODE
-_blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
+_blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset)
 {
 	TDSSOCKET  *tds = blkdesc->con->tds_socket;
 	TDSCOLUMN  *bindcol;
@@ -1123,6 +1117,7 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 	static const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 	static const TDS_TINYINT textptr_size = 16;
+	const unsigned char row_token = 0xd1;
 
 	unsigned char *record;
 	TDS_INT	 old_record_size;
@@ -1249,6 +1244,9 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n",
 					old_record_size, new_record_size);
 		}
+
+		tds_put_byte(tds, row_token);   /* 0xd1 */
+		tds_put_n(tds, blkdesc->bindinfo->current_row, new_record_size);
 	}  /* IS_TDS7_PLUS */
 	else {
 			memset(record, '\0', old_record_size);	/* zero the rowbuffer */
@@ -1309,9 +1307,7 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset, TDS_INT *record_len)
 
 				}
 			}
-			return CS_SUCCEED;
 	}
-	*record_len = new_record_size;
 
 	return CS_SUCCEED;
 }
