@@ -1,3 +1,7 @@
+Wed Jun 22 20:33:38 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/bsqldb.c src/apps/defncopy.c src/ctlib/ctutil.c:
+	- remove warnings
+
 Wed Jun 22 10:21:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/blk.c: remove warning compiling under gcc4
 

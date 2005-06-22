@@ -53,7 +53,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.18 2005-02-22 16:04:35 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.19 2005-06-22 18:33:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -485,7 +485,7 @@ print_results(DBPROCESS *dbproc)
 				assert(metacompute[i]->data[c].buffer);
 				
 				/* bind */
-				erc = dbaltbind(dbproc, i+1, c+1, bindtype, -1, metacompute[i]->data[c].buffer);
+				erc = dbaltbind(dbproc, i+1, c+1, bindtype, -1, (BYTE*) metacompute[i]->data[c].buffer);
 				if (erc == FAIL) {
 					fprintf(stderr, "%s:%d: dbaltbind(), column %d failed\n", options.appname, __LINE__, c+1);
 					return;

@@ -48,7 +48,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: defncopy.c,v 1.7 2005-05-31 07:01:02 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.8 2005-06-22 18:34:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -440,7 +440,7 @@ print_results(DBPROCESS *dbproc)
 				assert(metacompute[i]->data[c].buffer);
 				
 				/* bind */
-				erc = dbaltbind(dbproc, i+1, c+1, STRINGBIND, -1, metacompute[i]->data[c].buffer);
+				erc = dbaltbind(dbproc, i+1, c+1, STRINGBIND, -1, (BYTE*) metacompute[i]->data[c].buffer);
 				if (erc == FAIL) {
 					fprintf(stderr, "%s:%d: dbaltbind(), column %d failed\n", options.appname, __LINE__, c+1);
 					return;
