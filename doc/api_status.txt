@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.52 2005-06-19 05:48:22 jklowden Exp $s
+# $Id: api_status.txt,v 1.53 2005-06-26 14:25:20 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -270,17 +270,17 @@ dblib	bcp      	n/a				bcp_options	partial
 dblib	bcp      	bcp_readfmt			(same)		OK
 dblib	bcp      	bcp_sendrow			(same)		OK
 dblib	bcp      	BCP_SETL			(same)		OK
-dblib	browse   	dbcolbrowse			(same)		
-dblib	browse   	dbcolsource			(same)		OK
-dblib	browse   	dbfreequal			(same)		
-dblib	browse   	dbqual				(same)		
-dblib	browse   	dbtabbrowse			(same)		
-dblib	browse   	dbtabcount			(same)		
-dblib	browse   	dbtabname			(same)		
-dblib	browse   	dbtabsource			(same)		
-dblib	browse   	dbtsnewlen			(same)		
-dblib	browse   	dbtsnewval			(same)		
-dblib	browse   	dbtsput				(same)		
+dblib	browse   	dbcolbrowse			n/a		
+dblib	browse   	dbcolsource			n/a		
+dblib	browse   	dbfreequal			n/a		
+dblib	browse   	dbqual				n/a		
+dblib	browse   	dbtabbrowse			n/a		
+dblib	browse   	dbtabcount			n/a		
+dblib	browse   	dbtabname			n/a		
+dblib	browse   	dbtabsource			n/a		
+dblib	browse   	dbtsnewlen			n/a		
+dblib	browse   	dbtsnewval			n/a		
+dblib	browse   	dbtsput				n/a		
 dblib	core     	dbadata				(same)		OK
 dblib	core     	dbadlen				(same)		OK
 dblib	core     	dbaltbind			(same)		OK

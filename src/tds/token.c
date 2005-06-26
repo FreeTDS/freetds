@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.296 2005-05-31 07:01:05 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.297 2005-06-26 14:25:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -483,7 +483,7 @@ tds_process_auth(TDSSOCKET * tds)
  *    <td>TDS_STATUS_RESULT</td><td>Stored procedure status results</td>
  *    <td>tds->ret_status contain the returned code</td>
  *  </tr></table>
- * @param flags Flags to select token type to stop/return
+ * @param flag Flags to select token type to stop/return
  * @todo Complete TDS_DESCRIBE_RESULT description
  * @retval TDS_SUCCEED if a result set is available for processing.
  * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.

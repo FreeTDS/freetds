@@ -41,13 +41,8 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.70 2005-06-19 05:48:22 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.71 2005-06-26 14:25:20 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
-
-/**
- * @file sybdb.h
- * Main include file for db-lib
- */
 
 #ifdef FALSE
 #undef FALSE
@@ -441,6 +436,7 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define DBPRCOLSEP  21
 #define DBPRLINELEN 22
 #define DBRPCRETURN 1
+#define DBRPCDEFAULT 2
 
 #define REG_ROW         -1
 #define MORE_ROWS       -1
@@ -459,8 +455,9 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define DBBOTH   2
 
 /* remote procedure call (rpc) options */
-#define DBRPCRECOMPILE TDS_STATIC_CAST(DBSMALLINT, 0x0001)
-#define DBRPCRESET TDS_STATIC_CAST(DBSMALLINT, 0x0002)
+#define DBRPCRECOMPILE	TDS_STATIC_CAST(DBSMALLINT, 0x0001)
+#define DBRPCRESET 	TDS_STATIC_CAST(DBSMALLINT, 0x0002)
+#define DBRPCCURSOR 	TDS_STATIC_CAST(DBSMALLINT, 0x0008)
 
 DBBOOL db12hour(DBPROCESS * dbprocess, char *language);
 BYTE *dbadata(DBPROCESS * dbproc, int computeid, int column);

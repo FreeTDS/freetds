@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.155 2005-04-15 11:52:00 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.156 2005-06-26 14:25:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -88,6 +88,7 @@ static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
 /**
  * \ingroup libtds
  * \defgroup convert Conversion
+ * Conversions between datatypes.  Supports, for example, dbconvert().  
  */
 
 /** \addtogroup convert
@@ -106,16 +107,7 @@ static int string_to_numeric(const char *instr, const char *pend, CONV_RESULT * 
  */
 static int stringz_to_numeric(const char *instr, CONV_RESULT * cr);
 
-/**
- * convert a number in string to TDS_INT 
- * @return TDS_CONVERT_* failure code if failure
- */
 static TDS_INT string_to_int(const char *buf, const char *pend, TDS_INT * res);
-
-/**
- * convert a number in string to TDS_INT8
- * @return TDS_CONVERT_* failure code if failure
- */
 static TDS_INT string_to_int8(const char *buf, const char *pend, TDS_INT8 * res);
 
 
@@ -1580,11 +1572,10 @@ tds_convert_unique(int srctype, const TDS_CHAR * src, TDS_INT srclen, int destty
  * convert a type to another.
  * If you convert to SYBDECIMAL/SYBNUMERIC you MUST initialize precision 
  * and scale of cr.
- * Do not expect string to be zero terminated. Databases support zero inside
- * string. Doing strlen on result may result on data loss or even core.
- * Use memcpy to copy destination using length returned.
- * This function do not handle NULL, srclen should be >0, if not undefinited 
- * behaviour...
+ * Do not expect strings to be zero terminated. Databases support zero inside
+ * string. Using strlen may result on data loss or even a segmentation fault.
+ * Instead, use memcpy to copy destination using length returned.
+ * This function does not handle NULL, srclen should be >0.  Client libraries handle NULLs each in their own way. 
  * @param tds_ctx  context (used in conversion to data and to return messages)
  * @param srctype  type of source
  * @param src      pointer to source data to convert
@@ -2715,10 +2706,10 @@ tds_get_null_type(int srctype)
 }
 
 /**
- * format a date string according to an "extended" strftime formatting definition.
+ * format a date string according to an "extended" strftime(3) formatting definition.
  * @param buf     output buffer
  * @param maxsize size of buffer in bytes (space include terminator)
- * @param format  format string similar to strftime. %z for milliseconds
+ * @param format  format string passed to strftime(3), except that %z represents milliseconds
  * @param dr      date to convert
  * @return length of string returned, 0 for error
  */
@@ -2899,11 +2890,14 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 }
 
 /**
- * sybase's char->int conversion tolerates embedded blanks, 
+ * \brief convert a number in string to TDS_INT
+ *
+ * \return TDS_CONVERT_* or failure code on error
+ * \remarks Sybase's char->int conversion tolerates embedded blanks, 
  * such that "convert( int, ' - 13 ' )" works.  
- * if we find blanks, we copy the string to a temporary buffer, 
+ * If we find blanks, we copy the string to a temporary buffer, 
  * skipping the blanks.  
- * we return the results of atoi() with a clean string.  
+ * We return the results of atoi() with a clean string.  
  * 
  * n.b. it is possible to embed all sorts of non-printable characters, but we
  * only check for spaces.  at this time, no one on the project has tested anything else.  
@@ -2978,8 +2972,12 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
 	return TDS_SUCCEED;
 }
 
-/* copied from string_ti_int and modified */
-static TDS_INT
+/**
+ * \brief convert a number in string to TDS_INT8
+ *
+ * \return TDS_CONVERT_* or failure code on error
+ */
+static TDS_INT	/* copied from string_ti_int and modified */
 string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 {
 	enum

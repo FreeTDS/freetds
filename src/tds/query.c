@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.170 2005-06-21 20:51:00 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.171 2005-06-26 14:25:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -76,7 +76,7 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
 /**
  * Accept an ASCII string, convert it to UCS2-LE, and call tds_put_n
  * The input is null-terminated, but the output excludes the null.
- * \tds socket representing the connection
+ * \param tds socket representing the connection
  * \param buf string to write
  * \return bytes left unsent, normally zero
  */
@@ -1120,7 +1120,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
  * Write data to wire
  * \param tds     state information for the socket and the TDS protocol
  * \param curcol  column where store column information
- * \param pointer to row data to store information
+ * \param current_row to row data to store information
  * \param i       column position in current_row
  * \return TDS_FAIL on error or TDS_SUCCEED
  */

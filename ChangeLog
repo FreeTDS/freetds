@@ -1,3 +1,11 @@
+Sun Jun 26 10:22:15 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* tds.dox doc/api_status.txt
+	* include/sybdb.dox.h include/sybdb.h
+	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/rpc.c
+	* src/replacements/iconv.c
+	* src/tds/convert.c src/tds/iconv.c src/tds/query.c src/tds/token.c
+	- Documentation improvements, mostly.  Cf. Doxygen output.  
+	
 Wed Jun 22 20:33:38 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/bsqldb.c src/apps/defncopy.c src/ctlib/ctutil.c:
 	- remove warnings

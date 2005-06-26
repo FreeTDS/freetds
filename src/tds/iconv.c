@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.120 2005-05-31 07:01:04 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.121 2005-06-26 14:25:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -313,15 +313,15 @@ tds_iconv_alloc(TDSSOCKET * tds)
  * Other designs that use less data are possible, but these three conversion needs are 
  * very often needed.  By reserving them, we avoid searching the array for our most common purposes.
  *
- * To solve different iconv names and portability problem FreeTDS use a complex
- * method. It maintain a list of all alias of a given charset.
- * First it discover some needed charset (UTF-8, ISO8859-1 and UCS2) and then
- * try to discover others from those characters (this discover happen only when
- * required).
+ * To solve different iconv names and portability problems FreeTDS maintains 
+ * a list of aliases each charset.  
+ * 
+ * First we discover the names of our minimum required charsets (UTF-8, ISO8859-1 and UCS2).  
+ * Later, as and when it's needed, we try to discover others.
  *
- * There are a list of canonic names (GNU iconv names) and a set of aliases
- * (one for others iconv implementations and another for Sybase). For every
- * canonic charset name we cache iconv name found during discovery.
+ * There is one list of canonic names (GNU iconv names) and two sets of aliases
+ * (one for other iconv implementations and another for Sybase). For every
+ * canonic charset name we cache the iconv name found during discovery. 
  */
 void
 tds_iconv_open(TDSSOCKET * tds, const char *charset)
@@ -573,19 +573,19 @@ tds_iconv_free(TDSSOCKET * tds)
 /** 
  * Wrapper around iconv(3).  Same parameters, with slightly different behavior.
  * \param io Enumerated value indicating whether the data are being sent to or received from the server. 
- * \param iconv information about the encodings involved, including the iconv(3) conversion descriptors. 
+ * \param conv information about the encodings involved, including the iconv(3) conversion descriptors. 
  * \param inbuf address of pointer to the input buffer of data to be converted.  
  * \param inbytesleft address of count of bytes in \a inbuf.
  * \param outbuf address of pointer to the output buffer.  
  * \param outbytesleft address of count of bytes in \a outbuf.
- * \retval number of irreversible conversions performed.  \i -1 on error, see iconv(3) documentation for 
- * a description of the possible values of \i errno.  
+ * \retval number of irreversible conversions performed.  -1 on error, see iconv(3) documentation for 
+ * a description of the possible values of \e errno.  
  * \remarks Unlike iconv(3), none of the arguments can be nor point to NULL.  Like iconv(3), all pointers will 
- *  	be updated.  Succcess is signified by a nonnegative return code and \a *inbytesleft == 0.  
+ *  	be updated.  Success is signified by a nonnegative return code and \a *inbytesleft == 0.  
  * 	If the conversion descriptor in \a iconv is -1 or NULL, \a inbuf is copied to \a outbuf, 
  *	and all parameters updated accordingly. 
  * 
- * 	In the event that a character in \a inbuf cannot be converted because no such cbaracter exists in the
+ * 	If a character in \a inbuf cannot be converted because no such cbaracter exists in the
  * 	\a outbuf character set, we emit messages similar to the ones Sybase emits when it fails such a conversion. 
  * 	The message varies depending on the direction of the data.  
  * 	On a read error, we emit Msg 2403, Severity 16 (EX_INFO):
@@ -593,11 +593,11 @@ tds_iconv_free(TDSSOCKET * tds)
  *			Unconverted bytes were changed to question marks ('?')."
  * 	On a write error we emit Msg 2402, Severity 16 (EX_USER):
  *		"Error converting client characters into server's character set. Some character(s) could not be converted."
- *  	  and return an error code.  Client libraries relying on this routine should reflect an error back to the appliction.  
+ *  	  and return an error code.  Client libraries relying on this routine should reflect an error back to the application.  
  * 	
  * \todo Check for variable multibyte non-UTF-8 input character set.  
  * \todo Use more robust error message generation.  
- * \todo For reads, cope with \outbuf encodings that don't have the equivalent of an ASCII '?'.  
+ * \todo For reads, cope with \a outbuf encodings that don't have the equivalent of an ASCII '?'.  
  * \todo Support alternative to '?' for the replacement character.  
  */
 size_t

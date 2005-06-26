@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.126 2005-06-11 12:40:34 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.127 2005-06-26 14:25:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -87,12 +87,31 @@ static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO *
 static RETCODE _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
 
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Prepare for bulk copy operation on a table
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param tblname the name of the table receiving or providing the data.
+ * \param hfile the data file opposite the table, if any.  
+ * \param errfile the "error file" captures messages and, if errors are encountered, 
+ * 	copies of any rows that could not be written to the table.
+ * \param direction one of 
+ *		- \b DB_IN writing to the table
+ *		- \b DB_OUT writing to the host file
+ * 		.
+ * \remarks bcp_init() sets the host file data format and acquires the table metadata.
+ *	It is called before the other bulk copy functions. 
+ *
+ * 	When writing to a table, bcp can use as its data source a data file (\a hfile), 
+ * 	or program data in an application's variables.  In the latter case, call bcp_bind() 
+ *	to associate your data with the appropriate table column.  
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_bind(), bcp_done(), bcp_exec()
+ */
 RETCODE
 bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction)
 {
-
-	TDSSOCKET *tds = dbproc->tds_socket;
-
 	TDSRESULTINFO *resinfo;
 	TDSRESULTINFO *bindinfo;
 	TDSCOLUMN *curcol;
@@ -100,11 +119,23 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	TDS_INT result_type;
 	int i, rc;
 
-	/* free allocated storage in dbproc & initialise flags, etc. */
+	if (dbproc == NULL) {	/* sanity */
+		_bcp_err_handler(dbproc, SYBENULL);
+		return (FAIL);
+	}
 
+	/* Free previously allocated storage in dbproc & initialise flags, etc. */
+	
 	_bcp_free_storage(dbproc);
 
-	/* check validity of parameters */
+	/* 
+	 * Validate other parameters 
+	 */
+#define SYBETDSVER -100
+	if (dbproc->tds_socket->major_version < 5) {
+		_bcp_err_handler(dbproc, SYBETDSVER);
+		return (FAIL);
+	}
 
 	if (tblname == NULL) {
 		_bcp_err_handler(dbproc, SYBEBCITBNM);
@@ -138,6 +169,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		dbproc->hostfileinfo = NULL;
 	}
 
+	/* Allocate storage */
+	
 	dbproc->bcpinfo = malloc(sizeof(DB_BCPINFO));
 	if (dbproc->bcpinfo == NULL)
 		goto memory_error;
@@ -154,7 +187,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	dbproc->bcpinfo->bind_count = 0;
 
 	if (direction == DB_IN) {
-		/* TODO check what happen if table is not present, cleanup on error */
+		TDSSOCKET *tds = dbproc->tds_socket;
+
 		if (tds_submit_queryf(tds, "SET FMTONLY ON select * from %s SET FMTONLY OFF", dbproc->bcpinfo->tablename) == TDS_FAIL) {
 			return FAIL;
 		}
@@ -182,11 +216,17 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		dbproc->bcpinfo->bindinfo = bindinfo;
 		dbproc->bcpinfo->bind_count = 0;
 	
+		/* Copy the column metadata */
 		for (i = 0; i < bindinfo->num_cols; i++) {
 	
 			curcol = bindinfo->columns[i];
 			
-			/* TODO use memcpy ?? */
+			/* TODO use memcpy ??
+			 * curcol and resinfo->columns[i] are both TDSCOLUMN.  
+			 * Why not "curcol = resinfo->columns[i];"?  Because the rest of TDSCOLUMN (below column_timestamp)
+			 * isn't being used.  Perhaps this "upper" part of TDSCOLUMN should be a substructure.
+			 * Or, see if the "lower" part is unused (and zeroed out) at this point, and just do one assignment.
+			 */
 			curcol->column_type = resinfo->columns[i]->column_type;
 			curcol->column_usertype = resinfo->columns[i]->column_usertype;
 			curcol->column_flags = resinfo->columns[i]->column_flags;
@@ -228,6 +268,21 @@ memory_error:
 }
 
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Set the length of a host variable to be written to a table.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param varlen size of the variable, in bytes, or
+ * 	- \b 0 indicating NULL
+ *	- \b -1 indicating size is determined by the prefix or terminator.  
+ *		(If both a prefix and a terminator are present, bcp is supposed to use the smaller of the 
+ *		 two.  This feature might or might not actually work.)
+ * \param table_column the number of the column in the table (starting with 1, not zero).
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_bind(), bcp_colptr(), bcp_sendrow() 
+ */
 RETCODE
 bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 {
@@ -258,6 +313,17 @@ bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Indicate how many columns are to be found in the datafile.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param host_colcount count of columns in the datafile, irrespective of how many you intend to use. 
+ * \remarks This function describes the file as it is, not how it will be used.  
+ * 
+ * \return SUCCEED or FAIL.  It's hard to see how it could fail.  
+ * \sa 	bcp_colfmt() 	
+ */
 RETCODE
 bcp_columns(DBPROCESS * dbproc, int host_colcount)
 {
@@ -304,6 +370,44 @@ bcp_columns(DBPROCESS * dbproc, int host_colcount)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Specify the format of a datafile prior to writing to a table.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param host_colnum datafile column number (starting with 1, not zero).
+ * \param host_type dataype token describing the data type in \a host_colnum.  E.g. SYBCHAR for character data.
+ * \param host_prefixlen size of the prefix in the datafile column, if any.  For delimited files: zero.  
+ *			May be 0, 1, 2, or 4 bytes.  The prefix will be read as an integer (not a character string) from the 
+ * 			data file, and will be interpreted the data size of that column, in bytes.  
+ * \param host_collen maximum size of datafile column, exclusive of any prefix/terminator.  Just the data, ma'am.  
+ *		Special values:
+ *			- \b 0 indicates NULL.  
+ *			- \b -1 for fixed-length non-null datatypes
+ *			- \b -1 for variable-length datatypes (e.g. SYBCHAR) where the length is established 
+ *				by a prefix/terminator.  
+ * \param host_term the sequence of characters that will serve as a column terminator (delimiter) in the datafile.  
+ * 			Often a tab character, but can be any string of any length.  Zero indicates no terminator.  
+ * 			Special characters:
+ *				- \b '\\0' terminator is an ASCII NUL.
+ *				- \b '\\t' terminator is an ASCII TAB.
+ *				- \b '\\n' terminator is an ASCII NL.
+ * \param host_termlen the length of \a host_term, in bytes. 
+ * \param table_colnum Nth column, starting at 1, in the table that maps to \a host_colnum.  
+ * 	If there is a column in the datafile that does not map to a table column, set \a table_colnum to zero.  
+ *
+ *\remarks  bcp_colfmt() is called once for each column in the datafile, as specified with bcp_columns().  
+ * In so doing, you describe to FreeTDS how to parse each line of your datafile, and where to send each field.  
+ *
+ * When a prefix or terminator is used with variable-length data, \a host_collen may have one of three values:
+ *		- \b positive indicating the maximum number of bytes to be used
+ * 		- \b 0 indicating NULL
+ *		- \b -1 indicating no maximum; all data, as described by the prefix/terminator will be used.  
+ *		.
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_batch(), bcp_bind(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(),
+ *	bcp_control(), bcp_done(), bcp_exec(), bcp_init(), bcp_sendrow
+ */
 RETCODE
 bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixlen, DBINT host_collen, const BYTE * host_term,
 	   int host_termlen, int table_colnum)
@@ -381,8 +485,21 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	return SUCCEED;
 }
 
-
-
+/** 
+ * \ingroup dblib_bcp
+ * \brief Specify the format of a host file for bulk copy purposes, 
+ * 	with precision and scale support for numeric and decimal columns.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param host_colnum 
+ * \param host_type 
+ * \param etc.
+ * \todo Not implemented.
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_collen(), bcp_colptr(), bcp_columns(),
+ *	bcp_control(), bcp_done(), bcp_exec(), bcp_init(), bcp_sendrow
+ */
 RETCODE
 bcp_colfmt_ps(DBPROCESS * dbproc, int host_colnum, int host_type,
 	      int host_prefixlen, DBINT host_collen, BYTE * host_term, int host_termlen, int table_colnum, DBTYPEINFO * typeinfo)
@@ -397,6 +514,26 @@ bcp_colfmt_ps(DBPROCESS * dbproc, int host_colnum, int host_type,
 
 
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Set BCP options for uploading a datafile
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param field symbolic constant indicating the option to be set, one of:
+ *  		- \b BCPMAXERRS Maximum errors tolerated before quitting. The default is 10.
+ *  		- \b BCPFIRST The first row to read in the datafile. The default is 1. 
+ *  		- \b BCPLAST The last row to read in the datafile. The default is to copy all rows. A value of
+ *                  	-1 resets this field to its default?
+ *  		- \b BCPBATCH The number of rows per batch.  Default is 0, meaning a single batch. 
+ * \param value The value for \a field.
+ *
+ * \remarks These options control the behavior of bcp_exec().  
+ * When writing to a table from application host memory variables, 
+ * program logic controls error tolerance and batch size. 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_done(), bcp_exec(), bcp_options()
+ */
 RETCODE
 bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 {
@@ -432,6 +569,27 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Set "hints" for uploading a file.  A FreeTDS-only function.  
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param option symbolic constant indicating the option to be set, one of:
+ * 		- \b BCPLABELED Not implemented.
+ * 		- \b BCPHINTS The hint to be passed when the bulk-copy begins.  
+ * \param value The string constant for \a option a/k/a the hint.  One of:
+ * 		- \b ORDER The data are ordered in accordance with the table's clustered index.
+ * 		- \b ROWS_PER_BATCH The batch size
+ * 		- \b KILOBYTES_PER_BATCH The approximate number of kilobytes to use for a batch size
+ * 		- \b TABLOCK Lock the table
+ * 		- \b CHECK_CONSTRAINTS Apply constraints
+ * \param valuelen The strlen of \a value.  
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_control(), 
+ * 	bcp_exec(), 
+ * \todo Simplify.  Remove \a valuelen, and dbproc->bcpinfo->hint = strdup(hints[i])
+ */
 RETCODE
 bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 {
@@ -461,7 +619,7 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 			return FAIL;
 
 		for (i = 0; hints[i]; i++) {	/* do we know about this hint? */
-			/* FIXME if value not null terminated buffer reading overflow */
+			/* Does not matter if value is not null terminated; strlen(hints[i]) refers to a static constant, above */
 			if (strncasecmp((char *) value, hints[i], strlen(hints[i])) == 0)
 				break;
 		}
@@ -489,6 +647,18 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Override bcp_bind() by pointing to a different host variable.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param colptr The pointer, the address of your variable. 
+ * \param table_column The 1-based column ordinal in the table.  
+ * \remarks Use between calls to bcp_sendrow().  After calling bcp_colptr(), 
+ * 		subsequent calls to bcp_sendrow() will bind to the new address.  
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_bind(), bcp_collen(), bcp_sendrow() 
+ */
 RETCODE
 bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column)
 {
@@ -515,6 +685,15 @@ bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column)
 }
 
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief See if BCP_SETL() was used to set the LOGINREC for BCP work.  
+ * 
+ * \param login Address of the LOGINREC variable to be passed to dbopen(). 
+ * 
+ * \return TRUE or FALSE.
+ * \sa 	BCP_SETL(), bcp_init(), dblogin(), dbopen()
+ */
 DBBOOL
 bcp_getl(LOGINREC * login)
 {
@@ -523,6 +702,17 @@ bcp_getl(LOGINREC * login)
 	return (tdsl->bulk_copy);
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ *
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param rows_copied 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 {
@@ -861,6 +1051,17 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param hostfile 
+ * \param errfile 
+ * \param row_error 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row_error)
 {
@@ -1138,8 +1339,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				 * It seems a buffer overflow waiting...
 				 */
 				bcpcol->bcp_column_data->datalen =
-					dbconvert(dbproc, hostcol->datatype, coldata, collen, desttype,
-						  bcpcol->bcp_column_data->data, bcpcol->column_size);
+					dbconvert(dbproc, hostcol->datatype, coldata, collen, desttype, bcpcol->bcp_column_data->data, bcpcol->column_size);
 
 				if (bcpcol->bcp_column_data->datalen == -1) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
@@ -1151,8 +1351,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 
 				/* trim trailing blanks from character data */
 				if (desttype == SYBCHAR || desttype == SYBVARCHAR) {
-					bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data, 
-											  bcpcol->bcp_column_data->datalen);
+					bcpcol->bcp_column_data->datalen = rtrim((char *) bcpcol->bcp_column_data->data, bcpcol->bcp_column_data->datalen);
 				}
 			}
 			if (!hostcol->column_error) {
@@ -1178,6 +1377,16 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
  * 	The caller should check for that possibility, but the appropriate message should already have been emitted.  
  * 	The caller can then use tds_iconv_fread() to read-and-convert the file's data 
  *	into host format, or, if we're not dealing with a character column, just fread(3).  
+ */
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param hostfile 
+ * \param terminator 
+ * \param term_len 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static long int
 _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
@@ -1276,6 +1485,17 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 /**
  * Add fixed size columns to the row
  */
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param behaviour 
+ * \param rowbuffer 
+ * \param start 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static int
 _bcp_add_fixed_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int start)
 {
@@ -1331,6 +1551,18 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int 
 
 /*
  * Add variable size columns to the row
+ */
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param behaviour 
+ * \param rowbuffer 
+ * \param start 
+ * \param var_cols 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static int
 _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int start, int *var_cols)
@@ -1480,6 +1712,19 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 		return row_pos;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Write data in host variables to the table.  
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * 
+ * \remarks Call bcp_bind() first to describe the variables to be used.  
+ *	Use bcp_batch() to commit sets of rows. 
+ *	After sending the last row call bcp_done().
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_collen(), bcp_colptr(), bcp_columns(), 
+ * 	bcp_control(), bcp_done(), bcp_exec(), bcp_init(), bcp_moretext(), bcp_options()
+ */
 RETCODE
 bcp_sendrow(DBPROCESS * dbproc)
 {
@@ -1542,6 +1787,15 @@ bcp_sendrow(DBPROCESS * dbproc)
 }
 
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param rows_copied 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 {
@@ -1693,9 +1947,27 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Write a datafile to a table. 
+ *
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param rows_copied bcp_exec will write the count of rows successfully written to this address. 
+ *	If \a rows_copied is NULL, it will be ignored by db-lib. 
+ *
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_collen(), bcp_colptr(), bcp_columns(),
+ *	bcp_control(), bcp_done(), bcp_init(), bcp_sendrow()
+ */
 RETCODE
-bcp_exec(DBPROCESS * dbproc, DBINT * rows_copied)
+bcp_exec(DBPROCESS * dbproc, DBINT *rows_copied)
 {
+	int dummy_copied;
+
+	if (rows_copied == NULL) /* NULL means we should ignore it */
+		rows_copied = &dummy_copied;
+
 	RETCODE ret = 0;
 
 	if (dbproc->bcpinfo == NULL) {
@@ -1713,10 +1985,19 @@ bcp_exec(DBPROCESS * dbproc, DBINT * rows_copied)
 		ret = _bcp_exec_in(dbproc, rows_copied);
 	}
 	_bcp_free_storage(dbproc);
+	
 	return ret;
 }
 
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_start_copy_in(DBPROCESS * dbproc)
 {
@@ -1911,6 +2192,17 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param tds 
+ * \param clause 
+ * \param bcpcol 
+ * \param first 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_build_bulk_insert_stmt(TDSSOCKET * tds, TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 {
@@ -2041,8 +2333,7 @@ _bcp_build_bulk_insert_stmt(TDSSOCKET * tds, TDS_PBCB * clause, TDSCOLUMN * bcpc
 		sprintf(column_type, "uniqueidentifier  ");
 		break;
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "error: cannot build bulk insert statement. unrecognized server datatype %d\n", 
-					bcpcol->on_server.column_type);
+		tdsdump_log(TDS_DBG_FUNC, "error: cannot build bulk insert statement. unrecognized server datatype %d\n", bcpcol->on_server.column_type);
 		return FAIL;
 	}
 
@@ -2069,6 +2360,14 @@ _bcp_build_bulk_insert_stmt(TDSSOCKET * tds, TDS_PBCB * clause, TDSCOLUMN * bcpc
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_start_new_batch(DBPROCESS * dbproc)
 {
@@ -2090,6 +2389,14 @@ _bcp_start_new_batch(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_send_colmetadata(DBPROCESS * dbproc)
 {
@@ -2172,6 +2479,16 @@ _bcp_send_colmetadata(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param buffer 
+ * \param size 
+ * \param f 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static char *
 _bcp_fgets(char *buffer, size_t size, FILE *f)
 {
@@ -2186,6 +2503,18 @@ _bcp_fgets(char *buffer, size_t size, FILE *f)
 	return buffer;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Read a format definition file.
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param filename Name that will be passed to fopen(3).  
+ * 
+ * \remarks Reads a format file and calls bcp_columns() and bcp_colfmt() as needed. 
+ *
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_colfmt(), bcp_colfmt_ps(), bcp_columns(), bcp_writefmt()
+ */
 RETCODE
 bcp_readfmt(DBPROCESS * dbproc, char *filename)
 {
@@ -2276,6 +2605,16 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 	return (SUCCEED);
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param buf 
+ * \param ci 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static int
 _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 {
@@ -2419,6 +2758,23 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 		return (FALSE);
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Write a format definition file. Not Implemented. 
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param filename Name that would be passed to fopen(3).  
+ * 
+ * \remarks Reads a format file and calls bcp_columns() and bcp_colfmt() as needed. 
+ * \a FreeTDS includes freebcp, a utility to copy data to or from a host file. 
+ *
+ * \todo For completeness, \a freebcp ought to be able to create format files, but that functionality 
+ * 	is currently lacking, as is bcp_writefmt().
+ * \todo See the vendors' documentation for the format of these files.
+ *
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_colfmt(), bcp_colfmt_ps(), bcp_columns(), bcp_readfmt()
+ */
 RETCODE
 bcp_writefmt(DBPROCESS * dbproc, char *filename)
 {
@@ -2429,6 +2785,21 @@ bcp_writefmt(DBPROCESS * dbproc, char *filename)
 	return FAIL;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Write some text or image data to the server.  Not implemented, sadly.  
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param size How much to write, in bytes. 
+ * \param text Address of the data to be written. 
+ * \remarks For a SYBTEXT or SYBIMAGE column, bcp_bind() can be called with 
+ *	a NULL varaddr parameter.  If it is, bcp_sendrow() will return control
+ *	to the application after the non-text data have been sent.  The application then calls 
+ *	bcp_moretext() -- usually in a loop -- to send the text data in manageable chunks.  
+ * \todo implement bcp_moretext().
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_bind(), bcp_sendrow(), dbmoretext(), dbwritetext()
+ */
 RETCODE
 bcp_moretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 {
@@ -2439,6 +2810,15 @@ bcp_moretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 	return FAIL;
 }
 
+/** 
+ * \ingroup dblib_bcp
+ * \brief Commit a set of rows to the table. 
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \remarks If not called, bcp_done() will cause the rows to be saved.  
+ * \return Count of rows saved, or -1 on error.
+ * \sa 	bcp_bind(), bcp_done(), bcp_sendrow()
+ */
 DBINT
 bcp_batch(DBPROCESS * dbproc)
 {
@@ -2464,8 +2844,16 @@ bcp_batch(DBPROCESS * dbproc)
 	return (rows_copied);
 }
 
-/* end the transfer of data from program variables */
-
+/** 
+ * \ingroup dblib_bcp
+ * \brief Conclude the transfer of data from program variables.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \remarks Do not overlook this function.  According to Sybase, failure to call bcp_done() 
+ * "will result in unpredictable errors".
+ * \return As with bcp_batch(), the count of rows saved, or -1 on error.
+ * \sa 	bcp_batch(), bcp_bind(), bcp_moretext(), bcp_sendrow()
+ */
 DBINT
 bcp_done(DBPROCESS * dbproc)
 {
@@ -2493,8 +2881,29 @@ bcp_done(DBPROCESS * dbproc)
 
 }
 
-/* bind a program host variable to a database column */
-
+/** 
+ * \ingroup dblib_bcp
+ * \brief Bind a program host variable to a database column
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param varaddr address of host variable
+ * \param prefixlen length of any prefix found at the beginning of \a varaddr, in bytes.  
+ 	Use zero for fixed-length datatypes. 
+ * \param varlen bytes of data in \a varaddr.  Zero for NULL, -1 for fixed-length datatypes. 
+ * \param terminator byte sequence that marks the end of the data in \a varaddr
+ * \param termlen length of \a terminator
+ * \param vartype datatype of the host variable
+ * \param table_column Nth column, starting at 1, in the table.
+ * 
+ * \remarks The order of operation is:
+ *	- bcp_init() with \a hfile == NULL and \a direction == DB_IN.
+ * 	- bcp_bind(), once per column you want to write to
+ *	- bcp_batch(), optionally, to commit a set of rows
+ *	- bcp_done() 
+ * \return SUCCEED or FAIL.
+ * \sa 	bcp_batch(), bcp_colfmt(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), 
+ * 	bcp_done(), bcp_exec(), bcp_moretext(), bcp_sendrow() 
+ */
 RETCODE
 bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	 BYTE * terminator, int termlen, int vartype, int table_column)
@@ -2555,6 +2964,16 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	return SUCCEED;
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param record_len 
+ * \param behaviour 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
 {
@@ -2786,6 +3205,15 @@ _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour)
  * For a bcp in from program variables, get the data from 
  * the host variable
  */
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param bindcol 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
 {
@@ -2890,6 +3318,16 @@ _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
  * have been identified as character terminated,  
  * This is a low-level, internal function.  Call it correctly.  
  */
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param pdata 
+ * \param term 
+ * \param term_len 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 {
@@ -2906,6 +3344,15 @@ _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 	return bufpos;
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param istr 
+ * \param ilen 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static int
 rtrim(char *istr, int ilen)
 {
@@ -2919,6 +3366,14 @@ rtrim(char *istr, int ilen)
 	return olen;
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static void
 _bcp_free_columns(DBPROCESS * dbproc)
 {
@@ -2937,6 +3392,14 @@ _bcp_free_columns(DBPROCESS * dbproc)
 	}
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ */
 static RETCODE
 _bcp_free_storage(DBPROCESS * dbproc)
 {
@@ -2976,6 +3439,15 @@ _bcp_free_storage(DBPROCESS * dbproc)
 
 }
 
+/** 
+ * \ingroup dblib_bcp_internal
+ * \brief  internal bcp library function
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param bcp_errno 
+ * 
+ * \return SUCCEED or FAIL.
+ * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow() 
+ */
 static int
 _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 {
@@ -2987,6 +3459,11 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 
 	switch (bcp_errno) {
 
+
+	case SYBENULL:
+		errmsg = "NULL DBPROCESS pointer passed to DB-Library.";
+		severity = EXINFO;
+		break;
 
 	case SYBEMEM:
 		errmsg = "Unable to allocate sufficient memory.";
@@ -3167,6 +3644,11 @@ _bcp_err_handler(DBPROCESS * dbproc, int bcp_errno)
 	case SYBEBPROEXTRES:	 /* also used when unable to build bulk insert statement */
 		errmsg = "bcp protocol error: unexpected set of results received.";
 		severity = EXCONSISTENCY;
+		break;
+
+	case SYBETDSVER:
+		errmsg = "TDS protocol version 4.x not supported for BCP.";
+		severity = EXINFO;
 		break;
 
 	default:

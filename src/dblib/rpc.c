@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.45 2005-06-14 02:40:13 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.46 2005-06-26 14:25:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -58,7 +58,7 @@ static void param_clear(DBREMOTE_PROC_PARAM * pparam);
 static TDSPARAMINFO *param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc);
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Initialize a remote procedure call. 
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -72,7 +72,6 @@ static TDSPARAMINFO *param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc);
  * \retval FAIL on error
  * \sa dbrpcparam(), dbrpcsend()
  */
-
 RETCODE
 dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 {
@@ -134,7 +133,7 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Add a parameter to a remote procedure call.
  * Call between dbrpcinit() and dbrpcsend()
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -246,7 +245,7 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Execute the procedure and free associated memory
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.227 2005-06-19 05:48:22 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.228 2005-06-26 14:25:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -83,7 +83,7 @@ static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BY
  * Implementation of \c db-lib bulk copy functions.
  */
 /**
- * \defgroup dblib_api db-lib API
+ * \defgroup dblib_api The db-lib API
  * Functions callable by \c db-lib client programs
  *
  * The \c db_lib interface is implemented by both Sybase and Microsoft.  FreeTDS seeks to implement 
@@ -92,24 +92,74 @@ static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BY
  
 /**
  * \ingroup dblib_api
- * \defgroup dblib_sybase Sybase db-lib functions
- * Functions defined only by Sybase.  
+ * \defgroup dblib_core Primary functions
+ * Core functions needed by most db-lib programs.  
 */
 /**
  * \ingroup dblib_api
- * \defgroup dblib_microsoft Microsoft db-lib functions
- * Functions defined only by Microsoft.  
-*/
+ * \defgroup dblib_rpc Remote Procedure functions
+ * Functions used with stored procedures.  
+ * Especially useful for OUTPUT parameters, because modern Microsoft servers do not 
+ * return output parameter data to the client unless the procedure was invoked
+ * with dbrpcsend().  
+ */
 /**
  * \ingroup dblib_api
- * \defgroup dblib_bcp db-lib bulk copy functions
+ * \defgroup dblib_bcp Bulk copy functions
  * Functions to bulk-copy (a/k/a \em bcp) data to/from the database.  
-*/
+ */
+/**
+ * \ingroup dblib_bcp
+ * \defgroup dblib_bcp_internal Internal bcp functions
+ * Static functions internal to the bcp library.  
+ */
 /**
  * \ingroup dblib_api
- * \defgroup dblib_internal db-lib internals
+ * \defgroup dblib_money Money functions 
+ * Functions to manipulate the MONEY datatype.  
+ */
+/**
+ * \ingroup dblib_api
+ * \defgroup dblib_datetime Datetime functions 
+ * Functions to manipulate DBDATETIME structures.  Defined by Sybase only.  
+ * These are not implemented:
+ *	- dbdate4cmp()
+ *	- dbdate4zero()
+ *	- dbdatechar()
+ *	- dbdatename()
+ *	- dbdateorder()
+ *	- dbdatepart()
+ *	- dbdatezero()
+ *	- dbdayname()
+ */
+/**
+ * \ingroup dblib_api
+ * \defgroup dblib_internal Internals
  * Functions called within \c db-lib for self-help.  
  * These functions are of interest only to people hacking on the FreeTDS db-lib implementation.  
+ */
+/**
+ * \ingroup dblib_api
+ * \defgroup dblib_unimplemented Unimplemented
+ * Functions thus far not implemented in the FreeTDS db-lib implementation.  
+ * While some of these are simply awaiting someone with time and skill (and inclination)
+ * it might be noted here that the old browse functions (e.g. dbcolbrowse()) 
+ * are on the never-to-do list.  
+ * They were defined by Sybase and were superseded long ago, although they're still
+ * present in Microsoft's implementation.  
+ * They were never popular and today better alternatives are available.  
+ * For completeness, they are:
+ * 	- dbcolbrowse()
+ * 	- dbcolsource()
+ * 	- dbfreequal()
+ * 	- dbqual()
+ * 	- dbtabbrowse()
+ * 	- dbtabcount()
+ * 	- dbtabname()
+ * 	- dbtabsource()
+ * 	- dbtsnewlen()
+ * 	- dbtsnewval()
+ * 	- dbtsput()
  */
 
 /* info/err message handler functions (or rather pointers to them) */
@@ -277,7 +327,7 @@ dblib_query_timeout(void *param, unsigned int total_timeout)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Initialize db-lib.  
  * Call this function before trying to use db-lib in any way.  
  * Allocates various internal structures and reads \c locales.conf (if any) to determine the default
@@ -319,7 +369,7 @@ dbinit(void)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Allocate a \c LOGINREC structure.  
  * A \c LOGINREC structure is passed to \c dbopen() to create a connection to the database. 
  * Does not communicate to the server; interacts strictly with library.  
@@ -348,7 +398,7 @@ dblogin(void)
 }
 
 /**
- * \ingroup dblib_sybase
+ * \ingroup dblib_core
  * \brief free the \c LOGINREC
  */
 void
@@ -485,7 +535,7 @@ dbsetlbool(LOGINREC * login, int value, int which)
 }
 
 /**
- * \ingroup dblib_microsoft
+ * \ingroup dblib_core
  * \brief Set TDS version for future connections
  */
 RETCODE 
@@ -791,7 +841,7 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief \c printf-like way to form SQL to send to the server.  
  *
  * Forms a command string and writes to the command buffer with dbcmd().  
@@ -823,7 +873,7 @@ dbfcmd(DBPROCESS * dbproc, const char *fmt, ...)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief \c Append SQL to the command buffer.  
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param cmdstring SQL to copy.  
@@ -875,7 +925,7 @@ dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief send the SQL command to the server and wait for an answer.  
  * 
  * Please be patient.  This function waits for the server to respond.   \c dbsqlexec is equivalent
@@ -912,7 +962,7 @@ dbsqlexec(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Change current database. 
  * 
  * Analagous to the unix command \c cd, dbuse() makes \a name the default database.  Waits for an answer
@@ -969,7 +1019,7 @@ free_linked_dbopt(DBOPTION * dbopt)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Close a connection to the server and free associated resources.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -1036,7 +1086,7 @@ dbclose(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Close server connections and free all related structures.  
  * 
  * \sa dbclose(), dbinit(), dbopen().
@@ -1078,7 +1128,7 @@ dbexit()
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Return number of regular columns in a result set.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -1247,7 +1297,7 @@ dbresults(DBPROCESS * dbproc)
 
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Return number of regular columns in a result set.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -1262,7 +1312,7 @@ dbnumcols(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Return name of a regular result column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -1292,7 +1342,7 @@ dbcolname(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Read a row from the row buffer.
  * 
  * When row buffering is enabled (DBBUFFER option is on), the client can use dbgetrow() to re-read a row previously fetched 
@@ -1326,7 +1376,7 @@ dbgetrow(DBPROCESS * dbproc, DBINT row)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Make a buffered row "current" without fetching it into bound variables.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -1350,7 +1400,7 @@ dbsetrow(DBPROCESS * dbproc, DBINT row)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Read result row into the row buffer and into any bound host variables.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -1506,7 +1556,7 @@ _db_get_server_type(int bindtype)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Convert one datatype to another.
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param srctype datatype of the data to convert. 
@@ -1515,7 +1565,7 @@ _db_get_server_type(int bindtype)
  * \param desttype target datatype
  * \param dest output buffer
  * \param destlen size of \a dest
- * \returns	On success, the count of output bytes in \dest, else -1. On failure, it will call any user-supplied error handler. 
+ * \returns	On success, the count of output bytes in \a dest, else -1. On failure, it will call any user-supplied error handler. 
  * \remarks 	 Causes of failure: 
  * 		- No such conversion unavailable. 
  * 		- Character data output was truncated, or numerical data overflowed or lost precision. 
@@ -1852,7 +1902,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief cf. dbconvert(), above
  * 
  * \em Sybase: Convert numeric types.
@@ -1896,7 +1946,7 @@ dbconvert_ps(DBPROCESS * dbproc,
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Tie a host variable to a result set column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -1966,7 +2016,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 }				/* dbbind()  */
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief set name and location of the \c interfaces file FreeTDS should use to look up a servername.
  * 
  * Does not affect lookups or location of \c freetds.conf.  
@@ -1980,7 +2030,7 @@ dbsetifile(char *filename)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Tie a null-indicator to a regular result column.
  * 
  * 
@@ -2018,7 +2068,7 @@ dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Tie a null-indicator to a compute result column.
  * 
  * 
@@ -2094,7 +2144,7 @@ dbcount(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Clear \a n rows from the row buffer.
  * 
  * 
@@ -2114,7 +2164,7 @@ dbclrbuf(DBPROCESS * dbproc, DBINT n)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Test whether or not a datatype can be converted to another datatype
  * 
  * \param srctype type converting from
@@ -2132,7 +2182,7 @@ dbwillconvert(int srctype, int desttype)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get the datatype of a regular result set column. 
  * 
  * 
@@ -2164,7 +2214,7 @@ dbcoltype(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get user-defined datatype of a regular result column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2187,7 +2237,7 @@ dbcolutype(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get precision and scale information for a regular result column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2323,7 +2373,7 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 }
  
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get base database column name for a result set column.  
  * 
  * 
@@ -2352,7 +2402,7 @@ dbcolsource(DBPROCESS * dbproc, int colnum)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get size of a regular result column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2377,7 +2427,7 @@ dbcollen(DBPROCESS * dbproc, int column)
 
 /* dbvarylen(), pkleef@openlinksw.com 01/21/02 */
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Determine whether a column can vary in size.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2429,7 +2479,7 @@ dbvarylen(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief   Get size of current row's data in a regular result column.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2466,7 +2516,7 @@ dbdatlen(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get address of data in a regular result column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2498,7 +2548,7 @@ dbdata(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Cancel the current command batch.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2520,7 +2570,7 @@ dbcancel(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Determine size buffer required to hold the results returned by dbsprhead(), dbsprline(), and  dbspr1row().
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2554,7 +2604,7 @@ dbspr1rowlen(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Print a regular result row to a buffer.  
  * 
  * Fills a buffer with one data row, represented as a null-terminated ASCII string.  Helpful for debugging.  
@@ -2644,7 +2694,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Print a result set to stdout. 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2923,7 +2973,7 @@ _get_printable_size(TDSCOLUMN * colinfo)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get formatted string for underlining dbsprhead() column names.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2981,7 +3031,7 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Print result set headings to a buffer.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3047,7 +3097,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Print result set headings to stdout.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3137,7 +3187,7 @@ dbrows(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set the default character set for an application.
  * 
  * \param language ASCII null-terminated string.  
@@ -3153,7 +3203,7 @@ dbsetdeflang(char *language)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get TDS packet size for the connection.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3173,7 +3223,7 @@ dbgetpacket(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set maximum simultaneous connections db-lib will open to the server.
  * 
  * \param maxprocs Limit for process.
@@ -3243,7 +3293,7 @@ dbsetmaxprocs(int maxprocs)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief get maximum simultaneous connections db-lib will open to the server.
  * 
  * \return Current maximum.  
@@ -3260,7 +3310,7 @@ dbgetmaxprocs(void)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set maximum seconds db-lib waits for a server response to query.  
  * 
  * \param seconds New limit for application.  
@@ -3277,7 +3327,7 @@ dbsettime(int seconds)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set maximum seconds db-lib waits for a server response to a login attempt.  
  * 
  * \param seconds New limit for application.  
@@ -3314,7 +3364,7 @@ dbcmdrow(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get column ID of a compute column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3356,7 +3406,7 @@ dbaltcolid(DBPROCESS * dbproc, int computeid, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get size of data in a compute column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3406,7 +3456,7 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get datatype for a compute column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3478,7 +3528,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Bind a compute column to a program variable.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3547,7 +3597,7 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get address of compute column data.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3591,7 +3641,7 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get aggregation operator for a compute column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3631,7 +3681,7 @@ dbaltop(DBPROCESS * dbproc, int computeid, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set db-lib or server option.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3761,7 +3811,7 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set interrupt handler for db-lib to use while blocked against a read from the server.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3777,7 +3827,7 @@ dbsetinterrupt(DBPROCESS * dbproc, DB_DBCHKINTR_FUNC chkintr, DB_DBHNDLINTR_FUNC
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Determine if query generated a return status number.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3800,7 +3850,7 @@ dbhasretstat(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Fetch status value returned by query or remote procedure call.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3818,7 +3868,7 @@ dbretstatus(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Get count of output parameters filled by a stored procedure.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3847,7 +3897,7 @@ dbnumrets(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Get name of an output parameter filled by a stored procedure.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3873,7 +3923,7 @@ dbretname(DBPROCESS * dbproc, int retnum)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Get value of an output parameter filled by a stored procedure.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3902,7 +3952,7 @@ dbretdata(DBPROCESS * dbproc, int retnum)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Get size of an output parameter filled by a stored procedure.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -3932,7 +3982,7 @@ dbretlen(DBPROCESS * dbproc, int retnum)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Wait for results of a query from the server.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4033,7 +4083,7 @@ dbsqlok(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get count of columns in a compute row.
  * 
  * 
@@ -4064,7 +4114,7 @@ dbnumalts(DBPROCESS * dbproc, int computeid)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get count of \c COMPUTE clauses for a result set.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4081,7 +4131,7 @@ dbnumcompute(DBPROCESS * dbproc)
 
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get \c bylist for a compute row.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4156,7 +4206,7 @@ dbdead(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set an error handler, for messages from db-lib.
  * 
  * \param handler pointer to callback function that will handle errors.
@@ -4172,7 +4222,7 @@ dberrhandle(EHANDLEFUNC handler)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set a message handler, for messages from the server.
  * 
  * \param handler address of the function that will process the messages.
@@ -4188,7 +4238,7 @@ dbmsghandle(MHANDLEFUNC handler)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Add two DBMONEY values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4209,7 +4259,7 @@ dbmnyadd(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * sum)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Subtract two DBMONEY values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4230,7 +4280,7 @@ dbmnysub(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * difference)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Multiply two DBMONEY values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4251,7 +4301,7 @@ dbmnymul(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * prod)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Divide two DBMONEY values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4272,7 +4322,7 @@ dbmnydivide(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * quotient)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Compare two DBMONEY values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4303,7 +4353,7 @@ dbmnycmp(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Multiply a DBMONEY value by a positive integer, and add an amount. 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4325,7 +4375,7 @@ dbmnyscale(DBPROCESS * dbproc, DBMONEY * amount, int multiplier, int addend)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Set a DBMONEY value to zero.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4346,7 +4396,7 @@ dbmnyzero(DBPROCESS * dbproc, DBMONEY * dest)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Get maximum positive DBMONEY value supported.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4365,7 +4415,7 @@ dbmnymaxpos(DBPROCESS * dbproc, DBMONEY * amount)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Get maximum negative DBMONEY value supported.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4384,7 +4434,7 @@ dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Get the least significant digit of a DBMONEY value, represented as a character.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4406,7 +4456,7 @@ dbmnyndigit(DBPROCESS * dbproc, DBMONEY * mnyptr, DBCHAR * digit, DBBOOL * zero)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Prepare a DBMONEY value for use with dbmnyndigit().
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4425,7 +4475,7 @@ dbmnyinit(DBPROCESS * dbproc, DBMONEY * amount, int trim, DBBOOL * negative)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Divide a DBMONEY value by a positive integer.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4444,7 +4494,7 @@ dbmnydown(DBPROCESS * dbproc, DBMONEY * amount, int divisor, int *remainder)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Add $0.0001 to a DBMONEY value.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4469,7 +4519,7 @@ dbmnyinc(DBPROCESS * dbproc, DBMONEY * amount)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Subtract $0.0001 from a DBMONEY value.
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4494,7 +4544,7 @@ dbmnydec(DBPROCESS * dbproc, DBMONEY * amount)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Negate a DBMONEY value.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4516,7 +4566,7 @@ dbmnyminus(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Negate a DBMONEY4 value.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4536,7 +4586,7 @@ dbmny4minus(DBPROCESS * dbproc, DBMONEY4 * src, DBMONEY4 * dest)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Zero a DBMONEY4 value.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4557,7 +4607,7 @@ dbmny4zero(DBPROCESS * dbproc, DBMONEY4 * dest)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Add two DBMONEY4 values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4586,7 +4636,7 @@ dbmny4add(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * sum)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Subtract two DBMONEY4 values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4615,7 +4665,7 @@ dbmny4sub(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * diff)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Multiply two DBMONEY4 values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4639,7 +4689,7 @@ dbmny4mul(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * prod)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Divide two DBMONEY4 values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4663,7 +4713,7 @@ dbmny4divide(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * quotie
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Compare two DBMONEY4 values.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4688,7 +4738,7 @@ dbmny4cmp(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Copy a DBMONEY4 value.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4709,7 +4759,7 @@ dbmny4copy(DBPROCESS * dbproc, DBMONEY4 * src, DBMONEY4 * dest)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_datetime
  * \brief Compare DBDATETIME values, similar to strcmp(3).
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4748,7 +4798,7 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Break a DBDATETIME value into useful pieces.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4782,7 +4832,7 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Clear remote passwords from the LOGINREC structure.
  * 
  * \param login structure to pass to dbopen().
@@ -4797,7 +4847,7 @@ dbrpwclr(LOGINREC * login)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Add a remote password to the LOGINREC structure.
  * 
  * \param login structure to pass to dbopen().
@@ -4816,7 +4866,7 @@ dbrpwset(LOGINREC * login, char *srvname, char *password, int pwlen)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get server process ID for a \c DBPROCESS.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4840,7 +4890,7 @@ dbspid(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Associate client-allocated (and defined) data with a \c DBPROCESS.   
  * 
  * 
@@ -4859,7 +4909,7 @@ dbsetuserdata(DBPROCESS * dbproc, BYTE * ptr)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get address of user-allocated data from a \c DBPROCESS.   
  * 
  * 
@@ -4875,7 +4925,7 @@ dbgetuserdata(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Specify a db-lib version level.
  * 
  * \param version anything, really. 
@@ -4891,7 +4941,7 @@ dbsetversion(DBINT version)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_money
  * \brief Copy a DBMONEY value.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4912,7 +4962,7 @@ dbmnycopy(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Cancel the query currently being retrieved, discarding all pending rows.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -4942,7 +4992,7 @@ dbcanquery(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Erase the command buffer, in case \c DBNOAUTOFREE was set with dbsetopt(). 
  * 
  * 
@@ -4959,7 +5009,7 @@ dbfreebuf(DBPROCESS * dbproc)
 }				/* dbfreebuf()  */
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Reset an option.
  * 
  * 
@@ -5022,7 +5072,7 @@ dbclropt(DBPROCESS * dbproc, int option, char *param)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get value of an option
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5086,7 +5136,7 @@ dbcurcmd(DBPROCESS * dbproc)
 }
 
 /** 
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief See if more commands are to be processed.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5114,7 +5164,7 @@ dbmorecmds(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_rpc
  * \brief Get datatype of a stored procedure's return parameter.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5140,7 +5190,7 @@ dbrettype(DBPROCESS * dbproc, int retnum)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get size of the command buffer, in bytes. 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5153,7 +5203,7 @@ dbstrlen(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get address of a position in the command buffer.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5175,7 +5225,7 @@ dbgetchar(DBPROCESS * dbproc, int pos)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get a copy of a chunk of the command buffer.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5215,7 +5265,7 @@ dbstrcpy(DBPROCESS * dbproc, int start, int numbytes, char *dest)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief safely quotes character values in SQL text.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5281,7 +5331,7 @@ dbsafestr(DBPROCESS * dbproc, const char *src, DBINT srclen, char *dest, DBINT d
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Print a token value's name to a buffer
  * 
  * \param token server SYB* value, e.g. SYBINT.  
@@ -5298,7 +5348,7 @@ dbprtype(int token)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief describe table column attributes with a single call (Freetds-only API function modelled on dbcolinfo)
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5370,7 +5420,7 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get text timestamp for a column in the current row.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5399,7 +5449,7 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get text pointer for a column in the current row.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5428,7 +5478,7 @@ dbtxptr(DBPROCESS * dbproc, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Send text or image data to the server.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5507,7 +5557,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Fetch part of a text or image value from the server.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5516,7 +5566,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
  * \return 
 	- \c >0 count of bytes placed in \a buf.
 	- \c  0 end of row.  
-	- \c -1 \em error, no result set ready for \dbproc.
+	- \c -1 \em error, no result set ready for \a dbproc.
 	- \c NO_MORE_ROWS all rows read, no further data. 
  * \sa dbmoretext(), dbnextrow(), dbwritetext(). 
  */
@@ -5573,7 +5623,7 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Send chunk of a text/image value to the server.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5596,7 +5646,7 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Record to a file all SQL commands sent to the server
  * 
  * \param filename name of file to write to. 
@@ -5657,7 +5707,7 @@ dbtds(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief See which version of db-lib is in use.
  * 
  * \return null-terminated ASCII string representing the version of db-lib.  
@@ -5671,7 +5721,7 @@ dbversion()
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Set the default character set.  
  * 
  * \param charset null-terminated ASCII string, matching a row in master..syscharsets.  
@@ -5686,7 +5736,7 @@ dbsetdefcharset(char *charset)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Ready execution of a registered procedure.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5703,7 +5753,7 @@ dbreginit(DBPROCESS * dbproc, DBCHAR * procedure_name, DBSMALLINT namelen)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get names of Open Server registered procedures.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5718,7 +5768,7 @@ dbreglist(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief  Describe parameter of registered procedure .
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5737,7 +5787,7 @@ dbregparam(DBPROCESS * dbproc, char *param_name, int type, DBINT datalen, BYTE *
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Execute a registered procedure.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5753,7 +5803,7 @@ dbregexec(DBPROCESS * dbproc, DBUSMALLINT options)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_datetime
  * \brief Get name of a month, in some human language.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5780,7 +5830,7 @@ dbmonthname(DBPROCESS * dbproc, char *language, int monthnum, DBBOOL shortform)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief See if a command caused the current database to change.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5799,7 +5849,7 @@ dbchange(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get name of current database.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5814,7 +5864,7 @@ dbname(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get \c syscharset name of the server character set.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5829,7 +5879,7 @@ dbservcharset(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Transmit the command buffer to the server.  \em Non-blocking, does not wait for a response.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5895,7 +5945,7 @@ dbsqlsend(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get user-defined datatype of a compute column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5933,7 +5983,7 @@ dbaltutype(DBPROCESS * dbproc, int computeid, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Get size of data in compute column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -5972,7 +6022,7 @@ dbaltlen(DBPROCESS * dbproc, int computeid, int column)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief See if a server response has arrived.
  * 
  * 
@@ -6132,7 +6182,7 @@ dbsetavail(DBPROCESS * dbproc)
 }
 
 /**
- * \ingroup dblib_api
+ * \ingroup dblib_core
  * \brief Build a printable string from text containing placeholders for variables.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
