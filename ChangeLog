@@ -1,3 +1,8 @@
+Mon Jun 27 21:05:49 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/array.c src/odbc/unittests/array_out.c:
+	* src/tds/unittests/dataread.c:
+	- remove warnings
+
 Mon Jun 27 16:46:57 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/array_out.c:
 	- fix array_out test

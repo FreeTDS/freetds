@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.4 2005-06-27 05:08:26 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.5 2005-06-27 19:06:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -47,15 +47,15 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	for (i = 0; i < ARRAY_SIZE; i++) {
 		statuses[i] = SQL_PARAM_DIAG_UNAVAILABLE;
 		ids[i] = i * 132;
-		sprintf(descs[i], "data %d", i * 7);
+		sprintf((char *) descs[i], "data %d", i * 7);
 		id_lens[i] = 0;
 		desc_lens[i] = SQL_NTS;
 	}
 
 	if (!prepare) {
-		ret = SQLExecDirect(Statement, (char *) test_query, SQL_NTS);
+		ret = SQLExecDirect(Statement, (SQLCHAR *) test_query, SQL_NTS);
 	} else {
-		SQLPrepare(Statement, (char *) test_query, SQL_NTS);
+		SQLPrepare(Statement, (SQLCHAR *) test_query, SQL_NTS);
 		ret = SQLExecute(Statement);
 	}
 	if (ret != expected)

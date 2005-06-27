@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.4 2005-06-27 14:47:45 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.5 2005-06-27 19:06:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -74,7 +74,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 	for (i = 0; i < ARRAY_SIZE; i++) {
 		statuses[i] = SQL_ROW_UPDATED;
 		IDS(i) = i * 132;
-		sprintf(DESCS(i), "aaa");
+		sprintf((char *) DESCS(i), "aaa");
 		ID_LENS(i) = 0;
 		DESC_LENS(i) = -i;
 	}
@@ -82,7 +82,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 	SQLBindCol(Statement, 1, SQL_C_ULONG, &IDS(0), 0, &ID_LENS(0));
 	SQLBindCol(Statement, 2, SQL_C_CHAR, DESCS(0), desc_len, &DESC_LENS(0));
 
-	ret = SQLExecDirect(Statement, (char *) test_query, SQL_NTS);
+	ret = SQLExecDirect(Statement, (SQLCHAR *) test_query, SQL_NTS);
 	if (ret != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Invalid result");
 
@@ -98,7 +98,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 		sprintf(buf, "%crow number %d", 'a' + i, i * 13);
 		if (truncate)
 			buf[3] = 0;
-		if (IDS(i) != i + 1 || strcmp(DESCS(i), buf) != 0) {
+		if (IDS(i) != i + 1 || strcmp((char *) DESCS(i), buf) != 0) {
 			fprintf(stderr, "Invalid result\n\tgot '%d|%s'\n\texpected '%d|%s'\n", (int) IDS(i), DESCS(i), i + 1, buf);
 			exit(1);
 		}

@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.15 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.16 2005-06-27 19:06:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -113,7 +113,7 @@ test0(const char *type, ...)
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED && (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT)) {
 
 		TDSCOLUMN *curcol = tds->current_results->columns[0];
-		unsigned char *src = tds->current_results->current_row + curcol->column_offset;
+		TDS_CHAR *src = (TDS_CHAR *) tds->current_results->current_row + curcol->column_offset;
 		int conv_type = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
 		assert(i_row < num_data);
@@ -121,7 +121,7 @@ test0(const char *type, ...)
 		if (is_blob_type(curcol->column_type)) {
 			TDSBLOB *blob = (TDSBLOB *) src;
 
-			src = (unsigned char *) blob->textvalue;
+			src = blob->textvalue;
 		}
 
 		if (tds_convert(test_context, conv_type, src, curcol->column_cur_size, SYBVARCHAR, &cr) < 0) {
