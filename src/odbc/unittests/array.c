@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.3 2005-06-03 07:16:23 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.4 2005-06-27 05:08:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -119,7 +119,7 @@ main(int argc, char *argv[])
 	query_test(0, SQL_SUCCESS, "VVVVVV!VVV");
 	query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
 
-	/* TODO record binding, array fetch */
+	/* TODO record binding, array fetch, sqlputdata */
 
 	Disconnect();
 

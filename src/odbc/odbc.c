@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.375 2005-06-03 09:01:58 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.376 2005-06-27 05:08:25 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2419,6 +2419,7 @@ _SQLExecute(TDS_STMT * stmt)
 	/* catch all errors */
 	stmt->dbc->current_statement = stmt;
 
+	/* TODO support stmt->apd->header.sql_desc_array_size */
 	if (stmt->prepared_query_is_rpc) {
 		/* get rpc name */
 		/* TODO change method */
