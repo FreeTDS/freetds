@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.71 2005-06-26 14:25:20 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.72 2005-06-27 22:27:20 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -870,7 +870,7 @@ DBINT dbvarylen(DBPROCESS * dbproc, int column);
 #define SYBEGENOS       20161	/* General Operating System Error. */
 #define SYBEPAGE        20162	/* wrong resource type or length given for  dbpage() operation.  */
 #define SYBEOPTNO       20163	/* Option is not allowed or is unreconized */
-#define SYBEETD         20164	/*"Failure to send the expected amount of  TEXT or IMAGE data via dbmoretext(). */
+#define SYBEETD         20164	/* Failure to send the expected amount of  TEXT or IMAGE data via dbmoretext(). */
 #define SYBERTYPE       20165	/* Invalid resource type given to DB-Library. */
 #define SYBERFILE       20166	/* "Can not open resource file." */
 #define SYBEFMODE       20167	/* Read/Write/Append mode denied on file. */
@@ -905,108 +905,108 @@ DBINT dbvarylen(DBPROCESS * dbproc, int column);
 #define SYBEDIVZ        20196	/* Attempt to divide by $0.00 in function %1!. */
 #define SYBEASTL        20197	/* Synchronous I/O attempted at AST level. */
 #define SYBESEFA        20198	/* DBSETNOTIFS cannot be called if connections are present. */
-#define SYBEPOLL 20199		/* Only one dbpoll() can be active at a time. */
-#define SYBENOEV 20200		/* dbpoll() cannot be called if registered procedure notifications have been disabled. */
-#define SYBEBADPK 20201		/* Packet size of %1! not supported. -- size of %2! used instead. */
-#define SYBESECURE 20202	/* Secure Server function not supported in this version. */
-#define SYBECAP 20203		/* DB-Library capabilities not accepted by the Server. */
-#define SYBEFUNC 20204		/* Functionality not supported at the specified version level. */
-#define SYBERESP 20205		/* Response function address passed to dbresponse() must be non-NULL. */
+#define SYBEPOLL        20199	/* Only one dbpoll() can be active at a time. */
+#define SYBENOEV        20200	/* dbpoll() cannot be called if registered procedure notifications have been disabled. */
+#define SYBEBADPK       20201	/* Packet size of %1! not supported. -- size of %2! used instead. */
+#define SYBESECURE      20202	/* Secure Server function not supported in this version. */
+#define SYBECAP         20203	/* DB-Library capabilities not accepted by the Server. */
+#define SYBEFUNC        20204	/* Functionality not supported at the specified version level. */
+#define SYBERESP        20205	/* Response function address passed to dbresponse() must be non-NULL. */
 #define SYBEIVERS       20206	/* Illegal version level specified. */
-#define SYBEONCE 20207		/* Function can be called only once. */
-#define SYBERPNULL 20208	/* value parameter for dbprcparam() can be NULL, only if the datalen parameter is 0 */
-#define SYBERPTXTIM 20209	/* RPC parameters cannot be of type Text/Image. */
-#define SYBENEG 20210		/* Negotiated login attempt failed. */
-#define SYBELBLEN 20211		/* Security labels should be less than 256 characters long. */
-#define SYBEUMSG 20212		/* Unknown message-id in MSG datastream. */
-#define SYBECAPTYP 20213	/* Unexpected capability type in CAPABILITY datastream. */
-#define SYBEBNUM 20214		/* Bad numbytes parameter passed to dbstrcpy() */
-#define SYBEBBL 20215		/* Bad bindlen parameter passed to dbsetnull() */
-#define SYBEBPREC 20216		/* Illegal precision specified */
-#define SYBEBSCALE 20217	/* Illegal scale specified */
-#define SYBECDOMAIN 20218	/* Source field value is not within the domain of legal values. */
-#define SYBECINTERNAL 20219	/* Internal Conversion error. */
-#define SYBEBTYPSRV 20220	/* Datatype is not supported by the server. */
-#define SYBEBCSET 20221		/* Unknown character-set encountered." */
-#define SYBEFENC 20222		/* Password Encryption failed." */
-#define SYBEFRES 20223		/* Challenge-Response function failed.", */
-#define SYBEISRVPREC 20224	/* Illegal precision value returned by the server. */
-#define SYBEISRVSCL 20225	/* Illegal scale value returned by the server. */
-#define SYBEINUMCL 20226	/* Invalid numeric column length returned by the server. */
-#define SYBEIDECCL 20227	/* Invalid decimal column length returned by the server. */
-#define SYBEBCMTXT 20228	/* bcp_moretext() may be used only when there is at least one text or image column in the server table. */
-#define SYBEBCPREC 20229	/* Column %1!: Illegal precision value encountered. */
-#define SYBEBCBNPR 20230	/* bcp_bind(): if varaddr is NULL, prefixlen must be 0 and no terminator should be specified. */
-#define SYBEBCBNTYP 20231	/* bcp_bind(): if varaddr is NULL and varlen greater than 0, the table column type must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, SYBCHAR, SYBIMAGE or SYBBINARY. */
-#define SYBEBCSNTYP 20232	/* column number %1!: if varaddr is NULL and varlen greater than 0, the table column type must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, SYBCHAR, SYBIMAGE or SYBBINARY. */
-#define SYBEBCPCTYP 20233	/* bcp_colfmt(): If table_colnum is 0, host_type cannot be 0. */
-#define SYBEBCVLEN 20234	/* varlen should be greater than or equal to -1. */
-#define SYBEBCHLEN 20235	/* host_collen should be greater than or equal to -1. */
-#define SYBEBCBPREF 20236	/* Illegal prefix length. Legal values are 0, 1, 2 or 4. */
-#define SYBEBCPREF 20237	/* Illegal prefix length. Legal values are -1, 0, 1, 2 or 4. */
-#define SYBEBCITBNM 20238	/* bcp_init(): tblname parameter cannot be NULL. */
-#define SYBEBCITBLEN 20239	/* bcp_init(): tblname parameter is too long. */
-#define SYBEBCSNDROW 20240	/* bcp_sendrow() may NOT be called unless all text data for the previous row has been sent using bcp_moretext(). */
-#define SYBEBPROCOL 20241	/* bcp protocol error: returned column count differs from the actual number of columns received. */
-#define SYBEBPRODEF 20242	/* bcp protocol error: expected default information and got none. */
-#define SYBEBPRONUMDEF 20243	/* bcp protocol error: expected number of defaults differs from the actual number of defaults received. */
-#define SYBEBPRODEFID 20244	/* bcp protocol error: default column id and actual column id are not same */
-#define SYBEBPRONODEF 20245	/* bcp protocol error:  default value received for column that does not have default. */
-#define SYBEBPRODEFTYP 20246	/* bcp protocol error:  default value datatype differs from column datatype. */
-#define SYBEBPROEXTDEF 20247	/* bcp protocol error: more than one row of default information received. */
-#define SYBEBPROEXTRES 20248	/* bcp protocol error: unexpected set of results received. */
-#define SYBEBPROBADDEF 20249	/* bcp protocol error: illegal default column id received. */
-#define SYBEBPROBADTYP 20250	/* bcp protocol error: unknown column datatype. */
-#define SYBEBPROBADLEN 20251	/* bcp protocol error: illegal datatype length received. */
+#define SYBEONCE        20207	/* Function can be called only once. */
+#define SYBERPNULL      20208	/* value parameter for dbprcparam() can be NULL, only if the datalen parameter is 0 */
+#define SYBERPTXTIM     20209	/* RPC parameters cannot be of type Text/Image. */
+#define SYBENEG         20210	/* Negotiated login attempt failed. */
+#define SYBELBLEN       20211	/* Security labels should be less than 256 characters long. */
+#define SYBEUMSG        20212	/* Unknown message-id in MSG datastream. */
+#define SYBECAPTYP      20213	/* Unexpected capability type in CAPABILITY datastream. */
+#define SYBEBNUM        20214	/* Bad numbytes parameter passed to dbstrcpy() */
+#define SYBEBBL         20215	/* Bad bindlen parameter passed to dbsetnull() */
+#define SYBEBPREC       20216	/* Illegal precision specified */
+#define SYBEBSCALE      20217	/* Illegal scale specified */
+#define SYBECDOMAIN     20218	/* Source field value is not within the domain of legal values. */
+#define SYBECINTERNAL   20219	/* Internal Conversion error. */
+#define SYBEBTYPSRV     20220	/* Datatype is not supported by the server. */
+#define SYBEBCSET       20221	/* Unknown character-set encountered." */
+#define SYBEFENC        20222	/* Password Encryption failed." */
+#define SYBEFRES        20223	/* Challenge-Response function failed.", */
+#define SYBEISRVPREC    20224	/* Illegal precision value returned by the server. */
+#define SYBEISRVSCL     20225	/* Illegal scale value returned by the server. */
+#define SYBEINUMCL      20226	/* Invalid numeric column length returned by the server. */
+#define SYBEIDECCL      20227	/* Invalid decimal column length returned by the server. */
+#define SYBEBCMTXT      20228	/* bcp_moretext() may be used only when there is at least one text or image column in the server table. */
+#define SYBEBCPREC      20229	/* Column %1!: Illegal precision value encountered. */
+#define SYBEBCBNPR      20230	/* bcp_bind(): if varaddr is NULL, prefixlen must be 0 and no terminator should be specified. */
+#define SYBEBCBNTYP     20231	/* bcp_bind(): if varaddr is NULL and varlen greater than 0, the table column type must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, SYBCHAR, SYBIMAGE or SYBBINARY. */
+#define SYBEBCSNTYP     20232	/* column number %1!: if varaddr is NULL and varlen greater than 0, the table column type must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, SYBCHAR, SYBIMAGE or SYBBINARY. */
+#define SYBEBCPCTYP     20233	/* bcp_colfmt(): If table_colnum is 0, host_type cannot be 0. */
+#define SYBEBCVLEN      20234	/* varlen should be greater than or equal to -1. */
+#define SYBEBCHLEN      20235	/* host_collen should be greater than or equal to -1. */
+#define SYBEBCBPREF     20236	/* Illegal prefix length. Legal values are 0, 1, 2 or 4. */
+#define SYBEBCPREF      20237	/* Illegal prefix length. Legal values are -1, 0, 1, 2 or 4. */
+#define SYBEBCITBNM     20238	/* bcp_init(): tblname parameter cannot be NULL. */
+#define SYBEBCITBLEN    20239	/* bcp_init(): tblname parameter is too long. */
+#define SYBEBCSNDROW    20240	/* bcp_sendrow() may NOT be called unless all text data for the previous row has been sent using bcp_moretext(). */
+#define SYBEBPROCOL     20241	/* bcp protocol error: returned column count differs from the actual number of columns received. */
+#define SYBEBPRODEF     20242	/* bcp protocol error: expected default information and got none. */
+#define SYBEBPRONUMDEF  20243	/* bcp protocol error: expected number of defaults differs from the actual number of defaults received. */
+#define SYBEBPRODEFID   20244	/* bcp protocol error: default column id and actual column id are not same */
+#define SYBEBPRONODEF   20245	/* bcp protocol error:  default value received for column that does not have default. */
+#define SYBEBPRODEFTYP  20246	/* bcp protocol error:  default value datatype differs from column datatype. */
+#define SYBEBPROEXTDEF  20247	/* bcp protocol error: more than one row of default information received. */
+#define SYBEBPROEXTRES  20248	/* bcp protocol error: unexpected set of results received. */
+#define SYBEBPROBADDEF  20249	/* bcp protocol error: illegal default column id received. */
+#define SYBEBPROBADTYP  20250	/* bcp protocol error: unknown column datatype. */
+#define SYBEBPROBADLEN  20251	/* bcp protocol error: illegal datatype length received. */
 #define SYBEBPROBADPREC 20252	/* bcp protocol error: illegal precision value received. */
-#define SYBEBPROBADSCL 20253	/* bcp protocol error: illegal scale value received. */
-#define SYBEBADTYPE 20254	/* Illegal value for type parameter  given to %1!. */
-#define SYBECRSNORES  20255	/* Cursor statement generated no results. */
-#define SYBECRSNOIND 20256	/* One of the tables involved in the cursor  statement does not have a unique index. */
-#define SYBECRSVIEW 20257	/* A view cannot be joined with another table  or a view in a cursor statement. */
-#define SYBECRSVIIND 20258	/* The view used in the cursor statement does  not include all the unique index columns of  the underlying tables. */
-#define SYBECRSORD 20259	/* Only fully keyset driven cursors can have 'order by', ' group by', or 'having' phrases. */
-#define SYBECRSBUFR 20260	/* Row buffering should not be turned on when  using cursor APIs. */
-#define SYBECRSNOFREE 20261	/* The DBNOAUTOFREE option should not be  turned on when using cursor APIs. */
-#define SYBECRSDIS 20262	/* Cursor statement contains one of the  disallowed phrases 'compute', 'union', 'for browse', or 'select into'. */
-#define SYBECRSAGR 20263	/* Aggregate functions are not allowed in a  cursor statement. */
-#define SYBECRSFRAND 20264	/* Fetch types RANDOM and RELATIVE can only be  used within the keyset of keyset driven  cursors. */
-#define SYBECRSFLAST 20265	/* Fetch type LAST requires fully keyset  driven cursors. */
-#define SYBECRSBROL 20266	/* Backward scrolling cannot be used in a  forward scrolling cursor. */
-#define SYBECRSFROWN 20267	/* Row number to be fetched is outside valid  range. */
-#define SYBECRSBSKEY 20268	/* Keyset cannot be scrolled backward in mixed  cursors with a previous fetch type. */
-#define SYBECRSRO 20269		/* Data locking or modifications cannot be  made in a READONLY cursor. */
-#define SYBECRSNOCOUNT 20270	/* The DBNOCOUNT option should not be  turned on when doing updates or deletes with  dbcursor(). */
-#define SYBECRSTAB 20271	/* Table name must be determined in operations  involving data locking or modifications. */
-#define SYBECRSUPDNB 20272	/* Update or insert operations cannot use bind  variables when binding type is NOBIND. */
-#define SYBECRSNOWHERE 20273	/* A WHERE clause is not allowed in a cursor  update or insert. */
-#define SYBECRSSET 20274	/* A SET clause is required for a cursor  update or insert.  */
-#define SYBECRSUPDTAB 20275	/* Update or insert operations using bind  variables require single table cursors. */
-#define SYBECRSNOUPD 20276	/* Update or delete operation did not affect  any rows. */
-#define SYBECRSINV 20277	/* Invalid cursor statement. */
-#define SYBECRSNOKEYS 20278	/* The entire keyset must be defined for KEYSET cursors. */
-#define SYBECRSNOBIND  20279	/* Cursor bind must be called prior to updating cursor */
+#define SYBEBPROBADSCL  20253	/* bcp protocol error: illegal scale value received. */
+#define SYBEBADTYPE     20254	/* Illegal value for type parameter  given to %1!. */
+#define SYBECRSNORES    20255	/* Cursor statement generated no results. */
+#define SYBECRSNOIND    20256	/* One of the tables involved in the cursor  statement does not have a unique index. */
+#define SYBECRSVIEW     20257	/* A view cannot be joined with another table  or a view in a cursor statement. */
+#define SYBECRSVIIND    20258	/* The view used in the cursor statement does  not include all the unique index columns of  the underlying tables. */
+#define SYBECRSORD      20259	/* Only fully keyset driven cursors can have 'order by', ' group by', or 'having' phrases. */
+#define SYBECRSBUFR     20260	/* Row buffering should not be turned on when  using cursor APIs. */
+#define SYBECRSNOFREE   20261	/* The DBNOAUTOFREE option should not be  turned on when using cursor APIs. */
+#define SYBECRSDIS      20262	/* Cursor statement contains one of the  disallowed phrases 'compute', 'union', 'for browse', or 'select into'. */
+#define SYBECRSAGR      20263	/* Aggregate functions are not allowed in a  cursor statement. */
+#define SYBECRSFRAND    20264	/* Fetch types RANDOM and RELATIVE can only be  used within the keyset of keyset driven  cursors. */
+#define SYBECRSFLAST    20265	/* Fetch type LAST requires fully keyset  driven cursors. */
+#define SYBECRSBROL     20266	/* Backward scrolling cannot be used in a  forward scrolling cursor. */
+#define SYBECRSFROWN    20267	/* Row number to be fetched is outside valid  range. */
+#define SYBECRSBSKEY    20268	/* Keyset cannot be scrolled backward in mixed  cursors with a previous fetch type. */
+#define SYBECRSRO       20269	/* Data locking or modifications cannot be  made in a READONLY cursor. */
+#define SYBECRSNOCOUNT  20270	/* The DBNOCOUNT option should not be  turned on when doing updates or deletes with  dbcursor(). */
+#define SYBECRSTAB      20271	/* Table name must be determined in operations  involving data locking or modifications. */
+#define SYBECRSUPDNB    20272	/* Update or insert operations cannot use bind  variables when binding type is NOBIND. */
+#define SYBECRSNOWHERE  20273	/* A WHERE clause is not allowed in a cursor  update or insert. */
+#define SYBECRSSET      20274	/* A SET clause is required for a cursor  update or insert.  */
+#define SYBECRSUPDTAB   20275	/* Update or insert operations using bind  variables require single table cursors. */
+#define SYBECRSNOUPD    20276	/* Update or delete operation did not affect  any rows. */
+#define SYBECRSINV      20277	/* Invalid cursor statement. */
+#define SYBECRSNOKEYS   20278	/* The entire keyset must be defined for KEYSET cursors. */
+#define SYBECRSNOBIND   20279	/* Cursor bind must be called prior to updating cursor */
 #define SYBECRSFTYPE    20280	/* Unknown fetch type. */
 #define SYBECRSINVALID  20281	/* The cursor handle is invalid. */
-#define SYBECRSMROWS  20282	/* Multiple rows are returned, only one is expected. */
-#define SYBECRSNROWS 20283	/* No rows returned, at least one is expected. */
-#define SYBECRSNOLEN  20284	/* No unique index found. */
-#define SYBECRSNOPTCC 20285	/* No OPTCC was found. */
-#define SYBECRSNORDER  20286	/* The order of clauses must be from, where, and order by. */
+#define SYBECRSMROWS    20282	/* Multiple rows are returned, only one is expected. */
+#define SYBECRSNROWS    20283	/* No rows returned, at least one is expected. */
+#define SYBECRSNOLEN    20284	/* No unique index found. */
+#define SYBECRSNOPTCC   20285	/* No OPTCC was found. */
+#define SYBECRSNORDER   20286	/* The order of clauses must be from, where, and order by. */
 #define SYBECRSNOTABLE  20287	/* Table name is NULL. */
 #define SYBECRSNUNIQUE  20288	/* No unique keys associated with this view. */
-#define SYBECRSVAR  20289	/* There is no valid address associated with this bind. */
-#define SYBENOVALUE  20290	/* Security labels require both a name and a value */
-#define SYBEVOIDRET 20291	/* Parameter of type SYBVOID cannot  be a return parameter. */
-#define SYBECLOSEIN 20292	/* Unable to close interface file. */
-#define SYBEBOOL 20293		/* Boolean parameters must be TRUE or FALSE. */
-#define SYBEBCPOPT 20294	/* The %s option cannot be called while a bulk copy operation is progress. */
-#define SYBEERRLABEL 20295	/* An illegal value was returned from the security label handler. */
-#define SYBEATTNACK 20296	/* Timed out waiting for server to acknowledge attention." */
-#define SYBEBBFL 20297		/* -001- Batch failed in bulk-copy to SQL Server */
-#define SYBEDCL 20298		/* -004- DCL Error */
-#define SYBECS 20299		/* -004- cs context Error */
-#define SYBEBULKINSERT 20599	/* cannot build bulk insert statement */
+#define SYBECRSVAR      20289	/* There is no valid address associated with this bind. */
+#define SYBENOVALUE     20290	/* Security labels require both a name and a value */
+#define SYBEVOIDRET     20291	/* Parameter of type SYBVOID cannot  be a return parameter. */
+#define SYBECLOSEIN     20292	/* Unable to close interface file. */
+#define SYBEBOOL        20293	/* Boolean parameters must be TRUE or FALSE. */
+#define SYBEBCPOPT      20294	/* The  option cannot be called while a bulk copy operation is progress. */
+#define SYBEERRLABEL    20295	/* An illegal value was returned from the security label handler. */
+#define SYBEATTNACK     20296	/* Timed out waiting for server to acknowledge attention." */
+#define SYBEBBFL        20297	/* -001- Batch failed in bulk-copy to SQL Server */
+#define SYBEDCL         20298	/* -004- DCL Error */
+#define SYBECS          20299	/* -004- cs context Error */
+#define SYBEBULKINSERT  20599	/* cannot build bulk insert statement */
 
 int dbtds(DBPROCESS * dbprocess);
 
@@ -1020,7 +1020,6 @@ DBBINARY *dbtxtimestamp(DBPROCESS * dbproc, int column);
 DBBINARY *dbtxtsnewval(DBPROCESS * dbprocess);
 RETCODE dbtxtsput(DBPROCESS * dbprocess, DBBINARY newtxts, int colnum);
 RETCODE dbuse(DBPROCESS * dbproc, char *name);
-DBBOOL dbcarylen(DBPROCESS * dbprocess, int column);
 const char *dbversion(void);
 DBBOOL dbwillconvert(int srctype, int desttype);
 RETCODE dbwritepage(DBPROCESS * dbprocess, char *p_dbname, DBINT pageno, DBINT size, BYTE * buf);

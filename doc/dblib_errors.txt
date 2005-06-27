@@ -1,3 +1,30 @@
+#! /usr/pkg/bin/perl 
+# can be used to generate the C struct
+# $Id: dblib_errors.txt,v 1.3 2005-06-27 22:27:11 jklowden Exp $
+print "= {\n";
+
+while(<DATA>) {
+	last if /^UNUSED/;
+
+	@F = split /\t/;
+	next unless @F >= 3; 
+	
+	$F[2] =~ s/\.\s*\d*$//; 
+	chomp $F[2]; 
+
+	# reformat text message into chunks that aren't too wide 
+	$chunk_size = 130 - 48;
+	$nchunks = int(length ($F[2]) / $chunk_size);
+	for( $c=0; $c < $nchunks; $c++ ) {
+		last if index( $F[2], ' ', $chunk_size * $nchunks ) == -1; # don't bother if there's only one more word. 
+		$i = rindex( $F[2], ' ', $chunk_size * ($nchunks - $c) );
+		last if $i == -1;
+		substr(  $F[2], ++$i, 0, qq("") );
+		substr(  $F[2], ++$i, 0, qq(\n) . qq(\t) x 6 );
+	}
+	printf qq(\t, { %-16s%13s,\t"%s" }\n), "$F[0],", @F[1,2];
+}
+__DATA__ 
 SYBEAAMT	EXPROGRAM	User attempted a dbaltbind with mismatched column and variable types.
 SYBEABMT	EXPROGRAM	User attempted a dbbind with mismatched column and variable types.
 SYBEABNC	EXPROGRAM	Attempt to bind to a non-existent column.
@@ -42,8 +69,8 @@ SYBEBCPN	EXPROGRAM	bcp_bind, bcp_collen, bcp_colptr, bcp_moretext and bcp_sendro
 SYBEBCPREC	EXNONFATAL	Column %1!: Illegal precision value encountered.
 SYBEBCPREF	EXPROGRAM	Illegal prefix length. Legal values are -1, 0, 1, 2 or 4.
 SYBEBCRE	EXNONFATAL	I/O error while reading bcp datafile.
-SYBEBCRO	EXINFO	The BCP hostfile ‘%1!’ contains only %2! rows. It was impossible to read the requested %3! rows.
-SYBEBCSA	EXUSER	The BCP hostfile ‘%1!’ contains only %2! rows. Skipping all of these rows is not allowed.
+SYBEBCRO	EXINFO	The BCP hostfile '%1!' contains only %2! rows. It was impossible to read the requested %3! rows.
+SYBEBCSA	EXUSER	The BCP hostfile '%1!' contains only %2! rows. Skipping all of these rows is not allowed.
 SYBEBCSET	EXCONSISTENCY	Unknown character-set encountered.
 SYBEBCSI	EXPROGRAM	Host-file columns may be skipped only when copying into the Server.
 SYBEBCSNDROW	EXPROGRAM	bcp_sendrow may not be called unless all text data for the previous row has been sent using bcp_moretext.
@@ -192,7 +219,7 @@ SYBEOOB	EXCOMM	Error in sending out-of-band data to the server.
 SYBEOPIN	EXNONFATAL	Could not open interface file.
 SYBEOPNA	EXNONFATAL	Option is not available with current server.
 SYBEOREN	EXINFO	International Release: Warning: an out-of-range error-number was encountered in dblib.loc. The maximum permissible error-number is defined as DBERRCOUNT in sybdb.h.
-SYBEORPF	EXUSER	Attempt to set remote password would overflow the login record’s remote password field.
+SYBEORPF	EXUSER	Attempt to set remote password would overflow the login record's remote password field.
 SYBEPOLL	EXINFO	There is already an active dbpoll.
 SYBEPRTF	EXINFO	dbtracestring may only be called from a printfunc.
 SYBEPWD	EXUSER	Login incorrect.
@@ -206,7 +233,7 @@ SYBERPNA	EXNONFATAL	The RPC facility is available only when using a server whose
 SYBERPND	EXPROGRAM	Attempt to initiate a new Adaptive Server operation with results pending.
 SYBERPNULL	EXPROGRAM	value parameter for dbrpcparam can be NULL, only if the datalen parameter is 0.
 SYBERPTXTIM	EXPROGRAM	RPC parameters cannot be of type text or image.
-SYBERPUL	EXPROGRAM	When passing a SYBINTN, SYBDATETIMN, SYBMONEYN, or SYBFLTN parameter via dbrpcparam, it is necessary to specify the parameter’s maximum or actual length so that DB-Library can recognize it as a SYINT1, SYBINT2, SYBINT4, SYBMONEY, SYBMONEY4, and so on.
+SYBERPUL	EXPROGRAM	When passing a SYBINTN, SYBDATETIMN, SYBMONEYN, or SYBFLTN parameter via dbrpcparam, it is necessary to specify the parameter's maximum or actual length so that DB-Library can recognize it as a SYINT1, SYBINT2, SYBINT4, SYBMONEY, SYBMONEY4, and so on.
 SYBERTCC	EXPROGRAM	dbreadtext may not be used to receive the results of a query that contains a COMPUTE clause.
 SYBERTSC	EXPROGRAM	dbreadtext may be used only to receive the results of a query that contains a single result column.
 SYBERXID	EXNONFATAL	The Server did not recognize our distributed-transaction ID. 399
