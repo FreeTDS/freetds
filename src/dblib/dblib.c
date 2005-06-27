@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.228 2005-06-26 14:25:20 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.229 2005-06-27 20:00:12 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1947,7 +1947,7 @@ dbconvert_ps(DBPROCESS * dbproc,
 
 /**
  * \ingroup dblib_core
- * \brief Tie a host variable to a result set column.
+ * \brief Tie a host variable to a resultset column.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param column Nth column, starting at 1.
@@ -1962,57 +1962,53 @@ RETCODE
 dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr)
 {
 	TDSCOLUMN *colinfo = NULL;
-	TDSRESULTINFO *resinfo = NULL;
 	TDSSOCKET *tds = NULL;
 	int srctype = -1;
 	int desttype = -1;
-	int okay = TRUE;	/* so far, so good */
 	TDS_SMALLINT num_cols = 0;
 
 	tdsdump_log(TDS_DBG_INFO1, "dbbind() column = %d %d %d\n", column, vartype, varlen);
 	dbproc->avail_flag = FALSE;
-	/* 
-	 * Note on logic-  I'm using a boolean variable 'okay' to tell me if
-	 * everything that has happened so far has gone okay.  Basically if 
-	 * something happened that wasn't okay we don't want to keep doing 
-	 * things, but I also don't want to have a half dozen exit points from 
-	 * this function.  So basically I've wrapped each set of operation in a 
-	 * "if (okay)" statement.  Once okay becomes false we skip everything 
-	 * else.
-	 */
-	okay = (dbproc != NULL && dbproc->tds_socket != NULL && varaddr != NULL);
 
-	if (okay) {
-		tds = dbproc->tds_socket;
-		resinfo = tds->res_info;
+	if (dbproc == NULL) {
+		_dblib_client_msg(dbproc, SYBENULL, EXINFO, "NULL DBPROCESS pointer passed to DB-Library.");
+		return FAIL;
 	}
-
-	if (resinfo) {
-		num_cols = resinfo->num_cols;
+	if (varaddr == NULL) {
+		_dblib_client_msg(dbproc, SYBEABNV, EXPROGRAM, "Attempt to bind to a NULL program variable.");
+		return FAIL;
 	}
-	okay = okay && ((column >= 1) && (column <= num_cols));
-	if (!okay) {
+	if (dbproc->tds_socket == NULL) {
+		_dblib_client_msg(dbproc, SYBEDDNE, EXINFO, "DBPROCESS is dead or not enabled.");
+		assert(dbdead(dbproc)); /* what else could it be? */
+		return FAIL;
+	}
+	
+	tds = dbproc->tds_socket;
+	
+	if (tds->res_info == NULL || tds->res_info->num_cols < column || column < 1) {
 		_dblib_client_msg(dbproc, SYBEABNC, EXPROGRAM, "Attempt to bind to a non-existent column.");
 		return FAIL;
 	}
 
-	if (okay) {
-		colinfo = resinfo->columns[column - 1];
-		srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-		desttype = _db_get_server_type(vartype);
+	num_cols = tds->res_info->num_cols;
 
-		tdsdump_log(TDS_DBG_INFO1, "dbbind() srctype = %d desttype = %d \n", srctype, desttype);
+	colinfo = tds->res_info->columns[column - 1];
+	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+	desttype = _db_get_server_type(vartype);
 
-		okay = okay && dbwillconvert(srctype, _db_get_server_type(vartype));
+	tdsdump_log(TDS_DBG_INFO1, "dbbind() srctype = %d desttype = %d \n", srctype, desttype);
+
+	if (! dbwillconvert(srctype, desttype)) {
+		_dblib_client_msg(dbproc, SYBEABMT, EXPROGRAM, "User attempted a dbbind with mismatched column and variable types");
+		return FAIL;
 	}
 
-	if (okay) {
-		colinfo->column_varaddr = (char *) varaddr;
-		colinfo->column_bindtype = vartype;
-		colinfo->column_bindlen = varlen;
-	}
+	colinfo->column_varaddr = (char *) varaddr;
+	colinfo->column_bindtype = vartype;
+	colinfo->column_bindlen = varlen;
 
-	return okay ? SUCCEED : FAIL;
+	return SUCCEED;
 }				/* dbbind()  */
 
 /**
