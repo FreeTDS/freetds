@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.376 2005-06-27 05:08:25 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.377 2005-06-27 14:47:40 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -440,6 +440,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLUL
 	SQLUSMALLINT * tmp_status;
 	SQLULEN tmp_size;
 	SQLLEN * tmp_offset;
+
 	INIT_HSTMT;
 
 	/* still we do not support cursors and scrolling */
@@ -2443,15 +2444,34 @@ _SQLExecute(TDS_STMT * stmt)
 		if (ret != TDS_SUCCEED)
 			ODBC_RETURN(stmt, SQL_ERROR);
 	} else if (stmt->query) {
+		/* not prepared query */
 		/* TODO cursor change way of calling */
 		/* SQLExecDirect */
-		if (!stmt->params) {
-			if (!(tds_submit_query(tds, stmt->query) == TDS_SUCCEED))
-				ODBC_RETURN(stmt, SQL_ERROR);
+#if 0
+		if (stmt->apd->header.sql_desc_array_size <= 1) {
+#endif
+			if (!stmt->params) {
+				if (!(tds_submit_query(tds, stmt->query) == TDS_SUCCEED))
+					ODBC_RETURN(stmt, SQL_ERROR);
+			} else {
+				if (!(tds_submit_execdirect(tds, stmt->query, stmt->params) == TDS_SUCCEED))
+					ODBC_RETURN(stmt, SQL_ERROR);
+			}
+#if 0
 		} else {
-			if (!(tds_submit_execdirect(tds, stmt->query, stmt->params) == TDS_SUCCEED))
-				ODBC_RETURN(stmt, SQL_ERROR);
+			/* pack multiple submit using language */
+			TDS_MULTIPLE multiple;
+			unsigned int n = stmt->apd->header.sql_desc_array_size;
+
+			ret = tds_submit_init_multiple(tds, &multiple, TDS_MULTIPLE_LANGUAGE);
+			for (; ret == TDS_SUCCEED && n > 0; --n) {
+				/* submit a query */
+				tds_submit_single_query(tds, &multiple, stmt->params);
+				/* than process others parameters */
+			}
+			ret = tds_submit_done_multiple(tds, &multiple);
 		}
+#endif
 	} else {
 		/* TODO cursor change way of calling */
 		/* SQLPrepare */
@@ -2751,6 +2771,7 @@ _SQLFetch(TDS_STMT * stmt)
 	curr_row = 0;
 	do {
 		TDS_INT result_type;
+		int truncated = 0;
 
 		row_status = SQL_ROW_SUCCESS;
 
@@ -2893,6 +2914,11 @@ _SQLFetch(TDS_STMT * stmt)
 					row_status = SQL_ROW_ERROR;
 					break;
 				}
+				if ((c_type == SQL_C_CHAR && len >= drec_ard->sql_desc_octet_length)
+				    || (c_type == SQL_C_BINARY && len > drec_ard->sql_desc_octet_length)) {
+					truncated = 1;
+					stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
+				}
 			} else {
 				/* TODO change when we code cursors support... */
 				/* stop looping, forward cursor support only one row */
@@ -2903,7 +2929,7 @@ _SQLFetch(TDS_STMT * stmt)
 		}
 
 		if (status_ptr)
-			*status_ptr++ = row_status;
+			*status_ptr++ = truncated ? SQL_ROW_ERROR : row_status;
 		if (row_status == SQL_ROW_ERROR) {
 			stmt->errs.lastrc = SQL_ERROR;
 			break;
