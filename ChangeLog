@@ -1,3 +1,8 @@
+Mon Jun 27 15:54:39 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* configure.in src/dblib/unittests/Makefile.am
+	- thread.c needed ENABLE_THREADSAFE conditional
+	* src/dblib/dblib.c rewrote dbbind, added error messages
+
 Mon Jun 27 21:05:49 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/array.c src/odbc/unittests/array_out.c:
 	* src/tds/unittests/dataread.c:
