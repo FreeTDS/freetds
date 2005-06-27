@@ -1,3 +1,6 @@
+Mon Jun 27 10:05:48 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/dblib_errors.txt fixed error severity table
+
 Mon Jun 27 09:30:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/query.c:
 	- typo fixes

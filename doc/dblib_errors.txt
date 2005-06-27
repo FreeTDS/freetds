@@ -257,4 +257,18 @@ SYBEXOCI	EXNONFATAL	International Release: A character-set translation overflowe
 SYBEXTDN	EXPROGRAM	Warning: the xlt_todisp parameter to dbfree_xlate was NULL. The space associated with the xlt_tosrv parameter has been freed.
 SYBEXTN	EXPROGRAM	The xlt_tosrv and xlt_todisp parameters to dbfree_xlate were NULL.
 SYBEXTSN	EXPROGRAM	Warning: the xlt_tosrv parameter to dbfree_xlate was NULL. The space associated with the xlt_todisp parameter has been freed.
-SYBEZTXT	EXINFO	Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext. UNUSED EXINFO This error number is unused. The following table lists the meanings for each symbolic error severity value. Table 2-33: Error severities Error severity Numerical equivalent Explanation EXINFO 1 Informational, non-error. EXUSER 2 User error. EXNONFATAL 3 Non-fatal error. EXCONVERSION 4 Error in DB-Library data conversion. EXSERVER 5 The Server has returned an error flag. EXTIME 6 We have exceeded our timeout period while waiting for a response from the Server葉he DBPROCESS is still alive. EXPROGRAM 7 Coding error in user program. EXRESOURCE 8 Running out of resources葉he DBPROCESS may be dead. EXCOMM 9 Failure in communication with Server葉he DBPROCESS is dead. EXFATAL 10 Fatal error葉he DBPROCESS is dead. EXCONSISTENCY 11 Internal software error溶otify Sybase Technical Support.
+SYBEZTXT	EXINFO	Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext. 
+UNUSED 	EXINFO This error number is unused. 
+
+The following table lists the meanings for each symbolic error severity value. 
+EXINFO 		 1	 Informational, non-error. 
+EXUSER 		 2	 User error. 
+EXNONFATAL 	 3	 Non-fatal error. 
+EXCONVERSION 	 4	 Error in DB-Library data conversion. 
+EXSERVER 	 5	 The Server has returned an error flag. 
+EXTIME 		 6	 We have exceeded our timeout period while waiting for a response from the Server; the DBPROCESS is still alive. 
+EXPROGRAM 	 7	 Coding error in user program. 
+EXRESOURCE 	 8	 Running out of resources; the DBPROCESS may be dead. 
+EXCOMM 		 9	 Failure in communication with Server the DBPROCESS is dead. 
+EXFATAL 	10	 Fatal error the DBPROCESS is dead. 
+EXCONSISTENCY 	11	 Internal software error; notify Sybase Technical Support.
