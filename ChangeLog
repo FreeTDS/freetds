@@ -1,3 +1,8 @@
+Mon Jun 27 09:30:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/query.c:
+	- typo fixes
+	- rename tds_next_placeholders to tds_next_placeholder
+
 Mon Jun 27 07:07:59 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/array.c: comments added
 

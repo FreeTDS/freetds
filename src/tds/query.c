@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.171 2005-06-26 14:25:21 jklowden Exp $";
+static char software_version[] = "$Id: query.c,v 1.172 2005-06-27 07:31:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -104,7 +104,7 @@ tds_put_n_as_ucs2(TDSSOCKET * tds, const char *buf)
  * \param s          input string
  * \param len        input string length (in bytes), -1 for null terminated
  * \param out_len    returned output length (in bytes)
- * \return string allocated (or input pointer if no conversion required)
+ * \return string allocated (or input pointer if no conversion required) or NULL if error
  */
 static const char *
 tds_convert_string(TDSSOCKET * tds, const TDSICONV * char_conv, const char *s, int len, int *out_len)
@@ -323,12 +323,12 @@ tds_skip_quoted(const char *s)
 }
 
 /**
- * Get position of next placeholders
+ * Get position of next placeholder
  * @param start pointer to part of query to search
- * @return next placaholders or NULL if not found
+ * @return next placeholder or NULL if not found
  */
 const char *
-tds_next_placeholders(const char *start)
+tds_next_placeholder(const char *start)
 {
 	const char *p = start;
 
@@ -369,7 +369,7 @@ tds_count_placeholders(const char *query)
 	int count = 0;
 
 	for (;; ++count) {
-		if (!(p = tds_next_placeholders(p + 1)))
+		if (!(p = tds_next_placeholder(p + 1)))
 			return count;
 	}
 }
@@ -414,7 +414,7 @@ tds_skip_quoted_ucs2le(const char *s, const char *end)
 }
 
 static const char *
-tds_next_placeholders_ucs2le(const char *start, const char *end)
+tds_next_placeholder_ucs2le(const char *start, const char *end)
 {
 	const char *p = start;
 
@@ -454,7 +454,7 @@ tds_count_placeholders_ucs2le(const char *query, const char *query_end)
 	int count = 0;
 
 	for (;; ++count) {
-		if ((p = tds_next_placeholders_ucs2le(p + 2, query_end)) == query_end)
+		if ((p = tds_next_placeholder_ucs2le(p + 2, query_end)) == query_end)
 			return count;
 	}
 }
@@ -708,7 +708,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len)
 	s = query;
 	/* TODO do a test with "...?" and "...?)" */
 	for (i = 1;; ++i) {
-		e = tds_next_placeholders_ucs2le(s, query_end);
+		e = tds_next_placeholder_ucs2le(s, query_end);
 		assert(e && query <= e && e <= query_end);
 		tds_put_n(tds, s, e - s);
 		if (e == query_end)
@@ -2239,7 +2239,7 @@ tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	s = query;
 	for (i = 0;; ++i) {
-		e = tds_next_placeholders(s);
+		e = tds_next_placeholder(s);
 		tds_put_string(tds, s, e ? e - s : -1);
 		if (!e)
 			break;
