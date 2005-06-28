@@ -1,7 +1,10 @@
+Tue Jun 28 10:26:49 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: remove warning
+
 Mon Jun 27 18:23:50 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* doc/dblib_errors.txt include/sybdb.h src/dblib/dblib.c
 	- created error message structure
-	
+
 Mon Jun 27 15:54:39 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* configure.in src/dblib/unittests/Makefile.am
 	- thread.c needed ENABLE_THREADSAFE conditional

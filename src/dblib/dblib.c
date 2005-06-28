@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.230 2005-06-27 22:27:22 jklowden Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.231 2005-06-28 08:27:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int emit_message (DBPROCESS *dbproc, DBINT msgno);
@@ -6971,12 +6971,13 @@ static int
 emit_message (DBPROCESS *dbproc, DBINT msgno)
 {
 	int i;
-	for (i=0; i < sizeof(dblib_error_messages) / sizeof(dblib_error_messages[0]); i++ ) {
+
+	for (i=0; i < TDS_VECTOR_SIZE(dblib_error_messages); ++i ) {
 		if (dblib_error_messages[i].msgno == msgno) {
-			DBLIB_ERROR_MESSAGE *m = &dblib_error_messages[i];
+			const DBLIB_ERROR_MESSAGE *m = &dblib_error_messages[i];
 			return _dblib_client_msg(dbproc, msgno, m->msgstate, m->msgtext);
 		}
 	}
+
 	return _dblib_client_msg(dbproc, msgno, EXCONSISTENCY, "unrecognized msgno");
-	
 }
