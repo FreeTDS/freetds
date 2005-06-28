@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.234 2005-06-27 07:31:43 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.235 2005-06-28 19:08:21 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1337,8 +1337,6 @@ int tds_close_socket(TDSSOCKET * tds);
 int tds_read_packet(TDSSOCKET * tds);
 int tds_write_packet(TDSSOCKET * tds, unsigned char final);
 int tds7_get_instance_port(const char *ip_addr, const char *instance);
-int tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfinished);
-int tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char last);
 int tds_ssl_init(TDSSOCKET *tds);
 void tds_ssl_deinit(TDSSOCKET *tds);
 

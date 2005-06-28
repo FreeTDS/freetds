@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.25 2005-06-03 09:01:59 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.26 2005-06-28 19:08:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /** \addtogroup network
@@ -255,7 +255,7 @@ tds_close_socket(TDSSOCKET * tds)
  * Loops until we have received buflen characters
  * return -1 on failure
  */
-int
+static int
 tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfinished)
 {
 	time_t start, global_start;
@@ -559,7 +559,7 @@ tds_check_socket_write(TDSSOCKET * tds)
 }
 
 /* goodwrite function adapted from patch by freddy77 */
-int
+static int
 tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char last)
 {
 	int left = len;
