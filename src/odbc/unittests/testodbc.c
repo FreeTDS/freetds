@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.8 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.9 2005-06-29 07:21:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -587,7 +587,7 @@ TestRawODBCGuid(void)
 	return FALSE;
 }
 
-/*!
+/**
  * Array of tests.
  */
 static DbTestEntry _dbTests[] = {
@@ -599,7 +599,7 @@ static DbTestEntry _dbTests[] = {
 
 static DbTestEntry *tests = _dbTests;
 
-/*!
+/**
  * Code to iterate through all tests to run.
  *
  * \return

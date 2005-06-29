@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.11 2003-11-08 18:00:34 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.12 2005-06-29 07:21:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -18,9 +18,11 @@ main(int argc, char *argv[])
 	Command(Statement, "create table #odbctestdata (i int)");
 	Command(Statement, "insert #odbctestdata values (123)");
 
-	/* now we allocate another statement, select, get all results
+	/*
+	 * now we allocate another statement, select, get all results
 	 * then make another query with first select and drop this statement
-	 * result should not disappear (required for DBD::ODBC) */
+	 * result should not disappear (required for DBD::ODBC)
+	 */
 
 	if (SQLAllocStmt(Connection, &stmt) != SQL_SUCCESS) {
 		printf("Unable to allocate statement\n");

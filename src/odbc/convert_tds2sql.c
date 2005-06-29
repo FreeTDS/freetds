@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: convert_tds2sql.c,v 1.41 2004-12-08 20:30:05 freddy77 Exp $";
+static const char software_version[] = "$Id: convert_tds2sql.c,v 1.42 2005-06-29 07:21:21 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 TDS_INT
@@ -124,8 +124,10 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		if (destlen > 0) {
 			cplen = (destlen - 1) > nRetVal ? nRetVal : (destlen - 1);
 			assert(cplen >= 0);
-			/* odbc always terminate but do not overwrite 
-			 * destination buffer more than needed */
+			/*
+			 * odbc always terminate but do not overwrite 
+			 * destination buffer more than needed
+			 */
 			memcpy(dest, ores.c, cplen);
 			dest[cplen] = 0;
 		} else {

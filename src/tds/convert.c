@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.156 2005-06-26 14:25:20 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.157 2005-06-29 07:21:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -81,8 +81,10 @@ static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
 
 #define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
 #define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )
-/* f77: I don't write -2147483648, some compiler seem to have some problem 
- * with this constant although is a valid 32bit value */
+/*
+ * f77: I don't write -2147483648, some compiler seem to have some problem 
+ * with this constant although is a valid 32bit value
+ */
 #define IS_INT(x) ( (-2147483647l-1l) <= (x) && (x) <= 2147483647l )
 
 /**
@@ -91,8 +93,9 @@ static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
  * Conversions between datatypes.  Supports, for example, dbconvert().  
  */
 
-/** \addtogroup convert
- *  \@{ 
+/**
+ * \addtogroup convert
+ * \@{ 
  */
 
 /**
@@ -244,9 +247,11 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 	switch (desttype) {
 	case CASE_ALL_CHAR:
 
-		/* NOTE: Do not prepend 0x to string.  
+		/*
+		 * NOTE: Do not prepend 0x to string.  
 		 * The libraries all expect a bare string, without a 0x prefix. 
-		 * Applications such as isql and query analyzer provide the "0x" prefix. */
+		 * Applications such as isql and query analyzer provide the "0x" prefix.
+		 */
 
 		/* 2 * source length + 1 for terminator */
 
@@ -1524,10 +1529,10 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 static TDS_INT
 tds_convert_unique(int srctype, const TDS_CHAR * src, TDS_INT srclen, int desttype, CONV_RESULT * cr)
 {
-
-/* Raw data is equivalent to structure and always aligned, so this cast 
-   is portable */
-
+	/*
+	 * raw data is equivalent to structure and always aligned, 
+	 * so this cast is portable
+	 */
 	const TDS_UNIQUE *u = (const TDS_UNIQUE *) src;
 	char buf[37];
 
@@ -1542,8 +1547,10 @@ tds_convert_unique(int srctype, const TDS_CHAR * src, TDS_INT srclen, int destty
 		return binary_to_result(src, sizeof(TDS_UNIQUE), cr);
 		break;
 	case SYBUNIQUE:
-		/* Here we can copy raw to structure because we adjust
-		 * byte order in tds_swap_datatype */
+		/*
+		 * Here we can copy raw to structure because we adjust
+		 * byte order in tds_swap_datatype
+		 */
 		memcpy(&(cr->u), src, sizeof(TDS_UNIQUE));
 		return sizeof(TDS_UNIQUE);
 		break;
@@ -2051,7 +2058,8 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 				is_zero = 0;
 
 			/* divide for 256 for find another byte */
-			/* carry * (25u*25u*25u*25u) = carry * 10^8 / 256u
+			/*
+			 * carry * (25u*25u*25u*25u) = carry * 10^8 / 256u
 			 * using unsigned number is just an optimization
 			 * compiler can translate division to a shift and remainder 
 			 * to a binary AND
@@ -2061,7 +2069,8 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 		} while(--i >= 0);
 		if (is_zero)
 			break;
-		/* source number is limited to 38 decimal digit
+		/*
+		 * source number is limited to 38 decimal digit
 		 * 10^39-1 < 2^128 (16 byte) so this cannot make an overflow
 		 */
 		cr->n.array[--bytes] = carry;
@@ -2856,8 +2865,10 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	} else
 		return TDS_FAIL;
 
-	/* -53690 is minimun  (1753-1-1) (Gregorian calendar start in 1732) 
-	 * 2958463 is maximun (9999-12-31) */
+	/*
+	 * -53690 is minimun  (1753-1-1) (Gregorian calendar start in 1732) 
+	 * 2958463 is maximun (9999-12-31)
+	 */
 	l = dt_days + 146038;
 	wday = (l + 4) % 7;
 	n = (4 * l) / 146097;	/* n century */

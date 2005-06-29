@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.172 2005-06-27 07:31:43 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.173 2005-06-29 07:21:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1572,10 +1572,12 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 		tds_put_n(tds, converted_name, converted_name_len);
 		tds_convert_string_free(rpc_name, converted_name);
 
-		/* TODO support flags
+		/*
+		 * TODO support flags
 		 * bit 0 (1 as flag) in TDS7/TDS5 is "recompile"
 		 * bit 1 (2 as flag) in TDS7+ is "no metadata" bit 
-		 * (I don't know meaning of "no metadata") */
+		 * (I don't know meaning of "no metadata")
+		 */
 		tds_put_smallint(tds, 0);
 
 		for (i = 0; i < num_params; i++) {
@@ -1897,13 +1899,10 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		tds->cur_cursor = cursor;
 		tds_put_byte(tds, TDS_CURINFO_TOKEN);
 
-		/*      tds_put_smallint(tds, 8);
-		 * 
-		 * tds_put_int(tds, 0); */
 		tds_put_smallint(tds, 12 + strlen(cursor->cursor_name));
 		/* length of data stream that follows */
 
-		/*tds_put_int(tds, tds->cursor->cursor_id); *//* Cursor id */
+		/* tds_put_int(tds, tds->cursor->cursor_id); */ /* Cursor id */
 
 		tds_put_int(tds, 0);
 		tds_put_tinyint(tds, strlen(cursor->cursor_name));
@@ -2252,7 +2251,8 @@ tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	return tds_query_flush_packet(tds);
 }
 
-/* TODO add function to return type suitable for param
+/*
+ * TODO add function to return type suitable for param
  * ie:
  * sybvarchar -> sybvarchar / xsybvarchar
  * sybint4 -> sybintn

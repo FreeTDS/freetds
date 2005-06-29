@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.93 2005-05-11 08:55:31 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.94 2005-06-29 07:21:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -56,8 +56,9 @@ static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICO
  * Functions for reading or writing from network.
  */
 
-/** \addtogroup network
- *  \@{ 
+/**
+ * \addtogroup network
+ * \@{ 
  */
 
 /*
@@ -360,7 +361,8 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTIO
 		 size_t * outbytesleft)
 {
 	TEMP_INIT(256);
-	/* temp (above) is the "preconversion" buffer, the place where the UCS-2 data 
+	/*
+	 * temp (above) is the "preconversion" buffer, the place where the UCS-2 data 
 	 * are parked before converting them to ASCII.  It has to have a size, 
 	 * and there's no advantage to allocating dynamically.  
 	 * This also avoids any memory allocation error.  

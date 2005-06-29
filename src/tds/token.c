@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.297 2005-06-26 14:25:21 jklowden Exp $";
+static char software_version[] = "$Id: token.c,v 1.298 2005-06-29 07:21:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -86,8 +86,9 @@ static const char *tds_pr_op(int op);
  */
 
 
-/** \addtogroup token
- *  \@{ 
+/**
+ * \addtogroup token
+ * \@{ 
  */
 
 /**
@@ -144,7 +145,8 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		/* TODO split two part of capability and use it */
 		tok_size = tds_get_smallint(tds);
 		/* vicm */
-		/* Sybase 11.0 servers return the wrong length in the capability packet, causing use to read
+		/*
+		 * Sybase 11.0 servers return the wrong length in the capability packet, causing use to read
 		 * past the done packet.
 		 */
 		if (!TDS_IS_MSSQL(tds) && tds->product_version < TDS_SYB_VER(12, 0, 0)) {
@@ -1769,7 +1771,8 @@ tds5_process_result(TDSSOCKET * tds)
 		 */
 		tdsdump_log(TDS_DBG_INFO1, "col %d:\n", col);
 		tdsdump_log(TDS_DBG_INFO1, "tcolumn_label=[%s]\n", curcol->column_name);
-/*		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_colname);
+/*
+		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_colname);
 		tdsdump_log(TDS_DBG_INFO1, "\tcatalog=[%s] schema=[%s] table=[%s]\n",
 			    curcol->catalog_name, curcol->schema_name, curcol->table_name, curcol->column_colname);
 */

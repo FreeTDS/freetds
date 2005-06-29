@@ -46,7 +46,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.39 2005-04-03 13:37:24 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.40 2005-06-29 07:21:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -329,7 +329,8 @@ login_to_database(PARAMDATA * pdata, DBPROCESS ** pdbproc)
 	if (dbinit() == FAIL)
 		return (FALSE);
 
-	/* Install the user-supplied error-handling and message-handling
+	/*
+	 * Install the user-supplied error-handling and message-handling
 	 * routines. They are defined at the bottom of this source file.
 	 */
 

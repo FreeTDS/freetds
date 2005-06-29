@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc_util.c,v 1.76 2005-05-16 07:16:37 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc_util.c,v 1.77 2005-06-29 07:21:23 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -519,8 +519,8 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 	case SQL_TYPE_TIMESTAMP:
 	case SQL_TIMESTAMP:
 		/* TODO dependent on precision (decimal second digits) */
-		size = 24;	/* FIXME check, always format 
-				 * yyyy-mm-dd hh:mm:ss[.fff] ?? */
+		/* FIXME check, always format yyyy-mm-dd hh:mm:ss[.fff] ?? */
+		size = 24;
 		/* spinellia@acm.org: int token.c it is 30 should we comply? */
 		break;
 	case SQL_FLOAT:

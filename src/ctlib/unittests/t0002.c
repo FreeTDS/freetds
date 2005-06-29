@@ -7,7 +7,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.8 2003-01-26 18:42:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.9 2005-06-29 07:21:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int sp_who(CS_COMMAND *cmd);
@@ -212,7 +212,8 @@ sp_who(CS_COMMAND *cmd)
 					fprintf(stdout, "ct_describe() indicates a return code in column %d for sp_who\n", i);
 					is_return_status = i+1;
 					
-					/* other possible values:
+					/*
+					 * other possible values:
 					 * CS_CANBENULL
 					 * CS_HIDDEN
 					 * CS_IDENTITY

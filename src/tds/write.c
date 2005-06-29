@@ -45,11 +45,12 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.68 2004-12-02 13:20:45 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.69 2005-06-29 07:21:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-/** \addtogroup network
- *  \@{ 
+/**
+ * \addtogroup network
+ * \@{ 
  */
 
 /*

@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.21 2005-05-23 08:06:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.22 2005-06-29 07:21:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -131,8 +131,10 @@ main(int argc, char **argv)
 		timeStamp = dbtxtimestamp(dbproc, 1);
 	}
 
-	/* Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
-	 * Use #ifndef for big buffer version (32-bit) */
+	/*
+	 * Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
+	 * Use #ifndef for big buffer version (32-bit)
+	 */
 #ifndef DBWRITE_OK_FOR_OVER_4K
 	if (dbwritetext(dbproc, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, (BYTE*) blob) != SUCCEED)
 		return 5;

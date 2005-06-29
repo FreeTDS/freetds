@@ -37,7 +37,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: tdsstring.c,v 1.10 2004-02-11 16:13:19 freddy77 Exp $";
+static char software_version[] = "$Id: tdsstring.c,v 1.11 2005-06-29 07:21:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -51,8 +51,9 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 /* This is in a separate module because we use the pointer to discriminate allocated and not allocated */
 char tds_str_empty[] = "";
 
-/** \addtogroup dstring
- *  \@{ 
+/**
+ * \addtogroup dstring
+ * \@{ 
  */
 
 /** clear all string filling with zeroes (mainly for security reason) */

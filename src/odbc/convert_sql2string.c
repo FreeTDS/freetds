@@ -56,7 +56,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: convert_sql2string.c,v 1.42 2005-02-08 12:14:14 freddy77 Exp $";
+static const char software_version[] = "$Id: convert_sql2string.c,v 1.43 2005-06-29 07:21:20 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_INT
@@ -212,21 +212,22 @@ convert_sql2string(TDSCONTEXT * context, int srctype, const TDS_CHAR * src, int 
 	case SQL_C_BINARY:
 		return convert_binary2string(src, param_lenbind, dest, destlen);
 		break;
-/*		case SQL_C_INTERVAL_YEAR:
-		case SQL_C_INTERVAL_MONTH:
-		case SQL_C_INTERVAL_DAY:
-		case SQL_C_INTERVAL_HOUR:
-		case SQL_C_INTERVAL_MINUTE:
-		case SQL_C_INTERVAL_SECOND:
-		case SQL_C_INTERVAL_YEAR_TO_MONTH:
-		case SQL_C_INTERVAL_DAY_TO_HOUR:
-		case SQL_C_INTERVAL_DAY_TO_MINUTE:
-		case SQL_C_INTERVAL_DAY_TO_SECOND:
-		case SQL_C_INTERVAL_HOUR_TO_MINUTE:
-		case SQL_C_INTERVAL_HOUR_TO_SECOND:
-		case SQL_C_INTERVAL_MINUTE_TO_SECOND:
-		default:
-*/
+#if 0
+	case SQL_C_INTERVAL_YEAR:
+	case SQL_C_INTERVAL_MONTH:
+	case SQL_C_INTERVAL_DAY:
+	case SQL_C_INTERVAL_HOUR:
+	case SQL_C_INTERVAL_MINUTE:
+	case SQL_C_INTERVAL_SECOND:
+	case SQL_C_INTERVAL_YEAR_TO_MONTH:
+	case SQL_C_INTERVAL_DAY_TO_HOUR:
+	case SQL_C_INTERVAL_DAY_TO_MINUTE:
+	case SQL_C_INTERVAL_DAY_TO_SECOND:
+	case SQL_C_INTERVAL_HOUR_TO_MINUTE:
+	case SQL_C_INTERVAL_HOUR_TO_SECOND:
+	case SQL_C_INTERVAL_MINUTE_TO_SECOND:
+	default:
+#endif
 	}
 
 	/* TODO check srctype passed */

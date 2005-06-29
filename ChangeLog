@@ -1,3 +1,19 @@
+Wed Jun 29 09:18:06 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/bsqldb.c src/apps/freebcp.c src/ctlib/cs.c:
+	* src/ctlib/ct.c src/ctlib/unittests/t0002.c:
+	* src/ctlib/unittests/t0006.c src/dblib/bcp.c:
+	* src/dblib/dblib.c src/dblib/dbutil.c src/dblib/unittests/t0013.c:
+	* src/dblib/unittests/t0014.c src/odbc/convert_sql2string.c:
+	* src/odbc/convert_tds2sql.c src/odbc/error.c:
+	* src/odbc/native.c src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/unittests/t0002.c:
+	* src/odbc/unittests/testodbc.c src/odbc/unittests/type.c:
+	* src/tds/config.c src/tds/convert.c src/tds/iconv.c:
+	* src/tds/mem.c src/tds/net.c src/tds/query.c src/tds/read.c:
+	* src/tds/tdsstring.c src/tds/token.c src/tds/write.c:
+	* src/tds/unittests/t0007.c:
+	- update comments
+
 Tue Jun 28 21:07:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds.net:
 	- make tds_goodread/tds_goodwrite static again

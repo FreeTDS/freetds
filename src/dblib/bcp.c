@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.127 2005-06-26 14:25:20 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.128 2005-06-29 07:21:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -221,7 +221,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	
 			curcol = bindinfo->columns[i];
 			
-			/* TODO use memcpy ??
+			/*
+			 * TODO use memcpy ??
 			 * curcol and resinfo->columns[i] are both TDSCOLUMN.  
 			 * Why not "curcol = resinfo->columns[i];"?  Because the rest of TDSCOLUMN (below column_timestamp)
 			 * isn't being used.  Perhaps this "upper" part of TDSCOLUMN should be a substructure.
@@ -1216,13 +1217,14 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				return FAIL;
 			}
 
-			/* TODO:  
-			 *      Dates are a problem.  In theory, we should be able to read non-English dates, which
-			 *      would contain non-ASCII characters.  One might suppose we should convert date
-			 *      strings to ISO-8859-1 (or another canonical form) here, because tds_convert() can't be
-			 *      expected to deal with encodings. But instead date strings are read verbatim and 
-			 *      passed to tds_convert() without even waving to iconv().  For English dates, this works, 
-			 *      because English dates expressed as UTF-8 strings are indistinguishable from the ASCII.  
+			/*
+			 * TODO:  
+			 *    Dates are a problem.  In theory, we should be able to read non-English dates, which
+			 *    would contain non-ASCII characters.  One might suppose we should convert date
+			 *    strings to ISO-8859-1 (or another canonical form) here, because tds_convert() can't be
+			 *    expected to deal with encodings. But instead date strings are read verbatim and 
+			 *    passed to tds_convert() without even waving to iconv().  For English dates, this works, 
+			 *    because English dates expressed as UTF-8 strings are indistinguishable from the ASCII.  
 			 */
 		} else {	/* unterminated field */
 			bcpcol = dbproc->bcpinfo->bindinfo->columns[hostcol->tab_colnum - 1];

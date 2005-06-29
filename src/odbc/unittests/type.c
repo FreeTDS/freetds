@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: type.c,v 1.6 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: type.c,v 1.7 2005-06-29 07:21:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct type
@@ -17,8 +17,10 @@ struct type
 #define TYPE_C(s) {s, #s, FLAG_C }
 #define TYPE_SQL(s) {s, #s, FLAG_SQL }
 #define TYPE_BOTH(s,s2) {s, #s, FLAG_SQL|FLAG_C }
-/* Same define with test for constants
- *  #define TYPE_BOTH(s,s2) {s, #s, (FLAG_SQL|FLAG_C)+((1/!(s-s2))-1) } */
+/* 
+ * Same define with test for constants
+ *  #define TYPE_BOTH(s,s2) {s, #s, (FLAG_SQL|FLAG_C)+((1/!(s-s2))-1) }
+ */
 static const struct type types[] = {
 	TYPE_BOTH(SQL_C_CHAR, SQL_CHAR),
 	TYPE_BOTH(SQL_C_LONG, SQL_INTEGER),
@@ -104,9 +106,11 @@ main(int argc, char **argv)
 
 	Connect();
 
-	/* test setting two time a descriptor
+	/*
+	 * test setting two time a descriptor
 	 * success all user allocated are ARD or APD so type cheching can be done
-	 * TODO freeing descriptor dissociate it from statements */
+	 * TODO freeing descriptor dissociate it from statements
+	 */
 
 	/* test C types */
 	for (p = types; p->name; ++p) {

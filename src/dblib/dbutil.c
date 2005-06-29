@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dbutil.c,v 1.29 2005-04-15 11:51:58 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.30 2005-06-29 07:21:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -116,7 +116,8 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAG
 		dbproc = (DBPROCESS *) tds->parent;
 	}
 	if (msg->msg_number > 0) {
-		/* now check to see if the user supplied a function,
+		/*
+		 * now check to see if the user supplied a function,
 		 * if not, ignore the problem
 		 */
 		if (_dblib_err_handler) {

@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.121 2005-06-26 14:25:21 jklowden Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.122 2005-06-29 07:21:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -1061,7 +1061,8 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 	}
 
 	if (0 == strcmp(charset->name, "UTF-8")) {
-		/* Deal with UTF-8.  
+		/*
+		 * Deal with UTF-8.  
 		 * bytes | bits | representation
 		 *     1 |    7 | 0vvvvvvv
 		 *     2 |   11 | 110vvvvv 10vvvvvv
@@ -1208,7 +1209,8 @@ tds_sybase_charset_name(const char *charset_name)
 static const char *
 collate2charset(int sql_collate, int lcid)
 {
-	/* The table from the MSQLServer reference "Windows Collation Designators" 
+	/*
+	 * The table from the MSQLServer reference "Windows Collation Designators" 
 	 * and from " NLS Information for Microsoft Windows XP"
 	 */
 

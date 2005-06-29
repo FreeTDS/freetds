@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.377 2005-06-27 14:47:40 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.378 2005-06-29 07:21:21 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -4232,9 +4232,11 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_CATALOG_USAGE:
 		UIVAL = SQL_CU_DML_STATEMENTS | SQL_CU_PROCEDURE_INVOCATION | SQL_CU_TABLE_DEFINITION;
 		break;
-		/* TODO 
-		 * case SQL_COLLATION_SEQ:
-		 *      break; */
+		/* TODO */
+#if 0
+	case SQL_COLLATION_SEQ:
+		break;
+#endif
 	case SQL_COLUMN_ALIAS:
 		p = "Y";
 		break;
@@ -4382,8 +4384,10 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = tds_dstr_cstr(&dbc->dsn);
 		break;
 	case SQL_DATA_SOURCE_READ_ONLY:
-		/* TODO: determine the right answer from connection 
-		 * attribute SQL_ATTR_ACCESS_MODE */
+		/*
+		 * TODO: determine the right answer from connection 
+		 * attribute SQL_ATTR_ACCESS_MODE
+		 */
 		p = "N";	/* false, writable */
 		break;
 #if (ODBCVER >= 0x0300)

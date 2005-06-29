@@ -47,7 +47,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: cs.c,v 1.59 2005-04-15 11:51:57 freddy77 Exp $";
+static char software_version[] = "$Id: cs.c,v 1.60 2005-06-29 07:21:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _cs_datatype_length(int dtype);
@@ -56,8 +56,10 @@ static CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
 static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message);
 static CS_INT cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count);
 
-/* 	returns the fixed length of the specified data type, or 0 if not a 
-	fixed length data type */
+/**
+ * returns the fixed length of the specified data type, or 0 if not a 
+ * fixed length data type
+ */
 static int 
 _cs_datatype_length(int dtype)
 {

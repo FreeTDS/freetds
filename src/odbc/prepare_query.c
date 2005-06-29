@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: prepare_query.c,v 1.49 2005-05-22 08:28:00 freddy77 Exp $";
+static const char software_version[] = "$Id: prepare_query.c,v 1.50 2005-06-29 07:21:23 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -299,8 +299,10 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 			drec_apd = &stmt->apd->records[param_num - 1];
 
 			need_comma = _need_comma(drec_ipd);
-			/* printf("ctype is %d %d %d\n",param->ipd_sql_desc_parameter_type, 
-			 * param->apd_sql_desc_concise_type, param->ipd_sql_desc_concise_type); */
+#if 0
+			printf("ctype is %d %d %d\n",param->ipd_sql_desc_parameter_type, 
+			       param->apd_sql_desc_concise_type, param->ipd_sql_desc_concise_type);
+#endif
 
 			if (need_comma)
 				*d++ = comma;
@@ -339,8 +341,10 @@ parse_prepared_query(struct _hstmt *stmt, int start)
 		}
 	}
 	*d = '\0';
-	/* reset prepared_query parameters in stmt
-	 * to prevent wrong calls to this function */
+	/*
+	 * reset prepared_query parameters in stmt
+	 * to prevent wrong calls to this function
+	 */
 	stmt->prepared_query_s = 0;
 
 	return SQL_SUCCESS;

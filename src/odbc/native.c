@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: native.c,v 1.25 2005-06-08 06:40:22 freddy77 Exp $";
+static const char software_version[] = "$Id: native.c,v 1.26 2005-06-29 07:21:21 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
@@ -96,8 +96,10 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 
 	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && dbc->tds_socket->product_version >= TDS_MS_VER(7, 0, 0);
 
-	/* we can do it because result string will be
-	 * not bigger than source string */
+	/*
+	 * we can do it because result string will be
+	 * not bigger than source string
+	 */
 	d = s = buf;
 	while (*s) {
 		/* TODO: test syntax like "select 1 as [pi]]p)p{?=call]]]]o], 2" on mssql7+ */

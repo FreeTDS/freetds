@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.111 2005-06-03 09:01:59 freddy77 Exp $";
+static char software_version[] = "$Id: config.c,v 1.112 2005-06-29 07:21:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -102,8 +102,9 @@ static char *interf_file = NULL;
  * Handle reading of configuration
  */
 
-/** \addtogroup config
- *  \@{ 
+/**
+ * \addtogroup config
+ * \@{ 
  */
 
 /**
@@ -694,9 +695,11 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	char buffer[4096];
 	int h_errnop;
 
-	/* Only call gethostbyname if servername is not an ip address. 
+	/*
+	 * Only call gethostbyname if servername is not an ip address. 
 	 * This call take a while and is useless for an ip address.
-	 * mlilback 3/2/02 */
+	 * mlilback 3/2/02
+	 */
 	ip_addr = inet_addr(servername);
 	if (ip_addr != INADDR_NONE) {
 		tds_strlcpy(ip, servername, 17);
@@ -746,28 +749,25 @@ hexdigit(char c)
 		return 0;	/* bad hex digit */
 	}
 }
+
 static int
 hex2num(char *hex)
 {
 	return hexdigit(hex[0]) * 16 + hexdigit(hex[1]);
 }
 
-/* ========================= search_interface_file() =========================
+/**
+ * Open and read the file 'file' searching for a logical server
+ * by the name of 'host'.  If one is found then lookup
+ * the IP address and port number and store them in 'connection'
  *
- * Def:  Open and read the file 'file' searching for a logical server
- *       by the name of 'host'.  If one is found then lookup
- *       the IP address and port number and store them in 'ip_addr', and
- *       'ip_port'.
- *
- * Ret:  void
- *
- * ===========================================================================
+ * \param dir name of base directory for interface file
+ * \param file name of the interface file
+ * \param host logical host to search for
+ * \return 0 if not fount 1 if found
  */
 static int
-search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name of base directory for interface file */
-		      const char *file,	/* (I) Name of the interface file                */
-		      const char *host	/* (I) Logical host to search for                */
-	)
+search_interface_file(TDSCONNECTION * connection, const char *dir, const char *file, const char *host)
 {
 	char *pathname;
 	char line[255];
@@ -878,8 +878,6 @@ search_interface_file(TDSCONNECTION * connection, const char *dir,	/* (I) Name o
  * Try to find the IP number and port for a (possibly) logical server name.
  *
  * @note This function uses only the interfaces file and is deprecated.
- *
- * ===========================================================================
  */
 static void
 tds_read_interfaces(const char *server, TDSCONNECTION * connection)
@@ -989,8 +987,8 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 
 /**
  * Check the server name to find port info first
- * return 1 when found, else 0
  * Warning: connection-> & login-> are all modified when needed
+ * \return 1 when found, else 0
  */
 static int
 parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)

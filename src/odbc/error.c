@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: error.c,v 1.39 2005-05-31 07:01:03 freddy77 Exp $";
+static const char software_version[] = "$Id: error.c,v 1.40 2005-06-29 07:21:21 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void odbc_errs_pop(struct _sql_errors *errs);
@@ -760,8 +760,10 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			break;
 		case SQL_HANDLE_STMT:
 			msg = tds_dstr_cstr(&stmt->dbc->server);
-			/* if dbc->server is not initialized, init it
-			 * from the errs structure */
+			/*
+			 * if dbc->server is not initialized, init it
+			 * from the errs structure
+			 */
 			if (!msg[0] && errs->errs[numRecord].server) {
 				tds_dstr_copy(&stmt->dbc->server, errs->errs[numRecord].server);
 				msg = errs->errs[numRecord].server;

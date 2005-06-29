@@ -53,7 +53,7 @@ char *basename(char *path);
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.19 2005-06-22 18:33:59 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.20 2005-06-29 07:21:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -214,7 +214,8 @@ next_query(DBPROCESS *dbproc)
 			
 	fprintf(options.verbose, "%s:%d: Query:\n", options.appname, __LINE__);
 	
-	/* Normally, a call to dbcmd() clears the buffer the first time it's 
+	/*
+	 * Normally, a call to dbcmd() clears the buffer the first time it's 
 	 * invoked after a call to dbsqlexec() or dbsqlsend().  If fgets(3) 
 	 * returns 0 below, however, we'd indicate "success" without calling
 	 * dbcmd().  This would leave the prior query in the buffer, which 

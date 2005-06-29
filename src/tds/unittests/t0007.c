@@ -20,7 +20,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0007.c,v 1.12 2003-04-21 16:06:11 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.13 2005-06-29 07:21:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -103,10 +103,11 @@ main(int argc, char **argv)
 	test("0", SYBINT1, "0");
 	test("-1", SYBINT1, "error");
 
-	/* test overflow on very big numbers 
+	/*
+	 * test overflow on very big numbers 
 	 * i use increment of 10^9 to be sure lower 32bit be correct
 	 * in a case
-	 * */
+	 */
 	printf("overflow on big number checks...\n");
 	test("62147483647", SYBINT4, "error");
 	test("63147483647", SYBINT4, "error");

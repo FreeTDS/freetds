@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.151 2005-06-20 06:36:27 freddy77 Exp $";
+static char software_version[] = "$Id: ct.c,v 1.152 2005-06-29 07:21:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -349,7 +349,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			}
 		}
 
-		/* XXX "login" properties shouldn't be set after
+		/*
+		 * XXX "login" properties shouldn't be set after
 		 * login.  I don't know if it should fail silently
 		 * or return an error.
 		 */
@@ -406,7 +407,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			tds_set_packet(tds_login, (short) intval);
 			break;
 		case CS_TDS_VERSION:
-			/* FIX ME
+			/*
+			 * FIXME
 			 * (a) We don't support all versions in tds/login.c -
 			 *     I tried to pick reasonable versions.
 			 * (b) Might need support outside of tds/login.c
@@ -2275,8 +2277,10 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->precision = curcol->column_prec;
 	datafmt->scale = curcol->column_scale;
 
-	/* There are other options that can be returned, but these are the
-	 ** only two being noted via the TDS layer. */
+	/*
+	 * There are other options that can be returned, but these are the
+	 * only two being noted via the TDS layer.
+	 */
 	datafmt->status = 0;
 	if (curcol->column_nullable)
 		datafmt->status |= CS_CANBENULL;

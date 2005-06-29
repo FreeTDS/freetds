@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.145 2005-05-31 07:01:04 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.146 2005-06-29 07:21:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -72,17 +72,19 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
  * In such case they return NULL and leave the state as before call.
  */
 
-/** \addtogroup mem
- *  \@{ 
+/**
+ * \addtogroup mem
+ * \@{
  */
 
-/** \fn TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id)
- *  \brief Allocate a dynamic statement.
- *  \param tds the connection within which to allocate the statement.
- *  \param id a character label identifying the statement.
- *  \return a pointer to the allocated structure (NULL on failure).
+/**
+ * \fn TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id)
+ * \brief Allocate a dynamic statement.
+ * \param tds the connection within which to allocate the statement.
+ * \param id a character label identifying the statement.
+ * \return a pointer to the allocated structure (NULL on failure).
  *
- *  tds_alloc_dynamic is used to implement placeholder code under TDS 5.0
+ * tds_alloc_dynamic is used to implement placeholder code under TDS 5.0
  */
 TDSDYNAMIC *
 tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
@@ -110,11 +112,12 @@ tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
 	return dyn;
 }
 
-/** \fn void tds_free_input_params(TDSDYNAMIC *dyn)
- *  \brief Frees all allocated input parameters of a dynamic statement.
- *  \param dyn the dynamic statement whose input parameter are to be freed
+/**
+ * \fn void tds_free_input_params(TDSDYNAMIC *dyn)
+ * \brief Frees all allocated input parameters of a dynamic statement.
+ * \param dyn the dynamic statement whose input parameter are to be freed
  *
- *  tds_free_input_params frees all parameters for the give dynamic statement
+ * tds_free_input_params frees all parameters for the give dynamic statement
  */
 void
 tds_free_input_params(TDSDYNAMIC * dyn)
@@ -128,9 +131,10 @@ tds_free_input_params(TDSDYNAMIC * dyn)
 	}
 }
 
-/** \fn void tds_free_dynamic(TDSSOCKET *tds, TDSDYNAMIC *dyn)
- *  \brief Frees dynamic statement and remove from TDS
- *  \param dyn dynamic statement to be freed.
+/**
+ * \fn void tds_free_dynamic(TDSSOCKET *tds, TDSDYNAMIC *dyn)
+ * \brief Frees dynamic statement and remove from TDS
+ * \param dyn dynamic statement to be freed.
  */
 void
 tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
@@ -158,17 +162,18 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	free(dyn);
 }
 
-/** \fn TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
- *  \brief Adds a output parameter to TDSPARAMINFO.
- *  \param old_param a pointer to the TDSPARAMINFO structure containing the 
- *  current set of output parameter, or NULL if none exists.
- *  \return a pointer to the new TDSPARAMINFO structure.
+/**
+ * \fn TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO *old_param)
+ * \brief Adds a output parameter to TDSPARAMINFO.
+ * \param old_param a pointer to the TDSPARAMINFO structure containing the 
+ * current set of output parameter, or NULL if none exists.
+ * \return a pointer to the new TDSPARAMINFO structure.
  *
- *  tds_alloc_param_result() works a bit differently than the other alloc result
- *  functions.  Output parameters come in individually with no total number 
- *  given in advance, so we simply call this func every time with get a
- *  TDS_PARAM_TOKEN and let it realloc the columns struct one bigger. 
- *  tds_free_all_results() usually cleans up after us.
+ * tds_alloc_param_result() works a bit differently than the other alloc result
+ * functions.  Output parameters come in individually with no total number 
+ * given in advance, so we simply call this func every time with get a
+ * TDS_PARAM_TOKEN and let it realloc the columns struct one bigger. 
+ * tds_free_all_results() usually cleans up after us.
  */
 TDSPARAMINFO *
 tds_alloc_param_result(TDSPARAMINFO * old_param)
@@ -728,8 +733,12 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize);
 
 	tds_socket->parent = NULL;
-	tds_socket->option_flag2 = 0x03;	/* TDS 7.0: 0x02 indicates ODBC driver; 
-						 * 0x01 means change to initial language must succeed */
+	/*
+	 * TDS 7.0: 
+	 * 0x02 indicates ODBC driver
+	 * 0x01 means change to initial language must succeed
+	 */
+	tds_socket->option_flag2 = 0x03;
 	tds_socket->env.block_size = bufsize;
 
 	if (tds_iconv_alloc(tds_socket))

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.231 2005-06-28 08:27:14 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.232 2005-06-29 07:21:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int emit_message (DBPROCESS *dbproc, DBINT msgno);
@@ -1207,7 +1207,8 @@ dbresults(DBPROCESS * dbproc)
 	
 			case TDS_DONE_RESULT:
 
-				/* A done token signifies the end of a logical command.
+				/*
+				 * A done token signifies the end of a logical command.
 				 * There are three possibilities:
 				 * 1. Simple command with no result set, i.e. update, delete, insert
 				 * 2. Command with result set but no rows
@@ -3739,7 +3740,8 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		break;
 	case DBOFFSET:
 		/* server option */
-		/* requires param
+		/*
+		 * requires param
 		 * "select", "from", "table", "order", "compute",
 		 * "statement", "procedure", "execute", or "param"
 		 */

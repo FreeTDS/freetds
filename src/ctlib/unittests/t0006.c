@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <ctpublic.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.10 2004-03-22 20:41:23 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.11 2005-06-29 07:21:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_CONTEXT *ctx;
@@ -49,12 +49,16 @@ DoTest(
 	srcfmt.datatype = fromtype;
 	srcfmt.maxlength = fromlen;
 
-	/* FIXME this fix some thing but if error cs_convert should return 
-	 * CS_UNUSED; note that this is defined 5.. a valid result ... */
+	/*
+	 * FIXME this fix some thing but if error cs_convert should return
+	 * CS_UNUSED; note that this is defined 5.. a valid result ...
+	 */
 	reslen = 0;
 
-	/* TODO: add special case for CS_CHAR_TYPE and give different 
-	 * flags and len */
+	/*
+	 * TODO: add special case for CS_CHAR_TYPE and give different
+	 * flags and len
+	 */
 
 	/* do convert */
 	memset(buffer, 23, sizeof(buffer));

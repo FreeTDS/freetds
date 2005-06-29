@@ -98,11 +98,12 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.26 2005-06-28 19:08:21 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.27 2005-06-29 07:21:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-/** \addtogroup network
- *  \@{ 
+/**
+ * \addtogroup network
+ * \@{ 
  */
 
 #if !defined(SOL_TCP) && defined(IPPROTO_TCP)
@@ -425,9 +426,11 @@ tds_read_packet(TDSSOCKET * tds)
 	if (IS_TDS42(tds)) {
 		if (header[0] != 0x04 && header[0] != 0x0f) {
 			tdsdump_log(TDS_DBG_ERROR, "Invalid packet header %d\n", header[0]);
-			/*  Not sure if this is the best way to do the error 
-			 *  handling here but this is the way it is currently 
-			 *  being done. */
+			/*
+			 * Not sure if this is the best way to do the error 
+			 * handling here but this is the way it is currently 
+			 * being done.
+			 */
 			tds->in_len = 0;
 			tds->in_pos = 0;
 			tds->last_packet = 1;
@@ -875,9 +878,10 @@ tds_ssl_init(TDSSOCKET *tds)
 	static const int cipher_priority[] = {
 		GNUTLS_CIPHER_AES_256_CBC, GNUTLS_CIPHER_AES_128_CBC,
 		GNUTLS_CIPHER_3DES_CBC, GNUTLS_CIPHER_ARCFOUR_128,
-/*		GNUTLS_CIPHER_ARCFOUR_40,
+#if 0
+		GNUTLS_CIPHER_ARCFOUR_40,
 		GNUTLS_CIPHER_DES_CBC,
-*/
+#endif
 		0
 	};
 	static const int comp_priority[] = { GNUTLS_COMP_NULL, 0 };
