@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: read.c,v 1.94 2005-06-29 07:21:27 freddy77 Exp $";
+static char software_version[] = "$Id: read.c,v 1.95 2005-06-30 12:14:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -198,6 +198,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
  * Fetch character data the wire.
  * Output is NOT null terminated.
  * If \a char_conv is not NULL, convert data accordingly.
+ * \param tds         state information for the socket and the TDS protocol
  * \param row_buffer  destination buffer in current_row. Can't be NULL
  * \param wire_size   size to read from wire (in bytes)
  * \param curcol      column information

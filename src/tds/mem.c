@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.147 2005-06-30 09:47:04 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.148 2005-06-30 12:14:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -134,6 +134,7 @@ tds_free_input_params(TDSDYNAMIC * dyn)
 /**
  * \fn void tds_free_dynamic(TDSSOCKET *tds, TDSDYNAMIC *dyn)
  * \brief Frees dynamic statement and remove from TDS
+ * \param tds state information for the socket and the TDS protocol
  * \param dyn dynamic statement to be freed.
  */
 void

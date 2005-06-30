@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.69 2005-06-29 07:21:37 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.70 2005-06-30 12:14:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -89,9 +89,10 @@ tds_put_n(TDSSOCKET * tds, const void *buf, int n)
 /**
  * Output a string to wire
  * automatic translate string to unicode if needed
- * @return bytes written to wire
- * @param s   string to write
- * @param len length of string in characters, or -1 for null terminated
+ * \return bytes written to wire
+ * \param tds state information for the socket and the TDS protocol
+ * \param s   string to write
+ * \param len length of string in characters, or -1 for null terminated
  */
 int
 tds_put_string(TDSSOCKET * tds, const char *s, int len)

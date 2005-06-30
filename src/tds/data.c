@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: data.c,v 1.11 2005-02-09 16:15:18 jklowden Exp $";
+static char software_version[] = "$Id: data.c,v 1.12 2005-06-30 12:14:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if !ENABLE_EXTRA_CHECKS
@@ -62,9 +62,10 @@ tds_set_column_type(TDSCOLUMN * curcol, int type)
 }
 
 /**
- * Set type of column initializing all dependency 
- * @param curcol column to set
- * @param type   type to set
+ * Set type of column initializing all dependency
+ * \param tds    state information for the socket and the TDS protocol
+ * \param curcol column to set
+ * \param type   type to set
  */
 void
 tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)

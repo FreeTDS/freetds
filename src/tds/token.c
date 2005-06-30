@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.299 2005-06-30 09:47:04 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.300 2005-06-30 12:14:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -1319,7 +1319,8 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 /**
  * Read data information from wire
- * @param curcol column where to store information
+ * \param tds state information for the socket and the TDS protocol
+ * \param curcol column where to store information
  */
 static int
 tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
@@ -1481,7 +1482,8 @@ tds7_process_result(TDSSOCKET * tds)
 
 /**
  * Read data information from wire
- * @param curcol column where to store information
+ * \param tds state information for the socket and the TDS protocol
+ * \param curcol column where to store information
  */
 static int
 tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
@@ -1826,10 +1828,11 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid)
 
 /**
  * Read a data from wire
- * @param curcol column where store column information
- * @param current_row pointer to row data to store information
- * @param i column position in current_row
- * @return TDS_FAIL on error or TDS_SUCCEED
+ * \param tds state information for the socket and the TDS protocol
+ * \param curcol column where store column information
+ * \param current_row pointer to row data to store information
+ * \param i column position in current_row
+ * \return TDS_FAIL on error or TDS_SUCCEED
  */
 static int
 tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, int i)
@@ -2093,8 +2096,9 @@ tds_process_row(TDSSOCKET * tds)
 /**
  * tds_process_end() processes any of the DONE, DONEPROC, or DONEINPROC
  * tokens.
- * @param marker     TDS token number
- * @param flags_parm filled with bit flags (see TDS_DONE_ constants). 
+ * \param tds        state information for the socket and the TDS protocol
+ * \param marker     TDS token number
+ * \param flags_parm filled with bit flags (see TDS_DONE_ constants). 
  *        Is NULL nothing is returned
  */
 static TDS_INT
@@ -2493,7 +2497,8 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 /**
  * Read a string from wire in a new allocated buffer
- * @param len length of string to read
+ * \param tds state information for the socket and the TDS protocol
+ * \param len length of string to read
  */
 int
 tds_alloc_get_string(TDSSOCKET * tds, char **string, int len)
@@ -2558,8 +2563,9 @@ tds_process_cancel(TDSSOCKET * tds)
 
 /**
  * Find a dynamic given string id
- * @return dynamic or NULL is not found
- * @param id   dynamic id to search
+ * \return dynamic or NULL is not found
+ * \param tds  state information for the socket and the TDS protocol
+ * \param id   dynamic id to search
  */
 TDSDYNAMIC *
 tds_lookup_dynamic(TDSSOCKET * tds, char *id)

@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.122 2005-06-29 07:21:26 freddy77 Exp $";
+static char software_version[] = "$Id: iconv.c,v 1.123 2005-06-30 12:14:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
@@ -572,6 +572,7 @@ tds_iconv_free(TDSSOCKET * tds)
 
 /** 
  * Wrapper around iconv(3).  Same parameters, with slightly different behavior.
+ * \param tds state information for the socket and the TDS protocol
  * \param io Enumerated value indicating whether the data are being sent to or received from the server. 
  * \param conv information about the encodings involved, including the iconv(3) conversion descriptors. 
  * \param inbuf address of pointer to the input buffer of data to be converted.  

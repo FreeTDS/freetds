@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.173 2005-06-29 07:21:27 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.174 2005-06-30 12:14:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -672,6 +672,7 @@ tds_build_params_definition(TDSSOCKET * tds, const char* query, size_t query_len
 
 /**
  * Output params types and query (required by sp_prepare/sp_executesql/sp_prepexec)
+ * \param tds       state information for the socket and the TDS protocol
  * \param query     query (in ucs2le codings)
  * \param query_len query length in bytes
  */
