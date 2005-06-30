@@ -1,3 +1,8 @@
+Thu Jun 30 11:46:20 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/apps/tsql.c src/ctlib/ctutil.c:
+	* src/dblib/dbutil.c src/odbc/odbc.c src/tds/mem.c src/tds/token.c:
+	- rename some TDSMESSAGE fields as James suggested
+
 Wed Jun 29 09:18:06 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/bsqldb.c src/apps/freebcp.c src/ctlib/cs.c:
 	* src/ctlib/ct.c src/ctlib/unittests/t0002.c:

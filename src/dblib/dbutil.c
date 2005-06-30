@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dbutil.c,v 1.30 2005-06-29 07:21:18 freddy77 Exp $";
+static char software_version[] = "$Id: dbutil.c,v 1.31 2005-06-30 09:47:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -87,12 +87,12 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 	 */
 	if (_dblib_msg_handler) {
 		_dblib_msg_handler(dbproc,
-				   msg->msg_number,
-				   msg->msg_state,
-				   msg->msg_level, msg->message, msg->server, msg->proc_name, msg->line_number);
+				   msg->msgno,
+				   msg->state,
+				   msg->severity, msg->message, msg->server, msg->proc_name, msg->line_number);
 	}
 
-	if (msg->msg_level > 10) {
+	if (msg->severity > 10) {
 		/*
 		 * Sybase docs say SYBESMSG is generated only in specific
 		 * cases (severity greater than 16, or deadlock occurred, or
@@ -115,13 +115,13 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAG
 	if (tds && tds->parent) {
 		dbproc = (DBPROCESS *) tds->parent;
 	}
-	if (msg->msg_number > 0) {
+	if (msg->msgno > 0) {
 		/*
 		 * now check to see if the user supplied a function,
 		 * if not, ignore the problem
 		 */
 		if (_dblib_err_handler) {
-			rc = _dblib_err_handler(dbproc, msg->msg_level, msg->msg_number, msg->msg_state, msg->message, msg->server);
+			rc = _dblib_err_handler(dbproc, msg->severity, msg->msgno, msg->state, msg->message, msg->server);
 		}
 	}
 
@@ -130,7 +130,7 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAG
 	 * for non-SYBETIME errors in the strange and different ways as
 	 * specified by Sybase and Microsoft.
 	 */
-	if (msg->msg_number != SYBETIME) {
+	if (msg->msgno != SYBETIME) {
 		switch (rc) {
 		case INT_TIMEOUT:
 			rc = INT_EXIT;

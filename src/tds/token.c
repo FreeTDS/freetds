@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: token.c,v 1.298 2005-06-29 07:21:28 freddy77 Exp $";
+static char software_version[] = "$Id: token.c,v 1.299 2005-06-30 09:47:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -2174,7 +2174,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
  * 	The general approach is to emit ct-lib error information and let db-lib and ODBC map that to their number and text.  
  */
 int
-tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *msg_text)
+tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int severity, int state, int line, const char *msg_text)
 {
 	int ret;
 	TDSMESSAGE msg;
@@ -2185,15 +2185,15 @@ tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int leve
 
 	if (tds_ctx->err_handler) {
 		memset(&msg, 0, sizeof(TDSMESSAGE));
-		msg.msg_number = msgnum;
-		msg.msg_level = level;	/* severity? */
-		msg.msg_state = state;
+		msg.msgno = msgno;
+		msg.severity = severity;
+		msg.state = state;
 		/* TODO is possible to avoid copy of strings ? */
 		msg.server = strdup("OpenClient");
 		msg.line_number = line;
 		msg.message = strdup(msg_text);
 		if (msg.sql_state == NULL)
-			msg.sql_state = tds_alloc_client_sqlstate(msg.msg_number);
+			msg.sql_state = tds_alloc_client_sqlstate(msg.msgno);
 		ret = tds_ctx->err_handler(tds_ctx, tds, &msg);
 		tds_free_msg(&msg);
 #if 1
@@ -2224,7 +2224,7 @@ tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int leve
 #endif
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_client_msg: #%d: \"%s\".  Connection state is now %d.  \n", msgnum, msg_text, tds ? (int)tds->state : -1);
+	tdsdump_log(TDS_DBG_FUNC, "tds_client_msg: #%d: \"%s\".  Connection state is now %d.  \n", msgno, msg_text, tds ? (int)tds->state : -1);
 
 	return 0;
 }
@@ -2362,18 +2362,18 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 	/* message number */
 	rc = tds_get_int(tds);
-	msg.msg_number = rc;
+	msg.msgno = rc;
 
 	/* msg state */
-	msg.msg_state = tds_get_byte(tds);
+	msg.state = tds_get_byte(tds);
 
 	/* msg level */
-	msg.msg_level = tds_get_byte(tds);
+	msg.severity = tds_get_byte(tds);
 
 	/* determine if msg or error */
 	switch (marker) {
 	case TDS_EED_TOKEN:
-		if (msg.msg_level <= 10)
+		if (msg.severity <= 10)
 			msg.priv_msg_type = 0;
 		else
 			msg.priv_msg_type = 1;
@@ -2433,7 +2433,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	 * TDS_EED_TOKEN is not being called for me.
 	 */
 	if (msg.sql_state == NULL)
-		msg.sql_state = tds_alloc_lookup_sqlstate(tds, msg.msg_number);
+		msg.sql_state = tds_alloc_lookup_sqlstate(tds, msg.msgno);
 
 
 	/* In case extended error data is sent, we just try to discard it */
@@ -2465,7 +2465,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	}
 	
 	/* special case, */
-	if (marker == TDS_EED_TOKEN && tds->cur_dyn && !TDS_IS_MSSQL(tds) && msg.msg_number == 2782) {
+	if (marker == TDS_EED_TOKEN && tds->cur_dyn && !TDS_IS_MSSQL(tds) && msg.msgno == 2782) {
 		/* we must emulate prepare */
 		tds->cur_dyn->emulated = 1;
 	} else {
@@ -2475,12 +2475,12 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		if (tds->tds_ctx->msg_handler) {
 			tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() calling client msg handler\n");
 			tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg);
-		} else if (msg.msg_number) {
+		} else if (msg.msgno) {
 			tdsdump_log(TDS_DBG_WARN,
-				    "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-				    msg.msg_number,
-				    msg.msg_level,
-				    msg.msg_state, msg.server, msg.line_number, msg.message);
+				    "Msg %d, Severity %d, State %d, Server %s, Line %d\n%s\n",
+				    msg.msgno,
+				    msg.severity ,
+				    msg.state, msg.server, msg.line_number, msg.message);
 		}
 	}
 	

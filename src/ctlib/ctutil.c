@@ -32,7 +32,7 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: ctutil.c,v 1.25 2005-06-22 18:34:02 freddy77 Exp $";
+static char software_version[] = "$Id: ctutil.c,v 1.26 2005-06-30 09:47:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -101,7 +101,7 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	}
 
 	memset(&errmsg, '\0', sizeof(errmsg));
-	errmsg.msgnumber = msg->msg_number;
+	errmsg.msgnumber = msg->msgno;
 	strcpy(errmsg.msgstring, msg->message);
 	errmsg.msgstringlen = strlen(msg->message);
 	errmsg.osstring[0] = '\0';
@@ -132,15 +132,15 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	}
 
 	memset(&errmsg, '\0', sizeof(errmsg));
-	errmsg.msgnumber = msg->msg_number;
+	errmsg.msgnumber = msg->msgno;
 	tds_strlcpy(errmsg.text, msg->message, sizeof(errmsg.text));
 	errmsg.textlen = strlen(errmsg.text);
 	errmsg.sqlstate[0] = 0;
 	if (msg->sql_state)
 		tds_strlcpy((char *) errmsg.sqlstate, msg->sql_state, sizeof(errmsg.sqlstate));
 	errmsg.sqlstatelen = strlen((char *) errmsg.sqlstate);
-	errmsg.state = msg->msg_state;
-	errmsg.severity = msg->msg_level;
+	errmsg.state = msg->state;
+	errmsg.severity = msg->severity;
 	errmsg.line = msg->line_number;
 	if (msg->server) {
 		errmsg.svrnlen = strlen(msg->server);

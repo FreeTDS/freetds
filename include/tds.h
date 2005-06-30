@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.235 2005-06-28 19:08:21 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.236 2005-06-30 09:47:02 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -978,9 +978,9 @@ typedef struct tds_message
 {
 	TDS_SMALLINT priv_msg_type;
 	TDS_SMALLINT line_number;
-	TDS_UINT msg_number;
-	TDS_SMALLINT msg_state;
-	TDS_SMALLINT msg_level;
+	TDS_UINT msgno;
+	TDS_SMALLINT state;
+	TDS_SMALLINT severity;
 	TDS_CHAR *server;
 	TDS_CHAR *message;
 	TDS_CHAR *proc_name;
@@ -1222,8 +1222,8 @@ void tds_free_input_params(TDSDYNAMIC * dyn);
 void tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, int bufsize);
 unsigned char *tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam);
-char *tds_alloc_client_sqlstate(int msgnum);
-char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum);
+char *tds_alloc_client_sqlstate(int msgno);
+char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET * tds, const char *id);
 void tds_free_login(TDSLOGIN * login);
@@ -1284,7 +1284,7 @@ void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLUMN * curcol);
 int tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,
 			TDS_INT * tds_argsize);
-int tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgnum, int level, int state, int line, const char *message);
+int tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int severity, int state, int line, const char *message);
 int tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsigned flag);
 
 /* data.c */

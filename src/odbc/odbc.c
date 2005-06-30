@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.378 2005-06-29 07:21:21 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.379 2005-06-30 09:47:03 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -1701,7 +1701,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 	/*
 	 * if (asprintf(&p,
 	 * " Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-	 * msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message) < 0)
+	 * msg->msgno, msg->severity, msg->state, msg->server, msg->line_number, msg->message) < 0)
 	 * return 0;
 	 */
 	if (tds && tds->parent) {
@@ -1716,16 +1716,16 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		errs = &((TDS_ENV *) ctx->parent)->errs;
 	}
 	if (errs) {
-		int level = msg->msg_level;
+		int severity = msg->severity;
 
-		odbc_errs_add_rdbms(errs, msg->msg_number, msg->sql_state, msg->message, msg->line_number, msg->msg_level,
+		odbc_errs_add_rdbms(errs, msg->msgno, msg->sql_state, msg->message, msg->line_number, msg->severity,
 				    msg->server);
-		if (level <= 10 && dbc && !TDS_IS_MSSQL(dbc->tds_socket) && msg->sql_state && msg->sql_state[0]
+		if (severity <= 10 && dbc && !TDS_IS_MSSQL(dbc->tds_socket) && msg->sql_state && msg->sql_state[0]
 		    && strncmp(msg->sql_state, "00", 2) != 0) {
 			if (strncmp(msg->sql_state, "01", 2) != 0 && strncmp(msg->sql_state, "IM", 2) != 0)
-				level = 11;
+				severity = 11;
 		}
-		if (level <= 10) {
+		if (severity <= 10) {
 			if (errs->lastrc == SQL_SUCCESS)
 				errs->lastrc = SQL_SUCCESS_WITH_INFO;
 		} else {

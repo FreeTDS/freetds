@@ -68,7 +68,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.78 2005-04-15 11:51:56 freddy77 Exp $";
+static char software_version[] = "$Id: tsql.c,v 1.79 2005-06-30 09:47:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 enum
@@ -436,15 +436,15 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 static int
 tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
-	if (msg->msg_number == 0) {
+	if (msg->msgno == 0) {
 		fprintf(stderr, "%s\n", msg->message);
 		return 0;
 	}
 
-	if (msg->msg_number != 5701 && msg->msg_number != 5703
-	    && msg->msg_number != 20018) {
+	if (msg->msgno != 5701 && msg->msgno != 5703
+	    && msg->msgno != 20018) {
 		fprintf(stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-			msg->msg_number, msg->msg_level, msg->msg_state, msg->server, msg->line_number, msg->message);
+			msg->msgno, msg->severity, msg->state, msg->server, msg->line_number, msg->message);
 	}
 
 	return 0;

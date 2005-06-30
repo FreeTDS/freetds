@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.146 2005-06-29 07:21:27 freddy77 Exp $";
+static char software_version[] = "$Id: mem.c,v 1.147 2005-06-30 09:47:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,
 	no_unused_var_warn
 };
@@ -851,9 +851,9 @@ tds_free_msg(TDSMESSAGE * message)
 {
 	if (message) {
 		message->priv_msg_type = 0;
-		message->msg_number = 0;
-		message->msg_state = 0;
-		message->msg_level = 0;
+		message->msgno = 0;
+		message->state = 0;
+		message->severity = 0;
 		message->line_number = 0;
 		if (message->message)
 			TDS_ZERO_FREE(message->message);
@@ -869,11 +869,11 @@ tds_free_msg(TDSMESSAGE * message)
 #define SQLS_ENTRY(number,state) case number: p = state; break
 
 char *
-tds_alloc_client_sqlstate(int msgnum)
+tds_alloc_client_sqlstate(int msgno)
 {
 	char *p = NULL;
 
-	switch (msgnum) {
+	switch (msgno) {
 		SQLS_ENTRY(17000, "S1T00");	/* timeouts ??? */
 		SQLS_ENTRY(20004, "08S01");	/* Communication link failure */
 		SQLS_ENTRY(20006, "08S01");
@@ -895,13 +895,13 @@ tds_alloc_client_sqlstate(int msgnum)
 }
 
 char *
-tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
+tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno)
 {
 	const char *p = NULL;
 	char *q = NULL;
 
 	if (TDS_IS_MSSQL(tds)) {
-		switch (msgnum) {	/* MSSQL Server */
+		switch (msgno) {	/* MSSQL Server */
 
 			SQLS_ENTRY(3621,"01000");
 			SQLS_ENTRY(8153,"01003");	/* Null in aggregate */
@@ -1060,7 +1060,7 @@ tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgnum)
 			SQLS_ENTRY(21166, "42S22");
 		}
 	} else {
-		switch (msgnum) {	/* Sybase */
+		switch (msgno) {	/* Sybase */
 			SQLS_ENTRY(3621, "01000");
 			SQLS_ENTRY(9501, "01003");	/* Null in aggregate */
 			SQLS_ENTRY(911, "08004");	/* Server rejected connection */
