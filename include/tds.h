@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.236 2005-06-30 09:47:02 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.237 2005-07-01 10:06:21 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1058,6 +1058,18 @@ typedef struct tds_dynamic
 	char *query;
 } TDSDYNAMIC;
 
+typedef enum {
+	TDS_MULTIPLE_QUERY,
+	TDS_MULTIPLE_EXECUTE,
+	TDS_MULTIPLE_RPC
+} TDS_MULTIPLE_TYPE;
+
+typedef struct tds_multiple
+{
+	TDS_MULTIPLE_TYPE type;
+	unsigned int flags;
+} TDSMULTIPLE;
+
 /* forward declaration */
 typedef struct tds_context TDSCONTEXT;
 
@@ -1273,6 +1285,10 @@ int tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
 int tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor);
 int tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
 int tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
+
+int tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type);
+int tds_multiple_done(TDSSOCKET *tds, TDSMULTIPLE *multiple);
+int tds_multiple_query(TDSSOCKET *tds, TDSMULTIPLE *multiple, const char *query, TDSPARAMINFO * params);
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET * tds);

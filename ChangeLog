@@ -1,3 +1,7 @@
+Fri Jul  1 12:04:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c include/tds.h:
+	- implement partial multiple queries
+
 Thu Jun 30 14:13:47 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/data.c src/tds/iconv.c src/tds/mem.c src/tds/query.c:
 	* src/tds/read.c src/tds/token.c src/tds/write.c:

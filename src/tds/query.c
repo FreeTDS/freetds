@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.174 2005-06-30 12:14:15 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.175 2005-07-01 10:06:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -51,7 +51,7 @@ static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_defini
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, int i);
 static char *tds_build_params_definition(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, const char** converted_query, int *converted_query_len, int *out_len);
-static int tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
+static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static const char *tds_skip_comment(const char *s);
 static int tds_count_placeholders_ucs2le(const char *query, const char *query_end);
 
@@ -967,8 +967,11 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		if (ret != TDS_FAIL)
 			if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 				ret = TDS_FAIL;
-		if (ret != TDS_FAIL)
-			ret = tds_submit_emulated_execute(tds, dyn);
+		if (ret != TDS_FAIL) {
+			ret = tds_send_emulated_execute(tds, dyn->query, dyn->params);
+			if (ret == TDS_SUCCEED)
+				ret = tds_query_flush_packet(tds);
+		}
 		/* do not free our parameters */
 		dyn->params = NULL;
 		tds_free_dynamic(tds, dyn);
@@ -1366,8 +1369,11 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		return tds_query_flush_packet(tds);
 	}
 
-	if (dyn->emulated)
-		return tds_submit_emulated_execute(tds, dyn);
+	if (dyn->emulated) {
+		if (tds_send_emulated_execute(tds, dyn->query, dyn->params) != TDS_SUCCEED)
+			return TDS_FAIL;
+		return tds_query_flush_packet(tds);
+	}
 
 	/* query has been prepared successfully, discard original query */
 	if (dyn->query)
@@ -2130,11 +2136,11 @@ tds_quote_and_put(TDSSOCKET * tds, const char *s, const char *end)
 		if (*s == '\'')
 			buf[i++] = '\'';
 		if (i >= 254) {
-			tds_put_n(tds, buf, i);
+			tds_put_string(tds, buf, i);
 			i = 0;
 		}
 	}
-	tds_put_n(tds, buf, i);
+	tds_put_string(tds, buf, i);
 }
 
 static int
@@ -2156,9 +2162,9 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	if (src_len < 0) {
 		/* on TDS 4 and 5 TEXT/IMAGE cannot be NULL, use empty */
 		if (!IS_TDS7_PLUS(tds) && (curcol->column_type == SYBIMAGE || curcol->column_type == SYBTEXT))
-			tds_put_n(tds, "''", 2);
+			tds_put_string(tds, "''", 2);
 		else
-			tds_put_n(tds, "NULL", 4);
+			tds_put_string(tds, "NULL", 4);
 		return TDS_SUCCEED;
 	}
 	
@@ -2174,19 +2180,19 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 			buf[i++] = tds_hex_digits[*src >> 4 & 0xF];
 			buf[i++] = tds_hex_digits[*src & 0xF];
 			if (i == 256) {
-				tds_put_n(tds, buf, i);
+				tds_put_string(tds, buf, i);
 				i = 0;
 			}
 		}
-		tds_put_n(tds, buf, i);
+		tds_put_string(tds, buf, i);
 		break;
 	/* char, quote as necessary */
 	case SYBNVARCHAR: case SYBNTEXT: case XSYBNCHAR: case XSYBNVARCHAR:
-		tds_put_n(tds, "N", 1);
+		tds_put_string(tds, "N", 1);
 	case SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR:
-		tds_put_n(tds, "\'", 1);
+		tds_put_string(tds, "\'", 1);
 		tds_quote_and_put(tds, src, src + src_len);
-		tds_put_n(tds, "\'", 1);
+		tds_put_string(tds, "\'", 1);
 		break;
 	/* TODO date, use iso format */
 	case SYBDATETIME:
@@ -2200,10 +2206,10 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 		if (res < 0)
 			return TDS_FAIL;
 		if (quote)
-			tds_put_n(tds, "\'", 1);
+			tds_put_string(tds, "\'", 1);
 		tds_quote_and_put(tds, cr.c, cr.c + res);
 		if (quote)
-			tds_put_n(tds, "\'", 1);
+			tds_put_string(tds, "\'", 1);
 		free(cr.c);
 	}
 	return TDS_SUCCEED;
@@ -2213,18 +2219,17 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
  * Emulate prepared execute traslating to a normal language
  */
 static int
-tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
+tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	int num_placeholders, i;
-	const char *query = dyn->query, *s, *e;
+	const char *s, *e;
 
 	CHECK_TDS_EXTRA(tds);
-	CHECK_DYNAMIC_EXTRA(dyn);
 
-	assert(query && !IS_TDS7_PLUS(tds));
+	assert(query);
 
 	num_placeholders = tds_count_placeholders(query);
-	if (num_placeholders && num_placeholders > dyn->params->num_cols)
+	if (num_placeholders && num_placeholders > params->num_cols)
 		return TDS_FAIL;
 	
 	/* 
@@ -2233,7 +2238,7 @@ tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	 */
 	tds->out_flag = 1;
 	if (!num_placeholders) {
-		tds_put_string(tds, dyn->query, -1);
+		tds_put_string(tds, query, -1);
 		return tds_flush_packet(tds);
 	}
 
@@ -2244,12 +2249,57 @@ tds_submit_emulated_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		if (!e)
 			break;
 		/* now translate parameter in string */
-		tds_put_param_as_string(tds, dyn->params, i);
+		tds_put_param_as_string(tds, params, i);
 
 		s = e + 1;
 	}
 	
+	return TDS_SUCCEED;
+}
+
+enum { MUL_STARTED = 1 };
+
+int
+tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type)
+{
+	multiple->type = type;
+	multiple->flags = 0;
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		return TDS_FAIL;
+
+	tds->out_flag = 1;
+	switch (type) {
+	case TDS_MULTIPLE_QUERY:
+		break;
+	case TDS_MULTIPLE_EXECUTE:
+	case TDS_MULTIPLE_RPC:
+		if (IS_TDS7_PLUS(tds))
+			tds->out_flag = 3;
+		break;
+	}
+
+	return TDS_SUCCEED;
+}
+
+int
+tds_multiple_done(TDSSOCKET *tds, TDSMULTIPLE *multiple)
+{
+	assert(tds && multiple);
+
 	return tds_query_flush_packet(tds);
+}
+
+int
+tds_multiple_query(TDSSOCKET *tds, TDSMULTIPLE *multiple, const char *query, TDSPARAMINFO * params)
+{
+	assert(multiple->type == TDS_MULTIPLE_QUERY);
+
+	if (multiple->flags & MUL_STARTED)
+		tds_put_string(tds, " ", 1);
+	multiple->flags |= MUL_STARTED;
+
+	return tds_send_emulated_execute(tds, query, params);
 }
 
 /*
