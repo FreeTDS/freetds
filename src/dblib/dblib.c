@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.187.2.5 2005-05-30 08:19:00 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.187.2.6 2005-07-01 14:38:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -1345,6 +1345,7 @@ dbresults(DBPROCESS * dbproc)
 				break;
 	
 			case TDS_DONE_RESULT:
+			case TDS_DONEPROC_RESULT:
 
 				/* A done token signifies the end of a logical command.
 				 * There are three possibilities:
@@ -1375,7 +1376,6 @@ dbresults(DBPROCESS * dbproc)
 				}
 				
 
-			case TDS_DONEPROC_RESULT:
 			case TDS_DONEINPROC_RESULT:
 
 				/* We should only return SUCCEED on a command within a */

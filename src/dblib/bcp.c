@@ -75,7 +75,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.104.2.4 2005-04-09 08:12:48 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.104.2.5 2005-07-01 14:37:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -2838,13 +2838,12 @@ static int
 rtrim(char *istr, int ilen)
 {
 	char *t;
-	int olen = ilen;
 
-	for (t = istr + (ilen - 1); *t == ' '; t--) {
+	for (t = istr + ilen; --t > istr && *t == ' '; ) {
 		*t = '\0';
-		olen--;
+		--ilen;
 	}
-	return olen;
+	return ilen;
 }
 
 static RETCODE
