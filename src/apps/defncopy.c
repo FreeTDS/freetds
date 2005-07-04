@@ -48,7 +48,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: defncopy.c,v 1.8 2005-06-22 18:34:01 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.9 2005-07-04 09:16:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -633,7 +633,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 
 	assert(options && argv);
 	
-	options->appname = basename(argv[0]);
+	options->appname = tds_basename(argv[0]);
 	
 	login = dblogin();
 	

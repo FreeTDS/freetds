@@ -1,3 +1,8 @@
+Mon Jul  4 11:15:20 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/replacements.h src/apps/bsqldb.c src/apps/defncopy.c:
+	* src/dblib/unittests/common.c src/replacements/basename.c(added):
+	- is basename not found use replacement
+
 Fri Jul  1 12:04:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c include/tds.h:
 	- implement partial multiple queries

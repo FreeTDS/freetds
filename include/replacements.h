@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_replacements_h[] = "$Id: replacements.h,v 1.11 2005-05-31 07:01:02 freddy77 Exp $";
+static const char rcsid_replacements_h[] = "$Id: replacements.h,v 1.12 2005-07-04 09:16:39 freddy77 Exp $";
 static const void *const no_unused_replacements_h_warn[] = { rcsid_replacements_h, no_unused_replacements_h_warn };
 
 #include <stdarg.h>
@@ -70,6 +70,12 @@ size_t tds_strlcpy(char *dest, const char *src, size_t len);
 #define tds_strlcat(d,s,l) strlcat(d,s,l)
 #else
 size_t tds_strlcat(char *dest, const char *src, size_t len);
+#endif
+
+#if HAVE_BASENAME
+#define tds_basename(s) basename(s)
+#else
+char *tds_basename(char *path);
 #endif
 
 #ifdef __cplusplus

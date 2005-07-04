@@ -27,9 +27,10 @@
 #include <sqlfront.h>
 #include <sqldb.h>
 
+#include "replacements.h"
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.14 2004-09-09 08:54:49 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.15 2005-07-04 09:16:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -86,7 +87,7 @@ read_login_info(int argc, char **argv)
 	struct { char *username, *password, *servername, *database; char fverbose; } options;
 	
 	DIRNAME = dirname((char *)argv[0]);
-	BASENAME = basename((char *)argv[0]);
+	BASENAME = tds_basename((char *)argv[0]);
 	
 	memset(&options, 0, sizeof(options));
 	
