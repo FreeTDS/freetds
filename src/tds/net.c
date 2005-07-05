@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.27 2005-06-29 07:21:27 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.28 2005-07-05 11:09:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -191,7 +191,9 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		timeout = 90000;
 
 	start = time(NULL);
-	ioctl_blocking = 1;	/* ~0; //TRUE; */
+
+	/* enable no-blocking mode */
+	ioctl_blocking = 1;
 	if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_blocking) < 0) {
 		tds_close_socket(tds);
 		return TDS_FAIL;
