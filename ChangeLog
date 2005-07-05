@@ -1,3 +1,6 @@
+Tue Jul  5  9:51:30 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* Makefile.am: clean more
+
 Tue Jul  5  9:20:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/query.c:
 	- tds_multiple_execute implementation
