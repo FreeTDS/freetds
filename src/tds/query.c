@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.176 2005-07-05 07:21:14 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.177 2005-07-05 19:54:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1624,6 +1624,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 		return tds_query_flush_packet(tds);
 	}
 
+	/* TODO emulate it for TDS4.x, send RPC for mssql */
 	/* TODO continue, support for TDS4?? */
 	tds_set_state(tds, TDS_IDLE);
 	return TDS_FAIL;
