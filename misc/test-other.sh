@@ -7,6 +7,15 @@
 # stop on errors
 set -e
 
+verbose=no
+for param
+do
+	case $param in
+	 --verbose)
+		verbose=yes ;;
+	esac
+done
+
 # set correct directory
 DIR=`dirname $0`
 cd "$DIR/.."
@@ -64,7 +73,11 @@ if perl --help > /dev/null 2>&1; then
 		make clean
 		test -r Makefile || perl Makefile.PL
 		make
-		make test
+		if test $verbose = yes; then
+			make test TEST_VERBOSE=1
+		else
+			make test
+		fi
 	done
 fi
 
