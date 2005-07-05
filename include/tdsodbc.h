@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.82 2005-05-10 14:21:52 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.83 2005-07-05 09:09:05 freddy77 Exp $ */
 
 struct _sql_error
 {
@@ -319,6 +319,8 @@ struct _hstmt
 	int param_num;
 	/** position in prepared query to check parameters, used only in RPC */
 	char *prepared_pos;
+
+	unsigned int curr_param_row, num_param_rows;
 
 	/** number of parameter in current query */
 	unsigned int param_count;

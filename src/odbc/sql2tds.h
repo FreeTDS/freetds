@@ -21,9 +21,9 @@
 #ifndef SQL2TDS_H
 #define SQL2TDS_H
 
-/* $Id: sql2tds.h,v 1.11 2005-02-08 12:14:14 freddy77 Exp $ */
+/* $Id: sql2tds.h,v 1.12 2005-07-05 09:09:14 freddy77 Exp $ */
 
-SQLRETURN sql2tds(TDS_DBC * dbc, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam,
+SQLRETURN sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam,
 		  int compute_row);
 
 #endif /* SQL2TDS_H */

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.380 2005-06-30 10:59:47 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.381 2005-07-05 09:09:08 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -503,7 +503,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	TDS_INT result_type;
 	int tdsret;
 	int in_row = 0;
-	int got_rows = 0;
+	SQLUSMALLINT param_status;
 
 	INIT_HSTMT;
 
@@ -525,27 +525,27 @@ SQLMoreResults(SQLHSTMT hstmt)
 		stmt->row_status = IN_COMPUTE_ROW;
 		in_row = 1;
 	}
+
+	param_status = SQL_PARAM_SUCCESS;
 	for (;;) {
 		result_type = odbc_process_tokens(stmt, (TDS_TOKEN_RESULTS & (~TDS_STOPAT_COMPUTE)) | TDS_RETURN_COMPUTE);
 		switch (result_type) {
 		case TDS_CMD_DONE:
-			got_rows = (stmt->row_count != TDS_NO_COUNT);
 			if (stmt->dbc->current_statement == stmt)
 				stmt->dbc->current_statement = NULL;
-//#if !UNIXODBC
+#if 1 /* !UNIXODBC */
 			tds_free_all_results(tds);
-//#endif
+#endif
 			odbc_populate_ird(stmt);
-			if (!got_rows && !in_row) {
+			if (stmt->row_count == TDS_NO_COUNT && !in_row) {
 				stmt->row_status = NOT_IN_ROW;
 				if (stmt->next_row_count != TDS_NO_COUNT) {
-					got_rows = 1;
 					stmt->row_count = stmt->next_row_count;
 					stmt->row_status = PRE_NORMAL_ROW;
 				}
 			}
 			stmt->next_row_count = TDS_NO_COUNT;
-			if (!got_rows && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
+			if (stmt->row_count == TDS_NO_COUNT && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 			ODBC_RETURN_(stmt);
 
@@ -591,6 +591,34 @@ SQLMoreResults(SQLHSTMT hstmt)
 			/* FIXME here ??? */
 			if (!in_row)
 				tds_free_all_results(tds);
+			switch (stmt->errs.lastrc) {
+			case SQL_ERROR:
+				param_status = SQL_PARAM_ERROR;
+				break;
+			case SQL_SUCCESS_WITH_INFO:
+				param_status = SQL_PARAM_SUCCESS_WITH_INFO;
+				break;
+			}
+			if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
+				stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
+			if (stmt->ipd->header.sql_desc_rows_processed_ptr)
+				*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row + 1;
+			if (stmt->curr_param_row + 1 < stmt->num_param_rows) {
+#if 0
+				if (stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO)
+					found_info = 1;
+				if (stmt->errs.lastrc == SQL_ERROR)
+					found_error = 1;
+#endif
+				stmt->errs.lastrc = SQL_SUCCESS;
+				param_status = SQL_PARAM_SUCCESS;
+				++stmt->curr_param_row;
+				break;
+			}
+			if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
+				stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
+			if (stmt->ipd->header.sql_desc_rows_processed_ptr)
+				*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row + 1;
 			odbc_populate_ird(stmt);
 			ODBC_RETURN_(stmt);
 			break;
@@ -2070,13 +2098,6 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		ODBC_RETURN(desc, SQL_ERROR);
 		break;
 	case SQL_DESC_ARRAY_SIZE:
-#ifndef ENABLE_DEVELOPING
-		assert(desc->header.sql_desc_array_size == 1);
-		if ((SQLLEN) (TDS_INTPTR) Value != 1) {
-			odbc_errs_add(&desc->errs, "01S02", NULL, NULL);
-			ODBC_RETURN(desc, SQL_SUCCESS_WITH_INFO);
-		}
-#endif
 		IIN(SQLULEN, desc->header.sql_desc_array_size);
 		ODBC_RETURN_(desc);
 		break;
@@ -2395,7 +2416,8 @@ _SQLExecute(TDS_STMT * stmt)
 	TDS_INT result_type;
 	TDS_INT done = 0;
 	int in_row = 0;
-	int got_rows = 0;
+	SQLUSMALLINT param_status;
+	int found_info = 0, found_error = 0;
 
 	stmt->row = 0;
 
@@ -2420,8 +2442,11 @@ _SQLExecute(TDS_STMT * stmt)
 	/* catch all errors */
 	stmt->dbc->current_statement = stmt;
 
-	/* TODO support stmt->apd->header.sql_desc_array_size */
+	stmt->curr_param_row = 0;
+	stmt->num_param_rows = stmt->apd->header.sql_desc_array_size;
+
 	if (stmt->prepared_query_is_rpc) {
+		/* TODO support stmt->apd->header.sql_desc_array_size for RPC */
 		/* get rpc name */
 		/* TODO change method */
 		/* TODO cursor change way of calling */
@@ -2447,9 +2472,7 @@ _SQLExecute(TDS_STMT * stmt)
 		/* not prepared query */
 		/* TODO cursor change way of calling */
 		/* SQLExecDirect */
-#if 0
-		if (stmt->apd->header.sql_desc_array_size <= 1) {
-#endif
+		if (stmt->num_param_rows <= 1) {
 			if (!stmt->params) {
 				if (!(tds_submit_query(tds, stmt->query) == TDS_SUCCEED))
 					ODBC_RETURN(stmt, SQL_ERROR);
@@ -2457,21 +2480,24 @@ _SQLExecute(TDS_STMT * stmt)
 				if (!(tds_submit_execdirect(tds, stmt->query, stmt->params) == TDS_SUCCEED))
 					ODBC_RETURN(stmt, SQL_ERROR);
 			}
-#if 0
 		} else {
 			/* pack multiple submit using language */
-			TDS_MULTIPLE multiple;
-			unsigned int n = stmt->apd->header.sql_desc_array_size;
+			TDSMULTIPLE multiple;
 
-			ret = tds_submit_init_multiple(tds, &multiple, TDS_MULTIPLE_LANGUAGE);
-			for (; ret == TDS_SUCCEED && n > 0; --n) {
+			ret = tds_multiple_init(tds, &multiple, TDS_MULTIPLE_QUERY);
+			for (stmt->curr_param_row = 0; ret == TDS_SUCCEED; ) {
 				/* submit a query */
-				tds_submit_single_query(tds, &multiple, stmt->params);
+				ret = tds_multiple_query(tds, &multiple, stmt->query, stmt->params);
+				if (++stmt->curr_param_row >= stmt->num_param_rows)
+					break;
 				/* than process others parameters */
+				/* TODO handle all results*/
+				if (start_parse_prepared_query(stmt, 1) != SQL_SUCCESS)
+					break;
 			}
-			ret = tds_submit_done_multiple(tds, &multiple);
+			if (ret == TDS_SUCCEED)
+				ret = tds_multiple_done(tds, &multiple);
 		}
-#endif
 	} else {
 		/* TODO cursor change way of calling */
 		/* SQLPrepare */
@@ -2501,19 +2527,44 @@ _SQLExecute(TDS_STMT * stmt)
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
 		}
-		dyn = stmt->dyn;
-		tds_free_input_params(dyn);
-		dyn->params = stmt->params;
-		/* prevent double free */
-		stmt->params = NULL;
-		tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
-		/* TODO return error to client */
-		if (tds_submit_execute(tds, dyn) == TDS_FAIL)
-			ODBC_RETURN(stmt, SQL_ERROR);
+		if (stmt->num_param_rows <= 1) {
+			dyn = stmt->dyn;
+			tds_free_input_params(dyn);
+			dyn->params = stmt->params;
+			/* prevent double free */
+			stmt->params = NULL;
+			tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
+			/* TODO return error to client */
+			if (tds_submit_execute(tds, dyn) == TDS_FAIL)
+				ODBC_RETURN(stmt, SQL_ERROR);
+		} else {
+			TDSMULTIPLE multiple;
+
+			ret = tds_multiple_init(tds, &multiple, TDS_MULTIPLE_EXECUTE);
+			for (stmt->curr_param_row = 0; ret == TDS_SUCCEED; ) {
+				dyn = stmt->dyn;
+				tds_free_input_params(dyn);
+				dyn->params = stmt->params;
+				/* prevent double free */
+				stmt->params = NULL;
+				ret = tds_multiple_execute(tds, &multiple, dyn);
+				if (++stmt->curr_param_row >= stmt->num_param_rows)
+					break;
+				/* than process others parameters */
+				/* TODO handle all results*/
+				if (start_parse_prepared_query(stmt, 1) != SQL_SUCCESS)
+					break;
+			}
+			if (ret == TDS_SUCCEED)
+				ret = tds_multiple_done(tds, &multiple);
+		}
 	}
 	stmt->row_count = TDS_NO_COUNT;
 	stmt->next_row_count = TDS_NO_COUNT;
 	stmt->row_status = PRE_NORMAL_ROW;
+
+	stmt->curr_param_row = 0;
+	param_status = SQL_PARAM_SUCCESS;
 
 	/* TODO review this, ODBC return parameter in other way, for compute I don't know */
 	/* TODO perhaps we should return SQL_NO_DATA if no data available... see old SQLExecute code */
@@ -2529,7 +2580,27 @@ _SQLExecute(TDS_STMT * stmt)
 
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
-			done = 1;
+			switch (stmt->errs.lastrc) {
+			case SQL_ERROR:
+				param_status = SQL_PARAM_ERROR;
+				break;
+			case SQL_SUCCESS_WITH_INFO:
+				param_status = SQL_PARAM_SUCCESS_WITH_INFO;
+				break;
+			}
+			if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
+				stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
+			if (stmt->curr_param_row + 1 >= stmt->num_param_rows) {
+				done = 1;
+				break;
+			}
+			if (stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO)
+				found_info = 1;
+			if (stmt->errs.lastrc == SQL_ERROR)
+				found_error = 1;
+			stmt->errs.lastrc = SQL_SUCCESS;
+			param_status = SQL_PARAM_SUCCESS;
+			++stmt->curr_param_row;
 			break;
 
 		case TDS_DONEINPROC_RESULT:
@@ -2553,7 +2624,12 @@ _SQLExecute(TDS_STMT * stmt)
 		if (done)
 			break;
 	}
-	got_rows = (stmt->row_count != TDS_NO_COUNT);
+	if ((found_info || found_error) && stmt->errs.lastrc != SQL_ERROR)
+		stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
+	if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
+		stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
+	if (stmt->ipd->header.sql_desc_rows_processed_ptr)
+		*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row + 1;
 	tds->query_timeout = 0;
 	tds->query_timeout_param = NULL;
 	tds->query_timeout_func = NULL;
@@ -2563,7 +2639,7 @@ _SQLExecute(TDS_STMT * stmt)
 	case TDS_CMD_DONE:
 		if (stmt->dbc->current_statement == stmt)
 			stmt->dbc->current_statement = NULL;
-		if (stmt->errs.lastrc == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && !got_rows)
+		if (stmt->errs.lastrc == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && stmt->row_count == TDS_NO_COUNT)
 			ODBC_RETURN(stmt, SQL_NO_DATA);
 		break;
 
@@ -2621,6 +2697,7 @@ SQLExecute(SQLHSTMT hstmt)
 	/* TODO free previous parameters */
 	/* build parameters list */
 	stmt->param_data_called = 0;
+	stmt->curr_param_row = 0;
 	res = start_parse_prepared_query(stmt, 1);
 	if (SQL_SUCCESS != res)
 		ODBC_RETURN(stmt, res);
@@ -2666,12 +2743,16 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			}
 			if (done_flags & TDS_DONE_ERROR)
 				stmt->errs.lastrc = SQL_ERROR;
-			if (!(done_flags & TDS_DONE_COUNT) && !(done_flags & TDS_DONE_ERROR))
+			/* test for internal_sp not very fine, used for param set  -- freddy77 */
+			if ((done_flags & (TDS_DONE_COUNT|TDS_DONE_ERROR)) == 0
+			    && (result_type != TDS_DONEPROC_RESULT || tds->internal_sp_called != TDS_SP_EXECUTE))
 				break;
 			/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 			stmt->row = 0;
-//			tds_free_all_results(tds);
-//			odbc_populate_ird(stmt);
+#if 0
+			tds_free_all_results(tds);
+			odbc_populate_ird(stmt);
+#endif
 			return result_type;
 			break;
 
@@ -2689,8 +2770,10 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			if (done_flags & TDS_DONE_ERROR)
 				stmt->errs.lastrc = SQL_ERROR;
 			/* TODO perhaps it can be a problem if SET NOCOUNT ON, test it */
-//			tds_free_all_results(tds);
-//			odbc_populate_ird(stmt);
+#if 0
+			tds_free_all_results(tds);
+			odbc_populate_ird(stmt);
+#endif
 			if (stmt->row_status == PRE_NORMAL_ROW)
 				return result_type;
 			break;
@@ -2796,14 +2879,18 @@ _SQLFetch(TDS_STMT * stmt)
 			case TDS_ROW_RESULT:
 				break;
 			default:
-//				stmt->row_count = tds->rows_affected;
+#if 0
+				stmt->row_count = tds->rows_affected;
+#endif
 				/* 
 				 * NOTE do not set row_status to NOT_IN_ROW, 
 				 * if compute tds_process_tokens above returns TDS_NO_MORE_RESULTS
 				 */
 				stmt->row_status = PRE_NORMAL_ROW;
 				stmt->special_row = 0;
-//				odbc_populate_ird(stmt);
+#if 0
+				odbc_populate_ird(stmt);
+#endif
 				tdsdump_log(TDS_DBG_INFO1, "SQLFetch: NO_DATA_FOUND\n");
 				goto all_done;
 				break;
@@ -5321,13 +5408,6 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		/* allow to exec procedure multiple time */
 		/* TODO support it */
 	case SQL_ATTR_PARAMSET_SIZE:
-#ifndef ENABLE_DEVELOPING
-		assert(stmt->ard->header.sql_desc_array_size == 1);
-		if (ui != 1) {
-			odbc_errs_add(&stmt->errs, "HY024", NULL, NULL);
-			ODBC_RETURN(stmt, SQL_ERROR);
-		}
-#endif
 		stmt->apd->header.sql_desc_array_size = ui;
 		break;
 	case SQL_ATTR_QUERY_TIMEOUT:

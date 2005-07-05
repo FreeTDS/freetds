@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.5 2005-06-27 19:06:32 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.6 2005-07-05 09:09:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -58,13 +58,22 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 		SQLPrepare(Statement, (SQLCHAR *) test_query, SQL_NTS);
 		ret = SQLExecute(Statement);
 	}
-	if (ret != expected)
-		ODBC_REPORT_ERROR("Invalid result");
+	if (ret != expected) {
+		char buf[256];
+
+		sprintf(buf, "Invalid result: got %d exptected %d processed %d", ret, expected, processed);
+		ODBC_REPORT_ERROR(buf);
+	}
 
 	for (i = 0; i < ARRAY_SIZE; i++)
 		SQLMoreResults(Statement);
 
-	assert(processed <= ARRAY_SIZE);
+	if (processed > ARRAY_SIZE) {
+		char buf[256];
+
+		sprintf(buf, "Invalid processed number: %d", processed);
+		ODBC_REPORT_ERROR(buf);
+	}
 
 	for (i = 0; i < processed; ++i) {
 		switch (statuses[i]) {
@@ -92,7 +101,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	status[i] = 0;
 
 	if (expected_status && strcmp(expected_status, status) != 0) {
-		fprintf(stderr, "Invalid status\n\tgot '%s'\n\texpected '%s'\n", status, expected_status);
+		fprintf(stderr, "Invalid status\n\tgot      '%s'\n\texpected '%s'\n", status, expected_status);
 		exit(1);
 	}
 }
@@ -100,23 +109,23 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 int
 main(int argc, char *argv[])
 {
-#ifndef ENABLE_DEVELOPING
-	return 0;
-#endif
-
 	use_odbc_version3 = 1;
 	Connect();
 
 	test_query = "INSERT INTO #tmp1 (id, value) VALUES (?, ?)";
 	query_test(0, SQL_ERROR, "VV!!!!!!!!");
-	query_test(1, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+	/* FIXME test why is different and what should be correct result */
+	query_test(1, driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
 	test_query = "INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?";
 	query_test(0, SQL_SUCCESS_WITH_INFO, "VVVV!V!V!V");
-	query_test(1, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+	/* FIXME test why is different and what should be correct result */
+	query_test(1, driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
+	/* with result, see how SQLMoreResult work */
 	test_query = "INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?";
-	query_test(0, SQL_SUCCESS, "VVVVVV!VVV");
+	/* IMHO our driver is better here -- freddy77 */
+	query_test(0, SQL_SUCCESS, driver_is_freetds() ? "VVVV!V!V!V" : "VVVVVV!VVV");
 	query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
 
 	/* TODO record binding, array fetch, sqlputdata */

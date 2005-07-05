@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: prepare_query.c,v 1.50 2005-06-29 07:21:23 freddy77 Exp $";
+static const char software_version[] = "$Id: prepare_query.c,v 1.51 2005-07-05 09:09:13 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if 0
@@ -567,7 +567,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 			}
 
 			switch (sql2tds
-				(stmt->dbc, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
+				(stmt, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
 				 stmt->params, nparam, compute_row)) {
 			case SQL_ERROR:
 				return SQL_ERROR;
@@ -611,7 +611,7 @@ parse_prepared_query(struct _hstmt *stmt, int compute_row)
 		stmt->params = temp_params;
 
 		switch (sql2tds
-			(stmt->dbc, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
+			(stmt, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
 			 stmt->params, nparam, compute_row)) {
 		case SQL_ERROR:
 			return SQL_ERROR;
