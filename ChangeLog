@@ -1,3 +1,7 @@
+Tue Jul  5  9:20:10 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/query.c:
+	- tds_multiple_execute implementation
+
 Mon Jul  4 11:21:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c src/dblib/dblib.c:
 	- applied Bill Thompson patch for dblib bcp

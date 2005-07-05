@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.175 2005-07-01 10:06:20 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.176 2005-07-05 07:21:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1315,6 +1315,37 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	return TDS_SUCCEED;
 }
 
+static void
+tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
+{
+	TDSCOLUMN *param;
+	TDSPARAMINFO *info;
+	int i;
+
+	/* procedure name */
+	tds_put_smallint(tds, 10);
+	/* NOTE do not call this procedure using integer name (TDS_SP_EXECUTE) on mssql2k, it doesn't work! */
+	tds_put_n_as_ucs2(tds, "sp_execute");
+	tds_put_smallint(tds, 0);	/* flags */
+
+	/* id of prepared statement */
+	tds_put_byte(tds, 0);
+	tds_put_byte(tds, 0);
+	tds_put_byte(tds, SYBINT4);
+	tds_put_int(tds, dyn->num_id);
+
+	info = dyn->params;
+	if (info)
+		for (i = 0; i < info->num_cols; i++) {
+			param = info->columns[i];
+			/* TODO check error */
+			tds_put_data_info(tds, param, 0);
+			tds_put_data(tds, param, info->current_row, i);
+		}
+
+	tds->internal_sp_called = TDS_SP_EXECUTE;
+}
+
 /**
  * tds_submit_execute() sends a previously prepared dynamic statement to the 
  * server.
@@ -1324,10 +1355,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 int
 tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
-	TDSCOLUMN *param;
-	TDSPARAMINFO *info;
 	int id_len;
-	int i;
 
 	CHECK_TDS_EXTRA(tds);
 	/* TODO this dynamic should be in tds */
@@ -1343,28 +1371,8 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (IS_TDS7_PLUS(tds)) {
 		/* RPC on sp_execute */
 		tds->out_flag = 3;	/* RPC */
-		/* procedure name */
-		tds_put_smallint(tds, 10);
-		/* NOTE do not call this procedure using integer name (TDS_SP_EXECUTE) on mssql2k, it doesn't work! */
-		tds_put_n_as_ucs2(tds, "sp_execute");
-		tds_put_smallint(tds, 0);	/* flags */
 
-		/* id of prepared statement */
-		tds_put_byte(tds, 0);
-		tds_put_byte(tds, 0);
-		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds, dyn->num_id);
-
-		info = dyn->params;
-		if (info)
-			for (i = 0; i < info->num_cols; i++) {
-				param = info->columns[i];
-				/* TODO check error */
-				tds_put_data_info(tds, param, 0);
-				tds_put_data(tds, param, info->current_row, i);
-			}
-
-		tds->internal_sp_called = TDS_SP_EXECUTE;
+		tds7_send_execute(tds, dyn);
 
 		return tds_query_flush_packet(tds);
 	}
@@ -2300,6 +2308,28 @@ tds_multiple_query(TDSSOCKET *tds, TDSMULTIPLE *multiple, const char *query, TDS
 	multiple->flags |= MUL_STARTED;
 
 	return tds_send_emulated_execute(tds, query, params);
+}
+
+int
+tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn)
+{
+	assert(multiple->type == TDS_MULTIPLE_EXECUTE);
+
+	if (IS_TDS7_PLUS(tds)) {
+		if (multiple->flags & MUL_STARTED)
+			tds_put_byte(tds, 0x80);
+		multiple->flags |= MUL_STARTED;
+
+		tds7_send_execute(tds, dyn);
+
+		return TDS_SUCCEED;
+	}
+
+	if (multiple->flags & MUL_STARTED)
+		tds_put_string(tds, " ", 1);
+	multiple->flags |= MUL_STARTED;
+
+	return tds_send_emulated_execute(tds, dyn->query, dyn->params);
 }
 
 /*
