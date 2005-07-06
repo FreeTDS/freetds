@@ -245,6 +245,10 @@ SOURCE=.\iconv_replacement.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\replacements\strl.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\replacements\strtok_r.c
 # End Source File
 # Begin Source File

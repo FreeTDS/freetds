@@ -40,9 +40,14 @@
 #include <dmalloc.h>
 #endif
 
+#ifdef WIN32
+#include <assert.h>
+#define alloca _alloca
+#endif
+
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.177 2005-07-05 19:54:10 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.178 2005-07-06 12:35:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);

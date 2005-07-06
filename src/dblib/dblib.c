@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.233 2005-07-04 09:21:56 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.234 2005-07-06 12:35:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int emit_message (DBPROCESS *dbproc, DBINT msgno);
@@ -189,7 +189,7 @@ typedef struct dblib_context
 DBLIBCONTEXT;
 
 static DBLIBCONTEXT g_dblib_ctx;
-static TDS_MUTEX_DECLARE_RECURSIVE(dblib_mutex);
+static TDS_MUTEX_DECLARE(dblib_mutex);
 
 static int g_dblib_version =
 #ifdef TDS42
@@ -267,10 +267,11 @@ dblib_get_tds_ctx(void)
 }
 
 static void
-dblib_release_tds_ctx(void)
+dblib_release_tds_ctx(int count)
 {
 	TDS_MUTEX_LOCK(&dblib_mutex);
-	if (--g_dblib_ctx.tds_ctx_ref_count == 0) {
+	g_dblib_ctx.tds_ctx_ref_count -= count;
+	if (g_dblib_ctx.tds_ctx_ref_count <= 0) {
 		tds_free_context(g_dblib_ctx.tds_ctx);
 		g_dblib_ctx.tds_ctx = NULL;
 	}
@@ -1043,10 +1044,10 @@ dbclose(DBPROCESS * dbproc)
 		dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
 		TDS_MUTEX_UNLOCK(&dblib_mutex);
 
-		buffer_free(&(dbproc->row_buf));
 		tds_free_socket(tds);
-		dblib_release_tds_ctx();
+		dblib_release_tds_ctx(1);
 	}
+	buffer_free(&(dbproc->row_buf));
 
 	if (dbproc->ftos != NULL) {
 		fprintf(dbproc->ftos, "/* dbclose() at %s */\n", _dbprdate(timestr));
@@ -1099,6 +1100,7 @@ dbexit()
 	TDSSOCKET *tds;
 	DBPROCESS *dbproc;
 	int i, list_size;
+	int count = 1;
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
 
@@ -1111,9 +1113,14 @@ dbexit()
 
 	for (i = 0; i < list_size; i++) {
 		tds = g_dblib_ctx.connection_list[i];
+		g_dblib_ctx.connection_list[i] = NULL;
 		if (tds) {
+			++count;
 			dbproc = (DBPROCESS *) tds->parent;
+			tds_free_socket(tds);
 			if (dbproc) {
+				/* avoid locking in dbclose */
+				dbproc->tds_socket = NULL;
 				dbclose(dbproc);
 			}
 		}
@@ -1125,7 +1132,7 @@ dbexit()
 
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
-	dblib_release_tds_ctx();
+	dblib_release_tds_ctx(count);
 }
 
 /**

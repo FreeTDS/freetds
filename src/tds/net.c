@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.28 2005-07-05 11:09:38 freddy77 Exp $";
+static char software_version[] = "$Id: net.c,v 1.29 2005-07-06 12:35:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -227,7 +227,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 	/* check socket error */
 	optlen = sizeof(len);
-	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, &len, &optlen) != 0) {
+	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt: %s\n", strerror(sock_errno));
 		tds_close_socket(tds);
 		return TDS_FAIL;

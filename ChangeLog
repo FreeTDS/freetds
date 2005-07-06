@@ -1,3 +1,13 @@
+Wed Jul  6 14:32:23 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsodbc.h src/tds/net.c src/tds/numeric.c:
+	* src/tds/query.c win32/msvc6/libTDS.dsp:
+	- win32 updates
+	* include/tdsthread.h:
+	- cleanup
+	- for for recursive mutex
+	* src/dblib/dblib.c: do not use recursive mutex
+	* src/odbc/unittests/array.c: prevent dangerous use of stack
+
 Wed Jul  6 12:14:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/array.c:
 	- optimize way paramset result are handled

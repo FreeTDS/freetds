@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.7 2005-07-06 10:16:39 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.8 2005-07-06 12:35:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -118,6 +118,8 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 		fprintf(stderr, "Invalid status\n\tgot      '%s'\n\texpected '%s'\n", status, expected_status);
 		exit(1);
 	}
+
+	ResetStatement();
 
 	free(ids);
 	free(descs);

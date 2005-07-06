@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.32 2005-03-25 16:22:46 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.33 2005-07-06 12:35:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
@@ -95,7 +95,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 		n = mymoney;
 	}
 	n = (n + 50) / 100;
-	frac = n % 100;
+	frac = (int) (n % 100);
 	n /= 100;
 	/* if machine is 64 bit you do not need to split n */
 #if SIZEOF_LONG < 8

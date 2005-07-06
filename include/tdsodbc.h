@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.83 2005-07-05 09:09:05 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.84 2005-07-06 12:35:37 freddy77 Exp $ */
 
 struct _sql_error
 {
@@ -390,6 +390,10 @@ SQLRETURN desc_free_records(TDS_DESC * desc);
 #define SQL_INTERVAL_MINUTE_TO_SECOND		(100 + SQL_CODE_MINUTE_TO_SECOND)
 
 #endif
+#endif
+
+#ifdef WIN32
+BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
 #endif
 
 #ifdef __cplusplus
