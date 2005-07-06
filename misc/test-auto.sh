@@ -39,7 +39,7 @@ echo "<html>
 <head>
 <title>{TITLE}</title>
 <style>
-.error { color: red }
+.error { background-color: red; color: white }
 .info  { color: blue }
 </style>
 </head>

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.381 2005-07-05 09:09:08 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.382 2005-07-06 10:16:38 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -599,11 +599,14 @@ SQLMoreResults(SQLHSTMT hstmt)
 				param_status = SQL_PARAM_SUCCESS_WITH_INFO;
 				break;
 			}
-			if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
-				stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
-			if (stmt->ipd->header.sql_desc_rows_processed_ptr)
-				*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row + 1;
-			if (stmt->curr_param_row + 1 < stmt->num_param_rows) {
+			if (stmt->curr_param_row < stmt->num_param_rows) {
+				if (stmt->ipd->header.sql_desc_array_status_ptr)
+					stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
+				++stmt->curr_param_row;
+				if (stmt->ipd->header.sql_desc_rows_processed_ptr)
+					*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row;
+			}
+			if (stmt->curr_param_row < stmt->num_param_rows) {
 #if 0
 				if (stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO)
 					found_info = 1;
@@ -612,13 +615,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 #endif
 				stmt->errs.lastrc = SQL_SUCCESS;
 				param_status = SQL_PARAM_SUCCESS;
-				++stmt->curr_param_row;
 				break;
 			}
-			if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
-				stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
-			if (stmt->ipd->header.sql_desc_rows_processed_ptr)
-				*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row + 1;
 			odbc_populate_ird(stmt);
 			ODBC_RETURN_(stmt);
 			break;
@@ -2626,10 +2624,13 @@ _SQLExecute(TDS_STMT * stmt)
 	}
 	if ((found_info || found_error) && stmt->errs.lastrc != SQL_ERROR)
 		stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
-	if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
-		stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
-	if (stmt->ipd->header.sql_desc_rows_processed_ptr)
-		*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row + 1;
+	if (stmt->curr_param_row < stmt->num_param_rows) {
+		if (stmt->ipd->header.sql_desc_array_status_ptr)
+			stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
+		++stmt->curr_param_row;
+		if (stmt->ipd->header.sql_desc_rows_processed_ptr)
+			*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row;
+	}
 	tds->query_timeout = 0;
 	tds->query_timeout_param = NULL;
 	tds->query_timeout_func = NULL;

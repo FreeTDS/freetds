@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.6 2005-07-05 09:09:15 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.7 2005-07-06 10:16:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -17,16 +17,30 @@ ResetStatement(void)
 		ODBC_REPORT_ERROR("Unable to allocate statement");
 }
 
+static void *
+xmalloc(size_t s)
+{
+	void *p = malloc(s);
+	if (!p) {
+		fprintf(stderr, "Out of memory\n");
+		exit(1);
+	}
+	return p;
+}
+
+#define XMALLOC_N(t, n) (t*) xmalloc(n*sizeof(t))
+
 static void
 query_test(int prepare, SQLRETURN expected, const char *expected_status)
 {
 #define DESC_LEN 51
 #define ARRAY_SIZE 10
 
-	SQLUINTEGER ids[ARRAY_SIZE];
-	SQLCHAR descs[ARRAY_SIZE][DESC_LEN];
-	SQLINTEGER id_lens[ARRAY_SIZE], desc_lens[ARRAY_SIZE];
-	SQLUSMALLINT i, processed, statuses[ARRAY_SIZE];
+	SQLUINTEGER *ids = XMALLOC_N(SQLUINTEGER,ARRAY_SIZE);
+	typedef SQLCHAR desc_t[DESC_LEN];
+	desc_t *descs = XMALLOC_N(desc_t, ARRAY_SIZE);
+	SQLINTEGER *id_lens = XMALLOC_N(SQLINTEGER,ARRAY_SIZE), *desc_lens = XMALLOC_N(SQLINTEGER,ARRAY_SIZE);
+	SQLUSMALLINT i, processed, *statuses = XMALLOC_N(SQLUSMALLINT,ARRAY_SIZE);
 	RETCODE ret;
 	char status[20];
 
@@ -104,6 +118,12 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 		fprintf(stderr, "Invalid status\n\tgot      '%s'\n\texpected '%s'\n", status, expected_status);
 		exit(1);
 	}
+
+	free(ids);
+	free(descs);
+	free(id_lens);
+	free(desc_lens);
+	free(statuses);
 }
 
 int
@@ -125,7 +145,7 @@ main(int argc, char *argv[])
 	/* with result, see how SQLMoreResult work */
 	test_query = "INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?";
 	/* IMHO our driver is better here -- freddy77 */
-	query_test(0, SQL_SUCCESS, driver_is_freetds() ? "VVVV!V!V!V" : "VVVVVV!VVV");
+	query_test(0, SQL_SUCCESS, driver_is_freetds() ? "VVVVV!V!V!" : "VVVVVV!VVV");
 	query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
 
 	/* TODO record binding, array fetch, sqlputdata */
