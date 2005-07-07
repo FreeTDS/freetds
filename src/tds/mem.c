@@ -44,10 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: mem.c,v 1.148 2005-06-30 12:14:14 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version,
-	no_unused_var_warn
-};
+TDS_RCSID(var, "$Id: mem.c,v 1.149 2005-07-07 13:06:45 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);

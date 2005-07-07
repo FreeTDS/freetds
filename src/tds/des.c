@@ -43,11 +43,7 @@
 #include "tds.h"
 #include "des.h"
 
-static char software_version[] = "$Id: des.c,v 1.14 2005-01-09 19:41:24 freddy77 Exp $";
-static void *no_unused_var_warn[] = {
-	software_version,
-	no_unused_var_warn
-};
+TDS_RCSID(var, "$Id: des.c,v 1.15 2005-07-07 13:06:45 freddy77 Exp $");
 
 static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock);
 static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock);

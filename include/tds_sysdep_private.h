@@ -20,8 +20,17 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-static const char rcsid_tds_sysdep_private_h[] = "$Id: tds_sysdep_private.h,v 1.16 2005-03-12 11:47:02 ppeterd Exp $";
-static const void *const no_unused_tds_sysdep_private_h_warn[] = { rcsid_tds_sysdep_private_h, no_unused_tds_sysdep_private_h_warn };
+#undef TDS_RCSID
+#if defined(__GNUC__) && __GNUC__ >= 3
+#define TDS_RCSID(name, id) \
+	static const char rcsid_##name[] __attribute__ ((unused)) = id
+#else
+#define TDS_RCSID(name, id) \
+	static const char rcsid_##name[] = id; \
+	static const void *const no_unused_##name##_warn[] = { rcsid_##name, no_unused_##name##_warn }
+#endif
+
+TDS_RCSID(tds_sysdep_private_h, "$Id: tds_sysdep_private.h,v 1.17 2005-07-07 13:06:42 freddy77 Exp $");
 
 #ifdef __cplusplus
 extern "C"

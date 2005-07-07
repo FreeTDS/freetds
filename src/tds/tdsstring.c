@@ -37,8 +37,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: tdsstring.c,v 1.11 2005-06-29 07:21:28 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.12 2005-07-07 13:06:47 freddy77 Exp $");
 
 
 /**

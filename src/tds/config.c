@@ -73,8 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: config.c,v 1.112 2005-06-29 07:21:24 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: config.c,v 1.113 2005-07-07 13:06:44 freddy77 Exp $");
 
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);

@@ -42,8 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc_checks.c,v 1.15 2005-05-10 12:56:02 freddy77 Exp $";
-static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: odbc_checks.c,v 1.16 2005-07-07 13:06:44 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 

@@ -41,8 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc_util.c,v 1.78 2005-07-05 09:09:13 freddy77 Exp $";
-static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.79 2005-07-07 13:06:44 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api

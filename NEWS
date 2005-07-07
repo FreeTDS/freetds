@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.29 2005-06-03 09:01:38 freddy77 Exp $
+$Id: NEWS,v 1.30 2005-07-07 13:06:39 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -21,6 +21,7 @@ $Id: NEWS,v 1.29 2005-06-03 09:01:38 freddy77 Exp $
 - ct_dynamic and friends (placeholder support under ctlib)
 - constant parameters in odbc rpc (ie {?=call func(10,?)} )
 - configure use automatically odbc_config if available
+- ODBC paramset support
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure

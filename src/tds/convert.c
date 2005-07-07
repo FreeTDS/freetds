@@ -62,10 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.157 2005-06-29 07:21:25 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version,
-	no_unused_var_warn
-};
+TDS_RCSID(var, "$Id: convert.c,v 1.158 2005-07-07 13:06:45 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 

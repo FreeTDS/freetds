@@ -47,8 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-static char software_version[] = "$Id: iconv.c,v 1.123 2005-06-30 12:14:14 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: iconv.c,v 1.124 2005-07-07 13:06:45 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -345,7 +344,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	/* initialize */
 	if (!iconv_initialized) {
 		if ((ret = tds_iconv_init()) > 0) {
-			static const char * const names[] = { "ISO 8859-1", "UTF-8" };
+			static const char names[][12] = { "ISO 8859-1", "UTF-8" };
 			assert(ret < 3);
 			tdsdump_log(TDS_DBG_FUNC, "error: tds_iconv_init() returned %d; "
 						  "could not find a name for %s that your iconv accepts.\n"

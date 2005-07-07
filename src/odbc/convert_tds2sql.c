@@ -42,8 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: convert_tds2sql.c,v 1.42 2005-06-29 07:21:21 freddy77 Exp $";
-static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.43 2005-07-07 13:06:42 freddy77 Exp $");
 
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,

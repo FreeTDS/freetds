@@ -38,8 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: locale.c,v 1.21 2004-07-29 10:22:41 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: locale.c,v 1.22 2005-07-07 13:06:45 freddy77 Exp $");
 
 
 static void tds_parse_locale(const char *option, const char *value, void *param);

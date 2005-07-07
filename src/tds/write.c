@@ -45,8 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.70 2005-06-30 12:14:17 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: write.c,v 1.71 2005-07-07 13:06:47 freddy77 Exp $");
 
 /**
  * \addtogroup network

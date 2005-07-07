@@ -33,8 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: numeric.c,v 1.33 2005-07-06 12:35:39 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: numeric.c,v 1.34 2005-07-07 13:06:46 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary

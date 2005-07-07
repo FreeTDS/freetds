@@ -98,8 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: net.c,v 1.29 2005-07-06 12:35:39 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: net.c,v 1.30 2005-07-07 13:06:45 freddy77 Exp $");
 
 /**
  * \addtogroup network

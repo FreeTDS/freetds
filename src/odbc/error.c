@@ -48,8 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: error.c,v 1.40 2005-06-29 07:21:21 freddy77 Exp $";
-static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: error.c,v 1.41 2005-07-07 13:06:42 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);

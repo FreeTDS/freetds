@@ -1,3 +1,19 @@
+Thu Jul  7 15:03:45 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS TODO: updates
+	* include/tds_sysdep_private.h src/odbc/connectparams.c:
+	* src/odbc/convert_sql2string.c src/odbc/convert_tds2sql.c:
+	* src/odbc/error.c src/odbc/native.c src/odbc/odbc.c:
+	* src/odbc/odbc_checks.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	* src/tds/challenge.c src/tds/config.c src/tds/convert.c:
+	* src/tds/data.c src/tds/des.c src/tds/iconv.c:
+	* src/tds/locale.c src/tds/login.c src/tds/md4.c:
+	* src/tds/md5.c src/tds/mem.c src/tds/net.c src/tds/numeric.c:
+	* src/tds/read.c src/tds/tdsstring.c src/tds/threadsafe.c:
+	* src/tds/token.c src/tds/util.c src/tds/vstrbuild.c:
+	* src/tds/write.c:
+	- use TDS_RCSID macro for $Id in sources
+
 Thu Jul  7 13:17:14 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c: compile fix
 

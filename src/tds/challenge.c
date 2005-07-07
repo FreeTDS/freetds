@@ -35,8 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: challenge.c,v 1.21 2003-11-01 23:02:18 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: challenge.c,v 1.22 2005-07-07 13:06:44 freddy77 Exp $");
 
 /**
  * \ingroup libtds
