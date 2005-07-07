@@ -37,7 +37,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: tdsstring.c,v 1.12 2005-07-07 13:06:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.13 2005-07-07 18:34:10 freddy77 Exp $");
 
 
 /**
@@ -48,7 +48,7 @@ TDS_RCSID(var, "$Id: tdsstring.c,v 1.12 2005-07-07 13:06:47 freddy77 Exp $");
  */
 
 /* This is in a separate module because we use the pointer to discriminate allocated and not allocated */
-char tds_str_empty[] = "";
+const struct DSTR_STRUCT tds_str_empty = { "" };
 
 /**
  * \addtogroup dstring
@@ -67,9 +67,9 @@ tds_dstr_zero(DSTR * s)
 void
 tds_dstr_free(DSTR * s)
 {
-	if (*s != (DSTR) tds_str_empty)
+	if (*s != (DSTR) &tds_str_empty)
 		free(*s);
-	*s = (DSTR) tds_str_empty;
+	*s = (DSTR) &tds_str_empty;
 }
 
 /**
@@ -82,10 +82,10 @@ tds_dstr_free(DSTR * s)
 DSTR
 tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
 {
-	if (*s != (DSTR) tds_str_empty)
+	if (*s != (DSTR) &tds_str_empty)
 		free(*s);
 	if (!length) {
-		*s = (DSTR) tds_str_empty;
+		*s = (DSTR) &tds_str_empty;
 	} else {
 		*s = (struct DSTR_STRUCT *) malloc(length + 1);
 		if (!*s)
@@ -107,7 +107,7 @@ tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
 DSTR
 tds_dstr_set(DSTR * s, char *src)
 {
-	if (*s != (DSTR) tds_str_empty)
+	if (*s != (DSTR) &tds_str_empty)
 		free(*s);
 	*s = (DSTR) src;
 	return *s;
@@ -122,10 +122,10 @@ tds_dstr_set(DSTR * s, char *src)
 DSTR
 tds_dstr_copy(DSTR * s, const char *src)
 {
-	if (*s != (DSTR) tds_str_empty)
+	if (*s != (DSTR) &tds_str_empty)
 		free(*s);
 	if (!src[0])
-		*s = (DSTR) tds_str_empty;
+		*s = (DSTR) &tds_str_empty;
 	else
 		*s = (DSTR) strdup(src);
 	return *s;
@@ -135,7 +135,7 @@ tds_dstr_copy(DSTR * s, const char *src)
 void
 tds_dstr_init(DSTR * s)
 {
-	*s = (DSTR) tds_str_empty;
+	*s = (DSTR) &tds_str_empty;
 }
 
 int

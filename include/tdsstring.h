@@ -20,9 +20,9 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-/* $Id: tdsstring.h,v 1.14 2004-12-02 11:29:43 freddy77 Exp $ */
+/* $Id: tdsstring.h,v 1.15 2005-07-07 18:34:10 freddy77 Exp $ */
 
-extern char tds_str_empty[];
+extern const struct DSTR_STRUCT tds_str_empty;
 
 /* TODO do some function and use inline if available */
 
@@ -38,7 +38,7 @@ size_t tds_dstr_len(DSTR * s);
 #else
 /** init a string with empty */
 #define tds_dstr_init(s) \
-	do { *(s) = (DSTR) &tds_str_empty[0]; } while(0)
+	do { *(s) = (DSTR) &tds_str_empty; } while(0)
 
 /** test if string is empty */
 #define tds_dstr_isempty(s) \

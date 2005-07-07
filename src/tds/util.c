@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.62 2005-07-07 13:06:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.63 2005-07-07 18:34:10 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -104,12 +104,12 @@ tds_get_parent(TDSSOCKET * tds)
 TDS_STATE
 tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 {
-	static const char * const state_names[] = {
-		"TDS_IDLE",
-	        "TDS_QUERYING",
-	        "TDS_PENDING",
-	        "TDS_READING",
-	        "TDS_DEAD"
+	static const char state_names[][10] = {
+		"IDLE",
+	        "QUERYING",
+	        "PENDING",
+	        "READING",
+	        "DEAD"
 	};
 	assert(state < TDS_VECTOR_SIZE(state_names));
 	assert(tds->state < TDS_VECTOR_SIZE(state_names));
