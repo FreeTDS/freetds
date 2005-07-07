@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-static char software_version[] = "$Id: bcp.c,v 1.129 2005-07-04 09:21:55 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.130 2005-07-07 11:17:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
@@ -1965,12 +1965,11 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 RETCODE
 bcp_exec(DBPROCESS * dbproc, DBINT *rows_copied)
 {
-	int dummy_copied;
+	DBINT dummy_copied;
+	RETCODE ret = 0;
 
 	if (rows_copied == NULL) /* NULL means we should ignore it */
 		rows_copied = &dummy_copied;
-
-	RETCODE ret = 0;
 
 	if (dbproc->bcpinfo == NULL) {
 		_bcp_err_handler(dbproc, SYBEBCPI);
