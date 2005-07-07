@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.53 2005-05-31 09:31:57 freddy77 Exp $
+# version: $Id: Makefile.am,v 1.54 2005-07-07 17:47:57 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -34,32 +34,34 @@ installdirs:
 				$(TARGET_DOCDIR)/reference    \
 				$(TARGET_DOCDIR)/images 2>&1
 
+MANOPTS = -I 'FreeTDS User Guide'  -v 'FreeTDS Utilities' -t $(PRODUCT) -r $(VERSION)
+
 freebcp.1: freebcp.txt
-	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/freebcp.txt >.$@
+	$(TXT2MAN) $(MANOPTS) $(srcdir)/freebcp.txt >.$@
 	if test ! -s .$@; then echo 'unable to generate $@'; fi
 	test -s .$@
 	mv .$@ $@
 
 tsql.1: tsql.txt
-	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/tsql.txt >.$@
+	$(TXT2MAN) $(MANOPTS) $(srcdir)/tsql.txt >.$@
 	if test ! -s .$@; then echo 'unable to generate $@'; fi
 	test -s .$@
 	mv .$@ $@
 
 bsqldb.1: bsqldb.txt
-	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/bsqldb.txt >.$@
+	$(TXT2MAN) $(MANOPTS) $(srcdir)/bsqldb.txt >.$@
 	if test ! -s .$@; then echo 'unable to generate $@'; fi
 	test -s .$@
 	mv .$@ $@
 
 defncopy.1: defncopy.txt
-	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/defncopy.txt >.$@
+	$(TXT2MAN) $(MANOPTS) $(srcdir)/defncopy.txt >.$@
 	if test ! -s .$@; then echo 'unable to generate $@'; fi
 	test -s .$@
 	mv .$@ $@
 
 datacopy.1: datacopy.txt
-	$(TXT2MAN) -P $(PRODUCT) -t $(PRODUCT) -r $(VERSION) $(srcdir)/datacopy.txt >.$@
+	$(TXT2MAN) $(MANOPTS) $(srcdir)/datacopy.txt >.$@
 	if test ! -s .$@; then echo 'unable to generate $@'; fi
 	test -s .$@
 	mv .$@ $@
