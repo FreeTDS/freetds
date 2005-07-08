@@ -17,8 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-static char software_version[] = "$Id: dbopen.c,v 1.7 2004-11-28 09:27:14 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: dbopen.c,v 1.8 2005-07-08 08:22:54 freddy77 Exp $");
 
 #if HAVE_CONFIG_H
 #include <config.h>

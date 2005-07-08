@@ -49,8 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.46 2005-06-26 14:25:20 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: rpc.c,v 1.47 2005-07-08 08:22:54 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);

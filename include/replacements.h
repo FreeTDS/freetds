@@ -28,8 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_replacements_h[] = "$Id: replacements.h,v 1.12 2005-07-04 09:16:39 freddy77 Exp $";
-static const void *const no_unused_replacements_h_warn[] = { rcsid_replacements_h, no_unused_replacements_h_warn };
+/* $Id: replacements.h,v 1.13 2005-07-08 08:22:52 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"

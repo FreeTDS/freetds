@@ -20,8 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-static const char rcsid_tds_iconv_h[] = "$Id: tdsiconv.h,v 1.33 2004-10-28 12:42:12 freddy77 Exp $";
-static const void *const no_unused_tds_iconv_h_warn[] = { rcsid_tds_iconv_h, no_unused_tds_iconv_h_warn };
+/* $Id: tdsiconv.h,v 1.34 2005-07-08 08:22:52 freddy77 Exp $ */
 
 #if HAVE_ICONV
 #include <iconv.h>

@@ -62,8 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.234 2005-07-06 12:35:37 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: dblib.c,v 1.235 2005-07-08 08:22:53 freddy77 Exp $");
 
 static int emit_message (DBPROCESS *dbproc, DBINT msgno);
 static int _db_get_server_type(int bindtype);
@@ -5723,7 +5722,7 @@ dbtds(DBPROCESS * dbproc)
 const char *
 dbversion()
 {
-	return software_version;
+	return rcsid_var;
 }
 
 /**
@@ -5825,7 +5824,7 @@ dbmonthname(DBPROCESS * dbproc, char *language, int monthnum, DBBOOL shortform)
 	static const char shortmon[][4] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 	};
-	static const char *const longmon[] = {
+	static const char longmon[][12] = {
 		"January", "February", "March", "April", "May", "June",
 		"July", "August", "September", "October", "November", "December"
 	};

@@ -28,8 +28,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_dblib_h[] = "$Id: dblib.h,v 1.27 2005-04-16 23:57:38 jklowden Exp $";
-static const void *const no_unused_dblib_h_warn[] = { rcsid_dblib_h, no_unused_dblib_h_warn };
+/* $Id: dblib.h,v 1.28 2005-07-08 08:22:52 freddy77 Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0

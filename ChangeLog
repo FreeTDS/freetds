@@ -1,3 +1,11 @@
+Fri Jul  8 10:20:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/dbopen.c:
+	* src/dblib/dbutil.c src/dblib/rpc.c src/dblib/xact.c:
+	- use TDS_RCSID macro
+	* include/dblib.h include/des.h include/md4.h include/md5.h:
+	* include/replacements.h include/tdsiconv.h include/tds_configs.h:
+	- remove $Id from private headers
+
 Thu Jul  7 20:33:09 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsstring.h src/tds/tdsstring.c:
 	- don't do strange cast

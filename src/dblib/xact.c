@@ -36,8 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: xact.c,v 1.9 2004-07-29 10:22:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: xact.c,v 1.10 2005-07-08 08:22:55 freddy77 Exp $");
 
 
 void
