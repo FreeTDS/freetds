@@ -45,10 +45,10 @@ echo "<html>
 </head>
 <body>
 <h1>{TITLE}</h1>
-<p><a href=\"out.html\">Main</a></p>
+<p><a href=\"index.html\">Main</a></p>
 $INFO
 {CONTENT}
-<p><a href=\"out.html\">Main</a></p>
+<p><a href=\"index.html\">Main</a></p>
 </body>
 </html>
 " > "$DIR/tmp1.tmpl"
@@ -109,23 +109,23 @@ out_init () {
 	echo "<html>
 <body>
 $INFO
-" > "$DIR/out.html"
+" > "$DIR/index.html"
 }
 
 out_header () {
-	echo "$1" | sed 's,   *,</th><th>,g; s,^,<table border="1"><tr><th>,; s,$,</th></tr>,' >> "$DIR/out.html"
+	echo "$1" | sed 's,   *,</th><th>,g; s,^,<table border="1"><tr><th>,; s,$,</th></tr>,' >> "$DIR/index.html"
 }
 
 out_row () {
-	echo "$1" | sed 's,   *,</td><td>,g; s,^,<tr><td>,; s,$,</td></tr>,; s,<td>\([^<]*\):-)</td>,<td><font color="green">\1</font></td>,g; s,<td>\([^<]*\):-(</td>,<td bgcolor="red">\1</td>,g; s,<td>\([^<]*\):(</td>,<td bgcolor="yellow">\1</td>,g' >> "$DIR/out.html"
+	echo "$1" | sed 's,   *,</td><td>,g; s,^,<tr><td>,; s,$,</td></tr>,; s,<td>\([^<]*\):-)</td>,<td><font color="green">\1</font></td>,g; s,<td>\([^<]*\):-(</td>,<td bgcolor="red">\1</td>,g; s,<td>\([^<]*\):(</td>,<td bgcolor="yellow">\1</td>,g' >> "$DIR/index.html"
 }
 
 out_footer () {
-	echo "</table><br />" >> "$DIR/out.html"
+	echo "</table><br />" >> "$DIR/index.html"
 }
 
 out_end () {
-	echo "</body></html>" >> "$DIR/out.html"
+	echo "</body></html>" >> "$DIR/index.html"
 }
 
 # delete all tests output
