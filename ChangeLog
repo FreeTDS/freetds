@@ -1,3 +1,6 @@
+Wed Jul 12 13:54:57 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: improve dbmoretext
+
 Wed Jul 12 13:52:53 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	* src/odbc/prepare_query.c:

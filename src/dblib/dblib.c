@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.235 2005-07-08 08:22:53 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.236 2005-07-12 11:55:15 freddy77 Exp $");
 
 static int emit_message (DBPROCESS *dbproc, DBINT msgno);
 static int _db_get_server_type(int bindtype);
@@ -5551,14 +5551,9 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	tds_flush_packet(dbproc->tds_socket);
 	tds_set_state(dbproc->tds_socket, TDS_PENDING);
 
-	if (dbsqlok(dbproc) == SUCCEED) {
-		if (dbresults(dbproc) == FAIL)
-			return FAIL;
-		else
-			return SUCCEED;
-	} else {
-		return FAIL;
-	}
+	if (dbsqlok(dbproc) == SUCCEED && dbresults(dbproc) == SUCCEED)
+		return SUCCEED;
+	return FAIL;
 }
 
 /**
@@ -5641,11 +5636,24 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 RETCODE
 dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 {
-	/* TODO test dbproc value */
-	/* FIXME test wire state */
-	dbproc->tds_socket->out_flag = 0x07;
-	tds_put_n(dbproc->tds_socket, text, size);
-	dbproc->text_sent += size;
+	assert(dbproc->text_size >= dbproc->text_sent);
+
+	/* test dbproc value and state */
+	if (!dbproc || !dbproc->tds_socket || dbproc->tds_socket->out_flag != 0x07)
+		return FAIL;
+
+	if (size < 0 || size > dbproc->text_size - dbproc->text_sent)
+		return FAIL;
+
+	if (size) {
+		tds_put_n(dbproc->tds_socket, text, size);
+		dbproc->text_sent += size;
+
+		if (dbproc->text_sent == dbproc->text_size) {
+			tds_flush_packet(dbproc->tds_socket);
+			tds_set_state(dbproc->tds_socket, TDS_PENDING);
+		}
+	}
 
 	return SUCCEED;
 }
