@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.84 2005-07-06 12:35:37 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.85 2005-07-12 11:53:28 freddy77 Exp $ */
 
 struct _sql_error
 {
@@ -93,7 +93,7 @@ void odbc_check_struct_extra(void *p);
 void odbc_errs_reset(struct _sql_errors *errs);
 
 /** add an error to list */
-void odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg, const char *server);
+void odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg);
 
 /** Add an error to list. This functions is for error that came from server */
 void odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum,

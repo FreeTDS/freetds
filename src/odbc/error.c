@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.41 2005-07-07 13:06:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.42 2005-07-12 11:53:38 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -385,7 +385,7 @@ odbc_errs_pop(struct _sql_errors *errs)
 }
 
 void
-odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg, const char *server)
+odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 {
 	struct _sql_error *p;
 	int n = errs->num_errors;
@@ -406,7 +406,7 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg, c
 	odbc_get_v2state(errs->errs[n].state3, errs->errs[n].state2);
 
 	/* TODO why driver ?? -- freddy77 */
-	errs->errs[n].server = (server) ? strdup(server) : strdup("DRIVER");
+	errs->errs[n].server = strdup("DRIVER");
 	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
 	++errs->num_errors;
 }

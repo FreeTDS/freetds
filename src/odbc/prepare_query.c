@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.52 2005-07-07 13:06:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.53 2005-07-12 11:53:39 freddy77 Exp $");
 
 #if 0
 static int
@@ -130,7 +130,7 @@ _get_param_textsize(TDS_STMT * stmt, struct _drecord *drec_ipd, struct _drecord 
 	case SQL_DEFAULT_PARAM:
 	case SQL_DATA_AT_EXEC:
 		/* I don't know what to do */
-		odbc_errs_add(&stmt->errs, "HYC00", "SQL_DEFAULT_PARAM and SQL_DATA_AT_EXEC not supported", NULL);
+		odbc_errs_add(&stmt->errs, "HYC00", "SQL_DEFAULT_PARAM and SQL_DATA_AT_EXEC not supported");
 		len = -1;
 		break;
 	default:
@@ -469,7 +469,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 
 		/* we have certainly a parameter */
 		if (!(temp_params = tds_alloc_param_result(stmt->params))) {
-			odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
 			return SQL_ERROR;
 		}
 		stmt->params = temp_params;
@@ -604,7 +604,7 @@ parse_prepared_query(struct _hstmt *stmt, int compute_row)
 
 		/* add a column to parameters */
 		if (!(temp_params = tds_alloc_param_result(stmt->params))) {
-			odbc_errs_add(&stmt->errs, "HY001", NULL, NULL);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
 			return SQL_ERROR;
 		}
 		stmt->params = temp_params;
