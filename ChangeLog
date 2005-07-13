@@ -1,7 +1,13 @@
-Wed Jul 12 13:54:57 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+Wed Jul 13  9:48:33 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/prepare_query.c:
+	* src/odbc/convert_sql2string.c(removed):
+	* src/odbc/convert_sql2string.h(removed):
+	- cleanup
+
+Tue Jul 12 13:54:57 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: improve dbmoretext
 
-Wed Jul 12 13:52:53 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+Tue Jul 12 13:52:53 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
 	* src/odbc/prepare_query.c:
 	- remove unused parameter in odbc_errs_add

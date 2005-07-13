@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.384 2005-07-12 11:53:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.385 2005-07-13 07:50:04 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1723,12 +1723,6 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc = NULL;
 
-	/*
-	 * if (asprintf(&p,
-	 * " Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-	 * msg->msgno, msg->severity, msg->state, msg->server, msg->line_number, msg->message) < 0)
-	 * return 0;
-	 */
 	if (tds && tds->parent) {
 		dbc = (TDS_DBC *) tds->parent;
 		errs = &dbc->errs;
