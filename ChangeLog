@@ -1,3 +1,6 @@
+Wed Jul 13 12:49:18 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dbopen.c: fix compile error
+
 Wed Jul 13  9:53:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: do not use alloca
 

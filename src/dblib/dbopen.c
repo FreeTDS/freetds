@@ -17,12 +17,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-TDS_RCSID(var, "$Id: dbopen.c,v 1.8 2005-07-08 08:22:54 freddy77 Exp $");
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include "tds.h"
 #include "sybdb.h"
 
 #ifdef DMALLOC
@@ -32,6 +31,8 @@ TDS_RCSID(var, "$Id: dbopen.c,v 1.8 2005-07-08 08:22:54 freddy77 Exp $");
 #ifdef dbopen
 #undef dbopen
 #endif
+
+TDS_RCSID(var, "$Id: dbopen.c,v 1.9 2005-07-13 10:49:32 freddy77 Exp $");
 
 DBPROCESS *
 dbopen(LOGINREC * login, char *server)
