@@ -1,3 +1,6 @@
+Wed Jul 13  9:53:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: do not use alloca
+
 Wed Jul 13  9:48:33 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/prepare_query.c:
 	* src/odbc/convert_sql2string.c(removed):

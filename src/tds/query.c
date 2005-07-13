@@ -40,15 +40,9 @@
 #include <dmalloc.h>
 #endif
 
-#ifdef WIN32
-#include <assert.h>
-#define alloca _alloca
-#endif
-
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.178 2005-07-06 12:35:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: query.c,v 1.179 2005-07-13 07:53:20 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -79,28 +73,30 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
  */
 
 /**
- * Accept an ASCII string, convert it to UCS2-LE, and call tds_put_n
+ * Accept an ASCII string, convert it to UCS2-LE
  * The input is null-terminated, but the output excludes the null.
- * \param tds socket representing the connection
+ * \param buffer buffer where to store output
  * \param buf string to write
- * \return bytes left unsent, normally zero
+ * \return bytes written
  */
 static int
-tds_put_n_as_ucs2(TDSSOCKET * tds, const char *buf)
+tds_ascii_to_ucs2(char *buffer, const char *buf)
 {
-	char *ucs, *s;
-	assert(buf && *buf); /* This is an internal function.  Call it correctly. */
+	char *s;
+	assert(buffer && buf && *buf); /* This is an internal function.  Call it correctly. */
 
-	ucs = (char*) alloca(2 * strlen(buf));
-	assert(ucs);
-	
-	for (s=ucs; *buf != '\0'; buf++) {
-		*s++ = 0x7F & *buf;
+	for (s = buffer; *buf != '\0'; ++buf) {
+		*s++ = *buf;
 		*s++ = '\0';
 	}
 
-	return tds_put_n(tds, ucs, s - ucs);
+	return s - buffer;
 }
+
+#define TDS_PUT_N_AS_UCS2(tds, s) do { \
+	char buffer[sizeof(s)*2-2]; \
+	tds_put_n(tds, buffer, tds_ascii_to_ucs2(buffer, s)); \
+} while(0)
 
 /**
  * Convert a string in an allocated buffer
@@ -248,7 +244,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			tds_put_smallint(tds, TDS_SP_EXECUTESQL);
 		} else {
 			tds_put_smallint(tds, 13);
-			tds_put_n_as_ucs2(tds, "sp_executesql");
+			TDS_PUT_N_AS_UCS2(tds, "sp_executesql");
 		}
 		tds_put_smallint(tds, 0);
 
@@ -823,7 +819,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 			tds_put_smallint(tds, TDS_SP_PREPARE);
 		} else {
 			tds_put_smallint(tds, 10);
-			tds_put_n_as_ucs2(tds, "sp_prepare");
+			TDS_PUT_N_AS_UCS2(tds, "sp_prepare");
 		}
 		tds_put_smallint(tds, 0);
 
@@ -924,7 +920,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			tds_put_smallint(tds, TDS_SP_EXECUTESQL);
 		} else {
 			tds_put_smallint(tds, 13);
-			tds_put_n_as_ucs2(tds, "sp_executesql");
+			TDS_PUT_N_AS_UCS2(tds, "sp_executesql");
 		}
 		tds_put_smallint(tds, 0);
 
@@ -1330,7 +1326,7 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	/* procedure name */
 	tds_put_smallint(tds, 10);
 	/* NOTE do not call this procedure using integer name (TDS_SP_EXECUTE) on mssql2k, it doesn't work! */
-	tds_put_n_as_ucs2(tds, "sp_execute");
+	TDS_PUT_N_AS_UCS2(tds, "sp_execute");
 	tds_put_smallint(tds, 0);	/* flags */
 
 	/* id of prepared statement */
@@ -1513,7 +1509,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			tds_put_smallint(tds, TDS_SP_UNPREPARE);
 		} else {
 			tds_put_smallint(tds, 12);
-			tds_put_n_as_ucs2(tds, "sp_unprepare");
+			TDS_PUT_N_AS_UCS2(tds, "sp_unprepare");
 		}
 		tds_put_smallint(tds, 0);	/* flags */
 
@@ -1857,7 +1853,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 			tds_put_smallint(tds, TDS_SP_CURSOROPEN);
 		} else {
 			tds_put_smallint(tds, 13);
-			tds_put_n_as_ucs2(tds, "sp_cursoropen");
+			TDS_PUT_N_AS_UCS2(tds, "sp_cursoropen");
 		}
 
 		tds_put_smallint(tds, 0);	/* flags */
@@ -1986,7 +1982,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 			tds_put_smallint(tds, TDS_SP_CURSORFETCH);
 		} else {
 			tds_put_smallint(tds, 14);
-			tds_put_n_as_ucs2(tds, "sp_cursorfetch");
+			TDS_PUT_N_AS_UCS2(tds, "sp_cursorfetch");
 		}
 
 		/* This flag tells the SP only to */
@@ -2071,7 +2067,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 			tds_put_smallint(tds, TDS_SP_CURSORCLOSE);
 		} else {
 			tds_put_smallint(tds, 14);
-			tds_put_n_as_ucs2(tds, "sp_cursorclose");
+			TDS_PUT_N_AS_UCS2(tds, "sp_cursorclose");
 		}
 
 		/* This flag tells the SP to output only a dummy metadata token  */
