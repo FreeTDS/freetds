@@ -9,6 +9,16 @@
 # stop on errors
 set -e
 
+for param
+do
+	case $param in
+	--no-unittests)
+		TESTS_ENVIRONMENT=true
+		export TESTS_ENVIRONMENT
+		;;
+	esac
+done
+
 # do not create logs so diskcheck test do not fails
 unset TDSDUMP || true
 
