@@ -38,12 +38,12 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include "tds_sysdep_private.h"
 #include "replacements.h"
 
 #if ! HAVE_BASENAME
 
-static char software_version[] = "$Id: basename.c,v 1.1 2005-07-04 09:16:40 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: basename.c,v 1.2 2005-07-15 11:52:18 freddy77 Exp $");
 
 char *tds_basename(char *path)
 {

@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.10 2005-05-23 08:06:17 freddy77 Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.11 2005-07-15 11:52:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
@@ -61,7 +61,7 @@ main(int argc, char **argv)
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0024");
 
-	fprintf(stdout, "About to open [%s][%s]\n", PASSWORD, USER);
+	fprintf(stdout, "About to open [%s]\n", USER);
 
 	add_bread_crumb();
 

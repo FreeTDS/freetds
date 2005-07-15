@@ -32,8 +32,7 @@
 /* #include "fortify.h" */
 
 
-static char software_version[] = "$Id: ctutil.c,v 1.26 2005-06-30 09:47:03 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: ctutil.c,v 1.27 2005-07-15 11:52:18 freddy77 Exp $");
 
 /*
  * test include consistency 

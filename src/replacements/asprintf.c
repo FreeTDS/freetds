@@ -15,11 +15,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include "tds_sysdep_private.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: asprintf.c,v 1.5 2003-02-18 09:54:58 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
+TDS_RCSID(var, "$Id: asprintf.c,v 1.6 2005-07-15 11:52:18 freddy77 Exp $");
 
 int
 asprintf(char **ret, const char *fmt, ...)

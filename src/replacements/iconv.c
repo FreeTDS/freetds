@@ -53,8 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: iconv.c,v 1.13 2005-06-26 14:25:20 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
+TDS_RCSID(var, "$Id: iconv.c,v 1.14 2005-07-15 11:52:18 freddy77 Exp $");
 
 /**
  * \addtogroup conv

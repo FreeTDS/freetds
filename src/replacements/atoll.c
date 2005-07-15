@@ -25,9 +25,10 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#include "tds_sysdep_private.h"
 #include "replacements.h"
-static char software_version[] = "$Id: atoll.c,v 1.7 2002-11-17 11:28:12 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+TDS_RCSID(var, "$Id: atoll.c,v 1.8 2005-07-15 11:52:18 freddy77 Exp $");
 
 tds_sysdep_int64_type
 atoll(const char *nptr)

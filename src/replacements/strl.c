@@ -38,10 +38,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include "tds_sysdep_private.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: strl.c,v 1.1 2005-05-31 07:01:01 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: strl.c,v 1.2 2005-07-15 11:52:18 freddy77 Exp $");
 
 #if ! HAVE_STRLCPY
 size_t 

@@ -1,3 +1,14 @@
+Fri Jul 15 13:51:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/dbmorecmds.c:
+	- do not output password
+	* src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c src/ctlib/ctutil.c:
+	* src/dblib/unittests/dbmorecmds.c src/replacements/asprintf.c:
+	* src/replacements/atoll.c src/replacements/basename.c:
+	* src/replacements/iconv.c src/replacements/strl.c:
+	* src/replacements/strtok_r.c src/replacements/vasprintf.c:
+	* src/tds/tds_checks.c:
+	- use TDS_RCSID for $Id
+
 Wed Jul 13 12:49:18 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dbopen.c: fix compile error
 

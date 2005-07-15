@@ -4,9 +4,6 @@
  * public domain.  no warranty.  use at your own risk.  have a nice day.
  */
 
-static char software_version[] = "$Id: strtok_r.c,v 1.4 2002-11-17 11:28:12 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -17,7 +14,10 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include "tds_sysdep_private.h"
 #include "replacements.h"
+
+TDS_RCSID(var, "$Id: strtok_r.c,v 1.5 2005-07-15 11:52:18 freddy77 Exp $");
 
 char *
 strtok_r(char *str, const char *sep, char **lasts)

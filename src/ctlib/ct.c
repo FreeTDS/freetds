@@ -38,8 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: ct.c,v 1.152 2005-06-29 07:21:07 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: ct.c,v 1.153 2005-07-15 11:52:18 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
