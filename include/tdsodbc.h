@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2004, 2005 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +21,7 @@
 #ifndef _sql_h_
 #define _sql_h_
 
-#include <tds.h>
+#include "tds.h"
 
 #ifdef UNIXODBC
 #include <sql.h>
@@ -54,7 +55,11 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.85 2005-07-12 11:53:28 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.86 2005-07-17 07:48:09 freddy77 Exp $ */
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
 
 struct _sql_error
 {
@@ -351,12 +356,6 @@ typedef struct _hchk TDS_CHK;
 #define IS_HSTMT(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_STMT)
 #define IS_HDESC(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_DESC)
 
-TDS_DESC *desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type);
-SQLRETURN desc_free(TDS_DESC * desc);
-SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
-SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);
-SQLRETURN desc_free_records(TDS_DESC * desc);
-
 /* fix a bug in MingW headers */
 #ifdef __MINGW32__
 #if SQL_INTERVAL_YEAR == (100 + SQL_CODE_SECOND)
@@ -394,6 +393,106 @@ SQLRETURN desc_free_records(TDS_DESC * desc);
 
 #ifdef WIN32
 BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
+#endif
+
+/*
+ * connectparams.h
+ */
+/**
+ * Parses a connection string for SQLDriverConnect().
+ * \param connect_string      point to connection string
+ * \param connect_string_end  point to end of connection string
+ * \param connection          structure where to store informations
+ * \return 0 if error, 1 otherwise
+ */
+int odbc_parse_connect_string(const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection);
+int odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection);
+
+/*
+ * convert_tds2sql.c
+ */
+TDS_INT convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
+
+/*
+ * descriptor.c
+ */
+TDS_DESC *desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type);
+SQLRETURN desc_free(TDS_DESC * desc);
+SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
+SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);
+SQLRETURN desc_free_records(TDS_DESC * desc);
+
+/*
+ * odbc.c
+ */
+SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
+
+/*
+ * odbc_checks.h
+ */
+#if ENABLE_EXTRA_CHECKS
+/* macro */
+#define CHECK_ENV_EXTRA(env) odbc_check_env_extra(env)
+#define CHECK_DBC_EXTRA(dbc) odbc_check_dbc_extra(dbc)
+#define CHECK_STMT_EXTRA(stmt) odbc_check_stmt_extra(stmt)
+#define CHECK_DESC_EXTRA(desc) odbc_check_desc_extra(desc)
+/* declarations*/
+void odbc_check_env_extra(TDS_ENV * env);
+void odbc_check_dbc_extra(TDS_DBC * dbc);
+void odbc_check_stmt_extra(TDS_STMT * stmt);
+void odbc_check_desc_extra(TDS_DESC * desc);
+#else
+/* macro */
+#define CHECK_ENV_EXTRA(env)
+#define CHECK_DBC_EXTRA(dbc)
+#define CHECK_STMT_EXTRA(stmt)
+#define CHECK_DESC_EXTRA(desc)
+#endif
+
+/*
+ * odbc_util.h
+ */
+int odbc_set_stmt_query(struct _hstmt *stmt, const char *sql, int sql_len);
+int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const char *sql, int sql_len);
+void odbc_set_return_status(struct _hstmt *stmt);
+void odbc_set_return_params(struct _hstmt *stmt);
+
+SQLSMALLINT odbc_server_to_sql_type(int col_type, int col_size);
+int odbc_sql_to_c_type_default(int sql_type);
+int odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type);
+int odbc_c_to_server_type(int c_type);
+
+void odbc_set_sql_type_info(TDSCOLUMN * col, int odbc_ver, struct _drecord *drec);
+SQLINTEGER odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec);
+int odbc_get_string_size(int size, SQLCHAR * str);
+void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
+SQLINTEGER odbc_get_param_len(TDSSOCKET * tds, const struct _drecord *drec_apd, const struct _drecord *drec_ipd);
+
+SQLRETURN odbc_set_string(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer, const char *s, int len);
+SQLRETURN odbc_set_string_i(SQLPOINTER buffer, SQLINTEGER cbBuffer, SQLINTEGER FAR * pcbBuffer, const char *s, int len);
+
+SQLSMALLINT odbc_get_concise_sql_type(SQLSMALLINT type, SQLSMALLINT interval);
+SQLRETURN odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord *drec, int check_only);
+SQLSMALLINT odbc_get_concise_c_type(SQLSMALLINT type, SQLSMALLINT interval);
+SQLRETURN odbc_set_concise_c_type(SQLSMALLINT concise_type, struct _drecord *drec, int check_only);
+
+/*
+ * prepare_query.c
+ */
+SQLRETURN prepare_call(struct _hstmt *stmt);
+SQLRETURN native_sql(struct _hdbc *dbc, char *s);
+int parse_prepared_query(struct _hstmt *stmt, int compute_row);
+int start_parse_prepared_query(struct _hstmt *stmt, int compute_row);
+int continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind);
+const char *parse_const_param(const char * s, TDS_SERVER_TYPE *type);
+
+/*
+ * sql2tds.c
+ */
+SQLRETURN sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam, int compute_row);
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
 #endif
 
 #ifdef __cplusplus

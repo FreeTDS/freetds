@@ -32,7 +32,6 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
 #include "tdsodbc.h"
 #include "tdsstring.h"
 

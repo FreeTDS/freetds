@@ -1,3 +1,20 @@
+Sun Jul 17  9:45:01 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/connectparams.h(removed):
+	* src/odbc/convert_tds2sql.h(removed):
+	* src/odbc/odbc_checks.h(removed):
+	* src/odbc/odbc_util.h(removed):
+	* src/odbc/prepare_query.h(removed):
+	* src/odbc/sql2tds.h(removed) include/tdsodbc.h:
+	* src/odbc/Makefile.am src/odbc/connectparams.c:
+	* src/odbc/convert_tds2sql.c src/odbc/descriptor.c:
+	* src/odbc/error.c src/odbc/native.c src/odbc/odbc.c:
+	* src/odbc/odbc_checks.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- put odbc private declarations in include/tdsodbc.h
+	- fix include in C sources
+	- do not include tds.h twice
+	- optimization for gcc4
+
 Fri Jul 15 13:51:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/dbmorecmds.c:
 	- do not output password

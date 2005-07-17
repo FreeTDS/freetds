@@ -32,16 +32,13 @@
 
 #include <assert.h>
 
-#include "tds.h"
 #include "tdsodbc.h"
-#include "odbc_util.h"
-#include "convert_tds2sql.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.79 2005-07-07 13:06:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.80 2005-07-17 07:48:11 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api

@@ -32,17 +32,14 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
 #include "tdsodbc.h"
 #include "tdsconvert.h"
-#include "odbc_util.h"
-#include "convert_tds2sql.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.43 2005-07-07 13:06:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.44 2005-07-17 07:48:10 freddy77 Exp $");
 
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,

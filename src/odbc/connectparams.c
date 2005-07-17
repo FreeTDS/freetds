@@ -28,17 +28,15 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-#include "tds.h"
 #include "tdsodbc.h"
 #include "tdsstring.h"
-#include "connectparams.h"
 #include "replacements.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.65 2005-07-07 13:06:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.66 2005-07-17 07:48:10 freddy77 Exp $");
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 

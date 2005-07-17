@@ -34,18 +34,14 @@
 
 #include <ctype.h>
 
-#include "tds.h"
-#include "tdsconvert.h"
 #include "tdsodbc.h"
-#include "prepare_query.h"
-#include "odbc_util.h"
-#include "sql2tds.h"
+#include "tdsconvert.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.54 2005-07-13 07:50:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.55 2005-07-17 07:48:11 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 

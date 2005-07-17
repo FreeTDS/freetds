@@ -32,17 +32,14 @@
 
 #include <assert.h>
 
-#include "tds.h"
 #include "tdsodbc.h"
 #include "tdsstring.h"
-#include "odbc_util.h"
-#include "odbc_checks.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_checks.c,v 1.16 2005-07-07 13:06:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_checks.c,v 1.17 2005-07-17 07:48:11 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 

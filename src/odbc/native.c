@@ -37,15 +37,13 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "tds.h"
 #include "tdsodbc.h"
-#include "prepare_query.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: native.c,v 1.27 2005-07-07 13:06:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: native.c,v 1.28 2005-07-17 07:48:10 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 

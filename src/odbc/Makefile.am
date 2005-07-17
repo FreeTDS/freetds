@@ -1,14 +1,11 @@
-# $Id: Makefile.am,v 1.37 2004-12-13 10:59:59 freddy77 Exp $
+# $Id: Makefile.am,v 1.38 2005-07-17 07:48:10 freddy77 Exp $
 SUBDIRS		= unittests
 
 lib_LTLIBRARIES	=	libtdsodbc.la
 ##EXTRA_LTLIBRARIES	=	libtdsodbc.la
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c \
-	convert_tds2sql.h odbc_util.h \
-	prepare_query.h connectparams.h native.c \
-	sql2tds.c sql2tds.h error.c \
-	odbc_checks.c odbc_checks.h
+	native.c sql2tds.c error.c odbc_checks.c
 libtdsodbc_la_LIBADD=	../tds/libtds_objects.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)
 # -module is needed by Darwin (Mac OS X)

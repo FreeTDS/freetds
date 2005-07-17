@@ -51,24 +51,16 @@
 #include <assert.h>
 #include <ctype.h>
 
-#include "tds.h"
 #include "tdsodbc.h"
 #include "tdsstring.h"
 #include "tdsconvert.h"
-
-#include "connectparams.h"
-#include "odbc_util.h"
-#include "convert_tds2sql.h"
-#include "sql2tds.h"
-#include "prepare_query.h"
 #include "replacements.h"
-#include "odbc_checks.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.385 2005-07-13 07:50:04 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.386 2005-07-17 07:48:10 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -87,7 +79,6 @@ static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, S
 					 SQLINTEGER * StringLength);
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc);
-SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt);
 static int query_timeout_cancel(void *param, unsigned int total_timeout);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);

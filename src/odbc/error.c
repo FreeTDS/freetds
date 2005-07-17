@@ -34,11 +34,9 @@
 
 #include <assert.h>
 
-#include "tds.h"
+#include "tdsodbc.h"
 #include "tdsstring.h"
 #include "replacements.h"
-#include "tdsodbc.h"
-#include "odbc_util.h"
 
 #if HAVE_ODBCSS_H
 #include <odbcss.h>
@@ -48,13 +46,12 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.42 2005-07-12 11:53:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.43 2005-07-17 07:48:10 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
 static void odbc_get_v2state(const char *sqlstate, char *dest_state);
 static void sqlstate2to3(char *state);
-SQLRETURN _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow);
 
 struct s_SqlMsgMap
 {
