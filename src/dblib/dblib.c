@@ -32,6 +32,7 @@
 # endif
 #endif
 
+#include <errno.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <stdio.h>
@@ -62,9 +63,9 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.236 2005-07-12 11:55:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.237 2005-07-17 18:26:26 jklowden Exp $");
 
-static int emit_message (DBPROCESS *dbproc, DBINT msgno);
+static int dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum);
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
@@ -586,13 +587,13 @@ dbstring_concat(DBSTRING ** dbstrp, const char *p)
 		strp = &((*strp)->strnext);
 	}
 	if ((*strp = (DBSTRING *) malloc(sizeof(DBSTRING))) == NULL) {
-		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
 	}
 	(*strp)->strtotlen = strlen(p);
 	if (((*strp)->strtext = (BYTE *) malloc((*strp)->strtotlen)) == NULL) {
 		TDS_ZERO_FREE(*strp);
-		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
 	}
 	memcpy((*strp)->strtext, p, (*strp)->strtotlen);
@@ -648,7 +649,7 @@ dbstring_get(DBSTRING * dbstr)
 	}
 	len = dbstring_length(dbstr);
 	if ((ret = (char *) malloc(len + 1)) == NULL) {
-		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
 	cp = ret;
@@ -707,7 +708,7 @@ init_dboptions(void)
 
 	dbopts = (DBOPTION *) malloc(sizeof(DBOPTION) * DBNUMOPTIONS);
 	if (dbopts == NULL) {
-		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
 	for (i = 0; i < DBNUMOPTIONS; i++) {
@@ -749,7 +750,7 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	dbproc = (DBPROCESS *) malloc(sizeof(DBPROCESS));
 	if (dbproc == NULL) {
-		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
 	memset(dbproc, '\0', sizeof(DBPROCESS));
@@ -1167,8 +1168,7 @@ dbresults(DBPROCESS * dbproc)
 		return SUCCEED;
 		break;
 	case _DB_RES_RESULTSET_ROWS:
-		/* dbresults called while rows outstanding.... */
-		_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
+		dbperror(dbproc, SYBERPND, 0); /* dbresults called while rows outstanding.... */
 		return FAIL;
 		break;
 	case _DB_RES_NO_MORE_RESULTS:
@@ -1214,8 +1214,7 @@ dbresults(DBPROCESS * dbproc)
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
 
-				/*
-				 * A done token signifies the end of a logical command.
+				/* A done token signifies the end of a logical command.
 				 * There are three possibilities:
 				 * 1. Simple command with no result set, i.e. update, delete, insert
 				 * 2. Command with result set but no rows
@@ -1651,7 +1650,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		case SYBVARBINARY:
 		case SYBIMAGE:
 			if (srclen > destlen && destlen >= 0) {
-				_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+				dbperror(dbproc, SYBECOFL, 0);
 				ret = -1;
 			} else {
 				memcpy(dest, src, srclen);
@@ -1685,7 +1684,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			default:
 				assert(destlen > 0);
 				if (destlen < 0 || srclen > destlen) {
-					_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+					dbperror(dbproc, SYBECOFL, 0);
 					ret = -1;
 				} else {
 					memcpy(dest, src, srclen);
@@ -1760,26 +1759,28 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
-		_dblib_client_msg(NULL, SYBERDCN, EXCONVERSION, "Requested data-conversion does not exist.");
+		dbperror(dbproc, SYBERDCN, 0);
 		return -1;
 		break;
 	case TDS_CONVERT_SYNTAX:
-		_dblib_client_msg(NULL, SYBECSYN, EXCONVERSION, "Attempt to convert data stopped by syntax error in source field.");
+		dbperror(dbproc, SYBECSYN, 0);
 		return -1;
 		break;
 	case TDS_CONVERT_NOMEM:
-		_dblib_client_msg(NULL, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		dbperror(dbproc, SYBEMEM, ENOMEM);
 		return -1;
 		break;
 	case TDS_CONVERT_OVERFLOW:
-		_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data conversion resulted in overflow.");
+		dbperror(dbproc, SYBECOFL, 0);
 		return -1;
 		break;
 	case TDS_CONVERT_FAIL:
+		dbperror(dbproc, SYBECINTERNAL, 0);
 		return -1;
 		break;
 	default:
-		if (len < 0) {
+		if (len < 0) { /* logic error: should be captured above */
+			dbperror(dbproc, SYBECINTERNAL, 0);
 			return -1;
 		}
 		break;
@@ -1790,7 +1791,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	case SYBVARBINARY:
 	case SYBIMAGE:
 		if (len > destlen && destlen >= 0) {
-			_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+			dbperror(dbproc, SYBECOFL, 0);
 			ret = -1;
 		} else {
 			memcpy(dest, dres.ib, len);
@@ -1882,7 +1883,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		default:
 			assert(destlen > 0);
 			if (destlen < 0 || len > destlen) {
-				_dblib_client_msg(NULL, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+				dbperror(dbproc, SYBECOFL, 0);
 				ret = -1;
 				tdsdump_log(TDS_DBG_INFO1, "%d bytes type %d -> %d, destlen %d < %d required\n",
 					    srclen, srctype, desttype, destlen, len);
@@ -1979,15 +1980,15 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 	dbproc->avail_flag = FALSE;
 
 	if (dbproc == NULL) {
-		_dblib_client_msg(dbproc, SYBENULL, EXINFO, "NULL DBPROCESS pointer passed to DB-Library.");
+		dbperror(dbproc, SYBENULL, 0);
 		return FAIL;
 	}
 	if (varaddr == NULL) {
-		_dblib_client_msg(dbproc, SYBEABNV, EXPROGRAM, "Attempt to bind to a NULL program variable.");
+		dbperror(dbproc, SYBEABNV, 0);
 		return FAIL;
 	}
 	if (dbproc->tds_socket == NULL) {
-		_dblib_client_msg(dbproc, SYBEDDNE, EXINFO, "DBPROCESS is dead or not enabled.");
+		dbperror(dbproc, SYBEDDNE, 0);
 		assert(dbdead(dbproc)); /* what else could it be? */
 		return FAIL;
 	}
@@ -1995,7 +1996,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 	tds = dbproc->tds_socket;
 	
 	if (tds->res_info == NULL || tds->res_info->num_cols < column || column < 1) {
-		_dblib_client_msg(dbproc, SYBEABNC, EXPROGRAM, "Attempt to bind to a non-existent column.");
+		dbperror(dbproc, SYBEABNC, 0);
 		return FAIL;
 	}
 
@@ -2008,7 +2009,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 	tdsdump_log(TDS_DBG_INFO1, "dbbind() srctype = %d desttype = %d \n", srctype, desttype);
 
 	if (! dbwillconvert(srctype, desttype)) {
-		_dblib_client_msg(dbproc, SYBEABMT, EXPROGRAM, "User attempted a dbbind with mismatched column and variable types");
+		dbperror(dbproc, SYBEABMT, 0);
 		return FAIL;
 	}
 
@@ -3709,7 +3710,7 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 	}
 
 	if ((option < 0) || (option >= DBNUMOPTIONS)) {
-		_dblib_client_msg(dbproc, SYBEUNOP, EXNONFATAL, "Unknown option passed to dbsetopt().");
+		dbperror(dbproc, SYBEUNOP, 0);
 		return FAIL;
 	}
 	dbproc->dbopts[option].optactive = 1;
@@ -3746,8 +3747,7 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 		break;
 	case DBOFFSET:
 		/* server option */
-		/*
-		 * requires param
+		/* requires param
 		 * "select", "from", "table", "order", "compute",
 		 * "statement", "procedure", "execute", or "param"
 		 */
@@ -4884,7 +4884,7 @@ dbspid(DBPROCESS * dbproc)
 	TDSSOCKET *tds;
 
 	if (dbproc == NULL) {
-		_dblib_client_msg(dbproc, SYBESPID, EXPROGRAM, "Called dbspid() with a NULL dbproc.");
+		dbperror(dbproc, SYBESPID, 0);
 		return FAIL;
 	}
 	tds = dbproc->tds_socket;
@@ -5250,11 +5250,11 @@ RETCODE
 dbstrcpy(DBPROCESS * dbproc, int start, int numbytes, char *dest)
 {
 	if (start < 0) {
-		_dblib_client_msg(dbproc, SYBENSIP, EXPROGRAM, "Negative starting index passed to dbstrcpy().");
+		dbperror(dbproc, SYBENSIP, 0);
 		return FAIL;
 	}
 	if (numbytes < -1) {
-		_dblib_client_msg(dbproc, SYBEBNUM, EXPROGRAM, "Bad numbytes parameter passed to dbstrcpy().");
+		dbperror(dbproc, SYBEBNUM, 0);
 		return FAIL;
 	}
 	dest[0] = 0;		/* start with empty string being returned */
@@ -5520,7 +5520,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
     if (dbproc->tds_socket->state == TDS_PENDING) {
 
         if (tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_TOKEN_TRAILING) != TDS_NO_MORE_RESULTS) {
-            _dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
+	    dbperror(dbproc, SYBERPND, 0);
             dbproc->command_state = DBCMDSENT;
             return FAIL;
         }
@@ -5920,7 +5920,7 @@ dbsqlsend(DBPROCESS * dbproc)
 	if (tds->state == TDS_PENDING) {
 
 		if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_TRAILING) != TDS_NO_MORE_RESULTS) {
-			_dblib_client_msg(dbproc, 20019, 7, "Attempt to initiate a new SQL Server operation with results pending.");
+			dbperror(dbproc, SYBERPND, 0);
 			dbproc->command_state = DBCMDSENT;
 			return FAIL;
 		}
@@ -6160,18 +6160,6 @@ _set_null_value(BYTE * varaddr, int datatype, int maxlen)
 	}
 }
 
-/** \internal
- * \ingroup dblib_internal
- * \brief See if a \c DBPROCESS is marked "available".
- * 
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \remarks Basically bogus.  \c FreeTDS behaves the way Sybase's implementation does, but so what?  
- 	Many \c db-lib functions set the \c DBPROCESS to "not available", but only 
-	dbsetavail() resets it to "available".  
- * \retval TRUE \a dbproc is "available".   
- * \retval FALSE \a dbproc is not "available".   
- * \sa DBISAVAIL(). DBSETAVAIL().
- */
 DBBOOL
 dbisavail(DBPROCESS * dbproc)
 {
@@ -6367,7 +6355,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 		case SYBBINARY:
 		case SYBIMAGE:
 			if (srclen > destlen && destlen >= 0) {
-				_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+				dbperror(dbproc, SYBECOFL, 0);
 			} else {
 				memcpy(dest, src, srclen);
 				if (srclen < destlen)
@@ -6386,7 +6374,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 					}
 					if (limited_dest_space) {
 						if (srclen + 1 > destlen) {
-							_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+							dbperror(dbproc, SYBECOFL, 0);
 							indicator_value = srclen + 1;
 							srclen = destlen - 1;
 						}
@@ -6397,7 +6385,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 				case STRINGBIND:   /* pad with blanks, null term */
 					if (limited_dest_space) {
 						if (srclen + 1 > destlen) {
-							_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+							dbperror(dbproc, SYBECOFL, 0);
 							indicator_value = srclen + 1;
 							srclen = destlen - 1;
 						}
@@ -6412,7 +6400,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 				case CHARBIND:   /* pad with blanks, NO null term */
 					if (limited_dest_space) {
 						if (srclen > destlen) {
-							_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+							dbperror(dbproc, SYBECOFL, 0);
 							indicator_value = srclen;
 							srclen = destlen;
 						}
@@ -6426,7 +6414,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 				case VARYCHARBIND: /* strip trailing blanks, NO null term */
 					if (limited_dest_space) {
 						if (srclen > destlen) {
-							_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+							dbperror(dbproc, SYBECOFL, 0);
 							indicator_value = srclen;
 							srclen = destlen;
 						}
@@ -6488,19 +6476,19 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 
 	switch (len) {
 	case TDS_CONVERT_NOAVAIL:
-		_dblib_client_msg(dbproc, SYBERDCN, EXCONVERSION, "Requested data-conversion does not exist.");
+		dbperror(dbproc, SYBERDCN, 0);
 		return;
 		break;
 	case TDS_CONVERT_SYNTAX:
-		_dblib_client_msg(dbproc, SYBECSYN, EXCONVERSION, "Attempt to convert data stopped by syntax error in source field.");
+		dbperror(dbproc, SYBECSYN, 0);
 		return;
 		break;
 	case TDS_CONVERT_NOMEM:
-		_dblib_client_msg(dbproc, SYBEMEM, EXRESOURCE, "Unable to allocate sufficient memory.");
+		dbperror(dbproc, SYBEMEM, ENOMEM);
 		return;
 		break;
 	case TDS_CONVERT_OVERFLOW:
-		_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data conversion resulted in overflow.");
+		dbperror(dbproc, SYBECOFL, 0);
 		return;
 		break;
 	case TDS_CONVERT_FAIL:
@@ -6517,7 +6505,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	case SYBBINARY:
 	case SYBIMAGE:
 		if (len > destlen && destlen >= 0) {
-			_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+			dbperror(dbproc, SYBECOFL, 0);
 		} else {
 			memcpy(dest, dres.ib, len);
 			free(dres.ib);
@@ -6577,7 +6565,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 				}
 				if (limited_dest_space) {
 					if (len + 1 > destlen) {
-						_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+						dbperror(dbproc, SYBECOFL, 0);
 						len = destlen - 1;
 					}
 				}
@@ -6587,7 +6575,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 			case STRINGBIND:   /* pad with blanks, null term */
 				if (limited_dest_space) {
 					if (len + 1 > destlen) {
-						_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+						dbperror(dbproc, SYBECOFL, 0);
 						len = destlen - 1;
 					}
 				} else {
@@ -6601,7 +6589,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 			case CHARBIND:   /* pad with blanks, NO null term */
 				if (limited_dest_space) {
 					if (len > destlen) {
-						_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+						dbperror(dbproc, SYBECOFL, 0);
 						indicator_value = len;
 						len = destlen;
 					}
@@ -6615,7 +6603,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 			case VARYCHARBIND: /* strip trailing blanks, NO null term */
 				if (limited_dest_space) {
 					if (len > destlen) {
-						_dblib_client_msg(dbproc, SYBECOFL, EXCONVERSION, "Data-conversion resulted in overflow.");
+						dbperror(dbproc, SYBECOFL, 0);
 						indicator_value = len;
 						len = destlen;
 					}
@@ -6641,7 +6629,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 typedef struct _dblib_error_message 
 {
 	DBINT msgno;
-	int msgstate;
+	int severity;
 	char *msgtext;
 } DBLIB_ERROR_MESSAGE;
 
@@ -6951,8 +6939,30 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEZTXT,              EXINFO,	"Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext" }
 	};
 
-/*
- * Instead of sprinkling error text all over db-lib, we consolidate it in this structure, 
+ /* note jkl Sun Jul 17 00:50:55 EDT 2005
+  * _dblib_handle_err_message is not called from anywhere and does not work afaict because it tries to call 
+  * a pointer to the handler without first dereferencing it.  I'm surprised it compiles.  
+  */
+
+/**  \internal
+ * \ingroup dblib_internal
+ * \brief Call client-installed error handler
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param msgno	identifies the error message to be passed to the client's handler.
+ * \param errnum identifies the OS error (errno), if any.  Use 0 if not applicable.  
+ * \returns the handler's return code, subject to correction and adjustment for vendor style:
+ * 	- INT_CANCEL	The db-lib function that encountered the error will return FAIL.  
+ * 	- INT_TIMEOUT	The db-lib function will cancel the operation and return FAIL.  \a dbproc remains useable.  
+ * 	- INT_CONTINUE	The db-lib function will retry the operation.  
+ * \remarks 
+ *	The client-installed handler may also return INT_EXIT.  If Sybase semantics are used, this function notifies
+ * 	the user and calls exit(3).  If Microsoft semantics are used, this function returns INT_CANCEL.  
+ *
+ *	If the client-installed handler returns something other than these four INT_* values, or returns timeout-related
+ *	value for anything but SYBETIME, it's treated here as INT_EXIT (see above).  
+ *
+ * Instead of sprinkling error text all over db-lib, we consolidate it here, 
  * where it can be translated (one day), and where it can be mapped to the TDS error number.  
  * The libraries don't use consistent error numbers or messages, so when libtds has to emit 
  * an error message, it can't include the text.  It can pass its error number to a client-library
@@ -6960,40 +6970,109 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
  * (if any) and return the handler's return code back to the caller.  
  * 
  * The call stack may look something like this:
- * 1.	application
- * 2.		db-lib function
- * 3.			libtds function (encountered error)
- * 4.		emit_message
- * 5. 	error handler (installed by application) [1]
+ *
+ * -#	application
+ * -#		db-lib function (encounters error)
+ * -#		dbperror
+ * -#	error handler (installed by application)
+ *
+ * The error handling in this case is unambiguous: the caller invokes this function, the client's handler returns its 
+ * instruction, which the caller receives.  Quite often the caller will get INT_CANCEL, in which case it should put its 
+ * house in order and return FAIL.  
+ *
+ * The call stack may otherwise look something like this:
  *			
- * The handler's return code can be extremely important, because it can tell the client-library  
- * function what to do (approximately: abort, retry, or ignore).  Because the meaning of the return code
- * is not known to libtds (again because the semantics differ among libraries) it is important that each
- * function on the stack return simply forward the return code.  Assuming, of course, that there's 
- * default handler that will return an appropriate return code, in case the application didn't install one.  
- * 
- * The DBLIB_ERROR_MESSAGE struct might another member: the TDS error number.  That would allow libtds
- * to call a lookup function, which would search the array by TDS error number, find the sybdb number, 
- * and call emit_message().  
+ * -#	application
+ * -#		db-lib function
+ * -#			libtds function (encounters error)
+ * -#		_dblib_handle_err_message
+ * -#		dbperror
+ * -# 	error handler (installed by application)
  *
- * There are cases where libtds needs to understand from the handler what to do.  Example: whether to 
- * retry a timed-out query.  We need to coordinate those semantics among the libraries, such that the user
- * writing the application can adhere to the docs while sending a meaningful return code back to libtds.  
+ * Here libtds invokes the client's handler.  Because different client libraries specify their handler semantics differently, 
+ * and because libtds doesn't know which client library is in charge of any given connection, it cannot interpret the 
+ * raw return code.  Similarly, the libtds error message number will not be in the db-lib msgno list.  For these reasons, 
+ * libtds calls _dblib_handle_err_message which translates between libtds and db-lib semantics.  
  *
- * [1] Unfortunately, the stack is more complicated than that, because_dblib_client_msg() actually 
- * calls back to libtds, which reinterprets the error.  It should be as described above.  
- */
+ * \sa dberrhandle(), _dblib_handle_err_message().
+ */
 static int
-emit_message (DBPROCESS *dbproc, DBINT msgno)
+dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 {
-	int i;
+	static int microsoft_timeouts = 0;
+	static const char int_exit_text[] = "FreeTDS: db-lib: exiting because client error handler returned %d for msgno %d\n";
+	static const char int_invalid_text[] = "%s (%d) received from client-installed error handler for nontimeout for error %d."
+					       "  Treating as INT_EXIT\n";
+	static const DBLIB_ERROR_MESSAGE default_message = { 0, EXCONSISTENCY, "unrecognized msgno" };
+	const DBLIB_ERROR_MESSAGE *msg = &default_message;
+	
+	int i, rc = INT_CANCEL;
+	char * os_msgtext = strerror(errnum);
 
-	for (i=0; i < TDS_VECTOR_SIZE(dblib_error_messages); ++i ) {
+	if (os_msgtext == NULL)
+		os_msgtext = "no OS error";
+	
+	if (_dblib_err_handler == NULL) { /* no installed handler */
+		tdsdump_log(TDS_DBG_SEVERE, "No error handler installed.  Returning INT_CANCEL for %d, %d [%s]", 
+						msgno, errnum, os_msgtext);
+		return INT_CANCEL;
+	}
+
+	/* look up the error message */
+	for (i=0; i < TDS_VECTOR_SIZE(dblib_error_messages); i++ ) {
 		if (dblib_error_messages[i].msgno == msgno) {
-			const DBLIB_ERROR_MESSAGE *m = &dblib_error_messages[i];
-			return _dblib_client_msg(dbproc, msgno, m->msgstate, m->msgtext);
+			msg = &dblib_error_messages[i];
+			break;
+		}
+	}
+		
+	/* call the client's handler */
+	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, msg->msgtext, os_msgtext);
+	
+      	/* Timeout return codes are errors for non-timeout conditions. */
+	if (msgno != SYBETIME) {
+		switch (rc) {
+		case INT_CONTINUE:
+			tdsdump_log(TDS_DBG_SEVERE, int_invalid_text, "INT_CONTINUE", rc, msgno);
+			rc = INT_EXIT;
+			break;
+		case INT_TIMEOUT:
+			tdsdump_log(TDS_DBG_SEVERE, int_invalid_text, "INT_TIMEOUT", rc, msgno);
+			rc = INT_EXIT;
+			break;
+		default:
+			break;
 		}
 	}
 
-	return _dblib_client_msg(dbproc, msgno, EXCONSISTENCY, "unrecognized msgno");
+	/* 
+	 * Sybase exits on INT_EXIT; Microsoft converts to INT_CANCEL.
+	 * http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dblibc/dbc_pdc04c_6v39.asp
+	 */
+	switch (rc) {
+	case INT_CONTINUE:
+		/* Microsoft does not define INT_TIMEOUT.  Instead, two consecutive INT_CONTINUEs yield INT_CANCEL. */
+		if (dbproc && dbproc->msdblib && ++microsoft_timeouts >=2) {
+			microsoft_timeouts = 0;
+			rc = INT_CANCEL;
+		}	/* fall through */
+	case INT_CANCEL:
+	case INT_TIMEOUT:
+		return rc;	/* normal case */
+		break;
+	default:
+		tdsdump_log(TDS_DBG_SEVERE, int_invalid_text, "Invalid return code", rc, msgno);
+		/* fall through */
+	case INT_EXIT:
+		if (dbproc && dbproc->msdblib) {
+			/* Microsoft behavior */
+			return INT_CANCEL;
+		}
+		fprintf(stderr, int_exit_text, rc, msgno);
+		tdsdump_log(TDS_DBG_SEVERE, int_exit_text, rc, msgno);
+		break;
+	}
+	exit(EXIT_FAILURE);
+	return rc; /* not reached */
 }
+
