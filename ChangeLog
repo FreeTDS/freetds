@@ -1,3 +1,8 @@
+Sun Jul 17 17:56:11 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* include/dblib.h src/dblib/bcp.c src/dblib/dblib.c
+	* src/dblib/dbutil.c 
+	- use dbperror consistently throughout db-lib
+	
 Sun Jul 17 14:23:33 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c 
 	- convert to use new dbperror() for internal errors

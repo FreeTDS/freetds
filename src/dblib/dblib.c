@@ -32,7 +32,6 @@
 # endif
 #endif
 
-#include <errno.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <stdio.h>
@@ -49,6 +48,12 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_ERRNO_H
+# include <errno.h>
+#else
+  static int errno=0;
+#endif /* HAVE_ERRNO_H */
+
 #define SYBDBLIB 1
 #include "tds.h"
 #include "tdsthread.h"
@@ -63,9 +68,8 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.237 2005-07-17 18:26:26 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.238 2005-07-17 21:58:19 jklowden Exp $");
 
-static int dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum);
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
@@ -278,12 +282,7 @@ dblib_release_tds_ctx(int count)
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 }
 
-#define USE_OLD_BUFFERING 0
-#if USE_OLD_BUFFERING
-# include "old_buffering.h"
-#else
-# include "buffering.h"
-#endif
+#include "buffering.h"
 
 static void
 db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
@@ -6994,9 +6993,9 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
  * raw return code.  Similarly, the libtds error message number will not be in the db-lib msgno list.  For these reasons, 
  * libtds calls _dblib_handle_err_message which translates between libtds and db-lib semantics.  
  *
- * \sa dberrhandle(), _dblib_handle_err_message().
- */
-static int
+ * \sa dberrhandle(), _dblib_handle_err_message(), tds_client_msg().
+ */
+int
 dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 {
 	static int microsoft_timeouts = 0;
