@@ -1,13 +1,18 @@
+Mon Jul 18 11:11:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/tsql.c:
+	- fix quiet option if readline is available
+	- use static for function
+
 Sun Jul 17 17:56:11 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/bcp.c src/dblib/dblib.c
 	* src/dblib/dbutil.c 
 	- use dbperror consistently throughout db-lib
-	
+
 Sun Jul 17 14:23:33 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c 
 	- convert to use new dbperror() for internal errors
 	- libtds -> db-lib calling semantics unchanged
-	
+
 Sun Jul 17  9:45:01 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/connectparams.h(removed):
 	* src/odbc/convert_tds2sql.h(removed):

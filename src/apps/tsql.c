@@ -68,8 +68,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: tsql.c,v 1.79 2005-06-30 09:47:03 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: tsql.c,v 1.80 2005-07-18 09:12:27 freddy77 Exp $");
 
 enum
 {
@@ -83,24 +82,24 @@ enum
 static int global_opt_flags = 0;
 #define QUIET (global_opt_flags & OPT_QUIET)
 
-int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
+static int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
 static void tsql_print_usage(const char *progname);
-int get_opt_flags(char *s, int *opt_flags);
-void populate_login(TDSLOGIN * login, int argc, char **argv);
+static int get_opt_flags(char *s, int *opt_flags);
+static void populate_login(TDSLOGIN * login, int argc, char **argv);
 static int tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
-void slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line);
+static void slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line);
 
 #ifndef HAVE_READLINE
-char *readline(char *prompt);
-void add_history(const char *s);
+static char *readline(char *prompt);
+static void add_history(const char *s);
 
-char *
+static char *
 readline(char *prompt)
 {
 	char line[1000];
 	int i = 0;
 
-	if (!QUIET)
+	if (prompt && prompt[0])
 	    printf("%s", prompt);
 	if (fgets(line, 1000, stdin) == NULL) {
 		return NULL;
@@ -115,13 +114,13 @@ readline(char *prompt)
 	return strdup(line);
 }
 
-void
+static void
 add_history(const char *s)
 {
 }
 #endif
 
-int
+static int
 do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 {
 	int rows = 0;
@@ -229,7 +228,7 @@ tsql_print_usage(const char *progname)
 		progname, progname);
 }
 
-int
+static int
 get_opt_flags(char *s, int *opt_flags)
 {
 	char **argv;
@@ -273,7 +272,7 @@ get_opt_flags(char *s, int *opt_flags)
 	return *opt_flags;
 }
 
-void
+static void
 populate_login(TDSLOGIN * login, int argc, char **argv)
 {
 	const TDS_COMPILETIME_SETTINGS *settings;
@@ -450,7 +449,7 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 	return 0;
 }
 
-void
+static void
 slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line)
 {
 	FILE *fp = NULL;
@@ -526,7 +525,7 @@ main(int argc, char **argv)
 		sprintf(prompt, "%d> ", ++line);
 		if (s)
 			free(s);
-		s = readline(prompt);
+		s = readline(QUIET ? NULL : prompt);
 		if (s != NULL) {
 			if (s2)
 				free(s2);
