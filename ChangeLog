@@ -1,3 +1,11 @@
+Mon Jul 18 20:48:49 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/replacements/Makefile.am:
+	* src/replacements/strl.c(removed):
+	* src/replacements/strlcpy.c(added):
+	* src/replacements/strlcat.c(added):
+	- use replacement in configure
+	- split strl.c
+
 Mon Jul 18 11:11:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/apps/tsql.c:
 	- fix quiet option if readline is available
