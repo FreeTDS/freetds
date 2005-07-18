@@ -245,7 +245,11 @@ SOURCE=.\iconv_replacement.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\replacements\strl.c
+SOURCE=..\..\src\replacements\strlcpy.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\replacements\strlcat.c
 # End Source File
 # Begin Source File
 
