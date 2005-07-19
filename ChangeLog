@@ -1,3 +1,8 @@
+Tue Jul 19 14:10:30 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* win32/winlogin.c win32/winsetup.c win32/dev-cpp/FreeTDS.dev:
+	* win32/msvc6/FreeTDS.dsp:
+	- updates for odbc
+
 Mon Jul 18 20:48:49 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/replacements/Makefile.am:
 	* src/replacements/strl.c(removed):

@@ -55,7 +55,6 @@
 
 #include "tds.h"
 #include "tdsodbc.h"
-#include "../src/odbc/connectparams.h"
 #include "tdsstring.h"
 #include "tdsconvert.h"
 

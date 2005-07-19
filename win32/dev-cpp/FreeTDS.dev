@@ -9,7 +9,7 @@ CppCompiler=-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOUR
 Includes=..;../../include
 Linker=-lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32_@@_-s --def ../FreeTds.def_@@_-Wl,--enable-stdcall-fixup_@@_
 Libs=
-UnitCount=64
+UnitCount=58
 Folders="Header Files",LibTDS,Replacements,"Resource Files","Source Files"
 ObjFiles=
 PrivateResource=FreeTDS_private.rc
@@ -140,26 +140,6 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit12]
-FileName=..\..\src\odbc\connectparams.h
-Folder="Header Files"
-Compile=1
-CompileCpp=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit13]
-FileName=..\..\src\odbc\convert_tds2sql.h
-Folder="Header Files"
-Compile=1
-CompileCpp=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit14]
 FileName=..\..\include\des.h
 Folder="Header Files"
 Compile=1
@@ -169,7 +149,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit15]
+[Unit13]
 FileName=..\freetds_sysconfdir.h
 Folder="Header Files"
 Compile=1
@@ -179,7 +159,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit16]
+[Unit14]
 FileName=..\..\include\md4.h
 Folder="Header Files"
 Compile=1
@@ -189,27 +169,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit17]
-FileName=..\..\src\odbc\odbc_util.h
-Folder="Header Files"
-Compile=1
-CompileCpp=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit18]
-FileName=..\..\src\odbc\prepare_query.h
-Folder="Header Files"
-Compile=1
-CompileCpp=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit19]
+[Unit15]
 FileName=..\..\include\replacements.h
 Folder="Header Files"
 Compile=1
@@ -219,17 +179,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit20]
-FileName=..\..\src\odbc\sql2tds.h
-Folder="Header Files"
-Compile=1
-CompileCpp=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit21]
+[Unit16]
 FileName=..\..\include\tds.h
 Folder="Header Files"
 Compile=1
@@ -239,7 +189,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit22]
+[Unit17]
 FileName=..\..\include\tds_configs.h
 Folder="Header Files"
 Compile=1
@@ -249,7 +199,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit23]
+[Unit18]
 FileName=..\..\include\tds_sysdep_private.h
 Folder="Header Files"
 Compile=1
@@ -259,7 +209,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit24]
+[Unit19]
 FileName=..\tds_sysdep_public.h
 Folder="Header Files"
 Compile=1
@@ -269,7 +219,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit25]
+[Unit20]
 FileName=..\..\src\tds\tds_willconvert.h
 Folder="Header Files"
 Compile=1
@@ -279,7 +229,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit26]
+[Unit21]
 FileName=..\..\include\tdsconvert.h
 Folder="Header Files"
 Compile=1
@@ -289,7 +239,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit27]
+[Unit22]
 FileName=..\..\include\tdsiconv.h
 Folder="Header Files"
 Compile=1
@@ -299,7 +249,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit28]
+[Unit23]
 FileName=..\..\include\tdsodbc.h
 Folder="Header Files"
 Compile=1
@@ -309,7 +259,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit29]
+[Unit24]
 FileName=..\..\include\tdsstring.h
 Folder="Header Files"
 Compile=1
@@ -319,7 +269,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit30]
+[Unit25]
 FileName=..\..\include\tdsver.h
 Folder="Header Files"
 Compile=1
@@ -329,7 +279,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit31]
+[Unit26]
 FileName=..\..\src\replacements\asprintf.c
 Folder=Replacements
 Compile=1
@@ -339,7 +289,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit32]
+[Unit27]
 FileName=..\..\src\replacements\strtok_r.c
 Folder=Replacements
 Compile=1
@@ -349,7 +299,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit33]
+[Unit28]
 FileName=..\..\src\replacements\vasprintf.c
 Folder=Replacements
 Compile=1
@@ -359,7 +309,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit34]
+[Unit29]
 FileName=..\..\src\tds\challenge.c
 Folder=LibTDS
 Compile=1
@@ -369,7 +319,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit35]
+[Unit30]
 FileName=..\..\src\tds\config.c
 Folder=LibTDS
 Compile=1
@@ -379,7 +329,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit36]
+[Unit31]
 FileName=..\..\src\tds\convert.c
 Folder=LibTDS
 Compile=1
@@ -389,7 +339,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit37]
+[Unit32]
 FileName=..\..\src\tds\des.c
 Folder=LibTDS
 Compile=1
@@ -399,7 +349,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit38]
+[Unit33]
 FileName=..\..\src\tds\getmac.c
 Folder=LibTDS
 Compile=1
@@ -409,7 +359,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit39]
+[Unit34]
 FileName=..\..\src\tds\iconv.c
 Folder=LibTDS
 Compile=1
@@ -419,7 +369,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit40]
+[Unit35]
 FileName=..\..\src\tds\locale.c
 Folder=LibTDS
 Compile=1
@@ -429,7 +379,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit41]
+[Unit36]
 FileName=..\..\src\tds\login.c
 Folder=LibTDS
 Compile=1
@@ -439,7 +389,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit42]
+[Unit37]
 FileName=..\..\src\tds\md4.c
 Folder=LibTDS
 Compile=1
@@ -449,7 +399,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit43]
+[Unit38]
 FileName=..\..\src\tds\mem.c
 Folder=LibTDS
 Compile=1
@@ -459,7 +409,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit44]
+[Unit39]
 FileName=..\..\src\tds\numeric.c
 Folder=LibTDS
 Compile=1
@@ -469,7 +419,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit45]
+[Unit40]
 FileName=..\..\src\tds\query.c
 Folder=LibTDS
 Compile=1
@@ -479,7 +429,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit46]
+[Unit41]
 FileName=..\..\src\tds\read.c
 Folder=LibTDS
 Compile=1
@@ -489,7 +439,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit47]
+[Unit42]
 FileName=..\..\src\tds\tdsstring.c
 Folder=LibTDS
 Compile=1
@@ -499,7 +449,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit48]
+[Unit43]
 FileName=..\..\src\tds\threadsafe.c
 Folder=LibTDS
 Compile=1
@@ -509,7 +459,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit49]
+[Unit44]
 FileName=..\..\src\tds\token.c
 Folder=LibTDS
 Compile=1
@@ -519,7 +469,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit50]
+[Unit45]
 FileName=..\..\src\tds\util.c
 Folder=LibTDS
 Compile=1
@@ -529,7 +479,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit51]
+[Unit46]
 FileName=..\..\src\tds\vstrbuild.c
 Folder=LibTDS
 Compile=1
@@ -539,7 +489,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit52]
+[Unit47]
 FileName=..\..\src\tds\write.c
 Folder=LibTDS
 Compile=1
@@ -549,7 +499,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit53]
+[Unit48]
 FileName=..\..\src\replacements\iconv.c
 Folder=Replacements
 Compile=1
@@ -559,7 +509,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit54]
+[Unit49]
 FileName=..\..\src\tds\data.c
 Folder=LibTDS
 Compile=1
@@ -587,7 +537,7 @@ ProductName=FreeTDS
 ProductVersion=0.62
 AutoIncBuildNr=0
 
-[Unit55]
+[Unit50]
 FileName=..\..\src\odbc\descriptor.c
 CompileCpp=0
 Folder=Source Files
@@ -597,7 +547,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit56]
+[Unit51]
 FileName=..\..\src\odbc\odbc_checks.c
 CompileCpp=0
 Folder=Source Files
@@ -607,17 +557,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit57]
-FileName=..\..\src\odbc\odbc_checks.h
-CompileCpp=1
-Folder=Header Files
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit58]
+[Unit52]
 FileName=..\setup.rc
 Folder=Source Files
 Compile=1
@@ -626,7 +566,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit59]
+[Unit53]
 FileName=..\winlogin.c
 CompileCpp=0
 Folder=Source Files
@@ -636,7 +576,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c winlogin.c -o winlogin.o $(CFLAGS)
 
-[Unit60]
+[Unit54]
 FileName=..\winsetup.c
 CompileCpp=0
 Folder=Source Files
@@ -646,7 +586,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c winsetup.c -o winsetup.o $(CFLAGS)
 
-[Unit61]
+[Unit55]
 FileName=..\..\src\tds\md5.c
 CompileCpp=0
 Folder=LibTDS
@@ -656,7 +596,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c md5.c -o md5.o $(CFLAGS)
 
-[Unit62]
+[Unit56]
 FileName=..\..\src\tds\net.c
 CompileCpp=0
 Folder=LibTDS
@@ -666,7 +606,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c net.c -o net.o $(CFLAGS)
 
-[Unit63]
+[Unit57]
 FileName=..\..\src\replacements\strlcpy.c
 CompileCpp=1
 Folder=Replacements
@@ -676,7 +616,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit64]
+[Unit58]
 FileName=..\..\src\replacements\strlcat.c
 CompileCpp=1
 Folder=Replacements

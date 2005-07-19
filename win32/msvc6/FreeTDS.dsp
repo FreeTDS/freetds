@@ -129,10 +129,6 @@ SOURCE=..\..\src\odbc\odbc_checks.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\odbc\odbc_checks.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\odbc\odbc_util.c
 # End Source File
 # Begin Source File
@@ -155,26 +151,6 @@ SOURCE=..\winsetup.c
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
-# Begin Source File
-
-SOURCE=..\..\src\odbc\connectparams.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\odbc\convert_tds2sql.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\odbc\odbc_util.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\odbc\prepare_query.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\odbc\sql2tds.h
-# End Source File
 # Begin Source File
 
 SOURCE=..\..\include\tdsodbc.h
