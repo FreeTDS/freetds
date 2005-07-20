@@ -1,3 +1,8 @@
+Wed Jul 20 12:57:19 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/blk.c src/ctlib/ct.c src/dblib/bcp.c:
+	* src/dblib/dblib.c src/tds/query.c:
+	- use mnemonic constants for packet types
+
 Tue Jul 19 14:10:30 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* win32/winlogin.c win32/winsetup.c win32/dev-cpp/FreeTDS.dev:
 	* win32/msvc6/FreeTDS.dsp:

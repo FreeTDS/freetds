@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.31 2005-07-15 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.32 2005-07-20 10:58:44 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -252,7 +252,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 			return CS_FAIL;
 		}
 
-		tds->out_flag = 0x07;
+		tds->out_flag = TDS_BULK;
 
 		if (IS_TDS7_PLUS(tds)) {
 			_blk_send_colmetadata(blkdesc);
@@ -712,7 +712,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 
 
 		/* set packet type to send bulk data */
-		tds->out_flag = 0x07;
+		tds->out_flag = TDS_BULK;
 
 		if (IS_TDS7_PLUS(tds)) {
 			_blk_send_colmetadata(blkdesc);

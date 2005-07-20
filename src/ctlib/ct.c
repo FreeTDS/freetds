@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.153 2005-07-15 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.154 2005-07-20 10:58:44 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2764,11 +2764,11 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 			return CS_FAIL;
 
 		cmd->send_data_started = 1;
-		tds->out_flag = 0x07;
+		tds->out_flag = TDS_BULK;
 		tds_put_int(tds, cmd->iodesc->total_txtlen);
 	}
 
-	tds->out_flag = 0x07;
+	tds->out_flag = TDS_BULK;
 	tds_put_n(tds, buffer, buflen);
 
 	return CS_SUCCEED;

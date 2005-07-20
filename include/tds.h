@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.238 2005-07-05 07:21:14 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.239 2005-07-20 10:58:44 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -559,6 +559,16 @@ enum TDS_OPT_ISOLATION_CHOICE
 {
 	TDS_OPT_LEVEL1 = 1, TDS_OPT_LEVEL3 = 3
 };
+
+typedef enum tds_packet_type
+{
+	TDS_QUERY = 1,
+	TDS_RPC = 3,
+	TDS_CANCEL = 6,
+	TDS_BULK = 7,
+	TDS_NORMAL = 15
+} TDS_PACKET_TYPE;
+
 
 #define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))

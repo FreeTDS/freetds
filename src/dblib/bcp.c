@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.132 2005-07-17 21:58:19 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.133 2005-07-20 10:58:44 freddy77 Exp $");
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
 static RETCODE _bcp_build_bulk_insert_stmt(TDSSOCKET *, TDS_PBCB *, TDSCOLUMN *, int);
@@ -1767,7 +1767,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 		}
 
 		/* set packet type to send bulk data */
-		tds->out_flag = 0x07;
+		tds->out_flag = TDS_BULK;
 		tds_set_state(tds, TDS_QUERYING);
 
 		if (IS_TDS7_PLUS(tds)) {
@@ -1835,7 +1835,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		return (FAIL);
 	}
 
-	tds->out_flag = 0x07;
+	tds->out_flag = TDS_BULK;
 	tds_set_state(tds, TDS_QUERYING);
 
 	if (IS_TDS7_PLUS(tds)) {
@@ -2381,7 +2381,7 @@ _bcp_start_new_batch(DBPROCESS * dbproc)
 		return FAIL;
 
 	/* TODO problem with thread safety */
-	tds->out_flag = 0x07;
+	tds->out_flag = TDS_BULK;
 	tds_set_state(tds, TDS_QUERYING);
 
 	if (IS_TDS7_PLUS(tds)) {

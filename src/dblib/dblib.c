@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.238 2005-07-17 21:58:19 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.239 2005-07-20 10:58:45 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -5536,7 +5536,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	if (tds_process_simple_query(dbproc->tds_socket) != TDS_SUCCEED)
 		return FAIL;
 
-	dbproc->tds_socket->out_flag = 0x07;
+	dbproc->tds_socket->out_flag = TDS_BULK;
 	tds_set_state(dbproc->tds_socket, TDS_QUERYING);
 	tds_put_int(dbproc->tds_socket, size);
 
@@ -5638,7 +5638,7 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 	assert(dbproc->text_size >= dbproc->text_sent);
 
 	/* test dbproc value and state */
-	if (!dbproc || !dbproc->tds_socket || dbproc->tds_socket->out_flag != 0x07)
+	if (!dbproc || !dbproc->tds_socket || dbproc->tds_socket->out_flag != TDS_BULK)
 		return FAIL;
 
 	if (size < 0 || size > dbproc->text_size - dbproc->text_sent)
