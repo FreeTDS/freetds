@@ -1,3 +1,6 @@
+Thu Jul 21 11:41:22 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: update comments
+
 Wed Jul 20 12:57:19 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/blk.c src/ctlib/ct.c src/dblib/bcp.c:
 	* src/dblib/dblib.c src/tds/query.c:

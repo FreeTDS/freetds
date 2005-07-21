@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.386 2005-07-17 07:48:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.387 2005-07-21 09:41:38 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -157,7 +157,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 #if ENABLE_EXTRA_CHECKS
 	if (colpos > 0 && stmt->dbc->tds_socket != NULL && (resinfo = stmt->dbc->tds_socket->current_results) != NULL) {
 		if (colpos <= resinfo->num_cols) {
-			/* TODO see overflow */
+			/* no overflow possible, name is always shorter */
 			strcpy(resinfo->columns[colpos - 1]->column_name, name);
 			resinfo->columns[colpos - 1]->column_namelen = strlen(name);
 		}
@@ -1205,7 +1205,6 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	assert(stmt->ipd->header.sql_desc_array_status_ptr == NULL);
 	assert(stmt->ipd->header.sql_desc_rows_processed_ptr == NULL);
 	assert(stmt->apd->header.sql_desc_array_size == 1);
-	/* TODO use SQL_ATTR_QUERY_TIMEOUT set on the connection handle as statement default */
 	stmt->attr.query_timeout = 0;
 	stmt->attr.retrieve_data = SQL_RD_ON;
 	assert(stmt->ard->header.sql_desc_array_size == 1);
@@ -2771,8 +2770,6 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 
 /*
  * TODO support multi-row fetch
- * - handle bind_type (row array instead of field array)
- * - fill correctly SQL_DESC_ROWS_PROCESSED_PTR and SQL_DESC_ARRAY_STATUS_PTR
  * - handle correctly SQLGetData (for forward cursors accept only row_size == 1
  *   for other types application must use SQLSetPos)
  * - handle correctly results (SQL_SUCCESS_WITH_INFO if error on some rows,
@@ -5117,9 +5114,10 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 		}
 
 		/*
-		 * FIXME compute output value with this formaula:
+		 * TODO compute output value with this formula:
 		 * Bound Address + Binding Offset + ((Row Number – 1) x Element Size)
 		 * (see SQLParamData documentation)
+		 * This is needed for updates using SQLBulkOperation (not currently supported)
 		 */
 		if (!stmt->param_data_called) {
 			stmt->param_data_called = 1;
@@ -5375,7 +5373,6 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.noscan = ui;
 		break;
 	case SQL_ATTR_PARAM_BIND_OFFSET_PTR:
-		/* TODO use it, test what happen with column-wise and row-wise bindings and SQLPutData */
 		stmt->apd->header.sql_desc_bind_offset_ptr = lp;
 		break;
 	case SQL_ATTR_PARAM_BIND_TYPE:
@@ -5391,7 +5388,6 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->ipd->header.sql_desc_rows_processed_ptr = ulp;
 		break;
 		/* allow to exec procedure multiple time */
-		/* TODO support it */
 	case SQL_ATTR_PARAMSET_SIZE:
 		stmt->apd->header.sql_desc_array_size = ui;
 		break;
