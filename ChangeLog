@@ -1,3 +1,6 @@
+Fri Jul 22 13:38:26 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c: fix possible core calling strftime
+
 Mon Jul 04 08:41:35 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/bcp.c: final rtrim version
 
