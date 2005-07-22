@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.158 2005-07-07 13:06:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.159 2005-07-22 11:34:11 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -110,22 +110,21 @@ static int stringz_to_numeric(const char *instr, CONV_RESULT * cr);
 static TDS_INT string_to_int(const char *buf, const char *pend, TDS_INT * res);
 static TDS_INT string_to_int8(const char *buf, const char *pend, TDS_INT8 * res);
 
-
-static int store_hour(char *, char *, struct tds_time *);
-static int store_time(char *, struct tds_time *);
-static int store_yymmdd_date(char *, struct tds_time *);
-static int store_monthname(char *, struct tds_time *);
-static int store_numeric_date(char *, struct tds_time *);
-static int store_mday(char *, struct tds_time *);
+static int store_hour(const char *, const char *, struct tds_time *);
+static int store_time(const char *, struct tds_time *);
+static int store_yymmdd_date(const char *, struct tds_time *);
+static int store_monthname(const char *, struct tds_time *);
+static int store_numeric_date(const char *, struct tds_time *);
+static int store_mday(const char *, struct tds_time *);
 static int store_year(int, struct tds_time *);
 
 /* static int days_this_year (int years); */
-static int is_timeformat(char *);
-static int is_numeric(char *);
-static int is_alphabetic(char *);
-static int is_ampm(char *);
-static int is_monthname(char *);
-static int is_numeric_dateformat(char *);
+static int is_timeformat(const char *);
+static int is_numeric(const char *);
+static int is_alphabetic(const char *);
+static int is_ampm(const char *);
+#define is_monthname(s) (store_monthname(s, NULL) >= 0)
+static int is_numeric_dateformat(const char *);
 
 #if 0
 static TDS_UINT utf16len(const utf16_t * s);
@@ -1710,8 +1709,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 
 			if (is_alphabetic(tok)) {
 				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: is_alphabetic\n");
-				if (is_monthname(tok)) {
-					store_monthname(tok, t);
+				if (store_monthname(tok, t) >= 0) {
 					monthdone++;
 					current_state = DOING_ALPHABETIC_DATE;
 				} else {
@@ -1782,8 +1780,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 		case DOING_ALPHABETIC_DATE:
 
 			if (is_alphabetic(tok)) {
-				if (!monthdone && is_monthname(tok)) {
-					store_monthname(tok, t);
+				if (!monthdone && store_monthname(tok, t) >= 0) {
 					monthdone++;
 					if (monthdone && yeardone && mdaydone)
 						current_state = GOING_IN_BLIND;
@@ -1838,10 +1835,9 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 		case PUT_NUMERIC_IN_CONTEXT:
 
 			if (is_alphabetic(tok)) {
-				if (is_monthname(tok)) {
+				if (store_monthname(tok, t)) {
 					store_mday(last_token, t);
 					mdaydone++;
-					store_monthname(tok, t);
 					monthdone++;
 					if (monthdone && yeardone && mdaydone)
 						current_state = GOING_IN_BLIND;
@@ -2076,9 +2072,9 @@ string_to_numeric(const char *instr, const char *pend, CONV_RESULT * cr)
 }
 
 static int
-is_numeric_dateformat(char *t)
+is_numeric_dateformat(const char *t)
 {
-	char *instr;
+	const char *instr;
 	int ret = 1;
 	int slashes = 0;
 	int hyphens = 0;
@@ -2202,72 +2198,8 @@ is_dd_mon_yyyy(char *t)
 }
 
 static int
-is_monthname(char *datestr)
+is_ampm(const char *datestr)
 {
-
-	int ret = 0;
-
-	if (strlen(datestr) == 3) {
-		if (strcasecmp(datestr, "jan") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "feb") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "mar") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "apr") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "may") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "jun") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "jul") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "aug") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "sep") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "oct") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "nov") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "dec") == 0)
-			ret = 1;
-		else
-			ret = 0;
-	} else {
-		if (strcasecmp(datestr, "january") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "february") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "march") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "april") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "june") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "july") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "august") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "september") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "october") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "november") == 0)
-			ret = 1;
-		else if (strcasecmp(datestr, "december") == 0)
-			ret = 1;
-		else
-			ret = 0;
-
-	}
-	return (ret);
-
-}
-static int
-is_ampm(char *datestr)
-{
-
 	int ret = 0;
 
 	if (strcasecmp(datestr, "am") == 0)
@@ -2277,14 +2209,13 @@ is_ampm(char *datestr)
 	else
 		ret = 0;
 
-	return (ret);
-
+	return ret;
 }
 
 static int
-is_alphabetic(char *datestr)
+is_alphabetic(const char *datestr)
 {
-	char *s;
+	const char *s;
 	int ret = 1;
 
 	for (s = datestr; *s; s++) {
@@ -2295,9 +2226,9 @@ is_alphabetic(char *datestr)
 }
 
 static int
-is_numeric(char *datestr)
+is_numeric(const char *datestr)
 {
-	char *s;
+	const char *s;
 	int ret = 1;
 
 	for (s = datestr; *s; s++) {
@@ -2308,9 +2239,9 @@ is_numeric(char *datestr)
 }
 
 static int
-is_timeformat(char *datestr)
+is_timeformat(const char *datestr)
 {
-	char *s;
+	const char *s;
 	int ret = 1;
 
 	for (s = datestr; *s; s++) {
@@ -2352,22 +2283,21 @@ store_year(int year, struct tds_time *t)
 	return (0);
 
 }
-static int
-store_mday(char *datestr, struct tds_time *t)
-{
-	int mday = 0;
 
-	mday = atoi(datestr);
+static int
+store_mday(const char *datestr, struct tds_time *t)
+{
+	int mday = atoi(datestr);
 
 	if (mday > 0 && mday < 32) {
 		t->tm_mday = mday;
-		return (1);
-	} else
-		return 0;
+		return 1;
+	}
+	return 0;
 }
 
 static int
-store_numeric_date(char *datestr, struct tds_time *t)
+store_numeric_date(const char *datestr, struct tds_time *t)
 {
 	int TDS_MONTH = 0;
 	int TDS_DAY = 0;
@@ -2375,7 +2305,7 @@ store_numeric_date(char *datestr, struct tds_time *t)
 
 	int state;
 	char last_char = 0;
-	char *s;
+	const char *s;
 	int month = 0, year = 0, mday = 0;
 
 	/* Its YYYY-MM-DD format */
@@ -2467,71 +2397,77 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 
 }
 
+/**
+ * Test if a string is a month name and store correct month number
+ * @return month number (0-11) or -1 if not match
+ * @param datestr string to check
+ * @param t       where to store month (if NULL no store is done)
+ */
 static int
-store_monthname(char *datestr, struct tds_time *t)
+store_monthname(const char *datestr, struct tds_time *t)
 {
-
-	int ret = 1;
+	int ret;
 
 	if (strlen(datestr) == 3) {
 		if (strcasecmp(datestr, "jan") == 0)
-			t->tm_mon = 0;
-		else if (strcasecmp(datestr, "feb") == 0)
-			t->tm_mon = 1;
-		else if (strcasecmp(datestr, "mar") == 0)
-			t->tm_mon = 2;
-		else if (strcasecmp(datestr, "apr") == 0)
-			t->tm_mon = 3;
-		else if (strcasecmp(datestr, "may") == 0)
-			t->tm_mon = 4;
-		else if (strcasecmp(datestr, "jun") == 0)
-			t->tm_mon = 5;
-		else if (strcasecmp(datestr, "jul") == 0)
-			t->tm_mon = 6;
-		else if (strcasecmp(datestr, "aug") == 0)
-			t->tm_mon = 7;
-		else if (strcasecmp(datestr, "sep") == 0)
-			t->tm_mon = 8;
-		else if (strcasecmp(datestr, "oct") == 0)
-			t->tm_mon = 9;
-		else if (strcasecmp(datestr, "nov") == 0)
-			t->tm_mon = 10;
-		else if (strcasecmp(datestr, "dec") == 0)
-			t->tm_mon = 11;
-		else
 			ret = 0;
+		else if (strcasecmp(datestr, "feb") == 0)
+			ret = 1;
+		else if (strcasecmp(datestr, "mar") == 0)
+			ret = 2;
+		else if (strcasecmp(datestr, "apr") == 0)
+			ret = 3;
+		else if (strcasecmp(datestr, "may") == 0)
+			ret = 4;
+		else if (strcasecmp(datestr, "jun") == 0)
+			ret = 5;
+		else if (strcasecmp(datestr, "jul") == 0)
+			ret = 6;
+		else if (strcasecmp(datestr, "aug") == 0)
+			ret = 7;
+		else if (strcasecmp(datestr, "sep") == 0)
+			ret = 8;
+		else if (strcasecmp(datestr, "oct") == 0)
+			ret = 9;
+		else if (strcasecmp(datestr, "nov") == 0)
+			ret = 10;
+		else if (strcasecmp(datestr, "dec") == 0)
+			ret = 11;
+		else
+			return -1;
 	} else {
 		if (strcasecmp(datestr, "january") == 0)
-			t->tm_mon = 0;
-		else if (strcasecmp(datestr, "february") == 0)
-			t->tm_mon = 1;
-		else if (strcasecmp(datestr, "march") == 0)
-			t->tm_mon = 2;
-		else if (strcasecmp(datestr, "april") == 0)
-			t->tm_mon = 3;
-		else if (strcasecmp(datestr, "june") == 0)
-			t->tm_mon = 5;
-		else if (strcasecmp(datestr, "july") == 0)
-			t->tm_mon = 6;
-		else if (strcasecmp(datestr, "august") == 0)
-			t->tm_mon = 7;
-		else if (strcasecmp(datestr, "september") == 0)
-			t->tm_mon = 8;
-		else if (strcasecmp(datestr, "october") == 0)
-			t->tm_mon = 9;
-		else if (strcasecmp(datestr, "november") == 0)
-			t->tm_mon = 10;
-		else if (strcasecmp(datestr, "december") == 0)
-			t->tm_mon = 11;
-		else
 			ret = 0;
-
+		else if (strcasecmp(datestr, "february") == 0)
+			ret = 1;
+		else if (strcasecmp(datestr, "march") == 0)
+			ret = 2;
+		else if (strcasecmp(datestr, "april") == 0)
+			ret = 3;
+		else if (strcasecmp(datestr, "june") == 0)
+			ret = 5;
+		else if (strcasecmp(datestr, "july") == 0)
+			ret = 6;
+		else if (strcasecmp(datestr, "august") == 0)
+			ret = 7;
+		else if (strcasecmp(datestr, "september") == 0)
+			ret = 8;
+		else if (strcasecmp(datestr, "october") == 0)
+			ret = 9;
+		else if (strcasecmp(datestr, "november") == 0)
+			ret = 10;
+		else if (strcasecmp(datestr, "december") == 0)
+			ret = 11;
+		else
+			return -1;
 	}
-	return (ret);
-
+	if (t)
+		t->tm_mon = ret;
+	return ret;
 }
+
 static int
-store_yymmdd_date(char *datestr, struct tds_time *t)
+store_yymmdd_date(const char *datestr, struct tds_time *t)
 {
 	int month = 0, year = 0, mday = 0;
 
@@ -2557,7 +2493,7 @@ store_yymmdd_date(char *datestr, struct tds_time *t)
 }
 
 static int
-store_time(char *datestr, struct tds_time *t)
+store_time(const char *datestr, struct tds_time *t)
 {
 	enum
 	{ TDS_HOURS,
@@ -2568,7 +2504,7 @@ store_time(char *datestr, struct tds_time *t)
 
 	int state = TDS_HOURS;
 	char last_sep = '\0';
-	char *s;
+	const char *s;
 	int hours = 0, minutes = 0, seconds = 0, millisecs = 0;
 	int ret = 1;
 	int ms_len = 0;
@@ -2645,7 +2581,7 @@ store_time(char *datestr, struct tds_time *t)
 }
 
 static int
-store_hour(char *hour, char *ampm, struct tds_time *t)
+store_hour(const char *hour, const char *ampm, struct tds_time *t)
 {
 	int ret = 1;
 	int hours;
@@ -2668,7 +2604,7 @@ store_hour(char *hour, char *ampm, struct tds_time *t)
 				t->tm_hour = hours;
 		}
 	}
-	return (ret);
+	return ret;
 }
 
 /**
@@ -2739,6 +2675,11 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	tm.tm_wday = dr->weekday;
 	tm.tm_yday = dr->dayofyear;
 	tm.tm_isdst = 0;
+#ifdef HAVE_STRUCT_TM_TM_ZONE
+	tm.tm_zone = NULL;
+#elif defined(HAVE_STRUCT_TM___TM_ZONE)
+	tm.__tm_zone = NULL;
+#endif
 
 	/* NOTE 2 in intentional. one more character is required because we replace %z with 3 digits */
 	our_format = (char *) malloc(strlen(format) + 2);

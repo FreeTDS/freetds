@@ -32,6 +32,19 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if TIME_WITH_SYS_TIME
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# endif
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+
 #include "tdsodbc.h"
 #include "tdsconvert.h"
 
@@ -39,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.46 2005-07-22 09:01:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.47 2005-07-22 11:34:11 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
