@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.45 2005-07-17 07:48:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.46 2005-07-22 09:01:26 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -48,12 +48,12 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 	unsigned int dt_time;
 	TDS_INT dt_days;
 	int i;
+	int got_date = 1;
+	time_t curr_time;
 
 	const DATE_STRUCT *src_date = (const DATE_STRUCT *) src;
 	const TIME_STRUCT *src_time = (const TIME_STRUCT *) src;
 	const TIMESTAMP_STRUCT *src_timestamp = (const TIMESTAMP_STRUCT *) src;
-
-	memset(&src_tm, 0, sizeof(src_tm));
 
 	switch (bindtype) {
 	case SQL_C_DATE:
@@ -61,12 +61,28 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 		src_tm.tm_year = src_date->year - 1900;
 		src_tm.tm_mon = src_date->month - 1;
 		src_tm.tm_mday = src_date->day;
+		src_tm.tm_hour = 0;
+		src_tm.tm_min = 0;
+		src_tm.tm_sec = 0;
+		src_tm.tm_ms = 0;
 		break;
 	case SQL_C_TIME:
 	case SQL_C_TYPE_TIME:
+		got_date = 0;
+#if HAVE_GETTIMEOFDAY
+		{
+			struct timeval tv;
+		        gettimeofday(&tv, NULL);
+		        curr_time = tv.tv_sec;
+		}
+#else
+		curr_time = time(NULL);
+#endif
+		dt_days = (curr_time / 86400u) + (70u * 365u + 17u);
 		src_tm.tm_hour = src_time->hour;
 		src_tm.tm_min = src_time->minute;
 		src_tm.tm_sec = src_time->second;
+		src_tm.tm_ms = 0;
 		break;
 	case SQL_C_TIMESTAMP:
 	case SQL_C_TYPE_TIMESTAMP:
@@ -83,9 +99,12 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 	}
 
 	/* TODO code copied from convert.c, function */
-	i = (src_tm.tm_mon - 13) / 12;
-	dt_days = 1461 * (src_tm.tm_year + 300 + i) / 4 +
-		(367 * (src_tm.tm_mon - 1 - 12 * i)) / 12 - (3 * ((src_tm.tm_year + 400 + i) / 100)) / 4 + src_tm.tm_mday - 109544;
+	if (got_date) {
+		i = (src_tm.tm_mon - 13) / 12;
+		dt_days = 1461 * (src_tm.tm_year + 300 + i) / 4 +
+			(367 * (src_tm.tm_mon - 1 - 12 * i)) / 12 - (3 * ((src_tm.tm_year + 400 + i) / 100)) / 4 +
+			src_tm.tm_mday - 109544;
+	}
 
 	dt->dtdays = dt_days;
 	dt_time = (src_tm.tm_hour * 60 + src_tm.tm_min) * 60 + src_tm.tm_sec;

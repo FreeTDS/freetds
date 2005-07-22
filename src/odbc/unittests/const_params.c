@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.8 2005-05-22 08:28:00 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.9 2005-07-22 09:01:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -78,6 +78,32 @@ main(int argc, char *argv[])
 	if (output != 24680) {
 		fprintf(stderr, "Invalid result %d (0x%x)\n", (int) output, (int) output);
 		exit(1);
+	}
+
+	if (CommandWithResult(Statement, "drop proc const_param") != SQL_SUCCESS)
+		printf("Unable to execute statement\n");
+
+	Command(Statement, "create proc const_param @in1 float, @in2 varbinary(100) as\n"
+		"begin\n"
+		" if @in1 <> 12.5 or @in2 <> 0x0102030405060708\n"
+		"  return 12345\n"
+		" return 54321\n"
+		"end");
+
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to bind output parameter");
+
+	if (SQLPrepare(Statement, (SQLCHAR *) "{?=call const_param(12.5, 0x0102030405060708)}", SQL_NTS) !=
+	    SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to prepare statement");
+
+	output = 0xdeadbeef;
+	if (SQLExecute(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to execute statement");
+
+	if (output != 54321) {
+		fprintf(stderr, "Invalid result %d (0x%x)\n", (int) output, (int) output);
+		return 1;
 	}
 
 	if (CommandWithResult(Statement, "drop proc const_param") != SQL_SUCCESS)

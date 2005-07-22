@@ -1,9 +1,10 @@
 #include "common.h"
 #include <assert.h>
+#include <time.h>
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.11 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.12 2005-07-22 09:01:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -26,8 +27,8 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 	memset(out_buf, 0, sizeof(out_buf));
 
 	/* bind parameter */
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf, sizeof(out_buf), &out_len) !=
-	    SQL_SUCCESS)
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
+			     sizeof(out_buf), &out_len) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to bind input parameter");
 
 	/* call store procedure */
@@ -69,15 +70,22 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	char sbuf[1024];
 	unsigned char out_buf[256];
 	SQLLEN out_len = 0;
+	const char *expected = value_to_convert;
+	size_t value_len = strlen(value_to_convert);
+	const char *p;
 
 	SQLFreeStmt(Statement, SQL_UNBIND);
 	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
 
 	/* execute a select to get data as wire */
-	sprintf(sbuf, "SELECT CONVERT(%s, '%s')", type, value_to_convert);
+	if ((p = strstr(value_to_convert, " -> ")) != NULL) {
+		value_len = p - value_to_convert;
+		expected = p + 4;
+	}
+	sprintf(sbuf, "SELECT CONVERT(%s, '%.*s')", type, value_len, value_to_convert);
 	Command(Statement, sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
-	if (SQLFetch(Statement) != SQL_SUCCESS)
+	if (!SQL_SUCCEEDED(SQLFetch(Statement)))
 		ODBC_REPORT_ERROR("Expected row");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Row not expected");
@@ -106,7 +114,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	/* check is row is present */
 	SQLFreeStmt(Statement, SQL_UNBIND);
 	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
-	sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, '%s')", param_type, value_to_convert);
+	sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, '%s')", param_type, expected);
 	Command(Statement, sbuf);
 
 	if (SQLFetch(Statement) != SQL_SUCCESS)
@@ -122,7 +130,11 @@ int
 main(int argc, char *argv[])
 {
 	int big_endian = 1;
+	struct tm *ltime;
+	char buf[80];
+	time_t curr_time;
 
+	use_odbc_version3 = 1;
 	Connect();
 
 	if (CommandWithResult(Statement, "drop proc spTestProc") != SQL_SUCCESS)
@@ -141,9 +153,20 @@ main(int argc, char *argv[])
 		Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "333133323333");
 	else
 		Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
+	/* FIXME our driver ignore precision for date */
+	precision = 3;
 	Test("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
 	Test("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP,
 	     big_endian ? "0000949700FB9640" : "979400004096FB00");
+	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34");
+	/* FIXME on ms driver first SQLFetch return SUCCESS_WITH_INFO for truncation error */
+	TestInput(SQL_C_TYPE_DATE, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 13:02:03 -> 2005-07-22 00:00:00");
+
+	/* replace date information with current date */
+	time(&curr_time);
+	ltime = localtime(&curr_time);
+	sprintf(buf, "2003-07-22 13:02:03 -> %04d-%02d-%02d 13:02:03", ltime->tm_year + 1900, ltime->tm_mon + 1, ltime->tm_mday);
+	TestInput(SQL_C_TYPE_TIME, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", buf);
 
 	Disconnect();
 
