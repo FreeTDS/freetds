@@ -4,6 +4,16 @@
 
 # set -e
 
+BUILD=1
+for param
+do
+	case $param in
+	--no-build)
+		BUILD=0
+		;;
+	esac
+done
+
 # go to main distro dir
 DIR=`dirname $0`
 cd "$DIR/.."
@@ -140,33 +150,38 @@ find "$DIR" -name \*.html -type f -exec rm {} \;
 #fi
 
 out_init
-out_header "Operation  Success  Warnings  Log"
 
-echo Making ...
 MAKE=make
 if gmake --help 2> /dev/null > /dev/null; then
 	MAKE=gmake
 fi
-$MAKE clean > /dev/null 2> /dev/null
-output_save "make" make $MAKE
-if test $RES != 0; then
-	out_footer
-	out_end
-	echo "error during make"
-	exit 1
-fi
 
-echo Making tests ...
-TESTS_ENVIRONMENT=true
-export TESTS_ENVIRONMENT
-output_save "make tests" maketest $MAKE check 
-if  test $RES != 0; then
+if test $BUILD = 1; then
+
+	out_header "Operation  Success  Warnings  Log"
+
+	echo Making ...
+	$MAKE clean > /dev/null 2> /dev/null
+	output_save "make" make $MAKE
+	if test $RES != 0; then
+		out_footer
+		out_end
+		echo "error during make"
+		exit 1
+	fi
+
+	echo Making tests ...
+	TESTS_ENVIRONMENT=true
+	export TESTS_ENVIRONMENT
+	output_save "make tests" maketest $MAKE check 
+	if  test $RES != 0; then
+		out_footer
+		out_end
+		echo "error during make test"
+		exit 1;
+	fi
 	out_footer
-	out_end
-	echo "error during make test"
-	exit 1;
 fi
-out_footer
 
 echo Testing ...
 TESTS_ENVIRONMENT="$DIR/full-test.sh"
