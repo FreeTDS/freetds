@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.55 2005-07-17 07:48:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.56 2005-07-23 12:00:24 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -135,6 +135,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				case SYBVARBINARY:
 					len = tds_convert(NULL, SYBVARCHAR, start, p - start, SYBVARBINARY, &cr);
 					if (len >= 0) {
+						curcol->column_cur_size = len;
 						memcpy(dest, cr.ib, len);
 						free(cr.ib);
 					}

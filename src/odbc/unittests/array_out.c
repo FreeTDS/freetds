@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.5 2005-06-27 19:06:32 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.6 2005-07-23 12:00:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -34,7 +34,8 @@ query_test(SQLRETURN expected, const char *expected_status)
 	SQLUINTEGER *ids;
 	SQLCHAR *descs;
 	SQLINTEGER *id_lens, *desc_lens;
-	SQLUSMALLINT i, processed, statuses[ARRAY_SIZE];
+	SQLULEN processed;
+	SQLUSMALLINT i, statuses[ARRAY_SIZE];
 	int desc_len = truncate ? 4 : 51;
 	int rec_size = 0;
 	Record *rec = NULL;

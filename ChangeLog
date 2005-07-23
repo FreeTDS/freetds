@@ -1,3 +1,9 @@
+Sat Jul 23 13:59:51 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/prepare_query.c:
+	- fix for binary in constant parameter
+	* src/odbc/unittests/array_out.c:
+	- fix type causing wrong results
+
 Sat Jul 23 12:12:16 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: fix for big endian machine
 
