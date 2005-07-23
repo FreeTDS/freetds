@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.80 2005-07-17 07:48:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.81 2005-07-23 08:38:57 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -615,7 +615,9 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 		return 0;
 #endif
 	case SQL_BIT:
-		return SYBBITN;
+		if (IS_TDS7_PLUS(tds))
+			return SYBBITN;
+		return SYBBIT;
 	case SQL_TINYINT:
 		return SYBINT1;
 	case SQL_SMALLINT:

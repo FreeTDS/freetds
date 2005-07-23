@@ -1,3 +1,9 @@
+Sat Jul 23 10:38:23 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc_util.c src/odbc/sql2tds.c:
+	* src/odbc/unittests/genparams.c:
+	- improve test
+	- fix for BIT as input parameter
+
 Fri Jul 22 13:32:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/tds/convert.c:
 	- fix possible core calling strftime

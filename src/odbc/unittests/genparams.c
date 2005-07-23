@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.12 2005-07-22 09:01:34 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.13 2005-07-23 08:38:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -145,6 +145,7 @@ main(int argc, char *argv[])
 
 	/* FIXME why should return 38 0 as precision and scale ?? correct ?? */
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
+	Test("DECIMAL(18,2)", "123", SQL_C_NUMERIC, SQL_DECIMAL, "18 0 1 7B");
 	precision = 38;
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "38 0 1 7B");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_VARCHAR, "VARCHAR(20)", "12345");
@@ -167,6 +168,20 @@ main(int argc, char *argv[])
 	ltime = localtime(&curr_time);
 	sprintf(buf, "2003-07-22 13:02:03 -> %04d-%02d-%02d 13:02:03", ltime->tm_year + 1900, ltime->tm_mon + 1, ltime->tm_mday);
 	TestInput(SQL_C_TYPE_TIME, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", buf);
+
+	TestInput(SQL_C_FLOAT,  "FLOAT", SQL_REAL, "FLOAT", "1234.25");
+	TestInput(SQL_C_DOUBLE, "REAL", SQL_REAL, "FLOAT", "-1234.25");
+	TestInput(SQL_C_FLOAT,  "REAL", SQL_REAL, "FLOAT", "1234.25");
+	TestInput(SQL_C_DOUBLE, "FLOAT", SQL_REAL, "FLOAT", "-1234.25");
+	TestInput(SQL_C_FLOAT,  "FLOAT", SQL_FLOAT, "FLOAT", "1234.25");
+	TestInput(SQL_C_DOUBLE, "REAL", SQL_FLOAT, "FLOAT", "-1234.25");
+	TestInput(SQL_C_FLOAT,  "FLOAT", SQL_DOUBLE, "FLOAT", "1234.25");
+	TestInput(SQL_C_DOUBLE, "REAL", SQL_DOUBLE, "FLOAT", "-1234.25");
+
+	TestInput(SQL_C_UTINYINT, "TINYINT", SQL_TINYINT, "TINYINT", "231");
+
+	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "0");
+	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
 
 	Disconnect();
 

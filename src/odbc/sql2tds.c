@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.47 2005-07-22 11:34:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.48 2005-07-23 08:38:57 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -176,13 +176,13 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		 * attention to fill correctly blob/fixed type/variable type
 		 */
 		/* TODO location of this test is correct here ?? */
-		if (dest_type != SYBUNIQUE) {
+		if (dest_type != SYBUNIQUE && dest_type != SYBBITN) {
 			curcol->column_cur_size = 0;
 			curcol->column_size = drec_ipd->sql_desc_length;
 			if (curcol->column_size < 0)
 				curcol->column_size = 0x7FFFFFFFl;
 		}
-	} else {
+	} else if (dest_type != SYBBIT) {
 		/* TODO only a trick... */
 		tds_set_param_type(dbc->tds_socket, curcol, tds_get_null_type(dest_type));
 	}
