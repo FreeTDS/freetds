@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.49 2005-07-24 10:52:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.50 2005-07-24 15:25:26 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -249,7 +249,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	if (drec_ipd->sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
 		sql_len = SQL_NULL_DATA;
 	} else {
-		sql_len = odbc_get_param_len(dbc->tds_socket, drec_apd, drec_ipd);
+		sql_len = odbc_get_param_len(drec_apd, drec_ipd);
 
 		/* special case, MS ODBC handle conversion from "\0" to any to NULL, DBD::ODBC require it */
 		if (src_type == SYBVARCHAR && sql_len == 1 && drec_ipd->sql_desc_parameter_type == SQL_PARAM_INPUT_OUTPUT

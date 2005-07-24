@@ -55,7 +55,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.86 2005-07-17 07:48:09 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.87 2005-07-24 15:25:25 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -462,11 +462,11 @@ int odbc_sql_to_c_type_default(int sql_type);
 int odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type);
 int odbc_c_to_server_type(int c_type);
 
-void odbc_set_sql_type_info(TDSCOLUMN * col, int odbc_ver, struct _drecord *drec);
+void odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec);
 SQLINTEGER odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec);
 int odbc_get_string_size(int size, SQLCHAR * str);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
-SQLINTEGER odbc_get_param_len(TDSSOCKET * tds, const struct _drecord *drec_apd, const struct _drecord *drec_ipd);
+SQLINTEGER odbc_get_param_len(const struct _drecord *drec_apd, const struct _drecord *drec_ipd);
 
 SQLRETURN odbc_set_string(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer, const char *s, int len);
 SQLRETURN odbc_set_string_i(SQLPOINTER buffer, SQLINTEGER cbBuffer, SQLINTEGER FAR * pcbBuffer, const char *s, int len);

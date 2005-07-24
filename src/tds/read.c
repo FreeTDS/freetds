@@ -45,9 +45,9 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.96 2005-07-07 13:06:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.97 2005-07-24 15:25:26 freddy77 Exp $");
 
-static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
+static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
 
 /**
@@ -185,7 +185,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 			return string_len;
 		}
 
-		return read_and_convert(tds, tds->char_convs[client2ucs2], to_client, &wire_bytes, &dest, &dest_size);
+		return read_and_convert(tds, tds->char_convs[client2ucs2], &wire_bytes, &dest, &dest_size);
 	} else {
 		/* FIXME convert to client charset */
 		assert(dest_size >= string_len);
@@ -243,7 +243,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
 		in_left = blob ? curcol->column_cur_size : curcol->column_size;
-		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, to_client, &wire_size, &dest, &in_left);
+		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, &wire_size, &dest, &in_left);
 		if (wire_size > 0) {
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %u on wire while reading %d into client. \n", 
 							 (unsigned int) wire_size, curcol->column_cur_size);
@@ -358,7 +358,7 @@ tds_get_size_by_type(int servertype)
  * moved to the beginning, ptemp is adjusted to point just behind them, and the next chunk is read.
  */
 static int
-read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io, size_t * wire_size, char **outbuf,
+read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, size_t * wire_size, char **outbuf,
 		 size_t * outbytesleft)
 {
 	TEMP_INIT(256);

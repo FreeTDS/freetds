@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.81 2005-07-23 08:38:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.82 2005-07-24 15:25:26 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -399,7 +399,7 @@ odbc_c_to_server_type(int c_type)
 }
 
 void
-odbc_set_sql_type_info(TDSCOLUMN * col, int odbc_ver, struct _drecord *drec)
+odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec)
 {
 #define SET_INFO(type, prefix, suffix) \
 	drec->sql_desc_literal_prefix = prefix; \
@@ -714,7 +714,7 @@ odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 
 /** Return length of parameter from parameter information */
 SQLINTEGER
-odbc_get_param_len(TDSSOCKET * tds, const struct _drecord *drec_apd, const struct _drecord *drec_ipd)
+odbc_get_param_len(const struct _drecord *drec_apd, const struct _drecord *drec_ipd)
 {
 	SQLINTEGER len;
 	int size;

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.387 2005-07-21 09:41:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.388 2005-07-24 15:25:25 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2344,7 +2344,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 			drec->sql_desc_length = sizeof("2000-01-01 12:00:00.0000")-1;
 		else
 			drec->sql_desc_length = col->column_size;
-		odbc_set_sql_type_info(col, stmt->dbc->env->attr.odbc_version, drec);
+		odbc_set_sql_type_info(col, drec);
 
 		if (!tds_dstr_copyn(&drec->sql_desc_name, col->column_name, col->column_namelen))
 			return SQL_ERROR;
