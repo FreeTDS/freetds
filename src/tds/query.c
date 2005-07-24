@@ -42,13 +42,13 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.181 2005-07-23 10:12:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.182 2005-07-24 10:52:50 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
 static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, int param_length);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
-static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, int i);
+static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row);
 static char *tds_build_params_definition(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, const char** converted_query, int *converted_query_len, int *out_len);
 static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static const char *tds_skip_comment(const char *s);
@@ -257,7 +257,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			tds_put_data(tds, param, params->current_row, i);
+			tds_put_data(tds, param, params->current_row);
 		}
 
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
@@ -933,7 +933,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			tds_put_data(tds, param, params->current_row, i);
+			tds_put_data(tds, param, params->current_row);
 		}
 
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
@@ -1061,9 +1061,16 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	tds_put_byte(tds, curcol->on_server.column_type);
 
 	if (is_numeric_type(curcol->on_server.column_type)) {
+#if 1
 		tds_put_byte(tds, tds_numeric_bytes_per_prec[curcol->column_prec]);
 		tds_put_byte(tds, curcol->column_prec);
 		tds_put_byte(tds, curcol->column_scale);
+#else
+		TDS_NUMERIC *num = (TDS_NUMERIC *) &(current_row[curcol->column_offset]);
+		tds_put_byte(tds, tds_numeric_bytes_per_prec[num->precision]);
+		tds_put_byte(tds, num->precision);
+		tds_put_byte(tds, num->scale);
+#endif
 	} else {
 		switch (curcol->column_varint_size) {
 		case 0:
@@ -1126,11 +1133,10 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
  * \param tds     state information for the socket and the TDS protocol
  * \param curcol  column where store column information
  * \param current_row to row data to store information
- * \param i       column position in current_row
  * \return TDS_FAIL on error or TDS_SUCCEED
  */
 static int
-tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, int i)
+tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row)
 {
 	unsigned char *src;
 	TDS_NUMERIC *num;
@@ -1341,7 +1347,7 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			param = info->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			tds_put_data(tds, param, info->current_row, i);
+			tds_put_data(tds, param, info->current_row);
 		}
 
 	tds->internal_sp_called = TDS_SP_EXECUTE;
@@ -1433,7 +1439,7 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 	/* row data */
 	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
 	for (i = 0; i < info->num_cols; i++) {
-		tds_put_data(tds, info->columns[i], info->current_row, i);
+		tds_put_data(tds, info->columns[i], info->current_row);
 	}
 }
 
@@ -1600,7 +1606,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME);
-			tds_put_data(tds, param, params->current_row, i);
+			tds_put_data(tds, param, params->current_row);
 		}
 
 		return tds_query_flush_packet(tds);

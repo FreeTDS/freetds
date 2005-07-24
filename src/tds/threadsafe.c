@@ -82,7 +82,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.38 2005-07-07 13:06:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.39 2005-07-24 10:52:50 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)
@@ -270,6 +270,8 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 #endif
 }
 
+/* not used by FreeTDS, uncomment if needed */
+#ifdef ENABLE_DEVELOPING
 struct hostent *
 tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
@@ -314,6 +316,7 @@ tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result,
 #error gethostbyaddr_r style unknown
 #endif
 }
+#endif
 
 const char *
 tds_inet_ntoa_r(struct in_addr iaddr, char *ip, size_t len)

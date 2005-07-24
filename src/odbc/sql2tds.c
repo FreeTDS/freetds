@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.48 2005-07-23 08:38:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.49 2005-07-24 10:52:49 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -161,6 +161,8 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = drec_ipd->sql_desc_precision;
 		curcol->column_scale = drec_ipd->sql_desc_scale;
+		ores.n.precision = drec_ipd->sql_desc_precision;
+		ores.n.scale = drec_ipd->sql_desc_scale;
 	}
 
 	if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
@@ -322,19 +324,16 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		num.precision = sql_num->precision;
 		num.scale = sql_num->scale;
 		num.array[0] = sql_num->sign ^ 1;
-		/* TODO test precision so client do not crash our library ?? */
+		/* test precision so client do not crash our library */
+		if (num.precision <= 0 || num.precision > 38 || num.scale > num.precision)
+			/* TODO add proper error */
+			return SQL_ERROR;
 		i = tds_numeric_bytes_per_prec[num.precision];
-		memcpy(num.array + 1, sql_num->val, i);
-		tds_swap_bytes(num.array + 1, i);
-		++i;
+		memcpy(num.array + 1, sql_num->val, i - 1);
+		tds_swap_bytes(num.array + 1, i - 1);
 		if (i < sizeof(num.array))
 			memset(num.array + i, 0, sizeof(num.array) - i);
 		src = (char *) &num;
-
-		/* set output */
-		/* TODO use descriptors informations ?? */
-		ores.n.precision = 18;
-		ores.n.scale = 2;
 		break;
 		/* TODO intervals */
 	}
@@ -380,6 +379,13 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			free(blob->textvalue);
 		blob->textvalue = ores.ib;
 		break;
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		/*
+		 * for these types we ignore column_size so fix it in case
+		 * we overwrite it
+		 */
+		res = sizeof(TDS_NUMERIC);
 	case SYBINTN:
 	case SYBINT1:
 	case SYBINT2:
@@ -393,8 +399,6 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	case SYBDATETIME4:
 	case SYBREAL:
 	case SYBBITN:
-	case SYBNUMERIC:
-	case SYBDECIMAL:
 	case SYBFLTN:
 	case SYBMONEYN:
 	case SYBDATETIMN:

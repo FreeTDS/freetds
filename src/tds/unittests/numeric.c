@@ -23,7 +23,7 @@
 
 /* test numeric scale */
 
-static char software_version[] = "$Id: numeric.c,v 1.2 2005-03-24 14:44:09 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.3 2005-07-24 10:52:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -116,6 +116,10 @@ main(int argc, char **argv)
 	/* decrease scale */
 	test("1234", 10, 4, 0);
 	test("1234.765", 30, 20, 2);
+
+	test0("765432.2", 30, 2, 20, 2);
+	test0("765432.2", 30, 2, 40, 2);
+	test0("765432.2", 30, 2, 6, 2);
 
 #if 0
 	{

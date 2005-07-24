@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.54 2005-05-03 08:01:54 freddy77 Exp $
+# $Id: Makefile.am,v 1.55 2005-07-24 10:52:49 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -6,7 +6,7 @@ INCLUDES		=	-I$(top_srcdir)/include
 noinst_LTLIBRARIES	=	libtds_objects.la
 libtds_objects_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	write.c convert.c numeric.c config.c query.c iconv.c \
-	locale.c challenge.c threadsafe.c vstrbuild.c md4.c md5.c \
+	locale.c challenge.c threadsafe.c vstrbuild.c md4.c \
 	des.c tdsstring.c getmac.c data.c net.c \
 	tds_checks.c tds_checks.h 
 libtds_objects_la_LDFLAGS=

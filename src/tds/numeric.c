@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.34 2005-07-07 13:06:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.35 2005-07-24 10:52:50 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -401,8 +401,15 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 		return TDS_CONVERT_FAIL;
 
 	scale_diff = new_scale - numeric->scale;
-	if (scale_diff == 0)
-		return sizeof(TDS_NUMERIC);;
+	if (scale_diff == 0 && new_prec >= numeric->precision) {
+		i = tds_numeric_bytes_per_prec[new_prec] - tds_numeric_bytes_per_prec[numeric->precision];
+		if (i > 0) {
+			memmove(numeric->array + 1 + i, numeric->array + 1, sizeof(numeric->array) - 1 - i);
+			memset(numeric->array + 1, 0, i);
+		}
+		numeric->precision = new_prec;
+		return sizeof(TDS_NUMERIC);
+	}
 
 	/* package number */
 	bytes = tds_numeric_bytes_per_prec[numeric->precision] - 1;
@@ -426,10 +433,18 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 		--i;
 	packet_len = i;
 
-	if (scale_diff > 0) {
+	if (scale_diff >= 0) {
 		/* check overflow before multiply */
 		if (tds_packet_check_overflow(packet, packet_len, new_prec - scale_diff))
 			return TDS_CONVERT_OVERFLOW;
+
+		if (scale_diff == 0) {
+			i = tds_numeric_bytes_per_prec[numeric->precision] - tds_numeric_bytes_per_prec[new_prec];
+			if (i > 0)
+				memmove(numeric->array + 1, numeric->array + 1 + i, sizeof(numeric->array) - 1 - i);
+			numeric->precision = new_prec;
+			return sizeof(TDS_NUMERIC);
+		}
 
 		/* multiply */
 		do {

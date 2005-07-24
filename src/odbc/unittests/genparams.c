@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.13 2005-07-23 08:38:57 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.14 2005-07-24 10:52:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -179,6 +179,8 @@ main(int argc, char *argv[])
 	TestInput(SQL_C_DOUBLE, "REAL", SQL_DOUBLE, "FLOAT", "-1234.25");
 
 	TestInput(SQL_C_UTINYINT, "TINYINT", SQL_TINYINT, "TINYINT", "231");
+
+	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_NUMERIC, "NUMERIC(20,3)", "765432.2 -> 765432");
 
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "0");
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");

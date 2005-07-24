@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.159 2005-07-22 11:34:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.160 2005-07-24 10:52:50 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -307,7 +307,6 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 	unsigned char hex1;
 
 	TDS_INT8 mymoney;
-	TDS_INT mymoney4;
 	char mynumber[39];
 
 	const char *ptr, *pend;
@@ -469,11 +468,10 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		/* FIXME overflow not handled */
 		if (desttype == SYBMONEY) {
 			mymoney = atoll(mynumber);
-			memcpy(&(cr->m), &mymoney, sizeof(TDS_MONEY));
+			cr->m.mny = mymoney;
 			return sizeof(TDS_MONEY);
 		} else {
-			mymoney4 = atol(mynumber);
-			memcpy(&(cr->m4), &mymoney4, sizeof(TDS_MONEY4));
+			cr->m4.mny4 = atol(mynumber);
 			return sizeof(TDS_MONEY4);
 		}
 		break;
@@ -637,7 +635,7 @@ tds_convert_int1(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	TDS_TINYINT buf;
 	TDS_CHAR tmp_str[5];
 
-	memcpy(&buf, src, sizeof(buf));
+	buf = *((TDS_TINYINT *) src);
 	switch (desttype) {
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", buf);
@@ -1104,7 +1102,7 @@ tds_convert_money4(int srctype, const TDS_CHAR * src, int srclen, int desttype, 
 		return sizeof(TDS_MONEY);
 		break;
 	case SYBMONEY4:
-		memcpy(&(cr->m4), src, sizeof(TDS_MONEY4));
+		cr->m4 = mny;
 		return sizeof(TDS_MONEY4);
 		break;
 		/* conversions not allowed */
@@ -1221,7 +1219,7 @@ static TDS_INT
 tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
 
-	unsigned int dt_days, dt_time;
+	TDS_INT dt_days, dt_time;
 
 	char whole_date_string[30];
 	TDSDATEREC when;
@@ -1246,10 +1244,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * s
 		return binary_to_result(src, sizeof(TDS_DATETIME), cr);
 		break;
 	case SYBDATETIME:
-		memcpy(&dt_days, src, 4);
-		memcpy(&dt_time, src + 4, 4);
-		cr->dt.dtdays = dt_days;
-		cr->dt.dttime = dt_time;
+		memcpy(&cr->dt, src, sizeof(TDS_DATETIME));
 		return sizeof(TDS_DATETIME);
 		break;
 	case SYBDATETIME4:
@@ -1328,10 +1323,7 @@ tds_convert_datetime4(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * 
 		return sizeof(TDS_DATETIME);
 		break;
 	case SYBDATETIME4:
-		memcpy(&dt_days, src, 2);
-		memcpy(&dt_mins, src + 2, 2);
-		cr->dt4.days = dt_days;
-		cr->dt4.minutes = dt_mins;
+		memcpy(&cr->dt4, src, sizeof(TDS_DATETIME4));
 		return sizeof(TDS_DATETIME4);
 		break;
 		/* conversions not allowed */
@@ -1415,14 +1407,14 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBMONEY:
 		/* TODO check overflow */
 		mymoney = the_value * 10000;
-		memcpy(&(cr->m), &mymoney, sizeof(TDS_MONEY));
+		cr->m.mny = mymoney;
 		return sizeof(TDS_MONEY);
 		break;
 
 	case SYBMONEY4:
 		/* TODO check overflow */
 		mymoney4 = the_value * 10000;
-		memcpy(&(cr->m4), &mymoney4, sizeof(TDS_MONEY4));
+		cr->m4.mny4 = mymoney4;
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBNUMERIC:
