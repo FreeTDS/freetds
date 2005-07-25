@@ -9,7 +9,7 @@ CppCompiler=-D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOUR
 Includes=..;../../include
 Linker=-lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32_@@_-s --def ../FreeTds.def_@@_-Wl,--enable-stdcall-fixup_@@_
 Libs=
-UnitCount=58
+UnitCount=57
 Folders="Header Files",LibTDS,Replacements,"Resource Files","Source Files"
 ObjFiles=
 PrivateResource=FreeTDS_private.rc
@@ -587,16 +587,6 @@ OverrideBuildCmd=0
 BuildCmd=$(CC) -c winsetup.c -o winsetup.o $(CFLAGS)
 
 [Unit55]
-FileName=..\..\src\tds\md5.c
-CompileCpp=0
-Folder=LibTDS
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=$(CC) -c md5.c -o md5.o $(CFLAGS)
-
-[Unit56]
 FileName=..\..\src\tds\net.c
 CompileCpp=0
 Folder=LibTDS
@@ -606,7 +596,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=$(CC) -c net.c -o net.o $(CFLAGS)
 
-[Unit57]
+[Unit56]
 FileName=..\..\src\replacements\strlcpy.c
 CompileCpp=1
 Folder=Replacements
@@ -616,7 +606,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit58]
+[Unit57]
 FileName=..\..\src\replacements\strlcat.c
 CompileCpp=1
 Folder=Replacements

@@ -125,10 +125,6 @@ SOURCE=..\..\src\tds\md4.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\tds\md5.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\tds\mem.c
 # End Source File
 # Begin Source File
