@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.182 2005-07-24 10:52:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.183 2005-07-25 06:40:03 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1236,12 +1236,10 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row)
 		if (is_numeric_type(curcol->on_server.column_type)) {
 			TDS_NUMERIC buf;
 
-			num = (TDS_NUMERIC *) src;
-			memcpy(&buf, num, sizeof(buf));
+			memcpy(&buf, src, sizeof(buf));
 			tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
-			tds_swap_numeric(num);
-			num = &buf;
-			tds_put_n(tds, num->array, colsize);
+			tds_swap_numeric(&buf);
+			tds_put_n(tds, buf.array, colsize);
 		} else if (blob) {
 			tds_put_n(tds, s, colsize);
 		} else {

@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.13 2005-07-07 13:06:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.14 2005-07-25 06:40:03 freddy77 Exp $");
 
 #if !ENABLE_EXTRA_CHECKS
 static int tds_get_cardinal_type(int datatype);
@@ -100,6 +100,9 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 	switch (type) {
 	case SYBUNIQUE:
 		curcol->on_server.column_size = curcol->column_size = sizeof(TDS_UNIQUE);
+		break;
+	case SYBBITN:
+		curcol->on_server.column_size = curcol->column_size = sizeof(TDS_TINYINT);
 		break;
 	default:
 		break;
