@@ -41,7 +41,7 @@
 
 #include <assert.h>
 
-static char software_version[] = "$Id: query.c,v 1.144 2004-10-14 18:26:53 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.144.2.1 2005-07-25 08:46:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
@@ -1100,7 +1100,6 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 			
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
-			blob = (TDSBLOB *) & (current_row[curcol->column_offset]);
 			/* mssql require only size */
 			tds_put_int(tds, colsize);
 			break;
@@ -1134,7 +1133,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds->emul_little_endian && colsize < 64) {
+			if (tds->emul_little_endian && !converted && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);
@@ -1191,7 +1190,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
+			if (tds->emul_little_endian && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, src, colsize);

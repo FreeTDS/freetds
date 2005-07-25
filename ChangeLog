@@ -1,3 +1,6 @@
+Mon Jul 25 10:45:47 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: fix for bigendian machine
+
 Fri Jul 22 13:38:26 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c: fix possible core calling strftime
 
