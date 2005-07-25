@@ -1,3 +1,8 @@
+Mon Jul 25 10:53:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/thread.c:
+	- applied Liam Widdowson patch for thread test
+	* src/tds/query.c: cleanup
+
 Mon Jul 25 08:39:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/data.c: fix for bit type
 	* src/tds/query.c: fix for numeric type

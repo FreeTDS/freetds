@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.183 2005-07-25 06:40:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.184 2005-07-25 08:55:31 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1288,15 +1288,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row)
 
 		/* put real data */
 		if (is_numeric_type(curcol->column_type)) {
-			TDS_NUMERIC buf;
-
 			num = (TDS_NUMERIC *) src;
-			if (IS_TDS7_PLUS(tds)) {
-				memcpy(&buf, num, sizeof(buf));
-				tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
-				tds_swap_numeric(&buf);
-				num = &buf;
-			}
 			tds_put_n(tds, num->array, colsize);
 		} else if (is_blob_type(curcol->column_type)) {
 			blob = (TDSBLOB *) src;
@@ -1306,7 +1298,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row)
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds->emul_little_endian && !is_numeric_type(curcol->column_type) && colsize < 64) {
+			if (tds->emul_little_endian && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, src, colsize);

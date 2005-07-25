@@ -20,71 +20,46 @@
 #include <sqldb.h>
 
 #ifdef TDS_HAVE_PTHREAD_MUTEX
-
 #include <unistd.h>
-#include "tdsthread.h"
+#include <pthread.h>
 
 #include "common.h"
 
-static char software_version[] = "$Id: thread.c,v 1.3 2005-05-18 12:00:06 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.4 2005-07-25 08:55:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static TDS_MUTEX_DECLARE(mutex);
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static LOGINREC *login = NULL;
-static volatile int result = 0;
-static volatile int thread_count = 0;
+static int result = 0;
+static int thread_count = 0;
 
 #define ROWS 20
 #define NUM_THREAD 10
-#define NUM_LOOP 100
+#define NUM_LOOP 1000
 
 static void
 set_failed(void)
 {
-	TDS_MUTEX_LOCK(&mutex);
+	pthread_mutex_lock(&mutex);
 	result = 1;
-	TDS_MUTEX_UNLOCK(&mutex);
+	pthread_mutex_unlock(&mutex);
 }
 
 static int
-test(void)
+test(DBPROCESS *dbproc)
 {
-	DBPROCESS *dbproc;
 	int i;
 	char teststr[1024];
 	DBINT testint;
-	LOGINREC *login;
 
-	dbinit();
-
-	login = dblogin();
-	DBSETLPWD(login, PASSWORD);
-	DBSETLUSER(login, USER);
-	DBSETLAPP(login, "thread");
-
-	dbproc = dbopen(login, SERVER);
-	if (!dbproc) {
-		dbloginfree(login);
-		fprintf(stderr, "Unable to connect to %s\n", SERVER);
-		if (thread_count <= 5)
-			set_failed();
-		return 1;
-	}
-	dbloginfree(login);
-
-	if (strlen(DATABASE))
-		dbuse(dbproc, DATABASE);
 
 	/* fprintf(stdout, "select\n"); */
 	dbcmd(dbproc, "select * from dblib_thread order by i");
 	dbsqlexec(dbproc);
 
-
 	if (dbresults(dbproc) != SUCCEED) {
 		fprintf(stdout, "Was expecting a result set.\n");
 		set_failed();
-		dbclose(dbproc);
 		return 1;
 	}
 
@@ -108,7 +83,6 @@ test(void)
 		if (REG_ROW != dbnextrow(dbproc)) {
 			fprintf(stderr, "Failed.  Expected a row\n");
 			set_failed();
-			dbclose(dbproc);
 			return 1;
 		}
 		if (testint != i) {
@@ -126,13 +100,10 @@ test(void)
 	if (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		fprintf(stderr, "Was expecting no more rows\n");
 		set_failed();
-		dbclose(dbproc);
 		return 1;
 	}
 
-	dbclose(dbproc);
-
-	dbexit();
+	dbcancel(dbproc);
 
 	return 0;
 }
@@ -142,17 +113,46 @@ thread_test(void * arg)
 {
 	int i;
 	int num = (int) arg;
+	DBPROCESS *dbproc;
+	LOGINREC *login;
+
+	login = dblogin();
+	DBSETLPWD(login, PASSWORD);
+	DBSETLUSER(login, USER);
+	DBSETLAPP(login, "thread");
+
+	dbproc = dbopen(login, SERVER);
+	if (!dbproc) {
+		dbloginfree(login);
+		fprintf(stderr, "Unable to connect to %s\n", SERVER);
+		set_failed();
+		return NULL;
+	}
+	dbloginfree(login);
+
+	if (strlen(DATABASE))
+		dbuse(dbproc, DATABASE);
+
+	pthread_mutex_lock(&mutex);
+	++thread_count;
+	pthread_mutex_unlock(&mutex);
+
+	printf("thread %2d waiting for all threads to start\n", num+1);
+	pthread_mutex_lock(&mutex);
+	while (thread_count < NUM_THREAD) {
+		pthread_mutex_unlock(&mutex);
+		sleep(1);
+		pthread_mutex_lock(&mutex);
+	}
+	pthread_mutex_unlock(&mutex);
 
 	for (i = 1; i <= NUM_LOOP; ++i) {
-		printf("thread %2d of %2d loop %d\n", num, NUM_THREAD, i);
-		if (test() || result != 0)
+		printf("thread %2d of %2d loop %d\n", num+1, NUM_THREAD, i);
+		if (test(dbproc) || result != 0)
 			break;
 	}
 
-	TDS_MUTEX_LOCK(&mutex);
-	--thread_count;
-	TDS_MUTEX_UNLOCK(&mutex);
-
+	dbclose(dbproc);
 	return NULL;
 }
 
@@ -160,8 +160,9 @@ int
 main(int argc, char **argv)
 {
 	int i;
-	pthread_t th;
+	pthread_t th[NUM_THREAD];
 	DBPROCESS *dbproc;
+	LOGINREC *login;
 
 	read_login_info(argc, argv);
 
@@ -186,6 +187,8 @@ main(int argc, char **argv)
 		fprintf(stderr, "Unable to connect to %s\n", SERVER);
 		return 1;
 	}
+
+	dbloginfree(login);
 
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
@@ -216,24 +219,20 @@ main(int argc, char **argv)
 		}
 	}
 
-	for (i = 1; i <= NUM_THREAD; ++i) {
-		TDS_MUTEX_LOCK(&mutex);
-		++thread_count;
-		TDS_MUTEX_UNLOCK(&mutex);
-		if (pthread_create(&th, NULL, thread_test, (void *) i) != 0) {
+	for (i = 0; i < NUM_THREAD; ++i) {
+		if (pthread_create(&th[i], NULL, thread_test, (void *) i) != 0)
+		{
 			fprintf(stderr, "Error creating thread\n");
 			return 1;
 		}
-		pthread_detach(th);
-		usleep(20000);
+		/* MSSQL rejects the connections if they come in too fast */
+		sleep(1);
 	}
 
-	for (i = 1; thread_count > 0; ++i) {
-		printf("loop %d thread count %d... waiting\n", i, thread_count);
-		sleep(2);
+	for (i = 0; i < NUM_THREAD; ++i) {
+		pthread_join(th[i], NULL);
+		fprintf(stdout, "thread: %d exited\n", i);
 	}
-
-	dbloginfree(login);
 
 	fprintf(stdout, "Dropping table\n");
 	dbcmd(dbproc, "drop table dblib_thread");
@@ -255,4 +254,3 @@ main(int argc, char **argv)
 	return 0;
 }
 #endif
-
