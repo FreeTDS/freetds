@@ -1,3 +1,6 @@
+Mon Jul 25 11:44:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: use preprocessor to avoid rewrite
+
 Mon Jul 25 11:42:09 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* win32/dev-cpp/FreeTDS.dev win32/dev-cpp/Makefile.win:
 	* win32/msvc6/libTDS.dsp:
