@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.4 2005-02-11 13:15:53 freddy77 Exp $";
+static const char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.5 2005-07-26 09:34:28 freddy77 Exp $";
 static const void *const no_unused_cstypes_h_warn[] = { rcsid_cstypes_h, no_unused_cstypes_h_warn };
 
 
@@ -42,7 +42,7 @@ typedef char CS_CHAR;
 typedef unsigned char CS_BYTE;
 typedef tds_sysdep_real32_type CS_REAL;
 typedef tds_sysdep_real64_type CS_FLOAT;
-typedef char CS_BOOL;
+typedef tds_sysdep_int32_type CS_BOOL;
 typedef void CS_VOID;
 typedef unsigned char CS_IMAGE;
 typedef unsigned char CS_TEXT;

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.239 2005-07-20 10:58:44 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.240 2005-07-26 09:34:28 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1169,6 +1169,7 @@ struct tds_socket
 
 	void *tls_session;
 	void *tls_credentials;
+	int option_value;
 };
 
 int tds_init_write_buf(TDSSOCKET * tds);
@@ -1275,6 +1276,7 @@ int tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection);
 /* query.c */
 int tds_submit_query(TDSSOCKET * tds, const char *query);
 int tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
+int tds_submit_query_params_ct(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 int tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);
 int tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
 int tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
@@ -1285,6 +1287,7 @@ int tds_count_placeholders(const char *query);
 int tds_get_dynid(TDSSOCKET * tds, char **id);
 int tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 int tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params);
+int tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);
 int tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
 const char *tds_skip_quoted(const char *s);

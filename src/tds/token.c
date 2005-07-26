@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.301 2005-07-07 13:06:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.302 2005-07-26 09:36:37 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -72,6 +72,7 @@ static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curc
 static int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static TDS_INT tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
+static int tds5_process_optioncmd(TDSSOCKET * tds);
 static const char *tds_pr_op(int op);
 
 
@@ -179,7 +180,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		return tds7_process_result(tds);
 		break;
 	case TDS_OPTIONCMD_TOKEN:
-		tdsdump_log(TDS_DBG_FUNC, "option command token encountered\n");
+		return tds5_process_optioncmd(tds);
 		break;
 	case TDS_RESULT_TOKEN:
 		return tds_process_result(tds);
@@ -746,50 +747,54 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 		case TDS_DONEPROC_TOKEN:
 			SET_RETURN(TDS_DONEPROC_RESULT, DONE);
 			rc = tds_process_end(tds, marker, done_flags);
-			switch (tds->internal_sp_called ) {
-				case 0: 
-				case TDS_SP_PREPARE: 
-				case TDS_SP_EXECUTE: 
-				case TDS_SP_UNPREPARE: 
-					break;
-				case TDS_SP_CURSOROPEN: 
-					*result_type       = TDS_DONE_RESULT;
-					tds->rows_affected = saved_rows_affected;
-					break;
-				case TDS_SP_CURSORCLOSE:
-					tdsdump_log(TDS_DBG_FUNC, "TDS_SP_CURSORCLOSE\n");
-					if (tds->cur_cursor) {
+			switch (tds->internal_sp_called) {
+			case 0: 
+			case TDS_SP_PREPARE: 
+			case TDS_SP_EXECUTE: 
+			case TDS_SP_UNPREPARE: 
+			case TDS_SP_EXECUTESQL:
+				break;
+			case TDS_SP_CURSOROPEN: 
+				*result_type       = TDS_DONE_RESULT;
+				tds->rows_affected = saved_rows_affected;
+				break;
+			case TDS_SP_CURSORCLOSE:
+				tdsdump_log(TDS_DBG_FUNC, "TDS_SP_CURSORCLOSE\n");
+				if (tds->cur_cursor) {
  
-						TDSCURSOR  *cursor = tds->cur_cursor;
+					TDSCURSOR  *cursor = tds->cur_cursor;
  
-						cursor->srv_status &= ~TDS_CUR_ISTAT_OPEN;
-						cursor->srv_status |= TDS_CUR_ISTAT_CLOSED;
-						cursor->srv_status |= TDS_CUR_ISTAT_DECLARED;
-						if (cursor->status.dealloc == 2) {
-							tds_free_cursor(tds, cursor);
-						}
+					cursor->srv_status &= ~TDS_CUR_ISTAT_OPEN;
+					cursor->srv_status |= TDS_CUR_ISTAT_CLOSED;
+					cursor->srv_status |= TDS_CUR_ISTAT_DECLARED;
+					if (cursor->status.dealloc == 2) {
+						tds_free_cursor(tds, cursor);
 					}
-					*result_type = TDS_NO_MORE_RESULTS;
-					rc = TDS_NO_MORE_RESULTS;
-					break;
-				default:
-					*result_type = TDS_NO_MORE_RESULTS;
-					rc = TDS_NO_MORE_RESULTS;
-					break;
+				}
+				*result_type = TDS_NO_MORE_RESULTS;
+				rc = TDS_NO_MORE_RESULTS;
+				break;
+			default:
+				*result_type = TDS_NO_MORE_RESULTS;
+				rc = TDS_NO_MORE_RESULTS;
+				break;
 			}
 			break;
 		case TDS_DONEINPROC_TOKEN:
-			if (tds->internal_sp_called == TDS_SP_CURSOROPEN  ||
-				tds->internal_sp_called == TDS_SP_CURSORFETCH ||
-				tds->internal_sp_called == TDS_SP_PREPARE ||
-				tds->internal_sp_called == TDS_SP_CURSORCLOSE ) {
+			switch(tds->internal_sp_called) {
+			case TDS_SP_CURSOROPEN:
+			case TDS_SP_CURSORFETCH:
+			case TDS_SP_PREPARE:
+			case TDS_SP_CURSORCLOSE:
 				rc = tds_process_end(tds, marker, done_flags);
 				if (tds->rows_affected != TDS_NO_COUNT) {
 					saved_rows_affected = tds->rows_affected;
 				}
-			} else {
+				break;
+			default:
 				SET_RETURN(TDS_DONEINPROC_RESULT, DONE);
 				rc = tds_process_end(tds, marker, done_flags);
+				break;
 			}
 			break;
 		default:
@@ -840,6 +845,7 @@ tds_process_simple_query(TDSSOCKET * tds)
 	TDS_INT res_type;
 	TDS_INT done_flags;
 	int     rc;
+	int     ret = TDS_SUCCEED;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -850,7 +856,7 @@ tds_process_simple_query(TDSSOCKET * tds)
 			case TDS_DONEPROC_RESULT:
 			case TDS_DONEINPROC_RESULT:
 				if ((done_flags & TDS_DONE_ERROR) != 0) 
-					return TDS_FAIL;
+					ret = TDS_FAIL;
 				break;
 
 			default:
@@ -858,10 +864,10 @@ tds_process_simple_query(TDSSOCKET * tds)
 		}
 	}
 	if (rc != TDS_NO_MORE_RESULTS) {
-		return TDS_FAIL;
+		ret = TDS_FAIL;
 	}
 
-	return TDS_SUCCEED;
+	return ret;
 }
 
 /**
@@ -3126,109 +3132,46 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	return TDS_SUCCEED;
 }
 
-int
-tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * ptds_argument,
-		    TDS_INT * ptds_argsize)
+static int
+tds5_process_optioncmd(TDSSOCKET * tds)
 {
-	static const TDS_TINYINT token = TDS_OPTIONCMD_TOKEN;
-	TDS_TINYINT expected_acknowledgement = 0;
-	int marker, status;
-
-	TDS_TINYINT command = tds_command;
-	TDS_TINYINT option = tds_option;
-	TDS_TINYINT argsize = (*ptds_argsize == TDS_NULLTERM) ? 1 + strlen(ptds_argument->c) : *ptds_argsize;
-
-	TDS_SMALLINT length = sizeof(command) + sizeof(option) + sizeof(argsize) + argsize;
+	TDS_SMALLINT length;
+	TDS_INT command;
+	TDS_INT option;
+	TDS_INT argsize;
+	TDS_INT arg;
 
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_INFO1, "entering tds_send_optioncmd()\n");
+	tdsdump_log(TDS_DBG_INFO1, "tds5_process_optioncmd()\n");
 
 	assert(IS_TDS50(tds));
-	assert(ptds_argument);
-
-	tds_put_tinyint(tds, token);
-	tds_put_smallint(tds, length);
-	tds_put_tinyint(tds, command);
-	tds_put_tinyint(tds, option);
-	tds_put_tinyint(tds, argsize);
-
-	switch (*ptds_argsize) {
-	case 1:
-		tds_put_tinyint(tds, ptds_argument->ti);
-		break;
-	case 4:
-		tds_put_int(tds, ptds_argument->i);
-		break;
-	case TDS_NULLTERM:
-		tds_put_string(tds, ptds_argument->c, argsize);
-		break;
-	default:
-		tdsdump_log(TDS_DBG_INFO1, "tds_send_optioncmd: failed: argsize is %d.\n", *ptds_argsize);
-		return -1;
-	}
-
-	tds_flush_packet(tds);
-
-	/* TODO: read the server's response.  Don't use this function yet. */
-
-	switch (command) {
-	case TDS_OPT_SET:
-	case TDS_OPT_DEFAULT:
-		expected_acknowledgement = TDS_DONE_TOKEN;
-		break;
-	case TDS_OPT_LIST:
-		expected_acknowledgement = TDS_OPTIONCMD_TOKEN;	/* with TDS_OPT_INFO */
-		break;
-	}
-	while ((marker = tds_get_byte(tds)) != expected_acknowledgement) {
-		if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
-			return TDS_FAIL;
-	}
-
-	if (marker == TDS_DONE_TOKEN) {
-		tds_process_end(tds, marker, &status);
-		return (TDS_DONE_FINAL == (status | TDS_DONE_FINAL)) ? TDS_SUCCEED : TDS_FAIL;
-	}
 
 	length = tds_get_smallint(tds);
 	command = tds_get_byte(tds);
 	option = tds_get_byte(tds);
 	argsize = tds_get_byte(tds);
 
-	if (argsize > *ptds_argsize) {
-		/* return oversize length to caller, copying only as many bytes as caller provided. */
-		TDS_INT was = *ptds_argsize;
-
-		*ptds_argsize = argsize;
-		argsize = was;
-	}
-
 	switch (argsize) {
 	case 0:
 		break;
 	case 1:
-		ptds_argument->ti = tds_get_byte(tds);
+		arg = tds_get_byte(tds);
 		break;
 	case 4:
-		ptds_argument->i = tds_get_int(tds);
+		arg = tds_get_int(tds);
 		break;
 	default:
-		/* FIXME not null terminated and size not saved */
-		/* FIXME do not take into account conversion */
-		tds_get_string(tds, argsize, ptds_argument->c, argsize);
 		break;
 	}
+	tdsdump_log(TDS_DBG_INFO1, "received option %d value %d\n", option, arg);
 
+	if (command != TDS_OPT_INFO)
+		return TDS_FAIL;
 
-	while ((marker = tds_get_byte(tds)) != TDS_DONE_TOKEN) {
-		if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
-			return TDS_FAIL;
-	}
+	tds->option_value = arg;
 
-	tds_process_end(tds, marker, &status);
-	return (TDS_DONE_FINAL == (status | TDS_DONE_FINAL)) ? TDS_SUCCEED : TDS_FAIL;
-
+	return TDS_SUCCEED;
 }
 
 static const char *

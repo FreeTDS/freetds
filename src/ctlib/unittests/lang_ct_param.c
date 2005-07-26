@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.3 2005-05-18 12:00:04 freddy77 Exp $";
+static char software_version[] = "$Id: lang_ct_param.c,v 1.4 2005-07-26 09:36:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
 
 	strcpy(cmdbuf, "create table #ctparam_lang (id numeric identity not null, \
-        name varchar(30), age int, cost money, bdate datetime, fval float) ");
+		name varchar(30), age int, cost money, bdate datetime, fval float) ");
 
 	ret = run_command(cmd, cmdbuf);
 
@@ -106,8 +106,11 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	char dummy_name[30];
 	CS_INT destlen;
 
+	/* clear table */
+	run_command(cmd, "delete #ctparam_lang");
+
 	/*
-	 * ** Assign values to the variables used for parameter passing.
+	 * Assign values to the variables used for parameter passing.
 	 */
 
 	intvar = 2;
@@ -116,7 +119,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	strcpy(moneystring, "300.90");
 
 	/*
-	 * ** Clear and setup the CS_DATAFMT structures used to convert datatypes.
+	 * Clear and setup the CS_DATAFMT structures used to convert datatypes.
 	 */
 
 	memset(&srcfmt, 0, sizeof(CS_DATAFMT));
@@ -134,9 +137,9 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	destfmt.locale = NULL;
 
 	/*
-	 * ** Convert the string representing the money value
-	 * ** to a CS_MONEY variable. Since this routine does not have the
-	 * ** context handle, we use the property functions to get it.
+	 * Convert the string representing the money value
+	 * to a CS_MONEY variable. Since this routine does not have the
+	 * context handle, we use the property functions to get it.
 	 */
 	if ((ret = ct_cmd_props(cmd, CS_GET, CS_PARENT_HANDLE, &conn, CS_UNUSED, NULL)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_cmd_props() failed\n");
@@ -153,7 +156,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	}
 
 	/*
-	 * ** create the command
+	 * create the command
 	 */
 	if ((ret = ct_command(cmd, CS_LANG_CMD, QUERY_STRING, strlen(QUERY_STRING), 
 		CS_UNUSED)) != CS_SUCCEED) 
@@ -163,8 +166,8 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	}
 
 	/*
-	 * ** Clear and setup the CS_DATAFMT structure, then pass
-	 * ** each of the parameters for the query.
+	 * Clear and setup the CS_DATAFMT structure, then pass
+	 * each of the parameters for the query.
 	 */
 	memset(&datafmt, 0, sizeof(datafmt));
 	if (useNames)
@@ -177,8 +180,8 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	datafmt.status = CS_INPUTVALUE;
 
 	/*
-	 * ** The character string variable is filled in by the RPC so pass NULL
-	 * ** for the data 0 for data length, and -1 for the indicator arguments.
+	 * The character string variable is filled in by the RPC so pass NULL
+	 * for the data 0 for data length, and -1 for the indicator arguments.
 	 */
 	ret = ct_param(cmd, &datafmt, dummy_name, strlen(dummy_name), 0);
 	if (CS_SUCCEED != ret) {
@@ -247,7 +250,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	}
 
 	/*
-	 * ** Send the command to the server
+	 * Send the command to the server
 	 */
 	if (ct_send(cmd) != CS_SUCCEED) {
 		fprintf(stderr, "ct_send(CS_LANG_CMD) failed\n");
@@ -294,6 +297,12 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 			return 1;
 		}
 	}
+	if (ret != CS_END_RESULTS)
+		fprintf(stderr, "ct_results returned unexpected result %d.\n", (int) ret);
+
+	/* test row inserted */
+	run_command(cmd, "if not exists(select * from #ctparam_lang) select 1");
+
 	return 0;
 }
 

@@ -1,3 +1,11 @@
+Tue Jul 26 11:24:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/cstypes.h include/tds.h src/ctlib/ct.c:
+	* src/ctlib/unittests/ct_options.c:
+	* src/ctlib/unittests/lang_ct_param.c src/tds/query.c:
+	* src/tds/token.c:
+	- applied Bill Thompson patch with some changes
+	* src/ctlib/Makefile.am: bumped so version
+
 Mon Jul 25 11:44:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: use preprocessor to avoid rewrite
 

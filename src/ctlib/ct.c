@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.154 2005-07-20 10:58:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.155 2005-07-26 09:34:28 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -150,6 +150,9 @@ _ct_get_user_api_layer_error(int error)
 		break;
 	case 142:
 		return "No value or default value available and NULL not allowed. col = %1! row = %2! .";
+		break;
+	case 143:
+		return "parameter name(s) must be supplied for LANGUAGE command.";
 		break;
 	case 16843163:
 		return "This routine cannot be called when the command structure is idle.";
@@ -827,10 +830,8 @@ ct_send(CS_COMMAND * cmd)
 		case CS_PREPARE:
 			if (tds_submit_prepare(cmd->con->tds_socket, cmd->dyn->stmt, cmd->dyn->id, NULL, NULL) == TDS_FAIL)
 				return CS_FAIL;
-			else {
-				ct_set_command_state(cmd, _CS_COMMAND_SENT);
-				return CS_SUCCEED;
-			}
+			ct_set_command_state(cmd, _CS_COMMAND_SENT);
+			return CS_SUCCEED;
 			break;
 		case CS_EXECUTE:
 			pparam_info = paraminfoalloc(tds, cmd->dyn->param_list);
@@ -843,10 +844,8 @@ ct_send(CS_COMMAND * cmd)
 			tdsdyn->params = pparam_info;
 			if (tds_submit_execute(cmd->con->tds_socket, tdsdyn) == TDS_FAIL)
 				return CS_FAIL;
-			else {
-				ct_set_command_state(cmd, _CS_COMMAND_SENT);
-				return CS_SUCCEED;
-			}
+			ct_set_command_state(cmd, _CS_COMMAND_SENT);
+			return CS_SUCCEED;
 			break;
 		case CS_DESCRIBE_INPUT:
 			tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_DESCRIBE_INPUT)\n");
@@ -912,7 +911,7 @@ ct_send(CS_COMMAND * cmd)
 		ret = CS_FAIL;
 		if (cmd->input_params) {
 			pparam_info = paraminfoalloc(tds, cmd->input_params);
-			ret = tds_submit_query_params(tds, cmd->query, pparam_info);
+			ret = tds_submit_query_params_ct(tds, cmd->query, pparam_info);
 			tds_free_param_results(pparam_info);
 		} else {
 			ret = tds_submit_query(tds, cmd->query);
@@ -923,10 +922,9 @@ ct_send(CS_COMMAND * cmd)
 		if (ret == TDS_FAIL) {
 			tdsdump_log(TDS_DBG_WARN, "ct_send() failed\n");
 			return CS_FAIL;
-		} else {
-			tdsdump_log(TDS_DBG_INFO2, "ct_send() succeeded\n");
-			return CS_SUCCEED;
 		}
+		tdsdump_log(TDS_DBG_INFO2, "ct_send() succeeded\n");
+		return CS_SUCCEED;
 	}
 
 	/* Code added for CURSOR support */
@@ -3486,6 +3484,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	TDS_OPTION tds_option = 0;
 	TDS_OPTION_ARG tds_argument;
 	TDS_INT tds_argsize = 0;
+	TDSSOCKET *tds;
 
 	const char *action_string = NULL;
 	int i;
@@ -3497,7 +3496,6 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		TDS_OPTION tds_option;
 	} tds_bool_option_map[] = {
 		  { CS_OPT_ANSINULL,       TDS_OPT_ANSINULL       }
-		, { CS_OPT_ANSINULL,       TDS_OPT_ANSINULL       }
 		, { CS_OPT_CHAINXACTS,     TDS_OPT_CHAINXACTS     }
 		, { CS_OPT_CURCLOSEONXACT, TDS_OPT_CURCLOSEONXACT }
 		, { CS_OPT_FIPSFLAG,       TDS_OPT_FIPSFLAG       }
@@ -3516,6 +3514,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 
 	if (param == NULL)
 		return CS_FAIL;
+
+	tds = con->tds_socket;
 
 	/*
 	 * Set the tds command
@@ -3568,18 +3568,22 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	}
 
 	if (tds_option != 0) {	/* found a boolean */
-		switch (*(CS_BOOL *) param) {
-		case CS_TRUE:
-			tds_argument.ti = 1;
-			break;
-		case CS_FALSE:
-			tds_argument.ti = 0;
-			break;
-		default:
-			return CS_FAIL;
+		if (action == CS_SET) {
+			switch (*(CS_BOOL *) param) {
+			case CS_TRUE:
+				tds_argument.ti = 1;
+				break;
+			case CS_FALSE:
+				tds_argument.ti = 0;
+				break;
+			default:
+				return CS_FAIL;
+			}
+			tds_argsize = 1;
 		}
-		tds_argsize = (action == CS_SET) ? 1 : 0;
-
+		if (action == CS_GET) {
+			tds_argsize = 0;
+		}
 		goto SEND_OPTION;
 	}
 
@@ -3595,7 +3599,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		case CS_FALSE:
 			break;	/* end valid choices */
 		default:
-			return CS_FAIL;
+			if (action == CS_SET) 
+				return CS_FAIL;
 		}
 		break;
 	case CS_OPT_ARITHABORT:
@@ -3607,10 +3612,12 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_option = TDS_OPT_ARITHABORTOFF;
 			break;
 		default:
-			return CS_FAIL;
+			if (action == CS_SET) 
+				return CS_FAIL;
+			tds_option = TDS_OPT_ARITHABORTON;
 		}
-		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
-		tds_argsize = (action == CS_SET) ? 4 : 0;
+		tds_argument.ti = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
+		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	case CS_OPT_ARITHIGNORE:
 		switch (*(CS_BOOL *) param) {
@@ -3621,7 +3628,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_option = TDS_OPT_ARITHIGNOREOFF;
 			break;
 		default:
-			return CS_FAIL;
+			if (action == CS_SET) 
+				return CS_FAIL;
 		}
 		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
 		tds_argsize = (action == CS_SET) ? 4 : 0;
@@ -3639,7 +3647,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 
 	case CS_OPT_DATEFIRST:
 		tds_option = TDS_OPT_DATEFIRST;
-		switch (*(char *) param) {
+		switch (*(CS_INT *) param) {
 		case CS_OPT_SUNDAY:
 			tds_argument.ti = TDS_OPT_SUNDAY;
 			break;
@@ -3662,14 +3670,14 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_argument.ti = TDS_OPT_SATURDAY;
 			break;
 		default:
-			return CS_FAIL;
+			if (action == CS_SET) 
+				return CS_FAIL;
 		}
-		tds_argument.ti = *(char *) param;
 		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	case CS_OPT_DATEFORMAT:
 		tds_option = TDS_OPT_DATEFORMAT;
-		switch (*(char *) param) {
+		switch (*(CS_INT *) param) {
 		case CS_OPT_FMTMDY:
 			tds_argument.ti = TDS_OPT_FMTMDY;
 			break;
@@ -3689,9 +3697,9 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_argument.ti = TDS_OPT_FMTDYM;
 			break;
 		default:
-			return CS_FAIL;
+			if (action == CS_SET) 
+				return CS_FAIL;
 		}
-		tds_argument.ti = *(char *) param;
 		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
 	case CS_OPT_ISOLATION:
@@ -3708,7 +3716,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_argument.ti = TDS_OPT_LEVEL3;
 			break;
 		default:
-			return CS_FAIL;
+			if (action == CS_SET) 
+				return CS_FAIL;
 		}
 		tds_argsize = (action == CS_SET) ? 1 : 0;
 		break;
@@ -3719,7 +3728,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		case CS_FALSE:
 			break;
 		default:
-			return CS_FAIL;
+			if (action == CS_SET) 
+				return CS_FAIL;
 		}
 		tds_argument.ti = !*(char *) param;
 		tds_argsize = (action == CS_SET) ? 1 : 0;
@@ -3730,14 +3740,55 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 
 SEND_OPTION:
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_option: UNIMPLEMENTED %d\n", option);
+	tdsdump_log(TDS_DBG_FUNC, "\ttds_submit_optioncmd will be action(%s) option(%d) arg(%x) arglen(%d)\n",
+				action_string, tds_option, tds_argument.i, tds_argsize);
 
-	tdsdump_log(TDS_DBG_FUNC, "\ttds_send_optioncmd will be option(%d) arg(%x) arglen(%d)\n", tds_option, tds_argument.i,
-		    tds_argsize);
+	if (tds_submit_optioncmd(tds, tds_command, tds_option, &tds_argument, tds_argsize) == TDS_FAIL) {
+		return CS_FAIL;
+	}
 
-	return CS_SUCCEED;	/* return succeed for now unless inputs are wrong */
-	return CS_FAIL;
+	if (action == CS_GET) {
+		switch (option) {
+		case CS_OPT_ANSINULL :
+		case CS_OPT_CHAINXACTS :
+		case CS_OPT_CURCLOSEONXACT :
+		case CS_OPT_NOCOUNT :
+		case CS_OPT_QUOTED_IDENT :
+			*(CS_BOOL *)param = tds->option_value;
+			break;
+		case CS_OPT_DATEFIRST:
+			switch (tds->option_value) {
+			case TDS_OPT_SUNDAY: *(CS_INT *)param = CS_OPT_SUNDAY; break;
+			case TDS_OPT_MONDAY: *(CS_INT *)param = CS_OPT_MONDAY; break;
+			case TDS_OPT_TUESDAY: *(CS_INT *)param = CS_OPT_TUESDAY; break;
+			case TDS_OPT_WEDNESDAY: *(CS_INT *)param = CS_OPT_WEDNESDAY; break;
+			case TDS_OPT_THURSDAY: *(CS_INT *)param = CS_OPT_THURSDAY; break;
+			case TDS_OPT_FRIDAY: *(CS_INT *)param = CS_OPT_FRIDAY; break;
+			case TDS_OPT_SATURDAY: *(CS_INT *)param = CS_OPT_SATURDAY; break;
+			default: return CS_FAIL;
+			}
+			break;
+		case CS_OPT_DATEFORMAT:
+			switch (tds->option_value) {
+			case TDS_OPT_FMTDMY: *(CS_INT *)param = CS_OPT_FMTDMY; break;
+			case TDS_OPT_FMTDYM: *(CS_INT *)param = CS_OPT_FMTDYM; break;
+			case TDS_OPT_FMTMDY: *(CS_INT *)param = CS_OPT_FMTMDY; break;
+			case TDS_OPT_FMTMYD: *(CS_INT *)param = CS_OPT_FMTMYD; break;
+			case TDS_OPT_FMTYMD: *(CS_INT *)param = CS_OPT_FMTYMD; break;
+			case TDS_OPT_FMTYDM: *(CS_INT *)param = CS_OPT_FMTYDM; break;
+			default: return CS_FAIL;
+			}
+			break;
+		case CS_OPT_ARITHABORT :
+		case CS_OPT_ARITHIGNORE :
+			*(CS_BOOL *)param = tds->option_value;
+			break;
+		case CS_OPT_TRUNCIGNORE :
+			break;
+		}
+	}
 
+	return CS_SUCCEED;
 }				/* end ct_options() */
 
 CS_RETCODE

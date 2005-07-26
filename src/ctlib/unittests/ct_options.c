@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_options.c,v 1.3 2004-09-08 12:51:24 freddy77 Exp $";
+static char software_version[] = "$Id: ct_options.c,v 1.4 2005-07-26 09:36:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Set and get options with ct_options */
@@ -24,16 +24,9 @@ main(int argc, char *argv[])
 	CS_COMMAND *cmd;
 	CS_RETCODE ret;
 
-	CS_INT action;
-	CS_INT option;
-	CS_INT param;
-	CS_INT paramlen;
-	CS_INT outlen;
-
-	/* this strange hack is used to check a bus error on some machines */
-	CS_BOOL param_bools[2];
-
-#define param_bool *(param_bools+1)
+	CS_INT datefirst = 0;
+	CS_INT dateformat = 0;
+	CS_BOOL truefalse = 999;
 
 	if (verbose) {
 		fprintf(stdout, "Trying login\n");
@@ -53,38 +46,81 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	action = CS_GET;
-	option = CS_TDS_VERSION;
-	param = CS_TRUE;
-	paramlen = sizeof(param);
-	outlen = sizeof(param);
+	fprintf(stdout, "%s: Set/Retrieve DATEFIRST\n", __FILE__);
 
-	ret = ct_con_props(conn, action, option, &param, paramlen, &outlen);
-	if (param != CS_TDS_50) {
-		fprintf(stdout, "%s: ct_options implemented only in TDS 5.0.\n", __FILE__);
-		try_ctlogout(ctx, conn, cmd, verbose);
-		return 0;
-	}
-
-
-	fprintf(stdout, "%s: Retrieve a boolean option\n", __FILE__);
-
-	action = CS_GET;
-	option = CS_OPT_CHAINXACTS;
-	param_bool = CS_TRUE;
-	paramlen = sizeof(param_bool);
-	outlen = sizeof(param_bool);
-
-	ret = ct_options(conn, action, option, &param_bool, paramlen, &outlen);
-
-	if (ret != CS_SUCCEED) {
-		ret = param_bool;
-		fprintf(stdout, "%s:%d: CS_OPT_CHAINXACTS failed %d\n", __FILE__, __LINE__, ret);
+	/* DATEFIRST */
+	datefirst = CS_OPT_WEDNESDAY;
+	if (ct_options(conn, CS_SET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL) != CS_SUCCEED) {
+		fprintf(stderr, "ct_options() failed\n");
 		return 1;
 	}
 
-	ret = param_bool;
-	fprintf(stdout, "%s:%d: CS_OPT_CHAINXACTS is %d\n", __FILE__, __LINE__, ret);
+	datefirst = 999;
+
+	if (ct_options(conn, CS_GET, CS_OPT_DATEFIRST, &datefirst, CS_UNUSED, NULL) != CS_SUCCEED) {
+		fprintf(stderr, "ct_options() failed\n");
+		return 1;
+	}
+	if (datefirst != CS_OPT_WEDNESDAY) {
+		fprintf(stderr, "ct_options(DATEFIRST) didn't work retrieved %d expected %d\n", datefirst, CS_OPT_WEDNESDAY);
+		return 1;
+	}
+
+	fprintf(stdout, "%s: Set/Retrieve DATEFORMAT\n", __FILE__);
+
+	/* DATEFORMAT */
+	dateformat = CS_OPT_FMTMYD;
+	if (ct_options(conn, CS_SET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL) != CS_SUCCEED) {
+		fprintf(stderr, "ct_options() failed\n");
+		return 1;
+	}
+
+	dateformat = 999;
+
+	if (ct_options(conn, CS_GET, CS_OPT_DATEFORMAT, &dateformat, CS_UNUSED, NULL) != CS_SUCCEED) {
+		fprintf(stderr, "ct_options() failed\n");
+		return 1;
+	}
+	if (dateformat != CS_OPT_FMTMYD) {
+		fprintf(stderr, "ct_options(DATEFORMAT) didn't work retrieved %d expected %d\n", dateformat, CS_OPT_FMTMYD);
+		return 1;
+	}
+
+	fprintf(stdout, "%s: Set/Retrieve ANSINULL\n", __FILE__);
+	/* ANSI NULLS */
+	truefalse = CS_TRUE;
+	if (ct_options(conn, CS_SET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
+		fprintf(stderr, "ct_options() failed\n");
+		return 1;
+	}
+
+	truefalse = 999;
+	if (ct_options(conn, CS_GET, CS_OPT_ANSINULL, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
+		fprintf(stderr, "ct_options() failed\n");
+		return 1;
+	}
+	if (truefalse != CS_TRUE) {
+		fprintf(stderr, "ct_options(ANSINULL) didn't work\n");
+		return 1;
+	}
+
+	fprintf(stdout, "%s: Set/Retrieve CHAINXACTS\n", __FILE__);
+	/* CHAINED XACT */
+	truefalse = CS_TRUE;
+	if (ct_options(conn, CS_SET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
+		fprintf(stderr, "ct_options() failed\n");
+		return 1;
+	}
+
+	truefalse = 999;
+	if (ct_options(conn, CS_GET, CS_OPT_CHAINXACTS, &truefalse, CS_UNUSED, NULL) != CS_SUCCEED) {
+		fprintf(stderr, "ct_options() failed\n");
+		return 1;
+	}
+	if (truefalse != CS_TRUE) {
+		fprintf(stderr, "ct_options(CHAINXACTS) didn't work\n");
+		return 1;
+	}
 
 	if (verbose) {
 		fprintf(stdout, "Trying logout\n");
