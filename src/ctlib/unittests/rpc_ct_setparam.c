@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.7 2005-05-18 12:00:05 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.8 2005-07-26 13:04:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -108,7 +108,7 @@ main(int argc, char *argv[])
 	}
 
 	/*
-	 * ** Assign values to the variables used for parameter passing.
+	 * Assign values to the variables used for parameter passing.
 	 */
 
 	intvar = 2;
@@ -119,7 +119,7 @@ main(int argc, char *argv[])
 	strcpy(moneystring, "300.90");
 
 	/*
-	 * ** Clear and setup the CS_DATAFMT structures used to convert datatypes.
+	 * Clear and setup the CS_DATAFMT structures used to convert datatypes.
 	 */
 
 	memset(&srcfmt, 0, sizeof(CS_DATAFMT));
@@ -137,9 +137,9 @@ main(int argc, char *argv[])
 	destfmt.locale = NULL;
 
 	/*
-	 * ** Convert the string representing the money value
-	 * ** to a CS_MONEY variable. Since this routine does not have the
-	 * ** context handle, we use the property functions to get it.
+	 * Convert the string representing the money value
+	 * to a CS_MONEY variable. Since this routine does not have the
+	 * context handle, we use the property functions to get it.
 	 */
 	if ((ret = ct_cmd_props(cmd, CS_GET, CS_PARENT_HANDLE, &conn, CS_UNUSED, NULL)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_cmd_props() failed");
@@ -156,7 +156,7 @@ main(int argc, char *argv[])
 	}
 
 	/*
-	 * ** Send the RPC command for our stored procedure.
+	 * Send the RPC command for our stored procedure.
 	 */
 	if ((ret = ct_command(cmd, CS_RPC_CMD, rpc_name, CS_NULLTERM, CS_NO_RECOMPILE)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_command(CS_RPC_CMD) failed");
@@ -166,8 +166,8 @@ main(int argc, char *argv[])
 	nullind    = -1;
 	notnullind = 0;
 	/*
-	 * ** Clear and setup the CS_DATAFMT structure, then pass
-	 * ** each of the parameters for the RPC.
+	 * Clear and setup the CS_DATAFMT structure, then pass
+	 * each of the parameters for the RPC.
 	 */
 	memset(&datafmt, 0, sizeof(datafmt));
 	strcpy(datafmt.name, "@intparam");
@@ -235,8 +235,8 @@ main(int argc, char *argv[])
 	datafmt.locale = NULL;
 
 	/*
-	 * ** The datetime variable is filled in by the RPC so pass NULL for
-	 * ** the data, 0 for data length, and -1 for the indicator arguments.
+	 * The datetime variable is filled in by the RPC so pass NULL for
+	 * the data, 0 for data length, and -1 for the indicator arguments.
 	 */
 
 	datalength = 0;
@@ -256,8 +256,8 @@ main(int argc, char *argv[])
 	datalength = 0;
 
 	/*
-	 * ** The character string variable is filled in by the RPC so pass NULL
-	 * ** for the data 0 for data length, and -1 for the indicator arguments.
+	 * The character string variable is filled in by the RPC so pass NULL
+	 * for the data 0 for data length, and -1 for the indicator arguments.
 	 */
 	if ((ret = ct_setparam(cmd, &datafmt, NULL, &datalength, &nullind)) != CS_SUCCEED) {
 		fprintf(stderr, "ct_setparam(char) failed");
@@ -280,7 +280,7 @@ main(int argc, char *argv[])
 	}
 
 	/*
-	 * ** Send the command to the server
+	 * Send the command to the server
 	 */
 	if (ct_send(cmd) != CS_SUCCEED) {
 		fprintf(stderr, "ct_send(RPC) failed");
@@ -336,7 +336,7 @@ CS_SMALLINT msg_id;
 int i, j;
 
 	/*
-	 * ** Process the results of the RPC.
+	 * Process the results of the RPC.
 	 */
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
 		switch ((int) res_type) {
@@ -344,7 +344,7 @@ int i, j;
 		case CS_PARAM_RESULT:
 		case CS_STATUS_RESULT:
 			/*
-			 * ** Print the result header based on the result type.
+			 * Print the result header based on the result type.
 			 */
 			switch ((int) res_type) {
 			case CS_ROW_RESULT:
@@ -362,14 +362,14 @@ int i, j;
 			fflush(stdout);
 
 			/*
-			 * ** All three of these result types are fetchable.
-			 * ** Since the result model for rpcs and rows have
-			 * ** been unified in the New Client-Library, we
-			 * ** will use the same routine to display them
+			 * All three of these result types are fetchable.
+			 * Since the result model for rpcs and rows have
+			 * been unified in the New Client-Library, we
+			 * will use the same routine to display them
 			 */
 
 			/*
-			 * ** Find out how many columns there are in this result set.
+			 * Find out how many columns there are in this result set.
 			 */
 			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
 			if (ret != CS_SUCCEED) {
@@ -378,7 +378,7 @@ int i, j;
 			}
 
 			/*
-			 * ** Make sure we have at least one column
+			 * Make sure we have at least one column
 			 */
 			if (num_cols <= 0) {
 				fprintf(stderr, "ct_res_info(CS_NUMDATA) returned zero columns");
@@ -386,11 +386,11 @@ int i, j;
 			}
 
 			/*
-			 * ** Our program variable, called 'coldata', is an array of
-			 * ** EX_COLUMN_DATA structures. Each array element represents
-			 * ** one column.  Each array element will re-used for each row.
-			 * **
-			 * ** First, allocate memory for the data element to process.
+			 * Our program variable, called 'coldata', is an array of
+			 * EX_COLUMN_DATA structures. Each array element represents
+			 * one column.  Each array element will re-used for each row.
+			 * 
+			 * First, allocate memory for the data element to process.
 			 */
 			coldata = (EX_COLUMN_DATA *) malloc(num_cols * sizeof(EX_COLUMN_DATA));
 			if (coldata == NULL) {
@@ -443,12 +443,12 @@ int i, j;
 			while (((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED,
 						&rows_read)) == CS_SUCCEED) || (ret == CS_ROW_FAIL)) {
 				/*
-				 * ** Increment our row count by the number of rows just fetched.
+				 * Increment our row count by the number of rows just fetched.
 				 */
 				row_count = row_count + rows_read;
 
 				/*
-				 * ** Check if we hit a recoverable error.
+				 * Check if we hit a recoverable error.
 				 */
 				if (ret == CS_ROW_FAIL) {
 					fprintf(stdout, "Error on row %d.\n", row_count);
@@ -456,19 +456,19 @@ int i, j;
 				}
 
 				/*
-				 * ** We have a row.  Loop through the columns displaying the
-				 * ** column values.
+				 * We have a row.  Loop through the columns displaying the
+				 * column values.
 				 */
 				for (i = 0; i < num_cols; i++) {
 					/*
-					 * ** Display the column value
+					 * Display the column value
 					 */
 					fprintf(stdout, "%s", coldata[i].value);
 					fflush(stdout);
 
 					/*
-					 * ** If not last column, Print out spaces between this
-					 * ** column and next one.
+					 * If not last column, Print out spaces between this
+					 * column and next one.
 					 */
 					if (i != num_cols - 1) {
 						disp_len = ex_display_dlen(&outdatafmt[i]);
@@ -483,7 +483,7 @@ int i, j;
 			}
 
 			/*
-			 * ** Free allocated space.
+			 * Free allocated space.
 			 */
 			for (i = 0; i < num_cols; i++) {
 				free(coldata[i].value);
@@ -492,13 +492,13 @@ int i, j;
 			free(outdatafmt);
 
 			/*
-			 * ** We're done processing rows.  Let's check the final return
-			 * ** value of ct_fetch().
+			 * We're done processing rows.  Let's check the final return
+			 * value of ct_fetch().
 			 */
 			switch ((int) ret) {
 			case CS_END_DATA:
 				/*
-				 * ** Everything went fine.
+				 * Everything went fine.
 				 */
 				fprintf(stdout, "All done processing rows.\n");
 				fflush(stdout);
@@ -506,7 +506,7 @@ int i, j;
 
 			case CS_FAIL:
 				/*
-				 * ** Something terrible happened.
+				 * Something terrible happened.
 				 */
 				fprintf(stderr, "ct_fetch returned CS_FAIL\n");
 				return 1;
@@ -514,7 +514,7 @@ int i, j;
 
 			default:
 				/*
-				 * ** We got an unexpected return value.
+				 * We got an unexpected return value.
 				 */
 				fprintf(stderr, "ct_fetch returned %d\n", ret);
 				return 1;
@@ -524,9 +524,6 @@ int i, j;
 			break;
 
 		case CS_MSG_RESULT:
-			/*
-			 * **
-			 */
 			ret = ct_res_info(cmd, CS_MSGTYPE, (CS_VOID *) & msg_id, CS_UNUSED, NULL);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_res_info(msg_id) failed");
@@ -538,27 +535,27 @@ int i, j;
 
 		case CS_CMD_SUCCEED:
 			/*
-			 * ** This means no rows were returned.
+			 * This means no rows were returned.
 			 */
 			break;
 
 		case CS_CMD_DONE:
 			/*
-			 * ** Done with result set.
+			 * Done with result set.
 			 */
 			break;
 
 		case CS_CMD_FAIL:
 			/*
-			 * ** The server encountered an error while
-			 * ** processing our command.
+			 * The server encountered an error while
+			 * processing our command.
 			 */
 			fprintf(stderr, "ct_results returned CS_CMD_FAIL.");
 			break;
 
 		default:
 			/*
-			 * ** We got something unexpected.
+			 * We got something unexpected.
 			 */
 			fprintf(stderr, "ct_results returned unexpected result type.");
 			return CS_FAIL;
@@ -566,27 +563,27 @@ int i, j;
 	}
 
 	/*
-	 * ** We're done processing results. Let's check the
-	 * ** return value of ct_results() to see if everything
-	 * ** went ok.
+	 * We're done processing results. Let's check the
+	 * return value of ct_results() to see if everything
+	 * went ok.
 	 */
 	switch ((int) ret) {
 	case CS_END_RESULTS:
 		/*
-		 * ** Everything went fine.
+		 * Everything went fine.
 		 */
 		break;
 
 	case CS_FAIL:
 		/*
-		 * ** Something failed happened.
+		 * Something failed happened.
 		 */
 		fprintf(stderr, "ct_results failed.");
 		break;
 
 	default:
 		/*
-		 * ** We got an unexpected return value.
+		 * We got an unexpected return value.
 		 */
 		fprintf(stderr, "ct_results returned unexpected result type.");
 		break;

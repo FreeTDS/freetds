@@ -1,3 +1,9 @@
+Tue Jul 26 15:01:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/lang_ct_param.c:
+	- style update
+	- better check for insert
+	* src/ctlib/unittests/rpc_ct_setparam.c: style update
+
 Tue Jul 26 11:24:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/cstypes.h include/tds.h src/ctlib/ct.c:
 	* src/ctlib/unittests/ct_options.c:

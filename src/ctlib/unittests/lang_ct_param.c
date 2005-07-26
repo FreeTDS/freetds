@@ -2,6 +2,10 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -10,7 +14,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.4 2005-07-26 09:36:36 freddy77 Exp $";
+static char software_version[] = "$Id: lang_ct_param.c,v 1.5 2005-07-26 13:04:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
@@ -258,7 +262,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	}
 
 	/*
-	 * ** Process the results.
+	 * Process the results.
 	 */
 	while ((ret = ct_results(cmd, &res_type)) == CS_SUCCEED) {
 		switch ((int) res_type) {
@@ -275,23 +279,23 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 
 		case CS_CMD_FAIL:
 			/*
-			 * ** The server encountered an error while
-			 * ** processing our command.
+			 * The server encountered an error while
+			 * processing our command.
 			 */
 			fprintf(stderr, "ct_results returned CS_CMD_FAIL.\n");
 			break;
 
 		case CS_STATUS_RESULT:
 			/*
-			 * ** The server encountered an error while
-			 * ** processing our command.
+			 * The server encountered an error while
+			 * processing our command.
 			 */
 			fprintf(stderr, "ct_results returned CS_STATUS_RESULT.\n");
 			break;
 
 		default:
 			/*
-			 * ** We got something unexpected.
+			 * We got something unexpected.
 			 */
 			fprintf(stderr, "ct_results returned unexpected result type %d\n", res_type);
 			return 1;
@@ -301,7 +305,11 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 		fprintf(stderr, "ct_results returned unexpected result %d.\n", (int) ret);
 
 	/* test row inserted */
-	run_command(cmd, "if not exists(select * from #ctparam_lang) select 1");
+	ret = run_command(cmd, "if not exists(select * from #ctparam_lang) select 1");
+	if (ret != CS_SUCCEED) {
+		fprintf(stderr, "check row inserted failed\n");
+		exit(1);
+	}
 
 	return 0;
 }
