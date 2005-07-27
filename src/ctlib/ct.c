@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.155 2005-07-26 09:34:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.156 2005-07-27 09:07:34 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -911,7 +911,7 @@ ct_send(CS_COMMAND * cmd)
 		ret = CS_FAIL;
 		if (cmd->input_params) {
 			pparam_info = paraminfoalloc(tds, cmd->input_params);
-			ret = tds_submit_query_params_ct(tds, cmd->query, pparam_info);
+			ret = tds_submit_query_params(tds, cmd->query, pparam_info);
 			tds_free_param_results(pparam_info);
 		} else {
 			ret = tds_submit_query(tds, cmd->query);

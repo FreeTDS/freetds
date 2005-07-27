@@ -42,7 +42,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.185 2005-07-26 09:36:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.186 2005-07-27 09:07:35 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -186,7 +186,7 @@ tds_submit_query(TDSSOCKET * tds, const char *query)
 /**
  * tds_submit_query_params() sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
- * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a 
+ * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a
  * TDS_LANGUAGE_TOKEN to encapsulate the query and a packet type of 0x0f.
  * \param tds state information for the socket and the TDS protocol
  * \param query  language query to submit
@@ -198,27 +198,29 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 {
 	TDSCOLUMN *param;
 	int query_len, i;
-
+	int num_params = params ? params->num_cols : 0;
+ 
 	CHECK_TDS_EXTRA(tds);
 	if (params)
 		CHECK_PARAMINFO_EXTRA(params);
-
+ 
 	if (!query)
 		return TDS_FAIL;
-
+ 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
-
+ 
 	/* Jeff's hack to handle long query timeouts */
 	tds->query_start_time = time(NULL);
-
+ 
 	query_len = strlen(query);
+ 
 	if (IS_TDS50(tds)) {
 		tds->out_flag = TDS_NORMAL;
 		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
 		/* TODO ICONV use converted size, not input size and convert string */
 		tds_put_int(tds, query_len + 1);
-		tds_put_byte(tds, params ? 1 : 0);	/* 1 if there are params, 0 otherwise */
+		tds_put_byte(tds, params ? 1 : 0);  /* 1 if there are params, 0 otherwise */
 		tds_put_n(tds, query, query_len);
 		if (params) {
 			/* add on parameters */
@@ -232,92 +234,6 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		char *param_definition;
 		int converted_query_len;
 		const char *converted_query;
-
-		param_definition = tds_build_param_def_from_query(tds, query, query_len, params, &converted_query, &converted_query_len, &definition_len);
-		if (!param_definition) {
-			tds_set_state(tds, TDS_IDLE);
-			return TDS_FAIL;
-		}
-
-		tds->out_flag = TDS_RPC;
-		/* procedure name */
-		if (IS_TDS80(tds)) {
-			tds_put_smallint(tds, -1);
-			tds_put_smallint(tds, TDS_SP_EXECUTESQL);
-		} else {
-			tds_put_smallint(tds, 13);
-			TDS_PUT_N_AS_UCS2(tds, "sp_executesql");
-		}
-		tds_put_smallint(tds, 0);
-
-		tds7_put_query_params(tds, converted_query, converted_query_len);
-		tds7_put_params_definition(tds, param_definition, definition_len);
-		tds_convert_string_free(query, converted_query);
-		free(param_definition);
-
-		for (i = 0; i < params->num_cols; i++) {
-			param = params->columns[i];
-			/* TODO check error */
-			tds_put_data_info(tds, param, 0);
-			tds_put_data(tds, param, params->current_row);
-		}
-
-		tds->internal_sp_called = TDS_SP_EXECUTESQL;
-	}
-	return tds_query_flush_packet(tds);
-}
-
-/**
- * tds_submit_query_params_ct() sends a language string to the database server for
- * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
- * TDS 7.0 is a unicode string with packet type 0x01, and TDS 5.0 uses a
- * TDS_LANGUAGE_TOKEN to encapsulate the query and a packet type of 0x0f.
- * \param tds state information for the socket and the TDS protocol
- * \param query  language query to submit
- * \param params parameters of query
- * \return TDS_FAIL or TDS_SUCCEED
- */
-int
-tds_submit_query_params_ct(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
-{
-	TDSCOLUMN *param;
-	int query_len, i;
-	int num_params = params ? params->num_cols : 0;
-	const char *converted_query;
-	int converted_query_len;
-	char *param_definition;
-	int definition_len;
- 
-	CHECK_TDS_EXTRA(tds);
-	if (params)
-		CHECK_PARAMINFO_EXTRA(params);
- 
-	if (!query)
-		return TDS_FAIL;
- 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
-		return TDS_FAIL;
- 
-	/* Jeff's hack to handle long query timeouts */
-	tds->query_start_time = time(NULL);
- 
-	query_len = strlen(query);
- 
-	if (IS_TDS50(tds)) {
-		tds->out_flag = 0x0F;
-		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
-		/* TODO ICONV use converted size, not input size and convert string */
-		tds_put_int(tds, query_len + 1);
-		tds_put_byte(tds, params ? 1 : 0);  /* 1 if there are params, 0 otherwise */
-		tds_put_n(tds, query, query_len);
-		if (params) {
-			/* add on parameters */
-			tds_put_params(tds, params, params->columns[0]->column_name[0] ? TDS_PUT_DATA_USE_NAME : 0);
-		}
-	} else if (!IS_TDS7_PLUS(tds) || !params || !params->num_cols) {
-		tds->out_flag = 0x01;
-		tds_put_string(tds, query, query_len);
-	} else {
  
 		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, &converted_query_len);
 		if (!converted_query) {
@@ -332,7 +248,7 @@ tds_submit_query_params_ct(TDSSOCKET * tds, const char *query, TDSPARAMINFO * pa
 			return TDS_FAIL;
 		}
  
-		tds->out_flag = 3;  /* RPC */
+		tds->out_flag = TDS_RPC;
 		/* procedure name */
 		if (IS_TDS80(tds)) {
 			tds_put_smallint(tds, -1);
@@ -360,7 +276,7 @@ tds_submit_query_params_ct(TDSSOCKET * tds, const char *query, TDSPARAMINFO * pa
 		for (i = 0; i < num_params; i++) {
 			param = params->columns[i];
 			/* TODO check error */
-			tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME);
+			tds_put_data_info(tds, param, 0);
 			tds_put_data(tds, param, params->current_row);
 		}
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
@@ -727,13 +643,8 @@ tds_build_param_def_from_query(TDSSOCKET * tds, const char* query, size_t query_
 	param_str = (char *) malloc(512);
 	if (!param_str)
 		return NULL;
-	param_str[0] = 0;
 
 	for (i = 0; i < count; ++i) {
-		const char *ib;
-		char *ob;
-		size_t il, ol;
-
 		if (l > 0) {
 			param_str[l++] = ',';
 			param_str[l++] = 0;
@@ -757,14 +668,7 @@ tds_build_param_def_from_query(TDSSOCKET * tds, const char* query, size_t query_
 		}
 
 		/* convert it to ucs2 and append */
-		ib = declaration;
-		il = strlen(declaration);
-		ob = param_str + l;
-		ol = size - l;
-		memset(&tds->char_convs[iso2server_metadata]->suppress, 0, sizeof(tds->char_convs[iso2server_metadata]->suppress));
-		if (tds_iconv(tds, tds->char_convs[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
-			goto Cleanup;
-		l = size - ol;
+		l += tds_ascii_to_ucs2(param_str + l, declaration);
 	}
 	*out_len = l;
 	return param_str;
@@ -801,7 +705,6 @@ tds_build_param_def_from_params(TDSSOCKET * tds, TDSPARAMINFO * params, int *out
 	param_str = (char *) malloc(512);
 	if (!param_str)
 		return NULL;
-	param_str[0] = 0;
  
 	for (i = 0; i < params->num_cols; ++i) {
 		const char *ib;
@@ -839,20 +742,13 @@ tds_build_param_def_from_params(TDSSOCKET * tds, TDSPARAMINFO * params, int *out
 			goto Cleanup;
  
 		/* convert it to ucs2 and append */
-		ib = declaration;
-		il = strlen(declaration);
-		ob = param_str + l;
-		ol = size - l;
-		memset(&tds->char_convs[iso2server_metadata]->suppress, 0, sizeof(tds->char_convs[iso2server_metadata]->suppress));
-		if (tds_iconv(tds, tds->char_convs[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
-			goto Cleanup;
-		l = size - ol;
+		l += tds_ascii_to_ucs2(param_str + l, declaration);
  
 	}
 	*out_len = l;
 	return param_str;
  
-	   Cleanup:
+      Cleanup:
 	free(param_str);
 	return NULL;
 }

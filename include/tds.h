@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.240 2005-07-26 09:34:28 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.241 2005-07-27 09:07:34 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1276,7 +1276,6 @@ int tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection);
 /* query.c */
 int tds_submit_query(TDSSOCKET * tds, const char *query);
 int tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
-int tds_submit_query_params_ct(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 int tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);
 int tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
 int tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);

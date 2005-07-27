@@ -1,3 +1,9 @@
+Wed Jul 27 11:05:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/ctlib/ct.c src/tds/query.c:
+	- tds_submit_query_params was not used
+	- cleanup a bit
+	- reuse tds_ascii_to_ucs2 to speed up conversions
+
 Tue Jul 26 15:01:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/unittests/lang_ct_param.c:
 	- style update
