@@ -1,3 +1,8 @@
+Thu Jul 28 10:05:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/convert.c: remove useless code
+	* src/tds/login.c: small optimization
+	* src/tds/unittests/numeric.c: improve coverage test
+
 Wed Jul 27 11:05:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/ctlib/ct.c src/tds/query.c:
 	- tds_submit_query_params was not used

@@ -62,7 +62,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.160 2005-07-24 10:52:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.161 2005-07-28 08:06:31 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1226,13 +1226,6 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * s
 
 	switch (desttype) {
 	case CASE_ALL_CHAR:
-		if (!src) {
-			cr->c = (TDS_CHAR *) malloc(1);
-			test_alloc(cr->c);
-			*(cr->c) = '\0';
-			return 0;
-		}
-
 		memset(&when, 0, sizeof(when));
 
 		tds_datecrack(SYBDATETIME, src, &when);
@@ -1297,20 +1290,12 @@ tds_convert_datetime4(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * 
 
 	switch (desttype) {
 	case CASE_ALL_CHAR:
-		if (!src) {
-			cr->c = (TDS_CHAR *) malloc(1);
-			test_alloc(cr->c);
-			*(cr->c) = '\0';
-			return 0;
-		} else {
+		memset(&when, 0, sizeof(when));
 
-			memset(&when, 0, sizeof(when));
+		tds_datecrack(SYBDATETIME4, src, &when);
+		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when);
 
-			tds_datecrack(SYBDATETIME4, src, &when);
-			tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when);
-
-			return string_to_result(whole_date_string, cr);
-		}
+		return string_to_result(whole_date_string, cr);
 		break;
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_DATETIME4), cr);

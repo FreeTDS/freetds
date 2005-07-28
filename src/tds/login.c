@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.147 2005-07-07 13:06:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.148 2005-07-28 08:06:31 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -781,14 +781,9 @@ unsigned char *
 tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass)
 {
 	int i;
-	unsigned char xormask = 0x5A;
-	unsigned char hi_nibble, lo_nibble;
 
-	for (i = 0; i < len; i++) {
-		lo_nibble = (clear_pass[i] ^ xormask) >> 4;
-		hi_nibble = (clear_pass[i] ^ xormask) << 4;
-		crypt_pass[i] = hi_nibble | lo_nibble;
-	}
+	for (i = 0; i < len; i++)
+		crypt_pass[i] = ((clear_pass[i] << 4) | (clear_pass[i] >> 4)) ^ 0xA5;
 	return crypt_pass;
 }
 
