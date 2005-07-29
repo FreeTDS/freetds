@@ -1,3 +1,6 @@
+Fri Jul 29 12:30:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix typo
+
 Thu Jul 28 10:05:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/convert.c: remove useless code
 	* src/tds/login.c: small optimization

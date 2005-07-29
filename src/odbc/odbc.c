@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.389 2005-07-25 09:45:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.390 2005-07-29 10:30:40 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5382,7 +5382,7 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 	else
 		scope = 'T';
 
-	if (fScope == SQL_BEST_ROWID)
+	if (fColType == SQL_BEST_ROWID)
 		col_type = 'R';
 	else
 		col_type = 'V';
