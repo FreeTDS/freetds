@@ -56,21 +56,19 @@
 
 #include "pool.h"
 
-static char software_version[] = "$Id: main.c,v 1.19 2004-12-14 00:46:27 brianb Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-/* this will go away...starting with just 1 global pool */
-TDS_POOL *g_pool = NULL;
+TDS_RCSID(var, "$Id: main.c,v 1.20 2005-07-30 09:01:22 freddy77 Exp $");
 
 /* to be set by sig term */
-int term = 0;
+static int term = 0;
 
 /* number of users in wait state */
 int waiters = 0;
-int hack = 0;
+static int hack = 0;
 
 static void term_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
+static TDS_POOL *pool_init(char *name);
+static void pool_main_loop(TDS_POOL * pool);
 
 static void
 term_handler(int sig)
@@ -82,25 +80,23 @@ term_handler(int sig)
 /*
  * pool_init creates a named pool and opens connections to the database
  */
-TDS_POOL *
+static TDS_POOL *
 pool_init(char *name)
 {
 	TDS_POOL *pool;
 
 	/* initialize the pool */
 
-	g_pool = (TDS_POOL *) malloc(sizeof(TDS_POOL));
-	pool = g_pool;
+	pool = (TDS_POOL *) malloc(sizeof(TDS_POOL));
 	memset(pool, '\0', sizeof(TDS_POOL));
-	/* FIX ME -- read this from the conf file */
+	/* FIXME -- read this from the conf file */
 	if (!pool_read_conf_file(name, pool)) {
 		fprintf(stderr, "Configuration for pool ``%s'' not found.\n", name);
 		exit(EXIT_FAILURE);
 	}
 	pool->num_members = pool->max_open_conn;
 
-	pool->name = (char *) malloc(strlen(name) + 1);
-	strcpy(pool->name, name);
+	pool->name = strdup(name);
 
 	pool_mbr_init(pool);
 	pool_user_init(pool);
@@ -144,7 +140,7 @@ pool_schedule_waiters(TDS_POOL * pool)
  * Accept new connections from clients, and handle all input from clients and
  * pool members.
  */
-void
+static void
 pool_main_loop(TDS_POOL * pool)
 {
 	TDS_POOL_USER *puser;
@@ -155,12 +151,12 @@ pool_main_loop(TDS_POOL * pool)
 	fd_set rfds;
 	int socktrue = 1;
 
-/* fix me -- read the interfaces file and bind accordingly */
+	/* FIXME -- read the interfaces file and bind accordingly */
 	sin.sin_addr.s_addr = INADDR_ANY;
 	sin.sin_port = htons(pool->port);
 	sin.sin_family = AF_INET;
 
-	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_STREAM, 0))) {
 		perror("socket");
 		exit(1);
 	}
@@ -182,7 +178,7 @@ pool_main_loop(TDS_POOL * pool)
 		/* fprintf(stderr, "waiting for a connect\n"); */
 		retval = select(maxfd + 1, &rfds, NULL, NULL, NULL);
 		if (term)
-			continue;
+			break;
 
 		/* process the sockets */
 		if (FD_ISSET(s, &rfds)) {
@@ -247,11 +243,10 @@ main(int argc, char **argv)
 	signal(SIGINT, term_handler);
 	if (argc < 2) {
 		fprintf(stderr, "Usage: tdspool <pool name>\n");
-		exit(1);
+		return 1;
 	}
 	pool = pool_init(argv[1]);
 	pool_main_loop(pool);
 	fprintf(stdout, "tdspool Shutdown\n");
-	exit(EXIT_SUCCESS);
-	return 0;
+	return EXIT_SUCCESS;
 }

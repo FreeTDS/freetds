@@ -20,9 +20,6 @@
 #ifndef _pool_h_
 #define _pool_h_
 
-static char rcsid_pool_h[] = "$Id: pool.h,v 1.13 2004-12-14 00:46:27 brianb Exp $";
-static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_pool_h };
-
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -39,6 +36,8 @@ static void *no_unused_var_warn_pool_h[] = { rcsid_pool_h, no_unused_var_warn_po
 #endif
 
 #include "tds.h"
+
+TDS_RCSID(pool_h, "$Id: pool.h,v 1.14 2005-07-30 09:01:22 freddy77 Exp $");
 
 /* defines */
 #define PGSIZ 2048
@@ -103,13 +102,9 @@ typedef struct tds_pool
 TDS_POOL;
 
 /* prototypes */
-/* main.c */
-TDS_POOL *pool_init(char *name);
-void pool_main_loop(TDS_POOL * pool);
 
 /* member.c */
 int pool_process_members(TDS_POOL * pool, fd_set * fds);
-TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
 TDS_POOL_MEMBER *pool_find_idle_member(TDS_POOL * pool);
 void pool_mbr_init(TDS_POOL * pool);
 void pool_free_member(TDS_POOL_MEMBER * pmbr);
@@ -122,17 +117,12 @@ int pool_process_users(TDS_POOL * pool, fd_set * fds);
 void pool_user_init(TDS_POOL * pool);
 TDS_POOL_USER *pool_user_create(TDS_POOL * pool, int s, struct sockaddr_in *sin);
 void pool_free_user(TDS_POOL_USER * puser);
-void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
-int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
 void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 /* util.c */
 void dump_buf(const void *buf, int length);
 void dump_login(TDSLOGIN * login);
 void die_if(int expr, const char *msg);
-
-/* stream.c */
-int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 
 /* config.c */
 int pool_read_conf_file(char *poolname, TDS_POOL * pool);

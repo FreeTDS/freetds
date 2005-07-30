@@ -47,10 +47,11 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: user.c,v 1.26 2005-02-09 16:15:16 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: user.c,v 1.27 2005-07-30 09:01:22 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
+static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
+static void pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser);
 
 extern int waiters;
 
@@ -107,7 +108,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 
 	fprintf(stderr, "accepting connection\n");
 	len = sizeof(*sin);
-	if ((fd = accept(s, (struct sockaddr *) sin, &len)) < 0) {
+	if (TDS_IS_SOCKET_INVALID(fd = accept(s, (struct sockaddr *) sin, &len))) {
 		perror("accept");
 		return NULL;
 	}
@@ -187,7 +188,7 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
  * pool_user_login
  * Reads clients login packet and forges a login acknowledgement sequence 
  */
-int
+static int
 pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
@@ -231,7 +232,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
  * checks the packet type of data coming from the client and allocates a 
  * pool member if necessary.
  */
-void
+static void
 pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;

@@ -1,3 +1,12 @@
+Sat Jul 30 10:59:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/pool/Makefile.am src/pool/config.c src/pool/main.c:
+	* src/pool/member.c src/pool/pool.h src/pool/stream.c:
+	* src/pool/user.c:
+	- use static if possible
+	- cleanup
+	- reuse configuration parsing from libTDS
+	- stream.c not used anymore
+
 Fri Jul 29 12:30:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix typo
 

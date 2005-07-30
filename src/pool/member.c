@@ -54,16 +54,16 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-static char software_version[] = "$Id: member.c,v 1.38 2005-05-31 07:01:03 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: member.c,v 1.39 2005-07-30 09:01:22 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
+static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
 
 /*
  * pool_mbr_login open a single pool login, to be call at init time or
  * to reconnect.
  */
-TDSSOCKET *
+static TDSSOCKET *
 pool_mbr_login(TDS_POOL * pool)
 {
 	TDSCONTEXT *context;
@@ -130,6 +130,7 @@ pool_assign_member(TDS_POOL_MEMBER * pmbr, TDS_POOL_USER *puser)
 	pmbr->current_user = puser;
 	puser->assigned_member = pmbr;
 }
+
 void
 pool_deassign_member(TDS_POOL_MEMBER * pmbr)
 {
@@ -137,6 +138,7 @@ pool_deassign_member(TDS_POOL_MEMBER * pmbr)
 		pmbr->current_user->assigned_member = NULL;
 	pmbr->current_user = NULL;
 }
+
 /*
  * if a dead connection on the client side left this member in a questionable
  * state, let's clean it up.
@@ -146,7 +148,6 @@ pool_reset_member(TDS_POOL_MEMBER * pmbr)
 {
 	pool_free_member(pmbr);
 }
-
 
 void
 pool_free_member(TDS_POOL_MEMBER * pmbr)

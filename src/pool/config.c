@@ -1,5 +1,6 @@
 /* TDSPool - Connection pooling for TDS based databases
  * Copyright (C) 2001 Brian Bruns
+ * Copyright (C) 2005 Frediano Ziglio
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,10 +36,7 @@
 #include "pool.h"
 #include "tds_configs.h"
 
-static char software_version[] = "$Id: config.c,v 1.13 2004-12-13 19:24:25 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-#define TDS_ISSPACE(c) isspace((unsigned char) (c))
+TDS_RCSID(var, "$Id: config.c,v 1.14 2005-07-30 09:01:22 freddy77 Exp $");
 
 #define POOL_STR_SERVER	"server"
 #define POOL_STR_PORT	"port"
@@ -50,8 +48,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #define POOL_STR_MIN_POOL_CONN	"min pool conn"
 #define POOL_STR_MAX_POOL_USERS	"max pool users"
 
-static int pool_read_conf_sections(FILE * in, char *poolname, TDS_POOL * pool);
-static int pool_read_conf_section(FILE * in, const char *section, TDS_POOL * pool);
+static void pool_parse(const char *option, const char *value, void *param);
 
 int
 pool_read_conf_file(char *poolname, TDS_POOL * pool)
@@ -62,26 +59,11 @@ pool_read_conf_file(char *poolname, TDS_POOL * pool)
 	in = fopen(FREETDS_POOLCONFFILE, "r");
 	if (in) {
 		fprintf(stderr, "Found conf file in %s reading sections\n", FREETDS_POOLCONFFILE);
-		found = pool_read_conf_sections(in, poolname, pool);
+		tds_read_conf_section(in, "global", pool_parse, pool);
+		rewind(in);
+		found = tds_read_conf_section(in, poolname, pool_parse, pool);
 		fclose(in);
 	}
-
-	return found;
-}
-
-static int
-pool_read_conf_sections(FILE * in, char *poolname, TDS_POOL * pool)
-{
-	char *section;
-	int i, found = 0;
-
-	pool_read_conf_section(in, "global", pool);
-	rewind(in);
-	section = strdup(poolname);
-	for (i = 0; i < strlen(section); i++)
-		section[i] = tolower((unsigned char) section[i]);
-	found = pool_read_conf_section(in, section, pool);
-	free(section);
 
 	return found;
 }
@@ -98,111 +80,38 @@ pool_config_boolean(char *value)
 }
 #endif
 
-/* TODO reuse libTDS code... */
-static int
-pool_read_conf_section(FILE * in, const char *section, TDS_POOL * pool)
+static void
+pool_parse(const char *option, const char *value, void *param)
 {
-	char line[256], option[256], value[256];
-	char *s;
-	int i;
-	unsigned char p;
-	int insection = 0;
-	int found = 0;
+	TDS_POOL *pool = (TDS_POOL *) param;
 
-	while (fgets(line, 256, in)) {
-		s = line;
-
-		/* skip leading whitespace */
-		while (*s && TDS_ISSPACE(*s))
-			s++;
-
-		/* skip it if it's a comment line */
-		if (*s == ';' || *s == '#')
-			continue;
-
-		/* read up to the = ignoring duplicate spaces */
-		p = 0;
-		i = 0;
-		while (*s && *s != '=') {
-			if (!TDS_ISSPACE(*s) && TDS_ISSPACE(p))
-				option[i++] = ' ';
-			if (!TDS_ISSPACE(*s))
-				option[i++] = tolower((unsigned char) *s);
-			p = *s;
-			s++;
-		}
-		option[i] = '\0';
-
-		/* skip the = */
-		if (*s)
-			s++;
-
-		/* skip leading whitespace */
-		while (*s && TDS_ISSPACE(*s))
-			s++;
-
-		/* read up to a # ; or null ignoring duplicate spaces */
-		p = 0;
-		i = 0;
-		while (*s && *s != ';' && *s != '#') {
-			if (!TDS_ISSPACE(*s) && TDS_ISSPACE(p))
-				value[i++] = ' ';
-			if (!TDS_ISSPACE(*s))
-				value[i++] = *s;
-			p = *s++;
-		}
-		value[i] = '\0';
-
-		if (!strlen(option))
-			continue;
-
-		if (option[0] == '[') {
-			s = &option[1];
-			while (*s) {
-				if (*s == ']')
-					*s = '\0';
-				s++;
-			}
-			if (!strcmp(section, &option[1])) {
-				tdsdump_log(TDS_DBG_INFO1, "Found matching section\n");
-				insection = 1;
-				found = 1;
-			} else {
-				insection = 0;
-			}
-		} else if (insection) {
-			/* fprintf(stderr,"option = '%s' value = '%s'\n", option, value); */
-			if (!strcmp(option, POOL_STR_PORT)) {
-				if (atoi(value))
-					pool->port = atoi(value);
-			} else if (!strcmp(option, POOL_STR_SERVER)) {
-				if (pool->server)
-					free(pool->server);
-				pool->server = strdup(value);
-			} else if (!strcmp(option, POOL_STR_USER)) {
-				if (pool->user)
-					free(pool->user);
-				pool->user = strdup(value);
-			} else if (!strcmp(option, POOL_STR_DATABASE)) {
-				if (pool->database)
-					free(pool->database);
-				pool->database = strdup(value);
-			} else if (!strcmp(option, POOL_STR_PASSWORD)) {
-				if (pool->password)
-					free(pool->password);
-				pool->password = strdup(value);
-			} else if (!strcmp(option, POOL_STR_MAX_MBR_AGE)) {
-				if (atoi(value))
-					pool->max_member_age = atoi(value);
-			} else if (!strcmp(option, POOL_STR_MAX_POOL_CONN)) {
-				if (atoi(value))
-					pool->max_open_conn = atoi(value);
-			} else if (!strcmp(option, POOL_STR_MIN_POOL_CONN)) {
-				if (atoi(value))
-					pool->min_open_conn = atoi(value);
-			}
-		}
-
+	if (!strcmp(option, POOL_STR_PORT)) {
+		if (atoi(value))
+			pool->port = atoi(value);
+	} else if (!strcmp(option, POOL_STR_SERVER)) {
+		if (pool->server)
+			free(pool->server);
+		pool->server = strdup(value);
+	} else if (!strcmp(option, POOL_STR_USER)) {
+		if (pool->user)
+			free(pool->user);
+		pool->user = strdup(value);
+	} else if (!strcmp(option, POOL_STR_DATABASE)) {
+		if (pool->database)
+			free(pool->database);
+		pool->database = strdup(value);
+	} else if (!strcmp(option, POOL_STR_PASSWORD)) {
+		if (pool->password)
+			free(pool->password);
+		pool->password = strdup(value);
+	} else if (!strcmp(option, POOL_STR_MAX_MBR_AGE)) {
+		if (atoi(value))
+			pool->max_member_age = atoi(value);
+	} else if (!strcmp(option, POOL_STR_MAX_POOL_CONN)) {
+		if (atoi(value))
+			pool->max_open_conn = atoi(value);
+	} else if (!strcmp(option, POOL_STR_MIN_POOL_CONN)) {
+		if (atoi(value))
+			pool->min_open_conn = atoi(value);
 	}
-	return found;
 }

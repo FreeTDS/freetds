@@ -39,8 +39,9 @@
 #include "pool.h"
 #include "tds.h"
 
-static char software_version[] = "$Id: stream.c,v 1.21 2005-02-09 16:15:16 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+TDS_RCSID(var, "$Id: stream.c,v 1.22 2005-07-30 09:01:22 freddy77 Exp $");
+
+int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 
 struct tmp_col_struct
 {
