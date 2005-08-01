@@ -16,6 +16,10 @@ do
 		TESTS_ENVIRONMENT=true
 		export TESTS_ENVIRONMENT
 		;;
+	*)
+		echo 'Option not supported!' 1>&2
+		exit 1
+		;;
 	esac
 done
 

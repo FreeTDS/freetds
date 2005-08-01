@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.82 2005-07-24 15:25:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.83 2005-08-01 18:32:15 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -131,7 +131,8 @@ odbc_set_return_status(struct _hstmt *stmt)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
 			*drec->sql_desc_indicator_ptr = 0;
-		*drec->sql_desc_octet_length_ptr = len;
+		if (drec->sql_desc_octet_length_ptr)
+			*drec->sql_desc_octet_length_ptr = len;
 	}
 
 }
@@ -198,7 +199,8 @@ odbc_set_return_params(struct _hstmt *stmt)
 			return /* SQL_ERROR */ ;
 		if (drec_apd->sql_desc_indicator_ptr)
 			*drec_apd->sql_desc_indicator_ptr = 0;
-		*drec_apd->sql_desc_octet_length_ptr = len;
+		if (drec_apd->sql_desc_octet_length_ptr)
+			*drec_apd->sql_desc_octet_length_ptr = len;
 	}
 }
 
