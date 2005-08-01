@@ -1,3 +1,6 @@
+Mon Aug  1 12:52:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/pool/main.c: remove warning
+
 Sat Jul 30 10:59:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/pool/Makefile.am src/pool/config.c src/pool/main.c:
 	* src/pool/member.c src/pool/pool.h src/pool/stream.c:

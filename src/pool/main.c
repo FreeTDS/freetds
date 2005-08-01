@@ -56,14 +56,13 @@
 
 #include "pool.h"
 
-TDS_RCSID(var, "$Id: main.c,v 1.20 2005-07-30 09:01:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: main.c,v 1.21 2005-08-01 10:52:49 freddy77 Exp $");
 
 /* to be set by sig term */
 static int term = 0;
 
 /* number of users in wait state */
 int waiters = 0;
-static int hack = 0;
 
 static void term_handler(int sig);
 static void pool_schedule_waiters(TDS_POOL * pool);
