@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc_util.c,v 1.70 2004-10-28 12:42:12 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc_util.c,v 1.70.2.1 2005-08-01 18:29:05 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /**
@@ -132,7 +132,8 @@ odbc_set_return_status(struct _hstmt *stmt)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
 			*drec->sql_desc_indicator_ptr = 0;
-		*drec->sql_desc_octet_length_ptr = len;
+		if (drec->sql_desc_octet_length_ptr)
+			*drec->sql_desc_octet_length_ptr = len;
 	}
 
 }
@@ -195,7 +196,8 @@ odbc_set_return_params(struct _hstmt *stmt)
 			return /* SQL_ERROR */ ;
 		if (drec_apd->sql_desc_indicator_ptr)
 			*drec_apd->sql_desc_indicator_ptr = 0;
-		*drec_apd->sql_desc_octet_length_ptr = len;
+		if (drec_apd->sql_desc_octet_length_ptr)
+			*drec_apd->sql_desc_octet_length_ptr = len;
 	}
 }
 
