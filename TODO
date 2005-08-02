@@ -8,8 +8,18 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.150 2005-07-07 13:06:39 freddy77 Exp $
+To Do List	$Id: TODO,v 1.151 2005-08-02 19:15:52 freddy77 Exp $
 ------------
+
+Must be fixed in 0.64:
+. dblib buffering, not save lengths, blob not correctly handled
+. ctlib parameters, handle all case even in tds7
+. fix all regression tests
+  . odbc array binding (see odbc tests)
+. cancellation
+  . ctlib seems to hang reading row while in IDLE state
+    (tds_peek if not in pending state hang... update)
+
 Broken:
 . Passing invalid character set names to server with tsql?
   tsql (and so libTDS) can pass invalid charset names to Sybase
@@ -17,12 +27,8 @@ Broken:
   and doesn't convert correctly.
 
 Working in progress:
-. cancellation
-  . ctlib seems to hang reading row while in IDLE state
-    (tds_peek if not in pending state hang... update)
 . fix timeout problem reported in ML
   . check dblib behavior
-. odbc array binding (see odbc tests)
 
 Postponed to 0.64 version
 . log and call error handler on problems with tds_iconv_init().
@@ -54,6 +60,10 @@ For future versions (in priority order within library):
   change precision (multiply/divide by 10^n) and extract number
   checking overflow/underflow
   change precision done (numeric.c)
+  numeric done, change numeric format to improve performance
+  . little/big endian based on platform
+  . already packet at word
+  . correctly aligned to read directly packetized
 . limit copy of data (now wire -> tds -> temp -> client)
   use a method like zero-copy
   In token.c getting row should write data even to client
