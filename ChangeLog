@@ -1,3 +1,7 @@
+Tue Aug  2 18:54:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- dbretlen should return 0 for NULL results
+
 Mon Aug  1 20:27:59 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c:
 	- check for NULL pointer (suggested by Chad Jones)

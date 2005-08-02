@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.187.2.6 2005-07-01 14:38:03 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.187.2.7 2005-08-02 16:55:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -3938,7 +3938,8 @@ dbretdata(DBPROCESS * dbproc, int retnum)
 		return NULL;
 
 	colinfo = param_info->columns[retnum - 1];
-	/* FIXME blob are stored is different way */
+	if (is_blob_type(colinfo->column_type))
+		return (BYTE *) ((TDSBLOB *) &param_info->current_row[colinfo->column_offset])->textvalue;
 	return &param_info->current_row[colinfo->column_offset];
 }
 
@@ -3966,6 +3967,8 @@ dbretlen(DBPROCESS * dbproc, int retnum)
 		return -1;
 
 	colinfo = param_info->columns[retnum - 1];
+	if (tds_get_null(param_info->current_row, retnum - 1))
+		return 0;
 
 	return colinfo->column_cur_size;
 }
