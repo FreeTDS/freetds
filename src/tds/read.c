@@ -41,11 +41,12 @@
 
 #include "tds.h"
 #include "tdsiconv.h"
+#include "tdsbytes.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.97 2005-07-24 15:25:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.98 2005-08-02 12:09:57 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -111,11 +112,10 @@ tds_get_smallint(TDSSOCKET * tds)
 
 	tds_get_n(tds, bytes, 2);
 #if WORDS_BIGENDIAN
-	if (tds->emul_little_endian) {
-		return TDS_BYTE_SWAP16(*(TDS_SMALLINT *) bytes);
-	}
+	if (tds->emul_little_endian)
+		return (TDS_SMALLINT) TDS_GET_A2LE(bytes);
 #endif
-	return *(TDS_SMALLINT *) bytes;
+	return (TDS_SMALLINT) TDS_GET_A2(bytes);
 }
 
 
@@ -129,11 +129,10 @@ tds_get_int(TDSSOCKET * tds)
 
 	tds_get_n(tds, bytes, 4);
 #if WORDS_BIGENDIAN
-	if (tds->emul_little_endian) {
-		return TDS_BYTE_SWAP32(*(TDS_INT *) bytes);
-	}
+	if (tds->emul_little_endian)
+		return (TDS_INT) TDS_GET_A4LE(bytes);
 #endif
-	return *(TDS_INT *) bytes;
+	return (TDS_INT) TDS_GET_A4(bytes);
 }
 
 #if ENABLE_EXTRA_CHECKS

@@ -1,3 +1,13 @@
+Tue Aug  2 14:08:11 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/Makefile.am src/tds/numeric.c src/tds/read.c:
+	* include/tdsbytes.h(added):
+	- optimizations for endian code
+	- added TDS_PUT_*/TDS_GET_* macro to read int from memory
+	* src/tds/num_limits.pl: commented
+	* src/tds/convert.c:
+	- added some missing overflow checking
+	- optimize int -> numeric conversions
+
 Mon Aug  1 20:31:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c:
 	- check for NULL pointer (suggested by Chad Jones)

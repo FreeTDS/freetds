@@ -1,12 +1,14 @@
 #!/usr/bin/perl
 
 #
-# $Id: num_limits.pl,v 1.1 2005-04-05 11:41:57 freddy77 Exp $
+# $Id: num_limits.pl,v 1.2 2005-08-02 12:09:57 freddy77 Exp $
 # Compute limits table to check numeric typs
 #
 
 use strict;
 
+# This function convert a number given in textual form ("1000") to a
+# packet form (binary packet in groups of selected bit)
 sub to_pack($$)
 {
 	my ($num, $bit) = @_;
@@ -32,6 +34,10 @@ sub to_pack($$)
 	return reverse unpack($bit == 32 ? 'V' x 8 : 'v' x 16, $out);
 }
 
+# Print a tables for given bits
+# This function produce two arrays
+#  one (limits) store not 0 packet numbers
+#  the other (limit_indexes) store indexed in first array
 sub print_all()
 {
 	my ($bit) = @_;
@@ -40,6 +46,9 @@ sub print_all()
 	my $i;
 
 	$indexes[0] = 0;
+	# compute packet numbers and indexes
+	# we use 1000... number to reduce number length (lower packet are 
+	# zero for big numbers)
 	for $i (0..77) {
 		my @packet = &to_pack("1".('0'x$i), $bit);
 		$indexes[$i] = $#limits + 1;
@@ -52,6 +61,7 @@ sub print_all()
 		$indexes[$i+1] = $#limits + 1;
 	}
 
+	# fix indexes to use signed char numbers instead of int
 	my $adjust = $bit == 32 ? 4 : 6;
 	printf("#define LIMIT_INDEXES_ADJUST %d\n\n", $adjust);
 	for $i (0..78) {

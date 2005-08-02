@@ -27,13 +27,14 @@
 
 #include <tds.h>
 #include <tdsconvert.h>
+#include <tdsbytes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.35 2005-07-24 10:52:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.36 2005-08-02 12:09:57 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -264,7 +265,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	n = num_bytes - 1;
 	pnum = packet_end;
 	for (; n > 1; n -= 2)
-		*--pnum = number[n - 1] * 256 + number[n];
+		*--pnum = TDS_GET_UA2BE(&number[n - 1]);
 	if (n == 1)
 		*--pnum = number[n];
 	while (!*pnum) {
@@ -420,10 +421,9 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 		 * cause overflow occurs in numeric and number is fixed below
 		 */
 #ifndef HAVE_INT64
-		packet[i] = numeric->array[bytes] + numeric->array[bytes-1] * 0x100u;
+		packet[i] = TDS_GET_UA2BE(&numeric->array[bytes-1]);
 #else
-		packet[i] = numeric->array[bytes] + numeric->array[bytes-1] * 0x100u
-			 + numeric->array[bytes-2] * 0x10000u + numeric->array[bytes-3] * 0x1000000u;
+		packet[i] = TDS_GET_UA4BE(&numeric->array[bytes-3]);
 #endif
 	}
 	/* fix last packet */
@@ -495,11 +495,10 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 	for (i = bytes / sizeof(TDS_WORD); i >= packet_len; --i)
 		packet[i] = 0;
 	for (i = 0; bytes >= sizeof(TDS_WORD); bytes -= sizeof(TDS_WORD), ++i) {
-		numeric->array[bytes]   = (TDS_UCHAR) packet[i];
-		numeric->array[bytes-1] = (TDS_UCHAR) (packet[i] >> 8);
-#ifdef HAVE_INT64
-		numeric->array[bytes-2] = (TDS_UCHAR) (packet[i] >> 16);
-		numeric->array[bytes-3] = (TDS_UCHAR) (packet[i] >> 24);
+#ifndef HAVE_INT64
+		TDS_PUT_UA2BE(&numeric->array[bytes-1], packet[i]);
+#else
+		TDS_PUT_UA4BE(&numeric->array[bytes-3], packet[i]);
 #endif
 	}
 

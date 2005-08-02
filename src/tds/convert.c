@@ -57,12 +57,13 @@
 
 #include "tds.h"
 #include "tdsconvert.h"
+#include "tdsbytes.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.161 2005-07-28 08:06:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.162 2005-08-02 12:09:57 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -82,7 +83,13 @@ static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
  * f77: I don't write -2147483648, some compiler seem to have some problem 
  * with this constant although is a valid 32bit value
  */
-#define IS_INT(x) ( (-2147483647l-1l) <= (x) && (x) <= 2147483647l )
+#define TDS_INT_MIN (-2147483647l-1l)
+#define TDS_INT_MAX 2147483647l
+#define IS_INT(x) (TDS_INT_MIN <= (x) && (x) <= TDS_INT_MAX)
+
+#define TDS_INT8_MAX ((((TDS_INT8) 0x7fffffffl) << 32) + 0xfffffffflu)
+#define TDS_INT8_MIN  (((TDS_INT8) (-0x7fffffffl-1)) << 32)
+#define IS_INT8(x) (TDS_INT8_MIN <= (x) && (x) <= TDS_INT8_MAX)
 
 /**
  * \ingroup libtds
@@ -908,7 +915,8 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBMONEY:
-		/* TODO check overflow */
+		if (buf > (TDS_INT8_MAX / 10000) || buf < (TDS_INT8_MIN / 10000))
+			return TDS_CONVERT_OVERFLOW;
 		cr->m.mny = buf * 10000;
 		return sizeof(TDS_MONEY);
 		break;
@@ -941,7 +949,8 @@ static TDS_INT
 tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_RESULT * cr)
 {
 	char tmpstr[MAXPRECISION];
-	long i;
+	TDS_INT i, ret;
+	TDS_INT8 bi;
 
 	switch (desttype) {
 	case CASE_ALL_CHAR:
@@ -953,39 +962,60 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 		return binary_to_result(src, sizeof(TDS_NUMERIC), cr);
 		break;
 	case SYBINT1:
-		if (tds_numeric_to_string(src, tmpstr) < 0)
-			return TDS_CONVERT_FAIL;
-		/* TODO what happen if numeric is too big ?? */
-		i = atoi(tmpstr);
-		if (!IS_TINYINT(i))
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 3, 0);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[1] || (cr->n.array[0] && cr->n.array[2]))
 			return TDS_CONVERT_OVERFLOW;
-		cr->ti = (TDS_TINYINT) i;
+		cr->ti = cr->n.array[2];
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT2:
-		if (tds_numeric_to_string(src, tmpstr) < 0)
-			return TDS_CONVERT_FAIL;
-		i = atoi(tmpstr);
-		if (!IS_SMALLINT(i))
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 5, 0);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		i = TDS_GET_UA2BE(&(cr->n.array[2]));
+		if (cr->n.array[0])
+			i = -i;
+		if (((i >> 15) ^ cr->n.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->si = (TDS_SMALLINT) i;
 		return sizeof(TDS_SMALLINT);
 		break;
 	case SYBINT4:
-		if (tds_numeric_to_string(src, tmpstr) < 0)
-			return TDS_CONVERT_FAIL;
-		i = atoi(tmpstr);
-		if (!IS_INT(i))
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 10, 0);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		i = TDS_GET_UA4BE(&(cr->n.array[2]));
+		if (cr->n.array[0])
+			i = -i;
+		if (((i >> 31) ^ cr->n.array[0]) & 1)
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = i;
-		return 4;
+		return sizeof(TDS_INT);
 		break;
 	case SYBINT8:
-		if (tds_numeric_to_string(src, tmpstr) < 0)
-			return TDS_CONVERT_FAIL;
-		/* TODO check for overflow */
-		cr->bi = atoll(tmpstr);
-		return 8;
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 20, 0);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		bi = TDS_GET_UA4BE(&(cr->n.array[2]));
+		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
+		if (cr->n.array[0])
+			bi = -bi;
+		if (((bi >> 63) ^ cr->n.array[0]) & 1)
+			return TDS_CONVERT_OVERFLOW;
+		cr->bi = bi;
+		return sizeof(TDS_INT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -995,13 +1025,13 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 				cr->ti = 1;
 				break;
 			}
-		return 1;
+		return sizeof(TDS_TINYINT);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		{
 			unsigned char prec = cr->n.precision, scale = cr->n.scale;
-			memcpy(&(cr->n), src, sizeof(TDS_NUMERIC));
+			cr->n = *src;
 			return tds_numeric_change_prec_scale(&(cr->n), prec, scale);
 		}
 		break;
@@ -1014,7 +1044,7 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 	case SYBREAL:
 		if (tds_numeric_to_string(src, tmpstr) < 0)
 			return TDS_CONVERT_FAIL;
-		cr->r = atof(tmpstr);
+		cr->r = (TDS_REAL) atof(tmpstr);
 		return 4;
 		break;
 		/* TODO conversions to money */
@@ -1369,8 +1399,9 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		return sizeof(TDS_INT);
 		break;
 	case SYBINT8:
-		/* TODO check overflow */
-		cr->bi = the_value;
+		if (the_value > (TDS_REAL) TDS_INT8_MAX || the_value < (TDS_REAL) TDS_INT8_MIN)
+			return TDS_CONVERT_OVERFLOW;
+		cr->bi = (TDS_INT8) the_value;
 		return sizeof(TDS_INT8);
 		break;
 	case SYBBIT:
@@ -1390,15 +1421,17 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		break;
 
 	case SYBMONEY:
-		/* TODO check overflow */
-		mymoney = the_value * 10000;
+		if (the_value > (TDS_REAL) (TDS_INT8_MAX / 10000) || the_value < (TDS_REAL) (TDS_INT8_MIN / 10000))
+			return TDS_CONVERT_OVERFLOW;
+		mymoney = ((TDS_INT8) the_value) * 10000;
 		cr->m.mny = mymoney;
 		return sizeof(TDS_MONEY);
 		break;
 
 	case SYBMONEY4:
-		/* TODO check overflow */
-		mymoney4 = the_value * 10000;
+		if (the_value > (TDS_REAL) (TDS_INT_MAX / 10000) || the_value < (TDS_REAL) (TDS_INT_MIN / 10000))
+			return TDS_CONVERT_OVERFLOW;
+		mymoney4 = ((TDS_INT) the_value) * 10000;
 		cr->m4.mny4 = mymoney4;
 		return sizeof(TDS_MONEY4);
 		break;
@@ -1453,8 +1486,9 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		return sizeof(TDS_INT);
 		break;
 	case SYBINT8:
-		/* TODO check overflow */
-		cr->bi = the_value;
+		if (the_value > (TDS_FLOAT) TDS_INT8_MAX || the_value < (TDS_FLOAT) TDS_INT8_MIN)
+			return TDS_CONVERT_OVERFLOW;
+		cr->bi = (TDS_INT8) the_value;
 		return sizeof(TDS_INT8);
 		break;
 	case SYBBIT:
@@ -1464,14 +1498,16 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		break;
 
 	case SYBMONEY:
-		/* TODO check overflow */
-		cr->m.mny = (TDS_INT8) the_value *10000.0;
+		if (the_value > (TDS_FLOAT) (TDS_INT8_MAX / 10000) || the_value < (TDS_FLOAT) (TDS_INT8_MIN / 10000))
+			return TDS_CONVERT_OVERFLOW;
+		cr->m.mny = ((TDS_INT8) the_value) * 10000;
 
 		return sizeof(TDS_MONEY);
 		break;
 	case SYBMONEY4:
-		/* TODO check overflow */
-		cr->m4.mny4 = the_value * 10000.0;
+		if (the_value > (TDS_FLOAT) (TDS_INT_MAX / 10000) || the_value < (TDS_FLOAT) (TDS_INT_MIN / 10000))
+			return TDS_CONVERT_OVERFLOW;
+		cr->m4.mny4 = ((TDS_INT) the_value) * 10000;
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBREAL:
