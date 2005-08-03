@@ -1,3 +1,6 @@
+Wed Aug  3 08:24:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/convert_error.c: updated
+
 Tue Aug  2 14:08:11 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am src/tds/numeric.c src/tds/read.c:
 	* include/tdsbytes.h(added):

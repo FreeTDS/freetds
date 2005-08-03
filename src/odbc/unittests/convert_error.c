@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.6 2005-02-09 19:18:35 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.7 2005-08-03 06:24:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -66,9 +66,17 @@ main(int argc, char **argv)
 	Test("123", SQL_INTEGER, "?", SQL_LONGVARCHAR);
 	Test("?", SQL_INTEGER, "'foo'", SQL_LONGVARCHAR);
 	Test("?", SQL_INTEGER, "?", SQL_VARCHAR);
-#ifdef ENABLE_DEVELOPING
-	Test("?", SQL_VARCHAR, "?", SQL_LONGVARCHAR);
-#endif
+
+	/*
+	 * Sybase cannot pass this test without complicated query parsing.
+	 * Query with blob columns cannot be prepared so prepared query must
+	 * be emulated loosing column informations from server and Sybase do
+	 * not convert implicitly VARCHAR to INT
+	 */
+	if (db_is_microsoft())
+		Test("?", SQL_VARCHAR, "?", SQL_LONGVARCHAR);
+	else
+		++test_num;
 
 	Disconnect();
 
