@@ -26,7 +26,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.22 2005-05-23 08:06:25 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.23 2005-08-08 12:32:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -45,6 +45,7 @@ static const char procedure_sql[] =
 			", @first_type varchar(30) OUTPUT \n"
 			", @nullout int OUTPUT\n"
 			", @nrows int OUTPUT \n"
+			", @c varchar(20)\n"
 		"AS \n"
 		"BEGIN \n"
 			"select @null_input = max(convert(varchar(30), name)) from systypes \n"
@@ -126,7 +127,8 @@ main(int argc, char **argv)
 	     param0[] = "@null_input", 
 	     param1[] = "@first_type", 
 	     param2[] = "@nullout",
-	     param3[] = "@nrows";
+	     param3[] = "@nrows",
+	     param4[] = "@c";
 	char *proc_name = proc;
 
 	char param_data1[64];
@@ -206,6 +208,14 @@ main(int argc, char **argv)
 
 	printf("executing dbrpcparam\n");
 	erc = dbrpcparam(dbproc, param3, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, /* datalen= */ -1, (BYTE *) & param_data3);
+	if (erc == FAIL) {
+		fprintf(stderr, "Failed: dbrpcparam\n");
+		failed = 1;
+	}
+
+	/* test for strange parameters using input */
+	printf("executing dbrpcparam\n");
+	erc = dbrpcparam(dbproc, param4, 0, SYBVARCHAR, /*maxlen= */ 0, /* datalen= */ 0, NULL);
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbrpcparam\n");
 		failed = 1;
