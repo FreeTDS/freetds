@@ -1,3 +1,8 @@
+Mon Aug  8 21:09:21 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4 configure.in src/tds/threadsafe.c:
+	- improve mingw compile
+	* src/tds/query.c: remove warning
+
 Mon Aug  8 14:31:08 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/unittests/rpc.c: add test for dbrpcparam problem
 

@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.187 2005-08-08 11:18:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.188 2005-08-08 19:10:26 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2545,7 +2545,6 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 	int ctype;
 	unsigned char*src;
 	int srclen;
-	int optionval;
  
 	CHECK_TDS_EXTRA(tds);
  
@@ -2652,6 +2651,8 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 			}
 		}
 		if (command == TDS_OPT_LIST) {
+			int optionval = 0;
+
 			switch (option) {
 			case TDS_OPT_ANSINULL :
 			case TDS_OPT_ARITHABORTON :

@@ -213,7 +213,7 @@ CFLAGS=$ac_save_CFLAGS
 # exists. These example files found at
 # http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 #
-# @version $Id: acinclude.m4,v 1.28 2005-06-20 06:36:27 freddy77 Exp $
+# @version $Id: acinclude.m4,v 1.29 2005-08-08 19:10:20 freddy77 Exp $
 # @author Caolan McNamara <caolan@skynet.ie>
 #
 # based on David Arnold's autoconf suggestion in the threads faq
@@ -377,7 +377,8 @@ malloc_options = "AJR";
 #   (hp/ux 11, many other, posix compliant)
 ##
 AC_DEFUN([AC_tds_FUNC_WHICH_GETPWUID_R],
-[AC_CACHE_CHECK(for which type of getpwuid_r, ac_cv_func_which_getpwuid_r, [
+[if test x$ac_cv_func_getpwuid = xyes; then
+AC_CACHE_CHECK(for which type of getpwuid_r, ac_cv_func_which_getpwuid_r, [
 AC_TRY_COMPILE([
 #include <unistd.h>
 #include <pwd.h>
@@ -418,6 +419,8 @@ elif test $ac_cv_func_which_getpwuid_r = four; then
 elif test $ac_cv_func_which_getpwuid_r = five; then
   AC_DEFINE(HAVE_FUNC_GETPWUID_R_5, 1, [Define to 1 if your system provides the 5-parameter version of getpwuid_r().])
 fi
+
+fi
 ])
 
 AC_DEFUN([AC_tds_FUNC_WHICH_LOCALTIME_R],
@@ -455,10 +458,19 @@ AC_DEFUN([TYPE_SOCKLEN_T],
       for arg2 in "struct sockaddr" void; do
         for t in int size_t unsigned long "unsigned long"; do
           AC_TRY_COMPILE([
-            #include <sys/types.h>
-            #include <sys/socket.h>
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#endif
+#ifdef HAVE_WINSOCK2_H
+# include <winsock2.h>
+int PASCAL getpeername (SOCKET, $arg2 *, $t *);
+#else
+int getpeername (int, $arg2 *, $t *);
+#endif
 
-            int getpeername (int, $arg2 *, $t *);
           ],[
             $t len;
             getpeername(0,0,&len);

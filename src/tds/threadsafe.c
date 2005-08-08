@@ -82,7 +82,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.39 2005-07-24 10:52:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.40 2005-08-08 19:10:38 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)
@@ -94,7 +94,7 @@ tds_timestamp_str(char *str, int maxlen)
 	struct timeval tv;
 	char usecs[10];
 #endif
-#ifdef _REENTRANT
+#if defined(_REENTRANT) && !defined(WIN32)
 	struct tm res;
 #endif
 
