@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.47 2005-07-08 08:22:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.48 2005-08-08 11:18:25 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -186,8 +186,14 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 				maxlen = 255;
 		}
 	} else {
-		if (maxlen != -1)
+		/*
+		 * Well, maxlen should be used only for output parameter however it seems
+		 * that ms implementation wrongly require this 0 for NULL variable
+		 * input parameters, so fix it
+		 */
+		if (maxlen != -1 && maxlen != 0)
 			return FAIL;
+		maxlen = -1;
 	}
 
 	/* TODO add other tests for correctness */

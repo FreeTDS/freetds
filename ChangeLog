@@ -1,3 +1,11 @@
+Mon Aug  8 13:16:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/unittests/lang_ct_param.c src/tds/query.c:
+	- support unnamed parameters for tds_submit_query_params
+	- support '?' style parameters for tds_submit_query_params
+	- improve test
+	* src/dblib/rpc.c:
+	- support strange MS specifications (workaround for PHP)
+
 Wed Aug  3 08:24:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/convert_error.c: updated
 

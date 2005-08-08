@@ -14,15 +14,16 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.5 2005-07-26 13:04:55 freddy77 Exp $";
+static char software_version[] = "$Id: lang_ct_param.c,v 1.6 2005-08-08 11:18:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
+static const char *query =
+	"insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)";
 
 CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
 
-int insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames);
+static int insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames);
 
 /* Testing: binding of data via ct_param */
 int
@@ -71,6 +72,9 @@ main(int argc, char *argv[])
 	/* if worked, test by position */
 	if (0 == errCode)
 		errCode = insert_test(conn, cmd, 0);
+	query = "insert into #ctparam_lang (name,age,cost,bdate,fval) values (?, ?, ?, ?, ?)";
+	if (0 == errCode)
+		errCode = insert_test(conn, cmd, 0);
 
 	if (verbose && (0 == errCode))
 		fprintf(stdout, "lang_ct_param tests successful\n");
@@ -88,16 +92,13 @@ ERR:
 	return errCode;
 }
 
-int 
-insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
+static int 
+insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 {
 	CS_CONTEXT *ctx;
 
 	CS_RETCODE ret;
 	CS_INT res_type;
-/*	CS_INT num_cols; */
-
-/*	CS_INT datalength; */
 
 	CS_DATAFMT datafmt;
 	CS_DATAFMT srcfmt;
@@ -162,7 +163,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, short useNames)
 	/*
 	 * create the command
 	 */
-	if ((ret = ct_command(cmd, CS_LANG_CMD, QUERY_STRING, strlen(QUERY_STRING), 
+	if ((ret = ct_command(cmd, CS_LANG_CMD, query, strlen(query), 
 		CS_UNUSED)) != CS_SUCCEED) 
 	{
 		fprintf(stderr, "ct_command(CS_LANG_CMD) failed\n");
