@@ -48,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: rpc.c,v 1.32.2.7 2005-05-30 08:19:04 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.32.2.8 2005-08-08 11:13:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
@@ -179,8 +179,14 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 				maxlen = 255;
 		}
 	} else {
-		if (maxlen != -1)
+		/*
+		 * Well, maxlen should be used only for output parameter however it seems
+		 * that ms implementation wrongly require this 0 for NULL variable
+		 * input parameters, so fix it
+		 */
+		if (maxlen != -1 && maxlen != 0)
 			return FAIL;
+		maxlen = -1;
 	}
 
 	/* TODO add other tests for correctness */

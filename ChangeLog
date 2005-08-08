@@ -1,3 +1,6 @@
+Mon Aug  8 13:13:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/rpc.c: support strange MS specification
+
 Tue Aug  2 18:54:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- dbretlen should return 0 for NULL results
