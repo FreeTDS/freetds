@@ -8,11 +8,27 @@
 set -e
 
 verbose=no
+do_perl=no
+do_php=yes
+
+# check for perl existence
+if perl --help > /dev/null 2>&1; then
+	do_perl=yes
+fi
+
 for param
 do
 	case $param in
-	 --verbose)
+	--verbose)
 		verbose=yes ;;
+	--no-perl)
+		do_perl=no ;;
+	--no-php)
+		do_php=no ;;
+	*)
+		echo 'Option not supported!' 1>&2
+		exit 1
+		;;
 	esac
 done
 
@@ -37,7 +53,7 @@ tPWD=`cat PWD | grep '^PWD=' | sed 's,^....,,g'`
 tSRV=`cat PWD | grep '^SRV=' | sed 's,^....,,g'`
 
 # Perl
-if perl --help > /dev/null 2>&1; then
+if test $do_perl = yes; then
 	DBI_DSN="dbi:ODBC:$tSRV"
 	DBI_USER="$tUID"
 	DBI_PASS="$tPWD"
@@ -81,5 +97,40 @@ if perl --help > /dev/null 2>&1; then
 	done
 fi
 
+# PHP
+cd "$ORIGDIR"
+FILE=php5-latest.tar.gz
+if test $do_php = yes -a -f "$FILE"; then
+	# need to recompile ??
+	if test ! -x phpinst/bin/php -o "$FILE" -nt phpinst/bin/php; then
+		rm -rf php5-200* phpinst lib
+		tar zxvf $FILE
+		DIR=`echo php5-200*`
+		MAINDIR=$PWD
+		mkdir lib
+		cp src/dblib/.libs/lib*.so* lib
+		cp src/tds/.libs/lib*.so* lib
+		cd $DIR
+		./configure --prefix=$MAINDIR/phpinst --disable-all --with-mssql=$MAINDIR
+		make
+		make install
+		cd ..
+	fi
+
+	cd phptests
+	echo "<?php \$server = \"$tSRV\"; \$user = \"$tUID\"; \$pass = \"$tPWD\"; ?>" > pwd.inc
+
+	ERR=""
+	for f in *.php; do
+		echo Testing PHP script $f
+		../phpinst/bin/php -q $f || ERR="$ERR $f"
+	done
+	if test "$ERR" != ""; then
+		echo "Some script failed:$ERR"
+		exit 1
+	fi
+fi
+
 echo "all tests ok!!!" >> "$LOG"
+exit 0
 
