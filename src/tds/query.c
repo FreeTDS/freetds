@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.188 2005-08-08 19:10:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.189 2005-08-09 14:25:26 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1002,7 +1002,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	}
 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
-		goto failure;
+		goto failure_nostate;
 
 	query_len = strlen(query);
 
@@ -1069,13 +1069,16 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	rc = tds_query_flush_packet(tds);
 	if (rc != TDS_FAIL)
 		return rc;
+
 failure:
+	/* TODO correct if writing fail ?? */
+	tds_set_state(tds, TDS_IDLE);
+
+failure_nostate:
 	tds->cur_dyn = NULL;
 	tds_free_dynamic(tds, dyn);
 	if (dyn_out)
 		*dyn_out = NULL;
-	/* TODO correct if writing fail ?? */
-	tds_set_state(tds, TDS_IDLE);
 	return TDS_FAIL;
 }
 

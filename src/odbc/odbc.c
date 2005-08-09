@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.390 2005-07-29 10:30:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.391 2005-08-09 14:25:22 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3441,10 +3441,12 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	 * 3/15/2001 bsb - DBD::ODBC calls SQLNumResultCols on non-result
 	 * generating queries such as 'drop table'
 	 */
+#if 0
 	if (stmt->row_status == NOT_IN_ROW) {
 		odbc_errs_add(&stmt->errs, "24000", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
+#endif
 	*pccol = stmt->ird->header.sql_desc_count;
 	ODBC_RETURN_(stmt);
 }

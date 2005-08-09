@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.15 2005-04-12 07:19:10 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.16 2005-08-09 14:25:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -72,7 +72,9 @@ main(int argc, char *argv[])
 	}
 	output[0] = 0;
 
+#if 0
 	CHECK_COLS(-1);
+#endif
 	CHECK_ROWS(-2);
 #endif
 
