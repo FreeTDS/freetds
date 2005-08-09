@@ -41,11 +41,12 @@
 
 #include "tds.h"
 #include "tdsiconv.h"
+#include "tdsbytes.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.71 2005-07-07 13:06:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.72 2005-08-09 10:57:55 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -68,7 +69,6 @@ tds_put_n(TDSSOCKET * tds, const void *buf, int n)
 		left = tds->env.block_size - tds->out_pos;
 		if (left <= 0) {
 			tds_write_packet(tds, 0x0);
-			tds_init_write_buf(tds);
 			continue;
 		}
 		if (left > n)
@@ -200,6 +200,7 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 int
 tds_put_int(TDSSOCKET * tds, TDS_INT i)
 {
+#if TDS_ADDITIONAL_SPACE == 0
 #if WORDS_BIGENDIAN
 	if (tds->emul_little_endian) {
 		tds_put_byte(tds, i & 0x000000FF);
@@ -210,11 +211,30 @@ tds_put_int(TDSSOCKET * tds, TDS_INT i)
 	}
 #endif
 	return tds_put_n(tds, (const unsigned char *) &i, sizeof(TDS_INT));
+#else
+	TDS_UCHAR *p;
+
+	if (tds->out_pos >= tds->env.block_size)
+		tds_write_packet(tds, 0x0);
+
+	p = &tds->out_buf[tds->out_pos];
+#if WORDS_BIGENDIAN
+	if (tds->emul_little_endian)
+		TDS_PUT_UA4LE(p, i);
+	else
+		TDS_PUT_UA4(p, i);
+#else
+	TDS_PUT_UA4(p, i);
+#endif
+	tds->out_pos += 4;
+	return 0;
+#endif
 }
 
 int
 tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 {
+#if TDS_ADDITIONAL_SPACE == 0
 #if WORDS_BIGENDIAN
 	if (tds->emul_little_endian) {
 		tds_put_byte(tds, si & 0x000000FF);
@@ -223,15 +243,31 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 	}
 #endif
 	return tds_put_n(tds, (const unsigned char *) &si, sizeof(TDS_SMALLINT));
+#else
+	TDS_UCHAR *p;
+
+	if (tds->out_pos >= tds->env.block_size)
+		tds_write_packet(tds, 0x0);
+
+	p = &tds->out_buf[tds->out_pos];
+#if WORDS_BIGENDIAN
+	if (tds->emul_little_endian)
+		TDS_PUT_UA2LE(p, si);
+	else
+		TDS_PUT_UA2(p, si);
+#else
+	TDS_PUT_UA2(p, si);
+#endif
+	tds->out_pos += 2;
+	return 0;
+#endif
 }
 
 int
 tds_put_byte(TDSSOCKET * tds, unsigned char c)
 {
-	if (tds->out_pos >= tds->env.block_size) {
+	if (tds->out_pos >= tds->env.block_size)
 		tds_write_packet(tds, 0x0);
-		tds_init_write_buf(tds);
-	}
 	tds->out_buf[tds->out_pos++] = c;
 	return 0;
 }
@@ -255,10 +291,8 @@ tds_flush_packet(TDSSOCKET * tds)
 	int result = TDS_FAIL;
 
 	/* GW added check for tds->s */
-	if (!IS_TDSDEAD(tds)) {
+	if (!IS_TDSDEAD(tds))
 		result = tds_write_packet(tds, 0x01);
-		tds_init_write_buf(tds);
-	}
 	return result;
 }
 

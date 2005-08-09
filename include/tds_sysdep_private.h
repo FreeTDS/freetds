@@ -30,7 +30,9 @@
 	static const void *const no_unused_##name##_warn[] = { rcsid_##name, no_unused_##name##_warn }
 #endif
 
-TDS_RCSID(tds_sysdep_private_h, "$Id: tds_sysdep_private.h,v 1.17 2005-07-07 13:06:42 freddy77 Exp $");
+TDS_RCSID(tds_sysdep_private_h, "$Id: tds_sysdep_private.h,v 1.18 2005-08-09 10:57:55 freddy77 Exp $");
+
+#define TDS_ADDITIONAL_SPACE 0
 
 #ifdef __cplusplus
 extern "C"

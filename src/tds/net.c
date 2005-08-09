@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.30 2005-07-07 13:06:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.31 2005-08-09 10:57:55 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -619,9 +619,17 @@ int
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
 	int sent;
+	unsigned int left = 0;
 
 #if !defined(WIN32) && !defined(MSG_NOSIGNAL)
 	void (*oldsig) (int);
+#endif
+
+#if TDS_ADDITIONAL_SPACE != 0
+	if (tds->out_pos > tds->env.block_size) {
+		left = tds->out_pos - tds->env.block_size;
+		tds->out_pos = tds->env.block_size;
+	}
 #endif
 
 	tds->out_buf[0] = tds->out_flag;
@@ -656,6 +664,11 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}
 #endif
+
+#if TDS_ADDITIONAL_SPACE != 0
+	memcpy(tds->out_buf + 8, tds->out_buf + tds->env.block_size, left);
+#endif
+	tds->out_pos = left + 8;
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	return sent <= 0 ? TDS_FAIL : TDS_SUCCEED;
