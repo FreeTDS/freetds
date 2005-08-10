@@ -20,7 +20,7 @@
 #ifndef _tdsbytes_h_
 #define _tdsbytes_h_
 
-/* $Id: tdsbytes.h,v 1.1 2005-08-02 12:09:57 freddy77 Exp $ */
+/* $Id: tdsbytes.h,v 1.2 2005-08-10 12:06:03 freddy77 Exp $ */
 
 #ifndef _tds_h_
 #error tds.h must be included before tdsbytes.h
@@ -70,7 +70,7 @@
 /* four bytes */
 #define TDS_GET_UA4LE(ptr) \
 	(((TDS_UCHAR*)(ptr))[3] * 0x1000000u + ((TDS_UCHAR*)(ptr))[2] * 0x10000u +\
-	 ((TDS_UCHAR*)(ptr))[0] * 0x100u + ((TDS_UCHAR*)(ptr))[1])
+	 ((TDS_UCHAR*)(ptr))[1] * 0x100u + ((TDS_UCHAR*)(ptr))[0])
 #define TDS_GET_UA4BE(ptr) \
 	(((TDS_UCHAR*)(ptr))[0] * 0x1000000u + ((TDS_UCHAR*)(ptr))[1] * 0x10000u +\
 	 ((TDS_UCHAR*)(ptr))[2] * 0x100u + ((TDS_UCHAR*)(ptr))[3])

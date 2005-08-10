@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.44 2005-07-17 07:48:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.45 2005-08-10 12:06:03 freddy77 Exp $");
 
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
@@ -55,9 +55,6 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	TIME_STRUCT *tsp;
 	TIMESTAMP_STRUCT *tssp;
 	SQL_NUMERIC_STRUCT *num;
-
-	TDS_UINT *uip;
-	TDS_USMALLINT *usip;
 
 	int ret = TDS_FAIL;
 	int i, cplen;
@@ -193,50 +190,40 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 #ifdef SQL_C_SBIGINT
 	case SQL_C_SBIGINT:
 	case SQL_C_UBIGINT:
-		memcpy(dest, &(ores.bi), sizeof(TDS_INT8));
+		*((TDS_INT8 *) dest) = ores.bi;
 		ret = sizeof(TDS_INT8);
 		break;
 #endif
 
 	case SQL_C_LONG:
 	case SQL_C_SLONG:
-		memcpy(dest, &(ores.i), sizeof(TDS_INT));
-		ret = sizeof(TDS_INT);
-		break;
-
 	case SQL_C_ULONG:
-		uip = (TDS_UINT *) dest;
-		*uip = ores.i;
-		ret = sizeof(TDS_UINT);
+		*((TDS_INT *) dest) = ores.i;
+		ret = sizeof(TDS_INT);
 		break;
 
 	case SQL_C_SHORT:
 	case SQL_C_SSHORT:
-		memcpy(dest, &(ores.si), sizeof(TDS_SMALLINT));
-		ret = sizeof(TDS_SMALLINT);
-		break;
-
 	case SQL_C_USHORT:
-		usip = (TDS_USMALLINT *) dest;
-		*usip = ores.si;
-		ret = sizeof(TDS_USMALLINT);
+		*((TDS_SMALLINT *) dest) = ores.si;
+		ret = sizeof(TDS_SMALLINT);
 		break;
 
 	case SQL_C_TINYINT:
 	case SQL_C_STINYINT:
 	case SQL_C_UTINYINT:
 	case SQL_C_BIT:
-		memcpy(dest, &(ores.ti), sizeof(TDS_TINYINT));
+		*((TDS_TINYINT *) dest) = ores.ti;
 		ret = sizeof(TDS_TINYINT);
 		break;
 
 	case SQL_C_DOUBLE:
-		memcpy(dest, &(ores.f), sizeof(TDS_FLOAT));
+		*((TDS_FLOAT *) dest) = ores.f;
 		ret = sizeof(TDS_FLOAT);
 		break;
 
 	case SQL_C_FLOAT:
-		memcpy(dest, &(ores.r), sizeof(TDS_REAL));
+		*((TDS_REAL *) dest) = ores.r;
 		ret = sizeof(TDS_REAL);
 		break;
 

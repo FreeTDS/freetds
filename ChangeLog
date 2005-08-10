@@ -1,3 +1,9 @@
+Wed Aug 10 14:05:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tdsbytes.h: fix for big endian machines
+	* src/odbc/convert_tds2sql.c: remove some memcpy use
+	* src/tds/unittests/dataread.c: do not read unexisting parameter
+	* misc/test-other.sh: portability issues
+
 Tue Aug  9 16:24:04 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* misc/test-other.sh: improve DBD::ODBC test
 	* src/odbc/odbc.c src/odbc/unittests/print.c:

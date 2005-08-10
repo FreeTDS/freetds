@@ -12,7 +12,7 @@ do_perl=no
 do_php=yes
 
 # check for perl existence
-if perl --help > /dev/null 2>&1; then
+if perl -e 'exit 0' > /dev/null 2>&1; then
 	do_perl=yes
 fi
 
@@ -127,12 +127,12 @@ if test $do_php = yes -a -f "$FILE"; then
 	# need to recompile ??
 	if test ! -x phpinst/bin/php -o "$FILE" -nt phpinst/bin/php; then
 		rm -rf php5-200* phpinst lib
-		tar zxvf $FILE
+		gunzip -c "$FILE" | tar xvf -
 		DIR=`echo php5-200*`
 		MAINDIR=$PWD
 		mkdir lib
-		cp src/dblib/.libs/lib*.so* lib
-		cp src/tds/.libs/lib*.so* lib
+		cp src/dblib/.libs/lib*.s[ol]* lib
+		cp src/tds/.libs/lib*.s[ol]* lib
 		cd $DIR
 		./configure --prefix=$MAINDIR/phpinst --disable-all --with-mssql=$MAINDIR
 		make

@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.16 2005-06-27 19:06:33 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.17 2005-08-10 12:06:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -67,9 +67,10 @@ test0(const char *type, ...)
         va_start(ap, type);
 	for (;;) {
 		const char * value = va_arg(ap, const char *);
-		const char * result = va_arg(ap, const char *);
+		const char * result;
 		if (!value)
 			break;
+		result = va_arg(ap, const char *);
 		if (!result)
 			result = value;
 		data[num_data].value = value;
