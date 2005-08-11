@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.156 2005-07-27 09:07:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.157 2005-08-11 07:39:17 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -3741,7 +3741,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 SEND_OPTION:
 
 	tdsdump_log(TDS_DBG_FUNC, "\ttds_submit_optioncmd will be action(%s) option(%d) arg(%x) arglen(%d)\n",
-				action_string, tds_option, tds_argument.i, tds_argsize);
+				action_string, tds_option, tds_argsize == 1 ? tds_argument.ti : (tds_argsize == 4 ? tds_argument.i : 0), tds_argsize);
 
 	if (tds_submit_optioncmd(tds, tds_command, tds_option, &tds_argument, tds_argsize) == TDS_FAIL) {
 		return CS_FAIL;

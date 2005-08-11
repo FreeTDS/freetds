@@ -1,3 +1,7 @@
+Thu Aug 11 09:38:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/ctlib/ct.c: correct logging
+	* src/tds/write.c: avoid buffer reading overflow during logging
+
 Wed Aug 10 14:05:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsbytes.h: fix for big endian machines
 	* src/odbc/convert_tds2sql.c: remove some memcpy use

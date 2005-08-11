@@ -46,7 +46,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.72 2005-08-09 10:57:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.73 2005-08-11 07:39:17 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -130,11 +130,11 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	tds->char_convs[client2ucs2]->suppress.e2big = 1;
 	inbytesleft = len;
 	while (inbytesleft) {
-		tdsdump_log(TDS_DBG_NETWORK, "tds_put_string converting %d bytes of \"%s\"\n", (int) inbytesleft, s);
+		tdsdump_log(TDS_DBG_NETWORK, "tds_put_string converting %d bytes of \"%.*s\"\n", (int) inbytesleft, (int) inbytesleft, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
 		
-		if ((size_t)-1 == tds_iconv(tds, tds->char_convs[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)){
+		if ((size_t)-1 == tds_iconv(tds, tds->char_convs[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)) {
 		
 			if (errno == EINVAL) {
 				tdsdump_log(TDS_DBG_NETWORK, "tds_put_string: tds_iconv() encountered partial sequence. "
