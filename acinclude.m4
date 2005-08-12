@@ -213,7 +213,7 @@ CFLAGS=$ac_save_CFLAGS
 # exists. These example files found at
 # http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 #
-# @version $Id: acinclude.m4,v 1.29 2005-08-08 19:10:20 freddy77 Exp $
+# @version $Id: acinclude.m4,v 1.30 2005-08-12 09:39:09 freddy77 Exp $
 # @author Caolan McNamara <caolan@skynet.ie>
 #
 # based on David Arnold's autoconf suggestion in the threads faq
@@ -461,13 +461,11 @@ AC_DEFUN([TYPE_SOCKLEN_T],
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
-#ifdef HAVE_SYS_SOCKET_H
-# include <sys/socket.h>
-#endif
 #ifdef HAVE_WINSOCK2_H
 # include <winsock2.h>
 int PASCAL getpeername (SOCKET, $arg2 *, $t *);
-#else
+#elif defined(HAVE_SYS_SOCKET_H)
+# include <sys/socket.h>
 int getpeername (int, $arg2 *, $t *);
 #endif
 

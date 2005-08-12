@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.189 2005-08-09 14:25:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.190 2005-08-12 09:39:10 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -476,9 +476,10 @@ tds_skip_comment_ucs2le(const char *s, const char *end)
 	if (p+4 <= end && memcmp(p, "-\0-", 4) == 0) {
 		for (;(p+=2) < end;)
 			if (p[0] == '\n' && p[1] == 0)
-				return p;
+				return p + 2;
 	} else if (p+4 <= end && memcmp(p, "/\0*", 4) == 0) {
 		p += 2;
+		end -= 2;
 		for(;(p+=2) < end;)
 			if (memcmp(p, "*\0/", 4) == 0)
 				return p + 4;

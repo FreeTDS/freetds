@@ -1,3 +1,8 @@
+Fri Aug 12 11:36:35 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4 configure.in src/replacements/readpassphrase.c:
+	- fixes for mingw32
+	* src/tds/query.c: fix possible read buffer overflow
+
 Thu Aug 11 09:38:02 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: correct logging
 	* src/tds/write.c: avoid buffer reading overflow during logging
