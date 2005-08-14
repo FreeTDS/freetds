@@ -1,3 +1,11 @@
+Sun Aug 14 11:20:11 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/preperror.c:
+	- catch error preparing statement
+	* src/odbc/unittests/array.c src/odbc/unittests/array_out.c:
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	- code reuse, new common function
+
+
 Fri Aug 12 11:36:35 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* acinclude.m4 configure.in src/replacements/readpassphrase.c:
 	- fixes for mingw32

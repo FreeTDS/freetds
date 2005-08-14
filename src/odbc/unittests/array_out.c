@@ -3,21 +3,12 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.6 2005-07-23 12:00:24 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.7 2005-08-14 09:20:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
 static int truncate = 0;
 static int record_bind = 0;
-
-static void
-ResetStatement(void)
-{
-	SQLFreeStmt(Statement, SQL_DROP);
-	Statement = SQL_NULL_HSTMT;
-	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to allocate statement");
-}
 
 typedef struct
 {

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.391 2005-08-09 14:25:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.392 2005-08-14 09:20:53 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -786,10 +786,6 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 }
 
 #if (ODBCVER >= 0x0300)
-#ifndef SQLULEN
-/* unixodbc began defining SQLULEN in recent versions; this lets us complile if you're using an older version. */
-# define SQLULEN SQLUINTEGER
-#endif
 SQLRETURN SQL_API
 SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
@@ -3524,6 +3520,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 			tds_free_param_results(params);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
+		stmt->dbc->current_statement = stmt;
 
 		/* try to go to the next recordset */
 		/* TODO merge with similar code */

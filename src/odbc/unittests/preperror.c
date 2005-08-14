@@ -2,7 +2,7 @@
 
 /* test error on prepared statement, from Nathaniel Talbott test */
 
-static char software_version[] = "$Id: preperror.c,v 1.5 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: preperror.c,v 1.6 2005-08-14 09:20:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -48,10 +48,16 @@ main(int argc, char *argv[])
 	}
 	printf("err=%s\n", buf);
 
-	/* try to prepare and execute a statement with error (from DBD::ODBC test) */
-	SQLPrepare(Statement, (SQLCHAR *) "SELECT XXNOTCOLUMN FROM sysobjects", SQL_NTS);
+	/* assure initial state */
+	ResetStatement();
 
-	if (SQLExecute(Statement) != SQL_ERROR) {
+	/* try to prepare and execute a statement with error (from DBD::ODBC test) */
+	ret = SQLPrepare(Statement, (SQLCHAR *) "SELECT XXNOTCOLUMN FROM sysobjects", SQL_NTS);
+
+	if (ret == SQL_SUCCESS)
+		ret = SQLExecute(Statement);
+
+	if (ret != SQL_ERROR) {
 		fprintf(stderr, "SQLExecute succeeded instead of failing! (line %d)\n", __LINE__);
 		return 1;
 	}

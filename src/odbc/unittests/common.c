@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.37 2005-04-12 07:19:10 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.38 2005-08-14 09:20:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -332,5 +332,14 @@ CheckRows(int n, int line, const char * file)
 		Disconnect();
 		exit(1);
 	}
+}
+
+void
+ResetStatement(void)
+{
+	SQLFreeStmt(Statement, SQL_DROP);
+	Statement = SQL_NULL_HSTMT;
+	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to allocate statement");
 }
 
