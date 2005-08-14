@@ -2,8 +2,17 @@
 
 /* test error on prepared statement, from Nathaniel Talbott test */
 
-static char software_version[] = "$Id: preperror.c,v 1.4 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: preperror.c,v 1.4.2.1 2005-08-14 09:00:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static void
+ResetStatement(void)
+{
+	SQLFreeStmt(Statement, SQL_DROP);
+	Statement = SQL_NULL_HSTMT;
+	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to allocate statement");
+}
 
 int
 main(int argc, char *argv[])
@@ -41,22 +50,28 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, buf, sizeof(buf), NULL);
+	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL);
 	if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
 		fprintf(stderr, "Error not set (line %d)\n", __LINE__);
 		return 1;
 	}
 	printf("err=%s\n", buf);
 
-	/* try to prepare and execute a statement with error (from DBD::ODBC test) */
-	SQLPrepare(Statement, (SQLCHAR *) "SELECT XXNOTCOLUMN FROM sysobjects", SQL_NTS);
+	/* assure initial state */
+	ResetStatement();
 
-	if (SQLExecute(Statement) != SQL_ERROR) {
+	/* try to prepare and execute a statement with error (from DBD::ODBC test) */
+	ret = SQLPrepare(Statement, (SQLCHAR *) "SELECT XXNOTCOLUMN FROM sysobjects", SQL_NTS);
+
+	if (ret == SQL_SUCCESS)
+		ret = SQLExecute(Statement);
+
+	if (ret != SQL_ERROR) {
 		fprintf(stderr, "SQLExecute succeeded instead of failing! (line %d)\n", __LINE__);
 		return 1;
 	}
 
-	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, buf, sizeof(buf), NULL);
+	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL);
 	if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
 		fprintf(stderr, "Error not set (line %d)\n", __LINE__);
 		return 1;

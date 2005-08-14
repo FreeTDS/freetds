@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.345.2.1 2005-05-30 08:19:04 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.345.2.2 2005-08-14 09:00:45 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -761,10 +761,6 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 }
 
 #if (ODBCVER >= 0x0300)
-#ifndef SQLULEN
-/* unixodbc began defining SQLULEN in recent versions; this lets us complile if you're using an older version. */
-# define SQLULEN SQLUINTEGER
-#endif
 SQLRETURN SQL_API
 SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
@@ -3299,6 +3295,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 			/* TODO ?? tds_free_param_results(params); */
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
+		stmt->dbc->current_statement = stmt;
 
 		/* try to go to the next recordset */
 		/* TODO merge with similar code */

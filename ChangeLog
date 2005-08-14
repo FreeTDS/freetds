@@ -1,3 +1,7 @@
+Sun Aug 14 11:00:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/unittests/preperror.c:
+	- catch error preparing statement
+
 Mon Aug  8 13:13:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/rpc.c: support strange MS specification
 
