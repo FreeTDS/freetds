@@ -55,7 +55,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.87 2005-07-24 15:25:25 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.88 2005-08-15 07:06:47 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -228,7 +228,11 @@ struct _hdbc
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
 	DSTR server;		/* aka Instance */
-	/** statement executing */
+	/**
+	 * Statement executing. This should be set AFTER sending query
+	 * to avoid race condition and assure to not overwrite it if
+	 * another statement is executing a query.
+	 */
 	struct _hstmt *current_statement;
 	/** list of all statements allocated from this connection */
 	struct _hstmt *stmt_list;

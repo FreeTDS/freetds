@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.392 2005-08-14 09:20:53 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.393 2005-08-15 07:06:47 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2416,9 +2416,6 @@ _SQLExecute(TDS_STMT * stmt)
 		return SQL_ERROR;
 	}
 
-	/* catch all errors */
-	stmt->dbc->current_statement = stmt;
-
 	stmt->curr_param_row = 0;
 	stmt->num_param_rows = stmt->apd->header.sql_desc_array_size;
 
@@ -2443,19 +2440,15 @@ _SQLExecute(TDS_STMT * stmt)
 		*end = 0;
 		ret = tds_submit_rpc(tds, name, stmt->params);
 		*end = tmp;
-		if (ret != TDS_SUCCEED)
-			ODBC_RETURN(stmt, SQL_ERROR);
 	} else if (stmt->query) {
 		/* not prepared query */
 		/* TODO cursor change way of calling */
 		/* SQLExecDirect */
 		if (stmt->num_param_rows <= 1) {
 			if (!stmt->params) {
-				if (!(tds_submit_query(tds, stmt->query) == TDS_SUCCEED))
-					ODBC_RETURN(stmt, SQL_ERROR);
+				ret = tds_submit_query(tds, stmt->query);
 			} else {
-				if (!(tds_submit_execdirect(tds, stmt->query, stmt->params) == TDS_SUCCEED))
-					ODBC_RETURN(stmt, SQL_ERROR);
+				ret = tds_submit_execdirect(tds, stmt->query, stmt->params);
 			}
 		} else {
 			/* pack multiple submit using language */
@@ -2496,6 +2489,7 @@ _SQLExecute(TDS_STMT * stmt)
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
+			stmt->dbc->current_statement = stmt;
 			if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 				dyn = stmt->dyn;
 				stmt->dyn = NULL;
@@ -2512,8 +2506,7 @@ _SQLExecute(TDS_STMT * stmt)
 			stmt->params = NULL;
 			tdsdump_log(TDS_DBG_INFO1, "End prepare, execute\n");
 			/* TODO return error to client */
-			if (tds_submit_execute(tds, dyn) == TDS_FAIL)
-				ODBC_RETURN(stmt, SQL_ERROR);
+			ret = tds_submit_execute(tds, dyn);
 		} else {
 			TDSMULTIPLE multiple;
 
@@ -2536,6 +2529,11 @@ _SQLExecute(TDS_STMT * stmt)
 				ret = tds_multiple_done(tds, &multiple);
 		}
 	}
+	if (ret != TDS_SUCCEED)
+		ODBC_RETURN(stmt, SQL_ERROR);
+	/* catch all errors */
+	stmt->dbc->current_statement = stmt;
+
 	stmt->row_count = TDS_NO_COUNT;
 	stmt->next_row_count = TDS_NO_COUNT;
 	stmt->row_status = PRE_NORMAL_ROW;
