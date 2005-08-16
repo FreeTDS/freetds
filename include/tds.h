@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.241 2005-07-27 09:07:34 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.242 2005-08-16 15:04:02 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -917,13 +917,15 @@ typedef struct tds_result_info
 	TDS_SMALLINT num_cols;
 	TDSCOLUMN **columns;
 	TDS_INT row_size;
+	TDS_INT ref_count;
 	unsigned char *current_row;
 
 	TDS_SMALLINT rows_exist;
 	/* TODO remove ?? used only in dblib */
 	TDS_INT row_count;
-	TDS_SMALLINT computeid;
+	/* TODO remove ?? used only in dblib */
 	TDS_TINYINT more_results;
+	TDS_SMALLINT computeid;
 	TDS_SMALLINT *bycolumns;
 	TDS_SMALLINT by_cols;
 } TDSRESULTINFO;
@@ -1254,6 +1256,7 @@ TDSCONNECTION *tds_alloc_connection(TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void tds_free_locale(TDSLOCALE * locale);
 TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
+void tds_free_row(const TDSRESULTINFO * res_info, unsigned char *row);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge);

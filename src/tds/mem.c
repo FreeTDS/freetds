@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.150 2005-08-09 10:57:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.151 2005-08-16 15:04:03 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -200,6 +200,7 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 			goto Cleanup;
 		}
 		memset(param_info, '\0', sizeof(TDSPARAMINFO));
+		param_info->ref_count = 1;
 	} else {
 		param_info = old_param;
 	}
@@ -274,6 +275,7 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 
 	TEST_MALLOC(info, TDSCOMPUTEINFO);
 	memset(info, '\0', sizeof(TDSCOMPUTEINFO));
+	info->ref_count = 1;
 
 	TEST_CALLOC(info->columns, TDSCOLUMN *, num_cols);
 
@@ -340,6 +342,7 @@ tds_alloc_results(int num_cols)
 
 	TEST_MALLOC(res_info, TDSRESULTINFO);
 	memset(res_info, '\0', sizeof(TDSRESULTINFO));
+	res_info->ref_count = 1;
 	TEST_CALLOC(res_info->columns, TDSCOLUMN *, num_cols);
 	for (col = 0; col < num_cols; col++) {
 		TEST_MALLOC(res_info->columns[col], TDSCOLUMN);
@@ -363,9 +366,8 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 	unsigned char *ptr;
 
 	ptr = (unsigned char *) malloc(res_info->row_size);
-	if (!ptr)
-		return NULL;
-	memset(ptr, '\0', res_info->row_size);
+	if (ptr)
+		memset(ptr, '\0', res_info->row_size);
 	return ptr;
 }
 
@@ -375,9 +377,8 @@ tds_alloc_compute_row(TDSCOMPUTEINFO * res_info)
 	unsigned char *ptr;
 
 	ptr = (unsigned char *) malloc(res_info->row_size);
-	if (!ptr)
-		return NULL;
-	memset(ptr, '\0', res_info->row_size);
+	if (ptr)
+		memset(ptr, '\0', res_info->row_size);
 	return ptr;
 }
 
@@ -415,12 +416,34 @@ tds_free_compute_results(TDSSOCKET * tds)
 }
 
 void
+tds_free_row(const TDSRESULTINFO * res_info, unsigned char *row)
+{
+	int i;
+	const TDSCOLUMN *curcol;
+
+	assert(res_info);
+	if (!row)
+		return;
+
+	for (i = 0; i < res_info->num_cols; ++i) {
+		curcol = res_info->columns[i];
+		if (is_blob_type(curcol->column_type))
+			free(((TDSBLOB *) (row + curcol->column_offset))->textvalue);
+	}
+
+	free(row);
+}
+
+void
 tds_free_results(TDSRESULTINFO * res_info)
 {
 	int i;
 	TDSCOLUMN *curcol;
 
 	if (!res_info)
+		return;
+
+	if (--res_info->ref_count != 0)
 		return;
 
 	if (res_info->num_cols && res_info->columns) {

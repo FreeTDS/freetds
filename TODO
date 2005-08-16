@@ -8,11 +8,10 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.152 2005-08-09 10:58:27 freddy77 Exp $
+To Do List	$Id: TODO,v 1.153 2005-08-16 15:04:02 freddy77 Exp $
 ------------
 
 Must be fixed in 0.64:
-. dblib buffering, not save lengths, blob not correctly handled
 . ctlib parameters, handle all case even in tds7
   . handle and test prepared query
     (? and @ syntax should be supported)

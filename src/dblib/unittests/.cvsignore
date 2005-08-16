@@ -11,7 +11,6 @@ t0006
 t0007
 t0008
 t0009
-t0010
 t0011
 t0012
 t0013
@@ -35,4 +34,5 @@ rpc
 dbmorecmds
 bcp
 thread
+text_buffer
 

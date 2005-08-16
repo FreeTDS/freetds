@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.239 2005-07-20 10:58:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.240 2005-08-16 15:04:02 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -1196,7 +1196,7 @@ dbresults(DBPROCESS * dbproc)
 	
 			case TDS_ROWFMT_RESULT:
 				buffer_free(&dbproc->row_buf);
-				buffer_alloc(dbproc, tds->res_info->row_size);
+				buffer_alloc(dbproc);
 				dbproc->dbresults_state = _DB_RES_RESULTSET_EMPTY;
 				break;
 	
@@ -1469,8 +1469,10 @@ dbnextrow(DBPROCESS * dbproc)
 		res_type = TDS_ROWFMT_RESULT;
 
 	} else {
-		/* Get the row from the TDS stream.  */
 
+		buffer_save_row(dbproc);
+
+		/* Get the row from the TDS stream.  */
 		switch (tds_process_tokens(dbproc->tds_socket, &res_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) {
 		case TDS_SUCCEED:
 			if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
@@ -1478,7 +1480,7 @@ dbnextrow(DBPROCESS * dbproc)
 					computeid = tds->current_results->computeid;
 				/* Add the row to the row buffer, whose capacity is always at least 1 */
 				resinfo = tds->current_results;
-				idx = buffer_add_row(dbproc, resinfo->current_row, resinfo->row_size);
+				idx = buffer_add_row(dbproc, resinfo);
 				assert(idx != -1);
 				result = dbproc->row_type = (res_type == TDS_ROW_RESULT)? REG_ROW : computeid;
 				break;
@@ -5602,6 +5604,7 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 	 */
 
 	if (curcol->column_textpos == 0) {
+		buffer_save_row(dbproc);
 		switch (tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) {
 		case TDS_FAIL:
 			return -1;
@@ -6084,11 +6087,8 @@ dbfirstrow(DBPROCESS * dbproc)
 DBINT
 dblastrow(DBPROCESS * dbproc)
 {
-	int idx = -1;
-	if (dbproc->row_buf.head == dbproc->row_buf.tail) {
-		idx = dbproc->row_buf.head;
-	} else {
-		idx = dbproc->row_buf.head;
+	int idx = dbproc->row_buf.head;
+	if (dbproc->row_buf.head != dbproc->row_buf.tail) {
 		if (--idx < 0) 
 			idx = dbproc->row_buf.capacity - 1;
 	}

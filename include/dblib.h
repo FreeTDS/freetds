@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.29 2005-07-17 21:58:19 jklowden Exp $ */
+/* $Id: dblib.h,v 1.30 2005-08-16 15:04:02 freddy77 Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -44,6 +44,8 @@ struct tds_dblib_loginrec
 	TDSLOGIN *tds_login;
 };
 
+struct dblib_buffer_row;
+
 typedef struct tag_DBPROC_ROWBUF
 {
 	int received;	  	/* how many rows have been received for this result set */
@@ -51,8 +53,7 @@ typedef struct tag_DBPROC_ROWBUF
 	int tail;	  	/* oldest item in queue	*/
 	int current;		/* dbnextrow() reads this row */
 	int capacity;		/* how many elements the queue can hold  */
-	int element_size;	/* size in bytes of each element in queue */
-	void *rows;		/* pointer to the row storage */
+	struct dblib_buffer_row *rows;		/* pointer to the row storage */
 } DBPROC_ROWBUF;
 
 typedef struct

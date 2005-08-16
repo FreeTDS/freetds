@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.30 2005-07-07 13:06:39 freddy77 Exp $
+$Id: NEWS,v 1.31 2005-08-16 15:04:02 freddy77 Exp $
 * 0.64
 - reduce network bandwidth use on Linux and *BSD
 - do not free TDSSOCKET in tds_connect
@@ -22,6 +22,7 @@ $Id: NEWS,v 1.30 2005-07-07 13:06:39 freddy77 Exp $
 - constant parameters in odbc rpc (ie {?=call func(10,?)} )
 - configure use automatically odbc_config if available
 - ODBC paramset support
+- fixed dblib buffering
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure
@@ -62,6 +63,7 @@ libTDS API changes
 - tds_process_tokens return a TDS_CANCELLED if handle cancellation
 - removed query_timeout_func and query_timeout_param from 
   TDSCONNECTION and TDSLOGIN
+- add tds_free_row
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information

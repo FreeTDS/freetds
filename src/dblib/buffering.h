@@ -1,4 +1,17 @@
+typedef struct dblib_buffer_row {
+	/** pointer to result informations */
+	TDSRESULTINFO *resinfo;
+	/** row data, NULL for resinfo->current_row */
+	unsigned char *row_data;
+	/** row number */
+	DBINT row;
+	/** save old sizes */
+	TDS_INT *sizes;
+} DBLIB_BUFFER_ROW;
+
 static void buffer_struct_print(const DBPROC_ROWBUF *buf);
+static int buffer_save_row(DBPROCESS *dbproc);
+static DBLIB_BUFFER_ROW* buffer_row_address(const DBPROC_ROWBUF * buf, int idx);
 
 /** 
  * A few words on the buffering design.
@@ -11,7 +24,6 @@ static void buffer_struct_print(const DBPROC_ROWBUF *buf);
  * current -- active row (read by dbgetrow/dbnextrow)
  * 
  * capacity is the number of rows that buf can hold.
- * element_size is the size of each row.  
  *
  * Each element in buf is preceded by its row_number: 
  *  the result_set row number, determined by counting the rows
@@ -65,10 +77,23 @@ buffer_index_valid(const DBPROC_ROWBUF *buf, int idx)
 #endif
 	return 0;	
 }
+
+static void
+buffer_free_row(DBLIB_BUFFER_ROW *row)
+{
+	if (row->sizes)
+		TDS_ZERO_FREE(row->sizes);
+	if (row->row_data) {
+		tds_free_row(row->resinfo, row->row_data);
+		row->row_data = NULL;
+	}
+	tds_free_results(row->resinfo);
+	row->resinfo = NULL;
+}
  
 /*
  * Buffer is freed at slightly odd points, whenever
- * capacity or element_size changes: 
+ * capacity changes: 
  * 
  * 1. When setting capacity, to release prior buffer.  
  * 2. By dbresults.  When called the second time, it has to 
@@ -79,8 +104,12 @@ buffer_index_valid(const DBPROC_ROWBUF *buf, int idx)
 static void
 buffer_free(DBPROC_ROWBUF *buf)
 {
-	if (buf->rows != NULL)
+	if (buf->rows != NULL) {
+		int i;
+		for (i = 0; i < buf->capacity; ++i)
+			buffer_free_row(&buf->rows[i]);
 		TDS_ZERO_FREE(buf->rows);
+	}
 }
 
 /*
@@ -90,8 +119,6 @@ buffer_free(DBPROC_ROWBUF *buf)
 static void
 buffer_reset(DBPROC_ROWBUF *buf)
 {
-	assert(buf->rows);
-	
 	buf->head = 0;
 	buf->current = buf->tail = buf->capacity;
 }
@@ -109,11 +136,9 @@ buffer_idx_increment(const DBPROC_ROWBUF *buf, int idx)
  * Given an index, return the row storage, including
  * the DBINT row number prefix. 
  */ 
-static void *
+static DBLIB_BUFFER_ROW*
 buffer_row_address(const DBPROC_ROWBUF * buf, int idx)
 {
-	const int offset = buf->element_size * idx;
-
 	if (!(idx >= 0 && idx < buf->capacity)) {
 		printf("idx is %d:\n", idx);
 		buffer_struct_print(buf);
@@ -121,7 +146,7 @@ buffer_row_address(const DBPROC_ROWBUF * buf, int idx)
 		assert(idx < buf->capacity);
 	}
 	
-	return ((char *) buf->rows) + offset;
+	return &(buf->rows[idx]);
 }
 
 /**
@@ -130,7 +155,7 @@ buffer_row_address(const DBPROC_ROWBUF * buf, int idx)
 static DBINT
 buffer_idx2row(const DBPROC_ROWBUF *buf, int idx)
 {
-	return *(DBINT*) buffer_row_address(buf, idx);
+	return buffer_row_address(buf, idx)->row;
 }
 
 /**
@@ -176,6 +201,8 @@ buffer_delete_rows(DBPROC_ROWBUF * buf,	int count)
 	}
 
 	for (i=0; i < count; i++) {
+		if (buf->tail < buf->capacity)
+			buffer_free_row(&buf->rows[i]);
 		buf->tail = buffer_idx_increment(buf, buf->tail);
 		/* 
 		 * If deleting rows from the buffer catches the tail to the head, 
@@ -198,26 +225,24 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 	int i;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 	int srctype;
 	BYTE *src;
 	int desttype;
+	const DBLIB_BUFFER_ROW *row;
 
-	tds = dbproc->tds_socket;
-	if (res_type == TDS_ROW_RESULT) {
-		resinfo = tds->res_info;
-	} else {		/* TDS_COMPUTE_RESULT */
-		for (i=0; ;i++) {
-			if (i >= tds->num_comp_info)
-				return;
-			resinfo = (TDSRESULTINFO *) tds->comp_info[i];
-			if (resinfo->computeid == compute_id)
-				break;
-		}
-	}
+	assert(buffer_index_valid(buf, idx));
+
+	row = buffer_row_address(buf, idx);
+	assert(row->resinfo);
+	resinfo = row->resinfo;
 
 	for (i = 0; i < resinfo->num_cols; i++) {
+		DBINT srclen;
+
 		curcol = resinfo->columns[i];
+		if (row->sizes)
+			curcol->column_cur_size = row->sizes[i];
+
 		if (curcol->column_nullbind) {
 			if (curcol->column_cur_size < 0) {
 				*(DBINT *)(curcol->column_nullbind) = -1;
@@ -225,30 +250,26 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 				*(DBINT *)(curcol->column_nullbind) = 0;
 			}
 		}
-		if (curcol->column_varaddr) {
-			DBINT srclen;
-			
-			assert(buffer_index_valid(buf, idx));
+		if (!curcol->column_varaddr)
+			continue;
 
-			src = ((BYTE *) buffer_row_address(buf, idx)) + sizeof(DBINT) + curcol->column_offset;
-			srclen = curcol->column_cur_size;
-			if (is_blob_type(curcol->column_type)) {
-				src = (BYTE *) ((TDSBLOB *) src)->textvalue;
-			}
-			desttype = _db_get_server_type(curcol->column_bindtype);
-			srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
+		src = (row->row_data ? row->row_data : row->resinfo->current_row) + curcol->column_offset;
+		srclen = curcol->column_cur_size;
+		if (is_blob_type(curcol->column_type)) {
+			src = (BYTE *) ((TDSBLOB *) src)->textvalue;
+		}
+		desttype = _db_get_server_type(curcol->column_bindtype);
+		srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
-			if (srclen < 0) {
-				_set_null_value((BYTE *) curcol->column_varaddr, desttype, curcol->column_bindlen);
-			} else {
-				copy_data_to_host_var(dbproc, srctype, src, srclen, desttype, 
-							(BYTE *) curcol->column_varaddr,  curcol->column_bindlen,
-								 curcol->column_bindtype, curcol->column_nullbind);
-
-			}
+		if (srclen < 0) {
+			_set_null_value((BYTE *) curcol->column_varaddr, desttype, curcol->column_bindlen);
+		} else {
+			copy_data_to_host_var(dbproc, srctype, src, srclen, desttype, 
+						(BYTE *) curcol->column_varaddr,  curcol->column_bindlen,
+							 curcol->column_bindtype, curcol->column_nullbind);
 		}
 	}
-	
+
 	/*
 	 * This function always bumps current.  Usually, it's called 
 	 * by dbnextrow(), so bumping current is a pretty obvious choice.  
@@ -271,9 +292,7 @@ buffer_struct_print(const DBPROC_ROWBUF *buf)
 	printf("\ttail = %d\t", 		buf->tail);
 	printf("\tcurrent = %d\n", 		buf->current);
 	printf("\tcapacity = %d\t", 		buf->capacity);
-	printf("\telement_size = %d\n", 	buf->element_size);
 	printf("\thead row number = %d\n", 	buf->received);
-	printf("\tallocation = %x\n", 		buf->rows? buf->capacity * buf->element_size : 0);
 }
 
 /* * * Functions called only by public db-lib API take DBPROCESS* * */
@@ -301,7 +320,7 @@ buffer_current_index(const DBPROCESS *dbproc)
 #if 0
 	buffer_struct_print(buf);
 #endif
-	if (buf->capacity == 1) /* no buffering */
+	if (buf->capacity <= 1) /* no buffering */
 		return -1;
 	if (buf->current == buf->head || buf->current == buf->capacity)
 		return -1;
@@ -328,9 +347,7 @@ buffer_set_capacity(DBPROCESS *dbproc, int nrows)
 {
 	DBPROC_ROWBUF *buf = &dbproc->row_buf;
 	
-	if (nrows > 0) {
-		buffer_free(buf);
-	}
+	buffer_free(buf);
 
 	memset(buf, 0, sizeof(DBPROC_ROWBUF));
 
@@ -338,7 +355,7 @@ buffer_set_capacity(DBPROCESS *dbproc, int nrows)
 		buf->capacity = 1;
 		return;
 	}
-	
+
 	assert(0 < nrows);
 
 	buf->capacity = nrows;
@@ -353,31 +370,23 @@ buffer_set_capacity(DBPROCESS *dbproc, int nrows)
  * we're not to communicate it back to the caller?   
  */
 static void
-buffer_alloc(DBPROCESS *dbproc, int element_size)
+buffer_alloc(DBPROCESS *dbproc)
 {
 	DBPROC_ROWBUF *buf = &dbproc->row_buf;
 	
 	/* Call this function only after setting capacity. */
 
 	assert(buf);
-	assert(element_size > 0);
 	assert(buf->capacity > 0);
 	assert(buf->rows == NULL);
 	
-	/* align rows on DBINT boundaries */
-	if (element_size % sizeof(DBINT))
-		element_size += sizeof(DBINT) - element_size % sizeof(DBINT);
-		
-	element_size += sizeof(DBINT);
-	
-	buf->rows = calloc(buf->capacity, element_size);
+	buf->rows = (DBLIB_BUFFER_ROW *) calloc(buf->capacity, sizeof(DBLIB_BUFFER_ROW));
 	
 	assert(buf->rows);
 	
 	buffer_reset(buf);
 	
 	buf->received = 0;
-	buf->element_size = element_size;
 }
 
 /**
@@ -385,17 +394,14 @@ buffer_alloc(DBPROCESS *dbproc, int element_size)
  * Returns a row buffer index, or -1 to indicate the buffer is full.
  */
 static int
-buffer_add_row(DBPROCESS *dbproc, void *row, int row_size)
+buffer_add_row(DBPROCESS *dbproc, TDSRESULTINFO *resinfo)
 {
 	DBPROC_ROWBUF *buf = &dbproc->row_buf;
-	
-	BYTE *dest = NULL;
+	DBLIB_BUFFER_ROW *row;
+	int i;
 
-	assert(row_size > 0);
-	assert(row_size <= buf->element_size);
+	assert(buf->capacity >= 0);
 
-	assert(buf->capacity >= 1);
-	
 	if (buffer_is_full(buf))
 		return -1;
 
@@ -405,18 +411,52 @@ buffer_add_row(DBPROCESS *dbproc, void *row, int row_size)
 		assert(buf->head == 0);
 		buf->tail = buffer_idx_increment(buf, buf->tail);
 	}
-	
-	dest = (BYTE*) buffer_row_address(buf, buf->head);
+
+	row = buffer_row_address(buf, buf->head);
 
 	/* bump the row number, write it, and move the data to head */
-	*(DBINT*) dest = ++buf->received;
-	memcpy(dest + sizeof(DBINT), row, row_size);
-	
+	if (row->resinfo) {
+		tds_free_row(row->resinfo, row->row_data);
+		tds_free_results(row->resinfo);
+	}
+	row->row = ++buf->received;
+	++resinfo->ref_count;
+	row->resinfo = resinfo;
+	row->row_data = NULL;
+	if (row->sizes)
+		free(row->sizes);
+	row->sizes = (TDS_INT *) calloc(resinfo->num_cols, sizeof(TDS_INT));
+	for (i = 0; i < resinfo->num_cols; ++i)
+		row->sizes[i] = resinfo->columns[i]->column_cur_size;
+
 	/* update current, bump the head */
 	buf->current = buf->head;
 	buf->head = buffer_idx_increment(buf, buf->head);
-	
+
 	return buf->current;
 }
 
+static int
+buffer_save_row(DBPROCESS *dbproc)
+{
+	DBPROC_ROWBUF *buf = &dbproc->row_buf;
+	DBLIB_BUFFER_ROW *row;
+	int idx = buf->head - 1;
+
+	if (buf->capacity <= 1)
+		return SUCCEED;
+
+	if (idx < 0)
+		idx = buf->capacity - 1;
+	if (idx >= 0 && idx < buf->capacity) {
+		row = &buf->rows[idx];
+
+		if (row->resinfo && !row->row_data) {
+			row->row_data = row->resinfo->current_row;
+			row->resinfo->current_row = tds_alloc_row(row->resinfo);
+		}
+	}
+
+	return SUCCEED;
+}
 

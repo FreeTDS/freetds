@@ -1,3 +1,11 @@
+Tue Aug 16 17:02:32 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/dblib.h include/tds.h src/dblib/buffering.h:
+	* src/dblib/dblib.c src/dblib/unittests/.cvsignore:
+	* src/dblib/unittests/Makefile.am:
+	* src/dblib/unittests/text_buffer.c(added):
+	* src/tds/mem.c src/tds/tds_checks.c:
+	- redone buffering in dblib fixing text problems
+
 Sun Aug 14 18:45:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix race condition setting current_statement
 

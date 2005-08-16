@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.13 2005-07-15 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.14 2005-08-16 15:04:03 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -235,6 +235,7 @@ tds_check_resultinfo_extra(const TDSRESULTINFO * res_info)
 
 	assert(res_info);
 	assert(res_info->num_cols >= 0);
+	assert(res_info->ref_count > 0);
 	for (i = 0; i < res_info->num_cols; ++i) {
 		int offset_check;
 
