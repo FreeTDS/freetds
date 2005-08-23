@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2005  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -82,7 +83,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.40 2005-08-08 19:10:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.41 2005-08-23 17:25:53 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)

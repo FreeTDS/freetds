@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2005  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -46,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.73 2005-08-11 07:39:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.74 2005-08-23 17:25:53 freddy77 Exp $");
 
 /**
  * \addtogroup network

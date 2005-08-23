@@ -1,3 +1,10 @@
+Wed Aug 23 19:25:32 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/convert_tds2sql.c src/odbc/prepare_query.c:
+	* src/tds/challenge.c src/tds/locale.c src/tds/numeric.c:
+	* src/tds/read.c src/tds/tdsstring.c src/tds/threadsafe.c:
+	* src/tds/write.c:
+	- updated copyright
+
 Tue Aug 16 17:02:32 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/dblib.h include/tds.h src/dblib/buffering.h:
 	* src/dblib/dblib.c src/dblib/unittests/.cvsignore:

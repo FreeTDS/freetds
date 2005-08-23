@@ -1,4 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
+ * Copyright (C) 2004-2005  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -37,7 +38,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: tdsstring.c,v 1.13 2005-07-07 18:34:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.14 2005-08-23 17:25:52 freddy77 Exp $");
 
 
 /**

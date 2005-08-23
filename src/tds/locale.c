@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 2005  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -38,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: locale.c,v 1.22 2005-07-07 13:06:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: locale.c,v 1.23 2005-08-23 17:25:52 freddy77 Exp $");
 
 
 static void tds_parse_locale(const char *option, const char *value, void *param);
