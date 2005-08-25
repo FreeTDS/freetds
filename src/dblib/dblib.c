@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.240 2005-08-16 15:04:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.241 2005-08-25 15:06:12 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -5912,10 +5912,6 @@ dbsqlsend(DBPROCESS * dbproc)
 	TDS_INT result_type;
 	char timestr[256];
 
-	dbproc->avail_flag = FALSE;
-	dbproc->envchange_rcv = 0;
-	dbproc->dbresults_state = _DB_RES_INIT;
-
 	tdsdump_log(TDS_DBG_FUNC, "in dbsqlsend()\n");
 	tds = dbproc->tds_socket;
 
@@ -5938,6 +5934,9 @@ dbsqlsend(DBPROCESS * dbproc)
 		if (rc != TDS_SUCCEED) {
 			return FAIL;
 		}
+		dbproc->avail_flag = FALSE;
+		dbproc->envchange_rcv = 0;
+		dbproc->dbresults_state = _DB_RES_INIT;
 		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 		       == TDS_SUCCEED);
 		if (rc != TDS_NO_MORE_RESULTS) {
@@ -5955,6 +5954,9 @@ dbsqlsend(DBPROCESS * dbproc)
 	if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf) != TDS_SUCCEED) {
 		return FAIL;
 	}
+	dbproc->avail_flag = FALSE;
+	dbproc->envchange_rcv = 0;
+	dbproc->dbresults_state = _DB_RES_INIT;
 	dbproc->command_state = DBCMDSENT;
 	return SUCCEED;
 }

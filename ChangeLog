@@ -1,3 +1,9 @@
+Thu Aug 25 17:05:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c:
+	- do not overwrite state if not in IDLE state
+	* src/odbc/sql2tds.c: typo
+	* src/tds/convert.c: comments
+
 Wed Aug 23 19:25:32 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/convert_tds2sql.c src/odbc/prepare_query.c:
 	* src/tds/challenge.c src/tds/locale.c src/tds/numeric.c:

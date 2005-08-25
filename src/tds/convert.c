@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.162 2005-08-02 12:09:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.163 2005-08-25 15:06:12 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -411,11 +411,13 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		return sizeof(TDS_INT8);
 		break;
 	case SYBFLT8:
+		/* FIXME not null terminated */
 		/* TODO check syntax and overflow */
 		cr->f = atof(src);
 		return sizeof(TDS_FLOAT);
 		break;
 	case SYBREAL:
+		/* FIXME not null terminated */
 		/* TODO check syntax and overflow */
 		cr->r = atof(src);
 		return sizeof(TDS_REAL);
@@ -483,9 +485,11 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		}
 		break;
 	case SYBDATETIME:
+		/* FIXME not null terminated */
 		return string_to_datetime(src, SYBDATETIME, cr);
 		break;
 	case SYBDATETIME4:
+		/* FIXME not null terminated */
 		return string_to_datetime(src, SYBDATETIME4, cr);
 		break;
 	case SYBNUMERIC:

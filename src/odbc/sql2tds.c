@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.50 2005-07-24 15:25:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.51 2005-08-25 15:06:12 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -383,7 +383,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	case SYBDECIMAL:
 		/*
 		 * for these types we ignore column_size so fix it in case
-		 * we overwrite it
+		 * we overwrote it
 		 */
 		res = sizeof(TDS_NUMERIC);
 	case SYBINTN:
