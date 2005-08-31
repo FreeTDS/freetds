@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.393 2005-08-15 07:06:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.394 2005-08-31 15:22:10 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3526,22 +3526,14 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		stmt->row_status = PRE_NORMAL_ROW;
 		for (;;) {
 			switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_DONE)) {
-			case TDS_NO_MORE_RESULTS:
-				if (stmt->dbc->current_statement == stmt)
-					stmt->dbc->current_statement = NULL;
-				ODBC_RETURN_(stmt);
 			case TDS_SUCCEED:
 				switch (result_type) {
 				case TDS_DONE_RESULT:
 				case TDS_DONEPROC_RESULT:
 				case TDS_DONEINPROC_RESULT:
 					stmt->row_count = tds->rows_affected;
-					if (done_flags & TDS_DONE_ERROR && !stmt->dyn->emulated) {
-						dyn = stmt->dyn;
-						stmt->dyn = NULL;
-						tds_free_dynamic(tds, dyn);
-						ODBC_RETURN(stmt, SQL_ERROR);
-					}
+					if (done_flags & TDS_DONE_ERROR && !stmt->dyn->emulated)
+						stmt->errs.lastrc = SQL_ERROR;
 					/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 					stmt->row = 0;
 					break;
@@ -3557,15 +3549,23 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 					in_row = 1;
 					break;
 				}
+				continue;
+			case TDS_NO_MORE_RESULTS:
 				break;
 			default:
+				stmt->errs.lastrc = SQL_ERROR;
+				break;
+			}
+
+			if (stmt->dbc->current_statement == stmt)
+				stmt->dbc->current_statement = NULL;
+			if (stmt->errs.lastrc == SQL_ERROR && !stmt->dyn->emulated) {
 				dyn = stmt->dyn;
 				stmt->dyn = NULL;
 				tds_free_dynamic(tds, dyn);
-				/* TODO ?? tds_free_param_results(params); */
-				ODBC_RETURN(stmt, SQL_ERROR);
-				break;
 			}
+			/* TODO ?? tds_free_param_results(params); */
+			ODBC_RETURN_(stmt);
 		}
 	}
 
