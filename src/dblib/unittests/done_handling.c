@@ -5,6 +5,11 @@
 #include <sybfront.h>
 #include <sybdb.h>
 
+#include "common.h"
+
+static char software_version[] = "$Id: done_handling.c,v 1.2 2005-08-31 15:20:17 freddy77 Exp $";
+static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
 /*
  * This test try do discovery how dblib process token looking for state
  * at every iteration. It issue a query to server and check
@@ -41,7 +46,7 @@ query(const char *query)
 }
 
 static void
-check_state()
+check_state(void)
 {
 	printf("State ");
 	if (dbnumcols(dbproc) > 0)
@@ -70,6 +75,8 @@ check_state()
 static void
 do_test(const char *query)
 {
+	int ret;
+
 	printf("test query %s\n", query);
 	dbcmd(dbproc, (char *) query);
 
@@ -103,14 +110,24 @@ do_test(const char *query)
 
 	check_state();
 
-	while (dbresults(dbproc) == SUCCEED)
+	check_idle = 0;
+	for (;;) {
+		printf("results \n");
+		ret = dbresults(dbproc);
+		check_state();
+		if (ret != SUCCEED)
+			break;
+
 		while (dbnextrow(dbproc) == SUCCEED)
 			;
+	}
 }
 
 int main(int argc, char *argv[])
 {
 	LOGINREC      *login;        /* Our login information. */
+
+	read_login_info(argc, argv);
 
 	if (dbinit() == FAIL)
 		exit(1);
@@ -119,11 +136,12 @@ int main(int argc, char *argv[])
 	dbmsghandle((MHANDLEFUNC)msg_handler);
 
 	login = dblogin();
-	DBSETLUSER(login, "sa");
-	DBSETLPWD(login, "");
+	DBSETLUSER(login, USER);
+	DBSETLPWD(login, PASSWORD);
 	DBSETLAPP(login, __FILE__);
 
-	dbproc = dbopen(login, NULL);
+	dbproc = dbopen(login, SERVER);
+	dbloginfree(login);
 	if (!dbproc)
 		exit(1);
 

@@ -1,3 +1,7 @@
+Wed Aug 31 17:19:15 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/unittests/done_handling.c:
+	- use common code and PWD
+
 Thu Aug 25 17:05:00 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c:
 	- do not overwrite state if not in IDLE state
