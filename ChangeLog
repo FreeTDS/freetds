@@ -1,3 +1,6 @@
+Tue Sep 13 11:39:19 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: backported memory leak on failed connection
+
 Sun Aug 14 11:00:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/preperror.c:
 	- catch error preparing statement
