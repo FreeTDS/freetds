@@ -1,3 +1,6 @@
+Mon Sep 19 16:45:42 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/array.c: fix test
+
 Wed Aug 31 17:21:12 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: delete invalid dynamic
 

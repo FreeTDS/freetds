@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.9 2005-08-14 09:20:53 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.10 2005-09-19 14:46:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -125,21 +125,27 @@ main(int argc, char *argv[])
 	use_odbc_version3 = 1;
 	Connect();
 
-	test_query = "INSERT INTO #tmp1 (id, value) VALUES (?, ?)";
-	query_test(0, SQL_ERROR, "VV!!!!!!!!");
-	/* FIXME test why is different and what should be correct result */
-	query_test(1, driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+	if (db_is_microsoft()) {
+		test_query = "INSERT INTO #tmp1 (id, value) VALUES (?, ?)";
+		query_test(0, SQL_ERROR, "VV!!!!!!!!");
+		/* FIXME test why is different and what should be correct result */
+		query_test(1, driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
-	test_query = "INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?";
-	query_test(0, SQL_SUCCESS_WITH_INFO, "VVVV!V!V!V");
-	/* FIXME test why is different and what should be correct result */
-	query_test(1, driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+		test_query = "INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?";
+		query_test(0, SQL_SUCCESS_WITH_INFO, "VVVV!V!V!V");
+		/* FIXME test why is different and what should be correct result */
+		query_test(1, driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
-	/* with result, see how SQLMoreResult work */
-	test_query = "INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?";
-	/* IMHO our driver is better here -- freddy77 */
-	query_test(0, SQL_SUCCESS, driver_is_freetds() ? "VVVVV!V!V!" : "VVVVVV!VVV");
-	query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
+		/* with result, see how SQLMoreResult work */
+		test_query = "INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?";
+		/* IMHO our driver is better here -- freddy77 */
+		query_test(0, SQL_SUCCESS, driver_is_freetds() ? "VVVVV!V!V!" : "VVVVVV!VVV");
+		query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
+	} else {
+		/* Sybase test for conversions before executing */
+		test_query = "INSERT INTO #tmp1 (id, value) VALUES (?/8, ?)";
+		query_test(0, SQL_SUCCESS, "VVVVVVVVVV");
+	}
 
 	/* TODO record binding, array fetch, sqlputdata */
 
