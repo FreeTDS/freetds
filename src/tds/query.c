@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.190 2005-08-12 09:39:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.191 2005-09-19 14:54:19 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1574,6 +1574,12 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	tds->cur_dyn = dyn;
 
 	if (IS_TDS7_PLUS(tds)) {
+		/* check proper id */
+		if (dyn->num_id == 0) {
+			tds_set_state(tds, TDS_IDLE);
+			return TDS_FAIL;
+		}
+
 		/* RPC on sp_execute */
 		tds->out_flag = TDS_RPC;
 

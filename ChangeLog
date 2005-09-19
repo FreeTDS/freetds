@@ -1,3 +1,6 @@
+Mon Sep 19 16:53:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/query.c: check valid id for prepared on tds7+
+
 Mon Sep 19 16:50:46 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/numeric.c: small optimization
 
