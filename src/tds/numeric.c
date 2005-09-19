@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.37 2005-08-23 17:25:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.38 2005-09-19 14:51:09 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -415,7 +415,8 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 
 	/* package number */
 	bytes = tds_numeric_bytes_per_prec[numeric->precision] - 1;
-	for (i = 0; bytes > 0; bytes -= sizeof(TDS_WORD), ++i) {
+	i = 0;
+	do {
 		/*
 		 * note that if bytes are smaller we have a small buffer
 		 * overflow in numeric->array however is not a problem
@@ -426,7 +427,8 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 #else
 		packet[i] = TDS_GET_UA4BE(&numeric->array[bytes-3]);
 #endif
-	}
+		++i;
+	} while ( (bytes -= sizeof(TDS_WORD)) > 0);
 	/* fix last packet */
 	if (bytes < 0)
 		packet[i-1] &= 0xffffffffu >> (8 * -bytes);
