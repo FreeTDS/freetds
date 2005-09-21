@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.157 2005-08-11 07:39:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.158 2005-09-21 14:46:00 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2849,7 +2849,7 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 			idx = 13;
 			bitmask = 0x01;
 			break;
-		case CS_DATA_NOTDSDEBUG:
+		case CS_RES_NOTDSDEBUG:
 			idx = 13;
 			bitmask = 0x02;
 			break;

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.242 2005-08-16 15:04:02 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.243 2005-09-21 14:46:00 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -144,7 +144,7 @@ typedef struct tdsdatetime4
 
 typedef struct tdsvarbinary
 {
-	TDS_INT len;
+	TDS_SMALLINT len;
 	TDS_CHAR array[256];
 } TDS_VARBINARY;
 typedef struct tdsvarchar

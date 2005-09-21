@@ -30,7 +30,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.5 2005-07-26 09:34:28 freddy77 Exp $";
+static const char rcsid_cstypes_h[] = "$Id: cstypes.h,v 1.6 2005-09-21 14:46:00 freddy77 Exp $";
 static const void *const no_unused_cstypes_h_warn[] = { rcsid_cstypes_h, no_unused_cstypes_h_warn };
 
 
@@ -48,7 +48,7 @@ typedef unsigned char CS_IMAGE;
 typedef unsigned char CS_TEXT;
 typedef unsigned char CS_LONGBINARY;
 typedef unsigned char CS_LONGCHAR;
-typedef tds_sysdep_int32_type CS_LONG;
+typedef long CS_LONG;
 typedef unsigned char CS_BINARY;
 typedef unsigned tds_sysdep_int16_type CS_USHORT;
 typedef unsigned char CS_BIT;
@@ -78,7 +78,7 @@ typedef CS_NUMERIC CS_DECIMAL;
 
 typedef struct _cs_varbinary
 {
-	CS_INT len;
+	CS_SMALLINT len;
 	CS_CHAR array[256];
 } CS_VARBINARY;
 

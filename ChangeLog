@@ -1,3 +1,8 @@
+Wed Sep 21 16:44:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/cspublic.h include/cstypes.h include/ctlib.h:
+	* include/tds.h src/ctlib/ct.c:
+	- improve binary compatibility with Sybase libraries
+
 Mon Sep 19 16:53:05 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c: check valid id for prepared on tds7+
 

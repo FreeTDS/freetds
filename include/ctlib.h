@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.21 2005-04-15 11:51:40 freddy77 Exp $";
+static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.22 2005-09-21 14:46:00 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -173,6 +173,10 @@ struct _cs_dynamic
 	CS_DYNAMIC_PARAM *param_list;
 	struct _cs_dynamic *next;
 }; 
+
+/* specific FreeTDS commands */
+#define CS_DYNAMIC_CMD   160
+#define CS_CUR_CMD       161
 
 /* values for cs_command.results_state */
 
