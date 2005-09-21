@@ -8,15 +8,13 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.153 2005-08-16 15:04:02 freddy77 Exp $
+To Do List	$Id: TODO,v 1.154 2005-09-21 11:34:46 freddy77 Exp $
 ------------
 
 Must be fixed in 0.64:
 . ctlib parameters, handle all case even in tds7
   . handle and test prepared query
     (? and @ syntax should be supported)
-. fix all regression tests
-  . odbc array binding (see odbc tests)
 . cancellation
   . ctlib seems to hang reading row while in IDLE state
     (tds_peek if not in pending state hang... update)
@@ -125,6 +123,9 @@ For future versions (in priority order within library):
 . handle async flags ??
 . it seems that if statement it's wrong and we issue SQLPrepare on SQLExecute
   it try to send unprepared dynamic... state on dynamic??
+. odbc array binding
+  test large field (like image) have language queries some limits?
+  do we have to split large multiple queries?
 
 . test and fix: hidden fields (FOR BROWSE select, see flag test on tds)
 . test: all binding types (input and output)
