@@ -7,7 +7,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.2 2005-08-31 15:20:17 freddy77 Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.3 2005-09-21 18:12:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -118,8 +118,11 @@ do_test(const char *query)
 		if (ret != SUCCEED)
 			break;
 
-		while (dbnextrow(dbproc) == SUCCEED)
-			;
+		do {
+			printf("nextrow ");
+			ret = dbnextrow(dbproc);
+			check_state();
+		} while (ret == SUCCEED);
 	}
 }
 
@@ -149,6 +152,7 @@ int main(int argc, char *argv[])
 	query("insert into #dummy values('xxx')");
 	query("drop proc done_test");
 	query("create proc done_test @a varchar(10) output as select * from #dummy");
+	query("create proc done_test2 as select * from #dummy where s = 'aaa' select * from #dummy");
 
 	check_idle = 1;
 
@@ -167,7 +171,11 @@ int main(int argc, char *argv[])
 
 	do_test("declare @i int");
 
+	do_test("exec done_test2");
+	do_test("declare @i int");
+
 	query("drop proc done_test");
+	query("drop proc done_test2");
 
 	dbexit();
 	return 0;
