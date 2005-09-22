@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.30 2005-08-16 15:04:02 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.31 2005-09-22 14:18:35 freddy77 Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -151,6 +151,8 @@ struct tds_dblib_dbprocess
 	
 	/** boolean use ms behaviour */
 	int msdblib;
+
+	int ntimeouts;
 };
 
 #define DBLIB_INFO_MSG_TYPE 0

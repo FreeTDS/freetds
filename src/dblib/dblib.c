@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.241 2005-08-25 15:06:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.242 2005-09-22 14:18:35 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -7000,7 +7000,6 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 int
 dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 {
-	static int microsoft_timeouts = 0;
 	static const char int_exit_text[] = "FreeTDS: db-lib: exiting because client error handler returned %d for msgno %d\n";
 	static const char int_invalid_text[] = "%s (%d) received from client-installed error handler for nontimeout for error %d."
 					       "  Treating as INT_EXIT\n";
@@ -7053,8 +7052,8 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 	switch (rc) {
 	case INT_CONTINUE:
 		/* Microsoft does not define INT_TIMEOUT.  Instead, two consecutive INT_CONTINUEs yield INT_CANCEL. */
-		if (dbproc && dbproc->msdblib && ++microsoft_timeouts >=2) {
-			microsoft_timeouts = 0;
+		if (dbproc && dbproc->msdblib && ++dbproc->ntimeouts >=2) {
+			dbproc->ntimeouts = 0;
 			rc = INT_CANCEL;
 		}	/* fall through */
 	case INT_CANCEL:
