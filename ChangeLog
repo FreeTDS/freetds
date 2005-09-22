@@ -1,3 +1,6 @@
+Thu Sep 22 16:31:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/array.c: fix bug in test
+
 Thu Sep 22 16:15:59 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/dblib.h src/dblib/dblib.c:
 	- fix reentrancy problem for dblib

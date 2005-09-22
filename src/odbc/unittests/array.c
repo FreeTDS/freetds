@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.10 2005-09-19 14:46:03 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.11 2005-09-22 14:37:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -31,7 +31,8 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	typedef SQLCHAR desc_t[DESC_LEN];
 	desc_t *descs = XMALLOC_N(desc_t, ARRAY_SIZE);
 	SQLINTEGER *id_lens = XMALLOC_N(SQLINTEGER,ARRAY_SIZE), *desc_lens = XMALLOC_N(SQLINTEGER,ARRAY_SIZE);
-	SQLUSMALLINT i, processed, *statuses = XMALLOC_N(SQLUSMALLINT,ARRAY_SIZE);
+	SQLUSMALLINT i, *statuses = XMALLOC_N(SQLUSMALLINT,ARRAY_SIZE);
+	SQLULEN processed;
 	RETCODE ret;
 	char status[20];
 
@@ -66,7 +67,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	if (ret != expected) {
 		char buf[256];
 
-		sprintf(buf, "Invalid result: got %d exptected %d processed %d", ret, expected, processed);
+		sprintf(buf, "Invalid result: got %d exptected %d processed %d", ret, expected, (int) processed);
 		ODBC_REPORT_ERROR(buf);
 	}
 
@@ -76,7 +77,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	if (processed > ARRAY_SIZE) {
 		char buf[256];
 
-		sprintf(buf, "Invalid processed number: %d", processed);
+		sprintf(buf, "Invalid processed number: %d", (int) processed);
 		ODBC_REPORT_ERROR(buf);
 	}
 
