@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: write.c,v 1.66 2004-07-29 10:22:42 freddy77 Exp $";
+static char software_version[] = "$Id: write.c,v 1.66.2.1 2005-09-23 11:40:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int tds_write_packet(TDSSOCKET * tds, unsigned char final);
@@ -325,6 +325,10 @@ goodwrite(TDSSOCKET * tds)
 	unsigned char *p;
 	int result = TDS_SUCCEED;
 	int retval;
+
+	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
+	if (TDS_IS_SOCKET_INVALID(tds->s))
+		return -1;
 
 	left = tds->out_pos;
 	p = tds->out_buf;
