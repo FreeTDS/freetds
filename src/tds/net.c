@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.31 2005-08-09 10:57:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.32 2005-09-25 13:30:19 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -568,6 +568,10 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 {
 	int left = len;
 	int retval;
+
+	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
+	if (TDS_IS_SOCKET_INVALID(tds->s))
+		return -1;
 
 	while (left > 0) {
 		/*

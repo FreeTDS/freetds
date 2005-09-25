@@ -1,3 +1,7 @@
+Sun Sep 25 15:29:56 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/net.c:
+	- fix possible core (patch from Sergey A. Cherukhin)
+
 Thu Sep 22 16:31:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/array.c: fix bug in test
 
