@@ -16,6 +16,12 @@ do
 		TESTS_ENVIRONMENT=true
 		export TESTS_ENVIRONMENT
 		;;
+	--help)
+		echo "Usage: $0 [OPTION]..."
+		echo '  --help          this help'
+		echo '  --no-unittests  do not execute unittests'
+		exit 0
+		;;
 	*)
 		echo 'Option not supported!' 1>&2
 		exit 1
