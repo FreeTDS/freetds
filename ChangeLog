@@ -1,3 +1,6 @@
+Tue Sep 27 16:30:54 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* src/apps/bsqldb.c write server messages to stderr
+
 Sun Sep 25 15:29:56 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/net.c:
 	- fix possible core (patch from Sergey A. Cherukhin)
