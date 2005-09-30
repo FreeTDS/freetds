@@ -1,3 +1,7 @@
+Fri Sep 30 16:00:47 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/bsqldb.txt src/apps/bsqldb.c
+	- added -q to suppress metadata, and updated man page
+	
 Tue Sep 27 16:30:54 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/apps/bsqldb.c write server messages to stderr
 

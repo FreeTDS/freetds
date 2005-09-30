@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.22 2005-09-27 20:31:38 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.23 2005-09-30 20:02:05 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -66,7 +66,8 @@ static int set_format_string(struct METADATA * meta, const char separator[]);
 
 typedef struct _options 
 { 
-	int 	fverbose;
+	int 	fverbose, 
+		fquiet;
 	FILE 	*verbose;
 	char 	*servername, 
 		*database, 
@@ -493,16 +494,17 @@ print_results(DBPROCESS *dbproc)
 		fprintf(options.verbose, "\n");
 		fprintf(options.verbose, "Data\n");
 
-		/* Print the column headers to stderr to keep them separate from the data.  */
-		for (c=0; c < ncols; c++) {
-			fprintf(stderr, metadata[c].format_string, metadata[c].name);
-		}
+		if (!options.fquiet) {
+			/* Print the column headers to stderr to keep them separate from the data.  */
+			for (c=0; c < ncols; c++) {
+				fprintf(stderr, metadata[c].format_string, metadata[c].name);
+			}
 
-		/* Underline the column headers.  */
-		for (c=0; c < ncols; c++) {
-			fprintf(stderr, metadata[c].format_string, dashes);
+			/* Underline the column headers.  */
+			for (c=0; c < ncols; c++) {
+				fprintf(stderr, metadata[c].format_string, dashes);
+			}
 		}
-
 		/* 
 		 * Print the data to stdout.  
 		 */
@@ -566,21 +568,24 @@ print_results(DBPROCESS *dbproc)
 		}
 
 		/* Check return status */
-		fprintf(options.verbose, "Retrieving return status... ");
-		if (dbhasretstat(dbproc) == TRUE) {
-			fprintf(stderr, "Procedure returned %d\n", dbretstatus(dbproc));
-		} else {
-			fprintf(options.verbose, "none\n");
+		if (!options.fquiet) {
+			fprintf(options.verbose, "Retrieving return status... ");
+			if (dbhasretstat(dbproc) == TRUE) {
+				fprintf(stderr, "Procedure returned %d\n", dbretstatus(dbproc));
+			} else {
+				fprintf(options.verbose, "none\n");
+			}
 		}
 		
 		/* 
 		 * Get row count, if available.   
 		 */
-		if (DBCOUNT(dbproc) > -1)
-			fprintf(stderr, "%d rows affected\n", DBCOUNT(dbproc));
-		else 
-			fprintf(stderr, "@@rowcount not available\n");
-			
+		if (!options.fquiet) {
+			if (DBCOUNT(dbproc) > -1)
+				fprintf(stderr, "%d rows affected\n", DBCOUNT(dbproc));
+			else 
+				fprintf(stderr, "@@rowcount not available\n");
+		}			
 
 		/* 
 		 * Check return parameter values 
@@ -708,7 +713,7 @@ static void unescape(char arg[])
 		switch (p[1]) {
 		case '0':
 			/* FIXME we use strlen() of field/row terminators, which obviously won't work here */
-			fprintf(stderr, "freebcp, line %d: NULL terminators ('\\0') not yet supported.\n", __LINE__);
+			fprintf(stderr, "bsqldb, line %d: NULL terminators ('\\0') not yet supported.\n", __LINE__);
 			escaped = '\0';
 			break;
 		case 't':
@@ -764,7 +769,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		DBSETLHOST(login, options->hostname);
 	}
 
-	while ((ch = getopt(argc, argv, "U:P:S:D:i:o:e:t:v")) != -1) {
+	while ((ch = getopt(argc, argv, "U:P:S:D:i:o:e:t:qv")) != -1) {
 		switch (ch) {
 		case 'U':
 			DBSETLUSER(login, optarg);
@@ -790,6 +795,9 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		case 't':
 			unescape(optarg);
 			options->colsep = strdup(optarg);
+			break;
+		case 'q':
+			options->fquiet = 1;
 			break;
 		case 'v':
 			options->fverbose = 1;

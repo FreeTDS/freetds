@@ -3,7 +3,8 @@ NAME
 
 SYNOPSIS
   bsqldb [-U username] [-P password] [-S server] [-D database]
-         [-i input_file] [-o output_file] [-e error_file] [-v]
+         [-i input_file] [-o output_file] [-e error_file]
+         [-t field_term] [-qv]
 
 DESCRIPTION
   bsqldb is a utility program distributed with FreeTDS.
@@ -17,21 +18,27 @@ DESCRIPTION
   API is of course also available to application developers.
 
 OPTIONS
-  -U username   database server login name.
+  -U username   Database server login name.
 
-  -P password   database server password.
+  -P password   Database server password.
 
-  -S server	database server to which to connect.
+  -S server	Database server to which to connect.
 
-  -D database	database to use.
+  -D database	Database to use.
 
-  -i input_file  name of script file, containing SQL.
+  -i input_file  Name of script file, containing SQL.
 
-  -o output_file  name of output file, holding result data.
+  -o output_file  Name of output file, holding result data.
 
-  -e error_file  name of file for errors.
+  -e error_file  Name of file for errors.
 
-  -v  Turn on verbose mode, for more information about the db-lib interaction.
+  -t field_term  Specifies the field terminator. Default is two spaces ('  '). 
+  Recognized escape sequences are tab ('\\t'), carriage return ('\\r'), newline ('\\n'), 
+  and backslash ('\\\\'). 
+
+  -q  Do not print column metadata, return status, or rowcount.
+
+  -v  Verbose mode, for more information about the db-lib interaction.
   This also reports the result set metadata, including and return code. All
   verbose data are written to standard error (or -e), so as not to interfere 
   with the data stream.
