@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.242 2005-09-22 14:18:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.243 2005-10-03 02:52:56 jklowden Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -6635,7 +6635,15 @@ typedef struct _dblib_error_message
 } DBLIB_ERROR_MESSAGE;
 
 static const DBLIB_ERROR_MESSAGE dblib_error_messages[] = 
-	{ { SYBEAAMT,           EXPROGRAM,	"User attempted a dbaltbind with mismatched column and variable types" }
+	{ { SYBEICONVIU,     EXCONVERSION,	"Some character(s) could not be converted into client's character set" }
+	, { SYBEICONVAVAIL,  EXCONVERSION,	"Character set conversion is not available between client character set '%.*s' and "
+						"server character set '%.*s'" }
+	, { SYBEICONVO,      EXCONVERSION,	"Error converting characters into server's character set. Some character(s) could "
+						"not be converted" }
+	, { SYBEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  Unconverted "
+						"bytes were changed to question marks ('?')" }
+	, { SYBEICONV2BIG,   EXCONVERSION,	"Buffer overflow converting characters from client into server's character set" }
+	, { SYBEAAMT,           EXPROGRAM,	"User attempted a dbaltbind with mismatched column and variable types" }
 	, { SYBEABMT,           EXPROGRAM,	"User attempted a dbbind with mismatched column and variable types" }
 	, { SYBEABNC,           EXPROGRAM,	"Attempt to bind to a non-existent column" }
 	, { SYBEABNP,           EXPROGRAM,	"Attempt to bind using NULL pointers" }

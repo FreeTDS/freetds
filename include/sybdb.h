@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.72 2005-06-27 22:27:20 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.73 2005-10-03 02:52:56 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -705,8 +705,12 @@ char *dbtabname(DBPROCESS * dbprocess, int tabnum);
 char *dbtabsoruce(DBPROCESS * dbprocess, int colnum, int *tabnum);
 DBINT dbvarylen(DBPROCESS * dbproc, int column);
 
-#define SYBEICONVI       2403	/* Unconverted characters were changed to question marks while reading from SQL Server. */
-#define SYBEICONVO       2402	/* Unable to write to SQL Server: error converting to server's character set. */
+#define SYBEICONVIU	 2400	/* Some character(s) could not be converted into client's character set. */
+#define SYBEICONVAVAIL	 2401	/* Character set conversion is not available between client character set '%.*s' and server character set '%.*s'.*/
+#define SYBEICONVO	 2402	/* Error converting characters into server's character set. Some character(s) could not be converted.*/
+#define SYBEICONVI	 2403	/* Some character(s) could not be converted into client's character set.  Unconverted bytes were changed to question marks ('?').*/
+#define SYBEICONV2BIG	 2404	/* Buffer overflow converting characters from client into server's character set.*/
+				/* cf. doc/dblib_errors.txt for more iconv error values. */
 #define SYBESYNC        20001	/* Read attempted while out of synchronization with SQL Server. */
 #define SYBEFCON        20002	/* SQL Server connection failed. */
 #define SYBETIME        20003	/* SQL Server connection timed out. */

@@ -1,6 +1,6 @@
 #! /usr/pkg/bin/perl 
 # can be used to generate the C struct
-# $Id: dblib_errors.txt,v 1.3 2005-06-27 22:27:11 jklowden Exp $
+# $Id: dblib_errors.txt,v 1.4 2005-10-03 02:52:56 jklowden Exp $
 print "= {\n";
 
 while(<DATA>) {
@@ -24,7 +24,41 @@ while(<DATA>) {
 	}
 	printf qq(\t, { %-16s%13s,\t"%s" }\n), "$F[0],", @F[1,2];
 }
+
+# select error, cast(description as varchar(150))  from sysmessages where error between 2400 and 2450
 __DATA__ 
+SYBEICONVIU	EXCONVERSION	Some character(s) could not be converted into client's character set. 
+SYBEICONVAVAIL	EXCONVERSION	Character set conversion is not available between client character set '%.*s' and server character set '%.*s'.
+SYBEICONVO	EXCONVERSION	Error converting characters into server's character set. Some character(s) could not be converted.
+SYBEICONVI	EXCONVERSION	Some character(s) could not be converted into client's character set.  Unconverted bytes were changed to question marks ('?').
+SYBEICONV2BIG	EXCONVERSION	Buffer overflow converting characters from client into server's character set.
+2405	EXCONVERSION	Internal error occurred while converting characters.
+2406	EXCONVERSION	Cannot use SET CHAR_CONVERT ON, since this session has never had codeset conversions turned on.
+2407	EXCONVERSION	Cannot use the requested character set since the character set cache is full.
+2408	EXCONVERSION	Cannot find the requested character set in Syscharsets:  id = %d.
+2409	EXCONVERSION	Cannot find the requested character set in Syscharsets:  name = '%.*s'.
+2410	EXCONVERSION	Unexpected error returned from the Character Set Manager:  return value = %d.
+2411	EXCONVERSION	No conversions will be done.
+2412	EXCONVERSION	Existing character conversions (if any) will remain in effect.
+2414	EXCONVERSION	Since only 7-bit ASCII characters are allowed with the special character set 'ascii_7', the language for this session is being forced to 'us_english'.
+2415	EXCONVERSION	Due to previous errors, the language for this session is being forced to 'us_english'.
+2416	EXCONVERSION	Due to codeset conversion errors in the remote servername/password list of the LOGINREC, remote procedure calls to other servers may not work.
+2417	EXCONVERSION	Unable to use Unicode-based character set conversion - client character set '%.*s' and server character set '%.*s' are incompatible.
+2418	EXCONVERSION	Unable to load Unicode-based character set conversion table '%.*s' - table not found.
+2419	EXCONVERSION	Unable to load Unicode-based character set conversion table '%.*s' - the conversion table is corrupted.
+2420	EXCONVERSION	Unable to load Unicode-based character set conversion table '%.*s' - Unicode conversion cache is full.
+2421	EXCONVERSION	Unable to use Unicode-based character set conversion - The requested character set is not supported: id = %d.
+2422	EXCONVERSION	Unable to use Unicode-based character set conversion - The requested character set is not supported: name = '%.*s'.
+2423	EXCONVERSION	Unexpected error returned from Unilib functions: return value = %d.
+2424	EXCONVERSION	TEXT data not supported when data size is changing between the '%.*s' and '%.*s' character sets due to character set conversion.
+2425	EXCONVERSION	Unable to use Unicode-based character set conversion - Can not get conversion handle for server's default character set.
+2426	EXCONVERSION	LONGCHAR datatype not allowed on output because client does not support it.
+2427	EXCONVERSION	LONGCHAR datatype not allowed on output because unicode conversions have not been enabled.
+2428	EXCONVERSION	Unrecongnized server or client unilib character set ID. Expansion factor is set to 1.
+2429	EXCONVERSION	No matched unilib character set ID for the server or client character set ID. Expansion factor is set to 1.
+2431	EXCONVERSION	Some character(s) in the source string are considered illegal bytes in server's character set. All bytes after the first illegal bytes are truncated.
+2432	EXCONVERSION	Illegal byte sequence encountered in Unicode data during %S_MSG conversion of %s value '%s' to a %s field.
+2433	EXCONVERSION	Illegal byte sequence encountered in Unicode data.
 SYBEAAMT	EXPROGRAM	User attempted a dbaltbind with mismatched column and variable types.
 SYBEABMT	EXPROGRAM	User attempted a dbbind with mismatched column and variable types.
 SYBEABNC	EXPROGRAM	Attempt to bind to a non-existent column.
