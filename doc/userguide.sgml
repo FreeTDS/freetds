@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2005-06-14 02:22:55 $</date>
-		<releaseinfo>$Revision: 1.95 $</releaseinfo>
+		<date>$Date: 2005-10-03 02:52:40 $</date>
+		<releaseinfo>$Revision: 1.96 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.95 $</>
-<member>$Date: 2005-06-14 02:22:55 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.95 2005-06-14 02:22:55 jklowden Exp $.</>
+<member>$Revision: 1.96 $</>
+<member>$Date: 2005-10-03 02:52:40 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.96 2005-10-03 02:52:40 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -565,7 +565,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2005-06-14 02:22:55 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2005-10-03 02:52:40 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -2794,7 +2794,7 @@ First <command>ping</> the host to make sure you can talk to the machine the ser
 <example id="e.g.troubleshooting.ping">
 	<title>Finding the server's host</title>
 <screen>
-<prompt>$ </prompt><userinput>ping -c1 myhost</userinput>
+<prompt>$ </prompt><userinput>ping -c1 <replaceable>myhost</replaceable></userinput>
 <computeroutput>
 PING myhost (127.0.0.1) from 127.0.0.1 : 56(84) bytes of data.
 64 bytes from myhost (127.0.0.1): icmp_seq=0 ttl=255 time=250 usec
