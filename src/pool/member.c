@@ -39,6 +39,10 @@
 #include <sys/param.h>
 #endif /* HAVE_SYS_PARAM_H */
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
@@ -54,7 +58,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.39 2005-07-30 09:01:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.40 2005-10-03 02:53:07 jklowden Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);

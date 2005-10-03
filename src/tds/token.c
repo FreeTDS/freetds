@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.302 2005-07-26 09:36:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.303 2005-10-03 02:53:07 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1848,7 +1848,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	tdsdump_log(TDS_DBG_INFO1, "processing row.  column is %d varint size = %d\n", i, curcol->column_varint_size);
+	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: column %d, type %d, varint size %d\n", i, curcol->column_type, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 	case 4:
 		/*
@@ -3154,6 +3154,7 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 
 	switch (argsize) {
 	case 0:
+		arg = 0;
 		break;
 	case 1:
 		arg = tds_get_byte(tds);
@@ -3162,6 +3163,9 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 		arg = tds_get_int(tds);
 		break;
 	default:
+		tdsdump_log(TDS_DBG_INFO1, "oops: cannot process option of size %d\n", argsize);
+		assert(argsize <= 4);
+		exit(1);	 /* FIXME: stream would become desynchronized */
 		break;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "received option %d value %d\n", option, arg);
