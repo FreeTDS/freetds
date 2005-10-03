@@ -6,6 +6,13 @@
 <style-specification use="docbook">
 <style-specification-body>
 
+;; Instructions can be found in 
+;; 	The Modular DocBook Stylesheets
+;;	by Norman Walsh
+;; See Chapter 3, "Customizing the Stylesheets"
+;; http://docbook.sourceforge.net/release/dsssl/current/doc/custom.html
+;; $Id: userguide.dsl.in,v 1.2 2005-10-03 02:52:22 jklowden Exp $
+
 ;; For note, tip, and warning: include little
 ;; gifs of a hand pointing a finger, or a yield sign, and so on.  
 ;; Much prettier to look at than text.  
@@ -27,7 +34,36 @@
 
 (define %graphic-default-extension% 
   "gif")
+  
+;; Indent "screen" sections. 
+;; http://docbook.sourceforge.net/release/dsssl/current/doc/html/indent-screen-lines.html
+(define %indent-screen-lines%
+  ;; Indent lines in a 'Screen'?
+  #f)
 
+;; If %html40% is true then the output more closely resembles HTML
+;; 4.0. In particular, the HTML table module includes COL, THEAD,
+;; TBODY, and TFOOT elements, and the output documents have a proper
+;; doctype declaration.
+
+(define %html40%
+  ;; Generate HTML 4.0
+  #t)
+
+;; Should the role attribute of emphasis be propagated to HTML as a
+;; class attribute value? Source Code
+
+(define %emphasis-propagates-style%
+  ;; Support propagating emphasis role attributes to HTML
+  #t)
+
+;; Generate links to the FreeTDS HTML stylesheet to control the 
+;; browswer's rendering of certain classes of elements e.g. < userinput >.
+;; The stylesheets (version 1.57) wrapped userinput in < b >< /b >, but 
+;; version 1.79 doesn't.  
+
+(define %stylesheet% "userguide.css")
+  
 </style-specification-body>
 </style-specification>
 <external-specification id="docbook" document="dbstyle">

@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.54 2005-07-07 17:47:57 jklowden Exp $
+# version: $Id: Makefile.am,v 1.55 2005-10-03 02:52:22 jklowden Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -9,7 +9,7 @@ TARGET_DOCDIR = $(DESTDIR)$(datadir)/$(DOCDIR)
 
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt CodingStyle tds.html  \
-		userguide.dsl.in userguide.sgml \
+		userguide.dsl.in userguide.sgml userguide.css \
 		$(man_MANS) freebcp.txt tsql.txt \
 		bsqldb.txt defncopy.txt datacopy.txt \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
@@ -114,9 +114,7 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 	$(mkinstalldirs) $(DOCDIR)/userguide 2>&1
 	touch $(DOCDIR)/userguide/t.htm
 	rm -f $(DOCDIR)/userguide/*
-	$(MAKE) dblib.api.sgml
-	$(MAKE) ctlib.api.sgml
-	$(MAKE) odbc.api.sgml
+	$(MAKE) dblib.api.sgml ctlib.api.sgml odbc.api.sgml
 # if we're not using jade, copy the distribution's userguide
 	if test -z "${DOCBOOK_DSL}" ; then \
 		if test -r $(DISTRIBUTED_UG_DIR) -a ! -r $(DOCDIR)/userguide ; then \
@@ -126,9 +124,13 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 # try jade ...
 	cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
-		if test ! -r userguide.sgml; then ln -s ../../../$(srcdir)/userguide.sgml userguide.sgml; fi; \
+##		The crazy path is due to the above 'cd' command
+		SRCDOC=../../../$(srcdir); \
+		if test ! -r userguide.sgml; then ln -s $${SRCDOC}/userguide.sgml userguide.sgml; fi; \
 		openjade -d ../../../userguide.dsl -t sgml userguide.sgml; \
 		if test -h userguide.sgml; then rm userguide.sgml; fi; \
+## 		and copy the stylesheet
+		cp $${SRCDOC}/userguide.css .; \
 	fi
 # if still no joy, create a stub
 	if test ! -r $@ ; then \
@@ -218,7 +220,8 @@ ctlib.api.sgml:
 			>> .ctlib.api
 	mv .ctlib.api $@
 
-MSDN_ODBC = http://msdn.microsoft.com/library/default.asp?url=/library/en-us/odbc/htm/odbc
+MSDN_ODBC = http://msdn.microsoft.com/library/en-us/odbc/htm/odbc
+
 odbc.api.sgml:
 	echo '<table id="odbc.api"><title>ODBC API Implementation Summary</title>' \
 			> .odbc.api
@@ -235,7 +238,7 @@ odbc.api.sgml:
 # Let's hope they don't change their site too often.  
 	grep '^odbc' $(srcdir)/api_status.txt | sed -e' s!^odbc[	]!<row><entry>!; \
 		s![	][	]*!</> <entry>!g; \
-		s!\<\(SQL[[:alpha:]]*\)\>!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; \
+		s!\(SQL[[:alpha:]]*\)!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; \
 		s!$$!</></row>!; \
 	      ' >> .odbc.api
 	echo '</tbody></tgroup></table>' \
