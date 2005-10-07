@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.32 2005-09-25 13:30:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.33 2005-10-07 10:23:45 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -145,7 +145,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	time_t start, now;
 	int len, retval;
 	char ip[20];
-#ifdef WIN32
+#if defined(DOS32X) || defined(WIN32)
 	int optlen;
 #else
 	socklen_t optlen;
@@ -183,7 +183,20 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 #else
 #error One should be defined
 #endif
-	
+
+#ifdef  DOS32X			/* the other connection doesn't work  on WATTCP32 */
+	if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+		char *message;
+
+		if (asprintf(&message, "src/tds/login.c: tds_connect: %s:%d", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port)) >= 0) {
+			perror(message);
+			free(message);
+		}
+		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
+		tds_free_socket(tds);
+		return TDS_FAIL;
+	}
+#else
 	/* Jeff's hack *** START OF NEW CODE *** */
 	if (!timeout)
 		/* I don't think anybody complains... */
@@ -222,6 +235,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
 		return TDS_FAIL;
 	}
+#endif
 	/* END OF NEW CODE */
 
 	/* check socket error */
@@ -625,7 +639,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	int sent;
 	unsigned int left = 0;
 
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
 	void (*oldsig) (int);
 #endif
 
@@ -645,7 +659,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
 	oldsig = signal(SIGPIPE, SIG_IGN);
 	if (oldsig == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
@@ -663,7 +677,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 #endif
 		sent = tds_goodwrite(tds, tds->out_buf, tds->out_pos, final);
 
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL)
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}

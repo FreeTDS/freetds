@@ -30,7 +30,7 @@
 	static const void *const no_unused_##name##_warn[] = { rcsid_##name, no_unused_##name##_warn }
 #endif
 
-TDS_RCSID(tds_sysdep_private_h, "$Id: tds_sysdep_private.h,v 1.18 2005-08-09 10:57:55 freddy77 Exp $");
+TDS_RCSID(tds_sysdep_private_h, "$Id: tds_sysdep_private.h,v 1.19 2005-10-07 10:23:45 freddy77 Exp $");
 
 #define TDS_ADDITIONAL_SPACE 0
 
@@ -45,6 +45,20 @@ extern "C"
 #ifdef __INCvxWorksh
 #include <ioLib.h>		/* for FIONBIO */
 #endif				/* __INCvxWorksh */
+
+#if defined(DOS32X)
+#define READSOCKET(a,b,c)	recv((a), (b), (c), 0L)
+#define WRITESOCKET(a,b,c)	send((a), (b), (c), 0L)
+#define CLOSESOCKET(a)		closesocket((a))
+#define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (char*)(c))
+#define select select_s
+typedef int pid_t;
+#define strcasecmp stricmp
+#define strncasecmp strnicmp
+#define vsnprintf _vsnprintf
+/* TODO this has nothing to do with ip ... */
+#define getpid() _gethostid()
+#endif	/* defined(DOS32X) */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #include <windows.h>

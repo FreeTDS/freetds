@@ -1,3 +1,7 @@
+Sun Oct  7 12:22:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/net.c include/tds_sysdep_private.h:
+	- continue merge patch for dos32
+
 Sun Oct  7 12:12:39 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dbopen.c src/tds/config.c src/tds/convert.c:
 	- patch to support dos32 (thanks to Flaviano Maricotti)
