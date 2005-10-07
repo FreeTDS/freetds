@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.73 2005-10-03 02:52:56 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.74 2005-10-07 15:07:27 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -136,7 +136,7 @@ typedef int (*DB_DBHNDLINTR_FUNC) (void *dbproc);
 #undef STATUS
 #endif
 typedef int STATUS;
-#if !defined(_WINDEF_) && !defined(_WINDEF_H)
+#if !defined(_WINDEF_) && !defined(_WINDEF_H) && !defined(DOS32X)
 typedef int BOOL;
 #endif
 #endif
@@ -268,7 +268,9 @@ typedef struct
 
 typedef struct tds_dblib_loginrec LOGINREC;
 
+#ifndef DOS32X
 typedef unsigned char BYTE;
+#endif
 
 typedef struct dbtypeinfo
 {

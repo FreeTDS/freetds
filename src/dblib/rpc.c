@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.48 2005-08-08 11:18:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.49 2005-10-07 15:07:27 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -439,7 +439,7 @@ rpc_clear(DBREMOTE_PROC * rpc)
 	while (rpc) {
 		next = rpc->next;
 		param_clear(rpc->param_list);
-		if (rpc->name);
+		if (rpc->name)
 			free(rpc->name);
 		free(rpc);
 		rpc = next;

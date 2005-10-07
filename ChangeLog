@@ -1,8 +1,14 @@
-Sun Oct  7 12:22:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+Fri Oct  7 17:06:18 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/sybdb.h: continue merging dos32 patch
+	* src/dblib/rpc.c: silly bug freeing rpc name
+	* src/tds/net.c: removed warning compiling under dos32
+	* src/tds/numeric.c: removed warning if int64 not available
+
+Fri Oct  7 12:22:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/net.c include/tds_sysdep_private.h:
 	- continue merge patch for dos32
 
-Sun Oct  7 12:12:39 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+Fri Oct  7 12:12:39 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dbopen.c src/tds/config.c src/tds/convert.c:
 	- patch to support dos32 (thanks to Flaviano Maricotti)
 	* src/tds/token.c:

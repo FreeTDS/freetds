@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.33 2005-10-07 10:23:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.34 2005-10-07 15:07:27 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -139,11 +139,14 @@ int
 tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout)
 {
 	struct sockaddr_in sin;
-	unsigned long ioctl_blocking = 1;
-	struct timeval selecttimeout;
 	fd_set fds;
+#if !defined(DOS32X)
+	unsigned long ioctl_blocking = 1;
 	time_t start, now;
-	int len, retval;
+	struct timeval selecttimeout;
+	int retval;
+#endif
+	int len;
 	char ip[20];
 #if defined(DOS32X) || defined(WIN32)
 	int optlen;

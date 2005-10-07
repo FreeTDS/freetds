@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.38 2005-09-19 14:51:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.39 2005-10-07 15:07:27 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -388,7 +388,10 @@ TDS_INT
 tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, unsigned char new_scale)
 {
 	static const TDS_WORD factors[] = {
-		1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000
+		1, 10, 100, 1000, 10000,
+#ifdef HAVE_INT64
+		100000, 1000000, 10000000, 100000000, 1000000000
+#endif
 	};
 
 	TDS_WORD packet[(sizeof(numeric->array) - 1) / sizeof(TDS_WORD)];
