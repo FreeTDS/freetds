@@ -1,7 +1,7 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 2004  James K. Lowden
  *
- * This library is free software; you can redistribute it and/or
+ * This program  is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
@@ -48,24 +48,18 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: defncopy.c,v 1.9 2005-07-04 09:16:39 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.10 2005-10-07 18:35:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, 
 		char *srvname, char *procname, int line);
 
-static void print_results(DBPROCESS *dbproc);
-static int get_printable_size(int type, int size);
-void usage(const char invoked_as[]);
-
 struct METADATA { char *name, *source, *format_string; int type, size; };
-int set_format_string(struct METADATA * meta, const char separator[]);
 
 typedef struct _options 
 { 
-	int 	fverbose, optind;
-	FILE 	*verbose;
+	int 	optind;
 	char 	*servername, 
 		*database, 
 		*appname, 
@@ -79,8 +73,13 @@ typedef struct _procedure
 	char 	 name[512], owner[512];
 } PROCEDURE;
 
+static int print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure);
+static int print_results(DBPROCESS *dbproc);
 LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
 void parse_argument(const char argument[], PROCEDURE* procedure);
+int set_format_string(struct METADATA * meta, const char separator[]);
+static int get_printable_size(int type, int size);
+void usage(const char invoked_as[]);
 
 /* global variables */
 OPTIONS options;
@@ -90,8 +89,7 @@ OPTIONS options;
 /**
  * The purpose of this program is to load or extract the text of a stored procedure.  
  * This first cut does extract only.  
- * TODO: Remove leftover code.  We don't need compute columns or verbosity.  
- * We do need to be able to load procedures onto the server.  
+ * TODO: support loading procedures onto the server.  
  */
 int
 main(int argc, char *argv[])
@@ -100,7 +98,7 @@ main(int argc, char *argv[])
 	DBPROCESS *dbproc;
 	PROCEDURE procedure;
 	RETCODE erc;
-	int i;
+	int i, nrows;
 
 	/* Initialize db-lib */
 	erc = dbinit();	
@@ -135,20 +133,6 @@ main(int argc, char *argv[])
 		}
 	}
 	
-	if (options.fverbose) {
-		options.verbose = stderr;
-	} else {
-		static const char null_device[] = "/dev/null";
-		options.verbose = fopen(null_device, "w");
-		if (options.verbose == NULL) {
-			fprintf(stderr, "%s:%d unable to open %s for verbose operation: %s\n", 
-					options.appname, __LINE__, null_device, strerror(errno));
-			exit(1);
-		}
-	}
-
-	fprintf(options.verbose, "%s:%d: Verbose operation enabled\n", options.appname, __LINE__);
-	
 	/* 
 	 * Connect to the server 
 	 */
@@ -169,6 +153,7 @@ main(int argc, char *argv[])
 					 " on 		o.id = c.id"
 					 " where	o.name = '%s'"
 					 " and 	o.uid = user_id('%s')"
+					 " and		o.type not in ('U', 'S')" /* no user or system tables */
 					 " order by 	c.colid"
 					;
 		
@@ -182,7 +167,6 @@ main(int argc, char *argv[])
 			fprintf(stderr, "%s:%d: dbsqlsend() failed\n", options.appname, __LINE__);
 			exit(1);
 		}
-		fprintf(options.verbose, "%s:%d: dbsqlsend() OK:\n", options.appname, __LINE__);
 		
 		/* Wait for it to execute */
 		erc = dbsqlok(dbproc);
@@ -190,10 +174,23 @@ main(int argc, char *argv[])
 			fprintf(stderr, "%s:%d: dbsqlok() failed\n", options.appname, __LINE__);
 			exit(1);
 		}
-		fprintf(options.verbose, "%s:%d: dbsqlok() OK:\n", options.appname, __LINE__);
 
 		/* Write the output */
-		print_results(dbproc);
+		nrows = print_results(dbproc);
+		
+		if (nrows == 0)
+			nrows = print_ddl(dbproc, &procedure);
+			
+		switch (nrows) {
+		case -1:
+			return 1;
+		case 0:
+			fprintf(stderr, "%s: error: %s.%s.%s.%s not found\n", options.appname, 
+					options.servername, options.database, procedure.owner, procedure.name);
+			return 2;
+		default:
+			break;
+		}
 	}
 
 	return 0;
@@ -218,41 +215,239 @@ parse_argument(const char argument[], PROCEDURE* procedure)
 	}
 }
 
-void
-print_results(DBPROCESS *dbproc) 
+/*
+ * Get the table information from sp_help, because it's easier to get the index information (eventually).  
+ * The column descriptions are in resultset #2, which is where we start.  
+ * As shown below, sp_help returns different columns for resultset #2, so we build a map. 
+ * 	    Sybase 	   	   Microsoft
+ *	    -----------------      ----------------
+ *	 1. Column_name            Column_name
+ *	 2. Type		   Type
+ *       3.                        Computed
+ *	 4. Length		   Length
+ *	 5. Prec		   Prec
+ *	 6. Scale		   Scale
+ *	 7. Nulls		   Nullable
+ *	 8. Default_name	   TrimTrail
+ *	 9. Rule_name              FixedLenNullIn
+ *	10. Access_Rule_name       Collation
+ *	11. Identity	
+ */
+int
+print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure) 
 {
-	static const char empty_string[] = "";
-	static const char dashes[] = "----------------------------------------------------------------" /* each line is 64 */
-				     "----------------------------------------------------------------"
-				     "----------------------------------------------------------------"
-				     "----------------------------------------------------------------";
-	
-	struct METADATA *metadata = NULL;
-	
-	struct DATA { char *buffer; int status; } *data = NULL;
-	
-	struct METACOMP { int numalts; struct METADATA *meta; struct DATA *data; } **metacompute = NULL;
-	
+ 	struct DDL { char *name, *type, *length, *precision, *scale, *nullable; } *ddl = NULL;
+	static int microsoft_colmap[6] = {1,2,  4,5,6,7}, 
+		      sybase_colmap[6] = {1,2,3,4,5,6  };
+	int *colmap = NULL;
+
+	FILE *create_index;
 	RETCODE erc;
-	int row_code;
-	int i, c, ret;
-	int iresultset;
-	int ncomputeids = 0, ncols = 0;
+	int row_code, iresultset, i, ret;
+	int maxnamelen = 0, nrows = 0;
 	
-	/* 
-	 * Set up each result set with dbresults()
-	 * This is more commonly implemented as a while() loop, but we're counting the result sets. 
-	 */
-	fprintf(options.verbose, "%s:%d: calling dbresults OK:\n", options.appname, __LINE__);
+	create_index = tmpfile();
+	
+	assert(dbproc);
+	assert(procedure);
+	assert(create_index);
+
+	/* sp_help returns several result sets.  We want just the second one, for now */
 	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
 		if (erc == FAIL) {
 			fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
-			return;
+			return 0;
 		}
-		
-		fprintf(options.verbose, "Result set %d\n", iresultset);
+
+		/* Get the data */
+		while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
+			struct DDL *p;
+			char **coldesc[sizeof(struct DDL)/sizeof(char*)];	/* an array of pointers to the DDL elements */
+			
+			assert(row_code == REG_ROW);
+			
+			/* Look for index data */
+			if (0 == strcmp("index_name", dbcolname(dbproc, 1))) {
+				char *index_name, *index_description, *index_keys, *p;
+				DBINT datlen;
+				
+				assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
+
+				/* name */
+				datlen = dbdatlen(dbproc, 1);
+				index_name = calloc(1, 1 + datlen);
+				assert(index_name);
+				memcpy(index_name, dbdata(dbproc, 1), datlen);
+				
+				/* kind */
+				datlen = dbdatlen(dbproc, 2);
+				index_description = calloc(1, 1 + datlen);
+				assert(index_description);
+				memcpy(index_description, dbdata(dbproc, 2), datlen);
+				
+				/* columns */
+				datlen = dbdatlen(dbproc, 3);
+				index_keys = calloc(1, 1 + datlen);
+				assert(index_keys);
+				memcpy(index_keys, dbdata(dbproc, 3), datlen);
+				
+				/* fix up the index attributes; we're going to use the string verbatim (almost). */
+				p = strstr(index_description, "located");
+				if (p) {
+					*p = '\0'; /* we don't care where it's located */
+				}
+				while ((p = strchr(index_description, ',')) != NULL) {
+					*p = ' ';	/* and we don't need the comma */
+				}
+
+				/* Put it to a temporary file; we'll print it after the CREATE TABLE statement. */
+				fprintf(create_index, "CREATE %s INDEX %s on %s.%s(%s)\nGO\n\n", 
+					index_description, index_name, procedure->owner, procedure->name, index_keys);
+					
+				free(index_name);
+				free(index_description);
+				free(index_keys);
+				
+				continue;
+			}
+			
+			/* skip other resultsets that don't describe the table's columns */
+			if (0 != strcmp("Column_name", dbcolname(dbproc, 1)))
+				continue;
+				
+			/* Infer which columns we need from their names */
+			colmap = (0 == strcmp("Computed", dbcolname(dbproc, 3)))? microsoft_colmap : sybase_colmap;
+				
+			/* Make room for the next row */
+			p = realloc(ddl, ++nrows * sizeof(struct DDL));
+			if (p == NULL) {
+				perror("error: insufficient memory for row DDL");
+				assert(p !=  NULL);
+				exit(1);
+			}
+			ddl = p;
+
+			/* take the address of each member, so we can loop through them */
+			coldesc[0] = &ddl[nrows-1].name;
+			coldesc[1] = &ddl[nrows-1].type;
+			coldesc[2] = &ddl[nrows-1].length;
+			coldesc[3] = &ddl[nrows-1].precision;
+			coldesc[4] = &ddl[nrows-1].scale;
+			coldesc[5] = &ddl[nrows-1].nullable;
+
+			for( i=0; i < sizeof(struct DDL)/sizeof(char*); i++) {
+				DBINT datlen = dbdatlen(dbproc, colmap[i]);
+
+				assert(datlen >= 0);	/* column had better be in range */
+
+				if (datlen == 0) {
+					*coldesc[i] = NULL;
+					continue;
+				}
+
+				*coldesc[i] = calloc(1, 1 + datlen); /* calloc will null terminate */
+				if( *coldesc[i] == NULL ) {
+					perror("error: insufficient memory for row detail");
+					assert(*coldesc[i] != NULL);
+					exit(1);
+				}
+				memcpy(*coldesc[i], dbdata(dbproc, colmap[i]), datlen);
+				
+				/* 
+				 * maxnamelen will determine how much room we allow for column names 
+				 * in the CREATE TABLE statement
+				 */
+				if (i == 0)
+					maxnamelen = (maxnamelen > datlen)? maxnamelen : datlen;
+			}
+		} /* wend */
+	}
+
+	/*
+	 * We've collected the description for the columns in the 'ddl' array.  
+	 * Now we'll print the CREATE TABLE statement in jkl's preferred format.  
+	 */
+	printf("CREATE TABLE %s.%s\n", procedure->owner, procedure->name);
+	for (i=0; i < nrows; i++) {
+		static const char *varytypenames[] =    { "char"  		
+							, "nchar"  		
+							, "varchar"  		
+							, "nvarchar"  		
+							, "text"  		
+							, "ntext"  		
+							, "unichar"  		
+							, "univarchar"  		
+							, "binary"  		
+							, "varbinary"  		
+							, "image"  		
+							, NULL
+							};
+		const char **t;
+		char *type = NULL;
+		int is_null;
+
+		/* get size of decimal, numeric, char, and image types */
+		if (ddl[i].precision && 0 != strcasecmp("NULL", ddl[i].precision)) {
+			ret = asprintf(&type, "%s(%d,%d)", ddl[i].type, *(int*)ddl[i].precision, *(int*)ddl[i].scale);
+		} else {
+			for (t = varytypenames; *t; t++) {
+				if (0 == strcasecmp(*t, ddl[i].type)) {
+					ret = asprintf(&type, "%s(%d)", ddl[i].type, *(int*)ddl[i].length);
+					break;
+				}
+			}
+		}
+
+		if (colmap == sybase_colmap) 
+			is_null = *(int*)ddl[i].nullable == 1;
+		else 
+			is_null = (0 == strcasecmp("1", ddl[i].nullable) || 0 == strcasecmp("yes", ddl[i].nullable));
+			
+		/*      {(|,} name type [NOT] NULL */
+		printf("\t%c %-*s %-15s %3s NULL\n", (i==0? '(' : ','), maxnamelen, ddl[i].name, 
+						(type? type : ddl[i].type), (is_null? "" : "NOT"));
+
+		free(type);
+	}
+	printf("\t)\nGO\n\n");
+	
+	/* print the CREATE INDEX statements */
+	rewind(create_index);
+	while ((i = fgetc(create_index)) != EOF) {
+		fputc(i, stdout);
+	}
+	
+	fclose(create_index);
+	return nrows;
+}
+
+int /* return count of SQL text rows */
+print_results(DBPROCESS *dbproc) 
+{
+	static const char empty_string[] = "";
+	struct METADATA *metadata = NULL;
+	struct DATA { char *buffer; int status; } *data = NULL;
+	
+	RETCODE erc;
+	int row_code;
+	int c, ret;
+	int iresultset;
+	int nrows=0, ncols=0, ncomputeids;
+	
+	/* 
+	 * Set up each result set with dbresults()
+	 */
+	for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
+		if (erc == FAIL) {
+			fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
+			return -1;
+		}
+
+		if (SUCCEED != dbrows(dbproc)) {
+			return 0;
+		}
+
 		/* Free prior allocations, if any. */
-		fprintf(options.verbose, "Freeing prior allocations\n");
 		for (c=0; c < ncols; c++) {
 			free(metadata[c].format_string);
 			free(data[c].buffer);
@@ -263,23 +458,9 @@ print_results(DBPROCESS *dbproc)
 		data = NULL;
 		ncols = 0;
 		
-		for (i=0; i < ncomputeids; i++) {
-			for (c=0; c < metacompute[i]->numalts; c++) {
-				free(metacompute[i]->meta[c].name);
-				free(metacompute[i]->meta[c].format_string);
-			}
-			free(metacompute[i]->meta);
-			free(metacompute[i]->data);
-			free(metacompute[i]);
-		}
-		free(metacompute);
-		metacompute = NULL;
-		ncomputeids = 0;
-		
 		/* 
 		 * Allocate memory for metadata and bound columns 
 		 */
-		fprintf(options.verbose, "Allocating buffers\n");
 		ncols = dbnumcols(dbproc);	
 
 		metadata = (struct METADATA*) calloc(ncols, sizeof(struct METADATA));
@@ -288,38 +469,16 @@ print_results(DBPROCESS *dbproc)
 		data = (struct DATA*) calloc(ncols, sizeof(struct DATA));
 		assert(data);
 		
-		/* metadata is more complicated only because there may be several compute ids for each result set */
-		fprintf(options.verbose, "Allocating compute buffers\n");
+		/* The hard-coded queries don't generate compute rows. */
 		ncomputeids = dbnumcompute(dbproc);
-		if (ncomputeids > 0) {
-			metacompute = (struct METACOMP**) calloc(ncomputeids, sizeof(struct METACOMP*));
-			assert(metacompute);
-		}
-		
-		for (i=0; i < ncomputeids; i++) {
-			metacompute[i] = (struct METACOMP*) calloc(ncomputeids, sizeof(struct METACOMP));
-			assert(metacompute[i]);
-			metacompute[i]->numalts = dbnumalts(dbproc, 1+i);
-			fprintf(options.verbose, "%d columns found in computeid %d\n", metacompute[i]->numalts, 1+i);
-			if (metacompute[i]->numalts > 0) {
-				fprintf(options.verbose, "allocating column %d\n", 1+i);
-				metacompute[i]->meta = (struct METADATA*) calloc(metacompute[i]->numalts, sizeof(struct METADATA));
-				assert(metacompute[i]->meta);
-				metacompute[i]->data = (struct     DATA*) calloc(metacompute[i]->numalts, sizeof(struct     DATA));
-				assert(metacompute[i]->data);
-			}
-		}
+		assert(0 == ncomputeids);
 
 		/* 
 		 * For each column, get its name, type, and size. 
 		 * Allocate a buffer to hold the data, and bind the buffer to the column.
 		 * "bind" here means to give db-lib the address of the buffer we want filled as each row is fetched.
-		 * TODO: Implement dbcoltypeinfo() for numeric/decimal datatypes.  
 		 */
 
-		fprintf(options.verbose, "Metadata\n");
-		fprintf(options.verbose, "%-6s  %-30s  %-30s  %-15s  %-6s  %-6s  \n", "col", "name", "source", "type", "size", "varys");
-		fprintf(options.verbose, "%.6s  %.30s  %.30s  %.15s  %.6s  %.6s  \n", dashes, dashes, dashes, dashes, dashes, dashes);
 		for (c=0; c < ncols; c++) {
 			int width;
 			/* Get and print the metadata.  Optional: get only what you need. */
@@ -333,10 +492,11 @@ print_results(DBPROCESS *dbproc)
 			metadata[c].size = dbcollen(dbproc, c+1);
 			assert(metadata[c].size != -1); /* -1 means indicates an out-of-range request*/
 
-			fprintf(options.verbose, "%6d  %30s  %30s  %15s  %6d  %6d  \n", 
+#if 0
+			fprintf(stderr, "%6d  %30s  %30s  %15s  %6d  %6d  \n", 
 				c+1, metadata[c].name, metadata[c].source, dbprtype(metadata[c].type), 
 				metadata[c].size,  dbvarylen(dbproc, c+1));
-
+#endif 
 			/* 
 			 * Build the column header format string, based on the column width. 
 			 * This is just one solution to the question, "How wide should my columns be when I print them out?"
@@ -348,7 +508,7 @@ print_results(DBPROCESS *dbproc)
 			ret = set_format_string(&metadata[c], (c+1 < ncols)? "  " : "\n");
 			if (ret <= 0) {
 				fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
-				return;
+				return -1;
 			}
 
 			/* 
@@ -368,105 +528,29 @@ print_results(DBPROCESS *dbproc)
 			erc = dbbind(dbproc, c+1, STRINGBIND, -1, (BYTE *) data[c].buffer);
 			if (erc == FAIL) {
 				fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, c+1);
-				return;
+				return -1;
 			}
 
 			erc = dbnullbind(dbproc, c+1, &data[c].status);
 			if (erc == FAIL) {
 				fprintf(stderr, "%s:%d: dbnullbind(), column %d failed\n", options.appname, __LINE__, c+1);
-				return;
+				return -1;
 			}
 		}
-		
-		/* 
-		 * Get metadata and bind the columns for any compute rows.
-		 */
-		for (i=0; i < ncomputeids; i++) {
-			fprintf(options.verbose, "For computeid %d:\n", 1+i);
-			for (c=0; c < metacompute[i]->numalts; c++) {
-				/* read metadata */
-				struct METADATA *meta = &metacompute[i]->meta[c];
-				int nbylist, ibylist;
-				BYTE *bylist;
-				char *colname, *bynames;
-				int altcolid = dbaltcolid(dbproc, i+1, c+1);
-				
-				metacompute[i]->meta[c].type = dbalttype(dbproc, i+1, c+1);
-				metacompute[i]->meta[c].size = dbaltlen(dbproc, i+1, c+1);
-
-				/* 
-				 * Jump through hoops to determine a useful name for the computed column 
-				 * If the query says "compute count(c) by a,b", we get a "by list" indicating a & b.  
-				 */
-				bylist = dbbylist(dbproc, c+1, &nbylist);
-
-				bynames = strdup("by (");
-				for (ibylist=0; ibylist < nbylist; ibylist++) {
-					char *s = NULL; 
-					int ret = asprintf(&s, "%s%s%s", bynames, dbcolname(dbproc, bylist[ibylist]), 
-										(ibylist+1 < nbylist)? ", " : ")");
-					if (ret < 0) {
-						fprintf(options.verbose, "Insufficient room to create name for column %d:\n", 1+c);
-						break;
-					}
-					free(bynames);
-					bynames = s;
-				}
-				
-				if( altcolid == -1 ) {
-					colname = "*";
-				} else {
-					colname = metadata[altcolid].name;
-				}
-
-				asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
-				assert(metacompute[i]->meta[c].name);
-					
-				ret = set_format_string(meta, (c+1 < metacompute[i]->numalts)? "  " : "\n");
-				if (ret <= 0) {
-					free(bynames);
-					fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
-					return;
-				}
-				
-				fprintf(options.verbose, "\tcolumn %d is %s, type %s, size %d %s\n", 
-					c+1, metacompute[i]->meta[c].name, dbprtype(metacompute[i]->meta[c].type), metacompute[i]->meta[c].size, 
-					(nbylist > 0)? bynames : "");
-				free(bynames);
-	
-				/* allocate buffer */
-				assert(metacompute[i]->data);
-				metacompute[i]->data[c].buffer = calloc(1, metacompute[i]->meta[c].size);
-				assert(metacompute[i]->data[c].buffer);
-				
-				/* bind */
-				erc = dbaltbind(dbproc, i+1, c+1, STRINGBIND, -1, (BYTE*) metacompute[i]->data[c].buffer);
-				if (erc == FAIL) {
-					fprintf(stderr, "%s:%d: dbaltbind(), column %d failed\n", options.appname, __LINE__, c+1);
-					return;
-				}
-			}
-		}
-		
-		fprintf(options.verbose, "\n");
-		fprintf(options.verbose, "Data\n");
 
 		/* 
 		 * Print the data to stdout.  
 		 */
-		while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
+		for (;(row_code = dbnextrow(dbproc)) != NO_MORE_ROWS; nrows++) {
 			switch (row_code) {
 			case REG_ROW:
 				for (c=0; c < ncols; c++) {
 					switch (data[c].status) { /* handle nulls */
-					case -1: /* is null */
-						/* TODO: FreeTDS 0.62 does not support dbsetnull() */
-						fprintf(stdout, metadata[c].format_string, "NULL");
+					case -1: 	/* is null */
+						fprintf(stderr, "defncopy: error: unexpected NULL row in SQL text\n");
 						break;
-					case 0:
-					/* case >1 is datlen when buffer is too small */
-					default:
-						/* fprintf(stdout, metadata[c].format_string, data[c].buffer); */
+					case 0:	/* OK */
+					default:	/* >1 is datlen when buffer is too small */
 						fprintf(stdout, "%s", data[c].buffer);
 						break;
 					}
@@ -474,47 +558,17 @@ print_results(DBPROCESS *dbproc)
 				break;
 				
 			case BUF_FULL:
-				assert(row_code != BUF_FULL);
+			default:
+				fprintf(stderr, "defncopy: error: expected REG_ROW (%d), got %d instead\n", REG_ROW, row_code);
+				assert(row_code == REG_ROW);
 				break;
-				
-			default: /* computeid */
-				fprintf(options.verbose, "Data for computeid %d\n", row_code);
-				for (c=0; c < metacompute[row_code-1]->numalts; c++) {
-					char fmt[256] = "%-";
-					struct METADATA *meta = &metacompute[row_code-1]->meta[c];
-					
-					/* left justify the names */
-					strcat(fmt, &meta->format_string[1]);
-					fprintf(stderr, fmt, meta->name);
-				}
-
-				/* Underline the column headers.  */
-				for (c=0; c < metacompute[row_code-1]->numalts; c++) {
-					fprintf(stderr, metacompute[row_code-1]->meta[c].format_string, dashes);
-				}
-					
-				for (c=0; c < metacompute[row_code-1]->numalts; c++) {
-					struct METADATA *meta = &metacompute[row_code-1]->meta[c];
-					struct     DATA *data = &metacompute[row_code-1]->data[c];
-					
-					switch (data->status) { /* handle nulls */
-					case -1: /* is null */
-						/* TODO: FreeTDS 0.62 does not support dbsetnull() */
-						fprintf(stdout, meta->format_string, "NULL");
-						break;
-					case 0:
-					/* case >1 is datlen when buffer is too small */
-					default:
-						fprintf(stdout, meta->format_string, data->buffer);
-						break;
-					}
-				}
 			} /* row_code */
+
 		} /* wend dbnextrow */
 		fprintf(stdout, "\n");
 
 	} /* wend dbresults */
-	fprintf(options.verbose, "%s:%d: dbresults() returned NO_MORE_RESULTS (%d):\n", options.appname, __LINE__, erc);
+	return nrows;
 }
 
 static int
@@ -672,7 +726,12 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			options->output_filename = strdup(optarg);
 			break;
 		case 'v':
-			options->fverbose = 1;
+			printf("%s\n\n%s", software_version, 
+				"Copyright (C) 2004  James K. Lowden\n"
+				"This program  is free software; you can redistribute it and/or\n"
+				"modify it under the terms of the GNU General Public\n"
+				"License as published by the Free Software Foundation\n");
+				exit(1);
 			break;
 		case '?':
 		default:
@@ -714,7 +773,7 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 	char *dbname, *endquote; 
 
 	switch (msgno) {
-	case 5701: /* Print USE <dbname> for "Changed database context to 'blah'" */
+	case 5701: /* Print "USE dbname" for "Changed database context to 'dbname'" */
 		dbname = strchr(msgtext, '\'');
 		if (!dbname)
 			break;

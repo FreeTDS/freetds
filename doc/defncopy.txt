@@ -11,7 +11,10 @@ DESCRIPTION
   a similar program of the same name distributed by Sybase.
 
   defncopy reads the text of a stored procedure or view, and writes a script
-  suitable for recreating the procedure or view. 
+  suitable for recreating the procedure or view. For tables, it reads 
+  the output of sp_help and constructs a CREATE TABLE statement, complete
+  with CREATE INDEX, too.  It does not create primary keys (although it
+  could, patches welcome). 
 
   defncopy makes use of the db-lib API provided by FreeTDS. This 
   API is of course also available to application developers.
@@ -20,7 +23,7 @@ OBJECTS
   owner         is optional if you or the database owner is the owner 
                 of the procedure/view being copied.
 
-  object_name    is the name of the procedure/view you wish to extract. 
+  object_name    is the name of the system object you wish to extract. 
 
 OPTIONS
   -U username   database server login name.
@@ -36,7 +39,7 @@ OPTIONS
 
   -o output_file  a file to hold the script, defaults to standard output.
 
-  -v  Turn on verbose mode, for more information about the db-lib interaction.
+  -v  Show version information and copyright notice. 
 
 NOTES
   defncopy is a filter; it reads from standard input, writes to standard output, 
@@ -61,6 +64,6 @@ BUGS
   Many options are defined by Sybase that this version does not implement. Feel
   free to correct this situation. 
 
-  Sybase's version also extracts (and applies) table DDL. In theory, defncopy
-  could apply/produce DDL for any system object, but at present only procedures
-  and views are supported. 
+  In theory, defncopy could apply/produce DDL for any system object,
+  but at present only tables, procedures and views are supported,
+  and only for extraction.

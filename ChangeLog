@@ -1,3 +1,6 @@
+Fri Oct  7 14:34:43 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/defncopy.txt src/apps/defncopy.c generate CREATE TABLE ddl
+
 Fri Oct  7 17:06:18 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/sybdb.h: continue merging dos32 patch
 	* src/dblib/rpc.c: silly bug freeing rpc name
