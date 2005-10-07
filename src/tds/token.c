@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.303 2005-10-03 02:53:07 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.304 2005-10-07 10:15:03 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1960,7 +1960,13 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		 */
 		/* TODO this can lead to a big waste of memory */
 		new_blob_size = determine_adjusted_size(curcol->char_conv, colsize);
-		
+		if (new_blob_size == 0) {
+			curcol->column_cur_size = 0;
+			if (blob->textvalue)
+				TDS_ZERO_FREE(blob->textvalue);
+			return TDS_SUCCEED;
+		}
+
 		/* NOTE we use an extra pointer (p) to avoid lose of memory in the case realloc fails */
 		p = blob->textvalue;
 		if (!p) {

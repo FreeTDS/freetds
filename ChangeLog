@@ -1,3 +1,10 @@
+Sun Oct  7 12:12:39 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dbopen.c src/tds/config.c src/tds/convert.c:
+	- patch to support dos32 (thanks to Flaviano Maricotti)
+	* src/tds/token.c:
+	- fixed silly bug for empty not-null text (thanks to Flaviano
+	  Maricotti)
+
 Sun Oct  2 22:37:53 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* doc/Makefile.am doc/userguide.dsl.in
 	- DocBook HTML output now references a stylesheet. 

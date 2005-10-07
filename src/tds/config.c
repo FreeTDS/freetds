@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.113 2005-07-07 13:06:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.114 2005-10-07 10:15:03 freddy77 Exp $");
 
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
@@ -142,7 +142,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 			opened = tdsdump_open(s);
 		} else {
 			pid = getpid();
-#ifndef WIN32
+#if !defined(WIN32) && !defined(DOS32X)
 			if (asprintf(&path, "/tmp/tdsconfig.log.%d", pid) >= 0) {
 #else
 			if (asprintf(&path, "c:\\tdsconfig.log.%d", pid) >= 0) {
@@ -264,7 +264,7 @@ tds_read_conf_file(TDSCONNECTION * connection, const char *server)
 	if (!found) {
 		eptr = getenv("FREETDS");
 		if (eptr) {
-#ifndef WIN32
+#if !defined(WIN32) && !defined(DOS32X)
 			asprintf(&path, "%s/etc/freetds.conf", eptr);
 			found = tds_try_conf_file(path, "(from $FREETDS/etc)", server, connection);
 #else
@@ -566,7 +566,7 @@ tds_config_env_tdsdump(TDSCONNECTION * connection)
 	if ((s = getenv("TDSDUMP"))) {
 		if (!strlen(s)) {
 			pid = getpid();
-#ifndef WIN32
+#if !defined(WIN32) && !defined(DOS32X)
 			if (asprintf(&path, "/tmp/freetds.log.%d", pid) >= 0)
 #else
 			if (asprintf(&path, "c:\\freetds.log.%d", pid) >= 0)
@@ -928,7 +928,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		if ( (int)unixspec != 0 && (int)unixspec != -1 ) sybase = unixspec;
 #endif
 		if (!sybase || !sybase[0])
-#ifndef WIN32
+#if !defined(WIN32) && !defined(DOS32X)
 			sybase = "/etc/freetds";
 #else
 			sybase = "c:\\";
