@@ -1,3 +1,6 @@
+Tue Oct 11 13:50:16 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4: fix typo
+
 Tue Oct 11 10:52:15 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tdsiconv.h: continue dos32x merge
 
