@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.39 2005-10-07 15:07:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.40 2005-10-11 12:43:34 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -485,6 +485,13 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 #if defined(__GNUC__) && __GNUC__ >= 3 && defined(__i386__) && defined(HAVE_INT64)
 				--i;
 				__asm__ __volatile__ ("divl %4": "=a"(packet[i]), "=d"(borrow): "0"(packet[i]), "1"(borrow), "r"(factor));
+#elif defined(__WATCOMC__) && defined(DOS32X)
+				TDS_WORD Int64div32(TDS_WORD* low,TDS_WORD high,TDS_WORD factor);
+				#pragma aux Int64div32 = "mov eax, dword ptr[esi]" \
+					"div ecx" \
+					"mov dword ptr[esi], eax" \
+					parm [ESI] [EDX] [ECX] value [EDX] modify [EAX EDX];
+				borrow = Int64div32(&packet[i], borrow, factor);
 #else
 				TDS_DWORD n = (((TDS_DWORD) borrow) << (8 * sizeof(TDS_WORD))) + packet[--i];
 				packet[i] = n / factor;
