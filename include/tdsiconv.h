@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-/* $Id: tdsiconv.h,v 1.34 2005-07-08 08:22:52 freddy77 Exp $ */
+/* $Id: tdsiconv.h,v 1.35 2005-10-11 08:52:30 freddy77 Exp $ */
 
 #if HAVE_ICONV
 #include <iconv.h>
@@ -83,6 +83,17 @@ enum ICONV_CD_VALUE
 	, UTF8_ASCII	= 0x31
 	, UCS2LE_UTF8	= 0x23
 	, UTF8_UCS2LE	= 0x32
+
+#ifdef DOS32X
+	, WinEE_UCS2LE  = 0x42
+	, UCS2LE_WinEE  = 0x24
+	, WinCYR_UCS2LE = 0x52
+	, UCS2LE_WinCYR = 0x25
+	, WinTUR_UCS2LE = 0x62
+	, UCS2LE_WinTUR = 0x26
+	, WinARA_UCS2LE = 0x72
+	, UCS2LE_WinARA = 0x27
+#endif
 	/* these aren't needed 
 	 * , Latin1_UCS2BE = 0x03
 	 * , UCS2BE_Latin1 = 0x30
