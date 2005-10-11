@@ -48,7 +48,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: defncopy.c,v 1.10 2005-10-07 18:35:59 jklowden Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.11 2005-10-11 15:21:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -156,7 +156,8 @@ main(int argc, char *argv[])
 					 " and		o.type not in ('U', 'S')" /* no user or system tables */
 					 " order by 	c.colid"
 					;
-		
+		static char query_table[] = " execute sp_help '%s.%s' ";
+
 		parse_argument(argv[i], &procedure);
 
 		erc = dbfcmd(dbproc, query, procedure.name, procedure.owner); 
@@ -178,9 +179,16 @@ main(int argc, char *argv[])
 		/* Write the output */
 		nrows = print_results(dbproc);
 		
-		if (nrows == 0)
+		if (0 == nrows) {
+			erc = dbfcmd(dbproc, query_table, procedure.owner, procedure.name);
+			erc = dbsqlexec(dbproc);
+			if (erc == FAIL) {
+				fprintf(stderr, "%s:%d: dbsqlexec() failed\n", options.appname, __LINE__);
+				exit(1);
+			}
 			nrows = print_ddl(dbproc, &procedure);
-			
+		}
+
 		switch (nrows) {
 		case -1:
 			return 1;
@@ -268,7 +276,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 			
 			/* Look for index data */
 			if (0 == strcmp("index_name", dbcolname(dbproc, 1))) {
-				char *index_name, *index_description, *index_keys, *p;
+				char *index_name, *index_description, *index_keys, *p, fprimary=0;
 				DBINT datlen;
 				
 				assert(dbnumcols(dbproc) >=3 );	/* column had better be in range */
@@ -296,13 +304,26 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				if (p) {
 					*p = '\0'; /* we don't care where it's located */
 				}
+				/* Microsoft version: clustered, unique, primary key located on PRIMARY */
+				p = strstr(index_description, "primary key");
+				if (p) {
+					fprimary = 1;
+					*p = '\0'; /* we don't care where it's located */
+					if ((p = strchr(index_description, ',')) != NULL) 
+						*p = '\0'; /* we use only the first term (clustered/nonclustered) */
+				}
 				while ((p = strchr(index_description, ',')) != NULL) {
 					*p = ' ';	/* and we don't need the comma */
 				}
 
 				/* Put it to a temporary file; we'll print it after the CREATE TABLE statement. */
-				fprintf(create_index, "CREATE %s INDEX %s on %s.%s(%s)\nGO\n\n", 
-					index_description, index_name, procedure->owner, procedure->name, index_keys);
+				if (fprimary) {
+					fprintf(create_index, "ALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n", 
+						procedure->owner, procedure->name, index_name, index_description, index_keys); 
+				} else {
+					fprintf(create_index, "CREATE %s INDEX %s on %s.%s(%s)\nGO\n\n", 
+						index_description, index_name, procedure->owner, procedure->name, index_keys);
+				}
 					
 				free(index_name);
 				free(index_description);
@@ -387,8 +408,9 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 		int is_null;
 
 		/* get size of decimal, numeric, char, and image types */
-		if (ddl[i].precision && 0 != strcasecmp("NULL", ddl[i].precision)) {
-			ret = asprintf(&type, "%s(%d,%d)", ddl[i].type, *(int*)ddl[i].precision, *(int*)ddl[i].scale);
+		if (0 == strcasecmp("decimal", ddl[i].type) || 0 == strcasecmp("numeric", ddl[i].type)) {
+			if (ddl[i].precision && 0 != strcasecmp("NULL", ddl[i].precision))
+				ret = asprintf(&type, "%s(%d,%d)", ddl[i].type, *(int*)ddl[i].precision, *(int*)ddl[i].scale);
 		} else {
 			for (t = varytypenames; *t; t++) {
 				if (0 == strcasecmp(*t, ddl[i].type)) {
@@ -784,13 +806,16 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 		fprintf(stdout, "USE %s\nGO\n\n", dbname);
 		return 0;		
 
+	case 0:	/* Ignore print messages */
 	case 5703:	/* Ignore "Changed language setting to <language>". */
 		return 0;		
 		
 	default:
 		break;
 	}
-	printf("Msg %ld, Level %d, State %d\n", (long) msgno, severity, msgstate);
+
+#if 0
+	printf("Msg %ld, Severity %d, State %d\n", (long) msgno, severity, msgstate);
 
 	if (strlen(srvname) > 0)
 		printf("Server '%s', ", srvname);
@@ -798,8 +823,8 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 		printf("Procedure '%s', ", procname);
 	if (line > 0)
 		printf("Line %d", line);
-
-	printf("\n\t%s\n", msgtext);
+#endif
+	printf("\t/* %s */\n", msgtext);
 
 	return 0;
 }
