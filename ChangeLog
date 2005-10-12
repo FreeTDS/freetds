@@ -1,3 +1,6 @@
+Wed Oct 12 09:02:53 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/apps/defncopy.c: use more const and static
+
 Tue Oct 11 11:20:22 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/apps/defncopy.c fix CREATE INDEX for Microsoft servers
 

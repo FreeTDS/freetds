@@ -48,11 +48,11 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: defncopy.c,v 1.11 2005-10-11 15:21:47 jklowden Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.12 2005-10-12 07:03:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, 
+static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, 
 		char *srvname, char *procname, int line);
 
 struct METADATA { char *name, *source, *format_string; int type, size; };
@@ -75,11 +75,11 @@ typedef struct _procedure
 
 static int print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure);
 static int print_results(DBPROCESS *dbproc);
-LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
-void parse_argument(const char argument[], PROCEDURE* procedure);
-int set_format_string(struct METADATA * meta, const char separator[]);
+static LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
+static void parse_argument(const char argument[], PROCEDURE* procedure);
+static int set_format_string(struct METADATA * meta, const char separator[]);
 static int get_printable_size(int type, int size);
-void usage(const char invoked_as[]);
+static void usage(const char invoked_as[]);
 
 /* global variables */
 OPTIONS options;
@@ -147,7 +147,7 @@ main(int argc, char *argv[])
 	 * Read the procedure names and move their texts.  
 	 */
 	for (i=options.optind; i < argc; i++) {
-		static char query[] = " select	c.text"
+		static const char query[] = " select	c.text"
 					 " from	syscomments  as c"
 					 " join 	sysobjects as o"
 					 " on 		o.id = c.id"
@@ -156,7 +156,7 @@ main(int argc, char *argv[])
 					 " and		o.type not in ('U', 'S')" /* no user or system tables */
 					 " order by 	c.colid"
 					;
-		static char query_table[] = " execute sp_help '%s.%s' ";
+		static const char query_table[] = " execute sp_help '%s.%s' ";
 
 		parse_argument(argv[i], &procedure);
 
@@ -204,7 +204,7 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-void
+static void
 parse_argument(const char argument[], PROCEDURE* procedure)
 {
 	const char *s = strchr(argument, '.');
@@ -648,7 +648,7 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
  * This is just one solution to the question, "How wide should my columns be when I print them out?"
  */
 #define is_character_data(x)   (x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
-int
+static int
 set_format_string(struct METADATA * meta, const char separator[])
 {
 	int width, ret;
@@ -667,7 +667,7 @@ set_format_string(struct METADATA * meta, const char separator[])
 	return ret;
 }
 
-void
+static void
 usage(const char invoked_as[])
 {
 	fprintf(stderr, "usage:  %s \n"
@@ -698,7 +698,7 @@ Usage: defncopy
 **/	
 }
 
-LOGINREC *
+static LOGINREC *
 get_login(int argc, char *argv[], OPTIONS *options)
 {
 	LOGINREC *login;
@@ -772,7 +772,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	return login;
 }
 
-int
+static int
 err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 
@@ -789,7 +789,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 	return INT_CANCEL;
 }
 
-int
+static int
 msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 {
 	char *dbname, *endquote; 
