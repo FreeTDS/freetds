@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.23 2005-09-30 20:02:05 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.24 2005-10-25 21:43:35 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -841,16 +841,19 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 	if (msgno == changed_database || msgno == changed_language) 
 		return 0;
 
-	fprintf(stderr, "Msg %ld, Level %d, State %d\n", (long) msgno, severity, msgstate);
+	if (msgno > 0) {
+		fprintf(stderr, "Msg %ld, Level %d, State %d\n", (long) msgno, severity, msgstate);
 
-	if (strlen(srvname) > 0)
-		fprintf(stderr, "Server '%s', ", srvname);
-	if (strlen(procname) > 0)
-		fprintf(stderr, "Procedure '%s', ", procname);
-	if (line > 0)
-		fprintf(stderr, "Line %d", line);
+		if (strlen(srvname) > 0)
+			fprintf(stderr, "Server '%s', ", srvname);
+		if (strlen(procname) > 0)
+			fprintf(stderr, "Procedure '%s', ", procname);
+		if (line > 0)
+			fprintf(stderr, "Line %d", line);
 
-	fprintf(stderr, "\n\t%s\n", msgtext);
+		fprintf(stderr, "\n\t");
+	}
+	fprintf(stderr, "%s\n", msgtext);
 
 	return 0;
 }

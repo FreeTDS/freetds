@@ -1,3 +1,6 @@
+Tue Oct 25 17:42:26 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* src/apps/bsqldb.c print only msgtext for msgno = 0
+
 Tue Oct 25 17:26:40 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c applied Frediano's nocount patch (cf. ML)
 
