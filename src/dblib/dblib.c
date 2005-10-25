@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.243 2005-10-03 02:52:56 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.244 2005-10-25 21:27:43 jklowden Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -4019,28 +4019,26 @@ dbsqlok(DBPROCESS * dbproc)
 
 	}
 
-	/* See what the next packet from the server is. */
-
-	/* 1. we want to skip any messages which are not processable */
-	/* we're looking for a result token or a done token.         */
-
+	/* 
+	 * See what the next packet from the server is.
+	 * We want to skip any messages which are not processable. 
+	 * We're looking for a result token or a done token.
+         */
 	while (!done) {
 		marker = tds_peek(tds);
 		tdsdump_log(TDS_DBG_FUNC, "dbsqlok() marker is %x\n", marker);
 
-		/* If we hit a result token, then we know  */
-		/* everything is fine with the command...  */
-
+		/* If we hit a result token, then we know everything is OK.  */
 		if (is_result_token(marker)) {
 			tdsdump_log(TDS_DBG_FUNC, "dbsqlok() found result token\n");
 			return SUCCEED;
 		}
 
-		/* if we hit an end token, for example if the command */
-		/* submitted returned no data (like an insert), then  */
-		/* we have to process the end token to extract the    */
-		/* status code therein....but....                     */
-
+		/* 
+		 * If we hit an end token -- e.g. if the command
+		 * submitted returned no data (like an insert) -- then
+		 * we process the end token to extract the status code. 
+		 */
 		switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) {
 		case TDS_NO_MORE_RESULTS:
 			return SUCCEED;
@@ -4053,9 +4051,12 @@ dbsqlok(DBPROCESS * dbproc)
 		case TDS_SUCCEED:
 			switch (result_type) {
 			case TDS_ROWFMT_RESULT:
+				buffer_free(&dbproc->row_buf);
+				buffer_alloc(dbproc);
+			case TDS_COMPUTEFMT_RESULT:
+				dbproc->dbresults_state = _DB_RES_RESULTSET_EMPTY;
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
-			case TDS_COMPUTEFMT_RESULT:
 				tdsdump_log(TDS_DBG_FUNC, "dbsqlok() found result token\n");
 				return SUCCEED;
 				break;
