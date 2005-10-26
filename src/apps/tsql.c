@@ -68,7 +68,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.80 2005-07-18 09:12:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.81 2005-10-26 17:58:15 jklowden Exp $");
 
 enum
 {
@@ -96,15 +96,15 @@ static void add_history(const char *s);
 static char *
 readline(char *prompt)
 {
-	char line[1000];
+	char line[1024];
 	int i = 0;
 
 	if (prompt && prompt[0])
 	    printf("%s", prompt);
-	if (fgets(line, 1000, stdin) == NULL) {
+	if (fgets(line, sizeof(line), stdin) == NULL) {
 		return NULL;
 	}
-	for (i = strlen(line); i > 0; --i) {
+	for (i = strlen(line) - 1; i >= 0; --i) {
 		if (line[i] == '\n') {
 			line[i] = '\0';
 			break;
@@ -526,16 +526,18 @@ main(int argc, char **argv)
 		if (s)
 			free(s);
 		s = readline(QUIET ? NULL : prompt);
-		if (s != NULL) {
-			if (s2)
-				free(s2);
-			s2 = strdup(s);	/* copy that can be safely mangled by str functions */
-			cmd = strtok(s2, " \t");
-		}
+		if (s == NULL) 
+			break;
+
+		if (s2)
+			free(s2);
+		s2 = strdup(s);	/* copy to mangle with strtok() */
+		cmd = strtok(s2, " \t");
+		
 		if (!cmd)
 			continue;
 
-		if (!s || !strcmp(cmd, "exit") || !strcmp(cmd, "quit") || !strcmp(cmd, "bye")) {
+		if (!strcmp(cmd, "exit") || !strcmp(cmd, "quit") || !strcmp(cmd, "bye")) {
 			break;
 		}
 		if (!strcmp(cmd, "version")) {
@@ -545,7 +547,7 @@ main(int argc, char **argv)
 			mybuf[0] = '\0';
 			continue;
 		}
-		if (!strncmp(cmd, "go", 2)) {
+		if (!strncasecmp(cmd, "go", 2)) {
 			line = 0;
 			get_opt_flags(s + 2, &opt_flags);
 			opt_flags ^= global_opt_flags;

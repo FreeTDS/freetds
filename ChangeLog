@@ -1,3 +1,6 @@
+Wed Oct 26 13:56:23 EDT 2005	JK Lowden <jklowden@schemamania.org>
+	* src/apps/tsql.c now pressing ^D exits cleanly
+	
 Tue Oct 25 17:42:26 EDT 2005	JK Lowden <jklowden@schemamania.org>
 	* src/apps/bsqldb.c print only msgtext for msgno = 0
 
