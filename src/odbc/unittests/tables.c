@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.7 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.8 2005-11-02 12:57:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLLEN cnamesize;
@@ -46,11 +46,14 @@ TestName(int index, const char *expected_name)
 	NAME_TEST;
 }
 
+static const char *catalog = NULL;
+
 static void
 DoTest(const char *type, int row_returned)
 {
 	int len = 0;
 	const char *p = NULL;
+	SQLRETURN ret;
 
 	if (*type) {
 		len = strlen(type);
@@ -58,7 +61,8 @@ DoTest(const char *type, int row_returned)
 	}
 
 	printf("Test type '%s' %s row\n", type, row_returned ? "with" : "without");
-	if (!SQL_SUCCEEDED(SQLTables(Statement, NULL, 0, NULL, 0, (SQLCHAR *)"syscommentsgarbage", 11, (SQLCHAR *) p, len))) {
+	if (!SQL_SUCCEEDED(SQLTables(Statement, catalog, catalog ? strlen(catalog) : 0, NULL, 
+				     0, (SQLCHAR *)"syscommentsgarbage", 11, (SQLCHAR *) p, len))) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
 		exit(1);
@@ -97,7 +101,11 @@ DoTest(const char *type, int row_returned)
 
 	}
 
-	if (SQLFetch(Statement) != SQL_NO_DATA) {
+	ret = SQLFetch(Statement);
+	while (ret == SQL_SUCCESS && row_returned > 1)
+		ret = SQLFetch(Statement);
+
+	if (ret != SQL_NO_DATA) {
 		printf("Unexpected data\n");
 		CheckReturn();
 		exit(1);
@@ -131,6 +139,11 @@ main(int argc, char *argv[])
 	Connect();
 
 	DoTest("'SYSTEM TABLE'", 1);
+	/* TODO this should work ever for Sybase */
+	if (db_is_microsoft()) {
+		catalog = "%";
+		DoTest("", 2);
+	}
 
 	Disconnect();
 

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.394 2005-08-31 15:22:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.395 2005-11-02 12:57:54 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5462,9 +5462,45 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 {
 	int retcode;
 	char *type = NULL;
-
+	char *proc = NULL;
+	int proc_allocated = 0;
+	int wildcards;
+	TDSSOCKET *tds;
 
 	INIT_HSTMT;
+
+	tds = stmt->dbc->tds_socket;
+
+	/* fix for processing */
+	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
+
+	/* support wildcards on catalog (only odbc 3) */
+	wildcards = 0;
+	if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && 
+	    (memchr(szCatalogName, '%', cbCatalogName) || memchr(szCatalogName, '_', cbCatalogName)))
+		wildcards = 1;
+
+	proc = "sp_tables ";
+	if (cbCatalogName > 0) {
+		if (wildcards) {
+			/* if catalog specified and wildcards use sp_tableswc under mssql2k */
+			if (TDS_IS_MSSQL(tds) && tds->product_version >= TDS_MS_VER(8,0,0))
+				proc = "sp_tableswc ";
+
+			/* TODO support wildcards on catalog even for Sybase */
+		} else {
+			/* if catalog specified and not wildcards use catatog on name (catalog..sp_tables) */
+			int len = tds_quote_id(tds, NULL, szCatalogName, cbCatalogName);
+			proc = (char*) malloc(len + 15);
+			if (!proc) {
+				odbc_errs_add(&stmt->errs, "HY001", NULL);
+				ODBC_RETURN(stmt, SQL_ERROR);
+			}
+			proc_allocated = 1;
+			tds_quote_id(tds, proc, szCatalogName, cbCatalogName);
+			strcpy(proc + len, "..sp_tables ");
+		}
+	}
 
 	/* fix type if needed quoting it */
 	if (szTableType) {
@@ -5495,6 +5531,8 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 			tdsdump_log(TDS_DBG_INFO1, "fixing type elements\n");
 			type = (char *) malloc(len + elements * 2);
 			if (!type) {
+				if (proc_allocated)
+					free(proc);
 				odbc_errs_add(&stmt->errs, "HY001", NULL);
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
@@ -5525,11 +5563,13 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	}
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_tables ", 4, "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
+		odbc_stat_execute(stmt, proc, 4, "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
 				  cbSchemaName, "P@table_qualifier", szCatalogName, cbCatalogName, "@table_type", szTableType,
 				  cbTableType);
 	if (type)
 		free(type);
+	if (proc_allocated)
+		free(proc);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
