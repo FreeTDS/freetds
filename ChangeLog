@@ -1,3 +1,6 @@
+Thu Nov  3 10:53:29 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/tables.c: remove warning
+
 Wed Nov  2 13:56:45 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/unittests/tables.c:
 	- fix problem with wildcards in catalog using SQLTables (do not
