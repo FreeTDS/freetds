@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.83 2005-08-01 18:32:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.84 2005-11-04 13:42:28 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -207,14 +207,14 @@ odbc_set_return_params(struct _hstmt *stmt)
 int
 odbc_get_string_size(int size, SQLCHAR * str)
 {
-	if (!str) {
-		return 0;
+	if (str) {
+		if (size == SQL_NTS)
+			return strlen((const char *) str);
+		if (size >= 0)
+			return size;
 	}
-	if (size == SQL_NTS) {
-		return strlen((const char *) str);
-	} else {
-		return size;
-	}
+	/* SQL_NULL_DATA or any other strange value */
+	return 0;
 }
 
 /**

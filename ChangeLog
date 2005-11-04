@@ -1,3 +1,7 @@
+Fri Nov  4 10:53:29 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/unittests/tables.c:
+	- fix problem with Jdbc using SQLTables
+
 Thu Nov  3 10:53:29 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/tables.c: remove warning
 

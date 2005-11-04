@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.395 2005-11-02 12:57:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.396 2005-11-04 13:42:28 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5472,22 +5472,29 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	tds = stmt->dbc->tds_socket;
 
 	/* fix for processing */
+	if (cbCatalogName == SQL_NULL_DATA)
+		szCatalogName = NULL;
 	cbCatalogName = odbc_get_string_size(cbCatalogName, szCatalogName);
 
 	/* support wildcards on catalog (only odbc 3) */
 	wildcards = 0;
-	if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && 
+	if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && stmt->dbc->attr.metadata_id == SQL_FALSE &&
 	    (memchr(szCatalogName, '%', cbCatalogName) || memchr(szCatalogName, '_', cbCatalogName)))
 		wildcards = 1;
 
 	proc = "sp_tables ";
-	if (cbCatalogName > 0) {
+	if (cbCatalogName > 0 && (cbCatalogName != 1 || szCatalogName[0] != '%' || cbTableName > 0 || cbSchemaName > 0)) {
 		if (wildcards) {
 			/* if catalog specified and wildcards use sp_tableswc under mssql2k */
 			if (TDS_IS_MSSQL(tds) && tds->product_version >= TDS_MS_VER(8,0,0))
 				proc = "sp_tableswc ";
 
-			/* TODO support wildcards on catalog even for Sybase */
+			/*
+			 * TODO support wildcards on catalog even for Sybase
+			 * first execute a select name from master..sysdatabases where name like catalog quoted
+			 * build a db1..sp_tables args db2..sp_tables args ... query
+			 * collapse results in a single recordset (how??)
+			 */
 		} else {
 			/* if catalog specified and not wildcards use catatog on name (catalog..sp_tables) */
 			int len = tds_quote_id(tds, NULL, szCatalogName, cbCatalogName);
@@ -5503,7 +5510,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	}
 
 	/* fix type if needed quoting it */
-	if (szTableType) {
+	if (szTableType && cbTableType != SQL_NULL_DATA) {
 		int len = odbc_get_string_size(cbTableType, szTableType);
 		int to_fix = 0;
 		int elements = 0;
@@ -5772,6 +5779,8 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 	va_start(marker, nparams);
 	len = strlen(begin) + 2;
 	for (i = 0; i < nparams; ++i) {
+		int param_len;
+
 		p = va_arg(marker, char *);
 
 		switch (*p) {
@@ -5786,10 +5795,15 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		params[i].name = p;
 
 		params[i].value = va_arg(marker, SQLCHAR *);
-		params[i].len = odbc_get_string_size(va_arg(marker, int), params[i].value);
+		param_len = va_arg(marker, int);
+		if (params[i].value && param_len != SQL_NULL_DATA) {
+			params[i].len = odbc_get_string_size(param_len, params[i].value);
+			len += strlen(params[i].name) + odbc_quote_metadata(stmt->dbc, params[i].type, NULL, 
+									    (char *) params[i].value, params[i].len) + 3;
+		} else {
+			params[i].value = NULL;
+		}
 
-		len += strlen(params[i].name) + odbc_quote_metadata(stmt->dbc, params[i].type, NULL, (char *) params[i].value,
-								    params[i].len) + 3;
 	}
 	va_end(marker);
 
@@ -5804,7 +5818,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 	strcpy(p, begin);
 	p += strlen(begin);
 	for (i = 0; i < nparams; ++i) {
-		if (params[i].len <= 0)
+		if (!params[i].value)
 			continue;
 		if (params[i].name[0]) {
 			strcpy(p, params[i].name);
