@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.396 2005-11-04 13:42:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.397 2005-11-06 20:00:30 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -747,7 +747,7 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	INIT_HSTMT;
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_stored_procedures ", 3, "P@sp_name", szProcName, cbProcName, "P@sp_owner", szSchemaName,
+		odbc_stat_execute(stmt, "..sp_stored_procedures ", 3, "P@sp_name", szProcName, cbProcName, "P@sp_owner", szSchemaName,
 				  cbSchemaName, "O@sp_qualifier", szCatalogName, cbCatalogName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
@@ -5462,8 +5462,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 {
 	int retcode;
 	char *type = NULL;
-	char *proc = NULL;
-	int proc_allocated = 0;
+	const char *proc = NULL;
 	int wildcards;
 	TDSSOCKET *tds;
 
@@ -5497,15 +5496,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 			 */
 		} else {
 			/* if catalog specified and not wildcards use catatog on name (catalog..sp_tables) */
-			int len = tds_quote_id(tds, NULL, szCatalogName, cbCatalogName);
-			proc = (char*) malloc(len + 15);
-			if (!proc) {
-				odbc_errs_add(&stmt->errs, "HY001", NULL);
-				ODBC_RETURN(stmt, SQL_ERROR);
-			}
-			proc_allocated = 1;
-			tds_quote_id(tds, proc, szCatalogName, cbCatalogName);
-			strcpy(proc + len, "..sp_tables ");
+			proc = "..sp_tables ";
 		}
 	}
 
@@ -5538,8 +5529,6 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 			tdsdump_log(TDS_DBG_INFO1, "fixing type elements\n");
 			type = (char *) malloc(len + elements * 2);
 			if (!type) {
-				if (proc_allocated)
-					free(proc);
 				odbc_errs_add(&stmt->errs, "HY001", NULL);
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
@@ -5575,8 +5564,6 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 				  cbTableType);
 	if (type)
 		free(type);
-	if (proc_allocated)
-		free(proc);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
@@ -5767,7 +5754,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		char type;
 	}
 	params[ODBC_MAX_STAT_PARAM];
-	int i, len;
+	int i, len, param_qualifier = -1;
 	char *proc, *p;
 	int retcode;
 	va_list marker;
@@ -5800,6 +5787,10 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 			params[i].len = odbc_get_string_size(param_len, params[i].value);
 			len += strlen(params[i].name) + odbc_quote_metadata(stmt->dbc, params[i].type, NULL, 
 									    (char *) params[i].value, params[i].len) + 3;
+			if (begin[0] == '.' && strstr(params[i].name, "qualifier")) {
+				len += tds_quote_id(stmt->dbc->tds_socket, NULL, params[i].value, params[i].len);
+				param_qualifier = i;
+			}
 		} else {
 			params[i].value = NULL;
 		}
@@ -5815,6 +5806,8 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 
 	/* build string */
 	p = proc;
+	if (param_qualifier >= 0)
+		p += tds_quote_id(stmt->dbc->tds_socket, p, params[param_qualifier].value, params[param_qualifier].len);
 	strcpy(p, begin);
 	p += strlen(begin);
 	for (i = 0; i < nparams; ++i) {
