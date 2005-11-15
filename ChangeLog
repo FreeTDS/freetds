@@ -1,3 +1,6 @@
+Tue Nov 15 18:45:52 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* TODO added some ideas out connecting and connecting reporting
+
 Sun Nov  6 20:59:22 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c: fix for SQLProcedures
 

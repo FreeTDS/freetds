@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.154 2005-09-21 11:34:46 freddy77 Exp $
+To Do List	$Id: TODO,v 1.155 2005-11-15 23:47:04 jklowden Exp $
 ------------
 
 Must be fixed in 0.64:
@@ -25,7 +25,7 @@ Broken:
   libTDS assume Sybase can handle this charset but it's false
   and doesn't convert correctly.
 
-Working in progress:
+Work in progress:
 . fix timeout problem reported in ML
   . check dblib behavior
 
@@ -46,6 +46,11 @@ Postponed to 0.64 version
 
 For future versions (in priority order within library):
   All:
+. retain values used from freetds.conf, so we can report them.
+. add a way for tsql to report host, port, and TDS version for 
+  the connection it's attempting.  
+. create "TDSVER=auto": try 8.0, 7.0, 5.0, 4.2 (in that order)?  Must support
+  instance names, too, and tsql should report progress in verbose mode.  
 . move error message macro/prototype to tds.h.in; use in dblib.c.
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
