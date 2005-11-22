@@ -1,3 +1,6 @@
+Mon Nov 21 23:21:25 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/rpc.c made output easier to read
+	
 Tue Nov 15 18:45:52 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* TODO added some ideas out connecting and connecting reporting
 

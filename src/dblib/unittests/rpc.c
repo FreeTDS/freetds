@@ -26,7 +26,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.23 2005-08-08 12:32:22 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.24 2005-11-22 04:22:53 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -123,6 +123,7 @@ main(int argc, char **argv)
 	int failed = 0;
 	char *retname = NULL;
 	int rettype = 0, retlen = 0;
+	int return_status = 0;
 	char proc[] = "#t0022", 
 	     param0[] = "@null_input", 
 	     param1[] = "@first_type", 
@@ -242,7 +243,10 @@ main(int argc, char **argv)
 	/* retrieve outputs per usual */
 	r = 0;
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
-		if (erc == SUCCEED) {
+		static const char dashes5[]  = "-----", 
+				  dashes15[] = "---------------", 
+				  dashes30[] = "------------------------------";
+		if (erc == SUCCEED) { 
 			const int ncols = dbnumcols(dbproc);
 			int empty_resultset = 1;
 			++num_resultset;
@@ -267,30 +271,30 @@ main(int argc, char **argv)
 			/* check return status */
 			printf("retrieving return status...\n");
 			if (dbhasretstat(dbproc) == TRUE) {
-				printf("%d\n", dbretstatus(dbproc));
+				printf("%d\n", return_status = dbretstatus(dbproc));
 			} else {
 				printf("none\n");
 			}
 			
 			/* check return parameter values */
-			printf("retrieving output parameter... ");
+			printf("retrieving output parameters...\n");
+			printf("%-5s %-15s %5s %6s  %-30s\n", "param", "name", "type", "length", "data"); 
+			printf("%-5s %-15s %5s %5s- %-30s\n", dashes5, dashes15, dashes5, dashes5, dashes30); 
 			for (i = 1; i <= dbnumrets(dbproc); i++) {
 				add_bread_crumb();
 				retname = dbretname(dbproc, i);
-				printf("ret name %d is %s\n", i, retname);
 				rettype = dbrettype(dbproc, i);
-				printf("ret type %d is %d\n", i, rettype);
 				retlen = dbretlen(dbproc, i);
-				printf("ret len %d is %d\n", i, retlen);
 				dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
-				printf("ret data %d is %s\n", i, teststr);
+				printf("%-5d %-15s %5d %6d  %-30s\n", i, retname, rettype, retlen, teststr); 
 				add_bread_crumb();
 				
 				save_retparam(&save_param, retname, teststr, rettype, retlen);
 			}
 			
-			if (i == 1) {	/* no return parameter */
-				printf("none\n");
+			if (num_resultset == 3 && i < 4) {	/* dbnumrets missed something */
+				fprintf(stderr, "Expected 4 output parameters.\n");
+				exit(1);
 			}
 			
 		} else {
@@ -324,7 +328,15 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* Test number of results set */
+	if(42 != return_status) {
+		fprintf(stderr, "Expected status to be 42.\n");
+		exit(1);
+	}
+
+	printf("Good: Got 4 output parameters and 1 return status of %d.\n", return_status);
+
+
+	/* Test number of result sets */
 	if (num_resultset != 3) {
 		fprintf(stderr, "Expected 3 resultset got %d.\n", num_resultset);
 		exit(1);
@@ -333,9 +345,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "Expected an empty resultset got %d.\n", num_empty_resultset);
 		exit(1);
 	}
-	printf("Got correctly %d resultset and %d empty resultset.\n", num_resultset, num_empty_resultset);
-
-	printf("done\n");
+	printf("Good: Got %d resultsets and %d empty resultset.\n", num_resultset, num_empty_resultset);
 
 	add_bread_crumb();
 
