@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.34 2005-10-07 15:07:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.35 2005-11-24 09:12:24 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -317,6 +317,11 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 #else
 				len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
 #endif
+				/* detect connection close */
+				if (len == 0) {
+					tds_close_socket(tds);
+					return -1;
+				}
 			}
 		}
 
