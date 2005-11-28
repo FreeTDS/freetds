@@ -1,3 +1,6 @@
+Mon Nov 28 13:24:56 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in: optimize configure size
+
 Thu Nov 24 10:11:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/net.c: detect correctly connection close
 
