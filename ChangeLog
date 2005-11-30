@@ -1,3 +1,8 @@
+Wed Nov 30 13:11:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c src/odbc/prepare_query.c:
+	* src/odbc/unittests/const_params.c:
+	- fix rpc calls if not dynamic parameters available
+
 Mon Nov 28 13:24:56 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in: optimize configure size
 

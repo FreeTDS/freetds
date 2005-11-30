@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.57 2005-08-23 17:25:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.58 2005-11-30 12:13:09 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -225,8 +225,6 @@ start_parse_prepared_query(struct _hstmt *stmt, int compute_row)
 	stmt->params = NULL;
 	stmt->param_num = 0;
 
-	if (!stmt->param_count)
-		return SQL_SUCCESS;
 	stmt->param_num = stmt->prepared_query_is_func ? 2 : 1;
 	return parse_prepared_query(stmt, compute_row);
 }

@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.9 2005-07-22 09:01:34 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.10 2005-11-30 12:13:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -102,6 +102,26 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("Unable to execute statement");
 
 	if (output != 54321) {
+		fprintf(stderr, "Invalid result %d (0x%x)\n", (int) output, (int) output);
+		return 1;
+	}
+
+	if (CommandWithResult(Statement, "drop proc const_param") != SQL_SUCCESS)
+		printf("Unable to execute statement\n");
+
+	Command(Statement, "create proc const_param @in varchar(20) as\n"
+		"begin\n"
+		" if @in = 'value' select 8421\n"
+		" select 1248\n"
+		"end");
+
+	/* catch problem reported by Peter Deacon */
+	output = 0xdeadbeef;
+	Command(Statement, "{CALL const_param('value')}");
+	SQLBindCol(Statement, 1, SQL_C_SLONG, &output, 0, &ind);
+	SQLFetch(Statement);
+
+	if (output != 8421) {
 		fprintf(stderr, "Invalid result %d (0x%x)\n", (int) output, (int) output);
 		return 1;
 	}

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.397 2005-11-06 20:00:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.398 2005-11-30 12:13:09 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2632,6 +2632,8 @@ _SQLExecute(TDS_STMT * stmt)
 SQLRETURN SQL_API
 SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 {
+	SQLRETURN res;
+
 	INIT_HSTMT;
 
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, (char *) szSqlStr, cbSqlStr)) {
@@ -2649,13 +2651,9 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	if (stmt->param_count) {
-		SQLRETURN res;
-
-		res = start_parse_prepared_query(stmt, 1);
-		if (SQL_SUCCESS != res)
-			ODBC_RETURN(stmt, res);
-	}
+	res = start_parse_prepared_query(stmt, 1);
+	if (SQL_SUCCESS != res)
+		ODBC_RETURN(stmt, res);
 
 	return _SQLExecute(stmt);
 }
