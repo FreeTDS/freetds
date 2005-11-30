@@ -25,7 +25,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: thread.c,v 1.4 2005-07-25 08:55:32 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.5 2005-11-30 10:05:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -35,7 +35,7 @@ static int thread_count = 0;
 
 #define ROWS 20
 #define NUM_THREAD 10
-#define NUM_LOOP 1000
+#define NUM_LOOP 100
 
 static void
 set_failed(void)
