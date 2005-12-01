@@ -25,7 +25,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: thread.c,v 1.5 2005-11-30 10:05:46 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.6 2005-12-01 12:23:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -231,7 +231,7 @@ main(int argc, char **argv)
 
 	for (i = 0; i < NUM_THREAD; ++i) {
 		pthread_join(th[i], NULL);
-		fprintf(stdout, "thread: %d exited\n", i);
+		fprintf(stdout, "thread: %d exited\n", i + 1);
 	}
 
 	fprintf(stdout, "Dropping table\n");

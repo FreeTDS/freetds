@@ -187,7 +187,7 @@ echo Testing ...
 TESTS_ENVIRONMENT="$DIR/full-test.sh"
 export TESTS_ENVIRONMENT ORIGDIR
 $MAKE check 2> /dev/null > "$DIR/check.txt"
-if  test $RES != 0; then
+if  test $? != 0; then
 	out_end
 	echo "error during make check"
 	exit 1;
@@ -252,12 +252,12 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 		if test `cat "$CUR.vg.test_output" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
 			WARN2="yes :("
 		fi
-		if test `cat "$CUR.vg.test_output" | grep ':==.*no leaks are possible' | wc -l` == 0; then
-			LEAK="yes :-("
+		if grep -q ':==.*no leaks are possible' "$CUR.vg.test_output"; then :; else
+			grep -q ':==.*definitely lost: 0 bytes in 0 blocks' "$CUR.vg.test_output" || LEAK="yes :-("
+			grep -q ':==.*possibly lost: 0 bytes in 0 blocks' "$CUR.vg.test_output" || LEAK="yes :-("
+			grep -q ':==.*still reachable: 0 bytes in 0 blocks' "$CUR.vg.test_output" || LEAK="yes :-("
 		fi
-		if test `cat "$CUR.vg.test_output" | grep 'ERROR SUMMARY: 0 errors from 0 contexts' | wc -l` == 0; then
-			VGERR="yes :-("
-		fi
+		grep -q 'ERROR SUMMARY: 0 errors from 0 contexts' "$CUR.vg.test_output" || VGERR="yes :-("
 		if test $RES2 != 0; then
 			ERR2="no :-("
 			WARN2=ignored

@@ -1,3 +1,9 @@
+Thu Dec 01 13:21:27 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* misc/test-auto.sh:
+	- do not take into account suppressed leaks, cleanup
+	* src/dblib/unittests/thread.c:
+	- more consistent messages
+
 Wed Nov 30 13:11:44 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c src/odbc/prepare_query.c:
 	* src/odbc/unittests/const_params.c:
