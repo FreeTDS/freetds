@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.41 2005-07-05 07:51:46 freddy77 Exp $
+# version $Id: Makefile.am,v 1.42 2005-12-01 11:04:21 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
@@ -31,7 +31,7 @@ install-data-local:
 	fi
 
 clean-local:
-	find . \( -name \*.test_output -o -name \*.bb -o -name \*.bbg -o -name \*.da \) -exec rm -f {} \;
+	find . \( -name \*.test_output -o -name \*.bb -o -name \*.bbg -o -name \*.da -o -name \*.gc\* \) -exec rm -f {} \;
 
 # enable some cheat so make distcheck work (see below)
 DISTCHECK_CONFIGURE_FLAGS	=	\
