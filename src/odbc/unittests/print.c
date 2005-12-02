@@ -1,10 +1,16 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.16 2005-08-09 14:25:25 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.17 2005-12-02 10:32:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
 static void ReadError(void);
+
+#ifdef TDS_NO_DM
+static const int tds_no_dm = 1;
+#else
+static const int tds_no_dm = 0;
+#endif
 
 static void
 ReadError(void)
@@ -16,12 +22,14 @@ ReadError(void)
 	printf("Message: %s\n", output);
 }
 
-int
-main(int argc, char *argv[])
+static int
+test(int odbc3)
 {
 	SQLLEN cnamesize;
 	const char *query;
 	SQLRETURN rc;
+
+	use_odbc_version3 = odbc3;
 
 	Connect();
 
@@ -38,6 +46,18 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	output[0] = 0;
+
+	if (odbc3) {
+		CHECK_COLS(0);
+		CHECK_ROWS(-1);
+		rc = SQLFetch(Statement);
+		if (rc != SQL_ERROR)
+			ODBC_REPORT_ERROR("Still data?");
+		rc = SQLMoreResults(Statement);
+		if (rc != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("SQLMoreResults failed");
+	}
+    
 	CHECK_COLS(1);
 	CHECK_ROWS(-1);
 
@@ -52,31 +72,44 @@ main(int argc, char *argv[])
 
 	/* SQLMoreResults return NO DATA ... */
 	rc = SQLMoreResults(Statement);
-#ifndef TDS_NO_DM
 	if (rc != SQL_NO_DATA && rc != SQL_SUCCESS_WITH_INFO)
-#else
-	if (rc != SQL_NO_DATA)
-#endif
+		ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA or SUCCESS WITH INFO");
+
+	if (tds_no_dm && !odbc3 && rc != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
+
+	if (odbc3 && rc != SQL_SUCCESS_WITH_INFO)
+		ODBC_REPORT_ERROR("SQLMoreResults should return SUCCESS WITH INFO");
 
 	/*
 	 * ... but read error
 	 * (unixODBC till 2.2.11 do not read errors on NO DATA, skip test)
 	 */
-#ifdef TDS_NO_DM
-	output[0] = 0;
-	ReadError();
-	if (!strstr((char *) output, "END")) {
-		printf("Message invalid\n");
-		return 1;
+	if (tds_no_dm || odbc3) {
+		output[0] = 0;
+		ReadError();
+		if (!strstr((char *) output, "END")) {
+			printf("Message invalid\n");
+			return 1;
+		}
+		output[0] = 0;
 	}
-	output[0] = 0;
 
+	if (!odbc3) {
+		if (tds_no_dm) {
 #if 0
-	CHECK_COLS(-1);
+			CHECK_COLS(-1);
 #endif
-	CHECK_ROWS(-2);
-#endif
+			CHECK_ROWS(-2);
+		}
+	} else {
+		CHECK_COLS(0);
+		CHECK_ROWS(-1);
+
+		rc = SQLMoreResults(Statement);
+		if (rc != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
+	}
 
 	/* issue invalid command and test error */
 	if (CommandWithResult(Statement, "SELECT donotexistsfield FROM donotexiststable") != SQL_ERROR) {
@@ -100,6 +133,25 @@ main(int argc, char *argv[])
 
 	Disconnect();
 
+	return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+	int ret;
+
+	/* ODBC 2 */
+	ret = test(0);
+	if (ret != 0)
+		return ret;
+
+	/* ODBC 3 */
+	ret = test(1);
+	if (ret != 0)
+		return ret;
+
 	printf("Done.\n");
 	return 0;
 }
+

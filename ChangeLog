@@ -1,3 +1,6 @@
+Fri Dec 02 11:31:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/unittests/print.c: improve test
+
 Thu Dec 01 13:21:27 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* misc/test-auto.sh:
 	- do not take into account suppressed leaks, cleanup
