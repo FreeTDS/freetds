@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.398 2005-11-30 12:13:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.399 2005-12-04 11:16:30 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2720,16 +2720,17 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			if (done_flags & TDS_DONE_ERROR)
 				stmt->errs.lastrc = SQL_ERROR;
 			/* test for internal_sp not very fine, used for param set  -- freddy77 */
-			if ((done_flags & (TDS_DONE_COUNT|TDS_DONE_ERROR)) == 0
-			    && (result_type != TDS_DONEPROC_RESULT || tds->internal_sp_called != TDS_SP_EXECUTE))
-				break;
-			/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
-			stmt->row = 0;
+			if ((done_flags & (TDS_DONE_COUNT|TDS_DONE_ERROR)) != 0
+			    || (stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
+			    || (result_type == TDS_DONEPROC_RESULT && tds->internal_sp_called == TDS_SP_EXECUTE)) {
+				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
+				stmt->row = 0;
 #if 0
-			tds_free_all_results(tds);
-			odbc_populate_ird(stmt);
+				tds_free_all_results(tds);
+				odbc_populate_ird(stmt);
 #endif
-			return result_type;
+				return result_type;
+			}
 			break;
 
 		/*
@@ -2799,12 +2800,10 @@ _SQLFetch(TDS_STMT * stmt)
 	}
 	IRD_CHECK;
 
-#ifdef TDS_NO_DM
 	if (stmt->ird->header.sql_desc_count <= 0) {
 		odbc_errs_add(&stmt->errs, "24000", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-#endif
 
 	tds = stmt->dbc->tds_socket;
 

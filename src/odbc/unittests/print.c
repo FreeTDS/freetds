@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.17 2005-12-02 10:32:24 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.18 2005-12-04 11:16:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -55,7 +55,7 @@ test(int odbc3)
 			ODBC_REPORT_ERROR("Still data?");
 		rc = SQLMoreResults(Statement);
 		if (rc != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLMoreResults failed");
+			ODBC_REPORT_ERROR("SQLMoreResults failed");
 	}
     
 	CHECK_COLS(1);

@@ -1,3 +1,7 @@
+Sun Dec 04 12:15:53 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c: fix print test
+	* src/odbc/unittests/print.c: small indent adjustment
+
 Fri Dec 02 11:31:55 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/print.c: improve test
 
