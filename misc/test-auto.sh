@@ -45,10 +45,11 @@ INFO="<table border=\"1\">
 <br />"
 
 # create html template
-echo "<html>
+echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">
+<html>
 <head>
 <title>{TITLE}</title>
-<style>
+<style type=\"text/css\">
 .error { background-color: red; color: white }
 .info  { color: blue }
 </style>
@@ -116,7 +117,11 @@ output_save () {
 }
 
 out_init () {
-	echo "<html>
+echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">
+<html>
+<head>
+<title>Test output</title>
+</head>
 <body>
 $INFO
 " > "$DIR/index.html"
