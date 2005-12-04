@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.35 2005-11-24 09:12:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.36 2005-12-04 16:53:49 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -140,6 +140,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 {
 	struct sockaddr_in sin;
 	fd_set fds;
+	char *message;
 #if !defined(DOS32X)
 	unsigned long ioctl_blocking = 1;
 	time_t start, now;
@@ -168,6 +169,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d.\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port));
 
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
+		tds_client_msg(tds->tds_ctx, tds, 20008, 9, 0, 0, "Unable to open socket.");
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
 		return TDS_FAIL;
 	}
@@ -235,7 +237,10 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (retval < 0 || (now - start) >= timeout) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port), strerror(sock_errno));
 		tds_close_socket(tds);
-		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
+		if (retval < 0)
+			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
+		else
+			tds_client_msg(tds->tds_ctx, tds, 20003, 9, 0, 0, "SQL Server connection timed out.");
 		return TDS_FAIL;
 	}
 #endif
@@ -251,6 +256,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (len != 0) {
 		tdsdump_log(TDS_DBG_ERROR, "connect error: %s\n", strerror(len));
 		tds_close_socket(tds);
+		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
 		return TDS_FAIL;
 	}
 
