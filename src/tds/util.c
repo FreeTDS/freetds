@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.63 2005-07-07 18:34:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.64 2005-12-05 13:29:02 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -236,6 +236,12 @@ tdsdump_open(const char *filename)
 
 	TDS_MUTEX_LOCK(&g_dump_mutex);
 
+	/* same append file */
+	if (tds_g_append_mode && filename != NULL && strcmp(filename, g_dump_filename) == 0) {
+		TDS_MUTEX_UNLOCK(&g_dump_mutex);
+		return 1;
+	}
+
 	/* free old one */
 	if (g_dumpfile != NULL && g_dumpfile != stdout && g_dumpfile != stderr)
 		fclose(g_dumpfile);
@@ -252,6 +258,10 @@ tdsdump_open(const char *filename)
 	result = 1;
 	if (tds_g_append_mode) {
 		g_dump_filename = strdup(filename);
+		/* if mutex are available do not reopen file every time */
+#ifdef TDS_HAVE_PTHREAD_MUTEX
+		g_dumpfile = fopen(filename, "a");
+#endif
 	} else if (!strcmp(filename, "stdout")) {
 		g_dumpfile = stdout;
 	} else if (!strcmp(filename, "stderr")) {
@@ -313,7 +323,7 @@ tdsdump_close(void)
 static void
 tdsdump_start(FILE *file, const char *fname, int line)
 {
-	char buf[128];
+	char buf[128], *pbuf;
 	int started = 0;
 
 	/* write always time before log */
@@ -322,10 +332,11 @@ tdsdump_start(FILE *file, const char *fname, int line)
 		started = 1;
 	}
 
+	pbuf = buf;
 	if (tds_debug_flags & TDS_DBGFLAG_PID) {
 		if (started)
-			fputc(' ', file);
-		fprintf(file, "%d", (int) getpid());
+			*pbuf++ = ' ';
+		pbuf += sprintf(pbuf, "%d", (int) getpid());
 		started = 1;
 	}
 
@@ -338,13 +349,15 @@ tdsdump_start(FILE *file, const char *fname, int line)
 		if (p)
 			fname = p + 1;
 		if (started)
-			fprintf(file, " (%s:%d)", fname, line);
+			pbuf += sprintf(pbuf, " (%s:%d)", fname, line);
 		else
-			fprintf(file, "%s:%d", fname, line);
+			pbuf += sprintf(pbuf, "%s:%d", fname, line);
 		started = 1;
 	}
 	if (started)
-		fputc(':', file);
+		*pbuf++ = ':';
+	*pbuf = 0;
+	fputs(buf, file);
 }
 
 /**
@@ -362,6 +375,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	const unsigned char *data = (const unsigned char *) buf;
 	const int debug_lvl = level_line & 15;
 	const int line = level_line >> 4;
+	char line_buf[bytesPerLine * 8 + 16], *p;
 	FILE *dumpfile;
 
 	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !write_dump)
@@ -370,8 +384,13 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	TDS_MUTEX_LOCK(&g_dump_mutex);
 
 	dumpfile = g_dumpfile;
+#ifdef TDS_HAVE_PTHREAD_MUTEX
+	if (tds_g_append_mode && dumpfile == NULL)
+		dumpfile = g_dumpfile = tdsdump_append();
+#else
 	if (tds_g_append_mode)
 		dumpfile = tdsdump_append();
+#endif
 
 	if (dumpfile == NULL) {
 		TDS_MUTEX_UNLOCK(&g_dump_mutex);
@@ -383,46 +402,52 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	fprintf(dumpfile, "%s\n", msg);
 
 	for (i = 0; i < length; i += bytesPerLine) {
+		p = line_buf;
 		/*
 		 * print the offset as a 4 digit hex number
 		 */
-		fprintf(dumpfile, "%04x", i);
+		p += sprintf(p, "%04x", i);
 
 		/*
 		 * print each byte in hex
 		 */
 		for (j = 0; j < bytesPerLine; j++) {
 			if (j == bytesPerLine / 2)
-				fprintf(dumpfile, "-");
+				*p++ = '-';
 			else
-				fprintf(dumpfile, " ");
+				*p++ = ' ';
 			if (j + i >= length)
-				fprintf(dumpfile, "  ");
+				p += sprintf(p, "  ");
 			else
-				fprintf(dumpfile, "%02x", data[i + j]);
+				p += sprintf(p, "%02x", data[i + j]);
 		}
 
 		/*
 		 * skip over to the ascii dump column
 		 */
-		fprintf(dumpfile, " |");
+		p += sprintf(p, " |");
 
 		/*
 		 * print each byte in ascii
 		 */
 		for (j = i; j < length && (j - i) < bytesPerLine; j++) {
 			if (j - i == bytesPerLine / 2)
-				fprintf(dumpfile, " ");
-			fprintf(dumpfile, "%c", (isprint(data[j])) ? data[j] : '.');
+				*p++ = ' ';
+			p += sprintf(p, "%c", (isprint(data[j])) ? data[j] : '.');
 		}
-		fprintf(dumpfile, "|\n");
+		strcpy(p, "|\n");
+		fputs(line_buf, dumpfile);
 	}
-	fprintf(dumpfile, "\n");
+	fputs("\n", dumpfile);
 
+	fflush(dumpfile);
+
+#ifndef TDS_HAVE_PTHREAD_MUTEX
 	if (tds_g_append_mode) {
 		if (dumpfile != stdout && dumpfile != stderr)
 			fclose(dumpfile);
 	}
+#endif
 
 	TDS_MUTEX_UNLOCK(&g_dump_mutex);
 
@@ -448,8 +473,13 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 	TDS_MUTEX_LOCK(&g_dump_mutex);
 
 	dumpfile = g_dumpfile;
+#ifdef TDS_HAVE_PTHREAD_MUTEX
+	if (tds_g_append_mode && dumpfile == NULL)
+		dumpfile = g_dumpfile = tdsdump_append();
+#else
 	if (tds_g_append_mode)
 		dumpfile = tdsdump_append();
+#endif
 	
 	if (dumpfile == NULL) { 
 		TDS_MUTEX_UNLOCK(&g_dump_mutex);
@@ -465,10 +495,12 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 
 	fflush(dumpfile);
 
+#ifndef TDS_HAVE_PTHREAD_MUTEX
 	if (tds_g_append_mode) {
 		if (dumpfile != stdout && dumpfile != stderr)
 			fclose(dumpfile);
 	}
+#endif
 	TDS_MUTEX_UNLOCK(&g_dump_mutex);
 }				/* tdsdump_log()  */
 

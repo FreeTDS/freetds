@@ -1,3 +1,6 @@
+Mon Dec 05 14:28:29 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/util.c: optimize logging speed
+
 Sun Dec 04 17:53:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/net.c: more verbose errors
 
