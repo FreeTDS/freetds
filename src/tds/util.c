@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.64 2005-12-05 13:29:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.65 2005-12-05 21:10:15 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -73,6 +73,8 @@ static char *g_dump_filename = NULL;
 static int write_dump = 0;	/* is TDS stream debug log turned on? */
 static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
 static TDS_MUTEX_DECLARE(g_dump_mutex);
+
+static FILE* tdsdump_append(void);
 
 #ifdef TDS_ATTRIBUTE_DESTRUCTOR
 static void __attribute__((destructor))
@@ -237,7 +239,7 @@ tdsdump_open(const char *filename)
 	TDS_MUTEX_LOCK(&g_dump_mutex);
 
 	/* same append file */
-	if (tds_g_append_mode && filename != NULL && strcmp(filename, g_dump_filename) == 0) {
+	if (tds_g_append_mode && filename != NULL && g_dump_filename != NULL && strcmp(filename, g_dump_filename) == 0) {
 		TDS_MUTEX_UNLOCK(&g_dump_mutex);
 		return 1;
 	}
@@ -260,7 +262,7 @@ tdsdump_open(const char *filename)
 		g_dump_filename = strdup(filename);
 		/* if mutex are available do not reopen file every time */
 #ifdef TDS_HAVE_PTHREAD_MUTEX
-		g_dumpfile = fopen(filename, "a");
+		g_dumpfile = tdsdump_append();
 #endif
 	} else if (!strcmp(filename, "stdout")) {
 		g_dumpfile = stdout;

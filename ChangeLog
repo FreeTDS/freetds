@@ -1,3 +1,6 @@
+Mon Dec 05 22:10:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/util.c: fix possible core
+
 Mon Dec 05 14:28:29 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/util.c: optimize logging speed
 
