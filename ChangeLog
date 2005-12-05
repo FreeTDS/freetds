@@ -1,3 +1,6 @@
+Mon Dec 05 22:34:07 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* freetds.conf: do not suggest deprecated settings
+
 Mon Dec 05 22:10:17 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/util.c: fix possible core
 
