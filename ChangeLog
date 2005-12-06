@@ -1,3 +1,6 @@
+Tue Dec  6 20:19:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/dblib/dblib.c: backport fix for nocount
+
 Fri Nov  4 14:54:20 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc_util.c: fix possible buffer overflow
 

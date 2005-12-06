@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-static char software_version[] = "$Id: dblib.c,v 1.187.2.8 2005-09-13 09:39:26 freddy77 Exp $";
+static char software_version[] = "$Id: dblib.c,v 1.187.2.9 2005-12-06 19:20:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int _db_get_server_type(int bindtype);
@@ -4040,9 +4040,12 @@ dbsqlok(DBPROCESS * dbproc)
 		case TDS_SUCCEED:
 			switch (result_type) {
 			case TDS_ROWFMT_RESULT:
+				buffer_free(&dbproc->row_buf);
+				buffer_start_resultset(&(dbproc->row_buf), tds->res_info->row_size);
+			case TDS_COMPUTEFMT_RESULT:
+				dbproc->dbresults_state = _DB_RES_RESULTSET_EMPTY;
 			case TDS_COMPUTE_RESULT:
 			case TDS_ROW_RESULT:
-			case TDS_COMPUTEFMT_RESULT:
 				tdsdump_log(TDS_DBG_FUNC, "dbsqlok() found result token\n");
 				return SUCCEED;
 				break;
