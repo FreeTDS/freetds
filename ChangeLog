@@ -1,3 +1,6 @@
+Tue Dec 06 11:47:33 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/config.c: TDSPORT can be a services port
+
 Mon Dec 05 22:34:07 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* freetds.conf: do not suggest deprecated settings
 

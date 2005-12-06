@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.114 2005-10-07 10:15:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.115 2005-12-06 10:48:11 freddy77 Exp $");
 
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
@@ -584,7 +584,7 @@ tds_config_env_tdsport(TDSCONNECTION * connection)
 	char *s;
 
 	if ((s = getenv("TDSPORT"))) {
-		connection->port = atoi(s);
+		connection->port = tds_lookup_port(s);
 		tds_dstr_copy(&connection->instance_name, "");
 		tdsdump_log(TDS_DBG_INFO1, "Setting 'port' to %s from $TDSPORT.\n", s);
 	}
