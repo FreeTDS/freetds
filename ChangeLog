@@ -1,3 +1,6 @@
+Tue Dec 06 21:24:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* configure.in src/dblib/bcp.c: support for large file in bcp
+
 Tue Dec 06 14:09:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* doc/tds.html doc/tds_ssl.html: now valid html pages
 

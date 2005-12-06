@@ -67,7 +67,15 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.133 2005-07-20 10:58:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.134 2005-12-06 20:24:58 freddy77 Exp $");
+
+#ifdef HAVE_FSEEKO
+typedef off_t offset_type;
+#else
+#define fseeko(f,o,w) fseek(f,o,w)
+#define ftello(f) ftell(f)
+typedef long offset_type;
+#endif
 
 static RETCODE _bcp_build_bcp_record(DBPROCESS * dbproc, TDS_INT *record_len, int behaviour);
 static RETCODE _bcp_build_bulk_insert_stmt(TDSSOCKET *, TDS_PBCB *, TDSCOLUMN *, int);
@@ -79,7 +87,7 @@ static RETCODE _bcp_start_copy_in(DBPROCESS *);
 static RETCODE _bcp_start_new_batch(DBPROCESS *);
 
 static int rtrim(char *, int);
-static long int _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
+static offset_type _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
 static RETCODE _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row_error);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static RETCODE _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
@@ -1163,15 +1171,18 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		if (hostcol->term_len > 0) { /* delimited data file */
 			int file_bytes_left;
 			size_t col_bytes_left;
+			offset_type len;
 			iconv_t cd;
 
-			collen = _bcp_measure_terminated_field(hostfile, hostcol->terminator, hostcol->term_len);
-			if (collen == -1) {
+			len = _bcp_measure_terminated_field(hostfile, hostcol->terminator, hostcol->term_len);
+			if (len > 0x7fffffffl || len < 0) {
 				*row_error = TRUE;
 				tdsdump_log(TDS_DBG_FUNC, "_bcp_measure_terminated_field returned -1!\n");
 				/* FIXME emit message? dbperror(dbproc, SYBEMEM, 0); */
 				return (FAIL);
-			} else if (collen == 0)
+			}
+			collen = len;
+			if (collen == 0)
 				data_is_null = 1;
 
 
@@ -1345,9 +1356,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				if (bcpcol->bcp_column_data->datalen == -1) {
 					hostcol->column_error = HOST_COL_CONV_ERROR;
 					*row_error = 1;
+					/* FIXME possible integer overflow if off_t is 64bit and long int 32bit */
 					tdsdump_log(TDS_DBG_FUNC, 
 						    "_bcp_read_hostfile failed to convert %d bytes at offset 0x%lx in the data file.\n", 
-						    collen, (unsigned long int) ftell(hostfile) - collen);
+						    collen, (unsigned long int) ftello(hostfile) - collen);
 				}
 
 				/* trim trailing blanks from character data */
@@ -1389,15 +1401,15 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
  * \return SUCCEED or FAIL.
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
-static long int
+static offset_type
 _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 {
 	char *sample;
 	int errnum;
 	int sample_size, bytes_read = 0;
-	long int size;
+	offset_type size;
 
-	const long int initial_offset = ftell(hostfile);
+	const offset_type initial_offset = ftello(hostfile);
 
 	sample = malloc(term_len);
 
@@ -1428,8 +1440,8 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 
 				if (found) {
 					free(sample);
-					size = ftell(hostfile) - initial_offset;
-					if (size < 0 || 0 != fseek(hostfile, initial_offset, SEEK_SET)) {
+					size = ftello(hostfile) - initial_offset;
+					if (size < 0 || -1 != fseeko(hostfile, initial_offset, SEEK_SET)) {
 						/* FIXME emit message */
 						return -1;
 					}
@@ -1441,7 +1453,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 				 */
 				if (sample_size > 1) { 
 					sample_size--;
-					if (-1 == fseek(hostfile, -sample_size, SEEK_CUR)) {
+					if (-1 == fseeko(hostfile, -sample_size, SEEK_CUR)) {
 						/* FIXME emit message */
 						return -1;
 					}
@@ -1472,7 +1484,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 
 	if (feof(hostfile)) {
 		errnum = errno;
-		if (initial_offset == ftell(hostfile)) {
+		if (initial_offset == ftello(hostfile)) {
 			return 0;
 		} else {
 			/* a cheat: we don't have dbproc, so pass zero */
@@ -1812,9 +1824,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	int rows_written_so_far;
 
 	int row_error, row_error_count;
-	long row_start, row_end;
-	int error_row_size;
-	char *row_in_error;
+	offset_type row_start, row_end;
+	offset_type error_row_size;
+
+	const size_t chunk_size = 0x20000u;
 	
 	*rows_copied = 0;
 	
@@ -1845,7 +1858,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	row_of_hostfile = 0;
 	rows_written_so_far = 0;
 
-	row_start = ftell(hostfile);
+	row_start = ftello(hostfile);
 	row_error_count = 0;
 	row_error = 0;
 
@@ -1856,6 +1869,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		if (row_error) {
 
 			if (errfile != NULL) {
+				char *row_in_error = NULL;
 
 				for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
 					hostcol = dbproc->hostfileinfo->host_columns[i];
@@ -1869,21 +1883,29 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					}
 				}
 
-				row_end = ftell(hostfile);
+				row_end = ftello(hostfile);
 
+				/* error data can be very long so split in chunks */
 				error_row_size = row_end - row_start;
-				row_in_error = malloc(error_row_size);
+				fseeko(hostfile, row_start, SEEK_SET);
 
-				fseek(hostfile, row_start, SEEK_SET);
+				while (error_row_size > 0) {
+					size_t chunk = error_row_size > chunk_size ? chunk_size : error_row_size;
 
-				if (fread(row_in_error, error_row_size, 1, hostfile) != 1) {
-					printf("BILL fread failed after fseek\n");
+					if (!row_in_error)
+						row_in_error = malloc(chunk);
+
+					if (fread(row_in_error, chunk, 1, hostfile) != 1) {
+						printf("BILL fread failed after fseek\n");
+					}
+					fwrite(row_in_error, chunk, 1, errfile);
+					error_row_size -= chunk;
 				}
+				if (row_in_error)
+					free(row_in_error);
 
-				fseek(hostfile, row_end, SEEK_SET);
-				fwrite(row_in_error, error_row_size, 1, errfile);
+				fseeko(hostfile, row_end, SEEK_SET);
 				fprintf(errfile, "\n");
-				free(row_in_error);
 			}
 			row_error_count++;
 			if (row_error_count > dbproc->hostfileinfo->maxerrs)
@@ -1924,7 +1946,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			}
 		}
 
-		row_start = ftell(hostfile);
+		row_start = ftello(hostfile);
 		row_error = 0;
 	}
 
