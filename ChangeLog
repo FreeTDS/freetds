@@ -1,3 +1,6 @@
+Tue Dec 06 14:09:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/tds.html doc/tds_ssl.html: now valid html pages
+
 Tue Dec 06 11:47:33 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/config.c: TDSPORT can be a services port
 

@@ -14,8 +14,8 @@ This document attempts to cover the TDS protocol for:
 
 <table border=1>
 	<tr><td align=center><b>TDS Version</b></td><td><b>Supported Products</b></td></tr>
-	<tr><td align=center>4.2</td><td>Sybase SQL Server < 10 and  Microsoft SQL Server 6.5</td></tr>
-	<tr><td align=center>5.0</td><td>Sybase SQL Server >= 10</td></tr>
+	<tr><td align=center>4.2</td><td>Sybase SQL Server &lt; 10 and  Microsoft SQL Server 6.5</td></tr>
+	<tr><td align=center>5.0</td><td>Sybase SQL Server &gt;= 10</td></tr>
 	<tr><td align=center>7.0</td><td>Microsoft SQL Server 7.0</td></tr>
 	<tr><td align=center>8.0</td><td>Microsoft SQL Server 2000</td></tr>
 </table>
@@ -64,32 +64,32 @@ These are TDS 4.2 and not meant to be 100% correct, but
 I thought they might be helpful to get an overall view 
 of what goes on.
 <pre>
---> Login
-<-- Login acknowledgement
+--&gt; Login
+&lt;-- Login acknowledgement
 
---> INSERT SQL statement
-<-- Result Set Done
+--&gt; INSERT SQL statement
+&lt;-- Result Set Done
 
---> SELECT SQL statement
-<-- Column Names
-<-- Column Info
-<-- Row Result
-<-- Row Result
-<-- Result Set Done
+--&gt; SELECT SQL statement
+&lt;-- Column Names
+&lt;-- Column Info
+&lt;-- Row Result
+&lt;-- Row Result
+&lt;-- Result Set Done
 
---> call stored procedure
-<-- Column Names
-<-- Column Info
-<-- Row Result
-<-- Row Result
-<-- Done Inside Process
-<-- Column Names
-<-- Column Info
-<-- Row Result
-<-- Row Result
-<-- Done Inside Process
-<-- Return Status
-<-- Process Done
+--&gt; call stored procedure
+&lt;-- Column Names
+&lt;-- Column Info
+&lt;-- Row Result
+&lt;-- Row Result
+&lt;-- Done Inside Process
+&lt;-- Column Names
+&lt;-- Column Info
+&lt;-- Row Result
+&lt;-- Row Result
+&lt;-- Done Inside Process
+&lt;-- Return Status
+&lt;-- Process Done
 </pre>
 
 <p>
@@ -213,7 +213,7 @@ byte  var type  description
  24   INT8	option flags 1
                 0x80 enable warning messages if SET LANGUAGE issued
                 0x40 change to initial database must succeed
-                0x20 enable warning messages if USE <database> issued
+                0x20 enable warning messages if USE &lt;database&gt; issued
  25   INT8	option flags 2
                 0x80 enable domain login security
                 0x02 client is an ODBC driver
@@ -407,14 +407,14 @@ flags         bit Name           Meaning
 
 usertype      usertype
 type          param type
-size          see <a href="#129">Results</a>
-optional      see <a href="#129">Results</a>. Blobs DO NOT have 
+size          see <a href="#t129">Results</a>
+optional      see <a href="#t129">Results</a>. Blobs DO NOT have 
               optional on input parameters (output blob parameters
               are not supported by any version of TDS).
 collate info  only for type that want collate info and using TDS8
 locale length locale information length. Usually 0 (if not locale
               information follow, the structure is unknown)
-<pre>
+</pre>
 
 <hr>
 <p>
@@ -427,40 +427,40 @@ and third bytes
 <p>
 Tokens encountered thus far:
 <pre>
-0x21    33   <a href="#33">"Language packet" ?</a> 	5.0 only, client-side?
-0x71   113   <a href="#113">"Logout"</a>			5.0? ct_close(), client-side?
-0x79   121   <a href="#121">Return Status</a>
-0x7C   124   <a href="#124">Process ID</a>			4.2 only
-0x81   129   <a href="#129">7.0 Result</a>			7.0 only
-0xA0   160   <a href="#160">Column Name</a>		4.2 only
-0xA1   161   <a href="#161">Column Info --- Row Result</a>	4.2 only
-0xA4   164   <a href="#164">Table names</a>		name of tables in a FOR BROWSE select
-0xA5   165   <a href="#165">Column info</a>		column information in a FOR BROWSE select
-0xA7   167   <a href="#167">compute related ?  Also "control" ?</a>
-0xA8   168   <a href="#168">Column Info --- Compute Result</a>
-0xA9   169   <a href="#169">Order By</a>
-0xAA   170   <a href="#170">Error Message</a>
-0xAB   171   <a href="#171">Non-error Message</a>
-0xAC   172   <a href="#172">Output Parameters</a>
-0xAD   173   <a href="#173">Login Acknowledgement</a>
-0xAE   174   <a href="#174">"control" ?</a>
-0xD1   209   <a href="#209">Data --- Row Result</a>
-0xD3   211   <a href="#211">Data --- Compute Result</a>
-0xD7   215   <a href="#215">"param packet" ?</a> **bdw**
-0xE2   226   <a href="#226">Capability packet</a>		information on server
-0xE3   227   <a href="#227">Environment Change</a> (database change, packet size, etc...)
-0xE5   229   <a href="#229">Extended Error Message</a>
-0xE6   230   <a href="#230">"DBRPC" ?</a>		5.0 only RPC calls
-0xEC   236   <a href="#236">"param format packet" ?</a>
-0xEE   238   <a href="#238">Result Set</a>
-0xFD   253   <a href="#253">Result Set Done</a> 
-0xFE   254   <a href="#254">Process Done</a>
-0xFF   255   <a href="#255">Done inside Process</a>
+0x21    33   <a href="#t33">"Language packet" ?</a> 	5.0 only, client-side?
+0x71   113   <a href="#t113">"Logout"</a>			5.0? ct_close(), client-side?
+0x79   121   <a href="#t121">Return Status</a>
+0x7C   124   <a href="#t124">Process ID</a>			4.2 only
+0x81   129   <a href="#t129">7.0 Result</a>			7.0 only
+0xA0   160   <a href="#t160">Column Name</a>		4.2 only
+0xA1   161   <a href="#t161">Column Info --- Row Result</a>	4.2 only
+0xA4   164   <a href="#t164">Table names</a>		name of tables in a FOR BROWSE select
+0xA5   165   <a href="#t165">Column info</a>		column information in a FOR BROWSE select
+0xA7   167   <a href="#t167">compute related ?  Also "control" ?</a>
+0xA8   168   <a href="#t168">Column Info --- Compute Result</a>
+0xA9   169   <a href="#t169">Order By</a>
+0xAA   170   <a href="#t170">Error Message</a>
+0xAB   171   <a href="#t171">Non-error Message</a>
+0xAC   172   <a href="#t172">Output Parameters</a>
+0xAD   173   <a href="#t173">Login Acknowledgement</a>
+0xAE   174   <a href="#t174">"control" ?</a>
+0xD1   209   <a href="#t209">Data --- Row Result</a>
+0xD3   211   <a href="#t211">Data --- Compute Result</a>
+0xD7   215   <a href="#t215">"param packet" ?</a> **bdw**
+0xE2   226   <a href="#t226">Capability packet</a>		information on server
+0xE3   227   <a href="#t227">Environment Change</a> (database change, packet size, etc...)
+0xE5   229   <a href="#t229">Extended Error Message</a>
+0xE6   230   <a href="#t230">"DBRPC" ?</a>		5.0 only RPC calls
+0xEC   236   <a href="#t236">"param format packet" ?</a>
+0xEE   238   <a href="#t238">Result Set</a>
+0xFD   253   <a href="#t253">Result Set Done</a> 
+0xFE   254   <a href="#t254">Process Done</a>
+0xFF   255   <a href="#t255">Done inside Process</a>
 </pre>
 
-<a name="33">&nbsp;</a> <hr>
+<a name="t33">&nbsp;</a> <hr>
 <b class="section">"Language" (0x21 33)</b>
-<p>
+
 <pre>
  int?     INT8     CHAR[n]
 +--------+--------+--------+
@@ -468,14 +468,14 @@ Tokens encountered thus far:
 +--------+--------+--------+
 </pre>
 
-<a name="113">&nbsp;</a> <hr>
+<a name="t113">&nbsp;</a> <hr>
 <b class="section">"Logout" (0x71 113)</b>
 <p>
 No information. (1 byte, value=0 ?)
 
-<a name="121">&nbsp;</a> <hr>
+<a name="t121">&nbsp;</a> <hr>
 <b class="subsection">Return Status (0x79 121)</b>
-<p>
+
 <pre>
  4 bytes
 +---------------+
@@ -485,9 +485,9 @@ No information. (1 byte, value=0 ?)
 
 The return value of a stored procedure.
 
-<a name="124">&nbsp;</a> <hr>
+<a name="t124">&nbsp;</a> <hr>
 <b class="subsection">Process ID (0x7C 124)</b>
-<p>
+
 <pre>
  8 bytes
 +----------------+
@@ -497,9 +497,9 @@ The return value of a stored procedure.
 Presumably the process ID number for an executing stored procedure.
 (I'm not sure how this would ever be used by a client.  *mjs*)
 
-<a name="129">&nbsp;</a> <hr>
+<a name="t129">&nbsp;</a> <hr>
 <b class="subsection">Result - TDS 7.0+ (0x81 129)</b>
-<p>
+
 <pre>
  INT16  
 +----------+-------------+
@@ -521,7 +521,7 @@ flags		bit flags
 		0x1  can be NULL
 		0x8  can be written (it's not an expression)
 		0x10 identity 
-type		data type, values >128 indicate a large type
+type		data type, values &gt;128 indicate a large type
 size		none for fixed size types
 		4 bytes for blob and text
 		2 bytes for large types
@@ -542,9 +542,9 @@ optional
 </pre>
 
 
-<a name="160">&nbsp;</a> <hr>
+<a name="t160">&nbsp;</a> <hr>
 <b class="subsection">Column Name (0xA0 160)</b>
-<p>
+
 <pre>
  INT16          INT8      CHAR[n]               INT8      CHAR[n] 
 +--------------+---------+--------------+------+---------+--------------+
@@ -552,12 +552,12 @@ optional
 +--------------+---------+--------------+------+---------+--------------+
 </pre>
 
-<a name="161">&nbsp;</a>
-<a name="168">&nbsp;</a> <hr>
+<a name="t161">&nbsp;</a>
+<a name="t168">&nbsp;</a> <hr>
 <b class="subsection">Column Info - Row Result (0xA1 161)</b>
 <br>
 <b class="subsection">Column Info - Compute Result (0xA8 168)</b>
-<p>
+
 
 <pre>
  INT8          CHAR[n]        INT8      INT16     INT16     INT16  
@@ -586,18 +586,18 @@ table name         present only for SYBTEXT and SYBIMAGE
 unknown            always 0x00
 </pre>
 
-<a name="164">&nbsp;</a> <hr>
+<a name="t164">&nbsp;</a> <hr>
 <b class="section">"tabname" (0xA4 164)</b>
 <p>
 No information.
 
-<a name="165">&nbsp;</a> <hr>
+<a name="t165">&nbsp;</a> <hr>
 <b class="section">"col info" (0xA5 165)</b>
 <p>
 No information.
 
-<a name="167">&nbsp;</a>
-<a name="174">&nbsp;</a> <hr>
+<a name="t167">&nbsp;</a>
+<a name="t174">&nbsp;</a> <hr>
 <b class="section">compute "control" ? (0xA7 167)</b>
 <br>
 <b class="section">"control" (0xAE 174)</b>
@@ -610,9 +610,9 @@ Miscellaneous note (from *bdw* ?) found with 0xAE: <br>
   I believe computed column info is stored here, need to investigate
 </pre>
 
-<a name="169">&nbsp;</a> <hr>
+<a name="t169">&nbsp;</a> <hr>
 <b class="section">Order By (0xA9 169)</b>
-<p>
+
 <pre>
  INT16    variable (1 byte per col)
 +--------+---------+
@@ -642,9 +642,9 @@ where length = 2 then the orders evaluate:
 to a column is the number
 </pre>
 
-<a name="170">&nbsp;</a>
-<a name="171"></a>
-<a name="229"></a> <hr>
+<a name="t170">&nbsp;</a>
+<a name="t171"></a>
+<a name="t229"></a> <hr>
 <b class="section">Error Message (0xAA 170)</b>
 <br>
 <b class="section">Non-error Message (0xAB 171)</b>
@@ -665,7 +665,7 @@ to a column is the number
 length		Length of packet
 msg number	SQL message number
 state		?
-level		An error if level > 10, a message if level <= 10
+level		An error if level &gt; 10, a message if level &lt;= 10
 m length	Length of message
 message		Text of error/message
 s length	Length of server name
@@ -675,7 +675,7 @@ process name	Stored procedure name, if any
 line#		Line number of input which generated the message
 </pre>
 
-<a name="172">&nbsp;</a> <hr>
+<a name="t172">&nbsp;</a> <hr>
 <b class="section">Output Parameters (0xAC 172)</b>
 <p>
 Output parameters of a stored procedure.
@@ -705,9 +705,8 @@ a fixed size datatype.
 				+-------------+---------------+--------+
 </pre>
 
-<a name="173">&nbsp;</a> <hr>
+<a name="t173">&nbsp;</a> <hr>
 <b class="section">Login Acknowledgement (0xAD 173)</b>
-<p>
 
 <pre>
  INT16    INT8    4 bytes   INT8       CHAR[n]   4 bytes
@@ -727,8 +726,8 @@ ser_ver		Server version
 		(with strange encoding, differring from TDS version)
 </pre>
 
-<a name="209">&nbsp;</a>
-<a name="211">&nbsp;</a> <hr>
+<a name="t209">&nbsp;</a>
+<a name="t211">&nbsp;</a> <hr>
 <b class="section">Data - Row Result (0xD1 209)</b>
 <br>
 <b class="section">Data - Compute Result (0xD3 211)</b>
@@ -762,13 +761,13 @@ hex  D1  01  00  0C  72  65  63  76  20  73  6C  65  65  70  20  20
     209   1   0  12   r   e   c   v ' '   s   l   e   e   p ' ' ' '
 </pre>
 
-<a name="215">&nbsp;</a> <hr>
+<a name="t215">&nbsp;</a> <hr>
 <b class="section">Parameter packet (0xD7 215)</b>
 <br>
 <br>
 No information
 
-<a name="226">&nbsp;</a> <hr>
+<a name="t226">&nbsp;</a> <hr>
 <b class="section">Capability packet (0xE2 226)</b>
 <br>
 
@@ -782,7 +781,7 @@ length		Length of capability string
 capabilities	Server capabilities?  Related to login magic?
 </pre>
 
-<a name="227">&nbsp;</a> <hr>
+<a name="t227">&nbsp;</a> <hr>
 <b class="section">Environment change (0xE3 227)</b>
 <br>
 
@@ -807,13 +806,13 @@ text1 and text2 are text information (coded in ucs2 in TDS7+) except
 collation info that's a structure (see collation structure)
 </pre>
 
-<a name="230">&nbsp;</a> <hr>
+<a name="t230">&nbsp;</a> <hr>
 <b class="section">DB RPC ? (0xE6 230)</b>
 <br>
 <br>
 No information.
 
-<a name="236">&nbsp;</a> <hr>
+<a name="t236">&nbsp;</a> <hr>
 <b class="section">Param format (sent by client?) (0xEC 236)</b>
 <pre>
  INT16     INT16        variable size
@@ -827,7 +826,7 @@ number of parameters	number of parameter formats following
 list of formats		I (*bdw*) imagine it uses the column format structure.
 </pre>
 
-<a name="238">&nbsp;</a> <hr>
+<a name="t238">&nbsp;</a> <hr>
 <b class="section">Result Set (0xEE 238)</b>
 
 <pre>
@@ -842,12 +841,12 @@ Fields:
 length             length of message following this field
 number of columns  number of columns in the result set, this many column
                    information fields will follow.
-column info        <a href="#161">column info</a>
+column info        <a href="#t161">column info</a>
 </pre>
 
-<a name="253">&nbsp;</a>
-<a name="254"></a>
-<a name="255"></a> <hr>
+<a name="t253">&nbsp;</a>
+<a name="t254"></a>
+<a name="t255"></a> <hr>
 <b class="section">Result Set Done (0xFD 253)</b><br>
 <b class="section">Process Done (0xFE 254)</b><br>
 <b class="section">Done Inside Process (0xFF 255)</b><br>
