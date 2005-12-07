@@ -4,11 +4,12 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.12 2005-12-07 12:55:33 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.13 2005-12-07 16:12:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
 #define OUTSTRING_LEN 20
+#define INVALID_RETURN (-12345)
 
 static const char create_proc[] =
 	"CREATE PROCEDURE #tmp1\n"
@@ -21,11 +22,12 @@ static const char create_proc[] =
 	"     SET @OutString = 'This is bogus!'\n"
 	"     SELECT 'Here is the first row' AS FirstResult\n"
 	"     RAISERROR('An error occurred.', @InParam, 1)\n"
-	"     SELECT 'Here is the last row' AS LastResult\n"
+	"%s"
 	"     RETURN (0)";
 
 static SQLSMALLINT ReturnCode;
-static int g_nocount;
+static SQLCHAR OutString[OUTSTRING_LEN];
+static int g_nocount, g_second_select;
 
 static void
 TestResult(SQLRETURN result, int level, const char *func)
@@ -35,7 +37,7 @@ TestResult(SQLRETURN result, int level, const char *func)
 	char MessageText[1000];
 	SQLSMALLINT TextLength;
 
-	if ((level <= 10 && result != SQL_SUCCESS_WITH_INFO) || (level > 10 && result != SQL_ERROR) || ReturnCode != 0) {
+	if ((level <= 10 && result != SQL_SUCCESS_WITH_INFO) || (level > 10 && result != SQL_ERROR) || ReturnCode != INVALID_RETURN) {
 		fprintf(stderr, "%s failed!\n", func);
 		exit(1);
 	}
@@ -86,12 +88,14 @@ CheckData(const char *s, int line)
 static void
 CheckReturnCode(SQLRETURN result, SQLSMALLINT expected, int line)
 {
-	if (ReturnCode == expected)
+	if (ReturnCode == expected && (expected != INVALID_RETURN || strcmp(OutString, "Test") == 0)
+	    && (expected == INVALID_RETURN || strcmp(OutString, "This is bogus!") == 0))
 		return;
 
 	printf("SpDateTest Output:\n");
 	printf("   Result = %d\n", (int) result);
 	printf("   Return Code = %d\n", (int) ReturnCode);
+	printf("   OutString = \"%s\"\n", (char *) OutString);
 	MY_ERROR("Invalid ReturnCode");
 }
 
@@ -103,13 +107,13 @@ Test(int level)
 	SQLRETURN result;
 	SQLSMALLINT InParam = level;
 	SQLSMALLINT OutParam = 1;
-	SQLCHAR OutString[OUTSTRING_LEN];
 	SQLLEN cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
 	SQLLEN cbOutString = SQL_NTS;
 
 	char sql[80];
 
-	ReturnCode = 0;
+	ReturnCode = INVALID_RETURN;
+	memset(&OutString, 0, sizeof(OutString));
 
 	/* test with SQLExecDirect */
 	sprintf(sql, "RAISERROR('An error occurred.', %d, 1)", level);
@@ -157,23 +161,37 @@ Test(int level)
 		result = SQLMoreResults(Statement);
 		expected = level > 10 ? SQL_ERROR : SQL_SUCCESS_WITH_INFO;
 		if (result != expected)
-			ODBC_REPORT_ERROR("SQLMoreResults returned failure");
-		TestResult(result, level, "SQLMoreResults");
-		ReturnCode = -12345;
+			ODBC_REPORT_ERROR("SQLMoreResults returned unexpected result");
+		if (use_odbc_version3 && !g_second_select && g_nocount) {
+			CheckReturnCode(result, 0);
+			ReturnCode = INVALID_RETURN;
+			TestResult(result, level, "SQLMoreResults");
+			ReturnCode = 0;
+		} else {
+			TestResult(result, level, "SQLMoreResults");
+		}
 	} else {
 		TestResult(result == SQL_NO_DATA ? SQL_SUCCESS_WITH_INFO : result, level, "SQLFetch");
-		ReturnCode = -12345;
 	}
 
 	if (driver_is_freetds())
 		CheckData("");
+
+	if (!g_second_select) {
+		CheckReturnCode(result, g_nocount ? 0 : INVALID_RETURN);
+
+		if (SQLMoreResults(Statement) != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
+		CheckReturnCode(result, 0);
+		return;
+	}
 
 	if (!use_odbc_version3 || !g_nocount) {
 		if (SQLMoreResults(Statement) != SQL_SUCCESS)
 			ODBC_REPORT_ERROR("SQLMoreResults returned failure");
 	}
 
-	CheckReturnCode(result, -12345);
+	CheckReturnCode(result, INVALID_RETURN);
 
 	CheckData("");
 	if (SQLFetch(Statement) != SQL_SUCCESS)
@@ -187,32 +205,33 @@ Test(int level)
 	if (!use_odbc_version3 || g_nocount)
 		CheckReturnCode(result, 0);
 	else
-		CheckReturnCode(result, -12345);
+		CheckReturnCode(result, INVALID_RETURN);
 
 	/* FIXME how to handle return in store procedure ??  */
 	result = SQLMoreResults(Statement);
+	if (result != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("SQLMoreResults return other data");
 
 	CheckReturnCode(result, 0);
-#if 0
-	if (SQLMoreResults(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("SQLMoreResults return other data");
-#endif
+
 	CheckData("");
 }
 
 static void
-Test2(int nocount)
+Test2(int nocount, int second_select)
 {
 	SQLRETURN result;
 	char sql[512];
 
 	g_nocount = nocount;
+	g_second_select = second_select;
 
 	/* this test do not work with Sybase */
 	if (!db_is_microsoft())
 		return;
 
-	sprintf(sql, create_proc, nocount ? "SET NOCOUNT ON\n" : "");
+	sprintf(sql, create_proc, nocount ? "SET NOCOUNT ON\n" : "",
+		second_select ? "     SELECT 'Here is the last row' AS LastResult\n" : "");
 	result = CommandWithResult(Statement, sql);
 	if (result != SQL_SUCCESS && result != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Unable to create temporary store");
@@ -229,9 +248,9 @@ main(int argc, char *argv[])
 {
 	Connect();
 
-	Test2(0);
+	Test2(0, 1);
 
-	Test2(1);
+	Test2(1, 1);
 
 	Disconnect();
 
@@ -239,9 +258,11 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	Test2(0);
+	Test2(0, 1);
+	Test2(1, 1);
 
-	Test2(1);
+	Test2(0, 0);
+	Test2(1, 0);
 
 	Disconnect();
 
