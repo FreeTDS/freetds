@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.11 2005-05-03 11:47:50 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.12 2005-12-07 12:55:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -25,6 +25,7 @@ static const char create_proc[] =
 	"     RETURN (0)";
 
 static SQLSMALLINT ReturnCode;
+static int g_nocount;
 
 static void
 TestResult(SQLRETURN result, int level, const char *func)
@@ -83,6 +84,20 @@ CheckData(const char *s, int line)
 #define CheckData(s) CheckData(s, __LINE__)
 
 static void
+CheckReturnCode(SQLRETURN result, SQLSMALLINT expected, int line)
+{
+	if (ReturnCode == expected)
+		return;
+
+	printf("SpDateTest Output:\n");
+	printf("   Result = %d\n", (int) result);
+	printf("   Return Code = %d\n", (int) ReturnCode);
+	MY_ERROR("Invalid ReturnCode");
+}
+
+#define CheckReturnCode(res, exp) CheckReturnCode(res, exp, __LINE__)
+
+static void
 Test(int level)
 {
 	SQLRETURN result;
@@ -126,17 +141,39 @@ Test(int level)
 	CheckData("Here is the first row");
 
 	result = SQLFetch(Statement);
-	TestResult(result == SQL_NO_DATA ? SQL_SUCCESS_WITH_INFO : result, level, "SQLFetch");
+	if (use_odbc_version3) {
+		SQLCHAR SqlState[6];
+		SQLINTEGER NativeError;
+		char MessageText[1000];
+		SQLSMALLINT TextLength;
+		SQLRETURN expected;
+
+		if (result != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("SQLFetch should return NO DATA");
+		result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText,
+				       sizeof(MessageText), &TextLength);
+		if (result != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("SQLGetDiagRec should return NO DATA");
+		result = SQLMoreResults(Statement);
+		expected = level > 10 ? SQL_ERROR : SQL_SUCCESS_WITH_INFO;
+		if (result != expected)
+			ODBC_REPORT_ERROR("SQLMoreResults returned failure");
+		TestResult(result, level, "SQLMoreResults");
+		ReturnCode = -12345;
+	} else {
+		TestResult(result == SQL_NO_DATA ? SQL_SUCCESS_WITH_INFO : result, level, "SQLFetch");
+		ReturnCode = -12345;
+	}
 
 	if (driver_is_freetds())
 		CheckData("");
 
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLMoreResults returned failure");
+	if (!use_odbc_version3 || !g_nocount) {
+		if (SQLMoreResults(Statement) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLMoreResults returned failure");
+	}
 
-	printf("SpDateTest Output:\n");
-	printf("   Result = %d\n", (int) result);
-	printf("   Return Code = %d\n", (int) ReturnCode);
+	CheckReturnCode(result, -12345);
 
 	CheckData("");
 	if (SQLFetch(Statement) != SQL_SUCCESS)
@@ -147,8 +184,15 @@ Test(int level)
 		ODBC_REPORT_ERROR("SQLFetch returned failure");
 	CheckData("");
 
+	if (!use_odbc_version3 || g_nocount)
+		CheckReturnCode(result, 0);
+	else
+		CheckReturnCode(result, -12345);
+
 	/* FIXME how to handle return in store procedure ??  */
-	SQLMoreResults(Statement);
+	result = SQLMoreResults(Statement);
+
+	CheckReturnCode(result, 0);
 #if 0
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults return other data");
@@ -159,14 +203,18 @@ Test(int level)
 static void
 Test2(int nocount)
 {
+	SQLRETURN result;
 	char sql[512];
+
+	g_nocount = nocount;
 
 	/* this test do not work with Sybase */
 	if (!db_is_microsoft())
 		return;
 
 	sprintf(sql, create_proc, nocount ? "SET NOCOUNT ON\n" : "");
-	if (CommandWithResult(Statement, sql) != SQL_SUCCESS)
+	result = CommandWithResult(Statement, sql);
+	if (result != SQL_SUCCESS && result != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Unable to create temporary store");
 
 	Test(5);
@@ -179,6 +227,16 @@ Test2(int nocount)
 int
 main(int argc, char *argv[])
 {
+	Connect();
+
+	Test2(0);
+
+	Test2(1);
+
+	Disconnect();
+
+	use_odbc_version3 = 1;
+
 	Connect();
 
 	Test2(0);

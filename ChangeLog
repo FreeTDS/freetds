@@ -1,3 +1,7 @@
+Wed Dec 07 13:54:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* samples/odbc_rpc.pl: remove some warnings
+	* src/odbc/unittests/raiserror.c: updated with odbc 3 check
+
 Tue Dec 06 21:24:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* configure.in src/dblib/bcp.c: support for large file in bcp
 

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.5 2005-04-08 20:59:07 jklowden Exp $
+# $Id: odbc_rpc.pl,v 1.6 2005-12-07 12:55:33 freddy77 Exp $
 #
 # Contributed by James K. Lowden and is hereby placed in 
 # the public domain.  No rights reserved.  
@@ -28,6 +28,24 @@ use DBI qw(:sql_types);
 use Getopt::Std;
 use File::Basename;
 
+# Stolen shamelessly from DBI: testerrhandler.pl
+
+sub err_handler {
+   my ($state, $msg) = @_;
+   # Strip out all of the driver ID stuff
+   $msg =~ s/^(\[[\w\s]*\])+//;
+   print "===> state: $state msg: $msg\n";
+   return 0;
+}
+
+sub setup_error_handler($)
+{ my ($dbh) = @_;
+
+	$dbh->{odbc_err_handler} = \&err_handler;
+	$dbh->{odbc_async_exec} = 1;
+	print "odbc_async_exec is: $dbh->{odbc_async_exec}\n";
+}
+
 $program = basename($0);
 
 Getopt::Std::getopts('U:P:D:d:h', \%opts);
@@ -48,7 +66,7 @@ setup_error_handler($dbh);
 
 # Construct an odbc placeholder list like (?, ?, ?)
 # for any arguments after $ARGV[0]. 
-my $placeholders;
+my $placeholders = '';
 if( @ARGV > 1 ) {
 	my @placeholders = ('?') x (@ARGV - 1); 
 	$placeholders = '(' . join( q(, ),  @placeholders ) . ')';
@@ -103,20 +121,3 @@ $dbh->disconnect();
 
 exit 0;
 
-# Stolen shamelessly from DBI: testerrhandler.pl
-
-sub err_handler {
-   my ($state, $msg) = @_;
-   # Strip out all of the driver ID stuff
-   $msg =~ s/^(\[[\w\s]*\])+//;
-   print "===> state: $state msg: $msg\n";
-   return 0;
-}
-
-sub setup_error_handler()
-{ my ($dbh) = @_;
-
-	$dbh->{odbc_err_handler} = \&err_handler;
-	$dbh->{odbc_async_exec} = 1;
-	print "odbc_async_exec is: $dbh->{odbc_async_exec}\n";
-}
