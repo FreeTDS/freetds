@@ -1,3 +1,7 @@
+Fri Dec 09 19:02:28 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/tds.h src/tds/token.c:
+	- add TDS_TOKEN_RES_MSG results to tds_process_tokens
+
 Fri Dec  9 12:05:37 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* src/apps/bsqldb.c accept -d as database option
 	* src/apps/tsql.c require 'go' to appear at start of command line

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.304 2005-10-07 10:15:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.305 2005-12-09 18:03:56 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -796,6 +796,12 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 				rc = tds_process_end(tds, marker, done_flags);
 				break;
 			}
+			break;
+		case TDS_ERROR_TOKEN:
+		case TDS_INFO_TOKEN:
+		case TDS_EED_TOKEN:
+			SET_RETURN(TDS_MSG_RESULT, MSG);
+			rc = tds_process_default_tokens(tds, marker);
 			break;
 		default:
 			SET_RETURN(TDS_OTHERS_RESULT, OTHERS);

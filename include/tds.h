@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.243 2005-09-21 14:46:00 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.244 2005-12-09 18:03:56 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -221,7 +221,8 @@ enum tds_token_results
 	TDS_TOKEN_RES_DONE,
 	TDS_TOKEN_RES_ROW,
 	TDS_TOKEN_RES_COMPUTE,
-	TDS_TOKEN_RES_PROC
+	TDS_TOKEN_RES_PROC,
+	TDS_TOKEN_RES_MSG
 };
 
 #define TDS_TOKEN_FLAG(flag) TDS_RETURN_##flag = (1 << (TDS_TOKEN_RES_##flag*2)), TDS_STOPAT_##flag = (2 << (TDS_TOKEN_RES_##flag*2))
@@ -237,8 +238,9 @@ enum tds_token_flags
 	TDS_TOKEN_FLAG(ROW),
 	TDS_TOKEN_FLAG(COMPUTE),
 	TDS_TOKEN_FLAG(PROC),
+	TDS_TOKEN_FLAG(MSG),
 	TDS_TOKEN_RESULTS = TDS_RETURN_ROWFMT|TDS_RETURN_COMPUTEFMT|TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE|TDS_RETURN_PROC,
-	TDS_TOKEN_TRAILING = TDS_STOPAT_ROWFMT|TDS_STOPAT_COMPUTEFMT|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE|TDS_STOPAT_OTHERS
+	TDS_TOKEN_TRAILING = TDS_STOPAT_ROWFMT|TDS_STOPAT_COMPUTEFMT|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE|TDS_STOPAT_MSG|TDS_STOPAT_OTHERS
 };
 
 enum tds_end
