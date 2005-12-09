@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.399 2005-12-04 11:16:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.400 2005-12-09 14:21:40 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5746,7 +5746,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 	struct param
 	{
 		char *name;
-		SQLCHAR *value;
+		char *value;
 		int len;
 		char type;
 	}
@@ -5778,12 +5778,12 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		}
 		params[i].name = p;
 
-		params[i].value = va_arg(marker, SQLCHAR *);
+		params[i].value = va_arg(marker, char *);
 		param_len = va_arg(marker, int);
 		if (params[i].value && param_len != SQL_NULL_DATA) {
-			params[i].len = odbc_get_string_size(param_len, params[i].value);
+			params[i].len = odbc_get_string_size(param_len, (SQLCHAR *) params[i].value);
 			len += strlen(params[i].name) + odbc_quote_metadata(stmt->dbc, params[i].type, NULL, 
-									    (char *) params[i].value, params[i].len) + 3;
+									    params[i].value, params[i].len) + 3;
 			if (begin[0] == '.' && strstr(params[i].name, "qualifier")) {
 				len += tds_quote_id(stmt->dbc->tds_socket, NULL, params[i].value, params[i].len);
 				param_qualifier = i;
@@ -5815,7 +5815,7 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 			p += strlen(params[i].name);
 			*p++ = '=';
 		}
-		p += odbc_quote_metadata(stmt->dbc, params[i].type, p, (char *) params[i].value, params[i].len);
+		p += odbc_quote_metadata(stmt->dbc, params[i].type, p, params[i].value, params[i].len);
 		*p++ = ',';
 	}
 	*--p = '\0';
