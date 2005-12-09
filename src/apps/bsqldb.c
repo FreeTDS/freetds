@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.24 2005-10-25 21:43:35 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.25 2005-12-09 17:06:05 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -769,7 +769,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		DBSETLHOST(login, options->hostname);
 	}
 
-	while ((ch = getopt(argc, argv, "U:P:S:D:i:o:e:t:qv")) != -1) {
+	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:qv")) != -1) {
 		switch (ch) {
 		case 'U':
 			DBSETLUSER(login, optarg);
@@ -780,6 +780,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		case 'S':
 			options->servername = strdup(optarg);
 			break;
+		case 'd':
 		case 'D':
 			options->database = strdup(optarg);
 			break;
