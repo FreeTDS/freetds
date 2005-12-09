@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <ctype.h>
 
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
@@ -68,7 +69,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.81 2005-10-26 17:58:15 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.82 2005-12-09 17:06:10 jklowden Exp $");
 
 enum
 {
@@ -76,7 +77,8 @@ enum
 	OPT_TIMER =    0x02,
 	OPT_NOFOOTER = 0x04,
 	OPT_NOHEADER = 0x08,
-	OPT_QUIET =    0x10
+	OPT_QUIET =    0x10,
+	OPT_MERE_SQL = 0x80
 };
 
 static int global_opt_flags = 0;
@@ -228,11 +230,16 @@ tsql_print_usage(const char *progname)
 		progname, progname);
 }
 
+/*
+ * The 'GO' command may be followed by options that apply to the batch.
+ * If they don't appear to be right, assume the letters "go" are part of the
+ * SQL, not a batch separator.  
+ */
 static int
 get_opt_flags(char *s, int *opt_flags)
 {
 	char **argv;
-	int argc = 0;
+	int argc;
 	int opt;
 
 	/* make sure we have enough elements */
@@ -242,14 +249,13 @@ get_opt_flags(char *s, int *opt_flags)
 		return 0;
 
 	/* parse the command line and assign to argv */
-	argv[argc++] = "tsql";
-	argv[argc++] = strtok(s, " ");
-	if (argv[argc - 1])
-		while ((argv[argc++] = strtok(NULL, " ")) != NULL);
+	for (argc=0; (argv[argc] = strtok(s, " ")) != NULL; argc++)
+		s = NULL;
 
 	*opt_flags = 0;
 	optind = 0;		/* reset getopt */
-	while ((opt = getopt(argc - 1, argv, "fhqtv")) != -1) {
+	opterr = 0;		/* suppress error messages */
+	while ((opt = getopt(argc, argv, "fhqtv")) != -1) {
 		switch (opt) {
 		case 'f':
 			*opt_flags |= OPT_NOFOOTER;
@@ -266,8 +272,21 @@ get_opt_flags(char *s, int *opt_flags)
 		case 'q':
 			*opt_flags |= OPT_QUIET;
 			break;
+		default:
+			fprintf(stderr, "Warning: invalid option '%s' found: \"go\" treated as simple SQL\n", argv[optind-1]);
+			*opt_flags |= OPT_MERE_SQL;
+			break;
 		}
+		
+		if ((*opt_flags & OPT_MERE_SQL) == OPT_MERE_SQL) {
+			break; /* nothing more to examine */
+		}
+		if (optind != argc) {
+			fprintf(stderr, "flags = %x [%d != %d]\n", *opt_flags, optind, argc);
+		}		
+
 	}
+	
 	free(argv);
 	return *opt_flags;
 }
@@ -529,6 +548,25 @@ main(int argc, char **argv)
 		if (s == NULL) 
 			break;
 
+		/* 
+		 * 'GO' is special only at the start of a line
+		 *  The rest of the line may include options that apply to the batch, 
+		 *  and perhaps whitespace.  
+		 */
+		if (0 == strncasecmp(s, "go", 2) && (strlen(s) == 2 || isspace(s[2]))) {
+			char *go_line = strdup(s);
+			assert(go_line);
+			line = 0;
+			if (0 == (OPT_MERE_SQL & get_opt_flags(go_line + 2, &opt_flags))) {
+				opt_flags ^= global_opt_flags;
+				do_query(tds, mybuf, opt_flags);
+				mybuf[0] = '\0';
+				continue;
+			}
+			free(go_line);
+		}
+		
+		/* skip leading whitespace */
 		if (s2)
 			free(s2);
 		s2 = strdup(s);	/* copy to mangle with strtok() */
@@ -547,13 +585,7 @@ main(int argc, char **argv)
 			mybuf[0] = '\0';
 			continue;
 		}
-		if (!strncasecmp(cmd, "go", 2)) {
-			line = 0;
-			get_opt_flags(s + 2, &opt_flags);
-			opt_flags ^= global_opt_flags;
-			do_query(tds, mybuf, opt_flags);
-			mybuf[0] = '\0';
-		} else if (!strcmp(cmd, "reset")) {
+		if (!strcmp(cmd, "reset")) {
 			line = 0;
 			mybuf[0] = '\0';
 		} else if (!strcmp(cmd, ":r")) {
