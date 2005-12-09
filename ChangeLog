@@ -1,3 +1,6 @@
+Fri Dec 09 15:04:23 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* acinclude.m4: fix OpenSSL detection
+
 Wed Dec 07 17:12:11 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/raiserror.c: more strong tests
 

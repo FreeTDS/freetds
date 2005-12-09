@@ -112,16 +112,11 @@ if test "${with_openssl+set}" = set; then
         ssldir="$dir"
         if test -f "$dir/include/openssl/ssl.h"; then
             found_ssl="yes"
-            CFLAGS="$CFLAGS -I$ssldir/include/openssl"
-            break
-        fi
-        if test -f "$dir/include/ssl.h"; then
-            found_ssl="yes"
             CFLAGS="$CFLAGS -I$ssldir/include"
             break
         fi
     done
-    if test x_$found_ssl != x_yes; then
+    if test x$found_ssl != xyes; then
         AC_MSG_ERROR(Cannot find OpenSSL libraries)
     else
         echo "OpenSSL found in $ssldir"
@@ -213,7 +208,7 @@ CFLAGS=$ac_save_CFLAGS
 # exists. These example files found at
 # http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 #
-# @version $Id: acinclude.m4,v 1.31 2005-10-11 11:50:32 freddy77 Exp $
+# @version $Id: acinclude.m4,v 1.32 2005-12-09 14:04:39 freddy77 Exp $
 # @author Caolan McNamara <caolan@skynet.ie>
 #
 # based on David Arnold's autoconf suggestion in the threads faq
