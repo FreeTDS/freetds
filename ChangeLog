@@ -1,3 +1,6 @@
+Sat Dec 10 18:13:13 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* doc/tds_ssl.html: small update
+
 Fri Dec 09 19:02:28 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/tds.h src/tds/token.c:
 	- add TDS_TOKEN_RES_MSG results to tds_process_tokens
