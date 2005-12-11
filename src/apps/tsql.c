@@ -69,7 +69,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.82 2005-12-09 17:06:10 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.83 2005-12-11 09:58:06 freddy77 Exp $");
 
 enum
 {
@@ -77,8 +77,7 @@ enum
 	OPT_TIMER =    0x02,
 	OPT_NOFOOTER = 0x04,
 	OPT_NOHEADER = 0x08,
-	OPT_QUIET =    0x10,
-	OPT_MERE_SQL = 0x80
+	OPT_QUIET =    0x10
 };
 
 static int global_opt_flags = 0;
@@ -274,13 +273,10 @@ get_opt_flags(char *s, int *opt_flags)
 			break;
 		default:
 			fprintf(stderr, "Warning: invalid option '%s' found: \"go\" treated as simple SQL\n", argv[optind-1]);
-			*opt_flags |= OPT_MERE_SQL;
-			break;
+			free(argv);
+			return 0;
 		}
 		
-		if ((*opt_flags & OPT_MERE_SQL) == OPT_MERE_SQL) {
-			break; /* nothing more to examine */
-		}
 		if (optind != argc) {
 			fprintf(stderr, "flags = %x [%d != %d]\n", *opt_flags, optind, argc);
 		}		
@@ -288,7 +284,7 @@ get_opt_flags(char *s, int *opt_flags)
 	}
 	
 	free(argv);
-	return *opt_flags;
+	return 1;
 }
 
 static void
@@ -369,10 +365,10 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 
 	if (opt_flags_str != NULL) {
-		char *minus_flags = malloc(strlen(opt_flags_str) + 2);
+		char *minus_flags = malloc(strlen(opt_flags_str) + 5);
 		if (minus_flags != NULL) {
-			*minus_flags = '-';
-			strcpy(&minus_flags[1], opt_flags_str);
+			strcpy(minus_flags, "go -");
+			strcat(minus_flags, opt_flags_str);
 			get_opt_flags(minus_flags, &global_opt_flags);
 			free(minus_flags);
 		}
@@ -557,7 +553,8 @@ main(int argc, char **argv)
 			char *go_line = strdup(s);
 			assert(go_line);
 			line = 0;
-			if (0 == (OPT_MERE_SQL & get_opt_flags(go_line + 2, &opt_flags))) {
+			if (get_opt_flags(go_line + 2, &opt_flags)) {
+				free(go_line);
 				opt_flags ^= global_opt_flags;
 				do_query(tds, mybuf, opt_flags);
 				mybuf[0] = '\0';
