@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.158 2005-09-21 14:46:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.159 2005-12-12 16:09:41 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -4142,9 +4142,11 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		pcol->column_cur_size = temp_datalen;
 		tdsdump_log(TDS_DBG_FUNC, "paraminfoalloc: status = %d, maxlen %d \n", p->status, p->maxlen);
 		tdsdump_log(TDS_DBG_FUNC,
-			    "paraminfoalloc: name = %*.*s, varint size %d column_type %d column_cur_size %d column_output = %d\n",
+			    "paraminfoalloc: name = %*.*s, varint size %d column_type %d size %d, %d column_cur_size %d column_output = %d\n",
 			    pcol->column_namelen, pcol->column_namelen, pcol->column_name,
-			    pcol->column_varint_size, pcol->column_type, pcol->column_cur_size, pcol->column_output);
+			    pcol->column_varint_size, pcol->column_type,
+			    pcol->on_server.column_size, pcol->column_size,
+			    pcol->column_cur_size, pcol->column_output);
 		prow = paramrowalloc(params, pcol, i, temp_value, temp_datalen);
 		if (!prow) {
 			fprintf(stderr, "out of memory for rpc row!");

@@ -38,13 +38,14 @@
 
 #include "tds.h"
 #include "tdsiconv.h"
+#include "tds_checks.h"
 #include "tdsstring.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.151 2005-08-16 15:04:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.152 2005-12-12 16:09:42 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -225,6 +226,7 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam)
 	TDS_INT row_size;
 	unsigned char *row;
 
+	CHECK_COLUMN_EXTRA(curparam);
 #if ENABLE_EXTRA_CHECKS
 	assert(info->row_size % TDS_ALIGN_SIZE == 0);
 #endif
@@ -258,6 +260,8 @@ tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam)
 		memset(row + info->row_size, 0, sizeof(TDSBLOB));
 	info->current_row = row;
 	info->row_size = row_size;
+
+	CHECK_PARAMINFO_EXTRA(info);
 
 	return row;
 }
