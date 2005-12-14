@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.159 2005-12-12 16:09:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.160 2005-12-14 10:07:02 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -3998,11 +3998,14 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 	if (!row)
 		return NULL;
 
-	if ((size == CS_NULLTERM || size > 0) && value) {
-		if (size == CS_NULLTERM)
-			strncpy((char *) &params->current_row[curcol->column_offset], value, params->row_size);
-		else
+	if (size > 0 && value) {
+		/* TODO check for BLOB and numeric */
+		if (size > curcol->column_size)
+			size = curcol->column_size;
+		/* TODO blobs */
+		if (!is_blob_type(curcol->column_type))
 			memcpy(&params->current_row[curcol->column_offset], value, size);
+		curcol->column_cur_size = size;
 	} else {
 		tdsdump_log(TDS_DBG_FUNC, "paramrowalloc(): setting parameter #%d to NULL\n", param_num);
 		curcol->column_cur_size = -1;
@@ -4127,10 +4130,18 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 
 		tds_set_param_type(tds, pcol, temp_type);
 
+		if (temp_datalen == CS_NULLTERM && temp_value)
+			temp_datalen = strlen(temp_value);
+
 		if (pcol->column_varint_size) {
 			if (p->maxlen < 0)
 				return NULL;
 			pcol->on_server.column_size = pcol->column_size = p->maxlen;
+			pcol->column_cur_size = temp_datalen;
+			if (temp_datalen > 0 && temp_datalen > p->maxlen)
+				pcol->on_server.column_size = pcol->column_size = temp_datalen;
+		} else {
+			pcol->column_cur_size = pcol->column_size;
 		}
 
 		if (p->status == CS_RETURN)
@@ -4139,7 +4150,6 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			pcol->column_output = 0;
 
 		/* actual data */
-		pcol->column_cur_size = temp_datalen;
 		tdsdump_log(TDS_DBG_FUNC, "paraminfoalloc: status = %d, maxlen %d \n", p->status, p->maxlen);
 		tdsdump_log(TDS_DBG_FUNC,
 			    "paraminfoalloc: name = %*.*s, varint size %d column_type %d size %d, %d column_cur_size %d column_output = %d\n",
