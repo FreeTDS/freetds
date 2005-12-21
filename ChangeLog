@@ -1,3 +1,6 @@
+Wed Dec 21 09:13:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/locale.c: parse LANG environment
+
 Wed Dec 21 09:11:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/ctlib.h src/ctlib/ct.c:
 	- use scale/precision informations from CS_DATAFMT

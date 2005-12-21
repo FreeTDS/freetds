@@ -35,11 +35,12 @@
 
 #include "tds.h"
 #include "tds_configs.h"
+#include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: locale.c,v 1.23 2005-08-23 17:25:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: locale.c,v 1.24 2005-12-21 08:14:12 freddy77 Exp $");
 
 
 static void tds_parse_locale(const char *option, const char *value, void *param);
@@ -68,8 +69,44 @@ tds_get_locale(void)
 
 		s = getenv("LANG");
 		if (s && s[0]) {
+			int found;
+			char buf[128];
+			const char *strip = "@._";
+			const char *charset = NULL;
+
+			/* do not change environment !!! */
+			tds_strlcpy(buf, s, sizeof(buf));
+
+			/* search full name */
 			rewind(in);
-			tds_read_conf_section(in, s, tds_parse_locale, locale);
+			found = tds_read_conf_section(in, buf, tds_parse_locale, locale);
+
+			/*
+			 * Here we try to strip some part of language in order to
+			 * catch similar language
+			 * LANG is composed by 
+			 *   language[_sublanguage][.charset][@modified]
+			 * ie it_IT@euro or it_IT.UTF-8 so we strip in order
+			 * modifier, charset and sublanguage
+			 * ie it_IT@euro -> it_IT -> it
+			 */
+			for (;!found && *strip; ++strip) {
+				s = strrchr(buf, *strip);
+				if (!s)
+					continue;
+				*s = 0;
+				if (*strip == '.')
+					charset = s+1;
+				rewind(in);
+				found = tds_read_conf_section(in, buf, tds_parse_locale, locale);
+			}
+
+			/* charset specified in LANG ?? */
+			if (charset) {
+				if (locale->char_set)
+					free(locale->char_set);
+				locale->char_set = strdup(charset);
+			}
 		}
 
 		fclose(in);
