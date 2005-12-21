@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.65 2005-12-05 21:10:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.66 2005-12-21 14:02:49 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -373,11 +373,11 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 {
 	int i;
 	int j;
-	const int bytesPerLine = 16;
+#define BYTES_PER_LINE 16
 	const unsigned char *data = (const unsigned char *) buf;
 	const int debug_lvl = level_line & 15;
 	const int line = level_line >> 4;
-	char line_buf[bytesPerLine * 8 + 16], *p;
+	char line_buf[BYTES_PER_LINE * 8 + 16], *p;
 	FILE *dumpfile;
 
 	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !write_dump)
@@ -403,7 +403,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 
 	fprintf(dumpfile, "%s\n", msg);
 
-	for (i = 0; i < length; i += bytesPerLine) {
+	for (i = 0; i < length; i += BYTES_PER_LINE) {
 		p = line_buf;
 		/*
 		 * print the offset as a 4 digit hex number
@@ -413,8 +413,8 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 		/*
 		 * print each byte in hex
 		 */
-		for (j = 0; j < bytesPerLine; j++) {
-			if (j == bytesPerLine / 2)
+		for (j = 0; j < BYTES_PER_LINE; j++) {
+			if (j == BYTES_PER_LINE / 2)
 				*p++ = '-';
 			else
 				*p++ = ' ';
@@ -432,8 +432,8 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 		/*
 		 * print each byte in ascii
 		 */
-		for (j = i; j < length && (j - i) < bytesPerLine; j++) {
-			if (j - i == bytesPerLine / 2)
+		for (j = i; j < length && (j - i) < BYTES_PER_LINE; j++) {
+			if (j - i == BYTES_PER_LINE / 2)
 				*p++ = ' ';
 			p += sprintf(p, "%c", (isprint(data[j])) ? data[j] : '.');
 		}

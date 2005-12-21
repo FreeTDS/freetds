@@ -19,7 +19,8 @@ noinst_HEADERS	=	tds_configs.h \
 			dblib.h \
 			ctlib.h \
 			tdsthread.h \
-			tdsbytes.h
+			tdsbytes.h \
+			replacements/readpassphrase.h
 
 DISTCLEANFILES	=	tds_sysdep_public.h freetds_sysconfdir.h
 
