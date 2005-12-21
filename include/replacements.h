@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: replacements.h,v 1.13 2005-07-08 08:22:52 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.14 2005-12-21 08:06:54 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -53,8 +53,8 @@ tds_sysdep_int64_type atoll(const char *nptr);
 char *strtok_r(char *str, const char *sep, char **lasts);
 #endif /* !HAVE_STRTOK_R */
 
-#if !HAVE_READPASSPHRASE
-# include <../src/replacements/readpassphrase.h>
+#ifndef HAVE_READPASSPHRASE
+# include <replacements/readpassphrase.h>
 #else
 # include <readpassphrase.h>
 #endif

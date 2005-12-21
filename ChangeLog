@@ -1,3 +1,9 @@
+Wed Dec 21 09:05:30 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* include/replacements/readpassphrase.h(added):
+	* src/replacements/readpassphrase.h(removed):
+	* src/replacements/readpassphrase.c include/replacements.h:
+	- moved readpassphrase.h in include/replacements
+
 Wed Dec 14 11:04:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/ctlib/ct.c: fix core and CS_NULLTERM
 
