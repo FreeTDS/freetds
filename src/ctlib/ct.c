@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.160 2005-12-14 10:07:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.161 2005-12-21 08:11:58 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -4133,6 +4133,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		if (temp_datalen == CS_NULLTERM && temp_value)
 			temp_datalen = strlen(temp_value);
 
+		pcol->column_prec = p->precision;
+		pcol->column_scale = p->scale;
 		if (pcol->column_varint_size) {
 			if (p->maxlen < 0)
 				return NULL;
@@ -4243,6 +4245,14 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID 
 	/* to Server type, e.g. SYBINT2                      */
 
 	param->type = _ct_get_server_type(datafmt->datatype);
+
+	if (is_numeric_type(param->type)) {
+		param->scale = datafmt->scale;
+		param->precision = datafmt->precision;
+		if (param->scale < 0 || param->precision < 0
+		    || param->precision > 77 || param->scale > param->precision)
+			return CS_FAIL;
+	}
 
 	param->maxlen = datafmt->maxlength;
 

@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.22 2005-09-21 14:46:00 freddy77 Exp $";
+static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.23 2005-12-21 08:11:58 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -137,6 +137,8 @@ typedef struct _cs_param
 	int status;
 	int type;
 	CS_INT maxlen;
+	CS_INT scale;
+	CS_INT precision;
 	CS_INT *datalen;
 	CS_SMALLINT *ind;
 	CS_BYTE *value;
