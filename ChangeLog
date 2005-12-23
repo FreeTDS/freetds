@@ -1,3 +1,6 @@
+Fri Dec 23 15:15:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/tds/token.c: prevent possible core with bad reply
+
 Wed Dec 21 15:01:29 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/Makefile.am src/replacements/Makefile.am:
 	- fix distribution of replacement.h

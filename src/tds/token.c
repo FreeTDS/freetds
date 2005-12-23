@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.305 2005-12-09 18:03:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.306 2005-12-23 14:16:37 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -621,10 +621,10 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 					tds_process_param_result(tds, &pinfo);
 				}
 				tds_unget_byte(tds);
-				tdsdump_log(TDS_DBG_FUNC, "no of hidden return parameters %d\n", pinfo->num_cols);
-				if(tds->internal_sp_called == TDS_SP_CURSOROPEN) {
+				tdsdump_log(TDS_DBG_FUNC, "no of hidden return parameters %d\n", pinfo ? pinfo->num_cols : -1);
+				if (pinfo && pinfo->num_cols > 0) {
 					curcol = pinfo->columns[0];
-					if (tds->cur_cursor) {
+					if (tds->internal_sp_called == TDS_SP_CURSOROPEN && tds->cur_cursor) {
 						TDSCURSOR  *cursor = tds->cur_cursor; 
 
 						cursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
@@ -632,11 +632,9 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 							    cursor->cursor_id);
 						cursor->srv_status &= ~TDS_CUR_ISTAT_CLOSED;
 						cursor->srv_status |= TDS_CUR_ISTAT_OPEN;
-					} 
-				}
-				if(tds->internal_sp_called == TDS_SP_PREPARE) {
-					curcol = pinfo->columns[0];
-					if (tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
+					}
+					if (tds->internal_sp_called == TDS_SP_PREPARE 
+					    && tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
 						tds->cur_dyn->num_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
 					}
 				}
