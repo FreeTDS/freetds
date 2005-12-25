@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.134 2005-12-06 20:24:58 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.135 2005-12-25 11:27:11 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -3374,7 +3374,7 @@ _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
  * \param istr 
  * \param ilen 
  * 
- * \return SUCCEED or FAIL.
+ * \return modified length
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static int
