@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.13 2005-12-07 16:12:26 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.14 2005-12-28 07:49:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -170,6 +170,7 @@ Test(int level)
 		} else {
 			TestResult(result, level, "SQLMoreResults");
 		}
+		CHECK_ROWS(-1);
 	} else {
 		TestResult(result == SQL_NO_DATA ? SQL_SUCCESS_WITH_INFO : result, level, "SQLFetch");
 	}
@@ -178,16 +179,20 @@ Test(int level)
 		CheckData("");
 
 	if (!g_second_select) {
+		CHECK_ROWS(-1);
 		CheckReturnCode(result, g_nocount ? 0 : INVALID_RETURN);
 
 		if (SQLMoreResults(Statement) != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
+
+		CHECK_ROWS(-2);
 		CheckReturnCode(result, 0);
 		return;
 	}
 
 	if (!use_odbc_version3 || !g_nocount) {
-		if (SQLMoreResults(Statement) != SQL_SUCCESS)
+		result = SQLMoreResults(Statement);
+		if (result != SQL_SUCCESS)
 			ODBC_REPORT_ERROR("SQLMoreResults returned failure");
 	}
 
@@ -230,7 +235,7 @@ Test2(int nocount, int second_select)
 	if (!db_is_microsoft())
 		return;
 
-	sprintf(sql, create_proc, nocount ? "SET NOCOUNT ON\n" : "",
+	sprintf(sql, create_proc, nocount ? "     SET NOCOUNT ON\n" : "",
 		second_select ? "     SELECT 'Here is the last row' AS LastResult\n" : "");
 	result = CommandWithResult(Statement, sql);
 	if (result != SQL_SUCCESS && result != SQL_NO_DATA)
