@@ -16,7 +16,7 @@ $! License along with this library; if not, write to the
 $! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 $! Boston, MA 02111-1307, USA.
 $!
-$! $Id: configure.com,v 1.4 2004-01-19 10:03:03 freddy77 Exp $
+$! $Id: configure.com,v 1.5 2005-12-29 10:24:34 freddy77 Exp $
 $!
 $! CONFIGURE.COM -- run from top level source directory as @[.vms]configure
 $!
@@ -69,6 +69,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@VERSION@"",""""""''versionstring'"""""");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@D_HAVE_ICONV@"",""''d_have_iconv'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@D_SNPRINTF@"",""''d_snprintf'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
@@ -108,6 +110,13 @@ $   libiconvobj = "[.src.replacements]libiconv$(OBJ),"
 $   copy/noconfirm/nolog [.src.replacements]iconv.c [.src.replacements]libiconv.c
 $ endif
 $!
+$ if d_snprintf .eqs. "1" 
+$ then
+$   snprintfobj = " "
+$ else
+$   snprintfobj = "[.src.replacements]snprintf$(OBJ),"
+$ endif
+$!
 $ open/write vmsconfigtmp vmsconfigtmp.com
 $ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
 $ write vmsconfigtmp "$ edit/tpu/nodisplay/noinitialization -"
@@ -123,6 +132,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@STRTOK_ROBJ@"",""''strtok_robj'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@LIBICONVOBJ@"",""''libiconvobj'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@SNPRINTFOBJ@"",""''snprintfobj'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
@@ -197,6 +208,24 @@ $ CS
 $ tmp = "strtok_r"
 $ GOSUB inlibc
 $ d_strtok_r == tmp
+$!
+$!
+$! Check for snprintf
+$!
+$ OS
+$ WS "#include <stdarg.h>"
+$ WS "#include <stdio.h>"
+$ WS "#include <stdlib.h>"
+$ WS "int main()"
+$ WS "{"
+$ WS "char ptr[15];"
+$ WS "snprintf((char*)&ptr,sizeof(ptr),""%d,%d"",1,2);"
+$ WS "exit(0);"
+$ WS "}"
+$ CS
+$ tmp = "snprintf"
+$ GOSUB inlibc
+$ d_snprintf == tmp
 $!
 $ DS
 $ RETURN

@@ -1,3 +1,8 @@
+Thu Dec 29 11:23:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* vms/config_h.vms vms/configure.com vms/descrip_mms.template:
+	* vms/getpass.c:
+	- applied Craig A. Berry patch for VMS
+
 Fri Dec 23 15:15:40 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/token.c: prevent possible core with bad reply
 

@@ -41,7 +41,9 @@
 #include <string.h>
 #include <strings.h>
 
-static char software_version[] = "$Id: getpass.c,v 1.4 2005-02-03 09:41:30 freddy77 Exp $";
+#include <replacements/readpassphrase.h>
+
+static char software_version[] = "$Id: getpass.c,v 1.5 2005-12-29 10:24:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static char passbuff[128];
 
@@ -61,16 +63,6 @@ static char passbuff[128];
 #define MY_PASSWORD_LEN 1024
 #define RECALL_SIZE     50	/* Lines in recall buffer. */
 #define DEFAULT_TIMEOUT 30	/* Seconds to wait for user input. */
-
-/* The following flag values are taken directly from the OpenBSD version 
- * of getpassphrase.
- */
-#define RPP_ECHO_OFF    0x00	/* Turn off echo (default). */
-#define RPP_ECHO_ON     0x01	/* Leave echo on. */
-#define RPP_REQUIRE_TTY 0x02	/* Fail if there is no tty. */
-#define RPP_FORCELOWER  0x04	/* Force input to lower case. */
-#define RPP_FORCEUPPER  0x08	/* Force input to upper case. */
-#define RPP_SEVENBIT    0x10	/* Strip the high bit from input. */
 
 /* Flags defined below are VMS-specific.  Use the high byte to minimize
  * potential conflicts.

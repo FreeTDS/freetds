@@ -1,4 +1,4 @@
-/* $Id: config_h.vms,v 1.5 2004-11-07 08:59:34 freddy77 Exp $ */
+/* $Id: config_h.vms,v 1.6 2005-12-29 10:24:34 freddy77 Exp $ */
 
 /* include/config.h.in.  Generated from configure.in by autoheader.  */
 /* and edited by hand for VMS */
@@ -191,6 +191,9 @@
 /* Define to 1 if you have the `vasprintf' function. */
 #define HAVE_VASPRINTF @D_VASPRINTF@
 
+/* Define to 1 if you have the `snprintf' function. */
+#define HAVE_SNPRINTF @D_SNPRINTF@
+
 /* Define to 1 if you have the `vsnprintf' function. */
 #define HAVE_VSNPRINTF 0
 
@@ -285,6 +288,9 @@
  */
 #pragma message disable PTRMISMATCH1
 
+
+#include <stddef.h> /* we need size_t for replacements */
+
 #pragma extern_prefix save
 
 /* We cook up our own version of this, so prototype it here. */
@@ -299,6 +305,11 @@ char *getpass( const char* prompt );
 #pragma extern_prefix "freetds_" (vasprintf)
 #endif /* !HAVE_VASPRINTF */
 
+#if !HAVE_SNPRINTF
+#pragma extern_prefix "portable_" (snprintf)
+extern int snprintf(char *, size_t, const char *, /*args*/ ...);
+#endif /* !HAVE_SNPRINTF */
+
 #if !HAVE_STRTOK_R
 #pragma extern_prefix "freetds_" (strtok_r)
 #endif /* !HAVE_STRTOK_R */
@@ -307,7 +318,13 @@ char *getpass( const char* prompt );
 
 #define tds_sysdep_intptr_type int	/* 32-bit int */
 
-#include <stddef.h> /* we need size_t for replacements */
+#pragma extern_prefix "freetds_" (readpassphrase)
+char * readpassphrase(const char *, char *, size_t, int);
+#ifdef HAVE_READPASSPHRASE
+/* has to be undefined to pick up constants in readpassphrase.h */
+# undef HAVE_READPASSPHRASE
+#endif
+
 #include "replacements.h"
 
 /* If the CRTL ever complies with UNIX98 and defines socklen_t in
