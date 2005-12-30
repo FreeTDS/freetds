@@ -1,3 +1,6 @@
+Fri Dec 30 13:30:28 EST 2005	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/faq.html HTML cleanup
+
 Thu Dec 29 11:23:50 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* vms/config_h.vms vms/configure.com vms/descrip_mms.template:
 	* vms/getpass.c:
