@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.11 2005-09-22 14:37:00 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.12 2006-01-06 10:22:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -141,7 +141,9 @@ main(int argc, char *argv[])
 		test_query = "INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?";
 		/* IMHO our driver is better here -- freddy77 */
 		query_test(0, SQL_SUCCESS, driver_is_freetds() ? "VVVVV!V!V!" : "VVVVVV!VVV");
+#ifdef ENABLE_DEVELOPING
 		query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
+#endif
 	} else {
 		/* Sybase test for conversions before executing */
 		test_query = "INSERT INTO #tmp1 (id, value) VALUES (?/8, ?)";

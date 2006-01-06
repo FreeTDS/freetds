@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005 Frediano Ziglio
+ * Copyright (C) 2005, 2006 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.84 2005-11-04 13:42:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.85 2006-01-06 10:22:27 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -113,10 +113,7 @@ odbc_set_return_status(struct _hstmt *stmt)
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
-#if 0
-	TDSLOCALE *locale = context->locale;
-#endif
-
+	/* TODO handle different type results (functions) on mssql2k */
 	if (stmt->prepared_query_is_func && tds->has_status) {
 		struct _drecord *drec;
 		int len;

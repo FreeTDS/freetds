@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001  Brian Bruns
- * Copyright (C) 2002, 2003, 2004, 2005  Frediano Ziglio
+ * Copyright (C) 2002, 2003, 2004, 2005, 2006  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.400 2005-12-09 14:21:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.401 2006-01-06 10:22:27 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -494,6 +494,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	int tdsret;
 	int in_row = 0;
 	SQLUSMALLINT param_status;
+	int token_flags;
 
 	INIT_HSTMT;
 
@@ -517,8 +518,11 @@ SQLMoreResults(SQLHSTMT hstmt)
 	}
 
 	param_status = SQL_PARAM_SUCCESS;
+	token_flags = (TDS_TOKEN_RESULTS & (~TDS_STOPAT_COMPUTE)) | TDS_RETURN_COMPUTE;
+	if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
+		token_flags |= TDS_RETURN_MSG;
 	for (;;) {
-		result_type = odbc_process_tokens(stmt, (TDS_TOKEN_RESULTS & (~TDS_STOPAT_COMPUTE)) | TDS_RETURN_COMPUTE);
+		result_type = odbc_process_tokens(stmt, token_flags);
 		switch (result_type) {
 		case TDS_CMD_DONE:
 			if (stmt->dbc->current_statement == stmt)
@@ -636,6 +640,14 @@ SQLMoreResults(SQLHSTMT hstmt)
 			stmt->next_row_count = TDS_NO_COUNT;
 			/* we expect a row */
 			stmt->row_status = PRE_NORMAL_ROW;
+			in_row = 1;
+			break;
+
+		case TDS_MSG_RESULT:
+			if (!in_row) {
+				tds_free_all_results(tds);
+				odbc_populate_ird(stmt);
+			}
 			in_row = 1;
 			break;
 		}
@@ -2711,6 +2723,8 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 
 		case TDS_DONE_RESULT:
 		case TDS_DONEPROC_RESULT:
+			if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
+				flag |= TDS_STOPAT_MSG;
 			if (done_flags & TDS_DONE_COUNT) {
 				if (stmt->row_count == TDS_NO_COUNT)
 					stmt->row_count = tds->rows_affected;
@@ -2738,6 +2752,8 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 		 * see also other DONEINPROC handle (below)
 		 */
 		case TDS_DONEINPROC_RESULT:
+			if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
+				flag |= TDS_STOPAT_MSG;
 			if (done_flags & TDS_DONE_COUNT) {
 				if (stmt->row_count == TDS_NO_COUNT)
 					stmt->row_count = tds->rows_affected;

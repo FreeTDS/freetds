@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.14 2005-12-28 07:49:25 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.15 2006-01-06 10:22:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -182,10 +182,13 @@ Test(int level)
 		CHECK_ROWS(-1);
 		CheckReturnCode(result, g_nocount ? 0 : INVALID_RETURN);
 
-		if (SQLMoreResults(Statement) != SQL_NO_DATA)
+		result = SQLMoreResults(Statement);
+#ifdef ENABLE_DEVELOPING
+		if (result != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
 
 		CHECK_ROWS(-2);
+#endif
 		CheckReturnCode(result, 0);
 		return;
 	}
@@ -209,13 +212,17 @@ Test(int level)
 
 	if (!use_odbc_version3 || g_nocount)
 		CheckReturnCode(result, 0);
+#ifdef ENABLE_DEVELOPING
 	else
 		CheckReturnCode(result, INVALID_RETURN);
+#endif
 
 	/* FIXME how to handle return in store procedure ??  */
 	result = SQLMoreResults(Statement);
+#ifdef ENABLE_DEVELOPING
 	if (result != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults return other data");
+#endif
 
 	CheckReturnCode(result, 0);
 

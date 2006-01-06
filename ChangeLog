@@ -1,3 +1,10 @@
+Fri Jan 06 11:23:50 CET 2006	Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- fix some behavior using odbc 3 and raiserror
+	* src/odbc/unittests/array.c src/odbc/unittests/raiserror.c:
+	- relax a bit
+	* src/odbc/odbc_util.c: cleanup, comment
+
 Fri Dec 30 13:30:28 EST 2005	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/faq.html HTML cleanup
 
