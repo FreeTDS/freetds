@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.306 2005-12-23 14:16:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.307 2006-01-06 10:27:31 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1151,6 +1151,14 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 		return TDS_FAIL;
 
 	i = tds_get_data(tds, curparam, info->current_row, info->num_cols - 1);
+
+	/*
+	 * Real output parameters will either be unnamed or will have a valid
+	 * parameter name beginning with '@'. Ignore any other Spurious parameters
+	 * such as those returned from calls to writetext in the proc.
+	 */
+	if (curparam->column_namelen > 0 && curparam->column_name[0] != '@')
+		tds_free_param_result(*pinfo);
 
 	return i;
 }

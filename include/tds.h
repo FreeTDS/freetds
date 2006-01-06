@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.244 2005-12-09 18:03:56 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.245 2006-01-06 10:27:31 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1183,6 +1183,7 @@ void tds_free_connection(TDSCONNECTION * connection);
 void tds_free_all_results(TDSSOCKET * tds);
 void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
+void tds_free_param_result(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMESSAGE * message);
 void tds_free_cursor(TDSSOCKET * tds, TDSCURSOR * cursor);
 void tds_free_bcp_column_data(BCPCOLDATA * coldata);

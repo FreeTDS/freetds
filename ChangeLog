@@ -1,3 +1,7 @@
+Fri Jan 06 11:24:22 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tds.h src/tds/mem.c src/tds/token.c:
+	- fix problem with dummy parameters (ie from WRITETEXT)
+
 Fri Jan 06 11:23:50 CET 2006	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- fix some behavior using odbc 3 and raiserror

@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.152 2005-12-12 16:09:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.153 2006-01-06 10:27:31 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -211,6 +211,43 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
       Cleanup:
 	free(colinfo);
 	return NULL;
+}
+
+/**
+ * Delete latest parameter
+ */
+void
+tds_free_param_result(TDSPARAMINFO * param_info)
+{
+	TDSCOLUMN *col;
+
+	if (!param_info || param_info->num_cols <= 0)
+		return;
+
+	col = param_info->columns[--param_info->num_cols];
+	if (param_info->current_row && is_blob_type(col->column_type)) {
+		TDSBLOB *blob = (TDSBLOB *) &(param_info->current_row[col->column_offset]);
+		if (blob->textvalue)
+			free(blob->textvalue);
+	}
+
+	param_info->row_size = col->column_offset;
+	if (param_info->current_row) {
+		if (param_info->row_size)
+			realloc(param_info->current_row, param_info->row_size);
+		else
+			TDS_ZERO_FREE(param_info->current_row);
+	}
+
+	/*
+	 * NOTE some informations should be freed too but when this function 
+	 * is called are not used. I hope to remove the need for this
+	 * function ASAP
+	 * A better way is to support different way to allocate and get
+	 * parameters
+	 * -- freddy77
+	 */
+	free(col);
 }
 
 /**
