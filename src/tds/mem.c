@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.153 2006-01-06 10:27:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.154 2006-01-07 11:25:30 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -234,10 +234,13 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 	param_info->row_size = col->column_offset;
 	if (param_info->current_row) {
 		if (param_info->row_size)
-			realloc(param_info->current_row, param_info->row_size);
+			param_info->current_row = realloc(param_info->current_row, param_info->row_size);
 		else
 			TDS_ZERO_FREE(param_info->current_row);
 	}
+
+	if (param_info->num_cols == 0 && param_info->columns)
+		TDS_ZERO_FREE(param_info->columns);
 
 	/*
 	 * NOTE some informations should be freed too but when this function 
