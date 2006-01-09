@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.401 2006-01-06 10:22:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.402 2006-01-09 10:16:18 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1734,14 +1734,22 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 	}
 	if (errs) {
 		int severity = msg->severity;
+		const char * state = msg->sql_state;
 
-		odbc_errs_add_rdbms(errs, msg->msgno, msg->sql_state, msg->message, msg->line_number, msg->severity,
-				    msg->server);
+		/* fix severity for Sybase */
 		if (severity <= 10 && dbc && !TDS_IS_MSSQL(dbc->tds_socket) && msg->sql_state && msg->sql_state[0]
 		    && strncmp(msg->sql_state, "00", 2) != 0) {
 			if (strncmp(msg->sql_state, "01", 2) != 0 && strncmp(msg->sql_state, "IM", 2) != 0)
 				severity = 11;
 		}
+
+		/* compute state if not available */
+		if (!state)
+			state = severity <= 10 ? "01000" : "42000";
+		odbc_errs_add_rdbms(errs, msg->msgno, state, msg->message, msg->line_number, msg->severity,
+				    msg->server);
+
+		/* set lastc according */
 		if (severity <= 10) {
 			if (errs->lastrc == SQL_SUCCESS)
 				errs->lastrc = SQL_SUCCESS_WITH_INFO;

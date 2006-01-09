@@ -1,3 +1,6 @@
+Mon Jan 09 11:15:56 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/odbc.c: set state correctly if not available
+
 Sat Jan 07 12:24:57 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/tds/mem.c:
 	- fix memory leak
