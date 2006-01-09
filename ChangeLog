@@ -1,3 +1,6 @@
+Mon Jan 09 14:25:09 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* win32/setup.rc: two controls was overlapped
+
 Mon Jan 09 11:15:56 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/odbc.c: set state correctly if not available
 
