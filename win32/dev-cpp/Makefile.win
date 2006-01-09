@@ -1,18 +1,19 @@
 # Project: FreeTDS
-# Makefile created by Dev-C++ 4.9.9.1
+# Makefile created by Dev-C++ 4.9.9.2
 
 CPP  = g++.exe
 CC   = gcc.exe
 WINDRES = windres.exe
 RES  = FreeTDS_private.res
-OBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o ../../src/replacements/iconv.o ../../src/tds/data.o ../../src/odbc/descriptor.o ../../src/odbc/odbc_checks.o ../winlogin.o ../winsetup.o ../../src/tds/net.o ../../src/replacements/strlcat.o  ../../src/replacements/strlcpy.o $(RES)
-LINKOBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o ../../src/replacements/iconv.o ../../src/tds/data.o ../../src/odbc/descriptor.o ../../src/odbc/odbc_checks.o ../winlogin.o ../winsetup.o ../../src/tds/net.o ../../src/replacements/strlcat.o ../../src/replacements/strlcpy.o $(RES)
-LIBS =  -L"C:/Dev-Cpp/lib" -lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 -s --def ../FreeTds.def -Wl,--enable-stdcall-fixup  
-INCS =  -I"C:/Dev-Cpp/include"  -I".."  -I"../../include" 
-CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include/c++/mingw32"  -I"C:/Dev-Cpp/include/c++/backward"  -I"C:/Dev-Cpp/include"  -I".."  -I"../../include" 
+OBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o ../../src/replacements/iconv.o ../../src/tds/data.o ../../src/odbc/descriptor.o ../../src/odbc/odbc_checks.o ../winlogin.o ../winsetup.o ../../src/tds/net.o ../../src/replacements/strlcpy.o ../../src/replacements/strlcat.o $(RES)
+LINKOBJ  = ../../src/odbc/connectparams.o ../../src/odbc/convert_tds2sql.o ../../src/odbc/error.o ../initnet.o ../../src/odbc/native.o ../../src/odbc/odbc.o ../../src/odbc/odbc_util.o ../../src/odbc/prepare_query.o ../../src/odbc/sql2tds.o ../../src/replacements/asprintf.o ../../src/replacements/strtok_r.o ../../src/replacements/vasprintf.o ../../src/tds/challenge.o ../../src/tds/config.o ../../src/tds/convert.o ../../src/tds/des.o ../../src/tds/getmac.o ../../src/tds/iconv.o ../../src/tds/locale.o ../../src/tds/login.o ../../src/tds/md4.o ../../src/tds/mem.o ../../src/tds/numeric.o ../../src/tds/query.o ../../src/tds/read.o ../../src/tds/tdsstring.o ../../src/tds/threadsafe.o ../../src/tds/token.o ../../src/tds/util.o ../../src/tds/vstrbuild.o ../../src/tds/write.o ../../src/replacements/iconv.o ../../src/tds/data.o ../../src/odbc/descriptor.o ../../src/odbc/odbc_checks.o ../winlogin.o ../winsetup.o ../../src/tds/net.o ../../src/replacements/strlcpy.o ../../src/replacements/strlcat.o $(RES)
+LIBS =  -L"lib" -lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32 -s --def ../FreeTds.def -Wl,--enable-stdcall-fixup  
+INCS =  -I"include"  -I".."  -I"../../include" 
+CXXINCS =  -I"lib/gcc/mingw32/3.4.2/include"  -I"include/c++/3.4.2/backward"  -I"include/c++/3.4.2/mingw32"  -I"include/c++/3.4.2"  -I"include"  -I".."  -I"../../include" 
 BIN  = FreeTDS.dll
 CXXFLAGS = $(CXXINCS) -D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS -DHAVE_SQLGETPRIVATEPROFILESTRING   -fexpensive-optimizations -O2
 CFLAGS = $(INCS) -D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS -DHAVE_SQLGETPRIVATEPROFILESTRING -mpreferred-stack-boundary=2   -fexpensive-optimizations -O2
+RM = rm -f
 
 .PHONY: all all-before all-after clean clean-custom
 
@@ -20,7 +21,7 @@ all: all-before FreeTDS.dll all-after
 
 
 clean: clean-custom
-	rm -f $(OBJ) $(BIN)
+	${RM} $(OBJ) $(BIN)
 
 DLLWRAP=dllwrap.exe
 DEFFILE=libFreeTDS.def
@@ -143,11 +144,11 @@ $(BIN): $(LINKOBJ)
 ../../src/tds/net.o: ../../src/tds/net.c
 	$(CC) -c ../../src/tds/net.c -o ../../src/tds/net.o $(CFLAGS)
 
-../../src/replacements/strlcat.o: ../../src/replacements/strlcat.c
-	$(CPP) -c ../../src/replacements/strlcat.c -o ../../src/replacements/strlcat.o $(CXXFLAGS)
-
 ../../src/replacements/strlcpy.o: ../../src/replacements/strlcpy.c
 	$(CPP) -c ../../src/replacements/strlcpy.c -o ../../src/replacements/strlcpy.o $(CXXFLAGS)
+
+../../src/replacements/strlcat.o: ../../src/replacements/strlcat.c
+	$(CPP) -c ../../src/replacements/strlcat.c -o ../../src/replacements/strlcat.o $(CXXFLAGS)
 
 FreeTDS_private.res: FreeTDS_private.rc ../setup.rc 
 	$(WINDRES) -i FreeTDS_private.rc --input-format=rc -o FreeTDS_private.res -O coff 
