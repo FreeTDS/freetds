@@ -1,28 +1,41 @@
-$Id: NEWS,v 1.31 2005-08-16 15:04:02 freddy77 Exp $
+$Id: NEWS,v 1.32 2006-01-10 14:01:17 freddy77 Exp $
 * 0.64
-- reduce network bandwidth use on Linux and *BSD
-- do not free TDSSOCKET in tds_connect
-- moved network stuff in net.c
-- fixed conversion NUMERIC->NUMERIC changing precision/scale
-- fixed compute handling in ODBC
-- more dblib functions
-- add named instance support (mssql2k)
-- fixed cancel and timeout
-- add support for encrypted connection using mssql
-  (using either GnuTLS or OpenSSL)
+- core library
+ - reduce network bandwidth use on Linux and *BSD
+ - do not free TDSSOCKET in tds_connect
+ - moved network stuff in net.c
+ - fixed conversion NUMERIC->NUMERIC changing precision/scale
+ - add named instance support (mssql2k)
+ - fixed cancel and timeout
+ - add support for encrypted connection using mssql
+   (using either GnuTLS or OpenSSL)
+ - improved numeric conversions performance
+ - improved debug logging (added "debug flags" option)
+- ctlib
+ - ct_dynamic and friends (placeholder support)
+- dblib
+ - more functions
+ - make threadsafe
+ - improve bcp
+ - support for large files using BCP
+ - fixed buffering
+- ODBC
+ - fixed compute handling in ODBC
+ - paramset support
+ - constant parameters in rpc (ie {?=call func(10,?)} )
+ - configure use automatically odbc_config if available
+- compatibility
+ - improve PHP support
+ - improve DBD::ODBC support
+ - partial dos32 support
+ - improve Jdbc support
+ - added msvc6 project to build dblib library on windows
+- support long password on tsql for all platforms
+- improved pool server
 - RPMs
  - ODBC driver registration (in odbcinst.ini)
  - better dependency for RedHat and SUSE
-- improved pool server
-- added msvc6 project to build dblib library on windows
-- improved numeric conversions performance
-- improved debug logging (added "debug flags" option)
-- support long password on tsql for all platforms
-- ct_dynamic and friends (placeholder support under ctlib)
-- constant parameters in odbc rpc (ie {?=call func(10,?)} )
-- configure use automatically odbc_config if available
-- ODBC paramset support
-- fixed dblib buffering
+- a lot of fixes
 
 libTDS API changes
 - tds_connect do not free TDSSOCKET* on failure

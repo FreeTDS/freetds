@@ -1,3 +1,6 @@
+Tue Jan 10 15:00:18 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* NEWS: updated
+
 Mon Jan 09 14:25:09 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* win32/setup.rc: two controls was overlapped
 
@@ -605,7 +608,7 @@ Mon Jul  4 11:21:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 Mon Jul  4 11:15:20 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* include/replacements.h src/apps/bsqldb.c src/apps/defncopy.c:
 	* src/dblib/unittests/common.c src/replacements/basename.c(added):
-	- is basename not found use replacement
+	- if basename not found use replacement
 
 Fri Jul  1 12:04:43 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/tds/query.c include/tds.h:
