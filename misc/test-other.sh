@@ -25,6 +25,14 @@ do
 		do_perl=no ;;
 	--no-php)
 		do_php=no ;;
+	--perl-only)
+		do_perl=yes
+		do_php=no
+		;;
+	--php-only)
+		do_perl=no
+		do_php=yes
+		;;
 	*)
 		echo 'Option not supported!' 1>&2
 		exit 1
