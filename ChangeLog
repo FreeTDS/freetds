@@ -1,3 +1,6 @@
+Mon Jan 23 13:57:50 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* configure.in: update version to 0.64RC1
+
 Wed Jan 11 10:42:16 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/test-other.sh: add parameters
 
