@@ -1,3 +1,6 @@
+Mon Jan 23 17:30:38 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* src/apps/bsqldb.c bind to printable width, not column size
+
 Mon Jan 23 14:04:44 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* configure.in: start developing 0.65 version
 

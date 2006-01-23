@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.25 2005-12-09 17:06:05 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.26 2006-01-23 22:31:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -61,7 +61,7 @@ static void print_results(DBPROCESS *dbproc);
 static int get_printable_size(int type, int size);
 static void usage(const char invoked_as[]);
 
-struct METADATA { char *name, *format_string; const char *source; int type, size; };
+struct METADATA { char *name, *format_string; const char *source; int type, size, width; };
 static int set_format_string(struct METADATA * meta, const char separator[]);
 
 typedef struct _options 
@@ -364,7 +364,6 @@ print_results(DBPROCESS *dbproc)
 		fprintf(options.verbose, "%-6s  %-30s  %-30s  %-15s  %-6s  %-6s  \n", "col", "name", "source", "type", "size", "varies");
 		fprintf(options.verbose, "%.6s  %.30s  %.30s  %.15s  %.6s  %.6s  \n", dashes, dashes, dashes, dashes, dashes, dashes);
 		for (c=0; c < ncols; c++) {
-			int width;
 			/* Get and print the metadata.  Optional: get only what you need. */
 			char *name = dbcolname(dbproc, c+1);
 			metadata[c].name = strdup(name ? (const char *) name : empty_string);
@@ -384,9 +383,9 @@ print_results(DBPROCESS *dbproc)
 			 * Build the column header format string, based on the column width. 
 			 * This is just one solution to the question, "How wide should my columns be when I print them out?"
 			 */
-			width = get_printable_size(metadata[c].type, metadata[c].size);
-			if (width < strlen(metadata[c].name))
-				width = strlen(metadata[c].name);
+			metadata[c].width = get_printable_size(metadata[c].type, metadata[c].size);
+			if (metadata[c].width < strlen(metadata[c].name))
+				metadata[c].width = strlen(metadata[c].name);
 				
 			ret = set_format_string(&metadata[c], (c+1 < ncols)? options.colsep : "\n");
 			if (ret <= 0) {
@@ -405,7 +404,7 @@ print_results(DBPROCESS *dbproc)
 			 * inaccesible to the application.  
 			 */
 
-			data[c].buffer = calloc(1, metadata[c].size);
+			data[c].buffer = calloc(1, metadata[c].width);
 			assert(data[c].buffer);
 
 			erc = dbbind(dbproc, c+1, bindtype, -1, (BYTE *) data[c].buffer);
@@ -465,6 +464,10 @@ print_results(DBPROCESS *dbproc)
 				asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
 				assert(metacompute[i]->meta[c].name);
 					
+				metacompute[i]->meta[c].width = get_printable_size(metacompute[i]->meta[c].type, metacompute[i]->meta[c].size);
+				if (metacompute[i]->meta[c].width < strlen(metacompute[i]->meta[c].name))
+					metacompute[i]->meta[c].width = strlen(metacompute[i]->meta[c].name);
+
 				ret = set_format_string(meta, (c+1 < metacompute[i]->numalts)? options.colsep : "\n");
 				if (ret <= 0) {
 					free(bynames);
@@ -479,7 +482,7 @@ print_results(DBPROCESS *dbproc)
 	
 				/* allocate buffer */
 				assert(metacompute[i]->data);
-				metacompute[i]->data[c].buffer = calloc(1, metacompute[i]->meta[c].size);
+				metacompute[i]->data[c].buffer = calloc(1, metacompute[i]->meta[c].width);
 				assert(metacompute[i]->data[c].buffer);
 				
 				/* bind */
