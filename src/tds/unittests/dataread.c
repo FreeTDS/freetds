@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.17 2005-08-10 12:06:03 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.18 2006-01-24 15:03:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -114,7 +114,7 @@ test0(const char *type, ...)
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED && (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT)) {
 
 		TDSCOLUMN *curcol = tds->current_results->columns[0];
-		TDS_CHAR *src = (TDS_CHAR *) tds->current_results->current_row + curcol->column_offset;
+		TDS_CHAR *src = (TDS_CHAR *) curcol->column_data;
 		int conv_type = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
 		assert(i_row < num_data);

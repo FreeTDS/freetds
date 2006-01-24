@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.402 2006-01-09 10:16:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.403 2006-01-24 15:03:27 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2905,7 +2905,7 @@ _SQLFetch(TDS_STMT * stmt)
 				if (resinfo->num_cols >= 2) {
 					colinfo = resinfo->columns[1];
 					if (colinfo->column_type == SYBINT2) {
-						TDS_SMALLINT *data = (TDS_SMALLINT *) (resinfo->current_row + colinfo->column_offset);
+						TDS_SMALLINT *data = (TDS_SMALLINT *) colinfo->column_data;
 						*data = odbc_swap_datetime_sql_type(*data);
 					}
 				}
@@ -2949,7 +2949,7 @@ _SQLFetch(TDS_STMT * stmt)
 				int c_type;
 				TDS_CHAR *data_ptr = (TDS_CHAR *) drec_ard->sql_desc_data_ptr;
 
-				src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
+				src = (TDS_CHAR *) colinfo->column_data;
 				if (is_blob_type(colinfo->column_type))
 					src = ((TDSBLOB *) src)->textvalue;
 				srclen = colinfo->column_cur_size;
@@ -3896,7 +3896,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	if (colinfo->column_cur_size < 0) {
 		*pcbValue = SQL_NULL_DATA;
 	} else {
-		src = (TDS_CHAR *) & resinfo->current_row[colinfo->column_offset];
+		src = (TDS_CHAR *) colinfo->column_data;
 		if (is_blob_type(colinfo->column_type)) {
 			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
 				ODBC_RETURN(stmt, SQL_NO_DATA);
@@ -4972,7 +4972,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 
 		resinfo = tds->current_results;
 		colinfo = resinfo->columns[0];
-		name = (char *) (resinfo->current_row + colinfo->column_offset);
+		name = (char *) colinfo->column_data;
 		/* skip nvarchar and sysname */
 		if (colinfo->column_cur_size == 7 && memcmp("varchar", name, 7) == 0) {
 			varchar_pos = n;

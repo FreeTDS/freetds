@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.13 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.14 2006-01-24 15:03:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -28,9 +28,7 @@ value_as_string(TDSSOCKET * tds, int col_idx)
 {
 	static char result[256];
 	const int type = tds->res_info->columns[col_idx]->column_type;
-	const unsigned char *row = tds->res_info->current_row;
-	const int offset = tds->res_info->columns[col_idx]->column_offset;
-	const void *value = (row + offset);
+	const void *value = tds->res_info->columns[col_idx]->column_data;
 
 	switch (type) {
 	case SYBVARCHAR:

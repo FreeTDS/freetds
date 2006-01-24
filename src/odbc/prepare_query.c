@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.58 2005-11-30 12:13:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.59 2006-01-24 15:03:27 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -82,7 +82,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				curcol->column_cur_size = -1;
 			}
 			if (compute_row)
-				if (!tds_alloc_param_row(temp_params, curcol))
+				if (!tds_alloc_param_data(temp_params, curcol))
 					return SQL_ERROR;
 			--p;
 			break;
@@ -112,9 +112,9 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				int len;
 				CONV_RESULT cr;
 
-				if (!tds_alloc_param_row(temp_params, curcol))
+				if (!tds_alloc_param_data(temp_params, curcol))
 					return SQL_ERROR;
-				dest = (char *) &temp_params->current_row[curcol->column_offset];
+				dest = (char *) curcol->column_data;
 				switch (type) {
 				case SYBVARCHAR:
 					if (*start != '\'') {
@@ -130,7 +130,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 							*dest++ = *start++;
 						}
 						curcol->column_cur_size =
-							dest - (char *) (&temp_params->current_row[curcol->column_offset]);
+							dest - (char *) curcol->column_data;
 					}
 					break;
 				case SYBVARBINARY:
@@ -249,7 +249,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	curcol = stmt->params->columns[stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1)];
 	blob = NULL;
 	if (is_blob_type(curcol->column_type))
-		blob = (TDSBLOB *) (stmt->params->current_row + curcol->column_offset);
+		blob = (TDSBLOB *) curcol->column_data;
 	assert(curcol->column_cur_size <= curcol->column_size);
 	need_bytes = curcol->column_size - curcol->column_cur_size;
 
@@ -279,7 +279,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		blob->textvalue = p;
 		memcpy(blob->textvalue + curcol->column_cur_size, DataPtr, len);
 	} else {
-		memcpy(stmt->params->current_row + curcol->column_offset + curcol->column_cur_size, DataPtr, len);
+		memcpy(curcol->column_data + curcol->column_cur_size, DataPtr, len);
 	}
 	curcol->column_cur_size += len;
 	if (blob && curcol->column_cur_size > curcol->column_size)

@@ -1,3 +1,17 @@
+Tue Jan 24 16:01:41 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* NEWS include/tds.h src/apps/tsql.c src/ctlib/blk.c:
+	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/buffering.h:
+	* src/dblib/dblib.c src/dblib/rpc.c src/odbc/odbc.c:
+	* src/odbc/odbc_util.c src/odbc/prepare_query.c:
+	* src/odbc/sql2tds.c src/pool/stream.c src/server/server.c:
+	* src/tds/mem.c src/tds/query.c src/tds/tds_checks.c:
+	* src/tds/token.c src/tds/unittests/dataread.c:
+	* src/tds/unittests/dynamic1.c src/tds/unittests/t0002.c:
+	* src/tds/unittests/t0004.c src/tds/unittests/t0005.c:
+	* src/tds/unittests/t0006.c src/tds/unittests/utf8_1.c:
+	* src/tds/unittests/utf8_2.c:
+	- use direct pointer column_data instead of old column_offset
+
 Mon Jan 23 17:30:38 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* src/apps/bsqldb.c bind to printable width, not column size
 

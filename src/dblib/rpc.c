@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.49 2005-10-07 15:07:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.50 2006-01-24 15:03:27 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -306,17 +306,17 @@ dbrpcsend(DBPROCESS * dbproc)
 static const unsigned char *
 param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *value, int size)
 {
-	const unsigned char *row = tds_alloc_param_row(params, curcol);
-	tdsdump_log(TDS_DBG_INFO1, "parameter size = %d, offset = %d, row_size = %d\n",
-				   size, curcol->column_offset, params->row_size);
+	const void *row = tds_alloc_param_data(params, curcol);
+	tdsdump_log(TDS_DBG_INFO1, "parameter size = %d, data = %p, row_size = %d\n",
+				   size, curcol->column_data, params->row_size);
 	if (!row)
 		return NULL;
 	if (size > 0 && value) {
 		tdsdump_log(TDS_DBG_FUNC, "copying %d bytes of data to parameter #%d\n", size, param_num);
 		if (!is_blob_type(curcol->column_type)) {
-			memcpy(&params->current_row[curcol->column_offset], value, size);
+			memcpy(curcol->column_data, value, size);
 		} else {
-			TDSBLOB *blob = (TDSBLOB *) &params->current_row[curcol->column_offset];
+			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
 			blob->textvalue = malloc(size);
 			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n", size, blob->textvalue);
 			if (!blob->textvalue)

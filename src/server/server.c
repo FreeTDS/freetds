@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.19 2004-05-27 14:50:06 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.20 2006-01-24 15:03:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -441,11 +441,11 @@ tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 		curcol = resinfo->columns[i];
 		if (!is_fixed_type(curcol->column_type)) {
 			/* FIX ME -- I have no way of knowing the actual length of non character variable data (eg nullable int) */
-			colsize = strlen((char *) &(resinfo->current_row[curcol->column_offset]));
+			colsize = strlen((char *) curcol->column_data);
 			tds_put_byte(tds, colsize);
-			tds_put_n(tds, &(resinfo->current_row[curcol->column_offset]), colsize);
+			tds_put_n(tds, curcol->column_data, colsize);
 		} else {
-			tds_put_n(tds, &(resinfo->current_row[curcol->column_offset]), tds_get_size_by_type(curcol->column_type));
+			tds_put_n(tds, curcol->column_data, tds_get_size_by_type(curcol->column_type));
 		}
 	}
 }

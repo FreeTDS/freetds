@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.154 2006-01-07 11:25:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.155 2006-01-24 15:03:27 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -225,19 +225,8 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 		return;
 
 	col = param_info->columns[--param_info->num_cols];
-	if (param_info->current_row && is_blob_type(col->column_type)) {
-		TDSBLOB *blob = (TDSBLOB *) &(param_info->current_row[col->column_offset]);
-		if (blob->textvalue)
-			free(blob->textvalue);
-	}
-
-	param_info->row_size = col->column_offset;
-	if (param_info->current_row) {
-		if (param_info->row_size)
-			param_info->current_row = realloc(param_info->current_row, param_info->row_size);
-		else
-			TDS_ZERO_FREE(param_info->current_row);
-	}
+	if (col->column_data && col->column_data_free)
+		col->column_data_free(col);
 
 	if (param_info->num_cols == 0 && param_info->columns)
 		TDS_ZERO_FREE(param_info->columns);
@@ -253,57 +242,59 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 	free(col);
 }
 
+static void
+_tds_param_free(TDSCOLUMN *col)
+{
+	if (!col->column_data)
+		return;
+
+	if (is_blob_type(col->column_type)) {
+		TDSBLOB *blob = (TDSBLOB *) col->column_data;
+		if (blob->textvalue)
+			free(blob->textvalue);
+	}
+	TDS_ZERO_FREE(col->column_data);
+}
+
 /**
- * Add another field to row. Is assumed that last TDSCOLUMN contain information about this.
- * Update also info structure.
+ * Allocate data for a parameter. Is assumed that last TDSCOLUMN contain information about this.
  * @param info     parameters info where is contained row
  * @param curparam parameter to retrieve size information
- * @return NULL on failure or new row
+ * @return NULL on failure or new data
  */
-unsigned char *
-tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam)
+void *
+tds_alloc_param_data(TDSPARAMINFO * info, TDSCOLUMN * curparam)
 {
-	TDS_INT row_size;
-	unsigned char *row;
+	TDS_INT data_size;
+	void *data;
 
 	CHECK_COLUMN_EXTRA(curparam);
-#if ENABLE_EXTRA_CHECKS
-	assert(info->row_size % TDS_ALIGN_SIZE == 0);
-#endif
 
-	curparam->column_offset = info->row_size;
 	if (is_numeric_type(curparam->column_type)) {
-		row_size = sizeof(TDS_NUMERIC);
+		data_size = sizeof(TDS_NUMERIC);
 	} else if (is_blob_type(curparam->column_type)) {
-		row_size = sizeof(TDSBLOB);
+		data_size = sizeof(TDSBLOB);
 	} else {
-		row_size = curparam->column_size;
+		data_size = curparam->column_size;
 	}
-	row_size += info->row_size + (TDS_ALIGN_SIZE - 1);
-	row_size -= row_size % TDS_ALIGN_SIZE;
 
 
-#if ENABLE_EXTRA_CHECKS
-	assert((row_size % TDS_ALIGN_SIZE) == 0);
-#endif
+	/* allocate data */
+	if (curparam->column_data && curparam->column_data_free)
+		curparam->column_data_free(curparam);
+	curparam->column_data_free = _tds_param_free;
 
-	/* make sure the row buffer is big enough */
-	if (info->current_row) {
-		row = (unsigned char *) realloc(info->current_row, row_size);
-	} else {
-		row = (unsigned char *) malloc(row_size);
-	}
-	if (!row)
+	data = malloc(data_size);
+	curparam->column_data = data;
+	if (!data)
 		return NULL;
 	/* if is a blob reset buffer */
 	if (is_blob_type(curparam->column_type))
-		memset(row + info->row_size, 0, sizeof(TDSBLOB));
-	info->current_row = row;
-	info->row_size = row_size;
+		memset(data, 0, sizeof(TDSBLOB));
 
 	CHECK_PARAMINFO_EXTRA(info);
 
-	return row;
+	return data;
 }
 
 /**
@@ -400,30 +391,91 @@ tds_alloc_results(int num_cols)
 	return NULL;
 }
 
+static void
+_tds_row_free(TDSRESULTINFO *res_info, unsigned char *row)
+{
+	int i;
+	const TDSCOLUMN *col;
+
+	if (!res_info || !row)
+		return;
+
+	for (i = 0; i < res_info->num_cols; ++i) {
+		col = res_info->columns[i];
+		
+		if (is_blob_type(col->column_type)) {
+			TDSBLOB *blob = (TDSBLOB *) &row[col->column_data - res_info->current_row];
+			if (blob->textvalue)
+				TDS_ZERO_FREE(blob->textvalue);
+		}
+	}
+
+	free(row);
+}
+
 /**
  * Allocate space for row store
  * return NULL on out of memory
  */
-unsigned char *
+int
 tds_alloc_row(TDSRESULTINFO * res_info)
 {
+	int i, num_cols = res_info->num_cols;
 	unsigned char *ptr;
+	TDSCOLUMN *col;
+	TDS_UINT row_size;
+
+	/* compute row size */
+	row_size = 0;
+	for (i = 0; i < num_cols; ++i) {
+		col = res_info->columns[i];
+
+		col->column_data_free = NULL;
+
+		if (is_numeric_type(col->column_type)) {
+			row_size += sizeof(TDS_NUMERIC);
+		} else if (is_blob_type(col->column_type)) {
+			row_size += sizeof(TDSBLOB);
+		} else {
+			row_size += col->column_size;
+		}
+		row_size += (TDS_ALIGN_SIZE - 1);
+		row_size -= row_size % TDS_ALIGN_SIZE;
+	}
+	res_info->row_size = row_size;
 
 	ptr = (unsigned char *) malloc(res_info->row_size);
-	if (ptr)
-		memset(ptr, '\0', res_info->row_size);
-	return ptr;
+	res_info->current_row = ptr;
+	if (!ptr)
+		return TDS_FAIL;
+	res_info->row_free = _tds_row_free;
+
+	/* fill column_data */
+	row_size = 0;
+	for (i = 0; i < num_cols; ++i) {
+		col = res_info->columns[i];
+
+		col->column_data = ptr + row_size;
+
+		if (is_numeric_type(col->column_type)) {
+			row_size += sizeof(TDS_NUMERIC);
+		} else if (is_blob_type(col->column_type)) {
+			row_size += sizeof(TDSBLOB);
+		} else {
+			row_size += col->column_size;
+		}
+		row_size += (TDS_ALIGN_SIZE - 1);
+		row_size -= row_size % TDS_ALIGN_SIZE;
+	}
+
+	memset(ptr, '\0', res_info->row_size);
+	return TDS_SUCCEED;
 }
 
-unsigned char *
+int
 tds_alloc_compute_row(TDSCOMPUTEINFO * res_info)
 {
-	unsigned char *ptr;
-
-	ptr = (unsigned char *) malloc(res_info->row_size);
-	if (ptr)
-		memset(ptr, '\0', res_info->row_size);
-	return ptr;
+	return tds_alloc_row(res_info);
 }
 
 void
@@ -460,22 +512,13 @@ tds_free_compute_results(TDSSOCKET * tds)
 }
 
 void
-tds_free_row(const TDSRESULTINFO * res_info, unsigned char *row)
+tds_free_row(TDSRESULTINFO * res_info, unsigned char *row)
 {
-	int i;
-	const TDSCOLUMN *curcol;
-
 	assert(res_info);
-	if (!row)
+	if (!row || !res_info->row_free)
 		return;
 
-	for (i = 0; i < res_info->num_cols; ++i) {
-		curcol = res_info->columns[i];
-		if (is_blob_type(curcol->column_type))
-			free(((TDSBLOB *) (row + curcol->column_offset))->textvalue);
-	}
-
-	free(row);
+	res_info->row_free(res_info, row);
 }
 
 void
@@ -494,18 +537,23 @@ tds_free_results(TDSRESULTINFO * res_info)
 		for (i = 0; i < res_info->num_cols; i++)
 			if ((curcol = res_info->columns[i]) != NULL) {
 				if (curcol->bcp_terminator)
-					free(curcol->bcp_terminator);
+					TDS_ZERO_FREE(curcol->bcp_terminator);
 				tds_free_bcp_column_data(curcol->bcp_column_data);
-				if (res_info->current_row && is_blob_type(curcol->column_type)) {
-					free(((TDSBLOB *) (res_info->current_row + curcol->column_offset))->textvalue);
-				}
+				if (curcol->column_data && curcol->column_data_free)
+					curcol->column_data_free(curcol);
+			}
+	}
+
+	if (res_info->current_row && res_info->row_free)
+		res_info->row_free(res_info, res_info->current_row);
+
+	if (res_info->num_cols && res_info->columns) {
+		for (i = 0; i < res_info->num_cols; i++)
+			if ((curcol = res_info->columns[i]) != NULL) {
 				free(curcol);
 			}
 		free(res_info->columns);
 	}
-
-	if (res_info->current_row)
-		free(res_info->current_row);
 
 	if (res_info->bycolumns)
 		free(res_info->bycolumns);

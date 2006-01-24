@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.32 2005-07-20 10:58:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.33 2006-01-24 15:03:07 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -452,7 +452,8 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 		}
 	}
 
-	bindinfo->current_row = tds_alloc_row(bindinfo);
+	/* TODO check */
+	tds_alloc_row(bindinfo);
 
 	blkdesc->bindinfo = bindinfo;
 	blkdesc->bind_count = CS_UNUSED;

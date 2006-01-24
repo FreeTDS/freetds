@@ -1,4 +1,13 @@
-$Id: NEWS,v 1.32 2006-01-10 14:01:17 freddy77 Exp $
+$Id: NEWS,v 1.33 2006-01-24 15:03:06 freddy77 Exp $
+* 0.65
+
+libTDS API changes
+- tds_add_row_column_size removed
+- tds_alloc_row return now TDS_SUCCEED/TDS_FAIL
+- tds_alloc_compute_row return now TDS_SUCCEED/TDS_FAIL
+- removed TDSCOLUMN->column_offset
+- added TDSCOLUMN->column_data and TDSCOLUMN->column_data_free
+
 * 0.64
 - core library
  - reduce network bandwidth use on Linux and *BSD

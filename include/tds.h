@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.245 2006-01-06 10:27:31 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.246 2006-01-24 15:03:07 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -868,7 +868,8 @@ typedef struct tds_column
 	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
 
-	TDS_INT column_offset;		/**< offset into row buffer for store data */
+	unsigned char *column_data;
+	void (*column_data_free)(struct tds_column *column);
 	unsigned int column_nullable:1;
 	unsigned int column_writeable:1;
 	unsigned int column_identity:1;
@@ -921,6 +922,7 @@ typedef struct tds_result_info
 	TDS_INT row_size;
 	TDS_INT ref_count;
 	unsigned char *current_row;
+	void (*row_free)(struct tds_result_info* result, unsigned char *row);
 
 	TDS_SMALLINT rows_exist;
 	/* TODO remove ?? used only in dblib */
@@ -1214,8 +1216,8 @@ void tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(const char *interfloc);
 
 TDSLOCALE *tds_get_locale(void);
-unsigned char *tds_alloc_row(TDSRESULTINFO * res_info);
-unsigned char *tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
+int tds_alloc_row(TDSRESULTINFO * res_info);
+int tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 int tds_alloc_get_string(TDSSOCKET * tds, char **string, int len);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
@@ -1249,7 +1251,6 @@ TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO * old_param);
 void tds_free_input_params(TDSDYNAMIC * dyn);
 void tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, int bufsize);
-unsigned char *tds_alloc_param_row(TDSPARAMINFO * info, TDSCOLUMN * curparam);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
 TDSLOGIN *tds_alloc_login(void);
@@ -1257,9 +1258,10 @@ TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET * tds, const char *id);
 void tds_free_login(TDSLOGIN * login);
 TDSCONNECTION *tds_alloc_connection(TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
+void *tds_alloc_param_data(TDSPARAMINFO * info, TDSCOLUMN * curparam);
 void tds_free_locale(TDSLOCALE * locale);
 TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
-void tds_free_row(const TDSRESULTINFO * res_info, unsigned char *row);
+void tds_free_row(TDSRESULTINFO * res_info, unsigned char *row);
 
 /* login.c */
 int tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge);
@@ -1315,7 +1317,6 @@ void tds_swap_datatype(int coltype, unsigned char *buf);
 void tds_swap_numeric(TDS_NUMERIC *num);
 int tds_get_token_size(int marker);
 int tds_process_login_tokens(TDSSOCKET * tds);
-void tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLUMN * curcol);
 int tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,
 			TDS_INT * tds_argsize);

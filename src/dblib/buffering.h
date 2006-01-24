@@ -253,7 +253,10 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 		if (!curcol->column_varaddr)
 			continue;
 
-		src = (row->row_data ? row->row_data : row->resinfo->current_row) + curcol->column_offset;
+		if (row->row_data)
+			src = &row->row_data[curcol->column_data - row->resinfo->current_row];
+		else
+			src = curcol->column_data;
 		srclen = curcol->column_cur_size;
 		if (is_blob_type(curcol->column_type)) {
 			src = (BYTE *) ((TDSBLOB *) src)->textvalue;
@@ -453,7 +456,7 @@ buffer_save_row(DBPROCESS *dbproc)
 
 		if (row->resinfo && !row->row_data) {
 			row->row_data = row->resinfo->current_row;
-			row->resinfo->current_row = tds_alloc_row(row->resinfo);
+			tds_alloc_row(row->resinfo);
 		}
 	}
 

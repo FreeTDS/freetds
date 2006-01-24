@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.19 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.20 2006-01-24 15:03:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -27,9 +27,7 @@ char *
 varchar_as_string(TDSSOCKET * tds, int col_idx)
 {
 	static char result[256];
-	const unsigned char *row = tds->res_info->current_row;
-	const int offset = tds->res_info->columns[col_idx]->column_offset;
-	const void *value = (row + offset);
+	const void *value = tds->res_info->columns[col_idx]->column_data;
 
 	strncpy(result, (const char *) value, sizeof(result) - 1);
 	result[sizeof(result) - 1] = '\0';

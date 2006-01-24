@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.85 2006-01-06 10:22:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.86 2006-01-24 15:03:27 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -178,7 +178,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 			continue;
 		}
 
-		src = (TDS_CHAR *) & info->current_row[colinfo->column_offset];
+		src = (TDS_CHAR *) colinfo->column_data;
 		if (is_blob_type(colinfo->column_type))
 			src = ((TDSBLOB *) src)->textvalue;
 		srclen = colinfo->column_cur_size;

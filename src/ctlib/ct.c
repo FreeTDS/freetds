@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.161 2005-12-21 08:11:58 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.162 2006-01-24 15:03:07 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1696,7 +1696,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 				srctype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
 
-				src = &(resinfo->current_row[curcol->column_offset]);
+				src = curcol->column_data;
 				if (is_blob_type(curcol->column_type))
 					src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
@@ -2620,7 +2620,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		/* get at the source data and length */
 		curcol = resinfo->columns[item - 1];
 
-		src = &(resinfo->current_row[curcol->column_offset]);
+		src = curcol->column_data;
 		if (is_blob_type(curcol->column_type)) {
 			blob = (TDSBLOB *) src;
 			src = (unsigned char *) blob->textvalue;
@@ -2633,7 +2633,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		cmd->iodesc->locale = cmd->con->locale;
 		cmd->iodesc->usertype = curcol->column_usertype;
 		cmd->iodesc->total_txtlen = curcol->column_cur_size;
-		cmd->iodesc->offset = curcol->column_offset;
+		cmd->iodesc->offset = 0;
 		cmd->iodesc->log_on_update = CS_FALSE;
 
 		/* TODO quote needed ?? */
@@ -2660,7 +2660,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 	} else {
 		/* get at the source data */
 		curcol = resinfo->columns[item - 1];
-		src = &(resinfo->current_row[curcol->column_offset]);
+		src = curcol->column_data;
 		if (is_blob_type(curcol->column_type))
 			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
@@ -3970,16 +3970,12 @@ _ct_process_return_status(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "generating return status row. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 
-	tds_add_row_column_size(info, curcol);
-
-	info->current_row = tds_alloc_row(info);
-
-	if (!info->current_row)
+	if (tds_alloc_row(info) != TDS_SUCCEED)
 		return TDS_FAIL;
 
-	assert(0 <= curcol->column_offset && curcol->column_offset < info->row_size);
+	assert(curcol->column_data != NULL);
 
-	*(TDS_INT *) (info->current_row + curcol->column_offset) = saved_status;
+	*(TDS_INT *) curcol->column_data = saved_status;
 
 	return TDS_SUCCEED;
 }
@@ -3990,10 +3986,10 @@ _ct_process_return_status(TDSSOCKET * tds)
 static const unsigned char *
 paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *value, int size)
 {
-	const unsigned char *row = tds_alloc_param_row(params, curcol);
+	const void *row = tds_alloc_param_data(params, curcol);
 
-	tdsdump_log(TDS_DBG_INFO1, "paramrowalloc, size = %d, offset = %d, row_size = %d\n",
-				size, curcol->column_offset,
+	tdsdump_log(TDS_DBG_INFO1, "paramrowalloc, size = %d, data = %p, row_size = %d\n",
+				size, curcol->column_data,
 				params->row_size);
 	if (!row)
 		return NULL;
@@ -4004,7 +4000,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 			size = curcol->column_size;
 		/* TODO blobs */
 		if (!is_blob_type(curcol->column_type))
-			memcpy(&params->current_row[curcol->column_offset], value, size);
+			memcpy(curcol->column_data, value, size);
 		curcol->column_cur_size = size;
 	} else {
 		tdsdump_log(TDS_DBG_FUNC, "paramrowalloc(): setting parameter #%d to NULL\n", param_num);
@@ -4241,9 +4237,10 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID 
 	param->status = datafmt->status;
 	tdsdump_log(TDS_DBG_INFO1, " _ct_fill_param() status = %d \n", param->status);
 
-	/* translate datafmt.datatype, e.g. CS_SMALLINT_TYPE */
-	/* to Server type, e.g. SYBINT2                      */
-
+	/*
+	 * translate datafmt.datatype, e.g. CS_SMALLINT_TYPE
+	 * to Server type, e.g. SYBINT2
+	 */
 	param->type = _ct_get_server_type(datafmt->datatype);
 
 	if (is_numeric_type(param->type)) {

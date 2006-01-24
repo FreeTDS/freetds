@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.307 2006-01-06 10:27:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.308 2006-01-24 15:03:27 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -58,7 +58,7 @@ static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
 static int tds7_process_result(TDSSOCKET * tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET * tds);
 static int tds_process_auth(TDSSOCKET * tds);
-static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, int i);
+static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
 static int tds_process_env_chg(TDSSOCKET * tds);
 static const char *_tds_token_name(unsigned char marker);
@@ -266,9 +266,9 @@ tds_set_spid(TDSSOCKET * tds)
 			case TDS_ROW_RESULT:
 				curcol = tds->res_info->columns[0];
 				if (curcol->column_type == SYBINT2 || (curcol->column_type == SYBINTN && curcol->column_size == 2)) {
-					tds->spid = *((TDS_USMALLINT *) (tds->res_info->current_row + curcol->column_offset));
+					tds->spid = *((TDS_USMALLINT *) curcol->column_data);
 				} else if (curcol->column_type == SYBINT4 || (curcol->column_type == SYBINTN && curcol->column_size == 4)) {
-					tds->spid = *((TDS_UINT *) (tds->res_info->current_row + curcol->column_offset));
+					tds->spid = *((TDS_UINT *) curcol->column_data);
 				} else
 					return TDS_FAIL;
 				break;
@@ -627,7 +627,7 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 					if (tds->internal_sp_called == TDS_SP_CURSOROPEN && tds->cur_cursor) {
 						TDSCURSOR  *cursor = tds->cur_cursor; 
 
-						cursor->cursor_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
+						cursor->cursor_id = *(TDS_INT *) curcol->column_data;
 						tdsdump_log(TDS_DBG_FUNC, "stored internal cursor id %d\n", 
 							    cursor->cursor_id);
 						cursor->srv_status &= ~TDS_CUR_ISTAT_CLOSED;
@@ -635,7 +635,7 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 					}
 					if (tds->internal_sp_called == TDS_SP_PREPARE 
 					    && tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
-						tds->cur_dyn->num_id = *(TDS_INT *) &(pinfo->current_row[curcol->column_offset]);
+						tds->cur_dyn->num_id = *(TDS_INT *) curcol->column_data;
 					}
 				}
 				tds_free_param_results(pinfo);
@@ -967,35 +967,6 @@ tds_process_col_name(TDSSOCKET * tds)
 }
 
 /**
- * Add a column size to result info row size and calc offset into row
- * @param info   result where to add column
- * @param curcol column to add
- */
-void
-tds_add_row_column_size(TDSRESULTINFO * info, TDSCOLUMN * curcol)
-{
-	CHECK_RESULTINFO_EXTRA(info);
-	CHECK_COLUMN_EXTRA(curcol);
-
-	/*
-	 * the column_offset is the offset into the row buffer
-	 * where this column begins, text types are no longer
-	 * stored in the row buffer because the max size can
-	 * be too large (2gig) to allocate 
-	 */
-	curcol->column_offset = info->row_size;
-	if (is_numeric_type(curcol->column_type)) {
-		info->row_size += sizeof(TDS_NUMERIC);
-	} else if (is_blob_type(curcol->column_type)) {
-		info->row_size += sizeof(TDSBLOB);
-	} else {
-		info->row_size += curcol->column_size;
-	}
-	info->row_size += (TDS_ALIGN_SIZE - 1);
-	info->row_size -= info->row_size % TDS_ALIGN_SIZE;
-}
-
-/**
  * tds_process_col_fmt() is the other half of result set processing
  * under TDS 4.2. It follows tds_process_col_name(). It contains all the 
  * column type and size information.
@@ -1056,8 +1027,6 @@ tds_process_col_fmt(TDSSOCKET * tds)
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
 		adjust_character_column_size(tds, curcol);
-
-		tds_add_row_column_size(info, curcol);
 	}
 
 	/* get the rest of the bytes */
@@ -1067,10 +1036,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 		tds_get_n(tds, NULL, rest);
 	}
 
-	if ((info->current_row = tds_alloc_row(info)) != NULL)
-		return TDS_SUCCEED;
-	else
-		return TDS_FAIL;
+	return tds_alloc_row(info);
 }
 
 static int
@@ -1147,10 +1113,10 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 
 	curparam->column_cur_size = curparam->column_size;	/* needed ?? */
 
-	if (tds_alloc_param_row(info, curparam) == NULL)
+	if (tds_alloc_param_data(info, curparam) == NULL)
 		return TDS_FAIL;
 
-	i = tds_get_data(tds, curparam, info->current_row, info->num_cols - 1);
+	i = tds_get_data(tds, curparam);
 
 	/*
 	 * Real output parameters will either be unnamed or will have a valid
@@ -1203,7 +1169,7 @@ tds_process_params_result_token(TDSSOCKET * tds)
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol, info->current_row, i) != TDS_SUCCEED)
+		if (tds_get_data(tds, curcol) != TDS_SUCCEED)
 			return TDS_FAIL;
 	}
 	return TDS_SUCCEED;
@@ -1304,8 +1270,6 @@ tds_process_compute_result(TDSSOCKET * tds)
 		/* skip locale */
 		if (!IS_TDS42(tds))
 			tds_get_n(tds, NULL, tds_get_byte(tds));
-
-		tds_add_row_column_size(info, curcol);
 	}
 
 	by_cols = tds_get_byte(tds);
@@ -1326,10 +1290,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 		cur_by_col++;
 	}
 
-	if ((info->current_row = tds_alloc_compute_row(info)) != NULL)
-		return TDS_SUCCEED;
-	else
-		return TDS_FAIL;
+	return tds_alloc_compute_row(info);
 }
 
 /**
@@ -1436,7 +1397,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 static int
 tds7_process_result(TDSSOCKET * tds)
 {
-	int col, num_cols;
+	int col, num_cols, result;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 	TDSCURSOR *cursor;
@@ -1481,18 +1442,12 @@ tds7_process_result(TDSSOCKET * tds)
 		curcol = info->columns[col];
 
 		tds7_get_data_info(tds, curcol);
-
-		tds_add_row_column_size(info, curcol);
 	}
 
 	/* all done now allocate a row for tds_process_row to use */
-	if ((info->current_row = tds_alloc_row(info)) != NULL) {
-		CHECK_TDS_EXTRA(tds);
-		return TDS_SUCCEED;
-	} else {
-		CHECK_TDS_EXTRA(tds);
-		return TDS_FAIL;
-	}
+	result = tds_alloc_row(info);
+	CHECK_TDS_EXTRA(tds);
+	return result;
 }
 
 /**
@@ -1619,13 +1574,8 @@ tds_process_result(TDSSOCKET * tds)
 		/* skip locale information */
 		/* NOTE do not put into tds_get_data_info, param do not have locale information */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
-
-		tds_add_row_column_size(info, curcol);
 	}
-	if ((info->current_row = tds_alloc_row(info)) != NULL)
-		return TDS_SUCCEED;
-	else
-		return TDS_FAIL;
+	return tds_alloc_row(info);
 }
 
 /**
@@ -1781,8 +1731,6 @@ tds5_process_result(TDSSOCKET * tds)
 		/* discard Locale */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 
-		tds_add_row_column_size(info, curcol);
-
 		/* 
 		 *  Dump all information on this column
 		 */
@@ -1799,10 +1747,7 @@ tds5_process_result(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, "\tcolsize=%d prec=%d scale=%d\n",
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
 	}
-	if ((info->current_row = tds_alloc_row(info)) != NULL)
-		return TDS_SUCCEED;
-	else
-		return TDS_FAIL;
+	return tds_alloc_row(info);
 }
 
 /**
@@ -1832,7 +1777,7 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid)
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol, info->current_row, i) != TDS_SUCCEED)
+		if (tds_get_data(tds, curcol) != TDS_SUCCEED)
 			return TDS_FAIL;
 	}
 	if (computeid)
@@ -1845,12 +1790,10 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid)
  * Read a data from wire
  * \param tds state information for the socket and the TDS protocol
  * \param curcol column where store column information
- * \param current_row pointer to row data to store information
- * \param i column position in current_row
  * \return TDS_FAIL on error or TDS_SUCCEED
  */
 static int
-tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, int i)
+tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	unsigned char *dest;
 	int len, colsize;
@@ -1860,7 +1803,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: column %d, type %d, varint size %d\n", i, curcol->column_type, curcol->column_varint_size);
+	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: type %d, varint size %d\n", curcol->column_type, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 	case 4:
 		/*
@@ -1889,7 +1832,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 		
 		/* It's a BLOB... */
 		len = tds_get_byte(tds);
-		blob = (TDSBLOB *) & (current_row[curcol->column_offset]);
+		blob = (TDSBLOB *) curcol->column_data;
 		if (len == 16) {	/*  Jeff's hack */
 			tds_get_n(tds, blob->textptr, 16);
 			tds_get_n(tds, blob->timestamp, 8);
@@ -1933,7 +1876,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row, in
 	 * colsize == wire_size, bytes to read
 	 * curcol->column_cur_size == sizeof destination buffer, room to write
 	 */
-	dest = &(current_row[curcol->column_offset]);
+	dest = curcol->column_data;
 	if (is_numeric_type(curcol->column_type)) {
 		/* 
 		 * Handling NUMERIC datatypes: 
@@ -2108,7 +2051,7 @@ tds_process_row(TDSSOCKET * tds)
 	info->row_count++;
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol, info->current_row, i) != TDS_SUCCEED)
+		if (tds_get_data(tds, curcol) != TDS_SUCCEED)
 			return TDS_FAIL;
 	}
 	return TDS_SUCCEED;
@@ -2675,14 +2618,9 @@ tds_process_dyn_result(TDSSOCKET * tds)
 
 		/* skip locale information */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
-
-		tds_add_row_column_size(info, curcol);
 	}
 
-	if ((info->current_row = tds_alloc_row(info)) != NULL)
-		return TDS_SUCCEED;
-	else
-		return TDS_FAIL;
+	return tds_alloc_row(info);
 }
 
 /**
@@ -2778,8 +2716,6 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		/* discard Locale */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 
-		tds_add_row_column_size(info, curcol);
-
 		tdsdump_log(TDS_DBG_INFO1, "elem %d:\n", col);
 		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_name);
 		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d varint=%d\n",
@@ -2788,10 +2724,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 			    curcol->column_size, curcol->column_prec, curcol->column_scale);
 	}
 
-	if ((info->current_row = tds_alloc_row(info)) != NULL)
-		return TDS_SUCCEED;
-	else
-		return TDS_FAIL;
+	return tds_alloc_row(info);
 }
 
 /**
@@ -3098,16 +3031,11 @@ tds7_process_compute_result(TDSSOCKET * tds)
 			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
 			curcol->column_namelen = strlen(curcol->column_name);
 		}
-
-		tds_add_row_column_size(info, curcol);
 	}
 
 	/* all done now allocate a row for tds_process_row to use */
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 5 \n");
-	if ((info->current_row = tds_alloc_compute_row(info)) != NULL)
-		return TDS_SUCCEED;
-	else
-		return TDS_FAIL;
+	return tds_alloc_compute_row(info);
 }
 
 static int 

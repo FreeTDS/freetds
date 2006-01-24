@@ -39,7 +39,7 @@
 #include "pool.h"
 #include "tds.h"
 
-TDS_RCSID(var, "$Id: stream.c,v 1.22 2005-07-30 09:01:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: stream.c,v 1.23 2006-01-24 15:03:27 freddy77 Exp $");
 
 int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 
@@ -353,13 +353,8 @@ read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *b
 
 		/* skip locale information */
 		pos += buf[pos];
-
-		tds_add_row_column_size(info, curcol);
 	}
-	if ((info->current_row = tds_alloc_row(info)) != NULL)
-		return TDS_SUCCEED;
-	else
-		return TDS_FAIL;
+	return tds_alloc_row(info);
 }
 
 /* 

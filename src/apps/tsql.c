@@ -69,7 +69,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.83 2005-12-11 09:58:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.84 2006-01-24 15:03:07 freddy77 Exp $");
 
 enum
 {
@@ -177,7 +177,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 					}
 					ctype = tds_get_conversion_type(col->column_type, col->column_size);
 
-					src = &(tds->current_results->current_row[col->column_offset]);
+					src = col->column_data;
 					if (is_blob_type(col->column_type))
 						src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 					srclen = col->column_cur_size;

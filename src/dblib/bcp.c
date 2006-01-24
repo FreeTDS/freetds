@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.135 2005-12-25 11:27:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.136 2006-01-24 15:03:27 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -261,8 +261,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 			}
 		}
 
-		/* TODO check + clean */
-		bindinfo->current_row = tds_alloc_row(bindinfo);
+		/* TODO clean if failure */
+		return tds_alloc_row(bindinfo) == TDS_FAIL ? FAIL : SUCCEED;
 	
 	}
 
@@ -939,7 +939,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		
 				curcol = resinfo->columns[hostcol->tab_colnum - 1];
 
-				src = &resinfo->current_row[curcol->column_offset];
+				src = curcol->column_data;
 
 				if (is_blob_type(curcol->column_type)) {
 					src = (BYTE *) ((TDSBLOB *) src)->textvalue;

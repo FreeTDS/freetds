@@ -19,7 +19,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.24 2005-04-14 13:28:46 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.25 2006-01-24 15:03:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -110,7 +110,7 @@ main(int argc, char **argv)
 			resinfo = tds->res_info;
 			for (i = 0; i < resinfo->num_cols; i++) {
 				curcol = resinfo->columns[i];
-				src = &(resinfo->current_row[curcol->column_offset]);
+				src = curcol->column_data;
 				if (verbose) {
 					srctype = curcol->column_type;
 					srclen = curcol->column_size;
@@ -177,7 +177,7 @@ main(int argc, char **argv)
 			resinfo = tds->res_info;
 			for (i = 0; i < resinfo->num_cols; i++) {
 				curcol = resinfo->columns[i];
-				src = &(resinfo->current_row[curcol->column_offset]);
+				src = curcol->column_data;
 				if (verbose) {
 					srctype = curcol->column_type;
 					srclen = curcol->column_size;

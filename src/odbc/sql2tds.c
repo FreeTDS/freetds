@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.51 2005-08-25 15:06:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.52 2006-01-24 15:03:27 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -297,7 +297,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	}
 
 	/* allocate given space */
-	if (!tds_alloc_param_row(info, curcol))
+	if (!tds_alloc_param_data(info, curcol))
 		return SQL_ERROR;
 
 	if (need_data) {
@@ -350,13 +350,13 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	curcol->column_cur_size = res;
 
 	/* free allocated memory */
-	dest = &info->current_row[curcol->column_offset];
+	dest = curcol->column_data;
 	switch ((TDS_SERVER_TYPE) dest_type) {
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case XSYBCHAR:
 	case XSYBVARCHAR:
-		memcpy(&info->current_row[curcol->column_offset], ores.c, res);
+		memcpy(dest, ores.c, res);
 		free(ores.c);
 		break;
 	case SYBTEXT:
@@ -369,7 +369,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	case SYBVARBINARY:
 	case XSYBBINARY:
 	case XSYBVARBINARY:
-		memcpy(&info->current_row[curcol->column_offset], ores.ib, res);
+		memcpy(dest, ores.ib, res);
 		free(ores.ib);
 		break;
 	case SYBLONGBINARY:
@@ -407,7 +407,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	case SYBUINT4:
 	case SYBUINT8:
 	case SYBUNIQUE:
-		memcpy(&info->current_row[curcol->column_offset], &ores, res);
+		memcpy(dest, &ores, res);
 		break;
 	case XSYBNVARCHAR:
 	case XSYBNCHAR:

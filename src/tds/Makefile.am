@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.55 2005-07-24 10:52:49 freddy77 Exp $
+# $Id: Makefile.am,v 1.56 2006-01-24 15:03:27 freddy77 Exp $
 
 SUBDIRS			=	unittests
 
@@ -15,9 +15,9 @@ libtds_objects_la_LIBADD=
 lib_LTLIBRARIES		=	libtds.la
 libtds_la_SOURCES	=
 
-# changed for 0.64
+# changed for 0.65
 #                      bump server version whenever bumping libtds version
-libtds_la_LDFLAGS	= -version-info 5:0:0 \
+libtds_la_LDFLAGS	= -version-info 6:0:0 \
 			  -export-symbols-regex '^(tds_|tdsdump_|tds5_|tds7_).*'
 libtds_la_LIBADD 	= libtds_objects.la ../replacements/libreplacements.la \
 			  $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)

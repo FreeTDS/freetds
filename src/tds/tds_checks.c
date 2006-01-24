@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.14 2005-08-16 15:04:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.15 2006-01-24 15:03:27 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -237,22 +237,10 @@ tds_check_resultinfo_extra(const TDSRESULTINFO * res_info)
 	assert(res_info->num_cols >= 0);
 	assert(res_info->ref_count > 0);
 	for (i = 0; i < res_info->num_cols; ++i) {
-		int offset_check;
-
 		assert(res_info->columns);
 		tds_check_column_extra(res_info->columns[i]);
-		offset_check = res_info->columns[i]->column_offset <= res_info->row_size
-			|| (i == (res_info->num_cols - 1) && res_info->columns[i]->column_offset == 0)
-			|| (res_info->columns[i]->column_offset == res_info->row_size && res_info->columns[i]->column_size == 0);
-		if (!offset_check) {
-			fprintf(stderr, "offset %d row size %d i %d num cols %d column_size %d\n",
-				(int) res_info->columns[i]->column_offset, (int) res_info->row_size, (int) i,
-				(int) res_info->num_cols, (int) res_info->columns[i]->column_size);
-		}
-		assert(offset_check);
+		assert(res_info->columns[i]->column_data != NULL || res_info->row_size == 0);
 	}
-
-	/* TODO check that column_offset are sequential, check size of current_row and column_offset[i+1]-column_offset[i] == size */
 
 	assert(res_info->row_size >= 0);
 

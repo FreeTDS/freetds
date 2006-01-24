@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.244 2005-10-25 21:27:43 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.245 2006-01-24 15:03:27 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -2547,10 +2547,10 @@ dbdata(DBPROCESS * dbproc, int column)
 		return NULL;
 	}
 	if (is_blob_type(colinfo->column_type)) {
-		return (BYTE *) ((TDSBLOB *) (resinfo->current_row + colinfo->column_offset))->textvalue;
+		return (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
 	}
 
-	return (BYTE *) & resinfo->current_row[colinfo->column_offset];
+	return (BYTE *) colinfo->column_data;
 }
 
 /**
@@ -3640,10 +3640,10 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 	colinfo = info->columns[column - 1];
 
 	if (is_blob_type(colinfo->column_type)) {
-		return (BYTE *) ((TDSBLOB *) (info->current_row + colinfo->column_offset))->textvalue;
+		return (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
 	}
 
-	return (BYTE *) & info->current_row[colinfo->column_offset];
+	return (BYTE *) colinfo->column_data;
 }
 
 /**
@@ -3954,7 +3954,7 @@ dbretdata(DBPROCESS * dbproc, int retnum)
 
 	colinfo = param_info->columns[retnum - 1];
 	/* FIXME blob are stored is different way */
-	return &param_info->current_row[colinfo->column_offset];
+	return (BYTE *) colinfo->column_data;
 }
 
 /**
@@ -5451,7 +5451,7 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 		return NULL;
 	if (!is_blob_type(resinfo->columns[column]->column_type))
 		return NULL;
-	blob = (TDSBLOB *) & (resinfo->current_row[resinfo->columns[column]->column_offset]);
+	blob = (TDSBLOB *) resinfo->columns[column]->column_data;
 	return (DBBINARY *) blob->timestamp;
 }
 
@@ -5480,7 +5480,7 @@ dbtxptr(DBPROCESS * dbproc, int column)
 		return NULL;
 	if (!is_blob_type(resinfo->columns[column]->column_type))
 		return NULL;
-	blob = (TDSBLOB *) & (resinfo->current_row[resinfo->columns[column]->column_offset]);
+	blob = (TDSBLOB *) resinfo->columns[column]->column_data;
 	return (DBBINARY *) blob->textptr;
 }
 
@@ -5620,7 +5620,7 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 	/* find the number of bytes to return */
 	bytes_avail = curcol->column_cur_size - curcol->column_textpos;
 	cpbytes = bytes_avail > bufsize ? bufsize : bytes_avail;
-	memcpy(buf, &((TDSBLOB *) (resinfo->current_row + curcol->column_offset))->textvalue[curcol->column_textpos], cpbytes);
+	memcpy(buf, &((TDSBLOB *) curcol->column_data)->textvalue[curcol->column_textpos], cpbytes);
 	curcol->column_textpos += cpbytes;
 	return cpbytes;
 }

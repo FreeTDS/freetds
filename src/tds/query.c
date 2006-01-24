@@ -44,13 +44,13 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.191 2005-09-19 14:54:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.192 2006-01-24 15:03:27 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
 static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, int param_length);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
-static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row);
+static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static char *tds_build_param_def_from_query(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, const char** converted_query, int *converted_query_len, int *out_len);
 static char *tds_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, int *out_len);
 
@@ -350,7 +350,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			tds_put_data(tds, param, params->current_row);
+			tds_put_data(tds, param);
 		}
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
 	}
@@ -1141,7 +1141,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			tds_put_data(tds, param, params->current_row);
+			tds_put_data(tds, param);
 		}
 
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
@@ -1274,7 +1274,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		tds_put_byte(tds, curcol->column_prec);
 		tds_put_byte(tds, curcol->column_scale);
 #else
-		TDS_NUMERIC *num = (TDS_NUMERIC *) &(current_row[curcol->column_offset]);
+		TDS_NUMERIC *num = (TDS_NUMERIC *) curcol->column_data;
 		tds_put_byte(tds, tds_numeric_bytes_per_prec[num->precision]);
 		tds_put_byte(tds, num->precision);
 		tds_put_byte(tds, num->scale);
@@ -1340,11 +1340,10 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
  * Write data to wire
  * \param tds     state information for the socket and the TDS protocol
  * \param curcol  column where store column information
- * \param current_row to row data to store information
  * \return TDS_FAIL on error or TDS_SUCCEED
  */
 static int
-tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row)
+tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	unsigned char *src;
 	TDS_NUMERIC *num;
@@ -1355,7 +1354,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row)
 	CHECK_COLUMN_EXTRA(curcol);
 
 	colsize = curcol->column_cur_size;
-	src = &(current_row[curcol->column_offset]);
+	src = curcol->column_data;
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_put_data: colsize = %d\n", (int) colsize);
 
@@ -1419,7 +1418,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row)
 			
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
-			blob = (TDSBLOB *) & (current_row[curcol->column_offset]);
+			blob = (TDSBLOB *) curcol->column_data;
 			colsize = MIN(colsize, 0x7fffffff);
 			/* mssql require only size */
 			tds_put_int(tds, colsize);
@@ -1471,7 +1470,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol, unsigned char *current_row)
 		/* put size of data */
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
-			blob = (TDSBLOB *) & (current_row[curcol->column_offset]);
+			blob = (TDSBLOB *) curcol->column_data;
 			tds_put_byte(tds, 16);
 			tds_put_n(tds, blob->textptr, 16);
 			tds_put_n(tds, blob->timestamp, 8);
@@ -1545,7 +1544,7 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			param = info->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			tds_put_data(tds, param, info->current_row);
+			tds_put_data(tds, param);
 		}
 
 	tds->internal_sp_called = TDS_SP_EXECUTE;
@@ -1643,7 +1642,7 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 	/* row data */
 	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
 	for (i = 0; i < info->num_cols; i++) {
-		tds_put_data(tds, info->columns[i], info->current_row);
+		tds_put_data(tds, info->columns[i]);
 	}
 }
 
@@ -1810,7 +1809,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME);
-			tds_put_data(tds, param, params->current_row);
+			tds_put_data(tds, param);
 		}
 
 		return tds_query_flush_packet(tds);
@@ -2369,7 +2368,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	TDSCOLUMN *curcol = params->columns[n];
 	CONV_RESULT cr;
 	TDS_INT res;
-	TDS_CHAR *src = (TDS_CHAR *) &params->current_row[curcol->column_offset];
+	TDS_CHAR *src = (TDS_CHAR *) curcol->column_data;
 	int src_len = curcol->column_cur_size;
 	
 	int i;
@@ -2726,7 +2725,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 						col = tds->current_results->columns[0];
 						ctype = tds_get_conversion_type(col->column_type, col->column_size);
  
-						src = &(tds->current_results->current_row[col->column_offset]);
+						src = col->column_data;
 						srclen = col->column_cur_size;
  
  

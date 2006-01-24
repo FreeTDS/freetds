@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.15 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.16 2006-01-24 15:03:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -52,8 +52,8 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	curcol->column_cur_size = sizeof(TDS_INT);
 
 	/* TODO test error */
-	tds_alloc_param_row(params, curcol);
-	memcpy(&params->current_row[curcol->column_offset], &n, sizeof(n));
+	tds_alloc_param_data(params, curcol);
+	memcpy(curcol->column_data, &n, sizeof(n));
 
 	if (!(params = tds_alloc_param_result(dyn->params)))
 		fatal_error("out of memory!");
@@ -66,8 +66,8 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	curcol->column_varint_size = 1;
 	curcol->column_cur_size = len;
 
-	tds_alloc_param_row(params, curcol);
-	memcpy(&params->current_row[curcol->column_offset], s, len);
+	tds_alloc_param_data(params, curcol);
+	memcpy(curcol->column_data, s, len);
 
 	if (tds_submit_execute(tds, dyn) != TDS_SUCCEED)
 		fatal_error("tds_submit_execute() error");
