@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.40 2005-10-11 12:43:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.41 2006-01-25 14:02:33 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -99,12 +99,16 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	frac = (int) (n % 100);
 	n /= 100;
 	/* if machine is 64 bit you do not need to split n */
-#if SIZEOF_LONG < 8
+#if defined(TDS_I64_FORMAT)
+	sprintf(p, "%" TDS_I64_FORMAT ".%02d", n, frac);
+#elif SIZEOF_LONG < 8
 	if (n >= 1000000000) {
 		sprintf(p, "%ld%09ld.%02d", (long)(n / 1000000000), (long)(n % 1000000000), frac);
 	} else
-#endif
 		sprintf(p, "%ld.%02d", (long)n, frac);
+#else
+	sprintf(p, "%ld.%02d", (long)n, frac);
+#endif
 	return s;
 #else
 	unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];

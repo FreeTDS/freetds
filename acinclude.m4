@@ -207,7 +207,7 @@ CFLAGS=$ac_save_CFLAGS
 # exists. These example files found at
 # http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 #
-# @version $Id: acinclude.m4,v 1.33 2005-12-09 16:58:19 freddy77 Exp $
+# @version $Id: acinclude.m4,v 1.34 2006-01-25 14:02:32 freddy77 Exp $
 # @author Caolan McNamara <caolan@skynet.ie>
 #
 # based on David Arnold's autoconf suggestion in the threads faq
@@ -483,3 +483,27 @@ int getpeername (int, $arg2 *, $t *);
     [#include <sys/types.h>
 #include <sys/socket.h>])
 ])
+
+##
+# Test for 64bit integer sprintf format specifier
+##
+AC_DEFUN([SPRINTF_I64_FORMAT],
+[tds_i64_format=
+for arg in ld lld I64d; do
+	AC_TRY_RUN([
+#include <stdio.h>
+#include <string.h>
+int main() {
+char buf[20];
+$tds_sysdep_int64_type ll = ((($tds_sysdep_int64_type) 0x12345) << 32) + 0x6789abcd;
+sprintf(buf, "%$arg", ll);
+return strcmp(buf, "320255973501901") != 0;
+}
+],tds_i64_format=$arg)
+	if test "x$tds_i64_format" != x; then
+		AC_DEFINE_UNQUOTED(TDS_I64_FORMAT, ["$tds_i64_format"], [define to format string used for 64bit integers])
+		break;
+	fi
+done
+])
+

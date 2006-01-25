@@ -1,3 +1,8 @@
+Wed Jan 25 15:01:51 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* acinclude.m4 configure.in src/tds/numeric.c:
+	- use 64bit sprintf format if available
+	* misc/test-other.sh: redirect odbc to compiled driver
+
 Tue Jan 24 16:01:41 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* NEWS include/tds.h src/apps/tsql.c src/ctlib/blk.c:
 	* src/ctlib/ct.c src/dblib/bcp.c src/dblib/buffering.h:
