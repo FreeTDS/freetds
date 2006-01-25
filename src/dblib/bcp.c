@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.135 2005-12-25 11:27:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.135.2.1 2006-01-25 14:34:54 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1441,7 +1441,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 				if (found) {
 					free(sample);
 					size = ftello(hostfile) - initial_offset;
-					if (size < 0 || -1 != fseeko(hostfile, initial_offset, SEEK_SET)) {
+					if (size < 0 || 0 != fseeko(hostfile, initial_offset, SEEK_SET)) {
 						/* FIXME emit message */
 						return -1;
 					}
@@ -1453,7 +1453,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 				 */
 				if (sample_size > 1) { 
 					sample_size--;
-					if (-1 == fseeko(hostfile, -sample_size, SEEK_CUR)) {
+					if (0 != fseeko(hostfile, -sample_size, SEEK_CUR)) {
 						/* FIXME emit message */
 						return -1;
 					}
