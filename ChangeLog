@@ -1,3 +1,6 @@
+Wed Jan 25 15:33:20 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/dblib/bcp.c: fix return test for fseeko
+
 Wed Jan 25 15:01:51 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* acinclude.m4 configure.in src/tds/numeric.c:
 	- use 64bit sprintf format if available
