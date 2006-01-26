@@ -1,4 +1,4 @@
-static char rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.9 2004-06-19 05:56:29 jklowden Exp $";
+static char rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.10 2006-01-26 12:58:51 freddy77 Exp $";
 static void *no_unused_freebcp_h_warn[] = { rcsid_freebcp_h, no_unused_freebcp_h_warn };
 
 enum states
@@ -43,7 +43,9 @@ typedef struct pd
 	int maxerrors;
 	int textsize;
 	char *fieldterm;
+	int fieldtermlen;
 	char *rowterm;
+	int rowtermlen;
 	char *user;
 	char *pass;
 	char *server;

@@ -46,12 +46,12 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.40 2005-06-29 07:21:04 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.41 2006-01-26 12:58:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
 int process_parameters(int, char **, struct pd *);
-static void unescape(char arg[]);
+static int unescape(char arg[]);
 int login_to_database(struct pd *, DBPROCESS **);
 
 int file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
@@ -113,16 +113,16 @@ main(int argc, char **argv)
 }
 
 
-static void unescape(char arg[])
+static int unescape(char arg[])
 {
-	char *p = arg;
-	char escaped = '1'; /* any digit will do for an initial value */
-	while ((p = strchr(p, '\\')) != NULL) {
-	
+	char *p = arg, *next;
+	char escaped;
+	while ((next = strchr(p, '\\')) != NULL) {
+
+		p = next;
+
 		switch (p[1]) {
 		case '0':
-			/* FIXME we use strlen() of field/row terminators, which obviously won't work here */
-			fprintf(stderr, "freebcp, line %d: NULL terminators ('\\0') not yet supported.\n", __LINE__);
 			escaped = '\0';
 			break;
 		case 't':
@@ -138,15 +138,15 @@ static void unescape(char arg[])
 			escaped = '\\';
 			break;
 		default:
-			break;
+			++p;
+			continue;
 		}
-			
+
 		/* Overwrite the backslash with the intended character, and shift everything down one */
-		if (!isdigit((unsigned char) escaped)) {
-			*p++ = escaped;
-			memmove(p, p+1, 1 + strlen(p+1));
-		}
+		*p++ = escaped;
+		memmove(p, p+1, 1 + strlen(p+1));
 	}
+	return strchr(p, 0) - arg;
 }
 
 int
@@ -176,9 +176,11 @@ process_parameters(int argc, char **argv, PARAMDATA *pdata)
 	pdata->maxerrors = 10;
 
 	/* argument 1 - the database object */
-	pdata->dbobject = (char *) malloc(strlen(argv[1]) + 1);
-	if (pdata->dbobject != NULL)
-		strcpy(pdata->dbobject, argv[1]);
+	pdata->dbobject = strdup(argv[1]);
+	if (pdata->dbobject == NULL) {
+		fprintf(stderr, "Out of memory!\n");
+		return FALSE;
+	}
 
 	/* argument 2 - the direction */
 	strcpy(pdata->dbdirection, argv[2]);
@@ -247,12 +249,12 @@ process_parameters(int argc, char **argv, PARAMDATA *pdata)
 		case 't':
 			pdata->tflag++;
 			pdata->fieldterm = strdup(optarg);
-			unescape(pdata->fieldterm);
+			pdata->fieldtermlen = unescape(pdata->fieldterm);
 			break;
 		case 'r':
 			pdata->rflag++;
 			pdata->rowterm = strdup(optarg);
-			unescape(pdata->rowterm);
+			pdata->rowtermlen = unescape(pdata->rowterm);
 			break;
 		case 'U':
 			pdata->Uflag++;
@@ -309,9 +311,11 @@ process_parameters(int argc, char **argv, PARAMDATA *pdata)
 
 		if (!pdata->tflag || !pdata->fieldterm) {	/* field terminator not specified */
 			pdata->fieldterm = "\t";
+			pdata->fieldtermlen = 1;
 		}
 		if (!pdata->rflag || !pdata->rowterm) {		/* row terminator not specified */
 			pdata->rowterm =  "\n";
+			pdata->rowtermlen = 1;
 		}
 	}
 
@@ -451,14 +455,14 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	for (i = 1; i <= li_numcols - 1; i++) {
 		if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
-			       strlen(pdata->fieldterm), i) == FAIL) {
+			       pdata->fieldtermlen, i) == FAIL) {
 			printf("Error in bcp_colfmt col %d\n", i);
 			return FALSE;
 		}
 	}
 
 	if (bcp_colfmt(dbproc, li_numcols, SYBCHAR, 0, -1, (const BYTE *) pdata->rowterm,
-		       strlen(pdata->rowterm), li_numcols) == FAIL) {
+		       pdata->rowtermlen, li_numcols) == FAIL) {
 		printf("Error in bcp_colfmt col %d\n", li_numcols);
 		return FALSE;
 	}
