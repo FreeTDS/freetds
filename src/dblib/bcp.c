@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.137 2006-01-25 14:36:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.138 2006-01-27 19:45:16 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1066,7 +1066,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
  * \param errfile 
  * \param row_error 
  * 
- * \return SUCCEED or FAIL.
+ * \return MORE_ROWS, NO_MORE_ROWS, or FAIL.
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static RETCODE
@@ -1288,10 +1288,15 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 				if (fread(coldata, collen, 1, hostfile) != 1) {
 					int errnum = errno;
 					free(coldata);
-					if (i == 0 && feof(hostfile))
-						tdsdump_log(TDS_DBG_FUNC, "Normal end-of-file reached while loading bcp data file.\n");
-					else
-						dbperror(dbproc, SYBEBCRE, errnum);
+					if (feof(hostfile)) {
+						if (i == 0) {
+							tdsdump_log(TDS_DBG_FUNC, "Normal end-of-file reached while loading bcp data file.\n");
+							return (NO_MORE_ROWS);
+						}
+						dbperror(dbproc, SYBEBEOF, errnum);
+						return (FAIL);
+					} 
+					dbperror(dbproc, SYBEBCRE, errnum);
 					return (FAIL);
 				}
 			}
@@ -1380,7 +1385,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, FILE * errfile, int *row
 		}
 		free(coldata);
 	}
-	return SUCCEED;
+	return MORE_ROWS;
 }
 
 /*
@@ -1817,11 +1822,11 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	FILE *hostfile, *errfile = NULL;
 	TDSSOCKET *tds = dbproc->tds_socket;
 	BCP_HOSTCOLINFO *hostcol;
+	RETCODE ret;
 
 	int i;
 	int record_len;
-	int row_of_hostfile;
-	int rows_written_so_far;
+	int row_of_hostfile, rows_written_so_far;
 
 	int row_error, row_error_count;
 	offset_type row_start, row_end;
@@ -1862,7 +1867,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	row_error_count = 0;
 	row_error = 0;
 
-	while (_bcp_read_hostfile(dbproc, hostfile, errfile, &row_error) == SUCCEED) {
+	while ((ret=_bcp_read_hostfile(dbproc, hostfile, errfile, &row_error)) == MORE_ROWS) {
 
 		row_of_hostfile++;
 
@@ -1969,7 +1974,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	*rows_copied += tds->rows_affected;
 
-	return SUCCEED;
+	return ret == NO_MORE_ROWS? SUCCEED : FAIL;	/* (ret is returned from _bcp_read_hostfile) */
 }
 
 /** 

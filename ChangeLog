@@ -1,3 +1,6 @@
+Fri Jan 27 14:34:09 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c recognize EOF errors from _bcp_read_hostfile
+	
 Fri Jan 27 10:43:54 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/t0017.c better feedback
 	
