@@ -23,7 +23,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0017.c,v 1.21 2006-01-27 15:45:23 jklowden Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.22 2006-01-27 15:55:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -50,13 +50,13 @@ main(int argc, char *argv[])
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", software_version);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	fprintf(stdout, "About to logon ... ");
 
 	login = dblogin();
 	assert(login);
@@ -64,9 +64,9 @@ main(int argc, char *argv[])
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0017");
+	fprintf(stdout, "done\n");
 
-	fprintf(stdout, "Opening %s for %s... ", SERVER, USER);
-	
+	fprintf(stdout, "Opening \"%s\" for \"%s\" ... ", SERVER, USER);
 	dbproc = dbopen(login, SERVER);
 	assert(dbproc);
 	if (strlen(DATABASE)) {
@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 	dbloginfree(login);
 	fprintf(stdout, "done\n");
 
-	fprintf(stdout, "Creating table... ");
+	fprintf(stdout, "Creating table ... ");
 	dbcmd(dbproc, "create table #dblib0017 (c1 int, c2 text)");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -94,10 +94,10 @@ main(int argc, char *argv[])
 		fprintf(stdout, "done\n");
 		
 
-	fprintf(stderr, "Issuiug SELECT... ");
+	fprintf(stderr, "Issuiug SELECT ... ");
 	dbcmd(dbproc, "select * from #dblib0017 where 0=1");
 	dbsqlexec(dbproc);
-	fprintf(stderr, "done\nFetching metadata... ");
+	fprintf(stderr, "done\nFetching metadata ... ");
 	if (dbresults(dbproc) != FAIL) {
 		num_cols = dbnumcols(dbproc);
 		for (i = 0; i < num_cols; i++) {
@@ -109,7 +109,7 @@ main(int argc, char *argv[])
 	}
 	fprintf(stderr, "done\n");
 
-	fprintf(stderr, "bcp_columns... ");
+	fprintf(stderr, "bcp_columns ... ");
 	ret = bcp_columns(dbproc, num_cols);
 	if (ret != SUCCEED)
 		failed = 1;
@@ -128,7 +128,7 @@ main(int argc, char *argv[])
 	}
 	fprintf(stderr, "done\n");
 
-	fprintf(stderr, "bcp_exec... ");
+	fprintf(stderr, "bcp_exec ... ");
 	ret = bcp_exec(dbproc, &rows_copied);
 	if (ret != SUCCEED)
 		failed = 1;
