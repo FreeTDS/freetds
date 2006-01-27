@@ -1,3 +1,6 @@
+Fri Jan 27 10:43:54 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/t0017.c better feedback
+	
 Thu Jan 26 13:58:51 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/apps/freebcp.c src/apps/freebcp.h:
 	- support for NUL in terminators

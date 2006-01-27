@@ -8,6 +8,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -22,7 +23,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0017.c,v 1.20 2005-05-23 08:06:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.21 2006-01-27 15:45:23 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -58,36 +59,45 @@ main(int argc, char *argv[])
 	fprintf(stdout, "About to logon\n");
 
 	login = dblogin();
+	assert(login);
 	BCP_SETL(login, TRUE);
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0017");
 
-	fprintf(stdout, "About to open, PASSWORD: %s, USER: %s, SERVER: %s\n", "", "", "");	/* PASSWORD, USER, SERVER); */
-
+	fprintf(stdout, "Opening %s for %s... ", SERVER, USER);
+	
 	dbproc = dbopen(login, SERVER);
+	assert(dbproc);
 	if (strlen(DATABASE)) {
 		dbuse(dbproc, DATABASE);
 	}
 	dbloginfree(login);
-	fprintf(stdout, "After logon\n");
+	fprintf(stdout, "done\n");
 
-	fprintf(stdout, "Creating table\n");
+	fprintf(stdout, "Creating table... ");
 	dbcmd(dbproc, "create table #dblib0017 (c1 int, c2 text)");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
+	fprintf(stdout, "done\n");
 
-	/* BCP in */
-
+	/* 
+	 * BCP in 
+	 */
+	fprintf(stdout, "bcp_init... ");
 	ret = bcp_init(dbproc, "#dblib0017", in_file, err_file, DB_IN);
 	if (ret != SUCCEED)
 		failed = 1;
+	else
+		fprintf(stdout, "done\n");
+		
 
-	fprintf(stderr, "select\n");
+	fprintf(stderr, "Issuiug SELECT... ");
 	dbcmd(dbproc, "select * from #dblib0017 where 0=1");
 	dbsqlexec(dbproc);
+	fprintf(stderr, "done\nFetching metadata... ");
 	if (dbresults(dbproc) != FAIL) {
 		num_cols = dbnumcols(dbproc);
 		for (i = 0; i < num_cols; i++) {
@@ -97,7 +107,9 @@ main(int argc, char *argv[])
 		while (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		}
 	}
+	fprintf(stderr, "done\n");
 
+	fprintf(stderr, "bcp_columns... ");
 	ret = bcp_columns(dbproc, num_cols);
 	if (ret != SUCCEED)
 		failed = 1;
@@ -110,14 +122,18 @@ main(int argc, char *argv[])
 		}
 		ret = bcp_colfmt(dbproc, i + 1, col_type[i], prefix_len, -1, NULL, 0, i + 1);
 		if (ret == FAIL) {
-			fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+			fprintf(stderr, "return from bcp_colfmt = %d\n", ret);
 			failed = 1;
 		}
 	}
+	fprintf(stderr, "done\n");
 
+	fprintf(stderr, "bcp_exec... ");
 	ret = bcp_exec(dbproc, &rows_copied);
 	if (ret != SUCCEED)
 		failed = 1;
+	else
+		fprintf(stderr, "done\n");
 
 #if 0
 	/* BCP out */
@@ -148,7 +164,7 @@ main(int argc, char *argv[])
 	ret = bcp_exec(dbproc, &rows_copied);
 #endif
 
-	fprintf(stdout, "%d rows copied\n", rows_copied);
+	fprintf(stderr, "%d rows copied\n", rows_copied);
 	dbclose(dbproc);
 	dbexit();
 
