@@ -23,7 +23,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0017.c,v 1.23 2006-01-27 17:49:15 freddy77 Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.24 2006-01-28 08:39:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -45,16 +45,19 @@ main(int argc, char *argv[])
 	DBBOOL col_varylen[256];
 	int prefix_len;
 
+	setbuf(stdout, NULL);
+	setbuf(stderr, NULL);
+
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Starting %s\n", software_version);
+	printf("Starting %s\n", software_version);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon ... ");
+	printf("About to logon ... ");
 
 	login = dblogin();
 	assert(login);
@@ -62,16 +65,16 @@ main(int argc, char *argv[])
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0017");
-	fprintf(stdout, "done\n");
+	printf("done\n");
 
-	fprintf(stdout, "Opening \"%s\" for \"%s\" ... ", SERVER, USER);
+	printf("Opening \"%s\" for \"%s\" ... ", SERVER, USER);
 	dbproc = dbopen(login, SERVER);
 	assert(dbproc);
 	if (strlen(DATABASE)) {
 		dbuse(dbproc, DATABASE);
 	}
 	dbloginfree(login);
-	fprintf(stdout, "done\n");
+	printf("done\n");
 
 	printf("Creating table ... ");
 	dbcmd(dbproc, "create table #dblib0017 (c1 int null, c2 text)");
@@ -79,7 +82,7 @@ main(int argc, char *argv[])
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
-	fprintf(stdout, "done\n");
+	printf("done\n");
 
 	dbcmd(dbproc, "insert into #dblib0017(c1,c2) values(1144201745,'prova di testo questo testo dovrebbe andare a finire in un campo text')");
 	dbsqlexec(dbproc);
@@ -88,12 +91,16 @@ main(int argc, char *argv[])
 	}
 
 	/* BCP out */
+	printf("bcp_init... ");
 	ret = bcp_init(dbproc, "#dblib0017", out_file, err_file, DB_OUT);
+	if (ret != SUCCEED)
+		failed = 1;
+	printf("done\n");
 
-	fprintf(stderr, "Issuing SELECT ... ");
+	printf("Issuing SELECT ... ");
 	dbcmd(dbproc, "select * from #dblib0017 where 0=1");
 	dbsqlexec(dbproc);
-	fprintf(stderr, "done\nFetching metadata ... ");
+	printf("done\nFetching metadata ... ");
 	if (dbresults(dbproc) != FAIL) {
 		num_cols = dbnumcols(dbproc);
 		for (i = 0; i < num_cols; ++i) {
@@ -103,10 +110,12 @@ main(int argc, char *argv[])
 		while (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		}
 	}
-	fprintf(stderr, "done\n");
+	printf("done\n");
 
-	fprintf(stderr, "bcp_columns ... ");
+	printf("bcp_columns ... ");
 	ret = bcp_columns(dbproc, num_cols);
+	if (ret != SUCCEED)
+		failed = 1;
 	for (i = 0; i < num_cols; i++) {
 		prefix_len = 0;
 		if (col_type[i] == SYBIMAGE || col_type[i] == SYBTEXT) {
@@ -121,15 +130,15 @@ main(int argc, char *argv[])
 			failed = 1;
 		}
 	}
-	fprintf(stderr, "done\n");
+	printf("done\n");
 
 	rows_copied = -1;
-	fprintf(stderr, "bcp_exec ... ");
+	printf("bcp_exec ... ");
 	ret = bcp_exec(dbproc, &rows_copied);
 	if (ret != SUCCEED || rows_copied != 1)
 		failed = 1;
 
-	fprintf(stdout, "%d rows copied\n", rows_copied);
+	printf("%d rows copied\n", rows_copied);
 
 	/* delete rows */
 	dbcmd(dbproc, "delete from #dblib0017");
@@ -141,17 +150,16 @@ main(int argc, char *argv[])
 	/* 
 	 * BCP in 
 	 */
-	fprintf(stdout, "bcp_init... ");
+	printf("bcp_init... ");
 	ret = bcp_init(dbproc, "#dblib0017", in_file, err_file, DB_IN);
 	if (ret != SUCCEED)
 		failed = 1;
-	else
-		fprintf(stderr, "done\n");
+	printf("done\n");
 
-	fprintf(stderr, "Issuing SELECT ... ");
+	printf("Issuing SELECT ... ");
 	dbcmd(dbproc, "select * from #dblib0017 where 0=1");
 	dbsqlexec(dbproc);
-	fprintf(stderr, "done\nFetching metadata ... ");
+	printf("done\nFetching metadata ... ");
 	if (dbresults(dbproc) != FAIL) {
 		num_cols = dbnumcols(dbproc);
 		for (i = 0; i < num_cols; i++) {
@@ -161,9 +169,9 @@ main(int argc, char *argv[])
 		while (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		}
 	}
-	fprintf(stderr, "done\n");
+	printf("done\n");
 
-	fprintf(stderr, "bcp_columns ... ");
+	printf("bcp_columns ... ");
 	ret = bcp_columns(dbproc, num_cols);
 	if (ret != SUCCEED)
 		failed = 1;
@@ -176,19 +184,18 @@ main(int argc, char *argv[])
 		}
 		ret = bcp_colfmt(dbproc, i + 1, col_type[i], prefix_len, -1, NULL, 0, i + 1);
 		if (ret == FAIL) {
-			fprintf(stdout, "return from bcp_colfmt = %d\n", ret);
+			fprintf(stderr, "return from bcp_colfmt = %d\n", ret);
 			failed = 1;
 		}
 	}
-	fprintf(stderr, "done\n");
+	printf("done\n");
 
-	fprintf(stderr, "bcp_exec ... ");
+	printf("bcp_exec ... ");
 	rows_copied = -1;
 	ret = bcp_exec(dbproc, &rows_copied);
 	if (ret != SUCCEED || rows_copied != 1)
 		failed = 1;
-	else
-		fprintf(stderr, "done\n");
+	printf("done\n");
 
 
 	/* test we inserted correctly row */
@@ -203,10 +210,10 @@ main(int argc, char *argv[])
 		}
 	}
 
-	fprintf(stderr, "%d rows copied\n", rows_copied);
+	printf("%d rows copied\n", rows_copied);
 	dbclose(dbproc);
 	dbexit();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	printf("dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
 	return failed ? 1 : 0;
 }
