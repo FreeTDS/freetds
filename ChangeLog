@@ -1,3 +1,17 @@
+Sat Jan 28 15:49:55 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/dblib/bcp.c:
+	- update row allocation using new row_free
+	- fix native format
+	- correctly check and handle EOF
+	- change _bcp_build_bcp_record to direct send row (renamed to 
+	  _bcp_send_bcp_record)
+	- write error file only if needed
+	* src/dblib/unittests/t0016.c: improved
+	* src/dblib/unittests/t0016.in:
+	- make input same of output
+	* src/dblib/unittests/t0017.c: get all data
+	* src/tds/mem.c: reset pointer just freed
+
 Sat Jan 28 09:39:10 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/unittests/t0017.c: reformat output
 

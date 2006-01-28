@@ -23,7 +23,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0017.c,v 1.24 2006-01-28 08:39:47 freddy77 Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.25 2006-01-28 14:50:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -168,6 +168,9 @@ main(int argc, char *argv[])
 		}
 		while (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		}
+	}
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
 	}
 	printf("done\n");
 

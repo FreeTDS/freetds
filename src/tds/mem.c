@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.155 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.156 2006-01-28 14:50:00 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -539,6 +539,7 @@ tds_free_results(TDSRESULTINFO * res_info)
 				if (curcol->bcp_terminator)
 					TDS_ZERO_FREE(curcol->bcp_terminator);
 				tds_free_bcp_column_data(curcol->bcp_column_data);
+				curcol->bcp_column_data = NULL;
 				if (curcol->column_data && curcol->column_data_free)
 					curcol->column_data_free(curcol);
 			}
