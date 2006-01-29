@@ -1,3 +1,7 @@
+Sun Jan 29 22:56:26 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/dblib/bcp.c src/dblib/unittests/t0017.c:
+	- backported fixes for bcp native format
+
 Wed Jan 25 15:33:20 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/bcp.c: fix return test for fseeko
 
