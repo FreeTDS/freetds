@@ -59,6 +59,22 @@ echo "log started" >> "$LOG"
 tUID=`cat PWD | grep '^UID=' | sed 's,^....,,g'`
 tPWD=`cat PWD | grep '^PWD=' | sed 's,^....,,g'`
 tSRV=`cat PWD | grep '^SRV=' | sed 's,^....,,g'`
+tDB=`cat PWD | grep '^DB=' | sed 's,^...,,g'`
+
+# prepare odbc.ini redirection
+rm -f odbc.ini
+for f in .libs/libtdsodbc.so .libs/libtdsodbc.sl .libs/libtdsodbc.dll .libs/libtdsodbc.dylib; do
+	if test -r "$PWD/src/odbc/$f"; then
+		echo "[$tSRV]
+Driver = $PWD/src/odbc/$f
+Database = $tDB
+Servername = $tSRV" > odbc.ini
+		ODBCINI="$PWD/odbc.ini"
+		SYSODBCINI="$PWD/odbc.ini"
+		export ODBCINI SYSODBCINI
+		break;
+	fi
+done
 
 # Perl
 if test $do_perl = yes; then
