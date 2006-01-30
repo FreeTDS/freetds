@@ -23,7 +23,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0022.c,v 1.19 2005-05-11 07:56:44 freddy77 Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.20 2006-01-30 15:31:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -73,7 +73,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
-	dbcmd(dbproc, "drop proc t0022");
+	dbcmd(dbproc, "if object_id('t0022') is not null drop proc t0022");
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();

@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_cursor.c,v 1.3 2005-02-11 13:15:54 freddy77 Exp $";
+static char software_version[] = "$Id: ct_cursor.c,v 1.4 2006-01-30 15:31:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int update_second_table(CS_COMMAND * cmd2, char *value);
@@ -57,8 +57,6 @@ main(int argc, char **argv)
 		return ret;
 	}
 
-	ret = run_command(cmd, "DROP TABLE #test_table");
-
 	ret = run_command(cmd, "CREATE TABLE #test_table (col1 char(4))");
 	if (ret != CS_SUCCEED)
 		return 1;
@@ -72,8 +70,6 @@ main(int argc, char **argv)
 	ret = run_command(cmd, "INSERT #test_table (col1) VALUES ('CCC')");
 	if (ret != CS_SUCCEED)
 		return 1;
-
-	ret = run_command(cmd2, "DROP TABLE #test_table2");
 
 	ret = run_command(cmd2, "CREATE TABLE #test_table2 (col1 char(4))");
 	if (ret != CS_SUCCEED)

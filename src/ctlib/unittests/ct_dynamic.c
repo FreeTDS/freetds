@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_dynamic.c,v 1.1 2005-02-11 13:15:54 freddy77 Exp $";
+static char software_version[] = "$Id: ct_dynamic.c,v 1.2 2006-01-30 15:31:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
@@ -74,7 +74,7 @@ main(int argc, char *argv[])
 	}
 
 	/* do not test error */
-	ret = run_command(cmd, "DROP table #ct_dynamic");
+	ret = run_command(cmd, "IF OBJECT_ID('tempdb..#ct_dynamic') IS NOT NULL DROP table #ct_dynamic");
 
 	strcpy(cmdbuf, "create table #ct_dynamic (id numeric identity not null, \
         name varchar(30), age int, cost money, bdate datetime, fval float) ");

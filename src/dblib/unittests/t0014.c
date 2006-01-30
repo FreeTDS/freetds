@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.25 2005-06-29 07:21:20 freddy77 Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.26 2006-01-30 15:31:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -102,7 +102,7 @@ main(int argc, char **argv)
 
 	/* FIXME this test seem to not work using temporary tables (sybase?)... */
 	fprintf(stdout, "Dropping table\n");
-	dbcmd(dbproc, "drop table dblib0014");
+	dbcmd(dbproc, "if object_id('dblib0014') is not null drop table dblib0014");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */

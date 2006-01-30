@@ -1,3 +1,10 @@
+Mon Jan 30 16:29:20 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/ctlib/unittests/blk_out.c src/ctlib/unittests/ct_cursor.c:
+	* src/ctlib/unittests/ct_cursors.c src/ctlib/unittests/ct_dynamic.c:
+	* src/dblib/unittests/t0005.c src/dblib/unittests/t0014.c:
+	* src/dblib/unittests/t0022.c src/dblib/unittests/thread.c:
+	- reduce false errors
+
 Sat Jan 28 15:49:55 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/bcp.c:
 	- update row allocation using new row_free

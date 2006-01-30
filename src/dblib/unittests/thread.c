@@ -25,7 +25,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: thread.c,v 1.6 2005-12-01 12:23:53 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.7 2006-01-30 15:31:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -194,7 +194,7 @@ main(int argc, char **argv)
 		dbuse(dbproc, DATABASE);
 
 	fprintf(stdout, "Dropping table\n");
-	dbcmd(dbproc, "drop table dblib_thread");
+	dbcmd(dbproc, "if object_id('dblib_thread') is not null drop table dblib_thread");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
