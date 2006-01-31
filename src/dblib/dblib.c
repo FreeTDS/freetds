@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.245 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.246 2006-01-31 09:00:21 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -78,6 +78,14 @@ static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
 static void _set_null_value(BYTE * varaddr, int datatype, int maxlen);
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
+
+#define _DB_GETCOLINFO(fail) \
+	if (!dbproc || !dbproc->tds_socket || !(resinfo=dbproc->tds_socket->res_info)) \
+		return (fail); \
+\
+	if (column < 1 || column > resinfo->num_cols) \
+		return (fail); \
+	colinfo = resinfo->columns[column - 1];
 
 /**
  * \file dblib.c
@@ -1335,16 +1343,12 @@ char *
 dbcolname(DBPROCESS * dbproc, int column)
 {
 	TDSRESULTINFO *resinfo;
+	TDSCOLUMN *colinfo;
 
-	if (!dbproc || !dbproc->tds_socket || !dbproc->tds_socket->res_info)
-		return NULL;
-	resinfo = dbproc->tds_socket->res_info;
+	_DB_GETCOLINFO(NULL);
 
-	if (column < 1 || column > resinfo->num_cols)
-		return NULL;
-
-	assert(resinfo->columns[column - 1]->column_name[resinfo->columns[column - 1]->column_namelen] == 0);
-	return resinfo->columns[column - 1]->column_name;
+	assert(colinfo->column_name[colinfo->column_namelen] == 0);
+	return colinfo->column_name;
 }
 
 /**
@@ -2052,24 +2056,16 @@ dbsetifile(char *filename)
  * - -1 \a column is NULL.
  * - >0 true length of data, had \a column not been truncated due to insufficient space in the columns bound host variable .  
  * \sa dbanullbind(), dbbind(), dbdata(), dbdatlen(), dbnextrow().
- * \todo Never fails, but only because failure conditions aren't checked.  
  */
 RETCODE
 dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 
-	/*
-	 *  XXX Need to check for possibly problems before assuming
-	 *  everything is okay
-	 */
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	colinfo = resinfo->columns[column - 1];
+	_DB_GETCOLINFO(FAIL);
+
 	colinfo->column_nullbind = (TDS_SMALLINT *)indicator;
-
 	return SUCCEED;
 }
 
@@ -2196,27 +2192,22 @@ dbwillconvert(int srctype, int desttype)
  * \param column Nth in the result set, starting from 1.
  * \returns \c SYB* datetype token value, or zero if \a column out of range
  * \sa dbcollen(), dbcolname(), dbdata(), dbdatlen(), dbnumcols(), dbprtype(), dbvarylen().
- * \todo Check that \a column is in range.  Sybase says failure is -1, not zero. 
  */
 int
 dbcoltype(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	colinfo = resinfo->columns[column - 1];
+	_DB_GETCOLINFO(-1);
+
 	switch (colinfo->column_type) {
 	case SYBVARCHAR:
 		return SYBCHAR;
 	case SYBVARBINARY:
 		return SYBBINARY;
-	default:
-		return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 	}
-	return 0;		/* something went wrong */
+	return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 }
 
 /**
@@ -2227,18 +2218,15 @@ dbcoltype(DBPROCESS * dbproc, int column)
  * \param column Nth in the result set, starting from 1.
  * \returns \c SYB* datetype token value, or -1 if \a column out of range
  * \sa dbaltutype(), dbcoltype().
- * \todo Check that \a column is in range.  
  */
 int
 dbcolutype(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	colinfo = resinfo->columns[column - 1];
+	_DB_GETCOLINFO(-1);
+
 	return colinfo->column_usertype;
 }
 
@@ -2256,11 +2244,9 @@ dbcoltypeinfo(DBPROCESS * dbproc, int column)
 	/* moved typeinfo from static into dbproc structure to make thread safe.  (mlilback 11/7/01) */
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	colinfo = resinfo->columns[column - 1];
+	_DB_GETCOLINFO(NULL);
+
 	dbproc->typeinfo.precision = colinfo->column_prec;
 	dbproc->typeinfo.scale = colinfo->column_scale;
 	return &dbproc->typeinfo;
@@ -2389,20 +2375,13 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
  * \sa dbcolbrowse(), dbqual(), dbtabbrowse(), dbtabcount(), dbtabname(), dbtabsource(), dbtsnewlen(), dbtsnewval(), dbtsput().
  */
 char *
-dbcolsource(DBPROCESS * dbproc, int colnum)
+dbcolsource(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 
-	/* check valid state */
-	if (!dbproc || !dbproc->tds_socket || !dbproc->tds_socket->res_info)
-		return NULL;
-	resinfo = dbproc->tds_socket->res_info;
+	_DB_GETCOLINFO(NULL);
 
-	/* check column index */
-	if (colnum < 1 || colnum > resinfo->num_cols)
-		return NULL;
-	colinfo = resinfo->columns[colnum - 1];
 	assert(colinfo->column_name[colinfo->column_namelen] == 0);
 	return colinfo->column_name;
 }
@@ -2421,13 +2400,9 @@ dbcollen(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	if (column < 1 || column > resinfo->num_cols)
-		return -1;
-	colinfo = resinfo->columns[column - 1];
+	_DB_GETCOLINFO(-1);
+
 	return colinfo->column_size;
 }
 
@@ -2447,13 +2422,8 @@ dbvarylen(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	if (column < 1 || column > resinfo->num_cols)
-		return FALSE;
-	colinfo = resinfo->columns[column - 1];
+	_DB_GETCOLINFO(FALSE);
 
 	if (colinfo->column_nullable)
 		return TRUE;
@@ -2498,7 +2468,6 @@ dbdatlen(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 	DBINT ret;
 
 	/* FIXME -- this is the columns info, need per row info */
@@ -2506,11 +2475,8 @@ dbdatlen(DBPROCESS * dbproc, int column)
 	 * Fixed by adding cur_row_size to colinfo, filled in by process_row
 	 * in token.c. (mlilback, 11/7/01)
 	 */
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	if (column < 1 || column > resinfo->num_cols)
-		return -1;
-	colinfo = resinfo->columns[column - 1];
+	_DB_GETCOLINFO(-1);
+
 	tdsdump_log(TDS_DBG_INFO1, "dbdatlen() type = %d\n", colinfo->column_type);
 
 	if (colinfo->column_cur_size < 0)
@@ -2535,17 +2501,12 @@ dbdata(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 
-	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-	if (column < 1 || column > resinfo->num_cols)
+	_DB_GETCOLINFO(NULL);
+
+	if (colinfo->column_cur_size < 0)
 		return NULL;
 
-	colinfo = resinfo->columns[column - 1];
-	if (colinfo->column_cur_size < 0) {
-		return NULL;
-	}
 	if (is_blob_type(colinfo->column_type)) {
 		return (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
 	}
@@ -2633,6 +2594,9 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	int padlen;
 	DBINT len;
 	int c;
+
+	if (!dbproc || !dbproc->tds_socket)
+		return FAIL;
 
 	tds = dbproc->tds_socket;
 	resinfo = tds->res_info;
@@ -3183,7 +3147,9 @@ dbrows(DBPROCESS * dbproc)
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
-	tds = dbproc->tds_socket;
+	if (!dbproc || !(tds=dbproc->tds_socket))
+		return FAIL;
+
 	resinfo = tds->res_info;
 
 	if (resinfo && resinfo->rows_exist)
@@ -5370,15 +5336,7 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *colinfo;
 
-	if (!dbproc || !pdbcol)
-		return FAIL;
-
-	resinfo = dbproc->tds_socket->res_info;
-
-	if (!resinfo || column < 1 || column > resinfo->num_cols)
-		return FAIL;
-
-	colinfo = resinfo->columns[column - 1];
+	_DB_GETCOLINFO(FAIL);
 
 	tds_strlcpy(pdbcol->Name, colinfo->column_name, sizeof(pdbcol->Name));
 	tds_strlcpy(pdbcol->ActualName, colinfo->column_name, sizeof(pdbcol->ActualName));
@@ -5438,20 +5396,15 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 DBBINARY *
 dbtxtimestamp(DBPROCESS * dbproc, int column)
 {
-	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
+	TDSCOLUMN *colinfo;
 	TDSBLOB *blob;
 
-	tds = dbproc->tds_socket;
-	if (!tds->res_info)
+	_DB_GETCOLINFO(NULL);
+
+	if (!is_blob_type(colinfo->column_type))
 		return NULL;
-	resinfo = tds->res_info;
-	--column;
-	if (column < 0 || column >= resinfo->num_cols)
-		return NULL;
-	if (!is_blob_type(resinfo->columns[column]->column_type))
-		return NULL;
-	blob = (TDSBLOB *) resinfo->columns[column]->column_data;
+	blob = (TDSBLOB *) colinfo->column_data;
 	return (DBBINARY *) blob->timestamp;
 }
 
@@ -5467,20 +5420,15 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 DBBINARY *
 dbtxptr(DBPROCESS * dbproc, int column)
 {
-	TDSSOCKET *tds;
+	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSBLOB *blob;
 
-	tds = dbproc->tds_socket;
-	if (!tds->res_info)
+	_DB_GETCOLINFO(NULL);
+
+	if (!is_blob_type(colinfo->column_type))
 		return NULL;
-	resinfo = tds->res_info;
-	--column;
-	if (column < 0 || column >= resinfo->num_cols)
-		return NULL;
-	if (!is_blob_type(resinfo->columns[column]->column_type))
-		return NULL;
-	blob = (TDSBLOB *) resinfo->columns[column]->column_data;
+	blob = (TDSBLOB *) colinfo->column_data;
 	return (DBBINARY *) blob->textptr;
 }
 
@@ -5580,6 +5528,9 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 	int cpbytes, bytes_avail;
 	TDS_INT result_type;
 	TDSRESULTINFO *resinfo;
+
+	if (!dbproc)
+		return -1;
 
 	tds = dbproc->tds_socket;
 
