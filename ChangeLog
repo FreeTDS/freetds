@@ -1,3 +1,9 @@
+Tue Jan 31 14:27:51 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/apps/freebcp.c src/dblib/bcp.c:
+	- fix broken charcater conversion
+	- use calloc instead of malloc/memset
+	- support 64bit file on win32
+
 Tue Jan 31 09:59:28 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/dblib.c: do more argument check
 

@@ -36,6 +36,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#ifdef WIN32
+#include <io.h>
+#endif
+
 #include "tds.h"
 #include "tdsiconv.h"
 #include "tdsconvert.h"
@@ -67,11 +71,17 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.139 2006-01-28 14:50:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.140 2006-01-31 13:30:08 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
+#elif defined(WIN32)
+/* win32 version */
+typedef __int64 offset_type;
+#define fseeko(f,o,w) (_lseeki64(fileno(f),o,w) == -1)
+#define ftello(f) _telli64(fileno(f))
 #else
+/* use old version */
 #define fseeko(f,o,w) fseek(f,o,w)
 #define ftello(f) ftell(f)
 typedef long offset_type;
@@ -178,11 +188,9 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	/* Allocate storage */
 	
-	dbproc->bcpinfo = malloc(sizeof(DB_BCPINFO));
+	dbproc->bcpinfo = calloc(1, sizeof(DB_BCPINFO));
 	if (dbproc->bcpinfo == NULL)
 		goto memory_error;
-
-	memset(dbproc->bcpinfo, '\0', sizeof(DB_BCPINFO));
 
 	if ((dbproc->bcpinfo->tablename = strdup(tblname)) == NULL)
 		goto memory_error;
@@ -214,9 +222,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	
 		/* TODO check what happen if table is not present, cleanup on error */
 		resinfo = tds->res_info;
-		if ((bindinfo = tds_alloc_results(resinfo->num_cols)) == NULL) {
-			return FAIL;
-		}
+		if ((bindinfo = tds_alloc_results(resinfo->num_cols)) == NULL)
+			goto memory_error;
 	
 		bindinfo->row_size = resinfo->row_size;
 	
@@ -264,7 +271,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 		bindinfo->current_row = malloc(bindinfo->row_size);
 		if (!bindinfo->current_row)
-			return FAIL;
+			goto memory_error;
 		bindinfo->row_free = bcp_row_free;
 		return SUCCEED;
 	}
@@ -367,14 +374,13 @@ bcp_columns(DBPROCESS * dbproc, int host_colcount)
 	dbproc->hostfileinfo->host_colcount = host_colcount;
 
 	for (i = 0; i < host_colcount; i++) {
-		dbproc->hostfileinfo->host_columns[i] = (BCP_HOSTCOLINFO *) malloc(sizeof(BCP_HOSTCOLINFO));
+		dbproc->hostfileinfo->host_columns[i] = (BCP_HOSTCOLINFO *) calloc(1, sizeof(BCP_HOSTCOLINFO));
 		if (dbproc->hostfileinfo->host_columns[i] == NULL) {
 			dbproc->hostfileinfo->host_colcount = i;
 			_bcp_free_columns(dbproc);
 			dbperror(dbproc, SYBEMEM, ENOMEM);
 			return FAIL;
 		}
-		memset(dbproc->hostfileinfo->host_columns[i], '\0', sizeof(BCP_HOSTCOLINFO));
 	}
 
 	return SUCCEED;
@@ -1192,7 +1198,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		 * and set collen to the field's post-iconv size.  
 		 */
 		if (hostcol->term_len > 0) { /* delimited data file */
-			int file_bytes_left;
+			int file_bytes_left, file_len;
 			size_t col_bytes_left;
 			offset_type len;
 			iconv_t cd;
@@ -1213,6 +1219,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			/* 
 			 * Allocate a column buffer guaranteed to be big enough hold the post-iconv data.
 			 */
+			file_len = collen;
 			if (bcpcol->char_conv) {
 				if (bcpcol->on_server.column_size > bcpcol->column_size)
 					collen = (collen * bcpcol->on_server.column_size) / bcpcol->column_size;
@@ -1236,7 +1243,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 			col_bytes_left = collen;
 			/* TODO make tds_iconv_fread handle terminator directly to avoid fseek in _bcp_measure_terminated_field */
-			file_bytes_left = tds_iconv_fread(cd, hostfile, collen, hostcol->term_len, (TDS_CHAR *)coldata, &col_bytes_left);
+			file_bytes_left = tds_iconv_fread(cd, hostfile, file_len, hostcol->term_len, (TDS_CHAR *)coldata, &col_bytes_left);
 			collen -= col_bytes_left;
 
 			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */
