@@ -67,7 +67,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.135.2.2 2006-01-29 21:56:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.135.2.3 2006-01-31 13:24:12 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1188,7 +1188,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		 * and set collen to the field's post-iconv size.  
 		 */
 		if (hostcol->term_len > 0) { /* delimited data file */
-			int file_bytes_left;
+			int file_bytes_left, file_len;
 			size_t col_bytes_left;
 			offset_type len;
 			iconv_t cd;
@@ -1209,6 +1209,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			/* 
 			 * Allocate a column buffer guaranteed to be big enough hold the post-iconv data.
 			 */
+			file_len = collen;
 			if (bcpcol->char_conv) {
 				if (bcpcol->on_server.column_size > bcpcol->column_size)
 					collen = (collen * bcpcol->on_server.column_size) / bcpcol->column_size;
@@ -1232,7 +1233,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 			col_bytes_left = collen;
 			/* TODO make tds_iconv_fread handle terminator directly to avoid fseek in _bcp_measure_terminated_field */
-			file_bytes_left = tds_iconv_fread(cd, hostfile, collen, hostcol->term_len, (TDS_CHAR *)coldata, &col_bytes_left);
+			file_bytes_left = tds_iconv_fread(cd, hostfile, file_len, hostcol->term_len, (TDS_CHAR *)coldata, &col_bytes_left);
 			collen -= col_bytes_left;
 
 			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */

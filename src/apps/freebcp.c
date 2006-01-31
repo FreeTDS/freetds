@@ -46,7 +46,7 @@
 #include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.40 2005-06-29 07:21:04 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.40.2.1 2006-01-31 13:24:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -449,7 +449,7 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		return FALSE;
 	}
 
-	for (i = 1; i <= li_numcols - 1; i++) {
+	for (i = 1; i < li_numcols; ++i) {
 		if (bcp_colfmt(dbproc, i, SYBCHAR, 0, -1, (const BYTE *) pdata->fieldterm,
 			       strlen(pdata->fieldterm), i) == FAIL) {
 			printf("Error in bcp_colfmt col %d\n", i);
