@@ -1,3 +1,10 @@
+Thu Feb  2 15:33:21 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* NEWS: updated
+	* src/odbc/odbc.c vms/odbc_driver_axp.opt win32/FreeTDS.def:
+	- compile SQLSetPos function
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/cursor1.c(added):
+	- added a test for cursors (do not work...)
+
 Tue Jan 31 14:27:51 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/apps/freebcp.c src/dblib/bcp.c:
 	- fix broken charcater conversion

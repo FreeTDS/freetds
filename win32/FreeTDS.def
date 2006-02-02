@@ -64,7 +64,7 @@ EXPORTS
 	SQLSetDescRec
 	SQLSetEnvAttr
 	SQLSetParam
-;	SQLSetPos
+	SQLSetPos
 	SQLSetStmtAttr
 	SQLSetStmtOption
 	SQLSpecialColumns

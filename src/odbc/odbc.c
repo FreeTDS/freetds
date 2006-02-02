@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.403 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.404 2006-02-02 14:34:43 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -768,7 +768,6 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	ODBC_RETURN_(stmt);
 }
 
-#if 0
 SQLRETURN SQL_API
 SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
@@ -777,7 +776,6 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 	odbc_errs_add(&stmt->errs, "HYC00", "SQLSetPos: function not implemented");
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
-#endif
 
 SQLRETURN SQL_API
 SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
@@ -4034,7 +4032,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 	API3X(SQL_API_SQLSETDESCREC);\
 	API3X(SQL_API_SQLSETENVATTR);\
 	API_X(SQL_API_SQLSETPARAM);\
-	API__(SQL_API_SQLSETPOS);\
+	API_X(SQL_API_SQLSETPOS);\
 	API__(SQL_API_SQLSETSCROLLOPTIONS);\
 	API3X(SQL_API_SQLSETSTMTATTR);\
 	API_X(SQL_API_SQLSETSTMTOPTION);\
