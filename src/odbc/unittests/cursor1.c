@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.1 2006-02-02 14:25:39 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.2 2006-02-06 15:45:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -14,6 +14,31 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 		ODBC_REPORT_ERROR(#func)
 
 #define SWAP_STMT(a,b) do { SQLHSTMT xyz = a; a = b; b = xyz; } while(0)
+
+static void
+CheckNoRow(const char *query)
+{
+	SQLRETURN retcode;
+
+	retcode = SQLExecDirect(Statement, (SQLCHAR *) query, SQL_NTS);
+	if (retcode == SQL_NO_DATA)
+		return;
+
+	if (!SQL_SUCCEEDED(retcode))
+		ODBC_REPORT_ERROR("SQLExecDirect");
+	
+	do {
+		SQLSMALLINT cols;
+
+		retcode = SQLNumResultCols(Statement, &cols);
+		if (retcode != SQL_SUCCESS || cols != 0) {
+			fprintf(stderr, "Data not expected here, query:\n\t%s\n", query);
+			exit(1);
+		}
+	} while ((retcode=SQLMoreResults(Statement)) == SQL_SUCCESS);
+	if (retcode != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("SQLMoreResults");
+}
 
 static void
 Test(int use_sql)
@@ -66,7 +91,7 @@ Test(int use_sql)
 
 		/* print, just for debug */
 		for (i = 0; i < num_row; ++i)
-			printf("row %d i %d c %s\n", i + 1, n[i], c[i]);
+			printf("row %d i %d c %s\n", (int) (i + 1), (int) n[i], c[i]);
 		printf("---\n");
 
 		/* delete a row */
@@ -93,16 +118,26 @@ Test(int use_sql)
 				CHK(SQLBindParameter,
 				    (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, C_LEN, 0, c[i - 1], 0, NULL));
 				CHK(SQLExecute, (Statement));
+				/* FIXME this is not necessary for mssql driver */
+				SQLMoreResults(Statement);
 				SWAP_STMT(Statement, stmt2);
 			}
 		}
 	}
 
-	/* TODO test values */
+	if (retcode == SQL_ERROR)
+		ODBC_REPORT_ERROR("SQLFetchScroll");
 
 	CHK(SQLFreeStmt, (stmt2, SQL_DROP));
 
 	ResetStatement();
+
+	/* test values */
+	CheckNoRow("IF (SELECT COUNT(*) FROM #test) <> 4 SELECT 1");
+	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 2 AND c = 'foo') SELECT 1");
+	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 3 AND c = 'ccc') SELECT 1");
+	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 4 AND c = 'dddd') SELECT 1");
+	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 6 AND c = 'foo') SELECT 1");
 }
 
 int
@@ -114,9 +149,9 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	Test(0);
-
 	Test(1);
+
+	Test(0);
 
 	Disconnect();
 	return 0;
