@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.246 2006-01-24 15:03:07 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.247 2006-02-07 14:47:53 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -1027,6 +1027,24 @@ typedef struct _tds_cursor_status
 	TDS_CURSOR_STATE dealloc;
 } TDS_CURSOR_STATUS;
 
+typedef enum _tds_cursor_operation
+{
+	TDS_CURSOR_POSITION = 0,
+	TDS_CURSOR_UPDATE = 1,
+	TDS_CURSOR_DELETE = 2,
+	TDS_CURSOR_INSERT = 4
+} TDS_CURSOR_OPERATION;
+
+typedef enum _tds_cursor_fetch
+{
+	TDS_CURSOR_FETCH_NEXT = 1,
+	TDS_CURSOR_FETCH_PREV,
+	TDS_CURSOR_FETCH_FIRST,
+	TDS_CURSOR_FETCH_LAST,
+	TDS_CURSOR_FETCH_ABSOLUTE,
+	TDS_CURSOR_FETCH_RELATIVE
+} TDS_CURSOR_FETCH;
+
 typedef struct _tds_cursor 
 {
 	struct _tds_cursor *next;	/**< next in linked list, keep first */
@@ -1047,6 +1065,7 @@ typedef struct _tds_cursor
 	TDS_CURSOR_STATUS status;
 	TDS_SMALLINT srv_status;
 	TDSRESULTINFO *res_info;
+	TDS_INT type, concurrency;
 } TDSCURSOR;
 
 /*
@@ -1302,9 +1321,11 @@ const char *tds_skip_quoted(const char *s);
 int tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
 int tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
 int tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
-int tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor);
+int tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row);
 int tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
 int tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
+int tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row);
+int tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor);
 
 int tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type);
 int tds_multiple_done(TDSSOCKET *tds, TDSMULTIPLE *multiple);

@@ -1,3 +1,7 @@
+Tue Feb  6 15:42:56 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tds.h src/tds/query.c src/ctlib/ct.c NEWS:
+	- improve cursor support
+
 Tue Feb  6 14:22:50 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/scroll.c(added):
 	* src/odbc/unittests/.cvsignore:

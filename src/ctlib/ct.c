@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.162 2006-01-24 15:03:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.163 2006-02-07 14:47:53 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1583,7 +1583,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 		return CS_FAIL;
 	}
 
-	if ( tds_cursor_fetch(tds, cursor) == CS_SUCCEED) {
+	if (tds_cursor_fetch(tds, cursor, TDS_CURSOR_FETCH_NEXT, 0) == CS_SUCCEED) {
 		cursor->status.fetch = _CS_CURS_TYPE_SENT;
 	}
 	else {

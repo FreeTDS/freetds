@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.192 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.193 2006-02-07 14:47:53 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2085,6 +2085,29 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		tds_put_n(tds, converted_query, converted_query_len);
 		tds_convert_string_free(cursor->query, converted_query);
 
+		/* type */
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 1);	/* output parameter  */
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
+		tds_put_int(tds, cursor->type);
+
+		/* concurrency */
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 1);	/* output parameter  */
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
+		tds_put_int(tds, cursor->concurrency);
+
+		/* row count */
+		tds_put_byte(tds, 0);
+		tds_put_byte(tds, 1);	/* output parameter  */
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 0);
+
 		*something_to_send = 1;
 		tds->internal_sp_called = TDS_SP_CURSOROPEN;
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): RPC call set up \n");
@@ -2143,9 +2166,57 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 	return TDS_SUCCEED;
 }
 
+static void
+tds7_put_cursor_fetch(TDSSOCKET * tds, TDS_INT cursor_id, TDS_TINYINT fetch_type, TDS_INT i_row, TDS_INT num_rows)
+{
+	if (IS_TDS80(tds)) {
+		tds_put_smallint(tds, -1);
+		tds_put_smallint(tds, TDS_SP_CURSORFETCH);
+	} else {
+		tds_put_smallint(tds, 14);
+		TDS_PUT_N_AS_UCS2(tds, "sp_cursorfetch");
+	}
+
+	/* This flag tells the SP only to */
+	/* output a dummy metadata token  */
+
+	tds_put_smallint(tds, 2);
+
+	/* input cursor handle (int) */
+
+	tds_put_byte(tds, 0);	/* no parameter name */
+	tds_put_byte(tds, 0);	/* input parameter  */
+	tds_put_byte(tds, SYBINT4);
+	tds_put_int(tds, cursor_id);
+
+	/* fetch type - 2 = NEXT */
+
+	tds_put_byte(tds, 0);	/* no parameter name */
+	tds_put_byte(tds, 0);	/* input parameter  */
+	tds_put_byte(tds, SYBINT4);
+	tds_put_int(tds, fetch_type);
+
+	/* row number */
+	tds_put_byte(tds, 0);	/* no parameter name */
+	tds_put_byte(tds, 0);	/* input parameter  */
+	tds_put_byte(tds, SYBINTN);
+	tds_put_byte(tds, 4);
+	if ((fetch_type & 0x30) != 0) {
+		tds_put_byte(tds, 4);
+		tds_put_int(tds, i_row);
+	} else {
+		tds_put_byte(tds, 0);
+	}
+
+	/* number of rows to fetch */
+	tds_put_byte(tds, 0);	/* no parameter name */
+	tds_put_byte(tds, 0);	/* input parameter  */
+	tds_put_byte(tds, SYBINT4);
+	tds_put_int(tds, num_rows);
+}
 
 int
-tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
+tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row)
 {
 	CHECK_TDS_EXTRA(tds);
 
@@ -2161,71 +2232,58 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
+		size_t len = strlen(cursor->cursor_name);
+		size_t row_len = 0;
 
 		tds->out_flag = TDS_NORMAL;
 		tds_put_byte(tds, TDS_CURFETCH_TOKEN);
 
+		if (len > (255-10))
+			len = (255-10);
+		if (fetch_type == TDS_CURSOR_FETCH_ABSOLUTE || fetch_type == TDS_CURSOR_FETCH_RELATIVE)
+			row_len = 4;
+
 		/*tds_put_smallint(tds, 8); */
 
-		tds_put_smallint(tds, 6 + strlen(cursor->cursor_name));	/* length of the data stream that follows */
+		tds_put_smallint(tds, 6 + len + row_len);	/* length of the data stream that follows */
 
 		/*tds_put_int(tds, cursor->cursor_id); *//* cursor id returned by the server */
 
 		tds_put_int(tds, 0);
-		tds_put_tinyint(tds, strlen(cursor->cursor_name));
-		tds_put_n(tds, cursor->cursor_name, strlen(cursor->cursor_name));
-		tds_put_tinyint(tds, 1);	/* Fetch Type : TDS_CUR_NEXT */
+		tds_put_tinyint(tds, len);
+		tds_put_n(tds, cursor->cursor_name, len);
+		tds_put_tinyint(tds, fetch_type);
 
-		/* tds_put_int(tds, row#) Optional argument to fetch row at absolute/relative position */
+		/* optional argument to fetch row at absolute/relative position */
+		if (row_len)
+			tds_put_int(tds, i_row);
 		return tds_query_flush_packet(tds);
 	}
 
 	if (IS_TDS7_PLUS(tds)) {
 
 		/* RPC call to sp_cursorfetch */
+		static const unsigned char mssql_fetch[7] = {
+			0,
+			2,    /* TDS_CURSOR_FETCH_NEXT */
+			4,    /* TDS_CURSOR_FETCH_PREV */
+			1,    /* TDS_CURSOR_FETCH_FIRST */
+			8,    /* TDS_CURSOR_FETCH_LAST */
+			0x10, /* TDS_CURSOR_FETCH_ABSOLUTE */
+			0x20  /* TDS_CURSOR_FETCH_RELATIVE */
+		};
 
 		tds->out_flag = TDS_RPC;
 
-		if (IS_TDS80(tds)) {
-			tds_put_smallint(tds, -1);
-			tds_put_smallint(tds, TDS_SP_CURSORFETCH);
+		/* TODO enum for 2 ... */
+		if (cursor->type == 2 && fetch_type == TDS_CURSOR_FETCH_ABSOLUTE) {
+			/* strangely dynamic cursor do not support absolute so emulate it with first + relative */
+			tds7_put_cursor_fetch(tds, cursor->cursor_id, 1, 0, 0);
+			tds_put_byte(tds, 0x80);
+			tds7_put_cursor_fetch(tds, cursor->cursor_id, 0x20, i_row, cursor->cursor_rows);
 		} else {
-			tds_put_smallint(tds, 14);
-			TDS_PUT_N_AS_UCS2(tds, "sp_cursorfetch");
+			tds7_put_cursor_fetch(tds, cursor->cursor_id, mssql_fetch[fetch_type], i_row, cursor->cursor_rows);
 		}
-
-		/* This flag tells the SP only to */
-		/* output a dummy metadata token  */
-
-		tds_put_smallint(tds, 2);
-
-		/* input cursor handle (int) */
-
-		tds_put_byte(tds, 0);	/* no parameter name */
-		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds, cursor->cursor_id);
-
-		/* fetch type - 2 = NEXT */
-
-		tds_put_byte(tds, 0);	/* no parameter name */
-		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds, 2);
-
-		/* row number - will be ignored for NEXT */
-
-		tds_put_byte(tds, 0);	/* no parameter name */
-		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds, 0);
-
-		/* number of rows to fetch */
-
-		tds_put_byte(tds, 0);	/* no parameter name */
-		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
-		tds_put_int(tds, cursor->cursor_rows);
 
 		tds->internal_sp_called = TDS_SP_CURSORFETCH;
 		return tds_query_flush_packet(tds);
@@ -2293,6 +2351,152 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 	}
 	return tds_query_flush_packet(tds);
 
+}
+
+int
+tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
+{
+	int len;
+
+	CHECK_TDS_EXTRA(tds);
+
+	if (!cursor)
+		return TDS_FAIL;
+
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_setname() cursor id = %d\n", cursor->cursor_id);
+
+	if (!IS_TDS7_PLUS(tds))
+		return TDS_SUCCEED;
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		return TDS_FAIL;
+
+	tds->query_start_time = time(NULL);
+	tds->cur_cursor = cursor;
+
+	/* RPC call to sp_cursoroption */
+	tds->out_flag = TDS_RPC;
+
+	if (IS_TDS80(tds)) {
+		tds_put_smallint(tds, -1);
+		tds_put_smallint(tds, TDS_SP_CURSOROPTION);
+	} else {
+		tds_put_smallint(tds, 14);
+		TDS_PUT_N_AS_UCS2(tds, "sp_cursoroption");
+	}
+
+	tds_put_smallint(tds, 0);
+
+	/* input cursor handle (int) */
+	tds_put_byte(tds, 0);	/* no parameter name */
+	tds_put_byte(tds, 0);	/* input parameter  */
+	tds_put_byte(tds, SYBINT4);
+	tds_put_int(tds, cursor->cursor_id);
+
+	/* code, 2 == set cursor name */
+	tds_put_byte(tds, 0);	/* no parameter name */
+	tds_put_byte(tds, 0);	/* input parameter  */
+	tds_put_byte(tds, SYBINT4);
+	tds_put_int(tds, 2);
+
+	/* cursor name */
+	tds_put_byte(tds, 0);
+	tds_put_byte(tds, 0);
+	/* TODO convert ?? */
+	tds_put_byte(tds, XSYBVARCHAR);
+	len = strlen(cursor->cursor_name);
+	tds_put_smallint(tds, len);
+	if (IS_TDS80(tds))
+		tds_put_n(tds, tds->collation, 5);
+	tds_put_smallint(tds, len);
+	tds_put_n(tds, cursor->cursor_name, len);
+
+	tds->internal_sp_called = TDS_SP_CURSOROPTION;
+	return tds_query_flush_packet(tds);
+
+}
+
+int 
+tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row)
+{
+	CHECK_TDS_EXTRA(tds);
+
+	if (!cursor)
+		return TDS_FAIL;
+
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_update() cursor id = %d\n", cursor->cursor_id);
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		return TDS_FAIL;
+
+	tds->query_start_time = time(NULL);
+	tds->cur_cursor = cursor;
+
+	if (IS_TDS50(tds)) {
+		tds->out_flag = TDS_NORMAL;
+
+		/* FIXME finish*/
+		tds_set_state(tds, TDS_IDLE);
+		return TDS_FAIL;
+	}
+	if (IS_TDS7_PLUS(tds)) {
+
+		/* RPC call to sp_cursorclose */
+
+		tds->out_flag = TDS_RPC;
+
+		if (IS_TDS80(tds)) {
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, TDS_SP_CURSOR);
+		} else {
+			tds_put_smallint(tds, 14);
+			TDS_PUT_N_AS_UCS2(tds, "sp_cursor");
+		}
+
+		tds_put_smallint(tds, 0);
+
+		/* input cursor handle (int) */
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 0);	/* input parameter  */
+		tds_put_byte(tds, SYBINT4);
+		tds_put_int(tds, cursor->cursor_id);
+
+		/* cursor operation */
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 0);	/* input parameter  */
+		tds_put_byte(tds, SYBINT4);
+		tds_put_int(tds, 32 | op);
+
+		/* row number */
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 0);	/* input parameter  */
+		tds_put_byte(tds, SYBINT4);
+		tds_put_int(tds, i_row);
+
+		/* update require table name */
+		if (op == TDS_CURSOR_UPDATE) {
+			/* empty table name */
+			tds_put_byte(tds, 0);
+			tds_put_byte(tds, 0);
+			tds_put_byte(tds, XSYBNVARCHAR);
+			tds_put_smallint(tds, 0);
+			if (IS_TDS80(tds))
+				tds_put_n(tds, tds->collation, 5);
+			tds_put_smallint(tds, 0);
+
+			/* TODO add parameter support for update */
+			tds_put_byte(tds, 2);
+			TDS_PUT_N_AS_UCS2(tds, "@c");
+			tds_put_byte(tds, 0);	/* input parameter  */
+			tds_put_byte(tds, SYBVARCHAR);
+			tds_put_byte(tds, 3);
+			tds_put_byte(tds, 3);
+			tds_put_n(tds, "foo", 3);
+		}
+
+		tds->internal_sp_called = TDS_SP_CURSOR;
+	}
+	return tds_query_flush_packet(tds);
 }
 
 int
