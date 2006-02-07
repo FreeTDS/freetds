@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.45 2006-02-02 14:34:44 freddy77 Exp $
+# $Id: Makefile.am,v 1.46 2006-02-07 13:24:44 freddy77 Exp $
 TESTS		=	\
 			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
@@ -11,7 +11,7 @@ TESTS		=	\
 			convert_error typeinfo \
 			const_params insert_speed \
 			compute timeout array array_out \
-			cursor1
+			cursor1 scroll
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -51,9 +51,56 @@ timeout_SOURCES	= timeout.c common.c common.h
 array_SOURCES	= array.c common.c common.h
 array_out_SOURCES	= array_out.c common.c common.h
 cursor1_SOURCES	= cursor1.c common.c common.h
+scroll_SOURCES	= scroll.c common.c common.h
 
 AM_LDFLAGS	=	-no-install
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
+
+msvc.mak: Makefile
+	echo > $@
+	echo '!IF "$$(OS)" == "Windows_NT"' >> $@
+	echo 'NULL=' >> $@
+	echo '!ELSE' >> $@
+	echo 'NULL=nul' >> $@
+	echo '!ENDIF' >> $@
+	echo '' >> $@
+	echo 'OUTDIR=.\Release' >> $@
+	echo 'INTDIR=.\Release' >> $@
+	echo '' >> $@
+	list='$(TESTS)'; all='ALL : '; \
+	for f in $$list; do \
+		all="$$all \\"$$'\n\t'"\"\$$(OUTDIR)\\$$f.exe\""; \
+	done; echo "$$all" >> $@
+	echo '' >> $@
+	echo 'CLEAN :' >> $@
+	echo "	-@erase \"\$$(INTDIR)\\*.obj\"" >> $@
+	echo "	-@erase \"\$$(OUTDIR)\\*.exe\"" >> $@
+	echo '' >> $@
+	echo "\"\$$(OUTDIR)\" :" >> $@
+	echo "    if not exist \"\$$(OUTDIR)/\$$(NULL)\" mkdir \"\$$(OUTDIR)\"" >> $@
+	echo '' >> $@
+	echo 'CPP=cl.exe' >> $@
+	echo "CPP_PROJ=/nologo /MD /W3 /O2 /Ob2 /I \"./\" /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /Fo\"\$$(INTDIR)\\\\\" /Fd\"\$$(INTDIR)\\\\\" /FD /c " >> $@
+	echo '' >> $@
+	echo '.c{$$(INTDIR)}.obj::' >> $@
+	echo "	\$$(CPP) \$$(CPP_PROJ) \$$<" >> $@
+	echo '' >> $@
+	echo 'LINK32=link.exe' >> $@
+	echo 'LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib advapi32.lib ws2_32.lib odbc32.lib /nologo /subsystem:console /incremental:no /machine:I386' >> $@
+	echo '' >> $@
+	list='$(TESTS)'; \
+	for f in $$list; do \
+		echo "\"\$$(OUTDIR)\\$$f.exe\" : \"\$$(OUTDIR)\" \"\$$(INTDIR)\\common.obj\" \"\$$(INTDIR)\\$$f.obj\"" >> $@; \
+		echo "	\$$(LINK32) \$$(LINK32_FLAGS) \"\$$(INTDIR)\\common.obj\" \"\$$(INTDIR)\\$$f.obj\" /pdb:\"\$$(OUTDIR)\\$$f.pdb\" /out:\"\$$(OUTDIR)\\$$f.exe\"" >> $@; \
+		echo '' >> $@; \
+	done
+	echo '' >> $@
+	echo 'CHECK :' >> $@
+	list='$(TESTS)'; \
+	for f in $$list; do \
+		echo "	\"\$$(OUTDIR)\\$$f.exe\"" >> $@; \
+	done
+	echo '' >> $@
 

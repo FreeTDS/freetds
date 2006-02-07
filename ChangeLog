@@ -1,3 +1,12 @@
+Tue Feb  6 14:22:50 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/scroll.c(added):
+	* src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/cursor1.c:
+	- add scroll test for cursor
+	- build msvc project for odbc unittests
+	* src/dblib/unittests/Makefile.am: add done_handling test
+
 Mon Feb  6 16:50:05 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/sybdb.h src/apps/freebcp.c src/dblib/bcp.c:
 	- implemented BCPKEEPIDENTITY for bcp_control

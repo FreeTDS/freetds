@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.2 2006-02-06 15:45:32 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.3 2006-02-07 13:24:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -143,10 +143,6 @@ Test(int use_sql)
 int
 main(int argc, char *argv[])
 {
-#ifndef ENABLE_DEVELOPING
-	return 0;
-#endif
-
 	Connect();
 
 	Test(1);
