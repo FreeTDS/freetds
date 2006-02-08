@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.404 2006-02-02 14:34:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.405 2006-02-08 09:49:18 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -79,7 +79,7 @@ static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, S
 					 SQLINTEGER * StringLength);
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc);
-static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt);
+static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset);
 static int query_timeout_cancel(void *param, unsigned int total_timeout);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
@@ -88,6 +88,7 @@ static void odbc_upper_column_names(TDS_STMT * stmt);
 static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
+static SQLRETURN odbc_free_cursor(TDS_STMT * stmt);
 static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
 
@@ -430,15 +431,10 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLUL
 	SQLUSMALLINT * tmp_status;
 	SQLULEN tmp_size;
 	SQLLEN * tmp_offset;
+	SQLPOINTER tmp_bookmark;
+	SQLULEN bookmark;
 
 	INIT_HSTMT;
-
-	/* still we do not support cursors and scrolling */
-	/* TODO cursors */
-	if (fFetchType != SQL_FETCH_NEXT) {
-		odbc_errs_add(&stmt->errs, "HY106", NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
 
 	/* save and change IRD/ARD state */
 	tmp_rows = stmt->ird->header.sql_desc_rows_processed_ptr;
@@ -449,15 +445,25 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLUL
 	stmt->ard->header.sql_desc_array_size = stmt->sql_rowset_size;
 	tmp_offset = stmt->ard->header.sql_desc_bind_offset_ptr;
 	stmt->ard->header.sql_desc_bind_offset_ptr = NULL;
+	tmp_bookmark = stmt->attr.fetch_bookmark_ptr;
 
+	/* SQL_FETCH_BOOKMARK different */
+	if (fFetchType == SQL_FETCH_BOOKMARK) {
+		bookmark = irow;
+		irow = 0;
+		stmt->attr.fetch_bookmark_ptr = &bookmark;
+	}
+	
 	/* TODO errors are sligthly different ... perhaps it's better to leave DM do this job ?? */
-	ret = _SQLFetch(stmt);
+	/* TODO check fFetchType can be converted to USMALLINT */
+	ret = _SQLFetch(stmt, fFetchType, irow);
 
 	/* restore IRD/ARD */
 	stmt->ird->header.sql_desc_rows_processed_ptr = tmp_rows;
 	stmt->ird->header.sql_desc_array_status_ptr = tmp_status;
 	stmt->ard->header.sql_desc_array_size = tmp_size;
 	stmt->ard->header.sql_desc_bind_offset_ptr = tmp_offset;
+	stmt->attr.fetch_bookmark_ptr = tmp_bookmark;
 
 	ODBC_RETURN(stmt, ret);
 }
@@ -771,10 +777,50 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 SQLRETURN SQL_API
 SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
+	int ret;
+	TDSSOCKET *tds;
+	TDS_CURSOR_OPERATION op;
 	INIT_HSTMT;
-	/* TODO cursors */
-	odbc_errs_add(&stmt->errs, "HYC00", "SQLSetPos: function not implemented");
-	ODBC_RETURN(stmt, SQL_ERROR);
+
+	if (!stmt->cursor) {
+		odbc_errs_add(&stmt->errs, "HY109", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	switch (fOption) {
+	case SQL_POSITION:
+		op = TDS_CURSOR_POSITION;
+		break;
+	/* TODO cursor support */
+	case SQL_REFRESH:
+	default:
+		odbc_errs_add(&stmt->errs, "HY092", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+		break;
+	case SQL_UPDATE:
+		op = TDS_CURSOR_UPDATE;
+		break;
+	case SQL_DELETE:
+		op = TDS_CURSOR_DELETE;
+		break;
+	case SQL_ADD:
+		op = TDS_CURSOR_INSERT;
+		break;
+	}
+
+	tds = stmt->dbc->tds_socket;
+
+	/* TODO cursor support paremeters for update */
+	if (tds_cursor_update(tds, stmt->cursor, op, irow) != TDS_SUCCEED)
+		ODBC_RETURN(stmt, SQL_ERROR);
+
+	stmt->dbc->current_statement = stmt;
+	ret = tds_process_simple_query(tds);
+	stmt->dbc->current_statement = NULL;
+	if (ret != TDS_SUCCEED)
+		ODBC_RETURN(stmt, SQL_ERROR);
+
+	ODBC_RETURN_(stmt);
 }
 
 SQLRETURN SQL_API
@@ -1019,13 +1065,11 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 
 	INIT_HENV;
 
-	dbc = (TDS_DBC *) malloc(sizeof(TDS_DBC));
+	dbc = (TDS_DBC *) calloc(1, sizeof(TDS_DBC));
 	if (!dbc) {
 		odbc_errs_add(&env->errs, "HY001", NULL);
 		ODBC_RETURN(env, SQL_ERROR);
 	}
-
-	memset(dbc, '\0', sizeof(TDS_DBC));
 
 	dbc->htype = SQL_HANDLE_DBC;
 	dbc->env = env;
@@ -1075,11 +1119,9 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	TDS_ENV *env;
 	TDSCONTEXT *ctx;
 
-	env = (TDS_ENV *) malloc(sizeof(TDS_ENV));
+	env = (TDS_ENV *) calloc(1, sizeof(TDS_ENV));
 	if (!env)
 		return SQL_ERROR;
-
-	memset(env, '\0', sizeof(TDS_ENV));
 
 	env->htype = SQL_HANDLE_ENV;
 	env->attr.odbc_version = SQL_OV_ODBC2;
@@ -1146,18 +1188,18 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	INIT_HDBC;
 
-	stmt = (TDS_STMT *) malloc(sizeof(TDS_STMT));
+	stmt = (TDS_STMT *) calloc(1, sizeof(TDS_STMT));
 	if (!stmt) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
-	memset(stmt, '\0', sizeof(TDS_STMT));
 	tds_dstr_init(&stmt->cursor_name);
 
 	stmt->htype = SQL_HANDLE_STMT;
 	stmt->dbc = dbc;
 	pstr = NULL;
-	if (asprintf(&pstr, "C%lx", (unsigned long) stmt) < 0 || !tds_dstr_set(&stmt->cursor_name, pstr)) {
+	/* TODO test initial cursor ... */
+	if (asprintf(&pstr, "SQL_CUR%lx", (unsigned long) stmt) < 0 || !tds_dstr_set(&stmt->cursor_name, pstr)) {
 		free(stmt);
 		if (pstr != NULL)
 			free(pstr);
@@ -2462,7 +2504,69 @@ _SQLExecute(TDS_STMT * stmt)
 		/* not prepared query */
 		/* TODO cursor change way of calling */
 		/* SQLExecDirect */
-		if (stmt->num_param_rows <= 1) {
+		if (stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY) {
+			int send = 0, i;
+			TDSCURSOR *cursor;
+			/* TODO check errors */
+			cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
+			stmt->cursor = cursor;
+
+			/* TODO cursor add enums for tds7 */
+			switch (stmt->attr.cursor_type) {
+			default:
+			case SQL_CURSOR_FORWARD_ONLY:
+				i = 4;
+				break;
+			case SQL_CURSOR_STATIC:
+				i = 8;
+				break;
+			case SQL_CURSOR_KEYSET_DRIVEN:
+				i = 1;
+				break;
+			case SQL_CURSOR_DYNAMIC:
+				i = 2;
+				break;
+			}
+			cursor->type = i;
+
+			switch (stmt->attr.concurrency) {
+			default:
+			case SQL_CONCUR_READ_ONLY:
+				i = 1;
+				break;
+			case SQL_CONCUR_LOCK:
+				i = 2;
+				break;
+			case SQL_CONCUR_ROWVER:
+				i = 4;
+				break;
+			case SQL_CONCUR_VALUES:
+				i = 8;
+				break;
+			}
+			cursor->concurrency = 0x2000 | i;
+
+			ret = tds_cursor_declare(tds, cursor, &send);
+			if (ret != TDS_SUCCEED)
+				ODBC_RETURN(stmt, SQL_ERROR);
+			/* TODO support parameters */
+			ret = tds_cursor_open(tds, cursor, &send);
+			if (ret != TDS_SUCCEED)
+				ODBC_RETURN(stmt, SQL_ERROR);
+			/* TODO read results, set row count, check type and scroll returned */
+			ret = tds_flush_packet(tds);
+			tds_set_state(tds, TDS_PENDING);
+			/* set cursor name for TDS7+ */
+			if (ret == TDS_SUCCEED && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
+				stmt->dbc->current_statement = stmt;
+				ret = tds_process_simple_query(tds);
+				stmt->dbc->current_statement = NULL;
+				if (ret == TDS_SUCCEED) {
+					ret = tds_cursor_setname(tds, cursor);
+					tds_set_state(tds, TDS_PENDING);
+				}
+			}
+		} else if (stmt->num_param_rows <= 1) {
 			if (!stmt->params) {
 				ret = tds_submit_query(tds, stmt->query);
 			} else {
@@ -2635,7 +2739,8 @@ _SQLExecute(TDS_STMT * stmt)
 	case TDS_CMD_DONE:
 		if (stmt->dbc->current_statement == stmt)
 			stmt->dbc->current_statement = NULL;
-		if (stmt->errs.lastrc == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && stmt->row_count == TDS_NO_COUNT)
+		if (stmt->errs.lastrc == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3
+		    && stmt->row_count == TDS_NO_COUNT && !stmt->cursor)
 			ODBC_RETURN(stmt, SQL_NO_DATA);
 		break;
 
@@ -2784,16 +2889,14 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 }
 
 /*
- * TODO support multi-row fetch
  * - handle correctly SQLGetData (for forward cursors accept only row_size == 1
  *   for other types application must use SQLSetPos)
  * - handle correctly results (SQL_SUCCESS_WITH_INFO if error on some rows,
  *   SQL_ERROR for all rows, see doc)
  */
 static SQLRETURN SQL_API
-_SQLFetch(TDS_STMT * stmt)
+_SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 {
-	/* TODO cursors send cursor fetch it needed */
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *colinfo;
@@ -2807,6 +2910,7 @@ _SQLFetch(TDS_STMT * stmt)
 	TDSCONTEXT *context;
 	SQLULEN dummy, *fetched_ptr;
 	SQLUSMALLINT *status_ptr, row_status;
+	TDS_INT result_type;
 
 #define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
 	SQLLEN row_offset = 0;
@@ -2815,6 +2919,61 @@ _SQLFetch(TDS_STMT * stmt)
 		row_offset = *stmt->ard->header.sql_desc_bind_offset_ptr;
 
 	ard = stmt->ard;
+
+	tds = stmt->dbc->tds_socket;
+	num_rows = ard->header.sql_desc_array_size;
+
+	/* TODO cursor check also type of cursor (scrollable, not forward) */
+	if (FetchOrientation != SQL_FETCH_NEXT && !stmt->cursor) {
+		odbc_errs_add(&stmt->errs, "HY106", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	/* handle cursors, fetch wanted rows */
+	if (!stmt->dbc->current_statement && stmt->cursor) {
+		/* FIXME handle errors */
+		TDSCURSOR *cursor = stmt->cursor;
+		TDS_CURSOR_FETCH fetch_type = TDS_CURSOR_FETCH_NEXT;
+
+		stmt->dbc->current_statement = stmt;
+		if (cursor->cursor_rows != num_rows) {
+			int send = 0;
+			cursor->cursor_rows = num_rows;
+			tds_cursor_setrows(tds, cursor, &send);
+			/* FIXME handle change rows (tds5) */
+		}
+
+		switch (FetchOrientation) {
+		default:
+		case SQL_FETCH_NEXT:
+			break;
+		case SQL_FETCH_FIRST:
+			fetch_type = TDS_CURSOR_FETCH_FIRST;
+			break;
+		case SQL_FETCH_LAST:
+			fetch_type = TDS_CURSOR_FETCH_LAST;
+			break;
+		case SQL_FETCH_PRIOR:
+			fetch_type = TDS_CURSOR_FETCH_PREV;
+			break;
+		case SQL_FETCH_ABSOLUTE:
+			fetch_type = TDS_CURSOR_FETCH_ABSOLUTE;
+			break;
+		case SQL_FETCH_RELATIVE:
+			fetch_type = TDS_CURSOR_FETCH_RELATIVE;
+			break;
+		/* TODO cursor bookmark, at least error ...*/
+		}
+
+		/* TODO handle errors ...*/
+		tds_cursor_fetch(tds, cursor, fetch_type, FetchOffset);
+		/* FIXME correct here ?? */
+		tds_set_state(tds, TDS_PENDING);
+
+		/* FIXME shit ...*/
+		odbc_process_tokens(stmt, TDS_RETURN_ROW|TDS_STOPAT_COMPUTE|TDS_STOPAT_ROW);
+		stmt->row_status = PRE_NORMAL_ROW;
+	}
 
 	if (stmt->dbc->current_statement != stmt || stmt->row_status == NOT_IN_ROW) {
 		odbc_errs_add(&stmt->errs, "24000", NULL);
@@ -2827,8 +2986,6 @@ _SQLFetch(TDS_STMT * stmt)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	tds = stmt->dbc->tds_socket;
-
 	context = stmt->dbc->env->tds_ctx;
 
 	stmt->row++;
@@ -2838,7 +2995,6 @@ _SQLFetch(TDS_STMT * stmt)
 		fetched_ptr = stmt->ird->header.sql_desc_rows_processed_ptr;
 	*fetched_ptr = 0;
 
-	num_rows = stmt->ard->header.sql_desc_array_size;
 	status_ptr = stmt->ird->header.sql_desc_array_status_ptr;
 	if (status_ptr) {
 		for (i = 0; i < num_rows; ++i)
@@ -2848,7 +3004,6 @@ _SQLFetch(TDS_STMT * stmt)
 
 	curr_row = 0;
 	do {
-		TDS_INT result_type;
 		int truncated = 0;
 
 		row_status = SQL_ROW_SUCCESS;
@@ -2924,7 +3079,8 @@ _SQLFetch(TDS_STMT * stmt)
 			colinfo->column_text_sqlgetdatapos = 0;
 			drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
 			if (!drec_ard) {
-				num_rows = 1;
+				if (!colinfo->column_hidden)
+					num_rows = 1;
 				continue;
 			}
 			if (colinfo->column_cur_size < 0) {
@@ -3023,6 +3179,11 @@ _SQLFetch(TDS_STMT * stmt)
 	} while (++curr_row < num_rows);
 
       all_done:
+	/* TODO cursor correct ?? */
+	if (stmt->cursor) {
+		tds_process_tokens(stmt->dbc->tds_socket, &result_type, NULL, TDS_TOKEN_TRAILING);
+		stmt->dbc->current_statement = NULL;
+	}
 	if (*fetched_ptr == 0 && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 		ODBC_RETURN(stmt, SQL_NO_DATA);
 	if (stmt->errs.lastrc == SQL_ERROR && (*fetched_ptr > 1 || (*fetched_ptr == 1 && row_status != SQL_ROW_ERROR)))
@@ -3035,7 +3196,7 @@ SQLFetch(SQLHSTMT hstmt)
 {
 	INIT_HSTMT;
 
-	ODBC_RETURN(stmt, _SQLFetch(stmt));
+	ODBC_RETURN(stmt, _SQLFetch(stmt, SQL_FETCH_NEXT, 0));
 }
 
 #if (ODBCVER >= 0x0300)
@@ -3044,14 +3205,7 @@ SQLFetchScroll(SQLHSTMT hstmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 {
 	INIT_HSTMT;
 
-	/* still we do not support cursors and scrolling */
-	/* TODO cursors */
-	if (FetchOrientation != SQL_FETCH_NEXT) {
-		odbc_errs_add(&stmt->errs, "HY106", NULL);
-		ODBC_RETURN(stmt, SQL_ERROR);
-	}
-
-	ODBC_RETURN(stmt, _SQLFetch(stmt));
+	ODBC_RETURN(stmt, _SQLFetch(stmt, FetchOrientation, FetchOffset));
 }
 #endif
 
@@ -3172,7 +3326,10 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 				tds_process_cancel(tds);
 		}
 
-		/* TODO cursors free cursor too */
+		/* free cursor */
+		retcode = odbc_free_cursor(stmt);
+		if (!force && retcode != SQL_SUCCESS)
+			return retcode;
 
 		/* close prepared statement or add to connection */
 		retcode = odbc_free_dynamic(stmt);
@@ -3621,7 +3778,12 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 {
 	INIT_HSTMT;
 
-	/* TODO cursors use it */
+	/* cursor already present, we cannot set name */
+	if (stmt->cursor) {
+		odbc_errs_add(&stmt->errs, "24000", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
 	if (!tds_dstr_copyn(&stmt->cursor_name, (const char *) szCursor, odbc_get_string_size(cbCursor, szCursor))) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -3636,7 +3798,6 @@ SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax
 
 	INIT_HSTMT;
 
-	/* TODO cursors how to read real cursor ?? */
 	if ((rc = odbc_set_string(szCursor, cbCursorMax, pcbCursor, tds_dstr_cstr(&stmt->cursor_name), -1)))
 		odbc_errs_add(&stmt->errs, "01004", NULL);
 
@@ -4033,7 +4194,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 	API3X(SQL_API_SQLSETENVATTR);\
 	API_X(SQL_API_SQLSETPARAM);\
 	API_X(SQL_API_SQLSETPOS);\
-	API__(SQL_API_SQLSETSCROLLOPTIONS);\
+	API_X(SQL_API_SQLSETSCROLLOPTIONS);\
 	API3X(SQL_API_SQLSETSTMTATTR);\
 	API_X(SQL_API_SQLSETSTMTOPTION);\
 	API_X(SQL_API_SQLSPECIALCOLUMNS);\
@@ -4096,9 +4257,9 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 }
 
 
-SQLRETURN SQL_API
-SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMALLINT cbInfoValueMax,
-	   SQLSMALLINT FAR * pcbInfoValue)
+static SQLRETURN SQL_API
+_SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMALLINT cbInfoValueMax,
+	    SQLSMALLINT FAR * pcbInfoValue)
 {
 	const char *p = NULL;
 	char buf[32];
@@ -4113,8 +4274,6 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 #define IVAL out_len = sizeof(SQLINTEGER), *((SQLINTEGER *) rgbInfoValue)
 #define UIVAL out_len = sizeof(SQLUINTEGER), *((SQLUINTEGER *) rgbInfoValue)
 #define ULVAL out_len = sizeof(SQLULEN), *((SQLULEN *) rgbInfoValue)
-
-	INIT_HDBC;
 
 	if ((tds = dbc->tds_socket) != NULL) {
 		is_ms = TDS_IS_MSSQL(tds);
@@ -4190,7 +4349,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_CONCAT_NULL_BEHAVIOR:
 		if (is_ms == -1)
-			ODBC_RETURN(dbc, SQL_ERROR);
+			return SQL_ERROR;
 		/* TODO a bit more complicate for mssql2k.. */
 		SIVAL = (!is_ms || smajor < 7) ? SQL_CB_NON_NULL : SQL_CB_NULL;
 		break;
@@ -4405,6 +4564,12 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		UIVAL = SQL_DV_DROP_VIEW;
 		break;
 	case SQL_DYNAMIC_CURSOR_ATTRIBUTES1:
+		/* TODO cursor SQL_CA1_BULK_ADD SQL_CA1_POS_REFRESH SQL_CA1_SELECT_FOR_UPDATE */
+		UIVAL = SQL_CA1_ABSOLUTE | SQL_CA1_NEXT | SQL_CA1_RELATIVE |
+			SQL_CA1_LOCK_NO_CHANGE |
+			SQL_CA1_POS_DELETE | SQL_CA1_POS_POSITION | SQL_CA1_POS_UPDATE |
+			SQL_CA1_POSITIONED_UPDATE | SQL_CA1_POSITIONED_DELETE;
+		break;
 	case SQL_DYNAMIC_CURSOR_ATTRIBUTES2:
 		/* TODO cursors */
 		/* Cursors not supported yet */
@@ -4418,16 +4583,14 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		USIVAL = SQL_FILE_NOT_SUPPORTED;
 		break;
 	case SQL_FETCH_DIRECTION:
-		/* TODO cursors */
-		/*
-		 * TODO not supported
-		 * UIVAL = SQL_FD_FETCH_ABSOLUTE | SQL_FD_FETCH_BOOKMARK | SQL_FD_FETCH_FIRST | SQL_FD_FETCH_LAST | SQL_FD_FETCH_NEXT
-		 * | SQL_FD_FETCH_PRIOR | SQL_FD_FETCH_RELATIVE;
-		 */
-		UIVAL = 0;
+		/* TODO cursors SQL_FD_FETCH_BOOKMARK */
+		UIVAL = SQL_FD_FETCH_ABSOLUTE|SQL_FD_FETCH_FIRST|SQL_FD_FETCH_LAST|SQL_FD_FETCH_NEXT|SQL_FD_FETCH_PRIOR|SQL_FD_FETCH_RELATIVE;
 		break;
 #if (ODBCVER >= 0x0300)
 	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1:
+		/* TODO cursors SQL_CA1_SELECT_FOR_UPDATE */
+		UIVAL = SQL_CA1_NEXT|SQL_CA1_POSITIONED_DELETE|SQL_CA1_POSITIONED_UPDATE;
+		break;
 	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2:
 		/* TODO cursors */
 		/* Cursors not supported yet */
@@ -4471,7 +4634,6 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_KEYSET_CURSOR_ATTRIBUTES1:
 	case SQL_KEYSET_CURSOR_ATTRIBUTES2:
 		/* TODO cursors */
-		/* Cursors not supported yet */
 		UIVAL = 0;
 		break;
 	case SQL_KEYWORDS:
@@ -4492,12 +4654,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		p = "Y";
 		break;
 	case SQL_LOCK_TYPES:
-		/* TODO cursors */
-		/*
-		 * TODO we do not support SQLSetPos
-		 * IVAL = SQL_LCK_NO_CHANGE;
-		 */
-		IVAL = 0;
+		IVAL = SQL_LCK_NO_CHANGE;
 		break;
 #if (ODBCVER >= 0x0300)
 	case SQL_MAX_ASYNC_CONCURRENT_STATEMENTS:
@@ -4533,7 +4690,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_MAX_IDENTIFIER_LEN:
 		if (is_ms == -1)
-			ODBC_RETURN(dbc, SQL_ERROR);
+			return SQL_ERROR;
 		USIVAL = (!is_ms || smajor < 7) ? 30 : 128;
 		break;
 	case SQL_MAX_INDEX_SIZE:
@@ -4541,13 +4698,13 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 	case SQL_MAX_PROCEDURE_NAME_LEN:
 		if (is_ms == -1)
-			ODBC_RETURN(dbc, SQL_ERROR);
+			return SQL_ERROR;
 		/* TODO Sybase ? */
 		USIVAL = (is_ms && smajor >= 7) ? 134 : 36;
 		break;
 	case SQL_MAX_ROW_SIZE:
 		if (is_ms == -1)
-			ODBC_RETURN(dbc, SQL_ERROR);
+			return SQL_ERROR;
 		/* TODO Sybase ? */
 		UIVAL = (is_ms && smajor >= 7) ? 8062 : 1962;
 		break;
@@ -4565,7 +4722,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_MAX_USER_NAME_LEN:
 		/* TODO Sybase ? */
 		if (is_ms == -1)
-			ODBC_RETURN(dbc, SQL_ERROR);
+			return SQL_ERROR;
 		USIVAL = (is_ms && smajor >= 7) ? 128 : 30;
 		break;
 	case SQL_MAX_COLUMN_NAME_LEN:
@@ -4575,7 +4732,7 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	case SQL_MAX_TABLE_NAME_LEN:
 		/* TODO Sybase ? */
 		if (is_ms == -1)
-			ODBC_RETURN(dbc, SQL_ERROR);
+			return SQL_ERROR;
 		USIVAL = (is_ms && smajor >= 7) ? 128 : 30;
 		break;
 	case SQL_MULT_RESULT_SETS:
@@ -4642,17 +4799,13 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_POS_OPERATIONS:
-		/* TODO cursors */
-		/*
-		 * TODO SQLSetPos not supported
-		 * UIVAL = SQL_POS_ADD | SQL_POS_DELETE | SQL_POS_POSITION | SQL_POS_REFRESH | SQL_POS_UPDATE;
-		 */
-		IVAL = 0;
+		/* TODO cursors SQL_POS_ADD SQL_POS_REFRESH */
+		/* test REFRESH, ADD under mssql, under Sybase I don't know how to do it but dblib do */
+		IVAL = SQL_POS_DELETE | SQL_POS_POSITION | SQL_POS_UPDATE;
 		break;
 	case SQL_POSITIONED_STATEMENTS:
-		/* TODO cursors */
-		/* TODO ok or should be 0 ?? */
-		IVAL = SQL_PS_POSITIONED_DELETE | SQL_PS_POSITIONED_UPDATE | SQL_PS_SELECT_FOR_UPDATE;
+		/* TODO cursors SQL_PS_SELECT_FOR_UPDATE */
+		IVAL = SQL_PS_POSITIONED_DELETE | SQL_PS_POSITIONED_UPDATE;
 		break;
 	case SQL_PROCEDURE_TERM:
 		p = "stored procedure";
@@ -4677,12 +4830,12 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_SCROLL_CONCURRENCY:
-		/* TODO cursors */
-		IVAL = SQL_SCCO_READ_ONLY;
+		/* TODO cursors test them, Sybase support all ?  */
+		IVAL = SQL_SCCO_LOCK | SQL_SCCO_OPT_ROWVER | SQL_SCCO_OPT_VALUES | SQL_SCCO_READ_ONLY;
 		break;
 	case SQL_SCROLL_OPTIONS:
-		/* TODO cursors */
-		UIVAL = SQL_SO_FORWARD_ONLY | SQL_SO_STATIC;
+		/* TODO cursors test them, Sybase support all ?? */
+		UIVAL = SQL_SO_DYNAMIC | SQL_SO_FORWARD_ONLY | SQL_SO_KEYSET_DRIVEN | SQL_SO_STATIC;
 		break;
 	case SQL_SEARCH_PATTERN_ESCAPE:
 		p = "\\";
@@ -4738,9 +4891,11 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 		IVAL = 0;
 		break;
 	case SQL_STATIC_CURSOR_ATTRIBUTES1:
+		/* TODO cursors SQL_CA1_BOOKMARK SQL_CA1_BULK_FETCH_BY_BOOKMARK SQL_CA1_POS_REFRESH */
+		UIVAL = SQL_CA1_ABSOLUTE | SQL_CA1_LOCK_NO_CHANGE | SQL_CA1_NEXT | SQL_CA1_POS_POSITION | SQL_CA1_RELATIVE;
+		break;
 	case SQL_STATIC_CURSOR_ATTRIBUTES2:
 		/* TODO cursors */
-		/* Cursors not supported yet */
 		UIVAL = 0;
 		break;
 #endif /* ODBCVER >= 0x0300 */
@@ -4799,24 +4954,32 @@ SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMA
 	default:
 		odbc_log_unimplemented_type("SQLGetInfo", fInfoType);
 		odbc_errs_add(&dbc->errs, "HY092", "Option not supported");
-		ODBC_RETURN(dbc, SQL_ERROR);
+		return SQL_ERROR;
 	}
 
 	/* char data */
 	if (p) {
-		ODBC_RETURN(dbc, odbc_set_string(rgbInfoValue, cbInfoValueMax, pcbInfoValue, p, -1));
+		return odbc_set_string(rgbInfoValue, cbInfoValueMax, pcbInfoValue, p, -1);
 	} else {
 		if (out_len > 0 && pcbInfoValue)
 			*pcbInfoValue = out_len;
 	}
 
-	ODBC_RETURN(dbc, SQL_SUCCESS);
+	return SQL_SUCCESS;
 #undef SIVAL
 #undef USIVAL
 #undef IVAL
 #undef UIVAL
 }
 
+SQLRETURN SQL_API
+SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMALLINT cbInfoValueMax,
+	   SQLSMALLINT FAR * pcbInfoValue)
+{
+	INIT_HDBC;
+
+	ODBC_RETURN(dbc, _SQLGetInfo(dbc, fInfoType, rgbInfoValue, cbInfoValueMax, pcbInfoValue));
+}
 static void
 tds_ascii_strupr(char *s)
 {
@@ -5130,7 +5293,7 @@ SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 static SQLRETURN SQL_API
 _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
-	SQLULEN ui = (SQLULEN) ValuePtr;
+	SQLULEN ui = (SQLULEN) (TDS_INTPTR) ValuePtr;
 	SQLUSMALLINT *usip = (SQLUSMALLINT *) ValuePtr;
 	SQLLEN *lp = (SQLLEN *) ValuePtr;
 	SQLULEN *ulp = (SQLULEN *) ValuePtr;
@@ -5178,20 +5341,31 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.async_enable = ui;
 		break;
 	case SQL_ATTR_CONCURRENCY:
-		/* TODO cursors */
-		if (stmt->attr.concurrency != ui) {
-			odbc_errs_add(&stmt->errs, "01S02", NULL);
-			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
-		}
-		stmt->attr.concurrency = ui;
-		break;
-	case SQL_ATTR_CURSOR_SCROLLABLE:
-		/* TODO cursors */
-		if (stmt->attr.cursor_scrollable != ui) {
-			odbc_errs_add(&stmt->errs, "HYC00", NULL);
+		if (stmt->cursor) {
+			odbc_errs_add(&stmt->errs, "24000", NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		stmt->attr.cursor_scrollable = ui;
+
+		switch (ui) {
+		case SQL_CONCUR_READ_ONLY:
+		case SQL_CONCUR_LOCK:
+		case SQL_CONCUR_ROWVER:
+		case SQL_CONCUR_VALUES:
+			stmt->attr.concurrency = ui;
+			break;
+		default:
+			odbc_errs_add(&stmt->errs, "HY092", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+		break;
+	case SQL_ATTR_CURSOR_SCROLLABLE:
+		if (ui == SQL_SCROLLABLE) {
+			/* TODO cursor set cursor_type according */
+			stmt->attr.cursor_scrollable = SQL_SCROLLABLE;
+			break;
+		}
+		stmt->attr.cursor_type = SQL_CURSOR_FORWARD_ONLY;
+		stmt->attr.cursor_scrollable = SQL_NONSCROLLABLE;
 		break;
 	case SQL_ATTR_CURSOR_SENSITIVITY:
 		/* TODO cursors */
@@ -5202,12 +5376,26 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.cursor_sensitivity = ui;
 		break;
 	case SQL_ATTR_CURSOR_TYPE:
-		/* TODO cursors */
-		if (stmt->attr.cursor_type != ui) {
-			odbc_errs_add(&stmt->errs, "01S02", NULL);
-			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
+		if (stmt->cursor) {
+			odbc_errs_add(&stmt->errs, "24000", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		stmt->attr.cursor_type = ui;
+
+		switch (ui) {
+		case SQL_CURSOR_DYNAMIC:
+		case SQL_CURSOR_KEYSET_DRIVEN:
+		case SQL_CURSOR_STATIC:
+			stmt->attr.cursor_scrollable = SQL_SCROLLABLE;
+			stmt->attr.cursor_type = ui;
+			break;
+		case SQL_CURSOR_FORWARD_ONLY:
+			stmt->attr.cursor_scrollable = SQL_NONSCROLLABLE;
+			stmt->attr.cursor_type = ui;
+			break;
+		default:
+			odbc_errs_add(&stmt->errs, "HY092", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		break;
 	case SQL_ATTR_ENABLE_AUTO_IPD:
 		if (stmt->attr.enable_auto_ipd != ui) {
@@ -5310,6 +5498,10 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		break;
 	case SQL_ATTR_SIMULATE_CURSOR:
 		/* TODO cursors */
+		if (stmt->cursor) {
+			odbc_errs_add(&stmt->errs, "24000", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		if (stmt->attr.simulate_cursor != ui) {
 			odbc_errs_add(&stmt->errs, "01S02", NULL);
 			ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
@@ -5317,6 +5509,10 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.simulate_cursor = ui;
 		break;
 	case SQL_ATTR_USE_BOOKMARKS:
+		if (stmt->cursor) {
+			odbc_errs_add(&stmt->errs, "24000", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->attr.use_bookmarks = ui;
 		break;
 	case SQL_ROWSET_SIZE:	/* although this is ODBC2 we must support this attribute */
@@ -5876,3 +6072,102 @@ odbc_free_dynamic(TDS_STMT * stmt)
 	}
 	return SQL_SUCCESS;
 }
+
+static SQLRETURN
+odbc_free_cursor(TDS_STMT * stmt)
+{
+	TDSCURSOR *cursor = stmt->cursor;
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
+
+	if (cursor) {
+		cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
+		if (tds_cursor_close(tds, cursor) == TDS_SUCCEED) {
+			if (tds_process_simple_query(tds) != TDS_SUCCEED)
+				ODBC_RETURN(stmt, SQL_ERROR);
+			/* TODO check error */
+			tds_cursor_dealloc(tds, cursor);
+			stmt->cursor = NULL;
+		} else {
+			/* TODO if fail add to odbc to free later, when we are in idle */
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+	}
+	return SQL_SUCCESS;
+}
+
+SQLRETURN SQL_API
+SQLSetScrollOptions(SQLHSTMT hstmt, SQLUSMALLINT fConcurrency, SQLLEN crowKeyset, SQLUSMALLINT crowRowset)
+{
+	SQLUSMALLINT info;
+	SQLUINTEGER value, check;
+	SQLUINTEGER cursor_type;
+
+	INIT_HSTMT;
+
+	if (stmt->cursor) {
+		odbc_errs_add(&stmt->errs, "24000", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	switch (crowKeyset) {
+	case SQL_SCROLL_FORWARD_ONLY:
+		info = SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2;
+		cursor_type = SQL_CURSOR_FORWARD_ONLY;
+		break;
+	case SQL_SCROLL_STATIC:
+		info = SQL_STATIC_CURSOR_ATTRIBUTES2;
+		cursor_type = SQL_CURSOR_STATIC;
+		break;
+	case SQL_SCROLL_KEYSET_DRIVEN:
+		info = SQL_KEYSET_CURSOR_ATTRIBUTES2;
+		cursor_type = SQL_CURSOR_KEYSET_DRIVEN;
+		break;
+	case SQL_SCROLL_DYNAMIC:
+		info = SQL_DYNAMIC_CURSOR_ATTRIBUTES2;
+		cursor_type = SQL_CURSOR_DYNAMIC;
+		break;
+	default:
+		if (crowKeyset > crowRowset) {
+			info = SQL_KEYSET_CURSOR_ATTRIBUTES2;
+			cursor_type = SQL_CURSOR_KEYSET_DRIVEN;
+			break;
+		}
+		
+		odbc_errs_add(&stmt->errs, "HY107", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	switch (fConcurrency) {
+	case SQL_CONCUR_READ_ONLY:
+		check = SQL_CA2_READ_ONLY_CONCURRENCY;
+		break;
+	case SQL_CONCUR_LOCK:
+		check = SQL_CA2_LOCK_CONCURRENCY;
+		break;
+	case SQL_CONCUR_ROWVER:
+		check = SQL_CA2_OPT_ROWVER_CONCURRENCY;
+		break;
+	case SQL_CONCUR_VALUES:
+		check = SQL_CA2_OPT_VALUES_CONCURRENCY;
+		break;
+	default:
+		odbc_errs_add(&stmt->errs, "HY108", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	value = 0;
+	_SQLGetInfo(stmt->dbc, info, &value, sizeof(value), NULL);
+
+	if ((value & check) == 0) {
+		odbc_errs_add(&stmt->errs, "HYC00", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
+
+	_SQLSetStmtAttr(hstmt, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) (TDS_INTPTR) cursor_type, 0);
+	_SQLSetStmtAttr(hstmt, SQL_ATTR_CONCURRENCY, (SQLPOINTER) (TDS_INTPTR) fConcurrency, 0);
+	_SQLSetStmtAttr(hstmt, SQL_ATTR_KEYSET_SIZE, (SQLPOINTER) (TDS_INTPTR) crowKeyset, 0);
+	_SQLSetStmtAttr(hstmt, SQL_ROWSET_SIZE, (SQLPOINTER) (TDS_INTPTR) crowRowset, 0);
+
+	ODBC_RETURN_(stmt);
+}
+

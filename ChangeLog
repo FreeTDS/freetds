@@ -1,8 +1,15 @@
-Tue Feb  6 15:42:56 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+Wed Feb  8 10:48:36 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tdsodbc.h src/odbc/error.c src/odbc/odbc.c:
+	* vms/odbc_driver_axp.opt win32/FreeTDS.def:
+	- start cursor stuff for odbc
+	- added SQLSetScrollOptions
+	* src/odbc/unittests/scroll.c: support more fetch types
+
+Tue Feb  7 15:42:56 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/tds.h src/tds/query.c src/ctlib/ct.c NEWS:
 	- improve cursor support
 
-Tue Feb  6 14:22:50 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+Tue Feb  7 14:22:50 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/scroll.c(added):
 	* src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am:

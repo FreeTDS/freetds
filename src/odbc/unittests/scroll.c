@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: scroll.c,v 1.1 2006-02-07 13:24:44 freddy77 Exp $";
+static char software_version[] = "$Id: scroll.c,v 1.2 2006-02-08 09:49:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -36,12 +36,17 @@ main(int argc, char *argv[])
 	static const TEST tests[] = {
 		{SQL_FETCH_NEXT, 0, 1, 3},
 		{SQL_FETCH_NEXT, 0, 4, 2},
+		{SQL_FETCH_PRIOR, 0, 1, 3},
+		{SQL_FETCH_NEXT, 0, 4, 2},
 		{SQL_FETCH_NEXT, 0, -1, -1},
 		{SQL_FETCH_FIRST, 0, 1, 3},
 		{SQL_FETCH_ABSOLUTE, 3, 3, 3},
-		{SQL_FETCH_RELATIVE, 1, 4, 2}
+		{SQL_FETCH_RELATIVE, 1, 4, 2},
+		{SQL_FETCH_LAST, 0, 3, 3}
 	};
 	const int num_tests = sizeof(tests) / sizeof(TEST);
+
+	use_odbc_version3 = 1;
 
 	Connect();
 

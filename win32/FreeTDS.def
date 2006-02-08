@@ -65,6 +65,7 @@ EXPORTS
 	SQLSetEnvAttr
 	SQLSetParam
 	SQLSetPos
+	SQLSetScrollOptions
 	SQLSetStmtAttr
 	SQLSetStmtOption
 	SQLSpecialColumns

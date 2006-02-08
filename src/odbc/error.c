@@ -46,7 +46,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.43 2005-07-17 07:48:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.44 2006-02-08 09:49:18 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -151,6 +151,7 @@ static const struct s_SqlMsgMap SqlMsgMap[] = {
 	ODBCERR("HY105", "Invalid parameter type"),
 	ODBCERR("HY106", "Fetch type out of range"),
 	ODBCERR("HY107", "Row value out of range"),
+	ODBCERR("HY108", "Concurrency option out of range"),
 	ODBCERR("HY109", "Invalid cursor position"),
 	ODBCERR("HY110", "Invalid driver completion"),
 	ODBCERR("HY111", "Invalid bookmark value"),

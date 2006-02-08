@@ -82,6 +82,7 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLSetEnvAttr=PROCEDURE,-
 		SQLSetParam=PROCEDURE,-
 		SQLSetPos=PROCEDURE,-
+		SQLSetScrollOptions=PROCEDURE,-
 		SQLSetStmtAttr=PROCEDURE,-
 		SQLSetStmtOption=PROCEDURE,-
 		SQLSpecialColumns=PROCEDURE,-
@@ -92,4 +93,3 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 !
 !		SQLBrowseConnect=PROCEDURE,-
 !		SQLDescribeParam=PROCEDURE,-
-!		SQLSetScrollOptions=PROCEDURE,-
