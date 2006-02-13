@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.14 2005-07-24 10:52:49 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.15 2006-02-13 16:11:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -134,8 +134,14 @@ main(int argc, char *argv[])
 	char buf[80];
 	time_t curr_time;
 
+	char version[32];
+	SQLSMALLINT version_len;
+
 	use_odbc_version3 = 1;
 	Connect();
+
+	memset(version, 0, sizeof(version));
+	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
 
 	if (CommandWithResult(Statement, "drop proc spTestProc") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
@@ -184,6 +190,12 @@ main(int argc, char *argv[])
 
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "0");
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
+
+	/* TODO some Sybase versions */
+	if (db_is_microsoft() && strncmp(version, "08.00.", 6) == 0) {
+		Test("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
+		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
+	}
 
 	Disconnect();
 
