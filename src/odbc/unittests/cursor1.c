@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.3 2006-02-07 13:24:44 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.4 2006-02-16 07:31:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -26,7 +26,7 @@ CheckNoRow(const char *query)
 
 	if (!SQL_SUCCEEDED(retcode))
 		ODBC_REPORT_ERROR("SQLExecDirect");
-	
+
 	do {
 		SQLSMALLINT cols;
 
@@ -35,7 +35,7 @@ CheckNoRow(const char *query)
 			fprintf(stderr, "Data not expected here, query:\n\t%s\n", query);
 			exit(1);
 		}
-	} while ((retcode=SQLMoreResults(Statement)) == SQL_SUCCESS);
+	} while ((retcode = SQLMoreResults(Statement)) == SQL_SUCCESS);
 	if (retcode != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults");
 }
@@ -47,7 +47,7 @@ Test(int use_sql)
 #define C_LEN 10
 
 	SQLUINTEGER n[ROWS];
-	SQLCHAR c[ROWS][C_LEN];
+	char c[ROWS][C_LEN];
 	SQLINTEGER c_len[ROWS], n_len[ROWS];
 
 	SQLUSMALLINT statuses[ROWS];
@@ -73,10 +73,10 @@ Test(int use_sql)
 	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_ARRAY_SIZE, (SQLPOINTER) ROWS, 0));
 	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_STATUS_PTR, (SQLPOINTER) statuses, 0));
 	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0));
-	CHK(SQLSetCursorName, (Statement, "C1", SQL_NTS));
+	CHK(SQLSetCursorName, (Statement, (SQLCHAR *) "C1", SQL_NTS));
 
 	/* */
-	CHK(SQLExecDirect, (Statement, "SELECT i, c FROM #test", SQL_NTS));
+	CHK(SQLExecDirect, (Statement, (SQLCHAR *) "SELECT i, c FROM #test", SQL_NTS));
 
 	/* bind some rows at a time */
 	CHK(SQLBindCol, (Statement, 1, SQL_C_ULONG, n, 0, n_len));
@@ -100,7 +100,7 @@ Test(int use_sql)
 			CHK(SQLSetPos, (Statement, i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE));
 			if (use_sql) {
 				SWAP_STMT(Statement, stmt2);
-				CHK(SQLPrepare, (Statement, "DELETE FROM #test WHERE CURRENT OF C1", SQL_NTS));
+				CHK(SQLPrepare, (Statement, (SQLCHAR *) "DELETE FROM #test WHERE CURRENT OF C1", SQL_NTS));
 				CHK(SQLExecute, (Statement));
 				SWAP_STMT(Statement, stmt2);
 			}
@@ -114,7 +114,7 @@ Test(int use_sql)
 			CHK(SQLSetPos, (Statement, i, use_sql ? SQL_POSITION : SQL_UPDATE, SQL_LOCK_NO_CHANGE));
 			if (use_sql) {
 				SWAP_STMT(Statement, stmt2);
-				CHK(SQLPrepare, (Statement, "UPDATE #test SET c=? WHERE CURRENT OF C1", SQL_NTS));
+				CHK(SQLPrepare, (Statement, (SQLCHAR *) "UPDATE #test SET c=? WHERE CURRENT OF C1", SQL_NTS));
 				CHK(SQLBindParameter,
 				    (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, C_LEN, 0, c[i - 1], 0, NULL));
 				CHK(SQLExecute, (Statement));

@@ -1,3 +1,9 @@
+Thu Feb 16 08:30:00 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/scroll.c src/odbc/unittests/raiserror.c:
+	* src/odbc/unittests/cursor1.c:
+	- remove warning compiling with gcc4
+	* misc/test-other.sh: fix problem with DBD:ODBC test
+
 Mon Feb 13 17:11:30 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/genparams.c: add BIGINT type to test
 

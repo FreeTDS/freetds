@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.15 2006-01-06 10:22:28 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.16 2006-02-16 07:31:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -26,7 +26,7 @@ static const char create_proc[] =
 	"     RETURN (0)";
 
 static SQLSMALLINT ReturnCode;
-static SQLCHAR OutString[OUTSTRING_LEN];
+static char OutString[OUTSTRING_LEN];
 static int g_nocount, g_second_select;
 
 static void
@@ -95,7 +95,7 @@ CheckReturnCode(SQLRETURN result, SQLSMALLINT expected, int line)
 	printf("SpDateTest Output:\n");
 	printf("   Result = %d\n", (int) result);
 	printf("   Return Code = %d\n", (int) ReturnCode);
-	printf("   OutString = \"%s\"\n", (char *) OutString);
+	printf("   OutString = \"%s\"\n", OutString);
 	MY_ERROR("Invalid ReturnCode");
 }
 
@@ -130,7 +130,7 @@ Test(int level)
 	SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode);
 	SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam);
 	SQLBindParameter(Statement, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam, 0, &cbOutParam);
-	strcpy((char *) OutString, "Test");
+	strcpy(OutString, "Test");
 	SQLBindParameter(Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
 			 &cbOutString);
 

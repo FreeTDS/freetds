@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: scroll.c,v 1.2 2006-02-08 09:49:18 freddy77 Exp $";
+static char software_version[] = "$Id: scroll.c,v 1.3 2006-02-16 07:31:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -16,7 +16,7 @@ main(int argc, char *argv[])
 #define C_LEN 10
 
 	SQLUINTEGER n[ROWS];
-	SQLCHAR c[ROWS][C_LEN];
+	char c[ROWS][C_LEN];
 	SQLINTEGER c_len[ROWS], n_len[ROWS];
 
 	SQLUSMALLINT statuses[ROWS];
@@ -69,7 +69,7 @@ main(int argc, char *argv[])
 	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0));
 
 	/* */
-	CHK(SQLExecDirect, (Statement, "SELECT i, c FROM #test", SQL_NTS));
+	CHK(SQLExecDirect, (Statement, (SQLCHAR *) "SELECT i, c FROM #test", SQL_NTS));
 
 	/* bind some rows at a time */
 	CHK(SQLBindCol, (Statement, 1, SQL_C_ULONG, n, 0, n_len));
