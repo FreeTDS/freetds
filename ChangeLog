@@ -1,3 +1,6 @@
+Sun Feb 19 14:56:15 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/odbc.c: fix wrong declaration
+
 Thu Feb 16 08:30:00 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/scroll.c src/odbc/unittests/raiserror.c:
 	* src/odbc/unittests/cursor1.c:
