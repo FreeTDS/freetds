@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.148 2005-07-28 08:06:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.149 2006-02-24 20:06:37 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -106,14 +106,31 @@ tds_set_app(TDSLOGIN * tds_login, const char *application)
 	tds_dstr_copy(&tds_login->app_name, application);
 }
 
+/**
+ * \brief Set the servername in a TDSLOGIN structure
+ *
+ * Normally copies \a server into \tds_login.  If \a server does not point to a plausible name, the environment 
+ * variables TDSQUERY and DSQUERY are used, in that order.  If they don't exist, the "default default" servername
+ * is "SYBASE" (although the utility of that choice is a bit murky).  
+ *
+ * \param tds_login	points to a TDSLOGIN structure
+ * \param server	the servername, or NULL, or a zero-length string
+ * \todo open the log file earlier, so these messages can be seen.  
+ */
 void
 tds_set_server(TDSLOGIN * tds_login, const char *server)
 {
 	if (!server || strlen(server) == 0) {
+		server = getenv("TDSQUERY");
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'server_name' to '%s' from $TDSQUERY.\n", server);
+	}
+	if (!server || strlen(server) == 0) {
 		server = getenv("DSQUERY");
-		if (!server || strlen(server) == 0) {
-			server = "SYBASE";
-		}
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'server_name' to '%s' from $DSQUERY.\n", server);
+	}
+	if (!server || strlen(server) == 0) {
+		server = "SYBASE";
+		tdsdump_log(TDS_DBG_INFO1, "Setting 'server_name' to '%s' (compiled-in default).\n", server);
 	}
 	tds_dstr_copy(&tds_login->server_name, server);
 }
@@ -895,3 +912,4 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	return ret;
 #endif
 }
+

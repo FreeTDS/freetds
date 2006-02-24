@@ -1,3 +1,7 @@
+Fri Feb 24 15:04:35 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* src/tds/config.c src/tds/login.c
+	- nicer TDSDUMPCONFIG output, including a recap
+	
 Sun Feb 19 14:56:15 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/odbc.c: fix wrong declaration
 
