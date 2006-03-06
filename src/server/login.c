@@ -53,7 +53,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.41 2005-04-15 11:52:00 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.42 2006-03-06 11:57:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -119,7 +119,7 @@ tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	}	
 */
 	tds_dstr_init(&blockstr);
-	tds_read_string(tds, &login->host_name, 30);
+	tds_read_string(tds, &login->client_host_name, 30);
 	tds_read_string(tds, &login->user_name, 30);
 	tds_read_string(tds, &login->password, 30);
 	tds_get_n(tds, NULL, 31);	/* host process, junk for now */
@@ -201,7 +201,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
-	tds_dstr_set(&login->host_name, tds7_read_string(tds, host_name_len));
+	tds_dstr_set(&login->client_host_name, tds7_read_string(tds, host_name_len));
 	tds_dstr_set(&login->user_name, tds7_read_string(tds, user_name_len));
 
 	unicode_len = password_len * 2;

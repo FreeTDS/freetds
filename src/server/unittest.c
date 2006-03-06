@@ -39,7 +39,7 @@
 #include <tdsstring.h>
 #include <tdssrv.h>
 
-static char software_version[] = "$Id: unittest.c,v 1.9 2004-04-14 07:52:55 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.10 2006-03-06 11:57:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);
@@ -95,7 +95,7 @@ main(int argc, char **argv)
 static void
 dump_login(TDSLOGIN * login)
 {
-	printf("host %s\n", tds_dstr_cstr(&login->host_name));
+	printf("host %s\n", tds_dstr_cstr(&login->client_host_name));
 	printf("user %s\n", tds_dstr_cstr(&login->user_name));
 	printf("pass %s\n", tds_dstr_cstr(&login->password));
 	printf("app  %s\n", tds_dstr_cstr(&login->app_name));

@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.116 2006-02-24 20:06:37 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.117 2006-03-06 11:57:02 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -93,27 +93,19 @@ static char *interf_file = NULL;
 
 #define TDS_ISSPACE(c) isspace((unsigned char ) (c))
 
-static const struct _constants {
-	char *	pid_config_logpath;
-	char *	freetds_conf;
-	char *	location;
-	char *	pid_logpath;
-	char *	interfaces_path;
-	} constants = {
 #if !defined(WIN32) && !defined(DOS32X)
-                          "/tmp/tdsconfig.log.%d"
-			, "%s/etc/freetds.conf"
-			, "(from $FREETDS/etc)"
-			, "/tmp/freetds.log.%d"
-			, "/etc/freetds"
+static const char pid_config_logpath[] = "/tmp/tdsconfig.log.%d";
+static const char freetds_conf[] = "%s/etc/freetds.conf";
+static const char location[] = "(from $FREETDS/etc)";
+static const char pid_logpath[] = "/tmp/freetds.log.%d";
+static const char interfaces_path[] = "/etc/freetds";
 #else
-                          "c:\\tdsconfig.log.%d"
-			, "%s\\freetds.conf"
-			, "(from $FREETDS)"
-			, "c:\\freetds.log.%d"
-			, "c:\\"
+static const char pid_config_logpath[] = "c:\\tdsconfig.log.%d";
+static const char freetds_conf [] = "%s\\freetds.conf";
+static const char location[] = "(from $FREETDS)";
+static const char pid_logpath[] = "c:\\freetds.log.%d";
+static const char interfaces_path[] = "c:\\";
 #endif
-	};
 
 /**
  * \ingroup libtds
@@ -162,7 +154,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 			opened = tdsdump_open(s);
 		} else {
 			pid = getpid();
-			if (asprintf(&path, constants.pid_config_logpath, pid) >= 0) {
+			if (asprintf(&path, pid_config_logpath, pid) >= 0) {
 				if (*path) {
 					opened = tdsdump_open(path);
 				}
@@ -203,7 +195,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "language", tds_dstr_cstr(&connection->language));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_charset", tds_dstr_cstr(&connection->server_charset));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "connect_timeout", connection->connect_timeout);
-		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "host_name", tds_dstr_cstr(&connection->host_name));
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "client_host_name", tds_dstr_cstr(&connection->client_host_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "app_name", tds_dstr_cstr(&connection->app_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "user_name", tds_dstr_cstr(&connection->user_name));
 		/* tdsdump_log(TDS_DBG_PASSWD, "\t%20s = %s\n", "password", tds_dstr_cstr(&connection->password)); 
@@ -242,6 +234,7 @@ tds_fix_connection(TDSCONNECTION * connection)
 	tds_config_env_tdsver(connection);
 	tds_config_env_tdsdump(connection);
 	tds_config_env_tdsport(connection);
+	tds_config_env_tdshost(connection);
 }
 
 static int
@@ -316,8 +309,10 @@ tds_read_conf_file(TDSCONNECTION * connection, const char *server)
 	if (!found) {
 		eptr = getenv("FREETDS");
 		if (eptr) {
-			asprintf(&path, constants.freetds_conf, eptr);
-			found = tds_try_conf_file(path, constants.location, server, connection);
+			if (asprintf(&path, freetds_conf, eptr) >= 0) {
+				found = tds_try_conf_file(path, location, server, connection);
+				free(path);
+			}
 		} else {
 			tdsdump_log(TDS_DBG_INFO2, "... $FREETDS not set.  Trying $HOME.\n");
 		}
@@ -353,7 +348,7 @@ tds_config_boolean(const char *value)
 {
 	if (!strcmp(value, "yes") || !strcmp(value, "on") || !strcmp(value, "true") || !strcmp(value, "1"))
 		return 1;
-	if (!strcmp(value, "no") || !strcmp(value, "off") || !strcmp(value, "false") || !strcmp(value, "1"))
+	if (!strcmp(value, "no") || !strcmp(value, "off") || !strcmp(value, "false") || !strcmp(value, "0"))
 		return 0;
 	tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED boolean value: '%s'. Treating as 'no'.\n", value);
 	return 0;
@@ -534,19 +529,8 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "client_charset",
 			    tds_dstr_cstr(&connection->client_charset));
 	}
-	if (!tds_dstr_isempty(&login->host_name)) {
-		tds_dstr_copy(&connection->host_name, tds_dstr_cstr(&login->host_name));
-		/*
-		 * DBSETLHOST and it's equivilants are commentary fields
-		 * they don't affect connection->ip_addr (the server) but they show
-		 * up in an sp_who as the *clients* hostname.  (bsb, 11/10) 
-		 */
-		/* should work with IP (mlilback, 11/7/01) */
-		/*
-		 * if (connection->ip_addr) free(connection->ip_addr);
-		 * connection->ip_addr = calloc(sizeof(char),18);
-		 * tds_lookup_host(connection->host_name, NULL, connection->ip_addr, NULL);
-		 */
+	if (!tds_dstr_isempty(&login->client_host_name)) {
+		tds_dstr_copy(&connection->client_host_name, tds_dstr_cstr(&login->client_host_name));
 	}
 	if (!tds_dstr_isempty(&login->app_name)) {
 		tds_dstr_copy(&connection->app_name, tds_dstr_cstr(&login->app_name));
@@ -598,7 +582,7 @@ tds_config_env_tdsdump(TDSCONNECTION * connection)
 	if ((s = getenv("TDSDUMP"))) {
 		if (!strlen(s)) {
 			pid = getpid();
-			if (asprintf(&path, constants.pid_logpath, pid) >= 0)
+			if (asprintf(&path, pid_logpath, pid) >= 0)
 				tds_dstr_set(&connection->dump_file, path);
 		} else {
 			tds_dstr_copy(&connection->dump_file, s);
@@ -642,9 +626,7 @@ tds_config_env_tdshost(TDSCONNECTION * connection)
 		tds_lookup_host(tdshost, tmp);
 		tds_dstr_copy(&connection->ip_addr, tmp);
 		tdsdump_log(TDS_DBG_INFO1, "Setting 'ip_addr' to %s (%s) from $TDSHOST.\n", tmp, tdshost);
-
 	}
-	return;
 }
 
 /**
@@ -700,20 +682,18 @@ tds_set_interfaces_file_loc(const char *interf)
 }
 
 /**
- * Given a servername and port name or number, lookup the
- * hostname and service.  The server ip will be stored in the
- * string 'servername' in dotted-decimal notation.  The service port
- * number will be stored in string form in the 'port' parameter.
+ * Given a servername lookup the hostname. The server ip will be stored 
+ * in the string 'ip' in dotted-decimal notation.
  *
- * If we can't determine both the IP address and port number then
- * 'ip' and 'port' will be set to empty strings.
+ * If we can't determine the IP address then 'ip' will be set to empty
+ * string.
  */
 /* TODO callers seem to set always connection info... change it */
 void
 tds_lookup_host(const char *servername,	/* (I) name of the server                  */
 		char *ip	/* (O) dotted-decimal ip address of server */
 	)
-{				/* (O) port number of the service          */
+{
 	struct hostent *host = NULL;
 	unsigned int ip_addr = 0;
 
@@ -743,6 +723,11 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	}
 }				/* tds_lookup_host()  */
 
+/**
+ * Given a portname lookup the port.
+ *
+ * If we can't determine the port number than function return 0.
+ */
 static int
 tds_lookup_port(const char *portname)
 {
@@ -956,7 +941,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		if ( (int)unixspec != 0 && (int)unixspec != -1 ) sybase = unixspec;
 #endif
 		if (!sybase || !sybase[0])
-			sybase = constants.interfaces_path;
+			sybase = interfaces_path;
 
 		tdsdump_log(TDS_DBG_INFO1, "Looking for server in %s/interfaces.\n", sybase);
 		founded = search_interface_file(connection, sybase, "interfaces", server);
@@ -1017,17 +1002,14 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 static int
 parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 {
-	char *pSep, *pEnd;
+	char *pSep;
 	char *server;
 
 	/* seek the ':' in login server_name */
 	server = tds_dstr_cstr(&login->server_name);
-	pEnd = server + strlen(server);
-	for (pSep = server; pSep < pEnd; pSep++)
-		if (*pSep == ':')
-			break;
+	pSep = strrchr(server, ':');
 
-	if ((pSep < pEnd) && (pSep != server)) {	/* yes, i found it! */
+	if (pSep && pSep != server) {	/* yes, i found it! */
 		if (!tds_dstr_copyn(&connection->server_name, server, pSep - server))	/* end the server_name before the ':' */
 			return 0;	/* FALSE */
 
@@ -1046,8 +1028,19 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 		}
 
 		return 1;	/* TRUE */
-	} else
-		return 0;	/* FALSE */
+	}
+
+	/* handle instance name */
+	pSep = strrchr(server, '\\');
+	if (pSep && pSep != server) {
+		if (!tds_dstr_copyn(&connection->server_name, server, pSep - server))
+			return 0;
+
+		login->port = 0;
+		tds_dstr_copy(&connection->instance_name, pSep + 1);
+		*pSep = 0;
+	}
+	return 0;	/* FALSE */
 }
 
 

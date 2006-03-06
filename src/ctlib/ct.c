@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.163 2006-02-07 14:47:53 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.164 2006-03-06 11:57:01 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -460,8 +460,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		case CS_HOSTNAME:
 			if (out_len)
-				*out_len = tds_dstr_len(&tds_login->host_name);
-			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->host_name), buflen);
+				*out_len = tds_dstr_len(&tds_login->client_host_name);
+			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->client_host_name), buflen);
 			break;
 		case CS_SERVERNAME:
 			if (out_len)

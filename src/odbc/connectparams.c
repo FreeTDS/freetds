@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.66 2005-07-17 07:48:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.67 2006-03-06 11:57:01 freddy77 Exp $");
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 
@@ -276,7 +276,7 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 		} else if (strcasecmp(option, "APP") == 0) {
 			dest_s = &connection->app_name;
 		} else if (strcasecmp(option, "WSID") == 0) {
-			dest_s = &connection->host_name;
+			dest_s = &connection->client_host_name;
 		} else if (strcasecmp(option, "LANGUAGE") == 0) {
 			dest_s = &connection->language;
 		} else if (strcasecmp(option, "Port") == 0) {

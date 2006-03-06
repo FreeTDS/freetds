@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.247 2006-02-07 14:47:53 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.248 2006-03-06 11:57:01 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -724,7 +724,7 @@ typedef struct tds_login
 	DSTR language;		/* ie us-english */
 	DSTR server_charset;	/*  ie iso_1 */
 	TDS_INT connect_timeout;
-	DSTR host_name;
+	DSTR client_host_name;
 	DSTR app_name;
 	DSTR user_name;
 	DSTR password;
@@ -750,7 +750,7 @@ typedef struct tds_connection
 	DSTR language;
 	DSTR server_charset;	/**< charset of server */
 	TDS_INT connect_timeout;
-	DSTR host_name;	    /**< client hostname */
+	DSTR client_host_name;
 	DSTR app_name;
 	DSTR user_name;	    /**< account for login */
 	DSTR password;	    /**< password of account login */

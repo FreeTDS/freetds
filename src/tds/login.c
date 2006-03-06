@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.149 2006-02-24 20:06:37 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.150 2006-03-06 11:57:02 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -97,7 +97,7 @@ tds_set_user(TDSLOGIN * tds_login, const char *username)
 void
 tds_set_host(TDSLOGIN * tds_login, const char *hostname)
 {
-	tds_dstr_copy(&tds_login->host_name, hostname);
+	tds_dstr_copy(&tds_login->client_host_name, hostname);
 }
 
 void
@@ -221,7 +221,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds->query_timeout = connect_timeout ? connect_timeout : connection->query_timeout;
 	/* end */
 
-	/* verify that ip_addr is not NULL */
+	/* verify that ip_addr is not empty */
 	if (tds_dstr_isempty(&connection->ip_addr)) {
 		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is empty\n");
 		if (connection->server_name) {
@@ -376,7 +376,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	 * do this, (well...mine was a kludge actually) so here's mostly his
 	 */
 
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->host_name), TDS_MAX_LOGIN_STR_SZ);	/* client host name */
+	tds_put_login_string(tds, tds_dstr_cstr(&connection->client_host_name), TDS_MAX_LOGIN_STR_SZ);	/* client host name */
 	tds_put_login_string(tds, tds_dstr_cstr(&connection->user_name), TDS_MAX_LOGIN_STR_SZ);	/* account name */
 	tds_put_login_string(tds, tds_dstr_cstr(&connection->password), TDS_MAX_LOGIN_STR_SZ);	/* account password */
 	tds_put_login_string(tds, "37876", TDS_MAX_LOGIN_STR_SZ);	/* host process */
@@ -493,7 +493,7 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 	/* parse a bit of config */
 	user_name = tds_dstr_cstr(&connection->user_name);
 	user_name_len = user_name ? strlen(user_name) : 0;
-	host_name_len = tds_dstr_len(&connection->host_name);
+	host_name_len = tds_dstr_len(&connection->client_host_name);
 	password_len = tds_dstr_len(&connection->password);
 
 	/* parse domain\username */
@@ -552,7 +552,7 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 
 	tds_put_string(tds, domain, domain_len);
 	tds_put_string(tds, user_name, user_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->host_name), host_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
 
 	tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, &answer);
 	tds_put_n(tds, answer.lm_resp, 24);
@@ -604,7 +604,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	const char *user_name = tds_dstr_cstr(&connection->user_name);
 	const char *p;
 	int user_name_len = strlen(user_name);
-	int host_name_len = tds_dstr_len(&connection->host_name);
+	int host_name_len = tds_dstr_len(&connection->client_host_name);
 	int app_name_len = tds_dstr_len(&connection->app_name);
 	size_t password_len = tds_dstr_len(&connection->password);
 	int server_name_len = tds_dstr_len(&connection->server_name);
@@ -735,7 +735,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_smallint(tds, 0);
 
 	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
-	tds_put_string(tds, tds_dstr_cstr(&connection->host_name), host_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
 	if (!domain_login) {
 		TDSICONV *char_conv = tds->char_convs[client2ucs2];
 		tds_put_string(tds, tds_dstr_cstr(&connection->user_name), user_name_len);
@@ -778,7 +778,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_int(tds, 32);
 
 		/* hostname and domain */
-		tds_put_n(tds, connection->host_name, host_name_len);
+		tds_put_n(tds, connection->client_host_name, host_name_len);
 		tds_put_n(tds, domain, domain_len);
 	}
 
