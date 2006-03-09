@@ -1,3 +1,8 @@
+Thu Mar  9 14:33:37 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- add cursor_type to connection attributes (required for DBD::ODBC)
+	- removed small TODO on error report
+
 Mon Mar  6 12:55:10 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/tds.h src/ctlib/ct.c src/odbc/connectparams.c:
 	* src/pool/util.c src/server/login.c src/server/unittest.c:
@@ -6,7 +11,7 @@ Mon Mar  6 12:55:10 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	- optimize way strings are allocated
 
 Fri Feb 24 15:04:35 EST 2006	JK Lowden <jklowden@schemamania.org>
-	* src/tds/config.c src/tds/login.c
+	* src/tds/config.c src/tds/login.c:
 	- nicer TDSDUMPCONFIG output, including a recap
 
 Sun Feb 19 14:56:15 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>

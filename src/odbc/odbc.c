@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.406 2006-02-19 13:56:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.407 2006-03-09 13:34:26 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1076,6 +1076,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	tds_dstr_init(&dbc->server);
 	tds_dstr_init(&dbc->dsn);
 
+	dbc->attr.cursor_type = SQL_CURSOR_FORWARD_ONLY;
 	dbc->attr.access_mode = SQL_MODE_READ_WRITE;
 	dbc->attr.async_enable = SQL_ASYNC_ENABLE_OFF;
 	dbc->attr.auto_ipd = SQL_FALSE;
@@ -1279,6 +1280,9 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	dbc->stmt_list = stmt;
 
 	*phstmt = (SQLHSTMT) stmt;
+
+	if (dbc->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY)
+		_SQLSetStmtAttr(stmt, SQL_CURSOR_TYPE, (SQLPOINTER) (TDS_INTPTR) dbc->attr.cursor_type, SQL_IS_INTEGER);
 
 	ODBC_RETURN_(dbc);
 }
@@ -2377,9 +2381,10 @@ odbc_populate_ird(TDS_STMT * stmt)
 		return SQL_SUCCESS;
 	num_cols = res_info->num_cols;
 
-	/* TODO set error */
-	if (desc_alloc_records(ird, num_cols) != SQL_SUCCESS)
+	if (desc_alloc_records(ird, num_cols) != SQL_SUCCESS) {
+		odbc_errs_add(&stmt->errs, "HY001", NULL);
 		return SQL_ERROR;
+	}
 
 	for (i = 0; i < num_cols; i++) {
 		drec = &ird->records[i];
@@ -5227,6 +5232,11 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
 		ret = change_database(dbc, (char *) ValuePtr, len);
 		ODBC_RETURN(dbc, ret);
+		break;
+	case SQL_ATTR_CURSOR_TYPE:
+		printf("SQL_ATTR_CURSOR_TYPE on SQLSetConnectAttr\n");
+		dbc->attr.cursor_type = u_value;
+		ODBC_RETURN_(dbc);
 		break;
 	case SQL_ATTR_LOGIN_TIMEOUT:
 		dbc->attr.login_timeout = u_value;

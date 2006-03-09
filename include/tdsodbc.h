@@ -55,7 +55,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.89 2006-02-08 09:49:18 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.90 2006-03-09 13:34:26 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -212,6 +212,7 @@ struct _hcattr
 	DSTR translate_lib;
 	SQLUINTEGER translate_option;
 	SQLUINTEGER txn_isolation;
+	SQLUINTEGER cursor_type;
 #ifdef TDS_NO_DM
 	SQLUINTEGER trace;
 	DSTR tracefile;
