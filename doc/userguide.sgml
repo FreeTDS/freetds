@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2006-03-12 00:13:12 $</date>
-		<releaseinfo>$Revision: 1.96.2.1 $</releaseinfo>
+		<date>$Date: 2006-03-12 01:31:16 $</date>
+		<releaseinfo>$Revision: 1.96.2.2 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.96.2.1 $</>
-<member>$Date: 2006-03-12 00:13:12 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.96.2.1 2006-03-12 00:13:12 jklowden Exp $.</>
+<member>$Revision: 1.96.2.2 $</>
+<member>$Date: 2006-03-12 01:31:16 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.96.2.2 2006-03-12 01:31:16 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -212,7 +212,7 @@ The current version should be fully ODBC 3.0 compatible and contain many fixes a
 			<para>
 Basic <link linkend="apireference">API coverage</link> information for all libraries may be found in this manual.  It is maintained in <filename>doc/api_status.txt</>, included in the source distribution.   			
 			</para> 
-			<para>How big is it?  <productname>FreeTDS</productname> has almost 50,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, <productname>FreeTDS</productname>'s success so far lies somewhere between the Beetle and the Edsel.  
+			<para>How big is it?  <productname>FreeTDS</productname> has over 90,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, <productname>FreeTDS</productname>'s success so far lies somewhere between the Beetle and the Edsel.  
 			</para>
 		</sect2>
 		<sect2 id="Languages">
@@ -565,7 +565,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2006-03-12 00:13:12 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2006-03-12 01:31:16 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
