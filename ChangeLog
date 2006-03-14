@@ -1,6 +1,12 @@
+Tue Mar 14 16:16:24 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/sybdb.h src/apps/freebcp.c src/dblib/bcp.c:
+	- make freebcp not depend on dblib internals
+	* misc/test-other.sh: small fix
+	* src/odbc/odbc.c: backport fix for 64-bit machines
+
 Sat Mar 11 20:28:14 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml updated project's line count. 
-	
+
 Sat Mar 11 19:10:55 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* doc/userguide.sgml small updates and minor corrections
 

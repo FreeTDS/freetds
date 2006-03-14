@@ -43,10 +43,9 @@
 #include "tds.h"
 #include <sybfront.h>
 #include <sybdb.h>
-#include "dblib.h"
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.40.2.1 2006-01-31 13:24:12 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.40.2.2 2006-03-14 15:17:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -425,7 +424,7 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	if (pdata->Eflag) {
 
-		dbproc->bcpinfo->identity_insert_on = 1;
+		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
 	
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
 			printf("dbfcmd failed\n");
@@ -440,9 +439,9 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		while (NO_MORE_RESULTS != dbresults(dbproc));
 	}
 
-	dbproc->hostfileinfo->firstrow = pdata->firstrow;
-	dbproc->hostfileinfo->lastrow = pdata->lastrow;
-	dbproc->hostfileinfo->maxerrs = pdata->maxerrors;
+	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
+	bcp_control(dbproc, BCPLAST, pdata->lastrow);
+	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
 		printf("Error in bcp_columns.\n");
@@ -520,7 +519,7 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	if (pdata->Eflag) {
 
-		dbproc->bcpinfo->identity_insert_on = 1;
+		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
 	
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
 			printf("dbfcmd failed\n");
@@ -535,9 +534,9 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		while (NO_MORE_RESULTS != dbresults(dbproc));
 	}
 
-	dbproc->hostfileinfo->firstrow = pdata->firstrow;
-	dbproc->hostfileinfo->lastrow = pdata->lastrow;
-	dbproc->hostfileinfo->maxerrs = pdata->maxerrors;
+	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
+	bcp_control(dbproc, BCPLAST, pdata->lastrow);
+	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
 		printf("Error in bcp_columns.\n");
@@ -578,7 +577,7 @@ file_formatted(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	if (pdata->Eflag) {
 
-		dbproc->bcpinfo->identity_insert_on = 1;
+		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
 	
 		if (dbfcmd(dbproc, "set identity_insert %s on", pdata->dbobject) == FAIL) {
 			printf("dbfcmd failed\n");
@@ -593,9 +592,9 @@ file_formatted(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 		while (NO_MORE_RESULTS != dbresults(dbproc));
 	}
 
-	dbproc->hostfileinfo->firstrow = pdata->firstrow;
-	dbproc->hostfileinfo->lastrow = pdata->lastrow;
-	dbproc->hostfileinfo->maxerrs = pdata->maxerrors;
+	bcp_control(dbproc, BCPFIRST, pdata->firstrow);
+	bcp_control(dbproc, BCPLAST, pdata->lastrow);
+	bcp_control(dbproc, BCPMAXERRS, pdata->maxerrors);
 
 	if (FAIL == bcp_readfmt(dbproc, pdata->formatfile))
 		return FALSE;

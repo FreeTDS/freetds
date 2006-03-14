@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.402 2006-01-09 10:16:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.402.2.1 2006-03-14 15:17:43 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -423,7 +423,7 @@ SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType,
 #endif
 
 SQLRETURN SQL_API
-SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLINTEGER irow, SQLULEN FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
+SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLLEN irow, SQLULEN FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
 {
 	SQLRETURN ret;
 	SQLULEN * tmp_rows;

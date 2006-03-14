@@ -68,6 +68,11 @@ for f in .libs/libtdsodbc.so .libs/libtdsodbc.sl .libs/libtdsodbc.dll .libs/libt
 		echo "[$tSRV]
 Driver = $PWD/src/odbc/$f
 Database = $tDB
+Servername = $tSRV
+
+[xx_$tSRV]
+Driver = $PWD/src/odbc/$f
+Database = $tDB
 Servername = $tSRV" > odbc.ini
 		ODBCINI="$PWD/odbc.ini"
 		SYSODBCINI="$PWD/odbc.ini"
