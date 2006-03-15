@@ -4,12 +4,17 @@
 
 # set -e
 
+ONLINE=no
+
 BUILD=1
 for param
 do
 	case $param in
 	--no-build)
 		BUILD=0
+		;;
+	--online)
+		ONLINE=yes
 		;;
 	esac
 done
@@ -90,30 +95,45 @@ $a =~ s,{CONTENT},$html,;
 print $a' "$DIR/tmp1.tmpl" "$1"  > "$DST"
 }
 
+online_log () {
+	if test $ONLINE = yes; then
+	        echo "@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@- $1 -@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@"
+	fi
+}
+
 # function to save output
 output_save () {
 	COMMENT=$1
 	shift
 	OUT=$1
 	shift
-	classifier "$@" > "$DIR/$OUT.txt"
-	RES=$?
+	if test $ONLINE = yes; then
+		online_log "START $OUT"
+		classifier "$@"
+		RES=$?
+		online_log "RESULT $RES"
+		online_log "END $OUT"
+	else
+		classifier "$@" > "$DIR/$OUT.txt"
 
-	cat "$DIR/$OUT.txt" | grep -v '^2:.*\(has modification time in the future \|Clock skew detected\.  Your build may be incomplete\.\|Current time: Timestamp out of range; substituting \)' > "$DIR/$OUT.tmp" && mv -f "$DIR/$OUT.tmp" "$DIR/$OUT.txt"
-	output_html "$COMMENT" "$DIR/$OUT.txt" "$DIR/$OUT.html"
+		RES=$?
 
-	WARN="no :-)"
-	if test `cat "$DIR/$OUT.txt" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
-		WARN="yes :-("
-	fi
-	ERR="yes :-)"
-	if test $RES != 0; then
-		ERR="no :-("
-		WARN=ignored
-	fi
+		cat "$DIR/$OUT.txt" | grep -v '^2:.*\(has modification time in the future \|Clock skew detected\.  Your build may be incomplete\.\|Current time: Timestamp out of range; substituting \)' > "$DIR/$OUT.tmp" && mv -f "$DIR/$OUT.tmp" "$DIR/$OUT.txt"
+		output_html "$COMMENT" "$DIR/$OUT.txt" "$DIR/$OUT.html"
+
+		WARN="no :-)"
+		if test `cat "$DIR/$OUT.txt" | sed 's,^+2:,2:,g' | grep '^2:' | wc -l` != 0; then
+			WARN="yes :-("
+		fi
+		ERR="yes :-)"
+		if test $RES != 0; then
+			ERR="no :-("
+			WARN=ignored
+		fi
 	
-	# output row information
-	out_row "$COMMENT  $ERR  $WARN  <a href=\"$OUT.html\">log</a>"
+		# output row information
+		out_row "$COMMENT  $ERR  $WARN  <a href=\"$OUT.html\">log</a>"
+	fi
 }
 
 out_init () {
@@ -189,13 +209,23 @@ if test $BUILD = 1; then
 fi
 
 echo Testing ...
-TESTS_ENVIRONMENT="$DIR/full-test.sh"
-export TESTS_ENVIRONMENT ORIGDIR
-$MAKE check 2> /dev/null > "$DIR/check.txt"
+if test $ONLINE = yes; then
+	TESTS_ENVIRONMENT="$DIR/full-test-ol.sh"
+	export TESTS_ENVIRONMENT ORIGDIR
+	$MAKE check 2> /dev/null
+else
+	TESTS_ENVIRONMENT="$DIR/full-test.sh"
+	export TESTS_ENVIRONMENT ORIGDIR
+	$MAKE check 2> /dev/null > "$DIR/check.txt"
+fi
 if  test $? != 0; then
 	out_end
 	echo "error during make check"
 	exit 1;
+fi
+
+if test $ONLINE = yes; then
+	exit 0
 fi
 
 # parse all tests
