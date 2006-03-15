@@ -1,3 +1,7 @@
+Wed Mar 15 00:41:11 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* doc/freebcp.txt The freebcp manpage was seriously out of date.
+	* src/apps/freebcp.c give better error message.
+
 Thu Mar  9 14:33:37 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- add cursor_type to connection attributes (required for DBD::ODBC)
