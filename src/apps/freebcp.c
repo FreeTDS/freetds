@@ -45,7 +45,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.43 2006-02-06 15:50:25 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.44 2006-03-15 05:44:41 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -158,11 +158,7 @@ process_parameters(int argc, char **argv, PARAMDATA *pdata)
 	int ch;
 
 	if (argc < 6) {
-		if (argc == 1) {
-			pusage();
-			return (FALSE);
-		}
-		fprintf(stderr, "A minimum of 6 parameters must be supplied.\n");
+		pusage();
 		return (FALSE);
 	}
 
