@@ -1,3 +1,7 @@
+Thu Mar 16 09:59:25 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* TODO add rcp error messages
+	* src/apps/bsqldb.c exit if severity > 10
+
 Wed Mar 15 00:41:11 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* doc/freebcp.txt The freebcp manpage was seriously out of date.
 	* src/apps/freebcp.c give better error message.
