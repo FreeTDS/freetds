@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.26 2006-01-23 22:31:38 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.27 2006-03-16 15:04:22 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -464,7 +464,8 @@ print_results(DBPROCESS *dbproc)
 				asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
 				assert(metacompute[i]->meta[c].name);
 					
-				metacompute[i]->meta[c].width = get_printable_size(metacompute[i]->meta[c].type, metacompute[i]->meta[c].size);
+				metacompute[i]->meta[c].width = get_printable_size(metacompute[i]->meta[c].type, 
+										   metacompute[i]->meta[c].size);
 				if (metacompute[i]->meta[c].width < strlen(metacompute[i]->meta[c].name))
 					metacompute[i]->meta[c].width = strlen(metacompute[i]->meta[c].name);
 
@@ -476,8 +477,8 @@ print_results(DBPROCESS *dbproc)
 				}
 				
 				fprintf(options.verbose, "\tcolumn %d is %s, type %s, size %d %s\n", 
-					c+1, metacompute[i]->meta[c].name, dbprtype(metacompute[i]->meta[c].type), metacompute[i]->meta[c].size, 
-					(nbylist > 0)? bynames : "");
+					c+1, metacompute[i]->meta[c].name, dbprtype(metacompute[i]->meta[c].type),
+					metacompute[i]->meta[c].size, (nbylist > 0)? bynames : "");
 				free(bynames);
 	
 				/* allocate buffer */
@@ -858,6 +859,9 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 		fprintf(stderr, "\n\t");
 	}
 	fprintf(stderr, "%s\n", msgtext);
+	
+	if (severity > 10)
+		exit(severity);
 
 	return 0;
 }
