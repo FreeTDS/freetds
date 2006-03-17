@@ -1,3 +1,7 @@
+Fri Mar 17 01:35:17 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/dblib.c src/dblib/rpc.c
+	- added a TDSDUMP log entry for every public function
+	
 Thu Mar 16 09:59:25 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* TODO add rcp error messages
 	* src/apps/bsqldb.c exit if severity > 10

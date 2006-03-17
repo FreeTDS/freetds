@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.50 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.51 2006-03-17 06:37:24 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -76,6 +76,8 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 {
 	DBREMOTE_PROC **rpc;
 	int dbrpcrecompile = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "dbrpcinit(%p, %s, %d)\n", dbproc, rpcname, options);
 
 	/* sanity */
 	if (dbproc == NULL || rpcname == NULL)
@@ -158,6 +160,8 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	DBREMOTE_PROC *rpc;
 	DBREMOTE_PROC_PARAM **pparam;
 	DBREMOTE_PROC_PARAM *param;
+
+	tdsdump_log(TDS_DBG_FUNC, "dbrpcparam(%p, %s, '%c', %d, %d, %d, %p)\n", dbproc, paramname, status, type, maxlen, datalen, value);
 
 	/* sanity */
 	if (dbproc == NULL)
@@ -262,6 +266,8 @@ RETCODE
 dbrpcsend(DBPROCESS * dbproc)
 {
 	DBREMOTE_PROC *rpc;
+
+	tdsdump_log(TDS_DBG_FUNC, "dbrpcsend(%p)\n", dbproc);
 
 	/* sanity */
 	if (dbproc == NULL || dbproc->rpc == NULL	/* dbrpcinit should allocate pointer */
