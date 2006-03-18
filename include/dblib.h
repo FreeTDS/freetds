@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.32 2006-03-18 06:29:33 jklowden Exp $ */
+/* $Id: dblib.h,v 1.33 2006-03-18 17:36:19 jklowden Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -84,7 +84,7 @@ typedef struct
 
 typedef struct
 {
-	char *hint;
+	const char *hint;
 	TDS_CHAR *tablename;
 	TDS_CHAR *insert_stmt;
 	TDS_INT direction;
