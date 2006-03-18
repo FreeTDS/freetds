@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.31 2005-09-22 14:18:35 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.32 2006-03-18 06:29:33 jklowden Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -175,6 +175,13 @@ RETCODE _bcp_get_prog_data(DBPROCESS * dbproc);
 
 extern MHANDLEFUNC _dblib_msg_handler;
 extern EHANDLEFUNC _dblib_err_handler;
+
+#define CHECK_PARAMETER(x, msg)	if (!(x)) { dbperror(dbproc, (msg), 0); return FAIL; }
+#define CHECK_PARAMETER2(x, msg, ret)	if ((x) == NULL) { dbperror(dbproc, (msg), 0); return (ret); }
+#define CHECK_PARAMETER_RETVOID(x, msg)	if ((x) == NULL) { dbperror(dbproc, (msg), 0); return; }
+#define CHECK_PARAMETER_NOPROC(x, msg)	if ((x) == NULL) { dbperror(NULL, (msg), 0); return FAIL; }
+#define DBPERROR_RETURN(x, msg)	if (x) { dbperror(dbproc, (msg), 0); return FAIL; }
+
 
 #ifdef __cplusplus
 #if 0

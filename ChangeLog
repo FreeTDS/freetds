@@ -1,3 +1,7 @@
+Sat Mar 18 01:27:32 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* include/dblib.h src/dblib/dblib.c src/dblib/rpc.c
+	- test parameters for all public functions (except bcp)
+	
 Fri Mar 17 01:35:17 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c src/dblib/rpc.c
 	- added a TDSDUMP log entry for every public function

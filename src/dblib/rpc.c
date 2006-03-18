@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.51 2006-03-17 06:37:24 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.52 2006-03-18 06:29:34 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -78,10 +78,10 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 	int dbrpcrecompile = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcinit(%p, %s, %d)\n", dbproc, rpcname, options);
+	CHECK_PARAMETER(dbproc, SYBENULL);
+	CHECK_PARAMETER(rpcname, SYBENULP);
 
 	/* sanity */
-	if (dbproc == NULL || rpcname == NULL)
-		return FAIL;
 
 	if (options & DBRPCRESET) {
 		rpc_clear(dbproc->rpc);
@@ -94,10 +94,7 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 	options &= ~DBRPCRECOMPILE;	/* turn that one off, now that we've extracted it */
 
 	/* all other options except DBRPCRECOMPILE are invalid */
-	if (options) {
-		/* should show client error message */
-		return FAIL;
-	}
+	DBPERROR_RETURN(options, SYBEIPV);
 
 	/* to allocate, first find a free node */
 	for (rpc = &dbproc->rpc; *rpc != NULL; rpc = &(*rpc)->next) {
@@ -162,29 +159,24 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	DBREMOTE_PROC_PARAM *param;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcparam(%p, %s, '%c', %d, %d, %d, %p)\n", dbproc, paramname, status, type, maxlen, datalen, value);
-
-	/* sanity */
-	if (dbproc == NULL)
-		return FAIL;
-	if (dbproc->rpc == NULL)
-		return FAIL;
+	CHECK_PARAMETER(dbproc, SYBENULL);
+	CHECK_PARAMETER(dbproc->rpc, SYBERPCS);
 
 	/* validate datalen parameter */
 
 	if (is_fixed_type(type)) {
-		if (datalen > 0) 
-			return FAIL;
-	} else {
-		if (datalen < 0) 
-			return FAIL;
+		datalen = -1; 
+	} else {	/* Sybooks: "Passing datalen as -1 for any of these [non-fixed] datatypes results 
+			 * in the DBPROCESS referenced by dbproc being marked as "dead," or unusable."
+			 */
+		DBPERROR_RETURN(datalen < 0, SYBERPIL);
 	}
 
 	/* validate maxlen parameter */
 
 	if (status & DBRPCRETURN) {
 		if (is_fixed_type(type)) {
-			if (maxlen != -1)
-				return FAIL;
+			maxlen = -1;
 		} else {
 			if (maxlen == -1)
 				maxlen = 255;
@@ -195,8 +187,7 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 		 * that ms implementation wrongly require this 0 for NULL variable
 		 * input parameters, so fix it
 		 */
-		if (maxlen != -1 && maxlen != 0)
-			return FAIL;
+		DBPERROR_RETURN(maxlen != -1 && maxlen != 0, SYBEIPV);
 		maxlen = -1;
 	}
 
@@ -204,13 +195,16 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 
 	/* allocate */
 	param = (DBREMOTE_PROC_PARAM *) malloc(sizeof(DBREMOTE_PROC_PARAM));
-	if (param == NULL)
+	if (param == NULL) {
+		dbperror(dbproc, SYBEMEM, 0);
 		return FAIL;
+	}
 
 	if (paramname) {
 		name = strdup(paramname);
 		if (name == NULL) {
 			free(param);
+			dbperror(dbproc, SYBEMEM, 0);
 			return FAIL;
 		}
 	}
@@ -227,7 +221,6 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	 * if datalen = 0, value parameter is ignored       
 	 * this is one way to specify a NULL input parameter 
 	 */
-
 	if (datalen == 0)
 		param->value = NULL;
 	else
@@ -268,25 +261,23 @@ dbrpcsend(DBPROCESS * dbproc)
 	DBREMOTE_PROC *rpc;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcsend(%p)\n", dbproc);
+	CHECK_PARAMETER(dbproc, SYBENULL);
+	CHECK_PARAMETER(dbproc->rpc, SYBERPCS);	/* dbrpcinit should allocate pointer */
 
 	/* sanity */
-	if (dbproc == NULL || dbproc->rpc == NULL	/* dbrpcinit should allocate pointer */
-	    || dbproc->rpc->name == NULL) {	/* can't be ready without a name */
+	if (dbproc->rpc->name == NULL) {	/* can't be ready without a name */
+		tdsdump_log(TDS_DBG_INFO1, "returning FAIL: name is NULL\n");
 		return FAIL;
 	}
 
 	dbproc->dbresults_state = _DB_RES_INIT;
-
-	/* FIXME do stuff */
-	tdsdump_log(TDS_DBG_FUNC, "dbrpcsend()\n");
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
 		int erc;
 		TDSPARAMINFO *pparam_info = NULL;
 
 		/*
-		 * liam@inodes.org: allow stored procedures to have no
-		 * paramaters 
+		 * liam@inodes.org: allow stored procedures to have no paramaters 
 		 */
 		if (rpc->param_list != NULL) {
 			pparam_info = param_info_alloc(dbproc->tds_socket, rpc);
@@ -295,13 +286,17 @@ dbrpcsend(DBPROCESS * dbproc)
 		}
 		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
 		tds_free_param_results(pparam_info);
-		if (erc == TDS_FAIL)
+		if (erc == TDS_FAIL) {
+			tdsdump_log(TDS_DBG_INFO1, "returning FAIL: tds_submit_rpc() failed\n");
 			return FAIL;
+		}
 	}
 
 	/* free up the memory */
 	rpc_clear(dbproc->rpc);
 	dbproc->rpc = NULL;
+
+	tdsdump_log(TDS_DBG_FUNC, "dbrpcsend() returning SUCCEED\n");
 
 	return SUCCEED;
 }
