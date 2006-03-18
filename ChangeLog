@@ -1,6 +1,6 @@
 Sat Mar 18 12:34:02 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/bcp.c
-	- test parameters.  Unable to test due to down server.
+	- validate parameters.  Unable to run unittest due to down server.
 
 Sat Mar 18 01:27:32 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/dblib.c src/dblib/rpc.c
