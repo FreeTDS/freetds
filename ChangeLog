@@ -1,6 +1,10 @@
+Sun Mar 19 18:33:14 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/genparams.c src/odbc/unittests/transaction.c:
+	- remove warnings on 64bit int
+
 Sun Mar 19 09:27:09 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/bcp.c src/dblib/dblib.c more logging repairs
-	
+
 Sat Mar 18 12:34:02 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/bcp.c
 	- validate parameters.  Unable to run unittest due to down server.
@@ -8,11 +12,11 @@ Sat Mar 18 12:34:02 EST 2006	JK Lowden <jklowden@schemamania.org>
 Sat Mar 18 01:27:32 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/dblib.c src/dblib/rpc.c
 	- test parameters for all public functions (except bcp)
-	
+
 Fri Mar 17 01:35:17 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c src/dblib/rpc.c
 	- added a TDSDUMP log entry for every public function
-	
+
 Thu Mar 16 09:59:25 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* TODO add rcp error messages
 	* src/apps/bsqldb.c exit if severity > 10

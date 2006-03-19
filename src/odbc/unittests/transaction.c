@@ -1,12 +1,13 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.10 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.11 2006-03-19 17:33:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
 Test(int discard_test)
 {
-	long out_buf, out_len;
+	long out_buf;
+	SQLLEN out_len;
 	int result = 0;
 	SQLLEN rows;
 	int retcode = 0;

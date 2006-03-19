@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.15 2006-02-13 16:11:31 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.16 2006-03-19 17:33:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -82,7 +82,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		value_len = p - value_to_convert;
 		expected = p + 4;
 	}
-	sprintf(sbuf, "SELECT CONVERT(%s, '%.*s')", type, value_len, value_to_convert);
+	sprintf(sbuf, "SELECT CONVERT(%s, '%.*s')", type, (int) value_len, value_to_convert);
 	Command(Statement, sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	if (!SQL_SUCCEEDED(SQLFetch(Statement)))
