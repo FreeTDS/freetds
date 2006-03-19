@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.142 2006-03-18 17:36:19 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.143 2006-03-19 14:29:59 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2990,10 +2990,11 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 		return FAIL;
 	}
 
-	if (table_column <= 0 ||  table_column > dbproc->bcpinfo->bindinfo->num_cols)
+	if (table_column <= 0 ||  table_column > dbproc->bcpinfo->bindinfo->num_cols) {
 		dbperror(dbproc, SYBECNOR, 0);
 		return FAIL;
-
+	}
+	
 	if (varaddr == NULL && (prefixlen != 0 || termlen != 0)) {
 		dbperror(dbproc, SYBEBCBNPR, 0);
 		return FAIL;
@@ -3026,14 +3027,13 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour)
 	TDSSOCKET  *tds = dbproc->tds_socket;
 	TDSCOLUMN  *bindcol;
 
-	static const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
-	static const unsigned char GEN_NULL = 0x00;
-	static const unsigned char textptr[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-											 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-	};
-	static const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-
 	static const TDS_TINYINT textptr_size = 16;
+	static const unsigned char GEN_NULL = 0x00;
+
+	static const unsigned char CHARBIN_NULL[] =  { 0xff, 0xff };
+	static const unsigned char textptr[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+						 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+	static const unsigned char timestamp[]={ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 	unsigned char *record;
 	TDS_INT	 old_record_size;
@@ -3063,8 +3063,8 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour)
 			bindcol = dbproc->bcpinfo->bindinfo->columns[i];
 
 			/*
-			 * dont send the (meta)data for timestamp columns, or
-			 * identity columns (unless indentity_insert is enabled
+			 * Don't send the (meta)data for timestamp columns or
+			 * identity columns unless indentity_insert is enabled.
 			 */
 
 			if ((!dbproc->bcpinfo->identity_insert_on && bindcol->column_identity) || 
@@ -3074,14 +3074,12 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour)
 
 			if (behaviour == BCP_REC_FETCH_DATA) { 
 				if ((_bcp_get_col_data(dbproc, bindcol)) != SUCCEED) {
-					tdsdump_log(TDS_DBG_INFO1, "bcp_get_colData (column %d) failed\n", i + 1);
+					tdsdump_log(TDS_DBG_INFO1, "_bcp_get_col_data (column %d) failed\n", i + 1);
 		 			return FAIL;
 				}
-				tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
-							i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->null_column);
 			}
-			tdsdump_log(TDS_DBG_INFO1, "column %d length %d null %d\n",
-						i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->null_column);
+			tdsdump_log(TDS_DBG_INFO1, "parsed column %d, length %d (%snull)\n", i + 1, 
+				    bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->null_column? "":"not ");
 	
 			if (bindcol->bcp_column_data->null_column) {
 				if (bindcol->column_nullable) {
@@ -3152,10 +3150,6 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour)
 				tds_swap_datatype(tds_get_conversion_type(bindcol->column_type, bindcol->bcp_column_data->datalen),
 									bindcol->bcp_column_data->data);
 #endif
-				tdsdump_log(TDS_DBG_INFO1, "new_record_size = %d datalen = %d \n", 
-							new_record_size, bindcol->bcp_column_data->datalen);
-
-
 				if (is_numeric_type(bindcol->column_type)) {
 					TDS_NUMERIC *num = (TDS_NUMERIC *) bindcol->bcp_column_data->data;
 					int size;
@@ -3167,8 +3161,6 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour)
 					record += size; 
 					new_record_size += size;
 				} else {
-					tdsdump_log(TDS_DBG_INFO1, "new_record_size = %d datalen = %d \n", 
-								new_record_size, bindcol->bcp_column_data->datalen);
 					memcpy(record, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
 					record += bindcol->bcp_column_data->datalen;
 					new_record_size += bindcol->bcp_column_data->datalen;

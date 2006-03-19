@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.248 2006-03-18 06:29:34 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.249 2006-03-19 14:29:59 jklowden Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -1202,6 +1202,44 @@ dbexit()
 	dblib_release_tds_ctx(count);
 }
 
+static const char *
+prretcode(int retcode)
+{
+	static char unknown[12]="oops";
+	switch(retcode) {
+	case TDS_SUCCEED:		return "TDS_SUCCEED";
+	case TDS_FAIL:			return "TDS_FAIL";
+	case TDS_NO_MORE_RESULTS:	return "TDS_NO_MORE_RESULTS";
+	case TDS_CANCELLED:		return "TDS_CANCELLED";
+	default:
+		sprintf(unknown, "%u ??", retcode);
+	}
+	return unknown;
+}
+
+
+static const char *
+prresult_type(int result_type)
+{
+	static char unknown[12]="oops";
+	switch(result_type) {
+	case TDS_COMPUTE_RESULT:	return "TDS_COMPUTE_RESULT";
+	case TDS_CMD_DONE:		return "TDS_CMD_DONE";
+	case TDS_CMD_SUCCEED:		return "TDS_CMD_SUCCEED";
+	case TDS_CMD_FAIL:		return "TDS_CMD_FAIL";
+	case TDS_ROWFMT_RESULT:		return "TDS_ROWFMT_RESULT";
+	case TDS_COMPUTEFMT_RESULT:	return "TDS_COMPUTEFMT_RESULT";
+	case TDS_DESCRIBE_RESULT:	return "TDS_DESCRIBE_RESULT";
+	case TDS_DONE_RESULT:		return "TDS_DONE_RESULT";
+	case TDS_DONEPROC_RESULT:	return "TDS_DONEPROC_RESULT";
+	case TDS_DONEINPROC_RESULT:	return "TDS_DONEINPROC_RESULT";
+	case TDS_OTHERS_RESULT:		return "TDS_OTHERS_RESULT";
+	default:
+		sprintf(unknown, "%u ??", result_type);
+	}
+	return unknown;
+}
+
 /**
  * \ingroup dblib_core
  * \brief Return number of regular columns in a result set.  
@@ -1254,8 +1292,8 @@ dbresults(DBPROCESS * dbproc)
 
 		retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
 
-		tdsdump_log(TDS_DBG_FUNC, "dbresults() process_result_tokens returned result_type = %d retcode = %d\n", 
-								  result_type, retcode);
+		tdsdump_log(TDS_DBG_FUNC, "dbresults() tds_process_tokens returned %d (%s),\n\t\t\tresult_type %s\n", 
+						retcode, prretcode(retcode), prresult_type(result_type));
 
 		switch (retcode) {
 

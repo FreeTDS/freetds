@@ -1,3 +1,6 @@
+Sun Mar 19 09:27:09 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/bcp.c src/dblib/dblib.c more logging repairs
+	
 Sat Mar 18 12:34:02 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* include/dblib.h src/dblib/bcp.c
 	- validate parameters.  Unable to run unittest due to down server.
