@@ -232,7 +232,7 @@ fi
 echo Processing output ...
 
 NUM=1
-out_header "Tests  Success  Warnings  log  VG Success  VG warnings  VG errors  VG leaks  VG log"
+out_header "Test  Success  Warnings  Log  VG Success  VG warnings  VG errors  VG leaks  VG log"
 for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL-TEST:,,g; s,:FULL-TEST.*,,g' `; do
 	TESTLINE="$CUR"
 	

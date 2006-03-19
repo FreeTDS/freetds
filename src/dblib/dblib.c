@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.249 2006-03-19 14:29:59 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.250 2006-03-19 17:35:22 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -4499,8 +4499,7 @@ dbmnyadd(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * sum)
 	CHECK_PARAMETER(m1, SYBENULP);
 	CHECK_PARAMETER(m2, SYBENULP);
 	CHECK_PARAMETER(sum, SYBENULP);
-	if (!m1 || !m2 || !sum)
-		return FAIL;
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyadd()\n");
 	return SUCCEED;
 }
@@ -4526,8 +4525,7 @@ dbmnysub(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * difference)
 	CHECK_PARAMETER(m1, SYBENULP);
 	CHECK_PARAMETER(m2, SYBENULP);
 	CHECK_PARAMETER(difference, SYBENULP);
-	if (!m1 || !m2 || !difference)
-		return FAIL;
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnysyb()\n");
 	return SUCCEED;
 }
@@ -4552,8 +4550,7 @@ dbmnymul(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * prod)
 	CHECK_PARAMETER(m1, SYBENULP);
 	CHECK_PARAMETER(m2, SYBENULP);
 	CHECK_PARAMETER(prod, SYBENULP);
-	if (!m1 || !m2 || !prod)
-		return FAIL;
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnymul()\n");
 	return SUCCEED;
 }
@@ -4578,8 +4575,7 @@ dbmnydivide(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * quotient)
 	CHECK_PARAMETER(m1, SYBENULP);
 	CHECK_PARAMETER(m2, SYBENULP);
 	CHECK_PARAMETER(quotient, SYBENULP);
-	if (!m1 || !m2 || !quotient)
-		return FAIL;
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnydivide()\n");
 	return SUCCEED;
 }
@@ -4638,8 +4634,7 @@ dbmnyscale(DBPROCESS * dbproc, DBMONEY * amount, int multiplier, int addend)
 	tdsdump_log(TDS_DBG_FUNC, "dbmnyscale(%p, %p, %d, %d)\n", dbproc, amount, multiplier, addend);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(amount, SYBENULP);
-	if (!amount)
-		return FAIL;
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyscale()\n");
 	return SUCCEED;
 }
@@ -4661,9 +4656,6 @@ dbmnyzero(DBPROCESS * dbproc, DBMONEY * dest)
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(dest, SYBENULP);
 
-	if (dest == NULL) {
-		return FAIL;
-	}
 	dest->mnylow = 0;
 	dest->mnyhigh = 0;
 	return SUCCEED;
@@ -4685,8 +4677,6 @@ dbmnymaxpos(DBPROCESS * dbproc, DBMONEY * amount)
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(amount, SYBENULP);
 
-	if (!amount)
-		return FAIL;
 	amount->mnylow = 0xFFFFFFFFlu;
 	amount->mnyhigh = 0x7FFFFFFFl;
 	return SUCCEED;
@@ -4708,8 +4698,6 @@ dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(amount, SYBENULP);
 
-	if (!amount)
-		return FAIL;
 	amount->mnylow = 0;
 	amount->mnyhigh = -0x80000000l;
 	return SUCCEED;
@@ -4737,8 +4725,6 @@ dbmnyndigit(DBPROCESS * dbproc, DBMONEY * mnyptr, DBCHAR * digit, DBBOOL * zero)
 	CHECK_PARAMETER(digit, SYBENULP);
 	CHECK_PARAMETER(zero, SYBENULP);
 
-	if (!mnyptr)
-		return FAIL;
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyndigit()\n");
 	return SUCCEED;
 }
@@ -4762,6 +4748,7 @@ dbmnyinit(DBPROCESS * dbproc, DBMONEY * amount, int trim, DBBOOL * negative)
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(amount, SYBENULP);
 	CHECK_PARAMETER(negative, SYBENULP);
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyinit()\n");
 	return SUCCEED;
 }
@@ -4806,8 +4793,7 @@ dbmnyinc(DBPROCESS * dbproc, DBMONEY * amount)
 	tdsdump_log(TDS_DBG_FUNC, "dbmnyinc(%p, %p)\n", dbproc, amount);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(amount, SYBENULP);
-	if (!amount)
-		return FAIL;
+
 	if (amount->mnylow != 0xFFFFFFFFlu) {
 		++amount->mnylow;
 		return SUCCEED;
@@ -4836,8 +4822,6 @@ dbmnydec(DBPROCESS * dbproc, DBMONEY * amount)
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(amount, SYBENULP);
 
-	if (!amount)
-		return FAIL;
 	if (amount->mnylow != 0) {
 		--amount->mnylow;
 		return SUCCEED;
@@ -4866,8 +4850,7 @@ dbmnyminus(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(src, SYBENULP);
 	CHECK_PARAMETER(dest, SYBENULP);
-	if (!src || !dest)
-		return FAIL;
+
 	if (src->mnyhigh == -0x80000000l && src->mnylow == 0)
 		return FAIL;
 	dest->mnyhigh = -src->mnyhigh;
@@ -4918,9 +4901,6 @@ dbmny4zero(DBPROCESS * dbproc, DBMONEY4 * dest)
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(dest, SYBENULP);
 
-	if (dest == NULL) {
-		return FAIL;
-	}
 	dest->mny4 = 0;
 	return SUCCEED;
 }
@@ -4946,9 +4926,6 @@ dbmny4add(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * sum)
 	CHECK_PARAMETER(m2, SYBENULP);
 	CHECK_PARAMETER(sum, SYBENULP);
 
-	if ((m1 == NULL) || (m2 == NULL) || (sum == NULL)) {
-		return FAIL;
-	}
 	sum->mny4 = m1->mny4 + m2->mny4;
 	if (((m1->mny4 < 0) && (m2->mny4 < 0) && (sum->mny4 >= 0))
 	    || ((m1->mny4 > 0) && (m2->mny4 > 0) && (sum->mny4 <= 0))) {
@@ -4981,9 +4958,6 @@ dbmny4sub(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * diff)
 	CHECK_PARAMETER(m2, SYBENULP);
 	CHECK_PARAMETER(diff, SYBENULP);
 
-	if ((m1 == NULL) || (m2 == NULL) || (diff == NULL)) {
-		return FAIL;
-	}
 	diff->mny4 = m1->mny4 - m2->mny4;
 	if (((m1->mny4 <= 0) && (m2->mny4 > 0) && (diff->mny4 > 0))
 	    || ((m1->mny4 >= 0) && (m2->mny4 < 0) && (diff->mny4 < 0))) {
@@ -5017,9 +4991,6 @@ dbmny4mul(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * prod)
 	CHECK_PARAMETER(m2, SYBENULP);
 	CHECK_PARAMETER(prod, SYBENULP);
 
-	if ((m1 == NULL) || (m2 == NULL) || (prod == NULL)) {
-		return FAIL;
-	}
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmny4mul()\n");
 	return FAIL;
 }
@@ -5047,9 +5018,6 @@ dbmny4divide(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * quotie
 	CHECK_PARAMETER(m2, SYBENULP);
 	CHECK_PARAMETER(quotient, SYBENULP);
 
-	if ((m1 == NULL) || (m2 == NULL) || (quotient == NULL)) {
-		return FAIL;
-	}
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmny4divide()\n");
 	return FAIL;
 }
@@ -5103,9 +5071,6 @@ dbmny4copy(DBPROCESS * dbproc, DBMONEY4 * src, DBMONEY4 * dest)
 	CHECK_PARAMETER(src, SYBENULP);
 	CHECK_PARAMETER(dest, SYBENULP);
 
-	if ((src == NULL) || (dest == NULL)) {
-		return FAIL;
-	}
 	dest->mny4 = src->mny4;
 	return SUCCEED;
 }

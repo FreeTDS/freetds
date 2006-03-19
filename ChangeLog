@@ -1,3 +1,7 @@
+Sun Mar 19 18:34:47 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* misc/test-auto.sh: fix typo in header
+	* src/dblib/dblib.c: remove double checks
+
 Sun Mar 19 18:33:14 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/genparams.c src/odbc/unittests/transaction.c:
 	- remove warnings on 64bit int
