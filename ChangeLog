@@ -1,3 +1,7 @@
+Mon Mar 20 09:46:19 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* misc/full-test.sh misc/test-auto.sh:
+	- merged with 0.65
+
 Tue Mar 14 16:16:24 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/sybdb.h src/apps/freebcp.c src/dblib/bcp.c:
 	- make freebcp not depend on dblib internals
