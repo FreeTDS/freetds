@@ -1,3 +1,9 @@
+Mon Mar 20 15:00:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/rpc.c:
+	- remove some double checks
+	- return correct values from CHECK_PARAMETER
+	- fix some possible core if dbproc == NULL
+
 Mon Mar 20 09:42:55 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/full-test.sh: added timeout
 

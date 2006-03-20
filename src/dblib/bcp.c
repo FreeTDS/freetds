@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.143 2006-03-19 14:29:59 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.144 2006-03-20 14:01:54 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -657,7 +657,7 @@ bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column)
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(dbproc->bcpinfo->bindinfo, SYBEBCPI);
-	CHECK_PARAMETER(colptr, SYBENULP);
+	/* colptr can be NULL */
 
 	if (dbproc->bcpinfo->direction != DB_IN) {
 		dbperror(dbproc, SYBEBCPN, 0);
@@ -1086,11 +1086,6 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 	TDSCOLUMN *bcpcol = NULL;
 	BCP_HOSTCOLINFO *hostcol;
 
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_read_hostfile(%p, %p, %p)\n", dbproc, hostfile, row_error);
-	assert(dbproc);
-	assert(hostfile);
-	assert(row_error);
-
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;
 	TDS_INT li;
@@ -1098,6 +1093,11 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 	BYTE *coldata;
 
 	int i, collen, data_is_null;
+
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_read_hostfile(%p, %p, %p)\n", dbproc, hostfile, row_error);
+	assert(dbproc);
+	assert(hostfile);
+	assert(row_error);
 
 	/* for each host file column defined by calls to bcp_colfmt */
 
@@ -1605,11 +1605,6 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 	int row_pos;
 	int cpbytes;
 
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_add_variable_columns(%p, %d, %p, %d, %p)\n", dbproc, behaviour, rowbuffer, start, var_cols);
-	assert(dbproc);
-	assert(rowbuffer);
-	assert(var_cols);
-
 	BYTE offset_table[256];
 	BYTE adjust_table[256];
 
@@ -1620,6 +1615,11 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 	int this_adjustment_increment = 0;
 
 	int i, adjust_table_entries_required;
+
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_add_variable_columns(%p, %d, %p, %d, %p)\n", dbproc, behaviour, rowbuffer, start, var_cols);
+	assert(dbproc);
+	assert(rowbuffer);
+	assert(var_cols);
 
 	/* Skip over two bytes. These will be used to hold the entire record length */
 	/* once the record has been completely built.                               */
@@ -1766,11 +1766,13 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 RETCODE
 bcp_sendrow(DBPROCESS * dbproc)
 {
+	TDSSOCKET *tds;
+
 	tdsdump_log(TDS_DBG_FUNC, "bcp_sendrow(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 
-	TDSSOCKET *tds = dbproc->tds_socket;
+	tds = dbproc->tds_socket;
 
 	if (dbproc->bcpinfo->direction != DB_IN) {
 		dbperror(dbproc, SYBEBCPN, 0);

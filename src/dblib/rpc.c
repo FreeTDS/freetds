@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.52 2006-03-18 06:29:34 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.53 2006-03-20 14:01:54 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -80,8 +80,6 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcinit(%p, %s, %d)\n", dbproc, rpcname, options);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(rpcname, SYBENULP);
-
-	/* sanity */
 
 	if (options & DBRPCRESET) {
 		rpc_clear(dbproc->rpc);
