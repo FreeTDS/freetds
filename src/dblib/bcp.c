@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.144 2006-03-20 14:01:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.145 2006-03-20 14:29:17 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -423,7 +423,7 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	BCP_HOSTCOLINFO *hostcol;
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_colfmt(%p, %d, %d, %d, %d, %p)\n", 
-		    dbproc, host_colnum, host_type, host_prefixlen, host_collen, host_term);
+		    dbproc, host_colnum, host_type, host_prefixlen, (int) host_collen, host_term);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBIVI);
@@ -437,9 +437,10 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 		return FAIL;
 	}
 
-	if (host_colnum < 1)
+	if (host_colnum < 1) {
 		dbperror(dbproc, SYBEBCFO, 0);
 		return FAIL;
+	}
 
 	if (host_prefixlen != 0 && host_prefixlen != 1 && host_prefixlen != 2 && host_prefixlen != 4 && host_prefixlen != -1) {
 		dbperror(dbproc, SYBEBCPREF, 0);
