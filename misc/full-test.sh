@@ -7,7 +7,7 @@ RES2=0
 VG=0
 rm -f "$1.vg.test_output" "$1.test_output"
 if test -f "$HOME/bin/vg_test"; then
-	classifier --num-fd=3 "$HOME/bin/vg_test" "$@" > "$1.vg.test_output"
+	classifier --timeout=600 --num-fd=3 "$HOME/bin/vg_test" "$@" > "$1.vg.test_output"
 	RES2=$?
 	VG=1
 fi
@@ -15,7 +15,7 @@ fi
 # try to execute normally
 RES1=0
 if test $RES2 != 0 -o $VG = 0; then
-	classifier "$@" > "$1.test_output"
+	classifier --timeout=600 "$@" > "$1.test_output"
 	RES1=$?
 fi
 
