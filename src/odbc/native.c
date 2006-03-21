@@ -43,9 +43,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: native.c,v 1.28 2005-07-17 07:48:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: native.c,v 1.28.2.1 2006-03-21 12:24:48 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
+#define TDS_ISALPHA(c) isalpha((unsigned char) (c))
 
 /*
  * Function transformation (from ODBC to Sybase)
@@ -82,7 +83,7 @@ TDS_RCSID(var, "$Id: native.c,v 1.28 2005-07-17 07:48:10 freddy77 Exp $");
 static SQLRETURN
 to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 {
-	char *d, *s, *p;
+	char *d, *s;
 	int nest_syntax = 0;
 
 	/* list of bit, used as stack, is call ? FIXME limites size... */
@@ -138,10 +139,10 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 			is_calls <<= 1;
 			if (!pcall) {
 				/* assume syntax in the form {type ...} */
-				p = strchr(s, ' ');
-				if (!p)
-					break;
-				s = p + 1;
+				while (TDS_ISALPHA(*s))
+					++s;
+				while (TDS_ISSPACE(*s))
+					++s;
 			} else {
 				if (*s == '?' && stmt)
 					stmt->prepared_query_is_func = 1;

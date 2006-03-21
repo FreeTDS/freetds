@@ -1,3 +1,7 @@
+Tue Mar 21 13:22:07 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/native.c:
+	- applied patch from Richard Krehbiel (cf "ODBC datetime literal issue")
+
 Mon Mar 20 09:46:19 CET 2006	Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/full-test.sh misc/test-auto.sh:
 	- merged with 0.65
