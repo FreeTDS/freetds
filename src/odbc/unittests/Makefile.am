@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.46 2006-02-07 13:24:44 freddy77 Exp $
+# $Id: Makefile.am,v 1.47 2006-03-21 14:25:48 freddy77 Exp $
 TESTS		=	\
 			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
@@ -11,7 +11,7 @@ TESTS		=	\
 			convert_error typeinfo \
 			const_params insert_speed \
 			compute timeout array array_out \
-			cursor1 scroll
+			cursor1 scroll cursor2
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -52,6 +52,7 @@ array_SOURCES	= array.c common.c common.h
 array_out_SOURCES	= array_out.c common.c common.h
 cursor1_SOURCES	= cursor1.c common.c common.h
 scroll_SOURCES	= scroll.c common.c common.h
+cursor2_SOURCES	= cursor2.c common.c common.h
 
 AM_LDFLAGS	=	-no-install
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@

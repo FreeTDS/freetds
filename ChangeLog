@@ -1,3 +1,7 @@
+Tue Mar 21 15:24:04 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/cursor2.c(aded) src/odbc/unittests/Makefile.am:
+	- added test to check errors using cursor on no row statement
+
 Tue Mar 21 13:22:07 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/native.c:
 	- applied patch from Richard Krehbiel (cf "ODBC datetime literal issue")
