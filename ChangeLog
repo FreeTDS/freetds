@@ -1,3 +1,7 @@
+Tue Mar 21 08:49:44 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* configure.in src/dblib/dblib.c:
+	- fix declaration after statements
+
 Mon Mar 20 15:28:25 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/bcp.c: fix error in bcp_colfmt
 

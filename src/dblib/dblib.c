@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.251 2006-03-20 14:01:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.252 2006-03-21 07:49:42 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -2824,12 +2824,12 @@ dbprrow(DBPROCESS * dbproc)
 	int op;
 	const char *opname;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbprrow(%p)\n", dbproc);
-	CHECK_PARAMETER(dbproc, SYBENULL);
-
 	/* these are for compute rows */
 	DBINT computeid, num_cols, colid;
 	TDS_SMALLINT *col_printlens = NULL;
+
+	tdsdump_log(TDS_DBG_FUNC, "dbprrow(%p)\n", dbproc);
+	CHECK_PARAMETER(dbproc, SYBENULL);
 
 	tds = dbproc->tds_socket;
 
@@ -6470,9 +6470,11 @@ dbfirstrow(DBPROCESS * dbproc)
 DBINT
 dblastrow(DBPROCESS * dbproc)
 {
+	int idx;
+
 	tdsdump_log(TDS_DBG_FUNC, "dblastrow(%p)\n", dbproc);
 	CHECK_PARAMETER2(dbproc, SYBENULL, 0);
-	int idx = dbproc->row_buf.head;
+	idx = dbproc->row_buf.head;
 	if (dbproc->row_buf.head != dbproc->row_buf.tail) {
 		if (--idx < 0) 
 			idx = dbproc->row_buf.capacity - 1;
@@ -7418,10 +7420,10 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 	static const DBLIB_ERROR_MESSAGE default_message = { 0, EXCONSISTENCY, "unrecognized msgno" };
 	const DBLIB_ERROR_MESSAGE *msg = &default_message;
 	
-	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %d)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
-
 	int i, rc = INT_CANCEL;
 	char * os_msgtext = strerror(errnum);
+
+	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %d)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
 
 	if (os_msgtext == NULL)
 		os_msgtext = "no OS error";
