@@ -1,3 +1,7 @@
+Tue Mar 21 13:22:07 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/native.c:
+	- applied patch from Richard Krehbiel (cf "ODBC datetime literal issue")
+
 Tue Mar 21 08:49:44 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* configure.in src/dblib/dblib.c:
 	- fix declaration after statements
