@@ -1,4 +1,7 @@
-Tue Thu 23 11:44:32 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+Thu Thu 23 13:48:23 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/tds/query.c: partially fix problem with mssql2k5
+
+Thu Thu 23 11:44:32 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/full-test-ol.sh misc/online.pl misc/test-auto.sh:
 	- changed online.pl with James hints
 	- enable Valgrind tests using online check
