@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.10 2005-11-04 13:42:28 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.11 2006-03-23 14:53:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef WIN32
@@ -54,9 +54,10 @@ TestName(int index, const char *expected_name)
 
 static const char *catalog = NULL;
 static const char *schema = NULL;
-static const char *table = "syscomments";
+static const char *table = "sysobjects";
 static const char *expect = NULL;
 static int expect_col = 3;
+static char expected_type[20] = "SYSTEM TABLE";
 
 static void
 DoTest(const char *type, int row_returned)
@@ -99,13 +100,14 @@ DoTest(const char *type, int row_returned)
 			ReadCol(1);
 			ReadCol(2);
 			ReadCol(3);
-			if (strcasecmp(output, "syscomments") != 0) {
+			if (strcasecmp(output, "sysobjects") != 0) {
 				printf("wrong table %s\n", output);
 				exit(1);
 			}
 
 			ReadCol(4);
-			if (strcmp(output, "SYSTEM TABLE") != 0) {
+			/* under mssql2k5 is a view */
+			if (strcmp(output, expected_type) != 0) {
 				printf("wrong table type %s\n", output);
 				exit(1);
 			}
@@ -153,25 +155,44 @@ DoTest(const char *type, int row_returned)
 int
 main(int argc, char *argv[])
 {
+	char version[32];
+	char type[32];
+	SQLSMALLINT version_len;
+	int mssql2005 = 0;
+
 	use_odbc_version3 = 0;
 	Connect();
 
+	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
+	if (db_is_microsoft() && strncmp(version, "09.00.", 6) == 0) {
+		mssql2005 = 1;
+		strcpy(expected_type, "VIEW");
+		CommandWithResult(Statement, "USE master");
+	}
+
 	DoTest(NULL, 1);
-	DoTest("'SYSTEM TABLE'", 1);
+	sprintf(type, "'%s'", expected_type);
+	DoTest(type, 1);
 	DoTest("'TABLE'", 0);
-	DoTest("SYSTEM TABLE", 1);
+	DoTest(type, 1);
 	DoTest("TABLE", 0);
-	DoTest("TABLE,VIEW", 0);
-	DoTest("SYSTEM TABLE,'TABLE'", 1);
-	DoTest("TABLE,'SYSTEM TABLE'", 1);
+	DoTest("TABLE,VIEW", mssql2005 ? 1 : 0);
+	DoTest("SYSTEM TABLE,'TABLE'", mssql2005 ? 0 : 1);
+	sprintf(type, "TABLE,'%s'", expected_type);
+	DoTest(type, 1);
 
 	Disconnect();
+
 
 	use_odbc_version3 = 1;
 	Connect();
 
-	DoTest("'SYSTEM TABLE'", 1);
-	/* TODO this should work ever for Sybase */
+	if (mssql2005)
+		CommandWithResult(Statement, "USE master");
+
+	sprintf(type, "'%s'", expected_type);
+	DoTest(type, 1);
+	/* TODO this should work even for Sybase and mssql 2005 */
 	if (db_is_microsoft()) {
 		catalog = "%";
 		DoTest(NULL, 2);
@@ -185,7 +206,7 @@ main(int argc, char *argv[])
 	catalog = NULL;
 	schema = NULL;
 	table = "%";
-	expect = "syscomments";
+	expect = "sysobjects";
 	DoTest(NULL, 2);
 
 	/* enum catalogs */

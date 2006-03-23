@@ -35,6 +35,7 @@
 #include <assert.h>
 
 #include "tds.h"
+#include "tdsconvert.h"
 #include "tdsstring.h"
 #include "tds_checks.h"
 
@@ -42,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.15 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.16 2006-03-23 14:53:44 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -166,7 +167,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 
 	assert(column);
 
-	assert(column->column_varint_size <= 5);
+	assert(column->column_varint_size <= 5 && column->column_varint_size != 3);
 
 	assert(column->column_scale <= column->column_prec);
 	assert(column->column_prec <= 77);
@@ -179,7 +180,9 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(strlen(column->column_name) < sizeof(column->column_name));
 
 	/* check type and server type same or SQLNCHAR -> SQLCHAR */
-	assert(tds_get_cardinal_type(column->on_server.column_type) == column->column_type);
+	assert(tds_get_cardinal_type(column->on_server.column_type) == column->column_type
+		|| (tds_get_null_type(column->column_type) == column->on_server.column_type 
+		&& column->column_varint_size == 1 && is_fixed_type(column->column_type)));
 	assert(tds_get_varint_size(column->on_server.column_type) == column->column_varint_size);
 
 	/* check current size <= size */
@@ -201,13 +204,17 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		assert(is_fixed_type(column->column_type));
 		/* check current size */
 		assert(size == column->column_size);
-		assert(column->column_size == column->column_cur_size || 
-			(column->column_type == SYBUNIQUE && column->column_cur_size == -1));
-		/* check same type and size on server */
-		assert(column->column_type == column->on_server.column_type);
+		/* check cases where server need nullable types */
+		if (column->column_type != column->on_server.column_type) {
+			assert(!is_fixed_type(column->on_server.column_type));
+			assert(column->column_varint_size == 1);
+			assert(column->column_size == column->column_cur_size || column->column_cur_size == -1);
+		} else {
+			assert(column->column_varint_size == 0 || (column->column_type == SYBUNIQUE && column->column_varint_size == 1));
+			assert(column->column_size == column->column_cur_size || 
+				(column->column_type == SYBUNIQUE && column->column_cur_size == -1));
+		}
 		assert(column->column_size == column->on_server.column_size);
-
-		assert(column->column_varint_size == 0 || (column->column_type == SYBUNIQUE && column->column_varint_size == 1));
 	} else {
 		assert(!is_fixed_type(column->column_type));
 		assert(column->char_conv || (column->on_server.column_size == column->column_size || column->on_server.column_size == 0));

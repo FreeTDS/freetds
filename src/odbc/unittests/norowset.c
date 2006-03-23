@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: norowset.c,v 1.4 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: norowset.c,v 1.5 2006-03-23 14:53:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Test that a select following a store procedure execution return results */
@@ -20,7 +20,8 @@ main(int argc, char *argv[])
 
 	Command(Statement, "exec sp_norowset_test");
 
-	Command(Statement, "select name from sysobjects where name = 'sysobjects'");
+	/* note, mssql 2005 seems to not return row for tempdb, use always master */
+	Command(Statement, "select name from master..sysobjects where name = 'sysobjects'");
 	res = SQLFetch(Statement);
 	if (res != SQL_SUCCESS) {
 		printf("Unable to fetch row\n");

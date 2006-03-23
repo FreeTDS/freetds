@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0004.c,v 1.14 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.15 2006-03-23 14:53:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -20,7 +20,7 @@ Test(int use_indicator)
 		exit(1);
 	}
 
-	if (SQLPrepare(Statement, (SQLCHAR *) "SELECT id, name FROM sysobjects WHERE name = ?", SQL_NTS) != SQL_SUCCESS) {
+	if (SQLPrepare(Statement, (SQLCHAR *) "SELECT id, name FROM master..sysobjects WHERE name = ?", SQL_NTS) != SQL_SUCCESS) {
 		printf("Unable to prepare statement\n");
 		exit(1);
 	}
