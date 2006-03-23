@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.14 2005-07-25 06:40:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.14.2.1 2006-03-23 15:20:59 freddy77 Exp $");
 
 #if !ENABLE_EXTRA_CHECKS
 static int tds_get_cardinal_type(int datatype);
@@ -103,6 +103,31 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 		break;
 	case SYBBITN:
 		curcol->on_server.column_size = curcol->column_size = sizeof(TDS_TINYINT);
+		break;
+	/* mssql 2005 don't like SYBINT4 as parameter closing connection  */
+	case SYBINT1:
+	case SYBINT2:
+	case SYBINT4:
+	case SYBINT8:
+		type = SYBINTN;
+		goto nullable;
+	case SYBMONEY4:
+	case SYBMONEY:
+		type = SYBMONEYN;
+		goto nullable;
+	case SYBDATETIME:
+	case SYBDATETIME4:
+		type = SYBDATETIMN;
+		goto nullable;
+	case SYBFLT8:
+	case SYBREAL:
+		type = SYBFLTN;
+	nullable:
+		if (IS_TDS7_PLUS(tds)) {
+			curcol->on_server.column_type = type;
+			curcol->column_varint_size = 1;
+			curcol->column_cur_size = -1;
+		}
 		break;
 	default:
 		break;

@@ -1,3 +1,10 @@
+Thu Mar 23 16:20:00 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/sql2tds.c src/odbc/unittests/earlybind.c:
+	* src/odbc/unittests/norowset.c src/odbc/unittests/t0004.c:
+	* src/odbc/unittests/tables.c src/tds/data.c:
+	* src/tds/tds_checks.c:
+	- fix for mssql 2005
+
 Thu Mar 23 13:53:41 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/tds/query.c: partially fix problems with mssql 2005
 
