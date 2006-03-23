@@ -1,3 +1,6 @@
+Thu Mar 23 13:53:41 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/tds/query.c: partially fix problems with mssql 2005
+
 Tue Mar 21 13:22:07 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/native.c:
 	- applied patch from Richard Krehbiel (cf "ODBC datetime literal issue")

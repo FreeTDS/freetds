@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.191 2005-09-19 14:54:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.191.2.1 2006-03-23 12:53:55 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1043,7 +1043,9 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		/* 1 param ?? why ? flags ?? */
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, 0);
-		tds_put_byte(tds, SYBINT4);
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
 		tds_put_int(tds, 1);
 
 		tds->internal_sp_called = TDS_SP_PREPARE;
@@ -1536,7 +1538,9 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	/* id of prepared statement */
 	tds_put_byte(tds, 0);
 	tds_put_byte(tds, 0);
-	tds_put_byte(tds, SYBINT4);
+	tds_put_byte(tds, SYBINTN);
+	tds_put_byte(tds, 4);
+	tds_put_byte(tds, 4);
 	tds_put_int(tds, dyn->num_id);
 
 	info = dyn->params;
@@ -1726,7 +1730,9 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		/* id of prepared statement */
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, 0);
-		tds_put_byte(tds, SYBINT4);
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
 		tds_put_int(tds, dyn->num_id);
 
 		tds->internal_sp_called = TDS_SP_UNPREPARE;
@@ -2204,28 +2210,36 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
 		tds_put_int(tds, cursor->cursor_id);
 
 		/* fetch type - 2 = NEXT */
 
 		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
 		tds_put_int(tds, 2);
 
 		/* row number - will be ignored for NEXT */
 
 		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
 		tds_put_int(tds, 0);
 
 		/* number of rows to fetch */
 
 		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
 		tds_put_int(tds, cursor->cursor_rows);
 
 		tds->internal_sp_called = TDS_SP_CURSORFETCH;
@@ -2288,7 +2302,9 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 		tds_put_byte(tds, 0);	/* no parameter name */
 		tds_put_byte(tds, 0);	/* input parameter  */
-		tds_put_byte(tds, SYBINT4);
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
 		tds_put_int(tds, cursor->cursor_id);
 		tds->internal_sp_called = TDS_SP_CURSORCLOSE;
 	}
