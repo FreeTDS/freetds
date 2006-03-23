@@ -132,9 +132,9 @@ foreach $i (@files) {
 
 	$title = $name;
 	$title = 'make tests' if ($name eq 'maketest');
-	if ($name =~ /^\.\// && $fn =~ /\/freetds(-0|6)/) {
+	if ($name =~ /^\.\// && $i->{test} && $fn =~ m!/freetds.*/src/!) {
 		$title = $fn;
-		$title =~ s!.*/freetds(-0|6)[a-z0-9RC\.]+/!!;
+		$title =~ s!.*/freetds.*/src/!src/!;
 	}
 	$i->{title} = $title;
 
