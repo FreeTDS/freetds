@@ -11,36 +11,6 @@ sub data($) {
 	}
 }
 
-sub start_html($$) {
-	my ($f, $title) = @_;
-
-	print $f qq|<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<title>$title</title>
-<style type="text/css">
-.error { background-color: red; color: white }
-.info  { color: blue }
-</style>
-</head>
-<body>
-<h1>$title</h1>
-<p><a href="index.html">Main</a></p>
-<table border="1">
-$info
-</table>
-<br />
-|;
-}
-
-sub end_html($) {
-	my $f = shift;
-	print $f qq|<p><a href="index.html">Main</a></p>
-</body>
-</html>
-|;
-}
-
 sub out_header($) {
 	$_ = shift;
         s,  +,</th><th>,g;
@@ -65,16 +35,7 @@ sub out_row($) {
 }
 
 
-sub parse() {
-	# add file to list to make index later
-	push @files, {
-		num => $num,
-		name => $name,
-		fn => $fn,
-		result => $result
-	};
-}
-
+$cur = {};
 while (<>) {
 	s/\r?\n$//;
 	if (/(.*)$magic- ([^ ]+) (.+) -$magic(.*)/) {
@@ -83,21 +44,27 @@ while (<>) {
 #		print "$2 - $3\n";
 		if ($2 eq 'START') {
 			++$num;
-			$name = $3;
+			$cur = {
+				num => $num,
+				name => $3,
+				result => -1
+			};
 			$started = 1;
-			open(OUT, ">test$num.txt") or die('opening temp file');
+			open(OUT, ">test$num.txt") or die qq(could not open "test$num.txt" ($!));
 		} elsif ($2 eq 'END') {
 			close(OUT);
-			parse();
+			push @files, $cur;
 			# reset state
 			$started = 0;
-			$result = -1;
-			$fn = '';
-			$name = '';
+			$cur = {};
 		} elsif ($2 eq 'FILE') {
-			$fn = $3;
+			$cur->{fn} = $3;
+		} elsif ($2 eq 'TEST') {
+			$cur->{test} = 0 + $3;
+		} elsif ($2 eq 'VALGRIND') {
+			$cur->{valgrind} = 0 + $3;
 		} elsif ($2 eq 'RESULT') {
-			$result = $3;
+			$cur->{result} = $3;
 		} elsif ($2 eq 'INFO') {
 			$title = $msg = '';
 			if ($3 =~ /^HOSTNAME (.*)/) {
@@ -113,7 +80,8 @@ while (<>) {
 				$title = 'date';
 				$msg = $1;
 			}
-			if ($title) {
+			$msg =~ s/^\s*(.*?)\s*$/\1/;
+			if ($title && $msg) {
 				$msg =~ s,&,&amp;,g;
 				$msg =~ s,<,&lt;,g;
 				$msg =~ s,>,&gt;,g;
@@ -130,11 +98,33 @@ while (<>) {
 	}
 }
 
-open(OUT, ">index.html") or die('creating index');
-start_html(OUT, 'Test output');
-out_header('Test  Success  Warnings  Log');
+$Header = qq|<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>%1\$s</title>
+<style type="text/css">
+.error { background-color: red; color: white }
+.info  { color: blue }
+</style>
+</head>
+<body>
+<h1>%1\$s</h1>
+<p><a href="index.html">Main</a></p>
+<table border="1">
+$info
+</table>
+<br />
+|;
+
+$Footer = q|<p><a href="index.html">Main</a></p>
+</body>
+</html>
+|;
+
+open(OUT, ">index.html") or die qq(could not open "index.html" ($!));
+printf OUT $Header, 'Test output';
+$vg = 0;
 foreach $i (@files) {
-#	print $$i{'result'};
 	$result = $i->{result};
 	$name = $i->{name};
 	$fn = $i->{fn};
@@ -142,22 +132,34 @@ foreach $i (@files) {
 
 	$title = $name;
 	$title = 'make tests' if ($name eq 'maketest');
-	if ($name =~ /^\.\// && $fn =~ /\/freetds-0/) {
+	if ($name =~ /^\.\// && $fn =~ /\/freetds(-0|6)/) {
 		$title = $fn;
-		$title =~ s!.*/freetds-0[a-z0-9RC\.]+/!!;
+		$title =~ s!.*/freetds(-0|6)[a-z0-9RC\.]+/!!;
 	}
+	$i->{title} = $title;
 
 	# make html from txt
-	open(HTML, ">test$num.html") or die('opening html file');
-	start_html(HTML, $title);
+	open(HTML, ">test$num.html") or die qq(could not open "test$num.html" ($!));
+	printf HTML $Header, $title;
 
-	open(IN, "<test$num.txt") or die('opening txt file');
+	open(IN, "<test$num.txt") or die qq(could not open "test$num.txt" ($!));
 	@a = <IN>;
 	close(IN);
 
 	$_ = join("", @a);
-	$warn = 'no :-)';
-	$warn = 'yes :-(' if (/^\+?2:/m);
+	$i->{warning} = 'no :-)';
+	$i->{warning} = 'yes :-(' if (/^\+?2:/m);
+	if ($i->{valgrind}) {
+		$vg = 1;
+                $i->{leak} = "no :-)";
+		if (!/:==.*no leaks are possible/) {
+			$i->{leak} = "yes :-(" if (!/:==.*definitely lost: 0 bytes in 0 blocks/);
+			$i->{leak} = "yes :-(" if (!/:==.*possibly lost: 0 bytes in 0 blocks/);
+			$i->{leak} = "yes :-(" if (!/:==.*still reachable: 0 bytes in 0 blocks/);
+		}
+		$i->{vgerr} = "no :-)";
+		$i->{vgerr} = "yes :-(" if (!/ERROR SUMMARY: 0 errors from 0 contexts/);
+	}
 	s,&,&amp;,g; s,<,&lt;,g; s,>,&gt;,g;
 	s,\n\+2:([^\n]*),<span class="error">\1</span>,sg;
 	s,\n\+3:([^\n]*),<span class="info">\1</span>,sg;
@@ -166,13 +168,47 @@ foreach $i (@files) {
 	s,^1:,,mg;
 	print HTML "<pre>$_</pre>";
 
-	end_html(HTML);
+	printf HTML $Footer;
 	close(HTML);
 
-	$succ = $result == 0 ? 'yes :-)' : 'no :-(';
-	$warn = 'ignored' if ($result != 0);
-	out_row("$title  $succ  $warn  <a href=\"test$num.html\">log</a>");
+	$i->{success} = $result == 0 ? 'yes :-)' : 'no :-(';
+	$i->{warning} = 'ignored' if ($result != 0);
+}
+
+out_header('Operation  Success  Warnings  Log');
+foreach $i (grep { !$_->{test} } @files) {
+	out_row("$i->{title}  $i->{success}  $i->{warning}  <a href=\"test$i->{num}.html\">log</a>");
 }
 out_footer();
-end_html(OUT);
+@files = grep { $_->{test} } @files;
+
+if (!$vg) {
+	out_header('Test  Success  Warnings  Log');
+	foreach $i (@files) {
+		$i->{warning} =~ s/:-\(/:\(/;
+		out_row("$i->{title}  $i->{success}  $i->{warning}  <a href=\"test$i->{num}.html\">log</a>");
+	}
+	out_footer();
+} else {
+	out_header('Test  Success  Warnings  Log  VG Success  VG warnings  VG errors  VG leaks  VG log');
+	for ($n=0; $n <= $#files; ++$n) {
+		$norm = "unknown  unknown  not present";
+		$vg = "unknown  unknown  unknown  unknown  not present";
+		$i = $files[$n];
+		$i->{warning} =~ s/:-\(/:\(/;
+		if ($i->{valgrind}) {
+			$vg = "$i->{success}  $i->{warning}  $i->{vgerr}  $i->{leak}  <a href=\"test$i->{num}.html\">log</a>";
+			if ($n < $#files && $files[$n+1]->{title} eq $i->{title}) {
+				$i = $files[++$n];
+			}
+		}
+		if (!$i->{valgrind}) {
+			$norm = "$i->{success}  $i->{warning}  <a href=\"test$i->{num}.html\">log</a>";
+		}
+		out_row("$i->{title}  $norm  $vg");
+	}
+	out_footer();
+}
+
+printf OUT $Footer;
 close(OUT);

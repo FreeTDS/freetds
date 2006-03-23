@@ -6,19 +6,36 @@ online_log () {
 	echo "@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@- $1 -@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@"
 }
 
-#execute with valgrind
-rm -f "$1.test_output"
-
-# execute normally
-online_log "START $1"
-classifier "$@"
-RES1=$?
-online_log "RESULT $RES1"
-
-# log test executed to retrieve lately by main script
 FILE=`echo "$1" | sed "s,^\\./,$PWD/,"`
-online_log "FILE $FILE"
-online_log "END $1"
+
+#execute with valgrind
+RES=0
+VG=0
+if test -f "$HOME/bin/vg_test"; then
+	online_log "START $1"
+	online_log "TEST 1"
+	online_log "VALGRIND 1"
+	classifier --timeout=600 --num-fd=3 "$HOME/bin/vg_test" "$@"
+	RES=$?
+	online_log "RESULT $RES"
+	online_log "FILE $FILE"
+	online_log "END $1"
+	VG=1
+fi
+
+# try to execute normally
+if test $RES != 0 -o $VG = 0; then
+	online_log "START $1"
+	online_log "TEST 1"
+	classifier --timeout=600 "$@"
+	RES=$?
+	online_log "RESULT $RES"
+
+	# log test executed to retrieve lately by main script
+	online_log "FILE $FILE"
+	online_log "END $1"
+fi
 
 # return always succes, test verified later
 exit 0
+

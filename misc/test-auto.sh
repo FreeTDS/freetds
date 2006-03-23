@@ -174,6 +174,12 @@ find "$DIR" -name \*.html -type f -exec rm {} \;
 #	exit 1
 #fi
 
+online_log "INFO HOSTNAME $(echo $(hostname))"
+VER=$(gcc --version 2> /dev/null | grep 'GCC')
+online_log "INFO GCC $VER"
+online_log "INFO UNAME $(echo $(uname -a))"
+online_log "INFO DATE $(date '+%Y-%m-%d')"
+
 out_init
 
 MAKE=make
@@ -246,14 +252,11 @@ for CUR in `cat "$DIR/check.txt" | grep 'FULL-TEST:.*:FULL-TEST' | sed 's,.*FULL
 	echo $TEST
 
 	# patch make test page
-	OUT=""
 	if test -f "$CUR.test_output"; then
 		output_html "$TEST" "$CUR.test_output" "$DIR/test$NUM.html"
-		OUT="<a href=\"test$NUM.html\">$TEST</a> "
 	fi
 	if test -f "$CUR.vg.test_output"; then
 		output_html "$TEST" "$CUR.vg.test_output" "$DIR/vgtest$NUM.html"
-		OUT="$OUT<a href=\"vgtest$NUM.html\">$TEST (ValGrind)</a>"
 	fi
 
 	# make output
