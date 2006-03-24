@@ -2,27 +2,40 @@
 
 # test a test using watching for errors and logging all
 
+online_log () {
+	echo "@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@- $1 -@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@"
+}
+
+FILE=`echo "$1" | sed "s,^\\./,$PWD/,"`
+
 #execute with valgrind
-RES2=0
+RES=0
 VG=0
-rm -f "$1.vg.test_output" "$1.test_output"
 if test -f "$HOME/bin/vg_test"; then
-	classifier --timeout=600 --num-fd=3 "$HOME/bin/vg_test" "$@" > "$1.vg.test_output"
-	RES2=$?
+	online_log "START $1"
+	online_log "TEST 1"
+	online_log "VALGRIND 1"
+	classifier --timeout=600 --num-fd=3 "$HOME/bin/vg_test" "$@"
+	RES=$?
+	online_log "RESULT $RES"
+	online_log "FILE $FILE"
+	online_log "END $1"
 	VG=1
 fi
 
 # try to execute normally
-RES1=0
-if test $RES2 != 0 -o $VG = 0; then
-	classifier --timeout=600 "$@" > "$1.test_output"
-	RES1=$?
-fi
+if test $RES != 0 -o $VG = 0; then
+	online_log "START $1"
+	online_log "TEST 1"
+	classifier --timeout=600 "$@"
+	RES=$?
+	online_log "RESULT $RES"
 
-# log test executed to retrieve lately by main script
-FILE=`echo "$1" | sed "s,^\\./,$PWD/,"`
-echo "FULL-TEST:$FILE:$RES1:$RES2:FULL-TEST"
-echo Tested $FILE 1>&2
+	# log test executed to retrieve lately by main script
+	online_log "FILE $FILE"
+	online_log "END $1"
+fi
 
 # return always succes, test verified later
 exit 0
+

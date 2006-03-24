@@ -1,3 +1,7 @@
+Fri Mar 24 16:33:13 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* misc/full-test.sh misc/test-auto.sh misc/online.pl(added):
+	- merged with CVS HEAD
+
 Thu Mar 23 16:20:00 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/sql2tds.c src/odbc/unittests/earlybind.c:
 	* src/odbc/unittests/norowset.c src/odbc/unittests/t0004.c:
