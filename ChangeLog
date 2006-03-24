@@ -1,3 +1,6 @@
+Fri Mar 24 12:36:02 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/software.html fixed broken links added link to RC
+
 Fri Thu 24 16:27:27 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/full-test.sh misc/test-auto.sh misc/full-test-ol.sh(removed):
 	- use an "online" version for test
