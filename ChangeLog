@@ -1,3 +1,17 @@
+Fri Mar 24 16:47:26 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* configure.in removed, is now configure.ac 
+	* acinclude.m4 removed, added m4 directory
+	* Makefile.am include m4 directory
+	* m4/ac_caolan_func_which_gethostbyname_r.m4 m4/ac_have_inaddr_none.m4
+	* m4/ac_have_malloc_options.m4 m4/ac_raf_func_which_getservbyname_r.m4
+	* m4/ac_tds_func_which_gethostbyaddr_r.m4 
+	* m4/ac_tds_func_which_getpwuid_r.m4 
+	* m4/ac_tds_func_which_localtime_r.m4 m4/am_iconv.m4 
+	* m4/check_openssl.m4 m4/sprintf_i64_format.m4 m4/type_socklen_t.m4
+	- Split acinclude.m4 into one macro defintion per file.
+	* m4/ax_cflags_gcc_option.m4 
+	- Check for gcc features e.g. the declaration-after-statement warning.
+	
 Fri Mar 24 13:03:36 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/docs.html doc/htdoc/index.html updated
 
@@ -70,7 +84,7 @@ Fri Mar 17 01:35:17 EST 2006	JK Lowden <jklowden@schemamania.org>
 	- added a TDSDUMP log entry for every public function
 
 Thu Mar 16 09:59:25 EST 2006	JK Lowden <jklowden@schemamania.org>
-	* TODO add rcp error messages
+	* TODO add rpc error messages
 	* src/apps/bsqldb.c exit if severity > 10
 
 Wed Mar 15 00:41:11 EST 2006	JK Lowden <jklowden@schemamania.org>
