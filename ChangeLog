@@ -1,3 +1,7 @@
+Fri Thu 24 16:27:27 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* misc/full-test.sh misc/test-auto.sh misc/full-test-ol.sh(removed):
+	- use an "online" version for test
+
 Thu Thu 23 15:53:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/sql2tds.c src/odbc/unittests/earlybind.c:
 	* src/odbc/unittests/norowset.c src/odbc/unittests/t0004.c:
