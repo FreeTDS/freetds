@@ -1,9 +1,11 @@
-# version $Id: Makefile.am,v 1.42 2005-12-01 11:04:21 freddy77 Exp $
+# version $Id: Makefile.am,v 1.43 2006-03-24 21:59:51 jklowden Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.in
 
 SUBDIRS	=	include src doc samples win32
+
+ACLOCAL_AMFLAGS = -I m4
 
 VMS	=	vms/config_h.vms \
 		vms/configure.com \
