@@ -1,3 +1,7 @@
+Sun Mar 26 19:01:43 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/prepare_query.c:
+	- fixed constant parameters after mssql 2005 patch
+
 Fri Mar 24 16:47:26 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* configure.in removed, is now configure.ac 
 	* acinclude.m4 removed, added m4 directory
@@ -11,27 +15,27 @@ Fri Mar 24 16:47:26 EST 2006	JK Lowden <jklowden@schemamania.org>
 	- Split acinclude.m4 into one macro defintion per file.
 	* m4/ax_cflags_gcc_option.m4 
 	- Check for gcc features e.g. the declaration-after-statement warning.
-	
+
 Fri Mar 24 13:03:36 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/docs.html doc/htdoc/index.html updated
 
 Fri Mar 24 12:36:02 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/software.html fixed broken links added link to RC
 
-Fri Thu 24 16:27:27 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+Fri Mar 24 16:27:27 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/full-test.sh misc/test-auto.sh misc/full-test-ol.sh(removed):
 	- use an "online" version for test
 
-Thu Thu 23 15:53:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+Thu Mar 23 15:53:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/sql2tds.c src/odbc/unittests/earlybind.c:
 	* src/odbc/unittests/norowset.c src/odbc/unittests/t0004.c:
 	* src/odbc/unittests/tables.c src/tds/data.c src/tds/tds_checks.c:
 	- fixes for mssql 2005
 
-Thu Thu 23 13:48:23 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+Thu Mar 23 13:48:23 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/tds/query.c: partially fix problem with mssql2k5
 
-Thu Thu 23 11:44:32 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+Thu Mar 23 11:44:32 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/full-test-ol.sh misc/online.pl misc/test-auto.sh:
 	- changed online.pl with James hints
 	- enable Valgrind tests using online check

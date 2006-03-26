@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.59 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.60 2006-03-26 17:01:36 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -104,6 +104,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				assert(0);
 			case SYBINT4:
 			case SYBFLT8:
+				curcol->column_cur_size = curcol->column_size;
 				break;
 			}
 			/* TODO support other type other than VARCHAR, do not strip escape in prepare_call */
