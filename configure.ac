@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.1 2006-03-24 22:02:24 jklowden Exp $
+dnl $Id: configure.ac,v 1.2 2006-03-27 07:22:54 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -12,13 +12,13 @@ dnl ------------------------------------------------------------
 # ------------------------------------------------------------
 # Initialization
 # ------------------------------------------------------------
-AC_INIT(src/dblib/dblib.c)
+AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
+AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.1 $)
+AC_REVISION($Revision: 1.2 $)
 
-define(TDSDATE, esyscmd(echo -n $(date +"%Y%m%d")))
-AM_INIT_AUTOMAKE(freetds, 0.65.dev.TDSDATE)
-AM_CONFIG_HEADER(include/config.h)
+AM_INIT_AUTOMAKE
+AC_CONFIG_HEADERS(include/config.h)
 
 dnl configuration directory will be /usr/local/etc
 AC_PREFIX_DEFAULT(/usr/local)
@@ -80,10 +80,10 @@ define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 
 AC_LIBTOOL_WIN32_DLL
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 
 AC_ARG_ENABLE(libiconv,
-	AC_HELP_STRING([--disable-libiconv], [do not attempt to include libiconv]),
+	AS_HELP_STRING([--disable-libiconv], [do not attempt to include libiconv]),
 	[use_libiconv=$enableval], [use_libiconv=yes])
   
 if test "$use_libiconv" = "yes" ; then
@@ -204,28 +204,28 @@ AC_CHECK_SIZEOF(wchar_t,,[$ac_includes_default
 case 2 in
 $ac_cv_sizeof_short)   tds_sysdep_int16_type=short;;
 $ac_cv_sizeof_int)     tds_sysdep_int16_type=int;;
-*)                     AC_ERROR(No 16-bit int found.)
+*)                     AC_MSG_ERROR(No 16-bit int found.)
 esac
 
 case 4 in
 $ac_cv_sizeof_short)   tds_sysdep_int32_type=short;;
 $ac_cv_sizeof_int)     tds_sysdep_int32_type=int;;
 $ac_cv_sizeof_long)    tds_sysdep_int32_type=long;;
-*)                     AC_ERROR(No 32-bit int found.)
+*)                     AC_MSG_ERROR(No 32-bit int found.)
 esac
 
 case 4 in
 $ac_cv_sizeof_float)       tds_sysdep_real32_type=float;;
 $ac_cv_sizeof_double)      tds_sysdep_real32_type=double;;
 $ac_cv_sizeof_long_double) tds_sysdep_real32_type="long double";;
-*)                     AC_ERROR(No 32-bit real found.)
+*)                     AC_MSG_ERROR(No 32-bit real found.)
 esac
 
 case 8 in
 $ac_cv_sizeof_float)       tds_sysdep_real64_type=float;;
 $ac_cv_sizeof_double)      tds_sysdep_real64_type=double;;
 $ac_cv_sizeof_long_double) tds_sysdep_real64_type="long double";;
-*)                     AC_ERROR(No 64-bit real found.)
+*)                     AC_MSG_ERROR(No 64-bit real found.)
 esac
 
 case 8 in
@@ -247,7 +247,7 @@ $ac_cv_sizeof_int)       tds_sysdep_intptr_type=int;;
 $ac_cv_sizeof_long)      tds_sysdep_intptr_type=long;;
 $ac_cv_sizeof_long_long) tds_sysdep_intptr_type="long long";;
 $ac_cv_sizeof___int64)   tds_sysdep_intptr_type=__int64;;
-*)                     AC_ERROR(No intptr type found.)
+*)                     AC_MSG_ERROR(No intptr type found.)
 esac
 
 AC_SUBST(tds_sysdep_int16_type)
@@ -317,7 +317,8 @@ if test "$GCC" = yes; then
 		AC_MSG_CHECKING([whether we can use $freetds_ldflag])
 		saved_LDFLAGS=$LDFLAGS
 		LDFLAGS="$LDFLAGS $freetds_ldflag"
-		AC_TRY_LINK(,[return 1],ac_cv_use_freetds_flag="yes",ac_cv_use_freetds_flag="no")
+dnl OBSOLETE	AC_TRY_LINK(,[return 1],ac_cv_use_freetds_flag="yes",ac_cv_use_freetds_flag="no")
+		AC_LINK_IFELSE(AC_LANG_SOURCE(,[return 1]), ac_cv_use_freetds_flag="yes", ac_cv_use_freetds_flag="no")
 		LDFLAGS=$saved_LDFLAGS
 		AC_MSG_RESULT($ac_cv_use_freetds_flag)
 		if test "$ac_cv_use_freetds_flag" = "yes"; then
@@ -359,7 +360,7 @@ AC_HAVE_MALLOC_OPTIONS
 AC_MSG_RESULT(checking compile-time options)
 
 AC_ARG_WITH(tdsver,
-AC_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/8.0) [5.0]]))
+AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/8.0) [5.0]]))
 if test "$with_tdsver" = "4.2"; then
 	AC_DEFINE(TDS42, 1, [Define to use TDS 4.2 by default])
 elif test "$with_tdsver" = "4.6"; then
@@ -373,7 +374,7 @@ else
 fi
 
 AC_ARG_WITH(iodbc,
-AC_HELP_STRING([--with-iodbc=DIR], [build odbc driver against iODBC in DIR]))
+AS_HELP_STRING([--with-iodbc=DIR], [build odbc driver against iODBC in DIR]))
 if test "$with_iodbc"; then
 	if echo "$with_iodbc" | grep -v '^/'; then
 		with_iodbc="$PWD/$with_iodbc"
@@ -387,7 +388,7 @@ if test "$with_iodbc"; then
 fi
 
 AC_ARG_WITH(unixodbc,
-AC_HELP_STRING([--with-unixodbc=DIR], [build odbc driver against unixODBC in DIR]))
+AS_HELP_STRING([--with-unixodbc=DIR], [build odbc driver against unixODBC in DIR]))
 if test "$with_unixodbc"; then
 	if echo "$with_unixodbc" | grep -v '^/'; then
 		with_unixodbc="$PWD/$with_unixodbc"
@@ -409,7 +410,7 @@ if test "$with_unixodbc"; then
 fi
 
 AC_ARG_WITH(odbc_nodm,
-AC_HELP_STRING([--with-odbc-nodm=DIR], [build odbc without driver manager (headers in DIR)]))
+AS_HELP_STRING([--with-odbc-nodm=DIR], [build odbc without driver manager (headers in DIR)]))
 if test "$with_odbc_nodm"; then
 	if echo "$with_odbc_nodm" | grep -v '^/'; then
 		with_odbc_nodm="$PWD/$with_odbc_nodm"
@@ -427,7 +428,7 @@ fi
 build_odbc=yes
 if test "$odbc" != "true"; then
 AC_ARG_ENABLE(odbc,
-	AC_HELP_STRING([--disable-odbc], [do not attempt to build odbc the driver]),
+	AS_HELP_STRING([--disable-odbc], [do not attempt to build odbc the driver]),
 	[build_odbc=$enableval], [build_odbc=yes])
 fi
 AM_CONDITIONAL(INCODBC, test "$build_odbc" = "yes")
@@ -512,7 +513,7 @@ AC_SUBST(ODBCINSTLIB)
 AC_SUBST(ODBCNODMLIB)
 
 AC_ARG_WITH(gnutls,
-AC_HELP_STRING([--with-gnutls], [build with TLS support]))
+AS_HELP_STRING([--with-gnutls], [build with TLS support]))
 if test "$with_gnutls"; then
 	AC_DEFINE(HAVE_GNUTLS, 1, [Define to 1 if you have GNU tls.])
 	CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
@@ -524,19 +525,19 @@ fi
 
 
 AC_ARG_ENABLE(apps,
-	AC_HELP_STRING([--disable-apps], [skip build of src/apps (including tsql)]))
+	AS_HELP_STRING([--disable-apps], [skip build of src/apps (including tsql)]))
 AM_CONDITIONAL(INCAPPS, test "$enable_apps" != "no")
 
 AC_ARG_ENABLE(server,
-	AC_HELP_STRING([--disable-server], [skip build of src/server directory]))
+	AS_HELP_STRING([--disable-server], [skip build of src/server directory]))
 AM_CONDITIONAL(INCSERVER, test "$enable_server" != "no")
 
 AC_ARG_ENABLE(pool,
-	AC_HELP_STRING([--disable-pool], [skip build of src/pool directory]))
+	AS_HELP_STRING([--disable-pool], [skip build of src/pool directory]))
  AM_CONDITIONAL(INCPOOL, test "$enable_pool" != "no")
 
 AC_ARG_ENABLE(msdblib,
-  AC_HELP_STRING([--enable-msdblib], [for MS style dblib]))
+  AS_HELP_STRING([--enable-msdblib], [for MS style dblib]))
 
 if test "$enable_msdblib" = "yes" ; then
 	dblib_define="#define MSDBLIB 1"
@@ -546,7 +547,7 @@ fi
 AC_SUBST(dblib_define)
 
 AC_ARG_ENABLE(sybase-compat,
-  AC_HELP_STRING([--enable-sybase-compat], [enable increased Open Client binary compatibility]))
+  AS_HELP_STRING([--enable-sybase-compat], [enable increased Open Client binary compatibility]))
 AM_CONDITIONAL(SYBASE_COMPAT, test x$enable_sybase_compat = xyes)
 
 AC_MSG_CHECKING(threadsafety)
@@ -554,7 +555,7 @@ AC_MSG_CHECKING(threadsafety)
 # This option is enabled by default because most OS's support it.   
 # A more sophisticated approach would be to set the default per-OS.  
 AC_ARG_ENABLE(threadsafe,
-	AC_HELP_STRING([--disable-threadsafe], [disable calls to threadsafe fuctions e.g.,gethostbyname_r ]),
+	AS_HELP_STRING([--disable-threadsafe], [disable calls to threadsafe fuctions e.g.,gethostbyname_r ]),
 	[use_threadsafe=$enableval], [use_threadsafe=yes])
 
 if test "$enable_threadsafe" != "no" ; then
@@ -581,7 +582,7 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;],
 pthread_mutex_unlock(&mutex)], AC_DEFINE(TDS_HAVE_PTHREAD_MUTEX, 1, [Define if you have pthread with mutex support]))
 
 AC_ARG_ENABLE(debug,
-	AC_HELP_STRING([--disable-debug], [disable assert and other things]),
+	AS_HELP_STRING([--disable-debug], [disable assert and other things]),
 	[use_debug=$enableval], [use_debug=yes])
   
 if test "$use_debug" = "yes" ; then
@@ -589,7 +590,7 @@ if test "$use_debug" = "yes" ; then
 	CPPFLAGS="$CPPFLAGS -DDEBUG=1"
 
 	AC_ARG_ENABLE(extra-checks,
-	  AC_HELP_STRING([--enable-extra-checks], [enable extra checks on code]))
+	  AS_HELP_STRING([--enable-extra-checks], [enable extra checks on code]))
 	if test "$enable_extra_checks" = "yes" ; then
 		AC_DEFINE_UNQUOTED(ENABLE_EXTRA_CHECKS, 1, [Define to enable extra checks on code])
 	fi
@@ -599,13 +600,13 @@ else
 fi
 
 AC_ARG_ENABLE(developing,
-  AC_HELP_STRING([--enable-developing], [enable code still in develop]))
+  AS_HELP_STRING([--enable-developing], [enable code still in develop]))
 if test "$enable_developing" = "yes" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_DEVELOPING, 1, [Define to enable work in progress code])
 fi
 
 AC_ARG_ENABLE(distcheck_build,
-  AC_HELP_STRING([--enable-distcheck-build], [used internally for testing]))
+  AS_HELP_STRING([--enable-distcheck-build], [used internally for testing]))
 if test "$enable_distcheck_build" = "yes" ; then
 	AM_CONDITIONAL(DISTCHECK_BUILD, true)
 else

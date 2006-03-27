@@ -1,5 +1,6 @@
-# $Id: Makefile.am,v 1.32 2005-05-17 14:03:11 freddy77 Exp $
+# $Id: Makefile.am,v 1.33 2006-03-27 07:22:54 jklowden Exp $
 SUBDIRS		=	unittests
+AM_CPPFLAGS	=	-I$(top_srcdir)/include
 
 lib_LTLIBRARIES	=	libsybdb.la
 if SYBASE_COMPAT
@@ -11,4 +12,3 @@ libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c $(DBOPEN)
 libsybdb_la_LDFLAGS=	-version-info 5:0:0 -export-symbols-regex '^(db|bcp_|tdsdump_open|tdsdbopen|.*_xact|close_commit|open_commit|.?asprintf).*' $(FREETDS_SYMBOLIC)
 libsybdb_la_LIBADD=	../tds/libtds_objects.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 
-INCLUDES	=	-I$(top_srcdir)/include

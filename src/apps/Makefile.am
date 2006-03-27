@@ -1,7 +1,8 @@
-# $Id: Makefile.am,v 1.12 2005-05-31 09:31:57 freddy77 Exp $
+# $Id: Makefile.am,v 1.13 2006-03-27 07:22:54 jklowden Exp $
 
+AM_CPPFLAGS	= -I$(top_srcdir)/include 
 bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy
-INCLUDES	= -I$(top_srcdir)/include 
+
 freebcp_LDADD	= ../dblib/libsybdb.la $(NETWORK_LIBS)
 
 freebcp_SOURCES = freebcp.c freebcp.h

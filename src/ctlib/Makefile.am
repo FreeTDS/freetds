@@ -1,5 +1,6 @@
-# $Id: Makefile.am,v 1.24 2005-07-26 09:34:25 freddy77 Exp $
+# $Id: Makefile.am,v 1.25 2006-03-27 07:22:54 jklowden Exp $
 SUBDIRS		=	unittests
+AM_CPPFLAGS	=	-I$(top_srcdir)/include
 
 lib_LTLIBRARIES	=	libct.la
 libct_la_SOURCES=	ct.c cs.c blk.c ctutil.c
@@ -9,4 +10,3 @@ libct_la_LDFLAGS=	-version-info 4:0:0 -export-symbols-regex '^(cs_|ct_|blk_).*' 
 
 libct_la_LIBADD	=	../tds/libtds_objects.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 
-INCLUDES	=	-I$(top_srcdir)/include

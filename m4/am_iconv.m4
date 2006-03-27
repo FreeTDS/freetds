@@ -1,4 +1,4 @@
-dnl $Id: am_iconv.m4,v 1.1 2006-03-24 22:00:17 jklowden Exp $
+dnl $Id: am_iconv.m4,v 1.2 2006-03-27 07:22:54 jklowden Exp $
 ##
 # From Bruno Haible.
 ##
@@ -10,7 +10,7 @@ AC_DEFUN([AM_ICONV],
   save_LDFLAGS="$LDFLAGS"
   LIBICONV=
   AC_ARG_WITH([libiconv-prefix],
-AC_HELP_STRING([--with-libiconv-prefix=DIR], [search for libiconv in DIR/include and DIR/lib]), [
+AS_HELP_STRING([--with-libiconv-prefix=DIR], [search for libiconv in DIR/include and DIR/lib]), [
     for dir in `echo "$withval" | tr : ' '`; do
       if test -d $dir/include; then CPPFLAGS="$CPPFLAGS -I$dir/include"; fi
       if test -d $dir/lib; then LDFLAGS="$LDFLAGS -L$dir/lib"; LIBICONV="-L$dir/lib"; fi

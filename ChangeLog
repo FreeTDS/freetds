@@ -1,3 +1,11 @@
+Mon Mar 27 02:20:16 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* configure.ac m4/am_iconv.m4 m4/check_openssl.m4
+	* src/apps/Makefile.am src/ctlib/Makefile.am src/dblib/Makefile.am
+	* src/odbc/Makefile.am src/pool/Makefile.am src/replacements/Makefile.am
+	* src/server/Makefile.am src/tds/Makefile.am
+	- modernized autotool contructs
+	* configure.in removed 
+	
 Sun Mar 26 19:01:43 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/prepare_query.c:
 	- fixed constant parameters after mssql 2005 patch

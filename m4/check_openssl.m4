@@ -1,9 +1,9 @@
-dnl $Id: check_openssl.m4,v 1.1 2006-03-24 22:00:17 jklowden Exp $
+dnl $Id: check_openssl.m4,v 1.2 2006-03-27 07:22:54 jklowden Exp $
 # OpenSSL check
 
 AC_DEFUN([CHECK_OPENSSL],
 [AC_MSG_CHECKING(if openssl is wanted)
-AC_ARG_WITH(openssl, AC_HELP_STRING([--with-openssl], [--with-openssl=DIR build with OpenSSL (license NOT compatible cf. User Guide)])
+AC_ARG_WITH(openssl, AS_HELP_STRING([--with-openssl], [--with-openssl=DIR build with OpenSSL (license NOT compatible cf. User Guide)])
 ,[ AC_MSG_RESULT(yes)
     for dir in $withval /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
         ssldir="$dir"

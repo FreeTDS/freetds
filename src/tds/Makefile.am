@@ -1,8 +1,8 @@
-# $Id: Makefile.am,v 1.56 2006-01-24 15:03:27 freddy77 Exp $
+# $Id: Makefile.am,v 1.57 2006-03-27 07:22:54 jklowden Exp $
 
 SUBDIRS			=	unittests
+AM_CPPFLAGS		=	-I$(top_srcdir)/include
 
-INCLUDES		=	-I$(top_srcdir)/include
 noinst_LTLIBRARIES	=	libtds_objects.la
 libtds_objects_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	write.c convert.c numeric.c config.c query.c iconv.c \
