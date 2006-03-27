@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.53 2006-03-20 14:01:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.54 2006-03-27 08:17:50 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -163,7 +163,8 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	/* validate datalen parameter */
 
 	if (is_fixed_type(type)) {
-		datalen = -1; 
+		if (datalen != 0)
+			datalen = -1; 
 	} else {	/* Sybooks: "Passing datalen as -1 for any of these [non-fixed] datatypes results 
 			 * in the DBPROCESS referenced by dbproc being marked as "dead," or unusable."
 			 */
