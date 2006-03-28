@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2006-03-21 14:25:48 freddy77 Exp $
+# $Id: Makefile.am,v 1.48 2006-03-28 00:05:57 jklowden Exp $
 TESTS		=	\
 			t0001 t0002 t0003 t0004 connect print date \
 			norowset funccall lang_error tables \
@@ -54,9 +54,9 @@ cursor1_SOURCES	= cursor1.c common.c common.h
 scroll_SOURCES	= scroll.c common.c common.h
 cursor2_SOURCES	= cursor2.c common.c common.h
 
+AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 AM_LDFLAGS	=	-no-install
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
-INCLUDES	=	-I$(top_srcdir)/include $(ODBC_INC)
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
 
 msvc.mak: Makefile

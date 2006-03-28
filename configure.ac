@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.2 2006-03-27 07:22:54 jklowden Exp $
+dnl $Id: configure.ac,v 1.3 2006-03-28 00:05:29 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.2 $)
+AC_REVISION($Revision: 1.3 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -317,7 +317,6 @@ if test "$GCC" = yes; then
 		AC_MSG_CHECKING([whether we can use $freetds_ldflag])
 		saved_LDFLAGS=$LDFLAGS
 		LDFLAGS="$LDFLAGS $freetds_ldflag"
-dnl OBSOLETE	AC_TRY_LINK(,[return 1],ac_cv_use_freetds_flag="yes",ac_cv_use_freetds_flag="no")
 		AC_LINK_IFELSE(AC_LANG_SOURCE(,[return 1]), ac_cv_use_freetds_flag="yes", ac_cv_use_freetds_flag="no")
 		LDFLAGS=$saved_LDFLAGS
 		AC_MSG_RESULT($ac_cv_use_freetds_flag)
@@ -326,9 +325,9 @@ dnl OBSOLETE	AC_TRY_LINK(,[return 1],ac_cv_use_freetds_flag="yes",ac_cv_use_free
 			break;
 		fi
 	done
-	AC_TRY_COMPILE([static void __attribute__((destructor))
-my_uninit(void) {}
-],[], AC_DEFINE(TDS_ATTRIBUTE_DESTRUCTOR, 1, [Define to 1 if your compiler support __attribute__((destructor)).]))
+	AC_COMPILE_IFELSE(AC_LANG_SOURCE([static void __attribute__((destructor)) my_uninit(void) {}], []), 
+			  AC_DEFINE(TDS_ATTRIBUTE_DESTRUCTOR, 1, 
+				    [Define to 1 if your compiler supports __attribute__((destructor)).]))
 fi
 AC_SUBST(FREETDS_LIBGCC)
 
@@ -635,7 +634,7 @@ AC_MSG_RESULT(done)
 # ------------------------------------------------------------
 # Final output
 # ------------------------------------------------------------
-AC_OUTPUT(include/tdsver.h \
+AC_CONFIG_FILES(include/tdsver.h \
 	include/tds_sysdep_public.h \
 	Makefile \
 	include/Makefile \
@@ -655,3 +654,4 @@ AC_OUTPUT(include/tdsver.h \
 	win32/Makefile win32/msvc6/Makefile win32/dev-cpp/Makefile \
 	win32/version.rc win32/freetds.nsh
 )
+AC_OUTPUT

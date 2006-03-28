@@ -1,7 +1,9 @@
-dnl $Id: ac_have_inaddr_none.m4,v 1.1 2006-03-24 22:00:17 jklowden Exp $
-AC_DEFUN([AC_HAVE_INADDR_NONE],
-[AC_CACHE_CHECK([whether INADDR_NONE is defined], ac_cv_have_inaddr_none,
- [AC_TRY_COMPILE([
+dnl $Id: ac_have_inaddr_none.m4,v 1.2 2006-03-28 00:05:30 jklowden Exp $
+AC_DEFUN([AC_HAVE_INADDR_NONE], [
+		AC_CACHE_CHECK([whether INADDR_NONE is defined], 
+				ac_cv_have_inaddr_none,
+				[AC_COMPILE_IFELSE(AC_LANG_SOURCE(
+[/* our includes */ 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -14,14 +16,18 @@ AC_DEFUN([AC_HAVE_INADDR_NONE],
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-],[
-unsigned long foo = INADDR_NONE;
-],
-  ac_cv_have_inaddr_none=yes,
-  ac_cv_have_inaddr_none=no)])
- if test $ac_cv_have_inaddr_none != yes; then
-   AC_DEFINE(INADDR_NONE, 0xffffffff, [Define to value of INADDR_NONE if not provided by your system header files.])
- fi])
+ /* end includes */], 
+					[unsigned long foo = INADDR_NONE; /* our test code */]),
+					ac_cv_have_inaddr_none=yes,
+  					ac_cv_have_inaddr_none=no)
+					
+		])
+		if test $ac_cv_have_inaddr_none != yes; then
+			AC_DEFINE(INADDR_NONE, 0xffffffff, 
+				  [Define to value of INADDR_NONE if not provided by your system header files.])
+ 		fi
+	]
+)
 
 
 

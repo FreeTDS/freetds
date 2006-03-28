@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.17 2005-03-23 16:51:43 freddy77 Exp $
+# $Id: Makefile.am,v 1.18 2006-03-28 00:05:57 jklowden Exp $
 TESTS		=	t0001 t0002 t0003 t0004 \
 			t0005 t0006 t0007 t0008 \
 			dynamic1 convert dataread \
@@ -27,7 +27,7 @@ utf8_2_SOURCES	=	utf8_2.c common.c common.h
 utf8_3_SOURCES	=	utf8_3.c common.c common.h
 numeric_SOURCES =       numeric.c
 
+AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/..
 AM_LDFLAGS	=	-no-install
 LIBS		=	../libtds.la @NETWORK_LIBS@
-INCLUDES	=	-I$(top_srcdir)/include -I$(srcdir)/..
 CLEANFILES	=	tdsdump.out

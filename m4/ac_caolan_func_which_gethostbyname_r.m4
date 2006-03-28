@@ -1,4 +1,4 @@
-dnl $Id: ac_caolan_func_which_gethostbyname_r.m4,v 1.1 2006-03-24 22:00:17 jklowden Exp $
+dnl $Id: ac_caolan_func_which_gethostbyname_r.m4,v 1.2 2006-03-28 00:05:30 jklowden Exp $
 ##
 # @synopsis AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
 #
@@ -14,8 +14,10 @@ dnl $Id: ac_caolan_func_which_gethostbyname_r.m4,v 1.1 2006-03-24 22:00:17 jklow
 # exists. These example files found at
 # http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 #
-# @version $Id: ac_caolan_func_which_gethostbyname_r.m4,v 1.1 2006-03-24 22:00:17 jklowden Exp $
 # @author Caolan McNamara <caolan@skynet.ie>
+# updated with AC_LINK_IFELSE March 2006 <jklowden@schemamania.org>.
+# Could probably be replaced with better version: 
+# 	http://autoconf-archive.cryp.to/ax_func_which_gethostbyname_r.html
 #
 # based on David Arnold's autoconf suggestion in the threads faq
 ##
@@ -23,7 +25,7 @@ AC_DEFUN([AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R],
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r, [
-	AC_TRY_LINK([
+	AC_LINK_IFELSE(AC_LANG_SOURCE([
 #		include <netdb.h> 
   	], 	[
 
@@ -32,10 +34,10 @@ AC_CACHE_CHECK(for which type of gethostbyname_r, ac_cv_func_which_gethostname_r
         struct hostent_data data;
         (void) gethostbyname_r(name, he, &data);
 
-		],ac_cv_func_which_gethostname_r=three, 
+		]),ac_cv_func_which_gethostname_r=three, 
 			[
 dnl			ac_cv_func_which_gethostname_r=no
-  AC_TRY_LINK([
+  AC_LINK_IFELSE(AC_LANG_SOURCE([
 #   include <netdb.h>
   ], [
 	char *name;
@@ -44,11 +46,11 @@ dnl			ac_cv_func_which_gethostname_r=no
 	int buflen = 2048;
 	int h_errnop;
 	(void) gethostbyname_r(name, he, buffer, buflen, &res, &h_errnop)
-  ],ac_cv_func_which_gethostname_r=six,
+  ]),ac_cv_func_which_gethostname_r=six,
   
   [
 dnl  ac_cv_func_which_gethostname_r=no
-  AC_TRY_LINK([
+  AC_LINK_IFELSE(AC_LANG_SOURCE([
 #   include <netdb.h>
   ], [
 			char *name;
@@ -57,7 +59,7 @@ dnl  ac_cv_func_which_gethostname_r=no
 			int buflen = 2048;
 			int h_errnop;
 			(void) gethostbyname_r(name, he, buffer, buflen, &h_errnop)
-  ],ac_cv_func_which_gethostname_r=five,ac_cv_func_which_gethostname_r=no)
+  ]),ac_cv_func_which_gethostname_r=five,ac_cv_func_which_gethostname_r=no)
 
   ]
   

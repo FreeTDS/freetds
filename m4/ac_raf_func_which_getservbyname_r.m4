@@ -1,4 +1,4 @@
-dnl $Id: ac_raf_func_which_getservbyname_r.m4,v 1.1 2006-03-24 22:00:17 jklowden Exp $
+dnl $Id: ac_raf_func_which_getservbyname_r.m4,v 1.2 2006-03-28 00:05:30 jklowden Exp $
 ##
 # Found on autoconf archive
 # Based on Caolan McNamara's gethostbyname_r macro. 
@@ -8,7 +8,7 @@ AC_DEFUN([AC_raf_FUNC_WHICH_GETSERVBYNAME_R],
 [ac_save_CFLAGS=$CFLAGS
 CFLAGS="$CFLAGS $NETWORK_LIBS"
 AC_CACHE_CHECK(for which type of getservbyname_r, ac_cv_func_which_getservbyname_r, [
-        AC_TRY_LINK([
+        AC_LINK_IFELSE(AC_LANG_SOURCE([
 #               include <netdb.h>
         ],      [
 
@@ -18,9 +18,9 @@ AC_CACHE_CHECK(for which type of getservbyname_r, ac_cv_func_which_getservbyname
         struct servent_data data;
         (void) getservbyname_r(name, proto, se, &data);
 
-                ],ac_cv_func_which_getservbyname_r=four,
+                ]),ac_cv_func_which_getservbyname_r=four,
                         [
-  AC_TRY_LINK([
+  AC_LINK_IFELSE(AC_LANG_SOURCE([
 #   include <netdb.h>
   ], [
         char *name;
@@ -29,10 +29,10 @@ AC_CACHE_CHECK(for which type of getservbyname_r, ac_cv_func_which_getservbyname
         char buffer[2048];
         int buflen = 2048;
         (void) getservbyname_r(name, proto, se, buffer, buflen, &res)
-  ],ac_cv_func_which_getservbyname_r=six,
+  ]),ac_cv_func_which_getservbyname_r=six,
 
   [
-  AC_TRY_LINK([
+  AC_LINK_IFELSE(AC_LANG_SOURCE([
 #   include <netdb.h>
   ], [
         char *name;
@@ -41,7 +41,7 @@ AC_CACHE_CHECK(for which type of getservbyname_r, ac_cv_func_which_getservbyname
         char buffer[2048];
         int buflen = 2048;
         (void) getservbyname_r(name, proto, se, buffer, buflen)
-  ],ac_cv_func_which_getservbyname_r=five,ac_cv_func_which_getservbyname_r=no)
+  ]),ac_cv_func_which_getservbyname_r=five,ac_cv_func_which_getservbyname_r=no)
 
   ]
 

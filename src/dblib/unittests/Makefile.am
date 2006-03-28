@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.29 2006-02-07 13:24:44 freddy77 Exp $
+# $Id: Makefile.am,v 1.30 2006-03-28 00:05:30 jklowden Exp $
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 \
 			t0009 t0011 t0012 t0013 t0014 t0015 t0016 \
 			t0017 t0018 t0019 t0020 t0021 t0022 t0023 rpc \
@@ -39,10 +39,9 @@ if ENABLE_THREADSAFE
 thread_LDADD	=	@PTHREAD_LIBS@
 endif
 
+AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
 AM_LDFLAGS	=	-no-install
 LIBS		=	../libsybdb.la @NETWORK_LIBS@
-INCLUDES	=	-I$(top_srcdir)/include
 EXTRA_DIST	=	t0016.in t0017.in data.bin
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err
-AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\"
