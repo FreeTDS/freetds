@@ -1,4 +1,4 @@
-dnl $Id: type_socklen_t.m4,v 1.2 2006-03-28 00:05:30 jklowden Exp $
+dnl $Id: type_socklen_t.m4,v 1.3 2006-03-29 16:24:37 freddy77 Exp $
 ##
 # This macro came from internet, appear in lftp, rsync and others.
 ##
@@ -13,7 +13,7 @@ AC_DEFUN([TYPE_SOCKLEN_T],
       xml_cv_socklen_t_equiv=
       for arg2 in "struct sockaddr" void; do
         for t in int size_t unsigned long "unsigned long"; do
-          AC_COMPILE_IFELSE(AC_LANG_SOURCE([
+          AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif

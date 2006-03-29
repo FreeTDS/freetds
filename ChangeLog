@@ -1,3 +1,14 @@
+Wed Mar 29 18:25:54 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* m4/ac_caolan_func_which_gethostbyname_r.m4:
+	* m4/ac_have_inaddr_none.m4 m4/ac_have_malloc_options.m4:
+	* m4/ac_raf_func_which_getservbyname_r.m4:
+	* m4/ac_tds_func_which_gethostbyaddr_r.m4:
+	* m4/ac_tds_func_which_getpwuid_r.m4:
+	* m4/ac_tds_func_which_localtime_r.m4:
+	* m4/ax_cflags_gcc_option.m4 m4/lib-link.m4:
+	* m4/sprintf_i64_format.m4 m4/type_socklen_t.m4:
+	- quote as necessary
+
 Mon Mar 27 19:01:05 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* configure.ac
 	* m4/ac_caolan_func_which_gethostbyname_r.m4
@@ -19,10 +30,10 @@ Mon Mar 27 19:01:05 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* m4/README.iconv
 	* m4/iconv.m4 m4/lib-ld.m4 m4/lib-link.m4 m4/lib-prefix.m4
 	- added from GNU libiconv
-	
+
 Mon Mar 27 09:48:56 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/index.html corrected nightly test link
-	
+
 Mon Mar 27 10:17:42 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/rpc.c: allow again null for fixed types
 

@@ -1,4 +1,4 @@
-dnl $Id: ac_tds_func_which_getpwuid_r.m4,v 1.2 2006-03-28 00:05:30 jklowden Exp $
+dnl $Id: ac_tds_func_which_getpwuid_r.m4,v 1.3 2006-03-29 16:24:37 freddy77 Exp $
 ##
 # Check getpwuid_r parameters
 # There are three version of this function
@@ -12,14 +12,14 @@ dnl $Id: ac_tds_func_which_getpwuid_r.m4,v 1.2 2006-03-28 00:05:30 jklowden Exp 
 AC_DEFUN([AC_tds_FUNC_WHICH_GETPWUID_R],
 [if test x$ac_cv_func_getpwuid = xyes; then
 AC_CACHE_CHECK(for which type of getpwuid_r, ac_cv_func_which_getpwuid_r, [
-AC_COMPILE_IFELSE(AC_LANG_SOURCE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #include <unistd.h>
 #include <pwd.h>
-  ], [
+  ], [[
 struct passwd bpw;
 char buf[1024];
 char *dir = getpwuid_r(getuid(), &bpw, buf, sizeof(buf))->pw_dir;
-]),ac_cv_func_which_getpwuid_r=four_pw,
+]])],ac_cv_func_which_getpwuid_r=four_pw,
 [AC_TRY_RUN([
 #include <unistd.h>
 #include <pwd.h>

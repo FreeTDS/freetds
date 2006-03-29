@@ -1,4 +1,4 @@
-dnl $Id: lib-link.m4,v 1.1 2006-03-28 00:05:42 jklowden Exp $
+dnl $Id: lib-link.m4,v 1.2 2006-03-29 16:24:37 freddy77 Exp $
 # lib-link.m4 serial 4 (gettext-0.12)
 dnl Copyright (C) 2001-2003 Free Software Foundation, Inc.
 dnl This file is free software, distributed under the terms of the GNU
@@ -68,7 +68,7 @@ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
   AC_CACHE_CHECK([for lib[]$1], [ac_cv_lib[]Name], [
     ac_save_LIBS="$LIBS"
     LIBS="$LIBS $LIB[]NAME"
-    AC_LINK_IFELSE(AC_LANG_SOURCE([$3], [$4]), [ac_cv_lib[]Name=yes], [ac_cv_lib[]Name=no])
+    AC_LINK_IFELSE(AC_LANG_PROGRAM([$3], [$4]), [ac_cv_lib[]Name=yes], [ac_cv_lib[]Name=no])
     LIBS="$ac_save_LIBS"
   ])
   if test "$ac_cv_lib[]Name" = yes; then

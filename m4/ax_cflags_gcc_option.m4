@@ -1,4 +1,4 @@
-dnl $Id: ax_cflags_gcc_option.m4,v 1.2 2006-03-28 00:05:30 jklowden Exp $
+dnl $Id: ax_cflags_gcc_option.m4,v 1.3 2006-03-29 16:24:37 freddy77 Exp $
 dnl @synopsis AX_CFLAGS_GCC_OPTION (optionflag [,[shellvar][,[A][,[NA]]])
 dnl
 dnl AX_CFLAGS_GCC_OPTION(-fvomit-frame) would show a message as like
@@ -57,7 +57,7 @@ for ac_arg dnl
 in "-pedantic  % m4_ifval($2,$2,-option)"  dnl   GCC
    #
 do FLAGS="$ac_save_[]FLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
-   AC_COMPILE_IFELSE(AC_LANG_SOURCE([],[return 0;]),
+   AC_COMPILE_IFELSE(AC_LANG_PROGRAM([],[return 0;]),
    [VAR=`echo $ac_arg | sed -e 's,.*% *,,'` ; break])
 done
  FLAGS="$ac_save_[]FLAGS"
@@ -92,7 +92,7 @@ for ac_arg dnl
 in "-pedantic  % m4_ifval($2,$2,-option)"  dnl   GCC
    #
 do FLAGS="$ac_save_[]FLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
-   AC_COMPILE_IFELSE(AC_LANG_SOURCE([],[return 0;]),
+   AC_COMPILE_IFELSE(AC_LANG_PROGRAM([],[return 0;]),
    [VAR=`echo $ac_arg | sed -e 's,.*% *,,'` ; break])
 done
  FLAGS="$ac_save_[]FLAGS"
@@ -126,7 +126,7 @@ for ac_arg dnl
 in "-pedantic  % m4_ifval($1,$1,-option)"  dnl   GCC
    #
 do FLAGS="$ac_save_[]FLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
-   AC_COMPILE_IFELSE(AC_LANG_SOURCE([],[return 0;]),
+   AC_COMPILE_IFELSE(AC_LANG_PROGRAM([],[return 0;]),
    [VAR=`echo $ac_arg | sed -e 's,.*% *,,'` ; break])
 done
  FLAGS="$ac_save_[]FLAGS"
@@ -161,7 +161,7 @@ for ac_arg dnl
 in "-pedantic  % m4_ifval($1,$1,-option)"  dnl   GCC
    #
 do FLAGS="$ac_save_[]FLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
-   AC_COMPILE_IFELSE(AC_LANG_SOURCE([],[return 0;]),
+   AC_COMPILE_IFELSE(AC_LANG_PROGRAM([],[return 0;]),
    [VAR=`echo $ac_arg | sed -e 's,.*% *,,'` ; break])
 done
  FLAGS="$ac_save_[]FLAGS"

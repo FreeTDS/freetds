@@ -1,8 +1,8 @@
-dnl $Id: ac_have_inaddr_none.m4,v 1.2 2006-03-28 00:05:30 jklowden Exp $
+dnl $Id: ac_have_inaddr_none.m4,v 1.3 2006-03-29 16:24:37 freddy77 Exp $
 AC_DEFUN([AC_HAVE_INADDR_NONE], [
 		AC_CACHE_CHECK([whether INADDR_NONE is defined], 
 				ac_cv_have_inaddr_none,
-				[AC_COMPILE_IFELSE(AC_LANG_SOURCE(
+				[AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [/* our includes */ 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -17,7 +17,7 @@ AC_DEFUN([AC_HAVE_INADDR_NONE], [
 #include <arpa/inet.h>
 #endif
  /* end includes */], 
-					[unsigned long foo = INADDR_NONE; /* our test code */]),
+					[unsigned long foo = INADDR_NONE; /* our test code */])],
 					ac_cv_have_inaddr_none=yes,
   					ac_cv_have_inaddr_none=no)
 					
