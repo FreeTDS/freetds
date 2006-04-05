@@ -69,7 +69,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.84 2006-01-24 15:03:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.85 2006-04-05 06:44:41 freddy77 Exp $");
 
 enum
 {
@@ -225,7 +225,14 @@ static void
 tsql_print_usage(const char *progname)
 {
 	fprintf(stderr,
-		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [ -P <password> ] [ -I <config file> ]\n\t%s -C\n",
+		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>] [-I <config file>] [-o <options>]\n"
+		"\t%s -C\n"
+		"Options:\n"
+		"\tf\tDo not print footer\n"
+		"\th\tDo not print header\n"
+		"\tt\tPrint time informations\n"
+		"\tv\tPrint TDS version\n"
+		"\tq\tQuiet\n",
 		progname, progname);
 }
 
@@ -276,11 +283,6 @@ get_opt_flags(char *s, int *opt_flags)
 			free(argv);
 			return 0;
 		}
-		
-		if (optind != argc) {
-			fprintf(stderr, "flags = %x [%d != %d]\n", *opt_flags, optind, argc);
-		}		
-
 	}
 	
 	free(argv);

@@ -40,6 +40,10 @@ do
 	esac
 done
 
+log () {
+        echo "@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@- $1 -@!@!@!@!@!@!@!@!@!@!@!@!@!@!@!@"
+}
+
 # set correct directory
 DIR=`dirname $0`
 cd "$DIR/.."
@@ -139,12 +143,26 @@ if test $do_perl = yes; then
 		cd "$DIR"
 		test -r Makefile || perl Makefile.PL
 		make clean
-		test -r Makefile || perl Makefile.PL
-		make
-		if test $verbose = yes; then
-			make test TEST_VERBOSE=1
-		else
-			make test
+		RES=0
+		log "START DBD::ODBC make"
+		test -r Makefile || classifier perl Makefile.PL || RES=$?
+		if test $RES = 0; then
+			classifier make || RES=$?
+		fi
+		log "RESULT $RES"
+		log "END DBD::ODBC make"
+		if test $RES = 0; then
+			log "START DBD::ODBC test"
+			if test $verbose = yes; then
+				classifier make test TEST_VERBOSE=1 || RES=$?
+			else
+				classifier make test || RES=$?
+			fi
+			log "RESULT $RES"
+			log "END DBD::ODBC test"
+		fi
+		if test $RES != 0; then
+			exit $RES
 		fi
 	done
 fi

@@ -5,11 +5,15 @@
 # set -e
 
 BUILD=1
+CONFIGURE=0
 for param
 do
 	case $param in
 	--no-build)
 		BUILD=0
+		;;
+	--configure)
+		CONFIGURE=1
 		;;
 	esac
 done
@@ -18,9 +22,7 @@ done
 DIR=`dirname $0`
 cd "$DIR/.."
 
-# save directory
-ORIGDIR="$PWD"
-DIR="$ORIGDIR/misc"
+DIR="$PWD/misc"
 LANG=C
 export LANG
 
@@ -41,13 +43,7 @@ output_save () {
 	log "END $OUT"
 }
 
-# execute configure
-#output_save "configuration" conf ./configure --enable-extra-checks --with-odbc-nodm=/usr
-#if test $RES != 0; then
-#	echo "errore in configure"
-#	exit 1
-#fi
-
+# output informations
 log "INFO HOSTNAME $(echo $(hostname))"
 VER=$(gcc --version 2> /dev/null | grep 'GCC')
 log "INFO GCC $VER"
@@ -57,6 +53,16 @@ log "INFO DATE $(date '+%Y-%m-%d')"
 MAKE=make
 if gmake --help 2> /dev/null > /dev/null; then
 	MAKE=gmake
+fi
+
+# execute configure
+if test $CONFIGURE = 1; then
+	BUILD=1
+	output_save "configuration" conf ./configure --enable-extra-checks $TDS_AUTO_CONFIG
+	if test $RES != 0; then
+		echo "error during configure"
+		exit 1
+	fi
 fi
 
 if test $BUILD = 1; then
@@ -81,7 +87,7 @@ fi
 
 echo Testing ...
 TESTS_ENVIRONMENT="$DIR/full-test.sh"
-export TESTS_ENVIRONMENT ORIGDIR
+export TESTS_ENVIRONMENT
 $MAKE check 2> /dev/null
 if  test $? != 0; then
 	echo "error during make check"

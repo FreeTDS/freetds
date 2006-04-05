@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.308 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.309 2006-04-05 06:44:42 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -630,8 +630,8 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 						cursor->cursor_id = *(TDS_INT *) curcol->column_data;
 						tdsdump_log(TDS_DBG_FUNC, "stored internal cursor id %d\n", 
 							    cursor->cursor_id);
-						cursor->srv_status &= ~TDS_CUR_ISTAT_CLOSED;
-						cursor->srv_status |= TDS_CUR_ISTAT_OPEN;
+						cursor->srv_status &= ~(TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_OPEN);
+						cursor->srv_status |= cursor->cursor_id ? TDS_CUR_ISTAT_OPEN : TDS_CUR_ISTAT_CLOSED;
 					}
 					if (tds->internal_sp_called == TDS_SP_PREPARE 
 					    && tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
@@ -2436,6 +2436,9 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	if (marker == TDS_EED_TOKEN && tds->cur_dyn && !TDS_IS_MSSQL(tds) && msg.msgno == 2782) {
 		/* we must emulate prepare */
 		tds->cur_dyn->emulated = 1;
+	} else if (marker == TDS_INFO_TOKEN && msg.msgno == 16954 && TDS_IS_MSSQL(tds)
+		   && tds->internal_sp_called == TDS_SP_CURSOROPEN && tds->cur_cursor) {
+		/* here mssql say "Executing SQL directly; no cursor." opening cursor */
 	} else {
 		/* EED can be followed to PARAMFMT/PARAMS, do not store it in dynamic */
 		tds->cur_dyn = NULL;

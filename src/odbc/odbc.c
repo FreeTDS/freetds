@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.408 2006-04-05 05:08:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.409 2006-04-05 06:44:42 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2566,9 +2566,13 @@ _SQLExecute(TDS_STMT * stmt)
 				stmt->dbc->current_statement = stmt;
 				ret = tds_process_simple_query(tds);
 				stmt->dbc->current_statement = NULL;
-				if (ret == TDS_SUCCEED) {
+				if (ret == TDS_SUCCEED && cursor->cursor_id != 0) {
 					ret = tds_cursor_setname(tds, cursor);
 					tds_set_state(tds, TDS_PENDING);
+				}
+				if (!cursor->cursor_id) {
+					stmt->cursor = NULL;
+					tds_free_cursor(tds, cursor);
 				}
 			}
 		} else if (stmt->num_param_rows <= 1) {

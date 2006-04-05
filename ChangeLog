@@ -1,3 +1,12 @@
+Wed Apr 05 08:42:54 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* misc/full-test.sh: cleanup
+	* misc/test-auto.sh: allow configuration
+	* misc/test-other.sh: make output suitable for online.pl
+	* src/apps/tsql.c:
+	- improve documentation
+	- fix problem for multiple options
+	* src/odbc/odbc.c src/tds/token.c: avoid void message to application
+
 Wed Apr 05 07:09:32 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/odbc.c: remove some warnings
 
