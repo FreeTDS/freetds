@@ -1,3 +1,6 @@
+Wed Apr 05 07:09:32 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/odbc.c: remove some warnings
+
 Wed Mar 29 18:25:54 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* m4/ac_caolan_func_which_gethostbyname_r.m4:
 	* m4/ac_have_inaddr_none.m4 m4/ac_have_malloc_options.m4:

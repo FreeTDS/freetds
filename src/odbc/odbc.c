@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.407 2006-03-09 13:34:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.408 2006-04-05 05:08:05 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -711,7 +711,7 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 	res = _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMS_PROCESSED_PTR, pirow, 0);
 	if (res != SQL_SUCCESS)
 		return res;
-	return _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER) crow, 0);
+	return _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER) (TDS_INTPTR) crow, 0);
 }
 
 SQLRETURN SQL_API
@@ -854,7 +854,7 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 		ODBC_RETURN(env, SQL_ERROR);
 		break;
 	case SQL_ATTR_ODBC_VERSION:
-		switch ((SQLULEN) Value) {
+		switch ((SQLULEN) (TDS_INTPTR) Value) {
 		case SQL_OV_ODBC3:
 		case SQL_OV_ODBC2:
 			break;
@@ -862,11 +862,11 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 			odbc_errs_add(&env->errs, "HY024", NULL);
 			ODBC_RETURN(env, SQL_ERROR);
 		}
-		env->attr.odbc_version = (SQLINTEGER) Value;
+		env->attr.odbc_version = (SQLINTEGER) (TDS_INTPTR) Value;
 		ODBC_RETURN_(env);
 		break;
 	case SQL_ATTR_OUTPUT_NTS:
-		env->attr.output_nts = (SQLINTEGER) Value;
+		env->attr.output_nts = (SQLINTEGER) (TDS_INTPTR) Value;
 		/* TODO - Make this really work */
 		env->attr.output_nts = SQL_TRUE;
 		ODBC_RETURN_(env);
@@ -5205,7 +5205,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 static SQLRETURN SQL_API
 _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
-	SQLULEN u_value = (SQLULEN) ValuePtr;
+	SQLULEN u_value = (SQLULEN) (TDS_INTPTR) ValuePtr;
 	int len = 0;
 	SQLRETURN ret = SQL_SUCCESS;
 
