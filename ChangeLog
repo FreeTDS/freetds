@@ -1,3 +1,7 @@
+Thu Apr 06 11:37:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* misc/coverage.sh: less verbose 
+	* src/dblib/bcp.c: small change
+
 Wed Apr 05 08:42:54 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/full-test.sh: cleanup
 	* misc/test-auto.sh: allow configuration

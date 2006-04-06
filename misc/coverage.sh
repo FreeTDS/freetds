@@ -15,7 +15,7 @@ mkdir covtmp
 mkdir coverage
 
 # move required files in covtmp
-find include/ src/ \( -name \*.\[ch\] -o -name \*.da -o -name \*.bb\* -o -name \*.gc\* \) | tar cf -  -T - | (cd covtmp; tar xvf -)
+find include/ src/ \( -name \*.\[ch\] -o -name \*.da -o -name \*.bb\* -o -name \*.gc\* \) | tar cf -  -T - | (cd covtmp; tar xf -)
 
 # prepare
 cd covtmp

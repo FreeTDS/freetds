@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.145 2006-03-20 14:29:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.146 2006-04-06 09:37:47 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1446,15 +1446,11 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 		 * optimize this strange loop - freddy77
 		 */
 		if (*sample == *terminator) {
-			int found = 0;
-
 			if (sample_size == term_len) {
 				/*
 				 * If we read a whole terminator, compare the whole sequence and, if found, go home. 
 				 */
-				found = 0 == memcmp(sample, terminator, term_len);
-
-				if (found) {
+				if (memcmp(sample, terminator, term_len) == 0) {
 					free(sample);
 					size = ftello(hostfile) - initial_offset;
 					if (size < 0 || 0 != fseeko(hostfile, initial_offset, SEEK_SET)) {
