@@ -169,20 +169,20 @@ fi
 
 # PHP
 cd "$ORIGDIR"
-FILE=php5-latest.tar.gz
+FILE='php5.1-latest.tar.gz'
 if test $do_php = yes -a -f "$FILE"; then
 	# need to recompile ??
 	if test ! -x phpinst/bin/php -o "$FILE" -nt phpinst/bin/php; then
-		rm -rf php5-200* phpinst lib
+		rm -rf php5.1-200* phpinst lib
 		gunzip -c "$FILE" | tar xvf -
-		DIR=`echo php5-200*`
+		DIR=`echo php5.1-200*`
 		MAINDIR=$PWD
 		mkdir lib
 		cp src/dblib/.libs/lib*.s[ol]* lib
 		cp src/tds/.libs/lib*.s[ol]* lib
 		cd $DIR
-		./configure --prefix=$MAINDIR/phpinst --disable-all --with-mssql=$MAINDIR
-		make
+		CFLAGS='-O0 -pipe' ./configure --prefix=$MAINDIR/phpinst --disable-all --with-mssql=$MAINDIR
+		make -j4
 		make install
 		cd ..
 	fi
@@ -193,7 +193,11 @@ if test $do_php = yes -a -f "$FILE"; then
 	ERR=""
 	for f in *.php; do
 		echo Testing PHP script $f
-		../phpinst/bin/php -q $f || ERR="$ERR $f"
+		log "START PHP test $f"
+		RES=0
+		../phpinst/bin/php -q $f 2>&1 || { RES=$?; ERR="$ERR $f"; }
+		log "RESULT $RES"
+		log "END PHP test $f"
 	done
 	if test "$ERR" != ""; then
 		echo "Some script failed:$ERR"

@@ -26,7 +26,7 @@ $row = mssql_fetch_assoc($res);
 while ($row) {
   ++$num_rows;
 //  print_r($row);
-  echo "got a row\n";
+  echo "got a row, name is $row[name]\n";
   $row = mssql_fetch_assoc($res);
   if (!$row) {
     if (mssql_next_result($res)) {
