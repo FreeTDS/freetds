@@ -1,6 +1,10 @@
+Mon Apr 10 11:55:56 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/prepare_query.c:
+	- backport small fix for constant parameters
+
 Fri Mar 24 11:24:08 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* configure.in Update version to 0.64RC2
-	
+
 Fri Mar 24 16:33:13 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/full-test.sh misc/test-auto.sh misc/online.pl(added):
 	- merged with CVS HEAD
