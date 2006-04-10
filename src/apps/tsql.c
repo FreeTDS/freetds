@@ -69,7 +69,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.86 2006-04-10 22:15:57 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.87 2006-04-10 22:31:48 jklowden Exp $");
 
 enum
 {
@@ -346,18 +346,19 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'C':
 			settings = tds_get_compiletime_settings();
-			printf("%s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n",
-			       "Compile-time settings (established with the \"configure\" script):",
-			       "Version:", settings->freetds_version,
+			printf("%s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n",
+			       "Compile-time settings (established with the \"configure\" script)",
+			       "Version", settings->freetds_version,
 			       "freetds.conf directory", settings->sysconfdir, 
 			       /* settings->last_update */
-			       "MS db-lib source compatibility:", settings->msdblib ? "yes" : "no",
-			       "Sybase binary compatibility:",
+			       "MS db-lib source compatibility", settings->msdblib ? "yes" : "no",
+			       "Sybase binary compatibility",
 			       (settings->sybase_compat == -1 ? "unknown" : (settings->sybase_compat ? "yes" : "no")),
-			       "Thread safety:", settings->threadsafe ? "yes" : "no",
-			       "iconv library:", settings->libiconv ? "yes" : "no",
-			       "TDS version:", settings->tdsver,
-			       "iODBC:", settings->iodbc ? "yes" : "no", "unixodbc:", settings->unixodbc ? "yes" : "no");
+			       "Thread safety", settings->threadsafe ? "yes" : "no",
+			       "iconv library", settings->libiconv ? "yes" : "no",
+			       "TDS version", settings->tdsver,
+			       "iODBC", settings->iodbc ? "yes" : "no", 
+			       "unixodbc", settings->unixodbc ? "yes" : "no");
 			exit(0);
 			break;
 		default:
