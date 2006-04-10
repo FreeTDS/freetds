@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.117 2006-03-06 11:57:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.118 2006-04-10 22:15:57 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -1053,7 +1053,9 @@ const TDS_COMPILETIME_SETTINGS *
 tds_get_compiletime_settings(void)
 {
 	static const TDS_COMPILETIME_SETTINGS settings = {
-		TDS_VERSION_NO, "unknown"	/* need fancy script in makefile */
+		  TDS_VERSION_NO
+		, FREETDS_SYSCONFDIR
+		, "unknown"	/* need fancy script in makefile */
 #		ifdef MSDBLIB
 			, 1
 #		else

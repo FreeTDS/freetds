@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.248 2006-03-06 11:57:01 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.249 2006-04-10 22:15:57 jklowden Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -53,6 +53,7 @@ extern "C"
 typedef struct _tds_compiletime_settings
 {
 	const char *freetds_version;	/* release version of FreeTDS */
+	const char *sysconfdir;		/* location of freetds.conf */
 	const char *last_update;	/* latest software_version date among the modules */
 	int msdblib;		/* for MS style dblib */
 	int sybase_compat;	/* enable increased Open Client binary compatibility */

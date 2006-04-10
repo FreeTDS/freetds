@@ -69,7 +69,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.85 2006-04-05 06:44:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.86 2006-04-10 22:15:57 jklowden Exp $");
 
 enum
 {
@@ -346,9 +346,10 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'C':
 			settings = tds_get_compiletime_settings();
-			printf("%s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n",
+			printf("%s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n%35s %s\n",
 			       "Compile-time settings (established with the \"configure\" script):",
 			       "Version:", settings->freetds_version,
+			       "freetds.conf directory", settings->sysconfdir, 
 			       /* settings->last_update */
 			       "MS db-lib source compatibility:", settings->msdblib ? "yes" : "no",
 			       "Sybase binary compatibility:",
