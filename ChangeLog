@@ -1,3 +1,6 @@
+Mon Apr 10 11:59:53 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/odbc.c: cleanup
+
 Fri Apr 07 09:38:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/test-other.sh: update to php 5.1
 	* phptests/nextres.php: a bit more verbose

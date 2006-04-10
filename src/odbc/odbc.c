@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.409 2006-04-05 06:44:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.410 2006-04-10 10:00:23 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5238,7 +5238,6 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		ODBC_RETURN(dbc, ret);
 		break;
 	case SQL_ATTR_CURSOR_TYPE:
-		printf("SQL_ATTR_CURSOR_TYPE on SQLSetConnectAttr\n");
 		dbc->attr.cursor_type = u_value;
 		ODBC_RETURN_(dbc);
 		break;
