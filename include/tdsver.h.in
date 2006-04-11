@@ -20,8 +20,8 @@
 #ifndef _tdsver_h_
 #define _tdsver_h_
 
-static char rcsid_tdsver_h[] = "$Id: tdsver.h.in,v 1.4 2002-11-21 16:53:43 freddy77 Exp $";
-static void *no_unused_tdsver_h_warn[] = { rcsid_tdsver_h, no_unused_tdsver_h_warn };
+static const char rcsid_tdsver_h[] = "$Id: tdsver.h.in,v 1.5 2006-04-11 14:34:08 freddy77 Exp $";
+static const void *const no_unused_tdsver_h_warn[] = { rcsid_tdsver_h, no_unused_tdsver_h_warn };
 
 #define TDS_VERSION_NO "@PACKAGE@ v@VERSION@"
 

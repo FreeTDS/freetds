@@ -1,3 +1,7 @@
+Tue Apr 11 16:33:41 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tds_sysdep_public.h.in include/tdsver.h.in:
+	- small constification
+
 Tue Apr 11 13:51:43 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/connect.c: do not fail if not FreeTDS
 	* src/odbc/unittests/raiserror.c: more verbose
