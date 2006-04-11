@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.16 2006-02-16 07:31:35 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.17 2006-04-11 11:52:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -111,6 +111,9 @@ Test(int level)
 	SQLLEN cbOutString = SQL_NTS;
 
 	char sql[80];
+
+	printf("ODBC %d nocount %s select %s level %d\n", use_odbc_version3 ? 3 : 2,
+	       g_nocount ? "yes" : "no", g_second_select ? "yes" : "no", level);
 
 	ReturnCode = INVALID_RETURN;
 	memset(&OutString, 0, sizeof(OutString));

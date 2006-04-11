@@ -1,7 +1,11 @@
+Tue Apr 11 13:51:43 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/connect.c: do not fail if not FreeTDS
+	* src/odbc/unittests/raiserror.c: more verbose
+
 Mon Apr 10 18:14:17 EDT 2006	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h src/apps/tsql.c src/tds/config.c
 	- report sysconfdir with tsql -C
-	
+
 Mon Apr 10 11:59:53 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/odbc.c: cleanup
 

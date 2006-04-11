@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.8 2003-12-20 13:23:38 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.9 2006-04-11 11:52:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -27,6 +27,7 @@ main(int argc, char *argv[])
 	char tmp[2048];
 	SQLSMALLINT len;
 	int failures = 0;
+	int is_freetds = 1;
 
 	if (read_login_info())
 		exit(1);
@@ -52,7 +53,14 @@ main(int argc, char *argv[])
 
 	printf("SQLConnect connect..\n");
 	Connect();
+	if (!driver_is_freetds())
+		is_freetds = 0;
 	Disconnect();
+
+	if (!is_freetds) {
+		printf("Driver is not FreeTDS, exiting\n");
+		return 0;
+	}
 
 	/* try connect string with using DSN */
 	printf("connect string DSN connect..\n");
@@ -60,9 +68,9 @@ main(int argc, char *argv[])
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
 	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
 	if (!SQL_SUCCEEDED(res)) {
-		printf("Unable to open data source (ret=%d)\n", res);
+		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
 		CheckReturn();
-		exit(1);
+		return 1;
 	}
 	Disconnect();
 
