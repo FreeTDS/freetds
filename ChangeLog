@@ -1,3 +1,7 @@
+Wed Apr 12 21:41:51 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* locales.conf: fix charset typo
+	* doc/userguide.sgml: fix attributes for locales.conf
+
 Wed Apr 12 15:53:18 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/tds.h include/tds_sysdep_private.h:
 	* include/tds_sysdep_public.h.in include/tdsconvert.h:

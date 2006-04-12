@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2005-10-03 02:52:40 $</date>
-		<releaseinfo>$Revision: 1.96 $</releaseinfo>
+		<date>$Date: 2006-04-12 19:40:23 $</date>
+		<releaseinfo>$Revision: 1.97 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.96 $</>
-<member>$Date: 2005-10-03 02:52:40 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.96 2005-10-03 02:52:40 jklowden Exp $.</>
+<member>$Revision: 1.97 $</>
+<member>$Date: 2006-04-12 19:40:23 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.97 2006-04-12 19:40:23 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -565,7 +565,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2005-10-03 02:52:40 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2006-04-12 19:40:23 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1101,16 +1101,16 @@ The format of <filename>locales.conf</> is similar to that of <filename>freetds.
 		</listitem>
 	</varlistentry>	
 	<varlistentry>	
-		<term>language</term>
+		<term><literal>language</></term>
 		<listitem>
 			<para>The language that will be used for error/status messages from the server.  A <productname>SQL Server</productname> client can specify a language for such messages at login time. <note><para><productname>FreeTDS</productname> issues a few messages of its own.  Messages from the server are called <quote>messages</>; those from the client library (i.e., from <productname>FreeTDS</productname>) are called <quote>error messages</>.  <productname>FreeTDS</productname>-issued messages are not affected by <filename>locales.conf</filename>.  </para></note>
 	 </para>
 		</listitem>
 	</varlistentry>	
 	<varlistentry>	
-		<term>character set</term>
+		<term><literal>charset</></term>
 		<listitem>
-			<para>Indicates to the server what character set should be used for communicating with the client.  </para>
+			<para>Indicates to the server what character set should be used for communicating with the client.</para>
 		</listitem>
 	</varlistentry>	
 </variablelist>
