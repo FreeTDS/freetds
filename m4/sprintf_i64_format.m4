@@ -1,10 +1,14 @@
-dnl $Id: sprintf_i64_format.m4,v 1.3 2006-03-29 16:24:37 freddy77 Exp $
+dnl $Id: sprintf_i64_format.m4,v 1.4 2006-04-12 13:54:10 freddy77 Exp $
 ##
 # Test for 64bit integer sprintf format specifier
+# ld   64 bit machine
+# lld  long long format
+# I64d Windows format
+# Ld   Watcom compiler format
 ##
 AC_DEFUN([SPRINTF_I64_FORMAT],
 [tds_i64_format=
-for arg in ld lld I64d; do
+for arg in ld lld I64d Ld; do
 	AC_RUN_IFELSE(AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <string.h>

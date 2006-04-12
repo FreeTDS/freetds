@@ -20,6 +20,8 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
+/* $Id: tds_sysdep_private.h,v 1.20 2006-04-12 13:54:10 freddy77 Exp $ */
+
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
 #define TDS_RCSID(name, id) \
@@ -29,8 +31,6 @@
 	static const char rcsid_##name[] = id; \
 	static const void *const no_unused_##name##_warn[] = { rcsid_##name, no_unused_##name##_warn }
 #endif
-
-TDS_RCSID(tds_sysdep_private_h, "$Id: tds_sysdep_private.h,v 1.19 2005-10-07 10:23:45 freddy77 Exp $");
 
 #define TDS_ADDITIONAL_SPACE 0
 

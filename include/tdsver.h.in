@@ -20,8 +20,7 @@
 #ifndef _tdsver_h_
 #define _tdsver_h_
 
-static const char rcsid_tdsver_h[] = "$Id: tdsver.h.in,v 1.5 2006-04-11 14:34:08 freddy77 Exp $";
-static const void *const no_unused_tdsver_h_warn[] = { rcsid_tdsver_h, no_unused_tdsver_h_warn };
+/* $Id: tdsver.h.in,v 1.6 2006-04-12 13:54:10 freddy77 Exp $ */
 
 #define TDS_VERSION_NO "@PACKAGE@ v@VERSION@"
 
