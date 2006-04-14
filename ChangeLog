@@ -1,3 +1,7 @@
+Fri Apr 14 13:55:09 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/describecol.c:
+	- add test for precision returned by SQLDescribeCol
+
 Wed Apr 12 21:41:51 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* locales.conf: fix charset typo
 	* doc/userguide.sgml: fix attributes for locales.conf
