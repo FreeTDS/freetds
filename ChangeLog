@@ -1,3 +1,7 @@
+Fri Apr 14 15:22:02 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/describecol.c:
+	- improved
+
 Fri Apr 14 13:55:09 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/describecol.c:
 	- add test for precision returned by SQLDescribeCol
