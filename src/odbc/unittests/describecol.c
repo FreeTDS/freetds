@@ -5,7 +5,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.2 2006-04-14 13:22:22 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.3 2006-04-15 07:03:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -96,7 +96,7 @@ DoTest(const char *test_in)
 }
 
 static void
-AllTypes()
+AllTypes(void)
 {
 	Connect();
 

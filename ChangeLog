@@ -1,3 +1,6 @@
+Sat Apr 15 09:03:34 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/describecol.c: remove warning
+
 Fri Apr 14 15:22:02 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/describecol.c:
 	- improved
