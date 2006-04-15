@@ -5,7 +5,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.3 2006-04-15 07:03:39 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.4 2006-04-15 08:02:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -29,7 +29,7 @@ DoTest(const char *test_in)
 	val = strtok(NULL, " \t");
 	precision = atoi(strtok(NULL, " \t"));
 
-	sprintf(sql, "SELECT CAST(%s AS %s) AS col", val, type);
+	sprintf(sql, "SELECT CONVERT(%s, %s) AS col", type, val);
 	/* ignore error, we only need precision of known types */
 	if (CommandWithResult(Statement, sql) != SQL_SUCCESS) {
 		ResetStatement();

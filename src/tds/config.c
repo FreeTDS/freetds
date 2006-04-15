@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.118 2006-04-10 22:15:57 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.119 2006-04-15 08:02:55 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -364,7 +364,8 @@ tds_config_boolean(const char *value)
 int
 tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *param)
 {
-	char line[256], option[256], value[256];
+	char line[256], *value;
+#define option line
 	char *s;
 	char p;
 	int i;
@@ -372,7 +373,7 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 	int found = 0;
 
 	tdsdump_log(TDS_DBG_INFO1, "Looking for section %s.\n", section);
-	while (fgets(line, 256, in)) {
+	while (fgets(line, sizeof(line), in)) {
 		s = line;
 
 		/* skip leading whitespace */
@@ -387,14 +388,19 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 		p = 0;
 		i = 0;
 		while (*s && *s != '=') {
-			if (!TDS_ISSPACE(*s) && TDS_ISSPACE(p))
-				option[i++] = ' ';
-			if (!TDS_ISSPACE(*s))
+			if (!TDS_ISSPACE(*s)) {
+				if (TDS_ISSPACE(p))
+					option[i++] = ' ';
 				option[i++] = tolower((unsigned char) *s);
+			}
 			p = *s;
 			s++;
 		}
 		option[i] = '\0';
+
+		/* skip if empty option */
+		if (!i)
+			continue;
 
 		/* skip the = */
 		if (*s)
@@ -405,29 +411,24 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 			s++;
 
 		/* read up to a # ; or null ignoring duplicate spaces */
+		value = s;
 		p = 0;
 		i = 0;
 		while (*s && *s != ';' && *s != '#') {
-			if (!TDS_ISSPACE(*s) && TDS_ISSPACE(p))
-				value[i++] = ' ';
-			if (!TDS_ISSPACE(*s))
+			if (!TDS_ISSPACE(*s)) {
+				if (TDS_ISSPACE(p))
+					value[i++] = ' ';
 				value[i++] = *s;
+			}
 			p = *s;
 			s++;
 		}
 		value[i] = '\0';
 
-		if (!strlen(option))
-			continue;
-
 		if (option[0] == '[') {
-			s = &option[1];
-			while (*s) {
-				if (*s == ']')
-					*s = '\0';
-				*s = tolower((unsigned char) *s);
-				s++;
-			}
+			s = strchr(option, ']');
+			if (s)
+				*s = '\0';
 			tdsdump_log(TDS_DBG_INFO1, "\tFound section %s.\n", &option[1]);
 
 			if (!strcasecmp(section, &option[1])) {
@@ -444,13 +445,13 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 	}
 	tdsdump_log(TDS_DBG_INFO1, "\tReached EOF\n");
 	return found;
+#undef option
 }
 
 static void
 tds_parse_conf_section(const char *option, const char *value, void *param)
 {
 	TDSCONNECTION *connection = (TDSCONNECTION *) param;
-	char tmp[256];
 
 	tdsdump_log(TDS_DBG_INFO1, "\t%s = '%s'\n", option, value);
 
@@ -479,6 +480,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (atoi(value))
 			connection->connect_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_HOST)) {
+		char tmp[256];
+
 		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s.\n", value);
 		tds_lookup_host(value, tmp);
 		tds_dstr_copy(&connection->ip_addr, tmp);

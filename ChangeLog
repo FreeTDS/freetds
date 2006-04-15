@@ -1,3 +1,7 @@
+Sat Apr 15 10:02:20 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/describecol.c: fix for older Sybase versions
+	* src/tds/config.c: optimize option read
+
 Sat Apr 15 09:03:34 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/describecol.c: remove warning
 
