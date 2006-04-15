@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsconvert.h,v 1.22 2006-04-12 13:54:10 freddy77 Exp $ */
+/* $Id: tdsconvert.h,v 1.23 2006-04-15 08:18:44 freddy77 Exp $ */
 
 typedef union conv_result
 {
@@ -46,6 +46,15 @@ typedef union conv_result
 	TDS_NUMERIC n;
 	TDS_CHAR *ib;
 	TDS_UNIQUE u;
+	/* sizef types */
+	struct cc_t {
+		TDS_CHAR *c;
+		TDS_UINT len;
+	} cc;
+	struct cb_t {
+		TDS_CHAR *ib;
+		TDS_UINT len;
+	} cb;
 }
 CONV_RESULT;
 
@@ -57,6 +66,10 @@ CONV_RESULT;
 #define TDS_CONVERT_SYNTAX	-3	/* syntax error in source field */
 #define TDS_CONVERT_NOMEM	-4	/* insufficient memory */
 #define TDS_CONVERT_OVERFLOW	-5	/* result too large */
+
+/* sized types */
+#define TDS_CONVERT_CHAR	256
+#define TDS_CONVERT_BINARY	257
 
 struct tds_time
 {

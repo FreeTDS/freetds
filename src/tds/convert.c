@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.164 2005-10-07 10:15:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.165 2006-04-15 08:18:44 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -202,33 +202,46 @@ tds_get_conversion_type(int srctype, int colsize)
  * Copy a terminated string to result and return len or TDS_CONVERT_NOMEM
  */
 static TDS_INT
-string_to_result(const char *s, CONV_RESULT * cr)
+string_to_result(int desttype, const char *s, CONV_RESULT * cr)
 {
 	int len = strlen(s);
 
-	cr->c = (TDS_CHAR *) malloc(len + 1);
-	test_alloc(cr->c);
-	memcpy(cr->c, s, len + 1);
+	if (desttype != TDS_CONVERT_CHAR) {
+		cr->c = (TDS_CHAR *) malloc(len + 1);
+		test_alloc(cr->c);
+		memcpy(cr->c, s, len + 1);
+	} else {
+		memcpy(cr->cc.c, s, len < cr->cc.len ? len : cr->cc.len);
+	}
 	return len;
 }
+
+#define string_to_result(s, cr) \
+	string_to_result(desttype, s, cr)
 
 /**
  * Copy binary data to to result and return len or TDS_CONVERT_NOMEM
  */
 static TDS_INT
-binary_to_result(const void *data, size_t len, CONV_RESULT * cr)
+binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 {
-	cr->ib = (TDS_CHAR *) malloc(len);
-	test_alloc(cr->ib);
-	memcpy(cr->ib, data, len);
+	if (desttype != TDS_CONVERT_BINARY) {
+		cr->ib = (TDS_CHAR *) malloc(len);
+		test_alloc(cr->ib);
+		memcpy(cr->ib, data, len);
+	} else {
+		memcpy(cr->cb.ib, data, len < cr->cb.len ? len : cr->cb.len);
+	}
 	return len;
 }
 
+#define binary_to_result(data, len, cr) \
+	binary_to_result(desttype, data, len, cr)
 
 #define CASE_ALL_CHAR \
 	SYBCHAR: case SYBVARCHAR: case SYBTEXT: case XSYBCHAR: case XSYBVARCHAR
 #define CASE_ALL_BINARY \
-	SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY
+	SYBBINARY: case SYBVARBINARY: case SYBIMAGE: case XSYBBINARY: case XSYBVARBINARY: case TDS_CONVERT_BINARY
 
 /* TODO implement me */
 /*
@@ -248,6 +261,20 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 	char *c;
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
+		cplen = srclen * 2;
+		if (cplen > cr->cc.len)
+			cplen = cr->cc.len;
+
+		c = cr->cc.c;
+		for (s = 0; cplen >= 2; ++s, cplen -= 2) {
+			*c++ = tds_hex_digits[src[s]>>4];
+			*c++ = tds_hex_digits[src[s]&0xF];
+		}
+		if (cplen)
+			*c++ = tds_hex_digits[src[s]>>4];
+		return srclen * 2;
+
 	case CASE_ALL_CHAR:
 
 		/*
@@ -321,8 +348,13 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 	TDS_INT tds_i;
 	TDS_INT8 tds_i8;
 	TDS_INT rc;
+	TDS_CHAR *ib;
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
+		memcpy(cr->cc.c, src, srclen < cr->cc.len ? srclen : cr->cc.len);
+		return srclen;
+
 	case CASE_ALL_CHAR:
 		cr->c = (TDS_CHAR *) malloc(srclen + 1);
 		test_alloc(cr->c);
@@ -355,8 +387,12 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 			j = 1;
 			--src;
 		}
-		cr->ib = (TDS_CHAR *) malloc(srclen / 2);
-		test_alloc(cr->ib);
+		ib = cr->cb.ib;
+		if (desttype != TDS_CONVERT_BINARY) {
+			cr->ib = (TDS_CHAR *) malloc(srclen / 2);
+			test_alloc(cr->ib);
+			ib = cr->ib;
+		}
 
 		for (i = srclen; --i >= j;) {
 			hex1 = src[i];
@@ -375,10 +411,13 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 			}
 			assert(hex1 < 0x10);
 
+			if (desttype == TDS_CONVERT_BINARY && (i/2) >= cr->cb.len)
+				continue;
+
 			if (i & 1)
-				cr->ib[i / 2] = hex1;
+				ib[i / 2] = hex1;
 			else
-				cr->ib[i / 2] |= hex1 << 4;
+				ib[i / 2] |= hex1 << 4;
 		}
 		return srclen / 2;
 		break;
@@ -581,6 +620,11 @@ tds_convert_bit(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * c
 	int canonic = src[0] ? 1 : 0;
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
+		if (cr->cc.len)
+			cr->cc.c[0] = '0' + canonic;
+		return 1;
+
 	case CASE_ALL_CHAR:
 		cr->c = (TDS_CHAR *) malloc(2);
 		test_alloc(cr->c);
@@ -648,6 +692,7 @@ tds_convert_int1(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	buf = *((TDS_TINYINT *) src);
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", buf);
 		return string_to_result(tmp_str, cr);
@@ -716,6 +761,7 @@ tds_convert_int2(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", buf);
 		return string_to_result(tmp_str, cr);
@@ -786,6 +832,7 @@ tds_convert_int4(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%d", buf);
 		return string_to_result(tmp_str, cr);
@@ -861,6 +908,7 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		/* TODO: fix for all platform. Search for lltoa/_i64toa */
 #if defined(WIN32) 
@@ -961,6 +1009,7 @@ tds_convert_numeric(int srctype, const TDS_NUMERIC * src, TDS_INT srclen, int de
 	TDS_INT8 bi;
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		if (tds_numeric_to_string(src, tmpstr) < 0)
 			return TDS_CONVERT_FAIL;
@@ -1077,6 +1126,7 @@ tds_convert_money4(int srctype, const TDS_CHAR * src, int srclen, int desttype, 
 
 	memcpy(&mny, src, sizeof(mny));
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		/*
 		 * round to 2 decimal digits
@@ -1182,6 +1232,7 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 #endif
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr);
 		return string_to_result(s, cr);
@@ -1263,6 +1314,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * s
 	TDSDATEREC when;
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		memset(&when, 0, sizeof(when));
 
@@ -1327,6 +1379,7 @@ tds_convert_datetime4(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * 
 	TDSDATEREC when;
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		memset(&when, 0, sizeof(when));
 
@@ -1380,6 +1433,7 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	memcpy(&the_value, src, 4);
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%.7g", the_value);
 		return string_to_result(tmp_str, cr);
@@ -1467,6 +1521,7 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 
 	memcpy(&the_value, src, 8);
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(tmp_str, "%.16g", the_value);
 		return string_to_result(tmp_str, cr);
@@ -1554,6 +1609,7 @@ tds_convert_unique(int srctype, const TDS_CHAR * src, TDS_INT srclen, int destty
 	char buf[37];
 
 	switch (desttype) {
+	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		sprintf(buf, "%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 			(int) u->Data1, (int) u->Data2, (int) u->Data3,

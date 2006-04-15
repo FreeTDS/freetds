@@ -1,3 +1,7 @@
+Sat Apr 15 10:18:29 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tdsconvert.h 	* src/tds/convert.c:
+	- add new type of conversion for copy optimizations
+
 Sat Apr 15 10:02:20 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/describecol.c: fix for older Sybase versions
 	* src/tds/config.c: optimize option read
