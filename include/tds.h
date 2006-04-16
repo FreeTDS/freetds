@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.250 2006-04-12 13:54:10 freddy77 Exp $ */
+/* $Id: tds.h,v 1.251 2006-04-16 08:10:27 freddy77 Exp $ */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -777,7 +777,8 @@ typedef struct tds_connection
 typedef struct tds_locale
 {
 	char *language;
-	char *char_set;
+	char *server_charset;
+	char *client_charset;
 	char *date_fmt;
 } TDSLOCALE;
 

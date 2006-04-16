@@ -1,3 +1,7 @@
+Sun Apr 16 10:11:32 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tds.h src/tds/locale.c src/tds/mem.c:
+	- TDSLOCALE changes to keep ABI
+
 Sat Apr 15 10:18:29 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/tdsconvert.h 	* src/tds/convert.c:
 	- add new type of conversion for copy optimizations
