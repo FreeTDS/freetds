@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-static const char rcsid_tds_h[] = "$Id: tds.h,v 1.245 2006-01-06 10:27:31 freddy77 Exp $";
+static const char rcsid_tds_h[] = "$Id: tds.h,v 1.245.2.1 2006-04-16 08:08:38 freddy77 Exp $";
 static const void *const no_unused_tds_h_warn[] = { rcsid_tds_h, no_unused_tds_h_warn };
 
 #include <stdio.h>
@@ -777,7 +777,8 @@ typedef struct tds_connection
 typedef struct tds_locale
 {
 	char *language;
-	char *char_set;
+	char *server_charset;
+	char *client_charset;
 	char *date_fmt;
 } TDSLOCALE;
 

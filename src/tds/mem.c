@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.154 2006-01-07 11:25:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.154.2.1 2006-04-16 08:08:38 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -619,8 +619,8 @@ tds_alloc_connection(TDSLOCALE * locale)
 		if (locale->language)
 			if (!tds_dstr_copy(&connection->language, locale->language))
 				goto Cleanup;
-		if (locale->char_set)
-			if (!tds_dstr_copy(&connection->server_charset, locale->char_set))
+		if (locale->server_charset)
+			if (!tds_dstr_copy(&connection->server_charset, locale->server_charset))
 				goto Cleanup;
 	}
 	if (tds_dstr_isempty(&connection->language)) {
@@ -872,8 +872,8 @@ tds_free_locale(TDSLOCALE * locale)
 
 	if (locale->language)
 		free(locale->language);
-	if (locale->char_set)
-		free(locale->char_set);
+	if (locale->server_charset)
+		free(locale->server_charset);
 	if (locale->date_fmt)
 		free(locale->date_fmt);
 	free(locale);

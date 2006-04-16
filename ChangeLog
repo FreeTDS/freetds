@@ -1,3 +1,8 @@
+Sun Apr 16 10:09:47 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* NEWS include/tds.h src/tds/locale.c src/tds/mem.c:
+	- renamed char_set to server_charset in TDSLOCALE
+	- added a client_charset to TDSLOCALE
+
 Mon Apr 10 11:55:56 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/prepare_query.c:
 	- backport small fix for constant parameters

@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: locale.c,v 1.24 2005-12-21 08:14:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: locale.c,v 1.24.2.1 2006-04-16 08:08:38 freddy77 Exp $");
 
 
 static void tds_parse_locale(const char *option, const char *value, void *param);
@@ -103,9 +103,9 @@ tds_get_locale(void)
 
 			/* charset specified in LANG ?? */
 			if (charset) {
-				if (locale->char_set)
-					free(locale->char_set);
-				locale->char_set = strdup(charset);
+				if (locale->server_charset)
+					free(locale->server_charset);
+				locale->server_charset = strdup(charset);
 			}
 		}
 
@@ -120,9 +120,9 @@ tds_parse_locale(const char *option, const char *value, void *param)
 	TDSLOCALE *locale = (TDSLOCALE *) param;
 
 	if (!strcmp(option, TDS_STR_CHARSET)) {
-		if (locale->char_set)
-			free(locale->char_set);
-		locale->char_set = strdup(value);
+		if (locale->server_charset)
+			free(locale->server_charset);
+		locale->server_charset = strdup(value);
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
 		if (locale->language)
 			free(locale->language);
