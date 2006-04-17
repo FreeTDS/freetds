@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.46 2005-08-23 17:25:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.47 2006-04-17 08:49:11 freddy77 Exp $");
 
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
@@ -102,6 +102,11 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		ores.n.scale = 0;
 	}
 
+	if (desttype == SQL_C_CHAR) {
+		nDestSybType = TDS_CONVERT_CHAR;
+		ores.cc.len = destlen >= 0 ? destlen : 0;
+		ores.cc.c = dest;
+	}
 
 	nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
 	if (nRetVal < 0)
@@ -121,15 +126,12 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 			 * odbc always terminate but do not overwrite 
 			 * destination buffer more than needed
 			 */
-			memcpy(dest, ores.c, cplen);
 			dest[cplen] = 0;
 		} else {
 			/* if destlen == 0 we return only length */
 			if (destlen != 0)
 				ret = TDS_FAIL;
 		}
-
-		free(ores.c);
 		break;
 
 	case SQL_C_TYPE_DATE:

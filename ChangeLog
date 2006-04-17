@@ -1,3 +1,7 @@
+Mon Apr 17 10:51:09 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/convert_tds2sql.c src/odbc/prepare_query.c:
+	- use new conversion style in ODBC
+
 Sun Apr 16 10:11:32 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/tds.h src/tds/locale.c src/tds/mem.c:
 	- TDSLOCALE changes to keep ABI
