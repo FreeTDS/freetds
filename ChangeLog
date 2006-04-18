@@ -1,3 +1,6 @@
+Tue Apr 17 19:47:57 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/ctlib/ct.c: fix double free
+
 Mon Apr 17 10:51:09 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/convert_tds2sql.c src/odbc/prepare_query.c:
 	- use new conversion style in ODBC

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.164 2006-03-06 11:57:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.165 2006-04-18 17:45:31 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -805,8 +805,12 @@ ct_send(CS_COMMAND * cmd)
 	TDSCURSOR *cursor;
 	TDSDYNAMIC *tdsdyn;
 
-	tds = cmd->con->tds_socket;
 	tdsdump_log(TDS_DBG_FUNC, "ct_send() command_type = %d\n", cmd->command_type);
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
+
+	tds = cmd->con->tds_socket;
 
 	if (cmd->cancel_state == _CS_CANCEL_PENDING) {
 		_ct_cancel_cleanup(cmd);
@@ -828,7 +832,7 @@ ct_send(CS_COMMAND * cmd)
 
 		switch (cmd->dynamic_cmd) {
 		case CS_PREPARE:
-			if (tds_submit_prepare(cmd->con->tds_socket, cmd->dyn->stmt, cmd->dyn->id, NULL, NULL) == TDS_FAIL)
+			if (tds_submit_prepare(tds, cmd->dyn->stmt, cmd->dyn->id, NULL, NULL) == TDS_FAIL)
 				return CS_FAIL;
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
 			return CS_SUCCEED;
@@ -842,7 +846,7 @@ ct_send(CS_COMMAND * cmd)
 			}
 			tds_free_input_params(tdsdyn);
 			tdsdyn->params = pparam_info;
-			if (tds_submit_execute(cmd->con->tds_socket, tdsdyn) == TDS_FAIL)
+			if (tds_submit_execute(tds, tdsdyn) == TDS_FAIL)
 				return CS_FAIL;
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
 			return CS_SUCCEED;
@@ -870,7 +874,7 @@ ct_send(CS_COMMAND * cmd)
 				tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_DEALLOC) no tdsdyn!\n");
 				return CS_FAIL;
 			}
-			if (tds_submit_unprepare(cmd->con->tds_socket, tdsdyn) == TDS_FAIL)
+			if (tds_submit_unprepare(tds, tdsdyn) == TDS_FAIL)
 				return CS_FAIL;
 			else {
 				ct_set_command_state(cmd, _CS_COMMAND_SENT);
@@ -1063,6 +1067,9 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 		_ct_cancel_cleanup(cmd);
 		return CS_CANCELED;
 	}
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
 
 	cmd->bind_count = CS_UNUSED;
 
@@ -1388,10 +1395,13 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 	CS_CONNECTION *con = cmd->con;
 	CS_INT bind_count;
 
-	tds = (TDSSOCKET *) cmd->con->tds_socket;
-	resinfo = tds->current_results;
-
 	tdsdump_log(TDS_DBG_FUNC, "ct_bind() datafmt count = %d column_number = %d\n", datafmt->count, item);
+
+	if (!con || !con->tds_socket)
+		return CS_FAIL;
+
+	tds = con->tds_socket;
+	resinfo = tds->current_results;
 
 	/* check item value */
 	if (!resinfo || item <= 0 || item > resinfo->num_cols)
@@ -1442,6 +1452,9 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 	TDSSOCKET *tds;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_fetch()\n");
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
 
 	if (cmd->command_state == _CS_COMMAND_IDLE) {
 		_ctclient_msg(cmd->con, "ct_fetch", 1, 1, 1, 16843163, "");
@@ -1556,6 +1569,9 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 	TDS_INT rows_this_fetch = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_fetch_cursor()\n");
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
 
 	tds = cmd->con->tds_socket;
 
@@ -1765,7 +1781,7 @@ _ct_cmd_drop(CS_COMMAND * cmd, CS_INT free_conn_ref)
 
 		/* now remove this command from the list of commands in the connection */
 
-		if (free_conn_ref) {
+		if (free_conn_ref && cmd->con) {
 			con = cmd->con;
 			victim = con->cmds;
 
@@ -1825,7 +1841,8 @@ ct_con_drop(CS_CONNECTION * con)
 			currptr = con->cmds;
 			while (currptr != NULL) {
 				freeptr = currptr;
-				_ct_cmd_drop(currptr->cmd, 0);
+				if (currptr->cmd)
+					currptr->cmd->con = NULL;
 				currptr = currptr->next;
 				free(freeptr);
 			}
@@ -2061,9 +2078,8 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 			ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, NULL);
 		} while ((ret == CS_SUCCEED) || (ret == CS_ROW_FAIL));
 
-		if (cmd->con->tds_socket) {
+		if (cmd->con && cmd->con->tds_socket)
 			tds_free_all_results(cmd->con->tds_socket);
-		}
 
 		if (ret == CS_END_DATA) {
 			return CS_SUCCEED;
@@ -2227,13 +2243,12 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 static CS_RETCODE
 _ct_cancel_cleanup(CS_COMMAND * cmd)
 {
-	CS_CONNECTION * conn;
+	CS_CONNECTION * con;
 
-	conn = cmd->con;
+	con = cmd->con;
 
-	if (!IS_TDSDEAD(conn->tds_socket)) {
-		tds_process_cancel(conn->tds_socket);
-	}
+	if (con && !IS_TDSDEAD(con->tds_socket))
+		tds_process_cancel(con->tds_socket);
 
 	cmd->cancel_state = _CS_CANCEL_NOCANCEL;
 
@@ -2250,8 +2265,12 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	int len;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_describe()\n");
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
+
 	tds = cmd->con->tds_socket;
-	resinfo = cmd->con->tds_socket->current_results;;
+	resinfo = tds->current_results;;
 
 	if (item < 1 || item > resinfo->num_cols)
 		return CS_FAIL;
@@ -2295,13 +2314,20 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 CS_RETCODE
 ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len)
 {
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSRESULTINFO *resinfo = tds->current_results;
+	TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *curcol;
 	CS_INT int_val;
 	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_res_info()\n");
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
+
+	tds = cmd->con->tds_socket;
+	resinfo = tds->current_results;
+
 	switch (type) {
 	case CS_NUMDATA:
 		int_val = 0;
@@ -2417,6 +2443,9 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 	TDSCURSOR *cursor;
 	int maxcp;
 
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
+
 	tds = cmd->con->tds_socket;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_props() action = %s property = %d\n", CS_GET ? "CS_GET" : "CS_SET", property);
@@ -2498,8 +2527,8 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 CS_RETCODE
 ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSRESULTINFO *resinfo = tds->current_results;
+	TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *curcol;
 	CS_INT int_val;
 	CS_SMALLINT *dest_by_col_ptr;
@@ -2507,6 +2536,12 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_compute_info() type = %d, colnum = %d\n", type, colnum);
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
+
+	tds = cmd->con->tds_socket;
+	resinfo = tds->current_results;
 
 	switch (type) {
 	case CS_BYLIST_LEN:
@@ -2699,7 +2734,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 CS_RETCODE
 ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 {
-	TDSSOCKET *tds = cmd->con->tds_socket;
+	TDSSOCKET *tds;
 	char writetext_cmd[512];
 
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
@@ -2709,6 +2744,11 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 	char hex2[3];
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_send_data()\n");
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
+
+	tds = cmd->con->tds_socket;
 
 	/* basic validations */
 
@@ -2775,8 +2815,14 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 CS_RETCODE
 ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 {
-	TDSSOCKET *tds = cmd->con->tds_socket;
-	TDSRESULTINFO *resinfo = tds->current_results;
+	TDSSOCKET *tds;
+	TDSRESULTINFO *resinfo;
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
+
+	tds = cmd->con->tds_socket;
+	resinfo = tds->current_results;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_data_info() colnum %d\n", colnum);
 
@@ -3206,6 +3252,9 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 	int query_len;
 	CS_CONNECTION *con;
 	CS_DYNAMIC *dyn;
+
+	if (!cmd->con)
+		return CS_FAIL;
 
 	cmd->command_type = CS_DYNAMIC_CMD;
 	cmd->dynamic_cmd = type;
@@ -3804,6 +3853,9 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 {
 	TDSSOCKET *tds;
 	TDSCURSOR *cursor;
+
+	if (!cmd->con || !cmd->con->tds_socket)
+		return CS_FAIL;
 
 	tds = cmd->con->tds_socket;
 	cmd->command_type = CS_CUR_CMD;
