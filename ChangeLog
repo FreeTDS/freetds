@@ -1,3 +1,6 @@
+Tue Apr 18 19:46:01 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/ctlib/ct.c: fix double free for CS_COMMAND
+
 Sun Apr 16 10:09:47 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* NEWS include/tds.h src/tds/locale.c src/tds/mem.c:
 	- renamed char_set to server_charset in TDSLOCALE
