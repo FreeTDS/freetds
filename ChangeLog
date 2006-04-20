@@ -1,3 +1,6 @@
+Thu Apr 20 12:11:15 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/ctlib/unittests/ct_dynamic.c: remove leak in test
+
 Tue Apr 18 19:46:01 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/ctlib/ct.c: fix double free for CS_COMMAND
 

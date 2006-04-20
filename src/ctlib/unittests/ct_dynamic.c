@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_dynamic.c,v 1.1 2005-02-11 13:15:54 freddy77 Exp $";
+static char software_version[] = "$Id: ct_dynamic.c,v 1.1.2.1 2006-04-20 10:08:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"
@@ -444,6 +444,9 @@ main(int argc, char *argv[])
 	if (verbose) {
 		fprintf(stdout, "Trying logout\n");
 	}
+
+	ct_cmd_drop(cmd2);
+
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
