@@ -1,3 +1,6 @@
+Fri Apr 21 09:45:56 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* doc/htdoc/faq.html: fix html compatibility
+
 Thu Apr 20 12:10:28 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/ctlib/unittests/ct_dynamic.c: remove leak in test
 
