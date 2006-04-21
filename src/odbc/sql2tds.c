@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.53 2006-03-23 14:53:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.54 2006-04-21 15:11:26 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -161,8 +161,6 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = drec_ipd->sql_desc_precision;
 		curcol->column_scale = drec_ipd->sql_desc_scale;
-		ores.n.precision = drec_ipd->sql_desc_precision;
-		ores.n.scale = drec_ipd->sql_desc_scale;
 	}
 
 	if (drec_ipd->sql_desc_parameter_type != SQL_PARAM_INPUT)
@@ -338,42 +336,34 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		/* TODO intervals */
 	}
 
-	res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, &ores);
-	if (res < 0)
-		return SQL_ERROR;
-	tdsdump_log(TDS_DBG_INFO2, "trace\n");
-
-	/* truncate ?? */
-	/* TODO what happen for blobs ?? */
-	if (res > curcol->column_size)
-		res = curcol->column_size;
-	curcol->column_cur_size = res;
-
-	/* free allocated memory */
 	dest = curcol->column_data;
 	switch ((TDS_SERVER_TYPE) dest_type) {
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case XSYBCHAR:
 	case XSYBVARCHAR:
-		memcpy(dest, ores.c, res);
-		free(ores.c);
-		break;
-	case SYBTEXT:
-		blob = (TDSBLOB *) dest;
-		if (blob->textvalue)
-			free(blob->textvalue);
-		blob->textvalue = ores.c;
+		ores.cc.c = dest;
+		ores.cc.len = curcol->column_size;
+		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, TDS_CONVERT_CHAR, &ores);
+		if (res > curcol->column_size)
+			res = curcol->column_size;
 		break;
 	case SYBBINARY:
 	case SYBVARBINARY:
 	case XSYBBINARY:
 	case XSYBVARBINARY:
-		memcpy(dest, ores.ib, res);
-		free(ores.ib);
+		ores.cb.ib = dest;
+		ores.cb.len = curcol->column_size;
+		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, TDS_CONVERT_BINARY, &ores);
+		if (res > curcol->column_size)
+			res = curcol->column_size;
 		break;
+	case SYBTEXT:
 	case SYBLONGBINARY:
 	case SYBIMAGE:
+		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, &ores);
+		if (res < 0)
+			return SQL_ERROR;
 		blob = (TDSBLOB *) dest;
 		if (blob->textvalue)
 			free(blob->textvalue);
@@ -381,11 +371,8 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		/*
-		 * for these types we ignore column_size so fix it in case
-		 * we overwrote it
-		 */
-		res = sizeof(TDS_NUMERIC);
+		((TDS_NUMERIC *) dest)->precision = drec_ipd->sql_desc_precision;
+		((TDS_NUMERIC *) dest)->scale = drec_ipd->sql_desc_scale;
 	case SYBINTN:
 	case SYBINT1:
 	case SYBINT2:
@@ -407,7 +394,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	case SYBUINT4:
 	case SYBUINT8:
 	case SYBUNIQUE:
-		memcpy(dest, &ores, res);
+		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, (CONV_RESULT*) dest);
 		break;
 	case XSYBNVARCHAR:
 	case XSYBNCHAR:
@@ -419,6 +406,11 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		assert(0);
 		break;
 	}
+
+	if (res < 0)
+		return SQL_ERROR;
+
+	curcol->column_cur_size = res;
 
 	return SQL_SUCCESS;
 }
