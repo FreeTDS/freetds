@@ -1,3 +1,7 @@
+Mon May 08 11:38:30 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/descriptor.c src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/copydesc.c(added): add test for SQLCopyDesc
+
 Fri Apr 21 17:10:00 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/sql2tds.c: use new tds_convert types
 

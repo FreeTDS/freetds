@@ -75,6 +75,16 @@ desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
 	return desc;
 }
 
+#define SQL_DESC_STRINGS \
+	STR_OP(sql_desc_base_column_name); \
+	STR_OP(sql_desc_base_table_name); \
+	STR_OP(sql_desc_catalog_name); \
+	STR_OP(sql_desc_label); \
+	STR_OP(sql_desc_local_type_name); \
+	STR_OP(sql_desc_name); \
+	STR_OP(sql_desc_schema_name); \
+	STR_OP(sql_desc_table_name)
+
 SQLRETURN
 desc_alloc_records(TDS_DESC * desc, unsigned count)
 {
@@ -101,14 +111,9 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 	for (i = desc->header.sql_desc_count; i < count; ++i) {
 		drec = &desc->records[i];
 
-		tds_dstr_init(&drec->sql_desc_label);
-		tds_dstr_init(&drec->sql_desc_name);
-		tds_dstr_init(&drec->sql_desc_base_column_name);
-		tds_dstr_init(&drec->sql_desc_base_table_name);
-		tds_dstr_init(&drec->sql_desc_catalog_name);
-		tds_dstr_init(&drec->sql_desc_local_type_name);
-		tds_dstr_init(&drec->sql_desc_schema_name);
-		tds_dstr_init(&drec->sql_desc_table_name);
+#define STR_OP(name) tds_dstr_init(&drec->name)
+		SQL_DESC_STRINGS;
+#undef STR_OP
 
 		switch (desc->type) {
 		case DESC_IRD:
@@ -131,14 +136,9 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 static void
 desc_free_record(struct _drecord *drec)
 {
-	tds_dstr_free(&drec->sql_desc_base_column_name);
-	tds_dstr_free(&drec->sql_desc_base_table_name);
-	tds_dstr_free(&drec->sql_desc_catalog_name);
-	tds_dstr_free(&drec->sql_desc_label);
-	tds_dstr_free(&drec->sql_desc_local_type_name);
-	tds_dstr_free(&drec->sql_desc_name);
-	tds_dstr_free(&drec->sql_desc_schema_name);
-	tds_dstr_free(&drec->sql_desc_table_name);
+#define STR_OP(name) tds_dstr_free(&drec->name)
+	SQL_DESC_STRINGS;
+#undef STR_OP
 }
 
 SQLRETURN
@@ -160,52 +160,49 @@ SQLRETURN
 desc_copy(TDS_DESC * dest, TDS_DESC * src)
 {
 	int i;
+	TDS_DESC tmp;
 
-	/* first clear all records to free all strings */
-	desc_free_records(dest);
-	if (desc_alloc_records(dest, src->header.sql_desc_count) != SQL_SUCCESS)
+	/* copy header */
+	tmp.header = src->header;
+
+	/* set no records */
+	tmp.header.sql_desc_count = 0;
+	tmp.records = NULL;
+
+	tmp.errs.num_errors = 0;
+	tmp.errs.errs = NULL;
+
+	if (desc_alloc_records(&tmp, src->header.sql_desc_count) != SQL_SUCCESS)
 		return SQL_ERROR;
-	dest->header.sql_desc_bind_type = src->header.sql_desc_bind_type;
-	dest->header.sql_desc_array_size = src->header.sql_desc_array_size;
-	dest->header.sql_desc_array_status_ptr = src->header.sql_desc_array_status_ptr;
-	dest->header.sql_desc_rows_processed_ptr = src->header.sql_desc_rows_processed_ptr;
-	dest->header.sql_desc_bind_offset_ptr = src->header.sql_desc_bind_offset_ptr;
-	if (!src->header.sql_desc_count)
-		return SQL_SUCCESS;
 
 	for (i = 0; i < src->header.sql_desc_count; ++i) {
 		struct _drecord *src_rec = &src->records[i];
-		struct _drecord *dest_rec = &dest->records[i];
+		struct _drecord *dest_rec = &tmp.records[i];
 
 		/* copy all integer in one time ! */
-		desc_free_record(dest_rec);
 		memcpy(dest_rec, src_rec, sizeof(struct _drecord));
 
 		/* reinitialize string, avoid doubling pointers */
-#define CINIT(name) tds_dstr_init(&dest_rec->name);
-		CINIT(sql_desc_base_column_name);
-		CINIT(sql_desc_base_table_name);
-		CINIT(sql_desc_catalog_name);
-		CINIT(sql_desc_label);
-		CINIT(sql_desc_local_type_name);
-		CINIT(sql_desc_name);
-		CINIT(sql_desc_schema_name);
-		CINIT(sql_desc_table_name);
-#undef CINIT
+#define STR_OP(name) tds_dstr_init(&dest_rec->name)
+		SQL_DESC_STRINGS;
+#undef STR_OP
 
 		/* copy strings */
-#define CCOPY(name) if (!tds_dstr_copy(&dest_rec->name, tds_dstr_cstr(&src_rec->name))) return SQL_ERROR;
-		CCOPY(sql_desc_base_column_name);
-		CCOPY(sql_desc_base_table_name);
-		CCOPY(sql_desc_catalog_name);
-		CCOPY(sql_desc_label);
-		CCOPY(sql_desc_local_type_name);
-		CCOPY(sql_desc_name);
-		CCOPY(sql_desc_schema_name);
-		CCOPY(sql_desc_table_name);
-#undef CCOPY
+#define STR_OP(name) if (!tds_dstr_copy(&dest_rec->name, tds_dstr_cstr(&src_rec->name))) goto Cleanup
+		SQL_DESC_STRINGS;
+#undef STR_OP
 	}
+
+	/* success, copy back to our descriptor */
+	desc_free_records(dest);
+	odbc_errs_reset(&dest->errs);
+	*dest = tmp;
 	return SQL_SUCCESS;
+
+Cleanup:
+	desc_free_records(&tmp);
+	odbc_errs_reset(&tmp.errs);
+	return SQL_ERROR;
 }
 
 SQLRETURN
