@@ -160,7 +160,7 @@ SQLRETURN
 desc_copy(TDS_DESC * dest, TDS_DESC * src)
 {
 	int i;
-	TDS_DESC tmp;
+	TDS_DESC tmp = *dest;
 
 	/* copy header */
 	tmp.header = src->header;

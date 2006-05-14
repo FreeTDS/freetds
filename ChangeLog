@@ -1,3 +1,6 @@
+Sun May 14 14:34:04 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/descriptor.c: fix memory error
+
 Sat May 13 10:49:40 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/copydesc.c: improve
 
