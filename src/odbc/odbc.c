@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.410 2006-04-10 10:00:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.411 2006-05-15 15:12:26 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2776,6 +2776,7 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	/* count placeholders */
 	/* note: szSqlStr can be no-null terminated, so first we set query and then count placeholders */
 	stmt->param_count = tds_count_placeholders(stmt->query);
+	stmt->param_data_called = 0;
 
 	if (SQL_SUCCESS != prepare_call(stmt)) {
 		/* TODO return another better error, prepare_call should set error ?? */
@@ -5195,7 +5196,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 {
 	INIT_HSTMT;
 
-	if (stmt->prepared_query) {
+	if (stmt->prepared_query || stmt->prepared_query_is_rpc) {
 		/* TODO do some more tests before setting this flag */
 		stmt->param_data_called = 1;
 		ODBC_RETURN(stmt, continue_parse_prepared_query(stmt, rgbValue, cbValue));

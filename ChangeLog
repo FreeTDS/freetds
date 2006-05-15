@@ -1,3 +1,8 @@
+Mon May 15 17:11:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- applied fixes from Charlene Herring (cf. "Problems when
+	  using odbc : SQLPutData, SQLExecDirect,Decimals" 2006/05/14
+
 Sun May 14 14:34:04 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/descriptor.c: fix memory error
 
