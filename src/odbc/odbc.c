@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.345.2.2 2005-08-14 09:00:45 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.345.2.3 2006-05-15 15:08:45 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2557,6 +2557,7 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	/* count placeholders */
 	/* note: szSqlStr can be no-null terminated, so first we set query and then count placeholders */
 	stmt->param_count = tds_count_placeholders(stmt->query);
+	stmt->param_data_called = 0;
 
 	if (SQL_SUCCESS != prepare_call(stmt)) {
 		/* TODO return another better error, prepare_call should set error ?? */
@@ -4878,7 +4879,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 {
 	INIT_HSTMT;
 
-	if (stmt->prepared_query) {
+	if (stmt->prepared_query || stmt->prepared_query_is_rpc) {
 		/* TODO do some more tests before setting this flag */
 		stmt->param_data_called = 1;
 		ODBC_RETURN(stmt, continue_parse_prepared_query(stmt, rgbValue, cbValue));

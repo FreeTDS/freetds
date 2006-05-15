@@ -1,3 +1,9 @@
+Mon May 15 16:58:25 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- applied fixes from Charlene Herring (cf. "Problems when 
+	  using odbc : SQLPutData, SQLExecDirect,Decimals" 2006/05/14
+	* src/odbc/sql2tds.c: backported fixes for NUMERICs
+
 Tue Dec  6 20:19:58 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/dblib/dblib.c: backport fix for nocount
 
