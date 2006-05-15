@@ -1,3 +1,8 @@
+Mon May 15 17:09:24 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* src/odbc/odbc.c:
+	- applied fixes from Charlene Herring (cf. "Problems when
+	  using odbc : SQLPutData, SQLExecDirect,Decimals" 2006/05/14
+
 Thu Apr 20 12:11:15 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/ctlib/unittests/ct_dynamic.c: remove leak in test
 
