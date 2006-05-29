@@ -1,3 +1,7 @@
+Mon May 29 12:58:38 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
+	* NEWS include/tds.h src/tds/token.c:
+	- make tds_alloc_get_string static
+
 Mon May 15 17:11:54 CET 2005    Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/odbc.c:
 	- applied fixes from Charlene Herring (cf. "Problems when

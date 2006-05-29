@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.309 2006-04-05 06:44:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.310 2006-05-29 10:58:36 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -74,6 +74,7 @@ static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static TDS_INT tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
 static int tds5_process_optioncmd(TDSSOCKET * tds);
 static const char *tds_pr_op(int op);
+static int tds_alloc_get_string(TDSSOCKET * tds, char **string, int len);
 
 
 /**
@@ -2467,7 +2468,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
  * \param tds state information for the socket and the TDS protocol
  * \param len length of string to read
  */
-int
+static int
 tds_alloc_get_string(TDSSOCKET * tds, char **string, int len)
 {
 	char *s;
