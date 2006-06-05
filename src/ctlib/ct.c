@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.165 2006-04-18 17:45:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.166 2006-06-05 11:43:25 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -876,10 +876,9 @@ ct_send(CS_COMMAND * cmd)
 			}
 			if (tds_submit_unprepare(tds, tdsdyn) == TDS_FAIL)
 				return CS_FAIL;
-			else {
-				ct_set_command_state(cmd, _CS_COMMAND_SENT);
-				return CS_SUCCEED;
-			}
+
+			ct_set_command_state(cmd, _CS_COMMAND_SENT);
+			return CS_SUCCEED;
 			break;
 
 		default:

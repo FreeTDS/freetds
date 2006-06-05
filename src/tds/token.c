@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.310 2006-05-29 10:58:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.311 2006-06-05 11:43:25 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -58,21 +58,22 @@ static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
 static int tds7_process_result(TDSSOCKET * tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET * tds);
 static int tds_process_auth(TDSSOCKET * tds);
-static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
-static int tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
 static int tds_process_env_chg(TDSSOCKET * tds);
-static const char *_tds_token_name(unsigned char marker);
 static int tds_process_param_result_tokens(TDSSOCKET * tds);
 static int tds_process_params_result_token(TDSSOCKET * tds);
 static int tds_process_dyn_result(TDSSOCKET * tds);
-static int tds5_get_varint_size(int datatype);
 static int tds5_process_result(TDSSOCKET * tds);
 static int tds5_process_dyn_result2(TDSSOCKET * tds);
+static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
+static int tds5_process_optioncmd(TDSSOCKET * tds);
+static int tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
+
+static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
+static int tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
+static const char *_tds_token_name(unsigned char marker);
+static int tds5_get_varint_size(int datatype);
 static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int determine_adjusted_size(const TDSICONV * char_conv, int size);
-static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
-static TDS_INT tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
-static int tds5_process_optioncmd(TDSSOCKET * tds);
 static const char *tds_pr_op(int op);
 static int tds_alloc_get_string(TDSSOCKET * tds, char **string, int len);
 
@@ -495,7 +496,7 @@ tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsi
 	int marker;
 	TDSPARAMINFO *pinfo = NULL;
 	TDSCOLUMN   *curcol;
-	TDS_INT rc;
+	int rc;
 	int saved_rows_affected = tds->rows_affected;
 	TDS_INT ret_status;
 	int cancel_seen = 0;
@@ -2066,7 +2067,7 @@ tds_process_row(TDSSOCKET * tds)
  * \param flags_parm filled with bit flags (see TDS_DONE_ constants). 
  *        Is NULL nothing is returned
  */
-static TDS_INT
+static int
 tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 {
 	int more_results, was_cancelled, error, done_count_valid;
@@ -2870,7 +2871,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 
 	struct namelist *topptr = NULL;
 	struct namelist *curptr = NULL;
-	struct namelist *freeptr = NULL;
+	struct namelist *nextptr = NULL;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -2887,31 +2888,22 @@ tds_process_compute_names(TDSSOCKET * tds)
 	compute_id = tds_get_smallint(tds);
 	remainder -= 2;
 
-	while (remainder) {
+	while (remainder > 0) {
 		namelen = tds_get_byte(tds);
 		remainder--;
-		if (topptr == NULL) {
-			if ((topptr = (struct namelist *) malloc(sizeof(struct namelist))) == NULL) {
-				memrc = -1;
-				break;
-			}
-			curptr = topptr;
-			curptr->nextptr = NULL;
-		} else {
-			if ((curptr->nextptr = (struct namelist *) malloc(sizeof(struct namelist))) == NULL) {
-				memrc = -1;
-				break;
-			}
-			curptr = curptr->nextptr;
-			curptr->nextptr = NULL;
+		if ((nextptr = (struct namelist *) malloc(sizeof(struct namelist))) == NULL) {
+			memrc = -1;
+			break;
 		}
-		if (namelen == 0)
-			strcpy(curptr->name, "");
-		else {
-			namelen = tds_get_string(tds, namelen, curptr->name, sizeof(curptr->name) - 1);
-			curptr->name[namelen] = 0;
-			remainder -= namelen;
-		}
+		if (topptr == NULL)
+			topptr = nextptr;
+		else
+			curptr->nextptr = nextptr;
+		curptr = nextptr;
+		curptr->nextptr = NULL;
+		remainder -= namelen;
+		namelen = tds_get_string(tds, namelen, curptr->name, sizeof(curptr->name) - 1);
+		curptr->name[namelen] = 0;
 		curptr->namelen = namelen;
 		num_cols++;
 		tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. remainder = %d\n", remainder);
@@ -2939,16 +2931,16 @@ tds_process_compute_names(TDSSOCKET * tds)
 			memcpy(curcol->column_name, curptr->name, curptr->namelen + 1);
 			curcol->column_namelen = curptr->namelen;
 
-			freeptr = curptr;
-			curptr = curptr->nextptr;
-			free(freeptr);
+			nextptr = curptr->nextptr;
+			free(curptr);
+			curptr = nextptr;
 		}
 		return TDS_SUCCEED;
 	} else {
 		while (curptr != NULL) {
-			freeptr = curptr;
-			curptr = curptr->nextptr;
-			free(freeptr);
+			nextptr = curptr->nextptr;
+			free(curptr);
+			curptr = nextptr;
 		}
 		return TDS_FAIL;
 	}
