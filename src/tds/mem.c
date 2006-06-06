@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.158 2006-04-16 08:10:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.159 2006-06-06 09:33:28 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -53,15 +53,11 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 
 #undef TEST_MALLOC
 #define TEST_MALLOC(dest,type) \
-	{if (!(dest = (type*)malloc(sizeof(type)))) goto Cleanup;}
+	{if (!(dest = (type*)calloc(1, sizeof(type)))) goto Cleanup;}
 
 #undef TEST_CALLOC
 #define TEST_CALLOC(dest,type,n) \
 	{if (!(dest = (type*)calloc((n), sizeof(type)))) goto Cleanup;}
-
-#undef TEST_STRDUP
-#define TEST_STRDUP(dest,str) \
-	{if (!(dest = strdup(str))) goto Cleanup;}
 
 /**
  * \ingroup libtds
@@ -96,10 +92,9 @@ tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
 			return curr;
 		}
 
-	dyn = (TDSDYNAMIC *) malloc(sizeof(TDSDYNAMIC));
+	dyn = (TDSDYNAMIC *) calloc(1, sizeof(TDSDYNAMIC));
 	if (!dyn)
 		return NULL;
-	memset(dyn, 0, sizeof(TDSDYNAMIC));
 
 	/* insert into list */
 	dyn->next = tds->dyns;
@@ -181,10 +176,9 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 	TDSCOLUMN *colinfo;
 	TDSCOLUMN **cols;
 
-	colinfo = (TDSCOLUMN *) malloc(sizeof(TDSCOLUMN));
+	colinfo = (TDSCOLUMN *) calloc(1, sizeof(TDSCOLUMN));
 	if (!colinfo)
 		return NULL;
-	memset(colinfo, 0, sizeof(TDSCOLUMN));
 
 	if (!old_param || !old_param->num_cols) {
 		cols = (TDSCOLUMN **) malloc(sizeof(TDSCOLUMN *));
@@ -195,12 +189,11 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 		goto Cleanup;
 
 	if (!old_param) {
-		param_info = (TDSPARAMINFO *) malloc(sizeof(TDSPARAMINFO));
+		param_info = (TDSPARAMINFO *) calloc(1, sizeof(TDSPARAMINFO));
 		if (!param_info) {
 			free(cols);
 			goto Cleanup;
 		}
-		memset(param_info, '\0', sizeof(TDSPARAMINFO));
 		param_info->ref_count = 1;
 	} else {
 		param_info = old_param;
@@ -309,17 +302,14 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 	TDSCOMPUTEINFO *info;
 
 	TEST_MALLOC(info, TDSCOMPUTEINFO);
-	memset(info, '\0', sizeof(TDSCOMPUTEINFO));
 	info->ref_count = 1;
 
 	TEST_CALLOC(info->columns, TDSCOLUMN *, num_cols);
 
 	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 1\n");
 	info->num_cols = num_cols;
-	for (col = 0; col < num_cols; col++) {
+	for (col = 0; col < num_cols; col++)
 		TEST_MALLOC(info->columns[col], TDSCOLUMN);
-		memset(info->columns[col], '\0', sizeof(TDSCOLUMN));
-	}
 
 	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 2\n");
 
@@ -376,13 +366,10 @@ tds_alloc_results(int num_cols)
 	int col;
 
 	TEST_MALLOC(res_info, TDSRESULTINFO);
-	memset(res_info, '\0', sizeof(TDSRESULTINFO));
 	res_info->ref_count = 1;
 	TEST_CALLOC(res_info->columns, TDSCOLUMN *, num_cols);
-	for (col = 0; col < num_cols; col++) {
+	for (col = 0; col < num_cols; col++)
 		TEST_MALLOC(res_info->columns[col], TDSCOLUMN);
-		memset(res_info->columns[col], '\0', sizeof(TDSCOLUMN));
-	}
 	res_info->num_cols = num_cols;
 	res_info->row_size = 0;
 	return res_info;
@@ -589,12 +576,11 @@ tds_alloc_context(void * parent)
 	if (!locale)
 		return NULL;
 
-	context = (TDSCONTEXT *) malloc(sizeof(TDSCONTEXT));
+	context = (TDSCONTEXT *) calloc(1, sizeof(TDSCONTEXT));
 	if (!context) {
 		tds_free_locale(locale);
 		return NULL;
 	}
-	memset(context, '\0', sizeof(TDSCONTEXT));
 	context->locale = locale;
 	context->parent = parent;
 
@@ -616,12 +602,11 @@ tds_alloc_locale(void)
 {
 	TDSLOCALE *locale;
 
-	locale = (TDSLOCALE *) malloc(sizeof(TDSLOCALE));
-	if (!locale)
-		return NULL;
-	memset(locale, 0, sizeof(TDSLOCALE));
-
+	TEST_MALLOC(locale, TDSLOCALE);
 	return locale;
+
+      Cleanup:
+	return NULL;
 }
 static const unsigned char defaultcaps[] = { 0x01, 0x09, 0x00, 0x00, 0x06, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
 	0x02, 0x09, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x68, 0x00, 0x00, 0x00
@@ -639,7 +624,6 @@ tds_alloc_connection(TDSLOCALE * locale)
 	char hostname[128];
 
 	TEST_MALLOC(connection, TDSCONNECTION);
-	memset(connection, '\0', sizeof(TDSCONNECTION));
 	tds_dstr_init(&connection->server_name);
 	tds_dstr_init(&connection->language);
 	tds_dstr_init(&connection->server_charset);
@@ -696,7 +680,6 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	TDSCURSOR *pcursor;
 
 	TEST_MALLOC(cursor, TDSCURSOR);
-	memset(cursor, '\0', sizeof(TDSCURSOR));
 
 	if ( tds->cursors == NULL ) {
 		tds->cursors = cursor;
@@ -798,10 +781,7 @@ tds_alloc_login(void)
 {
 	TDSLOGIN *tds_login;
 
-	tds_login = (TDSLOGIN *) malloc(sizeof(TDSLOGIN));
-	if (!tds_login)
-		return NULL;
-	memset(tds_login, '\0', sizeof(TDSLOGIN));
+	TEST_MALLOC(tds_login, TDSLOGIN);
 	tds_dstr_init(&tds_login->server_name);
 	tds_dstr_init(&tds_login->server_addr);
 	tds_dstr_init(&tds_login->language);
@@ -814,6 +794,9 @@ tds_alloc_login(void)
 	tds_dstr_init(&tds_login->client_charset);
 	memcpy(tds_login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 	return tds_login;
+
+      Cleanup:
+	return NULL;
 }
 
 void
@@ -841,7 +824,6 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TDSSOCKET *tds_socket;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
-	memset(tds_socket, '\0', sizeof(TDSSOCKET));
 	tds_socket->tds_ctx = context;
 	tds_socket->in_buf_max = 0;
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
@@ -1313,7 +1295,6 @@ tds_alloc_bcp_column_data(int column_size)
 	BCPCOLDATA *coldata;
 
 	TEST_MALLOC(coldata, BCPCOLDATA);
-	memset(coldata, '\0', sizeof(BCPCOLDATA));
 
 	TEST_CALLOC(coldata->data, unsigned char, column_size);
 
