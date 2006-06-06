@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.3 2006-03-28 00:05:29 jklowden Exp $
+dnl $Id: configure.ac,v 1.4 2006-06-06 10:03:31 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.3 $)
+AC_REVISION($Revision: 1.4 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -548,6 +548,9 @@ AC_SUBST(dblib_define)
 AC_ARG_ENABLE(sybase-compat,
   AS_HELP_STRING([--enable-sybase-compat], [enable increased Open Client binary compatibility]))
 AM_CONDITIONAL(SYBASE_COMPAT, test x$enable_sybase_compat = xyes)
+if test x$enable_sybase_compat = xyes; then
+	AC_DEFINE(TDS_SYBASE_COMPAT, 1, [Defined if --enable-sybase-compat used])
+fi
 
 AC_MSG_CHECKING(threadsafety)
 # Enable or disable thread safetiness

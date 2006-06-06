@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.119 2006-04-15 08:02:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.120 2006-06-06 10:03:31 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -1064,7 +1064,11 @@ tds_get_compiletime_settings(void)
 #		else
 			, 0
 #		endif
-			, -1	/* unknown: sybase_compat only a makefile setting, so far. */
+#		ifdef TDS_SYBASE_COMPAT
+			, 1
+#		else
+			, 0
+#		endif
 #		ifdef _REENTRANT
 			, 1
 #		else

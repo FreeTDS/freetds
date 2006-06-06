@@ -1,18 +1,22 @@
-Tue Jun 06 11:32:24 CET 2006    Frediano Ziglio <freddy77@angelfire.com>
+Tue Jun 06 12:02:10 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* configure.ac src/tds/config.c:
+	- fix tsql -C for sybase compatibility
+
+Tue Jun 06 11:32:24 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/tds/mem.c: use calloc instead of malloc/memset
 
-Mon Jun 05 13:42:24 CET 2006    Frediano Ziglio <freddy77@angelfire.com>
+Mon Jun 05 13:42:24 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/ctlib/ct.c src/tds/token.c:
 	- style and cleanup
 
-Mon May 29 13:38:05 CET 2006    Frediano Ziglio <freddy77@angelfire.com>
+Mon May 29 13:38:05 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* m4/sprintf_i64_format.m4: fix quoting
 
-Mon May 29 12:58:38 CET 2006    Frediano Ziglio <freddy77@angelfire.com>
+Mon May 29 12:58:38 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* NEWS include/tds.h src/tds/token.c:
 	- make tds_alloc_get_string static
 
-Mon May 15 17:11:54 CET 2006    Frediano Ziglio <freddy77@angelfire.com>
+Mon May 15 17:11:54 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/odbc.c:
 	- applied fixes from Charlene Herring (cf. "Problems when
 	  using odbc : SQLPutData, SQLExecDirect,Decimals" 2006/05/14
