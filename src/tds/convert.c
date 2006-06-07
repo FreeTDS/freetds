@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.165 2006-04-15 08:18:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.166 2006-06-07 18:43:58 castellano Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1840,15 +1840,19 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 			/* it could be [M]M/[D]D/[YY]YY format              */
 
 			else if (is_numeric_dateformat(tok)) {
+				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: is_numeric_dateformat\n");
 				store_numeric_date(tok, t);
 				current_state = GOING_IN_BLIND;
 			} else if (is_dd_mon_yyyy(tok)) {
+				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: is_dd_mon_yyyy\n");
 				store_dd_mon_yyy_date(tok, t);
 				current_state = GOING_IN_BLIND;
 			} else if (is_timeformat(tok)) {
+				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: is_timeformat\n");
 				store_time(tok, t);
 				current_state = GOING_IN_BLIND;
 			} else {
+				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: string_garbled\n");
 				current_state = STRING_GARBLED;
 			}
 
@@ -1912,7 +1916,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 		case PUT_NUMERIC_IN_CONTEXT:
 
 			if (is_alphabetic(tok)) {
-				if (store_monthname(tok, t)) {
+				if (store_monthname(tok, t) >= 0) {
 					store_mday(last_token, t);
 					mdaydone++;
 					monthdone++;
@@ -2439,6 +2443,7 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 	char yyyy[5];
 	int year;
 
+	tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: %s\n", datestr);
 	strncpy(dd, datestr, 2);
 	dd[2] = '\0';
 	mday = atoi(dd);
@@ -2452,22 +2457,28 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 		strncpy(mon, &datestr[3], 3);
 		mon[3] = '\0';
 
-		if (!store_monthname(mon, t))
+		if (store_monthname(mon, t) < 0) {
+			tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: store_monthname failed\n");
 			return 0;
+		}
 
 		strcpy(yyyy, &datestr[7]);
 		year = atoi(yyyy);
+		tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: year %d\n", year);
 
 		return store_year(year, t);
 	} else {
 		strncpy(mon, &datestr[2], 3);
 		mon[3] = '\0';
 
-		if (!store_monthname(mon, t))
+		if (store_monthname(mon, t) < 0) {
+			tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: store_monthname failed\n");
 			return 0;
+		}
 
 		strcpy(yyyy, &datestr[5]);
 		year = atoi(yyyy);
+		tdsdump_log(TDS_DBG_INFO1, "store_dd_mon_yyy_date: year %d\n", year);
 
 		return store_year(year, t);
 	}
@@ -2485,6 +2496,7 @@ store_monthname(const char *datestr, struct tds_time *t)
 {
 	int ret;
 
+	tdsdump_log(TDS_DBG_INFO1, "store_monthname: %ld %s\n", (long) strlen(datestr), datestr);
 	if (strlen(datestr) == 3) {
 		if (strcasecmp(datestr, "jan") == 0)
 			ret = 0;

@@ -1,3 +1,6 @@
+Wed Jun 07 14:37:56 EDT 2006	Nick Castellano <entropy@freetds.org>
+	* src/tds/convert.c: correctly convert dates in January
+
 Tue Jun 06 12:02:10 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* configure.ac src/tds/config.c:
 	- fix tsql -C for sybase compatibility
