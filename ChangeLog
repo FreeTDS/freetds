@@ -1,3 +1,7 @@
+Thu Jun 08 10:18:50 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/tds/unittests/t0007.c:
+	- improved to detect possible date problems
+
 Wed Jun 07 14:37:56 EDT 2006	Nick Castellano <entropy@freetds.org>
 	* src/tds/convert.c: correctly convert dates in January
 
