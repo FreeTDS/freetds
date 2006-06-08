@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.164 2005-10-07 10:15:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.164.2.1 2006-06-08 06:41:51 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1856,7 +1856,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 		case PUT_NUMERIC_IN_CONTEXT:
 
 			if (is_alphabetic(tok)) {
-				if (store_monthname(tok, t)) {
+				if (store_monthname(tok, t) >= 0) {
 					store_mday(last_token, t);
 					mdaydone++;
 					monthdone++;
@@ -2396,7 +2396,7 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 		strncpy(mon, &datestr[3], 3);
 		mon[3] = '\0';
 
-		if (!store_monthname(mon, t))
+		if (store_monthname(mon, t) < 0)
 			return 0;
 
 		strcpy(yyyy, &datestr[7]);
@@ -2407,7 +2407,7 @@ store_dd_mon_yyy_date(char *datestr, struct tds_time *t)
 		strncpy(mon, &datestr[2], 3);
 		mon[3] = '\0';
 
-		if (!store_monthname(mon, t))
+		if (store_monthname(mon, t) < 0)
 			return 0;
 
 		strcpy(yyyy, &datestr[5]);
