@@ -20,7 +20,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0007.c,v 1.13 2005-06-29 07:21:37 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.13.2.1 2006-06-08 08:19:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -63,11 +63,16 @@ test0(const char *src, int len, int dsttype, const char *result)
 				sprintf(strchr(buf, 0), " %02X", (TDS_UCHAR) cr.ib[i]);
 			free(cr.ib);
 			break;
+		case SYBDATETIME:
+			sprintf(buf, "%ld %ld", (long int) cr.dt.dtdays, (long int) cr.dt.dttime);
+			break;
 		}
 	}
 	printf("%s\n", buf);
-	if (strcmp(buf, result) != 0)
+	if (strcmp(buf, result) != 0) {
+		fprintf(stderr, "Expected %s\n", result);
 		exit(1);
+	}
 }
 
 void
@@ -136,6 +141,17 @@ main(int argc, char **argv)
 	test("0x0", SYBBINARY, "len=1 00");
 	test("0x100", SYBBINARY, "len=2 01 00");
 	test("0x1", SYBBINARY, "len=1 01");
+
+	test("Jan 01 2006", SYBDATETIME, "38716 0");
+	test("January 01 2006", SYBDATETIME, "38716 0");
+	test("March 05 2005", SYBDATETIME, "38414 0");
+	test("may 13 2001", SYBDATETIME, "37022 0");
+
+	test("02 Jan 2006", SYBDATETIME, "38717 0");
+	test("2 Jan 2006", SYBDATETIME, "38717 0");
+	test("02Jan2006", SYBDATETIME, "38717 0");
+	test("20060102", SYBDATETIME, "38717 0");
+	test("060102", SYBDATETIME, "38717 0");
 
 	return 0;
 }
