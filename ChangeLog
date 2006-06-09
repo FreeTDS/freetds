@@ -1,3 +1,6 @@
+Fri Jun  9 14:33:31 EDT 2006	Nick Castellano <entropy@freetds.org>
+	* src/apps/tsql.c: inhibit readline tab completion in tsql
+
 Fri Jun 09 11:50:55 EDT 2006	Nick Castellano <entropy@freetds.org>
 	* locales.conf: use same date format as Sybase in default and en_US
 
