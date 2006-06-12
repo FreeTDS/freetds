@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.54 2006-04-21 15:11:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.55 2006-06-12 19:50:13 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -396,6 +396,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	case SYBUNIQUE:
 		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, (CONV_RESULT*) dest);
 		break;
+	default:
 	case XSYBNVARCHAR:
 	case XSYBNCHAR:
 	case SYBNVARCHAR:
@@ -404,6 +405,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	case SYBVARIANT:
 		/* TODO ODBC 3.5 */
 		assert(0);
+		res = -1;
 		break;
 	}
 

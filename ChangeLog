@@ -1,3 +1,6 @@
+Mon Jun 12 21:52:24 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/sql2tds.c: fix for possible uninitialized variable
+
 Mon Jun 12 21:48:15 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/apps/datacopy.c src/apps/freebcp.c src/apps/freebcp.h:
 	* src/pool/main.c src/pool/pool.h:
