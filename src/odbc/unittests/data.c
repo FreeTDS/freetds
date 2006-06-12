@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.9 2004-12-08 20:30:06 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.10 2006-06-12 14:56:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -52,6 +52,10 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 		assert(out_len >= 0);
 		for (i = 0; i < out_len; ++i)
 			sprintf(strchr(sbuf, 0), "%02X", (int) out_buf[i]);
+		break;
+	case SQL_C_CHAR:
+		out_buf[sizeof(out_buf) - 1] = 0;
+		sprintf(sbuf,"%d %s", strlen(out_buf), out_buf);
 		break;
 	default:
 		/* not supported */
@@ -132,6 +136,9 @@ main(int argc, char *argv[])
 	if (db_is_microsoft())
 		Test("UNIQUEIDENTIFIER", "0DDF3B64-E692-11D1-AB06-00AA00BDD685", SQL_C_BINARY,
 		     big_endian ? "0DDF3B64E69211D1AB0600AA00BDD685" : "643BDF0D92E6D111AB0600AA00BDD685");
+
+	Test("DATETIME", "2006-06-09 11:22:44", SQL_C_CHAR, "23 2006-06-09 11:22:44.000");
+	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_CHAR, "19 2006-06-12 22:37:00");
 
 	Disconnect();
 
