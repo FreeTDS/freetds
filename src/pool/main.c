@@ -56,7 +56,7 @@
 
 #include "pool.h"
 
-TDS_RCSID(var, "$Id: main.c,v 1.21 2005-08-01 10:52:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: main.c,v 1.22 2006-06-12 19:45:59 freddy77 Exp $");
 
 /* to be set by sig term */
 static int term = 0;
@@ -160,7 +160,7 @@ pool_main_loop(TDS_POOL * pool)
 		exit(1);
 	}
 	/* don't keep addr in use from s.craig@andronics.com */
-	setsockopt(s,SOL_SOCKET,SO_REUSEADDR,&socktrue,sizeof socktrue);
+	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const void *) &socktrue, sizeof(socktrue));
 
 	fprintf(stderr, "Listening on port %d\n", pool->port);
 	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {

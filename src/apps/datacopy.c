@@ -86,14 +86,14 @@ typedef struct pd
 	int bflag;
 	int pflag;
 	int vflag;
-} PARAMDATA;
+} BCPPARAMDATA;
 
 static void pusage(void);
 static int process_parameters(int, char **, struct pd *);
-static int login_to_databases(PARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest);
+static int login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest);
 static int create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbsrc, DBPROCESS * dbdest);
 static int check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROCESS * dbdest);
-static int transfer_data(PARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest);
+static int transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest);
 
 static int err_handler(DBPROCESS *, int, int, int, char *, char *);
 static int msg_handler(DBPROCESS *, DBINT, int, int, char *, char *, char *, int);
@@ -103,12 +103,12 @@ int tdsdump_open(const char *filename);
 int
 main(int argc, char **argv)
 {
-	PARAMDATA params;
+	BCPPARAMDATA params;
 
 	DBPROCESS *dbsrc;
 	DBPROCESS *dbtarget;
 
-	memset(&params, '\0', sizeof(PARAMDATA));
+	memset(&params, '\0', sizeof(params));
 
 	if (process_parameters(argc, argv, &params) == FALSE) {
 		pusage();
@@ -164,7 +164,7 @@ gets_alloc(void)
 }
 
 static int
-process_parameters(int argc, char **argv, PARAMDATA * pdata)
+process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 {
 	int state;
 	int i;
@@ -435,7 +435,7 @@ process_parameters(int argc, char **argv, PARAMDATA * pdata)
 }
 
 static int
-login_to_databases(PARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest)
+login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest)
 {
 	LOGINREC *slogin;
 	LOGINREC *dlogin;
@@ -722,7 +722,7 @@ check_table_structures(char *sobjname, char *dobjname, DBPROCESS * dbsrc, DBPROC
 }
 
 static int
-transfer_data(PARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
+transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 {
 	char ls_command[256];
 	int col;

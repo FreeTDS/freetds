@@ -37,7 +37,7 @@
 
 #include "tds.h"
 
-TDS_RCSID(pool_h, "$Id: pool.h,v 1.14 2005-07-30 09:01:22 freddy77 Exp $");
+TDS_RCSID(pool_h, "$Id: pool.h,v 1.15 2006-06-12 19:45:59 freddy77 Exp $");
 
 /* defines */
 #define PGSIZ 2048
@@ -115,7 +115,7 @@ void pool_reset_member(TDS_POOL_MEMBER * pmbr);
 /* user.c */
 int pool_process_users(TDS_POOL * pool, fd_set * fds);
 void pool_user_init(TDS_POOL * pool);
-TDS_POOL_USER *pool_user_create(TDS_POOL * pool, int s, struct sockaddr_in *sin);
+TDS_POOL_USER *pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin);
 void pool_free_user(TDS_POOL_USER * puser);
 void pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser);
 

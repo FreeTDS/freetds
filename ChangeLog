@@ -1,3 +1,8 @@
+Mon Jun 12 21:48:15 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/apps/datacopy.c src/apps/freebcp.c src/apps/freebcp.h:
+	* src/pool/main.c src/pool/pool.h:
+	- fix some issues cross compiling for mingw32
+
 Mon Jun 12 16:55:59 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/data.c: add test for date to char
 

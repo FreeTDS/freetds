@@ -45,7 +45,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.44 2006-03-15 05:44:41 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.45 2006-06-12 19:45:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -53,9 +53,9 @@ int process_parameters(int, char **, struct pd *);
 static int unescape(char arg[]);
 int login_to_database(struct pd *, DBPROCESS **);
 
-int file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
-int file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
-int file_formatted(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
+int file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
+int file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
+int file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname,
@@ -64,11 +64,11 @@ int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 int
 main(int argc, char **argv)
 {
-	PARAMDATA params;
+	BCPPARAMDATA params;
 	DBPROCESS *dbproc;
 	int ok = FALSE;
 
-	memset(&params, '\0', sizeof(PARAMDATA));
+	memset(&params, '\0', sizeof(params));
 
 	params.textsize = 4096;	/* our default text size is 4K */
 
@@ -149,7 +149,7 @@ static int unescape(char arg[])
 }
 
 int
-process_parameters(int argc, char **argv, PARAMDATA *pdata)
+process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 {
 	extern char *optarg;
 	extern int optind;
@@ -319,7 +319,7 @@ process_parameters(int argc, char **argv, PARAMDATA *pdata)
 }
 
 int
-login_to_database(PARAMDATA * pdata, DBPROCESS ** pdbproc)
+login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 {
 	LOGINREC *login;
 
@@ -384,7 +384,7 @@ login_to_database(PARAMDATA * pdata, DBPROCESS ** pdbproc)
 }
 
 int
-file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
+file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 {
 	DBINT li_rowsread = 0;
 	int i;
@@ -477,7 +477,7 @@ file_character(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 }
 
 int
-file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
+file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 {
 	DBINT li_rowsread = 0;
 	int i;
@@ -567,7 +567,7 @@ file_native(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 }
 
 int
-file_formatted(PARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
+file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 {
 
 	int li_rowsread;
