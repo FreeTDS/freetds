@@ -20,9 +20,13 @@
 #include <sys/wait.h>
 #endif /* HAVE_SYS_WAIT_H */
 
-/* test error on connection close */
+/*
+ * test error on connection close 
+ * With a trick we simulate a connection close then we try to 
+ * prepare a query. This should fail and return an error message.
+ */
 
-static char software_version[] = "$Id: prepclose.c,v 1.1 2006-06-13 12:38:29 freddy77 Exp $";
+static char software_version[] = "$Id: prepclose.c,v 1.2 2006-06-13 15:26:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -58,7 +62,7 @@ close_last_socket(void)
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	char buf[256];
 	SQLRETURN ret;
@@ -80,10 +84,12 @@ main(int argc, char *argv[])
 
 	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL);
 	if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-		fprintf(stderr, "Error not set (line %d)\n", __LINE__);
+		fprintf(stderr, "Error not set\n");
+		Disconnect();
 		return 1;
 	}
-	printf("err=%s\n", buf);
+	sqlstate[5] = 0;
+	printf("state=%s err=%s\n", (char*) sqlstate, buf);
 	
 	Disconnect();
 
@@ -92,9 +98,8 @@ main(int argc, char *argv[])
 }
 
 #else
-#error mao
 int
-main(int argc, char *argv[])
+main(void)
 {
 	printf("Not possible for this platform.\n");
 	return 0;
