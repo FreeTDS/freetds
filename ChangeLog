@@ -1,3 +1,7 @@
+Tue Jun 13 20:17:16 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/common.h src/server/unittest.c:
+	- small fixes for cross mingw
+
 Tue Jun 13 14:38:34 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/prepclose.c(added) configure.ac:
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:

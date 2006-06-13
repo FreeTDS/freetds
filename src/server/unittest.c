@@ -39,7 +39,11 @@
 #include <tdsstring.h>
 #include <tdssrv.h>
 
-static char software_version[] = "$Id: unittest.c,v 1.10 2006-03-06 11:57:01 freddy77 Exp $";
+#ifdef __MINGW32__
+#define sleep(s) Sleep((s)*1000)
+#endif
+
+static char software_version[] = "$Id: unittest.c,v 1.11 2006-06-13 18:14:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);
