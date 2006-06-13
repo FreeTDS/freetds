@@ -1,3 +1,8 @@
+Tue Jun 13 14:38:34 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/prepclose.c(added) configure.ac:
+	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
+	- add test to test error closing connection on SQLPrepare
+
 Mon Jun 12 22:02:57 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* m4/sprintf_i64_format.m4: fix for cross mingw32
 

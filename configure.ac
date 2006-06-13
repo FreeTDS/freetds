@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.4 2006-06-06 10:03:31 freddy77 Exp $
+dnl $Id: configure.ac,v 1.5 2006-06-13 12:38:29 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.4 $)
+AC_REVISION($Revision: 1.5 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -176,7 +176,8 @@ AC_CHECK_MEMBERS([struct tm.__tm_zone],,,[#include <sys/types.h>
 #include <$ac_cv_struct_tm>
 ])
 AC_CHECK_HEADERS([unistd.h errno.h wchar.h sys/time.h malloc.h sys/types.h \
-sys/param.h locale.h odbcss.h readpassphrase.h signal.h winsock2.h])
+sys/param.h sys/stat.h sys/wait.h locale.h odbcss.h readpassphrase.h signal.h \
+winsock2.h])
 if test $tds_mingw = no; then
 	AC_CHECK_HEADERS([sys/socket.h arpa/inet.h netdb.h netinet/in.h \
 netinet/tcp.h paths.h sys/ioctl.h libgen.h sys/select.h regex.h langinfo.h])
@@ -337,7 +338,7 @@ AC_SUBST(FREETDS_LIBGCC)
 # ------------------------------------------------------------
 AC_CHECK_FUNCS([vsnprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
-getuid getpwuid getpwuid_r])
+getuid getpwuid getpwuid_r fstat])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname freehostent \
@@ -490,6 +491,17 @@ SQLRETURN  SQL_API SQLColAttribute (SQLHSTMT StatementHandle,
 	SQLSMALLINT *StringLength, SQLLEN * NumericAttribute) {
 }], [return 0],
 		AC_DEFINE(TDS_SQLCOLATTRIBUTE_SQLLEN, 1, [Define to 1 if last argument of SQLColAttribute it's SQLLEN *]))
+
+		# check is SQLParamOptions accept SQLULEN
+		AC_TRY_COMPILE([#include <sqltypes.h>
+#include <sql.h>
+#include <sqlext.h>
+
+SQLRETURN SQL_API SQLParamOptions(SQLHSTMT       hstmt,
+	SQLULEN crow, SQLULEN *pirow) {
+	return SQL_SUCCESS;
+}], [return 0],
+		AC_DEFINE(TDS_SQLPARAMOPTIONS_SQLLEN, 1, [Define to 1 if SQLParamOptions accept SQLULEN as arguments]))
 	)
 
 	# test for sizeof(SQLWCHAR)
