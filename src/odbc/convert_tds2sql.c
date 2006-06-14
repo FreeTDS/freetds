@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.47 2006-04-17 08:49:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.48 2006-06-14 15:34:44 freddy77 Exp $");
 
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
@@ -108,7 +108,20 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		ores.cc.c = dest;
 	}
 
-	nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
+	if (desttype == SQL_C_CHAR && (srctype == SYBDATETIME || srctype == SYBDATETIME4)) {
+		char buf[40];
+		TDSDATEREC when;
+
+		memset(&when, 0, sizeof(when));
+
+		tds_datecrack(srctype, src, &when);
+		tds_strftime(buf, sizeof(buf), srctype == SYBDATETIME ? "%Y-%m-%d %H:%M:%S.%z" : "%Y-%m-%d %H:%M:%S", &when);
+
+		nRetVal = strlen(buf);
+		memcpy(dest, buf, destlen >= 0 ? (destlen < nRetVal ? destlen : nRetVal) : 0);
+	} else {
+		nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
+	}
 	if (nRetVal < 0)
 		return nRetVal;
 

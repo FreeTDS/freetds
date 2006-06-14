@@ -1,3 +1,6 @@
+Wed Jun 14 17:34:56 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/convert_tds2sql.c: fix for date format
+
 Wed Jun 14 17:29:13 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* configure.ac: add function
 	* src/apps/Makefile.am src/dblib/unittests/Makefile.am:
