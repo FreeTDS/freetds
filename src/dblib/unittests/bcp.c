@@ -32,12 +32,12 @@
 #include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.8 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.9 2006-06-14 15:30:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
 static int init(DBPROCESS * dbproc, const char *name);
-static void bind(DBPROCESS * dbproc);
+static void test_bind(DBPROCESS * dbproc);
 
 /*
  * Static data for insertion
@@ -99,7 +99,7 @@ init(DBPROCESS * dbproc, const char *name)
 	bcp_bind( dbproc, (unsigned char *) &x, prefixlen, 0, NULL, termlen, type,    col++ )
 
 static void
-bind(DBPROCESS * dbproc)
+test_bind(DBPROCESS * dbproc)
 {
 	enum { prefixlen = 0 };
 	enum { termlen = 0 };
@@ -234,7 +234,7 @@ main(int argc, char **argv)
 	}
 	fprintf(stdout, "OK\n");
 
-	bind(dbproc);
+	test_bind(dbproc);
 
 	fprintf(stdout, "Sending same row 10 times... \n");
 	for (i=0; i<10; i++) {

@@ -1,19 +1,22 @@
-# $Id: Makefile.am,v 1.51 2006-06-13 12:38:29 freddy77 Exp $
+# $Id: Makefile.am,v 1.52 2006-06-14 15:30:13 freddy77 Exp $
 TESTS		=	\
-			t0001 t0002 t0003 t0004 connect print date \
-			norowset funccall lang_error tables \
-			binary_test moreandcount earlybind \
-			putdata params raiserror getdata \
-			transaction \
-			type genparams preperror \
-			prepare_results testodbc \
-			data error rebindpar \
-			convert_error typeinfo \
-			const_params insert_speed \
-			compute timeout array array_out \
-			cursor1 scroll cursor2 \
-			describecol copydesc \
-			prepclose
+			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
+			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
+			date$(EXEEXT) norowset$(EXEEXT) funccall$(EXEEXT)\
+			lang_error$(EXEEXT) tables$(EXEEXT)\
+			binary_test$(EXEEXT) moreandcount$(EXEEXT)\
+			earlybind$(EXEEXT) putdata$(EXEEXT) params$(EXEEXT)\
+			raiserror$(EXEEXT) getdata$(EXEEXT)\
+			transaction$(EXEEXT) type$(EXEEXT) genparams$(EXEEXT)\
+			preperror$(EXEEXT) prepare_results$(EXEEXT)\
+			testodbc$(EXEEXT) data$(EXEEXT) error$(EXEEXT)\
+			rebindpar$(EXEEXT) convert_error$(EXEEXT)\
+			typeinfo$(EXEEXT) const_params$(EXEEXT)\
+			insert_speed$(EXEEXT) compute$(EXEEXT)\
+			timeout$(EXEEXT) array$(EXEEXT) array_out$(EXEEXT)\
+			cursor1$(EXEEXT) scroll$(EXEEXT) cursor2$(EXEEXT)\
+			describecol$(EXEEXT) copydesc$(EXEEXT)\
+			prepclose$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 

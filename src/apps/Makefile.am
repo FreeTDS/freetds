@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.14 2006-06-14 11:26:42 freddy77 Exp $
+# $Id: Makefile.am,v 1.15 2006-06-14 15:30:13 freddy77 Exp $
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy
@@ -19,4 +19,4 @@ defncopy_LDADD	= ../dblib/libsybdb.la \
 		  $(NETWORK_LIBS)
 
 datacopy_SOURCES= datacopy.c
-datacopy_LDADD	= ../dblib/libsybdb.la $(NETWORK_LIBS)
+datacopy_LDADD	= ../dblib/libsybdb.la ../replacements/libreplacements.la $(NETWORK_LIBS)

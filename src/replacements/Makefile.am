@@ -1,7 +1,7 @@
-# $Id: Makefile.am,v 1.12 2006-03-27 07:22:54 jklowden Exp $
+# $Id: Makefile.am,v 1.13 2006-06-14 15:30:13 freddy77 Exp $
 AM_CPPFLAGS=			-I$(top_srcdir)/include
 noinst_LTLIBRARIES=		libreplacements.la
-libreplacements_la_SOURCES=	iconv.c
+libreplacements_la_SOURCES=	iconv.c gettimeofday.c
 libreplacements_la_LDFLAGS=
 libreplacements_la_LIBADD=	@LTLIBOBJS@
 EXTRA_DIST=			asprintf.c vasprintf.c atoll.c strtok_r.c \

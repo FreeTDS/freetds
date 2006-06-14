@@ -1,9 +1,9 @@
-# $Id: Makefile.am,v 1.18 2006-03-28 00:05:57 jklowden Exp $
-TESTS		=	t0001 t0002 t0003 t0004 \
-			t0005 t0006 t0007 t0008 \
-			dynamic1 convert dataread \
-			utf8_1 utf8_2 utf8_3 \
-			numeric
+# $Id: Makefile.am,v 1.19 2006-06-14 15:30:13 freddy77 Exp $
+TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
+			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
+			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
+			convert$(EXEEXT) dataread$(EXEEXT) utf8_1$(EXEEXT)\
+			utf8_2$(EXEEXT) utf8_3$(EXEEXT) numeric$(EXEEXT)
 
 # flags test commented, not necessary for 0.62
 # TODO add flags test again when needed

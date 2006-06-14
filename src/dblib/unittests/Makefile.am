@@ -1,9 +1,14 @@
-# $Id: Makefile.am,v 1.30 2006-03-28 00:05:30 jklowden Exp $
-TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 \
-			t0009 t0011 t0012 t0013 t0014 t0015 t0016 \
-			t0017 t0018 t0019 t0020 t0021 t0022 t0023 rpc \
-			dbmorecmds bcp thread text_buffer \
-			done_handling
+# $Id: Makefile.am,v 1.31 2006-06-14 15:30:13 freddy77 Exp $
+TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
+			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
+			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
+			t0011$(EXEEXT) t0012$(EXEEXT) t0013$(EXEEXT)\
+			t0014$(EXEEXT) t0015$(EXEEXT) t0016$(EXEEXT)\
+			t0017$(EXEEXT) t0018$(EXEEXT) t0019$(EXEEXT)\
+			t0020$(EXEEXT) t0021$(EXEEXT) t0022$(EXEEXT)\
+			t0023$(EXEEXT) rpc$(EXEEXT) dbmorecmds$(EXEEXT)\
+			bcp$(EXEEXT) thread$(EXEEXT) text_buffer$(EXEEXT)\
+			done_handling$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES	=	t0001.c common.c common.h
@@ -41,7 +46,7 @@ endif
 
 AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
 AM_LDFLAGS	=	-no-install
-LIBS		=	../libsybdb.la @NETWORK_LIBS@
+LIBS		=	../libsybdb.la ../../replacements/libreplacements.la @NETWORK_LIBS@
 EXTRA_DIST	=	t0016.in t0017.in data.bin
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err
