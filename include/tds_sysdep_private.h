@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.20 2006-04-12 13:54:10 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.21 2006-06-14 11:26:42 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -84,6 +84,14 @@ typedef DWORD pid_t;
 #endif
 
 #define TDS_SDIR_SEPARATOR "\\"
+
+/* use macros to use new style names */
+#ifdef __MSVCRT__
+#define getpid()           _getpid()
+#define strdup(s)          _strdup(s)
+#define stricmp(s1,s2)     _stricmp(s1,s2)
+#define strnicmp(s1,s2,n)  _strnicmp(s1,s2,n)
+#endif
 
 #endif /* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 

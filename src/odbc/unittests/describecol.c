@@ -5,7 +5,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.4 2006-04-15 08:02:55 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.5 2006-06-14 11:26:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -56,12 +56,12 @@ DoTest(const char *test_in)
 
 	if (colSize != iDescLen) {
 		g_result = 1;
-		fprintf(stderr, "SQLDescribeCol(PRECISION) not the same as SQLDescribeCol(SQL_DESC_LENGTH)\n");
+		fprintf(stderr, "SQLDescribeCol(PRECISION) not the same as SQLColAttribute(SQL_DESC_LENGTH)\n");
 	}
 
-	if (colSize != precision) {
+	if (iDescLen != precision) {
 		g_result = 1;
-		fprintf(stderr, "Expected precision %d got %d\n", precision, (int) colSize);
+		fprintf(stderr, "Expected SQLColAttribute(SQL_DESC_LENGTH) %d got %d\n", precision, (int) iDescLen);
 	}
 
 	n = precision;
@@ -70,7 +70,7 @@ DoTest(const char *test_in)
 
 	if (n != iColLen) {
 		g_result = 1;
-		fprintf(stderr, "Expected colLen %d got %d\n", n, (int) iColLen);
+		fprintf(stderr, "Expected SQLColAttribute(SQL_COLUMN_LENGTH) %d got %d\n", n, (int) iColLen);
 	}
 
 	n = precision;
@@ -79,7 +79,7 @@ DoTest(const char *test_in)
 
 	if (n != iColPrec) {
 		g_result = 1;
-		fprintf(stderr, "Expected colPrec %d got %d\n", n, (int) iColPrec);
+		fprintf(stderr, "Expected SQLColAttribute(SQL_COLUMN_PRECISION) %d got %d\n", n, (int) iColPrec);
 	}
 
 	n = precision;
@@ -88,7 +88,7 @@ DoTest(const char *test_in)
 
 	if (n != iDescPrec) {
 		g_result = 1;
-		fprintf(stderr, "Expected descPrec %d got %d\n", n, (int) iDescPrec);
+		fprintf(stderr, "Expected SQLColAttribute(SQL_DESC_PRECISION) %d got %d\n", n, (int) iDescPrec);
 	}
 
 	SQLMoreResults(Statement);
