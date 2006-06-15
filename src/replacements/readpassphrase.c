@@ -230,6 +230,44 @@ static void handler(int s)
 	signo = s;
 }
 
+#else /* WIN32 */
+
+char *
+readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
+{
+	int save_errno, ch;
+	char *p, *end;
+
+	/* I suppose we could alloc on demand in this case (XXX). */
+	if (bufsiz == 0) {
+		errno = EINVAL;
+		return(NULL);
+	}
+
+	printf("%s", prompt);
+	fflush(stdout);
+	end = buf + bufsiz - 1;
+	for (p = buf; (ch = getchar()) != EOF && ch != '\n' && ch != '\r';) {
+		if (p < end) {
+			ch &= 0xff;
+			if ((flags & RPP_SEVENBIT))
+				ch &= 0x7f;
+			if (isalpha(ch)) {
+				if ((flags & RPP_FORCELOWER))
+					ch = tolower(ch);
+				if ((flags & RPP_FORCEUPPER))
+					ch = toupper(ch);
+			}
+			*p++ = ch;
+		}
+	}
+	*p = '\0';
+	save_errno = errno;
+	printf("\n");
+	errno = save_errno;
+	return (ch == EOF ? NULL : buf);
+}
+ 
 #endif /* WIN32 */
 
 #endif /* HAVE_READPASSPHRASE */

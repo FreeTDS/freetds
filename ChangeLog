@@ -1,3 +1,9 @@
+Thu Jun 15 14:15:24 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* configure.ac src/ctlib/unittests/cancel.c:
+	* src/dblib/unittests/common.c src/odbc/Makefile.am:
+	* src/replacements/readpassphrase.c:
+	- finished cross mingw32
+
 Wed Jun 14 17:34:56 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/convert_tds2sql.c: fix for date format
 

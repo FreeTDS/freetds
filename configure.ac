@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.6 2006-06-14 15:30:13 freddy77 Exp $
+dnl $Id: configure.ac,v 1.7 2006-06-15 12:17:46 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.6 $)
+AC_REVISION($Revision: 1.7 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -133,10 +133,12 @@ case $host in
 	else
 		LIBS="-lwsock32"
 	fi
+	AM_CONDITIONAL(MINGW32, true)
 	;;
 *)
 	AC_SEARCH_LIBS(socket, socket)
 	AC_SEARCH_LIBS(gethostbyname, nsl)
+	AM_CONDITIONAL(MINGW32, false)
 	;;
 esac
 NETWORK_LIBS="$LIBS"

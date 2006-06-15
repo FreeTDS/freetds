@@ -30,7 +30,7 @@
 #include "replacements.h"
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.15 2005-07-04 09:16:39 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.16 2006-06-15 12:17:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -72,6 +72,27 @@ set_malloc_options(void)
 #endif /* HAVE_MALLOC_OPTIONS */
 }
 
+#ifdef __MINGW32__
+static char *
+tds_dirname(char* path)
+{
+	char *p, *p2;
+
+	for (p = path + strlen(path); --p > path && (*p == '/' || *p == '\\');)
+		*p = '\0';
+
+	p = strrchr(path, '/');
+	if (!p)
+		p = path;
+	p2 = strrchr(p, '\\');
+	if (p2)
+		p = p2;
+	*p = 0;
+	return path;
+}
+#define dirname tds_dirname
+#endif
+
 int
 read_login_info(int argc, char **argv)
 {
@@ -86,8 +107,8 @@ read_login_info(int argc, char **argv)
 	static const char *PWD = "../../../PWD";
 	struct { char *username, *password, *servername, *database; char fverbose; } options;
 	
-	DIRNAME = dirname((char *)argv[0]);
 	BASENAME = tds_basename((char *)argv[0]);
+	DIRNAME = dirname((char *)argv[0]);
 	
 	memset(&options, 0, sizeof(options));
 	
