@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.19 2006-06-14 15:30:13 freddy77 Exp $
+# $Id: Makefile.am,v 1.20 2006-06-19 08:39:48 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
@@ -29,5 +29,5 @@ numeric_SOURCES =       numeric.c
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/..
 AM_LDFLAGS	=	-no-install
-LIBS		=	../libtds.la @NETWORK_LIBS@
+LIBS		=	../libtds.la ../../replacements/libreplacements.la @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out

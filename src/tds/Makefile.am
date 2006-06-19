@@ -1,26 +1,23 @@
-# $Id: Makefile.am,v 1.57 2006-03-27 07:22:54 jklowden Exp $
+# $Id: Makefile.am,v 1.58 2006-06-19 08:39:48 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
 
-noinst_LTLIBRARIES	=	libtds_objects.la
-libtds_objects_la_SOURCES=	mem.c token.c util.c login.c read.c \
+noinst_LTLIBRARIES	=	libtds.la
+libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	write.c convert.c numeric.c config.c query.c iconv.c \
 	locale.c challenge.c threadsafe.c vstrbuild.c md4.c \
 	des.c tdsstring.c getmac.c data.c net.c \
 	tds_checks.c tds_checks.h 
-libtds_objects_la_LDFLAGS=
-libtds_objects_la_LIBADD=
+libtds_la_LDFLAGS=
+libtds_la_LIBADD=
 
-lib_LTLIBRARIES		=	libtds.la
-libtds_la_SOURCES	=
+install-exec-local: libtds.la
+	test -z "$(libdir)" || $(mkdir_p) "$(DESTDIR)$(libdir)"
+	$(LIBTOOL) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) ".libs/libtds.a" "$(DESTDIR)$(libdir)/libtds.a"
 
-# changed for 0.65
-#                      bump server version whenever bumping libtds version
-libtds_la_LDFLAGS	= -version-info 6:0:0 \
-			  -export-symbols-regex '^(tds_|tdsdump_|tds5_|tds7_).*'
-libtds_la_LIBADD 	= libtds_objects.la ../replacements/libreplacements.la \
-			  $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
+uninstall-local:
+	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/libtds.a"
 
 noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h
 EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h
@@ -31,7 +28,7 @@ doxyfile: $(srcdir)/tds.dox
 	
 ## The doxygen configuration file understands environment variables.  
 
-doxy: doxyfile  $(libtds_objects_la_SOURCES)
+doxy: doxyfile  $(libtds_la_SOURCES)
 	SRCDIR=$(srcdir); \
 	TOP_SRCDIR=$(top_srcdir); \
 	export SRCDIR TOP_SRCDIR; \

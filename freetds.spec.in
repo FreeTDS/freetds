@@ -102,7 +102,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man?/*
 %{_libdir}/libct.so.*
 %{_libdir}/libsybdb.so.*
-%{_libdir}/libtds.so.*
 %{_libdir}/libtdssrv.so.*
 %config %{_sysconfdir}/*
  

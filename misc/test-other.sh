@@ -179,9 +179,10 @@ if test $do_php = yes -a -f "$FILE"; then
 		MAINDIR=$PWD
 		mkdir lib
 		cp src/dblib/.libs/lib*.s[ol]* lib
-		cp src/tds/.libs/lib*.s[ol]* lib
+		cp src/tds/.libs/libtds.a lib
+#		cp src/tds/.libs/lib*.s[ol]* lib
 		cd $DIR
-		CFLAGS='-O0 -pipe' ./configure --prefix=$MAINDIR/phpinst --disable-all --with-mssql=$MAINDIR
+		CFLAGS='-O0 -pipe' ./configure --prefix=$MAINDIR/phpinst --disable-all --with-mssql=$MAINDIR  --with-unixODBC=/usr
 		make -j4
 		make install
 		cd ..
