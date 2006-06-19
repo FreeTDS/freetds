@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.166 2006-06-05 11:43:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.167 2006-06-19 07:58:31 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -4178,7 +4178,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		tds_set_param_type(tds, pcol, temp_type);
 
 		if (temp_datalen == CS_NULLTERM && temp_value)
-			temp_datalen = strlen(temp_value);
+			temp_datalen = strlen((const char*) temp_value);
 
 		pcol->column_prec = p->precision;
 		pcol->column_scale = p->scale;

@@ -1,3 +1,8 @@
+Mon Jun 19 09:57:23 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/ctlib/ct.c src/odbc/sql2tds.c src/odbc/unittests/data.c:
+	* src/server/unittest.c:
+	- remove warning compiling with gcc4
+
 Thu Jun 15 14:15:24 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* configure.ac src/ctlib/unittests/cancel.c:
 	* src/dblib/unittests/common.c src/odbc/Makefile.am:

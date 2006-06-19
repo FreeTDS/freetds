@@ -43,7 +43,7 @@
 #define sleep(s) Sleep((s)*1000)
 #endif
 
-static char software_version[] = "$Id: unittest.c,v 1.11 2006-06-13 18:14:38 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.12 2006-06-19 07:58:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);
@@ -85,7 +85,7 @@ main(int argc, char **argv)
 	resinfo->columns[0]->column_size = 30;
 	strcpy(resinfo->columns[0]->column_name, "name");
 	resinfo->columns[0]->column_namelen = 4;
-	resinfo->current_row = "pubs2";
+	resinfo->current_row = (TDS_UCHAR*) "pubs2";
 	tds_send_result(tds, resinfo);
 	tds_send_174_token(tds, 1);
 	tds_send_row(tds, resinfo);
