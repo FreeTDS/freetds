@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.166 2006-06-07 18:43:58 castellano Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.167 2006-06-20 12:38:46 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -913,14 +913,10 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		/* TODO: fix for all platform. Search for lltoa/_i64toa */
 #if defined(WIN32) 
 		_i64toa(buf, tmp_str, 10);
-#elif defined(DOS32X)
-		sprintf(tmp_str, "%Ld", buf);
+#elif SIZEOF_LONG < 8
+		sprintf(tmp_str, "%" TDS_I64_FORMAT, buf);
 #else
-# if SIZEOF_LONG < 8
-		sprintf(tmp_str, "%lld", buf);
-# else
 		sprintf(tmp_str, "%ld", buf);
-# endif
 #endif
 		return string_to_result(tmp_str, cr);
 		break;
@@ -979,14 +975,10 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		/* TODO portability problem. See above */
 #if defined(WIN32) 
 		_i64toa(buf, tmp_str, 10);
-#elif defined(DOS32X)
-		sprintf(tmp_str, "%Ld", buf);
+#elif SIZEOF_LONG < 8
+		sprintf(tmp_str, "%" TDS_I64_FORMAT, buf);
 #else
-# if SIZEOF_LONG < 8
-		sprintf(tmp_str, "%lld", buf);
-# else
 		sprintf(tmp_str, "%ld", buf);
-# endif
 #endif
 		return stringz_to_numeric(tmp_str, cr);
 		break;

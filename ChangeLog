@@ -1,3 +1,6 @@
+Tue Jun 20 14:38:03 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/tds/convert.c: use macro in sprintf
+
 Tue Jun 20 14:34:03 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/tds/mem.c: small macro to allocate columns
 
