@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.159 2006-06-06 09:33:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.160 2006-06-20 12:34:49 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -58,6 +58,8 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 #undef TEST_CALLOC
 #define TEST_CALLOC(dest,type,n) \
 	{if (!(dest = (type*)calloc((n), sizeof(type)))) goto Cleanup;}
+
+#define tds_alloc_column() ((TDSCOLUMN*) calloc(1, sizeof(TDSCOLUMN)))
 
 /**
  * \ingroup libtds
@@ -176,7 +178,7 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 	TDSCOLUMN *colinfo;
 	TDSCOLUMN **cols;
 
-	colinfo = (TDSCOLUMN *) calloc(1, sizeof(TDSCOLUMN));
+	colinfo = tds_alloc_column();
 	if (!colinfo)
 		return NULL;
 
@@ -309,7 +311,8 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 1\n");
 	info->num_cols = num_cols;
 	for (col = 0; col < num_cols; col++)
-		TEST_MALLOC(info->columns[col], TDSCOLUMN);
+		if (!(info->columns[col] = tds_alloc_column()))
+			goto Cleanup;
 
 	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. point 2\n");
 
@@ -369,7 +372,8 @@ tds_alloc_results(int num_cols)
 	res_info->ref_count = 1;
 	TEST_CALLOC(res_info->columns, TDSCOLUMN *, num_cols);
 	for (col = 0; col < num_cols; col++)
-		TEST_MALLOC(res_info->columns[col], TDSCOLUMN);
+		if (!(res_info->columns[col] = tds_alloc_column()))
+			goto Cleanup;
 	res_info->num_cols = num_cols;
 	res_info->row_size = 0;
 	return res_info;

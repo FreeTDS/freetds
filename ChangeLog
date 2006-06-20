@@ -1,3 +1,6 @@
+Tue Jun 20 14:34:03 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/tds/mem.c: small macro to allocate columns
+
 Tue Jun 20 14:33:09 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/describecol.c: improved a lot
 
