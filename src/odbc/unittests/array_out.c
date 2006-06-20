@@ -3,11 +3,11 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.7 2005-08-14 09:20:53 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.8 2006-06-20 21:55:21 castellano Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
-static int truncate = 0;
+static int trunc = 0;
 static int record_bind = 0;
 
 typedef struct
@@ -27,7 +27,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 	SQLINTEGER *id_lens, *desc_lens;
 	SQLULEN processed;
 	SQLUSMALLINT i, statuses[ARRAY_SIZE];
-	int desc_len = truncate ? 4 : 51;
+	int desc_len = trunc ? 4 : 51;
 	int rec_size = 0;
 	Record *rec = NULL;
 	RETCODE ret;
@@ -88,7 +88,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 		char buf[128];
 
 		sprintf(buf, "%crow number %d", 'a' + i, i * 13);
-		if (truncate)
+		if (trunc)
 			buf[3] = 0;
 		if (IDS(i) != i + 1 || strcmp((char *) DESCS(i), buf) != 0) {
 			fprintf(stderr, "Invalid result\n\tgot '%d|%s'\n\texpected '%d|%s'\n", (int) IDS(i), DESCS(i), i + 1, buf);
@@ -165,7 +165,7 @@ main(int argc, char *argv[])
 	query_test(SQL_SUCCESS, "VVVVVVVVVV");
 
 	/* row and truncation */
-	truncate = 1;
+	trunc = 1;
 	printf("test line %d\n", __LINE__);
 	query_test(SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
 
