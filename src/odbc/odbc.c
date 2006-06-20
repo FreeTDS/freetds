@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.411 2006-05-15 15:12:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.412 2006-06-20 09:16:05 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -91,6 +91,7 @@ static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 static SQLRETURN odbc_free_cursor(TDS_STMT * stmt);
 static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
+static int odbc_lock_statement(TDS_STMT* stmt);
 
 #if ENABLE_EXTRA_CHECKS
 static void odbc_ird_check(TDS_STMT * stmt);
@@ -492,6 +493,23 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 	ODBC_RETURN_(stmt);
 }
 
+static int
+odbc_lock_statement(TDS_STMT* stmt)
+{
+	TDSSOCKET *tds;
+
+	if (stmt->dbc->current_statement != NULL
+	    && stmt->dbc->current_statement != stmt) {
+		tds = stmt->dbc->tds_socket;
+		if (!tds || tds->state != TDS_IDLE) {
+			odbc_errs_add(&stmt->errs, "24000", NULL);
+			return 0;
+		}
+	}
+	stmt->dbc->current_statement = stmt;
+	return 1;
+}
+
 SQLRETURN SQL_API
 SQLMoreResults(SQLHSTMT hstmt)
 {
@@ -810,11 +828,13 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 
 	tds = stmt->dbc->tds_socket;
 
+	if (!odbc_lock_statement(stmt))
+		ODBC_RETURN_(stmt);
+
 	/* TODO cursor support paremeters for update */
 	if (tds_cursor_update(tds, stmt->cursor, op, irow) != TDS_SUCCEED)
 		ODBC_RETURN(stmt, SQL_ERROR);
 
-	stmt->dbc->current_statement = stmt;
 	ret = tds_process_simple_query(tds);
 	stmt->dbc->current_statement = NULL;
 	if (ret != TDS_SUCCEED)
@@ -2481,6 +2501,9 @@ _SQLExecute(TDS_STMT * stmt)
 		return SQL_ERROR;
 	}
 
+	if (!odbc_lock_statement(stmt))
+		return SQL_ERROR;
+
 	stmt->curr_param_row = 0;
 	stmt->num_param_rows = stmt->apd->header.sql_desc_array_size;
 
@@ -2563,7 +2586,6 @@ _SQLExecute(TDS_STMT * stmt)
 			tds_set_state(tds, TDS_PENDING);
 			/* set cursor name for TDS7+ */
 			if (ret == TDS_SUCCEED && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
-				stmt->dbc->current_statement = stmt;
 				ret = tds_process_simple_query(tds);
 				stmt->dbc->current_statement = NULL;
 				if (ret == TDS_SUCCEED && cursor->cursor_id != 0) {
@@ -2620,7 +2642,6 @@ _SQLExecute(TDS_STMT * stmt)
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
-			stmt->dbc->current_statement = stmt;
 			if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 				dyn = stmt->dyn;
 				stmt->dyn = NULL;
@@ -2663,7 +2684,8 @@ _SQLExecute(TDS_STMT * stmt)
 	if (ret != TDS_SUCCEED)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	/* catch all errors */
-	stmt->dbc->current_statement = stmt;
+	if (!odbc_lock_statement(stmt))
+		ODBC_RETURN_(stmt);
 
 	stmt->row_count = TDS_NO_COUNT;
 	stmt->next_row_count = TDS_NO_COUNT;
@@ -2940,12 +2962,11 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	}
 
 	/* handle cursors, fetch wanted rows */
-	if (!stmt->dbc->current_statement && stmt->cursor) {
+	if (stmt->cursor && odbc_lock_statement(stmt)) {
 		/* FIXME handle errors */
 		TDSCURSOR *cursor = stmt->cursor;
 		TDS_CURSOR_FETCH fetch_type = TDS_CURSOR_FETCH_NEXT;
 
-		stmt->dbc->current_statement = stmt;
 		if (cursor->cursor_rows != num_rows) {
 			int send = 0;
 			cursor->cursor_rows = num_rows;
@@ -3700,11 +3721,12 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		}
 
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
+		if (!odbc_lock_statement(stmt))
+			ODBC_RETURN_(stmt);
 		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
 			tds_free_param_results(params);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		stmt->dbc->current_statement = stmt;
 
 		/* try to go to the next recordset */
 		/* TODO merge with similar code */

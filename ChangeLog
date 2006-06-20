@@ -1,3 +1,6 @@
+Tue Jun 20 11:15:16 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/odbc.c: catch error better
+
 Mon Jun 19 10:38:36 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* freetds.spec.in misc/test-other.sh src/apps/Makefile.am:
 	* src/ctlib/Makefile.am src/dblib/Makefile.am src/odbc/Makefile.am:
