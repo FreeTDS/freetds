@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.86 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.87 2006-06-21 07:27:47 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -271,9 +271,7 @@ odbc_server_to_sql_type(int col_type, int col_size)
 		}
 		break;
 	case SYBMONEY:
-		return SQL_DOUBLE;
 	case SYBMONEY4:
-		return SQL_DOUBLE;
 	case SYBMONEYN:
 		return SQL_DOUBLE;
 	case SYBDATETIME:
@@ -488,6 +486,11 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 	case SQL_LONGVARCHAR:
 		size = column_size;
 		break;
+	case SQL_BINARY:
+	case SQL_VARBINARY:
+	case SQL_LONGVARBINARY:
+		size = column_size * 2;
+		break;
 	case SQL_BIGINT:
 		size = 20;
 		break;
@@ -496,6 +499,9 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 		break;
 	case SQL_SMALLINT:
 		size = 6;	/* -10000 */
+		break;
+	case SQL_BIT:
+		size = 1;
 		break;
 	case SQL_TINYINT:
 		size = 3;	/* 255 */
@@ -516,7 +522,7 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 	case SQL_TIMESTAMP:
 		/* TODO dependent on precision (decimal second digits) */
 		/* FIXME check, always format yyyy-mm-dd hh:mm:ss[.fff] ?? */
-		size = 24;
+		size = 23;
 		/* spinellia@acm.org: int token.c it is 30 should we comply? */
 		break;
 	case SQL_FLOAT:

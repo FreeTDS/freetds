@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.412 2006-06-20 09:16:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.413 2006-06-21 07:27:47 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1645,6 +1645,8 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		break;
 		/* FIXME special cases for SQL_COLUMN_LENGTH */
 	case SQL_COLUMN_LENGTH:
+		IOUT(SQLULEN, drec->sql_desc_octet_length);
+		break;
 	case SQL_DESC_LENGTH:
 		IOUT(SQLULEN, drec->sql_desc_length);
 		break;

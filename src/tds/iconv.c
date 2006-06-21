@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.124 2005-07-07 13:06:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.125 2006-06-21 07:27:47 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -853,7 +853,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 	/*
 	 * If cd isn't valid, it's just an indication that this column needs no conversion.  
 	 */
-	if (cd == (iconv_t) - 1 || cd == NULL) {
+	if (cd == (iconv_t) - 1) {
 		assert(field_len <= *outbytesleft);
 		if (field_len > 0) {
 			if (1 != fread(outbuf, field_len, 1, stream)) {
