@@ -1,3 +1,8 @@
+Wed Jun 21 17:03:55 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/describecol.c:
+	* src/odbc/unittests/describecol.in(added):
+	- rewrote describecol test
+
 Wed Jun 21 09:26:02 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/odbc.c: improve column_length
 	* src/odbc/odbc_util.c: fix for odbc_sql_to_displaysize
