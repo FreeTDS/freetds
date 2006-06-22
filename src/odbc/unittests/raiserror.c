@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.15 2006-01-06 10:22:28 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.15.2.1 2006-06-22 08:05:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -258,6 +258,8 @@ Test2(int nocount, int second_select)
 int
 main(int argc, char *argv[])
 {
+
+#ifdef TDS_NO_DM
 	Connect();
 
 	Test2(0, 1);
@@ -265,6 +267,7 @@ main(int argc, char *argv[])
 	Test2(1, 1);
 
 	Disconnect();
+#endif
 
 	use_odbc_version3 = 1;
 

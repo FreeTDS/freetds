@@ -1,3 +1,6 @@
+Thu Jun 22 10:04:54 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/raiserror.c: relax test if DM is present
+
 Thu Jun 08 10:18:50 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/tds/unittests/t0007.c:
 	- improved to detect possible date problems
