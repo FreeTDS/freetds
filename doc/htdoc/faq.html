@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.15 2006-04-21 07:46:22 freddy77 Exp $ -->
+<!-- $Id: faq.html,v 1.16 2006-06-22 22:38:42 jklowden Exp $ -->
 
 <head>
   <meta name="generator" content=
@@ -42,7 +42,7 @@
   some).</p>
 
   <div align="right">
-    <i>$Id: faq.html,v 1.15 2006-04-21 07:46:22 freddy77 Exp $</i>
+    <i>$Id: faq.html,v 1.16 2006-06-22 22:38:42 jklowden Exp $</i>
   </div>
 
   <ol>
@@ -679,22 +679,22 @@
   <p>Steps:</p>
 
   <ol>
-    <li>Try <tt>telnet &lt;hostmachine&gt; &lt;port&gt;</tt> and
+    <li>Try <tt><b>telnet <i>hostmachine port</i></b></tt> and
     see if it's listening. You should get some form of response
     from the server (actual text varies by vendor &amp;
     version).<br /></li>
 
     <li>
-      <p>Try <kbd>tsql -U &lt;hostmachine&gt; -p &lt;port&gt; -U
-      &lt;username&gt; -P &lt;password&gt;</kbd></p>
+      <p>Try <kbd><b>tsql -H <i>hostmachine</i> -p <i>port</i> -U
+      <i>username</i> -P <i>password</i></b></kbd></p>
 
       <p>That will connect to the server, bypassing the
       freetds.conf file. If it doesn't work, the problem lies
       upstream.</p></li>
 
     <li>
-      <p>Try <kbd>tsql -S &lt;servername&gt; -p &lt;port&gt; -U
-      &lt;username&gt; -P &lt;password&gt;</kbd></p>
+      <p>Try <kbd><b>tsql -S <i>servername</i> -p <i>port</i> -U
+      <i>username</i> -P <i>password</i></b></kbd></p>
 
       <p>That will connect to the server using freetds.conf. This
       allows you to isolate freetds.conf mistakes. <kbd>man
