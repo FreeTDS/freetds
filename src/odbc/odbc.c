@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-static const char software_version[] = "$Id: odbc.c,v 1.345.2.3 2006-05-15 15:08:45 freddy77 Exp $";
+static const char software_version[] = "$Id: odbc.c,v 1.345.2.4 2006-06-25 08:16:48 freddy77 Exp $";
 static const void *const no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
@@ -2791,7 +2791,7 @@ _SQLFetch(TDS_STMT * stmt)
 	} while (++curr_row < num_rows);
 
       all_done:
-	if (*fetched_ptr == 0 && stmt->errs.lastrc == SQL_SUCCESS)
+	if (*fetched_ptr == 0 && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 		ODBC_RETURN(stmt, SQL_NO_DATA);
 	if (stmt->errs.lastrc == SQL_ERROR && (*fetched_ptr > 1 || (*fetched_ptr == 1 && row_status != SQL_ROW_ERROR)))
 		ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
