@@ -7,7 +7,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.7 2006-06-21 15:04:02 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.8 2006-06-25 07:48:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -159,7 +159,7 @@ get_attr_ard(ATTR_PARAMS)
 	SQLSMALLINT si;
 	SQLLEN li;
 	SQLRETURN ret;
-	SQLHDESC desc = SQL_NULL_DESC;
+	SQLHDESC desc = SQL_NULL_HDESC;
 
 	/* get ARD */
 	SQLGetStmtAttr(Statement, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);

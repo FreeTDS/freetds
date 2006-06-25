@@ -1,3 +1,10 @@
+Sun Jun 25 09:50:00 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/warning.c(added):
+	- added warning test from John K. Hohm (cf 
+	  "Warning return as copy of last result row" on ML)
+	* src/odbc/unittests/describecol.c: compile fix
+
 Wed Jun 21 17:03:55 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/describecol.c:
 	* src/odbc/unittests/describecol.in(added):
