@@ -1,3 +1,9 @@
+Sun Jun 25 10:12:48 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/warning.c:
+	- tested
+	- fix portability problem with former Sybase db
+	- test returned warning
+
 Sun Jun 25 09:50:00 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/warning.c(added):
