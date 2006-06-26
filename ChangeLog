@@ -1,3 +1,8 @@
+Mon Jun 26 16:10:02 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* phptests/rpc2.php(added):
+	- test from Ellert van Koperen (cf "SP parameters" and 
+	  http://kb.vankoperen.nl/freetds-problems.html)
+
 Sun Jun 25 10:12:48 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/warning.c:
 	- tested
