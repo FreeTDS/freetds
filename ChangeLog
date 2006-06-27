@@ -1,3 +1,9 @@
+Tue Jun 27 15:47:46 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/dblib/unittests/done_handling.c:
+	- improve
+	- update style
+	- fix typo
+
 Mon Jun 26 16:10:02 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* phptests/rpc2.php(added):
 	- test from Ellert van Koperen (cf "SP parameters" and 

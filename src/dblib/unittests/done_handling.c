@@ -2,12 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <sybfront.h>
-#include <sybdb.h>
+#ifdef _WIN32
+#include <windows.h>
+#define DBNTWIN32
+#endif
+#include <sqlfront.h>
+#include <sqldb.h>
 
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.3 2005-09-21 18:12:10 freddy77 Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.4 2006-06-27 13:48:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -17,8 +21,8 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * - if possible to send another query (means state IDLE)
  * - if error readed (means ERROR token readed)
  * - if status present (PARAMRESULT token readed)
- * - if parameter prosent (PARAM token readed)
- * If try these query types:
+ * - if parameter present (PARAM token readed)
+ * It try these query types:
  * - normal row
  * - normal row with no count
  * - normal row without rows
@@ -27,8 +31,9 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  */
 
 /* Forward declarations of the error handler and message handler. */
-static int err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-static int msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
+static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname,
+		       int line);
 
 static DBPROCESS *dbproc;
 static int silent = 0;
@@ -51,17 +56,19 @@ check_state(void)
 	printf("State ");
 	if (dbnumcols(dbproc) > 0)
 		printf("COLS(%d) ", dbnumcols(dbproc));
- 	// row count
+	/* row count */
 	if (dbcount(dbproc) >= 0)
 		printf("ROWS(%d) ", (int) dbcount(dbproc));
-	// if status present
+	/* if status present */
 	if (dbretstatus(dbproc) == TRUE)
 		printf("STATUS %d ", (int) dbretstatus(dbproc));
-	// if parameter prosent
+	/* if parameter prosent */
 	if (dbnumrets(dbproc) > 0)
 		printf("PARAMS ");
-	// if possible to send another query
-	// NOTE this must be the last
+	/*
+	 * if possible to send another query
+	 * NOTE this must be the last
+	 */
 	if (check_idle) {
 		silent = 1;
 		dbcmd(dbproc, "declare @i int ");
@@ -124,19 +131,21 @@ do_test(const char *query)
 			check_state();
 		} while (ret == SUCCEED);
 	}
+	check_state();
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
-	LOGINREC      *login;        /* Our login information. */
+	LOGINREC *login;	/* Our login information. */
 
 	read_login_info(argc, argv);
 
 	if (dbinit() == FAIL)
 		exit(1);
 
-	dberrhandle((EHANDLEFUNC)err_handler);
-	dbmsghandle((MHANDLEFUNC)msg_handler);
+	dberrhandle((EHANDLEFUNC) err_handler);
+	dbmsghandle((MHANDLEFUNC) msg_handler);
 
 	login = dblogin();
 	DBSETLUSER(login, USER);
@@ -156,17 +165,17 @@ int main(int argc, char *argv[])
 
 	check_idle = 1;
 
-	// normal row
+	/* normal row */
 	do_test("select * from #dummy");
-	// normal row with no count
+	/* normal row with no count */
 	query("set nocount on");
 	do_test("select * from #dummy");
 	query("set nocount off");
-	// normal row without rows
+	/* normal row without rows */
 	do_test("select * from #dummy where 0=1");
-	// error query
+	/* error query */
 	do_test("select dklghdlgkh from #dummy");
-	// store procedure call with output parameters
+	/* store procedure call with output parameters */
 	do_test("declare @s varchar(10) exec done_test @s output");
 
 	do_test("declare @i int");
@@ -181,52 +190,41 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-static int err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr)
-DBPROCESS       *dbproc;
-int             severity;
-int             dberr;
-int             oserr;
-char            *dberrstr;
-char            *oserrstr;
+static int
+err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 	if (silent)
 		return INT_CANCEL;
 
-	fprintf (stderr, "DB-Library error (severity %d):\n\t%s\n", severity, dberrstr);
+	fflush(stdout);
+	fprintf(stderr, "DB-Library error (severity %d):\n\t%s\n", severity, dberrstr);
 
 	if (oserr != DBNOERR)
-		fprintf (stderr, "Operating-system error:\n\t%s\n", oserrstr);
+		fprintf(stderr, "Operating-system error:\n\t%s\n", oserrstr);
+	fflush(stderr);
 
 	return INT_CANCEL;
 }
 
-static int msg_handler(dbproc, msgno, msgstate, severity, msgtext, 
-                srvname, procname, line)
-
-DBPROCESS       *dbproc;
-DBINT           msgno;
-int             msgstate;
-int             severity;
-char            *msgtext;
-char            *srvname;
-char            *procname;
-int     	line;
-
+static int
+msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 {
 	if (silent)
 		return 0;
 
-	fprintf (stderr, "Msg %d, Level %d, State %d\n", 
-	        (int) msgno, severity, msgstate);
+	fflush(stdout);
+	fprintf(stderr, "Msg %d, Level %d, State %d\n", (int) msgno, severity, msgstate);
 
 	if (strlen(srvname) > 0)
-		fprintf (stderr, "Server '%s', ", srvname);
-	if (strlen(procname) > 0)
-		fprintf (stderr, "Procedure '%s', ", procname);
-	if (line > 0)
-		fprintf (stderr, "Line %d", line);
+		fprintf(stderr, "Server '%s', ", srvname);
+	if (procname && strlen(procname) > 0) {
+		fprintf(stderr, "Procedure '%s', ", procname);
+		if (line > 0)
+			fprintf(stderr, "Line %d", line);
+	}
 
-	fprintf (stderr, "\n\t%s\n", msgtext);
+	fprintf(stderr, "\n\t%s\n", msgtext);
+	fflush(stderr);
 
-	return(0);
+	return 0;
 }
