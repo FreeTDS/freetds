@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.24 2006-06-29 12:07:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.25 2006-06-29 15:06:52 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -58,8 +58,8 @@ TDS_RCSID(var, "$Id: challenge.c,v 1.24 2006-06-29 12:07:41 freddy77 Exp $");
  * The following code is based on some psuedo-C code from ronald@innovation.ch
  */
 
-static void tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
-static void tds_convert_key(unsigned char *key_56, DES_KEY * ks);
+static void tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
+static void tds_convert_key(const unsigned char *key_56, DES_KEY * ks);
 
 /**
  * Crypt a given password using schema required for NTLMv1 authentication
@@ -75,28 +75,27 @@ tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UIN
 	int i;
 	static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
 	DES_KEY ks;
-	unsigned char hash[24];
-	unsigned char passwd_up[MAX_PW_SZ];
-	unsigned char nt_pw[256];
+	unsigned char hash[24], ntlm2_challenge[16];
+	unsigned char passwd_buf[256];
 	MD4_CTX context;
 
 	memset(answer, 0, sizeof(TDSANSWER));
 
 	if (!(flags & 0x80000)) {
 		/* convert password to upper and pad to 14 chars */
-		memset(passwd_up, 0, MAX_PW_SZ);
+		memset(passwd_buf, 0, MAX_PW_SZ);
 		len = strlen(passwd);
 		if (len > MAX_PW_SZ)
 			len = MAX_PW_SZ;
 		for (i = 0; i < len; i++)
-			passwd_up[i] = toupper((unsigned char) passwd[i]);
+			passwd_buf[i] = toupper((unsigned char) passwd[i]);
 
 		/* hash the first 7 characters */
-		tds_convert_key(passwd_up, &ks);
+		tds_convert_key(passwd_buf, &ks);
 		tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 0));
 
 		/* hash the second 7 characters */
-		tds_convert_key(passwd_up + 7, &ks);
+		tds_convert_key(passwd_buf + 7, &ks);
 		tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 8));
 
 		memset(hash + 16, 0, 5);
@@ -106,6 +105,7 @@ tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UIN
 		MD5_CTX md5_ctx;
 
 		/* NTLM2 */
+		/* TODO find a better random... */
 		for (i = 0; i < 8; ++i)
 			hash[i] = rand() / (RAND_MAX/256);
 		memset(hash + 8, 0, 16);
@@ -114,31 +114,37 @@ tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UIN
 		MD5Init(&md5_ctx);
 		MD5Update(&md5_ctx, challenge, 8);
 		MD5Update(&md5_ctx, hash, 8);
-		MD5Final(&md5_ctx, passwd_up);
-		challenge = passwd_up;
+		MD5Final(&md5_ctx, ntlm2_challenge);
+		challenge = ntlm2_challenge;
+		memset(&md5_ctx, 0, sizeof(md5_ctx));
 	}
 
-	/* NT resp */
+	/* NTLM/NTLM2 response */
 	len = strlen(passwd);
 	if (len > 128)
 		len = 128;
+	/*
+	 * TODO we should convert this to ucs2le instead of
+	 * using it blindly as iso8859-1
+	 */
 	for (i = 0; i < len; ++i) {
-		nt_pw[2 * i] = passwd[i];
-		nt_pw[2 * i + 1] = 0;
+		passwd_buf[2 * i] = passwd[i];
+		passwd_buf[2 * i + 1] = 0;
 	}
 
+	/* compute NTLM hash */
 	MD4Init(&context);
-	MD4Update(&context, nt_pw, len * 2);
+	MD4Update(&context, passwd_buf, len * 2);
 	MD4Final(&context, hash);
-
 	memset(hash + 16, 0, 5);
+
 	tds_encrypt_answer(hash, challenge, answer->nt_resp);
 
 	/* with security is best be pedantic */
 	memset(&ks, 0, sizeof(ks));
 	memset(hash, 0, sizeof(hash));
-	memset(passwd_up, 0, sizeof(passwd_up));
-	memset(nt_pw, 0, sizeof(nt_pw));
+	memset(passwd_buf, 0, sizeof(passwd_buf));
+	memset(ntlm2_challenge, 0, sizeof(ntlm2_challenge));
 	memset(&context, 0, sizeof(context));
 }
 
@@ -149,7 +155,7 @@ tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UIN
 * bytes are stored in the results array.
 */
 static void
-tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned char *answer)
+tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer)
 {
 	DES_KEY ks;
 
@@ -171,7 +177,7 @@ tds_encrypt_answer(unsigned char *hash, const unsigned char *challenge, unsigned
 * The key schedule ks is also set.
 */
 static void
-tds_convert_key(unsigned char *key_56, DES_KEY * ks)
+tds_convert_key(const unsigned char *key_56, DES_KEY * ks)
 {
 	des_cblock key;
 

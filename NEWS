@@ -1,7 +1,8 @@
-$Id: NEWS,v 1.36 2006-05-29 10:58:35 freddy77 Exp $
+$Id: NEWS,v 1.37 2006-06-29 15:06:52 freddy77 Exp $
 * 0.65
 - support NUL characters inside terminators in freebcp
 - cursors under ODBC
+- NTLM2 session response
 
 libTDS API changes
 - tds_add_row_column_size removed
