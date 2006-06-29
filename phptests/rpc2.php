@@ -64,7 +64,7 @@ if (!$result){
 } else {
 	mssql_free_statement($proc);
 
-	echo "test1= $test1\n";
+	echo "test1 = $test1\n";
 	echo "retval = $retval\n";
 	if ($retval != 350) {
 		echo "Expected retval 350\n";
@@ -95,7 +95,7 @@ if (!$result){
 } else {
 	mssql_free_statement($proc);
 
-	echo "test1= $test1\n";
+	echo "test1 = $test1\n";
 	echo "retval = $retval\n";
 	if ($retval != 2) {
 		echo "Expected retval 2\n";
@@ -126,7 +126,7 @@ if (!$result){
 } else {
 	mssql_free_statement($proc);
 
-	echo "test1= $test1\n";
+	echo "test1 = $test1\n";
 	if ($test1 != 10) {
 		echo "Expected test1 10\n";
 		$err = TRUE;
@@ -161,7 +161,7 @@ if (!$result){
 } else {
 	mssql_free_statement($proc);
 
-	echo "test1= >$test1<\n";
+	echo "test1 = >$test1<\n";
 	if ($test1 != 'xyz45678') {
 		echo "Expected test1 >xyz45678<\n";
 		$err = TRUE;
