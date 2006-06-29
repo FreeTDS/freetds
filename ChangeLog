@@ -1,3 +1,8 @@
+Thu Jun 29 14:07:42 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tds.h src/tds/Makefile.am src/tds/challenge.c:
+	* src/tds/login.c src/tds/token.c:
+	- add NTLM2 Session Response support
+
 Tue Jun 27 15:47:46 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/unittests/done_handling.c:
 	- improve

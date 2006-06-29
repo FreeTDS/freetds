@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.311 2006-06-05 11:43:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.312 2006-06-29 12:07:41 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -397,6 +397,7 @@ tds_process_auth(TDSSOCKET * tds)
 {
 	int pdu_size;
 	unsigned char nonce[8];
+	TDS_UINT flags;
 
 /* char domain[30]; */
 	int where;
@@ -420,8 +421,7 @@ tds_process_auth(TDSSOCKET * tds)
 	tds_get_int(tds);	/* sequence -> 2 */
 	tds_get_n(tds, NULL, 4);	/* domain len (2 time) */
 	tds_get_int(tds);	/* domain offset */
-	/* TODO use them */
-	tds_get_n(tds, NULL, 4);	/* flags */
+	flags = tds_get_int(tds);	/* flags */
 	tds_get_n(tds, nonce, 8);
 	tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", nonce, 8);
 	where = 32;
@@ -438,7 +438,7 @@ tds_process_auth(TDSSOCKET * tds)
 	tds_get_n(tds, NULL, pdu_size - where);
 	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", pdu_size - where);
 
-	tds7_send_auth(tds, nonce);
+	tds7_send_auth(tds, nonce, flags);
 
 	return TDS_SUCCEED;
 }

@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.150 2006-03-06 11:57:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.151 2006-06-29 12:07:41 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -470,7 +470,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 
 int
-tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
+tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge, TDS_UINT flags)
 {
 	int current_pos;
 	TDSANSWER answer;
@@ -554,7 +554,7 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 	tds_put_string(tds, user_name, user_name_len);
 	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
 
-	tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, &answer);
+	tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, flags, &answer);
 	tds_put_n(tds, answer.lm_resp, 24);
 	tds_put_n(tds, answer.nt_resp, 24);
 
@@ -765,7 +765,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		/* sequence 1 client -> server */
 		tds_put_int(tds, 1);
 		/* flags */
-		tds_put_int(tds, 0xb201);
+		tds_put_int(tds, 0x08b201);
 
 		/* domain info */
 		tds_put_smallint(tds, domain_len);
@@ -776,6 +776,12 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_smallint(tds, host_name_len);
 		tds_put_smallint(tds, host_name_len);
 		tds_put_int(tds, 32);
+
+		/*
+		 * here XP put version like 05 01 28 0a (5.1.2600),
+		 * similar to GetVersion result
+		 * and some unknown bytes like 00 00 00 0f
+		 */
 
 		/* hostname and domain */
 		tds_put_n(tds, connection->client_host_name, host_name_len);

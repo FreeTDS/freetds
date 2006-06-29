@@ -22,6 +22,10 @@
 #include <config.h>
 #endif
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #include <ctype.h>
 
 #if HAVE_STRING_H
@@ -30,13 +34,14 @@
 
 #include "tds.h"
 #include "md4.h"
+#include "md5.h"
 #include "des.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.23 2005-08-23 17:25:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.24 2006-06-29 12:07:41 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -63,7 +68,7 @@ static void tds_convert_key(unsigned char *key_56, DES_KEY * ks);
  * @param answer buffer where to store crypted password
  */
 void
-tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDSANSWER * answer)
+tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT flags, TDSANSWER * answer)
 {
 #define MAX_PW_SZ 14
 	int len;
@@ -77,25 +82,41 @@ tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDSANSW
 
 	memset(answer, 0, sizeof(TDSANSWER));
 
-	/* convert password to upper and pad to 14 chars */
-	memset(passwd_up, 0, MAX_PW_SZ);
-	len = strlen(passwd);
-	if (len > MAX_PW_SZ)
-		len = MAX_PW_SZ;
-	for (i = 0; i < len; i++)
-		passwd_up[i] = toupper((unsigned char) passwd[i]);
+	if (!(flags & 0x80000)) {
+		/* convert password to upper and pad to 14 chars */
+		memset(passwd_up, 0, MAX_PW_SZ);
+		len = strlen(passwd);
+		if (len > MAX_PW_SZ)
+			len = MAX_PW_SZ;
+		for (i = 0; i < len; i++)
+			passwd_up[i] = toupper((unsigned char) passwd[i]);
 
-	/* hash the first 7 characters */
-	tds_convert_key(passwd_up, &ks);
-	tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 0));
+		/* hash the first 7 characters */
+		tds_convert_key(passwd_up, &ks);
+		tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 0));
 
-	/* hash the second 7 characters */
-	tds_convert_key(passwd_up + 7, &ks);
-	tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 8));
+		/* hash the second 7 characters */
+		tds_convert_key(passwd_up + 7, &ks);
+		tds_des_ecb_encrypt(&magic, sizeof(magic), &ks, (hash + 8));
 
-	memset(hash + 16, 0, 5);
+		memset(hash + 16, 0, 5);
 
-	tds_encrypt_answer(hash, challenge, answer->lm_resp);
+		tds_encrypt_answer(hash, challenge, answer->lm_resp);
+	} else {
+		MD5_CTX md5_ctx;
+
+		/* NTLM2 */
+		for (i = 0; i < 8; ++i)
+			hash[i] = rand() / (RAND_MAX/256);
+		memset(hash + 8, 0, 16);
+		memcpy(answer->lm_resp, hash, 24);
+
+		MD5Init(&md5_ctx);
+		MD5Update(&md5_ctx, challenge, 8);
+		MD5Update(&md5_ctx, hash, 8);
+		MD5Final(&md5_ctx, passwd_up);
+		challenge = passwd_up;
+	}
 
 	/* NT resp */
 	len = strlen(passwd);
