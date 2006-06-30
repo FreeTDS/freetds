@@ -1,3 +1,8 @@
+Fri Jun 30 10:31:49 EDT 2006	JK Lowden <jklowden@schemamania.org>
+	* src/odbc/sql2tds.c assert good pointer in case user passed NULL
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/rpc.c
+	- added new unit test, similar to that used in dblib.
+
 Thu Jun 29 17:05:35 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* NEWS src/tds/challenge.c:
 	- fix small buffer overflow
