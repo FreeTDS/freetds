@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.54 2006-06-25 07:48:15 freddy77 Exp $
+# $Id: Makefile.am,v 1.55 2006-06-30 14:34:46 jklowden Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -10,7 +10,7 @@ TESTS		=	\
 			transaction$(EXEEXT) type$(EXEEXT) genparams$(EXEEXT)\
 			preperror$(EXEEXT) prepare_results$(EXEEXT)\
 			testodbc$(EXEEXT) data$(EXEEXT) error$(EXEEXT)\
-			rebindpar$(EXEEXT) convert_error$(EXEEXT)\
+			rebindpar$(EXEEXT) rpc$(EXEEXT) convert_error$(EXEEXT)\
 			typeinfo$(EXEEXT) const_params$(EXEEXT)\
 			insert_speed$(EXEEXT) compute$(EXEEXT)\
 			timeout$(EXEEXT) array$(EXEEXT) array_out$(EXEEXT)\
@@ -47,6 +47,7 @@ testodbc_SOURCES	= testodbc.c common.c common.h
 data_SOURCES	= data.c common.c common.h
 error_SOURCES	= error.c common.c common.h
 rebindpar_SOURCES	= rebindpar.c common.c common.h
+rpc_SOURCES	= rpc.c common.c common.h
 convert_error_SOURCES	= convert_error.c common.c common.h
 typeinfo_SOURCES	= typeinfo.c common.c common.h
 const_params_SOURCES	= const_params.c common.c common.h
