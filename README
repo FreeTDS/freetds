@@ -1,6 +1,6 @@
-$Id: README,v 1.10 2004-11-27 22:01:33 jklowden Exp $
-README for FreeTDS 0.63
-Saturday, 27 November 2004
+$Id: README,v 1.10.4.1 2006-07-01 15:09:33 jklowden Exp $
+README for FreeTDS 0.64
+Saturday 1 July 2006
 
 * to build FreeTDS read the file INSTALL,
 * see also the FreeTDS Users Guide,

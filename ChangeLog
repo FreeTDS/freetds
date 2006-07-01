@@ -1,3 +1,8 @@
+Sat Jul  1 11:07:09 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* INSTALL INSTALL.CVS NEWS README TODO configure.in
+	- doc/userguide.sgml
+	0.64 release
+	
 Thu Jun 22 10:04:54 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/raiserror.c: relax test if DM is present
 

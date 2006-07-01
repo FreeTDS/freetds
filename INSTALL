@@ -1,3 +1,5 @@
+$Id: INSTALL,v 1.4.8.1 2006-07-01 15:09:33 jklowden Exp $
+
 FreeTDS Installation
 
    For complete instructions, see the FreeTDS Users Guide.  It is 
@@ -8,13 +10,19 @@ FreeTDS Installation
 
 Brief Instructions
 
+   $ ./configure --help
    $ ./configure
    $ make 
    $ make install
 
+
    Edit the /usr/local/etc/freetds.conf file to add servers.
-   Test the connection with /usr/local/tsql.  
-   Build and test the package that requires FreeTDS.
+   Test the connection with /usr/local/bin/tsql.  
+   Build and test the package that requires FreeTDS.  
+   
+   If you want to build the ODBC driver, you'll probably first want to install 
+   a Driver Manager (on Unix-like systems).  This release of FreeTDS was tested
+   with unixODBC 2.2.11.  
 
 ------
 
