@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.413 2006-06-21 07:27:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.414 2006-07-03 11:10:28 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -138,6 +138,12 @@ static void odbc_ird_check(TDS_STMT * stmt);
 	odbc_errs_reset(&desc->errs); \
 
 #define IS_VALID_LEN(len) ((len) >= 0 || (len) == SQL_NTS || (len) == SQL_NULL_DATA)
+
+#define ODBC_SAFE_ERROR(stmt) \
+	do { \
+		if (!stmt->errs.num_errors) \
+			odbc_errs_add(&stmt->errs, "HY000", "Unknown error"); \
+	} while(0)
 
 /*
  * Note: I *HATE* hungarian notation, it has to be the most idiotic thing
@@ -568,6 +574,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			ODBC_RETURN_(stmt);
 
 		case TDS_CMD_FAIL:
+			ODBC_SAFE_ERROR(stmt);
 			ODBC_RETURN(stmt, SQL_ERROR);
 
 		case TDS_COMPUTE_RESULT:
@@ -586,6 +593,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				ODBC_RETURN_(stmt);
 			case NOT_IN_ROW:
 				/* this should never happen, protocol error */
+				ODBC_SAFE_ERROR(stmt);
 				ODBC_RETURN(stmt, SQL_ERROR);
 				break;
 			}
@@ -600,8 +608,14 @@ SQLMoreResults(SQLHSTMT hstmt)
 			/* Skipping current result set's rows to access next resultset or proc's retval */
 			tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_STOPAT_COMPUTE);
 			/* TODO should we set in_row ?? */
-			if (tdsret == TDS_FAIL || tdsret == TDS_CANCELLED)
+			switch (tdsret) {
+			case TDS_CANCELLED:
+				odbc_errs_add(&stmt->errs, "HY008", NULL);
 				ODBC_RETURN(stmt, SQL_ERROR);
+			case TDS_FAIL:
+				ODBC_SAFE_ERROR(stmt);
+				ODBC_RETURN(stmt, SQL_ERROR);
+			}
 			break;
 
 		case TDS_DONE_RESULT:
@@ -832,13 +846,17 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 		ODBC_RETURN_(stmt);
 
 	/* TODO cursor support paremeters for update */
-	if (tds_cursor_update(tds, stmt->cursor, op, irow) != TDS_SUCCEED)
+	if (tds_cursor_update(tds, stmt->cursor, op, irow) != TDS_SUCCEED) {
+		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
 	ret = tds_process_simple_query(tds);
 	stmt->dbc->current_statement = NULL;
-	if (ret != TDS_SUCCEED)
+	if (ret != TDS_SUCCEED) {
+		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
 	ODBC_RETURN_(stmt);
 }
@@ -1074,6 +1092,7 @@ SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * Output
 		return _SQLAllocDesc(InputHandle, OutputHandle);
 		break;
 	}
+	/* TODO HY092 error */
 	return SQL_ERROR;
 }
 #endif
@@ -1391,11 +1410,15 @@ SQLCancel(SQLHSTMT hstmt)
 
 	/* FIXME test current statement */
 
-	if (tds_send_cancel(tds) == TDS_FAIL)
+	if (tds_send_cancel(tds) == TDS_FAIL) {
+		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
-	if (tds_process_cancel(tds) == TDS_FAIL)
+	if (tds_process_cancel(tds) == TDS_FAIL) {
+		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
 	stmt->dbc->current_statement = NULL;
 
@@ -1645,7 +1668,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		break;
 		/* FIXME special cases for SQL_COLUMN_LENGTH */
 	case SQL_COLUMN_LENGTH:
-		IOUT(SQLULEN, drec->sql_desc_octet_length);
+		IOUT(SQLLEN, drec->sql_desc_octet_length);
 		break;
 	case SQL_DESC_LENGTH:
 		IOUT(SQLULEN, drec->sql_desc_length);
@@ -3188,6 +3211,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				if ((c_type == SQL_C_CHAR && len >= drec_ard->sql_desc_octet_length)
 				    || (c_type == SQL_C_BINARY && len > drec_ard->sql_desc_octet_length)) {
 					truncated = 1;
+					/* TODO add diagnostic */
 					stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
 				}
 			} else {
@@ -4121,6 +4145,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			colinfo->column_text_sqlgetdatapos += readed;
 			/* not all readed ?? */
 			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
+				/* TODO add diagnostic */
 				ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 		}
 	}

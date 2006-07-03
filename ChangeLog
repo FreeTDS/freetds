@@ -1,3 +1,8 @@
+Mon Jul 03 13:09:40 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/odbc.c:
+	- assure there is always an error when SQL_ERROR is returned
+	- fix warning
+
 Fri Jun 30 10:31:49 EDT 2006	JK Lowden <jklowden@schemamania.org>
 	* src/odbc/sql2tds.c assert good pointer in case user passed NULL
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/rpc.c
