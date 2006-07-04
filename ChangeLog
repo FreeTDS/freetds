@@ -1,3 +1,9 @@
+Tue Jul 04 17:13:08 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/paramcore.c(added):
+	* src/odbc/unittests/.cvsignore src/odbc/sql2tds.c:
+	- test for core using SQLBindParameter, small fix
+
 Mon Jul 03 13:09:40 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/odbc.c:
 	- assure there is always an error when SQL_ERROR is returned

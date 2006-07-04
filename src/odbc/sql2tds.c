@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.57 2006-06-30 14:34:40 jklowden Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.58 2006-07-04 15:15:06 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -262,7 +262,11 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		len = 0;
 		break;
 	case SQL_NTS:
-		assert(src != NULL);	/* TODO: check that SQLBindParameter::BufferLength is not zero for output parameters */
+		/* check that SQLBindParameter::ParameterValuePtr is not zero for input parameters */
+		if (!src) {
+			odbc_errs_add(&stmt->errs, "HY090", NULL);
+			return SQL_ERROR;
+		}
 		len = strlen(src);
 		break;
 	case SQL_DEFAULT_PARAM:
@@ -309,6 +313,11 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	if (sql_len == SQL_NULL_DATA) {
 		curcol->column_cur_size = -1;
 		return TDS_SUCCEED;
+	}
+
+	if (!src) {
+		odbc_errs_add(&stmt->errs, "HY090", NULL);
+		return SQL_ERROR;
 	}
 
 	/* convert special parameters (not libTDS compatible) */
