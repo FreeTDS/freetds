@@ -26,7 +26,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.24 2005-11-22 04:22:53 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.25 2006-07-05 19:44:52 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -268,6 +268,9 @@ main(int argc, char **argv)
 			if (empty_resultset)
 				++num_empty_resultset;
 			
+#define NORMAL_PROCESSING 0
+#define USE_DBHASRETSTAT 0
+#if NORMAL_PROCESSING
 			/* check return status */
 			printf("retrieving return status...\n");
 			if (dbhasretstat(dbproc) == TRUE) {
@@ -296,6 +299,9 @@ main(int argc, char **argv)
 				fprintf(stderr, "Expected 4 output parameters.\n");
 				exit(1);
 			}
+#else
+	if(USE_DBHASRETSTAT) dbhasretstat(dbproc);
+#endif
 			
 		} else {
 			add_bread_crumb();

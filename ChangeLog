@@ -1,3 +1,7 @@
+Wed Jul  5 15:43:24 EDT 2006	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/rpc.c src/odbc/unittests/rpc.c
+	- more thorough tests, currently fail
+
 Tue Jul 04 17:13:08 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/paramcore.c(added):
