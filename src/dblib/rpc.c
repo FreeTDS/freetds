@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.54 2006-03-27 08:17:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.55 2006-07-05 22:30:47 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -156,7 +156,7 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	DBREMOTE_PROC_PARAM **pparam;
 	DBREMOTE_PROC_PARAM *param;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbrpcparam(%p, %s, '%c', %d, %d, %d, %p)\n", dbproc, paramname, status, type, maxlen, datalen, value);
+	tdsdump_log(TDS_DBG_FUNC, "dbrpcparam(%p, %s, 0x%x, %d, %d, %d, %p)\n", dbproc, paramname, status, type, maxlen, datalen, value);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	CHECK_PARAMETER(dbproc->rpc, SYBERPCS);
 

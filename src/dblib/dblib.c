@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.252 2006-03-21 07:49:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.253 2006-07-05 22:30:47 jklowden Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -308,15 +308,17 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 {
 	DBPROCESS *dbproc;
 
+	assert(oldval != NULL && newval != NULL);
+	if (strlen(oldval) == 1 && *oldval == 1)
+		oldval = "(0x1)";
+		
 	tdsdump_log(TDS_DBG_FUNC, "db_env_chg(%p, %d, %s, %s)\n", tds, type, oldval, newval);
 
-	if (tds == NULL) {
+	if (tds == NULL || tds->parent == NULL ) {
 		return;
 	}
 	dbproc = (DBPROCESS *) tds->parent;
-	if (dbproc == NULL) {
-		return;
-	}
+
 	dbproc->envchange_rcv |= (1 << (type - 1));
 	switch (type) {
 	case TDS_ENV_DATABASE:
