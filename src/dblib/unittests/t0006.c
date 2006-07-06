@@ -3,27 +3,10 @@
  * Functions: dbbind dbcmd dbnextrow dbnumcols dbresults dbsetopt dbsqlexec
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <sqlfront.h>
-#include <sqldb.h>
-
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0006.c,v 1.14 2005-05-23 08:06:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.15 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

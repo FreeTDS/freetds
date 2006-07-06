@@ -3,28 +3,9 @@
  * Functions: dbbind dbnextrow dbopen dbresults dbsqlexec dbgetrow
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <sqlfront.h>
-#include <sqldb.h>
-
 #include "common.h"
 
-
-
-static char software_version[] = "$Id: text_buffer.c,v 1.1 2005-08-16 15:04:03 freddy77 Exp $";
+static char software_version[] = "$Id: text_buffer.c,v 1.2 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

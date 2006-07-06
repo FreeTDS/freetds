@@ -1,20 +1,8 @@
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
+#include "common.h"
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
 
 #if HAVE_LIBGEN_H
 #include <libgen.h>
@@ -24,13 +12,11 @@
 #include <sys/param.h>
 #endif /* HAVE_SYS_PARAM_H */
 
-#include <sqlfront.h>
-#include <sqldb.h>
-
+#ifndef DBNTWIN32
 #include "replacements.h"
-#include "common.h"
+#endif
 
-static char software_version[] = "$Id: common.c,v 1.16 2006-06-15 12:17:47 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.17 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -51,7 +37,7 @@ char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
 static char *DIRNAME = NULL;
-static char *BASENAME = NULL;
+static const char *BASENAME = NULL;
 
 #if HAVE_MALLOC_OPTIONS
 extern const char *malloc_options;
@@ -72,7 +58,7 @@ set_malloc_options(void)
 #endif /* HAVE_MALLOC_OPTIONS */
 }
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
 static char *
 tds_dirname(char* path)
 {
@@ -91,6 +77,24 @@ tds_dirname(char* path)
 	return path;
 }
 #define dirname tds_dirname
+
+static const char *
+tds_basename(const char* path)
+{
+	const char *p, *p2;
+
+	p = strrchr(path, '/');
+	if (!p)
+		p = path;
+	p2 = strrchr(p, '\\');
+	if (p2)
+		p = p2;
+	return p+1;
+}
+#endif
+
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 512
 #endif
 
 int
@@ -112,6 +116,7 @@ read_login_info(int argc, char **argv)
 	
 	memset(&options, 0, sizeof(options));
 	
+#if !defined(__MINGW32__) && !defined(_MSC_VER)
 	/* process command line options (handy for manual testing) */
 	while ((ch = getopt(argc, (char**)argv, "U:P:S:D:f:v")) != -1) {
 		switch (ch) {
@@ -143,10 +148,13 @@ read_login_info(int argc, char **argv)
 			exit(1);
 		}
 	}
+#endif
 
 
 	strcpy(filename, PWD);
 	in = fopen(filename, "r");
+	if (!in)
+		in = fopen("PWD", "r");
 	if (!in) {
 		sprintf(filename, "%s/%s", (DIRNAME) ? DIRNAME : ".", PWD);
 

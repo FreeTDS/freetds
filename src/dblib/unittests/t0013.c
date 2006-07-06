@@ -3,26 +3,9 @@
  * Functions: dbmoretext dbreadtext dbtxptr dbtxtimestamp dbwritetext 
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <sqlfront.h>
-#include <sqldb.h>
-
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.22 2005-06-29 07:21:19 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.23 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096

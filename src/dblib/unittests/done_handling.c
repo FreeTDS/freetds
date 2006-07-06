@@ -1,17 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#ifdef _WIN32
-#include <windows.h>
-#define DBNTWIN32
-#endif
-#include <sqlfront.h>
-#include <sqldb.h>
-
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.4 2006-06-27 13:48:34 freddy77 Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.5 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -144,8 +133,8 @@ main(int argc, char *argv[])
 	if (dbinit() == FAIL)
 		exit(1);
 
-	dberrhandle((EHANDLEFUNC) err_handler);
-	dbmsghandle((MHANDLEFUNC) msg_handler);
+	dberrhandle(err_handler);
+	dbmsghandle(msg_handler);
 
 	login = dblogin();
 	DBSETLUSER(login, USER);

@@ -3,27 +3,10 @@
  * Functions: dbaltbind dbaltcolid dbaltop dbalttype dbnumalts
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <assert.h>
-#include <sqlfront.h>
-#include <sqldb.h>
-
 #include "common.h"
+#include <assert.h>
 
-static char software_version[] = "$Id: t0023.c,v 1.10 2005-05-23 08:06:25 freddy77 Exp $";
+static char software_version[] = "$Id: t0023.c,v 1.11 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 

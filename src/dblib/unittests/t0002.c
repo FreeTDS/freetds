@@ -7,27 +7,10 @@
 	sed -ne'/db/ s/.*\(db[[:alnum:]_]*\)(.*/\1/gp' src/dblib/unittests/t0002.c |sort -u |fmt
 #endif
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <assert.h>
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <sqlfront.h>
-#include <sqldb.h>
-
 #include "common.h"
+#include <assert.h>
 
-static char software_version[] = "$Id: t0002.c,v 1.19 2005-04-16 23:57:39 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.20 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -103,7 +86,11 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "Setting row buffer to 10 rows\n");
+#ifdef MICROSOFT_DBLIB
+	dbsetopt(dbproc, DBBUFFER, "10");
+#else
 	dbsetopt(dbproc, DBBUFFER, "10", 0);
+#endif
 	add_bread_crumb();
 
 	add_bread_crumb();

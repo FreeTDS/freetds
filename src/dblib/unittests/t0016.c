@@ -3,27 +3,10 @@
  * Functions: bcp_colfmt bcp_columns bcp_exec bcp_init 
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <stdio.h>
+#include "common.h"
 #include <stdarg.h>
 
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <sqlfront.h>
-#include <sqldb.h>
-
-#include "common.h"
-
-static char software_version[] = "$Id: t0016.c,v 1.24 2006-01-28 14:50:00 freddy77 Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.25 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;

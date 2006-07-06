@@ -3,27 +3,10 @@
  * Functions: dbconvert dberrhandle dbmsghandle dbinit dbexit
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
-
-#include <ctype.h>
-#include <stdio.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#include <sqlfront.h>
-#include <sqldb.h>
-
 #include "common.h"
+#include <ctype.h>
 
-static char software_version[] = "$Id: t0019.c,v 1.11 2005-04-19 03:51:04 jklowden Exp $";
+static char software_version[] = "$Id: t0019.c,v 1.12 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failure = 0;

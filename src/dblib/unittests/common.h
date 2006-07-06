@@ -2,8 +2,52 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.9 2004-09-09 08:54:49 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.10 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
+
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+#include <stdio.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
+#ifdef DBNTWIN32
+#include <windows.h>
+#endif
+
+#include <sqlfront.h>
+#include <sqldb.h>
+
+#ifdef DBNTWIN32
+#define MSDBLIB 1
+#define MICROSOFT_DBLIB 1
+#define dbloginfree(l) dbfreelogin(l)
+
+#define SYBESMSG    SQLESMSG
+#define SYBECOFL    SQLECOFL
+
+#define SYBAOPSUM   SQLAOPSUM
+#define SYBAOPMAX   SQLAOPMAX
+
+#define SYBINT4     SQLINT4
+#define SYBDATETIME SQLDATETIME
+#define SYBCHAR     SQLCHAR
+#define SYBVARCHAR  SQLVARCHAR
+#define SYBTEXT     SQLTEXT
+#define SYBBINARY   SQLBINARY
+#define SYBIMAGE    SQLIMAGE
+
+#define dberrhandle(h) dberrhandle((DBERRHANDLE_PROC) h)
+#define dbmsghandle(h) dbmsghandle((DBMSGHANDLE_PROC) h)
+#endif
 
 extern char PASSWORD[512];
 extern char USER[512];

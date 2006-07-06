@@ -1,9 +1,32 @@
+Wed Jul 05 14:45:08 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/dblib/unittests/Makefile.am src/dblib/unittests/bcp.c:
+	* src/dblib/unittests/common.c src/dblib/unittests/common.h:
+	* src/dblib/unittests/dbmorecmds.c:
+	* src/dblib/unittests/done_handling.c:
+	* src/dblib/unittests/rpc.c src/dblib/unittests/t0001.c:
+	* src/dblib/unittests/t0002.c src/dblib/unittests/t0003.c:
+	* src/dblib/unittests/t0004.c src/dblib/unittests/t0005.c:
+	* src/dblib/unittests/t0006.c src/dblib/unittests/t0007.c:
+	* src/dblib/unittests/t0008.c src/dblib/unittests/t0009.c:
+	* src/dblib/unittests/t0011.c src/dblib/unittests/t0012.c:
+	* src/dblib/unittests/t0013.c src/dblib/unittests/t0014.c:
+	* src/dblib/unittests/t0015.c src/dblib/unittests/t0016.c:
+	* src/dblib/unittests/t0017.c src/dblib/unittests/t0018.c:
+	* src/dblib/unittests/t0019.c src/dblib/unittests/t0020.c:
+	* src/dblib/unittests/t0021.c src/dblib/unittests/t0022.c:
+	* src/dblib/unittests/t0023.c src/dblib/unittests/text_buffer.c:
+	* src/dblib/unittests/thread.c:
+	* src/dblib/unittests/build_dsw.pl(added):
+	- put include stuff in common.h
+	- fix compile with ms dblib
+	- simplify testing under windows creating project files
+
 Wed Jul  5 18:29:21 EDT 2006	JK Lowden <jklowden@schemamania.org>
-	* src/dblib/dblib.c src/dblib/rpc.c  
+	* src/dblib/dblib.c src/dblib/rpc.c:
 	- removed nonprintable characaters from TDSDUMP log
 
 Wed Jul  5 15:43:24 EDT 2006	JK Lowden <jklowden@schemamania.org>
-	* src/dblib/unittests/rpc.c src/odbc/unittests/rpc.c
+	* src/dblib/unittests/rpc.c src/odbc/unittests/rpc.c:
 	- more thorough tests, currently fail
 
 Tue Jul 04 17:13:08 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>

@@ -3,36 +3,17 @@
  * Functions: bcp_batch bcp_bind bcp_done bcp_init bcp_sendrow 
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#include "common.h"
 
-#include <stdio.h>
 #include <assert.h>
 
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
 #if HAVE_SYS_STAT_H
-     #include <sys/stat.h>
+#include <sys/stat.h>
 #endif /* HAVE_SYS_STAT_H */
 
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
-
-#ifdef DBNTWIN32
-#include "winhackery.h"
-#endif
-
-#include <sqlfront.h>
-#include <sqldb.h>
-
-#include "common.h"
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.9 2006-06-14 15:30:13 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.10 2006-07-06 12:48:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
