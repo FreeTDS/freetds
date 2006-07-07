@@ -1,3 +1,7 @@
+Fri Jul  7 19:08:44 EDT 2006	JK Lowden <jklowden@schemamania.org>
+	* include/sybdb.h src/dblib/dblib.c src/tds/token.c
+	- Better logging
+	
 Wed Jul 05 14:45:08 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/unittests/Makefile.am src/dblib/unittests/bcp.c:
 	* src/dblib/unittests/common.c src/dblib/unittests/common.h:
@@ -23,7 +27,7 @@ Wed Jul 05 14:45:08 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 
 Wed Jul  5 18:29:21 EDT 2006	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/dblib.c src/dblib/rpc.c:
-	- removed nonprintable characaters from TDSDUMP log
+	- removed nonprintable characters from TDSDUMP log
 
 Wed Jul  5 15:43:24 EDT 2006	JK Lowden <jklowden@schemamania.org>
 	* src/dblib/unittests/rpc.c src/odbc/unittests/rpc.c:
