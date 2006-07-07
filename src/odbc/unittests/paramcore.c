@@ -4,7 +4,7 @@
  * Try to make core dump using SQLBindParameter
  */
 
-static char software_version[] = "$Id: paramcore.c,v 1.1 2006-07-04 15:15:06 freddy77 Exp $";
+static char software_version[] = "$Id: paramcore.c,v 1.2 2006-07-07 17:28:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{call sp_paramcore_test(?)}"
@@ -18,7 +18,7 @@ static SQLCHAR SqlState[6];
 static void
 ReadError(void)
 {
-	if (SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, NULL, MessageText, sizeof(MessageText), NULL))) {
+	if (SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, NULL, (SQLCHAR*) MessageText, sizeof(MessageText), &TextLength))) {
 		SqlState[sizeof(SqlState) - 1] = 0;
 		fprintf(stderr, "State %s Message: %s\n", SqlState, MessageText);
 	}
