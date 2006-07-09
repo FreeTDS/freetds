@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.2 2006-07-05 19:44:52 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.3 2006-07-09 10:53:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -185,7 +185,7 @@ Test(const char *name)
 					, sizeof(buf)	/* cbValueMax */
 	                		, &len		/* pcbValue */	
 					);
-			printf("\t%-30s\t(%2d bytes)\n", buf, len);
+			printf("\t%-30s\t(%2d bytes)\n", buf, (int) len);
 		}
 		if (erc != SQL_NO_DATA_FOUND) {
 			erc = SQLGetDiagRec(SQL_HANDLE_STMT, stmt, 1, sqlstate, NULL, msg, sizeof(msg), NULL);

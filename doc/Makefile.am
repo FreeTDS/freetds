@@ -1,6 +1,6 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.55 2005-10-03 02:52:22 jklowden Exp $
+# version: $Id: Makefile.am,v 1.56 2006-07-09 10:53:17 freddy77 Exp $
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -184,40 +184,38 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 #
 dblib.api.sgml:
 	echo '<table id="dblib.api"><title>db-lib API Implementation Summary</title>' > .dblib.api
-	echo '<tgroup cols=5><thead><row> \
-  		<entry>Category</> \
-  		<entry>Microsoft name</> \
-  		<entry>Sybase name</> \
-  		<entry>Status</> \
-  		<entry>Comments</> \
-		</row></thead> \
-		<tbody>' \
-			>> .dblib.api
-	grep '^dblib' $(srcdir)/api_status.txt | sed -e' s!^dblib[	]!<row><entry>!; \
-		s![	][	]*!</> <entry>!g; \
-		s!$$!</></row>!; \
-	      ' >> .dblib.api
+	echo '<tgroup cols=5><thead><row>' \
+  		'<entry>Category</>' \
+  		'<entry>Microsoft name</>' \
+  		'<entry>Sybase name</>' \
+  		'<entry>Status</>' \
+  		'<entry>Comments</>' \
+		'</row></thead>' \
+		'<tbody>' \
+		>> .dblib.api
+	grep '^dblib' $(srcdir)/api_status.txt | \
+		sed -e 's!^dblib[	]!<row><entry>!; s![	][	]*!</> <entry>!g; s!$$!</></row>!; ' \
+		>> .dblib.api
 	echo '</tbody></tgroup></table>' >> .dblib.api
 	mv .dblib.api $@
 
 ctlib.api.sgml:
-	echo '<table id="ctlib.api" colsep=0> \
-		<title>ct-lib API Implementation Summary</title>' \
-			> .ctlib.api
-	echo '<tgroup cols=4><thead><row> \
-  		<entry>Category</> \
-  		<entry>Function</> \
-  		<entry>Status</> \
-  		<entry>Comments</> \
-		</row></thead> \
-		<tbody>' \
+	echo '<table id="ctlib.api" colsep=0>' \
+		'<title>ct-lib API Implementation Summary</title>' \
+		> .ctlib.api
+	echo '<tgroup cols=4><thead><row>' \
+		'<entry>Category</>' \
+		'<entry>Function</>' \
+  		'<entry>Status</>' \
+  		'<entry>Comments</>' \
+		'</row></thead>' \
+		'<tbody>' \
 			>> .ctlib.api
-	grep '^ctlib' $(srcdir)/api_status.txt | sed -e' s!^ctlib[	]!<row><entry>!; \
-		s![	]!</> <entry>!g; \
-		s!$$!</></row>!; \
-	      ' >> .ctlib.api
+	grep '^ctlib' $(srcdir)/api_status.txt | \
+		sed -e 's!^ctlib[	]!<row><entry>!; s![	]!</> <entry>!g; s!$$!</></row>!; ' \
+		>> .ctlib.api
 	echo '</tbody></tgroup></table>' \
-			>> .ctlib.api
+		>> .ctlib.api
 	mv .ctlib.api $@
 
 MSDN_ODBC = http://msdn.microsoft.com/library/en-us/odbc/htm/odbc
@@ -225,24 +223,22 @@ MSDN_ODBC = http://msdn.microsoft.com/library/en-us/odbc/htm/odbc
 odbc.api.sgml:
 	echo '<table id="odbc.api"><title>ODBC API Implementation Summary</title>' \
 			> .odbc.api
-	echo '<tgroup cols=4><thead><row> \
-  		<entry>Category</> \
-  		<entry>Function</> \
-  		<entry>Status</> \
-  		<entry>Comments</> \
-		</row></thead> \
-		<tbody>' \
+	echo '<tgroup cols=4><thead><row>' \
+		'<entry>Category</>' \
+		'<entry>Function</>' \
+		'<entry>Status</>' \
+		'<entry>Comments</>' \
+		'</row></thead>' \
+		'<tbody>' \
 			>> .odbc.api
 # The mean RE below (with "ulink" in it) forms a URL to Microsoft's reference page
 # for the function.  It assumes a word starting with "SQL" is an ODBC function. 
 # Let's hope they don't change their site too often.  
-	grep '^odbc' $(srcdir)/api_status.txt | sed -e' s!^odbc[	]!<row><entry>!; \
-		s![	][	]*!</> <entry>!g; \
-		s!\(SQL[[:alpha:]]*\)!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; \
-		s!$$!</></row>!; \
-	      ' >> .odbc.api
+	grep '^odbc' $(srcdir)/api_status.txt | \
+		sed -e' s!^odbc[	]!<row><entry>!; s![	][	]*!</> <entry>!g; s!\(SQL[[:alpha:]]*\)!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; s!$$!</></row>!; ' \
+		>> .odbc.api
 	echo '</tbody></tgroup></table>' \
-			>> .odbc.api
+		>> .odbc.api
 	mv .odbc.api $@
 
 
