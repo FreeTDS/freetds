@@ -1,3 +1,7 @@
+Mon Jul 10 17:07:00 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* src/tds/token.c src/dblib/dblib.c src/dblib/unittests/rpc.c
+	- dbresults does not return on DONEPROC
+
 Sun Jul 09 12:52:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* doc/Makefile.am: fix compatibility problem
 	* src/odbc/unittests/rpc.c: fix warning

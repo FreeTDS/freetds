@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.26 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.27 2006-07-10 21:13:37 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -117,6 +117,9 @@ main(int argc, char **argv)
 	RETCODE erc, row_code;
 	int num_resultset = 0;
 	int num_empty_resultset = 0;
+	static const char dashes5[]  = "-----", 
+			  dashes15[] = "---------------", 
+			  dashes30[] = "------------------------------";
 
 	set_malloc_options();
 	
@@ -222,9 +225,6 @@ main(int argc, char **argv)
 	/* retrieve outputs per usual */
 	r = 0;
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
-		static const char dashes5[]  = "-----", 
-				  dashes15[] = "---------------", 
-				  dashes30[] = "------------------------------";
 		if (erc == SUCCEED) { 
 			const int ncols = dbnumcols(dbproc);
 			int empty_resultset = 1;
@@ -246,42 +246,6 @@ main(int argc, char **argv)
 			}
 			if (empty_resultset)
 				++num_empty_resultset;
-			
-#define NORMAL_PROCESSING 0
-#define USE_DBHASRETSTAT 0
-#if NORMAL_PROCESSING
-			/* check return status */
-			printf("retrieving return status...\n");
-			if (dbhasretstat(dbproc) == TRUE) {
-				printf("%d\n", return_status = dbretstatus(dbproc));
-			} else {
-				printf("none\n");
-			}
-			
-			/* check return parameter values */
-			printf("retrieving output parameters...\n");
-			printf("%-5s %-15s %5s %6s  %-30s\n", "param", "name", "type", "length", "data"); 
-			printf("%-5s %-15s %5s %5s- %-30s\n", dashes5, dashes15, dashes5, dashes5, dashes30); 
-			for (i = 1; i <= dbnumrets(dbproc); i++) {
-				add_bread_crumb();
-				retname = dbretname(dbproc, i);
-				rettype = dbrettype(dbproc, i);
-				retlen = dbretlen(dbproc, i);
-				dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
-				printf("%-5d %-15s %5d %6d  %-30s\n", i, retname, rettype, retlen, teststr); 
-				add_bread_crumb();
-				
-				save_retparam(&save_param, retname, teststr, rettype, retlen);
-			}
-			
-			if (num_resultset == 3 && i < 4) {	/* dbnumrets missed something */
-				fprintf(stderr, "Expected 4 output parameters.\n");
-				exit(1);
-			}
-#else
-	if(USE_DBHASRETSTAT) dbhasretstat(dbproc);
-#endif
-			
 		} else {
 			add_bread_crumb();
 			fprintf(stderr, "Expected a result set.\n");
@@ -289,6 +253,36 @@ main(int argc, char **argv)
 		}
 	} /* while dbresults */
 	
+	/* check return status */
+	printf("retrieving return status...\n");
+	if (dbhasretstat(dbproc) == TRUE) {
+		printf("%d\n", return_status = dbretstatus(dbproc));
+	} else {
+		printf("none\n");
+	}
+
+	/* 
+	 * Check output parameter values 
+	 */
+	if (dbnumrets(dbproc) < 4) {	/* dbnumrets missed something */
+		fprintf(stderr, "Expected 4 output parameters.\n");
+		exit(1);
+	}
+	printf("retrieving output parameters...\n");
+	printf("%-5s %-15s %5s %6s  %-30s\n", "param", "name", "type", "length", "data"); 
+	printf("%-5s %-15s %5s %5s- %-30s\n", dashes5, dashes15, dashes5, dashes5, dashes30); 
+	for (i = 1; i <= dbnumrets(dbproc); i++) {
+		add_bread_crumb();
+		retname = dbretname(dbproc, i);
+		rettype = dbrettype(dbproc, i);
+		retlen = dbretlen(dbproc, i);
+		dbconvert(dbproc, rettype, dbretdata(dbproc, i), retlen, SYBVARCHAR, (BYTE*) teststr, -1);
+		printf("%-5d %-15s %5d %6d  %-30s\n", i, retname, rettype, retlen, teststr); 
+		add_bread_crumb();
+
+		save_retparam(&save_param, retname, teststr, rettype, retlen);
+	}
+
 	/* 
 	 * Test the last parameter for expected outcome 
 	 */

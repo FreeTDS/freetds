@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.313 2006-07-07 23:10:04 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.314 2006-07-10 21:13:36 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1086,7 +1086,7 @@ tds_process_colinfo(TDSSOCKET * tds)
 }
 
 /**
- * tds_process_param_result() processes output parameters of a stored 
+ * process output parameters of a stored 
  * procedure. This differs from regular row/compute results in that there
  * is no total number of parameters given, they just show up singly.
  */
@@ -1096,7 +1096,9 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	int hdrsize;
 	TDSCOLUMN *curparam;
 	TDSPARAMINFO *info;
-	int i;
+	int token;
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_process_param_result(%p, %p)\n", tds, pinfo);
 
 	CHECK_TDS_EXTRA(tds);
 	if (*pinfo)
@@ -1123,7 +1125,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	if (tds_alloc_param_data(info, curparam) == NULL)
 		return TDS_FAIL;
 
-	i = tds_get_data(tds, curparam);
+	token = tds_get_data(tds, curparam);
 
 	/*
 	 * Real output parameters will either be unnamed or will have a valid
@@ -1133,7 +1135,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	if (curparam->column_namelen > 0 && curparam->column_name[0] != '@')
 		tds_free_param_result(*pinfo);
 
-	return i;
+	return token;
 }
 
 static int
@@ -1152,6 +1154,11 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 	while ((marker = tds_get_byte(tds)) == TDS_PARAM_TOKEN) {
 		tds_process_param_result(tds, pinfo);
 	}
+	if( marker == TDS_FAIL ) {
+		tdsdump_log(TDS_DBG_FUNC, "error: tds_process_param_result() returned TDS_FAIL\n");
+		return TDS_FAIL;
+	}
+
 	tds->current_results = *pinfo;
 	tds_unget_byte(tds);
 	return TDS_SUCCEED;
