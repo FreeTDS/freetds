@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.244.2.1 2006-01-31 08:45:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.244.2.2 2006-07-11 18:39:37 jklowden Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -1142,6 +1142,23 @@ dbexit()
 	dblib_release_tds_ctx(count);
 }
 
+static const char *
+prdbresults_state(int retcode)
+{
+	static char unknown[12]="oops: ";
+	switch(retcode) {
+	case _DB_RES_INIT:		return "_DB_RES_INIT";
+	case _DB_RES_RESULTSET_EMPTY:	return "_DB_RES_RESULTSET_EMPTY";
+	case _DB_RES_RESULTSET_ROWS:	return "_DB_RES_RESULTSET_ROWS";
+	case _DB_RES_NEXT_RESULT:	return "_DB_RES_NEXT_RESULT";
+	case _DB_RES_NO_MORE_RESULTS:	return "_DB_RES_NO_MORE_RESULTS";
+	case _DB_RES_SUCCEED:		return "_DB_RES_SUCCEED";
+	default:
+		sprintf(unknown + 6, "%u ??", retcode);
+	}
+	return unknown;
+}
+
 /**
  * \ingroup dblib_core
  * \brief Return number of regular columns in a result set.  
@@ -1181,16 +1198,11 @@ dbresults(DBPROCESS * dbproc)
 	case _DB_RES_NO_MORE_RESULTS:
 		return NO_MORE_RESULTS;
 		break;
-	case _DB_RES_NEXT_RESULT:
-	case _DB_RES_INIT:
-		tds_free_all_results(tds);
-		break;
 	default:
 		break;
 	}
 
 	for (;;) {
-
 		retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
 
 		tdsdump_log(TDS_DBG_FUNC, "dbresults() process_result_tokens returned result_type = %d retcode = %d\n", 
@@ -1220,6 +1232,8 @@ dbresults(DBPROCESS * dbproc)
 	
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
+				tdsdump_log(TDS_DBG_FUNC, "dbresults(): dbresults_state is %d (%s)\n", 
+						dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state));
 
 				/* A done token signifies the end of a logical command.
 				 * There are three possibilities:
@@ -1227,7 +1241,6 @@ dbresults(DBPROCESS * dbproc)
 				 * 2. Command with result set but no rows
 				 * 3. Command with result set and rows
 				 */
-
 				switch (dbproc->dbresults_state) {
 
 				case _DB_RES_INIT:
@@ -1235,8 +1248,6 @@ dbresults(DBPROCESS * dbproc)
 					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
 					if (done_flags & TDS_DONE_ERROR)
 						return FAIL;
-					else
-						return SUCCEED;
 					break;
 
 				case _DB_RES_RESULTSET_EMPTY:
@@ -1251,18 +1262,15 @@ dbresults(DBPROCESS * dbproc)
 				
 
 			case TDS_DONEINPROC_RESULT:
-
-				/* We should only return SUCCEED on a command within a */
-				/* stored procedure, if the command returned a result */
-				/* set...                                             */
-
+				/* 
+				 * Return SUCCEED on a command within a stored procedure
+				 * only if the command returned a result set. 
+				 */
 				switch (dbproc->dbresults_state) {
-
-				case _DB_RES_INIT :  
-				case _DB_RES_NEXT_RESULT : 
+				case _DB_RES_INIT:  
+				case _DB_RES_NEXT_RESULT: 
 					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
 					break;
-
 				case _DB_RES_RESULTSET_EMPTY :
 				case _DB_RES_RESULTSET_ROWS : 
 					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
@@ -1444,7 +1452,8 @@ dbnextrow(DBPROCESS * dbproc)
 	resinfo = tds->res_info;
 
 
-	tdsdump_log(TDS_DBG_FUNC, "dbnextrow() dbresults_state = %d\n", dbproc->dbresults_state);
+	tdsdump_log(TDS_DBG_FUNC, "dbnextrow() dbresults_state = %d (%s)\n", 
+					dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state));
 
 	if (!resinfo || dbproc->dbresults_state != _DB_RES_RESULTSET_ROWS) {
 		/* no result set or result set empty (no rows) */
@@ -6967,7 +6976,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 	const DBLIB_ERROR_MESSAGE *msg = &default_message;
 	
 	int i, rc = INT_CANCEL;
-	char * os_msgtext = strerror(errnum);
+	char *os_msgtext = strerror(errnum), *rc_name;
 
 	if (os_msgtext == NULL)
 		os_msgtext = "no OS error";
@@ -6988,6 +6997,25 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 		
 	/* call the client's handler */
 	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, msg->msgtext, os_msgtext);
+	switch (rc) {
+	case INT_EXIT:
+		rc_name = "INT_EXIT";	
+		break;
+	case INT_CONTINUE:	
+		rc_name = "INT_CONTINUE";
+		break;
+	case INT_CANCEL:
+		rc_name = "INT_CANCEL";
+		break;
+	case INT_TIMEOUT:
+		rc_name = "INT_TIMEOUT";
+		break;
+	default:
+		rc_name = "invalid";
+		break;
+	}
+	tdsdump_log(TDS_DBG_FUNC, "\"%s\", client returns %d (%s)\n", msg->msgtext, rc, rc_name);
+	
 	
       	/* Timeout return codes are errors for non-timeout conditions. */
 	if (msgno != SYBETIME) {
