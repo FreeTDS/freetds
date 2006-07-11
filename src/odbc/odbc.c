@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.414 2006-07-03 11:10:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.415 2006-07-11 22:00:46 jklowden Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -530,7 +530,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 	tds = stmt->dbc->tds_socket;
 
-	/* we already readed all results... */
+	/* We already read all results... */
 	/* TODO cursor */
 	if (stmt->dbc->current_statement != stmt)
 		ODBC_RETURN(stmt, SQL_NO_DATA);
@@ -553,6 +553,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 		token_flags |= TDS_RETURN_MSG;
 	for (;;) {
 		result_type = odbc_process_tokens(stmt, token_flags);
+		tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: result_type=%d, lastrc=%d\n", result_type, stmt->errs.lastrc);
 		switch (result_type) {
 		case TDS_CMD_DONE:
 			if (stmt->dbc->current_statement == stmt)
@@ -568,9 +569,12 @@ SQLMoreResults(SQLHSTMT hstmt)
 					stmt->row_status = PRE_NORMAL_ROW;
 				}
 			}
+			tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_count=%d, lastrc=%d\n", stmt->row_count, stmt->errs.lastrc);
 			stmt->next_row_count = TDS_NO_COUNT;
-			if (stmt->row_count == TDS_NO_COUNT && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
-				ODBC_RETURN(stmt, SQL_NO_DATA);
+			if (stmt->row_count == TDS_NO_COUNT) {
+				if (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO)
+					ODBC_RETURN(stmt, SQL_NO_DATA);
+			}
 			ODBC_RETURN_(stmt);
 
 		case TDS_CMD_FAIL:
@@ -2507,6 +2511,8 @@ _SQLExecute(TDS_STMT * stmt)
 	int found_info = 0, found_error = 0;
 
 	stmt->row = 0;
+		
+	tdsdump_log(TDS_DBG_FUNC, "_SQLExecute() starting with state %d\n", tds->state);
 
 	tds->query_timeout_func = query_timeout_cancel;
 	tds->query_timeout_param = stmt;
@@ -2723,6 +2729,7 @@ _SQLExecute(TDS_STMT * stmt)
 	/* TODO perhaps we should return SQL_NO_DATA if no data available... see old SQLExecute code */
 	for (;;) {
 		result_type = odbc_process_tokens(stmt, TDS_TOKEN_RESULTS);
+		tdsdump_log(TDS_DBG_FUNC, "_SQLExecute: odbc_process_tokens returned result_type %d\n", result_type);
 		switch (result_type) {
 		case TDS_CMD_FAIL:
 		case TDS_CMD_DONE:
@@ -2873,7 +2880,10 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 
 	flag |= TDS_RETURN_DONE | TDS_RETURN_PROC;
 	for (;;) {
-		switch (tds_process_tokens(tds, &result_type, &done_flags, flag)) {
+		int retcode = tds_process_tokens(tds, &result_type, &done_flags, flag);
+		tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: tds_process_tokens returned %d, result_type %d\n", 
+						retcode, result_type);
+		switch (retcode) {
 		case TDS_NO_MORE_RESULTS:
 			return TDS_CMD_DONE;
 		case TDS_CANCELLED:
@@ -2940,6 +2950,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			break;
 
 		default:
+			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: returning result_type %d\n", result_type);
 			return result_type;
 		}
 	}
@@ -2969,6 +2980,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	SQLUSMALLINT *status_ptr, row_status;
 	TDS_INT result_type;
 
+	tdsdump_log(TDS_DBG_FUNC, "_SQLFetch(%p, %d, %d)\n", stmt, (int)FetchOrientation, (int)FetchOffset);
 #define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
 	SQLLEN row_offset = 0;
 

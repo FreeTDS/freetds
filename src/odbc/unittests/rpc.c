@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.4 2006-07-11 14:01:56 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.5 2006-07-11 22:00:46 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -137,7 +137,6 @@ Test(const char *name)
 		
 	}
 
-	printf("executing SQLMoreResults...\n");
 	do {
 		static const char dashes[] = "------------------------------", 
 				  *dashes5   = &dashes[25], 
