@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.5 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.6 2006-07-11 15:29:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -48,6 +48,10 @@ check_state(void)
 	/* row count */
 	if (dbcount(dbproc) >= 0)
 		printf("ROWS(%d) ", (int) dbcount(dbproc));
+	silent = 1;
+	if (dbdata(dbproc, 1))
+		printf("DATA ");
+	silent = 0;
 	/* if status present */
 	if (dbretstatus(dbproc) == TRUE)
 		printf("STATUS %d ", (int) dbretstatus(dbproc));
@@ -128,6 +132,7 @@ main(int argc, char *argv[])
 {
 	LOGINREC *login;	/* Our login information. */
 
+	setbuf(stdout, NULL);
 	read_login_info(argc, argv);
 
 	if (dbinit() == FAIL)
