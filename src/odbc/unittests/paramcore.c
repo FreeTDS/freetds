@@ -4,7 +4,7 @@
  * Try to make core dump using SQLBindParameter
  */
 
-static char software_version[] = "$Id: paramcore.c,v 1.2 2006-07-07 17:28:36 freddy77 Exp $";
+static char software_version[] = "$Id: paramcore.c,v 1.3 2006-07-11 15:28:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{call sp_paramcore_test(?)}"
@@ -57,6 +57,10 @@ main(int argc, char *argv[])
 	ReadError();
 	ResetStatement();
 
+	Command(Statement, "drop proc sp_paramcore_test");
+	Command(Statement, "create proc sp_paramcore_test @s numeric(10,2) output as select @s = 12345.6");
+	ResetStatement();
+
 	/* here we pass a NULL buffer for output */
 	cb = sizeof(SQL_NUMERIC_STRUCT);
 	rc = SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_NUMERIC, SQL_NUMERIC, 18, 0, NULL, OUTSTRING_LEN, &cb);
@@ -68,6 +72,8 @@ main(int argc, char *argv[])
 	ResetStatement();
 
 	Command(Statement, "drop proc sp_paramcore_test");
+
+	Disconnect();
 
 	printf("Done successfully!\n");
 	return 0;
