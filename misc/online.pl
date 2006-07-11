@@ -121,6 +121,7 @@ $Footer = q|<p><a href="index.html">Main</a></p>
 </html>
 |;
 
+%names = ();
 open(OUT, ">index.html") or die qq(could not open "index.html" ($!));
 printf OUT $Header, 'Test output';
 $vg = 0;
@@ -137,9 +138,19 @@ foreach $i (@files) {
 		$title =~ s!.*/freetds.*/src/!src/!;
 	}
 	$i->{title} = $title;
+	
+	$html = $title;
+	$html =~ s/\s+$//s;
+	$html =~ s/.exe$//i;
+	$html =~ s/.php$/_php/i;
+	$html = 'test' if (!$html);
+	$html =~ s!/unittests/!_!;
+	($html) = $html =~ m/([a-z0-9_]+)$/is;
+	$i->{html} = $html.'.'.++$names{$html}.".html";
+#	print "name $i->{name}\n\tfn $i->{fn}\n\ttitle $i->{title}\n\thtml $i->{html}\n";
 
 	# make html from txt
-	open(HTML, ">test$num.html") or die qq(could not open "test$num.html" ($!));
+	open(HTML, ">$i->{html}") or die qq(could not open "$i->{html}" ($!));
 	printf HTML $Header, $title;
 
 	open(IN, "<test$num.txt") or die qq(could not open "test$num.txt" ($!));
@@ -177,7 +188,7 @@ foreach $i (@files) {
 
 out_header('Operation  Success  Warnings  Log');
 foreach $i (grep { !$_->{test} } @files) {
-	out_row("$i->{title}  $i->{success}  $i->{warning}  <a href=\"test$i->{num}.html\">log</a>");
+	out_row("$i->{title}  $i->{success}  $i->{warning}  <a href=\"$i->{html}\">log</a>");
 }
 out_footer();
 @files = grep { $_->{test} } @files;
@@ -186,7 +197,7 @@ if (!$vg) {
 	out_header('Test  Success  Warnings  Log');
 	foreach $i (@files) {
 		$i->{warning} =~ s/:-\(/:\(/;
-		out_row("$i->{title}  $i->{success}  $i->{warning}  <a href=\"test$i->{num}.html\">log</a>");
+		out_row("$i->{title}  $i->{success}  $i->{warning}  <a href=\"$i->{html}\">log</a>");
 	}
 	out_footer();
 } else {
@@ -197,13 +208,13 @@ if (!$vg) {
 		$i = $files[$n];
 		$i->{warning} =~ s/:-\(/:\(/;
 		if ($i->{valgrind}) {
-			$vg = "$i->{success}  $i->{warning}  $i->{vgerr}  $i->{leak}  <a href=\"test$i->{num}.html\">log</a>";
+			$vg = "$i->{success}  $i->{warning}  $i->{vgerr}  $i->{leak}  <a href=\"$i->{html}\">log</a>";
 			if ($n < $#files && $files[$n+1]->{title} eq $i->{title}) {
 				$i = $files[++$n];
 			}
 		}
 		if (!$i->{valgrind}) {
-			$norm = "$i->{success}  $i->{warning}  <a href=\"test$i->{num}.html\">log</a>";
+			$norm = "$i->{success}  $i->{warning}  <a href=\"$i->{html}\">log</a>";
 		}
 		out_row("$i->{title}  $norm  $vg");
 	}
