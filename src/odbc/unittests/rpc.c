@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.3 2006-07-09 10:53:17 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.4 2006-07-11 14:01:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -69,7 +69,7 @@ Test(const char *name)
 	SQLRETURN erc;
 	int ipar=0;
 	HSTMT stmt;
-	char *call_cmd;
+	char call_cmd[128];
 	struct Argument { 
                 SQLSMALLINT       InputOutputType;  /* fParamType */
                 SQLSMALLINT       ValueType;        /* fCType */
@@ -124,9 +124,8 @@ Test(const char *name)
 		
 
 
-	asprintf(&call_cmd, "{?=call %s(?,?,?,?,?)}", name );
+	sprintf(call_cmd, "{?=call %s(?,?,?,?,?)}", name );
 	printf("executing SQLPrepare: %s\n", call_cmd);
-	assert(call_cmd != NULL);
 	if (SQLPrepare(stmt, (SQLCHAR *) call_cmd, SQL_NTS) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to prepare statement");
 
@@ -139,7 +138,7 @@ Test(const char *name)
 	}
 
 	printf("executing SQLMoreResults...\n");
-	while ((erc = SQLMoreResults(stmt)) == SQL_SUCCESS) {
+	do {
 		static const char dashes[] = "------------------------------", 
 				  *dashes5   = &dashes[25], 
 				  *dashes15  = &dashes[15];
@@ -187,6 +186,7 @@ Test(const char *name)
 					);
 			printf("\t%-30s\t(%2d bytes)\n", buf, (int) len);
 		}
+
 		if (erc != SQL_NO_DATA_FOUND) {
 			erc = SQLGetDiagRec(SQL_HANDLE_STMT, stmt, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 			fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
@@ -209,7 +209,9 @@ Test(const char *name)
 			break;;
 		}
 
-	}
+		printf("executing SQLMoreResults...\n");
+	} while ((erc = SQLMoreResults(stmt)) == SQL_SUCCESS);
+
 	if (erc != SQL_NO_DATA_FOUND) {
 		ODBC_REPORT_ERROR("Unable to execute SQLMoreResults\n");
 	} else {
@@ -217,10 +219,12 @@ Test(const char *name)
 	}
 
 	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
+		if (args[ipar].InputOutputType == SQL_PARAM_INPUT)
+			continue;
 		printf("bound data for parameter %d is %d bytes: ", 1+ipar, (int)args[ipar].ind);
 		switch( args[ipar].ValueType ) {
 		case SQL_C_LONG:
-			printf("%d.\n", (int)args[ipar].ParameterValuePtr);
+			printf("%d.\n", (int)(*(SQLINTEGER *)args[ipar].ParameterValuePtr));
 			break;
 		case SQL_C_CHAR:
 			printf("'%s'.\n", (char*)args[ipar].ParameterValuePtr);
