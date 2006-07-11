@@ -49,4 +49,5 @@ msvc.mak
 prepclose
 warning
 paramcore
+rpc
 
