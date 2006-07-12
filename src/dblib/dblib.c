@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.255 2006-07-10 21:13:36 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.256 2006-07-12 15:31:25 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1616,7 +1616,7 @@ dbnextrow(DBPROCESS * dbproc)
 		buffer_save_row(dbproc);
 
 		/* Get the row from the TDS stream.  */
-		switch (tds_process_tokens(dbproc->tds_socket, &res_type, NULL, mask)) {
+		switch (tds_process_tokens(tds, &res_type, NULL, mask)) {
 		case TDS_SUCCEED:
 			if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
 				if (res_type == TDS_COMPUTE_RESULT)
@@ -1626,6 +1626,9 @@ dbnextrow(DBPROCESS * dbproc)
 				idx = buffer_add_row(dbproc, resinfo);
 				assert(idx != -1);
 				result = dbproc->row_type = (res_type == TDS_ROW_RESULT)? REG_ROW : computeid;
+#if 0 /* TODO */
+				tds_process_tokens(tds, &res_type, NULL, TDS_TOKEN_TRAILING);
+#endif
 				break;
 			}
 		case TDS_NO_MORE_RESULTS:
