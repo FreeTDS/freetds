@@ -198,6 +198,7 @@ if test $do_php = yes -a -f "$FILE"; then
 		RES=0
 		../phpinst/bin/php -q $f 2>&1 || { RES=$?; ERR="$ERR $f"; }
 		log "RESULT $RES"
+		log "FILE $PWD/$f"
 		log "END PHP test $f"
 	done
 	if test "$ERR" != ""; then

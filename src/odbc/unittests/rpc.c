@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.5 2006-07-11 22:00:46 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.6 2006-07-12 14:16:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -105,6 +105,8 @@ Test(const char *name)
 		if( args[ipar].BufferLength > 0 ) {
 			args[ipar].ParameterValuePtr = (SQLPOINTER) malloc(args[ipar].BufferLength);
 			assert(args[ipar].ParameterValuePtr != NULL);
+			memset(args[ipar].ParameterValuePtr, 0, args[ipar].BufferLength);
+			memset(args[ipar].ParameterValuePtr, 'a', args[ipar].BufferLength - 1);
 		}
 		erc = SQLBindParameter	( stmt, 1+ipar
 					, args[ipar].InputOutputType
