@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.415 2006-07-11 22:00:46 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.416 2006-07-12 17:38:28 jklowden Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -553,7 +553,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 		token_flags |= TDS_RETURN_MSG;
 	for (;;) {
 		result_type = odbc_process_tokens(stmt, token_flags);
-		tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: result_type=%d, lastrc=%d\n", result_type, stmt->errs.lastrc);
+		tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: result_type=%d, row_count=%d, lastrc=%d\n", 
+						result_type, stmt->row_count, stmt->errs.lastrc);
 		switch (result_type) {
 		case TDS_CMD_DONE:
 			if (stmt->dbc->current_statement == stmt)
@@ -568,6 +569,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 					stmt->row_count = stmt->next_row_count;
 					stmt->row_status = PRE_NORMAL_ROW;
 				}
+				tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: next_row_count=%d, row_status=%d\n", 
+					stmt->next_row_count, stmt->row_status);
 			}
 			tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_count=%d, lastrc=%d\n", stmt->row_count, stmt->errs.lastrc);
 			stmt->next_row_count = TDS_NO_COUNT;
@@ -587,7 +590,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 			case IN_COMPUTE_ROW:
 				/* TODO here we should set current_results to normal results */
 				in_row = 1;
-				/* fall throgh */
+				/* fall through */
 			/* in normal row, put in compute status */
 			case AFTER_COMPUTE_ROW:
 			case IN_NORMAL_ROW:
@@ -1789,6 +1792,7 @@ SQLDisconnect(SQLHDBC hdbc)
 	int i;
 
 	INIT_HDBC;
+	tdsdump_log(TDS_DBG_INFO2, "SQLDisconnect(%p)\n", hdbc);
 
 	/* free all associated statements */
 	while (dbc->stmt_list)
@@ -2881,8 +2885,9 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 	flag |= TDS_RETURN_DONE | TDS_RETURN_PROC;
 	for (;;) {
 		int retcode = tds_process_tokens(tds, &result_type, &done_flags, flag);
-		tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: tds_process_tokens returned %d, result_type %d\n", 
-						retcode, result_type);
+		tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: tds_process_tokens returned %d\n", retcode);
+		tdsdump_log(TDS_DBG_FUNC, "    result_type=%d, TDS_DONE_COUNT=%x, TDS_DONE_ERROR=%x\n", 
+						result_type, (done_flags & TDS_DONE_COUNT), (done_flags & TDS_DONE_ERROR));
 		switch (retcode) {
 		case TDS_NO_MORE_RESULTS:
 			return TDS_CMD_DONE;
@@ -2907,7 +2912,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 				if (stmt->row_count == TDS_NO_COUNT)
 					stmt->row_count = tds->rows_affected;
 				else
-					stmt->next_row_count = tds->rows_affected;
+					stmt->next_row_count = TDS_NO_COUNT;
 			}
 			if (done_flags & TDS_DONE_ERROR)
 				stmt->errs.lastrc = SQL_ERROR;
@@ -2921,8 +2926,13 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 				tds_free_all_results(tds);
 				odbc_populate_ird(stmt);
 #endif
+				tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: row_count=%d, next_row_count=%d\n", 
+								stmt->row_count, stmt->next_row_count);
 				return result_type;
 			}
+			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: processed %s, next_row_count=%d\n", 
+					result_type==TDS_DONE_RESULT? "TDS_DONE_RESULT" : "TDS_DONEPROC_RESULT", 
+					stmt->next_row_count);
 			break;
 
 		/*
@@ -2936,7 +2946,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 				if (stmt->row_count == TDS_NO_COUNT)
 					stmt->row_count = tds->rows_affected;
 				else
-					stmt->next_row_count = tds->rows_affected;
+					stmt->next_row_count = TDS_NO_COUNT;
 			}
 			if (done_flags & TDS_DONE_ERROR)
 				stmt->errs.lastrc = SQL_ERROR;
@@ -2945,6 +2955,8 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			tds_free_all_results(tds);
 			odbc_populate_ird(stmt);
 #endif
+			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: processed TDS_DONEINPROC_RESULT, next_row_count=%d\n", 
+					stmt->next_row_count);
 			if (stmt->row_status == PRE_NORMAL_ROW)
 				return result_type;
 			break;
@@ -3334,6 +3346,7 @@ _SQLFreeConnect(SQLHDBC hdbc)
 SQLRETURN SQL_API
 SQLFreeConnect(SQLHDBC hdbc)
 {
+	tdsdump_log(TDS_DBG_INFO2, "SQLFreeConnect(%p)\n", hdbc);
 	return _SQLFreeConnect(hdbc);
 }
 #endif
@@ -3840,7 +3853,9 @@ _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 SQLRETURN SQL_API
 SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 {
-	return _SQLRowCount(hstmt, pcrow);
+	SQLRETURN rc = _SQLRowCount(hstmt, pcrow);
+	tdsdump_log(TDS_DBG_INFO1, "SQLRowCount returns %d, row count %ld\n", rc, *pcrow);
+	return rc;
 }
 
 SQLRETURN SQL_API

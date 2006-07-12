@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.314 2006-07-10 21:13:36 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.315 2006-07-12 17:38:28 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2070,6 +2070,8 @@ tds_process_row(TDSSOCKET * tds)
 	if (!info)
 		return TDS_FAIL;
 
+	assert(info->num_cols > 0);
+	
 	info->row_count++;
 	for (i = 0; i < info->num_cols; i++) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d \n", i);

@@ -1,3 +1,8 @@
+Wed Jul 12 13:23:43 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* src/odbc/odbc.c src/tds/token.c
+	- use TDS_NO_COUNT instead of bad rows_affected for next_row_count. 
+	- src/odbc/unittests/rpc.c now works
+
 Wed Jul 12 16:15:14 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* misc/test-other.sh: add file log
 	* src/odbc/unittests/rpc.c: fix uninitialized error
