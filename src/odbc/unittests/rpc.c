@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.6 2006-07-12 14:16:34 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.7 2006-07-13 09:29:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -240,7 +240,11 @@ Test(const char *name)
 	printf("executing SQLFreeStmt\n");
 	if (SQLFreeStmt(stmt, SQL_DROP) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to free statement");
-		
+
+	for (ipar = 0; ipar < sizeof(args)/sizeof(args[0]); ++ipar)
+		if (args[ipar].BufferLength > 0)
+			free(args[ipar].ParameterValuePtr);
+
 	if (data_errors) {
 		fprintf(stderr, "%d errors found in expected row count\n", data_errors);
 		exit(1);
