@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.417 2006-07-13 08:21:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.418 2006-07-13 12:04:43 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2976,9 +2976,10 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	SQLUSMALLINT *status_ptr, row_status;
 	TDS_INT result_type;
 
-	tdsdump_log(TDS_DBG_FUNC, "_SQLFetch(%p, %d, %d)\n", stmt, (int)FetchOrientation, (int)FetchOffset);
 #define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
 	SQLLEN row_offset = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "_SQLFetch(%p, %d, %d)\n", stmt, (int)FetchOrientation, (int)FetchOffset);
 
 	if (stmt->ard->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN && stmt->ard->header.sql_desc_bind_offset_ptr)
 		row_offset = *stmt->ard->header.sql_desc_bind_offset_ptr;
