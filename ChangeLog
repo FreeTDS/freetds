@@ -1,5 +1,9 @@
+Thu Jul 13 10:20:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/unittests/moreandcount.c:
+	- remove next_row_count, now useless... rpc.c works the same
+
 Wed Jul 12 13:23:43 EDT 2006	JK Lowden <jklowden@freetds.org>
-	* src/odbc/odbc.c src/tds/token.c
+	* src/odbc/odbc.c src/tds/token.c:
 	- use TDS_NO_COUNT instead of bad rows_affected for next_row_count. 
 	- src/odbc/unittests/rpc.c now works
 

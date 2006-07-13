@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.416 2006-07-12 17:38:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.417 2006-07-13 08:21:56 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -504,6 +504,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 {
 	TDSSOCKET *tds;
 
+	/* FIXME quite bad... two thread can lock the same TDSSOCKET */
 	if (stmt->dbc->current_statement != NULL
 	    && stmt->dbc->current_statement != stmt) {
 		tds = stmt->dbc->tds_socket;
@@ -565,15 +566,9 @@ SQLMoreResults(SQLHSTMT hstmt)
 			odbc_populate_ird(stmt);
 			if (stmt->row_count == TDS_NO_COUNT && !in_row) {
 				stmt->row_status = NOT_IN_ROW;
-				if (stmt->next_row_count != TDS_NO_COUNT) {
-					stmt->row_count = stmt->next_row_count;
-					stmt->row_status = PRE_NORMAL_ROW;
-				}
-				tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: next_row_count=%d, row_status=%d\n", 
-					stmt->next_row_count, stmt->row_status);
+				tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_status=%d\n", stmt->row_status);
 			}
 			tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_count=%d, lastrc=%d\n", stmt->row_count, stmt->errs.lastrc);
-			stmt->next_row_count = TDS_NO_COUNT;
 			if (stmt->row_count == TDS_NO_COUNT) {
 				if (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO)
 					ODBC_RETURN(stmt, SQL_NO_DATA);
@@ -682,7 +677,6 @@ SQLMoreResults(SQLHSTMT hstmt)
 			}
 			stmt->row = 0;
 			stmt->row_count = TDS_NO_COUNT;
-			stmt->next_row_count = TDS_NO_COUNT;
 			/* we expect a row */
 			stmt->row_status = PRE_NORMAL_ROW;
 			in_row = 1;
@@ -1316,7 +1310,6 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
 
 	stmt->row_count = TDS_NO_COUNT;
-	stmt->next_row_count = TDS_NO_COUNT;
 	stmt->row_status = NOT_IN_ROW;
 
 	/* insert into list */
@@ -2723,7 +2716,6 @@ _SQLExecute(TDS_STMT * stmt)
 		ODBC_RETURN_(stmt);
 
 	stmt->row_count = TDS_NO_COUNT;
-	stmt->next_row_count = TDS_NO_COUNT;
 	stmt->row_status = PRE_NORMAL_ROW;
 
 	stmt->curr_param_row = 0;
@@ -2780,7 +2772,6 @@ _SQLExecute(TDS_STMT * stmt)
 			}
 			stmt->row = 0;
 			stmt->row_count = TDS_NO_COUNT;
-			stmt->next_row_count = TDS_NO_COUNT;
 			stmt->row_status = PRE_NORMAL_ROW;
 			in_row = 1;
 			break;
@@ -2909,10 +2900,9 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
 				flag |= TDS_STOPAT_MSG;
 			if (done_flags & TDS_DONE_COUNT) {
+				/* correct ?? overwrite ?? */
 				if (stmt->row_count == TDS_NO_COUNT)
 					stmt->row_count = tds->rows_affected;
-				else
-					stmt->next_row_count = TDS_NO_COUNT;
 			}
 			if (done_flags & TDS_DONE_ERROR)
 				stmt->errs.lastrc = SQL_ERROR;
@@ -2926,13 +2916,11 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 				tds_free_all_results(tds);
 				odbc_populate_ird(stmt);
 #endif
-				tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: row_count=%d, next_row_count=%d\n", 
-								stmt->row_count, stmt->next_row_count);
+				tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: row_count=%d\n", stmt->row_count);
 				return result_type;
 			}
-			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: processed %s, next_row_count=%d\n", 
-					result_type==TDS_DONE_RESULT? "TDS_DONE_RESULT" : "TDS_DONEPROC_RESULT", 
-					stmt->next_row_count);
+			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: processed %s\n", 
+					result_type==TDS_DONE_RESULT? "TDS_DONE_RESULT" : "TDS_DONEPROC_RESULT");
 			break;
 
 		/*
@@ -2943,10 +2931,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
 				flag |= TDS_STOPAT_MSG;
 			if (done_flags & TDS_DONE_COUNT) {
-				if (stmt->row_count == TDS_NO_COUNT)
-					stmt->row_count = tds->rows_affected;
-				else
-					stmt->next_row_count = TDS_NO_COUNT;
+				stmt->row_count = tds->rows_affected;
 			}
 			if (done_flags & TDS_DONE_ERROR)
 				stmt->errs.lastrc = SQL_ERROR;
@@ -2955,8 +2940,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			tds_free_all_results(tds);
 			odbc_populate_ird(stmt);
 #endif
-			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: processed TDS_DONEINPROC_RESULT, next_row_count=%d\n", 
-					stmt->next_row_count);
+			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: processed TDS_DONEINPROC_RESULT\n");
 			if (stmt->row_status == PRE_NORMAL_ROW)
 				return result_type;
 			break;
@@ -3803,7 +3787,6 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 						odbc_populate_ird(stmt);
 					stmt->row = 0;
 					stmt->row_count = TDS_NO_COUNT;
-					stmt->next_row_count = TDS_NO_COUNT;
 					stmt->row_status = PRE_NORMAL_ROW;
 					in_row = 1;
 					break;

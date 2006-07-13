@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.13 2005-04-14 11:35:46 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.14 2006-07-13 08:21:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -97,15 +97,8 @@ DoTest(int prepare)
 	Fetch(SQL_NO_DATA);
 	CHECK_COLS(1);
 	if (prepare) {
-		/* MS driver collapse 2 recordset... very bad */
-		if (!driver_is_freetds()) {
-			CHECK_ROWS(2);
-		} else {
-			CHECK_ROWS(1);
-			NextResults(SQL_SUCCESS, __LINE__);
-			CHECK_ROWS(2);
-			CHECK_COLS(0);
-		}
+		/* collapse 2 recordset... after a lot of testing this is the behavior! */
+		CHECK_ROWS(2);
 	} else {
 		CHECK_ROWS(1);
 		NextResults(SQL_SUCCESS, __LINE__);
