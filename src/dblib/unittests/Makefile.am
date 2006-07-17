@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.32 2006-07-06 12:48:16 freddy77 Exp $
+# $Id: Makefile.am,v 1.33 2006-07-17 13:19:14 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -52,8 +52,8 @@ CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err
 
 if HAVE_PERL_SOURCES
-dblib.dsw: build_dsw.pl Makefile
-	rm -f *.dsp $@
-	perl ./build_dsw.pl $(TESTS) > tmp.dsw && mv tmp.dsw $@
+dblib.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
+	rm -rf vc6 $@
+	perl $(top_srcdir)/win32/build_dsw.pl $@ $(TESTS)
 endif
 

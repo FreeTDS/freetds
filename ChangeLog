@@ -1,3 +1,9 @@
+Mon Jul 17 15:18:48 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
+	* src/dblib/unittests/build_dsw.pl(removed):
+	* win32/build_dsw.pl(added) src/dblib/unittests/Makefile.am:
+	* src/odbc/unittests/Makefile.am:
+	- add a Makefile target to build projects for msvc6
+
 Thu Jul 13 10:20:45 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/unittests/moreandcount.c:
 	- remove next_row_count, now useless... rpc.c works the same

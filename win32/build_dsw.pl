@@ -116,7 +116,10 @@ SOURCE=..\common.h
 # End Project
 |;
 
-my ($dsw, $projects);
+my ($dsw, $projects, $fn_out);
+my ($executables, $link_cmds, $tests);
+
+$fn_out = shift @ARGV;
 
 $projects = '';
 foreach $name (@ARGV) {
@@ -140,6 +143,13 @@ Package=<4>
 	open(FILE, ">", "vc6/$name.dsp") or die("creating file");
 	print FILE $dsp;
 	close(FILE);
+
+	$executables .= qq| \\\n\t"\$(OUTDIR)\\$name.exe"|;
+	$link_cmds .= qq|"\$(OUTDIR)\\$name.exe" : "\$(OUTDIR)" "\$(INTDIR)\\common.obj" "\$(INTDIR)\\$name.obj"
+	\$(LINK32) \$(LINK32_FLAGS) "\$(INTDIR)\\common.obj" "\$(INTDIR)\\$name.obj" /pdb:"\$(OUTDIR)\\$name.pdb" /out:"\$(OUTDIR)\\$name.exe"
+
+|;
+	$tests .= qq|\n\t"\$(OUTDIR)\\$name.exe"|;
 }
 
 $template = qq|Microsoft Developer Studio Workspace File, Format Version 6.00
@@ -161,6 +171,47 @@ Package=<3>
 ###############################################################################
 
 |;
-$template =~ s/\n/\r\n/sg;
-print $template;
 
+open(FILE, ">", $fn_out) or die("creating file");
+$template =~ s/\n/\r\n/sg;
+print FILE $template;
+close(FILE);
+
+$template = qq|!IF "\$(OS)" == "Windows_NT"
+NULL=
+!ELSE
+NULL=nul
+!ENDIF
+
+OUTDIR=.\\Release
+INTDIR=.\\Release
+
+ALL : $executables
+
+CLEAN :
+	-\@erase "\$(INTDIR)\*.obj"
+	-\@erase "\$(OUTDIR)\*.exe"
+
+"\$(OUTDIR)" :
+	if not exist "\$(OUTDIR)/\$(NULL)" mkdir "\$(OUTDIR)"
+
+CPP=cl.exe
+CPP_PROJ=/nologo /MD /W3 /O2 /Ob2 /I "./" /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /D FREETDS_SRCDIR=\\"..\\" /D DBNTWIN32 /Fo"\$(INTDIR)\\\\" /Fd"\$(INTDIR)\\\\" /FD /c 
+
+.c{\$(INTDIR)}.obj::
+	\$(CPP) \$(CPP_PROJ) \$<
+
+LINK32=link.exe
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib advapi32.lib ws2_32.lib odbc32.lib ntwdblib.lib /nologo /subsystem:console /incremental:no /machine:I386
+
+$link_cmds
+
+CHECK :	$tests
+|;
+
+$fn_out =~ s/\.dsw$/.mak/i;
+
+open(FILE, ">", $fn_out) or die("creating file");
+$template =~ s/\n/\r\n/sg;
+print FILE $template;
+close(FILE);

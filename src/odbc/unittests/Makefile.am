@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.56 2006-07-04 15:15:06 freddy77 Exp $
+# $Id: Makefile.am,v 1.57 2006-07-17 13:19:14 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -71,49 +71,9 @@ AM_LDFLAGS	=	-no-install
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
 
-msvc.mak: Makefile
-	echo > $@
-	echo '!IF "$$(OS)" == "Windows_NT"' >> $@
-	echo 'NULL=' >> $@
-	echo '!ELSE' >> $@
-	echo 'NULL=nul' >> $@
-	echo '!ENDIF' >> $@
-	echo '' >> $@
-	echo 'OUTDIR=.\Release' >> $@
-	echo 'INTDIR=.\Release' >> $@
-	echo '' >> $@
-	list='$(TESTS)'; all='ALL : '; \
-	for f in $$list; do \
-		all="$$all \\"$$'\n\t'"\"\$$(OUTDIR)\\$$f.exe\""; \
-	done; echo "$$all" >> $@
-	echo '' >> $@
-	echo 'CLEAN :' >> $@
-	echo "	-@erase \"\$$(INTDIR)\\*.obj\"" >> $@
-	echo "	-@erase \"\$$(OUTDIR)\\*.exe\"" >> $@
-	echo '' >> $@
-	echo "\"\$$(OUTDIR)\" :" >> $@
-	echo "    if not exist \"\$$(OUTDIR)/\$$(NULL)\" mkdir \"\$$(OUTDIR)\"" >> $@
-	echo '' >> $@
-	echo 'CPP=cl.exe' >> $@
-	echo "CPP_PROJ=/nologo /MD /W3 /O2 /Ob2 /I \"./\" /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /Fo\"\$$(INTDIR)\\\\\" /Fd\"\$$(INTDIR)\\\\\" /FD /c " >> $@
-	echo '' >> $@
-	echo '.c{$$(INTDIR)}.obj::' >> $@
-	echo "	\$$(CPP) \$$(CPP_PROJ) \$$<" >> $@
-	echo '' >> $@
-	echo 'LINK32=link.exe' >> $@
-	echo 'LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib advapi32.lib ws2_32.lib odbc32.lib /nologo /subsystem:console /incremental:no /machine:I386' >> $@
-	echo '' >> $@
-	list='$(TESTS)'; \
-	for f in $$list; do \
-		echo "\"\$$(OUTDIR)\\$$f.exe\" : \"\$$(OUTDIR)\" \"\$$(INTDIR)\\common.obj\" \"\$$(INTDIR)\\$$f.obj\"" >> $@; \
-		echo "	\$$(LINK32) \$$(LINK32_FLAGS) \"\$$(INTDIR)\\common.obj\" \"\$$(INTDIR)\\$$f.obj\" /pdb:\"\$$(OUTDIR)\\$$f.pdb\" /out:\"\$$(OUTDIR)\\$$f.exe\"" >> $@; \
-		echo '' >> $@; \
-	done
-	echo '' >> $@
-	echo 'CHECK :' >> $@
-	list='$(TESTS)'; \
-	for f in $$list; do \
-		echo "	\"\$$(OUTDIR)\\$$f.exe\"" >> $@; \
-	done
-	echo '' >> $@
+if HAVE_PERL_SOURCES
+odbc.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
+	rm -f *.dsp $@
+	perl $(top_srcdir)/win32/build_dsw.pl $@ $(TESTS)
+endif
 
