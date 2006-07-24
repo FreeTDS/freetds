@@ -23,10 +23,10 @@
 /*
  * test error on connection close 
  * With a trick we simulate a connection close then we try to 
- * prepare a query. This should fail and return an error message.
+ * prepare or execute a query. This should fail and return an error message.
  */
 
-static char software_version[] = "$Id: prepclose.c,v 1.2 2006-06-13 15:26:37 freddy77 Exp $";
+static char software_version[] = "$Id: prepclose.c,v 1.3 2006-07-24 09:40:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -61,8 +61,8 @@ close_last_socket(void)
 	return 1;
 }
 
-int
-main(void)
+static int
+Test(int direct)
 {
 	char buf[256];
 	SQLRETURN ret;
@@ -76,7 +76,10 @@ main(void)
 	}
 
 	/* force disconnection closing socket */
-	ret = SQLPrepare(Statement, (SQLCHAR *) "SELECT 1", SQL_NTS);
+	if (direct)
+		ret = SQLExecDirect(Statement, (SQLCHAR *) "SELECT 1", SQL_NTS);
+	else
+		ret = SQLPrepare(Statement, (SQLCHAR *) "SELECT 1", SQL_NTS);
 	if (ret != SQL_ERROR) {
 		fprintf(stderr, "Error expected\n");
 		return 1;
@@ -94,6 +97,14 @@ main(void)
 	Disconnect();
 
 	printf("Done.\n");
+	return 0;
+}
+
+int
+main(void)
+{
+	if (Test(0) || Test(1))
+		return 1;
 	return 0;
 }
 

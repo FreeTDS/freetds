@@ -1,3 +1,7 @@
+Mon Jul 24 11:39:13 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/prepclose.c:
+	- test with SQLExecDirect
+
 Mon Jul 17 15:18:48 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/dblib/unittests/build_dsw.pl(removed):
 	* win32/build_dsw.pl(added) src/dblib/unittests/Makefile.am:
