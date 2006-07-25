@@ -1,3 +1,6 @@
+Tue Jul 25 10:16:45 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac m4/ac_nullzero.m4: add test for portability
+
 Tue Jul 25 10:10:22 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/paramcore.c: updated
 
