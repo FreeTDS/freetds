@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.12 2006-01-06 10:22:28 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.13 2006-07-25 10:01:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -35,6 +35,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	SQLULEN processed;
 	RETCODE ret;
 	char status[20];
+	int failure = 0;
 
 	assert(Statement != SQL_NULL_HSTMT);
 	ResetStatement();
@@ -108,7 +109,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 
 	if (expected_status && strcmp(expected_status, status) != 0) {
 		fprintf(stderr, "Invalid status\n\tgot      '%s'\n\texpected '%s'\n", status, expected_status);
-		exit(1);
+		failure = 1;
 	}
 
 	ResetStatement();
@@ -118,6 +119,10 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	free(id_lens);
 	free(desc_lens);
 	free(statuses);
+	if (failure) {
+		Disconnect();
+		exit(1);
+	}
 }
 
 int
