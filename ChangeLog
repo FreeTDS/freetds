@@ -1,3 +1,6 @@
+Tue Jul 25 10:10:22 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/paramcore.c: updated
+
 Mon Jul 24 11:39:13 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/prepclose.c:
 	- test with SQLExecDirect
