@@ -1,3 +1,7 @@
+Thu Jul 27 15:22:27 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* samples/odbc_rpc.pl	use fetchrow_array
+	* src/tds/unittests/Makefile.am include parent directory
+
 Tue Jul 25 10:16:45 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac m4/ac_nullzero.m4: add test for portability
 

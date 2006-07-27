@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.6 2005-12-07 12:55:33 freddy77 Exp $
+# $Id: odbc_rpc.pl,v 1.7 2006-07-27 19:24:42 jklowden Exp $
 #
 # Contributed by James K. Lowden and is hereby placed in 
 # the public domain.  No rights reserved.  
@@ -112,7 +112,7 @@ while ( $sth->{Active} ) {
 	printf "Result #%d:\n", $i++;
         my @names = @{$sth->{NAME}};	# print column names for each result set
 	print '[', join("], [", @{$sth->{NAME}}), "]\n" if @names;
-	while(@dat = $sth->fetchrow) {
+	while(@dat = $sth->fetchrow_array) {
 		print q('), join(q(', '), @dat), qq('\n);
 	}
 }
