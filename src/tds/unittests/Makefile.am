@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.20 2006-06-19 08:39:48 freddy77 Exp $
+# $Id: Makefile.am,v 1.21 2006-07-27 19:24:45 jklowden Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
@@ -27,7 +27,7 @@ utf8_2_SOURCES	=	utf8_2.c common.c common.h
 utf8_3_SOURCES	=	utf8_3.c common.c common.h
 numeric_SOURCES =       numeric.c
 
-AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/..
+AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
 AM_LDFLAGS	=	-no-install
 LIBS		=	../libtds.la ../../replacements/libreplacements.la @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out
