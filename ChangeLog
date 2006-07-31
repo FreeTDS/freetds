@@ -1,3 +1,7 @@
+Mon Jul 31 13:27:53 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c
+	- proper error message for using bcp with TDS version 4.2
+	
 Mon Jul 31 13:23:44 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* include/sybdb.h src/dblib/dblib.c
 	- proper error message for using bcp with TDS version 4.2
