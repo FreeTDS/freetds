@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.256 2006-07-12 15:31:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.257 2006-07-31 17:24:56 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7101,6 +7101,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  Unconverted "
 						"bytes were changed to question marks ('?')" }
 	, { SYBEICONV2BIG,   EXCONVERSION,	"Buffer overflow converting characters from client into server's character set" }
+	, { SYBETDSVER, 	   EXUSER,	"Cannot bcp with TDSVER < 5.0" }
 	, { SYBEAAMT,           EXPROGRAM,	"User attempted a dbaltbind with mismatched column and variable types" }
 	, { SYBEABMT,           EXPROGRAM,	"User attempted a dbbind with mismatched column and variable types" }
 	, { SYBEABNC,           EXPROGRAM,	"Attempt to bind to a non-existent column" }
@@ -7126,7 +7127,8 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEBBCI,              EXINFO,	"Batch successfully bulk copied to the server" }
 	, { SYBEBBL,            EXPROGRAM,	"Bad bindlen parameter passed to dbsetnull" }
 	, { SYBEBCBC,           EXPROGRAM,	"bcp_columns must be called before bcp_colfmt and bcp_colfmt_ps" }
-	, { SYBEBCBNPR,         EXPROGRAM,	"bcp_bind: if varaddr is NULL, prefixlen must be 0 and no terminator should be specified" }
+	, { SYBEBCBNPR,         EXPROGRAM,	"bcp_bind: if varaddr is NULL, prefixlen must be 0 "
+						"and no terminator should be specified" }
 	, { SYBEBCBNTYP,        EXPROGRAM,	"bcp_bind: if varaddr i s NULL and varlen greater than 0, the table column type "
 						"must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, SYBCHAR, "
 						"SYBIMAGE or SYBBINARY" }
@@ -7141,7 +7143,8 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEBCMTXT,         EXPROGRAM,	"bcp_moretext may be used only when there is at least one text or image column in "
 						"the server table" }
 	, { SYBEBCNL,          EXNONFATAL,	"Negative length-prefix found in BCP data-file" }
-	, { SYBEBCNN,              EXUSER,	"Attempt to bulk copy a NULL value into a Server column which does not accept null values" }
+	, { SYBEBCNN,              EXUSER,	"Attempt to bulk copy a NULL value into a Server column "
+						"which does not accept null values" }
 	, { SYBEBCNT,              EXUSER,	"Attempt to use Bulk Copy with a non-existent Server table" }
 	, { SYBEBCOR,       EXCONSISTENCY,	"Attempt to bulk copy an oversized row to the server" }
 	, { SYBEBCPB,           EXPROGRAM,	"bcp_bind, bcp_moretext and bcp_sendrow may not be used after bcp_init has been "
@@ -7155,7 +7158,8 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEBCRE,          EXNONFATAL,	"I/O error while reading bcp datafile" }
 	, { SYBEBCRO,              EXINFO,	"The BCP hostfile '%1!' contains only %2! rows. It was impossible to read the "
 						"requested %3! rows" }
-	, { SYBEBCSA,              EXUSER,	"The BCP hostfile '%1!' contains only %2! rows. Skipping all of these rows is not allowed" }
+	, { SYBEBCSA,              EXUSER,	"The BCP hostfile '%1!' contains only %2! rows. "
+						"Skipping all of these rows is not allowed" }
 	, { SYBEBCSET,      EXCONSISTENCY,	"Unknown character-set encountered" }
 	, { SYBEBCSI,           EXPROGRAM,	"Host-file columns may be skipped only when copying into the Server" }
 	, { SYBEBCSNDROW,       EXPROGRAM,	"bcp_sendrow may not be called unless all text data for the previous row has been "
@@ -7232,7 +7236,8 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBECRSINVALID,    EXRESOURCE,	"The cursor handle is invalid" }
 	, { SYBECRSMROWS,      EXRESOURCE,	"Multiple rows are returned, only one is expected while retrieving dbname" }
 	, { SYBECRSNOBIND,      EXPROGRAM,	"Cursor bind must be called prior to dbcursor invocation" }
-	, { SYBECRSNOCOUNT,     EXPROGRAM,	"The DBNOCOUNT option should not be turned on when doing updates or deletes with dbcursor" }
+	, { SYBECRSNOCOUNT,     EXPROGRAM,	"The DBNOCOUNT option should not be turned on "
+						"when doing updates or deletes with dbcursor" }
 	, { SYBECRSNOFREE,      EXPROGRAM,	"The DBNOAUTOFREE option should not be turned on when using cursor APIs" }
 	, { SYBECRSNOIND,       EXPROGRAM,	"One of the tables involved in the cursor statement does not have a unique index" }
 	, { SYBECRSNOKEYS,     EXRESOURCE,	"The entire keyset must be defined for KEYSET type cursors" }
@@ -7321,7 +7326,8 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEOPNA,          EXNONFATAL,	"Option is not available with current server" }
 	, { SYBEOREN,              EXINFO,	"International Release: Warning: an out-of-range error-number was encountered in "
 						"dblib.loc. The maximum permissible error-number is defined as DBERRCOUNT in sybdb.h" }
-	, { SYBEORPF,              EXUSER,	"Attempt to set remote password would overflow the login record's remote password field" }
+	, { SYBEORPF,              EXUSER,	"Attempt to set remote password would overflow "
+						"the login record's remote password field" }
 	, { SYBEPOLL,              EXINFO,	"There is already an active dbpoll" }
 	, { SYBEPRTF,              EXINFO,	"dbtracestring may only be called from a printfunc" }
 	, { SYBEPWD,               EXUSER,	"Login incorrect" }
@@ -7338,9 +7344,9 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBERPNULL,         EXPROGRAM,	"value parameter for dbrpcparam can be NULL, only if the datalen parameter is 0" }
 	, { SYBERPTXTIM,        EXPROGRAM,	"RPC parameters cannot be of type text or image" }
 	, { SYBERPUL,           EXPROGRAM,	"When passing a SYBINTN, SYBDATETIMN, SYBMONEYN, or SYBFLTN parameter via "
-						"dbrpcparam, it is necessary to specify the parameter's maximum or actual length so that "
-						"DB-Library can recognize it as a SYINT1, SYBINT2, SYBINT4, SYBMONEY, SYBMONEY4, and "
-						"so on" }
+						"dbrpcparam, it is necessary to specify the parameter's maximum or actual length so "
+						"that DB-Library can recognize it as a SYINT1, SYBINT2, SYBINT4, SYBMONEY, SYBMONEY4, "
+						"and so on" }
 	, { SYBERTCC,           EXPROGRAM,	"dbreadtext may not be used to receive the results of a query that contains a "
 						"COMPUTE clause" }
 	, { SYBERTSC,           EXPROGRAM,	"dbreadtext may be used only to receive the results of a query that contains a "

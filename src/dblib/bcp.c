@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.146 2006-04-06 09:37:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.147 2006-07-31 17:29:03 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -146,7 +146,6 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	/* 
 	 * Validate other parameters 
 	 */
-#define SYBETDSVER -100
 	if (dbproc->tds_socket->major_version < 5) {
 		dbperror(dbproc, SYBETDSVER, 0);
 		return (FAIL);

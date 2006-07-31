@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.76 2006-07-07 23:10:04 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.77 2006-07-31 17:24:56 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -714,6 +714,8 @@ DBINT dbvarylen(DBPROCESS * dbproc, int column);
 #define SYBEICONVI	 2403	/* Some character(s) could not be converted into client's character set.  Unconverted bytes were changed to question marks ('?').*/
 #define SYBEICONV2BIG	 2404	/* Buffer overflow converting characters from client into server's character set.*/
 				/* cf. doc/dblib_errors.txt for more iconv error values. */
+				/* Reserve a few slots for other iconv-related issues. */
+#define SYBETDSVER	 2410 	/* Cannot bcp with TDSVER < 5.0 */
 #define SYBESYNC        20001	/* Read attempted while out of synchronization with SQL Server. */
 #define SYBEFCON        20002	/* SQL Server connection failed. */
 #define SYBETIME        20003	/* SQL Server connection timed out. */
