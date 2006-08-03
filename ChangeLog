@@ -1,7 +1,13 @@
+Thu Aug 03 10:32:37 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/unittests/iconv_fread.c(added):
+	* src/tds/iconv.c src/tds/unittests/.cvsignore:
+	* src/tds/unittests/Makefile.am:
+	- fix tds_iconv_fread and add a test for it
+
 Mon Jul 31 13:27:53 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* src/dblib/bcp.c
 	- proper error message for using bcp with TDS version 4.2
-	
+
 Mon Jul 31 13:23:44 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* include/sybdb.h src/dblib/dblib.c
 	- proper error message for using bcp with TDS version 4.2

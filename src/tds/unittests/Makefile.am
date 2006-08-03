@@ -1,9 +1,10 @@
-# $Id: Makefile.am,v 1.21 2006-07-27 19:24:45 jklowden Exp $
+# $Id: Makefile.am,v 1.22 2006-08-03 08:34:04 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
 			convert$(EXEEXT) dataread$(EXEEXT) utf8_1$(EXEEXT)\
-			utf8_2$(EXEEXT) utf8_3$(EXEEXT) numeric$(EXEEXT)
+			utf8_2$(EXEEXT) utf8_3$(EXEEXT) numeric$(EXEEXT) \
+			iconv_fread$(EXEEXT)
 
 # flags test commented, not necessary for 0.62
 # TODO add flags test again when needed
@@ -26,6 +27,7 @@ utf8_1_SOURCES	=	utf8_1.c common.c common.h
 utf8_2_SOURCES	=	utf8_2.c common.c common.h
 utf8_3_SOURCES	=	utf8_3.c common.c common.h
 numeric_SOURCES =       numeric.c
+iconv_fread_SOURCES	= iconv_fread.c
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
 AM_LDFLAGS	=	-no-install

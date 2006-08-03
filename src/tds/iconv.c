@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.125 2006-06-21 07:27:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.126 2006-08-03 08:34:04 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -846,7 +846,11 @@ end_loop:
 size_t
 tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft)
 {
+#ifdef ENABLE_EXTRA_CHECKS
+	char buffer[16];
+#else
 	char buffer[16000];
+#endif
 	char *ib;
 	size_t isize = 0, nonreversible_conversions = 0;
 
@@ -879,23 +883,21 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 	 */
 	isize = (sizeof(buffer) < field_len) ? sizeof(buffer) : field_len;
 
-	for (ib = buffer; isize && 1 == fread(ib, isize, 1, stream);) {
+	for (ib = buffer; isize && (isize = fread(ib, 1, isize, stream)) > 0;) {
 
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: read %u of %u bytes; outbuf has %u left.\n", (unsigned int) isize,
 			    (unsigned int) field_len, (unsigned int) *outbytesleft);
 		field_len -= isize;
 
+		isize += ib - buffer;
+		ib = buffer;
 		nonreversible_conversions += tds_sys_iconv(cd, (ICONV_CONST char **) &ib, &isize, &outbuf, outbytesleft);
 
 		if (isize != 0) {
+			memmove(buffer, ib, isize);
 			switch (errno) {
 			case EINVAL:	/* incomplete multibyte sequence encountered in input */
-				memmove(buffer, buffer + sizeof(buffer) - isize, isize);
-				ib = buffer + isize;
-				isize = sizeof(buffer) - isize;
-				if (isize < field_len)
-					isize = field_len;
-				continue;
+				break;
 			case E2BIG:	/* insufficient room in output buffer */
 			case EILSEQ:	/* invalid multibyte sequence encountered in input */
 			default:
@@ -904,7 +906,10 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 				break;
 			}
 		}
-		isize = (sizeof(buffer) < field_len) ? sizeof(buffer) : field_len;
+		ib = buffer + isize;
+		isize = sizeof(buffer) - isize;
+		if (isize > field_len)
+			isize = field_len;
 	}
 	
 	READ_TERMINATOR:
