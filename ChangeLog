@@ -1,3 +1,9 @@
+Thu Aug 03 20:30:07 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* NEWS include/tds.h src/ctlib/ct.c src/odbc/odbc.c:
+	* src/tds/mem.c src/tds/query.c src/tds/tds_checks.c:
+	* src/tds/token.c src/tds/util.c:
+	- use reference counting for TDSCURSOR to avoid memory errors
+
 Thu Aug 03 10:32:37 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/unittests/iconv_fread.c(added):
 	* src/tds/iconv.c src/tds/unittests/.cvsignore:

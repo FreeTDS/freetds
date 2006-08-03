@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.194 2006-03-23 12:49:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.195 2006-08-03 18:31:48 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1961,6 +1961,15 @@ tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
 	return tds_quote(tds, buffer, '\'', str, len < 0 ? strlen(str) : len);
 }
 
+static inline void
+tds_set_cur_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
+{
+	++cursor->ref_count;
+	if (tds->cur_cursor)
+		tds_release_cursor(tds, tds->cur_cursor);
+	tds->cur_cursor = cursor;
+}
+
 int
 tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 {
@@ -2030,7 +2039,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 	if (tds->state != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->cur_cursor = cursor;
+	tds_set_cur_cursor(tds, cursor);
 
 	if (IS_TDS50(tds)) {
 
@@ -2151,7 +2160,7 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		if (tds->state != TDS_QUERYING  || tds->out_flag != TDS_NORMAL)
 			return TDS_FAIL;
 
-		tds->cur_cursor = cursor;
+		tds_set_cur_cursor(tds, cursor);
 		tds_put_byte(tds, TDS_CURINFO_TOKEN);
 
 		tds_put_smallint(tds, 12 + strlen(cursor->cursor_name));
@@ -2241,7 +2250,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 		return TDS_FAIL;
 
 	tds->query_start_time = time(NULL);
-	tds->cur_cursor = cursor;
+	tds_set_cur_cursor(tds, cursor);
 
 	if (IS_TDS50(tds)) {
 		size_t len = strlen(cursor->cursor_name);
@@ -2319,7 +2328,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 		return TDS_FAIL;
 
 	tds->query_start_time = time(NULL);
-	tds->cur_cursor = cursor;
+	tds_set_cur_cursor(tds, cursor);
 
 	if (IS_TDS50(tds)) {
 		tds->out_flag = TDS_NORMAL;
@@ -2386,7 +2395,7 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 		return TDS_FAIL;
 
 	tds->query_start_time = time(NULL);
-	tds->cur_cursor = cursor;
+	tds_set_cur_cursor(tds, cursor);
 
 	/* RPC call to sp_cursoroption */
 	tds->out_flag = TDS_RPC;
@@ -2448,7 +2457,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 		return TDS_FAIL;
 
 	tds->query_start_time = time(NULL);
-	tds->cur_cursor = cursor;
+	tds_set_cur_cursor(tds, cursor);
 
 	if (IS_TDS50(tds)) {
 		tds->out_flag = TDS_NORMAL;
@@ -2533,13 +2542,20 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (!cursor)
 		return TDS_FAIL;
 
+	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0 
+	    || (IS_TDS7_PLUS(tds) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
+		tds_cursor_deallocated(tds, cursor);
+		tds_release_cursor(tds, cursor);
+		return TDS_SUCCEED;
+	}
+
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_dealloc() cursor id = %d\n", cursor->cursor_id);
 
 	if (IS_TDS50(tds)) {
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
 		tds->query_start_time = time(NULL);
-		tds->cur_cursor = cursor;
+		tds_set_cur_cursor(tds, cursor);
 
 		tds->out_flag = TDS_NORMAL;
 		tds_put_byte(tds, TDS_CURCLOSE_TOKEN);
@@ -2556,18 +2572,17 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	 * deallocate from the server. for TDS 7 we do it
 	 * here...
 	 */
-
 	if (IS_TDS7_PLUS(tds)) {
 		if (cursor->status.dealloc == TDS_CURSOR_STATE_SENT ||
 			cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED) {
 			tdsdump_log(TDS_DBG_ERROR, "tds_cursor_dealloc(): freeing cursor \n");
-			tds_free_cursor(tds, cursor);
 		}
 	}
-	
+
+	/* client will not use cursor anymore */
+	tds_release_cursor(tds, cursor);
 
 	return res;
-
 }
 
 static void

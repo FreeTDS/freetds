@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.16 2006-03-23 14:53:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.17 2006-08-03 18:31:48 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -136,7 +136,14 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	/* TODO test char_conv_count, char_convs */
 
 	/* current_results should be one of res_info, comp_info, param_info or dynamic */
-	assert(result_found || tds->current_results == NULL);
+	/*
+	 * TODO this test was here to check that current_results was an alias
+	 * but with cursor and reference counting current_results can point
+	 * to a cursor result available on upper layer
+	 * Perhaps we should free results on deallocate and enable
+	 * assert again?
+	 */
+	/* assert(result_found || tds->current_results == NULL); */
 
 	/* we can't have compute and no results */
 	assert(tds->num_comp_info == 0 || tds->res_info != NULL);

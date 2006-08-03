@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.167 2006-06-19 07:58:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.168 2006-08-03 18:31:48 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1022,14 +1022,15 @@ ct_send(CS_COMMAND * cmd)
 			if (cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED) {
 				/* FIXME what happen if tds_cursor_dealloc return TDS_FAIL ?? */
 				ret = tds_cursor_close(tds, cursor);
-				cmd->cursor = NULL;
+				tds_release_cursor(tds, cursor);
+				cmd->cursor = cursor = NULL;
 			} else {
 				ret = tds_cursor_close(tds, cursor);
 				cursor->status.close = _CS_CURS_TYPE_SENT;
 			}
 		}
 
-		if (cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED) {
+		if (cursor && cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED) {
 			/* FIXME what happen if tds_cursor_dealloc return TDS_FAIL ?? */
 			ret = tds_cursor_dealloc(tds, cursor);
 			cmd->cursor = NULL;
@@ -1605,8 +1606,6 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 		tdsdump_log(TDS_DBG_WARN, "ct_fetch(): cursor fetch failed\n");
 		return CS_FAIL;
 	}
-
-	tds->cur_cursor = cursor;
 
 	while ((tds_process_tokens(tds, &restype, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
 		switch (restype) {

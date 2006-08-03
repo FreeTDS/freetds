@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.418 2006-07-13 12:04:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.419 2006-08-03 18:31:48 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2563,9 +2563,12 @@ _SQLExecute(TDS_STMT * stmt)
 		if (stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY) {
 			int send = 0, i;
 			TDSCURSOR *cursor;
+
+			if (stmt->cursor)
+				tds_release_cursor(tds, stmt->cursor);
 			/* TODO check errors */
-			cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
-			stmt->cursor = cursor;
+			stmt->cursor = cursor =
+				tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
 
 			/* TODO cursor add enums for tds7 */
 			switch (stmt->attr.cursor_type) {
@@ -2622,7 +2625,7 @@ _SQLExecute(TDS_STMT * stmt)
 				}
 				if (!cursor->cursor_id) {
 					stmt->cursor = NULL;
-					tds_free_cursor(tds, cursor);
+					tds_cursor_dealloc(tds, cursor);
 				}
 			}
 		} else if (stmt->num_param_rows <= 1) {
@@ -6154,17 +6157,18 @@ odbc_free_cursor(TDS_STMT * stmt)
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
 	if (cursor) {
+		int error = 1;
 		cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
+		/* TODO if fail add to odbc to free later, when we are in idle */
 		if (tds_cursor_close(tds, cursor) == TDS_SUCCEED) {
-			if (tds_process_simple_query(tds) != TDS_SUCCEED)
-				ODBC_RETURN(stmt, SQL_ERROR);
+			if (tds_process_simple_query(tds) == TDS_SUCCEED)
+				error = 0;
 			/* TODO check error */
 			tds_cursor_dealloc(tds, cursor);
 			stmt->cursor = NULL;
-		} else {
-			/* TODO if fail add to odbc to free later, when we are in idle */
-			ODBC_RETURN(stmt, SQL_ERROR);
 		}
+		if (error)
+			ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	return SQL_SUCCESS;
 }

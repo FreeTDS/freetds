@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.37 2006-06-29 15:06:52 freddy77 Exp $
+$Id: NEWS,v 1.38 2006-08-03 18:31:48 freddy77 Exp $
 * 0.65
 - support NUL characters inside terminators in freebcp
 - cursors under ODBC
@@ -14,6 +14,11 @@ libTDS API changes
 - added fetch_type and i_row parameters to tds_cursor_fetch
 - added tds_cursor_update and tds_cursor_setname functions
 - make tds_alloc_get_string static
+- removed tds_free_cursor
+- added tds_cursor_deallocated and tds_release_cursor to handle
+  cursor release
+- added TDSCURSOR->ref_count 
+
 
 
 * 0.64

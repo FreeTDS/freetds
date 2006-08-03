@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.315 2006-07-12 17:38:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.316 2006-08-03 18:31:48 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -637,8 +637,8 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 
 						cursor->cursor_id = *(TDS_INT *) curcol->column_data;
 						tdsdump_log(TDS_DBG_FUNC, "stored internal cursor id %d\n", cursor->cursor_id);
-						cursor->srv_status &= ~(TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_OPEN);
-						cursor->srv_status |= cursor->cursor_id ? TDS_CUR_ISTAT_OPEN : TDS_CUR_ISTAT_CLOSED;
+						cursor->srv_status &= ~(TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_OPEN|TDS_CUR_ISTAT_DEALLOC);
+						cursor->srv_status |= cursor->cursor_id ? TDS_CUR_ISTAT_OPEN : TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_DEALLOC;
 					}
 					if (tds->internal_sp_called == TDS_SP_PREPARE 
 					    && tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
@@ -770,10 +770,9 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 					TDSCURSOR  *cursor = tds->cur_cursor;
  
 					cursor->srv_status &= ~TDS_CUR_ISTAT_OPEN;
-					cursor->srv_status |= TDS_CUR_ISTAT_CLOSED;
-					cursor->srv_status |= TDS_CUR_ISTAT_DECLARED;
-					if (cursor->status.dealloc == 2) {
-						tds_free_cursor(tds, cursor);
+					cursor->srv_status |= TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_DECLARED;
+					if (cursor->status.dealloc == TDS_CURSOR_STATE_SENT) {
+						tds_cursor_deallocated(tds, cursor);
 					}
 				}
 				*result_type = TDS_NO_MORE_RESULTS;
@@ -1154,7 +1153,7 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 	while ((marker = tds_get_byte(tds)) == TDS_PARAM_TOKEN) {
 		tds_process_param_result(tds, pinfo);
 	}
-	if( marker == TDS_FAIL ) {
+	if (!marker) {
 		tdsdump_log(TDS_DBG_FUNC, "error: tds_process_param_result() returned TDS_FAIL\n");
 		return TDS_FAIL;
 	}
@@ -1414,7 +1413,6 @@ tds7_process_result(TDSSOCKET * tds)
 	int col, num_cols, result;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	TDSCURSOR *cursor;
 
 	CHECK_TDS_EXTRA(tds);
 	tdsdump_log(TDS_DBG_INFO1, "processing TDS7 result metadata.\n");
@@ -1433,18 +1431,14 @@ tds7_process_result(TDSSOCKET * tds)
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 
+	if ((info = tds_alloc_results(num_cols)) == NULL)
+		return TDS_FAIL;
+	tds->current_results = info;
 	if (tds->cur_cursor) {
-		cursor = tds->cur_cursor; 
-		if ((cursor->res_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = cursor->res_info;
-		tds->current_results = cursor->res_info;
+		tds->cur_cursor->res_info = info;
 		tdsdump_log(TDS_DBG_INFO1, "set current_results to cursor->res_info\n");
 	} else {
-		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = tds->res_info;
-		tds->current_results = tds->res_info;
+		tds->res_info = info;
 		tdsdump_log(TDS_DBG_INFO1, "set current_results (%d column%s) to tds->res_info\n", num_cols, (num_cols==1? "":"s"));
 	}
 
@@ -1608,7 +1602,6 @@ tds5_process_result(TDSSOCKET * tds)
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	TDSCURSOR *cursor;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -1628,17 +1621,13 @@ tds5_process_result(TDSSOCKET * tds)
 	/* read number of columns and allocate the columns structure */
 	num_cols = tds_get_smallint(tds);
 
-	if (tds->cur_cursor) {
-		cursor = tds->cur_cursor; 
-		if ((cursor->res_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = cursor->res_info;
-	} else {
-		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
-			return TDS_FAIL;
-		info = tds->res_info;
-	}
+	if ((info = tds_alloc_results(num_cols)) == NULL)
+		return TDS_FAIL;
 	tds->current_results = info;
+	if (tds->cur_cursor)
+		tds->cur_cursor->res_info = info;
+	else
+		tds->res_info = info;
 
 	tdsdump_log(TDS_DBG_INFO1, "num_cols=%d\n", num_cols);
 
@@ -3092,7 +3081,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 		cursor->cursor_id = cursor_id;
 		cursor->srv_status = cursor_status;
 		if ((cursor_status & TDS_CUR_ISTAT_DEALLOC) != 0)
-			tds_free_cursor(tds, cursor);
+			tds_cursor_deallocated(tds, cursor);
 	} 
 	return TDS_SUCCEED;
 }

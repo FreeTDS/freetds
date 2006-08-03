@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.66 2005-12-21 14:02:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.67 2006-08-03 18:31:48 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -151,6 +151,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		/* TODO check this code, copied from tds_submit_prepare */
 		tds_free_all_results(tds);
 		tds->rows_affected = TDS_NO_COUNT;
+		tds_release_cursor(tds, tds->cur_cursor);
 		tds->cur_cursor = NULL;
 		tds->internal_sp_called = 0;
 

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.253 2006-06-29 12:07:41 freddy77 Exp $ */
+/* $Id: tds.h,v 1.254 2006-08-03 18:31:48 freddy77 Exp $ */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -1049,6 +1049,7 @@ typedef enum _tds_cursor_fetch
 typedef struct _tds_cursor 
 {
 	struct _tds_cursor *next;	/**< next in linked list, keep first */
+	TDS_INT ref_count;
 	TDS_INT length;			/**< total length of the remaining datastream */
 	TDS_TINYINT cursor_name_len;	/**< length of cursor name > 0 and <= 30  */
 	char *cursor_name;		/**< name of the cursor */
@@ -1207,7 +1208,8 @@ void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
 void tds_free_param_result(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMESSAGE * message);
-void tds_free_cursor(TDSSOCKET * tds, TDSCURSOR * cursor);
+void tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor);
+void tds_release_cursor(TDSSOCKET *tds, TDSCURSOR *cursor);
 void tds_free_bcp_column_data(BCPCOLDATA * coldata);
 
 int tds_put_n(TDSSOCKET * tds, const void *buf, int n);
