@@ -151,13 +151,13 @@ fi
 
 # PHP
 cd "$ORIGDIR"
-FILE=php5-latest.tar.gz
+FILE=php5.1-latest.tar.gz
 if test $do_php = yes -a -f "$FILE"; then
 	# need to recompile ??
 	if test ! -x phpinst/bin/php -o "$FILE" -nt phpinst/bin/php; then
-		rm -rf php5-200* phpinst lib
+		rm -rf php5.1-200* phpinst lib
 		gunzip -c "$FILE" | tar xvf -
-		DIR=`echo php5-200*`
+		DIR=`echo php5.1-200*`
 		MAINDIR=$PWD
 		mkdir lib
 		cp src/dblib/.libs/lib*.s[ol]* lib

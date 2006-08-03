@@ -1,12 +1,17 @@
+Thu Aug 03 13:09:06 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/test-other.sh src/tds/iconv.c:
+	- backport fix for tds_iconv_fread, fix bcp for very long
+	  text (more that 16k)
+
 Tue Jul 11 14:37:39 EDT 2006	JK Lowden <jklowden@freetds.org>
-	* src/dblib/dblib.c src/dblib/unittests/rpc.c
+	* src/dblib/dblib.c src/dblib/unittests/rpc.c:
 	- backport some of yesterday's dbresults patch from HEAD
 
 Sat Jul  1 11:07:09 EDT 2006	JK Lowden <jklowden@freetds.org>
-	* INSTALL INSTALL.CVS NEWS README TODO configure.in
+	* INSTALL INSTALL.CVS NEWS README TODO configure.in:
 	- doc/userguide.sgml
 	0.64 release
-	
+
 Thu Jun 22 10:04:54 CET 2006    Frediano Ziglio <freddyz77_A_lycos_D_com>
 	* src/odbc/unittests/raiserror.c: relax test if DM is present
 
