@@ -1,3 +1,6 @@
+Sun Aug 06 17:44:43 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* freetds.spec.in: fix rpm build on suse
+
 Thu Aug 03 13:09:06 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/test-other.sh src/tds/iconv.c:
 	- backport fix for tds_iconv_fread, fix bcp for very long

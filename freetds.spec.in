@@ -70,7 +70,7 @@ make RPM_OPT_FLAGS="$RPM_OPT_FLAGS"
 %install 
 rm -rf "$RPM_BUILD_ROOT"
 make DESTDIR="$RPM_BUILD_ROOT" install
-rm -rf "$RPM_BUILD_ROOT/%{_docdir}/freetds-%{version}"
+rm -rf "$RPM_BUILD_ROOT/%{_datadir}/doc/freetds-%{version}"
 
 %post 
 /sbin/ldconfig 2> /dev/null
