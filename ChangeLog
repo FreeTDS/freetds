@@ -1,3 +1,6 @@
+Sun Aug 06 17:54:11 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* freetds.spec.in: fix rpm build on suse
+
 Thu Aug 03 20:30:07 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* NEWS include/tds.h src/ctlib/ct.c src/odbc/odbc.c:
 	* src/tds/mem.c src/tds/query.c src/tds/tds_checks.c:
