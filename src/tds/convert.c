@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.167 2006-06-20 12:38:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.168 2006-08-07 19:37:59 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -99,7 +99,7 @@ static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
 
 /**
  * \addtogroup convert
- * \@{ 
+ * @{ 
  */
 
 /**
@@ -3202,4 +3202,4 @@ tds_prtype(int token)
 }
 #endif
 
-/** \@} */
+/** @} */

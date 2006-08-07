@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.126 2006-08-03 08:34:04 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.127 2006-08-07 19:37:59 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -301,7 +301,7 @@ tds_iconv_alloc(TDSSOCKET * tds)
 
 /**
  * \addtogroup conv
- * \@{ 
+ * @{ 
  * Set up the initial iconv conversion descriptors.
  * When the socket is allocated, three TDSICONV structures are attached to iconv.  
  * They have fixed meanings:
@@ -1448,4 +1448,4 @@ tds_iconv_from_collate(TDSSOCKET * tds, int sql_collate, int lcid)
 	return tds_iconv_get_info(tds, charset);
 }
 
-/** \@} */
+/** @} */

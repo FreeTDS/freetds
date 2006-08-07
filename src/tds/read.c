@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.99 2005-08-23 17:25:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.100 2006-08-07 19:37:59 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -60,7 +60,7 @@ static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 
 /**
  * \addtogroup network
- * \@{ 
+ * @{ 
  */
 
 /*
@@ -419,4 +419,4 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, size_t * wire_size
 	return max_output - *outbytesleft;
 }
 
-/** \@} */
+/** @} */

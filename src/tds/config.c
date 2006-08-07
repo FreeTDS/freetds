@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.120 2006-06-06 10:03:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.121 2006-08-07 19:37:59 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -115,7 +115,7 @@ static const char interfaces_path[] = "c:\\";
 
 /**
  * \addtogroup config
- * \@{ 
+ * @{ 
  */
 
 /**
@@ -1113,4 +1113,4 @@ tds_get_compiletime_settings(void)
 	return &settings;
 }
 
-/** \@} */
+/** @} */

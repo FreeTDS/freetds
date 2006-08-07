@@ -47,11 +47,11 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.74 2005-08-23 17:25:53 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.75 2006-08-07 19:37:59 freddy77 Exp $");
 
 /**
  * \addtogroup network
- * \@{ 
+ * @{ 
  */
 
 /*
@@ -297,4 +297,4 @@ tds_flush_packet(TDSSOCKET * tds)
 	return result;
 }
 
-/** \@} */
+/** @} */

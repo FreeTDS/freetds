@@ -53,11 +53,11 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.14 2005-07-15 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.15 2006-08-07 19:37:59 freddy77 Exp $");
 
 /**
  * \addtogroup conv
- * \@{ 
+ * @{ 
  */
 
 /** 
@@ -376,6 +376,6 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 }
 
 
-/** \@} */
+/** @} */
 
 #endif

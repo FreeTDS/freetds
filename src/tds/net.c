@@ -98,11 +98,11 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.37 2005-12-05 06:01:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.38 2006-08-07 19:37:59 freddy77 Exp $");
 
 /**
  * \addtogroup network
- * \@{ 
+ * @{ 
  */
 
 #if !defined(SOL_TCP) && defined(IPPROTO_TCP)
@@ -1160,5 +1160,5 @@ tds_ssl_deinit(TDSSOCKET *tds)
 #endif
 
 #endif
-/** \@} */
+/** @} */
 

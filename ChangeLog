@@ -1,3 +1,12 @@
+Mon Aug 07 21:37:39 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsstring.h src/odbc/odbc_util.c:
+	* src/replacements/iconv.c src/tds/challenge.c:
+	* src/tds/config.c src/tds/convert.c:
+	* src/tds/iconv.c src/tds/mem.c src/tds/net.c:
+	* src/tds/query.c src/tds/read.c src/tds/tdsstring.c:
+	* src/tds/token.c src/tds/write.c:
+	- updated doxygen comments
+
 Sun Aug 06 17:54:11 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* freetds.spec.in: fix rpm build on suse
 

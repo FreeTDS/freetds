@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.316 2006-08-03 18:31:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.317 2006-08-07 19:37:59 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -88,7 +88,7 @@ static int tds_alloc_get_string(TDSSOCKET * tds, char **string, int len);
 
 /**
  * \addtogroup token
- * \@{ 
+ * @{ 
  */
 
 /**
@@ -3212,7 +3212,7 @@ tds_prtype(int token)
 #undef TYPE
 }
 
-/** \@} */
+/** @} */
 
 static const char *
 _tds_token_name(unsigned char marker)

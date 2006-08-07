@@ -20,14 +20,14 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-/* $Id: tdsstring.h,v 1.15 2005-07-07 18:34:10 freddy77 Exp $ */
+/* $Id: tdsstring.h,v 1.16 2006-08-07 19:37:59 freddy77 Exp $ */
 
 extern const struct DSTR_STRUCT tds_str_empty;
 
 /* TODO do some function and use inline if available */
 
 /** \addtogroup dstring
- *  \@{ 
+ * @{ 
  */
 
 #if ENABLE_EXTRA_CHECKS
@@ -56,6 +56,6 @@ DSTR tds_dstr_copy(DSTR * s, const char *src);
 DSTR tds_dstr_copyn(DSTR * s, const char *src, unsigned int length);
 DSTR tds_dstr_set(DSTR * s, char *src);
 
-/** \@} */
+/** @} */
 
 #endif /* _tdsstring_h_ */

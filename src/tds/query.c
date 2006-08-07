@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.195 2006-08-03 18:31:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.196 2006-08-07 19:37:59 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -73,7 +73,7 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
 
 /**
  * \addtogroup query
- *  \@{ 
+ * @{ 
  */
 
 /**
@@ -3062,4 +3062,4 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
  * sybint4 -> sybintn
  */
 
-/** \@} */
+/** @} */

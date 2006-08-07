@@ -38,7 +38,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: tdsstring.c,v 1.14 2005-08-23 17:25:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.15 2006-08-07 19:37:59 freddy77 Exp $");
 
 
 /**
@@ -53,7 +53,7 @@ const struct DSTR_STRUCT tds_str_empty = { "" };
 
 /**
  * \addtogroup dstring
- * \@{ 
+ * @{ 
  */
 
 /** clear all string filling with zeroes (mainly for security reason) */
@@ -158,4 +158,4 @@ tds_dstr_len(DSTR * s)
 }
 #endif
 
-/** \@} */
+/** @} */

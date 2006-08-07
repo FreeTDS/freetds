@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.161 2006-08-03 18:31:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.162 2006-08-07 19:37:59 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -66,11 +66,17 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
  * \defgroup mem Memory allocation
  * Allocate or free resources. Allocation can fail only on out of memory. 
  * In such case they return NULL and leave the state as before call.
+ * Mainly function names are in the form tds_alloc_XX or tds_free_XXX.
+ * tds_alloc_XXX functions allocate structures and return pointer to allocated
+ * data while tds_free_XXX take structure pointers and free them. Some functions
+ * require additional parameters to initialize structure correctly.
+ * The main exception are structures that use reference counting. These structures
+ * have tds_alloc_XXX functions but instead of tds_free_XXX use tds_release_XXX.
  */
 
 /**
  * \addtogroup mem
- * \@{
+ * @{
  */
 
 /**
@@ -1335,4 +1341,4 @@ tds_free_bcp_column_data(BCPCOLDATA * coldata)
 	free(coldata);
 }
 
-/** \@} */
+/** @} */

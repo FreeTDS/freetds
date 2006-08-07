@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.87 2006-06-21 07:27:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.88 2006-08-07 19:37:59 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -48,7 +48,7 @@ TDS_RCSID(var, "$Id: odbc_util.c,v 1.87 2006-06-21 07:27:47 freddy77 Exp $");
 
 /**
  * \addtogroup odbc_util
- *  \@{ 
+ * @{ 
  */
 
 static int
@@ -971,4 +971,4 @@ odbc_set_concise_c_type(SQLSMALLINT concise_type, struct _drecord * drec, int ch
 #undef TYPE_VERBOSE_END
 }
 
-/** \@} */
+/** @} */
