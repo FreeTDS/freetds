@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.197 2006-08-08 14:43:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.198 2006-08-08 17:14:57 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2521,6 +2521,11 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 	return tds_query_flush_packet(tds);
 }
 
+/**
+ * Send a deallocation request to server
+ * libTDS care for all deallocation stuff (memory and server cursor)
+ * Caller should not use cursor pointer anymore
+ */
 int
 tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
