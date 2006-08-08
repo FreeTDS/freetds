@@ -1,3 +1,8 @@
+Tue Aug 08 14:43:50 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/timeout2.c(added):
+	- added a test for timeout problem (cf "Query Time Out" on ML)
+
 Mon Aug 07 21:37:39 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsstring.h src/odbc/odbc_util.c:
 	* src/replacements/iconv.c src/tds/challenge.c:

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.57 2006-07-17 13:19:14 freddy77 Exp $
+# $Id: Makefile.am,v 1.58 2006-08-08 12:44:49 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -17,7 +17,7 @@ TESTS		=	\
 			cursor1$(EXEEXT) scroll$(EXEEXT) cursor2$(EXEEXT)\
 			describecol$(EXEEXT) copydesc$(EXEEXT)\
 			prepclose$(EXEEXT) warning$(EXEEXT) \
-			paramcore$(EXEEXT)
+			paramcore$(EXEEXT) timeout2$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -65,6 +65,7 @@ copydesc_SOURCES	= copydesc.c common.c common.h
 prepclose_SOURCES = prepclose.c common.c common.h
 warning_SOURCES = warning.c common.c common.h
 paramcore_SOURCES = paramcore.c common.c common.h
+timeout2_SOURCES	= timeout2.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_SRCDIR=\"$(srcdir)\"
 AM_LDFLAGS	=	-no-install
