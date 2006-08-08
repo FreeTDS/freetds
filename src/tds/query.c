@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.191.2.1 2006-03-23 12:53:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.191.2.2 2006-08-08 14:36:46 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -254,9 +254,6 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
  
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
- 
-	/* Jeff's hack to handle long query timeouts */
-	tds->query_start_time = time(NULL);
  
 	query_len = strlen(query);
  
@@ -1984,7 +1981,6 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 				return TDS_FAIL;
 
 			tds->out_flag = TDS_NORMAL;
-			tds->query_start_time = time(NULL);
 		}
 		if (tds->state != TDS_QUERYING || tds->out_flag != TDS_NORMAL)
 			return TDS_FAIL;
@@ -2025,8 +2021,6 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 	if (!*something_to_send) {
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
-
-		tds->query_start_time = time(NULL);
 	}
 	if (tds->state != TDS_QUERYING)
 		return TDS_FAIL;
@@ -2124,7 +2118,6 @@ tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 				return TDS_FAIL;
 
 			tds->out_flag = TDS_NORMAL;
-			tds->query_start_time = time(NULL);
 		}
 		if (tds->state != TDS_QUERYING  || tds->out_flag != TDS_NORMAL)
 			return TDS_FAIL;
@@ -2164,7 +2157,6 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->query_start_time = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -2263,7 +2255,6 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->query_start_time = time(NULL);
 	tds->cur_cursor = cursor;
 
 	if (IS_TDS50(tds)) {
@@ -2327,7 +2318,6 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (IS_TDS50(tds)) {
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
-		tds->query_start_time = time(NULL);
 		tds->cur_cursor = cursor;
 
 		tds->out_flag = TDS_NORMAL;
