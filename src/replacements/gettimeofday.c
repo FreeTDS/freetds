@@ -42,7 +42,7 @@
 
 #include "tds.h"
 
-TDS_RCSID(var, "$Id: gettimeofday.c,v 1.1 2006-06-14 15:30:13 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gettimeofday.c,v 1.2 2006-08-10 08:11:50 freddy77 Exp $");
 /*
  * Number of micro-seconds between the beginning of the Windows epoch
  * (Jan. 1, 1601) and the Unix epoch (Jan. 1, 1970).
@@ -65,6 +65,10 @@ int gettimeofday (struct timeval *tv, void *tz)
 		errno = EINVAL;
 		return -1;
 	}
+	/*
+	 * Although this function returns 10^-7 precision the real 
+	 * precision is less than milliseconds on Windows XP
+	 */
 	GetSystemTimeAsFileTime (&ft);
 	tim = ((((TDS_UINT8) ft.dwHighDateTime) << 32) | ft.dwLowDateTime) -
 	      (DELTA_EPOCH_IN_USEC * 10U);

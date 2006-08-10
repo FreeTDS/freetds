@@ -1,3 +1,11 @@
+Thu Aug 10 10:10:30 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/ct.c: fix possible buffer overflow
+	* src/replacements/gettimeofday.c: add comment
+	* src/tds/threadsafe.c: better and simple win implementation
+	* vms/descrip_mms.template win32/config.h:
+	* win32/dev-cpp/FreeTDS.dev win32/msvc6/libTDS.dsp:
+	- update build file
+
 Tue Aug 08 19:14:32 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/htdoc/index.html: update link
 	* src/tds/query.c: add comment

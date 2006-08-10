@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.168 2006-08-03 18:31:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.169 2006-08-10 08:11:50 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2392,14 +2392,16 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		ret = CS_FAIL;
 		switch (action) {
 			case CS_GET: {
-				if (buffer && buflen && outlen) {
+				if (buffer && buflen > 0 && outlen) {
 					const TDS_COMPILETIME_SETTINGS *settings= tds_get_compiletime_settings();
 					*outlen= snprintf((char*)buffer, buflen, "%s (%s, default tds version=%s)",
 						settings->freetds_version,
 						(settings->threadsafe ? "threadsafe" : "non-threadsafe"),
 						settings->tdsver
 					);
-					((char*)buffer)[buflen]= 0;
+					((char*)buffer)[buflen - 1]= 0;
+					if (*outlen < 0)
+						*outlen = strlen((char*) buffer);
 					ret = CS_SUCCEED;
 				}
 				break;
@@ -2414,9 +2416,12 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 		ret = CS_FAIL;
 		switch (action) {
 			case CS_GET: {
-				if (buffer && buflen && outlen) {
+				if (buffer && buflen > 0 && outlen) {
 					const TDS_COMPILETIME_SETTINGS *settings= tds_get_compiletime_settings();
 					*outlen= snprintf(buffer, buflen, "%s", settings->freetds_version);
+					((char*)buffer)[buflen - 1]= 0;
+					if (*outlen < 0)
+						*outlen = strlen((char*) buffer);
 					ret = CS_SUCCEED;
 				}
 				break;

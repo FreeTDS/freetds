@@ -240,3 +240,7 @@
 
 #define TDS42 1
 
+#ifdef _MSC_VER
+#define inline __inline
+#endif
+

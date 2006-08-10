@@ -83,11 +83,12 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.41 2005-08-23 17:25:53 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.42 2006-08-10 08:11:50 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)
 {
+#if !defined(WIN32)
 	struct tm *tm;
 	time_t t;
 
@@ -128,6 +129,14 @@ tds_timestamp_str(char *str, int maxlen)
 #if HAVE_GETTIMEOFDAY
 	sprintf(usecs, ".%06lu", (long) tv.tv_usec);
 	strcat(str, usecs);
+#endif
+
+#else /* WIN32 */
+	SYSTEMTIME st;
+
+	GetLocalTime(&st);
+	_snprintf(str, maxlen - 1, "%02u:%02u:%02u.%03u", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+	str[maxlen - 1] = 0;
 #endif
 
 	return str;
