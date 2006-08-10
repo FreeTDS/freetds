@@ -1,0 +1,48 @@
+Well.. I don't know how to put these information so I'll put here
+Probably I'm the only person who can fully understand these notes...
+
+Fixes
+-----
+Fix describecol test
+Fix cursor for sybase
+IMPORTANT fix done_handling
+
+Cursor and dynamic
+------------------
+libTDS should handle real cursor/dynamic memory deallocation
+search for tds_alloc_cursor, tds_free_cursor and similar for dynamic
+cursor too complicate... reduce all states, handle more in libTDS
+Finish odbc cursors
+
+Row handling
+------------
+Upper layer should be able to read data from network and handle rows
+Possibility to stop sending/receiving data for SQLPutData and similar
+Allow upper layer to get if libTDS is sending a request (state??)
+tds_process_tokens should "return" any row/done/other informations,
+not only done_flags
+libTDS should handle multiple reply from server (cursors and so on)
+
+Token handling
+--------------
+Split token.c to one base token handling and another with higher
+level (callbacks, state and so on)
+
+Done handling
+-------------
+Callback when state goes to IDLE
+Free unused cursors and dynamic and/or reuse them
+
+Other
+-----
+Implement some sort of fast write to network writing directly to 
+wire buffer
+
+build an array of "flags" to translate type -> flag like SYBCHAR ->
+char, variable and so on
+
+Tests
+-----
+Rebuild all test support (virtual machines, chroot, msde+mssql2005)
+Add a test for rpm (redhat, suse?)
+Improve doxy error report collapsing and sorting file warnings
