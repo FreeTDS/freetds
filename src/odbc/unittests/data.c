@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.11 2006-06-19 07:58:32 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.12 2006-08-13 13:03:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -55,7 +55,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 		break;
 	case SQL_C_CHAR:
 		out_buf[sizeof(out_buf) - 1] = 0;
-		sprintf(sbuf,"%d %s", strlen((char *) out_buf), out_buf);
+		sprintf(sbuf,"%u %s", (unsigned int) strlen((char *) out_buf), out_buf);
 		break;
 	default:
 		/* not supported */

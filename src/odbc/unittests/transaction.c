@@ -1,12 +1,12 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.11 2006-03-19 17:33:23 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.12 2006-08-13 13:03:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
 Test(int discard_test)
 {
-	long out_buf;
+	SQLINTEGER out_buf;
 	SQLLEN out_len;
 	int result = 0;
 	SQLLEN rows;
@@ -114,9 +114,9 @@ Test(int discard_test)
 	}
 
 	while ((result = SQLFetch(Statement)) == SQL_SUCCESS) {
-		printf("\t%ld\n", out_buf);
+		printf("\t%ld\n", (long int) out_buf);
 		if (out_buf != 1) {
-			printf("error: expected to select 1 got %d\n", (int) out_buf);
+			printf("error: expected to select 1 got %ld\n", (long int) out_buf);
 			retcode = 1;
 			goto cleanup;
 		}
