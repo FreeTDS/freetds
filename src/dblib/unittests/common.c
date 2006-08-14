@@ -16,13 +16,13 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.17 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.18 2006-08-14 17:14:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
 {
 	int item_number;
-	int special;
+	unsigned int special;
 	struct _tag_memcheck_t *next;
 }
 memcheck_t;
@@ -30,7 +30,7 @@ memcheck_t;
 
 static memcheck_t *breadcrumbs = NULL;
 static int num_breadcrumbs = 0;
-static const int BREADCRUMB = 0xABCD7890;
+static const unsigned int BREADCRUMB = 0xABCD7890;
 
 char USER[512];
 char SERVER[512];

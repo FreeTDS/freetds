@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.147 2006-07-31 17:29:03 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.148 2006-08-14 17:14:03 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -614,10 +614,10 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 	switch (option) {
 	case BCPLABELED:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED bcp option: BCPLABELED\n");
-		return FAIL;
+		break;
 	case BCPHINTS:
 		if (!value || valuelen <= 0)
-			return FAIL;
+			break;
 
 		for (i = 0; hints[i]; i++) {	/* look up hint */
 			if (strncasecmp((char *) value, hints[i], strlen(hints[i])) == 0) {
@@ -626,14 +626,12 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 			}
 		}
 		tdsdump_log(TDS_DBG_FUNC, "failed, no such hint\n");
-		return FAIL;
 		break;
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED bcp option: %u\n", option);
-		return FAIL;
+		break;
 	}
-
-	return SUCCEED;
+	return FAIL;
 }
 
 /** 

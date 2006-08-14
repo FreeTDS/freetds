@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-static char software_version[] = "$Id: thread.c,v 1.8 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.9 2006-08-14 17:14:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -203,9 +203,10 @@ main(int argc, char **argv)
 	}
 
 	for (i = 0; i < NUM_THREAD; ++i) {
-		if (pthread_create(&th[i], NULL, thread_test, (void *) i) != 0)
+		int err = pthread_create(&th[i], NULL, thread_test, (void *) i);
+		if (err != 0)
 		{
-			fprintf(stderr, "Error creating thread\n");
+			fprintf(stderr, "Error %d (%s) creating thread\n", err, strerror(err));
 			return 1;
 		}
 		/* MSSQL rejects the connections if they come in too fast */

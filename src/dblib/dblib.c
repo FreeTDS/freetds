@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.257 2006-07-31 17:24:56 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.258 2006-08-14 17:14:03 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4377,7 +4377,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 	TDSSOCKET *tds;
 	TDSCOMPUTEINFO *info;
 	int i;
-	const TDS_SMALLINT byte_flag = 0x8000;
+	const TDS_SMALLINT byte_flag = -0x8000;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbbylist(%p, %d, %p)\n", dbproc, computeid, size);
 	CHECK_PARAMETER2(dbproc, SYBENULL, NULL);
@@ -5095,8 +5095,7 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
 	if (d1->dtdays == d2->dtdays) {
 		if (d1->dttime == d2->dttime)
 			return 0;
-		else
-			return d1->dttime > d2->dttime ? 1 : -1;
+		return d1->dttime > d2->dttime ? 1 : -1;
 	}
 
 	/* date 1 is before 1900 */
@@ -5104,16 +5103,13 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
 
 		if (d2->dtdays > 2958463)	/* date 2 is before 1900 */
 			return d1->dtdays > d2->dtdays ? 1 : -1;
-		else
-			return -1;
-	} else {
-		/* date 1 is after 1900 */
-		if (d2->dtdays < 2958463)	/* date 2 is after 1900 */
-			return d1->dtdays > d2->dtdays ? 1 : -1;
-		else
-			return 1;
+		return -1;
 	}
-	return SUCCEED;
+
+	/* date 1 is after 1900 */
+	if (d2->dtdays < 2958463)	/* date 2 is after 1900 */
+		return d1->dtdays > d2->dtdays ? 1 : -1;
+	return 1;
 }
 
 /**

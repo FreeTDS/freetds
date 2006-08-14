@@ -1,3 +1,9 @@
+Mon Aug 14 19:12:58 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/blk.c src/dblib/bcp.c src/dblib/dblib.c:
+	* src/dblib/unittests/common.c:
+	- fix warnings compiling with SUN cc
+	* src/dblib/unittests/thread.c: make error more verbose
+
 Sun Aug 13 15:02:40 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/data.c:
 	* src/odbc/unittests/transaction.c:
