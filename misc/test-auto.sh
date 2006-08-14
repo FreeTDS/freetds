@@ -44,11 +44,13 @@ output_save () {
 }
 
 # output informations
-log "INFO HOSTNAME $(echo $(hostname))"
-VER=$(gcc --version 2> /dev/null | grep 'GCC')
+XXX=`hostname`
+log "INFO HOSTNAME `echo $XXX`"
+VER=`gcc --version 2> /dev/null | grep 'GCC'`
 log "INFO GCC $VER"
-log "INFO UNAME $(echo $(uname -a))"
-log "INFO DATE $(date '+%Y-%m-%d')"
+XXX=`uname -a`
+log "INFO UNAME `echo $XXX`"
+log "INFO DATE `date '+%Y-%m-%d'`"
 
 MAKE=make
 if gmake --help 2> /dev/null > /dev/null; then
