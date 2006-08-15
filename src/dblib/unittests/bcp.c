@@ -13,7 +13,7 @@
 
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.10 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.11 2006-08-15 07:26:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -43,6 +43,7 @@ static int
 init(DBPROCESS * dbproc, const char *name)
 {
 	int res = 0;
+	RETCODE rc;
 
 	fprintf(stdout, "Dropping %s.%s..%s\n", SERVER, DATABASE, name);
 	add_bread_crumb();
@@ -51,9 +52,11 @@ init(DBPROCESS * dbproc, const char *name)
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+	while ((rc=dbresults(dbproc)) == SUCCEED) {
 		/* nop */
 	}
+	if (rc != NO_MORE_RESULTS)
+		return 1;
 	add_bread_crumb();
 
 	fprintf(stdout, "Creating %s.%s..%s\n", SERVER, DATABASE, name);
@@ -64,9 +67,11 @@ init(DBPROCESS * dbproc, const char *name)
 		add_bread_crumb();
 		res = 1;
 	}
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+	while ((rc=dbresults(dbproc)) == SUCCEED) {
 		/* nop */
 	}
+	if (rc != NO_MORE_RESULTS)
+		return 1;
 	return res;
 }
 
