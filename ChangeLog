@@ -1,3 +1,7 @@
+Wed Aug 16 13:04:48 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: cleanup, fix possible problem under Linux
+	* src/tds/read.c: avoid invalid in_pos value on tds_peek
+
 Mon Aug 14 19:12:58 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/blk.c src/dblib/bcp.c src/dblib/dblib.c:
 	* src/dblib/unittests/common.c:

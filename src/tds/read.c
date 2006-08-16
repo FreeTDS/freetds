@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.100 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.101 2006-08-16 11:06:50 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -97,8 +97,8 @@ unsigned char
 tds_peek(TDSSOCKET * tds)
 {
 	unsigned char result = tds_get_byte(tds);
-
-	tds_unget_byte(tds);
+	if (tds->in_pos > 0)
+		--tds->in_pos;
 	return result;
 }				/* tds_peek()  */
 

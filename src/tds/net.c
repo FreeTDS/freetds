@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.38 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.39 2006-08-16 11:06:50 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -401,8 +401,7 @@ int
 tds_read_packet(TDSSOCKET * tds)
 {
 	unsigned char header[8];
-	int len;
-	int x = 0, have, need;
+	int len, have;
 
 	if (IS_TDSDEAD(tds)) {
 		tdsdump_log(TDS_DBG_NETWORK, "Read attempt when state is TDS_DEAD");
@@ -469,7 +468,6 @@ tds_read_packet(TDSSOCKET * tds)
 
 	/* Convert our packet length from network to host byte order */
 	len = ((((unsigned int) header[2]) << 8) | header[3]) - 8;
-	need = len;
 
 	/*
 	 * If this packet size is the largest we have gotten allocate
@@ -483,8 +481,10 @@ tds_read_packet(TDSSOCKET * tds)
 		} else {
 			p = (unsigned char *) realloc(tds->in_buf, len);
 		}
-		if (!p)
-			return -1;	/* FIXME should close socket too */
+		if (!p) {
+			tds_close_socket(tds);
+			return -1;
+		}
 		tds->in_buf = p;
 		/* Set the new maximum packet size */
 		tds->in_buf_max = len;
@@ -495,43 +495,26 @@ tds_read_packet(TDSSOCKET * tds)
 
 	/* Now get exactly how many bytes the server told us to get */
 	have = 0;
-	while (need > 0) {
-		if ((x = goodread(tds, tds->in_buf + have, need)) < 1) {
+	while (have < len) {
+		int readed = goodread(tds, tds->in_buf + have, len - have);
+		if (readed < 1) {
 			/*
 			 * Not sure if this is the best way to do the error
 			 * handling here but this is the way it is currently
 			 * being done.
 			 */
+			tds_client_msg(tds->tds_ctx, tds, 20004, 9, 0, 0, "Read from SQL server failed.");
 			tds->in_len = 0;
 			tds->in_pos = 0;
 			tds->last_packet = 1;
-			/* FIXME should this be "if (x == 0)" ? */
-			if (len == 0) {
-				tds_close_socket(tds);
-			}
-			return (-1);
+			tds_close_socket(tds);
+			return -1;
 		}
-		have += x;
-		need -= x;
-	}
-	if (x < 1) {
-		/*
-		 * Not sure if this is the best way to do the error handling
-		 * here but this is the way it is currently being done.
-		 */
-		tds->in_len = 0;
-		tds->in_pos = 0;
-		tds->last_packet = 1;
-		/* return 0 if header found but no payload */
-		return len ? -1 : 0;
+		have += readed;
 	}
 
 	/* Set the last packet flag */
-	if (header[1]) {
-		tds->last_packet = 1;
-	} else {
-		tds->last_packet = 0;
-	}
+	tds->last_packet = (header[1] != 0);
 
 	/* set the received packet type flag */
 	tds->in_flag = header[0];
@@ -614,6 +597,8 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 
 #ifdef USE_MSGMORE
 		retval = send(tds->s, p, left, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+		if (retval < 0 && errno == EINVAL && !last)
+			retval = send(tds->s, p, left, MSG_NOSIGNAL);
 #elif !defined(MSG_NOSIGNAL)
 		retval = WRITESOCKET(tds->s, p, left);
 #else
