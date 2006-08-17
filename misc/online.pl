@@ -158,11 +158,12 @@ foreach $i (@files) {
 	close(IN);
 
 	$_ = join("", @a);
+	@a = ();
 	$i->{warning} = 'no :-)';
 	$i->{warning} = 'yes :-(' if (/^\+?2:/m);
 	if ($i->{valgrind}) {
 		$vg = 1;
-                $i->{leak} = "no :-)";
+		$i->{leak} = "no :-)";
 		if (!/:==.*no leaks are possible/) {
 			$i->{leak} = "yes :-(" if (!/:==.*definitely lost: 0 bytes in 0 blocks/);
 			$i->{leak} = "yes :-(" if (!/:==.*possibly lost: 0 bytes in 0 blocks/);
@@ -178,6 +179,7 @@ foreach $i (@files) {
 	s,^3:(.*)$,<span class="info">\1</span>,mg;
 	s,^1:,,mg;
 	print HTML "<pre>$_</pre>";
+	$_ = '';
 
 	printf HTML $Footer;
 	close(HTML);
