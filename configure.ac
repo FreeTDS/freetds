@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.9 2006-08-17 09:15:25 freddy77 Exp $
+dnl $Id: configure.ac,v 1.10 2006-08-17 14:29:19 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.9 $)
+AC_REVISION($Revision: 1.10 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -161,7 +161,8 @@ if test $tds_mingw = no; then
 	AC_SUBST(READLINE_LIBS)
 
 	ACX_PTHREAD
-	CPPFLAGS="$CPPFLAGS $PTHREAD_CFLAGS"
+	AM_CFLAGS="$AM_CFLAGS $PTHREAD_CFLAGS"
+	AC_SUBST(AM_CFLAGS)
 	LIBS="$PTHREAD_LIBS $LIBS"
 fi
 
