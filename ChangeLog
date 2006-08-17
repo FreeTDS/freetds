@@ -1,3 +1,10 @@
+Thu Aug 17 11:13:40 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac include/tds.h src/dblib/unittests/Makefile.am:
+	* src/tds/net.c src/tds/query.c src/tds/token.c src/tds/util.c:
+	* m4/acx_pthread.m4(added):
+	- timeout more precise and use monotonic clock if available
+	- check pthread support more deeply
+
 Wed Aug 16 13:04:48 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: cleanup, fix possible problem under Linux
 	* src/tds/read.c: avoid invalid in_pos value on tds_peek

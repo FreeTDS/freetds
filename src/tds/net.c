@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.39 2006-08-16 11:06:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.40 2006-08-17 09:15:25 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -142,7 +142,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	fd_set fds;
 #if !defined(DOS32X)
 	unsigned long ioctl_blocking = 1;
-	time_t start, now;
+	unsigned int start_ms, now_ms;
 	struct timeval selecttimeout;
 	int retval;
 #endif
@@ -206,7 +206,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		/* I don't think anybody complains... */
 		timeout = 90000;
 
-	start = time(NULL);
+	start_ms = tds_gettime_ms();
 
 	/* enable no-blocking mode */
 	ioctl_blocking = 1;
@@ -221,19 +221,19 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	/* if retval < 0 (error) fall through */
 
 	/* Select on writeability for connect_timeout */
-	now = start;
-	while ((retval == 0) && ((now - start) < timeout)) {
+	now_ms = start_ms;
+	while ((retval == 0) && ((now_ms - start_ms) / 1000u < timeout)) {
 		FD_SET(tds->s, &fds);
-		selecttimeout.tv_sec = timeout - (now - start);
+		selecttimeout.tv_sec = timeout - (now_ms - start_ms) / 1000u;
 		selecttimeout.tv_usec = 0;
 		retval = select(tds->s + 1, NULL, &fds, &fds, &selecttimeout);
 		/* on interrupt ignore */
 		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
 			retval = 0;
-		now = time(NULL);
+		now_ms = tds_gettime_ms();
 	}
 
-	if (retval < 0 || (now - start) >= timeout) {
+	if (retval < 0 || (now_ms - start_ms) / 1000u >= timeout) {
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port), strerror(sock_errno));
 		tds_close_socket(tds);
 		if (retval < 0)
@@ -282,7 +282,7 @@ tds_close_socket(TDSSOCKET * tds)
 static int
 tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfinished)
 {
-	time_t start, global_start;
+	unsigned int start_ms, global_start_ms;
 	int timeout = 0;
 	int got = 0;
 	fd_set rfds;
@@ -293,12 +293,12 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 	if (buf == NULL || buflen < 1 || tds == NULL)
 		return 0;
 
-	global_start = start = tds->query_start_time ? tds->query_start_time : time(NULL);
+	global_start_ms = start_ms = tds->query_start_time_ms ? tds->query_start_time_ms : tds_gettime_ms();
 
 	while (buflen > 0) {
 
 		int len;
-		time_t now = time(NULL);
+		unsigned int now_ms = tds_gettime_ms();
 
 		if (IS_TDSDEAD(tds))
 			return -1;
@@ -308,7 +308,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 
 		timeout = 0;
 		if (tds->query_timeout > 0) {
-			timeout = tds->query_timeout - (now - start);
+			timeout = tds->query_timeout - (now_ms - start_ms) / 1000u;
 			if (timeout < 1)
 				timeout = 1;
 		}
@@ -346,15 +346,15 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 		buflen -= len;
 		got += len;
 
-		now = time(NULL);
-		if (tds->query_timeout > 0 && now - start >= tds->query_timeout) {
+		now_ms = tds_gettime_ms();
+		if (tds->query_timeout > 0 && (now_ms - start_ms) / 1000u >= tds->query_timeout) {
 
 			int timeout_action = TDS_INT_CONTINUE;
 
 			tdsdump_log(TDS_DBG_NETWORK, "exceeded query timeout: %d\n", tds->query_timeout);
 
 			if (tds->query_timeout_func && tds->query_timeout)
-				timeout_action = (*tds->query_timeout_func) (tds->query_timeout_param, now - global_start);
+				timeout_action = (*tds->query_timeout_func) (tds->query_timeout_param, (now_ms - global_start_ms)/ 1000u);
 
 			switch (timeout_action) {
 			case TDS_INT_EXIT:
@@ -365,7 +365,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 				break;
 
 			case TDS_INT_CONTINUE:
-				start = now;
+				start_ms = now_ms;
 			default:
 				break;
 			}

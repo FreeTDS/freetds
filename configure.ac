@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.8 2006-07-25 08:17:42 freddy77 Exp $
+dnl $Id: configure.ac,v 1.9 2006-08-17 09:15:25 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.8 $)
+AC_REVISION($Revision: 1.9 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -160,11 +160,9 @@ if test $tds_mingw = no; then
 	LIBS="$OLDLIBS"
 	AC_SUBST(READLINE_LIBS)
 
-	LIBS=""
-	AC_SEARCH_LIBS(pthread_create, pthread)
-	PTHREAD_LIBS="$LIBS"
-	LIBS="$OLDLIBS"
-	AC_SUBST(PTHREAD_LIBS)
+	ACX_PTHREAD
+	CPPFLAGS="$CPPFLAGS $PTHREAD_CFLAGS"
+	LIBS="$PTHREAD_LIBS $LIBS"
 fi
 
 
@@ -341,7 +339,8 @@ TDS_NULL_IS_ZERO
 # ------------------------------------------------------------
 AC_CHECK_FUNCS([vsnprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
-getuid getpwuid getpwuid_r fstat alarm])
+getuid getpwuid getpwuid_r fstat alarm \
+gethrtime])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname freehostent \
@@ -351,6 +350,7 @@ LIBS="$OLD_LIBS"
 AC_REPLACE_FUNCS([asprintf vasprintf atoll strtok_r readpassphrase \
 strlcpy strlcat basename])
 AC_FUNC_FSEEKO
+TDS_GETTIMEMILLI
 
 # ------------------------------------------------------------
 # Checks for library variables.

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.317 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.318 2006-08-17 09:15:25 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2524,7 +2524,7 @@ tds_process_cancel(TDSSOCKET * tds)
 	if (tds->state != TDS_PENDING)
 		return TDS_SUCCEED;
 
-	tds->query_start_time = 0;
+	tds->query_start_time_ms = 0;
 	tds->query_timeout = 0;
 
 	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */

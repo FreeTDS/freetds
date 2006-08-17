@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.198 2006-08-08 17:14:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.199 2006-08-17 09:15:25 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1861,7 +1861,7 @@ tds_send_cancel(TDSSOCKET * tds)
 	/* tds_init_write_buf(tds); */
 
 	/* disable timeout */
-	tds->query_start_time = 0;
+	tds->query_start_time_ms = 0;
 	tds->query_timeout = 0;
 
 	tds->out_flag = TDS_CANCEL;

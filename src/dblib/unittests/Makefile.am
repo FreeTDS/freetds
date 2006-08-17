@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.33 2006-07-17 13:19:14 freddy77 Exp $
+# $Id: Makefile.am,v 1.34 2006-08-17 09:15:25 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -39,10 +39,6 @@ bcp_SOURCES	=	bcp.c bcp.h common.c common.h
 thread_SOURCES	=	thread.c bcp.h common.c common.h
 text_buffer_SOURCES =	text_buffer.c common.c common.h
 done_handling_SOURCES =	done_handling.c common.c common.h
-
-if ENABLE_THREADSAFE
-thread_LDADD	=	@PTHREAD_LIBS@
-endif
 
 AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
 AM_LDFLAGS	=	-no-install

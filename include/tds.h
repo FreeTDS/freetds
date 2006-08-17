@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.254 2006-08-03 18:31:48 freddy77 Exp $ */
+/* $Id: tds.h,v 1.255 2006-08-17 09:15:25 freddy77 Exp $ */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -1173,7 +1173,7 @@ struct tds_socket
 	TDS_INT query_timeout;
 	int (*query_timeout_func) (void *param, unsigned int total_timeout);
 	void *query_timeout_param;
-	time_t query_start_time;
+	unsigned int query_start_time_ms;
 	TDSENV env;
 
 	/* dynamic placeholder stuff */
@@ -1389,6 +1389,7 @@ void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...
 #endif
 ;
 extern int tds_debug_flags;
+unsigned int tds_gettime_ms(void);
 
 /* net.c */
 int tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);

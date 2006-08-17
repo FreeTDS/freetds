@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.68 2006-08-08 14:43:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.69 2006-08-17 09:15:25 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -148,7 +148,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 			return tds->state;
 		}
 
-		tds->query_start_time = time(NULL);
+		tds->query_start_time_ms = tds_gettime_ms();
 
 		/* TODO check this code, copied from tds_submit_prepare */
 		tds_free_all_results(tds);
@@ -508,4 +508,24 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 #endif
 	TDS_MUTEX_UNLOCK(&g_dump_mutex);
 }				/* tdsdump_log()  */
+
+unsigned int
+tds_gettime_ms(void)
+{
+#ifdef WIN32
+	return GetTickCount();
+#elif defined(HAVE_GETHRTIME)
+	return (unsigned int) (gethrtime() / 1000000u);
+#elif defined(HAVE_CLOCK_GETTIME) && defined(TDS_GETTIMEMILLI_CONST)
+	struct timespec ts;
+	clock_gettime(TDS_GETTIMEMILLI_CONST, &ts);
+	return (unsigned int) (ts.tv_sec * 1000u + ts.tv_nsec / 1000000u);
+#elif defined(HAVE_GETTIMEOFDAY)
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (unsigned int) (tv.tv_sec * 1000u + tv.tv_usec / 1000u);
+#else
+#error How to implement tds_gettime_ms ??
+#endif
+}
 
