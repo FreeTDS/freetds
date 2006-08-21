@@ -1,3 +1,6 @@
+Mon Aug 21 11:08:37 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c: remove small buffer overflow
+
 Thu Aug 17 11:13:40 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac include/tds.h src/dblib/unittests/Makefile.am:
 	* src/tds/net.c src/tds/query.c src/tds/token.c src/tds/util.c:

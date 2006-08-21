@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.258 2006-08-14 17:14:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.259 2006-08-21 09:10:06 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2785,7 +2785,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 		colinfo = resinfo->columns[col];
 		if (colinfo->column_cur_size < 0) {
 			len = 4;
-			if (buf_len < len) {
+			if (buf_len <= len) {
 				return FAIL;
 			}
 			strcpy(buffer, "NULL");
