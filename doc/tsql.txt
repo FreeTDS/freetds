@@ -1,8 +1,8 @@
 NAME
   tsql - utility to test FreeTDS connections and queries
 SYNOPSIS
-  tsql 	{-S servername [-I inside] | -H hostname -p port} 
- 	-U username [-P password]
+  tsql 	{ -S servername [-I inside] | -H hostname -p port } 
+ 	-U username [-P password] [-o options]
 	
   tsql	-C
 
@@ -45,6 +45,12 @@ OPTIONS
 	
 	-C  prints some of the compile-time configuration parameters.  
 
+	-o options  apply the options specified to every command.
+		f      No footer       [result count]
+		h      No header       [titles]
+		t      Print time
+		v      Print version
+		q      Quiet
 
 NOTES
 

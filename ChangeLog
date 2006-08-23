@@ -1,3 +1,7 @@
+Wed Aug 23 21:43:50 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/tsql.txt: applied Christos Zoulas updates
+	* doc/txt2man: updated
+
 Wed Aug 23 17:16:10 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c:
 	- clean error before reading SO_ERROR, some system need this
