@@ -21,6 +21,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
+
 #if TIME_WITH_SYS_TIME
 # if HAVE_SYS_TIME_H
 #  include <sys/time.h>
@@ -38,7 +40,6 @@
 #include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
-#include <stdarg.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -64,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.69 2006-08-17 09:15:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.70 2006-08-23 15:19:04 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;

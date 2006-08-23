@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.40 2006-08-17 09:15:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.41 2006-08-23 15:19:04 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -247,6 +247,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 	/* check socket error */
 	optlen = sizeof(len);
+	len = 0;
 	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt: %s\n", strerror(sock_errno));
 		tds_close_socket(tds);

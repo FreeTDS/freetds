@@ -22,6 +22,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -38,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.169 2006-08-10 08:11:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.170 2006-08-23 15:19:05 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
