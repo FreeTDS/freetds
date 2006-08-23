@@ -57,6 +57,15 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+/* HP-UX require some constants defined by limits.h */
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif /* HAVE_LIMITS_H */
+
+#if defined(__hpux__) && !defined(_POSIX_PATH_MAX)
+#define _POSIX_PATH_MAX 255
+#endif
+
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif /* HAVE_LOCALE_H */
@@ -69,7 +78,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.88 2006-06-09 18:35:25 castellano Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.89 2006-08-23 14:26:20 freddy77 Exp $");
 
 enum
 {

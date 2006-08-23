@@ -1,4 +1,4 @@
-dnl $Id: sprintf_i64_format.m4,v 1.6 2006-06-12 20:00:32 freddy77 Exp $
+dnl $Id: sprintf_i64_format.m4,v 1.7 2006-08-23 14:26:20 freddy77 Exp $
 ##
 # Test for 64bit integer sprintf format specifier
 # ld   64 bit machine
@@ -14,6 +14,10 @@ AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
 this should produce an error!
 #endif
 ],[return 0;]),[tds_i64_format="I64d"])
+
+if test "x$ac_cv_sizeof_long" = "x8"; then
+	tds_i64_format=l
+fi
 
 if test "x$tds_i64_format" = "x"; then
 	for arg in l ll I64 L; do

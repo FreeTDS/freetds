@@ -1,3 +1,9 @@
+Wed Aug 23 16:25:25 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* m4/ac_tds_func_which_getpwuid_r.m4 m4/sprintf_i64_format.m4:
+	* configure.ac src/ctlib/cs.c src/apps/tsql.c:
+	* src/replacements/asprintf.c src/tds/query.c:
+	- fixes some cross compile issues with hp-ux
+
 Mon Aug 21 11:08:37 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: remove small buffer overflow
 

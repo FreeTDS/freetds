@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
+
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -47,7 +49,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.61 2005-07-15 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.62 2006-08-23 14:26:20 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);

@@ -1,4 +1,4 @@
-dnl $Id: ac_tds_func_which_getpwuid_r.m4,v 1.3 2006-03-29 16:24:37 freddy77 Exp $
+dnl $Id: ac_tds_func_which_getpwuid_r.m4,v 1.4 2006-08-23 14:26:20 freddy77 Exp $
 ##
 # Check getpwuid_r parameters
 # There are three version of this function
@@ -40,7 +40,24 @@ getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw);
 return 0;
 }
 ],ac_cv_func_which_getpwuid_r=five,
-ac_cv_func_which_getpwuid_r=no)]
+ac_cv_func_which_getpwuid_r=no)],
+[# cross compile case
+ac_cv_func_which_getpwuid_r=no
+num_params=four
+for params in "int" "size_t, struct passwd **"; do
+  AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
+#include <unistd.h>
+#include <pwd.h>
+extern int getpwuid_r(uid_t, struct passwd *, char *, $params);
+          ],[]),[
+	if test $ac_cv_func_which_getpwuid_r != no; then
+		AC_ERROR([Two types of getpwuid_r detected])
+	fi
+	ac_cv_func_which_getpwuid_r=$num_params
+	])
+	num_params=five
+done
+]
 )]
 )])
 

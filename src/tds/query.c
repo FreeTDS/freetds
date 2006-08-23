@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STDLIB_H
@@ -44,7 +45,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.199 2006-08-17 09:15:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.200 2006-08-23 14:26:20 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
