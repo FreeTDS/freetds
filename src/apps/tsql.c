@@ -78,7 +78,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.92 2006-08-24 09:23:58 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.93 2006-08-24 19:19:25 freddy77 Exp $");
 
 enum
 {
@@ -89,6 +89,7 @@ enum
 	OPT_QUIET =    0x10
 };
 
+static int istty = 0;
 static int global_opt_flags = 0;
 #define QUIET (global_opt_flags & OPT_QUIET)
 
@@ -99,15 +100,16 @@ static void populate_login(TDSLOGIN * login, int argc, char **argv);
 static int tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
 static void slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line);
 
-#ifndef HAVE_READLINE
-static char *readline(char *prompt);
-static void add_history(const char *s);
-
 static char *
-readline(char *prompt)
+tsql_readline(char *prompt)
 {
 	char line[1024];
 	int i = 0;
+
+#ifdef HAVE_READLINE
+	if (istty)
+		return readline(prompt);
+#endif
 
 	if (prompt && prompt[0])
 	    printf("%s", prompt);
@@ -125,10 +127,13 @@ readline(char *prompt)
 }
 
 static void
-add_history(const char *s)
+tsql_add_history(const char *s)
 {
-}
+#ifdef HAVE_READLINE
+	if (istty)
+		add_history(s);
 #endif
+}
 
 static int
 do_query(TDSSOCKET * tds, char *buf, int opt_flags)
@@ -499,7 +504,7 @@ slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line)
 		n = strrchr(s, '\n');
 		if (n != NULL)
 			*n = '\0';
-		add_history(s);
+		tsql_add_history(s);
 		(*line)++;
 	}
 }
@@ -518,6 +523,8 @@ main(int argc, char **argv)
 	TDSCONTEXT *context;
 	TDSCONNECTION *connection;
 	int opt_flags = 0;
+
+	istty = isatty(0);
 
 	if (INITSOCKET()) {
 		fprintf(stderr, "Unable to initialize sockets\n");
@@ -563,7 +570,7 @@ main(int argc, char **argv)
 		sprintf(prompt, "%d> ", ++line);
 		if (s)
 			free(s);
-		s = readline(QUIET ? NULL : prompt);
+		s = tsql_readline(QUIET ? NULL : prompt);
 		if (s == NULL) 
 			break;
 
@@ -598,24 +605,24 @@ main(int argc, char **argv)
 		if (!strcmp(cmd, "exit") || !strcmp(cmd, "quit") || !strcmp(cmd, "bye")) {
 			break;
 		}
-		if (!strcmp(cmd, "version")) {
+		if (!strcasecmp(cmd, "version")) {
 			tds_version(tds, mybuf);
 			printf("using TDS version %s\n", mybuf);
 			line = 0;
 			mybuf[0] = '\0';
 			continue;
 		}
-		if (!strcmp(cmd, "reset")) {
+		if (!strcasecmp(cmd, "reset")) {
 			line = 0;
 			mybuf[0] = '\0';
-		} else if (!strcmp(cmd, ":r")) {
+		} else if (!strcasecmp(cmd, ":r")) {
 			slurp_input_file(strtok(NULL, " \t"), &mybuf, &bufsz, &line);
 		} else {
 			while (strlen(mybuf) + strlen(s) + 2 > bufsz) {
 				bufsz *= 2;
 				mybuf = (char *) realloc(mybuf, bufsz);
 			}
-			add_history(s);
+			tsql_add_history(s);
 			strcat(mybuf, s);
 			/* preserve line numbering for the parser */
 			strcat(mybuf, "\n");
