@@ -1,3 +1,7 @@
+Thu Aug 24 08:32:07 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/tsql.c:
+	- do not print return status if quiet (patch from Christos Zoulas)
+
 Wed Aug 23 21:43:50 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/tsql.txt: applied Christos Zoulas updates
 	* doc/txt2man: updated

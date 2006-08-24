@@ -78,7 +78,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.89 2006-08-23 14:26:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.90 2006-08-24 06:35:14 freddy77 Exp $");
 
 enum
 {
@@ -204,7 +204,8 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 			}
 			break;
 		case TDS_STATUS_RESULT:
-			printf("(return status = %d)\n", tds->ret_status);
+			if (!QUIET)
+				printf("(return status = %d)\n", tds->ret_status);
 			break;
 		default:
 			break;
