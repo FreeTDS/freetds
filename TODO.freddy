@@ -50,6 +50,4 @@ Tests
 -----
 Rebuild all test support (virtual machines, chroot, msde+mssql2005)
 Add a test for rpm (redhat, suse?)
-Improve doxy error report collapsing and sorting file warnings
-WSAStartup for windows
 disabling thread safety don't check for thread-safe functions
