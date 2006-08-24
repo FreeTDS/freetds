@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.77 2006-07-31 17:24:56 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.78 2006-08-24 14:30:19 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -83,7 +83,7 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
  * DBTDS_xxx are returned by DBTDS()
  * The integer values of the constants are poorly chosen.  
  */
-#define DBTDS_UNKNOWN          -1	/* "DBTDS returns a negative integer on error." */
+#define DBTDS_UNKNOWN           0
 #define DBTDS_2_0               1	/* pre 4.0 SQL Server */
 #define DBTDS_3_4               2	/* Microsoft SQL Server (3.0) */
 #define DBTDS_4_0               3	/* 4.0 SQL Server */

@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.259 2006-08-21 09:10:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.260 2006-08-24 14:30:20 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -6084,9 +6084,9 @@ int
 dbtds(DBPROCESS * dbproc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbtds(%p)\n", dbproc);
-	CHECK_PARAMETER2(dbproc, SYBENULL, DBTDS_UNKNOWN);
+	CHECK_PARAMETER2(dbproc, SYBENULL, -1);
 
-	if (dbproc && dbproc->tds_socket) {
+	if (dbproc->tds_socket) {
 		switch (dbproc->tds_socket->major_version) {
 		case 4:
 			switch (dbproc->tds_socket->minor_version) {
@@ -6107,7 +6107,7 @@ dbtds(DBPROCESS * dbproc)
 			return DBTDS_UNKNOWN;
 		}
 	}
-	return DBTDS_UNKNOWN;
+	return -1;
 }
 
 /**

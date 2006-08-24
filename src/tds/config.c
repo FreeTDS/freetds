@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.121 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.122 2006-08-24 14:30:20 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -752,17 +752,15 @@ tds_lookup_port(const char *portname)
 
 /* TODO same code in convert.c ?? */
 static int
-hexdigit(char c)
+hexdigit(int c)
 {
-	if (c >= 'a' && c <= 'f') {
-		return c - 'a' + 10;
-	} else if (c >= 'A' && c <= 'F') {
-		return c - 'A' + 10;
-	} else if (c >= '0' && c <= '9') {
+	if (c >= '0' && c <= '9')
 		return c - '0';
-	} else {
-		return 0;	/* bad hex digit */
-	}
+	/* ascii optimization, 'A' -> 'a', 'a' -> 'a' */
+	c |= 0x20;
+	if (c >= 'a' && c <= 'f')
+		return c - 'a' + 10;
+	return 0;	/* bad hex digit */
 }
 
 static int

@@ -1,3 +1,8 @@
+Thu Aug 24 16:29:17 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sybdb.h src/dblib/dblib.c:
+	- do not change compatibility
+	* src/tds/config.c: small optimization
+
 Thu Aug 24 11:37:15 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* m4/sprintf_i64_format.m4: fix 64bit problem for LP64
 
