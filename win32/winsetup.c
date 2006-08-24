@@ -293,7 +293,6 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 {
 	int result;
 	DSNINFO *di;
-	WSADATA wsadata;
 	const char *errmsg;
 
 	/*
@@ -301,7 +300,7 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 	 * ConfigDSN() only looks up addresses and names, and never actually
 	 * uses any sockets.
 	 */
-	WSAStartup(MAKEWORD(1, 1), &wsadata);
+	INITSOCKET();
 
 	/* Create a blank connection struct */
 	di = alloc_dsninfo();
@@ -372,12 +371,12 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 
 	/* Clean up and return TRUE, indicating that the change took place */
 	free_dsninfo(di);
-	WSACleanup();
+	DONESOCKET();
 	return TRUE;
 
       Fail:
 	free_dsninfo(di);
-	WSACleanup();
+	DONESOCKET();
 	return FALSE;
 }
 

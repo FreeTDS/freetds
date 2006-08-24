@@ -98,12 +98,28 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.41 2006-08-23 15:19:04 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.42 2006-08-24 09:18:02 freddy77 Exp $");
 
 /**
  * \addtogroup network
  * @{ 
  */
+
+#ifdef WIN32
+int
+_tds_socket_init(void)
+{
+	WSADATA wsadata;
+
+	return WSAStartup(MAKEWORD(1, 1), &wsadata);
+}
+
+int
+_tds_socket_done(void)
+{
+	return WSACleanup();
+}
+#endif
 
 #if !defined(SOL_TCP) && defined(IPPROTO_TCP)
 #define SOL_TCP IPPROTO_TCP

@@ -78,7 +78,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.90 2006-08-24 06:35:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.91 2006-08-24 09:18:01 freddy77 Exp $");
 
 enum
 {
@@ -519,6 +519,11 @@ main(int argc, char **argv)
 	TDSCONNECTION *connection;
 	int opt_flags = 0;
 
+	if (!INITSOCKET()) {
+		fprintf(stderr, "Unable to initialize sockets\n");
+		return 1;
+	}
+
 	/* grab a login structure */
 	login = tds_alloc_login();
 
@@ -621,6 +626,7 @@ main(int argc, char **argv)
 	tds_free_socket(tds);
 	tds_free_login(login);
 	tds_free_context(context);
+	DONESOCKET();
 
 	return 0;
 }

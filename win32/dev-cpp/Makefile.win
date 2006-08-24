@@ -12,7 +12,7 @@ INCS =  -I"include"  -I".."  -I"../../include"
 CXXINCS =  -I"lib/gcc/mingw32/3.4.2/include"  -I"include/c++/3.4.2/backward"  -I"include/c++/3.4.2/mingw32"  -I"include/c++/3.4.2"  -I"include"  -I".."  -I"../../include" 
 BIN  = FreeTDS.dll
 CXXFLAGS = $(CXXINCS) -D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS -DHAVE_SQLGETPRIVATEPROFILESTRING   -fexpensive-optimizations -O2
-CFLAGS = $(INCS) -D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS -DHAVE_SQLGETPRIVATEPROFILESTRING -mpreferred-stack-boundary=2   -fexpensive-optimizations -O2
+CFLAGS = $(INCS) -D__GNUWIN32__ -W -DHAVE_CONFIG_H -DUNIXODBC -D_FREETDS_LIBRARY_SOURCE -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_USRDLL -DFREETDS_EXPORTS -DHAVE_SQLGETPRIVATEPROFILESTRING -DDLL_EXPORT -mpreferred-stack-boundary=2 -fexpensive-optimizations -O2
 RM = rm -f
 
 .PHONY: all all-before all-after clean clean-custom

@@ -6,6 +6,8 @@
 
 #include <windows.h>
 
+#ifdef DLL_EXPORT
+
 HINSTANCE hinstFreeTDS;
 
 BOOL WINAPI
@@ -38,3 +40,6 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	}
 	return TRUE;
 }
+
+#endif
+
