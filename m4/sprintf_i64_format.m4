@@ -1,4 +1,4 @@
-dnl $Id: sprintf_i64_format.m4,v 1.7 2006-08-23 14:26:20 freddy77 Exp $
+dnl $Id: sprintf_i64_format.m4,v 1.8 2006-08-24 09:38:08 freddy77 Exp $
 ##
 # Test for 64bit integer sprintf format specifier
 # ld   64 bit machine
@@ -16,7 +16,7 @@ this should produce an error!
 ],[return 0;]),[tds_i64_format="I64d"])
 
 if test "x$ac_cv_sizeof_long" = "x8"; then
-	tds_i64_format=l
+	tds_i64_format=ld
 fi
 
 if test "x$tds_i64_format" = "x"; then
