@@ -1,3 +1,6 @@
+Fri Aug 25 09:17:37 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/tsql.c: remove 1024 char limit on tsql_readline
+
 Thu Aug 24 21:18:48 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/tsql.c: applied Christos Zoulas patch for no-tty
 

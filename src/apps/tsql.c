@@ -78,7 +78,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.93 2006-08-24 19:19:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.94 2006-08-25 07:18:22 freddy77 Exp $");
 
 enum
 {
@@ -103,27 +103,49 @@ static void slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line);
 static char *
 tsql_readline(char *prompt)
 {
-	char line[1024];
-	int i = 0;
+	size_t sz, pos;
+	char *line, *p;
 
 #ifdef HAVE_READLINE
 	if (istty)
 		return readline(prompt);
 #endif
 
-	if (prompt && prompt[0])
-	    printf("%s", prompt);
-	if (fgets(line, sizeof(line), stdin) == NULL) {
+	sz = 1024;
+	pos = 0;
+	line = (char*) malloc(sz);
+	if (!line)
 		return NULL;
-	}
-	for (i = strlen(line) - 1; i >= 0; --i) {
-		if (line[i] == '\n') {
-			line[i] = '\0';
+
+	if (prompt && prompt[0])
+		printf("%s", prompt);
+	for (;;) {
+		/* read a piece */
+		if (fgets(line + pos, sz - pos, stdin) == NULL) {
+			if (pos)
+				return line;
 			break;
 		}
-	}
 
-	return strdup(line);
+		/* got end-of-line ? */
+		p = strchr(line + pos, '\n');
+		if (p) {
+			*p = 0;
+			return line;
+		}
+
+		/* allocate space if needed */
+		pos += strlen(line + pos);
+		if (pos + 1024 >= sz) {
+			sz += 1024;
+			p = (char*) realloc(line, sz);
+			if (!p)
+				break;
+			line = p;
+		}
+	}
+	free(line);
+	return NULL;
 }
 
 static void
@@ -602,9 +624,8 @@ main(int argc, char **argv)
 		if (!cmd)
 			continue;
 
-		if (!strcmp(cmd, "exit") || !strcmp(cmd, "quit") || !strcmp(cmd, "bye")) {
+		if (!strcasecmp(cmd, "exit") || !strcasecmp(cmd, "quit") || !strcasecmp(cmd, "bye"))
 			break;
-		}
 		if (!strcasecmp(cmd, "version")) {
 			tds_version(tds, mybuf);
 			printf("using TDS version %s\n", mybuf);
