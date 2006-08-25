@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.34 2006-08-17 09:15:25 freddy77 Exp $
+# $Id: Makefile.am,v 1.35 2006-08-25 09:04:18 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -43,7 +43,7 @@ done_handling_SOURCES =	done_handling.c common.c common.h
 AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
 AM_LDFLAGS	=	-no-install
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la @NETWORK_LIBS@
-EXTRA_DIST	=	t0016.in t0017.in data.bin
+EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err
 

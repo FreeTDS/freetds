@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0017.c,v 1.26 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.27 2006-08-25 09:04:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -18,15 +18,23 @@ main(int argc, char *argv[])
 	DBPROCESS *dbproc;
 	int i;
 	RETCODE ret;
+	int big_endian = 1;
 
 	char *out_file = "t0017.out";
-	const char *in_file = FREETDS_SRCDIR "/t0017.in";
+	static const char in_file_le[] = FREETDS_SRCDIR "/t0017.in";
+	static const char in_file_be[] = FREETDS_SRCDIR "/t0017.in.be";
+	const char *in_file = in_file_le;
 	const char *err_file = "t0017.err";
 	DBINT rows_copied;
 	int num_cols = 0;
 	int col_type[256];
 	DBBOOL col_varylen[256];
 	int prefix_len;
+
+	if (((char *) &big_endian)[0] == 1)
+		big_endian = 0;
+	if (big_endian)
+		in_file = in_file_be;
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
