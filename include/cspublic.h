@@ -34,15 +34,25 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.56 2005-09-21 14:46:00 freddy77 Exp $";
+static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.57 2006-08-28 07:40:05 freddy77 Exp $";
 static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 #define CS_PUBLIC
 #define CS_STATIC static
 
+#define CS_SUCCEED		1
+#define CS_FAIL			0
+#define CS_MEM_ERROR		-1
+#define CS_PENDING 		-2
+#define CS_QUIET 		-3
+#define CS_BUSY			-4
+#define CS_INTERRUPT 		-5
+#define CS_BLK_HAS_TEXT		-6
+#define CS_CONTINUE		-7
+#define CS_FATAL		-8
+#define CS_RET_HAFAILOVER	-9
+#define CS_UNSUPPORTED		-10
 
-#define CS_FAIL		0
-#define CS_SUCCEED	1
 #define CS_CANCELED	-202
 #define CS_ROW_FAIL	-203
 #define CS_END_DATA	-204
@@ -50,9 +60,6 @@ static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_un
 #define CS_END_ITEM	-206
 #define CS_NOMSG	-207
 #define CS_TIMED_OUT 	-208
-#define CS_PENDING 	-2
-#define CS_INTERRUPT 	-5
-#define CS_QUIET 	-3
 
 #define CS_SIZEOF(x) sizeof(x)
 
@@ -299,7 +306,7 @@ enum
 
 /*
  * Code added for CURSOR support
- * types accepted by ct_cursor 
+ * types accepted by ct_cursor
  */
 #define CS_CURSOR_DECLARE  700
 #define CS_CURSOR_OPEN     701
@@ -434,6 +441,10 @@ enum
 
 #define CS_VERSION_100	112
 #define CS_VERSION_110	1100
+#define CS_VERSION_120	1100
+#define CS_VERSION_125	12500
+#define CS_VERSION_150	15000
+
 #define BLK_VERSION_100 CS_VERSION_100
 #define BLK_VERSION_110 CS_VERSION_100
 
@@ -552,6 +563,15 @@ enum
 #define CS_VOID_TYPE        TDS_STATIC_CAST(CS_INT, 23)
 #define CS_USHORT_TYPE      TDS_STATIC_CAST(CS_INT, 24)
 #define CS_UNICHAR_TYPE     TDS_STATIC_CAST(CS_INT, 25)
+#define CS_BLOB_TYPE        TDS_STATIC_CAST(CS_INT, 26)
+#define CS_DATE_TYPE        TDS_STATIC_CAST(CS_INT, 27)
+#define CS_TIME_TYPE        TDS_STATIC_CAST(CS_INT, 28)
+#define CS_UNITEXT_TYPE     TDS_STATIC_CAST(CS_INT, 29)
+#define CS_BIGINT_TYPE      TDS_STATIC_CAST(CS_INT, 30)
+#define CS_USMALLINT_TYPE   TDS_STATIC_CAST(CS_INT, 31)
+#define CS_UINT_TYPE        TDS_STATIC_CAST(CS_INT, 32)
+#define CS_UBIGINT_TYPE     TDS_STATIC_CAST(CS_INT, 33)
+#define CS_XML_TYPE         TDS_STATIC_CAST(CS_INT, 34)
 #define CS_UNIQUE_TYPE      TDS_STATIC_CAST(CS_INT, 40)
 
 #define CS_USER_TYPE        TDS_STATIC_CAST(CS_INT, 100)
