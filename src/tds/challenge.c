@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.26 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.27 2006-08-30 12:00:03 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -62,14 +62,14 @@ static void tds_encrypt_answer(const unsigned char *hash, const unsigned char *c
 static void tds_convert_key(const unsigned char *key_56, DES_KEY * ks);
 
 /**
- * Crypt a given password using schema required for NTLMv1 or NTLMv2 authentication
+ * Crypt a given password using schema required for NTLMv1 or NTLM2 authentication
  * @param passwd clear text domain password
  * @param challenge challenge data given by server
  * @param flags NTLM flags from server side
  * @param answer buffer where to store crypted password
  */
 void
-tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT flags, TDSANSWER * answer)
+tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT *flags, TDSANSWER * answer)
 {
 #define MAX_PW_SZ 14
 	int len;
@@ -82,7 +82,7 @@ tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UIN
 
 	memset(answer, 0, sizeof(TDSANSWER));
 
-	if (!(flags & 0x80000)) {
+	if (!(*flags & 0x80000)) {
 		/* convert password to upper and pad to 14 chars */
 		memset(passwd_buf, 0, MAX_PW_SZ);
 		len = strlen(passwd);
@@ -119,6 +119,7 @@ tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UIN
 		challenge = ntlm2_challenge;
 		memset(&md5_ctx, 0, sizeof(md5_ctx));
 	}
+	*flags = 0x8201;
 
 	/* NTLM/NTLM2 response */
 	len = strlen(passwd);

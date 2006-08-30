@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.260 2006-08-24 14:30:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.261 2006-08-30 12:00:03 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3694,16 +3694,19 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 			return SYBDATETIME;
 		else if (colinfo->column_size == 4)
 			return SYBDATETIME4;
+		break;
 	case SYBMONEYN:
 		if (colinfo->column_size == 4)
 			return SYBMONEY4;
-		else
+		else if (colinfo->column_size == 8)
 			return SYBMONEY;
+		break;
 	case SYBFLTN:
 		if (colinfo->column_size == 8)
 			return SYBFLT8;
 		else if (colinfo->column_size == 4)
 			return SYBREAL;
+		break;
 	case SYBINTN:
 		if (colinfo->column_size == 8)
 			return SYBINT8;
@@ -3713,6 +3716,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 			return SYBINT2;
 		else if (colinfo->column_size == 1)
 			return SYBINT1;
+		break;
 	default:
 		return colinfo->column_type;
 	}

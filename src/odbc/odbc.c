@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.420 2006-08-13 13:03:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.421 2006-08-30 12:00:03 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4004,7 +4004,7 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 static SQLRETURN SQL_API
 _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
-	char *p = NULL;
+	const char *p = NULL;
 	SQLRETURN rc;
 
 	INIT_HDBC;

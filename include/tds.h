@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.255 2006-08-17 09:15:25 freddy77 Exp $ */
+/* $Id: tds.h,v 1.256 2006-08-30 12:00:02 freddy77 Exp $ */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -1419,7 +1419,7 @@ typedef struct tds_answer
 	unsigned char lm_resp[24];
 	unsigned char nt_resp[24];
 } TDSANSWER;
-void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT flags, TDSANSWER * answer);
+void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT *flags, TDSANSWER * answer);
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
 #define IS_TDS46(x) (x->major_version==4 && x->minor_version==6)

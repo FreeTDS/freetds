@@ -1,3 +1,14 @@
+Wed Aug 30 13:58:56 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/challenge.c src/tds/login.c:
+	- make tds_answer_challenge return flags
+	- tds_dstr fix
+	* src/dblib/dblib.c: small fix
+	* src/odbc/odbc.c: constification
+	* src/tds/query.c:
+	- some static functions rename
+	- do not convert string in tds7_build_param_def_from_query
+	* src/tds/threadsafe.c: cleanup
+
 Mon Aug 28 09:36:32 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/cspublic.h:
 	- applied Norbert Sendetzky patch for ctlib compatibility

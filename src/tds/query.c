@@ -45,15 +45,15 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.200 2006-08-23 14:26:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.201 2006-08-30 12:00:03 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
 static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, int param_length);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
-static char *tds_build_param_def_from_query(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, const char** converted_query, int *converted_query_len, int *out_len);
-static char *tds_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, int *out_len);
+static char *tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, int converted_query_len, TDSPARAMINFO * params, int *out_len);
+static char *tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, int *out_len);
 
 static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static const char *tds_skip_comment(const char *s);
@@ -300,15 +300,18 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		count = tds_count_placeholders_ucs2le(converted_query, converted_query + converted_query_len);
  
 		if (!count) {
-			param_definition = tds_build_param_def_from_params(tds, converted_query, converted_query_len, params, &definition_len);
+			param_definition = tds7_build_param_def_from_params(tds, converted_query, converted_query_len, params, &definition_len);
 			if (!param_definition) {
 				tds_convert_string_free(query, converted_query);
 				tds_set_state(tds, TDS_IDLE);
 				return TDS_FAIL;
 			}
 		} else {
-			tds_convert_string_free(query, converted_query);
-			param_definition = tds_build_param_def_from_query(tds, query, query_len, params, &converted_query, &converted_query_len, &definition_len);
+			/*
+			 * TODO perhaps functions that calls tds7_build_param_def_from_query
+			 * should call also tds7_build_param_def_from_params ??
+			 */
+			param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
 			if (!param_definition) {
 				tds_set_state(tds, TDS_IDLE);
 				return TDS_FAIL;
@@ -698,7 +701,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
  */
 /* TODO find a better name for this function */
 static char *
-tds_build_param_def_from_query(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, const char** converted_query, int *converted_query_len, int *out_len)
+tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, int converted_query_len, TDSPARAMINFO * params, int *out_len)
 {
 	int size = 512;
 	char *param_str;
@@ -714,11 +717,7 @@ tds_build_param_def_from_query(TDSSOCKET * tds, const char* query, size_t query_
 	if (params)
 		CHECK_PARAMINFO_EXTRA(params);
 
-	*converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, converted_query_len);
-	if (!*converted_query)
-		return NULL;
-
-	count = tds_count_placeholders_ucs2le(*converted_query, *converted_query + *converted_query_len);
+	count = tds_count_placeholders_ucs2le(converted_query, converted_query + converted_query_len);
 	
 	param_str = (char *) malloc(512);
 	if (!param_str)
@@ -755,9 +754,9 @@ tds_build_param_def_from_query(TDSSOCKET * tds, const char* query, size_t query_
 
       Cleanup:
 	free(param_str);
-	tds_convert_string_free(query, *converted_query);
 	return NULL;
 }
+
 /**
  * Return string with parameters definition, useful for TDS7+
  * \param tds     state information for the socket and the TDS protocol
@@ -767,7 +766,7 @@ tds_build_param_def_from_query(TDSSOCKET * tds, const char* query, size_t query_
  */
 /* TODO find a better name for this function */
 static char *
-tds_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len,  TDSPARAMINFO * params, int *out_len)
+tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len,  TDSPARAMINFO * params, int *out_len)
 {
 	int size = 512;
 	char *param_str;
@@ -1011,9 +1010,15 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		int converted_query_len;
 		const char *converted_query;
 
-		param_definition = tds_build_param_def_from_query(tds, query, query_len, params, &converted_query, &converted_query_len, &definition_len);
-		if (!param_definition)
+		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, &converted_query_len);
+		if (!converted_query)
 			goto failure;
+
+		param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
+		if (!param_definition) {
+			tds_convert_string_free(query, converted_query);
+			goto failure;
+		}
 
 		tds->out_flag = TDS_RPC;
 		/* procedure name */
@@ -1115,8 +1120,15 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
 
-		param_definition = tds_build_param_def_from_query(tds, query, query_len, params, &converted_query, &converted_query_len, &definition_len);
+		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, &converted_query_len);
+		if (!converted_query) {
+			tds_set_state(tds, TDS_IDLE);
+			return TDS_FAIL;
+		}
+
+		param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
 		if (!param_definition) {
+			tds_convert_string_free(query, converted_query);
 			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
 		}
@@ -2005,6 +2017,7 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		tds_put_n(tds, cursor->cursor_name, strlen(cursor->cursor_name));
 		tds_put_byte(tds, 1);	/* cursor option is read only=1, unused=0 */
 		tds_put_byte(tds, 0);	/* status unused=0 */
+		/* TODO iconv */
 		tds_put_smallint(tds, strlen(cursor->query));
 		tds_put_n(tds, cursor->query, strlen(cursor->query));
 		tds_put_tinyint(tds, 0);	/* number of columns = 0 , valid value applicable only for updatable cursor */

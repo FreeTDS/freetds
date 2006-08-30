@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.151 2006-06-29 12:07:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.152 2006-08-30 12:00:03 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -205,7 +205,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 #endif
 
 	/* set up iconv */
-	if (connection->client_charset) {
+	if (!tds_dstr_isempty(&connection->client_charset)) {
 		tds_iconv_open(tds, tds_dstr_cstr(&connection->client_charset));
 	}
 
@@ -224,7 +224,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	/* verify that ip_addr is not empty */
 	if (tds_dstr_isempty(&connection->ip_addr)) {
 		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is empty\n");
-		if (connection->server_name) {
+		if (!tds_dstr_isempty(&connection->server_name)) {
 			tdsdump_log(TDS_DBG_ERROR, "Server %s not found!\n", tds_dstr_cstr(&connection->server_name));
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "No server specified!\n");
@@ -407,7 +407,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 			len = 0;
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, len);
-		tds_put_n(tds, connection->password, len);
+		tds_put_n(tds, tds_dstr_cstr(&connection->password), len);
 		tds_put_n(tds, NULL, 253 - len);
 		tds_put_byte(tds, len + 2);
 	}
@@ -548,13 +548,13 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge, TDS_UINT flags)
 	tds_put_int(tds, current_pos + (24 * 2));
 
 	/* flags */
-	tds_put_int(tds, 0x8201);
+	tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, &flags, &answer);
+	tds_put_int(tds, flags);
 
 	tds_put_string(tds, domain, domain_len);
 	tds_put_string(tds, user_name, user_name_len);
 	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
 
-	tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, flags, &answer);
 	tds_put_n(tds, answer.lm_resp, 24);
 	tds_put_n(tds, answer.nt_resp, 24);
 
@@ -784,7 +784,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		 */
 
 		/* hostname and domain */
-		tds_put_n(tds, connection->client_host_name, host_name_len);
+		tds_put_n(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
 		tds_put_n(tds, domain, domain_len);
 	}
 
