@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.421 2006-08-30 12:00:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.422 2006-09-01 08:39:00 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -718,7 +718,7 @@ SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLC
 	}
 
 	/* TODO support not null terminated in native_sql */
-	native_sql(dbc, tds_dstr_cstr(&query));
+	native_sql(dbc, tds_dstr_buf(&query));
 
 	ret = odbc_set_string_i(szSqlStr, cbSqlStrMax, pcbSqlStr, tds_dstr_cstr(&query), -1);
 
@@ -5097,8 +5097,8 @@ odbc_upper_column_names(TDS_STMT * stmt)
 		struct _drecord *drec = &ird->records[icol];
 
 		/* upper case */
-		tds_ascii_strupr(tds_dstr_cstr(&drec->sql_desc_label));
-		tds_ascii_strupr(tds_dstr_cstr(&drec->sql_desc_name));
+		tds_ascii_strupr(tds_dstr_buf(&drec->sql_desc_label));
+		tds_ascii_strupr(tds_dstr_buf(&drec->sql_desc_name));
 	}
 }
 

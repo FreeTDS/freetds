@@ -1,3 +1,10 @@
+Fri Sep  1 10:34:20 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h include/tdsstring.h src/ctlib/ct.c:
+	* src/odbc/connectparams.c src/odbc/odbc.c src/server/login.c:
+	* src/tds/config.c src/tds/tdsstring.c:
+	- add dstr_size to DSTR
+	- add tds_dstr_alloc, tds_dstr_setlen, tds_dstr_buf
+
 Wed Aug 30 13:58:56 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/challenge.c src/tds/login.c:
 	- make tds_answer_challenge return flags

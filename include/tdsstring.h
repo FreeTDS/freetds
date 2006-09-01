@@ -20,9 +20,9 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-/* $Id: tdsstring.h,v 1.16 2006-08-07 19:37:59 freddy77 Exp $ */
+/* $Id: tdsstring.h,v 1.17 2006-09-01 08:39:00 freddy77 Exp $ */
 
-extern const struct DSTR_STRUCT tds_str_empty;
+extern const char tds_str_empty[1];
 
 /* TODO do some function and use inline if available */
 
@@ -33,28 +33,36 @@ extern const struct DSTR_STRUCT tds_str_empty;
 #if ENABLE_EXTRA_CHECKS
 void tds_dstr_init(DSTR * s);
 int tds_dstr_isempty(DSTR * s);
-char *tds_dstr_cstr(DSTR * s);
+char *tds_dstr_buf(DSTR * s);
 size_t tds_dstr_len(DSTR * s);
 #else
 /** init a string with empty */
 #define tds_dstr_init(s) \
-	do { *(s) = (DSTR) &tds_str_empty; } while(0)
+	do { DSTR *_tds_s = (s); _tds_s->dstr_size = 0; _tds_s->dstr_s = (char*) tds_str_empty; } while(0)
 
 /** test if string is empty */
 #define tds_dstr_isempty(s) \
-	((*(s))->dstr_s[0] == '\0')
-#define tds_dstr_cstr(s) \
-	((*(s))->dstr_s)
+	((s)->dstr_size == 0)
+#define tds_dstr_buf(s) \
+	((s)->dstr_s)
 #define tds_dstr_len(s) \
-	strlen((*(s))->dstr_s)
+	((s)->dstr_size)
 #endif
+
+#define tds_dstr_cstr(s) \
+	((const char* ) tds_dstr_buf(s))
 
 void tds_dstr_zero(DSTR * s);
 void tds_dstr_free(DSTR * s);
 
-DSTR tds_dstr_copy(DSTR * s, const char *src);
-DSTR tds_dstr_copyn(DSTR * s, const char *src, unsigned int length);
-DSTR tds_dstr_set(DSTR * s, char *src);
+DSTR* tds_dstr_copy(DSTR * s, const char *src);
+DSTR* tds_dstr_copyn(DSTR * s, const char *src, unsigned int length);
+DSTR* tds_dstr_set(DSTR * s, char *src);
+
+/** limit length of string, MUST be <= current length */
+DSTR* tds_dstr_setlen(DSTR *s, unsigned int length);
+/** allocate space for length char */
+DSTR* tds_dstr_alloc(DSTR *s, unsigned int length);
 
 /** @} */
 

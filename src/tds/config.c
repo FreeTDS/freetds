@@ -73,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.122 2006-08-24 14:30:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.123 2006-09-01 08:39:00 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -1007,7 +1007,7 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 	char *server;
 
 	/* seek the ':' in login server_name */
-	server = tds_dstr_cstr(&login->server_name);
+	server = tds_dstr_buf(&login->server_name);
 	pSep = strrchr(server, ':');
 
 	if (pSep && pSep != server) {	/* yes, i found it! */

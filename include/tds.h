@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.256 2006-08-30 12:00:02 freddy77 Exp $ */
+/* $Id: tds.h,v 1.257 2006-09-01 08:39:00 freddy77 Exp $ */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -65,10 +65,10 @@ typedef struct _tds_compiletime_settings
 } TDS_COMPILETIME_SETTINGS;
 
 struct DSTR_STRUCT {
-	/* keep always at last */
-	char dstr_s[1];
+	char *dstr_s;
+	size_t dstr_size;
 };
-typedef struct DSTR_STRUCT *DSTR;
+typedef struct DSTR_STRUCT DSTR;
 
 /**
  * @file tds.h

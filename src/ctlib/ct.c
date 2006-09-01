@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.170 2006-08-23 15:19:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.171 2006-09-01 08:39:00 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -558,7 +558,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	tdsdump_log(TDS_DBG_FUNC, "ct_connect() servername = %s\n", servername ? servername : "NULL");
 
 	if (!tds_dstr_isempty(&con->tds_login->server_addr)) {
-		server = tds_dstr_cstr(&con->tds_login->server_addr);
+		server = tds_dstr_buf(&con->tds_login->server_addr);
 	} else if (snamelen == 0 || snamelen == CS_UNUSED) {
 		server = NULL;
 	} else if (snamelen == CS_NULLTERM) {

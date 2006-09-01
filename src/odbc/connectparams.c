@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.67 2006-03-06 11:57:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.68 2006-09-01 08:39:00 freddy77 Exp $");
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 
@@ -292,8 +292,9 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 
 		/* copy to destination */
 		if (dest_s) {
-			tds_dstr_set(dest_s, tds_dstr_cstr(&value));
-			tds_dstr_init(&value);
+			DSTR tmp = *dest_s;
+			*dest_s = value;
+			value = tmp;
 		}
 
 		p = end;

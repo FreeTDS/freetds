@@ -53,7 +53,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.42 2006-03-06 11:57:01 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.43 2006-09-01 08:39:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -105,7 +105,7 @@ tds_listen(int ip_port)
 	return tds;
 }
 
-static char *tds_read_string(TDSSOCKET * tds, DSTR * s, int size);
+static void tds_read_string(TDSSOCKET * tds, DSTR * s, int size);
 
 void
 tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
@@ -146,17 +146,13 @@ tds_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_get_n(tds, NULL, tds->in_len - tds->in_pos);	/* read junk at end */
 }
 
-static char *
-tds7_read_string(TDSSOCKET * tds, int len)
+static void
+tds7_read_string(TDSSOCKET * tds, DSTR *s, int len)
 {
-	char *s;
-
-	s = (char *) malloc(len + 1);
+	tds_dstr_alloc(s, len);
 	/* FIXME possible truncation on char conversion ? */
-	len = tds_get_string(tds, len, s, len);
-	s[len] = 0;
-	return s;
-
+	len = tds_get_string(tds, len, tds_dstr_buf(s), len);
+	tds_dstr_setlen(s, len);
 }
 
 int
@@ -167,7 +163,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	int library_name_len, language_name_len;
 	size_t unicode_len, password_len;
 	char *unicode_string;
-	char *buf, *pbuf;
+	char *pbuf;
 
 	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_n(tds, NULL, 5);
@@ -201,15 +197,15 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
-	tds_dstr_set(&login->client_host_name, tds7_read_string(tds, host_name_len));
-	tds_dstr_set(&login->user_name, tds7_read_string(tds, user_name_len));
+	tds7_read_string(tds, &login->client_host_name, host_name_len);
+	tds7_read_string(tds, &login->user_name, user_name_len);
 
 	unicode_len = password_len * 2;
 	unicode_string = (char *) malloc(unicode_len);
-	buf = (char *) malloc(password_len + 1);
+	tds_dstr_alloc(&login->password, password_len);
 	tds_get_n(tds, unicode_string, unicode_len);
 	tds7_decrypt_pass((unsigned char *) unicode_string, unicode_len, (unsigned char *) unicode_string);
-	pbuf = buf;
+	pbuf = tds_dstr_buf(&login->password);
 	
 	memset(&tds->char_convs[client2ucs2]->suppress, 0, sizeof(tds->char_convs[client2ucs2]->suppress));
 	a = tds_iconv(tds, tds->char_convs[client2ucs2], to_client, (const char **) &unicode_string, &unicode_len, &pbuf,
@@ -218,14 +214,13 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 		fprintf(stderr, "error: %s:%d: tds7_read_login: tds_iconv() failed\n", __FILE__, __LINE__);
 		assert(-1 != a);
 	}
-	*pbuf = '\0';
-	tds_dstr_set(&login->password, buf);
+	tds_dstr_setlen(&login->password, pbuf - tds_dstr_buf(&login->password));
 	free(unicode_string);
 
-	tds_dstr_set(&login->app_name, tds7_read_string(tds, app_name_len));
-	tds_dstr_set(&login->server_name, tds7_read_string(tds, server_name_len));
-	tds_dstr_set(&login->library, tds7_read_string(tds, library_name_len));
-	tds_dstr_set(&login->language, tds7_read_string(tds, language_name_len));
+	tds7_read_string(tds, &login->app_name, app_name_len);
+	tds7_read_string(tds, &login->server_name, server_name_len);
+	tds7_read_string(tds, &login->library, library_name_len);
+	tds7_read_string(tds, &login->language, language_name_len);
 
 	tds_get_n(tds, NULL, 7);	/*magic3 */
 	tds_get_byte(tds);
@@ -244,21 +239,17 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	return (0);
 
 }
-static char *
+static void
 tds_read_string(TDSSOCKET * tds, DSTR * s, int size)
 {
-	char *tempbuf;
 	int len;
 
-	tempbuf = (char *) malloc(size + 1);
-	tds_get_n(tds, tempbuf, size);
-	tempbuf[size] = 0;
+	/* FIXME this can fails... */
+	tds_dstr_alloc(s, size);
+	tds_get_n(tds, tds_dstr_buf(s), size);
 	len = tds_get_byte(tds);
 	if (len <= size)
-		tempbuf[len] = '\0';
-
-	tds_dstr_set(s, tempbuf);
-	return tempbuf;
+		tds_dstr_setlen(s, len);
 }
 
 

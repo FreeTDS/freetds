@@ -22,6 +22,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -38,7 +39,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: tdsstring.c,v 1.15 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.16 2006-09-01 08:39:00 freddy77 Exp $");
 
 
 /**
@@ -49,7 +50,7 @@ TDS_RCSID(var, "$Id: tdsstring.c,v 1.15 2006-08-07 19:37:59 freddy77 Exp $");
  */
 
 /* This is in a separate module because we use the pointer to discriminate allocated and not allocated */
-const struct DSTR_STRUCT tds_str_empty = { "" };
+const char tds_str_empty[1] = "";
 
 /**
  * \addtogroup dstring
@@ -60,17 +61,17 @@ const struct DSTR_STRUCT tds_str_empty = { "" };
 void
 tds_dstr_zero(DSTR * s)
 {
-	if (*s)
-		memset((*s)->dstr_s, 0, strlen((*s)->dstr_s));
+	memset(s->dstr_s, 0, s->dstr_size);
 }
 
 /** free string */
 void
 tds_dstr_free(DSTR * s)
 {
-	if (*s != (DSTR) &tds_str_empty)
-		free(*s);
-	*s = (DSTR) &tds_str_empty;
+	if (s->dstr_s != tds_str_empty)
+		free(s->dstr_s);
+	s->dstr_size = 0;
+	s->dstr_s = (char*) tds_str_empty;
 }
 
 /**
@@ -80,21 +81,26 @@ tds_dstr_free(DSTR * s)
  * @param length length of source buffer
  * @return string copied or NULL on memory error
  */
-DSTR
+DSTR*
 tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
 {
-	if (*s != (DSTR) &tds_str_empty)
-		free(*s);
+	if (s->dstr_s != tds_str_empty)
+		free(s->dstr_s);
 	if (!length) {
-		*s = (DSTR) &tds_str_empty;
+		s->dstr_s = (char *) tds_str_empty;
+		s->dstr_size = 0;
 	} else {
-		*s = (struct DSTR_STRUCT *) malloc(length + 1);
-		if (!*s)
+		s->dstr_s = (char *) malloc(length + 1);
+		if (!s->dstr_s) {
+			s->dstr_s = (char *) tds_str_empty;
+			s->dstr_size = 0;
 			return NULL;
-		memcpy(*s, src, length);
-		(*s)->dstr_s[length] = 0;
+		}
+		s->dstr_size = length;
+		memcpy(s->dstr_s, src, length);
+		s->dstr_s[length] = 0;
 	}
-	return *s;
+	return s;
 }
 
 /**
@@ -105,13 +111,12 @@ tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
  * @param src    source buffer
  * @return string copied or NULL on memory error
  */
-DSTR
+DSTR*
 tds_dstr_set(DSTR * s, char *src)
 {
-	if (*s != (DSTR) &tds_str_empty)
-		free(*s);
-	*s = (DSTR) src;
-	return *s;
+	DSTR* res = tds_dstr_copyn(s, src, strlen(src));
+	free(src);
+	return res;
 }
 
 /**
@@ -120,41 +125,79 @@ tds_dstr_set(DSTR * s, char *src)
  * @param src    source buffer
  * @return string copied or NULL on memory error
  */
-DSTR
+DSTR*
 tds_dstr_copy(DSTR * s, const char *src)
 {
-	if (*s != (DSTR) &tds_str_empty)
-		free(*s);
-	if (!src[0])
-		*s = (DSTR) &tds_str_empty;
-	else
-		*s = (DSTR) strdup(src);
-	return *s;
+	return tds_dstr_copyn(s, src, strlen(src));
+}
+
+/**
+ * limit length of string, MUST be <= current length
+ * @param s        dynamic string
+ * @param length   new length 
+ */
+DSTR*
+tds_dstr_setlen(DSTR *s, unsigned int length)
+{
+#if ENABLE_EXTRA_CHECKS
+	assert(s->dstr_size >= length);
+#endif
+	/* test required for empty strings */
+	if (s->dstr_size != length) {
+		s->dstr_size = length;
+		s->dstr_s[length] = 0;
+	}
+	return s;
+}
+
+/**
+ * allocate space for length char
+ * @param s        dynamic string
+ * @param length   new length 
+ * @return string allocated or NULL on memory error
+ */
+DSTR*
+tds_dstr_alloc(DSTR *s, unsigned int length)
+{
+	char *p;
+	if (s->dstr_s != tds_str_empty)
+		free(s->dstr_s);
+	p = (char *) malloc(length + 1);
+	if (!p) {
+		s->dstr_s = (char *) tds_str_empty;
+		s->dstr_size = 0;
+		return NULL;
+	}
+	s->dstr_s = p;
+	s->dstr_s[0] = 0;
+	s->dstr_size = length;
+	return s;
 }
 
 #if ENABLE_EXTRA_CHECKS
 void
 tds_dstr_init(DSTR * s)
 {
-	*s = (DSTR) &tds_str_empty;
+	s->dstr_s = (char *) tds_str_empty;
+	s->dstr_size = 0;
 }
 
 int
 tds_dstr_isempty(DSTR * s)
 {
-	return (*s)->dstr_s[0] == 0;
+	return s->dstr_size == 0;
 }
 
 char *
-tds_dstr_cstr(DSTR * s)
+tds_dstr_buf(DSTR * s)
 {
-	return (*s)->dstr_s;
+	return s->dstr_s;
 }
 
 size_t
 tds_dstr_len(DSTR * s)
 {
-	return strlen((*s)->dstr_s);
+	return s->dstr_size;
 }
 #endif
 
