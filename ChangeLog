@@ -1,3 +1,8 @@
+Tue Sep 05 09:26:14 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c:
+	- remove some warning on 64bit platform
+	- remove small issue on 64bit platform
+
 Mon Aug 28 09:36:32 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/cspublic.h:
 	- applied Norbert Sendetzky patch for ctlib compatibility
