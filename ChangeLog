@@ -1,3 +1,6 @@
+Thu Sep 07 23:10:29 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/sql2tds.c: fix paramset (Levente Tamási)
+
 Tue Sep 05 09:26:14 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:
 	- remove some warning on 64bit platform
