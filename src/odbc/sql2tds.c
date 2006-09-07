@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.58 2006-07-04 15:15:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.59 2006-09-07 21:38:14 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -204,13 +204,12 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 
 	src = drec_apd->sql_desc_data_ptr;
 	if (src && stmt->curr_param_row) {
+		SQLLEN len;
 		if (stmt->apd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
-			src += stmt->apd->header.sql_desc_bind_type;
+			len = stmt->apd->header.sql_desc_bind_type;
 			if (stmt->apd->header.sql_desc_bind_offset_ptr)
 				src += *stmt->apd->header.sql_desc_bind_offset_ptr;
 		} else {
-			SQLLEN len;
-
 			/* this shit is mine -- freddy77 */
 			switch (sql_src_type) {
 			case SQL_C_CHAR:
@@ -239,8 +238,8 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			if (len < 0)
 				/* TODO sure ? what happen to upper layer ?? */
 				return SQL_ERROR;
-			src += len * stmt->curr_param_row;
 		}
+		src += len * stmt->curr_param_row;
 	}
 
 	/* if only output assume input is NULL */
