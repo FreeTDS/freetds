@@ -1,3 +1,7 @@
+Fri Sep 08 11:58:24 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/tds/threadsafe.c:
+	- fix threadsafe problem on NetBSD
+
 Fri Sep 08 11:17:55 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/token.c: make splint a bit more happy
 	* src/odbc/odbc.c: small 64bit improvements

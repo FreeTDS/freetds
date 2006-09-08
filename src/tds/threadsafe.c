@@ -83,7 +83,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.43 2006-08-30 12:00:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.44 2006-09-08 09:59:12 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)
@@ -147,9 +147,8 @@ tds_timestamp_str(char *str, int maxlen)
  * just assume the standard BSD netdb interface is reentrant and use it.
  */
 #ifndef _REENTRANT
-# ifndef NETDB_REENTRANT
-#  define NETDB_REENTRANT 1
-# endif	/* NETDB_REENTRANT */
+# undef NETDB_REENTRANT
+# define NETDB_REENTRANT 1
 #endif /* _REENTRANT */
 
 #if !defined(NETDB_REENTRANT) && (defined(HAVE_GETIPNODEBYNAME) || defined(HAVE_GETIPNODEBYADDR))
@@ -275,6 +274,9 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 	}
 	return result;
 
+#elif defined(TDS_NO_THREADSAFE)
+	return gethostbyname(servername);
+
 #else
 #error gethostbyname_r style unknown
 #endif
@@ -321,6 +323,9 @@ tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result,
 		result = NULL;
 	}
 	return result;
+
+#elif defined(TDS_NO_THREADSAFE)
+	return gethostbyaddr(addr, len, type);
 
 #else
 #error gethostbyaddr_r style unknown
@@ -381,6 +386,8 @@ tds_getservbyname_r(const char *name, const char *proto, struct servent *result,
 	freeaddrinfo(res);
 	return result;
 
+#elif defined(TDS_NO_THREADSAFE)
+	return getservbyname(name, proto);
 #else
 #error getservbyname_r style unknown
 #endif

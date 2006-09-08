@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.11 2006-08-23 14:26:20 freddy77 Exp $
+dnl $Id: configure.ac,v 1.12 2006-09-08 09:59:12 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.11 $)
+AC_REVISION($Revision: 1.12 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -580,6 +580,7 @@ if test "$enable_threadsafe" != "no" ; then
 	CPPFLAGS="$CPPFLAGS -D_REENTRANT -D_THREAD_SAFE"
 	AC_MSG_RESULT(enabled)
 else
+	AC_DEFINE(TDS_NO_THREADSAFE, 1, [Define if you don't care about thread safety])
 	AC_MSG_RESULT(disabled)
 fi
 AM_CONDITIONAL(ENABLE_THREADSAFE, test "$enable_threadsafe" != "no")
