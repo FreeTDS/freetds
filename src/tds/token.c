@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.318 2006-08-17 09:15:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.319 2006-09-08 09:18:57 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -66,16 +66,16 @@ static int tds5_process_result(TDSSOCKET * tds);
 static int tds5_process_dyn_result2(TDSSOCKET * tds);
 static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static int tds5_process_optioncmd(TDSSOCKET * tds);
-static int tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm);
+static int tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_parm);
 
 static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
-static const char *_tds_token_name(unsigned char marker);
+static /*@observer@*/ const char *_tds_token_name(unsigned char marker);
 static int tds5_get_varint_size(int datatype);
 static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int determine_adjusted_size(const TDSICONV * char_conv, int size);
-static const char *tds_pr_op(int op);
-static int tds_alloc_get_string(TDSSOCKET * tds, char **string, int len);
+static /*@observer@*/ const char *tds_pr_op(int op);
+static int tds_alloc_get_string(TDSSOCKET * tds, /*@special@*/ char **string, int len) /*allocates *string*/;
 
 
 /**
@@ -334,14 +334,14 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			len -= 10;
 			if (tds->product_name)
 				free(tds->product_name);
-			if (major_ver >= 7) {
+			if (major_ver >= 7u) {
 				product_version = 0x80000000u;
 				memrc += tds_alloc_get_string(tds, &tds->product_name, len / 2);
 			} else if (major_ver >= 5) {
 				memrc += tds_alloc_get_string(tds, &tds->product_name, len);
 			} else {
 				memrc += tds_alloc_get_string(tds, &tds->product_name, len);
-				if (tds->product_name != NULL && strstr(tds->product_name, "Microsoft"))
+				if (tds->product_name != NULL && strstr(tds->product_name, "Microsoft") != NULL)
 					product_version = 0x80000000u;
 			}
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 24;
@@ -3063,7 +3063,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	cursor_id = tds_get_int(tds);
 	hdrsize  -= sizeof(TDS_INT);
 	if (cursor_id == 0){
-		namelen = (int)tds_get_byte(tds);
+		namelen = tds_get_byte(tds);
 		hdrsize -= 1;
 		/* discard name */
 		tds_get_n(tds, NULL, namelen);

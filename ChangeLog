@@ -1,3 +1,7 @@
+Fri Sep 08 11:17:55 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/token.c: make splint a bit more happy
+	* src/odbc/odbc.c: small 64bit improvements
+
 Thu Sep 07 23:10:29 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/sql2tds.c: fix paramset (Levente Tamási)
 

@@ -3,6 +3,7 @@ Probably I'm the only person who can fully understand these notes...
 
 Fixes
 -----
+Fix threadsafe disabling
 Fix describecol test
 Fix cursor for sybase
 IMPORTANT fix done_handling

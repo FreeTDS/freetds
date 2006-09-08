@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.422 2006-09-01 08:39:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.423 2006-09-08 09:18:56 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -884,6 +884,8 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 SQLRETURN SQL_API
 SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
+	SQLINTEGER i_val = (SQLINTEGER) (TDS_INTPTR) Value;
+
 	INIT_HENV;
 
 	switch (Attribute) {
@@ -893,7 +895,7 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 		ODBC_RETURN(env, SQL_ERROR);
 		break;
 	case SQL_ATTR_ODBC_VERSION:
-		switch ((SQLULEN) (TDS_INTPTR) Value) {
+		switch (i_val) {
 		case SQL_OV_ODBC3:
 		case SQL_OV_ODBC2:
 			break;
@@ -901,11 +903,11 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 			odbc_errs_add(&env->errs, "HY024", NULL);
 			ODBC_RETURN(env, SQL_ERROR);
 		}
-		env->attr.odbc_version = (SQLINTEGER) (TDS_INTPTR) Value;
+		env->attr.odbc_version = i_val;
 		ODBC_RETURN_(env);
 		break;
 	case SQL_ATTR_OUTPUT_NTS:
-		env->attr.output_nts = (SQLINTEGER) (TDS_INTPTR) Value;
+		env->attr.output_nts = i_val;
 		/* TODO - Make this really work */
 		env->attr.output_nts = SQL_TRUE;
 		ODBC_RETURN_(env);
@@ -5319,7 +5321,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		ODBC_RETURN_(dbc);
 		break;
 	case SQL_ATTR_QUIET_MODE:
-		dbc->attr.quite_mode = (SQLHWND) u_value;
+		dbc->attr.quite_mode = (SQLHWND) (TDS_INTPTR) ValuePtr;
 		ODBC_RETURN_(dbc);
 		break;
 #ifdef TDS_NO_DM

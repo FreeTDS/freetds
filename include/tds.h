@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.257 2006-09-01 08:39:00 freddy77 Exp $ */
+/* $Id: tds.h,v 1.258 2006-09-08 09:18:56 freddy77 Exp $ */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -1177,7 +1177,7 @@ struct tds_socket
 	TDSENV env;
 
 	/* dynamic placeholder stuff */
-	TDSDYNAMIC *cur_dyn;	/**< dynamic structure in use */
+	/*@dependent@*/ TDSDYNAMIC *cur_dyn;	/**< dynamic structure in use */
 	TDSDYNAMIC *dyns;	/**< list of dynamic allocate for this connection */
 
 	int emul_little_endian;
@@ -1243,7 +1243,7 @@ int tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
 TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, char *id);
-const char *tds_prtype(int token);
+/*@observer@*/ const char *tds_prtype(int token);
 
 
 
@@ -1344,7 +1344,7 @@ int tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,
 			TDS_INT * tds_argsize);
 int tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int severity, int state, int line, const char *message);
-int tds_process_tokens(TDSSOCKET * tds, TDS_INT * result_type, int *done_flags, unsigned flag);
+int tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@out@*/ int *done_flags, unsigned flag);
 
 /* data.c */
 void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
@@ -1368,7 +1368,7 @@ TDS_SMALLINT tds_get_smallint(TDSSOCKET * tds);
 TDS_INT tds_get_int(TDSSOCKET * tds);
 int tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size);
 int tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
-void *tds_get_n(TDSSOCKET * tds, void *dest, int n);
+void *tds_get_n(TDSSOCKET * tds, /*@out@*/ /*@null@*/ void *dest, int n);
 int tds_get_size_by_type(int servertype);
 
 
