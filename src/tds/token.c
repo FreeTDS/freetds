@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.319 2006-09-08 09:18:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.320 2006-09-13 09:48:19 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1598,7 +1598,7 @@ tds5_process_result(TDSSOCKET * tds)
 {
 	int hdrsize;
 
-	/* int colnamelen; */
+	int colnamelen;
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
@@ -1644,39 +1644,52 @@ tds5_process_result(TDSSOCKET * tds)
 			tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
 		curcol->column_name[curcol->column_namelen] = '\0';
 
-		/* TODO add these field again */
+		/* TODO save informations somewhere */
 		/* database */
+		colnamelen = tds_get_byte(tds);
+		tds_get_n(tds, NULL, colnamelen);
 		/*
-		 * colnamelen = tds_get_byte(tds);
 		 * tds_get_n(tds, curcol->catalog_name, colnamelen);
 		 * curcol->catalog_name[colnamelen] = '\0';
 		 */
 
 		/* owner */
+		colnamelen = tds_get_byte(tds);
+		tds_get_n(tds, NULL, colnamelen);
 		/*
-		 * colnamelen = tds_get_byte(tds);
 		 * tds_get_n(tds, curcol->schema_name, colnamelen);
 		 * curcol->schema_name[colnamelen] = '\0';
 		 */
 
 		/* table */
+		colnamelen = tds_get_byte(tds);
+		tds_get_n(tds, NULL, colnamelen);
 		/*
-		 * colnamelen = tds_get_byte(tds);
 		 * tds_get_n(tds, curcol->table_name, colnamelen);
 		 * curcol->table_name[colnamelen] = '\0';
 		 */
 
 		/* column name */
+		colnamelen = tds_get_byte(tds);
+		/* if label is empty, use the column name */
+		if (!curcol->column_namelen) {
+			curcol->column_namelen =
+				tds_get_string(tds, colnamelen, curcol->column_name, sizeof(curcol->column_name) - 1);
+			curcol->column_name[curcol->column_namelen] = '\0';
+		} else {
+			tds_get_n(tds, NULL, colnamelen);
+		}
 		/*
-		 * colnamelen = tds_get_byte(tds);
 		 * tds_get_n(tds, curcol->column_colname, colnamelen);
 		 * curcol->column_colname[colnamelen] = '\0';
 		 */
 
 		/* if label is empty, use the column name */
 		/*
-		 * if (colnamelen > 0 && curcol->column_name[0] == '\0')
-		 * strcpy(curcol->column_name, curcol->column_colname);
+		 * if (colnamelen > 0 && curcol->column_name[0] == '\0') {
+		 * 	strcpy(curcol->column_name, curcol->column_colname);
+		 * 	curcol->column_namelen = strlen(curcol->column_name);
+		 * }
 		 */
 
 		/* flags (4 bytes) */
@@ -1689,7 +1702,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 		curcol->column_usertype = tds_get_int(tds);
 
-		curcol->column_type = tds_get_byte(tds);
+		tds_set_column_type(curcol, tds_get_byte(tds));
 
 		curcol->column_varint_size = tds5_get_varint_size(curcol->column_type);
 
