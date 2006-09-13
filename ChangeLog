@@ -1,3 +1,6 @@
+Wed Sep 13 13:52:40 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/mem.c: enable wide table
+
 Wed Sep 13 11:47:27 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c:
 	- fix really broken tds5_process_result

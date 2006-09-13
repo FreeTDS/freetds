@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.162 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.163 2006-09-13 11:53:11 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -618,7 +618,7 @@ tds_alloc_locale(void)
       Cleanup:
 	return NULL;
 }
-static const unsigned char defaultcaps[] = { 0x01, 0x09, 0x00, 0x00, 0x06, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
+static const unsigned char defaultcaps[] = { 0x01, 0x09, 0x00, 0x08, 0x06, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
 	0x02, 0x09, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x68, 0x00, 0x00, 0x00
 };
 
