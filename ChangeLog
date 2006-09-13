@@ -1,3 +1,7 @@
+Wed Sep 13 11:48:44 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c:
+	- fix really broken tds5_process_result
+
 Wed Sep 13 09:49:10 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/Makefile.am src/tds/challenge.c src/tds/login.c:
 	* src/tds/token.c:
