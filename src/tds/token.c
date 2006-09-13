@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.307 2006-01-06 10:27:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.307.2.1 2006-09-13 07:49:42 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -390,6 +390,8 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	return succeed;
 }
 
+int _tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge, TDS_UINT flags);
+
 static int
 tds_process_auth(TDSSOCKET * tds)
 {
@@ -398,6 +400,7 @@ tds_process_auth(TDSSOCKET * tds)
 
 /* char domain[30]; */
 	int where;
+	TDS_UINT flags;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -419,7 +422,7 @@ tds_process_auth(TDSSOCKET * tds)
 	tds_get_n(tds, NULL, 4);	/* domain len (2 time) */
 	tds_get_int(tds);	/* domain offset */
 	/* TODO use them */
-	tds_get_n(tds, NULL, 4);	/* flags */
+	flags = tds_get_int(tds);	/* flags */
 	tds_get_n(tds, nonce, 8);
 	tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", nonce, 8);
 	where = 32;
@@ -436,7 +439,7 @@ tds_process_auth(TDSSOCKET * tds)
 	tds_get_n(tds, NULL, pdu_size - where);
 	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", pdu_size - where);
 
-	tds7_send_auth(tds, nonce);
+	_tds7_send_auth(tds, nonce, flags);
 
 	return TDS_SUCCEED;
 }

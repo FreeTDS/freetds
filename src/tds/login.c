@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.148 2005-07-28 08:06:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.148.2.1 2006-09-13 07:49:42 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -451,9 +451,10 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	return tds_flush_packet(tds);
 }
 
+void _tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT *flags, TDSANSWER * answer);
 
 int
-tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
+_tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge, TDS_UINT flags)
 {
 	int current_pos;
 	TDSANSWER answer;
@@ -531,13 +532,13 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 	tds_put_int(tds, current_pos + (24 * 2));
 
 	/* flags */
-	tds_put_int(tds, 0x8201);
+	_tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, &flags, &answer);
+	tds_put_int(tds, flags);
 
 	tds_put_string(tds, domain, domain_len);
 	tds_put_string(tds, user_name, user_name_len);
 	tds_put_string(tds, tds_dstr_cstr(&connection->host_name), host_name_len);
 
-	tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, &answer);
 	tds_put_n(tds, answer.lm_resp, 24);
 	tds_put_n(tds, answer.nt_resp, 24);
 
@@ -545,6 +546,12 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
 	memset(&answer, 0, sizeof(TDSANSWER));
 
 	return tds_flush_packet(tds);
+}
+
+int
+tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge)
+{
+	return _tds7_send_auth(tds, challenge, 0);
 }
 
 /**
