@@ -1,5 +1,5 @@
 #
-# $Id: unixodbc.freetds.driver.template.in,v 1.1 2002-10-09 17:05:44 castellano Exp $
+# $Id: unixodbc.freetds.driver.template.in,v 1.2 2006-09-13 11:56:37 freddy77 Exp $
 #
 # FreeTDS - Library of routines accessing Sybase and Microsoft databases
 # Copyright (C) 1998-1999  Brian Bruns
@@ -22,3 +22,4 @@
 [FreeTDS]
 Description	= FreeTDS unixODBC Driver
 Driver		= @libdir@/libtdsodbc.so
+Setup 		= @libdir@/libtdsodbc.so

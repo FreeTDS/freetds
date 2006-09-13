@@ -1,3 +1,8 @@
+Wed Sep 13 13:55:24 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* samples/Makefile.am samples/unixodbc.freetds.driver.template.in:
+	- add Setup entry to unixODBC template
+	- unixODBC templates are not executables
+
 Wed Sep 13 13:52:40 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/mem.c: enable wide table
 

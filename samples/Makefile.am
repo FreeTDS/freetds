@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.2 2002-10-31 14:48:23 freddy77 Exp $
+# version $Id: Makefile.am,v 1.3 2006-09-13 11:56:37 freddy77 Exp $
 
 noinst_SCRIPTS	=	unixodbc.freetds.driver.template
 
@@ -22,5 +22,4 @@ CLEANFILES = unixodbc.freetds.driver.template
 .in:
 	rm -f $@ $@.tmp
 	$(edit) $< >$@.tmp
-	chmod +x $@.tmp
 	mv $@.tmp $@
