@@ -1,3 +1,6 @@
+Wed Sep 13 11:55:20 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/login.c: fix NTLM2 backport
+
 Wed Sep 13 11:48:44 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c:
 	- fix really broken tds5_process_result
