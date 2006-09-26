@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.320 2006-09-13 09:48:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.321 2006-09-26 21:00:14 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -230,8 +230,8 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
-	default:
-		tds_client_msg(tds->tds_ctx, tds, 20020, 9, 0, 0, "Unknown marker");
+	default: /* SYBEBTOK */
+		tds_client_msg(tds->tds_ctx, tds, 20020, 9, 0, 0, "Bad token from the server: Datastream processing out of sync");
 		if (IS_TDSDEAD(tds))
 			tds_set_state(tds, TDS_DEAD);
 		else
@@ -1946,8 +1946,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			return TDS_SUCCEED;
 		}
 
-		/* NOTE we use an extra pointer (p) to avoid lose of memory in the case realloc fails */
-		p = blob->textvalue;
+		p = blob->textvalue; /* save pointer in case realloc fails */
 		if (!p) {
 			p = (TDS_CHAR *) malloc(new_blob_size);
 		} else {

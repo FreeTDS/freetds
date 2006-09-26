@@ -1,3 +1,10 @@
+Tue Sep 26 16:57:42 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c src/dblib/dblib.c
+	* src/tds/convert.c src/tds/net.c src/tds/token.c
+	- added more user-level error checking, checking against 
+	- known list of db-lib error messages
+	* src/apps/osql added
+
 Wed Sep 13 13:55:24 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* samples/Makefile.am samples/unixodbc.freetds.driver.template.in:
 	- add Setup entry to unixODBC template

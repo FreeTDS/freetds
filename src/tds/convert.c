@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.168 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.169 2006-09-26 21:00:14 jklowden Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1505,6 +1505,12 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	return TDS_CONVERT_NOAVAIL;
 }
 
+/*
+ * TODO: emit SYBECLPR errors: "Data conversion resulted in loss of precision".  
+ * There are many places where this would be correct to do, but the test is tedious 
+ * (convert e.g. 1.5 -> SYBINT and test if output == input) and we don't have a good, 
+ * API-independent alternative to tds_client_msg().  Postponed until then.  
+ */
 static TDS_INT
 tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {

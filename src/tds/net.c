@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.42 2006-08-24 09:18:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.43 2006-09-26 21:00:14 jklowden Exp $");
 
 /**
  * \addtogroup network
@@ -250,7 +250,8 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	}
 
 	if (retval < 0 || (now_ms - start_ms) / 1000u >= timeout) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port), strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)),
+			    ntohs(sin.sin_port), strerror(sock_errno));
 		tds_close_socket(tds);
 		if (retval < 0)
 			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
@@ -286,6 +287,9 @@ tds_close_socket(TDSSOCKET * tds)
 
 	if (!IS_TDSDEAD(tds)) {
 		rc = CLOSESOCKET(tds->s);
+		if (-1 == rc) {  /* SYBECLOS */
+			tds_client_msg(tds->tds_ctx, tds,  20056, 9, 0, 0, "Error in closing network connection.");
+		}
 		tds->s = INVALID_SOCKET;
 		tds_set_state(tds, TDS_DEAD);
 	}

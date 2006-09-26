@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.261 2006-08-30 12:00:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.262 2006-09-26 21:00:13 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -458,6 +458,11 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbsetlname(%p, %s, %d)\n", login, value, which);
 
+	if( login == NULL ) {
+		dbperror(NULL, SYBEASNL, 0);
+		return FAIL;
+	}
+
 	switch (which) {
 	case DBSETHOST:
 		tds_set_host(login->tds_login, value);
@@ -485,7 +490,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		break;
 	case DBSETHID:
 	default:
-		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetlname() which = %d\n", which);
+		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
 		return FAIL;
 		break;
 	}
@@ -508,8 +513,12 @@ dbsetllong(LOGINREC * login, long value, int which)
 
 	switch (which) {
 	case DBSETPACKET:
-		tds_set_packet(login->tds_login, value);
-		return SUCCEED;
+		if (0 <= value && value <= 999999) { 
+			tds_set_packet(login->tds_login, value);
+			return SUCCEED;
+		}
+		dbperror(0, SYBEBPKS, 0);
+		return FAIL;
 		break;
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetllong() which = %d\n", which);
@@ -1525,6 +1534,35 @@ dbgetrow(DBPROCESS * dbproc, DBINT row)
 
 /**
  * \ingroup dblib_core
+ * \brief Define substitution values to be used when binding null values.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \param bindtype	type of binding to which the substitute value will apply. 
+ * \param bindlen 	size of the substitute value you are supplying, in bytes. Ignords except for CHARBIND and BINARYBIND. 
+ * \param bindval 	pointer to a buffer containing the substitute value.
+ * \retval SUCCEED query was processed without errors.
+ * \retval FAIL query was not processed
+ * \sa dbaltbind(), dbbind(), dbconvert(), dbnullbind().
+ * \todo Unimplemented.
+ */
+RETCODE
+dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
+{
+	tdsdump_log(TDS_DBG_FUNC, "dbsetnull(%p, %d, %d, %p)\n", dbproc, bindtype, bindlen, bindval);
+	
+	CHECK_PARAMETER(dbproc, SYBENULL);
+	CHECK_PARAMETER(bindlen, SYBEBBL);
+	CHECK_PARAMETER(bindval, SYBENBVP);
+
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetnull\n");
+	fprintf(stderr, "dblib.c:%d: UNIMPLEMENTED: dbsetnull\n", __LINE__);
+	return FAIL;
+	
+	return SUCCEED;
+}
+
+/**
+ * \ingroup dblib_core
  * \brief Make a buffered row "current" without fetching it into bound variables.  
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2124,7 +2162,22 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 
 	tdsdump_log(TDS_DBG_FUNC, "dbbind(%p, %d, %d, %d, %p)\n", dbproc, column, vartype, varlen, varaddr);
 	CHECK_PARAMETER(dbproc, SYBENULL);
-	CHECK_PARAMETER(varaddr, SYBEABNV);
+	CHECK_PARAMETER(varaddr, SYBEABNP);
+	
+	
+	/*column number %1!: if varaddr is NULL and varlen greater than 0, the table column "
+						"type must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, "
+						"SYBCHAR, SYBIMAGE or SYBBINARY"*/
+	if (varaddr == NULL && varlen > 0) {
+		int fOK = (colinfo->column_type == SYBTEXT || colinfo->column_type == SYBIMAGE) &&
+			  (vartype == SYBTEXT || vartype == SYBCHAR || vartype == SYBIMAGE || vartype == SYBBINARY );
+		if( !fOK ) {
+			dbperror(dbproc, SYBEBCSNTYP, 0);
+			tdsdump_log(TDS_DBG_FUNC, "dbbind: SYBEBCSNTYP: col %d coltype=%d and vartype=%d (should fail?)\n", 
+							column, colinfo->column_type, vartype);
+			/* return FAIL; */
+		}
+	}
 
 	dbproc->avail_flag = FALSE;
 
@@ -3751,27 +3804,30 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltbind(%p, %d, %d, %d, %d, %p)\n", dbproc, computeid, column, vartype, varlen, varaddr);
 	CHECK_PARAMETER(dbproc, SYBENULL);
-	CHECK_PARAMETER(varaddr, SYBENULP);
+	CHECK_PARAMETER(varaddr, SYBEABNV);
+
+	assert(dbproc->tds_socket != NULL);
 
 	dbproc->avail_flag = FALSE;
 
 	compute_id = computeid;
 
-	if (dbproc == NULL || dbproc->tds_socket == NULL || varaddr == NULL)
-		goto Failed;
-
 	tds = dbproc->tds_socket;
 	for (i = 0;; ++i) {
-		if (i >= tds->num_comp_info)
-			goto Failed;
+		if (i >= tds->num_comp_info){
+			dbperror(dbproc, SYBEBNCR, 0); /* Attempt to bind user variable to a non-existent compute row */
+			return FAIL;
+		}
 		info = tds->comp_info[i];
 		if (info->computeid == compute_id)
 			break;
 	}
 
-	/* if either the compute id or the column number are invalid, return -1 */
-	if (column < 1 || column > info->num_cols)
-		goto Failed;
+	/* Fail if either the compute id or the column number is invalid. */
+	if (column < 1 || column > info->num_cols) {
+		dbperror(dbproc, SYBEABNC, 0);
+		return FAIL;
+	}
 
 	colinfo = info->columns[column - 1];
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
@@ -3779,17 +3835,17 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 
 	tdsdump_log(TDS_DBG_INFO1, "dbaltbind() srctype = %d desttype = %d \n", srctype, desttype);
 
-	if (!dbwillconvert(srctype, _db_get_server_type(vartype)))
-		goto Failed;
+	if (!dbwillconvert(srctype, _db_get_server_type(vartype))) {
+		dbperror(dbproc, SYBEAAMT, 0);
+		return FAIL;
+	}
 
 	colinfo->column_varaddr = (char *) varaddr;
 	colinfo->column_bindtype = vartype;
 	colinfo->column_bindlen = varlen;
 
 	return SUCCEED;
-      Failed:
-	return FAIL;
-}				/* dbaltbind()  */
+}
 
 
 /**
@@ -6348,6 +6404,7 @@ dbsqlsend(DBPROCESS * dbproc)
 
 	if (dbproc->dboptcmd) {
 		if ((cmdstr = dbstring_get(dbproc->dboptcmd)) == NULL) {
+			dbperror(dbproc, SYBEASEC, 0); /* Attempt to send an empty command buffer to the server */
 			return FAIL;
 		}
 		rc = tds_submit_query(dbproc->tds_socket, cmdstr);
@@ -7129,7 +7186,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEBCBC,           EXPROGRAM,	"bcp_columns must be called before bcp_colfmt and bcp_colfmt_ps" }
 	, { SYBEBCBNPR,         EXPROGRAM,	"bcp_bind: if varaddr is NULL, prefixlen must be 0 "
 						"and no terminator should be specified" }
-	, { SYBEBCBNTYP,        EXPROGRAM,	"bcp_bind: if varaddr i s NULL and varlen greater than 0, the table column type "
+	, { SYBEBCBNTYP,        EXPROGRAM,	"bcp_bind: if varaddr is NULL and varlen greater than 0, the table column type "
 						"must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, SYBCHAR, "
 						"SYBIMAGE or SYBBINARY" }
 	, { SYBEBCBPREF,        EXPROGRAM,	"Illegal prefix length. Legal values are 0, 1, 2 or 4" }
@@ -7466,7 +7523,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
  * and because libtds doesn't know which client library is in charge of any given connection, it cannot interpret the 
  * raw return code.  Similarly, the libtds error message number will not be in the db-lib msgno list.  For these reasons, 
  * libtds calls _dblib_handle_err_message which translates between libtds and db-lib semantics.  
- *
+ * \todo add varargs to allow for printf-style parameters e.g. SYBEBCRO.
  * \sa dberrhandle(), _dblib_handle_err_message(), tds_client_msg().
  */
 int
