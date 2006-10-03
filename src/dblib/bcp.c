@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.149 2006-09-26 21:00:13 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.150 2006-10-03 19:40:03 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -973,7 +973,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 						 */
 						/* TODO check for text !!! */
 						buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype, 
-								    hostcol->bcp_column_data->data, hostcol->bcp_column_data->datalen);
+								    hostcol->bcp_column_data->data,
+								    hostcol->bcp_column_data->datalen);
 						/* 
 						 * Special case:  When outputting database varchar data 
 						 * (either varchar or nullable char) dbconvert may have
@@ -1008,27 +1009,19 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				case 1:
 					ti = buflen;
 					written = fwrite(&ti, sizeof(ti), 1, hostfile);
-					if (written < sizeof(ti)) {
-						dbperror(dbproc, SYBEBCWE, errno);
-						return FAIL;
-					}
 					break;
 				case 2:
 					si = buflen;
 					written = fwrite(&si, sizeof(si), 1, hostfile);
-					if (written < sizeof(si)) {
-						dbperror(dbproc, SYBEBCWE, errno);
-						return FAIL;
-					}
 					break;
 				case 4:
 					li = buflen;
 					written = fwrite(&li, sizeof(li), 1, hostfile);
-					if (written < sizeof(li)) {
-						dbperror(dbproc, SYBEBCWE, errno);
-						return FAIL;
-					}
 					break;
+				}
+				if( plen != 0 && written != 1 ) {
+					dbperror(dbproc, SYBEBCWE, errno);
+					return FAIL;
 				}
 
 				/* The data */
@@ -1038,7 +1031,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 				if (buflen > 0) {
 					written = fwrite(hostcol->bcp_column_data->data, buflen, 1, hostfile);
-					if (written < buflen) {
+					if (written < 1) {
 						dbperror(dbproc, SYBEBCWE, errno);
 						return FAIL;
 					}
@@ -1047,7 +1040,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				/* The terminator */
 				if (hostcol->terminator && hostcol->term_len > 0) {
 					written = fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile);
-					if (written < hostcol->term_len) {
+					if (written < 1) {
 						dbperror(dbproc, SYBEBCWE, errno);
 						return FAIL;
 					}
@@ -3080,6 +3073,9 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 		dbperror(dbproc, SYBEBCBNPR, 0);
 		return FAIL;
 	}
+
+	colinfo = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
+
 	/* If varaddr is NULL and varlen greater than 0, the table column type must be SYBTEXT or SYBIMAGE 
 		and the program variable type must be SYBTEXT, SYBCHAR, SYBIMAGE or SYBBINARY */
 	if (varaddr == NULL && varlen > 0) {
@@ -3092,8 +3088,6 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 			/* return FAIL; */
 		}
 	}
-
-	colinfo = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
 
 	colinfo->column_varaddr  = (char *)varaddr;
 	colinfo->column_bindtype = vartype;

@@ -1,3 +1,6 @@
+Tue Oct  3 15:40:12 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c test fwrite(3) correctly
+
 Tue Sep 26 16:57:42 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* src/dblib/bcp.c src/dblib/dblib.c
 	* src/tds/convert.c src/tds/net.c src/tds/token.c
