@@ -1,6 +1,8 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
-# version: $Id: Makefile.am,v 1.56 2006-07-09 10:53:17 freddy77 Exp $
+
+# $Id: Makefile.am,v 1.57 2006-10-04 18:48:36 jklowden Exp $
+
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
@@ -10,13 +12,13 @@ TARGET_DOCDIR = $(DESTDIR)$(datadir)/$(DOCDIR)
 EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml userguide.css \
-		$(man_MANS) freebcp.txt tsql.txt \
+		$(man_MANS) freebcp.txt tsql.txt osql.txt \
 		bsqldb.txt defncopy.txt datacopy.txt \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
 		images/important.gif images/note.gif images/tip.gif \
 		tds_ssl.html
 
-man_MANS	= freebcp.1 tsql.1 bsqldb.1 defncopy.1 datacopy.1
+man_MANS	= freebcp.1 tsql.1 osql.1 bsqldb.1 defncopy.1 datacopy.1 
 nobase_data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 
 $(DOCDIR)/userguide: $(DOCDIR)/userguide/index.htm
@@ -44,6 +46,12 @@ freebcp.1: freebcp.txt
 
 tsql.1: tsql.txt
 	$(TXT2MAN) $(MANOPTS) $(srcdir)/tsql.txt >.$@
+	if test ! -s .$@; then echo 'unable to generate $@'; fi
+	test -s .$@
+	mv .$@ $@
+
+osql.1: osql.txt
+	$(TXT2MAN) $(MANOPTS) $(srcdir)/osql.txt >.$@
 	if test ! -s .$@; then echo 'unable to generate $@'; fi
 	test -s .$@
 	mv .$@ $@

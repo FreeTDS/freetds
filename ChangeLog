@@ -1,3 +1,6 @@
+Wed Oct  4 14:48:20 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* doc/Makefile.am doc/osql.txt added osql man page
+	
 Wed Oct  4 14:12:25 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* src/apps/Makefile.am add osql as installable script
 
