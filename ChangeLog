@@ -1,3 +1,6 @@
+Wed Oct  4 17:36:43 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* src/apps/osql GNU sed does not support -E
+
 Wed Oct  4 14:48:20 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* doc/Makefile.am doc/osql.txt added osql man page
 	

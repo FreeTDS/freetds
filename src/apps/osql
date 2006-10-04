@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.1 2006-09-26 21:00:22 jklowden Exp $
+# $Id: osql,v 1.2 2006-10-04 21:37:10 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -10,7 +10,7 @@ USAGE="Syntax: $(basename $0) -S server -U user -P password"
 while getopts S:U:P: OPTION
 do
 	case ${OPTION} in
-		S)	SERVERNAME=${OPTARG}
+		S)	DSN=${OPTARG}
 			;;
 		U)	USERNAME=${OPTARG}
 			;;
@@ -22,8 +22,8 @@ do
 	esac
 done
 
-echo ${SERVERNAME} ${USERNAME} ${PASSWORD}
-if [ -z "${SERVERNAME}" -o -z "${USERNAME}" -o -z "${PASSWORD}" ]
+#cho ${DSN} ${USERNAME} ${PASSWORD}
+if [ -z "${DSN}" -o -z "${USERNAME}" -o -z "${PASSWORD}" ]
 then 
 	
 	echo $USAGE
@@ -51,49 +51,50 @@ echo "odbc.ini and odbcinst.ini should be in ${ODBC_DIR}"
 
 for F in "${HOME}/.odbc.ini" "${ODBC_DIR}/odbc.ini"
 do
+	echo "looking for DSN [${DSN}] in $F"
 	if [ -r "$F" ]
 	then
-		echo using \"$F\"
+		echo "      found DSN [${DSN}] in $F"
 	else
-		echo cannot read \"$F\"
+		echo '	'cannot read \"$F\"
 		continue
 	fi
 
-	grep "[${SERVERNAME}]" $F > /dev/null
+	grep "[${DSN}]" $F > /dev/null
 
 	if [ $? -eq 0 ]
 	then
 		ODBC_INI=$F
 		break
 	else
-		echo "[${SERVERNAME}]" not found in \"$F\"
+		echo "[${DSN}]" not found in \"$F\"
 	fi
 done
 
 if [ -z "${ODBC_INI}" ]
 then
-	echo "$(basename $0): error: unable to locate ${SERVERNAME} in any odbc.ini"
+	echo "$(basename $0): error: unable to locate ${DSN} in any odbc.ini"
 	exit 1
 fi
 
 # Report finding of server entry
 echo found this section:
-SED_CMD="/^\[${SERVERNAME}\]/,/^[[:space:]]*$/ { s/^/	/; p; }"
-sed -nEe "${SED_CMD}" ${ODBC_INI}
+SED_CMD="/^\[${DSN}\]/,/^[[:space:]]*$/ { s/^/	/; p; }"
+sed -ne "${SED_CMD}" ${ODBC_INI}
 
 #
 # Examine server entry in odbc.ini 
 #
 
 # Find the driver in the servername or default section
-for D in "${SERVERNAME}" 'default' 
+for D in "${DSN}" 'default' 
 do
-	echo looking for driver in [$D]
+	echo "looking for driver for DSN [$D]"
 	grep "$D" ${ODBC_INI} > /dev/null
 	if [ $? -eq 0 ]
 	then
 		CMD="/^\[$D\]/,/^[[:space:]]*$/ { s/^/	/; p; }"
-		DRIVER_LINE=$(sed -nEe "${CMD}" ${ODBC_INI} \
+		DRIVER_LINE=$(sed -ne "${CMD}" ${ODBC_INI} \
 				| grep -Ei '^[[:space:]]*driver[[:space:]]*=')
 		if [ -z "${DRIVER_LINE}" ]
 		then
@@ -115,7 +116,7 @@ done
 
 if [ -z "${DRIVER}" ]
 then
-	echo "$(basename $0): error: no driver found for [${SERVERNAME}] in $(basename ${ODBC_INI})"
+	echo "$(basename $0): error: no driver found for [${DSN}] in $(basename ${ODBC_INI})"
 	exit 1
 fi
 
@@ -124,56 +125,57 @@ echo found driver named \"${DRIVER}\"
 if [ ! -r "${DRIVER}" ]
 then
 	# not a filename, look it up
+	DRIVERNAME=${DRIVER}
 	ODBC_INST="${ODBC_DIR}/odbcinst.ini"
-	echo "${DRIVER} is not a readable file"
-	echo "looking for entry named [${DRIVER}] in ${ODBC_INST}"
+	echo "${DRIVERNAME} is not a readable file"
+	echo "looking for entry named [${DRIVERNAME}] in ${ODBC_INST}"
 
-	grep "${DRIVER}" ${ODBC_INST} > /dev/null
+	grep "${DRIVERNAME}" ${ODBC_INST} > /dev/null
 	if [ $? -ne 0 ]
 	then
 		if [ $? -eq 1 ]
 		then
-			echo "$(basename $0): error: no driver entry [${DRIVER}] in ${ODBC_INST}"
+			echo "$(basename $0): error: no driver entry [${DRIVERNAME}] in ${ODBC_INST}"
 		fi
 		exit 1;
 	fi
 	
-	CMD="/^\[${DRIVER}\]/,/^[[:space:]]*$/ { s/^/	/; p; }"
-	DRIVER_LINE=$(sed -nEe "${CMD}" ${ODBC_INST} \
+	CMD="/^\[${DRIVERNAME}\]/,/^[[:space:]]*$/ { s/^/	/; p; }"
+	DRIVER_LINE=$(sed -ne "${CMD}" ${ODBC_INST} \
 				| grep -Ei '^[[:space:]]*driver[[:space:]]*=')
 	if [ -z "${DRIVER_LINE}" ]
 	then
-		echo "no driver mentioned for [${DRIVER}] in $(basename ${ODBC_INST})"
+		echo "no driver mentioned for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
 		exit 1
 	fi
 
 	DRIVER=$(echo ${DRIVER_LINE} | awk '{print $3}')
 	if [ -z "${DRIVER}" ]
 	then
-		echo "driver line incomplete for [${DRIVER}] in $(basename ${ODBC_INST})"
+		echo "driver line incomplete for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
 		exit 1
 	fi
 fi
 
-echo "driver \"${DRIVER}\" found for [${DRIVER}] in $(basename ${ODBC_INST})"
+echo "driver \"${DRIVER}\" found for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
 if [ -r "${DRIVER}" ]
 then
-	echo "found: ${DRIVER} is a readable file"
+	echo "${DRIVER} is a readable file"
 else
 	echo "${DRIVER} is not a readable file"
-	echo "$(basename $0): error: no driver found for ${SERVERNAME}"
+	echo "$(basename $0): error: no driver found for ${DSN}"
 	exit 1
 fi
 
 # find the server/servername
-SERVER_LINE=$(sed -nEe "${SED_CMD}" ${ODBC_INI} \
+SERVER_LINE=$(sed -ne "${SED_CMD}" ${ODBC_INI} \
 		| grep -Ei '^[[:space:]]*server(name)*[[:space:]]*=')
 
 ATTRIBUTE=$(echo ${SERVER_LINE} | awk '{print $1}')
 
 if [ -z "${ATTRIBUTE}" ]
 then
-	echo "$(basename $0): neither \"Server\" nor \"Servername\" found for [${SERVERNAME}] in $(basename ${ODBC_INI})"
+	echo "$(basename $0): neither \"Server\" nor \"Servername\" found for [${DSN}] in $(basename ${ODBC_INI})"
 	exit 1
 fi
 
@@ -185,7 +187,8 @@ echo ${SERVER_LINE} | grep -i servername >/dev/null
 if [ $? -eq 0 ] # ODBC-Combined
 then
 	TDS_SERVER=$(echo ${SERVER_LINE} | awk '{print $3}')
-	echo "FreeTDS servername is \"${TDS_SERVER}\""
+	echo 'Using ODBC-Combined strategy'
+	echo "FreeTDS servername is \"${TDS_SERVER}\" (from ${ODBC_INI})"
 	if [ -z "${TDS_SERVER}" ]
 	then
 		exit 1
@@ -202,9 +205,10 @@ then
 	
 	for F in "${HOME}/.freetds.conf" "${FREETDS_DIR}/freetds.conf"
 	do
+		echo "looking for [${TDS_SERVER}] in $F"
 		if [ -r "$F" ]
 		then
-			echo using \"$F\"
+			echo "\"$F\" is a readable file"
 		else
 			echo cannot read \"$F\"
 			continue
@@ -231,9 +235,9 @@ then
 
 	echo found this section:
 	SED_CMD="/^\[${TDS_SERVER}\]/,/^[[:space:]]*$/ { s/^/	/; p; }"
-	sed -nEe "${SED_CMD}" ${FREETDS_CONF}
+	sed -ne "${SED_CMD}" ${FREETDS_CONF}
 
-	SERVER_LINE=$(sed -nEe "${SED_CMD}" ${FREETDS_CONF} \
+	SERVER_LINE=$(sed -ne "${SED_CMD}" ${FREETDS_CONF} \
 			| grep -Ei '^[[:space:]]*host[[:space:]]*=')
 
 	HOST=$(echo ${SERVER_LINE} | awk '{print $3}')
@@ -260,7 +264,7 @@ fi
 CMD="host ${HOST}"
 
 OUTPUT=$(${CMD})
-ADDRESS=$(echo ${OUTPUT} | sed -E 's/.+has address //')
+ADDRESS=$(echo ${OUTPUT} | sed 's/..*has address //')
 if [ -z "${ADDRESS}" ]
 then
 	echo "$(basename $0): no IP address found for \"${HOST}\""
@@ -272,12 +276,12 @@ echo ${HOST} has address ${ADDRESS}
 # Report what we know and exec isql 
 
 printf "\n";
-printf "%30s:\t%-30s\n" Server ${SERVERNAME}
+printf "%30s:\t%-30s\n" DSN ${DSN}
 printf "%30s:\t%-30s\n" "Server's hostname" ${HOST}
 printf "%30s:\t%-30s\n" Address ${ADDRESS}
 printf "%30s:\t%-30s\n" Driver ${DRIVER}
 printf "\n";
 
 echo Attempting connection as ${USERNAME}... 
-exec isql ${SERVERNAME} ${USERNAME} ${PASSWORD}
+exec isql ${DSN} ${USERNAME} ${PASSWORD}
 
