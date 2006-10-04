@@ -1,3 +1,8 @@
+Wed Oct  4 19:46:29 EDT 2006	JK Lowden <jklowden@schemamania.org>
+	* src/apps/freebcp.c 
+	- applied -P from stdin patch 
+	- from ML Constantin Vasilyev <vasilyev@ncbi.nlm.nih.gov>
+	
 Wed Oct  4 17:36:43 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* src/apps/osql GNU sed does not support -E
 
