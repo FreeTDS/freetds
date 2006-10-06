@@ -45,7 +45,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.46 2006-10-04 23:49:34 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.47 2006-10-06 21:28:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -56,6 +56,7 @@ int login_to_database(struct pd *, DBPROCESS **);
 int file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
 int file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
 int file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir);
+int setoptions (DBPROCESS * dbproc, BCPPARAMDATA * params);
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname,
@@ -84,17 +85,8 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (dbfcmd(dbproc, "set textsize %d", params.textsize) == FAIL) {
-		printf("dbfcmd failed\n");
+	if (!setoptions(dbproc, &params)) 
 		return FALSE;
-	}
-
-	if (dbsqlexec(dbproc) == FAIL) {
-		printf("dbsqlexec failed\n");
-		return FALSE;
-	}
-
-	while (NO_MORE_RESULTS != dbresults(dbproc));
 
 	if (params.cflag) {	/* character format file */
 		ok = file_character(&params, dbproc, params.direction);
@@ -198,7 +190,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	 * Get the rest of the arguments 
 	 */
 	optind = 4; /* start processing options after table, direction, & filename */
-	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:I:S:h:T:A:ncEdvV")) != -1) {
+	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:I:S:h:T:A:O:0:ncEdvV")) != -1) {
 		switch (ch) {
 		case 'v':
 		case 'V':
@@ -278,6 +270,10 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			break;
 		case 'h':
 			pdata->hint = strdup(optarg);
+			break;
+		case 'O':
+		case '0':
+			pdata->options = strdup(optarg);
 			break;
 		case 'T':
 			pdata->Tflag++;
@@ -621,6 +617,65 @@ file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	return TRUE;
 }
 
+
+int
+setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params){
+	FILE *optFile;
+	char optBuf[256];
+	RETCODE fOK;
+
+	if (dbfcmd(dbproc, "set textsize %d ", params->textsize) == FAIL) {
+		fprintf(stderr, "setoptions() could not set textsize at %s:%d\n", __FILE__, __LINE__);
+		return FALSE;
+	}
+
+	/* 
+	 * If the option is a filename, read the SQL text from the file.  
+	 * Else pass the option verbatim to the server.
+	 */
+	if (params->options) {
+		if ((optFile = fopen(params->options, "r")) == NULL) {
+			if (dbfcmd(dbproc, params->options) == FAIL) {
+				fprintf(stderr, "setoptions() failed preparing options at %s:%d\n", __FILE__, __LINE__);
+				return FALSE;
+			}
+		} else {
+			while (fgets (optBuf, sizeof(optBuf), optFile) != NULL) {
+				if (dbfcmd(dbproc, optBuf) == FAIL) {
+					fprintf(stderr, "setoptions() failed preparing options at %s:%d\n", __FILE__, __LINE__);
+					return FALSE;
+				}
+			}
+			if (!feof (optFile)) {
+				perror("freebcp");
+        			fprintf(stderr, "error reading options file \"%s\" at %s:%d\n", params->options, __FILE__, __LINE__);
+				return FALSE;
+			}
+			fclose(optFile);
+		}
+	
+	}
+	
+	if (dbsqlexec(dbproc) == FAIL) {
+		fprintf(stderr, "setoptions() failed sending options at %s:%d\n", __FILE__, __LINE__);
+		return FALSE;
+	}
+	
+	while ((fOK = dbresults(dbproc)) == SUCCEED) {
+		while ((fOK = dbnextrow(dbproc)) == REG_ROW);
+		if (fOK == FAIL) {
+			fprintf(stderr, "setoptions() failed sending options at %s:%d\n", __FILE__, __LINE__);
+			return FALSE;
+		}
+	}
+	if (fOK == FAIL) {
+		fprintf(stderr, "setoptions() failed sending options at %s:%d\n", __FILE__, __LINE__);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 void
 pusage(void)
 {
@@ -629,7 +684,7 @@ pusage(void)
 	fprintf(stderr, "        [-F firstrow] [-L lastrow] [-b batchsize]\n");
 	fprintf(stderr, "        [-n] [-c] [-t field_terminator] [-r row_terminator]\n");
 	fprintf(stderr, "        [-U username] [-P password] [-I interfaces_file] [-S server]\n");
-	fprintf(stderr, "        [-v] [-d] [-h \"hint [,...]\" \n");
+	fprintf(stderr, "        [-v] [-d] [-h \"hint [,...]\" [-O \"set connection_option on|off, ...]\"\n");
 	fprintf(stderr, "        [-A packet size] [-T text or image size] [-E]\n");
 	fprintf(stderr, "        \n");
 	fprintf(stderr, "example: freebcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");

@@ -97,6 +97,11 @@ OPTIONS
 
   -d		Turn off any logging. (Unintuitive, perhaps.)
 
+  -O options	SQL text to set connection options prior to the bcp operation.
+  		If options is a valid filename, the SQL is read from 
+		the file instead. Sometimes needed for queryout. 
+		Example: "-O 'SET QUOTED_IDENTIFIER ON'"
+
   -I interfaces  The name and location of the interfaces file to 
 		search when connecting to servername. Overrides freetds.conf.
 
@@ -113,7 +118,7 @@ OPTIONS
 		experiment. 
 
   -v -V		Print the version information and exit. Unfortunately, the other
-  	minimum arguments are also required. 
+  		minimum arguments are also required. 
 
 NOTES
   When connecting to a Sybase database server, it is required that the

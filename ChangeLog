@@ -1,3 +1,8 @@
+Fri Oct  6 17:08:43 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* src/apps/freebcp.c src/apps/freebcp.h doc/freebcp.txt
+	- applied -0 patch from ML
+	- by Constantin Vasilyev <vasilyev@ncbi.nlm.nih.gov>
+
 Wed Oct  4 19:46:29 EDT 2006	JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c 
 	- applied -P from stdin patch 
