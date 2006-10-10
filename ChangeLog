@@ -1,3 +1,6 @@
+Tue Oct 10 15:52:22 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* doc/osql.txt clarified
+
 Fri Oct  6 17:08:43 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* src/apps/freebcp.c src/apps/freebcp.h doc/freebcp.txt
 	- applied -0 patch from ML

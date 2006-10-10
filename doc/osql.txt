@@ -2,20 +2,20 @@ NAME
   osql - utility to test FreeTDS connections and queries
 
 SYNOPSIS
-  osql 	-S datasource_name -U username -P password
+  osql 	-S dsn -U username -P password
 	
 DESCRIPTION
 
 osql is a diagnostic tool provided as part of FreeTDS. It is a 
 Bourne shell script that checks and reports on your configuration
-files.  If everything checks out OK, it invokes isql. 
+files. If everything checks out OK, it invokes isql. 
 
-osql works the isql that comes with unixODBC only.  
+osql works only with the isql that comes with unixODBC. 
 
 OPTIONS
 
-	-S servername  the Database Server to which to connect, as known
-	   to odbc.ini.  
+	-S dsn  the Data Source Name to which to connect, as known
+	   to odbc.ini. 
 
 	-U username  database login name.
 
@@ -31,7 +31,7 @@ If you have an odbc.ini with a section like this:
 	
 You would invoke osql as:
 
-	osql -S myDSN
+	osql -S myDSN [...]
 
 NOTES
 
@@ -39,7 +39,7 @@ If you can connect with "osql -S servername -U user -P passwd", your
 FreeTDS ODBC installation is working. 
 
 If you have suggestions for ways to make osql more useful as a diagnostic tool,
-please recommend them to the FreeTDS mailing list for consideration. 
+please post them to the FreeTDS mailing list. 
 
 HISTORY
 
