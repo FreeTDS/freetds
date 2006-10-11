@@ -1,3 +1,6 @@
+Wed Oct 11 16:37:04 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: fix wrong assert using numerics
+
 Tue Oct 10 15:52:22 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* doc/osql.txt clarified
 
@@ -10,13 +13,13 @@ Wed Oct  4 19:46:29 EDT 2006	JK Lowden <jklowden@schemamania.org>
 	* src/apps/freebcp.c 
 	- applied -P from stdin patch 
 	- from ML Constantin Vasilyev <vasilyev@ncbi.nlm.nih.gov>
-	
+
 Wed Oct  4 17:36:43 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* src/apps/osql GNU sed does not support -E
 
 Wed Oct  4 14:48:20 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* doc/Makefile.am doc/osql.txt added osql man page
-	
+
 Wed Oct  4 14:12:25 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* src/apps/Makefile.am add osql as installable script
 
