@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.10 2005-11-30 12:13:22 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.11 2006-10-12 09:25:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 	}
 
 	if (output != 24680) {
-		fprintf(stderr, "Invalid result %d (0x%x)\n", (int) output, (int) output);
+		fprintf(stderr, "Invalid result %d (0x%x) expected 24680\n", (int) output, (int) output);
 		exit(1);
 	}
 
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 		ODBC_REPORT_ERROR("Unable to execute statement");
 
 	if (output != 54321) {
-		fprintf(stderr, "Invalid result %d (0x%x)\n", (int) output, (int) output);
+		fprintf(stderr, "Invalid result %d (0x%x) expected 54321\n", (int) output, (int) output);
 		return 1;
 	}
 
