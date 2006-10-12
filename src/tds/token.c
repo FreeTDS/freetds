@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.322 2006-10-11 14:37:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.323 2006-10-12 09:20:48 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -691,7 +691,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 		case TDS_RETURNSTATUS_TOKEN:
 			ret_status = tds_get_int(tds);
 			marker = tds_peek(tds);
-			if (marker != TDS_PARAM_TOKEN && marker != TDS_DONEPROC_TOKEN && marker != TDS_DONE_TOKEN)
+			if (marker != TDS_PARAM_TOKEN && marker != TDS_DONEPROC_TOKEN && marker != TDS_DONE_TOKEN && marker != TDS5_PARAMFMT_TOKEN && marker != TDS5_PARAMFMT2_TOKEN)
 				break;
 			if (tds->internal_sp_called) {
 				/* TODO perhaps we should use ret_status ?? */
@@ -2731,16 +2731,16 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 			break;
 		}
 
-		/* Adjust column size according to client's encoding */
-		curcol->on_server.column_size = curcol->column_size;
-		adjust_character_column_size(tds, curcol);
-
 		/* numeric and decimal have extra info */
 		if (is_numeric_type(curcol->column_type)) {
 			curcol->column_prec = tds_get_byte(tds);	/* precision */
 			curcol->column_scale = tds_get_byte(tds);	/* scale */
 			/* FIXME check prec/scale, don't let server crash us */
 		}
+
+		/* Adjust column size according to client's encoding */
+		curcol->on_server.column_size = curcol->column_size;
+		adjust_character_column_size(tds, curcol);
 
 		/* discard Locale */
 		tds_get_n(tds, NULL, tds_get_byte(tds));

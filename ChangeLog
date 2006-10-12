@@ -1,3 +1,8 @@
+Thu Oct 12 11:19:02 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c:
+	- fix wrong assert
+	- return correctly RETURNSTATUS under Sybase
+
 Wed Oct 11 16:37:04 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c: fix wrong assert using numerics
 
