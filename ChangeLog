@@ -1,3 +1,6 @@
+Mon Oct 16 09:48:31 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: reduce system calls required
+
 Thu Oct 12 11:19:02 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c:
 	- fix wrong assert

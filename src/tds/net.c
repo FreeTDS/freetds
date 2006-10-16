@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.43 2006-09-26 21:00:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.44 2006-10-16 07:49:05 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -316,7 +316,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 
 	global_start_ms = start_ms = tds->query_start_time_ms ? tds->query_start_time_ms : tds_gettime_ms();
 
-	while (buflen > 0) {
+	for (;;) {
 
 		int len;
 		unsigned int now_ms = tds_gettime_ms();
@@ -364,8 +364,11 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 			len = 0;
 		}
 
-		buflen -= len;
 		got += len;
+		buflen -= len;
+		/* doing test here reduce number of syscalls required */
+		if (buflen <= 0)
+			break;
 
 		now_ms = tds_gettime_ms();
 		if (tds->query_timeout > 0 && (now_ms - start_ms) / 1000u >= tds->query_timeout) {
@@ -393,7 +396,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 		}
 
 		if (unfinished && got)
-			return got;
+			break;
 	}
 	return got;
 }
@@ -549,6 +552,10 @@ tds_read_packet(TDSSOCKET * tds)
 }
 
 /* TODO this code should be similar to read one... */
+/**
+ * check for socket writability 
+ * @returns <0 if timeout or error >= 0 is success
+ */
 static int
 tds_check_socket_write(TDSSOCKET * tds)
 {
@@ -582,14 +589,16 @@ tds_check_socket_write(TDSSOCKET * tds)
 		selecttimeout.tv_sec = tds->query_timeout - (now - start);
 		selecttimeout.tv_usec = 0;
 		retcode = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-		if (retcode < 0 && sock_errno == TDSSOCK_EINTR) {
+		/* we are able to write, return without other syscalls */
+		if (retcode > 0)
+			return 0;
+		if (retcode < 0 && sock_errno == TDSSOCK_EINTR)
 			retcode = 0;
-		}
 
 		now = time(NULL);
 	}
 
-	return retcode;
+	return -1;
 	/* Jeffs hack *** END OF NEW CODE */
 }
 
@@ -598,26 +607,16 @@ static int
 tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char last)
 {
 	int left = len;
-	int retval;
+	int retval, err;
 
 	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
 	if (TDS_IS_SOCKET_INVALID(tds->s))
 		return -1;
 
 	while (left > 0) {
-		/*
-		 * If there's a timeout, we need to sit and wait for socket
-		 * writability
-		 * moved socket writability check to own function -- bsb
-		 */
-		/* 
-		 * TODO we can avoid calling select for every send using 
-		 * no-blocking socket... This will reduce syscalls
-		 */
-		tds_check_socket_write(tds);
-
 #ifdef USE_MSGMORE
 		retval = send(tds->s, p, left, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+		/* in case kernel do not support MSG_MORE try not use it */
 		if (retval < 0 && errno == EINVAL && !last)
 			retval = send(tds->s, p, left, MSG_NOSIGNAL);
 #elif !defined(MSG_NOSIGNAL)
@@ -626,16 +625,32 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 		retval = send(tds->s, p, left, MSG_NOSIGNAL);
 #endif
 
+		if (retval < 0) {
+			err = sock_errno;
+			if (err == EAGAIN || err == TDSSOCK_EINPROGRESS) {
+				/*
+				 * If there's a timeout, we need to sit and wait for socket
+				 * writability
+				 * moved socket writability check to own function -- bsb
+				 *
+				 * We test for writability after send so we reduce syscalls
+				 * if there is sufficient space -- freddy77
+				 */
+				if (tds_check_socket_write(tds) >= 0)
+					continue;
+			}
+		}
+
 		if (retval <= 0) {
-			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", sock_errno, strerror(sock_errno));
+			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", err, strerror(err));
 			tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
 			tds->in_pos = 0;
 			tds->in_len = 0;
 			tds_close_socket(tds);
 			return -1;
 		}
-		left -= retval;
 		p += retval;
+		left -= retval;
 	}
 
 #ifdef USE_CORK
