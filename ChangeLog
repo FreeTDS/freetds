@@ -1,3 +1,7 @@
+Wed Oct 18 21:38:57 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/unittests/tables.c:
+	- fix problem with mssql2005 and SQLTables
+
 Mon Oct 16 09:48:31 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: reduce system calls required
 

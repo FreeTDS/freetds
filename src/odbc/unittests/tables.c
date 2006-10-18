@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.11 2006-03-23 14:53:44 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.12 2006-10-18 19:39:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef WIN32
@@ -194,7 +194,9 @@ main(int argc, char *argv[])
 	DoTest(type, 1);
 	/* TODO this should work even for Sybase and mssql 2005 */
 	if (db_is_microsoft()) {
+		/* here table is a name of table */
 		catalog = "%";
+		schema = NULL;
 		DoTest(NULL, 2);
 	}
 

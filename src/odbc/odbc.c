@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.423 2006-09-08 09:18:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.424 2006-10-18 19:39:47 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5779,8 +5779,13 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 	if (cbCatalogName > 0 && (cbCatalogName != 1 || szCatalogName[0] != '%' || cbTableName > 0 || cbSchemaName > 0)) {
 		if (wildcards) {
 			/* if catalog specified and wildcards use sp_tableswc under mssql2k */
-			if (TDS_IS_MSSQL(tds) && tds->product_version >= TDS_MS_VER(8,0,0))
+			if (TDS_IS_MSSQL(tds) && tds->product_version >= TDS_MS_VER(8,0,0)) {
 				proc = "sp_tableswc ";
+				if (cbSchemaName == SQL_NULL_DATA) {
+					szSchemaName = "%";
+					cbSchemaName = 1;
+				}
+			}
 
 			/*
 			 * TODO support wildcards on catalog even for Sybase
