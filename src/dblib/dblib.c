@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.262 2006-09-26 21:00:13 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.263 2006-10-21 20:44:58 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1285,10 +1285,34 @@ prresult_type(int result_type)
 
 /**
  * \ingroup dblib_core
- * \brief Return number of regular columns in a result set.  
- * 
+ * \brief Set up query results.  
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \sa dbcollen(), dbcolname(), dbnumalts().
+ * \retval SUCCEED Some results are available.
+ * \retval FAIL query was not processed successfully by the server
+ * \retval NO_MORE_RESULTS query produced no results. 
+ *
+ * \remarks Call dbresults() after calling dbsqlexec() or dbsqlok(), or dbrpcsend() returns SUCCEED.  Unless
+ *	one of them fails, dbresults will return either SUCCEED or NO_MORE_RESULTS.  
+ *
+ *	The meaning of \em results is very specific and not very intuitive.  Results are created by either
+ *	- a SELECT statement
+ * 	- a stored procedure
+ *
+ * 	When dbresults returns SUCCEED, therefore, it indicates the server processed the query successfully and 
+ * 	that one or more of these is present:
+ *	- metadata -- dbnumcols() returns 1 or more
+ *	- data -- dbnextrow() returns SUCCEED
+ *	- return status -- dbhasretstat() returns TRUE
+ *	- output parameters -- dbnumrets() returns 1 or more
+ *
+ *	If none of the above are present, dbresults() returns NO_MORE_RESULTS.  
+ * 	
+ * 	SUCCEED does not imply that DBROWS() will return TRUE or even that dbnumcols() will return nonzero.  
+ *	A general algorithm for reading results will call dbresults() until it return NO_MORE_RESULTS (or FAIL).  
+ * 	An application should check for all the above kinds of results within the dbresults() loop.  
+ * 
+ * \sa dbsqlexec(), dbsqlok(), dbrpcsend(), dbcancel(), DBROWS(), dbnextrow(), dbnumcols(), dbhasretstat(), dbretstatus(), dbnumrets()
  */
 RETCODE
 dbresults(DBPROCESS * dbproc)
@@ -1410,9 +1434,9 @@ _dbresults(DBPROCESS * dbproc)
 				}
 				break;
 
+			case TDS_STATUS_RESULT:
 			case TDS_MSG_RESULT:
 			case TDS_DESCRIBE_RESULT:
-			case TDS_STATUS_RESULT:
 			case TDS_PARAM_RESULT:
 			default:
 				break;
@@ -4104,8 +4128,6 @@ dbhasretstat(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "dbhasretstat(%p)\n", dbproc);
 	CHECK_PARAMETER2(dbproc, SYBENULL, FALSE);
 
-	dbnumrets(dbproc);
-
 	tds = dbproc->tds_socket;
 	if (tds->has_status) {
 		return TRUE;
@@ -4127,8 +4149,6 @@ dbretstatus(DBPROCESS * dbproc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbretstatus(%p)\n", dbproc);
 	CHECK_PARAMETER2(dbproc, SYBENULL, 0);
-
-	dbnumrets(dbproc);
 
 	return dbproc->tds_socket->ret_status;
 }

@@ -4,9 +4,9 @@
  */
 
 #include "common.h"
+#include <assert.h>
 
-
-static char software_version[] = "$Id: t0022.c,v 1.21 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.22 2006-10-21 20:44:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -19,7 +19,7 @@ main(int argc, char **argv)
 	DBPROCESS *dbproc;
 	int i;
 	char teststr[1024];
-	int failed = 0;
+	int erc, failed = 0;
 	char *retname = NULL;
 	int rettype = 0, retlen = 0;
 
@@ -60,20 +60,30 @@ main(int argc, char **argv)
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
+	while ((erc = dbresults(dbproc)) == SUCCEED) {
+		fprintf(stdout, "dbresult succeeded dropping procedure\n");
+		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
+			fprintf(stdout, "dbnextrow returned spurious rows dropping procedure\n");
+			assert(0); /* dropping a procedure returns no rows */
+		}
+		assert(erc == NO_MORE_ROWS);
 	}
+	assert(erc == NO_MORE_RESULTS);
 	add_bread_crumb();
 
 	fprintf(stdout, "creating proc\n");
-	dbcmd(dbproc, "create proc t0022 (@b int out) as\nbegin\n select @b = 42\nend\n");
+	dbcmd(dbproc, "create proc t0022 (@b int out) as\nbegin\n select @b = 42\n return 66\nend\n");
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
 		fprintf(stdout, "Failed to create proc t0022.\n");
 		exit(1);
 	}
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
+	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
+		assert(erc != FAIL);
+		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
+			assert(0); /* creating a procedure returns no rows */
+		}
+		assert(erc == NO_MORE_ROWS);
 	}
 
 	sprintf(cmd, "declare @b int\nexec t0022 @b = @b output\n");
@@ -83,11 +93,18 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 
-	if (dbresults(dbproc) == FAIL) {
-		add_bread_crumb();
-		fprintf(stdout, "Was expecting a result set.\n");
-		exit(1);
+	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
+		if (erc == FAIL) {
+			add_bread_crumb();
+			fprintf(stdout, "Was expecting a result set.\n");
+			exit(1);
+		}
+		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
+			assert(0); /* procedure returns no rows */
+		}
+		assert(erc == NO_MORE_ROWS);
 	}
+
 	add_bread_crumb();
 
 	if ((dbnumrets(dbproc) == 0)
@@ -144,6 +161,85 @@ main(int argc, char **argv)
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
+	
+	/*
+	 * Chapter 2: test for resultsets containing only a return status
+	 */
+	
+	fprintf(stdout, "Dropping proc t0022a\n");
+	dbcmd(dbproc, "if object_id('t0022a') is not null drop proc t0022a");
+
+	dbsqlexec(dbproc);
+
+	while ((erc = dbresults(dbproc)) == SUCCEED) {
+		fprintf(stdout, "dbresult succeeded dropping procedure\n");
+		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
+			fprintf(stdout, "dbnextrow returned spurious rows dropping procedure\n");
+			assert(0); /* dropping a procedure returns no rows */
+		}
+		assert(erc == NO_MORE_ROWS);
+	}
+	assert(erc == NO_MORE_RESULTS);
+
+	fprintf(stdout, "creating proc t0022a\n");
+	dbcmd(dbproc, "create proc t0022a (@b int) as\nreturn @b\n");
+	if (dbsqlexec(dbproc) == FAIL) {
+		fprintf(stdout, "Failed to create proc t0022a.\n");
+		exit(1);
+	}
+	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
+		assert(erc != FAIL);
+		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
+			assert(0); /* creating a procedure returns no rows */
+		}
+		assert(erc == NO_MORE_ROWS);
+	}
+
+	sprintf(cmd, "exec t0022a 17 exec t0022a 1024\n");
+	fprintf(stdout, "%s\n", cmd);
+	dbcmd(dbproc, cmd);
+	dbsqlexec(dbproc);
+
+	for (i=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; i++) {
+		enum {expected_iterations = 2};
+		DBBOOL fret;
+		DBINT  status;
+		if (erc == FAIL) {
+			fprintf(stdout, "t0022a failed for some reason.\n");
+			exit(1);
+		}
+		printf("procedure returned %srows\n", DBROWS(dbproc)==SUCCEED? "" : "no ");
+		while ((erc = dbnextrow(dbproc)) == SUCCEED) {
+			assert(0); /* procedure returns no rows */
+		}
+		assert(erc == NO_MORE_ROWS);
+		
+		fret = dbhasretstat(dbproc);
+		printf("procedure has %sreturn status\n", fret==TRUE? "" : "no ");
+		assert(fret == TRUE);
+		
+		status = dbretstatus(dbproc);
+		printf("return status %d is %d\n", i, (int) status);
+		switch (i) {
+		case 1: assert(status == 17); break;
+		case 2: assert(status == 1024); break;
+		default: assert(i <= expected_iterations);
+		}
+		
+	}
+
+	assert(erc == NO_MORE_RESULTS);
+	
+	fprintf(stdout, "Dropping proc t0022a\n");
+	dbcmd(dbproc, "drop proc t0022a");
+	dbsqlexec(dbproc);
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
+	
+	/* end chapter 2 */
+
+
 	add_bread_crumb();
 	dbexit();
 	add_bread_crumb();
