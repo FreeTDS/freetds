@@ -1,7 +1,7 @@
-#! /bin/sh
+#!/bin/sh
 # Run this to generate all the initial makefiles, etc.
 
-# $Id: autogen.sh,v 1.8 2005-04-06 06:44:33 jklowden Exp $
+# $Id: autogen.sh,v 1.9 2006-10-21 12:23:07 freddy77 Exp $
 
 # From automake.info:
 #
@@ -26,8 +26,8 @@ PKG_NAME="FreeTDS."
 # Revision 1.6 was the last one not to use autoreconf.  If you can't get
 # this (simpler) one to work, you might try that one. 
 
-(	cd ${srcdir}
-	echo running $(which autoreconf) in $(pwd): 
+(	cd $srcdir
+	echo running `which autoreconf` in `pwd`: 
 	autoreconf || autoreconf --install
 ) || exit
 
