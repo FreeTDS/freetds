@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.27 2006-07-10 21:13:37 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.28 2006-10-23 08:54:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -244,6 +244,7 @@ main(int argc, char **argv)
 					exit(1);
 				}
 			}
+			printf("row count %d\n", (int) dbcount(dbproc));
 			if (empty_resultset)
 				++num_empty_resultset;
 		} else {
