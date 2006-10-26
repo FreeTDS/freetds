@@ -1,3 +1,7 @@
+Thu Oct 26 15:09:48 EDT 2006	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dbutil.c log error message from server
+	* src/tds/net.c log TDS version
+
 Thu Oct 26 14:26:27 EDT 2006	JK Lowden <jklowden@freetds.org>
 	* src/dblib/unittests/common.c src/dblib/unittests/common.h
 	* src/dblib/unittests/t0001.c

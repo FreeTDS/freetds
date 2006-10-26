@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.33 2005-07-17 21:58:19 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.34 2006-10-26 19:09:42 jklowden Exp $");
 
 /*
  * test include consistency 
@@ -80,6 +80,9 @@ int
 _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	DBPROCESS *dbproc = (tds && tds->parent)? (DBPROCESS *) tds->parent : NULL;
+
+	tdsdump_log(TDS_DBG_FUNC, "_dblib_handle_info_message(%p, %p, %p)\n", tds_ctx, tds, msg);
+	tdsdump_log(TDS_DBG_FUNC, "msgno %d: \"%s\"\n", msg->msgno, msg->message);
 
 	/* 
 	 * Check to see if the user supplied a function, else ignore the message. 
