@@ -16,7 +16,7 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.18 2006-08-14 17:14:03 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.19 2006-10-26 18:27:00 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -143,15 +143,15 @@ read_login_info(int argc, char **argv)
 			fprintf(stderr, "usage:  %s \n"
 					"        [-U username] [-P password]\n"
 					"        [-S servername] [-D database]\n"
-					"        [-i input filename] [-o output filename] [-e error filename]\n"
+					"        [-i input filename] [-o output filename] "
+					"[-e error filename]\n"
 					, BASENAME);
 			exit(1);
 		}
 	}
 #endif
-
-
 	strcpy(filename, PWD);
+	
 	in = fopen(filename, "r");
 	if (!in)
 		in = fopen("PWD", "r");

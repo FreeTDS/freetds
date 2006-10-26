@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.10 2006-07-06 12:48:16 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.11 2006-10-26 18:27:00 jklowden Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #if HAVE_CONFIG_H
@@ -10,6 +10,7 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -48,6 +49,13 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 #define dberrhandle(h) dberrhandle((DBERRHANDLE_PROC) h)
 #define dbmsghandle(h) dbmsghandle((DBMSGHANDLE_PROC) h)
 #endif
+
+/* cf getopt(3) */
+extern char *optarg;
+extern int optind;
+extern int optopt;
+extern int opterr;
+extern int optreset;
 
 extern char PASSWORD[512];
 extern char USER[512];

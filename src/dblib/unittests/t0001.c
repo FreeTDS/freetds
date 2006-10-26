@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.21 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.22 2006-10-26 18:27:00 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -21,11 +21,13 @@ main(int argc, char **argv)
 	DBPROCESS *dbproc;
 	int i;
 	char teststr[1024];
-	DBINT testint;
+	DBINT testint, erc;
 
 	set_malloc_options();
 
 	read_login_info(argc, argv);
+	argc -= optind;
+	argv += optind;
 
 	fprintf(stdout, "Start\n");
 	add_bread_crumb();
@@ -37,7 +39,7 @@ main(int argc, char **argv)
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	fprintf(stdout, "About to logon as \"%s\"\n", USER);
 
 	add_bread_crumb();
 	login = dblogin();
@@ -68,8 +70,11 @@ main(int argc, char **argv)
 	dbloginfree(login);
 	add_bread_crumb();
 
-	if (strlen(DATABASE))
-		dbuse(dbproc, DATABASE);
+	fprintf(stdout, "Using database \"%s\"\n", DATABASE);
+	if (strlen(DATABASE)) {
+		erc = dbuse(dbproc, DATABASE);
+		assert(erc == SUCCEED);
+	}
 	add_bread_crumb();
 
 	fprintf(stdout, "QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
