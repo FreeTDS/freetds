@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.44 2006-10-16 07:49:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.45 2006-10-26 19:09:50 jklowden Exp $");
 
 /**
  * \addtogroup network
@@ -181,7 +181,9 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(port);
 
-	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d.\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port));
+	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d (TDS version %d.%d)\n", 
+			tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port), 
+			tds->major_version, tds->minor_version);
 
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
 		tds_client_msg(tds->tds_ctx, tds, 20008, 9, 0, 0, "Unable to open socket.");
