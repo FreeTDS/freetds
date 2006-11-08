@@ -8,7 +8,7 @@ Thu Oct 26 14:26:27 EDT 2006	JK Lowden <jklowden@freetds.org>
 	- corrected command-line option handling
 
 Sat Oct 21 16:42:08 EDT 2006	JK Lowden <jklowden@schemamania.org>
-	* src/dblib/dblib.c src/dblib/unittests/t0022.c
+	* src/dblib/dblib.c src/dblib/unittests/t0022.c:
 	- dbresults succeeds if metadata or only return status is
 	- present, cf. ML yesterday.
 
