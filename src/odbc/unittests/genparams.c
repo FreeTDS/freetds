@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.16 2006-03-19 17:33:23 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.17 2006-11-23 08:44:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -136,6 +136,7 @@ main(int argc, char *argv[])
 
 	char version[32];
 	SQLSMALLINT version_len;
+	SQLINTEGER y, m, d;
 
 	use_odbc_version3 = 1;
 	Connect();
@@ -172,7 +173,19 @@ main(int argc, char *argv[])
 	/* replace date information with current date */
 	time(&curr_time);
 	ltime = localtime(&curr_time);
-	sprintf(buf, "2003-07-22 13:02:03 -> %04d-%02d-%02d 13:02:03", ltime->tm_year + 1900, ltime->tm_mon + 1, ltime->tm_mday);
+	y = ltime->tm_year + 1900;
+	m = ltime->tm_mon + 1;
+	d = ltime->tm_mday;
+	/* server concept of data can be different so try ask to server */
+	Command(Statement, "SELECT YEAR(GETDATE()), MONTH(GETDATE()), DAY(GETDATE())");
+	SQLBindCol(Statement, 1, SQL_C_SLONG, &y, 0, NULL);
+	SQLBindCol(Statement, 2, SQL_C_SLONG, &m, 0, NULL);
+	SQLBindCol(Statement, 3, SQL_C_SLONG, &d, 0, NULL);
+	SQLFetch(Statement);
+	SQLFetch(Statement);
+	SQLMoreResults(Statement);
+	SQLFreeStmt(Statement, SQL_UNBIND);
+	sprintf(buf, "2003-07-22 13:02:03 -> %04d-%02d-%02d 13:02:03", (int) y, (int) m, (int) d);
 	TestInput(SQL_C_TYPE_TIME, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", buf);
 
 	TestInput(SQL_C_FLOAT,  "FLOAT", SQL_REAL, "FLOAT", "1234.25");
