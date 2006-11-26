@@ -35,6 +35,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include <ctype.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 #ifdef HAVE_READLINE
 #include <readline/readline.h>
@@ -78,7 +80,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.94 2006-08-25 07:18:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.95 2006-11-26 21:00:41 jklowden Exp $");
 
 enum
 {
@@ -353,7 +355,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 #endif
 
 
-	while ((opt = getopt(argc, argv, "H:S:I:V::P:U:p:vCo:")) != -1) {
+	while ((opt = getopt(argc, argv, "H:S:I:P:U:p:Co:")) != -1) {
 		switch (opt) {
 		case 'o':
 			opt_flags_str = optarg;
@@ -545,6 +547,7 @@ main(int argc, char **argv)
 	TDSCONTEXT *context;
 	TDSCONNECTION *connection;
 	int opt_flags = 0;
+	pid_t timer_pid = 0;
 
 	istty = isatty(0);
 
@@ -572,10 +575,35 @@ main(int argc, char **argv)
 	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, NULL);
 	connection = tds_read_config_info(NULL, login, context->locale);
+	
+	/* 
+	 * If we're able to establish an ip address for the server, we'll try to connect to it. 
+	 * If that machine is currently unreachable
+	 * show a timer connecting to the server 
+	 */
+	if (connection) {
+		timer_pid = fork();
+		if (-1 == timer_pid) {
+			perror("tsql: warning"); /* make a note */
+		}
+		if (0 == timer_pid) {
+			int i=0;
+			while(1) {
+				if (sleep(1) == 0) {
+					fprintf(stderr, "\r%2d", ++i);
+					continue;
+				}
+				printf("sleep was interrupted\n");
+			}
+		}
+	}
 	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
 		tds_free_socket(tds);
 		tds_free_connection(connection);
 		fprintf(stderr, "There was a problem connecting to the server\n");
+		if (timer_pid > 0 ) {
+			kill(timer_pid, SIGTERM);
+		}
 		exit(1);
 	}
 	tds_free_connection(connection);
@@ -587,6 +615,17 @@ main(int argc, char **argv)
 #ifdef HAVE_READLINE
 	rl_inhibit_completion = 1;
 #endif
+	if (timer_pid > 0 ) {
+		if (kill(timer_pid, SIGTERM) == -1 ) {
+			perror("tsql: warning");
+		} else {
+			if (wait(0) == -1 ) {
+				perror("tsql: warning");
+			} else {
+				fprintf(stderr, "\r");
+			}
+		}
+	}
 
 	for (;;) {
 		sprintf(prompt, "%d> ", ++line);
