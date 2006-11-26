@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.45 2006-10-26 19:09:50 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.46 2006-11-26 21:00:54 jklowden Exp $");
 
 /**
  * \addtogroup network
@@ -210,7 +210,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
 		char *message;
 
-		if (asprintf(&message, "src/tds/login.c: tds_connect: %s:%d", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port)) >= 0) {
+		if (asprintf(&message, "tds_open_socket(): %s:%d", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port)) >= 0) {
 			perror(message);
 			free(message);
 		}
@@ -220,11 +220,10 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	}
 #else
 	/* Jeff's hack *** START OF NEW CODE *** */
-	if (!timeout)
-		/* I don't think anybody complains... */
+	if (!timeout) {
+		/* A timeout of zero means wait forever; 90,000 seconds will feel like forever. */
 		timeout = 90000;
-
-	start_ms = tds_gettime_ms();
+	}
 
 	/* enable no-blocking mode */
 	ioctl_blocking = 1;
@@ -234,12 +233,15 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	}
 
 	retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
+	if (retval == 0) {
+		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
+	}
 	if (retval < 0 && sock_errno == TDSSOCK_EINPROGRESS)
 		retval = 0;
 	/* if retval < 0 (error) fall through */
 
 	/* Select on writeability for connect_timeout */
-	now_ms = start_ms;
+	now_ms = start_ms = tds_gettime_ms();
 	while ((retval == 0) && ((now_ms - start_ms) / 1000u < timeout)) {
 		FD_SET(tds->s, &fds);
 		selecttimeout.tv_sec = timeout - (now_ms - start_ms) / 1000u;
@@ -609,7 +611,7 @@ static int
 tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char last)
 {
 	int left = len;
-	int retval, err;
+	int retval, err=0;
 
 	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
 	if (TDS_IS_SOCKET_INVALID(tds->s))
@@ -643,7 +645,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 			}
 		}
 
-		if (retval <= 0) {
+		if (retval <= 0) { /* abandon ship if send(2) sent zero bytes or had bad error */
 			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", err, strerror(err));
 			tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
 			tds->in_pos = 0;

@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.152 2006-08-30 12:00:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.153 2006-11-26 21:00:54 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -788,6 +788,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_n(tds, domain, domain_len);
 	}
 
+	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7.0 login packet\n");
 	tdsdump_off();
 	rc = tds_flush_packet(tds);
 	tdsdump_on();
