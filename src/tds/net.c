@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.46 2006-11-26 21:00:54 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.47 2006-11-27 23:31:30 jklowden Exp $");
 
 /**
  * \addtogroup network
@@ -235,6 +235,23 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
+	} else {
+		tdsdump_log(TDS_DBG_ERROR, "error: connect(2) returned 0x%x, \"%s\"\n", sock_errno, strerror(sock_errno));
+		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH) {
+			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", &sin, sizeof(sin));
+			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
+							      "%s = %x\n" 
+							"\t\t\t%s = %x\n" 
+							"\t\t\t%s = %x\n" 
+							"\t\t\t%s = %x\n"
+							"\t\t\t%s = '%s'\n"
+							, "sin_len", sin.sin_len
+							, "sin_family", sin.sin_family
+							, "sin_port", sin.sin_port
+							, "sin_addr.s_addr", sin.sin_addr.s_addr
+							, "(param ip_addr)", ip_addr
+							);
+		}
 	}
 	if (retval < 0 && sock_errno == TDSSOCK_EINPROGRESS)
 		retval = 0;

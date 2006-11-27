@@ -1,3 +1,6 @@
+Mon Nov 27 18:31:18 EST 2006	JK Lowden <jklowden@freetds.org>
+	* src/tds/net.c more detailed log of connect(2)
+
 Sun Nov 26 15:26:31 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* src/apps/tsql.c added connection timer feedback
 	* src/tds/login.c src/tds/net.c slightly better logging
