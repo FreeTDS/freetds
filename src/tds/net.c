@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.48 2006-11-28 16:52:50 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.49 2006-11-28 17:04:28 jklowden Exp $");
 
 /**
  * \addtogroup network
@@ -243,10 +243,8 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
 							      "%s = %x\n" 
 							"\t\t\t%s = %x\n" 
-							"\t\t\t%s = %x\n" 
 							"\t\t\t%s = %x\n"
 							"\t\t\t%s = '%s'\n"
-							, "sin_len", sin.sin_len
 							, "sin_family", sin.sin_family
 							, "sin_port", sin.sin_port
 							, "sin_addr.s_addr", sin.sin_addr.s_addr
