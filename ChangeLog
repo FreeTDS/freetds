@@ -1,3 +1,7 @@
+Tue Nov 28 11:52:27 EST 2006	JK Lowden <jklowden@freetds.org>
+	* src/apps/tsql.c fix -o option code
+	* src/tds/net.c reorganize tds_open_socket()
+	
 Mon Nov 27 18:31:18 EST 2006	JK Lowden <jklowden@freetds.org>
 	* src/tds/net.c more detailed log of connect(2)
 

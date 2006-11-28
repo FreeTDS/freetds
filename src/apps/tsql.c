@@ -80,7 +80,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.95 2006-11-26 21:00:41 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.96 2006-11-28 16:52:41 jklowden Exp $");
 
 enum
 {
@@ -283,7 +283,7 @@ tsql_print_usage(const char *progname)
 static int
 get_opt_flags(char *s, int *opt_flags)
 {
-	char **argv;
+	char **argv, **first_arg;
 	int argc;
 	int opt;
 
@@ -297,10 +297,16 @@ get_opt_flags(char *s, int *opt_flags)
 	for (argc=0; (argv[argc] = strtok(s, " ")) != NULL; argc++)
 		s = NULL;
 
+	first_arg = argv;
+	if (strcasecmp(first_arg[0], "go") == 0) {
+		argc--;
+		first_arg++;
+	}
+		
 	*opt_flags = 0;
 	optind = 0;		/* reset getopt */
 	opterr = 0;		/* suppress error messages */
-	while ((opt = getopt(argc, argv, "fhqtv")) != -1) {
+	while ((opt = getopt(argc, first_arg, "fhqtv")) != -1) {
 		switch (opt) {
 		case 'f':
 			*opt_flags |= OPT_NOFOOTER;
@@ -581,7 +587,7 @@ main(int argc, char **argv)
 	 * If that machine is currently unreachable
 	 * show a timer connecting to the server 
 	 */
-	if (connection) {
+	if (connection && !QUIET) {
 		timer_pid = fork();
 		if (-1 == timer_pid) {
 			perror("tsql: warning"); /* make a note */
