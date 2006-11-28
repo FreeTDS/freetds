@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.47 2006-11-27 23:31:30 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.48 2006-11-28 16:52:50 jklowden Exp $");
 
 /**
  * \addtogroup network
@@ -157,7 +157,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	struct sockaddr_in sin;
 	fd_set fds;
 #if !defined(DOS32X)
-	unsigned long ioctl_blocking = 1;
+	unsigned long ioctl_nonblocking = 1;
 	unsigned int start_ms, now_ms;
 	struct timeval selecttimeout;
 	int retval;
@@ -171,6 +171,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 #endif
 
 	FD_ZERO(&fds);
+	memset(&sin, 0, sizeof(sin));
 
 	sin.sin_addr.s_addr = inet_addr(ip_addr);
 	if (sin.sin_addr.s_addr == INADDR_NONE) {
@@ -225,9 +226,9 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		timeout = 90000;
 	}
 
-	/* enable no-blocking mode */
-	ioctl_blocking = 1;
-	if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_blocking) < 0) {
+	/* enable non-blocking mode */
+	ioctl_nonblocking = 1;
+	if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_nonblocking) < 0) {
 		tds_close_socket(tds);
 		return TDS_FAIL;
 	}
@@ -236,7 +237,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
-		tdsdump_log(TDS_DBG_ERROR, "error: connect(2) returned 0x%x, \"%s\"\n", sock_errno, strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "connect(2) failed: 0x%x, \"%s\"\n", sock_errno, strerror(sock_errno));
 		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH) {
 			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", &sin, sizeof(sin));
 			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
@@ -252,53 +253,63 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 							, "(param ip_addr)", ip_addr
 							);
 		}
+		if (sock_errno != TDSSOCK_EINPROGRESS)
+			goto not_available;
 	}
-	if (retval < 0 && sock_errno == TDSSOCK_EINPROGRESS)
-		retval = 0;
-	/* if retval < 0 (error) fall through */
 
-	/* Select on writeability for connect_timeout */
+	/* use select(2) on writeability to honor connect_timeout */
 	now_ms = start_ms = tds_gettime_ms();
-	while ((retval == 0) && ((now_ms - start_ms) / 1000u < timeout)) {
+	for (retval=0; retval == 0; now_ms = tds_gettime_ms()) {
+		if ((now_ms - start_ms) / 1000u >= timeout) {
+			tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", 
+							tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)),
+				    			ntohs(sin.sin_port), strerror(sock_errno));
+			tds_close_socket(tds);
+			tds_client_msg(tds->tds_ctx, tds, 20003, 9, 0, 0, "SQL Server connection timed out.");
+			return TDS_FAIL;
+		}
 		FD_SET(tds->s, &fds);
 		selecttimeout.tv_sec = timeout - (now_ms - start_ms) / 1000u;
 		selecttimeout.tv_usec = 0;
-		retval = select(tds->s + 1, NULL, &fds, &fds, &selecttimeout);
-		/* on interrupt ignore */
-		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
-			retval = 0;
-		now_ms = tds_gettime_ms();
-	}
 
-	if (retval < 0 || (now_ms - start_ms) / 1000u >= timeout) {
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)),
-			    ntohs(sin.sin_port), strerror(sock_errno));
-		tds_close_socket(tds);
-		if (retval < 0)
-			tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
-		else
-			tds_client_msg(tds->tds_ctx, tds, 20003, 9, 0, 0, "SQL Server connection timed out.");
-		return TDS_FAIL;
+		retval = select(tds->s + 1, NULL, &fds, &fds, &selecttimeout);
+
+		/* retry if select(2) failed because it was interrupted */
+		if (retval < 0) {
+			if (sock_errno == TDSSOCK_EINTR) {
+				retval = 0;
+			} else {
+				tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
+								sock_errno, strerror(sock_errno));
+				goto not_available;
+			}
+		}
 	}
-#endif
+	assert(retval > 0);
+
 	/* END OF NEW CODE */
+#endif
 
 	/* check socket error */
 	optlen = sizeof(len);
 	len = 0;
 	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
-		tdsdump_log(TDS_DBG_ERROR, "getsockopt: %s\n", strerror(sock_errno));
-		tds_close_socket(tds);
-		return TDS_FAIL;
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", strerror(sock_errno));
+		goto not_available;
 	}
 	if (len != 0) {
-		tdsdump_log(TDS_DBG_ERROR, "connect error: %s\n", strerror(len));
-		tds_close_socket(tds);
-		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
-		return TDS_FAIL;
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", strerror(len));
+		goto not_available;
 	}
 
 	return TDS_SUCCEED;
+	
+    not_available:
+	
+	tds_close_socket(tds);
+	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
+	tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
+	return TDS_FAIL;
 }
 
 int
