@@ -80,7 +80,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.96 2006-11-28 16:52:41 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.97 2006-11-29 20:47:17 jklowden Exp $");
 
 enum
 {
@@ -298,7 +298,7 @@ get_opt_flags(char *s, int *opt_flags)
 		s = NULL;
 
 	first_arg = argv;
-	if (strcasecmp(first_arg[0], "go") == 0) {
+	if (argc > 0 && strcasecmp(first_arg[0], "go") == 0) {
 		argc--;
 		first_arg++;
 	}
