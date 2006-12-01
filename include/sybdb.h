@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.78 2006-08-24 14:30:19 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.79 2006-12-01 21:51:11 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -1093,6 +1093,7 @@ RETCODE bcp_colfmt_ps(DBPROCESS * dbproc, int host_column, int host_type, int ho
 		      BYTE * host_term, int host_termlen, int colnum, DBTYPEINFO * typeinfo);
 RETCODE bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column);
 RETCODE bcp_control(DBPROCESS * dbproc, int field, DBINT value);
+int bcp_getbatchsize(DBPROCESS * dbproc); /* FreeTDS only */
 RETCODE bcp_exec(DBPROCESS * dbproc, DBINT * rows_copied);
 DBBOOL bcp_getl(LOGINREC * login);
 RETCODE bcp_moretext(DBPROCESS * dbproc, DBINT size, BYTE * text);

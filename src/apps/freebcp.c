@@ -45,7 +45,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.47 2006-10-06 21:28:20 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.48 2006-12-01 21:51:11 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -469,7 +469,7 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	bcp_control(dbproc, BCPBATCH, pdata->batchsize);
 
-	printf("\nStarting copy...\n\n");
+	printf("\nStarting copy...\n");
 
 	if (FAIL == bcp_exec(dbproc, &li_rowsread)) {
 		fprintf(stderr, "bcp copy %s failed\n", (dir == DB_IN) ? "in" : "out");
@@ -693,7 +693,14 @@ pusage(void)
 int
 err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
+	static int sent = 0;
 
+	if (dberr == SYBEBBCI) { /* Batch successfully bulk copied to the server */
+		int batch = bcp_getbatchsize(dbproc);
+		printf("%d rows sent to SQL Server.\n", sent += batch);
+		return INT_CANCEL;
+	}
+	
 	if (dberr) {
 		fprintf(stderr, "Msg %d, Level %d\n", dberr, severity);
 		fprintf(stderr, "%s\n\n", dberrstr);
@@ -704,15 +711,15 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 		fprintf(stderr, "%s\n", dberrstr);
 	}
 
-	return (INT_CANCEL);
+	return INT_CANCEL;
 }
 
 int
 msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 {
 	/*
-	 * ** If it's a database change message, we'll ignore it.
-	 * ** Also ignore language change message.
+	 * If it's a database change message, we'll ignore it.
+	 * Also ignore language change message.
 	 */
 	if (msgno == 5701 || msgno == 5703)
 		return (0);

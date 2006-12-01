@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.150 2006-10-03 19:40:03 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.151 2006-12-01 21:51:11 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -580,6 +580,22 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 		return FAIL;
 	}
 	return SUCCEED;
+}
+
+/*
+ * \ingroup dblib_bcp
+ * \brief Get BCP batch option
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \remarks This function is specific to FreeTDS.  
+ * 
+ * \return the value that was set by bcp_control.
+ * \sa 	bcp_batch(), bcp_control()
+ */
+int
+bcp_getbatchsize(DBPROCESS * dbproc)
+{
+	return dbproc->hostfileinfo->batch;
 }
 
 /** 

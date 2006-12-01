@@ -1,3 +1,8 @@
+Fri Dec  1 16:45:59 EST 2006	JK Lowden <jklowden@freetds.org>
+	* include/sybdb.h src/dblib/bcp.c src/apps/freebcp.c
+	- Changed freetbcp batch-copied information messages to 
+	- match the output of Sybase's bcp utility.  
+
 Wed Nov 29 15:46:38 EST 2006	JK Lowden <jklowden@freetds.org>
 	* src/apps/tsql.c fixed broken "go" option handling.
 
