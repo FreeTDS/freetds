@@ -1,3 +1,6 @@
+Tue Dec  5 11:42:04 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/funccall.c: add a test
+
 Fri Dec  1 16:45:59 EST 2006	JK Lowden <jklowden@freetds.org>
 	* include/sybdb.h src/dblib/bcp.c src/apps/freebcp.c
 	- Changed freetbcp batch-copied information messages to 
@@ -9,7 +12,7 @@ Wed Nov 29 15:46:38 EST 2006	JK Lowden <jklowden@freetds.org>
 Tue Nov 28 11:52:27 EST 2006	JK Lowden <jklowden@freetds.org>
 	* src/apps/tsql.c fix -o option code
 	* src/tds/net.c reorganize tds_open_socket()
-	
+
 Mon Nov 27 18:31:18 EST 2006	JK Lowden <jklowden@freetds.org>
 	* src/tds/net.c more detailed log of connect(2)
 

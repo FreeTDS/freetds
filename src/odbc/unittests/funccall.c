@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.11 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.12 2006-12-05 10:43:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -136,6 +136,41 @@ main(int argc, char *argv[])
 	}
 
 	Command(Statement, "drop proc simpleresult2");
+
+	/* test from shiv kumar (cfr ML 2006-11-21) */
+	if (CommandWithResult(Statement, "drop proc rpc_read") != SQL_SUCCESS)
+		printf("Unable to execute statement\n");
+
+	SQLCloseCursor(Statement);
+
+	Command(Statement, "create proc rpc_read @i int, @x timestamp as begin select 1 return 1234 end");
+	SQLCloseCursor(Statement);
+	SQLFreeStmt(Statement, SQL_CLOSE);
+	SQLFreeStmt(Statement, SQL_UNBIND);
+
+	if (SQLPrepare(Statement, (SQLCHAR *) "{ ? = CALL rpc_read ( ?, ? ) }" , SQL_NTS) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to prepare statement\n");
+
+	ind = 0;
+	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &output, 0, &ind) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to bind output parameter\n");
+
+	ind2 = 0;
+	if (SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &input, 0, &ind2) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to bind input parameter\n");
+
+	ind3 = 8;
+	if (SQLBindParameter(Statement, 3, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_VARBINARY, 8, 0, out2, 8, &ind3) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to bind output parameter\n");
+
+	if (SQLExecute(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Unable to execute statement\n");
+
+	if (SQLFetch(Statement) != SQL_SUCCESS)
+		ODBC_REPORT_ERROR("Data not expected\n");
+
+	if (SQLFetch(Statement) != SQL_NO_DATA)
+		ODBC_REPORT_ERROR("Data not expected\n");
 
 	Disconnect();
 
