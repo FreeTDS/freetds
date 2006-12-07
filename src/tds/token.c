@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.323 2006-10-12 09:20:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.324 2006-12-07 16:07:17 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1709,15 +1709,11 @@ tds5_process_result(TDSSOCKET * tds)
 		switch (curcol->column_varint_size) {
 		case 4:
 			if (curcol->column_type == SYBTEXT || curcol->column_type == SYBIMAGE) {
-				int namelen;
-
 				curcol->column_size = tds_get_int(tds);
 
-				/* skip name */
-				namelen = tds_get_smallint(tds);
-				if (namelen)
-					tds_get_n(tds, NULL, namelen);
-
+				/* save name */
+				curcol->table_namelen =
+					tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
 			} else
 				tdsdump_log(TDS_DBG_INFO1, "UNHANDLED TYPE %x\n", curcol->column_type);
 			break;
@@ -1753,7 +1749,7 @@ tds5_process_result(TDSSOCKET * tds)
 		 *  Dump all information on this column
 		 */
 		tdsdump_log(TDS_DBG_INFO1, "col %d:\n", col);
-		tdsdump_log(TDS_DBG_INFO1, "tcolumn_label=[%s]\n", curcol->column_name);
+		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_label=[%s]\n", curcol->column_name);
 /*
 		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_colname);
 		tdsdump_log(TDS_DBG_INFO1, "\tcatalog=[%s] schema=[%s] table=[%s]\n",

@@ -1,3 +1,6 @@
+Thu Dec  7 17:06:50 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: make get_send_data works
+
 Tue Dec  5 11:42:04 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/funccall.c: add a test
 
