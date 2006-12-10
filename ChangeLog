@@ -1,3 +1,8 @@
+Sun Dec 10 16:04:02 EST 2006	JK Lowden <jklowden@schemamania.org>
+	* doc/htdoc/faq.html minor fixes
+	* src/apps/tsql.c send *sybase* charset name in login record
+	* src/tds/net.c src/tds/read.c a little less logging
+
 Thu Dec  7 17:06:50 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c: make get_send_data works
 
