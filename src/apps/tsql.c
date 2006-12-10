@@ -80,7 +80,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.97 2006-11-29 20:47:17 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.98 2006-12-10 21:07:53 jklowden Exp $");
 
 enum
 {
@@ -460,8 +460,10 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 
 	/* all validated, let's do it */
 
-	/* if it's a servername */
+	if (tds_sybase_charset_name(charset))
+		charset = tds_sybase_charset_name(charset);
 
+	/* if it's a servername */
 	if (servername) {
 		tds_set_user(login, username);
 		tds_set_app(login, "TSQL");
