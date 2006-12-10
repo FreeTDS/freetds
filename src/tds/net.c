@@ -98,7 +98,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.49 2006-11-28 17:04:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.50 2006-12-10 21:08:00 jklowden Exp $");
 
 /**
  * \addtogroup network
@@ -237,8 +237,9 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
-		tdsdump_log(TDS_DBG_ERROR, "connect(2) failed: 0x%x, \"%s\"\n", sock_errno, strerror(sock_errno));
-		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH) {
+		tdsdump_log(TDS_DBG_ERROR, "connect(2) returned \"%s\"\n", strerror(sock_errno));
+#if DEBUGGING_CONNECTING_PROBLEM
+		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != EINPROGRESS) {
 			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", &sin, sizeof(sin));
 			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
 							      "%s = %x\n" 
@@ -251,6 +252,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 							, "(param ip_addr)", ip_addr
 							);
 		}
+#endif
 		if (sock_errno != TDSSOCK_EINPROGRESS)
 			goto not_available;
 	}

@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.101 2006-08-16 11:06:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.102 2006-12-10 21:08:00 jklowden Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -175,9 +175,6 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 	assert(string_len >= 0 && dest_size >= 0);
 
 	wire_bytes = IS_TDS7_PLUS(tds) ? string_len * 2 : string_len;
-
-	tdsdump_log(TDS_DBG_NETWORK, "tds_get_string: reading %u from wire to give %d to client.\n", (unsigned int) wire_bytes,
-		    string_len);
 
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
