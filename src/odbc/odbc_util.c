@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.88 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.89 2006-12-12 07:46:51 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -273,7 +273,7 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBMONEY:
 	case SYBMONEY4:
 	case SYBMONEYN:
-		return SQL_DOUBLE;
+		return SQL_FLOAT;
 	case SYBDATETIME:
 	case SYBDATETIME4:
 	case SYBDATETIMN:
@@ -396,13 +396,16 @@ odbc_c_to_server_type(int c_type)
 }
 
 void
-odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec)
+odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
 #define SET_INFO(type, prefix, suffix) \
 	drec->sql_desc_literal_prefix = prefix; \
 	drec->sql_desc_literal_suffix = suffix; \
 	drec->sql_desc_type_name = type; \
 	return;
+#define SET_INFO2(type, prefix, suffix, len) \
+	drec->sql_desc_length = len; \
+	SET_INFO(type, prefix, suffix)
 
 	/* FIXME finish, support for N type (nvarchar) */
 	switch (tds_get_conversion_type(col->column_type, col->column_size)) {
@@ -416,28 +419,30 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec)
 		SET_INFO("text", "'", "'");
 	case SYBBIT:
 	case SYBBITN:
-		SET_INFO("bit", "", "");
+		SET_INFO2("bit", "", "", 1);
 #if (ODBCVER >= 0x0300)
 	case SYBINT8:
 		/* TODO return numeric for odbc2 and convert bigint to numeric */
-		SET_INFO("bigint", "", "");
+		SET_INFO2("bigint", "", "", 19);
 #endif
 	case SYBINT4:
-		SET_INFO("int", "", "");
+		SET_INFO2("int", "", "", 10);
 	case SYBINT2:
-		SET_INFO("smallint", "", "");
+		SET_INFO2("smallint", "", "", 5);
 	case SYBINT1:
-		SET_INFO("tinyint", "", "");
+		SET_INFO2("tinyint", "", "", 3);
 	case SYBREAL:
-		SET_INFO("real", "", "");
+		SET_INFO2("real", "", "", odbc_ver == SQL_OV_ODBC3 ? 24 : 7);
 	case SYBFLT8:
-		SET_INFO("float", "", "");
+		SET_INFO2("float", "", "", odbc_ver == SQL_OV_ODBC3 ? 53 : 15);
 	case SYBMONEY:
+		SET_INFO2("money", "$", "", 19);
 	case SYBMONEY4:
-		SET_INFO("money", "$", "");
+		SET_INFO2("money", "$", "", 10);
 	case SYBDATETIME:
+		SET_INFO2("datetime", "'", "'", 23);
 	case SYBDATETIME4:
-		SET_INFO("datetime", "'", "'");
+		SET_INFO2("datetime", "'", "'", 16);
 	case SYBBINARY:
 		/* handle TIMESTAMP using usertype */
 		if (col->column_usertype == 80)
@@ -448,9 +453,9 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec)
 	case SYBVARBINARY:
 		SET_INFO("varbinary", "0x", "");
 	case SYBNUMERIC:
-		SET_INFO("numeric", "", "");
+		SET_INFO2("numeric", "", "", col->column_prec);
 	case SYBDECIMAL:
-		SET_INFO("decimal", "", "");
+		SET_INFO2("decimal", "", "", col->column_prec);
 	case SYBINTN:
 	case SYBDATETIMN:
 	case SYBFLTN:
@@ -473,6 +478,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec)
 	}
 	SET_INFO("", "", "");
 #undef SET_INFO
+#undef SET_INFO2
 }
 
 SQLINTEGER

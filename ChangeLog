@@ -1,3 +1,7 @@
+Tue Dec 12 08:45:12 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	- improve describecol test
+
 Sun Dec 10 16:04:02 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* doc/htdoc/faq.html minor fixes
 	* src/apps/tsql.c send *sybase* charset name in login record

@@ -55,7 +55,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.91 2006-07-13 08:21:56 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.92 2006-12-12 07:46:50 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -468,7 +468,7 @@ int odbc_sql_to_c_type_default(int sql_type);
 int odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type);
 int odbc_c_to_server_type(int c_type);
 
-void odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec);
+void odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver);
 SQLINTEGER odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec);
 int odbc_get_string_size(int size, SQLCHAR * str);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);

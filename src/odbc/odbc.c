@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.424 2006-10-18 19:39:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.425 2006-12-12 07:46:51 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1704,8 +1704,20 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		break;
 		/* FIXME special cases for SQL_COLUMN_PRECISION */
 	case SQL_COLUMN_PRECISION:
+		if (drec->sql_desc_concise_type == SQL_REAL) {
+			*pfDesc = 7;
+			break;
+		}
+		if (drec->sql_desc_concise_type == SQL_DOUBLE) {
+			*pfDesc = 15;
+			break;
+		}
+		if (drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP) {
+			*pfDesc = drec->sql_desc_precision ? 23 : 16;
+			break;
+		}
 	case SQL_DESC_PRECISION:	/* this section may be wrong */
-		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
 			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			*pfDesc = drec->sql_desc_length;
@@ -2095,7 +2107,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		IOUT(SQLSMALLINT, drec->sql_desc_parameter_type);
 		break;
 	case SQL_DESC_PRECISION:
-		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL || drec->sql_desc_concise_type == SQL_TIMESTAMP)
 			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			/* TODO support date/time */
@@ -2435,8 +2447,11 @@ odbc_populate_ird(TDS_STMT * stmt)
 	}
 
 	for (i = 0; i < num_cols; i++) {
+		int type;
+
 		drec = &ird->records[i];
 		col = res_info->columns[i];
+		type = tds_get_conversion_type(col->column_type, col->column_size);
 		drec->sql_desc_auto_unique_value = col->column_identity ? SQL_TRUE : SQL_FALSE;
 		/* TODO SQL_FALSE ?? */
 		drec->sql_desc_case_sensitive = SQL_TRUE;
@@ -2453,7 +2468,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 			drec->sql_desc_length = sizeof("2000-01-01 12:00:00.0000")-1;
 		else
 			drec->sql_desc_length = col->column_size;
-		odbc_set_sql_type_info(col, drec);
+		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
 
 		if (!tds_dstr_copyn(&drec->sql_desc_name, col->column_name, col->column_namelen))
 			return SQL_ERROR;
@@ -2468,7 +2483,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 
 		drec->sql_desc_octet_length = col->column_size;
 		drec->sql_desc_octet_length_ptr = NULL;
-		drec->sql_desc_precision = col->column_prec;
+		drec->sql_desc_precision = type == SYBDATETIME ? 3 : col->column_prec;
 		/* TODO test timestamp from db, FOR BROWSE query */
 		drec->sql_desc_rowver = SQL_FALSE;
 		drec->sql_desc_scale = col->column_scale;
