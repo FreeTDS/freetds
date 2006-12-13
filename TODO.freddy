@@ -13,7 +13,8 @@ Cursor and dynamic
 libTDS should handle real cursor/dynamic memory deallocation
 search for tds_alloc_cursor, tds_free_cursor and similar for dynamic
 cursor too complicate... reduce all states, handle more in libTDS
-Finish odbc cursors
+Finish odbc cursors. In src/tds/query.c there are code just to make a
+test happy...
 
 Row handling
 ------------
