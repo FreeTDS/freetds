@@ -1,3 +1,6 @@
+Fri Dec 15 14:41:14 EST 2006	JK Lowden <jklowden@freetds.org>
+	* src/tds/tds_willconvert.pl allow varbinary
+
 Thu Dec 14 22:18:16 EST 2006	JK Lowden <jklowden@schemamania.org>
 	* src/tds/mem.c src/tds/unittests/t0001.c
 	- Added tds_capability_set and enumerated capabilities

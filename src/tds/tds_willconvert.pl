@@ -25,7 +25,7 @@ while(<DATA>) {
 		$yn = $yn[$i];	# default
 		$yn = 1 if $yn[$i] eq 'T';
 		$yn = 0 if $yn[$i] eq 'F';
-		$yn = 0 if $yn[$i] eq 't';	# means it should be true, but isnt so far.
+		$yn = 0 if $yn[$i] eq 't';	# means it should be true, but isn't so far.
 
 		printf "$indent %-30.30s, %s", "{ SYB${from}, SYB${to}", "$yn }\n"; 
 
@@ -37,24 +37,44 @@ while(<DATA>) {
 __DATA__
           To
 From
-          VARCHAR CHAR TEXT BINARY IMAGE INT1 INT2 INT4 INT8 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY SENSITIVITY
-VARCHAR     T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      T        T         T        T
-CHAR        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      T        T         T        T
-TEXT        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      T        T         T        T
-BINARY      T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-IMAGE       T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-INT1        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-INT2        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-INT4        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-INT8        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-FLT8        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-REAL        T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-NUMERIC     T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-DECIMAL     T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-BIT         T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-MONEY       T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-MONEY4      T      T   T    T      T     T    T    T    T    T    T    T       T       T   T     T      F        F         F        F
-DATETIME    T      T   T    T      T     F    F    F    F    F    F    F       F       F   F     F      T        T         F        F
-DATETIME4   T      T   T    T      T     F    F    F    F    F    F    F       F       F   F     F      T        T         F        F
-BOUNDARY    T      T   T    F      F     F    F    F    F    F    F    F       F       F   F     F      F        F         T        F
-SENSITIVITY T      T   T    F      F     F    F    F    F    F    F    F       F       F   F     F      F        F         F        T
+          VARCHAR CHAR TEXT BINARY VARBINARY IMAGE INT1 INT2 INT4 INT8 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY SENSITIVITY
+VARCHAR     T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  T	   T	     T        T
+CHAR        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  T	   T	     T        T
+TEXT        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  T	   T	     T        T
+BINARY      T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+VARBINARY   T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+IMAGE       T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+INT1        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+INT2        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+INT4        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+INT8        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+FLT8        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+REAL        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+NUMERIC     T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+DECIMAL     T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+BIT         T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+MONEY       T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+MONEY4      T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F
+DATETIME    T      T   T    T	   T         T     F	F    F    F    F    F	 F	 F	 F   F     F	  T	   T	     F        F
+DATETIME4   T      T   T    T	   T         T     F	F    F    F    F    F	 F	 F	 F   F     F	  T	   T	     F        F
+BOUNDARY    T      T   T    F	   F         F     F	F    F    F    F    F	 F	 F	 F   F     F	  F	   F	     T        F
+SENSITIVITY T      T   T    F	   F         F     F	F    F    F    F    F	 F	 F	 F   F     F	  F	   F	     F        T
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
