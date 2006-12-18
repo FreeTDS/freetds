@@ -1,3 +1,6 @@
+Mon Dec 18 10:50:34 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/Makefile.am: distribute enum_cap.h
+
 Fri Dec 15 14:41:14 EST 2006	JK Lowden <jklowden@freetds.org>
 	* src/tds/tds_willconvert.pl allow varbinary
 
