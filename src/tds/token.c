@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.324 2006-12-07 16:07:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.325 2006-12-21 03:49:17 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2256,6 +2256,8 @@ tds_process_env_chg(TDSSOCKET * tds)
 	if (type == TDS_ENV_SQLCOLLATION) {
 		/* save new collation */
 		size = tds_get_byte(tds);
+		tdsdump_log(TDS_DBG_ERROR, "tds_process_env_chg(): %d bytes of collation data received\n", size);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->collation was", tds->collation, 5);
 		memset(tds->collation, 0, 5);
 		if (size < 5) {
 			tds_get_n(tds, tds->collation, size);
@@ -2265,6 +2267,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 			lcid = (tds->collation[0] + ((int) tds->collation[1] << 8) + ((int) tds->collation[2] << 16)) & 0xffffflu;
 			tds7_srv_charset_changed(tds, tds->collation[4], lcid);
 		}
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->collation now", tds->collation, 5);
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCEED;
@@ -2306,6 +2309,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 		dest = &tds->env.language;
 		break;
 	case TDS_ENV_CHARSET:
+		tdsdump_log(TDS_DBG_FUNC, "server indicated charset change to \"%s\"\n", newval);
 		dest = &tds->env.charset;
 		tds_srv_charset_changed(tds, newval);
 		break;
