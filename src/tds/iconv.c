@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.128 2006-12-21 03:49:17 jklowden Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.129 2006-12-21 13:03:33 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -975,13 +975,18 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 #if HAVE_ICONV_ALWAYS
 	TDSICONV *char_conv = tds->char_convs[client2server_chardata];
 
-	const char *canonic_charset = tds_canonical_charset_name(charset);
+	int canonic_charset_num = tds_canonical_charset(charset);
+	const char *canonic_charset;
+
+	if (tds->major_version >= 7 && canonic_charset_num == TDS_CHARSET_ISO_8859_1)
+		canonic_charset_num = TDS_CHARSET_CP1252;
 
 	/* ignore request to change to unknown charset */
-	if (!canonic_charset) {
+	if (!canonic_charset_num < 0) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_srv_charset_changed: what is charset \"%s\"?\n", charset);
 		return;
 	}
+	canonic_charset = canonic_charsets[canonic_charset_num].name;
 
 	tdsdump_log(TDS_DBG_FUNC, "setting server single-byte charset to \"%s\"\n", canonic_charset);
 
