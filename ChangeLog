@@ -1,3 +1,6 @@
+Thu Dec 21 14:06:30 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/iconv.c: use cp1252 instead of iso8859-1 for mssql
+
 Wed Sep 13 11:55:20 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c: fix NTLM2 backport
 
