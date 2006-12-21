@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.20 2005-04-15 20:30:18 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.21 2006-12-21 03:56:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -122,6 +122,7 @@ main(int argc, char **argv)
 		case SYBVARCHAR:
 		case SYBTEXT:
 		case SYBBINARY:
+		case SYBVARBINARY:
 		case SYBIMAGE:
 			switch (answers[i].desttype) {
 			case SYBCHAR:
