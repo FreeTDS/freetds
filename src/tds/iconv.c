@@ -47,7 +47,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.129 2006-12-21 13:03:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.130 2006-12-21 13:25:12 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -982,7 +982,7 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 		canonic_charset_num = TDS_CHARSET_CP1252;
 
 	/* ignore request to change to unknown charset */
-	if (!canonic_charset_num < 0) {
+	if (canonic_charset_num < 0) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_srv_charset_changed: what is charset \"%s\"?\n", charset);
 		return;
 	}
