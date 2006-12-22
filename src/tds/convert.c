@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.169 2006-09-26 21:00:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.170 2006-12-22 08:37:37 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2642,7 +2642,7 @@ store_time(const char *datestr, struct tds_time *t)
 		t->tm_min = minutes;
 	else
 		ret = 0;
-	if (seconds >= 0 && minutes < 60)
+	if (seconds >= 0 && seconds < 60)
 		t->tm_sec = seconds;
 	else
 		ret = 0;
