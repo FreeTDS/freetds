@@ -131,8 +131,6 @@ desc_alloc_records(TDS_DESC * desc, unsigned count)
 	return SQL_SUCCESS;
 }
 
-#define IF_FREE(x) if (x) {free(x); x = NULL;}
-
 static void
 desc_free_record(struct _drecord *drec)
 {
