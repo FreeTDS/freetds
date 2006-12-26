@@ -20,10 +20,10 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.258 2006-09-08 09:18:56 freddy77 Exp $ */
+/* $Id: tds.h,v 1.259 2006-12-26 14:56:18 freddy77 Exp $ */
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <time.h>
 
 /* forward declaration */

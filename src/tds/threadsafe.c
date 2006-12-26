@@ -22,6 +22,9 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
@@ -42,8 +45,6 @@
 #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID)
 #include <pwd.h>
 #endif
-
-#include <stdio.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -83,7 +84,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.44 2006-09-08 09:59:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.45 2006-12-26 14:56:21 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)

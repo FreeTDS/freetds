@@ -22,11 +22,13 @@
  * all over the other code
  */
 
-#include <assert.h>
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -47,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.130 2006-12-21 13:25:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.131 2006-12-26 14:56:21 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )

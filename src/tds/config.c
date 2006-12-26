@@ -21,13 +21,15 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #if HAVE_ERRNO_H
 #include <errno.h>
 #endif /* HAVE_ERRNO_H */
 
 #include <assert.h>
 #include <ctype.h>
-#include <stdio.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -73,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.123 2006-09-01 08:39:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.124 2006-12-26 14:56:21 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);

@@ -21,6 +21,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STDLIB_H
@@ -37,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.34 2006-10-26 19:09:42 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.35 2006-12-26 14:56:19 freddy77 Exp $");
 
 /*
  * test include consistency 

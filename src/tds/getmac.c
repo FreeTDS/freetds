@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STDLIB_H

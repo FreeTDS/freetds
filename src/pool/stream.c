@@ -26,6 +26,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STDLIB_H
@@ -39,7 +40,7 @@
 #include "pool.h"
 #include "tds.h"
 
-TDS_RCSID(var, "$Id: stream.c,v 1.23 2006-01-24 15:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: stream.c,v 1.24 2006-12-26 14:56:20 freddy77 Exp $");
 
 int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 

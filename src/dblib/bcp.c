@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -71,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.151 2006-12-01 21:51:11 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.152 2006-12-26 14:56:18 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;

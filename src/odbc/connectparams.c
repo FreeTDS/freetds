@@ -22,8 +22,9 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <sys/stat.h>
@@ -36,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.68 2006-09-01 08:39:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.69 2006-12-26 14:56:19 freddy77 Exp $");
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 

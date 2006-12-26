@@ -22,6 +22,7 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -42,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.61 2006-04-17 08:49:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.62 2006-12-26 14:56:19 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 

@@ -21,6 +21,9 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #if TIME_WITH_SYS_TIME
 # if HAVE_SYS_TIME_H
 #  include <sys/time.h>
@@ -40,8 +43,6 @@
 #if HAVE_ERRNO_H
 #include <errno.h>
 #endif /* HAVE_ERRNO_H */
-
-#include <stdio.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -63,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.170 2006-12-22 08:37:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.171 2006-12-26 14:56:21 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 

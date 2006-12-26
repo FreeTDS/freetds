@@ -20,6 +20,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STDLIB_H
@@ -39,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_checks.c,v 1.17 2005-07-17 07:48:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_checks.c,v 1.18 2006-12-26 14:56:19 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 

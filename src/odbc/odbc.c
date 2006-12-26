@@ -37,6 +37,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STDLIB_H
@@ -47,7 +48,6 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <stdarg.h>
 #include <assert.h>
 #include <ctype.h>
 
@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.425 2006-12-12 07:46:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.426 2006-12-26 14:56:19 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);

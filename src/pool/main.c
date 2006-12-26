@@ -27,8 +27,9 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <signal.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <signal.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -56,7 +57,7 @@
 
 #include "pool.h"
 
-TDS_RCSID(var, "$Id: main.c,v 1.22 2006-06-12 19:45:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: main.c,v 1.23 2006-12-26 14:56:20 freddy77 Exp $");
 
 /* to be set by sig term */
 static int term = 0;

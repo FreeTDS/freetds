@@ -2,6 +2,9 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
@@ -10,11 +13,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <stdio.h>
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.6 2005-08-08 11:18:24 freddy77 Exp $";
+static char software_version[] = "$Id: lang_ct_param.c,v 1.7 2006-12-26 14:56:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *query =

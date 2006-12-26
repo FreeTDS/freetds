@@ -22,6 +22,9 @@
 #include <config.h>
 #endif
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -29,13 +32,12 @@
 #include <tds.h>
 #include <tdsconvert.h>
 #include <tdsbytes.h>
-#include <stdio.h>
 #include <stdlib.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.41 2006-01-25 14:02:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.42 2006-12-26 14:56:21 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary

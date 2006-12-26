@@ -22,8 +22,9 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <ctype.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -36,7 +37,7 @@
 #include "pool.h"
 #include "tds_configs.h"
 
-TDS_RCSID(var, "$Id: config.c,v 1.14 2005-07-30 09:01:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.15 2006-12-26 14:56:20 freddy77 Exp $");
 
 #define POOL_STR_SERVER	"server"
 #define POOL_STR_PORT	"port"

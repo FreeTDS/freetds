@@ -36,6 +36,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STDLIB_H
@@ -46,7 +47,6 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <stdarg.h>
 #include <assert.h>
 #include <ctype.h>
 #include <assert.h>

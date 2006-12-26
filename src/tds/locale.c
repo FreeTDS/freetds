@@ -22,8 +22,9 @@
 #include <config.h>
 #endif
 
-#include <ctype.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -40,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: locale.c,v 1.25 2006-04-16 08:10:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: locale.c,v 1.26 2006-12-26 14:56:21 freddy77 Exp $");
 
 
 static void tds_parse_locale(const char *option, const char *value, void *param);

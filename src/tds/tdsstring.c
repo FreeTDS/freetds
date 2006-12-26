@@ -21,6 +21,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -39,7 +40,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: tdsstring.c,v 1.16 2006-09-01 08:39:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.17 2006-12-26 14:56:21 freddy77 Exp $");
 
 
 /**

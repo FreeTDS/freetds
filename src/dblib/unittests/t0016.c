@@ -4,9 +4,8 @@
  */
 
 #include "common.h"
-#include <stdarg.h>
 
-static char software_version[] = "$Id: t0016.c,v 1.25 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.26 2006-12-26 14:56:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;

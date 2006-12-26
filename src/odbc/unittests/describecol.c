@@ -1,5 +1,4 @@
 #include "common.h"
-#include <stdarg.h>
 #include <ctype.h>
 
 /*
@@ -7,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.8 2006-06-25 07:48:15 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.9 2006-12-26 14:56:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;

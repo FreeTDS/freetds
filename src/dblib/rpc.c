@@ -22,6 +22,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #ifdef HAVE_UNISTD_H
@@ -49,7 +50,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.55 2006-07-05 22:30:47 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.56 2006-12-26 14:56:19 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);

@@ -21,6 +21,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -53,7 +54,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.43 2006-09-01 08:39:00 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.44 2006-12-26 14:56:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *

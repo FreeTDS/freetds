@@ -8,13 +8,12 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
-
-#include <stdarg.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -31,7 +30,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vasprintf.c,v 1.15 2005-07-15 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: vasprintf.c,v 1.16 2006-12-26 14:56:20 freddy77 Exp $");
 
 #ifndef _PATH_DEVNULL
 #define _PATH_DEVNULL "/dev/null"

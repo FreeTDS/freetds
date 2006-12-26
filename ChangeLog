@@ -1,3 +1,30 @@
+Tue Dec 26 15:57:38 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h	src/ctlib/unittests/array_bind.c:
+	* src/ctlib/unittests/ct_diagall.c:
+	* src/ctlib/unittests/get_send_data.c:
+	* src/ctlib/unittests/lang_ct_param.c:
+	* src/dblib/bcp.c src/dblib/dblib.c:
+	* src/dblib/dbutil.c src/dblib/rpc.c:
+	* src/dblib/xact.c src/dblib/unittests/common.h:
+	* src/dblib/unittests/t0016.c src/odbc/connectparams.c:
+	* src/odbc/descriptor.c src/odbc/error.c:
+	* src/odbc/odbc.c src/odbc/odbc_checks.c:
+	* src/odbc/prepare_query.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/describecol.c src/pool/config.c:
+	* src/pool/main.c src/pool/member.c src/pool/stream.c:
+	* src/pool/user.c src/pool/util.c:
+	* src/replacements/readpassphrase.c:
+	* src/replacements/strtok_r.c src/replacements/vasprintf.c:
+	* src/server/login.c src/server/unittest.c:
+	* src/tds/config.c src/tds/convert.c src/tds/data.c:
+	* src/tds/getmac.c src/tds/iconv.c src/tds/locale.c:
+	* src/tds/login.c src/tds/net.c src/tds/numeric.c:
+	* src/tds/tds_checks.c src/tds/tdsstring.c src/tds/threadsafe.c:
+	* src/tds/write.c src/tds/unittests/common.h win32/winlogin.c:
+	* win32/winsetup.c:
+	- include stdarg.h always before stdio.h to fix portability
+	  issues defining va_list
+
 Tue Dec 26 13:54:25 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/Makefile.am src/tds/util.c src/tds/log.c (added):
 	- separate log stuff

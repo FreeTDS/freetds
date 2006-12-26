@@ -21,6 +21,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
+
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
@@ -32,7 +34,6 @@
 # endif
 #endif
 
-#include <stdarg.h>
 #include <assert.h>
 #include <stdio.h>
 
@@ -68,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.263 2006-10-21 20:44:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.264 2006-12-26 14:56:18 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);

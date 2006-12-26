@@ -8,6 +8,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_STRING_H
@@ -17,7 +18,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: strtok_r.c,v 1.5 2005-07-15 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: strtok_r.c,v 1.6 2006-12-26 14:56:20 freddy77 Exp $");
 
 char *
 strtok_r(char *str, const char *sep, char **lasts)

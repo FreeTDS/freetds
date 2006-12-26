@@ -17,11 +17,13 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <assert.h>
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -33,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.15 2006-03-23 14:53:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.16 2006-12-26 14:56:21 freddy77 Exp $");
 
 #if !ENABLE_EXTRA_CHECKS
 static int tds_get_cardinal_type(int datatype);

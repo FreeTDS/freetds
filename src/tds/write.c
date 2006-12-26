@@ -18,11 +18,13 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <assert.h>
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <assert.h>
 
 #if HAVE_ERRNO_H
 #include <errno.h>
@@ -47,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.75 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.76 2006-12-26 14:56:21 freddy77 Exp $");
 
 /**
  * \addtogroup network

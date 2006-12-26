@@ -21,6 +21,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #if HAVE_UNISTD_H
@@ -36,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: xact.c,v 1.10 2005-07-08 08:22:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: xact.c,v 1.11 2006-12-26 14:56:19 freddy77 Exp $");
 
 
 void

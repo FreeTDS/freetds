@@ -2,15 +2,17 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <stdio.h>
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: array_bind.c,v 1.4 2005-05-18 12:00:04 freddy77 Exp $";
+static char software_version[] = "$Id: array_bind.c,v 1.5 2006-12-26 14:56:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: array binding of result set */
