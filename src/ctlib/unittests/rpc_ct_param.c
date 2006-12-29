@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_param.c,v 1.7 2005-05-18 12:00:04 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_param.c,v 1.8 2006-12-29 19:00:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -28,7 +28,7 @@ static CS_RETCODE ex_display_header(CS_INT numcols, CS_DATAFMT columns[]);
 
 typedef struct _ex_column_data
 {
-	CS_INT indicator;
+	CS_SMALLINT indicator;
 	CS_CHAR *value;
 	CS_INT valuelen;
 }
@@ -361,7 +361,7 @@ main(int argc, char *argv[])
 				coldata[i].value[0] = 0;
 
 				ret = ct_bind(cmd, (i + 1), &outdatafmt[i], coldata[i].value, &coldata[i].valuelen,
-					      (CS_SMALLINT *) & coldata[i].indicator);
+					      & coldata[i].indicator);
 				if (ret != CS_SUCCEED) {
 					fprintf(stderr, "ct_bind failed \n");
 					return 1;

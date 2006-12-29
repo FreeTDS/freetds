@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.426 2006-12-26 14:56:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.427 2006-12-29 19:00:33 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5797,7 +5797,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 			if (TDS_IS_MSSQL(tds) && tds->product_version >= TDS_MS_VER(8,0,0)) {
 				proc = "sp_tableswc ";
 				if (cbSchemaName == SQL_NULL_DATA) {
-					szSchemaName = "%";
+					szSchemaName = (SQLCHAR *) "%";
 					cbSchemaName = 1;
 				}
 			}

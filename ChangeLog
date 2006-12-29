@@ -1,3 +1,8 @@
+Fri Dec 29 20:03:30 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/rpc_ct_param.c:
+	* src/ctlib/unittests/rpc_ct_setparam.c src/odbc/odbc.c:
+	- remove warnings
+
 Fri Dec 29 17:18:42 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/tds/log.c:
 	- use localtime_r if available
