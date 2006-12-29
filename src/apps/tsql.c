@@ -77,10 +77,11 @@
 #endif /* HAVE_LANGINFO_H */
 
 #include "tds.h"
+#include "tdsiconv.h"
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.98 2006-12-10 21:07:53 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.99 2006-12-29 19:39:35 freddy77 Exp $");
 
 enum
 {
@@ -346,7 +347,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	int port = 0;
 	int opt;
 	const char *locale = NULL;
-	char *charset = NULL;
+	const char *charset = NULL;
 	char *opt_flags_str = NULL;
 
 	setlocale(LC_ALL, "");
