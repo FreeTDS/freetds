@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.164 2006-12-15 03:20:30 jklowden Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.165 2006-12-29 19:40:47 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -630,7 +630,7 @@ static const unsigned char defaultcaps[] = {
  * Default capabilities as of December 2006.  
  */
 
-static const TDS_REQUEST_CAPABILITY request_capabilities[] = 
+static const TDS_TINYINT request_capabilities[] = 
 	{  /* no zero */ TDS_REQ_LANG, TDS_REQ_RPC, TDS_REQ_EVT,
 	  TDS_REQ_MSTMT, TDS_REQ_BCP, TDS_REQ_CURSOR, TDS_REQ_DYNF				/* capability.data[8] */
 	, TDS_REQ_MSG, TDS_REQ_PARAM, TDS_REQ_DATA_INT1, TDS_REQ_DATA_INT2, 
@@ -647,7 +647,7 @@ static const TDS_REQUEST_CAPABILITY request_capabilities[] =
 	, TDS_REQ_WIDETABLE									/* capability.data[1] */
 	};
 
-static const TDS_RESPONSE_CAPABILITY response_capabilities[] = 
+static const TDS_TINYINT response_capabilities[] = 
 	{ TDS_RES_CON_NOOOB
 	, TDS_RES_PROTO_NOTEXT
 	, TDS_RES_PROTO_NOBULK
@@ -699,7 +699,8 @@ tds_alloc_connection(TDSLOCALE * locale)
 {
 	TDSCONNECTION *connection;
 	char hostname[128];
-	int i, c, *pcap, ncap;
+	int i, c, ncap;
+	const TDS_TINYINT* pcap;
 	unsigned char *capabilities[2];
 
 	TEST_MALLOC(connection, TDSCONNECTION);
@@ -753,7 +754,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 	memset(connection->capabilities, 0, TDS_MAX_CAPABILITY);
 	capabilities[0] = connection->capabilities;
 	capabilities[1] = connection->capabilities + TDS_MAX_CAPABILITY / 2;
-	pcap = (int *) request_capabilities;
+	pcap = request_capabilities;
 	ncap = TDS_VECTOR_SIZE(request_capabilities);
 	for (c=0; c < 2; c++) {
 		const int bufsize = TDS_MAX_CAPABILITY / 2 - 2;
@@ -762,7 +763,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 		for (i=0; i < ncap; i++) {
 			tds_capability_set(capabilities[c]+2, pcap[i], bufsize);
 		}
-		pcap = (int *) response_capabilities;
+		pcap = response_capabilities;
 		ncap = TDS_VECTOR_SIZE(response_capabilities);
 	}
 	/* 
