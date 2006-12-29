@@ -23,13 +23,12 @@
 
 #include "tds.h"
 
+#if defined(UNIXODBC) || defined(TDS_NO_DM)
+#include <sql.h>
+#include <sqlext.h>
 #ifdef UNIXODBC
-#include <sql.h>
-#include <sqlext.h>
 #include <odbcinst.h>
-#elif defined(TDS_NO_DM)
-#include <sql.h>
-#include <sqlext.h>
+#endif
 #else /* IODBC */
 #include <isql.h>
 #include <isqlext.h>
@@ -55,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.92 2006-12-12 07:46:50 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.93 2006-12-29 19:01:57 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
