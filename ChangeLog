@@ -1,3 +1,7 @@
+Fri Dec 29 10:06:56 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/log.c:
+	- avoid locking if no logging
+
 Tue Dec 26 15:57:38 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h	src/ctlib/unittests/array_bind.c:
 	* src/ctlib/unittests/ct_diagall.c:

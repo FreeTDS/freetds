@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.1 2006-12-26 12:53:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.2 2006-12-29 09:07:15 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -270,6 +270,9 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !write_dump)
 		return;
 
+	if (!g_dumpfile && !g_dump_filename)
+		return;
+
 	TDS_MUTEX_LOCK(&g_dump_mutex);
 
 	dumpfile = g_dumpfile;
@@ -357,6 +360,9 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 	FILE *dumpfile;
 
 	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !write_dump)
+		return;
+
+	if (!g_dumpfile && !g_dump_filename)
 		return;
 
 	TDS_MUTEX_LOCK(&g_dump_mutex);
