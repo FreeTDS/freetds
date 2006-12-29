@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.2 2006-12-29 09:07:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.3 2006-12-29 16:18:56 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -166,10 +166,25 @@ tdsdump_open(const char *filename)
 	if (result) {
 		char today[64];
 		struct tm *tm;
+#ifdef HAVE_LOCALTIME_R
+		struct tm res;
+#endif
 		time_t t;
 
 		time(&t);
+#ifdef HAVE_LOCALTIME_R
+#if HAVE_FUNC_LOCALTIME_R_TM
+		tm = localtime_r(&t, &res);
+#elif HAVE_FUNC_LOCALTIME_R_INT
+		tm = NULL;
+		if (!localtime_r(&t, &res))
+			tm = &res;
+#else
+#error One should be defined
+#endif
+#else
 		tm = localtime(&t);
+#endif
 
 		strftime(today, sizeof(today), "%Y-%m-%d %H:%M:%S", tm);
 		tdsdump_log(TDS_DBG_INFO1, "Starting log file for FreeTDS %s\n"

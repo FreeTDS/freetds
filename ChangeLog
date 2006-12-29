@@ -1,3 +1,7 @@
+Fri Dec 29 17:18:42 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/tds/log.c:
+	- use localtime_r if available
+
 Fri Dec 29 10:06:56 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/log.c:
 	- avoid locking if no logging
