@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2006, 2007  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -45,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.201 2006-08-30 12:00:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.202 2007-01-01 11:50:23 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1470,7 +1471,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);
 				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
-				s = buf;
+				s = (char *) buf;
 			}
 #endif
 			tds_put_n(tds, s, colsize);

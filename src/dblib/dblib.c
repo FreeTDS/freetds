@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2006, 2007  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -69,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.264 2006-12-26 14:56:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.265 2007-01-01 11:50:22 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1582,8 +1583,6 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetnull\n");
 	fprintf(stderr, "dblib.c:%d: UNIMPLEMENTED: dbsetnull\n", __LINE__);
 	return FAIL;
-	
-	return SUCCEED;
 }
 
 /**
