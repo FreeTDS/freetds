@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.154 2006-12-26 14:56:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.155 2007-01-02 20:47:05 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -263,7 +263,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	}
 	if (retval == TDS_FAIL || !tds_process_login_tokens(tds)) {
 		tds_close_socket(tds);
-		tds_client_msg(tds->tds_ctx, tds, 20014, 9, 0, 0, "Login incorrect.");
+		tdserror(tds->tds_ctx, tds, TDSEPWD, 0); /* "Login incorrect." */
 		return TDS_FAIL;
 	}
 

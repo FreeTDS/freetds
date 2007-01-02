@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.33 2006-03-18 17:36:19 jklowden Exp $ */
+/* $Id: dblib.h,v 1.34 2007-01-02 20:47:03 jklowden Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -164,7 +164,6 @@ struct tds_dblib_dbprocess
 int dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum);
 int _dblib_handle_info_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
 int _dblib_handle_err_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
-int _dblib_client_msg(DBPROCESS * dbproc, int dberr, int severity, const char *dberrstr);
 void _dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version);
 
 DBINT _convert_char(int srctype, BYTE * src, int destype, BYTE * dest, DBINT destlen);

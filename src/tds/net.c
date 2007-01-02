@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.51 2006-12-26 14:56:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.52 2007-01-02 20:47:05 jklowden Exp $");
 
 /**
  * \addtogroup network
@@ -188,7 +188,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			tds->major_version, tds->minor_version);
 
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
-		tds_client_msg(tds->tds_ctx, tds, 20008, 9, 0, 0, "Unable to open socket.");
+		tdserror(tds->tds_ctx, tds, TDSESOCK, 0);  
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
 		return TDS_FAIL;
 	}
@@ -216,7 +216,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			perror(message);
 			free(message);
 		}
-		tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
+		tdserror(tds->tds_ctx, tds, TDSECONN, 0);
 		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
@@ -266,7 +266,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 							tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)),
 				    			ntohs(sin.sin_port), strerror(sock_errno));
 			tds_close_socket(tds);
-			tds_client_msg(tds->tds_ctx, tds, 20003, 9, 0, 0, "SQL Server connection timed out.");
+			tdserror(tds->tds_ctx, tds, TDSETIME, 0);
 			return TDS_FAIL;
 		}
 		FD_SET(tds->s, &fds);
@@ -309,7 +309,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	
 	tds_close_socket(tds);
 	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
-	tds_client_msg(tds->tds_ctx, tds, 20009, 9, 0, 0, "Server is unavailable or does not exist.");
+	tdserror(tds->tds_ctx, tds, TDSECONN, 0);
 	return TDS_FAIL;
 }
 
@@ -321,7 +321,7 @@ tds_close_socket(TDSSOCKET * tds)
 	if (!IS_TDSDEAD(tds)) {
 		rc = CLOSESOCKET(tds->s);
 		if (-1 == rc) {  /* SYBECLOS */
-			tds_client_msg(tds->tds_ctx, tds,  20056, 9, 0, 0, "Error in closing network connection.");
+			tdserror(tds->tds_ctx, tds,  TDSECLOS, 0);
 		}
 		tds->s = INVALID_SOCKET;
 		tds_set_state(tds, TDS_DEAD);
@@ -477,7 +477,7 @@ tds_read_packet(TDSSOCKET * tds)
 	if ((len = goodread(tds, header, sizeof(header))) < (int) sizeof(header)) {
 		/* GW ADDED */
 		if (len < 0) {
-			tds_client_msg(tds->tds_ctx, tds, 20004, 9, 0, 0, "Read from SQL server failed.");
+			tdserror(tds->tds_ctx, tds, TDSEREAD, 0);
 			tds_close_socket(tds);
 			tds->in_len = 0;
 			tds->in_pos = 0;
@@ -560,7 +560,7 @@ tds_read_packet(TDSSOCKET * tds)
 			 * handling here but this is the way it is currently
 			 * being done.
 			 */
-			tds_client_msg(tds->tds_ctx, tds, 20004, 9, 0, 0, "Read from SQL server failed.");
+			tdserror(tds->tds_ctx, tds, TDSEREAD, 0);
 			tds->in_len = 0;
 			tds->in_pos = 0;
 			tds->last_packet = 1;
@@ -676,7 +676,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 
 		if (retval <= 0) { /* abandon ship if send(2) sent zero bytes or had bad error */
 			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", err, strerror(err));
-			tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
+			tdserror(tds->tds_ctx, tds, TDSEWRIT, 0);
 			tds->in_pos = 0;
 			tds->in_len = 0;
 			tds_close_socket(tds);

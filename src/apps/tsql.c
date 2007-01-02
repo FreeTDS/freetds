@@ -81,7 +81,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.99 2006-12-29 19:39:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.100 2007-01-02 20:47:04 jklowden Exp $");
 
 enum
 {
@@ -247,15 +247,24 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 
 			line = tds_version(tds, version);
 			if (line) {
+				TDSMESSAGE msg;
+				memset(&msg, 0, sizeof(TDSMESSAGE));
+				msg.server = "tsql";
 				sprintf(message, "using TDS version %s", version);
-				tds_client_msg(tds->tds_ctx, tds, line, line, line, line, message);
+				msg.message = message;
+				tsql_handle_message(tds->tds_ctx, tds, &msg);
 			}
 		}
 		if (opt_flags & OPT_TIMER) {
+			TDSMESSAGE msg;
 			gettimeofday(&stop, NULL);
 			sprintf(message, "Total time for processing %d rows: %ld msecs\n",
 				rows, (long) ((stop.tv_sec - start.tv_sec) * 1000) + ((stop.tv_usec - start.tv_usec) / 1000));
-			tds_client_msg(tds->tds_ctx, tds, 1, 1, 1, 1, message);
+
+			memset(&msg, 0, sizeof(TDSMESSAGE));
+			msg.server = "tsql";
+			msg.message = message;
+			tsql_handle_message(tds->tds_ctx, tds, &msg);
 		}
 	}
 	return 0;

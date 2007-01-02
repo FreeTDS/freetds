@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.131 2006-12-26 14:56:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.132 2007-01-02 20:47:05 jklowden Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -797,18 +797,13 @@ end_loop:
 		/* invalid multibyte input sequence encountered */
 		if (io == to_client) {
 			if (irreversible == (size_t) - 1) {
-				tds_client_msg(tds->tds_ctx, tds, 2404, 16, 0, 0,
-					       "WARNING! Some character(s) could not be converted into client's character set. ");
+				tdserror(tds->tds_ctx, tds, TDSEICONV2BIG, 0);
 			} else {
-				tds_client_msg(tds->tds_ctx, tds, 2403, 16, 0, 0,
-					       "WARNING! Some character(s) could not be converted into client's character set. "
-					       "Unconverted bytes were changed to question marks ('?').");
+				tdserror(tds->tds_ctx, tds, TDSEICONVI, 0);
 				errno = 0;
 			}
 		} else {
-			tds_client_msg(tds->tds_ctx, tds, 2402, 16, 0, 0,
-				       "Error converting client characters into server's character set. "
-				       "Some character(s) could not be converted.");
+			tdserror(tds->tds_ctx, tds, TDSEICONVO, 0);
 		}
 		suppress->eilseq = 1;
 	}
@@ -818,16 +813,13 @@ end_loop:
 		if (suppress->einval)
 			break;
 		/* in chunk conversion this can mean we end a chunk inside a character */
-		tds_client_msg(tds->tds_ctx, tds, 2401, 16, *inbytesleft, 0,
-			       "iconv EINVAL: Error converting between character sets. "
-			       "Conversion abandoned at offset indicated by the \"state\" value of this message.");
+		tdserror(tds->tds_ctx, tds, TDSEICONVAVAIL, 0);
 		suppress->einval = 1;
 		break;
 	case E2BIG:		/* output buffer has no more room */
 		if (suppress->e2big)
 			break;
-		tds_client_msg(tds->tds_ctx, tds, 2400, 16, *inbytesleft, 0,
-			       "iconv E2BIG: Error converting between character sets. " "Output buffer exhausted.");
+		tdserror(tds->tds_ctx, tds, TDSEICONVIU, 0);
 		suppress->e2big = 1;
 		break;
 	default:

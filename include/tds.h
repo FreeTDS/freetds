@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.259 2006-12-26 14:56:18 freddy77 Exp $ */
+/* $Id: tds.h,v 1.260 2007-01-02 20:47:03 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -262,6 +262,41 @@ enum tds_end
 	, TDS_DONE_STMT_ABORT 	= 3	/* A statement aborted */
 	, TDS_DONE_TRAN_ABORT 	= 4	/* Transaction aborted */
 };
+
+
+/*
+ * TDSERRNO is emitted by libtds to the client library's error handler
+ * (which may in turn call the client's error handler).
+ * These match the db-lib msgno, because the same values have the same meaning
+ * in db-lib and ODBC.  ct-lib maps them to ct-lib numbers (todo). 
+ */
+typedef enum {	TDSEICONVIU    = 2400, 
+		TDSEICONVAVAIL = 2401, 
+		TDSEICONVO     = 2402, 
+		TDSEICONVI     = 2403, 
+		TDSEICONV2BIG  = 2404, 
+		TDSESYNC = 20001, 
+		TDSEFCON = 20002, 
+		TDSETIME = 20003, 
+		TDSEREAD = 20004, 
+		TDSEWRIT = 20006, 
+		TDSESOCK = 20008, 
+		TDSECONN = 20009, 
+		TDSEPWD  = 20014, 
+		TDSESEOF = 20017, 
+		TDSERPND = 20019, 
+		TDSEBTOK = 20020, 
+		TDSEOOB  = 20022, 
+		TDSECLOS = 20056,
+		TDSEUSCT = 20058, 
+		TDSEUTDS = 20146, 
+		TDSEEUNR = 20185, 
+		TDSECAP  = 20203, 
+		TDSENEG  = 20210, 
+		TDSEUMSG = 20212, 
+		TDSECAPTYP  = 20213, 
+		TDSECLOSEIN = 20292 
+} TDSERRNO;
 
 /*
  * TDS_ERROR indicates a successful processing, but that a TDS_ERROR_TOKEN or TDS_EED_TOKEN error was encountered.  
@@ -1343,7 +1378,6 @@ int tds_process_login_tokens(TDSSOCKET * tds);
 int tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,
 			TDS_INT * tds_argsize);
-int tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int severity, int state, int line, const char *message);
 int tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@out@*/ int *done_flags, unsigned flag);
 
 /* data.c */
@@ -1373,6 +1407,7 @@ int tds_get_size_by_type(int servertype);
 
 
 /* util.c */
+int tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum);
 TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
 void tds_set_parent(TDSSOCKET * tds, void *the_parent);
 void *tds_get_parent(TDSSOCKET * tds);

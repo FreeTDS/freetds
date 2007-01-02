@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.325 2006-12-21 03:49:17 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.326 2007-01-02 20:47:05 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -231,7 +231,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
 	default: /* SYBEBTOK */
-		tds_client_msg(tds->tds_ctx, tds, 20020, 9, 0, 0, "Bad token from the server: Datastream processing out of sync");
+		tdserror(tds->tds_ctx, tds, TDSEBTOK, 0);
 		if (IS_TDSDEAD(tds))
 			tds_set_state(tds, TDS_DEAD);
 		else
@@ -2147,76 +2147,6 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 		return TDS_FAIL;
 
 	return TDS_SUCCEED;
-}
-
-
-
-/**
- * tds_client_msg() sends a message to the client application from the CLI or
- * TDS layer. A client message is one that is generated from with the library
- * and not from the server.  The message is sent to the CLI (the 
- * err_handler) so that it may forward it to the client application or
- * discard it if no msg handler has been by the application. tds->parent
- * contains a void pointer to the parent of the tds socket. This can be cast
- * back into DBPROCESS or CS_CONNECTION by the CLI and used to determine the
- * proper recipient function for this message.
- * \todo This procedure is deprecated, because the client libraries use differing messages and message numbers.
- * 	The general approach is to emit ct-lib error information and let db-lib and ODBC map that to their number and text.  
- */
-int
-tds_client_msg(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int severity, int state, int line, const char *msg_text)
-{
-	int ret;
-	TDSMESSAGE msg;
-
-	CHECK_CONTEXT_EXTRA(tds_ctx);
-	if (tds)
-		CHECK_TDS_EXTRA(tds);
-
-	if (tds_ctx->err_handler) {
-		memset(&msg, 0, sizeof(TDSMESSAGE));
-		msg.msgno = msgno;
-		msg.severity = severity;
-		msg.state = state;
-		/* TODO is possible to avoid copy of strings ? */
-		msg.server = strdup("OpenClient");
-		msg.line_number = line;
-		msg.message = strdup(msg_text);
-		if (msg.sql_state == NULL)
-			msg.sql_state = tds_alloc_client_sqlstate(msg.msgno);
-		ret = tds_ctx->err_handler(tds_ctx, tds, &msg);
-		tds_free_msg(&msg);
-#if 1
-		/*
-		 * error handler may return: 
-		 * INT_EXIT -- Print an error message, and exit application, . returning an error to the OS.  
-		 * INT_CANCEL -- Return FAIL to the db-lib function that caused the error. 
-		 * For SQLETIME errors only, call dbcancel() to try to cancel the current command batch 
-		 * 	and flush any pending results. Break the connection if dbcancel() times out, 
-		 * INT_CONTINUE -- For SQLETIME, wait for one additional time-out period, then call the error handler again. 
-		 *  	Else treat as INT_CANCEL. 
-		 */
-#else
-		/*
-		 * This was bogus afaict.  
-		 * Definitely, it's a mistake to set the state to TDS_DEAD for information messages when the handler  
-		 * returns INT_CANCEL, at least according to Microsoft's documentation.  
-		 * --jkl
-		 */  
-		/*
-		 * message handler returned FAIL/CS_FAIL
-		 * mark socket as dead
-		 */
-		if (ret && tds) {
-			/* TODO close socket too ?? */
-			tds_set_state(tds, TDS_DEAD);
-		}
-#endif
-	}
-
-	tdsdump_log(TDS_DBG_FUNC, "tds_client_msg: #%d: \"%s\".  Connection state is now %d.  \n", msgno, msg_text, tds ? (int)tds->state : -1);
-
-	return 0;
 }
 
 /**

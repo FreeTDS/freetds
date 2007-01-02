@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.35 2006-12-26 14:56:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.36 2007-01-02 20:47:04 jklowden Exp $");
 
 /*
  * test include consistency 
@@ -95,7 +95,7 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 				   msg->severity, msg->message, msg->server, msg->proc_name, msg->line_number);
 	}
 
-	if (msg->severity > 10) {
+	if (msg->severity > 10 && _dblib_err_handler) {	/* call the application's error handler, if installed. */
 		/*
 		 * Sybase docs say SYBESMSG is generated only in specific
 		 * cases (severity greater than 16, or deadlock occurred, or
@@ -103,8 +103,9 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 		 * behavior is that SYBESMSG is always generated for
 		 * server messages with severity greater than 10.
 		 */
-		tds_client_msg(tds_ctx, tds, SYBESMSG, EXSERVER, -1, -1,
-			       "General SQL Server error: Check messages from the SQL Server.");
+		msg->message = "General SQL Server error: Check messages from the SQL Server";
+		msg->state = -1;
+		_dblib_err_handler(dbproc, msg->severity, msg->msgno, msg->state, msg->message, msg->server);
 	}
 	return SUCCEED;
 }

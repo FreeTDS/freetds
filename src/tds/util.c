@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.71 2006-12-26 12:53:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.72 2007-01-02 20:47:05 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -122,12 +122,11 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		CHECK_TDS_EXTRA(tds);
 
 		if (tds->state == TDS_DEAD) {
-			tds_client_msg(tds->tds_ctx, tds, 20006, 9, 0, 0, "Write to SQL Server failed.");
+			tdserror(tds->tds_ctx, tds, TDSEWRIT, 0);
 			return tds->state;
 		} else if (tds->state != TDS_IDLE) {
 			tdsdump_log(TDS_DBG_ERROR, "tds_submit_query(): state is PENDING\n");
-			tds_client_msg(tds->tds_ctx, tds, 20019, 7, 0, 1,
-				       "Attempt to initiate a new SQL Server operation with results pending.");
+			tdserror(tds->tds_ctx, tds, TDSERPND, 0);
 			return tds->state;
 		}
 
@@ -204,4 +203,158 @@ tds_gettime_ms(void)
 #error How to implement tds_gettime_ms ??
 #endif
 }
+
+/*
+ * Call the client library's error handler
+ */
+#define EXINFO         1
+#define EXUSER         2
+#define EXNONFATAL     3
+#define EXCONVERSION   4
+#define EXSERVER       5
+#define EXTIME         6
+#define EXPROGRAM      7
+#define EXRESOURCE     8
+#define EXCOMM         9
+#define EXFATAL       10
+#define EXCONSISTENCY 11
+
+typedef struct _tds_error_message 
+{
+	TDSERRNO msgno;
+	int severity;
+	char *msgtext;
+} TDS_ERROR_MESSAGE;
+
+static const TDS_ERROR_MESSAGE tds_error_messages[] = 
+	{ { TDSEICONVIU,     EXCONVERSION,	"Some character(s) could not be converted into client's character set" }
+	, { TDSEICONVAVAIL,  EXCONVERSION,	"Character set conversion is not available between client character set '%.*s' and "
+						"server character set '%.*s'" }
+	, { TDSEICONVO,      EXCONVERSION,	"Error converting characters into server's character set. Some character(s) could "
+						"not be converted" }
+	, { TDSEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  Unconverted "
+						"bytes were changed to question marks ('?')" }
+	, { TDSEICONV2BIG,   EXCONVERSION,	"Buffer overflow converting characters from client into server's character set" }
+	, { TDSERPND,           EXPROGRAM,	"Attempt to initiate a new Adaptive Server operation with results pending" }
+	, { TDSEBTOK,              EXCOMM,	"Bad token from the server: Datastream processing out of sync" }
+	, { TDSECAP,               EXCOMM,	"DB-Library capabilities not accepted by the Server" }
+	, { TDSECAPTYP,            EXCOMM,	"Unexpected capability type in CAPABILITY datastream" }
+	, { TDSECLOS,              EXCOMM,	"Error in closing network connection" }
+	, { TDSECONN,              EXCOMM,	"Unable to connect: Adaptive Server is unavailable or does not exist" }
+	, { TDSEEUNR,              EXCOMM,	"Unsolicited event notification received" }
+	, { TDSEFCON,              EXCOMM,	"Adaptive Server connection failed" }
+	, { TDSENEG,               EXCOMM,	"Negotiated login attempt failed" }
+	, { TDSEOOB,               EXCOMM,	"Error in sending out-of-band data to the server" }
+	, { TDSEREAD,              EXCOMM,	"Read from the server failed" }
+	, { TDSESEOF,              EXCOMM,	"Unexpected EOF from the server" }
+	, { TDSESOCK,              EXCOMM,	"Unable to open socket" }
+	, { TDSESYNC,              EXCOMM,	"Read attempted while out of synchronization with Adaptive Server" }
+	, { TDSEUMSG,              EXCOMM,	"Unknown message-id in MSG datastream" }
+	, { TDSEUSCT,              EXCOMM,	"Unable to set communications timer" }
+	, { TDSEUTDS,              EXCOMM,	"Unrecognized TDS version received from the server" }
+	, { TDSEWRIT,              EXCOMM,	"Write to the server failed" }
+	, { 0,0, NULL}
+	};
+	
+static
+const char * retname(int retcode)
+{
+	switch(retcode) {
+	case 0: return "TDS_INT_EXIT";
+	case 1: return "TDS_INT_CONTINUE";
+	case 2: return "TDS_INT_CANCEL";
+	case 3: return "TDS_INT_TIMEOUT";
+	}
+	assert(retcode < 4);
+	return "nonesuch";
+}
+
+/**
+ * \brief Call the client library's error handler (for library-generated errors only)
+ *
+ * The client library error handler may return: 
+ * TDS_INT_EXIT -- Print an error message, and exit application, returning an error to the OS.  
+ * TDS_INT_CANCEL -- Return TDS_FAIL to the calling function.  For TDSETIME, closes the connection first. 
+ * TDS_INT_CONTINUE -- For TDSETIME only, retry the network read/write operation. Else invalid.
+ * TDS_INT_TIMEOUT -- For TDSETIME only, send a TDSCANCEL packet. Else invalid.
+ *
+ * These are Sybase semantics, but they serve all purposes.  
+ * The application tells the library to quit, fail, retry, or attempt to cancel.  In the event of a network timeout, 
+ * a failed operation necessarily means the connection becomes unusable, because no cancellation dialog was 
+ * concluded with the server.  
+ *
+ * It is the client library's duty to call the error handler installed by the application, if any, and to interpret the
+ * installed handler's return code.  It may return to this function one of the above codes only.  This function will not 
+ * check the return code because there's nothing that can be done here except abort.  It is merely passed to the 
+ * calling function, which will (we hope) DTRT.  
+ *
+ * \param tds_ctx	points to a TDSCONTEXT structure
+ * \param tds		the connection structure, may be NULL if not connected
+ * \param msgno		an enumerated libtds msgno, cf. tds.h
+ * \param errnum	the OS errno, if it matters, else zero
+ * 
+ * \returns client library function's return code
+ */
+int
+tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
+{
+#if 0
+	static const char int_exit_text[] = "FreeTDS: libtds: exiting because client error handler returned %d for msgno %d\n";
+	static const char int_invalid_text[] = "%s (%d) received from client library error handler for nontimeout for error %d."
+					       "  Treating as INT_EXIT\n";
+#endif
+	static const TDS_ERROR_MESSAGE default_message = { 0, EXCONSISTENCY, "unrecognized msgno" };
+	const TDS_ERROR_MESSAGE *err = &default_message;
+	
+	TDSMESSAGE msg;
+	int i, rc = TDS_INT_CANCEL;
+	char *os_msgtext = strerror(errnum);
+
+	tdsdump_log(TDS_DBG_FUNC, "tdserror(%p, %p, %d, %d)\n", tds_ctx, tds, msgno, errnum);
+
+	if (os_msgtext == NULL)
+		os_msgtext = "no OS error";
+	
+	/* look up the error message */
+	for (i=0; i < TDS_VECTOR_SIZE(tds_error_messages); i++ ) {
+		if (tds_error_messages[i].msgno == msgno) {
+			err = &tds_error_messages[i];
+			break;
+		}
+	}
+		
+
+	CHECK_CONTEXT_EXTRA(tds_ctx);
+
+	if (tds)
+		CHECK_TDS_EXTRA(tds);
+
+	if (tds_ctx->err_handler) {
+		memset(&msg, 0, sizeof(TDSMESSAGE));
+		msg.msgno = err->msgno;
+		msg.severity = err->severity;
+		msg.state = -1;
+		msg.server = "OpenClient";
+		msg.line_number = -1;
+		msg.message = err->msgtext;
+		msg.sql_state = tds_alloc_client_sqlstate(msg.msgno);
+		
+		/*
+		 * Call client library handler.  
+		 * The client library must return a valid code.  It is not checked again here.  
+		 */
+		rc = tds_ctx->err_handler(tds_ctx, tds, &msg);
+		
+		TDS_ZERO_FREE(msg.sql_state);
+	}
+
+	tdsdump_log(TDS_DBG_FUNC, "tdserror: client library returned %s", retname(rc));
+
+	return rc;
+
+
+}
+
+
+
 
