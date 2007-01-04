@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.27 2006-03-16 15:04:22 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.28 2007-01-04 23:49:07 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -68,7 +68,8 @@ typedef struct _options
 { 
 	int 	fverbose, 
 		fquiet;
-	FILE 	*verbose;
+	FILE 	*headers, 
+		*verbose;
 	char 	*servername, 
 		*database, 
 		*appname, 
@@ -117,6 +118,7 @@ main(int argc, char *argv[])
 	
 
 	memset(&options, 0, sizeof(options));
+	options.headers = stderr;
 	login = get_login(argc, argv, &options); /* get command-line parameters and call dblogin() */
 	assert(login != NULL);
 
@@ -501,12 +503,12 @@ print_results(DBPROCESS *dbproc)
 		if (!options.fquiet) {
 			/* Print the column headers to stderr to keep them separate from the data.  */
 			for (c=0; c < ncols; c++) {
-				fprintf(stderr, metadata[c].format_string, metadata[c].name);
+				fprintf(options.headers, metadata[c].format_string, metadata[c].name);
 			}
 
 			/* Underline the column headers.  */
 			for (c=0; c < ncols; c++) {
-				fprintf(stderr, metadata[c].format_string, dashes);
+				fprintf(options.headers, metadata[c].format_string, dashes);
 			}
 		}
 		/* 
@@ -542,12 +544,12 @@ print_results(DBPROCESS *dbproc)
 					
 					/* left justify the names */
 					strcat(fmt, &meta->format_string[1]);
-					fprintf(stderr, fmt, meta->name);
+					fprintf(options.headers, fmt, meta->name);
 				}
 
 				/* Underline the column headers.  */
 				for (c=0; c < metacompute[row_code-1]->numalts; c++) {
-					fprintf(stderr, metacompute[row_code-1]->meta[c].format_string, dashes);
+					fprintf(options.headers, metacompute[row_code-1]->meta[c].format_string, dashes);
 				}
 					
 				for (c=0; c < metacompute[row_code-1]->numalts; c++) {
@@ -773,7 +775,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		DBSETLHOST(login, options->hostname);
 	}
 
-	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:qv")) != -1) {
+	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:hqv")) != -1) {
 		switch (ch) {
 		case 'U':
 			DBSETLUSER(login, optarg);
@@ -800,6 +802,9 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		case 't':
 			unescape(optarg);
 			options->colsep = strdup(optarg);
+			break;
+		case 'h':
+			options->headers = stdout;
 			break;
 		case 'q':
 			options->fquiet = 1;

@@ -36,7 +36,9 @@ OPTIONS
   Recognized escape sequences are tab ('\\t'), carriage return ('\\r'), newline ('\\n'), 
   and backslash ('\\\\'). 
 
-  -q  Do not print column metadata, return status, or rowcount.
+  -h  Print column headers with the data to the same file. 
+  
+  -q  Do not print column metadata, return status, or rowcount. Overrides -h. 
 
   -v  Verbose mode, for more information about the db-lib interaction.
   This also reports the result set metadata, including and return code. All
