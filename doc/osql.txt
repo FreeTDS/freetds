@@ -2,7 +2,7 @@ NAME
   osql - utility to test FreeTDS connections and queries
 
 SYNOPSIS
-  osql 	-S dsn -U username -P password
+  osql 	-S dsn -U username -P password [-I ini_dir]
 	
 DESCRIPTION
 
@@ -21,6 +21,8 @@ OPTIONS
 
 	-P password  database password.
 
+	-P ini_dir  override odbc.ini file location.
+
 EXAMPLE
 
 If you have an odbc.ini with a section like this:
@@ -37,6 +39,16 @@ NOTES
 
 If you can connect with "osql -S servername -U user -P passwd", your 
 FreeTDS ODBC installation is working. 
+
+osql guesses where unixODBC might look for its odbc.ini by examining
+the binary. This is not always an effective approach. If it doesn't work, 
+you'll receive a report of candidate strings. Kindly pass along the output 
+to help improve the guessing. 
+
+If osql cannot intuit your odbc.ini directory, you can force the issue with 
+the -I option. However, you're instructing osql what to test, not where 
+unixODBC will eventually look. Your override is therefore only as good as 
+you are. Look carefully at the error output before overriding. 
 
 If you have suggestions for ways to make osql more useful as a diagnostic tool,
 please post them to the FreeTDS mailing list. 

@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.2 2006-10-04 21:37:10 jklowden Exp $
+# $Id: osql,v 1.3 2007-01-04 23:49:13 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -7,9 +7,11 @@
 
 USAGE="Syntax: $(basename $0) -S server -U user -P password"
 
-while getopts S:U:P: OPTION
+while getopts I:S:U:P: OPTION
 do
 	case ${OPTION} in
+		I)	OVER_DIR=${OPTARG}	# override
+			;;
 		S)	DSN=${OPTARG}
 			;;
 		U)	USERNAME=${OPTARG}
@@ -37,15 +39,46 @@ then
 	exit 1
 fi
 
+# Establish ODBC prefix directory
+
 ODBC_DIR=$(strings ${ISQL} | grep ^/ | grep -v elf | head -1 | sed 's/lib$/etc/' )
 
 if [ -z "${ODBC_DIR}" ]
 then
-	echo "$(basename $0): error: unable to locate directory for odbc.ini using \"$(command -v isql)\""
+	echo "$(basename $0): error: no potential directory strings in \"$(command -v isql)\""
+	echo "isql strings are:"
+	strings ${ISQL} | grep ^/ | sed 's/^/+ /'
 	exit 1
 fi
 
-echo "odbc.ini and odbcinst.ini should be in ${ODBC_DIR}"
+if [ "${OVER_DIR}" ]
+then
+	if [ -d "${ODBC_DIR}" ]
+	then
+		echo "\"${ODBC_DIR}\" (from isql) is a directory, "
+		echo "	but is overridden by \"${OVER_DIR}\"."
+	else 
+		echo "${ODBC_DIR} (from isql) is not a directory"
+		echo "	and is overridden by \"${OVER_DIR}\"."
+	fi
+	
+	if [ -d "${OVER_DIR}" ]
+	then
+		ODBC_DIR=${OVER_DIR}
+	else
+		echo "$(basename $0): error: \"${OVER_DIR}\" is not a directory (disallowing)"
+	fi
+fi
+
+if [ ! -d "${ODBC_DIR}" ]
+then
+	echo "$(basename $0): error: ${ODBC_DIR} (from isql) is not a directory!"
+	echo "isql strings are:"
+	strings ${ISQL} | grep ^/ | grep -v elf | sed 's/^/+ /'
+	return 1
+fi
+
+echo "looking for odbc.ini and odbcinst.ini in ${ODBC_DIR}"
 
 # Look for server entry in odbc.ini 
 
