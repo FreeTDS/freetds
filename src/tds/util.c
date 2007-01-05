@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.72 2007-01-02 20:47:05 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.73 2007-01-05 07:11:08 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -329,7 +329,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 	if (tds)
 		CHECK_TDS_EXTRA(tds);
 
-	if (tds_ctx->err_handler) {
+	if (tds_ctx && tds_ctx->err_handler) {
 		memset(&msg, 0, sizeof(TDSMESSAGE));
 		msg.msgno = err->msgno;
 		msg.severity = err->severity;
@@ -348,7 +348,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		TDS_ZERO_FREE(msg.sql_state);
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "tdserror: client library returned %s", retname(rc));
+	tdsdump_log(TDS_DBG_FUNC, "tdserror: returning %s\n", retname(rc));
 
 	return rc;
 

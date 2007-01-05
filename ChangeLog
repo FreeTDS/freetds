@@ -1,3 +1,7 @@
+Fri Jan  5 02:08:54 EST 2007	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h src/tds/net.c src/tds/util.c
+	- begin new timeout strategy, not done.
+	
 Thu Jan  4 18:47:46 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/bsqldb.txt src/apps/bsqldb.c nicer headers
 	* doc/osql.txt src/apps/osql allow ini location override

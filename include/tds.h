@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.260 2007-01-02 20:47:03 jklowden Exp $ */
+/* $Id: tds.h,v 1.261 2007-01-05 07:11:07 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1149,9 +1149,10 @@ struct tds_context
 {
 	TDSLOCALE *locale;
 	void *parent;
-	/* handler */
+	/* handlers */
 	int (*msg_handler) (const TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
 	int (*err_handler) (const TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
+	int (*int_handler) (const TDSCONTEXT *);
 };
 
 enum TDS_ICONV_ENTRY
