@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.326 2007-01-02 20:47:05 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.327 2007-01-05 13:09:47 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -3175,6 +3175,8 @@ _tds_token_name(unsigned char marker)
 		return "PROCID";
 	case 0x81:
 		return "TDS7_RESULT";
+	case 0x83:
+		return "TDS_CURINFO";
 	case 0x88:
 		return "TDS7_COMPUTE_RESULT";
 	case 0xA0:

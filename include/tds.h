@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.261 2007-01-05 07:11:07 jklowden Exp $ */
+/* $Id: tds.h,v 1.262 2007-01-05 13:09:47 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -345,6 +345,7 @@ typedef enum {	TDSEICONVIU    = 2400,
 
 /* CURSOR support: TDS 5.0 only*/
 #define TDS_CURCLOSE_TOKEN        128  /* 0x80    TDS 5.0 only              */
+#define TDS_CURDELETE_TOKEN       129  /* 0x81    TDS 5.0 only              */
 #define TDS_CURFETCH_TOKEN        130  /* 0x82    TDS 5.0 only              */
 #define TDS_CURINFO_TOKEN         131  /* 0x83    TDS 5.0 only              */
 #define TDS_CUROPEN_TOKEN         132  /* 0x84    TDS 5.0 only              */

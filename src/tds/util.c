@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.73 2007-01-05 07:11:08 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.74 2007-01-05 13:09:47 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -253,7 +253,8 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSEUSCT,              EXCOMM,	"Unable to set communications timer" }
 	, { TDSEUTDS,              EXCOMM,	"Unrecognized TDS version received from the server" }
 	, { TDSEWRIT,              EXCOMM,	"Write to the server failed" }
-	, { 0,0, NULL}
+	/* last, with masgno == 0 */
+	, { 0,              EXCONSISTENCY,	"unrecognized msgno" }
 	};
 	
 static
@@ -303,26 +304,23 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 	static const char int_invalid_text[] = "%s (%d) received from client library error handler for nontimeout for error %d."
 					       "  Treating as INT_EXIT\n";
 #endif
-	static const TDS_ERROR_MESSAGE default_message = { 0, EXCONSISTENCY, "unrecognized msgno" };
-	const TDS_ERROR_MESSAGE *err = &default_message;
-	
+	const TDS_ERROR_MESSAGE *err;
+
 	TDSMESSAGE msg;
-	int i, rc = TDS_INT_CANCEL;
+	int rc = TDS_INT_CANCEL;
 	char *os_msgtext = strerror(errnum);
 
 	tdsdump_log(TDS_DBG_FUNC, "tdserror(%p, %p, %d, %d)\n", tds_ctx, tds, msgno, errnum);
 
 	if (os_msgtext == NULL)
 		os_msgtext = "no OS error";
-	
+
 	/* look up the error message */
-	for (i=0; i < TDS_VECTOR_SIZE(tds_error_messages); i++ ) {
-		if (tds_error_messages[i].msgno == msgno) {
-			err = &tds_error_messages[i];
+	for (err = tds_error_messages; err->msgno; ++err) {
+		if (err->msgno == msgno)
 			break;
-		}
 	}
-		
+
 
 	CHECK_CONTEXT_EXTRA(tds_ctx);
 
@@ -338,13 +336,13 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		msg.line_number = -1;
 		msg.message = err->msgtext;
 		msg.sql_state = tds_alloc_client_sqlstate(msg.msgno);
-		
+
 		/*
-		 * Call client library handler.  
-		 * The client library must return a valid code.  It is not checked again here.  
+		 * Call client library handler.
+		 * The client library must return a valid code.  It is not checked again here.
 		 */
 		rc = tds_ctx->err_handler(tds_ctx, tds, &msg);
-		
+
 		TDS_ZERO_FREE(msg.sql_state);
 	}
 

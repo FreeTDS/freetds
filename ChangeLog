@@ -1,7 +1,11 @@
+Fri Jan 05 14:08:53 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/token.c: new token
+	* src/tds/util.c: optimize
+
 Fri Jan  5 02:08:54 EST 2007	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h src/tds/net.c src/tds/util.c
 	- begin new timeout strategy, not done.
-	
+
 Thu Jan  4 18:47:46 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/bsqldb.txt src/apps/bsqldb.c nicer headers
 	* doc/osql.txt src/apps/osql allow ini location override
@@ -13,7 +17,7 @@ Tue Jan  2 15:42:09 EST 2007	JK Lowden <jklowden@schemamania.org>
 	* src/tds/iconv.c src/tds/login.c src/tds/net.c
 	* src/tds/token.c src/tds/util.c
 	- replace tds_client_msg with tdserror()
-	
+
 Mon Jan 01 12:56:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c src/tds/query.c:
 	- remove some warning compiling with SUN compiler
