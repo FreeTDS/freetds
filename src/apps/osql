@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.3 2007-01-04 23:49:13 jklowden Exp $
+# $Id: osql,v 1.4 2007-01-06 15:36:45 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -41,7 +41,17 @@ fi
 
 # Establish ODBC prefix directory
 
-ODBC_DIR=$(strings ${ISQL} | grep ^/ | grep -v elf | head -1 | sed 's/lib$/etc/' )
+ODBC_DIR=$(strings ${ISQL} | grep ^/ | grep -v elf | grep -v '\.so\.' | head -1 | sed 's/lib$/etc/' )
+
+# N.B.  better than head(1) would be a loop to test the strings.  Since we're looking for a directory, 
+# something like this might work:
+# for D in $(strings ${ISQL} | grep ^/ | grep -v elf | sed 's/lib$/etc/' )
+# do
+# 	if [ -d $D ]
+# 	then
+# 		ODBC_DIR = $D
+# 	fi
+# done
 
 if [ -z "${ODBC_DIR}" ]
 then
@@ -74,7 +84,7 @@ if [ ! -d "${ODBC_DIR}" ]
 then
 	echo "$(basename $0): error: ${ODBC_DIR} (from isql) is not a directory!"
 	echo "isql strings are:"
-	strings ${ISQL} | grep ^/ | grep -v elf | sed 's/^/+ /'
+	strings ${ISQL} | grep ^/ | grep -v elf | grep -v '\.so\.' | sed 's/^/+ /'
 	return 1
 fi
 
