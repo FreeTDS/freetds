@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.262 2007-01-05 13:09:47 freddy77 Exp $ */
+/* $Id: tds.h,v 1.263 2007-01-07 06:03:53 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -188,7 +188,6 @@ extern const int tds_numeric_bytes_per_prec[];
 #define TDS_NO_MORE_RESULTS  2
 #define TDS_CANCELLED        3
 
-#define TDS_INT_EXIT 0
 #define TDS_INT_CONTINUE 1
 #define TDS_INT_CANCEL 2
 #define TDS_INT_TIMEOUT 3
@@ -1191,8 +1190,8 @@ struct tds_socket
 	void *parent;
 	/**
 	 * info about current query. 
-	 * Contain information in process, even normal results and compute.
-	 * This pointer shouldn't be freed it's just an alias to another structure.
+	 * Contains information in process, both normal and compute results.
+	 * This pointer shouldn't be freed; it's just an alias to another structure.
 	 */
 	TDSRESULTINFO *current_results;
 	TDSRESULTINFO *res_info;
@@ -1208,9 +1207,6 @@ struct tds_socket
 	int rows_affected;
 	/* timeout stuff from Jeff */
 	TDS_INT query_timeout;
-	int (*query_timeout_func) (void *param, unsigned int total_timeout);
-	void *query_timeout_param;
-	unsigned int query_start_time_ms;
 	TDSENV env;
 
 	/* dynamic placeholder stuff */

@@ -1,3 +1,12 @@
+Sun Jan  7 00:41:19 EST 2007	JK Lowden <jklowden@schemamania.org>
+	* include/tds.h
+	* src/dblib/dblib.c src/dblib/dbutil.c
+	* src/tds/net.c src/tds/query.c
+	* src/tds/token.c src/tds/util.c
+	- implement new timeout strategy using tds_select() and 
+	- calling the client library's error handler (via tdserror). 
+	- db-lib no worse than before, others not yet tested. 
+
 Fri Jan 05 14:08:53 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/token.c: new token
 	* src/tds/util.c: optimize

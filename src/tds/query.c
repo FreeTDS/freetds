@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.202 2007-01-01 11:50:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.203 2007-01-07 06:03:54 jklowden Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1861,22 +1861,27 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
  * tds_send_cancel() sends an empty packet (8 byte header only)
  * tds_process_cancel should be called directly after this.
  * \param tds state information for the socket and the TDS protocol
+ * \remarks
+ *	tcp will either deliver the packet or time out. 
+ *	(TIME_WAIT determines how long it waits between retries.)  
+ *	
+ *	On sending the cancel, we may get EAGAIN.  We then select(2) until we know
+ *	either 1) it succeeded or 2) it didn't.  On failure, close the socket,
+ *	tell the app, and fail the function.  
+ *	
+ *	On success, we read(2) and wait for a reply with select(2).  If we get
+ *	one, great.  If the client's timeout expires, we tell him, but all we can
+ *	do is wait some more or give up and close the connection.  If he tells us
+ *	to cancel again, we wait some more.  
  */
 int
 tds_send_cancel(TDSSOCKET * tds)
 {
 	CHECK_TDS_EXTRA(tds);
 
-	/* one cancel it's sufficient */
+	/* one cancel is sufficient */
 	if (tds->in_cancel || tds->state == TDS_IDLE)
 		return TDS_SUCCEED;
-
-	/* TODO discard any partial packet here ?? */
-	/* tds_init_write_buf(tds); */
-
-	/* disable timeout */
-	tds->query_start_time_ms = 0;
-	tds->query_timeout = 0;
 
 	tds->out_flag = TDS_CANCEL;
 	tds->in_cancel = 1;

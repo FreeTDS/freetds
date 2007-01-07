@@ -99,7 +99,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.53 2007-01-05 07:11:08 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.54 2007-01-07 06:03:54 jklowden Exp $");
+
+static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
+
 
 /**
  * \addtogroup network
@@ -159,8 +162,6 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	fd_set fds;
 #if !defined(DOS32X)
 	unsigned long ioctl_nonblocking = 1;
-	unsigned int start_ms, now_ms;
-	struct timeval selecttimeout;
 	int retval;
 #endif
 	int len;
@@ -221,7 +222,6 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		return TDS_FAIL;
 	}
 #else
-	/* Jeff's hack *** START OF NEW CODE *** */
 	if (!timeout) {
 		/* A timeout of zero means wait forever; 90,000 seconds will feel like forever. */
 		timeout = 90000;
@@ -255,84 +255,19 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		}
 #endif
 		if (sock_errno != TDSSOCK_EINPROGRESS) {
-			int rc;
-			switch(rc = tdserror(tds->tds_ctx, tds, TDSECONN, sock_errno)) { 
-					/* "Unable to connect: Adaptive Server is unavailable or does not exist" */
-			case TDS_INT_CANCEL: 
-				goto not_available;
-				break;
+			/* "Unable to connect: Adaptive Server is unavailable or does not exist" */
+			tdserror(tds->tds_ctx, tds, TDSECONN, sock_errno);
+			goto not_available;
+		}
+		
+		FD_SET(tds->s, &fds);
 
-			case TDS_INT_CONTINUE:
-			case TDS_INT_TIMEOUT:
-			default:
-				tdsdump_log(TDS_DBG_ERROR, "error: client error handler returned %d\n", rc);
-			case TDS_INT_EXIT:
-				exit(EXIT_FAILURE);
-				break;
-			}
+		if (tds_select(tds, tds->s + 1, NULL, &fds, &fds, timeout) <= 0) {
+			tdserror(tds->tds_ctx, tds, TDSESOCK, sock_errno);
 			goto not_available;
 		}
 	}
 
-	/* use select(2) on writeability to honor connect_timeout */
-	now_ms = start_ms = tds_gettime_ms();
-	for (retval=0; retval == 0; now_ms = tds_gettime_ms()) {
-		int rc;
-		if ((now_ms - start_ms) / 1000u >= timeout) { /* timed out */
-			tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: %s:%d: %s\n", 
-							tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)),
-				    			ntohs(sin.sin_port), strerror(sock_errno));
-			switch(rc = tdserror(tds->tds_ctx, tds, TDSETIME, 0)) {
-			case TDS_INT_CANCEL: 
-				goto not_available;
-				break;
-
-			case TDS_INT_CONTINUE:
-			case TDS_INT_TIMEOUT:
-				/* no cancel to send */
-				break;			
-
-			default:
-				tdsdump_log(TDS_DBG_ERROR, "error: client error handler returned %d\n", rc);
-			case TDS_INT_EXIT:
-				exit(EXIT_FAILURE);
-				break;
-			}
-		}
-		FD_SET(tds->s, &fds);
-		selecttimeout.tv_sec = timeout - (now_ms - start_ms) / 1000u;
-		selecttimeout.tv_usec = 0;
-
-		retval = select(tds->s + 1, NULL, &fds, &fds, &selecttimeout); 
-
-		if (retval < 0) {
-			if (sock_errno == TDSSOCK_EINTR || sock_errno == TDSSOCK_EINPROGRESS) {
-				/* retry if select(2) failed because it was interrupted  (or didn't block)*/
-				retval = 0;
-				continue;
-			} else {	/* bad news */
-				tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", sock_errno, strerror(sock_errno));
-
-				switch(rc = tdserror(tds->tds_ctx, tds, TDSESOCK, sock_errno)) {
-				case TDS_INT_CANCEL: 
-					goto not_available;
-					break;
-
-				default:
-				case TDS_INT_CONTINUE:
-				case TDS_INT_TIMEOUT:
-					tdsdump_log(TDS_DBG_ERROR, "error: client error handler returned %d\n", rc);
-				case TDS_INT_EXIT:
-					exit(EXIT_FAILURE);
-					break;
-				}
-				goto not_available;
-			}
-		}
-	}
-	assert(retval > 0);
-
-	/* END OF NEW CODE */
 #endif
 
 	/* check socket error */
@@ -347,6 +282,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		goto not_available;
 	}
 
+	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() succeeded\n");
 	return TDS_SUCCEED;
 	
     not_available:
@@ -390,30 +326,34 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 	 * We iterate every time timeout_seconds elapses, calling the client library's error handler for further instructions. 
 	 */
 	assert(tds != NULL);
+	assert(timeout_seconds >= 0);
 	for(;;) {
 		/* 
 		 * This is the main loop.  We iterate once per second.
 		 * We do not measure current time against end time, to avoid being tricked by ntpd(8) or similar. 
 		 * Instead, we just count down.  
-		 * If timeout_seconds i zero, we never leave this loop except to return to the caller. 
+		 * If timeout_seconds is zero, we never leave this loop except to return to the caller. 
 		 */
 		seconds = timeout_seconds;
-		const int poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
+		const unsigned int poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
 		assert(seconds >= 0);
 		do {	
-			struct timeval tv;
-			int end_ms = poll_seconds * 1000 + tds_gettime_ms();
+			struct timeval tv, *ptv = timeout_seconds? &tv : NULL;
+			unsigned int end_ms = poll_seconds * 1000 + tds_gettime_ms();
 
 			/* 
 			 * This is the poll loop. We exit this when the first of these events happens:
 			 * 1.  a descriptor is ready. (return to caller)
 			 * 2.  select returns an important error.  (return to caller)
 			 * 3.  one second elapses, if an interrupt handler is defined (call handler).
-			 * 4.  timeout_seconds elapses.    
+			 * 4.  timeout_seconds elapses.  
+			 * A timeout of zero says "wait forever".  We do that by passing a NULL timeval pointer to select(2).    
 			 */
-			for (tv.tv_sec=poll_seconds, tv.tv_usec=0; tv.tv_sec + tv.tv_usec > 0; ) {
+			tv.tv_sec = poll_seconds;
+			tv.tv_usec = 0; 
+			while (timeout_seconds == 0 || tv.tv_sec + tv.tv_usec > 0) {
 				
-				rc = select(nfds, readfds, writefds, exceptfds, &tv); 
+				rc = select(nfds, readfds, writefds, exceptfds, ptv); 
 				
 				tv.tv_sec  = (end_ms - tds_gettime_ms()) / 1000;
 				tv.tv_usec = (end_ms - tds_gettime_ms()) % 1000;
@@ -429,7 +369,8 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 					case TDSSOCK_EINTR:
 						continue;
 					default: /* documented: EFAULT, EBADF, EINVAL */
-						tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", sock_errno, strerror(sock_errno));
+						tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
+								sock_errno, strerror(sock_errno));
 						perror("Terrible error in tds_select");
 						return rc;
 					}
@@ -447,7 +388,7 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 
 				int timeout_action = (*tds->tds_ctx->int_handler) (tds->tds_ctx);
 				/*
-				 * "If hndlintr() returns INT_CANCEL, DB-Library sends an attention token [cancel packet, TDS_BUFSTAT_ATTN]
+				 * "If hndlintr() returns INT_CANCEL, DB-Library sends an attention token [TDS_BUFSTAT_ATTN]
 				 * to the server. This causes the server to discontinue command processing. 
 				 * The server may send additional results that have already been computed. 
 				 * When control returns to the mainline code, the mainline code should do 
@@ -455,15 +396,12 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 				 * - Flush the results using dbcancel 
 				 * - Process the results normally"
 				 */
+				tdsdump_log(TDS_DBG_ERROR, "tds_ctx->int_handler returned %d\n", timeout_action);
 				switch (timeout_action) {
 				case TDS_INT_CONTINUE:		/* keep waiting */
 					break;
-				case TDS_INT_TIMEOUT:
 				case TDS_INT_CANCEL:		/* abort the current command batch */
 					return 0;
-				case TDS_INT_EXIT:		/* abort the program */
-					exit(EXIT_FAILURE);
-					break;
 				default:
 					tdsdump_log(TDS_DBG_NETWORK, 
 						"tds_select: invalid interupt handler return code: %d\n", timeout_action);
@@ -472,28 +410,18 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 				}
 			}
 			
-			if (timeout_seconds == 0)
-				continue;	/* Don't count down.  Zero means wait forever. */
-
-		} while (seconds -= poll_seconds);
+		} while (timeout_seconds == 0 || (seconds -= poll_seconds) > 0);
 		
 		/* 
 		 * timeout_seconds has elapsed.  
 		 * Call the client library's error handler to find out what to do.
 		 */
+		tdsdump_log(TDS_DBG_ERROR, "tds_select(): timed out, asking the client.\n");
 		switch(rc = tdserror(tds->tds_ctx, tds, TDSETIME, 0)) {
 		case TDS_INT_CONTINUE:		/* keep waiting */
 			continue;
-		case TDS_INT_TIMEOUT:		/* send a cancel packet */
-			return 0;
 		case TDS_INT_CANCEL: 		/* close socket and abort function */
 			return -1;
-
-		default:
-			tdsdump_log(TDS_DBG_ERROR, "error: client error handler returned %d\n", rc);
-		case TDS_INT_EXIT:
-			exit(EXIT_FAILURE);
-			break;
 		}
 	} /* end retry loop */	
 }
@@ -506,23 +434,14 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 static int
 tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfinished)
 {
-	unsigned int start_ms, global_start_ms;
-	int timeout = 0;
-	int got = 0;
+	int rc, got = 0;
 	fd_set rfds;
-	struct timeval tv;
-
-	tv.tv_usec = 0;
 
 	if (buf == NULL || buflen < 1 || tds == NULL)
 		return 0;
 
-	global_start_ms = start_ms = tds->query_start_time_ms ? tds->query_start_time_ms : tds_gettime_ms();
-
 	for (;;) {
-
-		int len, rc;
-		unsigned int now_ms = tds_gettime_ms();
+		int len;
 
 		if (IS_TDSDEAD(tds))
 			return -1;
@@ -530,15 +449,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 		FD_ZERO(&rfds);
 		FD_SET(tds->s, &rfds);
 
-		timeout = 0;
-		if (tds->query_timeout > 0) {
-			timeout = tds->query_timeout - (now_ms - start_ms) / 1000u;
-			if (timeout < 1)
-				timeout = 1;
-		}
-		tv.tv_sec = timeout;
-
-		if ((len = select(tds->s + 1, &rfds, NULL, NULL, timeout > 0 ? &tv : NULL)) > 0) {
+		if ((len = tds_select(tds, tds->s + 1, &rfds, NULL, NULL, tds->query_timeout)) > 0) {
 			len = 0;
 			if (FD_ISSET(tds->s, &rfds)) {
 #ifndef MSG_NOSIGNAL
@@ -548,71 +459,30 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 #endif
 				/* detect connection close */
 				if (len == 0) {
-					int rc;
-					switch(rc = tdserror(tds->tds_ctx, tds, TDSESEOF, sock_errno)) {
-					case TDS_INT_CANCEL:
-						tds_close_socket(tds);
-						return -1;
-
-					case TDS_INT_CONTINUE:
-					case TDS_INT_TIMEOUT:
-					default:
-						tdsdump_log(TDS_DBG_NETWORK, 
-							"goodread: invalid client library error handler return code: %d\n", rc);
-					case TDS_INT_EXIT:
-						exit(EXIT_FAILURE);
-					}
-					assert(0); /* not reached */
+					tdserror(tds->tds_ctx, tds, TDSESEOF, sock_errno);
+					tds_close_socket(tds);
+					return -1;
  				}
 			}
-		}
-
-		if (len < 0) {
-			switch(sock_errno) {
-			case TDSSOCK_EINTR:
-				break;
-			case EAGAIN:
-			case TDSSOCK_EINPROGRESS:
-				sleep(1);
-				if (tds->query_timeout_func && tds->query_timeout) {
-					int timeout_action = (*tds->query_timeout_func) (tds->query_timeout_param, 
-											(now_ms - global_start_ms)/ 1000u);
-
-					switch (timeout_action) {
-					case TDS_INT_CONTINUE:
-						break;
-					case TDS_INT_EXIT:
-						exit(EXIT_FAILURE);
-						break;
-					case TDS_INT_TIMEOUT:
-					case TDS_INT_CANCEL:
-						tds_send_cancel(tds); /* todo: Keep track of this.  We can do it just once. */
-						break;
-					default:
-						tdsdump_log(TDS_DBG_NETWORK, 
-							"goodread: invalid interupt handler return code: %d\n", timeout_action);
-						exit(EXIT_FAILURE);
-						break;
-					}
-				}
-				break;
-				
-			default: /* Unusual socket error: ask the client what to do. */
-				switch(rc = tdserror(tds->tds_ctx, tds, TDSEREAD, sock_errno)) {
-				case TDS_INT_CANCEL:
-					return -1;
-
-				case TDS_INT_CONTINUE:
-				case TDS_INT_TIMEOUT:
-				default:
-					tdsdump_log(TDS_DBG_NETWORK, 
-						"goodread: invalid client library error handler return code: %d\n", rc);
-				case TDS_INT_EXIT:
-					exit(EXIT_FAILURE);
-				}
+		} else if (len < 0) {
+			if (sock_errno == EAGAIN) /* shouldn't happen, but OK */
+				continue;
+			tdserror(tds->tds_ctx, tds, TDSEREAD, sock_errno);
+			tds_close_socket(tds);
+			return -1;
+		} else { /* timeout */
+			switch (rc = tdserror(tds->tds_ctx, tds, TDSETIME, sock_errno)) {
+			case TDS_INT_CONTINUE:
+				continue;
+			case TDS_INT_TIMEOUT:
+				tds_send_cancel(tds);
+				continue; /* fixme: or return? */
+			default:
+			case TDS_INT_CANCEL:
+				tds_close_socket(tds);
 				return -1;
 			}
-			len = 0;
+			assert(0); /* not reached */
 		}
 
 		got += len;
@@ -620,13 +490,6 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 		/* doing test here reduce number of syscalls required */
 		if (buflen <= 0)
 			break;
-
-		now_ms = tds_gettime_ms();
-		if (tds->query_timeout > 0 && (now_ms - start_ms) / 1000u >= tds->query_timeout) {
-
-			tdsdump_log(TDS_DBG_NETWORK, "exceeded query timeout: %d\n", tds->query_timeout);
-
-		}
 
 		if (unfinished && got)
 			break;
@@ -779,132 +642,66 @@ tds_read_packet(TDSSOCKET * tds)
 	return (tds->in_len);
 }
 
-/* TODO this code should be similar to read one... */
 /**
- * check for socket writability 
- * @returns 0 if timeout, <0 on error, >= 0 is success
+ * \param tds the famous socket
+ * \param p pointer to buffer
+ * \param len bytes in buffer
+ * \param last 1 if this is the last packet, else 0
+ * \return len on success, <0 on failure
  */
-static int
-tds_check_socket_write(TDSSOCKET * tds)
-{
-	int retcode = 0;
-	struct timeval selecttimeout;
-	time_t start, now;
-	fd_set fds;
-
-	/* Jeffs hack *** START OF NEW CODE */
-	FD_ZERO(&fds);
-
-	if (!tds->query_timeout) {
-		for (;;) {
-			int rc;
-			FD_SET(tds->s, &fds);
-			retcode = select(tds->s + 1, NULL, &fds, NULL, NULL);
-			/* write available */
-			if (retcode >= 0)
-				return retcode;
-			/* interrupted */
-			if (sock_errno == TDSSOCK_EINTR)
-				continue;
-				
-			switch(rc = tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno)) {
-			case TDS_INT_CANCEL:
-				return -1;
-
-			case TDS_INT_CONTINUE:
-			case TDS_INT_TIMEOUT:
-			default:
-				tdsdump_log(TDS_DBG_NETWORK, 
-					"tds_check_socket_write: invalid client library error handler return code: %d\n", rc);
-			case TDS_INT_EXIT:
-				exit(EXIT_FAILURE);
-			}
-			assert(0); /* not reached */
-			return -1;
-		}
-	}
-	start = time(NULL);
-	now = start;
-
-	while ((retcode == 0) && ((now - start) < tds->query_timeout)) {
-		FD_SET(tds->s, &fds);
-		selecttimeout.tv_sec = tds->query_timeout - (now - start);
-		selecttimeout.tv_usec = 0;
-		do {
-			retcode = select(tds->s + 1, NULL, &fds, NULL, &selecttimeout);
-			/* we are able to write, return without other syscalls */
-			if (retcode > 0)
-				return retcode;
-		} while (retcode < 0 && sock_errno == TDSSOCK_EINTR);
-
-		now = time(NULL);
-	}
-
-	return retcode;
-	/* Jeffs hack *** END OF NEW CODE */
-}
-
-/* goodwrite function adapted from patch by freddy77 */
 static int
 tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char last)
 {
-	int left = len;
-	int retval, err=0;
+	int remaining = len;
+	int nput, rc, err=0;
+	fd_set fds;
 
 	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
 	if (TDS_IS_SOCKET_INVALID(tds->s))
 		return -1;
 
-	while (left > 0) {
+	while (remaining > 0) {
+		FD_ZERO(&fds);
+		FD_SET(tds->s, &fds);
+		if ((rc = tds_select(tds, tds->s + 1, NULL, &fds, NULL, tds->query_timeout)) > 0) {
+			nput = 0;
+			if (FD_ISSET(tds->s, &fds)) {
 #ifdef USE_MSGMORE
-		retval = send(tds->s, p, left, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
-		/* in case kernel do not support MSG_MORE try not use it */
-		if (retval < 0 && errno == EINVAL && !last)
-			retval = send(tds->s, p, left, MSG_NOSIGNAL);
+				nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+				/* In case the kernel does not support MSG_MORE, try again without it */
+				if (len < 0 && errno == EINVAL && !last)
+					len = send(tds->s, p, remaining, MSG_NOSIGNAL);
 #elif !defined(MSG_NOSIGNAL)
-		retval = WRITESOCKET(tds->s, p, left);
+				nput = WRITESOCKET(tds->s, p, remaining);
 #else
-		retval = send(tds->s, p, left, MSG_NOSIGNAL);
+				nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
 #endif
-
-		if (retval < 0) {
-			err = sock_errno;
-			if (err == EAGAIN || err == TDSSOCK_EINPROGRESS) {
-				while (0 == tds_check_socket_write(tds)) {	/* timeout */
-					int rc;
-					switch(rc = tdserror(tds->tds_ctx, tds, TDSETIME, 0)) {
-					case TDS_INT_CANCEL:
-						goto no_write;
-						break;
-
-					case TDS_INT_CONTINUE:
-						continue;
-
-					case TDS_INT_TIMEOUT:	/* todo: definitely broken code */
-						tds_send_cancel(tds);
-						continue;
-
-					default:
-						tdsdump_log(TDS_DBG_NETWORK, 
-							"tds_goodwrite: invalid client library error handler return code: %d\n", rc);
-					case TDS_INT_EXIT:
-						exit(EXIT_FAILURE);
-					}
-					assert(0); /* not reached */
-				}
 			}
-		}
-		no_write:
-		if (retval <= 0) { /* abandon ship if send(2) sent zero bytes or had bad error */
+		} else if (rc < 0) {
+			if (sock_errno == EAGAIN) /* shouldn't happen, but OK, retry */
+				continue;
 			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", err, strerror(err));
 			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);
-			tds->in_pos = 0;
-			tds->in_len = 0;
 			tds_close_socket(tds);
 			return -1;
+		} else { /* timeout */
+			tdsdump_log(TDS_DBG_NETWORK, "tds_goodwrite(): timed out, asking client\n");
+			switch (rc = tdserror(tds->tds_ctx, tds, TDSETIME, sock_errno)) {
+			case TDS_INT_CONTINUE:
+				continue;
+			case TDS_INT_TIMEOUT:
+				tds_send_cancel(tds);
+				continue; /* fixme: or return? */
+			default:
+			case TDS_INT_CANCEL:
+				tds_close_socket(tds);
+				return -1;
+			}
+			assert(0); /* not reached */
 		}
-		p += retval;
-		left -= retval;
+
+		p += nput;
+		remaining -= nput;
 	}
 
 #ifdef USE_CORK
@@ -998,6 +795,8 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	size_t msg_len;
 	int port = 0;
 
+	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port(%s, %s)\n", ip_addr, instance);
+
 	sin.sin_addr.s_addr = inet_addr(ip_addr);
 	if (sin.sin_addr.s_addr == INADDR_NONE) {
 		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", ip_addr);
@@ -1024,11 +823,11 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		return 0;
 	}
 
-	/* TODO is there a way to see if server reply with an ICMP (port not available) ?? */
-
-	/* try to get port */
+	/* 
+	 * Request the instance's port from the server 
+	 */
 	for (num_try = 0; num_try < 16; ++num_try) {
-		/* request instance information */
+		/* send the request */
 		msg[0] = 4;
 		tds_strlcpy(msg + 1, instance, sizeof(msg) - 1);
 		sendto(s, msg, strlen(msg) + 1, 0, (struct sockaddr *) &sin, sizeof(sin));
@@ -1040,28 +839,29 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		
 		retval = select(s + 1, &fds, NULL, NULL, &selecttimeout);
 		
-		tdsdump_log(TDS_DBG_INFO1, "select: retval %d err %d\n", retval, sock_errno);
-		
 		/* on interrupt ignore */
 		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
 			continue;
 		
 		if (retval == 0) { /* timed out */
+#if 1
+			tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port: timed out on try %d of 16\n", num_try);
+			continue;
+#else
 			int rc;
+			tdsdump_log(TDS_DBG_INFO1, "timed out\n");
+
 			switch(rc = tdserror(NULL, NULL, TDSETIME, 0)) {
 			case TDS_INT_CONTINUE:
 				continue;	/* try again */
 
-			case TDS_INT_TIMEOUT:  /* treat timeout like cancel; there's no cancel to send to this port */
-			case TDS_INT_CANCEL: 
-				break;
-
 			default:
 				tdsdump_log(TDS_DBG_ERROR, "error: client error handler returned %d\n", rc);
-			case TDS_INT_EXIT:
-				exit(EXIT_FAILURE);
-				break;
+			case TDS_INT_CANCEL: 
+				CLOSESOCKET(s);
+				return 0;
 			}
+#endif
 		}
 		if (retval < 0)
 			break;
@@ -1079,12 +879,10 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 			tdsdump_dump_buf(TDS_DBG_INFO1, "instance info", msg, msg_len);
 
 			/*
-			 * parse message and check instance name and port
-			 * we don't check servername cause it can be very
-			 * different from client one
+			 * Parse message and check instance name and port.
+			 * We don't check servername cause it can be very different from the client's. 
 			 */
-			p = msg + 3;
-			for (;;) {
+			for (p = msg + 3;;) {
 				char *name, *value;
 
 				name = p;
@@ -1116,6 +914,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		}
 	}
 	CLOSESOCKET(s);
+	tdsdump_log(TDS_DBG_ERROR, "instance port is %d\n", port);
 	return port;
 }
 

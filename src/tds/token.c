@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.327 2007-01-05 13:09:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.328 2007-01-07 06:03:54 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2450,9 +2450,9 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, int len)
 }
 
 /**
- * tds_process_cancel() processes the incoming token stream until it finds
+ * \remarks Process the incoming token stream until it finds
  * an end token (DONE, DONEPROC, DONEINPROC) with the cancel flag set.
- * a that point the connetion should be ready to handle a new query.
+ * At that point the connection should be ready to handle a new query.
  */
 int
 tds_process_cancel(TDSSOCKET * tds)
@@ -2465,9 +2465,6 @@ tds_process_cancel(TDSSOCKET * tds)
 	/* TODO handle cancellation sending data */
 	if (tds->state != TDS_PENDING)
 		return TDS_SUCCEED;
-
-	tds->query_start_time_ms = 0;
-	tds->query_timeout = 0;
 
 	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */
 	for (;;) {

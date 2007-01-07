@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.266 2007-01-02 20:47:04 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.267 2007-01-07 06:03:53 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -81,6 +81,7 @@ static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
 static void _set_null_value(BYTE * varaddr, int datatype, int maxlen);
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
+static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
 #define _DB_GETCOLINFO(fail) \
 	if (!dbproc) { \
@@ -336,25 +337,6 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	return;
 }
 
-static int
-dblib_query_timeout(void *param, unsigned int total_timeout)
-{
-	DBPROCESS *dbproc = (DBPROCESS*) param;
-
-	tdsdump_log(TDS_DBG_FUNC, "dblib_query_timeout(%p, %u)\n", param, total_timeout);
-
-	if (!dbproc)
-		return TDS_INT_CONTINUE;
-
-	if (dbproc->dbchkintr == NULL || !((*dbproc->dbchkintr) (dbproc)) )
-		return TDS_INT_CONTINUE;
-
-	if (dbproc->dbhndlintr == NULL)
-		return TDS_INT_CONTINUE;
-
-	return ((*dbproc->dbhndlintr) (dbproc));
-}
-
 /**
  * \ingroup dblib_core
  * \brief Initialize db-lib.  
@@ -367,6 +349,9 @@ dblib_query_timeout(void *param, unsigned int total_timeout)
 RETCODE
 dbinit(void)
 {
+
+	_dblib_err_handler = default_err_handler;
+
 	TDS_MUTEX_LOCK(&dblib_mutex);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbinit(void)\n");
@@ -376,8 +361,7 @@ dbinit(void)
 		return SUCCEED;
 	}
 	/* 
-	 * DBLIBCONTEXT stores a list of current connections so they may be closed
-	 * with dbexit() 
+	 * DBLIBCONTEXT stores a list of current connections so they may be closed with dbexit() 
 	 */
 
 	g_dblib_ctx.connection_list = (TDSSOCKET **) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
@@ -424,8 +408,6 @@ dblogin(void)
 
 	/* set default values for loginrec */
 	tds_set_library(loginrec->tds_login, "DB-Library");
-	/* tds_set_client_charset(loginrec->tds_login, "iso_1"); */
-	/* tds_set_packet(loginrec->tds_login, TDS_DEF_BLKSZ); */
 
 	return loginrec;
 }
@@ -850,8 +832,6 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 
 	dbproc->dbchkintr = NULL;
 	dbproc->dbhndlintr = NULL;
-	dbproc->tds_socket->query_timeout_param = dbproc;
-	dbproc->tds_socket->query_timeout_func = dblib_query_timeout;
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
 
@@ -1021,10 +1001,6 @@ dbsqlexec(DBPROCESS * dbproc)
 		return FAIL;
 
 	if (SUCCEED == (rc = dbsqlsend(dbproc))) {
-		/* 
-		 * XXX We need to observe the timeout value and abort 
-		 * if this times out.
-		 */
 		rc = dbsqlok(dbproc);
 	}
 	return rc;
@@ -4520,22 +4496,67 @@ dbdead(DBPROCESS * dbproc)
 		return FALSE;
 }
 
+/** \internal
+ * \ingroup dblib_internal
+ * \brief default error handler for db-lib (handles library-generated errors)
+ * 
+ * The default error handler doesn't print anything.  If you want to see your messages printed, 
+ * install an error handler.  If you think that should be an optional compile- or run-time default, 
+ * submit a patch.  It could be done.  
+ * 
+ * \sa DBDEAD(), dberrhandle().
+ */
+/* Thus saith Sybase:
+ *     "If the user does not supply an error handler (or passes a NULL pointer to 
+ *	dberrhandle), DB-Library will exhibit its default error-handling 
+ *	behavior: It will abort the program if the error has made the affected 
+ *	DBPROCESS unusable (the user can call DBDEAD to determine whether 
+ *	or not a DBPROCESS has become unusable). If the error has not made the 
+ *	DBPROCESS unusable, DB-Library will simply return an error code to its caller." 
+ *
+ * It is not the error handler, however, that aborts anything.  It is db-lib, cf. dbperror().  
+ */ 
+static int
+default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+{
+	assert( ! (dbproc == NULL && DBDEAD(dbproc)) );  /* a non-process can't be a dead process */
+	
+	tdsdump_log(TDS_DBG_FUNC, "default_err_handler %p, %d, %d, %d, %p, %p", dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+
+	if (DBDEAD(dbproc) && (!dbproc || !dbproc->msdblib)) {
+		return INT_EXIT;
+	}
+	
+	if (!dbproc || !dbproc->msdblib) {	/* i.e. Sybase behavior */
+		switch(dberr) {
+		case SYBETIME:
+			return INT_EXIT;
+		default: 
+			break;
+		}
+	}
+	return INT_CANCEL;
+}
+
 /**
  * \ingroup dblib_core
  * \brief Set an error handler, for messages from db-lib.
  * 
  * \param handler pointer to callback function that will handle errors.
+ *        Pass NULL to restore the default handler.  
+ * \return address of prior handler, or NULL if none was previously installed. 
  * \sa DBDEAD(), dbmsghandle().
  */
 EHANDLEFUNC
 dberrhandle(EHANDLEFUNC handler)
 {
-	EHANDLEFUNC retFun = _dblib_err_handler;
+	EHANDLEFUNC old_handler = _dblib_err_handler;
 
 	tdsdump_log(TDS_DBG_FUNC, "dberrhandle(%p)\n", handler);
 
-	_dblib_err_handler = handler;
-	return retFun;
+	_dblib_err_handler = handler? handler : default_err_handler;
+	
+	return (old_handler == default_err_handler)? NULL : old_handler;
 }
 
 /**
@@ -7468,11 +7489,6 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEZTXT,              EXINFO,	"Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext" }
 	};
 
- /* note jkl Sun Jul 17 00:50:55 EDT 2005
-  * _dblib_handle_err_message is not called from anywhere and does not work afaict because it tries to call 
-  * a pointer to the handler without first dereferencing it.  I'm surprised it compiles.  
-  */
-
 /**  \internal
  * \ingroup dblib_internal
  * \brief Call client-installed error handler
@@ -7518,10 +7534,10 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
  * -#		dbperror
  * -# 	error handler (installed by application)
  *
- * Here db-lib invokes the client's handler.  Because different client libraries specify their handler semantics differently, 
+ * Here libtds invokes the client's handler.  Because different client libraries specify their handler semantics differently, 
  * and because libtds doesn't know which client library is in charge of any given connection, it cannot interpret the 
- * raw return code.  Similarly, the libtds error message number will not be in the db-lib msgno list.  For these reasons, 
- * libtds calls _dblib_handle_err_message which translates between libtds and db-lib semantics.  
+ * raw return code from a db-lib error handler.  For these reasons, 
+ * libtds calls _dblib_handle_err_message, which translates between libtds and db-lib semantics.  
  * \todo add varargs to allow for printf-style parameters e.g. SYBEBCRO.
  * \sa dberrhandle(), _dblib_handle_err_message(), tds_client_msg().
  */
@@ -7542,11 +7558,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 	if (os_msgtext == NULL)
 		os_msgtext = "no OS error";
 	
-	if (_dblib_err_handler == NULL) { /* no installed handler */
-		tdsdump_log(TDS_DBG_SEVERE, "No error handler installed.  Returning INT_CANCEL for %d, %d [%s]", 
-						msgno, errnum, os_msgtext);
-		return INT_CANCEL;
-	}
+	assert(_dblib_err_handler != NULL);	/* always installed by dbinit() or dberrhandle() */
 
 	/* look up the error message */
 	for (i=0; i < TDS_VECTOR_SIZE(dblib_error_messages); i++ ) {
@@ -7556,7 +7568,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 		}
 	}
 		
-	/* call the client's handler */
+	/* call the error handler */
 	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, msg->msgtext, os_msgtext);
 	switch (rc) {
 	case INT_EXIT:

@@ -23,6 +23,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -38,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.36 2007-01-02 20:47:04 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.37 2007-01-07 06:03:54 jklowden Exp $");
 
 /*
  * test include consistency 
@@ -103,9 +104,9 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 		 * behavior is that SYBESMSG is always generated for
 		 * server messages with severity greater than 10.
 		 */
-		msg->message = "General SQL Server error: Check messages from the SQL Server";
-		msg->state = -1;
-		_dblib_err_handler(dbproc, msg->severity, msg->msgno, msg->state, msg->message, msg->server);
+		/* Cannot call dbperror() here because server messsage numbers (and text) are not in its lookup table. */
+		static char message[] = "General SQL Server error: Check messages from the SQL Server";
+		(*_dblib_err_handler)(dbproc, msg->severity, msg->msgno, 0, message, NULL);
 	}
 	return SUCCEED;
 }
@@ -117,31 +118,33 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
  *  \param tds contains all information needed by libtds to manage communications with the server.
  *  \param msg the message to send
  *  \returns 
- *  \remarks This function is called by libtds.  It exists to interpret error message numbers coming from libtds, 
- * 	and to convert the db-lib error handler's return code into one that the libtds function will know 
- *	(one hopes) how to handle.  libtds cannot issue db-lib message numbers because ct-lib and db-lib
- * 	define different error message numbers.  (N.B. ODBC actually uses db-lib msgno numbers for its 
- *	driver-specific "server errors".  The ct-lib -> db-lib error number conversion has to be public to let 
- * 	both libraries perform the conversion.  
+ *  \remarks This function is called by libtds via tds_ctx->err_handler.  It exists to convert the db-lib 
+ *	error handler's return code into one that libtds will know  how to handle.  
+ * 	libtds conveniently issues msgno's with the same values and meanings as db-lib and ODBC use.  
+ *	(N.B. ODBC actually uses db-lib msgno numbers for its driver-specific "server errors".    
  */
+/* 
+ * Stack:
+ *		libtds
+ *			tds_ctx->err_handler (pointer to _dblib_handle_err_message)
+ *			_dblib_handle_err_message
+ *				dbperror
+ *					client (or default) error handler
+ *					returns db-lib defined return code INT_something.
+ *				returns db-lib return code with Sybase semantics (adjusting client's code if need be)
+ *			returns libtds return code
+ *		decides what to do based on the universal libtds return code, thank you. 
+ */	
 int
 _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
-	DBPROCESS *dbproc = NULL;
+	DBPROCESS *dbproc = (tds && tds->parent)? (DBPROCESS *) tds->parent : NULL;
 	int rc = INT_CANCEL;
 
-	if (tds && tds->parent) {
-		dbproc = (DBPROCESS *) tds->parent;
-	}
-	if (msg->msgno > 0) {
-		/*
-		 * now check to see if the user supplied a function,
-		 * if not, ignore the problem
-		 */
-		if (_dblib_err_handler) {
-			rc = _dblib_err_handler(dbproc, msg->severity, msg->msgno, msg->state, msg->message, msg->server);
-		}
-	}
+	assert(_dblib_err_handler);
+	assert(msg);
+
+	rc = dbperror(dbproc, msg->msgno, 0); /* fixme: need os errnum */
 
 	/*
 	 * Preprocess the return code to handle INT_TIMEOUT/INT_CONTINUE
@@ -154,41 +157,39 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAG
 			rc = INT_EXIT;
 			break;
 		case INT_CONTINUE:
-			if (!dbproc || !dbproc->msdblib)
+			if (!dbproc || !dbproc->msdblib) {
 				/* Sybase behavior */
+				assert(0);  /* dbperror() should prevent */
 				rc = INT_EXIT;
-			else
+			} else {
 				/* Microsoft behavior */
 				rc = INT_CANCEL;
+			}
 			break;
 		default:
 			break;
 		}
 	}
 
+	/*
+	 * Convert db-lib return code to libtds return code, and return.
+	 */
 	switch (rc) {
+	case INT_CANCEL:	return TDS_INT_CANCEL;
+	case INT_TIMEOUT:	return TDS_INT_TIMEOUT;
+	case INT_CONTINUE:	return TDS_INT_CONTINUE;
+	
 	case INT_EXIT:
-		exit(EXIT_FAILURE);
-		break;
-	case INT_CANCEL:
-		return SUCCEED;
-		break;
-	case INT_TIMEOUT:
-		/* XXX do something clever */
-		return SUCCEED;
-		break;
-	case INT_CONTINUE:
-		/* XXX do something clever */
-		return SUCCEED;
-		break;
+		assert(0);  /* dbperror() should prevent */
 	default:
 		/* unknown return code from error handler */
-		return FAIL;
+		exit(EXIT_FAILURE);
 		break;
 	}
 
-	/* notreached */
-	return FAIL;
+	/* not reached */
+	assert(0);
+	return TDS_INT_CANCEL;
 }
 
 void

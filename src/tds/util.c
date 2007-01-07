@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.74 2007-01-05 13:09:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.75 2007-01-07 06:03:54 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -129,8 +129,6 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 			tdserror(tds->tds_ctx, tds, TDSERPND, 0);
 			return tds->state;
 		}
-
-		tds->query_start_time_ms = tds_gettime_ms();
 
 		/* TODO check this code, copied from tds_submit_prepare */
 		tds_free_all_results(tds);
@@ -346,11 +344,30 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		TDS_ZERO_FREE(msg.sql_state);
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "tdserror: returning %s\n", retname(rc));
+ 	tdsdump_log(TDS_DBG_FUNC, "tdserror: client library returned %s(%d)\n", retname(rc), rc);
+  
+  	assert(!(msgno != TDSETIME && rc == TDS_INT_TIMEOUT));   /* client library should prevent */
+	assert(!(msgno != TDSETIME && rc == TDS_INT_CONTINUE));  /* client library should prevent */
+	
+	if (msgno != TDSETIME) {
+		switch(rc) {
+		case TDS_INT_TIMEOUT:
+		case TDS_INT_CONTINUE:
+		 	tdsdump_log(TDS_DBG_FUNC, "exit: %s(%d) valid only for TDSETIME\n", retname(rc), rc);
+			exit(1);
+		default:
+			break;
+		}
+	}
 
+ 	if (rc == TDS_INT_TIMEOUT) {
+ 		tds_send_cancel(tds);
+ 		rc = TDS_INT_CONTINUE;
+ 	} 
+
+ 	tdsdump_log(TDS_DBG_FUNC, "tdserror: returning %s(%d)\n", retname(rc), rc);
+  
 	return rc;
-
-
 }
 
 
