@@ -1,3 +1,6 @@
+Sun Jan  7 10:45:23 EST 2007	JK Lowden <jklowden@schemamania.org>
+	* src/ctlib/ctutil.c works with tdserror()
+
 Sun Jan  7 00:41:19 EST 2007	JK Lowden <jklowden@schemamania.org>
 	* include/tds.h
 	* src/dblib/dblib.c src/dblib/dbutil.c

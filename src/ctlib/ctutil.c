@@ -32,7 +32,7 @@
 /* #include "fortify.h" */
 
 
-TDS_RCSID(var, "$Id: ctutil.c,v 1.27 2005-07-15 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ctutil.c,v 1.28 2007-01-07 16:13:17 jklowden Exp $");
 
 /*
  * test include consistency 
@@ -86,7 +86,10 @@ TEST_ATTRIBUTE(t33,TDS_VARBINARY,len,CS_VARBINARY,len);
 TEST_ATTRIBUTE(t34,TDS_VARBINARY,array,CS_VARBINARY,array);
 #endif
 
-/* error handler */
+/* 
+ * error handler 
+ * This callback function should be invoked only from libtds through tds_ctx->err_handler.  
+ */
 int
 _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
@@ -114,7 +117,28 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 		ret = con->_clientmsg_cb(con->ctx, con, &errmsg);
 	else if (con->ctx->_clientmsg_cb)
 		ret = con->ctx->_clientmsg_cb(con->ctx, con, &errmsg);
-	return ret;
+		
+	/*
+	 * The return code from the error handler is either CS_SUCCEED or CS_FAIL.
+	 * This function was called by libtds with some kind of communications failure, and there are
+	 * no cases in which "succeed" could mean anything: In most cases, the function is going to fail
+	 * no matter what.  
+	 *
+	 * Timeouts are a different matter; it's up to the client to decide whether to continue
+	 * waiting or to abort the operation and close the socket.  ct-lib applications do their 
+	 * own cancel processing -- they can call ct_cancel from within the error handler -- so 
+	 * they don't need to return TDS_INT_TIMEOUT.  They can, however, return TDS_INT_CONTINUE
+	 * or TDS_INT_CANCEL.  We map the client's return code to those. 
+	 *
+	 * Only for timeout errors does TDS_INT_CANCEL cause libtds to break the connection. 
+	 */
+	if (msg->msgno == TDSETIME) {
+		switch (ret) {
+		case CS_SUCCEED:	return TDS_INT_CONTINUE;
+		case CS_FAIL:		return TDS_INT_CANCEL;
+		}
+	}
+	return TDS_INT_CANCEL;
 }
 
 /* message handler */
