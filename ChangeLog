@@ -1,3 +1,6 @@
+Tue Jan 09 22:44:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/tsql.c: fix option problem
+
 Tue Jan  9 00:16:46 EST 2007	JK Lowden <jklowden@schemamania.org>
 	* src/tds/net.c simpler tds_select, thanks Frediano
 

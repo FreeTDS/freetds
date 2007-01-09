@@ -81,7 +81,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.100 2007-01-02 20:47:04 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.101 2007-01-09 21:44:23 freddy77 Exp $");
 
 enum
 {
@@ -293,7 +293,7 @@ tsql_print_usage(const char *progname)
 static int
 get_opt_flags(char *s, int *opt_flags)
 {
-	char **argv, **first_arg;
+	char **argv;
 	int argc;
 	int opt;
 
@@ -307,16 +307,10 @@ get_opt_flags(char *s, int *opt_flags)
 	for (argc=0; (argv[argc] = strtok(s, " ")) != NULL; argc++)
 		s = NULL;
 
-	first_arg = argv;
-	if (argc > 0 && strcasecmp(first_arg[0], "go") == 0) {
-		argc--;
-		first_arg++;
-	}
-		
 	*opt_flags = 0;
 	optind = 0;		/* reset getopt */
 	opterr = 0;		/* suppress error messages */
-	while ((opt = getopt(argc, first_arg, "fhqtv")) != -1) {
+	while ((opt = getopt(argc, argv, "fhqtv")) != -1) {
 		switch (opt) {
 		case 'f':
 			*opt_flags |= OPT_NOFOOTER;
@@ -662,7 +656,7 @@ main(int argc, char **argv)
 			char *go_line = strdup(s);
 			assert(go_line);
 			line = 0;
-			if (get_opt_flags(go_line + 2, &opt_flags)) {
+			if (get_opt_flags(go_line, &opt_flags)) {
 				free(go_line);
 				opt_flags ^= global_opt_flags;
 				do_query(tds, mybuf, opt_flags);
