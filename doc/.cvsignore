@@ -6,6 +6,7 @@ tsql.1
 bsqldb.1
 defncopy.1
 datacopy.1
+osql.1
 libtds
 reference
 userguide.dsl
