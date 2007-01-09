@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.54 2007-01-07 06:03:54 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.55 2007-01-09 05:18:41 jklowden Exp $");
 
 static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -309,121 +309,108 @@ tds_close_socket(TDSSOCKET * tds)
 }
 
 /**
- * Select on a socket until it's available. 
- * Meanwhile, call the interupt function. 
- * On timeout, call the error handler.  Retry if the handler so indicates.
+ * Select on a socket until it's available or the timeout expires. 
+ * Meanwhile, call the interrupt function. 
  * \return	>0 ready descriptors
- *		 0 application wishes to cancel the operation (It's time to send a cancel packet.)  
- * 		<0 error (cf. errno).  Caller should  close socket and return failure.  
+ *		 0 timeout 
+ * 		<0 error (cf. errno).  Caller should  close socket and return failure. 
+ * This function does not call tdserror or close the socket because it can't know the context in which it's being called.   
  */
 static int
 tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds)
 {
 	int rc, seconds;
 
-	/*
-	 * This is the retry loop.  
-	 * We iterate every time timeout_seconds elapses, calling the client library's error handler for further instructions. 
-	 */
 	assert(tds != NULL);
 	assert(timeout_seconds >= 0);
-	for(;;) {
+
+	/* 
+	 * The main loop.  We iterate once per second.
+	 * We do not measure current time against end time, to avoid being tricked by ntpd(8) or similar. 
+	 * Instead, we just count down.  
+	 * If timeout_seconds is zero, we never leave this loop except to return to the caller. 
+	 */
+	seconds = timeout_seconds;
+	const unsigned int poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
+	assert(seconds >= 0);
+	do {	
+		struct timeval tv, *ptv = timeout_seconds? &tv : NULL;
+		unsigned int end_ms = poll_seconds * 1000 + tds_gettime_ms();
+
 		/* 
-		 * This is the main loop.  We iterate once per second.
-		 * We do not measure current time against end time, to avoid being tricked by ntpd(8) or similar. 
-		 * Instead, we just count down.  
-		 * If timeout_seconds is zero, we never leave this loop except to return to the caller. 
+		 * The poll loop. We exit on the first of these events:
+		 * 1.  a descriptor is ready. (return to caller)
+		 * 2.  select returns an important error.  (return to caller)
+		 * 3.  one second elapses, if an interrupt handler is defined (call handler).
+		 * A timeout of zero says "wait forever".  We do that by passing a NULL timeval pointer to select(2).    
 		 */
-		seconds = timeout_seconds;
-		const unsigned int poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
-		assert(seconds >= 0);
-		do {	
-			struct timeval tv, *ptv = timeout_seconds? &tv : NULL;
-			unsigned int end_ms = poll_seconds * 1000 + tds_gettime_ms();
+		tv.tv_sec = poll_seconds;
+		tv.tv_usec = 0; 
+		for (;;) {
 
-			/* 
-			 * This is the poll loop. We exit this when the first of these events happens:
-			 * 1.  a descriptor is ready. (return to caller)
-			 * 2.  select returns an important error.  (return to caller)
-			 * 3.  one second elapses, if an interrupt handler is defined (call handler).
-			 * 4.  timeout_seconds elapses.  
-			 * A timeout of zero says "wait forever".  We do that by passing a NULL timeval pointer to select(2).    
-			 */
-			tv.tv_sec = poll_seconds;
-			tv.tv_usec = 0; 
-			while (timeout_seconds == 0 || tv.tv_sec + tv.tv_usec > 0) {
-				
-				rc = select(nfds, readfds, writefds, exceptfds, ptv); 
-				
-				tv.tv_sec  = (end_ms - tds_gettime_ms()) / 1000;
-				tv.tv_usec = (end_ms - tds_gettime_ms()) % 1000;
+			rc = select(nfds, readfds, writefds, exceptfds, ptv); 
 
-				if (tv.tv_sec < 0 || tv.tv_sec > poll_seconds) 
-					break;	/* shouldn't happen; start again */
+			if (rc > 0 ) {
+				return rc;
+			}
 
-				if (tv.tv_usec < 0 || tv.tv_usec > 1000) 
-					break;	/* shouldn't happen; start again */
-
-				if (rc < 0) {
-					switch (sock_errno) {
-					case TDSSOCK_EINTR:
-						continue;
-					default: /* documented: EFAULT, EBADF, EINVAL */
-						tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
-								sock_errno, strerror(sock_errno));
-						perror("Terrible error in tds_select");
-						return rc;
-					}
-				}
-
-				if (rc > 0 ) {
+			if (rc < 0) {
+				switch (sock_errno) {
+				case TDSSOCK_EINTR:
+					continue;
+				default: /* documented: EFAULT, EBADF, EINVAL */
+					tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
+							sock_errno, strerror(sock_errno));
 					return rc;
 				}
-				
-				assert(rc == 0);
 			}
 
-			/* 1-second timeout expired */
-			if (tds->tds_ctx && tds->tds_ctx->int_handler) {
-
-				int timeout_action = (*tds->tds_ctx->int_handler) (tds->tds_ctx);
-				/*
-				 * "If hndlintr() returns INT_CANCEL, DB-Library sends an attention token [TDS_BUFSTAT_ATTN]
-				 * to the server. This causes the server to discontinue command processing. 
-				 * The server may send additional results that have already been computed. 
-				 * When control returns to the mainline code, the mainline code should do 
-				 * one of the following: 
-				 * - Flush the results using dbcancel 
-				 * - Process the results normally"
-				 */
-				tdsdump_log(TDS_DBG_ERROR, "tds_ctx->int_handler returned %d\n", timeout_action);
-				switch (timeout_action) {
-				case TDS_INT_CONTINUE:		/* keep waiting */
-					break;
-				case TDS_INT_CANCEL:		/* abort the current command batch */
-					return 0;
-				default:
-					tdsdump_log(TDS_DBG_NETWORK, 
-						"tds_select: invalid interupt handler return code: %d\n", timeout_action);
-					exit(EXIT_FAILURE);
-					break;
-				}
-			}
+			assert(rc == 0);
 			
-		} while (timeout_seconds == 0 || (seconds -= poll_seconds) > 0);
-		
-		/* 
-		 * timeout_seconds has elapsed.  
-		 * Call the client library's error handler to find out what to do.
-		 */
-		tdsdump_log(TDS_DBG_ERROR, "tds_select(): timed out, asking the client.\n");
-		switch(rc = tdserror(tds->tds_ctx, tds, TDSETIME, 0)) {
-		case TDS_INT_CONTINUE:		/* keep waiting */
-			continue;
-		case TDS_INT_CANCEL: 		/* close socket and abort function */
-			return -1;
+			if (ptv) {
+				const int diff_time = (int) (end_ms - tds_gettime_ms());
+
+				if (diff_time < 0)
+					break;
+
+				tv.tv_sec  = diff_time / 1000;
+				tv.tv_usec = (diff_time % 1000) * 1000;
+
+				if (tv.tv_sec > poll_seconds || tv.tv_usec > 1000000) 
+					break;	/* shouldn't happen; start again */
+			}
 		}
-	} /* end retry loop */	
+
+		/* 1-second timeout expired */
+		if (tds->tds_ctx && tds->tds_ctx->int_handler) {
+
+			int timeout_action = (*tds->tds_ctx->int_handler) (tds->tds_ctx);
+			/*
+			 * "If hndlintr() returns INT_CANCEL, DB-Library sends an attention token [TDS_BUFSTAT_ATTN]
+			 * to the server. This causes the server to discontinue command processing. 
+			 * The server may send additional results that have already been computed. 
+			 * When control returns to the mainline code, the mainline code should do 
+			 * one of the following: 
+			 * - Flush the results using dbcancel 
+			 * - Process the results normally"
+			 */
+			tdsdump_log(TDS_DBG_ERROR, "tds_ctx->int_handler returned %d\n", timeout_action);
+			switch (timeout_action) {
+			case TDS_INT_CONTINUE:		/* keep waiting */
+				break;
+			case TDS_INT_CANCEL:		/* abort the current command batch */
+				return 0;
+			default:
+				tdsdump_log(TDS_DBG_NETWORK, 
+					"tds_select: invalid interupt handler return code: %d\n", timeout_action);
+				exit(EXIT_FAILURE);
+				break;
+			}
+		}
+
+	} while (timeout_seconds == 0 || (seconds -= poll_seconds) > 0);
+	
+	return 0;
 }
 
 /**
@@ -824,7 +811,9 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	}
 
 	/* 
-	 * Request the instance's port from the server 
+	 * Request the instance's port from the server.  
+	 * There is no easy way to detect if port is closed so we always try to
+	 * get a reply from server 16 times. 
 	 */
 	for (num_try = 0; num_try < 16; ++num_try) {
 		/* send the request */
