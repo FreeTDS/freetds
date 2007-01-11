@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.4 2007-01-06 15:36:45 jklowden Exp $
+# $Id: osql,v 1.5 2007-01-11 15:51:42 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -94,10 +94,9 @@ echo "looking for odbc.ini and odbcinst.ini in ${ODBC_DIR}"
 
 for F in "${HOME}/.odbc.ini" "${ODBC_DIR}/odbc.ini"
 do
-	echo "looking for DSN [${DSN}] in $F"
 	if [ -r "$F" ]
 	then
-		echo "      found DSN [${DSN}] in $F"
+		echo '	'reading \"$F\"
 	else
 		echo '	'cannot read \"$F\"
 		continue
@@ -107,6 +106,7 @@ do
 
 	if [ $? -eq 0 ]
 	then
+		echo "[${DSN}]" found in \"$F\"
 		ODBC_INI=$F
 		break
 	else
@@ -198,9 +198,16 @@ then
 		echo "driver line incomplete for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
 		exit 1
 	fi
+
+	echo "driver \"${DRIVER}\" found for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
 fi
 
-echo "driver \"${DRIVER}\" found for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
+if [ -z "${DRIVER}" ]
+then
+	echo 'error: sorry, failed sanity check: ${DRIVER} is null' 
+	exit 1
+fi
+
 if [ -r "${DRIVER}" ]
 then
 	echo "${DRIVER} is a readable file"
