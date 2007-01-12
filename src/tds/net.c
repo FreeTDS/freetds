@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.55 2007-01-09 05:18:41 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.56 2007-01-12 13:29:31 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -444,9 +444,11 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 #else
 				len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
 #endif
+				if (len < 0 && sock_errno == EAGAIN)
+					continue;
 				/* detect connection close */
-				if (len == 0) {
-					tdserror(tds->tds_ctx, tds, TDSESEOF, sock_errno);
+				if (len <= 0) {
+					tdserror(tds->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, sock_errno);
 					tds_close_socket(tds);
 					return -1;
  				}
@@ -663,6 +665,14 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 #else
 				nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
 #endif
+				if (nput < 0 && sock_errno == EAGAIN)
+					continue;
+				/* detect connection close */
+				if (nput <= 0) {
+					tdserror(tds->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEWRIT, sock_errno);
+					tds_close_socket(tds);
+					return -1;
+ 				}
 			}
 		} else if (rc < 0) {
 			if (sock_errno == EAGAIN) /* shouldn't happen, but OK, retry */

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.427 2006-12-29 19:00:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.428 2007-01-12 13:29:31 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -80,7 +80,6 @@ static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, S
 static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc);
 static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset);
-static int query_timeout_cancel(void *param, unsigned int total_timeout);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
@@ -1825,6 +1824,22 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc = NULL;
 
+	tdsdump_log(TDS_DBG_INFO1, "msgno %d %d\n", (int) msg->msgno, TDSETIME);
+
+	if (msg->msgno == TDSETIME) {
+		tdsdump_log(TDS_DBG_INFO1, "in timeout\n");
+		if (tds && (dbc = (TDS_DBC *) tds->parent) && dbc->current_statement) {
+			TDS_STMT *stmt = dbc->current_statement;
+			if (!tds->in_cancel)
+				odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
+			stmt->errs.lastrc = SQL_ERROR;
+			/* attent indefinitely cancel */
+			/* stmt->dbc->tds_socket->query_timeout = 0; */
+		}
+		tdsdump_log(TDS_DBG_INFO1, "returning from timeout\n");
+		return TDS_INT_TIMEOUT;
+	}
+
 	if (tds && tds->parent) {
 		dbc = (TDS_DBC *) tds->parent;
 		errs = &dbc->errs;
@@ -1861,7 +1876,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 			errs->lastrc = SQL_ERROR;
 		}
 	}
-	return 1;
+	return TDS_INT_CANCEL;
 }
 
 /* TODO optimize, change only if some data change (set same value should not set this flag) */
@@ -2496,23 +2511,6 @@ odbc_populate_ird(TDS_STMT * stmt)
 	return (SQL_SUCCESS);
 }
 
-static int
-query_timeout_cancel(void *param, unsigned int total_timeout)
-{
-	TDS_STMT *stmt = (TDS_STMT *) param;
-
-	assert(stmt != NULL);
-
-	if (!stmt->dbc->tds_socket->in_cancel)
-		odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
-	stmt->errs.lastrc = SQL_ERROR;
-
-	/* attent indefinitely cancel */
-	stmt->dbc->tds_socket->query_timeout = 0;
-
-	return TDS_INT_CANCEL;
-}
-
 static SQLRETURN SQL_API
 _SQLExecute(TDS_STMT * stmt)
 {
@@ -2528,8 +2526,6 @@ _SQLExecute(TDS_STMT * stmt)
 		
 	tdsdump_log(TDS_DBG_FUNC, "_SQLExecute() starting with state %d\n", tds->state);
 
-	tds->query_timeout_func = query_timeout_cancel;
-	tds->query_timeout_param = stmt;
 	tds->query_timeout = stmt->attr.query_timeout;
 
 	/* check parameters are all OK */
@@ -2809,8 +2805,6 @@ _SQLExecute(TDS_STMT * stmt)
 			*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row;
 	}
 	tds->query_timeout = 0;
-	tds->query_timeout_param = NULL;
-	tds->query_timeout_func = NULL;
 
 	odbc_populate_ird(stmt);
 	switch (result_type) {

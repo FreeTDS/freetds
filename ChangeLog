@@ -1,3 +1,8 @@
+Fri Jan 12 14:28:32 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: update code to new libTDS timeout code
+	* src/tds/net.c: handle send/recv errors
+	* src/tds/util.c: fix msgno if error not found in table
+
 Thu Jan 11 10:49:52 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/osql 
 	- fixed incorrect report when drivername is not a file

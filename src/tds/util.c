@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.75 2007-01-07 06:03:54 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.76 2007-01-12 13:29:31 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -327,7 +327,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 
 	if (tds_ctx && tds_ctx->err_handler) {
 		memset(&msg, 0, sizeof(TDSMESSAGE));
-		msg.msgno = err->msgno;
+		msg.msgno = msgno;
 		msg.severity = err->severity;
 		msg.state = -1;
 		msg.server = "OpenClient";
