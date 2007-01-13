@@ -1,3 +1,10 @@
+Sat Jan 13 17:09:05 EST 2007	JK Lowden <jklowden@schemamania.org>
+	* src/dblib/unittests/timeout.c added 
+	* src/dblib/dblib.c 
+	* src/dblib/unittests/Makefile.am src/dblib/unittests/t0001.c
+	* src/tds/login.c src/tds/query.c src/tds/util.c
+	- new timeout unit test works. 
+	
 Fri Jan 12 14:28:32 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: update code to new libTDS timeout code
 	* src/tds/net.c: handle send/recv errors
