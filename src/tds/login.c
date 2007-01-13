@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.155 2007-01-02 20:47:05 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.156 2007-01-13 22:13:31 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -263,7 +263,8 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	}
 	if (retval == TDS_FAIL || !tds_process_login_tokens(tds)) {
 		tds_close_socket(tds);
-		tdserror(tds->tds_ctx, tds, TDSEPWD, 0); /* "Login incorrect." */
+		tdserror(tds->tds_ctx, tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
+								/* If it's a bad login, the server will send that mesasge */
 		return TDS_FAIL;
 	}
 

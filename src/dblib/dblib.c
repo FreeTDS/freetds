@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.267 2007-01-07 06:03:53 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.268 2007-01-13 22:13:31 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3547,10 +3547,18 @@ dbgetmaxprocs(void)
 RETCODE
 dbsettime(int seconds)
 {
+	TDSSOCKET **tds = g_dblib_ctx.connection_list;
+	int i;
 	tdsdump_log(TDS_DBG_FUNC, "dbsettime(%d)\n", seconds);
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
 	g_dblib_ctx.query_timeout = seconds;
+	
+	for (i = 0; i <  TDS_MAX_CONN; i++) {
+		if (tds[i])
+			tds[i]->query_timeout = seconds;
+	}
+	
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 	return SUCCEED;
 }

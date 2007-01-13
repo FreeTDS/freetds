@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.22 2006-10-26 18:27:00 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.23 2007-01-13 22:13:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -47,13 +47,13 @@ main(int argc, char **argv)
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0001");
 
-	if (argc > 2) {
-		strcpy(SERVER, argv[1]);
-		i = atoi(argv[2]);
+	if (argc > 1) {
+		printf("server and login timeout overrides (%s and %s) detected\n", argv[0], argv[1]);
+		strcpy(SERVER, argv[0]);
+		i = atoi(argv[1]);
 		if (i) {
 			i = dbsetlogintime(i);
-			if (i == SUCCEED)
-				printf("login timeout set to %s.\n", argv[2]);
+			printf("dbsetlogintime returned %s.\n", (i == SUCCEED)? "SUCCEED" : "FAIL");
 		}
 	}
 
@@ -67,7 +67,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 	add_bread_crumb();
-	dbloginfree(login);
+	dbloginfree(login);  
 	add_bread_crumb();
 
 	fprintf(stdout, "Using database \"%s\"\n", DATABASE);
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 	fprintf(stdout, "QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
 	
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0001 (i int not null, s char(10) not null)");
+	dbcmd(dbproc, "create table #dblib0001 (i int not null, s char(10) not null) raiserror('test message', 11,1)");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */

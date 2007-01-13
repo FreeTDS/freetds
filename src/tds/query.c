@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.203 2007-01-07 06:03:54 jklowden Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.204 2007-01-13 22:13:31 jklowden Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1879,12 +1879,16 @@ tds_send_cancel(TDSSOCKET * tds)
 {
 	CHECK_TDS_EXTRA(tds);
 
+ 	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: %sin_cancel and %sidle\n", 
+				(tds->in_cancel? "":"not "), (tds->state == TDS_IDLE? "":"not "));
+	
 	/* one cancel is sufficient */
 	if (tds->in_cancel || tds->state == TDS_IDLE)
 		return TDS_SUCCEED;
 
 	tds->out_flag = TDS_CANCEL;
 	tds->in_cancel = 1;
+ 	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: sending cancel packet\n");
 	return tds_flush_packet(tds);
 }
 

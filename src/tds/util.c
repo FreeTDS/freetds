@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.76 2007-01-12 13:29:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.77 2007-01-13 22:13:31 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -89,6 +89,7 @@ tds_get_parent(TDSSOCKET * tds)
 TDS_STATE
 tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 {
+	const TDS_STATE prior_state = tds->state;
 	static const char state_names[][10] = {
 		"IDLE",
 	        "QUERYING",
@@ -99,35 +100,44 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 	assert(state < TDS_VECTOR_SIZE(state_names));
 	assert(tds->state < TDS_VECTOR_SIZE(state_names));
 	
-	tdsdump_log(TDS_DBG_ERROR, "Changing query state from %s to %s\n", state_names[tds->state], state_names[state]);
+	if (state == tds->state)
+		return state;
 	
 	switch(state) {
 		/* transition to READING are valid only from PENDING */
 	case TDS_PENDING:
-		if (tds->state != TDS_READING && tds->state != TDS_QUERYING)
-			break;
-		return tds->state = state;
+		if (tds->state != TDS_READING && tds->state != TDS_QUERYING) {
+			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
+							state_names[prior_state], state_names[state]);
+			return tds->state;
+		}
+		tds->state = state;
+		break;
 	case TDS_READING:
-		if (tds->state != TDS_PENDING)
-			break;
-		return tds->state = state;
+		if (tds->state != TDS_PENDING) {
+			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
+							state_names[prior_state], state_names[state]);
+			return tds->state;
+		}
+		tds->state = state;
+		break;
 	case TDS_IDLE:
 	case TDS_DEAD:
-		return tds->state = state;
-		break;
-	default:
-		assert(0);
+		tds->state = state;
 		break;
 	case TDS_QUERYING:
 		CHECK_TDS_EXTRA(tds);
 
 		if (tds->state == TDS_DEAD) {
+			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
+							state_names[prior_state], state_names[state]);
 			tdserror(tds->tds_ctx, tds, TDSEWRIT, 0);
-			return tds->state;
+			break;
 		} else if (tds->state != TDS_IDLE) {
-			tdsdump_log(TDS_DBG_ERROR, "tds_submit_query(): state is PENDING\n");
+			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
+							state_names[prior_state], state_names[state]);
 			tdserror(tds->tds_ctx, tds, TDSERPND, 0);
-			return tds->state;
+			break;
 		}
 
 		/* TODO check this code, copied from tds_submit_prepare */
@@ -137,10 +147,16 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		tds->cur_cursor = NULL;
 		tds->internal_sp_called = 0;
 
-		return tds->state = state;
+		tds->state = state;
+		break;
+	default:
+		assert(0);
+		break;
 	}
 	
-	return tds->state; /* should not reach here */
+	tdsdump_log(TDS_DBG_ERROR, "Changed query state from %s to %s\n", state_names[prior_state], state_names[state]);
+	
+	return tds->state; 
 }
 
 
