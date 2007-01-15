@@ -1,3 +1,8 @@
+Sun Jan 14 23:16:17 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/tds/config.c src/tds/login.c
+	- began work on autodetecting the server's TDSVER
+	- works with libtds, not db-lib
+
 Sun Jan 14 20:38:25 EST 2007	JK Lowden <jklowden@freetds.org>
 	* include/dblib.h include/tds.h
 	* src/dblib/dblib.c src/dblib/dbutil.c

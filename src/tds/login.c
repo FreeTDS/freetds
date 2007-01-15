@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.156 2007-01-13 22:13:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.157 2007-01-15 04:18:02 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -178,12 +178,39 @@ tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size
 int
 tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-	int retval;
+	int i, retval;
 	int connect_timeout = 0;
 	int db_selected = 0;
 	char version[64];
 	char *str;
 	int len;
+	
+	/*
+	 * A major version of 0 means try to guess the TDS version. 
+	 * We try them in an order that should work. 
+	 */
+	const static struct tdsver {
+		TDS_TINYINT major_version;
+		TDS_TINYINT minor_version;
+	} versions[] =
+		{ { 8, 0 }
+		, { 7, 0 }
+		, { 5, 0 }
+		, { 4, 2 }
+		};
+
+	if (connection->major_version == 0) {
+		for (i=0; i < TDS_VECTOR_SIZE(versions); i++) {
+			connection->major_version = versions[i].major_version;
+			connection->minor_version = versions[i].minor_version;
+			/* fprintf(stdout, "trying TDSVER %d.%d\n", connection->major_version, connection->minor_version); */
+			retval = tds_connect(tds, connection);
+			if (TDS_SUCCEED == retval)
+				return retval;
+		}
+		return TDS_FAIL;
+	}
+	
 
 	/*
 	 * If a dump file has been specified, start logging
@@ -206,9 +233,11 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	}
 #endif
 
-	/* set up iconv */
-	if (!tds_dstr_isempty(&connection->client_charset)) {
-		tds_iconv_open(tds, tds_dstr_cstr(&connection->client_charset));
+	/* set up iconv if not already initialized*/
+	if (tds->char_convs[client2ucs2]->to_wire == (iconv_t) -1) {
+		if (!tds_dstr_isempty(&connection->client_charset)) {
+			tds_iconv_open(tds, tds_dstr_cstr(&connection->client_charset));
+		}
 	}
 
 	/* specified a date format? */
