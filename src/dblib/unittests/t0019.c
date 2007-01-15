@@ -6,7 +6,7 @@
 #include "common.h"
 #include <ctype.h>
 
-static char software_version[] = "$Id: t0019.c,v 1.12 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0019.c,v 1.13 2007-01-15 19:43:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failure = 0;
@@ -16,6 +16,29 @@ static const char *cur_test = "";
 static int cur_line = 0;
 
 int test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen);
+int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+
+int
+err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+{
+	/*
+	 * For server messages, cancel the query and rely on the
+	 * message handler to spew the appropriate error messages out.
+	 */
+	if (dberr == SYBESMSG)
+		return INT_CANCEL;
+
+	if (dberr == 20049) {
+		fprintf(stderr, "OK: anticipated error %d (%s) arrived\n", dberr, dberrstr);
+	} else {
+	fprintf(stderr,
+		"DB-LIBRARY error (severity %d, dberr %d, oserr %d, dberrstr %s, oserrstr %s):\n",
+		severity, dberr, oserr, dberrstr ? dberrstr : "(null)", oserrstr ? oserrstr : "(null)");
+	}
+	fflush(stderr);
+
+	return INT_CANCEL;
+}
 
 int
 test(int srctype, const void *srcdata, int srclen, int dsttype, int dstlen)
@@ -61,7 +84,7 @@ main(int argc, char *argv[])
 	if (dbinit() == FAIL)
 		return 1;
 
-	dberrhandle(syb_err_handler);
+	dberrhandle(err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	TEST((SYBBINARY, "ciao\0\0", 6, SYBBINARY, -2), "len=6 63 69 61 6F 00 00 2A 2A 2A 2A");

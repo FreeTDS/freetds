@@ -6,7 +6,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0007.c,v 1.15 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.16 2007-01-15 19:43:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -75,6 +75,7 @@ main(int argc, char **argv)
 	char teststr[1024];
 	DBINT testint;
 	int failed = 0;
+	int expected_error;
 
 	set_malloc_options();
 
@@ -157,6 +158,9 @@ main(int argc, char **argv)
 
 
 	fprintf(stdout, "second select.  Should fail.\n");
+
+	expected_error = 20019;
+	dbsetuserdata(dbproc, (BYTE*) &expected_error);
 
 	if (start_query(dbproc, "select * from #dblib0007 where i>=5 order by i")) {
 		fprintf(stderr, "%s:%d: start_query should have failed but didn't\n", __FILE__, __LINE__);

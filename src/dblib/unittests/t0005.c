@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.20 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.21 2007-01-15 19:43:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -19,6 +19,7 @@ main(int argc, char **argv)
 	DBINT testint;
 	char cmd[1024];
 	int failed = 0;
+	int expected_error;
 
 	set_malloc_options();
 
@@ -136,11 +137,15 @@ main(int argc, char **argv)
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
-	fprintf(stdout, "This query should succeeded as we have fetched exactly the.\n");
-	fprintf(stdout, "number of rows in the result set\n");
+	fprintf(stdout, "This query should succeeded as we have fetched exactly the\n"
+			"number of rows in the result set\n");
 
 	sprintf(cmd, "select * from #dblib0005 where i < 6 order by i");
 	fprintf(stdout, "%s\n", cmd);
+	
+	expected_error = 20019;
+	dbsetuserdata(dbproc, (BYTE*) &expected_error);
+
 	if (SUCCEED != dbcmd(dbproc, cmd)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;

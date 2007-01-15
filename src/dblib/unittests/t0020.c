@@ -5,13 +5,26 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0020.c,v 1.14 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0020.c,v 1.15 2007-01-15 19:43:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
 
 int failed = 0;
 
+int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+
+/*
+ * The bad column name message has severity 16, causing db-lib to call the error handler after calling the message handler.
+ * This wrapper anticipates that behavior, and again sets the userdata, telling the handler this error is expected. 
+ */
+int
+err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+{	
+	int expected_error = 207;
+	dbsetuserdata(dbproc, (BYTE*) &expected_error);
+	return syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+}
 
 int
 main(int argc, char **argv)
@@ -19,6 +32,7 @@ main(int argc, char **argv)
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	RETCODE ret;
+	int expected_error;
 
 	set_malloc_options();
 
@@ -31,7 +45,7 @@ main(int argc, char **argv)
 	dbinit();
 
 	add_bread_crumb();
-	dberrhandle(syb_err_handler);
+	dberrhandle(err_handler);
 	dbmsghandle(syb_msg_handler);
 
 	fprintf(stdout, "About to logon\n");
@@ -54,6 +68,10 @@ main(int argc, char **argv)
 
 	dbcmd(dbproc, "select dsjfkl dsjf");
 	fprintf(stderr, "The following invalid column error is normal.\n");
+
+	expected_error = 207;
+	dbsetuserdata(dbproc, (BYTE*) &expected_error);
+
 	ret = dbsqlexec(dbproc);
 	if (ret != FAIL) {
 		failed = 1;

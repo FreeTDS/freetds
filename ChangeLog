@@ -1,3 +1,13 @@
+Mon Jan 15 14:40:35 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/unittests/common.c
+	* src/dblib/unittests/rpc.c
+	* src/dblib/unittests/t0004.c
+	* src/dblib/unittests/t0005.c
+	* src/dblib/unittests/t0007.c
+	* src/dblib/unittests/t0019.c
+	* src/dblib/unittests/t0020.c
+	- fail if an unanticipated message/error is received
+	
 Sun Jan 14 23:16:17 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/tds/config.c src/tds/login.c
 	- began work on autodetecting the server's TDSVER

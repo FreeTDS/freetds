@@ -6,7 +6,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0004.c,v 1.14 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.15 2007-01-15 19:43:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -18,7 +18,7 @@ main(int argc, char **argv)
 	const int rows_to_add = 50;
 	LOGINREC *login;
 	DBPROCESS *dbproc;
-	int i;
+	int i, expected_error;
 	char teststr[1024];
 	DBINT testint;
 	int failed = 0;
@@ -145,6 +145,8 @@ main(int argc, char **argv)
 		failed = 1;
 	}
 	fprintf(stdout, "About to exec for the second time.  Should fail\n");
+	expected_error = 20019;
+	dbsetuserdata(dbproc, (BYTE*) &expected_error);
 	if (FAIL != dbsqlexec(dbproc)) {
 		fprintf(stderr, "%s:%d: dbsqlexec should have failed but didn't\n", __FILE__, __LINE__);
 		failed = 1;

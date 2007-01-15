@@ -5,11 +5,13 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.28 2006-10-23 08:54:18 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.29 2007-01-15 19:43:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
 static int init_proc(DBPROCESS * dbproc, const char *name);
+int ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+int ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line);
 
 typedef struct {
 	char *name, *value;
@@ -37,10 +39,10 @@ static const char procedure_sql[] =
 			"return 42 \n"
 		"END \n";
 
-static int
+static RETCODE
 init_proc(DBPROCESS * dbproc, const char *name)
 {
-	int res = 0;
+	RETCODE ret = FAIL;
 
 	if (name[0] != '#') {
 		fprintf(stdout, "Dropping procedure %s\n", name);
@@ -59,9 +61,8 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	fprintf(stdout, "Creating procedure %s\n", name);
 	sprintf(cmd, procedure_sql, name);
 	dbcmd(dbproc, cmd);
-	if (dbsqlexec(dbproc) == FAIL) {
+	if ((ret = dbsqlexec(dbproc)) == FAIL) {
 		add_bread_crumb();
-		res = 1;
 		if (name[0] == '#')
 			fprintf(stdout, "Failed to create procedure %s. Wrong permission or not MSSQL.\n", name);
 		else
@@ -70,7 +71,7 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
-	return res;
+	return ret;
 }
 
 static RETPARAM*
@@ -88,6 +89,25 @@ save_retparam(RETPARAM *param, char *name, char *value, int type, int len)
 	param->len = len;
 	
 	return param;
+}
+
+int
+ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
+{
+	dbsetuserdata(dbproc, (BYTE*) &msgno);
+	/* printf("(ignoring message %d)\n", msgno); */
+	return syb_msg_handler(dbproc, msgno, state, severity, text, server, proc, line);
+}
+/*
+ * The bad procedure name message has severity 15, causing db-lib to call the error handler after calling the message handler.
+ * This wrapper anticipates that behavior, and again sets the userdata, telling the handler this error is expected. 
+ */
+int
+ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+{	
+	dbsetuserdata(dbproc, (BYTE*) &dberr);
+	/* printf("(ignoring error %d)\n", dberr); */
+	return syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
 }
 
 int
@@ -156,13 +176,24 @@ main(int argc, char **argv)
 
 	add_bread_crumb();
 
-	if (init_proc(dbproc, proc_name))
-		if (init_proc(dbproc, ++proc_name))
-			exit(1);
+	dberrhandle(ignore_err_handler);
+	dbmsghandle(ignore_msg_handler);
+
+	printf("trying to create a temporary stored procedure\n");
+	if (FAIL == init_proc(dbproc, proc_name)) {
+		printf("trying to create a permanent stored procedure\n");
+		if (FAIL == init_proc(dbproc, ++proc_name))
+			exit(EXIT_FAILURE);
+	}
+
+	dberrhandle(syb_err_handler);
+	dbmsghandle(syb_msg_handler);
+
+	fprintf(stdout, "Created procedure %s\n", proc_name);
 
 	/* set up and send the rpc */
-	erc = dbrpcinit(dbproc, proc_name, 0);	/* no options */
 	printf("executing dbrpcinit\n");
+	erc = dbrpcinit(dbproc, proc_name, 0);	/* no options */
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed: dbrpcinit\n");
 		failed = 1;

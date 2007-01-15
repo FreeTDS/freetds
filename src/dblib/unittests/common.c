@@ -16,7 +16,7 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.19 2006-10-26 18:27:00 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.20 2007-01-15 19:43:09 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -268,7 +268,8 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 	char var_value[31];
 	int i;
 	char *c;
-
+	int *pexpected_msgno;
+	
 	/*
 	 * Check for "database changed", or "language changed" messages from
 	 * the client.  If we get one of these, then we need to pull the
@@ -286,26 +287,22 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 			for (++c; i <= 30 && *c != '\0' && *c != '\''; ++c)
 				var_value[i++] = *c;
 			var_value[i] = '\0';
-
-#if 0
-			switch (msgno) {
-			case 5701:
-				env_set(g_env, "database", var_value);
-				break;
-			case 5703:
-				env_set(g_env, "language", var_value);
-				break;
-			case 5704:
-				env_set(g_env, "charset", var_value);
-				-break;
-			default:
-				break;
-			}
-#endif
 		}
 		return 0;
 	}
 
+	/*
+	 * If the user data indicates this is an expected error message (because we're testing the 
+	 * error propogation, say) then indicate this message was anticipated.
+	 */
+	if (dbproc != NULL) {
+		pexpected_msgno = (int *) dbgetuserdata(dbproc);
+		if (pexpected_msgno && *pexpected_msgno == msgno) {
+			fprintf(stdout, "OK: anticipated message arrived: %d %s", msgno, msgtext);
+			*pexpected_msgno = 0;
+			return 0;
+		}
+	}
 	/*
 	 * If the severity is something other than 0 or the msg number is
 	 * 0 (user informational messages).
@@ -336,12 +333,14 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 		}
 	}
 
+	assert(0); /* no unanticipated messages allowed in unit tests */
 	return 0;
 }
 
 int
 syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
+	int *pexpected_dberr;
 
 	/*
 	 * For server messages, cancel the query and rely on the
@@ -350,13 +349,18 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 	if (dberr == SYBESMSG)
 		return INT_CANCEL;
 
-#if 0
 	/*
-	 * For any other type of severity (that is not a server
-	 * message), we increment the batch_failcount.
+	 * If the user data indicates this is an expected error message (because we're testing the 
+	 * error propogation, say) then indicate this message was anticipated.
 	 */
-	env_set(g_env, "batch_failcount", "1");
-#endif
+	if (dbproc != NULL) {
+		pexpected_dberr = (int *) dbgetuserdata(dbproc);
+		if (pexpected_dberr && *pexpected_dberr == dberr) {
+			fprintf(stdout, "OK: anticipated error %d (%s) arrived\n", dberr, dberrstr);
+			*pexpected_dberr = 0;
+			return INT_CANCEL;
+		}
+	}
 
 	fprintf(stderr,
 		"DB-LIBRARY error (severity %d, dberr %d, oserr %d, dberrstr %s, oserrstr %s):\n",
@@ -376,5 +380,6 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 		}
 	}
 
+	assert(0); /* no unanticipated errors allowed in unit tests */
 	return INT_CANCEL;
 }
