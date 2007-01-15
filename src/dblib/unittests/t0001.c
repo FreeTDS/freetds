@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.23 2007-01-13 22:13:31 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.24 2007-01-15 02:00:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 	fprintf(stdout, "QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
 	
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0001 (i int not null, s char(10) not null) raiserror('test message', 11,1)");
+	dbcmd(dbproc, "create table #dblib0001 (i int not null, s char(10) not null)");
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */

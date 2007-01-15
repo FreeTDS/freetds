@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.37 2007-01-07 06:03:54 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.38 2007-01-15 02:00:58 jklowden Exp $");
 
 /*
  * test include consistency 
@@ -191,6 +191,47 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAG
 	assert(0);
 	return TDS_INT_CANCEL;
 }
+
+/**
+ * \ingroup dblib_core
+ * \brief check interrupts for libtds.
+ * 
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \sa DBDEAD(), dbsetinterrupt().
+ */
+int
+_dblib_check_and_handle_interrupt(void * vdbproc)
+{
+	DBPROCESS * dbproc = (DBPROCESS*) vdbproc;
+	int ret = INT_CONTINUE;
+	
+	assert( ! (dbproc == NULL && DBDEAD(dbproc)) );  /* a non-process can't be a dead process */
+	
+	if (dbproc->chkintr == NULL || dbproc->hndlintr == NULL)
+		return INT_CONTINUE;
+		
+	tdsdump_log(TDS_DBG_FUNC, "tds_int_handler %p [%p, %p]", dbproc, dbproc->chkintr, dbproc->hndlintr);
+
+	if (dbproc->chkintr(dbproc)){
+		switch (ret = dbproc->hndlintr(dbproc)) {
+		case INT_EXIT:
+			tdsdump_log(TDS_DBG_FUNC, "dbproc->hndlintr returned INT_EXIT, goodbye!\n");
+			exit(1);
+		case INT_CANCEL:
+			tdsdump_log(TDS_DBG_FUNC, "dbproc->hndlintr returned INT_CANCEL\n");
+			break;
+		case INT_CONTINUE:
+			tdsdump_log(TDS_DBG_FUNC, "dbproc->hndlintr returned INT_CONTINUE\n");
+			break;
+		default:
+			tdsdump_log(TDS_DBG_FUNC, "dbproc->hndlintr returned an invalid value (%d), returning INT_CONTINUE\n", ret);
+			ret = INT_CONTINUE;
+			break;
+		}
+	}
+	return ret;
+}
+
 
 void
 _dblib_setTDS_version(TDSLOGIN * tds_login, DBINT version)

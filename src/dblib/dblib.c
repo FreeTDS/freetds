@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.268 2007-01-13 22:13:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.269 2007-01-15 02:00:58 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -184,7 +184,7 @@ static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int 
 
 /* info/err message handler functions (or rather pointers to them) */
 MHANDLEFUNC _dblib_msg_handler = NULL;
-EHANDLEFUNC _dblib_err_handler = NULL;
+EHANDLEFUNC _dblib_err_handler = default_err_handler;
 
 typedef struct dblib_context
 {
@@ -276,11 +276,11 @@ dblib_get_tds_ctx(void)
 		g_dblib_ctx.tds_ctx = tds_alloc_context(&g_dblib_ctx);
 
 		/*
-		 * Set the functions in the TDS layer to point to the correct info/err
-		 * message handler functions
+		 * Set the functions in the TDS layer to point to the correct handler functions
 		 */
 		g_dblib_ctx.tds_ctx->msg_handler = _dblib_handle_info_message;
 		g_dblib_ctx.tds_ctx->err_handler = _dblib_handle_err_message;
+		g_dblib_ctx.tds_ctx->int_handler = _dblib_check_and_handle_interrupt;
 
 		if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
 			/* set default in case there's no locale file */
@@ -830,8 +830,8 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 		return NULL;
 	}
 
-	dbproc->dbchkintr = NULL;
-	dbproc->dbhndlintr = NULL;
+	dbproc->chkintr = NULL;
+	dbproc->hndlintr = NULL;
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
 
@@ -1423,16 +1423,8 @@ _dbresults(DBPROCESS * dbproc)
 			break;
 
 		case TDS_NO_MORE_RESULTS:
-			switch(dbproc->dbresults_state) {
-			case _DB_RES_INIT:  /* dbsqlok has eaten our end token */
-				dbproc->dbresults_state = _DB_RES_NO_MORE_RESULTS;
-				return SUCCEED;
-				break;
-			default:
-				dbproc->dbresults_state = _DB_RES_NO_MORE_RESULTS;
-				return NO_MORE_RESULTS;
-				break;
-			}
+			dbproc->dbresults_state = _DB_RES_NO_MORE_RESULTS;
+			return NO_MORE_RESULTS;
 			break;
 
 		case TDS_CANCELLED:
@@ -4091,8 +4083,8 @@ dbsetinterrupt(DBPROCESS * dbproc, DB_DBCHKINTR_FUNC chkintr, DB_DBHNDLINTR_FUNC
 	tdsdump_log(TDS_DBG_FUNC, "dbsetinterrupt(%p, %p, %p)\n", dbproc, chkintr, hndlintr);
 	CHECK_PARAMETER_RETVOID(dbproc, SYBENULL);
 
-	dbproc->dbchkintr = chkintr;
-	dbproc->dbhndlintr = hndlintr;
+	dbproc->chkintr = chkintr;
+	dbproc->hndlintr = hndlintr;
 }
 
 /**

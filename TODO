@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.157 2006-03-21 14:24:06 freddy77 Exp $
+To Do List	$Id: TODO,v 1.158 2007-01-15 02:00:58 jklowden Exp $
 ------------
 
 Must be fixed:
@@ -26,8 +26,6 @@ Broken:
   and doesn't convert correctly.
 
 Work in progress:
-. fix timeout problem reported in ML
-  . check dblib behavior
 
 Postponed to 0.65 version
 . log and call error handler on problems with tds_iconv_init().
@@ -99,9 +97,7 @@ For future versions (in priority order within library):
 . encrypted connection for Sybase
 
   db-lib
-. Returning INT_CANCEL from an error handler doesn't always engender FAIL. 
 . add DBTEXTLIMIT (dbsetopt), PHP require it to support textlimit ini value
-. add error messages to rpc functions, so PHP users see their mistakes. 
 
   ct-lib
 . dynamic placeholders (DBD::Sybase)

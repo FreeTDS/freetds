@@ -5,14 +5,18 @@
  */
 
 #include "common.h"
+#include <time.h>
 
-int timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
-
-static char software_version[] = "$Id: timeout.c,v 1.1 2007-01-13 22:13:17 jklowden Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.2 2007-01-15 02:00:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int ntimeouts = 0, ncancels = 0;
-const int max_timeouts = 3;
+const int max_timeouts = 3, timeout_seconds = 3;
+int start_time;
+
+int timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+int chkintr(DBPROCESS * dbproc);
+int hndlintr(DBPROCESS * dbproc);
 
 int
 timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
@@ -25,7 +29,7 @@ timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char
 		return INT_CANCEL;
 		
 	if (dberr == SYBETIME) {
-		fprintf(stderr, "%d timeouts received, ", ++ntimeouts);
+		fprintf(stderr, "%d timeouts received in %ld seconds, ", ++ntimeouts, time(NULL) - start_time);
 		if (ntimeouts > max_timeouts) {
 			if (++ncancels > 1) {
 				fprintf(stderr, "could not timeout cleanly, breaking connection\n");
@@ -66,15 +70,28 @@ timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char
 	return INT_CANCEL;
 }
 
+int 
+chkintr(DBPROCESS * dbproc)
+{
+	printf("in chkintr, %ld seconds elapsed\n", time(NULL) - start_time);
+	return FALSE;
+}
+
+int 
+hndlintr(DBPROCESS * dbproc)
+{
+	printf("in hndlintr, %ld seconds elapsed\n", time(NULL) - start_time);
+	return INT_CONTINUE;
+}
+
 int
 main(int argc, char **argv)
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
-	int r, failed = 0;
+	int i,r, failed = 0;
 	RETCODE erc, row_code;
 	int num_resultset = 0;
-	int num_empty_resultset = 0;
 	char teststr[1024];
 
 	/*
@@ -112,6 +129,8 @@ main(int argc, char **argv)
 	printf ("using %d 1-second login timeouts\n", max_timeouts);
 	dbsetlogintime(1);
 	
+	start_time = time(NULL);	/* keep track of when we started for reporting purposes */
+
 	if (NULL == (dbproc = dbopen(login, SERVER))){
 		fprintf(stderr, "Failed: dbopen\n");
 		exit(1);
@@ -127,17 +146,21 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	/* send something that will take awhile to execute */
-	printf ("using %d 1-second query timeouts\n", max_timeouts);
-	if (FAIL == dbsettime(1)) {
+	printf ("using %d %d-second query timeouts\n", max_timeouts, timeout_seconds);
+	if (FAIL == dbsettime(timeout_seconds)) {
 		fprintf(stderr, "Failed: dbsettime\n");
 		exit(1);
 	}
-	printf ("issuing a query that will take 15 seconds\n");
+	printf ("issuing a query that will take 30 seconds\n");
 
-	if (FAIL == dbcmd(dbproc, "select getdate() as 'begintime' waitfor delay '00:00:15' select getdate() as 'endtime' ")) {
+	if (FAIL == dbcmd(dbproc, "select getdate() as 'begintime' waitfor delay '00:00:30' select getdate() as 'endtime' ")) {
 		fprintf(stderr, "Failed: dbcmd\n");
 		exit(1);
 	}
+	
+	start_time = time(NULL);
+	ntimeouts = 0;
+	dbsetinterrupt(dbproc, (void*)chkintr, (void*)hndlintr);
 	
 	if (FAIL == dbsqlsend(dbproc)) {
 		fprintf(stderr, "Failed: dbsend\n");
@@ -156,10 +179,17 @@ main(int argc, char **argv)
 
 	/* retrieve outputs per usual */
 	r = 0;
-	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
-		int ncols, empty_resultset;
+	for (i=0; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; i++) {
+		int nrows, ncols, empty_resultset;
 		switch (erc) {
 		case SUCCEED:
+			if (DBROWS(dbproc) == FAIL){
+				r++;
+				continue;
+			}
+			assert(DBROWS(dbproc) == SUCCEED);
+			printf("dbrows() returned SUCCEED, processing rows\n");
+
 			ncols = dbnumcols(dbproc);
 			empty_resultset = 1;
 			++num_resultset;
@@ -178,9 +208,12 @@ main(int argc, char **argv)
 					exit(1);
 				}
 			}
-			printf("row count %d\n", (int) dbcount(dbproc));
-			if (empty_resultset)
-				++num_empty_resultset;
+			nrows = (int) dbcount(dbproc);
+			printf("row count %d\n", nrows);
+			if (nrows < 0){
+				failed++;
+				printf("error: dbrows() returned SUCCEED, but dbcount() returned -1\n");
+			}
 			break;
 		case FAIL:
 			printf("OK: dbresults returned FAIL, probably caused by the timeout\n");
@@ -188,6 +221,10 @@ main(int argc, char **argv)
 		default:
 			printf("unexpected return code %d from dbresults\n", erc);
 			exit(1);
+		}
+		if ( i > 1) {
+			failed++;
+			break;
 		}
 	} /* while dbresults */
 	

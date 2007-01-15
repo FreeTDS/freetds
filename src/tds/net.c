@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.56 2007-01-12 13:29:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.57 2007-01-15 02:00:58 jklowden Exp $");
 
 static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -384,7 +384,7 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 		/* 1-second timeout expired */
 		if (tds->tds_ctx && tds->tds_ctx->int_handler) {
 
-			int timeout_action = (*tds->tds_ctx->int_handler) (tds->tds_ctx);
+			int timeout_action = (*tds->tds_ctx->int_handler) (tds->parent);
 			/*
 			 * "If hndlintr() returns INT_CANCEL, DB-Library sends an attention token [TDS_BUFSTAT_ATTN]
 			 * to the server. This causes the server to discontinue command processing. 

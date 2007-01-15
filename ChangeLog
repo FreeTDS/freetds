@@ -1,4 +1,12 @@
-Sat Jan 13 17:09:05 EST 2007	JK Lowden <jklowden@schemamania.org>
+Sun Jan 14 20:38:25 EST 2007	JK Lowden <jklowden@freetds.org>
+	* include/dblib.h include/tds.h
+	* src/dblib/dblib.c src/dblib/dbutil.c
+	* src/dblib/unittests/t0001.c src/dblib/unittests/t0012.c
+	* src/dblib/unittests/timeout.c
+	* src/tds/net.c TODO
+	- timeout unit test also works with dbsetinterrupt
+	
+Sat Jan 13 17:09:05 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/unittests/timeout.c added 
 	* src/dblib/dblib.c 
 	* src/dblib/unittests/Makefile.am src/dblib/unittests/t0001.c
