@@ -1,3 +1,6 @@
+Tue Jan 16 09:57:35 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/util.c: fix messages
+
 Tue Jan 16 09:48:43 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/test-other.sh: fix problem with Perl 5.8.8
 	* src/dblib/dblib.c: fix possible thread problem

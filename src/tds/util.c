@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.77 2007-01-13 22:13:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.78 2007-01-16 08:57:32 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -241,14 +241,14 @@ typedef struct _tds_error_message
 } TDS_ERROR_MESSAGE;
 
 static const TDS_ERROR_MESSAGE tds_error_messages[] = 
-	{ { TDSEICONVIU,     EXCONVERSION,	"Some character(s) could not be converted into client's character set" }
+	{ { TDSEICONVIU,     EXCONVERSION,	"Buffer exhausted converting characters from client into server's character set" }
 	, { TDSEICONVAVAIL,  EXCONVERSION,	"Character set conversion is not available between client character set '%.*s' and "
 						"server character set '%.*s'" }
 	, { TDSEICONVO,      EXCONVERSION,	"Error converting characters into server's character set. Some character(s) could "
 						"not be converted" }
 	, { TDSEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  Unconverted "
 						"bytes were changed to question marks ('?')" }
-	, { TDSEICONV2BIG,   EXCONVERSION,	"Buffer overflow converting characters from client into server's character set" }
+	, { TDSEICONV2BIG,   EXCONVERSION,	"Some character(s) could not be converted into client's character set" }
 	, { TDSERPND,           EXPROGRAM,	"Attempt to initiate a new Adaptive Server operation with results pending" }
 	, { TDSEBTOK,              EXCOMM,	"Bad token from the server: Datastream processing out of sync" }
 	, { TDSECAP,               EXCOMM,	"DB-Library capabilities not accepted by the Server" }
