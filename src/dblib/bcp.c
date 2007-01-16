@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.152 2006-12-26 14:56:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.153 2007-01-16 05:31:19 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2015,7 +2015,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	}
 	
 	if( row_error_count == 0 && row_of_hostfile < dbproc->hostfileinfo->firstrow ) {
-		dbperror(dbproc, SYBEBCRO, 0); /* The BCP hostfile '%1!' contains only %2! rows */
+		/* "The BCP hostfile '%1!' contains only %2! rows.  */
+		dbperror(dbproc, SYBEBCSA, 0, dbproc->hostfileinfo->hostfile, row_of_hostfile); 
 	}
 
 	if (errfile) {

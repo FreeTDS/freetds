@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.29 2007-01-15 19:43:09 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.30 2007-01-16 05:31:20 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -105,9 +105,24 @@ ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, cha
 int
 ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {	
+	int erc;
+	static int recursion_depth = 0;
+	
+	if (dbproc == NULL) {	
+		printf("expected error %d: \"%s\"\n", dberr, dberrstr? dberrstr : "");
+		return INT_CANCEL;
+	}
+	
+	if (recursion_depth++) {
+		printf("error %d: \"%s\"\n", dberr, dberrstr? dberrstr : "");
+		printf("logic error: recursive call to ingnore_err_handler\n");
+		exit(1);
+	}
 	dbsetuserdata(dbproc, (BYTE*) &dberr);
 	/* printf("(ignoring error %d)\n", dberr); */
-	return syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+	erc = syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+	recursion_depth--;
+	return erc;
 }
 
 int
@@ -163,6 +178,10 @@ main(int argc, char **argv)
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "#t0022");
+	dberrhandle(ignore_err_handler);
+	DBSETLPACKET(login, -1);
+	dberrhandle(syb_err_handler);
+
 
 	fprintf(stdout, "About to open %s.%s\n", SERVER, DATABASE);
 

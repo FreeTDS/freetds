@@ -1,3 +1,8 @@
+Tue Jan 16 00:28:28 EST 2007	JK Lowden <jklowden@freetds.org>
+	* include/dblib.h src/dblib/bcp.c
+	* src/dblib/dblib.c src/dblib/unittests/rpc.c
+	- support variadic form of dbperror
+	
 Mon Jan 15 14:40:35 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/unittests/common.c
 	* src/dblib/unittests/rpc.c

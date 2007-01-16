@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.269 2007-01-15 02:00:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.270 2007-01-16 05:31:19 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -501,7 +501,7 @@ dbsetllong(LOGINREC * login, long value, int which)
 			tds_set_packet(login->tds_login, value);
 			return SUCCEED;
 		}
-		dbperror(0, SYBEBPKS, 0);
+		dbperror(0, SYBEBADPK, 0, (int) value, (int) login->tds_login->block_size);
 		return FAIL;
 		break;
 	default:
@@ -2161,13 +2161,21 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 						"type must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, "
 						"SYBCHAR, SYBIMAGE or SYBBINARY"*/
 	if (varaddr == NULL && varlen > 0) {
-		int fOK = (colinfo->column_type == SYBTEXT || colinfo->column_type == SYBIMAGE) &&
-			  (vartype == SYBTEXT || vartype == SYBCHAR || vartype == SYBIMAGE || vartype == SYBBINARY );
-		if( !fOK ) {
-			dbperror(dbproc, SYBEBCSNTYP, 0);
-			tdsdump_log(TDS_DBG_FUNC, "dbbind: SYBEBCSNTYP: col %d coltype=%d and vartype=%d (should fail?)\n", 
-							column, colinfo->column_type, vartype);
-			/* return FAIL; */
+		if (colinfo->column_type == SYBTEXT || colinfo->column_type == SYBIMAGE) {
+			switch (vartype) {
+			case CHARBIND:
+			case STRINGBIND:
+			case NTBSTRINGBIND:
+			case VARYCHARBIND:
+			case BINARYBIND:
+			/* case VARYBINBIND: TODO should define */
+				break;	/* OK */
+			default:
+				dbperror(dbproc, SYBEBCSNTYP, 0, column);
+				tdsdump_log(TDS_DBG_FUNC, "dbbind: SYBEBCSNTYP: col %d coltype=%d and vartype=%d (should fail?)\n", 
+								column, colinfo->column_type, vartype);
+				return FAIL;
+			}
 		}
 	}
 
@@ -7169,324 +7177,329 @@ typedef struct _dblib_error_message
 	char *msgtext;
 } DBLIB_ERROR_MESSAGE;
 
+/*
+ * The msgtext member holds up to two strings.  The first one is the message text, which may contain placeholders.  
+ * The second one, if it exists, is the format string for dbstrbuild().  Messages containing no placeholders still need
+ * an extra NULL to indicate a zero-length format string. 
+ */
 static const DBLIB_ERROR_MESSAGE dblib_error_messages[] = 
-	{ { SYBEICONVIU,     EXCONVERSION,	"Some character(s) could not be converted into client's character set" }
-	, { SYBEICONVAVAIL,  EXCONVERSION,	"Character set conversion is not available between client character set '%.*s' and "
-						"server character set '%.*s'" }
+	{ { SYBEICONVIU,     EXCONVERSION,	"Some character(s) could not be converted into client's character set\0" }
+	, { SYBEICONVAVAIL,  EXCONVERSION,	"Character set conversion is not available between client character set '%1!' and "
+						"server character set '%2!'\0%s %s" }
 	, { SYBEICONVO,      EXCONVERSION,	"Error converting characters into server's character set. Some character(s) could "
-						"not be converted" }
+						"not be converted\0" }
 	, { SYBEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  Unconverted "
-						"bytes were changed to question marks ('?')" }
-	, { SYBEICONV2BIG,   EXCONVERSION,	"Buffer overflow converting characters from client into server's character set" }
-	, { SYBETDSVER, 	   EXUSER,	"Cannot bcp with TDSVER < 5.0" }
-	, { SYBEAAMT,           EXPROGRAM,	"User attempted a dbaltbind with mismatched column and variable types" }
-	, { SYBEABMT,           EXPROGRAM,	"User attempted a dbbind with mismatched column and variable types" }
-	, { SYBEABNC,           EXPROGRAM,	"Attempt to bind to a non-existent column" }
-	, { SYBEABNP,           EXPROGRAM,	"Attempt to bind using NULL pointers" }
-	, { SYBEABNV,           EXPROGRAM,	"Attempt to bind to a NULL program variable" }
-	, { SYBEACNV,        EXCONVERSION,	"Attempt to do data-conversion with NULL destination variable." }
+						"bytes were changed to question marks ('?')\0" }
+	, { SYBEICONV2BIG,   EXCONVERSION,	"Buffer overflow converting characters from client into server's character set\0" }
+	, { SYBETDSVER, 	   EXUSER,	"Cannot bcp with TDSVER < 5.0\0" }
+	, { SYBEAAMT,           EXPROGRAM,	"User attempted a dbaltbind with mismatched column and variable types\0" }
+	, { SYBEABMT,           EXPROGRAM,	"User attempted a dbbind with mismatched column and variable types\0" }
+	, { SYBEABNC,           EXPROGRAM,	"Attempt to bind to a non-existent column\0" }
+	, { SYBEABNP,           EXPROGRAM,	"Attempt to bind using NULL pointers\0" }
+	, { SYBEABNV,           EXPROGRAM,	"Attempt to bind to a NULL program variable\0" }
+	, { SYBEACNV,        EXCONVERSION,	"Attempt to do data-conversion with NULL destination variable.\0" }
 	, { SYBEADST,       EXCONSISTENCY,	"International Release: Error in attempting to determine the size of a pair of "
-						"translation tables" }
-	, { SYBEAICF,       EXCONSISTENCY,	"International Release: Error in attempting to install custom format" }
-	, { SYBEALTT,       EXCONSISTENCY,	"International Release: Error in attempting to load a pair of translation tables" }
-	, { SYBEAOLF,          EXRESOURCE,	"International Release: Error in attempting to open a localization file" }
-	, { SYBEAPCT,       EXCONSISTENCY,	"International Release: Error in attempting to perform a character set translation" }
-	, { SYBEAPUT,           EXPROGRAM,	"Attempt to print unknown token" }
+						"translation tables\0" }
+	, { SYBEAICF,       EXCONSISTENCY,	"International Release: Error in attempting to install custom format\0" }
+	, { SYBEALTT,       EXCONSISTENCY,	"International Release: Error in attempting to load a pair of translation tables\0" }
+	, { SYBEAOLF,          EXRESOURCE,	"International Release: Error in attempting to open a localization file\0" }
+	, { SYBEAPCT,       EXCONSISTENCY,	"International Release: Error in attempting to perform a character set translation\0" }
+	, { SYBEAPUT,           EXPROGRAM,	"Attempt to print unknown token\0" }
 	, { SYBEARDI,          EXRESOURCE,	"International Release: Error in attempting to read datetime information from a "
-						"localization file" }
-	, { SYBEARDL,          EXRESOURCE,	"International Release: Error in attempting to read the dblib.loc localization file" }
-	, { SYBEASEC,           EXPROGRAM,	"Attempt to send an empty command buffer to the server" }
-	, { SYBEASNL,           EXPROGRAM,	"Attempt to set fields in a null LOGINREC" }
-	, { SYBEASTL,           EXPROGRAM,	"Synchronous I/O attempted at AST level" }
-	, { SYBEASUL,           EXPROGRAM,	"Attempt to set unknown LOGINREC field" }
-	, { SYBEAUTN,           EXPROGRAM,	"Attempt to update the timestamp of a table that has no timestamp column" }
-	, { SYBEBADPK,             EXINFO,	"Packet size of %1 not supported-size of %2 used instead!" }
-	, { SYBEBBCI,              EXINFO,	"Batch successfully bulk copied to the server" }
-	, { SYBEBBL,            EXPROGRAM,	"Bad bindlen parameter passed to dbsetnull" }
-	, { SYBEBCBC,           EXPROGRAM,	"bcp_columns must be called before bcp_colfmt and bcp_colfmt_ps" }
+						"localization file\0" }
+	, { SYBEARDL,          EXRESOURCE,	"International Release: Error in attempting to read the dblib.loc localization file\0" }
+	, { SYBEASEC,           EXPROGRAM,	"Attempt to send an empty command buffer to the server\0" }
+	, { SYBEASNL,           EXPROGRAM,	"Attempt to set fields in a null LOGINREC\0" }
+	, { SYBEASTL,           EXPROGRAM,	"Synchronous I/O attempted at AST level\0" }
+	, { SYBEASUL,           EXPROGRAM,	"Attempt to set unknown LOGINREC field\0" }
+	, { SYBEAUTN,           EXPROGRAM,	"Attempt to update the timestamp of a table that has no timestamp column\0" }
+	, { SYBEBADPK,             EXINFO,	"Packet size of %1! not supported -- size of %2! used instead!\0%d %d" }
+	, { SYBEBBCI,              EXINFO,	"Batch successfully bulk copied to the server\0" }
+	, { SYBEBBL,            EXPROGRAM,	"Bad bindlen parameter passed to dbsetnull\0" }
+	, { SYBEBCBC,           EXPROGRAM,	"bcp_columns must be called before bcp_colfmt and bcp_colfmt_ps\0" }
 	, { SYBEBCBNPR,         EXPROGRAM,	"bcp_bind: if varaddr is NULL, prefixlen must be 0 "
-						"and no terminator should be specified" }
+						"and no terminator should be specified\0" }
 	, { SYBEBCBNTYP,        EXPROGRAM,	"bcp_bind: if varaddr is NULL and varlen greater than 0, the table column type "
 						"must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, SYBCHAR, "
-						"SYBIMAGE or SYBBINARY" }
-	, { SYBEBCBPREF,        EXPROGRAM,	"Illegal prefix length. Legal values are 0, 1, 2 or 4" }
-	, { SYBEBCFO,              EXUSER,	"bcp host files must contain at least one column" }
-	, { SYBEBCHLEN,         EXPROGRAM,	"host_collen should be greater than or equal to -1" }
-	, { SYBEBCIS,       EXCONSISTENCY,	"Attempt to bulk copy an illegally-sized column value to the server" }
+						"SYBIMAGE or SYBBINARY\0" }
+	, { SYBEBCBPREF,        EXPROGRAM,	"Illegal prefix length. Legal values are 0, 1, 2 or 4\0" }
+	, { SYBEBCFO,              EXUSER,	"bcp host files must contain at least one column\0" }
+	, { SYBEBCHLEN,         EXPROGRAM,	"host_collen should be greater than or equal to -1\0" }
+	, { SYBEBCIS,       EXCONSISTENCY,	"Attempt to bulk copy an illegally-sized column value to the server\0" }
 	, { SYBEBCIT,           EXPROGRAM,	"It is illegal to use BCP terminators with program variables other than SYBCHAR, "
-						"SYBBINARY, SYBTEXT, or SYBIMAGE" }
-	, { SYBEBCITBLEN,       EXPROGRAM,	"bcp_init: tblname parameter is too long" }
-	, { SYBEBCITBNM,        EXPROGRAM,	"bcp_init: tblname parameter cannot be NULL" }
+						"SYBBINARY, SYBTEXT, or SYBIMAGE\0" }
+	, { SYBEBCITBLEN,       EXPROGRAM,	"bcp_init: tblname parameter is too long\0" }
+	, { SYBEBCITBNM,        EXPROGRAM,	"bcp_init: tblname parameter cannot be NULL\0" }
 	, { SYBEBCMTXT,         EXPROGRAM,	"bcp_moretext may be used only when there is at least one text or image column in "
-						"the server table" }
-	, { SYBEBCNL,          EXNONFATAL,	"Negative length-prefix found in BCP data-file" }
+						"the server table\0" }
+	, { SYBEBCNL,          EXNONFATAL,	"Negative length-prefix found in BCP data-file\0" }
 	, { SYBEBCNN,              EXUSER,	"Attempt to bulk copy a NULL value into a Server column "
-						"which does not accept null values" }
-	, { SYBEBCNT,              EXUSER,	"Attempt to use Bulk Copy with a non-existent Server table" }
-	, { SYBEBCOR,       EXCONSISTENCY,	"Attempt to bulk copy an oversized row to the server" }
+						"which does not accept null values\0" }
+	, { SYBEBCNT,              EXUSER,	"Attempt to use Bulk Copy with a non-existent Server table\0" }
+	, { SYBEBCOR,       EXCONSISTENCY,	"Attempt to bulk copy an oversized row to the server\0" }
 	, { SYBEBCPB,           EXPROGRAM,	"bcp_bind, bcp_moretext and bcp_sendrow may not be used after bcp_init has been "
-						"passed a non-NULL input file name" }
-	, { SYBEBCPCTYP,        EXPROGRAM,	"bcp_colfmt: If table_colnum is 0, host_type cannot be 0" }
-	, { SYBEBCPI,           EXPROGRAM,	"bcp_init must be called before any other bcp routines" }
+						"passed a non-NULL input file name\0" }
+	, { SYBEBCPCTYP,        EXPROGRAM,	"bcp_colfmt: If table_colnum is 0, host_type cannot be 0\0" }
+	, { SYBEBCPI,           EXPROGRAM,	"bcp_init must be called before any other bcp routines\0" }
 	, { SYBEBCPN,           EXPROGRAM,	"bcp_bind, bcp_collen, bcp_colptr, bcp_moretext and bcp_sendrow may be used only "
-						"after bcp_init has been called with the copy direction set to DB_IN" }
-	, { SYBEBCPREC,        EXNONFATAL,	"Column %1!: Illegal precision value encountered" }
-	, { SYBEBCPREF,         EXPROGRAM,	"Illegal prefix length. Legal values are -1, 0, 1, 2 or 4" }
-	, { SYBEBCRE,          EXNONFATAL,	"I/O error while reading bcp datafile" }
+						"after bcp_init has been called with the copy direction set to DB_IN\0" }
+	, { SYBEBCPREC,        EXNONFATAL,	"Column %1!: Illegal precision value encountered\0%d" }
+	, { SYBEBCPREF,         EXPROGRAM,	"Illegal prefix length. Legal values are -1, 0, 1, 2 or 4\0" }
+	, { SYBEBCRE,          EXNONFATAL,	"I/O error while reading bcp datafile\0" }
 	, { SYBEBCRO,              EXINFO,	"The BCP hostfile '%1!' contains only %2! rows. It was impossible to read the "
-						"requested %3! rows" }
+						"requested %3! rows\0%s %d %d" }
 	, { SYBEBCSA,              EXUSER,	"The BCP hostfile '%1!' contains only %2! rows. "
-						"Skipping all of these rows is not allowed" }
-	, { SYBEBCSET,      EXCONSISTENCY,	"Unknown character-set encountered" }
-	, { SYBEBCSI,           EXPROGRAM,	"Host-file columns may be skipped only when copying into the Server" }
+						"Skipping all of these rows is not allowed\0%s %d" }
+	, { SYBEBCSET,      EXCONSISTENCY,	"Unknown character-set encountered\0" }
+	, { SYBEBCSI,           EXPROGRAM,	"Host-file columns may be skipped only when copying into the Server\0" }
 	, { SYBEBCSNDROW,       EXPROGRAM,	"bcp_sendrow may not be called unless all text data for the previous row has been "
-						"sent using bcp_moretext" }
+						"sent using bcp_moretext\0" }
 	, { SYBEBCSNTYP,        EXPROGRAM,	"column number %1!: if varaddr is NULL and varlen greater than 0, the table column "
 						"type must be SYBTEXT or SYBIMAGE and the program variable type must be SYBTEXT, "
-						"SYBCHAR, SYBIMAGE or SYBBINARY" }
-	, { SYBEBCUC,          EXRESOURCE,	"bcp: Unable to close host datafile" }
-	, { SYBEBCUO,          EXRESOURCE,	"bcp: Unable to open host datafile" }
-	, { SYBEBCVH,           EXPROGRAM,	"bcp_exec may be called only after bcp_init has been passed a valid host file" }
-	, { SYBEBCVLEN,         EXPROGRAM,	"varlen should be greater than or equal to -1" }
-	, { SYBEBCWE,          EXNONFATAL,	"I/O error while writing bcp datafile" }
-	, { SYBEBDIO,           EXPROGRAM,	"Bad bulk copy direction. Must be either IN or OUT" }
-	, { SYBEBEOF,          EXNONFATAL,	"Unexpected EOF encountered in bcp datafile" }
-	, { SYBEBIHC,           EXPROGRAM,	"Incorrect host-column number found in bcp format file" }
+						"SYBCHAR, SYBIMAGE or SYBBINARY\0%d" }
+	, { SYBEBCUC,          EXRESOURCE,	"bcp: Unable to close host datafile\0" }
+	, { SYBEBCUO,          EXRESOURCE,	"bcp: Unable to open host datafile\0" }
+	, { SYBEBCVH,           EXPROGRAM,	"bcp_exec may be called only after bcp_init has been passed a valid host file\0" }
+	, { SYBEBCVLEN,         EXPROGRAM,	"varlen should be greater than or equal to -1\0" }
+	, { SYBEBCWE,          EXNONFATAL,	"I/O error while writing bcp datafile\0" }
+	, { SYBEBDIO,           EXPROGRAM,	"Bad bulk copy direction. Must be either IN or OUT\0" }
+	, { SYBEBEOF,          EXNONFATAL,	"Unexpected EOF encountered in bcp datafile\0" }
+	, { SYBEBIHC,           EXPROGRAM,	"Incorrect host-column number found in bcp format file\0" }
 	, { SYBEBIVI,           EXPROGRAM,	"bcp_columns, bcp_colfmt and bcp_colfmt_ps may be used only after bcp_init has been "
-						"passed a valid input file" }
-	, { SYBEBNCR,           EXPROGRAM,	"Attempt to bind user variable to a non-existent compute row" }
-	, { SYBEBNUM,           EXPROGRAM,	"Bad numbytes parameter passed to dbstrcpy" }
-	, { SYBEBPKS,           EXPROGRAM,	"In DBSETLPACKET, the packet size parameter must be between 0 and 999999" }
-	, { SYBEBPREC,          EXPROGRAM,	"Illegal precision specified" }
-	, { SYBEBPROBADDEF, EXCONSISTENCY,	"bcp protocol error: illegal default column id received" }
+						"passed a valid input file\0" }
+	, { SYBEBNCR,           EXPROGRAM,	"Attempt to bind user variable to a non-existent compute row\0" }
+	, { SYBEBNUM,           EXPROGRAM,	"Bad numbytes parameter passed to dbstrcpy\0" }
+	, { SYBEBPKS,           EXPROGRAM,	"In DBSETLPACKET, the packet size parameter must be between 0 and 999999\0" }
+	, { SYBEBPREC,          EXPROGRAM,	"Illegal precision specified\0" }
+	, { SYBEBPROBADDEF, EXCONSISTENCY,	"bcp protocol error: illegal default column id received\0" }
 	, { SYBEBPROCOL,    EXCONSISTENCY,	"bcp protocol error: returned column count differs from the actual number of "
-						"columns received" }
-	, { SYBEBPRODEF,    EXCONSISTENCY,	"bcp protocol error: expected default information and got none" }
-	, { SYBEBPRODEFID,  EXCONSISTENCY,	"bcp protocol error: default column id and actual column id are not same" }
-	, { SYBEBPRODEFTYP, EXCONSISTENCY,	"bcp protocol error: default value datatype differs from column datatype" }
-	, { SYBEBPROEXTDEF, EXCONSISTENCY,	"bcp protocol error: more than one row of default information received" }
-	, { SYBEBPROEXTRES, EXCONSISTENCY,	"bcp protocol error: unexpected set of results received" }
-	, { SYBEBPRONODEF,  EXCONSISTENCY,	"bcp protocol error: default value received for column that does not have default" }
+						"columns received\0" }
+	, { SYBEBPRODEF,    EXCONSISTENCY,	"bcp protocol error: expected default information and got none\0" }
+	, { SYBEBPRODEFID,  EXCONSISTENCY,	"bcp protocol error: default column id and actual column id are not same\0" }
+	, { SYBEBPRODEFTYP, EXCONSISTENCY,	"bcp protocol error: default value datatype differs from column datatype\0" }
+	, { SYBEBPROEXTDEF, EXCONSISTENCY,	"bcp protocol error: more than one row of default information received\0" }
+	, { SYBEBPROEXTRES, EXCONSISTENCY,	"bcp protocol error: unexpected set of results received\0" }
+	, { SYBEBPRONODEF,  EXCONSISTENCY,	"bcp protocol error: default value received for column that does not have default\0" }
 	, { SYBEBPRONUMDEF, EXCONSISTENCY,	"bcp protocol error: expected number of defaults differs from the actual number of "
-						"defaults received" }
-	, { SYBEBRFF,          EXRESOURCE,	"I/O error while reading bcp format file" }
-	, { SYBEBSCALE,         EXPROGRAM,	"Illegal scale specified" }
-	, { SYBEBTMT,           EXPROGRAM,	"Attempt to send too much text data via the bcp_moretext call" }
-	, { SYBEBTOK,              EXCOMM,	"Bad token from the server: Datastream processing out of sync" }
-	, { SYBEBTYP,           EXPROGRAM,	"Unknown bind type passed to DB-Library function" }
-	, { SYBEBTYPSRV,        EXPROGRAM,	"Datatype is not supported by the server" }
-	, { SYBEBUCE,          EXRESOURCE,	"bcp: Unable to close error file" }
-	, { SYBEBUCF,           EXPROGRAM,	"bcp: Unable to close format file" }
-	, { SYBEBUDF,           EXPROGRAM,	"bcp: Unrecognized datatype found in format file" }
-	, { SYBEBUFF,           EXPROGRAM,	"bcp: Unable to create format file" }
-	, { SYBEBUFL,       EXCONSISTENCY,	"DB-Library internal error-send buffer length corrupted" }
-	, { SYBEBUOE,          EXRESOURCE,	"bcp: Unable to open error file" }
-	, { SYBEBUOF,           EXPROGRAM,	"bcp: Unable to open format file" }
-	, { SYBEBWEF,          EXNONFATAL,	"I/O error while writing bcp error file" }
-	, { SYBEBWFF,          EXRESOURCE,	"I/O error while writing bcp format file" }
-	, { SYBECAP,               EXCOMM,	"DB-Library capabilities not accepted by the Server" }
-	, { SYBECAPTYP,            EXCOMM,	"Unexpected capability type in CAPABILITY datastream" }
+						"defaults received\0" }
+	, { SYBEBRFF,          EXRESOURCE,	"I/O error while reading bcp format file\0" }
+	, { SYBEBSCALE,         EXPROGRAM,	"Illegal scale specified\0" }
+	, { SYBEBTMT,           EXPROGRAM,	"Attempt to send too much text data via the bcp_moretext call\0" }
+	, { SYBEBTOK,              EXCOMM,	"Bad token from the server: Datastream processing out of sync\0" }
+	, { SYBEBTYP,           EXPROGRAM,	"Unknown bind type passed to DB-Library function\0" }
+	, { SYBEBTYPSRV,        EXPROGRAM,	"Datatype is not supported by the server\0" }
+	, { SYBEBUCE,          EXRESOURCE,	"bcp: Unable to close error file\0" }
+	, { SYBEBUCF,           EXPROGRAM,	"bcp: Unable to close format file\0" }
+	, { SYBEBUDF,           EXPROGRAM,	"bcp: Unrecognized datatype found in format file\0" }
+	, { SYBEBUFF,           EXPROGRAM,	"bcp: Unable to create format file\0" }
+	, { SYBEBUFL,       EXCONSISTENCY,	"DB-Library internal error-send buffer length corrupted\0" }
+	, { SYBEBUOE,          EXRESOURCE,	"bcp: Unable to open error file\0" }
+	, { SYBEBUOF,           EXPROGRAM,	"bcp: Unable to open format file\0" }
+	, { SYBEBWEF,          EXNONFATAL,	"I/O error while writing bcp error file\0" }
+	, { SYBEBWFF,          EXRESOURCE,	"I/O error while writing bcp format file\0" }
+	, { SYBECAP,               EXCOMM,	"DB-Library capabilities not accepted by the Server\0" }
+	, { SYBECAPTYP,            EXCOMM,	"Unexpected capability type in CAPABILITY datastream\0" }
 	, { SYBECDNS,       EXCONSISTENCY,	"Datastream indicates that a compute column is derived from a non-existent select "
-						"list member" }
-	, { SYBECDOMAIN,     EXCONVERSION,	"Source field value is not within the domain of legal values" }
-	, { SYBECINTERNAL,   EXCONVERSION,	"Internal Conversion error" }
-	, { SYBECLOS,              EXCOMM,	"Error in closing network connection" }
-	, { SYBECLPR,        EXCONVERSION,	"Data conversion resulted in loss of precision" }
-	, { SYBECNOR,           EXPROGRAM,	"Column number out of range" }
-	, { SYBECNOV,        EXCONVERSION,	"Attempt to set variable to NULL resulted in overflow" }
-	, { SYBECOFL,        EXCONVERSION,	"Data conversion resulted in overflow" }
-	, { SYBECONN,              EXCOMM,	"Unable to connect: Adaptive Server is unavailable or does not exist" }
+						"list member\0" }
+	, { SYBECDOMAIN,     EXCONVERSION,	"Source field value is not within the domain of legal values\0" }
+	, { SYBECINTERNAL,   EXCONVERSION,	"Internal Conversion error\0" }
+	, { SYBECLOS,              EXCOMM,	"Error in closing network connection\0" }
+	, { SYBECLPR,        EXCONVERSION,	"Data conversion resulted in loss of precision\0" }
+	, { SYBECNOR,           EXPROGRAM,	"Column number out of range\0" }
+	, { SYBECNOV,        EXCONVERSION,	"Attempt to set variable to NULL resulted in overflow\0" }
+	, { SYBECOFL,        EXCONVERSION,	"Data conversion resulted in overflow\0" }
+	, { SYBECONN,              EXCOMM,	"Unable to connect: Adaptive Server is unavailable or does not exist\0" }
 	, { SYBECRNC,           EXPROGRAM,	"The current row is not a result of compute clause %1!, so it is illegal to attempt "
-						"to extract that data from this row" }
-	, { SYBECRSAGR,         EXPROGRAM,	"Aggregate functions are not allowed in a cursor statement" }
-	, { SYBECRSBROL,        EXPROGRAM,	"Backward scrolling cannot be used in a forward scrolling cursor" }
-	, { SYBECRSBSKEY,       EXPROGRAM,	"Keyset cannot be scrolled backward in mixed cursors with a previous fetch type" }
-	, { SYBECRSBUFR,        EXPROGRAM,	"Row buffering should not be turned on when using cursor APIs" }
+						"to extract that data from this row\0%d" }
+	, { SYBECRSAGR,         EXPROGRAM,	"Aggregate functions are not allowed in a cursor statement\0" }
+	, { SYBECRSBROL,        EXPROGRAM,	"Backward scrolling cannot be used in a forward scrolling cursor\0" }
+	, { SYBECRSBSKEY,       EXPROGRAM,	"Keyset cannot be scrolled backward in mixed cursors with a previous fetch type\0" }
+	, { SYBECRSBUFR,        EXPROGRAM,	"Row buffering should not be turned on when using cursor APIs\0" }
 	, { SYBECRSDIS,         EXPROGRAM,	"Cursor statement contains one of the disallowed phrases compute, union, for "
-						"browse, or select into" }
-	, { SYBECRSFLAST,       EXPROGRAM,	"Fetch type LAST requires fully keyset driven cursors" }
+						"browse, or select into\0" }
+	, { SYBECRSFLAST,       EXPROGRAM,	"Fetch type LAST requires fully keyset driven cursors\0" }
 	, { SYBECRSFRAND,       EXPROGRAM,	"Fetch types RANDOM and RELATIVE can only be used within the keyset of keyset "
-						"driven cursors" }
-	, { SYBECRSFROWN,       EXPROGRAM,	"Row number to be fetched is outside valid range" }
-	, { SYBECRSFTYPE,      EXRESOURCE,	"Unknown fetch type" }
-	, { SYBECRSINV,         EXPROGRAM,	"Invalid cursor statement" }
-	, { SYBECRSINVALID,    EXRESOURCE,	"The cursor handle is invalid" }
-	, { SYBECRSMROWS,      EXRESOURCE,	"Multiple rows are returned, only one is expected while retrieving dbname" }
-	, { SYBECRSNOBIND,      EXPROGRAM,	"Cursor bind must be called prior to dbcursor invocation" }
+						"driven cursors\0" }
+	, { SYBECRSFROWN,       EXPROGRAM,	"Row number to be fetched is outside valid range\0" }
+	, { SYBECRSFTYPE,      EXRESOURCE,	"Unknown fetch type\0" }
+	, { SYBECRSINV,         EXPROGRAM,	"Invalid cursor statement\0" }
+	, { SYBECRSINVALID,    EXRESOURCE,	"The cursor handle is invalid\0" }
+	, { SYBECRSMROWS,      EXRESOURCE,	"Multiple rows are returned, only one is expected while retrieving dbname\0" }
+	, { SYBECRSNOBIND,      EXPROGRAM,	"Cursor bind must be called prior to dbcursor invocation\0" }
 	, { SYBECRSNOCOUNT,     EXPROGRAM,	"The DBNOCOUNT option should not be turned on "
-						"when doing updates or deletes with dbcursor" }
-	, { SYBECRSNOFREE,      EXPROGRAM,	"The DBNOAUTOFREE option should not be turned on when using cursor APIs" }
-	, { SYBECRSNOIND,       EXPROGRAM,	"One of the tables involved in the cursor statement does not have a unique index" }
-	, { SYBECRSNOKEYS,     EXRESOURCE,	"The entire keyset must be defined for KEYSET type cursors" }
-	, { SYBECRSNOLEN,      EXRESOURCE,	"No unique index found" }
-	, { SYBECRSNOPTCC,     EXRESOURCE,	"No OPTCC was found" }
-	, { SYBECRSNORDER,     EXRESOURCE,	"The order of clauses must be from, where, and order by" }
-	, { SYBECRSNORES,       EXPROGRAM,	"Cursor statement generated no results" }
-	, { SYBECRSNROWS,      EXRESOURCE,	"No rows returned, at least one is expected" }
-	, { SYBECRSNOTABLE,    EXRESOURCE,	"Table name is NULL" }
-	, { SYBECRSNOUPD,       EXPROGRAM,	"Update or delete operation did not affect any rows" }
-	, { SYBECRSNOWHERE,     EXPROGRAM,	"A WHERE clause is not allowed in a cursor update or insert" }
-	, { SYBECRSNUNIQUE,    EXRESOURCE,	"No unique keys associated with this view" }
-	, { SYBECRSORD,         EXPROGRAM,	"Only fully keyset driven cursors can have order by, group by, or having phrases" }
-	, { SYBECRSRO,          EXPROGRAM,	"Data locking or modifications cannot be made in a READONLY cursor" }
-	, { SYBECRSSET,         EXPROGRAM,	"A SET clause is required for a cursor update or insert" }
-	, { SYBECRSTAB,         EXPROGRAM,	"Table name must be determined in operations involving data locking or modifications" }
-	, { SYBECRSVAR,        EXRESOURCE,	"There is no valid address associated with this bind" }
-	, { SYBECRSVIEW,        EXPROGRAM,	"A view cannot be joined with another table or a view in a cursor statement" }
+						"when doing updates or deletes with dbcursor\0" }
+	, { SYBECRSNOFREE,      EXPROGRAM,	"The DBNOAUTOFREE option should not be turned on when using cursor APIs\0" }
+	, { SYBECRSNOIND,       EXPROGRAM,	"One of the tables involved in the cursor statement does not have a unique index\0" }
+	, { SYBECRSNOKEYS,     EXRESOURCE,	"The entire keyset must be defined for KEYSET type cursors\0" }
+	, { SYBECRSNOLEN,      EXRESOURCE,	"No unique index found\0" }
+	, { SYBECRSNOPTCC,     EXRESOURCE,	"No OPTCC was found\0" }
+	, { SYBECRSNORDER,     EXRESOURCE,	"The order of clauses must be from, where, and order by\0" }
+	, { SYBECRSNORES,       EXPROGRAM,	"Cursor statement generated no results\0" }
+	, { SYBECRSNROWS,      EXRESOURCE,	"No rows returned, at least one is expected\0" }
+	, { SYBECRSNOTABLE,    EXRESOURCE,	"Table name is NULL\0" }
+	, { SYBECRSNOUPD,       EXPROGRAM,	"Update or delete operation did not affect any rows\0" }
+	, { SYBECRSNOWHERE,     EXPROGRAM,	"A WHERE clause is not allowed in a cursor update or insert\0" }
+	, { SYBECRSNUNIQUE,    EXRESOURCE,	"No unique keys associated with this view\0" }
+	, { SYBECRSORD,         EXPROGRAM,	"Only fully keyset driven cursors can have order by, group by, or having phrases\0" }
+	, { SYBECRSRO,          EXPROGRAM,	"Data locking or modifications cannot be made in a READONLY cursor\0" }
+	, { SYBECRSSET,         EXPROGRAM,	"A SET clause is required for a cursor update or insert\0" }
+	, { SYBECRSTAB,         EXPROGRAM,	"Table name must be determined in operations involving data locking or modifications\0" }
+	, { SYBECRSVAR,        EXRESOURCE,	"There is no valid address associated with this bind\0" }
+	, { SYBECRSVIEW,        EXPROGRAM,	"A view cannot be joined with another table or a view in a cursor statement\0" }
 	, { SYBECRSVIIND,       EXPROGRAM,	"The view used in the cursor statement does not include all the unique index "
-						"columns of the underlying tables" }
-	, { SYBECRSUPDNB,       EXPROGRAM,	"Update or insert operations cannot use bind variables when binding type is NOBIND" }
-	, { SYBECRSUPDTAB,      EXPROGRAM,	"Update or insert operations using bind variables require single table cursors" }
-	, { SYBECSYN,        EXCONVERSION,	"Attempt to convert data stopped by syntax error in source field" }
-	, { SYBECUFL,        EXCONVERSION,	"Data conversion resulted in underflow" }
-	, { SYBEDBPS,          EXRESOURCE,	"Maximum number of DBPROCESSes already allocated" }
-	, { SYBEDDNE,              EXINFO,	"DBPROCESS is dead or not enabled" }
-	, { SYBEDIVZ,              EXUSER,	"Attempt to divide by $0.00 in function %1!" }
+						"columns of the underlying tables\0" }
+	, { SYBECRSUPDNB,       EXPROGRAM,	"Update or insert operations cannot use bind variables when binding type is NOBIND\0" }
+	, { SYBECRSUPDTAB,      EXPROGRAM,	"Update or insert operations using bind variables require single table cursors\0" }
+	, { SYBECSYN,        EXCONVERSION,	"Attempt to convert data stopped by syntax error in source field\0" }
+	, { SYBECUFL,        EXCONVERSION,	"Data conversion resulted in underflow\0" }
+	, { SYBEDBPS,          EXRESOURCE,	"Maximum number of DBPROCESSes already allocated\0" }
+	, { SYBEDDNE,              EXINFO,	"DBPROCESS is dead or not enabled\0" }
+	, { SYBEDIVZ,              EXUSER,	"Attempt to divide by $0.00 in function %1!\0%s" }
 	, { SYBEDNTI,           EXPROGRAM,	"Attempt to use dbtxtsput to put a new text timestamp into a column whose datatype "
-						"is neither SYBTEXT nor SYBIMAGE" }
-	, { SYBEDPOR,           EXPROGRAM,	"Out-of-range datepart constant" }
-	, { SYBEDVOR,           EXPROGRAM,	"Day values must be between 1 and 7" }
-	, { SYBEECAN,              EXINFO,	"Attempted to cancel unrequested event notification" }
-	, { SYBEEINI,              EXINFO,	"Must call dbreginit before dbregexec" }
-	, { SYBEETD,            EXPROGRAM,	"Failure to send the expected amount of TEXT or IMAGE data via dbmoretext" }
-	, { SYBEEUNR,              EXCOMM,	"Unsolicited event notification received" }
-	, { SYBEEVOP,              EXINFO,	"Called dbregwatch with a bad options parameter" }
-	, { SYBEEVST,              EXINFO,	"Must initiate a transaction before calling dbregparam" }
-	, { SYBEFCON,              EXCOMM,	"Adaptive Server connection failed" }
-	, { SYBEFRES,             EXFATAL,	"Challenge-Response function failed" }
-	, { SYBEFSHD,          EXRESOURCE,	"Error in attempting to find the Sybase home directory" }
-	, { SYBEFUNC,           EXPROGRAM,	"Functionality not supported at the specified version level" }
-	, { SYBEICN,            EXPROGRAM,	"Invalid computeid or compute column number" }
+						"is neither SYBTEXT nor SYBIMAGE\0" }
+	, { SYBEDPOR,           EXPROGRAM,	"Out-of-range datepart constant\0" }
+	, { SYBEDVOR,           EXPROGRAM,	"Day values must be between 1 and 7\0" }
+	, { SYBEECAN,              EXINFO,	"Attempted to cancel unrequested event notification\0" }
+	, { SYBEEINI,              EXINFO,	"Must call dbreginit before dbregexec\0" }
+	, { SYBEETD,            EXPROGRAM,	"Failure to send the expected amount of TEXT or IMAGE data via dbmoretext\0" }
+	, { SYBEEUNR,              EXCOMM,	"Unsolicited event notification received\0" }
+	, { SYBEEVOP,              EXINFO,	"Called dbregwatch with a bad options parameter\0" }
+	, { SYBEEVST,              EXINFO,	"Must initiate a transaction before calling dbregparam\0" }
+	, { SYBEFCON,              EXCOMM,	"Adaptive Server connection failed\0" }
+	, { SYBEFRES,             EXFATAL,	"Challenge-Response function failed\0" }
+	, { SYBEFSHD,          EXRESOURCE,	"Error in attempting to find the Sybase home directory\0" }
+	, { SYBEFUNC,           EXPROGRAM,	"Functionality not supported at the specified version level\0" }
+	, { SYBEICN,            EXPROGRAM,	"Invalid computeid or compute column number\0" }
 	, { SYBEIDCL,       EXCONSISTENCY,	"Illegal datetime column length returned by Adaptive Server. Legal datetime lengths "
-						"are 4 and 8 bytes" }
-	, { SYBEIDECCL,     EXCONSISTENCY,	"Invalid decimal column length returned by the server" }
+						"are 4 and 8 bytes\0" }
+	, { SYBEIDECCL,     EXCONSISTENCY,	"Invalid decimal column length returned by the server\0" }
 	, { SYBEIFCL,       EXCONSISTENCY,	"Illegal floating-point column length returned by Adaptive Server. Legal "
-						"floating-point lengths are 4 and 8 bytes" }
-	, { SYBEIFNB,           EXPROGRAM,	"Illegal field number passed to bcp_control" }
+						"floating-point lengths are 4 and 8 bytes\0" }
+	, { SYBEIFNB,           EXPROGRAM,	"Illegal field number passed to bcp_control\0" }
 	, { SYBEIICL,       EXCONSISTENCY,	"Illegal integer column length returned by Adaptive Server. Legal integer lengths "
-						"are 1, 2, and 4 bytes" }
+						"are 1, 2, and 4 bytes\0" }
 	, { SYBEIMCL,       EXCONSISTENCY,	"Illegal money column length returned by Adaptive Server. Legal money lengths are 4 "
-						"and 8 bytes" }
-	, { SYBEINLN,              EXUSER,	"Interface file: unexpected end-of-line" }
-	, { SYBEINTF,              EXUSER,	"Server name not found in interface file" }
-	, { SYBEINUMCL,     EXCONSISTENCY,	"Invalid numeric column length returned by the server" }
-	, { SYBEIPV,               EXINFO,	"%1! is an illegal value for the %2! parameter of %3!" }
-	, { SYBEISOI,       EXCONSISTENCY,	"International Release: Invalid sort-order information found" }
-	, { SYBEISRVPREC,   EXCONSISTENCY,	"Illegal precision value returned by the server" }
-	, { SYBEISRVSCL,    EXCONSISTENCY,	"Illegal scale value returned by the server" }
-	, { SYBEITIM,           EXPROGRAM,	"Illegal timeout value specified" }
-	, { SYBEIVERS,          EXPROGRAM,	"Illegal version level specified" }
-	, { SYBEKBCI,              EXINFO,	"1000 rows sent to the server" }
-	, { SYBEKBCO,              EXINFO,	"1000 rows successfully bulk copied to host file" }
-	, { SYBEMEM,           EXRESOURCE,	"Unable to allocate sufficient memory" }
-	, { SYBEMOV,               EXUSER,	"Money arithmetic resulted in overflow in function %1!" }
-	, { SYBEMPLL,              EXUSER,	"Attempt to set maximum number of DBPROCESSes lower than 1" }
-	, { SYBEMVOR,           EXPROGRAM,	"Month values must be between 1 and 12" }
-	, { SYBENBUF,              EXINFO,	"Called dbsendpassthru with a NULL buf parameter" }
-	, { SYBENBVP,           EXPROGRAM,	"Cannot pass dbsetnull a NULL bindval pointer" }
-	, { SYBENDC,            EXPROGRAM,	"Cannot have negative component in date in numeric form" }
-	, { SYBENDTP,           EXPROGRAM,	"Called dbdatecrack with NULL datetime parameter" }
-	, { SYBENEG,               EXCOMM,	"Negotiated login attempt failed" }
-	, { SYBENHAN,              EXINFO,	"Called dbrecvpassthru with a NULL handle parameter" }
-	, { SYBENMOB,           EXPROGRAM,	"No such member of order by clause" }
-	, { SYBENOEV,              EXINFO,	"DBPOLL can not be called when registered procedure notifications have been disabled" }
-	, { SYBENPRM,           EXPROGRAM,	"NULL parameter not allowed for this dboption" }
-	, { SYBENSIP,           EXPROGRAM,	"Negative starting index passed to dbstrcpy" }
-	, { SYBENTLL,              EXUSER,	"Name too long for LOGINREC field" }
-	, { SYBENTTN,           EXPROGRAM,	"Attempt to use dbtxtsput to put a new text timestamp into a non-existent data row" }
-	, { SYBENULL,              EXINFO,	"NULL DBPROCESS pointer passed to DB-Library" }
-	, { SYBENULP,           EXPROGRAM,	"Called %s with a NULL %s parameter" }
-	, { SYBENXID,          EXNONFATAL,	"The Server did not grant us a distributed-transaction ID" }
-	, { SYBEONCE,           EXPROGRAM,	"Function can be called only once" }
-	, { SYBEOOB,               EXCOMM,	"Error in sending out-of-band data to the server" }
-	, { SYBEOPIN,          EXNONFATAL,	"Could not open interface file" }
-	, { SYBEOPNA,          EXNONFATAL,	"Option is not available with current server" }
+						"and 8 bytes\0" }
+	, { SYBEINLN,              EXUSER,	"Interface file: unexpected end-of-line\0" }
+	, { SYBEINTF,              EXUSER,	"Server name not found in interface file\0" }
+	, { SYBEINUMCL,     EXCONSISTENCY,	"Invalid numeric column length returned by the server\0" }
+	, { SYBEIPV,               EXINFO,	"%1! is an illegal value for the %2! parameter of %3!\0%s %d %s" }
+	, { SYBEISOI,       EXCONSISTENCY,	"International Release: Invalid sort-order information found\0" }
+	, { SYBEISRVPREC,   EXCONSISTENCY,	"Illegal precision value returned by the server\0" }
+	, { SYBEISRVSCL,    EXCONSISTENCY,	"Illegal scale value returned by the server\0" }
+	, { SYBEITIM,           EXPROGRAM,	"Illegal timeout value specified\0" }
+	, { SYBEIVERS,          EXPROGRAM,	"Illegal version level specified\0" }
+	, { SYBEKBCI,              EXINFO,	"1000 rows sent to the server\0" }
+	, { SYBEKBCO,              EXINFO,	"1000 rows successfully bulk copied to host file\0" }
+	, { SYBEMEM,           EXRESOURCE,	"Unable to allocate sufficient memory\0" }
+	, { SYBEMOV,               EXUSER,	"Money arithmetic resulted in overflow in function %1!\0%s" }
+	, { SYBEMPLL,              EXUSER,	"Attempt to set maximum number of DBPROCESSes lower than 1\0" }
+	, { SYBEMVOR,           EXPROGRAM,	"Month values must be between 1 and 12\0" }
+	, { SYBENBUF,              EXINFO,	"Called dbsendpassthru with a NULL buf parameter\0" }
+	, { SYBENBVP,           EXPROGRAM,	"Cannot pass dbsetnull a NULL bindval pointer\0" }
+	, { SYBENDC,            EXPROGRAM,	"Cannot have negative component in date in numeric form\0" }
+	, { SYBENDTP,           EXPROGRAM,	"Called dbdatecrack with NULL datetime parameter\0" }
+	, { SYBENEG,               EXCOMM,	"Negotiated login attempt failed\0" }
+	, { SYBENHAN,              EXINFO,	"Called dbrecvpassthru with a NULL handle parameter\0" }
+	, { SYBENMOB,           EXPROGRAM,	"No such member of order by clause\0" }
+	, { SYBENOEV,              EXINFO,	"DBPOLL can not be called when registered procedure notifications have been disabled\0" }
+	, { SYBENPRM,           EXPROGRAM,	"NULL parameter not allowed for this dboption\0" }
+	, { SYBENSIP,           EXPROGRAM,	"Negative starting index passed to dbstrcpy\0" }
+	, { SYBENTLL,              EXUSER,	"Name too long for LOGINREC field\0" }
+	, { SYBENTTN,           EXPROGRAM,	"Attempt to use dbtxtsput to put a new text timestamp into a non-existent data row\0" }
+	, { SYBENULL,              EXINFO,	"NULL DBPROCESS pointer passed to DB-Library\0" }
+	, { SYBENULP,           EXPROGRAM,	"Called %1! with parameter %2! NULL\0%s %d" }
+	, { SYBENXID,          EXNONFATAL,	"The Server did not grant us a distributed-transaction ID\0" }
+	, { SYBEONCE,           EXPROGRAM,	"Function can be called only once\0" }
+	, { SYBEOOB,               EXCOMM,	"Error in sending out-of-band data to the server\0" }
+	, { SYBEOPIN,          EXNONFATAL,	"Could not open interface file\0" }
+	, { SYBEOPNA,          EXNONFATAL,	"Option is not available with current server\0" }
 	, { SYBEOREN,              EXINFO,	"International Release: Warning: an out-of-range error-number was encountered in "
-						"dblib.loc. The maximum permissible error-number is defined as DBERRCOUNT in sybdb.h" }
+						"dblib.loc. The maximum permissible error-number is defined as DBERRCOUNT in sybdb.h\0" }
 	, { SYBEORPF,              EXUSER,	"Attempt to set remote password would overflow "
-						"the login record's remote password field" }
-	, { SYBEPOLL,              EXINFO,	"There is already an active dbpoll" }
-	, { SYBEPRTF,              EXINFO,	"dbtracestring may only be called from a printfunc" }
-	, { SYBEPWD,               EXUSER,	"Login incorrect" }
-	, { SYBERDCN,        EXCONVERSION,	"Requested data conversion does not exist" }
-	, { SYBERDNR,           EXPROGRAM,	"Attempt to retrieve data from a non-existent row" }
-	, { SYBEREAD,              EXCOMM,	"Read from the server failed" }
-	, { SYBERESP,           EXPROGRAM,	"Response function address passed to dbresponse must be non-NULL" }
-	, { SYBERPCS,              EXINFO,	"Must call dbrpcinit before dbrpcparam or dbrpcsend" }
+						"the login record's remote password field\0" }
+	, { SYBEPOLL,              EXINFO,	"There is already an active dbpoll\0" }
+	, { SYBEPRTF,              EXINFO,	"dbtracestring may only be called from a printfunc\0" }
+	, { SYBEPWD,               EXUSER,	"Login incorrect\0" }
+	, { SYBERDCN,        EXCONVERSION,	"Requested data conversion does not exist\0" }
+	, { SYBERDNR,           EXPROGRAM,	"Attempt to retrieve data from a non-existent row\0" }
+	, { SYBEREAD,              EXCOMM,	"Read from the server failed\0" }
+	, { SYBERESP,           EXPROGRAM,	"Response function address passed to dbresponse must be non-NULL\0" }
+	, { SYBERPCS,              EXINFO,	"Must call dbrpcinit before dbrpcparam or dbrpcsend\0" }
 	, { SYBERPIL,           EXPROGRAM,	"It is illegal to pass -1 to dbrpcparam for the datalen of parameters which are of "
-						"type SYBCHAR, SYBVARCHAR, SYBBINARY, or SYBVARBINARY" }
+						"type SYBCHAR, SYBVARCHAR, SYBBINARY, or SYBVARBINARY\0" }
 	, { SYBERPNA,          EXNONFATAL,	"The RPC facility is available only when using a server whose version number is 4.0 "
-						"or later" }
-	, { SYBERPND,           EXPROGRAM,	"Attempt to initiate a new Adaptive Server operation with results pending" }
-	, { SYBERPNULL,         EXPROGRAM,	"value parameter for dbrpcparam can be NULL, only if the datalen parameter is 0" }
-	, { SYBERPTXTIM,        EXPROGRAM,	"RPC parameters cannot be of type text or image" }
+						"or later\0" }
+	, { SYBERPND,           EXPROGRAM,	"Attempt to initiate a new Adaptive Server operation with results pending\0" }
+	, { SYBERPNULL,         EXPROGRAM,	"value parameter for dbrpcparam can be NULL, only if the datalen parameter is 0\0" }
+	, { SYBERPTXTIM,        EXPROGRAM,	"RPC parameters cannot be of type text or image\0" }
 	, { SYBERPUL,           EXPROGRAM,	"When passing a SYBINTN, SYBDATETIMN, SYBMONEYN, or SYBFLTN parameter via "
 						"dbrpcparam, it is necessary to specify the parameter's maximum or actual length so "
 						"that DB-Library can recognize it as a SYINT1, SYBINT2, SYBINT4, SYBMONEY, SYBMONEY4, "
-						"and so on" }
+						"and so on\0" }
 	, { SYBERTCC,           EXPROGRAM,	"dbreadtext may not be used to receive the results of a query that contains a "
-						"COMPUTE clause" }
+						"COMPUTE clause\0" }
 	, { SYBERTSC,           EXPROGRAM,	"dbreadtext may be used only to receive the results of a query that contains a "
-						"single result column" }
-	, { SYBERXID,          EXNONFATAL,	"The Server did not recognize our distributed-transaction ID" }
-	, { SYBESECURE,         EXPROGRAM,	"Secure SQL Server function not supported in this version" }
-	, { SYBESEFA,           EXPROGRAM,	"DBSETNOTIFS cannot be called if connections are present" }
-	, { SYBESEOF,              EXCOMM,	"Unexpected EOF from the server" }
-	, { SYBESFOV,           EXPROGRAM,	"International Release: dbsafestr overflowed its destination buffer" }
-	, { SYBESMSG,            EXSERVER,	"General Adaptive Server error: Check messages from the server" }
-	, { SYBESOCK,              EXCOMM,	"Unable to open socket" }
-	, { SYBESPID,           EXPROGRAM,	"Called dbspid with a NULL dbproc" }
-	, { SYBESYNC,              EXCOMM,	"Read attempted while out of synchronization with Adaptive Server" }
-	, { SYBETEXS,              EXINFO,	"Called dbmoretext with a bad size parameter" }
-	, { SYBETIME,              EXTIME,	"Adaptive Server connection timed out" }
-	, { SYBETMCF,           EXPROGRAM,	"Attempt to install too many custom formats via dbfmtinstall" }
-	, { SYBETMTD,           EXPROGRAM,	"Attempt to send too much TEXT data via the dbmoretext call" }
-	, { SYBETPAR,           EXPROGRAM,	"No SYBTEXT or SYBIMAGE parameters were defined" }
-	, { SYBETPTN,              EXUSER,	"Syntax error: only two periods are permitted in table names" }
-	, { SYBETRAC,              EXINFO,	"Attempted to turn off a trace flag that was not on" }
-	, { SYBETRAN,              EXINFO,	"DBPROCESS is being used for another transaction" }
-	, { SYBETRAS,              EXINFO,	"DB-Library internal error - trace structure not found" }
-	, { SYBETRSN,              EXINFO,	"Bad numbytes parameter passed to dbtracestring" }
-	, { SYBETSIT,              EXINFO,	"Attempt to call dbtsput with an invalid timestamp" }
+						"single result column\0" }
+	, { SYBERXID,          EXNONFATAL,	"The Server did not recognize our distributed-transaction ID\0" }
+	, { SYBESECURE,         EXPROGRAM,	"Secure SQL Server function not supported in this version\0" }
+	, { SYBESEFA,           EXPROGRAM,	"DBSETNOTIFS cannot be called if connections are present\0" }
+	, { SYBESEOF,              EXCOMM,	"Unexpected EOF from the server\0" }
+	, { SYBESFOV,           EXPROGRAM,	"International Release: dbsafestr overflowed its destination buffer\0" }
+	, { SYBESMSG,            EXSERVER,	"General Adaptive Server error: Check messages from the server\0" }
+	, { SYBESOCK,              EXCOMM,	"Unable to open socket\0" }
+	, { SYBESPID,           EXPROGRAM,	"Called dbspid with a NULL dbproc\0" }
+	, { SYBESYNC,              EXCOMM,	"Read attempted while out of synchronization with Adaptive Server\0" }
+	, { SYBETEXS,              EXINFO,	"Called dbmoretext with a bad size parameter\0" }
+	, { SYBETIME,              EXTIME,	"Adaptive Server connection timed out\0" }
+	, { SYBETMCF,           EXPROGRAM,	"Attempt to install too many custom formats via dbfmtinstall\0" }
+	, { SYBETMTD,           EXPROGRAM,	"Attempt to send too much TEXT data via the dbmoretext call\0" }
+	, { SYBETPAR,           EXPROGRAM,	"No SYBTEXT or SYBIMAGE parameters were defined\0" }
+	, { SYBETPTN,              EXUSER,	"Syntax error: only two periods are permitted in table names\0" }
+	, { SYBETRAC,              EXINFO,	"Attempted to turn off a trace flag that was not on\0" }
+	, { SYBETRAN,              EXINFO,	"DBPROCESS is being used for another transaction\0" }
+	, { SYBETRAS,              EXINFO,	"DB-Library internal error - trace structure not found\0" }
+	, { SYBETRSN,              EXINFO,	"Bad numbytes parameter passed to dbtracestring\0" }
+	, { SYBETSIT,              EXINFO,	"Attempt to call dbtsput with an invalid timestamp\0" }
 	, { SYBETTS,               EXUSER,	"The table which bulk copy is attempting to copy to a host file is shorter than the "
-						"number of rows which bulk copy was instructed to skip" }
-	, { SYBETYPE,              EXINFO,	"Invalid argument type given to Hyper/DB-Library" }
-	, { SYBEUCPT,              EXUSER,	"Unrecognized custom-format parameter-type encountered in dbstrbuild" }
-	, { SYBEUCRR,       EXCONSISTENCY,	"Internal software error: Unknown connection result reported by dbpasswd" }
-	, { SYBEUDTY,       EXCONSISTENCY,	"Unknown datatype encountered" }
-	, { SYBEUFDS,              EXUSER,	"Unrecognized format encountered in dbstrbuild" }
-	, { SYBEUFDT,       EXCONSISTENCY,	"Unknown fixed-length datatype encountered" }
-	, { SYBEUHST,              EXUSER,	"Unknown host machine name" }
-	, { SYBEUMSG,              EXCOMM,	"Unknown message-id in MSG datastream" }
-	, { SYBEUNAM,             EXFATAL,	"Unable to get current user name from operating system" }
-	, { SYBEUNOP,          EXNONFATAL,	"Unknown option passed to dbsetopt" }
-	, { SYBEUNT,               EXUSER,	"Unknown network type found in interface file" }
+						"number of rows which bulk copy was instructed to skip\0" }
+	, { SYBETYPE,              EXINFO,	"Invalid argument type given to Hyper/DB-Library\0" }
+	, { SYBEUCPT,              EXUSER,	"Unrecognized custom-format parameter-type encountered in dbstrbuild\0" }
+	, { SYBEUCRR,       EXCONSISTENCY,	"Internal software error: Unknown connection result reported by dbpasswd\0" }
+	, { SYBEUDTY,       EXCONSISTENCY,	"Unknown datatype encountered\0" }
+	, { SYBEUFDS,              EXUSER,	"Unrecognized format encountered in dbstrbuild\0" }
+	, { SYBEUFDT,       EXCONSISTENCY,	"Unknown fixed-length datatype encountered\0" }
+	, { SYBEUHST,              EXUSER,	"Unknown host machine name\0" }
+	, { SYBEUMSG,              EXCOMM,	"Unknown message-id in MSG datastream\0" }
+	, { SYBEUNAM,             EXFATAL,	"Unable to get current user name from operating system\0" }
+	, { SYBEUNOP,          EXNONFATAL,	"Unknown option passed to dbsetopt\0" }
+	, { SYBEUNT,               EXUSER,	"Unknown network type found in interface file\0" }
 	, { SYBEURCI,          EXRESOURCE,	"International Release: Unable to read copyright information from the DB-Library "
-						"localization file" }
+						"localization file\0" }
 	, { SYBEUREI,          EXRESOURCE,	"International Release: Unable to read error information from the DB-Library "
-						"localization file" }
+						"localization file\0" }
 	, { SYBEUREM,          EXRESOURCE,	"International Release: Unable to read error mnemonic from the DB-Library "
-						"localization file" }
+						"localization file\0" }
 	, { SYBEURES,          EXRESOURCE,	"International Release: Unable to read error string from the DB-Library "
-						"localization file. 401 Error severities" }
+						"localization file. 401 Error severities\0" }
 	, { SYBEURMI,          EXRESOURCE,	"International Release: Unable to read money-format information from the DB-Library "
-						"localization file" }
-	, { SYBEUSCT,              EXCOMM,	"Unable to set communications timer" }
-	, { SYBEUTDS,              EXCOMM,	"Unrecognized TDS version received from the server" }
-	, { SYBEUVBF,           EXPROGRAM,	"Attempt to read an unknown version of bcp format file" }
-	, { SYBEUVDT,       EXCONSISTENCY,	"Unknown variable-length datatype encountered" }
+						"localization file\0" }
+	, { SYBEUSCT,              EXCOMM,	"Unable to set communications timer\0" }
+	, { SYBEUTDS,              EXCOMM,	"Unrecognized TDS version received from the server\0" }
+	, { SYBEUVBF,           EXPROGRAM,	"Attempt to read an unknown version of bcp format file\0" }
+	, { SYBEUVDT,       EXCONSISTENCY,	"Unknown variable-length datatype encountered\0" }
 	, { SYBEVDPT,              EXUSER,	"For bulk copy, all variable-length data must have either a length-prefix or a "
-						"terminator specified" }
-	, { SYBEWAID,       EXCONSISTENCY,	"DB-Library internal error: ALTFMT following ALTNAME has wrong id" }
-	, { SYBEWRIT,              EXCOMM,	"Write to the server failed" }
+						"terminator specified\0" }
+	, { SYBEWAID,       EXCONSISTENCY,	"DB-Library internal error: ALTFMT following ALTNAME has wrong id\0" }
+	, { SYBEWRIT,              EXCOMM,	"Write to the server failed\0" }
 	, { SYBEXOCI,          EXNONFATAL,	"International Release: A character-set translation overflowed its destination "
-						"buffer while using bcp to copy data from a host-file to the server" }
+						"buffer while using bcp to copy data from a host-file to the server\0" }
 	, { SYBEXTDN,           EXPROGRAM,	"Warning: the xlt_todisp parameter to dbfree_xlate was NULL. The space associated "
-						"with the xlt_tosrv parameter has been freed" }
-	, { SYBEXTN,            EXPROGRAM,	"The xlt_tosrv and xlt_todisp parameters to dbfree_xlate were NULL" }
+						"with the xlt_tosrv parameter has been freed\0" }
+	, { SYBEXTN,            EXPROGRAM,	"The xlt_tosrv and xlt_todisp parameters to dbfree_xlate were NULL\0" }
 	, { SYBEXTSN,           EXPROGRAM,	"Warning: the xlt_tosrv parameter to dbfree_xlate was NULL. The space associated "
-						"with the xlt_todisp parameter has been freed" }
-	, { SYBEZTXT,              EXINFO,	"Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext" }
+						"with the xlt_todisp parameter has been freed\0" }
+	, { SYBEZTXT,              EXINFO,	"Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext\0" }
 	};
 
 /**  \internal
@@ -7542,18 +7555,20 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
  * \sa dberrhandle(), _dblib_handle_err_message(), tds_client_msg().
  */
 int
-dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
+dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 {
 	static const char int_exit_text[] = "FreeTDS: db-lib: exiting because client error handler returned %d for msgno %d\n";
 	static const char int_invalid_text[] = "%s (%d) received from client-installed error handler for nontimeout for error %d."
 					       "  Treating as INT_EXIT\n";
 	static const DBLIB_ERROR_MESSAGE default_message = { 0, EXCONSISTENCY, "unrecognized msgno" };
+	DBLIB_ERROR_MESSAGE constructed_message = { 0, EXCONSISTENCY, NULL };
 	const DBLIB_ERROR_MESSAGE *msg = &default_message;
 	
+	va_list ap;
 	int i, rc = INT_CANCEL;
 	char *os_msgtext = strerror(errnum), *rc_name;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %d)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
+	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
 
 	if (os_msgtext == NULL)
 		os_msgtext = "no OS error";
@@ -7564,6 +7579,35 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 	for (i=0; i < TDS_VECTOR_SIZE(dblib_error_messages); i++ ) {
 		if (dblib_error_messages[i].msgno == msgno) {
 			msg = &dblib_error_messages[i];
+
+			/* 
+			 * See if the message has placeholders.  If so, build a message string on the heap.  
+			 * The presence of placeholders is indicated by the existence of a "string after the string", 
+			 * i.e., a format string (for dbstrbuild) after a null "terminator" in the message. 
+			 * On error -- can't allocate, can't build the string -- give up and call the client handler anyway. 
+			 */
+			char * ptext = dblib_error_messages[i].msgtext;
+			char * pformats = ptext + strlen(ptext) + 1;
+			assert(*(pformats - 1) == '\0'); 
+			if(*pformats != '\0') {
+				int result_len, len = 2 * strlen(ptext);
+				char * buffer = calloc(1, len);
+				long save_errnum = errnum;
+				errnum = (long) pformats;
+				if (buffer == NULL)
+					break;
+				va_start(ap, (char*)errnum);
+				rc = tds_vstrbuild(buffer, len, &result_len, ptext, TDS_NULLTERM, (char*)errnum, TDS_NULLTERM, ap);
+				buffer[result_len] = '\0';
+				va_end(ap);
+				errnum = save_errnum;
+				if (TDS_FAIL == rc) {
+					free(buffer);
+					break;
+				}
+				constructed_message.msgtext = buffer;
+				msg = &constructed_message;
+			}
 			break;
 		}
 	}
@@ -7588,7 +7632,11 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, int errnum)
 		break;
 	}
 	tdsdump_log(TDS_DBG_FUNC, "\"%s\", client returns %d (%s)\n", msg->msgtext, rc, rc_name);
-	
+
+	/* we're done with the dynamic string now. */
+	if (msg == &constructed_message) {
+		TDS_ZERO_FREE(constructed_message.msgtext);
+	}
 	
       	/* Timeout return codes are errors for non-timeout conditions. */
 	if (msgno != SYBETIME) {
