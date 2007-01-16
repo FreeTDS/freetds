@@ -1,3 +1,8 @@
+Tue Jan 16 16:30:42 EDT 2007	Nick Castellano <entropy@freetds.org>
+	* configure.ac
+	* src/apps/Makefile.am
+	* src/apps/fisql: contribute free DB-Libary isql application
+
 Tue Jan 16 09:57:35 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/util.c: fix messages
 

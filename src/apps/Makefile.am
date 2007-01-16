@@ -1,6 +1,10 @@
-# $Id: Makefile.am,v 1.18 2006-10-04 18:25:43 jklowden Exp $
+# $Id: Makefile.am,v 1.19 2007-01-16 21:33:12 castellano Exp $
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
+
+SUBDIRS		= fisql
+
+DIST_SUBDIRS	= $(SUBDIRS)
 
 bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy
 
