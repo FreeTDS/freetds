@@ -114,6 +114,23 @@ if test $do_perl = yes; then
  		  return undef;
  	       }
 ' | patch -p1 || true
+			# fix for DBD::ODBC and Perl 5.8.8
+			echo "--- DBD-ODBC-1.13.orig/dbdimp.c	2004-11-05 04:19:36.000000000 +0100
++++ DBD-ODBC-1.13/dbdimp.c	2007-01-16 09:38:20.477774620 +0100
+@@ -2921,11 +2921,11 @@
+     * */
+    else if (is_inout != phs->is_inout) {
+       croak(\"Can't rebind or change param %s in/out mode after first bind (%d => %d)\",
+ 	    phs->name, phs->is_inout, is_inout);
+    }
+-   else if (maxlen && maxlen != phs->maxlen) {
++   else if (maxlen && maxlen > phs->maxlen) {
+       croak(\"Can't change param %s maxlen (%ld->%ld) after first bind\",
+ 	    phs->name, phs->maxlen, maxlen);
+    }
+ 
+    if (!is_inout) {    /* normal bind to take a (new) copy of current value    */
+" | patch -p1
 			cd t
 			echo "--- 20SqlServer.t.orig  2005-08-09 13:33:30.000000000 +0200
 +++ 20SqlServer.t       2005-08-09 13:37:36.000000000 +0200
