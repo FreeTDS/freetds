@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <setjmp.h>
 #include <signal.h>
-#include <readline.h>
-#include <history.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include <sybfront.h>
 #include <sybdb.h>
 #include "terminal.h"
