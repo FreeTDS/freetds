@@ -15,12 +15,10 @@
 #include "interrupt.h"
 #include "xgetpass.h"
 
-extern char *xmalloc(), *xrealloc();
+extern char *xmalloc(size_t), *xrealloc(void*, size_t);
 
 int
-main(argc, argv)
-  int argc;
-  char *argv[];
+main(int argc, char *argv[])
 {
   int echo = 0;
 #ifdef notyet
@@ -437,9 +435,11 @@ main(argc, argv)
       if ((!(strcasecmp(firstword, "vi")))
 	  || (!(strcasecmp(firstword, editor))))
       {
+	int tmpfd;
+
 	strcpy(tmpfn, "/tmp/fisqlXXXXXX");
-	tfn = mktemp(tmpfn);
-	if ((fp = fopen(tfn, "w")) == NULL)
+	tmpfd = mkstemp(tmpfn);
+	if ((fp = fdopen(tmpfd, "w")) == NULL)
 	{
 	  perror("fisql");
 	  reset_term();
@@ -465,14 +465,14 @@ main(argc, argv)
 	fclose(fp);
 	if (!(strcmp(firstword, "vi")))
 	{
-	  edit("vi", tfn);
+	  edit("vi", tmpfn);
 	}
 	else
 	{
-	  edit(editor, tfn);
+	  edit(editor, tmpfn);
 	}
 	ibuflines = 0;
-	fp = fopen(tfn, "r");
+	fp = fopen(tmpfn, "r");
 	tmpfp = rl_instream;
 	rl_instream = fp;
 	strcpy(foobuf, "1>> ");
@@ -486,7 +486,7 @@ main(argc, argv)
 	fclose(fp);
 	fputc('\r', stdout);
 	fflush(stdout);
-	unlink(tfn);
+	unlink(tmpfn);
 	continue;
       }
       free(firstword);

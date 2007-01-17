@@ -1,3 +1,7 @@
+Wed Jan 17 09:48:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/fisql/fisql.c: use mkstemp instead of mktemp
+	* src/tds/util.c: cleanup
+
 Tue Jan 16 16:30:42 EDT 2007	Nick Castellano <entropy@freetds.org>
 	* configure.ac
 	* src/apps/Makefile.am

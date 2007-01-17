@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.78 2007-01-16 08:57:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.79 2007-01-17 08:48:52 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -275,12 +275,14 @@ static
 const char * retname(int retcode)
 {
 	switch(retcode) {
-	case 0: return "TDS_INT_EXIT";
-	case 1: return "TDS_INT_CONTINUE";
-	case 2: return "TDS_INT_CANCEL";
-	case 3: return "TDS_INT_TIMEOUT";
+	case TDS_INT_CONTINUE:
+		return "TDS_INT_CONTINUE";
+	case TDS_INT_CANCEL:
+		return "TDS_INT_CANCEL";
+	case TDS_INT_TIMEOUT:
+		return "TDS_INT_TIMEOUT";
 	}
-	assert(retcode < 4);
+	assert(0);
 	return "nonesuch";
 }
 
@@ -288,7 +290,6 @@ const char * retname(int retcode)
  * \brief Call the client library's error handler (for library-generated errors only)
  *
  * The client library error handler may return: 
- * TDS_INT_EXIT -- Print an error message, and exit application, returning an error to the OS.  
  * TDS_INT_CANCEL -- Return TDS_FAIL to the calling function.  For TDSETIME, closes the connection first. 
  * TDS_INT_CONTINUE -- For TDSETIME only, retry the network read/write operation. Else invalid.
  * TDS_INT_TIMEOUT -- For TDSETIME only, send a TDSCANCEL packet. Else invalid.
