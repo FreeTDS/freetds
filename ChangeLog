@@ -1,3 +1,8 @@
+Thu Jan 18 17:50:18 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/dblib/dblib.c:
+	- fix dbprrow() to print character data correctly
+	- fix dbprrow() to not loop endlessly on aggregate rows
+
 Thu Jan 18 08:57:10 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/unittests/utf8_2.c: fix error handler
 
