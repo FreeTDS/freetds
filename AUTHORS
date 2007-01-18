@@ -91,6 +91,9 @@ Various bug fixes, dbcanquery() and odbc version checks.
 Geoff Winkless <geoff@farmline.com>
 Lost connection stuff
 
+Nicholas S. Castellano <entropy@freetds.org>
+Many bug fixes and improvements, contributor of fisql application.
+
 Special thanks to Michael Peppler <mpeppler@peppler.org>, 
 author of the DBD::Sybase Perl module. 
 
