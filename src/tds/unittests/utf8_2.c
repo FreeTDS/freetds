@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.13 2006-01-24 15:03:28 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.14 2007-01-18 07:58:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -197,7 +197,7 @@ err_handler(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		fprintf(stderr, "Unexpected in %s error: %s\n", test_name, msg->message);
 		g_result = 1;
 	}
-	return 0;
+	return TDS_INT_CANCEL;
 }
 
 int
