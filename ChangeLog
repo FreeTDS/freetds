@@ -1,3 +1,6 @@
+Fri Jan 19 13:19:04 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/apps/fisql/fisql.c: remove obsolete code
+
 Fri Jan 19 13:12:56 EST 2007	Nick Castellano <entropy@freetds.org>
 	* doc/fisql.txt: fisql now works, update doc
 

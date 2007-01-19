@@ -550,13 +550,6 @@ main(int argc, char *argv[])
 	    {
 	      break;
 	    }
-#if 0
-	    if (dbrc != REG_ROW)
-	    {
-	      fputs("fisql:  *** Non-regular row!  I'm not clever enough for that.\n", stdout);
-	      break;
-	    }
-#endif
 	    if (headers && (i >= headers) && ((i % headers) == 0))
 	    {
 	      fputc('\n', stdout);
