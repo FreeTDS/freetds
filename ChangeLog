@@ -1,3 +1,11 @@
+Fri Jan 19 13:31:31 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/apps/fisql/edit.c src/apps/fisql/fisql.c
+	* src/apps/fisql/handlers.c src/apps/fisql/handlers.h
+	* src/apps/fisql/interrupt.c src/apps/fisql/interrupt.h
+	* src/apps/fisql/terminal.c src/apps/fisql/terminal.h
+	* src/apps/fisql/xgetpass.c:
+	- Indent fisql to standard FreeTDS coding style
+
 Fri Jan 19 13:19:04 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/apps/fisql/fisql.c: remove obsolete code
 
@@ -1147,4 +1155,3 @@ Fri Jan 06 11:23:50 CET 2006	Frediano Ziglio <freddy77@angelfire.com>
 	* src/odbc/unittests/array.c src/odbc/unittests/raiserror.c:
 	- relax a bit
 	* src/odbc/odbc_util.c: cleanup, comment
-

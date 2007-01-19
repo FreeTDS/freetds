@@ -16,12 +16,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*	$Id: handlers.h,v 1.2 2007-01-19 16:18:15 jklowden Exp $	*/
+/*	$Id: handlers.h,v 1.3 2007-01-19 18:33:41 castellano Exp $	*/
 extern int global_errorlevel;
 
-int err_handler(DBPROCESS *dbproc, int severity, int dberr, 
-		int oserr, char *dberrstr, char *oserrstr);
+int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
-int msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, 
-		int severity, char *msgtext, char *srvname, 
-		char *procname, int line);
+int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
+		int severity, char *msgtext, char *srvname, char *procname, int line);

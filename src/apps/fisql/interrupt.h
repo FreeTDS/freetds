@@ -16,14 +16,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*	$Id: interrupt.h,v 1.2 2007-01-19 16:18:15 jklowden Exp $	*/
+/*	$Id: interrupt.h,v 1.3 2007-01-19 18:33:41 castellano Exp $	*/
 extern sigjmp_buf restart;
 
 void inactive_interrupt_handler(int sig);
 void active_interrupt_handler(int sig);
 void maybe_handle_active_interrupt(void);
-int active_interrupt_pending(DBPROCESS *dbproc);
-int active_interrupt_servhandler(DBPROCESS *dbproc);
-
-
-
+int active_interrupt_pending(DBPROCESS * dbproc);
+int active_interrupt_servhandler(DBPROCESS * dbproc);

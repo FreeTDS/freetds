@@ -16,8 +16,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*	$Id: terminal.h,v 1.2 2007-01-19 16:18:15 jklowden Exp $	*/
+/*	$Id: terminal.h,v 1.3 2007-01-19 18:33:41 castellano Exp $	*/
 int save_term(void);
 int set_term_noecho(void);
 int reset_term(void);
-
