@@ -35,7 +35,27 @@
 
 #define READPASSPHRASE_MAXLEN 128
 
-extern char *xmalloc(size_t), *xrealloc(void *, size_t);
+static void *
+xmalloc(size_t s)
+{
+	void *p = malloc(s);
+	if (!p) {
+		fprintf(stderr, "Out of memory\n");
+		exit(EXIT_FAILURE);
+	}
+	return p;
+}
+
+static void *
+xrealloc(void *p, size_t s)
+{
+	p = realloc(p, s);
+	if (!p) {
+		fprintf(stderr, "Out of memory\n");
+		exit(EXIT_FAILURE);
+	}
+	return p;
+}
 
 int
 main(int argc, char *argv[])
