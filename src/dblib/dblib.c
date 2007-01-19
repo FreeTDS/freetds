@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.272 2007-01-18 22:56:38 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.273 2007-01-19 04:59:34 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3562,6 +3562,21 @@ dbsettime(int seconds)
 	
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 	return SUCCEED;
+}
+
+/**
+ * \ingroup dblib_core
+ * \brief Get maximum seconds db-lib waits for a server response to query.  
+ * 
+ * \retval query timeout limit, in seconds
+ * \sa dberrhandle(), DBSETTIME(), dbsetlogintime(), dbsqlexec(), dbsqlok(), dbsqlsend().
+ */
+int
+dbgettime(void)
+{
+	tdsdump_log(TDS_DBG_FUNC, "dbgettime()\n");
+
+	return g_dblib_ctx.query_timeout;
 }
 
 /**

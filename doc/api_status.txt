@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.53 2005-06-26 14:25:20 jklowden Exp $s
+# $Id: api_status.txt,v 1.54 2007-01-19 04:59:32 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -242,7 +242,7 @@ dblib	(none)   	n/a				dbsetinterrupt	OK
 dblib	(none)   	n/a				DBSETLCHARSET	
 dblib	(none)   	n/a				DBSETLENCRYPT	
 dblib	(none)   	n/a				dbsetloginfo	
-dblib	(none)   	n/a				dbsetrow	
+dblib	(none)   	n/a				dbsetrow	OK
 dblib	(none)   	n/a				dbsetversion	OK	
 dblib	(none)   	n/a				dbspr1row	OK	
 dblib	(none)   	n/a				dbspr1rowlen	OK	
@@ -326,7 +326,7 @@ dblib	core     	dbgetmaxprocs			(same)		OK
 dblib	core     	dbgetoff			(same)		
 dblib	core     	dbgetpacket			(same)		OK
 dblib	core     	dbgetrow			(same)		OK
-dblib	core     	dbgettime			DBGETTIME	
+dblib	core     	dbgettime			DBGETTIME	OK
 dblib	core     	dbgetuserdata			(same)		OK
 dblib	core     	dbinit				(same)		OK
 dblib	core     	dbisavail			DBISAVAIL	OK

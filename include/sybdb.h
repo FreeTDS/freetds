@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.79 2006-12-01 21:51:11 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.80 2007-01-19 04:59:32 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -551,9 +551,8 @@ char *dbgetnatlanf(DBPROCESS * dbprocess);
 int dbgetoff(DBPROCESS * dbprocess, DBUSMALLINT offtype, int startfrom);
 int dbgetpacket(DBPROCESS * dbproc);
 RETCODE dbgetrow(DBPROCESS * dbproc, DBINT row);
-#if 0
-  int DBGETTIME(void); /* unimplemented */
-#endif
+int dbgettime(void);
+#define DBGETTIME dbgettime
 BYTE *dbgetuserdata(DBPROCESS * dbproc);
 DBBOOL dbhasretstat(DBPROCESS * dbproc);
 RETCODE dbinit(void);
