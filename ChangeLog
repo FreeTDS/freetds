@@ -1,3 +1,10 @@
+Fri Jan 19 13:47:42 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/apps/fisql/Makefile.am
+	* src/apps/fisql/fisql.c
+	* src/apps/fisql/xgetpass.c(removed)
+	* src/apps/fisql/xgetpass.h(removed):
+	- use readpassphrase() in fisql application.
+
 Fri Jan 19 13:31:31 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/apps/fisql/edit.c src/apps/fisql/fisql.c
 	* src/apps/fisql/handlers.c src/apps/fisql/handlers.h

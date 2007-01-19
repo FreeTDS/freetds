@@ -31,7 +31,9 @@
 #include "edit.h"
 #include "handlers.h"
 #include "interrupt.h"
-#include "xgetpass.h"
+#include "replacements.h"
+
+#define READPASSPHRASE_MAXLEN 128
 
 extern char *xmalloc(size_t), *xrealloc(void *, size_t);
 
@@ -222,9 +224,11 @@ main(int argc, char *argv[])
 	rl_readline_name = "fisql";
 	rl_bind_key('\t', rl_insert);
 	if (password == NULL) {
-		if ((password = xgetpass("Password:")) == NULL) {
-			password = "";
+		if ((password = (char *) malloc(READPASSPHRASE_MAXLEN)) == NULL) {
+			fprintf(stderr, "Memory allocation failure.\n");
+			exit(EXIT_FAILURE);
 		}
+		readpassphrase("Password: ", password, READPASSPHRASE_MAXLEN, RPP_ECHO_OFF);
 	}
 	if (input_filename) {
 		if (freopen(input_filename, "r", stdin) == NULL) {
