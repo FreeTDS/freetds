@@ -1,3 +1,9 @@
+Thu Jan 18 23:55:17 EST 2007	JK Lowden <jklowden@freetds.org>
+	* doc/Makefile.am doc/fisql.txt added man page for fisql
+	* src/apps/fisql/fisql.c fixed discarding const warnings
+	* doc/api_status.txt include/sybdb.h src/dblib/dblib.c
+	-  added dbgettime()
+
 Thu Jan 18 17:57:52 EST 2007	Nick Castellano <entropy@freetds.org>
 	* AUTHORS: credit myself as a contributor
 
