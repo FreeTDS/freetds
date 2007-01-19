@@ -52,9 +52,9 @@ main(int argc, char *argv[])
   DBPROCESS *dbproc;
   LOGINREC *login;
   char **ibuf = NULL;
-  int ibuflines;
+  int ibuflines = 0;
   int i;
-  const char *line;
+  char *line;
   int dbrc;
   char foobuf[512];
   char *firstword;
@@ -196,7 +196,7 @@ main(int argc, char *argv[])
     fprintf(stderr, "\t[-h headers] [-H hostname] [-i inputfile]\n");
     fprintf(stderr, "\t[-I interfaces_file] [-J client character set]\n");
     fprintf(stderr, "\t[-l login_timeout] [-m errorlevel]\n");
-    fprintf(stderr, "\t[-Mlabelname labelvalue] [-o outputfile]\n");
+    fprintf(stderr, "\t[-o outputfile]\n");
     fprintf(stderr, "\t[-P password] [-s colseparator] [-S server]\n");
     fprintf(stderr, "\t[-t timeout] [-U username] [-w columnwidth]\n");
     fprintf(stderr, "\t[-y sybase_dir] [-z language]\n");
