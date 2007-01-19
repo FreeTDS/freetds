@@ -17,8 +17,7 @@ DESCRIPTION
 
 	fisql is very similar to the "isql" 
 	utility programs distributed by Sybase and Microsoft. Like them, fisql uses
-	the command "go" on a line by itself as a separator between batches. The last
-	batch need not be followed by "go" (although it must end in a newline).
+	the command "go" on a line by itself as a separator between batches. 
 
 OPTIONS
 
@@ -59,7 +58,7 @@ OPTIONS
 
 	-P password   Database server password.
 
-	-s colseparator The column separator.  Default is space. Shell metacharacters require quoting. 
+	-s colseparator The column separator. Default is space. Shell metacharacters require quoting. 
 
 	-S server       Database server to which to connect.
 
@@ -72,7 +71,7 @@ OPTIONS
 
 	-w screenwidth  How many characters wide to print the output. Defaults to 80. 
 
-	-X  Use encrypted login.  Not implemented in FreeTDS. 
+	-X  Use encrypted login. Not implemented in FreeTDS. 
 
 	-y sybase_dir  Sets the SYBASE environment variable. Not used by FreeTDS. 
 
@@ -86,8 +85,10 @@ NOTES
   and writes errors to standard error. The -i, -o, and -e options override 
   these, of course.
 
-  fisql uses the db-lib API provided by FreeTDS. It should also work with 
-  Sybase's own library. 
+  fisql uses the db-lib API provided by FreeTDS. It was first implemented using 
+  Sybase's own library and continues to work with it. Before (and after) modifying 
+  it, it would be well to test it with Sybase's library to assure compatibility 
+  between it and FreeTDS. 
 
 EXIT STATUS
   fisql exits 0 on success, and >0 if the server cannot process the query.
@@ -102,7 +103,8 @@ HISTORY
 
 AUTHORS
   The fisql utility was written by Nicholas Castellano <entropy@freetds.org>, 
-  who contributed it to the public domain. 
+  who contributed it to the FreeTDS project under the terms of the GPL. 
 
 BUGS
-  TBD
+  Doesn't quite work with FreeTDS as of January 2007, i.e., doesn't print row data. 
+  Doesn't handle compute rows. Requires the GNU readline library. 

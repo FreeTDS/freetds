@@ -1,3 +1,13 @@
+Fri Jan 19 11:17:13 EST 2007	JK Lowden <jklowden@freetds.org>
+	* doc/fisql.txt
+	* src/apps/fisql/edit.c src/apps/fisql/edit.h
+	* src/apps/fisql/handlers.c src/apps/fisql/handlers.h
+	* src/apps/fisql/interrupt.c src/apps/fisql/interrupt.h
+	* src/apps/fisql/terminal.c src/apps/fisql/terminal.h
+	* src/apps/fisql/xgetpass.c src/apps/fisql/xgetpass.h
+	* src/apps/fisql/fisql.c
+	- Added notice of copyright and GPL license
+	
 Thu Jan 18 23:55:17 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/Makefile.am doc/fisql.txt added man page for fisql
 	* src/apps/fisql/fisql.c fixed discarding const warnings
