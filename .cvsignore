@@ -12,9 +12,9 @@ ltconfig
 ltcf-c.sh
 aclocal.m4
 autom4te.cache
+depcomp
 so_locations
 freetds.spec
 PWD
 doxyfile
 test-dist.log
-

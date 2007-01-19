@@ -7,11 +7,11 @@ bsqldb.1
 defncopy.1
 datacopy.1
 osql.1
+fisql.1
 libtds
 reference
 userguide.dsl
 doc
-
 ctlib.api.sgml
 dblib.api.sgml
 doxy.log

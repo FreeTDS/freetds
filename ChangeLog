@@ -1,3 +1,6 @@
+Fri Jan 19 13:01:53 EST 2007	Nick Castellano <entropy@freetds.org>
+	* .cvsignore doc/.cvsignore: clean up
+
 Fri Jan 19 12:45:27 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/dblib/dblib.c: fix dbspr1row(), fisql now works
 
