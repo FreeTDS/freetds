@@ -1,3 +1,6 @@
+Fri Jan 19 13:12:56 EST 2007	Nick Castellano <entropy@freetds.org>
+	* doc/fisql.txt: fisql now works, update doc
+
 Fri Jan 19 13:01:53 EST 2007	Nick Castellano <entropy@freetds.org>
 	* .cvsignore doc/.cvsignore: clean up
 

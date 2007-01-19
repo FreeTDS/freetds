@@ -102,9 +102,8 @@ HISTORY
   fisql first appeared in FreeTDS 0.65.
 
 AUTHORS
-  The fisql utility was written by Nicholas Castellano <entropy@freetds.org>, 
+  The fisql utility was written by Nicholas S. Castellano <entropy@freetds.org>, 
   who contributed it to the FreeTDS project under the terms of the GPL. 
 
 BUGS
-  Doesn't quite work with FreeTDS as of January 2007, i.e., doesn't print row data. 
-  Doesn't handle compute rows. Requires the GNU readline library. 
+  Requires the GNU readline library. 
