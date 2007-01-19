@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.273 2007-01-19 04:59:34 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.274 2007-01-19 17:48:16 castellano Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2831,9 +2831,6 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	tds = dbproc->tds_socket;
 	resinfo = tds->res_info;
 
-	if (dbnextrow(dbproc) != REG_ROW)
-		return FAIL;
-
 	for (col = 0; col < resinfo->num_cols; col++) {
 		colinfo = resinfo->columns[col];
 		if (colinfo->column_cur_size < 0) {
@@ -2850,7 +2847,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 				len = tds_strftime(buffer, buf_len, "%b %e %Y %I:%M%p", &when);
 			} else {
-				len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), -1, desttype, (BYTE *) buffer, buf_len);
+				len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1), desttype, (BYTE *) buffer, buf_len);
 			}
 			if (len == -1) {
 				return FAIL;

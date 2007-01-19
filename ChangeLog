@@ -1,3 +1,6 @@
+Fri Jan 19 12:45:27 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/dblib/dblib.c: fix dbspr1row(), fisql now works
+
 Fri Jan 19 11:17:13 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/fisql.txt
 	* src/apps/fisql/edit.c src/apps/fisql/edit.h
