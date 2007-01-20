@@ -13,11 +13,7 @@ DESCRIPTION
   defncopy reads the text of a stored procedure or view, and writes a script
   suitable for recreating the procedure or view. For tables, it reads 
   the output of sp_help and constructs a CREATE TABLE statement, complete
-  with CREATE INDEX, too.  It does not create primary keys (although it
-  could, patches welcome). 
-
-  defncopy makes use of the db-lib API provided by FreeTDS. This 
-  API is of course also available to application developers.
+  with CREATE INDEX, too. 
 
 OBJECTS
   owner         is optional if you or the database owner is the owner 
@@ -46,6 +42,9 @@ NOTES
   and writes errors to standard error. The -i and -o options override 
   these, of course.
 
+  defncopy makes use of the db-lib API provided by FreeTDS. This 
+  API is of course also available to application developers.
+
 EXIT STATUS
   defncopy exits 0 on success, and >0 if the server cannot process the query.
 
@@ -53,7 +52,7 @@ EXIT STATUS
   processing. 
 
 HISTORY
-  defncopy first appeared in FreeTDS 0\.63.
+  defncopy first appeared in FreeTDS 0.63.
 
 AUTHORS
   The defncopy utility was written by James K. Lowden <jklowden@schemamania.org>
@@ -61,6 +60,8 @@ AUTHORS
 BUGS
   Works only with Microsoft servers and ancient Sybase servers. 
 
+  Does not create primary keys. 
+  
   Many options are defined by Sybase that this version does not implement. Feel
   free to correct this situation. 
 

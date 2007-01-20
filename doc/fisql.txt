@@ -10,7 +10,7 @@ SYNOPSIS
 	\[a] [-l login_timeout] [-m errorlevel]
 	\[a] [-o outputfile]
 	\[a] [-P password] [-s colseparator] [-S server]
-	\[a] [-t timeout] [-U username] [-w columnwidth]
+	\[a] [-t timeout] [-U username] [-w width]
 	\[a] [-y sybase_dir] [-z language]
 
 DESCRIPTION
@@ -25,7 +25,7 @@ OPTIONS
 
 	-c cmdend  Command terminator, defaults to go. 
 
-	-e Echo  SQL input (usually in outputfile)
+	-e  Echo SQL input (usually in outputfile)
 
 	-E editor  Specify an editor to invoke. Defaults to vi. 
 
@@ -58,7 +58,7 @@ OPTIONS
 
 	-P password   Database server password.
 
-	-s colseparator The column separator. Default is space. Shell metacharacters require quoting. 
+	-s colseparator  The column separator. Default is space. Shell metacharacters require quoting. 
 
 	-S server       Database server to which to connect.
 
@@ -69,7 +69,7 @@ OPTIONS
 
 	-v  Display version and copyright. 
 
-	-w screenwidth  How many characters wide to print the output. Defaults to 80. 
+	-w width  How many characters wide to print the output. Defaults to 80. 
 
 	-X  Use encrypted login. Not implemented in FreeTDS. 
 
