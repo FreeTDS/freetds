@@ -109,6 +109,7 @@ main(int argc, char *argv[])
 	FILE *tmpfp2;
 	char *tfn;
 	char tmpfn[256];
+	int acol;
 
 	editor = getenv("EDITOR");
 	if (!editor) {
@@ -503,6 +504,15 @@ main(int argc, char *argv[])
 					while ((dbrc = dbnextrow(dbproc)) != NO_MORE_ROWS) {
 						if (dbrc == FAIL) {
 							break;
+						}
+						if (dbrc != REG_ROW) {
+							fputs("fisql:  *** Non-regular row! not yet ... ", stdout);
+							printf("%d alts ", dbnumalts(dbproc, dbrc));
+							for (acol = 1; acol <= dbnumalts(dbproc, dbrc); acol++) {
+								printf("%s ", dbprtype(dbaltop(dbproc, dbrc, acol)));
+							}
+							printf("\n");
+							continue;
 						}
 						if (headers && (i >= headers) && ((i % headers) == 0)) {
 							fputc('\n', stdout);

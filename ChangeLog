@@ -1,3 +1,7 @@
+Sat Jan 20 01:20:39 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/apps/fisql/fisql.c: 
+	- Be slightly less stupid about compute rows.
+
 Sat Jan 20 00:54:57 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/dblib/dblib.c:
 	- do not return bogus nul character in dbgetchar()
