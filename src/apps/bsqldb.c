@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.28 2007-01-04 23:49:07 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.29 2007-01-20 06:33:21 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -430,7 +430,7 @@ print_results(DBPROCESS *dbproc)
 			for (c=0; c < metacompute[i]->numalts; c++) {
 				/* read metadata */
 				struct METADATA *meta = &metacompute[i]->meta[c];
-				int nbylist, ibylist;
+				int nby, iby;
 				BYTE *bylist;
 				char *colname, *bynames;
 				int altcolid = dbaltcolid(dbproc, i+1, c+1);
@@ -442,13 +442,13 @@ print_results(DBPROCESS *dbproc)
 				 * Jump through hoops to determine a useful name for the computed column 
 				 * If the query says "compute count(c) by a,b", we get a "by list" indicating a & b.  
 				 */
-				bylist = dbbylist(dbproc, c+1, &nbylist);
+				bylist = dbbylist(dbproc, c+1, &nby);
 
 				bynames = strdup("by (");
-				for (ibylist=0; ibylist < nbylist; ibylist++) {
+				for (iby=0; iby < nby; iby++) {
 					char *s = NULL; 
-					int ret = asprintf(&s, "%s%s%s", bynames, dbcolname(dbproc, bylist[ibylist]), 
-										(ibylist+1 < nbylist)? ", " : ")");
+					int ret = asprintf(&s, "%s%s%s", bynames, dbcolname(dbproc, bylist[iby]), 
+										(iby+1 < nby)? ", " : ")");
 					if (ret < 0) {
 						fprintf(options.verbose, "Insufficient room to create name for column %d:\n", 1+c);
 						break;
@@ -460,7 +460,8 @@ print_results(DBPROCESS *dbproc)
 				if( altcolid == -1 ) {
 					colname = "*";
 				} else {
-					colname = metadata[altcolid].name;
+					assert(0 < altcolid && altcolid <= dbnumcols(dbproc));
+					colname = metadata[--altcolid].name;
 				}
 
 				asprintf(&metacompute[i]->meta[c].name, "%s(%s)", dbprtype(dbaltop(dbproc, i+1, c+1)), colname);
@@ -480,7 +481,7 @@ print_results(DBPROCESS *dbproc)
 				
 				fprintf(options.verbose, "\tcolumn %d is %s, type %s, size %d %s\n", 
 					c+1, metacompute[i]->meta[c].name, dbprtype(metacompute[i]->meta[c].type),
-					metacompute[i]->meta[c].size, (nbylist > 0)? bynames : "");
+					metacompute[i]->meta[c].size, (nby > 0)? bynames : "");
 				free(bynames);
 	
 				/* allocate buffer */
@@ -534,6 +535,12 @@ print_results(DBPROCESS *dbproc)
 				
 			case BUF_FULL:
 				assert(row_code != BUF_FULL);
+				break;
+				
+			case FAIL:
+				fprintf(stderr, "bsqldb: fatal error: dbnextrow returned FAIL\n");
+				assert(row_code != FAIL);
+				exit(EXIT_FAILURE);
 				break;
 				
 			default: /* computeid */

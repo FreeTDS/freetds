@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.276 2007-01-20 05:57:36 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.277 2007-01-20 06:33:21 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1678,7 +1678,11 @@ dbnextrow(DBPROCESS * dbproc)
 		buffer_transfer_bound_data(&dbproc->row_buf, res_type, computeid, dbproc, idx);
 	}
 	
-	tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %d (%s)\n", result, prdbretcode(result));
+	if (res_type == TDS_COMPUTE_RESULT) {
+		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning compute_id %d\n", result);
+	} else {
+		tdsdump_log(TDS_DBG_FUNC, "leaving dbnextrow() returning %s\n", prdbretcode(result));
+	}
 	return result;
 } /* dbnextrow()  */
 
@@ -2946,8 +2950,8 @@ dbprrow(DBPROCESS * dbproc)
 						tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 						len = tds_strftime(dest, sizeof(dest), "%b %e %Y %I:%M%p", &when);
 					} else {
-						len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1), desttype,
-								(BYTE *) dest, sizeof(dest));
+						len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1),
+								desttype, (BYTE *) dest, sizeof(dest));
 					}
 				}
 
