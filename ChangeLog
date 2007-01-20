@@ -1,3 +1,7 @@
+Sat Jan 20 00:35:45 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/dblib/dblib.c:
+	- dbspr*() functions get nul termination not line termination
+	
 Fri Jan 19 22:39:00 EST 2007	Nick Castellano <entropy@freetds.org>
 	* doc/fisql.txt: restore compute rows BUGS entry.
 

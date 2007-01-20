@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.274 2007-01-19 17:48:16 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.275 2007-01-20 05:38:04 castellano Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2790,8 +2790,8 @@ dbspr1rowlen(DBPROCESS * dbproc)
 	}
 	/* the space between each column */
 	len += (resinfo->num_cols - 1) * dbstring_length(dbproc->dbopts[DBPRCOLSEP].optparam);
-	/* the newline */
-	len += dbstring_length(dbproc->dbopts[DBPRLINESEP].optparam);
+	/* the nul */
+	len += 1;
 
 	return len;
 }
@@ -2878,15 +2878,10 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			i++;
 		}
 	}
-	i = 0;
-	while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].optparam, i)) != -1) {
-		if (buf_len < 1) {
-			return FAIL;
-		}
-		*buffer++ = c;
-		buf_len--;
-		i++;
+	if (buf_len < 1) {
+		return FAIL;
 	}
+	*buffer++ = '\0';
 	return SUCCEED;
 }
 
@@ -3222,15 +3217,10 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 			i++;
 		}
 	}
-	i = 0;
-	while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].optparam, i)) != -1) {
-		if (buf_len < 1) {
-			return FAIL;
-		}
-		*buffer++ = c;
-		buf_len--;
-		i++;
+	if (buf_len < 1) {
+		return FAIL;
 	}
+	*buffer++ = '\0';
 	return SUCCEED;
 }
 
@@ -3292,15 +3282,10 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			i++;
 		}
 	}
-	i = 0;
-	while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].optparam, i)) != -1) {
-		if (buf_len < 1) {
-			return FAIL;
-		}
-		*buffer++ = c;
-		buf_len--;
-		i++;
+	if (buf_len < 1) {
+		return FAIL;
 	}
+	*buffer++ = '\0';
 	return SUCCEED;
 }
 
