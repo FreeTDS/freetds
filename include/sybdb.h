@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.80 2007-01-19 04:59:32 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.81 2007-01-20 20:25:56 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -363,16 +363,6 @@ typedef struct
 #define NOSUCHOPTION   2
 
 #define MAXOPTTEXT    32
-
-struct dboption
-{
-	char opttext[MAXOPTTEXT];
-	DBSTRING *optparam;
-	DBUSMALLINT optstatus;
-	DBBOOL optactive;
-	struct dboption *optnext;
-};
-typedef struct dboption DBOPTION;
 
 typedef struct tds_dblib_dbprocess DBPROCESS;
 

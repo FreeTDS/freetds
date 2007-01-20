@@ -28,7 +28,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.36 2007-01-16 05:31:19 jklowden Exp $ */
+/* $Id: dblib.h,v 1.37 2007-01-20 20:25:56 jklowden Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -117,6 +117,16 @@ typedef struct _DBREMOTE_PROC
 	DBSMALLINT options;
 	DBREMOTE_PROC_PARAM *param_list;
 } DBREMOTE_PROC;
+
+#define MAXOPTTEXT    32
+
+struct dboption
+{
+	char text[MAXOPTTEXT];
+	DBSTRING *param;
+	DBBOOL factive;
+};
+typedef struct dboption DBOPTION;
 
 struct tds_dblib_dbprocess
 {
