@@ -1,3 +1,6 @@
+Fri Jan 19 22:39:00 EST 2007	Nick Castellano <entropy@freetds.org>
+	* doc/fisql.txt: restore compute rows BUGS entry.
+
 Fri Jan 19 14:05:13 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/apps/fisql/fisql.c: 
 	- Provide xmalloc() and xrealloc() instead of relying on
