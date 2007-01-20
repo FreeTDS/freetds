@@ -1,4 +1,4 @@
-/* Free ISQL - An isql for DB-Library (C) 2007 Nicholas Castellano
+/* Free ISQL - An isql for DB-Library (C) 2007 Nicholas S. Castellano
  *
  * This program  is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -16,7 +16,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*	$Id: handlers.h,v 1.3 2007-01-19 18:33:41 castellano Exp $	*/
+/*	$Id: handlers.h,v 1.4 2007-01-20 06:32:27 castellano Exp $	*/
 extern int global_errorlevel;
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);

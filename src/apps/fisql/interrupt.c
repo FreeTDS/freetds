@@ -1,4 +1,4 @@
-/* Free ISQL - An isql for DB-Library (C) 2007 Nicholas Castellano
+/* Free ISQL - An isql for DB-Library (C) 2007 Nicholas S. Castellano
  *
  * This program  is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public

@@ -1,4 +1,4 @@
-/* Free ISQL - An isql for DB-Library (C) 2007 Nicholas Castellano
+/* Free ISQL - An isql for DB-Library (C) 2007 Nicholas S. Castellano
  *
  * This program  is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 			no_prompt = 1;
 			break;
 		case 'v':
-			puts("nfisql, a freeware isql replacement by Nicholas S. Castellano");
+			puts("fisql, a free isql replacement by Nicholas S. Castellano");
 			exit(EXIT_SUCCESS);
 			break;
 		case 'X':

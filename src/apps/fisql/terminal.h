@@ -1,4 +1,4 @@
-/* Free ISQL - An isql for DB-Library (C) 2007 Nicholas Castellano
+/* Free ISQL - An isql for DB-Library (C) 2007 Nicholas S. Castellano
  *
  * This program  is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -16,7 +16,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*	$Id: terminal.h,v 1.3 2007-01-19 18:33:41 castellano Exp $	*/
+/*	$Id: terminal.h,v 1.4 2007-01-20 06:32:27 castellano Exp $	*/
 int save_term(void);
 int set_term_noecho(void);
 int reset_term(void);

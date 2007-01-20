@@ -1,3 +1,11 @@
+Sat Jan 20 01:30:22 EST 2007	Nick Castellano <entropy@freetds.org>
+	* ChangeLog src/apps/fisql/edit.c src/apps/fisql/edit.h
+	* src/apps/fisql/fisql.c src/apps/fisql/handlers.c
+	* src/apps/fisql/handlers.h src/apps/fisql/interrupt.c
+	* src/apps/fisql/interrupt.h src/apps/fisql/terminal.c
+	* src/apps/fisql/terminal.h:
+	- Fix my name and the program name
+
 Sat Jan 20 01:20:39 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/apps/fisql/fisql.c: 
 	- Be slightly less stupid about compute rows.
