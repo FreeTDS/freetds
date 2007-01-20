@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.275 2007-01-20 05:38:04 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.276 2007-01-20 05:57:36 castellano Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -5693,7 +5693,7 @@ dbgetchar(DBPROCESS * dbproc, int pos)
 	tdsdump_log(TDS_DBG_FUNC, "dbgetchar() bufsz = %d, pos = %d\n", dbproc->dbbufsz, pos);
 
 	if (dbproc->dbbufsz > 0) {
-		if (pos >= 0 && pos < dbproc->dbbufsz)
+		if (pos >= 0 && pos < (dbproc->dbbufsz - 1))
 			return (char *) &dbproc->dbbuf[pos];
 		else
 			return NULL;
