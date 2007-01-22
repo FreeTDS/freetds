@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.38 2005-08-14 09:20:53 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.39 2007-01-22 06:00:00 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -59,6 +59,7 @@ odbc_setenv(const char *name, const char *value, int overwrite)
 int
 read_login_info(void)
 {
+	static const char *PWD = "../../../PWD";
 	FILE *in;
 	char line[512];
 	char *s1, *s2;
@@ -67,7 +68,11 @@ read_login_info(void)
 	int len;
 #endif
 
+#if 0
 	in = fopen(".." TDS_SDIR_SEPARATOR ".." TDS_SDIR_SEPARATOR ".." TDS_SDIR_SEPARATOR "PWD", "r");
+#else
+	in = fopen(PWD, "r");
+#endif
 	if (!in)
 		in = fopen("PWD", "r");
 
