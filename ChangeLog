@@ -1,3 +1,6 @@
+Mon Jan 22 15:50:31 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/dblib/dblib.c: print line separator after compute results
+
 Mon Jan 22 00:56:12 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/odbc/connectparams.c src/odbc/error.c
 	* src/odbc/odbc.c
