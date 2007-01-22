@@ -379,7 +379,10 @@ main(int argc, char *argv[])
 				tfn = cp;
 				for (; *cp && !(isspace((unsigned char) *cp)); cp++);
 				*cp = '\0';
-				fp = fopen(tfn, "r");
+				if ((fp = fopen(tfn, "r")) == NULL) {
+					printf("Operating system error: Failed to open %s.\n", tfn);
+					continue;
+				}
 				tmpfp = rl_instream;
 				tmpfp2 = rl_outstream;
 				rl_instream = fp;
