@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.45 2006-12-26 14:56:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.46 2007-01-22 05:59:53 jklowden Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -507,6 +507,9 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	const char *msg;
 	char *p;
 
+	tdsdump_log(TDS_DBG_FUNC, "_SQLGetDiagRec(%d, %p, %d, %p, %p, %p, %d, %p)\n", 
+			handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
+
 	static const char msgprefix[] = "[FreeTDS][SQL Server]";
 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
@@ -572,6 +575,9 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	SQLSMALLINT type;
 	SQLHANDLE handle;
 
+	tdsdump_log(TDS_DBG_FUNC, "SQLError(%p, %p, %p, %p, %p, %p, %d, %p)\n", 
+			henv, hdbc, hstmt, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
+
 	if (hstmt) {
 		errs = &((TDS_STMT *) hstmt)->errs;
 		handle = hstmt;
@@ -604,8 +610,11 @@ SQLRETURN SQL_API
 SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLCHAR FAR * szSqlState,
 	      SQLINTEGER FAR * pfNativeError, SQLCHAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
 {
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagRec(%d, %p, %d, %p, %p, %p, %d, %p)\n", 
+			handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
 	return _SQLGetDiagRec(handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
 }
+
 
 SQLRETURN SQL_API
 SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLSMALLINT diagIdentifier, SQLPOINTER buffer,
@@ -614,6 +623,9 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	SQLRETURN result = SQL_SUCCESS;
 	struct _sql_errors *errs = NULL;
 	const char *msg;
+
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagField(%d, %p, %d, %d, %p, %d, %p)\n", 
+			handleType, handle, numRecord, diagIdentifier, buffer, cbBuffer, pcbBuffer);
 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
 	int cplen;

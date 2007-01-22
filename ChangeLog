@@ -1,3 +1,9 @@
+Mon Jan 22 00:56:12 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/odbc/connectparams.c src/odbc/error.c
+	* src/odbc/odbc.c
+	- added log entry for API functions
+	* src/odbc/unittests/common.c always use '/' separator
+
 Sat Jan 20 15:24:03 EST 2007	JK Lowden <jklowden@freetds.org>
 	* include/dblib.h include/sybdb.h src/dblib/dblib.c
 	- moved DBOPTION to dblib.h and removed unused members.

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.69 2006-12-26 14:56:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.70 2007-01-22 05:59:53 jklowden Exp $");
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 
@@ -346,6 +346,9 @@ SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR pszDefault
 {
 	FILE *hFile;
 	ProfileParam param;
+
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetPrivateProfileString(%p, %p, %p, %p, %d, %p)\n", 
+			pszSection, pszEntry, pszDefault, pRetBuffer, nRetBuffer, pszFileName);
 
 	if (!pszSection) {
 		/* spec says return list of all section names - but we will just return nothing */
