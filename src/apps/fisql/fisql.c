@@ -94,6 +94,7 @@ main(int argc, char *argv[])
 	LOGINREC *login;
 	char **ibuf = NULL;
 	int ibuflines = 0;
+	int printedlines;
 	int i;
 	char *line;
 	int dbrc;
@@ -109,7 +110,18 @@ main(int argc, char *argv[])
 	FILE *tmpfp2;
 	char *tfn;
 	char tmpfn[256];
-	int acol;
+	int num_cols;
+	int selcol;
+	int col;
+	int collen;
+	DBINT colid;
+	const char *opname;
+	char adbuf[512];
+	DBINT convlen;
+	int printedcompute = 0;
+	BYTE *bylist;
+	int nby, iby;
+	char adash;
 
 	editor = getenv("EDITOR");
 	if (!editor) {
@@ -319,7 +331,7 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	dbsetopt(dbproc, DBPRLINESEP, "\n\t", 2);
+	dbsetopt(dbproc, DBPRLINESEP, "\n", 1);
 	if (colseparator) {
 		dbsetopt(dbproc, DBPRCOLSEP, colseparator, strlen(colseparator));
 	}
@@ -493,7 +505,12 @@ main(int argc, char *argv[])
 		if (dbsqlexec(dbproc) == SUCCEED) {
 			maybe_handle_active_interrupt();
 			while ((dbrc = dbresults(dbproc)) != NO_MORE_RESULTS) {
-				i = 0;
+				printedlines = 0;
+#define USE_DBPRROW 0
+#if USE_DBPRROW
+				dbprhead(dbproc);
+				dbprrow(dbproc);
+#else
 				if (DBROWS(dbproc) == SUCCEED) {
 					prbuflen = dbspr1rowlen(dbproc);
 					prbuf = (char *) xmalloc(prbuflen * sizeof(char));
@@ -509,15 +526,75 @@ main(int argc, char *argv[])
 							break;
 						}
 						if (dbrc != REG_ROW) {
-							fputs("fisql:  *** Non-regular row! not yet ... ", stdout);
-							printf("%d alts ", dbnumalts(dbproc, dbrc));
-							for (acol = 1; acol <= dbnumalts(dbproc, dbrc); acol++) {
-								printf("%s ", dbprtype(dbaltop(dbproc, dbrc, acol)));
-							}
-							printf("\n");
-							continue;
+						  num_cols = dbnumalts(dbproc, dbrc);
+						  for (selcol = col = 1; col <= num_cols; col++) {
+						    colid = dbaltcolid(dbproc, dbrc, col);
+						    while (selcol < colid) {
+						      collen = dbcollen(dbproc, selcol); /* XXX printable length */
+						      for (i = 0; i < collen; i++) {
+							putchar(' ');
+						      }
+						      selcol++;
+						      putchar(' '); /* XXX colsep */
+						    }
+						    opname = dbprtype(dbaltop(dbproc, dbrc, col));
+						    printf("%s", opname);
+						    /* XXX pad to collen */
+						    putchar(' '); /* XXX colsep */
+						    printf("\n"); /* XXX linesep */
+						  }
+						  for (selcol = col = 1; col <= num_cols; col++) {
+						    colid = dbaltcolid(dbproc, dbrc, col);
+						    while (selcol < colid) {
+						      collen = dbcollen(dbproc, selcol); /* XXX printable length */
+						      for (i = 0; i < collen; i++) {
+							putchar(' ');
+						      }
+						      selcol++;
+						      putchar(' '); /* XXX colsep */
+						    }
+						    collen = dbcollen(dbproc, selcol); /* XXX printable length */
+						    adash = '-';
+						    bylist = dbbylist(dbproc, dbrc, &nby);
+						    if (nby == 0) {
+						      adash = '=';
+						    }
+						    for (i = 0; i < collen; i++) {
+						      putchar(adash);
+						    }
+						    /* XXX pad to collen */
+						    putchar(' '); /* XXX colsep */
+						    printf("\n"); /* XXX linesep */
+						  }
+						  for (selcol = col = 1; col <= num_cols; col++) {
+						    colid = dbaltcolid(dbproc, dbrc, col);
+						    while (selcol < colid) {
+						      collen = dbcollen(dbproc, selcol); /* XXX printable length */
+						      for (i = 0; i < collen; i++) {
+							putchar(' ');
+						      }
+						      selcol++;
+						      putchar(' '); /* XXX colsep */
+						    }
+						    convlen = dbconvert(dbproc,
+									dbalttype(dbproc, dbrc, col), 
+									dbadata(dbproc, dbrc, col),
+									dbadlen(dbproc, dbrc, col),
+									SYBCHAR,
+									adbuf,
+									512);
+						    printf("%.*s", (int) convlen, adbuf);
+						    /* XXX pad to collen */
+						    putchar(' '); /* XXX colsep */
+						    printf("\n"); /* XXX linesep */
+						  }
+						  printedcompute = 1;
+						  continue;
 						}
-						if (headers && (i >= headers) && ((i % headers) == 0)) {
+						if (printedcompute
+						    || (headers
+							&& (printedlines >= headers)
+							&& ((printedlines % headers) == 0))) {
 							fputc('\n', stdout);
 							dbsprhead(dbproc, prbuf, prbuflen);
 							fputs(prbuf, stdout);
@@ -525,8 +602,9 @@ main(int argc, char *argv[])
 							dbsprline(dbproc, prbuf, prbuflen, '-');
 							fputs(prbuf, stdout);
 							fputc('\n', stdout);
+							printedcompute = 0;
 						}
-						i++;
+						printedlines++;
 						dbspr1row(dbproc, prbuf, prbuflen);
 						fputs(prbuf, stdout);
 						fputc('\n', stdout);
@@ -536,6 +614,7 @@ main(int argc, char *argv[])
 					free(prbuf);
 					maybe_handle_active_interrupt();
 				}
+#endif
 				if (dbrc != FAIL) {
 					if ((DBCOUNT(dbproc) >= 0) || dbhasretstat(dbproc)) {
 						if (DBCOUNT(dbproc) >= 0) {
