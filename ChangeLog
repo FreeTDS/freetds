@@ -1,3 +1,6 @@
+Tue Jan 23 11:24:40 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/dblib/dblib.c: fix off-by-one bug in dbbylist()
+
 Mon Jan 22 15:54:02 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/apps/fisql/fisql.c: fix :r with unreadable file
 

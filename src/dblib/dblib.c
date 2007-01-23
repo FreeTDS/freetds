@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.279 2007-01-22 20:52:21 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.280 2007-01-23 16:25:48 castellano Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4458,7 +4458,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 	 * have to convert it. We can do this cause libTDS just
 	 * store these informations
 	 */
-	if (info->by_cols > 1 && info->bycolumns[0] != byte_flag) {
+	if (info->by_cols > 0 && info->bycolumns[0] != byte_flag) {
 		unsigned int n;
 		TDS_TINYINT *p = (TDS_TINYINT *) malloc(sizeof(info->bycolumns[0]) + info->by_cols);
 		if (!p)
