@@ -1,3 +1,6 @@
+Wed Jan 24 14:11:56 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/apps/fisql/fisql.c: indent
+
 Wed Jan 24 14:08:09 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/apps/fisql/fisql.c: good enough compute layout
 
