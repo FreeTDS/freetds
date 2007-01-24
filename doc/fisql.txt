@@ -106,5 +106,4 @@ AUTHORS
   who contributed it to the FreeTDS project under the terms of the GPL. 
 
 BUGS
-  Doesn't handle compute rows.
   Requires the GNU readline library. 

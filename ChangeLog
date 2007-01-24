@@ -1,3 +1,6 @@
+Wed Jan 24 14:14:55 EST 2007	Nick Castellano <entropy@freetds.org>
+	* doc/fisql.txt: compute rows in fisql work now, remove BUGS entry
+
 Wed Jan 24 14:11:56 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/apps/fisql/fisql.c: indent
 
