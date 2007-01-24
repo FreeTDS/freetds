@@ -38,6 +38,7 @@
 static void *xmalloc(size_t s);
 static void *xrealloc(void *p, size_t s);
 static int get_printable_size(int type, int size);
+static int get_printable_column_size(DBPROCESS *dbproc, int col);
 
 static void *
 xmalloc(size_t s)
@@ -109,6 +110,18 @@ get_printable_size(int type, int size)
 	default:
 		return 0;
 	}
+}
+
+static int
+get_printable_column_size(DBPROCESS *dbproc, int col)
+{
+  int collen;
+
+  collen = get_printable_size(dbcoltype(dbproc, col), dbcollen(dbproc, col));
+  if (strlen(dbcolname(dbproc, col)) > collen) {
+    collen = strlen(dbcolname(dbproc, col));
+  }
+  return collen;
 }
 
 int
@@ -585,10 +598,7 @@ main(int argc, char *argv[])
 						  for (selcol = col = 1; col <= num_cols; col++) {
 						    colid = dbaltcolid(dbproc, dbrc, col);
 						    while (selcol < colid) {
-						      collen = get_printable_size(dbcoltype(dbproc, selcol), dbcollen(dbproc, selcol));
-						      if (strlen(dbcolname(dbproc, selcol)) > collen) {
-							collen = strlen(dbcolname(dbproc, selcol));
-						      }
+						      collen = get_printable_column_size(dbproc, selcol);
 						      for (i = 0; i < collen; i++) {
 							putchar(' ');
 						      }
@@ -597,27 +607,26 @@ main(int argc, char *argv[])
 						    }
 						    opname = dbprtype(dbaltop(dbproc, dbrc, col));
 						    printf("%s", opname);
-						    /* XXX pad to collen */
+						    collen = get_printable_column_size(dbproc, colid);
+						    collen -= strlen(opname);
+						    while (collen-- > 0) {
+						      putchar(' ');
+						    }
+						    selcol++;
 						    printf("%s", colseparator);
 						  }
 						  printf("%s", lineseparator);
 						  for (selcol = col = 1; col <= num_cols; col++) {
 						    colid = dbaltcolid(dbproc, dbrc, col);
 						    while (selcol < colid) {
-						      collen = get_printable_size(dbcoltype(dbproc, selcol), dbcollen(dbproc, selcol));
-						      if (strlen(dbcolname(dbproc, selcol)) > collen) {
-							collen = strlen(dbcolname(dbproc, selcol));
-						      }
+						      collen = get_printable_column_size(dbproc, selcol);
 						      for (i = 0; i < collen; i++) {
 							putchar(' ');
 						      }
 						      selcol++;
 						      printf("%s", colseparator);
 						    }
-						    collen = get_printable_size(dbcoltype(dbproc, colid), dbcollen(dbproc, colid));
-						    if (strlen(dbcolname(dbproc, colid)) > collen) {
-						      collen = strlen(dbcolname(dbproc, colid));
-						    }
+						    collen = get_printable_column_size(dbproc, colid);
 						    adash = '-';
 						    bylist = dbbylist(dbproc, dbrc, &nby);
 						    if (nby == 0) {
@@ -626,17 +635,14 @@ main(int argc, char *argv[])
 						    for (i = 0; i < collen; i++) {
 						      putchar(adash);
 						    }
-						    /* XXX pad to collen */
+						    selcol++;
 						    printf("%s", colseparator);
 						  }
 						  printf("%s", lineseparator);
 						  for (selcol = col = 1; col <= num_cols; col++) {
 						    colid = dbaltcolid(dbproc, dbrc, col);
 						    while (selcol < colid) {
-						      collen = get_printable_size(dbcoltype(dbproc, selcol), dbcollen(dbproc, selcol));
-						      if (strlen(dbcolname(dbproc, selcol)) > collen) {
-							collen = strlen(dbcolname(dbproc, selcol));
-						      }
+						      collen = get_printable_column_size(dbproc, selcol);
 						      for (i = 0; i < collen; i++) {
 							putchar(' ');
 						      }
@@ -651,7 +657,12 @@ main(int argc, char *argv[])
 									adbuf,
 									512);
 						    printf("%.*s", (int) convlen, adbuf);
-						    /* XXX pad to collen */
+						    collen = get_printable_column_size(dbproc, colid);
+						    collen -= convlen;
+						    while (collen-- > 0) {
+						      putchar(' ');
+						    }
+						    selcol++;
 						    printf("%s", colseparator);
 						  }
 						  printf("%s", lineseparator);
