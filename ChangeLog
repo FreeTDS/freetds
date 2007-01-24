@@ -1,3 +1,6 @@
+Wed Jan 24 11:32:56 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/apps/fisql/fisql.c: minor compute layout fixes, still more to do
+
 Tue Jan 23 17:15:33 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/apps/fisql/fisql.c: better compute results, layout needs fixing
 

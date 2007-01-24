@@ -75,6 +75,7 @@ main(int argc, char *argv[])
 	int headers = 0;
 	char *columnwidth = NULL;
 	const char *colseparator = " ";
+	const char *lineseparator = "\n";
 	int timeout = 0;
 	char *username = NULL;
 	const char *password = NULL;
@@ -331,7 +332,7 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	dbsetopt(dbproc, DBPRLINESEP, "\n", 1);
+	dbsetopt(dbproc, DBPRLINESEP, lineseparator, strlen(lineseparator));
 	if (colseparator) {
 		dbsetopt(dbproc, DBPRCOLSEP, colseparator, strlen(colseparator));
 	}
@@ -535,14 +536,14 @@ main(int argc, char *argv[])
 							putchar(' ');
 						      }
 						      selcol++;
-						      putchar(' '); /* XXX colsep */
+						      printf("%s", colseparator);
 						    }
 						    opname = dbprtype(dbaltop(dbproc, dbrc, col));
 						    printf("%s", opname);
 						    /* XXX pad to collen */
-						    putchar(' '); /* XXX colsep */
-						    printf("\n"); /* XXX linesep */
+						    printf("%s", colseparator);
 						  }
+						  printf("%s", lineseparator);
 						  for (selcol = col = 1; col <= num_cols; col++) {
 						    colid = dbaltcolid(dbproc, dbrc, col);
 						    while (selcol < colid) {
@@ -551,7 +552,7 @@ main(int argc, char *argv[])
 							putchar(' ');
 						      }
 						      selcol++;
-						      putchar(' '); /* XXX colsep */
+						      printf("%s", colseparator);
 						    }
 						    collen = dbcollen(dbproc, selcol); /* XXX printable length */
 						    adash = '-';
@@ -563,9 +564,9 @@ main(int argc, char *argv[])
 						      putchar(adash);
 						    }
 						    /* XXX pad to collen */
-						    putchar(' '); /* XXX colsep */
-						    printf("\n"); /* XXX linesep */
+						    printf("%s", colseparator);
 						  }
+						  printf("%s", lineseparator);
 						  for (selcol = col = 1; col <= num_cols; col++) {
 						    colid = dbaltcolid(dbproc, dbrc, col);
 						    while (selcol < colid) {
@@ -574,7 +575,7 @@ main(int argc, char *argv[])
 							putchar(' ');
 						      }
 						      selcol++;
-						      putchar(' '); /* XXX colsep */
+						      printf("%s", colseparator);
 						    }
 						    convlen = dbconvert(dbproc,
 									dbalttype(dbproc, dbrc, col), 
@@ -585,9 +586,9 @@ main(int argc, char *argv[])
 									512);
 						    printf("%.*s", (int) convlen, adbuf);
 						    /* XXX pad to collen */
-						    putchar(' '); /* XXX colsep */
-						    printf("\n"); /* XXX linesep */
+						    printf("%s", colseparator);
 						  }
+						  printf("%s", lineseparator);
 						  printedcompute = 1;
 						  continue;
 						}
