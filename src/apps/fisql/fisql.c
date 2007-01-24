@@ -35,6 +35,10 @@
 
 #define READPASSPHRASE_MAXLEN 128
 
+static void *xmalloc(size_t s);
+static void *xrealloc(void *p, size_t s);
+static int get_printable_size(int type, int size);
+
 static void *
 xmalloc(size_t s)
 {
@@ -55,6 +59,56 @@ xrealloc(void *p, size_t s)
 		exit(EXIT_FAILURE);
 	}
 	return p;
+}
+
+/* adapted from src/dblib/dblib.c (via src/apps/bsqldb.c) */
+static int
+get_printable_size(int type, int size)
+{
+	switch (type) {
+	case SYBINTN:
+		switch (size) {
+		case 1:
+			return 3;
+		case 2:
+			return 6;
+		case 4:
+			return 11;
+		case 8:
+			return 21;
+		}
+	case SYBINT1:
+		return 3;
+	case SYBINT2:
+		return 6;
+	case SYBINT4:
+		return 11;
+	case SYBINT8:
+		return 21;
+	case SYBVARCHAR:
+	case SYBCHAR:
+		return size;
+	case SYBFLT8:
+		return 11;	/* FIX ME -- we do not track precision */
+	case SYBREAL:
+		return 11;	/* FIX ME -- we do not track precision */
+	case SYBMONEY:
+		return 12;	/* FIX ME */
+	case SYBMONEY4:
+		return 12;	/* FIX ME */
+	case SYBDATETIME:
+		return 26;	/* FIX ME */
+	case SYBDATETIME4:
+		return 26;	/* FIX ME */
+#if 0	/* seems not to be exported to sybdb.h */
+	case SYBBITN:
+#endif
+	case SYBBIT:
+		return 1;
+		/* FIX ME -- not all types present */
+	default:
+		return 0;
+	}
 }
 
 int
@@ -531,7 +585,10 @@ main(int argc, char *argv[])
 						  for (selcol = col = 1; col <= num_cols; col++) {
 						    colid = dbaltcolid(dbproc, dbrc, col);
 						    while (selcol < colid) {
-						      collen = dbcollen(dbproc, selcol); /* XXX printable length */
+						      collen = get_printable_size(dbcoltype(dbproc, selcol), dbcollen(dbproc, selcol));
+						      if (strlen(dbcolname(dbproc, selcol)) > collen) {
+							collen = strlen(dbcolname(dbproc, selcol));
+						      }
 						      for (i = 0; i < collen; i++) {
 							putchar(' ');
 						      }
@@ -547,14 +604,20 @@ main(int argc, char *argv[])
 						  for (selcol = col = 1; col <= num_cols; col++) {
 						    colid = dbaltcolid(dbproc, dbrc, col);
 						    while (selcol < colid) {
-						      collen = dbcollen(dbproc, selcol); /* XXX printable length */
+						      collen = get_printable_size(dbcoltype(dbproc, selcol), dbcollen(dbproc, selcol));
+						      if (strlen(dbcolname(dbproc, selcol)) > collen) {
+							collen = strlen(dbcolname(dbproc, selcol));
+						      }
 						      for (i = 0; i < collen; i++) {
 							putchar(' ');
 						      }
 						      selcol++;
 						      printf("%s", colseparator);
 						    }
-						    collen = dbcollen(dbproc, selcol); /* XXX printable length */
+						    collen = get_printable_size(dbcoltype(dbproc, colid), dbcollen(dbproc, colid));
+						    if (strlen(dbcolname(dbproc, colid)) > collen) {
+						      collen = strlen(dbcolname(dbproc, colid));
+						    }
 						    adash = '-';
 						    bylist = dbbylist(dbproc, dbrc, &nby);
 						    if (nby == 0) {
@@ -570,7 +633,10 @@ main(int argc, char *argv[])
 						  for (selcol = col = 1; col <= num_cols; col++) {
 						    colid = dbaltcolid(dbproc, dbrc, col);
 						    while (selcol < colid) {
-						      collen = dbcollen(dbproc, selcol); /* XXX printable length */
+						      collen = get_printable_size(dbcoltype(dbproc, selcol), dbcollen(dbproc, selcol));
+						      if (strlen(dbcolname(dbproc, selcol)) > collen) {
+							collen = strlen(dbcolname(dbproc, selcol));
+						      }
 						      for (i = 0; i < collen; i++) {
 							putchar(' ');
 						      }
