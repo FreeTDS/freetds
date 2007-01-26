@@ -16,6 +16,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -146,7 +150,7 @@ main(int argc, char *argv[])
 	const char *lineseparator = "\n";
 	int timeout = 0;
 	char *username = NULL;
-	const char *password = NULL;
+	char *password = NULL;
 	char *server = NULL;
 	DBCHAR *char_set = NULL;
 	const char *editor;
@@ -189,7 +193,7 @@ main(int argc, char *argv[])
 	DBINT convlen;
 	int printedcompute = 0;
 	BYTE *bylist;
-	int nby, iby;
+	int nby;
 	char adash;
 
 	editor = getenv("EDITOR");
@@ -326,10 +330,7 @@ main(int argc, char *argv[])
 	rl_readline_name = "fisql";
 	rl_bind_key('\t', rl_insert);
 	if (password == NULL) {
-		if ((password = (char *) malloc(READPASSPHRASE_MAXLEN)) == NULL) {
-			fprintf(stderr, "Memory allocation failure.\n");
-			exit(EXIT_FAILURE);
-		}
+		password = (char *) xmalloc(READPASSPHRASE_MAXLEN);
 		readpassphrase("Password: ", password, READPASSPHRASE_MAXLEN, RPP_ECHO_OFF);
 	}
 	if (input_filename) {

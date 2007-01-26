@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.280 2007-01-23 16:25:48 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.281 2007-01-26 17:19:50 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7569,7 +7569,6 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	/* look up the error message */
 	for (i=0; i < TDS_VECTOR_SIZE(dblib_error_messages); i++ ) {
 		if (dblib_error_messages[i].msgno == msgno) {
-			msg = &dblib_error_messages[i];
 
 			/* 
 			 * See if the message has placeholders.  If so, build a message string on the heap.  
@@ -7579,6 +7578,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			 */
 			char * ptext = dblib_error_messages[i].msgtext;
 			char * pformats = ptext + strlen(ptext) + 1;
+			msg = &dblib_error_messages[i];
 			assert(*(pformats - 1) == '\0'); 
 			if(*pformats != '\0') {
 				int result_len, len = 2 * strlen(ptext);
@@ -7602,7 +7602,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			break;
 		}
 	}
-		
+
 	/* call the error handler */
 	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, msg->msgtext, os_msgtext);
 	switch (rc) {
