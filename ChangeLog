@@ -1,3 +1,7 @@
+Fri Jan 26 18:06:44 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/error.c src/odbc/odbc.c:
+	- remove warning compiling
+
 Wed Jan 24 14:14:55 EST 2007	Nick Castellano <entropy@freetds.org>
 	* doc/fisql.txt: compute rows in fisql work now, remove BUGS entry
 
@@ -103,7 +107,7 @@ Fri Jan 19 11:17:13 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/fisql/xgetpass.c src/apps/fisql/xgetpass.h
 	* src/apps/fisql/fisql.c
 	- Added notice of copyright and GPL license
-	
+
 Thu Jan 18 23:55:17 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/Makefile.am doc/fisql.txt added man page for fisql
 	* src/apps/fisql/fisql.c fixed discarding const warnings

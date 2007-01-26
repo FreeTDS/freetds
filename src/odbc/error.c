@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.46 2007-01-22 05:59:53 jklowden Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.47 2007-01-26 17:06:32 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -507,12 +507,12 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	const char *msg;
 	char *p;
 
-	tdsdump_log(TDS_DBG_FUNC, "_SQLGetDiagRec(%d, %p, %d, %p, %p, %p, %d, %p)\n", 
-			handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
-
 	static const char msgprefix[] = "[FreeTDS][SQL Server]";
 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
+
+	tdsdump_log(TDS_DBG_FUNC, "_SQLGetDiagRec(%d, %p, %d, %p, %p, %p, %d, %p)\n", 
+			handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
 
 	if (numRecord <= 0 || cbErrorMsgMax < 0)
 		return SQL_ERROR;
@@ -624,15 +624,15 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	struct _sql_errors *errs = NULL;
 	const char *msg;
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagField(%d, %p, %d, %d, %p, %d, %p)\n", 
-			handleType, handle, numRecord, diagIdentifier, buffer, cbBuffer, pcbBuffer);
-
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
 	int cplen;
 	TDS_STMT *stmt = NULL;
 	TDS_DBC *dbc = NULL;
 	TDS_ENV *env = NULL;
 	char tmp[16];
+
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagField(%d, %p, %d, %d, %p, %d, %p)\n", 
+			handleType, handle, numRecord, diagIdentifier, buffer, cbBuffer, pcbBuffer);
 
 	if (cbBuffer < 0)
 		return SQL_ERROR;
