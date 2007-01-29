@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.57 2007-01-15 02:00:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.58 2007-01-29 11:02:43 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -118,10 +118,10 @@ _tds_socket_init(void)
 	return WSAStartup(MAKEWORD(1, 1), &wsadata);
 }
 
-int
+void
 _tds_socket_done(void)
 {
-	return WSACleanup();
+	WSACleanup();
 }
 #endif
 

@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.22 2006-08-24 09:18:01 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.23 2007-01-29 11:02:43 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -68,7 +68,7 @@ typedef int pid_t;
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 int  _tds_socket_init(void);
 #define INITSOCKET()	_tds_socket_init()
-int _tds_socket_done(void);
+void _tds_socket_done(void);
 #define DONESOCKET()	_tds_socket_done()
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
 
@@ -116,7 +116,7 @@ typedef DWORD pid_t;
 #endif /* !INITSOCKET */
 
 #ifndef DONESOCKET
-#define DONESOCKET()	0
+#define DONESOCKET()	do { } while(0)
 #endif /* !DONESOCKET */
 
 #ifndef READSOCKET

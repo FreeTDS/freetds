@@ -655,7 +655,7 @@ main(int argc, char *argv[])
 										    dbalttype(dbproc, dbrc, col),
 										    dbadata(dbproc, dbrc, col),
 										    dbadlen(dbproc, dbrc, col),
-										    SYBCHAR, adbuf, 512);
+										    SYBCHAR, (BYTE *) adbuf, sizeof(adbuf));
 								printf("%.*s", (int) convlen, adbuf);
 								collen = get_printable_column_size(dbproc, colid);
 								collen -= convlen;
