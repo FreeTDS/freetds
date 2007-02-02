@@ -35,7 +35,7 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.1 2007-02-02 10:52:45 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.2 2007-02-02 14:03:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* TODO port to windows, use thread */
@@ -101,7 +101,7 @@ init_fake_server(int ip_port)
 	}
 	CLOSESOCKET(s);
 
-	alarm(20);
+	alarm(30);
 	for (;;) {
 		/* just read and discard */
 		len = READSOCKET(fd, buf, sizeof(buf));
@@ -187,7 +187,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Invalid timeout message\n");
 		return 1;
 	}
-	if (end_time - start_time < 10 || end_time - start_time > 13) {
+	if (end_time - start_time < 10 || end_time - start_time > 16) {
 		fprintf(stderr, "Unexpected connect timeout (%d)\n", (int) (end_time - start_time));
 		return 1;
 	}
