@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.402.2.3 2006-09-05 07:27:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.402.2.4 2007-02-02 16:23:30 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -277,27 +277,35 @@ static SQLRETURN
 odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 {
 	TDS_ENV *env = dbc->env;
+	TDSSOCKET *tds;
 
-	dbc->tds_socket = tds_alloc_socket(env->tds_ctx, 512);
-	if (!dbc->tds_socket) {
+	dbc->tds_socket = tds = tds_alloc_socket(env->tds_ctx, 512);
+	if (!tds) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
-	tds_set_parent(dbc->tds_socket, (void *) dbc);
+	tds_set_parent(tds, (void *) dbc);
 
 	/* Set up our environment change hook */
-	dbc->tds_socket->env_chg_func = odbc_env_change;
+	tds->env_chg_func = odbc_env_change;
 
 	tds_fix_connection(connection);
 
 	connection->connect_timeout = dbc->attr.connection_timeout;
 
-	if (tds_connect(dbc->tds_socket, connection) == TDS_FAIL) {
-		tds_free_socket(dbc->tds_socket);
+	tds->query_timeout_func = query_timeout_cancel;
+	tds->query_timeout_param = dbc;
+	tds->query_timeout = dbc->attr.connection_timeout;
+
+	if (tds_connect(tds, connection) == TDS_FAIL) {
+		tds_free_socket(tds);
 		dbc->tds_socket = NULL;
 		odbc_errs_add(&dbc->errs, "08001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
+	tds->query_timeout_func = NULL;
+	tds->query_timeout_param = NULL;
+
 	/* this overwrite any error arrived (wanted behavior, Sybase return error for conversion errors) */
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
@@ -1749,8 +1757,9 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		/* compute state if not available */
 		if (!state)
 			state = severity <= 10 ? "01000" : "42000";
-		odbc_errs_add_rdbms(errs, msg->msgno, state, msg->message, msg->line_number, msg->severity,
-				    msg->server);
+		if (!dbc || dbc->current_statement || dbc->errs.num_errors < 1 || strcmp(dbc->errs.errs[0].state3, "HYT00") != 0)
+			odbc_errs_add_rdbms(errs, msg->msgno, state, msg->message, msg->line_number, msg->severity,
+					    msg->server);
 
 		/* set lastc according */
 		if (severity <= 10) {
@@ -2394,17 +2403,32 @@ odbc_populate_ird(TDS_STMT * stmt)
 static int
 query_timeout_cancel(void *param, unsigned int total_timeout)
 {
-	TDS_STMT *stmt = (TDS_STMT *) param;
+	TDS_CHK *chk = (TDS_CHK *) param;
 
-	assert(stmt != NULL);
+	if (!chk)
+		return TDS_INT_CANCEL;
 
-	if (!stmt->dbc->tds_socket->in_cancel)
-		odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
-	stmt->errs.lastrc = SQL_ERROR;
+	switch (chk->htype) {
+	case SQL_HANDLE_STMT: {
+		TDS_STMT *stmt = (TDS_STMT *) chk;
+		if (!stmt->dbc->tds_socket->in_cancel)
+			odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
+		stmt->errs.lastrc = SQL_ERROR;
 
-	/* attent indefinitely cancel */
-	stmt->dbc->tds_socket->query_timeout = 0;
+		/* attent indefinitely cancel */
+		stmt->dbc->tds_socket->query_timeout = 0;
 
+		}
+		break;
+
+	case SQL_HANDLE_DBC: {
+		TDS_DBC *dbc = (TDS_DBC *) chk;
+		tdsdump_log(TDS_DBG_INFO1, "setting timeout on dbc\n");
+		odbc_errs_add(&dbc->errs, "HYT00", "Timeout expired");
+		tds_close_socket(dbc->tds_socket);
+		}
+		break;
+	}
 	return TDS_INT_CANCEL;
 }
 

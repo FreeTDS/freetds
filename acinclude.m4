@@ -207,7 +207,7 @@ CFLAGS=$ac_save_CFLAGS
 # exists. These example files found at
 # http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 #
-# @version $Id: acinclude.m4,v 1.33 2005-12-09 16:58:19 freddy77 Exp $
+# @version $Id: acinclude.m4,v 1.33.2.1 2007-02-02 16:23:30 freddy77 Exp $
 # @author Caolan McNamara <caolan@skynet.ie>
 #
 # based on David Arnold's autoconf suggestion in the threads faq
@@ -401,7 +401,24 @@ getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw);
 return 0;
 }
 ],ac_cv_func_which_getpwuid_r=five,
-ac_cv_func_which_getpwuid_r=no)]
+ac_cv_func_which_getpwuid_r=no)],
+[# cross compile case
+ac_cv_func_which_getpwuid_r=no
+num_params=four
+for params in "int" "size_t, struct passwd **"; do
+  AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
+#include <unistd.h>
+#include <pwd.h>
+extern int getpwuid_r(uid_t, struct passwd *, char *, $params);
+	  ],[]),[
+	if test $ac_cv_func_which_getpwuid_r != no; then
+		AC_ERROR([Two types of getpwuid_r detected])
+	fi
+	ac_cv_func_which_getpwuid_r=$num_params
+	])
+	num_params=five
+done
+]
 )]
 )])
 
