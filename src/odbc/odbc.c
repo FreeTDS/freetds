@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.430 2007-01-26 17:06:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.431 2007-02-02 10:52:45 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1930,6 +1930,11 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 			stmt->errs.lastrc = SQL_ERROR;
 			/* attent indefinitely cancel */
 			/* stmt->dbc->tds_socket->query_timeout = 0; */
+		} else if (dbc) {
+			odbc_errs_add(&dbc->errs, "HYT00", "Timeout expired");
+			dbc->errs.lastrc = SQL_ERROR;
+			tdsdump_log(TDS_DBG_INFO1, "returning cancel from timeout\n");
+			return TDS_INT_CANCEL;
 		}
 		tdsdump_log(TDS_DBG_INFO1, "returning from timeout\n");
 		return TDS_INT_TIMEOUT;
@@ -1960,8 +1965,10 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		/* compute state if not available */
 		if (!state)
 			state = severity <= 10 ? "01000" : "42000";
-		odbc_errs_add_rdbms(errs, msg->msgno, state, msg->message, msg->line_number, msg->severity,
-				    msg->server);
+		/* add error, do not overwrite connection timeout error */
+		if (msg->msgno != TDSEFCON || errs->lastrc != SQL_ERROR || errs->num_errors < 1)
+			odbc_errs_add_rdbms(errs, msg->msgno, state, msg->message, msg->line_number, msg->severity,
+					    msg->server);
 
 		/* set lastc according */
 		if (severity <= 10) {
