@@ -1,6 +1,6 @@
 <?php
 
-// $Id: null.php,v 1.2 2006-10-20 14:38:22 freddy77 Exp $
+// $Id: null.php,v 1.3 2007-02-05 08:42:32 freddy77 Exp $
 
 require_once("pwd.inc");
 
@@ -41,7 +41,7 @@ function test($sql, $expected)
 	}
 }
 
-test("SELECT top 1 * FROM #MyTable WHERE n = 1 -- ''", "' '");
+test("SELECT top 1 * FROM #MyTable WHERE n = 1 -- ''", "(Empty String)");
 
 test("SELECT top 1 * FROM #MyTable WHERE n = 2 -- NULL", "(NULL)");
 

@@ -1,3 +1,7 @@
+Mon Feb 05 09:41:02 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/test-other.sh phptests/null.php:
+	- fixed PHP check, updated test to PHP 5.2
+
 Fri Feb 02 11:51:19 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/timeout3.c(added):
