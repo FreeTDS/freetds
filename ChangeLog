@@ -1,3 +1,7 @@
+Tue Feb 06 10:18:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/odbc/Makefile.am:
+	- use -module option only for darwin
+
 Tue Feb 06 09:53:14 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/bsqlodbc.c:
 	- make more functions static

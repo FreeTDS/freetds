@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.15 2007-02-02 10:52:45 freddy77 Exp $
+dnl $Id: configure.ac,v 1.16 2007-02-06 09:18:53 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.15 $)
+AC_REVISION($Revision: 1.16 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -439,6 +439,13 @@ AM_CONDITIONAL(INCODBC, test "$build_odbc" = "yes")
   
 if test "$build_odbc" = "yes"
 then
+	case $host_os in
+	darwin* | rhapsody*)
+		FREETDS_ODBC_MODULE="-module"
+		;;
+	esac
+	AC_SUBST(FREETDS_ODBC_MODULE)
+
 	# odbc not specified, try to detect it
 	echo looking for installed odbc driver manager
 	if test "$odbc" != "true" -a $tds_mingw = yes; then
