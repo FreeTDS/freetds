@@ -48,7 +48,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.2 2007-02-06 05:45:27 jklowden Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.3 2007-02-06 08:55:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -56,10 +56,10 @@ static void print_results(SQLHSTMT hStmt);
 /* static int get_printable_size(int type, int size); */
 static void usage(const char invoked_as[]);
 
-SQLINTEGER print_error_message(SQLSMALLINT hType, SQLHANDLE handle);
-SQLRETURN odbc_herror(SQLSMALLINT hType, SQLHANDLE handle, SQLRETURN erc, const char func[], const char msg[]);
-SQLRETURN odbc_perror(SQLHSTMT hStmt, SQLRETURN erc, const char func[], const char msg[]);
-const char * prret(SQLRETURN erc);
+static SQLINTEGER print_error_message(SQLSMALLINT hType, SQLHANDLE handle);
+static SQLRETURN odbc_herror(SQLSMALLINT hType, SQLHANDLE handle, SQLRETURN erc, const char func[], const char msg[]);
+static SQLRETURN odbc_perror(SQLHSTMT hStmt, SQLRETURN erc, const char func[], const char msg[]);
+static const char * prret(SQLRETURN erc);
 
 
 struct METADATA { char *name, *format_string; const char *source; int type, size, width; };
@@ -92,7 +92,7 @@ typedef struct
 		*client_charset;
 } LOGINREC;
 
-LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
+static LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
 
 /* global variables */
 OPTIONS options;
@@ -118,7 +118,7 @@ static const char default_colsep[] = "  ";
  * an associated SQLSTATE value can be obtained by calling SQLGetDiagRec 
  * with a HandleType of SQL_HANDLE_STMT and a Handle of StatementHandle.  
  */
-SQLINTEGER
+static SQLINTEGER
 print_error_message(SQLSMALLINT hType, SQLHANDLE handle) {
 	int i, ndiag=0;
 	SQLRETURN ret;
@@ -148,7 +148,7 @@ print_error_message(SQLSMALLINT hType, SQLHANDLE handle) {
 	return maxerror;
 }
 
-const char *
+static const char *
 prret(SQLRETURN erc)
 {
 	switch(erc) {
@@ -163,7 +163,7 @@ prret(SQLRETURN erc)
 	return "unknown";
 }
 
-SQLRETURN
+static SQLRETURN
 odbc_herror(SQLSMALLINT hType, SQLHANDLE handle, SQLRETURN erc, const char func[], const char msg[])
 {
 	char * ercstr;
@@ -197,7 +197,7 @@ odbc_herror(SQLSMALLINT hType, SQLHANDLE handle, SQLRETURN erc, const char func[
 	return erc;
 }
 
-SQLRETURN
+static SQLRETURN
 odbc_perror(SQLHSTMT hStmt, SQLRETURN erc, const char func[], const char msg[])
 {
 	return odbc_herror(SQL_HANDLE_STMT, hStmt, erc, func, msg);
@@ -457,7 +457,7 @@ print_results(SQLHSTMT hStmt)
 			} 
 			assert(namelen < sizeof(name));
 			name[namelen] = '\0';
-			metadata[c].name = strdup(name);
+			metadata[c].name = strdup((char *) name);
 			metadata[c].width = (ndigits > metadata[c].size)? ndigits : metadata[c].size;
 
 			fprintf(options.verbose, "%6d  %30s  %30s  %15s  %6d  %6d  \n", 
@@ -663,7 +663,8 @@ usage(const char invoked_as[])
 			, invoked_as);
 }
 
-static void unescape(char arg[])
+static void
+unescape(char arg[])
 {
 	char *p = arg;
 	char escaped = '1'; /* any digit will do for an initial value */
@@ -700,7 +701,7 @@ static void unescape(char arg[])
 	}
 }
 
-LOGINREC *
+static LOGINREC *
 get_login(int argc, char *argv[], OPTIONS *options)
 {
 	LOGINREC *login;

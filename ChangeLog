@@ -1,3 +1,9 @@
+Tue Feb 06 09:53:14 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/bsqlodbc.c:
+	- make more functions static
+	- remove warning
+	* src/tds/net.c: remove warning
+
 Mon Feb  5 21:48:58 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/Makefile.am src/apps/bsqlodbc.c src/apps/osql
 	- added bsqlodbc as general batch script processor. 

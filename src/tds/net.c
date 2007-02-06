@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.58 2007-01-29 11:02:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.59 2007-02-06 08:55:08 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -320,6 +320,7 @@ static int
 tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds)
 {
 	int rc, seconds;
+	unsigned int poll_seconds;
 
 	assert(tds != NULL);
 	assert(timeout_seconds >= 0);
@@ -331,7 +332,7 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 	 * If timeout_seconds is zero, we never leave this loop except to return to the caller. 
 	 */
 	seconds = timeout_seconds;
-	const unsigned int poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
+	poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
 	assert(seconds >= 0);
 	do {	
 		struct timeval tv, *ptv = timeout_seconds? &tv : NULL;
