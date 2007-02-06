@@ -48,17 +48,18 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.1 2007-02-06 02:51:18 jklowden Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.2 2007-02-06 05:45:27 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
 static void print_results(SQLHSTMT hStmt);
-static int get_printable_size(int type, int size);
+/* static int get_printable_size(int type, int size); */
 static void usage(const char invoked_as[]);
 
 SQLINTEGER print_error_message(SQLSMALLINT hType, SQLHANDLE handle);
 SQLRETURN odbc_herror(SQLSMALLINT hType, SQLHANDLE handle, SQLRETURN erc, const char func[], const char msg[]);
 SQLRETURN odbc_perror(SQLHSTMT hStmt, SQLRETURN erc, const char func[], const char msg[]);
+const char * prret(SQLRETURN erc);
 
 
 struct METADATA { char *name, *format_string; const char *source; int type, size, width; };
@@ -145,6 +146,21 @@ print_error_message(SQLSMALLINT hType, SQLHANDLE handle) {
 			maxerror = error;
 	}
 	return maxerror;
+}
+
+const char *
+prret(SQLRETURN erc)
+{
+	switch(erc) {
+	case SQL_SUCCESS: 		return "SQL_SUCCESS";
+	case SQL_SUCCESS_WITH_INFO: 	return "SQL_SUCCESS_WITH_INFO";
+	case SQL_ERROR: 		return "SQL_ERROR";
+	case SQL_STILL_EXECUTING: 	return "SQL_STILL_EXECUTING";
+	case SQL_INVALID_HANDLE: 	return "SQL_INVALID_HANDLE";
+	case SQL_NO_DATA: 		return "SQL_NO_DATA";
+	}
+	fprintf(stderr, "error:%d: prret cannot interpret SQLRETURN code %d\n", __LINE__, erc);
+	return "unknown";
 }
 
 SQLRETURN
@@ -285,15 +301,19 @@ main(int argc, char *argv[])
 		}
 
 		if((erc = SQLExecute(hStmt)) != SQL_SUCCESS) {
-			if (erc == SQL_NEED_DATA) 
+			switch(erc) {
+			case SQL_NEED_DATA: 
 				goto FreeStatement;
-			if (erc == SQL_SUCCESS_WITH_INFO) {
+			case SQL_SUCCESS_WITH_INFO:
 				if (0 != print_error_message(SQL_HANDLE_STMT, hStmt)) {
 					odbc_perror(hStmt, erc, "SQLExecute", "failed");
 					exit(EXIT_FAILURE);
 				}
+				break;
+			default:
+				odbc_perror(hStmt, erc, "SQLExecute", "failed");
+				exit(EXIT_FAILURE);
 			}
-			assert(erc != SQL_NEED_DATA);
 		}
 
 		/* Write the output */
@@ -387,6 +407,7 @@ print_results(SQLHSTMT hStmt)
 	
 	struct DATA *data = NULL;
 	
+	SQLSMALLINT ncols = 0;
 	RETCODE erc;
 	int c, ret;
 
@@ -394,7 +415,6 @@ print_results(SQLHSTMT hStmt)
 	 * Process each resultset
 	 */
 	do {
-		SQLSMALLINT ncols;
 		/* free metadata, in case it was previously allocated */
 		free_metadata(metadata, data, ncols);
 		metadata = NULL;
@@ -415,7 +435,6 @@ print_results(SQLHSTMT hStmt)
 		data = (struct DATA*) calloc(ncols, sizeof(struct DATA));
 		assert(data);
 		
-
 		/* 
 		 * For each column, get its name, type, and size. 
 		 * Allocate a buffer to hold the data, and bind the buffer to the column.
@@ -430,7 +449,7 @@ print_results(SQLHSTMT hStmt)
 			SQLCHAR name[512];
 			SQLSMALLINT namelen, ndigits, fnullable;
 
-			if ((erc = SQLDescribeCol(hStmt, c, name, sizeof(name), &namelen, 
+			if ((erc = SQLDescribeCol(hStmt, c+1, name, sizeof(name), &namelen, 
 							(SQLSMALLINT *)&metadata[c].type, (SQLUINTEGER *)&metadata[c].size,
 							&ndigits, &fnullable)) != SQL_SUCCESS) {
 				odbc_perror(hStmt, erc, "SQLDescribeCol", "failed");
@@ -439,7 +458,12 @@ print_results(SQLHSTMT hStmt)
 			assert(namelen < sizeof(name));
 			name[namelen] = '\0';
 			metadata[c].name = strdup(name);
-			metadata[c].width = ndigits;
+			metadata[c].width = (ndigits > metadata[c].size)? ndigits : metadata[c].size;
+
+			fprintf(options.verbose, "%6d  %30s  %30s  %15s  %6d  %6d  \n", 
+				c+1, metadata[c].name, metadata[c].source, "(todo)", 
+				metadata[c].size,  -1);
+
 #if 0
 			fprintf(options.verbose, "%6d  %30s  %30s  %15s  %6d  %6d  \n", 
 				c+1, metadata[c].name, metadata[c].source, dbprtype(metadata[c].type), 
@@ -473,7 +497,7 @@ print_results(SQLHSTMT hStmt)
 			data[c].buffer = calloc(1, metadata[c].width);
 			assert(data[c].buffer);
 
-			if ((erc = SQLBindCol(hStmt, c, SQL_C_CHAR, (SQLPOINTER)data[c].buffer, 
+			if ((erc = SQLBindCol(hStmt, c+1, SQL_C_CHAR, (SQLPOINTER)data[c].buffer, 
 						metadata[c].width, &data[c].len)) != SQL_SUCCESS){
 				odbc_perror(hStmt, erc, "SQLBindCol", "failed");
 				exit(EXIT_FAILURE);
@@ -495,7 +519,7 @@ print_results(SQLHSTMT hStmt)
 		/* 
 		 * Print the data to stdout.  
 		 */
-		while ((erc = SQLFetch(hStmt)) != SQL_NO_DATA) {
+		while (ncols > 0 && (erc = SQLFetch(hStmt)) != SQL_NO_DATA) {
 			switch(erc) {
 			case SQL_SUCCESS:
 				break;
@@ -517,15 +541,26 @@ print_results(SQLHSTMT hStmt)
 					s = calloc(1, 1 + data[c].len);
 					assert(s);
 					memcpy(s, data[c].buffer, data[c].len);
-					fprintf(stdout, metadata[c].format_string, data[c].buffer);
+					fprintf(stdout, metadata[c].format_string, s);
 					free(s);
 					break;
 				}
 			}
 		}
-	} while ((erc = SQLMoreResults(hStmt)) != SQL_NO_DATA);
+
+		if ((erc = SQLMoreResults(hStmt)) != SQL_NO_DATA) {
+			switch(erc) {
+			case SQL_SUCCESS:
+				continue;
+			default:
+				odbc_perror(hStmt, erc, "SQLMoreResults", "failed");
+				exit(EXIT_FAILURE);
+			}
+		}
+		fprintf(options.verbose, "SQLMoreResults returned %s\n", prret(erc));
+	} while (erc != SQL_NO_DATA);
 	
-	if (erc != SQL_SUCCESS) {
+	if (erc != SQL_NO_DATA) {
 		assert(erc != SQL_STILL_EXECUTING);
 		odbc_perror(hStmt, erc, "SQLMoreResults", "failed");
 		exit(EXIT_FAILURE);
