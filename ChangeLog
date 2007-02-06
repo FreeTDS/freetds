@@ -1,3 +1,6 @@
+Tue Feb  6 14:11:02 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/dblib/dblib.c: Don't print or store column separator after final result column
+
 Tue Feb 06 10:18:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/odbc/Makefile.am:
 	- use -module option only for darwin

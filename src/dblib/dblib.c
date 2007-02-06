@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.281 2007-01-26 17:19:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.282 2007-02-06 19:13:45 castellano Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2856,14 +2856,16 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			*buffer++ = c;
 			buf_len--;
 		}
-		i = 0;
-		while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-			if (buf_len < 1) {
-				return FAIL;
+		if ((col + 1) < resinfo->num_cols) {
+			i = 0;
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+				if (buf_len < 1) {
+					return FAIL;
+				}
+				*buffer++ = c;
+				buf_len--;
+				i++;
 			}
-			*buffer++ = c;
-			buf_len--;
-			i++;
 		}
 	}
 	if (buf_len < 1) {
@@ -2951,10 +2953,12 @@ dbprrow(DBPROCESS * dbproc)
 					putchar(c);
 				}
 
-				i = 0;
-				while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-					putchar(c);
-					i++;
+				if ((col + 1) < resinfo->num_cols) {
+					i = 0;
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+						putchar(c);
+						i++;
+					}
 				}
 				col_printlens[col] = collen;
 			}
@@ -2989,7 +2993,7 @@ dbprrow(DBPROCESS * dbproc)
 				colid = dbaltcolid(dbproc, computeid, col);
 				while (selcol < colid) {
 					for (i = 0; i < col_printlens[selcol - 1]; i++) {
-						putchar(' ');
+						putchar(' '); /* XXX DBPRPAD? */
 					}
 					selcol++;
 					i = 0;
@@ -3002,13 +3006,15 @@ dbprrow(DBPROCESS * dbproc)
 				opname = dbprtype(op);
 				printf("%s", opname);
 				for (i = 0; i < ((long) col_printlens[selcol - 1] - (long) strlen(opname)); i++) {
-					putchar(' ');
+					putchar(' '); /* XXX DBPRPAD */
 				}
 				selcol++;
-				i = 0;
-				while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-					putchar(c);
-					i++;
+				if ((colid + 1) < num_cols) {
+					i = 0;
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+						putchar(c);
+						i++;
+					}
 				}
 			}
 			i = 0;
@@ -3039,10 +3045,12 @@ dbprrow(DBPROCESS * dbproc)
 				for (i = 0; i < col_printlens[colid - 1]; i++)
 					putchar(linechar);
 				selcol++;
-				i = 0;
-				while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-					putchar(c);
-					i++;
+				if ((colid + 1) < num_cols) {
+					i = 0;
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+						putchar(c);
+						i++;
+					}
 				}
 			}
 			i = 0;
@@ -3092,10 +3100,12 @@ dbprrow(DBPROCESS * dbproc)
 					putchar(c);
 				}
 				selcol++;
-				i = 0;
-				while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-					putchar(c);
-					i++;
+				if ((colid + 1) < num_cols) {
+					i = 0;
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+						putchar(c);
+						i++;
+					}
 				}
 			}
 			i = 0;
@@ -3200,14 +3210,16 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 			*buffer++ = line_char;
 			buf_len--;
 		}
-		i = 0;
-		while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-			if (buf_len < 1) {
-				return FAIL;
+		if ((col + 1) < resinfo->num_cols) {
+			i = 0;
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+				if (buf_len < 1) {
+					return FAIL;
+				}
+				*buffer++ = c;
+				buf_len--;
+				i++;
 			}
-			*buffer++ = c;
-			buf_len--;
-			i++;
 		}
 	}
 	if (buf_len < 1) {
@@ -3265,14 +3277,16 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			*buffer++ = c;
 			buf_len--;
 		}
-		i = 0;
-		while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-			if (buf_len < 1) {
-				return FAIL;
+		if ((col + 1) < resinfo->num_cols) {
+			i = 0;
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+				if (buf_len < 1) {
+					return FAIL;
+				}
+				*buffer++ = c;
+				buf_len--;
+				i++;
 			}
-			*buffer++ = c;
-			buf_len--;
-			i++;
 		}
 	}
 	if (buf_len < 1) {
@@ -3322,10 +3336,12 @@ dbprhead(DBPROCESS * dbproc)
 			putchar(c);
 		}
 
-		i = 0;
-		while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-			putchar(c);
-			i++;
+		if ((col + 1) < resinfo->num_cols) {
+			i = 0;
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+				putchar(c);
+				i++;
+			}
 		}
 	}
 	i = 0;
@@ -3340,10 +3356,12 @@ dbprhead(DBPROCESS * dbproc)
 		len = collen > namlen ? collen : namlen;
 		for (i = 0; i < len; i++)
 			putchar('-');
-		i = 0;
-		while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
-			putchar(c);
-			i++;
+		if ((col + 1) < resinfo->num_cols) {
+			i = 0;
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+				putchar(c);
+				i++;
+			}
 		}
 	}
 	i = 0;
