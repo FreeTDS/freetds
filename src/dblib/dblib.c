@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.282 2007-02-06 19:13:45 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.283 2007-02-06 22:44:22 castellano Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4353,6 +4353,7 @@ dbsqlok(DBPROCESS * dbproc)
 
 					if (done_flags & TDS_DONE_MORE_RESULTS) {
 						dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
+						return SUCCEED;
 					} else {
 						dbproc->dbresults_state = _DB_RES_NO_MORE_RESULTS;
 					}

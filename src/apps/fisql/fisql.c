@@ -581,7 +581,7 @@ main(int argc, char *argv[])
 				dbprhead(dbproc);
 				dbprrow(dbproc);
 #else
-				if (DBROWS(dbproc) == SUCCEED) {
+				if ((dbrc == SUCCEED) && (DBROWS(dbproc) == SUCCEED)) {
 					prbuflen = dbspr1rowlen(dbproc);
 					prbuf = (char *) xmalloc(prbuflen * sizeof(char));
 					dbsprhead(dbproc, prbuf, prbuflen);

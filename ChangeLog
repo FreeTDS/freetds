@@ -1,3 +1,12 @@
+Tue Feb  6 17:14:50 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/dblib/dblib.c:
+	- Sybase docs for dbsqlok() says: "If the command buffer contains
+	  multiple commands, a run-time error will not cause dbsqlok to
+	  fail.  Instead, failure will occur with the dbresults call that
+	  processes the command causing the run-time error."
+	* src/apps/fisql/fisql.c:
+	- Correct result set processing.
+	
 Tue Feb  6 14:11:02 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/dblib/dblib.c: Don't print or store column separator after final result column
 
