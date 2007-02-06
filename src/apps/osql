@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.5 2007-01-11 15:51:42 jklowden Exp $
+# $Id: osql,v 1.6 2007-02-06 02:51:18 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -333,5 +333,5 @@ printf "%30s:\t%-30s\n" Driver ${DRIVER}
 printf "\n";
 
 echo Attempting connection as ${USERNAME}... 
-exec isql ${DSN} ${USERNAME} ${PASSWORD}
+exec isql ${DSN} ${USERNAME} ${PASSWORD} -v
 
