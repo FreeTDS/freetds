@@ -1,3 +1,8 @@
+Wed Feb  7 00:04:15 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/apps/bsqldb.c exit noisily on severe errors
+	* src/dblib/dblib.c src/tds/token.c 
+	- fix timeout with buffering problem per yesterday's ML. 
+
 Tue Feb  6 17:14:50 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/dblib/dblib.c:
 	- Sybase docs for dbsqlok() says: "If the command buffer contains
