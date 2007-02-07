@@ -1,3 +1,6 @@
+Wed Feb  7 01:11:27 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/apps/bsqlodbc.c don't exit on SQL_SUCCESS_WITH_INFO
+	
 Wed Feb  7 00:04:15 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/bsqldb.c exit noisily on severe errors
 	* src/dblib/dblib.c src/tds/token.c 

@@ -48,7 +48,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.3 2007-02-06 08:55:08 freddy77 Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.4 2007-02-07 06:12:44 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -306,8 +306,7 @@ main(int argc, char *argv[])
 				goto FreeStatement;
 			case SQL_SUCCESS_WITH_INFO:
 				if (0 != print_error_message(SQL_HANDLE_STMT, hStmt)) {
-					odbc_perror(hStmt, erc, "SQLExecute", "failed");
-					exit(EXIT_FAILURE);
+					fprintf(stderr, "SQLExecute: continuing...\n");
 				}
 				break;
 			default:
