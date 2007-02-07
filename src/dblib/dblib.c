@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.283 2007-02-06 22:44:22 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.284 2007-02-07 05:07:43 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1650,7 +1650,8 @@ dbnextrow(DBPROCESS * dbproc)
 			result = NO_MORE_ROWS;
 			break;
 		default:
-			result = FAIL;
+			tdsdump_log(TDS_DBG_FUNC, "unexpected: leaving dbnextrow() returning FAIL\n");
+			return FAIL;
 			break;
 		}
 	}

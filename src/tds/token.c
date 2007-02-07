@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.328 2007-01-07 06:03:54 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.329 2007-02-07 05:07:43 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -491,7 +491,9 @@ tds_process_auth(TDSSOCKET * tds)
  * @param flag Flags to select token type to stop/return
  * @todo Complete TDS_DESCRIBE_RESULT description
  * @retval TDS_SUCCEED if a result set is available for processing.
+ * @retval TDS_FAIL on error.
  * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.
+ * @retval anything returned by one of the many functions it calls.  :-(
  */
 int
 tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsigned flag)
