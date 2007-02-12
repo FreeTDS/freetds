@@ -1,3 +1,6 @@
+Mon Feb 12 14:29:53 EST 2007	Nick Castellano <entropy@freetds.org>
+	* src/dblib/dblib.c: Increase size of dbprrow() conversion buffer to 8K.
+
 Mon Feb 12 10:53:54 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/timeout3.c:
 	- use thread instead of fork
