@@ -29,17 +29,19 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
+#include <pthread.h>
+
 #include "tds.h"
 
 /*
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.2 2007-02-02 14:03:27 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.3 2007-02-12 09:55:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* TODO port to windows, use thread */
-#if HAVE_FORK && HAVE_ALARM
+#if defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM
 
 static void init_connect(void);
 
@@ -60,14 +62,17 @@ init_connect(void)
 	}
 }
 
+static pthread_t      fake_thread;
+static TDS_SYS_SOCKET fake_sock;
+
+static void *fake_thread_proc(void * arg);
+
 static int
 init_fake_server(int ip_port)
 {
 	struct sockaddr_in sin;
-	TDS_SYS_SOCKET fd, s;
-	socklen_t len;
-	pid_t pid;
-	char buf[128];
+	TDS_SYS_SOCKET s;
+	int err;
 
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_addr.s_addr = INADDR_ANY;
@@ -83,19 +88,26 @@ init_fake_server(int ip_port)
 		CLOSESOCKET(s);
 		return 1;
 	}
-	pid = fork();
-	if (pid < 0) {
-		perror("fork");
+	err = pthread_create(&fake_thread, NULL, fake_thread_proc, (void *) s);
+	if (err != 0) {
+		perror("pthread_create");
 		exit(1);
 	}
-	if (pid > 0) {
-		CLOSESOCKET(s);
-		return 0;
-	}
+	return 0;
+}
+
+static void *
+fake_thread_proc(void * arg)
+{
+	TDS_SYS_SOCKET s = (int) arg;
+	socklen_t len;
+	char buf[128];
+	struct sockaddr_in sin;
 
 	listen(s, 5);
+	memset(&sin, 0, sizeof(sin));
 	len = sizeof(sin);
-	if ((fd = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
+	if ((fake_sock = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
 		perror("accept");
 		exit(1);
 	}
@@ -104,13 +116,13 @@ init_fake_server(int ip_port)
 	alarm(30);
 	for (;;) {
 		/* just read and discard */
-		len = READSOCKET(fd, buf, sizeof(buf));
+		len = READSOCKET(fake_sock, buf, sizeof(buf));
 		if (len == 0)
 			break;
 		if (len < 0 && sock_errno != TDSSOCK_EINPROGRESS)
 			break;
 	}
-	exit(0);
+	return NULL;
 }
 
 int
@@ -145,7 +157,6 @@ main(int argc, char *argv[])
 		}
 	}
 
-	init_connect();
 	for (port = 12340; port < 12350; ++port)
 		if (!init_fake_server(port))
 			break;
@@ -155,6 +166,7 @@ main(int argc, char *argv[])
 	}
 	printf("Fake server binded at port %d\n", port);
 
+	init_connect();
 	res = SQLSetConnectAttr(Connection, SQL_ATTR_CONNECTION_TIMEOUT, (SQLPOINTER) 10, sizeof(SQLINTEGER));
 	if (!SQL_SUCCEEDED(res))
 		ODBC_REPORT_ERROR("SQLSetConnectAttr error");
@@ -181,6 +193,8 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	Disconnect();
+	CLOSESOCKET(fake_sock);
+	pthread_join(fake_thread, NULL);
 
 	printf("Message: %s - %s\n", sqlstate, tmp);
 	if (strcmp(sqlstate, "HYT00") || !strstr(tmp, "Timeout")) {
@@ -196,7 +210,7 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-#else
+#else	/* !TDS_HAVE_PTHREAD_MUTEX */
 int
 main(void)
 {
