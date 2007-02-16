@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.264 2007-01-15 02:00:58 jklowden Exp $ */
+/* $Id: tds.h,v 1.265 2007-02-16 13:53:10 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -242,17 +242,20 @@ enum tds_token_flags
 	TDS_TOKEN_TRAILING = TDS_STOPAT_ROWFMT|TDS_STOPAT_COMPUTEFMT|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE|TDS_STOPAT_MSG|TDS_STOPAT_OTHERS
 };
 
+/**
+ * Flags returned in TDS_DONE token
+ */
 enum tds_end
 {
-	  TDS_DONE_FINAL 	= 0x00	/* final result set, command completed successfully. */
-	, TDS_DONE_MORE_RESULTS = 0x01	/* more results follow */
-	, TDS_DONE_ERROR 	= 0x02	/* error occurred */
-	, TDS_DONE_INXACT 	= 0x04	/* transaction in progress */
-	, TDS_DONE_PROC 	= 0x08	/* results are from a stored procedure */
-	, TDS_DONE_COUNT 	= 0x10	/* count field in packet is valid */
-	, TDS_DONE_CANCELLED 	= 0x20	/* acknowledging an attention command (usually a cancel) */
+	  TDS_DONE_FINAL 	= 0x00	/**< final result set, command completed successfully. */
+	, TDS_DONE_MORE_RESULTS = 0x01	/**< more results follow */
+	, TDS_DONE_ERROR 	= 0x02	/**< error occurred */
+	, TDS_DONE_INXACT 	= 0x04	/**< transaction in progress */
+	, TDS_DONE_PROC 	= 0x08	/**< results are from a stored procedure */
+	, TDS_DONE_COUNT 	= 0x10	/**< count field in packet is valid */
+	, TDS_DONE_CANCELLED 	= 0x20	/**< acknowledging an attention command (usually a cancel) */
 	, TDS_DONE_EVENT 	= 0x40	/* part of an event notification. */
-	, TDS_DONE_SRVERROR 	= 0x100	/* SQL server server error */
+	, TDS_DONE_SRVERROR 	= 0x100	/**< SQL server server error */
 	
 	/* after the above flags, a TDS_DONE packet has a field describing the state of the transaction */
 	, TDS_DONE_NO_TRAN 	= 0	/* No transaction in effect */
@@ -829,7 +832,7 @@ typedef struct tds_blob
 } TDSBLOB;
 
 /** 
- * TDS 8.0 collation information.
+ * TDS 8.0 collation informations.
  */
 typedef struct
 {
@@ -970,14 +973,14 @@ typedef struct tds_result_info
 	TDS_SMALLINT by_cols;
 } TDSRESULTINFO;
 
-/* values for tds->state */
+/** values for tds->state */
 typedef enum _TDS_STATE
 {
-	TDS_IDLE,
-	TDS_QUERYING,
-	TDS_PENDING,
-	TDS_READING,
-	TDS_DEAD
+	TDS_IDLE,	/**< no data expected */
+	TDS_QUERYING,	/**< client is sending request */
+	TDS_PENDING,	/**< cilent is waiting for data */
+	TDS_READING,	/**< client is reading data */
+	TDS_DEAD	/**< no connection */
 } TDS_STATE;
 
 #define TDS_DBG_FUNC    __FILE__, ((__LINE__ << 4) | 7)
@@ -1008,18 +1011,18 @@ typedef enum _TDS_STATE
  */
 enum TDS_DBG_LOG_STATE
 {
-	  TDS_DBG_LOGIN = 1		/* for diagnosing login problems;                                       
+	  TDS_DBG_LOGIN =  (1 << 0)	/**< for diagnosing login problems;                                       
 				 	   otherwise the username/password information is suppressed. */
-	, TDS_DBG_API =    (1 << 1)	/* Log calls to client libraries */
-	, TDS_DBG_ASYNC =  (1 << 2)	/* Log asynchronous function starts or completes. */
-	, TDS_DBG_DIAG =   (1 << 3)	/* Log client- and server-generated messages */
+	, TDS_DBG_API =    (1 << 1)	/**< Log calls to client libraries */
+	, TDS_DBG_ASYNC =  (1 << 2)	/**< Log asynchronous function starts or completes. */
+	, TDS_DBG_DIAG =   (1 << 3)	/**< Log client- and server-generated messages */
 	, TDS_DBG_error =  (1 << 4)
 	/* TODO:  ^^^^^ make upper case when old #defines (above) are removed */
 	/* Log FreeTDS runtime/logic error occurs. */
-	, TDS_DBG_PACKET = (1 << 5)	/* Log hex dump of packets to/from the server. */
-	, TDS_DBG_LIBTDS = (1 << 6)	/* Log calls to (and in) libtds */
-	, TDS_DBG_CONFIG = (1 << 7)	/* replaces TDSDUMPCONFIG */
-	, TDS_DBG_DEFAULT = 0xFE	/* all above except login packets */
+	, TDS_DBG_PACKET = (1 << 5)	/**< Log hex dump of packets to/from the server. */
+	, TDS_DBG_LIBTDS = (1 << 6)	/**< Log calls to (and in) libtds */
+	, TDS_DBG_CONFIG = (1 << 7)	/**< replaces TDSDUMPCONFIG */
+	, TDS_DBG_DEFAULT = 0xFE	/**< all above except login packets */
 };
 
 typedef struct tds_result_info TDSCOMPUTEINFO;
@@ -1081,10 +1084,13 @@ typedef enum _tds_cursor_fetch
 	TDS_CURSOR_FETCH_RELATIVE
 } TDS_CURSOR_FETCH;
 
+/**
+ * Holds informations about a cursor
+ */
 typedef struct _tds_cursor 
 {
 	struct _tds_cursor *next;	/**< next in linked list, keep first */
-	TDS_INT ref_count;
+	TDS_INT ref_count;		/**< reference counter so client can retain safely a pointer */
 	TDS_INT length;			/**< total length of the remaining datastream */
 	TDS_TINYINT cursor_name_len;	/**< length of cursor name > 0 and <= 30  */
 	char *cursor_name;		/**< name of the cursor */
@@ -1101,11 +1107,11 @@ typedef struct _tds_cursor
 	TDSUPDCOL *cur_col_list;	/**< updatable column list */
 	TDS_CURSOR_STATUS status;
 	TDS_SMALLINT srv_status;
-	TDSRESULTINFO *res_info;
+	TDSRESULTINFO *res_info;	/** row fetched from this cursor */
 	TDS_INT type, concurrency;
 } TDSCURSOR;
 
-/*
+/**
  * Current environment as reported by the server
  */
 typedef struct tds_env
@@ -1116,17 +1122,37 @@ typedef struct tds_env
 	char *database;
 } TDSENV;
 
+/**
+ * Holds information for a dynamic (also called prepared) query.
+ */
 typedef struct tds_dynamic
 {
 	struct tds_dynamic *next;	/**< next in linked list, keep first */
+	/** 
+	 * id of dynamic.
+	 * Usually this id correspond to server one but if not specified
+	 * is generated automatically by libTDS
+	 */
 	char id[30];
 	int dyn_state;
 	/** numeric id for mssql7+*/
 	TDS_INT num_id;
-	TDSPARAMINFO *res_info;
+	TDSPARAMINFO *res_info;	/**< query results */
+	/**
+	 * query parameters.
+	 * Mostly used executing query however is a good idea to prepare query
+	 * again if parameter type change in an incompatible way (ie different
+	 * types or larger size). Is also better to prepare a query knowing
+	 * parameter types earlier.
+	 */
 	TDSPARAMINFO *params;
+	/**
+	 * this dynamic query cannot be prepared so libTDS have to construct a simple query.
+	 * This can happen for instance is tds protocol doesn't support dynamics or trying
+	 * to prepare query under Sybase that have BLOBs as parameters.
+	 */
 	int emulated;
-	/** saved query, we need to know original query if prepare is impossible*/
+	/** saved query, we need to know original query if prepare is impossible */
 	char *query;
 } TDSDYNAMIC;
 
@@ -1163,9 +1189,13 @@ enum TDS_ICONV_ENTRY
 	, initial_char_conv_count	/* keep last */
 };
 
+/**
+ * Hold information for a server connection
+ */
 struct tds_socket
 {
 	/* fixed and connect time */
+	/** tcp socket, INVALID_SOCKET if not connected */
 	TDS_SYS_SOCKET s;
 	TDS_SMALLINT major_version;
 	TDS_SMALLINT minor_version;
@@ -1176,16 +1206,25 @@ struct tds_socket
 	unsigned char broken_dates;
 	unsigned char option_flag2;
 	/* in/out buffers */
+	/** input buffer */
 	unsigned char *in_buf;
+	/** output buffer */
 	unsigned char *out_buf;
+	/** allocated input buffer */
 	unsigned int in_buf_max;
+	/** current position in in_buf */
 	unsigned in_pos;
+	/** current position in out_buf */
 	unsigned out_pos;
+	/** input buffer length */
 	unsigned in_len;
 	/* TODO remove blocksize from env and use out_len ?? */
 /*	unsigned out_len; */
+	/** input buffer type */
 	unsigned char in_flag;
+	/** output buffer type */
 	unsigned char out_flag;
+	/** true if current input buffer is the last one */
 	unsigned char last_packet;
 	void *parent;
 	/**
@@ -1200,10 +1239,12 @@ struct tds_socket
 	TDSPARAMINFO *param_info;
 	TDSCURSOR *cur_cursor;	/**< cursor in use */
 	TDSCURSOR *cursors;	/**< linked list of cursors allocated for this connection */
-	TDS_TINYINT has_status;
-	TDS_INT ret_status;
+	TDS_TINYINT has_status; /**< true is ret_status is valid */
+	TDS_INT ret_status;     /**< return status from store procedure */
 	TDS_STATE state;
+	/** indicate we are waiting a cancel reply so discard tokens till acknowledge */
 	volatile unsigned char in_cancel;
+	/** rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
 	int rows_affected;
 	/* timeout stuff from Jeff */
 	TDS_INT query_timeout;

@@ -1,3 +1,6 @@
+Fri Feb 16 14:52:10 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h: improve documentation
+
 Mon Feb 12 14:29:53 EST 2007	Nick Castellano <entropy@freetds.org>
 	* src/dblib/dblib.c: Increase size of dbprrow() conversion buffer to 8K.
 
