@@ -278,6 +278,136 @@ That implies there are at least 2 more strings that could be defined.
 Password and user is not used is NT authentication is used (setted as empty).
 <hr>
 <p>
+<a name="types"></a>
+<b class="section">Types</b>
+</p>
+<table border="1">
+<tr>
+  <th>HEX</th><th>DEC</th><th>type</th><th>protocol</th><th>nullable</th><th>size</th><th>collate</th>
+</tr>
+<tr>
+  <td>0x1F</td><td>31</td><td>SYBVOID</td><td>7+</td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x22</td><td>34</td><td>SYBIMAGE</td><td></td><td>yes</td><td>4</td><td></td>
+</tr>
+<tr>
+  <td>0x23</td><td>35</td><td>SYBTEXT</td><td></td><td>yes</td><td>4</td><td>yes</td>
+</tr>
+<tr>
+  <td>0x24</td><td>36</td><td>SYBUNIQUE</td><td>7+</td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x25</td><td>37</td><td>SYBVARBINARY</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x26</td><td>38</td><td>SYBINTN</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x27</td><td>39</td><td>SYBVARCHAR</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x2D</td><td>45</td><td>SYBBINARY</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x2F</td><td>47</td><td>SYBCHAR</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x30</td><td>48</td><td>SYBINT1</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x32</td><td>50</td><td>SYBBIT</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x34</td><td>52</td><td>SYBINT2</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x38</td><td>56</td><td>SYBINT4</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x3A</td><td>58</td><td>SYBDATETIME4</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x3B</td><td>59</td><td>SYBREAL</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x3C</td><td>60</td><td>SYBMONEY</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x3D</td><td>61</td><td>SYBDATETIME</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x3E</td><td>62</td><td>SYBFLT8</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x40</td><td>64</td><td>SYBSINT1</td><td>5</td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x41</td><td>65</td><td>SYBUINT2</td><td>5</td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x42</td><td>66</td><td>SYBUINT4</td><td>5</td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x43</td><td>67</td><td>SYBUINT8</td><td>5</td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x62</td><td>98</td><td>SYBVARIANT</td><td>7+</td><td>yes</td><td>4</td><td></td>
+</tr>
+<tr>
+  <td>0x63</td><td>99</td><td>SYBNTEXT</td><td>7+</td><td>yes</td><td>4</td><td>yes</td>
+</tr>
+<tr>
+  <td>0x67</td><td>103</td><td>SYBNVARCHAR</td><td>7+</td><td>yes</td><td>2</td><td>??</td>
+</tr>
+<tr>
+  <td>0x68</td><td>104</td><td>SYBBITN</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x6A</td><td>106</td><td>SYBDECIMAL</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x6C</td><td>108</td><td>SYBNUMERIC</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x6D</td><td>109</td><td>SYBFLTN</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x6E</td><td>110</td><td>SYBMONEYN</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x6F</td><td>111</td><td>SYBDATETIMN</td><td></td><td>yes</td><td>1</td><td></td>
+</tr>
+<tr>
+  <td>0x7A</td><td>122</td><td>SYBMONEY4</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0x7F</td><td>127</td><td>SYBINT8</td><td></td><td>no</td><td>0</td><td></td>
+</tr>
+<tr>
+  <td>0xA5</td><td>165</td><td>XSYBVARBINARY</td><td>7+</td><td>yes</td><td>2</td><td></td>
+</tr>
+<tr>
+  <td>0xA7</td><td>167</td><td>XSYBVARCHAR</td><td>7+</td><td>yes</td><td>2</td><td>yes</td>
+</tr>
+<tr>
+  <td>0xAD</td><td>173</td><td>XSYBBINARY</td><td>7+</td><td>yes</td><td>2</td><td></td>
+</tr>
+<tr>
+  <td>0xAF</td><td>175</td><td>XSYBCHAR</td><td>7+</td><td>yes</td><td>2</td><td>yes</td>
+</tr>
+<tr>
+  <td>0xE1</td><td>225</td><td>SYBLONGBINARY</td><td>5</td><td>yes</td><td>4</td><td></td>
+</tr>
+<tr>
+  <td>0xE7</td><td>231</td><td>XSYBNVARCHAR</td><td>7+</td><td>yes</td><td>2</td><td>yes</td>
+</tr>
+<tr>
+  <td>0xEF</td><td>239</td><td>XSYBNCHAR</td><td>7+</td><td>yes</td><td>2</td><td>yes</td>
+</tr>
+</table>
+<hr>
+<p>
 <a name="collate"></a>
 <b class="section">Collate type - TDS8</b>
 <p>Collate structure contain information on characters set encoding and compare
@@ -426,37 +556,98 @@ its type. If variable length, they generally have the length as the second
 and third bytes
 <p>
 Tokens encountered thus far:
-<pre>
-0x21    33   <a href="#t33">"Language packet" ?</a> 	5.0 only, client-side?
-0x71   113   <a href="#t113">"Logout"</a>			5.0? ct_close(), client-side?
-0x79   121   <a href="#t121">Return Status</a>
-0x7C   124   <a href="#t124">Process ID</a>			4.2 only
-0x81   129   <a href="#t129">7.0 Result</a>			7.0 only
-0xA0   160   <a href="#t160">Column Name</a>		4.2 only
-0xA1   161   <a href="#t161">Column Info --- Row Result</a>	4.2 only
-0xA4   164   <a href="#t164">Table names</a>		name of tables in a FOR BROWSE select
-0xA5   165   <a href="#t165">Column info</a>		column information in a FOR BROWSE select
-0xA7   167   <a href="#t167">compute related ?  Also "control" ?</a>
-0xA8   168   <a href="#t168">Column Info --- Compute Result</a>
-0xA9   169   <a href="#t169">Order By</a>
-0xAA   170   <a href="#t170">Error Message</a>
-0xAB   171   <a href="#t171">Non-error Message</a>
-0xAC   172   <a href="#t172">Output Parameters</a>
-0xAD   173   <a href="#t173">Login Acknowledgement</a>
-0xAE   174   <a href="#t174">"control" ?</a>
-0xD1   209   <a href="#t209">Data --- Row Result</a>
-0xD3   211   <a href="#t211">Data --- Compute Result</a>
-0xD7   215   <a href="#t215">"param packet" ?</a> **bdw**
-0xE2   226   <a href="#t226">Capability packet</a>		information on server
-0xE3   227   <a href="#t227">Environment Change</a> (database change, packet size, etc...)
-0xE5   229   <a href="#t229">Extended Error Message</a>
-0xE6   230   <a href="#t230">"DBRPC" ?</a>		5.0 only RPC calls
-0xEC   236   <a href="#t236">"param format packet" ?</a>
-0xEE   238   <a href="#t238">Result Set</a>
-0xFD   253   <a href="#t253">Result Set Done</a> 
-0xFE   254   <a href="#t254">Process Done</a>
-0xFF   255   <a href="#t255">Done inside Process</a>
-</pre>
+<table border="1">
+<tr>
+ <th>HEX</th><th>DEC</th><th>name</th><th>note</th>
+</tr>
+<tr>
+ <td>0x21</td><td>33</td><td><a href="#t33">"Language packet" ?</a></td><td>5.0 only, client-side?</td>
+</tr>
+<tr>
+ <td>0x71</td><td>113</td><td><a href="#t113">"Logout"</a></td><td>5.0? ct_close(), client-side?</td>
+</tr>
+<tr>
+ <td>0x79</td><td>121</td><td><a href="#t121">Return Status</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0x7C</td><td>124</td><td><a href="#t124">Process ID</a></td><td>4.2 only</td>
+</tr>
+<tr>
+ <td>0x81</td><td>129</td><td><a href="#t129">7.0 Result</a></td><td>7.0 only</td>
+</tr>
+<tr>
+ <td>0xA0</td><td>160</td><td><a href="#t160">Column Name</a></td><td>4.2 only</td>
+</tr>
+<tr>
+ <td>0xA1</td><td>161</td><td><a href="#t161">Column Info --- Row Result</a></td><td>4.2 only</td>
+</tr>
+<tr>
+ <td>0xA4</td><td>164</td><td><a href="#t164">Table names</a></td><td>name of tables in a FOR BROWSE select</td>
+</tr>
+<tr>
+ <td>0xA5</td><td>165</td><td><a href="#t165">Column info</a></td><td>column information in a FOR BROWSE select</td>
+</tr>
+<tr>
+ <td>0xA7</td><td>167</td><td><a href="#t167">compute related ?  Also "control" ?</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xA8</td><td>168</td><td><a href="#t168">Column Info --- Compute Result</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xA9</td><td>169</td><td><a href="#t169">Order By</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xAA</td><td>170</td><td><a href="#t170">Error Message</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xAB</td><td>171</td><td><a href="#t171">Non-error Message</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xAC</td><td>172</td><td><a href="#t172">Output Parameters</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xAD</td><td>173</td><td><a href="#t173">Login Acknowledgement</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xAE</td><td>174</td><td><a href="#t174">"control" ?</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xD1</td><td>209</td><td><a href="#t209">Data --- Row Result</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xD3</td><td>211</td><td><a href="#t211">Data --- Compute Result</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xD7</td><td>215</td><td><a href="#t215">"param packet" ?</a></td><td>**bdw**</td>
+</tr>
+<tr>
+ <td>0xE2</td><td>226</td><td><a href="#t226">Capability packet</a></td><td>information on server</td>
+</tr>
+<tr>
+ <td>0xE3</td><td>227</td><td><a href="#t227">Environment Change</a></td><td>(database change, packet size, etc...)</td>
+</tr>
+<tr>
+ <td>0xE5</td><td>229</td><td><a href="#t229">Extended Error Message</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xE6</td><td>230</td><td><a href="#t230">"DBRPC" ?</a></td><td>5.0 only RPC calls</td>
+</tr>
+<tr>
+ <td>0xEC</td><td>236</td><td><a href="#t236">"param format packet" ?</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xEE</td><td>238</td><td><a href="#t238">Result Set</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xFD</td><td>253</td><td><a href="#t253">Result Set Done</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xFE</td><td>254</td><td><a href="#t254">Process Done</a></td><td>&nbsp;</td>
+</tr>
+<tr>
+ <td>0xFF</td><td>255</td><td><a href="#t255">Done inside Process</a></td><td>&nbsp;</td>
+</tr>
+</table>
 
 <a name="t33">&nbsp;</a> <hr>
 <b class="section">"Language" (0x21 33)</b>
@@ -521,7 +712,7 @@ flags		bit flags
 		0x1  can be NULL
 		0x8  can be written (it's not an expression)
 		0x10 identity 
-type		data type, values &gt;128 indicate a large type
+<a href="#types">type</a>		data type, values &gt;128 indicate a large type
 size		none for fixed size types
 		4 bytes for blob and text
 		2 bytes for large types
@@ -577,7 +768,7 @@ column name        column name in result set, not necessarily db column name
 unknown            unknown (0, 16 ?)
 user type          usertype column from syscolumns
 unknown            always 0's
-column type        (need an appendix for discussion of column types)
+<a href="#types">column type</a>        column type
 column size        not present for fixed size columns
 precision          present only for SYBDECIMAL and SYBNUMERIC
 scale              present only for SYBDECIMAL and SYBNUMERIC
@@ -680,7 +871,7 @@ line#		Line number of input which generated the message
 <p>
 Output parameters of a stored procedure.
 <pre>
- INT16    INT8       CHAR[n]   INT8    INT32      INT8
+ INT16    INT8       XCHAR[n]  INT8    INT32      INT8
 +--------+----------+---------+-------+----------+----------+------+
 | length | c length | colname | flags | usertype | datatype | .... | 
 +--------+----------+---------+-------+----------+----------+------+
@@ -690,7 +881,7 @@ c length	Length of colname
 colname		Name of column
 flags		0x1 Nullable
 usertype	cf. systypes table in database
-datatype	Type of data returned
+<a href="#types">datatype</a>	Type of data returned
 
 The trailing information depends on whether the datatype is
 a fixed size datatype.
