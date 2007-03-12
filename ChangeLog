@@ -1,3 +1,7 @@
+Mon Mar 12 13:31:32 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/blk_in2.c(added) src/ctlib/unittests/Makefile.am:
+	- added test from ML to test cancel and bulk together
+
 Mon Mar 12 10:52:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/tds.html: improved, added types
 

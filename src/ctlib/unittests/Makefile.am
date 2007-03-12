@@ -1,10 +1,10 @@
-# $Id: Makefile.am,v 1.23 2006-03-28 00:05:30 jklowden Exp $
+# $Id: Makefile.am,v 1.24 2007-03-12 12:33:03 freddy77 Exp $
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 			connect_fail ct_options lang_ct_param array_bind cs_diag \
 			get_send_data rpc_ct_param rpc_ct_setparam ct_diagclient \
 			ct_diagserver ct_diagall cs_config cancel \
 			blk_in blk_out ct_cursor ct_cursors \
-			ct_dynamic
+			ct_dynamic blk_in2
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES		= t0001.c common.c common.h
@@ -34,6 +34,7 @@ blk_out_SOURCES		= blk_out.c common.c common.h
 ct_cursor_SOURCES	= ct_cursor.c common.c common.h
 ct_cursors_SOURCES	= ct_cursors.c common.c common.h
 ct_dynamic_SOURCES	= ct_dynamic.c common.c common.h
+blk_in2_SOURCES		= blk_in2.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 AM_LDFLAGS	=	-no-install
