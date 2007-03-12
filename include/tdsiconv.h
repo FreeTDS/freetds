@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-/* $Id: tdsiconv.h,v 1.35 2005-10-11 08:52:30 freddy77 Exp $ */
+/* $Id: tdsiconv.h,v 1.36 2007-03-12 13:28:50 freddy77 Exp $ */
 
 #if HAVE_ICONV
 #include <iconv.h>
@@ -49,6 +49,10 @@ typedef void *iconv_t;
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -165,6 +169,10 @@ const char *tds_sybase_charset_name(const char *charset_name);
 
 #ifdef __cplusplus
 }
+#endif
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
 #endif
 
 #endif /* _tds_iconv_h_ */

@@ -20,6 +20,10 @@
 #ifndef _dblib_h_
 #define _dblib_h_
 
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -28,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.37 2007-01-20 20:25:56 jklowden Exp $ */
+/* $Id: dblib.h,v 1.38 2007-03-12 13:28:50 freddy77 Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -199,6 +203,10 @@ extern EHANDLEFUNC _dblib_err_handler;
 {
 #endif
 }
+#endif
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
 #endif
 
 #endif

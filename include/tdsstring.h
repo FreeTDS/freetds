@@ -20,7 +20,11 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-/* $Id: tdsstring.h,v 1.17 2006-09-01 08:39:00 freddy77 Exp $ */
+/* $Id: tdsstring.h,v 1.18 2007-03-12 13:28:50 freddy77 Exp $ */
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
 
 extern const char tds_str_empty[1];
 
@@ -65,5 +69,9 @@ DSTR* tds_dstr_setlen(DSTR *s, unsigned int length);
 DSTR* tds_dstr_alloc(DSTR *s, unsigned int length);
 
 /** @} */
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
+#endif
 
 #endif /* _tdsstring_h_ */

@@ -1,7 +1,11 @@
 #ifndef MD5_H
 #define MD5_H
 
-/* $Id: md5.h,v 1.3 2005-07-08 08:22:52 freddy77 Exp $ */
+/* $Id: md5.h,v 1.4 2007-03-12 13:28:50 freddy77 Exp $ */
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
 
 struct MD5Context {
 	TDS_UINT buf[4];
@@ -19,5 +23,9 @@ void MD5Transform(TDS_UINT buf[4], TDS_UINT const in[16]);
  * This is needed to make RSAREF happy on some MS-DOS compilers.
  */
 typedef struct MD5Context MD5_CTX;
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
+#endif
 
 #endif /* !MD5_H */

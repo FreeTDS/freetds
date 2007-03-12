@@ -32,6 +32,10 @@
 #ifndef _READPASSPHRASE_H_
 #define _READPASSPHRASE_H_
 
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
+
 #ifndef HAVE_READPASSPHRASE
 
 #define RPP_ECHO_OFF    0x00		/* Turn off echo (default). */
@@ -45,5 +49,9 @@
 char * readpassphrase(const char *, char *, size_t, int);
 
 #endif /* HAVE_READPASSPHRASE */
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
+#endif
 
 #endif /* !_READPASSPHRASE_H_ */

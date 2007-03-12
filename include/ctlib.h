@@ -24,6 +24,10 @@
  * Internal (not part of the exposed API) prototypes and such.
  */
 
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -32,7 +36,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.23 2005-12-21 08:11:58 freddy77 Exp $";
+static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.24 2007-03-12 13:28:50 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -283,6 +287,10 @@ CS_INT _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);
 {
 #endif
 }
+#endif
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
 #endif
 
 #endif

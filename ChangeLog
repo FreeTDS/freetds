@@ -1,3 +1,11 @@
+Mon Mar 12 14:27:14 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/ctlib.h include/dblib.h include/des.h include/md4.h:
+	* include/md5.h include/replacements.h include/tdsiconv.h:
+	* include/tdsstring.h include/replacements/readpassphrase.h:
+	* src/server/Makefile.am:
+	- privatize functions using gcc visibility if available
+	- privatize server library
+
 Mon Mar 12 13:31:32 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/unittests/blk_in2.c(added) src/ctlib/unittests/Makefile.am:
 	- added test from ML to test cancel and bulk together

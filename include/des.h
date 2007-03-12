@@ -1,7 +1,11 @@
 #ifndef DES_H
 #define DES_H
 
-/* $Id: des.h,v 1.11 2005-07-08 08:22:52 freddy77 Exp $ */
+/* $Id: des.h,v 1.12 2007-03-12 13:28:50 freddy77 Exp $ */
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
 
 typedef unsigned char des_cblock[8];
 
@@ -18,5 +22,9 @@ int tds_des_ecb_encrypt(const void *plaintext, int len, DES_KEY * akey, des_cblo
 int tds_des_set_key(DES_KEY * dkey, des_cblock user_key, int len);
 void tds_des_encrypt(DES_KEY * key, des_cblock block);
 void _mcrypt_decrypt(DES_KEY * key, unsigned char *block);
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
+#endif
 
 #endif /* !DES_H */

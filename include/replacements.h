@@ -20,6 +20,21 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
+/* $Id: replacements.h,v 1.15 2007-03-12 13:28:50 freddy77 Exp $ */
+
+#include <stdarg.h>
+#include "tds_sysdep_public.h"
+
+#ifndef HAVE_READPASSPHRASE
+# include <replacements/readpassphrase.h>
+#else
+# include <readpassphrase.h>
+#endif
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -27,11 +42,6 @@ extern "C"
 }
 #endif
 #endif
-
-/* $Id: replacements.h,v 1.14 2005-12-21 08:06:54 freddy77 Exp $ */
-
-#include <stdarg.h>
-#include "tds_sysdep_public.h"
 
 #if !HAVE_VSNPRINTF
 int vsnprintf(char *ret, size_t max, const char *fmt, va_list ap);
@@ -52,12 +62,6 @@ tds_sysdep_int64_type atoll(const char *nptr);
 #if !HAVE_STRTOK_R
 char *strtok_r(char *str, const char *sep, char **lasts);
 #endif /* !HAVE_STRTOK_R */
-
-#ifndef HAVE_READPASSPHRASE
-# include <replacements/readpassphrase.h>
-#else
-# include <readpassphrase.h>
-#endif
 
 #if HAVE_STRLCPY
 #define tds_strlcpy(d,s,l) strlcpy(d,s,l)
@@ -82,6 +86,10 @@ char *tds_basename(char *path);
 {
 #endif
 }
+#endif
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
 #endif
 
 #endif
