@@ -601,7 +601,16 @@ Tokens encountered thus far:
  <th>HEX</th><th>DEC</th><th>name</th><th>note</th>
 </tr>
 <tr>
+ <td>0x20</td><td>32</td><td><a href="#t32">Param Format 2</a></td><td>5.0 only</td>
+</tr>
+<tr>
  <td>0x21</td><td>33</td><td><a href="#t33">Language</a></td><td>5.0 only, client-side</td>
+</tr>
+<tr>
+ <td>0x22</td><td>34</td><td><a href="#t34">OrderBy 2</a></td><td>5.0 only??</td>
+</tr>
+<tr>
+ <td>0x61</td><td>97</td><td><a href="#t97">Row Format 2</a></td><td>5.0 only</td>
 </tr>
 <tr>
  <td>0x71</td><td>113</td><td><a href="#t113">"Logout"</a></td><td>5.0? ct_close(), client-side?</td>
@@ -613,7 +622,28 @@ Tokens encountered thus far:
  <td>0x7C</td><td>124</td><td><a href="#t124">Process ID</a></td><td>4.2 only</td>
 </tr>
 <tr>
+ <td>0x80</td><td>128</td><td><a href="#t128">Cursor Close</a></td><td>5.0 only</td>
+</tr>
+<tr>
+ <td>0x81</td><td>129</td><td><a href="#t129c">Cursor Delete</a></td><td>5.0 only</td>
+</tr>
+<tr>
  <td>0x81</td><td>129</td><td><a href="#t129">7.0 Result</a></td><td>7.0 only</td>
+</tr>
+<tr>
+ <td>0x82</td><td>130</td><td><a href="#t130">Cursor Fetch</a></td><td>5.0 only</td>
+</tr>
+<tr>
+ <td>0x83</td><td>131</td><td><a href="#t131">Cursor Info</a></td><td>5.0 only</td>
+</tr>
+<tr>
+ <td>0x84</td><td>132</td><td><a href="#t132">Cursor Open</a></td><td>5.0 only</td>
+</tr>
+<tr>
+ <td>0x86</td><td>134</td><td><a href="#t134">Cursor Declare</a></td><td>5.0 only</td>
+</tr>
+<tr>
+ <td>0x88</td><td>136</td><td><a href="#t136">7.0 Compute Result</a></td><td>7.0 only</td>
 </tr>
 <tr>
  <td>0xA0</td><td>160</td><td><a href="#t160">Column Name</a></td><td>4.2 only</td>
@@ -622,13 +652,19 @@ Tokens encountered thus far:
  <td>0xA1</td><td>161</td><td><a href="#t161">Column Format</a></td><td>4.2 only</td>
 </tr>
 <tr>
+ <td>0xA3</td><td>163</td><td><a href="#t163">Dynamic 2</a></td><td>5.0 only</td>
+</tr>
+<tr>
  <td>0xA4</td><td>164</td><td><a href="#t164">Table names</a></td><td>name of tables in a FOR BROWSE select</td>
 </tr>
 <tr>
  <td>0xA5</td><td>165</td><td><a href="#t165">Column Info</a></td><td>column information in a FOR BROWSE select</td>
 </tr>
 <tr>
- <td>0xA7</td><td>167</td><td><a href="#t167">compute related ?  Also "control" ?</a></td><td>&nbsp;</td>
+ <td>0xA6</td><td>166</td><td><a href="#t166">Option Cmd</a></td><td>5.0 only</td>
+</tr>
+<tr>
+ <td>0xA7</td><td>167</td><td><a href="#t167">Compute Names</a></td><td>&nbsp;</td>
 </tr>
 <tr>
  <td>0xA8</td><td>168</td><td><a href="#t168">Compute Result</a></td><td>&nbsp;</td>
@@ -640,7 +676,7 @@ Tokens encountered thus far:
  <td>0xAA</td><td>170</td><td><a href="#t170">Error Message</a></td><td>&nbsp;</td>
 </tr>
 <tr>
- <td>0xAB</td><td>171</td><td><a href="#t171">Non-error Message</a></td><td>&nbsp;</td>
+ <td>0xAB</td><td>171</td><td><a href="#t171">Info Message</a></td><td>&nbsp;</td>
 </tr>
 <tr>
  <td>0xAC</td><td>172</td><td><a href="#t172">Output Parameters</a></td><td>&nbsp;</td>
@@ -692,8 +728,13 @@ Tokens encountered thus far:
 </tr>
 </table>
 
+<a name="t32">&nbsp;</a> <hr>
+<b class="section">Param Format 2 - TDS5 (0x20 32)</b>
+
+<p>TODO.
+
 <a name="t33">&nbsp;</a> <hr>
-<b class="section">Language (0x21 33)</b>
+<b class="section">Language - TDS5 (0x21 33)</b>
 
 <pre>
  INT32    INT8     CHAR[n]
@@ -706,6 +747,16 @@ status  0 no args
         1 has args (followed by PARAMFMT/PARAMS)
 query   query (total length - 1)
 </pre>
+
+<a name="t34">&nbsp;</a> <hr>
+<b class="section">Order By 2 (0x22 34)</b>
+
+<p>TODO.
+
+<a name="t97">&nbsp;</a> <hr>
+<b class="section">Row Format 2 - TDS5 (0x61 97)</b>
+
+<p>TODO.
 
 <a name="t113">&nbsp;</a> <hr>
 <b class="section">"Logout" (0x71 113)</b>
@@ -735,6 +786,16 @@ The return value of a stored procedure.
 </pre>
 Presumably the process ID number for an executing stored procedure.
 (I'm not sure how this would ever be used by a client.  *mjs*)
+
+<a name="t128">&nbsp;</a> <hr>
+<b class="subsection">Cursor Close - TDS5 (0x80 128)</b>
+
+<p>TODO.
+
+<a name="t129c">&nbsp;</a> <hr>
+<b class="subsection">Cursor Delete - TDS5 (0x81 129)</b>
+
+<p>TODO.
 
 <a name="t129">&nbsp;</a> <hr>
 <b class="subsection">Result - TDS 7.0+ (0x81 129)</b>
@@ -780,6 +841,31 @@ optional
   for old type like short VARCHAR, only 2byte length versions)
 </pre>
 
+
+<a name="t130">&nbsp;</a> <hr>
+<b class="subsection">Cursor Fetch - TDS5 (0x82 130)</b>
+
+<p>TODO.
+
+<a name="t131">&nbsp;</a> <hr>
+<b class="subsection">Cursor Info - TDS5 (0x83 131)</b>
+
+<p>TODO.
+
+<a name="t132">&nbsp;</a> <hr>
+<b class="subsection">Cursor Open - TDS5 (0x84 132)</b>
+
+<p>TODO.
+
+<a name="t134">&nbsp;</a> <hr>
+<b class="subsection">Cursor Declare - TDS5 (0x86 134)</b>
+
+<p>TODO.
+
+<a name="t136">&nbsp;</a> <hr>
+<b class="subsection">Compute Result - TDS7+ (0x88 136)</b>
+
+<p>TODO.
 
 <a name="t160">&nbsp;</a> <hr>
 <b class="subsection">Column Name (0xA0 160)</b>
@@ -850,8 +936,17 @@ optional
                               +-------------------+------------+
 </pre>
 
-<hr>
-<a name="t168">&nbsp;</a>
+<a name="t163">&nbsp;</a> <hr>
+<b class="subsection">Dynamic 2 - TDS5 (0xA3 163)</b>
+
+<p>TODO.
+
+<a name="t166">&nbsp;</a> <hr>
+<b class="subsection">Option Cmd - TDS5 (0xA6 166)</b>
+
+<p>TODO.
+
+<a name="t168">&nbsp;</a> <hr>
 <b class="subsection">Compute Result (0xA8 168)</b>
 
 <pre>
