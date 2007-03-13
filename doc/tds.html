@@ -435,6 +435,46 @@ charset_id  charset id in master..syscharsets table or zero for no SQL collation
 query</p>
 
 <hr>
+<a name="colInfo">&nbsp;</a>
+<b class="subsection">Column Informations</b>
+
+
+<pre>
+ INT8          XCHAR[n]       INT8    INT32   INT8
++-------------+--------------+-------+-------+---------+
+| column name | column name  | flags |  user | column  |
+|   length    |              |       |  type |  type   |
++-------------+--------------+-------+-------+---------+
+
+ varies        INT8       INT8       INT16      XCHAR[n]     INT8     varies
++-------------+----------+----------+----------+------------+--------+--------+
+| column size |precision |  scale   | t length | table name | locale | locale |
+|             |          |          |          |            | length |  info  |
+| (optional)  |(optional)|(optional)|(optional)| (optional) | (opt)  | (opt)  |
++-------------+----------+----------+----------+------------+--------+--------+
+
+column name length 
+column name        column name in result set, not necessarily db column name
+flags              bit flags
+                   0x1  hidden (TDS5)
+                   0x2  key
+                   0x10 writable
+                   0x20 can be NULL
+                   0x40 identity
+user type          usertype column from syscolumns
+<a href="#types">column type</a>        column type
+column size        not present for fixed size columns
+precision          present only for SYBDECIMAL and SYBNUMERIC
+scale              present only for SYBDECIMAL and SYBNUMERIC
+t length           present only for SYBTEXT and SYBIMAGE, length of table name
+table name         present only for SYBTEXT and SYBIMAGE
+locale length      length of locale info (in bytes)
+                   only for TDS5 results (not for parameters)
+locale info        unknown
+                   only for TDS5 results (not for parameters)
+</pre>
+
+<hr>
 <p>
 <a name="requests"></a>
 <b class="section">Client request</b>
@@ -561,7 +601,7 @@ Tokens encountered thus far:
  <th>HEX</th><th>DEC</th><th>name</th><th>note</th>
 </tr>
 <tr>
- <td>0x21</td><td>33</td><td><a href="#t33">"Language packet" ?</a></td><td>5.0 only, client-side?</td>
+ <td>0x21</td><td>33</td><td><a href="#t33">Language</a></td><td>5.0 only, client-side</td>
 </tr>
 <tr>
  <td>0x71</td><td>113</td><td><a href="#t113">"Logout"</a></td><td>5.0? ct_close(), client-side?</td>
@@ -579,19 +619,19 @@ Tokens encountered thus far:
  <td>0xA0</td><td>160</td><td><a href="#t160">Column Name</a></td><td>4.2 only</td>
 </tr>
 <tr>
- <td>0xA1</td><td>161</td><td><a href="#t161">Column Info --- Row Result</a></td><td>4.2 only</td>
+ <td>0xA1</td><td>161</td><td><a href="#t161">Column Format</a></td><td>4.2 only</td>
 </tr>
 <tr>
  <td>0xA4</td><td>164</td><td><a href="#t164">Table names</a></td><td>name of tables in a FOR BROWSE select</td>
 </tr>
 <tr>
- <td>0xA5</td><td>165</td><td><a href="#t165">Column info</a></td><td>column information in a FOR BROWSE select</td>
+ <td>0xA5</td><td>165</td><td><a href="#t165">Column Info</a></td><td>column information in a FOR BROWSE select</td>
 </tr>
 <tr>
  <td>0xA7</td><td>167</td><td><a href="#t167">compute related ?  Also "control" ?</a></td><td>&nbsp;</td>
 </tr>
 <tr>
- <td>0xA8</td><td>168</td><td><a href="#t168">Column Info --- Compute Result</a></td><td>&nbsp;</td>
+ <td>0xA8</td><td>168</td><td><a href="#t168">Compute Result</a></td><td>&nbsp;</td>
 </tr>
 <tr>
  <td>0xA9</td><td>169</td><td><a href="#t169">Order By</a></td><td>&nbsp;</td>
@@ -609,7 +649,7 @@ Tokens encountered thus far:
  <td>0xAD</td><td>173</td><td><a href="#t173">Login Acknowledgement</a></td><td>&nbsp;</td>
 </tr>
 <tr>
- <td>0xAE</td><td>174</td><td><a href="#t174">"control" ?</a></td><td>&nbsp;</td>
+ <td>0xAE</td><td>174</td><td><a href="#t174">Control</a></td><td>&nbsp;</td>
 </tr>
 <tr>
  <td>0xD1</td><td>209</td><td><a href="#t209">Data --- Row Result</a></td><td>&nbsp;</td>
@@ -618,10 +658,10 @@ Tokens encountered thus far:
  <td>0xD3</td><td>211</td><td><a href="#t211">Data --- Compute Result</a></td><td>&nbsp;</td>
 </tr>
 <tr>
- <td>0xD7</td><td>215</td><td><a href="#t215">"param packet" ?</a></td><td>**bdw**</td>
+ <td>0xD7</td><td>215</td><td><a href="#t215">Params</a></td><td>5.0 only</td>
 </tr>
 <tr>
- <td>0xE2</td><td>226</td><td><a href="#t226">Capability packet</a></td><td>information on server</td>
+ <td>0xE2</td><td>226</td><td><a href="#t226">Capability</a></td><td>5.0 only. Information on server</td>
 </tr>
 <tr>
  <td>0xE3</td><td>227</td><td><a href="#t227">Environment Change</a></td><td>(database change, packet size, etc...)</td>
@@ -630,13 +670,16 @@ Tokens encountered thus far:
  <td>0xE5</td><td>229</td><td><a href="#t229">Extended Error Message</a></td><td>&nbsp;</td>
 </tr>
 <tr>
- <td>0xE6</td><td>230</td><td><a href="#t230">"DBRPC" ?</a></td><td>5.0 only RPC calls</td>
+ <td>0xE6</td><td>230</td><td><a href="#t230">DBRPC</a></td><td>5.0 only RPC calls</td>
 </tr>
 <tr>
- <td>0xEC</td><td>236</td><td><a href="#t236">"param format packet" ?</a></td><td>&nbsp;</td>
+ <td>0xE7</td><td>231</td><td><a href="#t231">Dynamic</a></td><td>5.0 only</td>
 </tr>
 <tr>
- <td>0xEE</td><td>238</td><td><a href="#t238">Result Set</a></td><td>&nbsp;</td>
+ <td>0xEC</td><td>236</td><td><a href="#t236">Param Format</a></td><td>5.0 only</td>
+</tr>
+<tr>
+ <td>0xEE</td><td>238</td><td><a href="#t238">Result Set</a></td><td>5.0 only</td>
 </tr>
 <tr>
  <td>0xFD</td><td>253</td><td><a href="#t253">Result Set Done</a></td><td>&nbsp;</td>
@@ -650,13 +693,18 @@ Tokens encountered thus far:
 </table>
 
 <a name="t33">&nbsp;</a> <hr>
-<b class="section">"Language" (0x21 33)</b>
+<b class="section">Language (0x21 33)</b>
 
 <pre>
- int?     INT8     CHAR[n]
-+--------+--------+--------+
-| length | status | string |
-+--------+--------+--------+
+ INT32    INT8     CHAR[n]
++--------+--------+-------+
+| length | status | query |
++--------+--------+-------+
+
+length  total token length
+status  0 no args
+        1 has args (followed by PARAMFMT/PARAMS)
+query   query (total length - 1)
 </pre>
 
 <a name="t113">&nbsp;</a> <hr>
@@ -668,7 +716,7 @@ No information. (1 byte, value=0 ?)
 <b class="subsection">Return Status (0x79 121)</b>
 
 <pre>
- 4 bytes
+ INT32
 +---------------+
 | Return status |
 +---------------+
@@ -743,39 +791,110 @@ optional
 +--------------+---------+--------------+------+---------+--------------+
 </pre>
 
-<a name="t161">&nbsp;</a>
-<a name="t168">&nbsp;</a> <hr>
-<b class="subsection">Column Info - Row Result (0xA1 161)</b>
-<br>
-<b class="subsection">Column Info - Compute Result (0xA8 168)</b>
+<p>This token is the first token that contain result informations. Is usually followed by <a href="#t161">Column Format</a> token (0xA1 161)</p>
 
+<hr>
+<a name="t161">&nbsp;</a>
+<b class="subsection">Column Format (0xA1 161)</b>
 
 <pre>
- INT8          CHAR[n]        INT8      INT16     INT16     INT16  
-+-------------+--------------+---------+---------+---------+---------+
-| column name | column name  | unknown |  user   | unknown | column  |
-|   length    |              |         |  type   |         |  type   |
-+-------------+--------------+---------+---------+---------+---------+
-
- INT8          INT8       INT8       INT8       CHAR[n]      1 byte
-+-------------+----------+----------+----------+------------+----------+
-| column size |precision |  scale   | t length | table name | unknown  |
-| (optional)  |(optional)|(optional)|(optional)| (optional) |          |
-+-------------+----------+----------+----------+------------+----------+
-
-column name length 
-column name        column name in result set, not necessarily db column name
-unknown            unknown (0, 16 ?)
-user type          usertype column from syscolumns
-unknown            always 0's
-<a href="#types">column type</a>        column type
-column size        not present for fixed size columns
-precision          present only for SYBDECIMAL and SYBNUMERIC
-scale              present only for SYBDECIMAL and SYBNUMERIC
-t length           present only for SYBTEXT and SYBIMAGE, length of table name
-table name         present only for SYBTEXT and SYBIMAGE
-unknown            always 0x00
+ INT16  
++--------------+-------------+
+| total length | column_info | 
++--------------+-------------+
 </pre>
+
+<p>The number of columns is the same of previous <a href="#t160">Column Name</a> token.
+<p>The TDS 4.2 column_info is formatted as follows for each column:
+
+<pre>
+ INT8[4]     INT8   varies  varies
++-----------+------+-------+----------+
+| usertype/ | type | size  | optional |
+|   flags   |      | (opt) | (opt)    |
++-----------+------+-------+----------+
+
+usertype/flags for Sybase
+
+   INT32
+  +----------+
+  | usertype |
+  +----------+
+
+usertype/flags for MSSQL
+
+   INT16
+  +----------+-------+
+  | usertype | flags |
+  +----------+-------+
+
+usertype	type modifier
+flags		bit flags (only MSSQL)
+		0x1  can be NULL
+		0x8  can be written (it's not an expression)
+		0x10 identity 
+<a href="#types">type</a>		data type
+size		none for fixed size types
+		4 bytes for blob and text
+		1 byte for all others
+                (TDS 4.2 do not support large types)
+optional
+                               INT8        INT8
+                              +-----------+-------+
+  numeric/decimal types:      | precision | scale |
+  (supported??)               +-----------+-------+
+
+                               INT16               CHAR[n]
+                              +-------------------+------------+
+  blob/text types:            | table name length | table name |
+                              +-------------------+------------+
+</pre>
+
+<hr>
+<a name="t168">&nbsp;</a>
+<b class="subsection">Compute Result (0xA8 168)</b>
+
+<pre>
+ INT16          INT16        INT8       varies        INT8      INT8[n]
++--------------+------------+----------+-------------+---------+-------+
+| total length | compute id | #columns | column info | #bycols | bycol |
++--------------+------------+----------+-------------+---------+-------+
+</pre>
+
+<p>column info:</p>
+
+<pre>
+ INT8       INT8      INT32      INT8     varies  INT8            varies
++----------+---------+----------+--------+-------+---------------+-------------+
+| operator | operand | usertype | column | size  | locale length | locale info |
+|          |         |          |  type  | (opt) |  info (TDS5)  | (TDS5)      |
++----------+---------+----------+--------+-------+---------------+-------------+
+
+operator      operator
+              0x4b COUNT
+              0x4c UNSIGNED? COUNT
+              0x4d SUM
+              0x4e UNSIGNED? SUM
+              0x4f AVG
+              0x50 UNSIGNED? AVG
+              0x51 MIN
+              0x52 MAX
+              0x09 COUNT_BIG (mssql2k)
+              0x30 STDEV (mssql2k)
+              0x31 STDEVP (mssql2k)
+              0x32 VAR (mssql2k)
+              0x33 VARP (mssql2k)
+              0x72 CHECKSUM_AGG (mssql2k)
+operand       ???
+usertype      usertype
+<a href="#types">column type</a>   data type
+size          data size
+locale length length of locale informations
+locale info   locale informations (unknown)
+</pre>
+
+<p>Each bycol information contains column info for a specific column.</p>
+<p>TODO: optional possible?? collate infos ??</p>
 
 <a name="t164">&nbsp;</a> <hr>
 <b class="section">"tabname" (0xA4 164)</b>
@@ -953,13 +1072,13 @@ hex  D1  01  00  0C  72  65  63  76  20  73  6C  65  65  70  20  20
 </pre>
 
 <a name="t215">&nbsp;</a> <hr>
-<b class="section">Parameter packet (0xD7 215)</b>
+<b class="section">Params - TDS5 (0xD7 215)</b>
 <br>
 <br>
-No information
+TODO.
 
 <a name="t226">&nbsp;</a> <hr>
-<b class="section">Capability packet (0xE2 226)</b>
+<b class="section">Capability - TDS5 (0xE2 226)</b>
 <br>
 
 <pre>
@@ -998,13 +1117,19 @@ collation info that's a structure (see collation structure)
 </pre>
 
 <a name="t230">&nbsp;</a> <hr>
-<b class="section">DB RPC ? (0xE6 230)</b>
+<b class="section">DBRPC - TDS5 (0xE6 230)</b>
 <br>
 <br>
-No information.
+TODO.
+
+<a name="t231">&nbsp;</a> <hr>
+<b class="section">Dynamic - TDS5 (0xE7 231)</b>
+<br>
+<br>
+TODO.
 
 <a name="t236">&nbsp;</a> <hr>
-<b class="section">Param format (sent by client?) (0xEC 236)</b>
+<b class="section">Param Format - TDS5 (0xEC 236)</b>
 <pre>
  INT16     INT16        variable size
 +---------+------------+-------------------+
@@ -1018,7 +1143,7 @@ list of formats		I (*bdw*) imagine it uses the column format structure.
 </pre>
 
 <a name="t238">&nbsp;</a> <hr>
-<b class="section">Result Set (0xEE 238)</b>
+<b class="section">Result Set - TDS5 (0xEE 238)</b>
 
 <pre>
  INT16     INT16        variable size
@@ -1032,7 +1157,7 @@ Fields:
 length             length of message following this field
 number of columns  number of columns in the result set, this many column
                    information fields will follow.
-column info        <a href="#t161">column info</a>
+column info        <a href="#colInfo">column info</a>
 </pre>
 
 <a name="t253">&nbsp;</a>

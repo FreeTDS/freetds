@@ -1,3 +1,6 @@
+Tue Mar 13 14:18:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/tds.html: updated from code
+
 Mon Mar 12 14:27:14 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/ctlib.h include/dblib.h include/des.h include/md4.h:
 	* include/md5.h include/replacements.h include/tdsiconv.h:
