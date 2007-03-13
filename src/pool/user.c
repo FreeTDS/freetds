@@ -48,7 +48,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.28 2006-12-26 14:56:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.29 2007-03-13 16:25:38 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
@@ -121,7 +121,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	puser->tds->in_buf_max = BLOCKSIZ;
 	memset(puser->tds->in_buf, 0, BLOCKSIZ);
 	puser->tds->s = fd;
-	puser->tds->out_flag = 0x02;
+	puser->tds->out_flag = TDS_LOGIN;
 	puser->user_state = TDS_SRV_LOGIN;
 	return puser;
 }
@@ -202,7 +202,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 	tds_read_login(tds, login);
 	dump_login(login);
 	if (!strcmp(tds_dstr_cstr(&login->user_name), pool->user) && !strcmp(tds_dstr_cstr(&login->password), pool->password)) {
-		tds->out_flag = 4;
+		tds->out_flag = TDS_REPLY;
 		tds_env_change(tds, 1, "master", pool->database);
 		sprintf(msg, "Changed database context to '%s'.", pool->database);
 		tds_send_msg(tds, 5701, 2, 10, msg, "JDBC", "ZZZZZ", 1);

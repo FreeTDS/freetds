@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.157 2007-01-15 04:18:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.158 2007-03-13 16:25:38 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -287,7 +287,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		retval = tds7_send_login(tds, connection);
 		db_selected = 1;
 	} else {
-		tds->out_flag = 0x02;
+		tds->out_flag = TDS_LOGIN;
 		retval = tds_send_login(tds, connection);
 	}
 	if (retval == TDS_FAIL || !tds_process_login_tokens(tds)) {
@@ -538,7 +538,7 @@ tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge, TDS_UINT flags)
 	user_name = p + 1;
 	user_name_len = strlen(user_name);
 
-	tds->out_flag = 0x11;
+	tds->out_flag = TDS7_AUTH;
 	tds_put_n(tds, "NTLMSSP", 8);
 	tds_put_int(tds, 3);	/* sequence 3 */
 
@@ -646,7 +646,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int domain_len = strlen(domain);
 	int auth_len = 0;
 
-	tds->out_flag = 0x10;
+	tds->out_flag = TDS7_LOGIN;
 
 	/* avoid overflow limiting password */
 	if (password_len > 128)
@@ -885,7 +885,7 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	assert(sizeof(buf) == START_POS + 7);
 
 	/* do prelogin */
-	tds->out_flag = 0x12;
+	tds->out_flag = TDS8_PRELOGIN;
 
 	tds_put_n(tds, buf, sizeof(buf));
 	tds_put_n(tds, instance_name, instance_name_len);

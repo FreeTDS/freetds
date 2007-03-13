@@ -54,7 +54,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.44 2006-12-26 14:56:21 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.45 2007-03-13 16:25:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -101,7 +101,7 @@ tds_listen(int ip_port)
 	context = tds_alloc_context(NULL);
 	tds = tds_alloc_socket(context, 8192);
 	tds->s = fd;
-	tds->out_flag = 0x02;
+	tds->out_flag = TDS_LOGIN;
 	/* get_incoming(tds->s); */
 	return tds;
 }
@@ -274,7 +274,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 	 * This should only be done on a server connection, and the server
 	 * always sends 0x04 packets.
 	 */
-	tds->out_flag = 0x04;
+	tds->out_flag = TDS_REPLY;
 
 	/* Pre-read the next packet so we know what kind of packet it is */
 	if (tds_read_packet(tds) < 1) {

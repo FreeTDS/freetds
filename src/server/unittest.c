@@ -44,7 +44,7 @@
 #define sleep(s) Sleep((s)*1000)
 #endif
 
-static char software_version[] = "$Id: unittest.c,v 1.13 2006-12-26 14:56:21 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.14 2007-03-13 16:25:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);
@@ -62,7 +62,7 @@ main(int argc, char **argv)
 	tds_read_login(tds, login);
 	dump_login(login);
 	if (!strcmp(tds_dstr_cstr(&login->user_name), "guest") && !strcmp(tds_dstr_cstr(&login->password), "sybase")) {
-		tds->out_flag = 4;
+		tds->out_flag = TDS_REPLY;
 		tds_env_change(tds, 1, "master", "pubs2");
 		tds_send_msg(tds, 5701, 2, 10, "Changed database context to 'pubs2'.", "JDBC", "ZZZZZ", 1);
 		if (!login->suppress_language) {
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 	tds_flush_packet(tds);
 	/* printf("incoming packet %d\n", tds_read_packet(tds)); */
 	printf("query : %s\n", tds_get_query(tds));
-	tds->out_flag = 4;
+	tds->out_flag = TDS_REPLY;
 	resinfo = tds_alloc_results(1);
 	resinfo->columns[0]->column_type = SYBVARCHAR;
 	resinfo->columns[0]->column_size = 30;

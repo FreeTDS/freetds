@@ -1,3 +1,8 @@
+Tue Mar 13 17:24:54 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/pool/user.c src/server/login.c:
+	* src/server/unittest.c src/tds/login.c src/tds/query.c:
+	- use mnemonic for packet types
+
 Tue Mar 13 16:45:54 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/tds.html: added known tokens
 

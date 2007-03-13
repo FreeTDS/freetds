@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.265 2007-02-16 13:53:10 freddy77 Exp $ */
+/* $Id: tds.h,v 1.266 2007-03-13 16:25:37 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -603,10 +603,15 @@ enum TDS_OPT_ISOLATION_CHOICE
 typedef enum tds_packet_type
 {
 	TDS_QUERY = 1,
+	TDS_LOGIN = 2,
 	TDS_RPC = 3,
+	TDS_REPLY = 4,
 	TDS_CANCEL = 6,
 	TDS_BULK = 7,
-	TDS_NORMAL = 15
+	TDS_NORMAL = 15,
+	TDS7_LOGIN = 16,
+	TDS7_AUTH = 17,
+	TDS8_PRELOGIN = 18
 } TDS_PACKET_TYPE;
 
 

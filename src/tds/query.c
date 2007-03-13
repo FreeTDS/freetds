@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.204 2007-01-13 22:13:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.205 2007-03-13 16:25:38 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2824,7 +2824,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
  
-		tds->out_flag = 0x0F;
+		tds->out_flag = TDS_NORMAL;
 		tds_put_byte(tds, TDS_OPTIONCMD_TOKEN);
  
 		tds_put_smallint(tds, 3 + param_size);
