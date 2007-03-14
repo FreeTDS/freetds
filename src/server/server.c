@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.20 2006-01-24 15:03:27 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.21 2007-03-14 16:22:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -51,39 +51,23 @@ tds_env_change(TDSSOCKET * tds, int type, const char *oldvalue, const char *newv
 
 	switch (type) {
 	case TDS_ENV_DATABASE:
+	case TDS_ENV_LANG:
+	case TDS_ENV_PACKSIZE:
+	case TDS_ENV_CHARSET:
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + newlen + newvalue + oldlen + oldvalue  */
 		totsize = strlen(oldvalue) + strlen(newvalue) + 3;
 		tds_put_smallint(tds, totsize);
 		tds_put_byte(tds, type);
 		tds_put_byte(tds, strlen(newvalue));
-		tds_put_n(tds, newvalue, strlen(newvalue));
+		/* FIXME this assume singlebyte -> ucs2 for mssql */
+		tds_put_string(tds, newvalue, strlen(newvalue));
 		tds_put_byte(tds, strlen(oldvalue));
-		tds_put_n(tds, oldvalue, strlen(oldvalue));
-		break;
-	case TDS_ENV_LANG:
-		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
-		/* totsize = type + len + string + \0 */
-		totsize = strlen(newvalue) + 3;
-		tds_put_smallint(tds, totsize);
-		tds_put_byte(tds, type);
-		tds_put_byte(tds, strlen(newvalue));
-		tds_put_n(tds, newvalue, strlen(newvalue));
-		tds_put_byte(tds, '\0');
-		break;
-	case TDS_ENV_PACKSIZE:
-		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
-		/* totsize = type + len + string + \0 */
-		totsize = strlen(newvalue) + 3;
-		tds_put_smallint(tds, totsize);
-		tds_put_byte(tds, type);
-		tds_put_byte(tds, strlen(newvalue));
-		tds_put_n(tds, newvalue, strlen(newvalue));
-		tds_put_byte(tds, '\0');
+		/* FIXME this assume singlebyte -> ucs2 for mssql */
+		tds_put_string(tds, oldvalue, strlen(oldvalue));
 		break;
 	case TDS_ENV_LCID:
 	case TDS_ENV_SQLCOLLATION:
-	case TDS_ENV_CHARSET:
 #if 1
 		tds_put_byte(tds, TDS_ENVCHANGE_TOKEN);
 		/* totsize = type + len + oldvalue + len + newvalue */
@@ -138,18 +122,23 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	msgsz = 4		/* msg no    */
 		+ 1		/* msg state */
 		+ 1		/* severity  */
-		+ strlen(msgtext) + 1 + strlen(srvname) + 1 + strlen(procname) + 1 + 2;	/* line number */
+		/* FIXME ucs2 */
+		+ (IS_TDS7_PLUS(tds) ? 2 : 1) * (strlen(msgtext) + 1 + strlen(srvname) + 1 + strlen(procname))
+		+ 1 + 2;	/* line number */
 	tds_put_smallint(tds, msgsz);
 	tds_put_int(tds, msgno);
 	tds_put_byte(tds, msgstate);
 	tds_put_byte(tds, severity);
 	tds_put_smallint(tds, strlen(msgtext));
-	tds_put_n(tds, msgtext, strlen(msgtext));
+	/* FIXME ucs2 */
+	tds_put_string(tds, msgtext, strlen(msgtext));
 	tds_put_byte(tds, strlen(srvname));
-	tds_put_n(tds, srvname, strlen(srvname));
+	/* FIXME ucs2 */
+	tds_put_string(tds, srvname, strlen(srvname));
 	if (procname && strlen(procname)) {
 		tds_put_byte(tds, strlen(procname));
-		tds_put_n(tds, procname, strlen(procname));
+		/* FIXME ucs2 */
+		tds_put_string(tds, procname, strlen(procname));
 	} else {
 		tds_put_byte(tds, 0);
 	}
@@ -166,21 +155,22 @@ void
 tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 {
 	tds_put_byte(tds, TDS_LOGINACK_TOKEN);
-	tds_put_smallint(tds, 10 + strlen(progname));	/* length of message */
-	if IS_TDS42
-		(tds) {
-		tds_put_byte(tds, 1);
-		tds_put_byte(tds, 4);
-		tds_put_byte(tds, 2);
-	} else {
+	tds_put_smallint(tds, 10 + (IS_TDS7_PLUS(tds)? 2 : 1) * strlen(progname));	/* length of message */
+	if (IS_TDS50(tds)) {
 		tds_put_byte(tds, 5);
 		tds_put_byte(tds, 5);
 		tds_put_byte(tds, 0);
+	} else {
+		tds_put_byte(tds, 1);
+		tds_put_byte(tds, tds->major_version);
+		tds_put_byte(tds, tds->minor_version);
 	}
 	tds_put_byte(tds, 0);	/* unknown */
 	tds_put_byte(tds, 0);	/* unknown */
 	tds_put_byte(tds, strlen(progname));
-	tds_put_n(tds, progname, strlen(progname));
+	/* FIXME ucs2 */
+	tds_put_string(tds, progname, strlen(progname));
+	/* server version, for mssql 1.0.1 */
 	tds_put_byte(tds, 1);	/* unknown */
 	tds_put_byte(tds, 0);	/* unknown */
 	tds_put_byte(tds, 0);	/* unknown */
@@ -241,17 +231,17 @@ tds_send_done(TDSSOCKET * tds, int token, TDS_SMALLINT flags, TDS_INT numrows)
 }
 
 void
-tds_send_253_token(TDSSOCKET * tds, TDS_SMALLINT flags, TDS_INT numrows)
+tds_send_done_token(TDSSOCKET * tds, TDS_SMALLINT flags, TDS_INT numrows)
 {
-	tds_send_done(tds, 253, flags, numrows);
+	tds_send_done(tds, TDS_DONE_TOKEN, flags, numrows);
 }
 
 void
-tds_send_174_token(TDSSOCKET * tds, TDS_SMALLINT numcols)
+tds_send_control_token(TDSSOCKET * tds, TDS_SMALLINT numcols)
 {
 	int i;
 
-	tds_put_byte(tds, 174);
+	tds_put_byte(tds, TDS_CONTROL_TOKEN);
 	tds_put_smallint(tds, numcols);
 	for (i = 0; i < numcols; i++) {
 		tds_put_byte(tds, 0);

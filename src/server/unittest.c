@@ -44,7 +44,7 @@
 #define sleep(s) Sleep((s)*1000)
 #endif
 
-static char software_version[] = "$Id: unittest.c,v 1.14 2007-03-13 16:25:38 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.15 2007-03-14 16:22:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);
@@ -52,14 +52,18 @@ static void dump_login(TDSLOGIN * login);
 int
 main(int argc, char **argv)
 {
+	TDSCONTEXT *ctx;
 	TDSSOCKET *tds;
 	TDSLOGIN *login;
 	TDSRESULTINFO *resinfo;
 
 	tds = tds_listen(atoi(argv[1]));
 	/* get_incoming(tds->s); */
-	login = tds_alloc_login();
-	tds_read_login(tds, login);
+	login = tds_alloc_read_login(tds);
+	if (!login) {
+		fprintf(stderr, "Error reading login\n");
+		exit(1);
+	}
 	dump_login(login);
 	if (!strcmp(tds_dstr_cstr(&login->user_name), "guest") && !strcmp(tds_dstr_cstr(&login->password), "sybase")) {
 		tds->out_flag = TDS_REPLY;
@@ -70,16 +74,20 @@ main(int argc, char **argv)
 			tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
 		}
 		tds_env_change(tds, 4, NULL, "512");
+		/* TODO set mssql if tds7+ */
 		tds_send_login_ack(tds, "sql server");
-		tds_send_capabilities_token(tds);
-		tds_send_253_token(tds, 0, 1);
+		if (IS_TDS50(tds))
+			tds_send_capabilities_token(tds);
+		tds_send_done_token(tds, 0, 1);
 	} else {
 		/* send nack before exiting */
 		exit(1);
 	}
 	tds_flush_packet(tds);
+	tds_free_login(login);
+	login = NULL;
 	/* printf("incoming packet %d\n", tds_read_packet(tds)); */
-	printf("query : %s\n", tds_get_query(tds));
+	printf("query : %s\n", tds_get_generic_query(tds));
 	tds->out_flag = TDS_REPLY;
 	resinfo = tds_alloc_results(1);
 	resinfo->columns[0]->column_type = SYBVARCHAR;
@@ -87,12 +95,18 @@ main(int argc, char **argv)
 	strcpy(resinfo->columns[0]->column_name, "name");
 	resinfo->columns[0]->column_namelen = 4;
 	resinfo->current_row = (TDS_UCHAR*) "pubs2";
+	resinfo->columns[0]->column_data = resinfo->current_row;
 	tds_send_result(tds, resinfo);
-	tds_send_174_token(tds, 1);
+	tds_send_control_token(tds, 1);
 	tds_send_row(tds, resinfo);
-	tds_send_253_token(tds, 16, 1);
+	tds_send_done_token(tds, 16, 1);
 	tds_flush_packet(tds);
 	sleep(30);
+
+	tds_free_results(resinfo);
+	ctx = tds->tds_ctx;
+	tds_free_socket(tds);
+	tds_free_context(ctx);
 	
 	return 0;
 }

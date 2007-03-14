@@ -1,3 +1,11 @@
+Wed Mar 14 17:18:23 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/tds.html: update
+	* include/tdssrv.h src/pool/user.c src/server/login.c:
+	* src/server/query.c src/server/server.c src/server/unittest.c:
+	- update server stuff, at least login works
+	* src/tds/tdsstring.c: fix possible mising NUL terminator
+	* src/apps/tsql.c: fix wrong error handler result
+
 Wed Mar 14 09:47:24 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/tds.html include/tds.h: update documentation
 

@@ -81,7 +81,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.101 2007-01-09 21:44:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.102 2007-03-14 16:22:51 freddy77 Exp $");
 
 enum
 {
@@ -516,7 +516,7 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 			msg->msgno, msg->severity, msg->state, msg->server, msg->line_number, msg->message);
 	}
 
-	return 0;
+	return TDS_INT_CANCEL;
 }
 
 static void

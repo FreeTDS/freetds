@@ -40,7 +40,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: tdsstring.c,v 1.17 2006-12-26 14:56:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.18 2007-03-14 16:22:51 freddy77 Exp $");
 
 
 /**
@@ -144,7 +144,7 @@ tds_dstr_setlen(DSTR *s, unsigned int length)
 	assert(s->dstr_size >= length);
 #endif
 	/* test required for empty strings */
-	if (s->dstr_size != length) {
+	if (s->dstr_size >= length) {
 		s->dstr_size = length;
 		s->dstr_s[length] = 0;
 	}

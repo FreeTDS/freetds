@@ -48,7 +48,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.29 2007-03-13 16:25:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.30 2007-03-14 16:22:51 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
@@ -213,7 +213,7 @@ pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 		tds_env_change(tds, 4, NULL, "512");
 		tds_send_login_ack(tds, "sql server");
 		/* tds_send_capabilities_token(tds); */
-		tds_send_253_token(tds, 0, 1);
+		tds_send_done_token(tds, 0, 1);
 		puser->user_state = TDS_SRV_IDLE;
 
 		/* send it! */

@@ -20,6 +20,8 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#include <assert.h>
+
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
@@ -27,8 +29,11 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: query.c,v 1.14 2005-03-29 09:57:57 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.15 2007-03-14 16:22:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static char *query;
+static size_t query_buflen = 0;
 
 /**
  * Read a TDS5 tokenized query.
@@ -36,23 +41,24 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 char *
 tds_get_query(TDSSOCKET * tds)
 {
-	static unsigned char *query;
-	static size_t query_buflen = 0;
 	int len;
 
 	if (query_buflen == 0) {
 		query_buflen = 1024;
-		query = (unsigned char *) malloc(query_buflen);
+		query = (char *) malloc(query_buflen);
 	}
 	tds_get_byte(tds);	/* 33 */
-	len = tds_get_smallint(tds);	/* query size +1 */
-	tds_get_n(tds, NULL, 3);
+	len = tds_get_int(tds);	/* query size +1 */
+	tds_get_byte(tds);	/* has args, ignored TODO */
+	assert(len >= 1);	/* TODO handle correctly */
 	if (len > query_buflen) {
 		query_buflen = len;
-		query = (unsigned char *) realloc(query, query_buflen);
+		query = (char *) realloc(query, query_buflen);
 	}
-	tds_get_n(tds, query, len - 1);
-	return (char *) query;
+	--len;
+	tds_get_n(tds, query, len);
+	query[len] = 0;
+	return query;
 }
 
 /**
@@ -67,8 +73,6 @@ tds_get_query(TDSSOCKET * tds)
  */
 char *tds_get_generic_query(TDSSOCKET * tds)
 {
-	static char *query;
-	static int query_buflen;
  	int token, byte;
 	int len, more, i, j;
 
@@ -92,14 +96,16 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 			switch (token) {
 			case TDS_LANGUAGE_TOKEN:
 				/* SQL query */
-				len = tds_get_smallint(tds); /* query size +1 */
-				tds_get_n(tds, NULL, 3);
+				len = tds_get_int(tds); /* query size +1 */
+				assert(len >= 1);	/* TODO handle */
+				tds_get_byte(tds);	/* has args, ignored TODO */
 				if (len > query_buflen) {
 					query_buflen = len;
 					query = (char *) realloc(query, query_buflen);
 				}
-				tds_get_n(tds, query, len - 1);
-				query[len - 1] = '\0';
+				--len;
+				tds_get_n(tds, query, len);
+				query[len] = 0;
 				return query;
 
 			case TDS_DBRPC_TOKEN:
@@ -180,7 +186,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 			query[len] = '\0';
 			return query;
 
-		  case 0x06:
+		case 0x06:
 			/*
 			 * ignore cancel requests -- if we're waiting
 			 * for the next query then it's obviously too
@@ -189,7 +195,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 			/* TODO it's not too late -- freddy77 */
 			break;
 
-		  default:
+		default:
 			/* not a query packet */
 			return NULL;
 		}

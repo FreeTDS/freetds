@@ -1143,7 +1143,7 @@ a fixed size datatype.
 <b class="section">Login Acknowledgement (0xAD 173)</b>
 
 <pre>
- INT16    INT8    4 bytes   INT8       CHAR[n]   4 bytes
+ INT16    INT8    4 bytes   INT8       XCHAR[n] 4 bytes
 +--------+-------+---------+----------+--------+----------+
 | length |  ack  | version | t length |  text  | ser_ver  |
 +--------+-------+---------+----------+--------+----------+
@@ -1155,7 +1155,6 @@ ack		0x01 success	4.2
 version		TDS version 4 bytes:  major.minor.?.?
 t length	length of text
 text		server name (ie 'Microsoft SQL Server')
-		For TDS7+ this is in ucs2 format
 ser_ver		Server version
 		(with strange encoding, differring from TDS version)
 </pre>

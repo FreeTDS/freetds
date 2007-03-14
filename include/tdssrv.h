@@ -29,7 +29,7 @@ extern "C"
 }
 #endif
 
-static const char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.7 2004-10-28 12:42:12 freddy77 Exp $";
+static const char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.8 2007-03-14 16:22:51 freddy77 Exp $";
 static const void *const no_unused_tdssrv_h_warn[] = { rcsid_tdssrv_h, no_unused_tdssrv_h_warn };
 
 /* login.c */
@@ -52,9 +52,9 @@ void tds_send_eed(TDSSOCKET * tds, int msgno, int msgstate, int severity, char *
 void tds_send_err(TDSSOCKET * tds, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 void tds_send_capabilities_token(TDSSOCKET * tds);
 /* TODO remove, use tds_send_done */
-void tds_send_253_token(TDSSOCKET * tds, TDS_SMALLINT flags, TDS_INT numrows);
+void tds_send_done_token(TDSSOCKET * tds, TDS_SMALLINT flags, TDS_INT numrows);
 void tds_send_done(TDSSOCKET * tds, int token, TDS_SMALLINT flags, TDS_INT numrows);
-void tds_send_174_token(TDSSOCKET * tds, TDS_SMALLINT numcols);
+void tds_send_control_token(TDSSOCKET * tds, TDS_SMALLINT numcols);
 void tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
 void tds_send_col_info(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
 void tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo);

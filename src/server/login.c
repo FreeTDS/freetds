@@ -54,7 +54,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.45 2007-03-13 16:25:38 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.46 2007-03-14 16:22:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -94,6 +94,7 @@ tds_listen(int ip_port)
 		exit(1);
 	}
 	listen(s, 5);
+	len = sizeof(sin);
 	if ((fd = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
 		perror("accept");
 		exit(1);
@@ -102,6 +103,8 @@ tds_listen(int ip_port)
 	tds = tds_alloc_socket(context, 8192);
 	tds->s = fd;
 	tds->out_flag = TDS_LOGIN;
+	/* TODO proper charset */
+	tds_iconv_open(tds, "ISO8859-1");
 	/* get_incoming(tds->s); */
 	return tds;
 }
@@ -162,18 +165,21 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	int a;
 	int host_name_len, user_name_len, app_name_len, server_name_len;
 	int library_name_len, language_name_len;
+	int auth_len, database_name_len;
 	size_t unicode_len, password_len;
-	char *unicode_string;
+	char *unicode_string, *psrc;
 	char *pbuf;
+	DSTR database;
 
-	a = tds_get_smallint(tds);	/*total packet size */
-	tds_get_n(tds, NULL, 5);
-	a = tds_get_byte(tds);	/*TDS version */
+	tds_dstr_init(&database);
+
+	a = tds_get_int(tds);	/*total packet size */
+	a = tds_get_int(tds);	/*TDS version */
+	a &= 0xff;
 	login->major_version = a >> 4;
 	login->minor_version = a << 4;
-	tds_get_n(tds, NULL, 3);	/*rest of TDS Version which is a 4 byte field */
-	tds_get_n(tds, NULL, 4);	/*desired packet size being requested by client */
-	tds_get_n(tds, NULL, 21);	/*magic1 */
+	a = tds_get_int(tds);	/*desired packet size being requested by client */
+	tds_get_n(tds, NULL, 24);	/*magic1 */
 	a = tds_get_smallint(tds);	/*current position */
 	host_name_len = tds_get_smallint(tds);
 	a = tds_get_smallint(tds);	/*current position */
@@ -190,11 +196,11 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	library_name_len = tds_get_smallint(tds);
 	a = tds_get_smallint(tds);	/*current position */
 	language_name_len = tds_get_smallint(tds);
-	tds_get_smallint(tds);
-	tds_get_smallint(tds);
-	tds_get_n(tds, NULL, 6);	/*magic2 */
+	a = tds_get_smallint(tds);
+	database_name_len = tds_get_smallint(tds);
+	tds_get_n(tds, NULL, 6);	/* client mac address */
 	a = tds_get_smallint(tds);	/*partial packet size */
-	a = tds_get_smallint(tds);	/*0x30 */
+	auth_len = tds_get_smallint(tds);	/*authentication len */
 	a = tds_get_smallint(tds);	/*total packet size */
 	tds_get_smallint(tds);
 
@@ -209,7 +215,8 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	pbuf = tds_dstr_buf(&login->password);
 	
 	memset(&tds->char_convs[client2ucs2]->suppress, 0, sizeof(tds->char_convs[client2ucs2]->suppress));
-	a = tds_iconv(tds, tds->char_convs[client2ucs2], to_client, (const char **) &unicode_string, &unicode_len, &pbuf,
+	psrc = unicode_string;
+	a = tds_iconv(tds, tds->char_convs[client2ucs2], to_client, (const char **) &psrc, &unicode_len, &pbuf,
 			 &password_len);
 	if (a < 0 ) {
 		fprintf(stderr, "error: %s:%d: tds7_read_login: tds_iconv() failed\n", __FILE__, __LINE__);
@@ -222,21 +229,15 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds7_read_string(tds, &login->server_name, server_name_len);
 	tds7_read_string(tds, &login->library, library_name_len);
 	tds7_read_string(tds, &login->language, language_name_len);
+	/* TODO use it */
+	tds7_read_string(tds, &database, database_name_len);
+	tds_dstr_free(&database);
 
-	tds_get_n(tds, NULL, 7);	/*magic3 */
-	tds_get_byte(tds);
-	tds_get_byte(tds);
-	tds_get_n(tds, NULL, 3);
-	tds_get_byte(tds);
-	a = tds_get_byte(tds);	/*0x82 */
-	tds_get_n(tds, NULL, 22);
-	tds_get_byte(tds);	/*0x30 */
-	tds_get_n(tds, NULL, 7);
-	a = tds_get_byte(tds);	/*0x30 */
-	tds_get_n(tds, NULL, 3);
+	tds_get_n(tds, NULL, auth_len);
+
 	tds_dstr_copy(&login->server_charset, "");	/*empty char_set for TDS 7.0 */
 	login->block_size = 0;	/*0 block size for TDS 7.0 */
-	login->encrypted = 1;
+	login->encrypted = 0;
 	return (0);
 
 }
@@ -283,10 +284,14 @@ tds_alloc_read_login(TDSSOCKET * tds)
 
 	/* Allocate the login packet */
 	login = tds_alloc_login();
+	if (!login)
+		return NULL;
 
 	/* Use the packet type to determine which login format to expect */
 	switch (tds->in_flag) {
 	case 0x02: /* TDS4/5 login */
+		tds->major_version = 4;
+		tds->minor_version = 2;
 		tds_read_login(tds, login);
 		if (login->block_size == 0) {
 			login->block_size = 512;
@@ -294,14 +299,19 @@ tds_alloc_read_login(TDSSOCKET * tds)
 		break;
 
 	case 0x10: /* TDS7+ login */
+		tds->major_version = 7;
+		tds->minor_version = 0;
 		tds7_read_login(tds, login);
 		break;
 
 	case 0x12: /* TDS7+ prelogin, hopefully followed by a login */
+		tds->major_version = 8;
+		tds->minor_version = 0;
 		tds7_read_login(tds, login);
-		tds_send_253_token(tds, TDS_DONE_FINAL, 0);
+		tds_send_done_token(tds, TDS_DONE_FINAL, 0);
 		tds_flush_packet(tds);
 		if (tds_read_packet(tds) < 0 || tds->in_flag != 0x10) {
+			tds_free_login(login);
 			return NULL;
 		}
 		tds7_read_login(tds, login);
