@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.266 2007-03-13 16:25:37 freddy77 Exp $ */
+/* $Id: tds.h,v 1.267 2007-03-14 08:49:49 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -339,7 +339,7 @@ typedef enum {	TDSEICONVIU    = 2400,
 #define TDS_DBRPC_TOKEN           230	/* 0xE6                              */
 #define TDS5_DYNAMIC_TOKEN        231	/* 0xE7    TDS 5.0 only              */
 #define TDS5_PARAMFMT_TOKEN       236	/* 0xEC    TDS 5.0 only              */
-#define TDS_AUTH_TOKEN            237	/* 0xED                              */
+#define TDS_AUTH_TOKEN            237	/* 0xED    TDS 7.0 only              */
 #define TDS_RESULT_TOKEN          238	/* 0xEE                              */
 #define TDS_DONE_TOKEN            253	/* 0xFD    TDS_DONE                  */
 #define TDS_DONEPROC_TOKEN        254	/* 0xFE    TDS_DONEPROC              */

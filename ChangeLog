@@ -1,3 +1,6 @@
+Wed Mar 14 09:47:24 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/tds.html include/tds.h: update documentation
+
 Tue Mar 13 17:24:54 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/pool/user.c src/server/login.c:
 	* src/server/unittest.c src/tds/login.c src/tds/query.c:

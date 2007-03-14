@@ -116,6 +116,8 @@ packet type
      0x07 Used in Bulk
      0x0F TDS 5.0 query
      0x10 <a href="#login7">TDS 7.0 login packet</a>
+     0x11 <a href="#auth7">TDS 7.0 authentication packet</a>
+     0x12 TDS 8 prelogin packet
 last packet indicator 
      0x00 if more packets
      0x01 if last packet
@@ -140,6 +142,7 @@ above header.
   believe the 512 is the block_size in the login packet, so it could be set to a
   different value. *mjs*)
 
+<hr>
 <p>
 <a name="login"></a>
 <b class="section">Login Packet</b>
@@ -270,12 +273,35 @@ NT Authentication packet
       CHAR[n]   domain
 See documentation on Samba for detail (or search ntlm authentication for IIS)
 </pre>
-"current pos" is the starting byte address for a Unicode string within
+<p>"current pos" is the starting byte address for a Unicode string within
 the packet.  The length of that Unicode string immediately follows.  
 That implies there are at least 2 more strings that could be defined.
 (character set??)
-<br><br>
-Password and user is not used is NT authentication is used (setted as empty).
+</p>
+
+<p>Password and user is not used is NT authentication is used (setted as empty).</p>
+
+<p>If client use an authentication packet server reply with 
+<a href="#t237">Authentication</a> token followed by a <a href="#auth7">Authentication packet</a>.</p>
+
+<hr>
+<p>
+<a name="auth7"></a>
+<b class="section">TDS7.0 Authentication Packet</b>
+</p>
+
+<pre>
+ varies
++------+
+| auth |
++------+
+
+auth   authentication data
+       for NTLM this message 3
+</pre>
+
+<p>This packet usually follow <a href="#t237">Authentication</a> token.</p>
+
 <hr>
 <p>
 <a name="types"></a>
@@ -715,6 +741,9 @@ Tokens encountered thus far:
  <td>0xEC</td><td>236</td><td><a href="#t236">Param Format</a></td><td>5.0 only</td>
 </tr>
 <tr>
+ <td>0xED</td><td>237</td><td><a href="#t237">Authentication</a></td><td>7.0 only</td>
+</tr>
+<tr>
  <td>0xEE</td><td>238</td><td><a href="#t238">Result Set</a></td><td>5.0 only</td>
 </tr>
 <tr>
@@ -798,7 +827,7 @@ Presumably the process ID number for an executing stored procedure.
 <p>TODO.
 
 <a name="t129">&nbsp;</a> <hr>
-<b class="subsection">Result - TDS 7.0+ (0x81 129)</b>
+<b class="subsection">Result - TDS7+ (0x81 129)</b>
 
 <pre>
  INT16  
@@ -1236,6 +1265,39 @@ length            	length of message following this field
 number of parameters	number of parameter formats following
 list of formats		I (*bdw*) imagine it uses the column format structure.
 </pre>
+
+<a name="t238">&nbsp;</a> <hr>
+<b class="section">Result Set - TDS5 (0xEE 238)</b>
+
+<pre>
+ INT16     INT16        variable size
++---------+------------+-----------------+
+| length  | number of  | column info     |
+|         | columns    |                 |
++---------+------------+-----------------+
+
+
+Fields:
+length             length of message following this field
+number of columns  number of columns in the result set, this many column
+                   information fields will follow.
+column info        <a href="#colInfo">column info</a>
+</pre>
+
+<a name="t237">&nbsp;</a> <hr>
+<b class="section">Authentication - TDS7 (0xED 237)</b>
+<pre>
+ INT16     varies
++---------+------+
+| length  | auth |
++---------+------+
+
+length   length of authentication data following this field
+auth     authentication data
+         for NTLM this is message 2
+</pre>
+
+<p>Client reply with <a href="#auth7">Authentication packet</a>.</p>
 
 <a name="t238">&nbsp;</a> <hr>
 <b class="section">Result Set - TDS5 (0xEE 238)</b>
