@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.61 2006-12-26 12:53:02 freddy77 Exp $
+# $Id: Makefile.am,v 1.62 2007-03-16 15:34:09 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
@@ -11,13 +11,6 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	tds_checks.c tds_checks.h enum_cap.h log.c
 libtds_la_LDFLAGS=
 libtds_la_LIBADD=
-
-install-exec-local: libtds.la
-	test -z "$(libdir)" || $(mkdir_p) "$(DESTDIR)$(libdir)"
-	$(LIBTOOL) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) ".libs/libtds.a" "$(DESTDIR)$(libdir)/libtds.a"
-
-uninstall-local:
-	$(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/libtds.a"
 
 noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h
 EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h

@@ -3,9 +3,7 @@ AUTOMAKE_OPTIONS	=	1.5.3
 include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctpublic.h \
 			sqldb.h sqlfront.h \
 			sybdb.h sybfront.h \
-			syberror.h \
-			tds.h tdsconvert.h tdssrv.h \
-			tdsver.h
+			syberror.h
 
 nodist_include_HEADERS	=	tds_sysdep_public.h
 
@@ -20,7 +18,9 @@ noinst_HEADERS	=	tds_configs.h \
 			ctlib.h \
 			tdsthread.h \
 			tdsbytes.h \
-			replacements/readpassphrase.h
+			replacements/readpassphrase.h \
+			tds.h tdsver.h tdsconvert.h \
+			tdssrv.h
 
 DISTCLEANFILES	=	tds_sysdep_public.h freetds_sysconfdir.h
 

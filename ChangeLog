@@ -1,3 +1,8 @@
+Fri Mar 16 16:32:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/Makefile.am src/tds/Makefile.am:
+	- full libTDS privatization
+	* src/server/unittest.c: use mnemonic
+
 Wed Mar 14 17:18:23 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/tds.html: update
 	* include/tdssrv.h src/pool/user.c src/server/login.c:
