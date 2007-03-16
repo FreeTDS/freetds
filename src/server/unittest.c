@@ -44,7 +44,7 @@
 #define sleep(s) Sleep((s)*1000)
 #endif
 
-static char software_version[] = "$Id: unittest.c,v 1.15 2007-03-14 16:22:51 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.16 2007-03-16 15:33:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);
@@ -67,13 +67,13 @@ main(int argc, char **argv)
 	dump_login(login);
 	if (!strcmp(tds_dstr_cstr(&login->user_name), "guest") && !strcmp(tds_dstr_cstr(&login->password), "sybase")) {
 		tds->out_flag = TDS_REPLY;
-		tds_env_change(tds, 1, "master", "pubs2");
+		tds_env_change(tds, TDS_ENV_DATABASE, "master", "pubs2");
 		tds_send_msg(tds, 5701, 2, 10, "Changed database context to 'pubs2'.", "JDBC", "ZZZZZ", 1);
 		if (!login->suppress_language) {
-			tds_env_change(tds, 2, NULL, "us_english");
+			tds_env_change(tds, TDS_ENV_LANG, NULL, "us_english");
 			tds_send_msg(tds, 5703, 1, 10, "Changed language setting to 'us_english'.", "JDBC", "ZZZZZ", 1);
 		}
-		tds_env_change(tds, 4, NULL, "512");
+		tds_env_change(tds, TDS_ENV_PACKSIZE, NULL, "512");
 		/* TODO set mssql if tds7+ */
 		tds_send_login_ack(tds, "sql server");
 		if (IS_TDS50(tds))
