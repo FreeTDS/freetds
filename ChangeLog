@@ -1,3 +1,8 @@
+Sun Mar 18 12:37:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/common.c src/odbc/unittests/timeout2.c:
+	* src/odbc/unittests/timeout3.c:
+	- fix cross-compile for win32
+
 Sun Mar 18 12:09:57 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/Makefile.am 	src/apps/bsqlodbc.c src/apps/tsql.c:
 	* src/apps/fisql/Makefile.am 	win32/winsetup.c:

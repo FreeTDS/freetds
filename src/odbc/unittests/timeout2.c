@@ -13,8 +13,12 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.1 2006-08-08 12:44:49 freddy77 Exp $";
+static char software_version[] = "$Id: timeout2.c,v 1.2 2007-03-18 11:34:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+#ifdef __MINGW32__
+#define sleep(s) Sleep((s)*1000)
+#endif
 
 #define CHK(func,params) \
 	if (func params != SQL_SUCCESS) \

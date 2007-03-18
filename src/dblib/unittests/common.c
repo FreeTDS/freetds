@@ -16,7 +16,7 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.20 2007-01-15 19:43:09 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.21 2007-03-18 11:34:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -78,19 +78,6 @@ tds_dirname(char* path)
 }
 #define dirname tds_dirname
 
-static const char *
-tds_basename(const char* path)
-{
-	const char *p, *p2;
-
-	p = strrchr(path, '/');
-	if (!p)
-		p = path;
-	p2 = strrchr(p, '\\');
-	if (p2)
-		p = p2;
-	return p+1;
-}
 #endif
 
 #ifndef MAXPATHLEN

@@ -1,5 +1,8 @@
 #include "common.h"
 
+/* TODO port to windows, use thread */
+#if defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM
+
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
@@ -37,11 +40,8 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.3 2007-02-12 09:55:10 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.4 2007-03-18 11:34:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-/* TODO port to windows, use thread */
-#if defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM
 
 static void init_connect(void);
 
