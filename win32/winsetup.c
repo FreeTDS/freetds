@@ -148,7 +148,7 @@ write_all_strings(DSNINFO * di)
 {
 	char odbcini[FILENAME_MAX];
 	char tmp[100];
-	char *section = tds_dstr_cstr(&di->dsn);
+	const char *section = tds_dstr_cstr(&di->dsn);
 
 	strcpy(odbcini, "odbc.ini");
 

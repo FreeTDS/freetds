@@ -35,7 +35,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <ctype.h>
+#if HAVE_FORK
 #include <sys/wait.h>
+#endif
 #include <signal.h>
 
 #ifdef HAVE_READLINE
@@ -81,7 +83,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.102 2007-03-14 16:22:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.103 2007-03-18 11:07:30 freddy77 Exp $");
 
 enum
 {
@@ -559,7 +561,9 @@ main(int argc, char **argv)
 	TDSCONTEXT *context;
 	TDSCONNECTION *connection;
 	int opt_flags = 0;
+#if HAVE_FORK
 	pid_t timer_pid = 0;
+#endif
 
 	istty = isatty(0);
 
@@ -593,6 +597,7 @@ main(int argc, char **argv)
 	 * If that machine is currently unreachable
 	 * show a timer connecting to the server 
 	 */
+#if HAVE_FORK
 	if (connection && !QUIET) {
 		timer_pid = fork();
 		if (-1 == timer_pid) {
@@ -609,13 +614,15 @@ main(int argc, char **argv)
 			}
 		}
 	}
+#endif
 	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
 		tds_free_socket(tds);
 		tds_free_connection(connection);
 		fprintf(stderr, "There was a problem connecting to the server\n");
-		if (timer_pid > 0 ) {
+#if HAVE_FORK
+		if (timer_pid > 0 )
 			kill(timer_pid, SIGTERM);
-		}
+#endif
 		exit(1);
 	}
 	tds_free_connection(connection);
@@ -627,6 +634,8 @@ main(int argc, char **argv)
 #ifdef HAVE_READLINE
 	rl_inhibit_completion = 1;
 #endif
+
+#if HAVE_FORK
 	if (timer_pid > 0 ) {
 		if (kill(timer_pid, SIGTERM) == -1 ) {
 			perror("tsql: warning");
@@ -638,6 +647,7 @@ main(int argc, char **argv)
 			}
 		}
 	}
+#endif
 
 	for (;;) {
 		sprintf(prompt, "%d> ", ++line);

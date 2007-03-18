@@ -45,10 +45,12 @@
 #include <libgen.h>
 #endif
 
+#include "tds_sysdep_public.h"
+#include <sql.h>
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.4 2007-02-07 06:12:44 jklowden Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.5 2007-03-18 11:07:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
