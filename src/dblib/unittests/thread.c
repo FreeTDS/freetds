@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-static char software_version[] = "$Id: thread.c,v 1.9 2006-08-14 17:14:03 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.10 2007-03-19 08:47:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -235,6 +235,7 @@ main(int argc, char **argv)
 int
 main(int argc, char **argv)
 {
+	printf("Not possible for this platform.\n");
 	return 0;
 }
 #endif
