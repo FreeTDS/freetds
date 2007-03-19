@@ -1,3 +1,6 @@
+Mon Mar 19 11:01:05 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/replacements.h: fix warning for win32
+
 Sun Mar 18 12:37:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/common.c src/odbc/unittests/timeout2.c:
 	* src/odbc/unittests/timeout3.c:

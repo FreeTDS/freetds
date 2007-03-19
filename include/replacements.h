@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.15 2007-03-12 13:28:50 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.16 2007-03-19 10:01:51 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -79,6 +79,10 @@ size_t tds_strlcat(char *dest, const char *src, size_t len);
 #define tds_basename(s) basename(s)
 #else
 char *tds_basename(char *path);
+#endif
+
+#if defined(WIN32)
+int gettimeofday (struct timeval *tv, void *tz);
 #endif
 
 #ifdef __cplusplus
