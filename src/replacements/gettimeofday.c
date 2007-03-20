@@ -41,8 +41,9 @@
 #endif
 
 #include "tds.h"
+#include "replacements.h"
 
-TDS_RCSID(var, "$Id: gettimeofday.c,v 1.2 2006-08-10 08:11:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gettimeofday.c,v 1.3 2007-03-20 15:25:29 freddy77 Exp $");
 /*
  * Number of micro-seconds between the beginning of the Windows epoch
  * (Jan. 1, 1601) and the Unix epoch (Jan. 1, 1970).

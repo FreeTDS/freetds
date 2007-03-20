@@ -53,6 +53,8 @@
 #include <sybfront.h>
 #include <sybdb.h>
 
+#include "replacements.h"
+
 enum states
 {
 	GET_NEXTARG,
