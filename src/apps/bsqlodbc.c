@@ -50,7 +50,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.5 2007-03-18 11:07:30 freddy77 Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.6 2007-03-24 08:17:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -64,7 +64,13 @@ static SQLRETURN odbc_perror(SQLHSTMT hStmt, SQLRETURN erc, const char func[], c
 static const char * prret(SQLRETURN erc);
 
 
-struct METADATA { char *name, *format_string; const char *source; int type, size, width; };
+struct METADATA
+{
+	char *name, *format_string;
+	const char *source;
+	SQLSMALLINT type;
+	SQLUINTEGER size, width;
+};
 struct DATA { char *buffer; SQLLEN len; int status; };
 
 static int set_format_string(struct METADATA * meta, const char separator[]);
@@ -451,7 +457,7 @@ print_results(SQLHSTMT hStmt)
 			SQLSMALLINT namelen, ndigits, fnullable;
 
 			if ((erc = SQLDescribeCol(hStmt, c+1, name, sizeof(name), &namelen, 
-							(SQLSMALLINT *)&metadata[c].type, (SQLUINTEGER *)&metadata[c].size,
+							&metadata[c].type, &metadata[c].size,
 							&ndigits, &fnullable)) != SQL_SUCCESS) {
 				odbc_perror(hStmt, erc, "SQLDescribeCol", "failed");
 				exit(EXIT_FAILURE);
@@ -461,9 +467,9 @@ print_results(SQLHSTMT hStmt)
 			metadata[c].name = strdup((char *) name);
 			metadata[c].width = (ndigits > metadata[c].size)? ndigits : metadata[c].size;
 
-			fprintf(options.verbose, "%6d  %30s  %30s  %15s  %6d  %6d  \n", 
+			fprintf(options.verbose, "%6d  %30s  %30s  %15s  %6lu  %6d  \n", 
 				c+1, metadata[c].name, metadata[c].source, "(todo)", 
-				metadata[c].size,  -1);
+				(long unsigned int) metadata[c].size,  -1);
 
 #if 0
 			fprintf(options.verbose, "%6d  %30s  %30s  %15s  %6d  %6d  \n", 
