@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.60 2007-02-02 10:52:45 freddy77 Exp $
+# $Id: Makefile.am,v 1.61 2007-03-27 11:28:15 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -72,11 +72,18 @@ AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_SRCDIR=\"$(srcdir)\"
 AM_LDFLAGS	=	-no-install
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
-EXTRA_DIST	=	describecol.in
+EXTRA_DIST	=	describecol.in $(EXTRA_DIST_WIN32)
 
 if HAVE_PERL_SOURCES
 odbc.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
-	rm -f *.dsp $@
+	rm -f $@ odbc.mak vc6
 	perl $(top_srcdir)/win32/build_dsw.pl $@ $(TESTS)
+
+vc6: odbc.dsw
+
+clean-local:
+	rm -rf vc6
+
+EXTRA_DIST_WIN32 = vc6 odbc.dsw odbc.mak
 endif
 

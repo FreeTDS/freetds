@@ -52,3 +52,7 @@ paramcore
 rpc
 timeout2
 timeout3
+odbc.dsw
+odbc.mak
+vc6
+

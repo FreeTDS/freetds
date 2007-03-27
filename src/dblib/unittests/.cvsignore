@@ -38,4 +38,7 @@ thread
 text_buffer
 done_handling
 timeout
+dblib.dsw
+dblib.mak
+vc6
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.36 2007-01-13 22:13:31 jklowden Exp $
+# $Id: Makefile.am,v 1.37 2007-03-27 11:28:15 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -44,13 +44,20 @@ timeout_SOURCES =	timeout.c common.c common.h
 AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
 AM_LDFLAGS	=	-no-install
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la @NETWORK_LIBS@
-EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin
+EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32)
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err
 
 if HAVE_PERL_SOURCES
 dblib.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
-	rm -rf vc6 $@
+	rm -rf $@ dblib.mak vc6
 	perl $(top_srcdir)/win32/build_dsw.pl $@ $(TESTS)
+
+vc6: dblib.dsw
+
+clean-local:
+	rm -rf vc6
+
+EXTRA_DIST_WIN32 = vc6 dblib.dsw dblib.mak
 endif
 
