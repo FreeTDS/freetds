@@ -7,4 +7,5 @@ defncopy
 .libs
 .deps
 datacopy
+bsqlodbc
 
