@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.38 2007-01-15 02:00:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.39 2007-03-27 10:57:34 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -144,7 +144,7 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAG
 	assert(_dblib_err_handler);
 	assert(msg);
 
-	rc = dbperror(dbproc, msg->msgno, 0); /* fixme: need os errnum */
+	rc = dbperror(dbproc, msg->msgno, 0); /* FIXME: need os errnum */
 
 	/*
 	 * Preprocess the return code to handle INT_TIMEOUT/INT_CONTINUE
