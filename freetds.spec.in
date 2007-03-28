@@ -102,7 +102,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man?/*
 %{_libdir}/libct.so.*
 %{_libdir}/libsybdb.so.*
-%{_libdir}/libtdssrv.so.*
 %config %{_sysconfdir}/*
  
 %files devel 
@@ -120,7 +119,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr (-,root,root)
 %doc doc/doc/freetds-%{version}/userguide doc/images doc/doc/freetds-%{version}/reference
  
-%changelog 
+%changelog
+* Wed Mar 28 2007 Frediano Ziglio <freddy77@gmail.com>
+- removed libtdssrv
+
 * Thu Sep 09 2004 Frediano Ziglio <freddy77@angelfire.com>
 - remove dependency from freetds-unixodbc
 - fix field name (Copyright instead of License)

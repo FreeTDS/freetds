@@ -1,3 +1,7 @@
+Wed Mar 28 14:43:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* freetds.spec.in src/odbc/unittests/Makefile.am:
+	- fix test-dist test
+
 Mon Mar 26 13:27:51 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/.cvsignore src/dblib/unittests/Makefile.am:
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:

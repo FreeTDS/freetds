@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.61 2007-03-27 11:28:15 freddy77 Exp $
+# $Id: Makefile.am,v 1.62 2007-03-28 12:44:50 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -76,7 +76,7 @@ EXTRA_DIST	=	describecol.in $(EXTRA_DIST_WIN32)
 
 if HAVE_PERL_SOURCES
 odbc.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
-	rm -f $@ odbc.mak vc6
+	rm -rf $@ odbc.mak vc6
 	perl $(top_srcdir)/win32/build_dsw.pl $@ $(TESTS)
 
 vc6: odbc.dsw
