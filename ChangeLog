@@ -1,4 +1,9 @@
-Fri Feb 02 17:22:35 CET 2006    Frediano Ziglio <freddy77_A_gmail_D_com>
+Wed Mar 02 11:38:22 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/dev-cpp/FreeTDS.dev win32/dev-cpp/Makefile.win:
+	* win32/msvc6/libTDS.dsp:
+	- include required md5.c
+
+Fri Feb 02 17:22:35 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* acinclude.m4: backported fix for cross compile
 	* configure.in src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/timeout3.c(added):
