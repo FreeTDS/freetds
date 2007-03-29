@@ -43,7 +43,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.34 2006-08-14 17:14:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.35 2007-03-29 14:32:59 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -803,6 +803,9 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 		_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
+
+	/* FIXME find a better way, some other thread could change state here */
+	tds_set_state(tds, TDS_QUERYING);
 
 	/* 
 	 * Work out the number of "variable" columns.  These are either nullable or of 
