@@ -54,7 +54,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.46 2007-03-14 16:22:51 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.47 2007-03-29 14:26:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -237,7 +237,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	tds_dstr_copy(&login->server_charset, "");	/*empty char_set for TDS 7.0 */
 	login->block_size = 0;	/*0 block size for TDS 7.0 */
-	login->encrypted = 0;
+	login->encryption_level = TDS_ENCRYPTION_OFF;
 	return (0);
 
 }

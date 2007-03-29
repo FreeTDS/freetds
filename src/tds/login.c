@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.158 2007-03-13 16:25:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.159 2007-03-29 14:26:44 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -463,7 +463,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_login_string(tds, tds_dstr_cstr(&connection->language), TDS_MAX_LOGIN_STR_SZ);	/* language */
 	tds_put_byte(tds, connection->suppress_language);
 	tds_put_n(tds, magic5, 2);
-	tds_put_byte(tds, connection->encrypted);
+	tds_put_byte(tds, connection->encryption_level ? 1 : 0);
 	tds_put_n(tds, magic6, 10);
 
 	/* use charset nearest to client or nothing */
@@ -881,6 +881,8 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	SET_UI16BE(13, instance_name_len);
 	SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
+	if (connection->encryption_level)
+		buf[sizeof(buf)-1] = 1;
 
 	assert(sizeof(buf) == START_POS + 7);
 
@@ -929,8 +931,13 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tdsdump_log(TDS_DBG_INFO1, "detected flag %d\n", crypt_flag);
 
 	/* if server do not has certificate do normal login */
-	if (crypt_flag == 2)
+	if (crypt_flag == 2) {
+		/* unless we wanted encryption and got none, then fail */
+		if (connection->encryption_level >= TDS_ENCRYPTION_REQUIRE)
+			return TDS_FAIL;
+
 		return tds7_send_login(tds, connection);
+	}
 
 	/*
 	 * if server has a certificate it require at least a crypted login

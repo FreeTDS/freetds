@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.125 2007-01-15 04:18:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.126 2007-03-29 14:26:44 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -88,6 +88,7 @@ static void tds_read_interfaces(const char *server, TDSCONNECTION * connection);
 static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login);
 static int tds_lookup_port(const char *portname);
+static void tds_config_encryption(const char * value, TDSCONNECTION * connection);
 
 extern int tds_g_append_mode;
 
@@ -205,7 +206,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "library", tds_dstr_cstr(&connection->library));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "bulk_copy", (int)connection->bulk_copy);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "suppress_language", (int)connection->suppress_language);
-		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "encrypted", (int)connection->encrypted);
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "encrypt level", (int)connection->encryption_level);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "query_timeout", connection->query_timeout);
 		/* tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "capabilities", tds_dstr_cstr(&connection->capabilities)); 
 			(not null terminated) */
@@ -354,6 +355,23 @@ tds_config_boolean(const char *value)
 		return 0;
 	tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED boolean value: '%s'. Treating as 'no'.\n", value);
 	return 0;
+}
+
+static void
+tds_config_encryption(const char * value, TDSCONNECTION * connection)
+{
+	TDS_ENCRYPTION_LEVEL lvl = TDS_ENCRYPTION_OFF;
+
+	if (!strcasecmp(value, TDS_STR_ENCRYPTION_OFF))
+		;
+	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_REQUEST))
+		lvl = TDS_ENCRYPTION_REQUEST;
+	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_REQUIRE))
+		lvl = TDS_ENCRYPTION_REQUIRE;
+	else
+		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option value '%s'...ignoring.\n", value);
+
+	connection->encryption_level = lvl;
 }
 
 /**
@@ -508,6 +526,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_g_append_mode = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_INSTANCE)) {
 		tds_dstr_copy(&connection->instance_name, value);
+	} else if (!strcmp(option, TDS_STR_ENCRYPTION)) {
+		tds_config_encryption(value, connection);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
@@ -551,8 +571,8 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 	if (!tds_dstr_isempty(&login->library)) {
 		tds_dstr_copy(&connection->library, tds_dstr_cstr(&login->library));
 	}
-	if (login->encrypted) {
-		connection->encrypted = 1;
+	if (login->encryption_level) {
+		connection->encryption_level = login->encryption_level;
 	}
 	if (login->suppress_language) {
 		connection->suppress_language = 1;

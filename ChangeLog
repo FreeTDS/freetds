@@ -1,3 +1,8 @@
+Thu Mar 29 16:25:24 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/server/login.c src/tds/config.c:
+	* src/tds/login.c:
+	- added encryption setting in freetds.conf
+
 Thu Mar 29 12:17:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: check includes for ODBC
 

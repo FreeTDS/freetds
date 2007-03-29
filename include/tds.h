@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.267 2007-03-14 08:49:49 freddy77 Exp $ */
+/* $Id: tds.h,v 1.268 2007-03-29 14:26:44 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -614,6 +614,9 @@ typedef enum tds_packet_type
 	TDS8_PRELOGIN = 18
 } TDS_PACKET_TYPE;
 
+typedef enum tds_encryption_level {
+	TDS_ENCRYPTION_OFF, TDS_ENCRYPTION_REQUEST, TDS_ENCRYPTION_REQUIRE
+} TDS_ENCRYPTION_LEVEL;
 
 #define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
@@ -745,6 +748,12 @@ typedef enum tds_packet_type
 #define TDS_STR_APPENDMODE	"dump file append"
 #define TDS_STR_DATEFMT	"date format"
 #define TDS_STR_INSTANCE "instance"
+#define TDS_STR_ENCRYPTION	 "encryption"
+/* conf values */
+#define TDS_STR_ENCRYPTION_OFF	 "off"
+#define TDS_STR_ENCRYPTION_REQUEST "request"
+#define TDS_STR_ENCRYPTION_REQUIRE "require"
+
 
 /* TODO do a better check for alignment than this */
 typedef union
@@ -775,7 +784,7 @@ typedef struct tds_login
 	DSTR library;	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
 	TDS_TINYINT bulk_copy;
 	TDS_TINYINT suppress_language;
-	TDS_TINYINT encrypted;
+	TDS_TINYINT encryption_level;
 
 	TDS_INT query_timeout;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
@@ -800,7 +809,7 @@ typedef struct tds_connection
 	DSTR library;
 	TDS_TINYINT bulk_copy;
 	TDS_TINYINT suppress_language;
-	TDS_TINYINT encrypted;
+	TDS_TINYINT encryption_level;
 
 	TDS_INT query_timeout;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
