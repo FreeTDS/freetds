@@ -1,3 +1,6 @@
+Thu Mar 29 12:17:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac: check includes for ODBC
+
 Thu Mar 29 09:44:11 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/genparams.c: add test for money
 

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.16 2007-02-06 09:18:53 freddy77 Exp $
+dnl $Id: configure.ac,v 1.17 2007-03-29 10:18:23 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.16 $)
+AC_REVISION($Revision: 1.17 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -384,7 +384,10 @@ if test "$with_iodbc"; then
 		with_iodbc="$PWD/$with_iodbc"
 	fi
 	CPPFLAGS="$CPPFLAGS -DIODBC"
-	ODBC_INC="-I$with_iodbc/include"
+	ODBC_INC="$with_iodbc/include"
+	test -r "$ODBC_INC/isql.h" || AC_ERROR([isql.h not found])
+	test -r "$ODBC_INC/isqlext.h" || AC_ERROR([isqlext.h not found])
+	ODBC_INC="-I$ODBC_INC"
 	LDFLAGS="$LDFLAGS -L$with_iodbc/lib"
 	ODBCLIB="-liodbc"
 	odbc=true
@@ -400,14 +403,17 @@ if test "$with_unixodbc"; then
 	CPPFLAGS="$CPPFLAGS -DUNIXODBC"
 	if test -f "$with_unixodbc/bin/odbc_config"; then
 		ODBC_CONFIG="$with_unixodbc/bin/odbc_config"
-		ODBC_INC="-I`$ODBC_CONFIG --include-prefix`"
+		ODBC_INC=`$ODBC_CONFIG --include-prefix`
 		LDFLAGS="$LDFLAGS -L`$ODBC_CONFIG --lib-prefix`"
 	else
 		# if not available do not use system default
 		ODBC_CONFIG=""
-		ODBC_INC="-I$with_unixodbc/include"
+		ODBC_INC="$with_unixodbc/include"
 		LDFLAGS="$LDFLAGS -L$with_unixodbc/lib"
 	fi
+	test -r "$ODBC_INC/sql.h" || AC_ERROR([sql.h not found])
+	test -r "$ODBC_INC/sqlext.h" || AC_ERROR([sqlext.h not found])
+	ODBC_INC="-I$ODBC_INC"
 	ODBCLIB="-lodbc"
 	odbc=true
 	unixodbc=true
@@ -420,7 +426,10 @@ if test "$with_odbc_nodm"; then
 		with_odbc_nodm="$PWD/$with_odbc_nodm"
 	fi
 	CPPFLAGS="$CPPFLAGS -DTDS_NO_DM"
-	ODBC_INC="-I$with_odbc_nodm/include"
+	ODBC_INC="$with_odbc_nodm/include"
+	test -r "$ODBC_INC/sql.h" || AC_ERROR([sql.h not found])
+	test -r "$ODBC_INC/sqlext.h" || AC_ERROR([sqlext.h not found])
+	ODBC_INC="-I$ODBC_INC"
 	# The next line is for linking the unittests. Here the ODBC driver
 	#  itself is treated as the driver manager to be linked.
 	# Can't use ODBCLIB/LDFLAGS variables since they are used in building
