@@ -14,7 +14,7 @@ libTDS should handle real cursor/dynamic memory deallocation
 search for tds_alloc_cursor, tds_free_cursor and similar for dynamic
 cursor too complicate... reduce all states, handle more in libTDS
 Finish odbc cursors. In src/tds/query.c there are code just to make a
-test happy...
+test happy... see automatic test results
 
 Row handling
 ------------
@@ -39,7 +39,7 @@ Other
 -----
 Implement some sort of fast write to network writing directly to 
 wire buffer. It would be helpful to have "lock" length size, write to
-wire, write length, "unlock".
+wire, write length, "unlock". Also a function to get current position.
 
 build an array of "flags" to translate type -> flag like SYBCHAR ->
 char, variable and so on
