@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.17 2006-11-23 08:44:46 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.18 2007-03-29 07:44:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -203,6 +203,8 @@ main(int argc, char *argv[])
 
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "0");
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
+
+	TestInput(SQL_C_DOUBLE, "MONEY", SQL_DOUBLE, "MONEY", "123.34");
 
 	/* TODO some Sybase versions */
 	if (db_is_microsoft() && strncmp(version, "08.00.", 6) == 0) {
