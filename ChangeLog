@@ -1,3 +1,6 @@
+Mon Apr 02 17:06:43 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/userguide.sgml: add encryption parameter
+
 Thu Mar 29 16:32:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/blk.c: initial fix for bcp state
 

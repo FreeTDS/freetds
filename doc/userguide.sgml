@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2006-04-12 19:40:23 $</date>
-		<releaseinfo>$Revision: 1.97 $</releaseinfo>
+		<date>$Date: 2007-04-02 15:06:37 $</date>
+		<releaseinfo>$Revision: 1.98 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.97 $</>
-<member>$Date: 2006-04-12 19:40:23 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.97 2006-04-12 19:40:23 freddy77 Exp $.</>
+<member>$Revision: 1.98 $</>
+<member>$Date: 2007-04-02 15:06:37 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.98 2007-04-02 15:06:37 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -565,7 +565,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2006-04-12 19:40:23 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-04-02 15:06:37 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -937,6 +937,12 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>Sets granularity of logging. A set of bit that specify levels and informations.
 	See table below for bit specification.</entry>
 	<entry>any number even in hex or octal notation</entry>
+	</row>
+	<row>
+	<entry>encryption</entry>
+	<entry>off</entry>
+	<entry>Specify if encryption is desidered. Supported under mssql. Off disable encryption (only if needed), request use if available, required only make encrypted connections.</entry>
+	<entry>off/request/required</entry>
 	</row>
 </tbody>
 </tgroup>
