@@ -165,6 +165,10 @@ SOURCE=..\..\src\tds\util.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\tds\log.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\tds\vstrbuild.c
 # End Source File
 # Begin Source File
