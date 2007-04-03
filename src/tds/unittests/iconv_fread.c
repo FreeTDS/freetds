@@ -21,6 +21,7 @@
 #include <tdsiconv.h>
 
 #if HAVE_UNISTD_H
+#undef getpid
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
@@ -28,7 +29,7 @@
 
 /* test tds_iconv_fread */
 
-static char software_version[] = "$Id: iconv_fread.c,v 1.2 2006-08-03 18:31:48 freddy77 Exp $";
+static char software_version[] = "$Id: iconv_fread.c,v 1.3 2007-04-03 15:11:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
