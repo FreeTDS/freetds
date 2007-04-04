@@ -1,3 +1,6 @@
+Wed Apr 04 13:39:27 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* NEWS: updated
+
 Wed Apr 04 11:53:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h include/tdsodbc.h src/ctlib/ct.c src/dblib/rpc.c:
 	* src/odbc/prepare_query.c src/odbc/sql2tds.c src/tds/mem.c:

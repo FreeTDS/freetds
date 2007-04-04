@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.38 2006-08-03 18:31:48 freddy77 Exp $
+$Id: NEWS,v 1.39 2007-04-04 11:40:15 freddy77 Exp $
 * 0.65
 - support NUL characters inside terminators in freebcp
 - cursors under ODBC
@@ -18,7 +18,25 @@ libTDS API changes
 - added tds_cursor_deallocated and tds_release_cursor to handle
   cursor release
 - added TDSCURSOR->ref_count 
-
+- added TDS_COMPILETIME_SETTINGS->sysconfdir
+- changed DSTR_STRUCT structure to include dstr_size
+- change DSTR type
+- error handler cannot return TDS_INT_EXIT (no more defined)
+- removed TDSSOCKET->query_timeout_func TDSSOCKET->query_timeout_param, 
+  TDSSOCKET->query_start_time
+- changed TDSLOGIN->host_name to client_host_name
+- changed TDSCONNECTION->host_name to client_host_name
+- changed TDSLOGIN->encrypted to encryption_level
+- changed TDSCONNECTION->encrypted to encryption_level
+- added TDSRESULTINFO->row_free handler to free row
+- added TDSCONTEXT->int_handler handler
+- removed tds_prtype
+- removed tds_alloc_param_row
+- added tds_alloc_param_data
+- added flags parameter to tds7_send_auth
+- removed tds_client_msg
+- added tdserror to report error
+- added flags parameter to tds_answer_challenge
 
 
 * 0.64
