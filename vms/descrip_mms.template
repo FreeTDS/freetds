@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.10 2006-08-10 08:11:50 freddy77 Exp $
+# $Id: descrip_mms.template,v 1.11 2007-04-04 09:40:29 freddy77 Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -113,7 +113,7 @@ TDSOBJS = [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), [.src.tds]convert$(
 	[.src.tds]query$(OBJ), [.src.tds]read$(OBJ), [.src.tds]tdsstring$(OBJ), \
 	[.src.tds]threadsafe$(OBJ), [.src.tds]token$(OBJ), [.src.tds]util$(OBJ), \
 	[.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), [.src.tds]md5$(OBJ), \
-	[.src.tds]net$(OBJ), [.src.replacements]strlcpy$(OBJ), \
+	[.src.tds]net$(OBJ), [.src.tds]log$(OBJ), [.src.replacements]strlcpy$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) \
 	[.vms]getpass$(OBJ)
 
@@ -231,6 +231,8 @@ $(TDSODBCOBJS) : $(CONFIGS)
 # directories having the same names.
 
 [.src.tds]util$(OBJ) : [.src.tds]util.c
+
+[.src.tds]log$(OBJ) : [.src.tds]log.c
 
 [.src.tds]config$(OBJ) : [.src.tds]config.c
 

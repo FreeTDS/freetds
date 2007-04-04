@@ -1,3 +1,7 @@
+Wed Apr 04 11:39:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* vms/descrip_mms.template: add log.c
+	* src/server/query.c: use constants
+
 Wed Apr 04 09:14:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/userguide.sgml: improve slow check
 

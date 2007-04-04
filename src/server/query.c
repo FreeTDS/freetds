@@ -29,7 +29,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: query.c,v 1.15 2007-03-14 16:22:51 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.16 2007-04-04 09:40:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char *query;
@@ -89,8 +89,8 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 
 		/* Queries can arrive in a couple different formats. */
 		switch (tds->in_flag) {
-		case 0x03: /* RPC packet */
-		case 0x0f: /* TDS5 query packet */
+		case TDS_RPC:
+		case TDS_NORMAL: /* TDS5 query packet */
 			/* get the token */
 			token = tds_get_byte(tds);
 			switch (token) {
@@ -151,7 +151,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 			}
 			break;
 
-		case 0x01:
+		case TDS_QUERY:
 			/* TDS4 and TDS7+ fill the whole packet with a query */
 			len = 0;
 			do {
@@ -186,7 +186,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 			query[len] = '\0';
 			return query;
 
-		case 0x06:
+		case TDS_CANCEL:
 			/*
 			 * ignore cancel requests -- if we're waiting
 			 * for the next query then it's obviously too
