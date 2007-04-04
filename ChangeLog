@@ -1,3 +1,6 @@
+Wed Apr 04 09:14:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/userguide.sgml: improve slow check
+
 Tue Apr 03 16:23:17 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/dev-cpp/FreeTDS.dev win32/dev-cpp/Makefile.win:
 	- updated adding log.c

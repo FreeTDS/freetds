@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-04-02 15:06:37 $</date>
-		<releaseinfo>$Revision: 1.98 $</releaseinfo>
+		<date>$Date: 2007-04-04 07:14:39 $</date>
+		<releaseinfo>$Revision: 1.99 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.98 $</>
-<member>$Date: 2007-04-02 15:06:37 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.98 2007-04-02 15:06:37 freddy77 Exp $.</>
+<member>$Revision: 1.99 $</>
+<member>$Date: 2007-04-04 07:14:39 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.99 2007-04-04 07:14:39 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -565,7 +565,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-04-02 15:06:37 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-04-04 07:14:39 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -3044,6 +3044,10 @@ still fail.  It also helps to report the version numbers of PHP, and
 in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
 <Note><para> Reverse lookup code has been removed as of version 0.62 due to wrong implementation.</para></Note>
 		</para>
+	</listitem>
+	<listitem>
+		<para>Packet size.  Check packet size setting on <filename>freetds.conf</> (see <literal>initial block size</>). Default value (no configuration) is usually fine. The slowness is due to multiple packet to use. 
+		Under <productname><acronym>GNU</>/Linux</productname> system we use an optimization to reduce network traffic so you shouldn't see much difference using this system. </para>
 	</listitem>
 </itemizedlist>
 
