@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.93 2006-12-29 19:01:57 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.94 2007-04-04 09:54:34 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -494,7 +494,7 @@ const char *parse_const_param(const char * s, TDS_SERVER_TYPE *type);
 /*
  * sql2tds.c
  */
-SQLRETURN sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam, int compute_row);
+SQLRETURN sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSCOLUMN *curcol, int compute_row);
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility pop

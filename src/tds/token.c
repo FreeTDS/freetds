@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.329 2007-02-07 05:07:43 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.330 2007-04-04 09:54:34 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1123,7 +1123,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 
 	curparam->column_cur_size = curparam->column_size;	/* needed ?? */
 
-	if (tds_alloc_param_data(info, curparam) == NULL)
+	if (tds_alloc_param_data(curparam) == NULL)
 		return TDS_FAIL;
 
 	token = tds_get_data(tds, curparam);

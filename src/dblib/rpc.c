@@ -50,7 +50,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.56 2006-12-26 14:56:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.57 2007-04-04 09:54:34 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -307,7 +307,7 @@ dbrpcsend(DBPROCESS * dbproc)
 static const unsigned char *
 param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *value, int size)
 {
-	const void *row = tds_alloc_param_data(params, curcol);
+	const void *row = tds_alloc_param_data(curcol);
 	tdsdump_log(TDS_DBG_INFO1, "parameter size = %d, data = %p, row_size = %d\n",
 				   size, curcol->column_data, params->row_size);
 	if (!row)

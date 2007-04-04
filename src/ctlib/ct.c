@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.171 2006-09-01 08:39:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.172 2007-04-04 09:54:34 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -4042,7 +4042,7 @@ _ct_process_return_status(TDSSOCKET * tds)
 static const unsigned char *
 paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *value, int size)
 {
-	const void *row = tds_alloc_param_data(params, curcol);
+	const void *row = tds_alloc_param_data(curcol);
 
 	tdsdump_log(TDS_DBG_INFO1, "paramrowalloc, size = %d, data = %p, row_size = %d\n",
 				size, curcol->column_data,

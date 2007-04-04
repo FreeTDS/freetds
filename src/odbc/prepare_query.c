@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.62 2006-12-26 14:56:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.63 2007-04-04 09:54:34 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -83,16 +83,20 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				curcol->column_cur_size = -1;
 			}
 			if (compute_row)
-				if (!tds_alloc_param_data(temp_params, curcol))
+				if (!tds_alloc_param_data(curcol)) {
+					tds_free_param_result(temp_params);
 					return SQL_ERROR;
+				}
 			--p;
 			break;
 		default:
 			/* add next parameter to list */
 			start = p;
 
-			if (!(p = parse_const_param(p, &type)))
+			if (!(p = parse_const_param(p, &type))) {
+				tds_free_param_result(temp_params);
 				return SQL_ERROR;
+			}
 			tds_set_param_type(stmt->dbc->tds_socket, curcol, type);
 			switch (type) {
 			case SYBVARCHAR:
@@ -114,8 +118,10 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				int len;
 				CONV_RESULT cr;
 
-				if (!tds_alloc_param_data(temp_params, curcol))
+				if (!tds_alloc_param_data(curcol)) {
+					tds_free_param_result(temp_params);
 					return SQL_ERROR;
+				}
 				dest = (char *) curcol->column_data;
 				switch (type) {
 				case SYBVARCHAR:
@@ -158,13 +164,14 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 			/* find binded parameter */
 			if (stmt->param_num > stmt->apd->header.sql_desc_count
 			    || stmt->param_num > stmt->ipd->header.sql_desc_count) {
+				tds_free_param_result(temp_params);
 				/* TODO set error */
 				return SQL_ERROR;
 			}
 
 			switch (sql2tds
 				(stmt, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
-				 stmt->params, nparam, compute_row)) {
+				 curcol, compute_row)) {
 			case SQL_ERROR:
 				return SQL_ERROR;
 			case SQL_NEED_DATA:
@@ -208,7 +215,7 @@ parse_prepared_query(struct _hstmt *stmt, int compute_row)
 
 		switch (sql2tds
 			(stmt, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
-			 stmt->params, nparam, compute_row)) {
+			 stmt->params->columns[nparam], compute_row)) {
 		case SQL_ERROR:
 			return SQL_ERROR;
 		case SQL_NEED_DATA:

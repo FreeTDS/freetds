@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.165 2006-12-29 19:40:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.166 2007-04-04 09:54:34 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -260,13 +260,12 @@ _tds_param_free(TDSCOLUMN *col)
 }
 
 /**
- * Allocate data for a parameter. Is assumed that last TDSCOLUMN contain information about this.
- * @param info     parameters info where is contained row
+ * Allocate data for a parameter.
  * @param curparam parameter to retrieve size information
  * @return NULL on failure or new data
  */
 void *
-tds_alloc_param_data(TDSPARAMINFO * info, TDSCOLUMN * curparam)
+tds_alloc_param_data(TDSCOLUMN * curparam)
 {
 	TDS_INT data_size;
 	void *data;
@@ -294,8 +293,6 @@ tds_alloc_param_data(TDSPARAMINFO * info, TDSCOLUMN * curparam)
 	/* if is a blob reset buffer */
 	if (is_blob_type(curparam->column_type))
 		memset(data, 0, sizeof(TDSBLOB));
-
-	CHECK_PARAMINFO_EXTRA(info);
 
 	return data;
 }

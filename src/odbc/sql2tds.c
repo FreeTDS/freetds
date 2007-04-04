@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.59 2006-09-07 21:38:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.60 2007-04-04 09:54:34 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -130,7 +130,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
  * @return SQL_SUCCESS, SQL_ERROR or SQL_NEED_DATA
  */
 SQLRETURN
-sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam,
+sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSCOLUMN *curcol,
 	int compute_row)
 {
 	TDS_DBC * dbc = stmt->dbc;
@@ -139,7 +139,6 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	TDSBLOB *blob;
 	char *src;
 	unsigned char *dest;
-	TDSCOLUMN *curcol = info->columns[nparam];
 	int len;
 	TDS_DATETIME dt;
 	TDS_NUMERIC num;
@@ -299,7 +298,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	}
 
 	/* allocate given space */
-	if (!tds_alloc_param_data(info, curcol))
+	if (!tds_alloc_param_data(curcol))
 		return SQL_ERROR;
 
 	if (need_data) {

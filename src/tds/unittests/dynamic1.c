@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.16 2006-01-24 15:03:27 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.17 2007-04-04 09:54:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -52,7 +52,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	curcol->column_cur_size = sizeof(TDS_INT);
 
 	/* TODO test error */
-	tds_alloc_param_data(params, curcol);
+	tds_alloc_param_data(curcol);
 	memcpy(curcol->column_data, &n, sizeof(n));
 
 	if (!(params = tds_alloc_param_result(dyn->params)))
@@ -66,7 +66,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	curcol->column_varint_size = 1;
 	curcol->column_cur_size = len;
 
-	tds_alloc_param_data(params, curcol);
+	tds_alloc_param_data(curcol);
 	memcpy(curcol->column_data, s, len);
 
 	if (tds_submit_execute(tds, dyn) != TDS_SUCCEED)

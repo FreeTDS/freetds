@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.268 2007-03-29 14:26:44 freddy77 Exp $ */
+/* $Id: tds.h,v 1.269 2007-04-04 09:54:34 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1367,7 +1367,7 @@ TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET * tds, const char *id);
 void tds_free_login(TDSLOGIN * login);
 TDSCONNECTION *tds_alloc_connection(TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
-void *tds_alloc_param_data(TDSPARAMINFO * info, TDSCOLUMN * curparam);
+void *tds_alloc_param_data(TDSCOLUMN * curparam);
 void tds_free_locale(TDSLOCALE * locale);
 TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
 void tds_free_row(TDSRESULTINFO * res_info, unsigned char *row);

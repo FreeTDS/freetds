@@ -1,3 +1,10 @@
+Wed Apr 04 11:53:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h include/tdsodbc.h src/ctlib/ct.c src/dblib/rpc.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c src/tds/mem.c:
+	* src/tds/token.c src/tds/unittests/dynamic1.c:
+	- removed unused paramter from tds_alloc_param_data
+	- fix possible problem in prepare_rpc
+
 Wed Apr 04 11:39:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* vms/descrip_mms.template: add log.c
 	* src/server/query.c: use constants
