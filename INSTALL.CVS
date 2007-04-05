@@ -11,14 +11,14 @@ connecting to the CVS server.  Then follow these steps:
 	automake	(GNU Automake, generates Makefile.in from Makefile.am)
 	autoconf	(GNU Autoconf, generates configure from configure.in)
 	libtool		(GNU Libtool, library creation support scripts)
-	make		(GNU Make, also known to work with BSD make.)
+	make		(GNU or BSD Make.)
 	gcc		(GNU Compiler Collection, for C code compilation)
 	
 	Autotool versions that work:
 	$ (autoconf --version; automake --version; libtool --version) |grep GNU
-	autoconf (GNU Autoconf) 2.57
-	automake (GNU automake) 1.7.3
-	ltmain.sh (GNU libtool) 1.5.6 (1.1220.2.94 2004/04/10 16:27:27)
+	autoconf (GNU Autoconf) 2.59
+	automake (GNU automake) 1.9.5
+	ltmain.sh (GNU libtool) 1.5.14 (1.1220.2.195 2005/02/12 12:12:33)
 	
 	The above are used to generate the distributions.  
 	You may get away with older versions, as far back as 2.53 for autoconf.
@@ -45,7 +45,7 @@ connecting to the CVS server.  Then follow these steps:
 +++
 
 You are not required to rely on Source Forge's anonymous CVS server, which at
-the present time (October 2003) runs 24 hours behind the development server. 
+the present time (July 2004) runs up to 1 hour behind the development server. 
 You can fetch the CVS tarball (the basis for a CVS server, not a snapshot) from
 Source Forge at:
 
@@ -55,5 +55,11 @@ We have a backup location, too, via anonymous ftp:
 	
 	ftp://rt.fm/pub/freetds/ (thanks to Joshua Stein <jcs@rt.fm>)
 	
+Nightly tarballs have been discontinued or deprecated, depending on which 
+Sourceforge document you believe.  Either way, you can now fetch 
+the CVS tree via rsync:
+
+$ rsync -av rsync://freetds.cvs.sourceforge.net/cvsroot/freetds/* .
+	
 --
-$Id: INSTALL.CVS,v 1.6 2004-11-27 22:07:55 jklowden Exp $
+$Id: INSTALL.CVS,v 1.7 2007-04-05 14:17:05 freddy77 Exp $

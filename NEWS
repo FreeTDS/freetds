@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.39 2007-04-04 11:40:15 freddy77 Exp $
+$Id: NEWS,v 1.40 2007-04-05 14:17:05 freddy77 Exp $
 * 0.65
 - support NUL characters inside terminators in freebcp
 - cursors under ODBC
@@ -17,12 +17,12 @@ libTDS API changes
 - removed tds_free_cursor
 - added tds_cursor_deallocated and tds_release_cursor to handle
   cursor release
-- added TDSCURSOR->ref_count 
+- added TDSCURSOR->ref_count
 - added TDS_COMPILETIME_SETTINGS->sysconfdir
 - changed DSTR_STRUCT structure to include dstr_size
 - change DSTR type
 - error handler cannot return TDS_INT_EXIT (no more defined)
-- removed TDSSOCKET->query_timeout_func TDSSOCKET->query_timeout_param, 
+- removed TDSSOCKET->query_timeout_func TDSSOCKET->query_timeout_param,
   TDSSOCKET->query_start_time
 - changed TDSLOGIN->host_name to client_host_name
 - changed TDSCONNECTION->host_name to client_host_name
@@ -41,13 +41,13 @@ libTDS API changes
 
 * 0.64
 - core library
- - reduce network bandwidth use on Linux and *BSD
+ - reduced network bandwidth use on Linux and *BSD
  - do not free TDSSOCKET in tds_connect
- - moved network stuff in net.c
+ - moved network stuff into net.c
  - fixed conversion NUMERIC->NUMERIC changing precision/scale
- - add named instance support (mssql2k)
+ - added named instance support (mssql2k)
  - fixed cancel and timeout
- - add support for encrypted connection using mssql
+ - added support for encrypted connection using mssql
    (using either GnuTLS or OpenSSL)
  - improved numeric conversions performance
  - improved debug logging (added "debug flags" option)
@@ -55,8 +55,8 @@ libTDS API changes
  - ct_dynamic and friends (placeholder support)
 - dblib
  - more functions
- - make threadsafe
- - improve bcp
+ - made threadsafe
+ - improved bcp
  - support for large files using BCP
  - fixed buffering
 - ODBC
@@ -68,7 +68,7 @@ libTDS API changes
  - improve PHP support
  - improve DBD::ODBC support
  - partial dos32 support
- - improve Jdbc support
+ - improve JDBC support
  - added msvc6 project to build dblib library on windows
 - support long password on tsql for all platforms
 - improved pool server
@@ -78,15 +78,15 @@ libTDS API changes
 - a lot of fixes
 
 libTDS API changes
-- tds_connect do not free TDSSOCKET* on failure
-- TDSSOCKET->env it's no more a pointer
+- tds_connect does not free TDSSOCKET* on failure
+- TDSSOCKET->env is not a pointer anymore
 - tds_free_compute_result and tds_free_compute_results are now static
 - added TDSDYNAMIC->next for linked list
 - removed TDSCURSOR->client_cursor_id
 - use TDSCURSOR* cursor instead of TDS_INT client_cursor_it in
   tds_cursor_* functions
-- add const char* file param to tdsdump_dump_buf and tdsdump_log and
-  add line information in level
+- added const char* file param to tdsdump_dump_buf and tdsdump_log and
+  added line information in level
 - changed tds_alloc_compute_results declaration, pass a TDSSOCKET*
 - removed tds_do_until_done (not used)
 - removed tds_set_longquery_handler function (not used)
@@ -117,6 +117,7 @@ libTDS API changes
 - removed query_timeout_func and query_timeout_param from 
   TDSCONNECTION and TDSLOGIN
 - add tds_free_row
+- renamed TDSLOCALE->char_set to server_charset
 
 * 0.63
 - ODBC: use tds_dstr* functions to store descriptor information

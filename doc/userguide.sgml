@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-04-04 07:14:39 $</date>
-		<releaseinfo>$Revision: 1.99 $</releaseinfo>
+		<date>$Date: 2007-04-05 14:17:05 $</date>
+		<releaseinfo>$Revision: 1.100 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -53,9 +53,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.99 $</>
-<member>$Date: 2007-04-04 07:14:39 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.99 2007-04-04 07:14:39 freddy77 Exp $.</>
+<member>$Revision: 1.100 $</>
+<member>$Date: 2007-04-05 14:17:05 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.100 2007-04-05 14:17:05 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -212,7 +212,7 @@ The current version should be fully ODBC 3.0 compatible and contain many fixes a
 			<para>
 Basic <link linkend="apireference">API coverage</link> information for all libraries may be found in this manual.  It is maintained in <filename>doc/api_status.txt</>, included in the source distribution.   			
 			</para> 
-			<para>How big is it?  <productname>FreeTDS</productname> has almost 50,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, <productname>FreeTDS</productname>'s success so far lies somewhere between the Beetle and the Edsel.  
+			<para>How big is it?  <productname>FreeTDS</productname> has over 90,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, <productname>FreeTDS</productname>'s success so far lies somewhere between the Beetle and the Edsel.  
 			</para>
 		</sect2>
 		<sect2 id="Languages">
@@ -565,7 +565,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-04-04 07:14:39 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-04-05 14:17:05 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -948,7 +948,7 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 </tgroup>
 </table>
 
-	<para>The logging capability has help solve inumerable cases, some trivial and some very low-level bugs.  Sometimes a developer needs very detailed information about one function, whereas at other times someone may interested only in whether or not a particular function is called, or even want to see only the SQL that was transmitted to the server.  </para>  
+	<para>The logging capability has helped solve inumerable cases, some trivial and some very low-level bugs.  Sometimes a developer needs very detailed information about one function, whereas someone else may interested only in whether or not a particular function is called, or even want to see only the SQL that was transmitted to the server.  </para>  
 
 <para>The log's granularity can be controlled with the <literal>debug flags</> entry. The default value (<literal>4FFF</> hex) gives a level of detail that is useful for resolving problems via the mailing list.  </para>
 
@@ -1219,7 +1219,7 @@ In a typical system, no environment variables need be used.  They're sometimes h
 			<title>Setting environment variables</title>
 			<para>
 Of course, each shell is a little different.  In the Bourne shell and variants such as <application>ksh</application> and <application>bash</application>, to set
-<envar>Sybase</envar> and <envar>TDSVER</envar> do:
+<envar>SYBASE</envar> and <envar>TDSVER</envar> do:
 
 <screen>
 <prompt>$ </prompt><userinput>export SYBASE=/usr/local/freetds</userinput>  # (or your favorite directory)
@@ -1826,8 +1826,8 @@ The following table defines all possible ODBC connection attributes for the <pro
 	<row>
 	<entry><literal>PacketSize</></entry>
 	<entry>Size of packets to server. 
-		Usually you shouldn't set this parameters. 
-		Some users saw some performance gain increasing this value.</entry>
+		Some users saw some performance gain by increasing this value.  Normally you shouldn't set it. 
+		</entry>
 	<entry>Any</entry>
 	<entry>DB dependent</entry>
 	<entry>yes</entry>
@@ -1931,7 +1931,7 @@ Driver          = /usr/local/freetds/lib/libtdsodbc.so
 
 		<sect1 id="odbcombo"><title>ODBC-combined configuration</title>
 			<para>
-Like the DSN-less configuration, ODBC-combined keeps server properties in <filename>freetds.conf</>.  The difference is, your applications can refer to the server by its DSN.  To make that possible, the DSN entry in <filename>odbc.ini</> refers to the dataserver entry in <filename>freetds.conf</>.  
+Like the DSN-less configuration, ODBC-combined keeps server properties in <filename>freetds.conf</>.  The difference is that your applications can refer to the server by its DSN.  To make that possible, the DSN entry in <filename>odbc.ini</> refers to the dataserver entry in <filename>freetds.conf</>.  
 			
 <example id="e.g.SampleODBCcombo"><title>Sample ODBC-combined <filename>odbc.ini</filename> file</title>
 <programlisting>
@@ -2188,7 +2188,7 @@ As an alternative to <productname>FreeTDS</productname> logging, you might also 
 		<sect1 id="tdspool">
 		<title>TDS Connection Pooling</title>
 		<para>
-<productname>FreeTDS</productname> 0.52 was the first to include a <acronym>TDS</> Connection Pooling server.  It lives in the <filename>src/pool</filename> directory.  
+<productname>FreeTDS</productname> 0.52 was the first to include a <acronym>TDS</> Connection Pooling server.  It lives in the <filename>src/pool</filename> directory.
 		</para>
 		<para>
 The <productname>FreeTDS</productname> connection pool is a server process, it acts just like a <productname>SQL Server</productname>.  You can use any program to attach to it that you could use to attach to a real <productname>SQL Server</productname>.  The pool in turn connects to the <productname>SQL Server</productname> and database you specify, and attempts to share these connections.  See the <filename>README</filename> in the pool directory for a more detailed description of its inner workings.
@@ -2611,7 +2611,7 @@ Now everything should run.  There is a sample PHP script in the <productname>Fre
 <productname>SybSQL</productname> is a <productname>Qt</productname>-based <acronym>GUI</> interface to <productname>Sybase</productname> databases that uses the <systemitem class="library">db-lib</systemitem> <acronym>API</>.
 			</para>
 			<para>
-<productname>SybSQL</productname> has a fairly basic build process that simply uses a Makefile.  In order for <productname>SybSQL</productname> to find <productname>Qt</productname> and <productname>FreeTDS</productname> you need to define <envar>QTDIR</envar> and <envar>SYBASE</envar> environment variables respectively.  If you have <productname>Qt</productname> installed, chances are you may have <envar>QTDIR</envar> defined already.  To verify type <command>echo $QTDIR</command> at the shell prompt.  This example uses my own installation path of <filename>qt-2.3.1</filename> (from RedHat 7.2), YMMV.
+<productname>SybSQL</productname> has a fairly basic build process that simply uses a Makefile.  In order for <productname>SybSQL</productname> to find <productname>Qt</productname> and <productname>FreeTDS</productname> you need to define <envar>QTDIR</envar> and <envar>SYBASE</envar> environment variables.  If you have <productname>Qt</productname> installed, you may have <envar>QTDIR</envar> defined already.  To verify, type <command>echo $QTDIR</command> at the shell prompt.  This example uses my own installation path of <filename>qt-2.3.1</filename> (from RedHat 7.2), YMMV.
 <screen>
 <prompt>$ </prompt><userinput>export QTDIR=/usr/lib/qt-2.3.1</userinput>
 <prompt>$ </prompt><userinput>export SYBASE=/usr/local</userinput>
@@ -2702,7 +2702,7 @@ Another way to handle control the default <envar>TEXTSIZE</envar> is to use the 
 		<sect2 id="Endianism">
     			<title>Endianism</title>
 			<para>
-If either your server or your client is a big endian system, pay careful attention to all references to endianism anywhere near <productname>FreeTDS</productname>.  Endian repairs are ongoing, partly because everything is ongoing, and partly because Microsoft has been breaking and re-breaking how their servers respond to big endian clients.  See the section on <link linkend="emulle">Little Endian Emulation</link> for details.
+If either your server or your client is a big endian system, pay careful attention to all references to endianism anywhere near <productname>FreeTDS</productname>.  See the section on <link linkend="emulle">Little Endian Emulation</link> for details.
 			</para>
 		</sect2>
 			<sect2 id="Datetime">
