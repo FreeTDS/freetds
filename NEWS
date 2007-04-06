@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.40 2007-04-05 14:17:05 freddy77 Exp $
+$Id: NEWS,v 1.41 2007-04-06 08:31:04 freddy77 Exp $
 * 0.65
 - support NUL characters inside terminators in freebcp
 - cursors under ODBC
@@ -15,9 +15,12 @@ libTDS API changes
 - added tds_cursor_update and tds_cursor_setname functions
 - make tds_alloc_get_string static
 - removed tds_free_cursor
-- added tds_cursor_deallocated and tds_release_cursor to handle
-  cursor release
 - added TDSCURSOR->ref_count
+- added tds_cursor_deallocated and tds_release_cursor to handle
+  cursor release. tds_cursor_deallocated is called when cursor got
+  deallocated from server while tds_release_cursor is called to
+  decrement reference counter. Reference counter is used cause is difficult
+  to trace pointer owner between libTDS and upper libraries
 - added TDS_COMPILETIME_SETTINGS->sysconfdir
 - changed DSTR_STRUCT structure to include dstr_size
 - change DSTR type

@@ -1,3 +1,8 @@
+Fri Apr 06 10:29:31 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* NEWS src/odbc/unittests/funccall.c src/tds/mem.c:
+	* src/tds/query.c:
+	- added some notes
+
 Thu Apr 05 16:16:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* INSTALL INSTALL.CVS NEWS README doc/userguide.sgml:
 	- merge from 0.64

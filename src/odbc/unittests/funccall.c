@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.12 2006-12-05 10:43:44 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.13 2007-04-06 08:31:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -137,7 +137,11 @@ main(int argc, char *argv[])
 
 	Command(Statement, "drop proc simpleresult2");
 
-	/* test from shiv kumar (cfr ML 2006-11-21) */
+	/*
+	 * test from shiv kumar
+	 * Cfr ML 2006-11-21 "specifying a 0 for the StrLen_or_IndPtr in the
+	 * SQLBindParameter call is not working on AIX"
+	 */
 	if (CommandWithResult(Statement, "drop proc rpc_read") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");
 

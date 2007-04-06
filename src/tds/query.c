@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.205 2007-03-13 16:25:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.206 2007-04-06 08:31:05 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2319,6 +2319,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 			tds_put_byte(tds, 0x80);
 			tds7_put_cursor_fetch(tds, cursor->cursor_id, 0x20, i_row, cursor->cursor_rows);
 		} else {
+			/* TODO check fetch_type ?? */
 			tds7_put_cursor_fetch(tds, cursor->cursor_id, mssql_fetch[fetch_type], i_row, cursor->cursor_rows);
 		}
 

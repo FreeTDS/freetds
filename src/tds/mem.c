@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.166 2007-04-04 09:54:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.167 2007-04-06 08:31:05 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -818,6 +818,9 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	return NULL;
 }
 
+/*
+ * Called when cursor got deallocated from server
+ */
 void
 tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor)
 {
@@ -866,7 +869,11 @@ tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor)
 	tds_release_cursor(tds, cursor);
 }
 
-
+/*
+ * Decrement reference counter and free if necessary.
+ * Called internally by libTDS and by upper library when you don't need 
+ * cursor reference anymore
+ */
 void
 tds_release_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 {
