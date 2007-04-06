@@ -29,12 +29,12 @@ extern "C"
 }
 #endif
 
-static const char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.8 2007-03-14 16:22:51 freddy77 Exp $";
+static const char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.9 2007-04-06 08:53:28 freddy77 Exp $";
 static const void *const no_unused_tdssrv_h_warn[] = { rcsid_tdssrv_h, no_unused_tdssrv_h_warn };
 
 /* login.c */
 unsigned char *tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass);
-TDSSOCKET *tds_listen(int ip_port);
+TDSSOCKET *tds_listen(TDSCONTEXT * ctx, int ip_port);
 void tds_read_login(TDSSOCKET * tds, TDSLOGIN * login);
 int tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login);
 TDSLOGIN *tds_alloc_read_login(TDSSOCKET * tds);

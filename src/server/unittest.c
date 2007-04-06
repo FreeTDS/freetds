@@ -44,7 +44,7 @@
 #define sleep(s) Sleep((s)*1000)
 #endif
 
-static char software_version[] = "$Id: unittest.c,v 1.16 2007-03-16 15:33:26 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.17 2007-04-06 08:53:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);
@@ -57,7 +57,8 @@ main(int argc, char **argv)
 	TDSLOGIN *login;
 	TDSRESULTINFO *resinfo;
 
-	tds = tds_listen(atoi(argv[1]));
+	ctx = tds_alloc_context(NULL);
+	tds = tds_listen(ctx, atoi(argv[1]));
 	/* get_incoming(tds->s); */
 	login = tds_alloc_read_login(tds);
 	if (!login) {
@@ -104,7 +105,6 @@ main(int argc, char **argv)
 	sleep(30);
 
 	tds_free_results(resinfo);
-	ctx = tds->tds_ctx;
 	tds_free_socket(tds);
 	tds_free_context(ctx);
 	
