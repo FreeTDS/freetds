@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.431 2007-02-02 10:52:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.432 2007-04-10 14:00:17 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1634,9 +1634,11 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 		}
 	}
 	if (pibScale) {
-		if (drec->sql_desc_type == SQL_NUMERIC || drec->sql_desc_type == SQL_DECIMAL) {
+		if (drec->sql_desc_type == SQL_NUMERIC || drec->sql_desc_type == SQL_DECIMAL
+		    || drec->sql_desc_type == SQL_DATETIME || drec->sql_desc_type == SQL_FLOAT) {
 			*pibScale = drec->sql_desc_scale;
 		} else {
+			/* TODO test setting desc directly, SQLDescribeCol return just descriptor data ?? */
 			*pibScale = 0;
 		}
 	}
@@ -1804,7 +1806,8 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 			break;
 		}
 	case SQL_DESC_PRECISION:	/* this section may be wrong */
-		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
 			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			*pfDesc = drec->sql_desc_length;
@@ -1812,7 +1815,8 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		/* FIXME special cases for SQL_COLUMN_SCALE */
 	case SQL_COLUMN_SCALE:
 	case SQL_DESC_SCALE:	/* this section may be wrong */
-		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP || drec->sql_desc_concise_type == SQL_FLOAT)
 			IOUT(SQLSMALLINT, drec->sql_desc_scale);
 		else
 			*pfDesc = 0;
@@ -2245,7 +2249,8 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		break;
 #endif
 	case SQL_DESC_SCALE:
-		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP || drec->sql_desc_concise_type == SQL_FLOAT)
 			IOUT(SQLSMALLINT, drec->sql_desc_scale);
 		else
 			*((SQLSMALLINT *) Value) = 0;
@@ -2465,6 +2470,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
 			IIN(SQLSMALLINT, drec->sql_desc_scale);
 		else
+			/* TODO even for datetime/money ?? */
 			drec->sql_desc_scale = 0;
 		break;
 	case SQL_DESC_SCHEMA_NAME:
@@ -2589,8 +2595,14 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_case_sensitive = SQL_TRUE;
 		/* TODO test error ?? */
 		odbc_set_concise_sql_type(odbc_server_to_sql_type(col->column_type, col->column_size), drec, 0);
+		/*
+		 * TODO how to handle when in datetime we change precision ?? 
+		 * should we change display size too ??
+		 * is formatting function correct ??
+		 * we should not convert to string with invalid precision!
+		 */
 		drec->sql_desc_display_size =
-			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col->column_size, col->column_prec);
+			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col);
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
 		if (!tds_dstr_copyn(&drec->sql_desc_label, col->column_name, col->column_namelen))
 			return SQL_ERROR;
@@ -2608,17 +2620,29 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_unnamed = tds_dstr_isempty(&drec->sql_desc_name) ? SQL_UNNAMED : SQL_NAMED;
 		/* TODO use is_nullable_type ?? */
 		drec->sql_desc_nullable = col->column_nullable ? SQL_TRUE : SQL_FALSE;
-		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL) {
 			drec->sql_desc_num_prec_radix = 10;
-		else
-			drec->sql_desc_num_prec_radix = 0;
+			drec->sql_desc_octet_length = col->column_prec + 2;
+		} else {
+			SQLLEN len; 
 
-		drec->sql_desc_octet_length = col->column_size;
+			drec->sql_desc_num_prec_radix = 0;
+			if (type == SYBMONEY)
+				len = 21;
+			else if (type == SYBMONEY4)
+				len = 12;
+			else if (drec->sql_desc_type == SQL_DATETIME)
+				len = sizeof(TIMESTAMP_STRUCT);
+			else
+				len = col->column_size;
+			drec->sql_desc_octet_length = len;
+		}
+
 		drec->sql_desc_octet_length_ptr = NULL;
 		drec->sql_desc_precision = type == SYBDATETIME ? 3 : col->column_prec;
 		/* TODO test timestamp from db, FOR BROWSE query */
 		drec->sql_desc_rowver = SQL_FALSE;
-		drec->sql_desc_scale = col->column_scale;
+		drec->sql_desc_scale = type == SYBDATETIME ? 3 : ((type == SYBMONEY || type == SYBMONEY4) ? 4 : col->column_scale);
 		/* TODO seem not correct */
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		/* TODO perhaps TINYINY and BIT.. */

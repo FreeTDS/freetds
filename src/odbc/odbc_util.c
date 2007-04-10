@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.89 2006-12-12 07:46:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.90 2007-04-10 14:00:17 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -482,7 +482,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 }
 
 SQLINTEGER
-odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
+odbc_sql_to_displaysize(int sqltype, TDSCOLUMN *col)
 {
 	SQLINTEGER size = 0;
 
@@ -490,12 +490,12 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
-		size = column_size;
+		size = col->column_size;
 		break;
 	case SQL_BINARY:
 	case SQL_VARBINARY:
 	case SQL_LONGVARBINARY:
-		size = column_size * 2;
+		size = col->column_size * 2;
 		break;
 	case SQL_BIGINT:
 		size = 20;
@@ -514,7 +514,7 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 		break;
 	case SQL_DECIMAL:
 	case SQL_NUMERIC:
-		size = column_prec + 2;
+		size = col->column_prec + 2;
 		break;
 	case SQL_DATE:
 		/* FIXME check always yyyy-mm-dd ?? */
@@ -527,14 +527,24 @@ odbc_sql_to_displaysize(int sqltype, int column_size, int column_prec)
 	case SQL_TYPE_TIMESTAMP:
 	case SQL_TIMESTAMP:
 		/* TODO dependent on precision (decimal second digits) */
-		/* FIXME check, always format yyyy-mm-dd hh:mm:ss[.fff] ?? */
-		size = 23;
-		/* spinellia@acm.org: int token.c it is 30 should we comply? */
+		/* we always format using yyyy-mm-dd hh:mm:ss[.fff], see convert_tds2sql.c */
+		size = 19;
+		if (col->column_type == SYBDATETIME || (col->column_type == SYBDATETIMN && col->column_size == 8))
+			size = 23;
 		break;
 	case SQL_FLOAT:
 	case SQL_REAL:
 	case SQL_DOUBLE:
-		size = 24;	/* FIXME -- what should the correct size be? */
+		/* TODO check REAL/FLOAT format */
+		if (col->column_type == SYBREAL || (col->column_type == SYBFLTN && col->column_size == 4))
+			size = 14;
+		/* TODO check money format returned by propretary ODBC, scale == 4 but we use 2 digits */
+		else if (col->column_type == SYBMONEY || (col->column_type == SYBMONEYN && col->column_size == 8))
+			size = 21;
+		else if (col->column_type == SYBMONEY4 || (col->column_type == SYBMONEYN && col->column_size == 4))
+			size = 12;
+		else 
+			size = 24;	/* FIXME -- what should the correct size be? */
 		break;
 #ifdef SQL_GUID
 	case SQL_GUID:

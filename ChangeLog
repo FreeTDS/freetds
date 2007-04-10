@@ -1,3 +1,7 @@
+Tue Apr 10 16:00:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	- fixes for describecol test
+
 Tue Apr 10 15:16:28 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/coverage.sh: remove system files
 	* src/odbc/unittests/describecol.in: relax test
