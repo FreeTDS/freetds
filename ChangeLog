@@ -1,3 +1,7 @@
+Tue Apr 10 15:16:28 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/coverage.sh: remove system files
+	* src/odbc/unittests/describecol.in: relax test
+
 Fri Apr 06 10:52:25 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdssrv.h src/server/login.c src/server/unittest.c:
 	- remove warning
