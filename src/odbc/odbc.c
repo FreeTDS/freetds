@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.432 2007-04-10 14:00:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.433 2007-04-11 11:53:10 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -254,6 +254,8 @@ change_database(TDS_DBC * dbc, char *database, int database_len)
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change database");
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
+	} else {
+		tds_dstr_copyn(&dbc->attr.current_catalog, database, database_len);
 	}
 	ODBC_RETURN_(dbc);
 }
@@ -346,6 +348,9 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
+
+	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
+		tds_dstr_copy(&connection->database, tds_dstr_cstr(&dbc->attr.current_catalog));
 
 	/* parse the DSN string */
 	odbc_parse_connect_string((const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connection);
@@ -1552,6 +1557,9 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 		odbc_errs_add(&dbc->errs, "IM007", "Error getting DSN information");
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
+
+	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
+		tds_dstr_copy(&connection->database, tds_dstr_cstr(&dbc->attr.current_catalog));
 
 	/*
 	 * username/password are never saved to ini file,

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.70 2007-01-22 05:59:53 jklowden Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.71 2007-04-11 11:53:10 freddy77 Exp $");
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 
@@ -171,9 +171,9 @@ odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection)
 	}
 
 	tmp[0] = '\0';
-	if (SQLGetPrivateProfileString(DSN, "Database", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {
+	if (tds_dstr_isempty(&connection->database)
+	    && SQLGetPrivateProfileString(DSN, "Database", "", tmp, FILENAME_MAX, "odbc.ini") > 0)
 		tds_dstr_copy(&connection->database, tmp);
-	}
 
 	tmp[0] = '\0';
 	if (SQLGetPrivateProfileString(DSN, "TextSize", "", tmp, FILENAME_MAX, "odbc.ini") > 0) {

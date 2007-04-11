@@ -5,8 +5,10 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.2 2007-04-11 09:48:32 freddy77 Exp $";
+static char software_version[] = "$Id: connect2.c,v 1.3 2007-04-11 11:53:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static int failed = 0;
 
 static void init_connect(void);
 
@@ -69,7 +71,7 @@ check_dbname(const char *dbname)
 
 	if (strcmp(out, dbname) != 0) {
 		fprintf(stderr, "Current database (%s) is not %s\n", out, dbname);
-		exit(1);
+		failed = 1;
 	}
 }
 
@@ -103,7 +105,6 @@ main(int argc, char *argv[])
 
 	/* check change after connection */
 	printf("SQLConnect after..\n");
-	init_connect();
 	set_dbname("tempdb");
 	check_dbname("tempdb");
 
@@ -134,6 +135,11 @@ main(int argc, char *argv[])
 	driver_connect(tmp);
 	check_dbname("tempdb");
 	Disconnect();
+
+	if (failed) {
+		printf("Some tests failed\n");
+		return 1;
+	}
 
 	printf("Done.\n");
 	return 0;
