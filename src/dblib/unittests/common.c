@@ -16,7 +16,7 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.21 2007-03-18 11:34:52 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.22 2007-04-11 12:57:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -91,7 +91,9 @@ read_login_info(int argc, char **argv)
 	extern int optind;
 	
 	FILE *in;
+#if !defined(__MINGW32__) && !defined(_MSC_VER)
 	int ch;
+#endif
 	char line[512];
 	char *s1, *s2;
 	char filename[MAXPATHLEN];

@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.39 2007-01-22 06:00:00 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.40 2007-04-11 12:57:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -26,6 +26,7 @@ char PASSWORD[512];
 char DATABASE[512];
 char DRIVER[1024];
 
+#ifndef WIN32
 static int
 check_lib(char *path, const char *file)
 {
@@ -41,6 +42,7 @@ check_lib(char *path, const char *file)
 	path[len] = 0;
 	return 0;
 }
+#endif
 
 /* some platforms do not have setenv, define a replacement */
 #if !HAVE_SETENV
