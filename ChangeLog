@@ -1,3 +1,7 @@
+Wed Apr 11 11:47:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/connect2.c: fix test
+	* src/odbc/unittests/describecol.in: relax test
+
 Wed Apr 11 09:09:13 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/connect2.c src/odbc/unittests/Makefile.am:
 	- add a test for change_database

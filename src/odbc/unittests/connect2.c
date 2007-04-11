@@ -5,7 +5,7 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.1 2007-04-11 07:10:20 freddy77 Exp $";
+static char software_version[] = "$Id: connect2.c,v 1.2 2007-04-11 09:48:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -123,12 +123,12 @@ main(int argc, char *argv[])
 	init_connect();
 	set_dbname("master");
 	driver_connect(tmp);
-	check_dbname("master");
+	check_dbname(DATABASE);
 	Disconnect();
 
 	/* try connect string with using DSN */
 	printf("SQLDriverConnect before 2..\n");
-	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
+	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;", SERVER, USER, PASSWORD);
 	init_connect();
 	set_dbname("tempdb");
 	driver_connect(tmp);

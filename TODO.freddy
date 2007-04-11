@@ -20,7 +20,7 @@ Row handling
 ------------
 Upper layer should be able to read data from network and handle rows
 Possibility to stop sending/receiving data for SQLPutData and similar
-Allow upper layer to get if libTDS is sending a request (state??)
+Allow upper layer to get if libTDS is sending a request (add new state??)
 tds_process_tokens should "return" any row/done/other informations,
 not only done_flags
 libTDS should handle multiple reply from server (cursors and so on)
@@ -39,12 +39,13 @@ Other
 -----
 Implement some sort of fast write to network writing directly to 
 wire buffer. It would be helpful to have "lock" length size, write to
-wire, write length, "unlock". Also a function to get current position.
+wire, write length, "unlock". Also a function to get current position (to
+compute lengths).
 
 build an array of "flags" to translate type -> flag like SYBCHAR ->
 char, variable and so on
 
-Possibility to lock TDSSOCKET (see odbc)
+Possibility to lock TDSSOCKET (see odbc, multiple RPCs)
 
 
 
