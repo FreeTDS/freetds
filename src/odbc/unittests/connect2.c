@@ -5,7 +5,7 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.3 2007-04-11 11:53:10 freddy77 Exp $";
+static char software_version[] = "$Id: connect2.c,v 1.4 2007-04-12 07:49:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -92,6 +92,7 @@ int
 main(int argc, char *argv[])
 {
 	char tmp[1024];
+	int res;
 
 	if (read_login_info())
 		exit(1);
@@ -106,6 +107,15 @@ main(int argc, char *argv[])
 	/* check change after connection */
 	printf("SQLConnect after..\n");
 	set_dbname("tempdb");
+	check_dbname("tempdb");
+
+	printf("SQLConnect after not existing..\n");
+	strcpy(tmp, "IDontExist");
+	res = SQLSetConnectAttr(Connection, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) tmp, strlen(tmp));
+	if (res != SQL_ERROR) {
+		fprintf(stderr, "SQLSetConnectAttr should fail\n");
+		return 1;
+	}
 	check_dbname("tempdb");
 
 	Disconnect();

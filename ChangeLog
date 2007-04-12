@@ -1,3 +1,8 @@
+Thu Apr 12 09:47:39 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/unittests/copydesc.c:
+	- test and fix a problem with SQLAllocHandle
+	* src/odbc/unittests/connect2.c: add test for not existing dbs
+
 Thu Apr 12 09:05:56 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/unittests/array_bind.c src/ctlib/unittests/ct_diagall.c:
 	* src/ctlib/unittests/ct_diagclient.c:
