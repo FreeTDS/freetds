@@ -12,7 +12,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: array_bind.c,v 1.5 2006-12-26 14:56:18 freddy77 Exp $";
+static char software_version[] = "$Id: array_bind.c,v 1.6 2007-04-12 07:06:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: array binding of result set */
@@ -31,7 +31,7 @@ main(int argc, char *argv[])
 
 	CS_DATAFMT datafmt;
 	CS_INT datalength;
-	CS_SMALLINT ind;
+	CS_SMALLINT ind[2];
 	CS_INT count, row_count = 0;
 	CS_INT cv;
 
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 
 			datafmt.count = 2;
 
-			ret = ct_bind(cmd, 1, &datafmt, &col1, &datalength, &ind);
+			ret = ct_bind(cmd, 1, &datafmt, &col1, &datalength, ind);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
 				return 1;
@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 			datafmt.maxlength = 5;
 			datafmt.count = 2;
 
-			ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, &ind);
+			ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, ind);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
 				return 1;
@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 			datafmt.maxlength = 32;
 			datafmt.count = 2;
 
-			ret = ct_bind(cmd, 3, &datafmt, col3[0], &datalength, &ind);
+			ret = ct_bind(cmd, 3, &datafmt, col3[0], &datalength, ind);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
 				return 1;

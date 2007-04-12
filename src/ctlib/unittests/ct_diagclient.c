@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_diagclient.c,v 1.7 2005-05-18 12:00:04 freddy77 Exp $";
+static char software_version[] = "$Id: ct_diagclient.c,v 1.8 2007-04-12 07:06:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Client Messages */
@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 
 	CS_DATAFMT datafmt;
 	CS_INT datalength;
-	CS_SMALLINT ind;
+	CS_SMALLINT ind[2];
 	CS_INT count, row_count = 0;
 	CS_INT cv;
 	int i;
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 
 			datafmt.count = 2;
 
-			ret = ct_bind(cmd, 1, &datafmt, &col1, &datalength, &ind);
+			ret = ct_bind(cmd, 1, &datafmt, &col1, &datalength, ind);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
 				return 1;
@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 			datafmt.maxlength = 5;
 			datafmt.count = 4;
 
-			ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, &ind);
+			ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, ind);
 			if (ret != CS_SUCCEED) {
 
 				if (ct_diag(conn, CS_STATUS, CS_CLIENTMSG_TYPE, CS_UNUSED, &num_msgs) != CS_SUCCEED) {
@@ -183,7 +183,7 @@ main(int argc, char *argv[])
 				return 1;
 			}
 			datafmt.count = 2;
-			ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, &ind);
+			ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, ind);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
 				return 1;
