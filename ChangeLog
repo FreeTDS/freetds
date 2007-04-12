@@ -1,3 +1,7 @@
+Thu Apr 12 15:33:15 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/funccall.c:
+	- add test from ML
+
 Thu Apr 12 15:07:09 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* freetds.spec.in: fix odbc directory
 	* src/dblib/unittests/Makefile.am: fix for make distcheck

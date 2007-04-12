@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.13 2007-04-06 08:31:05 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.14 2007-04-12 13:36:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -175,6 +175,41 @@ main(int argc, char *argv[])
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Data not expected\n");
+
+	ResetStatement();
+	CommandWithResult(Statement, "drop proc rpc_read");
+
+	/*
+	 * Test from Joao Amaral
+	 * This test SQLExecute where a store procedure returns no result
+	 * This seems similar to a previous one but use set instead of select
+	 * (with is supported only by mssql and do not return all stuff as 
+	 * select does)
+	 */
+	if (db_is_microsoft()) {
+
+		ResetStatement();
+
+		CommandWithResult(Statement, "drop proc sp_test");
+		Command(Statement, "create proc sp_test @res int output as set @res = 456");
+
+		ResetStatement();
+
+		if (SQLPrepare(Statement, (SQLCHAR *) "{ call sp_test(?)}", SQL_NTS) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to prepare statement\n");
+		if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to bind output parameter\n");
+
+		output = 0xdeadbeef;
+		if (SQLExecute(Statement) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to execute statement\n");
+
+		if (output != 456) {
+			fprintf(stderr, "Invalid result %d(%x)\n", (int) output, (int) output);
+			return 1;
+		}
+		Command(Statement, "drop proc sp_test");
+	}
 
 	Disconnect();
 
