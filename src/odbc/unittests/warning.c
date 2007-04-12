@@ -7,10 +7,16 @@
  * inside recordset
  * Sybase do not return warning but test works the same
  */
-static char software_version[] = "$Id: warning.c,v 1.2 2006-06-25 08:11:31 freddy77 Exp $";
+static char software_version[] = "$Id: warning.c,v 1.3 2007-04-12 13:09:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
+
+#ifdef TDS_NO_DM
+static const int tds_no_dm = 1;
+#else
+static const int tds_no_dm = 0;
+#endif
 
 int
 main(void)
@@ -46,8 +52,10 @@ main(void)
 	 * associated with the second SQLFetch (which returns
 	 * SQL_NO_DATA) saying "Warning: Null value is eliminated by
 	 * an aggregate or other SET operation."
+	 * We check for "NO DM" cause unixODBC till 2.2.11 do not read
+	 * errors on SQL_NO_DATA
 	 */
-	if (db_is_microsoft()) {
+	if (db_is_microsoft() && tds_no_dm) {
 		SQLCHAR output[256];
 
 		if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL))) {

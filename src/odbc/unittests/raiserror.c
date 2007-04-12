@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.17 2006-04-11 11:52:24 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.18 2007-04-12 13:09:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -29,18 +29,34 @@ static SQLSMALLINT ReturnCode;
 static char OutString[OUTSTRING_LEN];
 static int g_nocount, g_second_select;
 
+#ifdef TDS_NO_DM
+static const int tds_no_dm = 1;
+#else
+static const int tds_no_dm = 0;
+#endif
+
 static void
-TestResult(SQLRETURN result, int level, const char *func)
+TestResult(SQLRETURN result0, int level, const char *func)
 {
 	SQLCHAR SqlState[6];
 	SQLINTEGER NativeError;
 	char MessageText[1000];
 	SQLSMALLINT TextLength;
+	SQLRETURN result = result0;
+
+	if (result == SQL_NO_DATA && strcmp(func, "SQLFetch") == 0)
+		result = SQL_SUCCESS_WITH_INFO;
 
 	if ((level <= 10 && result != SQL_SUCCESS_WITH_INFO) || (level > 10 && result != SQL_ERROR) || ReturnCode != INVALID_RETURN) {
 		fprintf(stderr, "%s failed!\n", func);
 		exit(1);
 	}
+
+	/*
+	 * unixODBC till 2.2.11 do not support getting error if SQL_NO_DATA
+	 */
+	if (!tds_no_dm && result0 == SQL_NO_DATA && strcmp(func, "SQLFetch") == 0)
+		return;
 
 	SqlState[0] = 0;
 	MessageText[0] = 0;
@@ -48,7 +64,7 @@ TestResult(SQLRETURN result, int level, const char *func)
 	/* result = SQLError(SQL_NULL_HENV, SQL_NULL_HDBC, Statement, SqlState, &NativeError, MessageText, 1000, &TextLength); */
 	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText),
 			       &TextLength);
-	printf("Result=%d DIAG REC 1: State=%s Error=%d: %s\n", (int) result, SqlState, (int) NativeError, MessageText);
+	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) result, SqlState, (int) NativeError, MessageText);
 	if (!SQL_SUCCEEDED(result)) {
 		fprintf(stderr, "SQLGetDiagRec error!\n");
 		exit(1);
@@ -175,7 +191,7 @@ Test(int level)
 		}
 		CHECK_ROWS(-1);
 	} else {
-		TestResult(result == SQL_NO_DATA ? SQL_SUCCESS_WITH_INFO : result, level, "SQLFetch");
+		TestResult(result, level, "SQLFetch");
 	}
 
 	if (driver_is_freetds())

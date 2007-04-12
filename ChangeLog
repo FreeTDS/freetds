@@ -1,3 +1,9 @@
+Thu Apr 12 15:07:09 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* freetds.spec.in: fix odbc directory
+	* src/dblib/unittests/Makefile.am: fix for make distcheck
+	* src/odbc/unittests/raiserror.c src/odbc/unittests/warning.c:
+	- relax if dm used
+
 Thu Apr 12 09:47:39 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/copydesc.c:
 	- test and fix a problem with SQLAllocHandle

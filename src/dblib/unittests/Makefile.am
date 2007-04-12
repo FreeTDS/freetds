@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.37 2007-03-27 11:28:15 freddy77 Exp $
+# $Id: Makefile.am,v 1.38 2007-04-12 13:09:22 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -46,7 +46,7 @@ AM_LDFLAGS	=	-no-install
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la @NETWORK_LIBS@
 EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32)
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
-				t0016.err t0017.err
+				t0016.err t0017.err t0017.out
 
 if HAVE_PERL_SOURCES
 dblib.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
