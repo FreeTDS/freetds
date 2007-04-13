@@ -50,7 +50,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.6 2007-03-24 08:17:14 freddy77 Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.7 2007-04-13 08:09:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -128,9 +128,10 @@ static const char default_colsep[] = "  ";
  */
 static SQLINTEGER
 print_error_message(SQLSMALLINT hType, SQLHANDLE handle) {
-	int i, ndiag=0;
+	int i;
+	SQLINTEGER ndiag=0;
 	SQLRETURN ret;
-	SQLCHAR state[5];
+	SQLCHAR state[6];
 	SQLINTEGER error, maxerror=0;
 	SQLCHAR text[1024];
 	SQLSMALLINT len;
@@ -432,7 +433,7 @@ print_results(SQLHSTMT hStmt)
 		 * Allocate memory for metadata and bound columns 
 		 */
 		if ((erc = SQLNumResultCols(hStmt, &ncols)) != SQL_SUCCESS){
-			odbc_perror(hStmt, erc, "SQLFreeHandle", "failed");
+			odbc_perror(hStmt, erc, "SQLNumResultCols", "failed");
 			exit(EXIT_FAILURE);
 		} 
 		
@@ -554,17 +555,23 @@ print_results(SQLHSTMT hStmt)
 				}
 			}
 		}
+		if (ncols > 0 && erc == SQL_NO_DATA)
+			print_error_message(SQL_HANDLE_STMT, hStmt);
 
-		if ((erc = SQLMoreResults(hStmt)) != SQL_NO_DATA) {
-			switch(erc) {
-			case SQL_SUCCESS:
-				continue;
-			default:
-				odbc_perror(hStmt, erc, "SQLMoreResults", "failed");
-				exit(EXIT_FAILURE);
-			}
-		}
+		erc = SQLMoreResults(hStmt);
 		fprintf(options.verbose, "SQLMoreResults returned %s\n", prret(erc));
+		switch (erc) {
+		case SQL_NO_DATA:
+			print_error_message(SQL_HANDLE_STMT, hStmt);
+			break;
+		case SQL_SUCCESS_WITH_INFO:
+			print_error_message(SQL_HANDLE_STMT, hStmt);
+		case SQL_SUCCESS:
+			continue;
+		default:
+			odbc_perror(hStmt, erc, "SQLMoreResults", "failed");
+			exit(EXIT_FAILURE);
+		}
 	} while (erc != SQL_NO_DATA);
 	
 	if (erc != SQL_NO_DATA) {

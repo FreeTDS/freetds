@@ -1,3 +1,8 @@
+Fri Apr 13 10:08:07 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/bsqlodbc.c:
+	- catch all error
+	- fix some memory problems
+
 Thu Apr 12 15:33:15 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/funccall.c:
 	- add test from ML
