@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.434 2007-04-12 07:49:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.435 2007-04-13 15:28:15 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -846,12 +846,55 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	ODBC_RETURN_(stmt);
 }
 
+static TDSPARAMINFO*
+odbc_build_update_params(TDS_STMT * stmt)
+{
+	unsigned int n;
+	TDSPARAMINFO * params = NULL;
+	struct _drecord *drec_ird;
+
+	for (n = 0; n < stmt->ird->header.sql_desc_count && n < stmt->ard->header.sql_desc_count; ++n) {
+		TDSPARAMINFO *temp_params;
+		TDSCOLUMN *curcol;
+
+		drec_ird = &stmt->ird->records[n];
+
+		/* we have certainly a parameter */
+		if (!(temp_params = tds_alloc_param_result(params))) {
+			tds_free_param_results(params);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			return NULL;
+		}
+                params = temp_params;
+
+		curcol = params->columns[params->num_cols - 1];
+		if (!tds_alloc_param_data(curcol)) {
+			tds_free_param_results(params);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			return NULL;
+		}
+		tds_strlcpy(curcol->column_name, tds_dstr_cstr(&drec_ird->sql_desc_name), sizeof(curcol->column_name));
+		curcol->column_namelen = strlen(curcol->column_name);
+
+		printf("n %u\n", n);
+		switch (sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1)) {
+		case SQL_ERROR:
+		case SQL_NEED_DATA:
+			tds_free_param_results(params);
+			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			return NULL;
+		}
+	}
+	return params;
+}
+
 SQLRETURN SQL_API
 SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
 	int ret;
 	TDSSOCKET *tds;
 	TDS_CURSOR_OPERATION op;
+	TDSPARAMINFO *params = NULL;
 	INIT_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetPos(%p, %d, %d, %d)\n", 
@@ -874,6 +917,14 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 		break;
 	case SQL_UPDATE:
 		op = TDS_CURSOR_UPDATE;
+		/* prepare paremeters for update */
+		/* TODO exclude keys ?? */
+		/* scan all columns and build parameter list */
+		params = odbc_build_update_params(stmt);
+		if (!params) {
+			ODBC_SAFE_ERROR(stmt);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		break;
 	case SQL_DELETE:
 		op = TDS_CURSOR_DELETE;
@@ -888,8 +939,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 	if (!odbc_lock_statement(stmt))
 		ODBC_RETURN_(stmt);
 
-	/* TODO cursor support paremeters for update */
-	if (tds_cursor_update(tds, stmt->cursor, op, irow) != TDS_SUCCEED) {
+	if (tds_cursor_update(tds, stmt->cursor, op, irow, params) != TDS_SUCCEED) {
 		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
