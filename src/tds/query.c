@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.206 2007-04-06 08:31:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.207 2007-04-13 15:23:25 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -61,6 +61,7 @@ static const char *tds_skip_comment(const char *s);
 static int tds_count_placeholders_ucs2le(const char *query, const char *query_end);
 
 #define TDS_PUT_DATA_USE_NAME 1
+#define TDS_PUT_DATA_PREFIX_NAME 2
 
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -1258,7 +1259,12 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 						   &converted_param_len);
 			if (!converted_param)
 				return TDS_FAIL;
-			tds_put_byte(tds, converted_param_len / 2);
+			if (!(flags & TDS_PUT_DATA_PREFIX_NAME)) {
+				tds_put_byte(tds, converted_param_len / 2);
+			} else {
+				tds_put_byte(tds, converted_param_len / 2 + 1);
+				tds_put_n(tds, "@", 2);
+			}
 			tds_put_n(tds, converted_param, converted_param_len);
 			tds_convert_string_free(curcol->column_name, converted_param);
 		} else {
@@ -2459,7 +2465,7 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 }
 
 int 
-tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row)
+tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, TDSPARAMINFO *params)
 {
 	CHECK_TDS_EXTRA(tds);
 
@@ -2467,6 +2473,10 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_update() cursor id = %d\n", cursor->cursor_id);
+
+	/* client must provide parameters for update */
+	if (op == TDS_CURSOR_UPDATE && (!params || params->num_cols <= 0))
+		return TDS_FAIL;
 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
@@ -2522,6 +2532,9 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 
 		/* update require table name */
 		if (op == TDS_CURSOR_UPDATE) {
+			TDSCOLUMN *param;
+			unsigned int n, num_params;
+
 			/* empty table name */
 			tds_put_byte(tds, 0);
 			tds_put_byte(tds, 0);
@@ -2531,14 +2544,14 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 				tds_put_n(tds, tds->collation, 5);
 			tds_put_smallint(tds, 0);
 
-			/* TODO add parameter support for update */
-			tds_put_byte(tds, 2);
-			TDS_PUT_N_AS_UCS2(tds, "@c");
-			tds_put_byte(tds, 0);	/* input parameter  */
-			tds_put_byte(tds, SYBVARCHAR);
-			tds_put_byte(tds, 3);
-			tds_put_byte(tds, 3);
-			tds_put_n(tds, "foo", 3);
+			/* output columns to update */
+			num_params = params->num_cols;
+			for (n = 0; n < num_params; ++n) {
+				param = params->columns[n];
+				/* TODO check error */
+				tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME|TDS_PUT_DATA_PREFIX_NAME);
+				tds_put_data(tds, param);
+			}
 		}
 
 		tds->internal_sp_called = TDS_SP_CURSOR;
