@@ -1,3 +1,6 @@
+Sun Apr 15 10:01:36 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: fix leak
+
 Fri Apr 13 17:27:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: cursor update
 

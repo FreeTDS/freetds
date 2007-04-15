@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.435 2007-04-13 15:28:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.436 2007-04-15 07:49:24 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -876,7 +876,7 @@ odbc_build_update_params(TDS_STMT * stmt)
 		tds_strlcpy(curcol->column_name, tds_dstr_cstr(&drec_ird->sql_desc_name), sizeof(curcol->column_name));
 		curcol->column_namelen = strlen(curcol->column_name);
 
-		printf("n %u\n", n);
+		/* FIXME sql2tds use curr_param_row which should be set here !!! */
 		switch (sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1)) {
 		case SQL_ERROR:
 		case SQL_NEED_DATA:
@@ -936,13 +936,18 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 
 	tds = stmt->dbc->tds_socket;
 
-	if (!odbc_lock_statement(stmt))
+	if (!odbc_lock_statement(stmt)) {
+		tds_free_param_results(params);
 		ODBC_RETURN_(stmt);
+	}
 
 	if (tds_cursor_update(tds, stmt->cursor, op, irow, params) != TDS_SUCCEED) {
+		tds_free_param_results(params);
 		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
+	tds_free_param_results(params);
+	params = NULL;
 
 	ret = tds_process_simple_query(tds);
 	stmt->dbc->current_statement = NULL;
