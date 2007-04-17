@@ -50,7 +50,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.7 2007-04-13 08:09:14 freddy77 Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.8 2007-04-17 02:09:14 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -272,6 +272,11 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	assert(hEnv);
+
+	if ((erc = SQLSetEnvAttr(hEnv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) SQL_OV_ODBC3, SQL_IS_UINTEGER)) != SQL_SUCCESS) {
+		odbc_herror(SQL_HANDLE_DBC, hDbc, erc, "SQLSetEnvAttr", "failed to set SQL_OV_ODBC3");
+		exit(EXIT_FAILURE);
+	}
 
 	if ((erc = SQLAllocHandle(SQL_HANDLE_DBC, hEnv, &hDbc)) != SQL_SUCCESS) {
 		odbc_herror(SQL_HANDLE_DBC, hDbc, erc, "SQLAllocHandle", "failed to allocate a connection");

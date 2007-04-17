@@ -1,3 +1,6 @@
+Mon Apr 16 22:08:07 EDT 2007	JK Lowden <jklowden@freetds.org>
+	* src/apps/bsqlodbc.c ODBC3 conformant 
+
 Sun Apr 15 10:01:36 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: fix leak
 
