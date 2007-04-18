@@ -4,8 +4,7 @@ Probably I'm the only person who can fully understand these notes...
 Fixes
 -----
 Fix threadsafe disabling
-Fix describecol test
-Fix cursor for sybase
+Fix cursor for Sybase (disable in next release)
 IMPORTANT fix done_handling
 
 Cursor and dynamic
@@ -16,6 +15,9 @@ cursor too complicate... reduce all states, handle more in libTDS
 Finish odbc cursors. See automatic test results. Check how we get 
 length using curr_param_row, see odbc_get_param_len,
 sql_desc_octet_length_ptr and sql_desc_indicator_ptr.
+Tests:
+ - multiple RPCs check returns (possible??)
+ - cursor update send all rows?? key?? not updatable??
 
 Row handling
 ------------
@@ -30,6 +32,7 @@ Token handling
 --------------
 Split token.c to one base token handling and another with higher
 level (callbacks, state and so on)
+See James propos about tds_read_results
 
 Done handling
 -------------

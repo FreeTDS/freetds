@@ -1,3 +1,8 @@
+Wed Apr 18 16:28:29 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* TODO.freddy include/tdsodbc.h src/odbc/odbc.c:
+	* src/odbc/odbc_util.c src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- fix cursor updates
+
 Mon Apr 16 22:08:07 EDT 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/bsqlodbc.c ODBC3 conformant 
 

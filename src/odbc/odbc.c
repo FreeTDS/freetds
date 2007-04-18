@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.436 2007-04-15 07:49:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.437 2007-04-18 14:29:24 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -847,7 +847,7 @@ SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 }
 
 static TDSPARAMINFO*
-odbc_build_update_params(TDS_STMT * stmt)
+odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 {
 	unsigned int n;
 	TDSPARAMINFO * params = NULL;
@@ -876,8 +876,7 @@ odbc_build_update_params(TDS_STMT * stmt)
 		tds_strlcpy(curcol->column_name, tds_dstr_cstr(&drec_ird->sql_desc_name), sizeof(curcol->column_name));
 		curcol->column_namelen = strlen(curcol->column_name);
 
-		/* FIXME sql2tds use curr_param_row which should be set here !!! */
-		switch (sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1)) {
+		switch (sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
 		case SQL_ERROR:
 		case SQL_NEED_DATA:
 			tds_free_param_results(params);
@@ -900,6 +899,8 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetPos(%p, %d, %d, %d)\n", 
 			hstmt, irow, fOption, fLock);
 
+	/* TODO handle irow == 0 (all rows) */
+
 	if (!stmt->cursor) {
 		odbc_errs_add(&stmt->errs, "HY109", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -920,7 +921,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 		/* prepare paremeters for update */
 		/* TODO exclude keys ?? */
 		/* scan all columns and build parameter list */
-		params = odbc_build_update_params(stmt);
+		params = odbc_build_update_params(stmt, irow >= 1 ? irow - 1 : 0);
 		if (!params) {
 			ODBC_SAFE_ERROR(stmt);
 			ODBC_RETURN(stmt, SQL_ERROR);
@@ -3112,10 +3113,10 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 
 		switch (result_type) {
 		case TDS_STATUS_RESULT:
-			odbc_set_return_status(stmt);
+			odbc_set_return_status(stmt, stmt->curr_param_row);
 			break;
 		case TDS_PARAM_RESULT:
-			odbc_set_return_params(stmt);
+			odbc_set_return_params(stmt, stmt->curr_param_row);
 			break;
 
 		case TDS_DONE_RESULT:

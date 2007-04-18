@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.90 2007-04-10 14:00:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.91 2007-04-18 14:29:24 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -108,11 +108,12 @@ odbc_set_stmt_prepared_query(TDS_STMT * stmt, const char *sql, int sql_len)
 
 
 void
-odbc_set_return_status(struct _hstmt *stmt)
+odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
+	/* FIXME consider rows !!! */
 	/* TODO handle different type results (functions) on mssql2k */
 	if (stmt->prepared_query_is_func && tds->has_status) {
 		struct _drecord *drec;
@@ -135,7 +136,7 @@ odbc_set_return_status(struct _hstmt *stmt)
 }
 
 void
-odbc_set_return_params(struct _hstmt *stmt)
+odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDSPARAMINFO *info = tds->current_results;
@@ -145,6 +146,7 @@ odbc_set_return_params(struct _hstmt *stmt)
 	int i;
 	int nparam = i_begin;
 
+	/* FIXME consider rows !!! */
 	/* I don't understand why but this happen -- freddy77 */
 	/* TODO check why, put an assert ? */
 	if (!info)
@@ -735,26 +737,36 @@ odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 
 /** Return length of parameter from parameter information */
 SQLINTEGER
-odbc_get_param_len(const struct _drecord *drec_apd, const struct _drecord *drec_ipd)
+odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd, const TDS_DESC* axd, unsigned int n_row)
 {
 	SQLINTEGER len;
 	int size;
+	TDS_INTPTR len_offset;
 
-	if (drec_apd->sql_desc_indicator_ptr && *drec_apd->sql_desc_indicator_ptr == SQL_NULL_DATA)
+	if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
+		len_offset = axd->header.sql_desc_bind_type * n_row;
+		if (axd->header.sql_desc_bind_offset_ptr)
+			len_offset += *axd->header.sql_desc_bind_offset_ptr;
+	} else {
+		len_offset = sizeof(SQLLEN) * n_row;
+	}
+#define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
+
+	if (drec_axd->sql_desc_indicator_ptr && LEN(drec_axd->sql_desc_indicator_ptr) == SQL_NULL_DATA)
 		len = SQL_NULL_DATA;
-	else if (drec_apd->sql_desc_octet_length_ptr)
-		len = *drec_apd->sql_desc_octet_length_ptr;
+	else if (drec_axd->sql_desc_octet_length_ptr)
+		len = LEN(drec_axd->sql_desc_octet_length_ptr);
 	else {
 		len = 0;
 		/* TODO add XML if defined */
 		/* FIXME, other types available */
-		if (drec_apd->sql_desc_concise_type == SQL_C_CHAR || drec_apd->sql_desc_concise_type == SQL_C_BINARY) {
+		if (drec_axd->sql_desc_concise_type == SQL_C_CHAR || drec_axd->sql_desc_concise_type == SQL_C_BINARY) {
 			len = SQL_NTS;
 		} else {
-			int type = drec_apd->sql_desc_concise_type;
+			int type = drec_axd->sql_desc_concise_type;
 
 			if (type == SQL_C_DEFAULT)
-				type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+				type = odbc_sql_to_c_type_default(drec_ixd->sql_desc_concise_type);
 			type = odbc_c_to_server_type(type);
 
 			/* FIXME check what happen to DATE/TIME types */
