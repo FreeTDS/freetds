@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.4 2006-02-16 07:31:35 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.5 2007-04-19 09:11:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -68,7 +68,19 @@ Test(int use_sql)
 
 	/* set cursor options */
 	ResetStatement();
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_ROWVER, 0));
+	retcode = SQLSetStmtAttr(Statement, SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_ROWVER, 0);
+	if (retcode != SQL_SUCCESS) {
+		char output[256];
+		unsigned char sqlstate[6];
+
+		CHK(SQLGetDiagRec, (SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL));
+		sqlstate[5] = 0;
+		if (strcmp((const char*) sqlstate, "01S02") == 0) {
+			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
+			exit(0);
+		}
+		ODBC_REPORT_ERROR("SQLSetStmtAttr");
+	}
 	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0));
 	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_ARRAY_SIZE, (SQLPOINTER) ROWS, 0));
 	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_STATUS_PTR, (SQLPOINTER) statuses, 0));
