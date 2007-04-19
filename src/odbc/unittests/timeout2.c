@@ -9,11 +9,12 @@
 /*
  * Test timeout on prepare
  * It execute a query wait for timeout and then try to issue a new prepare/execute
+ * This test a BUG where second prepare timeouts
  *
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.2 2007-03-18 11:34:52 freddy77 Exp $";
+static char software_version[] = "$Id: timeout2.c,v 1.3 2007-04-19 11:44:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef __MINGW32__
@@ -32,7 +33,6 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	/* here we can't use temporary table cause we use two connection */
 	Command(Statement, "create table #timeout(i int)");
 	Command(Statement, "insert into #timeout values(1)");
 
