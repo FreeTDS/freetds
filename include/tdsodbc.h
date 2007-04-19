@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.96 2007-04-18 14:29:24 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.97 2007-04-19 08:46:37 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -240,6 +240,8 @@ struct _hdbc
 	struct _hcattr attr;
 	/** descriptors associated to connection */
 	TDS_DESC *uad[TDS_MAX_APP_DESC];
+	/** <>0 if server handle cursors */
+	unsigned int cursor_support;
 };
 
 struct _hsattr
