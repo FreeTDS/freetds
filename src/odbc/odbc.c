@@ -60,12 +60,12 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.402.2.4 2007-02-02 16:23:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.402.2.5 2007-04-19 08:37:05 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
 static SQLRETURN SQL_API _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
-static SQLRETURN SQL_API _SQLAllocDesc(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
+static SQLRETURN SQL_API _SQLAllocDesc(SQLHDBC hdbc, SQLHDESC FAR * phstmt);
 static SQLRETURN SQL_API _SQLFreeConnect(SQLHDBC hdbc);
 static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
 static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force);
@@ -1125,30 +1125,27 @@ SQLAllocEnv(SQLHENV FAR * phenv)
 }
 
 static SQLRETURN SQL_API
-_SQLAllocDesc(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
+_SQLAllocDesc(SQLHDBC hdbc, SQLHDESC FAR * phdesc)
 {
-	TDS_DESC *desc = NULL;
 	int i;
 
 	INIT_HDBC;
 
 	for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
 		if (dbc->uad[i] == NULL) {
-			dbc->uad[i] = desc_alloc(dbc, DESC_ARD, SQL_DESC_ALLOC_USER);
-			if (dbc->uad[i] == NULL) {
+			TDS_DESC *desc = desc_alloc(dbc, DESC_ARD, SQL_DESC_ALLOC_USER);
+			if (desc == NULL) {
 				odbc_errs_add(&dbc->errs, "HY001", NULL);
 				ODBC_RETURN(dbc, SQL_ERROR);
 			}
-			desc = dbc->uad[i];
+			dbc->uad[i] = desc;
+			*phdesc = (SQLHDESC) desc;
+			ODBC_RETURN_(dbc);
 		}
 	}
 
-	if (i == TDS_MAX_APP_DESC && desc == NULL) {
-		odbc_errs_add(&dbc->errs, "HY014", NULL);
-		ODBC_RETURN(dbc, SQL_ERROR);
-	}
-	*phstmt = (SQLHDESC) desc;
-	ODBC_RETURN_(dbc);
+	odbc_errs_add(&dbc->errs, "HY014", NULL);
+	ODBC_RETURN(dbc, SQL_ERROR);
 }
 
 static SQLRETURN SQL_API
