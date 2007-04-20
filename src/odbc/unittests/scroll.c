@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: scroll.c,v 1.4 2007-04-19 09:11:56 freddy77 Exp $";
+static char software_version[] = "$Id: scroll.c,v 1.5 2007-04-20 13:27:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -70,6 +70,7 @@ main(int argc, char *argv[])
 		sqlstate[5] = 0;
 		if (strcmp((const char*) sqlstate, "01S02") == 0) {
 			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
+			Disconnect();
 			exit(0);
 		}
 		ODBC_REPORT_ERROR("SQLSetStmtAttr");
