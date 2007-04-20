@@ -4,7 +4,6 @@ Probably I'm the only person who can fully understand these notes...
 Fixes
 -----
 Fix threadsafe disabling
-Fix cursor for Sybase (disable in next release)
 IMPORTANT fix done_handling
 
 Cursor and dynamic
