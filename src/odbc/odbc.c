@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.438 2007-04-19 08:46:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.439 2007-04-20 09:15:06 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -533,17 +533,18 @@ SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCa
 static int
 odbc_lock_statement(TDS_STMT* stmt)
 {
-	TDSSOCKET *tds;
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
 	/* FIXME quite bad... two thread can lock the same TDSSOCKET */
 	if (stmt->dbc->current_statement != NULL
 	    && stmt->dbc->current_statement != stmt) {
-		tds = stmt->dbc->tds_socket;
 		if (!tds || tds->state != TDS_IDLE) {
 			odbc_errs_add(&stmt->errs, "24000", NULL);
 			return 0;
 		}
 	}
+	if (tds)
+		tds->query_timeout = stmt->attr.query_timeout;
 	stmt->dbc->current_statement = stmt;
 	return 1;
 }
@@ -2013,6 +2014,12 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		} else if (dbc) {
 			odbc_errs_add(&dbc->errs, "HYT00", "Timeout expired");
 			dbc->errs.lastrc = SQL_ERROR;
+			tds_close_socket(tds);
+			tdsdump_log(TDS_DBG_INFO1, "returning cancel from timeout\n");
+			return TDS_INT_CANCEL;
+		}
+		if (tds->in_cancel) {
+			tds_close_socket(tds);
 			tdsdump_log(TDS_DBG_INFO1, "returning cancel from timeout\n");
 			return TDS_INT_CANCEL;
 		}
@@ -2745,8 +2752,6 @@ _SQLExecute(TDS_STMT * stmt)
 	stmt->row = 0;
 		
 	tdsdump_log(TDS_DBG_FUNC, "_SQLExecute() starting with state %d\n", tds->state);
-
-	tds->query_timeout = stmt->attr.query_timeout;
 
 	/* check parameters are all OK */
 	if (stmt->params && stmt->param_num <= stmt->param_count)

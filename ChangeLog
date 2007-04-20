@@ -1,3 +1,10 @@
+Fri Apr 20 11:13:40 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/timeout4.c(added):
+	- add a test for timeout
+	- fix timeout on prepare (not detected)
+	- fix timeout if connection broken
+
 Thu Apr 19 11:11:55 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/cursor1.c src/odbc/unittests/cursor2.c:
 	* src/odbc/unittests/scroll.c:
