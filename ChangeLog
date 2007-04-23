@@ -1,3 +1,6 @@
+Mon Apr 23 15:57:40 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: backport portability fix
+
 Thu Apr 19 10:36:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: backport fix for _SQLAllocDesc
 
