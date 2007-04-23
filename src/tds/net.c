@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.59 2007-02-06 08:55:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.60 2007-04-23 07:56:48 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -161,7 +161,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	struct sockaddr_in sin;
 	fd_set fds;
 #if !defined(DOS32X)
-	unsigned long ioctl_nonblocking = 1;
+	unsigned int ioctl_nonblocking = 1;
 	int retval;
 #endif
 	int len;
@@ -784,7 +784,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 {
 	int num_try;
 	struct sockaddr_in sin;
-	unsigned long ioctl_blocking = 1;
+	unsigned int ioctl_nonblocking = 1;
 	struct timeval selecttimeout;
 	fd_set fds;
 	int retval;
@@ -815,8 +815,8 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	 * different IP so do not filter by ip with connect
 	 */
 
-	ioctl_blocking = 1;
-	if (IOCTLSOCKET(s, FIONBIO, &ioctl_blocking) < 0) {
+	ioctl_nonblocking = 1;
+	if (IOCTLSOCKET(s, FIONBIO, &ioctl_nonblocking) < 0) {
 		CLOSESOCKET(s);
 		return 0;
 	}

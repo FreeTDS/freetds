@@ -1,3 +1,6 @@
+Mon Apr 23 09:56:05 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: fix portability issue
+
 Fri Apr 20 15:26:15 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/cursor1.c src/odbc/unittests/cursor2.c:
 	* src/odbc/unittests/scroll.c:
