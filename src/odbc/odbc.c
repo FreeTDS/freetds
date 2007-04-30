@@ -60,26 +60,26 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.439 2007-04-20 09:15:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.440 2007-04-30 13:14:38 freddy77 Exp $");
 
-static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
-static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
-static SQLRETURN SQL_API _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
-static SQLRETURN SQL_API _SQLAllocDesc(SQLHDBC hdbc, SQLHDESC FAR * phdesc);
-static SQLRETURN SQL_API _SQLFreeConnect(SQLHDBC hdbc);
-static SQLRETURN SQL_API _SQLFreeEnv(SQLHENV henv);
-static SQLRETURN SQL_API _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force);
-static SQLRETURN SQL_API _SQLFreeDesc(SQLHDESC hdesc);
-static SQLRETURN SQL_API _SQLExecute(TDS_STMT * stmt);
-static SQLRETURN SQL_API _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
+static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
+static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
+static SQLRETURN _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
+static SQLRETURN _SQLAllocDesc(SQLHDBC hdbc, SQLHDESC FAR * phdesc);
+static SQLRETURN _SQLFreeConnect(SQLHDBC hdbc);
+static SQLRETURN _SQLFreeEnv(SQLHENV henv);
+static SQLRETURN _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force);
+static SQLRETURN _SQLFreeDesc(SQLHDESC hdesc);
+static SQLRETURN _SQLExecute(TDS_STMT * stmt);
+static SQLRETURN _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					    SQLINTEGER * StringLength);
-static SQLRETURN SQL_API _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
-static SQLRETURN SQL_API _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
-static SQLRETURN SQL_API _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
+static SQLRETURN _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
+static SQLRETURN _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
+static SQLRETURN _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					 SQLINTEGER * StringLength);
-static SQLRETURN SQL_API _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
+static SQLRETURN _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc,
 					  SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc);
-static SQLRETURN SQL_API _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset);
+static SQLRETURN _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset);
 static SQLRETURN odbc_populate_ird(TDS_STMT * stmt);
 static int odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg);
 static void odbc_log_unimplemented_type(const char function_name[], int fType);
@@ -1232,7 +1232,7 @@ SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * Output
 }
 #endif
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 {
 	TDS_DBC *dbc;
@@ -1292,7 +1292,7 @@ SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	return _SQLAllocConnect(henv, phdbc);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLAllocEnv(SQLHENV FAR * phenv)
 {
 	TDS_ENV *env;
@@ -1337,7 +1337,7 @@ SQLAllocEnv(SQLHENV FAR * phenv)
 	return _SQLAllocEnv(phenv);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLAllocDesc(SQLHDBC hdbc, SQLHDESC FAR * phdesc)
 {
 	int i;
@@ -1363,7 +1363,7 @@ _SQLAllocDesc(SQLHDBC hdbc, SQLHDESC FAR * phdesc)
 	ODBC_RETURN(dbc, SQL_ERROR);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 {
 	TDS_STMT *stmt;
@@ -1724,7 +1724,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 	ODBC_RETURN_(stmt);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,
 		 SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc)
 {
@@ -2735,7 +2735,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 	return (SQL_SUCCESS);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLExecute(TDS_STMT * stmt)
 {
 	int ret;
@@ -3202,7 +3202,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
  * - handle correctly results (SQL_SUCCESS_WITH_INFO if error on some rows,
  *   SQL_ERROR for all rows, see doc)
  */
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 {
 	TDSSOCKET *tds;
@@ -3552,7 +3552,7 @@ SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle)
 	return SQL_ERROR;
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLFreeConnect(SQLHDBC hdbc)
 {
 	int i;
@@ -3592,7 +3592,7 @@ SQLFreeConnect(SQLHDBC hdbc)
 }
 #endif
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLFreeEnv(SQLHENV henv)
 {
 	INIT_HENV;
@@ -3615,7 +3615,7 @@ SQLFreeEnv(SQLHENV henv)
 	return _SQLFreeEnv(henv);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 {
 	TDSSOCKET *tds;
@@ -3724,7 +3724,7 @@ SQLCloseCursor(SQLHSTMT hstmt)
 	return _SQLFreeStmt(hstmt, SQL_CLOSE, 0);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLFreeDesc(SQLHDESC hdesc)
 {
 	INIT_HDESC;
@@ -3762,7 +3762,7 @@ _SQLFreeDesc(SQLHDESC hdesc)
 	return SQL_SUCCESS;
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
 	void *src;
@@ -4203,7 +4203,7 @@ change_transaction(TDS_DBC * dbc, int state)
 	return SQL_SUCCESS;
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 {
 	int op = (fType == SQL_COMMIT ? 1 : 0);
@@ -4304,7 +4304,7 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 	ODBC_RETURN_(stmt);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
 	const char *p = NULL;
@@ -4644,7 +4644,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 }
 
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMALLINT cbInfoValueMax,
 	    SQLSMALLINT FAR * pcbInfoValue)
 {
@@ -5621,7 +5621,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 }
 
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
 	SQLULEN u_value = (SQLULEN) (TDS_INTPTR) ValuePtr;
@@ -5726,7 +5726,7 @@ SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 	return _SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS);
 }
 
-static SQLRETURN SQL_API
+static SQLRETURN
 _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
 	SQLULEN ui = (SQLULEN) (TDS_INTPTR) ValuePtr;
