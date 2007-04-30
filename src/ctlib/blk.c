@@ -21,13 +21,8 @@
 #include <config.h>
 #endif
 
-#include "bkpublic.h"
-
-#include "ctpublic.h"
-#include "ctlib.h"
-#include "replacements.h"
-
-#include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -37,13 +32,19 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include "bkpublic.h"
+
+#include "ctpublic.h"
+#include "ctlib.h"
+#include "replacements.h"
+
 typedef struct _pbcb
 {
 	char *pb;
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.35 2007-03-29 14:32:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.36 2007-04-30 13:03:18 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);

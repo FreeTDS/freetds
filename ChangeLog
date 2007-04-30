@@ -1,3 +1,6 @@
+Mon Apr 30 15:02:27 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/blk.c: fix strange link error using gcc 4.1
+
 Mon Apr 23 09:56:05 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: fix portability issue
 
