@@ -3,8 +3,15 @@ Probably I'm the only person who can fully understand these notes...
 
 Fixes
 -----
-Fix threadsafe disabling
+Fix threadsafe disabling DONE ??
 IMPORTANT fix done_handling
+ODBC cursor update. See tests below
+ODBC timeout using freetds.conf
+Autodetection of version should not give errors twice
+  From ML:
+  In tds_connect, we can set TDSSOCKET::tds_ctx->err_handler to a special
+  no-op handler.  Restore the client's handler  after success or just before
+  attempting with 4.2.
 
 Cursor and dynamic
 ------------------
@@ -16,6 +23,8 @@ length using curr_param_row, see odbc_get_param_len,
 sql_desc_octet_length_ptr and sql_desc_indicator_ptr.
 Tests:
  - multiple RPCs check returns (possible??)
+   (see odbc_set_return_status, odbc_set_return_params and odbc_get_param_len
+   calls)
  - cursor update send all rows?? key?? not updatable??
 
 Row handling
