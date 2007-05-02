@@ -1,3 +1,7 @@
+Wed May 02 16:54:13 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- use query timeout from freetds.conf
+
 Mon Apr 30 15:14:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: use default linkage for static functions
 

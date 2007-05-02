@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.440 2007-04-30 13:14:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.441 2007-05-02 14:55:17 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -143,6 +143,8 @@ static void odbc_ird_check(TDS_STMT * stmt);
 		if (!stmt->errs.num_errors) \
 			odbc_errs_add(&stmt->errs, "HY000", "Unknown error"); \
 	} while(0)
+
+#define DEFAULT_QUERY_TIMEOUT (~((SQLUINTEGER) 0))
 
 /*
  * Note: I *HATE* hungarian notation, it has to be the most idiotic thing
@@ -307,6 +309,8 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 		odbc_errs_add(&dbc->errs, "08001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
+
+	dbc->default_query_timeout = dbc->tds_socket->query_timeout;
 
 	if (IS_TDS7_PLUS(dbc->tds_socket))
 		dbc->cursor_support = 1;
@@ -544,7 +548,8 @@ odbc_lock_statement(TDS_STMT* stmt)
 		}
 	}
 	if (tds)
-		tds->query_timeout = stmt->attr.query_timeout;
+		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
+			stmt->attr.query_timeout : stmt->dbc->default_query_timeout;
 	stmt->dbc->current_statement = stmt;
 	return 1;
 }
@@ -1438,7 +1443,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	assert(stmt->ipd->header.sql_desc_array_status_ptr == NULL);
 	assert(stmt->ipd->header.sql_desc_rows_processed_ptr == NULL);
 	assert(stmt->apd->header.sql_desc_array_size == 1);
-	stmt->attr.query_timeout = 0;
+	stmt->attr.query_timeout = DEFAULT_QUERY_TIMEOUT;
 	stmt->attr.retrieve_data = SQL_RD_ON;
 	assert(stmt->ard->header.sql_desc_array_size == 1);
 	assert(stmt->ard->header.sql_desc_bind_offset_ptr == NULL);
@@ -1473,8 +1478,6 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 SQLRETURN SQL_API
 SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 {
-	INIT_HDBC;
-
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocStmt(%p, %p)\n", hdbc, phstmt);
 
 	return _SQLAllocStmt(hdbc, phstmt);
@@ -3029,7 +3032,8 @@ _SQLExecute(TDS_STMT * stmt)
 		if (stmt->ipd->header.sql_desc_rows_processed_ptr)
 			*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row;
 	}
-	tds->query_timeout = 0;
+	/* TODO is this correct?? should we reset timeout when we reset current_statement ?? */
+	tds->query_timeout = stmt->dbc->default_query_timeout;
 
 	odbc_populate_ird(stmt);
 	switch (result_type) {
