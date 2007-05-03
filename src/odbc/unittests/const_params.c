@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.11 2006-10-12 09:25:05 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.12 2007-05-03 12:54:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -125,6 +125,8 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Invalid result %d (0x%x)\n", (int) output, (int) output);
 		return 1;
 	}
+
+	ResetStatement();
 
 	if (CommandWithResult(Statement, "drop proc const_param") != SQL_SUCCESS)
 		printf("Unable to execute statement\n");

@@ -1,3 +1,7 @@
+Fri May 03 14:54:58 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/const_params.c:
+	- reset statement to be sure to cleanup
+
 Wed May 02 16:54:13 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- use query timeout from freetds.conf
