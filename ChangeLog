@@ -1,3 +1,6 @@
+Wed May 09 10:31:56 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: finish ODBC timeout
+
 Fri May 03 14:54:58 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/const_params.c:
 	- reset statement to be sure to cleanup

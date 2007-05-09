@@ -3,10 +3,8 @@ Probably I'm the only person who can fully understand these notes...
 
 Fixes
 -----
-Fix threadsafe disabling DONE ??
 IMPORTANT fix done_handling
 ODBC cursor update. See tests below
-ODBC timeout using freetds.conf
 Autodetection of version should not give errors twice
   From ML:
   In tds_connect, we can set TDSSOCKET::tds_ctx->err_handler to a special

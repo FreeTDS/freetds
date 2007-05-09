@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.441 2007-05-02 14:55:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.442 2007-05-09 08:31:36 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -210,6 +210,9 @@ change_autocommit(TDS_DBC * dbc, int state)
 
 		tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
 
+		/* TODO better idle check, not thread safe */
+		if (tds->state == TDS_IDLE)
+			tds->query_timeout = dbc->default_query_timeout;
 		if (tds_submit_query(tds, query) != TDS_SUCCEED) {
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change transaction status");
 			ODBC_RETURN(dbc, SQL_ERROR);
@@ -246,6 +249,9 @@ change_database(TDS_DBC * dbc, char *database, int database_len)
 
 		tdsdump_log(TDS_DBG_INFO1, "change_database: executing %s\n", query);
 
+		/* TODO better idle check, not thread safe */
+		if (tds->state == TDS_IDLE)
+			tds->query_timeout = dbc->default_query_timeout;
 		if (tds_submit_query(tds, query) != TDS_SUCCEED) {
 			free(query);
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change database");
@@ -582,7 +588,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	/* try to go to the next recordset */
 	if (stmt->row_status == IN_COMPUTE_ROW) {
 		/* FIXME doesn't seem so fine ... - freddy77 */
-		tds_process_tokens(stmt->dbc->tds_socket, &result_type, NULL, TDS_TOKEN_TRAILING);
+		tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_TRAILING);
 		stmt->row_status = IN_COMPUTE_ROW;
 		in_row = 1;
 	}
@@ -3032,8 +3038,6 @@ _SQLExecute(TDS_STMT * stmt)
 		if (stmt->ipd->header.sql_desc_rows_processed_ptr)
 			*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row;
 	}
-	/* TODO is this correct?? should we reset timeout when we reset current_statement ?? */
-	tds->query_timeout = stmt->dbc->default_query_timeout;
 
 	odbc_populate_ird(stmt);
 	switch (result_type) {
@@ -4195,6 +4199,9 @@ change_transaction(TDS_DBC * dbc, int state)
 			return SQL_ERROR;
 	}
 
+	/* TODO better idle check, not thread safe */
+	if (tds->state == TDS_IDLE)
+		tds->query_timeout = dbc->default_query_timeout;
 	if (tds_submit_query(tds, query) != TDS_SUCCEED) {
 		odbc_errs_add(&dbc->errs, "HY000", "Could not perform COMMIT or ROLLBACK");
 		return SQL_ERROR;
@@ -4220,7 +4227,6 @@ _SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 	tdsdump_log(TDS_DBG_FUNC, "_SQLTransact(%p, %p, %d)\n", 
 			henv, hdbc, fType);
 
-	tdsdump_log(TDS_DBG_INFO1, "SQLTransact(0x%p,0x%p,%d)\n", henv, hdbc, fType);
 	ODBC_RETURN(dbc, change_transaction(dbc, op));
 }
 
@@ -5630,7 +5636,6 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 {
 	SQLULEN u_value = (SQLULEN) (TDS_INTPTR) ValuePtr;
 	int len = 0;
-	SQLRETURN ret = SQL_SUCCESS;
 
 	INIT_HDBC;
 
@@ -5655,8 +5660,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
-		ret = change_database(dbc, (char *) ValuePtr, len);
-		ODBC_RETURN(dbc, ret);
+		ODBC_RETURN(dbc, change_database(dbc, (char *) ValuePtr, len));
 		break;
 	case SQL_ATTR_CURSOR_TYPE:
 		if (dbc->cursor_support) {
