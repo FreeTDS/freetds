@@ -1,0 +1,200 @@
+#!/bin/sh
+
+export PATH="/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/usr/lib/jre/bin:$HOME/bin:$HOME/install/bin"
+
+. $HOME/.bashrc
+
+# do not use ccache, not work well woth profile informations
+export PATH="/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:$HOME/bin:$HOME/install/bin"
+
+GROUPDIR=/home/groups/f/fr/freetds/htdocs
+# directory to compile
+FTDSDIR=freetds65
+# output directory on server
+OUTDIR=out
+# additional flags for Autogen (current version)
+#FLAGS_ADD=--enable-developing
+FLAGS_ADD=
+# additional flags for Autogen (old version)
+FLAGS_ADD_OLD=
+WORKDIR=ftds_comp
+
+upload()
+{
+	mkdir -p "$HOME/cpp/freetds/html/$1"
+	rm -rf "$HOME/cpp/freetds/html/$1"
+	mkdir -p "$HOME/cpp/freetds/html/$1"
+	cp -r $2 "$HOME/cpp/freetds/html/$1"
+#	tar zcf - $2 | ssh -p 443 freddy77@shell-ssh.sourceforge.net "cd $GROUPDIR/$1 && rm -rf * && { tar zxf -; find . -type d -print0 | xargs -0 chmod 2775; find . -type f -print0 | xargs -0 chmod 0664; }"
+}
+
+upload_file()
+{
+	mkdir -p `dirname "$HOME/cpp/freetds/html/$1"`
+	cp $2 "$HOME/cpp/freetds/html/$1"
+#	ssh -p 443 freddy77@shell-ssh.sourceforge.net "cd $GROUPDIR && cat - > $1 && chmod 0664 $1" < $2
+}
+
+save_coverage()
+{
+	find include/ src/ -name \*.da -o -name \*.gc\* | tar zcf -  -T - > covsave.tgz
+}
+
+restore_coverage()
+{
+	find include/ src/ -name \*.da -o -name \*.gc\* -exec rm {} \;
+	tar zxf covsave.tgz
+	rm -f covsave.tgz
+}
+
+handle_exit()
+{
+	echo Exiting...
+	cd $HOME/cpp/freetds
+	rm -f freetds
+	ln -s "$FTDSDIR" freetds
+	rm -rf $WORKDIR
+}
+
+read_pwd_fields()
+{
+	tUID=`cat PWD | grep '^UID=' | sed 's,^....,,g'`
+	tPWD=`cat PWD | grep '^PWD=' | sed 's,^....,,g'`
+	tSRV=`cat PWD | grep '^SRV=' | sed 's,^....,,g'`
+	tDB=`cat PWD | grep '^DB=' | sed 's,^...,,g'`
+}
+
+rm ~/freetds.log /tmp/sql.log
+
+for param
+do
+	case $param in
+	--previous)
+		OUTDIR=out0
+		FTDSDIR=freetds64
+		FLAGS_ADD="$FLAGS_ADD_OLD"
+		WORKDIR=ftds_comp_old
+		;;
+	*)
+		echo 'Option not supported!' 1>&2
+		exit 1
+		;;
+	esac
+done
+
+set -e
+
+DOMAIN_UID=
+DOMAIN_PWD=
+if test -r "$HOME/freetds_autobuild.sh"; then
+	. "$HOME/freetds_autobuild.sh"
+fi
+
+cd $HOME/cpp/freetds/$FTDSDIR
+# cvs up || { sleep 5; cvs up; } || { sleep 5; cvs up; }
+cd ..
+rm -rf $WORKDIR
+trap handle_exit EXIT
+cp -rp $FTDSDIR $WORKDIR
+rm -f freetds
+ln -s $WORKDIR freetds
+cd $WORKDIR
+find . \( -name \*.bb -o -name \*.bbg -o -name \*.da -o -name \*.gc\* \) -exec rm -f {} \;
+rm -rf autom4te.cache doc/doc covtmp coverage DBD-*
+cvsclean || true
+cp ../DBD-ODBC-1.13.tar.gz .
+cp ../php5.2-latest.tar.bz2 .
+
+LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --with-gnutls $FLAGS_ADD
+#LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-gnutls $FLAGS_ADD
+
+# compile, test with mssql server
+cp -f ../PWD PWD
+read_pwd_fields
+make clean
+export LD_LIBRARY_PATH=$PWD/src/odbc/.libs/
+rm -rf logs
+mkdir logs
+./misc/test-auto.sh > logs/log.txt
+
+if test "$OUTDIR" = "out" -a -r doc/doxy.log; then
+	fixdoxyres < doc/doxy.log > doc/doxy.html
+	upload_file "doxy.html" "doc/doxy.html"
+	if test -d doc/doc/freetds-*/reference; then
+		(cd doc/doc/freetds-*/reference; upload doxy '*')
+	fi 
+fi
+
+# save logs for debug
+rm -f $HOME/log_tds.txt
+ln logs/log.txt $HOME/log_tds.txt
+
+# test Perl
+save_coverage
+RES=0
+LANG=en_US ./misc/test-other.sh --perl-only --verbose >> logs/log.txt || RES=$?
+if test $RES != 0; then
+	echo "Perl test failed"
+	restore_coverage
+fi
+
+./misc/test-other.sh --php-only >> logs/log.txt || true
+
+# upload our test results
+cd logs
+../misc/online.pl < log.txt
+upload "$OUTDIR/test" '*.html'
+cd ..
+
+# test domain password and TDSPORT with service name
+if test "$DOMAIN_UID" != ""; then
+	save_coverage
+	# using tsql directly with grep do not update coverage informations
+	echo -e 'select @@version\ngo\nbye' | TDSPORT=ms-sql-s TDSDUMP=stdout ./src/apps/tsql -S $tSRV -U "$DOMAIN_UID" -P "$DOMAIN_PWD" > out.txt || true
+	if grep -q 'Microsoft Corporation' out.txt; then
+		echo "domain password ok"
+	else
+		echo "domain password failed!"
+		restore_coverage
+	fi
+	rm -f out.txt
+fi
+
+# do tests with sybase server
+cp -f ../PWD.sybase PWD
+read_pwd_fields
+rm -rf logs
+mkdir logs
+./misc/test-auto.sh --no-build > logs/log.txt
+cd logs
+../misc/online.pl < log.txt
+upload "$OUTDIR/test2" '*.html'
+cd ..
+
+# test autodiscovery
+if test "$OUTDIR" = "out"; then
+	save_coverage
+	# using tsql directly with grep do not update coverage informations
+	echo -e 'select @@version\ngo\nbye' | TDSVER=0.0 ./src/apps/tsql -S $tSRV -U $tUID -P $tPWD > out.txt || true
+	if grep -q 'Adaptive Server Enterprise' out.txt; then
+		echo "autodiscovery ok"
+	else
+		echo "autodiscovery failed!"
+		restore_coverage
+	fi
+	rm -f out.txt
+fi
+
+# restore PWD file
+cp -f ../PWD PWD
+
+# build coverage and upload it
+rm -rf coverage
+./misc/coverage.sh
+cd coverage
+upload "$OUTDIR/coverage" '*'
+cd ..
+
+# cleanup
+rm -f ~/freetds.log /tmp/sql.log covsave.tgz
+rm -rf logs
