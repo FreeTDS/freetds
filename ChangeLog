@@ -1,3 +1,6 @@
+Mon May 14 16:04:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/login.c: remove copy error
+
 Mon May 14 10:16:37 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c src/tds/mem.c src/tds/token.c src/tds/util.c:
 	- give proper errors on protocol autodiscovery

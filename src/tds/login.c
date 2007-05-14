@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.160 2007-05-14 08:18:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.161 2007-05-14 14:05:47 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -243,8 +243,8 @@ tds_save_env(TDSSOCKET * tds, int type, char *oldval, char *newval)
 
 	env = &ctx->envs[ctx->num_env];
 	env->type = type;
-	env->oldval = env->oldval ? strdup(env->oldval) : NULL;
-	env->newval = env->newval ? strdup(env->newval) : NULL;
+	env->oldval = oldval ? strdup(oldval) : NULL;
+	env->newval = newval ? strdup(newval) : NULL;
 	++ctx->num_env;
 }
 
