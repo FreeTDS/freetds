@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.330 2007-04-04 09:54:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.331 2007-05-14 08:18:31 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -108,7 +108,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 
 	if (IS_TDSDEAD(tds)) {
 		tdsdump_log(TDS_DBG_FUNC, "leaving tds_process_default_tokens() connection dead\n");
-		tds_set_state(tds, TDS_DEAD);
+		tds_close_socket(tds);
 		return TDS_FAIL;
 	}
 
@@ -231,11 +231,8 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
 	default: /* SYBEBTOK */
+		tds_close_socket(tds);
 		tdserror(tds->tds_ctx, tds, TDSEBTOK, 0);
-		if (IS_TDSDEAD(tds))
-			tds_set_state(tds, TDS_DEAD);
-		else
-			tds_close_socket(tds);
 		tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n", marker, (unsigned char) marker);
 		return TDS_FAIL;
 	}

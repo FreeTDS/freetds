@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.79 2007-01-17 08:48:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.80 2007-05-14 08:18:31 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -122,6 +122,11 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		tds->state = state;
 		break;
 	case TDS_IDLE:
+		if (tds->state == TDS_DEAD && TDS_IS_SOCKET_INVALID(tds->s)) {
+			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n",
+				state_names[prior_state], state_names[state]);
+			return tds->state;
+		}
 	case TDS_DEAD:
 		tds->state = state;
 		break;
@@ -155,6 +160,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 	}
 	
 	tdsdump_log(TDS_DBG_ERROR, "Changed query state from %s to %s\n", state_names[prior_state], state_names[state]);
+	CHECK_TDS_EXTRA(tds);
 	
 	return tds->state; 
 }

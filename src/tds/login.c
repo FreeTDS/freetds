@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.159 2007-03-29 14:26:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.160 2007-05-14 08:18:31 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -169,6 +169,141 @@ tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size
 	memcpy(tds_login->capabilities, capabilities, size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : size);
 }
 
+struct tds_save_msg
+{
+	TDSMESSAGE msg;
+	char type;
+};
+
+struct tds_save_env
+{
+	char *oldval;
+	char *newval;
+	int type;
+};
+
+typedef struct tds_save_context
+{
+	/* must be first !!! */
+	TDSCONTEXT ctx;
+
+	unsigned num_msg;
+	struct tds_save_msg msgs[10];
+
+	unsigned num_env;
+	struct tds_save_env envs[10];
+} TDSSAVECONTEXT;
+
+static void
+tds_save(TDSSAVECONTEXT *ctx, char type, TDSMESSAGE *msg)
+{
+	struct tds_save_msg *dest_msg;
+
+	if (ctx->num_msg >= TDS_VECTOR_SIZE(ctx->msgs))
+		return;
+
+	dest_msg = &ctx->msgs[ctx->num_msg];
+	dest_msg->type = type;
+	dest_msg->msg = *msg;
+#define COPY(name) if (msg->name) dest_msg->msg.name = strdup(msg->name);
+	COPY(server);
+	COPY(message);
+	COPY(proc_name);
+	COPY(sql_state);
+#undef COPY
+	++ctx->num_msg;
+}
+
+static int
+tds_save_msg(const TDSCONTEXT *ctx, TDSSOCKET *tds, TDSMESSAGE *msg)
+{
+	tds_save((TDSSAVECONTEXT *) ctx, 0, msg);
+	return 0;
+}
+
+static int
+tds_save_err(const TDSCONTEXT *ctx, TDSSOCKET *tds, TDSMESSAGE *msg)
+{
+	tds_save((TDSSAVECONTEXT *) ctx, 1, msg);
+	return TDS_INT_CANCEL;
+}
+
+static void
+tds_save_env(TDSSOCKET * tds, int type, char *oldval, char *newval)
+{
+	TDSSAVECONTEXT *ctx;
+	struct tds_save_env *env;
+
+	if (tds->tds_ctx->msg_handler != tds_save_msg)
+		return;
+
+	ctx = (TDSSAVECONTEXT *) tds->tds_ctx;
+	if (ctx->num_env >= TDS_VECTOR_SIZE(ctx->envs))
+		return;
+
+	env = &ctx->envs[ctx->num_env];
+	env->type = type;
+	env->oldval = env->oldval ? strdup(env->oldval) : NULL;
+	env->newval = env->newval ? strdup(env->newval) : NULL;
+	++ctx->num_env;
+}
+
+static void
+init_save_context(TDSSAVECONTEXT *ctx, const TDSCONTEXT *old_ctx)
+{
+	memset(ctx, 0, sizeof(*ctx));
+	ctx->ctx.locale = old_ctx->locale;
+	ctx->ctx.msg_handler = tds_save_msg;
+	ctx->ctx.err_handler = tds_save_err;
+}
+
+static void
+replay_save_context(TDSSOCKET *tds, TDSSAVECONTEXT *ctx)
+{
+	unsigned n;
+
+	/* replay all recorded messages */
+	for (n = 0; n < ctx->num_msg; ++n)
+		if (ctx->msgs[n].type == 0) {
+			if (tds->tds_ctx->msg_handler)
+				tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &ctx->msgs[n].msg);
+		} else {
+			if (tds->tds_ctx->err_handler)
+				tds->tds_ctx->err_handler(tds->tds_ctx, tds, &ctx->msgs[n].msg);
+		}
+
+	/* replay all recorded envs */
+	for (n = 0; n < ctx->num_env; ++n)
+		if (tds->env_chg_func)
+			tds->env_chg_func(tds, ctx->envs[n].type, ctx->envs[n].oldval, ctx->envs[n].newval);
+}
+
+static void
+reset_save_context(TDSSAVECONTEXT *ctx)
+{
+	unsigned n;
+
+	/* free all messages */
+	for (n = 0; n < ctx->num_msg; ++n)
+		tds_free_msg(&ctx->msgs[n].msg);
+	ctx->num_msg = 0;
+
+	/* free all envs */
+	for (n = 0; n < ctx->num_env; ++n) {
+		if (ctx->envs[n].oldval)
+			free(ctx->envs[n].oldval);
+		if (ctx->envs[n].newval)
+			free(ctx->envs[n].newval);
+	}
+	ctx->num_env = 0;
+}
+
+static void
+free_save_context(TDSSAVECONTEXT *ctx)
+{
+	reset_save_context(ctx);
+}
+
 /**
  * Do a connection to socket
  * @param tds connection structure. This should be a non-connected connection.
@@ -200,15 +335,29 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		};
 
 	if (connection->major_version == 0) {
-		for (i=0; i < TDS_VECTOR_SIZE(versions); i++) {
+		TDSSAVECONTEXT save_ctx;
+		const TDSCONTEXT *old_ctx = tds->tds_ctx;
+		typedef void (*env_chg_func_t) (TDSSOCKET * tds, int type, char *oldval, char *newval);
+		env_chg_func_t old_env_chg = tds->env_chg_func;
+
+		init_save_context(&save_ctx, old_ctx);
+		tds->tds_ctx = &save_ctx.ctx;
+		tds->env_chg_func = tds_save_env;
+		for (i=0; i < TDS_VECTOR_SIZE(versions); ++i) {
 			connection->major_version = versions[i].major_version;
 			connection->minor_version = versions[i].minor_version;
 			/* fprintf(stdout, "trying TDSVER %d.%d\n", connection->major_version, connection->minor_version); */
+			reset_save_context(&save_ctx);
 			retval = tds_connect(tds, connection);
 			if (TDS_SUCCEED == retval)
-				return retval;
+				break;
+			tds_close_socket(tds);
 		}
-		return TDS_FAIL;
+		tds->env_chg_func = old_env_chg;
+		tds->tds_ctx = old_ctx;
+		replay_save_context(tds, &save_ctx);
+		free_save_context(&save_ctx);
+		return retval;
 	}
 	
 
@@ -279,6 +428,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	if (tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout) != TDS_SUCCEED)
 		return TDS_FAIL;
+	tds_set_state(tds, TDS_IDLE);
 
 	if (IS_TDS80(tds)) {
 		retval = tds8_do_login(tds, connection);

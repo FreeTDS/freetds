@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.167 2007-04-06 08:31:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.168 2007-05-14 08:18:31 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -969,6 +969,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_socket->query_timeout = 0;
 	tds_init_write_buf(tds_socket);
 	tds_socket->s = INVALID_SOCKET;
+	tds_socket->state = TDS_DEAD;
 	tds_socket->env_chg_func = NULL;
 	return tds_socket;
       Cleanup:
