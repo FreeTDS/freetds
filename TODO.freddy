@@ -5,11 +5,6 @@ Fixes
 -----
 IMPORTANT fix done_handling
 ODBC cursor update. See tests below
-Autodetection of version should not give errors twice
-  From ML:
-  In tds_connect, we can set TDSSOCKET::tds_ctx->err_handler to a special
-  no-op handler.  Restore the client's handler  after success or just before
-  attempting with 4.2.
 
 Cursor and dynamic
 ------------------
