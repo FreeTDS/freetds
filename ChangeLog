@@ -1,3 +1,6 @@
+Wed May 16 14:23:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild: minor updates
+
 Mon May 14 16:04:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c: remove copy error
 

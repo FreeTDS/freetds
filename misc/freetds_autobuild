@@ -58,10 +58,10 @@ handle_exit()
 
 read_pwd_fields()
 {
-	tUID=`cat PWD | grep '^UID=' | sed 's,^....,,g'`
-	tPWD=`cat PWD | grep '^PWD=' | sed 's,^....,,g'`
-	tSRV=`cat PWD | grep '^SRV=' | sed 's,^....,,g'`
-	tDB=`cat PWD | grep '^DB=' | sed 's,^...,,g'`
+	tUID=`grep '^UID=' < PWD | sed 's,^....,,'`
+	tPWD=`grep '^PWD=' < PWD | sed 's,^....,,'`
+	tSRV=`grep '^SRV=' < PWD | sed 's,^....,,'`
+	tDB=`grep '^DB=' < PWD | sed 's,^...,,'`
 }
 
 rm ~/freetds.log /tmp/sql.log
@@ -106,7 +106,6 @@ cp ../DBD-ODBC-1.13.tar.gz .
 cp ../php5.2-latest.tar.bz2 .
 
 LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --with-gnutls $FLAGS_ADD
-#LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-gnutls $FLAGS_ADD
 
 # compile, test with mssql server
 cp -f ../PWD PWD
@@ -132,6 +131,7 @@ ln logs/log.txt $HOME/log_tds.txt
 # test Perl
 save_coverage
 RES=0
+# setting LANG avoid strange characters
 LANG=en_US ./misc/test-other.sh --perl-only --verbose >> logs/log.txt || RES=$?
 if test $RES != 0; then
 	echo "Perl test failed"
