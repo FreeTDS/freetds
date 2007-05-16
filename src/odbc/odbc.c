@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.442 2007-05-09 08:31:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.443 2007-05-16 12:29:14 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3430,38 +3430,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				if (row_offset || curr_row == 0) {
 					data_ptr += row_offset;
 				} else {
-					SQLLEN len;
-
-					/* this shit is mine -- freddy77 */
-					switch (c_type) {
-					case SQL_C_CHAR:
-					case SQL_C_BINARY:
-						len = drec_ard->sql_desc_octet_length;
-						break;
-					case SQL_C_DATE:
-					case SQL_C_TYPE_DATE:
-						len = sizeof(DATE_STRUCT);
-						break;
-					case SQL_C_TIME:
-					case SQL_C_TYPE_TIME:
-						len = sizeof(TIME_STRUCT);
-						break;
-					case SQL_C_TIMESTAMP:
-					case SQL_C_TYPE_TIMESTAMP:
-						len = sizeof(TIMESTAMP_STRUCT);
-						break;
-					case SQL_C_NUMERIC:
-						len = sizeof(SQL_NUMERIC_STRUCT);
-						break;
-					default:
-						len = tds_get_size_by_type(odbc_c_to_server_type(c_type));
-						break;
-					}
-					if (len < 0) {
-						row_status = SQL_ROW_ERROR;
-						break;
-					}
-					data_ptr += len * curr_row;
+					data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
 				}
 				len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);

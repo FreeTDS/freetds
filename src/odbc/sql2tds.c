@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.61 2007-04-18 14:29:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.62 2007-05-16 12:29:14 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -209,31 +209,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			if (axd->header.sql_desc_bind_offset_ptr)
 				src += *axd->header.sql_desc_bind_offset_ptr;
 		} else {
-			/* this shit is mine -- freddy77 */
-			switch (sql_src_type) {
-			case SQL_C_CHAR:
-			case SQL_C_BINARY:
-				len = drec_apd->sql_desc_octet_length;
-				break;
-			case SQL_C_DATE:
-			case SQL_C_TYPE_DATE:
-				len = sizeof(DATE_STRUCT);
-				break;
-			case SQL_C_TIME:
-			case SQL_C_TYPE_TIME:
-				len = sizeof(TIME_STRUCT);
-				break;
-			case SQL_C_TIMESTAMP:
-			case SQL_C_TYPE_TIMESTAMP:
-				len = sizeof(TIMESTAMP_STRUCT);
-				break;
-			case SQL_C_NUMERIC:
-				len = sizeof(SQL_NUMERIC_STRUCT);
-				break;
-			default:
-				len = tds_get_size_by_type(odbc_c_to_server_type(sql_src_type));
-				break;
-			}
+			len = odbc_get_octet_len(sql_src_type, drec_apd);
 			if (len < 0)
 				/* TODO sure ? what happen to upper layer ?? */
 				return SQL_ERROR;

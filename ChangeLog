@@ -1,4 +1,10 @@
 Wed May 16 14:23:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/sql2tds.c:
+	- support row binding in RPC
+	- reuse new odbc_get_octet_len
+
+Wed May 16 14:23:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/freetds_autobuild: minor updates
 
 Mon May 14 16:04:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
