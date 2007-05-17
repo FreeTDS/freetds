@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_checks.c,v 1.18 2006-12-26 14:56:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_checks.c,v 1.19 2007-05-17 10:33:21 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -68,6 +68,9 @@ odbc_check_stmt_extra(TDS_STMT * stmt)
 	odbc_check_desc_extra(stmt->ipd);
 	assert(!stmt->prepared_query_is_func || stmt->prepared_query_is_rpc);
 	assert(stmt->param_num <= stmt->param_count + 1);
+	assert(stmt->num_param_rows >= 1);
+	assert(stmt->curr_param_row >= 0);
+	assert(stmt->curr_param_row <= stmt->num_param_rows);
 	if (stmt->prepared_query_is_rpc) {
 		char *query = stmt->prepared_query ? stmt->prepared_query : stmt->query;
 		assert(query);

@@ -54,11 +54,14 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.99 2007-05-16 12:29:14 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.100 2007-05-17 10:33:20 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
 #endif
+
+#define ODBC_MAX(a,b) ( (a) > (b) ? (a) : (b) )
+#define ODBC_MIN(a,b) ( (a) < (b) ? (a) : (b) )
 
 struct _sql_error
 {

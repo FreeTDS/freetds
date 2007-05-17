@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.443 2007-05-16 12:29:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.444 2007-05-17 10:33:20 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1393,6 +1393,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 
 	stmt->htype = SQL_HANDLE_STMT;
 	stmt->dbc = dbc;
+	stmt->num_param_rows = 1;
 	pstr = NULL;
 	/* TODO test initial cursor ... */
 	if (asprintf(&pstr, "SQL_CUR%lx", (unsigned long) stmt) < 0 || !tds_dstr_set(&stmt->cursor_name, pstr)) {
@@ -2780,7 +2781,7 @@ _SQLExecute(TDS_STMT * stmt)
 		return SQL_ERROR;
 
 	stmt->curr_param_row = 0;
-	stmt->num_param_rows = stmt->apd->header.sql_desc_array_size;
+	stmt->num_param_rows = ODBC_MAX(1, stmt->apd->header.sql_desc_array_size);
 
 	if (stmt->prepared_query_is_rpc) {
 		/* TODO support stmt->apd->header.sql_desc_array_size for RPC */
@@ -3141,10 +3142,10 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 
 		switch (result_type) {
 		case TDS_STATUS_RESULT:
-			odbc_set_return_status(stmt, stmt->curr_param_row);
+			odbc_set_return_status(stmt, ODBC_MIN(stmt->curr_param_row, stmt->num_param_rows - 1));
 			break;
 		case TDS_PARAM_RESULT:
-			odbc_set_return_params(stmt, stmt->curr_param_row);
+			odbc_set_return_params(stmt, ODBC_MIN(stmt->curr_param_row, stmt->num_param_rows - 1));
 			break;
 
 		case TDS_DONE_RESULT:
