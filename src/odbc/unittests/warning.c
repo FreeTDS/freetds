@@ -2,15 +2,22 @@
 
 /*
  * Test originally written by John K. Hohm
+ * (cfr "Warning return as copy of last result row (was: Warning: Null value
+ * is eliminated by an aggregate or other SET operation.)" July 15th 2006)
+ *
+ * Contains also similar test by Jeff Dahl
+ * (cfr "Warning: Null value is eliminated by an aggregate or other SET 
+ * operation." March 24th 2006
+ *
  * This test wrong SQLFetch results with warning inside select
  * Is different from raiserror test cause in raiserror error is not
  * inside recordset
  * Sybase do not return warning but test works the same
  */
-static char software_version[] = "$Id: warning.c,v 1.3 2007-04-12 13:09:22 freddy77 Exp $";
+static char software_version[] = "$Id: warning.c,v 1.4 2007-05-17 07:18:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
+static const char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
 
 #ifdef TDS_NO_DM
 static const int tds_no_dm = 1;
@@ -18,14 +25,12 @@ static const int tds_no_dm = 1;
 static const int tds_no_dm = 0;
 #endif
 
-int
-main(void)
+static void
+Test(const char *query)
 {
 	int res;
 
-	Connect();
-
-	if (SQLPrepare(Statement, (SQLCHAR *) one_null_with_warning, SQL_NTS) != SQL_SUCCESS) {
+	if (SQLPrepare(Statement, (SQLCHAR *) query, SQL_NTS) != SQL_SUCCESS) {
 		fprintf(stderr, "Unable to prepare statement\n");
 		exit(1);
 	}
@@ -64,6 +69,20 @@ main(void)
 		}
 		printf("Message: %s\n", (char *) output);
 	}
+
+	ResetStatement();
+}
+
+int
+main(void)
+{
+	Connect();
+
+	Command(Statement, "CREATE TABLE #warning(name varchar(20), value int)");
+	Command(Statement, "INSERT INTO #warning VALUES('a', NULL)");
+
+	Test(one_null_with_warning);
+	Test("SELECT SUM(value) FROM #warning");
 
 	Disconnect();
 

@@ -1,3 +1,6 @@
+Thu May 17 09:18:19 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/warning.c: improve and comments
+
 Wed May 16 14:23:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
 	* src/odbc/sql2tds.c:
