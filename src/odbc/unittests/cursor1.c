@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.8 2007-05-21 12:03:27 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.9 2007-05-21 14:10:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -154,7 +154,7 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 6 AND c = 'foo') SELECT 1");
 }
 
-static int
+static void
 Test(int use_sql)
 {
 	Test0(use_sql, "CREATE TABLE #test(i int, c varchar(6))", "INSERT INTO #test(c, i) VALUES('%s', %d)", "SELECT i, c FROM #test");
