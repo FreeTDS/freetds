@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.6 2007-04-20 13:27:14 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.7 2007-05-21 08:41:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -41,7 +41,7 @@ CheckNoRow(const char *query)
 }
 
 static void
-Test(int use_sql)
+Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *select_sql)
 {
 #define ROWS 4
 #define C_LEN 10
@@ -58,13 +58,14 @@ Test(int use_sql)
 
 	/* create test table */
 	Command(Statement, "IF OBJECT_ID('tempdb..#test') IS NOT NULL DROP TABLE #test");
-	Command(Statement, "CREATE TABLE #test(i int, c varchar(6))");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(1, 'a')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(2, 'bb')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(3, 'ccc')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(4, 'dddd')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(5, 'eeeee')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(6, 'ffffff')");
+	Command(Statement, create_sql);
+	for (i = 1; i <= 6; ++i) {
+		char sql_buf[80], data[10];
+		memset(data, 'a' + (i - 1), sizeof(data));
+		data[i] = 0;
+		sprintf(sql_buf, insert_sql, data, i);
+		Command(Statement, sql_buf);
+	}
 
 	/* set cursor options */
 	ResetStatement();
@@ -89,7 +90,7 @@ Test(int use_sql)
 	CHK(SQLSetCursorName, (Statement, (SQLCHAR *) "C1", SQL_NTS));
 
 	/* */
-	CHK(SQLExecDirect, (Statement, (SQLCHAR *) "SELECT i, c FROM #test", SQL_NTS));
+	CHK(SQLExecDirect, (Statement, (SQLCHAR *) select_sql, SQL_NTS));
 
 	/* bind some rows at a time */
 	CHK(SQLBindCol, (Statement, 1, SQL_C_ULONG, n, 0, n_len));
@@ -151,6 +152,15 @@ Test(int use_sql)
 	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 3 AND c = 'ccc') SELECT 1");
 	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 4 AND c = 'dddd') SELECT 1");
 	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 6 AND c = 'foo') SELECT 1");
+}
+
+static int
+Test(int use_sql)
+{
+	Test0(use_sql, "CREATE TABLE #test(i int, c varchar(6))", "INSERT INTO #test(c, i) VALUES('%s', %d)", "SELECT i, c FROM #test");
+	if (db_is_microsoft())
+		Test0(use_sql, "CREATE TABLE #test(i int identity(1,1), c varchar(6))", "INSERT INTO #test(c) VALUES('%s')", "SELECT i, c FROM #test");
+	Test0(use_sql, "CREATE TABLE #test(i int, c varchar(6))", "INSERT INTO #test(c, i) VALUES('%s', %d)", "SELECT i, c, c + 'xxx' FROM #test");
 }
 
 int

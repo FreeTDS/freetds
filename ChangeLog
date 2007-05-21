@@ -1,3 +1,6 @@
+Mon May 21 10:40:40 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/cursor1.c: improve test
+
 Thu May 17 12:32:33 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_checks.c:
 	* src/odbc/odbc_util.c:
