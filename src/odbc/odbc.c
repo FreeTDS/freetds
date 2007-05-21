@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.444 2007-05-17 10:33:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.445 2007-05-21 12:03:27 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -879,6 +879,9 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 		TDSCOLUMN *curcol;
 
 		drec_ird = &stmt->ird->records[n];
+
+		if (drec_ird->sql_desc_updatable == SQL_FALSE)
+			continue;
 
 		/* we have certainly a parameter */
 		if (!(temp_params = tds_alloc_param_result(params))) {
@@ -2740,7 +2743,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		/* TODO perhaps TINYINY and BIT.. */
 		drec->sql_desc_unsigned = SQL_FALSE;
-		drec->sql_desc_updatable = col->column_writeable ? SQL_TRUE : SQL_FALSE;
+		drec->sql_desc_updatable = col->column_writeable && !col->column_identity ? SQL_TRUE : SQL_FALSE;
 	}
 	return (SQL_SUCCESS);
 }
@@ -3396,11 +3399,8 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 			colinfo = resinfo->columns[i];
 			colinfo->column_text_sqlgetdatapos = 0;
 			drec_ard = (i < ard->header.sql_desc_count) ? &ard->records[i] : NULL;
-			if (!drec_ard) {
-				if (!colinfo->column_hidden)
-					num_rows = 1;
+			if (!drec_ard)
 				continue;
-			}
 			if (colinfo->column_cur_size < 0) {
 				if (drec_ard->sql_desc_indicator_ptr) {
 					*AT_ROW(drec_ard->sql_desc_indicator_ptr, SQLLEN) = SQL_NULL_DATA;

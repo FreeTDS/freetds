@@ -1,3 +1,12 @@
+Mon May 21 14:01:13 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c:
+	- fix cursor updates, this undo part of change of src/odbc/odbc.c
+	  from 1.331 to 1.332, log:
+	  Wed Jul 21 16:50:11 CET 2004
+	   : some fix for SQLFetch and multiple rows
+	  but tests works
+	* src/odbc/unittests/cursor1.c: improve
+
 Mon May 21 10:40:40 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/cursor1.c: improve test
 
