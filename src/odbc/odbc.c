@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.445 2007-05-21 12:03:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.446 2007-05-25 09:10:10 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3638,15 +3638,17 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		retcode = odbc_free_cursor(stmt);
 		if (!force && retcode != SQL_SUCCESS)
 			return retcode;
+	}
+
+	/* free it */
+	if (fOption == SQL_DROP) {
+		SQLRETURN retcode;
 
 		/* close prepared statement or add to connection */
 		retcode = odbc_free_dynamic(stmt);
 		if (!force && retcode != SQL_SUCCESS)
 			return retcode;
-	}
 
-	/* free it */
-	if (fOption == SQL_DROP) {
 		/* detatch from list */
 		if (stmt->next)
 			stmt->next->prev = stmt->prev;

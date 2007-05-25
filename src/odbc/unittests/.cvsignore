@@ -57,4 +57,5 @@ odbc.mak
 vc6
 connect2
 timeout4
+freeclose
 

@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.48 2006-06-14 15:34:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.49 2007-05-25 09:10:10 freddy77 Exp $");
 
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
@@ -248,8 +248,12 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		num->precision = ores.n.precision;
 		num->scale = ores.n.scale;
 		num->sign = ores.n.array[0] ^ 1;
-		/* FIXME can i be greater than SQL_MAX_NUMERIC_LEN ?? */
-		i = tds_numeric_bytes_per_prec[ores.n.precision] - 1;
+		/*
+		 * TODO can be greater than SQL_MAX_NUMERIC_LEN ?? 
+		 * seeing Sybase manual wire support bigger numeric but currently
+		 * DBs so not support such precision
+		 */
+		i = ODBC_MIN(tds_numeric_bytes_per_prec[ores.n.precision] - 1, SQL_MAX_NUMERIC_LEN);
 		memcpy(num->val, ores.n.array + 1, i);
 		tds_swap_bytes(num->val, i);
 		if (i < SQL_MAX_NUMERIC_LEN)

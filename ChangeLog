@@ -1,3 +1,13 @@
+Fri May 25 11:07:04 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/convert_tds2sql.c:
+	- remove a FIXME
+	* src/odbc/odbc.c:
+	- fix bug #1716594 ("SQLFreeStmt with SQL_CLOSE shouldn't 
+	  unprepare statement")
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/freeclose.c(added)
+	* src/odbc/unittests/.cvsignore:
+	- add a test for bug #1716594
+
 Mon May 21 14:01:13 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:
 	- fix cursor updates, this undo part of change of src/odbc/odbc.c
