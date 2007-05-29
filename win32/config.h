@@ -61,9 +61,6 @@
    getservbyname_r(). */
 /* #undef HAVE_FUNC_GETSERVBYNAME_R_6 */
 
-/* Define to 1 if you have the `gethostent_r' function. */
-/* #undef HAVE_GETHOSTENT_R */
-
 /* Define to 1 if you have the `gethostname' function. */
 #define HAVE_GETHOSTNAME 1
 
@@ -88,9 +85,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-/* Define to 1 if you have the <malloc.h> header file. */
-#define HAVE_MALLOC_H 1
-
 /* Define to 1 if your system provides the malloc_options variable. */
 /* #undef HAVE_MALLOC_OPTIONS */
 
@@ -108,9 +102,6 @@
 
 /* Define to 1 if you have the GNU Readline library. */
 /* #undef HAVE_READLINE */
-
-/* Define to 1 if you have the `sethostent_r' function. */
-/* #undef HAVE_SETHOSTENT_R */
 
 /* Define to 1 if you have the SQLGetPrivateProfileString function. */
 #define HAVE_SQLGETPRIVATEPROFILESTRING 1

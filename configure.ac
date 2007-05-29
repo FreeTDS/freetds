@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.17 2007-03-29 10:18:23 freddy77 Exp $
+dnl $Id: configure.ac,v 1.18 2007-05-29 08:49:22 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.17 $)
+AC_REVISION($Revision: 1.18 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -176,12 +176,11 @@ AC_STRUCT_TIMEZONE
 AC_CHECK_MEMBERS([struct tm.__tm_zone],,,[#include <sys/types.h>
 #include <$ac_cv_struct_tm>
 ])
-AC_CHECK_HEADERS([unistd.h errno.h wchar.h sys/time.h malloc.h sys/types.h \
-sys/param.h sys/stat.h sys/wait.h limits.h locale.h odbcss.h readpassphrase.h signal.h \
-winsock2.h])
+AC_CHECK_HEADERS([unistd.h errno.h wchar.h sys/time.h sys/types.h \
+sys/param.h sys/stat.h sys/wait.h limits.h locale.h odbcss.h readpassphrase.h signal.h])
 if test $tds_mingw = no; then
 	AC_CHECK_HEADERS([sys/socket.h arpa/inet.h netdb.h netinet/in.h \
-netinet/tcp.h paths.h sys/ioctl.h libgen.h sys/select.h regex.h langinfo.h])
+netinet/tcp.h paths.h sys/ioctl.h libgen.h langinfo.h])
 fi
 AC_HAVE_INADDR_NONE
 
@@ -344,9 +343,8 @@ getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
-AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname freehostent \
-getaddrinfo getnameinfo inet_ntop inet_pton \
-gethostname sethostent_r gethostent_r])
+AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
+getaddrinfo getnameinfo inet_ntop gethostname])
 LIBS="$OLD_LIBS"
 AC_REPLACE_FUNCS([asprintf vasprintf atoll strtok_r readpassphrase \
 strlcpy strlcat basename])
