@@ -1,3 +1,7 @@
+Wed May 30 09:55:52 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/threadsafe.c:
+	- implement gethostbyname_r with getaddrinfo (for UnixWare 7 and others)
+
 Tue May 29 10:48:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac win32/config.h: cleanup
 

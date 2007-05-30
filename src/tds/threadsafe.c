@@ -84,7 +84,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.45 2006-12-26 14:56:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.46 2007-05-30 07:56:38 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)
@@ -152,7 +152,15 @@ tds_timestamp_str(char *str, int maxlen)
 # define NETDB_REENTRANT 1
 #endif /* _REENTRANT */
 
-#if !defined(NETDB_REENTRANT) && (defined(HAVE_GETIPNODEBYNAME) || defined(HAVE_GETIPNODEBYADDR))
+
+#if defined(NETDB_REENTRANT)
+struct hostent *
+tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
+{
+	return gethostbyname(servername);
+}
+
+#elif defined(HAVE_GETIPNODEBYNAME) || defined(HAVE_GETIPNODEBYADDR)
 /**
  * Copy a hostent structure to an allocated buffer
  * @return 0 on success, -1 otherwise
@@ -232,16 +240,10 @@ tds_copy_hostent(struct hostent *he, struct hostent *result, char *buffer, int b
 	}
 	return 0;
 }
-#endif
 
 struct hostent *
 tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
 {
-#if defined(NETDB_REENTRANT)
-	return gethostbyname(servername);
-
-/* we have a better replacements */
-#elif defined(HAVE_GETIPNODEBYNAME)
 	struct hostent *he = getipnodebyname(servername, AF_INET, 0, h_errnop);
 
 	if (!he)
@@ -255,17 +257,29 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 	}
 	freehostent(he);
 	return result;
+}
 
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_6)
+struct hostent *
+tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
+{
 	if (gethostbyname_r(servername, result, buffer, buflen, &result, h_errnop))
 		return NULL;
 	return result;
+}
 
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_5)
+struct hostent *
+tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
+{
 	result = gethostbyname_r(servername, result, buffer, buflen, h_errnop);
 	return result;
+}
 
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_3)
+struct hostent *
+tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
+{
 	struct hostent_data *data = (struct hostent_data *) buffer;
 
 	memset(buffer, 0, buflen);
@@ -274,14 +288,110 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 		result = NULL;
 	}
 	return result;
+}
+
+#elif defined(HAVE_GETADDRINFO) && \
+	(!defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__OpenBSD__) && \
+	!defined(__bsdi__) && !defined(__DragonFly__))
+
+static int
+tds_addrinfo_to_hostent(struct addrinfo *ai, struct hostent *result, char *buffer, int buflen)
+{
+#define CHECK_BUF(len) \
+	if (p + sizeof(struct hostent) - buffer > buflen) return -1;
+#define ALIGN_P do { p += TDS_ALIGN_SIZE - 1; p -= (p-buffer) % TDS_ALIGN_SIZE; } while(0)
+
+	int n;
+	char *p = buffer;
+	int len;
+	char **addresses;
+	struct addrinfo *curr_ai;
+
+	memset(result, 0, sizeof(struct hostent));
+	result->h_addrtype = sizeof(struct sockaddr_in);
+
+	/* count addresses */
+	for (n = 0, curr_ai = ai; curr_ai; curr_ai = curr_ai->ai_next) {
+		if (curr_ai->ai_family != PF_INET)
+			continue;
+		++n;
+	}
+
+	/* copy addresses */
+	addresses = (char **) p;
+	result->h_addr_list = addresses;
+	result->h_length = sizeof(struct in_addr);
+	len = sizeof(char *) * (n + 1);
+	CHECK_BUF(len);
+	p += len;
+	ALIGN_P;
+	for (n = 0, curr_ai = ai; curr_ai; curr_ai = curr_ai->ai_next) {
+		if (curr_ai->ai_family != PF_INET)
+			continue;
+		addresses[n++] = p;
+
+		len = sizeof(struct in_addr);
+		CHECK_BUF(len);
+		memcpy(p, &((struct sockaddr_in *) curr_ai->ai_addr)->sin_addr, len);
+		p += len;
+		ALIGN_P;
+	}
+	addresses[n] = NULL;
+
+	/* copy name */
+	if (ai->ai_canonname) {
+		n = strlen(ai->ai_canonname) + 1;
+		result->h_name = p;
+		CHECK_BUF(n);
+		memcpy(p, ai->ai_canonname, n);
+		p += n;
+		ALIGN_P;
+	}
+	return 0;
+}
+
+struct hostent *
+tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
+{
+	struct addrinfo hints, *res;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = PF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = 0;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	res = NULL;
+	/* default error */
+	if (h_errnop)
+		*h_errnop = HOST_NOT_FOUND;
+	if (getaddrinfo(servername, NULL, &hints, &res))
+		return NULL;
+	if (res->ai_family != PF_INET || !res->ai_addr) {
+		freeaddrinfo(res);
+		return NULL;
+	}
+	if (tds_addrinfo_to_hostent(res, result, buffer, buflen)) {
+		errno = ENOMEM;
+		if (h_errnop)
+			*h_errnop = NETDB_INTERNAL;
+		freeaddrinfo(res);
+		return NULL;
+	}
+	freeaddrinfo(res);
+	return result;
+}
 
 #elif defined(TDS_NO_THREADSAFE)
+struct hostent *
+tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
+{
 	return gethostbyname(servername);
+}
 
 #else
 #error gethostbyname_r style unknown
 #endif
-}
 
 /* not used by FreeTDS, uncomment if needed */
 #ifdef ENABLE_DEVELOPING
@@ -376,6 +486,7 @@ tds_getservbyname_r(const char *name, const char *proto, struct servent *result,
 	hints.ai_family = PF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
+	res = NULL;
 	if (getaddrinfo(NULL, name, &hints, &res))
 		return NULL;
 	if (res->ai_family != PF_INET || !res->ai_addr) {
