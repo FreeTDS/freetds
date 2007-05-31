@@ -18,12 +18,13 @@ return memcmp(&p1,&p2,sizeof(char*))?1:0; }]])],
 	[],
 [# try to guess the endianness by grepping values into an object file
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[[struct test { char begin[16]; void *ptrs[4]; char end[16]; } xxx[] = {
+[[#include <stdio.h>
+struct test { char begin[16]; void *ptrs[4]; char end[16]; } xxx[] = {
 { "abcdefghijklmnop", { NULL, NULL, NULL, NULL }, "qrstuvwxyzabcdef" },
-{ "\x81\x82\x83\x84\x85\x86\x87\x88\x89\x91\x92\x93\x94\x95\x96\x97", { NULL, NULL, NULL, NULL }, "\x98\x99\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\x81\x82\x83\x84\x85\x86" };
-}]],
+{ "\x81\x82\x83\x84\x85\x86\x87\x88\x89\x91\x92\x93\x94\x95\x96\x97", { NULL, NULL, NULL, NULL }, "\x98\x99\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\x81\x82\x83\x84\x85\x86" }
+};]],
 [[]])],
-[if cat -v conftest.$ac_objext|grep 'abcdefghijklmnop^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@\(^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@\)*qrstuvwxyzabcdef'>/dev/null ; then
+[if cat -v conftest.$ac_objext|grep 'abcdefghijklmnop\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\(\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\^@\)*qrstuvwxyzabcdef'>/dev/null ; then
 	tds_cv_null_is_zero=yes
 fi])])])
 case $tds_cv_null_is_zero in

@@ -1,3 +1,6 @@
+Fri May 31 14:21:35 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* m4/ac_nullzero.m4: fix cross compile test
+
 Wed May 30 09:55:52 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/threadsafe.c:
 	- implement gethostbyname_r with getaddrinfo (for UnixWare 7 and others)
