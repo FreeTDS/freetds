@@ -1,3 +1,7 @@
+Fri May 31 17:02:43 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c:
+	- fixes, partially from Brent of Perception Technologies Ltd
+
 Thu May 31 10:54:14 EDT 2007	JK Lowden <jklowden@freetds.org>
 	* TODO add recent potential bug reports
 

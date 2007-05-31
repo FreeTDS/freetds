@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.60 2007-04-23 07:56:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.61 2007-05-31 15:04:23 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -358,7 +358,7 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 			if (rc < 0) {
 				switch (sock_errno) {
 				case TDSSOCK_EINTR:
-					continue;
+					break;
 				default: /* documented: EFAULT, EBADF, EINVAL */
 					tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
 							sock_errno, strerror(sock_errno));
@@ -371,7 +371,7 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 			if (ptv) {
 				const int diff_time = (int) (end_ms - tds_gettime_ms());
 
-				if (diff_time < 0)
+				if (diff_time <= 0)
 					break;
 
 				tv.tv_sec  = diff_time / 1000;
@@ -659,8 +659,8 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 #ifdef USE_MSGMORE
 				nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 				/* In case the kernel does not support MSG_MORE, try again without it */
-				if (len < 0 && errno == EINVAL && !last)
-					len = send(tds->s, p, remaining, MSG_NOSIGNAL);
+				if (nput < 0 && errno == EINVAL && !last)
+					nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
 #elif !defined(MSG_NOSIGNAL)
 				nput = WRITESOCKET(tds->s, p, remaining);
 #else
@@ -670,7 +670,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 					continue;
 				/* detect connection close */
 				if (nput <= 0) {
-					tdserror(tds->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEWRIT, sock_errno);
+					tdserror(tds->tds_ctx, tds, nput == 0 ? TDSESEOF : TDSEWRIT, sock_errno);
 					tds_close_socket(tds);
 					return -1;
  				}
