@@ -8,8 +8,14 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.158 2007-01-15 02:00:58 jklowden Exp $
+To Do List	$Id: TODO,v 1.159 2007-05-31 14:55:18 jklowden Exp $
 ------------
+
+Bug? ML 2007-05-30 "dbsqlexec() never returns" 
+Bug? zero-length or NULL NTEXT column ML 2007-05-30 
+	"Re: [freetds] Crash selecting a blank TEXT field"
+Bug? ML 2007-05-28, odd datatype and packet size 
+	"unknown marker error with Sybase ASE 15.0, character encoding-related"
 
 Must be fixed:
 . ctlib parameters, handle all case even in tds7
