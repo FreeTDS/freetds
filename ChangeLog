@@ -1,3 +1,6 @@
+Fri Jun 01 10:55:04 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: backported memory overflow fix
+
 Mon Apr 23 15:57:40 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: backport portability fix
 
