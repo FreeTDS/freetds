@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.331 2007-05-14 08:18:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.332 2007-06-01 08:53:39 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -3291,6 +3291,10 @@ determine_adjusted_size(const TDSICONV * char_conv, int size)
 {
 	if (!char_conv)
 		return size;
+
+	/* avoid possible overflow */
+	if (size >= 0x10000000)
+		return 0x7fffffff;
 
 	size *= char_conv->client_charset.max_bytes_per_char;
 	if (size % char_conv->server_charset.min_bytes_per_char)
