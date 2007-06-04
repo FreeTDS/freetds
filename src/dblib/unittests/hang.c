@@ -37,7 +37,7 @@
 #include <sys/wait.h>
 #endif /* HAVE_SYS_WAIT_H */
 
-static char software_version[] = "$Id: hang.c,v 1.1 2007-06-04 08:04:58 freddy77 Exp $";
+static char software_version[] = "$Id: hang.c,v 1.2 2007-06-04 12:15:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -82,21 +82,21 @@ test(int close_socket)
 	RETCODE ret;
 	int expected_error = -1;
 
-	fprintf(stdout, "Start\n");
+	printf("Start\n");
 
 	dbinit();
 
 	dberrhandle(syb_err_handler);
 	dbmsghandle(syb_msg_handler);
 
-	fprintf(stdout, "About to logon\n");
+	printf("About to logon\n");
 
 	login = dblogin();
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0020");
 
-	fprintf(stdout, "About to open\n");
+	printf("About to open\n");
 
 	dbproc = dbopen(login, SERVER);
 	dbsetuserdata(dbproc, (BYTE*) &expected_error);
@@ -105,7 +105,7 @@ test(int close_socket)
 	dbloginfree(login);
 
 	dbcmd(dbproc, "select * from sysobjects");
-	fprintf(stderr, "dbsqlexec should not hang.\n");
+	printf("dbsqlexec should not hang.\n");
 
 	ret = dbsettime(15);
 	if (ret != SUCCEED) {
@@ -134,7 +134,7 @@ test(int close_socket)
 		close(end_socket);
 	dbexit();
 
-	fprintf(stdout, "dblib okay on %s\n", __FILE__);
+	printf("dblib okay on %s\n", __FILE__);
 	return 0;
 }
 
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 int
 main(void)
 {
-	printf("Not possible for this platform.\n");
+	fprintf(stderr, "Not possible for this platform.\n");
 	return 0;
 }
 #endif
