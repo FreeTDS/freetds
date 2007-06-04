@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.38 2007-04-12 13:09:22 freddy77 Exp $
+# $Id: Makefile.am,v 1.39 2007-06-04 08:04:58 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -8,7 +8,8 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0020$(EXEEXT) t0021$(EXEEXT) t0022$(EXEEXT)\
 			t0023$(EXEEXT) rpc$(EXEEXT) dbmorecmds$(EXEEXT)\
 			bcp$(EXEEXT) thread$(EXEEXT) text_buffer$(EXEEXT)\
-			done_handling$(EXEEXT) timeout$(EXEEXT)
+			done_handling$(EXEEXT) timeout$(EXEEXT) \
+			hang$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES	=	t0001.c common.c common.h
@@ -40,6 +41,7 @@ thread_SOURCES	=	thread.c bcp.h common.c common.h
 text_buffer_SOURCES =	text_buffer.c common.c common.h
 done_handling_SOURCES =	done_handling.c common.c common.h
 timeout_SOURCES =	timeout.c common.c common.h
+hang_SOURCES	=	hang.c common.c common.h
 
 AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
 AM_LDFLAGS	=	-no-install

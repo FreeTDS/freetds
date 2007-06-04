@@ -99,9 +99,9 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.61 2007-05-31 15:04:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.62 2007-06-04 08:04:58 freddy77 Exp $");
 
-static int tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
+static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
 
 /**
@@ -159,7 +159,6 @@ int
 tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout)
 {
 	struct sockaddr_in sin;
-	fd_set fds;
 #if !defined(DOS32X)
 	unsigned int ioctl_nonblocking = 1;
 	int retval;
@@ -172,7 +171,6 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	socklen_t optlen;
 #endif
 
-	FD_ZERO(&fds);
 	memset(&sin, 0, sizeof(sin));
 
 	sin.sin_addr.s_addr = inet_addr(ip_addr);
@@ -238,6 +236,8 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
+		fd_set fds;
+
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", strerror(sock_errno));
 #if DEBUGGING_CONNECTING_PROBLEM
 		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != EINPROGRESS) {
@@ -260,9 +260,8 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			goto not_available;
 		}
 		
-		FD_SET(tds->s, &fds);
-
-		if (tds_select(tds, tds->s + 1, NULL, &fds, &fds, timeout) <= 0) {
+		FD_ZERO(&fds);
+		if (tds_select(tds, NULL, &fds, &fds, timeout) <= 0) {
 			tdserror(tds->tds_ctx, tds, TDSESOCK, sock_errno);
 			goto not_available;
 		}
@@ -317,7 +316,7 @@ tds_close_socket(TDSSOCKET * tds)
  * This function does not call tdserror or close the socket because it can't know the context in which it's being called.   
  */
 static int
-tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds)
+tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds)
 {
 	int rc, seconds;
 	unsigned int poll_seconds;
@@ -335,7 +334,7 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 	poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
 	assert(seconds >= 0);
 	do {	
-		struct timeval tv, *ptv = timeout_seconds? &tv : NULL;
+		struct timeval tv, *ptv = poll_seconds? &tv : NULL;
 		unsigned int end_ms = poll_seconds * 1000 + tds_gettime_ms();
 
 		/* 
@@ -348,8 +347,16 @@ tds_select(TDSSOCKET * tds, int nfds, fd_set *readfds, fd_set *writefds, fd_set 
 		tv.tv_sec = poll_seconds;
 		tv.tv_usec = 0; 
 		for (;;) {
+			TDS_SYS_SOCKET s = tds->s;
 
-			rc = select(nfds, readfds, writefds, exceptfds, ptv); 
+			if (readfds)
+				FD_SET(s, readfds);
+			if (writefds)
+				FD_SET(s, writefds);
+			if (exceptfds)
+				FD_SET(s, exceptfds);
+
+			rc = select(s + 1, readfds, writefds, exceptfds, ptv); 
 
 			if (rc > 0 ) {
 				return rc;
@@ -435,9 +442,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 			return -1;
 
 		FD_ZERO(&rfds);
-		FD_SET(tds->s, &rfds);
-
-		if ((len = tds_select(tds, tds->s + 1, &rfds, NULL, NULL, tds->query_timeout)) > 0) {
+		if ((len = tds_select(tds, &rfds, NULL, NULL, tds->query_timeout)) > 0) {
 			len = 0;
 			if (FD_ISSET(tds->s, &rfds)) {
 #ifndef MSG_NOSIGNAL
@@ -652,8 +657,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 
 	while (remaining > 0) {
 		FD_ZERO(&fds);
-		FD_SET(tds->s, &fds);
-		if ((rc = tds_select(tds, tds->s + 1, NULL, &fds, NULL, tds->query_timeout)) > 0) {
+		if ((rc = tds_select(tds, NULL, &fds, NULL, tds->query_timeout)) > 0) {
 			nput = 0;
 			if (FD_ISSET(tds->s, &fds)) {
 #ifdef USE_MSGMORE

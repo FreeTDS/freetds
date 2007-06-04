@@ -41,4 +41,5 @@ timeout
 dblib.dsw
 dblib.mak
 vc6
+hang
 
