@@ -1,3 +1,6 @@
+Mon Jun  4 17:09:03 EDT 2007	JK Lowden <jklowden@freetds.org>
+	* src/apps/Makefile.am skip bsqlodb if ODBC disabled
+
 Mon Jun 04 10:03:25 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/.cvsignore src/dblib/unittests/Makefile.am:
 	* src/dblib/unittests/hang.c(added) src/tds/net.c:
