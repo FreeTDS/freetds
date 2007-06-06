@@ -8,10 +8,11 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.160 2007-06-01 09:01:59 freddy77 Exp $
+To Do List	$Id: TODO,v 1.161 2007-06-06 04:55:14 freddy77 Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
+	tds_send_cancel in tds_goodwrite (wrong??)
 Bug? ML 2007-05-28, odd datatype and packet size 
 	"unknown marker error with Sybase ASE 15.0, character encoding-related"
 
