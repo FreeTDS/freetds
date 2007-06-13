@@ -27,8 +27,10 @@
 #include <unistd.h>
 #include <setjmp.h>
 #include <signal.h>
+#ifdef HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 #include <sybfront.h>
 #include <sybdb.h>
 #include "terminal.h"
@@ -38,6 +40,68 @@
 #include "replacements.h"
 
 #define READPASSPHRASE_MAXLEN 128
+
+#ifndef HAVE_READLINE
+static FILE *rl_outstream = NULL;
+static FILE *rl_instream = NULL;
+static const char *rl_readline_name = NULL;
+
+static char *
+fisql_readline(char *prompt)
+{
+	size_t sz, pos;
+	char *line, *p;
+
+	sz = 1024;
+	pos = 0;
+	line = (char*) malloc(sz);
+	if (!line)
+		return NULL;
+
+	if (prompt && prompt[0])
+		fprintf(rl_outstream ? rl_outstream : stdout, "%s", prompt);
+	for (;;) {
+		/* read a piece */
+		if (fgets(line + pos, sz - pos, rl_instream ? rl_instream : stdin) == NULL) {
+			if (pos)
+				return line;
+			break;
+		}
+
+		/* got end-of-line ? */
+		p = strchr(line + pos, '\n');
+		if (p) {
+			*p = 0;
+			return line;
+		}
+
+		/* allocate space if needed */
+		pos += strlen(line + pos);
+		if (pos + 1024 >= sz) {
+			sz += 1024;
+			p = (char*) realloc(line, sz);
+			if (!p)
+				break;
+			line = p;
+		}
+	}
+	free(line);
+	return NULL;
+}
+
+static void
+fisql_add_history(const char *s)
+{
+}
+
+#define readline    fisql_readline
+#define add_history fisql_add_history
+
+#define rl_bind_key(c,f)      do {} while(0)
+#define rl_reset_line_state() do {} while(0)
+#define rl_on_new_line()      do {} while(0)
+
+#endif
 
 static void *xmalloc(size_t s);
 static void *xrealloc(void *p, size_t s);

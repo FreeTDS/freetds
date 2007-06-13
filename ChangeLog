@@ -1,3 +1,6 @@
+Wed Jun 13 09:26:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/fisql/fisql.c: compile even if readline is not available
+
 Mon Jun  4 17:09:03 EDT 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/Makefile.am skip bsqlodb if ODBC disabled
 
