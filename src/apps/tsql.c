@@ -80,10 +80,11 @@
 
 #include "tds.h"
 #include "tdsiconv.h"
+#include "tdsstring.h"
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.103 2007-03-18 11:07:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.104 2007-06-17 06:17:50 freddy77 Exp $");
 
 enum
 {
@@ -97,6 +98,10 @@ enum
 static int istty = 0;
 static int global_opt_flags = 0;
 #define QUIET (global_opt_flags & OPT_QUIET)
+
+static char *opt_col_term = "\t";
+static char *opt_row_term = "\n";
+static char *opt_default_db = NULL;
 
 static int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
 static void tsql_print_usage(const char *progname);
@@ -192,9 +197,10 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 		case TDS_ROWFMT_RESULT:
 			if ((!(opt_flags & OPT_NOHEADER)) && tds->current_results) {
 				for (i = 0; i < tds->current_results->num_cols; i++) {
-					fprintf(stdout, "%s\t", tds->current_results->columns[i]->column_name);
+					if (i) fputs(opt_col_term, stdout);
+					fputs(tds->current_results->columns[i]->column_name, stdout);
 				}
-				fprintf(stdout, "\n");
+				fputs(opt_row_term, stdout);
 			}
 			break;
 		case TDS_COMPUTE_RESULT:
@@ -212,8 +218,10 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 				for (i = 0; i < tds->current_results->num_cols; i++) {
 					col = tds->current_results->columns[i];
 					if (col->column_cur_size < 0) {
-						if (print_rows)
-							fprintf(stdout, "NULL\t");
+						if (print_rows)  {
+							if (i) fputs(opt_col_term, stdout);
+							fputs("NULL", stdout);
+						}
 						continue;
 					}
 					ctype = tds_get_conversion_type(col->column_type, col->column_size);
@@ -226,14 +234,17 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 
 					if (tds_convert(tds->tds_ctx, ctype, (TDS_CHAR *) src, srclen, SYBVARCHAR, &dres) < 0)
 						continue;
-					if (print_rows)
-						fprintf(stdout, "%s\t", dres.c);
+					if (print_rows)  {
+						if (i) fputs(opt_col_term, stdout);
+						fputs(dres.c, stdout);
+					}
 					free(dres.c);
 				}
 				if (print_rows)
-					fprintf(stdout, "\n");
+					fputs(opt_row_term, stdout);
 
 			}
+			if (!QUIET) fprintf(stdout, "(%d row%s affected)\n", rows, rows == 1 ? "" : "s");
 			break;
 		case TDS_STATUS_RESULT:
 			if (!QUIET)
@@ -276,14 +287,16 @@ static void
 tsql_print_usage(const char *progname)
 {
 	fprintf(stderr,
-		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>] [-I <config file>] [-o <options>]\n"
+		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>] [-I <config file>] [-o <options>] [-t delim] [-r delim] [-D database]\n"
 		"\t%s -C\n"
 		"Options:\n"
 		"\tf\tDo not print footer\n"
 		"\th\tDo not print header\n"
 		"\tt\tPrint time informations\n"
 		"\tv\tPrint TDS version\n"
-		"\tq\tQuiet\n",
+		"\tq\tQuiet\n\n"
+		"\tDelimiters can be multi-char strings appropriately escaped for your shell.\n"
+		"\tDefault column delimitor is <tab>; default row delimiter is <newline>\n",
 		progname, progname);
 }
 
@@ -367,8 +380,17 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 #endif
 
 
-	while ((opt = getopt(argc, argv, "H:S:I:P:U:p:Co:")) != -1) {
+	while ((opt = getopt(argc, argv, "H:S:I:P:U:p:Co:t:r:D:")) != -1) {
 		switch (opt) {
+		case 't':
+			opt_col_term = strdup(optarg);
+			break;
+		case 'r':
+			opt_row_term = strdup(optarg);
+			break;
+		case 'D':
+			opt_default_db = strdup(optarg);
+			break;
 		case 'o':
 			opt_flags_str = optarg;
 			break;
@@ -462,6 +484,16 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	if (!password) {
 		password = (char*) malloc(128);
 		readpassphrase("Password: ", password, 128, RPP_ECHO_OFF);
+	}
+	if (!opt_col_term) {
+		fprintf(stderr, "Missing delimiter for -t (check escaping)\n");
+		tsql_print_usage(argv[0]);
+		exit(1);
+	}
+	if (!opt_row_term) {
+		fprintf(stderr, "Missing delimiter for -r (check escaping)\n");
+		tsql_print_usage(argv[0]);
+		exit(1);
 	}
 
 	/* all validated, let's do it */
@@ -591,7 +623,12 @@ main(int argc, char **argv)
 	tds = tds_alloc_socket(context, 512);
 	tds_set_parent(tds, NULL);
 	connection = tds_read_config_info(NULL, login, context->locale);
-	
+
+	if (opt_default_db) {
+		tds_dstr_copy(&connection->database, opt_default_db);
+		if (!QUIET) fprintf(stderr, "Default database being set to %s\n", opt_default_db);
+	}
+
 	/* 
 	 * If we're able to establish an ip address for the server, we'll try to connect to it. 
 	 * If that machine is currently unreachable
