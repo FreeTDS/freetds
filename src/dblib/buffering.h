@@ -265,7 +265,8 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 		srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
 		if (srclen < 0) {
-			_set_null_value((BYTE *) curcol->column_varaddr, desttype, curcol->column_bindlen);
+			_set_null_value(dbproc, curcol->column_bindtype,
+						(BYTE *) curcol->column_varaddr, curcol->column_bindlen);
 		} else {
 			copy_data_to_host_var(dbproc, srctype, src, srclen, desttype, 
 						(BYTE *) curcol->column_varaddr,  curcol->column_bindlen,

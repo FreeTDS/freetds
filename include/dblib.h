@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.38 2007-03-12 13:28:50 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.39 2007-06-17 07:09:07 freddy77 Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -167,6 +167,27 @@ struct tds_dblib_dbprocess
 	int msdblib;
 
 	int ntimeouts;
+
+	/** default null values **/
+	DBTINYINT	null_TINYBIND;
+	DBSMALLINT	null_SMALLBIND;
+	DBINT		null_INTBIND;
+	DBCHAR		*p_null_CHARBIND;
+	DBINT		len_null_CHARBIND;
+	char		*p_null_STRINGBIND;
+	char		*p_null_NTBSTRINGBIND;
+	DBVARYCHAR	null_VARYCHARBIND;
+	DBBINARY	*p_null_BINARYBIND;
+	DBINT		len_null_BINARYBIND;
+	DBDATETIME	null_DATETIMEBIND;
+	DBDATETIME4	null_SMALLDATETIMEBIND;
+	DBMONEY		null_MONEYBIND;
+	DBMONEY4	null_SMALLMONEYBIND;
+	DBFLT8		null_FLT8BIND;
+	DBREAL		null_REALBIND;
+	DBDECIMAL	null_DECIMALBIND;
+	DBNUMERIC	null_NUMERICBIND;
+	DBBIT		null_BITBIND;
 };
 
 #define DBLIB_INFO_MSG_TYPE 0

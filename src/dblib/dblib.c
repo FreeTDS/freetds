@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.285 2007-02-12 19:32:07 castellano Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.286 2007-06-17 07:09:08 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -79,7 +79,7 @@ static char *_dbprdate(char *timestr);
 static int _dbnullable(DBPROCESS * dbproc, int column);
 static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
-static void _set_null_value(BYTE * varaddr, int datatype, int maxlen);
+static void _set_null_value(DBPROCESS *dbproc, int bindtype, BYTE * varaddr, int dstlen);
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
 static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
@@ -799,6 +799,8 @@ tdsdbopen(LOGINREC * login, char *server, int msdblib)
 		return NULL;
 	}
 	memset(dbproc, '\0', sizeof(DBPROCESS));
+	dbproc->null_FLT8BIND = 0;
+	dbproc->null_REALBIND = 0;
 	dbproc->msdblib = msdblib;
 
 	dbproc->dbopts = init_dboptions();
@@ -1113,6 +1115,15 @@ dbclose(DBPROCESS * dbproc)
 	free(dbproc->dbopts);
 
 	dbstring_free(&(dbproc->dboptcmd));
+
+	if (dbproc->p_null_CHARBIND)
+		free(dbproc->p_null_CHARBIND);
+	if (dbproc->p_null_STRINGBIND)
+		free(dbproc->p_null_STRINGBIND);
+	if (dbproc->p_null_NTBSTRINGBIND)
+		free(dbproc->p_null_NTBSTRINGBIND);
+	if (dbproc->p_null_BINARYBIND)
+		free(dbproc->p_null_BINARYBIND);
 
 	dbfreebuf(dbproc);
 	free(dbproc);
@@ -1532,9 +1543,110 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	CHECK_PARAMETER(bindlen, SYBEBBL);
 	CHECK_PARAMETER(bindval, SYBENBVP);
 
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbsetnull\n");
-	fprintf(stderr, "dblib.c:%d: UNIMPLEMENTED: dbsetnull\n", __LINE__);
-	return FAIL;
+	switch (bindtype) {
+	case TINYBIND:
+		memcpy(&dbproc->null_TINYBIND, bindval, sizeof(dbproc->null_TINYBIND));
+		break;
+	case SMALLBIND:
+		memcpy(&dbproc->null_SMALLBIND, bindval, sizeof(dbproc->null_SMALLBIND));
+		break;
+	case INTBIND:
+		memcpy(&dbproc->null_INTBIND, bindval, sizeof(dbproc->null_INTBIND));
+		break;
+	case CHARBIND:
+		if (bindlen < 0) {
+			dbperror(dbproc, SYBEBBL, 0);
+			return FAIL;
+		}
+		if (dbproc->p_null_CHARBIND)
+			free(dbproc->p_null_CHARBIND);
+		dbproc->len_null_CHARBIND = 0;
+		dbproc->p_null_CHARBIND = malloc(bindlen);
+		if (!dbproc->p_null_CHARBIND) {
+			dbperror(dbproc, SYBEMEM, errno);
+			return FAIL;
+		}
+		memcpy(dbproc->p_null_CHARBIND, bindval, bindlen);
+		dbproc->len_null_CHARBIND = bindlen;
+		break;
+	case STRINGBIND:
+		if (dbproc->p_null_STRINGBIND)
+			free(dbproc->p_null_STRINGBIND);
+		dbproc->p_null_STRINGBIND = strdup((char*) bindval);
+		if (!dbproc->p_null_STRINGBIND) {
+			dbperror(dbproc, SYBEMEM, errno);
+			return FAIL;
+		}
+		break;
+	case NTBSTRINGBIND:
+		if (dbproc->p_null_NTBSTRINGBIND)
+			free(dbproc->p_null_NTBSTRINGBIND);
+		dbproc->p_null_NTBSTRINGBIND = strdup((char*) bindval);
+		if (!dbproc->p_null_NTBSTRINGBIND) {
+			dbperror(dbproc, SYBEMEM, errno);
+			return FAIL;
+		}
+		break;
+	case VARYCHARBIND:
+		if (bindlen < 0 || bindlen > sizeof(dbproc->null_VARYCHARBIND.str)) {
+			dbperror(dbproc, SYBEBBL, 0);
+			return FAIL;
+		}
+		if (bindlen <= 0)
+			dbproc->null_VARYCHARBIND.str[0] = '\0';
+		else
+			memcpy(dbproc->null_VARYCHARBIND.str, bindval, bindlen);
+		dbproc->null_VARYCHARBIND.len = bindlen;
+		break;
+	case BINARYBIND:
+		if (bindlen < 0) {
+			dbperror(dbproc, SYBEBBL, 0);
+			return FAIL;
+		}
+		if (dbproc->p_null_BINARYBIND)
+			free(dbproc->p_null_BINARYBIND);
+		dbproc->len_null_BINARYBIND = 0;
+		dbproc->p_null_BINARYBIND = malloc(bindlen);
+		if (!dbproc->p_null_BINARYBIND) {
+			dbperror(dbproc, SYBEMEM, errno);
+			return FAIL;
+		}
+		memcpy(dbproc->p_null_BINARYBIND, bindval, bindlen);
+		dbproc->len_null_BINARYBIND = bindlen;
+		break;
+	case DATETIMEBIND:
+		memcpy(&dbproc->null_DATETIMEBIND, bindval, sizeof(dbproc->null_DATETIMEBIND));
+		break;
+	case SMALLDATETIMEBIND:
+		memcpy(&dbproc->null_SMALLDATETIMEBIND, bindval, sizeof(dbproc->null_SMALLDATETIMEBIND));
+		break;
+	case MONEYBIND:
+		memcpy(&dbproc->null_MONEYBIND, bindval, sizeof(dbproc->null_MONEYBIND));
+		break;
+	case SMALLMONEYBIND:
+		memcpy(&dbproc->null_SMALLMONEYBIND, bindval, sizeof(dbproc->null_SMALLMONEYBIND));
+		break;
+	case FLT8BIND:
+		memcpy(&dbproc->null_FLT8BIND, bindval, sizeof(dbproc->null_FLT8BIND));
+		break;
+	case REALBIND:
+		memcpy(&dbproc->null_REALBIND, bindval, sizeof(dbproc->null_REALBIND));
+		break;
+	case DECIMALBIND:
+		memcpy(&dbproc->null_DECIMALBIND, bindval, sizeof(dbproc->null_DECIMALBIND));
+		break;
+	case NUMERICBIND:
+		memcpy(&dbproc->null_NUMERICBIND, bindval, sizeof(dbproc->null_NUMERICBIND));
+		break;
+	case BITBIND:
+		memcpy(&dbproc->null_BITBIND, bindval, sizeof(dbproc->null_BITBIND));
+		break;
+	default:
+		dbperror(dbproc, SYBEBTYP, 0);
+		return FAIL;
+	}
+
+	return SUCCEED;
 }
 
 /**
@@ -6686,39 +6798,146 @@ dbiowdesc(DBPROCESS * dbproc)
 }
 
 static void
-_set_null_value(BYTE * varaddr, int datatype, int maxlen)
+_set_null_value(DBPROCESS *dbproc, int bindtype, BYTE * varaddr, int dstlen)
 {
-	switch (datatype) {
-	case SYBINT8:
-		memset(varaddr, '\0', 8);
+	void *src;
+	DBINT srclen;
+	int nulltermlen = 0;
+	char padchar = 'x';
+	DBINT datalen;
+	DBINT padlen;
+
+	switch(bindtype) {
+	case TINYBIND:
+		src = &dbproc->null_TINYBIND;
+		srclen = sizeof(dbproc->null_TINYBIND);
+		dstlen = srclen;
 		break;
-	case SYBINT4:
-		memset(varaddr, '\0', 4);
+	case SMALLBIND:
+		src = &dbproc->null_SMALLBIND;
+		srclen = sizeof(dbproc->null_SMALLBIND);
+		dstlen = srclen;
 		break;
-	case SYBINT2:
-		memset(varaddr, '\0', 2);
+	case INTBIND:
+		src = &dbproc->null_INTBIND;
+		srclen = sizeof(dbproc->null_INTBIND);
+		dstlen = srclen;
 		break;
-	case SYBINT1:
-		memset(varaddr, '\0', 1);
+	case CHARBIND:
+		padchar = ' ';
+		if (dbproc->p_null_CHARBIND) {
+			src = dbproc->p_null_CHARBIND;
+			srclen = dbproc->len_null_CHARBIND;
+		} else {
+			src = "";
+			srclen = 0;
+		}
 		break;
-	case SYBFLT8:
-		memset(varaddr, '\0', 8);
+	case STRINGBIND:
+		nulltermlen = 1;
+		padchar = ' ';
+		if (dbproc->p_null_STRINGBIND) {
+			src = dbproc->p_null_STRINGBIND;
+			srclen = strlen(dbproc->p_null_STRINGBIND);
+		} else {
+			src = "";
+			srclen = 0;
+		}
 		break;
-	case SYBREAL:
-		memset(varaddr, '\0', 4);
+	case NTBSTRINGBIND:
+		nulltermlen = 1;
+		if (dbproc->p_null_NTBSTRINGBIND) {
+			src = dbproc->p_null_NTBSTRINGBIND;
+			srclen = strlen(dbproc->p_null_NTBSTRINGBIND);
+		} else {
+			src = "";
+			srclen = 0;
+		}
 		break;
-	case SYBDATETIME:
-		memset(varaddr, '\0', 8);
+	case VARYCHARBIND:
+		src = &dbproc->null_VARYCHARBIND;
+		srclen = sizeof(dbproc->null_VARYCHARBIND);
+		dstlen = srclen;
 		break;
-	case SYBCHAR:
-		if (varaddr)
-			varaddr[0] = '\0';
+	case BINARYBIND:
+		padchar = '\0';
+		if (dbproc->p_null_BINARYBIND) {
+			src = dbproc->p_null_BINARYBIND;
+			srclen = dbproc->len_null_BINARYBIND;
+		} else {
+			src = "";
+			srclen = 0;
+		}
 		break;
-	case SYBVARCHAR:
-		if (varaddr)
-			((DBVARYCHAR *)varaddr)->len = 0;
-			((DBVARYCHAR *)varaddr)->str[0] = '\0';
+	case DATETIMEBIND:
+		src = &dbproc->null_DATETIMEBIND;
+		srclen = sizeof(dbproc->null_DATETIMEBIND);
+		dstlen = srclen;
 		break;
+	case SMALLDATETIMEBIND:
+		src = &dbproc->null_SMALLDATETIMEBIND;
+		srclen = sizeof(dbproc->null_SMALLDATETIMEBIND);
+		dstlen = srclen;
+		break;
+	case MONEYBIND:
+		src = &dbproc->null_MONEYBIND;
+		srclen = sizeof(dbproc->null_MONEYBIND);
+		dstlen = srclen;
+		break;
+	case SMALLMONEYBIND:
+		src = &dbproc->null_SMALLMONEYBIND;
+		srclen = sizeof(dbproc->null_SMALLMONEYBIND);
+		dstlen = srclen;
+		break;
+	case FLT8BIND:
+		src = &dbproc->null_FLT8BIND;
+		srclen = sizeof(dbproc->null_FLT8BIND);
+		dstlen = srclen;
+		break;
+	case REALBIND:
+		src = &dbproc->null_REALBIND;
+		srclen = sizeof(dbproc->null_REALBIND);
+		dstlen = srclen;
+		break;
+	case DECIMALBIND:
+		src = &dbproc->null_DECIMALBIND;
+		srclen = sizeof(dbproc->null_DECIMALBIND);
+		dstlen = srclen;
+		break;
+	case NUMERICBIND:
+		src = &dbproc->null_NUMERICBIND;
+		srclen = sizeof(dbproc->null_NUMERICBIND);
+		dstlen = srclen;
+		break;
+	case BITBIND:
+		src = &dbproc->null_BITBIND;
+		srclen = sizeof(dbproc->null_BITBIND);
+		dstlen = srclen;
+		break;
+	default:
+		return;
+	}
+
+	if (varaddr && dstlen > 0) {
+		datalen = dstlen - nulltermlen;
+		if (datalen > srclen)
+			datalen = srclen;
+
+		if (padchar != 'x')
+			padlen = dstlen - (datalen + nulltermlen);
+		else
+			padlen = 0;
+
+		memcpy(varaddr, src, datalen);
+		if (padlen > 0)
+			memset(varaddr + datalen, padchar, padlen);
+		if (nulltermlen > 0)
+			varaddr[datalen + padlen] = '\0';
+
+		if (srclen + nulltermlen > dstlen) {
+			/* Attempt to set variable to NULL resulted in overflow */
+			dbperror(dbproc, SYBECNOV, 0);
+		}
 	}
 }
 
@@ -6891,7 +7110,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	}
 
 	if (src == NULL || (srclen == 0 && is_nullable_type(srctype))) {
-		_set_null_value(dest, desttype, destlen);
+		_set_null_value(dbproc, bindtype, dest, destlen);
 		return;
 	}
 

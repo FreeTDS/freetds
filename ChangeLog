@@ -1,3 +1,7 @@
+Sun Jun 17 09:08:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/dblib.h src/dblib/buffering.h src/dblib/dblib.c:
+	- patch #1717123 for dbsetnull implementation (removed warnings)
+
 Sun Jun 17 08:16:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/tsql.c:
 	- patch #1703363 for delimiters (modified)
