@@ -50,7 +50,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.1 2007-05-25 09:10:11 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.2 2007-06-17 07:46:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -104,6 +104,8 @@ init_fake_server(int ip_port)
 		perror("pthread_create");
 		exit(1);
 	}
+	/* wait listen in thread */
+	sleep(1);
 	return 0;
 }
 

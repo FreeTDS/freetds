@@ -1,3 +1,7 @@
+Sun Jun 17 09:45:55 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/freeclose.c src/odbc/unittests/genparams.c:
+	- fix thread and small portability
+
 Sun Jun 17 09:08:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/dblib.h src/dblib/buffering.h src/dblib/dblib.c:
 	- patch #1717123 for dbsetnull implementation (removed warnings)

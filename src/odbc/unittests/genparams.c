@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.18 2007-03-29 07:44:56 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.19 2007-06-17 07:46:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -137,6 +137,7 @@ main(int argc, char *argv[])
 	char version[32];
 	SQLSMALLINT version_len;
 	SQLINTEGER y, m, d;
+	SQLCHAR date[128];
 
 	use_odbc_version3 = 1;
 	Connect();
@@ -177,11 +178,16 @@ main(int argc, char *argv[])
 	m = ltime->tm_mon + 1;
 	d = ltime->tm_mday;
 	/* server concept of data can be different so try ask to server */
-	Command(Statement, "SELECT YEAR(GETDATE()), MONTH(GETDATE()), DAY(GETDATE())");
-	SQLBindCol(Statement, 1, SQL_C_SLONG, &y, 0, NULL);
-	SQLBindCol(Statement, 2, SQL_C_SLONG, &m, 0, NULL);
-	SQLBindCol(Statement, 3, SQL_C_SLONG, &d, 0, NULL);
-	SQLFetch(Statement);
+	Command(Statement, "SELECT GETDATE()");
+	SQLBindCol(Statement, 1, SQL_C_CHAR, date, sizeof(date), NULL);
+	if (SQLFetch(Statement) == SQL_SUCCESS) {
+		int a, b, c;
+		if (sscanf(date, "%d-%d-%d", &a, &b, &c) == 3) {
+			y = a;
+			m = b;
+			d = c;
+		}
+	}
 	SQLFetch(Statement);
 	SQLMoreResults(Statement);
 	SQLFreeStmt(Statement, SQL_UNBIND);
