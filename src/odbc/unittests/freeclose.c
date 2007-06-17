@@ -50,7 +50,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.2 2007-06-17 07:46:49 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.3 2007-06-17 17:39:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -99,13 +99,12 @@ init_fake_server(int ip_port)
 		CLOSESOCKET(s);
 		return 1;
 	}
+	listen(s, 5);
 	err = pthread_create(&fake_thread, NULL, fake_thread_proc, (void *) s);
 	if (err != 0) {
 		perror("pthread_create");
 		exit(1);
 	}
-	/* wait listen in thread */
-	sleep(1);
 	return 0;
 }
 
@@ -186,9 +185,9 @@ fake_thread_proc(void * arg)
 	fd_set fds_read, fds_write, fds_error;
 	int max_fd = 0;
 
-	listen(s, 5);
 	memset(&sin, 0, sizeof(sin));
 	len = sizeof(sin);
+	alarm(30);
 	if ((fake_sock = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
 		perror("accept");
 		exit(1);
@@ -200,7 +199,6 @@ fake_thread_proc(void * arg)
 		exit(1);
 	}
 
-	alarm(30);
 	if (connect(server_sock, &remote_addr, remote_addr_len)) {
 		perror("socket");
 		exit(1);

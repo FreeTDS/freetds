@@ -40,7 +40,7 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.4 2007-03-18 11:34:53 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.5 2007-06-17 17:39:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -88,6 +88,7 @@ init_fake_server(int ip_port)
 		CLOSESOCKET(s);
 		return 1;
 	}
+	listen(s, 5);
 	err = pthread_create(&fake_thread, NULL, fake_thread_proc, (void *) s);
 	if (err != 0) {
 		perror("pthread_create");
@@ -104,16 +105,15 @@ fake_thread_proc(void * arg)
 	char buf[128];
 	struct sockaddr_in sin;
 
-	listen(s, 5);
 	memset(&sin, 0, sizeof(sin));
 	len = sizeof(sin);
+	alarm(30);
 	if ((fake_sock = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
 		perror("accept");
 		exit(1);
 	}
 	CLOSESOCKET(s);
 
-	alarm(30);
 	for (;;) {
 		/* just read and discard */
 		len = READSOCKET(fake_sock, buf, sizeof(buf));

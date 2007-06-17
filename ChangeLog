@@ -1,3 +1,8 @@
+Sun Jun 17 19:38:27 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/freeclose.c src/odbc/unittests/timeout3.c:
+	- fix small thread problem
+	- fix possible deadlock
+
 Sun Jun 17 09:45:55 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/freeclose.c src/odbc/unittests/genparams.c:
 	- fix thread and small portability
