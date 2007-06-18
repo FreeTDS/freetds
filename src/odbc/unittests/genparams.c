@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.19 2007-06-17 07:46:49 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.20 2007-06-18 11:58:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -137,7 +137,7 @@ main(int argc, char *argv[])
 	char version[32];
 	SQLSMALLINT version_len;
 	SQLINTEGER y, m, d;
-	SQLCHAR date[128];
+	char date[128];
 
 	use_odbc_version3 = 1;
 	Connect();
