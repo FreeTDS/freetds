@@ -1,3 +1,7 @@
+Mon Jun 18 15:20:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c:
+	- patch #1736289 for bcp/bulk insert problem
+
 Mon Jun 18 14:02:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/tsql.c src/tds/locale.c:
 	- use correct charset based on locale
