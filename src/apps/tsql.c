@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Brian Bruns
+ * Copyright (C) 2006, 2007  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -84,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.104 2007-06-17 06:17:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.105 2007-06-18 12:03:32 freddy77 Exp $");
 
 enum
 {
@@ -497,9 +498,6 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 
 	/* all validated, let's do it */
-
-	if (tds_sybase_charset_name(charset))
-		charset = tds_sybase_charset_name(charset);
 
 	/* if it's a servername */
 	if (servername) {
