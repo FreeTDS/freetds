@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Brian Bruns
- * Copyright (C) 2004, 2005  Ziglio Frediano
+ * Copyright (C) 2004, 2005, 2006, 2007  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.62 2007-06-04 08:04:58 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.63 2007-06-19 13:31:34 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -692,6 +692,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 			case TDS_INT_CONTINUE:
 				continue;
 			case TDS_INT_TIMEOUT:
+				/* FIXME we are not able to send a packet and we want to send a packet ?? */
 				tds_send_cancel(tds);
 				continue; /* fixme: or return? */
 			default:

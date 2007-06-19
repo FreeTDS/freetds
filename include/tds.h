@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.270 2007-04-13 15:23:25 freddy77 Exp $ */
+/* $Id: tds.h,v 1.271 2007-06-19 13:31:33 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -429,8 +429,6 @@ typedef enum
 #define SYBINT2	SYBINT2
 	SYBINT4 = 56,		/* 0x38 */
 #define SYBINT4	SYBINT4
-	SYBINT8 = 127,		/* 0x7F */
-#define SYBINT8	SYBINT8
 	SYBFLT8 = 62,		/* 0x3E */
 #define SYBFLT8	SYBFLT8
 	SYBDATETIME = 61,	/* 0x3D */
@@ -457,8 +455,6 @@ typedef enum
 #define SYBVOID	SYBVOID
 	SYBVARBINARY = 37,	/* 0x25 */
 #define SYBVARBINARY	SYBVARBINARY
-	SYBNVARCHAR = 103,	/* 0x67 */
-#define SYBNVARCHAR	SYBNVARCHAR
 	SYBBITN = 104,		/* 0x68 */
 #define SYBBITN	SYBBITN
 	SYBNUMERIC = 108,	/* 0x6C */
@@ -471,6 +467,14 @@ typedef enum
 #define SYBMONEYN	SYBMONEYN
 	SYBDATETIMN = 111,	/* 0x6F */
 #define SYBDATETIMN	SYBDATETIMN
+
+/*
+ * MS only types
+ */
+	SYBNVARCHAR = 103,	/* 0x67 */
+#define SYBNVARCHAR	SYBNVARCHAR
+	SYBINT8 = 127,		/* 0x7F */
+#define SYBINT8	SYBINT8
 	XSYBCHAR = 175,		/* 0xAF */
 #define XSYBCHAR	XSYBCHAR
 	XSYBVARCHAR = 167,	/* 0xA7 */
@@ -483,21 +487,53 @@ typedef enum
 #define XSYBVARBINARY	XSYBVARBINARY
 	XSYBBINARY = 173,	/* 0xAD */
 #define XSYBBINARY	XSYBBINARY
+	SYBUNIQUE = 36,		/* 0x24 */
+#define SYBUNIQUE	SYBUNIQUE
+	SYBVARIANT = 98, 	/* 0x62 */
+#define SYBVARIANT	SYBVARIANT
+
+/*
+ * Sybase only types
+ */
 	SYBLONGBINARY = 225,	/* 0xE1 */
 #define SYBLONGBINARY	SYBLONGBINARY
-	SYBSINT1 = 64,		/* 0x40 */
-#define SYBSINT1	SYBSINT1
+	SYBUINT1 = 64,		/* 0x40 */
+#define SYBUINT1	SYBUINT1
 	SYBUINT2 = 65,		/* 0x41 */
 #define SYBUINT2	SYBUINT2
 	SYBUINT4 = 66,		/* 0x42 */
 #define SYBUINT4	SYBUINT4
 	SYBUINT8 = 67,		/* 0x43 */
 #define SYBUINT8	SYBUINT8
+	SYBBLOB = 36,		/* 0x24 */
+#define SYBBLOB		SYBBLOB
+	SYBBOUNDARY = 104,	/* 0x68 */
+#define SYBBOUNDARY	SYBBOUNDARY
+	SYBDATE = 49,		/* 0x31 */
+#define SYBDATE		SYBDATE
+	SYBDATEN = 123,		/* 0x7B */
+#define SYBDATEN	SYBDATEN
+	SYB5INT8 = 191,		/* 0xBF */
+#define SYB5INT8		SYB5INT8
+	SYBINTERVAL = 46,	/* 0x2E */
+#define SYBINTERVAL	SYBINTERVAL
+	SYBLONGCHAR = 175,	/* 0xAF */
+#define SYBLONGCHAR	SYBLONGCHAR
+	SYBSENSITIVITY = 103,	/* 0x67 */
+#define SYBSENSITIVITY	SYBSENSITIVITY
+	SYBSINT1 = 176,		/* 0xB0 */
+#define SYBSINT1	SYBSINT1
+	SYBTIME = 51,		/* 0x33 */
+#define SYBTIME		SYBTIME
+	SYBTIMEN = 147,		/* 0x93 */
+#define SYBTIMEN	SYBTIMEN
+	SYBUINTN = 68,		/* 0x44 */
+#define SYBUINTN	SYBUINTN
+	SYBUNITEXT = 174,	/* 0xAE */
+#define SYBUNITEXT	SYBUNITEXT
+	SYBXML = 163,		/* 0xA3 */
+#define SYBXML		SYBXML
 
-	SYBUNIQUE = 36,		/* 0x24 */
-#define SYBUNIQUE	SYBUNIQUE
-	SYBVARIANT = 98 	/* 0x62 */
-#define SYBVARIANT	SYBVARIANT
 } TDS_SERVER_TYPE;
 
 
@@ -1435,7 +1471,7 @@ int tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@out@
 
 /* data.c */
 void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
-void tds_set_column_type(TDSCOLUMN * curcol, int type);
+void tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type);
 
 
 /* tds_convert.c */

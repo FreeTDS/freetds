@@ -1,3 +1,9 @@
+Tue Jun 19 15:30:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/ct.c src/odbc/odbc_util.c:
+	* src/pool/stream.c src/tds/data.c src/tds/net.c:
+	* src/tds/tds_checks.c src/tds/tds_checks.h src/tds/token.c:
+	- fix problem with Sybase LONGCHAR
+
 Tue Jun 19 14:06:55 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/unittests/t0007.c src/odbc/unittests/prepare_results.c:
 	- more verbose

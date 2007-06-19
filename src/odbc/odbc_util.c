@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.93 2007-05-17 10:33:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.94 2007-06-19 13:31:34 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -342,12 +342,25 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBVARIANT:
 		break;
 #endif
-		/* TODO what should I do with these types ?? */
+		/*
+		 * TODO what should I do with these types ?? 
+		 * return other types can cause additional problems
+		 */
 	case SYBVOID:
 	case SYBSINT1:
 	case SYBUINT2:
 	case SYBUINT4:
 	case SYBUINT8:
+	case SYBUINT1:
+	case SYBDATE:
+	case SYBDATEN:
+	case SYB5INT8:
+	case SYBINTERVAL:
+	case SYBTIME:
+	case SYBTIMEN:
+	case SYBUINTN:
+	case SYBUNITEXT:
+	case SYBXML:
 		break;
 	}
 	return SQL_UNKNOWN_TYPE;

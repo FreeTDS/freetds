@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.172 2007-04-04 09:54:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.173 2007-06-19 13:31:34 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -4021,7 +4021,7 @@ _ct_process_return_status(TDSSOCKET * tds)
 
 	curcol = info->columns[0];
 
-	tds_set_column_type(curcol, SYBINT4);
+	tds_set_column_type(tds, curcol, SYBINT4);
 
 	tdsdump_log(TDS_DBG_INFO1, "generating return status row. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);

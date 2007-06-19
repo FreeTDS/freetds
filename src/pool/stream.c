@@ -40,7 +40,7 @@
 #include "pool.h"
 #include "tds.h"
 
-TDS_RCSID(var, "$Id: stream.c,v 1.24 2006-12-26 14:56:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: stream.c,v 1.25 2007-06-19 13:31:34 freddy77 Exp $");
 
 int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 
@@ -341,7 +341,7 @@ read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *b
 		pos++;     /* flags */
 		pos += 4;  /* user type */
 
-		tds_set_column_type(curcol, (int)buf[pos]);
+		tds_set_column_type(tds, curcol, (int)buf[pos]);
 		switch(curcol->column_varint_size) {
 			/* FIX ME - endian */
 			case 2: curcol->column_size = buf[pos] + buf[pos+1]*256; break;

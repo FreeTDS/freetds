@@ -20,7 +20,7 @@
 #ifndef TDS_CHECKS_H
 #define TDS_CHECKS_H
 
-/* $Id: tds_checks.h,v 1.2 2004-12-02 12:37:54 freddy77 Exp $ */
+/* $Id: tds_checks.h,v 1.3 2007-06-19 13:31:34 freddy77 Exp $ */
 
 #if ENABLE_EXTRA_CHECKS
 #define CHECK_STRUCT_EXTRA(func,s) func(s)
@@ -47,7 +47,7 @@ void tds_check_cursor_extra(const TDSCURSOR * cursor);
 void tds_check_dynamic_extra(const TDSDYNAMIC * dynamic);
 
 int tds_get_cardinal_type(int datatype);
-int tds_get_varint_size(int datatype);
+int tds_get_varint_size(TDSSOCKET * tds, int datatype);
 #endif
 
 #endif /* TDS_CHECKS_H */

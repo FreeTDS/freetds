@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.18 2006-12-26 14:56:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.19 2007-06-19 13:31:34 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -172,6 +172,8 @@ void
 tds_check_column_extra(const TDSCOLUMN * column)
 {
 	int size;
+	TDSSOCKET tds;
+	int varint_ok;
 
 	assert(column);
 
@@ -191,7 +193,12 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(tds_get_cardinal_type(column->on_server.column_type) == column->column_type
 		|| (tds_get_null_type(column->column_type) == column->on_server.column_type 
 		&& column->column_varint_size == 1 && is_fixed_type(column->column_type)));
-	assert(tds_get_varint_size(column->on_server.column_type) == column->column_varint_size);
+	tds.minor_version = 0;
+	tds.major_version = 5;
+	varint_ok = tds_get_varint_size(&tds, column->on_server.column_type) == column->column_varint_size;
+	tds.major_version = 7;
+	varint_ok = varint_ok || tds_get_varint_size(&tds, column->on_server.column_type) == column->column_varint_size;
+	assert(varint_ok);
 
 	/* check current size <= size */
 	if (is_numeric_type(column->column_type)) {

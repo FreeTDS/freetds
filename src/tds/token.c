@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.332 2007-06-01 08:53:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.333 2007-06-19 13:31:34 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -71,7 +71,6 @@ static int tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_par
 static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
 static /*@observer@*/ const char *_tds_token_name(unsigned char marker);
-static int tds5_get_varint_size(int datatype);
 static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static /*@observer@*/ const char *tds_pr_op(int op);
@@ -1007,7 +1006,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 			curcol->column_usertype = tds_get_int(tds);
 		}
 		/* on with our regularly scheduled code (mlilback, 11/7/01) */
-		tds_set_column_type(curcol, tds_get_byte(tds));
+		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
 		tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 			    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
@@ -1257,7 +1256,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 		/*  User defined data type of the column */
 		curcol->column_usertype = tds_get_int(tds);
 
-		tds_set_column_type(curcol, tds_get_byte(tds));
+		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
 		switch (curcol->column_varint_size) {
 		case 4:
@@ -1327,7 +1326,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
 	curcol->column_identity = (curcol->column_flags & 0x10) > 0;
 
-	tds_set_column_type(curcol, tds_get_byte(tds));	/* sets "cardinal" type */
+	tds_set_column_type(tds, curcol, tds_get_byte(tds));	/* sets "cardinal" type */
 
 	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
 
@@ -1485,7 +1484,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	}
 
 	curcol->column_usertype = tds_get_int(tds);
-	tds_set_column_type(curcol, tds_get_byte(tds));
+	tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
 	tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
@@ -1701,9 +1700,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 		curcol->column_usertype = tds_get_int(tds);
 
-		tds_set_column_type(curcol, tds_get_byte(tds));
-
-		curcol->column_varint_size = tds5_get_varint_size(curcol->column_type);
+		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
 		switch (curcol->column_varint_size) {
 		case 4:
@@ -1859,6 +1856,9 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		} else {
 			colsize = -1;
 		}
+		break;
+	case 5:
+		colsize = tds_get_int(tds);
 		break;
 	case 2:
 		colsize = tds_get_smallint(tds);
@@ -2628,10 +2628,8 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		curcol->column_usertype = tds_get_int(tds);
 
 		/* column type */
-		tds_set_column_type(curcol, tds_get_byte(tds));
+		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
-		/* FIXME this should be done by tds_set_column_type */
-		curcol->column_varint_size = tds5_get_varint_size(curcol->column_type);
 		/* column size */
 		switch (curcol->column_varint_size) {
 		case 5:
@@ -2746,55 +2744,6 @@ tds_swap_numeric(TDS_NUMERIC *num)
 	tds_swap_bytes(&(num->array[1]), tds_numeric_bytes_per_prec[num->precision] - 1);
 }
 
-
-
-/**
- * tds5_get_varint_size5() returns the size of a variable length integer
- * returned in a TDS 5.1 result string
- */
-/* TODO can we use tds_get_varint_size ?? */
-static int
-tds5_get_varint_size(int datatype)
-{
-	switch (datatype) {
-	case SYBTEXT:
-	case SYBNTEXT:
-	case SYBIMAGE:
-	case SYBVARIANT:
-		return 4;
-
-	case SYBLONGBINARY:
-	case XSYBCHAR:
-		return 5;	/* Special case */
-
-	case SYBVOID:
-	case SYBINT1:
-	case SYBBIT:
-	case SYBINT2:
-	case SYBINT4:
-	case SYBINT8:
-	case SYBDATETIME4:
-	case SYBREAL:
-	case SYBMONEY:
-	case SYBDATETIME:
-	case SYBFLT8:
-	case SYBMONEY4:
-	case SYBSINT1:
-	case SYBUINT2:
-	case SYBUINT4:
-	case SYBUINT8:
-		return 0;
-
-	case XSYBNVARCHAR:
-	case XSYBVARCHAR:
-	case XSYBBINARY:
-	case XSYBVARBINARY:
-		return 2;
-
-	default:
-		return 1;
-	}
-}
 
 /**
  * tds_process_compute_names() processes compute result sets.  
