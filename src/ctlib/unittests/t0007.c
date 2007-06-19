@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.8 2003-01-28 06:57:32 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.9 2007-06-19 12:07:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -156,7 +156,7 @@ main(int argc, char **argv)
 						return 1;
 					}
 					if (ind[2] == 0) {
-						fprintf(stderr, "Col 2 returned not NULL\n");
+						fprintf(stderr, "Col 3 returned not NULL (ind %d len %d)\n", (int) ind[2], (int) datalength[2]);
 						return 1;
 					}
 					if (strcmp(name[2], "")) {

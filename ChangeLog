@@ -1,3 +1,9 @@
+Tue Jun 19 14:06:55 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/t0007.c src/odbc/unittests/prepare_results.c:
+	- more verbose
+	- fix for possible Sybase conversion
+	* src/odbc/odbc.c: additional check if no dm
+
 Mon Jun 18 15:20:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c:
 	- patch #1736289 for bcp/bulk insert problem
