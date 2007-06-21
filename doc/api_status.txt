@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.55 2007-06-06 10:26:28 freddy77 Exp $s
+# $Id: api_status.txt,v 1.56 2007-06-21 09:31:20 freddy77 Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -466,7 +466,7 @@ ctlib	(all)	ct_con_drop	OK	Deallocate a CS_CONNECTION structure.
 ctlib	(all)	ct_con_props	OK	Set or retrieve connection structure properties.
 ctlib	(all)	ct_config	OK	Set or retrieve context properties.
 ctlib	(all)	ct_connect	OK	Connect to a server.
-ctlib	(all)	ct_cursor       OK	Initiate a Client-Library cursor command.
+ctlib	(all)	ct_cursor	OK	Initiate a Client-Library cursor command.
 ctlib	(all)	ct_data_info	OK	Define or retrieve a data I/O descriptor structure.
 ctlib	(all)	ct_debug		Manage debug library operations.
 ctlib	(all)	ct_describe	OK	Return a description of result data.
