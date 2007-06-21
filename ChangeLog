@@ -1,3 +1,10 @@
+Thu Jun 21 09:19:32 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild: test for Sybase 15
+	* src/odbc/unittests/data.c: bigint for Sybase
+	* src/tds/data.c src/tds/mem.c src/tds/read.c src/tds/tds_checks.c:
+	- add support for Sybase bigint
+	- do not check decault capabilities if not necessary
+
 Tue Jun 19 15:30:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/ct.c src/odbc/odbc_util.c:
 	* src/pool/stream.c src/tds/data.c src/tds/net.c:

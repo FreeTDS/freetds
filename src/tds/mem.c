@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.168 2007-05-14 08:18:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.169 2007-06-21 07:21:21 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -619,10 +619,11 @@ tds_alloc_locale(void)
 }
 static const unsigned char defaultcaps[] = { 
      /* type,  len, data, data, data, data, data, data, data, data, data (9 bytes) */
-	0x01, 0x09, 0x00, 0x08, 0x06, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
-	0x02, 0x09, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x68, 0x00, 0x00, 0x00
+	0x01, 0x09, 0x00, 0x08, 0x0E, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
+	0x02, 0x09, 0x00, 0x00, 0x00, 0x00, 0x02, 0x68, 0x00, 0x00, 0x00
 };
 
+#if ENABLE_EXTRA_CHECKS
 /*
  * Default capabilities as of December 2006.  
  */
@@ -640,7 +641,7 @@ static const TDS_TINYINT request_capabilities[] =
 	  TDS_REQ_CSR_ABS, TDS_REQ_CSR_REL, TDS_REQ_CSR_MULTI					/* capability.data[4] */
 	, TDS_REQ_CON_INBAND,                   TDS_REQ_PROTO_TEXT, TDS_REQ_PROTO_BULK, 
 	  TDS_REQ_DATA_SENSITIVITY, TDS_REQ_DATA_BOUNDARY					/* capability.data[3] */
-	,                           TDS_REQ_DATA_FLTN, TDS_REQ_DATA_BITN			/* capability.data[2] */
+	,                           TDS_REQ_DATA_FLTN, TDS_REQ_DATA_BITN, TDS_REQ_DATA_INT8	/* capability.data[2] */
 	, TDS_REQ_WIDETABLE									/* capability.data[1] */
 	};
 
@@ -649,7 +650,6 @@ static const TDS_TINYINT response_capabilities[] =
 	, TDS_RES_PROTO_NOTEXT
 	, TDS_RES_PROTO_NOBULK
 	, TDS_RES_NOTDSDEBUG
-	, TDS_RES_DATA_NOINT8
 	};
 
 /*
@@ -686,6 +686,40 @@ tds_capability_set(unsigned char capabilities[], int capability, size_t len)
 	return capabilities;
 }
 
+static void
+tds_capability_test(void)
+{
+	unsigned char buf_capabilities[TDS_MAX_CAPABILITY];
+	unsigned char *capabilities[2];
+	int i, c, ncap;
+	const TDS_TINYINT* pcap;
+
+	/*
+	 * Set the capabilities using the enumerated types, one at a time.  
+	 */
+	memset(buf_capabilities, 0, TDS_MAX_CAPABILITY);
+	capabilities[0] = buf_capabilities;
+	capabilities[1] = buf_capabilities + TDS_MAX_CAPABILITY / 2;
+	pcap = request_capabilities;
+	ncap = TDS_VECTOR_SIZE(request_capabilities);
+	for (c=0; c < 2; c++) {
+		const int bufsize = TDS_MAX_CAPABILITY / 2 - 2;
+		capabilities[c][0] = 1 + c; /* request/response */
+		capabilities[c][1] = bufsize;
+		for (i=0; i < ncap; i++) {
+			tds_capability_set(capabilities[c]+2, pcap[i], bufsize);
+		}
+		pcap = response_capabilities;
+		ncap = TDS_VECTOR_SIZE(response_capabilities);
+	}
+	/* 
+	 * For now, we test to make sure the enumerated set yields the same bit pattern 
+	 * that we used to create with magic numbers.  Eventually we can delete defaultcaps and the below assertion.
+	 */
+	assert(0 == memcmp(buf_capabilities, defaultcaps, TDS_MAX_CAPABILITY));
+}
+#endif
+
 /**
  * Allocate space for configure structure and initialize with default values
  * @param locale locale information (copied to configuration information)
@@ -696,9 +730,6 @@ tds_alloc_connection(TDSLOCALE * locale)
 {
 	TDSCONNECTION *connection;
 	char hostname[128];
-	int i, c, ncap;
-	const TDS_TINYINT* pcap;
-	unsigned char *capabilities[2];
 
 	TEST_MALLOC(connection, TDSCONNECTION);
 	tds_dstr_init(&connection->server_name);
@@ -743,32 +774,11 @@ tds_alloc_connection(TDSLOCALE * locale)
 	if (!tds_dstr_copy(&connection->client_host_name, hostname))
 		goto Cleanup;
 
-	memcpy(connection->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
-#if 1
-	/*
-	 * Set the capabilities using the enumerated types, one at a time.  
-	 */
-	memset(connection->capabilities, 0, TDS_MAX_CAPABILITY);
-	capabilities[0] = connection->capabilities;
-	capabilities[1] = connection->capabilities + TDS_MAX_CAPABILITY / 2;
-	pcap = request_capabilities;
-	ncap = TDS_VECTOR_SIZE(request_capabilities);
-	for (c=0; c < 2; c++) {
-		const int bufsize = TDS_MAX_CAPABILITY / 2 - 2;
-		capabilities[c][0] = 1 + c; /* request/response */
-		capabilities[c][1] = bufsize;
-		for (i=0; i < ncap; i++) {
-			tds_capability_set(capabilities[c]+2, pcap[i], bufsize);
-		}
-		pcap = response_capabilities;
-		ncap = TDS_VECTOR_SIZE(response_capabilities);
-	}
-	/* 
-	 * For now, we test to make sure the enumerated set yields the same bit pattern 
-	 * that we used to create with magic numbers.  Eventually we can delete defaultcaps and the below assertion.
-	 */
-	assert(0 == memcmp(connection->capabilities, defaultcaps, TDS_MAX_CAPABILITY));
+#if ENABLE_EXTRA_CHECKS
+	tds_capability_test();
 #endif
+	memcpy(connection->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
+
 	return connection;
       Cleanup:
 	tds_free_connection(connection);

@@ -171,6 +171,19 @@ cd logs
 upload "$OUTDIR/test2" '*.html'
 cd ..
 
+# do tests with sybase 15 server
+if test "$OUTDIR" = "out"; then
+	cp -f ../PWD.sybase15 PWD
+	read_pwd_fields
+	rm -rf logs
+	mkdir logs
+	./misc/test-auto.sh --no-build > logs/log.txt
+	cd logs
+	../misc/online.pl < log.txt
+	upload "$OUTDIR/test3" '*.html'
+	cd ..
+fi
+
 # test autodiscovery
 if test "$OUTDIR" = "out"; then
 	save_coverage

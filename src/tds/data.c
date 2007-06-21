@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.17 2007-06-19 13:31:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.18 2007-06-21 07:21:21 freddy77 Exp $");
 
 #if !ENABLE_EXTRA_CHECKS
 static int tds_get_cardinal_type(int datatype);
@@ -157,6 +157,8 @@ tds_get_cardinal_type(int datatype)
 	case XSYBNCHAR:
 	case XSYBCHAR:
 		return SYBCHAR;
+	case SYB5INT8:
+		return SYBINT8;
 	}
 	return datatype;
 }
@@ -213,6 +215,8 @@ tds_get_varint_size(TDSSOCKET * tds, int datatype)
 		case SYBLONGBINARY:
 		case SYBLONGCHAR:
 			return 5;
+		case SYB5INT8:
+			return 0;
 		}
 	}
 	return 1;

@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.102 2006-12-10 21:08:00 jklowden Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.103 2007-06-21 07:21:21 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -308,6 +308,7 @@ tds_get_size_by_type(int servertype)
 	case SYBINT4:
 		return 4;
 		break;
+	case SYB5INT8:
 	case SYBINT8:
 		return 8;
 		break;
