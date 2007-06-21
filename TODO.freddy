@@ -4,6 +4,8 @@ Probably I'm the only person who can fully understand these notes...
 Fixes
 -----
 IMPORTANT fix done_handling
+ODBC RPC check (+chained rpcs?? see below)
+ODBC cursor check (cfr "Progress on CVS")
 
 Cursor and dynamic
 ------------------
@@ -14,6 +16,7 @@ Tests:
  - multiple RPCs check returns (possible??)
    (see odbc_set_return_status, odbc_set_return_params and odbc_get_param_len
    calls)
+   add multiple chained RPCs for odbc and mssql7+...
 
 Row handling
 ------------
