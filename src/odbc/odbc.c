@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001  Brian Bruns
- * Copyright (C) 2002, 2003, 2004, 2005, 2006  Frediano Ziglio
+ * Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.447 2007-06-19 12:07:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.448 2007-06-25 08:21:26 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -948,7 +948,6 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 	case SQL_UPDATE:
 		op = TDS_CURSOR_UPDATE;
 		/* prepare paremeters for update */
-		/* TODO exclude keys ?? */
 		/* scan all columns and build parameter list */
 		params = odbc_build_update_params(stmt, irow >= 1 ? irow - 1 : 0);
 		if (!params) {
@@ -2817,9 +2816,14 @@ _SQLExecute(TDS_STMT * stmt)
 
 			if (stmt->cursor)
 				tds_release_cursor(tds, stmt->cursor);
-			/* TODO check errors */
 			stmt->cursor = cursor =
 				tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
+			if (!cursor) {
+				stmt->dbc->current_statement = NULL;
+
+				odbc_errs_add(&stmt->errs, "HY001", NULL);
+				ODBC_RETURN(stmt, SQL_ERROR);
+			}
 
 			/* TODO cursor add enums for tds7 */
 			switch (stmt->attr.cursor_type) {
@@ -3253,19 +3257,10 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 
 	/* handle cursors, fetch wanted rows */
 	if (stmt->cursor && odbc_lock_statement(stmt)) {
-		/* FIXME handle errors */
 		TDSCURSOR *cursor = stmt->cursor;
 		TDS_CURSOR_FETCH fetch_type = TDS_CURSOR_FETCH_NEXT;
 
-		if (cursor->cursor_rows != num_rows) {
-			int send = 0;
-			cursor->cursor_rows = num_rows;
-			tds_cursor_setrows(tds, cursor, &send);
-			/* FIXME handle change rows (tds5) */
-		}
-
 		switch (FetchOrientation) {
-		default:
 		case SQL_FETCH_NEXT:
 			break;
 		case SQL_FETCH_FIRST:
@@ -3283,15 +3278,31 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 		case SQL_FETCH_RELATIVE:
 			fetch_type = TDS_CURSOR_FETCH_RELATIVE;
 			break;
-		/* TODO cursor bookmark, at least error ...*/
+		/* TODO cursor bookmark */
+		default:
+			odbc_errs_add(&stmt->errs, "HYC00", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 
-		/* TODO handle errors ...*/
-		tds_cursor_fetch(tds, cursor, fetch_type, FetchOffset);
-		/* FIXME correct here ?? */
-		tds_set_state(tds, TDS_PENDING);
+		if (cursor->cursor_rows != num_rows) {
+			int send = 0;
+			cursor->cursor_rows = num_rows;
+			/* TODO handle change rows (tds5) */
+			/*
+			 * TODO curerntly we support cursors only using tds7+
+			 * so this function can't fail but remember to add error
+			 * check when tds5 will be supported
+			 */
+			tds_cursor_setrows(tds, cursor, &send);
+		}
 
-		/* FIXME shit ...*/
+		if (tds_cursor_fetch(tds, cursor, fetch_type, FetchOffset) != TDS_SUCCEED) {
+			/* TODO what kind of error ?? */
+			ODBC_SAFE_ERROR(stmt);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+
+		/* TODO handle errors in a better way */
 		odbc_process_tokens(stmt, TDS_RETURN_ROW|TDS_STOPAT_COMPUTE|TDS_STOPAT_ROW);
 		stmt->row_status = PRE_NORMAL_ROW;
 	}
