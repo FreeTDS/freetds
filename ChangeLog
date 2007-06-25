@@ -1,3 +1,8 @@
+Mon Jun 25 11:47:14 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/api_status.txt include/cspublic.h include/ctlib.h:
+	* src/ctlib/cs.c src/ctlib/ct.c:
+	- applied patch #1729392, it adds support for ctlib locale
+
 Mon Jun 25 10:20:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: review cursors
 

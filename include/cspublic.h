@@ -34,7 +34,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.57 2006-08-28 07:40:05 freddy77 Exp $";
+static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.58 2007-06-25 09:48:20 freddy77 Exp $";
 static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 #define CS_PUBLIC
@@ -498,9 +498,12 @@ enum
 
 #define CS_DEALLOC	711
 
-#define CS_LC_ALL	7
-#define CS_SYB_LANG	8
-#define CS_SYB_CHARSET	9
+#define CS_LC_ALL	     7
+#define CS_SYB_LANG	     8
+#define CS_SYB_CHARSET	     9
+#define CS_SYB_SORTORDER     10
+#define CS_SYB_COLLATE CS_SYB_SORTORDER
+#define CS_SYB_LANG_CHARSET  11
 
 #define CS_BLK_IN	1
 #define CS_BLK_OUT	2

@@ -49,7 +49,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.62 2006-08-23 14:26:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.63 2007-06-25 09:48:20 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -191,6 +191,125 @@ _csclient_msg(CS_CONTEXT * ctx, const char *funcname, int layer, int origin, int
 	}
 
 	va_end(ap);
+}
+
+/**
+ * Allocate new CS_LOCALE and initialize it
+ * returns NULL on out of memory errors 
+ */
+static CS_LOCALE *
+_cs_locale_alloc(void)
+{
+	return (CS_LOCALE *) calloc(1, sizeof(CS_LOCALE));
+}
+
+static void
+_cs_locale_free_contents(CS_LOCALE *locale)
+{
+	/* free strings */
+	if (locale->language) {
+		free(locale->language);
+		locale->language = NULL;
+	}
+	if (locale->charset) {
+		free(locale->charset);
+		locale->charset = NULL;
+	}
+	if (locale->time) {
+		free(locale->time);
+		locale->time = NULL;
+	}
+	if (locale->collate) {
+		free(locale->collate);
+		locale->collate = NULL;
+	}
+}
+
+void 
+_cs_locale_free(CS_LOCALE *locale)
+{
+	/* free contents */
+	_cs_locale_free_contents(locale);
+
+	/* free the data structure */
+	free(locale);
+}
+
+/* returns 0 on out of memory errors, 1 for OK */
+int
+_cs_locale_copy_inplace(CS_LOCALE *new_locale, CS_LOCALE *orig)
+{
+	_cs_locale_free_contents(new_locale);
+	if (orig->language) {
+		new_locale->language = strdup(orig->language);
+		if (!new_locale->language)
+			goto Cleanup;
+	}
+
+	if (orig->charset) {
+		new_locale->charset = strdup(orig->charset);
+		if (!new_locale->charset)
+			goto Cleanup;
+	}
+
+	if (orig->time) {
+		new_locale->time = strdup(orig->time);
+		if (!new_locale->time)
+			goto Cleanup;
+	}
+
+	if (orig->collate) {
+		new_locale->collate = strdup(orig->collate);
+		if (!new_locale->collate)
+			goto Cleanup;
+	}
+
+	return 1;
+
+Cleanup:
+	_cs_locale_free_contents(new_locale);
+	return 0;
+}
+
+/* returns NULL on out of memory errors */
+CS_LOCALE *
+_cs_locale_copy(CS_LOCALE *orig)
+{
+	CS_LOCALE *new_locale;
+
+	new_locale = _cs_locale_alloc();
+	if (!new_locale)
+		return NULL;
+
+	if (orig->language) {
+		new_locale->language = strdup(orig->language);
+		if (!new_locale->language)
+			goto Cleanup;
+	}
+
+	if (orig->charset) {
+		new_locale->charset = strdup(orig->charset);
+		if (!new_locale->charset)
+			goto Cleanup;
+	}
+
+	if (orig->time) {
+		new_locale->time = strdup(orig->time);
+		if (!new_locale->time)
+			goto Cleanup;
+	}
+
+	if (orig->collate) {
+		new_locale->collate = strdup(orig->collate);
+		if (!new_locale->collate)
+			goto Cleanup;
+	}
+
+	return new_locale;
+
+Cleanup:
+	_cs_locale_free(new_locale);
+	return NULL;
 }
 
 CS_RETCODE
@@ -745,22 +864,217 @@ TDSDATEREC dr;
 CS_RETCODE
 cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr)
 {
-	/* TODO */
+	CS_LOCALE *tds_csloc;
+
+	tds_csloc = _cs_locale_alloc();
+	if (!tds_csloc)
+		return CS_FAIL;
+
+	*locptr = tds_csloc;
 	return CS_SUCCEED;
 }
 
 CS_RETCODE
 cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale)
 {
-	/* TODO */
+	if (!locale)
+		return CS_FAIL;
+
+	_cs_locale_free(locale);
 	return CS_SUCCEED;
 }
 
 CS_RETCODE
 cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-	/* TODO */
-	return CS_SUCCEED;
+	CS_RETCODE code = CS_FAIL;
+
+	if (action == CS_SET) {
+		switch (type) {
+		case CS_LC_ALL:
+			/* what to do here if there is locale data? */
+			if (!buffer) {
+				code = CS_SUCCEED;
+			}
+			break;
+
+		case CS_SYB_CHARSET:
+			if (buflen == CS_NULLTERM) {
+				buflen = strlen((char *)buffer);
+			}
+			
+			if (locale->charset) {
+				free(locale->charset);
+			}
+			locale->charset = (char *)malloc(buflen + 1);
+			if (!locale->charset)
+				break;
+
+			strncpy(locale->charset, (char *)buffer, buflen);
+			locale->charset[buflen] = '\0';
+			code = CS_SUCCEED;
+			break;
+
+		case CS_SYB_LANG:
+			if (buflen == CS_NULLTERM) {
+				buflen = strlen((char *)buffer);
+			}
+			
+			if (locale->language) {
+				free(locale->language);
+			}
+			locale->language = (char *)malloc(buflen + 1);
+			if (!locale->language)
+				break;
+
+			strncpy(locale->language, (char *)buffer, buflen);
+			locale->language[buflen] = '\0';
+			code = CS_SUCCEED;
+			break;
+
+		case CS_SYB_LANG_CHARSET:
+		{
+			int i;
+			char *b = (char *)buffer;
+
+			if (buflen == CS_NULLTERM) {
+				buflen = strlen(b);
+			}
+
+			/* find '.' character */
+			for (i = 0; i < buflen; ++i) {
+				if (b[i] == '.') {
+					break;
+				}					
+			}
+			/* not found */
+			if (i == buflen) {
+				break;
+			}
+			if (i) {
+				if (locale->language) {
+					free(locale->language);
+				}
+				locale->language = (char *)malloc(i + 1);
+				if (!locale->language)
+					break;
+
+				strncpy(locale->language, b, i);
+				locale->language[i] = '\0';
+			}
+			if (i != (buflen - 1)) {
+				if (locale->charset) {
+					free(locale->charset);
+				}
+				locale->charset = (char *)malloc(buflen - i);
+				if (!locale->charset)
+					break;
+				
+				strncpy(locale->charset, b + i + 1, buflen - i - 1);
+				locale->charset[buflen - i - 1] = '\0';
+			}
+			code = CS_SUCCEED;
+			break;
+		}
+
+		/* TODO commented out until the code works end-to-end
+		case CS_SYB_SORTORDER:
+			if (buflen == CS_NULLTERM) {
+				buflen = strlen((char *)buffer);
+			}
+			
+			if (locale->collate) {
+				free(locale->collate);
+			}
+			locale->collate = (char *)malloc(buflen + 1);
+			if (!locale->collate)
+				break;
+
+			strncpy(locale->collate, (char *)buffer, buflen);
+			locale->collate[buflen] = '\0';
+			code = CS_SUCCEED;
+			break;
+		*/
+		}
+	}
+	else if (action == CS_GET)
+	{
+		int tlen;
+
+		switch (type) {
+		case CS_SYB_CHARSET:
+			tlen = (locale->charset ? strlen(locale->charset) : 0) + 1;
+			if (buflen < tlen)
+			{
+				if (outlen)
+					*outlen = tlen;
+				break;
+			}
+			if (locale->charset)
+				strcpy((char *)buffer, locale->charset);
+			else
+				((char *)buffer)[0] = '\0';
+			code = CS_SUCCEED;
+			break;
+
+		case CS_SYB_LANG:
+			tlen = (locale->language ? strlen(locale->language) : 0) + 1;
+			if (buflen < tlen)
+			{
+				if (outlen)
+					*outlen = tlen;
+				break;
+			}
+			if (locale->language)
+				strcpy((char *)buffer, locale->language);
+			else
+				((char *)buffer)[0] = '\0';
+			code = CS_SUCCEED;
+			break;
+
+		case CS_SYB_LANG_CHARSET:
+		{
+			int clen;
+
+			tlen = (locale->language ? strlen(locale->language) : 0) + 1;
+			clen = (locale->charset ? strlen(locale->charset) : 0) + 1;
+			
+			if (buflen < (tlen + clen))
+			{
+				if (outlen)
+					*outlen = tlen + clen;
+				break;
+			}
+			if (locale->language)
+				strcpy((char *)buffer, locale->language);
+			else
+				((char *)buffer)[0] = '\0';
+			strcat((char *)buffer, ".");
+			if (locale->charset) {
+				tlen = strlen((char *)buffer);
+				strcpy((char *)buffer + tlen, locale->charset);
+			}
+			code = CS_SUCCEED;
+			break;
+		}
+
+		case CS_SYB_SORTORDER:
+			tlen = (locale->collate ? strlen(locale->collate) : 0) + 1;
+			if (buflen < tlen)
+			{
+				if (outlen)
+					*outlen = tlen;
+				break;
+			}
+			if (locale->collate)
+				strcpy((char *)buffer, locale->collate);
+			else
+				((char *)buffer)[0] = '\0';
+			code = CS_SUCCEED;
+			break;
+		}
+	}
+	return code;
 }
 
 CS_RETCODE

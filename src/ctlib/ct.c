@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.173 2007-06-19 13:31:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.174 2007-06-25 09:48:20 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -388,7 +388,15 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		}
 		case CS_LOC_PROP:
-			con->locale = (CS_LOCALE *) buffer;
+			/* sybase docs say that this structure must be copied, not referenced */
+			if (!buffer)
+				return CS_FAIL;
+
+			if (con->locale)
+				_cs_locale_free(con->locale);
+			con->locale = _cs_locale_copy((CS_LOCALE *) buffer);
+			if (!con->locale)
+				return CS_FAIL;
 			break;
 		case CS_USERDATA:
 			if (con->userdata)
@@ -470,7 +478,11 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->server_name), buflen);
 			break;
 		case CS_LOC_PROP:
-			buffer = (CS_VOID *) con->locale;
+			if (buflen != CS_UNUSED || !con->locale || !buffer)
+				return CS_FAIL;
+
+			if (!_cs_locale_copy_inplace((CS_LOCALE *) buffer, con->locale))
+				return CS_FAIL;
 			break;
 		case CS_USERDATA:
 			tdsdump_log(TDS_DBG_INFO2, "fetching userdata %p\n", con->userdata);
@@ -581,17 +593,45 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		con->tds_socket = NULL;
 		return CS_FAIL;
 	}
-	if (tds_connect(con->tds_socket, connection) == TDS_FAIL) {
-		tds_free_socket(con->tds_socket);
-		con->tds_socket = NULL;
-		tds_free_connection(connection);
-		tdsdump_log(TDS_DBG_FUNC, "leaving ct_connect() returning %d\n", CS_FAIL);
-		return CS_FAIL;
+
+	/* override locale settings with CS_CONNECTION settings, if any */
+	if (con->locale) {
+		if (con->locale->charset) {
+			if (!tds_dstr_copy(&connection->server_charset, con->locale->charset)) 
+				goto Cleanup;
+		}
+		if (con->locale->language) {
+			if (!tds_dstr_copy(&connection->language, con->locale->language)) 
+				goto Cleanup;
+		}
+		if (con->locale->time) {
+			if (con->tds_socket->date_fmt)
+				free(con->tds_socket->date_fmt);
+			/* TODO convert format from CTLib to libTDS */
+			con->tds_socket->date_fmt = strdup(con->locale->time);
+			if (!con->tds_socket->date_fmt)
+				goto Cleanup;
+		}
+		/* TODO how to handle this?
+		if (con->locale->collate) {
+		}
+		*/
 	}
+
+	if (tds_connect(con->tds_socket, connection) == TDS_FAIL)
+		goto Cleanup;
+
 	tds_free_connection(connection);
 
 	tdsdump_log(TDS_DBG_FUNC, "leaving ct_connect() returning %d\n", CS_SUCCEED);
 	return CS_SUCCEED;
+
+Cleanup:
+	tds_free_socket(con->tds_socket);
+	con->tds_socket = NULL;
+	tds_free_connection(connection);
+	tdsdump_log(TDS_DBG_FUNC, "leaving ct_connect() returning %d\n", CS_FAIL);
+	return CS_FAIL;
 }
 
 CS_RETCODE
@@ -1846,6 +1886,8 @@ ct_con_drop(CS_CONNECTION * con)
 				free(freeptr);
 			}
 		}
+		if (con->locale)
+			_cs_locale_free(con->locale);
 		free(con);
 	}
 	return CS_SUCCEED;

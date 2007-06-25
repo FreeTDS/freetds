@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.56 2007-06-21 09:31:20 freddy77 Exp $s
+# $Id: api_status.txt,v 1.57 2007-06-25 09:48:20 freddy77 Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -509,9 +509,9 @@ ctlib	(all)	cs_ctx_global	OK	Allocate or return a CS_CONTEXT structure.
 ctlib	(all)	cs_diag	OK	Manage inline error handling.
 ctlib	(all)	cs_dt_crack	OK	Convert a machine-readable datetime value into a user-accessible format.
 ctlib	(all)	cs_dt_info	OK	Set or retrieve language-specific datetime information.
-ctlib	(all)	cs_loc_alloc	stub	Allocate a CS_LOCALE structure.
-ctlib	(all)	cs_loc_drop	stub	Deallocate a CS_LOCALE structure.
-ctlib	(all)	cs_locale	stub	Load a CS_LOCALE structure with localization values or retrieve the locale name previously used to load a CS_LOCALE structure.
+ctlib	(all)	cs_loc_alloc	OK	Allocate a CS_LOCALE structure.
+ctlib	(all)	cs_loc_drop	OK	Deallocate a CS_LOCALE structure.
+ctlib	(all)	cs_locale	partial	Load a CS_LOCALE structure with localization values or retrieve the locale name previously used to load a CS_LOCALE structure.
 ctlib	(all)	cs_manage_convert	stub	Install or retrieve a user-defined character set conversion routine.
 ctlib	(all)	cs_objects	stub	Save, retrieve, or clear objects and data associated with them.
 ctlib	(all)	cs_set_convert	stub	Install or retrieve a user-defined conversion routine.
