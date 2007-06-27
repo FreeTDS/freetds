@@ -1023,12 +1023,40 @@ locale info   locale informations (unknown)
 <a name="t164">&nbsp;</a> <hr>
 <b class="section">"tabname" (0xA4 164)</b>
 <p>
-No information.
+TODO
 
 <a name="t165">&nbsp;</a> <hr>
-<b class="section">"col info" (0xA5 165)</b>
-<p>
-No information.
+<b class="section">Column Info (0xA5 165)</b>
+
+<pre>
+ INT16          varies
++--------------+-------------+
+| total length | column info |
++--------------+-------------+
+</pre>
+
+<p>column info:</p>
+
+<pre>
+ INT8    INT8          INT8    INT8          XCHAR[n]
++-------+-------------+-------+-------------+-------------+
+| index | table index | flags | name length | column name |
+|       |             |       |  (opt)      |  (opt)      |
++-------+-------------+-------+-------------+-------------+
+
+index        index in result format (1-based)
+table index  index in previous TabName (1-based)
+             0 means no table (ie computed)
+flags        set of flags
+             0x04 expression
+             0x08 key
+             0x10 hidden
+             0x20 column name present
+name length  length of following column
+column name  real column name (result contain the label)
+</pre>
+
+<p>This token follow TabName token</p>
 
 <a name="t167">&nbsp;</a>
 <a name="t174">&nbsp;</a> <hr>

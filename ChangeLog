@@ -1,3 +1,7 @@
+Wed Jun 27 16:51:30 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/tds.html: add Column Info token
+	* src/odbc/unittests/timeout2.c: portability fix
+
 Mon Jun 25 11:47:14 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/api_status.txt include/cspublic.h include/ctlib.h:
 	* src/ctlib/cs.c src/ctlib/ct.c:

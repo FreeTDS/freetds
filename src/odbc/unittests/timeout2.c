@@ -14,10 +14,10 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.3 2007-04-19 11:44:16 freddy77 Exp $";
+static char software_version[] = "$Id: timeout2.c,v 1.4 2007-06-27 14:52:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(WIN32)
 #define sleep(s) Sleep((s)*1000)
 #endif
 
