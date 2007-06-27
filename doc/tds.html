@@ -1021,18 +1021,48 @@ locale info   locale informations (unknown)
 <p>TODO: optional possible?? collate infos ??</p>
 
 <a name="t164">&nbsp;</a> <hr>
-<b class="section">"tabname" (0xA4 164)</b>
-<p>
-TODO
+<b class="section">TabName (0xA4 164)</b>
+
+<p>TDS4/5/7:</p>
+
+<pre>
+ INT16          INT16         XCHAR[n]
++--------------+-------------+------------+
+| total length | name length | table name | ...
++--------------+-------------+------------+
+
+name length   table name length
+table name    table name
+</pre>
+
+<p>TDS8:</p>
+
+<pre>
+ INT16          varies
++--------------+-------------+
+| total length | table names |
++--------------+-------------+
+
+table name:
+ INT8              INT16              XCHAR[n]
++-----------------+------------------+----------------+
+| # of components | component length | component name |
++-----------------+------------------+----------------+
+
+ie:
+  name        -&gt; 01  04 00  ucs2le "name"
+  db..name    -&gt; 03  02 00  ucs2le "db"  00 00  04 00  ucs2le "name"
+  db.dbo.name -&gt; 03  02 00  ucs2le "db"  03 00  ucs2le "dbo"  04 00  ucs2le "name"
+</pre>
 
 <a name="t165">&nbsp;</a> <hr>
 <b class="section">Column Info (0xA5 165)</b>
 
 <pre>
  INT16          varies
-+--------------+-------------+
-| total length | column info |
-+--------------+-------------+
++--------------+--------------+
+| total length | column infos |
++--------------+--------------+
 </pre>
 
 <p>column info:</p>
