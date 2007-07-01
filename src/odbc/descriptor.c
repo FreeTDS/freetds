@@ -187,7 +187,7 @@ desc_copy(TDS_DESC * dest, TDS_DESC * src)
 #undef STR_OP
 
 		/* copy strings */
-#define STR_OP(name) if (!tds_dstr_copy(&dest_rec->name, tds_dstr_cstr(&src_rec->name))) goto Cleanup
+#define STR_OP(name) if (!tds_dstr_dup(&dest_rec->name, &src_rec->name)) goto Cleanup
 		SQL_DESC_STRINGS;
 #undef STR_OP
 	}

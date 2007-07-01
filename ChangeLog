@@ -1,3 +1,11 @@
+Sun Jul 01 12:10:31 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsstring.h src/odbc/connectparams.c:
+	* src/odbc/descriptor.c src/odbc/odbc.c src/tds/config.c:
+	* src/tds/tdsstring.c:
+	- added tds_dstr_dup to duplicate DSTR
+	- use tds_dstr_dup
+	- improve tds_dstr_set
+
 Wed Jun 27 16:51:30 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/tds.html: add Column Info token
 	* src/odbc/unittests/timeout2.c: portability fix

@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.126 2007-03-29 14:26:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.127 2007-07-01 10:10:52 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -537,39 +537,39 @@ static void
 tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 {
 	if (!tds_dstr_isempty(&login->server_name)) {
-		tds_dstr_copy(&connection->server_name, tds_dstr_cstr(&login->server_name));
+		tds_dstr_dup(&connection->server_name, &login->server_name);
 	}
 	if (login->major_version || login->minor_version) {
 		connection->major_version = login->major_version;
 		connection->minor_version = login->minor_version;
 	}
 	if (!tds_dstr_isempty(&login->language)) {
-		tds_dstr_copy(&connection->language, tds_dstr_cstr(&login->language));
+		tds_dstr_dup(&connection->language, &login->language);
 	}
 	if (!tds_dstr_isempty(&login->server_charset)) {
-		tds_dstr_copy(&connection->server_charset, tds_dstr_cstr(&login->server_charset));
+		tds_dstr_dup(&connection->server_charset, &login->server_charset);
 	}
 	if (!tds_dstr_isempty(&login->client_charset)) {
-		tds_dstr_copy(&connection->client_charset, tds_dstr_cstr(&login->client_charset));
+		tds_dstr_dup(&connection->client_charset, &login->client_charset);
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "client_charset",
 			    tds_dstr_cstr(&connection->client_charset));
 	}
 	if (!tds_dstr_isempty(&login->client_host_name)) {
-		tds_dstr_copy(&connection->client_host_name, tds_dstr_cstr(&login->client_host_name));
+		tds_dstr_dup(&connection->client_host_name, &login->client_host_name);
 	}
 	if (!tds_dstr_isempty(&login->app_name)) {
-		tds_dstr_copy(&connection->app_name, tds_dstr_cstr(&login->app_name));
+		tds_dstr_dup(&connection->app_name, &login->app_name);
 	}
 	if (!tds_dstr_isempty(&login->user_name)) {
-		tds_dstr_copy(&connection->user_name, tds_dstr_cstr(&login->user_name));
+		tds_dstr_dup(&connection->user_name, &login->user_name);
 	}
 	if (!tds_dstr_isempty(&login->password)) {
 		/* for security reason clear memory */
 		tds_dstr_zero(&connection->password);
-		tds_dstr_copy(&connection->password, tds_dstr_cstr(&login->password));
+		tds_dstr_dup(&connection->password, &login->password);
 	}
 	if (!tds_dstr_isempty(&login->library)) {
-		tds_dstr_copy(&connection->library, tds_dstr_cstr(&login->library));
+		tds_dstr_dup(&connection->library, &login->library);
 	}
 	if (login->encryption_level) {
 		connection->encryption_level = login->encryption_level;

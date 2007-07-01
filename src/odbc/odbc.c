@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.448 2007-06-25 08:21:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.449 2007-07-01 10:10:52 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -364,7 +364,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	}
 
 	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
-		tds_dstr_copy(&connection->database, tds_dstr_cstr(&dbc->attr.current_catalog));
+		tds_dstr_dup(&connection->database, &dbc->attr.current_catalog);
 
 	/* parse the DSN string */
 	odbc_parse_connect_string((const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connection);
@@ -1639,7 +1639,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	}
 
 	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
-		tds_dstr_copy(&connection->database, tds_dstr_cstr(&dbc->attr.current_catalog));
+		tds_dstr_dup(&connection->database, &dbc->attr.current_catalog);
 
 	/*
 	 * username/password are never saved to ini file,
