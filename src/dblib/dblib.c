@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.286 2007-06-17 07:09:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.287 2007-07-03 13:39:43 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2695,8 +2695,7 @@ dbcolsource(DBPROCESS * dbproc, int column)
 
 	_DB_GETCOLINFO(NULL);
 
-	assert(colinfo->column_name[colinfo->column_namelen] == 0);
-	return colinfo->column_name;
+	return colinfo->table_column_name ? colinfo->table_column_name : colinfo->column_name;
 }
 
 /**

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.271 2007-06-19 13:31:33 freddy77 Exp $ */
+/* $Id: tds.h,v 1.272 2007-07-03 13:39:43 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -956,6 +956,7 @@ typedef struct tds_column
 
 	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
+	char * table_column_name;
 
 	unsigned char *column_data;
 	void (*column_data_free)(struct tds_column *column);

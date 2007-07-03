@@ -44,7 +44,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.36 2007-04-30 13:03:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.37 2007-07-03 13:39:43 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -438,6 +438,10 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 		curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
 		curcol->char_conv = resinfo->columns[i]->char_conv;
 		memcpy(curcol->column_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
+		if (curcol->table_column_name)
+			TDS_ZERO_FREE(curcol->table_column_name);
+		if (resinfo->columns[i]->table_column_name)
+			curcol->table_column_name = strdup(resinfo->columns[i]->table_column_name);
 		curcol->column_nullable = resinfo->columns[i]->column_nullable;
 		curcol->column_identity = resinfo->columns[i]->column_identity;
 		curcol->column_timestamp = resinfo->columns[i]->column_timestamp;

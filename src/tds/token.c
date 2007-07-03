@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005 Frediano Ziglio
+ * Copyright (C) 2005, 2006, 2007  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -33,6 +33,7 @@
 #include <assert.h>
 
 #include "tds.h"
+#include "tdsstring.h"
 #include "tdsconvert.h"
 #include "tdsiconv.h"
 #include "tds_checks.h"
@@ -41,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.333 2007-06-19 13:31:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.334 2007-07-03 13:39:43 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -50,7 +51,8 @@ static int tds7_process_compute_result(TDSSOCKET * tds);
 static int tds_process_result(TDSSOCKET * tds);
 static int tds_process_col_name(TDSSOCKET * tds);
 static int tds_process_col_fmt(TDSSOCKET * tds);
-static int tds_process_colinfo(TDSSOCKET * tds);
+static int tds_process_tabname(TDSSOCKET *tds);
+static int tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names);
 static int tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid);
 static int tds_process_cursor_tokens(TDSSOCKET * tds);
 static int tds_process_row(TDSSOCKET * tds);
@@ -218,12 +220,14 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_LOGINACK_TOKEN:
 	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
-	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
 		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
+	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
+		return tds_process_tabname(tds);
+		break;
 	case TDS_COLINFO_TOKEN:
-		return tds_process_colinfo(tds);
+		return tds_process_colinfo(tds, NULL, 0);
 		break;
 	case TDS_ORDERBY2_TOKEN:
 		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", _tds_token_name(marker));
@@ -543,47 +547,22 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			if (tds->internal_sp_called == TDS_SP_CURSORFETCH) {
 				rc = tds7_process_result(tds);
 				marker = tds_get_byte(tds);
-				if (marker != TDS_TABNAME_TOKEN) {
+				if (marker != TDS_TABNAME_TOKEN)
 					tds_unget_byte(tds);
-				} else {
-					if ((rc = tds_process_default_tokens(tds, marker)) == TDS_FAIL)
-						break;
-					marker = tds_get_byte(tds);
-					if (marker != TDS_COLINFO_TOKEN) {
-						tds_unget_byte(tds);
-					} else {
-						tds_process_colinfo(tds);
-					}
-				}
+				else
+					rc = tds_process_tabname(tds);
 			} else {
 				SET_RETURN(TDS_ROWFMT_RESULT, ROWFMT);
 
 				rc = tds7_process_result(tds);
-				/*
-				 * handle browse information (if presents)
-				 * TODO copied from below, function or put in results process 
-				 */
+				/* handle browse information (if presents) */
 				marker = tds_get_byte(tds);
 				if (marker != TDS_TABNAME_TOKEN) {
 					tds_unget_byte(tds);
 					rc = TDS_SUCCEED;
 					break;
 				}
-				if ((rc = tds_process_default_tokens(tds, marker)) == TDS_FAIL)
-					break;
-				marker = tds_get_byte(tds);
-				if (marker != TDS_COLINFO_TOKEN) {
-					tds_unget_byte(tds);
-					rc = TDS_SUCCEED;
-					break;
-				}
-				if (rc == TDS_FAIL)
-					break;
-				else {
-					tds_process_colinfo(tds);
-					rc = TDS_SUCCEED;
-					break;
-				}
+				rc = tds_process_tabname(tds);
 			}
 			break;
 		case TDS_RESULT_TOKEN:
@@ -606,17 +585,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				tds_unget_byte(tds);
 				break;
 			}
-			if ((rc = tds_process_default_tokens(tds, marker)) == TDS_FAIL)
-				break;
-			marker = tds_get_byte(tds);
-			if (marker != TDS_COLINFO_TOKEN) {
-				tds_unget_byte(tds);
-				break;
-			}
-			if (rc == TDS_FAIL)
-				break;
-			tds_process_colinfo(tds);
-			rc = TDS_SUCCEED;
+			rc = tds_process_tabname(tds);
 			break;
 		case TDS_PARAM_TOKEN:
 			tds_unget_byte(tds);
@@ -878,6 +847,75 @@ tds_process_simple_query(TDSSOCKET * tds)
 	return ret;
 }
 
+struct namelist
+{
+	char *name;
+	struct namelist *next;
+};
+
+static void
+tds_free_namelist(struct namelist *head)
+{
+	struct namelist *cur = head, *prev;
+
+	while (cur != NULL) {
+		prev = cur;
+		cur = cur->next;
+		if (prev->name)
+			free(prev->name);
+		free(prev);
+	}
+}
+
+static int
+tds_read_namelist(TDSSOCKET * tds, int remainder, struct namelist **p_head, int large)
+{
+	struct namelist *head = NULL, *cur = NULL, *prev;
+	int num_names = 0;
+
+	/*
+	 * this is a little messy...TDS 5.0 gives the number of columns
+	 * upfront, while in TDS 4.2, you're expected to figure it out
+	 * by the size of the message. So, I use a link list to get the
+	 * colum names and then allocate the result structure, copy
+	 * and delete the linked list
+	 */
+	while (remainder > 0) {
+		int namelen;
+
+		prev = cur;
+		if (!(cur = (struct namelist *) malloc(sizeof(struct namelist)))) {
+			tds_free_namelist(head);
+			return -1;
+		}
+
+		cur->next = NULL;
+		if (prev)
+			prev->next = cur;
+		else
+			head = cur;
+
+		if (large) {
+			namelen = tds_get_smallint(tds);
+			remainder -= 2;
+		} else {
+			namelen = tds_get_byte(tds);
+			--remainder;
+		}
+
+		if (tds_alloc_get_string(tds, &cur->name, namelen) < 0) {
+			tds_free_namelist(head);
+			return -1;
+		}
+
+		remainder -= namelen;
+		num_names++;
+	}
+
+	*p_head = head;
+	return num_names;
+}
+
 /**
  * tds_process_col_name() is one half of the result set under TDS 4.2
  * it contains all the column names, a TDS_COLFMT_TOKEN should 
@@ -887,16 +925,9 @@ tds_process_simple_query(TDSSOCKET * tds)
 static int
 tds_process_col_name(TDSSOCKET * tds)
 {
-	int hdrsize, len = 0;
-	int memrc = 0;
-	int col, num_cols = 0;
-	struct tmp_col_struct
-	{
-		char *column_name;
-		int column_namelen;
-		struct tmp_col_struct *next;
-	};
-	struct tmp_col_struct *head = NULL, *cur = NULL, *prev;
+	int hdrsize;
+	int col, num_names = 0;
+	struct namelist *head = NULL, *cur = NULL, *prev;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 
@@ -904,70 +935,32 @@ tds_process_col_name(TDSSOCKET * tds)
 
 	hdrsize = tds_get_smallint(tds);
 
-	/*
-	 * this is a little messy...TDS 5.0 gives the number of columns
-	 * upfront, while in TDS 4.2, you're expected to figure it out
-	 * by the size of the message. So, I use a link list to get the
-	 * colum names and then allocate the result structure, copy
-	 * and delete the linked list
-	 */
-	/*
-	 * TODO reallocate columns
-	 * TODO code similar below, function to reuse
-	 */
-	while (len < hdrsize) {
-		prev = cur;
-		cur = (struct tmp_col_struct *)
-			malloc(sizeof(struct tmp_col_struct));
-
-		if (!cur) {
-			memrc = -1;
-			break;
-		}
-
-		if (prev)
-			prev->next = cur;
-		if (!head)
-			head = cur;
-
-		cur->column_namelen = tds_get_byte(tds);
-		memrc += tds_alloc_get_string(tds, &cur->column_name, cur->column_namelen);
-		cur->next = NULL;
-
-		len += cur->column_namelen + 1;
-		num_cols++;
-	}
+	if ((num_names = tds_read_namelist(tds, hdrsize, &head, 0)) < 0)
+		return TDS_FAIL;
 
 	/* free results/computes/params etc... */
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 
-	if ((info = tds_alloc_results(num_cols)) == NULL)
-		memrc = -1;
-	tds->current_results = tds->res_info = info;
+	if ((info = tds_alloc_results(num_names)) != NULL) {
 
-	cur = head;
+		tds->current_results = tds->res_info = info;
 
-	if (memrc != 0) {
-		while (cur != NULL) {
-			prev = cur;
-			cur = cur->next;
-			free(prev->column_name);
-			free(prev);
-		}
-		return TDS_FAIL;
-	} else {
-		for (col = 0; col < info->num_cols; col++) {
+		cur = head;
+		for (col = 0; col < num_names; ++col) {
 			curcol = info->columns[col];
-			tds_strlcpy(curcol->column_name, cur->column_name, sizeof(curcol->column_name));
+			tds_strlcpy(curcol->column_name, cur->name, sizeof(curcol->column_name));
 			curcol->column_namelen = strlen(curcol->column_name);
 			prev = cur;
 			cur = cur->next;
-			free(prev->column_name);
+			free(prev->name);
 			free(prev);
 		}
 		return TDS_SUCCEED;
 	}
+
+	tds_free_namelist(head);
+	return TDS_FAIL;
 }
 
 /**
@@ -1044,7 +1037,124 @@ tds_process_col_fmt(TDSSOCKET * tds)
 }
 
 static int
-tds_process_colinfo(TDSSOCKET * tds)
+tds8_read_table_names(TDSSOCKET *tds, int remainder, struct namelist **p_head)
+{
+	struct namelist *head = NULL, *cur = NULL, *prev;
+	int num_names = 0;
+
+	/*
+	 * this is a little messy...TDS 5.0 gives the number of columns
+	 * upfront, while in TDS 4.2, you're expected to figure it out
+	 * by the size of the message. So, I use a link list to get the
+	 * colum names and then allocate the result structure, copy
+	 * and delete the linked list
+	 */
+	while (remainder > 0) {
+		int namelen, elements, i, len;
+		char *partials[4], *p;
+
+		prev = cur;
+		if (!(cur = (struct namelist *) malloc(sizeof(struct namelist)))) {
+			tds_free_namelist(head);
+			return -1;
+		}
+
+		cur->name = NULL;
+		cur->next = NULL;
+		if (prev)
+			prev->next = cur;
+		else
+			head = cur;
+
+		elements = tds_get_byte(tds);
+		--remainder;
+		if (elements <= 0 || elements > 4) {
+			tds_free_namelist(head);
+			return -1;
+		}
+
+		/* read partials IDs and compute full length */
+		len = 0;
+		for (i = 0; i < elements; ++i) {
+			namelen = tds_get_smallint(tds);
+			remainder -= 2 + 2 * namelen;
+			if (tds_alloc_get_string(tds, &partials[i], namelen) < 0) {
+				while (i > 0)
+					free(partials[--i]);
+				tds_free_namelist(head);
+				return -1;
+			}
+			len += tds_quote_id(tds, NULL, partials[i], -1) + 1;
+		}
+
+		/* allocate full name */
+		p = (char *) malloc(len);
+		if (!p) {
+			i = elements;
+			while (i > 0)
+				free(partials[--i]);
+			tds_free_namelist(head);
+			return -1;
+		}
+
+		/* compose names */
+		cur->name = p;
+		for (i = 0; i < elements; ++i) {
+			p += tds_quote_id(tds, p, partials[i], -1);
+			*p++ = '.';
+			free(partials[i]);
+		}
+		*--p = 0;
+
+		num_names++;
+	}
+
+	*p_head = head;
+	return num_names;
+}
+
+static int
+tds_process_tabname(TDSSOCKET *tds)
+{
+	struct namelist *head, *cur;
+	int num_names, hdrsize, i;
+	char **names;
+	unsigned char marker;
+	int rc;
+
+	hdrsize = tds_get_smallint(tds);
+
+	/* different structure for tds8 */
+	if (IS_TDS80(tds))
+		num_names = tds8_read_table_names(tds, hdrsize, &head);
+	else
+		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
+	if (num_names < 0)
+		return TDS_FAIL;
+
+	/* put in an array */
+	names = (char **) malloc(num_names * sizeof(char*));
+	if (!names) {
+		tds_free_namelist(head);
+		return TDS_FAIL;
+	}
+	for (cur = head, i = 0; i < num_names; ++i, cur = cur->next)
+		names[i] = cur->name;
+
+	rc = TDS_SUCCEED;
+	marker = tds_get_byte(tds);
+	if (marker != TDS_COLINFO_TOKEN)
+		tds_unget_byte(tds);
+	else
+		rc = tds_process_colinfo(tds, names, num_names);
+
+	free(names);
+	tds_free_namelist(head);
+	return rc;
+}
+
+static int
+tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 {
 	int hdrsize;
 	TDSCOLUMN *curcol;
@@ -1062,19 +1172,34 @@ tds_process_colinfo(TDSSOCKET * tds)
 
 		tds_get_n(tds, col_info, 3);
 		bytes_read += 3;
-		if (info && col_info[0] > 0 && col_info[0] <= info->num_cols) {
+
+		curcol = NULL;
+		if (info && col_info[0] > 0 && col_info[0] <= info->num_cols)
 			curcol = info->columns[col_info[0] - 1];
+
+		if (curcol) {
 			curcol->column_writeable = (col_info[2] & 0x4) == 0;
 			curcol->column_key = (col_info[2] & 0x8) > 0;
 			curcol->column_hidden = (col_info[2] & 0x10) > 0;
+
+			if (names && col_info[1] > 0 && col_info[1] <= num_names) {
+				tds_strlcpy(curcol->table_name, names[col_info[1] - 1], sizeof(curcol->table_name));
+				curcol->table_namelen = strlen(curcol->table_name);
+			}
 		}
-		/* skip real name */
-		/* TODO keep it */
+		/* read real column name */
 		if (col_info[2] & 0x20) {
 			l = tds_get_byte(tds);
 			if (IS_TDS7_PLUS(tds))
 				l *= 2;
-			tds_get_n(tds, NULL, l);
+			if (curcol) {
+				if (curcol->table_column_name)
+					TDS_ZERO_FREE(curcol->table_column_name);
+				tds_alloc_get_string(tds, &curcol->table_column_name, l);
+			} else {
+				/* discard silently */
+				tds_get_n(tds, NULL, l);
+			}
 			bytes_read += l + 1;
 		}
 	}
@@ -1660,35 +1785,21 @@ tds5_process_result(TDSSOCKET * tds)
 		 */
 
 		/* table */
-		colnamelen = tds_get_byte(tds);
-		tds_get_n(tds, NULL, colnamelen);
-		/*
-		 * tds_get_n(tds, curcol->table_name, colnamelen);
-		 * curcol->table_name[colnamelen] = '\0';
-		 */
+		/* TODO use with owner and database */
+		curcol->table_namelen =
+			tds_get_string(tds, tds_get_byte(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
+		curcol->table_name[curcol->table_namelen] = '\0';
 
-		/* column name */
-		colnamelen = tds_get_byte(tds);
-		/* if label is empty, use the column name */
-		if (!curcol->column_namelen) {
-			curcol->column_namelen =
-				tds_get_string(tds, colnamelen, curcol->column_name, sizeof(curcol->column_name) - 1);
-			curcol->column_name[curcol->column_namelen] = '\0';
-		} else {
-			tds_get_n(tds, NULL, colnamelen);
+		/* table column name */
+		if (curcol->table_column_name)
+			TDS_ZERO_FREE(curcol->table_column_name);
+		tds_alloc_get_string(tds, &curcol->table_column_name, tds_get_byte(tds));
+
+		/* if label is empty, use the table column name */
+		if (!curcol->column_namelen && curcol->table_column_name) {
+			tds_strlcpy(curcol->column_name, curcol->table_column_name, sizeof(curcol->column_name));
+			curcol->column_namelen = strlen(curcol->column_name);
 		}
-		/*
-		 * tds_get_n(tds, curcol->column_colname, colnamelen);
-		 * curcol->column_colname[colnamelen] = '\0';
-		 */
-
-		/* if label is empty, use the column name */
-		/*
-		 * if (colnamelen > 0 && curcol->column_name[0] == '\0') {
-		 * 	strcpy(curcol->column_name, curcol->column_colname);
-		 * 	curcol->column_namelen = strlen(curcol->column_name);
-		 * }
-		 */
 
 		/* flags (4 bytes) */
 		curcol->column_flags = tds_get_int(tds);
@@ -1745,7 +1856,7 @@ tds5_process_result(TDSSOCKET * tds)
 		 *  Dump all information on this column
 		 */
 		tdsdump_log(TDS_DBG_INFO1, "col %d:\n", col);
-		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_label=[%s]\n", curcol->column_name);
+		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_name);
 /*
 		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_colname);
 		tdsdump_log(TDS_DBG_INFO1, "\tcatalog=[%s] schema=[%s] table=[%s]\n",
@@ -2752,97 +2863,57 @@ static int
 tds_process_compute_names(TDSSOCKET * tds)
 {
 	int hdrsize;
-	int remainder;
 	int num_cols = 0;
-	int col;
-	int memrc = 0;
 	TDS_SMALLINT compute_id = 0;
-	TDS_TINYINT namelen;
 	TDSCOMPUTEINFO *info;
-	TDSCOLUMN *curcol;
 
-	struct namelist
-	{
-		char name[256];
-		int namelen;
-		struct namelist *nextptr;
-	};
-
-	struct namelist *topptr = NULL;
-	struct namelist *curptr = NULL;
-	struct namelist *nextptr = NULL;
+	struct namelist *head = NULL, *cur, *next;
 
 	CHECK_TDS_EXTRA(tds);
 
 	hdrsize = tds_get_smallint(tds);
-	remainder = hdrsize;
-	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. remainder = %d\n", remainder);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. hdrsize = %d\n", hdrsize);
 
 	/*
 	 * compute statement id which this relates
 	 * to. You can have more than one compute
 	 * statement in a SQL statement  
 	 */
-
 	compute_id = tds_get_smallint(tds);
-	remainder -= 2;
 
-	while (remainder > 0) {
-		namelen = tds_get_byte(tds);
-		remainder--;
-		if ((nextptr = (struct namelist *) malloc(sizeof(struct namelist))) == NULL) {
-			memrc = -1;
-			break;
-		}
-		if (topptr == NULL)
-			topptr = nextptr;
-		else
-			curptr->nextptr = nextptr;
-		curptr = nextptr;
-		curptr->nextptr = NULL;
-		remainder -= namelen;
-		namelen = tds_get_string(tds, namelen, curptr->name, sizeof(curptr->name) - 1);
-		curptr->name[namelen] = 0;
-		curptr->namelen = namelen;
-		num_cols++;
-		tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. remainder = %d\n", remainder);
-	}
+	if ((num_cols = tds_read_namelist(tds, hdrsize - 2, &head, 0)) < 0)
+		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_cols = %d\n", num_cols);
 
-	if ((tds->comp_info = tds_alloc_compute_results(tds, num_cols, 0)) == NULL)
-		memrc = -1;
+	if ((tds->comp_info = tds_alloc_compute_results(tds, num_cols, 0)) != NULL) {
+		int col;
 
-	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
+		tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
 
-	info = tds->comp_info[tds->num_comp_info - 1];
-	tds->current_results = info;
+		info = tds->comp_info[tds->num_comp_info - 1];
+		tds->current_results = info;
 
-	info->computeid = compute_id;
+		info->computeid = compute_id;
 
-	curptr = topptr;
-
-	if (memrc == 0) {
+		cur = head;
 		for (col = 0; col < num_cols; col++) {
-			curcol = info->columns[col];
+			TDSCOLUMN *curcol = info->columns[col];
 
 			assert(strlen(curcol->column_name) == curcol->column_namelen);
-			memcpy(curcol->column_name, curptr->name, curptr->namelen + 1);
-			curcol->column_namelen = curptr->namelen;
+			tds_strlcpy(curcol->column_name, cur->name, sizeof(curcol->column_name));
+			curcol->column_namelen = strlen(curcol->column_name);
 
-			nextptr = curptr->nextptr;
-			free(curptr);
-			curptr = nextptr;
+			next = cur->next;
+			free(cur->name);
+			free(cur);
+			cur = next;
 		}
 		return TDS_SUCCEED;
-	} else {
-		while (curptr != NULL) {
-			nextptr = curptr->nextptr;
-			free(curptr);
-			curptr = nextptr;
-		}
-		return TDS_FAIL;
 	}
+
+	tds_free_namelist(head);
+	return TDS_FAIL;
 }
 
 /**

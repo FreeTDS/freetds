@@ -1,3 +1,9 @@
+Tue Jul 03 15:37:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/blk.c src/dblib/bcp.c src/dblib/dblib.c:
+	* src/odbc/odbc.c src/tds/mem.c src/tds/token.c:
+	- add table_column_name to read real column name (if available),
+	  read from wire and use when needed
+
 Sun Jul 01 12:10:31 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsstring.h src/odbc/connectparams.c:
 	* src/odbc/descriptor.c src/odbc/odbc.c src/tds/config.c:

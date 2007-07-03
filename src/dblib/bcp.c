@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.153 2007-01-16 05:31:19 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.154 2007-07-03 13:39:43 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -255,6 +255,10 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 			curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
 			curcol->char_conv = resinfo->columns[i]->char_conv;
 			memcpy(curcol->column_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
+			if (curcol->table_column_name)
+				TDS_ZERO_FREE(curcol->table_column_name);
+			if (resinfo->columns[i]->table_column_name)
+				curcol->table_column_name = strdup(resinfo->columns[i]->table_column_name);
 			curcol->column_nullable = resinfo->columns[i]->column_nullable;
 			curcol->column_identity = resinfo->columns[i]->column_identity;
 			curcol->column_timestamp = resinfo->columns[i]->column_timestamp;

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.449 2007-07-01 10:10:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.450 2007-07-03 13:39:43 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -169,6 +169,8 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 			/* no overflow possible, name is always shorter */
 			strcpy(resinfo->columns[colpos - 1]->column_name, name);
 			resinfo->columns[colpos - 1]->column_namelen = strlen(name);
+			if (resinfo->columns[colpos - 1]->table_column_name)
+				TDS_ZERO_FREE(resinfo->columns[colpos - 1]->table_column_name);
 		}
 	}
 #endif
@@ -1703,7 +1705,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 		SQLRETURN result;
 
 		/* straight copy column name up to cbColNameMax */
-		result = odbc_set_string(szColName, cbColNameMax, pcbColName, tds_dstr_cstr(&drec->sql_desc_name), -1);
+		result = odbc_set_string(szColName, cbColNameMax, pcbColName, tds_dstr_cstr(&drec->sql_desc_label), -1);
 		if (result == SQL_SUCCESS_WITH_INFO) {
 			odbc_errs_add(&stmt->errs, "01004", NULL);
 			stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
@@ -2709,8 +2711,13 @@ odbc_populate_ird(TDS_STMT * stmt)
 			drec->sql_desc_length = col->column_size;
 		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
 
-		if (!tds_dstr_copyn(&drec->sql_desc_name, col->column_name, col->column_namelen))
-			return SQL_ERROR;
+		if (!col->table_column_name) {
+			if (!tds_dstr_copyn(&drec->sql_desc_name, col->column_name, col->column_namelen))
+				return SQL_ERROR;
+		} else {
+			if (!tds_dstr_copy(&drec->sql_desc_name, col->table_column_name))
+				return SQL_ERROR;
+		}
 
 		drec->sql_desc_unnamed = tds_dstr_isempty(&drec->sql_desc_name) ? SQL_UNNAMED : SQL_NAMED;
 		/* TODO use is_nullable_type ?? */
