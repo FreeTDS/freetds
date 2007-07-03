@@ -1,3 +1,9 @@
+Tue Jul 03 17:12:04 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/compute.c src/odbc/unittests/tables.c:
+	* src/odbc/unittests/typeinfo.c:
+	- relax test for Sybase
+	* src/tds/token.c: fix length computation
+
 Tue Jul 03 15:37:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/blk.c src/dblib/bcp.c src/dblib/dblib.c:
 	* src/odbc/odbc.c src/tds/mem.c src/tds/token.c:

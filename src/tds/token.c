@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.334 2007-07-03 13:39:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.335 2007-07-03 15:13:55 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1190,13 +1190,15 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 		/* read real column name */
 		if (col_info[2] & 0x20) {
 			l = tds_get_byte(tds);
-			if (IS_TDS7_PLUS(tds))
-				l *= 2;
 			if (curcol) {
 				if (curcol->table_column_name)
 					TDS_ZERO_FREE(curcol->table_column_name);
 				tds_alloc_get_string(tds, &curcol->table_column_name, l);
+				if (IS_TDS7_PLUS(tds))
+					l *= 2;
 			} else {
+				if (IS_TDS7_PLUS(tds))
+					l *= 2;
 				/* discard silently */
 				tds_get_n(tds, NULL, l);
 			}

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.12 2006-10-18 19:39:47 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.13 2007-07-03 15:13:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef WIN32
@@ -47,7 +47,8 @@ TestName(int index, const char *expected_name)
 
 	/* retrieve with SQLColAttribute */
 	rc = SQLColAttribute(Statement, index, SQL_DESC_NAME, name, sizeof(name), &len, NULL);
-	NAME_TEST;
+	if (db_is_microsoft())
+		NAME_TEST;
 	rc = SQLColAttribute(Statement, index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL);
 	NAME_TEST;
 }
