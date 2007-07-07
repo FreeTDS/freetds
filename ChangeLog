@@ -1,3 +1,7 @@
+Sat Jul 07 19:09:59 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c:
+	- check cbValueMax in SQLGetData even if DM present
+
 Tue Jul 03 17:12:04 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/compute.c src/odbc/unittests/tables.c:
 	* src/odbc/unittests/typeinfo.c:

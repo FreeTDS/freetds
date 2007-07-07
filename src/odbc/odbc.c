@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.450 2007-07-03 13:39:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.451 2007-07-07 17:11:28 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4414,12 +4414,10 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetData(%p, %u, %d, %p, %d, %p)\n", 
 			hstmt, icol, fCType, rgbValue, (int)cbValueMax, pcbValue);
 
-#ifdef TDS_NO_DM
 	if (cbValueMax < 0) {
 		odbc_errs_add(&stmt->errs, "HY090", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-#endif
 
 	/* read data from TDS only if current statement */
 	if (stmt->dbc->current_statement != stmt || stmt->row_status == PRE_NORMAL_ROW || stmt->row_status == NOT_IN_ROW) {
