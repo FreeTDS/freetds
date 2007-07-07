@@ -1,4 +1,4 @@
-dnl $Id: sprintf_i64_format.m4,v 1.8 2006-08-24 09:38:08 freddy77 Exp $
+dnl $Id: sprintf_i64_format.m4,v 1.9 2007-07-07 17:55:48 freddy77 Exp $
 ##
 # Test for 64bit integer sprintf format specifier
 # ld   64 bit machine
@@ -17,6 +17,23 @@ this should produce an error!
 
 if test "x$ac_cv_sizeof_long" = "x8"; then
 	tds_i64_format=ld
+fi
+
+if test "x$tds_i64_format" = "x"; then
+	AC_LINK_IFELSE([AC_LANG_SOURCE([[
+#include <stdlib.h>
+
+#if !defined(__GLIBC__) || __GLIBC__ < 2 || !defined(__GLIBC_MINOR__) || __GLIBC_MINOR__ < 2
+#error no proper glibc
+#endif
+
+int main()
+{
+char buf[64];
+long long ll = atoll(buf);
+return 0;
+}
+]])],[tds_i64_format="lld"])
 fi
 
 if test "x$tds_i64_format" = "x"; then
