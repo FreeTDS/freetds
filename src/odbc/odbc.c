@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.451 2007-07-07 17:11:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.452 2007-07-12 14:35:10 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4448,7 +4448,8 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	} else {
 		src = (TDS_CHAR *) colinfo->column_data;
 		if (is_blob_type(colinfo->column_type)) {
-			if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
+			if (colinfo->column_text_sqlgetdatapos > 0
+			    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 
 			/* 2003-8-29 check for an old bug -- freddy77 */
@@ -4476,6 +4477,9 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			if (readed > *pcbValue)
 				readed = *pcbValue;
 			colinfo->column_text_sqlgetdatapos += readed;
+			/* avoid infinite SQL_SUCCESS on empty strings */
+			if (colinfo->column_text_sqlgetdatapos == 0 && cbValueMax > 0)
+				++colinfo->column_text_sqlgetdatapos;
 			/* not all readed ?? */
 			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
 				/* TODO add diagnostic */
