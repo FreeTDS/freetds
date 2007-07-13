@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: getdata.c,v 1.2 2007-07-12 14:35:10 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.3 2007-07-13 16:57:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -55,27 +55,29 @@ main(int argc, char *argv[])
 
 	Disconnect();
 
-	use_odbc_version3 = 1;
-	Connect();
+	if (db_is_microsoft()) {
+		use_odbc_version3 = 1;
+		Connect();
 
-	Command(Statement, "SELECT CONVERT(TEXT,'')");
+		Command(Statement, "SELECT CONVERT(TEXT,'')");
 
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to fetch row");
+		if (SQLFetch(Statement) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to fetch row");
 
-	len = 1234;
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 1, &len) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("invalid return from SQLGetData");
+		len = 1234;
+		if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 1, &len) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("invalid return from SQLGetData");
 
-	if (len != 0) {
-		fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
-		return 1;
+		if (len != 0) {
+			fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
+			return 1;
+		}
+
+		if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 1, NULL) != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("invalid return from SQLGetData");
+
+		Disconnect();
 	}
-
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 1, NULL) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("invalid return from SQLGetData");
-
-	Disconnect();
 
 	printf("Done.\n");
 	return 0;

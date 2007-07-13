@@ -1,3 +1,6 @@
+Fri Jul 13 18:56:56 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/getdata.c: portability fix
+
 Thu Jul 12 16:31:05 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: fix for SQLGetData using empty fields
 	* src/odbc/unittests/getdata.c:
