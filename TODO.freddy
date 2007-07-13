@@ -6,6 +6,9 @@ Fixes
 IMPORTANT fix done_handling
 ODBC RPC check (+chained rpcs?? see below)
 ODBC cursor check (cfr "Progress on CVS")
+ODBC check SQLGetData usage of zero as cbValueMax multiple time
+check why cross compiled odbc driver do not work (libtool??), add
+resources
 
 Cursor and dynamic
 ------------------
