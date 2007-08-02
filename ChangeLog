@@ -1,3 +1,6 @@
+Thu Aug 02 13:31:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sqlfront.h: small compatiblity improve with ms
+
 Fri Jul 13 18:56:56 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/getdata.c: portability fix
 
