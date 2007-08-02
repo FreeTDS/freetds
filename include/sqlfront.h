@@ -22,8 +22,11 @@
 
 #include <sybfront.h>
 
-static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.3 2004-10-28 12:42:12 freddy77 Exp $";
+static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.4 2007-08-02 11:32:57 freddy77 Exp $";
 static const void *const no_unused_sqlfront_h_warn[] = { rcsid_sqlfront_h, no_unused_sqlfront_h_warn };
 
+typedef DBPROCESS * PDBPROCESS;
+typedef LOGINREC  * PLOGINREC;
+typedef DBCURSOR  * PDBCURSOR;
 
 #endif
