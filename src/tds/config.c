@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.127 2007-07-01 10:10:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.128 2007-08-03 11:16:55 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -1029,45 +1029,38 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 static int
 parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 {
-	char *pSep;
-	char *server;
+	const char *pSep;
+	const char *server;
+	char tmp[256];
 
 	/* seek the ':' in login server_name */
-	server = tds_dstr_buf(&login->server_name);
+	server = tds_dstr_cstr(&login->server_name);
 	pSep = strrchr(server, ':');
 
 	if (pSep && pSep != server) {	/* yes, i found it! */
-		if (!tds_dstr_copyn(&connection->server_name, server, pSep - server))	/* end the server_name before the ':' */
-			return 0;	/* FALSE */
-
 		/* modify connection-> && login->server_name & ->port */
 		login->port = connection->port = atoi(pSep + 1);
 		tds_dstr_copy(&connection->instance_name, "");
-		*pSep = 0;
-
-		/* connection->ip_addr needed */
-		{
-			char tmp[256];
-
-			tds_lookup_host(tds_dstr_cstr(&connection->server_name), tmp);
-			if (!tds_dstr_copy(&connection->ip_addr, tmp))
-				return 0;	/* FALSE */
-		}
-
-		return 1;	/* TRUE */
-	}
-
-	/* handle instance name */
-	pSep = strrchr(server, '\\');
-	if (pSep && pSep != server) {
-		if (!tds_dstr_copyn(&connection->server_name, server, pSep - server))
+	} else {
+		/* handle instance name */
+		pSep = strrchr(server, '\\');
+		if (!pSep || pSep == server)
 			return 0;
 
-		login->port = 0;
+		login->port = connection->port = 0;
 		tds_dstr_copy(&connection->instance_name, pSep + 1);
-		*pSep = 0;
 	}
-	return 0;	/* FALSE */
+
+	tds_dstr_setlen(&login->server_name, pSep - server);
+	if (!tds_dstr_dup(&connection->server_name, &login->server_name))
+		return 0;
+
+	/* connection->ip_addr needed */
+	tds_lookup_host(tds_dstr_cstr(&connection->server_name), tmp);
+	if (!tds_dstr_copy(&connection->ip_addr, tmp))
+		return 0;	/* FALSE */
+
+	return 1;
 }
 
 
