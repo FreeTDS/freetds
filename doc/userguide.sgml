@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-04-05 14:17:05 $</date>
-		<releaseinfo>$Revision: 1.100 $</releaseinfo>
+		<date>$Date: 2007-08-07 08:30:49 $</date>
+		<releaseinfo>$Revision: 1.101 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -24,6 +24,8 @@
 		  <year>2003</year>
 		  <year>2004</year>
 		  <year>2005</year>
+		  <year>2006</year>
+		  <year>2007</year>
 		  <holder>Brian Bruns and James K. Lowden</holder>
 		</copyright>
 		<legalnotice><para>
@@ -53,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.100 $</>
-<member>$Date: 2007-04-05 14:17:05 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.100 2007-04-05 14:17:05 freddy77 Exp $.</>
+<member>$Revision: 1.101 $</>
+<member>$Date: 2007-08-07 08:30:49 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.101 2007-08-07 08:30:49 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -292,8 +294,8 @@ Code changes by the developers are immediately available in the <productname>CVS
 			<para>
 No password is needed to obtain the current CVS copy of FreeTDS; you need only have a CVS client installed on your machine.  Then:
 <screen>
-<prompt>$ </prompt><userinput>cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds login</userinput>
-<prompt>$ </prompt><userinput>cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/freetds checkout freetds</userinput>
+<prompt>$ </prompt><userinput>cvs -d:pserver:anonymous@freetds.cvs.sourceforge.net:/cvsroot/freetds login</userinput>
+<prompt>$ </prompt><userinput>cvs -z3 -d:pserver:anonymous@freetds.cvs.sourceforge.net:/cvsroot/freetds checkout -P freetds</userinput>
 <prompt>Password: </prompt>
 <prompt>$ </prompt><userinput>make install</userinput>
 </screen>
@@ -565,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-04-05 14:17:05 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-08-07 08:30:49 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
