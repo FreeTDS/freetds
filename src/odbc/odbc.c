@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.453 2007-08-07 09:20:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.454 2007-08-07 13:35:52 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -901,6 +901,10 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 		}
 		tds_strlcpy(curcol->column_name, tds_dstr_cstr(&drec_ird->sql_desc_name), sizeof(curcol->column_name));
 		curcol->column_namelen = strlen(curcol->column_name);
+
+		/* TODO use all infos... */
+		tds_strlcpy(curcol->table_name, tds_dstr_cstr(&drec_ird->sql_desc_base_table_name), sizeof(curcol->table_name));
+		curcol->table_namelen = strlen(curcol->table_name);
 
 		switch (sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
 		case SQL_ERROR:
@@ -2660,6 +2664,41 @@ odbc_ird_check(TDS_STMT * stmt)
 }
 #endif
 
+static void
+odbc_unquote(char *buf, size_t buf_len, const char *start, const char *end)
+{
+	char quote;
+	assert(buf_len > 0);
+
+	/* empty string */
+	if (start >= end) {
+		buf[0] = 0;
+		return;
+	}
+
+	/* not quoted */
+	if (*start != '[' && *start != '\"') {
+		--buf_len;
+		if (end - start < buf_len)
+			buf_len = end - start;
+		memcpy(buf, start, buf_len);
+		buf[buf_len] = 0;
+		return;
+	}
+
+	/* quoted... unquote */
+	quote = (*start == '[') ? ']' : *start;
+	++start;
+	while (buf_len > 0 && start < end) {
+		if (*start == quote)
+			if (++start >= end)
+				break;
+		*buf++ = *start++;
+		--buf_len;
+	}
+	*buf = 0;
+}
+
 /* FIXME check result !!! */
 static SQLRETURN
 odbc_populate_ird(TDS_STMT * stmt)
@@ -2717,6 +2756,55 @@ odbc_populate_ird(TDS_STMT * stmt)
 		} else {
 			if (!tds_dstr_copy(&drec->sql_desc_name, col->table_column_name))
 				return SQL_ERROR;
+			if (!tds_dstr_copy(&drec->sql_desc_base_column_name, col->table_column_name))
+				return SQL_ERROR;
+		}
+
+		/* extract sql_desc_(catalog/schema/base_table)_name */
+		/* TODO extract them dinamically (when needed) ? */
+		/* TODO store in libTDS in different way (separately) ? */
+		if (col->table_namelen) {
+			struct {
+				const char *start;
+				const char *end;
+			} partials[4];
+			const char *p;
+			char buf[256];
+			int i;
+
+			p = col->table_name;
+			for (i = 0; i < 4; ++i) {
+				const char *pend;
+
+				if (*p == '[' || *p == '\"') {
+					pend = tds_skip_quoted(p);
+				} else {
+					pend = strchr(p, '.');
+					if (!pend)
+						pend = strchr(p, 0);
+				}
+				partials[i].start = p;
+				partials[i].end = pend;
+				p = pend;
+				if (*p != '.')
+					break;
+				++p;
+			}
+
+			odbc_unquote(buf, sizeof(buf), partials[i].start, partials[i].end);
+			tds_dstr_copy(&drec->sql_desc_base_table_name, buf);
+
+			--i;
+			if (i >= 0) {
+				odbc_unquote(buf, sizeof(buf), partials[i].start, partials[i].end);
+				tds_dstr_copy(&drec->sql_desc_schema_name, buf);
+			}
+
+			--i;
+			if (i >= 0) {
+				odbc_unquote(buf, sizeof(buf), partials[i].start, partials[i].end);
+				tds_dstr_copy(&drec->sql_desc_catalog_name, buf);
+			}
 		}
 
 		drec->sql_desc_unnamed = tds_dstr_isempty(&drec->sql_desc_name) ? SQL_UNNAMED : SQL_NAMED;

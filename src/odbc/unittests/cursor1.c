@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.9 2007-05-21 14:10:50 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.10 2007-08-07 13:35:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -125,7 +125,29 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 		if (i > 0 && i <= num_row) {
 			strcpy(c[i - 1], "foo");
 			c_len[i - 1] = 3;
-			CHK(SQLSetPos, (Statement, i, use_sql ? SQL_POSITION : SQL_UPDATE, SQL_LOCK_NO_CHANGE));
+			if (strstr(select_sql, "#a") == NULL || use_sql) {
+				CHK(SQLSetPos, (Statement, i, use_sql ? SQL_POSITION : SQL_UPDATE, SQL_LOCK_NO_CHANGE));
+			} else {
+				unsigned char sqlstate[6];
+				unsigned char msg[256];
+
+				n[i - 1] = 321;
+				retcode = SQLSetPos(Statement, i, use_sql ? SQL_POSITION : SQL_UPDATE, SQL_LOCK_NO_CHANGE);
+				if (retcode != SQL_ERROR) {
+					fprintf(stderr, "Error expected at line %d\n", __LINE__);
+					exit(1);
+				}
+
+				retcode = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
+				if (retcode != SQL_SUCCESS) {
+					fprintf(stderr, "Error not expected at line %d\n", __LINE__);
+					exit(1);
+				}
+				if (strstr((char *) msg, "Invalid column name 'c'") == NULL) {
+					fprintf(stderr, "Expected message not found at line %d\n", __LINE__);
+					exit(1);
+				}
+			}
 			if (use_sql) {
 				SWAP_STMT(Statement, stmt2);
 				CHK(SQLPrepare, (Statement, (SQLCHAR *) "UPDATE #test SET c=? WHERE CURRENT OF C1", SQL_NTS));
@@ -148,15 +170,22 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 
 	/* test values */
 	CheckNoRow("IF (SELECT COUNT(*) FROM #test) <> 4 SELECT 1");
-	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 2 AND c = 'foo') SELECT 1");
 	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 3 AND c = 'ccc') SELECT 1");
 	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 4 AND c = 'dddd') SELECT 1");
-	CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 6 AND c = 'foo') SELECT 1");
+	if (strstr(select_sql, "#a") == NULL || use_sql) {
+		CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 2 AND c = 'foo') SELECT 1");
+		CheckNoRow("IF NOT EXISTS(SELECT * FROM #test WHERE i = 6 AND c = 'foo') SELECT 1");
+	}
 }
 
 static void
 Test(int use_sql)
 {
+	CommandWithResult(Statement, "DROP TABLE #a");
+	Command(Statement, "CREATE TABLE #a(x int)");
+	Command(Statement, "INSERT INTO #a VALUES(123)");
+	Test0(use_sql, "CREATE TABLE #test(i int, c varchar(6))", "INSERT INTO #test(c, i) VALUES('%s', %d)", "SELECT x AS i, c FROM #test, #a");
+
 	Test0(use_sql, "CREATE TABLE #test(i int, c varchar(6))", "INSERT INTO #test(c, i) VALUES('%s', %d)", "SELECT i, c FROM #test");
 	if (db_is_microsoft()) {
 		Test0(use_sql, "CREATE TABLE #test(i int identity(1,1), c varchar(6))", "INSERT INTO #test(c) VALUES('%s')", "SELECT i, c FROM #test");

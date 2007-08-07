@@ -1,3 +1,7 @@
+Tue Aug 07 15:34:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: improve cursor updates
+	* src/odbc/unittests/cursor1.c: improved and fixed
+
 Tue Aug 07 11:55:53 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/query.c: use table name for update
 
