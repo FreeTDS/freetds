@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.272 2007-07-03 13:39:43 freddy77 Exp $ */
+/* $Id: tds.h,v 1.273 2007-08-07 09:20:31 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -690,7 +690,7 @@ typedef enum tds_encryption_level {
 			x==TDS_COLNAME_TOKEN    || \
 			x==TDS_RETURNSTATUS_TOKEN)
 
-/* FIX ME -- not a complete list */
+/* FIXME -- not a complete list */
 #define is_fixed_type(x) (x==SYBINT1    || \
 			x==SYBINT2      || \
 			x==SYBINT4      || \
@@ -716,6 +716,20 @@ typedef enum tds_encryption_level {
                      x==SYBTEXT      || \
                      x==SYBNTEXT     || \
                      x==SYBIMAGE)
+
+#define is_variable_type(x) ( \
+	(x)==SYBTEXT	|| \
+	(x)==SYBIMAGE	|| \
+	(x)==SYBNTEXT	|| \
+	(x)==SYBCHAR	|| \
+	(x)==SYBVARCHAR	|| \
+	(x)==SYBBINARY	|| \
+	(x)==SYBVARBINARY	|| \
+	(x)==SYBLONGBINARY	|| \
+	(x)==XSYBCHAR	|| \
+	(x)==XSYBVARCHAR	|| \
+	(x)==XSYBNVARCHAR	|| \
+	(x)==XSYBNCHAR)
 
 #define is_blob_type(x) (x==SYBTEXT || x==SYBIMAGE || x==SYBNTEXT)
 /* large type means it has a two byte size field */

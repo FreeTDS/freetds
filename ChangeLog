@@ -1,3 +1,8 @@
+Tue Aug 07 11:19:33 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/odbc.c src/odbc/unittests/getdata.c:
+	- fix bug #1758831
+	- additional fixes and checks for SQLGetData
+
 Tue Aug 07 10:29:55 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/userguide.sgml: update links
 

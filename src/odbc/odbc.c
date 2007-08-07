@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.452 2007-07-12 14:35:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.453 2007-08-07 09:20:31 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4447,16 +4447,22 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		*pcbValue = SQL_NULL_DATA;
 	} else {
 		src = (TDS_CHAR *) colinfo->column_data;
-		if (is_blob_type(colinfo->column_type)) {
+		if (is_variable_type(colinfo->column_type)) {
 			if (colinfo->column_text_sqlgetdatapos > 0
 			    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
 				ODBC_RETURN(stmt, SQL_NO_DATA);
 
 			/* 2003-8-29 check for an old bug -- freddy77 */
 			assert(colinfo->column_text_sqlgetdatapos >= 0);
-			src = ((TDSBLOB *) src)->textvalue + colinfo->column_text_sqlgetdatapos;
+			if (is_blob_type(colinfo->column_type))
+				src = ((TDSBLOB *) src)->textvalue;
+			src += colinfo->column_text_sqlgetdatapos;
 			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
 		} else {
+			if (colinfo->column_text_sqlgetdatapos > 0
+			    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
+				ODBC_RETURN(stmt, SQL_NO_DATA);
+
 			srclen = colinfo->column_cur_size;
 		}
 		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
@@ -4467,12 +4473,12 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		if (*pcbValue < 0)
 			ODBC_RETURN(stmt, SQL_ERROR);
 
-		if (is_blob_type(colinfo->column_type)) {
+		if (is_variable_type(colinfo->column_type)) {
 			/* calc how many bytes was readed */
 			int readed = cbValueMax;
 
 			/* FIXME test on destination char ??? */
-			if (stmt->dbc->env->attr.output_nts != SQL_FALSE && nSybType == SYBTEXT && readed > 0)
+			if (stmt->dbc->env->attr.output_nts != SQL_FALSE && is_char_type(nSybType) && readed > 0)
 				--readed;
 			if (readed > *pcbValue)
 				readed = *pcbValue;
@@ -4484,6 +4490,8 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
 				/* TODO add diagnostic */
 				ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
+		} else {
+			colinfo->column_text_sqlgetdatapos = colinfo->column_size;
 		}
 	}
 	ODBC_RETURN_(stmt);
