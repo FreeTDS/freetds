@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.207 2007-04-13 15:23:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.208 2007-08-07 09:58:41 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2534,18 +2534,40 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 		if (op == TDS_CURSOR_UPDATE) {
 			TDSCOLUMN *param;
 			unsigned int n, num_params;
+			const char *table_name = NULL;
+			int converted_table_len = 0;
+			const char *converted_table = NULL;
 
 			/* empty table name */
 			tds_put_byte(tds, 0);
 			tds_put_byte(tds, 0);
 			tds_put_byte(tds, XSYBNVARCHAR);
-			tds_put_smallint(tds, 0);
+			num_params = params->num_cols;
+			for (n = 0; n < num_params; ++n) {
+				param = params->columns[n];
+				if (param->table_namelen > 0) {
+					table_name = param->table_name;
+					break;
+				}
+			}
+			if (table_name) {
+				converted_table =
+					tds_convert_string(tds, tds->char_convs[client2ucs2], 
+							   table_name, strlen(table_name), &converted_table_len);
+				if (!converted_table) {
+					/* FIXME not here, in the middle of a packet */
+					tds_set_state(tds, TDS_IDLE);
+					return TDS_FAIL;
+				}
+			}
+			tds_put_smallint(tds, converted_table_len);
 			if (IS_TDS80(tds))
 				tds_put_n(tds, tds->collation, 5);
-			tds_put_smallint(tds, 0);
+			tds_put_smallint(tds, converted_table_len);
+			tds_put_n(tds, converted_table, converted_table_len);
+			tds_convert_string_free(table_name, converted_table);
 
 			/* output columns to update */
-			num_params = params->num_cols;
 			for (n = 0; n < num_params; ++n) {
 				param = params->columns[n];
 				/* TODO check error */
