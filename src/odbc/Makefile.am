@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.42 2007-02-06 09:18:53 freddy77 Exp $
+# $Id: Makefile.am,v 1.43 2007-08-08 13:25:55 freddy77 Exp $
 SUBDIRS		= unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
@@ -12,9 +12,18 @@ endif
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c \
 	native.c sql2tds.c error.c odbc_checks.c $(MINGW_SOURCES)
+if MINGW32
+libtdsodbc_la_LIBADD=	../../win32/setup.res ../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) \
+	$(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
+libtdsodbc_la_LDFLAGS = -Wl,--enable-stdcall-fixup -Wl,-s -Wl,../../win32/FreeTDS.def -Wl,../../win32/setup.res $(FREETDS_SYMBOLIC)
+
+%.res: %.rc
+	$(RC) -i $< --input-format=rc -o $@ -O coff
+else
 libtdsodbc_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 # -module is needed by Darwin (Mac OS X)
 libtdsodbc_la_LDFLAGS = -export-symbols-regex '^(SQL|ODBCINST).*' $(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
+endif
 
 ## Need blank statement to avoid compiling odbc.c
 odbc: $(EXTRA_LTLIBRARIES)

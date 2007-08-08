@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.18 2007-05-29 08:49:22 freddy77 Exp $
+dnl $Id: configure.ac,v 1.19 2007-08-08 13:25:54 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.18 $)
+AC_REVISION($Revision: 1.19 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -81,6 +81,7 @@ define([AC_LIBTOOL_LANG_GCJ_CONFIG], [:])dnl
 
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
+LT_AC_PROG_RC
 
 AC_ARG_ENABLE(libiconv,
 	AS_HELP_STRING([--disable-libiconv], [do not attempt to include libiconv]),
