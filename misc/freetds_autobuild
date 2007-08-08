@@ -86,6 +86,8 @@ set -e
 
 DOMAIN_UID=
 DOMAIN_PWD=
+MSSQL_PORT=
+MSSQL_INSTANCE=
 if test -r "$HOME/freetds_autobuild.sh"; then
 	. "$HOME/freetds_autobuild.sh"
 fi
@@ -155,6 +157,32 @@ if test "$DOMAIN_UID" != ""; then
 		echo "domain password ok"
 	else
 		echo "domain password failed!"
+		restore_coverage
+	fi
+	rm -f out.txt
+fi
+
+if test "$MSSQL_PORT" != ""; then
+	save_coverage
+	# using tsql directly with grep do not update coverage informations
+	echo -e 'select @@version\ngo\nbye' | ./src/apps/tsql -S "$tSRV:$MSSQL_PORT" -U "$tUID" -P "$tPWD" > out.txt || true
+	if grep -q 'Microsoft Corporation' out.txt; then
+		echo "override port ok"
+	else
+		echo "override port failed!"
+		restore_coverage
+	fi
+	rm -f out.txt
+fi
+
+if test "$MSSQL_INSTANCE" != ""; then
+	save_coverage
+	# using tsql directly with grep do not update coverage informations
+	echo -e 'select @@version\ngo\nbye' | ./src/apps/tsql -S "$tSRV\\$MSSQL_INSTANCE" -U "$tUID" -P "$tPWD" > out.txt || true
+	if grep -q 'Microsoft Corporation' out.txt; then
+		echo "override instance ok"
+	else
+		echo "override instance failed!"
 		restore_coverage
 	fi
 	rm -f out.txt
