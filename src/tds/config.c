@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.128 2007-08-03 11:16:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.129 2007-08-08 09:13:29 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -169,17 +169,17 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	tdsdump_log(TDS_DBG_INFO1, "Getting connection information for [%s].\n", 
 			    tds_dstr_cstr(&login->server_name));	/* (The server name is set in login.c.) */
 
+	if (parse_server_name_for_port(connection, login)) {
+		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", 
+			    tds_dstr_cstr(&connection->server_name), login->port);
+	}
+
 	/* Read the config files. */
 	tdsdump_log(TDS_DBG_INFO1, "Attempting to read conf files.\n");
 	if (!tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name))) {
 		/* fallback to interfaces file */
 		tdsdump_log(TDS_DBG_INFO1, "Failed in reading conf file.  Trying interface files.\n");
 		tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection);
-	}
-
-	if (parse_server_name_for_port(connection, login)) {
-		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", 
-			    tds_dstr_cstr(&connection->server_name), login->port);
 	}
 
 	/* Override config file settings with environment variables. */
@@ -1031,7 +1031,6 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 {
 	const char *pSep;
 	const char *server;
-	char tmp[256];
 
 	/* seek the ':' in login server_name */
 	server = tds_dstr_cstr(&login->server_name);
@@ -1054,11 +1053,6 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 	tds_dstr_setlen(&login->server_name, pSep - server);
 	if (!tds_dstr_dup(&connection->server_name, &login->server_name))
 		return 0;
-
-	/* connection->ip_addr needed */
-	tds_lookup_host(tds_dstr_cstr(&connection->server_name), tmp);
-	if (!tds_dstr_copy(&connection->ip_addr, tmp))
-		return 0;	/* FALSE */
 
 	return 1;
 }
