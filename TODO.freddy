@@ -5,16 +5,6 @@ Fixes
 -----
 IMPORTANT fix done_handling
 ODBC RPC check (+chained rpcs?? see below)
-ODBC cursor check (cfr "Progress on CVS")
-  search "TODO support parameters" and 
-  "TODO read results, set row count, check type and scroll returned"
-check why cross compiled odbc driver do not work (libtool??), add
-resources
-
-http://support.microsoft.com/kb/246265/en-us
-http://support.microsoft.com/kb/290413/en-us
-http://support.microsoft.com/kb/238336/en-us
-
 
 Cursor and dynamic
 ------------------
@@ -27,6 +17,12 @@ Tests:
    calls)
    add multiple chained RPCs for odbc and mssql7+...
  - cursor update and multiple tables (using view)
+ODBC cursor check (cfr "Progress on CVS")
+  search "TODO support parameters" and 
+  "TODO read results, set row count, check type and scroll returned"
+http://support.microsoft.com/kb/246265/en-us
+http://support.microsoft.com/kb/290413/en-us
+http://support.microsoft.com/kb/238336/en-us
 
 Row handling
 ------------
@@ -67,3 +63,4 @@ Tests
 Rebuild all test support (virtual machines, chroot, msde+mssql2005)
 Add a test for rpm (redhat, suse?)
 disabling thread safety don't check for thread-safe functions
+check cross compiled odbc driver, exports, resource version (test-dist)
