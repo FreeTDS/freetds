@@ -1,3 +1,10 @@
+Thu Aug 09 09:49:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/htdoc/basic_jdbc_question.html doc/htdoc/contrib.html:
+	* doc/htdoc/docs.html doc/htdoc/index.html doc/htdoc/news.html:
+	* doc/htdoc/software.html doc/htdoc/support.html:
+	* doc/htdoc/vague_jdbc_question.html doc/htdoc/which_api.html:
+	- make xhtml compatible
+
 Wed Aug 08 15:24:16 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/odbc/Makefile.am win32/version.rc.in:
 	- fix odbc cross compile using MingW
