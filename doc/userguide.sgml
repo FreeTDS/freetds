@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-08-07 08:30:49 $</date>
-		<releaseinfo>$Revision: 1.101 $</releaseinfo>
+		<date>$Date: 2007-08-09 08:27:29 $</date>
+		<releaseinfo>$Revision: 1.102 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.101 $</>
-<member>$Date: 2007-08-07 08:30:49 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.101 2007-08-07 08:30:49 freddy77 Exp $.</>
+<member>$Revision: 1.102 $</>
+<member>$Date: 2007-08-09 08:27:29 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.102 2007-08-09 08:27:29 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-08-07 08:30:49 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-08-09 08:27:29 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1068,7 +1068,9 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 </tbody>
 </tgroup>
 </table>
-			<para>Many settings in <filename></> can be overridden by <link linkend="envvar">environment variables</link>
+			<para>Many settings in <filename>freetds.conf</> can be overridden by <link linkend="envvar">environment variables</link>.
+			</para>
+			<para>Also dataserver can be decorated adding informations for port or instance name using <link linkend="PortOverride">port override syntax</link>.
 			</para>
 		</sect2>
 		</sect1>
@@ -1249,6 +1251,25 @@ When you're done, you should see something very like this:
 			</para>
 			
 			</sect2>
+		</sect1>
+		<sect1 id="PortOverride">
+			<title>Port override syntax</title>
+
+			<para>Port used for connection can be overridden using a <productname>FreeTDS</productname> extended syntax.
+			</para>
+
+			<para>If you specify <literal><replaceable>dataserver</replaceable>:<replaceable>port</replaceable></literal>
+			as dataserver during login <productname>FreeTDS</productname> will attemp to connect to specified port.
+			<replaceable>port</replaceable> must be a number, a service name is not supported.
+			</para>
+
+			<para>If you specify <literal><replaceable>dataserver</replaceable>\<replaceable>instance</replaceable></literal>
+			as dataserver during login <productname>FreeTDS</productname> will attemp to connect to specified instance.
+			Only Microsoft SQL instances are supported (this feature is supported from version 2000).
+			</para>
+
+			<para>Note that <filename>freetds.conf</> still apply.
+			</para>
 		</sect1>
 		<sect1 id="Configurations">
 			<title>Configurations that Work</title>

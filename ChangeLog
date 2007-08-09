@@ -1,3 +1,6 @@
+Thu Aug 09 10:26:51 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/userguide.sgml: document port override syntax
+
 Thu Aug 09 09:49:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/htdoc/basic_jdbc_question.html doc/htdoc/contrib.html:
 	* doc/htdoc/docs.html doc/htdoc/index.html doc/htdoc/news.html:
