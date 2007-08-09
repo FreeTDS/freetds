@@ -1,3 +1,6 @@
+Thu Aug 09 14:52:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: small fixes
+
 Thu Aug 09 10:26:51 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/userguide.sgml: document port override syntax
 

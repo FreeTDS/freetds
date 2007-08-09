@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.63 2007-06-19 13:31:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.64 2007-08-09 12:53:16 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -215,8 +215,8 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			perror(message);
 			free(message);
 		}
+		tds_close_socket(tds);
 		tdserror(tds->tds_ctx, tds, TDSECONN, 0);
-		tds_free_socket(tds);
 		return TDS_FAIL;
 	}
 #else
@@ -298,11 +298,10 @@ tds_close_socket(TDSSOCKET * tds)
 
 	if (!IS_TDSDEAD(tds)) {
 		rc = CLOSESOCKET(tds->s);
-		if (-1 == rc) {  
-			tdserror(tds->tds_ctx, tds,  TDSECLOS, sock_errno);
-		}
 		tds->s = INVALID_SOCKET;
 		tds_set_state(tds, TDS_DEAD);
+		if (-1 == rc) 
+			tdserror(tds->tds_ctx, tds,  TDSECLOS, sock_errno);
 	}
 	return rc;
 }
