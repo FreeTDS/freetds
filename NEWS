@@ -1,8 +1,32 @@
-$Id: NEWS,v 1.41 2007-04-06 08:31:04 freddy77 Exp $
+$Id: NEWS,v 1.42 2007-08-10 09:17:57 freddy77 Exp $
 * 0.65
 - support NUL characters inside terminators in freebcp
 - cursors under ODBC
 - NTLM2 session response
+- lot of update to TDS protocol documentation
+- some optimizations for GCC4
+- optimized conversions avoiding some memory copy
+- minor improves to server stuff
+- add row termination and column termination option to tsql
+- improve locale stuff on ctlib
+  added cs_loc_alloc, cs_loc_drop, cs_locale implementations
+- improve MingW compile
+- implement dbsetnull on dblib
+- improve dblib error reporting and check
+- more verbose log for dblib and odbc
+- fix rpc parameter on dblib, now php works correctly
+- many test added
+  1 test for libTDS
+  1 test for ctlib
+  3 tests for dblib
+  13 tests for odbc
+- fix database setting on odbc
+- fix timeout stuff
+- return always an error if odbc return SQL_ERROR
+- fix SQLGetData result
+- add freetds.conf option for encryption
+- add protocol version discovery
+- read table and real column name from wire
 
 libTDS API changes
 - tds_add_row_column_size removed
@@ -40,6 +64,9 @@ libTDS API changes
 - removed tds_client_msg
 - added tdserror to report error
 - added flags parameter to tds_answer_challenge
+- added is_variable_type macro
+- added TDSCOLUMN->table_column_name
+- added tds parameter to tds_set_column_type
 
 
 * 0.64

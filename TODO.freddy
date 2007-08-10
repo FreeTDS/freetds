@@ -56,6 +56,7 @@ char, variable and so on
 
 Possibility to lock TDSSOCKET (see odbc, multiple RPCs)
 
+Support Unicode under ODBC, use iso8859-1 by default and large characters
 
 
 Tests
