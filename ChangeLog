@@ -1,3 +1,6 @@
+Fri Aug 10 11:14:19 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/dev-cpp/Makefile.win: add missing file
+
 Thu Aug 09 14:52:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: small fixes
 
