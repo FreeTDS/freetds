@@ -1,4 +1,4 @@
-/* $Id: config_h.vms,v 1.6 2005-12-29 10:24:34 freddy77 Exp $ */
+/* $Id: config_h.vms,v 1.7 2007-08-11 06:52:06 freddy77 Exp $ */
 
 /* include/config.h.in.  Generated from configure.in by autoheader.  */
 /* and edited by hand for VMS */
@@ -255,6 +255,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
+
+/* define to format string used for 64bit integers */
+#define TDS_I64_FORMAT "lld"
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME

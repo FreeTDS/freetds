@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.287 2007-07-03 13:39:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.288 2007-08-11 06:52:05 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7825,7 +7825,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 				errnum = (long) pformats;
 				if (buffer == NULL)
 					break;
-				va_start(ap, (char*)errnum);
+				va_start(ap, errnum);
 				rc = tds_vstrbuild(buffer, len, &result_len, ptext, TDS_NULLTERM, (char*)errnum, TDS_NULLTERM, ap);
 				buffer[result_len] = '\0';
 				va_end(ap);
