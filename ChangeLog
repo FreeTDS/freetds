@@ -1,3 +1,9 @@
+Mon Aug 16 10:09:42 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am:
+	* src/odbc/unittests/Makefile.am src/tds/net.c:
+	* src/tds/unittests/Makefile.am:
+	- remove other warnings
+
 Mon Aug 16 08:29:38 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/unittests/convert.c win32/initnet.c:	
 	- remove some warnings compiling with MingW

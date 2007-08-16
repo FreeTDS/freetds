@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.65 2007-05-25 09:10:11 freddy77 Exp $
+# $Id: Makefile.am,v 1.66 2007-08-16 08:10:10 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -73,7 +73,11 @@ timeout4_SOURCES	= timeout4.c common.c common.h
 freeclose_SOURCES	= freeclose.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_SRCDIR=\"$(srcdir)\"
+if MINGW32
+AM_LDFLAGS	=	-no-fast-install
+else
 AM_LDFLAGS	=	-no-install
+endif
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
 EXTRA_DIST	=	describecol.in $(EXTRA_DIST_WIN32)

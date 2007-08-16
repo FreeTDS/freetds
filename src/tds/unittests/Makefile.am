@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.22 2006-08-03 08:34:04 freddy77 Exp $
+# $Id: Makefile.am,v 1.23 2007-08-16 08:10:11 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
@@ -30,6 +30,10 @@ numeric_SOURCES =       numeric.c
 iconv_fread_SOURCES	= iconv_fread.c
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
+if MINGW32
+AM_LDFLAGS	=	-no-fast-install
+else
 AM_LDFLAGS	=	-no-install
+endif
 LIBS		=	../libtds.la ../../replacements/libreplacements.la @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out
