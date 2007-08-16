@@ -26,12 +26,13 @@
 #include "common.h"
 #include <assert.h>
 #include <tdsconvert.h>
+#include "replacements.h"
 
 #if HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.21 2006-12-21 03:56:38 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.22 2007-08-16 06:31:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;

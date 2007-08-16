@@ -1,3 +1,7 @@
+Mon Aug 16 08:29:38 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/unittests/convert.c win32/initnet.c:	
+	- remove some warnings compiling with MingW
+
 Sat Aug 11 08:51:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c vms/config_h.vms vms/descrip_mms.template:
 	- applied Craig A. Berry patch #1772080 for VMS systems
