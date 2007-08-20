@@ -208,7 +208,8 @@ Any help with the magic numbers would be most appreciated.
 byte  var type  description
 ---------------------------
   0   INT32	total packet size
-  4   INT[4]	TDS Version	0x00000070 for TDS7, 0x01000071 for TDS8
+  4   INT8[4]	TDS Version	0x00000070 for TDS7, 0x01000071 for TDS8
+                0x02000972 for mssql 2005
   8   INT32	packet size (default 4096)
  12   INT8[4]	client program version
  16   INT32	PID of client
@@ -272,6 +273,13 @@ NT Authentication packet
  32   CHAR[n]   hostname
       CHAR[n]   domain
 See documentation on Samba for detail (or search ntlm authentication for IIS)
+
+For mssql 2005 before hostname (byte 86) you have
+ 86   INT16     next position
+ 88   INT16     0
+ 90   INT8[4]   0x00000000 ???
+ 94   UCS2LE[n] hostname
+      ... (like above)
 </pre>
 <p>"current pos" is the starting byte address for a Unicode string within
 the packet.  The length of that Unicode string immediately follows.  
