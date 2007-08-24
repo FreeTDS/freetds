@@ -7,3 +7,5 @@ EXTRA_DIST      = config.h FreeTDS.def initnet.c \
 		freetds.nsh freetds.nsh.in \
 		installfreetds.bat freetds.nsi
 
+CLEANFILES = setup.res
+
