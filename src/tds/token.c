@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.335 2007-07-03 15:13:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.336 2007-08-24 09:51:37 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1125,7 +1125,7 @@ tds_process_tabname(TDSSOCKET *tds)
 	hdrsize = tds_get_smallint(tds);
 
 	/* different structure for tds8 */
-	if (IS_TDS80(tds))
+	if (IS_TDS8_PLUS(tds))
 		num_names = tds8_read_table_names(tds, hdrsize, &head);
 	else
 		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
@@ -1481,7 +1481,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		/* FIXME check prec/scale, don't let server crash us */
 	}
 
-	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
+	if (IS_TDS8_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
 		/* based on true type as sent by server */
 		/*
 		 * first 2 bytes are windows code (such as 0x409 for english)
@@ -1645,7 +1645,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 
 	/* read sql collation info */
 	/* TODO: we should use it ! */
-	if (IS_TDS80(tds) && is_collate_type(curcol->on_server.column_type)) {
+	if (IS_TDS8_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
 		tds_get_n(tds, curcol->column_collation, 5);
 		curcol->char_conv =
 			tds_iconv_from_collate(tds, curcol->column_collation[4],

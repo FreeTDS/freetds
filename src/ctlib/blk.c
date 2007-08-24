@@ -44,7 +44,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.37 2007-07-03 13:39:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.38 2007-08-24 09:51:37 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -1093,7 +1093,7 @@ _blk_send_colmetadata(CS_BLKDESC * blkdesc)
 			tds_put_byte(tds, bcpcol->column_prec);
 			tds_put_byte(tds, bcpcol->column_scale);
 		}
-		if (IS_TDS80(tds)
+		if (IS_TDS8_PLUS(tds)
 			&& is_collate_type(bcpcol->on_server.column_type)) {
 			tds_put_n(tds, bcpcol->column_collation, 5);
 		}

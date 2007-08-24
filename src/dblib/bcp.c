@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.154 2007-07-03 13:39:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.155 2007-08-24 09:51:37 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2576,7 +2576,7 @@ _bcp_send_colmetadata(DBPROCESS * dbproc)
 			tds_put_byte(tds, bcpcol->column_prec);
 			tds_put_byte(tds, bcpcol->column_scale);
 		}
-		if (IS_TDS80(tds)
+		if (IS_TDS8_PLUS(tds)
 		    && is_collate_type(bcpcol->on_server.column_type)) {
 			tds_put_n(tds, bcpcol->column_collation, 5);
 		}

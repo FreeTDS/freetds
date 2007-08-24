@@ -1,3 +1,8 @@
+Fri Aug 24 11:50:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/blk.c src/dblib/bcp.c src/tds/login.c:
+	* src/tds/query.c src/tds/token.c:
+	- small changes for TDS 9.0
+
 Mon Aug 16 10:09:42 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am:
 	* src/odbc/unittests/Makefile.am src/tds/net.c:

@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.273 2007-08-07 09:20:31 freddy77 Exp $ */
+/* $Id: tds.h,v 1.274 2007-08-24 09:51:37 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1565,8 +1565,10 @@ void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TD
 #define IS_TDS50(x) (x->major_version==5 && x->minor_version==0)
 #define IS_TDS70(x) (x->major_version==7 && x->minor_version==0)
 #define IS_TDS80(x) (x->major_version==8 && x->minor_version==0)
+#define IS_TDS90(x) (x->major_version==9 && x->minor_version==0)
 
-#define IS_TDS7_PLUS(x) ( IS_TDS70(x) || IS_TDS80(x) )
+#define IS_TDS7_PLUS(x) ((x)->major_version>=7)
+#define IS_TDS8_PLUS(x) ((x)->major_version>=8)
 
 #define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID((x)->s))
 

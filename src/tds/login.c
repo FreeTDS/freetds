@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.161 2007-05-14 14:05:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.162 2007-08-24 09:51:37 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -430,7 +430,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		return TDS_FAIL;
 	tds_set_state(tds, TDS_IDLE);
 
-	if (IS_TDS80(tds)) {
+	if (IS_TDS8_PLUS(tds)) {
 		retval = tds8_do_login(tds, connection);
 		db_selected = 1;
 	} else if (IS_TDS7_PLUS(tds)) {
@@ -821,7 +821,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		packet_size += (user_name_len + password_len) * 2;
 
 	tds_put_int(tds, packet_size);
-	if (IS_TDS80(tds)) {
+	if (IS_TDS8_PLUS(tds)) {
 		tds_put_n(tds, tds8Version, 4);
 	} else {
 		tds_put_n(tds, tds7Version, 4);
