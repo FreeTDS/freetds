@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2004, 2005 Frediano Ziglio
+ * Copyright (C) 2004, 2005, 2006, 2007  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -54,10 +54,13 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.100 2007-05-17 10:33:20 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.101 2007-08-25 10:33:29 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
+#define ODBC_API SQL_API __attribute__((externally_visible))
+#else
+#define ODBC_API SQL_API
 #endif
 
 #define ODBC_MAX(a,b) ( (a) > (b) ? (a) : (b) )

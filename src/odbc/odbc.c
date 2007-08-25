@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.454 2007-08-07 13:35:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.455 2007-08-25 10:33:31 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -327,7 +327,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrIn, SQLCHAR FAR * szConnStrOut,
 		 SQLSMALLINT cbConnStrOutMax, SQLSMALLINT FAR * pcbConnStrOut, SQLUSMALLINT fDriverCompletion)
 {
@@ -412,7 +412,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 }
 
 #if 0
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrIn, SQLCHAR FAR * szConnStrOut,
 		 SQLSMALLINT cbConnStrOutMax, SQLSMALLINT FAR * pcbConnStrOut)
 {
@@ -425,7 +425,7 @@ SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrI
 #endif
 
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 		    SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLCHAR FAR * szColumnName,
 		    SQLSMALLINT cbColumnName)
@@ -449,7 +449,7 @@ SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 }
 
 #if 0
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType, SQLUINTEGER FAR * pcbParamDef,
 		 SQLSMALLINT FAR * pibScale, SQLSMALLINT FAR * pfNullable)
 {
@@ -462,7 +462,7 @@ SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType,
 #endif
 
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLLEN irow, SQLULEN FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
 {
 	SQLRETURN ret;
@@ -515,7 +515,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLLEN irow, SQLULEN F
 	ODBC_RETURN(stmt, ret);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCatalogName, SQLCHAR FAR * szPkSchemaName,
 	       SQLSMALLINT cbPkSchemaName, SQLCHAR FAR * szPkTableName, SQLSMALLINT cbPkTableName, SQLCHAR FAR * szFkCatalogName,
 	       SQLSMALLINT cbFkCatalogName, SQLCHAR FAR * szFkSchemaName, SQLSMALLINT cbFkSchemaName, SQLCHAR FAR * szFkTableName,
@@ -562,7 +562,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 	return 1;
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLMoreResults(SQLHSTMT hstmt)
 {
 	TDSSOCKET *tds;
@@ -741,7 +741,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStrMax,
 	     SQLINTEGER FAR * pcbSqlStr)
 {
@@ -777,7 +777,7 @@ SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLC
 	ODBC_RETURN(dbc, ret);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLNumParams(SQLHSTMT hstmt, SQLSMALLINT FAR * pcpar)
 {
 	INIT_HSTMT;
@@ -786,7 +786,7 @@ SQLNumParams(SQLHSTMT hstmt, SQLSMALLINT FAR * pcpar)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 {
 	SQLRETURN res;
@@ -800,7 +800,7 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 	return _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER) (TDS_INTPTR) crow, 0);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	       SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName)
 {
@@ -821,7 +821,7 @@ SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalo
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 		    SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName, SQLCHAR FAR * szColumnName,
 		    SQLSMALLINT cbColumnName)
@@ -848,7 +848,7 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName)
 {
@@ -917,7 +917,7 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 	return params;
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
 	int ret;
@@ -994,7 +994,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 		   SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName)
 {
@@ -1016,7 +1016,7 @@ SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCa
 }
 
 #if (ODBCVER >= 0x0300)
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER StringLength)
 {
 	SQLINTEGER i_val = (SQLINTEGER) (TDS_INTPTR) Value;
@@ -1054,7 +1054,7 @@ SQLSetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER S
 	ODBC_RETURN(env, SQL_ERROR);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
 	size_t size;
@@ -1206,7 +1206,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
 		 SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
 {
@@ -1217,7 +1217,7 @@ SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLS
 
 
 /* compatibility with X/Open */
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLBindParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT fSqlType, SQLULEN cbColDef, SQLSMALLINT ibScale,
 	     SQLPOINTER rgbValue, SQLLEN FAR * pcbValue)
 {
@@ -1227,7 +1227,7 @@ SQLBindParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT 
 }
 
 #if (ODBCVER >= 0x0300)
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * OutputHandle)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocHandle(%d, %p, %p)\n", HandleType, InputHandle, OutputHandle);
@@ -1302,7 +1302,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	ODBC_RETURN_(env);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocConnect(%p, %p)\n", henv, phdbc);
@@ -1348,7 +1348,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	return SQL_SUCCESS;
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLAllocEnv(SQLHENV FAR * phenv)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocEnv(%p)\n", phenv);
@@ -1490,7 +1490,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	ODBC_RETURN_(dbc);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocStmt(%p, %p)\n", hdbc, phstmt);
@@ -1498,7 +1498,7 @@ SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	return _SQLAllocStmt(hdbc, phstmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
 {
 	SQLRETURN rc = SQL_SUCCESS;
@@ -1562,7 +1562,7 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLCancel(SQLHSTMT hstmt)
 {
 	TDSSOCKET *tds;
@@ -1596,7 +1596,7 @@ SQLCancel(SQLHSTMT hstmt)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * szUID, SQLSMALLINT cbUID, SQLCHAR FAR * szAuthStr,
 	   SQLSMALLINT cbAuthStr)
 {
@@ -1679,7 +1679,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	ODBC_RETURN_(dbc);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSMALLINT cbColNameMax, SQLSMALLINT FAR * pcbColName,
 	       SQLSMALLINT FAR * pfSqlType, SQLULEN FAR * pcbColDef, SQLSMALLINT FAR * pibScale, SQLSMALLINT FAR * pfNullable)
 {
@@ -1956,7 +1956,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 #undef IOUT
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 		 SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc, SQLLEN FAR * pfDesc)
 {
@@ -1967,7 +1967,7 @@ SQLColAttributes(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 }
 
 #if (ODBCVER >= 0x0300)
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 		SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax, SQLSMALLINT FAR * pcbDesc,
 #ifdef TDS_SQLCOLATTRIBUTE_SQLLEN
@@ -1984,7 +1984,7 @@ SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 }
 #endif
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLDisconnect(SQLHDBC hdbc)
 {
 	int i;
@@ -2095,7 +2095,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		 }\
 	} while(0)
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLSMALLINT nSubType, SQLLEN nLength,
 	      SQLSMALLINT nPrecision, SQLSMALLINT nScale, SQLPOINTER pData, SQLLEN FAR * pnStringLength, SQLLEN FAR * pnIndicator)
 {
@@ -2152,7 +2152,7 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 	ODBC_RETURN_(desc);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALLINT BufferLength, SQLSMALLINT * StringLength,
 	      SQLSMALLINT * Type, SQLSMALLINT * SubType, SQLLEN FAR * Length, SQLSMALLINT * Precision, SQLSMALLINT * Scale,
 	      SQLSMALLINT * Nullable)
@@ -2196,7 +2196,7 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 	ODBC_RETURN(desc, rc);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOINTER Value, SQLINTEGER BufferLength,
 		SQLINTEGER * StringLength)
 {
@@ -2396,7 +2396,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 #undef IOUT
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOINTER Value, SQLINTEGER BufferLength)
 {
 	struct _drecord *drec;
@@ -2609,7 +2609,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 	ODBC_RETURN(desc, result);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLCopyDesc(SQLHDESC hdesc, SQLHDESC htarget)
 {
 	TDS_DESC *target;
@@ -3160,7 +3160,7 @@ _SQLExecute(TDS_STMT * stmt)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 {
 	SQLRETURN res;
@@ -3192,7 +3192,7 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	return _SQLExecute(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLExecute(SQLHSTMT hstmt)
 {
 	SQLRETURN res;
@@ -3585,7 +3585,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLFetch(SQLHSTMT hstmt)
 {
 	INIT_HSTMT;
@@ -3596,7 +3596,7 @@ SQLFetch(SQLHSTMT hstmt)
 }
 
 #if (ODBCVER >= 0x0300)
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLFetchScroll(SQLHSTMT hstmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 {
 	INIT_HSTMT;
@@ -3614,7 +3614,7 @@ SQLFetchScroll(SQLHSTMT hstmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 
 
 #if (ODBCVER >= 0x0300)
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle)
 {
 	tdsdump_log(TDS_DBG_INFO1, "SQLFreeHandle(%d, 0x%p)\n", HandleType, (void *) Handle);
@@ -3668,7 +3668,7 @@ _SQLFreeConnect(SQLHDBC hdbc)
 	return SQL_SUCCESS;
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLFreeConnect(SQLHDBC hdbc)
 {
 	tdsdump_log(TDS_DBG_INFO2, "SQLFreeConnect(%p)\n", hdbc);
@@ -3691,7 +3691,7 @@ _SQLFreeEnv(SQLHENV henv)
 	return SQL_SUCCESS;
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLFreeEnv(SQLHENV henv)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLFreeEnv(%p)\n", henv);
@@ -3784,7 +3784,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLFreeStmt(%p, %d)\n", hstmt, fOption);
@@ -3792,7 +3792,7 @@ SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption)
 }
 
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLCloseCursor(SQLHSTMT hstmt)
 {
 	/* TODO cursors */
@@ -4015,7 +4015,7 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 }
 
 #if (ODBCVER >= 0x0300)
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetStmtAttr(%p, %d, %p, %d, %p)\n", 
@@ -4025,7 +4025,7 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 }
 #endif
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetStmtOption(%p, %d, %p)\n", 
@@ -4034,7 +4034,7 @@ SQLGetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 	return _SQLGetStmtAttr(hstmt, (SQLINTEGER) fOption, pvParam, SQL_MAX_OPTION_STRING_LENGTH, NULL);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 {
 	INIT_HSTMT;
@@ -4056,7 +4056,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 {
 	SQLRETURN retcode;
@@ -4207,7 +4207,7 @@ _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 {
 	SQLRETURN rc = _SQLRowCount(hstmt, pcrow);
@@ -4215,7 +4215,7 @@ SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 	return rc;
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 {
 	INIT_HSTMT;
@@ -4236,7 +4236,7 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax, SQLSMALLINT FAR * pcbCursor)
 {
 	SQLRETURN rc;
@@ -4308,7 +4308,7 @@ _SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 	ODBC_RETURN(dbc, change_transaction(dbc, op));
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLTransact(%p, %p, %d)\n", henv, hdbc, fType);
@@ -4317,7 +4317,7 @@ SQLTransact(SQLHENV henv, SQLHDBC hdbc, SQLUSMALLINT fType)
 }
 
 #if ODBCVER >= 0x300
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLEndTran(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT completionType)
 {
 	/*
@@ -4338,7 +4338,7 @@ SQLEndTran(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT completionType)
 
 /* end of transaction support */
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT fSqlType, SQLULEN cbParamDef,
 	    SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN FAR * pcbValue)
 {
@@ -4363,7 +4363,7 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
  *                 [ , [ @ODBCVer = ] ODBCVer ] 
  *
  */
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 	   SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,	/* object_owner */
 	   SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName,	/* object_name */
@@ -4466,7 +4466,7 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 }
 
 #if ODBCVER >= 0x300
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetConnectAttr(%p, %d, %p, %d, %p)\n", 
@@ -4476,7 +4476,7 @@ SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 }
 #endif
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetConnectOption(%p, %u, %p)\n", hdbc, fOption, pvParam);
@@ -4484,7 +4484,7 @@ SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 	return _SQLGetConnectAttr(hdbc, (SQLINTEGER) fOption, pvParam, SQL_MAX_OPTION_STRING_LENGTH, NULL);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
 {
 	/* TODO cursors fetch row if needed ?? */
@@ -4585,7 +4585,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExists)
 {
 	int i;
@@ -5491,7 +5491,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 #undef UIVAL
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetInfo(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSMALLINT cbInfoValueMax,
 	   SQLSMALLINT FAR * pcbInfoValue)
 {
@@ -5577,7 +5577,7 @@ odbc_swap_datetime_sql_type(SQLSMALLINT sql_type)
 	return sql_type;
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 {
 	SQLRETURN res;
@@ -5666,7 +5666,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	ODBC_RETURN(stmt, res);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 {
 	INIT_HSTMT;
@@ -5708,7 +5708,7 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 {
 	INIT_HSTMT;
@@ -5813,7 +5813,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 	ODBC_RETURN(dbc, SQL_ERROR);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectAttr(%p, %d, %p, %d)\n", 
@@ -5822,7 +5822,7 @@ SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 	return _SQLSetConnectAttr(hdbc, Attribute, ValuePtr, StringLength);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectOption(%p, %d, %u)\n", hdbc, fOption, (unsigned)vParam);
@@ -6082,7 +6082,7 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 }
 
 #if (ODBCVER >= 0x0300)
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetStmtAttr(%p, %d, %p, %d)\n", 
@@ -6092,7 +6092,7 @@ SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINT
 }
 #endif
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetStmtOption(%p, %u, %u)\n", hstmt, fOption, (unsigned)vParam);
@@ -6100,7 +6100,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	return _SQLSetStmtAttr(hstmt, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName,
 		  SQLCHAR FAR * szSchemaName, SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName,
 		  SQLUSMALLINT fScope, SQLUSMALLINT fNullable)
@@ -6175,7 +6175,7 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLUSMALLINT fUnique,
 	      SQLUSMALLINT fAccuracy)
@@ -6237,7 +6237,7 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 }
 
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
 	  SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLCHAR FAR * szTableType,
 	  SQLSMALLINT cbTableType)
@@ -6671,7 +6671,7 @@ odbc_free_cursor(TDS_STMT * stmt)
 	return SQL_SUCCESS;
 }
 
-SQLRETURN SQL_API
+SQLRETURN ODBC_API
 SQLSetScrollOptions(SQLHSTMT hstmt, SQLUSMALLINT fConcurrency, SQLLEN crowKeyset, SQLUSMALLINT crowRowset)
 {
 	SQLUSMALLINT info;
