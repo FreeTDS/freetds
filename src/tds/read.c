@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
- * Copyright (C) 2005  Frediano Ziglio
+ * Copyright (C) 2005, 2006, 2007  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.103 2007-06-21 07:21:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.104 2007-09-06 11:17:21 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -280,7 +280,7 @@ tds_get_n(TDSSOCKET * tds, void *dest, int need)
 		need -= have;
 		if (tds_read_packet(tds) < 0)
 			return NULL;
-		have = tds->in_len;
+		have = tds->in_len - tds->in_pos;
 	}
 	if (need > 0) {
 		/* get the remainder if there is any */

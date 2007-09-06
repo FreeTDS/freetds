@@ -18,6 +18,7 @@ This document attempts to cover the TDS protocol for:
 	<tr><td align=center>5.0</td><td>Sybase SQL Server &gt;= 10</td></tr>
 	<tr><td align=center>7.0</td><td>Microsoft SQL Server 7.0</td></tr>
 	<tr><td align=center>8.0</td><td>Microsoft SQL Server 2000</td></tr>
+	<tr><td align=center>9.0</td><td>Microsoft SQL Server 2005</td></tr>
 </table>
 <p>
 <b>Contents</b>
@@ -40,7 +41,7 @@ This document attempts to cover the TDS protocol for:
 TDS protocol versions
   TDS5    tds version 5.0
   TDS7    tds version 7.0
-  TDS7+   tds version 7.0 and 8.0
+  TDS7+   tds version 7.0, 8.0 and 9.0
   TDS5-   tds version 5.0 and previous
 
 Variable types used in this document:
@@ -1390,10 +1391,10 @@ column info        <a href="#colInfo">column info</a>
 <b class="section">Done Inside Process (0xFF 255)</b><br>
 
 <pre>
- INT16       INT16     INT32
-+-----------+---------+-----------+
-| bit flags | unknown | row count |
-+-----------+---------+-----------+
+ INT16       INT16     INT32               INT64
++-----------+---------+-------------------+------------------+
+| bit flags | unknown | row count (TDS8-) | row count (TDS9) |
++-----------+---------+-------------------+------------------+
 
 Fields:
 bit flags          0x01 more results
@@ -1402,6 +1403,7 @@ bit flags          0x01 more results
 		   0x20 cancelled
 unknown            2,0  /* something to do with block size perhaps */
 row count          number of rows affected / returned in the result set. 
+                   row count is 64-bit using TDS9.
 		(FIXME check if "affected / returned" is correct)
 </pre>
 
