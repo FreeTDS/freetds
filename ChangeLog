@@ -1,3 +1,7 @@
+Thu Sep 13 12:42:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/freeclose.c:
+	- make it works even if login is quite long
+
 Thu Sep 13 08:57:26 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/unittests/dynamic1.c: use tds_set_param_type
 

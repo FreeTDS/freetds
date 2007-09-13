@@ -50,7 +50,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.3 2007-06-17 17:39:53 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.4 2007-09-13 10:43:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -319,6 +319,10 @@ main(int argc, char **argv)
 	if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, Connection, &hstmt)))
 		return 1;
 
+	/* do not take into account connection statistics */
+	round_trips = 0;
+	inserts = 0;
+
 	query = "insert into #test values (?, ?)";
 
 	if (!SQL_SUCCEEDED(SQLBindParameter(hstmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts))
@@ -351,7 +355,7 @@ main(int argc, char **argv)
 	alarm(10);
 	pthread_join(fake_thread, NULL);
 
-	if (inserts > 2 || round_trips > num_inserts * 2 + 20) {
+	if (inserts > 2 || round_trips > num_inserts * 2 + 10) {
 		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
 		return 1;
 	}
