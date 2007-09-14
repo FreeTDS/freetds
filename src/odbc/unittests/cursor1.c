@@ -2,18 +2,22 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.10 2007-08-07 13:35:52 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.11 2007-09-14 09:17:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
-	if (func params != SQL_SUCCESS) \
-		ODBC_REPORT_ERROR(#func)
+	do { if (func params != SQL_SUCCESS) \
+		ODBC_REPORT_ERROR(#func); \
+	} while(0)
 
 #define CHK_INFO(func,params) \
-	if (!SQL_SUCCEEDED(func params)) \
-		ODBC_REPORT_ERROR(#func)
+	do { if (!SQL_SUCCEEDED(func params)) \
+		ODBC_REPORT_ERROR(#func); \
+	} while(0)
 
 #define SWAP_STMT(a,b) do { SQLHSTMT xyz = a; a = b; b = xyz; } while(0)
+
+static int mssql2005 = 0;
 
 static void
 CheckNoRow(const char *query)
@@ -111,7 +115,10 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 		/* delete a row */
 		i = 1;
 		if (i > 0 && i <= num_row) {
-			CHK(SQLSetPos, (Statement, i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE));
+			if (mssql2005)
+				CHK_INFO(SQLSetPos, (Statement, i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE));
+			else
+				CHK(SQLSetPos, (Statement, i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE));
 			if (use_sql) {
 				SWAP_STMT(Statement, stmt2);
 				CHK(SQLPrepare, (Statement, (SQLCHAR *) "DELETE FROM #test WHERE CURRENT OF C1", SQL_NTS));
@@ -197,7 +204,14 @@ Test(int use_sql)
 int
 main(int argc, char *argv[])
 {
+	char version[32];
+	SQLSMALLINT version_len;
+
 	Connect();
+
+	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
+	if (db_is_microsoft() && strncmp(version, "09.00.", 6) == 0)
+		mssql2005 = 1;
 
 	Test(1);
 
