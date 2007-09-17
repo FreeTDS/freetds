@@ -1165,15 +1165,15 @@ to a column is the number
 <b class="section">Extended Error Message (0xE5 229)</b>
 
 <pre>
- INT16    4 bytes      INT8    INT8    
+ INT16    INT32        INT8    INT8    
 +--------+------------+-------+-------+
 | length | msg number | state | level |
 +--------+------------+-------+-------+
 
- INT16      CHAR[n]   INT8       CHAR[n]   INT8       CHAR[n]   INT16  
-+----------+---------+----------+---------+----------+---------+-------+
-| m length | message | s length | server  | p length | process | line# |
-+----------+---------+----------+---------+----------+---------+-------+
+ INT16      XCHAR[n]  INT8       XCHAR[n]  INT8       XCHAR[n]  INT16          INT32
++----------+---------+----------+---------+----------+---------+--------------+--------------+
+| m length | message | s length | server  | p length | process | line#(TDS8-) | line# (TDS9) |
++----------+---------+----------+---------+----------+---------+--------------+--------------+
 
 length		Length of packet
 msg number	SQL message number

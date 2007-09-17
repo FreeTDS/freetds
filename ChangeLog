@@ -1,3 +1,7 @@
+Mon Sep 17 17:52:09 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/tds.html: update for tds9
+	* src/server/login.c: remove warning
+
 Mon Sep 17 12:13:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/tsql.c:
 	- improve for very large query (from 9.2 to 0.3 seconds on my 
