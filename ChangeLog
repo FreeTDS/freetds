@@ -1,3 +1,8 @@
+Mon Sep 17 12:13:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/tsql.c:
+	- improve for very large query (from 9.2 to 0.3 seconds on my 
+	  test machine)
+
 Mon Sep 17 10:42:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/tds.html: update
 	* src/ctlib/unittests/get_send_data.c: small fix

@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.105 2007-06-18 12:03:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.106 2007-09-17 10:15:22 freddy77 Exp $");
 
 enum
 {
@@ -109,7 +109,7 @@ static void tsql_print_usage(const char *progname);
 static int get_opt_flags(char *s, int *opt_flags);
 static void populate_login(TDSLOGIN * login, int argc, char **argv);
 static int tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
-static void slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line);
+static void slurp_input_file(char *fname, char **mybuf, int *bufsz, size_t *buflen, int *line);
 
 static char *
 tsql_readline(char *prompt)
@@ -552,7 +552,7 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 }
 
 static void
-slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line)
+slurp_input_file(char *fname, char **mybuf, int *bufsz, size_t *buflen, int *line)
 {
 	FILE *fp = NULL;
 	register char *n;
@@ -564,11 +564,12 @@ slurp_input_file(char *fname, char **mybuf, int *bufsz, int *line)
 		return;
 	}
 	while ((s = fgets(linebuf, sizeof(linebuf), fp)) != NULL) {
-		while (strlen(*mybuf) + strlen(s) + 2 > *bufsz) {
+		while (*buflen + strlen(s) + 2 > *bufsz) {
 			*bufsz *= 2;
 			*mybuf = (char *) realloc(*mybuf, *bufsz);
 		}
-		strcat(*mybuf, s);
+		strcpy(*mybuf + *buflen, s);
+		*buflen += strlen(*mybuf + *buflen);
 		n = strrchr(s, '\n');
 		if (n != NULL)
 			*n = '\0';
@@ -586,6 +587,7 @@ main(int argc, char **argv)
 	int line = 0;
 	char *mybuf;
 	int bufsz = 4096;
+	size_t buflen = 0;
 	TDSSOCKET *tds;
 	TDSLOGIN *login;
 	TDSCONTEXT *context;
@@ -665,6 +667,7 @@ main(int argc, char **argv)
 	bufsz = 4096;
 	mybuf = (char *) malloc(bufsz);
 	mybuf[0] = '\0';
+	buflen = 0;
 
 #ifdef HAVE_READLINE
 	rl_inhibit_completion = 1;
@@ -706,6 +709,7 @@ main(int argc, char **argv)
 				opt_flags ^= global_opt_flags;
 				do_query(tds, mybuf, opt_flags);
 				mybuf[0] = '\0';
+				buflen = 0;
 				continue;
 			}
 			free(go_line);
@@ -727,22 +731,25 @@ main(int argc, char **argv)
 			printf("using TDS version %s\n", mybuf);
 			line = 0;
 			mybuf[0] = '\0';
+			buflen = 0;
 			continue;
 		}
 		if (!strcasecmp(cmd, "reset")) {
 			line = 0;
 			mybuf[0] = '\0';
+			buflen = 0;
 		} else if (!strcasecmp(cmd, ":r")) {
-			slurp_input_file(strtok(NULL, " \t"), &mybuf, &bufsz, &line);
+			slurp_input_file(strtok(NULL, " \t"), &mybuf, &bufsz, &buflen, &line);
 		} else {
-			while (strlen(mybuf) + strlen(s) + 2 > bufsz) {
+			while (buflen + strlen(s) + 2 > bufsz) {
 				bufsz *= 2;
 				mybuf = (char *) realloc(mybuf, bufsz);
 			}
 			tsql_add_history(s);
-			strcat(mybuf, s);
+			strcpy(mybuf + buflen, s);
 			/* preserve line numbering for the parser */
-			strcat(mybuf, "\n");
+			strcat(mybuf + buflen, "\n");
+			buflen += strlen(mybuf + buflen);
 		}
 	}
 
