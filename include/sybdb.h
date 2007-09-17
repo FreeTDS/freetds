@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.81 2007-01-20 20:25:56 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.82 2007-09-17 08:46:02 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -93,6 +93,7 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBTDS_5_0               7	/* 5.0 SQL Server */
 #define DBTDS_7_0               8	/* Microsoft SQL Server 7.0 */
 #define DBTDS_8_0               9	/* Microsoft SQL Server 2000 */
+#define DBTDS_9_0               10	/* Microsoft SQL Server 2005 */
 
 #define DBTXPLEN 16
 

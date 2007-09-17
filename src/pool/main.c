@@ -57,7 +57,7 @@
 
 #include "pool.h"
 
-TDS_RCSID(var, "$Id: main.c,v 1.23 2006-12-26 14:56:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: main.c,v 1.24 2007-09-17 08:46:03 freddy77 Exp $");
 
 /* to be set by sig term */
 static int term = 0;
@@ -217,7 +217,7 @@ pool_main_loop(TDS_POOL * pool)
 			}
 		}
 	}			/* while !term */
-	close(s);
+	CLOSESOCKET(s);
 	for (i = 0; i < pool->max_users; i++) {
 		puser = (TDS_POOL_USER *) & pool->users[i];
 		if (!IS_TDSDEAD(puser->tds)) {

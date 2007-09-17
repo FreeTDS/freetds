@@ -573,7 +573,9 @@ name length   length of RPC name in characters.
                 0xD  13 sp_prepexec
                 0xE  14 sp_prepexecrpc
                 0xF  15 sp_unprepare
-rpc name      name of RPC. 
+              sp_execute seems to have some problems, even MS ODBC use name
+              version instead of number.
+rpc name      name of RPC.
 flags         bit flags. 
                0x1 1 recompile procedure (TDS7+/TDS5)
                0x2 2 no metadata (TDS7+)
@@ -619,6 +621,16 @@ optional      see <a href="#t129">Results</a>. Blobs DO NOT have
 collate info  only for type that want collate info and using TDS8
 locale length locale information length. Usually 0 (if not locale
               information follow, the structure is unknown)
+</pre>
+
+<b>Chained RPCs</b>
+<p>Under TDS7+ is possible to chain multiple RPCs together. This is useful to limit packets and round-trips with server. RPCs can be chained using byte 0x80 (TDS7/TDS8) or 0xFF (TDS9).</p>
+
+<pre>
+       INT8               INT8
++-----+------------------+-------------+-----+
+| RPC | 0x80 (TDS7/TDS8) | 0xFF (TDS9) | RPC | ...
++-----+------------------+-------------+-----+
 </pre>
 
 <hr>

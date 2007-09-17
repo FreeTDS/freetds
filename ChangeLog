@@ -1,3 +1,11 @@
+Mon Sep 17 10:42:45 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/tds.html: update
+	* src/ctlib/unittests/get_send_data.c: small fix
+	* include/sybdb.h src/dblib/dblib.c src/dblib/unittests/t0022.c:
+	- small update for future tds9
+	* src/pool/main.c src/pool/user.c src/server/login.c:
+	- improve portability and possible remote leakage
+
 Thu Sep 13 12:42:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/freeclose.c:
 	- make it works even if login is quite long

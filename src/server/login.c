@@ -54,7 +54,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.48 2007-04-06 08:53:28 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.49 2007-09-17 08:46:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -89,15 +89,18 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 		exit(1);
 	}
 	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+		CLOSESOCKET(s);
 		perror("bind");
 		exit(1);
 	}
 	listen(s, 5);
 	len = sizeof(sin);
 	if ((fd = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
+		CLOSESOCKET(s);
 		perror("accept");
 		exit(1);
 	}
+	CLOSESOCKET(s);
 	tds = tds_alloc_socket(ctx, 8192);
 	tds->s = fd;
 	tds->out_flag = TDS_LOGIN;

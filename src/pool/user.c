@@ -48,7 +48,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.30 2007-03-14 16:22:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.31 2007-09-17 08:46:03 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
@@ -102,6 +102,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	TDS_POOL_USER *puser;
 	TDS_SYS_SOCKET fd;
 	socklen_t len;
+	TDSSOCKET *tds;
 
 	puser = pool_user_find_new(pool);
 	if (!puser)
@@ -113,15 +114,23 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 		perror("accept");
 		return NULL;
 	}
-	puser->tds = tds_alloc_socket(NULL, BLOCKSIZ);
-	tds_set_parent(puser->tds, NULL);
+	tds = tds_alloc_socket(NULL, BLOCKSIZ);
+	if (!tds) {
+		CLOSESOCKET(fd);
+		return NULL;
+	}
+	tds_set_parent(tds, NULL);
 	/* FIX ME - little endian emulation should be config file driven */
-	puser->tds->emul_little_endian = 1;
-	puser->tds->in_buf = (unsigned char *) malloc(BLOCKSIZ);
-	puser->tds->in_buf_max = BLOCKSIZ;
-	memset(puser->tds->in_buf, 0, BLOCKSIZ);
-	puser->tds->s = fd;
-	puser->tds->out_flag = TDS_LOGIN;
+	tds->emul_little_endian = 1;
+	tds->in_buf = (unsigned char *) calloc(1, BLOCKSIZ);
+	tds->s = fd;
+	if (!tds->in_buf) {
+		tds_free_socket(tds);
+		return NULL;
+	}
+	tds->in_buf_max = BLOCKSIZ;
+	tds->out_flag = TDS_LOGIN;
+	puser->tds = tds;
 	puser->user_state = TDS_SRV_LOGIN;
 	return puser;
 }

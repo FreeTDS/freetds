@@ -12,7 +12,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: get_send_data.c,v 1.4 2006-12-26 14:56:18 freddy77 Exp $";
+static char software_version[] = "$Id: get_send_data.c,v 1.5 2007-09-17 08:46:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -61,7 +61,7 @@ main(int argc, char **argv)
 		sprintf(temp, "_zzzzz_%03d", (i + 1) * 10);
 		strcat(len800, temp);
 	}
-	len600[800] = '\0';
+	len800[800] = '\0';
 
 
 	fprintf(stdout, "%s: Retrieve CS_TEXT_TYPE using ct_bind()\n", __FILE__);
