@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.155 2007-08-24 09:51:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.156 2007-09-17 21:27:20 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -571,7 +571,7 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 		dbproc->hostfileinfo->firstrow = value;
 		break;
 	case BCPLAST:
-		dbproc->hostfileinfo->firstrow = value;
+		dbproc->hostfileinfo->lastrow = value;
 		break;
 	case BCPBATCH:
 		dbproc->hostfileinfo->batch = value;

@@ -1,3 +1,8 @@
+Mon Sep 17 17:22:32 EDT 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c correct freebcp -L behavior 
+	* src/tds/net.c TDSECONN on no socket failure 
+	* src/tds/util.c change iconv messages
+
 Mon Sep 17 17:52:09 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/tds.html: update for tds9
 	* src/server/login.c: remove warning
