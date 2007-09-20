@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.106 2007-09-17 10:15:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.107 2007-09-20 15:04:27 freddy77 Exp $");
 
 enum
 {
@@ -722,7 +722,7 @@ main(int argc, char **argv)
 		cmd = strtok(s2, " \t");
 		
 		if (!cmd)
-			continue;
+			cmd = "";
 
 		if (!strcasecmp(cmd, "exit") || !strcasecmp(cmd, "quit") || !strcasecmp(cmd, "bye"))
 			break;
