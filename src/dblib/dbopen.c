@@ -32,10 +32,10 @@
 #undef dbopen
 #endif
 
-TDS_RCSID(var, "$Id: dbopen.c,v 1.10 2005-10-07 10:15:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbopen.c,v 1.11 2007-09-20 15:32:54 freddy77 Exp $");
 
 DBPROCESS *
-dbopen(LOGINREC * login, char *server)
+dbopen(LOGINREC * login, const char *server)
 {
 	/* default it's platform specific */
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(DOS32X)

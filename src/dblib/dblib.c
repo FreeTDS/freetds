@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.289 2007-09-17 08:46:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.290 2007-09-20 15:32:54 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -786,7 +786,7 @@ init_dboptions(void)
  * \todo separate error messages for \em no-such-server and \em no-such-user. 
  */
 DBPROCESS *
-tdsdbopen(LOGINREC * login, char *server, int msdblib)
+tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 {
 	DBPROCESS *dbproc;
 	TDSCONNECTION *connection;
@@ -1020,7 +1020,7 @@ dbsqlexec(DBPROCESS * dbproc)
  * \sa dbchange(), dbname().
  */
 RETCODE
-dbuse(DBPROCESS * dbproc, char *name)
+dbuse(DBPROCESS * dbproc, const char *name)
 {
 	RETCODE rc;
 	char *query;

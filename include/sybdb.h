@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.82 2007-09-17 08:46:02 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.83 2007-09-20 15:32:54 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -605,8 +605,8 @@ int dbnumcols(DBPROCESS * dbproc);
 int dbnumcompute(DBPROCESS * dbprocess);
 int DBNUMORDERS(DBPROCESS * dbprocess);
 int dbnumrets(DBPROCESS * dbproc);
-DBPROCESS *tdsdbopen(LOGINREC * login, char *server, int msdblib);
-DBPROCESS *dbopen(LOGINREC * login, char *server);
+DBPROCESS *tdsdbopen(LOGINREC * login, const char *server, int msdblib);
+DBPROCESS *dbopen(LOGINREC * login, const char *server);
 
 #ifdef MSDBLIB
 #define   dbopen(x,y) tdsdbopen((x),(y), 1)
@@ -1018,7 +1018,7 @@ DBBINARY *dbtxptr(DBPROCESS * dbproc, int column);
 DBBINARY *dbtxtimestamp(DBPROCESS * dbproc, int column);
 DBBINARY *dbtxtsnewval(DBPROCESS * dbprocess);
 RETCODE dbtxtsput(DBPROCESS * dbprocess, DBBINARY newtxts, int colnum);
-RETCODE dbuse(DBPROCESS * dbproc, char *name);
+RETCODE dbuse(DBPROCESS * dbproc, const char *name);
 const char *dbversion(void);
 DBBOOL dbwillconvert(int srctype, int desttype);
 RETCODE dbwritepage(DBPROCESS * dbprocess, char *p_dbname, DBINT pageno, DBINT size, BYTE * buf);
