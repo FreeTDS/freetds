@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.209 2007-08-24 09:51:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.210 2007-09-24 11:14:19 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -576,6 +576,7 @@ static int
 tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 {
 	const char *fmt = NULL;
+	int max_len = IS_TDS7_PLUS(tds) ? 8000 : 255;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
@@ -657,12 +658,16 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		break;
 	case SYBNVARCHAR:
 	case XSYBNVARCHAR:
-		if (IS_TDS7_PLUS(tds))
-			fmt = "NVARCHAR";
+		if (IS_TDS7_PLUS(tds)) {
+			fmt = "NVARCHAR(%d)";
+			max_len = 4000;
+		}
 		break;
 	case XSYBNCHAR:
-		if (IS_TDS7_PLUS(tds))
-			fmt = "NCHAR";
+		if (IS_TDS7_PLUS(tds)) {
+			fmt = "NCHAR(%d)";
+			max_len = 4000;
+		}
 		break;
 		/* nullable types should not occur here... */
 	case SYBFLTN:
@@ -686,7 +691,7 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		if (!size)
 			size = curcol->column_size;
 		/* fill out */
-		sprintf(out, fmt, size > 0 ? size : 1);
+		sprintf(out, fmt, size > 0 ? (size > max_len ? max_len : size) : 1);
 		return TDS_SUCCEED;
 	}
 

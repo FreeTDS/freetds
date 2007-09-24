@@ -1,3 +1,6 @@
+Mon Sep 24 13:12:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c: limit size preparing queries
+
 Mon Sep 24 12:01:46 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/server/query.c src/server/server.c:
 	- small server improve
