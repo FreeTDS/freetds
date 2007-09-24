@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.21 2007-03-14 16:22:51 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.22 2007-09-24 10:02:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -181,8 +181,7 @@ void
 tds_send_capabilities_token(TDSSOCKET * tds)
 {
 	tds_put_byte(tds, TDS_CAPABILITY_TOKEN);
-	tds_put_byte(tds, 18);
-	tds_put_byte(tds, 0);
+	tds_put_smallint(tds, 18);
 	tds_put_byte(tds, 1);
 	tds_put_byte(tds, 7);
 	tds_put_byte(tds, 7);

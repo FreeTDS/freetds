@@ -1,3 +1,7 @@
+Mon Sep 24 12:01:46 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/server/query.c src/server/server.c:
+	- small server improve
+
 Thu Sep 20 17:32:15 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/sybdb.h src/dblib/dblib.c src/dblib/dbopen.c:
 	- apply constify patch #1786200

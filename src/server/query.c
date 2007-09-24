@@ -29,7 +29,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: query.c,v 1.16 2007-04-04 09:40:29 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.17 2007-09-24 10:02:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char *query;
@@ -90,6 +90,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 		/* Queries can arrive in a couple different formats. */
 		switch (tds->in_flag) {
 		case TDS_RPC:
+			/* TODO */
 		case TDS_NORMAL: /* TDS5 query packet */
 			/* get the token */
 			token = tds_get_byte(tds);
@@ -154,12 +155,16 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 		case TDS_QUERY:
 			/* TDS4 and TDS7+ fill the whole packet with a query */
 			len = 0;
-			do {
+			for (;;) {
+				const char *src;
+
 				/* If buffer needs to grow, then grow */
 				more = tds->in_len - tds->in_pos;
+				src = (char *) (tds->in_buf + tds->in_pos);
 				if ((size_t)(len + more + 1) > query_buflen)
 				{
-					query_buflen += 1024;
+					query_buflen = len + more + 1024u;
+					query_buflen -= query_buflen % 1024u;
 					query = (char *)realloc(query, query_buflen);
 				}
 
@@ -170,17 +175,17 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				 */
 				while (--more >= 0)
 				{
-					query[len] = tds_get_byte(tds);
+					query[len] = *src++;
 					if (query[len] != '\0')
 						len++;
 				}
 
 				/* if more then read it */
-				more = !tds->last_packet;
-				if (more && tds_read_packet(tds) < 0) {
+				if (tds->last_packet)
+					break;
+				if (tds_read_packet(tds) < 0)
 					return NULL;
-				}
-			} while (more);
+			}
 
 			/* add a NUL to mark the end */
 			query[len] = '\0';
