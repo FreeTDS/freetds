@@ -1,3 +1,6 @@
+Tue Oct 09 13:27:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/mem.c: remove a possible leak
+
 Fri Jun 01 10:55:04 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c: backported memory overflow fix
 
