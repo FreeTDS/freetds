@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.107 2007-09-20 15:04:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.108 2007-10-10 18:27:12 jklowden Exp $");
 
 enum
 {
@@ -687,10 +687,8 @@ main(int argc, char **argv)
 	}
 #endif
 
-	for (;;) {
+	for (s=NULL, s2=NULL; ; free(s), free(s2), s2=NULL) {
 		sprintf(prompt, "%d> ", ++line);
-		if (s)
-			free(s);
 		s = tsql_readline(QUIET ? NULL : prompt);
 		if (s == NULL) 
 			break;
@@ -716,12 +714,12 @@ main(int argc, char **argv)
 		}
 		
 		/* skip leading whitespace */
-		if (s2)
-			free(s2);
-		s2 = strdup(s);	/* copy to mangle with strtok() */
-		cmd = strtok(s2, " \t");
+		if ((s2 = strdup(s)) == NULL) {	/* copy to mangle with strtok() */
+			perror("tsql: ");
+			exit(1);
+		}
 		
-		if (!cmd)
+		if ((cmd = strtok(s2, " \t")) == NULL)
 			cmd = "";
 
 		if (!strcasecmp(cmd, "exit") || !strcasecmp(cmd, "quit") || !strcasecmp(cmd, "bye"))
@@ -742,8 +740,13 @@ main(int argc, char **argv)
 			slurp_input_file(strtok(NULL, " \t"), &mybuf, &bufsz, &buflen, &line);
 		} else {
 			while (buflen + strlen(s) + 2 > bufsz) {
+				char *newbuf; 
 				bufsz *= 2;
-				mybuf = (char *) realloc(mybuf, bufsz);
+				if ((newbuf = realloc(mybuf, bufsz)) == NULL) {
+					perror("tsql: ");
+					exit(1);
+				}
+				mybuf = newbuf;
 			}
 			tsql_add_history(s);
 			strcpy(mybuf + buflen, s);

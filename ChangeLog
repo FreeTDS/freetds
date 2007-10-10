@@ -1,3 +1,7 @@
+Wed Oct 10 13:59:37 EDT 2007	JK Lowden <jklowden@freetds.org>
+	* src/apps/tsql.c 
+	- added some error checking for malloc/realloc, more needed
+
 Tue Oct 09 13:40:24 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/mem.c: fix small memory leak
 
