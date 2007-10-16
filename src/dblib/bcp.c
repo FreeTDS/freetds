@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.156 2007-09-17 21:27:20 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.157 2007-10-16 15:12:20 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1970,8 +1970,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					}
 					error_row_size -= chunk;
 				}
-				if (row_in_error)
-					free(row_in_error);
+				free(row_in_error);
 
 				fseeko(hostfile, row_end, SEEK_SET);
 				count = fprintf(errfile, "\n");

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.336 2007-08-24 09:51:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.337 2007-10-16 15:12:22 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -332,8 +332,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			/* get server product name */
 			/* compute length from packet, some version seem to fill this information wrongly */
 			len -= 10;
-			if (tds->product_name)
-				free(tds->product_name);
+			free(tds->product_name);
 			if (major_ver >= 7u) {
 				product_version = 0x80000000u;
 				memrc += tds_alloc_get_string(tds, &tds->product_name, len / 2);
@@ -861,8 +860,7 @@ tds_free_namelist(struct namelist *head)
 	while (cur != NULL) {
 		prev = cur;
 		cur = cur->next;
-		if (prev->name)
-			free(prev->name);
+		free(prev->name);
 		free(prev);
 	}
 }
@@ -2360,8 +2358,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 		(*(tds->env_chg_func)) (tds, type, oldval, newval);
 	}
 
-	if (oldval)
-		free(oldval);
+	free(oldval);
 	if (newval) {
 		if (dest) {
 			if (*dest)

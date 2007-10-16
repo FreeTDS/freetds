@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.174 2007-06-25 09:48:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.175 2007-10-16 15:12:20 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -399,8 +399,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				return CS_FAIL;
 			break;
 		case CS_USERDATA:
-			if (con->userdata)
-				free(con->userdata);
+			free(con->userdata);
 			con->userdata = (void *) malloc(buflen + 1);
 			tdsdump_log(TDS_DBG_INFO2, "setting userdata orig %p new %p\n", buffer, con->userdata);
 			con->userdata_len = buflen;
@@ -448,8 +447,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			tdsdump_log(TDS_DBG_ERROR, "Unknown property %d\n", property);
 			break;
 		}
-		if (set_buffer)
-			free(set_buffer);
+		free(set_buffer);
 	} else if (action == CS_GET) {
 		switch (property) {
 		case CS_USERNAME:
@@ -605,8 +603,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 				goto Cleanup;
 		}
 		if (con->locale->time) {
-			if (con->tds_socket->date_fmt)
-				free(con->tds_socket->date_fmt);
+			free(con->tds_socket->date_fmt);
 			/* TODO convert format from CTLib to libTDS */
 			con->tds_socket->date_fmt = strdup(con->locale->time);
 			if (!con->tds_socket->date_fmt)
@@ -821,10 +818,8 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 static void
 _ct_initialise_cmd(CS_COMMAND *cmd)
 {
-	if (cmd->query) {
-		free(cmd->query);
-		cmd->query = NULL;
-	}
+	free(cmd->query);
+	cmd->query = NULL;
 
 	if (cmd->input_params) {
 		param_clear(cmd->input_params);
@@ -1803,20 +1798,17 @@ _ct_cmd_drop(CS_COMMAND * cmd, CS_INT free_conn_ref)
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop()\n");
 	if (cmd) {
-		if (cmd->query)
-			free(cmd->query);
+		free(cmd->query);
 		if (cmd->input_params)
 			param_clear(cmd->input_params);
-		if (cmd->userdata)
-			free(cmd->userdata);
+		free(cmd->userdata);
 		if (cmd->rpc) {
 			if (cmd->rpc->param_list)
 				param_clear(cmd->rpc->param_list);
 			free(cmd->rpc->name);
 			free(cmd->rpc);
 		}
-		if (cmd->iodesc)
-			free(cmd->iodesc);
+		free(cmd->iodesc);
 
 		/* now remove this command from the list of commands in the connection */
 
@@ -1872,8 +1864,7 @@ ct_con_drop(CS_CONNECTION * con)
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_con_drop()\n");
 	if (con) {
-		if (con->userdata)
-			free(con->userdata);
+		free(con->userdata);
 		if (con->tds_login)
 			tds_free_login(con->tds_login);
 		if (con->cmds) {
@@ -2498,8 +2489,7 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 	if (action == CS_SET) {
 		switch (property) {
 		case CS_USERDATA:
-			if (cmd->userdata)
-				free(cmd->userdata);
+			free(cmd->userdata);
 			cmd->userdata = (void *) malloc(buflen + 1);
 			tdsdump_log(TDS_DBG_INFO2, "setting userdata orig %p new %p\n", buffer, cmd->userdata);
 			cmd->userdata_len = buflen;
@@ -2688,8 +2678,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		size_t table_namelen, column_namelen;
 
 		/* allocare needed descriptor if needed */
-		if (cmd->iodesc)
-			free(cmd->iodesc);
+		free(cmd->iodesc);
 		cmd->iodesc = calloc(1, sizeof(CS_IODESC));
 		if (!cmd->iodesc)
 			return CS_FAIL;
@@ -2875,8 +2864,7 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 	switch (action) {
 	case CS_SET:
 
-		if (cmd->iodesc)
-			free(cmd->iodesc);
+		free(cmd->iodesc);
 		cmd->iodesc = malloc(sizeof(CS_IODESC));
 
 		cmd->iodesc->iotype = CS_IODATA;
@@ -4272,7 +4260,6 @@ rpc_clear(CSREMOTE_PROC * rpc)
 
 	param_clear(rpc->param_list);
 
-	assert(rpc->name);
 	free(rpc->name);
 	free(rpc);
 }
@@ -4293,8 +4280,7 @@ param_clear(CS_PARAM * pparam)
 
 	/* free self after clearing children */
 
-	if (pparam->name)
-		free(pparam->name);
+	free(pparam->name);
 	if (pparam->param_by_value)
 		free(pparam->value);
 
@@ -4710,8 +4696,7 @@ _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 		while (curptr != NULL) {
 			freeptr = curptr;
 			curptr = freeptr->next;
-			if (freeptr->clientmsg)
-				free(freeptr->clientmsg);
+			free(freeptr->clientmsg);
 			free(freeptr);
 		}
 	}
@@ -4723,8 +4708,7 @@ _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 		while (scurptr != NULL) {
 			sfreeptr = scurptr;
 			scurptr = sfreeptr->next;
-			if (sfreeptr->servermsg)
-				free(sfreeptr->servermsg);
+			free(sfreeptr->servermsg);
 			free(sfreeptr);
 		}
 	}
@@ -4852,7 +4836,7 @@ _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 		strcpy(myid, victim->id);
 		free(victim->id);
 	}
-	if (victim->stmt) free(victim->stmt);
+	free(victim->stmt);
 	param_clear(victim->param_list);
 
 	free(victim);

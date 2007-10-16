@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.5 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.6 2007-10-16 15:12:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -61,8 +61,7 @@ show_error(const char *where, const char *what, int no)
 static void
 clean_up(void)
 {
-	if (buf)
-		free(buf);
+	free(buf);
 	Disconnect();
 }
 

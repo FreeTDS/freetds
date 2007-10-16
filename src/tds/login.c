@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005  Ziglio Frediano
+ * Copyright (C) 2005, 2006, 2007  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.162 2007-08-24 09:51:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.163 2007-10-16 15:12:22 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -290,10 +290,8 @@ reset_save_context(TDSSAVECONTEXT *ctx)
 
 	/* free all envs */
 	for (n = 0; n < ctx->num_env; ++n) {
-		if (ctx->envs[n].oldval)
-			free(ctx->envs[n].oldval);
-		if (ctx->envs[n].newval)
-			free(ctx->envs[n].newval);
+		free(ctx->envs[n].oldval);
+		free(ctx->envs[n].newval);
 	}
 	ctx->num_env = 0;
 }

@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.62 2007-05-16 12:29:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.63 2007-10-16 15:12:21 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -349,8 +349,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		if (res < 0)
 			return SQL_ERROR;
 		blob = (TDSBLOB *) dest;
-		if (blob->textvalue)
-			free(blob->textvalue);
+		free(blob->textvalue);
 		blob->textvalue = ores.ib;
 		break;
 	case SYBNUMERIC:

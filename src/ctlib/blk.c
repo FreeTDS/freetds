@@ -44,7 +44,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.38 2007-08-24 09:51:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.39 2007-10-16 15:12:19 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -305,10 +305,8 @@ blk_drop(CS_BLKDESC * blkdesc)
 	if (!blkdesc)
 		return CS_SUCCEED;
 
-	if (blkdesc->tablename)
-		free(blkdesc->tablename);
-	if (blkdesc->insert_stmt)
-		free(blkdesc->insert_stmt);
+	free(blkdesc->tablename);
+	free(blkdesc->insert_stmt);
 	tds_free_results(blkdesc->bindinfo);
 	free(blkdesc);
 

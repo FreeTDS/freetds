@@ -37,7 +37,7 @@
 #include "pool.h"
 #include "tds_configs.h"
 
-TDS_RCSID(var, "$Id: config.c,v 1.15 2006-12-26 14:56:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.16 2007-10-16 15:12:22 freddy77 Exp $");
 
 #define POOL_STR_SERVER	"server"
 #define POOL_STR_PORT	"port"
@@ -90,20 +90,16 @@ pool_parse(const char *option, const char *value, void *param)
 		if (atoi(value))
 			pool->port = atoi(value);
 	} else if (!strcmp(option, POOL_STR_SERVER)) {
-		if (pool->server)
-			free(pool->server);
+		free(pool->server);
 		pool->server = strdup(value);
 	} else if (!strcmp(option, POOL_STR_USER)) {
-		if (pool->user)
-			free(pool->user);
+		free(pool->user);
 		pool->user = strdup(value);
 	} else if (!strcmp(option, POOL_STR_DATABASE)) {
-		if (pool->database)
-			free(pool->database);
+		free(pool->database);
 		pool->database = strdup(value);
 	} else if (!strcmp(option, POOL_STR_PASSWORD)) {
-		if (pool->password)
-			free(pool->password);
+		free(pool->password);
 		pool->password = strdup(value);
 	} else if (!strcmp(option, POOL_STR_MAX_MBR_AGE)) {
 		if (atoi(value))

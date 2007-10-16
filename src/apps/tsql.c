@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.108 2007-10-10 18:27:12 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.109 2007-10-16 15:12:19 freddy77 Exp $");
 
 enum
 {
@@ -524,14 +524,10 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 
 	/* free up all the memory */
-	if (hostname)
-		free(hostname);
-	if (username)
-		free(username);
-	if (password)
-		free(password);
-	if (servername)
-		free(servername);
+	free(hostname);
+	free(username);
+	free(password);
+	free(servername);
 }
 
 static int

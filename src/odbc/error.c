@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.48 2007-08-25 10:33:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.49 2007-10-16 15:12:21 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -348,10 +348,8 @@ odbc_errs_reset(struct _sql_errors *errs)
 	if (errs->errs) {
 		for (i = 0; i < errs->num_errors; ++i) {
 			/* TODO see flags */
-			if (errs->errs[i].msg)
-				free((char *) errs->errs[i].msg);
-			if (errs->errs[i].server)
-				free(errs->errs[i].server);
+			free((char *) errs->errs[i].msg);
+			free(errs->errs[i].server);
 		}
 		TDS_ZERO_FREE(errs->errs);
 		errs->num_errors = 0;
@@ -374,10 +372,8 @@ odbc_errs_pop(struct _sql_errors *errs)
 	}
 
 	/* TODO see flags */
-	if (errs->errs[0].msg)
-		free((char *) errs->errs[0].msg);
-	if (errs->errs[0].server)
-		free(errs->errs[0].server);
+	free((char *) errs->errs[0].msg);
+	free(errs->errs[0].server);
 
 	--errs->num_errors;
 	memmove(&(errs->errs[0]), &(errs->errs[1]), errs->num_errors * sizeof(errs->errs[0]));

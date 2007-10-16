@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.30 2007-01-16 05:31:20 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.31 2007-10-16 15:12:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -77,10 +77,8 @@ init_proc(DBPROCESS * dbproc, const char *name)
 static RETPARAM*
 save_retparam(RETPARAM *param, char *name, char *value, int type, int len)
 {
-	if (param->name)
-		free(param->name);
-	if (param->value)
-		free(param->value);
+	free(param->name);
+	free(param->value);
 	
 	param->name = strdup(name);
 	param->value = strdup(value);
@@ -397,10 +395,8 @@ main(int argc, char **argv)
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
 	free_bread_crumb();
 
-	if (save_param.name)
-		free(save_param.name);
-	if (save_param.value)
-		free(save_param.value);
+	free(save_param.name);
+	free(save_param.value);
 
 	return failed ? 1 : 0;
 }

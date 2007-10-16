@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.18 2006-01-24 15:03:27 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.19 2007-10-16 15:12:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -216,8 +216,7 @@ main(int argc, char **argv)
 	test("NUMERIC(18,4)", "12765.761234", "12765.7612");
 
 	/* date */
-	if (test_context->locale->date_fmt)
-		free(test_context->locale->date_fmt);
+	free(test_context->locale->date_fmt);
 	test_context->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S");
 
 	test("DATETIME", "2003-04-21 17:50:03", NULL);

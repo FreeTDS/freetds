@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.290 2007-09-20 15:32:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.291 2007-10-16 15:12:20 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -606,8 +606,7 @@ dbstring_free(DBSTRING ** dbstrp)
 	*dbstrp = NULL;
 	for (; curr; ) {
 		next = curr->strnext;
-		if (curr->strtext)
-			free(curr->strtext);
+		free(curr->strtext);
 		free(curr);
 		curr = next;
 	}
@@ -1090,19 +1089,14 @@ dbclose(DBPROCESS * dbproc)
 		fclose(dbproc->ftos);
 	}
 
-	if (dbproc->bcpinfo) {
-		if (dbproc->bcpinfo->tablename)
-			free(dbproc->bcpinfo->tablename);
-	}
+	if (dbproc->bcpinfo)
+		free(dbproc->bcpinfo->tablename);
 	if (dbproc->hostfileinfo) {
-		if (dbproc->hostfileinfo->hostfile)
-			free(dbproc->hostfileinfo->hostfile);
-		if (dbproc->hostfileinfo->errorfile)
-			free(dbproc->hostfileinfo->errorfile);
+		free(dbproc->hostfileinfo->hostfile);
+		free(dbproc->hostfileinfo->errorfile);
 		if (dbproc->hostfileinfo->host_columns) {
 			for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
-				if (dbproc->hostfileinfo->host_columns[i]->terminator)
-					free(dbproc->hostfileinfo->host_columns[i]->terminator);
+				free(dbproc->hostfileinfo->host_columns[i]->terminator);
 				free(dbproc->hostfileinfo->host_columns[i]);
 			}
 			free(dbproc->hostfileinfo->host_columns);
@@ -1116,14 +1110,10 @@ dbclose(DBPROCESS * dbproc)
 
 	dbstring_free(&(dbproc->dboptcmd));
 
-	if (dbproc->p_null_CHARBIND)
-		free(dbproc->p_null_CHARBIND);
-	if (dbproc->p_null_STRINGBIND)
-		free(dbproc->p_null_STRINGBIND);
-	if (dbproc->p_null_NTBSTRINGBIND)
-		free(dbproc->p_null_NTBSTRINGBIND);
-	if (dbproc->p_null_BINARYBIND)
-		free(dbproc->p_null_BINARYBIND);
+	free(dbproc->p_null_CHARBIND);
+	free(dbproc->p_null_STRINGBIND);
+	free(dbproc->p_null_NTBSTRINGBIND);
+	free(dbproc->p_null_BINARYBIND);
 
 	dbfreebuf(dbproc);
 	free(dbproc);
@@ -1558,8 +1548,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 			dbperror(dbproc, SYBEBBL, 0);
 			return FAIL;
 		}
-		if (dbproc->p_null_CHARBIND)
-			free(dbproc->p_null_CHARBIND);
+		free(dbproc->p_null_CHARBIND);
 		dbproc->len_null_CHARBIND = 0;
 		dbproc->p_null_CHARBIND = malloc(bindlen);
 		if (!dbproc->p_null_CHARBIND) {
@@ -1570,8 +1559,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		dbproc->len_null_CHARBIND = bindlen;
 		break;
 	case STRINGBIND:
-		if (dbproc->p_null_STRINGBIND)
-			free(dbproc->p_null_STRINGBIND);
+		free(dbproc->p_null_STRINGBIND);
 		dbproc->p_null_STRINGBIND = strdup((char*) bindval);
 		if (!dbproc->p_null_STRINGBIND) {
 			dbperror(dbproc, SYBEMEM, errno);
@@ -1579,8 +1567,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		}
 		break;
 	case NTBSTRINGBIND:
-		if (dbproc->p_null_NTBSTRINGBIND)
-			free(dbproc->p_null_NTBSTRINGBIND);
+		free(dbproc->p_null_NTBSTRINGBIND);
 		dbproc->p_null_NTBSTRINGBIND = strdup((char*) bindval);
 		if (!dbproc->p_null_NTBSTRINGBIND) {
 			dbperror(dbproc, SYBEMEM, errno);
@@ -1603,8 +1590,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 			dbperror(dbproc, SYBEBBL, 0);
 			return FAIL;
 		}
-		if (dbproc->p_null_BINARYBIND)
-			free(dbproc->p_null_BINARYBIND);
+		free(dbproc->p_null_BINARYBIND);
 		dbproc->len_null_BINARYBIND = 0;
 		dbproc->p_null_BINARYBIND = malloc(bindlen);
 		if (!dbproc->p_null_BINARYBIND) {
@@ -3228,8 +3214,7 @@ dbprrow(DBPROCESS * dbproc)
 		}
 	}
 
-	if (col_printlens != NULL)
-		free(col_printlens);
+	free(col_printlens);
 
 	return SUCCEED;
 }
@@ -6294,8 +6279,7 @@ dbrecftos(char *filename)
 	}
 	
 	TDS_MUTEX_LOCK(&dblib_mutex);
-	if (g_dblib_ctx.recftos_filename)
-		free(g_dblib_ctx.recftos_filename);
+	free(g_dblib_ctx.recftos_filename);
 	g_dblib_ctx.recftos_filename = f;
 	g_dblib_ctx.recftos_filenum = 0;
 	TDS_MUTEX_UNLOCK(&dblib_mutex);

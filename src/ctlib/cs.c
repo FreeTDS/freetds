@@ -49,7 +49,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.63 2007-06-25 09:48:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.64 2007-10-16 15:12:19 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -207,22 +207,14 @@ static void
 _cs_locale_free_contents(CS_LOCALE *locale)
 {
 	/* free strings */
-	if (locale->language) {
-		free(locale->language);
-		locale->language = NULL;
-	}
-	if (locale->charset) {
-		free(locale->charset);
-		locale->charset = NULL;
-	}
-	if (locale->time) {
-		free(locale->time);
-		locale->time = NULL;
-	}
-	if (locale->collate) {
-		free(locale->collate);
-		locale->collate = NULL;
-	}
+	free(locale->language);
+	locale->language = NULL;
+	free(locale->charset);
+	locale->charset = NULL;
+	free(locale->time);
+	locale->time = NULL;
+	free(locale->collate);
+	locale->collate = NULL;
 }
 
 void 
@@ -353,8 +345,7 @@ cs_ctx_drop(CS_CONTEXT * ctx)
 {
 	if (ctx) {
 		_ct_diag_clearmsg(ctx, CS_ALLMSG_TYPE);
-		if (ctx->userdata)
-			free(ctx->userdata);
+		free(ctx->userdata);
 		if (ctx->tds_ctx)
 			tds_free_context(ctx->tds_ctx);
 		free(ctx);
@@ -403,8 +394,7 @@ CS_INT maxcp;
 			ctx->cs_errhandletype = _CS_ERRHAND_CB;
 			return CS_SUCCEED;
 		case CS_USERDATA:
-			if (ctx->userdata)
-				free(ctx->userdata);
+			free(ctx->userdata);
 	
 			if (buflen == CS_NULLTERM) {
 				maxcp = strlen(buffer) + 1;
@@ -441,8 +431,7 @@ CS_INT maxcp;
 			ctx->cs_errhandletype = 0;
 			return CS_SUCCEED;
 		case CS_USERDATA:
-			if (ctx->userdata)
-				free(ctx->userdata);
+			free(ctx->userdata);
 			ctx->userdata = NULL;
 	
 			return CS_SUCCEED;
@@ -903,9 +892,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				buflen = strlen((char *)buffer);
 			}
 			
-			if (locale->charset) {
-				free(locale->charset);
-			}
+			free(locale->charset);
 			locale->charset = (char *)malloc(buflen + 1);
 			if (!locale->charset)
 				break;
@@ -920,9 +907,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				buflen = strlen((char *)buffer);
 			}
 			
-			if (locale->language) {
-				free(locale->language);
-			}
+			free(locale->language);
 			locale->language = (char *)malloc(buflen + 1);
 			if (!locale->language)
 				break;
@@ -952,9 +937,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				break;
 			}
 			if (i) {
-				if (locale->language) {
-					free(locale->language);
-				}
+				free(locale->language);
 				locale->language = (char *)malloc(i + 1);
 				if (!locale->language)
 					break;
@@ -963,9 +946,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				locale->language[i] = '\0';
 			}
 			if (i != (buflen - 1)) {
-				if (locale->charset) {
-					free(locale->charset);
-				}
+				free(locale->charset);
 				locale->charset = (char *)malloc(buflen - i);
 				if (!locale->charset)
 					break;
@@ -983,9 +964,7 @@ cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_V
 				buflen = strlen((char *)buffer);
 			}
 			
-			if (locale->collate) {
-				free(locale->collate);
-			}
+			free(locale->collate);
 			locale->collate = (char *)malloc(buflen + 1);
 			if (!locale->collate)
 				break;
@@ -1322,8 +1301,7 @@ struct cs_diag_msg *curptr, *freeptr;
 	while (curptr != NULL ) {
         	freeptr = curptr;
 		curptr = freeptr->next;
-        	if (freeptr->msg)
-        		free(freeptr->msg);
+        	free(freeptr->msg);
         	free(freeptr);
 	}
 	return CS_SUCCEED;

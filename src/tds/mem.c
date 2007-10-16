@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.171 2007-10-09 11:41:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.172 2007-10-16 15:12:22 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -161,8 +161,7 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	tds_free_results(dyn->res_info);
 	tds_free_input_params(dyn);
-	if (dyn->query)
-		free(dyn->query);
+	free(dyn->query);
 	free(dyn);
 }
 
@@ -242,8 +241,7 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 	 * parameters
 	 * -- freddy77
 	 */
-	if (col->table_column_name)
-		free(col->table_column_name);
+	free(col->table_column_name);
 	free(col);
 }
 
@@ -255,8 +253,7 @@ _tds_param_free(TDSCOLUMN *col)
 
 	if (is_blob_type(col->column_type)) {
 		TDSBLOB *blob = (TDSBLOB *) col->column_data;
-		if (blob->textvalue)
-			free(blob->textvalue);
+		free(blob->textvalue);
 	}
 	TDS_ZERO_FREE(col->column_data);
 }
@@ -549,15 +546,13 @@ tds_free_results(TDSRESULTINFO * res_info)
 	if (res_info->num_cols && res_info->columns) {
 		for (i = 0; i < res_info->num_cols; i++)
 			if ((curcol = res_info->columns[i]) != NULL) {
-				if (curcol->table_column_name)
-					free(curcol->table_column_name);
+				free(curcol->table_column_name);
 				free(curcol);
 			}
 		free(res_info->columns);
 	}
 
-	if (res_info->bycolumns)
-		free(res_info->bycolumns);
+	free(res_info->bycolumns);
 
 	free(res_info);
 }
@@ -1019,19 +1014,15 @@ tds_free_socket(TDSSOCKET * tds)
 			tds_free_dynamic(tds, tds->dyns);
 		while (tds->cursors)
 			tds_cursor_deallocated(tds, tds->cursors);
-		if (tds->in_buf)
-			free(tds->in_buf);
-		if (tds->out_buf)
-			free(tds->out_buf);
+		free(tds->in_buf);
+		free(tds->out_buf);
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 		tds_ssl_deinit(tds);
 #endif
 		tds_close_socket(tds);
-		if (tds->date_fmt)
-			free(tds->date_fmt);
+		free(tds->date_fmt);
 		tds_iconv_free(tds);
-		if (tds->product_name)
-			free(tds->product_name);
+		free(tds->product_name);
 		free(tds);
 	}
 }
@@ -1041,14 +1032,10 @@ tds_free_locale(TDSLOCALE * locale)
 	if (!locale)
 		return;
 
-	if (locale->language)
-		free(locale->language);
-	if (locale->server_charset)
-		free(locale->server_charset);
-	if (locale->date_fmt)
-		free(locale->date_fmt);
-	if (locale->client_charset)
-		free(locale->client_charset);
+	free(locale->language);
+	free(locale->server_charset);
+	free(locale->date_fmt);
+	free(locale->client_charset);
 	free(locale);
 }
 
@@ -1452,8 +1439,7 @@ tds_free_bcp_column_data(BCPCOLDATA * coldata)
 	if (!coldata)
 		return;
 
-	if (coldata->data)
-		free(coldata->data);
+	free(coldata->data);
 	free(coldata);
 }
 

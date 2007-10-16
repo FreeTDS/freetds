@@ -1,3 +1,13 @@
+Tue Oct 16 16:59:06 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/tsql.c src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c:
+	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/rpc.c:
+	* src/dblib/unittests/rpc.c src/odbc/error.c src/odbc/odbc.c:
+	* src/odbc/sql2tds.c src/odbc/unittests/binary_test.c:
+	* src/pool/config.c src/tds/locale.c src/tds/login.c:
+	* src/tds/mem.c src/tds/query.c src/tds/token.c:
+	* src/tds/vstrbuild.c src/tds/unittests/dataread.c:
+	- do not check for free(NULL)
+
 Wed Oct 10 13:59:37 EDT 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/tsql.c 
 	- added some error checking for malloc/realloc, more needed

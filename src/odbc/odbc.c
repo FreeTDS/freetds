@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.455 2007-08-25 10:33:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.456 2007-10-16 15:12:21 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1339,8 +1339,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv)
 	ctx->err_handler = odbc_errmsg_handler;
 
 	/* ODBC has its own format */
-	if (ctx->locale->date_fmt)
-		free(ctx->locale->date_fmt);
+	free(ctx->locale->date_fmt);
 	ctx->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 
 	*phenv = (SQLHENV) env;
@@ -1406,8 +1405,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	/* TODO test initial cursor ... */
 	if (asprintf(&pstr, "SQL_CUR%lx", (unsigned long) stmt) < 0 || !tds_dstr_set(&stmt->cursor_name, pstr)) {
 		free(stmt);
-		if (pstr != NULL)
-			free(pstr);
+		free(pstr);
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -3763,10 +3761,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		if (stmt->dbc->stmt_list == stmt)
 			stmt->dbc->stmt_list = stmt->next;
 
-		if (stmt->query)
-			free(stmt->query);
-		if (stmt->prepared_query)
-			free(stmt->prepared_query);
+		free(stmt->query);
+		free(stmt->prepared_query);
 		tds_free_param_results(stmt->params);
 		odbc_errs_reset(&stmt->errs);
 		if (stmt->dbc->current_statement == stmt)
@@ -6352,8 +6348,7 @@ SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName
 		odbc_stat_execute(stmt, proc, 4, "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
 				  cbSchemaName, "P@table_qualifier", szCatalogName, cbCatalogName, "@table_type", szTableType,
 				  cbTableType);
-	if (type)
-		free(type);
+	free(type);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
