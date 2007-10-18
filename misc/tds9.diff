@@ -1,9 +1,9 @@
 ? DBD-ODBC-1.13.tar.gz
 ? dump.txt
 ? errors.txt
-? freetds-0.65.dev.20071015
-? freetds-0.65.dev.20071015.tar.gz
-? freetds-0.65.dev.20071015.win32.tar.gz
+? freetds-0.65.dev.20071018
+? freetds-0.65.dev.20071018.tar.gz
+? freetds-0.65.dev.20071018.win32.tar.gz
 ? mao.diff
 ? php5.2-latest.tar.bz2
 ? vedi.diff
@@ -16,6 +16,7 @@
 ? src/apps/datacopy.gcno
 ? src/apps/defncopy.gcno
 ? src/apps/freebcp.gcno
+? src/apps/tsql.gcda
 ? src/apps/tsql.gcno
 ? src/apps/fisql/edit.gcno
 ? src/apps/fisql/fisql.gcno
@@ -211,7 +212,7 @@ RCS file: /cvsroot/freetds/freetds/include/tds.h,v
 retrieving revision 1.274
 diff -u -1 -0 -r1.274 tds.h
 --- include/tds.h	24 Aug 2007 09:51:37 -0000	1.274
-+++ include/tds.h	18 Oct 2007 08:22:15 -0000
++++ include/tds.h	18 Oct 2007 11:55:27 -0000
 @@ -382,20 +382,23 @@
  #define GOTO_1ST_ROW    3
  #define LOGIN           4
@@ -343,7 +344,7 @@ RCS file: /cvsroot/freetds/freetds/include/tdsodbc.h,v
 retrieving revision 1.101
 diff -u -1 -0 -r1.101 tdsodbc.h
 --- include/tdsodbc.h	25 Aug 2007 10:33:29 -0000	1.101
-+++ include/tdsodbc.h	18 Oct 2007 08:22:16 -0000
++++ include/tdsodbc.h	18 Oct 2007 11:55:27 -0000
 @@ -337,21 +337,21 @@
  	int param_num;
  	/** position in prepared query to check parameters, used only in RPC */
@@ -373,7 +374,7 @@ RCS file: /cvsroot/freetds/freetds/src/ctlib/blk.c,v
 retrieving revision 1.39
 diff -u -1 -0 -r1.39 blk.c
 --- src/ctlib/blk.c	16 Oct 2007 15:12:19 -0000	1.39
-+++ src/ctlib/blk.c	18 Oct 2007 08:22:17 -0000
++++ src/ctlib/blk.c	18 Oct 2007 11:55:27 -0000
 @@ -1060,21 +1060,24 @@
  		/*
  		 * dont send the (meta)data for timestamp columns, or
@@ -406,7 +407,7 @@ RCS file: /cvsroot/freetds/freetds/src/ctlib/ct.c,v
 retrieving revision 1.175
 diff -u -1 -0 -r1.175 ct.c
 --- src/ctlib/ct.c	16 Oct 2007 15:12:20 -0000	1.175
-+++ src/ctlib/ct.c	18 Oct 2007 08:22:19 -0000
++++ src/ctlib/ct.c	18 Oct 2007 11:55:29 -0000
 @@ -2368,20 +2368,21 @@
  				curcol = resinfo->columns[i];
  				if (!curcol->column_hidden) {
@@ -435,7 +436,7 @@ RCS file: /cvsroot/freetds/freetds/src/dblib/bcp.c,v
 retrieving revision 1.157
 diff -u -1 -0 -r1.157 bcp.c
 --- src/dblib/bcp.c	16 Oct 2007 15:12:20 -0000	1.157
-+++ src/dblib/bcp.c	18 Oct 2007 08:22:21 -0000
++++ src/dblib/bcp.c	18 Oct 2007 11:55:32 -0000
 @@ -2544,21 +2544,24 @@
  	/*
  	 * dont send the (meta)data for timestamp columns, or
@@ -468,7 +469,7 @@ RCS file: /cvsroot/freetds/freetds/src/dblib/dblib.c,v
 retrieving revision 1.291
 diff -u -1 -0 -r1.291 dblib.c
 --- src/dblib/dblib.c	16 Oct 2007 15:12:20 -0000	1.291
-+++ src/dblib/dblib.c	18 Oct 2007 08:22:27 -0000
++++ src/dblib/dblib.c	18 Oct 2007 11:55:41 -0000
 @@ -458,21 +458,21 @@
  		break;
  	case DBSETPWD:
@@ -498,7 +499,7 @@ RCS file: /cvsroot/freetds/freetds/src/odbc/odbc.c,v
 retrieving revision 1.456
 diff -u -1 -0 -r1.456 odbc.c
 --- src/odbc/odbc.c	16 Oct 2007 15:12:21 -0000	1.456
-+++ src/odbc/odbc.c	18 Oct 2007 08:22:31 -0000
++++ src/odbc/odbc.c	18 Oct 2007 11:55:45 -0000
 @@ -594,35 +594,35 @@
  		stmt->row_status = IN_COMPUTE_ROW;
  		in_row = 1;
@@ -566,7 +567,7 @@ RCS file: /cvsroot/freetds/freetds/src/server/server.c,v
 retrieving revision 1.22
 diff -u -1 -0 -r1.22 server.c
 --- src/server/server.c	24 Sep 2007 10:02:14 -0000	1.22
-+++ src/server/server.c	18 Oct 2007 08:22:31 -0000
++++ src/server/server.c	18 Oct 2007 11:55:46 -0000
 @@ -219,21 +219,24 @@
   *			TDS_DONE_CANCELLED if the query was canceled, and
   *			TDS_DONE_EVENT if the token marks an event.
@@ -621,7 +622,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/config.c,v
 retrieving revision 1.129
 diff -u -1 -0 -r1.129 config.c
 --- src/tds/config.c	8 Aug 2007 09:13:29 -0000	1.129
-+++ src/tds/config.c	18 Oct 2007 08:22:31 -0000
++++ src/tds/config.c	18 Oct 2007 11:55:48 -0000
 @@ -1,12 +1,13 @@
  /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
   * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
@@ -667,7 +668,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/login.c,v
 retrieving revision 1.163
 diff -u -1 -0 -r1.163 login.c
 --- src/tds/login.c	16 Oct 2007 15:12:22 -0000	1.163
-+++ src/tds/login.c	18 Oct 2007 08:22:31 -0000
++++ src/tds/login.c	18 Oct 2007 11:55:48 -0000
 @@ -751,20 +751,21 @@
   */
  static int
@@ -856,7 +857,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/net.c,v
 retrieving revision 1.66
 diff -u -1 -0 -r1.66 net.c
 --- src/tds/net.c	17 Sep 2007 21:27:26 -0000	1.66
-+++ src/tds/net.c	18 Oct 2007 08:22:33 -0000
++++ src/tds/net.c	18 Oct 2007 11:55:50 -0000
 @@ -578,21 +578,21 @@
  			 */
  			tds->in_len = 0;
@@ -932,10 +933,10 @@ diff -u -1 -0 -r1.66 net.c
 Index: src/tds/query.c
 ===================================================================
 RCS file: /cvsroot/freetds/freetds/src/tds/query.c,v
-retrieving revision 1.211
-diff -u -1 -0 -r1.211 query.c
---- src/tds/query.c	16 Oct 2007 15:12:22 -0000	1.211
-+++ src/tds/query.c	18 Oct 2007 08:22:33 -0000
+retrieving revision 1.212
+diff -u -1 -0 -r1.212 query.c
+--- src/tds/query.c	18 Oct 2007 11:52:17 -0000	1.212
++++ src/tds/query.c	18 Oct 2007 11:55:53 -0000
 @@ -58,20 +58,22 @@
  
  static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
@@ -1007,10 +1008,7 @@ diff -u -1 -0 -r1.211 query.c
   * \param params parameters of query
   * \return TDS_FAIL or TDS_SUCCEED
   */
-@@ -274,24 +303,24 @@
- 		tds->out_flag = TDS_NORMAL;
- 		tds_put_byte(tds, TDS_LANGUAGE_TOKEN);
- 		/* TODO ICONV use converted size, not input size and convert string */
+@@ -277,20 +306,21 @@
  		tds_put_int(tds, query_len + 1);
  		tds_put_byte(tds, params ? 1 : 0);  /* 1 if there are params, 0 otherwise */
  		tds_put_n(tds, query, query_len);
@@ -1018,9 +1016,7 @@ diff -u -1 -0 -r1.211 query.c
  			/* add on parameters */
  			tds_put_params(tds, params, params->columns[0]->column_name[0] ? TDS_PUT_DATA_USE_NAME : 0);
  		}
--		if (new_query)
--			free(new_query);
-+		free(new_query);
+ 		free(new_query);
  	} else if (!IS_TDS7_PLUS(tds) || !params || !params->num_cols) {
  		tds->out_flag = TDS_QUERY;
 +		START_QUERY;
@@ -1034,7 +1030,7 @@ diff -u -1 -0 -r1.211 query.c
   
  		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, &converted_query_len);
  		if (!converted_query) {
-@@ -314,20 +343,21 @@
+@@ -313,20 +343,21 @@
  			 * should call also tds7_build_param_def_from_params ??
  			 */
  			param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
@@ -1056,7 +1052,7 @@ diff -u -1 -0 -r1.211 query.c
  		}
  		tds_put_smallint(tds, 0);
   
-@@ -1019,20 +1049,21 @@
+@@ -1018,20 +1049,21 @@
  		if (!converted_query)
  			goto failure;
  
@@ -1078,7 +1074,7 @@ diff -u -1 -0 -r1.211 query.c
  		}
  		tds_put_smallint(tds, 0);
  
-@@ -1132,20 +1163,21 @@
+@@ -1131,20 +1163,21 @@
  		}
  
  		param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
@@ -1100,7 +1096,7 @@ diff -u -1 -0 -r1.211 query.c
  		}
  		tds_put_smallint(tds, 0);
  
-@@ -1299,27 +1331,27 @@
+@@ -1298,27 +1331,27 @@
  		TDS_NUMERIC *num = (TDS_NUMERIC *) curcol->column_data;
  		tds_put_byte(tds, tds_numeric_bytes_per_prec[num->precision]);
  		tds_put_byte(tds, num->precision);
@@ -1131,7 +1127,7 @@ diff -u -1 -0 -r1.211 query.c
  
  	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
  	if (!IS_TDS7_PLUS(tds)) {
-@@ -1598,20 +1630,21 @@
+@@ -1597,20 +1630,21 @@
  
  	if (IS_TDS7_PLUS(tds)) {
  		/* check proper id */
@@ -1153,7 +1149,7 @@ diff -u -1 -0 -r1.211 query.c
  		if (tds_send_emulated_execute(tds, dyn->query, dyn->params) != TDS_SUCCEED)
  			return TDS_FAIL;
  		return tds_query_flush_packet(tds);
-@@ -1728,20 +1761,21 @@
+@@ -1727,20 +1761,21 @@
  	tdsdump_log(TDS_DBG_FUNC, "tds_submit_unprepare() %s\n", dyn->id);
  
  	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
@@ -1175,7 +1171,7 @@ diff -u -1 -0 -r1.211 query.c
  			TDS_PUT_N_AS_UCS2(tds, "sp_unprepare");
  		}
  		tds_put_smallint(tds, 0);	/* flags */
-@@ -1753,20 +1787,21 @@
+@@ -1752,20 +1787,21 @@
  		tds_put_byte(tds, 4);
  		tds_put_byte(tds, 4);
  		tds_put_int(tds, dyn->num_id);
@@ -1197,7 +1193,7 @@ diff -u -1 -0 -r1.211 query.c
  	id_len = strlen(dyn->id);
  
  	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
-@@ -1812,20 +1847,21 @@
+@@ -1811,20 +1847,21 @@
  		const char *converted_name;
  		int converted_name_len;
  
@@ -1219,7 +1215,7 @@ diff -u -1 -0 -r1.211 query.c
  		 * bit 1 (2 as flag) in TDS7+ is "no metadata" bit 
  		 * (I don't know meaning of "no metadata")
  		 */
-@@ -2089,20 +2125,21 @@
+@@ -2088,20 +2125,21 @@
  						     cursor->query, strlen(cursor->query), &converted_query_len);
  		if (!converted_query) {
  			if (!*something_to_send)
@@ -1241,7 +1237,7 @@ diff -u -1 -0 -r1.211 query.c
  			tds_put_smallint(tds, 13);
  			TDS_PUT_N_AS_UCS2(tds, "sp_cursoropen");
  		}
-@@ -2313,26 +2350,28 @@
+@@ -2312,26 +2350,28 @@
  			0,
  			2,    /* TDS_CURSOR_FETCH_NEXT */
  			4,    /* TDS_CURSOR_FETCH_PREV */
@@ -1271,7 +1267,7 @@ diff -u -1 -0 -r1.211 query.c
  		return tds_query_flush_packet(tds);
  	}
  
-@@ -2367,20 +2406,21 @@
+@@ -2366,20 +2406,21 @@
  		}
  		else
  			tds_put_byte(tds, 0x00);	/* Close option: TDS_CUR_COPT_UNUSED */
@@ -1293,7 +1289,7 @@ diff -u -1 -0 -r1.211 query.c
  		}
  
  		/* This flag tells the SP to output only a dummy metadata token  */
-@@ -2416,20 +2456,21 @@
+@@ -2415,20 +2456,21 @@
  	if (!IS_TDS7_PLUS(tds))
  		return TDS_SUCCEED;
  
@@ -1315,7 +1311,7 @@ diff -u -1 -0 -r1.211 query.c
  	}
  
  	tds_put_smallint(tds, 0);
-@@ -2491,20 +2532,21 @@
+@@ -2490,20 +2532,21 @@
  
  		/* FIXME finish*/
  		tds_set_state(tds, TDS_IDLE);
@@ -1337,7 +1333,7 @@ diff -u -1 -0 -r1.211 query.c
  		}
  
  		tds_put_smallint(tds, 0);
-@@ -2748,20 +2790,21 @@
+@@ -2747,20 +2790,21 @@
  
  	num_placeholders = tds_count_placeholders(query);
  	if (num_placeholders && num_placeholders > params->num_cols)
@@ -1359,7 +1355,7 @@ diff -u -1 -0 -r1.211 query.c
  		e = tds_next_placeholder(s);
  		tds_put_string(tds, s, e ? e - s : -1);
  		if (!e)
-@@ -2789,20 +2832,21 @@
+@@ -2788,20 +2832,21 @@
  	tds->out_flag = TDS_QUERY;
  	switch (type) {
  	case TDS_MULTIPLE_QUERY:
@@ -1381,7 +1377,7 @@ diff -u -1 -0 -r1.211 query.c
  	assert(tds && multiple);
  
  	return tds_query_flush_packet(tds);
-@@ -2819,22 +2863,24 @@
+@@ -2818,22 +2863,24 @@
  
  	return tds_send_emulated_execute(tds, query, params);
  }
@@ -1414,7 +1410,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/read.c,v
 retrieving revision 1.104
 diff -u -1 -0 -r1.104 read.c
 --- src/tds/read.c	6 Sep 2007 11:17:21 -0000	1.104
-+++ src/tds/read.c	18 Oct 2007 08:22:33 -0000
++++ src/tds/read.c	18 Oct 2007 11:55:53 -0000
 @@ -129,20 +129,43 @@
  	unsigned char bytes[4];
  
@@ -1462,10 +1458,10 @@ diff -u -1 -0 -r1.104 read.c
 Index: src/tds/token.c
 ===================================================================
 RCS file: /cvsroot/freetds/freetds/src/tds/token.c,v
-retrieving revision 1.337
-diff -u -1 -0 -r1.337 token.c
---- src/tds/token.c	16 Oct 2007 15:12:22 -0000	1.337
-+++ src/tds/token.c	18 Oct 2007 08:22:35 -0000
+retrieving revision 1.338
+diff -u -1 -0 -r1.338 token.c
+--- src/tds/token.c	18 Oct 2007 11:52:18 -0000	1.338
++++ src/tds/token.c	18 Oct 2007 11:55:55 -0000
 @@ -494,21 +494,21 @@
   * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.
   * @retval anything returned by one of the many functions it calls.  :-(
@@ -1616,7 +1612,7 @@ diff -u -1 -0 -r1.337 token.c
  /**
   * tds_process_env_chg() 
   * when ever certain things change on the server, such as database, character
-@@ -2306,31 +2313,53 @@
+@@ -2306,20 +2313,44 @@
  			tds_get_n(tds, NULL, size - 5);
  			lcid = (tds->collation[0] + ((int) tds->collation[1] << 8) + ((int) tds->collation[2] << 16)) & 0xffffflu;
  			tds7_srv_charset_changed(tds, tds->collation[4], lcid);
@@ -1658,23 +1654,10 @@ diff -u -1 -0 -r1.337 token.c
  	memrc += tds_alloc_get_string(tds, &oldval, tds_get_byte(tds));
  
  	if (memrc != 0) {
--		if (newval != NULL)
--			free(newval);
--		if (oldval != NULL)
--			free(oldval);
-+		free(newval);
-+		free(oldval);
+ 		free(newval);
+ 		free(oldval);
  		return TDS_FAIL;
- 	}
- 
- 	dest = NULL;
- 	switch (type) {
- 	case TDS_ENV_PACKSIZE:
- 		new_block_size = atoi(newval);
- 		if (new_block_size > tds->env.block_size) {
- 			tdsdump_log(TDS_DBG_INFO1, "increasing block size from %s to %d\n", oldval, new_block_size);
- 			/* 
-@@ -2450,21 +2479,21 @@
+@@ -2448,21 +2479,21 @@
  	/* the message */
  	rc += tds_alloc_get_string(tds, &msg.message, tds_get_smallint(tds));
  
