@@ -1,3 +1,7 @@
+Thu Oct 18 13:49:51 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c src/tds/token.c:
+	- more free(NULL)
+
 Tue Oct 16 16:59:06 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/tsql.c src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c:
 	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/rpc.c:

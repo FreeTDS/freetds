@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.211 2007-10-16 15:12:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.212 2007-10-18 11:52:17 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -281,8 +281,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			/* add on parameters */
 			tds_put_params(tds, params, params->columns[0]->column_name[0] ? TDS_PUT_DATA_USE_NAME : 0);
 		}
-		if (new_query)
-			free(new_query);
+		free(new_query);
 	} else if (!IS_TDS7_PLUS(tds) || !params || !params->num_cols) {
 		tds->out_flag = TDS_QUERY;
 		tds_put_string(tds, query, query_len);

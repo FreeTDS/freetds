@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.337 2007-10-16 15:12:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.338 2007-10-18 11:52:18 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2320,10 +2320,8 @@ tds_process_env_chg(TDSSOCKET * tds)
 	memrc += tds_alloc_get_string(tds, &oldval, tds_get_byte(tds));
 
 	if (memrc != 0) {
-		if (newval != NULL)
-			free(newval);
-		if (oldval != NULL)
-			free(oldval);
+		free(newval);
+		free(oldval);
 		return TDS_FAIL;
 	}
 
