@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.244.2.2 2006-07-11 18:39:37 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.244.2.3 2007-10-18 14:47:11 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -450,7 +450,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		return SUCCEED;
 		break;
 	case DBSETCHARSET:
-		tds_set_client_charset(login->tds_login, value);
+		tds_set_client_charset(login->tds_login, value ? value : "");
 		return SUCCEED;
 		break;
 	case DBSETNATLANG:
