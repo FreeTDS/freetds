@@ -70,7 +70,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.291 2007-10-16 15:12:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.292 2007-10-18 14:49:08 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -465,7 +465,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		return SUCCEED;
 		break;
 	case DBSETCHARSET:
-		tds_set_client_charset(login->tds_login, value);
+		tds_set_client_charset(login->tds_login, value ? value : "");
 		return SUCCEED;
 		break;
 	case DBSETNATLANG:
