@@ -1,218 +1,10 @@
-? DBD-ODBC-1.13.tar.gz
-? dump.txt
-? errors.txt
-? freetds-0.65.dev.20071018
-? freetds-0.65.dev.20071018.tar.gz
-? freetds-0.65.dev.20071018.win32.tar.gz
-? mao.diff
-? php5.2-latest.tar.bz2
-? vedi.diff
-? win32_errors.txt
-? src/code
-? src/code.cpp
-? src/out.txt
-? src/apps/bsqldb.gcno
-? src/apps/bsqlodbc.gcno
-? src/apps/datacopy.gcno
-? src/apps/defncopy.gcno
-? src/apps/freebcp.gcno
-? src/apps/tsql.gcda
-? src/apps/tsql.gcno
-? src/apps/fisql/edit.gcno
-? src/apps/fisql/fisql.gcno
-? src/apps/fisql/handlers.gcno
-? src/apps/fisql/interrupt.gcno
-? src/apps/fisql/terminal.gcno
-? src/ctlib/blk.gcno
-? src/ctlib/cs.gcno
-? src/ctlib/ct.gcno
-? src/ctlib/ctutil.gcno
-? src/ctlib/unittests/array_bind.gcno
-? src/ctlib/unittests/blk_in.gcno
-? src/ctlib/unittests/blk_in2.gcno
-? src/ctlib/unittests/blk_out.gcno
-? src/ctlib/unittests/cancel.gcno
-? src/ctlib/unittests/common.gcno
-? src/ctlib/unittests/connect_fail.gcno
-? src/ctlib/unittests/cs_config.gcno
-? src/ctlib/unittests/cs_diag.gcno
-? src/ctlib/unittests/ct_cursor.gcno
-? src/ctlib/unittests/ct_cursors.gcno
-? src/ctlib/unittests/ct_diagall.gcno
-? src/ctlib/unittests/ct_diagclient.gcno
-? src/ctlib/unittests/ct_diagserver.gcno
-? src/ctlib/unittests/ct_dynamic.gcno
-? src/ctlib/unittests/ct_options.gcno
-? src/ctlib/unittests/get_send_data.gcno
-? src/ctlib/unittests/lang_ct_param.gcno
-? src/ctlib/unittests/mao.html
-? src/ctlib/unittests/rpc_ct_param.gcno
-? src/ctlib/unittests/rpc_ct_setparam.gcno
-? src/ctlib/unittests/t0001.gcno
-? src/ctlib/unittests/t0002.gcno
-? src/ctlib/unittests/t0003.gcno
-? src/ctlib/unittests/t0004.gcno
-? src/ctlib/unittests/t0005.gcno
-? src/ctlib/unittests/t0006.gcno
-? src/ctlib/unittests/t0007.gcno
-? src/ctlib/unittests/t0008.gcno
-? src/ctlib/unittests/t0009.gcno
-? src/dblib/bcp.gcno
-? src/dblib/dblib.gcno
-? src/dblib/dbutil.gcno
-? src/dblib/rpc.gcno
-? src/dblib/xact.gcno
-? src/dblib/unittests/bcp.gcno
-? src/dblib/unittests/common.gcno
-? src/dblib/unittests/dbmorecmds.gcno
-? src/dblib/unittests/done_handling.gcno
-? src/dblib/unittests/hang.gcno
-? src/dblib/unittests/rpc.gcno
-? src/dblib/unittests/t0001.gcno
-? src/dblib/unittests/t0002.gcno
-? src/dblib/unittests/t0003.gcno
-? src/dblib/unittests/t0004.gcno
-? src/dblib/unittests/t0005.gcno
-? src/dblib/unittests/t0006.gcno
-? src/dblib/unittests/t0007.gcno
-? src/dblib/unittests/t0008.gcno
-? src/dblib/unittests/t0009.gcno
-? src/dblib/unittests/t0011.gcno
-? src/dblib/unittests/t0012.gcno
-? src/dblib/unittests/t0013.gcno
-? src/dblib/unittests/t0014.gcno
-? src/dblib/unittests/t0015.gcno
-? src/dblib/unittests/t0016.gcno
-? src/dblib/unittests/t0017.gcno
-? src/dblib/unittests/t0018.gcno
-? src/dblib/unittests/t0019.gcno
-? src/dblib/unittests/t0020.gcno
-? src/dblib/unittests/t0021.gcno
-? src/dblib/unittests/t0022.gcno
-? src/dblib/unittests/t0023.gcno
-? src/dblib/unittests/text_buffer.gcno
-? src/dblib/unittests/thread.gcno
-? src/dblib/unittests/timeout.gcno
-? src/odbc/connectparams.gcno
-? src/odbc/convert_tds2sql.gcno
-? src/odbc/descriptor.gcno
-? src/odbc/error.gcno
-? src/odbc/native.gcno
-? src/odbc/odbc.gcno
-? src/odbc/odbc_checks.gcno
-? src/odbc/odbc_util.gcno
-? src/odbc/prepare_query.gcno
-? src/odbc/sql2tds.gcno
-? src/odbc/unittests/array.gcno
-? src/odbc/unittests/array_out.gcno
-? src/odbc/unittests/binary_test.gcno
-? src/odbc/unittests/common.gcno
-? src/odbc/unittests/compute.gcno
-? src/odbc/unittests/connect.gcno
-? src/odbc/unittests/connect2.gcno
-? src/odbc/unittests/const_params.gcno
-? src/odbc/unittests/convert_error.gcno
-? src/odbc/unittests/copydesc.gcno
-? src/odbc/unittests/cursor1.gcno
-? src/odbc/unittests/cursor2.gcno
-? src/odbc/unittests/data.gcno
-? src/odbc/unittests/date.gcno
-? src/odbc/unittests/describecol.gcno
-? src/odbc/unittests/earlybind.gcno
-? src/odbc/unittests/error.gcno
-? src/odbc/unittests/freeclose.gcno
-? src/odbc/unittests/funccall.gcno
-? src/odbc/unittests/genparams.gcno
-? src/odbc/unittests/getdata.gcno
-? src/odbc/unittests/insert_speed.gcno
-? src/odbc/unittests/lang_error.gcno
-? src/odbc/unittests/moreandcount.gcno
-? src/odbc/unittests/norowset.gcno
-? src/odbc/unittests/paramcore.gcno
-? src/odbc/unittests/params.gcno
-? src/odbc/unittests/prepare_results.gcno
-? src/odbc/unittests/prepclose.gcno
-? src/odbc/unittests/preperror.gcno
-? src/odbc/unittests/print.gcno
-? src/odbc/unittests/putdata.gcno
-? src/odbc/unittests/raiserror.gcno
-? src/odbc/unittests/rebindpar.gcno
-? src/odbc/unittests/rpc.gcno
-? src/odbc/unittests/scroll.gcno
-? src/odbc/unittests/t0001.gcno
-? src/odbc/unittests/t0002.gcno
-? src/odbc/unittests/t0003.gcno
-? src/odbc/unittests/t0004.gcno
-? src/odbc/unittests/tables.gcno
-? src/odbc/unittests/testodbc.gcno
-? src/odbc/unittests/timeout.gcno
-? src/odbc/unittests/timeout2.gcno
-? src/odbc/unittests/timeout3.gcno
-? src/odbc/unittests/timeout4.gcno
-? src/odbc/unittests/transaction.gcno
-? src/odbc/unittests/type.gcno
-? src/odbc/unittests/typeinfo.gcno
-? src/odbc/unittests/warning.gcno
-? src/pool/config.gcno
-? src/pool/main.gcno
-? src/pool/member.gcno
-? src/pool/user.gcno
-? src/pool/util.gcno
-? src/replacements/readpassphrase.gcno
-? src/replacements/strlcat.gcno
-? src/replacements/strlcpy.gcno
-? src/server/login.gcno
-? src/server/query.gcno
-? src/server/server.gcno
-? src/server/unittest.gcno
-? src/tds/challenge.gcno
-? src/tds/config.gcno
-? src/tds/convert.gcno
-? src/tds/data.gcno
-? src/tds/des.gcno
-? src/tds/getmac.gcno
-? src/tds/iconv.gcno
-? src/tds/locale.gcno
-? src/tds/log.gcno
-? src/tds/login.gcno
-? src/tds/md4.gcno
-? src/tds/md5.gcno
-? src/tds/mem.gcno
-? src/tds/net.gcno
-? src/tds/numeric.gcno
-? src/tds/query.gcno
-? src/tds/read.gcno
-? src/tds/tds_checks.gcno
-? src/tds/tdsstring.gcno
-? src/tds/threadsafe.gcno
-? src/tds/token.gcno
-? src/tds/util.gcno
-? src/tds/vstrbuild.gcno
-? src/tds/write.gcno
-? src/tds/unittests/common.gcno
-? src/tds/unittests/convert.gcno
-? src/tds/unittests/dataread.gcno
-? src/tds/unittests/dynamic1.gcno
-? src/tds/unittests/iconv_fread.gcno
-? src/tds/unittests/numeric.gcno
-? src/tds/unittests/t0001.gcno
-? src/tds/unittests/t0002.gcno
-? src/tds/unittests/t0003.gcno
-? src/tds/unittests/t0004.gcno
-? src/tds/unittests/t0005.gcno
-? src/tds/unittests/t0006.gcno
-? src/tds/unittests/t0007.gcno
-? src/tds/unittests/t0008.gcno
-? src/tds/unittests/utf8_1.gcno
-? src/tds/unittests/utf8_2.gcno
-? src/tds/unittests/utf8_3.gcno
 Index: include/tds.h
 ===================================================================
 RCS file: /cvsroot/freetds/freetds/include/tds.h,v
 retrieving revision 1.274
 diff -u -1 -0 -r1.274 tds.h
 --- include/tds.h	24 Aug 2007 09:51:37 -0000	1.274
-+++ include/tds.h	18 Oct 2007 11:55:27 -0000
++++ include/tds.h	23 Oct 2007 09:01:16 -0000
 @@ -382,20 +382,23 @@
  #define GOTO_1ST_ROW    3
  #define LOGIN           4
@@ -344,7 +136,7 @@ RCS file: /cvsroot/freetds/freetds/include/tdsodbc.h,v
 retrieving revision 1.101
 diff -u -1 -0 -r1.101 tdsodbc.h
 --- include/tdsodbc.h	25 Aug 2007 10:33:29 -0000	1.101
-+++ include/tdsodbc.h	18 Oct 2007 11:55:27 -0000
++++ include/tdsodbc.h	23 Oct 2007 09:01:16 -0000
 @@ -337,21 +337,21 @@
  	int param_num;
  	/** position in prepared query to check parameters, used only in RPC */
@@ -374,7 +166,7 @@ RCS file: /cvsroot/freetds/freetds/src/ctlib/blk.c,v
 retrieving revision 1.39
 diff -u -1 -0 -r1.39 blk.c
 --- src/ctlib/blk.c	16 Oct 2007 15:12:19 -0000	1.39
-+++ src/ctlib/blk.c	18 Oct 2007 11:55:27 -0000
++++ src/ctlib/blk.c	23 Oct 2007 09:01:18 -0000
 @@ -1060,21 +1060,24 @@
  		/*
  		 * dont send the (meta)data for timestamp columns, or
@@ -407,7 +199,7 @@ RCS file: /cvsroot/freetds/freetds/src/ctlib/ct.c,v
 retrieving revision 1.175
 diff -u -1 -0 -r1.175 ct.c
 --- src/ctlib/ct.c	16 Oct 2007 15:12:20 -0000	1.175
-+++ src/ctlib/ct.c	18 Oct 2007 11:55:29 -0000
++++ src/ctlib/ct.c	23 Oct 2007 09:01:21 -0000
 @@ -2368,20 +2368,21 @@
  				curcol = resinfo->columns[i];
  				if (!curcol->column_hidden) {
@@ -436,7 +228,7 @@ RCS file: /cvsroot/freetds/freetds/src/dblib/bcp.c,v
 retrieving revision 1.157
 diff -u -1 -0 -r1.157 bcp.c
 --- src/dblib/bcp.c	16 Oct 2007 15:12:20 -0000	1.157
-+++ src/dblib/bcp.c	18 Oct 2007 11:55:32 -0000
++++ src/dblib/bcp.c	23 Oct 2007 09:01:24 -0000
 @@ -2544,21 +2544,24 @@
  	/*
  	 * dont send the (meta)data for timestamp columns, or
@@ -463,43 +255,13 @@ diff -u -1 -0 -r1.157 bcp.c
  		case 2:
  			tds_put_smallint(tds, bcpcol->column_size);
  			break;
-Index: src/dblib/dblib.c
-===================================================================
-RCS file: /cvsroot/freetds/freetds/src/dblib/dblib.c,v
-retrieving revision 1.291
-diff -u -1 -0 -r1.291 dblib.c
---- src/dblib/dblib.c	16 Oct 2007 15:12:20 -0000	1.291
-+++ src/dblib/dblib.c	18 Oct 2007 11:55:41 -0000
-@@ -458,21 +458,21 @@
- 		break;
- 	case DBSETPWD:
- 		tds_set_passwd(login->tds_login, value);
- 		return SUCCEED;
- 		break;
- 	case DBSETAPP:
- 		tds_set_app(login->tds_login, value);
- 		return SUCCEED;
- 		break;
- 	case DBSETCHARSET:
--		tds_set_client_charset(login->tds_login, value);
-+		tds_set_client_charset(login->tds_login, value ? value : "");
- 		return SUCCEED;
- 		break;
- 	case DBSETNATLANG:
- 		tds_set_language(login->tds_login, value);
- 		return SUCCEED;
- 		break;
- 	case DBSETHID:
- 	default:
- 		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
- 		return FAIL;
 Index: src/odbc/odbc.c
 ===================================================================
 RCS file: /cvsroot/freetds/freetds/src/odbc/odbc.c,v
 retrieving revision 1.456
 diff -u -1 -0 -r1.456 odbc.c
 --- src/odbc/odbc.c	16 Oct 2007 15:12:21 -0000	1.456
-+++ src/odbc/odbc.c	18 Oct 2007 11:55:45 -0000
++++ src/odbc/odbc.c	23 Oct 2007 09:01:29 -0000
 @@ -594,35 +594,35 @@
  		stmt->row_status = IN_COMPUTE_ROW;
  		in_row = 1;
@@ -567,7 +329,7 @@ RCS file: /cvsroot/freetds/freetds/src/server/server.c,v
 retrieving revision 1.22
 diff -u -1 -0 -r1.22 server.c
 --- src/server/server.c	24 Sep 2007 10:02:14 -0000	1.22
-+++ src/server/server.c	18 Oct 2007 11:55:46 -0000
++++ src/server/server.c	23 Oct 2007 09:01:29 -0000
 @@ -219,21 +219,24 @@
   *			TDS_DONE_CANCELLED if the query was canceled, and
   *			TDS_DONE_EVENT if the token marks an event.
@@ -622,7 +384,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/config.c,v
 retrieving revision 1.129
 diff -u -1 -0 -r1.129 config.c
 --- src/tds/config.c	8 Aug 2007 09:13:29 -0000	1.129
-+++ src/tds/config.c	18 Oct 2007 11:55:48 -0000
++++ src/tds/config.c	23 Oct 2007 09:01:31 -0000
 @@ -1,12 +1,13 @@
  /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
   * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
@@ -668,7 +430,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/login.c,v
 retrieving revision 1.163
 diff -u -1 -0 -r1.163 login.c
 --- src/tds/login.c	16 Oct 2007 15:12:22 -0000	1.163
-+++ src/tds/login.c	18 Oct 2007 11:55:48 -0000
++++ src/tds/login.c	23 Oct 2007 09:01:31 -0000
 @@ -751,20 +751,21 @@
   */
  static int
@@ -777,7 +539,7 @@ diff -u -1 -0 -r1.163 login.c
  		unicode_left = sizeof(unicode_string);
  
  		memset(&char_conv->suppress, 0, sizeof(char_conv->suppress));
-@@ -998,65 +1009,70 @@
+@@ -998,65 +1009,88 @@
  	/*
  	 * In case we do not have SSL enabled do not send pre-login so
  	 * if server has certificate but no force encryption login success
@@ -788,8 +550,9 @@ diff -u -1 -0 -r1.163 login.c
  	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
  	int instance_name_len = strlen(instance_name) + 1;
  	TDS_CHAR crypt_flag;
--#define START_POS 21
-+#define START_POS 26
++	int start_pos = 21;
++
+ #define START_POS 21
  #define UI16BE(n) ((n) >> 8), ((n) & 0xffu)
  #define SET_UI16BE(i,n) do { buf[i] = ((n) >> 8); buf[i+1] = ((n) & 0xffu); } while(0)
  	TDS_UCHAR buf[] = {
@@ -804,31 +567,56 @@ diff -u -1 -0 -r1.163 login.c
 +		/* ???? unknown ??? */
 +		4, UI16BE(0), UI16BE(1),
  		/* end */
- 		0xff,
- 		/* netlib value */
+-		0xff,
+-		/* netlib value */
 -		8, 0, 1, 0x55, 0, 0,
-+		9, 0, 0, 0, 0, 0,
- 		/* encryption, normal */
- 		0
+-		/* encryption, normal */
+-		0
++		0xff
  	};
++	static const TDS_UCHAR netlib8[] = { 8, 0, 1, 0x55, 0, 0 };
++	static const TDS_UCHAR netlib9[] = { 9, 0, 0,    0, 0, 0 };
  
  	TDS_UCHAR *p;
  
  	SET_UI16BE(13, instance_name_len);
- 	SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
-+	SET_UI16BE(21, START_POS + 6 + 1 + instance_name_len + 4);
- 	if (connection->encryption_level)
- 		buf[sizeof(buf)-1] = 1;
+-	SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
+-	if (connection->encryption_level)
+-		buf[sizeof(buf)-1] = 1;
++	if (!IS_TDS90(tds)) {
++		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
++		buf[20] = 0xff;
++	} else {
++		start_pos += 5;
++#undef  START_POS
++#define START_POS 26
++		SET_UI16BE(1, START_POS);
++		SET_UI16BE(6, START_POS + 6);
++		SET_UI16BE(11, START_POS + 6 + 1);
++		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
++		SET_UI16BE(21, START_POS + 6 + 1 + instance_name_len + 4);
++	}
  
- 	assert(sizeof(buf) == START_POS + 7);
+-	assert(sizeof(buf) == START_POS + 7);
++	assert(start_pos >= 21 && start_pos <= sizeof(buf));
++	assert(buf[start_pos-1] == 0xff);
  
  	/* do prelogin */
  	tds->out_flag = TDS8_PRELOGIN;
  
- 	tds_put_n(tds, buf, sizeof(buf));
+-	tds_put_n(tds, buf, sizeof(buf));
++	tds_put_n(tds, buf, start_pos);
++	/* netlib version */
++	tds_put_n(tds, IS_TDS90(tds) ? netlib9 : netlib8, 6);
++	/* encryption */
++	tds_put_byte(tds, connection->encryption_level ? 1 : 0);
++	/* instance */
  	tds_put_n(tds, instance_name, instance_name_len);
++	/* pid */
  	tds_put_int(tds, getpid());
-+	tds_put_byte(tds, 0);
++	/* ???? unknown ??? */
++	if (IS_TDS90(tds))
++		tds_put_byte(tds, 0);
  	if (tds_flush_packet(tds) == TDS_FAIL)
  		return TDS_FAIL;
  
@@ -857,7 +645,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/net.c,v
 retrieving revision 1.66
 diff -u -1 -0 -r1.66 net.c
 --- src/tds/net.c	17 Sep 2007 21:27:26 -0000	1.66
-+++ src/tds/net.c	18 Oct 2007 11:55:50 -0000
++++ src/tds/net.c	23 Oct 2007 09:01:31 -0000
 @@ -578,21 +578,21 @@
  			 */
  			tds->in_len = 0;
@@ -936,7 +724,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/query.c,v
 retrieving revision 1.212
 diff -u -1 -0 -r1.212 query.c
 --- src/tds/query.c	18 Oct 2007 11:52:17 -0000	1.212
-+++ src/tds/query.c	18 Oct 2007 11:55:53 -0000
++++ src/tds/query.c	23 Oct 2007 09:01:32 -0000
 @@ -58,20 +58,22 @@
  
  static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
@@ -1410,7 +1198,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/read.c,v
 retrieving revision 1.104
 diff -u -1 -0 -r1.104 read.c
 --- src/tds/read.c	6 Sep 2007 11:17:21 -0000	1.104
-+++ src/tds/read.c	18 Oct 2007 11:55:53 -0000
++++ src/tds/read.c	23 Oct 2007 09:01:34 -0000
 @@ -129,20 +129,43 @@
  	unsigned char bytes[4];
  
@@ -1461,7 +1249,7 @@ RCS file: /cvsroot/freetds/freetds/src/tds/token.c,v
 retrieving revision 1.338
 diff -u -1 -0 -r1.338 token.c
 --- src/tds/token.c	18 Oct 2007 11:52:18 -0000	1.338
-+++ src/tds/token.c	18 Oct 2007 11:55:55 -0000
++++ src/tds/token.c	23 Oct 2007 09:01:35 -0000
 @@ -494,21 +494,21 @@
   * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.
   * @retval anything returned by one of the many functions it calls.  :-(
