@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.66 2007-09-17 21:27:26 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.67 2007-10-23 22:12:08 jklowden Exp $");
 
 static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -330,76 +330,55 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 
 	assert(tds != NULL);
 	assert(timeout_seconds >= 0);
-
 	/* 
-	 * The main loop.  We iterate once per second.
+	 * The select loop.  
+	 * If an interrupt handler is installed, we iterate once per second, 
+	 * 	else we try once, timing out after timeout_seconds (0 == never). 
+	 * If select(2) is interrupted by a signal (e.g. press ^C in sqsh), we timeout.
+	 * 	(The application can retry if desired by installing a signal handler.)
+	 *
 	 * We do not measure current time against end time, to avoid being tricked by ntpd(8) or similar. 
 	 * Instead, we just count down.  
-	 * If timeout_seconds is zero, we never leave this loop except to return to the caller. 
+	 *
+	 * We exit on the first of these events:
+	 * 1.  a descriptor is ready. (return to caller)
+	 * 2.  select(2) returns an important error.  (return to caller)
+	 * A timeout of zero says "wait forever".  We do that by passing a NULL timeval pointer to select(2). 
 	 */
-	seconds = timeout_seconds;
 	poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
-	assert(seconds >= 0);
-	do {	
+	for (seconds = timeout_seconds; timeout_seconds == 0 || seconds > 0; seconds -= poll_seconds) {
 		struct timeval tv, *ptv = poll_seconds? &tv : NULL;
-		unsigned int end_ms = poll_seconds * 1000 + tds_gettime_ms();
-
-		/* 
-		 * The poll loop. We exit on the first of these events:
-		 * 1.  a descriptor is ready. (return to caller)
-		 * 2.  select returns an important error.  (return to caller)
-		 * 3.  one second elapses, if an interrupt handler is defined (call handler).
-		 * A timeout of zero says "wait forever".  We do that by passing a NULL timeval pointer to select(2).    
-		 */
+		
 		tv.tv_sec = poll_seconds;
 		tv.tv_usec = 0; 
-		for (;;) {
-			TDS_SYS_SOCKET s = tds->s;
 
-			if (readfds)
-				FD_SET(s, readfds);
-			if (writefds)
-				FD_SET(s, writefds);
-			if (exceptfds)
-				FD_SET(s, exceptfds);
+		if (readfds)
+			FD_SET(tds->s, readfds);
+		if (writefds)
+			FD_SET(tds->s, writefds);
+		if (exceptfds)
+			FD_SET(tds->s, exceptfds);
 
-			rc = select(s + 1, readfds, writefds, exceptfds, ptv); 
+		rc = select(tds->s + 1, readfds, writefds, exceptfds, ptv); 
 
-			if (rc > 0 ) {
+		if (rc > 0 ) {
+			return rc;
+		}
+
+		if (rc < 0) {
+			switch (sock_errno) {
+			case TDSSOCK_EINTR:
+				return 0;	/* emulate timeout */
+			default: /* documented: EFAULT, EBADF, EINVAL */
+				tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
+						sock_errno, strerror(sock_errno));
 				return rc;
-			}
-
-			if (rc < 0) {
-				switch (sock_errno) {
-				case TDSSOCK_EINTR:
-					break;
-				default: /* documented: EFAULT, EBADF, EINVAL */
-					tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
-							sock_errno, strerror(sock_errno));
-					return rc;
-				}
-			}
-
-			assert(rc == 0);
-			
-			if (ptv) {
-				const int diff_time = (int) (end_ms - tds_gettime_ms());
-
-				if (diff_time <= 0)
-					break;
-
-				tv.tv_sec  = diff_time / 1000;
-				tv.tv_usec = (diff_time % 1000) * 1000;
-
-				if (tv.tv_sec > poll_seconds || tv.tv_usec > 1000000) 
-					break;	/* shouldn't happen; start again */
 			}
 		}
 
-		/* 1-second timeout expired */
-		if (tds->tds_ctx && tds->tds_ctx->int_handler) {
+		assert(rc == 0);	/* select(2) timeout expired */
 
-			int timeout_action = (*tds->tds_ctx->int_handler) (tds->parent);
+		if (tds->tds_ctx && tds->tds_ctx->int_handler) {	/* timeout handler installed */
 			/*
 			 * "If hndlintr() returns INT_CANCEL, DB-Library sends an attention token [TDS_BUFSTAT_ATTN]
 			 * to the server. This causes the server to discontinue command processing. 
@@ -409,6 +388,8 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 			 * - Flush the results using dbcancel 
 			 * - Process the results normally"
 			 */
+			int timeout_action = (*tds->tds_ctx->int_handler) (tds->parent);
+
 			tdsdump_log(TDS_DBG_ERROR, "tds_ctx->int_handler returned %d\n", timeout_action);
 			switch (timeout_action) {
 			case TDS_INT_CONTINUE:		/* keep waiting */
@@ -422,8 +403,7 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 				break;
 			}
 		}
-
-	} while (timeout_seconds == 0 || (seconds -= poll_seconds) > 0);
+	}
 	
 	return 0;
 }
