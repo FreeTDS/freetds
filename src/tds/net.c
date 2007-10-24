@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.67 2007-10-23 22:12:08 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.68 2007-10-24 00:20:43 jklowden Exp $");
 
 static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -368,7 +368,7 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 		if (rc < 0) {
 			switch (sock_errno) {
 			case TDSSOCK_EINTR:
-				return 0;	/* emulate timeout */
+				break;	/* let interrupt handler be called */
 			default: /* documented: EFAULT, EBADF, EINVAL */
 				tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
 						sock_errno, strerror(sock_errno));
@@ -376,7 +376,7 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 			}
 		}
 
-		assert(rc == 0);	/* select(2) timeout expired */
+		assert(rc == 0 || rc == -1 && sock_errno == TDSSOCK_EINTR);
 
 		if (tds->tds_ctx && tds->tds_ctx->int_handler) {	/* timeout handler installed */
 			/*

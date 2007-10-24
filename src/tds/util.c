@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.81 2007-09-17 21:27:30 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.82 2007-10-24 00:20:43 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -266,6 +266,7 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSENEG,               EXCOMM,	"Negotiated login attempt failed" }
 	, { TDSEOOB,               EXCOMM,	"Error in sending out-of-band data to the server" }
 	, { TDSEREAD,              EXCOMM,	"Read from the server failed" }
+	, { TDSETIME,              EXTIME,	"Adaptive Server connection timed out" }
 	, { TDSESEOF,              EXCOMM,	"Unexpected EOF from the server" }
 	, { TDSESOCK,              EXCOMM,	"Unable to open socket" }
 	, { TDSESYNC,              EXCOMM,	"Read attempted while out of synchronization with Adaptive Server" }

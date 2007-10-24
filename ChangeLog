@@ -1,3 +1,8 @@
+Tue Oct 23 19:41:03 EDT 2007	JK Lowden <jklowden@freetds.org>
+	* src/tds/net.c src/tds/util.c
+	- ct-lib seems OK with EINTR (sqsh works) but db-lib
+	- applications get a weird message. 
+
 Tue Oct 23 18:08:00 EDT 2007	JK Lowden <jklowden@freetds.org>
 	* src/tds/net.c 
 	- return from tds_select as if timed out on EINTR. 
