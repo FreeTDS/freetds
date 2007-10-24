@@ -22,8 +22,12 @@
 
 #include <sybdb.h>
 
+/* 
+ * TODO: add other Microsoft differences here e.g. SQLMONEY for SYBMONEY
+ */
+#define dbfreelogin(x) dbloginfree((x))
 
-static const char rcsid_sqldb_h[] = "$Id: sqldb.h,v 1.3 2004-10-28 12:42:12 freddy77 Exp $";
+static const char rcsid_sqldb_h[] = "$Id: sqldb.h,v 1.4 2007-10-24 21:57:32 jklowden Exp $";
 static const void *const no_unused_sqldb_h_warn[] = { rcsid_sqldb_h, no_unused_sqldb_h_warn };
 
 

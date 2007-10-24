@@ -1,3 +1,7 @@
+Wed Oct 24 17:55:56 EDT 2007	JK Lowden <jklowden@freetds.org>
+	* include/sqldb.h define dbfreelogin
+	* src/dblib/unittests/common.h add commentary
+
 Tue Oct 23 19:41:03 EDT 2007	JK Lowden <jklowden@freetds.org>
 	* src/tds/net.c src/tds/util.c
 	- ct-lib seems OK with EINTR (sqsh works) but db-lib
