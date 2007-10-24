@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.12 2006-12-26 14:56:19 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.13 2007-10-24 21:57:36 jklowden Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #if HAVE_CONFIG_H
@@ -29,6 +29,11 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 #include <sqldb.h>
 
 #ifdef DBNTWIN32
+/*
+ * Define Sybase's symbols in terms of Microsoft's. 
+ * This allows these tests to be run using Microsoft's include
+ * files and library (libsybdb.lib).
+ */
 #define MSDBLIB 1
 #define MICROSOFT_DBLIB 1
 #define dbloginfree(l) dbfreelogin(l)
