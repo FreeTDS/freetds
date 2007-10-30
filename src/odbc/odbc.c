@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.456 2007-10-16 15:12:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.457 2007-10-30 15:08:25 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -601,7 +601,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 		token_flags |= TDS_RETURN_MSG;
 	for (;;) {
 		result_type = odbc_process_tokens(stmt, token_flags);
-		tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: result_type=%d, row_count=%d, lastrc=%d\n", 
+		tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: result_type=%d, row_count=%" TDS_I64_FORMAT ", lastrc=%d\n", 
 						result_type, stmt->row_count, stmt->errs.lastrc);
 		switch (result_type) {
 		case TDS_CMD_DONE:
@@ -615,7 +615,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 				stmt->row_status = NOT_IN_ROW;
 				tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_status=%d\n", stmt->row_status);
 			}
-			tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_count=%d, lastrc=%d\n", stmt->row_count, stmt->errs.lastrc);
+			tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_count=%" TDS_I64_FORMAT ", lastrc=%d\n", stmt->row_count, stmt->errs.lastrc);
 			if (stmt->row_count == TDS_NO_COUNT) {
 				if (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO)
 					ODBC_RETURN(stmt, SQL_NO_DATA);
@@ -3269,7 +3269,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 				tds_free_all_results(tds);
 				odbc_populate_ird(stmt);
 #endif
-				tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: row_count=%d\n", stmt->row_count);
+				tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: row_count=%" TDS_I64_FORMAT "\n", stmt->row_count);
 				return result_type;
 			}
 			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: processed %s\n", 

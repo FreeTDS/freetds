@@ -1,3 +1,7 @@
+Tue Oct 30 16:02:04 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- make odbc row_count 64bit
+
 Tue Oct 30 13:14:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/config.c src/tds/query.c:
 	- more merge for tds9

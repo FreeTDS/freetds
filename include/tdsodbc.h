@@ -54,7 +54,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.101 2007-08-25 10:33:29 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.102 2007-10-30 15:08:25 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -344,7 +344,7 @@ struct _hstmt
 	unsigned int param_count;
 	int row;
 	/** row count to return */
-	int row_count;
+	TDS_INT8 row_count;
 	/** status of row, it can happen that this flag mark that we are still parsing row, this it's normal */
 	TDS_ODBC_ROW_STATUS row_status;
 	/* do NOT free dynamic, free from socket or attach to connection */
