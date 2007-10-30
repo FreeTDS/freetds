@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.212 2007-10-18 11:52:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.213 2007-10-30 10:20:39 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -65,6 +65,8 @@ static int tds_count_placeholders_ucs2le(const char *query, const char *query_en
 
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#undef MAX
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
 /* All manner of client to server submittal functions */
 
@@ -1305,13 +1307,13 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		case 0:
 			break;
 		case 1:
-			tds_put_byte(tds, MIN(curcol->column_size, 255));
+			tds_put_byte(tds, MAX(MIN(curcol->column_size, 255), 1));
 			break;
 		case 2:
-			tds_put_smallint(tds, MIN(curcol->column_size, 8000));
+			tds_put_smallint(tds, MAX(MIN(curcol->column_size, 8000), 1));
 			break;
 		case 4:
-			tds_put_int(tds, MIN(curcol->column_size, 0x7fffffff));
+			tds_put_int(tds, MAX(MIN(curcol->column_size, 0x7fffffff), 1));
 			break;
 		}
 	}

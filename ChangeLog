@@ -1,3 +1,8 @@
+Tue Oct 30 11:15:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c:
+	- avoid wrong assert if error and tdserror called
+	* src/tds/query.c: limit data length to maximun allowed
+
 Wed Oct 24 17:55:56 EDT 2007	JK Lowden <jklowden@freetds.org>
 	* include/sqldb.h define dbfreelogin
 	* src/dblib/unittests/common.h add commentary

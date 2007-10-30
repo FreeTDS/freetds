@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.68 2007-10-24 00:20:43 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.69 2007-10-30 10:20:38 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -170,6 +170,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	int retval;
 #endif
 	int len;
+	int tds_error = TDSECONN;
 	char ip[20];
 #if defined(DOS32X) || defined(WIN32)
 	int optlen;
@@ -260,15 +261,12 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 							);
 		}
 #endif
-		if (sock_errno != TDSSOCK_EINPROGRESS) {
-			/* "Unable to connect: Adaptive Server is unavailable or does not exist" */
-			tdserror(tds->tds_ctx, tds, TDSECONN, sock_errno);
+		if (sock_errno != TDSSOCK_EINPROGRESS)
 			goto not_available;
-		}
 		
 		FD_ZERO(&fds);
 		if (tds_select(tds, NULL, &fds, &fds, timeout) <= 0) {
-			tdserror(tds->tds_ctx, tds, TDSESOCK, sock_errno);
+			tds_error = TDSESOCK;
 			goto not_available;
 		}
 	}
@@ -280,12 +278,10 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	len = 0;
 	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", strerror(sock_errno));
-		tdserror(tds->tds_ctx, tds, TDSECONN, sock_errno);
 		goto not_available;
 	}
 	if (len != 0) {
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", strerror(len));
-		tdserror(tds->tds_ctx, tds, TDSECONN, sock_errno);
 		goto not_available;
 	}
 
@@ -295,6 +291,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
     not_available:
 	
 	tds_close_socket(tds);
+	tdserror(tds->tds_ctx, tds, tds_error, sock_errno);
 	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
 	return TDS_FAIL;
 }
@@ -376,7 +373,7 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 			}
 		}
 
-		assert(rc == 0 || rc == -1 && sock_errno == TDSSOCK_EINTR);
+		assert(rc == 0 || (rc < 0 && sock_errno == TDSSOCK_EINTR));
 
 		if (tds->tds_ctx && tds->tds_ctx->int_handler) {	/* timeout handler installed */
 			/*
