@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.175 2007-10-16 15:12:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.176 2007-10-30 15:39:08 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2375,6 +2375,7 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 		memcpy(buffer, &int_val, sizeof(CS_INT));
 		break;
 	case CS_ROW_COUNT:
+		/* TODO 64 -> 32 bit conversion check overflow */
 		int_val = tds->rows_affected;
 		tdsdump_log(TDS_DBG_FUNC, "ct_res_info(): Number of rows is %d\n", int_val);
 		memcpy(buffer, &int_val, sizeof(CS_INT));

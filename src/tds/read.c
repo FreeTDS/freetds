@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.104 2007-09-06 11:17:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.105 2007-10-30 15:39:08 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -134,6 +134,29 @@ tds_get_int(TDSSOCKET * tds)
 		return (TDS_INT) TDS_GET_A4LE(bytes);
 #endif
 	return (TDS_INT) TDS_GET_A4(bytes);
+}
+
+TDS_INT8
+tds_get_int8(TDSSOCKET * tds)
+{
+	TDS_INT h;
+	TDS_UINT l;
+	unsigned char bytes[8];
+
+	tds_get_n(tds, bytes, 8);
+#if WORDS_BIGENDIAN
+	if (tds->emul_little_endian) {
+		l = TDS_GET_A4LE(bytes);
+		h = (TDS_INT) TDS_GET_A4LE(bytes+4);
+	} else {
+		h = (TDS_INT) TDS_GET_A4(bytes);
+		l = TDS_GET_A4(bytes+4);
+	}
+#else
+	l = TDS_GET_A4(bytes);
+	h = (TDS_INT) TDS_GET_A4(bytes+4);
+#endif
+	return (((TDS_INT8) h) << 32) | l;
 }
 
 #if ENABLE_EXTRA_CHECKS

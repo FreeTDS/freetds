@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.275 2007-10-30 10:34:19 freddy77 Exp $ */
+/* $Id: tds.h,v 1.276 2007-10-30 15:39:08 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1099,15 +1099,16 @@ typedef TDSRESULTINFO TDSPARAMINFO;
 
 typedef struct tds_message
 {
-	TDS_SMALLINT priv_msg_type;
-	TDS_SMALLINT line_number;
-	TDS_UINT msgno;
-	TDS_SMALLINT state;
-	TDS_SMALLINT severity;
 	TDS_CHAR *server;
 	TDS_CHAR *message;
 	TDS_CHAR *proc_name;
 	TDS_CHAR *sql_state;
+	TDS_UINT msgno;
+	TDS_INT line_number;
+	/* -1 .. 255 */
+	TDS_SMALLINT state;
+	TDS_TINYINT priv_msg_type;
+	TDS_TINYINT severity;
 } TDSMESSAGE;
 
 typedef struct tds_upd_col
@@ -1313,7 +1314,7 @@ struct tds_socket
 	/** indicate we are waiting a cancel reply so discard tokens till acknowledge */
 	volatile unsigned char in_cancel;
 	/** rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
-	int rows_affected;
+	TDS_INT8 rows_affected;
 	/* timeout stuff from Jeff */
 	TDS_INT query_timeout;
 	TDSENV env;
@@ -1333,6 +1334,7 @@ struct tds_socket
 
 	int spid;
 	TDS_UCHAR collation[5];
+	TDS_UCHAR tds9_transaction[8];
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	int internal_sp_called;
 
@@ -1507,6 +1509,7 @@ void tds_unget_byte(TDSSOCKET * tds);
 unsigned char tds_peek(TDSSOCKET * tds);
 TDS_SMALLINT tds_get_smallint(TDSSOCKET * tds);
 TDS_INT tds_get_int(TDSSOCKET * tds);
+TDS_INT8 tds_get_int8(TDSSOCKET * tds);
 int tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size);
 int tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
 void *tds_get_n(TDSSOCKET * tds, /*@out@*/ /*@null@*/ void *dest, int n);
@@ -1562,6 +1565,7 @@ typedef struct tds_answer
 	unsigned char nt_resp[24];
 } TDSANSWER;
 void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT *flags, TDSANSWER * answer);
+int tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet);
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
 #define IS_TDS46(x) (x->major_version==4 && x->minor_version==6)

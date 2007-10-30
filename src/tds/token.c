@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.339 2007-10-30 10:34:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.340 2007-10-30 15:39:08 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -501,7 +501,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 	TDSPARAMINFO *pinfo = NULL;
 	TDSCOLUMN   *curcol;
 	int rc;
-	int saved_rows_affected = tds->rows_affected;
+	TDS_INT8 saved_rows_affected = tds->rows_affected;
 	TDS_INT ret_status;
 	int cancel_seen = 0;
 	unsigned return_flag = 0;
@@ -2209,6 +2209,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 {
 	int more_results, was_cancelled, error, done_count_valid;
 	int tmp, state;
+	TDS_INT8 rows_affected;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -2252,13 +2253,12 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	 * have no result set.
 	 */
 
-	if (done_count_valid) {
-		tds->rows_affected = tds_get_int(tds);
-		tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %d\n", tds->rows_affected);
-	} else {
-		tmp = tds_get_int(tds);	/* throw it away */
+	rows_affected = IS_TDS90(tds) ? tds_get_int8(tds) : tds_get_int(tds);
+	tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %" TDS_I64_FORMAT "\n", rows_affected);
+	if (done_count_valid)
+		tds->rows_affected = rows_affected;
+	else
 		tds->rows_affected = TDS_NO_COUNT;
-	}
 
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
@@ -2315,6 +2315,30 @@ tds_process_env_chg(TDSSOCKET * tds)
 			tds7_srv_charset_changed(tds, tds->collation[4], lcid);
 		}
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->collation now", tds->collation, 5);
+		/* discard old one */
+		tds_get_n(tds, NULL, tds_get_byte(tds));
+		return TDS_SUCCEED;
+	}
+
+	if (type == TDS_ENV_BEGINTRANS) {
+		size = tds_get_byte(tds);
+		tds_get_n(tds, tds->tds9_transaction, 8);
+		tds_get_n(tds, NULL, tds_get_byte(tds));
+		return TDS_SUCCEED;
+	}
+
+	if (type == TDS_ENV_COMMITTRANS || type == TDS_ENV_ROLLBACKTRANS) {
+		memset(tds->tds9_transaction, 0, 8);
+		tds_get_n(tds, NULL, tds_get_byte(tds));
+		tds_get_n(tds, NULL, tds_get_byte(tds));
+		return TDS_SUCCEED;
+	}
+
+	/* discard byte values, not still supported */
+	/* TODO support them */
+	if (IS_TDS8_PLUS(tds) && type > TDS_ENV_PACKSIZE) {
+		/* discard new one */
+		tds_get_n(tds, NULL, tds_get_byte(tds));
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCEED;

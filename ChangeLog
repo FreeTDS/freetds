@@ -1,3 +1,8 @@
+Tue Oct 30 16:36:29 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/login.c src/ctlib/ct.c src/tds/read.c:
+	* src/tds/token.c:
+	- finish merging tds9 code as developing
+
 Tue Oct 30 16:02:04 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c:
 	- make odbc row_count 64bit

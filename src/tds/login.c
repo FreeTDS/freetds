@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.163 2007-10-16 15:12:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.164 2007-10-30 15:39:08 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -758,6 +758,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	static const unsigned char tds7Version[] = { 0x00, 0x00, 0x00, 0x70 };
 	static const unsigned char tds8Version[] = { 0x01, 0x00, 0x00, 0x71 };
+	static const unsigned char tds9Version[] = { 0x02, 0x00, 0x09, 0x72 };
 
 	static const unsigned char connection_id[] = { 0x00, 0x00, 0x00, 0x00 };
 	unsigned char option_flag1 = 0x00;
@@ -811,7 +812,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		domain_login = 1;
 	}
 
-	packet_size = 86 + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
+	current_pos = IS_TDS90(tds) ? 86 + 8 : 86;	/* ? */
+
+	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
 	if (domain_login) {
 		auth_len = 32 + host_name_len + domain_len;
 		packet_size += auth_len;
@@ -819,7 +822,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		packet_size += (user_name_len + password_len) * 2;
 
 	tds_put_int(tds, packet_size);
-	if (IS_TDS8_PLUS(tds)) {
+	if (IS_TDS90(tds)) {
+		tds_put_n(tds, tds9Version, 4);
+	} else if (IS_TDS8_PLUS(tds)) {
 		tds_put_n(tds, tds8Version, 4);
 	} else {
 		tds_put_n(tds, tds7Version, 4);
@@ -854,7 +859,6 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_n(tds, time_zone, 4);
 	tds_put_n(tds, collation, 4);
 
-	current_pos = 86;	/* ? */
 	/* host name */
 	tds_put_smallint(tds, current_pos);
 	tds_put_smallint(tds, host_name_len);
@@ -904,15 +908,19 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* authentication stuff */
 	tds_put_smallint(tds, current_pos);
-	if (domain_login) {
-		tds_put_smallint(tds, auth_len);	/* this matches numbers at end of packet */
-		current_pos += auth_len;
-	} else
-		tds_put_smallint(tds, 0);
+	tds_put_smallint(tds, auth_len);	/* this matches numbers at end of packet */
+	current_pos += auth_len;
 
 	/* unknown */
 	tds_put_smallint(tds, current_pos);
 	tds_put_smallint(tds, 0);
+
+	if (IS_TDS90(tds)) {
+		tds_put_smallint(tds, current_pos);
+		tds_put_smallint(tds, 0);
+
+		tds_put_int(tds, 0);
+	}
 
 	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
 	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
@@ -1005,6 +1013,8 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
 	int instance_name_len = strlen(instance_name) + 1;
 	TDS_CHAR crypt_flag;
+	int start_pos = 21;
+
 #define START_POS 21
 #define UI16BE(n) ((n) >> 8), ((n) & 0xffu)
 #define SET_UI16BE(i,n) do { buf[i] = ((n) >> 8); buf[i+1] = ((n) & 0xffu); } while(0)
@@ -1017,29 +1027,49 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		2, UI16BE(START_POS + 6 + 1), UI16BE(0),
 		/* process id */
 		3, UI16BE(0), UI16BE(4),
+		/* ???? unknown ??? */
+		4, UI16BE(0), UI16BE(1),
 		/* end */
-		0xff,
-		/* netlib value */
-		8, 0, 1, 0x55, 0, 0,
-		/* encryption, normal */
-		0
+		0xff
 	};
+	static const TDS_UCHAR netlib8[] = { 8, 0, 1, 0x55, 0, 0 };
+	static const TDS_UCHAR netlib9[] = { 9, 0, 0,    0, 0, 0 };
 
 	TDS_UCHAR *p;
 
 	SET_UI16BE(13, instance_name_len);
-	SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
-	if (connection->encryption_level)
-		buf[sizeof(buf)-1] = 1;
+	if (!IS_TDS90(tds)) {
+		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
+		buf[20] = 0xff;
+	} else {
+		start_pos += 5;
+#undef  START_POS
+#define START_POS 26
+		SET_UI16BE(1, START_POS);
+		SET_UI16BE(6, START_POS + 6);
+		SET_UI16BE(11, START_POS + 6 + 1);
+		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
+		SET_UI16BE(21, START_POS + 6 + 1 + instance_name_len + 4);
+	}
 
-	assert(sizeof(buf) == START_POS + 7);
+	assert(start_pos >= 21 && start_pos <= sizeof(buf));
+	assert(buf[start_pos-1] == 0xff);
 
 	/* do prelogin */
 	tds->out_flag = TDS8_PRELOGIN;
 
-	tds_put_n(tds, buf, sizeof(buf));
+	tds_put_n(tds, buf, start_pos);
+	/* netlib version */
+	tds_put_n(tds, IS_TDS90(tds) ? netlib9 : netlib8, 6);
+	/* encryption */
+	tds_put_byte(tds, connection->encryption_level ? 1 : 0);
+	/* instance */
 	tds_put_n(tds, instance_name, instance_name_len);
+	/* pid */
 	tds_put_int(tds, getpid());
+	/* ???? unknown ??? */
+	if (IS_TDS90(tds))
+		tds_put_byte(tds, 0);
 	if (tds_flush_packet(tds) == TDS_FAIL)
 		return TDS_FAIL;
 
@@ -1047,9 +1077,10 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	len = tds_read_packet(tds);
 	if (len <= 0 || tds->in_flag != 4)
 		return TDS_FAIL;
+	len = tds->in_len - tds->in_pos;
 
 	/* the only thing we care is flag */
-	p = tds->in_buf;
+	p = tds->in_buf + tds->in_pos;
 	/* default 2, no certificate, no encryption */
 	crypt_flag = 2;
 	for (i = 0;; i += 5) {
