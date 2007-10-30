@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.1 2007-10-30 09:31:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.2 2007-10-30 15:51:07 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -52,6 +52,8 @@ TDS_RCSID(var, "$Id: gssapi.c,v 1.1 2007-10-30 09:31:12 freddy77 Exp $");
  * \addtogroup auth
  * @{ 
  */
+
+#ifdef ENABLE_DEVELOPING
 
 static gss_ctx_id_t context;
 static gss_OID oid = GSS_C_NULL_OID;
@@ -178,6 +180,8 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 
 	return -1;
 }
+
+#endif
 
 /** @} */
 

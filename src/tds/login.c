@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.164 2007-10-30 15:39:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.165 2007-10-30 15:51:07 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -794,6 +794,10 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int database_len = tds_dstr_len(&connection->database);
 	int domain_len = strlen(domain);
 	int auth_len = 0;
+#ifdef ENABLE_DEVELOPING
+	int kerberos = 1;
+	TDS_UCHAR *gss_packet = NULL;
+#endif
 
 	tds->out_flag = TDS7_LOGIN;
 
@@ -816,7 +820,16 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
 	if (domain_login) {
+#ifdef ENABLE_DEVELOPING
+		if (kerberos)
+			auth_len = tds_get_gss_packet(tds, &gss_packet);
+		if (auth_len <= 0) {
+			kerberos = 0;
+			auth_len = 32 + host_name_len + domain_len;
+		}
+#else
 		auth_len = 32 + host_name_len + domain_len;
+#endif
 		packet_size += auth_len;
 	} else
 		packet_size += (user_name_len + password_len) * 2;
@@ -947,7 +960,11 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_string(tds, tds_dstr_cstr(&connection->language), language_len);
 	tds_put_string(tds, tds_dstr_cstr(&connection->database), database_len);
 
+#ifdef ENABLE_DEVELOPING
+	if (domain_login && !kerberos) {
+#else
 	if (domain_login) {
+#endif
 		/* from here to the end of the packet is the NTLMSSP authentication */
 		tds_put_n(tds, ntlm_id, 8);
 		/* sequence 1 client -> server */
@@ -974,6 +991,11 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		/* hostname and domain */
 		tds_put_n(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
 		tds_put_n(tds, domain, domain_len);
+#ifdef ENABLE_DEVELOPING
+	} else if (domain_login && kerberos) {
+		tds_put_n(tds, gss_packet, auth_len);
+		free(gss_packet);
+#endif
 	}
 
 	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7.0 login packet\n");

@@ -1,3 +1,7 @@
+Tue Oct 30 16:45:41 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/Makefile.am src/tds/gssapi.c src/tds/login.c:
+	- include developing code for GSSAPI
+
 Tue Oct 30 16:36:29 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/login.c src/ctlib/ct.c src/tds/read.c:
 	* src/tds/token.c:
