@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.157 2007-10-16 15:12:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.158 2007-10-30 10:34:21 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2551,7 +2551,10 @@ _bcp_send_colmetadata(DBPROCESS * dbproc)
             continue;
         }
 
-		tds_put_smallint(tds, bcpcol->column_usertype);
+		if (IS_TDS90(tds))
+			tds_put_int(tds, bcpcol->column_usertype);
+		else
+			tds_put_smallint(tds, bcpcol->column_usertype);
 		tds_put_smallint(tds, bcpcol->column_flags);
 		tds_put_byte(tds, bcpcol->on_server.column_type);
 

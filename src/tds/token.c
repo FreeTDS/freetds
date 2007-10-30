@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.338 2007-10-18 11:52:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.339 2007-10-30 10:34:23 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1443,7 +1443,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_COLUMN_EXTRA(curcol);
 
 	/*  User defined data type of the column */
-	curcol->column_usertype = tds_get_smallint(tds);
+	curcol->column_usertype = IS_TDS90(tds) ? tds_get_int(tds) : tds_get_smallint(tds);
 
 	curcol->column_flags = tds_get_smallint(tds);	/*  Flags */
 
@@ -1496,6 +1496,10 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	adjust_character_column_size(tds, curcol);
 
 	if (is_blob_type(curcol->column_type)) {
+		/* discard this additional byte */
+		/* TODO discover its meaning */
+		if (IS_TDS90(tds))
+			tds_get_byte(tds);
 		curcol->table_namelen =
 			tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
 	}
@@ -1607,6 +1611,9 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 		curcol->column_nullable = (curcol->column_flags & 0x20) > 1;
 		curcol->column_identity = (curcol->column_flags & 0x40) > 1;
 	}
+	/* TODO what's these bytes ?? */
+	if (IS_TDS90(tds))
+		tds_get_n(tds, NULL, 2);
 
 	curcol->column_usertype = tds_get_int(tds);
 	tds_set_column_type(tds, curcol, tds_get_byte(tds));
@@ -2455,7 +2462,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	rc += tds_alloc_get_string(tds, &msg.proc_name, tds_get_byte(tds));
 
 	/* line number in the sql statement where the problem occured */
-	msg.line_number = tds_get_smallint(tds);
+	msg.line_number = IS_TDS90(tds) ? tds_get_int(tds) : tds_get_smallint(tds);
 
 	/*
 	 * If the server doesen't provide an sqlstate, map one via server native errors

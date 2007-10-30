@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.22 2007-09-24 10:02:14 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.23 2007-10-30 10:34:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -226,7 +226,10 @@ tds_send_done(TDSSOCKET * tds, int token, TDS_SMALLINT flags, TDS_INT numrows)
 	tds_put_byte(tds, token);
 	tds_put_smallint(tds, flags);
 	tds_put_smallint(tds, 2); /* are these two bytes the transaction status? */
-	tds_put_int(tds, numrows);
+	if (IS_TDS90(tds))
+		tds_put_int8(tds, numrows);
+	else
+		tds_put_int(tds, numrows);
 }
 
 void
@@ -410,6 +413,7 @@ void tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 
 	case 7:
 	case 8:
+	case 9:
 		/*
 		 * TDS7+ uses a TDS7_RESULT_TOKEN to send all column
 		 * information.

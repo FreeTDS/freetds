@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.274 2007-08-24 09:51:37 freddy77 Exp $ */
+/* $Id: tds.h,v 1.275 2007-10-30 10:34:19 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -389,6 +389,9 @@ enum {
 #define TDS_ENV_PACKSIZE  	4
 #define TDS_ENV_LCID        	5
 #define TDS_ENV_SQLCOLLATION	7
+#define TDS_ENV_BEGINTRANS	8
+#define TDS_ENV_COMMITTRANS	9
+#define TDS_ENV_ROLLBACKTRANS	10
 
 /* string types */
 #define TDS_NULLTERM -9

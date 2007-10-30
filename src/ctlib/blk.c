@@ -44,7 +44,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.39 2007-10-16 15:12:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.40 2007-10-30 10:34:21 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -1067,7 +1067,10 @@ _blk_send_colmetadata(CS_BLKDESC * blkdesc)
 			continue;
 		}
 
-		tds_put_smallint(tds, bcpcol->column_usertype);
+		if (IS_TDS90(tds))
+			tds_put_int(tds, bcpcol->column_usertype);
+		else
+			tds_put_smallint(tds, bcpcol->column_usertype);
 		tds_put_smallint(tds, bcpcol->column_flags);
 		tds_put_byte(tds, bcpcol->on_server.column_type);
 

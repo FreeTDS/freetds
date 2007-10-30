@@ -1,3 +1,8 @@
+Tue Oct 30 11:31:30 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/blk.c src/dblib/bcp.c:
+	* src/server/server.c src/tds/token.c:
+	- merge partially tds9 patch
+
 Tue Oct 30 11:15:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c:
 	- avoid wrong assert if error and tdserror called
