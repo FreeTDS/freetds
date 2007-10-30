@@ -1,3 +1,7 @@
+Tue Oct 30 13:14:00 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/config.c src/tds/query.c:
+	- more merge for tds9
+
 Tue Oct 30 11:31:30 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/blk.c src/dblib/bcp.c:
 	* src/server/server.c src/tds/token.c:

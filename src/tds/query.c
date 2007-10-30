@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.213 2007-10-30 10:20:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.214 2007-10-30 12:18:44 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -234,6 +234,37 @@ tds5_fix_dot_query(const char *query, int *query_len, TDSPARAMINFO * params)
 	return out;
 }
 
+#ifdef ENABLE_DEVELOPING
+static const TDS_UCHAR tds9_query_start[] = {
+	/* total length */
+	0x16, 0, 0, 0,
+	/* length */
+	0x12, 0, 0, 0,
+	/* type */
+	0x02, 0,
+	/* transaction */
+	0, 0, 0, 0, 0, 0, 0, 0,
+	/* request count */
+	1, 0, 0, 0
+};
+
+#define START_QUERY \
+do { \
+	if (IS_TDS90(tds)) \
+		tds_start_query(tds); \
+} while(0)
+
+static void
+tds_start_query(TDSSOCKET *tds)
+{
+	tds_put_n(tds, tds9_query_start, 10);
+	tds_put_n(tds, tds->tds9_transaction, 8);
+	tds_put_n(tds, tds9_query_start + 10 + 8, 4);
+}
+#else
+#define START_QUERY do { ; } while(0)
+#endif
+
 /**
  * tds_submit_query_params() sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
@@ -286,6 +317,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		free(new_query);
 	} else if (!IS_TDS7_PLUS(tds) || !params || !params->num_cols) {
 		tds->out_flag = TDS_QUERY;
+		START_QUERY;
 		tds_put_string(tds, query, query_len);
 	} else {
 		TDSCOLUMN *param;
@@ -322,6 +354,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		}
  
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 		/* procedure name */
 		if (IS_TDS8_PLUS(tds)) {
 			tds_put_smallint(tds, -1);
@@ -1027,6 +1060,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		}
 
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 		/* procedure name */
 		if (IS_TDS8_PLUS(tds)) {
 			tds_put_smallint(tds, -1);
@@ -1140,6 +1174,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		}
 
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 		/* procedure name */
 		if (IS_TDS8_PLUS(tds)) {
 			tds_put_smallint(tds, -1);
@@ -1606,6 +1641,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 		/* RPC on sp_execute */
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 
 		tds7_send_execute(tds, dyn);
 
@@ -1736,6 +1772,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (IS_TDS7_PLUS(tds)) {
 		/* RPC on sp_execute */
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 		/* procedure name */
 		if (IS_TDS8_PLUS(tds)) {
 			/* save some byte for mssql2k */
@@ -1761,6 +1798,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	if (dyn->emulated) {
 		tds->out_flag = TDS_QUERY;
+		START_QUERY;
 		/* just a dummy select to return some data */
 		tds_put_string(tds, "select 1 where 0=1", -1);
 		return tds_query_flush_packet(tds);
@@ -1820,6 +1858,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
 		}
+		START_QUERY;
 		tds_put_smallint(tds, converted_name_len / 2);
 		tds_put_n(tds, converted_name, converted_name_len);
 		tds_convert_string_free(rpc_name, converted_name);
@@ -2097,6 +2136,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		/* RPC call to sp_cursoropen */
 
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 
 		/* procedure identifier by number */
 
@@ -2321,12 +2361,14 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 		};
 
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 
 		/* TODO enum for 2 ... */
 		if (cursor->type == 2 && fetch_type == TDS_CURSOR_FETCH_ABSOLUTE) {
 			/* strangely dynamic cursor do not support absolute so emulate it with first + relative */
 			tds7_put_cursor_fetch(tds, cursor->cursor_id, 1, 0, 0);
-			tds_put_byte(tds, 0x80);
+			/* TODO define constant */
+			tds_put_byte(tds, IS_TDS90(tds) ? 0xff : 0x80);
 			tds7_put_cursor_fetch(tds, cursor->cursor_id, 0x20, i_row, cursor->cursor_rows);
 		} else {
 			/* TODO check fetch_type ?? */
@@ -2375,6 +2417,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 		/* RPC call to sp_cursorclose */
 
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 
 		if (IS_TDS8_PLUS(tds)) {
 			tds_put_smallint(tds, -1);
@@ -2424,6 +2467,7 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 	/* RPC call to sp_cursoroption */
 	tds->out_flag = TDS_RPC;
+	START_QUERY;
 
 	if (IS_TDS8_PLUS(tds)) {
 		tds_put_smallint(tds, -1);
@@ -2499,6 +2543,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 		/* RPC call to sp_cursorclose */
 
 		tds->out_flag = TDS_RPC;
+		START_QUERY;
 
 		if (IS_TDS8_PLUS(tds)) {
 			tds_put_smallint(tds, -1);
@@ -2756,6 +2801,7 @@ tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * par
 	 * entire sql command
 	 */
 	tds->out_flag = TDS_QUERY;
+	START_QUERY;
 	if (!num_placeholders) {
 		tds_put_string(tds, query, -1);
 		return tds_flush_packet(tds);
@@ -2797,6 +2843,7 @@ tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type)
 			tds->out_flag = TDS_RPC;
 		break;
 	}
+	START_QUERY;
 
 	return TDS_SUCCEED;
 }
@@ -2827,8 +2874,10 @@ tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn)
 	assert(multiple->type == TDS_MULTIPLE_EXECUTE);
 
 	if (IS_TDS7_PLUS(tds)) {
-		if (multiple->flags & MUL_STARTED)
-			tds_put_byte(tds, 0x80);
+		if (multiple->flags & MUL_STARTED) {
+			/* TODO define constant */
+			tds_put_byte(tds, IS_TDS90(tds) ? 0xff : 0x80);
+		}
 		multiple->flags |= MUL_STARTED;
 
 		tds7_send_execute(tds, dyn);

@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2006, 2007  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -75,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.129 2007-08-08 09:13:29 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.130 2007-10-30 12:18:43 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -682,6 +683,12 @@ tds_config_verstr(const char *tdsver, TDSCONNECTION * connection)
 		connection->major_version = 8;
 		connection->minor_version = 0;
 		return;
+#ifdef ENABLE_DEVELOPING
+	} else if (!strcmp(tdsver, "90") || !strcmp(tdsver, "9.0")) {
+		connection->major_version = 9;
+		connection->minor_version = 0;
+		return;
+#endif
 	} else if (!strcmp(tdsver, "0.0")) {
 		connection->major_version = 0;
 		connection->minor_version = 0;
