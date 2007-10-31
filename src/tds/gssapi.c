@@ -31,6 +31,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#ifdef ENABLE_DEVELOPING
+
 #include <gssapi/gssapi_generic.h>
 #include <gssapi/gssapi_krb5.h>
 
@@ -40,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.2 2007-10-30 15:51:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.3 2007-10-31 14:34:46 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -52,8 +54,6 @@ TDS_RCSID(var, "$Id: gssapi.c,v 1.2 2007-10-30 15:51:07 freddy77 Exp $");
  * \addtogroup auth
  * @{ 
  */
-
-#ifdef ENABLE_DEVELOPING
 
 static gss_ctx_id_t context;
 static gss_OID oid = GSS_C_NULL_OID;
