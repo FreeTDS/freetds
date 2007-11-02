@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.3 2007-10-31 14:34:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.4 2007-11-02 10:35:33 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -81,6 +81,7 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	 * a bit more verbose
 	 * dinamically load library ??
 	 * do not use so much globals
+	 * server name is hardcoded
 	 */
 	gss_ctx_id_t *gss_context = &context;
 	gss_buffer_desc send_tok, recv_tok, *token_ptr;
