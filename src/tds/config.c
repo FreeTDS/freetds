@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.130 2007-10-30 12:18:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.131 2007-11-03 13:36:40 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -504,6 +504,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		char tmp[256];
 
 		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s.\n", value);
+		tds_dstr_copy(&connection->server_host_name, value);
 		tds_lookup_host(value, tmp);
 		tds_dstr_copy(&connection->ip_addr, tmp);
 		tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tds_dstr_cstr(&connection->ip_addr));
@@ -649,6 +650,7 @@ tds_config_env_tdshost(TDSCONNECTION * connection)
 	char tmp[256];
 
 	if ((tdshost = getenv("TDSHOST"))) {
+		tds_dstr_copy(&connection->server_host_name, tdshost);
 		tds_lookup_host(tdshost, tmp);
 		tds_dstr_copy(&connection->ip_addr, tmp);
 		tdsdump_log(TDS_DBG_INFO1, "Setting 'ip_addr' to %s (%s) from $TDSHOST.\n", tmp, tdshost);
@@ -909,6 +911,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir, const char *f
 	 * Look up the host and service
 	 */
 	if (server_found) {
+		tds_dstr_copy(&connection->server_host_name, tmp_ip);
 		tds_lookup_host(tmp_ip, line);
 		tdsdump_log(TDS_DBG_INFO1, "Resolved IP as '%s'.\n", line);
 		tds_dstr_copy(&connection->ip_addr, line);

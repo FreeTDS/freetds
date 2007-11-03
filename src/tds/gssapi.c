@@ -37,12 +37,14 @@
 #include <gssapi/gssapi_krb5.h>
 
 #include "tds.h"
+#include "tdsstring.h"
+#include "replacements.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.4 2007-11-02 10:35:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.5 2007-11-03 13:36:40 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -54,11 +56,6 @@ TDS_RCSID(var, "$Id: gssapi.c,v 1.4 2007-11-02 10:35:33 freddy77 Exp $");
  * \addtogroup auth
  * @{ 
  */
-
-static gss_ctx_id_t context;
-static gss_OID oid = GSS_C_NULL_OID;
-/* GSS_C_DELEG_FLAG GSS_C_MUTUAL_FLAG */
-static OM_uint32 gss_flags = GSS_C_REPLAY_FLAG;
 
 /**
  * Build a GSSAPI packet to send to server
@@ -77,41 +74,34 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	 * - name type is "Service and Instance (2)" and not "Principal (1)"
 	 * remove memory leaks !!!
 	 * check for errors in many functions
-	 * asprintf portability
 	 * a bit more verbose
 	 * dinamically load library ??
-	 * do not use so much globals
-	 * server name is hardcoded
 	 */
+	gss_ctx_id_t context;
 	gss_ctx_id_t *gss_context = &context;
-	gss_buffer_desc send_tok, recv_tok, *token_ptr;
+	gss_buffer_desc send_tok, *token_ptr;
+/*	gss_buffer_desc recv_tok; */
 	gss_name_t target_name;
-	OM_uint32 maj_stat, min_stat, init_sec_min_stat;
-/*	int token_flags; */
+	OM_uint32 maj_stat, min_stat;
 	char *sname = NULL;
-	krb5_context ctx = NULL;
-	krb5_principal principal = NULL;
-	krb5_enctype enc_types[] = {
-#ifdef ENCTYPE_ARCFOUR_HMAC
-		ENCTYPE_ARCFOUR_HMAC,
-#endif
-		ENCTYPE_DES_CBC_MD5,
-		ENCTYPE_NULL};
-	gss_OID_desc nt_principal = { 10, "\052\206\110\206\367\022\001\002\002\002" };
+	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
+	static const gss_OID_desc nt_principal = { 10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
 	OM_uint32 ret_flags;
+	int ret_len;
 
-	asprintf(&sname, "MSSQLSvc/server.domain:1433@OMNITEL.IT");
-	krb5_init_context(&ctx);
-/*	krb5_set_default_tgs_ktypes(ctx, enc_types); */
-	krb5_parse_name(ctx, sname, &principal);
+	if (!tds->connection)
+		return -1;
 
+	if (asprintf(&sname, "MSSQLSvc/%s:%d", tds_dstr_cstr(&tds->connection->server_host_name), tds->connection->port) < 0)
+		return -1;
+	tdsdump_log(TDS_DBG_NETWORK, "kerberos name %s\n", sname);
 
 	/*
 	 * Import the name into target_name.  Use send_tok to save
 	 * local variable space.
 	 */
-	send_tok.value = &principal;
-	send_tok.length = sizeof(principal);
+	send_tok.value = sname;
+	send_tok.length = strlen(sname);
 	maj_stat = gss_import_name(&min_stat, &send_tok, &nt_principal, &target_name);
 	if (maj_stat != GSS_S_COMPLETE)
 		return -1;
@@ -136,12 +126,16 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	*gss_context = GSS_C_NO_CONTEXT;
 
 	do {
-		maj_stat = gss_init_sec_context(&init_sec_min_stat, GSS_C_NO_CREDENTIAL, gss_context, target_name, oid, gss_flags, 0, NULL,	/* no channel bindings */
+		maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, gss_context, target_name, 
+						/* GSS_C_DELEG_FLAG GSS_C_MUTUAL_FLAG ?? */
+						GSS_C_NULL_OID, GSS_C_REPLAY_FLAG, 0, NULL,	/* no channel bindings */
 						token_ptr, NULL,	/* ignore mech type */
 						&send_tok, &ret_flags, NULL);	/* ignore time_rec */
 
+/*
 		if (token_ptr != GSS_C_NO_BUFFER)
 			free(recv_tok.value);
+*/
 
 /*
 		if (send_tok.length != 0) {
@@ -153,12 +147,8 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 */
 /*		(void) gss_release_buffer(&min_stat, &send_tok); */
 
-		if (maj_stat != GSS_S_COMPLETE && maj_stat != GSS_S_CONTINUE_NEEDED) {
-			(void) gss_release_name(&min_stat, &target_name);
-			if (*gss_context != GSS_C_NO_CONTEXT)
-				gss_delete_sec_context(&min_stat, gss_context, GSS_C_NO_BUFFER);
-			return -1;
-		}
+		if (maj_stat != GSS_S_COMPLETE && maj_stat != GSS_S_CONTINUE_NEEDED)
+			break;
 
 /*
 		if (maj_stat == GSS_S_CONTINUE_NEEDED) {
@@ -171,13 +161,24 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 */
 
 		(void) gss_release_name(&min_stat, &target_name);
+		free(sname);
+		if (*gss_context != GSS_C_NO_CONTEXT)
+			gss_delete_sec_context(&min_stat, gss_context, GSS_C_NO_BUFFER);
 
-		*gss_packet = send_tok.value;
-		return send_tok.length;
+		*gss_packet = (TDS_UCHAR *) malloc(send_tok.length);
+		ret_len = send_tok.length;
+		memcpy(*gss_packet, send_tok.value, send_tok.length);
+		gss_release_buffer(&min_stat, &send_tok);
+//		*gss_packet = send_tok.value;
+//		return send_tok.length;
+		return ret_len;
 
 	} while (maj_stat == GSS_S_CONTINUE_NEEDED);
 
 	(void) gss_release_name(&min_stat, &target_name);
+	free(sname);
+	if (*gss_context != GSS_C_NO_CONTEXT)
+		gss_delete_sec_context(&min_stat, gss_context, GSS_C_NO_BUFFER);
 
 	return -1;
 }

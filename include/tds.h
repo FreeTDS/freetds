@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.276 2007-10-30 15:39:08 freddy77 Exp $ */
+/* $Id: tds.h,v 1.277 2007-11-03 13:36:40 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -856,6 +856,7 @@ typedef struct tds_connection
 	DSTR server_charset;	/**< charset of server */
 	TDS_INT connect_timeout;
 	DSTR client_host_name;
+	DSTR server_host_name;
 	DSTR app_name;
 	DSTR user_name;	    /**< account for login */
 	DSTR password;	    /**< password of account login */
