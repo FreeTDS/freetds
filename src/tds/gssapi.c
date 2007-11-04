@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.5 2007-11-03 13:36:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.6 2007-11-04 08:16:25 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -77,8 +77,7 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	 * a bit more verbose
 	 * dinamically load library ??
 	 */
-	gss_ctx_id_t context;
-	gss_ctx_id_t *gss_context = &context;
+	gss_ctx_id_t gss_context;
 	gss_buffer_desc send_tok, *token_ptr;
 /*	gss_buffer_desc recv_tok; */
 	gss_name_t target_name;
@@ -123,10 +122,10 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	 */
 
 	token_ptr = GSS_C_NO_BUFFER;
-	*gss_context = GSS_C_NO_CONTEXT;
+	gss_context = GSS_C_NO_CONTEXT;
 
 	do {
-		maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, gss_context, target_name, 
+		maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &gss_context, target_name, 
 						/* GSS_C_DELEG_FLAG GSS_C_MUTUAL_FLAG ?? */
 						GSS_C_NULL_OID, GSS_C_REPLAY_FLAG, 0, NULL,	/* no channel bindings */
 						token_ptr, NULL,	/* ignore mech type */
@@ -162,8 +161,8 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 
 		(void) gss_release_name(&min_stat, &target_name);
 		free(sname);
-		if (*gss_context != GSS_C_NO_CONTEXT)
-			gss_delete_sec_context(&min_stat, gss_context, GSS_C_NO_BUFFER);
+		if (gss_context != GSS_C_NO_CONTEXT)
+			gss_delete_sec_context(&min_stat, &gss_context, GSS_C_NO_BUFFER);
 
 		*gss_packet = (TDS_UCHAR *) malloc(send_tok.length);
 		ret_len = send_tok.length;
@@ -177,8 +176,8 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 
 	(void) gss_release_name(&min_stat, &target_name);
 	free(sname);
-	if (*gss_context != GSS_C_NO_CONTEXT)
-		gss_delete_sec_context(&min_stat, gss_context, GSS_C_NO_BUFFER);
+	if (gss_context != GSS_C_NO_CONTEXT)
+		gss_delete_sec_context(&min_stat, &gss_context, GSS_C_NO_BUFFER);
 
 	return -1;
 }

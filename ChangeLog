@@ -1,3 +1,6 @@
+Sun Nov 04 09:16:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/gssapi.c: small cleanup
+
 Sat Nov 03 14:31:40 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/config.c src/tds/mem.c:
 	- add server_host_name to TDSCONNECTION
