@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.457 2007-10-30 15:08:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.458 2007-11-05 18:53:38 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5013,6 +5013,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		break;
 #if (ODBCVER >= 0x0300)
 	case SQL_DESCRIBE_PARAMETER:
+		/* TODO */
 		p = "N";
 		break;
 #endif /* ODBCVER >= 0x0300 */
@@ -5067,6 +5068,12 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 	case SQL_DYNAMIC_CURSOR_ATTRIBUTES2:
 		/* TODO cursors */
 		/* Cursors not supported yet */
+		/*
+		 * Should be SQL_CA2_LOCK_CONCURRENCY SQL_CA2_MAX_ROWS_CATALOG SQL_CA2_MAX_ROWS_DELETE 
+ 		 * SQL_CA2_MAX_ROWS_INSERT SQL_CA2_MAX_ROWS_SELECT SQL_CA2_MAX_ROWS_UPDATE SQL_CA2_OPT_ROWVER_CONCURRENCY
+ 		 * SQL_CA2_OPT_VALUES_CONCURRENCY SQL_CA2_READ_ONLY_CONCURRENCY SQL_CA2_SENSITIVITY_ADDITIONS
+ 		 * SQL_CA2_SENSITIVITY_UPDATES SQL_CA2_SIMULATE_UNIQUE
+		 */
 		UIVAL = 0;
 		break;
 #endif /* ODBCVER >= 0x0300 */
@@ -5094,7 +5101,11 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 	case SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2:
 		/* TODO cursors */
 		/* Cursors not supported yet */
-		/* TODO NEXT supported ?? */
+		/*
+		 * Should be SQL_CA2_LOCK_CONCURRENCY SQL_CA2_MAX_ROWS_CATALOG SQL_CA2_MAX_ROWS_DELETE 
+ 		 * SQL_CA2_MAX_ROWS_INSERT SQL_CA2_MAX_ROWS_SELECT SQL_CA2_MAX_ROWS_UPDATE SQL_CA2_OPT_ROWVER_CONCURRENCY
+ 		 * SQL_CA2_OPT_VALUES_CONCURRENCY SQL_CA2_READ_ONLY_CONCURRENCY
+		 */
 		UIVAL = 0;
 		break;
 #endif /* ODBCVER >= 0x0300 */
@@ -6429,6 +6440,7 @@ odbc_log_unimplemented_type(const char function_name[], int fType)
 		name = "SQL_USER_NAME";
 		category = "Data Source Information";
 		break;
+	/* TODO extension SQL_INFO_SS_NETLIB_NAME ?? */
 	default:
 		name = "unknown";
 		category = "unknown";
