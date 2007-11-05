@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.165 2007-10-30 15:51:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.166 2007-11-05 08:32:36 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -834,6 +834,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	} else
 		packet_size += (user_name_len + password_len) * 2;
 
+	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7.0 login packet\n");
+	tdsdump_off();
+
 	tds_put_int(tds, packet_size);
 	if (IS_TDS90(tds)) {
 		tds_put_n(tds, tds9Version, 4);
@@ -998,8 +1001,6 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 #endif
 	}
 
-	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7.0 login packet\n");
-	tdsdump_off();
 	rc = tds_flush_packet(tds);
 	tdsdump_on();
 

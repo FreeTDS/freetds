@@ -1,3 +1,6 @@
+Mon Nov 05 09:29:54 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/login.c: fix log avoidance for long logins
+
 Sun Nov 04 09:16:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/gssapi.c: small cleanup
 
