@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.109 2007-10-16 15:12:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.110 2007-11-05 10:07:38 freddy77 Exp $");
 
 enum
 {
@@ -591,6 +591,7 @@ main(int argc, char **argv)
 	int opt_flags = 0;
 #if HAVE_FORK
 	pid_t timer_pid = 0;
+	int pipes[2];
 #endif
 
 	istty = isatty(0);
@@ -632,30 +633,44 @@ main(int argc, char **argv)
 	 */
 #if HAVE_FORK
 	if (connection && !QUIET) {
+		/*
+		 * Here we use a pipe so if even main program core the counter stops
+		 * Note that we do not read or write nothing from this pipe
+		 */
+		if (pipe(pipes) < 0) {
+			perror("tsql: pipe");
+			return 1;
+		}
+
 		timer_pid = fork();
 		if (-1 == timer_pid) {
 			perror("tsql: warning"); /* make a note */
 		}
 		if (0 == timer_pid) {
 			int i=0;
+			close(pipes[1]);
 			while(1) {
-				if (sleep(1) == 0) {
-					fprintf(stderr, "\r%2d", ++i);
-					continue;
-				}
-				printf("sleep was interrupted\n");
+				fd_set set;
+				struct timeval tv;
+
+				FD_ZERO(&set);
+				FD_SET(pipes[0], &set);
+
+				tv.tv_sec = 1;
+				tv.tv_usec = 0;
+				if (select(pipes[0] + 1, &set, NULL, &set, &tv) != 0)
+					return 0;
+
+				fprintf(stderr, "\r%2d", ++i);
 			}
 		}
+		close(pipes[0]);
 	}
 #endif
 	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
 		tds_free_socket(tds);
 		tds_free_connection(connection);
 		fprintf(stderr, "There was a problem connecting to the server\n");
-#if HAVE_FORK
-		if (timer_pid > 0 )
-			kill(timer_pid, SIGTERM);
-#endif
 		exit(1);
 	}
 	tds_free_connection(connection);
@@ -671,14 +686,11 @@ main(int argc, char **argv)
 
 #if HAVE_FORK
 	if (timer_pid > 0 ) {
-		if (kill(timer_pid, SIGTERM) == -1 ) {
+		close(pipes[1]);
+		if (wait(0) == -1 ) {
 			perror("tsql: warning");
 		} else {
-			if (wait(0) == -1 ) {
-				perror("tsql: warning");
-			} else {
-				fprintf(stderr, "\r");
-			}
+			fprintf(stderr, "\r");
 		}
 	}
 #endif
