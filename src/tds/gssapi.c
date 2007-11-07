@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.6 2007-11-04 08:16:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.7 2007-11-07 16:29:04 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -76,6 +76,7 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	 * check for errors in many functions
 	 * a bit more verbose
 	 * dinamically load library ??
+	 * add domain name if not present in server_host_name if no domain specified
 	 */
 	gss_ctx_id_t gss_context;
 	gss_buffer_desc send_tok, *token_ptr;
@@ -104,6 +105,9 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	maj_stat = gss_import_name(&min_stat, &send_tok, &nt_principal, &target_name);
 	if (maj_stat != GSS_S_COMPLETE)
 		return -1;
+
+	send_tok.value = NULL;
+	send_tok.length = 0;
 
 	/*
 	 * Perform the context-establishement loop.
