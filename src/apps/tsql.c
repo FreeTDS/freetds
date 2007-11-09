@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.110 2007-11-05 10:07:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.111 2007-11-09 10:30:02 freddy77 Exp $");
 
 enum
 {
@@ -668,8 +668,10 @@ main(int argc, char **argv)
 	}
 #endif
 	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
-		tds_free_socket(tds);
 		tds_free_connection(connection);
+		tds_free_socket(tds);
+		tds_free_login(login);
+		tds_free_context(context);
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);
 	}
@@ -765,6 +767,7 @@ main(int argc, char **argv)
 	}
 
 	/* close up shop */
+	free(mybuf);
 	tds_free_socket(tds);
 	tds_free_login(login);
 	tds_free_context(context);
