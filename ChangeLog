@@ -1,3 +1,8 @@
+Mon Nov 12 13:38:04 EST 2007	JK Lowden <jklowden@freetds.org>
+	* include/dblib.h src/dblib/dbutil.c
+	* src/dblib/dblib.c src/dblib/rpc.c
+	- added DBDEAD test to all public functions
+
 Mon Nov 12 14:32:53 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: cleanup
 	* src/tds/gssapi.c: compute fqdn name in service name
