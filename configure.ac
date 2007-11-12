@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.19 2007-08-08 13:25:54 freddy77 Exp $
+dnl $Id: configure.ac,v 1.20 2007-11-12 11:34:56 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.19 $)
+AC_REVISION($Revision: 1.20 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -123,6 +123,9 @@ AC_SUBST(HAVE_PERL_SOURCES)
 # ------------------------------------------------------------
 # Checks for libraries.
 # ------------------------------------------------------------
+AC_ARG_ENABLE(krb5,
+  AS_HELP_STRING([--enable-krb5], [for Kerberos support]))
+
 OLDLIBS="$LIBS"
 LIBS=""
 tds_mingw=no
@@ -139,6 +142,13 @@ case $host in
 *)
 	AC_SEARCH_LIBS(socket, socket)
 	AC_SEARCH_LIBS(gethostbyname, nsl)
+	if test "$enable_krb5" = "yes" ; then
+		AC_SEARCH_LIBS(gss_init_sec_context, [gssapi_krb5 gssapi])
+		if test "$ac_cv_search_gss_init_sec_context" != no; then
+			AC_DEFINE(ENABLE_KRB5, 1, [Defined if --enable-krb5 used and library detected])
+		fi
+	fi
+
 	AM_CONDITIONAL(MINGW32, false)
 	;;
 esac
@@ -345,7 +355,7 @@ gethrtime localtime_r])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
-getaddrinfo getnameinfo inet_ntop gethostname])
+getaddrinfo getnameinfo inet_ntop gethostname getdomainname])
 LIBS="$OLD_LIBS"
 AC_REPLACE_FUNCS([asprintf vasprintf atoll strtok_r readpassphrase \
 strlcpy strlcat basename])

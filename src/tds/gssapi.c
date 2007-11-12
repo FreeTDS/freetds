@@ -31,7 +31,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#ifdef ENABLE_DEVELOPING
+#ifdef ENABLE_KRB5
 
 #include <gssapi/gssapi_generic.h>
 #include <gssapi/gssapi_krb5.h>
@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.7 2007-11-07 16:29:04 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.8 2007-11-12 11:35:24 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -57,14 +57,51 @@ TDS_RCSID(var, "$Id: gssapi.c,v 1.7 2007-11-07 16:29:04 freddy77 Exp $");
  * @{ 
  */
 
+typedef struct tds_gss_auth
+{
+	TDSAUTHENTICATION tds_auth;
+	gss_ctx_id_t gss_context;
+	gss_name_t target_name;
+	char *sname;
+} TDSGSSAUTH;
+
+static int
+tds_gss_free(TDSSOCKET * tds, struct tds_authentication * tds_auth)
+{
+	TDSGSSAUTH *auth = (TDSGSSAUTH *) tds_auth;
+	OM_uint32 min_stat;
+
+	if (auth->tds_auth.packet) {
+		gss_buffer_desc send_tok;
+
+		send_tok.value = (void *) auth->tds_auth.packet;
+		send_tok.length = auth->tds_auth.packet_len;
+        	gss_release_buffer(&min_stat, &send_tok);
+	}
+
+	gss_release_name(&min_stat, &auth->target_name);
+	free(auth->sname);
+	if (auth->gss_context != GSS_C_NO_CONTEXT)
+		gss_delete_sec_context(&min_stat, &auth->gss_context, GSS_C_NO_BUFFER);
+	free(auth);
+
+	return TDS_SUCCEED;
+}
+
+static int
+tds_gss_get_next(TDSSOCKET * tds, struct tds_authentication * auth)
+{
+	return TDS_FAIL;
+}
+
 /**
  * Build a GSSAPI packet to send to server
  * @param tds     A pointer to the TDSSOCKET structure managing a client/server operation.
  * @param packet  GSSAPI packet build from function
  * @return size of packet
  */
-int
-tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
+TDSAUTHENTICATION * 
+tds_gss_get_auth(TDSSOCKET * tds)
 {
 	/*
 	 * TODO
@@ -78,33 +115,37 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	 * dinamically load library ??
 	 * add domain name if not present in server_host_name if no domain specified
 	 */
-	gss_ctx_id_t gss_context;
 	gss_buffer_desc send_tok, *token_ptr;
-/*	gss_buffer_desc recv_tok; */
-	gss_name_t target_name;
 	OM_uint32 maj_stat, min_stat;
-	char *sname = NULL;
 	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
-	static const gss_OID_desc nt_principal = { 10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
+	static gss_OID_desc nt_principal = { 10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
 	OM_uint32 ret_flags;
-	int ret_len;
 
-	if (!tds->connection)
-		return -1;
+	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
-	if (asprintf(&sname, "MSSQLSvc/%s:%d", tds_dstr_cstr(&tds->connection->server_host_name), tds->connection->port) < 0)
-		return -1;
-	tdsdump_log(TDS_DBG_NETWORK, "kerberos name %s\n", sname);
+	if (!auth || !tds->connection)
+		return NULL;
+
+	auth->tds_auth.free = tds_gss_free;
+	auth->tds_auth.get_next = tds_gss_get_next;
+
+	if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", tds_dstr_cstr(&tds->connection->server_host_name), tds->connection->port) < 0) {
+		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+		return NULL;
+	}
+	tdsdump_log(TDS_DBG_NETWORK, "kerberos name %s\n", auth->sname);
 
 	/*
 	 * Import the name into target_name.  Use send_tok to save
 	 * local variable space.
 	 */
-	send_tok.value = sname;
-	send_tok.length = strlen(sname);
-	maj_stat = gss_import_name(&min_stat, &send_tok, &nt_principal, &target_name);
-	if (maj_stat != GSS_S_COMPLETE)
-		return -1;
+	send_tok.value = auth->sname;
+	send_tok.length = strlen(auth->sname);
+	maj_stat = gss_import_name(&min_stat, &send_tok, &nt_principal, &auth->target_name);
+	if (maj_stat != GSS_S_COMPLETE) {
+		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+		return NULL;
+	}
 
 	send_tok.value = NULL;
 	send_tok.length = 0;
@@ -126,64 +167,48 @@ tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet)
 	 */
 
 	token_ptr = GSS_C_NO_BUFFER;
-	gss_context = GSS_C_NO_CONTEXT;
+	auth->gss_context = GSS_C_NO_CONTEXT;
 
-	do {
-		maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &gss_context, target_name, 
-						/* GSS_C_DELEG_FLAG GSS_C_MUTUAL_FLAG ?? */
-						GSS_C_NULL_OID, GSS_C_REPLAY_FLAG, 0, NULL,	/* no channel bindings */
-						token_ptr, NULL,	/* ignore mech type */
-						&send_tok, &ret_flags, NULL);	/* ignore time_rec */
+	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, 
+					/* GSS_C_DELEG_FLAG GSS_C_MUTUAL_FLAG ?? */
+					GSS_C_NULL_OID, GSS_C_REPLAY_FLAG, 0, NULL,	/* no channel bindings */
+					token_ptr, NULL,	/* ignore mech type */
+					&send_tok, &ret_flags, NULL);	/* ignore time_rec */
 
 /*
-		if (token_ptr != GSS_C_NO_BUFFER)
-			free(recv_tok.value);
+	if (token_ptr != GSS_C_NO_BUFFER)
+		free(recv_tok.value);
 */
 
 /*
-		if (send_tok.length != 0) {
-			if (send_token(s, v1_format ? 0 : TOKEN_CONTEXT, &send_tok) < 0) {
-				(void) gss_release_buffer(&min_stat, &send_tok);
-				(void) gss_release_name(&min_stat, &target_name);
-				return -1;
-			}
-*/
-/*		(void) gss_release_buffer(&min_stat, &send_tok); */
-
-		if (maj_stat != GSS_S_COMPLETE && maj_stat != GSS_S_CONTINUE_NEEDED)
-			break;
-
-/*
-		if (maj_stat == GSS_S_CONTINUE_NEEDED) {
-			if (recv_token(s, &token_flags, &recv_tok) < 0) {
-				(void) gss_release_name(&min_stat, &target_name);
-				return -1;
-			}
-			token_ptr = &recv_tok;
+	if (send_tok.length != 0) {
+		if (send_token(s, v1_format ? 0 : TOKEN_CONTEXT, &send_tok) < 0) {
+			(void) gss_release_buffer(&min_stat, &send_tok);
+			(void) gss_release_name(&min_stat, &target_name);
+			return -1;
 		}
 */
+/*	(void) gss_release_buffer(&min_stat, &send_tok); */
 
-		(void) gss_release_name(&min_stat, &target_name);
-		free(sname);
-		if (gss_context != GSS_C_NO_CONTEXT)
-			gss_delete_sec_context(&min_stat, &gss_context, GSS_C_NO_BUFFER);
-
-		*gss_packet = (TDS_UCHAR *) malloc(send_tok.length);
-		ret_len = send_tok.length;
-		memcpy(*gss_packet, send_tok.value, send_tok.length);
+	if (maj_stat != GSS_S_COMPLETE && maj_stat != GSS_S_CONTINUE_NEEDED) {
 		gss_release_buffer(&min_stat, &send_tok);
-//		*gss_packet = send_tok.value;
-//		return send_tok.length;
-		return ret_len;
+		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+		return NULL;
+	}
 
-	} while (maj_stat == GSS_S_CONTINUE_NEEDED);
+/*
+	if (maj_stat == GSS_S_CONTINUE_NEEDED) {
+		if (recv_token(s, &token_flags, &recv_tok) < 0) {
+			(void) gss_release_name(&min_stat, &target_name);
+			return -1;
+		}
+		token_ptr = &recv_tok;
+	}
+*/
 
-	(void) gss_release_name(&min_stat, &target_name);
-	free(sname);
-	if (gss_context != GSS_C_NO_CONTEXT)
-		gss_delete_sec_context(&min_stat, &gss_context, GSS_C_NO_BUFFER);
-
-	return -1;
+	auth->tds_auth.packet = (TDS_UCHAR *) send_tok.value;
+	auth->tds_auth.packet_len = send_tok.length;
+	return (TDSAUTHENTICATION *) auth;
 }
 
 #endif

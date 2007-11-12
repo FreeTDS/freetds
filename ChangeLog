@@ -1,3 +1,10 @@
+Mon Nov 12 12:34:14 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac include/tds.h src/tds/gssapi.c:
+	* src/tds/login.c src/tds/mem.c src/tds/token.c:
+	- new TDSAUTHENTICATION structure
+	- new --enable-krb5 to enable Kerberos authentication
+	  (disable by default)
+
 Fri Nov 09 11:29:21 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/tsql.c: remove some leaks
 

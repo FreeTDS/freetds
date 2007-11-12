@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.166 2007-11-05 08:32:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.167 2007-11-12 11:35:25 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -794,12 +794,14 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int database_len = tds_dstr_len(&connection->database);
 	int domain_len = strlen(domain);
 	int auth_len = 0;
-#ifdef ENABLE_DEVELOPING
-	int kerberos = 1;
-	TDS_UCHAR *gss_packet = NULL;
-#endif
 
 	tds->out_flag = TDS7_LOGIN;
+
+	/* discard possible previous authentication */
+	if (tds->authentication) {
+		tds->authentication->free(tds, tds->authentication);
+		tds->authentication = NULL;
+	}
 
 	/* avoid overflow limiting password */
 	if (password_len > 128)
@@ -820,17 +822,17 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
 	if (domain_login) {
-#ifdef ENABLE_DEVELOPING
-		if (kerberos)
-			auth_len = tds_get_gss_packet(tds, &gss_packet);
-		if (auth_len <= 0) {
-			kerberos = 0;
-			auth_len = 32 + host_name_len + domain_len;
-		}
-#else
 		auth_len = 32 + host_name_len + domain_len;
-#endif
 		packet_size += auth_len;
+#ifdef ENABLE_KRB5
+	} else if (user_name_len == 0) {
+		/* try kerberos */
+		tds->authentication = tds_gss_get_auth(tds);
+		if (!tds->authentication)
+			return TDS_FAIL;
+		auth_len = tds->authentication->packet_len;
+		packet_size += auth_len;
+#endif
 	} else
 		packet_size += (user_name_len + password_len) * 2;
 
@@ -846,11 +848,14 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_n(tds, tds7Version, 4);
 	}
 
-	if (connection->block_size < 1000000)
+	if (connection->block_size < 1000000 && connection->block_size >= 512)
 		block_size = connection->block_size;
 	else
 		block_size = 4096;	/* SQL server default */
 	tds_put_int(tds, block_size);	/* desired packet size being requested by client */
+
+	if (block_size > tds->env.block_size)
+		tds_realloc_socket(tds, block_size);
 
 	tds_put_n(tds, client_progver, 4);	/* client program version ? */
 
@@ -864,7 +869,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	tds_put_byte(tds, option_flag1);
 
-	if (domain_login)
+	if (domain_login || tds->authentication)
 		option_flag2 |= 0x80;	/* enable domain login security                     */
 
 	tds_put_byte(tds, option_flag2);
@@ -879,7 +884,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_smallint(tds, current_pos);
 	tds_put_smallint(tds, host_name_len);
 	current_pos += host_name_len * 2;
-	if (domain_login) {
+	if (domain_login || tds->authentication) {
 		tds_put_smallint(tds, 0);
 		tds_put_smallint(tds, 0);
 		tds_put_smallint(tds, 0);
@@ -940,7 +945,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
 	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
-	if (!domain_login) {
+	if (!domain_login && !tds->authentication) {
 		TDSICONV *char_conv = tds->char_convs[client2ucs2];
 		tds_put_string(tds, tds_dstr_cstr(&connection->user_name), user_name_len);
 		p = tds_dstr_cstr(&connection->password);
@@ -963,8 +968,12 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_string(tds, tds_dstr_cstr(&connection->language), language_len);
 	tds_put_string(tds, tds_dstr_cstr(&connection->database), database_len);
 
-#ifdef ENABLE_DEVELOPING
-	if (domain_login && !kerberos) {
+#ifdef ENABLE_KRB5
+	if (tds->authentication) {
+		tds_put_n(tds, tds->authentication->packet, auth_len);
+		tds->authentication->free(tds, tds->authentication);
+		tds->authentication = NULL;
+	} else if (domain_login) {
 #else
 	if (domain_login) {
 #endif
@@ -994,11 +1003,6 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		/* hostname and domain */
 		tds_put_n(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
 		tds_put_n(tds, domain, domain_len);
-#ifdef ENABLE_DEVELOPING
-	} else if (domain_login && kerberos) {
-		tds_put_n(tds, gss_packet, auth_len);
-		free(gss_packet);
-#endif
 	}
 
 	rc = tds_flush_packet(tds);

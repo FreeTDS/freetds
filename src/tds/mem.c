@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.173 2007-11-03 13:36:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.174 2007-11-12 11:35:27 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -1009,6 +1009,9 @@ void
 tds_free_socket(TDSSOCKET * tds)
 {
 	if (tds) {
+		if (tds->authentication)
+			tds->authentication->free(tds, tds->authentication);
+		tds->authentication = NULL;
 		tds_free_all_results(tds);
 		tds_free_env(tds);
 		while (tds->dyns)

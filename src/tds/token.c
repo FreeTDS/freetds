@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.340 2007-10-30 15:39:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.341 2007-11-12 11:35:28 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -370,6 +370,11 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			 */
 			if (ack == 5 || ack == 1)
 				succeed = TDS_SUCCEED;
+			/* authentication is now useless */
+			if (tds->authentication) {
+				tds->authentication->free(tds, tds->authentication);
+				tds->authentication = NULL;
+			}
 			break;
 		default:
 			if (tds_process_default_tokens(tds, marker) == TDS_FAIL)

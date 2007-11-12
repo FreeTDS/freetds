@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.277 2007-11-03 13:36:40 freddy77 Exp $ */
+/* $Id: tds.h,v 1.278 2007-11-12 11:35:17 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1259,6 +1259,16 @@ enum TDS_ICONV_ENTRY
 	, initial_char_conv_count	/* keep last */
 };
 
+struct tds_authentication
+{
+	TDS_UCHAR *packet;
+	int packet_len;
+	int (*free)(TDSSOCKET * tds, struct tds_authentication * auth);
+	int (*get_next)(TDSSOCKET * tds, struct tds_authentication * auth);
+};
+
+typedef struct tds_authentication TDSAUTHENTICATION;
+
 /**
  * Hold information for a server connection
  */
@@ -1341,6 +1351,7 @@ struct tds_socket
 
 	void *tls_session;
 	void *tls_credentials;
+	TDSAUTHENTICATION *authentication;
 	int option_value;
 };
 
@@ -1566,7 +1577,7 @@ typedef struct tds_answer
 	unsigned char nt_resp[24];
 } TDSANSWER;
 void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT *flags, TDSANSWER * answer);
-int tds_get_gss_packet(TDSSOCKET * tds, TDS_UCHAR ** gss_packet);
+TDSAUTHENTICATION * tds_gss_get_auth(TDSSOCKET * tds);
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
 #define IS_TDS46(x) (x->major_version==4 && x->minor_version==6)
