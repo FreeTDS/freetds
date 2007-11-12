@@ -56,6 +56,12 @@
   static int errno=0;
 #endif /* HAVE_ERRNO_H */
 
+/** 
+ * \ingroup dblib_core
+ * \remarks Either SYBDBLIB or MSDBLIB (not both) must be defined. 
+ * 	This affects how certain application-addressable 
+ * 	strucures are defined.  
+ */
 #define SYBDBLIB 1
 #include "tds.h"
 #include "tdsthread.h"
@@ -70,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.293 2007-11-12 18:58:34 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.294 2007-11-12 22:17:28 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -83,6 +89,14 @@ static void _set_null_value(DBPROCESS *dbproc, int bindtype, BYTE * varaddr, int
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
 static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
+/** \internal
+ * \ingroup dblib_internal
+ * \remarks Sanity checks for column-oriented functions.  
+ * 	Makes sure dbproc and the requested column are valid.  
+ *	Calls dbperror() if not.  
+ * 	Requres variables \c resinfo and \c colinfo to be defined, 
+ * 	because it assigns to them.  
+ */
 #define _DB_GETCOLINFO(fail) \
 	if (!dbproc) { \
 		dbperror(dbproc, SYBENULL, 0); \
@@ -192,6 +206,10 @@ static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int 
 MHANDLEFUNC _dblib_msg_handler = NULL;
 EHANDLEFUNC _dblib_err_handler = default_err_handler;
 
+/** \internal
+ * \dblib_internal
+ * \remarks A db-lib connection has an implicit TDS context. 
+ */
 typedef struct dblib_context
 {
 	/** reference count, time dbinit called */
@@ -346,7 +364,8 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 /**
  * \ingroup dblib_core
  * \brief Initialize db-lib.  
- * Call this function before trying to use db-lib in any way.  
+ *
+ * \remarks Call this function before trying to use db-lib in any way.  
  * Allocates various internal structures and reads \c locales.conf (if any) to determine the default
  * date format.  
  * \retval SUCCEED normal.  
@@ -392,8 +411,9 @@ dbinit(void)
 /**
  * \ingroup dblib_core
  * \brief Allocate a \c LOGINREC structure.  
- * A \c LOGINREC structure is passed to \c dbopen() to create a connection to the database. 
- * Does not communicate to the server; interacts strictly with library.  
+ *
+ * \remarks A \c LOGINREC structure is passed to \c dbopen() to create a connection to the database. 
+ * 	Does not communicate to the server; interacts strictly with library.  
  * \retval NULL the \c LOGINREC cannot be allocated.
  * \retval LOGINREC* to valid memory, otherwise.  
  */
@@ -421,6 +441,7 @@ dblogin(void)
 /**
  * \ingroup dblib_core
  * \brief free the \c LOGINREC
+ *
  */
 void
 dbloginfree(LOGINREC * login)
@@ -436,6 +457,7 @@ dbloginfree(LOGINREC * login)
 /** \internal
  * \ingroup dblib_internal 
  * \brief Set the value of a string in a \c LOGINREC structure.  
+ *
  * Called by various macros to populate \a login.  
  * \param login the \c LOGINREC* to modify.
  * \param value the value to set it to.  
@@ -489,6 +511,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 /** \internal
  * \ingroup dblib_internal
  * \brief Set an integer value in a \c LOGINREC structure.  
+ *
  * Called by various macros to populate \a login.  
  * \param login the \c LOGINREC* to modify.
  * \param value the value to set it to.  
@@ -520,6 +543,7 @@ dbsetllong(LOGINREC * login, long value, int which)
 /** \internal
  * \ingroup dblib_internal
  * \brief Set an integer value in a \c LOGINREC structure.  
+ *
  * Called by various macros to populate \a login.  
  * \param login the \c LOGINREC* to modify.
  * \param value the value to set it to.  
@@ -544,6 +568,7 @@ dbsetlshort(LOGINREC * login, int value, int which)
 /** \internal
  * \ingroup dblib_internal
  * \brief Set a boolean value in a \c LOGINREC structure.  
+ *
  * Called by various macros to populate \a login.  
  * \param login the \c LOGINREC* to modify.
  * \param value the value to set it to.  
@@ -576,6 +601,7 @@ dbsetlbool(LOGINREC * login, int value, int which)
 /**
  * \ingroup dblib_core
  * \brief Set TDS version for future connections
+ *
  */
 RETCODE 
 dbsetlversion (LOGINREC * login, BYTE version)
@@ -931,6 +957,7 @@ dbfcmd(DBPROCESS * dbproc, const char *fmt, ...)
 /**
  * \ingroup dblib_core
  * \brief \c Append SQL to the command buffer.  
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param cmdstring SQL to copy.  
  * \retval SUCCEED success.
@@ -1837,6 +1864,7 @@ _db_get_server_type(int bindtype)
 /**
  * \ingroup dblib_core
  * \brief Convert one datatype to another.
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param srctype datatype of the data to convert. 
  * \param src buffer to convert
@@ -2676,10 +2704,9 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
  * \ingroup dblib_core
  * \brief Get base database column name for a result set column.  
  * 
- * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param colnum Nth in the result set, starting from 1.
- * \return pointer to ASCII null-terminated string, the name of the column. 
+ * \param column Nth in the result set, starting from 1.
+ * \return pointer to ASCII null-terminated string, the name of the column. On error, NULL.
  * \sa dbcolbrowse(), dbqual(), dbtabbrowse(), dbtabcount(), dbtabname(), dbtabsource(), dbtsnewlen(), dbtsnewval(), dbtsput().
  */
 char *
@@ -4498,7 +4525,6 @@ dbsqlok(DBPROCESS * dbproc)
  * \ingroup dblib_core
  * \brief Get count of columns in a compute row.
  * 
- * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param computeid of \c COMPUTE clause to which we're referring. 
  * \return number of columns, else -1 if no such \a computeid.  
@@ -5474,7 +5500,6 @@ dbspid(DBPROCESS * dbproc)
  * \ingroup dblib_core
  * \brief Associate client-allocated (and defined) data with a \c DBPROCESS.   
  * 
- * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param ptr address of client-defined data.
  * \remarks \a ptr is the location of user data that \c db-lib will associate with \a dbproc. 
@@ -5495,7 +5520,6 @@ dbsetuserdata(DBPROCESS * dbproc, BYTE * ptr)
 /**
  * \ingroup dblib_core
  * \brief Get address of user-allocated data from a \c DBPROCESS.   
- * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \return address of user-defined data that \c db-lib associated with \a dbproc when the client called  dbsetuserdata(). 
@@ -5616,7 +5640,6 @@ dbfreebuf(DBPROCESS * dbproc)
 /**
  * \ingroup dblib_core
  * \brief Reset an option.
- * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param option to be turned off.
@@ -5742,7 +5765,6 @@ dbrowtype(DBPROCESS * dbproc)
 /** \internal
  * \ingroup dblib_internal
  * \brief Get number of the row just returned.
- * 
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \sa DBCURROW().
@@ -6738,7 +6760,6 @@ dbaltlen(DBPROCESS * dbproc, int computeid, int column)
  * \ingroup dblib_core
  * \brief See if a server response has arrived.
  * 
- * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param milliseconds how long to wait for the server before returning:
  	- \c  0 return immediately.
@@ -7443,6 +7464,12 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	return;
 }
 
+/** \internal
+ * \ingroup dblib_internal
+ * \remarks member msgno Vendor-defined message number
+ * \remarks member severity Is passed to the error handler 
+ * \remarks member msgtext Text of message
+ */
 typedef struct _dblib_error_message 
 {
 	DBINT msgno;

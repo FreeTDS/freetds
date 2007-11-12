@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.167 2007-11-12 11:35:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.168 2007-11-12 22:17:28 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -111,7 +111,7 @@ tds_set_app(TDSLOGIN * tds_login, const char *application)
 /**
  * \brief Set the servername in a TDSLOGIN structure
  *
- * Normally copies \a server into \tds_login.  If \a server does not point to a plausible name, the environment 
+ * Normally copies \a server into \a tds_login.  If \a server does not point to a plausible name, the environment 
  * variables TDSQUERY and DSQUERY are used, in that order.  If they don't exist, the "default default" servername
  * is "SYBASE" (although the utility of that choice is a bit murky).  
  *

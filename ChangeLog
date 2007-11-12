@@ -1,3 +1,11 @@
+Mon Nov 12 17:15:03 EST 2007	JK Lowden <jklowden@freetds.org>
+	* include/sybdb.h src/dblib/bcp.c
+	* src/dblib/dblib.c src/dblib/dbutil.c
+	* src/dblib/rpc.c
+	* src/tds/log.c src/tds/login.c
+	- trying to convince Doxygen not to ignore functions, 
+	- e.g. dbinit 
+
 Mon Nov 12 13:38:04 EST 2007	JK Lowden <jklowden@freetds.org>
 	* include/dblib.h src/dblib/dbutil.c
 	* src/dblib/dblib.c src/dblib/rpc.c src/dblib/bcp.c

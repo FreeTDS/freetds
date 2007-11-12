@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.159 2007-11-12 19:00:09 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.160 2007-11-12 22:17:28 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -514,11 +514,28 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
  * 	with precision and scale support for numeric and decimal columns.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param host_colnum 
- * \param host_type 
- * \param etc.
+ * \param host_colnum datafile column number (starting with 1, not zero).
+ * \param host_type dataype token describing the data type in \a host_colnum.  E.g. SYBCHAR for character data.
+ * \param host_prefixlen size of the prefix in the datafile column, if any.  For delimited files: zero.  
+ *			May be 0, 1, 2, or 4 bytes.  The prefix will be read as an integer (not a character string) from the 
+ * 			data file, and will be interpreted the data size of that column, in bytes.  
+ * \param host_collen maximum size of datafile column, exclusive of any prefix/terminator.  Just the data, ma'am.  
+ *		Special values:
+ *			- \b 0 indicates NULL.  
+ *			- \b -1 for fixed-length non-null datatypes
+ *			- \b -1 for variable-length datatypes (e.g. SYBCHAR) where the length is established 
+ *				by a prefix/terminator.  
+ * \param host_term the sequence of characters that will serve as a column terminator (delimiter) in the datafile.  
+ * 			Often a tab character, but can be any string of any length.  Zero indicates no terminator.  
+ * 			Special characters:
+ *				- \b '\\0' terminator is an ASCII NUL.
+ *				- \b '\\t' terminator is an ASCII TAB.
+ *				- \b '\\n' terminator is an ASCII NL.
+ * \param host_termlen the length of \a host_term, in bytes. 
+ * \param table_colnum Nth column, starting at 1, in the table that maps to \a host_colnum.  
+ * 	If there is a column in the datafile that does not map to a table column, set \a table_colnum to zero.  
+ * \param typeinfo something
  * \todo Not implemented.
- * 
  * \return SUCCEED or FAIL.
  * \sa 	bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_collen(), bcp_colptr(), bcp_columns(),
  *	bcp_control(), bcp_done(), bcp_exec(), bcp_init(), bcp_sendrow
@@ -1122,6 +1139,7 @@ _bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param hostfile 
  * \param row_error 
@@ -1467,6 +1485,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param hostfile 
  * \param terminator 
  * \param term_len 
@@ -1573,6 +1592,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param behaviour 
  * \param rowbuffer 
@@ -1644,6 +1664,7 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int 
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param behaviour 
  * \param rowbuffer 
@@ -1873,6 +1894,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param rows_copied 
  * 
@@ -2104,6 +2126,7 @@ bcp_row_free(TDSRESULTINFO* result, unsigned char *row)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * 
  * \return SUCCEED or FAIL.
@@ -2306,6 +2329,7 @@ _bcp_start_copy_in(DBPROCESS * dbproc)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param tds 
  * \param clause 
  * \param bcpcol 
@@ -2483,6 +2507,7 @@ _bcp_build_bulk_insert_stmt(TDSSOCKET * tds, TDS_PBCB * clause, TDSCOLUMN * bcpc
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * 
  * \return SUCCEED or FAIL.
@@ -2515,6 +2540,7 @@ _bcp_start_new_batch(DBPROCESS * dbproc)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * 
  * \return SUCCEED or FAIL.
@@ -2609,6 +2635,7 @@ _bcp_send_colmetadata(DBPROCESS * dbproc)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param buffer 
  * \param size 
  * \param f 
@@ -2746,6 +2773,7 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param buf 
  * \param ci 
@@ -3142,6 +3170,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param behaviour 
  * 
@@ -3375,6 +3404,7 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param bindcol 
  * 
@@ -3491,6 +3521,7 @@ _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param pdata 
  * \param term 
  * \param term_len 
@@ -3517,6 +3548,7 @@ _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param istr 
  * \param ilen 
  * 
@@ -3536,6 +3568,7 @@ rtrim(char *istr, int ilen)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * 
  * \return SUCCEED or FAIL.
@@ -3564,6 +3597,7 @@ _bcp_free_columns(DBPROCESS * dbproc)
 /** 
  * \ingroup dblib_bcp_internal
  * \brief 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * 
  * \return SUCCEED or FAIL.

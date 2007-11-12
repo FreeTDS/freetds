@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.3 2006-12-29 16:18:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.4 2007-11-12 22:17:28 jklowden Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -363,7 +363,8 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 
 /**
  * This function write a message to the debug log.  
- * \param debug_lvl level of debugging
+ * \param file name of the log file
+ * \param level_line kind of detail to be included
  * \param fmt       printf-like format string
  */
 void

@@ -50,7 +50,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.59 2007-11-12 18:58:34 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.60 2007-11-12 22:17:28 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -133,6 +133,7 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
 /**
  * \ingroup dblib_rpc
  * \brief Add a parameter to a remote procedure call.
+ *
  * Call between dbrpcinit() and dbrpcsend()
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param paramname literal name of the parameter, according to the stored procedure (starts with '@').  Optional.  

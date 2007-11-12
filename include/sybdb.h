@@ -17,7 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/** \file sybdb.h
+/** \file ../include/sybdb.h
  *  \brief Primary include file for db-lib applications.
  *  
  *  Declares macros, functions, enumerated types, and defined tokens 
@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.83 2007-09-20 15:32:54 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.84 2007-11-12 22:17:28 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
