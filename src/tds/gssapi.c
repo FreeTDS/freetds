@@ -31,6 +31,30 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#if HAVE_NETDB_H
+#include <netdb.h>
+#endif /* HAVE_NETDB_H */
+
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NETINET_IN_H */
+
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
+
 #ifdef ENABLE_KRB5
 
 #include <gssapi/gssapi_generic.h>
@@ -44,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.8 2007-11-12 11:35:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.9 2007-11-12 13:33:20 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -76,7 +100,7 @@ tds_gss_free(TDSSOCKET * tds, struct tds_authentication * tds_auth)
 
 		send_tok.value = (void *) auth->tds_auth.packet;
 		send_tok.length = auth->tds_auth.packet_len;
-        	gss_release_buffer(&min_stat, &send_tok);
+		gss_release_buffer(&min_stat, &send_tok);
 	}
 
 	gss_release_name(&min_stat, &auth->target_name);
@@ -109,17 +133,19 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	 * - MS use SPNEGO with 3 mechnisms (MS KRB5, KRB5, NTLMSSP)
 	 * - MS seems to use MUTUAL flag
 	 * - name type is "Service and Instance (2)" and not "Principal (1)"
-	 * remove memory leaks !!!
+	 * check for memory leaks
 	 * check for errors in many functions
 	 * a bit more verbose
 	 * dinamically load library ??
-	 * add domain name if not present in server_host_name if no domain specified
 	 */
 	gss_buffer_desc send_tok, *token_ptr;
 	OM_uint32 maj_stat, min_stat;
 	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
 	static gss_OID_desc nt_principal = { 10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
 	OM_uint32 ret_flags;
+	const char *server_name;
+	/* Storage for reentrant getaddrby* calls */
+	char buffer[4096];
 
 	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
@@ -129,7 +155,17 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	auth->tds_auth.free = tds_gss_free;
 	auth->tds_auth.get_next = tds_gss_get_next;
 
-	if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", tds_dstr_cstr(&tds->connection->server_host_name), tds->connection->port) < 0) {
+	server_name = tds_dstr_cstr(&tds->connection->server_host_name);
+	if (strchr(server_name, '.') == NULL) {
+		struct hostent result;
+		int h_errnop;
+
+		struct hostent *host = tds_gethostbyname_r(server_name, &result, buffer, sizeof(buffer), &h_errnop);
+		if (host && strchr(host->h_name, '.') != NULL)
+			server_name = host->h_name;
+	}
+
+	if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->connection->port) < 0) {
 		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}

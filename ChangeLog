@@ -1,3 +1,7 @@
+Mon Nov 12 14:32:53 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac: cleanup
+	* src/tds/gssapi.c: compute fqdn name in service name
+
 Mon Nov 12 12:34:14 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac include/tds.h src/tds/gssapi.c:
 	* src/tds/login.c src/tds/mem.c src/tds/token.c:
