@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.39 2007-03-27 10:57:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.40 2007-11-12 18:58:33 jklowden Exp $");
 
 /*
  * test include consistency 
@@ -193,7 +193,7 @@ _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAG
 }
 
 /**
- * \ingroup dblib_core
+ * \ingroup dblib_internal
  * \brief check interrupts for libtds.
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.

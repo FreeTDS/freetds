@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.158 2007-10-30 10:34:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.159 2007-11-12 19:00:09 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -138,6 +138,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n", dbproc, tblname, hfile, errfile, direction);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(tblname, SYBENULP);
 
 	/* Free previously allocated storage in dbproc & initialise flags, etc. */
@@ -313,6 +314,7 @@ bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_collen(%p, %d, %d)\n", dbproc, varlen, table_column);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 
 	if (dbproc->bcpinfo->direction != DB_IN) {
@@ -353,6 +355,7 @@ bcp_columns(DBPROCESS * dbproc, int host_colcount)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_columns(%p, %d)\n", dbproc, host_colcount);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBIVI);
 
@@ -432,6 +435,7 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	tdsdump_log(TDS_DBG_FUNC, "bcp_colfmt(%p, %d, %d, %d, %d, %p)\n", 
 		    dbproc, host_colnum, host_type, host_prefixlen, (int) host_collen, host_term);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBIVI);
 
@@ -525,6 +529,7 @@ bcp_colfmt_ps(DBPROCESS * dbproc, int host_colnum, int host_type,
 {
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED: bcp_colfmt_ps(%p, %d, %d)\n", dbproc, host_colnum, host_type);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	
 	/* dbperror(dbproc, , 0);	 Illegal precision specified */
@@ -559,6 +564,7 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 {
 	tdsdump_log(TDS_DBG_FUNC, "bcp_control(%p, %d, %d)\n", dbproc, field, value);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBIVI);
 
@@ -634,6 +640,7 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, valuelen);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(value, SYBENULP);
 
@@ -679,6 +686,7 @@ bcp_colptr(DBPROCESS * dbproc, BYTE * colptr, int table_column)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_colptr(%p, %p, %d)\n", dbproc, colptr, table_column);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(dbproc->bcpinfo->bindinfo, SYBEBCPI);
 	/* colptr can be NULL */
@@ -1819,6 +1827,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_sendrow(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 
 	tds = dbproc->tds_socket;
@@ -2066,6 +2075,7 @@ bcp_exec(DBPROCESS * dbproc, DBINT *rows_copied)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_exec(%p, %p)\n", dbproc, rows_copied);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBCVH);
 
@@ -2652,6 +2662,7 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_readfmt(%p, %s)\n", dbproc, filename);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(filename, SYBENULP);
 
@@ -2911,6 +2922,7 @@ bcp_writefmt(DBPROCESS * dbproc, char *filename)
 {
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED: bcp_writefmt(%p, %s)\n", dbproc, filename);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(filename, SYBENULP);
 
@@ -2942,6 +2954,7 @@ bcp_moretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 {
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED: bcp_moretext(%p, %d, %p)\n", dbproc, size, text);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 	CHECK_PARAMETER(text, SYBENULP);
 	
@@ -2971,6 +2984,7 @@ bcp_batch(DBPROCESS * dbproc)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_batch(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 
 	tds = dbproc->tds_socket;
@@ -3006,6 +3020,7 @@ bcp_done(DBPROCESS * dbproc)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_done(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 
 	/* TODO check proper tds state */
@@ -3056,6 +3071,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_bind(%p, %p, %d, %d)\n", dbproc, varaddr, prefixlen, varlen);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
 
 	if (dbproc->hostfileinfo != NULL) {
@@ -3162,6 +3178,7 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour)
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_send_bcp_record(%p, %d)\n", dbproc, behaviour);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 
 	record = dbproc->bcpinfo->bindinfo->current_row;
 	old_record_size = dbproc->bcpinfo->bindinfo->row_size;
@@ -3379,6 +3396,7 @@ _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_get_col_data(%p, %p)\n", dbproc, bindcol);
 	CHECK_PARAMETER(dbproc, SYBENULL);
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(bindcol, SYBENULP);
 
 	dataptr = (BYTE *) bindcol->column_varaddr;

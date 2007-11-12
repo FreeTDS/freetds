@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.39 2007-06-17 07:09:07 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.40 2007-11-12 18:58:33 jklowden Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -189,9 +189,6 @@ struct tds_dblib_dbprocess
 	DBNUMERIC	null_NUMERICBIND;
 	DBBIT		null_BITBIND;
 };
-
-#define DBLIB_INFO_MSG_TYPE 0
-#define DBLIB_ERROR_MSG_TYPE 1
 
 /*
  * internal prototypes
