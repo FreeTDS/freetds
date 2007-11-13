@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.21 2007-11-12 13:39:59 freddy77 Exp $
+dnl $Id: configure.ac,v 1.22 2007-11-13 13:26:24 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.21 $)
+AC_REVISION($Revision: 1.22 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -124,7 +124,7 @@ AC_SUBST(HAVE_PERL_SOURCES)
 # Checks for libraries.
 # ------------------------------------------------------------
 AC_ARG_ENABLE(krb5,
-  AS_HELP_STRING([--enable-krb5], [for Kerberos support]))
+  AS_HELP_STRING([--enable-krb5], [enable Kerberos support (EXPERIMENTAL)]))
 
 OLDLIBS="$LIBS"
 LIBS=""
