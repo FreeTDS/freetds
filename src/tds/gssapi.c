@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.9 2007-11-12 13:33:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.10 2007-11-13 09:14:57 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -113,7 +113,7 @@ tds_gss_free(TDSSOCKET * tds, struct tds_authentication * tds_auth)
 }
 
 static int
-tds_gss_get_next(TDSSOCKET * tds, struct tds_authentication * auth)
+tds_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
 {
 	return TDS_FAIL;
 }
@@ -153,7 +153,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		return NULL;
 
 	auth->tds_auth.free = tds_gss_free;
-	auth->tds_auth.get_next = tds_gss_get_next;
+	auth->tds_auth.handle_next = tds_gss_handle_next;
 
 	server_name = tds_dstr_cstr(&tds->connection->server_host_name);
 	if (strchr(server_name, '.') == NULL) {

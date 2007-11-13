@@ -1,3 +1,9 @@
+Tue Nov 13 10:13:06 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/challenge.c src/tds/gssapi.c:
+	* src/tds/login.c src/tds/token.c:
+	- port ntlm to new authentication code
+	- move all ntlm stuff to challenge.c
+
 Mon Nov 12 17:15:03 EST 2007	JK Lowden <jklowden@freetds.org>
 	* include/sybdb.h src/dblib/bcp.c
 	* src/dblib/dblib.c src/dblib/dbutil.c

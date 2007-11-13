@@ -33,6 +33,8 @@
 #endif /* HAVE_STRING_H */
 
 #include "tds.h"
+#include "tdsbytes.h"
+#include "tdsstring.h"
 #include "md4.h"
 #include "md5.h"
 #include "des.h"
@@ -41,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.27 2006-08-30 12:00:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.28 2007-11-13 09:14:57 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -58,6 +60,13 @@ TDS_RCSID(var, "$Id: challenge.c,v 1.27 2006-08-30 12:00:03 freddy77 Exp $");
  * The following code is based on some psuedo-C code from ronald@innovation.ch
  */
 
+typedef struct tds_answer
+{
+	unsigned char lm_resp[24];
+	unsigned char nt_resp[24];
+} TDSANSWER;
+
+static void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT *flags, TDSANSWER * answer);
 static void tds_encrypt_answer(const unsigned char *hash, const unsigned char *challenge, unsigned char *answer);
 static void tds_convert_key(const unsigned char *key_56, DES_KEY * ks);
 
@@ -68,7 +77,7 @@ static void tds_convert_key(const unsigned char *key_56, DES_KEY * ks);
  * @param flags NTLM flags from server side
  * @param answer buffer where to store crypted password
  */
-void
+static void
 tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT *flags, TDSANSWER * answer)
 {
 #define MAX_PW_SZ 14
@@ -199,4 +208,230 @@ tds_convert_key(const unsigned char *key_56, DES_KEY * ks)
 }
 
 
+static int
+tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge, TDS_UINT flags)
+{
+	int current_pos;
+	TDSANSWER answer;
+
+	/* FIXME: stuff duplicate in tds7_send_login */
+	const char *domain;
+	const char *user_name;
+	const char *p;
+	int user_name_len;
+	int host_name_len;
+	int password_len;
+	int domain_len;
+
+	TDSCONNECTION *connection = tds->connection;
+
+	/* check connection */
+	if (!connection)
+		return TDS_FAIL;
+
+	/* parse a bit of config */
+	user_name = tds_dstr_cstr(&connection->user_name);
+	user_name_len = user_name ? strlen(user_name) : 0;
+	host_name_len = tds_dstr_len(&connection->client_host_name);
+	password_len = tds_dstr_len(&connection->password);
+
+	/* parse domain\username */
+	if ((p = strchr(user_name, '\\')) == NULL)
+		return TDS_FAIL;
+
+	domain = user_name;
+	domain_len = p - user_name;
+
+	user_name = p + 1;
+	user_name_len = strlen(user_name);
+
+	tds->out_flag = TDS7_AUTH;
+	tds_put_n(tds, "NTLMSSP", 8);
+	tds_put_int(tds, 3);	/* sequence 3 */
+
+	/* FIXME *2 work only for single byte encodings */
+	current_pos = 64 + (domain_len + user_name_len + host_name_len) * 2;
+
+	tds_put_smallint(tds, 24);	/* lan man resp length */
+	tds_put_smallint(tds, 24);	/* lan man resp length */
+	tds_put_int(tds, current_pos);	/* resp offset */
+	current_pos += 24;
+
+	tds_put_smallint(tds, 24);	/* nt resp length */
+	tds_put_smallint(tds, 24);	/* nt resp length */
+	tds_put_int(tds, current_pos);	/* nt resp offset */
+
+	current_pos = 64;
+
+	/* domain */
+	tds_put_smallint(tds, domain_len * 2);
+	tds_put_smallint(tds, domain_len * 2);
+	tds_put_int(tds, current_pos);
+	current_pos += domain_len * 2;
+
+	/* username */
+	tds_put_smallint(tds, user_name_len * 2);
+	tds_put_smallint(tds, user_name_len * 2);
+	tds_put_int(tds, current_pos);
+	current_pos += user_name_len * 2;
+
+	/* hostname */
+	tds_put_smallint(tds, host_name_len * 2);
+	tds_put_smallint(tds, host_name_len * 2);
+	tds_put_int(tds, current_pos);
+	current_pos += host_name_len * 2;
+
+	/* unknown */
+	tds_put_smallint(tds, 0);
+	tds_put_smallint(tds, 0);
+	tds_put_int(tds, current_pos + (24 * 2));
+
+	/* flags */
+	tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, &flags, &answer);
+	tds_put_int(tds, flags);
+
+	tds_put_string(tds, domain, domain_len);
+	tds_put_string(tds, user_name, user_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
+
+	tds_put_n(tds, answer.lm_resp, 24);
+	tds_put_n(tds, answer.nt_resp, 24);
+
+	/* for security reason clear structure */
+	memset(&answer, 0, sizeof(TDSANSWER));
+
+	return tds_flush_packet(tds);
+}
+
+typedef struct tds_ntlm_auth
+{
+	TDSAUTHENTICATION tds_auth;
+} TDSNTLMAUTH;
+
+static int
+tds_ntlm_free(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth)
+{
+	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
+
+	free(auth->tds_auth.packet);
+	free(auth);
+
+	return TDS_SUCCEED;
+}
+
+static int
+tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
+{
+	unsigned char nonce[8];
+	TDS_UINT flags;
+	int where;
+
+	/* at least 32 bytes (till context) */
+	if (len < 32)
+		return TDS_FAIL;
+
+	/* TODO check first 2 values */
+	tds_get_n(tds, NULL, 8);	/* NTLMSSP\0 */
+	tds_get_int(tds);	/* sequence -> 2 */
+	tds_get_n(tds, NULL, 4);	/* domain len (2 time) */
+	tds_get_int(tds);	/* domain offset */
+	flags = tds_get_int(tds);	/* flags */
+	tds_get_n(tds, nonce, 8);
+	tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", nonce, 8);
+	where = 32;
+
+	/*
+	 * tds_get_string(tds, domain, domain_len); 
+	 * tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN domain %s\n", domain);
+	 * where += strlen(domain);
+	 */
+
+	if (len < where)
+		return TDS_FAIL;
+
+	/* discard context, target and data informations */
+	tds_get_n(tds, NULL, len - where);
+	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", len - where);
+
+	return tds7_send_auth(tds, nonce, flags);
+}
+
+/**
+ * Build a NTLMSPP packet to send to server
+ * @param tds     A pointer to the TDSSOCKET structure managing a client/server operation.
+ * @return authentication info
+ */
+TDSAUTHENTICATION * 
+tds_ntlm_get_auth(TDSSOCKET * tds)
+{
+	static const unsigned char ntlm_id[] = "NTLMSSP";
+
+	const char *domain;
+	const char *user_name;
+	const char *p;
+	TDS_UCHAR *packet;
+	int host_name_len;
+	int domain_len;
+	int auth_len;
+	struct tds_ntlm_auth *auth;
+
+	if (!tds->connection)
+		return NULL;
+
+	user_name = tds_dstr_cstr(&tds->connection->user_name);
+	host_name_len = tds_dstr_len(&tds->connection->client_host_name);
+
+	/* check override of domain */
+	if ((p = strchr(user_name, '\\')) == NULL)
+		return NULL;
+
+	domain = user_name;
+	domain_len = p - user_name;
+
+	auth = (struct tds_ntlm_auth *) calloc(1, sizeof(struct tds_ntlm_auth));
+
+	if (!auth)
+		return NULL;
+
+	auth->tds_auth.free = tds_ntlm_free;
+	auth->tds_auth.handle_next = tds_ntlm_handle_next;
+
+	auth->tds_auth.packet_len = auth_len = 32 + host_name_len + domain_len;
+	auth->tds_auth.packet = packet = malloc(auth_len);
+	if (!packet) {
+		free(auth);
+		return NULL;
+	}
+
+	/* built NTLMSSP authentication packet */
+	memcpy(packet, ntlm_id, 8);
+	/* sequence 1 client -> server */
+	TDS_PUT_A4LE(packet + 8, 1);
+	/* flags */
+	TDS_PUT_A4LE(packet + 12, 0x08b201);
+
+	/* domain info */
+	TDS_PUT_A2LE(packet + 16, domain_len);
+	TDS_PUT_A2LE(packet + 18, domain_len);
+	TDS_PUT_A4LE(packet + 20, 32 + host_name_len);
+
+	/* hostname info */
+	TDS_PUT_A2LE(packet + 24, host_name_len);
+	TDS_PUT_A2LE(packet + 26, host_name_len);
+	TDS_PUT_A4LE(packet + 28, 32);
+
+	/*
+	 * here XP put version like 05 01 28 0a (5.1.2600),
+	 * similar to GetVersion result
+	 * and some unknown bytes like 00 00 00 0f
+	 */
+
+	/* hostname and domain */
+	memcpy(packet + 32, tds_dstr_cstr(&tds->connection->client_host_name), host_name_len);
+	memcpy(packet + 32 + host_name_len, domain, domain_len);
+
+	return (TDSAUTHENTICATION *) auth;
+}
+
 /** @} */
+

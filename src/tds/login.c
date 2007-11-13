@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.168 2007-11-12 22:17:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.169 2007-11-13 09:14:57 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -648,102 +648,6 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	return tds_flush_packet(tds);
 }
 
-
-int
-tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge, TDS_UINT flags)
-{
-	int current_pos;
-	TDSANSWER answer;
-
-	/* FIXME: stuff duplicate in tds7_send_login */
-	const char *domain;
-	const char *user_name;
-	const char *p;
-	int user_name_len;
-	int host_name_len;
-	int password_len;
-	int domain_len;
-
-	TDSCONNECTION *connection = tds->connection;
-
-	/* check connection */
-	if (!connection)
-		return TDS_FAIL;
-
-	/* parse a bit of config */
-	user_name = tds_dstr_cstr(&connection->user_name);
-	user_name_len = user_name ? strlen(user_name) : 0;
-	host_name_len = tds_dstr_len(&connection->client_host_name);
-	password_len = tds_dstr_len(&connection->password);
-
-	/* parse domain\username */
-	if ((p = strchr(user_name, '\\')) == NULL)
-		return TDS_FAIL;
-
-	domain = user_name;
-	domain_len = p - user_name;
-
-	user_name = p + 1;
-	user_name_len = strlen(user_name);
-
-	tds->out_flag = TDS7_AUTH;
-	tds_put_n(tds, "NTLMSSP", 8);
-	tds_put_int(tds, 3);	/* sequence 3 */
-
-	/* FIXME *2 work only for single byte encodings */
-	current_pos = 64 + (domain_len + user_name_len + host_name_len) * 2;
-
-	tds_put_smallint(tds, 24);	/* lan man resp length */
-	tds_put_smallint(tds, 24);	/* lan man resp length */
-	tds_put_int(tds, current_pos);	/* resp offset */
-	current_pos += 24;
-
-	tds_put_smallint(tds, 24);	/* nt resp length */
-	tds_put_smallint(tds, 24);	/* nt resp length */
-	tds_put_int(tds, current_pos);	/* nt resp offset */
-
-	current_pos = 64;
-
-	/* domain */
-	tds_put_smallint(tds, domain_len * 2);
-	tds_put_smallint(tds, domain_len * 2);
-	tds_put_int(tds, current_pos);
-	current_pos += domain_len * 2;
-
-	/* username */
-	tds_put_smallint(tds, user_name_len * 2);
-	tds_put_smallint(tds, user_name_len * 2);
-	tds_put_int(tds, current_pos);
-	current_pos += user_name_len * 2;
-
-	/* hostname */
-	tds_put_smallint(tds, host_name_len * 2);
-	tds_put_smallint(tds, host_name_len * 2);
-	tds_put_int(tds, current_pos);
-	current_pos += host_name_len * 2;
-
-	/* unknown */
-	tds_put_smallint(tds, 0);
-	tds_put_smallint(tds, 0);
-	tds_put_int(tds, current_pos + (24 * 2));
-
-	/* flags */
-	tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, &flags, &answer);
-	tds_put_int(tds, flags);
-
-	tds_put_string(tds, domain, domain_len);
-	tds_put_string(tds, user_name, user_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
-
-	tds_put_n(tds, answer.lm_resp, 24);
-	tds_put_n(tds, answer.nt_resp, 24);
-
-	/* for security reason clear structure */
-	memset(&answer, 0, sizeof(TDSANSWER));
-
-	return tds_flush_packet(tds);
-}
-
 /**
  * tds7_send_login() -- Send a TDS 7.0 login packet
  * TDS 7.0 login packet is vastly different and so gets its own function
@@ -778,12 +682,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int packet_size;
 	int block_size;
 	int current_pos;
-	static const unsigned char ntlm_id[] = "NTLMSSP";
-	int domain_login = 0;
 
-	const char *domain = "";
 	const char *user_name = tds_dstr_cstr(&connection->user_name);
-	const char *p;
 	int user_name_len = strlen(user_name);
 	int host_name_len = tds_dstr_len(&connection->client_host_name);
 	int app_name_len = tds_dstr_len(&connection->app_name);
@@ -792,7 +692,6 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int library_len = tds_dstr_len(&connection->library);
 	int language_len = tds_dstr_len(&connection->language);
 	int database_len = tds_dstr_len(&connection->database);
-	int domain_len = strlen(domain);
 	int auth_len = 0;
 
 	tds->out_flag = TDS7_LOGIN;
@@ -807,22 +706,16 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (password_len > 128)
 		password_len = 128;
 
-	/* check override of domain */
-	if ((p = strchr(user_name, '\\')) != NULL) {
-		domain = user_name;
-		domain_len = p - user_name;
-
-		user_name = p + 1;
-		user_name_len = strlen(user_name);
-
-		domain_login = 1;
-	}
-
 	current_pos = IS_TDS90(tds) ? 86 + 8 : 86;	/* ? */
 
 	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
-	if (domain_login) {
-		auth_len = 32 + host_name_len + domain_len;
+
+	/* check ntlm */
+	if (strchr(user_name, '\\') != NULL) {
+		tds->authentication = tds_ntlm_get_auth(tds);
+		if (!tds->authentication)
+			return TDS_FAIL;
+		auth_len = tds->authentication->packet_len;
 		packet_size += auth_len;
 #ifdef ENABLE_KRB5
 	} else if (user_name_len == 0) {
@@ -836,7 +729,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	} else
 		packet_size += (user_name_len + password_len) * 2;
 
-	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7.0 login packet\n");
+	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7+ login packet\n");
 	tdsdump_off();
 
 	tds_put_int(tds, packet_size);
@@ -869,7 +762,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	tds_put_byte(tds, option_flag1);
 
-	if (domain_login || tds->authentication)
+	if (tds->authentication)
 		option_flag2 |= 0x80;	/* enable domain login security                     */
 
 	tds_put_byte(tds, option_flag2);
@@ -884,7 +777,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_smallint(tds, current_pos);
 	tds_put_smallint(tds, host_name_len);
 	current_pos += host_name_len * 2;
-	if (domain_login || tds->authentication) {
+	if (tds->authentication) {
 		tds_put_smallint(tds, 0);
 		tds_put_smallint(tds, 0);
 		tds_put_smallint(tds, 0);
@@ -945,7 +838,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
 	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
-	if (!domain_login && !tds->authentication) {
+	if (!tds->authentication) {
+		const char *p;
 		TDSICONV *char_conv = tds->char_convs[client2ucs2];
 		tds_put_string(tds, tds_dstr_cstr(&connection->user_name), user_name_len);
 		p = tds_dstr_cstr(&connection->password);
@@ -968,42 +862,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_string(tds, tds_dstr_cstr(&connection->language), language_len);
 	tds_put_string(tds, tds_dstr_cstr(&connection->database), database_len);
 
-#ifdef ENABLE_KRB5
-	if (tds->authentication) {
+	if (tds->authentication)
 		tds_put_n(tds, tds->authentication->packet, auth_len);
-		tds->authentication->free(tds, tds->authentication);
-		tds->authentication = NULL;
-	} else if (domain_login) {
-#else
-	if (domain_login) {
-#endif
-		/* from here to the end of the packet is the NTLMSSP authentication */
-		tds_put_n(tds, ntlm_id, 8);
-		/* sequence 1 client -> server */
-		tds_put_int(tds, 1);
-		/* flags */
-		tds_put_int(tds, 0x08b201);
-
-		/* domain info */
-		tds_put_smallint(tds, domain_len);
-		tds_put_smallint(tds, domain_len);
-		tds_put_int(tds, 32 + host_name_len);
-
-		/* hostname info */
-		tds_put_smallint(tds, host_name_len);
-		tds_put_smallint(tds, host_name_len);
-		tds_put_int(tds, 32);
-
-		/*
-		 * here XP put version like 05 01 28 0a (5.1.2600),
-		 * similar to GetVersion result
-		 * and some unknown bytes like 00 00 00 0f
-		 */
-
-		/* hostname and domain */
-		tds_put_n(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
-		tds_put_n(tds, domain, domain_len);
-	}
 
 	rc = tds_flush_packet(tds);
 	tdsdump_on();

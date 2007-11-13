@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.278 2007-11-12 11:35:17 freddy77 Exp $ */
+/* $Id: tds.h,v 1.279 2007-11-13 09:14:57 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1264,7 +1264,7 @@ struct tds_authentication
 	TDS_UCHAR *packet;
 	int packet_len;
 	int (*free)(TDSSOCKET * tds, struct tds_authentication * auth);
-	int (*get_next)(TDSSOCKET * tds, struct tds_authentication * auth);
+	int (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
 };
 
 typedef struct tds_authentication TDSAUTHENTICATION;
@@ -1441,7 +1441,6 @@ TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen,
 void tds_free_row(TDSRESULTINFO * res_info, unsigned char *row);
 
 /* login.c */
-int tds7_send_auth(TDSSOCKET * tds, const unsigned char *challenge, TDS_UINT flags);
 void tds_set_packet(TDSLOGIN * tds_login, int packet_size);
 void tds_set_port(TDSLOGIN * tds_login, int port);
 void tds_set_passwd(TDSLOGIN * tds_login, const char *password);
@@ -1571,12 +1570,7 @@ TDS_INT tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_p
 /* getmac.c */
 void tds_getmac(int s, unsigned char mac[6]);
 
-typedef struct tds_answer
-{
-	unsigned char lm_resp[24];
-	unsigned char nt_resp[24];
-} TDSANSWER;
-void tds_answer_challenge(const char *passwd, const unsigned char *challenge, TDS_UINT *flags, TDSANSWER * answer);
+TDSAUTHENTICATION * tds_ntlm_get_auth(TDSSOCKET * tds);
 TDSAUTHENTICATION * tds_gss_get_auth(TDSSOCKET * tds);
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)

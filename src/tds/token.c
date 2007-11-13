@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.341 2007-11-12 11:35:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.342 2007-11-13 09:14:57 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -400,11 +400,6 @@ static int
 tds_process_auth(TDSSOCKET * tds)
 {
 	int pdu_size;
-	unsigned char nonce[8];
-	TDS_UINT flags;
-
-/* char domain[30]; */
-	int where;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -415,36 +410,11 @@ tds_process_auth(TDSSOCKET * tds)
 
 	pdu_size = tds_get_smallint(tds);
 	tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN PDU size %d\n", pdu_size);
-	
-	/* at least 32 bytes (till context) */
-	if (pdu_size < 32)
+
+	if (!tds->authentication)
 		return TDS_FAIL;
 
-	/* TODO check first 2 values */
-	tds_get_n(tds, NULL, 8);	/* NTLMSSP\0 */
-	tds_get_int(tds);	/* sequence -> 2 */
-	tds_get_n(tds, NULL, 4);	/* domain len (2 time) */
-	tds_get_int(tds);	/* domain offset */
-	flags = tds_get_int(tds);	/* flags */
-	tds_get_n(tds, nonce, 8);
-	tdsdump_dump_buf(TDS_DBG_INFO1, "TDS_AUTH_TOKEN nonce", nonce, 8);
-	where = 32;
-
-	/*
-	 * tds_get_string(tds, domain, domain_len); 
-	 * tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN domain %s\n", domain);
-	 * where += strlen(domain);
-	 */
-
-	if (pdu_size < where)
-		return TDS_FAIL;
-	/* discard context, target and data informations */
-	tds_get_n(tds, NULL, pdu_size - where);
-	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", pdu_size - where);
-
-	tds7_send_auth(tds, nonce, flags);
-
-	return TDS_SUCCEED;
+	return tds->authentication->handle_next(tds, tds->authentication, pdu_size);
 }
 
 /**
