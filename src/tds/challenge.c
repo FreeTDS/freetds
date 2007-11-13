@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.28 2007-11-13 09:14:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.29 2007-11-13 09:29:24 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -319,6 +319,8 @@ tds_ntlm_free(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth)
 	return TDS_SUCCEED;
 }
 
+static const unsigned char ntlm_id[] = "NTLMSSP";
+
 static int
 tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
 {
@@ -330,9 +332,11 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 	if (len < 32)
 		return TDS_FAIL;
 
-	/* TODO check first 2 values */
-	tds_get_n(tds, NULL, 8);	/* NTLMSSP\0 */
-	tds_get_int(tds);	/* sequence -> 2 */
+	tds_get_n(tds, nonce, 8);	/* NTLMSSP\0 */
+	if (memcmp(nonce, ntlm_id, 8) != 0)
+		return TDS_FAIL;
+	if (tds_get_int(tds) != 2)	/* sequence -> 2 */
+		return TDS_FAIL;
 	tds_get_n(tds, NULL, 4);	/* domain len (2 time) */
 	tds_get_int(tds);	/* domain offset */
 	flags = tds_get_int(tds);	/* flags */
@@ -345,9 +349,6 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 	 * tdsdump_log(TDS_DBG_INFO1, "TDS_AUTH_TOKEN domain %s\n", domain);
 	 * where += strlen(domain);
 	 */
-
-	if (len < where)
-		return TDS_FAIL;
 
 	/* discard context, target and data informations */
 	tds_get_n(tds, NULL, len - where);
@@ -364,8 +365,6 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 TDSAUTHENTICATION * 
 tds_ntlm_get_auth(TDSSOCKET * tds)
 {
-	static const unsigned char ntlm_id[] = "NTLMSSP";
-
 	const char *domain;
 	const char *user_name;
 	const char *p;
