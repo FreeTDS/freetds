@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.294 2007-11-12 22:17:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.295 2007-11-15 13:34:06 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2843,6 +2843,7 @@ dbdata(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
+	const static BYTE empty[1] = { 0 };
 
 	tdsdump_log(TDS_DBG_FUNC, "dbdata(%p, %d)\n", dbproc, column);
 
@@ -2852,7 +2853,10 @@ dbdata(DBPROCESS * dbproc, int column)
 		return NULL;
 
 	if (is_blob_type(colinfo->column_type)) {
-		return (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
+		BYTE *res = (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
+		if (!res)
+			return (BYTE *) empty;
+		return res;
 	}
 
 	return (BYTE *) colinfo->column_data;

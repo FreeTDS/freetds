@@ -1,3 +1,9 @@
+Thu Nov 15 14:32:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/.cvsignore src/dblib/dblib.c:
+	* src/dblib/unittests/Makefile.am src/dblib/unittests/null.c:
+	- fix problem with empty string and TEXT
+	- add a test to test empty/NULL behavior of dbdatlen/dbdata
+
 Thu Nov 15 10:18:40 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c: return error if no username given and no Kerberos
 
