@@ -1,3 +1,6 @@
+Thu Nov 15 10:18:40 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/login.c: return error if no username given and no Kerberos
+
 Tue Nov 13 10:13:06 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/challenge.c src/tds/gssapi.c:
 	* src/tds/login.c src/tds/token.c:

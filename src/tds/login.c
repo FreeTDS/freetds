@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.169 2007-11-13 09:14:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.170 2007-11-15 09:19:57 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -717,14 +717,16 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 			return TDS_FAIL;
 		auth_len = tds->authentication->packet_len;
 		packet_size += auth_len;
-#ifdef ENABLE_KRB5
 	} else if (user_name_len == 0) {
+#ifdef ENABLE_KRB5
 		/* try kerberos */
 		tds->authentication = tds_gss_get_auth(tds);
 		if (!tds->authentication)
 			return TDS_FAIL;
 		auth_len = tds->authentication->packet_len;
 		packet_size += auth_len;
+#else
+		return TDS_FAIL;
 #endif
 	} else
 		packet_size += (user_name_len + password_len) * 2;
