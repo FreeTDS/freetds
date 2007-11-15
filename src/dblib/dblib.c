@@ -68,7 +68,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.244.2.3 2007-10-18 14:47:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.244.2.4 2007-11-15 13:52:58 freddy77 Exp $");
 
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -2510,6 +2510,7 @@ dbdata(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
+	const static BYTE empty[1] = { 0 };
 
 	_DB_GETCOLINFO(NULL);
 
@@ -2517,7 +2518,10 @@ dbdata(DBPROCESS * dbproc, int column)
 		return NULL;
 
 	if (is_blob_type(colinfo->column_type)) {
-		return (BYTE *) ((TDSBLOB *) (resinfo->current_row + colinfo->column_offset))->textvalue;
+		BYTE * res = (BYTE *) ((TDSBLOB *) (resinfo->current_row + colinfo->column_offset))->textvalue;
+		if (!res)
+			return (BYTE *) empty;
+		return res;
 	}
 
 	return (BYTE *) & resinfo->current_row[colinfo->column_offset];
