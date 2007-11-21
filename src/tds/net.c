@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.69 2007-10-30 10:20:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.70 2007-11-21 04:28:31 jklowden Exp $");
 
 static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -375,7 +375,7 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 
 		assert(rc == 0 || (rc < 0 && sock_errno == TDSSOCK_EINTR));
 
-		if (tds->tds_ctx && tds->tds_ctx->int_handler) {	/* timeout handler installed */
+		if (tds->tds_ctx && tds->tds_ctx->int_handler) {	/* interrupt handler installed */
 			/*
 			 * "If hndlintr() returns INT_CANCEL, DB-Library sends an attention token [TDS_BUFSTAT_ATTN]
 			 * to the server. This causes the server to discontinue command processing. 
@@ -386,12 +386,14 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 			 * - Process the results normally"
 			 */
 			int timeout_action = (*tds->tds_ctx->int_handler) (tds->parent);
-
+#if 0
 			tdsdump_log(TDS_DBG_ERROR, "tds_ctx->int_handler returned %d\n", timeout_action);
+#endif
 			switch (timeout_action) {
 			case TDS_INT_CONTINUE:		/* keep waiting */
-				break;
+				continue;
 			case TDS_INT_CANCEL:		/* abort the current command batch */
+							/* FIXME tell tds_goodread() not to call tdserror() */
 				return 0;
 			default:
 				tdsdump_log(TDS_DBG_NETWORK, 
@@ -400,6 +402,11 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 				break;
 			}
 		}
+		/* 
+		 * We can reach here if no interrupt handler was installed and we either timed out or got EINTR. 
+		 * We cannot be polling, so we are about to drop out of the loop. 
+		 */
+		assert(poll_seconds == timeout_seconds);
 	}
 	
 	return 0;

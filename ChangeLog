@@ -1,3 +1,8 @@
+Tue Nov 20 23:08:15 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c src/dblib/unittests/bcp.c
+	* src/dblib/dblib.c src/tds/convert.c src/tds/net.c 
+	- small changes
+	
 Thu Nov 15 14:32:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/.cvsignore src/dblib/dblib.c:
 	* src/dblib/unittests/Makefile.am src/dblib/unittests/null.c:

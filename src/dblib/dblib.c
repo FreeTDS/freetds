@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.295 2007-11-15 13:34:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.296 2007-11-21 04:28:31 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -959,7 +959,7 @@ dbfcmd(DBPROCESS * dbproc, const char *fmt, ...)
  * \brief \c Append SQL to the command buffer.  
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param cmdstring SQL to copy.  
+ * \param cmdstring SQL to append to the command buffer.  
  * \retval SUCCEED success.
  * \retval FAIL insufficient memory.  
  * \remarks set command state to \c  DBCMDPEND unless the command state is DBCMDSENT, in which case 
@@ -7914,6 +7914,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			break;
 		}
 	}
+	tdsdump_log(TDS_DBG_FUNC, "%d: \"%s\"\n", msgno, msg->msgtext);
 
 	/* call the error handler */
 	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, msg->msgtext, os_msgtext);

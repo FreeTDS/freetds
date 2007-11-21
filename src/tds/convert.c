@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.172 2007-06-18 13:21:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.173 2007-11-21 04:28:31 jklowden Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -3087,130 +3087,5 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 	return TDS_SUCCEED;
 }
 
-#if 0
-/* 
- * Offer string equivalents of conversion tokens.  
- */
-static const char *
-tds_prtype(int token)
-{
-	const char *result = "???";
-
-	switch (token) {
-	case SYBBINARY:
-		result = "SYBBINARY";
-		break;
-	case SYBBIT:
-		result = "SYBBIT";
-		break;
-	case SYBBITN:
-		result = "SYBBITN";
-		break;
-	case SYBCHAR:
-		result = "SYBCHAR";
-		break;
-	case SYBDATETIME4:
-		result = "SYBDATETIME4";
-		break;
-	case SYBDATETIME:
-		result = "SYBDATETIME";
-		break;
-	case SYBDATETIMN:
-		result = "SYBDATETIMN";
-		break;
-	case SYBDECIMAL:
-		result = "SYBDECIMAL";
-		break;
-	case SYBFLT8:
-		result = "SYBFLT8";
-		break;
-	case SYBFLTN:
-		result = "SYBFLTN";
-		break;
-	case SYBIMAGE:
-		result = "SYBIMAGE";
-		break;
-	case SYBINT1:
-		result = "SYBINT1";
-		break;
-	case SYBINT2:
-		result = "SYBINT2";
-		break;
-	case SYBINT4:
-		result = "SYBINT4";
-		break;
-	case SYBINT8:
-		result = "SYBINT8";
-		break;
-	case SYBINTN:
-		result = "SYBINTN";
-		break;
-	case SYBMONEY4:
-		result = "SYBMONEY4";
-		break;
-	case SYBMONEY:
-		result = "SYBMONEY";
-		break;
-	case SYBMONEYN:
-		result = "SYBMONEYN";
-		break;
-	case SYBNTEXT:
-		result = "SYBNTEXT";
-		break;
-	case SYBNVARCHAR:
-		result = "SYBNVARCHAR";
-		break;
-	case SYBNUMERIC:
-		result = "SYBNUMERIC";
-		break;
-	case SYBREAL:
-		result = "SYBREAL";
-		break;
-	case SYBTEXT:
-		result = "SYBTEXT";
-		break;
-	case SYBUNIQUE:
-		result = "SYBUNIQUE";
-		break;
-	case SYBVARBINARY:
-		result = "SYBVARBINARY";
-		break;
-	case SYBVARCHAR:
-		result = "SYBVARCHAR";
-		break;
-
-	case SYBVARIANT:
-		result = "SYBVARIANT";
-		break;
-	case SYBVOID:
-		result = "SYBVOID";
-		break;
-	case XSYBBINARY:
-		result = "XSYBBINARY";
-		break;
-	case XSYBCHAR:
-		result = "XSYBCHAR";
-		break;
-	case XSYBNCHAR:
-		result = "XSYBNCHAR";
-		break;
-	case XSYBNVARCHAR:
-		result = "XSYBNVARCHAR";
-		break;
-	case XSYBVARBINARY:
-		result = "XSYBVARBINARY";
-		break;
-	case XSYBVARCHAR:
-		result = "XSYBVARCHAR";
-		break;
-	case SYBLONGBINARY:
-		result = "SYBLONGBINARY";
-		break;
-	default:
-		break;
-	}
-	return result;
-}
-#endif
 
 /** @} */

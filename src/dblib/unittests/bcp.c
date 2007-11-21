@@ -13,7 +13,7 @@
 
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.11 2006-08-15 07:26:51 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.12 2007-11-21 04:28:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -62,16 +62,26 @@ init(DBPROCESS * dbproc, const char *name)
 	fprintf(stdout, "Creating %s.%s..%s\n", SERVER, DATABASE, name);
 
 	dbcmd(dbproc, create_table_sql);
-
+#if 1
+	dbfcmd(dbproc, 	"select colid, cast(c.name as varchar(30)) as name, c.length "
+			", '  '+ substring('NY', convert(bit,(c.status & 8))+1,1) as Nulls " 
+			"from syscolumns as c left join systypes as t on c.usertype = t.usertype "
+			"where c.id = object_id('%s') order by colid", name );
+#endif
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
 		res = 1;
 	}
 	while ((rc=dbresults(dbproc)) == SUCCEED) {
-		/* nop */
+		dbprhead(dbproc);
+		dbprrow(dbproc);
+		while ((rc=dbnextrow(dbproc)) == REG_ROW) {
+			dbprrow(dbproc);
+		}
 	}
 	if (rc != NO_MORE_RESULTS)
 		return 1;
+	fprintf(stdout, "%s\n", res? "error" : "ok");
 	return res;
 }
 
@@ -229,6 +239,22 @@ main(int argc, char **argv)
 		        exit(1);
 		}
 	}
+	
+	fprintf(stdout, "Sending 5 more rows ... \n");
+	for (i=15; i <= 27; i++) {
+		int type = dbcoltype(dbproc, i);
+		int len = (type == SYBCHAR || type == SYBVARCHAR)? dbcollen(dbproc, i) : -1;
+		if (bcp_collen(dbproc, len, i) == FAIL) {
+			fprintf(stdout, "bcp_collen failed for column\n", i);
+		        exit(1);
+		}
+	}
+	for (i=0; i<5; i++) {
+		if (bcp_sendrow(dbproc) == FAIL) {
+			fprintf(stdout, "send failed\n");
+		        exit(1);
+		}
+	}
 #if 1
 	rows_sent = bcp_batch(dbproc);
 	if (rows_sent == -1) {
@@ -249,7 +275,33 @@ main(int argc, char **argv)
 	printf("done\n");
 
 	add_bread_crumb();
+#if 0
+	fprintf(stdout, "select * from %s\n", table_name);
+	dbfcmd(dbproc, "select * from %s\n", table_name);
+#endif
+#if 1
+	dbfcmd(dbproc, 	"select   'nullable_char' as col, count(*) nrows"
+				", datalength(nullable_char) as len, nullable_char as value "
+			"from %s group by nullable_char\n", table_name);
+	dbfcmd(dbproc, 	"UNION\n"
+			"select   'nullable_varchar' as col, count(*) nrows"
+				", datalength(nullable_varchar) as len, nullable_varchar as value "
+			"from %s group by nullable_varchar\n", table_name);
+	dbfcmd(dbproc, 	"UNION\n"
+			"select   'nullable_int' as col, count(*) nrows"
+				", datalength(nullable_int) as len, cast(nullable_int as varchar(6))as value "
+			"from %s group by nullable_int\n", table_name);
+	dbfcmd(dbproc, "order by col, len, nrows\n");
 
+	dbsqlexec(dbproc);
+	while ((i=dbresults(dbproc)) == SUCCEED) {
+		dbprhead(dbproc);
+		dbprrow(dbproc);
+		while ((i=dbnextrow(dbproc)) == REG_ROW) {
+			dbprrow(dbproc);
+		}
+	}
+#endif
 	fprintf(stdout, "Dropping table %s\n", table_name);
 	add_bread_crumb();
 	sprintf(cmd, "drop table %s", table_name);

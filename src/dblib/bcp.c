@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.160 2007-11-12 22:17:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.161 2007-11-21 04:28:31 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -136,7 +136,8 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	TDS_INT result_type;
 	int i, rc;
 
-	tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n", dbproc, tblname, hfile, errfile, direction);
+	tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n", 
+			dbproc, tblname? tblname:"NULL", hfile? hfile:"NULL", errfile? errfile:"NULL", direction);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(tblname, SYBENULP);
@@ -1709,9 +1710,10 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 
 		bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
 
-		/* is this column of "variable" type, i.e. NULLable */
-		/* or naturally variable length e.g. VARCHAR        */
-
+		/* 
+		 * Is this column of "variable" type, i.e. NULLable 
+		 * or naturally variable length e.g. VARCHAR
+		 */
 		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable) {
 
 			tdsdump_log(TDS_DBG_FUNC, "_bcp_add_variable_columns column %d is a variable column\n", i + 1);
@@ -1722,8 +1724,7 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 				}
 			}
 
-			/* but if its a NOT NULL column, and we have no data */
-			/* throw an error                                    */
+			/* If it's a NOT NULL column, and we have no data, throw an error. */
 
 			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->null_column) {
 				dbperror(dbproc, SYBEBCNN, 0);
@@ -2687,7 +2688,7 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 	struct fflist *topptr = NULL;
 	struct fflist *curptr = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "bcp_readfmt(%p, %s)\n", dbproc, filename);
+	tdsdump_log(TDS_DBG_FUNC, "bcp_readfmt(%p, %s)\n", dbproc, filename? filename:"NULL");
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
@@ -2800,10 +2801,10 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 		NO_MORE_COLS
 	};
 
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_readfmt_colinfo(%p, %s, %p)\n", dbproc, buf, ci);
 	assert(dbproc);
 	assert(buf);
 	assert(ci);
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_readfmt_colinfo(%p, %s, %p)\n", dbproc, buf, ci);
 
 	tok = strtok(buf, " \t");
 	whichcol = HOST_COLUMN;
@@ -2948,7 +2949,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 RETCODE
 bcp_writefmt(DBPROCESS * dbproc, char *filename)
 {
-	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED: bcp_writefmt(%p, %s)\n", dbproc, filename);
+	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED: bcp_writefmt(%p, %s)\n", dbproc, filename? filename:"NULL");
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
@@ -3097,7 +3098,9 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 {
 	TDSCOLUMN *colinfo;
 
-	tdsdump_log(TDS_DBG_FUNC, "bcp_bind(%p, %p, %d, %d)\n", dbproc, varaddr, prefixlen, varlen);
+	tdsdump_log(TDS_DBG_FUNC, "bcp_bind(%p, %p, %d, %d -- %p, %d, %s, %d)\n", 
+						dbproc, varaddr, prefixlen, varlen, 
+						terminator, termlen, dbprtype(vartype), table_column);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI);
