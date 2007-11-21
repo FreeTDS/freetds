@@ -1,3 +1,9 @@
+Wed Nov 21 11:31:37 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/ctlib/blk.c correctly test result of cs_convert
+	* src/dblib/rpc.c minor edits
+	* src/dblib/unittests/bcp.c src/dblib/unittests/bcp.h
+	- test works for TDS 7.0.  
+
 Tue Nov 20 23:08:15 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/bcp.c src/dblib/unittests/bcp.c
 	* src/dblib/dblib.c src/tds/convert.c src/tds/net.c 

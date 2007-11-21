@@ -44,7 +44,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.40 2007-10-30 10:34:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.41 2007-11-21 16:37:04 jklowden Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -1585,7 +1585,8 @@ _blk_get_col_data(CS_BLKDESC *blkdesc, TDSCOLUMN *bindcol, int offset)
 					case CS_SMALLINT_TYPE:  srclen = 2; break;
 					case CS_TINYINT_TYPE:   srclen = 1; break;
 					default:
-						printf("error not fixed length type (%d) and datalen not specified\n", bindcol->column_bindtype);
+						printf("error not fixed length type (%d) and datalen not specified\n",
+							bindcol->column_bindtype);
 						return CS_FAIL;
 				}
 
@@ -1613,7 +1614,7 @@ _blk_get_col_data(CS_BLKDESC *blkdesc, TDSCOLUMN *bindcol, int offset)
 	
 			/* if convert return FAIL mark error but process other columns */
 			if ((result = cs_convert(ctx, &srcfmt, (CS_VOID *) src, 
-									&destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen) != CS_SUCCEED)) {
+						 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
 				tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srcfmt.datatype);
 				return CS_FAIL;
 			}
