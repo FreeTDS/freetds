@@ -50,7 +50,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.60 2007-11-12 22:17:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.61 2007-11-21 16:37:08 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -67,7 +67,6 @@ static TDSPARAMINFO *param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc);
  * which causes the stored procedure to be recompiled before executing.
  * \remark The RPC functions are the only way to get back OUTPUT parameter data with db-lib 
  * from modern Microsoft servers.  
- * \todo I don't know the value for DBRPCRECOMPILE and have not added it to sybdb.h
  * \retval SUCCEED normal.
  * \retval FAIL on error
  * \sa dbrpcparam(), dbrpcsend()
@@ -159,7 +158,8 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	DBREMOTE_PROC_PARAM **pparam;
 	DBREMOTE_PROC_PARAM *param;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbrpcparam(%p, %s, 0x%x, %d, %d, %d, %p)\n", dbproc, paramname, status, type, maxlen, datalen, value);
+	tdsdump_log(TDS_DBG_FUNC, "dbrpcparam(%p, %s, 0x%x, %d, %d, %d, %p)\n", 
+				   dbproc, paramname, status, type, maxlen, datalen, value);
 	CHECK_PARAMETER(dbproc, SYBENULL);
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->rpc, SYBERPCS);
@@ -174,6 +174,12 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 			 */
 		DBPERROR_RETURN(datalen < 0, SYBERPIL);
 	}
+
+	/* "value parameter for dbprcparam() can be NULL, only if the datalen parameter is 0." */
+	DBPERROR_RETURN(value == NULL && datlen != 0, SYBERPNULL);
+	
+	/* nullable types most provide a data length */
+	DBPERROR_RETURN(is_nullable_type(type) && datlen < 0, SYBERPUL);
 
 	/* validate maxlen parameter */
 
@@ -193,8 +199,8 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 		DBPERROR_RETURN(maxlen != -1 && maxlen != 0, SYBEIPV);
 		maxlen = -1;
 	}
-
-	/* TODO add other tests for correctness */
+	
+	/* end validation */
 
 	/* allocate */
 	param = (DBREMOTE_PROC_PARAM *) malloc(sizeof(DBREMOTE_PROC_PARAM));
@@ -221,8 +227,8 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	param->datalen = datalen;
 
 	/*
-	 * if datalen = 0, value parameter is ignored       
-	 * this is one way to specify a NULL input parameter 
+	 * If datalen = 0, value parameter is ignored.
+	 * This is one way to specify a NULL input parameter. 
 	 */
 	if (datalen == 0)
 		param->value = NULL;
@@ -323,7 +329,8 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 		} else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
 			blob->textvalue = malloc(size);
-			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n", size, blob->textvalue);
+			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n", 
+						  size, blob->textvalue);
 			if (!blob->textvalue)
 				return NULL;
 			memcpy(blob->textvalue, value, size);
@@ -369,10 +376,8 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		params = new_params;
 
 		/*
-		 * Determine whether an input parameter is NULL
-		 * or not.
+		 * Determine whether an input parameter is NULL or not.
 		 */
-
 		param_is_null = 0;
 		temp_type = p->type;
 		temp_value = p->value;
