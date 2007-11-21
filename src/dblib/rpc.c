@@ -50,7 +50,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.61 2007-11-21 16:37:08 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.62 2007-11-21 16:45:21 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -176,10 +176,10 @@ dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT max
 	}
 
 	/* "value parameter for dbprcparam() can be NULL, only if the datalen parameter is 0." */
-	DBPERROR_RETURN(value == NULL && datlen != 0, SYBERPNULL);
+	DBPERROR_RETURN(value == NULL && datalen != 0, SYBERPNULL);
 	
 	/* nullable types most provide a data length */
-	DBPERROR_RETURN(is_nullable_type(type) && datlen < 0, SYBERPUL);
+	DBPERROR_RETURN(is_nullable_type(type) && datalen < 0, SYBERPUL);
 
 	/* validate maxlen parameter */
 
