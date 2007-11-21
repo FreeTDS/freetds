@@ -13,7 +13,7 @@
 
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.12 2007-11-21 04:28:31 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.13 2007-11-21 16:37:14 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -182,6 +182,7 @@ main(int argc, char **argv)
 	DBPROCESS *dbproc;
 	int i, rows_sent=0;
 	int failed = 0;
+	const char *s;
 	const char *table_name = "all_types_bcp_unittest";
 
 	set_malloc_options();
@@ -302,15 +303,19 @@ main(int argc, char **argv)
 		}
 	}
 #endif
-	fprintf(stdout, "Dropping table %s\n", table_name);
-	add_bread_crumb();
-	sprintf(cmd, "drop table %s", table_name);
-	dbcmd(dbproc, cmd);
-	add_bread_crumb();
-	dbsqlexec(dbproc);
-	add_bread_crumb();
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
+	if ((s = getenv("BCP")) != NULL && 0 == strcmp(s, "nodrop")) {
+		fprintf(stdout, "BCP=nodrop: '%s..%s' kept\n", DATABASE, table_name);
+	} else {
+		fprintf(stdout, "Dropping table %s\n", table_name);
+		add_bread_crumb();
+		sprintf(cmd, "drop table %s", table_name);
+		dbcmd(dbproc, cmd);
+		add_bread_crumb();
+		dbsqlexec(dbproc);
+		add_bread_crumb();
+		while (dbresults(dbproc) != NO_MORE_RESULTS) {
+			/* nop */
+		}
 	}
 	add_bread_crumb();
 	dbexit();
