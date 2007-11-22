@@ -1,14 +1,19 @@
+Thu Nov 22 09:43:58 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/ctlib/Makefile.am src/dblib/Makefile.am:
+	* src/odbc/Makefile.am:
+	- do not filter symbols under MacOsX (avoid libtool problems)
+
 Wed Nov 21 11:31:37 EST 2007	JK Lowden <jklowden@freetds.org>
-	* src/ctlib/blk.c correctly test result of cs_convert
-	* src/dblib/rpc.c minor edits
-	* src/dblib/unittests/bcp.c src/dblib/unittests/bcp.h
-	- test works for TDS 7.0.  
+	* src/ctlib/blk.c: correctly test result of cs_convert
+	* src/dblib/rpc.c: minor edits
+	* src/dblib/unittests/bcp.c src/dblib/unittests/bcp.h:
+	- test works for TDS 7.0.
 
 Tue Nov 20 23:08:15 EST 2007	JK Lowden <jklowden@freetds.org>
-	* src/dblib/bcp.c src/dblib/unittests/bcp.c
-	* src/dblib/dblib.c src/tds/convert.c src/tds/net.c 
+	* src/dblib/bcp.c src/dblib/unittests/bcp.c:
+	* src/dblib/dblib.c src/tds/convert.c src/tds/net.c:
 	- small changes
-	
+
 Thu Nov 15 14:32:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/.cvsignore src/dblib/dblib.c:
 	* src/dblib/unittests/Makefile.am src/dblib/unittests/null.c:

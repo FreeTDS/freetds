@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.43 2007-08-08 13:25:55 freddy77 Exp $
+# $Id: Makefile.am,v 1.44 2007-11-22 08:44:54 freddy77 Exp $
 SUBDIRS		= unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
@@ -21,8 +21,13 @@ libtdsodbc_la_LDFLAGS = -Wl,--enable-stdcall-fixup -Wl,-s -Wl,../../win32/FreeTD
 	$(RC) -i $< --input-format=rc -o $@ -O coff
 else
 libtdsodbc_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
+if MACOSX
+SYMBOLS		=
+else
+SYMBOLS		=	-export-symbols-regex '^(SQL|ODBCINST).*'
+endif
 # -module is needed by Darwin (Mac OS X)
-libtdsodbc_la_LDFLAGS = -export-symbols-regex '^(SQL|ODBCINST).*' $(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
+libtdsodbc_la_LDFLAGS = $(SYMBOLS) $(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
 endif
 
 ## Need blank statement to avoid compiling odbc.c
