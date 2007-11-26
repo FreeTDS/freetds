@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: type.c,v 1.7 2005-06-29 07:21:24 freddy77 Exp $";
+static char software_version[] = "$Id: type.c,v 1.8 2007-11-26 18:12:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct type
@@ -141,7 +141,7 @@ main(int argc, char **argv)
 			concise_type = p->type;
 			SQLGetStmtAttr(Statement, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
 			if (SQL_SUCCEEDED
-			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, (SQLPOINTER) (int) concise_type, sizeof(SQLSMALLINT))))
+			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, int2ptr(concise_type), sizeof(SQLSMALLINT))))
 			{
 				SQLGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind);
 				SQLGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind);
@@ -164,7 +164,7 @@ main(int argc, char **argv)
 		SQLSMALLINT concise_type = p->type;
 
 		if (SQL_SUCCEEDED
-		    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, (SQLPOINTER) (int) concise_type, sizeof(SQLSMALLINT)))) {
+		    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, int2ptr(concise_type), sizeof(SQLSMALLINT)))) {
 			SQLSMALLINT concise_type, type, code;
 
 			concise_type = type = code = 0;

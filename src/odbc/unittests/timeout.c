@@ -3,7 +3,7 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.6 2005-05-06 08:39:59 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.7 2007-11-26 18:12:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -11,7 +11,7 @@ AutoCommit(int onoff)
 {
 	SQLRETURN ret;
 
-	ret = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (void *) onoff, 0);
+	ret = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0);
 	if (ret != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Enabling AutoCommit");
 }

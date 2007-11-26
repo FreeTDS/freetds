@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.10 2007-11-26 06:25:11 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.11 2007-11-26 18:12:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -287,15 +287,15 @@ main(int argc, char *argv[])
 			ret = SQL_ERROR;
 			switch (attr->type) {
 			case type_INTEGER:
-				ret = SQLSetDescField(desc, 1, attr->value, (SQLPOINTER) lookup(value, attr->lookup),
+				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLINTEGER));
 				break;
 			case type_SMALLINT:
-				ret = SQLSetDescField(desc, 1, attr->value, (SQLPOINTER) lookup(value, attr->lookup),
+				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLSMALLINT));
 				break;
 			case type_LEN:
-				ret = SQLSetDescField(desc, 1, attr->value, (SQLPOINTER) lookup(value, attr->lookup),
+				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLLEN));
 				break;
 			case type_CHARP:

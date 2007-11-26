@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.458 2007-11-05 18:53:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.459 2007-11-26 18:12:30 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -463,7 +463,7 @@ SQLDescribeParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT FAR * pfSqlType,
 
 
 SQLRETURN ODBC_API
-SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLLEN irow, SQLULEN FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
+SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQLROWSETSIZE FAR * pcrow, SQLUSMALLINT FAR * rgfRowStatus)
 {
 	SQLRETURN ret;
 	SQLULEN * tmp_rows;
@@ -791,7 +791,7 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 {
 	SQLRETURN res;
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLParamOptions(%p, %u, %u)\n", hstmt, (unsigned int)crow, (unsigned int)pirow);
+	tdsdump_log(TDS_DBG_FUNC, "SQLParamOptions(%p, %lu, %p)\n", hstmt, (unsigned long int)crow, pirow);
 
 	/* emulate for ODBC 2 DM */
 	res = _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMS_PROCESSED_PTR, pirow, 0);
@@ -918,7 +918,7 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 }
 
 SQLRETURN ODBC_API
-SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
+SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
 	int ret;
 	TDSSOCKET *tds;
@@ -926,8 +926,8 @@ SQLSetPos(SQLHSTMT hstmt, SQLUSMALLINT irow, SQLUSMALLINT fOption, SQLUSMALLINT 
 	TDSPARAMINFO *params = NULL;
 	INIT_HSTMT;
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLSetPos(%p, %d, %d, %d)\n", 
-			hstmt, irow, fOption, fLock);
+	tdsdump_log(TDS_DBG_FUNC, "SQLSetPos(%p, %ld, %d, %d)\n", 
+			hstmt, (long) irow, fOption, fLock);
 
 	if (!stmt->dbc->cursor_support) {
 		odbc_errs_add(&stmt->errs, "HYC00", "SQLSetPos: function not implemented");
@@ -3852,8 +3852,8 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 
 	INIT_HSTMT;
 
-	tdsdump_log(TDS_DBG_FUNC, "_SQLGetStmtAttr(%p, %d, %p, %d, %d)\n", 
-			hstmt, (int)Attribute, Value, (int)BufferLength, (int)StringLength);
+	tdsdump_log(TDS_DBG_FUNC, "_SQLGetStmtAttr(%p, %d, %p, %d, %p)\n", 
+			hstmt, (int)Attribute, Value, (int)BufferLength, StringLength);
 
 	/* TODO assign directly, use macro for size */
 	switch (Attribute) {

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.24 2007-11-26 15:49:06 freddy77 Exp $
+dnl $Id: configure.ac,v 1.25 2007-11-26 18:12:30 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.24 $)
+AC_REVISION($Revision: 1.25 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -543,6 +543,10 @@ SQLRETURN SQL_API SQLParamOptions(SQLHSTMT       hstmt,
 }], [return 0],
 		AC_DEFINE(TDS_SQLPARAMOPTIONS_SQLLEN, 1, [Define to 1 if SQLParamOptions accept SQLULEN as arguments]))
 	)
+
+	AC_CHECK_TYPES([SQLSETPOSIROW, SQLROWSETSIZE, SQLROWOFFSET],,, [#include <sqltypes.h>
+#include <sql.h>
+#include <sqlext.h>])
 
 	# test for sizeof(SQLWCHAR)
 	AC_CHECK_SIZEOF(SQLWCHAR,,[#ifdef __MINGW32__

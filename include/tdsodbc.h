@@ -46,6 +46,18 @@
 #endif
 #endif
 
+#ifndef HAVE_SQLSETPOSIROW
+#define SQLSETPOSIROW SQLUSMALLINT
+#endif
+
+#ifndef HAVE_SQLROWOFFSET
+#define SQLROWOFFSET SQLLEN
+#endif
+
+#ifndef HAVE_SQLROWSETSIZE
+#define SQLROWSETSIZE SQLULEN
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -54,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.102 2007-10-30 15:08:25 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.103 2007-11-26 18:12:30 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
