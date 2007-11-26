@@ -1,3 +1,6 @@
+Mon Nov 26 09:51:21 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/bcp.c: fix printf
+
 Mon Nov 26 07:24:43 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/array.c src/odbc/unittests/array_out.c:
 	* src/odbc/unittests/const_params.c src/odbc/unittests/cursor1.c:

@@ -13,7 +13,7 @@
 
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.13 2007-11-21 16:37:14 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.14 2007-11-26 08:52:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -246,7 +246,7 @@ main(int argc, char **argv)
 		int type = dbcoltype(dbproc, i);
 		int len = (type == SYBCHAR || type == SYBVARCHAR)? dbcollen(dbproc, i) : -1;
 		if (bcp_collen(dbproc, len, i) == FAIL) {
-			fprintf(stdout, "bcp_collen failed for column\n", i);
+			fprintf(stdout, "bcp_collen failed for column %d\n", i);
 		        exit(1);
 		}
 	}
