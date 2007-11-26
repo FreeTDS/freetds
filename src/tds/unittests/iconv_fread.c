@@ -29,7 +29,7 @@
 
 /* test tds_iconv_fread */
 
-static char software_version[] = "$Id: iconv_fread.c,v 1.3 2007-04-03 15:11:49 freddy77 Exp $";
+static char software_version[] = "$Id: iconv_fread.c,v 1.4 2007-11-26 14:44:37 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -53,7 +53,7 @@ main(int argc, char **argv)
 	}
 
 	for (i = 0; i < 32; ++i) {
-		char out[512];
+		TDS_CHAR out[512];
 		size_t out_len = sizeof(out), res;
 		const unsigned char x = 0x90;
 

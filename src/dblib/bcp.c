@@ -72,7 +72,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.161 2007-11-21 04:28:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.162 2007-11-26 14:44:37 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1158,7 +1158,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 	TDS_SMALLINT si;
 	TDS_INT li;
 	TDS_INT desttype;
-	BYTE *coldata;
+	TDS_CHAR *coldata;
 
 	int i, collen, data_is_null;
 
@@ -1284,7 +1284,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				cd = (iconv_t) - 1;
 			}
 
-			coldata = (BYTE *) calloc(1, 1 + collen);
+			coldata = calloc(1, 1 + collen);
 			if (coldata == NULL) {
 				*row_error = TRUE;
 				tdsdump_log(TDS_DBG_FUNC, "calloc returned NULL pointer!\n");
@@ -1297,8 +1297,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 			col_bytes_left = collen;
 			/* TODO make tds_iconv_fread handle terminator directly to avoid fseek in _bcp_measure_terminated_field */
-			file_bytes_left = tds_iconv_fread(cd, hostfile, file_len, hostcol->term_len, (TDS_CHAR *)coldata,
-														 &col_bytes_left);
+			file_bytes_left = tds_iconv_fread(cd, hostfile, file_len, hostcol->term_len, coldata, &col_bytes_left);
 			collen -= col_bytes_left;
 
 			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */
@@ -1678,8 +1677,6 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int 
 static int
 _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int start, int *var_cols)
 {
-	TDSCOLUMN *bcpcol;
-	TDS_NUMERIC *num;
 	int row_pos;
 	int cpbytes;
 
@@ -1706,9 +1703,9 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 
 	/* for each column in the target table */
 
+	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %8s %8s %10s %10s\n", "col", "num_cols", "row_pos", "cpbytes", "offset_pos", "adjust_pos");
 	for (i = 0; i < dbproc->bcpinfo->bindinfo->num_cols; i++) {
-
-		bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
+		TDSCOLUMN *bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
 
 		/* 
 		 * Is this column of "variable" type, i.e. NULLable 
@@ -1716,12 +1713,16 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 		 */
 		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable) {
 
-			tdsdump_log(TDS_DBG_FUNC, "_bcp_add_variable_columns column %d is a variable column\n", i + 1);
+			tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d %10d %10d\n", i, num_cols, row_pos, cpbytes, offset_pos, adjust_pos);
 
 			if (behaviour == BCP_REC_FETCH_DATA) { 
 				if ((_bcp_get_col_data(dbproc, bcpcol)) != SUCCEED) {
 		 			return FAIL;
 				}
+				tdsdump_log(TDS_DBG_FUNC, "column %d is %d bytes and is %sNULL\n", 
+						i+1, 
+						bcpcol->bcp_column_data->datalen, 
+						bcpcol->bcp_column_data->null_column? "":"not ");
 			}
 
 			/* If it's a NOT NULL column, and we have no data, throw an error. */
@@ -1735,7 +1736,7 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 				cpbytes = 16;
 				bcpcol->column_textpos = row_pos;               /* save for data write */
 			} else if (is_numeric_type(bcpcol->column_type)) {
-				num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
+				TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 			} else {
@@ -1795,6 +1796,8 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 		}
 	}
 
+	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d %10d %10d\n", i, num_cols, row_pos, cpbytes, offset_pos, adjust_pos);
+
 	if (num_cols) {	
 		/* 
 		 * If we have written any variable columns to the record, add entries 
@@ -1820,6 +1823,8 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 			rowbuffer[row_pos++] = offset_table[i];
 		}
 	}
+
+	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d %10d %10d\n", i, num_cols, row_pos, cpbytes, offset_pos, adjust_pos);
 
 	*var_cols = num_cols;
 
@@ -2054,24 +2059,23 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		dbperror(dbproc, SYBEBCSA, 0, dbproc->hostfileinfo->hostfile, row_of_hostfile); 
 	}
 
-	if (errfile) {
-		if( 0 != fclose(errfile) )
-			dbperror(dbproc, SYBEBUCE, 0);
-		errfile = NULL;
+	if (errfile &&  0 != fclose(errfile) ) {
+		dbperror(dbproc, SYBEBUCE, 0);
 	}
 
 	if (fclose(hostfile) != 0) {
 		dbperror(dbproc, SYBEBCUC, 0);
-		return (FAIL);
+		ret = FAIL;
 	}
 
 	tds_flush_packet(tds);
 
 	tds_set_state(tds, TDS_PENDING);
 
-	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+	if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 		return FAIL;
-
+	}
+	
 	*rows_copied += tds->rows_affected;
 
 	return ret == NO_MORE_ROWS? SUCCEED : FAIL;	/* (ret is returned from _bcp_read_hostfile) */
