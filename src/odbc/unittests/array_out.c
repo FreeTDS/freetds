@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.10 2007-11-26 18:12:30 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.11 2007-11-26 20:03:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -44,8 +44,8 @@ query_test(SQLRETURN expected, const char *expected_status)
 	if (!record_bind) {
 		ids = (SQLUINTEGER *) malloc(sizeof(SQLUINTEGER) * ARRAY_SIZE);
 		descs = malloc(sizeof(SQLCHAR) * ARRAY_SIZE * desc_len);
-		desc_lens = (SQLLEN *) malloc(sizeof(SQLINTEGER) * ARRAY_SIZE);
-		id_lens = (SQLLEN *) malloc(sizeof(SQLINTEGER) * ARRAY_SIZE);
+		desc_lens = (SQLLEN *) malloc(sizeof(SQLLEN) * ARRAY_SIZE);
+		id_lens = (SQLLEN *) malloc(sizeof(SQLLEN) * ARRAY_SIZE);
 		assert(descs && ids && desc_lens && id_lens);
 	} else {
 		rec_size = sizeof(Record) + ((sizeof(SQLCHAR) * desc_len + sizeof(SQLINTEGER) - 1) & ~(sizeof(SQLINTEGER) - 1));

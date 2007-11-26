@@ -1,3 +1,6 @@
+Mon Nov 26 21:02:57 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/array_out.c: fix silly core
+
 Mon Nov 26 19:11:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac include/tdsodbc.h src/odbc/odbc.c:
 	* src/odbc/unittests/array_out.c src/odbc/unittests/common.h:
