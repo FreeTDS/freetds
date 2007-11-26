@@ -1,3 +1,7 @@
+Mon Nov 26 16:47:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/apps/fisql/fisql.c:
+	- do not use functions not availables
+
 Mon Nov 26 09:43:03 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/bcp.c src/tds/unittests/iconv_fread.c
 	- small changes

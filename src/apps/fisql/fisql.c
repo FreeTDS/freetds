@@ -103,6 +103,14 @@ fisql_add_history(const char *s)
 
 #endif
 
+#if !HAVE_RL_ON_NEW_LINE && !defined(rl_on_new_line)
+#define rl_on_new_line()      do {} while(0)
+#endif
+
+#if !HAVE_RL_RESET_LINE_STATE && !defined(rl_reset_line_state)
+#define rl_reset_line_state() do {} while(0)
+#endif
+
 static void *xmalloc(size_t s);
 static void *xrealloc(void *p, size_t s);
 static int get_printable_size(int type, int size);
