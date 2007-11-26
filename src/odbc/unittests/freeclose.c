@@ -50,7 +50,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.4 2007-09-13 10:43:43 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.5 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -273,7 +273,7 @@ int
 main(int argc, char **argv)
 {
 	SQLHSTMT hstmt = NULL;
-	SQLINTEGER sql_nts = SQL_NTS;
+	SQLLEN sql_nts = SQL_NTS;
 	const char *query;
 	SQLINTEGER id = 0;
 	char string[64];

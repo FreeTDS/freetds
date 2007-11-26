@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.8 2006-06-20 21:55:21 castellano Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.9 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -13,8 +13,8 @@ static int record_bind = 0;
 typedef struct
 {
 	SQLUINTEGER id;
-	SQLINTEGER id_len;
-	SQLINTEGER desc_len;
+	SQLLEN id_len;
+	SQLLEN desc_len;
 } Record;
 
 static void
@@ -24,7 +24,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 
 	SQLUINTEGER *ids;
 	SQLCHAR *descs;
-	SQLINTEGER *id_lens, *desc_lens;
+	SQLLEN *id_lens, *desc_lens;
 	SQLULEN processed;
 	SQLUSMALLINT i, statuses[ARRAY_SIZE];
 	int desc_len = trunc ? 4 : 51;
@@ -59,8 +59,8 @@ query_test(SQLRETURN expected, const char *expected_status)
 #define REC(f,n) (((char*)f)+rec_size*(n))
 #define DESCS(n) (rec ? (SQLCHAR*)REC(descs,n): (descs+(n)*desc_len))
 #define IDS(n) *(rec ? (SQLUINTEGER*)REC(ids,n) : &ids[n])
-#define ID_LENS(n) *(rec ? (SQLINTEGER*)REC(id_lens,n) : &id_lens[n])
-#define DESC_LENS(n) *(rec ? (SQLINTEGER*)REC(desc_lens,n) : &desc_lens[n])
+#define ID_LENS(n) *(rec ? (SQLLEN*)REC(id_lens,n) : &id_lens[n])
+#define DESC_LENS(n) *(rec ? (SQLLEN*)REC(desc_lens,n) : &desc_lens[n])
 
 	processed = ARRAY_SIZE + 1;
 	for (i = 0; i < ARRAY_SIZE; i++) {

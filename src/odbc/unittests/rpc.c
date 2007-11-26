@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.7 2006-07-13 09:29:15 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.8 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -78,7 +78,7 @@ Test(const char *name)
                 SQLSMALLINT       DecimalDigits;    /* ibScale */
                 SQLPOINTER        ParameterValuePtr;/* rgbValue */
                 SQLINTEGER        BufferLength;     /* cbValueMax */
-                SQLINTEGER        ind;              /* pcbValue */
+                SQLLEN            ind;              /* pcbValue */
 	};
 	struct Argument args[] = {
 		/* InputOutputType 	  ValueType   ParamType    ColumnSize 
@@ -148,7 +148,6 @@ Test(const char *name)
                 SQLCHAR      name[256] = "";
                 SQLSMALLINT  namelen;
                 SQLSMALLINT  type;
-                SQLUINTEGER  size;
                 SQLSMALLINT  scale;
                 SQLSMALLINT  nullable;
 				  
@@ -162,6 +161,7 @@ Test(const char *name)
 		printf("%-5s %-15s %5s %5s %5s %8s\n", dashes5, dashes15, dashes5, dashes5, dashes5, &dashes[30-8]); 
 		
 		for (icol=ncols; icol > 0; icol--) {
+                	SQLULEN size;
 			erc = SQLDescribeCol( stmt, icol, name, sizeof(name),
 						    &namelen, &type, &size, &scale, &nullable);
 			if (erc != SQL_SUCCESS) {
@@ -169,7 +169,7 @@ Test(const char *name)
 				fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
 				ODBC_REPORT_ERROR("Unable to execute SQLDescribeCol\n");
 			} 			
-			printf("%-5d %-15s %5d %5d %5d %8c\n", icol, name, type, (int)size, scale, (nullable? 'Y' : 'N')); 
+			printf("%-5d %-15s %5d %5ld %5d %8c\n", icol, name, type, (long int)size, scale, (nullable? 'Y' : 'N')); 
 		}
 
 		printf("executing SQLFetch...\n");
@@ -177,7 +177,7 @@ Test(const char *name)
 		for (nrows=0; (erc = SQLFetch(stmt)) == SQL_SUCCESS; nrows++) {
 			const SQLINTEGER icol = 1;
 			char buf[60];
-			SQLINTEGER len;
+			SQLLEN len;
 			erc = SQLGetData( stmt
 					, icol
 					, SQL_C_CHAR	/* fCType */
@@ -222,7 +222,7 @@ Test(const char *name)
 	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
 		if (args[ipar].InputOutputType == SQL_PARAM_INPUT)
 			continue;
-		printf("bound data for parameter %d is %d bytes: ", 1+ipar, (int)args[ipar].ind);
+		printf("bound data for parameter %d is %ld bytes: ", 1+ipar, (long int)args[ipar].ind);
 		switch( args[ipar].ValueType ) {
 		case SQL_C_LONG:
 			printf("%d.\n", (int)(*(SQLINTEGER *)args[ipar].ParameterValuePtr));

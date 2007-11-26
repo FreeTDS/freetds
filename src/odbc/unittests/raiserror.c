@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.18 2007-04-12 13:09:22 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.19 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -83,7 +83,7 @@ static void
 CheckData(const char *s, int line)
 {
 	char buf[80];
-	SQLINTEGER ind;
+	SQLLEN ind;
 	SQLRETURN result;
 
 	result = SQLGetData(Statement, 1, SQL_C_CHAR, buf, sizeof(buf), &ind);

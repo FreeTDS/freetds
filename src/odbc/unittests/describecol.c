@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.9 2006-12-26 14:56:20 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.10 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -202,7 +202,8 @@ main(int argc, char *argv[])
 	const char *in_file = FREETDS_SRCDIR "/" TEST_FILE;
 	FILE *f;
 	char buf[256];
-	SQLINTEGER i, len;
+	SQLINTEGER i;
+	SQLLEN len;
 	get_attr_t get_attr_p = get_attr_none;
 
 	Connect();

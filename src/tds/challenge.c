@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.29 2007-11-13 09:29:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.30 2007-11-26 06:25:11 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -352,7 +352,7 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 
 	/* discard context, target and data informations */
 	tds_get_n(tds, NULL, len - where);
-	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", len - where);
+	tdsdump_log(TDS_DBG_INFO1, "Draining %d bytes\n", (int) (len - where));
 
 	return tds7_send_auth(tds, nonce, flags);
 }

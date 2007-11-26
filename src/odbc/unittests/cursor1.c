@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.11 2007-09-14 09:17:55 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.12 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -52,7 +52,7 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 
 	SQLUINTEGER n[ROWS];
 	char c[ROWS][C_LEN];
-	SQLINTEGER c_len[ROWS], n_len[ROWS];
+	SQLLEN c_len[ROWS], n_len[ROWS];
 
 	SQLUSMALLINT statuses[ROWS];
 	SQLUSMALLINT i;

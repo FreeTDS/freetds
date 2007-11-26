@@ -2,14 +2,15 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.12 2007-05-03 12:54:40 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.13 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-	SQLINTEGER input, ind, ind2, ind3, output;
+	SQLINTEGER input, output;
 	SQLINTEGER out1;
+	SQLLEN ind, ind2, ind3;
 
 	Connect();
 

@@ -1,3 +1,12 @@
+Mon Nov 26 07:24:43 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/array.c src/odbc/unittests/array_out.c:
+	* src/odbc/unittests/const_params.c src/odbc/unittests/cursor1.c:
+	* src/odbc/unittests/describecol.c src/odbc/unittests/freeclose.c:
+	* src/odbc/unittests/insert_speed.c src/odbc/unittests/raiserror.c:
+	* src/odbc/unittests/rpc.c src/odbc/unittests/scroll.c:
+	* src/tds/challenge.c:
+	- fix minor issues with 64bit
+
 Thu Nov 22 09:43:58 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/ctlib/Makefile.am src/dblib/Makefile.am:
 	* src/odbc/Makefile.am:

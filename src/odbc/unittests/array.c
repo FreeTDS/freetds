@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.13 2006-07-25 10:01:25 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.14 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -30,7 +30,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	SQLUINTEGER *ids = XMALLOC_N(SQLUINTEGER,ARRAY_SIZE);
 	typedef SQLCHAR desc_t[DESC_LEN];
 	desc_t *descs = XMALLOC_N(desc_t, ARRAY_SIZE);
-	SQLINTEGER *id_lens = XMALLOC_N(SQLINTEGER,ARRAY_SIZE), *desc_lens = XMALLOC_N(SQLINTEGER,ARRAY_SIZE);
+	SQLLEN *id_lens = XMALLOC_N(SQLLEN,ARRAY_SIZE), *desc_lens = XMALLOC_N(SQLLEN,ARRAY_SIZE);
 	SQLUSMALLINT i, *statuses = XMALLOC_N(SQLUSMALLINT,ARRAY_SIZE);
 	SQLULEN processed;
 	RETCODE ret;

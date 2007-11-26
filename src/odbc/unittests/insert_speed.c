@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: insert_speed.c,v 1.4 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: insert_speed.c,v 1.5 2007-11-26 06:25:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SQL_QUERY_LENGTH 80
@@ -14,7 +14,7 @@ static int
 insert_test_auto(void)
 {
 	SQLHSTMT hstmt = NULL;
-	SQLINTEGER sql_nts = SQL_NTS;
+	SQLLEN sql_nts = SQL_NTS;
 	char query[SQL_QUERY_LENGTH];
 	SQLINTEGER id = 0;
 	char string[64];
@@ -56,7 +56,7 @@ static int
 insert_test_man(void)
 {
 	SQLHSTMT hstmt = NULL;
-	SQLINTEGER sql_nts = SQL_NTS;
+	SQLLEN sql_nts = SQL_NTS;
 	SQLINTEGER commit_off = SQL_AUTOCOMMIT_OFF;
 	SQLINTEGER commit_on = SQL_AUTOCOMMIT_ON;
 	char query[SQL_QUERY_LENGTH];
