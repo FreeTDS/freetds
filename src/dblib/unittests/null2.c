@@ -1,13 +1,12 @@
 /* 
- * Purpose: Test NULL behavior in order to fix problems with PHP and NULLs
- * PHP use dbdata to get data
+ * Purpose: Test NULL behavior using dbbind
  */
 
 #include "common.h"
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null.c,v 1.2 2007-11-27 15:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: null2.c,v 1.1 2007-11-27 15:14:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
@@ -39,23 +38,47 @@ query(const char *query)
 }
 
 static void
-test0(int n, int len)
+test0(int n,  const char * expected)
 {
+	DBINT ind, expected_ind;
+	char text_buf[16];
+
 	dbfcmd(dbproc, "select c from #null where n = %d", n);
 
 	dbsqlexec(dbproc);
 
-	if (dbresults(dbproc) != SUCCEED || dbnextrow(dbproc) != REG_ROW) {
-		fprintf(stdout, "Was expecting a row.\n");
+	if (dbresults(dbproc) != SUCCEED) {
+		fprintf(stderr, "Was expecting a row.\n");
 		failed = 1;
 		dbcancel(dbproc);
 		return;
 	}
 
-	if (dbdatlen(dbproc, 1) != (len < 0 ? 0 : len) || (len < 0 && dbdata(dbproc, 1) != NULL) || (len >= 0 && dbdata(dbproc, 1) == NULL)) {
-		fprintf(stderr, "Unexpected result for n == %d len %d data %p\n", n, dbdatlen(dbproc, 1), dbdata(dbproc, 1));
-		dbcancel(dbproc);
+	dbbind(dbproc, 1, NTBSTRINGBIND, 0, (BYTE *)text_buf);
+	dbnullbind(dbproc, 1, &ind);
+
+	memset(text_buf, 'a', sizeof(text_buf));
+	ind = -5;
+
+	if (dbnextrow(dbproc) != REG_ROW) {
+		fprintf(stderr, "Was expecting a row.\n");
 		failed = 1;
+		dbcancel(dbproc);
+		return;
+	}
+
+	text_buf[sizeof(text_buf) - 1] = 0;
+	printf("ind %d text_buf -%s-\n", (int) ind, text_buf);
+
+	expected_ind = 0;
+	if (strcmp(expected, "aaaaaaaaaaaaaaa") == 0)
+		expected_ind = -1;
+
+	if (ind != expected_ind || strcmp(expected, text_buf) != 0) {
+		fprintf(stderr, "expected_ind %d expected -%s-\n", (int) expected_ind, expected);
+		failed = 1;
+		dbcancel(dbproc);
+		return;
 	}
 
 	if (dbnextrow(dbproc) != NO_MORE_ROWS) {
@@ -101,12 +124,12 @@ test(const char *type, int give_err)
 	query("insert into #null values(1, '')");
 	query("insert into #null values(2, NULL)");
 	query("insert into #null values(3, ' ')");
-	query("insert into #null values(4, 'a')");
+	query("insert into #null values(4, 'foo')");
 
-	test0(1, 0);
-	test0(2, -1);
-	test0(3, 1);
-	test0(4, 1);
+	test0(1, "");
+	test0(2, "aaaaaaaaaaaaaaa");
+	test0(3, "");
+	test0(4, "foo");
 
 	query("drop table #null");
 }
@@ -146,6 +169,7 @@ main(int argc, char **argv)
 		dbuse(dbproc, DATABASE);
 
 	test("VARCHAR(10)", 1);
+	test("CHAR(10)", 1);
 	test("TEXT", 1);
 
 	test("NVARCHAR(10)", 0);

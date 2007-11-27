@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.41 2007-11-15 13:34:04 freddy77 Exp $
+# $Id: Makefile.am,v 1.42 2007-11-27 15:14:25 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -9,7 +9,7 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0023$(EXEEXT) rpc$(EXEEXT) dbmorecmds$(EXEEXT)\
 			bcp$(EXEEXT) thread$(EXEEXT) text_buffer$(EXEEXT)\
 			done_handling$(EXEEXT) timeout$(EXEEXT) \
-			hang$(EXEEXT) null$(EXEEXT)
+			hang$(EXEEXT) null$(EXEEXT) null2$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES	=	t0001.c common.c common.h
@@ -43,6 +43,7 @@ done_handling_SOURCES =	done_handling.c common.c common.h
 timeout_SOURCES =	timeout.c common.c common.h
 hang_SOURCES	=	hang.c common.c common.h
 null_SOURCES	=	null.c common.c common.h
+null2_SOURCES	=	null2.c common.c common.h
 
 AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
 if MINGW32

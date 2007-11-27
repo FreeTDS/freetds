@@ -1,3 +1,8 @@
+Tue Nov 27 16:12:56 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/Makefile.am src/dblib/unittests/null2.c(added):
+	- test dbbind/dbnullbind with NULLs
+	* src/dblib/unittests/null.c: add note
+
 Tue Nov 27 13:37:35 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/t0001.c src/dblib/unittests/t0022.c:
 	- compile with Sybase libraries
