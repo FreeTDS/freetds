@@ -1,3 +1,8 @@
+Tue Nov 27 13:37:35 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/t0001.c src/dblib/unittests/t0022.c:
+	- compile with Sybase libraries
+	* src/dblib/unittests/t0008.c: more verbose
+
 Mon Nov 26 21:02:57 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/array_out.c: fix silly core
 
