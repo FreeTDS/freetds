@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0022.c,v 1.23 2007-09-17 08:46:02 freddy77 Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.24 2007-11-27 12:38:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -107,6 +107,7 @@ main(int argc, char **argv)
 
 	add_bread_crumb();
 
+#if defined(DBTDS_7_0) && defined(DBTDS_8_0) && defined(DBTDS_9_0)
 	if ((dbnumrets(dbproc) == 0)
 	    && ((DBTDS(dbproc) == DBTDS_7_0)
 		|| (DBTDS(dbproc) == DBTDS_8_0)
@@ -124,6 +125,7 @@ main(int argc, char **argv)
 		free_bread_crumb();
 		exit(0);
 	}
+#endif
 	for (i = 1; i <= dbnumrets(dbproc); i++) {
 		add_bread_crumb();
 		retname = dbretname(dbproc, i);

@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.24 2007-01-15 02:00:58 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.25 2007-11-27 12:38:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -77,7 +77,9 @@ main(int argc, char **argv)
 	}
 	add_bread_crumb();
 
+#ifdef DBQUOTEDIDENT
 	fprintf(stdout, "QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
+#endif
 	
 	fprintf(stdout, "creating table\n");
 	dbcmd(dbproc, "create table #dblib0001 (i int not null, s char(10) not null)");
@@ -88,12 +90,16 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 0; i < rows_to_add; i++) {
-	char cmd[1024];
+		char cmd[1024];
 
+#ifdef DBQUOTEDIDENT
 		if(dbisopt(dbproc, DBQUOTEDIDENT, NULL)) 
 			sprintf(cmd, "insert into #dblib0001 values (%d, 'row %03d')", i, i);
 		else
 			sprintf(cmd, "insert into #dblib0001 values (%d, \"row %03d\")", i, i);
+#else
+		sprintf(cmd, "insert into #dblib0001 values (%d, 'row %03d')", i, i);
+#endif
 		fprintf(stdout, "%s\n", cmd);
 		dbcmd(dbproc, cmd);
 		dbsqlexec(dbproc);

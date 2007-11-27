@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.14 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.15 2007-11-27 12:38:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -120,7 +120,7 @@ main(int argc, char **argv)
 
 		add_bread_crumb();
 		if (REG_ROW != dbnextrow(dbproc)) {
-			fprintf(stderr, "dblib failed for %s\n", __FILE__);
+			fprintf(stderr, "dblib failed for %s, dbnextrow1\n", __FILE__);
 			add_bread_crumb();
 			dbexit();
 			add_bread_crumb();
@@ -131,7 +131,7 @@ main(int argc, char **argv)
 		add_bread_crumb();
 		last_read = testint;
 		if (testint < 1 || testint > rows_to_add) {
-			fprintf(stderr, "dblib failed for %s\n", __FILE__);
+			fprintf(stderr, "dblib failed for %s testint = %d\n", __FILE__, (int) testint);
 			exit(1);
 		}
 		if (testint != i) {
@@ -146,7 +146,7 @@ main(int argc, char **argv)
 	}
 
 	if (REG_ROW == dbnextrow(dbproc)) {
-		fprintf(stderr, "dblib failed for %s\n", __FILE__);
+		fprintf(stderr, "dblib failed for %s, dbnextrow2\n", __FILE__);
 		add_bread_crumb();
 		dbexit();
 		add_bread_crumb();
@@ -162,7 +162,7 @@ main(int argc, char **argv)
 	if (last_read == rows_to_add - 1)
 		printf("dblib okay for %s\n", __FILE__);
 	else
-		fprintf(stderr, "dblib failed for %s\n", __FILE__);
+		fprintf(stderr, "dblib failed for %s last_read %d\n", __FILE__, (int) last_read);
 	free_bread_crumb();
 	return (last_read == rows_to_add - 1) ? 0 : 1;
 }
