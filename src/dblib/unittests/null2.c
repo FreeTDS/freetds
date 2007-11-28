@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null2.c,v 1.1 2007-11-27 15:14:25 freddy77 Exp $";
+static char software_version[] = "$Id: null2.c,v 1.2 2007-11-28 14:16:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
@@ -15,15 +15,23 @@ static int failed = 0;
 static int
 ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
 {
+	int res;
+
 	dbsetuserdata(dbproc, (BYTE*) &msgno);
-	return syb_msg_handler(dbproc, msgno, state, severity, text, server, proc, line);
+	res = syb_msg_handler(dbproc, msgno, state, severity, text, server, proc, line);
+	dbsetuserdata(dbproc, NULL);
+	return res;
 }
 
 static int
 ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
+	int res;
+
 	dbsetuserdata(dbproc, (BYTE*) &dberr);
-	return syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+	res = syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+	dbsetuserdata(dbproc, NULL);
+	return res;
 }
 
 static void

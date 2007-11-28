@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.40 2007-11-12 18:58:33 jklowden Exp $ */
+/* $Id: dblib.h,v 1.41 2007-11-28 14:16:42 freddy77 Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -209,11 +209,12 @@ RETCODE _bcp_get_prog_data(DBPROCESS * dbproc);
 extern MHANDLEFUNC _dblib_msg_handler;
 extern EHANDLEFUNC _dblib_err_handler;
 
-#define CHECK_PARAMETER(x, msg)	if (!(x)) { dbperror(dbproc, (msg), 0); return FAIL; }
-#define CHECK_PARAMETER2(x, msg, ret)	if ((x) == NULL) { dbperror(dbproc, (msg), 0); return (ret); }
-#define CHECK_PARAMETER_RETVOID(x, msg)	if ((x) == NULL) { dbperror(dbproc, (msg), 0); return; }
-#define CHECK_PARAMETER_NOPROC(x, msg)	if ((x) == NULL) { dbperror(NULL, (msg), 0); return FAIL; }
+#define CHECK_PARAMETER(x, msg, ret)	if (!(x)) { dbperror(dbproc, (msg), 0); return ret; }
+#define CHECK_DBPROC() CHECK_PARAMETER(dbproc, SYBENULL, FAIL)
+#define CHECK_NULP(x, func, param_num, ret)	if (!(x)) { dbperror(dbproc, SYBENULP, 0, func, (int) param_num); return ret; }
+#define CHECK_PARAMETER_NOPROC(x, msg)	if (!(x)) { dbperror(NULL, (msg), 0); return FAIL; }
 #define DBPERROR_RETURN(x, msg)	if (x) { dbperror(dbproc, (msg), 0); return FAIL; }
+#define DBPERROR_RETURN3(x, msg, a, b, c)	if (x) { dbperror(dbproc, (msg), 0, a, b, c); return FAIL; }
 
 
 #ifdef __cplusplus

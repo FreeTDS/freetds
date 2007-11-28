@@ -1,3 +1,12 @@
+Wed Nov 28 15:15:43 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac:
+	- include windows.h under windows
+	- include sql.h directly to avoid MingW problems
+	* include/dblib.h src/dblib/bcp.c src/dblib/dblib.c src/dblib/rpc.c:
+	- avoid core checking for parameters if argument are expected
+	* src/dblib/unittests/null.c src/dblib/unittests/null2.c:
+	- avoid invalid references to deallocated stack
+
 Wed Nov 28 09:48:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/bcp.c: remove warnings
 

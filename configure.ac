@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.25 2007-11-26 18:12:30 freddy77 Exp $
+dnl $Id: configure.ac,v 1.26 2007-11-28 14:16:41 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.65.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.25 $)
+AC_REVISION($Revision: 1.26 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -518,10 +518,15 @@ then
 	# test for SQLLEN (iODBC do not define but typedef it)
 	save_cppflags="$CPPFLAGS"
 	CPPFLAGS="$CPPFLAGS $ODBC_INC"
-	AC_TRY_COMPILE([#include <sqltypes.h>], [SQLLEN len = 123;],
+	AC_TRY_COMPILE([#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include <windows.h>
+#endif
+#include <sql.h>], [SQLLEN len = 123;],
 		AC_DEFINE(HAVE_SQLLEN, 1, [Define if sqltypes.h define SQLLEN])
 		# check SQLColAttribute definition
-		AC_TRY_COMPILE([#include <sqltypes.h>
+		AC_TRY_COMPILE([#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include <windows.h>
+#endif
 #include <sql.h>
 #include <sqlext.h>
 
@@ -533,7 +538,9 @@ SQLRETURN  SQL_API SQLColAttribute (SQLHSTMT StatementHandle,
 		AC_DEFINE(TDS_SQLCOLATTRIBUTE_SQLLEN, 1, [Define to 1 if last argument of SQLColAttribute it's SQLLEN *]))
 
 		# check is SQLParamOptions accept SQLULEN
-		AC_TRY_COMPILE([#include <sqltypes.h>
+		AC_TRY_COMPILE([#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include <windows.h>
+#endif
 #include <sql.h>
 #include <sqlext.h>
 
@@ -544,15 +551,17 @@ SQLRETURN SQL_API SQLParamOptions(SQLHSTMT       hstmt,
 		AC_DEFINE(TDS_SQLPARAMOPTIONS_SQLLEN, 1, [Define to 1 if SQLParamOptions accept SQLULEN as arguments]))
 	)
 
-	AC_CHECK_TYPES([SQLSETPOSIROW, SQLROWSETSIZE, SQLROWOFFSET],,, [#include <sqltypes.h>
+	AC_CHECK_TYPES([SQLSETPOSIROW, SQLROWSETSIZE, SQLROWOFFSET],,, [#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
+#include <windows.h>
+#endif
 #include <sql.h>
 #include <sqlext.h>])
 
 	# test for sizeof(SQLWCHAR)
-	AC_CHECK_SIZEOF(SQLWCHAR,,[#ifdef __MINGW32__
+	AC_CHECK_SIZEOF(SQLWCHAR,,[#if defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
 #include <windows.h>
 #endif
-#include <sqltypes.h>])
+#include <sql.h>])
 
 	CPPFLAGS="$save_cppflags"
 else 
