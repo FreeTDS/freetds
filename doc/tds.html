@@ -1,9 +1,9 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" 
+        "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.7 [en] (WinNT; I) [Netscape]">
-   <title>TDS Protocol Documentation</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  	<title>TDS Protocol Documentation</title>
 </head>
 
 <body>
@@ -12,7 +12,7 @@
 This document attempts to cover the TDS protocol for:
 </P>
 
-<table border=1>
+<table border=1 summary="protocol.versions">
 	<tr><td align=center><b>TDS Version</b></td><td><b>Supported Products</b></td></tr>
 	<tr><td align=center>4.2</td><td>Sybase SQL Server &lt; 10 and  Microsoft SQL Server 6.5</td></tr>
 	<tr><td align=center>5.0</td><td>Sybase SQL Server &gt;= 10</td></tr>
@@ -20,9 +20,9 @@ This document attempts to cover the TDS protocol for:
 	<tr><td align=center>8.0</td><td>Microsoft SQL Server 2000</td></tr>
 	<tr><td align=center>9.0</td><td>Microsoft SQL Server 2005</td></tr>
 </table>
-<p>
-<b>Contents</b>
-<br>
+
+<h2>Contents</h2>
+
 <ul>
 <li><a href="#terms">Common Terms</a>
 <li><a href="#examples">Typical Usage Sequences</a>
@@ -34,9 +34,9 @@ This document attempts to cover the TDS protocol for:
 <li><a href="#responses">Server Responses</a>
 </ul>
 
+<h2 class="section">Common Terms</h2>
 <p>
 <a name="terms"></a>
-<b class="section">Common Terms</b>
 <pre>
 TDS protocol versions
   TDS5    tds version 5.0
@@ -54,13 +54,11 @@ Variable types used in this document:
   INT32    32-bit int
   UCS2LE   Unicode in UCS2LE format
 </pre>
-Note:  FreeTDS uses TDS_TINYINT for INT8 and TDS_SMALLINT for INT16.
+<p>Note:  FreeTDS uses TDS_TINYINT for INT8 and TDS_SMALLINT for INT16.</p>
 
-<p>
-<a name="examples"></a>
-<b class="section">Typical Usage sequences</b>
-<br>
-<br>
+<h2 class="section">Typical Usage sequences</h2>
+
+<p><a name="examples"></a>
 These are TDS 4.2 and not meant to be 100% correct, but
 I thought they might be helpful to get an overall view 
 of what goes on.
@@ -93,11 +91,9 @@ of what goes on.
 &lt;-- Process Done
 </pre>
 
+<h2 class="section">The packet format</h2>
 <p>
 <a name="packet"></a>
-<b class="section">The packet format</b>
-<br>
-<br>
 All packets start with the following 8 byte header.  
 
 <pre>
@@ -114,7 +110,7 @@ packet type
      0x03 <a href="#p3">RPC</a>
      0x04 <a href="#responses">responses from server</a>
      0x06 cancels
-     0x07 Used in Bulk
+     0x07 Used in <a href="#p7">Bulk Copy</a>
      0x0F TDS 5.0 query
      0x10 <a href="#login7">TDS 7.0 login packet</a>
      0x11 <a href="#auth7">TDS 7.0 authentication packet</a>
@@ -129,24 +125,22 @@ unknown?
      this has something to do with server to server communication/rpc stuff
 </pre>
 
-The remainder of the packet depends on the type of information it is
+<p>The remainder of the packet depends on the type of information it is
 providing.  As noted above, packets break down into the types query, login,
 response, and cancels.  Response packets are further split into multiple
 sub-types denoted by the first byte (a.k.a. the token) following the
-above header.
-<br>
-<br>
-<i>Note:</i>
+above header.</p>
+
+<p><i>Note:</i>
   A TDS packet that is longer than 512 bytes is split on the 512 byte
   boundary and the "more packets" bit is set.  The full TDS packet is reassembled
   from its component 512 byte packets with the 8-byte headers stripped out.  (I
   believe the 512 is the block_size in the login packet, so it could be set to a
-  different value. *mjs*)
-
+  different value. *mjs*)</p>
 <hr>
 <p>
 <a name="login"></a>
-<b class="section">Login Packet</b>
+<h2 class="section">Login Packet</h2>
 
 <p>
 Packet type (first byte) is 2. The numbers
@@ -198,13 +192,12 @@ byte   var type    description
  571   INT8        block_size_length 
  572   ?           magic10[25]        /* lots of stuff here...no clue */
 </pre>
-Any help with the magic numbers would be most appreciated.
+<p>Any help with the magic numbers would be most appreciated.</p>
 
-<br>
 <hr>
 <p>
 <a name="login7"></a>
-<b class="section">TDS7.0 Login Packet</b>
+<h2 class="section">TDS7.0 Login Packet</h2>
 <pre>
 byte  var type  description
 ---------------------------
@@ -294,9 +287,9 @@ That implies there are at least 2 more strings that could be defined.
 <a href="#t237">Authentication</a> token followed by a <a href="#auth7">Authentication packet</a>.</p>
 
 <hr>
+<h2 class="section">TDS7.0 Authentication Packet</h2>
 <p>
 <a name="auth7"></a>
-<b class="section">TDS7.0 Authentication Packet</b>
 </p>
 
 <pre>
@@ -312,11 +305,11 @@ auth   authentication data
 <p>This packet usually follow <a href="#t237">Authentication</a> token.</p>
 
 <hr>
+<h2 class="section">Types</h2>
 <p>
 <a name="types"></a>
-<b class="section">Types</b>
 </p>
-<table border="1">
+<table border="1" summary="packets">
 <tr>
   <th>HEX</th><th>DEC</th><th>type</th><th>protocol</th><th>nullable</th><th>size</th><th>collate</th>
 </tr>
@@ -444,7 +437,7 @@ auth   authentication data
 <hr>
 <p>
 <a name="collate"></a>
-<b class="section">Collate type - TDS8</b>
+<h2 class="section">Collate type - TDS8</h2>
 <p>Collate structure contain information on characters set encoding and compare
 method.</p>
 <pre>
@@ -470,9 +463,7 @@ charset_id  charset id in master..syscharsets table or zero for no SQL collation
 query</p>
 
 <hr>
-<a name="colInfo">&nbsp;</a>
-<b class="subsection">Column Informations</b>
-
+<h2 id="colInfo"><b class="subsection">Column Metadata</b></h2>
 
 <pre>
  INT8          XCHAR[n]       INT8    INT32   INT8
@@ -510,24 +501,24 @@ locale info        unknown
 </pre>
 
 <hr>
-<p>
-<a name="requests"></a>
-<b class="section">Client request</b>
-<p>
 
-Normal tokens (contained in packets 0xF)
+<h2 id="requests" class="section">Client request</h2>
+
+<p>Normal tokens (contained in packets 0xF)
+
 <pre>
 TODO
 </pre>
 
-Special packets
-<pre>
-0x1  1  <a href="#p1">Language</a>
-0x3  3  <a href="#p3">RPC</a>      TDS4.6+
-</pre>
+<p>Special packets</p>
+<ul>
+<li>0x1  1  <a href="#p1">Language</a></li>
+<li>0x3  3  <a href="#p3">RPC</a>      TDS 4.6+</li>
+<li>0x7  3  <a href="#p7">BCP</a>      TDS 5.0+</li>
+</ul>
 
 <hr>
-<a name="p1"><b class="section">Language packet (0x1 1)</b></a>
+<h2><a name="p1"><b class="section">Language packet (0x1 1)</b></a></h2>
 <p>
 This sample packet contain just SQL commands. It's supported by all TDS version
 (although TDS5 have others token with similar use)
@@ -541,7 +532,7 @@ string   SQL text
 </pre>
 
 <hr>
-<a name="p3"><b class="section">RPC packet (0x3 3)</b></a>
+<h2 id="p3"><b class="section">RPC packet (0x3 3)</b></h2>
 
 <p> Do not confuse an RPC packet with an RPC token. The RPC packet is supported
 by all version of TDS; the RPC token is supported only by TDS 5.0 (and has
@@ -583,7 +574,7 @@ flags         bit flags.
 params        parameters. See below
 </pre>
 
-Every parameter has the following structure
+<p>Every parameter has the following structure</p>
 
 <pre>
 +-----------+------+
@@ -593,7 +584,7 @@ data info    data information. See below
 data         data. See results for detail
 </pre>
 
-Data info structure
+<h4>Data info structure</h4>
 <pre>
   INT8          XCHAR[n]     INT8    INT32
 +-------------+------------+-------+-----------------+
@@ -623,7 +614,7 @@ locale length locale information length. Usually 0 (if not locale
               information follow, the structure is unknown)
 </pre>
 
-<b>Chained RPCs</b>
+<h2>Chained RPCs</h2>
 <p>Under TDS7+ is possible to chain multiple RPCs together. This is useful to limit packets and round-trips with server. RPCs can be chained using byte 0x80 (TDS7/TDS8) or 0xFF (TDS9).</p>
 
 <pre>
@@ -634,16 +625,124 @@ locale length locale information length. Usually 0 (if not locale
 </pre>
 
 <hr>
+
+<h2 id="p7" class="section">Bulk Copy packet (0x7)</h2>
+
+<p>This documents a TDS 5.0 packet.  It might be true for others....
+
+<h3>BCP Packet Structure</h3>
+<pre>
+ INT8       INT16          INT32                
++----------+-------------+--------------------+
+|  packet  | last packet |  packet            |
+| type = 7 |  indicator  |   size             |
++----------+-------------+--------------------+
+
+		followed by N row buffers, 
+		where N is computed by exhausting the packet size
+</pre>
+<h3>BCP Packet Row Buffer</h3>
+<pre>
+ INT16          INT8       INT8	      INT16	    
++--------------+----------+----------+--------------+
+| size         |  ncols   |  zero    | size (again) |
++--------------+----------+----------+--------------+
+
+	followed by column buffers (data), where 
+		
+		first, the fixed-size datatype columns
+
+		 fixed size and count (determined by column definition)
+		+--------------+
+		|    data .... | [repeats once for each mandatory column]
+		+--------------+
+
+		then, the variable-size (including nullable) datatype columns
+
+		 variable size and count
+		+--------------+
+		|    data .... | [repeats ncol times]
+		+--------------+
+
+		followed by two tables (!) to describe the column buffers
+
+ <b>Adjustment Table</b> (optional)
+ 
+ INT8       INT8        
++----------+----------+
+| 1 + ncols| offset   | [repeats ncol + 1 times]
++----------+----------+
+
+ <b>Offset Table</b> (mandatory)
+ 
+ INT8       INT8        
++----------+----------+
+| 1 + ncols| offset   | [repeats ncol + 1 times]
++----------+----------+
+</pre>	   
+
+<P>The BCP packet has a slightly different Packet header!?  </P>
+
+<h3>Computation of Offset and Adjustment tables</h3>
+
+<p>The offset and adjustment tables describe the postion of the first byte of each variable-size column.  The first element holds the count of elements in the offset/adjustment table.  Thereafer, the offsets are arranged in reverse order: the last element &mdash; which is also the last byte of the row buffer &mdash; holds the offset from the start of the row of the first variable-size column.  The next-to-last offset table element holds the starting position of the second variable-size column, and so on.</p>
+
+<h4>Offset Table Example</h4>
+
+<ol>
+	<li>5</li>
+	<li>31</li>
+	<li>22</li>
+	<li>21</li>
+	<li>8</li>
+	<li>4</li>
+</ol>
+
+<p>The first element is 5 because there are five elements in the list.  There are 4 column data buffers with 5 endpoints.  The first column's data begins at offset 4.  Computations:
+
+<dl>
+	<dt>column 1</dt>
+		<dd>offset 4</dd>
+		<dd>length: 4 = 8 - 4</dd>
+	<dt>column 2</dt>
+		<dd>offset 8</dd>
+		<dd>length: 13 = 21 - 8</dd>
+	<dt>column 3</dt>
+		<dd>offset 21</dd>
+		<dd>length: 1 = 22 - 21</dd>
+	<dt>column 4</dt>
+		<dd>offset 22</dd>
+		<dd>length: 9 = 31 - 22</dd>
+</dl>
+
+
+<p>Any column not accounted for is implicitly NULL.  To represent a NULL column between two dataful columns, the offset table will have adjacent entries of the same value.  </p>
+
+<h4>Adjustment table</h4>
+
+<p>The so-called adjustment table provides for longer rows.  The reader will note the Offset table has 8-bit elements, which would limit the width of the table: the last variable column would have to end less than 256 bytes from the start fo the row.  Rather than changing the definition of the Offset table, a second table, the Adjustment table, was introduced.  It holds high-order bytes for the column offsets.  </p>
+
+<p>In other words, to compute a variable column's offset from the start of the row buffer, the server looks up its offset table value, then consults the same position in the adjustment table, and splices them together. </p>
+
+<h3>Offset table commentary</h3>
+
+<p>The BCP packet is very dense.  The data formats are governed by the table definition.  Non-NULL columns of course must be present; there is no need to count them or compute their size.  The NULL columns are undelimited; their boundaries are defined by the minimalist offset table.  </p>
+
+<p>The Adjustment table seems silly at first glance.   Why not just make the offset table's elements 16 or or even 32 bits?  The reason is overhead.  Most rows will have less than 256 bytes of variable column data.  By using the adjustment table, the BCP packet avoids adding one or even three empty bytes per column per row.  </p>
+
+<p>Why is the table in reverse order?  Because that places the first offset at a known location: the end of each <i>row</i> gives the start of the first column.  The server can work its way down the offset table and compute the column sizes.  If they don't add up &mdash; if there are data between the (presumed) end of the last column and the start of the offset table &mdash; the server knows it should look for an adjustment table.  Because the scheme is infinitely repeatable, rows could one day grow to terabyte widths without redefining the packet structure. </p>
+
+<hr>
+
+<h2 class="section">Server Responses</h2>
 <p>
 <a name="responses"></a>
-<b class="section">Server Responses</b>
-<p>
 Responses from the server start with a single octet (token) identifying
 its type. If variable length, they generally have the length as the second
 and third bytes
 <p>
 Tokens encountered thus far:
-<table border="1">
+<table border="1" summary="tokens">
 <tr>
  <th>HEX</th><th>DEC</th><th>name</th><th>note</th>
 </tr>
@@ -697,6 +796,7 @@ Tokens encountered thus far:
 </tr>
 <tr>
  <td>0xA1</td><td>161</td><td><a href="#t161">Column Format</a></td><td>4.2 only</td>
+<td>31</td>
 </tr>
 <tr>
  <td>0xA3</td><td>163</td><td><a href="#t163">Dynamic 2</a></td><td>5.0 only</td>
@@ -778,13 +878,12 @@ Tokens encountered thus far:
 </tr>
 </table>
 
-<a name="t32">&nbsp;</a> <hr>
-<b class="section">Param Format 2 - TDS5 (0x20 32)</b>
+<h2 class="section">Param Format 2 - TDS5 (0x20 32)</h2>
 
 <p>TODO.
+<a name="t32">&nbsp;</a> <hr>
 
-<a name="t33">&nbsp;</a> <hr>
-<b class="section">Language - TDS5 (0x21 33)</b>
+<h2 id="t33" class="section">Language - TDS5 (0x21 33)</h2>
 
 <pre>
  INT32    INT8     CHAR[n]
@@ -798,23 +897,22 @@ status  0 no args
 query   query (total length - 1)
 </pre>
 
-<a name="t34">&nbsp;</a> <hr>
-<b class="section">Order By 2 (0x22 34)</b>
+<h2 class="section">Order By 2 (0x22 34)</h2>
 
 <p>TODO.
+<a name="t34">&nbsp;</a> <hr>
 
-<a name="t97">&nbsp;</a> <hr>
-<b class="section">Row Format 2 - TDS5 (0x61 97)</b>
+<h2 id="t97" class="section">Row Format 2 - TDS5 (0x61 97)</h2>
 
 <p>TODO.
 
 <a name="t113">&nbsp;</a> <hr>
-<b class="section">"Logout" (0x71 113)</b>
+<h2 class="section">"Logout" (0x71 113)</h2>
 <p>
 No information. (1 byte, value=0 ?)
 
 <a name="t121">&nbsp;</a> <hr>
-<b class="subsection">Return Status (0x79 121)</b>
+<h2 class="subsection">Return Status (0x79 121)</h2>
 
 <pre>
  INT32
@@ -823,10 +921,12 @@ No information. (1 byte, value=0 ?)
 +---------------+
 </pre>
 
-The return value of a stored procedure.
+<p>The return value of a stored procedure.
+<a name="t124">&nbsp;</a> 
+</p>
 
-<a name="t124">&nbsp;</a> <hr>
-<b class="subsection">Process ID (0x7C 124)</b>
+<h2 class="subsection">Process ID (0x7C 124)</h2>
+<hr>
 
 <pre>
  8 bytes
@@ -834,21 +934,23 @@ The return value of a stored procedure.
 | process number |
 +----------------+
 </pre>
-Presumably the process ID number for an executing stored procedure.
+<p>Presumably the process ID number for an executing stored procedure.
 (I'm not sure how this would ever be used by a client.  *mjs*)
 
-<a name="t128">&nbsp;</a> <hr>
-<b class="subsection">Cursor Close - TDS5 (0x80 128)</b>
+<a name="t128">&nbsp;</a> </p>
+
+<hr>
+<h2 class="subsection">Cursor Close - TDS5 (0x80 128)</h2>
 
 <p>TODO.
 
 <a name="t129c">&nbsp;</a> <hr>
-<b class="subsection">Cursor Delete - TDS5 (0x81 129)</b>
+<h2 class="subsection">Cursor Delete - TDS5 (0x81 129)</h2>
 
 <p>TODO.
 
 <a name="t129">&nbsp;</a> <hr>
-<b class="subsection">Result - TDS7+ (0x81 129)</b>
+<h2 class="subsection">Result - TDS7+ (0x81 129)</h2>
 
 <pre>
  INT16  
@@ -857,7 +959,7 @@ Presumably the process ID number for an executing stored procedure.
 +----------+-------------+
 </pre>
 
-The TDS 7.0 column_info is formatted as follows for each column:
+<p>The TDS 7.0 column_info is formatted as follows for each column:</p>
 
 <pre>
  INT16      INT16   INT8   varies  varies     INT8[5]      INT8          UCS2LE[n]
@@ -892,33 +994,27 @@ optional
 </pre>
 
 
-<a name="t130">&nbsp;</a> <hr>
-<b class="subsection">Cursor Fetch - TDS5 (0x82 130)</b>
+<h2 id="t130" class="subsection">Cursor Fetch - TDS5 (0x82 130)</h2>
 
 <p>TODO.
 
-<a name="t131">&nbsp;</a> <hr>
-<b class="subsection">Cursor Info - TDS5 (0x83 131)</b>
+<h2 id="t131" class="subsection">Cursor Info - TDS5 (0x83 131)</h2>
 
 <p>TODO.
 
-<a name="t132">&nbsp;</a> <hr>
-<b class="subsection">Cursor Open - TDS5 (0x84 132)</b>
+<h2 id="t132" class="subsection">Cursor Open - TDS5 (0x84 132)</h2>
 
 <p>TODO.
 
-<a name="t134">&nbsp;</a> <hr>
-<b class="subsection">Cursor Declare - TDS5 (0x86 134)</b>
+<h2 id="t134" class="subsection">Cursor Declare - TDS5 (0x86 134)</h2>
 
 <p>TODO.
 
-<a name="t136">&nbsp;</a> <hr>
-<b class="subsection">Compute Result - TDS7+ (0x88 136)</b>
+<h2 id="t136" class="subsection">Compute Result - TDS7+ (0x88 136)</h2>
 
 <p>TODO.
 
-<a name="t160">&nbsp;</a> <hr>
-<b class="subsection">Column Name (0xA0 160)</b>
+<h2 id="t160" class="subsection">Column Name (0xA0 160)</h2>
 
 <pre>
  INT16          INT8      CHAR[n]               INT8      CHAR[n] 
@@ -930,8 +1026,7 @@ optional
 <p>This token is the first token that contain result informations. Is usually followed by <a href="#t161">Column Format</a> token (0xA1 161)</p>
 
 <hr>
-<a name="t161">&nbsp;</a>
-<b class="subsection">Column Format (0xA1 161)</b>
+<h2 id="t161" class="subsection">Column Format (0xA1 161)</h2>
 
 <pre>
  INT16  
@@ -986,18 +1081,15 @@ optional
                               +-------------------+------------+
 </pre>
 
-<a name="t163">&nbsp;</a> <hr>
-<b class="subsection">Dynamic 2 - TDS5 (0xA3 163)</b>
+<h2 id="t163" class="subsection">Dynamic 2 - TDS5 (0xA3 163)</h2>
 
 <p>TODO.
 
-<a name="t166">&nbsp;</a> <hr>
-<b class="subsection">Option Cmd - TDS5 (0xA6 166)</b>
+<h2 id="t166" class="subsection">Option Cmd - TDS5 (0xA6 166)</h2>
 
 <p>TODO.
 
-<a name="t168">&nbsp;</a> <hr>
-<b class="subsection">Compute Result (0xA8 168)</b>
+<h2 id="t168" class="subsection">Compute Result (0xA8 168)</h2>
 
 <pre>
  INT16          INT16        INT8       varies        INT8      INT8[n]
@@ -1041,8 +1133,7 @@ locale info   locale informations (unknown)
 <p>Each bycol information contains column info for a specific column.</p>
 <p>TODO: optional possible?? collate infos ??</p>
 
-<a name="t164">&nbsp;</a> <hr>
-<b class="section">TabName (0xA4 164)</b>
+<h2 id="t164" class="section">TabName (0xA4 164)</h2>
 
 <p>TDS4/5/7:</p>
 
@@ -1076,8 +1167,7 @@ ie:
   db.dbo.name -&gt; 03  02 00  ucs2le "db"  03 00  ucs2le "dbo"  04 00  ucs2le "name"
 </pre>
 
-<a name="t165">&nbsp;</a> <hr>
-<b class="section">Column Info (0xA5 165)</b>
+<h2 id="t165" class="section">Column Info (0xA5 165)</h2>
 
 <pre>
  INT16          varies
@@ -1107,13 +1197,12 @@ name length  length of following column
 column name  real column name (result contain the label)
 </pre>
 
-<p>This token follow TabName token</p>
-
+<p>This token follow TabName token
 <a name="t167">&nbsp;</a>
-<a name="t174">&nbsp;</a> <hr>
-<b class="section">compute "control" ? (0xA7 167)</b>
-<br>
-<b class="section">"control" (0xAE 174)</b>
+<a name="t174">&nbsp;</a> </p>
+<hr>
+<h2 class="section">compute "control" ? (0xA7 167)</h2>
+<h2 class="section">"control" (0xAE 174)</h2>
 <p>
 
 Miscellaneous note (from *bdw* ?) found with 0xAE: <br>
@@ -1123,8 +1212,7 @@ Miscellaneous note (from *bdw* ?) found with 0xAE: <br>
   I believe computed column info is stored here, need to investigate
 </pre>
 
-<a name="t169">&nbsp;</a> <hr>
-<b class="section">Order By (0xA9 169)</b>
+<h2 id="t169" class="section">Order By (0xA9 169)</h2>
 
 <pre>
  INT16    variable (1 byte per col)
@@ -1155,14 +1243,13 @@ where length = 2 then the orders evaluate:
 to a column is the number
 </pre>
 
-<a name="t170">&nbsp;</a>
+<p><a name="t170">&nbsp;</a>
 <a name="t171"></a>
-<a name="t229"></a> <hr>
-<b class="section">Error Message (0xAA 170)</b>
-<br>
-<b class="section">Non-error Message (0xAB 171)</b>
-<br>
-<b class="section">Extended Error Message (0xE5 229)</b>
+<a name="t229"></a>  </P>
+<hr>
+<h2 class="section">Error Message (0xAA 170)</h2>
+<h2 class="section">Non-error Message (0xAB 171)</h2>
+<h2 class="section">Extended Error Message (0xE5 229)</h2>
 
 <pre>
  INT16    INT32        INT8    INT8    
@@ -1188,9 +1275,11 @@ process name	Stored procedure name, if any
 line#		Line number of input which generated the message
 </pre>
 
-<a name="t172">&nbsp;</a> <hr>
-<b class="section">Output Parameters (0xAC 172)</b>
+<hr>
+
+<h2 class="section">Output Parameters (0xAC 172)</h2>
 <p>
+<a name="t172">&nbsp;</a> 
 Output parameters of a stored procedure.
 <pre>
  INT16    INT8       XCHAR[n]  INT8    INT32      INT8
@@ -1218,8 +1307,7 @@ a fixed size datatype.
 				+-------------+---------------+--------+
 </pre>
 
-<a name="t173">&nbsp;</a> <hr>
-<b class="section">Login Acknowledgement (0xAD 173)</b>
+<h2 id="t173" class="section">Login Acknowledgement (0xAD 173)</h2>
 
 <pre>
  INT16    INT8    4 bytes   INT8       XCHAR[n] 4 bytes
@@ -1238,11 +1326,11 @@ ser_ver		Server version
 		(with strange encoding, differring from TDS version)
 </pre>
 
-<a name="t209">&nbsp;</a>
-<a name="t211">&nbsp;</a> <hr>
-<b class="section">Data - Row Result (0xD1 209)</b>
-<br>
-<b class="section">Data - Compute Result (0xD3 211)</b>
+<P><a name="t209">&nbsp;</a>
+<a name="t211">&nbsp;</a> 
+<hr>
+<h2 class="section">Data - Row Result (0xD1 209)</h2>
+<h2 class="section">Data - Compute Result (0xD3 211)</h2>
 
 <pre>
  INT8       variable size
@@ -1250,6 +1338,7 @@ ser_ver		Server version
 |  token   |   row data         |
 +----------+--------------------+
 </pre>
+<p>
 Row data starts with one byte (decimal 209), for variable length types,
 a one byte length field precedes the data, for fixed length records just
 the data appears.
@@ -1273,15 +1362,11 @@ hex  D1  01  00  0C  72  65  63  76  20  73  6C  65  65  70  20  20
     209   1   0  12   r   e   c   v ' '   s   l   e   e   p ' ' ' '
 </pre>
 
-<a name="t215">&nbsp;</a> <hr>
-<b class="section">Params - TDS5 (0xD7 215)</b>
-<br>
-<br>
+<h2 id="t215" class="section">Params - TDS5 (0xD7 215)</h2>
+<p>
 TODO.
 
-<a name="t226">&nbsp;</a> <hr>
-<b class="section">Capability - TDS5 (0xE2 226)</b>
-<br>
+<h2 id="t226" class="section">Capability - TDS5 (0xE2 226)</h2>
 
 <pre>
  INT16    variable
@@ -1293,9 +1378,7 @@ length		Length of capability string
 capabilities	Server capabilities?  Related to login magic?
 </pre>
 
-<a name="t227">&nbsp;</a> <hr>
-<b class="section">Environment change (0xE3 227)</b>
-<br>
+<h2 id="t227" class="section">Environment change (0xE3 227)</h2>
 
 <pre>
  INT16    INT8       INT8        CHAR[n]   INT8        CHAR[n] 
@@ -1318,20 +1401,15 @@ text1 and text2 are text information (coded in ucs2 in TDS7+) except
 collation info that's a structure (see collation structure)
 </pre>
 
-<a name="t230">&nbsp;</a> <hr>
-<b class="section">DBRPC - TDS5 (0xE6 230)</b>
-<br>
-<br>
+<h2 id="t230" class="section">DBRPC - TDS5 (0xE6 230)</h2>
+<p>
 TODO.
 
-<a name="t231">&nbsp;</a> <hr>
-<b class="section">Dynamic - TDS5 (0xE7 231)</b>
-<br>
-<br>
+<h2 id="t231" class="section">Dynamic - TDS5 (0xE7 231)</h2>
+<p>
 TODO.
 
-<a name="t236">&nbsp;</a> <hr>
-<b class="section">Param Format - TDS5 (0xEC 236)</b>
+<h2 id="t236" class="section">Param Format - TDS5 (0xEC 236)</h2>
 <pre>
  INT16     INT16        variable size
 +---------+------------+-------------------+
@@ -1344,26 +1422,7 @@ number of parameters	number of parameter formats following
 list of formats		I (*bdw*) imagine it uses the column format structure.
 </pre>
 
-<a name="t238">&nbsp;</a> <hr>
-<b class="section">Result Set - TDS5 (0xEE 238)</b>
-
-<pre>
- INT16     INT16        variable size
-+---------+------------+-----------------+
-| length  | number of  | column info     |
-|         | columns    |                 |
-+---------+------------+-----------------+
-
-
-Fields:
-length             length of message following this field
-number of columns  number of columns in the result set, this many column
-                   information fields will follow.
-column info        <a href="#colInfo">column info</a>
-</pre>
-
-<a name="t237">&nbsp;</a> <hr>
-<b class="section">Authentication - TDS7 (0xED 237)</b>
+<h2 id="t237" class="section">Authentication - TDS7 (0xED 237)</h2>
 <pre>
  INT16     varies
 +---------+------+
@@ -1377,8 +1436,7 @@ auth     authentication data
 
 <p>Client reply with <a href="#auth7">Authentication packet</a>.</p>
 
-<a name="t238">&nbsp;</a> <hr>
-<b class="section">Result Set - TDS5 (0xEE 238)</b>
+<h2 id="t238" class="section">Result Set - TDS5 (0xEE 238)</h2>
 
 <pre>
  INT16     INT16        variable size
@@ -1395,9 +1453,12 @@ number of columns  number of columns in the result set, this many column
 column info        <a href="#colInfo">column info</a>
 </pre>
 
-<a name="t253">&nbsp;</a>
+<hr>
+<h2>Done Packets</h2>
+<P>
+<a name="t253"></a>
 <a name="t254"></a>
-<a name="t255"></a> <hr>
+<a name="t255"></a> 
 <b class="section">Result Set Done (0xFD 253)</b><br>
 <b class="section">Process Done (0xFE 254)</b><br>
 <b class="section">Done Inside Process (0xFF 255)</b><br>
@@ -1418,35 +1479,34 @@ row count          number of rows affected / returned in the result set.
                    row count is 64-bit using TDS9.
 		(FIXME check if "affected / returned" is correct)
 </pre>
-
+<P>
 "Result Set Complete" is the end of a query that doesn't create a process
 on the server.  I.e., it doesn't call a stored procedure.
 <br>
-<br>
 "Process Done" is the end of a stored procedure
-<br>
 <br>
 "Done In Process" means that a query internal to a stored procedure
 has finished, but the stored procedure isn't done overall.
 <br>
-<br>
-
 
 <hr>
 
+<h2 class="section">Acknowledgements</h2>
 <p>
-<b class="section">Acknowledgements</b>
-<br>
 The following people have contributed to this document:
-<p>
-Brian Bruns (first draft, protocol discovery)
-<br>
-Brian Wheeler (protocol discovery)
-<br>
-Mark Schaal (second draft)
-<br>
-Frediano Ziglio
+<ul style="list-style-type: none">
+	<li>Brian Bruns (first draft, protocol discovery)
+	<li>Brian Wheeler (protocol discovery)
+	<li>Mark Schaal (second draft)
+	<li>Frediano Ziglio
+</ul>
 <p>
 (short list)
+
+<p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html401"
+        alt="Valid HTML 4.01 Strict" height="31" width="88"></a>
+  </p>
 </body>
 </html>
