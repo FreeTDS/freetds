@@ -1,3 +1,7 @@
+Wed Nov 28 00:27:36 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c fixed TDS 5.0 null-column bug, cf. ML
+	* doc/tds.html Added BCP, made 4.01 strict, validated. 
+
 Tue Nov 27 16:12:56 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/Makefile.am src/dblib/unittests/null2.c(added):
 	- test dbbind/dbnullbind with NULLs

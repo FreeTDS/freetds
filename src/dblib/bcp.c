@@ -57,8 +57,7 @@
 #define HOST_COL_CONV_ERROR 1
 #define HOST_COL_NULL_ERROR 2
 
-#define BCP_REC_FETCH_DATA   1
-#define BCP_REC_NOFETCH_DATA 0
+typedef enum { BCP_REC_NOFETCH_DATA = 0, BCP_REC_FETCH_DATA = 1 } BEHAVIOUR;
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -72,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.162 2007-11-26 14:44:37 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.163 2007-11-28 05:30:01 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -88,7 +87,7 @@ typedef __int64 offset_type;
 typedef long offset_type;
 #endif
 
-static RETCODE _bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour);
+static RETCODE _bcp_send_bcp_record(DBPROCESS * dbproc, BEHAVIOUR behaviour);
 static RETCODE _bcp_build_bulk_insert_stmt(TDSSOCKET *, TDS_PBCB *, TDSCOLUMN *, int);
 static RETCODE _bcp_free_storage(DBPROCESS * dbproc);
 static void _bcp_free_columns(DBPROCESS * dbproc);
@@ -1602,7 +1601,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static int
-_bcp_add_fixed_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int start)
+_bcp_add_fixed_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuffer, int start)
 {
 	TDS_NUMERIC *num;
 	int row_pos = start;
@@ -1610,9 +1609,10 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int 
 	int cpbytes;
 	int i, j;
 
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_add_fixed_columns(%p, %d, %p, %d)\n", dbproc, behaviour, rowbuffer, start);
 	assert(dbproc);
 	assert(rowbuffer);
+
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_add_fixed_columns(%p, %d, %p, %d)\n", dbproc, behaviour, rowbuffer, start);
 
 	for (i = 0; i < dbproc->bcpinfo->bindinfo->num_cols; i++) {
 
@@ -1675,10 +1675,10 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int 
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static int
-_bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, int start, int *var_cols)
+_bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuffer, int start, int *var_cols)
 {
 	int row_pos;
-	int cpbytes;
+	int cpbytes = -1;
 
 	BYTE offset_table[256];
 	BYTE adjust_table[256];
@@ -1691,19 +1691,40 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 
 	int i, adjust_table_entries_required;
 
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_add_variable_columns(%p, %d, %p, %d, %p)\n", dbproc, behaviour, rowbuffer, start, var_cols);
 	assert(dbproc);
 	assert(rowbuffer);
 	assert(var_cols);
 
-	/* Skip over two bytes. These will be used to hold the entire record length */
-	/* once the record has been completely built.                               */
+	tdsdump_log(TDS_DBG_FUNC, "_bcp_add_variable_columns(%p, %s, %p, start=%d, %p)\n", 
+				dbproc, 
+				(behaviour == BCP_REC_NOFETCH_DATA)? "BCP_REC_NOFETCH_DATA" : "BCP_REC_FETCH_DATA", 
+				rowbuffer, start, var_cols);
 
+	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %18s %18s %8s\n", 
+		"col", 
+		"type", 
+		"is_nullable_type", 
+		"column_nullable", 
+		"is null" );
+	for (i = 0; i < dbproc->bcpinfo->bindinfo->num_cols; i++) {
+		TDSCOLUMN *bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
+		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %18s %18s %8s\n", 
+			i, 
+			bcpcol->column_type,  
+			is_nullable_type(bcpcol->column_type)? "yes" : "no", 
+			bcpcol->column_nullable? "yes" : "no", 
+			bcpcol->bcp_column_data->null_column? "yes" : "no" );
+	}
+
+	/* 
+	 * Skip over two bytes. 
+	 * These will be used to hold the entire record length 
+	 * once the record has been completely built.  
+	 */
 	row_pos = start + 2;
 
-	/* for each column in the target table */
-
 	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %8s %8s %10s %10s\n", "col", "num_cols", "row_pos", "cpbytes", "offset_pos", "adjust_pos");
+
 	for (i = 0; i < dbproc->bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN *bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
 
@@ -1732,18 +1753,18 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, int behaviour, BYTE * rowbuffer, i
 				return FAIL;
 			}
 
-			if (is_blob_type(bcpcol->column_type)) {
-				cpbytes = 16;
-				bcpcol->column_textpos = row_pos;               /* save for data write */
-			} else if (is_numeric_type(bcpcol->column_type)) {
-				TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
-				cpbytes = tds_numeric_bytes_per_prec[num->precision];
-				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
+			if (bcpcol->bcp_column_data->null_column) {
+				cpbytes = 0;
 			} else {
-				/* compute the length to copy to the row ** buffer */
-				if (bcpcol->bcp_column_data->null_column) {
-					cpbytes = 0;
+				if (is_blob_type(bcpcol->column_type)) {
+					cpbytes = 16;
+					bcpcol->column_textpos = row_pos;               /* save for data write */
+				} else if (is_numeric_type(bcpcol->column_type)) {
+					TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
+					cpbytes = tds_numeric_bytes_per_prec[num->precision];
+					memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 				} else {
+					/* compute the length to copy to the row ** buffer */
 					cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ? 
 						  bcpcol->column_size : bcpcol->bcp_column_data->datalen;
 					memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
@@ -3185,7 +3206,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static RETCODE
-_bcp_send_bcp_record(DBPROCESS * dbproc, int behaviour)
+_bcp_send_bcp_record(DBPROCESS * dbproc, BEHAVIOUR behaviour)
 {
 	TDSSOCKET  *tds = dbproc->tds_socket;
 	TDSCOLUMN  *bindcol;
@@ -3534,7 +3555,6 @@ _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
  * \param term_len 
  * 
  * \return SUCCEED or FAIL.
- * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static RETCODE
 _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
@@ -3554,22 +3574,23 @@ _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 
 /** 
  * \ingroup dblib_bcp_internal
- * \brief 
+ * \brief trim a string of trailing blanks 
  *
- * \param istr 
- * \param ilen 
+ *	Replaces spaces at the end of a string with NULs
+ * \param str pointer to a character buffer (not null-terminated)
+ * \param len size of the \a str in bytes 
  * 
  * \return modified length
- * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static int
-rtrim(char *istr, int ilen)
+rtrim(char *str, int len)
 {
-	char *t;
+	char *p = str + len - 1;
 
-	for (t = istr + ilen; --t > istr && *t == ' '; )
-		*t = '\0';
-	return t - istr + 1;
+	while (p > str && *p == ' ') {
+		*p-- = '\0';
+	}
+	return 1 + p - str;
 }
 
 /** 
@@ -3579,7 +3600,6 @@ rtrim(char *istr, int ilen)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * 
  * \return SUCCEED or FAIL.
- * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static void
 _bcp_free_columns(DBPROCESS * dbproc)
