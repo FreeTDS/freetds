@@ -1,3 +1,6 @@
+Wed Nov 28 09:48:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/bcp.c: remove warnings
+
 Wed Nov 28 00:27:36 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/bcp.c fixed TDS 5.0 null-column bug, cf. ML
 	* doc/tds.html Added BCP, made 4.01 strict, validated. 

@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.163 2007-11-28 05:30:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.164 2007-11-28 08:50:17 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1359,7 +1359,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			}
 #endif
 
-			coldata = (BYTE *) calloc(1, 1 + collen);
+			coldata = (TDS_CHAR *) calloc(1, 1 + collen);
 			if (coldata == NULL) {
 				*row_error = TRUE;
 				dbperror(dbproc, SYBEMEM, errno);
@@ -1439,7 +1439,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				 * It seems a buffer overflow waiting...
 				 */
 				bcpcol->bcp_column_data->datalen =
-					dbconvert(dbproc, hostcol->datatype, coldata, collen, desttype, 
+					dbconvert(dbproc, hostcol->datatype, (const BYTE *) coldata, collen, desttype, 
 									bcpcol->bcp_column_data->data, bcpcol->column_size);
 
 				if (bcpcol->bcp_column_data->datalen == -1) {
