@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null2.c,v 1.2 2007-11-28 14:16:43 freddy77 Exp $";
+static char software_version[] = "$Id: null2.c,v 1.3 2007-11-29 08:03:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
@@ -45,6 +45,8 @@ query(const char *query)
 	}
 }
 
+static int use_nullbind = 0;
+
 static void
 test0(int n,  const char * expected)
 {
@@ -63,7 +65,8 @@ test0(int n,  const char * expected)
 	}
 
 	dbbind(dbproc, 1, NTBSTRINGBIND, 0, (BYTE *)text_buf);
-	dbnullbind(dbproc, 1, &ind);
+	if (use_nullbind)
+		dbnullbind(dbproc, 1, &ind);
 
 	memset(text_buf, 'a', sizeof(text_buf));
 	ind = -5;
@@ -82,6 +85,9 @@ test0(int n,  const char * expected)
 	if (strcmp(expected, "aaaaaaaaaaaaaaa") == 0)
 		expected_ind = -1;
 
+	/* do not check indicator if not binded */
+	if (!use_nullbind)
+		ind = expected_ind;
 	if (ind != expected_ind || strcmp(expected, text_buf) != 0) {
 		fprintf(stderr, "expected_ind %d expected -%s-\n", (int) expected_ind, expected);
 		failed = 1;
@@ -134,8 +140,15 @@ test(const char *type, int give_err)
 	query("insert into #null values(3, ' ')");
 	query("insert into #null values(4, 'foo')");
 
+	use_nullbind = 1;
 	test0(1, "");
 	test0(2, "aaaaaaaaaaaaaaa");
+	test0(3, "");
+	test0(4, "foo");
+
+	use_nullbind = 0;
+	test0(1, "");
+	test0(2, "");
 	test0(3, "");
 	test0(4, "foo");
 

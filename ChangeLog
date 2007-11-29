@@ -1,3 +1,6 @@
+Thu Nov 29 09:03:32 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/null2.c: improve
+
 Wed Nov 28 15:15:43 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac:
 	- include windows.h under windows
