@@ -1,3 +1,6 @@
+Fri Nov 30 09:54:46 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/common.c: missing new line
+
 Thu Nov 29 09:03:32 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/null2.c: improve
 
