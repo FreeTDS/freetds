@@ -1,3 +1,7 @@
+Sat Dec  1 14:05:54 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c src/dblib/unittests/null.c
+	- correct TDS 5.0 bcp offset table calcuation in presence of NULLs.
+ 
 Fri Nov 30 09:54:46 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/common.c: missing new line
 

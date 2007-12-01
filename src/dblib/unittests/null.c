@@ -7,7 +7,7 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null.c,v 1.3 2007-11-28 14:16:43 freddy77 Exp $";
+static char software_version[] = "$Id: null.c,v 1.4 2007-12-01 19:24:03 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
@@ -60,14 +60,16 @@ test0(int n, int len)
 		return;
 	}
 
-	if (dbdatlen(dbproc, 1) != (len < 0 ? 0 : len) || (len < 0 && dbdata(dbproc, 1) != NULL) || (len >= 0 && dbdata(dbproc, 1) == NULL)) {
-		fprintf(stderr, "Unexpected result for n == %d len %d data %p\n", n, dbdatlen(dbproc, 1), dbdata(dbproc, 1));
+	if (dbdatlen(dbproc, 1) != (len < 0 ? 0 : len) || 
+	    (len  < 0 && dbdata(dbproc, 1) != NULL) || 
+	    (len >= 0 && dbdata(dbproc, 1) == NULL)) {
+		fprintf(stderr, "Error: unexpected result for n == %d len %d data %p\n", n, dbdatlen(dbproc, 1), dbdata(dbproc, 1));
 		dbcancel(dbproc);
 		failed = 1;
 	}
 
 	if (dbnextrow(dbproc) != NO_MORE_ROWS) {
-		fprintf(stderr, "Only one row expected\n");
+		fprintf(stderr, "Error: Only one row expected (cancelling remaining results)\n");
 		dbcancel(dbproc);
 		failed = 1;
 	}
@@ -86,7 +88,7 @@ test(const char *type, int give_err)
 	dberrhandle(ignore_err_handler);
 	dbmsghandle(ignore_msg_handler);
 
-	query("drop table #null");
+	query("if object_id('#null') is not NULL drop table #null");
 
 	printf("create table #null (n int, c %s NULL)\n", type);
 	dbfcmd(dbproc, "create table #null (n int, c %s NULL)", type);

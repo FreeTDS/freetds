@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.165 2007-11-28 14:16:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.166 2007-12-01 19:24:03 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -310,29 +310,23 @@ memory_error:
 RETCODE
 bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 {
-	TDSCOLUMN *curcol;
+	TDSCOLUMN *bcpcol;
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_collen(%p, %d, %d)\n", dbproc, varlen, table_column);
+	
 	CHECK_DBPROC();
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
-	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
+	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);		/* not initialized */
+	DBPERROR_RETURN(dbproc->bcpinfo->direction != DB_IN, SYBEBCPN)	/* not inbound */
+	DBPERROR_RETURN(dbproc->hostfileinfo != NULL, SYBEBCPI)		/* cannot have data file */
+	CHECK_PARAMETER(0 < table_column && 
+			    table_column <= dbproc->bcpinfo->bindinfo->num_cols, SYBECNOR, FAIL);
+	
+	bcpcol = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
 
-	if (dbproc->bcpinfo->direction != DB_IN) {
-		dbperror(dbproc, SYBEBCPN, 0);
-		return FAIL;
-	}
+	DBPERROR_RETURN(varlen == 0  && !bcpcol->column_nullable, SYBEBCNN); /* non-nullable column cannot receive a NULL */
 
-	if (dbproc->hostfileinfo != NULL) {
-		dbperror(dbproc, SYBEBCPI, 0);
-		return FAIL;
-	}
-
-	if (table_column <= 0 || table_column > dbproc->bcpinfo->bindinfo->num_cols) {
-		dbperror(dbproc, SYBECNOR, 0);
-		return FAIL;
-	}
-	curcol = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
-	curcol->column_bindlen = varlen;
+	bcpcol->column_bindlen = varlen;
 
 	return SUCCEED;
 }
@@ -484,9 +478,8 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	/* 
 	 * If there's a positive terminator length, we need a valid terminator pointer.
 	 * If the terminator length is 0 or -1, then there's no terminator.
-	 * FIXME: look up the correct error code for a bad terminator pointer or length and return that before arriving here.   
 	 */
-	if (host_termlen > 0 && host_term == NULL) {
+	if (host_term == NULL && host_termlen > 0 || host_term != NULL && host_termlen == 0) {
 		dbperror(dbproc, SYBEVDPT, 0);	/* "all variable-length data must have either a length-prefix ..." */
 		return FAIL;
 	}
@@ -1666,66 +1659,52 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuffer
  * \brief 
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param behaviour 
- * \param rowbuffer 
- * \param start 
- * \param var_cols 
+ * \param behaviour Whether the data are already in the TDSCOLUMN or should by copied from the buffer bound by bcp_bind().
+ * \param rowbuffer The row image that will be sent to the server. 
+ * \param start Where to begin copying data into the rowbuffer. 
+ * \param pncols Address of output variable holding the count of columns added to the rowbuffer.  
  * 
  * \return SUCCEED or FAIL.
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static int
-_bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuffer, int start, int *var_cols)
+_bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuffer, int start, int *pncols)
 {
-	int row_pos;
-	int cpbytes = -1;
-
-	BYTE offset_table[256];
-	BYTE adjust_table[256];
-
-	int offset_pos     = 0;
-	int adjust_pos     = 0;
-	int num_cols       = 0;
-	int last_adjustment_increment = 0;
-	int this_adjustment_increment = 0;
-
-	int i, adjust_table_entries_required;
+	TDS_SMALLINT offsets[256];
+	int i, row_pos;
+	int ncols = 0;
 
 	assert(dbproc);
 	assert(rowbuffer);
-	assert(var_cols);
+	assert(pncols);
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_add_variable_columns(%p, %s, %p, start=%d, %p)\n", 
 				dbproc, 
 				(behaviour == BCP_REC_NOFETCH_DATA)? "BCP_REC_NOFETCH_DATA" : "BCP_REC_FETCH_DATA", 
-				rowbuffer, start, var_cols);
+				rowbuffer, start, pncols);
 
-	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %18s %18s %8s\n", 
-		"col", 
-		"type", 
-		"is_nullable_type", 
-		"column_nullable", 
-		"is null" );
+	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %18s %18s %8s\n", 	"col", 
+								"type", 
+								"is_nullable_type", 
+								"column_nullable", 
+								"is null" );
 	for (i = 0; i < dbproc->bcpinfo->bindinfo->num_cols; i++) {
 		TDSCOLUMN *bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
-		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %18s %18s %8s\n", 
-			i, 
-			bcpcol->column_type,  
-			is_nullable_type(bcpcol->column_type)? "yes" : "no", 
-			bcpcol->column_nullable? "yes" : "no", 
-			bcpcol->bcp_column_data->null_column? "yes" : "no" );
+		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %18s %18s %8s\n", 	i, 
+									bcpcol->column_type,  
+									is_nullable_type(bcpcol->column_type)? "yes" : "no", 
+									bcpcol->column_nullable? "yes" : "no", 
+									bcpcol->bcp_column_data->null_column? "yes" : "no" );
 	}
 
-	/* 
-	 * Skip over two bytes. 
-	 * These will be used to hold the entire record length 
-	 * once the record has been completely built.  
-	 */
+	/* the first two bytes of the rowbuffer are reserved to hold the entire record length */
 	row_pos = start + 2;
+	offsets[0] = row_pos;
 
-	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %8s %8s %10s %10s\n", "col", "num_cols", "row_pos", "cpbytes", "offset_pos", "adjust_pos");
+	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %8s %8s\n", "col", "ncols", "row_pos", "cpbytes");
 
 	for (i = 0; i < dbproc->bcpinfo->bindinfo->num_cols; i++) {
+		int cpbytes = 0;
 		TDSCOLUMN *bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
 
 		/* 
@@ -1734,7 +1713,7 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuf
 		 */
 		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable) {
 
-			tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d %10d %10d\n", i, num_cols, row_pos, cpbytes, offset_pos, adjust_pos);
+			tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
 
 			if (behaviour == BCP_REC_FETCH_DATA) { 
 				if ((_bcp_get_col_data(dbproc, bcpcol)) != SUCCEED) {
@@ -1747,15 +1726,13 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuf
 			}
 
 			/* If it's a NOT NULL column, and we have no data, throw an error. */
-
 			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->null_column) {
 				dbperror(dbproc, SYBEBCNN, 0);
 				return FAIL;
 			}
 
-			if (bcpcol->bcp_column_data->null_column) {
-				cpbytes = 0;
-			} else {
+			/* move the column buffer into the rowbuffer */
+			if (!bcpcol->bcp_column_data->null_column) {
 				if (is_blob_type(bcpcol->column_type)) {
 					cpbytes = 16;
 					bcpcol->column_textpos = row_pos;               /* save for data write */
@@ -1764,95 +1741,61 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuf
 					cpbytes = tds_numeric_bytes_per_prec[num->precision];
 					memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 				} else {
-					/* compute the length to copy to the row ** buffer */
 					cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ? 
 						  bcpcol->column_size : bcpcol->bcp_column_data->datalen;
 					memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 				}
 			}
 
-			/* if we have written data to the record for this column */
-
-			if (cpbytes > 0) {
-
-				/*
-				 * update offset table. Each entry in the offset table is a single byte
-				 * so can only hold a maximum value of 255. If the real offset is more
-				 * than 255 we will have to add one or more entries in the adjust table
-				 */
-
-				offset_table[offset_pos++] = row_pos % 256;
-
-				/* increment count of variable columns added to the record */
-
-				num_cols++;
-
-				/*
-				 * how many times does 256 have to be added to the one byte offset to
-				 * calculate the REAL offset...
-				 */
-
-				this_adjustment_increment = row_pos / 256;
-
-				/* has this changed since we did the last column...      */
-
-				if (this_adjustment_increment > last_adjustment_increment) {
-
-					/*
-					 * add n entries to the adjust table. each entry represents
-					 * an adjustment of 256 bytes, and each entry holds the
-					 * column number for which the adjustment needs to be made
-					 */
-
-					for ( adjust_table_entries_required = this_adjustment_increment - last_adjustment_increment;
-						  adjust_table_entries_required > 0;
-						  adjust_table_entries_required-- ) {
-							adjust_table[adjust_pos++] = num_cols;
-					}
-					last_adjustment_increment = this_adjustment_increment;
-				}
-
-				row_pos += cpbytes;
-			}
+			row_pos += cpbytes;
+			offsets[++ncols] = row_pos;
+			tdsdump_dump_buf(TDS_DBG_NETWORK, "BCP row buffer so far", rowbuffer,  row_pos);
 		}
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d %10d %10d\n", i, num_cols, row_pos, cpbytes, offset_pos, adjust_pos);
+	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d\n", i, ncols, row_pos);
 
-	if (num_cols) {	
-		/* 
-		 * If we have written any variable columns to the record, add entries 
-		 * to the offset and adjust tables for the end of data offset (as above). 
-		 */
+	/*
+	 * The rowbuffer ends with an offset table and, optionally, an adjustment table.  
+	 * The offset table has 1-byte elements that describe the locations of the start of each column in
+	 * the rowbuffer.  If the largest offset is greater than 255, another table -- the adjustment table --
+	 * is inserted just before the offset table.  It holds the high bytes. 
+	 * 
+	 * Both tables are laid out in reverse:
+	 * 	#elements, offset N+1, offset N, offset N-1, ... offset 0
+	 * E.g. for 2 columns you have 4 data points:
+	 *	1.  How many elements (4)
+	 *	2.  Start of column 3 (non-existent, "one off the end")
+	 *	3.  Start of column 2
+	 *	4.  Start of column 1
+	 *  The length of each column is computed by subtracting its start from the its successor's start. 
+	 *
+	 * The algorithm below computes both tables. If the adjustment table isn't needed, the 
+	 * effect is to overwrite it with the offset table.  
+	 */
+	while (ncols && offsets[ncols] == offsets[ncols-1])
+		ncols--;	/* trailing NULL columns are not sent and are not included in the offset table */
+		
+	if (ncols) {
+		BYTE *padj = rowbuffer + row_pos;
+		BYTE *poff = offsets[ncols] > 0xFF? padj + ncols + 1 : padj;
 
-		offset_table[offset_pos++] = row_pos % 256;
-
-		/*
-		 * Write the offset data etc. to the end of the record, starting with 
-		 * a count of variable columns (plus 1 for the eod offset)       
-		 */
-
-		rowbuffer[row_pos++] = num_cols + 1;
-	
-		/* write the adjust table (right to left) */
-		for (i = adjust_pos - 1; i >= 0; i--) {
-			rowbuffer[row_pos++] = adjust_table[i];
+		*padj++ = 1 + ncols;
+		*poff++ = 1 + ncols;
+		
+		for (i=0; i <= ncols; i++) {
+			padj[i] = offsets[ncols-i] >> 8;
+			poff[i] = offsets[ncols-i] & 0xFF;
 		}
-	
-		/* write the offset table (right to left) */
-		for (i = offset_pos - 1; i >= 0; i--) {
-			rowbuffer[row_pos++] = offset_table[i];
-		}
+		row_pos = poff + ncols + 1 - rowbuffer;
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d %10d %10d\n", i, num_cols, row_pos, cpbytes, offset_pos, adjust_pos);
+	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d\n", i, ncols, row_pos);
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "BCP row buffer", rowbuffer,  row_pos);
+	
+	*pncols = ncols;
 
-	*var_cols = num_cols;
-
-	if (num_cols == 0) /* we haven't written anything */
-		return start;
-	else
-		return row_pos;
+	return ncols == 0? start : row_pos;
 }
 
 /** 
