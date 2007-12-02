@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.279 2007-11-13 09:14:57 freddy77 Exp $ */
+/* $Id: tds.h,v 1.280 2007-12-02 23:01:37 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -935,7 +935,7 @@ typedef struct _tds_bcpcoldata
 {
 	TDS_UCHAR *data;
 	TDS_INT    datalen;
-	TDS_INT    null_column;
+	TDS_INT    is_null;
 } BCPCOLDATA;
 
 

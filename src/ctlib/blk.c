@@ -44,7 +44,7 @@ typedef struct _pbcb
 	int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.41 2007-11-21 16:37:04 jklowden Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.42 2007-12-02 23:01:37 jklowden Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -1170,9 +1170,9 @@ _blk_build_bcp_record(CS_BLKDESC *blkdesc, CS_INT offset)
 	 			return CS_FAIL;
 			}
 			tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
-					i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->null_column);
+					i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null);
 	
-			if (bindcol->bcp_column_data->null_column) {
+			if (bindcol->bcp_column_data->is_null) {
 				if (bindcol->column_nullable) {
 					switch (bindcol->on_server.column_type) {
 					case XSYBCHAR:
@@ -1343,7 +1343,7 @@ _blk_add_fixed_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuff
 		 		return CS_FAIL;
 			}
 
-			if (bcpcol->bcp_column_data->null_column) {
+			if (bcpcol->bcp_column_data->is_null) {
 				/* No value or default value available and NULL not allowed. col = %d row = %d. */
 				_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  i + 1, offset + 1);
 				return CS_FAIL;
@@ -1427,7 +1427,7 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 			 * throw an error
 			 */
 
-			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->null_column) {
+			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->is_null) {
 				/* No value or default value available and NULL not allowed. col = %d row = %d. */
 				_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  i + 1, offset + 1);
 				return CS_FAIL;
@@ -1442,7 +1442,7 @@ _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowb
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
 			} else {
 				/* compute the length to copy to the row ** buffer */
-				if (bcpcol->bcp_column_data->null_column) {
+				if (bcpcol->bcp_column_data->is_null) {
 					cpbytes = 0;
 				} else {
 					cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ? bcpcol->column_size : bcpcol->bcp_column_data->datalen;
@@ -1621,7 +1621,7 @@ _blk_get_col_data(CS_BLKDESC *blkdesc, TDSCOLUMN *bindcol, int offset)
 		}
 
 		bindcol->bcp_column_data->datalen = destlen;
-		bindcol->bcp_column_data->null_column = null_column;
+		bindcol->bcp_column_data->is_null = null_column;
 
 		return CS_SUCCEED;
 

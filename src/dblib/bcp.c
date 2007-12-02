@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.166 2007-12-01 19:24:03 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.167 2007-12-02 23:01:37 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -978,16 +978,16 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 				if (curcol->column_cur_size < 0) {
 					srclen = 0;
-					hostcol->bcp_column_data->null_column = 1;
+					hostcol->bcp_column_data->is_null = 1;
 				} else {
 					if (is_numeric_type(curcol->column_type))
 						srclen = sizeof(TDS_NUMERIC);
 					else
 						srclen = curcol->column_cur_size;
-					hostcol->bcp_column_data->null_column = 0;
+					hostcol->bcp_column_data->is_null = 0;
 				}
 
-				if (hostcol->bcp_column_data->null_column) {
+				if (hostcol->bcp_column_data->is_null) {
 					buflen = 0;
 				} else {
 
@@ -1394,10 +1394,10 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		tdsdump_log(TDS_DBG_FUNC, "Data read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
 		if (hostcol->tab_colnum) {
 			if (data_is_null) {
-				bcpcol->bcp_column_data->null_column = 1;
+				bcpcol->bcp_column_data->is_null = 1;
 				bcpcol->bcp_column_data->datalen = 0;
 			} else {
-				bcpcol->bcp_column_data->null_column = 0;
+				bcpcol->bcp_column_data->is_null = 0;
 				desttype = tds_get_conversion_type(bcpcol->column_type, bcpcol->column_size);
 
 				/* special hack for text columns */
@@ -1622,7 +1622,7 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuffer
 				}
 			}
 
-			if (bcpcol->bcp_column_data->null_column) {
+			if (bcpcol->bcp_column_data->is_null) {
 				dbperror(dbproc, SYBEBCNN, 0);
 				return FAIL;
 			}
@@ -1664,8 +1664,8 @@ _bcp_add_fixed_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuffer
  * \param start Where to begin copying data into the rowbuffer. 
  * \param pncols Address of output variable holding the count of columns added to the rowbuffer.  
  * 
- * \return SUCCEED or FAIL.
- * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ * \return length of (potentially modified) rowbuffer, or FAIL.
+ * \sa 	_bcp_send_bcp_record(), _bcp_get_col_data
  */
 static int
 _bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuffer, int start, int *pncols)
@@ -1694,7 +1694,7 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuf
 									bcpcol->column_type,  
 									is_nullable_type(bcpcol->column_type)? "yes" : "no", 
 									bcpcol->column_nullable? "yes" : "no", 
-									bcpcol->bcp_column_data->null_column? "yes" : "no" );
+									bcpcol->bcp_column_data->is_null? "yes" : "no" );
 	}
 
 	/* the first two bytes of the rowbuffer are reserved to hold the entire record length */
@@ -1722,17 +1722,17 @@ _bcp_add_variable_columns(DBPROCESS * dbproc, BEHAVIOUR behaviour, BYTE * rowbuf
 				tdsdump_log(TDS_DBG_FUNC, "column %d is %d bytes and is %sNULL\n", 
 						i+1, 
 						bcpcol->bcp_column_data->datalen, 
-						bcpcol->bcp_column_data->null_column? "":"not ");
+						bcpcol->bcp_column_data->is_null? "":"not ");
 			}
 
 			/* If it's a NOT NULL column, and we have no data, throw an error. */
-			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->null_column) {
+			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->is_null) {
 				dbperror(dbproc, SYBEBCNN, 0);
 				return FAIL;
 			}
 
 			/* move the column buffer into the rowbuffer */
-			if (!bcpcol->bcp_column_data->null_column) {
+			if (!bcpcol->bcp_column_data->is_null) {
 				if (is_blob_type(bcpcol->column_type)) {
 					cpbytes = 16;
 					bcpcol->column_textpos = row_pos;               /* save for data write */
@@ -3207,9 +3207,9 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, BEHAVIOUR behaviour)
 				}
 			}
 			tdsdump_log(TDS_DBG_INFO1, "parsed column %d, length %d (%snull)\n", i + 1, 
-				    bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->null_column? "":"not ");
+				    bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null? "":"not ");
 	
-			if (bindcol->bcp_column_data->null_column) {
+			if (bindcol->bcp_column_data->is_null) {
 				if (bindcol->column_nullable) {
 					switch (bindcol->on_server.column_type) {
 					case XSYBCHAR:
@@ -3329,8 +3329,7 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, BEHAVIOUR behaviour)
 				record[0] = var_cols_written;
 			}
 
-			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n",
-					old_record_size, row_size);
+			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n", old_record_size, row_size);
 
 			tds_put_smallint(tds, row_size);
 			tds_put_n(tds, record, row_size);
@@ -3368,19 +3367,15 @@ _bcp_send_bcp_record(DBPROCESS * dbproc, BEHAVIOUR behaviour)
 	return SUCCEED;
 }
 
-/* 
- * For a bcp in from program variables, get the data from 
- * the host variable
- */
 /** 
  * \ingroup dblib_bcp_internal
- * \brief 
+ * \brief For a bcp in from program variables, get the data from the host variable
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param bindcol 
  * 
  * \return SUCCEED or FAIL.
- * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ * \sa 	_bcp_add_fixed_columns, _bcp_add_variable_columns, _bcp_send_bcp_record
  */
 static RETCODE
 _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
@@ -3466,7 +3461,7 @@ _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
 
 	if (data_is_null) {
 		bindcol->bcp_column_data->datalen = 0;
-		bindcol->bcp_column_data->null_column = 1;
+		bindcol->bcp_column_data->is_null = 1;
 	} else {
 		desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
 
@@ -3478,7 +3473,8 @@ _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
 		}
 
 		bindcol->bcp_column_data->datalen = converted_data_size;
-		bindcol->bcp_column_data->null_column = 0;
+		bindcol->bcp_column_data->is_null = 0;
+		/* FIXME: output of dbconvert() is not guaranteed not to be NULL */
 	}
 
 	return SUCCEED;

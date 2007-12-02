@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.84 2007-11-12 22:17:28 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.85 2007-12-02 23:01:37 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -413,6 +413,7 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define STRINGBIND        1
 #define NTBSTRINGBIND     2
 #define VARYCHARBIND      3
+#define VARYBINBIND	  4
 #define TINYBIND          6
 #define SMALLBIND         7
 #define INTBIND           8
@@ -426,6 +427,7 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define BITBIND           16
 #define NUMERICBIND       17
 #define DECIMALBIND       18
+#define MAXBINDTYPES      19	/* keep last */
 
 #define DBPRCOLSEP  21
 #define DBPRLINELEN 22

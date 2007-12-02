@@ -1,3 +1,10 @@
+Sun Dec  2 17:58:40 EST 2007	JK Lowden <jklowden@freetds.org>
+	* doc/api_status.txt
+	* include/dblib.h include/sybdb.h include/tds.h
+	* src/ctlib/blk.c src/dblib/bcp.c src/dblib/dblib.c
+	- full implementation of dbsetnull().
+	- Replaced _DB_GETCOLINFO macro with dbcolptr(). 
+	
 Sat Dec  1 14:05:54 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/bcp.c src/dblib/unittests/null.c
 	- correct TDS 5.0 bcp offset table calcuation in presence of NULLs.

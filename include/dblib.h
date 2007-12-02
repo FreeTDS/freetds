@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.41 2007-11-28 14:16:42 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.42 2007-12-02 23:01:37 jklowden Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -132,6 +132,14 @@ struct dboption
 };
 typedef struct dboption DBOPTION;
 
+typedef struct _null_representation
+{
+	const BYTE *bindval;
+	size_t len;
+	size_t capacity;
+	BYTE *to_free;
+} NULLREP;
+
 struct tds_dblib_dbprocess
 {
 	TDSSOCKET *tds_socket;
@@ -169,25 +177,7 @@ struct tds_dblib_dbprocess
 	int ntimeouts;
 
 	/** default null values **/
-	DBTINYINT	null_TINYBIND;
-	DBSMALLINT	null_SMALLBIND;
-	DBINT		null_INTBIND;
-	DBCHAR		*p_null_CHARBIND;
-	DBINT		len_null_CHARBIND;
-	char		*p_null_STRINGBIND;
-	char		*p_null_NTBSTRINGBIND;
-	DBVARYCHAR	null_VARYCHARBIND;
-	DBBINARY	*p_null_BINARYBIND;
-	DBINT		len_null_BINARYBIND;
-	DBDATETIME	null_DATETIMEBIND;
-	DBDATETIME4	null_SMALLDATETIMEBIND;
-	DBMONEY		null_MONEYBIND;
-	DBMONEY4	null_SMALLMONEYBIND;
-	DBFLT8		null_FLT8BIND;
-	DBREAL		null_REALBIND;
-	DBDECIMAL	null_DECIMALBIND;
-	DBNUMERIC	null_NUMERICBIND;
-	DBBIT		null_BITBIND;
+	NULLREP		nullreps[MAXBINDTYPES];
 };
 
 /*
