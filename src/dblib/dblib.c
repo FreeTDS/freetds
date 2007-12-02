@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.299 2007-12-02 23:32:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.300 2007-12-02 23:35:40 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2034,6 +2034,9 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			dbproc, tds_prdatatype(srctype), src, srclen, tds_prdatatype(desttype), dest, destlen);
 	/* dbproc and src can be NULLs */
 	CHECK_PARAMETER(dest, SYBEACNV, -1);
+	
+	if (0 == destlen) 
+		return 0; 
 
 	if (src == NULL || srclen == 0) {
 		int type = dbbindtype(desttype);
