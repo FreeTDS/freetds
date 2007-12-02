@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.298 2007-12-02 23:01:37 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.299 2007-12-02 23:32:28 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2038,9 +2038,19 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	if (src == NULL || srclen == 0) {
 		int type = dbbindtype(desttype);
 		int size = tds_get_size_by_type(type);
+		
+		if (SYBCHAR == desttype) {
+			if (destlen > 0) {
+				size = destlen;
+				type = CHARBIND;
+			} else { 
+				size = 1;
+				type = NTBSTRINGBIND;
+			}
+		}
 
 		_set_null_value(dbproc, type, dest, size);
-		return 0;
+		return size;
 	}
 
 	/* srclen of -1 means the source data is definitely NULL terminated */
