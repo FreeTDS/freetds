@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.44 2007-11-22 08:44:54 freddy77 Exp $
+# $Id: Makefile.am,v 1.45 2007-12-03 18:55:09 freddy77 Exp $
 SUBDIRS		= unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
@@ -17,7 +17,7 @@ libtdsodbc_la_LIBADD=	../../win32/setup.res ../tds/libtds.la ../replacements/lib
 	$(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 libtdsodbc_la_LDFLAGS = -Wl,--enable-stdcall-fixup -Wl,-s -Wl,../../win32/FreeTDS.def -Wl,../../win32/setup.res $(FREETDS_SYMBOLIC)
 
-%.res: %.rc
+.rc.res:
 	$(RC) -i $< --input-format=rc -o $@ -O coff
 else
 libtdsodbc_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
