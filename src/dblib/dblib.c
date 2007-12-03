@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.300 2007-12-02 23:35:40 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.301 2007-12-03 09:20:09 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -412,7 +412,7 @@ initialize_default_null_representations(void)
 
 	static const DBCHAR		null_CHAR = '\0';
 	static const DBVARYCHAR		null_VARYCHAR = { 0, {0} };
-	static const DBBINARY		null_BINARY = null_CHAR;
+	static const DBBINARY		null_BINARY = 0;
 	
 	static const DBDATETIME		null_DATETIME = { 0, 0 };
 	static const DBDATETIME4	null_SMALLDATETIME = { 0, 0 };
