@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.301 2007-12-03 09:20:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.302 2007-12-03 10:54:57 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -429,7 +429,7 @@ initialize_default_null_representations(void)
 
 	NULLREP null_CHARBIND		= { NULL, 0, 0, NULL };
 	NULLREP null_STRINGBIND		= { NULL, 0, 0, NULL };
-	NULLREP null_NTBSTRINGBIND	= { &null_CHAR, sizeof(null_CHAR), 0, NULL };
+	NULLREP null_NTBSTRINGBIND	= { (BYTE *) &null_CHAR, sizeof(null_CHAR), 0, NULL };
 
 	NULLREP null_VARYCHARBIND	= { (BYTE*) &null_VARYCHAR, sizeof(null_VARYCHAR), 0, NULL };
 	NULLREP null_BINARYBIND		= { NULL, 0, 0, NULL };
@@ -3977,7 +3977,6 @@ int
 dbalttype(DBPROCESS * dbproc, int computeid, int column)
 {
 	int i;
-	TDS_SMALLINT compute_id = computeid;;
 	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo;
 	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
@@ -3990,7 +3989,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 		if (i >= dbproc->tds_socket->num_comp_info)
 			return -1;
 		info = dbproc->tds_socket->comp_info[i];
-		if (info->computeid == compute_id)
+		if (info->computeid == computeid)
 			break;
 	}
 
