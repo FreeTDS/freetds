@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.302 2007-12-03 10:54:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.303 2007-12-03 14:39:23 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -348,29 +348,63 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
  *	Calls dbperror() if not.  
  * \returns appropriate error or SUCCEED
  */
-static RETCODE
-dbcolptr(DBPROCESS* dbproc, int column, TDSCOLUMN** pcolinfo)
+static TDSCOLUMN*
+dbcolptr(DBPROCESS* dbproc, int column)
 {
-	if (!dbproc) { 
-		dbperror(dbproc, SYBENULL, 0); 
-		return (SYBENULL); 
-	} 
-	if (IS_TDSDEAD(dbproc->tds_socket)) { 
-		dbperror(dbproc, SYBEDDNE, 0); 
-		return (SYBEDDNE); 
-	} 
-	if (!dbproc->tds_socket->res_info) 
-		return (SYBECNOR); 
-	if (column < 1 || column > dbproc->tds_socket->res_info->num_cols) { 
-		dbperror(dbproc, SYBECNOR, 0); 
-		return (SYBECNOR); 
+	if (!dbproc) {
+		dbperror(dbproc, SYBENULL, 0);
+		return NULL;
+	}
+	if (IS_TDSDEAD(dbproc->tds_socket)) {
+		dbperror(dbproc, SYBEDDNE, 0);
+		return NULL;
+	}
+	if (!dbproc->tds_socket->res_info)
+		return NULL;
+	if (column < 1 || column > dbproc->tds_socket->res_info->num_cols) {
+		dbperror(dbproc, SYBECNOR, 0);
+		return NULL;
 	} 
 	
-	*pcolinfo = dbproc->tds_socket->res_info->columns[column - 1];
-	
-	return SUCCEED;
+	return dbproc->tds_socket->res_info->columns[column - 1];
 }
 
+static TDSCOLUMN*
+dbacolptr(DBPROCESS* dbproc, int computeid, int column, int is_bind)
+{
+	int i;
+	TDSSOCKET *tds;
+	TDSCOMPUTEINFO *info;
+
+	if (!dbproc) {
+		dbperror(dbproc, SYBENULL, 0);
+		return NULL;
+	}
+	tds = dbproc->tds_socket;
+	if (IS_TDSDEAD(tds)) {
+		dbperror(dbproc, SYBEDDNE, 0);
+		return NULL;
+	}
+	for (i = 0;; ++i) {
+		if (i >= tds->num_comp_info) {
+			/* Attempt to bind user variable to a non-existent compute row */
+			if (is_bind)
+				dbperror(dbproc, SYBEBNCR, 0);
+			return NULL;
+		}
+		info = tds->comp_info[i];
+		info = dbproc->tds_socket->comp_info[i];
+		if (info->computeid == computeid)
+			break;
+	}
+	/* Fail if either the compute id or the column number is invalid. */
+	if (column < 1 || column > info->num_cols) {
+		dbperror(dbproc, is_bind ? SYBEABNC : SYBECNOR, 0);
+		return NULL;
+	}
+
+	return info->columns[column - 1];
+}
 
 /*
  * Default null substitution values
@@ -1702,11 +1736,11 @@ char *
 dbcolname(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 	
 	tdsdump_log(TDS_DBG_FUNC, "dbcolname(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED)
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return NULL;
 		
 	assert(colinfo->column_name[colinfo->column_namelen] == 0);
@@ -2490,13 +2524,15 @@ RETCODE
 dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator)
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnullbind(%p, %d, %p)\n", dbproc, column, indicator);
 
-	if (ret == SUCCEED)
-		colinfo->column_nullbind = (TDS_SMALLINT *)indicator;
-	return ret;
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
+		return FAIL;
+
+	colinfo->column_nullbind = (TDS_SMALLINT *)indicator;
+	return SUCCEED;
 }
 
 /**
@@ -2523,33 +2559,14 @@ dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator)
 RETCODE
 dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
 {
-	TDSSOCKET *tds = dbproc->tds_socket;
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *curcol;
-	TDS_SMALLINT compute_id;
-	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbanullbind(%p, %d, %d, %p)\n", dbproc, computeid, column, indicator);
-	CHECK_DBPROC();
-	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
-	tdsdump_log(TDS_DBG_FUNC, "num_comp_info = %d\n", tds->num_comp_info);
 
-	compute_id = computeid;
-
-	for (i = 0;; ++i) {
-		if (i >= tds->num_comp_info)
-			return FAIL;
-		info = tds->comp_info[i];
-		tdsdump_log(TDS_DBG_FUNC, "dbanullbind() found computeid = %d\n", info->computeid);
-		if (info->computeid == compute_id)
-			break;
-	}
-	tdsdump_log(TDS_DBG_FUNC, "dbanullbind() num_cols = %d\n", info->num_cols);
-
-	if (column < 1 || column > info->num_cols)
+	curcol = dbacolptr(dbproc, computeid, column, 1);
+	if (!curcol)
 		return FAIL;
 
-	curcol = info->columns[column - 1];
 	/*
 	 *  XXX Need to check for possibly problems before assuming
 	 *  everything is okay
@@ -2635,11 +2652,11 @@ int
 dbcoltype(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcoltype(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED)
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return -1;
 
 	switch (colinfo->column_type) {
@@ -2664,11 +2681,11 @@ int
 dbcolutype(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcolutype(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED)
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return -1;
 
 	return colinfo->column_usertype;
@@ -2687,11 +2704,11 @@ dbcoltypeinfo(DBPROCESS * dbproc, int column)
 {
 	/* moved typeinfo from static into dbproc structure to make thread safe.  (mlilback 11/7/01) */
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcoltypeinfo(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED)
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return NULL;
 
 	dbproc->typeinfo.precision = colinfo->column_prec;
@@ -2718,10 +2735,11 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo;
 	int i;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcolinfo(%p, %d, %d, %d, %p)\n", dbproc, type, column, computeid, pdbcol);
-	if (ret != SUCCEED)
+
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return FAIL;
 		
 	CHECK_NULP(pdbcol, "dbcolinfo", 5, FAIL);
@@ -2827,11 +2845,11 @@ char *
 dbcolsource(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcolsource(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED)
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return NULL;
 
 	return colinfo->table_column_name ? colinfo->table_column_name : colinfo->column_name;
@@ -2850,11 +2868,11 @@ DBINT
 dbcollen(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcollen(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED)
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return -1;
 
 	return colinfo->column_size;
@@ -2875,11 +2893,11 @@ DBINT
 dbvarylen(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbvarylen(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED)
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return FALSE;
 
 	if (colinfo->column_nullable)
@@ -2925,11 +2943,11 @@ dbdatlen(DBPROCESS * dbproc, int column)
 {
 	DBINT len;
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbdatlen(%p, %d)\n", dbproc, column);
 
-	if (SUCCEED != ret)
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return -1;	
 
 	len = (colinfo->column_cur_size < 0)? 0 : colinfo->column_cur_size;
@@ -2952,12 +2970,12 @@ BYTE *
 dbdata(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 	const static BYTE empty[1] = { 0 };
 
 	tdsdump_log(TDS_DBG_FUNC, "dbdata(%p, %d)\n", dbproc, column);
 
-	if( ret != SUCCEED) 
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return NULL;
 
 	if (colinfo->column_cur_size < 0)
@@ -3885,34 +3903,15 @@ dbcmdrow(DBPROCESS * dbproc)
 int
 dbaltcolid(DBPROCESS * dbproc, int computeid, int column)
 {
-	int i;
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *curcol;
-	TDS_SMALLINT compute_id = computeid;
-	RETCODE ret = dbcolptr(dbproc, column, &curcol);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltcolid(%p, %d, %d)\n", dbproc, computeid, column);
-	if (ret != SUCCEED)
+
+	curcol = dbacolptr(dbproc, computeid, column, 0);
+	if (!curcol)
 		return -1;
-
-	tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid() num_comp_info = %d\n", dbproc->tds_socket->num_comp_info);
-	for (i = 0;; ++i) {
-		if (i >= dbproc->tds_socket->num_comp_info)
-			return -1;
-		info = dbproc->tds_socket->comp_info[i];
-		tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid() found computeid = %d\n", info->computeid);
-		if (info->computeid == compute_id)
-			break;
-	}
-	tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid() num_cols = %d\n", info->num_cols);
-
-	if (column < 1 || column > info->num_cols)
-		return -1;
-
-	curcol = info->columns[column - 1];
 
 	return curcol->column_operand;
-
 }
 
 /**
@@ -3930,36 +3929,20 @@ dbaltcolid(DBPROCESS * dbproc, int computeid, int column)
 DBINT
 dbadlen(DBPROCESS * dbproc, int computeid, int column)
 {
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo;
-	TDS_SMALLINT compute_id = computeid;
-	int i;
 	DBINT len;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbadlen(%p, %d, %d)\n", dbproc, computeid, column);
-	if (ret != SUCCEED)
+
+	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	if (!colinfo)
 		return FAIL;
 
-	for (i=0;; ++i) {
-		if (i >= dbproc->tds_socket->num_comp_info)
-			return -1;
-		info = dbproc->tds_socket->comp_info[i];
-		if (info->computeid == compute_id)
-			break;
-	}
-
-	/* if either the compute id or the column number are invalid, return -1 */
-	if (column < 1 || column > info->num_cols)
-		return -1;
-
-	colinfo = info->columns[column - 1];
 	len = colinfo->column_cur_size < 0? 0 : colinfo->column_cur_size;
 
 	tdsdump_log(TDS_DBG_FUNC, "leaving dbadlen() type = %d, returning %d\n", colinfo->column_type, len);
 
 	return len;
-
 }
 
 /**
@@ -3976,28 +3959,13 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 int
 dbalttype(DBPROCESS * dbproc, int computeid, int column)
 {
-	int i;
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbalttype(%p, %d, %d)\n", dbproc, computeid, column);
-	if (ret != SUCCEED)
+
+	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	if (!colinfo)
 		return FAIL;
-
-	for (i = 0;; ++i) {
-		if (i >= dbproc->tds_socket->num_comp_info)
-			return -1;
-		info = dbproc->tds_socket->comp_info[i];
-		if (info->computeid == computeid)
-			break;
-	}
-
-	/* if either the compute id or the column number are invalid, return -1 */
-	if (column < 1 || column > info->num_cols)
-		return -1;
-
-	colinfo = info->columns[column - 1];
 
 	switch (colinfo->column_type) {
 	case SYBVARCHAR:
@@ -4056,40 +4024,19 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 RETCODE
 dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varlen, BYTE * varaddr)
 {
-	int i;
 	int srctype = -1;
 	int desttype = -1;
-	TDS_SMALLINT compute_id = computeid;
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo = NULL;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltbind(%p, %d, %d, %d, %d, %p)\n", dbproc, computeid, column, vartype, varlen, varaddr);
-	if (ret != SUCCEED)
+
+	colinfo = dbacolptr(dbproc, computeid, column, 1);
+	if (!colinfo)
 		return FAIL;
 	CHECK_PARAMETER(varaddr, SYBEABNV, FAIL);
 
-	assert(dbproc->tds_socket != NULL);
-
 	dbproc->avail_flag = FALSE;
 
-	for (i=0;; ++i) {
-		if (i >= dbproc->tds_socket->num_comp_info){
-			dbperror(dbproc, SYBEBNCR, 0); /* Attempt to bind user variable to a non-existent compute row */
-			return FAIL;
-		}
-		info = dbproc->tds_socket->comp_info[i];
-		if (info->computeid == compute_id)
-			break;
-	}
-
-	/* Fail if either the compute id or the column number is invalid. */
-	if (column < 1 || column > info->num_cols) {
-		dbperror(dbproc, SYBEABNC, 0);
-		return FAIL;
-	}
-
-	colinfo = info->columns[column - 1];
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 	desttype = _db_get_server_type(vartype);
 
@@ -4122,29 +4069,13 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 BYTE *
 dbadata(DBPROCESS * dbproc, int computeid, int column)
 {
-	int i;
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo;
-	TDS_SMALLINT compute_id = computeid;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbadata(%p, %d, %d)\n", dbproc, computeid, column);
-	if (ret != SUCCEED)
+
+	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	if (!colinfo)
 		return NULL;
-
-	for (i=0;; ++i) {
-		if (i >= dbproc->tds_socket->num_comp_info)
-			return NULL;
-		info = dbproc->tds_socket->comp_info[i];
-		if (info->computeid == compute_id)
-			break;
-	}
-
-	/* if either the compute id or the column number are invalid, return -1 */
-	if (column < 1 || column > info->num_cols)
-		return NULL;
-
-	colinfo = info->columns[column - 1];
 
 	if (is_blob_type(colinfo->column_type)) {
 		return (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
@@ -4167,28 +4098,12 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 int
 dbaltop(DBPROCESS * dbproc, int computeid, int column)
 {
-	int i;
-	TDS_SMALLINT compute_id = computeid;
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *curcol;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltop(%p, %d, %d)\n", dbproc, computeid, column);
-	if (dbcolptr(dbproc, column, &curcol) != SUCCEED)
+
+	if ((curcol=dbacolptr(dbproc, computeid, column, 0)) == NULL)
 		return -1;
-
-	for (i = 0;; ++i) {
-		if (i >= dbproc->tds_socket->num_comp_info)
-			return -1;
-		info = dbproc->tds_socket->comp_info[i];
-		if (info->computeid == compute_id)
-			break;
-	}
-
-	/* if either the compute id or the column number are invalid, return -1 */
-	if (column < 1 || column > info->num_cols)
-		return -1;
-
-	curcol = info->columns[column - 1];
 
 	return curcol->column_operator;
 }
@@ -6117,12 +6032,12 @@ RETCODE
 dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 {
 	TDSCOLUMN *colinfo;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbtablecolinfo(%p, %d, %p)\n", dbproc, column, pdbcol);
 	CHECK_NULP(pdbcol, "dbtablecolinfo", 3, FAIL);
 
-	if( ret != SUCCEED) 
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo)
 		return FAIL;
 
 	tds_strlcpy(pdbcol->Name, colinfo->column_name, sizeof(pdbcol->Name));
@@ -6185,11 +6100,11 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSBLOB *blob;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbtxtimestamp(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED || !is_blob_type(colinfo->column_type))
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo || !is_blob_type(colinfo->column_type))
 		return NULL;
 
 	blob = (TDSBLOB *) colinfo->column_data;
@@ -6211,11 +6126,11 @@ dbtxptr(DBPROCESS * dbproc, int column)
 {
 	TDSCOLUMN *colinfo;
 	TDSBLOB *blob;
-	RETCODE ret = dbcolptr(dbproc, column, &colinfo);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbtxptr(%p, %d)\n", dbproc, column);
 
-	if (ret != SUCCEED || !is_blob_type(colinfo->column_type))
+	colinfo = dbcolptr(dbproc, column);
+	if (!colinfo || !is_blob_type(colinfo->column_type))
 		return NULL;
 
 	blob = (TDSBLOB *) colinfo->column_data;
@@ -6782,30 +6697,14 @@ dbsqlsend(DBPROCESS * dbproc)
 DBINT
 dbaltutype(DBPROCESS * dbproc, int computeid, int column)
 {
-	TDSSOCKET *tds = dbproc->tds_socket;
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo;
-	TDS_SMALLINT compute_id;
-	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltutype(%p, %d, %d)\n", dbproc, computeid, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
-	compute_id = computeid;
-
-	for (i = 0;; ++i) {
-		if (i >= tds->num_comp_info)
-			return -1;
-		info = tds->comp_info[i];
-		if (info->computeid == compute_id)
-			break;
-	}
-
-	/* if either the compute id or the column number are invalid, return -1 */
-	if (column < 1 || column > info->num_cols)
+	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	if (!colinfo)
 		return -1;
 
-	colinfo = info->columns[column - 1];
 	return colinfo->column_usertype;
 }
 
@@ -6821,30 +6720,13 @@ dbaltutype(DBPROCESS * dbproc, int computeid, int column)
 DBINT
 dbaltlen(DBPROCESS * dbproc, int computeid, int column)
 {
-	TDSSOCKET *tds = dbproc->tds_socket;
-	TDSCOMPUTEINFO *info;
 	TDSCOLUMN *colinfo;
-	TDS_SMALLINT compute_id;
-	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbaltlen(%p, %d, %d)\n", dbproc, computeid, column);
-	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
-	compute_id = computeid;
-
-	for (i = 0;; ++i) {
-		if (i >= tds->num_comp_info)
-			return -1;
-		info = tds->comp_info[i];
-		if (info->computeid == compute_id)
-			break;
-	}
-
-	/* if either the compute id or the column number are invalid, return -1 */
-	if (column < 1 || column > info->num_cols)
+	colinfo = dbacolptr(dbproc, computeid, column, 0);
+	if (!colinfo)
 		return -1;
-
-	colinfo = info->columns[column - 1];
 
 	return colinfo->column_size;
 
