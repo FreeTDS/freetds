@@ -1,3 +1,16 @@
+Mon Dec  3 18:45:22 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/apps/bsqldb.c
+	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/unittests/rpc.c
+	* src/dblib/unittests/setnull.c src/dblib/unittests/t0001.c
+	* src/dblib/unittests/t0002.c src/dblib/unittests/t0003.c
+	* src/dblib/unittests/t0004.c src/dblib/unittests/t0005.c
+	* src/dblib/unittests/t0006.c src/dblib/unittests/t0007.c
+	* src/dblib/unittests/t0008.c src/dblib/unittests/t0011.c
+	* src/dblib/unittests/t0015.c src/dblib/unittests/t0018.c
+	* src/dblib/unittests/t0023.c src/dblib/unittests/text_buffer.c
+	* src/dblib/unittests/thread.c src/dblib/unittests/timeout.c
+	- dbbind uses zero, not -1 to indicate sufficient space.  
+	
 Mon Dec  3 17:57:54 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/bcp.c don't cast malloc and don't assume it worked. 
 

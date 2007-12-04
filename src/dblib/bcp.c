@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.168 2007-12-03 22:58:50 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.169 2007-12-04 02:06:38 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -158,7 +158,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return (FAIL);
 	}
 
-	if (strlen(tblname) > 92 && !IS_TDS7_PLUS(tds)) {	/* 30.30.30 */
+	if (strlen(tblname) > 92 && !IS_TDS7_PLUS(dbproc->tds_socket)) {	/* 30.30.30 */
 		dbperror(dbproc, SYBEBCITBLEN, 0);
 		return (FAIL);
 	}
@@ -255,8 +255,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 			curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
 			curcol->char_conv = resinfo->columns[i]->char_conv;
 			memcpy(curcol->column_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
-			if (curcol->table_column_name)
-				TDS_ZERO_FREE(curcol->table_column_name);
+			TDS_ZERO_FREE(curcol->table_column_name);
 			if (resinfo->columns[i]->table_column_name)
 				curcol->table_column_name = strdup(resinfo->columns[i]->table_column_name);
 			curcol->column_nullable = resinfo->columns[i]->column_nullable;
@@ -986,8 +985,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					else
 						srclen = curcol->column_cur_size;
 					hostcol->bcp_column_data->is_null = 0;
-				}Mon Dec  3 11:53:56 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
-
+				}
 
 				if (hostcol->bcp_column_data->is_null) {
 					buflen = 0;
@@ -2089,10 +2087,8 @@ bcp_exec(DBPROCESS * dbproc, DBINT *rows_copied)
 static void 
 bcp_row_free(TDSRESULTINFO* result, unsigned char *row)
 {
-	if (result->current_row) {
-		result->row_size = 0;
-		TDS_ZERO_FREE(result->current_row);
-	}
+	result->row_size = 0;
+	TDS_ZERO_FREE(result->current_row);
 }
 
 /** 
@@ -3484,7 +3480,7 @@ _bcp_get_col_data(DBPROCESS * dbproc, TDSCOLUMN *bindcol)
 
 		bindcol->bcp_column_data->datalen = converted_data_size;
 		bindcol->bcp_column_data->is_null = 0;
-		/* FIXME: output of dbconvert() is not guaranteed not to be NULL */
+		assert(converted_data_size > 0);
 	}
 
 	return SUCCEED;
@@ -3560,8 +3556,7 @@ _bcp_free_columns(DBPROCESS * dbproc)
 
 	if (dbproc->hostfileinfo->host_columns) {
 		for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
-			if (dbproc->hostfileinfo->host_columns[i]->terminator)
-				TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns[i]->terminator);
+			TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns[i]->terminator);
 			tds_free_bcp_column_data(dbproc->hostfileinfo->host_columns[i]->bcp_column_data);
 			TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns[i]);
 		}
@@ -3577,7 +3572,7 @@ _bcp_free_columns(DBPROCESS * dbproc)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * 
  * \return SUCCEED or FAIL.
- * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
+ * \sa 	bcp_done(), bcp_exec(), bcp_init()
  */
 static void
 _bcp_free_storage(DBPROCESS * dbproc)
@@ -3601,6 +3596,6 @@ _bcp_free_storage(DBPROCESS * dbproc)
 		TDS_ZERO_FREE(dbproc->bcpinfo);
 	}
 
-	return (SUCCEED);
+	return;
 }
 

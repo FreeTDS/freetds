@@ -6,7 +6,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0007.c,v 1.16 2007-01-15 19:43:09 jklowden Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.17 2007-12-04 02:06:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -118,9 +118,9 @@ main(int argc, char **argv)
 	}
 
 	add_bread_crumb();
-	dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint);
+	dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint);
 	add_bread_crumb();
-	dbbind(dbproc, 2, STRINGBIND, -1, (BYTE *) teststr);
+	dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr);
 	add_bread_crumb();
 
 	add_bread_crumb();

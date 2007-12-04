@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.303 2007-12-03 14:39:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.304 2007-12-04 02:06:38 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -577,6 +577,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int bindlen)
 	 * CHARBIND		Empty string (padded with blanks)
 	 * STRINGBIND		Empty string (padded with blanks, null-terminated)
 	 * BINARYBIND		Empty array (padded with zeros)
+	 * cast away constness as we set these values this one time.  
 	 */
 	switch (bindtype) {
 	case CHARBIND:
@@ -630,7 +631,7 @@ dbinit(void)
 	 * DBLIBCONTEXT stores a list of current connections so they may be closed with dbexit() 
 	 */
 
-	g_dblib_ctx.connection_list = (TDSSOCKET **) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
+	g_dblib_ctx.connection_list = calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
 	if (g_dblib_ctx.connection_list == NULL) {
 		tdsdump_log(TDS_DBG_FUNC, "dbinit: out of memory\n");
 		TDS_MUTEX_UNLOCK(&dblib_mutex);
@@ -665,10 +666,12 @@ dblogin(void)
 
 	tdsdump_log(TDS_DBG_FUNC, "dblogin(void)\n");
 
-	if ((loginrec = (LOGINREC *) malloc(sizeof(LOGINREC))) == NULL) {
+	if ((loginrec = malloc(sizeof(LOGINREC))) == NULL) {
+		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
 	if ((loginrec->tds_login = tds_alloc_login()) == NULL) {
+		dbperror(NULL, SYBEMEM, errno);
 		free(loginrec);
 		return NULL;
 	}
@@ -689,10 +692,8 @@ dbloginfree(LOGINREC * login)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbloginfree(%p)\n", login);
 
-	if (login) {
-		tds_free_login(login->tds_login);
-		free(login);
-	}
+	tds_free_login(login->tds_login);
+	TDS_ZERO_FREE(login);
 }
 
 /** \internal
@@ -895,12 +896,12 @@ dbstring_concat(DBSTRING ** dbstrp, const char *p)
 	while (*strp != NULL) {
 		strp = &((*strp)->strnext);
 	}
-	if ((*strp = (DBSTRING *) malloc(sizeof(DBSTRING))) == NULL) {
+	if ((*strp = malloc(sizeof(DBSTRING))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
 	}
 	(*strp)->strtotlen = strlen(p);
-	if (((*strp)->strtext = (BYTE *) malloc((*strp)->strtotlen)) == NULL) {
+	if (((*strp)->strtext = malloc((*strp)->strtotlen)) == NULL) {
 		TDS_ZERO_FREE(*strp);
 		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
@@ -965,7 +966,7 @@ dbstring_get(DBSTRING * dbstr)
 		return NULL;
 	}
 	len = dbstring_length(dbstr);
-	if ((ret = (char *) malloc(len + 1)) == NULL) {
+	if ((ret = malloc(len + 1)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1023,8 +1024,7 @@ init_dboptions(void)
 	DBOPTION *dbopts;
 	int i;
 
-	dbopts = (DBOPTION *) malloc(sizeof(DBOPTION) * DBNUMOPTIONS);
-	if (dbopts == NULL) {
+	if ((dbopts = calloc(DBNUMOPTIONS, sizeof(DBOPTION))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1065,12 +1065,10 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbopen(%p, %s, [%s])\n", login, server, msdblib? "microsoft" : "sybase");
 
-	dbproc = (DBPROCESS *) malloc(sizeof(DBPROCESS));
-	if (dbproc == NULL) {
+	if ((dbproc = calloc(1, sizeof(DBPROCESS))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
-	memset(dbproc, '\0', sizeof(DBPROCESS));
 	dbproc->msdblib = msdblib;
 
 	dbproc->dbopts = init_dboptions();
@@ -1186,8 +1184,10 @@ dbfcmd(DBPROCESS * dbproc, const char *fmt, ...)
 	len = vasprintf(&s, fmt, ap);
 	va_end(ap);
 
-	if (len < 0)
+	if (len < 0) {
+		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
+	}
 
 	ret = dbcmd(dbproc, s);
 	free(s);
@@ -1229,8 +1229,9 @@ dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 	}
 
 	if (dbproc->dbbufsz == 0) {
-		dbproc->dbbuf = (unsigned char *) malloc(strlen(cmdstring) + 1);
+		dbproc->dbbuf = malloc(strlen(cmdstring) + 1);
 		if (dbproc->dbbuf == NULL) {
+			dbperror(NULL, SYBEMEM, errno);
 			return FAIL;
 		}
 		strcpy((char *) dbproc->dbbuf, cmdstring);
@@ -1238,6 +1239,7 @@ dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 	} else {
 		newsz = strlen(cmdstring) + dbproc->dbbufsz;
 		if ((p = realloc(dbproc->dbbuf, newsz)) == NULL) {
+			dbperror(NULL, SYBEMEM, errno);
 			return FAIL;
 		}
 		dbproc->dbbuf = (unsigned char *) p;
@@ -1304,9 +1306,11 @@ dbuse(DBPROCESS * dbproc, const char *name)
 		return FAIL;
 
 	/* quote name */
-	query = (char *) malloc(tds_quote_id(dbproc->tds_socket, NULL, name, -1) + 6);
-	if (!query)
+	query = malloc(tds_quote_id(dbproc->tds_socket, NULL, name, -1) + 6);
+	if (!query) {
+		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
+	}
 	strcpy(query, "use ");
 	/* TODO PHP suggest to quote by yourself with []... what should I do ?? quote or not ?? */
 	if (name[0] == '[' && name[strlen(name)-1] == ']')
@@ -1808,6 +1812,10 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(bindlen, SYBEBBL, FAIL);
 	CHECK_PARAMETER(bindval, SYBENBVP, FAIL);
+
+	/* free any prior allocation */
+	if (dbproc->nullreps[bindtype].bindval != default_null_representations[bindtype].bindval)
+		free((BYTE*)dbproc->nullreps[bindtype].bindval);
 
 	if ((pval = malloc(bindlen)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
@@ -2435,7 +2443,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 	tdsdump_log(TDS_DBG_FUNC, "dbbind(%p, %d, %d, %d, %p)\n", dbproc, column, vartype, varlen, varaddr);
 	CHECK_DBPROC();
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
-	CHECK_PARAMETER(varaddr, SYBEABNP, FAIL);
+	CHECK_PARAMETER(varaddr, SYBEABNV, FAIL);
 	
 	results = dbproc->tds_socket->res_info;
 	
@@ -2443,33 +2451,41 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 		dbperror(dbproc, SYBEABNC, 0);
 		return FAIL;
 	}
+	
+	if (varlen < 0) {
+		switch (vartype) {
+		case CHARBIND:
+		case STRINGBIND:
+		case NTBSTRINGBIND:
+		case VARYCHARBIND:
+		case VARYBINBIND:
+			/* 
+			 * No message for this error.  Documentation doesn't define varlen < 0, but 
+			 * experimentation with Sybase db-lib shows it's accepted as if zero. 
+			 */
+			tdsdump_log(TDS_DBG_FUNC, "dbbind: setting varlen (%d) to 0\n", varlen);
+			varlen = 0;
+			break;
+		}
+	}
 
-	colinfo = results->columns[column - 1];
-	if (varaddr == NULL && varlen > 0) {
-		if (colinfo->column_type == SYBTEXT || colinfo->column_type == SYBIMAGE) {
-			switch (vartype) {
-			case CHARBIND:
-			case STRINGBIND:
-			case NTBSTRINGBIND:
-			case VARYCHARBIND:
-			case BINARYBIND:
-			case VARYBINBIND:
-				break;	/* OK */
-			default:
-				dbperror(dbproc, SYBEBCSNTYP, 0, column);
-				tdsdump_log(TDS_DBG_FUNC, "dbbind: SYBEBCSNTYP: col %d coltype=%d and vartype=%d (should fail?)\n", 
-								column, colinfo->column_type, vartype);
-				return FAIL;
-			}
+	if (0 == varlen) {		/* "Note that if varlen is 0, no padding takes place." */
+		switch (vartype) {
+		case CHARBIND:
+		case STRINGBIND:
+		case NTBSTRINGBIND:
+			varlen = -1;
+			break;
+		default:
+			break;		/* dbconvert: "The destlen is ignored for all fixed-length, non-NULL data types." */
 		}
 	}
 
 	dbproc->avail_flag = FALSE;
 
+	colinfo = dbproc->tds_socket->res_info->columns[column - 1];
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 	desttype = _db_get_server_type(vartype);
-
-	tdsdump_log(TDS_DBG_INFO1, "dbbind() srctype = %d desttype = %d \n", srctype, desttype);
 
 	if (! dbwillconvert(srctype, desttype)) {
 		dbperror(dbproc, SYBEABMT, 0);
@@ -3192,7 +3208,10 @@ dbprrow(DBPROCESS * dbproc)
 			resinfo = tds->res_info;
 
 			if (col_printlens == NULL) {
-				col_printlens = (TDS_SMALLINT *) malloc(sizeof(TDS_SMALLINT) * resinfo->num_cols);
+				if ((col_printlens = calloc(sizeof(TDS_SMALLINT), resinfo->num_cols)) == NULL) {
+					dbperror(NULL, SYBEMEM, errno);
+					return FAIL;
+				}
 			}
 
 			for (col = 0; col < resinfo->num_cols; col++) {
@@ -3763,11 +3782,12 @@ dbsetmaxprocs(int maxprocs)
 		return SUCCEED;
 	}
 
-	g_dblib_ctx.connection_list = (TDSSOCKET **) calloc(maxprocs, sizeof(TDSSOCKET *));
+	g_dblib_ctx.connection_list = calloc(maxprocs, sizeof(TDSSOCKET *));
 
 	if (g_dblib_ctx.connection_list == NULL) {
 		g_dblib_ctx.connection_list = old_list;
 		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
 	}
 
@@ -4625,15 +4645,17 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 		*size = info->by_cols;
 
 	/*
-	 * libTDS store this information using TDS_SMALLINT so we 
-	 * have to convert it. We can do this cause libTDS just
-	 * store these informations
+	 * libtds stores this information using TDS_SMALLINT so we 
+	 * have to convert it. We can do this because libtds just
+	 * stores these data.
 	 */
 	if (info->by_cols > 0 && info->bycolumns[0] != byte_flag) {
 		unsigned int n;
-		TDS_TINYINT *p = (TDS_TINYINT *) malloc(sizeof(info->bycolumns[0]) + info->by_cols);
-		if (!p)
+		TDS_TINYINT *p = malloc(sizeof(info->bycolumns[0]) + info->by_cols);
+		if (!p) {
+			dbperror(NULL, SYBEMEM, errno);
 			return NULL;
+		}
 		for (n = 0; n < info->by_cols; ++n)
 			p[sizeof(info->bycolumns[0]) + n] = info->bycolumns[n] > 255 ? 255 : info->bycolumns[n];
 		*((TDS_SMALLINT *)p) = byte_flag;

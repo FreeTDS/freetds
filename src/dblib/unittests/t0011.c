@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0011.c,v 1.11 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0011.c,v 1.12 2007-12-04 02:06:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -98,19 +98,19 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 		printf("col %d is %s\n", i, dbcolname(dbproc, i));
 	}
 
-	if (SUCCEED != dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint)) {
+	if (SUCCEED != dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint)) {
 		fprintf(stderr, "Had problem with bind\n");
 		return 1;
 	}
-	if (SUCCEED != dbbind(dbproc, 2, bind_type, -1, (BYTE *) teststr)) {
+	if (SUCCEED != dbbind(dbproc, 2, bind_type, 0, (BYTE *) teststr)) {
 		fprintf(stderr, "Had problem with bind\n");
 		return 1;
 	}
-	if (SUCCEED != dbbind(dbproc, 3, bind_type, -1, (BYTE *) teststr2)) {
+	if (SUCCEED != dbbind(dbproc, 3, bind_type, 0, (BYTE *) teststr2)) {
 		fprintf(stderr, "Had problem with bind\n");
 		return 1;
 	}
-	if (SUCCEED != dbbind(dbproc, 4, bind_type, -1, (BYTE *) testvstr)) {
+	if (SUCCEED != dbbind(dbproc, 4, bind_type, 0, (BYTE *) testvstr)) {
 		fprintf(stderr, "Had problem with bind\n");
 		return 1;
 	}

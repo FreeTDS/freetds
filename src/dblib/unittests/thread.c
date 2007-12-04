@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-static char software_version[] = "$Id: thread.c,v 1.10 2007-03-19 08:47:52 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.11 2007-12-04 02:06:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -46,11 +46,11 @@ test(DBPROCESS *dbproc)
 		return 1;
 	}
 
-	if (SUCCEED != dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint)) {
+	if (SUCCEED != dbbind(dbproc, 1, INTBIND, 0, (BYTE *) & testint)) {
 		fprintf(stderr, "Had problem with bind\n");
 		abort();
 	}
-	if (SUCCEED != dbbind(dbproc, 2, STRINGBIND, -1, (BYTE *) teststr)) {
+	if (SUCCEED != dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr)) {
 		fprintf(stderr, "Had problem with bind\n");
 		abort();
 	}

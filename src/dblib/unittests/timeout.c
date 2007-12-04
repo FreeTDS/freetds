@@ -7,7 +7,7 @@
 #include "common.h"
 #include <time.h>
 
-static char software_version[] = "$Id: timeout.c,v 1.2 2007-01-15 02:00:58 jklowden Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.3 2007-12-04 02:06:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int ntimeouts = 0, ncancels = 0;
@@ -194,7 +194,7 @@ main(int argc, char **argv)
 			empty_resultset = 1;
 			++num_resultset;
 			printf("bound 1 of %d columns ('%s') in result %d.\n", ncols, dbcolname(dbproc, 1), ++r);
-			dbbind(dbproc, 1, STRINGBIND, -1, (BYTE *) teststr);
+			dbbind(dbproc, 1, STRINGBIND, 0, (BYTE *) teststr);
 
 			printf("\t%s\n\t-----------\n", dbcolname(dbproc, 1));
 			while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {

@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.31 2007-10-16 15:12:21 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.32 2007-12-04 02:06:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -278,7 +278,7 @@ main(int argc, char **argv)
 			int empty_resultset = 1;
 			++num_resultset;
 			printf("bound 1 of %d columns ('%s') in result %d.\n", ncols, dbcolname(dbproc, 1), ++r);
-			dbbind(dbproc, 1, STRINGBIND, -1, (BYTE *) teststr);
+			dbbind(dbproc, 1, STRINGBIND, 0, (BYTE *) teststr);
 			
 			printf("\t%s\n\t-----------\n", dbcolname(dbproc, 1));
 			while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {

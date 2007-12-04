@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.25 2007-11-27 12:38:11 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.26 2007-12-04 02:06:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -135,7 +135,7 @@ main(int argc, char **argv)
 		abort();
 	}
 	add_bread_crumb();
-	if (SUCCEED != dbbind(dbproc, 2, STRINGBIND, -1, (BYTE *) teststr)) {
+	if (SUCCEED != dbbind(dbproc, 2, STRINGBIND, 0, (BYTE *) teststr)) {
 		failed = 1;
 		fprintf(stderr, "Had problem with bind\n");
 		abort();

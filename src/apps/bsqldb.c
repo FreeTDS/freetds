@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.30 2007-02-07 05:07:30 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.31 2007-12-04 02:06:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -409,7 +409,7 @@ print_results(DBPROCESS *dbproc)
 			data[c].buffer = calloc(1, metadata[c].width);
 			assert(data[c].buffer);
 
-			erc = dbbind(dbproc, c+1, bindtype, -1, (BYTE *) data[c].buffer);
+			erc = dbbind(dbproc, c+1, bindtype, 0, (BYTE *) data[c].buffer);
 			if (erc == FAIL) {
 				fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, c+1);
 				return;
