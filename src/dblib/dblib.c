@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.304 2007-12-04 02:06:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.305 2007-12-04 04:20:31 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1795,7 +1795,8 @@ dbgetrow(DBPROCESS * dbproc, DBINT row)
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param bindtype	type of binding to which the substitute value will apply. 
- * \param bindlen 	size of the substitute value you are supplying, in bytes. Ignords except for CHARBIND and BINARYBIND. 
+ * \param bindlen 	size of the substitute value you are supplying, in bytes. 
+ * 			Ignored except for CHARBIND and BINARYBIND. 
  * \param bindval 	pointer to a buffer containing the substitute value.
  * \retval SUCCEED query was processed without errors.
  * \retval FAIL query was not processed
@@ -1810,8 +1811,53 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	
 	CHECK_DBPROC();
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
-	CHECK_PARAMETER(bindlen, SYBEBBL, FAIL);
 	CHECK_PARAMETER(bindval, SYBENBVP, FAIL);
+	
+	switch (bindtype) {
+	case CHARBIND:
+	case BINARYBIND:
+		CHECK_PARAMETER(bindlen >= 0, SYBEBBL, FAIL);
+		break;
+	case DATETIMEBIND:	bindlen = sizeof(DBDATETIME);
+		break;
+	case DECIMALBIND:	bindlen = sizeof(DBDECIMAL);
+		break;
+	case FLT8BIND:		bindlen = sizeof(DBFLT8);
+		break;
+	case INTBIND:		bindlen = sizeof(DBINT);
+		break;
+	case MONEYBIND:		bindlen = sizeof(DBMONEY);
+		break;
+	case NUMERICBIND:	bindlen = sizeof(DBNUMERIC);
+		break;
+	case REALBIND:		bindlen = sizeof(DBREAL);
+		break;
+	case SMALLBIND:		bindlen = sizeof(DBSMALLINT);
+		break;
+	case SMALLDATETIMEBIND:	bindlen = sizeof(DBDATETIME4);
+		break;
+	case SMALLMONEYBIND:	bindlen = sizeof(DBMONEY4);
+		break;
+	case TINYBIND:		bindlen = sizeof(DBTINYINT);
+		break;
+
+	case NTBSTRINGBIND:	bindlen = strlen(bindval);
+		break;
+	case STRINGBIND:	bindlen = strlen(bindval);
+		break;
+	case VARYBINBIND:	bindlen = ((TDS_VARBINARY*) bindval)->len;
+		break;
+	case VARYCHARBIND:	bindlen = ((TDS_VARCHAR*) bindval)->len;
+		break;
+
+#if 0
+	case SENSITIVITYBIND:
+	case BOUNDARYBIND:
+#endif
+	default:
+		dbperror(dbproc, SYBEBTYP, 0);
+		return FAIL;
+	}
 
 	/* free any prior allocation */
 	if (dbproc->nullreps[bindtype].bindval != default_null_representations[bindtype].bindval)
@@ -1827,6 +1873,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	dbproc->nullreps[bindtype].bindval = pval;
 	dbproc->nullreps[bindtype].len = bindlen;
 
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "null representation set ", pval,  bindlen);
 	return SUCCEED;
 }
 
@@ -2485,7 +2532,10 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 
 	colinfo = dbproc->tds_socket->res_info->columns[column - 1];
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-	desttype = _db_get_server_type(vartype);
+	if (-1 == (desttype = _db_get_server_type(vartype))) {
+		dbperror(dbproc, SYBEBTYP, 0);
+		return FAIL;
+	}
 
 	if (! dbwillconvert(srctype, desttype)) {
 		dbperror(dbproc, SYBEABMT, 0);
@@ -6864,15 +6914,22 @@ _set_null_value(DBPROCESS *dbproc, int bindtype, BYTE * varaddr, int destlen)
 {
 	NULLREP *nullrep = dbgetnull(dbproc, bindtype, destlen);
 
-	
 	if (nullrep && nullrep->bindval) {
-		if (nullrep->len <= destlen) {
+		switch (bindtype) {
+		case NTBSTRINGBIND:
+		case STRINGBIND:
+		case VARYBINBIND:
+		case VARYCHARBIND:
+			if (destlen < nullrep->len) {
+				tdsdump_log(TDS_DBG_FUNC, "_set_null_value: error: not setting varaddr(%p) because %d < %d\n", 
+							nullrep->bindval, destlen, nullrep->len);
+				break;
+			}
+			/* else OK, fall through */
+		default:
 			memcpy(varaddr, nullrep->bindval, nullrep->len);
-		} else {
-			tdsdump_log(TDS_DBG_FUNC, "_set_null_value: error: not setting varaddr because %d < %d\n", 
-						destlen, nullrep->len);
+			break;
 		}
-		
 		if (nullrep->to_free) {
 			free(nullrep->to_free);
 			free(nullrep);

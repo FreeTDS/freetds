@@ -3,8 +3,10 @@
  */
 
 #include "common.h"
+#include <libgen.h>
+#include <replacements.h>
 
-static char software_version[] = "$Id: setnull.c,v 1.1 2007-12-03 09:20:10 freddy77 Exp $";
+static char software_version[] = "$Id: setnull.c,v 1.2 2007-12-04 04:20:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -85,13 +87,13 @@ main(int argc, char **argv)
 	}
 
 	if (db_i != 0xdeadbeef) {
-		fprintf(stderr, "Invalid NULL %ld returned\n", (long int) db_i);
+		fprintf(stderr, "Invalid NULL %ld returned (%s:%d)\n", (long int) db_i, tds_basename(__FILE__), __LINE__);
 		failed = 1;
 	}
 
 	/* try if dbset null consider length */
 	for (db_i = 1; db_i > 0; db_i <<= 1) {
-	printf("db_i = %ld\n", (long int) db_i);
+		printf("db_i = %ld\n", (long int) db_i);
 		ret = dbsetnull(dbproc, INTBIND, db_i, (BYTE *) &db_i);
 		if (ret != SUCCEED) {
 			fprintf(stderr, "dbsetnull returned error %d for bindlen %ld\n", (int) ret, (long int) db_i);

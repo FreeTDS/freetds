@@ -1,3 +1,7 @@
+Mon Dec  3 23:18:55 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c src/dblib/unittests/setnull.c
+	- corrected dbsetnull()
+
 Mon Dec  3 18:45:22 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/bsqldb.c
 	* src/dblib/bcp.c src/dblib/dblib.c src/dblib/unittests/rpc.c
