@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.309 2007-12-05 06:28:19 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.310 2007-12-05 15:42:29 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -531,7 +531,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 		return SUCCEED;
 	} 
 	
-	if (varlen < pnullrep->len) {
+	if (varlen < (long)pnullrep->len) {
 		tdsdump_log(TDS_DBG_FUNC, "dbgetnull: error: not setting varaddr(%p) because %d < %d\n", 
 					varaddr, varlen, pnullrep->len);
 		return FAIL;

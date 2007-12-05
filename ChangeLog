@@ -1,3 +1,7 @@
+Wed Dec  5 10:38:55 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c 
+	- t0011 passes but copy_data_to_host_var likely wrong
+
 Tue Dec  4 20:19:38 EST 2007	JK Lowden <jklowden@freetds.org>
 	* include/dblib.h src/dblib/buffering.h src/dblib/dblib.c
 	- removed _db_set_null and associated mallocs
