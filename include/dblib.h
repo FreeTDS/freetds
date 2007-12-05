@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.42 2007-12-02 23:01:37 jklowden Exp $ */
+/* $Id: dblib.h,v 1.43 2007-12-05 03:04:11 jklowden Exp $ */
 
 enum {
 	  _DB_RES_INIT            = 0
@@ -136,8 +136,6 @@ typedef struct _null_representation
 {
 	const BYTE *bindval;
 	size_t len;
-	size_t capacity;
-	BYTE *to_free;
 } NULLREP;
 
 struct tds_dblib_dbprocess

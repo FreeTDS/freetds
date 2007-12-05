@@ -1,3 +1,8 @@
+Tue Dec  4 20:19:38 EST 2007	JK Lowden <jklowden@freetds.org>
+	* include/dblib.h src/dblib/buffering.h src/dblib/dblib.c
+	- removed _db_set_null and associated mallocs
+	- dblib/unittest/t0011.c failing mysteriously
+	 
 Mon Dec  3 23:18:55 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c src/dblib/unittests/setnull.c
 	- corrected dbsetnull()

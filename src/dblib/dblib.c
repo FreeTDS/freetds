@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.307 2007-12-04 04:59:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.308 2007-12-05 03:04:11 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -85,11 +85,10 @@ static char *_dbprdate(char *timestr);
 static int _dbnullable(DBPROCESS * dbproc, int column);
 static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
-static void _set_null_value(DBPROCESS *dbproc, int bindtype, BYTE * varaddr, int dstlen);
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
 static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
-NULLREP* dbgetnull(DBPROCESS *dbproc, int bindtype, int bindlen);
+static RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
 
 /**
  * \file dblib.c
@@ -430,83 +429,45 @@ dbacolptr(DBPROCESS* dbproc, int computeid, int column, int is_bind)
  * SENSITIVITYBIND	Empty string (null-terminated)
  */
 
-static NULLREP default_null_representations[MAXBINDTYPES];
+static const DBBIT		null_BIT = 0;
+static const DBTINYINT		null_TINYINT = 0;
+static const DBSMALLINT		null_SMALLINT = 0;
+static const DBINT		null_INT = 0;
+static const DBFLT8		null_FLT8 = 0;
+static const DBREAL		null_REAL = 0;
 
-static void initialize_default_null_representations(void);
+static const DBCHAR		null_CHAR = '\0';
+static const DBVARYCHAR		null_VARYCHAR = { 0, {0} };
+static const DBBINARY		null_BINARY = 0;
 
-static void
-initialize_default_null_representations(void)
-{
-	static const DBBIT		null_BIT = 0;
-	static const DBTINYINT		null_TINYINT = 0;
-	static const DBSMALLINT		null_SMALLINT = 0;
-	static const DBINT		null_INT = 0;
-	static const DBFLT8		null_FLT8 = 0;
-	static const DBREAL		null_REAL = 0;
+static const DBDATETIME		null_DATETIME = { 0, 0 };
+static const DBDATETIME4	null_SMALLDATETIME = { 0, 0 };
+static const DBMONEY		null_MONEY = { 0, 0 };
+static const DBMONEY4		null_SMALLMONEY = {0};
+static const DBNUMERIC		null_NUMERIC = { 0, 0, {0} };
 
-	static const DBCHAR		null_CHAR = '\0';
-	static const DBVARYCHAR		null_VARYCHAR = { 0, {0} };
-	static const DBBINARY		null_BINARY = 0;
-	
-	static const DBDATETIME		null_DATETIME = { 0, 0 };
-	static const DBDATETIME4	null_SMALLDATETIME = { 0, 0 };
-	static const DBMONEY		null_MONEY = { 0, 0 };
-	static const DBMONEY4		null_SMALLMONEY = {0};
-	static const DBNUMERIC		null_NUMERIC = { 0, 0, {0} };
-
-	NULLREP *defaults = default_null_representations; /* a shorter alias */
-	
-	NULLREP null_BITBIND		= { &null_BIT, sizeof(null_BIT), 0, NULL };
-	NULLREP null_TINYBIND		= { &null_TINYINT, sizeof(null_TINYINT), 0, NULL };
-	NULLREP null_SMALLBIND		= { (BYTE*) &null_SMALLINT, sizeof(null_SMALLINT), 0, NULL };
-	NULLREP null_INTBIND		= { (BYTE*) &null_INT, sizeof(null_INT), 0, NULL };
-
-	NULLREP null_CHARBIND		= { NULL, 0, 0, NULL };
-	NULLREP null_STRINGBIND		= { NULL, 0, 0, NULL };
-	NULLREP null_NTBSTRINGBIND	= { (BYTE *) &null_CHAR, sizeof(null_CHAR), 0, NULL };
-
-	NULLREP null_VARYCHARBIND	= { (BYTE*) &null_VARYCHAR, sizeof(null_VARYCHAR), 0, NULL };
-	NULLREP null_BINARYBIND		= { NULL, 0, 0, NULL };
-	NULLREP null_VARYBINBIND	= { &null_BINARY, sizeof(null_BINARY), 0, NULL };
-	
-	NULLREP null_DATETIMEBIND	= { (BYTE*) &null_DATETIME, sizeof(null_DATETIME), 0, NULL };
-	NULLREP null_SMALLDATETIMEBIND	= { (BYTE*) &null_SMALLDATETIME, sizeof(null_SMALLDATETIME), 0, NULL };
-
-	NULLREP null_MONEYBIND		= { (BYTE*) &null_MONEY, sizeof(null_MONEY), 0, NULL };
-	NULLREP null_SMALLMONEYBIND	= { (BYTE*) &null_SMALLMONEY, sizeof(null_SMALLMONEY), 0, NULL };
-
-	NULLREP null_FLT8BIND		= { (BYTE*) &null_FLT8, sizeof(null_FLT8), 0, NULL };
-	NULLREP null_REALBIND		= { (BYTE*) &null_REAL, sizeof(null_REAL), 0, NULL };
-
-	NULLREP null_NUMERICBIND	= { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC), 0, NULL };
-
-	defaults[BITBIND]		= null_BITBIND;
-	defaults[TINYBIND]		= null_TINYBIND;
-	defaults[SMALLBIND]		= null_SMALLBIND;
-	defaults[INTBIND]		= null_INTBIND;
-
-	defaults[CHARBIND]		= null_CHARBIND;
-	defaults[STRINGBIND]		= null_STRINGBIND;
-	defaults[NTBSTRINGBIND]		= null_NTBSTRINGBIND;
-
-	defaults[VARYCHARBIND]		= null_VARYCHARBIND;
-	defaults[BINARYBIND]		= null_BINARYBIND;
-	defaults[VARYBINBIND]		= null_VARYBINBIND;
-	
-	defaults[DATETIMEBIND]		= null_DATETIMEBIND;
-	defaults[SMALLDATETIMEBIND]	= null_SMALLDATETIMEBIND;
-
-	defaults[MONEYBIND]		= null_MONEYBIND;
-	defaults[SMALLMONEYBIND]	= null_SMALLMONEYBIND;
-
-	defaults[FLT8BIND]		= null_FLT8BIND;
-	defaults[REALBIND]		= null_REALBIND;
-
-	defaults[NUMERICBIND]		= null_NUMERICBIND;
-	defaults[DECIMALBIND]		= null_NUMERICBIND;
-
-
-}
+static NULLREP default_null_representations[MAXBINDTYPES] = {
+	/* CHARBIND	     0  */	  {         NULL, 0 }
+	/* STRINGBIND	     1  */	, {         NULL, 0 }
+	/* NTBSTRINGBIND     2  */	, { (BYTE*) &null_CHAR, sizeof(null_CHAR) }
+	/* VARYCHARBIND      3  */	, { (BYTE*) &null_VARYCHAR, sizeof(null_VARYCHAR) }
+	/* VARYBINBIND       4  */	, {         &null_BINARY, sizeof(null_BINARY) }
+	/* no such bind      5  */	, {         NULL, 0 }			
+	/* TINYBIND	     6  */	, {         &null_TINYINT, sizeof(null_TINYINT) }
+	/* SMALLBIND	     7  */	, { (BYTE*) &null_SMALLINT, sizeof(null_SMALLINT) }
+	/* INTBIND	     8  */	, { (BYTE*) &null_INT, sizeof(null_INT) }
+	/* FLT8BIND	     9  */	, { (BYTE*) &null_FLT8, sizeof(null_FLT8) }
+	/* REALBIND	     10 */	, { (BYTE*) &null_REAL, sizeof(null_REAL) }
+	/* DATETIMEBIND      11 */	, { (BYTE*) &null_DATETIME, sizeof(null_DATETIME) }
+	/* SMALLDATETIMEBIND 12 */	, { (BYTE*) &null_SMALLDATETIME, sizeof(null_SMALLDATETIME) }
+	/* MONEYBIND	     13 */	, { (BYTE*) &null_MONEY, sizeof(null_MONEY) }
+	/* SMALLMONEYBIND    14 */	, { (BYTE*) &null_SMALLMONEY, sizeof(null_SMALLMONEY) }
+	/* BINARYBIND	     15 */	, {         NULL, 0 }		    
+	/* BITBIND	     16 */	, {         &null_BIT, sizeof(null_BIT) }
+	/* NUMERICBIND       17 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
+	/* DECIMALBIND       18 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
+	/* MAXBINDTYPES      19 */
+};
 
 static int
 dbbindtype(int datatype)
@@ -545,61 +506,64 @@ dbbindtype(int datatype)
 	return 0;
 }
 
-NULLREP*
-dbgetnull(DBPROCESS *dbproc, int bindtype, int bindlen)
+static RETCODE
+dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 {
 	NULLREP *pnullrep;
-	tdsdump_log(TDS_DBG_FUNC, "dbgetnull(%p, %d, %d)\n", dbproc, bindtype, bindlen);
+	tdsdump_log(TDS_DBG_FUNC, "dbgetnull(%p, %d, %d, %p)\n", dbproc, bindtype, varlen, varaddr);
 	
-	CHECK_PARAMETER(dbproc, SYBENULL, NULL);
-	CHECK_PARAMETER(!IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE, NULL);
-	CHECK_PARAMETER(0 <= bindtype && bindtype < MAXBINDTYPES, SYBEBTYP, NULL);
+	CHECK_PARAMETER(dbproc, SYBENULL, FAIL);
+	CHECK_PARAMETER(varaddr, SYBENULL, FAIL);
+	CHECK_PARAMETER(!IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE, FAIL);
+	CHECK_PARAMETER(0 <= bindtype && bindtype < MAXBINDTYPES, SYBEBTYP, FAIL);
+	
+	if (!varaddr) {
+		dbperror(dbproc, SYBENULP, 0, "dbgetnull", "varaddr");
+		return FAIL;
+	}
+	
+	assert(dbproc->nullreps);
 
 	pnullrep = dbproc->nullreps + bindtype;
 	
-	if (pnullrep->bindval) 
-		return pnullrep;
+	if (pnullrep->bindval) {
+		memcpy(varaddr, pnullrep->bindval, pnullrep->len);
+		return SUCCEED;
+	} 
+	
+	if (varlen < pnullrep->len) {
+		tdsdump_log(TDS_DBG_FUNC, "dbgetnull: error: not setting varaddr(%p) because %d < %d\n", 
+					varaddr, varlen, pnullrep->len);
+		return FAIL;
+	} 
+	if (varlen == 0)
+		return SUCCEED;
 		
-	if ((pnullrep = malloc(sizeof(dbproc->nullreps[bindtype]))) == NULL) {
-		dbperror(dbproc, SYBEMEM, errno);
-		return NULL;
-	}
+	tdsdump_log(TDS_DBG_FUNC, "varaddr(%p) varlen %d < %d?\n", varaddr, varlen, pnullrep->len);
 
-	memcpy(pnullrep, &dbproc->nullreps[bindtype], sizeof(dbproc->nullreps[bindtype]));
-
-	/* to_free indicates caller should free both bindval and NULLREP */
-	if ((pnullrep->bindval = pnullrep->to_free = malloc(bindlen)) == NULL) {
-		dbperror(dbproc, SYBEMEM, errno);
-		return NULL;
-	}
+	assert(varlen > 0);
 
 	/*
 	 * CHARBIND		Empty string (padded with blanks)
 	 * STRINGBIND		Empty string (padded with blanks, null-terminated)
 	 * BINARYBIND		Empty array (padded with zeros)
-	 * cast away constness as we set these values this one time.  
 	 */
 	switch (bindtype) {
 	case CHARBIND:
-		memset((void*)pnullrep->bindval, ' ', bindlen);
+		memset(varaddr, ' ', varlen);
 		break;
-		
-	case STRINGBIND: {
-		BYTE *pend = (BYTE*) pnullrep->bindval + bindlen - 1;
-		memset((void*)pnullrep->bindval, ' ', bindlen);
-		*pend = '\0';
-		}
+	case STRINGBIND:
+		memset(varaddr, ' ', varlen);
+		varaddr[varlen-1] = '\0';
 		break;
-
 	case BINARYBIND:
-		memset((void*)pnullrep->bindval, 0, bindlen);
+		memset(varaddr, 0, varlen);
 		break;
-
 	default:
-		assert(NULL == "unknown bindtype");
+		assert((void*)bindtype == "unknown bindtype");
 	}
 	
-	return pnullrep;
+	return SUCCEED;
 }
 
 /**
@@ -615,8 +579,6 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int bindlen)
 RETCODE
 dbinit(void)
 {
-	initialize_default_null_representations();
-	
 	_dblib_err_handler = default_err_handler;
 
 	TDS_MUTEX_LOCK(&dblib_mutex);
@@ -692,8 +654,10 @@ dbloginfree(LOGINREC * login)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbloginfree(%p)\n", login);
 
-	tds_free_login(login->tds_login);
-	TDS_ZERO_FREE(login);
+	if (login) {
+		tds_free_login(login->tds_login);
+		TDS_ZERO_FREE(login);
+	}
 }
 
 /** \internal
@@ -2141,7 +2105,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			}
 		}
 
-		_set_null_value(dbproc, bind, dest, size);
+		dbgetnull(dbproc, bind, size, dest);
 		return size;
 	}
 
@@ -6909,35 +6873,6 @@ dbiowdesc(DBPROCESS * dbproc)
 	return dbproc->tds_socket->s;
 }
 
-static void
-_set_null_value(DBPROCESS *dbproc, int bindtype, BYTE * varaddr, int destlen)
-{
-	NULLREP *nullrep = dbgetnull(dbproc, bindtype, destlen);
-
-	if (nullrep && nullrep->bindval) {
-		switch (bindtype) {
-		case NTBSTRINGBIND:
-		case STRINGBIND:
-		case VARYBINBIND:
-		case VARYCHARBIND:
-			if (destlen < nullrep->len) {
-				tdsdump_log(TDS_DBG_FUNC, "_set_null_value: error: not setting varaddr(%p) because %d < %d\n", 
-							nullrep->bindval, destlen, nullrep->len);
-				break;
-			}
-			/* else OK, fall through */
-		default:
-			memcpy(varaddr, nullrep->bindval, nullrep->len);
-			break;
-		}
-		if (nullrep->to_free) {
-			free(nullrep->to_free);
-			free(nullrep);
-		}
-	}
-	return;	
-}
-
 DBBOOL
 dbisavail(DBPROCESS * dbproc)
 {
@@ -7107,7 +7042,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	}
 
 	if (src == NULL || (srclen == 0 && is_nullable_type(srctype))) {
-		_set_null_value(dbproc, bindtype, dest, destlen);
+		dbgetnull(dbproc, bindtype, destlen, dest);
 		return;
 	}
 
