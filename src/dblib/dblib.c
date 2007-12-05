@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.308 2007-12-05 03:04:11 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.309 2007-12-05 06:28:19 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1778,33 +1778,25 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	CHECK_PARAMETER(bindval, SYBENBVP, FAIL);
 	
 	switch (bindtype) {
+	case DATETIMEBIND:
+	case DECIMALBIND:
+	case FLT8BIND:
+	case INTBIND:
+	case MONEYBIND:
+	case NUMERICBIND:
+	case REALBIND:
+	case SMALLBIND:
+	case SMALLDATETIMEBIND:
+	case SMALLMONEYBIND:
+	case TINYBIND:
+		bindlen = default_null_representations[bindtype].len;
+		break;
+
 	case CHARBIND:
 	case BINARYBIND:
 		CHECK_PARAMETER(bindlen >= 0, SYBEBBL, FAIL);
 		break;
-	case DATETIMEBIND:	bindlen = sizeof(DBDATETIME);
-		break;
-	case DECIMALBIND:	bindlen = sizeof(DBDECIMAL);
-		break;
-	case FLT8BIND:		bindlen = sizeof(DBFLT8);
-		break;
-	case INTBIND:		bindlen = sizeof(DBINT);
-		break;
-	case MONEYBIND:		bindlen = sizeof(DBMONEY);
-		break;
-	case NUMERICBIND:	bindlen = sizeof(DBNUMERIC);
-		break;
-	case REALBIND:		bindlen = sizeof(DBREAL);
-		break;
-	case SMALLBIND:		bindlen = sizeof(DBSMALLINT);
-		break;
-	case SMALLDATETIMEBIND:	bindlen = sizeof(DBDATETIME4);
-		break;
-	case SMALLMONEYBIND:	bindlen = sizeof(DBMONEY4);
-		break;
-	case TINYBIND:		bindlen = sizeof(DBTINYINT);
-		break;
-
+		
 	case NTBSTRINGBIND:	bindlen = strlen(bindval);
 		break;
 	case STRINGBIND:	bindlen = strlen(bindval);
