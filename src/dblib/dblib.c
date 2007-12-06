@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.311 2007-12-06 06:03:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.312 2007-12-06 19:00:24 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7754,6 +7754,16 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	char *os_msgtext = strerror(errnum), *rc_name;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
+
+#ifdef WIN32
+	/*
+	 * Unfortunately MingW uses the "old" msvcrt.dll (Visual C++ 2005 uses
+	 * a newer version) which does not set errno when allocation functions
+	 * cannot allocate memory, so we do it for them.
+	 */
+	if (msgno == SYBEMEM)
+		errnum = ENOMEM;
+#endif
 
 	if (os_msgtext == NULL)
 		os_msgtext = "no OS error";

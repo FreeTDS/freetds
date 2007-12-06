@@ -41,15 +41,11 @@
 #include <string.h>
 #endif
 
-#if HAVE_LIBGEN_H
-#include <libgen.h>
-#endif
-
 #include <sqlfront.h>
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.31 2007-12-04 02:06:38 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.32 2007-12-06 19:00:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);

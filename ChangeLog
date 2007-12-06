@@ -1,3 +1,8 @@
+Thu Dec  6 19:59:59 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac include/replacements.h src/apps/bsqldb.c:
+	* src/dblib/dblib.c src/dblib/unittests/setnull.c:
+	- use basename from MingW if available
+
 Thu Dec  6 10:18:54 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/rpc.c src/dblib/unittests/setnull.c:
 	- fix compile problems

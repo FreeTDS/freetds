@@ -3,14 +3,9 @@
  */
 
 #include "common.h"
-
-#if HAVE_LIBGEN_H
-#include <libgen.h>
-#endif /* HAVE_LIBGEN_H */
-
 #include "replacements.h"
 
-static char software_version[] = "$Id: setnull.c,v 1.3 2007-12-06 09:19:22 freddy77 Exp $";
+static char software_version[] = "$Id: setnull.c,v 1.4 2007-12-06 19:00:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int

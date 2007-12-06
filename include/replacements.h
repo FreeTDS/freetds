@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.16 2007-03-19 10:01:51 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.17 2007-12-06 19:00:24 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -29,6 +29,14 @@
 # include <replacements/readpassphrase.h>
 #else
 # include <readpassphrase.h>
+#endif
+
+/* these headers are needed for basename */
+#ifdef HAVE_STRING_H
+# include <string.h>
+#endif
+#ifdef HAVE_LIBGEN_H
+# include <libgen.h>
 #endif
 
 #if defined(__GNUC__) && __GNUC__ >= 4
