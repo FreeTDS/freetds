@@ -1,15 +1,16 @@
+Thu Dec  6 21:32:13 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c: fix for 64bit machines
+	* src/dblib/unittests/setnull.c: improve
+
 Thu Dec  6 19:59:59 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac include/replacements.h src/apps/bsqldb.c:
-	* src/dblib/dblib.c src/dblib/unittests/setnull.c:
+	* src/dblib/unittests/setnull.c:
 	- use basename from MingW if available
+	* src/dblib/dblib.c: fix malloc portability problem
 
 Thu Dec  6 10:18:54 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/rpc.c src/dblib/unittests/setnull.c:
 	- fix compile problems
-
-Thu Dec  6 08:43:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/dblib/bcp.c src/dblib/rpc.c:
-	- fix malloc portability problem
 
 Thu Dec  6 01:00:42 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/buffering.h src/dblib/dblib.c:

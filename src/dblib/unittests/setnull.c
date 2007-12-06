@@ -5,19 +5,73 @@
 #include "common.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: setnull.c,v 1.4 2007-12-06 19:00:24 freddy77 Exp $";
+static char software_version[] = "$Id: setnull.c,v 1.5 2007-12-06 20:32:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static int failed = 0;
+static DBPROCESS *dbproc = NULL;
+
+static void
+char_test(const char *null, int bindlen, const char *expected)
+{
+	char db_c[16];
+	RETCODE ret;
+
+	if (null) {
+		ret = dbsetnull(dbproc, CHARBIND, strlen(null), (BYTE *) null);
+		if (ret != SUCCEED) {
+			fprintf(stderr, "dbsetnull returned error %d\n", (int) ret);
+			failed = 1;
+		}
+	}
+
+	memset(db_c, '_', sizeof(db_c));
+	strcpy(db_c, "123456");
+	dbcmd(dbproc, "select cast(NULL as char(20))");
+
+	dbsqlexec(dbproc);
+
+	if (dbresults(dbproc) != SUCCEED) {
+		fprintf(stderr, "Was expecting a row.\n");
+		failed = 1;
+		dbcancel(dbproc);
+	}
+
+	dbbind(dbproc, 1, CHARBIND, bindlen, (BYTE *) &db_c);
+	db_c[sizeof(db_c)-1] = 0;
+	printf("db_c = %s\n", db_c);
+
+	if (dbnextrow(dbproc) != REG_ROW) {
+		fprintf(stderr, "Was expecting a row.\n");
+		failed = 1;
+		dbcancel(dbproc);
+	}
+	db_c[sizeof(db_c)-1] = 0;
+	printf("db_c = %s\n", db_c);
+
+	if (dbnextrow(dbproc) != NO_MORE_ROWS) {
+		fprintf(stderr, "Only one row expected\n");
+		dbcancel(dbproc);
+		failed = 1;
+	}
+
+	while (dbresults(dbproc) == SUCCEED) {
+		/* nop */
+	}
+
+	if (strcmp(db_c, expected) != 0) {
+		fprintf(stderr, "Invalid NULL '%s' returned expected '%s' (%s:%d)\n", db_c, expected, tds_basename(__FILE__), __LINE__);
+		failed = 1;
+	}
+}
 
 int
 main(int argc, char **argv)
 {
 	LOGINREC *login;
-	DBPROCESS *dbproc;
 	DBINT db_i;
 	RETCODE ret;
 	
-	int failed = 0;
-
 	read_login_info(argc, argv);
 
 	printf("Start\n");
@@ -100,6 +154,22 @@ main(int argc, char **argv)
 			break;
 		}
 	}
+
+	char_test(NULL, -1, "123456");
+	char_test(NULL, 0,  "123456");
+	char_test(NULL, 2,  "  3456");
+
+	char_test("foo", -1,  "foo456");
+	char_test("foo", 0,   "foo456");
+/*	char_test("foo", 2,   ""); */
+	char_test("foo", 5,   "foo  6");
+
+	char_test("foo ", -1,  "foo 56");
+	char_test("foo ", 0,   "foo 56");
+/*	char_test("foo ", 2,   ""); */
+	char_test("foo ", 5,   "foo  6");
+
+	char_test("foo ", 10,  "foo       _____");
 
 	printf("dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
 	dbexit();
