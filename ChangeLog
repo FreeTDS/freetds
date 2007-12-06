@@ -1,3 +1,7 @@
+Thu Dec  6 10:18:54 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/rpc.c src/dblib/unittests/setnull.c:
+	- fix compile problems
+
 Thu Dec  6 08:43:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/bcp.c src/dblib/rpc.c:
 	- fix malloc portability problem
