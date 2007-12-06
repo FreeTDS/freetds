@@ -221,25 +221,21 @@ buffer_delete_rows(DBPROC_ROWBUF * buf,	int count)
 static void
 buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute_id, DBPROCESS * dbproc, int idx)
 {
-
 	int i;
-	TDSCOLUMN *curcol;
-	TDSRESULTINFO *resinfo;
-	int srctype;
+	int srctype, desttype;
 	BYTE *src;
-	int desttype;
 	const DBLIB_BUFFER_ROW *row;
 
+	tdsdump_log(TDS_DBG_FUNC, "buffer_transfer_bound_data(%p %d %d %p %d)\n", buf, res_type, compute_id, dbproc, idx);
 	assert(buffer_index_valid(buf, idx));
 
 	row = buffer_row_address(buf, idx);
 	assert(row->resinfo);
-	resinfo = row->resinfo;
 
-	for (i = 0; i < resinfo->num_cols; i++) {
+	for (i = 0; i < row->resinfo->num_cols; i++) {
 		DBINT srclen;
-
-		curcol = resinfo->columns[i];
+		TDSCOLUMN *curcol = row->resinfo->columns[i];
+		
 		if (row->sizes)
 			curcol->column_cur_size = row->sizes[i];
 
@@ -264,7 +260,7 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 		desttype = _db_get_server_type(curcol->column_bindtype);
 		srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
-		if (srclen < 0) {
+		if (srclen <= 0) {
 			dbgetnull(dbproc, curcol->column_bindtype, curcol->column_bindlen,
 						(BYTE *) curcol->column_varaddr);
 		} else {

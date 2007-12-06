@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.310 2007-12-05 15:42:29 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.311 2007-12-06 06:03:01 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -506,6 +506,18 @@ dbbindtype(int datatype)
 	return 0;
 }
 
+/** \internal
+ * dbbind() says: "Note that if varlen is 0, no padding takes place"
+ * dbgetnull() will not pad varaddr unless varlen is positive.  
+ * Vartype              Program Type    Padding         Terminator
+ * -------------------  --------------  --------------  ----------
+ * CHARBIND             DBCHAR          blanks          none
+ * STRINGBIND           DBCHAR          blanks          \0
+ * NTBSTRINGBIND        DBCHAR          none            \0
+ * VARYCHARBIND         DBVARYCHAR      none            none
+ * BOUNDARYBIND         DBCHAR          none            \0
+ * SENSITIVITYBIND      DBCHAR          none            \0
+ */
 static RETCODE
 dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 {
@@ -526,18 +538,39 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 
 	pnullrep = dbproc->nullreps + bindtype;
 	
-	if (pnullrep->bindval) {
+	if (pnullrep->bindval) {	/* this takes care of fixed-length datatypes (and ignores varlen) */
 		memcpy(varaddr, pnullrep->bindval, pnullrep->len);
 		return SUCCEED;
 	} 
+	
+	/* 
+	 * Nonpositive varlen indicates buffer is "big enough" but also not to pad 
+	 * Apply terminator (if any) and go home.  
+	 */
+	if (varlen <= 0) {
+		switch (bindtype) {
+		case STRINGBIND:
+		case NTBSTRINGBIND:
+			*varaddr = '\0';
+			/* fall thru */
+		case CHARBIND:
+		case VARYCHARBIND:
+			break;
+#if 0
+		case BOUNDARYBIND:
+		case SENSITIVITYBIND:
+#endif
+		default:
+			assert((void*)bindtype == "unknown bindtype with unknown varlen");
+		}
+		return SUCCEED;
+	}
 	
 	if (varlen < (long)pnullrep->len) {
 		tdsdump_log(TDS_DBG_FUNC, "dbgetnull: error: not setting varaddr(%p) because %d < %d\n", 
 					varaddr, varlen, pnullrep->len);
 		return FAIL;
 	} 
-	if (varlen == 0)
-		return SUCCEED;
 		
 	tdsdump_log(TDS_DBG_FUNC, "varaddr(%p) varlen %d < %d?\n", varaddr, varlen, pnullrep->len);
 
@@ -1815,15 +1848,15 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		return FAIL;
 	}
 
-	/* free any prior allocation */
-	if (dbproc->nullreps[bindtype].bindval != default_null_representations[bindtype].bindval)
-		free((BYTE*)dbproc->nullreps[bindtype].bindval);
-
 	if ((pval = malloc(bindlen)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
 	}
 	
+	/* free any prior allocation */
+	if (dbproc->nullreps[bindtype].bindval != default_null_representations[bindtype].bindval)
+		free((BYTE*)dbproc->nullreps[bindtype].bindval);
+
 	memcpy(pval, bindval, bindlen);
 	
 	dbproc->nullreps[bindtype].bindval = pval;
@@ -5859,18 +5892,16 @@ int
 dbrettype(DBPROCESS * dbproc, int retnum)
 {
 	TDSCOLUMN *colinfo;
-	TDSPARAMINFO *param_info;
-	TDSSOCKET *tds;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrettype(%p, %d)\n", dbproc, retnum);
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
+	assert(dbproc->tds_socket);
+	assert(dbproc->tds_socket->param_info);
 
-	tds = dbproc->tds_socket;
-	param_info = tds->param_info;
-	if (retnum < 1 || retnum > param_info->num_cols)
+	if (retnum < 1 || retnum > dbproc->tds_socket->param_info->num_cols)
 		return -1;
 
-	colinfo = param_info->columns[retnum - 1];
+	colinfo = dbproc->tds_socket->param_info->columns[retnum - 1];
 
 	return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 }
@@ -5887,6 +5918,7 @@ dbstrlen(DBPROCESS * dbproc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbstrlen(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL, 0);
+	
 	return dbproc->dbbufsz;
 }
 
@@ -6062,6 +6094,8 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 	TDSCOLUMN *colinfo;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbtablecolinfo(%p, %d, %p)\n", dbproc, column, pdbcol);
+	CHECK_DBPROC();
+	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_NULP(pdbcol, "dbtablecolinfo", 3, FAIL);
 
 	colinfo = dbcolptr(dbproc, column);
@@ -6963,45 +6997,45 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 {
 	switch (datatype_token) {
 	case SYBCHAR:		return "SYBCHAR";
-	case SYBVARCHAR:		return "SYBVARCHAR";
+	case SYBVARCHAR:	return "SYBVARCHAR";
 	case SYBINTN:		return "SYBINTN";
 	case SYBINT1:		return "SYBINT1";
 	case SYBINT2:		return "SYBINT2";
 	case SYBINT4:		return "SYBINT4";
 	case SYBINT8:		return "SYBINT8";
 	case SYBFLT8:		return "SYBFLT8";
-	case SYBDATETIME:		return "SYBDATETIME";
+	case SYBDATETIME:	return "SYBDATETIME";
 	case SYBBIT:		return "SYBBIT";
 	case SYBTEXT:		return "SYBTEXT";
 	case SYBNTEXT:		return "SYBNTEXT";
 	case SYBIMAGE:		return "SYBIMAGE";
 	case SYBMONEY4:		return "SYBMONEY4";
 	case SYBMONEY:		return "SYBMONEY";
-	case SYBDATETIME4:		return "SYBDATETIME4";
+	case SYBDATETIME4:	return "SYBDATETIME4";
 	case SYBREAL:		return "SYBREAL";
 	case SYBBINARY:		return "SYBBINARY";
 	case SYBVOID:		return "SYBVOID";
-	case SYBVARBINARY:		return "SYBVARBINARY";
-	case SYBNVARCHAR:		return "SYBNVARCHAR";
+	case SYBVARBINARY:	return "SYBVARBINARY";
+	case SYBNVARCHAR:	return "SYBNVARCHAR";
 	case SYBBITN:		return "SYBBITN";
-	case SYBNUMERIC:		return "SYBNUMERIC";
-	case SYBDECIMAL:		return "SYBDECIMAL";
+	case SYBNUMERIC:	return "SYBNUMERIC";
+	case SYBDECIMAL:	return "SYBDECIMAL";
 	case SYBFLTN:		return "SYBFLTN";
 	case SYBMONEYN:		return "SYBMONEYN";
-	case SYBDATETIMN:		return "SYBDATETIMN";
+	case SYBDATETIMN:	return "SYBDATETIMN";
 	case XSYBCHAR:		return "XSYBCHAR";
-	case XSYBVARCHAR:		return "XSYBVARCHAR";
-	case XSYBNVARCHAR:		return "XSYBNVARCHAR";
+	case XSYBVARCHAR:	return "XSYBVARCHAR";
+	case XSYBNVARCHAR:	return "XSYBNVARCHAR";
 	case XSYBNCHAR:		return "XSYBNCHAR";
 	case XSYBVARBINARY:	return "XSYBVARBINARY";
-	case XSYBBINARY:		return "XSYBBINARY";
+	case XSYBBINARY:	return "XSYBBINARY";
 	case SYBLONGBINARY:	return "SYBLONGBINARY";
 	case SYBSINT1:		return "SYBSINT1";
 	case SYBUINT2:		return "SYBUINT2";
 	case SYBUINT4:		return "SYBUINT4";
 	case SYBUINT8:		return "SYBUINT8";
 	case SYBUNIQUE:		return "SYBUNIQUE";
-	case SYBVARIANT:		return "SYBVARIANT";
+	case SYBVARIANT:	return "SYBVARIANT";
 	default: break;
 	}
 	return "(unknown)";
@@ -7012,31 +7046,21 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 				int desttype, BYTE * dest, DBINT destlen,
 				int bindtype, DBSMALLINT *indicator)
 {
-	TDSSOCKET *tds = NULL;
-
 	CONV_RESULT dres;
 	DBINT ret;
-	int i;
-	int len;
+	int i, len;
 	DBNUMERIC *num;
 	DBSMALLINT indicator_value = 0;
 
 	int limited_dest_space = 0;
 
-	tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var(%d [%s] len %d => %d [%s] len %d)\n", 
+	tdsdump_log(TDS_DBG_FUNC, "copy_data_to_host_var(%d [%s] len %d => %d [%s] len %d)\n", 
 		     srctype, tds_prdatatype(srctype), srclen, desttype, tds_prdatatype(desttype), destlen);
 	CHECK_NULP(src, "copy_data_to_host_var", 3, );
 	CHECK_NULP(dest, "copy_data_to_host_var", 6, );
 	/* indicator can be NULL */
 
-	if (dbproc) {
-		tds = dbproc->tds_socket;
-	}
-
-	if (src == NULL || (srclen == 0 && is_nullable_type(srctype))) {
-		dbgetnull(dbproc, bindtype, destlen, dest);
-		return;
-	}
+	assert(srclen >= 0);
 
 	if (destlen > 0) {
 		limited_dest_space = 1;

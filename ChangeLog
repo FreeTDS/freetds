@@ -1,3 +1,7 @@
+Thu Dec  6 01:00:42 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/buffering.h src/dblib/dblib.c
+	- dbgetnull tolerates negative varlen, looks pretty good
+	
 Wed Dec  5 10:38:55 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c 
 	- t0011 passes but copy_data_to_host_var likely wrong
