@@ -37,6 +37,10 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#if HAVE_ERRNO_H
+# include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
 #include <assert.h>
 
 #include "tds.h"
@@ -50,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.63 2007-11-28 14:16:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.64 2007-12-06 18:32:34 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
