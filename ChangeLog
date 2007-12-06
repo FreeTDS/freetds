@@ -1,18 +1,22 @@
+Thu Dec  6 08:43:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/bcp.c src/dblib/rpc.c:
+	- fix malloc portability problem
+
 Thu Dec  6 01:00:42 EST 2007	JK Lowden <jklowden@freetds.org>
-	* src/dblib/buffering.h src/dblib/dblib.c
+	* src/dblib/buffering.h src/dblib/dblib.c:
 	- dbgetnull tolerates negative varlen, looks pretty good
-	
+
 Wed Dec  5 10:38:55 EST 2007	JK Lowden <jklowden@freetds.org>
-	* src/dblib/dblib.c 
+	* src/dblib/dblib.c:
 	- t0011 passes but copy_data_to_host_var likely wrong
 
 Tue Dec  4 20:19:38 EST 2007	JK Lowden <jklowden@freetds.org>
-	* include/dblib.h src/dblib/buffering.h src/dblib/dblib.c
+	* include/dblib.h src/dblib/buffering.h src/dblib/dblib.c:
 	- removed _db_set_null and associated mallocs
 	- dblib/unittest/t0011.c failing mysteriously
-	 
+
 Mon Dec  3 23:18:55 EST 2007	JK Lowden <jklowden@freetds.org>
-	* src/dblib/dblib.c src/dblib/unittests/setnull.c
+	* src/dblib/dblib.c src/dblib/unittests/setnull.c:
 	- corrected dbsetnull()
 
 Mon Dec  3 18:45:22 EST 2007	JK Lowden <jklowden@freetds.org>
@@ -25,11 +29,11 @@ Mon Dec  3 18:45:22 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/unittests/t0008.c src/dblib/unittests/t0011.c
 	* src/dblib/unittests/t0015.c src/dblib/unittests/t0018.c
 	* src/dblib/unittests/t0023.c src/dblib/unittests/text_buffer.c
-	* src/dblib/unittests/thread.c src/dblib/unittests/timeout.c
+	* src/dblib/unittests/thread.c src/dblib/unittests/timeout.c:
 	- dbbind uses zero, not -1 to indicate sufficient space.  
-	
+
 Mon Dec  3 17:57:54 EST 2007	JK Lowden <jklowden@freetds.org>
-	* src/dblib/bcp.c don't cast malloc and don't assume it worked. 
+	* src/dblib/bcp.c: don't cast malloc and don't assume it worked. 
 
 Mon Dec  3 19:54:53 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/Makefile.am: remove GNU make pattern
