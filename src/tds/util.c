@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.82 2007-10-24 00:20:43 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.83 2007-12-07 05:27:55 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -330,19 +330,14 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 
 	TDSMESSAGE msg;
 	int rc = TDS_INT_CANCEL;
-	char *os_msgtext = strerror(errnum);
 
 	tdsdump_log(TDS_DBG_FUNC, "tdserror(%p, %p, %d, %d)\n", tds_ctx, tds, msgno, errnum);
-
-	if (os_msgtext == NULL)
-		os_msgtext = "no OS error";
 
 	/* look up the error message */
 	for (err = tds_error_messages; err->msgno; ++err) {
 		if (err->msgno == msgno)
 			break;
 	}
-
 
 	CHECK_CONTEXT_EXTRA(tds_ctx);
 
@@ -358,6 +353,8 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		msg.line_number = -1;
 		msg.message = err->msgtext;
 		msg.sql_state = tds_alloc_client_sqlstate(msg.msgno);
+		
+		msg.oserr = errnum;
 
 		/*
 		 * Call client library handler.

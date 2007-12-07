@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.280 2007-12-02 23:01:37 jklowden Exp $ */
+/* $Id: tds.h,v 1.281 2007-12-07 05:27:55 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1110,6 +1110,8 @@ typedef struct tds_message
 	TDS_SMALLINT state;
 	TDS_TINYINT priv_msg_type;
 	TDS_TINYINT severity;
+	/* for library-generated errors */
+	int oserr;
 } TDSMESSAGE;
 
 typedef struct tds_upd_col

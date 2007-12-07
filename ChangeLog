@@ -1,3 +1,8 @@
+Fri Dec  7 00:26:01 EST 2007	JK Lowden <jklowden@freetds.org>
+	* include/tds.h src/dblib/dblib.c
+	* src/dblib/dbutil.c src/tds/util.c
+	- pass errno via tdserror.  
+	
 Thu Dec  6 21:41:23 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/tds/convert.c tds_willconvert returns size
 

@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.313 2007-12-06 20:32:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.314 2007-12-07 05:27:55 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7734,11 +7734,11 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
  * -#		dbperror
  * -# 	error handler (installed by application)
  *
- * Here libtds invokes the client's handler.  Because different client libraries specify their handler semantics differently, 
+ * Because different client libraries specify their handler semantics differently, 
  * and because libtds doesn't know which client library is in charge of any given connection, it cannot interpret the 
  * raw return code from a db-lib error handler.  For these reasons, 
  * libtds calls _dblib_handle_err_message, which translates between libtds and db-lib semantics.  
- * \sa dberrhandle(), _dblib_handle_err_message(), tds_client_msg().
+ * \sa dberrhandle(), _dblib_handle_err_message().
  */
 int
 dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
