@@ -1,3 +1,6 @@
+Thu Dec  6 21:41:23 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/tds/convert.c tds_willconvert returns size
+
 Thu Dec  6 21:32:13 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: fix for 64bit machines
 	* src/dblib/unittests/setnull.c: improve

@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.173 2007-11-21 04:28:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.174 2007-12-07 02:44:49 jklowden Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2839,6 +2839,7 @@ tds_willconvert(int srctype, int desttype)
 #	include "tds_willconvert.h"
 	};
 	int i;
+	ANSWER *p = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_willconvert()\n");
 
@@ -2846,12 +2847,89 @@ tds_willconvert(int srctype, int desttype)
 		if (srctype == answers[i].srctype && desttype == answers[i].desttype) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_willconvert() %d %d %d\n", answers[i].srctype, answers[i].desttype,
 				    answers[i].yn);
-			return answers[i].yn;
+			p =  &answers[i];
+			break;
 		}
 	}
 
+	if (!p)
+		return 0;
+		
+	if (is_fixed_type(p->desttype) || !p->yn)
+		return p->yn;
+	/*
+	 * Return the number of bytes needed to represent the srctype as a string.  
+	 * This allows an application to use "tds_willconvert(SYBINT4, SYBCHAR)" to 
+	 * discover he'll need an 11-byte buffer. 
+	 * 
+	 * Sizes exclude null terminators but allow for a '-' sign for negative numbers. 
+	 * If the srctype is also variable, there is no per-type answer; it depends 
+	 * on the declared length of the input.  We just return 0xFF.  
+	 */
+	switch (p->srctype) {
+	case SYBBIT:
+			return 1;
+	case SYBSINT1:
+	case SYBUINT1:
+	case SYBINT1:
+			return  3;
+	case SYBUINT2:
+	case SYBINT2:
+			return  6;
+	case SYBUINT4:
+	case SYBINT4:
+			return 11;
+	case SYB5INT8:
+	case SYBUINT8:
+	case SYBINT8:
+			return 21;
+	case SYBREAL:
+	case SYBFLT8:
+			return 11;
+	case SYBDECIMAL:
+	case SYBNUMERIC:
+			return 46;
+	case SYBDATETIME:
+	case SYBDATETIME4:
+			return 26;
+	case SYBMONEY:
+	case SYBMONEY4:
+			return 12;
+	/* non-fixed types have variable data sizes, just return 0xff */
+	case SYBCHAR:
+	case SYBBINARY:
+	case SYBBLOB:
+	case SYBLONGBINARY:
+	case SYBLONGCHAR:
+	case SYBTEXT:
+	case SYBVARBINARY:
+	case SYBVARCHAR:
+	case SYBNTEXT:
+	case SYBNVARCHAR:
+			return 0xFF;
+	default:
+		assert(0 == p->srctype);
+	}
 	return 0;
-
+#if 0
+	/* Other, unmentionable types */
+	case SYBBOUNDARY:
+	case SYBDATE:
+	case SYBINTERVAL:
+	case SYBSENSITIVITY:
+	case SYBTIME:
+	case SYBUNIQUE:
+	case SYBUNITEXT:
+	case SYBVARIANT:
+	case SYBVOID:
+	case SYBXML:
+	case XSYBBINARY:
+	case XSYBCHAR:
+	case XSYBNCHAR:
+	case XSYBNVARCHAR:
+	case XSYBVARBINARY:
+	case XSYBVARCHAR:
+#endif
 }
 
 /**
