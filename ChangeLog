@@ -1,3 +1,6 @@
+Mon Dec 10 14:05:06 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: remove warning
+
 Mon Dec 10 00:08:45 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/Makefile.am doc/userguide.sgml some improvements
 	doc/grep_sample_code doc/images/caution.gif 
@@ -11,12 +14,12 @@ Mon Dec 10 00:08:45 EST 2007	JK Lowden <jklowden@freetds.org>
 
 Sun Dec  9 19:51:11 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml added tenderfoot tutorial
-	
+
 Fri Dec  7 00:26:01 EST 2007	JK Lowden <jklowden@freetds.org>
 	* include/tds.h src/dblib/dblib.c
 	* src/dblib/dbutil.c src/tds/util.c
 	- pass errno via tdserror.  
-	
+
 Thu Dec  6 21:41:23 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/tds/convert.c tds_willconvert returns size
 

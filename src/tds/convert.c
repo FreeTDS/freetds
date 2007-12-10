@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.174 2007-12-07 02:44:49 jklowden Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.175 2007-12-10 13:06:22 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2839,7 +2839,7 @@ tds_willconvert(int srctype, int desttype)
 #	include "tds_willconvert.h"
 	};
 	int i;
-	ANSWER *p = NULL;
+	const ANSWER *p = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_willconvert()\n");
 
