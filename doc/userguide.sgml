@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-12-10 00:52:22 $</date>
-		<releaseinfo>$Revision: 1.103 $</releaseinfo>
+		<date>$Date: 2007-12-10 01:35:40 $</date>
+		<releaseinfo>$Revision: 1.104 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.103 $</>
-<member>$Date: 2007-12-10 00:52:22 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.103 2007-12-10 00:52:22 jklowden Exp $.</>
+<member>$Revision: 1.104 $</>
+<member>$Date: 2007-12-10 01:35:40 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.104 2007-12-10 01:35:40 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -173,7 +173,7 @@ In early 1997, the only option for connecting to a Sybase server from Linux or o
 Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productname> project, had some <systemitem class="library">db-lib</systemitem> programs he wanted to run under Linux, and thus began the <productname>FreeTDS</productname> project. The original work focused on <systemitem class="library">db-lib</systemitem> and version 5.0 of the protocol, but quickly expanded to include a <systemitem class="library">ct-lib</systemitem> compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0 and 8.0</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.
 			</para>
 			<para>
-As the project matured, it gained new partcipants.  Frediano Ziglio greatly expanded the <systemitem class="library">ODBC</systemitem> driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our <systemitem class="library">ct-lib</systemitem>.  Your humble author joined the project to add documentation, and wound up as the project's maintainer.  Such are the rewards for doing a good deed.  
+As the project matured, it gained new participants.  Frediano Ziglio greatly expanded the <systemitem class="library">ODBC</systemitem> driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our <systemitem class="library">ct-lib</systemitem>.  Your humble author joined the project to add documentation, and wound up as the project's maintainer.  Such are the rewards for doing a good deed.  
 			</para>
 			<para>
 There have been many other contributions.  Please see the <filename>AUTHORS</> in the distribution for a (we hope) complete list.  
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-12-10 00:52:22 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-12-10 01:35:40 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -709,7 +709,7 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 </table>
 			</para>
 			<para>
-Why downgrade your protocol?  If you encounter a bug, reverting to 4.2 can help isolate it.  If you're using low-bandwidth connections, 4.2 is faster than 7.0, because 7.0 transfers all character data in UCS-2 (unicode, 2 bytes/character).  
+Why downgrade your protocol?  If you encounter a bug, reverting to 4.2 can help isolate it.  If you're using low-bandwidth connections, 4.2 is faster than 7.0, because 7.0 transfers all character data in UCS-2 (Unicode, 2 bytes/character).  
 However TDS 4.2 has many limitations (see below).  If you encounter problems, please report them to the mailing list.  
 			</para>
 			<para>
@@ -936,21 +936,20 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<row>
 	<entry>debug flags</entry>
 	<entry>0x4fff</entry>
-	<entry>Sets granularity of logging. A set of bit that specify levels and informations.
-	See table below for bit specification.</entry>
-	<entry>any number even in hex or octal notation</entry>
+	<entry>Sets granularity of logging. A bitmask. See table below for specification.</entry>
+	<entry>Any number even in hex or octal notation</entry>
 	</row>
 	<row>
 	<entry>encryption</entry>
 	<entry>off</entry>
-	<entry>Specify if encryption is desidered. Supported under mssql. Off disable encryption (only if needed), request use if available, required only make encrypted connections.</entry>
+	<entry>Specify if encryption is desidered. Supported for Microsoft servers. <symbol>off</> disables encryption (only if needed); <symbol>request</> means use if available; <symbol>required</> means create and allow encrypted connections only.</entry>
 	<entry>off/request/required</entry>
 	</row>
 </tbody>
 </tgroup>
 </table>
 
-	<para>The logging capability has helped solve inumerable cases, some trivial and some very low-level bugs.  Sometimes a developer needs very detailed information about one function, whereas someone else may interested only in whether or not a particular function is called, or even want to see only the SQL that was transmitted to the server.  </para>  
+	<para>The logging capability has helped solve innumerable cases, some trivial and some very low-level bugs.  Sometimes a developer needs very detailed information about one function, whereas someone else may interested only in whether or not a particular function is called, or even want to see only the SQL that was transmitted to the server.  </para>  
 
 <para>The log's granularity can be controlled with the <literal>debug flags</> entry. The default value (<literal>4FFF</> hex) gives a level of detail that is useful for resolving problems via the mailing list.  </para>
 
@@ -1259,12 +1258,12 @@ When you're done, you should see something very like this:
 			</para>
 
 			<para>If you specify <literal><replaceable>dataserver</replaceable>:<replaceable>port</replaceable></literal>
-			as dataserver during login <productname>FreeTDS</productname> will attemp to connect to specified port.
+			as dataserver during login <productname>FreeTDS</productname> will attempt to connect to specified port.
 			<replaceable>port</replaceable> must be a number, a service name is not supported.
 			</para>
 
 			<para>If you specify <literal><replaceable>dataserver</replaceable>\<replaceable>instance</replaceable></literal>
-			as dataserver during login <productname>FreeTDS</productname> will attemp to connect to specified instance.
+			as dataserver during login <productname>FreeTDS</productname> will attempt to connect to specified instance.
 			Only Microsoft SQL instances are supported (this feature is supported from version 2000).
 			</para>
 
@@ -2039,7 +2038,7 @@ This chapter details some advanced configurations that need expanded explanation
 			<para>
 Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian. <productname>SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.
 			</para>
-<Note><para>If you are unfamiliar with the terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis>, they are terms that come originally from Gullivers Travels.  What they refer to in computer science is the the order in which bytes are stored by a processor.  Big endian machines such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian machines such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
+<Note><para>If you are unfamiliar with the terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis>, they are terms that come originally from Gulliver's Travels.  What they refer to in computer science is the the order in which bytes are stored by a processor.  Big endian machines such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian machines such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
 
 <para>
 In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 and 8.0 will automatically emulate little endian mode regardless of the <filename>freetds.conf</filename> setting.
@@ -2146,7 +2145,7 @@ The SQL Server machine may belong to an NT domain.  <productname>FreeTDS</produc
 		<sect2 id="domaindetails">
 			<title>Implementation details</title>
 			<para>
-Support for domain logins in <productname>FreeTDS</productname> is limited to the TCP/IP network protocol stack.   <productname>FreeTDS</productname> does not currently implement support for Named Pipe-based SQL connections &mdash; that is, connections transported over the DCE/RPC interface, which uses TCP port 139, 445, or 135 on Win32 machines depending on the type of encapsulation used for DCE/RPC itself. Supporting this would require a fairly extensive DCE/RPC library for Unix.   <productname>Samba</productname> has one that is licensed under the GPL and therefore not usable by LGPL-licenced projects such as <productname>FreeTDS</productname> . 
+Support for domain logins in <productname>FreeTDS</productname> is limited to the TCP/IP network protocol stack.   <productname>FreeTDS</productname> does not currently implement support for Named Pipe-based SQL connections &mdash; that is, connections transported over the DCE/RPC interface, which uses TCP port 139, 445, or 135 on Win32 machines depending on the type of encapsulation used for DCE/RPC itself. Supporting this would require a fairly extensive DCE/RPC library for Unix.   <productname>Samba</productname> has one that is licensed under the GPL and therefore not usable by LGPL-licensed projects such as <productname>FreeTDS</productname> . 
 			</para>
 			<para>
 Your domain controller must allow authentication over TCP/IP, or you will be unable to log in.  One symptom of a server that requires Named Pipes for authentication is an error message such as:
@@ -2340,7 +2339,7 @@ Before your clients connect to the pool, you must edit your <filename>freetds.co
 		Contributed by <ulink url="mailto:bradleyb@u.washington.edu">Bradley Bell</ulink>.  
 		</para>
 		<para>
-To set up freetds over stunnel between a Linux webserver and a W2k SQL server:
+To set up FreeTDS over stunnel between a Linux webserver and a W2k SQL server:
 		</para>
                 <orderedlist>
                 	<listitem>
@@ -2373,7 +2372,7 @@ To set up freetds over stunnel between a Linux webserver and a W2k SQL server:
  				<para>where <replaceable>win2kserver</replaceable> is the hostname or IP address of the W2k box.
 				</para></listitem>
 			<listitem>
-				<para>Set up freetds to use the tunnel.  If this is your unencrypted entry in
+				<para>Set up FreeTDS to use the tunnel.  If this is your unencrypted entry in
    <filename>freetds.conf</filename>:
 				</para>
 <example id="e.g.Unencrypted">
@@ -2679,7 +2678,7 @@ You can obtain the <productname>Python</productname> Sybase module <ulink url="h
 <prompt>$ </prompt><userinput>export LD_LIBRARY_PATH=/usr/local/freetds/lib:${LD_LIBRARY_PATH}</userinput>
 <prompt>$ </prompt><userinput>python setup.py install</userinput>
 </screen>
-Edit the example.py and fix the bottom stuff, freetds lacks the 110
+Edit the example.py and fix the bottom stuff, FreeTDS lacks the 110
 symbols for version use 100
 <screen>
 <prompt>$ </prompt><userinput>python example.py</userinput>
@@ -3031,7 +3030,7 @@ backtrace.</para>
 </screen>
 </listitem> 
 
-<listitem><para>Analyse the backtrace.</para>
+<listitem><para>Analyze the backtrace.</para>
 
 <para>Read the backtrace to determine what the cause of the problem
 is.  Examine each line, assigning responsibility by component; some
@@ -3088,7 +3087,7 @@ in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
 	Won't you please, please help me?
 </literallayout></para>
 </epigraph>
-			<para>In the battle against frustration and wasted motion, this manual is our first defense.  Our documentation is intended to make it possible for a knowlegable user to, well, <emphasis>use</> <productname>FreeTDS</productname> without further assistance.  We strive to include all known features and behaviors here, so you can work quickly and anonymously, and go home before 5:00.  Would that it were always thus.  
+			<para>In the battle against frustration and wasted motion, this manual is our first defense.  Our documentation is intended to make it possible for a knowledgeable user to, well, <emphasis>use</> <productname>FreeTDS</productname> without further assistance.  We strive to include all known features and behaviors here, so you can work quickly and anonymously, and go home before 5:00.  Would that it were always thus.  
 			</para>
 			
 		<sect1 id="IsolateCause"><title>Isolate the cause</title>
@@ -3325,7 +3324,7 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 		</sect1>
 	
 		<sect1 id="samplecode">
-    			<title>DB-Libary for the Tenderfoot</title>
+    			<title>DB-Library for the Tenderfoot</title>
 			
 			<abstract><para>What follows is a complete sample working db-lib program.  
 			<itemizedlist><title>Features of sample code</title>
@@ -3503,7 +3502,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			</sect2>
 
 			<sect2 id="samplecode.query"><title>Send a query</title>
-			<abstract><para><symbol>db-lib</> maintains a <firstterm>comamnd buffer</> to hold the SQL to be sent to the server.  Two functions &mdash; <function>dbcmd()</> and <function>dbfcmd()</> &mdash; build up the query from strings of text. The command buffer is reset after the query is sent to the server.</para>
+			<abstract><para><symbol>db-lib</> maintains a <firstterm>command buffer</> to hold the SQL to be sent to the server.  Two functions &mdash; <function>dbcmd()</> and <function>dbfcmd()</> &mdash; build up the query from strings of text. The command buffer is reset after the query is sent to the server.</para>
 				<para>In our example program, we left the SQL on the command line.  We fetch it now and send it to the server.  </para></abstract>
 			  
 			<para><example id="e.g.samplecode.dblib.send">
@@ -3536,7 +3535,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			</sect2>
 
 			<sect2 id="samplecode.results"><title>Fetch Results</title>
-			<abstract><para>A query may produce zero, one, or more results.  Broadly, that entails providing buffers to <symbol>db-lib</> to fill, and interating over the results a row (and column) at a time. </para></abstract>
+			<abstract><para>A query may produce zero, one, or more results.  Broadly, that entails providing buffers to <symbol>db-lib</> to fill, and iterating over the results a row (and column) at a time. </para></abstract>
 
 			<bridgehead id="samplecode.results.kinds.of.results" renderas="sect3">Kinds of Results</>
 			
