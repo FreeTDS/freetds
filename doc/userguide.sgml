@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-08-09 08:27:29 $</date>
-		<releaseinfo>$Revision: 1.102 $</releaseinfo>
+		<date>$Date: 2007-12-10 00:52:22 $</date>
+		<releaseinfo>$Revision: 1.103 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.102 $</>
-<member>$Date: 2007-08-09 08:27:29 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.102 2007-08-09 08:27:29 freddy77 Exp $.</>
+<member>$Revision: 1.103 $</>
+<member>$Date: 2007-12-10 00:52:22 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.103 2007-12-10 00:52:22 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-08-09 08:27:29 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-12-10 00:52:22 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -3325,17 +3325,691 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 		</sect1>
 	
 		<sect1 id="samplecode">
-    			<title>Examples [future reference]</title>
-			<para>
-(this isn't a reference manual)
+    			<title>DB-Libary for the Tenderfoot</title>
+			
+			<abstract><para>What follows is a complete sample working db-lib program.  
+			<itemizedlist><title>Features of sample code</title>
+				<listitem><para>Processes command-line options to select the server, database, username, and password</para></listitem>
+				<listitem><para>Remaining arguments on the command line comprise the SQL query to execute</para></listitem>
+				<listitem><para>Installs error and message handlers</para></listitem>
+				<listitem><para>Illustrates correct row-processing</para></listitem>
+				<listitem><para>Illustrates correct error detection and handling</para></listitem>
+			</itemizedlist>
+			Other sample code may be found in the distribution, in the cleverly named <filename>samples</> directory. A complete program, heavily commented for your perusal, is <filename>apps/bsqldb.c</>.</para></abstract>
+			
+			<para><important><sidebar><title>What's the big deal with errors?</title>
+			<para>Even more than in other kinds of programming, correct handling of errors is extremely important in all database programming, for two reasons.  First, the database server is a remote machine.  Every db-lib application is therefore also a communications program, and communications programs are subject to network failures.  For many application programmers, database programming is their first, possibly only foray into communications programming.  Second, database programs almost always have very high data integrity requirements.  It is necessary to know the row was absolutely, positively committed, once and only once, without error or exception.  Without taking extreme care to trap and handle all error conditions, no statement about the program's reliability can be made with confidence.</para></sidebar></important></para>
+
+			<sect2 id="samplecode.include"><title>Header files</title>
+			<abstract><para>We need two header files to use db-lib.  We need a few others to deal with I/O in C, as you know.  Also declare the error and message handler functions, more about which later. </para></abstract> 
+
+			<para><example id="e.g.samplecode.dblib.include">
+				<title>Sample Code: <symbol>db-lib</> header files</title>
+			<programlisting linenumbering="unnumbered">
+<![CDATA[
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <errno.h>
+#include <unistd.h>
+#include <libgen.h>
+]]>
+
+#include &lt;sqlfront.h&gt;	<lineannotation>/* <filename>sqlfront.h</> always comes first */</lineannotation>
+#include &lt;sybdb.h&gt;	<lineannotation>/* <filename>sybdb.h</> is the only other file you need */</lineannotation>
+
+int err_handler(DBPROCESS*, int, int, int, char*, char*);
+int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
+			</programlisting></example>
 			</para>
-<simplelist>
-	<member>TDS</>
-	<member><systemitem class="library">db-lib</systemitem></>
-	<member>bcp</>
-	<member><systemitem class="library">ct-lib</systemitem></>
-	<member><systemitem class="library">ODBC</systemitem></>
-</simplelist>
+			</sect2>
+			
+			<sect2 id="samplecode.prolog"><title>Prolog</title>
+			<abstract><para>Nothing special here.  Collect the command line parameters.  We do this with the standard <function>getopts(3)</function> function.  It removes the options from the <varname>argv</varname> array. Cf. <command>man 3 getopts</command> for details. </para></abstract>
+			  
+			<para><example id="e.g.samplecode.dblib.prolog">
+				<title>Sample Code: <symbol>db-lib</> prolog</title>
+			<programlisting linenumbering="unnumbered">
+extern char *optarg;
+extern int optind;
+
+const static char syntax[] = 
+		"syntax: example -S server -D db -U user -P passwd\n";
+
+struct {
+	char *appname, *servername, *dbname, *username, *password;
+} options = {0,0,0,0,0};
+
+int
+main(int argc, char *argv[])
+{
+	int i, ch;
+	LOGINREC *login;	<co id="samplecode.init.loginrec">
+	DBPROCESS *dbproc;	<co id="samplecode.init.dbprocess">
+	RETCODE erc;		<co id="samplecode.init.retcode">
+	
+	options.appname = basename(argv[0]);
+	
+	while ((ch = getopt(argc, argv, "U:P:S:D:")) != -1) {
+		switch (ch) {
+		case 'S':
+			options.servername = strdup(optarg);
+			break;
+		case 'D':
+			options.dbname = strdup(optarg);
+			break;
+		case 'U':
+			options.username = strdup(optarg);
+			break;
+		case 'P':
+			options.password = strdup(optarg);
+			break;
+		case '?':
+		default:
+			fprintf(stderr, syntax);
+			exit(1);
+		}
+	}
+
+	argc -= optind;
+	argv += optind;
+	
+	if (! (options.servername
+	    && options.username   && options.password)) {
+		fprintf(stderr, syntax);
+		exit(1);
+	}
+			</programlisting></example>
+			<calloutlist><title>Prolog Notes</title>
+				<callout arearefs="samplecode.init.loginrec">
+				<para><symbol>LOGINREC</> is a structure that describes the client.  It's passed to the server at connect time. </para></callout>
+				<callout arearefs="samplecode.init.dbprocess">
+				<para><symbol>DBPROCESS</> is a structure that describes the connection.  It is returned by <function>dbopen()</>. </para></callout>
+				<callout arearefs="samplecode.init.retcode">
+				<para><symbol>RETCODE</> is the most common return code type for <symbol>db-lib</> functions. </para></callout>
+			</calloutlist>
+			</para>
+			</sect2>
+
+			<sect2 id="samplecode.init"><title>Initialize</title>
+			<abstract><para>Initialize the library.  Create and populate a <symbol>LOGINREC</symbol> record. </para></abstract>
+			  
+			<para><example id="e.g.samplecode.dblib.Initialize">
+				<title>Sample Code: <symbol>db-lib</> Initialize</title>
+			<programlisting linenumbering="unnumbered">
+
+<co id="samplecode.init.dbinit" label="initialize">
+	if (dbinit() == FAIL) {
+		fprintf(stderr, "%s:%d: dbinit() failed\n", 
+				options.appname, __LINE__);
+		exit(1);
+	}
+	
+<co id="samplecode.init.handlers">
+	dberrhandle(err_handler);
+	dbmsghandle(msg_handler);
+
+<co id="samplecode.init.login">
+	if ((login = dblogin()) == NULL) {
+		fprintf(stderr, "%s:%d: unable to allocate login structure\n", 
+				options.appname, __LINE__);
+		exit(1);
+	}
+
+<co id="samplecode.init.login.populate">
+	DBSETLUSER(login, options.username);
+	DBSETLPWD(login, options.password);
+	
+	
+	
+			</programlisting></example>
+			<calloutlist><title>Initialization Notes</title>
+				<callout arearefs="samplecode.init.dbinit">
+				<para><emphasis>Always</> make <function>dbinit()</> the first db-lib call.</para></callout>
+				<callout arearefs="samplecode.init.handlers">
+				<para>Install the error- and mesage-handlers right away.  They're explained in more detail later. </para></callout>
+				<callout arearefs="samplecode.init.login">
+				<para><function>dblogin()</> almost never fails.  
+But check!  No point in trying to use a null pointer.  </para></callout>
+				<callout arearefs="samplecode.init.login.populate">
+				<para>The <symbol>LOGIN</symbol> record isn't directly accessible.  It's populated via macros like these.  There are other fields, but these two are essential. Look for <symbol>SETLsomething</> in the documentation. </para></callout>			
+			</calloutlist>
+			</para>
+			</sect2>
+
+			<sect2 id="samplecode.connect"><title>Connect to the server</title>
+			<abstract><para><function>dbopen()</> forms a connection with the server.  We pass our <symbol>LOGINREC</> pointer (which describes the client end), and the name of the server.  Then, optionally, we change to our favored database.  If that step is skipped, the user lands in his default database. </para></abstract>
+			  
+			<para><example id="e.g.samplecode.dblib.Connect">
+				<title>Sample Code: <symbol>db-lib</> Connect to the server</title>
+			<programlisting>
+	if ((dbproc = dbopen(login, options.servername)) == NULL) {
+		fprintf(stderr, "%s:%d: unable to connect to %s as %s\n", 
+				options.appname, __LINE__, 
+				options.servername, options.username);
+		exit(1);
+	}
+
+	if (options.dbname  && (erc = dbuse(dbproc, options.dbname)) == FAIL) {
+		fprintf(stderr, "%s:%d: unable to use to database %s\n", 
+				options.appname, __LINE__, options.dbname);
+		exit(1);
+	}
+
+
+			</programlisting></example>
+			</para>
+			</sect2>
+
+			<sect2 id="samplecode.query"><title>Send a query</title>
+			<abstract><para><symbol>db-lib</> maintains a <firstterm>comamnd buffer</> to hold the SQL to be sent to the server.  Two functions &mdash; <function>dbcmd()</> and <function>dbfcmd()</> &mdash; build up the query from strings of text. The command buffer is reset after the query is sent to the server.</para>
+				<para>In our example program, we left the SQL on the command line.  We fetch it now and send it to the server.  </para></abstract>
+			  
+			<para><example id="e.g.samplecode.dblib.send">
+				<title>Sample Code: <symbol>db-lib</> Send a query</title>
+			<programlisting>
+	for (i=0; i < argc; i++) {
+		assert(argv[i]);
+		printf("%s ", argv[i]);
+		if ((erc = dbfcmd(dbproc, "%s ", argv[i])) == FAIL) {
+			fprintf(stderr, "%s:%d: dbcmd() failed\n", options.appname, __LINE__);
+			exit(1);	<co id="samplecode.query.dbfcmd">
+
+
+		}
+	}
+	printf("\n");
+
+	if ((erc = dbsqlexec(dbproc)) == FAIL) {
+		fprintf(stderr, "%s:%d: dbsqlexec() failed\n", options.appname, __LINE__);
+		exit(1);		<co id="samplecode.query.exec">
+
+	}
+			</programlisting></example>
+			<calloutlist><title>Initialization Notes</title>
+				<callout arearefs="samplecode.query.dbfcmd"><para>Failure at this juncture is rare.  The library is merely allocating memory to hold the SQL.  </para></callout>
+				<callout arearefs="samplecode.query.exec"><para><function>dbsqlexec()</> waits for the server to execute the query.  Depending on the complexity of the query, that may take a while. </para></callout>
+			</calloutlist>
+			<function>dbsqlexec()</> will fail if something is grossly wrong with the query, e.g. incorrect syntax or a reference to nonexistent table.  It's only the first of a few places where an error can crop up in processing the query, though.  Just because <function>dbsqlexec()</> succeeded doesn't mean you're in the clear.
+			</para>
+			</sect2>
+
+			<sect2 id="samplecode.results"><title>Fetch Results</title>
+			<abstract><para>A query may produce zero, one, or more results.  Broadly, that entails providing buffers to <symbol>db-lib</> to fill, and interating over the results a row (and column) at a time. </para></abstract>
+
+			<bridgehead id="samplecode.results.kinds.of.results" renderas="sect3">Kinds of Results</>
+			
+			<para><firstterm>Results</> is a special term: it means more than rows or no rows.  To <emphasis>process the results</> means to gather the data returned by the server into the application's variables.   
+			<table id="tab.kinds.of.results"><title>Kinds of Results</title>
+			<tgroup cols='6' align='left' colsep='1' rowsep='1'>
+			<colspec colname="type">
+			<colspec colname="meta">
+			<colspec colname="reg">
+			<colspec colname="comp">
+			<colspec colname="ret">
+			<colspec colname="eg">
+			<thead>
+			<row>
+			  <entry>Type</entry>
+			  <entry>Metadata</entry>
+			  <entry>Regular Rows</entry>
+			  <entry>Compute Rows</entry>
+			  <entry>Return Status</entry>
+			  <entry>Example SQL</entry>
+			</row>
+			</thead>
+			<tbody>	
+				<row>	<entry colname="type">None</entry>
+					<entry colname="meta">None</entry>
+					<entry colname="reg">None</entry>
+					<entry colname="comp">None</entry>
+					<entry colname="ret">None</entry>
+					<entry colname="eg">Any <symbol>INSERT</>, <symbol>UPDATE</>, or <symbol>DELETE</> statement </entry>
+					</row>
+				<row>	<entry colname="type">Empty</entry>
+					<entry colname="meta">1 set</entry>
+					<entry colname="reg">None</entry>
+					<entry colname="comp">0 or more</entry>
+					<entry colname="ret">None</entry>
+					<entry colname="eg"><symbol>SELECT name FROM systypes WHERE 0 = 1</></entry>
+					</row>
+				<row>	<entry colname="type">Simple </entry>
+					<entry colname="meta">1 set </entry>
+					<entry colname="reg">0 or more </entry>
+					<entry colname="comp">None </entry>
+					<entry colname="ret">None </entry>
+					<entry colname="eg"><userinput>SELECT name FROM sysobjects</> </entry>
+					</row>
+				<row>	<entry colname="type">Complex </entry>
+					<entry colname="meta">2 or more </entry>
+					<entry colname="reg">0 or more </entry>
+					<entry colname="comp">1 or more </entry>
+					<entry colname="ret">None </entry>
+					<entry colname="eg"><userinput>SELECT name FROM sysobjects COMPUTE COUNT(name)</> </entry>
+					</row>
+				<row>	<entry colname="type">Stored Procedure </entry>
+					<entry colname="meta">0 or more </entry>
+					<entry colname="reg">0 or more </entry>
+					<entry colname="comp">0 or more </entry>
+					<entry colname="ret">1 or more</entry>
+					<entry colname="eg"><userinput>EXEC sp_help sysobjects</> </entry>
+					</row>
+			</tbody>
+			</tgroup>
+			</table> </para>
+			
+			<para>As the above table shows, results can comprise ordinary rows, and <firstterm>compute rows</> (resulting from a <symbol>COMPUTE</> clause). Stored procedures may of course contain multiple SQL statements, some of which may be <symbol>SELECT</> statements and might include <symbol>COMPUTE</> clauses. In addition, they generate a  <firstterm>return status</> (with a <symbol>RETURN</> statement or else automatically) and perhaps <symbol>OUTPUT</> parameters. </para>
+			
+			<bridgehead id="samplecode.results.metadata.and.data" renderas="sect3">Data and Metadata</>
+			
+			<para>Observe that a row is set of columns, and each column has attributes such as type and size.  The column attributes of a row are collectively known as <firstterm>metadata</>.  The server always returns metadata before any data (even for a a <symbol>SELECT</> statement that produced no rows). </para>
+
+			<para> <table id="tab.result.fetching.functions"><title>Result-fetching functions</title>
+			<tgroup cols='4' align='left' colsep='1' rowsep='1'>
+			<colspec colname="func">
+			<colspec colname="type">
+			<colspec colname="ret">
+			<colspec colname="etc">
+			<thead>
+			<row>
+			  <entry>Function</entry>
+			  <entry>Fetches</entry>
+			  <entry>Returns</entry>
+			  <entry>Comment</entry>
+			</row>
+			</thead>
+			<tbody>	
+				<row>	<entry colname="func"><function>dbresults()</></entry>
+					<entry colname="type">metadata</entry>
+					<entry colname="ret"><symbol>SUCCEED</>, <symbol>FAIL</> or, <symbol>NO_MORE_RESULTS</>.  </entry>
+					<entry colname="etc"><symbol>SUCCEED</> indicates just that: the query executed successfully (whew!). There may be metadata (and perhaps data) and/or stored procedure outputs available.  </entry>
+					</row>
+				<row>	<entry colname="func"><function>nextrow()</></entry>
+					<entry colname="type">data</entry>
+					<entry colname="ret">	<symbol>REG_ROW</>, 
+								<firstterm>compute_id</>, 
+								<symbol>NO_MORE_ROWS</>, 
+								<symbol>BUF_FULL</>, 
+								or <symbol>FAIL</>.
+								</entry>
+					<entry colname="etc">Places fetched data into bound columns, if any.  </entry>
+					</row>
+			</tbody>
+			</tgroup>
+			</table> </para>
+
+			<bridgehead id="samplecode.results.binding" renderas="sect3">Binding</>
+
+			<para>Each time <symbol>dbresults()</> returns <symbol>SUCCEED</>, there is something to retrieve. <symbol>db-lib</> has different functions to deal with the different kinds of results.  The functions are of two kinds: those that convert the data into a form desired by the application, known as <firstterm>binding</>, and those that return the data in <quote>native</> form.  </para>
+			
+			<para>To understand binding, it may be easiest to examine two primitive functions, <function>dbdata()</> and <function>dbconvert()</>.  <function>dbdata()</> returns a pointer to the column's data.  The data to which it points are in <quote>native</> form, 4 bytes for an <symbol>INT</>, 8 bytes for a <symbol>DATETIME</> and so on.  <function>dbconvert()</> converts between datatypes; you can hand it an integer and get back a character array (or a <symbol>C double</>.  You might think of  <function>dbconvert()</> as <function>atoi(3)</> on steroids). <function>dbbind()</> combines these two functions.  The application indicates in what form it would like to use each column, and the library converts them  on the fly as each row is read.</para>  
+			
+			<para>To <emphasis>bind a column</> is to provide a buffer to <symbol>db-lib</> to fill, and indicate which datatype the buffer is meant to hold. <footnote><para>This is the sort of thing <symbol>C++</>'s type system does so much better</para></footnote>  </para>
+			
+			<para>It may be well to pause here to observe the three ways a datatype is described in a <symbol>db-lib</> program.  
+			<variablelist id="list.datatypes"><title><function>db-lib</> Datatype Descriptors</title>
+				<varlistentry>
+					<term>Sever Datatype</term>
+					<listitem>
+						<para>Describes the data as an abstract type, not representing any particular kind of storage.  <symbol>SYBREAL</>, for example, doesn't imply any particular arrangement of bits; it just means <quote>a floating-point datatype corresponding to the <symbol>T-SQL REAL</> type on the server.</quote> These all begin with <symbol>SYB</>, e.g. <symbol>SYBINT4</>.  </para>
+					</listitem>
+				</varlistentry>	
+				<varlistentry>
+					<term>Program Variable Datatype</term>
+					<listitem>
+						<para>Defines a <symbol>C</> variable in a machine-independent way. Because a <symbol>C</> defines its  <symbol>int</> type according the CPU architecture, it may have 2, 4, 8, or some other number of bytes.  A <symbol>DBINT</> on the other hand, is guaranteed to be 4 bytes and, as such, assuredly will hold any value returned by the server from a <symbol>T-SQL INT</> column.  These all begin with <symbol>DB</>, e.g. <symbol>DBREAL</>.  </para>
+					</listitem>
+				</varlistentry>	
+				<varlistentry>
+					<term>Bind Type</term>
+					<listitem>
+						<para>Prescribes a conversion operation.  Indicates to <function>dbbind()</> the  <emphasis>Program Variable Datatype</> defined by the target buffer.  Sybase and Microsoft call this the <quote>vartype</>. These all <emphasis>end</> with <symbol>BIND</>, e.g. <symbol>STRINGBIND</>.  </para>
+					</listitem>
+				</varlistentry>	
+			</variablelist>
+			</para>
+
+			
+			<para>Typically it's more convenient to have <symbol>db-lib</> convert the data into the desired for.  The function that does that is <function>dbind()</>.  So: after fetching the metadata, and before fetching the data, we usually prepare the bound columns.  </para>
+
+			<bridgehead id="samplecode.results.fetching.data" renderas="sect3">Fetching Data</>
+			
+			<para> <table id="tab.data.fetching.functions"><title>Data-fetching functions</title>
+			<tgroup cols='5' align='left' colsep='1' rowsep='1'>
+			<colspec colname="type">
+			<colspec colname="reg">
+			<colspec colname="comp">
+			<colspec colname="ret">
+			<colspec colname="out">
+			<thead>
+			<row>
+			  <entry>Type</entry>
+			  <entry>Regular rows</entry>
+			  <entry>Compute rows</entry>
+			  <entry>Return status</entry>
+			  <entry><symbol>OUTPUT</> parameters</entry>
+			</row>
+			</thead>
+			<tbody>
+				<row>	<entry colname="type">Meta </entry>
+					<entry colname="reg"><function>dbnumcols()</> </entry>
+					<entry colname="comp">	<function>dbnumcompute()</>, 
+								<function>dbnumalts()</>, 
+								<function>dbaltop()</>, 
+								<function>dbbylist()</> </entry>
+					<entry colname="ret"><function>dbhasretstatus()</> </entry>
+					<entry colname="out"><function>dbnumrets()</> </entry>
+					</row>
+				<row>	<entry colname="type">Binding </entry>
+					<entry colname="reg"><function>dbbind()</>, <function>dbnullbind()</> </entry>
+					<entry colname="comp">	<function>dbaltbind()</>, 
+								<function>dbanullbind()</> </entry>
+					<entry colname="ret"><function>dbretstatus()</> </entry>
+					<entry colname="out">none </entry>
+					</row>
+				<row>	<entry colname="type">Native </entry>
+					<entry colname="reg"><function>dbdatlen()</>, <function>dbdata()</> </entry>
+					<entry colname="comp">	<function>dbadlen()</>, 
+								<function>dbalttype()</>, 
+								<function>dbaltutype()</>, 
+								<function>dbaltlen()</>, 
+								<function>dbadata()</> </entry>
+					<entry colname="ret">none </entry>
+					<entry colname="out">	<function>dbretdata()</>, 
+								<function>dbretlen()</>, 
+								<function>dbretname()</>, 
+								<function>dbrettype()</> </entry>
+					</row>
+			</tbody>
+			</tgroup>
+			</table> </para>
+			
+			<para>The paradigm may now perhaps be clear:  Query, fetch results, bind, fetch columns, fetch regular rows, fetch compute rows, fetch stored procedure outputs.  Repeat as necessary.   </para>
+			
+			<para> <table id="tab.putting.it.all.together"><title>Putting it all together </title>
+			<tgroup cols='4' align='left' colsep='1' rowsep='1'>
+			<colspec colname="step">
+			<colspec colname="func">
+			<colspec colname="once">
+			<colspec colname="freq">
+			<thead>
+			<row>	<entry>Step </entry>
+				<entry>Function </entry>
+				<entry>Once Per </entry>
+				<entry>Many Times Per </entry>
+				</row>
+			</thead>
+			<tbody>	
+				<row>	<entry colname="step">Query </entry>
+					<entry colname="func"><function>dbsqlexec()</> </entry>
+					<entry colname="once">Query</entry>
+					<entry colname="freq">Program</entry>
+					</row>
+				<row>	<entry colname="step">Fetch metadata </entry>
+					<entry colname="func"><function>dbresults()</> </entry>
+					<entry colname="once">SQL statement </entry>
+					<entry colname="freq">Query </entry>
+					</row>
+				<row>	<entry colname="step">Prepare variables </entry>
+					<entry colname="func"><function>dbbind()</> </entry>
+					<entry colname="once">Column</entry>
+					<entry colname="freq">Statement</entry>
+					</row>
+				<row>	<entry colname="step">Fetch regular data </entry>
+					<entry colname="func"><function>dbnextrow()</> </entry>
+					<entry colname="once">Row </entry>
+					<entry colname="freq">Statement </entry>
+					</row>
+				<row>	<entry colname="step">Fetch compute data </entry>
+					<entry colname="func"><function>dbnextrow()</>  </entry>
+					<entry colname="once">Compute column </entry>
+					<entry colname="freq">Statement </entry>
+					</row>
+				<row>	<entry colname="step">Fetch output parameters </entry>
+					<entry colname="func"><function>dbretdata()</> </entry>
+					<entry colname="once">output parameter </entry>
+					<entry colname="freq">Stored procedure </entry>
+					</row>
+				<row>	<entry colname="step">Fetch return status </entry>
+					<entry colname="func"><function>dbretstatus()</> </entry>
+					<entry colname="once">Stored procedure </entry>
+					<entry colname="freq">Program </entry>
+					</row>
+			</tbody>
+			</tgroup>
+			</table> </para>
+
+			<para><important><title>Fetch All Rows!</title>
+				<sidebar><para><symbol>db-lib</> doesn't insist every column &mdash; or even any column &mdash; be bound or otherwise retrieved into the application's variables.  There is, however, one absolutely <emphasis>crucial, inflexible, unalterable</emphasis> requirement: the application must <emphasis>process all rows produced by the query</>.  Before the <symbol>DBPROCESS</> can be used for another query, the application must either fetch all rows, or cancel the results and receive an acknowledgement from the server. Cancelling is beyond the scope of this document, so for now  <emphasis> fetch all rows</>. </para></sidebar></important></para>
+				
+			<para>Now, at last, some sample code that fetches data.  In the interest of simplicity, we don't bind and fetch anything except regular rows.  We do, however, adhere to the <emphasis>process all rows</> rule.  </para>
+			  
+			<para><example id="e.g.samplecode.dblib.fetch">
+				<title>Sample Code: <symbol>db-lib</> Fetch Results</title>
+			<programlisting>
+	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
+		struct COL 						<co id="samplecode.results.dbresults">
+		{ 
+			char *name; 
+			char *buffer; 
+			int type, size, status; 
+		} *columns, *pcol;
+		int ncols;
+		int row_code;
+		
+		if (erc == FAIL) {
+			fprintf(stderr, "%s:%d: dbresults failed\n", 
+					options.appname, __LINE__);
+			exit(1);
+		}
+		
+		ncols = dbnumcols(dbproc);
+
+		if ((columns = calloc(ncols, sizeof(struct COL))) == NULL) {
+			perror(NULL);
+			exit(1);
+		}
+
+		/* 
+		 * Read metadata and bind.  
+		 */
+		for (pcol = columns; pcol - columns < ncols; pcol++) {
+			int c = pcol - columns + 1;
+			
+			pcol->name = dbcolname(dbproc, c);		<co id="samplecode.results.c">
+			pcol->type = dbcoltype(dbproc, c);
+			pcol->size = dbcollen(dbproc, c);
+			
+			if (SYBCHAR != pcol->type) {			<co id="samplecode.results.dbcollen">
+				pcol->size = dbwillconvert(pcol->type, SYBCHAR);
+			}
+
+			printf("%*s ", pcol->size, pcol->name);
+
+			if ((pcol->buffer = calloc(1, pcol->size + 1)) == NULL){
+				perror(NULL);
+				exit(1);
+			}
+
+			erc = dbbind(dbproc, c, NTBSTRINGBIND,	<co id="samplecode.results.dbbind">
+					     pcol->size+1, (BYTE*)pcol->buffer);
+			if (erc == FAIL) {
+				fprintf(stderr, "%s:%d: dbbind(%d) failed\n", 
+						options.appname, __LINE__, c);
+				exit(1);
+			}
+<![CDATA[
+			erc = dbnullbind(dbproc, c, &pcol->status);]]>	<co id="samplecode.results.dbnullbind">
+			if (erc == FAIL) {
+				fprintf(stderr, "%s:%d: dbnullbind(%d) failed\n", 
+						options.appname, __LINE__, c);
+				exit(1);
+			}
+		}
+		printf("\n");
+		
+		/* 
+		 * Print the data to stdout.  
+		 */
+		while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS){	<co id="samplecode.results.dbnextrow">
+			switch (row_code) {
+			case REG_ROW:
+				for (pcol=columns; pcol - columns < ncols; pcol++) {
+					char *buffer = pcol->status == -1? 
+						"NULL" : pcol->buffer;
+					printf("%*s ", pcol->size, buffer);
+				}
+				printf("\n");
+				break;
+				
+			case BUF_FULL:
+				assert(row_code != BUF_FULL);
+				break;
+				
+			case FAIL:
+				fprintf(stderr, "%s:%d: dbresults failed\n", 
+						options.appname, __LINE__);
+				exit(1);
+				break;
+				
+			default: 					<co id="samplecode.results.computeid">
+				printf("Data for computeid %d ignored\n", row_code);
+			}
+
+
+		}
+
+		/* free metadata and data buffers */
+		for (pcol=columns; pcol - columns < ncols; pcol++) {
+			free(pcol->buffer);
+		}
+		free(columns);
+
+		/* 
+		 * Get row count, if available.   
+		 */
+		if (DBCOUNT(dbproc) > -1)
+			fprintf(stderr, "%d rows affected\n", DBCOUNT(dbproc));
+
+		/* 
+		 * Check return status 
+		 */
+		if (dbhasretstat(dbproc) == TRUE) {
+			printf("Procedure returned %d\n", dbretstatus(dbproc));
+		}
+	}
+	exit(0);
+}
+			</programlisting></example>
+			<calloutlist id="co.fetching"><title>Data-fetching Notes</title>
+				<callout arearefs="samplecode.results.dbresults"><para>As soon as <function>dbresuts()</> reports <symbol>SUCCESS</>, the row's metadata are available.  (Some parts of COL are filled but not used, just to illustrate how the information can be got.) </para></callout>
+				<callout arearefs="samplecode.results.c"><para><symbol>db-lib</> columns start with 1. </para></callout>
+				<callout arearefs="samplecode.results.dbcollen"><para><function>dbcollen()</> returns the sizeof the native data (e.g. 4 bytes for a T-SQL <symbol>INT</>).  We'll use <function>dbbind()</> to convert everything to strings.  If the column is [VAR]CHAR, we want the column's defined size, otherwise we want its maximum size when represented as a string, which FreeTDS's <function>dbwillconvert()</> returns (for fixed-length datatypes).  <footnote><para>for IMAGE data, we need to multiply by 2, because <function>dbbind()</> will convert each byte to a hexadecimal pair.  The example program will report an error with IMAGE data.  </para></footnote></para></callout>
+				<callout arearefs="samplecode.results.dbbind"><para><symbol>NTBSTRINGBIND</> null-terminates the character array for us.  <quote>NTB</> might perhaps stand for <quote>null terminating byte</>. </para></callout>
+				<callout arearefs="samplecode.results.dbnullbind"><para>A zero-length string is not a NULL!  <function>dbnullbind()</> arranges for the passed buffer to be set to -1 whenever that column is NULL for a particular row.  </para></callout>
+				<callout arearefs="samplecode.results.dbnextrow"><para>Each time <function>dbnextrow()</> returns <symbol>REG_ROW</>, it has filled the bound buffers with the converted values for the row.  </para></callout>
+				<callout arearefs="samplecode.results.computeid"><para>Computed rows are left as an exercise to the reader. </para></callout>
+			</calloutlist>
+			</para>
+			</sect2>
+
+			<sect2 id="samplecode.errors"><title>Messages and Errors</title>
+				<abstract><para>Errors may originate remotely, on the server or locally, in the library itself.  The former are known as <firstterm>messages</> (because they are: they arrive as messages from the server); the latter are termed <firstterm>errors</>.  Their handling is a little intimidating.  It requires writing and installing a callback function (whose parameters are predefined by <symbol>db-lib</>), and thinking about how to handle different types of errors.  That's why we save the best for last.  </para></abstract>
+				
+			<para><simplelist columns="2">
+				<member><emphasis>Messages</> arise because the server has something to say.  <footnote><para>Just one more way in which databases differ from files.</para></footnote>.  They usually describe some problem encountered executing the SQL.  Perhaps the SQL refers to a nonexistent object or attempted to violate a constraint of some kind.  But they can also be benign, indicating for instance merely that the default database has changed.  </member>
+			
+			<member><emphasis>Errors</> arise either because the application has misused the database in some way &mdash; say, passed a NULL <symbol>DBPROCESS</> pointer or tried to issue a query while results were pending &mdash; or because some trouble cropped up in communicating with the server (couldn't find it, say, or didn't hear back from it).   </member>
+			</simplelist></para>
+			
+			<para>Why these two require distinct handling is lost in the mists of time. But it does help to keep them distinct in your mind, especially while reading the documentation. </para>
+			
+			<para>To have <symbol>db-lib</> use your handler, pass its name to the appropriate  <function>dberrhandle()</> or <function>dbmsghandle()</> function immediately after calling <function>dbinit()</>.  </para>  
+			
+			<para><example id="e.g.samplecode.dblib.errors">
+				<title>Sample Code: <symbol>db-lib</> Error and Message handlers</title>
+			<programlisting>
+int
+msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, 
+	    char *msgtext, char *srvname, char *procname, int line)
+{									<co id="samplecode.errors.msg_handler.args">
+	enum {changed_database = 5701, changed_language = 5703 };	<co id="samplecode.errors.msg_handler.suppress">
+	
+	if (msgno == changed_database || msgno == changed_language) 
+		return 0;
+
+	if (msgno > 0) {
+		fprintf(stderr, "Msg %ld, Level %d, State %d\n", 
+				(long) msgno, severity, msgstate);
+
+		if (strlen(srvname) > 0)
+			fprintf(stderr, "Server '%s', ", srvname);
+		if (strlen(procname) > 0)
+			fprintf(stderr, "Procedure '%s', ", procname);
+		if (line > 0)
+			fprintf(stderr, "Line %d", line);
+
+		fprintf(stderr, "\n\t");
+	}
+	fprintf(stderr, "%s\n", msgtext);
+	
+	if (severity > 10) {						<co id="samplecode.errors.msg_handler.severity">
+		fprintf(stderr, "%s: error: severity %d > 10, exiting\n", 
+				options.appname, severity);
+		exit(severity);
+	}
+
+	return 0;							<co id="samplecode.errors.msg_handler.return">
+}
+
+int
+err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, 
+	    char *dberrstr, char *oserrstr)
+{									<co id="samplecode.errors.err_handler.args">
+	if (dberr) {							<co id="samplecode.errors.err_handler.msgs">
+		fprintf(stderr, "%s: Msg %d, Level %d\n", 
+				options.appname, dberr, severity);
+		fprintf(stderr, "%s\n\n", dberrstr);
+	}
+
+	else {
+		fprintf(stderr, "%s: DB-LIBRARY error:\n\t", options.appname);
+		fprintf(stderr, "%s\n", dberrstr);
+	}
+
+	return INT_CANCEL;						<co id="samplecode.errors.err_handler.return">
+}
+			</programlisting></example>
+			<note><para>Handlers are always called before the function that engendered them returns control to the application.  </para></note>
+			<calloutlist><title>Error Handling Notes</title>
+				<callout arearefs="samplecode.errors.msg_handler.args"><para>When first writing a handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dbmsghandle()</>. <footnote><para>Back in K&amp;R days, that wasn't such a problem.  But there were other problems, some much worse.</para></footnote>  </para></callout>
+				<callout arearefs="samplecode.errors.msg_handler.suppress"><para>Some messages don't convey much, as though the server gets lonely sometimes.  You're not obliged to print every one.  </para></callout>
+				<callout arearefs="samplecode.errors.msg_handler.severity"><para>Severities are defined in the <emphasis>server</> documentation, and can be set by the <symbol>T-SQL RAISERROR</> statement. </para></callout>
+				<callout arearefs="samplecode.errors.msg_handler.return"><para>Message handlers <emphasis>always and only ever</> return zero. </para></callout>
+				<callout arearefs="samplecode.errors.err_handler.args"><para>When first writing the handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dberrhandle()</>. <footnote><para>If that advice sounds familiar, it's because it bears repeating.</para></footnote> </para></callout>
+				<callout arearefs="samplecode.errors.err_handler.msgs"><para>Some messages are so severe they provoke <symbol>db-lib</> into calling the error handler, too!  If you have both installed &mdash; and of course you do, right? &mdash; then you can skip those lacking an error number. </para></callout>
+				<callout arearefs="samplecode.errors.err_handler.return"><para>While <symbol>INT_CANCEL</> is the most common return code, it's not the only one.  For one thing, the error handler's return code can control how long <symbol>db-lib</> keeps retrying timeout errors.  See the documentation for details.  </para></callout>
+			</calloutlist>
+			</para>
+			
+			<para><note><para>No matter what the error handler says or does, it can't remedy the error.  It's <emphasis>still</> an error and usually the best that can happen is that the function will return <symbol>FAIL</>.  The exception in timeout conditions, when the handler can stave off failure by requesting retries. </para></note></para>
+			
+			<para>You may be asking yourself, <quote>OK, fine, I can print the error message.  But what if I want to communicate something back to line in my program where the error occurred?  How to do that?</quote>  First of all, remember  the calling function &mdash; that's your application &mdash; will learn of an error from the return code.  If it needs more detail, though, there are two ways to pass it.  
+			
+			<orderedlist>
+				<listitem><para>Set a global variable. </para></listitem>
+				<listitem><para>Use 	<function>setuserdata()</> and 
+							<function>getuserdata()</>. </para></listitem>
+			</orderedlist>
+			
+			<tip><para>If your application is written in <symbol>C++</>, you may be tempted to use <function>throw()</>. Don't!  Your handler is a <symbol>C</> function and, more important, <emphasis>it's an extension of <symbol>db-lib</></emphasis>.  You can put a <function>throw()</> in your handler and it will compile. But when it executes, it's going to rip through <symbol>db-lib</>'s stack.  Your application will be unuseable at that point, if it doesn't cause a segment fault.  </para></tip>
+			</para>
+	
+			</sect2>
+
+
+
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->

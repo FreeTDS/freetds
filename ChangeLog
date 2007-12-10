@@ -1,3 +1,6 @@
+Sun Dec  9 19:51:11 EST 2007	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml added tenderfoot tutorial
+	
 Fri Dec  7 00:26:01 EST 2007	JK Lowden <jklowden@freetds.org>
 	* include/tds.h src/dblib/dblib.c
 	* src/dblib/dbutil.c src/tds/util.c
