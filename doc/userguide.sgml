@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-12-10 01:35:40 $</date>
-		<releaseinfo>$Revision: 1.104 $</releaseinfo>
+		<date>$Date: 2007-12-10 05:13:00 $</date>
+		<releaseinfo>$Revision: 1.105 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.104 $</>
-<member>$Date: 2007-12-10 01:35:40 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.104 2007-12-10 01:35:40 jklowden Exp $.</>
+<member>$Revision: 1.105 $</>
+<member>$Date: 2007-12-10 05:13:00 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.105 2007-12-10 05:13:00 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-12-10 01:35:40 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-12-10 05:13:00 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -3272,7 +3272,7 @@ The reference manual is a work in progress: only the db-lib library is completel
 			</para>
 			<para>
 Basic API coverage information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</>, included in the source distribution.  For your convenience and enjoyment, we include that file in the following sections.  In each table, we note for the function
-	<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same 	function.  It is the intention of the <option>--enable-msdblib</> option to align
+	<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same function.  It is the intention of the <option>--enable-msdblib</> option to align
 	<productname>FreeTDS</> with one or the other's convention.</para></footnote>
 the extent to which it is implemented.  The <emphasis>Status</> field may be:
 
@@ -3338,6 +3338,33 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 			
 			<para><important><sidebar><title>What's the big deal with errors?</title>
 			<para>Even more than in other kinds of programming, correct handling of errors is extremely important in all database programming, for two reasons.  First, the database server is a remote machine.  Every db-lib application is therefore also a communications program, and communications programs are subject to network failures.  For many application programmers, database programming is their first, possibly only foray into communications programming.  Second, database programs almost always have very high data integrity requirements.  It is necessary to know the row was absolutely, positively committed, once and only once, without error or exception.  Without taking extreme care to trap and handle all error conditions, no statement about the program's reliability can be made with confidence.</para></sidebar></important></para>
+			
+			<para>
+			<orderedlist><title>How to Get and Build the sample code</title>
+				<listitem><para>Run <filename>doc/grep_sample_code</> to extract the <symbol>C</> code from the User Guide <symbol>SGML</> source.  </para></listitem>
+				<listitem><para>Compile </para></listitem>
+				<listitem><para>Link </para></listitem>
+			</orderedlist>
+
+			<itemizedlist><title>Files Required to Build the Sample Code</title>
+				<listitem><para><filename>sybfront.h</> </para></listitem>
+				<listitem><para><filename>sybdb.h </></para></listitem>
+				<listitem><para><filename>libsybdb.a</> or <filename>libsybdb.so</> </para></listitem>
+			</itemizedlist>
+			Your library's extension may vary according to your operating system. </para>
+			
+			<para>The source code my be built with commands similar to these.  The precise options and paths depend on your particular system.  The commands below work with the GNU compiler and linker on an ELF system with dynamic linking, common on Linux and BSD systems.  
+<example><title>Building the Sample Code</title>
+  <screen>
+    <prompt>$ </prompt><userinput>../doc/grep_sample_code ../doc/userguide.sgml > sample.c</userinput>
+    <prompt>$ </prompt><userinput>cc -I /usr/local/include -Wl,-L/usr/local/lib -Wl,-R/usr/local/lib sample.c -lsybdb -o sample</userinput>
+  </screen>
+</example>
+			where <filename>/usr/local/include</> and <filename>/usr/local/lib</> are respectively the locations of your header files and libraries.  
+			</para>
+			
+			<para>We now proceed to the code proper.</para>
+			
 
 			<sect2 id="samplecode.include"><title>Header files</title>
 			<abstract><para>We need two header files to use db-lib.  We need a few others to deal with I/O in C, as you know.  Also declare the error and message handler functions, more about which later. </para></abstract> 
@@ -3916,12 +3943,20 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			<sect2 id="samplecode.errors"><title>Messages and Errors</title>
 				<abstract><para>Errors may originate remotely, on the server or locally, in the library itself.  The former are known as <firstterm>messages</> (because they are: they arrive as messages from the server); the latter are termed <firstterm>errors</>.  Their handling is a little intimidating.  It requires writing and installing a callback function (whose parameters are predefined by <symbol>db-lib</>), and thinking about how to handle different types of errors.  That's why we save the best for last.  </para></abstract>
 				
-			<para><simplelist columns="2">
-				<member><emphasis>Messages</> arise because the server has something to say.  <footnote><para>Just one more way in which databases differ from files.</para></footnote>.  They usually describe some problem encountered executing the SQL.  Perhaps the SQL refers to a nonexistent object or attempted to violate a constraint of some kind.  But they can also be benign, indicating for instance merely that the default database has changed.  </member>
-			
-			<member><emphasis>Errors</> arise either because the application has misused the database in some way &mdash; say, passed a NULL <symbol>DBPROCESS</> pointer or tried to issue a query while results were pending &mdash; or because some trouble cropped up in communicating with the server (couldn't find it, say, or didn't hear back from it).   </member>
-			</simplelist></para>
-			
+			<variablelist><title>Kinds of Errors</title>
+				<varlistentry>
+					<term>Messages</term>
+					<listitem>
+						<para><emphasis>Messages</> arise because the server has something to say.  <footnote><para>Just one more way in which databases differ from files.</para></footnote>.  They usually describe some problem encountered executing the SQL.  Perhaps the SQL refers to a nonexistent object or attempted to violate a constraint of some kind.  But they can also be benign, indicating for instance merely that the default database has changed.  </para>
+					</listitem>
+				</varlistentry>	
+				<varlistentry>
+					<term>Errors</term>
+					<listitem>
+						<para><emphasis>Errors</> arise either because the application has misused <symbol>db-lib</> in some way &mdash; say, passed a NULL <symbol>DBPROCESS</> pointer or tried to issue a query while results were pending &mdash; or because some trouble cropped up in communicating with the server (couldn't find it, say, or didn't hear back from it).  </para>
+					</listitem>
+				</varlistentry>	
+			</variablelist>
 			<para>Why these two require distinct handling is lost in the mists of time. But it does help to keep them distinct in your mind, especially while reading the documentation. </para>
 			
 			<para>To have <symbol>db-lib</> use your handler, pass its name to the appropriate  <function>dberrhandle()</> or <function>dbmsghandle()</> function immediately after calling <function>dbinit()</>.  </para>  
@@ -3992,7 +4027,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr,
 			</calloutlist>
 			</para>
 			
-			<para><note><para>No matter what the error handler says or does, it can't remedy the error.  It's <emphasis>still</> an error and usually the best that can happen is that the function will return <symbol>FAIL</>.  The exception in timeout conditions, when the handler can stave off failure by requesting retries. </para></note></para>
+			<para><note><para>No matter what the error handler says or does, it can't remedy the error.  It's <emphasis>still</> an error and usually the best that can happen is that the function will return <symbol>FAIL</>.  The exception is timeout conditions, when the handler can stave off failure by requesting retries. </para></note></para>
 			
 			<para>You may be asking yourself, <quote>OK, fine, I can print the error message.  But what if I want to communicate something back to line in my program where the error occurred?  How to do that?</quote>  First of all, remember  the calling function &mdash; that's your application &mdash; will learn of an error from the return code.  If it needs more detail, though, there are two ways to pass it.  
 			
@@ -4005,6 +4040,24 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr,
 			<tip><para>If your application is written in <symbol>C++</>, you may be tempted to use <function>throw()</>. Don't!  Your handler is a <symbol>C</> function and, more important, <emphasis>it's an extension of <symbol>db-lib</></emphasis>.  You can put a <function>throw()</> in your handler and it will compile. But when it executes, it's going to rip through <symbol>db-lib</>'s stack.  Your application will be unuseable at that point, if it doesn't cause a segment fault.  </para></tip>
 			</para>
 	
+			</sect2>
+			
+			<sect2 id="samplecode.wrapup"><title>Last Remarks</title>
+			<para>We've reached the end of our <symbol>db-lib</> tour.  The almost 300 lines of <symbol>C</> above constitute program with these features:
+				<itemizedlist><title> Sample Code features</>
+					<listitem><para>Accepts command-line parameters and SQL. </para></listitem>
+					<listitem><para>Checks for errors and server messages. </para></listitem>
+					<listitem><para>Processes any number of results.. </para></listitem>
+					<listitem><para>Prints results in columns of suitable widths.  </para></listitem>
+				</itemizedlist>
+				
+				There are things it doesn't do, in the name of simplicity.
+				<itemizedlist><title> Sample Code nonfeatures</>
+					<listitem><para>No BCP (bulk copy) mode  </para></listitem>
+					<listitem><para>No RPC (remote procedure call) mode, preventing it from  retrieving output parameters. </para></listitem>
+				</itemizedlist>
+				Your humble author hopes you found it worthwhile.  Happy Hacking.  
+			</para>
 			</sect2>
 
 

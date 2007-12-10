@@ -1,7 +1,7 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
-# $Id: Makefile.am,v 1.58 2007-01-19 04:59:13 jklowden Exp $
+# $Id: Makefile.am,v 1.59 2007-12-10 05:13:00 jklowden Exp $
 
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
@@ -9,13 +9,31 @@ DOCDIR = doc/freetds-$(VERSION)
 PRODUCT = FreeTDS
 TARGET_DOCDIR = $(DESTDIR)$(datadir)/$(DOCDIR)
 
-EXTRA_DIST	= api_status.txt bcp.txt cap.txt getting_started.txt \
+IMAGES = 	images/important.gif \
+		images/note.gif \
+		images/tip.gif \
+		images/caution.gif \
+		images/warning.gif
+
+CALLOUTS =	images/callouts/1.gif \
+		images/callouts/2.gif \
+		images/callouts/3.gif \
+		images/callouts/4.gif \
+		images/callouts/5.gif \
+		images/callouts/6.gif \
+		images/callouts/7.gif \
+		images/callouts/8.gif \
+		images/callouts/9.gif \
+		images/callouts/10.gif
+
+
+EXTRA_DIST =	api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml userguide.css \
 		$(man_MANS) freebcp.txt tsql.txt osql.txt fisql.txt \
 		bsqldb.txt defncopy.txt datacopy.txt \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
-		images/important.gif images/note.gif images/tip.gif \
+		$(IMAGES) $(CALLOUTS) grep_sample_code \
 		tds_ssl.html
 
 man_MANS	= freebcp.1 tsql.1 osql.1 bsqldb.1 defncopy.1 datacopy.1 fisql.1 

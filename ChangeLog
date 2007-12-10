@@ -1,3 +1,14 @@
+Mon Dec 10 00:08:45 EST 2007	JK Lowden <jklowden@freetds.org>
+	* doc/Makefile.am doc/userguide.sgml some improvements
+	doc/grep_sample_code doc/images/caution.gif 
+	doc/images/warning.gif
+	doc/images/callouts/1.gif doc/images/callouts/2.gif
+	doc/images/callouts/3.gif doc/images/callouts/4.gif
+	doc/images/callouts/5.gif doc/images/callouts/6.gif
+	doc/images/callouts/7.gif doc/images/callouts/8.gif
+	doc/images/callouts/9.gif doc/images/callouts/10.gif
+	- added from http://tldp.org/LDP/abs/images/
+
 Sun Dec  9 19:51:11 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml added tenderfoot tutorial
 	
