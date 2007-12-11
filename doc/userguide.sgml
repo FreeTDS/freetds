@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-12-11 05:12:22 $</date>
-		<releaseinfo>$Revision: 1.106 $</releaseinfo>
+		<date>$Date: 2007-12-11 10:12:24 $</date>
+		<releaseinfo>$Revision: 1.107 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.106 $</>
-<member>$Date: 2007-12-11 05:12:22 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.106 2007-12-11 05:12:22 jklowden Exp $.</>
+<member>$Revision: 1.107 $</>
+<member>$Date: 2007-12-11 10:12:24 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.107 2007-12-11 10:12:24 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-12-11 05:12:22 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-12-11 10:12:24 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -3970,8 +3970,8 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 int
 msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, 
 	    char *msgtext, char *srvname, char *procname, int line)
-{									<co id="samplecode.errors.msg_handler.args">
-	enum {changed_database = 5701, changed_language = 5703 };	<co id="samplecode.errors.msg_handler.suppress">
+{									<co id="samplecode.errors.msghandler.args">
+	enum {changed_database = 5701, changed_language = 5703 };	<co id="samplecode.errors.msghandler.suppress">
 	
 	if (msgno == changed_database || msgno == changed_language) 
 		return 0;
@@ -3991,20 +3991,20 @@ msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity,
 	}
 	fprintf(stderr, "%s\n", msgtext);
 	
-	if (severity > 10) {						<co id="samplecode.errors.msg_handler.severity">
+	if (severity > 10) {						<co id="samplecode.errors.msghandler.severity">
 		fprintf(stderr, "%s: error: severity %d > 10, exiting\n", 
 				options.appname, severity);
 		exit(severity);
 	}
 
-	return 0;							<co id="samplecode.errors.msg_handler.return">
+	return 0;							<co id="samplecode.errors.msghandler.return">
 }
 
 int
 err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, 
 	    char *dberrstr, char *oserrstr)
-{									<co id="samplecode.errors.err_handler.args">
-	if (dberr) {							<co id="samplecode.errors.err_handler.msgs">
+{									<co id="samplecode.errors.errhandler.args">
+	if (dberr) {							<co id="samplecode.errors.errhandler.msgs">
 		fprintf(stderr, "%s: Msg %d, Level %d\n", 
 				options.appname, dberr, severity);
 		fprintf(stderr, "%s\n\n", dberrstr);
@@ -4015,18 +4015,18 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr,
 		fprintf(stderr, "%s\n", dberrstr);
 	}
 
-	return INT_CANCEL;						<co id="samplecode.errors.err_handler.return">
+	return INT_CANCEL;						<co id="samplecode.errors.errhandler.return">
 }
 			</programlisting></example>
 			<note><para>Handlers are always called before the function that engendered them returns control to the application.  </para></note>
 			<calloutlist><title>Error Handling Notes</title>
-				<callout arearefs="samplecode.errors.msg_handler.args"><para>When first writing a handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dbmsghandle()</>. <footnote><para>Back in K&amp;R days, that wasn't such a problem.  But there were other problems, some much worse.</para></footnote>  </para></callout>
-				<callout arearefs="samplecode.errors.msg_handler.suppress"><para>Some messages don't convey much, as though the server gets lonely sometimes.  You're not obliged to print every one.  </para></callout>
-				<callout arearefs="samplecode.errors.msg_handler.severity"><para>Severities are defined in the <emphasis>server</> documentation, and can be set by the <symbol>T-SQL RAISERROR</> statement. </para></callout>
-				<callout arearefs="samplecode.errors.msg_handler.return"><para>Message handlers <emphasis>always and only ever</> return zero. </para></callout>
-				<callout arearefs="samplecode.errors.err_handler.args"><para>When first writing the handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dberrhandle()</>. <footnote><para>If that advice sounds familiar, it's because it bears repeating.</para></footnote> </para></callout>
-				<callout arearefs="samplecode.errors.err_handler.msgs"><para>Some messages are so severe they provoke <symbol>db-lib</> into calling the error handler, too!  If you have both installed &mdash; and of course you do, right? &mdash; then you can skip those lacking an error number. </para></callout>
-				<callout arearefs="samplecode.errors.err_handler.return"><para>While <symbol>INT_CANCEL</> is the most common return code, it's not the only one.  For one thing, the error handler's return code can control how long <symbol>db-lib</> keeps retrying timeout errors.  See the documentation for details.  </para></callout>
+				<callout arearefs="samplecode.errors.msghandler.args"><para>When first writing a handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dbmsghandle()</>. <footnote><para>Back in K&amp;R days, that wasn't such a problem.  But there were other problems, some much worse.</para></footnote>  </para></callout>
+				<callout arearefs="samplecode.errors.msghandler.suppress"><para>Some messages don't convey much, as though the server gets lonely sometimes.  You're not obliged to print every one.  </para></callout>
+				<callout arearefs="samplecode.errors.msghandler.severity"><para>Severities are defined in the <emphasis>server</> documentation, and can be set by the <symbol>T-SQL RAISERROR</> statement. </para></callout>
+				<callout arearefs="samplecode.errors.msghandler.return"><para>Message handlers <emphasis>always and only ever</> return zero. </para></callout>
+				<callout arearefs="samplecode.errors.errhandler.args"><para>When first writing the handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dberrhandle()</>. <footnote><para>If that advice sounds familiar, it's because it bears repeating.</para></footnote> </para></callout>
+				<callout arearefs="samplecode.errors.errhandler.msgs"><para>Some messages are so severe they provoke <symbol>db-lib</> into calling the error handler, too!  If you have both installed &mdash; and of course you do, right? &mdash; then you can skip those lacking an error number. </para></callout>
+				<callout arearefs="samplecode.errors.errhandler.return"><para>While <symbol>INT_CANCEL</> is the most common return code, it's not the only one.  For one thing, the error handler's return code can control how long <symbol>db-lib</> keeps retrying timeout errors.  See the documentation for details.  </para></callout>
 			</calloutlist>
 			</para>
 			

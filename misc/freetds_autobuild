@@ -216,7 +216,7 @@ fi
 if test "$OUTDIR" = "out"; then
 	save_coverage
 	# using tsql directly with grep do not update coverage informations
-	echo -e 'select @@version\ngo\nbye' | TDSVER=0.0 ./src/apps/tsql -S $tSRV -U $tUID -P $tPWD > out.txt || true
+	echo -e 'select @@version\ngo\nbye' | TDSVER=0.0 ./src/apps/tsql -S "$tSRV" -U "$tUID" -P "$tPWD" > out.txt || true
 	if grep -q 'Adaptive Server Enterprise' out.txt; then
 		echo "autodiscovery ok"
 	else

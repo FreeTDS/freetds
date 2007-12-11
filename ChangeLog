@@ -1,8 +1,12 @@
+Tue Dec 11 11:09:52 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/userguide.sgml: remove warning
+	* misc/freetds_autobuild: fix if password empty
+
 Tue Dec 11 00:02:16 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml minor touchups 
 	* src/dblib/dblib.c src/dblib/unittests/setnull.c
 	- unittests/setnull.c passes.
-	
+
 Mon Dec 10 14:05:06 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: remove warning
 
