@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-12-10 05:13:00 $</date>
-		<releaseinfo>$Revision: 1.105 $</releaseinfo>
+		<date>$Date: 2007-12-11 05:12:22 $</date>
+		<releaseinfo>$Revision: 1.106 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.105 $</>
-<member>$Date: 2007-12-10 05:13:00 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.105 2007-12-10 05:13:00 jklowden Exp $.</>
+<member>$Revision: 1.106 $</>
+<member>$Date: 2007-12-11 05:12:22 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.106 2007-12-11 05:12:22 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-12-10 05:13:00 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-12-11 05:12:22 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -3353,7 +3353,7 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 			</itemizedlist>
 			Your library's extension may vary according to your operating system. </para>
 			
-			<para>The source code my be built with commands similar to these.  The precise options and paths depend on your particular system.  The commands below work with the GNU compiler and linker on an ELF system with dynamic linking, common on Linux and BSD systems.  
+			<para>The source code may be built with commands similar to these.  The precise options and paths depend on your particular system.  The commands below work with the GNU compiler and linker on an ELF system with dynamic linking, common on Linux and BSD systems.  
 <example><title>Building the Sample Code</title>
   <screen>
     <prompt>$ </prompt><userinput>../doc/grep_sample_code ../doc/userguide.sgml > sample.c</userinput>
@@ -3751,7 +3751,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			</tgroup>
 			</table> </para>
 			
-			<para>The paradigm may now perhaps be clear:  Query, fetch results, bind, fetch columns, fetch regular rows, fetch compute rows, fetch stored procedure outputs.  Repeat as necessary.   </para>
+			<para>The paradigm may now perhaps be clear:  Query, fetch results, bind columns, fetch regular rows, fetch compute rows, fetch stored procedure outputs.  Repeat as necessary.   </para>
 			
 			<para> <table id="tab.putting.it.all.together"><title>Putting it all together </title>
 			<tgroup cols='4' align='left' colsep='1' rowsep='1'>
@@ -3809,7 +3809,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			<para><important><title>Fetch All Rows!</title>
 				<sidebar><para><symbol>db-lib</> doesn't insist every column &mdash; or even any column &mdash; be bound or otherwise retrieved into the application's variables.  There is, however, one absolutely <emphasis>crucial, inflexible, unalterable</emphasis> requirement: the application must <emphasis>process all rows produced by the query</>.  Before the <symbol>DBPROCESS</> can be used for another query, the application must either fetch all rows, or cancel the results and receive an acknowledgement from the server. Cancelling is beyond the scope of this document, so for now  <emphasis> fetch all rows</>. </para></sidebar></important></para>
 				
-			<para>Now, at last, some sample code that fetches data.  In the interest of simplicity, we don't bind and fetch anything except regular rows.  We do, however, adhere to the <emphasis>process all rows</> rule.  </para>
+			<para>Now, at last, some sample code that fetches data.  In the interest of simplicity, we don't bind anything except regular rows.  </para>
 			  
 			<para><example id="e.g.samplecode.dblib.fetch">
 				<title>Sample Code: <symbol>db-lib</> Fetch Results</title>
@@ -3925,13 +3925,16 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			printf("Procedure returned %d\n", dbretstatus(dbproc));
 		}
 	}
+
+	dbclose(dbproc);
+	dbexit();
 	exit(0);
 }
 			</programlisting></example>
 			<calloutlist id="co.fetching"><title>Data-fetching Notes</title>
-				<callout arearefs="samplecode.results.dbresults"><para>As soon as <function>dbresuts()</> reports <symbol>SUCCESS</>, the row's metadata are available.  (Some parts of COL are filled but not used, just to illustrate how the information can be got.) </para></callout>
+				<callout arearefs="samplecode.results.dbresults"><para>As soon as <function>dbresults()</> reports <symbol>SUCCESS</>, the row's metadata are available.  </para></callout>
 				<callout arearefs="samplecode.results.c"><para><symbol>db-lib</> columns start with 1. </para></callout>
-				<callout arearefs="samplecode.results.dbcollen"><para><function>dbcollen()</> returns the sizeof the native data (e.g. 4 bytes for a T-SQL <symbol>INT</>).  We'll use <function>dbbind()</> to convert everything to strings.  If the column is [VAR]CHAR, we want the column's defined size, otherwise we want its maximum size when represented as a string, which FreeTDS's <function>dbwillconvert()</> returns (for fixed-length datatypes).  <footnote><para>for IMAGE data, we need to multiply by 2, because <function>dbbind()</> will convert each byte to a hexadecimal pair.  The example program will report an error with IMAGE data.  </para></footnote></para></callout>
+				<callout arearefs="samplecode.results.dbcollen"><para><function>dbcollen()</> returns the sizeof the native data (e.g. 4 bytes for a T-SQL <symbol>INT</>).  We'll use <function>dbbind()</> to convert everything to strings.  If the column is <symbol>[VAR]CHAR</>, we want the column's defined size, otherwise we want its maximum size when represented as a string, which FreeTDS's <function>dbwillconvert()</> returns (for fixed-length datatypes).  <footnote><para>for IMAGE data, we need to multiply by 2, because <function>dbbind()</> will convert each byte to a hexadecimal pair.  The example program will report an error with IMAGE data.  </para></footnote></para></callout>
 				<callout arearefs="samplecode.results.dbbind"><para><symbol>NTBSTRINGBIND</> null-terminates the character array for us.  <quote>NTB</> might perhaps stand for <quote>null terminating byte</>. </para></callout>
 				<callout arearefs="samplecode.results.dbnullbind"><para>A zero-length string is not a NULL!  <function>dbnullbind()</> arranges for the passed buffer to be set to -1 whenever that column is NULL for a particular row.  </para></callout>
 				<callout arearefs="samplecode.results.dbnextrow"><para>Each time <function>dbnextrow()</> returns <symbol>REG_ROW</>, it has filled the bound buffers with the converted values for the row.  </para></callout>
