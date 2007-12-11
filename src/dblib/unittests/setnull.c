@@ -5,7 +5,7 @@
 #include "common.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: setnull.c,v 1.5 2007-12-06 20:32:55 freddy77 Exp $";
+static char software_version[] = "$Id: setnull.c,v 1.6 2007-12-11 05:12:37 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -18,6 +18,7 @@ char_test(const char *null, int bindlen, const char *expected)
 	RETCODE ret;
 
 	if (null) {
+		fprintf(stderr, "\tdbsetnull(CHARBIND, %d, '%s').\n", strlen(null), null);
 		ret = dbsetnull(dbproc, CHARBIND, strlen(null), (BYTE *) null);
 		if (ret != SUCCEED) {
 			fprintf(stderr, "dbsetnull returned error %d\n", (int) ret);
@@ -37,9 +38,10 @@ char_test(const char *null, int bindlen, const char *expected)
 		dbcancel(dbproc);
 	}
 
+	fprintf(stderr, "dbbind(CHARBIND, bindlen= %d).\n", bindlen);
 	dbbind(dbproc, 1, CHARBIND, bindlen, (BYTE *) &db_c);
 	db_c[sizeof(db_c)-1] = 0;
-	printf("db_c = %s\n", db_c);
+	printf("buffer before/after dbnextrow: '%s'/", db_c);
 
 	if (dbnextrow(dbproc) != REG_ROW) {
 		fprintf(stderr, "Was expecting a row.\n");
@@ -47,7 +49,7 @@ char_test(const char *null, int bindlen, const char *expected)
 		dbcancel(dbproc);
 	}
 	db_c[sizeof(db_c)-1] = 0;
-	printf("db_c = %s\n", db_c);
+	printf("'%s'\n", db_c);
 
 	if (dbnextrow(dbproc) != NO_MORE_ROWS) {
 		fprintf(stderr, "Only one row expected\n");

@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.314 2007-12-07 05:27:55 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.315 2007-12-11 05:12:37 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -522,8 +522,9 @@ static RETCODE
 dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 {
 	NULLREP *pnullrep;
+
 	tdsdump_log(TDS_DBG_FUNC, "dbgetnull(%p, %d, %d, %p)\n", dbproc, bindtype, varlen, varaddr);
-	
+
 	CHECK_PARAMETER(dbproc, SYBENULL, FAIL);
 	CHECK_PARAMETER(varaddr, SYBENULL, FAIL);
 	CHECK_PARAMETER(!IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE, FAIL);
@@ -535,23 +536,42 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	}
 	
 	assert(dbproc->nullreps);
-
 	pnullrep = dbproc->nullreps + bindtype;
 	
-	if (pnullrep->bindval) {	/* this takes care of fixed-length datatypes (and ignores varlen) */
+	/* 
+	 * Fixed types: ignore varlen
+	 * Other types: ignore varlen if <= 0, else varlen must be >= pnullrep->len.
+	 */
+	switch (bindtype) {
+	case DATETIMEBIND:
+	case DECIMALBIND:
+	case FLT8BIND:
+	case INTBIND:
+	case MONEYBIND:
+	case NUMERICBIND:
+	case REALBIND:
+	case SMALLBIND:
+	case SMALLDATETIMEBIND:
+	case SMALLMONEYBIND:
+	case TINYBIND:
 		memcpy(varaddr, pnullrep->bindval, pnullrep->len);
 		return SUCCEED;
-	} 
-	
+	default:
+		if (pnullrep->bindval && (varlen <= 0 || varlen >= pnullrep->len)) {
+			memcpy(varaddr, pnullrep->bindval, pnullrep->len);
+		}
+	}
+
 	/* 
-	 * Nonpositive varlen indicates buffer is "big enough" but also not to pad 
-	 * Apply terminator (if any) and go home.  
+	 * For variable-length types, nonpositive varlen indicates 
+	 * buffer is "big enough" but also not to pad.
+	 * Apply terminator (if applicable) and go home.  
 	 */
 	if (varlen <= 0) {
 		switch (bindtype) {
 		case STRINGBIND:
 		case NTBSTRINGBIND:
-			*varaddr = '\0';
+			varaddr[pnullrep->len] = '\0';
 			/* fall thru */
 		case CHARBIND:
 		case VARYCHARBIND:
@@ -582,21 +602,24 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	 * STRINGBIND		Empty string (padded with blanks, null-terminated)
 	 * BINARYBIND		Empty array (padded with zeros)
 	 */
-	switch (bindtype) {
-	case CHARBIND:
-		memset(varaddr, ' ', varlen);
-		break;
-	case STRINGBIND:
-		memset(varaddr, ' ', varlen);
-		varaddr[varlen-1] = '\0';
-		break;
-	case BINARYBIND:
-		memset(varaddr, 0, varlen);
-		break;
-	default:
-		assert((void*)bindtype == "unknown bindtype");
-	}
-	
+	varaddr += pnullrep->len;
+	varlen  -= pnullrep->len;
+	if (varlen > 0) {
+		switch (bindtype) {
+		case CHARBIND:
+			memset(varaddr, ' ', varlen);
+			break;
+		case STRINGBIND:
+			memset(varaddr, ' ', varlen);
+			varaddr[varlen-1] = '\0';
+			break;
+		case BINARYBIND:
+			memset(varaddr, 0, varlen);
+			break;
+		default:
+			assert((void*)bindtype == "unknown bindtype");
+		}
+	}	
 	return SUCCEED;
 }
 
