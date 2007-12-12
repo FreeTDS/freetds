@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.70 2007-11-21 04:28:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.71 2007-12-12 06:27:38 freddy77 Exp $");
 
 static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -954,7 +954,7 @@ tds_ssl_read(BIO *b, char* data, int len)
 	}
 	if (len > have)
 		len = have;
-	tdsdump_log(TDS_DBG_INFO1, "read %d bytes\n", len);
+	tdsdump_log(TDS_DBG_INFO1, "read %lu bytes\n", (unsigned long int) len);
 	memcpy(data, tds->in_buf + tds->in_pos, len);
 	tds->in_pos += len;
 	return len;

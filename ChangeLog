@@ -1,3 +1,6 @@
+Wed Dec 12 07:27:07 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: fix for 64bit
+
 Tue Dec 11 11:09:52 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/userguide.sgml: remove warning
 	* misc/freetds_autobuild: fix if password empty
