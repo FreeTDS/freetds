@@ -1,3 +1,7 @@
+Thu Dec 13 19:04:35 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/Makefile.am:
+	- fix bsqlodbc compile if not standard sql.h path
+
 Wed Dec 12 07:27:07 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: fix for 64bit
 
