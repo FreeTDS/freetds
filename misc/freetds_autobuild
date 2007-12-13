@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export PATH="/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/usr/lib/jre/bin:$HOME/bin:$HOME/install/bin"
 
