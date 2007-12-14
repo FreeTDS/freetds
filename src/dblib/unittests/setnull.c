@@ -5,7 +5,7 @@
 #include "common.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: setnull.c,v 1.6 2007-12-11 05:12:37 jklowden Exp $";
+static char software_version[] = "$Id: setnull.c,v 1.7 2007-12-14 10:44:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -28,7 +28,7 @@ char_test(const char *null, int bindlen, const char *expected)
 
 	memset(db_c, '_', sizeof(db_c));
 	strcpy(db_c, "123456");
-	dbcmd(dbproc, "select cast(NULL as char(20))");
+	dbcmd(dbproc, "select convert(char(20), null)");
 
 	dbsqlexec(dbproc);
 
@@ -111,7 +111,7 @@ main(int argc, char **argv)
 
 	/* check result */
 	db_i = 0;
-	dbcmd(dbproc, "select cast(NULL as int)");
+	dbcmd(dbproc, "select convert(int, null)");
 
 	dbsqlexec(dbproc);
 
