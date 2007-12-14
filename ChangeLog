@@ -1,3 +1,7 @@
+Thu Dec 13 23:45:55 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/apps/Makefile.am build bsqlodbc out-of-tree
+	* src/dblib/unittests/null.c prettier & correct, passes
+
 Thu Dec 13 21:12:20 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/buffering.h: fix null2
 
