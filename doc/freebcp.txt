@@ -5,7 +5,7 @@ SYNOPSIS
     { -c | -n | -f formatfile }
     [-b batchsize] [-F firstrow] [-L lastrow] [-e errfile] 
     [-I interfaces] [-m maxerrors] [-t field_term] [-r row_term] 
-    [-h hints] [-T textsize] [-A packet_size]
+    [-h hints] [-T textsize] [-A packet_size] [-O options]
     [-S servername] [-U username] [-P password] [-EdVv]
 
 DESCRIPTION
@@ -106,7 +106,7 @@ OPTIONS
 		search when connecting to servername. Overrides freetds.conf.
 
   -h hints	Set bcp hints. For valid values, 
-		cf. bcp_options() in the FreeTDS User Guide.
+		cf. bcp_options() in the FreeTDS Reference Manual.
 
   -T textsize	For text or image columns, set the maximum number of 
   		characters to request from the server. Defaults to the 
@@ -117,8 +117,7 @@ OPTIONS
   		Not sure why you would want to do this, except as an
 		experiment. 
 
-  -v -V		Print the version information and exit. Unfortunately, the other
-  		minimum arguments are also required. 
+  -v -V		Print the version information and exit. 
 
 NOTES
   When connecting to a Sybase database server, it is required that the
