@@ -1,3 +1,8 @@
+Fri Dec 14 11:23:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/test-other.sh: fix some strange echo portability
+	* src/dblib/unittests/null.c src/dblib/unittests/null2.c:
+	- make ignore less verbose
+
 Thu Dec 13 23:45:55 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/Makefile.am build bsqlodbc out-of-tree
 	* src/dblib/unittests/null.c prettier & correct, passes

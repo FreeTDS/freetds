@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null2.c,v 1.3 2007-11-29 08:03:50 freddy77 Exp $";
+static char software_version[] = "$Id: null2.c,v 1.4 2007-12-14 10:23:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
@@ -15,23 +15,13 @@ static int failed = 0;
 static int
 ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
 {
-	int res;
-
-	dbsetuserdata(dbproc, (BYTE*) &msgno);
-	res = syb_msg_handler(dbproc, msgno, state, severity, text, server, proc, line);
-	dbsetuserdata(dbproc, NULL);
-	return res;
+	return 0;
 }
 
 static int
 ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
-	int res;
-
-	dbsetuserdata(dbproc, (BYTE*) &dberr);
-	res = syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
-	dbsetuserdata(dbproc, NULL);
-	return res;
+	return INT_CANCEL;
 }
 
 static void
@@ -112,10 +102,10 @@ test(const char *type, int give_err)
 {
 	RETCODE ret;
 
+	query("if object_id('#null') is not NULL drop table #null");
+
 	dberrhandle(ignore_err_handler);
 	dbmsghandle(ignore_msg_handler);
-
-	query("drop table #null");
 
 	printf("create table #null (n int, c %s NULL)\n", type);
 	dbfcmd(dbproc, "create table #null (n int, c %s NULL)", type);

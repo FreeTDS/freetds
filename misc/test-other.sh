@@ -101,19 +101,20 @@ if test $do_perl = yes; then
 			tar zxvf "$DIR.tar.gz"
 			# try to apply patch for Sybase
 			cd "$DIR"
-			echo 'diff -ru DBD-ODBC-1.13/t/07bind.t DBD-ODBC-1.13my/t/07bind.t
+			{ patch -p1 || true ; } <<EOF
+diff -ru DBD-ODBC-1.13/t/07bind.t DBD-ODBC-1.13my/t/07bind.t
 --- DBD-ODBC-1.13/t/07bind.t	2005-02-20 10:09:17.039561424 +0100
 +++ DBD-ODBC-1.13my/t/07bind.t	2004-12-18 15:19:11.000000000 +0100
 @@ -133,7 +133,7 @@
  		  # expect!
- 		  $row[2] = "";
+ 		  \$row[2] = "";
  	       }
--	       if ($row[2] ne $_->[2]) {
-+	       if ($row[2] ne $_->[2] && ($dbname ne "sql server" || $row[2] ne " ") ) {
- 		  print "Column C value failed! bind value = $bind_val, returned values = $row[0]|$row[1]|$row[2]|$row[3]\n";
+-	       if (\$row[2] ne \$_->[2]) {
++	       if (\$row[2] ne \$_->[2] && (\$dbname ne "sql server" || \$row[2] ne " ") ) {
+ 		  print "Column C value failed! bind value = \$bind_val, returned values = \$row[0]|\$row[1]|\$row[2]|\$row[3]\\n";
  		  return undef;
  	       }
-' | patch -p1 || true
+EOF
 			# fix for DBD::ODBC and Perl 5.8.8
 			echo "--- DBD-ODBC-1.13.orig/dbdimp.c	2004-11-05 04:19:36.000000000 +0100
 +++ DBD-ODBC-1.13/dbdimp.c	2007-01-16 09:38:20.477774620 +0100
@@ -132,14 +133,15 @@ if test $do_perl = yes; then
     if (!is_inout) {    /* normal bind to take a (new) copy of current value    */
 " | patch -p1
 			cd t
-			echo "--- 20SqlServer.t.orig  2005-08-09 13:33:30.000000000 +0200
+			patch -p0 <<EOF
+--- 20SqlServer.t.orig  2005-08-09 13:33:30.000000000 +0200
 +++ 20SqlServer.t       2005-08-09 13:37:36.000000000 +0200
 @@ -419,7 +419,7 @@
 
     \$dbh->{odbc_async_exec} = 1;
-    # print \"odbc_async_exec is: \$dbh->{odbc_async_exec}\\n\";
--   is(\$dbh->{odbc_async_exec}, 1, \"test odbc_async_exec attribute set\");
-+   is(\$dbh->{odbc_async_exec}, 0, \"test odbc_async_exec attribute NOT set\");
+    # print "odbc_async_exec is: \$dbh->{odbc_async_exec}\\n";
+-   is(\$dbh->{odbc_async_exec}, 1, "test odbc_async_exec attribute set");
++   is(\$dbh->{odbc_async_exec}, 0, "test odbc_async_exec attribute NOT set");
 
     # not sure if this should be a test.  May have permissions problems, but it's the only sample
     # of the error handler stuff I have.
@@ -147,13 +149,13 @@ if test $do_perl = yes; then
     \$dbh->disconnect;
     \$dbh = DBI->connect(\$ENV{DBI_DSN}, \$ENV{DBI_USER}, \$ENV{DBI_PASS}, { odbc_cursortype => 2 });
     # \$dbh->{odbc_err_handler} = \&err_handler;
--   ok(&Multiple_concurrent_stmts(\$dbh), \"Multiple concurrent statements succeed (odbc_cursortype set)\");
-+#   ok(&Multiple_concurrent_stmts(\$dbh), \"Multiple concurrent statements succeed (odbc_cursortype set)\");
-+   ok(1, \"Multiple concurrent statements skipped\");
+-   ok(&Multiple_concurrent_stmts(\$dbh), "Multiple concurrent statements succeed (odbc_cursortype set)");
++#   ok(&Multiple_concurrent_stmts(\$dbh), "Multiple concurrent statements succeed (odbc_cursortype set)");
++   ok(1, "Multiple concurrent statements skipped");
 
 
     # clean up test table and procedure
-" | patch -p0
+EOF
 			cd ../..
 		fi
 		test -d "$DIR"

@@ -7,35 +7,23 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null.c,v 1.5 2007-12-14 04:47:58 jklowden Exp $";
+static char software_version[] = "$Id: null.c,v 1.6 2007-12-14 10:23:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
 static int failed = 0;
 
-#if 0
 static int
 ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
 {
-	int res;
-
-	dbsetuserdata(dbproc, (BYTE*) &msgno);
-	res = syb_msg_handler(dbproc, msgno, state, severity, text, server, proc, line);
-	dbsetuserdata(dbproc, NULL);
-	return res;
+	return 0;
 }
 
 static int
 ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
-	int res;
-
-	dbsetuserdata(dbproc, (BYTE*) &dberr);
-	res = syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
-	dbsetuserdata(dbproc, NULL);
-	return res;
+	return INT_CANCEL;
 }
-#endif
 
 static void
 query(const char *query)
@@ -56,7 +44,7 @@ test0(int n, int expected)
 	fprintf(stdout, sql, n);
 	fprintf(stdout, " ... ");
 	
-	dbfcmd(dbproc, "select c from #null where n = %d", n);
+	dbfcmd(dbproc, sql, n);
 
 	dbsqlexec(dbproc);
 
@@ -76,14 +64,14 @@ test0(int n, int expected)
 		failed = 1;
 	}
 
-	if (dbdata(dbproc, 1) != NULL && expected  == 0) {
+	if (dbdata(dbproc, 1) != NULL && expected  < 0) {
 		fprintf(stderr, "Error: n=%d: dbdata returned %p, expected NULL and length %d\n", 
 				n, dbdata(dbproc, 1), expected);
 		dbcancel(dbproc);
 		failed = 1;
 	}
 
-	if (dbdata(dbproc, 1) == NULL && expected  != 0) {
+	if (dbdata(dbproc, 1) == NULL && expected  > 0) {
 		fprintf(stderr, "Error: n=%d: dbdata returned %p, expected non-NULL and length %d\n", 
 				n, dbdata(dbproc, 1), expected);
 		dbcancel(dbproc);
@@ -109,10 +97,10 @@ test(const char *type, int give_err)
 {
 	RETCODE ret;
 
-	dberrhandle(syb_err_handler);
-	dbmsghandle(syb_msg_handler);
-
 	query("if object_id('#null') is not NULL drop table #null");
+
+	dberrhandle(ignore_err_handler);
+	dbmsghandle(ignore_msg_handler);
 
 	printf("create table #null (n int, c %s NULL)\n", type);
 	dbfcmd(dbproc, "create table #null (n int, c %s NULL)", type);
@@ -137,8 +125,8 @@ test(const char *type, int give_err)
 	query("insert into #null values(3, ' ')");
 	query("insert into #null values(4, 'a')");
 
-	test0(1, DBTDS_5_0 < DBTDS(dbproc)? 0 : 1);
-	test0(2, 0);
+	test0(1, DBTDS_5_0 < DBTDS(dbproc)?  0 : 1);
+	test0(2, DBTDS_5_0 < DBTDS(dbproc)? -1 : 0);
 	test0(3, 1);
 	test0(4, 1);
 
