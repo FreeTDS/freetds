@@ -7,12 +7,13 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null.c,v 1.4 2007-12-01 19:24:03 jklowden Exp $";
+static char software_version[] = "$Id: null.c,v 1.5 2007-12-14 04:47:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
 static int failed = 0;
 
+#if 0
 static int
 ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
 {
@@ -34,6 +35,7 @@ ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char 
 	dbsetuserdata(dbproc, NULL);
 	return res;
 }
+#endif
 
 static void
 query(const char *query)
@@ -47,23 +49,43 @@ query(const char *query)
 }
 
 static void
-test0(int n, int len)
+test0(int n, int expected)
 {
+	static const char sql[] = "select c from #null where n = %d";
+
+	fprintf(stdout, sql, n);
+	fprintf(stdout, " ... ");
+	
 	dbfcmd(dbproc, "select c from #null where n = %d", n);
 
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED || dbnextrow(dbproc) != REG_ROW) {
-		fprintf(stdout, "Was expecting a row.\n");
+		fprintf(stdout, "\nExpected a row.\n");
 		failed = 1;
 		dbcancel(dbproc);
 		return;
 	}
 
-	if (dbdatlen(dbproc, 1) != (len < 0 ? 0 : len) || 
-	    (len  < 0 && dbdata(dbproc, 1) != NULL) || 
-	    (len >= 0 && dbdata(dbproc, 1) == NULL)) {
-		fprintf(stderr, "Error: unexpected result for n == %d len %d data %p\n", n, dbdatlen(dbproc, 1), dbdata(dbproc, 1));
+	fprintf(stdout, "got %p and length %d\n", dbdata(dbproc, 1), dbdatlen(dbproc, 1));
+
+	if (dbdatlen(dbproc, 1) != (expected < 0? 0 : expected)) {
+		fprintf(stderr, "Error: n=%d: dbdatlen returned %d, expected %d\n", 
+				n, dbdatlen(dbproc, 1), expected < 0? 0 : expected);
+		dbcancel(dbproc);
+		failed = 1;
+	}
+
+	if (dbdata(dbproc, 1) != NULL && expected  == 0) {
+		fprintf(stderr, "Error: n=%d: dbdata returned %p, expected NULL and length %d\n", 
+				n, dbdata(dbproc, 1), expected);
+		dbcancel(dbproc);
+		failed = 1;
+	}
+
+	if (dbdata(dbproc, 1) == NULL && expected  != 0) {
+		fprintf(stderr, "Error: n=%d: dbdata returned %p, expected non-NULL and length %d\n", 
+				n, dbdata(dbproc, 1), expected);
 		dbcancel(dbproc);
 		failed = 1;
 	}
@@ -73,6 +95,8 @@ test0(int n, int len)
 		dbcancel(dbproc);
 		failed = 1;
 	}
+	
+
 
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
@@ -85,8 +109,8 @@ test(const char *type, int give_err)
 {
 	RETCODE ret;
 
-	dberrhandle(ignore_err_handler);
-	dbmsghandle(ignore_msg_handler);
+	dberrhandle(syb_err_handler);
+	dbmsghandle(syb_msg_handler);
 
 	query("if object_id('#null') is not NULL drop table #null");
 
@@ -113,8 +137,8 @@ test(const char *type, int give_err)
 	query("insert into #null values(3, ' ')");
 	query("insert into #null values(4, 'a')");
 
-	test0(1, 0);
-	test0(2, -1);
+	test0(1, DBTDS_5_0 < DBTDS(dbproc)? 0 : 1);
+	test0(2, 0);
 	test0(3, 1);
 	test0(4, 1);
 
@@ -159,10 +183,11 @@ main(int argc, char **argv)
 	test("TEXT", 1);
 
 	test("NVARCHAR(10)", 0);
-	test("NTEXT", 0);
-
-	test("VARCHAR(MAX)", 0);
-	test("NVARCHAR(MAX)", 0);
+	if (DBTDS_5_0 < DBTDS(dbproc)) {
+		test("NTEXT", 0);
+		test("VARCHAR(MAX)", 0);
+		test("NVARCHAR(MAX)", 0);
+	}
 
 	dbexit();
 
