@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-12-11 10:12:24 $</date>
-		<releaseinfo>$Revision: 1.107 $</releaseinfo>
+		<date>$Date: 2007-12-16 22:00:06 $</date>
+		<releaseinfo>$Revision: 1.108 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.107 $</>
-<member>$Date: 2007-12-11 10:12:24 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.107 2007-12-11 10:12:24 freddy77 Exp $.</>
+<member>$Revision: 1.108 $</>
+<member>$Date: 2007-12-16 22:00:06 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.108 2007-12-16 22:00:06 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -92,7 +92,7 @@ Enough.  Let's begin.
 <acronym>TDS</> is a <firstterm>protocol</firstterm>, a set of rules describing how to transmit data between two computers.  Like any protocol, it defines the types of messages that can be sent, and the order in which they may be sent.  Protocols describe the <quote>bits on the wire</quote>, how data flow.  
 			</para>
 			<para>
-In reading this manual, it may be helpful to keep in mind that a protocol is not an <acronym>API</>, although the two are related.  The server recognizes and speaks a protocol; anything that can send it the correct combination of bytes in the right order can communicate with it.  But programmers aren't generally in the business of sending bytes; that's the job of a library.  Over the years, there have been a few libraries &mdash; each with its own <acronym>API</> &mdash; that do the work of moving SQL through a <acronym>TDS</> pipe.  <systemitem class="library">ODBC</systemitem>, <systemitem class="library">db-lib</systemitem>, <systemitem class="library">ct-lib</systemitem>, and  <acronym>JDBC</> have very different <acronym>API</>s, but they're all one to the server, because on the wire they speak <acronym>TDS</>.  
+In reading this manual, it may be helpful to keep in mind that a protocol is not an <acronym>API</>, although the two are related.  The server recognizes and speaks a protocol; anything that can send it the correct combination of bytes in the right order can communicate with it.  But programmers aren't generally in the business of sending bytes; that's the job of a library.  Over the years, there have been a few libraries &mdash; each with its own <acronym>API</> &mdash; that do the work of moving SQL through a <acronym>TDS</> pipe.  <systemitem class="library">ODBC</systemitem>, <systemitem class="library">db-lib</systemitem>, and <systemitem class="library">ct-lib</systemitem> have very different <acronym>API</>s, but they're all one to the server, because on the wire they speak <acronym>TDS</>.  
 			</para>
 			<para>
 The <acronym>TDS</> protocol was designed and developed by Sybase Inc. for their Sybase <productname>SQL Server</productname> relational database engine in 1984.  The problem Sybase faced then still exists: There was no commonly accepted application-level protocol to transfer data between a database server and its client.  To encourage the use of their product, Sybase came up with a flexible pair of products called <productname>netlib</productname> and <systemitem class="library">db-lib</systemitem>.
@@ -122,7 +122,7 @@ been openly documented.  If anything, it's probably considered to be something l
 			<title>History of <acronym>TDS</> Versions</title>
 			
 			<para>
-At first, there was One Version of <acronym>TDS</> common to both vendors, but in keeping with the broad history of private ventures, they soon diverged. Each vendor has subsequently brought out different versions, and neither supports the other's flavor. That is to say, each vendor's client libraries use the latest version of <acronym>TDS</> offered by that vendor.  You can't reliably use Microsoft's libraries to connect to Sybase, or Sybase's libraries to connect to Microsoft.  In some cases you'll get a connection, but pretty soon you'll bump into some incompatibility.  
+At first, there was One Version of <acronym>TDS</> common to both vendors but, in keeping with the broad history of private ventures, they soon diverged. Each vendor has subsequently brought out different versions, and neither supports the other's flavor. That is to say, each vendor's client libraries use the latest version of <acronym>TDS</> offered by that vendor.  You can't reliably use Microsoft's libraries to connect to Sybase, or Sybase's libraries to connect to Microsoft.  In some cases you'll get a connection, but pretty soon you'll bump into some incompatibility.  
 			</para>
 			<variablelist id="tab.tds.protocol.versions">
 				<title>Versions of the <acronym>TDS</> protocol</title>
@@ -167,7 +167,7 @@ Introduced for <productname>SQL Server 2000</productname>.  Includes support for
 <productname>FreeTDS</productname> was and is developed by observation and experimentation, which is to say, by trial and error.  
 			</para>
 			<para>
-In early 1997, the only option for connecting to a Sybase server from Linux or other free systems was an aging Sybase-released version of <productname>OpenClient</productname>.  Unfortunately it had a few problems.  The original release was a.out based, although Greg Thain did a great service in converting the library to ELF.  Secondly, it included only the newer <systemitem class="library">ct-lib</systemitem> <acronym>API</>.  The older <systemitem class="library">db-lib</systemitem> <acronym>API</> was missing.
+In early 1997, the only option for connecting to a Sybase server from Linux or other free systems was an aging Sybase-released version of <productname>OpenClient</productname>.  Unfortunately it had a few problems.  The original release was <symbol>a.out</>-based, although Greg Thain did a great service in converting the library to ELF.  Secondly, it included only the newer <systemitem class="library">ct-lib</systemitem> <acronym>API</>.  The older <systemitem class="library">db-lib</systemitem> <acronym>API</> was missing.
 			</para>
 			<para>
 Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productname> project, had some <systemitem class="library">db-lib</systemitem> programs he wanted to run under Linux, and thus began the <productname>FreeTDS</productname> project. The original work focused on <systemitem class="library">db-lib</systemitem> and version 5.0 of the protocol, but quickly expanded to include a <systemitem class="library">ct-lib</systemitem> compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0 and 8.0</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.
@@ -207,14 +207,14 @@ The <systemitem class="library">db-lib</systemitem> and <systemitem class="libra
 In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <command>freebcp</>, a replacement for Sybase's <application>bcp</application> utility.  
 			</para>
 			<para>
-The <systemitem class="library">ODBC</> driver is younger, but has received much attention.  
-The <productname>FreeTDS</productname> 0.60 ODBC driver was a vast improvement over earlier versions, and 0.61 began to comply with the ODBC 3.0 specification.
-The current version should be fully ODBC 3.0 compatible and contain many fixes and improvements (<systemitem class="library">ODBC</>  <acronym>RPC</> parameters, descriptors and others).  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
+The <systemitem class="library">ODBC</> driver should be fully ODBC 3.0 compliant.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
 			</para>
 			<para>
 Basic <link linkend="apireference">API coverage</link> information for all libraries may be found in this manual.  It is maintained in <filename>doc/api_status.txt</>, included in the source distribution.   			
 			</para> 
 			<para>How big is it?  <productname>FreeTDS</productname> has over 90,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, <productname>FreeTDS</productname>'s success so far lies somewhere between the Beetle and the Edsel.  
+			</para>
+			<para>Who uses it?  Oh, pretty much everyone.  <productname>FreeTDS</productname> users almost certainly number in the tens of thousands.  It's used by large corporations, by the U.S. federal government (e.g. <ulink url="http://www.ncbi.nlm.nih.gov/books/bv.fcgi?rid=toolkit.chapter.ch_dbapi">Database Access Library</ulink> at the National Center for Biotechnology Information) and, judging by the mailing list, by many webservers running Apache and PHP.  Microsoft recommends <productname>FreeTDS</productname> to their customers who want access to Microsoft SQL Server from non-Win32 clients. So do we.  
 			</para>
 		</sect2>
 		<sect2 id="Languages">
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-12-11 10:12:24 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-12-16 22:00:06 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -702,7 +702,7 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 	<row>
 	<entry>Microsoft SQL Server 2000</entry>
 	<entry>8.0</entry>
-	<entry>Include support for bigint (64 bit integers), variant and collation on all fields. <productname>FreeTDS</productname> support for 8.0 is new. Variant is not supported; collation is not widely used. Use <acronym>TDS</> 7.0 (or 4.2) if you experience problems. </entry>
+	<entry>Include support for <symbol>bigint</> (64 bit integers), <symbol>variant</> and collation on all fields. <symbol>variant</> is not supported; collation is not widely used. </entry>
 	</row>
 </tbody>	
 </tgroup>
@@ -802,7 +802,7 @@ In this example, the default  <acronym>TDS</> version for all dataservers is set
 	</para>
 	<para>
 Usually, it is sufficient to state the only server's hostname and TDS protocol.  Everything else can be inferred, unless your setup (or your server's) strays from the defaults.  
-	<tip><para>Some people seem to feel safer using the IP address for the server, rather than its name.  We don't recommend you do that.  Use the name, and benefit from the inherent advantages.  That's why DNS was invented in the first place, you know, and you normally <emphasis>should</> be able to find your server by its name.  Beyond that, if you do use a number, <productname>FreeTDS</productname> will ask DNS for that number's name (a <firstterm>reverse lookup</>).  A properly configured DNS will execute a reverse lookup just as fast as a forward lookup, but not every DNS is properly configured.  If yours isn't, you'll wait awhile, unless you take evasive action.  </para></tip>
+	<tip><para>Some people seem to feel safer using the IP address for the server, rather than its name.  We don't recommend you do that.  Use the name, and benefit from the inherent advantages.  That's why DNS was invented in the first place, you know.  </para></tip>
 	</para>
 	<para>
 It bears mentioning here that prior versions of <productname>FreeTDS</productname> were quite fussy about domain logins, forcing users to make explicit per-server entries in <filename>freetds.conf</>.  That is no longer the case.  If the username has the form <parameter>DOMAIN\username</>, <productname>FreeTDS</productname> will automatically use a domain login.  
@@ -813,9 +813,9 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 <thead>
 	<row>
 	<entry>Name</entry>
+	<entry>Possible Values</entry>
 	<entry>Default</entry>
 	<entry>Meaning</entry>
-	<entry>Possible Values</entry>
 	</row>
 </thead>
 <tbody>
@@ -829,14 +829,18 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 	</row>
 	<row>
 	<entry>host</entry>
+	<entry>host name or IP address</entry>
 	<entry>none</entry>
 	<entry>The host that the dataserver is running on.</entry>
-	<entry>host name or IP address</entry>
 	</row>
 	<row>
 	<entry>port</entry>
+	<entry>any valid port</entry>
 	<entrytbl cols="3"> 
 		<thead>
+		  <colspec colname= 'prd' colsep='0' rowsep='0'>
+		  <colspec colname= 'ver' colsep='0' rowsep='0'>
+		  <colspec colname= 'def' colsep='0' rowsep='0'>
 		  <row>
 		    <entry>Product</entry>
 		    <entry>Version</entry>
@@ -872,84 +876,89 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 			The "defaults" to the left are the server's default settings.   <productname>FreeTDS</productname> chooses its default port based on the TDS protocol version: <literal>5000</> for <acronym>TDS</> <literal>5.0</>, and <literal>1433</> for everything else.  
 		Overridden by <link  linkend="TDSPORT">TDSPORT</link>.
 	</entry>
-	<entry>any valid port</entry>
-	
 	</row>
+
 	<row>
 	<entry>initial block size</entry>
+	<entry>multiple of 512</entry>
 	<entry>512</entry>
 	<entry>Specifies the maximum size of a protocol block.  Don't mess with unless you know what you are doing.</entry>
-	<entry>multiple of 512</entry>
 	</row>
 	<row>
 	<entry>dump file</entry>
+	<entry>any valid file name</entry>
 	<entry>none
 		Overridden by <link  linkend="TDSDUMP">TDSDUMP</link>.
 		</entry>
 	<entry>Specifies the location of a tds dump file and turns on logging</entry>
-	<entry>any valid file name</entry>
 	</row>
 	<row>
 	<entry>dump file append</entry>
+	<entry>yes/no</entry>
 	<entry>no</entry>
 	<entry>Appends dump file instead of overwriting it.  Useful for debugging when many processes are active.</entry>
-	<entry>yes/no</entry>
 	</row>
 	<row>
 	<entry>timeout</entry>
+	<entry>0-</entry>
 	<entry>none</entry>
 	<entry>Sets period to wait for response of query before timing out.</entry>
-	<entry>0-</entry>
 	</row>
 	<row>
 	<entry>connect timeout</entry>
+	<entry>0-</entry>
 	<entry>none</entry>
 	<entry>Sets period to wait for response from connect before timing out.</entry>
-	<entry>0-</entry>
 	</row>
 	<row>
 	<entry>emulate little endian</entry>
+	<entry>yes/no</entry>
 	<entry>no</entry>
 	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</> 7.0/8.0 on big endian hosts</entry>
-	<entry>yes/no</entry>
 	</row>
 	<row>
 	<entry id="clientcharset">client charset</entry>
+	<entry>any valid iconv character set</entry>
 	<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Nonwestern"><acronym>TDS</> 7.0 for Nonwestern Languages</link> for more information.  </para></footnote></entry>
 	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0.
 As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need to match the server's charset to insert any characters the server supports.</entry>
-	<entry>any valid iconv character set</entry>
 	</row>
 	<row>
 	<entry>text size</entry>
+	<entry>0 to 4,294,967,295</entry>
 	<entry>4,294,967,295</entry>
 	<entry>default value of TEXTSIZE, in bytes.  For <type>text</type> and <type>image</type> datatypes, sets the maximum width of any returned column. Cf. <command>set TEXTSIZE</> in the <acronym>T-SQL</> documentation for your server.  </entry>
-	<entry>0 to 4,294,967,295</entry>
 	</row>
 	<row>
 	<entry>instance</entry>
+	<entry>instance name</entry>
 	<entry>none</entry>
 	<entry><para>Name of Microsoft SQL Server <emphasis>instance</> to connect to. The port will be detected automatically.
 		<note><para>This requires an extra round-trip with server and may thus slightly delay making the connection.</para></note></para></entry>
-	<entry>instance name</entry>
 	</row>
 	<row>
 	<entry>debug flags</entry>
+	<entry>Any number even in hex or octal notation</entry>
 	<entry>0x4fff</entry>
 	<entry>Sets granularity of logging. A bitmask. See table below for specification.</entry>
-	<entry>Any number even in hex or octal notation</entry>
 	</row>
 	<row>
 	<entry>encryption</entry>
+	<entry>off/request/required</entry>
 	<entry>off</entry>
 	<entry>Specify if encryption is desidered. Supported for Microsoft servers. <symbol>off</> disables encryption (only if needed); <symbol>request</> means use if available; <symbol>required</> means create and allow encrypted connections only.</entry>
-	<entry>off/request/required</entry>
 	</row>
 </tbody>
 </tgroup>
 </table>
-
-	<para>The logging capability has helped solve innumerable cases, some trivial and some very low-level bugs.  Sometimes a developer needs very detailed information about one function, whereas someone else may interested only in whether or not a particular function is called, or even want to see only the SQL that was transmitted to the server.  </para>  
+			<sect3> <title>Overrides</>
+			<para>Many settings in <filename>freetds.conf</> can be overridden by <link linkend="envvar">environment variables</link>.
+			</para>
+			<para>Also dataserver can be decorated adding informations for port or instance name using <link linkend="PortOverride">port override syntax</link>.
+			</para>
+			</sect3>
+			<sect3> <title>Controlling log details</>
+	<abstract><para>The logging capability has helped solve innumerable cases, some trivial and some very low-level bugs.  Sometimes a developer needs very detailed information about one function, whereas someone else may interested only in whether or not a particular function is called, or even want to see only the SQL that was transmitted to the server.  </para> </abstract> 
 
 <para>The log's granularity can be controlled with the <literal>debug flags</> entry. The default value (<literal>4FFF</> hex) gives a level of detail that is useful for resolving problems via the mailing list.  </para>
 
@@ -1013,64 +1022,21 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 </table>
 
 	<para>For more about the wonder world of <productname>FreeTDS</productname>logs, see <link linkend="logging">Logging</link>.</para>
-	
+			</sect3>
+
+			<sect3><title>Deprecated options</>	
 	<para>As of version 0.62 the following options are deprecated and supported only for backward compatibility.</para>
-<table id="tab.freetds.conf.deprecated">
-<title>Deprecated <filename>freetds.conf</filename> settings</title>
-<tgroup cols="4">
-<thead>
-	<row>
-	<entry>Name</entry>
-	<entry>Default</entry>
-	<entry>Meaning</entry>
-	<entry>Possible Values</entry>
-	</row>
-</thead>
-<tbody>
-	<row>
-	<entry>try server login</entry>
-	<entry>yes</entry>
-	<entry>Disable use of server logins when domain logins are in use. 
-	</entry>
-	<entry>yes/no</entry>
-	</row>
-	<row>
-	<entry>try domain login</entry>
-	<entry>yes</entry>
-	<entry>Attempt a domain login.  
-		<emphasis> Setting try domain login has the effect 
-				of disallowing server logins!</emphasis>
-		To configure a dataserver for both server logins and domain login, disable this option and use <link linkend="domains">DOMAIN\username</> for login.
-	</entry>
-	<entry>yes/no</entry>
-	</row>
-	<row>
-	<entry>nt domain</entry>
-	<entry>none</entry>
-	<entry>Specify an explicit domain.
-	</entry>
-	<entry>any</entry>
-	</row>
-	<row>
-	<entry>cross domain login</entry>
-	<entry>no</entry>
-	<entry>(Experimental) If server is member of different domain, attempt to login via that domain.
-	</entry>
-	<entry>yes/no</entry>
-	</row>
-	<row>
-	<entry>debug level</entry>
-	<entry>99</entry>
-	<entry>Sets granularity of logging. Higher number catches more.</entry>
-	<entry>0-99</entry>
-	</row>
-</tbody>
-</tgroup>
-</table>
-			<para>Many settings in <filename>freetds.conf</> can be overridden by <link linkend="envvar">environment variables</link>.
-			</para>
-			<para>Also dataserver can be decorated adding informations for port or instance name using <link linkend="PortOverride">port override syntax</link>.
-			</para>
+
+<itemizedlist id="lst.freetds.conf.deprecated" spacing="compact">
+	<title>Deprecated <filename>freetds.conf</filename> settings</title>
+	<listitem><para><symbol>try server login</> </para></listitem>
+	<listitem><para><symbol>try domain login </> </para></listitem>
+	<listitem><para><symbol>nt domain </> </para></listitem>
+	<listitem><para><symbol>cross domain login </> </para></listitem>
+	<listitem><para><symbol>debug level </> </para></listitem>
+</itemizedlist>
+			</sect3>
+
 		</sect2>
 		</sect1>
 
@@ -1254,254 +1220,20 @@ When you're done, you should see something very like this:
 		<sect1 id="PortOverride">
 			<title>Port override syntax</title>
 
-			<para>Port used for connection can be overridden using a <productname>FreeTDS</productname> extended syntax.
+			<para>The port to which to connect can be overridden using a <productname>FreeTDS</productname> extended syntax.
 			</para>
 
-			<para>If you specify <literal><replaceable>dataserver</replaceable>:<replaceable>port</replaceable></literal>
-			as dataserver during login <productname>FreeTDS</productname> will attempt to connect to specified port.
-			<replaceable>port</replaceable> must be a number, a service name is not supported.
+			<para>A port may be appended to the dataserver name:   <literal><replaceable>dataserver</replaceable>:<replaceable>port</replaceable></literal>.  <productname>FreeTDS</productname> will attempt to connect to specified port. Please note <replaceable>port</replaceable> must be a number; a service name is not supported.
 			</para>
 
 			<para>If you specify <literal><replaceable>dataserver</replaceable>\<replaceable>instance</replaceable></literal>
-			as dataserver during login <productname>FreeTDS</productname> will attempt to connect to specified instance.
-			Only Microsoft SQL instances are supported (this feature is supported from version 2000).
+			as dataserver during login, <productname>FreeTDS</productname> will attempt to connect to specified instance.
+			Only Microsoft SQL Server instances are supported.  (This server feature was introduced with SQL Server 2000).
 			</para>
 
-			<para>Note that <filename>freetds.conf</> still apply.
+			<para>Note that other <filename>freetds.conf</> properties still apply.
 			</para>
-		</sect1>
-		<sect1 id="Configurations">
-			<title>Configurations that Work</title>
-			<para>
-The right combination of switches to make <productname>FreeTDS</productname> do its magic depends on
-<ItemizedList>
-		<listitem><para>Sybase/Microsoft platform
-			</para></listitem>
-		<listitem><para>Version of the server (<productname>SQL Server</productname> 7, or whatever)
-			</para></listitem>
-		<listitem><para>Server CPU & OS
-			</para></listitem>
-		<listitem><para>Client CPU & OS
-			</para></listitem>
-</ItemizedList>
-Most combinations work, and the list below is too small and out of date.  One of these days, we'll update it.  
-			</para>
-			<para>
-We asked subscribers to the <productname>FreeTDS</productname> mailing list to tell us what combinations they use.  Here are the results.  
- 			</para>
-			
-<!-- Externally produced file: results.sgml included here -->
-<table id="tab.Clients.and.Servers">
-<title>Combinations of <productname>FreeTDS</productname> Clients and Servers (April 2001)</title>
-<tgroup cols="6">
-<thead>
-	<row>
-	<entry>Count</entry>
-	<entry>Vendor</entry>
-	<entry>Version</entry>
-	<entry>Server</entry>
-	<entry>Client</entry>
-	<entry>TDS</entry>
-	<entry>Tested date</entry>
-	</row>
-</thead>
-<tbody>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>2000</entry>
-	<entry>Intel/Windows 2000       </entry>
-	<entry>Intel/Linux</entry>
-	<entry>7.0</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>2000</entry>
-	<entry>Intel/Windows 2000       </entry>
-	<entry>Sparc/Solaris</entry>
-	<entry>4.2</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>2000</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Intel/FreeBSD</entry>
-	<entry>7.0</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>2000</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Sparc/Solaris</entry>
-	<entry>7.0</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>6.5</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Intel/Linux</entry>
-	<entry>4.2</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Intel/FreeBSD</entry>
-	<entry>4.2</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Intel/Linux</entry>
-	<entry>4.2</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>2</entry>
-	<entry>Microsoft      </entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Intel/Linux</entry>
-	<entry>7.0</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Intel/NT4</entry>
-	<entry>4.2</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Intel/NT4</entry>
-	<entry>7.0</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Intel/Win2000</entry>
-	<entry>7.0</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>2</entry>
-	<entry>Microsoft      </entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>PowerPC/Mac</entry>
-	<entry>4.2</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft      </entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0     </entry>
-	<entry>Sparc/Solaris</entry>
-	<entry>7.0</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Sybase         </entry>
-	<entry>11.5</entry>
-	<entry>Sparc E300/Solaris 2.5.1 </entry>
-	<entry>Intel/Solaris</entry>
-	<entry>5.0</entry>
-	<entry>???</entry>
-	</row>
-<row>
-	<entry>1</entry>
-	<entry>Sybase ASA</entry>
-	<entry>5.5.03 (w/OSG)</entry>
-	<entry>Intel/Windows NT 4.0</entry>
-	<entry>Intel/Linux</entry>
-	<entry>5.0</entry>
-	<entry>???</entry>
-</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft</entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0</entry>
-	<entry>Intel/Linux</entry>
-	<entry>7.0</entry>
-	<entry>2003-01-23</entry>
-</row>
-<row>
-	<entry>2</entry>
-	<entry>Microsoft</entry>
-	<entry>2000</entry>
-	<entry>Intel/Windows 2000</entry>
-	<entry>Intel/Linux</entry>
-	<entry>8.0</entry>
-	<entry>2004-10-19</entry>
-</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft</entry>
-	<entry>7.0</entry>
-	<entry>Intel/Windows NT 4.0</entry>
-	<entry>PARISC/HP-UX 10.20</entry>
-	<entry>7.0</entry>
-	<entry>2002-12-20</entry>
-</row>
-<row>
-	<entry>2</entry>
-	<entry>Sybase ASE</entry>
-	<entry>10.9.2.3</entry>
-	<entry>Intel/Linux</entry>
-	<entry>Intel/Linux</entry>
-	<entry>5.0</entry>
-	<entry>2004-10-18</entry>
-</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft</entry>
-	<entry>2000</entry>
-	<entry>Intel/Windows 2000</entry>
-	<entry>Intel/Linux</entry>
-	<entry>7.0</entry>
-	<entry>2004-10-19</entry>
-</row>
-<row>
-	<entry>1</entry>
-	<entry>Microsoft</entry>
-	<entry>2000</entry>
-	<entry>Intel/Windows 2000</entry>
-	<entry>PARISC/HP-UX 11.00</entry>
-	<entry>8.0</entry>
-	<entry>2004-10-18</entry>
-</row>
-</tbody>
-</tgroup>
-</table>
-
-<!-- end of results.smgl -->
-			<para>
-If you have a working configuration not listed here, please send it to <ulink url="mailto:jklowden@speakeasy.org"><productname>FreeTDS</productname> FAQ Master</ulink>.
+			<para> For the technically curious: each SQL Server <firstterm>instance</> appears on the network as a server listening at a port.  The old way &mdash; and it still works &mdash; is to designate each instance in <filename>freetds.conf</> as a separate server.  The new <quote>named instance</> notation, if we can call it that, instead uses the server to discover the port.  The library sends a UDP packet containing the instance name to the server at a <emphasis>well known port</>, port 1434.  The server responds with a port number.  <productname>FreeTDS</productname> then uses that number to connect in the usual way.  
 			</para>
 		</sect1>
 		
@@ -1563,7 +1295,7 @@ There was a problem connecting to the server
 <example id="e.g.tsqlhostname">
 <title>Connect with <command>tsql</> using a hostname and port number</title>
 <screen>
-<prompt>$ </prompt><userinput>tsql -H <replaceable>hillary</> -p <replaceable>4100</> -U <replaceable>sa</></userinput>
+<prompt>$ </prompt><userinput>TDSVER=7.0 tsql -H <replaceable>hillary</> -p <replaceable>4100</> -U <replaceable>sa</></userinput>
 <prompt>Password: </prompt>
 <computeroutput>
 1> 
@@ -1623,9 +1355,6 @@ Some tests require permission to create stored procedures on server.
 To complete successfully, the ODBC tests require some additional setup.  In your <filename>PWD</> file, add a <literal>SRV</> entry specifying the DSN entry for your <filename>odbc.ini</>.  The ODBC tests all build their own <filename>odbc.ini</> and try to redirect the Driver Manager to it, however this functionality is very DM dependent and may well fail unless you have either iODBC or unixODBC.
 			</para>
 			<para>
-As of version 0.63 you may experience problems running tests under Mac OS X because the executable cannot find some library.  Setting <envar>DYLD_LIBRARY_PATH</> environment variable to point to your compiler libraries usually seems to fix the problem.
-			</para>
-			<para>
 <tip><para>
 The <filename>PWD</> provided by <productname>FreeTDS</productname> includes usernames and passwords that probably don't exist on your server.  
 </para></tip>
@@ -1654,7 +1383,7 @@ The connection attributes are provided as a single argument, a string of concate
 But <productname>FreeTDS</> did not start out as an ODBC driver (remember db-lib and ct-lib), and has always had its own way to store server properties: <filename>freetds.conf</>.  When Brian added the <productname>FreeTDS</> ODBC driver, he began by supporting the old <function>SQLConnect</>, using <filename>odbc.ini</> to describe the DSN.  That choice complied with the expectations of the Driver Managers, and minimized the amount of duplicated information in the configuration files.  But it can be a little confusing, too, because <filename>odbc.ini</> in effect points to <filename>freetds.conf</>.  We call this configuration <firstterm>ODBC-combined</>, because it supports all three <productname>FreeTDS</> libraries.  
 			</para>
 			<para>
-With version 0.60, the <productname>FreeTDS</> ODBC library started to see a fuller implementation. The driver was changed to be able to read the connection attributes directly from <filename>odbc.ini</>, rather than leaning on <filename>freetds.conf</>.  For installations that don't need db-lib and ct-lib, this <firstterm>ODBC-only</> setup is simpler.  			</para>
+With version 0.60, the <productname>FreeTDS</> ODBC library started to see fuller implementation. The driver was made able to read the connection attributes directly from <filename>odbc.ini</>, rather than leaning on <filename>freetds.conf</>.  For installations that don't need db-lib and ct-lib, this <firstterm>ODBC-only</> setup is simpler.  			</para>
 			<para>
 More recently, <function>SQLDriverConnect</> was added to <productname>FreeTDS</>.  As described above, this function allows the application to specify connection attributes with reference to either, or neither, configuration file.  It's your choice.  In making that choice, keep the following terms clear in your mind:
 			</para>
@@ -1711,148 +1440,119 @@ is specified in <filename>odbc.ini</>, without the need for <filename>freetds.co
 		</sect1>
 		<sect1 id="OdbcConnAttr"><title>Connection attributes</title>
 			<para>
-The following table defines all possible ODBC connection attributes for the <productname>FreeTDS</> ODBC driver.  Which ones you'll need depends on how you set yourself up.  They may appear in your connection string, or in <filename>odbc.ini</>, as indicated in the final column.    
+The following table defines all possible ODBC connection attributes for the <productname>FreeTDS</> ODBC driver.  Which ones you'll need depends on how you set yourself up.  They may appear in your connection string, or in <filename>odbc.ini</>.    
 			</para>
 
 <para>
-<table id="tab.Connection.attributes"><title>Connection attributes</title>
+<table id="tab.Connection.attributes.stringonly"><title>Connection attributes used only in connection strings</title>
 <tgroup cols="4">
 <thead>
 	<row>
 	<entry>Name</entry>
-	<entry>Meaning</entry>
 	<entry>Possible Values</entry>
 	<entry>Default</entry>
-	<entry>In <filename>odbc.ini</></entry>
+	<entry>Meaning</entry>
 	</row>
 </thead>
 <tbody>
 	<row>
 	<entry><literal>DSN</></entry>
-	<entry>Use DSN. <productname>FreeTDS</> will search <filename>odbc.ini</> for entry. 
-		It lets you specify a connection like <function>SQLConnect</>, but using
-		<function>SQLDriverConnect</>.  
-		Do not use <literal>Servername</> and <literal>DSN</> together.
-		Can be specified only in a connection string, not in <filename>odbc.ini</>.
-	</entry>
 	<entry>A valid DSN entry</entry>
 	<entry>none</entry>
-	<entry>no</entry>
-	</row>
-	<row>
-	<entry><literal>Servername</></entry>
-	<entry>A <filename>freetds.conf</> servername, not a hostname as known to DNS.
-		If you want to use ODBC-only configuration, use 
-		<literal>Server</> instead.</entry>
-	<entry>A valid <filename>freetds.conf</> server section</entry>
-	<entry>none</entry>
-	<entry>yes</entry>
-	</row>
-	<row>
-	<entry><literal>Server</></entry>
-	<entry>Hostname of a server. Used in an ODBC-only configuration.
-		As of version 0.64 you can specify
-		a Microsoft SQL Server instance in the form of <literal>server\instance</literal>.  
-		This isn't <emphasis>required</> to connect to an instance, and is in fact slightly 
-		slower to set up the conncection, because it entails an extra round trip to the 
-		server.  To avoid that, ask to your administrator for the port number of each
-		instance, and create separate server entries for each one.  
-	</entry>
-	<entry>A server name or (ip) address</entry>
-	<entry>none</entry>
-	<entry>yes</entry>
-	</row>
-	<row>
-	<entry><literal>Port</></entry>
-	<entry>The TCP port  where the dataserver is listening.  </entry>
-	<entry>Any TCP port</entry>
-	<entry>Depends on the TDS version specified with <command>configure</></entry>
-	<entry>yes</entry>
+	<entry>The <literal>DSN</> to which <productname>FreeTDS</> should connect. <productname>FreeTDS</> will search <filename>odbc.ini</> for entry.  It lets you specify a connection as for <function>SQLConnect</>, but using <function>SQLDriverConnect</>.   Do not use <literal>Servername</> and <literal>DSN</> together. </entry>
 	</row>
 	<row>
 	<entry><literal>UID</></entry>
-	<entry>Can be specified only for a DSN-less connection. 
-		(For security reasons, do not store username/password in a configuration file).
-		To use domain authentication, specify the domain using the format 
-		<replaceable>domain\password</replaceable>.</entry>
 	<entry>Any valid username</entry>
 	<entry>none</entry>
-	<entry>no</entry>
+	<entry>The username to be used when connecting.  To use domain authentication, specify the domain using the format  <replaceable>domain\username</replaceable>.</entry>
 	</row>
 	<row>
 	<entry><literal>PWD</></entry>
-	<entry>Can be specified only for a DSN-less connection. 
-		(For security reasons, do not store username/password in a configuration file).
-		Clear text password (use domain password for domain authentication).</entry>
 	<entry>Any</entry>
 	<entry>empty</entry>
-	<entry>no</entry>
-	</row>
-	<row>
-	<entry><literal>TDS_Version</></entry>
-	<entry>TDS protocol version to use (e.g., 5.0, 7.0).</entry>
-	<entry>Any valid protocol version</entry>
-	<entry>Depends on the TDS version specified with <command>configure</></entry>
-	<entry>yes</entry>
-	</row>
-	<row>
-	<entry><literal>APP</></entry>
-	<entry>Application name.  Identifies the connecting application to the server.  </entry>
-	<entry>Free form text, up to 30 characters.  </entry>
-	<entry>none</entry>
-	<entry>yes</entry>
+	<entry>The password to be used when connecting. </entry>
 	</row>
 	<row>
 	<entry><literal>WSID</></entry>
-	<entry>Name of the local computer, sent to server.  
-		Can be specified only for a DSN-less connection.</entry>
 	<entry>Any</entry>
 	<entry>Computer name</entry>
-	<entry>no</entry>
+	<entry>The name of the local computer, sent to server.   Can be specified only for a DSN-less connection.</entry>
+	</row>
+</tbody>
+</tgroup>
+</table>
+
+<table id="tab.Connection.attributes.freetds.conf"><title>Connection attributes that may appear in <filename>freetds.conf</></title>
+<tgroup cols="4">
+<thead>
+	<row>
+	<entry>Name</entry>
+	<entry>Possible Values</entry>
+	<entry>Default</entry>
+	<entry>Meaning</entry>
+	</row>
+</thead>
+<tbody>
+	<row>
+	<entry><literal>Servername</></entry>
+	<entry>A valid <filename>freetds.conf</> server section</entry>
+	<entry>none</entry>
+	<entry>A <filename>freetds.conf</> servername, not a hostname as known to DNS. If you want to use ODBC-only configuration, use  <literal>Server</> instead.</entry>
+	</row>
+	<row>
+	<entry><literal>Server</></entry>
+	<entry>A server name or (ip) address</entry>
+	<entry>none</entry>
+	<entry>Hostname of a server. Used in an ODBC-only configuration. As of version 0.64 you can specify a Microsoft SQL Server instance in the form of <literal>server\instance</literal>.  </entry>
+	</row>
+	<row>
+	<entry><literal>Port</></entry>
+	<entry>Any TCP port</entry>
+	<entry>Depends on the TDS version specified with <command>configure</></entry>
+	<entry>The TCP port  where the dataserver is listening.  </entry>
+	</row>
+	<row>
+	<entry><literal>TDS_Version</></entry>
+	<entry>Any valid protocol version</entry>
+	<entry>Depends on the TDS version specified with <command>configure</></entry>
+	<entry>TDS protocol version to use (e.g., 5.0, 7.0).</entry>
+	</row>
+	<row>
+	<entry><literal>APP</></entry>
+	<entry>Free form text, up to 30 characters.  </entry>
+	<entry>none</entry>
+	<entry>Application name.  Identifies the connecting application to the server.  </entry>
 	</row>
 	<row>
 	<entry><literal>LANGUAGE</></entry>
-	<entry>(Human) language the server should use for error messages.</entry>
 	<entry>Any</entry>
 	<entry>us_english</entry>
-	<entry>yes</entry>
+	<entry>(Human) language the server should use for error messages.</entry>
 	</row>
 	<row>
 	<entry><literal>Address</></entry>
-	<entry>IP address of the dataserver. 
-		Useful if you want to specify a server by address, 
-		rather than by name.  The format is <replaceable>ip,port</> 
-		or simply <replaceable>ip</> in standard dotted-decimal
-		notation.  
-	</entry>
 	<entry>Any</entry>
 	<entry>none</entry>
-	<entry>yes</entry>
+	<entry>IP address of the dataserver.  Useful if you want to specify a server by address,  rather than by name.  The format is <replaceable>ip,port</>  or simply <replaceable>ip</> in standard dotted-decimal notation.   </entry>
 	</row>
 	<row>
 	<entry><literal>Database</></entry>
-	<entry>Specify which database you want to access. 
-		If database do not exists or you haven't permission to access it, 
-		the connection will fail.</entry>
 	<entry>Any</entry>
 	<entry>none</entry>
-	<entry>yes</entry>
+	<entry>Specify which database you want to access.  If the database does not exist or the user lacks permission to access it,  the connection will fail.</entry>
 	</row>
 	<row>
 	<entry><literal>TextSize</></entry>
-	<entry>Maximum size returned from server for blobs.</entry>
 	<entry>Any</entry>
 	<entry>DB dependent</entry>
-	<entry>yes</entry>
+	<entry>Maximum size returned from server for blobs.</entry>
 	</row>
 	<row>
 	<entry><literal>PacketSize</></entry>
-	<entry>Size of packets to server. 
-		Some users saw some performance gain by increasing this value.  Normally you shouldn't set it. 
-		</entry>
 	<entry>Any</entry>
 	<entry>DB dependent</entry>
-	<entry>yes</entry>
+	<entry>Size of packets to server.  Some users saw some performance gain by increasing this value.  Normally you shouldn't set it.  </entry>
 	</row>
 </tbody>
 </tgroup>
@@ -1996,7 +1696,7 @@ Supposing everything compiles and installs without trouble, how do you know if y
 			<para>
 First, try to connect with <command>tsql</>.  If you're intending to use <filename>freetds.conf</>, exercise it with 
 	<command>tsql -S <replaceable>servername</></command>.  If not, use
-	<command>tsql -H <replaceable>hostname</> -p <replaceable>port</></command>
+	<command>TDSVER=7.0 tsql -H <replaceable>hostname</> -p <replaceable>port</></command>
 			</para>
 			<para>
 If <command>tsql</> works and <command>isql</> doesn't, you've isolated the problem to the ODBC setup.  <productname>FreeTDS</productname> might have some interoperability problems, but mere connection to the database isn't one of them!  If <command>tsql</> 
@@ -2222,10 +1922,7 @@ To configure the pooling server, first make sure <productname>FreeTDS</productna
 The <productname>FreeTDS</productname> connection pool currently only supports <acronym>TDS</> version 4.2.  <emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
 </para></Note>
 		<para>
-The pooling server was added to the <application>autoconf</application> scripts after 0.53, so if you have an earlier version, please use <productname>CVS</productname> or a nightly snapshot.
-		</para>
-		<para>
-After FreeTDS has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory you specified if <command>configure</> was run using the <option>--with-prefix flag</>).
+After FreeTDS has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory was specified with the <command>configure</> <option>--with-prefix flag</> option).
 		</para>
 		<para>
 Next, edit the <filename>pool.conf</filename> file in the <productname>FreeTDS</productname>'s <filename>etc</filename> directory.  The <filename>pool.conf</filename> file is formatted like the <filename>freetds.conf</filename> with a section name in brackets and options for each section in key/value pairs.
@@ -2234,70 +1931,72 @@ Next, edit the <filename>pool.conf</filename> file in the <productname>FreeTDS</
 Just like the <filename>freetds.conf</filename> file there are two types of sections, a <literal>[global]</literal> section whose options affect all pools, and a section with the name of the pool for pool-specific options.  The following options are supported and may appear in either section.
 		</para>
 		<para>
+
 <table id="tab.pool.conf">
 <title>pool.conf settings</title>
 <tgroup cols="4">
 <thead>
 	<row>
 	<entry>Name</entry>
+	<entry>Possible Values</entry>
 	<entry>Default</entry>
 	<entry>Meaning</entry>
-	<entry>Possible Values</entry>
 	</row>
 </thead>
 <tbody>
 	<row>
 	<entry>user</entry>
+	<entry>Any valid user</entry>
 	<entry>none</entry>
 	<entry>The username used to connect to the dataserver.</entry>
-	<entry>Any valid user</entry>
 	</row>
 	<row>
 	<entry>password</entry>
+	<entry>Any</entry>
 	<entry>none</entry>
 	<entry>The password of the user at the dataserver.</entry>
-	<entry>Any</entry>
 	</row>
 	<row>
 	<entry>server</entry>
+	<entry>Any <emphasis>TDS 4.2</emphasis> entry in the freetds.conf file</entry>
 	<entry>none</entry>
 	<entry>The alias from the freetds.conf file representing the dataserver that will be connected to.</entry>
-	<entry>Any <emphasis>TDS 4.2</emphasis>entry in the freetds.conf file</entry>
 	</row>
 	<row>
 	<entry>database</entry>
+	<entry>Any valid database</entry>
 	<entry>User's default database</entry>
 	<entry>The database on the dataserver to use.</entry>
-	<entry>Any valid database</entry>
 	</row>
 	<row>
 	<entry>port</entry>
+	<entry>Any TCP port</entry>
 	<entry>none</entry>
 	<entry>Port on which tdspool will listen.</entry>
-	<entry>Any TCP port</entry>
 	</row>
 	<row>
 	<entry>min pool conn</entry>
+	<entry>1 or more</entry>
 	<entry>none</entry>
 	<entry>Minimum number of open connections to maintain to the dataserver.</entry>
-	<entry>1 or more</entry>
 	</row>
 	<row>
 	<entry>max pool conn</entry>
+	<entry>1 or more</entry>
 	<entry>none</entry>
 	<entry>Maximum number of open connections to open against the dataserver.</entry>
-	<entry>1 or more</entry>
 	</row>
 	<row>
 	<entry>max member age</entry>
+	<entry>0 (no limit) or a number of seconds</entry>
 	<entry>0</entry>
 	<entry>Maximum age of idle members before connection is closed.</entry>
-	<entry>0 (no limit) or a number of seconds</entry>
 	</row>
 </tbody>
 </tgroup>
 </table>
 		</para>
+
 		<para>
 Now, let's put this into practice.
 <example id="e.g.pool.conf">
@@ -2329,7 +2028,7 @@ Now you can run <Command>tdspool</Command> with the name of the pool you are ser
 </screen>
 		</para>
 		<para>
-Before your clients connect to the pool, you must edit your <filename>freetds.conf</filename> to include the host and port of the pooling server, and point your clients at it!
+Before your clients connect to the pool, you must edit your <filename>freetds.conf</filename> to include the host and port of the pooling server, and point your clients at it.
 		</para>
 		</sect1>
 		
@@ -2398,6 +2097,90 @@ To set up FreeTDS over stunnel between a Linux webserver and a W2k SQL server:
 		</sect1>
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
+	<chapter id="usefreetds">
+		<title>Use <productname>FreeTDS</productname> </title>
+		<abstract><para><productname>FreeTDS</productname>  includes several utilities.  Some are testing tools, some demonstration projects, some intended for day-to-day use.  All have man pages. </para></abstract>
+		
+		<sect1 id="utilities"><title><productname>FreeTDS</productname> Utilities</>
+
+		<variablelist><title>(listed alphabetically)</title>
+        		<varlistentry>
+                		<term>bsqldb</term>
+                		<listitem>
+                        		<para>  A non-interactive equivalent of the <symbol>isql</> utility programs distributed by Sybase and Microsoft. Like them, <command>bsqldb</> uses the command <quote>go</> on a line by itself as a separator between batches. The last batch need not be followed by <quote>go</>.</para>
+
+  					<para><command>bsqldb</> makes use of the <symbol>db-lib</> <acronym>API</>. Intended for production use. </para>
+                		</listitem>
+        		</varlistentry> 
+        		<varlistentry>
+                		<term>bsqlodbc</term>
+                		<listitem>
+                        		<para>A non-interactive equivalent of the <symbol>isql</> utility programs distributed by Sybase and Microsoft. Like them, <command>bsqlodbc</> uses the command <quote>go</> on a line by itself as a separator between batches. The last batch need not be followed by <quote>go</>.  It uses the <acronym>ODBC</> <acronym>API</>. </para>
+
+					<para><command>bsqlodbc</> is a demonstration project, but can also aid in isolating problems.  <acronym>ODBC</> applications typically have many layers, and it can be difficult to know if a problem arises in a layer, or in the interface between layers.  By executing a query in <command>bsqlodbc</>, you can see if the functionality of the <acronym>ODBC</> driver works when used as the folks who wrote the driver thought it would be used.  </para>
+                		</listitem>
+        		</varlistentry> 
+
+
+
+        		<varlistentry>
+                		<term>datacopy</term>
+                		<listitem>
+                        		<para>A tool for migrating data between Sybase ASE and SQL Server or vice versa.</para>
+
+					<para><command>datacopy</> will move table data from one server to another without the need for intermediate files. <command>datacopy</> is much faster and more efficient than is <command>freebcp</> out/in.</para>
+<para><command>datacopy</> makes use of the <symbol>db-lib</> bcp <acronym>API</>.</para>
+                		</listitem>
+        		</varlistentry> 
+
+        		<varlistentry>
+                		<term>defncopy</term>
+                		<listitem>
+                        		<para>Replaces a similar program of the same name distributed by Sybase.</para>
+
+					<para><command>defncopy</> reads the text of a stored procedure or view, and writes a script suitable for recreating the procedure or view. For tables, it reads  the output of <command>sp_help</> and constructs a <literal>CREATE TABLE</> statement, complete with <literal>CREATE INDEX</>, too. </para>
+                		</listitem>
+        		</varlistentry> 
+
+        		<varlistentry>
+                		<term>fisql</term>
+                		<listitem>
+                        		<para>A complete replacement of the <symbol>isql</> utility programs distributed by Sybase and Microsoft. Like them, <command>fisql</> uses the command <quote>go</> on a line by itself as a separator between batches. </para>
+                		</listitem>
+        		</varlistentry> 
+
+        		<varlistentry>
+                		<term>freebcp</term>
+                		<listitem>
+                        		<para>Replicates the functionality of the <symbol>bcp</> utility programs distributed by Sybase and Microsoft.</para>
+					<para><command>freebcp</> makes use of the <symbol>db-lib</> bcp <acronym>API</>. </para>
+					<para>The manual pages or online help for Sybase or SQL Server can be referenced for more detailed information on bcp functionality.</para>
+                		</listitem>
+        		</varlistentry> 
+
+        		<varlistentry>
+                		<term>osql</term>
+                		<listitem>
+                        		<para>A Bourne shell script that checks and reports on your configuration. </para>
+                		</listitem>
+        		</varlistentry> 
+
+        		<varlistentry>
+                		<term>tsql</term>
+                		<listitem>
+                        		<para>A diagnostic tool that uses uses the lowest level <productname>FreeTDS</> library, <symbol>libtds</>, as a way to isolate potential  bugs  in  the  protocol implementation. </para>
+					<para><command>tsql</> is <emphasis>not</> a replacement for a complete <symbol>isql</>.  </para>
+                		</listitem>
+        		</varlistentry> 
+		</variablelist>
+		</sect1>
+	</chapter>
+
+
+
+
+
+				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<chapter id="software">
 		<title>How to get what works with it working</title>
 		<para>
@@ -2445,10 +2228,8 @@ At this point you can also enable <application>readline</application> support if
 			<para>
 After that just type <command>make</command> and you are off and running.
 			</para>
-			<para>
-The <productname>FreeTDS</productname> maintainer has commit rights to the <application>sqsh</application> source tree.  If you have problems getting <application>sqsh</application> to work with <productname>FreeTDS</productname>, you may wish to send your patches to the <productname>FreeTDS</productname> mailing list.  
-			</para>
 		</sect1>
+
 		<sect1 id="perl">
 			<title>Perl</title>
 			<para>There are a few ways to use <productname>Perl</productname> to connect to a <productname>SQL Server</productname> using <productname>FreeTDS</productname>. </para>
@@ -2567,7 +2348,7 @@ There are three options for building PHP with support for <productname>FreeTDS</
 		<sect2 id="phpDblib">
 			<title><systemitem class="library">db-lib</systemitem></title>
 			<para>
-PHP can be configured with <systemitem class="library">db-lib</systemitem> access for a "Sybase" server (which also works with Microsoft servers), or with the <emphasis>mssql</> extension, intended exclusively for Microsoft servers.  At one time, some source code tweaking was required to build PHP with both <systemitem class="library">db-lib</systemitem> and DBM support, but <productname>FreeTDS</productname> has handled that automatically since version 0.53.
+PHP can be configured with <systemitem class="library">db-lib</systemitem> access for a "Sybase" server (which also works with Microsoft servers), or with the <emphasis>mssql</> extension, intended exclusively for Microsoft servers.  
  			</para>
 			<para>
 <example id="e.g.PHP.dblib"><title>PHP and <systemitem class="library">db-lib</systemitem> for <quote>Sybase</></title>
@@ -2642,23 +2423,16 @@ Now everything should run.  There is a sample PHP script in the <productname>Fre
 When finished you'll have an executable named <filename>sybsql</filename> that you can run.  
 			</para>
 			<para>
-One caveat to the way in which <productname>SybSQL</productname> and <productname>FreeTDS</productname> interact is that <productname>SybSQL</productname> expects to be running under <productname>OpenClient</productname>, and makes the assumption that a valid <envar>$SYBASE</envar><filename>/interfaces</filename> file exists.  Since <productname>FreeTDS</productname> has deprecated use of the <filename>interfaces</filename> file in favor of the <filename>freetds.conf</filename> config file, a slight work around is required.
+One caveat to the way in which <productname>SybSQL</productname> and <productname>FreeTDS</productname> interact is that <productname>SybSQL</productname> expects to be running under <productname>OpenClient</productname>, and makes the assumption that a valid <envar>$SYBASE</envar><filename>/interfaces</filename> file exists.  Since <productname>FreeTDS</productname> has deprecated use of the <filename>interfaces</filename> file in favor of the <filename>freetds.conf</filename> config file, you may have to create a <filename>interfaces</> file just to satisfy <productname>SybSQL</productname>.
 			</para>
 			<para>
-In <productname>FreeTDS</productname>'s <filename>bin</filename> directory, there is a script, <filename>conf2interfaces</filename>, to convert the <filename>freetds.conf</filename> file back into an <filename>interfaces</filename> file.  Running this, you may convert your <filename>freetds.conf</filename> into a old-style <filename>interfaces</filename> file to make <productname>SybSQL</productname> happy.  For instance,
-<screen>
-<prompt>$ </prompt><userinput>mkdir ~/freetds</userinput>
-<prompt>$ </prompt><userinput>conf2interfaces /usr/local/etc/freetds.conf > ~/freetds/interfaces</userinput>
-<prompt>$ </prompt><userinput>export SYBASE=~/freetds</userinput>
-<prompt>$ </prompt><userinput>sybsql</userinput>
-</screen>
-By defining <envar>SYBASE</envar> to the parent directory of the <filename>interfaces</filename> file, you may put it where ever you like; it does not have to be in <filename>/usr/local</filename>.  When using <filename>freetds.conf</filename>, <productname>FreeTDS</productname> does not rely on the <envar>SYBASE</envar> variable for finding its own components, so it is safe to point it elsewhere.
+By defining <envar>SYBASE</envar> to the parent directory of the <filename>interfaces</filename> file, you may put it wherever you like; it does not have to be in <filename>/usr/local</filename>.  When using <filename>freetds.conf</filename>, <productname>FreeTDS</productname> does not rely on the <envar>SYBASE</envar> variable for finding its own components, so it is safe to point it elsewhere.
 			</para>
 		</sect1>
 		<sect1 id="Python">
 			<title>Python</title>
 <tip><para>
-I am not a Python user myself, so the information contained in this section is a little rough.  Please contact the list for more assistance or (better yet) to improve these instructions.
+Your humble author is not enlightened enough to use Python, and the information contained in this section is a little rough.  Please contact the list for more assistance or (better yet) to improve these instructions.
                         </para></tip>
 			<para>
 Install <ulink url="http://www.python.org/sigs/distutils-sig/">distutils</ulink> if you haven't already.
@@ -2733,12 +2507,6 @@ If either your server or your client is a big endian system, pay careful attenti
 Big endian clients may experience difficulty with Microsoft servers.  Some versions of <productname>SQL Server</productname> 7 did not handle these types on these machines correctly, according to the protocol.  According to 
 <ulink url="http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP"> http://support.microsoft.com/support/kb/articles/Q254/1/23.ASP</ulink> on the Microsoft support site, it's fixed as of service pack 3.  Unfortunately, there's no direct way for <productname>FreeTDS</productname> to know whether or not a service pack has been installed, and how/whether to support the buggy version is an outstanding issue.  Your best bet is to apply their patch.  
 		<note><para>The Knowledge Base article states <quote>The Sybase CT-Lib client is the only known big-endian client that can connect to <productname>SQL Server</productname>.</quote>  Depends on who's doing the knowing, of course.  </para></note>
-			</para>
-			</sect2>
-			<sect2 id="dbopen">
-				<title><function>dbopen</function> Conflicts with <systemitem class="library">dbm</></title>
-			<para>
-The <systemitem class="library">dbm</> library defines a function <function>dbopen</function> a name also used in <productname>FreeTDS</productname>'s <systemitem class="library">db-lib</systemitem> implementation.  Programs that link to both libraries, notably PHP, bump into this.  If you're building PHP or something else that uses DBM, you can rename <productname>FreeTDS</productname>'s <function>dbopen</function> to <function>tdsdbopen</function> with a configuration parameter.  See the <link linkend="php">PHP Section</link> for information on fixing this in PHP. <remark>[I believe this was fixed some time ago.  ed.]</remark>
 			</para>
 			</sect2>
 			<sect2 id="IntegratedSecurity">
@@ -2861,7 +2629,7 @@ If you get output as above, the dataserver is listening.  If you get a 'Connecti
 	<title>Connecting to the server, bypassing <filename>freetds.conf</></title>
 <screen>
 <prompt>$ </prompt><userinput>cd src/apps</userinput>
-<prompt>$ </prompt><userinput>./tsql -H <replaceable>myhost</> -p <replaceable>1433</> -U <replaceable>user</></userinput>
+<prompt>$ </prompt><userinput>TDSVER=7.0 ./tsql -H <replaceable>myhost</> -p <replaceable>1433</> -U <replaceable>user</></userinput>
 </screen>
 </example>
 If you receive a message of 'Login Failed.' then your connectivity is OK, but you have a authentication issue.
@@ -2902,7 +2670,8 @@ If this fails, FreeTDS is either not finding your <filename>freetds.conf</filena
 <screen>
 <prompt>$ </prompt><userinput>export TDSDUMP=/tmp/freetds.log</userinput>
 </screen>
-Will generate a log file named <filename>freetds.log</filename> in the <filename>/tmp</filename> directory.
+Will generate a log file named <filename>freetds.log</filename> in the <filename>/tmp</filename> directory.  
+			<tip><para> The filenames <filename>stdout</> and <filename>stderr</> are also supported.  They can be handy if you want o interpserse the log output with your application's output, or if your application opens more than one connection.  (The logfile is otherwise normally truncatated each time the library connects to the server.) </para></tip>
 			</para>
 		</listitem>
 	</varlistentry>	
@@ -2912,7 +2681,7 @@ Will generate a log file named <filename>freetds.log</filename> in the <filename
 			<para>Set <envar>TDSDUMPCONFIG</envar> to a file to
 write information to on how the configuration information is being
 obtained, e.g. from environment variables, a <filename>freetds.conf</filename> file, or <filename>interfaces</filename> file.  Sometimes it's unclear what source of information <productname>FreeTDS</productname> is using to connect to a given dataserver.  This variable can make that bright and clear.  </para>
-			<para>If set to the null string, the log file name will default to <filename>/tmp/tdsconfig.log.<replaceable>9999</replaceable></filename>, where <replaceable>9999</replaceable> is the pid of the process generating the log. </para>
+			
 		</listitem>
 	</varlistentry>	
 </variablelist>
@@ -2943,6 +2712,8 @@ Once in a while, someone writes to the mailing list, asking why <productname>Fre
 			<title><filename>freetds.conf</filename> variables that Control Logging</title>
 			<para>
 			See <link linkend="tab.freetds.conf.debugflags">Valid bitmask values for <literal>debug flags</> entry in <filename>freetds.conf</filename></link>
+			</para>
+			<para>The logfile is normally truncated each time <productname>FreeTDS</productname> connects to the server.  
 			</para>
 		        
 			</sect2>
@@ -3103,6 +2874,10 @@ If you can demonstrate the problem with <command>tsql</> or <command>sqsh</>, yo
 			<para>
 On the plus side, the list includes people with a variety of backgrounds, who frequently answer questions that aren't really about <productname>FreeTDS</productname> <foreignphrase>per se</foreignphrase>.  Clear questions have sometimes even led to submitting patches to other projects.  
 			</para>
+		<sect2 id="help.otherclient"><title>Try a different client</>
+			<para><productname>FreeTDS</productname> comes with its own utilities that use the various libraries.  It's a good idea to run your query through one of them &mdash; the one that uses the same API you're using &mdash; to see if it produces the same behavior you're seeing.  That helps eliminate your application (and the rest of the calling hierarchy) as a source of the problem.  </para>
+		</sect2>
+		
 		</sect1>
 		<sect1 id="MailingList"><title>The Mailing List</title>
 <epigraph>
@@ -3147,7 +2922,7 @@ Many of the original authors and anyone maintaining or extending the code reads 
 			</para>
 		</sect2>
 		
-		<sect2 id="Happened"><title>What Happened?</title>
+		<sect2 id="help.log"><title>Attach a logfile</title>
 		
 			<para>If you're puzzled by some interaction with the server (often the case), it's a very good idea to set <envar>TDSDUMP</> and attach the log to your message.  Messages are currently limited to 75 KB attachments, and the logs are quite detailed, so make your query as short as possible.  If necessary, trim the log; <command>gzip</> is also your friend here.  It's always a good idea to post it on a website where people can fetch it if they're so inclined.  
 			</para>
@@ -3163,7 +2938,7 @@ Moving down, Perl or PHP code provided it creates all the tables it needs and po
 			<tip><para>If you provide an SQL query in your question to the list, provide a table definition, too.  Problems are often related to specific datatypes, so a table definition is an absolute must.  You can run <command>sp_help <parameter>table</parameter></command> to generate one.  </para></tip>
 			</para>
 			<para>
-It is very helpful if you can show an example of the problem using <command>sqsh</> or <command>tsql</> (the latter is included in with <productname>FreeTDS</productname>).  Using those programs limits the scope of question to <productname>FreeTDS</productname> itself.  
+It is very helpful if you can show an example of the problem using <command>sqsh</> or an appropriate <link linkend="utilities">utility</>.  Using those programs limits the scope of question to <productname>FreeTDS</productname> itself.  
 			</para>
 <para>If the problem is a segmentation fault or bus error, that's bad.  Please obtain a
 backtrace and include it in your mail.  See the <link
@@ -3197,7 +2972,7 @@ do this.</para>
 					<para>Canonical examples of using the each library would be very helpful to newcomers.  </para>
 					</listitem>
 				<listitem>
-					<para>An isql for db-lib, odbc, Perl, and PHP would all make debugging and testing easier for everyone.  </para>
+					<para>An isql Perl and PHP would all make debugging and testing easier for everyone.  </para>
 					</listitem>
 			</ItemizedList>
 			</para>
@@ -3210,10 +2985,10 @@ Good patches are nearly always applied in short order.  Patches uploaded to <uli
 		<sect2 id="Correct">
     			<title>Correct this User Guide</title>
 			<para>
-Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to <ulink url="mailto:jklowden@speakeasy.org"><productname>FreeTDS</productname> FAQ Master</ulink>, or post a message to the list.  
+Any corrections or suggestions, be they typographical, grammatical, structural, factual, or mineral are most  welcome.  Please send it to <ulink url="mailto:jklowden@freetds.org"><productname>FreeTDS</productname> FAQ Master</ulink>, or post a message to the list.  
 			</para>
 			<para>
-The User Guide is maintained in SGML DocBook format; the file in your distibution is  <filename>doc/userguide.sgml</>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know SGML to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</> <replaceable>your_version</></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.  
+The User Guide is maintained in <acronym>SGML</> DocBook format; the file in your distibution is  <filename>doc/userguide.sgml</>.  It is a flat ASCII file that you can edit with any text editor.  You don't have to know <acronym>SGML</> to correct or add to the User Guide, however.  Just open it up, find the place you're interested in, and type away.  Do a <command>diff -u <replaceable>old_version</> <replaceable>your_version</></command> and post your patch to the SourceForge site.  Any errors or lackings in your markup will be graciously emended by yours truly.  
 			</para>
 		</sect2>
 		<sect2 id="Documentapi">
@@ -3222,13 +2997,13 @@ The User Guide is maintained in SGML DocBook format; the file in your distibutio
 We have just begun an independent reference manual to <productname>FreeTDS</productname>; the main <acronym>API</> documents are the work of the server vendors.  We're using <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen</>, which extracts documentation directly from comments in the source code, and we're maybe 25% done. 
 			</para>
 			<para>
-The <acronym>TDS</> protocol is partly documented, as are the <acronym>API</> to <filename>libtds</filename> and <systemitem class="library">db-lib</>, but much remains.  
+The <acronym>TDS</> protocol is partly documented, as are the <acronym>API</>s to <filename>libtds</filename> and <systemitem class="library">db-lib</>, but much remains.  
 			</para>
 		</sect2>
-		<sect2 id="FAQ">
-    			<title>Add to the FAQ</title>
+		<sect2 id="webmaster">
+    			<title>Be the Webmaster</title>
 			<para>
-The <productname>FreeTDS</productname> FAQ Master is <ulink url="mailto:jklowden@speakeasy.org">James Lowden</ulink>.  Mail him your FAQ (and its answer) and see your name in lights.  Please include "<productname>FreeTDS</productname> FAQ Master" in the subject.  
+The FAQ and in particular the news don't get updated often enough.  If that's your thing, drop a line to your friendly project maintainer, <ulink url="mailto:jklowden@freetds.org">James K. Lowden</ulink>.  
 			</para>
 		</sect2>
 		</sect1>
@@ -3246,7 +3021,7 @@ What can <productname>FreeTDS</productname> do that can't be done any other way?
 	<listitem><para>Provide a bcp-capable interface and command-line utility on unix-like operating systems for  Microsoft <productname>SQL Server</productname>.</para></listitem>
 	<listitem><para>Run on many more operating systems than either vendor's libraries do.</para></listitem>
 	<listitem><para>Get fixed, instead of telling you to get stuffed.</para></listitem>
-	<listitem><para>Amuse and inform.  Also frustrate and infuriate, but we don't put that under "Advocacy".  </para></listitem>
+	<listitem><para>Amuse and inform.  Also frustrate and infuriate, but we don't put that under <quote>Advocacy</>.  </para></listitem>
 </ItemizedList>
 			<para>If more people knew, fewer would be stuck.  
 			</para>
@@ -3325,8 +3100,10 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 	
 		<sect1 id="samplecode">
     			<title>DB-Library for the Tenderfoot</title>
+				<epigraph><attribution>Mark Twain</>
+					<para>Few things are harder to put up with than the annoyance of a good example.</para> </epigraph>
 			
-			<abstract><para>What follows is a complete sample working db-lib program.  
+			<abstract><para>Below is a complete sample working db-lib program, presented as a series of examples.  
 			<itemizedlist><title>Features of sample code</title>
 				<listitem><para>Processes command-line options to select the server, database, username, and password</para></listitem>
 				<listitem><para>Remaining arguments on the command line comprise the SQL query to execute</para></listitem>
@@ -3337,7 +3114,8 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 			Other sample code may be found in the distribution, in the cleverly named <filename>samples</> directory. A complete program, heavily commented for your perusal, is <filename>apps/bsqldb.c</>.</para></abstract>
 			
 			<para><important><sidebar><title>What's the big deal with errors?</title>
-			<para>Even more than in other kinds of programming, correct handling of errors is extremely important in all database programming, for two reasons.  First, the database server is a remote machine.  Every db-lib application is therefore also a communications program, and communications programs are subject to network failures.  For many application programmers, database programming is their first, possibly only foray into communications programming.  Second, database programs almost always have very high data integrity requirements.  It is necessary to know the row was absolutely, positively committed, once and only once, without error or exception.  Without taking extreme care to trap and handle all error conditions, no statement about the program's reliability can be made with confidence.</para></sidebar></important></para>
+			<para>Correct handling of errors is extremely important in database applications because they involve two systems most others don't: the network and the database server.  Both can give rise to errors that, if not detected and reported when they occur, let the application proceed blithely on until something truly mysterious happens.  In the worst case, in the absence of a properly reported error, the application may <emphasis>seem</> to have updated the data, when in fact it did not.  </para>
+			<para>Every db-lib application uses the network, making it subject to network failures.  Database programs also almost always have very high data integrity requirements.  It is necessary to know the row was absolutely, positively committed, once and only once, without error or exception.  Without taking great care to trap and handle all error conditions, no statement about the program's reliability can be made with confidence.</para></sidebar></important></para>
 			
 			<para>
 			<orderedlist><title>How to Get and Build the sample code</title>
@@ -3392,7 +3170,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			</sect2>
 			
 			<sect2 id="samplecode.prolog"><title>Prolog</title>
-			<abstract><para>Nothing special here.  Collect the command line parameters.  We do this with the standard <function>getopts(3)</function> function.  It removes the options from the <varname>argv</varname> array. Cf. <command>man 3 getopts</command> for details. </para></abstract>
+			<abstract><para>Nothing special here.  Collect the command line parameters.  We do this with the standard <function>getopts(3)</function> function.  Cf. <command>man 3 getopts</command> for details. </para></abstract>
 			  
 			<para><example id="e.g.samplecode.dblib.prolog">
 				<title>Sample Code: <symbol>db-lib</> prolog</title>
@@ -3530,7 +3308,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 
 			<sect2 id="samplecode.query"><title>Send a query</title>
 			<abstract><para><symbol>db-lib</> maintains a <firstterm>command buffer</> to hold the SQL to be sent to the server.  Two functions &mdash; <function>dbcmd()</> and <function>dbfcmd()</> &mdash; build up the query from strings of text. The command buffer is reset after the query is sent to the server.</para>
-				<para>In our example program, we left the SQL on the command line.  We fetch it now and send it to the server.  </para></abstract>
+				<para>We left the SQL on the command line.  We fetch it now and send it to the server.  </para></abstract>
 			  
 			<para><example id="e.g.samplecode.dblib.send">
 				<title>Sample Code: <symbol>db-lib</> Send a query</title>
@@ -3625,7 +3403,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			</tgroup>
 			</table> </para>
 			
-			<para>As the above table shows, results can comprise ordinary rows, and <firstterm>compute rows</> (resulting from a <symbol>COMPUTE</> clause). Stored procedures may of course contain multiple SQL statements, some of which may be <symbol>SELECT</> statements and might include <symbol>COMPUTE</> clauses. In addition, they generate a  <firstterm>return status</> (with a <symbol>RETURN</> statement or else automatically) and perhaps <symbol>OUTPUT</> parameters. </para>
+			<para>As the above table shows, results can comprise ordinary rows and <firstterm>compute rows</> (resulting from a <symbol>COMPUTE</> clause). Stored procedures may of course contain multiple SQL statements, some of which may be <symbol>SELECT</> statements and might include <symbol>COMPUTE</> clauses. In addition, they generate a  <firstterm>return status</> (with a <symbol>RETURN</> statement or else automatically) and perhaps <symbol>OUTPUT</> parameters. </para>
 			
 			<bridgehead id="samplecode.results.metadata.and.data" renderas="sect3">Data and Metadata</>
 			
@@ -3671,7 +3449,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			
 			<para>To understand binding, it may be easiest to examine two primitive functions, <function>dbdata()</> and <function>dbconvert()</>.  <function>dbdata()</> returns a pointer to the column's data.  The data to which it points are in <quote>native</> form, 4 bytes for an <symbol>INT</>, 8 bytes for a <symbol>DATETIME</> and so on.  <function>dbconvert()</> converts between datatypes; you can hand it an integer and get back a character array (or a <symbol>C double</>.  You might think of  <function>dbconvert()</> as <function>atoi(3)</> on steroids). <function>dbbind()</> combines these two functions.  The application indicates in what form it would like to use each column, and the library converts them  on the fly as each row is read.</para>  
 			
-			<para>To <emphasis>bind a column</> is to provide a buffer to <symbol>db-lib</> to fill, and indicate which datatype the buffer is meant to hold. <footnote><para>This is the sort of thing <symbol>C++</>'s type system does so much better</para></footnote>  </para>
+			<para>To <emphasis>bind a column</> is to provide a buffer to <symbol>db-lib</> to fill and indicate which datatype the buffer is meant to hold. <footnote><para>This is the sort of thing <symbol>C++</>'s type system does so much better</para></footnote>  </para>
 			
 			<para>It may be well to pause here to observe the three ways a datatype is described in a <symbol>db-lib</> program.  
 			<variablelist id="list.datatypes"><title><function>db-lib</> Datatype Descriptors</title>
@@ -3934,7 +3712,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			<calloutlist id="co.fetching"><title>Data-fetching Notes</title>
 				<callout arearefs="samplecode.results.dbresults"><para>As soon as <function>dbresults()</> reports <symbol>SUCCESS</>, the row's metadata are available.  </para></callout>
 				<callout arearefs="samplecode.results.c"><para><symbol>db-lib</> columns start with 1. </para></callout>
-				<callout arearefs="samplecode.results.dbcollen"><para><function>dbcollen()</> returns the sizeof the native data (e.g. 4 bytes for a T-SQL <symbol>INT</>).  We'll use <function>dbbind()</> to convert everything to strings.  If the column is <symbol>[VAR]CHAR</>, we want the column's defined size, otherwise we want its maximum size when represented as a string, which FreeTDS's <function>dbwillconvert()</> returns (for fixed-length datatypes).  <footnote><para>for IMAGE data, we need to multiply by 2, because <function>dbbind()</> will convert each byte to a hexadecimal pair.  The example program will report an error with IMAGE data.  </para></footnote></para></callout>
+				<callout arearefs="samplecode.results.dbcollen"><para><function>dbcollen()</> returns the sizeof the native data (e.g. 4 bytes for a T-SQL <symbol>INT</>).  We'll use <function>dbbind()</> to convert everything to strings.  If the column is <symbol>[VAR]CHAR</>, we want the column's defined size, otherwise we want its maximum size when represented as a string, which FreeTDS's <function>dbwillconvert()</> returns (for fixed-length datatypes).  <footnote><para>For IMAGE data, we need to multiply by 2, because <function>dbbind()</> will convert each byte to a hexadecimal pair.  The example program will report an error with IMAGE data.  </para></footnote></para></callout>
 				<callout arearefs="samplecode.results.dbbind"><para><symbol>NTBSTRINGBIND</> null-terminates the character array for us.  <quote>NTB</> might perhaps stand for <quote>null terminating byte</>. </para></callout>
 				<callout arearefs="samplecode.results.dbnullbind"><para>A zero-length string is not a NULL!  <function>dbnullbind()</> arranges for the passed buffer to be set to -1 whenever that column is NULL for a particular row.  </para></callout>
 				<callout arearefs="samplecode.results.dbnextrow"><para>Each time <function>dbnextrow()</> returns <symbol>REG_ROW</>, it has filled the bound buffers with the converted values for the row.  </para></callout>
@@ -3944,13 +3722,13 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			</sect2>
 
 			<sect2 id="samplecode.errors"><title>Messages and Errors</title>
-				<abstract><para>Errors may originate remotely, on the server or locally, in the library itself.  The former are known as <firstterm>messages</> (because they are: they arrive as messages from the server); the latter are termed <firstterm>errors</>.  Their handling is a little intimidating.  It requires writing and installing a callback function (whose parameters are predefined by <symbol>db-lib</>), and thinking about how to handle different types of errors.  That's why we save the best for last.  </para></abstract>
+				<abstract><para>Errors may originate on the server or in the library itself.  The former are known as <firstterm>messages</> (because they are: they arrive as messages from the server); the latter are termed <firstterm>errors</>.  Their handling is a little intimidating.  It requires writing and installing a callback function (whose parameters are predefined by <symbol>db-lib</>), and thinking about how to handle different types of errors.  </para></abstract>
 				
 			<variablelist><title>Kinds of Errors</title>
 				<varlistentry>
 					<term>Messages</term>
 					<listitem>
-						<para><emphasis>Messages</> arise because the server has something to say.  <footnote><para>Just one more way in which databases differ from files.</para></footnote>.  They usually describe some problem encountered executing the SQL.  Perhaps the SQL refers to a nonexistent object or attempted to violate a constraint of some kind.  But they can also be benign, indicating for instance merely that the default database has changed.  </para>
+						<para><emphasis>Messages</> arise because the server has something to say.  <footnote><para>Just one more way in which databases differ from files.</para></footnote>.  They usually describe some problem encountered executing the SQL.  Perhaps the SQL refers to a nonexistent object or attempted to violate a constraint.  But they can also be benign, indicating for instance merely that the default database has changed.  </para>
 					</listitem>
 				</varlistentry>	
 				<varlistentry>
@@ -4120,6 +3898,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr,
 				<member>Allen Grace</>
 				<member>James K. Lowden</>
 				<member>Bill Thompson</>
+				<member>Frediano Ziglio</>
 			</simplelist>
 			<para>
 			</para>

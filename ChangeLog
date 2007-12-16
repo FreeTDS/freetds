@@ -1,3 +1,8 @@
+Sun Dec 16 16:58:35 EST 2007	JK Lowden <jklowden@freetds.org>
+	* doc/Makefile.am doc/bsqlodbc.txt doc/osql.txt
+	* doc/userguide.sgml
+	- updated for next release
+
 Fri Dec 14 11:23:08 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/test-other.sh: fix some strange echo portability
 	* src/dblib/unittests/null.c src/dblib/unittests/null2.c:

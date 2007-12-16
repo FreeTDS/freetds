@@ -21,7 +21,7 @@ OPTIONS
 
 	-P password  database password.
 
-	-P ini_dir  override odbc.ini file location.
+	-I ini_dir  override odbc.ini file location.
 
 EXAMPLE
 
