@@ -1,12 +1,11 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.58 2007-12-02 23:01:37 jklowden Exp $s
+# $Id: api_status.txt,v 1.59 2007-12-17 00:11:09 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
-# wrong or incomplete.  It is the our intention to have a cgi script on 
-# freetds.org that renders this database as HTML.  
+# wrong or incomplete.  
 #
 # Format rules
 #
@@ -202,37 +201,37 @@ dblib	(none)   	n/a				dbbufsize
 dblib	(none)   	n/a				dbcharsetconv	
 dblib	(none)   	n/a				dbcoltypeinfo	OK	
 dblib	(none)   	n/a				dbconvert_ps	OK	
-dblib	(none)   	n/a				dbfreesort	
-dblib	(none)   	n/a				dbfree_xlate	
+dblib	(none)   	n/a				dbfreesort	never
+dblib	(none)   	n/a				dbfree_xlate	never
 dblib	(none)   	n/a				dbgetcharset	
-dblib	(none)   	n/a				dbgetloginfo	
+dblib	(none)   	n/a				dbgetloginfo	never
 dblib	(none)   	n/a				dbgetlusername	
 dblib	(none)   	n/a				dbgetnatlang	
 dblib	(none)   	n/a				DBIORDESC	OK	
 dblib	(none)   	n/a				DBIOWDESC	OK	
-dblib	(none)   	n/a				dbloadsort	
-dblib	(none)   	n/a				dbload_xlate	
-dblib	(none)   	n/a				dbnpcreate	
-dblib	(none)   	n/a				dbnpdefine	
+dblib	(none)   	n/a				dbloadsort	never
+dblib	(none)   	n/a				dbload_xlate	never
+dblib	(none)   	n/a				dbnpcreate	never
+dblib	(none)   	n/a				dbnpdefine	never
 dblib	(none)   	n/a				dbpoll		
-dblib	(none)   	n/a				DBRBUF		
-dblib	(none)   	n/a				dbreadpage	
+dblib	(none)   	n/a				DBRBUF		never
+dblib	(none)   	n/a				dbreadpage	never
 dblib	(none)   	n/a				dbrecftos	OK	
-dblib	(none)   	n/a				dbrecvpassthru	
-dblib	(none)   	n/a				dbregdrop	
-dblib	(none)   	n/a				dbregexec	
-dblib	(none)   	n/a				dbreghandle	
-dblib	(none)   	n/a				dbreginit	
-dblib	(none)   	n/a				dbreglist	
-dblib	(none)   	n/a				dbregnowatch	
-dblib	(none)   	n/a				dbregparam	
-dblib	(none)   	n/a				dbregwatch	
-dblib	(none)   	n/a				dbregwatchlist	
-dblib	(none)   	n/a				dbrpwclr	
-dblib	(none)   	n/a				dbrpwset	
+dblib	(none)   	n/a				dbrecvpassthru	never
+dblib	(none)   	n/a				dbregdrop	never
+dblib	(none)   	n/a				dbregexec	never
+dblib	(none)   	n/a				dbreghandle	never
+dblib	(none)   	n/a				dbreginit	never
+dblib	(none)   	n/a				dbreglist	never
+dblib	(none)   	n/a				dbregnowatch	never
+dblib	(none)   	n/a				dbregparam	never
+dblib	(none)   	n/a				dbregwatch	never
+dblib	(none)   	n/a				dbregwatchlist	never
+dblib	(none)   	n/a				dbrpwclr	never
+dblib	(none)   	n/a				dbrpwset	never
 dblib	(none)   	n/a				dbsafestr	OK	
 dblib	(none)   	n/a				dbsechandle	
-dblib	(none)   	n/a				dbsendpassthru	
+dblib	(none)   	n/a				dbsendpassthru	never
 dblib	(none)   	n/a				dbsetbusy	
 dblib	(none)   	n/a				dbsetdefcharset	
 dblib	(none)   	n/a				dbsetdeflang	
@@ -241,18 +240,18 @@ dblib	(none)   	n/a				dbsetifile	OK
 dblib	(none)   	n/a				dbsetinterrupt	OK	
 dblib	(none)   	n/a				DBSETLCHARSET	
 dblib	(none)   	n/a				DBSETLENCRYPT	
-dblib	(none)   	n/a				dbsetloginfo	
+dblib	(none)   	n/a				dbsetloginfo	never
 dblib	(none)   	n/a				dbsetrow	OK
 dblib	(none)   	n/a				dbsetversion	OK	
 dblib	(none)   	n/a				dbspr1row	OK	
 dblib	(none)   	n/a				dbspr1rowlen	OK	
 dblib	(none)   	n/a				dbsprhead	OK	
 dblib	(none)   	n/a				dbsprline	OK	
-dblib	(none)   	n/a				dbstrcmp	
-dblib	(none)   	n/a				dbstrsort	
+dblib	(none)   	n/a				dbstrcmp	never
+dblib	(none)   	n/a				dbstrsort	never
 dblib	(none)   	n/a				dbtextsize	
-dblib	(none)   	n/a				dbwritepage	
-dblib	(none)   	n/a				dbxlate		
+dblib	(none)   	n/a				dbwritepage	never
+dblib	(none)   	n/a				dbxlate		never
 dblib	bcp      	bcp_batch			(same)		OK
 dblib	bcp      	bcp_bind			(same)		OK
 dblib	bcp      	bcp_colfmt			(same)		OK
@@ -270,17 +269,17 @@ dblib	bcp      	n/a				bcp_options	partial
 dblib	bcp      	bcp_readfmt			(same)		OK
 dblib	bcp      	bcp_sendrow			(same)		OK
 dblib	bcp      	BCP_SETL			(same)		OK
-dblib	browse   	dbcolbrowse			n/a		
-dblib	browse   	dbcolsource			n/a		
-dblib	browse   	dbfreequal			n/a		
-dblib	browse   	dbqual				n/a		
-dblib	browse   	dbtabbrowse			n/a		
-dblib	browse   	dbtabcount			n/a		
-dblib	browse   	dbtabname			n/a		
-dblib	browse   	dbtabsource			n/a		
-dblib	browse   	dbtsnewlen			n/a		
-dblib	browse   	dbtsnewval			n/a		
-dblib	browse   	dbtsput				n/a		
+dblib	browse   	dbcolbrowse			n/a		never
+dblib	browse   	dbcolsource			n/a		never
+dblib	browse   	dbfreequal			n/a		never
+dblib	browse   	dbqual				n/a		never
+dblib	browse   	dbtabbrowse			n/a		never
+dblib	browse   	dbtabcount			n/a		never
+dblib	browse   	dbtabname			n/a		never
+dblib	browse   	dbtabsource			n/a		never
+dblib	browse   	dbtsnewlen			n/a		never
+dblib	browse   	dbtsnewval			n/a		never
+dblib	browse   	dbtsput				n/a		never
 dblib	core     	dbadata				(same)		OK
 dblib	core     	dbadlen				(same)		OK
 dblib	core     	dbaltbind			(same)		OK
@@ -314,8 +313,8 @@ dblib	core     	dbdataready			n/a
 dblib	core     	dbdatecrack			(same)		OK
 dblib	core     	dbdatlen			(same)		OK
 dblib	core     	dbdead				DBDEAD		OK
-dblib	core     	dbenlisttrans			n/a		
-dblib	core     	dbenlistxatrans			n/a		
+dblib	core     	dbenlisttrans			n/a		never
+dblib	core     	dbenlistxatrans			n/a		never
 dblib	core     	dberrhandle			(same)		OK
 dblib	core     	dbexit				(same)		OK
 dblib	core     	dbfcmd				(same)		OK
@@ -323,14 +322,14 @@ dblib	core     	dbfirstrow			DBFIRSTROW	OK
 dblib	core     	dbfreebuf			(same)		OK
 dblib	core     	dbgetchar			(same)		OK
 dblib	core     	dbgetmaxprocs			(same)		OK
-dblib	core     	dbgetoff			(same)		
+dblib	core     	dbgetoff			(same)		never
 dblib	core     	dbgetpacket			(same)		OK
 dblib	core     	dbgetrow			(same)		OK
 dblib	core     	dbgettime			DBGETTIME	OK
 dblib	core     	dbgetuserdata			(same)		OK
 dblib	core     	dbinit				(same)		OK
 dblib	core     	dbisavail			DBISAVAIL	OK
-dblib	core     	dbiscount			n/a		
+dblib	core     	dbiscount			n/a		never
 dblib	core     	dbisopt				(same)		partial
 dblib	core     	dblastrow			DBLASTROW	OK
 dblib	core     	dblogin				(same)		OK
@@ -367,23 +366,23 @@ dblib	core     	dbnullbind			(same)		OK
 dblib	core     	dbnumalts			(same)		OK
 dblib	core     	dbnumcols			(same)		OK
 dblib	core     	dbnumcompute			(same)		OK
-dblib	core     	dbnumorders			DBNUMORDERS	
+dblib	core     	dbnumorders			DBNUMORDERS	never
 dblib	core     	dbopen				(same)		OK
-dblib	core     	dbordercol			(same)		
+dblib	core     	dbordercol			(same)		never
 dblib	core     	dbprhead			(same)		OK
-dblib	core     	dbprocerrhandle			n/a		
-dblib	core     	dbprocinfo			n/a		
-dblib	core     	dbprocmsghandle			n/a		
+dblib	core     	dbprocerrhandle			n/a		never
+dblib	core     	dbprocinfo			n/a		never
+dblib	core     	dbprocmsghandle			n/a		never
 dblib	core     	dbprrow				(same)		OK
 dblib	core     	dbprtype			(same)		OK
 dblib	core     	dbresults			(same)		OK
 dblib	core     	dbrows				DBROWS		OK
 dblib	core     	dbrowtype			DBROWTYPE	OK
 dblib	core     	n/a				dbservcharset	OK
-dblib	core     	dbserverenum			n/a		
+dblib	core     	dbserverenum			n/a		never
 dblib	core     	dbsetavail			(same)		OK
 dblib	core     	dbsetlapp			DBSETLAPP	OK
-dblib	core     	dbsetlfallback			n/a		
+dblib	core     	dbsetlfallback			n/a		never
 dblib	core     	dbsetlhost			DBSETLHOST	OK
 dblib	core     	dbsetlnatlang			DBSETLNATLANG	OK
 dblib	core     	dbsetlogintime			(same)		OK
@@ -410,25 +409,25 @@ dblib	core     	dbuse				(same)		OK
 dblib	core     	dbvarylen			(same)		OK
 dblib	core     	n/a				dbversion	OK
 dblib	core     	dbwillconvert			(same)		OK
-dblib	core     	dbwinexit (Windows only)	n/a		
-dblib	cursor   	dbcursor			(same)		
-dblib	cursor   	dbcursorbind			(same)		
-dblib	cursor   	dbcursorclose			(same)		
-dblib	cursor   	dbcursorcolinfo			(same)		
-dblib	cursor   	dbcursorfetch			(same)		
-dblib	cursor   	dbcursorfetchex			n/a		
-dblib	cursor   	dbcursorinfo			(same)		
-dblib	cursor   	dbcursorinfoex			n/a		
-dblib	cursor   	dbcursoropen			(same)		
-dblib	datetime 	n/a				dbdate4cmp	
-dblib	datetime 	n/a				dbdate4zero	
-dblib	datetime 	n/a				dbdatechar	
+dblib	core     	dbwinexit (Windows only)	n/a		never
+dblib	cursor   	dbcursor			(same)		never
+dblib	cursor   	dbcursorbind			(same)		never
+dblib	cursor   	dbcursorclose			(same)		never
+dblib	cursor   	dbcursorcolinfo			(same)		never
+dblib	cursor   	dbcursorfetch			(same)		never
+dblib	cursor   	dbcursorfetchex			n/a		never
+dblib	cursor   	dbcursorinfo			(same)		never
+dblib	cursor   	dbcursorinfoex			n/a		never
+dblib	cursor   	dbcursoropen			(same)		never
+dblib	datetime 	n/a				dbdate4cmp	never
+dblib	datetime 	n/a				dbdate4zero	never
+dblib	datetime 	n/a				dbdatechar	never
 dblib	datetime 	n/a				dbdatecmp	OK	
-dblib	datetime 	n/a				dbdatename	
-dblib	datetime 	n/a				dbdateorder	
-dblib	datetime 	n/a				dbdatepart	
-dblib	datetime 	n/a				dbdatezero	
-dblib	datetime 	n/a				dbdayname	
+dblib	datetime 	n/a				dbdatename	never
+dblib	datetime 	n/a				dbdateorder	never
+dblib	datetime 	n/a				dbdatepart	never
+dblib	datetime 	n/a				dbdatezero	never
+dblib	datetime 	n/a				dbdayname	never
 dblib	datetime 	n/a				dbmonthname	OK
 dblib	procedure	dbhasretstat			(same)		OK
 dblib	procedure	dbnumrets			(same)		OK
