@@ -1,7 +1,12 @@
+Tue Dec 18 09:09:27 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/cursor3.c(added):
+	* src/odbc/unittests/cursor4.c(added) src/odbc/unittests/cursor5.c(added):
+	- merged test from Sebastien FLAESCH
+
 Sun Dec 16 19:08:38 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/api_status.txt 
 	- set useless db-lib functions' status to 'never'
-	
+
 Sun Dec 16 16:58:35 EST 2007	JK Lowden <jklowden@freetds.org>
 	* doc/Makefile.am doc/bsqlodbc.txt doc/osql.txt
 	* doc/userguide.sgml
