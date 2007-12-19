@@ -2,11 +2,10 @@
 #include <ctype.h>
 
 /*
- * SQLDescribeCol test for precision
- * test what say SQLDescribeCol about precision using some type
+ * SQLSetStmtAttr
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.12 2007-12-19 14:36:05 freddy77 Exp $";
+static char software_version[] = "$Id: attributes.c,v 1.1 2007-12-19 14:36:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -57,30 +56,73 @@ lookup(const char *name, const struct lookup_int *table)
 	return get_int(name);
 }
 
-static struct lookup_int sql_types[] = {
+static struct lookup_int concurrency[] = {
 #define TYPE(s) { #s, s }
-	TYPE(SQL_CHAR),
-	TYPE(SQL_VARCHAR),
-	TYPE(SQL_LONGVARCHAR),
-	TYPE(SQL_WCHAR),
-	TYPE(SQL_WVARCHAR),
-	TYPE(SQL_WLONGVARCHAR),
-	TYPE(SQL_DECIMAL),
-	TYPE(SQL_NUMERIC),
-	TYPE(SQL_SMALLINT),
-	TYPE(SQL_INTEGER),
-	TYPE(SQL_REAL),
-	TYPE(SQL_FLOAT),
-	TYPE(SQL_DOUBLE),
-	TYPE(SQL_BIT),
-	TYPE(SQL_TINYINT),
-	TYPE(SQL_BIGINT),
-	TYPE(SQL_BINARY),
-	TYPE(SQL_VARBINARY),
-	TYPE(SQL_LONGVARBINARY),
-	TYPE(SQL_TYPE_DATE),
-	TYPE(SQL_TYPE_TIME),
-	TYPE(SQL_TYPE_TIMESTAMP),
+	TYPE(SQL_CONCUR_READ_ONLY),
+	TYPE(SQL_CONCUR_LOCK),
+	TYPE(SQL_CONCUR_ROWVER),
+	TYPE(SQL_CONCUR_VALUES),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+static struct lookup_int scrollable[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_NONSCROLLABLE),
+	TYPE(SQL_SCROLLABLE),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+static struct lookup_int sensitivity[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_UNSPECIFIED),
+	TYPE(SQL_INSENSITIVE),
+	TYPE(SQL_SENSITIVE),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+static struct lookup_int cursor_type[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_CURSOR_FORWARD_ONLY),
+	TYPE(SQL_CURSOR_STATIC),
+	TYPE(SQL_CURSOR_KEYSET_DRIVEN),
+	TYPE(SQL_CURSOR_DYNAMIC),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+static struct lookup_int noscan[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_NOSCAN_OFF),
+	TYPE(SQL_NOSCAN_ON),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+static struct lookup_int retrieve_data[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_RD_ON),
+	TYPE(SQL_RD_OFF),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+static struct lookup_int simulate_cursor[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_SC_NON_UNIQUE),
+	TYPE(SQL_SC_TRY_UNIQUE),
+	TYPE(SQL_SC_UNIQUE),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+static struct lookup_int use_bookmarks[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_UB_OFF),
+	TYPE(SQL_UB_VARIABLE),
+	TYPE(SQL_UB_FIXED),
 #undef TYPE
 	{ NULL, 0 }
 };
@@ -88,9 +130,12 @@ static struct lookup_int sql_types[] = {
 typedef enum
 {
 	type_INTEGER,
+	type_UINTEGER,
 	type_SMALLINT,
 	type_LEN,
-	type_CHARP
+	type_CHARP,
+	type_DESC,
+	type_VOIDP
 } test_type_t;
 
 struct attribute
@@ -104,16 +149,40 @@ struct attribute
 static const struct attribute attributes[] = {
 #define ATTR(s,t) { #s, s, type_##t, NULL }
 #define ATTR2(s,t,l) { #s, s, type_##t, l }
-	ATTR(SQL_COLUMN_LENGTH, INTEGER),
-	ATTR(SQL_COLUMN_PRECISION, INTEGER),
-	ATTR(SQL_COLUMN_SCALE, INTEGER),
-	ATTR(SQL_DESC_LENGTH, LEN),
-	ATTR(SQL_DESC_OCTET_LENGTH, LEN),
-	ATTR(SQL_DESC_PRECISION, SMALLINT),
-	ATTR(SQL_DESC_SCALE, SMALLINT),
-	ATTR(SQL_DESC_DISPLAY_SIZE, INTEGER),
-	ATTR2(SQL_DESC_CONCISE_TYPE, SMALLINT, sql_types),
-	ATTR2(SQL_DESC_TYPE, SMALLINT, sql_types)
+	ATTR(SQL_ATTR_APP_PARAM_DESC, DESC),
+	ATTR(SQL_ATTR_APP_ROW_DESC, DESC),
+	ATTR(SQL_ATTR_ASYNC_ENABLE, UINTEGER),
+	ATTR2(SQL_ATTR_CONCURRENCY, UINTEGER, concurrency),
+	ATTR2(SQL_ATTR_CURSOR_SCROLLABLE, UINTEGER, scrollable),
+	ATTR2(SQL_ATTR_CURSOR_SENSITIVITY, UINTEGER, sensitivity),
+	ATTR2(SQL_ATTR_CURSOR_TYPE, UINTEGER, cursor_type),
+	ATTR(SQL_ATTR_ENABLE_AUTO_IPD, UINTEGER),
+	ATTR(SQL_ATTR_FETCH_BOOKMARK_PTR, VOIDP),
+	ATTR(SQL_ATTR_IMP_PARAM_DESC, DESC),
+	ATTR(SQL_ATTR_IMP_ROW_DESC, DESC),
+	ATTR(SQL_ATTR_KEYSET_SIZE, UINTEGER),
+	ATTR(SQL_ATTR_MAX_LENGTH, UINTEGER),
+	ATTR(SQL_ATTR_MAX_ROWS, UINTEGER),
+	ATTR(SQL_ATTR_METADATA_ID, UINTEGER),
+	ATTR2(SQL_ATTR_NOSCAN, UINTEGER, noscan),
+	ATTR(SQL_ATTR_PARAM_BIND_OFFSET_PTR, VOIDP),
+	ATTR(SQL_ATTR_PARAM_BIND_OFFSET_PTR, VOIDP),
+	ATTR(SQL_ATTR_PARAM_BIND_TYPE, UINTEGER),
+	ATTR(SQL_ATTR_PARAM_OPERATION_PTR, VOIDP),
+	ATTR(SQL_ATTR_PARAM_STATUS_PTR, VOIDP),
+	ATTR(SQL_ATTR_PARAMS_PROCESSED_PTR, VOIDP),
+	ATTR(SQL_ATTR_PARAMSET_SIZE, UINTEGER),
+	ATTR(SQL_ATTR_QUERY_TIMEOUT, UINTEGER),
+	ATTR2(SQL_ATTR_RETRIEVE_DATA, UINTEGER, retrieve_data),
+	ATTR(SQL_ATTR_ROW_ARRAY_SIZE, UINTEGER),
+	ATTR(SQL_ATTR_ROW_BIND_OFFSET_PTR, VOIDP),
+	ATTR(SQL_ATTR_ROW_BIND_TYPE, UINTEGER),
+	ATTR(SQL_ATTR_ROW_NUMBER, UINTEGER),
+	ATTR(SQL_ATTR_ROW_OPERATION_PTR, VOIDP),
+	ATTR(SQL_ATTR_ROW_STATUS_PTR, VOIDP),
+	ATTR(SQL_ATTR_ROWS_FETCHED_PTR, VOIDP),
+	ATTR2(SQL_ATTR_SIMULATE_CURSOR, UINTEGER, simulate_cursor),
+	ATTR2(SQL_ATTR_USE_BOOKMARKS, UINTEGER, use_bookmarks),
 #undef ATTR2
 #undef ATTR
 };
@@ -138,48 +207,32 @@ lookup_attr(const char *name)
 typedef int (*get_attr_t) (ATTR_PARAMS);
 
 static int
-get_attr_ird(ATTR_PARAMS)
-{
-	SQLINTEGER i;
-	SQLRETURN ret;
-
-	if (attr->type == type_CHARP)
-		fatal("Line %u: CHAR* check still not supported\n", line_num);
-	i = 0xdeadbeef;
-	ret = SQLColAttribute(Statement, 1, attr->value, NULL, SQL_IS_INTEGER, NULL, &i);
-	if (!SQL_SUCCEEDED(ret))
-		fatal("Line %u: failure not expected\n", line_num);
-	return i;
-}
-
-static int
-get_attr_ard(ATTR_PARAMS)
+get_attr_stmt(ATTR_PARAMS)
 {
 	SQLINTEGER i, ind;
 	SQLSMALLINT si;
 	SQLLEN li;
 	SQLRETURN ret;
-	SQLHDESC desc = SQL_NULL_HDESC;
-
-	/* get ARD */
-	SQLGetStmtAttr(Statement, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
 
 	ret = SQL_ERROR;
 	switch (attr->type) {
 	case type_INTEGER:
+	case type_UINTEGER:
 		i = 0xdeadbeef;
-		ret = SQLGetDescField(desc, 1, attr->value, (SQLPOINTER) & i, sizeof(SQLINTEGER), &ind);
+		ret = SQLGetStmtAttr(Statement, attr->value, (SQLPOINTER) & i, sizeof(SQLINTEGER), &ind);
 		break;
 	case type_SMALLINT:
 		si = 0xbeef;
-		ret = SQLGetDescField(desc, 1, attr->value, (SQLPOINTER) & si, sizeof(SQLSMALLINT), &ind);
+		ret = SQLGetStmtAttr(Statement, attr->value, (SQLPOINTER) & si, sizeof(SQLSMALLINT), &ind);
 		i = si;
 		break;
 	case type_LEN:
 		li = 0xdeadbeef;
-		ret = SQLGetDescField(desc, 1, attr->value, (SQLPOINTER) & li, sizeof(SQLLEN), &ind);
+		ret = SQLGetStmtAttr(Statement, attr->value, (SQLPOINTER) & li, sizeof(SQLLEN), &ind);
 		i = li;
 		break;
+	case type_VOIDP:
+	case type_DESC:
 	case type_CHARP:
 		fatal("Line %u: CHAR* check still not supported\n", line_num);
 		break;
@@ -189,23 +242,25 @@ get_attr_ard(ATTR_PARAMS)
 	return i;
 }
 
+#if 0
 /* do not retry any attribute just return expected value so to make caller happy */
 static int
 get_attr_none(ATTR_PARAMS)
 {
 	return expected;
 }
+#endif
 
 int
 main(int argc, char *argv[])
 {
-#define TEST_FILE "describecol.in"
+#define TEST_FILE "attributes.in"
 	const char *in_file = FREETDS_SRCDIR "/" TEST_FILE;
 	FILE *f;
 	char buf[256];
 	SQLINTEGER i;
 	SQLLEN len;
-	get_attr_t get_attr_p = get_attr_none;
+	get_attr_t get_attr_p = get_attr_stmt;
 
 	Connect();
 	Command(Statement, "SET TEXTSIZE 4096");
@@ -244,68 +299,44 @@ main(int argc, char *argv[])
 				Command(Statement, "SET TEXTSIZE 4096");
 				SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 			}
-		}
-
-		/* select type */
-		if (strcmp(cmd, "select") == 0) {
-			const char *type = strtok(NULL, SEP);
-			const char *value = strtok(NULL, SEP);
-			char sql[sizeof(buf) + 40];
-
-			SQLMoreResults(Statement);
-			ResetStatement();
-
-			sprintf(sql, "SELECT CONVERT(%s, %s) AS col", type, value);
-
-			/* ignore error, we only need precision of known types */
-			get_attr_p = get_attr_none;
-			if (CommandWithResult(Statement, sql) != SQL_SUCCESS) {
-				ResetStatement();
-				SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
-				continue;
-			}
-
-			if (!SQL_SUCCEEDED(SQLFetch(Statement)))
-				ODBC_REPORT_ERROR("Unable to fetch row");
-			SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
-			get_attr_p = get_attr_ird;
+			continue;
 		}
 
 		/* set attribute */
 		if (strcmp(cmd, "set") == 0) {
 			const struct attribute *attr = lookup_attr(strtok(NULL, SEP));
 			char *value = strtok(NULL, SEP);
-			SQLHDESC desc;
 			SQLRETURN ret;
-			SQLINTEGER ind;
 
 			if (!value)
 				fatal("Line %u: value not defined\n", line_num);
 
-			/* get ARD */
-			SQLGetStmtAttr(Statement, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
-
 			ret = SQL_ERROR;
 			switch (attr->type) {
+			case type_UINTEGER:
 			case type_INTEGER:
-				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(Statement, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLINTEGER));
 				break;
 			case type_SMALLINT:
-				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(Statement, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLSMALLINT));
 				break;
 			case type_LEN:
-				ret = SQLSetDescField(desc, 1, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(Statement, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLLEN));
 				break;
 			case type_CHARP:
-				ret = SQLSetDescField(desc, 1, attr->value, (SQLPOINTER) value, SQL_NTS);
+				ret = SQLSetStmtAttr(Statement, attr->value, (SQLPOINTER) value, SQL_NTS);
 				break;
+			case type_VOIDP:
+			case type_DESC:
+				fatal("Line %u: not implemented\n");
 			}
 			if (!SQL_SUCCEEDED(ret))
-				fatal("Line %u: failure not expected setting ARD attribute\n", line_num);
-			get_attr_p = get_attr_ard;
+				fatal("Line %u: failure not expected setting statement attribute\n", line_num);
+			get_attr_p = get_attr_stmt;
+			continue;
 		}
 
 		/* test attribute */
@@ -322,7 +353,15 @@ main(int argc, char *argv[])
 				g_result = 1;
 				fprintf(stderr, "Line %u: invalid %s got %d expected %d\n", line_num, attr->name, i, expected);
 			}
+			continue;
 		}
+
+		if (strcmp(cmd, "reset") == 0) {
+			ResetStatement();
+			continue;
+		}
+
+		fatal("Line %u: command '%s' not handled\n", line_num, cmd);
 	}
 
 	fclose(f);

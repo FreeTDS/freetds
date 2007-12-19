@@ -1,3 +1,8 @@
+Wed Dec 19 15:35:22 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/attributes.c(added) src/odbc/unittests/attributes.in(added):
+	* src/odbc/unittests/Makefile.am: add a test for statement attributes
+	* src/odbc/unittests/describecol.c: fix possible core
+
 Tue Dec 18 09:09:27 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/cursor3.c(added):
 	* src/odbc/unittests/cursor4.c(added) src/odbc/unittests/cursor5.c(added):
