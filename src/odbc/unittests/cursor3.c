@@ -1,7 +1,7 @@
 /* Tests 2 active statements */
 #include "common.h"
 
-static char software_version[] = "$Id: cursor3.c,v 1.1 2007-12-18 08:10:23 freddy77 Exp $";
+static char software_version[] = "$Id: cursor3.c,v 1.2 2007-12-19 15:09:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLHDBC m_hdbc;
@@ -110,10 +110,10 @@ main(int argc, char **argv)
 	CHECK_RCODE(SQL_HANDLE_STMT,m_hstmt2,"Set attribute SQL_ATTR_CONCURRENCY 2");
 */
 
-	rcode = SQLSetCursorName(m_hstmt1, "c1", SQL_NTS);
+	rcode = SQLSetCursorName(m_hstmt1, (SQLCHAR *) "c1", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SetCursorName c1");
 
-	rcode = SQLSetCursorName(m_hstmt2, "c2", SQL_NTS);
+	rcode = SQLSetCursorName(m_hstmt2, (SQLCHAR *) "c2", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "SetCursorName c2");
 
 	rcode = SQLPrepare(m_hstmt1, (SQLCHAR *) "SELECT * FROM t1", SQL_NTS);

@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: cursor4.c,v 1.1 2007-12-18 08:10:23 freddy77 Exp $";
+static char software_version[] = "$Id: cursor4.c,v 1.2 2007-12-19 15:09:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLHDBC m_hdbc;
@@ -85,7 +85,7 @@ main(int argc, char **argv)
 	rcode = SQLSetStmtAttr(m_hstmt1, SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_LOCK, SQL_IS_UINTEGER);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "Set attribute SQL_ATTR_CONCURRENCY");
 
-	rcode = SQLSetCursorName(m_hstmt1, "c112", SQL_NTS);
+	rcode = SQLSetCursorName(m_hstmt1, (SQLCHAR *) "c112", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SetCursorName c112");
 
 	rcode = SQLPrepare(m_hstmt1, (SQLCHAR *) "SELECT * FROM t1 FOR UPDATE", SQL_NTS);
@@ -106,7 +106,7 @@ main(int argc, char **argv)
 
 	exec_direct(1, "COMMIT TRANSACTION");
 
-	rcode = SQLExecDirect(m_hstmt1, "SELECT c FROM t1 WHERE k = 1", SQL_NTS);
+	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "SELECT c FROM t1 WHERE k = 1", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLExecDirect 2");
 
 	rcode = SQLFetch(m_hstmt1);

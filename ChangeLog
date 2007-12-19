@@ -1,3 +1,7 @@
+Wed Dec 19 16:08:17 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/cursor3.c src/odbc/unittests/cursor4.c:
+	- remove warnings
+
 Wed Dec 19 15:35:22 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/attributes.c(added) src/odbc/unittests/attributes.in(added):
 	* src/odbc/unittests/Makefile.am: add a test for statement attributes
