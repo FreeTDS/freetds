@@ -5,7 +5,7 @@
  * SQLSetStmtAttr
  */
 
-static char software_version[] = "$Id: attributes.c,v 1.1 2007-12-19 14:36:05 freddy77 Exp $";
+static char software_version[] = "$Id: attributes.c,v 1.2 2007-12-19 15:07:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -54,6 +54,19 @@ lookup(const char *name, const struct lookup_int *table)
 			return table->value;
 
 	return get_int(name);
+}
+
+static const char *
+unlookup(int value, const struct lookup_int *table)
+{
+	if (!table)
+		return "??";
+
+	for (; table->name; ++table)
+		if (table->value == value)
+			return table->name;
+
+	return "??";
 }
 
 static struct lookup_int concurrency[] = {
@@ -351,7 +364,7 @@ main(int argc, char *argv[])
 			i = get_attr_p(attr, expected);
 			if (i != expected) {
 				g_result = 1;
-				fprintf(stderr, "Line %u: invalid %s got %d expected %d\n", line_num, attr->name, i, expected);
+				fprintf(stderr, "Line %u: invalid %s got %d(%s) expected %s\n", line_num, attr->name, i, unlookup(i, attr->lookup), value);
 			}
 			continue;
 		}
