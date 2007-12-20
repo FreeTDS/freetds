@@ -5,7 +5,7 @@
 #include "common.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: setnull.c,v 1.7 2007-12-14 10:44:54 freddy77 Exp $";
+static char software_version[] = "$Id: setnull.c,v 1.8 2007-12-20 21:57:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -18,7 +18,7 @@ char_test(const char *null, int bindlen, const char *expected)
 	RETCODE ret;
 
 	if (null) {
-		fprintf(stderr, "\tdbsetnull(CHARBIND, %d, '%s').\n", strlen(null), null);
+		fprintf(stderr, "\tdbsetnull(CHARBIND, %u, '%s').\n", (unsigned int) strlen(null), null);
 		ret = dbsetnull(dbproc, CHARBIND, strlen(null), (BYTE *) null);
 		if (ret != SUCCEED) {
 			fprintf(stderr, "dbsetnull returned error %d\n", (int) ret);

@@ -1,3 +1,8 @@
+Thu Dec 20 22:56:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c src/dblib/unittests/common.h:
+	* src/dblib/unittests/setnull.c src/dblib/unittests/thread.c:
+	- remore warnings
+
 Thu Dec 20 17:46:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:
 	- improve cursor attribute setting

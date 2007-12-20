@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-static char software_version[] = "$Id: thread.c,v 1.11 2007-12-04 02:06:38 jklowden Exp $";
+static char software_version[] = "$Id: thread.c,v 1.12 2007-12-20 21:57:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -95,7 +95,7 @@ static void *
 thread_test(void * arg)
 {
 	int i;
-	int num = (int) arg;
+	int num = ptr2int(arg);
 	DBPROCESS *dbproc;
 	LOGINREC *login;
 
@@ -203,7 +203,7 @@ main(int argc, char **argv)
 	}
 
 	for (i = 0; i < NUM_THREAD; ++i) {
-		int err = pthread_create(&th[i], NULL, thread_test, (void *) i);
+		int err = pthread_create(&th[i], NULL, thread_test, int2ptr(i));
 		if (err != 0)
 		{
 			fprintf(stderr, "Error %d (%s) creating thread\n", err, strerror(err));

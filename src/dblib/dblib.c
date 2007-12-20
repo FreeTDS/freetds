@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.315 2007-12-11 05:12:37 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.316 2007-12-20 21:57:34 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -581,7 +581,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 		case SENSITIVITYBIND:
 #endif
 		default:
-			assert((void*)bindtype == "unknown bindtype with unknown varlen");
+			assert(!"unknown bindtype with unknown varlen");
 		}
 		return SUCCEED;
 	}
@@ -617,7 +617,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 			memset(varaddr, 0, varlen);
 			break;
 		default:
-			assert((void*)bindtype == "unknown bindtype");
+			assert(!"unknown bindtype");
 		}
 	}	
 	return SUCCEED;
@@ -1854,9 +1854,9 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		CHECK_PARAMETER(bindlen >= 0, SYBEBBL, FAIL);
 		break;
 		
-	case NTBSTRINGBIND:	bindlen = strlen(bindval);
+	case NTBSTRINGBIND:	bindlen = strlen((char *) bindval);
 		break;
-	case STRINGBIND:	bindlen = strlen(bindval);
+	case STRINGBIND:	bindlen = strlen((char *) bindval);
 		break;
 	case VARYBINBIND:	bindlen = ((TDS_VARBINARY*) bindval)->len;
 		break;

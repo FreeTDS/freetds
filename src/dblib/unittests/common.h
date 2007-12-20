@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.13 2007-10-24 21:57:36 jklowden Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.14 2007-12-20 21:57:35 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #if HAVE_CONFIG_H
@@ -76,5 +76,8 @@ void free_bread_crumb(void);
 int syb_msg_handler(DBPROCESS * dbproc,
 		    DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
 int syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+
+#define int2ptr(i) ((void*)(((char*)0)+(i)))
+#define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
 
 #endif
