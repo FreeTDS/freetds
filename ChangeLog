@@ -1,3 +1,8 @@
+Thu Dec 20 17:46:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c:
+	- improve cursor attribute setting
+	- fix a small issue with unixODBC and 64 bit
+
 Wed Dec 19 16:08:17 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/cursor3.c src/odbc/unittests/cursor4.c:
 	- remove warnings

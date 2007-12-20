@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.459 2007-11-26 18:12:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.460 2007-12-20 16:48:14 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -472,6 +472,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 	SQLLEN * tmp_offset;
 	SQLPOINTER tmp_bookmark;
 	SQLULEN bookmark;
+	SQLULEN out_len = 0;
 
 	INIT_HSTMT;
 
@@ -485,7 +486,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 
 	/* save and change IRD/ARD state */
 	tmp_rows = stmt->ird->header.sql_desc_rows_processed_ptr;
-	stmt->ird->header.sql_desc_rows_processed_ptr = pcrow;
+	stmt->ird->header.sql_desc_rows_processed_ptr = &out_len;
 	tmp_status = stmt->ird->header.sql_desc_array_status_ptr;
 	stmt->ird->header.sql_desc_array_status_ptr = rgfRowStatus;
 	tmp_size = stmt->ard->header.sql_desc_array_size;
@@ -507,6 +508,8 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 
 	/* restore IRD/ARD */
 	stmt->ird->header.sql_desc_rows_processed_ptr = tmp_rows;
+	if (pcrow)
+		*pcrow = out_len;
 	stmt->ird->header.sql_desc_array_status_ptr = tmp_status;
 	stmt->ard->header.sql_desc_array_size = tmp_size;
 	stmt->ard->header.sql_desc_bind_offset_ptr = tmp_offset;
@@ -1437,7 +1440,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->attr.async_enable = SQL_ASYNC_ENABLE_OFF;
 	stmt->attr.concurrency = SQL_CONCUR_READ_ONLY;
 	stmt->attr.cursor_scrollable = SQL_NONSCROLLABLE;
-	stmt->attr.cursor_sensitivity = SQL_UNSPECIFIED;
+	stmt->attr.cursor_sensitivity = SQL_INSENSITIVE;
 	stmt->attr.cursor_type = SQL_CURSOR_FORWARD_ONLY;
 	/* TODO ?? why two attributes */
 	stmt->attr.enable_auto_ipd = dbc->attr.auto_ipd = SQL_FALSE;
@@ -1755,7 +1758,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 
 	ird = stmt->ird;
 
-#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? (char *)src : (char *)"", -1);
+#define COUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, src ? src : "", -1);
 #define SOUT(src) result = odbc_set_string(rgbDesc, cbDescMax, pcbDesc, tds_dstr_cstr(&src), -1);
 
 /* SQLColAttribute returns always attributes using SQLINTEGER */
@@ -5901,15 +5904,18 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 
 		switch (ui) {
 		case SQL_CONCUR_READ_ONLY:
+			stmt->attr.cursor_sensitivity = SQL_INSENSITIVE;
+			break;
 		case SQL_CONCUR_LOCK:
 		case SQL_CONCUR_ROWVER:
 		case SQL_CONCUR_VALUES:
-			stmt->attr.concurrency = ui;
+			stmt->attr.cursor_sensitivity = SQL_SENSITIVE;
 			break;
 		default:
 			odbc_errs_add(&stmt->errs, "HY092", NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
+		stmt->attr.concurrency = ui;
 		break;
 	case SQL_ATTR_CURSOR_SCROLLABLE:
 		if (stmt->attr.cursor_scrollable != ui && !stmt->dbc->cursor_support) {
@@ -5917,19 +5923,35 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 
-		if (ui == SQL_SCROLLABLE) {
-			/* TODO cursor set cursor_type according */
-			stmt->attr.cursor_scrollable = SQL_SCROLLABLE;
+		switch (ui) {
+		case SQL_SCROLLABLE:
+			stmt->attr.cursor_type = SQL_CURSOR_KEYSET_DRIVEN;
 			break;
+		case SQL_NONSCROLLABLE:
+			stmt->attr.cursor_type = SQL_CURSOR_FORWARD_ONLY;
+			break;
+		default:
+			odbc_errs_add(&stmt->errs, "HY092", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
 		}
-		stmt->attr.cursor_type = SQL_CURSOR_FORWARD_ONLY;
-		stmt->attr.cursor_scrollable = SQL_NONSCROLLABLE;
+		stmt->attr.cursor_scrollable = ui;
 		break;
 	case SQL_ATTR_CURSOR_SENSITIVITY:
-		/* TODO cursors */
-		if (stmt->attr.cursor_sensitivity != ui) {
+		/* don't change anything */
+		if (ui == SQL_UNSPECIFIED)
+			break;
+		if (stmt->attr.cursor_sensitivity != ui && !stmt->dbc->cursor_support) {
 			odbc_errs_add(&stmt->errs, "HYC00", NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
+		}
+		switch (ui) {
+		case SQL_INSENSITIVE:
+			stmt->attr.concurrency = SQL_CONCUR_READ_ONLY;
+			stmt->attr.cursor_type = SQL_CURSOR_STATIC;
+			break;
+		case SQL_SENSITIVE:
+			stmt->attr.concurrency = SQL_CONCUR_ROWVER;
+			break;
 		}
 		stmt->attr.cursor_sensitivity = ui;
 		break;
@@ -5947,18 +5969,25 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		switch (ui) {
 		case SQL_CURSOR_DYNAMIC:
 		case SQL_CURSOR_KEYSET_DRIVEN:
-		case SQL_CURSOR_STATIC:
+			if (stmt->attr.concurrency != SQL_CONCUR_READ_ONLY)
+				stmt->attr.cursor_sensitivity = SQL_SENSITIVE;
 			stmt->attr.cursor_scrollable = SQL_SCROLLABLE;
-			stmt->attr.cursor_type = ui;
+			break;
+		case SQL_CURSOR_STATIC:
+			if (stmt->attr.concurrency != SQL_CONCUR_READ_ONLY)
+				stmt->attr.cursor_sensitivity = SQL_SENSITIVE;
+			else
+				stmt->attr.cursor_sensitivity = SQL_INSENSITIVE;
+			stmt->attr.cursor_scrollable = SQL_SCROLLABLE;
 			break;
 		case SQL_CURSOR_FORWARD_ONLY:
 			stmt->attr.cursor_scrollable = SQL_NONSCROLLABLE;
-			stmt->attr.cursor_type = ui;
 			break;
 		default:
 			odbc_errs_add(&stmt->errs, "HY092", NULL);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
+		stmt->attr.cursor_type = ui;
 		break;
 	case SQL_ATTR_ENABLE_AUTO_IPD:
 		if (stmt->attr.enable_auto_ipd != ui) {
