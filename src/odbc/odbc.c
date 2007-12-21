@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.402.2.5 2007-04-19 08:37:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.402.2.6 2007-12-21 11:19:01 freddy77 Exp $");
 
 static SQLRETURN SQL_API _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN SQL_API _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2748,10 +2748,10 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 
 		switch (result_type) {
 		case TDS_STATUS_RESULT:
-			odbc_set_return_status(stmt);
+			odbc_set_return_status(stmt, stmt->curr_param_row);
 			break;
 		case TDS_PARAM_RESULT:
-			odbc_set_return_params(stmt);
+			odbc_set_return_params(stmt, stmt->curr_param_row);
 			break;
 
 		case TDS_DONE_RESULT:
@@ -2984,38 +2984,7 @@ _SQLFetch(TDS_STMT * stmt)
 				if (row_offset || curr_row == 0) {
 					data_ptr += row_offset;
 				} else {
-					SQLLEN len;
-
-					/* this shit is mine -- freddy77 */
-					switch (c_type) {
-					case SQL_C_CHAR:
-					case SQL_C_BINARY:
-						len = drec_ard->sql_desc_octet_length;
-						break;
-					case SQL_C_DATE:
-					case SQL_C_TYPE_DATE:
-						len = sizeof(DATE_STRUCT);
-						break;
-					case SQL_C_TIME:
-					case SQL_C_TYPE_TIME:
-						len = sizeof(TIME_STRUCT);
-						break;
-					case SQL_C_TIMESTAMP:
-					case SQL_C_TYPE_TIMESTAMP:
-						len = sizeof(TIMESTAMP_STRUCT);
-						break;
-					case SQL_C_NUMERIC:
-						len = sizeof(SQL_NUMERIC_STRUCT);
-						break;
-					default:
-						len = tds_get_size_by_type(odbc_c_to_server_type(c_type));
-						break;
-					}
-					if (len < 0) {
-						row_status = SQL_ROW_ERROR;
-						break;
-					}
-					data_ptr += len * curr_row;
+					data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
 				}
 				len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);

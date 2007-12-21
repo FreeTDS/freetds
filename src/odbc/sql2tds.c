@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.51.2.2 2006-09-07 21:11:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.51.2.3 2007-12-21 11:19:05 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -131,7 +131,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
  */
 SQLRETURN
 sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSPARAMINFO * info, int nparam,
-	int compute_row)
+	int compute_row, const TDS_DESC* axd, unsigned int n_row)
 {
 	TDS_DBC * dbc = stmt->dbc;
 	int dest_type, src_type, sql_src_type, res;
@@ -205,51 +205,27 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		return TDS_SUCCEED;
 
 	src = drec_apd->sql_desc_data_ptr;
-	if (src && stmt->curr_param_row) {
-		if (stmt->apd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
-			src += stmt->apd->header.sql_desc_bind_type * stmt->curr_param_row;
-			if (stmt->apd->header.sql_desc_bind_offset_ptr)
-				src += *stmt->apd->header.sql_desc_bind_offset_ptr;
-		} else {
-			SQLLEN len;
+	if (src && n_row) {
+		SQLLEN len;
 
-			/* this shit is mine -- freddy77 */
-			switch (sql_src_type) {
-			case SQL_C_CHAR:
-			case SQL_C_BINARY:
-				len = drec_apd->sql_desc_octet_length;
-				break;
-			case SQL_C_DATE:
-			case SQL_C_TYPE_DATE:
-				len = sizeof(DATE_STRUCT);
-				break;
-			case SQL_C_TIME:
-			case SQL_C_TYPE_TIME:
-				len = sizeof(TIME_STRUCT);
-				break;
-			case SQL_C_TIMESTAMP:
-			case SQL_C_TYPE_TIMESTAMP:
-				len = sizeof(TIMESTAMP_STRUCT);
-				break;
-			case SQL_C_NUMERIC:
-				len = sizeof(SQL_NUMERIC_STRUCT);
-				break;
-			default:
-				len = tds_get_size_by_type(odbc_c_to_server_type(sql_src_type));
-				break;
-			}
+		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
+			len = axd->header.sql_desc_bind_type;
+			if (axd->header.sql_desc_bind_offset_ptr)
+				src += *axd->header.sql_desc_bind_offset_ptr;
+		} else {
+			len = odbc_get_octet_len(sql_src_type, drec_apd);
 			if (len < 0)
 				/* TODO sure ? what happen to upper layer ?? */
 				return SQL_ERROR;
-			src += len * stmt->curr_param_row;
 		}
+		src += len * n_row;
 	}
 
 	/* if only output assume input is NULL */
 	if (drec_ipd->sql_desc_parameter_type == SQL_PARAM_OUTPUT) {
 		sql_len = SQL_NULL_DATA;
 	} else {
-		sql_len = odbc_get_param_len(drec_apd, drec_ipd);
+		sql_len = odbc_get_param_len(drec_apd, drec_ipd, axd, n_row);
 
 		/* special case, MS ODBC handle conversion from "\0" to any to NULL, DBD::ODBC require it */
 		if (src_type == SYBVARCHAR && sql_len == 1 && drec_ipd->sql_desc_parameter_type == SQL_PARAM_INPUT_OUTPUT

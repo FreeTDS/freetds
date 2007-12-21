@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.85 2006-01-06 10:22:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.85.2.1 2007-12-21 11:19:02 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -108,7 +108,7 @@ odbc_set_stmt_prepared_query(TDS_STMT * stmt, const char *sql, int sql_len)
 
 
 void
-odbc_set_return_status(struct _hstmt *stmt)
+odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
@@ -117,25 +117,40 @@ odbc_set_return_status(struct _hstmt *stmt)
 	if (stmt->prepared_query_is_func && tds->has_status) {
 		struct _drecord *drec;
 		int len;
+		const TDS_DESC* axd = stmt->apd;
+		TDS_INTPTR len_offset;
+		char *data_ptr;
 
-		if (stmt->apd->header.sql_desc_count < 1)
+		if (axd->header.sql_desc_count < 1)
 			return;
-		drec = &stmt->apd->records[0];
+		drec = &axd->records[0];
+		data_ptr = drec->sql_desc_data_ptr;
+
+		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
+			len_offset = axd->header.sql_desc_bind_type * n_row;
+			if (axd->header.sql_desc_bind_offset_ptr)
+				len_offset += *axd->header.sql_desc_bind_offset_ptr;
+			data_ptr += len_offset;
+		} else {
+			len_offset = sizeof(SQLLEN) * n_row;
+			data_ptr += sizeof(SQLINTEGER) * n_row;
+		}
+#define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
 
 		len = convert_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
-				      drec->sql_desc_concise_type, drec->sql_desc_data_ptr, drec->sql_desc_octet_length, NULL);
+				      drec->sql_desc_concise_type, (void *) data_ptr, drec->sql_desc_octet_length, NULL);
 		if (TDS_FAIL == len)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
-			*drec->sql_desc_indicator_ptr = 0;
+			LEN(drec->sql_desc_indicator_ptr) = 0;
 		if (drec->sql_desc_octet_length_ptr)
-			*drec->sql_desc_octet_length_ptr = len;
+			LEN(drec->sql_desc_octet_length_ptr) = len;
 	}
-
+#undef LEN
 }
 
 void
-odbc_set_return_params(struct _hstmt *stmt)
+odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDSPARAMINFO *info = tds->current_results;
@@ -151,30 +166,45 @@ odbc_set_return_params(struct _hstmt *stmt)
 		return;
 
 	for (i = 0; i < info->num_cols; ++i) {
-		struct _drecord *drec_apd, *drec_ipd;
+		const TDS_DESC* axd = stmt->apd;
+		const struct _drecord *drec_apd, *drec_ipd;
 		TDSCOLUMN *colinfo = info->columns[i];
 		TDS_CHAR *src;
 		int srclen;
 		SQLINTEGER len;
 		int c_type;
+		char *data_ptr;
+		TDS_INTPTR len_offset;
 
 		/* find next output parameter */
 		for (;;) {
 			drec_apd = NULL;
 			/* TODO best way to stop */
-			if (nparam >= stmt->apd->header.sql_desc_count || nparam >= stmt->ipd->header.sql_desc_count)
+			if (nparam >= axd->header.sql_desc_count || nparam >= stmt->ipd->header.sql_desc_count)
 				return;
-			drec_apd = &stmt->apd->records[nparam];
+			drec_apd = &axd->records[nparam];
 			drec_ipd = &stmt->ipd->records[nparam];
 			if (stmt->ipd->records[nparam++].sql_desc_parameter_type != SQL_PARAM_INPUT)
 				break;
 		}
 
+		data_ptr = drec_apd->sql_desc_data_ptr;
+		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
+			len_offset = axd->header.sql_desc_bind_type * n_row;
+			if (axd->header.sql_desc_bind_offset_ptr)
+				len_offset += *axd->header.sql_desc_bind_offset_ptr;
+			data_ptr += len_offset;
+		} else {
+			len_offset = sizeof(SQLLEN) * n_row;
+			data_ptr += odbc_get_octet_len(drec_apd->sql_desc_concise_type, drec_apd) * n_row;
+		}
+#define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
+
 		/* null parameter ? */
 		if (colinfo->column_cur_size < 0) {
 			/* FIXME error if NULL */
 			if (drec_apd->sql_desc_indicator_ptr)
-				*drec_apd->sql_desc_indicator_ptr = SQL_NULL_DATA;
+				LEN(drec_apd->sql_desc_indicator_ptr) = SQL_NULL_DATA;
 			continue;
 		}
 
@@ -190,14 +220,15 @@ odbc_set_return_params(struct _hstmt *stmt)
 		 * Or tests are wrong ??
 		 */
 		len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size), src, srclen,
-				      c_type, drec_apd->sql_desc_data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
+				      c_type, (void *) data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
 		/* TODO error handling */
 		if (len < 0)
 			return /* SQL_ERROR */ ;
 		if (drec_apd->sql_desc_indicator_ptr)
-			*drec_apd->sql_desc_indicator_ptr = 0;
+			LEN(drec_apd->sql_desc_indicator_ptr) = 0;
 		if (drec_apd->sql_desc_octet_length_ptr)
-			*drec_apd->sql_desc_octet_length_ptr = len;
+			LEN(drec_apd->sql_desc_octet_length_ptr) = len;
+#undef LEN
 	}
 }
 
@@ -713,26 +744,36 @@ odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 
 /** Return length of parameter from parameter information */
 SQLINTEGER
-odbc_get_param_len(const struct _drecord *drec_apd, const struct _drecord *drec_ipd)
+odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_ixd, const TDS_DESC* axd, unsigned int n_row)
 {
 	SQLINTEGER len;
 	int size;
+	TDS_INTPTR len_offset;
 
-	if (drec_apd->sql_desc_indicator_ptr && *drec_apd->sql_desc_indicator_ptr == SQL_NULL_DATA)
+	if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
+		len_offset = axd->header.sql_desc_bind_type * n_row;
+		if (axd->header.sql_desc_bind_offset_ptr)
+			len_offset += *axd->header.sql_desc_bind_offset_ptr;
+	} else {
+		len_offset = sizeof(SQLLEN) * n_row;
+	}
+#define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
+
+	if (drec_axd->sql_desc_indicator_ptr && LEN(drec_axd->sql_desc_indicator_ptr) == SQL_NULL_DATA)
 		len = SQL_NULL_DATA;
-	else if (drec_apd->sql_desc_octet_length_ptr)
-		len = *drec_apd->sql_desc_octet_length_ptr;
+	else if (drec_axd->sql_desc_octet_length_ptr)
+		len = LEN(drec_axd->sql_desc_octet_length_ptr);
 	else {
 		len = 0;
 		/* TODO add XML if defined */
 		/* FIXME, other types available */
-		if (drec_apd->sql_desc_concise_type == SQL_C_CHAR || drec_apd->sql_desc_concise_type == SQL_C_BINARY) {
+		if (drec_axd->sql_desc_concise_type == SQL_C_CHAR || drec_axd->sql_desc_concise_type == SQL_C_BINARY) {
 			len = SQL_NTS;
 		} else {
-			int type = drec_apd->sql_desc_concise_type;
+			int type = drec_axd->sql_desc_concise_type;
 
 			if (type == SQL_C_DEFAULT)
-				type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+				type = odbc_sql_to_c_type_default(drec_ixd->sql_desc_concise_type);
 			type = odbc_c_to_server_type(type);
 
 			/* FIXME check what happen to DATE/TIME types */
@@ -742,6 +783,7 @@ odbc_get_param_len(const struct _drecord *drec_apd, const struct _drecord *drec_
 		}
 	}
 	return len;
+#undef LEN
 }
 
 #ifdef SQL_GUID
@@ -963,6 +1005,39 @@ odbc_set_concise_c_type(SQLSMALLINT concise_type, struct _drecord * drec, int ch
 #undef TYPE_VERBOSE
 #undef TYPE_VERBOSE_DATE
 #undef TYPE_VERBOSE_END
+}
+
+SQLLEN
+odbc_get_octet_len(int c_type, const struct _drecord *drec)
+{
+	SQLLEN len;
+
+	/* this shit is mine -- freddy77 */
+	switch (c_type) {
+	case SQL_C_CHAR:
+	case SQL_C_BINARY:
+		len = drec->sql_desc_octet_length;
+		break;
+	case SQL_C_DATE:
+	case SQL_C_TYPE_DATE:
+		len = sizeof(DATE_STRUCT);
+		break;
+	case SQL_C_TIME:
+	case SQL_C_TYPE_TIME:
+		len = sizeof(TIME_STRUCT);
+		break;
+	case SQL_C_TIMESTAMP:
+	case SQL_C_TYPE_TIMESTAMP:
+		len = sizeof(TIMESTAMP_STRUCT);
+		break;
+	case SQL_C_NUMERIC:
+		len = sizeof(SQL_NUMERIC_STRUCT);
+		break;
+	default:
+		len = tds_get_size_by_type(odbc_c_to_server_type(c_type));
+		break;
+	}
+	return len;
 }
 
 /** \@} */
