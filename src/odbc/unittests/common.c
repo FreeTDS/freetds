@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.40 2007-04-11 12:57:14 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.41 2007-12-21 10:39:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -348,5 +348,29 @@ ResetStatement(void)
 	Statement = SQL_NULL_HSTMT;
 	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS)
 		ODBC_REPORT_ERROR("Unable to allocate statement");
+}
+
+void
+CheckCursor(void)
+{
+	SQLRETURN retcode;
+
+	retcode = SQLSetStmtAttr(Statement, SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_ROWVER, 0);
+	if (retcode != SQL_SUCCESS) {
+		char output[256];
+		unsigned char sqlstate[6];
+
+		retcode = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL);
+		if (retcode != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLGetDiagRec");
+		sqlstate[5] = 0;
+		if (strcmp((const char*) sqlstate, "01S02") == 0) {
+			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
+			Disconnect();
+			exit(0);
+		}
+		ODBC_REPORT_ERROR("SQLSetStmtAttr");
+	}
+	ResetStatement();
 }
 

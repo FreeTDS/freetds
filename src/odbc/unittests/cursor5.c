@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.1 2007-12-18 08:10:23 freddy77 Exp $";
+static char software_version[] = "$Id: cursor5.c,v 1.2 2007-12-21 10:39:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -60,12 +60,9 @@ main(int argc, char **argv)
 	SQLHSTMT m_hstmt1;
 	SQLHSTMT m_hstmt2;
 
-#ifndef ENABLE_DEVELOPING
-	return 0;
-#endif
-
 	use_odbc_version3 = 1;
 	Connect();
+	CheckCursor();
 	m_hdbc = Connection;
 
 	rcode = SQLSetConnectAttr(m_hdbc, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER);

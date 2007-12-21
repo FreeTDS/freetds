@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: cursor4.c,v 1.2 2007-12-19 15:09:55 freddy77 Exp $";
+static char software_version[] = "$Id: cursor4.c,v 1.3 2007-12-21 10:39:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLHDBC m_hdbc;
@@ -65,12 +65,10 @@ main(int argc, char **argv)
 	char buff[64];
 	SQLLEN ind;
 
-#ifndef ENABLE_DEVELOPING
-	return 0;
-#endif
-
 	use_odbc_version3 = 1;
 	Connect();
+
+	CheckCursor();
 
 	m_hdbc = Connection;
 

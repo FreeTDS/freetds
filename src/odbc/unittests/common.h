@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.20 2007-11-26 18:12:30 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.21 2007-12-21 10:39:10 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -53,6 +53,7 @@ void CheckRows(int n, int line, const char * file);
 #define CHECK_ROWS(n) CheckRows(n, __LINE__, __FILE__)
 #define CHECK_COLS(n) CheckCols(n, __LINE__, __FILE__)
 void ResetStatement(void);
+void CheckCursor(void);
 
 #define ODBC_REPORT_ERROR(msg) ReportError(msg, __LINE__, __FILE__)
 int Connect(void);
