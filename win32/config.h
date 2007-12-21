@@ -148,7 +148,10 @@
 /* #undef HAVE_VASPRINTF */
 
 /* Define to 1 if you have the `vsnprintf' function. */
-#define HAVE_VSNPRINTF 1
+/* #undef HAVE_VSNPRINTF */
+
+/* Define to 1 if you have the `_vsnprintf' function. */
+#define HAVE__VSNPRINTF 1
 
 /* Define as const if the declaration of iconv() needs const. */
 #define ICONV_CONST const
@@ -213,7 +216,7 @@
 #endif
 
 /* Version number of package */
-#define VERSION "0.63"
+#define VERSION "0.65"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */

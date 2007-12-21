@@ -30,7 +30,14 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vasprintf.c,v 1.16 2006-12-26 14:56:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: vasprintf.c,v 1.17 2007-12-21 09:06:53 freddy77 Exp $");
+
+#if defined(HAVE__VSNPRINTF) && !defined(HAVE_VSNPRINTF)
+#undef HAVE_VSNPRINTF
+#undef vsnprintf
+#define HAVE_VSNPRINTF 1
+#define vsnprintf _vsnprintf
+#endif
 
 #ifndef _PATH_DEVNULL
 #define _PATH_DEVNULL "/dev/null"
