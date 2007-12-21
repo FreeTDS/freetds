@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.460 2007-12-20 16:48:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.461 2007-12-21 15:23:24 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2843,6 +2843,96 @@ odbc_populate_ird(TDS_STMT * stmt)
 	return (SQL_SUCCESS);
 }
 
+static int
+odbc_cursor_execute(TDS_STMT * stmt)
+{
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	int send = 0, i, ret;
+	TDSCURSOR *cursor;
+	TDSPARAMINFO *params = NULL;
+
+	assert(tds);
+	assert(stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY);
+
+	if (stmt->cursor) {
+		tds_release_cursor(tds, stmt->cursor);
+		stmt->cursor = NULL;
+	}
+	if (stmt->query) {
+		cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
+	} else {
+		params = stmt->params;
+		cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->prepared_query, strlen(stmt->prepared_query));
+	}
+	if (!cursor) {
+		stmt->dbc->current_statement = NULL;
+
+		odbc_errs_add(&stmt->errs, "HY001", NULL);
+		return TDS_FAIL;
+	}
+	stmt->cursor = cursor;
+
+	/* TODO cursor add enums for tds7 */
+	switch (stmt->attr.cursor_type) {
+	default:
+	case SQL_CURSOR_FORWARD_ONLY:
+		i = 4;
+		break;
+	case SQL_CURSOR_STATIC:
+		i = 8;
+		break;
+	case SQL_CURSOR_KEYSET_DRIVEN:
+		i = 1;
+		break;
+	case SQL_CURSOR_DYNAMIC:
+		i = 2;
+		break;
+	}
+	cursor->type = i;
+
+	switch (stmt->attr.concurrency) {
+	default:
+	case SQL_CONCUR_READ_ONLY:
+		i = 1;
+		break;
+	case SQL_CONCUR_LOCK:
+		i = 2;
+		break;
+	case SQL_CONCUR_ROWVER:
+		i = 4;
+		break;
+	case SQL_CONCUR_VALUES:
+		i = 8;
+		break;
+	}
+	cursor->concurrency = 0x2000 | i;
+
+	ret = tds_cursor_declare(tds, cursor, params, &send);
+	if (ret != TDS_SUCCEED)
+		return ret;
+	/* TODO support parameters */
+	ret = tds_cursor_open(tds, cursor, params, &send);
+	if (ret != TDS_SUCCEED)
+		return ret;
+	/* TODO read results, set row count, check type and scroll returned */
+	ret = tds_flush_packet(tds);
+	tds_set_state(tds, TDS_PENDING);
+	/* set cursor name for TDS7+ */
+	if (ret == TDS_SUCCEED && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
+		ret = tds_process_simple_query(tds);
+		stmt->dbc->current_statement = NULL;
+		if (ret == TDS_SUCCEED && cursor->cursor_id != 0) {
+			ret = tds_cursor_setname(tds, cursor);
+			tds_set_state(tds, TDS_PENDING);
+		}
+		if (!cursor->cursor_id) {
+			stmt->cursor = NULL;
+			tds_cursor_dealloc(tds, cursor);
+		}
+	}
+	return ret;
+}
+
 static SQLRETURN
 _SQLExecute(TDS_STMT * stmt)
 {
@@ -2902,84 +2992,13 @@ _SQLExecute(TDS_STMT * stmt)
 		*end = 0;
 		ret = tds_submit_rpc(tds, name, stmt->params);
 		*end = tmp;
+	} else if (stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY) {
+		ret = odbc_cursor_execute(stmt);
 	} else if (stmt->query) {
 		/* not prepared query */
 		/* TODO cursor change way of calling */
 		/* SQLExecDirect */
-		if (stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY) {
-			int send = 0, i;
-			TDSCURSOR *cursor;
-
-			if (stmt->cursor)
-				tds_release_cursor(tds, stmt->cursor);
-			stmt->cursor = cursor =
-				tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
-			if (!cursor) {
-				stmt->dbc->current_statement = NULL;
-
-				odbc_errs_add(&stmt->errs, "HY001", NULL);
-				ODBC_RETURN(stmt, SQL_ERROR);
-			}
-
-			/* TODO cursor add enums for tds7 */
-			switch (stmt->attr.cursor_type) {
-			default:
-			case SQL_CURSOR_FORWARD_ONLY:
-				i = 4;
-				break;
-			case SQL_CURSOR_STATIC:
-				i = 8;
-				break;
-			case SQL_CURSOR_KEYSET_DRIVEN:
-				i = 1;
-				break;
-			case SQL_CURSOR_DYNAMIC:
-				i = 2;
-				break;
-			}
-			cursor->type = i;
-
-			switch (stmt->attr.concurrency) {
-			default:
-			case SQL_CONCUR_READ_ONLY:
-				i = 1;
-				break;
-			case SQL_CONCUR_LOCK:
-				i = 2;
-				break;
-			case SQL_CONCUR_ROWVER:
-				i = 4;
-				break;
-			case SQL_CONCUR_VALUES:
-				i = 8;
-				break;
-			}
-			cursor->concurrency = 0x2000 | i;
-
-			ret = tds_cursor_declare(tds, cursor, &send);
-			if (ret != TDS_SUCCEED)
-				ODBC_RETURN(stmt, SQL_ERROR);
-			/* TODO support parameters */
-			ret = tds_cursor_open(tds, cursor, &send);
-			if (ret != TDS_SUCCEED)
-				ODBC_RETURN(stmt, SQL_ERROR);
-			/* TODO read results, set row count, check type and scroll returned */
-			ret = tds_flush_packet(tds);
-			tds_set_state(tds, TDS_PENDING);
-			/* set cursor name for TDS7+ */
-			if (ret == TDS_SUCCEED && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
-				ret = tds_process_simple_query(tds);
-				stmt->dbc->current_statement = NULL;
-				if (ret == TDS_SUCCEED && cursor->cursor_id != 0) {
-					ret = tds_cursor_setname(tds, cursor);
-					tds_set_state(tds, TDS_PENDING);
-				}
-				if (!cursor->cursor_id) {
-					stmt->cursor = NULL;
-					tds_cursor_dealloc(tds, cursor);
-				}
-			}
-		} else if (stmt->num_param_rows <= 1) {
+		if (stmt->num_param_rows <= 1) {
 			if (!stmt->params) {
 				ret = tds_submit_query(tds, stmt->query);
 			} else {
@@ -4079,9 +4098,16 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	if (SQL_SUCCESS != prepare_call(stmt))
 		ODBC_RETURN(stmt, SQL_ERROR);
 
+	/* TODO needed ?? */
+	if (stmt->dyn) {
+		tds_free_dynamic(stmt->dbc->tds_socket, stmt->dyn);
+		stmt->dyn = NULL;
+	}
+
 	/* try to prepare query */
 	/* TODO support getting info for RPC */
-	if (!stmt->prepared_query_is_rpc) {
+	if (!stmt->prepared_query_is_rpc
+		 && (stmt->attr.cursor_type == SQL_CURSOR_FORWARD_ONLY && stmt->attr.concurrency == SQL_CONCUR_READ_ONLY)) {
 		TDSDYNAMIC *dyn;
 
 		TDS_INT result_type;
@@ -4089,12 +4115,6 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		int done_flags;
 		TDSPARAMINFO *params = NULL;
 		TDSSOCKET *tds = stmt->dbc->tds_socket;
-
-		/* TODO needed ?? */
-		if (stmt->dyn) {
-			tds_free_dynamic(tds, stmt->dyn);
-			stmt->dyn = NULL;
-		}
 
 		/*
 		 * using TDS7+ we need parameters to prepare a query so try
@@ -4507,7 +4527,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	}
 
 	/* read data from TDS only if current statement */
-	if (stmt->dbc->current_statement != stmt || stmt->row_status == PRE_NORMAL_ROW || stmt->row_status == NOT_IN_ROW) {
+	if ((stmt->cursor == NULL && stmt->dbc->current_statement != stmt) || stmt->row_status == PRE_NORMAL_ROW || stmt->row_status == NOT_IN_ROW) {
 		odbc_errs_add(&stmt->errs, "24000", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}

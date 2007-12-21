@@ -1,3 +1,7 @@
+Fri Dec 21 16:20:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/ct.c src/odbc/odbc.c src/tds/query.c:
+	- make odbc cursor test work using sp_cursoropen with parameters
+
 Fri Dec 21 11:38:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
 	* src/odbc/unittests/cursor3.c src/odbc/unittests/cursor4.c:

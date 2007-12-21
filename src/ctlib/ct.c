@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.176 2007-10-30 15:39:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.177 2007-12-21 15:23:24 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1000,7 +1000,7 @@ ct_send(CS_COMMAND * cmd)
 		}
 
 		if (cursor->status.declare == _CS_CURS_TYPE_REQUESTED) {
-			ret =  tds_cursor_declare(tds, cursor, &something_to_send);
+			ret =  tds_cursor_declare(tds, cursor, NULL, &something_to_send);
 			if (ret == CS_SUCCEED){
 				cursor->status.declare = _CS_CURS_TYPE_SENT; /* Cursor is declared */
 				if (something_to_send == 0) {
@@ -1032,7 +1032,7 @@ ct_send(CS_COMMAND * cmd)
 		if (cursor->status.open == _CS_CURS_TYPE_REQUESTED &&
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
-			ret = tds_cursor_open(tds, cursor, &something_to_send);
+			ret = tds_cursor_open(tds, cursor, NULL, &something_to_send);
  			if (ret == CS_SUCCEED){
 				cursor->status.open = _CS_CURS_TYPE_SENT;
 				cmd->results_state = _CS_RES_INIT;

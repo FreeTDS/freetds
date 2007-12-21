@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.214 2007-10-30 12:18:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.215 2007-12-21 15:23:24 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2040,7 +2040,7 @@ tds_set_cur_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 }
 
 int
-tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
+tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *something_to_send)
 {
 	CHECK_TDS_EXTRA(tds);
 
@@ -2087,7 +2087,7 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 }
 
 int
-tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
+tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *something_to_send)
 {
 	int converted_query_len;
 	const char *converted_query;
@@ -2123,6 +2123,9 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		*something_to_send = 1;
 	}
 	if (IS_TDS7_PLUS(tds)) {
+		int definition_len = 0;
+		char *param_definition = NULL;
+		int num_params = params ? params->num_cols : 0;
 
 		/* cursor statement */
 		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2],
@@ -2131,6 +2134,16 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 			if (!*something_to_send)
 				tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
+		}
+
+		if (num_params) {
+			param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
+			if (!param_definition) {
+				tds_convert_string_free(cursor->query, converted_query);
+				if (!*something_to_send)
+					tds_set_state(tds, TDS_IDLE);
+				return TDS_FAIL;
+			}
 		}
 
 		/* RPC call to sp_cursoropen */
@@ -2158,14 +2171,18 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 0);
 
-		tds_put_byte(tds, 0);
-		tds_put_byte(tds, 0);
-		tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
-		tds_put_int(tds, converted_query_len);
-		if (IS_TDS8_PLUS(tds))
-			tds_put_n(tds, tds->collation, 5);
-		tds_put_int(tds, converted_query_len);
-		tds_put_n(tds, converted_query, converted_query_len);
+		if (definition_len) {
+			tds7_put_query_params(tds, converted_query, converted_query_len);
+		} else {
+			tds_put_byte(tds, 0);
+			tds_put_byte(tds, 0);
+			tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
+			tds_put_int(tds, converted_query_len);
+			if (IS_TDS8_PLUS(tds))
+				tds_put_n(tds, tds->collation, 5);
+			tds_put_int(tds, converted_query_len);
+			tds_put_n(tds, converted_query, converted_query_len);
+		}
 		tds_convert_string_free(cursor->query, converted_query);
 
 		/* type */
@@ -2190,6 +2207,20 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 		tds_put_byte(tds, SYBINTN);
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 0);
+
+		if (definition_len) {
+			int i;
+
+			tds7_put_params_definition(tds, param_definition, definition_len);
+
+			for (i = 0; i < num_params; i++) {
+				TDSCOLUMN *param = params->columns[i];
+				/* TODO check error */
+				tds_put_data_info(tds, param, 0);
+				tds_put_data(tds, param);
+			}
+		}
+		free(param_definition);
 
 		*something_to_send = 1;
 		tds->internal_sp_called = TDS_SP_CURSOROPEN;

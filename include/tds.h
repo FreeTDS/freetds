@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.281 2007-12-07 05:27:55 jklowden Exp $ */
+/* $Id: tds.h,v 1.282 2007-12-21 15:23:23 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1163,7 +1163,6 @@ typedef struct _tds_cursor
 {
 	struct _tds_cursor *next;	/**< next in linked list, keep first */
 	TDS_INT ref_count;		/**< reference counter so client can retain safely a pointer */
-	TDS_INT length;			/**< total length of the remaining datastream */
 	TDS_TINYINT cursor_name_len;	/**< length of cursor name > 0 and <= 30  */
 	char *cursor_name;		/**< name of the cursor */
 	TDS_INT cursor_id;		/**< cursor id returned by the server after cursor declare */
@@ -1477,9 +1476,9 @@ int tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
 const char *tds_skip_quoted(const char *s);
 
-int tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
+int tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
 int tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
-int tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
+int tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
 int tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row);
 int tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
 int tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
