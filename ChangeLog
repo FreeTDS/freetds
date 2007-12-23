@@ -1,3 +1,10 @@
+Sun Dec 23 16:08:29 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/apps/tsql.c 
+	* src/ctlib/cs.c src/ctlib/unittests/common.c
+	* src/dblib/dblib.c
+	* src/tds/config.c src/tds/unittests/convert.c
+	- added STD_DATETIME_FMT to allow for WIN32 shortcomings
+
 Fri Dec 21 16:20:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/ct.c src/odbc/odbc.c src/tds/query.c:
 	- make odbc cursor test work using sp_cursoropen with parameters
@@ -16,7 +23,7 @@ Fri Dec 21 10:05:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 Thu Dec 20 22:56:34 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c src/dblib/unittests/common.h:
 	* src/dblib/unittests/setnull.c src/dblib/unittests/thread.c:
-	- remore warnings
+	- remove warnings
 
 Thu Dec 20 17:46:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:

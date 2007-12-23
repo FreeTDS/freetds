@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.22 2007-08-16 06:31:09 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.23 2007-12-23 21:12:02 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -49,6 +49,8 @@ free_convert(int type, CONV_RESULT *cr)
 		break;
 	}
 }
+
+extern const char STD_DATETIME_FMT[];
 
 int
 main(int argc, char **argv)
@@ -101,7 +103,7 @@ main(int argc, char **argv)
 	assert(ctx);
 	if (ctx->locale && !ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
-		ctx->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
+		ctx->locale->date_fmt = strdup(STD_DATETIME_FMT);
 	}
 
 

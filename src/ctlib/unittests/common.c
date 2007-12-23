@@ -16,7 +16,7 @@
 #include "common.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: common.c,v 1.14 2004-07-21 19:28:01 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.15 2007-12-23 21:12:02 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -71,6 +71,7 @@ read_login_info(void)
 	return CS_SUCCEED;
 }
 
+extern const char STD_DATETIME_FMT[];
 
 CS_RETCODE
 try_ctlogin(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)
@@ -99,7 +100,7 @@ TDSCONTEXT *tds_ctx;
 	tds_ctx = (TDSCONTEXT *) (*ctx)->tds_ctx;
 	if (tds_ctx && tds_ctx->locale && tds_ctx->locale->date_fmt) {
 		free(tds_ctx->locale->date_fmt);
-		tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
+		tds_ctx->locale->date_fmt = strdup(STD_DATETIME_FMT);
 	}
 
 	ret = ct_init(*ctx, CS_VERSION_100);

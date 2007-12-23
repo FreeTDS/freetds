@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.316 2007-12-20 21:57:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.317 2007-12-23 21:12:02 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -284,7 +284,13 @@ dblib_get_tds_ctx(void)
 
 		if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
 			/* set default in case there's no locale file */
-			g_dblib_ctx.tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M:%S:%z%p");
+			const static char date_format[] = 
+#ifndef WIN32
+							   "%b %e %Y %I:%M:%S:%z%p";
+#else
+							   "%b %d %Y %I:%M:%S:%z%p";
+#endif
+			g_dblib_ctx.tds_ctx->locale->date_fmt = strdup(date_format);
 		}
 	}
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
@@ -3225,6 +3231,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	return SUCCEED;
 }
 
+extern const char STD_DATETIME_FMT[];
 /**
  * \ingroup dblib_core
  * \brief Print a result set to stdout. 
@@ -3288,7 +3295,7 @@ dbprrow(DBPROCESS * dbproc)
 					if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 						memset(&when, 0, sizeof(when));
 						tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
-						len = tds_strftime(dest, sizeof(dest), "%b %e %Y %I:%M%p", &when);
+						len = tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when);
 					} else {
 						len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1),
 								desttype, (BYTE *) dest, sizeof(dest));
@@ -3422,7 +3429,7 @@ dbprrow(DBPROCESS * dbproc)
 				if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 					memset(&when, 0, sizeof(when));
 					tds_datecrack(srctype, dbadata(dbproc, computeid, col), &when);
-					len = tds_strftime(dest, sizeof(dest), "%b %e %Y %I:%M%p", &when);
+					len = tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when);
 				} else {
 					len = dbconvert(dbproc, srctype, dbadata(dbproc, computeid, col), -1, desttype,
 							(BYTE *) dest, sizeof(dest));

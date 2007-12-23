@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.131 2007-11-03 13:36:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.132 2007-12-23 21:12:02 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -98,12 +98,14 @@ static char *interf_file = NULL;
 #define TDS_ISSPACE(c) isspace((unsigned char ) (c))
 
 #if !defined(WIN32) && !defined(DOS32X)
+       const char STD_DATETIME_FMT[] = "%b %e %Y %I:%M%p";
 static const char pid_config_logpath[] = "/tmp/tdsconfig.log.%d";
 static const char freetds_conf[] = "%s/etc/freetds.conf";
 static const char location[] = "(from $FREETDS/etc)";
 static const char pid_logpath[] = "/tmp/freetds.log.%d";
 static const char interfaces_path[] = "/etc/freetds";
 #else
+       const char STD_DATETIME_FMT[] = "%b %d %Y %I:%M%p"; /* msvcr80.dll does not support %e */
 static const char pid_config_logpath[] = "c:\\tdsconfig.log.%d";
 static const char freetds_conf [] = "%s\\freetds.conf";
 static const char location[] = "(from $FREETDS)";

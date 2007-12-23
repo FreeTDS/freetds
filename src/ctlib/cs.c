@@ -49,7 +49,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.64 2007-10-16 15:12:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.65 2007-12-23 21:12:02 jklowden Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -304,6 +304,8 @@ Cleanup:
 	return NULL;
 }
 
+extern const char STD_DATETIME_FMT[];
+
 CS_RETCODE
 cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx)
 {
@@ -319,7 +321,7 @@ TDSCONTEXT *tds_ctx;
 	(*ctx)->tds_ctx = tds_ctx;
 	if (tds_ctx->locale && !tds_ctx->locale->date_fmt) {
 		/* set default in case there's no locale file */
-		tds_ctx->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
+		tds_ctx->locale->date_fmt = strdup(STD_DATETIME_FMT);
 	}
 	return CS_SUCCEED;
 }

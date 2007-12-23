@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.111 2007-11-09 10:30:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.112 2007-12-23 21:12:02 jklowden Exp $");
 
 enum
 {
@@ -574,6 +574,7 @@ slurp_input_file(char *fname, char **mybuf, int *bufsz, size_t *buflen, int *lin
 	}
 }
 
+extern const char STD_DATETIME_FMT[];
 
 int
 main(int argc, char **argv)
@@ -607,7 +608,7 @@ main(int argc, char **argv)
 	context = tds_alloc_context(NULL);
 	if (context->locale && !context->locale->date_fmt) {
 		/* set default in case there's no locale file */
-		context->locale->date_fmt = strdup("%b %e %Y %I:%M%p");
+		context->locale->date_fmt = strdup(STD_DATETIME_FMT);
 	}
 
 	context->msg_handler = tsql_handle_message;
