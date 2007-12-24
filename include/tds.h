@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.282 2007-12-21 15:23:23 freddy77 Exp $ */
+/* $Id: tds.h,v 1.283 2007-12-24 10:35:23 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1171,11 +1171,10 @@ typedef struct _tds_cursor
 	TDS_USMALLINT query_len;	/**< SQL query length */
 	char *query;                 	/**< SQL query */
 	/* TODO for updatable columns */
-	TDS_TINYINT number_upd_cols;	/**< number of updatable columns */
+	/* TDS_TINYINT number_upd_cols; */	/**< number of updatable columns */
+	/* TDSUPDCOL *cur_col_list; */	/**< updatable column list */
 	TDS_INT cursor_rows;		/**< number of cursor rows to fetch */
-	/*TODO when cursor has parameters*/
-	/*TDS_PARAM *param_list;	 cursor parameter */
-	TDSUPDCOL *cur_col_list;	/**< updatable column list */
+	/* TDSPARAMINFO *params; */	/** cursor parameter */
 	TDS_CURSOR_STATUS status;
 	TDS_SMALLINT srv_status;
 	TDSRESULTINFO *res_info;	/** row fetched from this cursor */

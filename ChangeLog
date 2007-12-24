@@ -1,3 +1,6 @@
+Mon Dec 24 11:34:58 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h: removed unused fields
+
 Sun Dec 23 16:08:29 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/apps/tsql.c 
 	* src/ctlib/cs.c src/ctlib/unittests/common.c
