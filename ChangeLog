@@ -1,3 +1,8 @@
+Tue Dec 25 00:55:02 EST 2007	JK Lowden <jklowden@freetds.org>
+	* freetds.conf doc/Makefile.am doc/freetds.conf.5 (added)
+	- shortened default freetds.conf and moved documentation
+	- to a proper man page.  Merry Christmas! 
+
 Mon Dec 24 11:34:58 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h: removed unused fields
 
