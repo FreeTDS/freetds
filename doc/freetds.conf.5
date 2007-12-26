@@ -1,4 +1,4 @@
-.\" $Id: freetds.conf.5,v 1.1 2007-12-25 06:02:37 jklowden Exp $
+.\" $Id: freetds.conf.5,v 1.2 2007-12-26 18:45:17 freddy77 Exp $
 .Dd December 23, 2007
 .Os [FreeTDS] [@version@]
 .Dt FREETDS.CONF 5
@@ -197,7 +197,7 @@ property.
 The file is normally named
 .Pa /etc/freetds.conf
 or
-.Pa $(HOME}.freetds.conf .
+.Pa ${HOME}/.freetds.conf .
 That name can be overridden with the FREETDSCONF environment variable.
 .Pp
 FreeTDS will search conf files for a servername in the following order:
@@ -260,7 +260,7 @@ overrides the port property
 .It Ev TDSQUERY
 synonym for DSQUERY, the default servername
 .It Ev TDSVER
-overrides the host specified in the freetds.conf
+overrides the version specified in the freetds.conf
 .El
 .Pp
 The environment variables
@@ -270,7 +270,7 @@ override values set by a .conf or
 file.
 .
 .Sh FILES
-.Pa @sysconfdir@/freetds.conf , ${HOME}.freetds.conf
+.Pa @sysconfdir@/freetds.conf , ${HOME}/.freetds.conf
 .
 .Sh SEE ALSO
 .Rs

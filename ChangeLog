@@ -1,3 +1,8 @@
+Wed Dec 26 19:44:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/freetds.conf.5: typo fix
+	* src/ctlib/unittests/common.c: make tests compile
+	* src/odbc/odbc.c: add diagnostic for truncate
+
 Tue Dec 25 00:55:02 EST 2007	JK Lowden <jklowden@freetds.org>
 	* freetds.conf doc/Makefile.am doc/freetds.conf.5 (added)
 	- shortened default freetds.conf and moved documentation

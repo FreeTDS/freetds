@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.461 2007-12-21 15:23:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.462 2007-12-26 18:45:17 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2910,7 +2910,6 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	ret = tds_cursor_declare(tds, cursor, params, &send);
 	if (ret != TDS_SUCCEED)
 		return ret;
-	/* TODO support parameters */
 	ret = tds_cursor_open(tds, cursor, params, &send);
 	if (ret != TDS_SUCCEED)
 		return ret;
@@ -3350,6 +3349,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	SQLULEN dummy, *fetched_ptr;
 	SQLUSMALLINT *status_ptr, row_status;
 	TDS_INT result_type;
+	int truncated = 0;
 
 #define AT_ROW(ptr, type) (row_offset ? (type*)(((char*)(ptr)) + row_offset) : &ptr[curr_row])
 	SQLLEN row_offset = 0;
@@ -3451,8 +3451,6 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 
 	curr_row = 0;
 	do {
-		int truncated = 0;
-
 		row_status = SQL_ROW_SUCCESS;
 
 		/* do not get compute row if we are not expecting a compute row */
@@ -3568,7 +3566,6 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				if ((c_type == SQL_C_CHAR && len >= drec_ard->sql_desc_octet_length)
 				    || (c_type == SQL_C_BINARY && len > drec_ard->sql_desc_octet_length)) {
 					truncated = 1;
-					/* TODO add diagnostic */
 					stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
 				}
 			} else {
@@ -3591,6 +3588,9 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 #endif
 			row_offset += stmt->ard->header.sql_desc_bind_type;
 	} while (++curr_row < num_rows);
+
+	if (truncated)
+		odbc_errs_add(&stmt->errs, "01004", NULL);
 
       all_done:
 	/* TODO cursor correct ?? */
