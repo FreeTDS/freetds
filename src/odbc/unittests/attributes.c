@@ -5,7 +5,7 @@
  * SQLSetStmtAttr
  */
 
-static char software_version[] = "$Id: attributes.c,v 1.2 2007-12-19 15:07:04 freddy77 Exp $";
+static char software_version[] = "$Id: attributes.c,v 1.3 2007-12-26 20:57:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -276,6 +276,8 @@ main(int argc, char *argv[])
 	get_attr_t get_attr_p = get_attr_stmt;
 
 	Connect();
+	/* TODO find another way */
+	CheckCursor();
 	Command(Statement, "SET TEXTSIZE 4096");
 
 	SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);

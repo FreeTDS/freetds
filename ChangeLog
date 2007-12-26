@@ -1,3 +1,6 @@
+Wed Dec 26 21:57:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/attributes.c: make it works
+
 Wed Dec 26 19:44:47 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/freetds.conf.5: typo fix
 	* src/ctlib/unittests/common.c: make tests compile
