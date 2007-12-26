@@ -18,8 +18,7 @@ Tests:
    add multiple chained RPCs for odbc and mssql7+...
  - cursor update and multiple tables (using view)
 ODBC cursor check (cfr "Progress on CVS")
-  search "TODO support parameters" and 
-  "TODO read results, set row count, check type and scroll returned"
+  search "TODO read results, set row count, check type and scroll returned"
 http://support.microsoft.com/kb/246265/en-us
 http://support.microsoft.com/kb/290413/en-us
 http://support.microsoft.com/kb/238336/en-us

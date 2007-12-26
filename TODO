@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.164 2007-06-25 08:56:26 freddy77 Exp $
+To Do List	$Id: TODO,v 1.165 2007-12-26 20:56:00 freddy77 Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
@@ -79,7 +79,7 @@ For future versions (in priority order within library):
   In query.c writing data do the same (use additional column fields?)
 . review the way parameters are packed 
   (too complicate, see ctlib bulk, cf "bulk copy and row buffer")
-. cursor support (limited support on ctlib)
+. improve cursor support on dblib and ctlib
 . support for VARIANT type (requested one time, 2003-8-1)
 . support for NT named pipe (requested many time ago for mssql6.5 server, only
   for completeness). If anybody knows a library to handle named pipes
