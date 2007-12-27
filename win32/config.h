@@ -215,6 +215,9 @@
 # define TIME_WITH_SYS_TIME 0
 #endif
 
+/* define to format string used for 64bit integers */
+#define TDS_I64_FORMAT "I64d"
+
 /* Version number of package */
 #define VERSION "0.65"
 

@@ -1,3 +1,7 @@
+Thu Dec 27 11:20:55 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/common.c: make unixODBC happy
+	* win32/config.h: define TDS_I64_FORMAT
+
 Thu Dec 27 10:19:58 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/buffering.h:
 	- remove warning if compiled with NDEBUG defined

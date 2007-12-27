@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.41 2007-12-21 10:39:10 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.42 2007-12-27 10:22:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -214,6 +214,11 @@ Connect(void)
 		CheckReturn();
 		exit(1);
 	}
+
+#ifndef TDS_NO_DM
+	/* unixODBC seems to require it */
+	SQLMoreResults(Statement);
+#endif
 	return 0;
 }
 
