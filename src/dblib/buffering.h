@@ -59,6 +59,7 @@ buffer_is_full(const DBPROC_ROWBUF *buf)
 	return buf->capacity == buffer_count(buf) && buf->capacity > 1;
 }
 
+#ifndef NDEBUG
 static int
 buffer_index_valid(const DBPROC_ROWBUF *buf, int idx)
 {
@@ -77,6 +78,7 @@ buffer_index_valid(const DBPROC_ROWBUF *buf, int idx)
 #endif
 	return 0;	
 }
+#endif
 
 static void
 buffer_free_row(DBLIB_BUFFER_ROW *row)

@@ -1,3 +1,7 @@
+Thu Dec 27 10:19:58 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/buffering.h:
+	- remove warning if compiled with NDEBUG defined
+
 Wed Dec 26 21:57:12 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/attributes.c: make it works
 
