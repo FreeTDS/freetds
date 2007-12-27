@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.283 2007-12-24 10:35:23 freddy77 Exp $ */
+/* $Id: tds.h,v 1.284 2007-12-27 13:45:22 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1453,7 +1453,7 @@ void tds_set_library(TDSLOGIN * tds_login, const char *library);
 void tds_set_server(TDSLOGIN * tds_login, const char *server);
 void tds_set_client_charset(TDSLOGIN * tds_login, const char *charset);
 void tds_set_language(TDSLOGIN * tds_login, const char *language);
-void tds_set_version(TDSLOGIN * tds_login, short major_ver, short minor_ver);
+void tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver);
 void tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size);
 int tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection);
 

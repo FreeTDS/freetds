@@ -51,14 +51,14 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.170 2007-11-15 09:19:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.171 2007-12-27 13:45:23 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 
 void
-tds_set_version(TDSLOGIN * tds_login, short major_ver, short minor_ver)
+tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver)
 {
 	tds_login->major_version = major_ver;
 	tds_login->minor_version = minor_ver;

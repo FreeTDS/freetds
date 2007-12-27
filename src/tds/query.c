@@ -46,15 +46,15 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.215 2007-12-21 15:23:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.216 2007-12-27 13:45:23 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
-static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, int param_length);
+static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t param_length);
 static int tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
-static char *tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, int converted_query_len, TDSPARAMINFO * params, int *out_len);
-static char *tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, int *out_len);
+static char *tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, int converted_query_len, TDSPARAMINFO * params, size_t *out_len);
+static char *tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, size_t *out_len);
 
 static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static const char *tds_skip_comment(const char *s);
@@ -321,7 +321,8 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		tds_put_string(tds, query, query_len);
 	} else {
 		TDSCOLUMN *param;
-		int definition_len, count, i;
+		size_t definition_len;
+		int count, i;
 		char *param_definition;
 		int converted_query_len;
 		const char *converted_query;
@@ -742,14 +743,14 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
  */
 /* TODO find a better name for this function */
 static char *
-tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, int converted_query_len, TDSPARAMINFO * params, int *out_len)
+tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, int converted_query_len, TDSPARAMINFO * params, size_t *out_len)
 {
-	int size = 512;
+	size_t size = 512;
 	char *param_str;
 	char *p;
 	char declaration[40];
-	int l = 0, i;
-	unsigned int count;
+	size_t l = 0;
+	int i, count;
 
 	assert(IS_TDS7_PLUS(tds));
 	assert(out_len);
@@ -765,14 +766,14 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, in
 		return NULL;
 
 	for (i = 0; i < count; ++i) {
-		if (l > 0) {
+		if (l > 0u) {
 			param_str[l++] = ',';
 			param_str[l++] = 0;
 		}
 
 		/* realloc on insufficient space */
-		while ((l + (2 * 40)) > size) {
-			p = (char *) realloc(param_str, size += 512);
+		while ((l + (2u * 40u)) > size) {
+			p = (char *) realloc(param_str, size += 512u);
 			if (!p)
 				goto Cleanup;
 			param_str = p;
@@ -807,13 +808,14 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, in
  */
 /* TODO find a better name for this function */
 static char *
-tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len,  TDSPARAMINFO * params, int *out_len)
+tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len,  TDSPARAMINFO * params, size_t *out_len)
 {
-	int size = 512;
+	size_t size = 512;
 	char *param_str;
 	char *p;
 	char declaration[40];
-	int l = 0, i;
+	size_t l = 0;
+	int i;
 	struct tds_ids {
 		const char *p;
 		size_t len;
@@ -861,14 +863,14 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 		char *ob;
 		size_t il, ol;
  
-		if (l > 0) {
+		if (l > 0u) {
 			param_str[l++] = ',';
 			param_str[l++] = 0;
 		}
  
 		/* realloc on insufficient space */
 		il = ids[i].p ? ids[i].len : 2 * params->columns[i]->column_namelen;
-		while ((l + (2 * 26) + il) > size) {
+		while ((l + (2u * 26u) + il) > size) {
 			p = (char *) realloc(param_str, size += 512);
 			if (!p)
 				goto Cleanup;
@@ -963,7 +965,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len)
 }
 
 static void
-tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, int param_length)
+tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t param_length)
 {
 	CHECK_TDS_EXTRA(tds);
 
@@ -1044,7 +1046,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	query_len = strlen(query);
 
 	if (IS_TDS7_PLUS(tds)) {
-		int definition_len = 0;
+		size_t definition_len = 0;
 		char *param_definition = NULL;
 		int converted_query_len;
 		const char *converted_query;
@@ -1152,7 +1154,8 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	query_len = strlen(query);
 
 	if (IS_TDS7_PLUS(tds)) {
-		int definition_len = 0, i;
+		size_t definition_len = 0;
+		int i;
 		char *param_definition = NULL;
 		int converted_query_len;
 		const char *converted_query;
@@ -2123,7 +2126,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 		*something_to_send = 1;
 	}
 	if (IS_TDS7_PLUS(tds)) {
-		int definition_len = 0;
+		size_t definition_len = 0;
 		char *param_definition = NULL;
 		int num_params = params ? params->num_cols : 0;
 

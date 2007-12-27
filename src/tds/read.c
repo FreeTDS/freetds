@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.105 2007-10-30 15:39:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.106 2007-12-27 13:45:23 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -208,7 +208,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 		return read_and_convert(tds, tds->char_convs[client2ucs2], &wire_bytes, &dest, &dest_size);
 	} else {
 		/* FIXME convert to client charset */
-		assert(dest_size >= string_len);
+		assert(dest_size >= (size_t) string_len);
 		tds_get_n(tds, dest, string_len);
 		return string_len;
 	}

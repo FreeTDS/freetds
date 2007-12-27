@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.175 2007-12-10 13:06:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.176 2007-12-27 13:45:23 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -205,7 +205,7 @@ tds_get_conversion_type(int srctype, int colsize)
 static TDS_INT
 string_to_result(int desttype, const char *s, CONV_RESULT * cr)
 {
-	int len = strlen(s);
+	size_t len = strlen(s);
 
 	if (desttype != TDS_CONVERT_CHAR) {
 		cr->c = (TDS_CHAR *) malloc(len + 1);
@@ -338,14 +338,15 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 static TDS_INT
 tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
 {
-	int i, j;
+	unsigned int i, j;
 	unsigned char hex1;
 
 	TDS_INT8 mymoney;
 	char mynumber[39];
 
 	const char *ptr, *pend;
-	int point_found, places;
+	int point_found;
+	unsigned int places;
 	TDS_INT tds_i;
 	TDS_INT8 tds_i8;
 	TDS_INT rc;
@@ -551,7 +552,7 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 				return TDS_CONVERT_SYNTAX;
 
 			if (src[0] == '{') {
-				int last = (src[8+1 + 4+1 + 4+1 + 4 + 1] == '-') ? 32+4+1 : 32+3+1;
+				TDS_UINT last = (src[8+1 + 4+1 + 4+1 + 4 + 1] == '-') ? 32+4+1 : 32+3+1;
 				if (srclen <= last || src[last] != '}')
 					return TDS_CONVERT_SYNTAX;
 				++src;
