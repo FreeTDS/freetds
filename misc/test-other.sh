@@ -131,9 +131,9 @@ EOF
     }
  
     if (!is_inout) {    /* normal bind to take a (new) copy of current value    */
-" | patch -p1
+" | patch -p1 || true
 			cd t
-			patch -p0 <<EOF
+			{ patch -p0 || true ; }  <<EOF
 --- 20SqlServer.t.orig  2005-08-09 13:33:30.000000000 +0200
 +++ 20SqlServer.t       2005-08-09 13:37:36.000000000 +0200
 @@ -419,7 +419,7 @@
@@ -160,22 +160,24 @@ EOF
 		fi
 		test -d "$DIR"
 		cd "$DIR"
-		test -r Makefile || perl Makefile.PL
-		make clean
+		grep -v 'prompt(' Makefile.PL > Makefile.PL.tmp
+		cat Makefile.PL.tmp > Makefile.PL
+		test -r Makefile || LANG=C perl Makefile.PL
+		LANG=C make clean
 		RES=0
 		log "START DBD::ODBC make"
-		test -r Makefile || classifier perl Makefile.PL || RES=$?
+		test -r Makefile || LANG=C classifier perl Makefile.PL || RES=$?
 		if test $RES = 0; then
-			classifier make || RES=$?
+			LANG=C classifier make || RES=$?
 		fi
 		log "RESULT $RES"
 		log "END DBD::ODBC make"
 		if test $RES = 0; then
 			log "START DBD::ODBC test"
 			if test $verbose = yes; then
-				classifier make test TEST_VERBOSE=1 || RES=$?
+				LANG=C classifier make test TEST_VERBOSE=1 || RES=$?
 			else
-				classifier make test || RES=$?
+				LANG=C classifier make test || RES=$?
 			fi
 			log "RESULT $RES"
 			log "END DBD::ODBC test"

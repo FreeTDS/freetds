@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.176 2007-12-27 13:45:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.177 2007-12-28 13:48:11 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -396,8 +396,8 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 			ib = cr->ib;
 		}
 
-		for (i = srclen; --i >= j;) {
-			hex1 = src[i];
+		for (i = srclen; i > j;) {
+			hex1 = src[--i];
 
 			if ('0' <= hex1 && hex1 <= '9')
 				hex1 &= 0x0f;
@@ -2749,10 +2749,8 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 {
 	struct tm tm;
 
-	int length = 0;
-	char *s, *our_format;
-	char millibuf[8];
-
+	size_t length;
+	char *our_format;
 	char *pz = NULL;
 
 	tm.tm_sec = dr->second;
@@ -2786,20 +2784,23 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	 */
 
 	/* Skip any escaped cases (%%z) */
-
-	while (pz && *(pz - 1) == '%')
+	/* pz > our_format avoid small read underflow */
+	while (pz && pz > our_format && *(pz - 1) == '%')
 		pz = strstr(++pz, "%z");
 
-	if (pz && length < maxsize - 1) {
+	if (pz) {
+		/*
+		 * this buffer seems quite big for 3 digits but
+		 * millisecond is not granted to be 0-999...
+		 */
+		char millibuf[12];
 
 		sprintf(millibuf, "%03d", dr->millisecond);
 
 		/* move everything back one, then overwrite "?%z" with millibuf */
-		for (s = our_format + strlen(our_format); s > pz; s--) {
-			*(s + 1) = *s;
-		}
+		memmove(pz + 1, pz, strlen(pz) + 1);
 
-		strncpy(pz, millibuf, 3);	/* don't copy the null */
+		memcpy(pz, millibuf, 3);	/* don't copy the null */
 	}
 
 	length = strftime(buf, maxsize, our_format, &tm);

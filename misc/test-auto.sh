@@ -9,6 +9,10 @@ CONFIGURE=0
 for param
 do
 	case $param in
+	--help)
+		echo $0 [--help] [--no-build] [--configure]
+		exit 0
+		;;
 	--no-build)
 		BUILD=0
 		;;
