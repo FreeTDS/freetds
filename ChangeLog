@@ -1,3 +1,6 @@
+Wed Dec 28 15:11:48 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/userguide.sgml: accepted patch #1854381
+
 Wed Dec 28 14:44:16 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/freetds_autobuild misc/test-other.sh:
 	- make amd64 works

@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-12-16 22:00:06 $</date>
-		<releaseinfo>$Revision: 1.108 $</releaseinfo>
+		<date>$Date: 2007-12-28 14:12:09 $</date>
+		<releaseinfo>$Revision: 1.109 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.108 $</>
-<member>$Date: 2007-12-16 22:00:06 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.108 2007-12-16 22:00:06 jklowden Exp $.</>
+<member>$Revision: 1.109 $</>
+<member>$Date: 2007-12-28 14:12:09 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.109 2007-12-28 14:12:09 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-12-16 22:00:06 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2007-12-28 14:12:09 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -795,10 +795,18 @@ The <filename>freetds.conf</filename> file is composed of two types of sections:
 	host = unixbox.mydomain.com
 	port = 4000
 	tds version = 5.0
+
+[myserver3]
+	host = instancebox.mydomain.com
+	instance = foo
+	tds version = 8.0
 </programlisting>
 </example>
 	<para>
-In this example, the default  <acronym>TDS</> version for all dataservers is set to <literal>4.2</>.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses <literal>5.0</>.
+In this example, the default  <acronym>TDS</> version for all dataservers is set to <literal>4.2</>.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses <literal>5.0</literal>, and <literal>myserver3</literal> (a MSSQL 2000 server) which uses <literal>8.0</literal>.
+	</para>
+	<para>
+Note that <literal>myserver3</literal> uses a named instance configuration, instead of a port number.  
 	</para>
 	<para>
 Usually, it is sufficient to state the only server's hostname and TDS protocol.  Everything else can be inferred, unless your setup (or your server's) strays from the defaults.  
