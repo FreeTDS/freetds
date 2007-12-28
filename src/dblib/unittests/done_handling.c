@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.6 2006-07-11 15:29:22 freddy77 Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.7 2007-12-28 23:00:42 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -55,7 +55,7 @@ check_state(void)
 	/* if status present */
 	if (dbretstatus(dbproc) == TRUE)
 		printf("STATUS %d ", (int) dbretstatus(dbproc));
-	/* if parameter prosent */
+	/* if parameter present */
 	if (dbnumrets(dbproc) > 0)
 		printf("PARAMS ");
 	/*
@@ -150,11 +150,14 @@ main(int argc, char *argv[])
 	dbloginfree(login);
 	if (!dbproc)
 		exit(1);
+	if (strlen(DATABASE))
+		dbuse(dbproc, DATABASE);
 
 	query("create table #dummy (s char(10))");
 	query("insert into #dummy values('xxx')");
-	query("drop proc done_test");
+	query("if object_id('done_test') is not NULL drop proc done_test");
 	query("create proc done_test @a varchar(10) output as select * from #dummy");
+	query("if object_id('done_test2') is not NULL drop proc done_test2");
 	query("create proc done_test2 as select * from #dummy where s = 'aaa' select * from #dummy");
 
 	check_idle = 1;
