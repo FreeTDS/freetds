@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.342 2007-11-13 09:14:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.343 2007-12-28 23:00:18 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -169,8 +169,8 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 					return TDS_FAIL;
 			} while (type != 2);
 		} else {
-			if (tds_get_n(tds, tds->capabilities, tok_size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : tok_size) ==
-			    NULL)
+			const int len = tok_size < TDS_MAX_CAPABILITY? tok_size : TDS_MAX_CAPABILITY;
+			if (tds_get_n(tds, tds->capabilities, len) == NULL)
 				return TDS_FAIL;
 		}
 		break;
