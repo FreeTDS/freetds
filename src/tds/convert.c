@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.177 2007-12-28 13:48:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.178 2007-12-28 23:00:29 jklowden Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2752,6 +2752,11 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	size_t length;
 	char *our_format;
 	char *pz = NULL;
+	
+	assert(buf);
+	assert(format);
+	assert(dr);
+	assert(0 <= dr->millisecond && dr->millisecond < 1000);
 
 	tm.tm_sec = dr->second;
 	tm.tm_min = dr->minute;
@@ -2768,13 +2773,12 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	tm.__tm_zone = NULL;
 #endif
 
-	/* NOTE 2 in intentional. one more character is required because we replace %z with 3 digits */
-	our_format = (char *) malloc(strlen(format) + 2);
+	/* one more character is required because we replace %z with 3 digits */
+	our_format = malloc(strlen(format) + 2);
 	if (!our_format)
 		return 0;
-	strcpy(our_format, format);
 
-	pz = strstr(our_format, "%z");
+	strcpy(our_format, format);
 
 	/*
 	 * Look for "%z" in the format string.  If found, replace it with dr->milliseconds.
@@ -2782,25 +2786,19 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	 * "%b %d %Y %H:%M:%S.%z" would become
 	 * "%b %d %Y %H:%M:%S.124".
 	 */
-
-	/* Skip any escaped cases (%%z) */
-	/* pz > our_format avoid small read underflow */
-	while (pz && pz > our_format && *(pz - 1) == '%')
-		pz = strstr(++pz, "%z");
+	for (pz = our_format; (pz = strstr(pz, "%z")) != NULL; pz++) {
+		/* Skip any escaped cases (%%z) */
+		if (pz > our_format && *(pz - 1) != '%')
+			break;
+	}
 
 	if (pz) {
-		/*
-		 * this buffer seems quite big for 3 digits but
-		 * millisecond is not granted to be 0-999...
-		 */
-		char millibuf[12];
-
-		sprintf(millibuf, "%03d", dr->millisecond);
-
-		/* move everything back one, then overwrite "?%z" with millibuf */
-		memmove(pz + 1, pz, strlen(pz) + 1);
-
-		memcpy(pz, millibuf, 3);	/* don't copy the null */
+		sprintf(pz, "%03d", dr->millisecond % 1000);
+		strcat(our_format, format + (pz - our_format) + 2);
+#if 0
+		tdsdump_log(TDS_DBG_INFO1, "tds_strftime: our_format '%s', tail '%s'\n", 
+						our_format, format + (pz - our_format) + 2);
+#endif
 	}
 
 	length = strftime(buf, maxsize, our_format, &tm);
