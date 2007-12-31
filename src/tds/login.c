@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.171 2007-12-27 13:45:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.172 2007-12-31 10:06:50 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -311,7 +311,7 @@ free_save_context(TDSSAVECONTEXT *ctx)
 int
 tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-	int i, retval;
+	int retval;
 	int connect_timeout = 0;
 	int db_selected = 0;
 	char version[64];
@@ -333,6 +333,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		};
 
 	if (connection->major_version == 0) {
+		unsigned int i;
 		TDSSAVECONTEXT save_ctx;
 		const TDSCONTEXT *old_ctx = tds->tds_ctx;
 		typedef void (*env_chg_func_t) (TDSSOCKET * tds, int type, char *oldval, char *newval);
@@ -902,7 +903,7 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
 	int instance_name_len = strlen(instance_name) + 1;
 	TDS_CHAR crypt_flag;
-	int start_pos = 21;
+	unsigned int start_pos = 21;
 
 #define START_POS 21
 #define UI16BE(n) ((n) >> 8), ((n) & 0xffu)

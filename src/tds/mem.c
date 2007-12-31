@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.174 2007-11-12 11:35:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.175 2007-12-31 10:06:50 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -669,19 +669,13 @@ static const TDS_TINYINT response_capabilities[] =
  * \param capability 	capability to set or reset.  Pass as negative to reset.  
  */
 static unsigned char *
-tds_capability_set(unsigned char capabilities[], int capability, size_t len)
+tds_capability_set(unsigned char capabilities[], unsigned int cap, size_t len)
 {
-	int cap = (capability < 0)? -capability : capability;
-	int index = (len - cap/8) - 1;
-	unsigned char mask = 1 << ((8+cap) % 8);
-	assert(0 < index && index < len);
+	int index = (len - cap/8u) - 1;
+	unsigned char mask = 1 << ((8u+cap) % 8u);
+	assert(0 < index && (unsigned) index < len);
 
-	if (capability < 0) {
-		mask ^= mask;
-		capabilities[index] &= mask;
-	} else {
-		capabilities[index] |= mask;
-	}
+	capabilities[index] |= mask;
 	return capabilities;
 }
 

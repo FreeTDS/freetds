@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.169 2007-12-04 02:06:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.170 2007-12-31 10:06:49 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -774,7 +774,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	int row_of_query;
 	int rows_written;
-	char *bcpdatefmt = NULL;
+	char *bcpdatefmt;
 	int tdsret;
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_exec_out(%p, %p)\n", dbproc, rows_copied);
@@ -790,6 +790,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	}
 
 	bcpdatefmt = getenv("FREEBCP_DATEFMT");
+	if (!bcpdatefmt)
+		bcpdatefmt = "%Y-%m-%d %H:%M:%S.%z";
 
 	if (dbproc->bcpinfo->direction == DB_QUERYOUT ) {
 		if (tds_submit_query(tds, dbproc->bcpinfo->tablename) == TDS_FAIL) {
@@ -998,12 +1000,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					if ((srctype == SYBDATETIME || srctype == SYBDATETIME4)
 					    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
 						tds_datecrack(srctype, src, &when);
-						if (bcpdatefmt) 
-							buflen = tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
-										 bcpdatefmt, &when);
-						else
-							buflen = tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
-										 "%Y-%m-%d %H:%M:%S.%z", &when);
+						buflen = tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
+									 bcpdatefmt, &when);
 					} else {
 						/* 
 						 * For null columns, the above work to determine the output buffer size is moot, 

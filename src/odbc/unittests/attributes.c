@@ -5,7 +5,7 @@
  * SQLSetStmtAttr
  */
 
-static char software_version[] = "$Id: attributes.c,v 1.3 2007-12-26 20:57:35 freddy77 Exp $";
+static char software_version[] = "$Id: attributes.c,v 1.4 2007-12-31 10:06:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -203,7 +203,7 @@ static const struct attribute attributes[] = {
 static const struct attribute *
 lookup_attr(const char *name)
 {
-	int i;
+	unsigned int i;
 
 	if (!name)
 		fatal("Line %u: NULL attribute\n", line_num);

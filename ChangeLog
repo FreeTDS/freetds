@@ -1,3 +1,11 @@
+Mon Dec 31 11:06:13 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/blk.c src/odbc/unittests/attributes.c:
+	* src/odbc/unittests/describecol.c src/tds/convert.c:
+	* src/tds/login.c src/tds/mem.c:
+	- minor signed/unsigned fixes
+	* src/dblib/bcp.c: minor performance improve
+	* src/dblib/dblib.c: fix date portability
+
 Fri Dec 28 17:57:08 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/tds/token.c minor change
 	* src/tds/convert.c simpler tds_strftime

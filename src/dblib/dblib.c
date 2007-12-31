@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.317 2007-12-23 21:12:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.318 2007-12-31 10:06:49 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3189,7 +3189,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 				memset(&when, 0, sizeof(when));
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
-				len = tds_strftime(buffer, buf_len, "%b %e %Y %I:%M%p", &when);
+				len = tds_strftime(buffer, buf_len, "%b %d %Y %I:%M%p", &when);
 			} else {
 				len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1), desttype, (BYTE *) buffer, buf_len);
 			}

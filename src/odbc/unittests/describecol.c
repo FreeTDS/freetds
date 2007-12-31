@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.12 2007-12-19 14:36:05 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.13 2007-12-31 10:06:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -121,7 +121,7 @@ static const struct attribute attributes[] = {
 static const struct attribute *
 lookup_attr(const char *name)
 {
-	int i;
+	unsigned int i;
 
 	if (!name)
 		fatal("Line %u: NULL attribute\n", line_num);

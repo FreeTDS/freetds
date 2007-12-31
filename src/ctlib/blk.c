@@ -41,10 +41,10 @@
 typedef struct _pbcb
 {
 	char *pb;
-	int cb;
+	unsigned int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.42 2007-12-02 23:01:37 jklowden Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.43 2007-12-31 10:06:49 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -1007,7 +1007,7 @@ _blk_build_bulk_insert_stmt(TDS_PBCB * clause, TDSCOLUMN * bcpcol, int first)
 		return CS_FAIL;
 	}
 
-	if (clause->cb < strlen(clause->pb) + strlen(bcpcol->column_name) + strlen(column_type) + ((first) ? 2 : 4)) {
+	if (clause->cb < strlen(clause->pb) + strlen(bcpcol->column_name) + strlen(column_type) + ((first) ? 2u : 4u)) {
 		char *temp = malloc(2 * clause->cb);
 
 		if (!temp)
