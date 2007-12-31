@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.318 2007-12-31 10:06:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.319 2007-12-31 20:06:06 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3114,29 +3114,27 @@ dbcancel(DBPROCESS * dbproc)
 DBINT
 dbspr1rowlen(DBPROCESS * dbproc)
 {
-	TDSCOLUMN *colinfo;
-	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	int col, len = 0, collen, namlen;
+	int col, len = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbspr1rowlen(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL, 0);
+	CHECK_PARAMETER(dbproc->tds_socket, SYBEDDNE, 0);
 
 	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
-
-	for (col = 0; col < resinfo->num_cols; col++) {
-		colinfo = resinfo->columns[col];
-		collen = _get_printable_size(colinfo);
-		namlen = colinfo->column_namelen;
+	
+	for (col = 0; col < tds->res_info->num_cols; col++) {
+		TDSCOLUMN *colinfo = tds->res_info->columns[col];
+		int collen = _get_printable_size(colinfo);
+		int namlen = colinfo->column_namelen;
+		
 		len += collen > namlen ? collen : namlen;
+		
+		if (col > 0) 	/* allow for the space between columns */
+			len += dbstring_length(dbproc->dbopts[DBPRCOLSEP].param);
 	}
-	/* the space between each column */
-	len += (resinfo->num_cols - 1) * dbstring_length(dbproc->dbopts[DBPRCOLSEP].param);
-	/* the nul */
-	len += 1;
-
-	return len;
+	
+	return ++len; 	/* allow for the nul */
 }
 
 /**
@@ -3154,15 +3152,11 @@ dbspr1rowlen(DBPROCESS * dbproc)
 RETCODE
 dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 {
-	TDSCOLUMN *colinfo;
-	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	TDSDATEREC when;
-	int i, col, collen, namlen;
+	int i, c, col;
 	int desttype, srctype;
-	int padlen;
 	DBINT len;
-	int c;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbspr1row(%p, %s, %d)\n", dbproc, buffer, buf_len);
 	CHECK_DBPROC();
@@ -3173,10 +3167,10 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 		return FAIL;
 
 	tds = dbproc->tds_socket;
-	resinfo = tds->res_info;
 
-	for (col = 0; col < resinfo->num_cols; col++) {
-		colinfo = resinfo->columns[col];
+	for (col = 0; col < tds->resinfo->num_cols; col++) {
+		int padlen, collen, namlen;
+		TDSCOLUMN *colinfo = tds->resinfo->columns[col];
 		if (colinfo->column_cur_size < 0) {
 			len = 4;
 			if (buf_len <= len) {
@@ -3191,7 +3185,8 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 				len = tds_strftime(buffer, buf_len, "%b %d %Y %I:%M%p", &when);
 			} else {
-				len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1), desttype, (BYTE *) buffer, buf_len);
+				len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1), 
+						desttype, (BYTE *) buffer, buf_len);
 			}
 			if (len == -1) {
 				return FAIL;
@@ -3227,7 +3222,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	if (buf_len < 1) {
 		return FAIL;
 	}
-	*buffer++ = '\0';
+	*buffer = '\0';
 	return SUCCEED;
 }
 
@@ -3278,7 +3273,7 @@ dbprrow(DBPROCESS * dbproc)
 			resinfo = tds->res_info;
 
 			if (col_printlens == NULL) {
-				if ((col_printlens = calloc(sizeof(TDS_SMALLINT), resinfo->num_cols)) == NULL) {
+				if ((col_printlens = calloc(resinfo->num_cols), sizeof(TDS_SMALLINT)) == NULL) {
 					dbperror(NULL, SYBEMEM, errno);
 					return FAIL;
 				}
@@ -3306,27 +3301,23 @@ dbprrow(DBPROCESS * dbproc)
 				collen = _get_printable_size(colinfo);
 				namlen = colinfo->column_namelen;
 				padlen = (collen > namlen ? collen : namlen) - len;
+
 				c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0);
-				if (c == -1) {
-					c = ' ';
-				}
-				for (; padlen > 0; padlen--) {
+				for (; c > -1 && padlen > 0; padlen--) {
 					putchar(c);
 				}
 
 				if ((col + 1) < resinfo->num_cols) {
 					i = 0;
-					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i++)) != -1) {
 						putchar(c);
-						i++;
 					}
 				}
 				col_printlens[col] = collen;
 			}
 			i = 0;
-			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i)) != -1) {
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i++)) != -1) {
 				putchar(c);
-				i++;
 			}
 
 		} else {
@@ -3345,43 +3336,45 @@ dbprrow(DBPROCESS * dbproc)
 			tdsdump_log(TDS_DBG_FUNC, "dbprrow num compute cols = %d\n", num_cols);
 
 			i = 0;
-			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i)) != -1) {
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i++)) != -1) {
 				putchar(c);
-				i++;
 			}
 			for (selcol = col = 1; col <= num_cols; col++) {
 				tdsdump_log(TDS_DBG_FUNC, "dbprrow calling dbaltcolid(%d,%d)\n", computeid, col);
 				colid = dbaltcolid(dbproc, computeid, col);
+				/*
+				 * The pad character is pointed to by dbopts[DBPRPAD].param.  If that pointer 
+				 * is NULL -- meaning padding is turned off -- dbstring_getchar returns -1. 
+				 */
 				while (selcol < colid) {
 					for (i = 0; i < col_printlens[selcol - 1]; i++) {
-						putchar(' '); /* XXX DBPRPAD? */
+						if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0) >= 0)
+							putchar(c); 
 					}
 					selcol++;
 					i = 0;
-					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i++)) != -1) {
 						putchar(c);
-						i++;
 					}
 				}
 				op = dbaltop(dbproc, computeid, col);
 				opname = dbprtype(op);
 				printf("%s", opname);
 				for (i = 0; i < ((long) col_printlens[selcol - 1] - (long) strlen(opname)); i++) {
-					putchar(' '); /* XXX DBPRPAD */
+					if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0) >= 0)
+						putchar(c); 
 				}
 				selcol++;
 				if ((colid + 1) < num_cols) {
 					i = 0;
-					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i++)) != -1) {
 						putchar(c);
-						i++;
 					}
 				}
 			}
 			i = 0;
-			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i)) != -1) {
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i++)) != -1) {
 				putchar(c);
-				i++;
 			}
 
 			for (selcol = col = 1; col <= num_cols; col++) {
@@ -3393,9 +3386,8 @@ dbprrow(DBPROCESS * dbproc)
 					}
 					selcol++;
 					i = 0;
-					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i++)) != -1) {
 						putchar(c);
-						i++;
 					}
 				}
 				if (resinfo->by_cols > 0) {
@@ -3408,16 +3400,14 @@ dbprrow(DBPROCESS * dbproc)
 				selcol++;
 				if ((colid + 1) < num_cols) {
 					i = 0;
-					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i++)) != -1) {
 						putchar(c);
-						i++;
 					}
 				}
 			}
 			i = 0;
-			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i)) != -1) {
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i++)) != -1) {
 				putchar(c);
-				i++;
 			}
 
 			for (selcol = col = 1; col <= num_cols; col++) {
@@ -3445,9 +3435,8 @@ dbprrow(DBPROCESS * dbproc)
 					}
 					selcol++;
 					i = 0;
-					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i++)) != -1) {
 						putchar(c);
-						i++;
 					}
 				}
 				printf("%.*s", len, dest);
@@ -3463,16 +3452,14 @@ dbprrow(DBPROCESS * dbproc)
 				selcol++;
 				if ((colid + 1) < num_cols) {
 					i = 0;
-					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
+					while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i++)) != -1) {
 						putchar(c);
-						i++;
 					}
 				}
 			}
 			i = 0;
-			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i)) != -1) {
+			while ((c = dbstring_getchar(dbproc->dbopts[DBPRLINESEP].param, i++)) != -1) {
 				putchar(c);
-				i++;
 			}
 		}
 	}
@@ -4316,10 +4303,18 @@ dbsetopt(DBPROCESS * dbproc, int option, const char *char_param, int int_param)
 	case DBPRCOLSEP:
 	case DBPRLINELEN:
 	case DBPRLINESEP:
-	case DBPRPAD:
-		/* dblib options */
 		rc = dbstring_assign(&(dbproc->dbopts[option].param), char_param);
-		/* XXX DBPADON/DBPADOFF */
+		return rc;
+	case DBPRPAD:
+		/*
+		 * "If the character is not specified, the ASCII space character is used." 
+		 * A NULL pointer to the pad character signifies that padding is turned off. 
+		 */
+		if (int_param) {
+			rc = dbstring_assign(&(dbproc->dbopts[option].param), char_param? char_param : " ");
+		} else {
+			rc = dbstring_assign(&(dbproc->dbopts[option].param), NULL);
+		}
 		return rc;
 		break;
 	default:

@@ -1,3 +1,6 @@
+Mon Dec 31 15:05:16 EST 2007	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c fixed DBPRPAD, maybe
+
 Mon Dec 31 11:29:50 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/test-other.sh src/odbc/odbc.c:
 	- relax test for cursor
