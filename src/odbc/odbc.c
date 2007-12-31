@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.462 2007-12-26 18:45:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.463 2007-12-31 10:30:47 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2639,8 +2639,6 @@ static void
 odbc_ird_check(TDS_STMT * stmt)
 {
 	TDS_DESC *ird = stmt->ird;
-	struct _drecord *drec;
-	TDSCOLUMN *col;
 	TDSRESULTINFO *res_info = NULL;
 	int cols = 0, i;
 
@@ -2650,6 +2648,8 @@ odbc_ird_check(TDS_STMT * stmt)
 		res_info = stmt->dbc->tds_socket->current_results;
 		cols = res_info->num_cols;
 	}
+	if (stmt->cursor != NULL || stmt->dbc->current_statement != stmt)
+		return;
 
 	/* check columns number */
 	assert(ird->header.sql_desc_count == cols || ird->header.sql_desc_count == 0);
@@ -2657,8 +2657,9 @@ odbc_ird_check(TDS_STMT * stmt)
 
 	/* check all columns */
 	for (i = 0; i < ird->header.sql_desc_count; ++i) {
-		drec = &ird->records[i];
-		col = res_info->columns[i];
+		struct _drecord *drec = &ird->records[i];
+		TDSCOLUMN *col = res_info->columns[i];
+
 		assert(tds_dstr_len(&drec->sql_desc_label) == col->column_namelen);
 		assert(memcmp(tds_dstr_cstr(&drec->sql_desc_label), col->column_name, col->column_namelen) == 0);
 	}
