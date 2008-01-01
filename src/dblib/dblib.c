@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.319 2007-12-31 20:06:06 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.320 2008-01-01 23:09:46 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3168,9 +3168,9 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 
 	tds = dbproc->tds_socket;
 
-	for (col = 0; col < tds->resinfo->num_cols; col++) {
+	for (col = 0; col < tds->res_info->num_cols; col++) {
 		int padlen, collen, namlen;
-		TDSCOLUMN *colinfo = tds->resinfo->columns[col];
+		TDSCOLUMN *colinfo = tds->res_info->columns[col];
 		if (colinfo->column_cur_size < 0) {
 			len = 4;
 			if (buf_len <= len) {
@@ -3207,7 +3207,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			*buffer++ = c;
 			buf_len--;
 		}
-		if ((col + 1) < resinfo->num_cols) {
+		if ((col + 1) < tds->res_info->num_cols) {
 			i = 0;
 			while ((c = dbstring_getchar(dbproc->dbopts[DBPRCOLSEP].param, i)) != -1) {
 				if (buf_len < 1) {
@@ -3273,7 +3273,7 @@ dbprrow(DBPROCESS * dbproc)
 			resinfo = tds->res_info;
 
 			if (col_printlens == NULL) {
-				if ((col_printlens = calloc(resinfo->num_cols), sizeof(TDS_SMALLINT)) == NULL) {
+				if ((col_printlens = calloc(resinfo->num_cols, sizeof(TDS_SMALLINT))) == NULL) {
 					dbperror(NULL, SYBEMEM, errno);
 					return FAIL;
 				}
@@ -3348,7 +3348,7 @@ dbprrow(DBPROCESS * dbproc)
 				 */
 				while (selcol < colid) {
 					for (i = 0; i < col_printlens[selcol - 1]; i++) {
-						if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0) >= 0)
+						if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0)) >= 0)
 							putchar(c); 
 					}
 					selcol++;
@@ -3361,7 +3361,7 @@ dbprrow(DBPROCESS * dbproc)
 				opname = dbprtype(op);
 				printf("%s", opname);
 				for (i = 0; i < ((long) col_printlens[selcol - 1] - (long) strlen(opname)); i++) {
-					if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0) >= 0)
+					if ((c = dbstring_getchar(dbproc->dbopts[DBPRPAD].param, 0)) >= 0)
 						putchar(c); 
 				}
 				selcol++;

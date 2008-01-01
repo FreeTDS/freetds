@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.24 2007-12-14 04:47:53 jklowden Exp $
+# $Id: Makefile.am,v 1.25 2008-01-01 23:09:46 freddy77 Exp $
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
@@ -6,12 +6,13 @@ SUBDIRS		= fisql
 
 DIST_SUBDIRS	= $(SUBDIRS)
 
-bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy
-
 # build bsqlodbc only if the ODBC library was to be built
 if ODBC
-  bin_PROGRAMS	+= bsqlodbc 
+bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy bsqlodbc
+else
+bin_PROGRAMS	= tsql freebcp bsqldb defncopy datacopy
 endif
+
 
 dist_bin_SCRIPTS = osql
 

@@ -1,3 +1,8 @@
+Wed Jan  2 00:08:45 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/apps/Makefile.am:
+	- remove GNU style
+	* src/dblib/dblib.c: make it compile
+
 Mon Dec 31 15:05:16 EST 2007	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c fixed DBPRPAD, maybe
 
