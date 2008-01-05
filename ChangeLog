@@ -1,3 +1,7 @@
+Sat Jan  5 12:23:21 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c:
+	- add parameterized flag calling sp_cursoropen if needed
+
 Wed Jan  2 00:08:45 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/apps/Makefile.am:
 	- remove GNU style

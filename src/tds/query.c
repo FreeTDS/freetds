@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.216 2007-12-27 13:45:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.217 2008-01-05 11:24:40 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2194,7 +2194,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 		tds_put_byte(tds, SYBINTN);
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 4);
-		tds_put_int(tds, cursor->type);
+		tds_put_int(tds, definition_len ? cursor->type | 0x1000 : cursor->type);
 
 		/* concurrency */
 		tds_put_byte(tds, 0);	/* no parameter name */
@@ -2209,7 +2209,8 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 		tds_put_byte(tds, 1);	/* output parameter  */
 		tds_put_byte(tds, SYBINTN);
 		tds_put_byte(tds, 4);
-		tds_put_byte(tds, 0);
+		tds_put_byte(tds, 4);
+		tds_put_int(tds, 0);
 
 		if (definition_len) {
 			int i;
