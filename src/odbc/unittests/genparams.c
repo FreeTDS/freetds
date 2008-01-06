@@ -4,10 +4,13 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.20 2007-06-18 11:58:57 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.21 2008-01-06 10:48:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
+static int exec_direct = 0;
+static int prepare_before = 0;
+static int use_cursors = 0;
 
 static void
 Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *expected)
@@ -18,22 +21,45 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 	SQL_NUMERIC_STRUCT *num;
 	int i;
 
-	SQLFreeStmt(Statement, SQL_UNBIND);
-	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
+	ResetStatement();
 
 	/* build store procedure to test */
+	Command(Statement, "IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
 	sprintf(sbuf, "CREATE PROC spTestProc @i %s OUTPUT AS SELECT @i = CONVERT(%s, '%s')", type, type, value_to_convert);
 	Command(Statement, sbuf);
 	memset(out_buf, 0, sizeof(out_buf));
 
-	/* bind parameter */
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
-			     sizeof(out_buf), &out_len) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to bind input parameter");
+	if (use_cursors) {
+		ResetStatement();
+		if (SQLSetStmtAttr(Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLSetStmtAttr error");
+		if (SQLSetStmtAttr(Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLSetStmtAttr error");
+	}
 
-	/* call store procedure */
-	if (SQLExecDirect(Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to execute store statement");
+	/* bind parameter */
+	if (exec_direct) {
+		if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
+			     sizeof(out_buf), &out_len) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to bind output parameter");
+
+		/* call store procedure */
+		if (SQLExecDirect(Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to execute store statement");
+	} else {
+		if (prepare_before && SQLPrepare(Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLPrepare() failure!");
+
+		if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
+			     sizeof(out_buf), &out_len) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to bind output parameter");
+
+		if (!prepare_before && SQLPrepare(Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLPrepare() failure!");
+
+		if (SQLExecute(Statement) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLExecute() failure!");
+	}
 
 	/* test results */
 	sbuf[0] = 0;
@@ -74,8 +100,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	size_t value_len = strlen(value_to_convert);
 	const char *p;
 
-	SQLFreeStmt(Statement, SQL_UNBIND);
-	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
+	ResetStatement();
 
 	/* execute a select to get data as wire */
 	if ((p = strstr(value_to_convert, " -> ")) != NULL) {
@@ -93,27 +118,52 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		ODBC_REPORT_ERROR("Recordset not expected");
 
 	/* create a table with a column of that type */
-	SQLFreeStmt(Statement, SQL_UNBIND);
-	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
+	ResetStatement();
 	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s)", param_type);
 	Command(Statement, sbuf);
 
+	if (use_cursors) {
+		ResetStatement();
+		if (SQLSetStmtAttr(Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLSetStmtAttr error");
+		if (SQLSetStmtAttr(Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLSetStmtAttr error");
+	}
+
 	/* insert data using prepared statements */
 	sprintf(sbuf, "INSERT INTO #tmp_insert VALUES(?)");
-	if (SQLPrepare(Statement, (SQLCHAR *) sbuf, SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLPrepare() failure!");
+	if (exec_direct) {
+		SQLRETURN rc;
 
-	out_len = 1;
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len) !=
-	    SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to bind input parameter");
+		out_len = 1;
+		if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len) !=
+		    SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to bind input parameter");
 
-	if (SQLExecute(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLExecute() failure!");
+		rc = SQLExecDirect(Statement, (SQLCHAR *) sbuf, SQL_NTS);
+		if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("SQLExecDirect() failure!");
+	} else {
+		SQLRETURN rc;
+
+		if (prepare_before && SQLPrepare(Statement, (SQLCHAR *) sbuf, SQL_NTS) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLPrepare() failure!");
+
+		out_len = 1;
+		if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len) !=
+		    SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to bind input parameter");
+
+		if (!prepare_before && SQLPrepare(Statement, (SQLCHAR *) sbuf, SQL_NTS) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("SQLPrepare() failure!");
+
+		rc = SQLExecute(Statement);
+		if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("SQLExecute() failure!");
+	}
 
 	/* check is row is present */
-	SQLFreeStmt(Statement, SQL_UNBIND);
-	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
+	ResetStatement();
 	sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, '%s')", param_type, expected);
 	Command(Statement, sbuf);
 
@@ -126,32 +176,23 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	Command(Statement, "DROP TABLE #tmp_insert");
 }
 
-int
-main(int argc, char *argv[])
+static int big_endian = 1;
+static char version[32];
+
+static void
+AllTests(void)
 {
-	int big_endian = 1;
 	struct tm *ltime;
 	char buf[80];
 	time_t curr_time;
 
-	char version[32];
-	SQLSMALLINT version_len;
 	SQLINTEGER y, m, d;
 	char date[128];
 
-	use_odbc_version3 = 1;
-	Connect();
-
-	memset(version, 0, sizeof(version));
-	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
-
-	if (CommandWithResult(Statement, "drop proc spTestProc") != SQL_SUCCESS)
-		printf("Unable to execute statement\n");
-
-	if (((char *) &big_endian)[0] == 1)
-		big_endian = 0;
+	printf("use_cursors %d exec_direct %d prepare_before %d\n", use_cursors, exec_direct, prepare_before);
 
 	/* FIXME why should return 38 0 as precision and scale ?? correct ?? */
+	precision = 18;
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
 	Test("DECIMAL(18,2)", "123", SQL_C_NUMERIC, SQL_DECIMAL, "18 0 1 7B");
 	precision = 38;
@@ -217,9 +258,40 @@ main(int argc, char *argv[])
 		Test("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
 	}
+}
+
+int
+main(int argc, char *argv[])
+{
+	SQLSMALLINT version_len;
+
+	use_odbc_version3 = 1;
+	Connect();
+
+	memset(version, 0, sizeof(version));
+	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
+
+	if (((char *) &big_endian)[0] == 1)
+		big_endian = 0;
+
+	for (use_cursors = 0; use_cursors <= 1; ++use_cursors) {
+		if (use_cursors)
+			CheckCursor();
+
+		exec_direct = 1;
+		AllTests();
+
+		exec_direct = 0;
+		prepare_before = 1;
+		AllTests();
+
+		prepare_before = 0;
+		AllTests();
+	}
 
 	Disconnect();
 
 	printf("Done successfully!\n");
 	return 0;
 }
+

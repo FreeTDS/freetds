@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.463 2007-12-31 10:30:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464 2008-01-06 10:48:43 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2850,7 +2850,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	int send = 0, i, ret;
 	TDSCURSOR *cursor;
-	TDSPARAMINFO *params = NULL;
+	TDSPARAMINFO *params = stmt->params;
 
 	assert(tds);
 	assert(stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY);
@@ -2859,12 +2859,10 @@ odbc_cursor_execute(TDS_STMT * stmt)
 		tds_release_cursor(tds, stmt->cursor);
 		stmt->cursor = NULL;
 	}
-	if (stmt->query) {
+	if (stmt->query)
 		cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
-	} else {
-		params = stmt->params;
+	else
 		cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->prepared_query, strlen(stmt->prepared_query));
-	}
 	if (!cursor) {
 		stmt->dbc->current_statement = NULL;
 
