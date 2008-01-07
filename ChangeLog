@@ -1,3 +1,9 @@
+Mon Jan  7 19:32:20 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/sql2tds.c src/odbc/unittests/genparams.c:
+	- fix millisecond round off for TIMESTAMP
+	- improve genparams test to catch this problem
+	- make genparams works with MS ODBC
+
 Mon Jan  7 15:04:18 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdssrv.h src/server/login.c src/server/server.c:
 	* src/server/unittest.c:

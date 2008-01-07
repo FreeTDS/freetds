@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.21 2008-01-06 10:48:45 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.22 2008-01-07 18:33:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int precision = 18;
@@ -209,6 +209,15 @@ AllTests(void)
 	Test("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP,
 	     big_endian ? "0000949700FB9640" : "979400004096FB00");
 	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34");
+
+	/* test timestamp millisecond round off */
+	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34.001 -> 2005-07-22 09:51:34.000");
+	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34.002 -> 2005-07-22 09:51:34.003");
+	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34.003 -> 2005-07-22 09:51:34.003");
+	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34.004 -> 2005-07-22 09:51:34.003");
+	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34.005 -> 2005-07-22 09:51:34.007");
+	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34.006 -> 2005-07-22 09:51:34.007");
+
 	/* FIXME on ms driver first SQLFetch return SUCCESS_WITH_INFO for truncation error */
 	TestInput(SQL_C_TYPE_DATE, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 13:02:03 -> 2005-07-22 00:00:00");
 
@@ -275,8 +284,11 @@ main(int argc, char *argv[])
 		big_endian = 0;
 
 	for (use_cursors = 0; use_cursors <= 1; ++use_cursors) {
-		if (use_cursors)
+		if (use_cursors) {
+			if (!driver_is_freetds())
+				ResetStatement();
 			CheckCursor();
+		}
 
 		exec_direct = 1;
 		AllTests();
