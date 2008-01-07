@@ -1,3 +1,9 @@
+Mon Jan  7 15:04:18 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdssrv.h src/server/login.c src/server/server.c:
+	* src/server/unittest.c:
+	- small improves
+	* src/pool/user.c: style update
+
 Sun Jan  6 11:48:17 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: even SQLExecDirect support parameters!
 	* src/odbc/unittests/genparams.c: improve

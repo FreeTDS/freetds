@@ -29,7 +29,7 @@ extern "C"
 }
 #endif
 
-static const char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.9 2007-04-06 08:53:28 freddy77 Exp $";
+static const char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.10 2008-01-07 14:07:21 freddy77 Exp $";
 static const void *const no_unused_tdssrv_h_warn[] = { rcsid_tdssrv_h, no_unused_tdssrv_h_warn };
 
 /* login.c */
@@ -61,6 +61,7 @@ void tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
 void tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
 void tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
 void tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo);
+void tds8_send_prelogin(TDSSOCKET * tds);
 
 #if 0
 {

@@ -48,7 +48,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.31 2007-09-17 08:46:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.32 2008-01-07 14:07:21 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
@@ -62,8 +62,7 @@ pool_user_init(TDS_POOL * pool)
 	/* allocate room for pool users */
 
 	pool->users = (TDS_POOL_USER *)
-		malloc(sizeof(TDS_POOL_USER) * MAX_POOL_USERS);
-	memset(pool->users, '\0', sizeof(TDS_POOL_USER) * MAX_POOL_USERS);
+		calloc(MAX_POOL_USERS, sizeof(TDS_POOL_USER));
 }
 
 static TDS_POOL_USER *

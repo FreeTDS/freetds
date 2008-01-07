@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.23 2007-10-30 10:34:22 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.24 2008-01-07 14:07:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -442,3 +442,17 @@ tds_send_row(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 		}
 	}
 }
+
+void
+tds8_send_prelogin(TDSSOCKET * tds)
+{
+	static const unsigned char prelogin[] = {
+		0x00, 0x00, 0x15, 0x00, 0x06, 0x01, 0x00, 0x1b,
+		0x00, 0x01, 0x02, 0x00, 0x1c, 0x00, 0x01, 0x03,
+		0x00, 0x1d, 0x00, 0x00, 0xff, 0x08, 0x00, 0x01,
+		0x55, 0x00, 0x00, 0x02, 0x00 
+	};
+
+	tds_put_n(tds, prelogin, sizeof(prelogin));
+}
+

@@ -58,7 +58,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.51 2007-09-18 12:34:49 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.52 2008-01-07 14:07:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -90,19 +90,19 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 
 	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("socket");
-		exit(1);
+		return NULL;
 	}
 	if (bind(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
 		CLOSESOCKET(s);
 		perror("bind");
-		exit(1);
+		return NULL;
 	}
 	listen(s, 5);
 	len = sizeof(sin);
 	if ((fd = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
 		CLOSESOCKET(s);
 		perror("accept");
-		exit(1);
+		return NULL;
 	}
 	CLOSESOCKET(s);
 	tds = tds_alloc_socket(ctx, 8192);
@@ -312,8 +312,8 @@ tds_alloc_read_login(TDSSOCKET * tds)
 	case 0x12: /* TDS8+ prelogin, hopefully followed by a login */
 		tds->major_version = 8;
 		tds->minor_version = 0;
-		tds7_read_login(tds, login);
-		tds_send_done_token(tds, TDS_DONE_FINAL, 0);
+		/* ignore client and just send our reply TODO... finish */
+		tds8_send_prelogin(tds);
 		tds_flush_packet(tds);
 		if (tds_read_packet(tds) < 0 || tds->in_flag != 0x10) {
 			tds_free_login(login);
