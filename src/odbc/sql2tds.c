@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.64 2008-01-07 18:33:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.65 2008-01-07 21:00:09 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -121,7 +121,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 
 	dt->dtdays = dt_days;
 	dt_time = (src_tm.tm_hour * 60 + src_tm.tm_min) * 60 + src_tm.tm_sec;
-	dt->dttime = dt_time * 300 + (src_tm.tm_ms * 300 + 500) / 1000;
+	dt->dttime = dt_time * 300 + (src_tm.tm_ms * 3 + 5) / 10;
 	return sizeof(TDS_DATETIME);
 }
 
