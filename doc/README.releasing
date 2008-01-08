@@ -7,7 +7,7 @@ It's pretty simple, basically:
    Use the form BRANCH0_xx, where xx is the release number.  This affects only
    the repository, not the working directory.  
    
-1) Change the version number in configure.in and UG.  
+1) Change the version number in configure.ac and UG.  
 2) Update web pages regarding purpose and status of rc.  
 3) Put out a release candidates until everyone's happy.  
    jkl has a "make dist" script on /etc/nightly.freetds that works well.  
@@ -50,4 +50,4 @@ less important per step ;-)
     convention for naming - .tar.gz for tar and gzip, rather than .tgz.
 
 --
-$Id: README.releasing,v 1.9 2004-11-27 22:21:07 jklowden Exp $
+$Id: README.releasing,v 1.10 2008-01-08 13:29:40 freddy77 Exp $

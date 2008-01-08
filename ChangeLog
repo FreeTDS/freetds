@@ -1,3 +1,7 @@
+Tue Jan  8 14:28:09 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* NEWS doc/README.releasing doc/userguide.sgml:
+	- updates for new release
+
 Tue Jan  8 10:33:26 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/genparams.c: relax for no-dm
 

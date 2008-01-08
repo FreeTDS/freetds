@@ -1,7 +1,7 @@
-$Id: NEWS,v 1.42 2007-08-10 09:17:57 freddy77 Exp $
-* 0.65
+$Id: NEWS,v 1.43 2008-01-08 13:29:40 freddy77 Exp $
+* 0.82
 - support NUL characters inside terminators in freebcp
-- cursors under ODBC
+- cursors under ODBC (mssql)
 - NTLM2 session response
 - lot of update to TDS protocol documentation
 - some optimizations for GCC4
@@ -10,7 +10,7 @@ $Id: NEWS,v 1.42 2007-08-10 09:17:57 freddy77 Exp $
 - add row termination and column termination option to tsql
 - improve locale stuff on ctlib
   added cs_loc_alloc, cs_loc_drop, cs_locale implementations
-- improve MingW compile
+- improve MingW compile (even cross one)
 - implement dbsetnull on dblib
 - improve dblib error reporting and check
 - more verbose log for dblib and odbc
@@ -27,6 +27,7 @@ $Id: NEWS,v 1.42 2007-08-10 09:17:57 freddy77 Exp $
 - add freetds.conf option for encryption
 - add protocol version discovery
 - read table and real column name from wire
+- experimental Kerberos support using gssapi
 
 libTDS API changes
 - tds_add_row_column_size removed
@@ -67,6 +68,20 @@ libTDS API changes
 - added is_variable_type macro
 - added TDSCOLUMN->table_column_name
 - added tds parameter to tds_set_column_type
+- renamed BCPCOLDATA->null_column to is_null
+- added TDSMESSAGE->oserr
+- remove length, number_upd_cols and cur_col_list from TDSCURSOR (never used)
+- added new TDSAUTHENTICATION to handle authentication modules
+- added TDSSOCKET->authentication
+- added tds_ntlm_get_auth and tds_gss_get_auth
+- removed TDSANSWER
+- removed tds7_send_auth (use new tds_ntlm_get_auth)
+- added tds_get_int8
+- add TDSPARAMINFO *params argument to tds_cursor_declare
+- add TDSPARAMINFO *params argument to tds_cursor_open
+- changed TDSSOCKET->rows_affected from int to TDS_INT8
+- added TDSSOCKET->tds9_transaction (used internally for TDS9)
+- added TDSCONNECTION->server_host_name needed for Kerberos support
 
 
 * 0.64

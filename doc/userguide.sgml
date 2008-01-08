@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2007-12-28 14:12:09 $</date>
-		<releaseinfo>$Revision: 1.109 $</releaseinfo>
+		<date>$Date: 2008-01-08 13:29:40 $</date>
+		<releaseinfo>$Revision: 1.110 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -44,7 +44,7 @@
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<preface id="about"><title>About this User Guide</title>
 			<para>
-This User Guide describes <productname>FreeTDS</productname> 0.64.  It is the product of (lots of) happy collaborative effort.  Although Brian's name and mine are at the top of it, behind it are many others, who contributed thoughtful suggestions, bamboozled questions, stellar prose, and terse instructions.  I don't mention this for the usual reasons (the enumeration of which I leave to you) but rather to emphasize that the purpose of our effort is to help you and those who come after you to have the easiest and most enjoyable time with <productname>FreeTDS</productname>.  
+This User Guide describes <productname>FreeTDS</productname> 0.82.  It is the product of (lots of) happy collaborative effort.  Although Brian's name and mine are at the top of it, behind it are many others, who contributed thoughtful suggestions, bamboozled questions, stellar prose, and terse instructions.  I don't mention this for the usual reasons (the enumeration of which I leave to you) but rather to emphasize that the purpose of our effort is to help you and those who come after you to have the easiest and most enjoyable time with <productname>FreeTDS</productname>.  
 			</para>
 			<para>
 It is surprisingly hard, after a while, to remember how it can be for someone newly approaching a project to use it.  What seems as obvious as a fog horn to an old hand may be much more like the fog itself to the newcomer.  That can make installing and setting up new software a puzzling or frustrating experience.  You may have heard, <quote>It's easy if you know how.</quote>  Indeed it is, and that's our purpose here: to make it easy, by letting you know how.  
@@ -55,9 +55,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.109 $</>
-<member>$Date: 2007-12-28 14:12:09 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.109 2007-12-28 14:12:09 freddy77 Exp $.</>
+<member>$Revision: 1.110 $</>
+<member>$Date: 2008-01-08 13:29:40 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.110 2008-01-08 13:29:40 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -567,7 +567,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2007-12-28 14:12:09 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-01-08 13:29:40 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
