@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.170 2007-12-31 10:06:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.171 2008-01-08 15:38:31 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -489,6 +489,7 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	hostcol->prefix_len = host_prefixlen;
 	hostcol->column_len = host_collen;
 	if (host_term && host_termlen >= 0) {
+		free(hostcol->terminator);
 		if ((hostcol->terminator = malloc(host_termlen)) == NULL) {
 			dbperror(dbproc, SYBEMEM, errno);
 			return FAIL;
@@ -576,6 +577,12 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 	CHECK_DBPROC();
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
+
+	if (field == BCPKEEPIDENTITY) {
+		dbproc->bcpinfo->identity_insert_on = (value != 0);
+		return SUCCEED;
+	}
+
 	CHECK_PARAMETER(dbproc->hostfileinfo, SYBEBIVI, FAIL);
 
 	switch (field) {
@@ -591,9 +598,6 @@ bcp_control(DBPROCESS * dbproc, int field, DBINT value)
 		break;
 	case BCPBATCH:
 		dbproc->hostfileinfo->batch = value;
-		break;
-	case BCPKEEPIDENTITY:
-		dbproc->bcpinfo->identity_insert_on = (value != 0);
 		break;
 
 	default:
