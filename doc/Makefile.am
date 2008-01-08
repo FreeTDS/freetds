@@ -1,7 +1,8 @@
+
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
-# $Id: Makefile.am,v 1.61 2007-12-25 06:02:37 jklowden Exp $
+# $Id: Makefile.am,v 1.62 2008-01-08 15:38:23 jklowden Exp $
 
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
