@@ -4,8 +4,14 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.22 2008-01-07 18:33:16 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.23 2008-01-08 09:33:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+#ifdef TDS_NO_DM
+static const int tds_no_dm = 1;
+#else
+static const int tds_no_dm = 0;
+#endif
 
 static int precision = 18;
 static int exec_direct = 0;
@@ -285,7 +291,7 @@ main(int argc, char *argv[])
 
 	for (use_cursors = 0; use_cursors <= 1; ++use_cursors) {
 		if (use_cursors) {
-			if (!driver_is_freetds())
+			if (!tds_no_dm || !driver_is_freetds())
 				ResetStatement();
 			CheckCursor();
 		}

@@ -1,3 +1,6 @@
+Tue Jan  8 10:33:26 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/genparams.c: relax for no-dm
+
 Mon Jan  7 19:32:20 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/sql2tds.c src/odbc/unittests/genparams.c:
 	- fix millisecond round off for TIMESTAMP
