@@ -1,3 +1,6 @@
+Wed Jan  9  7:50:39 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac: preparing 0.82
+
 Tue Jan  8 10:31:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* doc/Makefile.am added freetds.conf.5
 	* src/dblib/bcp.c applied BCPKEEPIDENTIY patch from [email]
