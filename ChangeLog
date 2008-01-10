@@ -1,3 +1,8 @@
+Thu Jan 10 09:51:23 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* TODO src/odbc/odbc.c src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am:
+	- small fix for hidden fields (ignore them entirely)
+
 Wed Jan  9  7:50:39 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: preparing 0.82
 

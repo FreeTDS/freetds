@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464 2008-01-06 10:48:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.1 2008-01-10 08:52:45 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2652,7 +2652,7 @@ odbc_ird_check(TDS_STMT * stmt)
 		return;
 
 	/* check columns number */
-	assert(ird->header.sql_desc_count == cols || ird->header.sql_desc_count == 0);
+	assert(ird->header.sql_desc_count <= cols || ird->header.sql_desc_count == 0);
 
 
 	/* check all columns */
@@ -2716,6 +2716,10 @@ odbc_populate_ird(TDS_STMT * stmt)
 	if (!stmt->dbc->tds_socket || !(res_info = stmt->dbc->tds_socket->current_results))
 		return SQL_SUCCESS;
 	num_cols = res_info->num_cols;
+
+	/* ignore hidden columns... TODO correct? */
+	while (num_cols > 0 && res_info->columns[num_cols - 1]->column_hidden == 1)
+		--num_cols;
 
 	if (desc_alloc_records(ird, num_cols) != SQL_SUCCESS) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
