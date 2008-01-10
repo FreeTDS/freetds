@@ -1,49 +1,32 @@
-Thu Jan 10 14:12:32 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+Thu Jan 10 15:55:32 EST 2008	JK Lowden <jklowden@freetds.org>
+	* INSTALL.CVS NEWS README TODO ChangeLog-0.82
+	* ChangeLog doc/userguide.sgml documentation updates
+
+Thu Jan 10 17:04:15 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/cancel.c(added):
+	- add test for SQLCancel
+
+Thu Jan 10 16:28:44 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/blob1.c src/odbc/unittests/cursor3.c:
+	* src/odbc/unittests/cursor4.c src/odbc/unittests/cursor5.c:
+	- use temporary tables
+
+Thu Jan 10 16:25:19 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/README.releasing misc/freetds_autobuild: updates
+
+Thu Jan 10 14:10:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/blob1.c(added):
 	- fix problem with SQLGetData and blobs
 
-Thu Jan 10 09:51:23 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+Thu Jan 10 09:46:41 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am:
 	- small fix for hidden fields (ignore them entirely)
 
-Wed Jan  9  7:50:39 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* configure.ac: preparing 0.82
-
-Tue Jan  8 10:31:43 EST 2008	JK Lowden <jklowden@freetds.org>
-	* doc/Makefile.am added freetds.conf.5
-	* src/dblib/bcp.c applied BCPKEEPIDENTIY patch from [email]
-
-Tue Jan  8 14:28:09 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* NEWS doc/README.releasing doc/userguide.sgml:
-	- updates for new release
-
-Tue Jan  8 10:33:26 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/odbc/unittests/genparams.c: relax for no-dm
-
-Mon Jan  7 19:32:20 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/odbc/sql2tds.c src/odbc/unittests/genparams.c:
-	- fix millisecond round off for TIMESTAMP
-	- improve genparams test to catch this problem
-	- make genparams works with MS ODBC
-
-Mon Jan  7 15:04:18 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* include/tdssrv.h src/server/login.c src/server/server.c:
-	* src/server/unittest.c:
-	- small improves
-	* src/pool/user.c: style update
-
-Sun Jan  6 11:48:17 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/odbc/odbc.c: even SQLExecDirect support parameters!
-	* src/odbc/unittests/genparams.c: improve
-
-Sat Jan  5 12:23:21 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/tds/query.c:
-	- add parameterized flag calling sp_cursoropen if needed
-
-Wed Jan  2 00:08:45 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* configure.ac src/apps/Makefile.am:
-	- remove GNU style
-	* src/dblib/dblib.c: make it compile
-
+Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
+	* ChangeLog  truncated because of release
+	* ChangeLog-0.82 added because of release
+	
+$Id: ChangeLog,v 1.2454.2.4 2008-01-10 20:58:42 jklowden Exp $

@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-01-08 13:29:40 $</date>
-		<releaseinfo>$Revision: 1.110 $</releaseinfo>
+		<date>$Date: 2008-01-10 20:58:43 $</date>
+		<releaseinfo>$Revision: 1.110.2.1 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -26,6 +26,7 @@
 		  <year>2005</year>
 		  <year>2006</year>
 		  <year>2007</year>
+		  <year>2008</year>
 		  <holder>Brian Bruns and James K. Lowden</holder>
 		</copyright>
 		<legalnotice><para>
@@ -55,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.110 $</>
-<member>$Date: 2008-01-08 13:29:40 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.110 2008-01-08 13:29:40 freddy77 Exp $.</>
+<member>$Revision: 1.110.2.1 $</>
+<member>$Date: 2008-01-10 20:58:43 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.110.2.1 2008-01-10 20:58:43 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -201,7 +202,7 @@ project on SourceForge.  It is a fork of the
 		<sect2 id="Status">
 			<title>Status</title>
 			<para>
-The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement an important subset of their <acronym>API</>s, enough to be useful.  This 0.64 version boasts support for server-side cursors in <systemitem class="library">ct-lib</systemitem>.  
+The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement a useful &mdash; and widely used &mdash; subset of their <acronym>API</>s.  
 			</para>
 			<para>
 In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, <productname>FreeTDS</productname>  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <command>freebcp</>, a replacement for Sybase's <application>bcp</application> utility.  
@@ -567,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-01-08 13:29:40 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-01-10 20:58:43 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -941,8 +942,7 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>instance</entry>
 	<entry>instance name</entry>
 	<entry>none</entry>
-	<entry><para>Name of Microsoft SQL Server <emphasis>instance</> to connect to. The port will be detected automatically.
-		<note><para>This requires an extra round-trip with server and may thus slightly delay making the connection.</para></note></para></entry>
+	<entry><para>Name of Microsoft SQL Server <emphasis>instance</> to connect to. The port will be detected automatically.</para></entry>
 	</row>
 	<row>
 	<entry>debug flags</entry>
@@ -1512,7 +1512,7 @@ The following table defines all possible ODBC connection attributes for the <pro
 	<entry><literal>Server</></entry>
 	<entry>A server name or (ip) address</entry>
 	<entry>none</entry>
-	<entry>Hostname of a server. Used in an ODBC-only configuration. As of version 0.64 you can specify a Microsoft SQL Server instance in the form of <literal>server\instance</literal>.  </entry>
+	<entry>Hostname of a server. Used in an ODBC-only configuration. To specify a Microsoft SQL Server instance, use the form <literal>server\instance</literal>.  </entry>
 	</row>
 	<row>
 	<entry><literal>Port</></entry>
