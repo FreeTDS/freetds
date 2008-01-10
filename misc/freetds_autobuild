@@ -9,7 +9,7 @@ export PATH="/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:$HOME
 
 GROUPDIR=/home/groups/f/fr/freetds/htdocs
 # directory to compile
-FTDSDIR=freetds65
+FTDSDIR=freetds82
 # output directory on server
 OUTDIR=out
 # additional flags for Autogen (current version)

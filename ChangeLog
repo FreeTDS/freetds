@@ -1,3 +1,6 @@
+Thu Jan 10 16:25:19 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/README.releasing misc/freetds_autobuild: updates
+
 Thu Jan 10 14:10:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/blob1.c(added):
@@ -12,4 +15,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2458 2008-01-10 13:11:07 freddy77 Exp $
+$Id: ChangeLog,v 1.2459 2008-01-10 15:26:51 freddy77 Exp $
