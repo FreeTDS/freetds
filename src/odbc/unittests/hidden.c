@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: hidden.c,v 1.2 2008-01-10 08:54:46 freddy77 Exp $";
+static char software_version[] = "$Id: hidden.c,v 1.3 2008-01-10 21:19:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -70,6 +70,7 @@ main(int argc, char **argv)
 
 	/* test hidden column with cursors*/
 	CheckCursor();
+	m_hstmt1 = Statement;
 
 	rcode = SQLSetStmtAttr(m_hstmt1, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLSetStmtAttr SQL_ATTR_CURSOR_SCROLLABLE");

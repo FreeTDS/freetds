@@ -25,6 +25,7 @@ getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
 	SQLCHAR msgtext[SQL_MAX_MESSAGE_LENGTH + 1];
 	SQLSMALLINT msgtextl = 0;
 
+	msgtext[0] = 0;
 	rcode = SQLGetDiagRec((SQLSMALLINT) sqlhdltype,
 			      (SQLHANDLE) sqlhandle,
 			      (SQLSMALLINT) 1,
@@ -76,6 +77,7 @@ main(int argc, char **argv)
 	getErrorInfo(SQL_HANDLE_STMT, Statement);
 	if (strcmp(sqlstate, "HY008") != 0) {
 		fprintf(stderr, "Unexpected sql state returned\n");
+		Disconnect();
 		return 1;
 	}
 	printf(">> ...  done rcode = %d\n", rcode);
