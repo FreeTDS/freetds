@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.23 2007-01-29 11:02:43 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.24 2008-01-10 22:57:33 jklowden Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -33,6 +33,12 @@
 #endif
 
 #define TDS_ADDITIONAL_SPACE 0
+
+#ifdef MSG_NOSIGNAL
+# define TDS_NOSIGNAL MSG_NOSIGNAL
+#else
+# define TDS_NOSIGNAL 0L
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -47,10 +53,11 @@ extern "C"
 #endif				/* __INCvxWorksh */
 
 #if defined(DOS32X)
-#define READSOCKET(a,b,c)	recv((a), (b), (c), 0L)
-#define WRITESOCKET(a,b,c)	send((a), (b), (c), 0L)
+#define READSOCKET(a,b,c)	recv((a), (b), (c), TDS_NOSIGNAL)
+#define WRITESOCKET(a,b,c)	send((a), (b), (c), TDS_NOSIGNAL)
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (char*)(c))
+#define SOCKLEN_T int
 #define select select_s
 typedef int pid_t;
 #define strcasecmp stricmp
@@ -62,10 +69,11 @@ typedef int pid_t;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #include <windows.h>
-#define READSOCKET(a,b,c)	recv((a), (b), (c), 0L)
-#define WRITESOCKET(a,b,c)	send((a), (b), (c), 0L)
+#define READSOCKET(a,b,c)	recv((a), (b), (c), TDS_NOSIGNAL)
+#define WRITESOCKET(a,b,c)	send((a), (b), (c), TDS_NOSIGNAL)
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
+#define SOCKLEN_T int
 int  _tds_socket_init(void);
 #define INITSOCKET()	_tds_socket_init()
 void _tds_socket_done(void);
@@ -120,20 +128,32 @@ typedef DWORD pid_t;
 #endif /* !DONESOCKET */
 
 #ifndef READSOCKET
-#define READSOCKET(a,b,c)	read((a), (b), (c))
+# ifdef MSG_NOSIGNAL
+#  define READSOCKET(s,b,l)	recv((s), (b), (l), MSG_NOSIGNAL)
+# else
+#  define READSOCKET(s,b,l)	read((s), (b), (l))
+# endif
 #endif /* !READSOCKET */
 
 #ifndef WRITESOCKET
-#define WRITESOCKET(a,b,c)	write((a), (b), (c))
+# ifdef MSG_NOSIGNAL
+#  define WRITESOCKET(s,b,l)	send((s), (b), (l), MSG_NOSIGNAL)
+# else
+#  define WRITESOCKET(s,b,l)	write((s), (b), (l))
+# endif
 #endif /* !WRITESOCKET */
 
 #ifndef CLOSESOCKET
-#define CLOSESOCKET(a)		close((a))
+#define CLOSESOCKET(s)		close((s))
 #endif /* !CLOSESOCKET */
 
 #ifndef IOCTLSOCKET
-#define IOCTLSOCKET(a,b,c)	ioctl((a), (b), (c))
+#define IOCTLSOCKET(s,b,l)	ioctl((s), (b), (l))
 #endif /* !IOCTLSOCKET */
+
+#ifndef SOCKLEN_T
+# define SOCKLEN_T socklen_t
+#endif
 
 #ifndef TDS_SDIR_SEPARATOR
 #define TDS_SDIR_SEPARATOR "/"

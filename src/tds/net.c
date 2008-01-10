@@ -99,7 +99,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.71 2007-12-12 06:27:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.72 2008-01-10 22:57:33 jklowden Exp $");
 
 static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
 
@@ -165,18 +165,12 @@ int
 tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout)
 {
 	struct sockaddr_in sin;
-#if !defined(DOS32X)
 	ioctl_nonblocking_t ioctl_nonblocking;
-	int retval;
-#endif
-	int len;
+	SOCKLEN_T optlen;
+	
+	int retval, len;
 	int tds_error = TDSECONN;
 	char ip[20];
-#if defined(DOS32X) || defined(WIN32)
-	int optlen;
-#else
-	socklen_t optlen;
-#endif
 
 	memset(&sin, 0, sizeof(sin));
 
@@ -270,8 +264,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			goto not_available;
 		}
 	}
-
-#endif
+#endif	/* not DOS32X */
 
 	/* check socket error */
 	optlen = sizeof(len);
@@ -436,11 +429,9 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 		if ((len = tds_select(tds, &rfds, NULL, NULL, tds->query_timeout)) > 0) {
 			len = 0;
 			if (FD_ISSET(tds->s, &rfds)) {
-#ifndef MSG_NOSIGNAL
+
 				len = READSOCKET(tds->s, buf + got, buflen);
-#else
-				len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
-#endif
+
 				if (len < 0 && sock_errno == EAGAIN)
 					continue;
 				/* detect connection close */
@@ -656,10 +647,8 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 				/* In case the kernel does not support MSG_MORE, try again without it */
 				if (nput < 0 && errno == EINVAL && !last)
 					nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
-#elif !defined(MSG_NOSIGNAL)
-				nput = WRITESOCKET(tds->s, p, remaining);
 #else
-				nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
+				nput = WRITESOCKET(tds->s, p, remaining);
 #endif
 				if (nput < 0 && sock_errno == EAGAIN)
 					continue;
