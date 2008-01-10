@@ -1,36 +1,5 @@
-Tue Jan  8 10:31:43 EST 2008	JK Lowden <jklowden@freetds.org>
-	* doc/Makefile.am added freetds.conf.5
-	* src/dblib/bcp.c applied BCPKEEPIDENTIY patch from [email]
-
-Tue Jan  8 14:28:09 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* NEWS doc/README.releasing doc/userguide.sgml:
-	- updates for new release
-
-Tue Jan  8 10:33:26 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/odbc/unittests/genparams.c: relax for no-dm
-
-Mon Jan  7 19:32:20 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/odbc/sql2tds.c src/odbc/unittests/genparams.c:
-	- fix millisecond round off for TIMESTAMP
-	- improve genparams test to catch this problem
-	- make genparams works with MS ODBC
-
-Mon Jan  7 15:04:18 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* include/tdssrv.h src/server/login.c src/server/server.c:
-	* src/server/unittest.c:
-	- small improves
-	* src/pool/user.c: style update
-
-Sun Jan  6 11:48:17 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/odbc/odbc.c: even SQLExecDirect support parameters!
-	* src/odbc/unittests/genparams.c: improve
-
-Sat Jan  5 12:23:21 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* src/tds/query.c:
-	- add parameterized flag calling sp_cursoropen if needed
-
-Wed Jan  2 00:08:45 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	* configure.ac src/apps/Makefile.am:
-	- remove GNU style
-	* src/dblib/dblib.c: make it compile
-
+Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
+	* ChangeLog  truncated because of release
+	- ChangeLog-0.82 added because of release
+	
+$Id: ChangeLog,v 1.2455 2008-01-10 01:01:31 jklowden Exp $
