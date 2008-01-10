@@ -1,7 +1,7 @@
 /* Tests 2 active statements */
 #include "common.h"
 
-static char software_version[] = "$Id: cursor3.c,v 1.3 2007-12-21 10:39:10 freddy77 Exp $";
+static char software_version[] = "$Id: cursor3.c,v 1.4 2008-01-10 15:29:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLHDBC m_hdbc;
@@ -69,12 +69,11 @@ main(int argc, char **argv)
 
 	m_hdbc = Connection;
 
-	exec_direct(0, "DROP TABLE t1");
-	exec_direct(1, "CREATE TABLE t1 ( k INT, c VARCHAR(20))");
-	exec_direct(1, "INSERT INTO t1 VALUES (1, 'aaa')");
-	exec_direct(1, "INSERT INTO t1 VALUES (2, 'bbbbb')");
-	exec_direct(1, "INSERT INTO t1 VALUES (3, 'ccccccccc')");
-	exec_direct(1, "INSERT INTO t1 VALUES (4, 'dd')");
+	exec_direct(1, "CREATE TABLE #t1 ( k INT, c VARCHAR(20))");
+	exec_direct(1, "INSERT INTO #t1 VALUES (1, 'aaa')");
+	exec_direct(1, "INSERT INTO #t1 VALUES (2, 'bbbbb')");
+	exec_direct(1, "INSERT INTO #t1 VALUES (3, 'ccccccccc')");
+	exec_direct(1, "INSERT INTO #t1 VALUES (4, 'dd')");
 
 	m_hstmt1 = NULL;
 	rcode = SQLAllocHandle(SQL_HANDLE_STMT, m_hdbc, &m_hstmt1);
@@ -114,10 +113,10 @@ main(int argc, char **argv)
 	rcode = SQLSetCursorName(m_hstmt2, (SQLCHAR *) "c2", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "SetCursorName c2");
 
-	rcode = SQLPrepare(m_hstmt1, (SQLCHAR *) "SELECT * FROM t1", SQL_NTS);
+	rcode = SQLPrepare(m_hstmt1, (SQLCHAR *) "SELECT * FROM #t1", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "Prepare 1");
 
-	rcode = SQLPrepare(m_hstmt2, (SQLCHAR *) "SELECT * FROM t1", SQL_NTS);
+	rcode = SQLPrepare(m_hstmt2, (SQLCHAR *) "SELECT * FROM #t1", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "Prepare 2");
 
 	rcode = SQLExecute(m_hstmt1);
@@ -151,8 +150,6 @@ main(int argc, char **argv)
 
 	rcode = SQLFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt2);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "SQLFreeHandle 2");
-
-	exec_direct(1, "DROP TABLE t1");
 
 	Disconnect();
 

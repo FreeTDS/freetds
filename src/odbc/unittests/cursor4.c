@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: cursor4.c,v 1.3 2007-12-21 10:39:10 freddy77 Exp $";
+static char software_version[] = "$Id: cursor4.c,v 1.4 2008-01-10 15:29:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLHDBC m_hdbc;
@@ -72,9 +72,8 @@ main(int argc, char **argv)
 
 	m_hdbc = Connection;
 
-	exec_direct(0, "DROP TABLE t1");
-	exec_direct(1, "CREATE TABLE t1 ( k INT, c VARCHAR(20))");
-	exec_direct(1, "INSERT INTO t1 VALUES (1, 'aaa')");
+	exec_direct(1, "CREATE TABLE #t1 ( k INT, c VARCHAR(20))");
+	exec_direct(1, "INSERT INTO #t1 VALUES (1, 'aaa')");
 
 	m_hstmt1 = NULL;
 	rcode = SQLAllocHandle(SQL_HANDLE_STMT, m_hdbc, &m_hstmt1);
@@ -86,7 +85,7 @@ main(int argc, char **argv)
 	rcode = SQLSetCursorName(m_hstmt1, (SQLCHAR *) "c112", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SetCursorName c112");
 
-	rcode = SQLPrepare(m_hstmt1, (SQLCHAR *) "SELECT * FROM t1 FOR UPDATE", SQL_NTS);
+	rcode = SQLPrepare(m_hstmt1, (SQLCHAR *) "SELECT * FROM #t1 FOR UPDATE", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "Prepare 2");
 
 	exec_direct(1, "BEGIN TRANSACTION");
@@ -97,14 +96,14 @@ main(int argc, char **argv)
 	rcode = SQLFetch(m_hstmt1);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLFetch 1");
 
-	exec_direct(1, "UPDATE t1 SET c = 'xxx' WHERE CURRENT OF c112");
+	exec_direct(1, "UPDATE #t1 SET c = 'xxx' WHERE CURRENT OF c112");
 
 	rcode = SQLCloseCursor(m_hstmt1);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLCloseCursor 2");
 
 	exec_direct(1, "COMMIT TRANSACTION");
 
-	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "SELECT c FROM t1 WHERE k = 1", SQL_NTS);
+	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "SELECT c FROM #t1 WHERE k = 1", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLExecDirect 2");
 
 	rcode = SQLFetch(m_hstmt1);
@@ -117,8 +116,6 @@ main(int argc, char **argv)
 
 	rcode = SQLFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt1);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLFreeHandle 1");
-
-	exec_direct(1, "DROP TABLE t1");
 
 	Disconnect();
 

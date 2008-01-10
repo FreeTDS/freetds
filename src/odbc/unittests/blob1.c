@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.1 2008-01-10 13:11:08 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.2 2008-01-10 15:29:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -111,8 +111,7 @@ main(int argc, char **argv)
 	use_odbc_version3 = 1;
 	Connect();
 
-	Command(Statement, "IF OBJECT_ID('tt') IS NOT NULL DROP TABLE tt");
-	Command(Statement, "CREATE TABLE tt ( k INT, t TEXT, b IMAGE, v INT )");
+	Command(Statement, "CREATE TABLE #tt ( k INT, t TEXT, b IMAGE, v INT )");
 
 	/* Insert rows ... */
 
@@ -122,7 +121,7 @@ main(int argc, char **argv)
 		rcode = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt);
 		CHECK_RCODE(SQL_HANDLE_DBC, Connection, "SQLAllocHandle StmtH");
 
-		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "insert into tt values ( ?, ?, ?, ? )", SQL_NTS);
+		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "INSERT INTO #tt VALUES ( ?, ?, ?, ? )", SQL_NTS);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPrepare");
 
 		SQLBindParameter(m_hstmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0);
@@ -181,7 +180,7 @@ main(int argc, char **argv)
 		rcode = SQLSetStmtAttr(m_hstmt, SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLSetStmtAttr SQL_ATTR_CURSOR_SENSITIVITY");
 
-		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "SELECT t, b, v FROM tt WHERE k = ?", SQL_NTS);
+		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "SELECT t, b, v FROM #tt WHERE k = ?", SQL_NTS);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPrepare");
 
 		SQLBindParameter(m_hstmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &i, 0, &vind0);

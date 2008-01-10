@@ -1,3 +1,8 @@
+Thu Jan 10 16:28:44 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/blob1.c src/odbc/unittests/cursor3.c:
+	* src/odbc/unittests/cursor4.c src/odbc/unittests/cursor5.c:
+	- use temporary tables
+
 Thu Jan 10 16:25:19 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/README.releasing misc/freetds_autobuild: updates
 
@@ -15,4 +20,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2459 2008-01-10 15:26:51 freddy77 Exp $
+$Id: ChangeLog,v 1.2460 2008-01-10 15:29:03 freddy77 Exp $
