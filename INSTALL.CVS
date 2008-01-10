@@ -16,9 +16,9 @@ connecting to the CVS server.  Then follow these steps:
 	
 	Autotool versions that work:
 	$ (autoconf --version; automake --version; libtool --version) |grep GNU
-	autoconf (GNU Autoconf) 2.59
-	automake (GNU automake) 1.9.5
-	ltmain.sh (GNU libtool) 1.5.14 (1.1220.2.195 2005/02/12 12:12:33)
+	autoconf (GNU Autoconf) 2.60
+	automake (GNU automake) 1.9.6
+	ltmain.sh (GNU libtool) 1.5.18 (1.1220.2.245 2005/05/16 08:55:27)
 	
 	The above are used to generate the distributions.  
 	You may get away with older versions, as far back as 2.53 for autoconf.
@@ -44,10 +44,10 @@ connecting to the CVS server.  Then follow these steps:
 	
 +++
 
-You are not required to rely on Source Forge's anonymous CVS server, which at
+You are not required to rely on SourceForge's anonymous CVS server, which at
 the present time (July 2004) runs up to 1 hour behind the development server. 
 You can fetch the CVS tarball (the basis for a CVS server, not a snapshot) from
-Source Forge at:
+SourceForge at:
 
 http://cvs.sourceforge.net/cvstarballs/freetds-cvsroot.tar.bz2
 
@@ -62,4 +62,4 @@ the CVS tree via rsync:
 $ rsync -av rsync://freetds.cvs.sourceforge.net/cvsroot/freetds/* .
 	
 --
-$Id: INSTALL.CVS,v 1.7 2007-04-05 14:17:05 freddy77 Exp $
+$Id: INSTALL.CVS,v 1.8 2008-01-10 22:57:39 jklowden Exp $

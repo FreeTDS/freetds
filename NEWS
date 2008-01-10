@@ -1,33 +1,63 @@
-$Id: NEWS,v 1.43 2008-01-08 13:29:40 freddy77 Exp $
-* 0.82
-- support NUL characters inside terminators in freebcp
-- cursors under ODBC (mssql)
+$Id: NEWS,v 1.44 2008-01-10 22:57:39 jklowden Exp $
+
+Executive Summary of Changes in release 0.82
+--------------------------------------------
+
+1.  timeout handling
+2.  encrypted connections
+3.  fisql (and odbc utilities)
+4.  autoconf improvements
+5.  23,710 lines added or deleted (101,022 total).
+6.  85 files added
+7.  21 unit tests added
+
+Details
+-------
+
+db-lib
+- timeouts work! 
+- corrected dbnextrow 
+- implemented dbsetnull and dbsetinterrupt
+- improved error reporting and checking
+- fixed rpc parameter processing, now php works correctly
+
+ct-lib
+- added cs_loc_alloc, cs_loc_drop, cs_locale implementations
+
+odbc
+- cursors (mssql)
+- fixed database setting 
+- return error always if odbc returns SQL_ERROR
+- fixed SQLGetData result
+
+utilities
+- added support for NUL characters inside terminators in freebcp
+- added row termination and column termination option to tsql
+- new fisql application
+- new ODBC utilities
+
+documentation
+- significant updates to TDS protocol documentation
+- freetds.conf man page
+- added tenderfoot sample code
+
+general
+- fixed timeout handling
+- added freetds.conf option for encryption
+- added protocol version discovery
 - NTLM2 session response
-- lot of update to TDS protocol documentation
+- read table and real column name from wire
+- experimental Kerberos support using gssapi
 - some optimizations for GCC4
 - optimized conversions avoiding some memory copy
 - minor improves to server stuff
-- add row termination and column termination option to tsql
-- improve locale stuff on ctlib
-  added cs_loc_alloc, cs_loc_drop, cs_locale implementations
-- improve MingW compile (even cross one)
-- implement dbsetnull on dblib
-- improve dblib error reporting and check
+- improved MingW compile (even cross one)
 - more verbose log for dblib and odbc
-- fix rpc parameter on dblib, now php works correctly
 - many test added
   1 test for libTDS
   1 test for ctlib
   3 tests for dblib
   13 tests for odbc
-- fix database setting on odbc
-- fix timeout stuff
-- return always an error if odbc return SQL_ERROR
-- fix SQLGetData result
-- add freetds.conf option for encryption
-- add protocol version discovery
-- read table and real column name from wire
-- experimental Kerberos support using gssapi
 
 libTDS API changes
 - tds_add_row_column_size removed
@@ -38,7 +68,7 @@ libTDS API changes
 - added TDSCURSOR->type and TDSCURSOR->concurrency for mssql support
 - added fetch_type and i_row parameters to tds_cursor_fetch
 - added tds_cursor_update and tds_cursor_setname functions
-- make tds_alloc_get_string static
+- made tds_alloc_get_string static
 - removed tds_free_cursor
 - added TDSCURSOR->ref_count
 - added tds_cursor_deallocated and tds_release_cursor to handle
@@ -48,8 +78,8 @@ libTDS API changes
   to trace pointer owner between libTDS and upper libraries
 - added TDS_COMPILETIME_SETTINGS->sysconfdir
 - changed DSTR_STRUCT structure to include dstr_size
-- change DSTR type
-- error handler cannot return TDS_INT_EXIT (no more defined)
+- changed DSTR type
+- error handler cannot return TDS_INT_EXIT
 - removed TDSSOCKET->query_timeout_func TDSSOCKET->query_timeout_param,
   TDSSOCKET->query_start_time
 - changed TDSLOGIN->host_name to client_host_name
@@ -82,7 +112,6 @@ libTDS API changes
 - changed TDSSOCKET->rows_affected from int to TDS_INT8
 - added TDSSOCKET->tds9_transaction (used internally for TDS9)
 - added TDSCONNECTION->server_host_name needed for Kerberos support
-
 
 * 0.64
 - core library

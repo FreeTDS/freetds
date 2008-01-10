@@ -4,11 +4,11 @@ followed by things that should work before the next release,
 followed by features that should be added/fixed/reworked (grouped by library).  
 
 Everyone is encouraged to add to the list.  Developers can do it directly; 
-anyone else can post a patch to Source Forge.  
+anyone else can post a patch to SourceForge.  
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.166 2008-01-10 08:47:37 freddy77 Exp $
+To Do List	$Id: TODO,v 1.167 2008-01-10 22:57:39 jklowden Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
@@ -30,20 +30,13 @@ Broken:
 
 Work in progress:
 
-Postponed to 0.65 version
 . log and call error handler on problems with tds_iconv_init().
 . iconv
   - support string conversions for Sybase
-  - add test for locale_charset() to configure.in.  Use it if available
-    instead of nl_langinfo, because it implies we're using GNU iconv
 . add doc/htdoc/Makefile with "publish" target to commit cvs and update
   freetds.org
 . drop txt2man from cvs, skip building man pages without it. 
 . be able to disable iconv for BCP (see Sybase documentation)
-. userguide
-  - update table of working configurations
-    server (vendor, version, platform) - client (freetds version, platform) 
-    - protocol - charsets - date
 
 For future versions (in priority order within library):
   All:
@@ -59,7 +52,6 @@ For future versions (in priority order within library):
 . Add missing constants needed for python and verify working
 . Add missing constants needed for Gnome-DB and verify working 
 . conversion from ucs2 to utf8, provide for 2+ bytes/character
-. tdsping program for testing purposes
 . Finish off the TDS dissector for ethereal
 . more solid. handle out of memory conditions (started, we must test all 
   allocation and all function that return allocated data and be able to 
@@ -81,8 +73,8 @@ For future versions (in priority order within library):
   (too complicate, see ctlib bulk, cf "bulk copy and row buffer")
 . improve cursor support on dblib and ctlib
 . support for VARIANT type (requested one time, 2003-8-1)
-. support for NT named pipe (requested many time ago for mssql6.5 server, only
-  for completeness). If anybody knows a library to handle named pipes
+. support for NT named pipe (requested long ago for mssql6.5 server, only
+  for completeness). If the reader knows a library to handle named pipes
   compatible with LGPL please tell us.
 . read on partial packet, do not wait entire one
 . detect if realloc/free accepts NULL pointers (in configure.in)
