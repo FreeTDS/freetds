@@ -1,3 +1,8 @@
+Thu Jan 10 14:12:32 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/blob1.c(added):
+	- fix problem with SQLGetData and blobs
+
 Thu Jan 10 09:51:23 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am:

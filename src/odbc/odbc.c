@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.1 2008-01-10 08:52:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.2 2008-01-10 13:13:46 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4583,12 +4583,12 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		if (*pcbValue < 0)
 			ODBC_RETURN(stmt, SQL_ERROR);
 
-		if (is_variable_type(colinfo->column_type)) {
+		if (is_variable_type(colinfo->column_type) && (fCType == SQL_C_CHAR || fCType == SQL_C_BINARY)) {
 			/* calc how many bytes was readed */
 			int readed = cbValueMax;
 
 			/* FIXME test on destination char ??? */
-			if (stmt->dbc->env->attr.output_nts != SQL_FALSE && is_char_type(nSybType) && readed > 0)
+			if (stmt->dbc->env->attr.output_nts != SQL_FALSE && fCType == SQL_C_CHAR /* is_char_type(nSybType) */ && readed > 0)
 				--readed;
 			if (readed > *pcbValue)
 				readed = *pcbValue;
