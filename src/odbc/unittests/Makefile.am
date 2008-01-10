@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.68 2007-12-19 14:36:05 freddy77 Exp $
+# $Id: Makefile.am,v 1.69 2008-01-10 08:47:38 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -20,7 +20,7 @@ TESTS		=	\
 			paramcore$(EXEEXT) timeout2$(EXEEXT) timeout3$(EXEEXT) \
 			connect2$(EXEEXT) timeout4$(EXEEXT) freeclose$(EXEEXT) \
 			cursor3$(EXEEXT) cursor4$(EXEEXT) cursor5$(EXEEXT) \
-			attributes$(EXEEXT)
+			attributes$(EXEEXT) hidden$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -77,6 +77,7 @@ cursor3_SOURCES	= cursor3.c common.c common.h
 cursor4_SOURCES	= cursor4.c common.c common.h
 cursor5_SOURCES	= cursor5.c common.c common.h
 attributes_SOURCES	= attributes.c common.c common.h
+hidden_SOURCES	= hidden.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_SRCDIR=\"$(srcdir)\"
 if MINGW32

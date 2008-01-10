@@ -8,7 +8,7 @@ anyone else can post a patch to Source Forge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.165 2007-12-26 20:56:00 freddy77 Exp $
+To Do List	$Id: TODO,v 1.166 2008-01-10 08:47:37 freddy77 Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
@@ -131,6 +131,14 @@ For future versions (in priority order within library):
 . report error just before returning SQL_ERROR from inner function?
 
 . test and fix: hidden fields (FOR BROWSE select, see flag test on tds)
+ - what happen if we bind to an hidden field??
+ - if we use SQLGetData??
+ - if we request informations with SQLDescribeCol/SQLColAttribute(s)/
+   SQLGetDescField??
+ - as you noted returning # columns hidden fields are not counted (there
+   is however a setting which is a mssql extension which threat hidden
+   columns as normal)
+ (cfr "SQLNumResultCols() is wrong (+1)" Jan 8 2008)
 . test: all binding types (input and output)
 . test: descriptors work
   - ODBC 2 type returned (datetime)
