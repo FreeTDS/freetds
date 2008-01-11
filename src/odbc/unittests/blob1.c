@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.2 2008-01-10 15:29:03 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.3 2008-01-11 09:44:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -167,7 +167,7 @@ main(int argc, char **argv)
 
 	}
 
-	/* No fetch rows ... */
+	/* Now fetch rows ... */
 
 	for (i = 0; i < cnt; i++) {
 
@@ -175,10 +175,12 @@ main(int argc, char **argv)
 		rcode = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt);
 		CHECK_RCODE(SQL_HANDLE_DBC, Connection, "SQLAllocHandle StmtH");
 
-		rcode = SQLSetStmtAttr(m_hstmt, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLSetStmtAttr SQL_ATTR_CURSOR_SCROLLABLE");
-		rcode = SQLSetStmtAttr(m_hstmt, SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLSetStmtAttr SQL_ATTR_CURSOR_SENSITIVITY");
+		if (db_is_microsoft()) {
+			rcode = SQLSetStmtAttr(m_hstmt, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER);
+			CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLSetStmtAttr SQL_ATTR_CURSOR_SCROLLABLE");
+			rcode = SQLSetStmtAttr(m_hstmt, SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER);
+			CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLSetStmtAttr SQL_ATTR_CURSOR_SENSITIVITY");
+		}
 
 		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "SELECT t, b, v FROM #tt WHERE k = ?", SQL_NTS);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPrepare");
