@@ -1,12 +1,11 @@
-$Id: README,v 1.11 2007-04-05 14:17:05 freddy77 Exp $
-README for FreeTDS 0.64
-Saturday 1 July 2006
+README for FreeTDS 0.82
+Thusday 10 January 2008
 
-* to build FreeTDS read the file INSTALL,
-* see also the FreeTDS Users Guide,
+* to build FreeTDS read the file INSTALL or
+  the FreeTDS Users Guide (doc/userguide.tgz) and 
   http://www.freetds.org/userguide/
 
-FreeTDS is a free (open source) implementation of Sybase's db-lib,
+FreeTDS is a free implementation of Sybase's db-lib,
 ct-lib, and ODBC libraries. FreeTDS builds and runs on every flavor of
 unix-like systems we've heard of, as well as Win32 (with or without
 Cygwin), VMS, and Mac OS X.  Failure to build on your system is probably
@@ -27,60 +26,8 @@ TODO		The roadmap, such as it is
 
 Also, doc/api_status.txt shows which functions are implemented.  
 
-************************************
-** Warning regarding Sybase 12.5! **
-************************************
-
-Do Not Use TDS version 4.2 to connect to Sybase 12.5. Please!  
-
-While we don't like to put the bad news first, neither do we want you to
-hurt your server.  We know that our implementation of TDS 4.2 gives
-Sybase 12.5 a bad case of heartburn.  In short: it crashes the server.  
-
-We don't know what it is about our version of TDS 4.2 that Sybase 12.5
-doesn't like, and we'd like to figure it out eventually.  But in the
-meanwhile, until we can find the problem and fix it, please don't use
-that combination.  Unless you want to help us test it, that is.  
-
-FreeTDS 0.63 works fine with Sybase 12.5 if you use TDS version 5.0.  
-
-If you are using Sybase 12.5 and anything above is not clear to you,
-please see the User Guide.  If it is still not clear after that, please
-write to the FreeTDS mailing list.  We'd rather answer your questions
-while your server is still running.  
-
-Thank you.  We return now to your regularly scheduled README, already in
-progress. 
-
-New in this version
-===================
-
-ct-lib
-------
-
-Ct-lib now sports bcp and cursors.  The largest missing feature is now
-placeholder support compatible with Perl's DBD::Sybase.  
-
-ODBC
-----
-
-ODBC continues to be improved.  It is now compatible with OpenOffice.org, for
-example, and even works with Oracle's OTL libary.  It has better 64-bit
-support.  
-
-Applications
-------------
-
-This version includes two new applications, bsqldb and defncopy.  See their man
-pages for details.  
-
-etc.
-----
-
-Naturally, there have been other improvements as well.  This version compiles
-and runs better than its predecessors.  
-
-
+For details on what's new in this version, see NEWS.  For unbearable 
+detail, see ChangeLog-0.82.
 
 Documentation
 =============
@@ -139,3 +86,6 @@ Side note: Brian, as many free software authors, appreciates postcards
 from all over. So if you live someplace neat (read: not Michigan) and
 want to send one, email him (brian@bruns.org) for his current snail mail
 address.
+
+$Id: README,v 1.12 2008-01-11 08:30:10 freddy77 Exp $
+
