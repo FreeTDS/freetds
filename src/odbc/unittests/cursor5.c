@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.2 2007-12-21 10:39:10 freddy77 Exp $";
+static char software_version[] = "$Id: cursor5.c,v 1.2.2.1 2008-01-11 08:33:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -76,15 +76,14 @@ main(int argc, char **argv)
 	rcode = SQLAllocHandle(SQL_HANDLE_STMT, m_hdbc, &m_hstmt2);
 	CHECK_RCODE(SQL_HANDLE_DBC, m_hdbc, "SQLAllocHandle StmtH 2");
 
-	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "drop table mytab1", SQL_NTS);
-	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "create table mytab1 (k int, c char(30))", SQL_NTS);
+	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "create table #mytab1 (k int, c char(30))", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLExecDirect 1.1");
 
-	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "insert into mytab1 values (1,'aaa')", SQL_NTS);
+	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "insert into #mytab1 values (1,'aaa')", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLExecDirect 1.2");
-	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "insert into mytab1 values (2,'bbb')", SQL_NTS);
+	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "insert into #mytab1 values (2,'bbb')", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLExecDirect 1.3");
-	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "insert into mytab1 values (3,'ccc')", SQL_NTS);
+	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "insert into #mytab1 values (3,'ccc')", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLExecDirect 1.4");
 
 /*
@@ -95,7 +94,7 @@ main(int argc, char **argv)
 	rcode = SQLSetStmtAttr(m_hstmt2, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, SQL_IS_UINTEGER);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "SQLSetStmtAttr 1");
 
-	rcode = SQLPrepare(m_hstmt2, (SQLCHAR *) "select k, c from mytab1 order by k", SQL_NTS);
+	rcode = SQLPrepare(m_hstmt2, (SQLCHAR *) "select k, c from #mytab1 order by k", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "SQLPrepare 3");
 
 	rcode = SQLBindCol(m_hstmt2, 1, SQL_C_LONG, &v_int_3, 0, &v_ind_3_1);
@@ -125,9 +124,6 @@ main(int argc, char **argv)
 
 	rcode = SQLCloseCursor(m_hstmt2);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "SQLCloseCursor StmtH 2");
-
-	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "drop table mytab1", SQL_NTS);
-	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLExecDirect 1.3");
 
 	rcode = SQLFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt1);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLFreeHandle StmtH 1");
