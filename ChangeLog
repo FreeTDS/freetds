@@ -1,3 +1,7 @@
+Fri Jan 11 13:42:06 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/apps/tsql.c:
+	- fix compile problem for MacOSX
+
 Fri Jan 11 10:42:58 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/blob1.c: make it work with Sybase
 	* configure.ac: test for poll function
@@ -42,4 +46,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2465 2008-01-11 09:44:26 freddy77 Exp $
+$Id: ChangeLog,v 1.2466 2008-01-11 12:43:39 freddy77 Exp $

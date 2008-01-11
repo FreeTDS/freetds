@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.112 2007-12-23 21:12:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.113 2008-01-11 12:43:39 freddy77 Exp $");
 
 enum
 {
@@ -683,7 +683,7 @@ main(int argc, char **argv)
 	mybuf[0] = '\0';
 	buflen = 0;
 
-#ifdef HAVE_READLINE
+#if defined(HAVE_READLINE) && HAVE_RL_INHIBIT_COMPLETION
 	rl_inhibit_completion = 1;
 #endif
 
