@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.1.2.4 2008-01-11 12:44:39 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.1.2.5 2008-01-12 00:21:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -101,11 +101,11 @@ main(int argc, char **argv)
 	int i;
 
 	int key;
-	SQLINTEGER vind0;
+	SQLLEN vind0;
 	char buf1[NBYTES];
-	SQLINTEGER vind1;
+	SQLLEN vind1;
 	char buf2[NBYTES];
-	SQLINTEGER vind2;
+	SQLLEN vind2;
 	int cnt = 2;
 
 	use_odbc_version3 = 1;

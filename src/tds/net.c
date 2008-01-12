@@ -82,6 +82,10 @@
 #include <sys/select.h>
 #endif /* HAVE_SELECT_H */
 
+#if HAVE_POLL_H
+#include <poll.h>
+#endif /* HAVE_POLL_H */
+
 #include "tds.h"
 #include "tdsstring.h"
 #include "replacements.h"
@@ -99,9 +103,23 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.71 2007-12-12 06:27:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.71.2.1 2008-01-12 00:21:39 freddy77 Exp $");
 
-static int tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds);
+#undef USE_POLL
+#if defined(HAVE_POLL_H) && defined(HAVE_POLL)
+# define USE_POLL 1
+# define TDSSELREAD  POLLIN
+# define TDSSELWRITE POLLOUT
+/* error is always returned */
+# define TDSSELERR   0
+#else
+# define USE_POLL 0
+# define TDSSELREAD  1
+# define TDSSELWRITE 2
+# define TDSSELERR   4
+#endif
+
+static int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 
 
 /**
@@ -243,8 +261,6 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
-		fd_set fds;
-
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", strerror(sock_errno));
 #if DEBUGGING_CONNECTING_PROBLEM
 		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != EINPROGRESS) {
@@ -264,8 +280,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		if (sock_errno != TDSSOCK_EINPROGRESS)
 			goto not_available;
 		
-		FD_ZERO(&fds);
-		if (tds_select(tds, NULL, &fds, &fds, timeout) <= 0) {
+		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) <= 0) {
 			tds_error = TDSESOCK;
 			goto not_available;
 		}
@@ -320,13 +335,39 @@ tds_close_socket(TDSSOCKET * tds)
  * This function does not call tdserror or close the socket because it can't know the context in which it's being called.   
  */
 static int
-tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, int timeout_seconds)
+tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 {
 	int rc, seconds;
 	unsigned int poll_seconds;
+#if !USE_POLL
+	fd_set fds[3];
+	fd_set *readfds = NULL, *writefds = NULL, *exceptfds = NULL;
+#endif
 
 	assert(tds != NULL);
 	assert(timeout_seconds >= 0);
+
+#if !USE_POLL
+#if !defined(WIN32) && defined(FD_SETSIZE)
+	if (tds->s >= FD_SETSIZE) {
+		sock_errno = EINVAL;
+		return -1;
+	}
+#endif
+	if ((tds_sel & TDSSELREAD) != 0) {
+		FD_ZERO(&fds[0]);
+		readfds = &fds[0];
+	}
+	if ((tds_sel & TDSSELWRITE) != 0) {
+		FD_ZERO(&fds[1]);
+		writefds = &fds[1];
+	}
+	if ((tds_sel & TDSSELERR) != 0) {
+		FD_ZERO(&fds[2]);
+		exceptfds = &fds[2];
+	}
+#endif
+
 	/* 
 	 * The select loop.  
 	 * If an interrupt handler is installed, we iterate once per second, 
@@ -344,8 +385,16 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 	 */
 	poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
 	for (seconds = timeout_seconds; timeout_seconds == 0 || seconds > 0; seconds -= poll_seconds) {
+#if USE_POLL
+		struct pollfd fd;
+		int timeout = poll_seconds ? poll_seconds * 1000 : -1;
+
+		fd.fd = tds->s;
+		fd.events = tds_sel;
+		fd.revents = 0;
+		rc = poll(&fd, 1, timeout);
+#else
 		struct timeval tv, *ptv = poll_seconds? &tv : NULL;
-		
 		tv.tv_sec = poll_seconds;
 		tv.tv_usec = 0; 
 
@@ -357,6 +406,7 @@ tds_select(TDSSOCKET * tds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
 			FD_SET(tds->s, exceptfds);
 
 		rc = select(tds->s + 1, readfds, writefds, exceptfds, ptv); 
+#endif
 
 		if (rc > 0 ) {
 			return rc;
@@ -421,7 +471,6 @@ static int
 tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfinished)
 {
 	int rc, got = 0;
-	fd_set rfds;
 
 	if (buf == NULL || buflen < 1 || tds == NULL)
 		return 0;
@@ -432,23 +481,19 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 		if (IS_TDSDEAD(tds))
 			return -1;
 
-		FD_ZERO(&rfds);
-		if ((len = tds_select(tds, &rfds, NULL, NULL, tds->query_timeout)) > 0) {
-			len = 0;
-			if (FD_ISSET(tds->s, &rfds)) {
+		if ((len = tds_select(tds, TDSSELREAD, tds->query_timeout)) > 0) {
 #ifndef MSG_NOSIGNAL
-				len = READSOCKET(tds->s, buf + got, buflen);
+			len = READSOCKET(tds->s, buf + got, buflen);
 #else
-				len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
+			len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
 #endif
-				if (len < 0 && sock_errno == EAGAIN)
-					continue;
-				/* detect connection close */
-				if (len <= 0) {
-					tdserror(tds->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, sock_errno);
-					tds_close_socket(tds);
-					return -1;
- 				}
+			if (len < 0 && sock_errno == EAGAIN)
+				continue;
+			/* detect connection close */
+			if (len <= 0) {
+				tdserror(tds->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, sock_errno);
+				tds_close_socket(tds);
+				return -1;
 			}
 		} else if (len < 0) {
 			if (sock_errno == EAGAIN) /* shouldn't happen, but OK */
@@ -640,35 +685,30 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 {
 	int remaining = len;
 	int nput, rc, err=0;
-	fd_set fds;
 
 	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
 	if (TDS_IS_SOCKET_INVALID(tds->s))
 		return -1;
 
 	while (remaining > 0) {
-		FD_ZERO(&fds);
-		if ((rc = tds_select(tds, NULL, &fds, NULL, tds->query_timeout)) > 0) {
-			nput = 0;
-			if (FD_ISSET(tds->s, &fds)) {
+		if ((rc = tds_select(tds, TDSSELWRITE, tds->query_timeout)) > 0) {
 #ifdef USE_MSGMORE
-				nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
-				/* In case the kernel does not support MSG_MORE, try again without it */
-				if (nput < 0 && errno == EINVAL && !last)
-					nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
-#elif !defined(MSG_NOSIGNAL)
-				nput = WRITESOCKET(tds->s, p, remaining);
-#else
+			nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+			/* In case the kernel does not support MSG_MORE, try again without it */
+			if (nput < 0 && errno == EINVAL && !last)
 				nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
+#elif !defined(MSG_NOSIGNAL)
+			nput = WRITESOCKET(tds->s, p, remaining);
+#else
+			nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
 #endif
-				if (nput < 0 && sock_errno == EAGAIN)
-					continue;
-				/* detect connection close */
-				if (nput <= 0) {
-					tdserror(tds->tds_ctx, tds, nput == 0 ? TDSESEOF : TDSEWRIT, sock_errno);
-					tds_close_socket(tds);
-					return -1;
- 				}
+			if (nput < 0 && sock_errno == EAGAIN)
+				continue;
+			/* detect connection close */
+			if (nput <= 0) {
+				tdserror(tds->tds_ctx, tds, nput == 0 ? TDSESEOF : TDSEWRIT, sock_errno);
+				tds_close_socket(tds);
+				return -1;
 			}
 		} else if (rc < 0) {
 			if (sock_errno == EAGAIN) /* shouldn't happen, but OK, retry */
@@ -781,8 +821,12 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	int num_try;
 	struct sockaddr_in sin;
 	ioctl_nonblocking_t ioctl_nonblocking;
+#if USE_POLL
+	struct pollfd fd;
+#else
 	struct timeval selecttimeout;
 	fd_set fds;
+#endif
 	int retval;
 	TDS_SYS_SOCKET s;
 	char msg[1024];
@@ -806,6 +850,15 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		return 0;
 	}
 
+#if !USE_POLL
+#if !defined(WIN32) && defined(FD_SETSIZE)
+	if (s >= FD_SETSIZE) {
+		sock_errno = EINVAL;
+		return 0;
+	}
+#endif
+#endif
+
 	/*
 	 * on cluster environment is possible that reply packet came from
 	 * different IP so do not filter by ip with connect
@@ -828,12 +881,20 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		tds_strlcpy(msg + 1, instance, sizeof(msg) - 1);
 		sendto(s, msg, strlen(msg) + 1, 0, (struct sockaddr *) &sin, sizeof(sin));
 
+#if USE_POLL
+		fd.fd = s;
+		fd.events = POLLIN;
+		fd.revents = 0;
+
+		retval = poll(&fd, 1, 1000);
+#else
 		FD_ZERO(&fds);
 		FD_SET(s, &fds);
 		selecttimeout.tv_sec = 1;
 		selecttimeout.tv_usec = 0;
 		
 		retval = select(s + 1, &fds, NULL, NULL, &selecttimeout);
+#endif
 		
 		/* on interrupt ignore */
 		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
