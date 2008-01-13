@@ -1,3 +1,6 @@
+Sun Jan 13 21:38:02 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: backported cancel error set
+
 Sun Jan 13 21:36:56 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: add missing tests for heavy loads backport
 
@@ -51,4 +54,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.10 2008-01-13 20:37:59 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.11 2008-01-13 20:39:27 freddy77 Exp $
