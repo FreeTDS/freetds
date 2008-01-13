@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.466 2008-01-10 13:11:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.467 2008-01-13 20:01:44 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3260,6 +3260,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 		case TDS_NO_MORE_RESULTS:
 			return TDS_CMD_DONE;
 		case TDS_CANCELLED:
+			odbc_errs_add(&stmt->errs, "HY008", NULL);
 		case TDS_FAIL:
 			return TDS_CMD_FAIL;
 		}
@@ -4187,6 +4188,8 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 				continue;
 			case TDS_NO_MORE_RESULTS:
 				break;
+			case TDS_CANCELLED:
+				odbc_errs_add(&stmt->errs, "HY008", NULL);
 			default:
 				stmt->errs.lastrc = SQL_ERROR;
 				break;
@@ -5682,6 +5685,9 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 			tds_process_simple_query(tds);
 			if (n >= varchar_pos && varchar_pos > 0)
 				goto redo;
+			break;
+		case TDS_CANCELLED:
+			odbc_errs_add(&stmt->errs, "HY008", NULL);
 			break;
 		}
 		if (!tds->current_results)

@@ -1,7 +1,14 @@
 /* Testing SQLCancel() */
 
 #include "common.h"
+
+/* TODO port to windows, use thread */
+
 #include <signal.h>
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
 
 #ifdef HAVE_ALARM
 
@@ -15,7 +22,7 @@
       exit(1); \
    }
 
-static SQLCHAR sqlstate[SQL_SQLSTATE_SIZE + 1];
+static char sqlstate[SQL_SQLSTATE_SIZE + 1];
 
 static void
 getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
@@ -32,8 +39,9 @@ getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
 			      (SQLCHAR *) sqlstate,
 			      (SQLINTEGER *) & naterror,
 			      (SQLCHAR *) msgtext, (SQLSMALLINT) sizeof(msgtext), (SQLSMALLINT *) & msgtextl);
+	sqlstate[sizeof(sqlstate)-1] = 0;
 	fprintf(stderr, "Diagnostic info:\n");
-	fprintf(stderr, "  SQL State: %s\n", (char *) sqlstate);
+	fprintf(stderr, "  SQL State: %s\n", sqlstate);
 	fprintf(stderr, "  SQL code : %d\n", (int) naterror);
 	fprintf(stderr, "  Message  : %s\n", (char *) msgtext);
 }
@@ -66,10 +74,11 @@ main(int argc, char **argv)
 	use_odbc_version3 = 1;
 	Connect();
 
-	printf(">> Select tab1...\n");
+	printf(">> Wait 5 minutes...\n");
 	alarm(4);
 	signal(SIGALRM, sigalrm_handler);
 	rcode = SQLExecDirect(Statement, (SQLCHAR *) "WAITFOR DELAY '000:05:00'", SQL_NTS);
+	alarm(0);
 	if (rcode != SQL_ERROR) {
 		fprintf(stderr, "SQLExecDirect should return error\n");
 		return 1;
@@ -81,7 +90,10 @@ main(int argc, char **argv)
 		return 1;
 	}
 	printf(">> ...  done rcode = %d\n", rcode);
-	signal(SIGINT, NULL);
+
+	ResetStatement();
+
+	Command(Statement, "SELECT name FROM sysobjects WHERE 0=1");
 
 	Disconnect();
 	return 0;

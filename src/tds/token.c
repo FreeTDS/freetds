@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.343 2007-12-28 23:00:18 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.344 2008-01-13 20:01:45 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2238,7 +2238,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
 
-	return TDS_SUCCEED;
+	return was_cancelled ? TDS_CANCELLED : TDS_SUCCEED;
 }
 
 /**
