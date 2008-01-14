@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.103 2007-11-26 18:12:30 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.104 2008-01-14 19:21:06 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -370,6 +370,7 @@ struct _hstmt
 	int special_row;
 	/* do NOT free cursor, free from socket or attach to connection */
 	TDSCURSOR *cursor;
+	unsigned char cancel_sent;
 };
 
 typedef struct _henv TDS_ENV;

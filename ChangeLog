@@ -1,3 +1,7 @@
+Mon Jan 14 20:20:31 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c:
+	- handle SQLCancel in signal handlers
+
 Sun Jan 13 20:59:55 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/cancel.c src/tds/token.c:
 	- detect cancellation and add proper error
@@ -55,4 +59,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2468 2008-01-13 20:01:43 freddy77 Exp $
+$Id: ChangeLog,v 1.2469 2008-01-14 19:21:06 freddy77 Exp $

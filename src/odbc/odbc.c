@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.467 2008-01-13 20:01:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.468 2008-01-14 19:21:06 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -562,6 +562,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
 			stmt->attr.query_timeout : stmt->dbc->default_query_timeout;
 	stmt->dbc->current_statement = stmt;
+	stmt->cancel_sent = 0;
 	return 1;
 }
 
@@ -1582,6 +1583,7 @@ SQLCancel(SQLHSTMT hstmt)
 
 	/* FIXME test current statement */
 
+	stmt->cancel_sent = 1;
 	if (tds_send_cancel(tds) == TDS_FAIL) {
 		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -1592,7 +1594,9 @@ SQLCancel(SQLHSTMT hstmt)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	stmt->dbc->current_statement = NULL;
+	/* only if we processed cancel reset statement */
+	if (stmt->dbc->current_statement && stmt->dbc->current_statement == stmt && tds->state == TDS_IDLE)
+		stmt->dbc->current_statement = NULL;
 
 	ODBC_RETURN_(stmt);
 }
@@ -2025,6 +2029,12 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		tdsdump_log(TDS_DBG_INFO1, "in timeout\n");
 		if (tds && (dbc = (TDS_DBC *) tds->parent) && dbc->current_statement) {
 			TDS_STMT *stmt = dbc->current_statement;
+			/* cancel sent, handling interrupt */
+			if (tds->in_cancel && stmt ->cancel_sent) {
+				stmt ->cancel_sent = 0;
+				tdsdump_log(TDS_DBG_INFO1, "returning from timeout\n");
+				return TDS_INT_TIMEOUT;
+			}
 			if (!tds->in_cancel)
 				odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
 			stmt->errs.lastrc = SQL_ERROR;
