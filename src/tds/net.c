@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.73 2008-01-12 00:14:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.74 2008-01-17 06:56:50 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -581,7 +581,6 @@ tds_read_packet(TDSSOCKET * tds)
 		}
 		return -1;
 	}
-	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received header", header, sizeof(header));
 
 #if 0
 	/*
@@ -606,7 +605,7 @@ tds_read_packet(TDSSOCKET * tds)
 #endif
 
 	/* Convert our packet length from network to host byte order */
-	len = ((((unsigned int) header[2]) << 8) | header[3]) - 8;
+	len = (((unsigned int) header[2]) << 8) | header[3];
 
 	/*
 	 * If this packet size is the largest we have gotten allocate space for it
@@ -630,9 +629,10 @@ tds_read_packet(TDSSOCKET * tds)
 
 	/* Clean out the in_buf so we don't use old stuff by mistake */
 	memset(tds->in_buf, 0, tds->in_buf_max);
+	memcpy(tds->in_buf, header, 8);
 
 	/* Now get exactly how many bytes the server told us to get */
-	have = 0;
+	have = 8;
 	while (have < len) {
 		int nbytes = goodread(tds, tds->in_buf + have, len - have);
 		if (nbytes < 1) {
@@ -659,7 +659,7 @@ tds_read_packet(TDSSOCKET * tds)
 
 	/* Set the length and pos (not sure what pos is used for now */
 	tds->in_len = have;
-	tds->in_pos = 0;
+	tds->in_pos = 8;
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", tds->in_buf, tds->in_len);
 
 	return (tds->in_len);
