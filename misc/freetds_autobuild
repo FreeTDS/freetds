@@ -9,7 +9,7 @@ export PATH="/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:$HOME
 
 GROUPDIR=/home/groups/f/fr/freetds/htdocs
 # directory to compile
-FTDSDIR=freetds82
+FTDSDIR=freetds83
 # output directory on server
 OUTDIR=out
 # additional flags for Autogen (current version)
@@ -66,14 +66,25 @@ read_pwd_fields()
 
 rm ~/freetds.log /tmp/sql.log
 
+ignore=
 for param
 do
-	case $param in
+	shift
+	case "$param" in
+	$ignore)
+		ignore=
+		;;
 	--previous)
 		OUTDIR=out0
 		FTDSDIR=freetds64
 		FLAGS_ADD="$FLAGS_ADD_OLD"
 		WORKDIR=ftds_comp_old
+		;;
+	--version)
+		ignore=$1
+		OUTDIR=out$1
+		FTDSDIR=freetds$1
+		WORKDIR=ftds_comp$1
 		;;
 	*)
 		echo 'Option not supported!' 1>&2
