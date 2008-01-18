@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.284 2007-12-27 13:45:22 freddy77 Exp $ */
+/* $Id: tds.h,v 1.285 2008-01-18 13:37:12 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1387,6 +1387,7 @@ const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
 typedef void (*TDSCONFPARSE) (const char *option, const char *value, void *param);
 int tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
 int tds_read_conf_file(TDSCONNECTION * connection, const char *server);
+void tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSCONNECTION *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_connection(TDSCONNECTION * connection);
 void tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);

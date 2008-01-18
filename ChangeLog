@@ -1,3 +1,9 @@
+Fri Jan 18 14:33:09 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/connectparams.c src/tds/config.c:
+	- merge Sebastien Flaesch patch for ODBC parameters
+	 - add ClientCharset, DumpFile, DumpFileAppend, DebugFlags, Encryption
+	 - rewrote ODBCINSTGetProperties
+
 Thu Jan 17 17:44:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* doc/htdoc/news.html announce 0.82RC1
 
@@ -65,4 +71,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2471 2008-01-17 22:45:50 jklowden Exp $
+$Id: ChangeLog,v 1.2472 2008-01-18 13:37:11 freddy77 Exp $

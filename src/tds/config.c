@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.132 2007-12-23 21:12:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.133 2008-01-18 13:37:12 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -84,7 +84,6 @@ static void tds_config_env_tdsver(TDSCONNECTION * connection);
 static void tds_config_env_tdsport(TDSCONNECTION * connection);
 static void tds_config_env_tdshost(TDSCONNECTION * connection);
 static int tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection);
-static void tds_parse_conf_section(const char *option, const char *value, void *param);
 static void tds_read_interfaces(const char *server, TDSCONNECTION * connection);
 static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login);
@@ -349,13 +348,27 @@ tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection
 	return tds_read_conf_section(in, server, tds_parse_conf_section, connection);
 }
 
+static const struct {
+	char value[7];
+	unsigned char to_return;
+} boolean_values[] = {
+	{ "yes",	1 },
+	{ "no",		0 },
+	{ "on",		1 },
+	{ "off",	0 },
+	{ "true",	1 },
+	{ "false",	0 }
+};
+
 static int
 tds_config_boolean(const char *value)
 {
-	if (!strcmp(value, "yes") || !strcmp(value, "on") || !strcmp(value, "true") || !strcmp(value, "1"))
-		return 1;
-	if (!strcmp(value, "no") || !strcmp(value, "off") || !strcmp(value, "false") || !strcmp(value, "0"))
-		return 0;
+	int p;
+
+	for (p = 0; p < TDS_VECTOR_SIZE(boolean_values); ++p) {
+		if (!strcasecmp(value, boolean_values[p].value))
+			return boolean_values[p].to_return;
+	}
 	tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED boolean value: '%s'. Treating as 'no'.\n", value);
 	return 0;
 }
@@ -471,7 +484,8 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 #undef option
 }
 
-static void
+/* Also used to scan ODBC.INI entries */
+void
 tds_parse_conf_section(const char *option, const char *value, void *param)
 {
 	TDSCONNECTION *connection = (TDSCONNECTION *) param;
