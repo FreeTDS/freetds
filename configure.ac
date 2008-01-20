@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.32 2008-01-11 12:43:39 freddy77 Exp $
+dnl $Id: configure.ac,v 1.33 2008-01-20 14:23:58 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.83.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.32 $)
+AC_REVISION($Revision: 1.33 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -142,7 +142,9 @@ tds_mingw=no
 case $host in
 *-*-mingw*)
 	tds_mingw=yes
-	if test -r /usr/lib/w32api/libwsock32.a; then
+	if test "$host_cpu" = "x86_64"; then
+		LIBS="-lws2_32"
+	elif test -r /usr/lib/w32api/libwsock32.a; then
 		LIBS="-L/usr/lib/w32api -lwsock32"
 	else
 		LIBS="-lwsock32"
@@ -381,7 +383,7 @@ TDS_NULL_IS_ZERO
 AC_CHECK_FUNCS([vsnprintf _vsnprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
-gethrtime localtime_r])
+gethrtime localtime_r setitimer])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
@@ -474,6 +476,7 @@ if test "$with_odbc_nodm"; then
 	# Can't use ODBCLIB/LDFLAGS variables since they are used in building
 	#  other directories.
 	ODBCNODMLIB="-L.. -ltdsodbc"
+	ODBCNODMLIBAPP="-L../odbc -ltdsodbc"
 	odbc=true
 fi
 
@@ -594,6 +597,7 @@ AC_SUBST(ODBC_INC)
 AC_SUBST(ODBCLIB)
 AC_SUBST(ODBCINSTLIB)
 AC_SUBST(ODBCNODMLIB)
+AC_SUBST(ODBCNODMLIBAPP)
 
 AC_ARG_WITH(gnutls,
 AS_HELP_STRING([--with-gnutls], [build with TLS support]))

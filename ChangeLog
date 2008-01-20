@@ -1,3 +1,12 @@
+Sun Jan 20 15:23:16 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac include/tds_sysdep_private.h:
+	* include/tds_sysdep_public.h.in src/apps/Makefile.am:
+	* src/ctlib/unittests/cancel.c src/dblib/unittests/timeout.c:
+	* src/odbc/unittests/describecol.c src/replacements/iconv.c:
+	* src/tds/query.c win32/tds_sysdep_public.h win32/winlogin.c:
+	* win32/winsetup.c:
+	- port to win64
+
 Fri Jan 18 14:33:09 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/odbc/connectparams.c src/tds/config.c:
 	- merge Sebastien Flaesch patch for ODBC parameters
@@ -71,4 +80,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2472 2008-01-18 13:37:11 freddy77 Exp $
+$Id: ChangeLog,v 1.2473 2008-01-20 14:23:58 freddy77 Exp $

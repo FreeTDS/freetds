@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.25 2008-01-01 23:09:46 freddy77 Exp $
+# $Id: Makefile.am,v 1.26 2008-01-20 14:23:59 freddy77 Exp $
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
@@ -28,9 +28,8 @@ bsqldb_LDADD	= ../dblib/libsybdb.la \
 		  $(NETWORK_LIBS)
 
 if ODBC
-bsqlodbc_LDADD	= ../odbc/libtdsodbc.la \
-		  ../replacements/libreplacements.la \
-		  $(ODBCLIB) $(NETWORK_LIBS)
+bsqlodbc_LDADD	= ../replacements/libreplacements.la \
+		  $(ODBCLIB) $(ODBCNODMLIBAPP) $(NETWORK_LIBS)
 bsqlodbc_CPPFLAGS	= $(ODBC_INC) $(AM_CPPFLAGS)
 endif
 

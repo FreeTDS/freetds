@@ -10,10 +10,10 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.11 2006-06-15 12:17:47 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.12 2008-01-20 14:23:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#ifdef HAVE_ALARM
+#if defined(HAVE_ALARM) && defined(HAVE_SETITIMER)
 
 /* protos */
 int do_fetch(CS_COMMAND * cmd, int *cnt);

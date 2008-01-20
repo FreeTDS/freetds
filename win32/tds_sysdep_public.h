@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.5 2004-02-03 19:28:12 jklowden Exp $";
+static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.6 2008-01-20 14:23:59 freddy77 Exp $";
 static void *no_unused_tds_sysdep_public_h_warn[] = { rcsid_tds_sysdep_public_h, no_unused_tds_sysdep_public_h_warn };
 
 #ifdef __cplusplus
@@ -34,10 +34,21 @@ extern "C"
 #define tds_sysdep_int64_type __int64	/* 64-bit int */
 #define tds_sysdep_real32_type float	/* 32-bit real */
 #define tds_sysdep_real64_type double	/* 64-bit real */
+#if !defined(WIN64) && !defined(_WIN64)
 #define tds_sysdep_intptr_type int	/* 32-bit int */
+#else
+#define tds_sysdep_intptr_type __int64	/* 64-bit int */
+#endif
 typedef SOCKET TDS_SYS_SOCKET;
 #ifndef TDS_IS_SOCKET_INVALID
 #define TDS_IS_SOCKET_INVALID(s) ((s) == INVALID_SOCKET)
+#endif
+
+#if !defined(MSDBLIB) && !defined(SYBDBLIB)
+#define SYBDBLIB 1
+#endif
+#if defined(MSDBLIB) && defined(SYBDBLIB)
+#error MSDBLIB and SYBDBLIB cannot both be defined
 #endif
 
 #ifdef __cplusplus

@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.217 2008-01-05 11:24:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.218 2008-01-20 14:23:59 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1729,7 +1729,7 @@ tds_get_dynid(TDSSOCKET * tds, char **id)
 
 	inc_num = (inc_num + 1) & 0xffff;
 	/* some version of Sybase require length <= 10, so we code id */
-	n = (unsigned long) tds;
+	n = (unsigned long) (TDS_INTPTR) tds;
 	if (!(p = (char *) malloc(16)))
 		return TDS_FAIL;
 	*id = p;

@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-/* $Id: tds_sysdep_public.h.in,v 1.11 2006-04-12 13:54:10 freddy77 Exp $ */
+/* $Id: tds_sysdep_public.h.in,v 1.12 2008-01-20 14:23:59 freddy77 Exp $ */
 
 #ifdef __cplusplus
 extern "C"
@@ -37,7 +37,11 @@ extern "C"
 #define tds_sysdep_int64_type __int64	/* 64-bit int */
 #define tds_sysdep_real32_type float	/* 32-bit real */
 #define tds_sysdep_real64_type double	/* 64-bit real */
-#define tds_sysdep_intptr_type int	/* 32-bit int */
+#if !defined(WIN64) && !defined(_WIN64)
+#define tds_sysdep_intptr_type int      /* 32-bit int */
+#else
+#define tds_sysdep_intptr_type __int64  /* 64-bit int */
+#endif
 #endif				/* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 
 #ifndef tds_sysdep_int16_type

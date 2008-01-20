@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.15 2006-08-07 19:37:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.16 2008-01-20 14:23:59 freddy77 Exp $");
 
 /**
  * \addtogroup conv
@@ -116,7 +116,7 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 	case UTF8_ASCII:
 	case UCS2LE_UTF8:
 	case UTF8_UCS2LE:
-		return (iconv_t)fromto;
+		return (iconv_t) (TDS_INTPTR) fromto;
 		break;
 	default:
 		break;
@@ -144,7 +144,7 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 	int local_errno;
 
 #undef CD
-#define CD ((int)cd)
+#define CD ((int) (TDS_INTPTR) cd)
 
 	/* iconv defines valid semantics for NULL inputs, but we don't support them. */
 	if (!inbuf || !*inbuf || !inbytesleft || !outbuf || !*outbuf || !outbytesleft)

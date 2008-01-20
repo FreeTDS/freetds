@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.13 2007-12-31 10:06:50 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.14 2008-01-20 14:23:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -78,6 +78,9 @@ static struct lookup_int sql_types[] = {
 	TYPE(SQL_BINARY),
 	TYPE(SQL_VARBINARY),
 	TYPE(SQL_LONGVARBINARY),
+	TYPE(SQL_DATE),
+	TYPE(SQL_TIME),
+	TYPE(SQL_TIMESTAMP),
 	TYPE(SQL_TYPE_DATE),
 	TYPE(SQL_TYPE_TIME),
 	TYPE(SQL_TYPE_TIMESTAMP),
@@ -140,7 +143,7 @@ typedef int (*get_attr_t) (ATTR_PARAMS);
 static int
 get_attr_ird(ATTR_PARAMS)
 {
-	SQLINTEGER i;
+	SQLLEN i;
 	SQLRETURN ret;
 
 	if (attr->type == type_CHARP)

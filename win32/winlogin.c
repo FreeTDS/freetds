@@ -88,6 +88,14 @@ get_desktop_file(const char *file)
 	return res;
 }
 
+#ifndef WIN64
+#define GetWindowUserData(wnd)       GetWindowLong((wnd), GWL_USERDATA)
+#define SetWindowUserData(wnd, data) SetWindowLong((wnd), GWL_USERDATA, (data))
+#else
+#define GetWindowUserData(wnd)       GetWindowLongPtr((wnd), GWLP_USERDATA)
+#define SetWindowUserData(wnd, data) SetWindowLongPtr((wnd), GWLP_USERDATA, (data))
+#endif
+
 /**
  * Callback function for the DSN Configuration dialog 
  * \param hDlg identifies the dialog
@@ -107,7 +115,7 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 	case WM_INITDIALOG:
 		/* lParam points to the TDSCONNECTION */
 		connection = (TDSCONNECTION *) lParam;
-		SetWindowLong(hDlg, GWL_USERDATA, lParam);
+		SetWindowUserData(hDlg, lParam);
 
 		/* copy info from TDSCONNECTION to the dialog */
 		SendDlgItemMessage(hDlg, IDC_LOGINSERVER, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&connection->server_name));
@@ -122,7 +130,7 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 
 	case WM_COMMAND:
 		/* Dialog's user data points to TDSCONNECTION */
-		connection = (TDSCONNECTION *) GetWindowLong(hDlg, GWL_USERDATA);
+		connection = (TDSCONNECTION *) GetWindowUserData(hDlg);
 
 		/* The wParam indicates which button was pressed */
 		if (LOWORD(wParam) == IDCANCEL) {
