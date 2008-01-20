@@ -1,7 +1,7 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.1 2008-01-20 20:47:45 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.2 2008-01-20 21:48:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -22,11 +22,11 @@ check_ipd_params(void)
 	SQLINTEGER ind;
 
 	CHK(SQLGetStmtAttr,(Statement, SQL_ATTR_PARAMS_PROCESSED_PTR, &ptr, sizeof(ptr), NULL));
-	
+
 	/* get IPD */
 	CHK(SQLGetStmtAttr, (Statement, SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind));
 
-	CHK(SQLGetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind));
+	CHK(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind));
 
 	if (ptr != ptr2) {
 		fprintf(stderr, "IPD inconsistency ptr %p ptr2 %p\n", ptr, ptr2);
@@ -138,11 +138,11 @@ check_ird_params(void)
 	SQLINTEGER ind;
 
 	CHK(SQLGetStmtAttr,(Statement, SQL_ATTR_ROWS_FETCHED_PTR, &ptr, sizeof(ptr), NULL));
-	
+
 	/* get IRD */
 	CHK(SQLGetStmtAttr, (Statement, SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind));
 
-	CHK(SQLGetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind));
+	CHK(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind));
 
 	if (ptr != ptr2) {
 		fprintf(stderr, "IRD inconsistency ptr %p ptr2 %p\n", ptr, ptr2);
