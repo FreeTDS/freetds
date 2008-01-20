@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.73 2008-01-18 13:37:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.74 2008-01-20 16:36:51 freddy77 Exp $");
 
 static const char odbc_param_Servername[] = "Servername";
 static const char odbc_param_Address[] = "Address";
@@ -586,7 +586,7 @@ definePropertyHidden(HODBCINSTPROPERTY hLastProperty, const char *name, const ch
 }
 
 static HODBCINSTPROPERTY
-definePropertyList(HODBCINSTPROPERTY hLastProperty, const char *name, const char *value, void *list, int size, const char *comment)
+definePropertyList(HODBCINSTPROPERTY hLastProperty, const char *name, const char *value, const void *list, int size, const char *comment)
 {
 	hLastProperty = addProperty(hLastProperty);
 	hLastProperty->nPromptType = ODBCINST_PROMPTTYPE_LISTBOX;
