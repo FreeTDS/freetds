@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.94 2007-06-19 13:31:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.95 2008-01-21 15:34:32 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -562,10 +562,12 @@ odbc_sql_to_displaysize(int sqltype, TDSCOLUMN *col)
 		size = col->column_prec + 2;
 		break;
 	case SQL_DATE:
+	case SQL_TYPE_DATE:
 		/* FIXME check always yyyy-mm-dd ?? */
 		size = 19;
 		break;
 	case SQL_TIME:
+	case SQL_TYPE_TIME:
 		/* FIXME check always hh:mm:ss[.fff] */
 		size = 19;
 		break;
