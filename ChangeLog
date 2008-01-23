@@ -1,3 +1,9 @@
+Wed Jan 23  9:48:19 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac include/tds_sysdep_public.h.in:
+	* src/ctlib/unittests/cancel.c src/dblib/unittests/timeout.c:
+	* win32/tds_sysdep_public.h win32/winlogin.c win32/winsetup.c:
+	- backport portability fixes for win64
+
 Sun Jan 13 21:38:02 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: backported cancel error set
 
@@ -54,4 +60,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.11 2008-01-13 20:39:27 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.12 2008-01-23 08:50:15 freddy77 Exp $

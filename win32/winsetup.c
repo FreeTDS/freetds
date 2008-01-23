@@ -192,6 +192,13 @@ validate(DSNINFO * di)
 	return NULL;
 }
 
+#ifndef WIN64
+#define GetWindowUserData(wnd)       GetWindowLong((wnd), GWL_USERDATA)
+#define SetWindowUserData(wnd, data) SetWindowLong((wnd), GWL_USERDATA, (data))
+#else
+#define GetWindowUserData(wnd)       GetWindowLongPtr((wnd), GWLP_USERDATA)
+#define SetWindowUserData(wnd, data) SetWindowLongPtr((wnd), GWLP_USERDATA, (data))
+#endif
 
 /** 
  * Callback function for the DSN Configuration dialog
@@ -216,7 +223,7 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 		/* lParam points to the DSNINFO */
 		di = (DSNINFO *) lParam;
-		SetWindowLong(hDlg, GWL_USERDATA, lParam);
+		SetWindowUserData(hDlg, lParam);
 
 		/* Stuff legal protocol names into IDC_PROTOCOL */
 		for (i = 0; protocols[i]; i++) {
@@ -236,7 +243,7 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_COMMAND:
 		/* Dialog's user data points to DSNINFO */
-		di = (DSNINFO *) GetWindowLong(hDlg, GWL_USERDATA);
+		di = (DSNINFO *) GetWindowUserData(hDlg);
 
 		/* The wParam indicates which button was pressed */
 		if (LOWORD(wParam) == IDCANCEL) {

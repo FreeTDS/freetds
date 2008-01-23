@@ -7,7 +7,7 @@
 #include "common.h"
 #include <time.h>
 
-static char software_version[] = "$Id: timeout.c,v 1.3 2007-12-04 02:06:38 jklowden Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.3.2.1 2008-01-23 08:50:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int ntimeouts = 0, ncancels = 0;
@@ -29,7 +29,7 @@ timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char
 		return INT_CANCEL;
 		
 	if (dberr == SYBETIME) {
-		fprintf(stderr, "%d timeouts received in %ld seconds, ", ++ntimeouts, time(NULL) - start_time);
+		fprintf(stderr, "%d timeouts received in %ld seconds, ", ++ntimeouts, (long int) (time(NULL) - start_time));
 		if (ntimeouts > max_timeouts) {
 			if (++ncancels > 1) {
 				fprintf(stderr, "could not timeout cleanly, breaking connection\n");
@@ -73,14 +73,14 @@ timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char
 int 
 chkintr(DBPROCESS * dbproc)
 {
-	printf("in chkintr, %ld seconds elapsed\n", time(NULL) - start_time);
+	printf("in chkintr, %ld seconds elapsed\n", (long int) (time(NULL) - start_time));
 	return FALSE;
 }
 
 int 
 hndlintr(DBPROCESS * dbproc)
 {
-	printf("in hndlintr, %ld seconds elapsed\n", time(NULL) - start_time);
+	printf("in hndlintr, %ld seconds elapsed\n", (long int) (time(NULL) - start_time));
 	return INT_CONTINUE;
 }
 
