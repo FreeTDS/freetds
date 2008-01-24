@@ -1,3 +1,7 @@
+Thu Jan 24 22:14:31 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c src/tds/vstrbuild.c:
+	- va_list cleanups
+
 Thu Jan 24 22:01:41 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/describecol.in:
 	- some additional tests
@@ -91,4 +95,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2476 2008-01-24 21:02:14 freddy77 Exp $
+$Id: ChangeLog,v 1.2477 2008-01-24 21:14:55 freddy77 Exp $

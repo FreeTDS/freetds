@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.320 2008-01-01 23:09:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.321 2008-01-24 21:14:55 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7775,7 +7775,6 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	DBLIB_ERROR_MESSAGE constructed_message = { 0, EXCONSISTENCY, NULL };
 	const DBLIB_ERROR_MESSAGE *msg = &default_message;
 	
-	va_list ap;
 	int i, rc = INT_CANCEL;
 	char *os_msgtext = strerror(errnum), *rc_name;
 
@@ -7811,17 +7810,16 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			msg = &dblib_error_messages[i];
 			assert(*(pformats - 1) == '\0'); 
 			if(*pformats != '\0') {
+				va_list ap;
 				int result_len, len = 2 * strlen(ptext);
 				char * buffer = calloc(1, len);
-				long save_errnum = errnum;
-				errnum = (long) pformats;
+
 				if (buffer == NULL)
 					break;
 				va_start(ap, errnum);
 				rc = tds_vstrbuild(buffer, len, &result_len, ptext, TDS_NULLTERM, pformats, TDS_NULLTERM, ap);
 				buffer[result_len] = '\0';
 				va_end(ap);
-				errnum = save_errnum;
 				if (TDS_FAIL == rc) {
 					free(buffer);
 					break;
