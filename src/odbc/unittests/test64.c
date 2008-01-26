@@ -1,7 +1,7 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.2 2008-01-20 21:48:00 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.3 2008-01-26 21:47:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK(func,params) \
@@ -241,7 +241,7 @@ test_rows(void)
 }
 
 int
-main()
+main(void)
 {
 	use_odbc_version3 = 1;
 	Connect();
