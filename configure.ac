@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.29.2.5 2008-01-23 08:50:16 freddy77 Exp $
+dnl $Id: configure.ac,v 1.29.2.6 2008-01-27 10:41:21 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.82RC2)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.29.2.5 $)
+AC_REVISION($Revision: 1.29.2.6 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -476,6 +476,7 @@ if test "$with_odbc_nodm"; then
 	# Can't use ODBCLIB/LDFLAGS variables since they are used in building
 	#  other directories.
 	ODBCNODMLIB="-L.. -ltdsodbc"
+	ODBCNODMLIBAPP="-L../odbc -ltdsodbc"
 	odbc=true
 fi
 
@@ -596,6 +597,7 @@ AC_SUBST(ODBC_INC)
 AC_SUBST(ODBCLIB)
 AC_SUBST(ODBCINSTLIB)
 AC_SUBST(ODBCNODMLIB)
+AC_SUBST(ODBCNODMLIBAPP)
 
 AC_ARG_WITH(gnutls,
 AS_HELP_STRING([--with-gnutls], [build with TLS support]))

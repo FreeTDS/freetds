@@ -1,3 +1,9 @@
+Sun Jan 27 11:40:32 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/apps/Makefile.am:
+	- backported fix for bsqlodbc dependency
+	* include/tdsodbc.h src/odbc/odbc.c src/tds/token.c:
+	- backported fix for SQLCancel
+
 Wed Jan 23  9:48:19 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac include/tds_sysdep_public.h.in:
 	* src/ctlib/unittests/cancel.c src/dblib/unittests/timeout.c:
@@ -60,4 +66,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.12 2008-01-23 08:50:15 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.13 2008-01-27 10:41:21 freddy77 Exp $
