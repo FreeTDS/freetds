@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.468 2008-01-14 19:21:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.469 2008-01-27 17:36:17 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2030,8 +2030,8 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		if (tds && (dbc = (TDS_DBC *) tds->parent) && dbc->current_statement) {
 			TDS_STMT *stmt = dbc->current_statement;
 			/* cancel sent, handling interrupt */
-			if (tds->in_cancel && stmt ->cancel_sent) {
-				stmt ->cancel_sent = 0;
+			if (tds->in_cancel && stmt->cancel_sent) {
+				stmt->cancel_sent = 0;
 				tdsdump_log(TDS_DBG_INFO1, "returning from timeout\n");
 				return TDS_INT_TIMEOUT;
 			}
@@ -4443,6 +4443,11 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 		*((SQLUINTEGER *) Value) = dbc->attr.autocommit;
 		ODBC_RETURN_(dbc);
 		break;
+#if defined(SQL_ATTR_CONNECTION_DEAD) && defined(SQL_CD_TRUE)
+		*((SQLUINTEGER *) Value) = IS_TDSDEAD(dbc->tds_socket) ? SQL_CD_TRUE : SQL_CD_FALSE;
+		ODBC_RETURN_(dbc);
+		break;
+#endif
 	case SQL_ATTR_CONNECTION_TIMEOUT:
 		*((SQLUINTEGER *) Value) = dbc->attr.connection_timeout;
 		ODBC_RETURN_(dbc);
