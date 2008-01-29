@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.7 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.8 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -39,51 +39,22 @@ Test(int bind_before)
 	/* create proc */
 	Command(Statement, sp_define);
 
-	if (!bind_before) {
-		if (SQLPrepare(Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)) != SQL_SUCCESS) {
-			fprintf(stderr, "Unable to prepare statement\n");
-			return 1;
-		}
-	}
+	if (!bind_before)
+		CHK(SQLPrepare, (Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)));
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode) !=
-	    SQL_SUCCESS) {
-		fprintf(stderr, "Unable to bind input parameter\n");
-		return 1;
-	}
-
-	if (SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam) !=
-	    SQL_SUCCESS) {
-		fprintf(stderr, "Unable to bind input parameter\n");
-		return 1;
-	}
-
-	if (SQLBindParameter(Statement, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam, 0, &cbOutParam) !=
-	    SQL_SUCCESS) {
-		fprintf(stderr, "Unable to bind input parameter\n");
-		return 1;
-	}
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode));
+	CHK(SQLBindParameter, (Statement, 2, SQL_PARAM_INPUT,  SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam,    0, &cbInParam));
+	CHK(SQLBindParameter, (Statement, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam,   0, &cbOutParam));
 
 	OutString[0] = '\0';
 	strcpy(OutString, "Test");	/* Comment this line and we get an error!  Why? */
-	if (SQLBindParameter
-	    (Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
-	     &cbOutString) != SQL_SUCCESS) {
-		fprintf(stderr, "Unable to bind input parameter\n");
-		return 1;
-	}
+	CHK(SQLBindParameter, (Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, 
+	    OUTSTRING_LEN, &cbOutString));
 
-	if (bind_before) {
-		if (SQLPrepare(Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)) != SQL_SUCCESS) {
-			fprintf(stderr, "Unable to prepare statement\n");
-			return 1;
-		}
-	}
+	if (bind_before)
+		CHK(SQLPrepare, (Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)));
 
-	if (SQLExecute(Statement) != SQL_SUCCESS) {
-		fprintf(stderr, "Unable to execute statement\n");
-		return 1;
-	}
+	CHK(SQLExecute, (Statement));
 
 	Command(Statement, "drop proc spTestProc");
 

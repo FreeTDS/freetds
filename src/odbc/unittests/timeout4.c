@@ -39,7 +39,7 @@
  * prepare or execute a query. This should fail and return an error message.
  */
 
-static char software_version[] = "$Id: timeout4.c,v 1.1 2007-04-20 09:15:06 freddy77 Exp $";
+static char software_version[] = "$Id: timeout4.c,v 1.2 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -91,9 +91,7 @@ Test(int direct)
 		return 1;
 	}
 
-	ret = SQLSetStmtAttr(Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 10, SQL_IS_UINTEGER);
-	if (ret != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Error setting timeout");
+	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 10, SQL_IS_UINTEGER));
 
 	alarm(30);
 	start_time = time(NULL);

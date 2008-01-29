@@ -2,12 +2,8 @@
 
 /* Test cursor do not give error for statement that do not return rows  */
 
-static char software_version[] = "$Id: cursor2.c,v 1.3 2007-04-20 13:27:14 freddy77 Exp $";
+static char software_version[] = "$Id: cursor2.c,v 1.4 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-#define CHK(func,params) \
-	if (func params != SQL_SUCCESS) \
-		ODBC_REPORT_ERROR(#func)
 
 int
 main(int argc, char *argv[])

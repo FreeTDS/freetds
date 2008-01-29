@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.14 2006-07-13 08:21:56 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.15 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -45,21 +45,12 @@ DoTest(int prepare)
 		"UPDATE #tmp1 SET i=i+1 WHERE i >= 2";
 
 	if (prepare) {
-		if (SQLPrepare(Statement, (SQLCHAR *) query, SQL_NTS) != SQL_SUCCESS) {
-			printf("Unable to prepare statement\n");
-			exit(1);
-		}
-		if (SQLExecute(Statement) != SQL_SUCCESS) {
-			printf("Unable to execute statement\n");
-			exit(1);
-		}
+		CHK(SQLPrepare, (Statement, (SQLCHAR *) query, SQL_NTS));
+		CHK(SQLExecute, (Statement));
 	} else {
 
 		/* execute a batch command select insert insert select and check rows */
-		if (SQLExecDirect(Statement, (SQLCHAR *) query, SQL_NTS) != SQL_SUCCESS) {
-			printf("Unable to execute direct statement\n");
-			exit(1);
-		}
+		CHK(SQLExecDirect, (Statement, (SQLCHAR *) query, SQL_NTS));
 	}
 	if (!prepare) {
 		printf("Result %d\n", ++n);

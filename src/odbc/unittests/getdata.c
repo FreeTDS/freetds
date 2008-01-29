@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: getdata.c,v 1.5 2008-01-29 09:35:25 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.6 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -55,11 +55,7 @@ main(int argc, char *argv[])
 	/* TODO test with VARCHAR too */
 	Command(Statement, "SELECT CONVERT(TEXT,'Prova')");
 
-	if (SQLFetch(Statement) != SQL_SUCCESS) {
-		printf("Unable to fetch row\n");
-		CheckReturn();
-		exit(1);
-	}
+	CHK(SQLFetch, (Statement));
 
 	/* these 2 tests test an old severe BUG in FreeTDS */
 	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 0, NULL) != SQL_SUCCESS_WITH_INFO)
@@ -75,8 +71,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 16, NULL) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to get data");
+	CHK(SQLGetData, (Statement, 1, SQL_C_CHAR, buf, 16, NULL));
 	if (strcmp(buf, "ova") != 0) {
 		printf("Wrong data result 2 res = '%s'\n", buf);
 		exit(1);
@@ -87,8 +82,7 @@ main(int argc, char *argv[])
 	/* test with varchar, not blob but variable */
 	Command(Statement, "SELECT CONVERT(VARCHAR(100), 'Other test')");
 
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to fetch row");
+	CHK(SQLFetch, (Statement));
 
 	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 7, NULL) != SQL_SUCCESS_WITH_INFO)
 		ODBC_REPORT_ERROR("Unable to get data");
@@ -97,8 +91,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 16, NULL) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to get data");
+	CHK(SQLGetData, (Statement, 1, SQL_C_CHAR, buf, 16, NULL));
 	if (strcmp(buf, "test") != 0) {
 		printf("Wrong data result 2 res = '%s'\n", buf);
 		exit(1);
@@ -109,12 +102,10 @@ main(int argc, char *argv[])
 	/* test with fixed length */
 	Command(Statement, "SELECT CONVERT(INT, 12345)");
 
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to fetch row");
+	CHK(SQLFetch, (Statement));
 
 	int_buf = 0xdeadbeef;
-	if (SQLGetData(Statement, 1, SQL_C_SLONG, &int_buf, 0, NULL) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to get data");
+	CHK(SQLGetData, (Statement, 1, SQL_C_SLONG, &int_buf, 0, NULL));
 	if (int_buf != 12345) {
 		printf("Wrong data result\n");
 		exit(1);
@@ -149,12 +140,10 @@ main(int argc, char *argv[])
 	if (db_is_microsoft()) {
 		Command(Statement, "SELECT CONVERT(TEXT,'')");
 
-		if (SQLFetch(Statement) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Unable to fetch row");
+		CHK(SQLFetch, (Statement));
 
 		len = 1234;
-		if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 1, &len) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("invalid return from SQLGetData");
+		CHK(SQLGetData, (Statement, 1, SQL_C_CHAR, buf, 1, &len));
 
 		if (len != 0) {
 			fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);

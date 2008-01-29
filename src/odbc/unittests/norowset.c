@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: norowset.c,v 1.5 2006-03-23 14:53:44 freddy77 Exp $";
+static char software_version[] = "$Id: norowset.c,v 1.6 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Test that a select following a store procedure execution return results */
@@ -22,18 +22,9 @@ main(int argc, char *argv[])
 
 	/* note, mssql 2005 seems to not return row for tempdb, use always master */
 	Command(Statement, "select name from master..sysobjects where name = 'sysobjects'");
-	res = SQLFetch(Statement);
-	if (res != SQL_SUCCESS) {
-		printf("Unable to fetch row\n");
-		CheckReturn();
-		exit(1);
-	}
+	CHK(SQLFetch, (Statement));
 
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, output, sizeof(output), &dataSize) != SQL_SUCCESS) {
-		printf("Unable to get data col %d\n", 1);
-		CheckReturn();
-		exit(1);
-	}
+	CHK(SQLGetData, (Statement, 1, SQL_C_CHAR, output, sizeof(output), &dataSize));
 
 	if (strcmp(output, "sysobjects") != 0) {
 		printf("Unexpected result\n");
@@ -42,13 +33,12 @@ main(int argc, char *argv[])
 
 	res = SQLFetch(Statement);
 	if (res != SQL_NO_DATA) {
-		printf("Row not expected\n");
+		fprintf(stderr, "Row not expected\n");
 		CheckReturn();
-		exit(1);
 	}
 
 	if (SQLMoreResults(Statement) != SQL_NO_DATA) {
-		printf("Not expected another recordset\n");
+		fprintf(stderr, "Not expected another recordset\n");
 		exit(1);
 	}
 

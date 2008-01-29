@@ -2,7 +2,7 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-static char software_version[] = "$Id: rebindpar.c,v 1.6 2004-12-01 13:11:35 freddy77 Exp $";
+static char software_version[] = "$Id: rebindpar.c,v 1.7 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -13,16 +13,15 @@ TestInsert(HSTMT stmt, char *buf)
 	char sql[200];
 
 	/* insert some data and test success */
-	if (SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, l, 0, buf, l, &ind) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to bind");
+	CHK(SQLBindParameter, (stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, l, 0, buf, l, &ind));
 
 	ind = l;
-	if (SQLExecute(stmt) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to execute");
+	CHK(SQLExecute, (stmt));
 
 	sprintf(sql, "SELECT 1 FROM #tmp1 WHERE c = '%s'", buf);
 	Command(Statement, sql);
-	if (SQLFetch(Statement) != SQL_SUCCESS || SQLFetch(Statement) != SQL_NO_DATA || SQLMoreResults(Statement) != SQL_NO_DATA) {
+	CHK(SQLFetch, (Statement));
+	if (SQLFetch(Statement) != SQL_NO_DATA || SQLMoreResults(Statement) != SQL_NO_DATA) {
 		fprintf(stderr, "One row expected!\n");
 		exit(1);
 	}
@@ -43,15 +42,12 @@ Test(int prebind)
 
 	Command(Statement, "DELETE FROM #tmp1");
 
-	if (SQLAllocStmt(Connection, &stmt) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to allocate statement");
+	CHK(SQLAllocStmt, (Connection, &stmt));
 
 	if (prebind)
-		if (SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 1, 0, buf, 1, &ind) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Unable to bind");
+		CHK(SQLBindParameter, (stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 1, 0, buf, 1, &ind));
 
-	if (SQLPrepare(stmt, (SQLCHAR *) "INSERT INTO #tmp1(c) VALUES(?)", SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to prepare statement");
+	CHK(SQLPrepare, (stmt, (SQLCHAR *) "INSERT INTO #tmp1(c) VALUES(?)", SQL_NTS));
 
 	/* try to insert al empty string, should not fail */
 	/* NOTE this is currently the only test for insert a empty string using rpc */
@@ -61,8 +57,7 @@ Test(int prebind)
 	TestInsert(stmt, "bb");
 	TestInsert(stmt, buf);
 
-	if (SQLFreeStmt(stmt, SQL_DROP) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to free statement");
+	CHK(SQLFreeStmt, (stmt, SQL_DROP));
 }
 
 int

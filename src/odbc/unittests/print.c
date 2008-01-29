@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.18 2005-12-04 11:16:30 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.19 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -53,16 +53,13 @@ test(int odbc3)
 		rc = SQLFetch(Statement);
 		if (rc != SQL_ERROR)
 			ODBC_REPORT_ERROR("Still data?");
-		rc = SQLMoreResults(Statement);
-		if (rc != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLMoreResults failed");
+		CHK(SQLMoreResults, (Statement));
 	}
     
 	CHECK_COLS(1);
 	CHECK_ROWS(-1);
 
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLFetch no succeeded");
+	CHK(SQLFetch, (Statement));
 	CHECK_COLS(1);
 	CHECK_ROWS(-1);
 	if (SQLFetch(Statement) != SQL_NO_DATA)

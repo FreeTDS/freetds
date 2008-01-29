@@ -2,7 +2,7 @@
 
 /* some tests on error reporting */
 
-static char software_version[] = "$Id: error.c,v 1.3 2004-05-22 17:25:27 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.4 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -45,17 +45,15 @@ main(int argc, char *argv[])
 
 		/* TODO when multiple row fetch available test for error on some columns */
 
-		if (SQLFetch(Statement) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLFetch failed when it shouldn't");
-		if (SQLFetch(Statement) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLFetch failed when it shouldn't");
+		CHK(SQLFetch, (Statement));
+		CHK(SQLFetch, (Statement));
 		if (SQLFetch(Statement) != SQL_ERROR)
 			ODBC_REPORT_ERROR("SQLFetch succeed when it shouldn't");
 	}
 
 	ReadError();
 	if (!strstr((char *) output, "zero")) {
-		printf("Message invalid\n");
+		fprintf(stderr, "Message invalid\n");
 		return 1;
 	}
 
@@ -64,8 +62,7 @@ main(int argc, char *argv[])
 	SQLFetch(Statement);
 	SQLMoreResults(Statement);
 
-	if (SQLAllocStmt(Connection, &stmt) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to allocate statement");
+	CHK(SQLAllocStmt, (Connection, &stmt));
 
 	Command(Statement, "SELECT * FROM sysobjects");
 

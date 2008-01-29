@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.42 2007-12-27 10:22:18 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.43 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -251,9 +251,8 @@ Command(HSTMT stmt, const char *command)
 	printf("%s\n", command);
 	result = SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS);
 	if (result != SQL_SUCCESS && result != SQL_NO_DATA) {
-		printf("Unable to execute statement\n");
+		fprintf(stderr, "Unable to execute statement\n");
 		CheckReturn();
-		exit(1);
 	}
 }
 

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.12 2006-08-13 13:03:19 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.13 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -27,96 +27,48 @@ Test(int discard_test)
 	/* create stored proc */
 	CommandWithResult(Statement, "DROP PROCEDURE testinsert");
 
-	result = CommandWithResult(Statement, createProcedure);
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't create proc testinsert");
-		retcode = 1;
-		goto cleanup;
-	}
+	Command(Statement, createProcedure);
 
 	/* create stored proc that generates an error */
 	CommandWithResult(Statement, "DROP PROCEDURE testerror");
 
-	result = CommandWithResult(Statement, createErrorProcedure);
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't create proc testerror");
-		retcode = 1;
-		goto cleanup;
-	}
+	Command(Statement, createErrorProcedure);
 
 	/* Start transaction */
-	result = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0);
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't start transaction");
-		retcode = 1;
-		goto cleanup;
-	}
+	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0));
 
 	/* Insert a value */
 	Command(Statement, "EXEC testinsert 1");
 
 	/* we should be able to read row count */
-	if (SQLRowCount(Statement, &rows) != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't get row counts");
-		retcode = 1;
-		goto cleanup;
-	}
+	CHK(SQLRowCount, (Statement, &rows));
 
 	/* Commit transaction */
-	result = SQLEndTran(SQL_HANDLE_DBC, Connection, SQL_COMMIT);
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't commit transaction");
-		retcode = 1;
-		goto cleanup;
-	}
+	CHK(SQLEndTran, (SQL_HANDLE_DBC, Connection, SQL_COMMIT));
 
 	SQLCloseCursor(Statement);
 
 	/* Start transaction */
-	result = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0);
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't start transaction");
-		retcode = 1;
-		goto cleanup;
-	}
+	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0));
 
 	/* Insert another value */
 	Command(Statement, "EXEC testinsert 2");
 
 	/* Roll back transaction */
-	result = SQLEndTran(SQL_HANDLE_DBC, Connection, SQL_ROLLBACK);
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't roll back transaction");
-		retcode = 1;
-		goto cleanup;
-	}
+	CHK(SQLEndTran, (SQL_HANDLE_DBC, Connection, SQL_ROLLBACK));
 
 	/* TODO test row inserted */
 
-	result = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_ON, 0);
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't stop transaction");
-		retcode = 1;
-		goto cleanup;
-	}
+	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_ON, 0));
 
 	/* generate an error */
-	result = CommandWithResult(Statement, "EXEC testerror");
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("error: SQLExecDirect: testerror");
-		retcode = 1;
-		goto cleanup;
-	}
-	if (SQLBindCol(Statement, 1, SQL_C_SLONG, &out_buf, sizeof(out_buf), &out_len) != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("error: SQLBindCol: testerror");
-		retcode = 1;
-		goto cleanup;
-	}
+	Command(Statement, "EXEC testerror");
+	CHK(SQLBindCol, (Statement, 1, SQL_C_SLONG, &out_buf, sizeof(out_buf), &out_len));
 
 	while ((result = SQLFetch(Statement)) == SQL_SUCCESS) {
 		printf("\t%ld\n", (long int) out_buf);
 		if (out_buf != 1) {
-			printf("error: expected to select 1 got %ld\n", (long int) out_buf);
+			fprintf(stderr, "error: expected to select 1 got %ld\n", (long int) out_buf);
 			retcode = 1;
 			goto cleanup;
 		}
@@ -131,7 +83,7 @@ Test(int discard_test)
 	printf("SQLMoreResults returned %d\n", result);
 
 	if (result != SQL_ERROR) {
-		printf("SQLMoreResults should return error\n");
+		fprintf(stderr, "SQLMoreResults should return error\n");
 		retcode = 1;
 		goto cleanup;
 	}
@@ -147,7 +99,7 @@ Test(int discard_test)
 	result = SQLMoreResults(Statement);
 	printf("SQLMoreResults returned %d\n", result);
 	if (result != SQL_NO_DATA) {
-		printf("SQLMoreResults should return error");
+		fprintf(stderr, "SQLMoreResults should return error");
 		retcode = 1;
 		goto cleanup;
 	}
@@ -163,26 +115,19 @@ Test(int discard_test)
 int
 main(int argc, char *argv[])
 {
-	int result;
 	int retcode = 0;
 
 	Connect();
 
 	/* create table */
 	CommandWithResult(Statement, "DROP TABLE TestTransaction");
-	result = CommandWithResult(Statement, "CREATE TABLE TestTransaction ( value INT )");
-	if (result != SQL_SUCCESS) {
-		ODBC_REPORT_ERROR("Can't create table TestTransaction");
-		retcode = 1;
-		goto cleanup;
-	}
+	Command(Statement, "CREATE TABLE TestTransaction ( value INT )");
 
 	if (!retcode)
 		retcode = Test(1);
 	if (!retcode)
 		retcode = Test(0);
 
-      cleanup:
 	/* drop table */
 	CommandWithResult(Statement, "DROP TABLE TestTransaction");
 

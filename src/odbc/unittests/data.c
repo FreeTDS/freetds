@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.13 2007-06-21 07:21:21 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.14 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -24,10 +24,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	sprintf(sbuf, "SELECT CONVERT(%s, '%s') AS data", type, value_to_convert);
 	Command(Statement, sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
-	if (SQLFetch(Statement) != SQL_SUCCESS) {
-		fprintf(stderr, "Expected row\n");
-		exit(1);
-	}
+	CHK(SQLFetch, (Statement));
 	if (SQLFetch(Statement) != SQL_NO_DATA) {
 		fprintf(stderr, "Row not expected\n");
 		exit(1);

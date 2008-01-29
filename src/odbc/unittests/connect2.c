@@ -5,7 +5,7 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.4 2007-04-12 07:49:30 freddy77 Exp $";
+static char software_version[] = "$Id: connect2.c,v 1.5 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -35,7 +35,6 @@ normal_connect(void)
 	if (!SQL_SUCCEEDED(res)) {
 		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
 		CheckReturn();
-		exit(1);
 	}
 }
 
@@ -50,7 +49,6 @@ driver_connect(const char *conn_str)
 	if (!SQL_SUCCEEDED(res)) {
 		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
 		CheckReturn();
-		exit(1);
 	}
 }
 
@@ -66,7 +64,6 @@ check_dbname(const char *dbname)
 	if (!SQL_SUCCEEDED(res)) {
 		fprintf(stderr, "Unable to get database name to %s\n", dbname);
 		CheckReturn();
-		exit(1);
 	}
 
 	if (strcmp(out, dbname) != 0) {
@@ -84,7 +81,6 @@ set_dbname(const char *dbname)
 	if (!SQL_SUCCEEDED(res)) {
 		fprintf(stderr, "Unable to set database name to %s\n", dbname);
 		CheckReturn();
-		exit(1);
 	}
 }
 

@@ -2,13 +2,8 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.12 2007-11-26 06:25:11 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.13 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-#define CHK(func,params) \
-	do { if (func params != SQL_SUCCESS) \
-		ODBC_REPORT_ERROR(#func); \
-	} while(0)
 
 #define CHK_INFO(func,params) \
 	do { if (!SQL_SUCCEEDED(func params)) \
@@ -145,11 +140,7 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 					exit(1);
 				}
 
-				retcode = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
-				if (retcode != SQL_SUCCESS) {
-					fprintf(stderr, "Error not expected at line %d\n", __LINE__);
-					exit(1);
-				}
+				CHK(SQLGetDiagRec, (SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, msg, sizeof(msg), NULL));
 				if (strstr((char *) msg, "Invalid column name 'c'") == NULL) {
 					fprintf(stderr, "Expected message not found at line %d\n", __LINE__);
 					exit(1);

@@ -1,12 +1,8 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.3 2008-01-26 21:47:26 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.4 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-#define CHK(func,params) \
-	if (func params != SQL_SUCCESS) \
-		ODBC_REPORT_ERROR(#func)
 
 /*
 set ipd processed_ptr with

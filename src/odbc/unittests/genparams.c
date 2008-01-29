@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.23 2008-01-08 09:33:32 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.24 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -37,34 +37,28 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 
 	if (use_cursors) {
 		ResetStatement();
-		if (SQLSetStmtAttr(Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLSetStmtAttr error");
-		if (SQLSetStmtAttr(Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLSetStmtAttr error");
+		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0));
+		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0));
 	}
 
 	/* bind parameter */
 	if (exec_direct) {
-		if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
-			     sizeof(out_buf), &out_len) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Unable to bind output parameter");
+		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
+			     sizeof(out_buf), &out_len));
 
 		/* call store procedure */
-		if (SQLExecDirect(Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Unable to execute store statement");
+		CHK(SQLExecDirect, (Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS));
 	} else {
-		if (prepare_before && SQLPrepare(Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLPrepare() failure!");
+		if (prepare_before)
+			CHK(SQLPrepare, (Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS));
 
-		if (SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
-			     sizeof(out_buf), &out_len) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Unable to bind output parameter");
+		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
+			     sizeof(out_buf), &out_len));
 
-		if (!prepare_before && SQLPrepare(Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLPrepare() failure!");
+		if (!prepare_before)
+			CHK(SQLPrepare, (Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS));
 
-		if (SQLExecute(Statement) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLExecute() failure!");
+		CHK(SQLExecute, (Statement));
 	}
 
 	/* test results */
@@ -152,16 +146,14 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	} else {
 		SQLRETURN rc;
 
-		if (prepare_before && SQLPrepare(Statement, (SQLCHAR *) sbuf, SQL_NTS) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLPrepare() failure!");
+		if (prepare_before)
+			CHK(SQLPrepare, (Statement, (SQLCHAR *) sbuf, SQL_NTS));
 
 		out_len = 1;
-		if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len) !=
-		    SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Unable to bind input parameter");
+		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len));
 
-		if (!prepare_before && SQLPrepare(Statement, (SQLCHAR *) sbuf, SQL_NTS) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLPrepare() failure!");
+		if (!prepare_before)
+			CHK(SQLPrepare, (Statement, (SQLCHAR *) sbuf, SQL_NTS));
 
 		rc = SQLExecute(Statement);
 		if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
@@ -173,8 +165,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, '%s')", param_type, expected);
 	Command(Statement, sbuf);
 
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Expected row");
+	CHK(SQLFetch, (Statement));
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Row not expected");
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)

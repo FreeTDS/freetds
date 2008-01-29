@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.19 2007-11-26 06:25:11 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.20 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -153,14 +153,10 @@ Test(int level)
 	SQLBindParameter(Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
 			 &cbOutString);
 
-	result = SQLExecute(Statement);
-
-	if (result != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("query should success");
+	CHK(SQLExecute, (Statement));
 
 	CheckData("");
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLFetch returned failure");
+	CHK(SQLFetch, (Statement));
 	CheckData("Here is the first row");
 
 	result = SQLFetch(Statement);
@@ -221,8 +217,7 @@ Test(int level)
 	CheckReturnCode(result, INVALID_RETURN);
 
 	CheckData("");
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLFetch returned failure");
+	CHK(SQLFetch, (Statement));
 	CheckData("Here is the last row");
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)

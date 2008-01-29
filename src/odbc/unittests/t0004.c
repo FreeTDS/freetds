@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0004.c,v 1.15 2006-03-23 14:53:44 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.16 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -15,28 +15,19 @@ Test(int use_indicator)
 	strcpy(buf, "I don't exist");
 	ind = strlen(buf);
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 20, 0, buf, 128, pind) != SQL_SUCCESS) {
-		printf("Unable to bind parameter\n");
-		exit(1);
-	}
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 20, 0, buf, 128, pind));
 
-	if (SQLPrepare(Statement, (SQLCHAR *) "SELECT id, name FROM master..sysobjects WHERE name = ?", SQL_NTS) != SQL_SUCCESS) {
-		printf("Unable to prepare statement\n");
-		exit(1);
-	}
+	CHK(SQLPrepare, (Statement, (SQLCHAR *) "SELECT id, name FROM master..sysobjects WHERE name = ?", SQL_NTS));
 
-	if (SQLExecute(Statement) != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		exit(1);
-	}
+	CHK(SQLExecute, (Statement));
 
 	if (SQLFetch(Statement) != SQL_NO_DATA) {
-		printf("Data not expected\n");
+		fprintf(stderr, "Data not expected\n");
 		exit(1);
 	}
 
 	if (SQLMoreResults(Statement) != SQL_NO_DATA) {
-		printf("Not expected another recordset\n");
+		fprintf(stderr, "Not expected another recordset\n");
 		exit(1);
 	}
 
@@ -44,23 +35,17 @@ Test(int use_indicator)
 	strcpy(buf, "sysobjects");
 	ind = strlen(buf);
 
-	if (SQLExecute(Statement) != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		exit(1);
-	}
+	CHK(SQLExecute, (Statement));
 
-	if (SQLFetch(Statement) != SQL_SUCCESS) {
-		printf("Data expected\n");
-		exit(1);
-	}
+	CHK(SQLFetch, (Statement));
 
 	if (SQLFetch(Statement) != SQL_NO_DATA) {
-		printf("Data not expected\n");
+		fprintf(stderr, "Data not expected\n");
 		exit(1);
 	}
 
 	if (SQLMoreResults(Statement) != SQL_NO_DATA) {
-		printf("Not expected another recordset\n");
+		fprintf(stderr, "Not expected another recordset\n");
 		exit(1);
 	}
 }

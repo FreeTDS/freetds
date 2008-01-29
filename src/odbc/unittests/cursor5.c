@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.3 2008-01-10 15:29:03 freddy77 Exp $";
+static char software_version[] = "$Id: cursor5.c,v 1.4 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -56,25 +56,23 @@ int
 main(int argc, char **argv)
 {
 	SQLRETURN rcode;
-	SQLHDBC m_hdbc;
 	SQLHSTMT m_hstmt1;
 	SQLHSTMT m_hstmt2;
 
 	use_odbc_version3 = 1;
 	Connect();
 	CheckCursor();
-	m_hdbc = Connection;
 
-	rcode = SQLSetConnectAttr(m_hdbc, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER);
-	CHECK_RCODE(SQL_HANDLE_ENV, m_hdbc, "SQLSetConnectAttr(autocommit)");
+	rcode = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER);
+	CHECK_RCODE(SQL_HANDLE_ENV, Connection, "SQLSetConnectAttr(autocommit)");
 
 	m_hstmt1 = NULL;
-	rcode = SQLAllocHandle(SQL_HANDLE_STMT, m_hdbc, &m_hstmt1);
-	CHECK_RCODE(SQL_HANDLE_DBC, m_hdbc, "SQLAllocHandle StmtH 1");
+	rcode = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt1);
+	CHECK_RCODE(SQL_HANDLE_DBC, Connection, "SQLAllocHandle StmtH 1");
 
 	m_hstmt2 = NULL;
-	rcode = SQLAllocHandle(SQL_HANDLE_STMT, m_hdbc, &m_hstmt2);
-	CHECK_RCODE(SQL_HANDLE_DBC, m_hdbc, "SQLAllocHandle StmtH 2");
+	rcode = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt2);
+	CHECK_RCODE(SQL_HANDLE_DBC, Connection, "SQLAllocHandle StmtH 2");
 
 	rcode = SQLExecDirect(m_hstmt1, (SQLCHAR *) "create table #mytab1 (k int, c char(30))", SQL_NTS);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLExecDirect 1.1");

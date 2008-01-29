@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.13 2007-07-03 15:13:55 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.14 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef WIN32
@@ -15,11 +15,7 @@ static void
 ReadCol(int i)
 {
 	strcpy(output, "NULL");
-	if (SQLGetData(Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize) != SQL_SUCCESS) {
-		printf("Unable to get data col %d\n", i);
-		CheckReturn();
-		exit(1);
-	}
+	CHK(SQLGetData, (Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize));
 }
 
 static void
@@ -28,12 +24,9 @@ TestName(int index, const char *expected_name)
 	char name[128];
 	char buf[256];
 	SQLSMALLINT len, type;
-	SQLRETURN rc;
 
 #define NAME_TEST \
 	do { \
-		if (rc != SQL_SUCCESS) \
-			ODBC_REPORT_ERROR("SQLDescribeCol failed"); \
 		if (strcmp(name, expected_name) != 0) \
 		{ \
 			sprintf(buf, "wrong name in column %d expected '%s' got '%s'", index, expected_name, name); \
@@ -42,14 +35,14 @@ TestName(int index, const char *expected_name)
 	} while(0)
 
 	/* retrieve with SQLDescribeCol */
-	rc = SQLDescribeCol(Statement, index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL);
+	CHK(SQLDescribeCol, (Statement, index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL));
 	NAME_TEST;
 
 	/* retrieve with SQLColAttribute */
-	rc = SQLColAttribute(Statement, index, SQL_DESC_NAME, name, sizeof(name), &len, NULL);
+	CHK(SQLColAttribute, (Statement, index, SQL_DESC_NAME, name, sizeof(name), &len, NULL));
 	if (db_is_microsoft())
 		NAME_TEST;
-	rc = SQLColAttribute(Statement, index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL);
+	CHK(SQLColAttribute, (Statement, index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL));
 	NAME_TEST;
 }
 

@@ -3,27 +3,19 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.7 2007-11-26 18:12:31 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.8 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 AutoCommit(int onoff)
 {
-	SQLRETURN ret;
-
-	ret = SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0);
-	if (ret != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Enabling AutoCommit");
+	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0));
 }
 
 static void
 EndTransaction(SQLSMALLINT type)
 {
-	SQLRETURN ret;
-
-	ret = SQLEndTran(SQL_HANDLE_DBC, Connection, type);
-	if (ret != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Can't commit transaction");
+	CHK(SQLEndTran, (SQL_HANDLE_DBC, Connection, type));
 }
 
 int
@@ -58,17 +50,12 @@ main(int argc, char *argv[])
 	Connect();
 
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
-	ret = SQLSetStmtAttr(Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0);
-	if (ret != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Error setting timeout");
+	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0));
 
 	i = 1;
-	ret = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &i, 0, NULL);
-	if (ret != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLBindParameter failure");
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &i, 0, NULL));
 
-	if (SQLPrepare(Statement, (SQLCHAR *) "update test_timeout set t = 'bad' where n = ?", SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLPrepare failure");
+	CHK(SQLPrepare, (Statement, (SQLCHAR *) "update test_timeout set t = 'bad' where n = ?", SQL_NTS));
 	ret = SQLExecute(Statement);
 	if (ret != SQL_ERROR)
 		ODBC_REPORT_ERROR("SQLExecute success ??");

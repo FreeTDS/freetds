@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.9 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.10 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -25,9 +25,7 @@ main(int argc, char *argv[])
 	/* create table to hold data */
 	Command(Statement, "CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARCHAR, 0, 0, (SQLPOINTER) 123, 0, &ind) !=
-	    SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to bind output parameter");
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARCHAR, 0, 0, (SQLPOINTER) 123, 0, &ind));
 	/* length required */
 	ind = SQL_LEN_DATA_AT_EXEC(len);
 
@@ -35,8 +33,7 @@ main(int argc, char *argv[])
 	 * test for char 
 	 */
 
-	if (SQLPrepare(Statement, (SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to prepare statement");
+	CHK(SQLPrepare, (Statement, (SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS));
 
 	if (SQLExecute(Statement) != SQL_NEED_DATA)
 		ODBC_REPORT_ERROR("Wrong result executing statement");
@@ -57,8 +54,7 @@ main(int argc, char *argv[])
 		p += n;
 		n *= 2;
 	}
-	if (SQLParamData(Statement, &ptr) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Wrong result from SQLParamData");
+	CHK(SQLParamData, (Statement, &ptr));
 
 	if (SQLParamData(Statement, &ptr) != SQL_ERROR)
 		ODBC_REPORT_ERROR("Wrong result from SQLParamData");
@@ -74,13 +70,10 @@ main(int argc, char *argv[])
 	 * test for binary 
 	 */
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0, 0, (SQLPOINTER) 4567, 0, &ind) !=
-	    SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to bind output parameter");
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0, 0, (SQLPOINTER) 4567, 0, &ind));
 	ind = SQL_LEN_DATA_AT_EXEC(254);
 
-	if (SQLPrepare(Statement, (SQLCHAR *) "UPDATE #putdata SET b = ?", SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to prepare statement");
+	CHK(SQLPrepare, (Statement, (SQLCHAR *) "UPDATE #putdata SET b = ?", SQL_NTS));
 
 	if (SQLExecute(Statement) != SQL_NEED_DATA)
 		ODBC_REPORT_ERROR("Wrong result executing statement");
@@ -96,13 +89,11 @@ main(int argc, char *argv[])
 
 		if (l < n)
 			n = l;
-		if (SQLPutData(Statement, (char *) p, n) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Wrong result from SQLPutData");
+		CHK(SQLPutData, (Statement, (char *) p, n));
 		pb += n;
 		n *= 2;
 	}
-	if (SQLParamData(Statement, &ptr) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Wrong result from SQLParamData");
+	CHK(SQLParamData, (Statement, &ptr));
 
 	if (SQLParamData(Statement, &ptr) != SQL_ERROR)
 		ODBC_REPORT_ERROR("Wrong result from SQLParamData");
@@ -112,14 +103,11 @@ main(int argc, char *argv[])
 
 
 	/* test len == 0 case from ML */
-	if (SQLFreeStmt(Statement, SQL_RESET_PARAMS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLFreeStmt error");
+	CHK(SQLFreeStmt, (Statement, SQL_RESET_PARAMS));
 
-	if (SQLPrepare(Statement, (SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to prepare statement");
+	CHK(SQLPrepare, (Statement, (SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS));
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARCHAR, 0, 0, (PTR) 2, 0, &ind) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("SQLBindParameter error");
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARCHAR, 0, 0, (PTR) 2, 0, &ind));
 
 	ind = SQL_LEN_DATA_AT_EXEC(0);
 

@@ -5,10 +5,8 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: cursor4.c,v 1.4 2008-01-10 15:29:03 freddy77 Exp $";
+static char software_version[] = "$Id: cursor4.c,v 1.5 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-static SQLHDBC m_hdbc;
 
 #define CHECK_RCODE(t,h,m) \
    if ( rcode != SQL_NO_DATA \
@@ -47,7 +45,7 @@ exec_direct(int check, const char *stmt)
 	SQLRETURN rcode;
 	SQLHSTMT stmth = 0;
 
-	rcode = SQLAllocHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hdbc, (SQLHANDLE *) & stmth);
+	rcode = SQLAllocHandle(SQL_HANDLE_STMT, (SQLHANDLE) Connection, (SQLHANDLE *) & stmth);
 	CHECK_RCODE(SQL_HANDLE_STMT, stmth, "SQLAllocHandle");
 	rcode = SQLExecDirect(stmth, (SQLCHAR *) stmt, SQL_NTS);
 	if (check) {
@@ -70,14 +68,12 @@ main(int argc, char **argv)
 
 	CheckCursor();
 
-	m_hdbc = Connection;
-
 	exec_direct(1, "CREATE TABLE #t1 ( k INT, c VARCHAR(20))");
 	exec_direct(1, "INSERT INTO #t1 VALUES (1, 'aaa')");
 
 	m_hstmt1 = NULL;
-	rcode = SQLAllocHandle(SQL_HANDLE_STMT, m_hdbc, &m_hstmt1);
-	CHECK_RCODE(SQL_HANDLE_DBC, m_hdbc, "SQLAllocHandle 1");
+	rcode = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt1);
+	CHECK_RCODE(SQL_HANDLE_DBC, Connection, "SQLAllocHandle 1");
 
 	rcode = SQLSetStmtAttr(m_hstmt1, SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_LOCK, SQL_IS_UINTEGER);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "Set attribute SQL_ATTR_CONCURRENCY");

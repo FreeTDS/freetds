@@ -14,16 +14,12 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.4 2007-06-27 14:52:25 freddy77 Exp $";
+static char software_version[] = "$Id: timeout2.c,v 1.5 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(__MINGW32__) || defined(WIN32)
 #define sleep(s) Sleep((s)*1000)
 #endif
-
-#define CHK(func,params) \
-	if (func params != SQL_SUCCESS) \
-		ODBC_REPORT_ERROR(#func)
 
 int
 main(int argc, char *argv[])

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.14 2004-10-28 13:16:18 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.15 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -24,40 +24,23 @@ main(int argc, char *argv[])
 		"col1 varchar(30) not null,"
 		"col2 int not null,"
 		"col3 float not null," "col4 numeric(18,6) not null," "col5 datetime not null," "col6 text not null)";
-	if (CommandWithResult(Statement, command) != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		CheckReturn();
-		exit(1);
-	}
+	CHK(CommandWithResult, (Statement, command));
 
 	command = "insert #odbctestdata values ("
 		"'ABCDEFGHIJKLMNOP',"
 		"123456," "1234.56," "123456.78," "'Sep 11 2001 10:00AM'," "'just to check returned length...')";
-	if (CommandWithResult(Statement, command) != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		CheckReturn();
-		exit(1);
-	}
+	CHK(CommandWithResult, (Statement, command));
 
-	if (CommandWithResult(Statement, "select * from #odbctestdata") != SQL_SUCCESS) {
-		printf("Unable to execute statement\n");
-		CheckReturn();
-		exit(1);
-	}
+	CHK(CommandWithResult, (Statement, "select * from #odbctestdata"));
 
 	res = SQLFetch(Statement);
 	if (res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
-		printf("Unable to fetch row\n");
+		fprintf(stderr, "Unable to fetch row\n");
 		CheckReturn();
-		exit(1);
 	}
 
 	for (i = 1; i <= 6; i++) {
-		if (SQLGetData(Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize) != SQL_SUCCESS) {
-			printf("Unable to get data col %d\n", i);
-			CheckReturn();
-			exit(1);
-		}
+		CHK(SQLGetData, (Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize));
 
 		printf("output data >%s< len_or_ind = %d\n", output, (int) cnamesize);
 		if (cnamesize != strlen((char *) output))
@@ -66,23 +49,17 @@ main(int argc, char *argv[])
 
 	res = SQLFetch(Statement);
 	if (res != SQL_NO_DATA) {
-		printf("Unable to fetch row\n");
+		fprintf(stderr, "Unable to fetch row\n");
 		CheckReturn();
-		exit(1);
 	}
 
 	res = SQLCloseCursor(Statement);
 	if (!SQL_SUCCEEDED(res)) {
-		printf("Unable to close cursr\n");
+		fprintf(stderr, "Unable to close cursor\n");
 		CheckReturn();
-		exit(1);
 	}
 
-	if (CommandWithResult(Statement, "drop table #odbctestdata") != SQL_SUCCESS) {
-		printf("Unable to drop table #odbctestdata \n");
-		CheckReturn();
-		exit(1);
-	}
+	Command(Statement, "drop table #odbctestdata");
 
 	Disconnect();
 

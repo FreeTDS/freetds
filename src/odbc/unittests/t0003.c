@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0003.c,v 1.16 2005-03-29 15:19:36 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.17 2008-01-29 14:30:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -14,17 +14,14 @@ DoTest(int prepared)
 	if (!prepared) {
 		Command(Statement, "select * from #odbctestdata select * from #odbctestdata");
 	} else {
-		if (SQLPrepare(Statement, (SQLCHAR *)"select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLPrepare return failure");
-		if (SQLExecute(Statement) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLExecure return failure");
+		CHK(SQLPrepare, (Statement, (SQLCHAR *)"select * from #odbctestdata select * from #odbctestdata", SQL_NTS));
+		CHK(SQLExecute, (Statement));
 	}
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Data not expected");
 
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Expected another recordset");
+	CHK(SQLMoreResults, (Statement));
 	printf("Getting next recordset\n");
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)
@@ -38,18 +35,14 @@ DoTest(int prepared)
 	if (!prepared) {
 		Command(Statement, "select * from #odbctestdata select * from #odbctestdata");
 	} else {
-		if (SQLPrepare(Statement, (SQLCHAR *)"select * from #odbctestdata select * from #odbctestdata", SQL_NTS) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLPrepare return failure");
-		if (SQLExecute(Statement) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLExecure return failure");
+		CHK(SQLPrepare, (Statement, (SQLCHAR *)"select * from #odbctestdata select * from #odbctestdata", SQL_NTS));
+		CHK(SQLExecute, (Statement));
 	}
 
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Expected another recordset");
+	CHK(SQLMoreResults, (Statement));
 	printf("Getting next recordset\n");
 
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Expecting a row");
+	CHK(SQLFetch, (Statement));
 
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Data not expected");

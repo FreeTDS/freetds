@@ -9,7 +9,7 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.9 2007-07-03 15:13:55 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.10 2008-01-29 14:30:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
@@ -23,12 +23,9 @@ TestName(SQLSMALLINT index, const char *expected_name)
 	char name[128];
 	char buf[256];
 	SQLSMALLINT len, type;
-	SQLRETURN rc;
 
 #define NAME_TEST \
 	do { \
-		if (rc != SQL_SUCCESS) \
-			ODBC_REPORT_ERROR("SQLDescribeCol failed"); \
 		if (strcmp(name, expected_name) != 0) \
 		{ \
 			sprintf(buf, "line %d: wrong name in column %d expected '%s' got '%s'", \
@@ -38,14 +35,14 @@ TestName(SQLSMALLINT index, const char *expected_name)
 	} while(0)
 
 	/* retrieve with SQLDescribeCol */
-	rc = SQLDescribeCol(Statement, index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL);
+	CHK(SQLDescribeCol, (Statement, index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL));
 	NAME_TEST;
 
 	/* retrieve with SQLColAttribute */
-	rc = SQLColAttribute(Statement, index, SQL_DESC_NAME, name, sizeof(name), &len, NULL);
+	CHK(SQLColAttribute, (Statement, index, SQL_DESC_NAME, name, sizeof(name), &len, NULL));
 	if (db_is_microsoft())
 		NAME_TEST;
-	rc = SQLColAttribute(Statement, index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL);
+	CHK(SQLColAttribute, (Statement, index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL));
 	NAME_TEST;
 }
 
@@ -56,8 +53,7 @@ CheckFetch(const char *c1name, const char *c1, const char *c2)
 
 	TestName(1, c1name);
 
-	if (SQLFetch(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("error fetching");
+	CHK(SQLFetch, (Statement));
 
 	if (strlen(c1) != ind1 || strcmp(c1, col1) != 0) {
 		fprintf(stderr, "%s:%d: Column 1 error '%s' (%d) expected '%s' (%d)\n", __FILE__, main_line, col1, (int) ind1, c1,
@@ -107,8 +103,7 @@ main(int argc, char *argv[])
 	CheckFetch("c", "pluto", "3");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("No more data ??");
+	CHK(SQLMoreResults, (Statement));
 
 	/* why I need to rebind ?? ms bug of feature ?? */
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
@@ -131,8 +126,7 @@ main(int argc, char *argv[])
 	CheckFetch("mao", "pippo", "34");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("No more data ??");
+	CHK(SQLMoreResults, (Statement));
 
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
@@ -140,8 +134,7 @@ main(int argc, char *argv[])
 	CheckFetch("sum", "46", "##");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("No more data ??");
+	CHK(SQLMoreResults, (Statement));
 
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
@@ -150,8 +143,7 @@ main(int argc, char *argv[])
 	CheckFetch("mao", "pluto", "3");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Still data ??");
+	CHK(SQLMoreResults, (Statement));
 
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
@@ -159,8 +151,7 @@ main(int argc, char *argv[])
 	CheckFetch("sum", "6", "%");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Still data ??");
+	CHK(SQLMoreResults, (Statement));
 
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
@@ -182,21 +173,17 @@ main(int argc, char *argv[])
 	CheckFetch("c", "pippo", "34");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("No more data ??");
+	CHK(SQLMoreResults, (Statement));
 
 	/* here just skip results, before a row */
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Still data ??");
-
+	CHK(SQLMoreResults, (Statement));
 
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	CheckFetch("c", "pluto", "2");
 	if (SQLFetch(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Still data ??");
-	if (SQLMoreResults(Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("No more data ??");
+	CHK(SQLMoreResults, (Statement));
 
 	/* here just skip results, before done */
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)
