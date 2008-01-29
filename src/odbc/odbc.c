@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.469 2008-01-27 17:36:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.470 2008-01-29 09:35:25 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3340,6 +3340,28 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 	}
 }
 
+static void
+odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err)
+{
+	switch (err) {
+	case TDS_CONVERT_NOAVAIL:
+		odbc_errs_add(errs, "HY003", NULL);
+		break;
+	case TDS_CONVERT_SYNTAX:
+		odbc_errs_add(errs, "22018", NULL);
+		break;
+	case TDS_CONVERT_OVERFLOW:
+		odbc_errs_add(errs, "22003", NULL);
+		break;
+	case TDS_CONVERT_FAIL:
+		odbc_errs_add(errs, "07006", NULL);
+		break;
+	case TDS_CONVERT_NOMEM:
+		odbc_errs_add(errs, "HY001", NULL);
+		break;
+	}
+}
+
 /*
  * - handle correctly SQLGetData (for forward cursors accept only row_size == 1
  *   for other types application must use SQLSetPos)
@@ -3574,6 +3596,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
 				if (len < 0) {
+					odbc_convert_err_set(&stmt->errs, len);
 					row_status = SQL_ROW_ERROR;
 					break;
 				}
@@ -4596,10 +4619,19 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 		if (fCType == SQL_C_DEFAULT)
 			fCType = odbc_sql_to_c_type_default(stmt->ird->records[icol - 1].sql_desc_concise_type);
+		if (fCType == SQL_ARD_TYPE) {
+			if (icol > stmt->ard->header.sql_desc_count) {
+				odbc_errs_add(&stmt->errs, "07009", NULL);
+				ODBC_RETURN(stmt, SQL_ERROR);
+			}
+			fCType = stmt->ard->records[icol - 1].sql_desc_concise_type;
+		}
 		assert(fCType);
 		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
-		if (*pcbValue < 0)
+		if (*pcbValue < 0) {
+			odbc_convert_err_set(&stmt->errs, *pcbValue);
 			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 
 		if (is_variable_type(colinfo->column_type) && (fCType == SQL_C_CHAR || fCType == SQL_C_BINARY)) {
 			/* calc how many bytes was readed */

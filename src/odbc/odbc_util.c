@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.95 2008-01-21 15:34:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.96 2008-01-29 09:35:25 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -140,7 +140,7 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 
 		len = convert_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
 				      drec->sql_desc_concise_type, (void *) data_ptr, drec->sql_desc_octet_length, NULL);
-		if (TDS_FAIL == len)
+		if (len < 0)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
 			LEN(drec->sql_desc_indicator_ptr) = 0;

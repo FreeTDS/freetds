@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.49 2007-05-25 09:10:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.50 2008-01-29 09:35:24 freddy77 Exp $");
 
 TDS_INT
 convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
@@ -56,7 +56,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	TIMESTAMP_STRUCT *tssp;
 	SQL_NUMERIC_STRUCT *num;
 
-	int ret = TDS_FAIL;
+	int ret = TDS_CONVERT_FAIL;
 	int i, cplen;
 
 	tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
@@ -89,7 +89,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 			} else {
 				/* if destlen == 0 we return only length */
 				if (destlen != 0)
-					ret = TDS_FAIL;
+					ret = TDS_CONVERT_FAIL;
 			}
 			return ret;
 		}
@@ -143,7 +143,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 		} else {
 			/* if destlen == 0 we return only length */
 			if (destlen != 0)
-				ret = TDS_FAIL;
+				ret = TDS_CONVERT_FAIL;
 		}
 		break;
 

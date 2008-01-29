@@ -1,3 +1,8 @@
+Tue Jan 29 10:34:41 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/convert_tds2sql.c src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/unittests/getdata.c:
+	- handle errors from convert_tds2sql
+
 Sun Jan 27 18:35:55 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: 
 	- implemented SQL_ATTR_CONNECTION_DEAD
@@ -99,4 +104,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2478 2008-01-27 17:36:17 freddy77 Exp $
+$Id: ChangeLog,v 1.2479 2008-01-29 09:35:24 freddy77 Exp $
