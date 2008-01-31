@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.24 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.25 2008-01-31 09:13:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -124,10 +124,8 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 
 	if (use_cursors) {
 		ResetStatement();
-		if (SQLSetStmtAttr(Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLSetStmtAttr error");
-		if (SQLSetStmtAttr(Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLSetStmtAttr error");
+		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0));
+		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0));
 	}
 
 	/* insert data using prepared statements */
@@ -136,9 +134,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		SQLRETURN rc;
 
 		out_len = 1;
-		if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len) !=
-		    SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Unable to bind input parameter");
+		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len));
 
 		rc = SQLExecDirect(Statement, (SQLCHAR *) sbuf, SQL_NTS);
 		if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
