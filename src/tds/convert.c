@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.179 2007-12-31 10:06:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.179.2.1 2008-02-04 07:55:39 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1958,6 +1958,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 
 			tdsdump_log(TDS_DBG_INFO1,
 				    "error_handler:  Attempt to convert data stopped by syntax error in source field \n");
+			free(in);
 			return TDS_CONVERT_SYNTAX;
 		}
 

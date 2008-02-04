@@ -1,3 +1,6 @@
+Mon Feb 04 08:54:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: fix memory leak
+
 Tue Jan 29 11:12:44 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/convert_tds2sql.c src/odbc/odbc.c src/odbc/odbc_util.c:
 	* src/odbc/unittests/getdata.c:
@@ -71,4 +74,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.14 2008-01-29 10:14:23 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.15 2008-02-04 07:55:39 freddy77 Exp $
