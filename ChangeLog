@@ -1,3 +1,6 @@
+Tue Feb 05 16:03:53 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: memory leak fix
+
 Fri Dec 21 12:15:03 CET 2007    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
 	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
