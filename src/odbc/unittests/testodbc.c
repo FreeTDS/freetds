@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.9 2005-06-29 07:21:24 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.10 2008-02-06 08:29:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -40,25 +40,25 @@ typedef struct
  * Output ODBC errors.
  */
 static void
-DispODBCErrs(SQLHENV envHandle, SQLHDBC connHandle, SQLHSTMT statementHandle)
+DispODBCErrs(void)
 {
 	SQLCHAR buffer[256];
 	SQLCHAR sqlState[16];
 
 	/* Statement errors */
-	if (statementHandle) {
-		while (SQLError(envHandle, connHandle, statementHandle, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
+	if (Statement) {
+		while (SQLError(Environment, Connection, Statement, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
 			AB_ERROR(("%s, SQLSTATE=%s", buffer, sqlState));
 		}
 	}
 
 	/* Connection errors */
-	while (SQLError(envHandle, connHandle, SQL_NULL_HSTMT, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
+	while (SQLError(Environment, Connection, SQL_NULL_HSTMT, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
 		AB_ERROR(("%s, SQLSTATE=%s", buffer, sqlState));
 	}
 
 	/* Environmental errors */
-	while (SQLError(envHandle, SQL_NULL_HDBC, SQL_NULL_HSTMT, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
+	while (SQLError(Environment, SQL_NULL_HDBC, SQL_NULL_HSTMT, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
 		AB_ERROR(("%s, SQLSTATE=%s", buffer, sqlState));
 	}
 }
@@ -67,7 +67,7 @@ DispODBCErrs(SQLHENV envHandle, SQLHDBC connHandle, SQLHSTMT statementHandle)
  * Output ODBC diagnostics. Only used for 'raw' ODBC tests.
  */
 static void
-DispODBCDiags(SQLHSTMT statementHandle)
+DispODBCDiags(void)
 {
 	SQLSMALLINT recNumber;
 	SQLCHAR sqlState[10];
@@ -82,7 +82,7 @@ DispODBCDiags(SQLHSTMT statementHandle)
 	AB_FUNCT(("DispODBCDiags (in)"));
 
 	do {
-		status = SQLGetDiagRec(SQL_HANDLE_STMT, statementHandle, recNumber,
+		status = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, recNumber,
 				       sqlState, &nativeError, messageText, bufferLength, &textLength);
 		if (status != SQL_SUCCESS) {
 			/* No data mean normal end of iteration. Anything else is error. */
@@ -137,13 +137,13 @@ TestRawODBCPreparedQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(12,'Queso Manchego La Pastora',5,4,'10 - 500 g pkgs.',38.00,86,0,0,0)");
 	while (SQLMoreResults(Statement) == SQL_SUCCESS);
 
-	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierID = ?");
+	strcpy((char *) queryString, "SELECT * FROM #Products WHERE SupplierID = ?");
 
 	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("SQLBindParameter failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
+		DispODBCErrs();
+		DispODBCDiags();
 		AB_FUNCT(("TestRawODBCPreparedQuery (out): error"));
 		return FALSE;
 	}
@@ -158,8 +158,8 @@ TestRawODBCPreparedQuery(void)
 	status = SQLExecute(Statement);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Execute failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
+		DispODBCErrs();
+		DispODBCDiags();
 		AB_FUNCT(("TestRawODBCPreparedQuery (out): error"));
 		return FALSE;
 	}
@@ -228,13 +228,13 @@ TestRawODBCDirectQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(5,'Chef Anton''s Gumbo Mix',2,2,'36 boxes',21.35,0,0,0,1) ");
 	while (SQLMoreResults(Statement) == SQL_SUCCESS);
 
-	strcpy((char *) (queryString), "SELECT * FROM #Products WHERE SupplierID = ?");
+	strcpy((char *) queryString, "SELECT * FROM #Products WHERE SupplierID = ?");
 
 	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("SQLBindParameter failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
+		DispODBCErrs();
+		DispODBCDiags();
 		AB_FUNCT(("TestRawODBCDirectQuery (out): error"));
 		return FALSE;
 	}
@@ -242,8 +242,8 @@ TestRawODBCDirectQuery(void)
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Execute failed"));
-		DispODBCErrs(Environment, Connection, Statement);
-		DispODBCDiags(Statement);
+		DispODBCErrs();
+		DispODBCDiags();
 		AB_FUNCT(("TestRawODBCDirectQuery (out): error"));
 		return FALSE;
 	}
@@ -581,8 +581,8 @@ TestRawODBCGuid(void)
 	return TRUE;
 
       odbcfail:
-	DispODBCErrs(Environment, Connection, Statement);
-	DispODBCDiags(Statement);
+	DispODBCErrs();
+	DispODBCDiags();
 	AB_FUNCT(("TestRawODBCGuid (out): error"));
 	return FALSE;
 }
