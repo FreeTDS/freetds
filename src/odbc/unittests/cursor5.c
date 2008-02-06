@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.4 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: cursor5.c,v 1.5 2008-02-06 08:28:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -47,9 +47,9 @@ doFetch(SQLHSTMT m_hstmt, int dir, int pos)
 
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLFetchScroll");
 	if (rcode != SQL_NO_DATA)
-		fprintf(stdout, ">> fetch %2d %10d : %d [%s]\n", dir, pos, v_ind_3_1 ? (int) v_int_3 : -1, v_ind_3_2 ? v_char_3 : "null");
+		printf(">> fetch %2d %10d : %d [%s]\n", dir, pos, v_ind_3_1 ? (int) v_int_3 : -1, v_ind_3_2 ? v_char_3 : "null");
 	else
-		fprintf(stdout, ">> fetch %2d %10d : no data found\n", dir, pos);
+		printf(">> fetch %2d %10d : no data found\n", dir, pos);
 }
 
 int

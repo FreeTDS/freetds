@@ -1,7 +1,7 @@
 /* Tests 2 active statements */
 #include "common.h"
 
-static char software_version[] = "$Id: cursor3.c,v 1.5 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: cursor3.c,v 1.6 2008-02-06 08:28:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -126,14 +126,14 @@ main(int argc, char **argv)
 
 	rcode = SQLGetData(m_hstmt1, 2, SQL_C_CHAR, (SQLPOINTER) buff, sizeof(buff), &ind);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLGetData 1");
-	fprintf(stdout, ">> Fetch from 1: [%s]\n", buff);
+	printf(">> Fetch from 1: [%s]\n", buff);
 
 	rcode = SQLFetch(m_hstmt2);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "SQLFetch 2");
 
 	rcode = SQLGetData(m_hstmt2, 2, SQL_C_CHAR, (SQLPOINTER) buff, sizeof(buff), &ind);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt2, "SQLGetData 2");
-	fprintf(stdout, ">> Fetch from 2: [%s]\n", buff);
+	printf(">> Fetch from 2: [%s]\n", buff);
 
 	rcode = SQLCloseCursor(m_hstmt1);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLCloseCursor 1");

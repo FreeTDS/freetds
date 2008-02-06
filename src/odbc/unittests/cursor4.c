@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: cursor4.c,v 1.5 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: cursor4.c,v 1.6 2008-02-06 08:28:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -108,7 +108,7 @@ main(int argc, char **argv)
 	rcode = SQLGetData(m_hstmt1, 1, SQL_C_CHAR, buff, sizeof(buff), &ind);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLGetData");
 
-	fprintf(stdout, ">> New value after update = [%s] (should be [xxx]) \n", buff);
+	printf(">> New value after update = [%s] (should be [xxx]) \n", buff);
 
 	rcode = SQLFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt1);
 	CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt1, "SQLFreeHandle 1");

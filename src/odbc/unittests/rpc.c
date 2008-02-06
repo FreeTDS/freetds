@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.8 2007-11-26 06:25:11 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.9 2008-02-06 08:28:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -38,7 +38,7 @@ init_proc(const char *name)
 	static char cmd[4096];
 
 	if (name[0] != '#') {
-		fprintf(stdout, "Dropping procedure %s\n", name);
+		printf("Dropping procedure %s\n", name);
 		sprintf(cmd, "if exists (select 1 from sysobjects where name = '%s' and type = 'P') "
 				"DROP PROCEDURE %s", name, name);
 		if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) cmd, SQL_NTS))) {
@@ -47,14 +47,14 @@ init_proc(const char *name)
 		}
 	}
 
-	fprintf(stdout, "Creating procedure %s\n", name);
+	printf("Creating procedure %s\n", name);
 	sprintf(cmd, procedure_sql, name);
 
 	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) cmd, SQL_NTS))) {
 		if (name[0] == '#')
-			fprintf(stdout, "Failed to create procedure %s. Wrong permission or not MSSQL.\n", name);
+			printf("Failed to create procedure %s. Wrong permission or not MSSQL.\n", name);
 		else
-			fprintf(stdout, "Failed to create procedure %s. Wrong permission.\n", name);
+			printf("Failed to create procedure %s. Wrong permission.\n", name);
 		CheckReturn();
 		exit(1);
 	}
