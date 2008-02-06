@@ -20,7 +20,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0007.c,v 1.14 2006-06-08 08:19:05 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.14.2.1 2008-02-06 08:49:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -39,6 +39,7 @@ test0(const char *src, int len, int dsttype, const char *result)
 	if (res < 0)
 		strcpy(buf, "error");
 	else {
+		buf[0] = 0;
 		switch (dsttype) {
 		case SYBINT1:
 			sprintf(buf, "%d", cr.ti);
@@ -48,6 +49,9 @@ test0(const char *src, int len, int dsttype, const char *result)
 			break;
 		case SYBINT4:
 			sprintf(buf, "%d", cr.i);
+			break;
+		case SYBINT8:
+			sprintf(buf, "0x%08x%08x", (unsigned int) ((cr.bi >> 32) & 0xfffffffflu), (unsigned int) (cr.bi & 0xfffffffflu));
 			break;
 		case SYBUNIQUE:
 			sprintf(buf, "%08X-%04X-%04X-%02X%02X%02X%02X"
@@ -92,9 +96,42 @@ main(int argc, char **argv)
 	test("123", SYBINT1, "123");
 	test("  -    1234   ", SYBINT2, "-1234");
 	test("  -    1234   a", SYBINT2, "error");
+	test("", SYBINT4, "0");
+	test("    ", SYBINT4, "0");
+	test("    123", SYBINT4, "123");
+	test("    123    ", SYBINT4, "123");
+	test("  +  123  ", SYBINT4, "123");
+	test("+", SYBINT4, "error");
+	test("   +", SYBINT4, "error");
+	test("+   ", SYBINT4, "error");
+	test("   +   ", SYBINT4, "error");
+	test("-", SYBINT4, "error");
+	test("   -", SYBINT4, "error");
+	test("-   ", SYBINT4, "error");
+	test("   -   ", SYBINT4, "error");
+
+	test("  -    1234   ", SYBINT8, "0xfffffffffffffb2e");
+	test("  -    1234   a", SYBINT8, "error");
+	test("", SYBINT8, "0x0000000000000000");
+	test("    ", SYBINT8, "0x0000000000000000");
+	test("    123", SYBINT8, "0x000000000000007b");
+	test("    123    ", SYBINT8, "0x000000000000007b");
+	test("  +  123  ", SYBINT8, "0x000000000000007b");
+	test("+", SYBINT8, "error");
+	test("   +", SYBINT8, "error");
+	test("+   ", SYBINT8, "error");
+	test("   +   ", SYBINT8, "error");
+	test("-", SYBINT8, "error");
+	test("   -", SYBINT8, "error");
+	test("-   ", SYBINT8, "error");
+	test("   -   ", SYBINT8, "error");
 
 	/* test for overflow */
 	printf("overflow checks...\n");
+	test("9223372036854775807", SYBINT8, "0x7fffffffffffffff");
+	test("9223372036854775808", SYBINT8, "error");
+	test("-9223372036854775808", SYBINT8, "0x8000000000000000");
+	test("-9223372036854775809", SYBINT8, "error");
 	test("2147483647", SYBINT4, "2147483647");
 	test("2147483648", SYBINT4, "error");
 	test("-2147483648", SYBINT4, "-2147483648");
@@ -121,6 +158,7 @@ main(int argc, char **argv)
 
 	/* test not terminated string */
 	test0("1234", 2, SYBINT4, "12");
+	test0("123456", 4, SYBINT8, "0x00000000000004d2");
 
 	/* some test for unique */
 	printf("unique type...\n");

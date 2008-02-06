@@ -1,3 +1,6 @@
+Wed Feb 06 09:48:32 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/unittests/t0007.c: test more data
+
 Mon Feb 04 08:54:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: fix memory leak
 
@@ -74,4 +77,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.15 2008-02-04 07:55:39 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.16 2008-02-06 08:49:44 freddy77 Exp $
