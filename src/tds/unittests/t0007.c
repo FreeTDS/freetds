@@ -20,7 +20,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0007.c,v 1.15 2008-02-05 15:01:29 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.16 2008-02-07 22:05:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -111,6 +111,7 @@ main(int argc, char **argv)
 	test("   -   ", SYBINT4, "error");
 
 	test("  -    1234   ", SYBINT8, "0xfffffffffffffb2e");
+	test("1234x", SYBINT8, "error");
 	test("  -    1234   a", SYBINT8, "error");
 	test("", SYBINT8, "0x0000000000000000");
 	test("    ", SYBINT8, "0x0000000000000000");
@@ -155,6 +156,10 @@ main(int argc, char **argv)
 	test("63147483647", SYBINT4, "error");
 	test("64147483647", SYBINT4, "error");
 	test("65147483647", SYBINT4, "error");
+	test("53248632876323876761", SYBINT8, "error");
+	test("56248632876323876761", SYBINT8, "error");
+	test("59248632876323876761", SYBINT8, "error");
+	test("12248632876323876761", SYBINT8, "error");
 
 	/* test not terminated string */
 	test0("1234", 2, SYBINT4, "12");
