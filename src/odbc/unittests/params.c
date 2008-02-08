@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.8 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.9 2008-02-08 09:28:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -33,8 +33,7 @@ Test(int bind_before)
 	Connect();
 
 	/* drop proc */
-	if (CommandWithResult(Statement, "drop proc spTestProc") != SQL_SUCCESS)
-		printf("Unable to execute statement\n");
+	Command(Statement, "IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
 
 	/* create proc */
 	Command(Statement, sp_define);
@@ -56,7 +55,7 @@ Test(int bind_before)
 
 	CHK(SQLExecute, (Statement));
 
-	Command(Statement, "drop proc spTestProc");
+	Command(Statement, "DROP PROC spTestProc");
 
 	printf("Output:\n");
 	printf("   Return Code = %d\n", (int) ReturnCode);

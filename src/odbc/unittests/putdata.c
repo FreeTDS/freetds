@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.10 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.11 2008-02-08 09:28:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -49,8 +49,7 @@ main(int argc, char *argv[])
 
 		if (l < n)
 			n = l;
-		if (SQLPutData(Statement, (char *) p, n) != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Wrong result from SQLPutData");
+		CHK(SQLPutData, (Statement, (char *) p, n));
 		p += n;
 		n *= 2;
 	}

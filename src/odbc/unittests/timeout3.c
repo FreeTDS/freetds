@@ -40,7 +40,7 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.6 2007-11-26 18:12:31 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.7 2008-02-08 09:28:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -49,14 +49,14 @@ static void
 init_connect(void)
 {
 	if (SQLAllocEnv(&Environment) != SQL_SUCCESS) {
-		printf("Unable to allocate env\n");
+		fprintf(stderr, "Unable to allocate env\n");
 		exit(1);
 	}
 
 	SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
 
 	if (SQLAllocConnect(Environment, &Connection) != SQL_SUCCESS) {
-		printf("Unable to allocate connection\n");
+		fprintf(stderr, "Unable to allocate connection\n");
 		SQLFreeEnv(Environment);
 		exit(1);
 	}

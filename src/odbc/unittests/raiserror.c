@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.20 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.21 2008-02-08 09:28:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -209,9 +209,8 @@ Test(int level)
 	}
 
 	if (!use_odbc_version3 || !g_nocount) {
-		result = SQLMoreResults(Statement);
-		if (result != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLMoreResults returned failure");
+		CHK(SQLMoreResults, (Statement));
+		result = SQL_SUCCESS;
 	}
 
 	CheckReturnCode(result, INVALID_RETURN);

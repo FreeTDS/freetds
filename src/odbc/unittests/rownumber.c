@@ -7,7 +7,7 @@
  * TODO make it work and add to Makefile.am
  */
 
-static char software_version[] = "$Id: rownumber.c,v 1.2 2005-01-14 15:03:12 freddy77 Exp $";
+static char software_version[] = "$Id: rownumber.c,v 1.3 2008-02-08 09:28:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -62,8 +62,8 @@ DoTest()
 	static const char query[] = "SELECT * FROM #tmp1 ORDER BY i SELECT * FROM #tmp1 WHERE i < 3 ORDER BY i";
 
 	/* execute a batch command and check row number */
-	if (SQLExecDirect(Statement, (SQLCHAR *) query, SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to execute direct statement");
+	CHK(SQLExecDirect, (Statement, (SQLCHAR *) query, SQL_NTS));
+
 	CHECK_ROWS(-1);
 	printf("Result %d\n", ++n);
 	Fetch(SQL_SUCCESS);

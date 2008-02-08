@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.10 2008-02-06 08:29:53 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.11 2008-02-08 09:28:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -139,30 +139,11 @@ TestRawODBCPreparedQuery(void)
 
 	strcpy((char *) queryString, "SELECT * FROM #Products WHERE SupplierID = ?");
 
-	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		DispODBCErrs();
-		DispODBCDiags();
-		AB_FUNCT(("TestRawODBCPreparedQuery (out): error"));
-		return FALSE;
-	}
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd));
 
-	status = SQLPrepare(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Prepare failed"));
-		AB_FUNCT(("TestRawODBCPreparedQuery (out): error"));
-		return FALSE;
-	}
+	CHK(SQLPrepare, (Statement, queryString, SQL_NTS));
 
-	status = SQLExecute(Statement);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Execute failed"));
-		DispODBCErrs();
-		DispODBCDiags();
-		AB_FUNCT(("TestRawODBCPreparedQuery (out): error"));
-		return FALSE;
-	}
+	CHK(SQLExecute, (Statement));
 
 	count = 0;
 
@@ -230,23 +211,9 @@ TestRawODBCDirectQuery(void)
 
 	strcpy((char *) queryString, "SELECT * FROM #Products WHERE SupplierID = ?");
 
-	status = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		DispODBCErrs();
-		DispODBCDiags();
-		AB_FUNCT(("TestRawODBCDirectQuery (out): error"));
-		return FALSE;
-	}
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd));
 
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Execute failed"));
-		DispODBCErrs();
-		DispODBCDiags();
-		AB_FUNCT(("TestRawODBCDirectQuery (out): error"));
-		return FALSE;
-	}
+	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
 
 	count = 0;
 
@@ -326,11 +293,7 @@ TestRawODBCGuid(void)
 
 	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age ) \
                          VALUES ( 'Fang', 'Mike', 'dog', 'm', 12 );");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Insert row 1 failed"));
-		goto odbcfail;
-	}
+	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
 
 	AB_PRINT(("Insert row 2"));
 
@@ -343,21 +306,10 @@ TestRawODBCGuid(void)
 
 	lenOrInd = 0;
 	age = 3;
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &age, 0, &lenOrInd)
-	    != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		goto odbcfail;
-	}
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &age, 0, &lenOrInd));
 
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Insert row 2 failed"));
-		goto odbcfail;
-	}
-	if (SQLFreeStmt(Statement, SQL_CLOSE) != SQL_SUCCESS) {
-		AB_ERROR(("Free statement failed (5)"));
-		goto odbcfail;
-	}
+	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
+	CHK(SQLFreeStmt, (Statement, SQL_CLOSE));
 
 	AB_PRINT(("Insert row 3"));
 	/*
@@ -369,16 +321,8 @@ TestRawODBCGuid(void)
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "87654321-4321-4321-4321-123456789abc");
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd)
-	    != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		goto odbcfail;
-	}
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Insert row 3 failed"));
-		goto odbcfail;
-	}
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd));
+	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
 
 	AB_PRINT(("Insert row 4"));
 	/*
@@ -390,16 +334,8 @@ TestRawODBCGuid(void)
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "1234abcd-abcd-abcd-abcd-123456789abc");
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 36, 0, guid, 0, &lenOrInd)
-	    != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		goto odbcfail;
-	}
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("Insert row 4 failed"));
-		goto odbcfail;
-	}
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 36, 0, guid, 0, &lenOrInd));
+	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
 
 	AB_PRINT(("Insert row 5"));
 	/*
@@ -423,11 +359,7 @@ TestRawODBCGuid(void)
 	lenOrInd = 16;
 	strcpy((char *) (guid), "1234abcd-abcd-abcd-abcd-123456789abc");
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_GUID, SQL_GUID, 16, 0, &sqlguid, 16, &lenOrInd)
-	    != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		goto odbcfail;
-	}
+	CHK(SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_GUID, SQL_GUID, 16, 0, &sqlguid, 16, &lenOrInd));
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Insert row 5 failed"));
@@ -439,23 +371,11 @@ TestRawODBCGuid(void)
 	 */
 	AB_PRINT(("retrieving name and guid"));
 	strcpy((char *) (queryString), "SELECT name, guid FROM #pet");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("SELECT failed"));
-		goto odbcfail;
-	}
+	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
 	while (SQLFetch(Statement) == SQL_SUCCESS) {
 		count++;
-		if (SQLGetData(Statement, 1, SQL_CHAR, name, 20, 0)
-		    != SQL_SUCCESS) {
-			AB_ERROR(("Get row %d, name column failed", count));
-			goto odbcfail;
-		}
-		if (SQLGetData(Statement, 2, SQL_CHAR, guid, 37, 0)
-		    != SQL_SUCCESS) {
-			AB_ERROR(("Get row %d, guid column failed", count));
-			goto odbcfail;
-		}
+		CHK(SQLGetData, (Statement, 1, SQL_CHAR, name, 20, 0));
+		CHK(SQLGetData, (Statement, 2, SQL_CHAR, guid, 37, 0));
 
 		AB_PRINT(("name: %-10s guid: %s", name, guid));
 	}
@@ -464,15 +384,8 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state if we try SELECT again).
 	 */
-	if (SQLFreeStmt(Statement, SQL_CLOSE) != SQL_SUCCESS) {
-		AB_ERROR(("Free statement failed (5)"));
-		goto odbcfail;
-	}
-	if (SQLAllocHandle(SQL_HANDLE_STMT, Connection, &Statement)
-	    != SQL_SUCCESS) {
-		AB_ERROR(("SQLAllocStmt failed(1)"));
-		goto odbcfail;
-	}
+	CHK(SQLFreeStmt, (Statement, SQL_CLOSE));
+	CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &Statement));
 
 
 	/*
@@ -481,23 +394,11 @@ TestRawODBCGuid(void)
 
 	AB_PRINT(("retrieving name and guid again"));
 	strcpy((char *) (queryString), "SELECT name, guid FROM #pet");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("SELECT failed"));
-		goto odbcfail;
-	}
+	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
 	while (SQLFetch(Statement) == SQL_SUCCESS) {
 		count++;
-		if (SQLGetData(Statement, 1, SQL_CHAR, name, 20, 0)
-		    != SQL_SUCCESS) {
-			AB_ERROR(("Get row %d, name column failed", count));
-			goto odbcfail;
-		}
-		if (SQLGetData(Statement, 2, SQL_GUID, &sqlguid, 16, 0)
-		    != SQL_SUCCESS) {
-			AB_ERROR(("Get row %d, guid column failed", count));
-			goto odbcfail;
-		}
+		CHK(SQLGetData, (Statement, 1, SQL_CHAR, name, 20, 0));
+		CHK(SQLGetData, (Statement, 2, SQL_GUID, &sqlguid, 16, 0));
 
 		AB_PRINT(("%-10s %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 			  name,
@@ -511,15 +412,8 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state if we try SELECT again).
 	 */
-	if (SQLFreeStmt(Statement, SQL_CLOSE) != SQL_SUCCESS) {
-		AB_ERROR(("Free statement failed (5)"));
-		goto odbcfail;
-	}
-	if (SQLAllocHandle(SQL_HANDLE_STMT, Connection, &Statement)
-	    != SQL_SUCCESS) {
-		AB_ERROR(("SQLAllocStmt failed(1)"));
-		goto odbcfail;
-	}
+	CHK(SQLFreeStmt, (Statement, SQL_CLOSE));
+	CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &Statement));
 
 	/*
 	 * Now retrieve rows via stored procedure passing GUID as param.
@@ -530,28 +424,12 @@ TestRawODBCGuid(void)
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "87654321-4321-4321-4321-123456789abc");
 
-	if (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd)
-	    != SQL_SUCCESS) {
-		AB_ERROR(("SQLBindParameter failed"));
-		goto odbcfail;
-	}
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS) {
-		AB_ERROR(("SELECT failed"));
-		goto odbcfail;
-	}
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd));
+	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
 	while (SQLFetch(Statement) == SQL_SUCCESS) {
 		count++;
-		if (SQLGetData(Statement, 1, SQL_CHAR, name, 20, 0)
-		    != SQL_SUCCESS) {
-			AB_ERROR(("Get row %d, name column failed", count));
-			goto odbcfail;
-		}
-		if (SQLGetData(Statement, 2, SQL_CHAR, guid, 37, 0)
-		    != SQL_SUCCESS) {
-			AB_ERROR(("Get row %d, guid column failed", count));
-			goto odbcfail;
-		}
+		CHK(SQLGetData, (Statement, 1, SQL_CHAR, name, 20, 0));
+		CHK(SQLGetData, (Statement, 2, SQL_CHAR, guid, 37, 0));
 
 		AB_PRINT(("%-10s %s", name, guid));
 	}
@@ -560,15 +438,8 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state after a previous SELECT has occurred).
 	 */
-	if (SQLFreeStmt(Statement, SQL_CLOSE) != SQL_SUCCESS) {
-		AB_ERROR(("Free statement failed (5)"));
-		goto odbcfail;
-	}
-	if (SQLAllocHandle(SQL_HANDLE_STMT, Connection, &Statement)
-	    != SQL_SUCCESS) {
-		AB_ERROR(("SQLAllocStmt failed(1)"));
-		goto odbcfail;
-	}
+	CHK(SQLFreeStmt, (Statement, SQL_CLOSE));
+	CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &Statement));
 
 	/* cleanup */
 	CommandWithResult(Statement, "DROP PROC GetGUIDRows");

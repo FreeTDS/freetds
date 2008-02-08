@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.15 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.16 2008-02-08 09:28:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -17,8 +17,7 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	if (CommandWithResult(Statement, "drop table #odbctestdata") != SQL_SUCCESS)
-		printf("Unable to execute statement\n");
+	Command(Statement, "if object_id('tempdb..#odbctestdata') is not null drop table #odbctestdata");
 
 	command = "create table #odbctestdata ("
 		"col1 varchar(30) not null,"
