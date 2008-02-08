@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.9 2008-02-06 08:28:10 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.10 2008-02-08 08:31:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -97,8 +97,7 @@ Test(const char *name)
 
 
 	printf("executing SQLAllocStmt\n");
-	if (SQLAllocStmt(Connection, &stmt) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to allocate statement");
+	CHK(SQLAllocStmt, (Connection, &stmt));
 
 	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
 		printf("executing SQLBindParameter for parameter %d\n", 1+ipar);
@@ -108,7 +107,7 @@ Test(const char *name)
 			memset(args[ipar].ParameterValuePtr, 0, args[ipar].BufferLength);
 			memset(args[ipar].ParameterValuePtr, 'a', args[ipar].BufferLength - 1);
 		}
-		erc = SQLBindParameter	( stmt, 1+ipar
+		CHK(SQLBindParameter,	( stmt, 1+ipar
 					, args[ipar].InputOutputType
 					, args[ipar].ValueType
 					, args[ipar].ParameterType
@@ -117,58 +116,41 @@ Test(const char *name)
 					, args[ipar].ParameterValuePtr
 					, args[ipar].BufferLength
 					, &args[ipar].ind
-					);
-		if (erc != SQL_SUCCESS) {
-			fprintf(stderr, "Failed: SQLBindParameter\n");
-			exit(1);
-		}
+					));
 	}
-		
-
 
 	sprintf(call_cmd, "{?=call %s(?,?,?,?,?)}", name );
 	printf("executing SQLPrepare: %s\n", call_cmd);
-	if (SQLPrepare(stmt, (SQLCHAR *) call_cmd, SQL_NTS) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to prepare statement");
+	CHK(SQLPrepare, (stmt, (SQLCHAR *) call_cmd, SQL_NTS));
 
 	printf("executing SQLExecute\n");
 	if (! SQL_SUCCEEDED(SQLExecute(stmt))) {
 		erc = SQLGetDiagRec(SQL_HANDLE_STMT, stmt, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
 		ODBC_REPORT_ERROR("Unable to execute SQLExecute\n");
-		
 	}
 
 	do {
-		static const char dashes[] = "------------------------------", 
-				  *dashes5   = &dashes[25], 
-				  *dashes15  = &dashes[15];
+		static const char dashes[] = "------------------------------";
 		int nrows;
 		SQLSMALLINT  icol, ncols;
-                SQLCHAR      name[256] = "";
-                SQLSMALLINT  namelen;
-                SQLSMALLINT  type;
-                SQLSMALLINT  scale;
-                SQLSMALLINT  nullable;
-				  
+		SQLCHAR      name[256] = "";
+		SQLSMALLINT  namelen;
+		SQLSMALLINT  type;
+		SQLSMALLINT  scale;
+		SQLSMALLINT  nullable;
+
 		printf("executing SQLNumResultCols for result set %d\n", ++iresults);
-		if((erc = SQLNumResultCols(stmt,  &ncols)) != SQL_SUCCESS) {
-			ODBC_REPORT_ERROR("Unable to execute SQLNumResultCols\n");
-		}
+		CHK(SQLNumResultCols, (stmt,  &ncols));
 
 		printf("executing SQLDescribeCol for %d column%c\n", ncols, (ncols == 1? ' ' : 's'));
-		printf("%-5s %-15s %5s %5s %5s %8s\n", "col", "name", "type", "size", "scale", "nullable"); 
-		printf("%-5s %-15s %5s %5s %5s %8s\n", dashes5, dashes15, dashes5, dashes5, dashes5, &dashes[30-8]); 
+		printf("%-5.5s %-15.15s %5.5s %5.5s %5.5s %8.8s\n", "col", "name", "type", "size", "scale", "nullable"); 
+		printf("%-5.5s %-15.15s %5.5s %5.5s %5.5s %8.8s\n", dashes, dashes, dashes, dashes, dashes, dashes); 
 		
 		for (icol=ncols; icol > 0; icol--) {
-                	SQLULEN size;
-			erc = SQLDescribeCol( stmt, icol, name, sizeof(name),
-						    &namelen, &type, &size, &scale, &nullable);
-			if (erc != SQL_SUCCESS) {
-				erc = SQLGetDiagRec(SQL_HANDLE_STMT, stmt, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
-				fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
-				ODBC_REPORT_ERROR("Unable to execute SQLDescribeCol\n");
-			} 			
+			SQLULEN size;
+			CHK(SQLDescribeCol, (stmt, icol, name, sizeof(name),
+						    &namelen, &type, &size, &scale, &nullable));
 			printf("%-5d %-15s %5d %5ld %5d %8c\n", icol, name, type, (long int)size, scale, (nullable? 'Y' : 'N')); 
 		}
 
@@ -238,8 +220,7 @@ Test(const char *name)
 	}
 
 	printf("executing SQLFreeStmt\n");
-	if (SQLFreeStmt(stmt, SQL_DROP) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to free statement");
+	CHK(SQLFreeStmt, (stmt, SQL_DROP));
 
 	for (ipar = 0; ipar < sizeof(args)/sizeof(args[0]); ++ipar)
 		if (args[ipar].BufferLength > 0)
@@ -268,12 +249,7 @@ main(int argc, char *argv[])
 	Test(proc_name);
 	
 	printf("dropping procedure\n");
-	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) drop_proc, SQL_NTS))) {
-		printf("Unable to drop procedure\n");
-		CheckReturn();
-		exit(1);
-	}
-
+	Command(Statement, drop_proc);
 
 	Disconnect();
 
