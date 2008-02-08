@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.11 2008-02-08 09:28:04 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.12 2008-02-08 10:20:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -104,7 +104,6 @@ DispODBCDiags(void)
 static int
 TestRawODBCPreparedQuery(void)
 {
-	SQLRETURN status;
 	SQLCHAR queryString[200];
 	SQLLEN lenOrInd = 0;
 	SQLSMALLINT supplierId = 4;
@@ -176,7 +175,6 @@ TestRawODBCPreparedQuery(void)
 static int
 TestRawODBCDirectQuery(void)
 {
-	SQLRETURN status;
 	SQLCHAR queryString[200];
 	SQLLEN lenOrInd = 0;
 	SQLSMALLINT supplierId = 1;
@@ -359,7 +357,7 @@ TestRawODBCGuid(void)
 	lenOrInd = 16;
 	strcpy((char *) (guid), "1234abcd-abcd-abcd-abcd-123456789abc");
 
-	CHK(SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_GUID, SQL_GUID, 16, 0, &sqlguid, 16, &lenOrInd));
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_GUID, SQL_GUID, 16, 0, &sqlguid, 16, &lenOrInd));
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Insert row 5 failed"));
