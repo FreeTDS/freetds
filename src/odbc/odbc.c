@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.470 2008-01-29 09:35:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.471 2008-02-08 09:32:06 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3343,6 +3343,10 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 static void
 odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err)
 {
+	/*
+	 * TODO we really need a column offset in the _sql_error structure so that caller can 
+	 * invoke SQLGetDiagField to learn which column is failing
+	 */
 	switch (err) {
 	case TDS_CONVERT_NOAVAIL:
 		odbc_errs_add(errs, "HY003", NULL);
