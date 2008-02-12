@@ -50,7 +50,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.9 2007-11-26 06:25:57 freddy77 Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.9.2.1 2008-02-12 15:41:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -354,7 +354,8 @@ next_query()
 	fprintf(options.verbose, "%s:%d: Query:\n", options.appname, __LINE__);
 	
 	free(sql);
-	
+	sql = NULL;
+
 	while (fgets(query_line, sizeof(query_line), stdin)) {
 		/* 'go' or 'GO' separates command batches */
 		char *p = query_line;
