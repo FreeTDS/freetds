@@ -1,7 +1,7 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.4 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.5 2008-02-13 08:52:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -110,6 +110,7 @@ test_params(void)
 		l = len;
 		len >>= 16;
 		h = len >> 16;
+		l &= 0xfffffffflu;
 		if (h != 0 || l != 2) {
 			fprintf(stderr, "Wrong number returned in param rows high %lu low %lu\n", h, l);
 			exit(1);
@@ -223,6 +224,7 @@ test_rows(void)
 		l = len;
 		len >>= 16;
 		h = len >> 16;
+		l &= 0xfffffffflu;
 		if (h != 0 || l != 2) {
 			fprintf(stderr, "Wrong number returned in rows high %lu(0x%lx) low %lu(0x%lx)\n", h, h, l, l);
 			exit(1);

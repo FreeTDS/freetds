@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.218 2008-01-20 14:23:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.219 2008-02-13 08:52:09 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -577,7 +577,7 @@ tds_next_placeholder_ucs2le(const char *start, const char *end, int named)
 		case '?':
 			return p;
 		case '@':
-			if (named && !isalnum(prev))
+			if (named && !isalnum((unsigned char) prev))
 				return p;
 		default:
 			p += 2;
@@ -849,7 +849,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 					continue;
 				/* find end of param name */
 				for (id_end = e + 2; id_end != query_end; id_end += 2)
-					if (!id_end[1] && (id_end[0] != '_' && id_end[1] != '#' && !isalnum(id_end[0])))
+					if (!id_end[1] && (id_end[0] != '_' && id_end[1] != '#' && !isalnum((unsigned char) id_end[0])))
 						break;
 				ids[i].p = e;
 				ids[i].len = id_end - e;
