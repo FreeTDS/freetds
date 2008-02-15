@@ -1,3 +1,6 @@
+Fri Feb 15 11:53:41 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac: fix nasty problem with HP-UX
+
 Wed Feb 13 09:50:35 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/bsqlodbc.c: fix memory error
 	* src/tds/query.c: remove possible buffer underflow
@@ -163,4 +166,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2488 2008-02-13 08:52:08 freddy77 Exp $
+$Id: ChangeLog,v 1.2489 2008-02-15 11:00:40 freddy77 Exp $
