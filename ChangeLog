@@ -1,3 +1,6 @@
+Fri Feb 15 12:05:48 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: fix SQL_ATTR_CONNECTION_DEAD
+
 Fri Feb 15 11:53:41 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: fix nasty problem with HP-UX
 
@@ -166,4 +169,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2489 2008-02-15 11:00:40 freddy77 Exp $
+$Id: ChangeLog,v 1.2490 2008-02-15 11:06:39 freddy77 Exp $
