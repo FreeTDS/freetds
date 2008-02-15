@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.29.2.6 2008-01-27 10:41:21 freddy77 Exp $
+dnl $Id: configure.ac,v 1.29.2.7 2008-02-15 10:48:25 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.82RC2)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.29.2.6 $)
+AC_REVISION($Revision: 1.29.2.7 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -47,7 +47,6 @@ case $host in
     netdb_reentrant=yes
     ;;
   *-*-hpux11*)
-    CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
     netdb_reentrant=yes
     ;;
   *-*-cygwin*)
@@ -150,6 +149,27 @@ case $host in
 		LIBS="-lwsock32"
 	fi
 	AM_CONDITIONAL(MINGW32, true)
+	;;
+*-*-hpux*)
+	# these lines are needed to fix a problem for HP-UX
+	# HP-UX define two versions of sockets, one BSD and one X/Open
+	# these versions are not binary compatible (BSD use int where X/Open 
+	# use socklen_t == size_t) and different libraries (BSD in libc and
+	# X/Open in libxnet). X/Open is used if _XOPEN_SOURCE and 
+	# _XOPEN_SOURCE_EXTENDED are defined. To complicate the things gcc
+	# by default define _XOPEN_SOURCE_EXTENDED so define always both
+	# constants and link always libxnet!
+	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED"
+	LIBS="$LIBS -lxnet"
+	AC_SEARCH_LIBS(gethostbyname, nsl)
+	if test "$enable_krb5" = "yes" ; then
+		AC_SEARCH_LIBS(gss_init_sec_context, [gssapi_krb5 gssapi])
+		if test "$ac_cv_search_gss_init_sec_context" != no; then
+			AC_DEFINE(ENABLE_KRB5, 1, [Defined if --enable-krb5 used and library detected])
+		fi
+	fi
+
+	AM_CONDITIONAL(MINGW32, false)
 	;;
 *)
 	AC_SEARCH_LIBS(socket, socket)
