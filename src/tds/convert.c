@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.180 2008-02-04 07:51:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.181 2008-02-15 16:27:39 jklowden Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2896,6 +2896,8 @@ tds_willconvert(int srctype, int desttype)
 	case SYBMONEY:
 	case SYBMONEY4:
 			return 12;
+	case SYBUNIQUE:
+			return 36;
 	/* non-fixed types have variable data sizes, just return 0xff */
 	case SYBCHAR:
 	case SYBBINARY:
@@ -2919,7 +2921,6 @@ tds_willconvert(int srctype, int desttype)
 	case SYBINTERVAL:
 	case SYBSENSITIVITY:
 	case SYBTIME:
-	case SYBUNIQUE:
 	case SYBUNITEXT:
 	case SYBVARIANT:
 	case SYBVOID:

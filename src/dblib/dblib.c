@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.321 2008-01-24 21:14:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.322 2008-02-15 16:27:38 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3469,6 +3469,10 @@ dbprrow(DBPROCESS * dbproc)
 	return SUCCEED;
 }
 
+/*
+ * src/tds/convert.c::tds_willconvert() returns same information.
+ * Available to user via dbwillconvert(). 
+ */
 static int
 _get_printable_size(TDSCOLUMN * colinfo)
 {
@@ -3496,17 +3500,16 @@ _get_printable_size(TDSCOLUMN * colinfo)
 	case SYBCHAR:
 		return colinfo->column_size;
 	case SYBFLT8:
-		return 11;	/* FIX ME -- we do not track precision */
 	case SYBREAL:
 		return 11;	/* FIX ME -- we do not track precision */
 	case SYBMONEY:
-		return 12;	/* FIX ME */
 	case SYBMONEY4:
-		return 12;	/* FIX ME */
+		return 12;
 	case SYBDATETIME:
-		return 26;	/* FIX ME */
 	case SYBDATETIME4:
-		return 26;	/* FIX ME */
+		return 26;
+	case SYBUNIQUE:
+		return 36;
 	case SYBBIT:
 	case SYBBITN:
 		return 1;
@@ -3514,7 +3517,6 @@ _get_printable_size(TDSCOLUMN * colinfo)
 	default:
 		return 0;
 	}
-
 }
 
 /**
