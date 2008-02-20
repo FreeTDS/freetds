@@ -1,3 +1,6 @@
+Wed Feb 20 09:04:58 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: avoid duplicate case
+
 Fri Feb 15 11:25:46 EST 2008	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c src/tds/convert.c
 	- support SYBUNIQUE printable width
@@ -173,4 +176,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2491 2008-02-15 16:27:38 jklowden Exp $
+$Id: ChangeLog,v 1.2492 2008-02-20 08:04:31 freddy77 Exp $
