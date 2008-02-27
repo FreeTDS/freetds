@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.5 2008-01-29 10:14:29 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.6 2008-02-27 16:08:57 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3179,9 +3179,6 @@ _SQLExecute(TDS_STMT * stmt)
 	case TDS_CMD_DONE:
 		if (stmt->dbc->current_statement == stmt)
 			stmt->dbc->current_statement = NULL;
-		if (stmt->errs.lastrc == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3
-		    && stmt->row_count == TDS_NO_COUNT && !stmt->cursor)
-			ODBC_RETURN(stmt, SQL_NO_DATA);
 		break;
 
 	case TDS_CMD_FAIL:
