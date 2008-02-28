@@ -1,3 +1,6 @@
+Thu Feb 28 17:32:33 EST 2008	JK Lowden <jklowden@freetds.org>
+	* posted 0.82RC2
+
 Wed Feb 27 17:06:22 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:
 	- SQLExecDirect/SQLExecute return SQL_SUCCESS instead of SQL_NO_DATA
@@ -88,4 +91,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.19 2008-02-27 16:08:40 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.20 2008-02-28 22:53:49 jklowden Exp $
