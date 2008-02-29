@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.72 2008-02-08 09:28:03 freddy77 Exp $
+# $Id: Makefile.am,v 1.73 2008-02-29 10:54:53 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -21,7 +21,7 @@ TESTS		=	\
 			connect2$(EXEEXT) timeout4$(EXEEXT) freeclose$(EXEEXT) \
 			cursor3$(EXEEXT) cursor4$(EXEEXT) cursor5$(EXEEXT) \
 			attributes$(EXEEXT) hidden$(EXEEXT) blob1$(EXEEXT) \
-			cancel$(EXEEXT) wchar$(EXEEXT)
+			cancel$(EXEEXT) wchar$(EXEEXT) rowset$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -80,6 +80,7 @@ cursor5_SOURCES	= cursor5.c common.c common.h
 attributes_SOURCES	= attributes.c common.c common.h
 hidden_SOURCES	= hidden.c common.c common.h
 blob1_SOURCES	= blob1.c common.c common.h
+rowset_SOURCES	= rowset.c common.c common.h
 cancel_SOURCES = cancel.c common.c common.h
 wchar_SOURCES = wchar.c common.c common.h
 

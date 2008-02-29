@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.472 2008-02-15 11:06:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.473 2008-02-29 10:54:53 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1472,8 +1472,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 	stmt->attr.simulate_cursor = SQL_SC_NON_UNIQUE;
 	stmt->attr.use_bookmarks = SQL_UB_OFF;
 
-	/* is not the same of using APD sql_desc_bind_type */
-	stmt->sql_rowset_size = SQL_BIND_BY_COLUMN;
+	stmt->sql_rowset_size = 1;
 
 	stmt->row_count = TDS_NO_COUNT;
 	stmt->row_status = NOT_IN_ROW;
@@ -6189,6 +6188,10 @@ _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLIN
 		stmt->attr.use_bookmarks = ui;
 		break;
 	case SQL_ROWSET_SIZE:	/* although this is ODBC2 we must support this attribute */
+		if (((TDS_INTPTR) ValuePtr) < 1) {
+			odbc_errs_add(&stmt->errs, "HY024", NULL);
+			ODBC_RETURN(stmt, SQL_ERROR);
+		}
 		stmt->sql_rowset_size = ui;
 		break;
 	default:
