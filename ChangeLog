@@ -1,3 +1,8 @@
+Fri Feb 29 10:22:14 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am src/odbc/unittests/rowset.c(added):
+	- fix SQL_ROWSET_SIZE
+
 Fri Feb 29 09:20:07 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: avoid version clash
 
@@ -97,4 +102,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.22 2008-02-29 08:21:41 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.23 2008-02-29 09:23:51 freddy77 Exp $
