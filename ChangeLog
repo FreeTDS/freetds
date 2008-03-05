@@ -1,3 +1,6 @@
+Wed Mar 05 12:0:43 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/build_dsw.pl: change some build options
+
 Fri Feb 29 11:50:06 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/rowset.c(added):
@@ -185,4 +188,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2494 2008-02-29 10:54:53 freddy77 Exp $
+$Id: ChangeLog,v 1.2495 2008-03-05 11:01:15 freddy77 Exp $
