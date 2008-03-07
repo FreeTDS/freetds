@@ -1,3 +1,6 @@
+Fri Mar 07 16:40:16 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/transaction2.c: improved
+
 Fri Mar 07 11:57:00 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am:
@@ -197,4 +200,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2497 2008-03-07 10:57:54 freddy77 Exp $
+$Id: ChangeLog,v 1.2498 2008-03-07 15:40:57 freddy77 Exp $

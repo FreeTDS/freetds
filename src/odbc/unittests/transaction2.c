@@ -3,8 +3,25 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.1 2008-03-07 10:57:54 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.2 2008-03-07 15:40:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+static char odbc_err[256];
+static char odbc_sqlstate[6];
+
+static void
+ReadError(void)
+{
+	memset(odbc_err, 0, sizeof(odbc_err));
+	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
+	if (!SQL_SUCCEEDED
+	    (SQLGetDiagRec
+	     (SQL_HANDLE_DBC, Connection, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL))) {
+		printf("SQLGetDiagRec should not fail\n");
+		exit(1);
+	}
+	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
+}
 
 static void
 AutoCommit(int onoff)
@@ -134,6 +151,36 @@ CheckPhantom(void)
 	return 1;
 }
 
+static int test_with_connect = 0;
+
+static void
+ConnectWithTxn(int txn)
+{
+	int res;
+	char command[512];
+
+	CHK(SQLAllocEnv, (&Environment));
+	CHK(SQLSetEnvAttr, (Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER));
+
+	CHK(SQLAllocConnect, (Environment, &Connection));
+
+	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(txn), 0));
+	res = SQLConnect(Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS);
+	if (!SQL_SUCCEEDED(res))
+		ODBC_REPORT_ERROR("Unable to open data source\n");
+
+	CHK(SQLAllocStmt, (Connection, &Statement));
+
+	sprintf(command, "use %s", DATABASE);
+	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)))
+		ODBC_REPORT_ERROR("Unable to execute statement\n");
+
+#ifndef TDS_NO_DM
+	/* unixODBC seems to require it */
+	SQLMoreResults(Statement);
+#endif
+}
+
 static void
 Test(int txn, const char *expected)
 {
@@ -141,7 +188,14 @@ Test(int txn, const char *expected)
 	char buf[128];
 
 	SWAP_CONN();
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(txn), 0));
+	if (test_with_connect) {
+		Disconnect();
+		ConnectWithTxn(txn);
+		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0));
+		AutoCommit(SQL_AUTOCOMMIT_OFF);
+	} else {
+		CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(txn), 0));
+	}
 	SWAP_CONN();
 
 	dirty = CheckDirtyRead();
@@ -158,22 +212,55 @@ Test(int txn, const char *expected)
 int
 main(int argc, char *argv[])
 {
+	SQLRETURN ret;
+
+	use_odbc_version3 = 1;
 	Connect();
+
+	/* Invalid argument value */
+	ret = SQLSetConnectAttr(Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ | SQL_TXN_READ_COMMITTED), 0);
+	ReadError();
+	if (ret != SQL_ERROR || strcmp(odbc_sqlstate, "HY024") != 0) {
+		Disconnect();
+		fprintf(stderr, "Unexpected success\n");
+		return 1;
+	}
 
 	/* here we can't use temporary table cause we use two connection */
 	Command(Statement, "IF OBJECT_ID('test_transaction') IS NOT NULL DROP TABLE test_transaction");
 	Command(Statement, "CREATE TABLE test_transaction(n NUMERIC(18,0) PRIMARY KEY, t VARCHAR(30))");
-	Command(Statement, "INSERT INTO test_transaction(n, t) VALUES(1, 'initial')");
 
 	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0));
 
-	/* TODO test returned error */
-#if 0
-	/* SQL error S1009 -- Invalid argument value */
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ | SQL_TXN_READ_COMMITTED), 0));
-#endif
-
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
+	Command(Statement, "INSERT INTO test_transaction(n, t) VALUES(1, 'initial')");
+
+	/* test setting with active transaction "Operation invalid at this time" */
+	ret = SQLSetConnectAttr(Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0);
+	ReadError();
+	if (ret != SQL_ERROR || strcmp(odbc_sqlstate, "HY011") != 0) {
+		Disconnect();
+		fprintf(stderr, "Unexpected success\n");
+		return 1;
+	}
+
+	EndTransaction(SQL_COMMIT);
+
+	Command(Statement, "SELECT * FROM test_transaction");
+
+	/* test setting with pending data */
+	ret = SQLSetConnectAttr(Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0);
+	ReadError();
+	if (ret != SQL_ERROR || strcmp(odbc_sqlstate, "HY011") != 0) {
+		Disconnect();
+		fprintf(stderr, "Unexpected success\n");
+		return 1;
+	}
+
+	SQLMoreResults(Statement);
+
+	EndTransaction(SQL_COMMIT);
+
 
 	/* save this connection and do another */
 	SWAP_CONN();
@@ -184,6 +271,13 @@ main(int argc, char *argv[])
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
 
 	SWAP_CONN();
+
+	Test(SQL_TXN_READ_UNCOMMITTED, "dirty 1 non repeatable 1 phantom 1");
+	Test(SQL_TXN_READ_COMMITTED, "dirty 0 non repeatable 1 phantom 1");
+	Test(SQL_TXN_REPEATABLE_READ, "dirty 0 non repeatable 0 phantom 1");
+	Test(SQL_TXN_SERIALIZABLE, "dirty 0 non repeatable 0 phantom 0");
+
+	test_with_connect = 1;
 
 	Test(SQL_TXN_READ_UNCOMMITTED, "dirty 1 non repeatable 1 phantom 1");
 	Test(SQL_TXN_READ_COMMITTED, "dirty 0 non repeatable 1 phantom 1");
