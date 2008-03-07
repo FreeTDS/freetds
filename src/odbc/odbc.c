@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.473 2008-02-29 10:54:53 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.474 2008-03-07 10:57:54 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -270,6 +270,40 @@ change_database(TDS_DBC * dbc, char *database, int database_len)
 	ODBC_RETURN_(dbc);
 }
 
+static SQLRETURN
+change_txn(TDS_DBC * dbc, SQLUINTEGER txn_isolation)
+{
+	char query[64];
+	const char *level;
+	TDSSOCKET *tds = dbc->tds_socket;
+
+	if (!tds)
+		ODBC_RETURN(dbc, SQL_ERROR);
+
+	level = "READ COMMITTED";
+	switch (txn_isolation) {
+	case SQL_TXN_READ_UNCOMMITTED:
+		level = "READ UNCOMMITTED";
+		break;
+	case SQL_TXN_REPEATABLE_READ:
+		level = "REPEATABLE READ";
+		break;
+	case SQL_TXN_SERIALIZABLE:
+		level = "SERIALIZABLE";
+		break;
+	}
+	sprintf(query, "SET TRANSACTION ISOLATION LEVEL %s", level);
+
+	if (tds->state == TDS_IDLE)
+		tds->query_timeout = dbc->default_query_timeout;
+	if (tds_submit_query(tds, query) != TDS_SUCCEED)
+		ODBC_RETURN(dbc, SQL_ERROR);
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+		ODBC_RETURN(dbc, SQL_ERROR);
+
+	ODBC_RETURN_(dbc);
+}
+
 static void
 odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 {
@@ -322,6 +356,10 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 
 	if (IS_TDS7_PLUS(dbc->tds_socket))
 		dbc->cursor_support = 1;
+
+	if (dbc->attr.txn_isolation != SQL_TXN_READ_COMMITTED)
+		if (change_txn(dbc, dbc->attr.txn_isolation) != SQL_SUCCESS)
+			ODBC_RETURN_(dbc);
 
 	/* this overwrite any error arrived (wanted behavior, Sybase return error for conversion errors) */
 	ODBC_RETURN(dbc, SQL_SUCCESS);
@@ -5890,7 +5928,10 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 		break;
 #endif
 	case SQL_ATTR_TXN_ISOLATION:
-		dbc->attr.txn_isolation = u_value;
+		if (u_value != dbc->attr.txn_isolation) {
+			if (change_txn(dbc, u_value) == SQL_SUCCESS)
+				dbc->attr.txn_isolation = u_value;
+		}
 		ODBC_RETURN_(dbc);
 		break;
 	case SQL_ATTR_TRANSLATE_LIB:
