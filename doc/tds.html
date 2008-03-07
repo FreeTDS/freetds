@@ -94,7 +94,8 @@ of what goes on.
 <h2 class="section">The packet format</h2>
 <p>
 <a name="packet"></a>
-All packets start with the following 8 byte header.  
+Every informations in TDS protocol (query, RPCs, responses and so on) is splitted in packets.</p>
+<p>All packets start with the following 8 byte header.  
 
 <pre>
  INT8       INT8          INT16      4 bytes
@@ -134,9 +135,11 @@ above header.</p>
 <p><i>Note:</i>
   A TDS packet that is longer than 512 bytes is split on the 512 byte
   boundary and the "more packets" bit is set.  The full TDS packet is reassembled
-  from its component 512 byte packets with the 8-byte headers stripped out.  (I
-  believe the 512 is the block_size in the login packet, so it could be set to a
-  different value. *mjs*)</p>
+  from its component 512 byte packets with the 8-byte headers stripped out.
+  512 is the block_size in the login packet, so it could be set to a
+  different values.
+  In Sybase you can configure a range of valid block sizes.
+  TDS7+ use a default of 4096 as block size.</p>
 <hr>
 <p>
 <a name="login"></a>
