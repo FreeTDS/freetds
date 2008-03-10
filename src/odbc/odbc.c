@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.7 2008-02-29 09:23:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.8 2008-03-10 10:07:22 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -224,6 +224,9 @@ change_autocommit(TDS_DBC * dbc, int state)
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		dbc->attr.autocommit = state;
+	} else {
+		/* if not connected we will change auto-commit after login */
+		dbc->attr.autocommit = state;
 	}
 	ODBC_RETURN_(dbc);
 }
@@ -322,6 +325,10 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 
 	if (IS_TDS7_PLUS(dbc->tds_socket))
 		dbc->cursor_support = 1;
+
+	if (dbc->attr.autocommit != SQL_AUTOCOMMIT_ON)
+		if (!SQL_SUCCEEDED(change_autocommit(dbc, dbc->attr.autocommit)))
+			ODBC_RETURN_(dbc);
 
 	/* this overwrite any error arrived (wanted behavior, Sybase return error for conversion errors) */
 	ODBC_RETURN(dbc, SQL_SUCCESS);
@@ -5527,8 +5534,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		SIVAL = SQL_TC_ALL;
 		break;
 	case SQL_TXN_ISOLATION_OPTION:
-		/* TODO check SQLSetConnectAttr support */
-		UIVAL = SQL_TXN_READ_COMMITTED | SQL_TXN_READ_UNCOMMITTED | SQL_TXN_REPEATABLE_READ | SQL_TXN_SERIALIZABLE;
+		UIVAL = SQL_TXN_READ_COMMITTED;
 		break;
 	case SQL_UNION:
 		UIVAL = SQL_U_UNION | SQL_U_UNION_ALL;
