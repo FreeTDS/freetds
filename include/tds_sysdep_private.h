@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.23 2007-01-29 11:02:43 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.23.2.1 2008-03-11 08:27:35 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -85,6 +85,10 @@ typedef DWORD pid_t;
 
 #ifndef WIN32
 #define WIN32 1
+#endif
+
+#if defined(_WIN64) && !defined(WIN64)
+#define WIN64 1
 #endif
 
 #define TDS_SDIR_SEPARATOR "\\"
