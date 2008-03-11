@@ -30,7 +30,7 @@ $filename = "${srcdir}sybase_character_sets.h";
 open(OUT, ">$filename") or die qq($basename: could not open "$filename"\n);
 print OUT "/*\n";
 print OUT " * This file produced from $0\n";
-print OUT ' * $Id: encodings.pl,v 1.10 2005-04-06 06:44:33 jklowden Exp $', "\n";
+print OUT ' * $Id: encodings.pl,v 1.11 2008-03-11 08:36:41 freddy77 Exp $', "\n";
 print OUT " */\n";
 
 # look up the canonical name
@@ -64,7 +64,7 @@ while(<DATA>){
 
 		# grep for similar names, as an aid to the to programmer.  
 		$name =~ s/[\-\_]+//g;
-		print STDERR "$Name:  $name alternative_character_sets.h\n";
+		print STDERR $Name.":  $name alternative_character_sets.h\n";
 	}
 	$comma = ',';
 }
@@ -77,7 +77,7 @@ close(OUT);
 print "/*\n";
 $date = localtime;
 print " * This file produced from $0 on $date\n";
-print ' * $Id: encodings.pl,v 1.10 2005-04-06 06:44:33 jklowden Exp $', "\n";
+print ' * $Id: encodings.pl,v 1.11 2008-03-11 08:36:41 freddy77 Exp $', "\n";
 print " */\n";
 
 %charsets = ();
