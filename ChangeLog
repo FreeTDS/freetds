@@ -1,3 +1,6 @@
+Tue Mar 11 09:42:04 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: fix auto-commit off before connection
+
 Tue Mar 11 09:36:11 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/encodings.pl: fix a problem with cvs and branches
 
@@ -203,4 +206,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2499 2008-03-11 08:36:41 freddy77 Exp $
+$Id: ChangeLog,v 1.2500 2008-03-11 08:42:30 freddy77 Exp $

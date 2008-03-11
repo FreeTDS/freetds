@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.474 2008-03-07 10:57:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.475 2008-03-11 08:42:30 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -224,6 +224,9 @@ change_autocommit(TDS_DBC * dbc, int state)
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		dbc->attr.autocommit = state;
+	} else {
+		/* if not connected we will change auto-commit after login */
+		dbc->attr.autocommit = state;
 	}
 	ODBC_RETURN_(dbc);
 }
@@ -358,7 +361,11 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 		dbc->cursor_support = 1;
 
 	if (dbc->attr.txn_isolation != SQL_TXN_READ_COMMITTED)
-		if (change_txn(dbc, dbc->attr.txn_isolation) != SQL_SUCCESS)
+		if (!SQL_SUCCEEDED(change_txn(dbc, dbc->attr.txn_isolation)))
+			ODBC_RETURN_(dbc);
+
+	if (dbc->attr.autocommit != SQL_AUTOCOMMIT_ON)
+		if (!SQL_SUCCEEDED(change_autocommit(dbc, dbc->attr.autocommit)))
 			ODBC_RETURN_(dbc);
 
 	/* this overwrite any error arrived (wanted behavior, Sybase return error for conversion errors) */
