@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.8 2008-03-10 10:07:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.9 2008-03-11 08:25:30 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4469,6 +4469,12 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 		*((SQLUINTEGER *) Value) = dbc->attr.autocommit;
 		ODBC_RETURN_(dbc);
 		break;
+#if defined(SQL_ATTR_CONNECTION_DEAD) && defined(SQL_CD_TRUE)
+	case SQL_ATTR_CONNECTION_DEAD:
+		*((SQLUINTEGER *) Value) = IS_TDSDEAD(dbc->tds_socket) ? SQL_CD_TRUE : SQL_CD_FALSE;
+		ODBC_RETURN_(dbc);
+		break;
+#endif
 	case SQL_ATTR_CONNECTION_TIMEOUT:
 		*((SQLUINTEGER *) Value) = dbc->attr.connection_timeout;
 		ODBC_RETURN_(dbc);
