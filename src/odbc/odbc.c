@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.476 2008-03-12 13:35:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.477 2008-03-12 13:54:33 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1954,13 +1954,14 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 			*pfDesc = 15;
 			break;
 		}
-		if (drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP) {
+		if (drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP || drec->sql_desc_concise_type == SQL_TIMESTAMP) {
 			*pfDesc = drec->sql_desc_precision ? 23 : 16;
 			break;
 		}
 	case SQL_DESC_PRECISION:	/* this section may be wrong */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
-		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP
+		    || drec->sql_desc_concise_type == SQL_TIMESTAMP)
 			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			*pfDesc = drec->sql_desc_length;
@@ -1969,7 +1970,9 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_COLUMN_SCALE:
 	case SQL_DESC_SCALE:	/* this section may be wrong */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
-		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP || drec->sql_desc_concise_type == SQL_FLOAT)
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP
+		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
+		    || drec->sql_desc_concise_type == SQL_FLOAT)
 			IOUT(SQLSMALLINT, drec->sql_desc_scale);
 		else
 			*pfDesc = 0;
@@ -2403,7 +2406,9 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		IOUT(SQLSMALLINT, drec->sql_desc_parameter_type);
 		break;
 	case SQL_DESC_PRECISION:
-		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL || drec->sql_desc_concise_type == SQL_TIMESTAMP)
+		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
+		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
 			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			/* TODO support date/time */
@@ -2416,7 +2421,9 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 #endif
 	case SQL_DESC_SCALE:
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
-		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP || drec->sql_desc_concise_type == SQL_FLOAT)
+		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP
+		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
+		    || drec->sql_desc_concise_type == SQL_FLOAT)
 			IOUT(SQLSMALLINT, drec->sql_desc_scale);
 		else
 			*((SQLSMALLINT *) Value) = 0;
@@ -2814,7 +2821,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 			return SQL_ERROR;
 
 		/* TODO other types for date ?? SQL_TYPE_DATE, SQL_TYPE_TIME */
-		if (drec->sql_desc_concise_type == SQL_TIMESTAMP)
+		if (drec->sql_desc_concise_type == SQL_TIMESTAMP || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
 			drec->sql_desc_length = sizeof("2000-01-01 12:00:00.0000")-1;
 		else
 			drec->sql_desc_length = col->column_size;

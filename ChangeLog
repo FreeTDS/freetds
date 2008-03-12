@@ -1,3 +1,6 @@
+Wed Mar 12 14:53:50 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: handle SQL_TIMESTAMP like SQL_TYPE_TIMESTAMP
+
 Wed Mar 12 14:34:21 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: fix auto-commit set
 	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
@@ -213,4 +216,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2501 2008-03-12 13:35:48 freddy77 Exp $
+$Id: ChangeLog,v 1.2502 2008-03-12 13:54:32 freddy77 Exp $
