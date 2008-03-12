@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.475 2008-03-11 08:42:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.476 2008-03-12 13:35:49 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -280,11 +280,10 @@ change_txn(TDS_DBC * dbc, SQLUINTEGER txn_isolation)
 	const char *level;
 	TDSSOCKET *tds = dbc->tds_socket;
 
-	if (!tds)
-		ODBC_RETURN(dbc, SQL_ERROR);
-
-	level = "READ COMMITTED";
 	switch (txn_isolation) {
+	case SQL_TXN_READ_COMMITTED:
+		level = "READ COMMITTED";
+		break;
 	case SQL_TXN_READ_UNCOMMITTED:
 		level = "READ UNCOMMITTED";
 		break;
@@ -294,17 +293,28 @@ change_txn(TDS_DBC * dbc, SQLUINTEGER txn_isolation)
 	case SQL_TXN_SERIALIZABLE:
 		level = "SERIALIZABLE";
 		break;
+	default:
+		odbc_errs_add(&dbc->errs, "HY024", NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
 	}
-	sprintf(query, "SET TRANSACTION ISOLATION LEVEL %s", level);
 
-	if (tds->state == TDS_IDLE)
-		tds->query_timeout = dbc->default_query_timeout;
+	/* if not connected return success, will be set after connection */
+	if (!tds)
+		return SQL_SUCCESS;
+
+	if (tds->state != TDS_IDLE) {
+		odbc_errs_add(&dbc->errs, "HY011", NULL);
+		ODBC_RETURN(dbc, SQL_ERROR);
+	}
+
+	tds->query_timeout = dbc->default_query_timeout;
+	sprintf(query, "SET TRANSACTION ISOLATION LEVEL %s", level);
 	if (tds_submit_query(tds, query) != TDS_SUCCEED)
 		ODBC_RETURN(dbc, SQL_ERROR);
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		ODBC_RETURN(dbc, SQL_ERROR);
 
-	ODBC_RETURN_(dbc);
+	return SQL_SUCCESS;
 }
 
 static void
@@ -361,7 +371,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 		dbc->cursor_support = 1;
 
 	if (dbc->attr.txn_isolation != SQL_TXN_READ_COMMITTED)
-		if (!SQL_SUCCEEDED(change_txn(dbc, dbc->attr.txn_isolation)))
+		if (change_txn(dbc, dbc->attr.txn_isolation) != SQL_SUCCESS)
 			ODBC_RETURN_(dbc);
 
 	if (dbc->attr.autocommit != SQL_AUTOCOMMIT_ON)

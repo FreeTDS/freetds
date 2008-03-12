@@ -3,7 +3,7 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.2 2008-03-07 15:40:57 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.3 2008-03-12 13:35:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -153,32 +153,22 @@ CheckPhantom(void)
 
 static int test_with_connect = 0;
 
+static int global_txn;
+
+static void
+my_attrs(void)
+{
+	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(global_txn), 0));
+	AutoCommit(SQL_AUTOCOMMIT_OFF);
+}
+
 static void
 ConnectWithTxn(int txn)
 {
-	int res;
-	char command[512];
-
-	CHK(SQLAllocEnv, (&Environment));
-	CHK(SQLSetEnvAttr, (Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER));
-
-	CHK(SQLAllocConnect, (Environment, &Connection));
-
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(txn), 0));
-	res = SQLConnect(Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS);
-	if (!SQL_SUCCEEDED(res))
-		ODBC_REPORT_ERROR("Unable to open data source\n");
-
-	CHK(SQLAllocStmt, (Connection, &Statement));
-
-	sprintf(command, "use %s", DATABASE);
-	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS)))
-		ODBC_REPORT_ERROR("Unable to execute statement\n");
-
-#ifndef TDS_NO_DM
-	/* unixODBC seems to require it */
-	SQLMoreResults(Statement);
-#endif
+	global_txn = txn;
+	odbc_set_conn_attr = my_attrs;
+	Connect();
+	odbc_set_conn_attr = NULL;
 }
 
 static void
@@ -192,7 +182,6 @@ Test(int txn, const char *expected)
 		Disconnect();
 		ConnectWithTxn(txn);
 		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0));
-		AutoCommit(SQL_AUTOCOMMIT_OFF);
 	} else {
 		CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(txn), 0));
 	}
@@ -235,6 +224,7 @@ main(int argc, char *argv[])
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
 	Command(Statement, "INSERT INTO test_transaction(n, t) VALUES(1, 'initial')");
 
+#if ENABLE_DEVELOPING
 	/* test setting with active transaction "Operation invalid at this time" */
 	ret = SQLSetConnectAttr(Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0);
 	ReadError();
@@ -243,6 +233,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Unexpected success\n");
 		return 1;
 	}
+#endif
 
 	EndTransaction(SQL_COMMIT);
 

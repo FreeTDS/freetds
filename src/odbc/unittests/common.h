@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.22 2008-01-29 14:30:48 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.23 2008-03-12 13:35:50 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -37,6 +37,7 @@ extern HENV Environment;
 extern HDBC Connection;
 extern HSTMT Statement;
 extern int use_odbc_version3;
+extern void (*odbc_set_conn_attr)(void);
 
 extern char USER[512];
 extern char SERVER[512];

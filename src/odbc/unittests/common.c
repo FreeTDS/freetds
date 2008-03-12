@@ -12,13 +12,14 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.43 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.44 2008-03-12 13:35:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
 HDBC Connection;
 HSTMT Statement;
 int use_odbc_version3 = 0;
+void (*odbc_set_conn_attr)(void) = NULL;
 
 char USER[512];
 char SERVER[512];
@@ -193,17 +194,18 @@ Connect(void)
 	printf("connection parameters:\nserver:   '%s'\nuser:     '%s'\npassword: '%s'\ndatabase: '%s'\n",
 	       SERVER, USER, "????" /* PASSWORD */ , DATABASE);
 
+	if (odbc_set_conn_attr)
+		(*odbc_set_conn_attr)();
+
 	res = SQLConnect(Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS);
 	if (!SQL_SUCCEEDED(res)) {
 		printf("Unable to open data source (ret=%d)\n", res);
 		CheckReturn();
-		exit(1);
 	}
 
 	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS) {
 		printf("Unable to allocate statement\n");
 		CheckReturn();
-		exit(1);
 	}
 
 	sprintf(command, "use %s", DATABASE);
@@ -212,7 +214,6 @@ Connect(void)
 	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS))) {
 		printf("Unable to execute statement\n");
 		CheckReturn();
-		exit(1);
 	}
 
 #ifndef TDS_NO_DM
@@ -311,8 +312,6 @@ CheckCols(int n, int line, const char * file)
 			return;
 		fprintf(stderr, "%s:%d: Unable to get column numbers\n", file, line);
 		CheckReturn();
-		Disconnect();
-		exit(1);
 	}
 
 	if (cols != n) {
@@ -334,8 +333,6 @@ CheckRows(int n, int line, const char * file)
 			return;
 		fprintf(stderr, "%s:%d: Unable to get row\n", file, line);
 		CheckReturn();
-		Disconnect();
-		exit(1);
 	}
 
 	if (rows != n) {
