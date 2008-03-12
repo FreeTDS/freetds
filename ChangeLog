@@ -1,3 +1,6 @@
+Wed Mar 12 17:16:17 EDT 2008 JK Lowden <jklowden@freetds.org>
+	* posted 0.82RC3
+
 Tue Mar 11 09:26:03 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds_sysdep_private.h: win64 portability issue
 
@@ -120,4 +123,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.27 2008-03-11 08:27:34 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.28 2008-03-12 21:17:28 jklowden Exp $
