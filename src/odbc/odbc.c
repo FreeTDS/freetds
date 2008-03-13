@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.477 2008-03-12 13:54:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.478 2008-03-13 13:23:31 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5602,7 +5602,6 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		SIVAL = SQL_TC_ALL;
 		break;
 	case SQL_TXN_ISOLATION_OPTION:
-		/* TODO check SQLSetConnectAttr support */
 		UIVAL = SQL_TXN_READ_COMMITTED | SQL_TXN_READ_UNCOMMITTED | SQL_TXN_REPEATABLE_READ | SQL_TXN_SERIALIZABLE;
 		break;
 	case SQL_UNION:

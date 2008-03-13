@@ -1,3 +1,11 @@
+Thu Mar 13 14:22:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/error.c:
+	- make errs offset constant in all odbc structures to make 
+	  error.c simpler
+	- support SQL_HANDLE_DESC in SQLGetDiagField 
+	* src/odbc/odbc.c: remove TODO comment
+	* src/odbc/odbc_checks.c: typo
+
 Wed Mar 12 15:25:11 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/error.c: check proper handle type
 
@@ -219,4 +227,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2503 2008-03-12 14:26:07 freddy77 Exp $
+$Id: ChangeLog,v 1.2504 2008-03-13 13:23:30 freddy77 Exp $

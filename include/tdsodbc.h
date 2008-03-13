@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.104 2008-01-14 19:21:06 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.105 2008-03-13 13:23:31 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -177,11 +177,11 @@ struct _drecord
 struct _hdesc
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
+	struct _sql_errors errs;	/* do not reorder this field */
 	int type;
 	SQLHANDLE parent;
 	struct _dheader header;
 	struct _drecord *records;
-	struct _sql_errors errs;
 };
 
 typedef struct _hdesc TDS_DESC;
@@ -202,13 +202,14 @@ struct _heattr
 struct _hchk
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
+	struct _sql_errors errs;	/* do not reorder this field */
 };
 
 struct _henv
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
+	struct _sql_errors errs;	/* do not reorder this field */
 	TDSCONTEXT *tds_ctx;
-	struct _sql_errors errs;
 	struct _heattr attr;
 };
 
@@ -242,6 +243,7 @@ struct _hstmt;
 struct _hdbc
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
+	struct _sql_errors errs;	/* do not reorder this field */
 	struct _henv *env;
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
@@ -254,7 +256,6 @@ struct _hdbc
 	struct _hstmt *current_statement;
 	/** list of all statements allocated from this connection */
 	struct _hstmt *stmt_list;
-	struct _sql_errors errs;
 	struct _hcattr attr;
 	/** descriptors associated to connection */
 	TDS_DESC *uad[TDS_MAX_APP_DESC];
@@ -326,6 +327,7 @@ typedef enum
 struct _hstmt
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
+	struct _sql_errors errs;	/* do not reorder this field */
 	struct _hdbc *dbc;
 	/** query to execute */
 	char *query;
@@ -361,7 +363,6 @@ struct _hstmt
 	TDS_ODBC_ROW_STATUS row_status;
 	/* do NOT free dynamic, free from socket or attach to connection */
 	TDSDYNAMIC *dyn;
-	struct _sql_errors errs;
 	TDS_DESC *ard, *ird, *apd, *ipd;
 	TDS_DESC *orig_ard, *orig_apd;
 	SQLULEN sql_rowset_size;

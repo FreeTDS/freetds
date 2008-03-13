@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.50 2008-03-12 14:26:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.51 2008-03-13 13:23:31 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -503,7 +503,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	       SQLINTEGER FAR * pfNativeError, SQLCHAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
 {
 	SQLRETURN result;
-	struct _sql_errors *errs = NULL;
+	struct _sql_errors *errs;
 	const char *msg;
 	char *p;
 
@@ -518,31 +518,28 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	if (numRecord <= 0 || cbErrorMsgMax < 0)
 		return SQL_ERROR;
 
-	if (!handle || ((struct _hchk *) handle)->htype != handleType)
+	if (!handle || ((TDS_CHK *) handle)->htype != handleType)
 		return SQL_INVALID_HANDLE;
 
+	errs = &((TDS_CHK *) handle)->errs;
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
 		odbc_ver = ((TDS_STMT *) handle)->dbc->env->attr.odbc_version;
-		errs = &((TDS_STMT *) handle)->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
 		odbc_ver = ((TDS_DBC *) handle)->env->attr.odbc_version;
-		errs = &((TDS_DBC *) handle)->errs;
 		break;
 
 	case SQL_HANDLE_ENV:
 		odbc_ver = ((TDS_ENV *) handle)->attr.odbc_version;
-		errs = &((TDS_ENV *) handle)->errs;
 		break;
 	case SQL_HANDLE_DESC:
 		parent = ((TDS_DESC *) handle)->parent;
-		if (((struct _hchk *) parent)->htype == SQL_HANDLE_DBC)
+		if (((TDS_CHK *) parent)->htype == SQL_HANDLE_DBC)
 			odbc_ver = ((TDS_DBC *) parent)->env->attr.odbc_version;
 		else
 			odbc_ver = ((TDS_STMT *) parent)->dbc->env->attr.odbc_version;
-		errs = &((TDS_DESC *) handle)->errs;
 		break;
 	default:
 		return SQL_INVALID_HANDLE;
@@ -579,7 +576,6 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	 SQLCHAR FAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
 {
 	SQLRETURN result;
-	struct _sql_errors *errs = NULL;
 	SQLSMALLINT type;
 	SQLHANDLE handle;
 
@@ -587,15 +583,12 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 			henv, hdbc, hstmt, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
 
 	if (hstmt) {
-		errs = &((TDS_STMT *) hstmt)->errs;
 		handle = hstmt;
 		type = SQL_HANDLE_STMT;
 	} else if (hdbc) {
-		errs = &((TDS_DBC *) hdbc)->errs;
 		handle = hdbc;
 		type = SQL_HANDLE_DBC;
 	} else if (henv) {
-		errs = &((TDS_ENV *) henv)->errs;
 		handle = henv;
 		type = SQL_HANDLE_ENV;
 	} else
@@ -605,7 +598,7 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 
 	if (result == SQL_SUCCESS) {
 		/* remove first error */
-		odbc_errs_pop(errs);
+		odbc_errs_pop(&((TDS_CHK *) handle)->errs);
 	}
 
 	return result;
@@ -627,7 +620,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer)
 {
 	SQLRETURN result = SQL_SUCCESS;
-	struct _sql_errors *errs = NULL;
+	struct _sql_errors *errs;
 	const char *msg;
 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
@@ -635,6 +628,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	TDS_STMT *stmt = NULL;
 	TDS_DBC *dbc = NULL;
 	TDS_ENV *env = NULL;
+	SQLHANDLE parent;
 	char tmp[16];
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagField(%d, %p, %d, %d, %p, %d, %p)\n", 
@@ -643,7 +637,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	if (cbBuffer < 0)
 		return SQL_ERROR;
 
-	if (!handle  || ((struct _hchk *) handle)->htype != handleType)
+	if (!handle  || ((TDS_CHK *) handle)->htype != handleType)
 		return SQL_INVALID_HANDLE;
 
 	switch (handleType) {
@@ -651,23 +645,32 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		stmt = ((TDS_STMT *) handle);
 		dbc = stmt->dbc;
 		env = dbc->env;
-		errs = &stmt->errs;
 		break;
 
 	case SQL_HANDLE_DBC:
 		dbc = ((TDS_DBC *) handle);
 		env = dbc->env;
-		errs = &dbc->errs;
 		break;
 
 	case SQL_HANDLE_ENV:
 		env = ((TDS_ENV *) handle);
-		errs = &env->errs;
+		break;
+
+	case SQL_HANDLE_DESC:
+		parent = ((TDS_DESC *) handle)->parent;
+		if (((TDS_CHK *) parent)->htype == SQL_HANDLE_DBC) {
+			dbc = (TDS_DBC *) parent;
+		} else {
+			stmt = (TDS_STMT *) parent;
+			dbc = stmt->dbc;
+		}
+		env = dbc->env;
 		break;
 
 	default:
 		return SQL_INVALID_HANDLE;
 	}
+	errs = &((TDS_CHK *) handle)->errs;
 	odbc_ver = env->attr.odbc_version;
 
 	/* header (numRecord ignored) */

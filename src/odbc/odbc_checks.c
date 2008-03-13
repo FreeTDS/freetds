@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_checks.c,v 1.19 2007-05-17 10:33:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_checks.c,v 1.20 2008-03-13 13:23:31 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -113,7 +113,7 @@ odbc_check_struct_extra(void *p)
 {
 	const int invalid_htype = 0;
 
-	switch (((struct _hchk *) p)->htype) {
+	switch (((TDS_CHK *) p)->htype) {
 	case SQL_HANDLE_ENV:
 		odbc_check_env_extra((TDS_ENV *) p);
 		break;
