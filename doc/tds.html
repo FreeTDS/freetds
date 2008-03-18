@@ -389,7 +389,7 @@ auth   authentication data
   <td>0x63</td><td>99</td><td>SYBNTEXT</td><td>7+</td><td>yes</td><td>4</td><td>yes</td>
 </tr>
 <tr>
-  <td>0x67</td><td>103</td><td>SYBNVARCHAR</td><td>7+</td><td>yes</td><td>2</td><td>??</td>
+  <td>0x67</td><td>103</td><td>SYBNVARCHAR</td><td>7+</td><td>yes</td><td>1</td><td></td>
 </tr>
 <tr>
   <td>0x68</td><td>104</td><td>SYBBITN</td><td></td><td>yes</td><td>1</td><td></td>
@@ -416,10 +416,10 @@ auth   authentication data
   <td>0x7F</td><td>127</td><td>SYBINT8</td><td></td><td>no</td><td>0</td><td></td>
 </tr>
 <tr>
-  <td>0xA5</td><td>165</td><td>XSYBVARBINARY</td><td>7+</td><td>yes</td><td>2</td><td></td>
+  <td>0xA5</td><td>165</td><td>XSYBVARBINARY</td><td>7+</td><td>yes</td><td>2 *</td><td></td>
 </tr>
 <tr>
-  <td>0xA7</td><td>167</td><td>XSYBVARCHAR</td><td>7+</td><td>yes</td><td>2</td><td>yes</td>
+  <td>0xA7</td><td>167</td><td>XSYBVARCHAR</td><td>7+</td><td>yes</td><td>2 *</td><td>yes</td>
 </tr>
 <tr>
   <td>0xAD</td><td>173</td><td>XSYBBINARY</td><td>7+</td><td>yes</td><td>2</td><td></td>
@@ -431,13 +431,23 @@ auth   authentication data
   <td>0xE1</td><td>225</td><td>SYBLONGBINARY</td><td>5</td><td>yes</td><td>4</td><td></td>
 </tr>
 <tr>
-  <td>0xE7</td><td>231</td><td>XSYBNVARCHAR</td><td>7+</td><td>yes</td><td>2</td><td>yes</td>
+  <td>0xE7</td><td>231</td><td>XSYBNVARCHAR</td><td>7+</td><td>yes</td><td>2 *</td><td>yes</td>
 </tr>
 <tr>
   <td>0xEF</td><td>239</td><td>XSYBNCHAR</td><td>7+</td><td>yes</td><td>2</td><td>yes</td>
 </tr>
 </table>
 <hr>
+<p>* Under TDS9+ these types allow size to be -1. These types represents varchar(max), varbinary(max) and nvarchar(max).
+Data representation for these types change in this way:
+<ul>
+ <li>size is 64 bit not 16 bit</li>
+ <li>if size is -1 meaning NULL</li>
+ <li>if size is -2 size is unknown</li>
+ <li>data is splitted in chunks where ever chunk start with a 32 bit size</li>
+ <li>a chunk with size &lt;= 0 is the terminal chunk</li>
+</ul>
+</p>
 <p>
 <a name="collate"></a>
 <h2 class="section">Collate type - TDS8</h2>
