@@ -3,7 +3,7 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.3 2008-03-12 13:35:50 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.4 2008-03-18 08:22:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -224,7 +224,7 @@ main(int argc, char *argv[])
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
 	Command(Statement, "INSERT INTO test_transaction(n, t) VALUES(1, 'initial')");
 
-#if ENABLE_DEVELOPING
+#ifdef ENABLE_DEVELOPING
 	/* test setting with active transaction "Operation invalid at this time" */
 	ret = SQLSetConnectAttr(Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0);
 	ReadError();
