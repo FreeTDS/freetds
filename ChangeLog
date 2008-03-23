@@ -1,3 +1,8 @@
+Sun Mar 23 13:14:05 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* configure.ac doc/Makefile.am
+	- applied ML patches from Johnny C. Lam for calout locations
+	- and gnutls test
+	
 Thu Mar 13 14:22:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/error.c:
 	- make errs offset constant in all odbc structures to make 
@@ -227,4 +232,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2504 2008-03-13 13:23:30 freddy77 Exp $
+$Id: ChangeLog,v 1.2505 2008-03-23 17:29:57 jklowden Exp $
