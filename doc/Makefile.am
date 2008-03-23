@@ -2,7 +2,7 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
-# $Id: Makefile.am,v 1.62 2008-01-08 15:38:23 jklowden Exp $
+# $Id: Makefile.am,v 1.62.2.1 2008-03-23 17:29:40 jklowden Exp $
 
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
@@ -55,7 +55,8 @@ man:	$(man_MANS)
 installdirs: 
 	$(mkinstalldirs)	$(TARGET_DOCDIR)/userguide    \
 				$(TARGET_DOCDIR)/reference    \
-				$(TARGET_DOCDIR)/images 2>&1
+				$(TARGET_DOCDIR)/images       \
+				$(TARGET_DOCDIR)/images/callouts 2>&1
 
 MANOPTS = -I 'FreeTDS User Guide'  -v 'FreeTDS Utilities' -t $(PRODUCT) -r $(VERSION)
 
@@ -117,8 +118,8 @@ install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/usergui
 	if test -r $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/reference \( -type f -o -type l \) -exec \
 		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/reference ';'
-	find $(srcdir)/images -name \*.gif -exec \
-		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/images ';'
+	cd $(srcdir) && find images -name \*.gif -exec \
+		$(INSTALL_DATA) {} $(TARGET_DOCDIR)/{} ';'
 
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
