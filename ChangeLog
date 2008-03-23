@@ -1,3 +1,6 @@
+Sun Mar 23 17:03:48 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* configure.ac RC5
+
 Sun Mar 23 17:01:13 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml clarified localization
 
@@ -131,4 +134,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.31 2008-03-23 21:02:51 jklowden Exp $
+$Id: ChangeLog,v 1.2454.2.32 2008-03-23 21:04:31 jklowden Exp $
