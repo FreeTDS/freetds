@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-01-10 22:57:39 $</date>
-		<releaseinfo>$Revision: 1.111 $</releaseinfo>
+		<date>$Date: 2008-03-23 20:56:38 $</date>
+		<releaseinfo>$Revision: 1.112 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -56,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.111 $</>
-<member>$Date: 2008-01-10 22:57:39 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.111 2008-01-10 22:57:39 jklowden Exp $.</>
+<member>$Revision: 1.112 $</>
+<member>$Date: 2008-03-23 20:56:38 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.112 2008-03-23 20:56:38 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -568,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-01-10 22:57:39 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-03-23 20:56:38 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -928,7 +928,7 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 	<row>
 	<entry id="clientcharset">client charset</entry>
 	<entry>any valid iconv character set</entry>
-	<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Nonwestern"><acronym>TDS</> 7.0 for Nonwestern Languages</link> for more information.  </para></footnote></entry>
+	<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Localization">Localization and <acronym>TDS</> 7.0</link> for more information.  </para></footnote></entry>
 	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0.
 As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need to match the server's charset to insert any characters the server supports.</entry>
 	</row>
@@ -1029,7 +1029,7 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	</tgroup>
 </table>
 
-	<para>For more about the wonder world of <productname>FreeTDS</productname>logs, see <link linkend="logging">Logging</link>.</para>
+	<para>For more about the wonderful world of <productname>FreeTDS</productname> logs, see <link linkend="logging">Logging</link>.</para>
 			</sect3>
 
 			<sect3><title>Deprecated options</>	
@@ -1236,7 +1236,7 @@ When you're done, you should see something very like this:
 
 			<para>If you specify <literal><replaceable>dataserver</replaceable>\<replaceable>instance</replaceable></literal>
 			as dataserver during login, <productname>FreeTDS</productname> will attempt to connect to specified instance.
-			Only Microsoft SQL Server instances are supported.  (This server feature was introduced with SQL Server 2000).
+			Only Microsoft SQL Server instances are supported.  (This server feature was introduced with SQL Server 2000.)
 			</para>
 
 			<para>Note that other <filename>freetds.conf</> properties still apply.
@@ -1249,8 +1249,8 @@ When you're done, you should see something very like this:
 			
 			<sect2 id="tsql"><title><application>tsql</application></title>
 
-			<para>
-The <firstterm>tsql</> utility is provided as part of FreeTDS expressly for troubleshooting.  <command>tsql</> is superficially similar to an <command>isql</>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  <command>tsql</> can either use or bypass the configuration files, allowing you to see if it's your dataserver that's not responding, or your configuration files that are messed up. </para> 
+			<para>The <firstterm>tsql</> utility is provided as part of FreeTDS expressly for troubleshooting.  <command>tsql</> is superficially similar to an <command>isql</>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  </para>
+			<para><command>tsql</> can either use or bypass the configuration files.  By trying both options, you can usually determine if it's your dataserver that's not responding, or your configuration files that are messed up. </para> 
 
 			<bridgehead renderas='sect3'>Using <filename>freetds.conf</>:</bridgehead>
 			<para>
@@ -1258,18 +1258,6 @@ The <firstterm>tsql</> utility is provided as part of FreeTDS expressly for trou
   <command>tsql</command> 
 	<arg choice='req'>-S<replaceable>server</replaceable></arg>
 	<arg choice='req'>-U<replaceable>username</replaceable></arg>
-	<arg choice='opt'>-P<replaceable>password</replaceable></arg>
-	<arg choice='opt'>-C</arg>
-</cmdsynopsis>
-			</para>
-
-			<bridgehead renderas='sect3'>Bypassing <filename>freetds.conf</>:</bridgehead>
-			<para>
-<cmdsynopsis label="Syntax synopsis for tsql">
-  <command>tsql</command> 
-	<arg choice='req'>-H <replaceable>hostname</replaceable></arg>
-	<arg choice='req'>-p <replaceable>port</replaceable></arg>
-	<arg choice='req'>-U <replaceable>username</replaceable></arg>
 	<arg choice='opt'>-P<replaceable>password</replaceable></arg>
 	<arg choice='opt'>-C</arg>
 </cmdsynopsis>
@@ -1299,6 +1287,20 @@ There was a problem connecting to the server
 </computeroutput>
 </screen>
 </example>
+
+			<bridgehead renderas='sect3'>Bypassing <filename>freetds.conf</>:</bridgehead>
+			<para>
+<cmdsynopsis label="Syntax synopsis for tsql">
+  <command>tsql</command> 
+	<arg choice='req'>-H <replaceable>hostname</replaceable></arg>
+	<arg choice='req'>-p <replaceable>port</replaceable></arg>
+	<arg choice='req'>-U <replaceable>username</replaceable></arg>
+	<arg choice='opt'>-P<replaceable>password</replaceable></arg>
+	<arg choice='opt'>-C</arg>
+</cmdsynopsis>
+
+			Keep in mind that the TDS protocol version normally comes from <filename>freetds.conf</>.  When using <command>tsql</> this way, the library uses the compiled-in default (set by the <filename>configure</> script).  If that's not what you want, override it using the <envar>TDSVER</> environment variable.  
+			</para>
 
 <example id="e.g.tsqlhostname">
 <title>Connect with <command>tsql</> using a hostname and port number</title>
@@ -1491,7 +1493,7 @@ The following table defines all possible ODBC connection attributes for the <pro
 </tgroup>
 </table>
 
-<table id="tab.Connection.attributes.freetds.conf"><title>Connection attributes that may appear in <filename>freetds.conf</></title>
+<table id="tab.Connection.attributes.freetds.conf"><title>Connection attributes that may appear in <filename>odbc.ini</></title>
 <tgroup cols="4">
 <thead>
 	<row>
@@ -1746,7 +1748,7 @@ This chapter details some advanced configurations that need expanded explanation
 			<para>
 Several version of Microsoft SQL server have a bug that affects big endian clients.  This includes 7.0 GA and 7.0 SP1.  Furthermore, <acronym>TDS</> Protocol version 7.0 is natively little endian. <productname>SQL Server 2000</productname> is also reported not to work from big endian clients without little endian emulation turned on.
 			</para>
-<Note><para>If you are unfamiliar with the terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis>, they are terms that come originally from Gulliver's Travels.  What they refer to in computer science is the the order in which bytes are stored by a processor.  Big endian machines such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian machines such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
+<Note><para>The terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis> come originally from Gulliver's Travels.  In computer science they refer to the the integer byte-order for a processor.  Big endian processors, such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian processors, such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
 
 <para>
 In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 and 8.0 will automatically emulate little endian mode regardless of the <filename>freetds.conf</filename> setting.
@@ -1763,16 +1765,16 @@ In this example we want to force connections to a server named <literal>mssql</l
 </programlisting>
 </example>
 		</sect1>
-		<sect1 id="Nonwestern">
-			<title><acronym>TDS</> 7.0 for Nonwestern Languages</title>
+		<sect1 id="Localization">
+			<title>Localization and <acronym>TDS</> 7.0</title>
 			<para>
-<acronym>TDS</> 7.0 uses 2-byte Unicode (technically, <acronym>UCS-2</>) to transfer character data between servers and clients.  Included in <quote>character data</quote> are query text (i.e., <acronym>SQL</>), metadata (table names and such), and <foreignphrase>bona fide</> data of datatypes <literal>nchar</>, <literal>nvarchar</>, and <literal>ntext</>.
+<acronym>TDS</> 7.0 uses 2-byte Unicode (technically, <acronym>UCS-2</>) to transfer character data between servers and clients.  Included in <quote>character data</quote> are query text (i.e., <acronym>SQL</>), metadata (table names and such), and <foreignphrase>bona fide</> data of datatypes <literal>nchar</>, <literal>nvarchar</>, and <literal>ntext</>.  (Background information on Unicode and how it affects <productname>FreeTDS</productname> can be found in the <link linkend="Unicode">appendix</link>.)
 			</para>
 			<para>
-Since most Unix tools and languages do not support <acronym>UCS-2</>, <productname>FreeTDS</productname> allows conversion by the client to other character sets using the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.  Background information on Unicode and how it affects <productname>FreeTDS</productname> can be found in the <link linkend="Unicode">appendix</link>.  If no iconv library is found, or if it is explicitly disabled, <productname>FreeTDS</productname> will use its built-in iconv substitute, and will be capable of converting between only <acronym>ISO-8859-1</> and <acronym>UCS-2</>.  
+Because most Unix tools and environments do not support <acronym>UCS-2</>, <productname>FreeTDS</productname> provides for conversion by the client to other character sets.  The mechanism used is determined by the <filename>configure</> script, which looks for a <function>iconv</>(3) function, an implementation of the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.    If no <function>iconv</> library is found, or if it is explicitly disabled, <productname>FreeTDS</productname> will use its built-in <function>iconv</> substitute, and will be capable of converting among only <acronym>ISO 8859-1</>, <acronym>UTF-8</>, and <acronym>UCS-2</>.  
 			</para>
 			<para>
-To learn what character set the client is using, <productname>FreeTDS</productname> examines the <link linkend="clientcharset"><filename>freetds.conf</></link> entry.  If it finds nothing there, it assumes the client is using <acronym>ISO-8859-1</>.   That is generally a safe assumption for western languages such as English or French, but produces garbage for other languages.
+To learn what character set the client wants, <productname>FreeTDS</productname> prefers the applicable <link linkend="clientcharset"><filename>freetds.conf</></link> <literal>client charset</> property.  If that is not set, it parses the <envar>LANG</> environment variable.  In either case, the found string is passed to <function>iconv</>(3) (or its built-in replacment).  <footnote><para>The built-in replacement expects GNU iconv names: <literal>ISO-8859-1</>, <literal>US-ASCII</>, or <literal>UTF-8</>.</para></footnote>.  If neither is found, <acronym>UCS-2</> data are converted to <acronym>ISO 8859-1</>.  
 			</para>
 
 			<para>
@@ -1801,10 +1803,9 @@ In this example a server named <literal>mssql</literal> will return data encoded
 If <productname>FreeTDS</productname> runs into a character it can not convert, its behavior varies according to the severity of the problem.  On retrieving data from the server, <productname>FreeTDS</productname> substitutes an <acronym>ASCII</> '?' in the character's place, and emits a warning message stating that some characters could not be converted.  On sending data to the server, <productname>FreeTDS</productname> aborts the query and emits an error message.  It is well to ensure that the data contained in the database is representable in the client's character set.</para>
 
 			<para>
-If you have a mix of character data that can not be contained in a single byte character set, you may wish to use <acronym>UTF-8</>.  <acronym>UTF-8</> is a variable length unicode encoding that is compatible with <acronym>ASCII</> in the range 0 to 127.  With <acronym>UTF-8</>, you are guaranteed to never have an unconvertible character.</para>
+If you have a mix of character data that can not be contained in a single-byte character set, you may wish to use <acronym>UTF-8</>.  <acronym>UTF-8</> is a variable length unicode encoding that is compatible with <acronym>ASCII</> in the range 0 to 127.  With <acronym>UTF-8</>, you are guaranteed to never have an unconvertible character.</para>
 
-<Important><para><productname>FreeTDS</productname> is not fully compatible with multi-byte character sets such as <acronym>UCS-2</>.  You must use an ASCII-extension charset (e.g., UTF-8, ISO-8859-*)<footnote><para>not EBCDIC or other weird charsets</para></footnote>. Extreme care should be taken with testing applications using these encodings. Specifically, many applications do not expect the number of characters returned to exceed the column size (in bytes).  On the other hand, support of <acronym>UTF-8</> and <acronym>UCS-2</> is a high priority for the developers.  Patches and bug reports in this area are especially welcome.  
-</para></Important>
+<Important><para><productname>FreeTDS</productname> is not fully compatible with multi-byte character sets such as <acronym>UCS-2</>.  You must use an ASCII-extension charset (e.g., UTF-8, ISO-8859-*)<footnote><para>not EBCDIC or other weird charsets</para></footnote>. Great care should be taken testing applications using these encodings. Specifically, many applications do not expect the number of characters returned to exceed the column size (in bytes).  </para></Important>
 			<para>
 In the following example, a server named <literal>mssql</literal> will return data encoded in the <acronym>UTF-8</> character set.
 			</para>
@@ -3483,7 +3484,7 @@ But check!  No point in trying to use a null pointer.  </para></callout>
 			</para>
 
 			
-			<para>Typically it's more convenient to have <symbol>db-lib</> convert the data into the desired for.  The function that does that is <function>dbind()</>.  So: after fetching the metadata, and before fetching the data, we usually prepare the bound columns.  </para>
+			<para>Typically it's more convenient to have <symbol>db-lib</> convert the data into the desired form.  The function that does that is <function>dbind()</>.  So: after fetching the metadata, and before fetching the data, we usually prepare the bound columns.  </para>
 
 			<bridgehead id="samplecode.results.fetching.data" renderas="sect3">Fetching Data</>
 			
