@@ -1,6 +1,6 @@
 Sun Mar 23 13:26:57 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* configure.ac doc/Makefile.am
-	- applied ML patches from Johnny C. Lam for calout locations
+	- applied ML patches from Johnny C. Lam for callout locations
 	- and gnutls test. Posted RC4. 
 
 Wed Mar 12 17:16:17 EDT 2008 JK Lowden <jklowden@freetds.org>
@@ -128,4 +128,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.29 2008-03-23 17:29:40 jklowden Exp $
+$Id: ChangeLog,v 1.2454.2.30 2008-03-23 17:41:36 jklowden Exp $
