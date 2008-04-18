@@ -439,7 +439,7 @@ auth   authentication data
 </table>
 <hr>
 <p>* Under TDS9+ these types allow size to be -1. These types represents varchar(max), varbinary(max) and nvarchar(max).
-Data representation for these types change in this way:
+Data representation for these types change in this way: </p>
 <ul>
  <li>size is 64 bit not 16 bit</li>
  <li>if size is -1 meaning NULL</li>
@@ -447,7 +447,6 @@ Data representation for these types change in this way:
  <li>data is splitted in chunks where ever chunk start with a 32 bit size</li>
  <li>a chunk with size &lt;= 0 is the terminal chunk</li>
 </ul>
-</p>
 <p>
 <a name="collate"></a>
 <h2 class="section">Collate type - TDS8</h2>
@@ -1516,6 +1515,8 @@ The following people have contributed to this document:
 <p>
 (short list)
 
+<h2>Document Status </h2>
+<P>$Id: tds.html,v 1.37 2008-04-18 19:43:52 jklowden Exp $</p>
 <p>
     <a href="http://validator.w3.org/check?uri=referer"><img
         src="http://www.w3.org/Icons/valid-html401"
