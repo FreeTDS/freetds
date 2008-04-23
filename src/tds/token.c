@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.344 2008-01-13 20:01:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.345 2008-04-23 21:36:01 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1223,6 +1223,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 		return TDS_FAIL;
 
 	token = tds_get_data(tds, curparam);
+	tdsdump_col(curparam);
 
 	/*
 	 * Real output parameters will either be unnamed or will have a valid
@@ -1573,6 +1574,8 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
+	tdsdump_log(TDS_DBG_INFO1, "tds_get_data_info(%p, %p, %d) %s", tds, curcol, is_param, is_param? "[for parameter]" : "");
+
 	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
 	curcol->column_name[curcol->column_namelen] = '\0';
 
@@ -1585,11 +1588,52 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 		curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
 		curcol->column_nullable = (curcol->column_flags & 0x20) > 1;
 		curcol->column_identity = (curcol->column_flags & 0x40) > 1;
-	}
-	/* TODO what's these bytes ?? */
-	if (IS_TDS90(tds))
-		tds_get_n(tds, NULL, 2);
+#if 0
+		/****************************************
+		 * NumParts=BYTE; (introduced in TDS 7.2) 
+		 * PartName=US_VARCHAR;(introduced in TDS 7.2) 
+		 * TableName=NumParts, {PartName}-; 
+		 * ColName= HYPERLINK \l "B_VARCHAR_Def" B_VARCHAR; 
+		 * ColumnData=UserType, Flags, [TableName], // <Only specified if text, //ntext or image columns are included //in the rowset being described> ColName; 
+		 * NoMetaData='0xFF', '0xFF';
+		 */
+		enum column_flag_bits_according_to_microsoft {
+			  case_sensitive	= 0x0001
+			, nullable		= 0x0002
+			, updateable		= 0x0004
+			, might_be_updateable	= 0x0008
+			, identity		= 0x0010
+			, computed		= 0x0020
+			, us_reserved_odbc	= 0x0040 | 0x0080
+			, is_fixed_len_clr_type = 0x0100
+			, is_hidden_browse_pk	= 0x0200
+			, is_browse_pk		= 0x0400
+			, might_be_nullable	= 0x0800 
+		};
+		/* TODO: implement members in TDSCOLUMN */
+		if (IS_TDS90(tds)) {
+			curcol->is_computed = 		(curcol->column_flags & (1 << 4)) > 1;
+			curcol->us_reserved_odbc1 = 	(curcol->column_flags & (1 << 5)) > 1;
+			curcol->us_reserved_odbc2 = 	(curcol->column_flags & (1 << 6)) > 1;
+			curcol->is_fixed_len_clr_type = (curcol->column_flags & (1 << 7)) > 1;
+		}
+#endif 
+	} 
 
+	if (IS_TDS90(tds)) {
+		tds_get_n(tds, NULL, 2);
+#if 0
+		/* TODO: implement members in TDSCOLUMN, values untested */
+		curcol->us_reserved1 = (curcol->column_flags & 0x01);
+		curcol->us_reserved2 = (curcol->column_flags & 0x02);
+		curcol->us_reserved3 = (curcol->column_flags & 0x04);
+		curcol->us_reserved4 = (curcol->column_flags & 0x08);
+		curcol->is_hidden = (curcol->column_flags & 0x10);
+		curcol->is_key = (curcol->column_flags & 0x20);
+		curcol->is_nullable_unknown = (curcol->column_flags & 0x40);
+#endif
+	}
+	
 	curcol->column_usertype = tds_get_int(tds);
 	tds_set_column_type(tds, curcol, tds_get_byte(tds));
 

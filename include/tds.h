@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.285 2008-01-18 13:37:12 freddy77 Exp $ */
+/* $Id: tds.h,v 1.286 2008-04-23 21:36:01 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1535,18 +1535,22 @@ void tds_set_parent(TDSSOCKET * tds, void *the_parent);
 void *tds_get_parent(TDSSOCKET * tds);
 int tds_swap_bytes(unsigned char *buf, int bytes);
 int tds_version(TDSSOCKET * tds_socket, char *pversion_string);
+unsigned int tds_gettime_ms(void);
+
+/* log.c */
 void tdsdump_off(void);
 void tdsdump_on(void);
 int tdsdump_open(const char *filename);
 void tdsdump_close(void);
 void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, int length);
-void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...) 
+void tdsdump_col(const TDSCOLUMN *col);
+void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
+
 #if defined(__GNUC__) && __GNUC__ >= 2
 	__attribute__ ((__format__ (__printf__, 3, 4)))
 #endif
 ;
 extern int tds_debug_flags;
-unsigned int tds_gettime_ms(void);
 
 /* net.c */
 int tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);

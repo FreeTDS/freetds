@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.4 2007-11-12 22:17:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.5 2008-04-23 21:36:01 jklowden Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -111,7 +111,7 @@ tdsdump_on(void)
 
 
 /**
- * This creates and truncates a human readable dump file for the TDS
+ * Create and truncate a human readable dump file for the TDS
  * traffic.  The name of the file is specified by the filename
  * parameter.  If that is given as NULL or an empty string,
  * any existing log file will be closed.
@@ -362,7 +362,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 
 
 /**
- * This function write a message to the debug log.  
+ * Write a message to the debug log.  
  * \param file name of the log file
  * \param level_line kind of detail to be included
  * \param fmt       printf-like format string
@@ -415,3 +415,79 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 	TDS_MUTEX_UNLOCK(&g_dump_mutex);
 }				/* tdsdump_log()  */
 
+/**
+ * Write a column value to the debug log.  
+ * \param file name of the log file
+ * \param col column to dump
+ */
+void
+tdsdump_col(const TDSCOLUMN *col)
+{
+	const char* typename;
+	char* data;
+	TDS_SMALLINT type;
+	
+	assert(col);
+	assert(col->column_data);
+	
+	typename = tds_prtype(col->column_type);
+	type = col->column_type;
+	
+	switch(type) {
+	case SYBINTN:
+		switch(col->column_cur_size) {
+		case sizeof(TDS_INT):
+			type = SYBINT4;
+			break;
+		case sizeof(TDS_SMALLINT):
+			type = SYBINT2;
+			break;
+		case sizeof(TDS_TINYINT):
+			type = SYBINT1;
+			break;
+		}
+		break;
+	case SYBFLTN:
+		switch(col->column_cur_size) {
+		case sizeof(TDS_REAL):
+			type = SYBREAL;
+			break;
+		case sizeof(TDS_FLOAT):
+			type = SYBFLT8;
+			break;
+		}
+		break;
+	}
+	
+	switch(type) {
+	case SYBCHAR: 
+	case SYBVARCHAR: 
+		data = calloc(1, 1 + col->column_cur_size);
+		if( !data ) {
+			tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", typename);
+			return;
+		}
+		memcpy(data, col->column_data, col->column_cur_size);
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value \"%s\"\n", typename, data); 
+		free(data);
+		break;
+	case SYBINT1: 
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (int)*(TDS_TINYINT*)col->column_data); 
+		break;
+	case SYBINT2: 
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (int)*(TDS_SMALLINT*)col->column_data); 
+		break;
+	case SYBINT4: 
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (int)*(TDS_INT*)col->column_data); 
+		break;
+	case SYBREAL: 
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", typename, (double)*(TDS_REAL*)col->column_data); 
+		break;
+	case SYBFLT8: 
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (double)*(TDS_FLOAT*)col->column_data); 
+		break;
+	default:
+		tdsdump_log(TDS_DBG_FUNC, "cannot log data for type %s\n", typename);
+		break;
+	}
+}

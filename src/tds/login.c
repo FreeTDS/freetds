@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.172 2007-12-31 10:06:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.173 2008-04-23 21:36:01 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -533,6 +533,9 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int len;
 	char blockstr[16];
 
+	/* override lservname field for ASA servers */	
+	const char *lservname = getenv("ASA_DATABASE")? getenv("ASA_DATABASE") : tds_dstr_cstr(&connection->server_name);
+
 	if (strchr(tds_dstr_cstr(&connection->user_name), '\\') != NULL) {
 		tdsdump_log(TDS_DBG_ERROR, "NT login not support using TDS 4.x or 5.0\n");
 		return TDS_FAIL;
@@ -579,7 +582,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	}
 	tds_put_n(tds, magic3, 3);
 	tds_put_login_string(tds, tds_dstr_cstr(&connection->app_name), TDS_MAX_LOGIN_STR_SZ);
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->server_name), TDS_MAX_LOGIN_STR_SZ);
+	tds_put_login_string(tds, lservname, TDS_MAX_LOGIN_STR_SZ);
 	if (IS_TDS42(tds)) {
 		tds_put_login_string(tds, tds_dstr_cstr(&connection->password), 255);
 	} else {
