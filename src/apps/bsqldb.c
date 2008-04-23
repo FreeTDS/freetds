@@ -45,7 +45,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.32 2007-12-06 19:00:24 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.33 2008-04-23 21:35:45 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -869,7 +869,7 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 	fprintf(stderr, "%s\n", msgtext);
 	
 	if (severity > 10) {
-		fprintf(stderr, "%s: error: severity %d > 10, exiting\n", options.appname, severity);
+		fprintf(stderr, "%s: error: severity %d > 10, exiting\n", options.appname, severity);
 		exit(severity);
 	}
 

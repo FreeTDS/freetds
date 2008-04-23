@@ -1,3 +1,10 @@
+Wed Apr 23 17:25:58 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* src/apps/bsqldb.c removed spurious 0xA0 from output
+	* src/odbc/odbc.c add error diagnostic to SQLGetData
+	* include/tds.h src/tds/log.c src/tds/login.c
+	* src/tds/token.c
+	- add tdsdump_col()
+
 Sun Mar 23 16:55:08 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml clarified localization 
 	
@@ -235,4 +242,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2507 2008-03-23 20:56:37 jklowden Exp $
+$Id: ChangeLog,v 1.2508 2008-04-23 21:35:45 jklowden Exp $
