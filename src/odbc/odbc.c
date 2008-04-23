@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.478 2008-03-13 13:23:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.479 2008-04-23 21:35:54 jklowden Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4637,7 +4637,10 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	}
 
 	/* read data from TDS only if current statement */
-	if ((stmt->cursor == NULL && stmt->dbc->current_statement != stmt) || stmt->row_status == PRE_NORMAL_ROW || stmt->row_status == NOT_IN_ROW) {
+	if ((stmt->cursor == NULL && stmt->dbc->current_statement != stmt) 
+		|| stmt->row_status == PRE_NORMAL_ROW 
+		|| stmt->row_status == NOT_IN_ROW) 
+	{
 		odbc_errs_add(&stmt->errs, "24000", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
@@ -4649,16 +4652,16 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 	tds = stmt->dbc->tds_socket;
 	context = stmt->dbc->env->tds_ctx;
-	resinfo = tds->current_results;
-	if (!resinfo) {
+
+	if (!tds->current_results) {
 		odbc_errs_add(&stmt->errs, "HY010", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	if (icol <= 0 || icol > resinfo->num_cols) {
+	if (icol <= 0 || icol > tds->current_results->num_cols) {
 		odbc_errs_add(&stmt->errs, "07009", "Column out of range");
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	colinfo = resinfo->columns[icol - 1];
+	colinfo = tds->current_results->columns[icol - 1];
 
 	if (colinfo->column_cur_size < 0) {
 		*pcbValue = SQL_NULL_DATA;
@@ -4700,22 +4703,23 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		}
 
 		if (is_variable_type(colinfo->column_type) && (fCType == SQL_C_CHAR || fCType == SQL_C_BINARY)) {
-			/* calc how many bytes was readed */
-			int readed = cbValueMax;
+			/* calculate how many bytes were read */
+			int remaining = cbValueMax;
 
 			/* FIXME test on destination char ??? */
-			if (stmt->dbc->env->attr.output_nts != SQL_FALSE && fCType == SQL_C_CHAR && readed > 0)
-				--readed;
-			if (readed > *pcbValue)
-				readed = *pcbValue;
-			colinfo->column_text_sqlgetdatapos += readed;
+			if (stmt->dbc->env->attr.output_nts != SQL_FALSE && fCType == SQL_C_CHAR && remaining > 0)
+				--remaining;
+			if (remaining > *pcbValue)
+				remaining = *pcbValue;
+			colinfo->column_text_sqlgetdatapos += remaining;
 			/* avoid infinite SQL_SUCCESS on empty strings */
 			if (colinfo->column_text_sqlgetdatapos == 0 && cbValueMax > 0)
 				++colinfo->column_text_sqlgetdatapos;
-			/* not all readed ?? */
-			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
-				/* TODO add diagnostic */
+			
+			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size) {	/* not all read ?? */
+				odbc_errs_add(&stmt->errs, "1004", "String data, right truncated");
 				ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
+			}
 		} else {
 			colinfo->column_text_sqlgetdatapos = colinfo->column_size;
 		}
