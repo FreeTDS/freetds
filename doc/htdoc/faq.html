@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.18 2006-12-10 21:07:47 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.19 2008-04-24 15:59:29 jklowden Exp $ -->
 
 <head>
   <meta name="generator" content=
@@ -40,10 +40,6 @@
   FreeTDS is updated between releases to cover problems since the
   last release, and to answer perennial questions (there are
   some).</p>
-
-  <div align="right">
-    <i>$Id: faq.html,v 1.18 2006-12-10 21:07:47 jklowden Exp $</i>
-  </div>
 
   <ol>
     <li>General Questions
@@ -126,18 +122,12 @@
       </ul>
     </li>
 
-    <li>Problems Running
+    <li>Problems Running <ul>	
+	<li><a href="#ms.output.parameters">
+        I'm not getting my output parameters returned</a>, but I seem
+        to be doing everything right!</li>
 
-      <ul>
-        <li><a href="#syb.result.type">With <tt>DBD::Sybase</tt>,
-        why do I sometimes get an unexpected 1-column result
-        set?</a></li>
-
-         <li><a href="#ms.output.parameters">
-         I'm not getting my output parameters returned</a>, but I seem
-         to be doing everything right!</li>
-
-       <li><a href="#unknownmarker">What does this <tt>unknown
+	<li><a href="#unknownmarker">What does this <tt>unknown
         marker</tt> message mean?</a></li>
 
         <li><a href="#connectionrefused">What if I get a
@@ -171,10 +161,6 @@
   <p>FreeTDS comes with a low level library (the TDS layer) along
   with a number of APIs (Application Programming Interfaces). The
   APIs are DB-Lib, CT-Lib, and ODBC.</p>
-
-  <p>A JDBC driver has also been contributed under a BSDish license
-  and is available from the download page. It does not require the
-  FreeTDS C libraries.</p>
 
   <h3>Where do I get FreeTDS?</h3>
   	<a name="Where.do.I.get.FreeTDS" id="Where.do.I.get.FreeTDS"></a>
@@ -414,12 +400,18 @@
   <h3>Is there any documentation on the TDS protocol?</h3>
   	<a name="protocol" id="protocol"></a>
 
-  <p>Yes, there is some <a href="tds.html">preliminary
+  <p>There is <a href="tds.html">preliminary
   documentation</a> available. The most up to date version is in
   the User Guide.</p>
 
   <p>Sybase publishes its <a href="http://www.sybase.com/content/1040983/Sybase-tds38-102306.pdf" >TDS 5.0 Functional Specification</a>.</p>
-  <hr />
+  
+  <p>Microsoft published its specification, too.  
+  It can currently be found on <a href="http://msdn2.microsoft.com/en-us/library/cc448436.aspx"
+  	>MSDN</a> or search the web for 
+	&ldquo;ms-tds tabular data stream site:microsoft.com&rdquo;.</p>
+  
+  <hr/>
   <!-- Implementation -->
 
   <h2>Implementation</h2>
@@ -631,13 +623,6 @@
 
   <h2>Problems Running</h2>
 
-  <h3>With <tt>DBD::Sybase</tt>, why do I sometimes get an
-  unexpected 1-column result set?</h3>
-  	<a name="syb.result.type" id="syb.result.type"></a>
-
-  <p>Use a more recent release of FreeTDS. This problem was
-  corrected with version 0.63.</p>
-
   <h3>Output Parameters</h3>
 	<a name="ms.output.parameters" id="ms.output.parameters"></a>
 	
@@ -801,19 +786,22 @@
   <p>The <tt>text</tt> data type is different from <tt>char</tt>
   and <tt>varchar</tt> types. The maximum data length of a
   <tt>text</tt> column is governed by the <tt>textsize</tt>
-  variable on the server. Microsoft <i>claims</i> in their
+  connection option. Microsoft <i>claims</i> in their
   documentation to use a default <tt>textsize</tt> of 4000
   characters, but in fact their implementation is inconsistent.
   Sometimes <tt>text</tt> columns are returned with a size of 4
   GB!</p>
 
-  <p>The best solution is to make sure you set <tt>textsize</tt> to
+  <p>The best solution is to make sure you set the <tt>textsize</tt> option to
   a reasonable value when establishing a connection. For
-  example:</p><!-- example set textsize 1000 (see UG) -->
+  example:</p>
   <pre class="screen">
 <tt class="userinput">
-<b>set <tt class="envar">textsize</tt> 10000</b></tt>
+1&gt; <b>set <tt class="envar">textsize</tt> 10000</b></tt>
+2&gt; <b>go</b>
 </pre>
+
+  See also the &ldquo;<tt>text size</tt>&rdquo; option in <tt>freetds.conf</tt>.
 
   <h3>My dates aren't formatted right!</h3>
   	<a name="dateformat" id="dateformat"></a>
@@ -853,7 +841,10 @@
   Guide for details.</p><!-- footer -->
   <hr size="1" />
   <font size="-1">Updates and comments <a href=
-  "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a></font>
+  "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a> 
+  <br/>
+    <i>$Id: faq.html,v 1.19 2008-04-24 15:59:29 jklowden Exp $</i>
+	</font>
 <hr/>
   <p>
     <a href="http://validator.w3.org/check?uri=referer"><img
