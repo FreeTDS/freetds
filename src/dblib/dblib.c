@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.322 2008-02-15 16:27:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.323 2008-04-30 14:09:53 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1593,17 +1593,13 @@ _dbresults(DBPROCESS * dbproc)
 {
 	RETCODE retcode = FAIL;
 	TDSSOCKET *tds;
-	int result_type;
-	int done_flags;
+	int result_type, done_flags;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbresults(%p)\n", dbproc);
 	CHECK_DBPROC();
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 
 	tds = dbproc->tds_socket;
-
-	if (IS_TDSDEAD(tds))
-		return FAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbresults: dbresults_state is %d (%s)\n", 
 					dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state));
@@ -1681,7 +1677,7 @@ _dbresults(DBPROCESS * dbproc)
 					assert(0);
 					break;
 				}
-				
+				break;
 
 			case TDS_DONEINPROC_RESULT:
 				/* 
