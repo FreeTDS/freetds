@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.9 2008-03-11 08:25:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.10 2008-04-30 14:59:32 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4651,9 +4651,10 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			if (colinfo->column_text_sqlgetdatapos == 0 && cbValueMax > 0)
 				++colinfo->column_text_sqlgetdatapos;
 			/* not all readed ?? */
-			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size)
-				/* TODO add diagnostic */
+			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size) {
+				odbc_errs_add(&stmt->errs, "01004", "String data, right truncated");
 				ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
+			}
 		} else {
 			colinfo->column_text_sqlgetdatapos = colinfo->column_size;
 		}
