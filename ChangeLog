@@ -1,3 +1,6 @@
+Fri May 02 12:03:47 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/log.c: fixed printf format problem
+
 Wed Apr 30 10:07:37 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c added missing break to nested switch
 	- in _dbresults
@@ -252,4 +255,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2511 2008-04-30 14:09:52 jklowden Exp $
+$Id: ChangeLog,v 1.2512 2008-05-02 10:04:15 freddy77 Exp $

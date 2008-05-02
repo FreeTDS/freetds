@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.5 2008-04-23 21:36:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.6 2008-05-02 10:04:15 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -484,7 +484,7 @@ tdsdump_col(const TDSCOLUMN *col)
 		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", typename, (double)*(TDS_REAL*)col->column_data); 
 		break;
 	case SYBFLT8: 
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (double)*(TDS_FLOAT*)col->column_data); 
+		tdsdump_log(TDS_DBG_FUNC, "type %s has value %f\n", typename, (double)*(TDS_FLOAT*)col->column_data); 
 		break;
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "cannot log data for type %s\n", typename);
