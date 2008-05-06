@@ -1,3 +1,7 @@
+Mon May  5 23:19:57 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* include/cstypes.h src/ctlib/ct.c
+	- applied CS_BIGINT patch from Stephen Degler
+	
 Wed Apr 30 09:52:39 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:
 	- return proper diagnostic for truncation on SQLGetData
@@ -138,4 +142,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.33 2008-04-30 14:59:32 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.34 2008-05-06 03:23:44 jklowden Exp $

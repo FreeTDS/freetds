@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.177 2007-12-21 15:23:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.177.2.1 2008-05-06 03:23:45 jklowden Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1898,7 +1898,7 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		return CS_CHAR_TYPE;
 		break;
 	case SYBINT8:
-		return CS_LONG_TYPE;
+		return CS_BIGINT_TYPE;
 		break;
 	case SYBINT4:
 		return CS_INT_TYPE;
@@ -1912,7 +1912,7 @@ _ct_get_client_type(int datatype, int usertype, int size)
 	case SYBINTN:
 		switch (size) {
 		case 8:
-			return CS_LONG_TYPE;
+			return CS_BIGINT_TYPE;
 		case 4:
 			return CS_INT_TYPE;
 		case 2:
@@ -2015,6 +2015,7 @@ _ct_get_server_type(int datatype)
 		return SYBCHAR;
 		break;
 	case CS_LONG_TYPE:
+	case CS_BIGINT_TYPE:
 		return SYBINT8;
 		break;
 	case CS_INT_TYPE:
