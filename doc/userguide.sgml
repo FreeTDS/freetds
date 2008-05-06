@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-03-23 20:56:38 $</date>
-		<releaseinfo>$Revision: 1.112 $</releaseinfo>
+		<date>$Date: 2008-05-06 17:42:44 $</date>
+		<releaseinfo>$Revision: 1.113 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -56,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.112 $</>
-<member>$Date: 2008-03-23 20:56:38 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.112 2008-03-23 20:56:38 jklowden Exp $.</>
+<member>$Revision: 1.113 $</>
+<member>$Date: 2008-05-06 17:42:44 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.113 2008-05-06 17:42:44 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -568,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-03-23 20:56:38 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-05-06 17:42:44 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -3092,17 +3092,31 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 
 		<sect1 id="dblib.api.summary">
 			<title>db-lib API Implementation Summary</title>
-			<para>Microsoft's version of db-lib is <ulink url="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dblibc/dbc_pdc04a_6qsl.asp">online</ulink>.   Sybase's is both <ulink url="http://sybooks.sybase.com/onlinebooks/group-cn/cng1251e/dblib/@Generic__BookView">online</ulink>  and can be <ulink url="http://download.sybase.com/pdfdocs/cng1250j/dblib.pdf">downloaded</ulink>  as a PDF file.  <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/dblib.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.  </para></footnote></para>
+			<para>Microsoft's version of db-lib is 
+			<ulink url="http://msdn.microsoft.com/en-us/library/aa936988(SQL.80).aspx">online</ulink>.  
+			Sybase's is both 
+			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/dblib/@Generic__BookTextView;pt=4602;nh=1">online</ulink>  
+			and can be 
+			<ulink url="http://download.sybase.com/pdfdocs/cng1250j/dblib.pdf">downloaded</ulink>  
+			as a PDF file.  
+			
+			<footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/dblib.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.  </para></footnote></para>
 			&dblibapisgml;
 		</sect1>
+
 		<sect1 id="ctlib.api.summary">
 			<title>ct-lib API Implementation Summary</title>
-			<para>Sybase ct-lib documentation can be found <ulink url="http://sybooks.sybase.com/onlinebooks/group-cn/cng1251e/ctref/@Generic__BookView">online</ulink> and in <ulink url="http://download.sybase.com/pdfdocs/cng1000e/ref.pdf">PDF</ulink> form. <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/ctlib.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.  </para></footnote> </para>
+			<para>Sybase ct-lib documentation can be found 
+			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/ctref/@Generic__BookView">online</ulink> 
+			and in <ulink url="http://download.sybase.com/pdfdocs/cng1000e/ref.pdf">PDF</ulink> form. <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/ctlib.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.  </para></footnote> </para>
 			&ctlibapisgml;
 		</sect1>
 	
 		<sect1 id="odbc.api.summary">
 			<title>ODBC API Implementation Summary</title>
+			<para>Microsoft's ODBC documentation is 
+			<ulink url="http://msdn.microsoft.com/en-us/library/ms714177.aspx">online</ulink>. </para>
+			
 			<para>The functions are linked to the reference page on Microsoft's website.  <footnote><para>Links such as these are quite perishable.  Should you find them broken, please check the <ulink url="http://www.freetds.org/userguide/odbc.api.summary.htm">FreeTDS User Guide</ulink> posted on our website.  If it's out of date, please let us know, so we can correct it.  Thanks.  </para></footnote></para>
 			&odbcapisgml;
 		</sect1>

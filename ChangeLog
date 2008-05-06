@@ -1,3 +1,6 @@
+Tue May  6 13:41:32 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml updated links to external docs
+
 Mon May  5 20:11:58 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/cstypes.h src/ctlib/ct.c
 	- applied CS_BIGINT patch from Stephen Degler
@@ -259,4 +262,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2513 2008-05-06 00:14:01 jklowden Exp $
+$Id: ChangeLog,v 1.2514 2008-05-06 17:42:43 jklowden Exp $
