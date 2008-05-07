@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS	=	1.5.3
 include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctpublic.h \
 			sqldb.h sqlfront.h \
 			sybdb.h sybfront.h \
-			syberror.h
+			syberror.h odbcss.h
 
 nodist_include_HEADERS	=	tds_sysdep_public.h
 

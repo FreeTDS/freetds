@@ -36,18 +36,15 @@
 #include <assert.h>
 
 #include "tdsodbc.h"
+#include "odbcss.h"
 #include "tdsstring.h"
 #include "replacements.h"
-
-#if HAVE_ODBCSS_H
-#include <odbcss.h>
-#endif
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.51 2008-03-13 13:23:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.52 2008-05-07 08:42:30 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -733,23 +730,19 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		*(SQLINTEGER *) buffer = SQL_COLUMN_NUMBER_UNKNOWN;
 		break;
 
-#ifdef SQL_DIAG_SS_MSGSTATE
 	case SQL_DIAG_SS_MSGSTATE:
 		if (errs->errs[numRecord].msgstate == 0)
 			return SQL_ERROR;
 		else
 			*(SQLINTEGER *) buffer = errs->errs[numRecord].msgstate;
 		break;
-#endif
 
-#ifdef SQL_DIAG_SS_LINE
 	case SQL_DIAG_SS_LINE:
 		if (errs->errs[numRecord].linenum == 0)
 			return SQL_ERROR;
 		else
 			*(SQLUSMALLINT *) buffer = errs->errs[numRecord].linenum;
 		break;
-#endif
 
 	case SQL_DIAG_CONNECTION_NAME:
 		if (dbc && dbc->tds_socket && dbc->tds_socket->spid > 0)

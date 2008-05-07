@@ -1,10 +1,14 @@
+Wed May  7 10:41:43 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/Makefile.am include/odbcss.h(added) src/odbc/error.c:
+	- added new odbcss.h to support some constants
+
 Tue May  6 13:41:32 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml updated links to external docs
 
 Mon May  5 20:11:58 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/cstypes.h src/ctlib/ct.c
 	- applied CS_BIGINT patch from Stephen Degler
-	
+
 Fri May 02 12:03:47 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/log.c: fixed printf format problem
 
@@ -262,4 +266,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2514 2008-05-06 17:42:43 jklowden Exp $
+$Id: ChangeLog,v 1.2515 2008-05-07 08:42:30 freddy77 Exp $
