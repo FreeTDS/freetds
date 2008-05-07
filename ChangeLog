@@ -1,3 +1,6 @@
+Wed May  7 18:56:39 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* configure.ac	RELEASE 0.82
+
 Mon May  5 23:19:57 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/cstypes.h src/ctlib/ct.c
 	- applied CS_BIGINT patch from Stephen Degler
@@ -142,4 +145,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.34 2008-05-06 03:23:44 jklowden Exp $
+$Id: ChangeLog,v 1.2454.2.35 2008-05-07 22:57:52 jklowden Exp $
