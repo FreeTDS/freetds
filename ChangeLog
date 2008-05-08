@@ -1,3 +1,6 @@
+Thu May  8 14:29:50 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* doc/Makefile.am s/nobase_data/noinst/ per jlam on ML
+
 Wed May  7 10:41:43 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/Makefile.am include/odbcss.h(added) src/odbc/error.c:
 	- added new odbcss.h to support some constants
@@ -266,4 +269,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2515 2008-05-07 08:42:30 freddy77 Exp $
+$Id: ChangeLog,v 1.2516 2008-05-08 18:37:21 jklowden Exp $

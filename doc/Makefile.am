@@ -2,7 +2,7 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
-# $Id: Makefile.am,v 1.63 2008-03-23 17:29:57 jklowden Exp $
+# $Id: Makefile.am,v 1.64 2008-05-08 18:37:21 jklowden Exp $
 
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
@@ -40,7 +40,7 @@ EXTRA_DIST =	api_status.txt bcp.txt cap.txt getting_started.txt \
 man_MANS	= freebcp.1 tsql.1 osql.1 bsqldb.1 bsqlodbc.1 defncopy.1 datacopy.1 fisql.1 \
 		  freetds.conf.5
  
-nobase_data_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
+noinst_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 
 $(DOCDIR)/userguide: $(DOCDIR)/userguide/index.htm
 
@@ -110,7 +110,7 @@ datacopy.1: datacopy.txt
 
 # If we built the documentation ourselves, install that, 
 # else if we have access to distributed documentation, install that.  
-install-data-local: installdirs $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
+install-data-local: installdirs $(noinst_DATA)
 	$(mkinstalldirs) $(DOCDIR) 2>&1
 	if test -r $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
 	find $$d/$(DOCDIR)/userguide \( -type f -o -type l \) -exec \
