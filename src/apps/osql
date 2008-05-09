@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.6 2007-02-06 02:51:18 jklowden Exp $
+# $Id: osql,v 1.7 2008-05-09 18:49:04 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -301,7 +301,7 @@ then
 else # odbc.ini contains a "server", a DNS host
 	HOST=$(echo ${SERVER_LINE} | awk '{print $3}')
 	echo "\"${ATTRIBUTE}\" found, not using freetds.conf"
-	echo "FreeTDS servername is \"${HOST}\""
+	echo "${ATTRIBUTE} is \"${HOST}\""
 	if [ -z "${HOST}" ]
 	then
 		echo "$(basename $0): no value found for \"${ATTRIBUTE}\" entry in $(basename ${ODBC_INI})"
@@ -309,12 +309,23 @@ else # odbc.ini contains a "server", a DNS host
 	fi
 fi
 
+# If the "host" is an ip address, look up the name, for neatness, e.g. 
+## $ host 10.81.36.39
+## 39.36.81.10.IN-ADDR.ARPA domain name pointer ntc5003.eg.com
+if [ "${HOST}" = "$(echo ${HOST} | sed 's/[^.0-9]*//')" ]
+then 
+	ADDRESS=${HOST}
+	echo 'looking up hostname for ip address' ${ADDRESS}
+	HOST=$(host ${HOST} | awk '/domain/ {print $5}' | sed 's/\.$//')
+	if [ -z "${HOST}" ]
+	then
+		echo "$(basename $0): warning: no DNS hostname found for \"${ADDRESS}\""
+	fi
+fi
+
 # Now we have a DNS hostname for the server in HOST
 
-CMD="host ${HOST}"
-
-OUTPUT=$(${CMD})
-ADDRESS=$(echo ${OUTPUT} | sed 's/..*has address //')
+ADDRESS=$(host ${HOST} | awk '/has address/ {print $4}' | head -1)
 if [ -z "${ADDRESS}" ]
 then
 	echo "$(basename $0): no IP address found for \"${HOST}\""
@@ -327,11 +338,12 @@ echo ${HOST} has address ${ADDRESS}
 
 printf "\n";
 printf "%30s:\t%-30s\n" DSN ${DSN}
+printf "%30s:\t%-30s\n" Driver ${DRIVER}
 printf "%30s:\t%-30s\n" "Server's hostname" ${HOST}
 printf "%30s:\t%-30s\n" Address ${ADDRESS}
-printf "%30s:\t%-30s\n" Driver ${DRIVER}
 printf "\n";
 
-echo Attempting connection as ${USERNAME}... 
+echo Attempting connection as ${USERNAME} ... 
+set -x
 exec isql ${DSN} ${USERNAME} ${PASSWORD} -v
 
