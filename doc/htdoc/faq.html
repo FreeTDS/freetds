@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.19 2008-04-24 15:59:29 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.20 2008-05-13 14:04:40 jklowden Exp $ -->
 
 <head>
   <meta name="generator" content=
@@ -102,6 +102,8 @@
         <li><a href="#Which.API">How should I choose among
         <tt>db-lib</tt>, <tt>ct-lib</tt>, and
         <tt>ODBC</tt>?</a></li>
+
+        <li><a href="where.is.libtds.so">Where is <kbd>libtds.so</kbd>?</a></li>
 
         <li><a href="#Which.Perl.library.should.I.use">Which Perl
         library should I use?</a></li>
@@ -482,6 +484,25 @@
   which client API to write to, you might want to peruse our
   <a href="which_api.html">brief discussion</a>. </p>
 
+  <h3 id="Where.is.libtds.so">
+  	Where is <kbd>libtds.so</kbd>?</h3>
+	
+  <p>As of version 0.82, the TDS utility library is not built 
+  as a shared object.  There is a static library <kbd>libtds.a</kbd>, 
+  although it's not installed by <b><kbd>make install</kbd></b>.  
+  <kbd>libtds</kbd> is statically linked to the "official" client 
+  libraries, <kbd>ct-lib</kbd>, <kbd>db-lib</kbd>, and <kbd>ODBC</kbd>.  
+  
+  <p>Distributing <kbd>libtds</kbd> as a shared object did more harm
+  than good.  Proper versioning and support was a burden on the 
+  developers, and it was just one more thing for a client application
+  to link in.  The only benefit was to programs that use more than
+  one client library. 
+  
+  <p>Of course, it's still free software, and you're free to build a 
+  shared object of it if you want to.  It's just not done "out of the box"
+  by the distributed makefiles.  
+
   <h3>Which Perl library should I use?</h3>
 	<a name="Which.Perl.library.should.I.use" 
 	     id="Which.Perl.library.should.I.use"></a>
@@ -843,7 +864,7 @@
   <font size="-1">Updates and comments <a href=
   "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a> 
   <br/>
-    <i>$Id: faq.html,v 1.19 2008-04-24 15:59:29 jklowden Exp $</i>
+    <i>$Id: faq.html,v 1.20 2008-05-13 14:04:40 jklowden Exp $</i>
 	</font>
 <hr/>
   <p>

@@ -1,9 +1,12 @@
+Tue May 13 10:02:37 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* doc/htdoc/faq.html added libtds.so question
+
 Sun May 11 19:40:29 EDT 2008	Nick Castellano <entropy@freetds.org>
 	* src/replacements/readpassphrase.c:
 	- cast to unsigned char when calling ctype macros
 
 Fri May  9 14:47:15 EDT 2008	JK Lowden <jklowden@freetds.org>
-	* src/apps/osql handle 'server = ipaddr' in odbc.ini
+	* src/apps/osql handles 'server = ipaddr' in odbc.ini
 
 Thu May  8 14:29:50 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* doc/Makefile.am s/nobase_data/noinst/ per jlam on ML
@@ -276,4 +279,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2518 2008-05-11 23:44:04 castellano Exp $
+$Id: ChangeLog,v 1.2519 2008-05-13 14:04:39 jklowden Exp $
