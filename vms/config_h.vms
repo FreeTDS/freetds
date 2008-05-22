@@ -1,4 +1,4 @@
-/* $Id: config_h.vms,v 1.7 2007-08-11 06:52:06 freddy77 Exp $ */
+/* $Id: config_h.vms,v 1.8 2008-05-22 03:53:18 jklowden Exp $ */
 
 /* include/config.h.in.  Generated from configure.in by autoheader.  */
 /* and edited by hand for VMS */
@@ -17,6 +17,9 @@
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #define HAVE_ARPA_INET_H 1
+
+/* Define to 1 if you have the `alarm' function. */
+#define HAVE_ALARM 1
 
 /* Define to 1 if you have the `asprintf' function. */
 #define HAVE_ASPRINTF @D_ASPRINTF@
@@ -339,7 +342,10 @@ char * readpassphrase(const char *, char *, size_t, int);
     typedef __size_t socklen_t;
 #endif
 
-/* We only support unixODBC, so we do have this */
+/* We only support unixODBC, so we do have these */
 #define HAVE_SQLGETPRIVATEPROFILESTRING 1
+#define HAVE_SQLLEN 1
+#define HAVE_SQLSETPOSIROW 1
+#define TDS_SQLCOLATTRIBUTE_SQLLEN 1
 
 #endif /* CONFIG_H_LOADED */

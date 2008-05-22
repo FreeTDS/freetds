@@ -1,3 +1,8 @@
+Wed May 21 23:51:21 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* src/odbc/unittests/common.c
+	* vms/config_h.vms vms/descrip_mms.template
+	- applied ML patch from Craig A. Berry
+
 Wed May 21 21:13:31 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* TODO doc/api_status.txt src/ctlib/ct.c
 	- Blindly applied suggestion from S. Magne on ML 
@@ -287,4 +292,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2521 2008-05-22 01:32:29 jklowden Exp $
+$Id: ChangeLog,v 1.2522 2008-05-22 03:53:16 jklowden Exp $

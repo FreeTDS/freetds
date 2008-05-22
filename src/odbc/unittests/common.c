@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.44 2008-03-12 13:35:49 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.45 2008-05-22 03:53:17 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -104,13 +104,21 @@ read_login_info(void)
 	/* find our driver */
 	if (!getcwd(path, sizeof(path)))
 		return 0;
+#ifdef __VMS
+	{
+	    /* A hard-coded driver path has to be in unix syntax to be recognized as such. */
+	    const char *unixspec = decc$translate_vms(path);
+	    if ( (int)unixspec != 0 && (int)unixspec != -1 ) strcpy(path, unixspec);
+	}
+#endif
 	len = strlen(path);
 	if (len < 10 || strcmp(path + len - 10, "/unittests") != 0)
 		return 0;
 	path[len - 9] = 0;
 	/* TODO this must be extended with all possible systems... */
 	if (!check_lib(path, ".libs/libtdsodbc.so") && !check_lib(path, ".libs/libtdsodbc.sl")
-	    && !check_lib(path, ".libs/libtdsodbc.dll") && !check_lib(path, ".libs/libtdsodbc.dylib"))
+	    && !check_lib(path, ".libs/libtdsodbc.dll") && !check_lib(path, ".libs/libtdsodbc.dylib")
+	    && !check_lib(path, "_libs/libtdsodbc.exe"))
 		return 0;
 	strcpy(DRIVER, path);
 
