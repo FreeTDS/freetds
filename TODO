@@ -8,7 +8,7 @@ anyone else can post a patch to SourceForge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.167 2008-01-10 22:57:39 jklowden Exp $
+To Do List	$Id: TODO,v 1.168 2008-05-22 01:32:30 jklowden Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
@@ -21,6 +21,9 @@ Must be fixed:
 . cancellation
   . ctlib seems to hang reading row while in IDLE state
     (tds_peek if not in pending state hang... update)
+    Applied but could not test fix from ML 21 May 2008: 
+    	"Problem with FreeTDS validating SQL commands 
+         (actually a ct_cancel() error)" 
 
 Broken:
 . Passing invalid character set names to server with tsql?

@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.178 2008-05-06 00:14:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.179 2008-05-22 01:32:32 jklowden Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2242,6 +2242,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 					tds_send_cancel(cmd_conn->tds_socket);
 					tds_process_cancel(cmd_conn->tds_socket);
 					_ct_initialise_cmd(cmd);
+					cmd->cancel_state = _CS_CANCEL_PENDING;
 					break;
 			}
 		}
@@ -2263,6 +2264,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 						tds_send_cancel(conn->tds_socket);
 						tds_process_cancel(conn->tds_socket);
 						_ct_initialise_cmd(conn_cmd);
+						conn_cmd->cancel_state = _CS_CANCEL_PENDING;
 					break;
 				}
 			}
