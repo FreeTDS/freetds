@@ -1,3 +1,10 @@
+Wed May  7 15:56:10 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	(monstly from Coverity reports)
+	* include/tdsbytes.h: remove warning
+	* src/apps/tsql.c src/dblib/bcp.c src/dblib/dblib.c:
+	- remove some leaks
+	* src/tds/mem.c: avoid deference of null pointer
+
 Wed May 21 23:51:21 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/odbc/unittests/common.c
 	* vms/config_h.vms vms/descrip_mms.template
@@ -292,4 +299,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2522 2008-05-22 03:53:16 jklowden Exp $
+$Id: ChangeLog,v 1.2523 2008-05-26 13:56:48 freddy77 Exp $

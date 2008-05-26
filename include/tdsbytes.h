@@ -20,7 +20,7 @@
 #ifndef _tdsbytes_h_
 #define _tdsbytes_h_
 
-/* $Id: tdsbytes.h,v 1.2 2005-08-10 12:06:03 freddy77 Exp $ */
+/* $Id: tdsbytes.h,v 1.3 2008-05-26 13:56:49 freddy77 Exp $ */
 
 #ifndef _tds_h_
 #error tds.h must be included before tdsbytes.h
@@ -61,9 +61,9 @@
 #define TDS_GET_A2BE(ptr) TDS_GET_UA2BE(ptr)
 
 #define TDS_PUT_UA2LE(ptr,val) do {\
- ((TDS_UCHAR*)(ptr))[1] = (val)>>8; ((TDS_UCHAR*)(ptr))[0] = (val); } while(0)
+ ((TDS_UCHAR*)(ptr))[1] = (TDS_UCHAR)((val)>>8); ((TDS_UCHAR*)(ptr))[0] = (TDS_UCHAR)(val); } while(0)
 #define TDS_PUT_UA2BE(ptr,val) do {\
- ((TDS_UCHAR*)(ptr))[0] = (val)>>8; ((TDS_UCHAR*)(ptr))[1] = (val); } while(0)
+ ((TDS_UCHAR*)(ptr))[0] = (TDS_UCHAR)((val)>>8); ((TDS_UCHAR*)(ptr))[1] = (TDS_UCHAR)(val); } while(0)
 #define TDS_PUT_A2LE(ptr,val) TDS_PUT_UA2LE(ptr,val)
 #define TDS_PUT_A2BE(ptr,val) TDS_PUT_UA2BE(ptr,val)
 
@@ -78,11 +78,11 @@
 #define TDS_GET_A4BE(ptr) TDS_GET_UA4BE(ptr)
 
 #define TDS_PUT_UA4LE(ptr,val) do {\
- ((TDS_UCHAR*)(ptr))[3] = (val)>>24; ((TDS_UCHAR*)(ptr))[2] = (val)>>16;\
- ((TDS_UCHAR*)(ptr))[1] = (val)>>8; ((TDS_UCHAR*)(ptr))[0] = (val); } while(0)
+ ((TDS_UCHAR*)(ptr))[3] = (TDS_UCHAR)((val)>>24); ((TDS_UCHAR*)(ptr))[2] = (TDS_UCHAR)((val)>>16);\
+ ((TDS_UCHAR*)(ptr))[1] = (TDS_UCHAR)((val)>>8); ((TDS_UCHAR*)(ptr))[0] = (TDS_UCHAR)(val); } while(0)
 #define TDS_PUT_UA4BE(ptr,val) do {\
- ((TDS_UCHAR*)(ptr))[0] = (val)>>24; ((TDS_UCHAR*)(ptr))[1] = (val)>>16;\
- ((TDS_UCHAR*)(ptr))[2] = (val)>>8; ((TDS_UCHAR*)(ptr))[3] = (val); } while(0)
+ ((TDS_UCHAR*)(ptr))[0] = (TDS_UCHAR)((val)>>24); ((TDS_UCHAR*)(ptr))[1] = (TDS_UCHAR)((val)>>16);\
+ ((TDS_UCHAR*)(ptr))[2] = (TDS_UCHAR)((val)>>8); ((TDS_UCHAR*)(ptr))[3] = (TDS_UCHAR)(val); } while(0)
 #define TDS_PUT_A4LE(ptr,val) TDS_PUT_UA4LE(ptr,val)
 #define TDS_PUT_A4BE(ptr,val) TDS_PUT_UA4BE(ptr,val)
 
