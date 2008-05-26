@@ -85,7 +85,9 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.112.2.1 2008-01-11 12:46:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.112.2.2 2008-05-26 12:49:56 freddy77 Exp $");
+
+#define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
 enum
 {
@@ -524,6 +526,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 
 	/* free up all the memory */
+	free(confile);
 	free(hostname);
 	free(username);
 	free(password);
@@ -572,6 +575,7 @@ slurp_input_file(char *fname, char **mybuf, int *bufsz, size_t *buflen, int *lin
 		tsql_add_history(s);
 		(*line)++;
 	}
+	fclose(fp);
 }
 
 extern const char STD_DATETIME_FMT[];
@@ -709,7 +713,7 @@ main(int argc, char **argv)
 		 *  The rest of the line may include options that apply to the batch, 
 		 *  and perhaps whitespace.  
 		 */
-		if (0 == strncasecmp(s, "go", 2) && (strlen(s) == 2 || isspace(s[2]))) {
+		if (0 == strncasecmp(s, "go", 2) && (strlen(s) == 2 || TDS_ISSPACE(s[2]))) {
 			char *go_line = strdup(s);
 			assert(go_line);
 			line = 0;

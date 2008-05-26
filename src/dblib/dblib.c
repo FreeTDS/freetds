@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.320 2008-01-01 23:09:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.320.2.1 2008-05-26 12:49:56 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3325,8 +3325,10 @@ dbprrow(DBPROCESS * dbproc)
 			computeid = status;
 
 			for (i = 0;; ++i) {
-				if (i >= tds->num_comp_info)
+				if (i >= tds->num_comp_info) {
+					free(col_printlens);
 					return FAIL;
+				}
 				resinfo = tds->comp_info[i];
 				if (resinfo->computeid == computeid)
 					break;

@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.171 2008-01-08 15:38:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.171.2.1 2008-05-26 12:49:56 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -799,11 +799,13 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	if (dbproc->bcpinfo->direction == DB_QUERYOUT ) {
 		if (tds_submit_query(tds, dbproc->bcpinfo->tablename) == TDS_FAIL) {
+			fclose(hostfile);
 			return FAIL;
 		}
 	} else {
 		/* TODO quote if needed */
 		if (tds_submit_queryf(tds, "select * from %s", dbproc->bcpinfo->tablename) == TDS_FAIL) {
+			fclose(hostfile);
 			return FAIL;
 		}
 	}
@@ -1061,6 +1063,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					break;
 				}
 				if( plen != 0 && written != 1 ) {
+					fclose(hostfile);
 					dbperror(dbproc, SYBEBCWE, errno);
 					return FAIL;
 				}
@@ -1073,6 +1076,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				if (buflen > 0) {
 					written = fwrite(hostcol->bcp_column_data->data, buflen, 1, hostfile);
 					if (written < 1) {
+						fclose(hostfile);
 						dbperror(dbproc, SYBEBCWE, errno);
 						return FAIL;
 					}
@@ -1082,6 +1086,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				if (hostcol->terminator && hostcol->term_len > 0) {
 					written = fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile);
 					if (written < 1) {
+						fclose(hostfile);
 						dbperror(dbproc, SYBEBCWE, errno);
 						return FAIL;
 					}
@@ -1094,6 +1099,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		dbperror(dbproc, SYBEBCUC, errno);
 		return (FAIL);
 	}
+	hostfile = NULL;
 
 	if (dbproc->hostfileinfo->firstrow > 0 && row_of_query < dbproc->hostfileinfo->firstrow) {
 		/* 
@@ -1896,8 +1902,10 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		return FAIL;
 	}
 
-	if (_bcp_start_copy_in(dbproc) == FAIL)
+	if (_bcp_start_copy_in(dbproc) == FAIL) {
+		fclose(hostfile);
 		return FAIL;
+	}
 
 	tds->out_flag = TDS_BULK;
 	tds_set_state(tds, TDS_QUERYING);
@@ -1922,6 +1930,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 
 			if (errfile == NULL && dbproc->hostfileinfo->errorfile) {
 				if (!(errfile = fopen(dbproc->hostfileinfo->errorfile, "w"))) {
+					fclose(hostfile);
 					dbperror(dbproc, SYBEBUOE, 0);
 					return FAIL;
 				}
@@ -2003,6 +2012,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 						if (tds_process_simple_query(tds) != TDS_SUCCEED) {
 							if (errfile)
 								fclose(errfile);
+							fclose(hostfile);
 							return FAIL;
 						}
 							

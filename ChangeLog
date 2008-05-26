@@ -1,3 +1,11 @@
+Mon May 26 14:47:43 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	(mostly from Coverity report)
+	* include/tds.h: fix possible buffer overflow
+	* include/tdsbytes.h: remove warning
+	* src/apps/tsql.c src/dblib/bcp.c src/dblib/dblib.c:
+	- remove some leaks
+	* src/tds/mem.c: avoid deference of null pointer
+
 Mon May 19 10:20:17 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* configure.ac	set version to  0.82.1
 	* include/cspublic.h 
@@ -9,7 +17,7 @@ Wed May  7 18:56:39 EDT 2008	JK Lowden <jklowden@freetds.org>
 Mon May  5 23:19:57 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/cstypes.h src/ctlib/ct.c
 	- applied CS_BIGINT patch from Stephen Degler
-	
+
 Wed Apr 30 09:52:39 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:
 	- return proper diagnostic for truncation on SQLGetData
@@ -150,4 +158,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.36 2008-05-19 14:23:45 jklowden Exp $
+$Id: ChangeLog,v 1.2454.2.37 2008-05-26 12:49:55 freddy77 Exp $
