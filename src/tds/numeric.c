@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.42 2006-12-26 14:56:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.43 2008-05-27 08:25:05 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -63,8 +63,8 @@ const int tds_numeric_bytes_per_prec[] = {
 	 * core if for some bug it's 0...
 	 */
 	1, 
-	2, 2, 3, 3, 4, 4, 4, 5, 5,
-	6, 6, 6, 7, 7, 8, 8, 9, 9, 9,
+	2,  2,  3,  3,  4,  4,  4,  5,  5,
+	6,  6,  6,  7,  7,  8,  8,  9,  9,  9,
 	10, 10, 11, 11, 11, 12, 12, 13, 13, 14,
 	14, 14, 15, 15, 16, 16, 16, 17, 17, 18,
 	18, 19, 19, 19, 20, 20, 21, 21, 21, 22,
@@ -72,6 +72,21 @@ const int tds_numeric_bytes_per_prec[] = {
 	26, 27, 27, 28, 28, 28, 29, 29, 30, 30,
 	31, 31, 31, 32, 32, 33, 33, 33
 };
+
+#if ENABLE_EXTRA_CHECKS
+
+#if defined(__GNUC__) && __GNUC__ >= 2
+#define COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1] __attribute__ ((unused))
+#else
+#define COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1]
+#endif
+
+COMPILE_CHECK(maxprecision, 
+	MAXPRECISION < TDS_VECTOR_SIZE(tds_numeric_bytes_per_prec) );
+
+#endif
 
 /*
  * money is a special case of numeric really...that why its here

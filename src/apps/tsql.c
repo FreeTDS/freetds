@@ -85,7 +85,9 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.114 2008-05-26 13:56:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.115 2008-05-27 08:25:04 freddy77 Exp $");
+
+#define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
 enum
 {
