@@ -1,3 +1,6 @@
+Tue May 27 18:34:24 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* include/tds.h include arpa/inet.h
+
 Mon May 26 14:47:43 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	(mostly from Coverity report)
 	* include/tds.h: fix possible buffer overflow
@@ -158,4 +161,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.37 2008-05-26 12:49:55 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.38 2008-05-27 22:48:50 jklowden Exp $
