@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.286 2008-04-23 21:36:01 jklowden Exp $ */
+/* $Id: tds.h,v 1.287 2008-05-27 08:00:57 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -747,7 +747,7 @@ typedef enum tds_encryption_level {
 
 
 #define TDS_MAX_CAPABILITY	22
-#define MAXPRECISION 		80
+#define MAXPRECISION 		77
 #define TDS_MAX_CONN		4096
 #define TDS_MAX_DYNID_LEN	30
 
