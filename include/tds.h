@@ -20,11 +20,15 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.287 2008-05-27 08:00:57 freddy77 Exp $ */
+/* $Id: tds.h,v 1.288 2008-05-27 22:24:49 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
+
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
 
 /* forward declaration */
 typedef struct tdsiconvinfo TDSICONV;
