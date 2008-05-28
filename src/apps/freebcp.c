@@ -45,7 +45,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.48 2006-12-01 21:51:11 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.49 2008-05-28 20:08:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -351,6 +351,8 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 	 */
 
 	login = dblogin();
+	if (!login)
+		return FALSE;
 
 	DBSETLUSER(login, pdata->user);
 	DBSETLPWD(login, pdata->pass);
@@ -372,8 +374,11 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 
 	if ((*pdbproc = dbopen(login, pdata->server)) == NULL) {
 		fprintf(stderr, "Can't connect to server \"%s\".\n", pdata->server);
+		dbloginfree(login);
 		return (FALSE);
 	}
+	dbloginfree(login);
+	login = NULL;
 
 	/* set hint if any */
 	if (pdata->hint) {
