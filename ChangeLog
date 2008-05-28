@@ -1,3 +1,7 @@
+Wed May 28 09:41:16 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* configure.ac src/apps/tsql.c  
+	- reset getopt(3) portably
+
 Tue May 27 18:21:46 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/tds.h include arpa/inet.h
 
@@ -309,4 +313,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2526 2008-05-27 22:24:48 jklowden Exp $
+$Id: ChangeLog,v 1.2527 2008-05-28 13:44:19 jklowden Exp $
