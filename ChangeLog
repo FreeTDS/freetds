@@ -1,3 +1,7 @@
+Wed May 28 22:07:18 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/freebcp.c src/apps/tsql.c:
+	- fix minor memory leaks
+
 Wed May 28 09:38:24 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* configure.ac src/apps/tsql.c
 	- reset getopt(3) portably
@@ -165,4 +169,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.39 2008-05-28 13:40:26 jklowden Exp $
+$Id: ChangeLog,v 1.2454.2.40 2008-05-28 20:07:53 freddy77 Exp $

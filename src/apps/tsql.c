@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.112.2.3 2008-05-28 13:40:29 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.112.2.4 2008-05-28 20:07:55 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -407,24 +407,24 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			opt_flags_str = optarg;
 			break;
 		case 'H':
-			hostname = (char *) malloc(strlen(optarg) + 1);
-			strcpy(hostname, optarg);
+			free(hostname);
+			hostname = strdup(optarg);
 			break;
 		case 'S':
-			servername = (char *) malloc(strlen(optarg) + 1);
-			strcpy(servername, optarg);
+			free(servername);
+			servername = strdup(optarg);
 			break;
 		case 'U':
-			username = (char *) malloc(strlen(optarg) + 1);
-			strcpy(username, optarg);
+			free(username);
+			username = strdup(optarg);
 			break;
 		case 'P':
-			password = (char *) malloc(strlen(optarg) + 1);
-			strcpy(password, optarg);
+			free(password);
+			password = strdup(optarg);
 			break;
 		case 'I':
-			confile = (char *) malloc(strlen(optarg) + 1);
-			strcpy(confile, optarg);
+			free(confile);
+			confile = strdup(optarg);
 			break;
 		case 'p':
 			port = atoi(optarg);
