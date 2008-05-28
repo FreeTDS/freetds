@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.24 2008-01-07 14:07:21 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.25 2008-05-28 21:08:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -117,13 +117,17 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	     const char *msgtext, const char *srvname, const char *procname, int line)
 {
 	int msgsz;
+	size_t len;
 
 	tds_put_byte(tds, TDS_INFO_TOKEN);
+	if (!procname)
+		procname = "";
+	len = strlen(procname);
 	msgsz = 4		/* msg no    */
 		+ 1		/* msg state */
 		+ 1		/* severity  */
 		/* FIXME ucs2 */
-		+ (IS_TDS7_PLUS(tds) ? 2 : 1) * (strlen(msgtext) + 1 + strlen(srvname) + 1 + strlen(procname))
+		+ (IS_TDS7_PLUS(tds) ? 2 : 1) * (strlen(msgtext) + 1 + strlen(srvname) + 1 + len)
 		+ 1 + 2;	/* line number */
 	tds_put_smallint(tds, msgsz);
 	tds_put_int(tds, msgno);
@@ -135,10 +139,10 @@ tds_send_msg(TDSSOCKET * tds, int msgno, int msgstate, int severity,
 	tds_put_byte(tds, strlen(srvname));
 	/* FIXME ucs2 */
 	tds_put_string(tds, srvname, strlen(srvname));
-	if (procname && strlen(procname)) {
-		tds_put_byte(tds, strlen(procname));
+	if (len) {
+		tds_put_byte(tds, len);
 		/* FIXME ucs2 */
-		tds_put_string(tds, procname, strlen(procname));
+		tds_put_string(tds, procname, len);
 	} else {
 		tds_put_byte(tds, 0);
 	}

@@ -1,3 +1,6 @@
+Wed May 28 23:08:23 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/server/server.c: fix possible NULL access
+
 Wed May 28 22:08:36 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/freebcp.c src/apps/tsql.c:
 	- fix minor memory leaks
@@ -317,4 +320,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2528 2008-05-28 20:08:48 freddy77 Exp $
+$Id: ChangeLog,v 1.2529 2008-05-28 21:08:32 freddy77 Exp $
