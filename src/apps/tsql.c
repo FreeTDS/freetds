@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.112.2.2 2008-05-26 12:49:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.112.2.3 2008-05-28 13:40:29 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -303,6 +303,15 @@ tsql_print_usage(const char *progname)
 		progname, progname);
 }
 
+static int
+reset_getopt(void)
+{
+#ifdef HAVE_GETOPT_OPTRESET
+	optreset = 1;
+#endif
+	optind = 1;
+}
+
 /*
  * The 'GO' command may be followed by options that apply to the batch.
  * If they don't appear to be right, assume the letters "go" are part of the
@@ -326,7 +335,7 @@ get_opt_flags(char *s, int *opt_flags)
 		s = NULL;
 
 	*opt_flags = 0;
-	optind = 0;		/* reset getopt */
+	reset_getopt();
 	opterr = 0;		/* suppress error messages */
 	while ((opt = getopt(argc, argv, "fhqtv")) != -1) {
 		switch (opt) {

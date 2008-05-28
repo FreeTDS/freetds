@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.29.2.12 2008-05-19 14:23:46 jklowden Exp $
+dnl $Id: configure.ac,v 1.29.2.13 2008-05-28 13:40:28 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.82.1)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.29.2.12 $)
+AC_REVISION($Revision: 1.29.2.13 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -240,7 +240,7 @@ AC_CHECK_MEMBERS([struct tm.__tm_zone],,,[#include <sys/types.h>
 ])
 AC_CHECK_HEADERS([unistd.h errno.h wchar.h sys/time.h sys/types.h \
 sys/param.h sys/stat.h sys/wait.h limits.h locale.h odbcss.h readpassphrase.h \
-signal.h libgen.h poll.h])
+signal.h libgen.h poll.h getopt.h])
 if test $tds_mingw = no; then
 	AC_CHECK_HEADERS([sys/socket.h arpa/inet.h netdb.h netinet/in.h \
 netinet/tcp.h paths.h sys/ioctl.h langinfo.h])
@@ -346,6 +346,16 @@ AC_EGREP_CPP(yes,
     ])
 
 TYPE_SOCKLEN_T
+
+AC_MSG_CHECKING([whether getopt has optreset support])
+AC_TRY_LINK([#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif], [extern int optreset; optreset = 0;],
+[AC_MSG_RESULT(yes)
+AC_DEFINE(HAVE_GETOPT_OPTRESET, 1, [Define if your getopt(3) defines and uses optreset])],
+[AC_MSG_RESULT(no)]
+)
+
 
 # ------------------------------------------------------------
 # Checks for compiler characteristics.
