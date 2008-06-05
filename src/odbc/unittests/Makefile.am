@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.74 2008-03-07 10:57:54 freddy77 Exp $
+# $Id: Makefile.am,v 1.75 2008-06-05 16:12:19 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -21,7 +21,8 @@ TESTS		=	\
 			connect2$(EXEEXT) timeout4$(EXEEXT) freeclose$(EXEEXT) \
 			cursor3$(EXEEXT) cursor4$(EXEEXT) cursor5$(EXEEXT) \
 			attributes$(EXEEXT) hidden$(EXEEXT) blob1$(EXEEXT) \
-			cancel$(EXEEXT) wchar$(EXEEXT) rowset$(EXEEXT) transaction2$(EXEEXT)
+			cancel$(EXEEXT) wchar$(EXEEXT) rowset$(EXEEXT) transaction2$(EXEEXT) \
+			cursor6$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -84,6 +85,7 @@ rowset_SOURCES	= rowset.c common.c common.h
 cancel_SOURCES = cancel.c common.c common.h
 wchar_SOURCES = wchar.c common.c common.h
 transaction2_SOURCES = transaction2.c common.c common.h
+cursor6_SOURCES	= cursor6.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_SRCDIR=\"$(srcdir)\"
 if MINGW32
