@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.10 2008-04-30 14:59:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.11 2008-06-06 16:52:22 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3608,10 +3608,6 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 					truncated = 1;
 					stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
 				}
-			} else {
-				/* TODO change when we code cursors support... */
-				/* stop looping, forward cursor support only one row */
-				num_rows = 1;
 			}
 			if (drec_ard->sql_desc_octet_length_ptr)
 				*AT_ROW(drec_ard->sql_desc_octet_length_ptr, SQLLEN) = len;
@@ -3648,11 +3644,33 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 SQLRETURN ODBC_API
 SQLFetch(SQLHSTMT hstmt)
 {
+	SQLRETURN ret;
+	SQLULEN  save_sql_desc_array_size;
+	SQLULEN *save_sql_desc_rows_processed_ptr;
+	SQLUSMALLINT *save_sql_desc_array_status_ptr;
+
 	INIT_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLFetch(%p)\n", hstmt);
 
-	ODBC_RETURN(stmt, _SQLFetch(stmt, SQL_FETCH_NEXT, 0));
+	if (stmt->dbc->env->attr.odbc_version != SQL_OV_ODBC3) {
+		save_sql_desc_array_size = stmt->ard->header.sql_desc_array_size;
+		stmt->ard->header.sql_desc_array_size = 1;
+		save_sql_desc_rows_processed_ptr = stmt->ird->header.sql_desc_rows_processed_ptr;
+		stmt->ird->header.sql_desc_rows_processed_ptr = NULL;
+		save_sql_desc_array_status_ptr = stmt->ird->header.sql_desc_array_status_ptr;
+		stmt->ird->header.sql_desc_array_status_ptr = NULL;
+	}
+
+	ret = _SQLFetch(stmt, SQL_FETCH_NEXT, 0);
+
+	if (stmt->dbc->env->attr.odbc_version != SQL_OV_ODBC3) {
+		stmt->ard->header.sql_desc_array_size = save_sql_desc_array_size;
+		stmt->ird->header.sql_desc_rows_processed_ptr = save_sql_desc_rows_processed_ptr;
+		stmt->ird->header.sql_desc_array_status_ptr = save_sql_desc_array_status_ptr;
+	}
+
+	ODBC_RETURN(stmt, ret);
 }
 
 #if (ODBCVER >= 0x0300)
