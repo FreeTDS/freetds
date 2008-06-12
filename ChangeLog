@@ -1,3 +1,8 @@
+Wed Jun 11 23:07:29 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* src/odbc/odbc.c src/odbc/unittests/getdata.c
+	- Applied patch from Suren A. Chilingaryan cf. 
+	- ML on 10 June 2008
+	
 Sat Jun  7 17:52:24 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c src/dblib/rpc.c src/dblib/unittests/rpc.c
 	* src/tds/convert.c
@@ -338,4 +343,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2533 2008-06-12 01:00:48 jklowden Exp $
+$Id: ChangeLog,v 1.2534 2008-06-12 03:10:16 jklowden Exp $

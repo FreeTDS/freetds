@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: getdata.c,v 1.6 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.7 2008-06-12 03:10:16 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -11,7 +11,14 @@ ReadError(void)
 {
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL))) {
+	if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT
+					, Statement
+					, 1
+					, (SQLCHAR *) odbc_sqlstate
+					, NULL
+					, (SQLCHAR *) odbc_err
+					, sizeof(odbc_err)
+					, NULL))) {
 		printf("SQLGetDiagRec should not fail\n");
 		exit(1);
 	}
