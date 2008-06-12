@@ -1,3 +1,8 @@
+Sat Jun  7 17:52:24 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c src/dblib/rpc.c src/dblib/unittests/rpc.c
+	* src/tds/convert.c
+	- small improvements to style, logging, and error messages
+
 Thu Jun 05 18:21:25 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:
 	- fix cursor6 test
@@ -33,7 +38,7 @@ Tue May 27 10:00:44 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h: fix possible buffer overflow
 
 Mon May 26 15:56:10 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
-	(monstly from Coverity reports)
+	(mostly from Coverity reports)
 	* include/tdsbytes.h: remove warning
 	* src/apps/tsql.c src/dblib/bcp.c src/dblib/dblib.c:
 	- remove some leaks
@@ -333,4 +338,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2532 2008-06-05 16:21:50 freddy77 Exp $
+$Id: ChangeLog,v 1.2533 2008-06-12 01:00:48 jklowden Exp $

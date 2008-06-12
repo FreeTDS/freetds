@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.324 2008-05-26 13:56:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.325 2008-06-12 01:00:48 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1258,7 +1258,7 @@ dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 	if (dbproc->dbbufsz == 0) {
 		dbproc->dbbuf = malloc(strlen(cmdstring) + 1);
 		if (dbproc->dbbuf == NULL) {
-			dbperror(NULL, SYBEMEM, errno);
+			dbperror(dbproc, SYBEMEM, errno);
 			return FAIL;
 		}
 		strcpy((char *) dbproc->dbbuf, cmdstring);
@@ -1266,7 +1266,7 @@ dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 	} else {
 		newsz = strlen(cmdstring) + dbproc->dbbufsz;
 		if ((p = realloc(dbproc->dbbuf, newsz)) == NULL) {
-			dbperror(NULL, SYBEMEM, errno);
+			dbperror(dbproc, SYBEMEM, errno);
 			return FAIL;
 		}
 		dbproc->dbbuf = (unsigned char *) p;
@@ -1335,7 +1335,7 @@ dbuse(DBPROCESS * dbproc, const char *name)
 	/* quote name */
 	query = malloc(tds_quote_id(dbproc->tds_socket, NULL, name, -1) + 6);
 	if (!query) {
-		dbperror(NULL, SYBEMEM, errno);
+		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
 	}
 	strcpy(query, "use ");
@@ -2715,7 +2715,7 @@ dbclrbuf(DBPROCESS * dbproc, DBINT n)
 DBBOOL
 dbwillconvert(int srctype, int desttype)
 {
-	tdsdump_log(TDS_DBG_FUNC, "dbwillconvert(%d, %d)\n", srctype, desttype);
+	tdsdump_log(TDS_DBG_FUNC, "dbwillconvert(%s, %s)\n", tds_prdatatype(srctype), tds_prdatatype(desttype));
 	return tds_willconvert(srctype, desttype);
 }
 
@@ -3270,7 +3270,7 @@ dbprrow(DBPROCESS * dbproc)
 
 			if (col_printlens == NULL) {
 				if ((col_printlens = calloc(resinfo->num_cols, sizeof(TDS_SMALLINT))) == NULL) {
-					dbperror(NULL, SYBEMEM, errno);
+					dbperror(dbproc, SYBEMEM, errno);
 					return FAIL;
 				}
 			}
@@ -4718,7 +4718,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 		unsigned int n;
 		TDS_TINYINT *p = malloc(sizeof(info->bycolumns[0]) + info->by_cols);
 		if (!p) {
-			dbperror(NULL, SYBEMEM, errno);
+			dbperror(dbproc, SYBEMEM, errno);
 			return NULL;
 		}
 		for (n = 0; n < info->by_cols; ++n)
