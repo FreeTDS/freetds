@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: news.html,v 1.16 2008-05-08 02:44:12 jklowden Exp $ -->
+<!-- $Id: news.html,v 1.17 2008-06-12 00:00:25 jklowden Exp $ -->
 <head>
 <title>FreeTDS.org</title>
 </head>
@@ -31,6 +31,30 @@ News&nbsp;&nbsp;|&nbsp;
 <font size="+3"><b>N</b></font>ews and <font size="+3"><b>P</b></font>ress
 </p>
 <table summary="layout" width="80%" align="center">
+
+<!--  item  -->
+<tr bgcolor="#c9c9ff"><td>PHP msdblib niggle encountered</td></tr>
+<tr>
+<td>
+<br />
+In configuring your new version of PHP to work with FreeTDS 0.82, 
+you may encounter:
+<blockquote>  
+	<tt>configure: error: Directory /usr/local/freetds-0.82 is not a FreeTDS installation directory</tt>
+</blockquote>  
+PHP tests for a FreeTDS installation by looking for files 
+that FreeTDS no longer installs.  To assure PHP that FreeTDS is installed, 
+create two files where FreeTDS was installed e.g.:
+<blockquote><pre>$ <b>touch /usr/local/freetds-0.82/include/tds.h</b>
+$ <b>touch /usr/local/freetds-0.82/lib/libtds.a</b></pre>
+</blockquote>  
+The file that needs to be changed is used by autoconf when the distribution 
+tarball is constructed.  Cf. revision 1.13 of <a href="http://cvs.php.net/viewvc.cgi/php-src/ext/mssql/config.m4?revision=1.13&amp;view=markup">PHP source file <tt>config.m4</tt></a>.
+(12 June 2008)
+<br />
+<br />
+</td>
+</tr>
 
 <!--  item  -->
 <tr bgcolor="#c9c9ff"><td>Version 0.82 Released</td></tr>
