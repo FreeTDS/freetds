@@ -1,3 +1,8 @@
+Wed Jun 11 23:26:34 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* src/odbc/unittests/Makefile.am
+	* src/odbc/unittests/cursor7.c (added)
+	- test for fetching overlapping batches
+
 Wed Jun 11 23:07:29 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/odbc/odbc.c src/odbc/unittests/getdata.c
 	- Applied patch from Suren A. Chilingaryan cf. 
@@ -343,4 +348,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2534 2008-06-12 03:10:16 jklowden Exp $
+$Id: ChangeLog,v 1.2535 2008-06-12 03:52:04 jklowden Exp $
