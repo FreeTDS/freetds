@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.219 2008-02-13 08:52:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.220 2008-06-18 09:06:27 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2415,6 +2415,119 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 	}
 
 	tds_set_state(tds, TDS_IDLE);
+	return TDS_SUCCEED;
+}
+
+int
+tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_number, TDS_UINT * row_count)
+{
+	int done_flags;
+	int retcode;
+	TDS_INT result_type;
+
+	CHECK_TDS_EXTRA(tds);
+
+	if (!cursor)
+		return TDS_FAIL;
+
+	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_get_cursor_info() cursor id = %d\n", cursor->cursor_id);
+
+	/* Assume not known */
+	*row_number = 0;
+	*row_count = 0;
+
+	if (IS_TDS7_PLUS(tds)) {
+		/* Change state to quering */
+		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+			return TDS_FAIL;
+
+		/* Remember the server has been sent a command for this cursor */
+		tds_set_cur_cursor(tds, cursor);
+
+		/* General initialization of server command */
+		tds->out_flag = TDS_RPC;
+		START_QUERY;
+
+		/* Create and send query to server */
+		if (IS_TDS8_PLUS(tds)) {
+			tds_put_smallint(tds, -1);
+			tds_put_smallint(tds, TDS_SP_CURSORFETCH);
+		} else {
+			tds_put_smallint(tds, 14);
+			TDS_PUT_N_AS_UCS2(tds, "sp_cursorfetch");
+		}
+
+		/* This flag tells the SP only to */
+		/* output a dummy metadata token  */
+
+		tds_put_smallint(tds, 2);
+
+		/* input cursor handle (int) */
+
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 0);	/* input parameter  */
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
+		tds_put_int(tds, cursor->cursor_id);
+
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 0);	/* input parameter  */
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 4);
+		tds_put_int(tds, 0x100);	/* FETCH_INFO */
+
+		/* row number */
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 1);	/* output parameter  */
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 0);
+
+		/* number of rows fetched */
+		tds_put_byte(tds, 0);	/* no parameter name */
+		tds_put_byte(tds, 1);	/* output parameter  */
+		tds_put_byte(tds, SYBINTN);
+		tds_put_byte(tds, 4);
+		tds_put_byte(tds, 0);
+
+		/* Adjust current state */
+		tds->internal_sp_called = 0;
+		if ( (retcode=tds_query_flush_packet(tds)) != TDS_SUCCEED )
+			return retcode;
+
+		/* Process answer from server */
+		for (;;) {
+			retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_PROC);
+			tdsdump_log(TDS_DBG_FUNC, "tds_cursor_get_cursor_info: tds_process_tokens returned %d\n", retcode);
+			tdsdump_log(TDS_DBG_FUNC, "    result_type=%d, TDS_DONE_COUNT=%x, TDS_DONE_ERROR=%x\n", result_type, (done_flags & TDS_DONE_COUNT), (done_flags & TDS_DONE_ERROR));
+			switch (retcode) {
+			case TDS_NO_MORE_RESULTS:
+				return TDS_SUCCEED;
+			case TDS_CANCELLED:
+			case TDS_FAIL:
+				return TDS_FAIL;
+
+			case TDS_SUCCEED:
+				if (result_type==TDS_PARAM_RESULT) {
+					/* Status is updated when TDS_STATUS_RESULT token arrives, before the params are processed */
+					if (tds->has_status && tds->ret_status==0) {
+						TDSPARAMINFO *pinfo = tds->current_results;
+
+						/* Make sure the params retuned have the correct tipe and size */
+						if (pinfo && pinfo->num_cols==2 && pinfo->columns[0]->column_type==SYBINTN && pinfo->columns[1]->column_type==SYBINTN && pinfo->columns[0]->column_size==4 && pinfo->columns[1]->column_size==4) {
+							/* Take the values */
+							*row_number = (TDS_UINT)(*(TDS_INT *) pinfo->columns[0]->column_data);
+							*row_count  = (TDS_UINT)(*(TDS_INT *) pinfo->columns[1]->column_data);
+							tdsdump_log(TDS_DBG_FUNC, "----------------> row_number=%u, row_count=%u\n", row_count, row_number);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return TDS_SUCCEED;
 }
 

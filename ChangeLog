@@ -1,3 +1,9 @@
+Wed Jun 18 11:05:19 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/odbc.c src/odbc/unittests/cursor7.c:
+	* src/tds/query.c:
+	- applied Daniel A. Veiga patch for SQL_ATTR_ROW_NUMBER
+	  (sligtly modified)
+
 Wed Jun 11 23:26:34 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/odbc/unittests/Makefile.am
 	* src/odbc/unittests/cursor7.c (added)
@@ -7,7 +13,7 @@ Wed Jun 11 23:07:29 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/odbc/odbc.c src/odbc/unittests/getdata.c
 	- Applied patch from Suren A. Chilingaryan cf. 
 	- ML on 10 June 2008
-	
+
 Sat Jun  7 17:52:24 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c src/dblib/rpc.c src/dblib/unittests/rpc.c
 	* src/tds/convert.c
@@ -348,4 +354,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2535 2008-06-12 03:52:04 jklowden Exp $
+$Id: ChangeLog,v 1.2536 2008-06-18 09:06:26 freddy77 Exp $

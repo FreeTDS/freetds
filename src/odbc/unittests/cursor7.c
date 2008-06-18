@@ -1,8 +1,8 @@
 #include "common.h"
 
-/* Test SQLFetchScroll with no bound columns */
+/* Test SQLFetchScroll with a non-unitary rowset, using bottom-up direction */
 
-static char software_version[] = "$Id: cursor7.c,v 1.1 2008-06-12 03:52:05 jklowden Exp $";
+static char software_version[] = "$Id: cursor7.c,v 1.2 2008-06-18 09:06:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -17,6 +17,7 @@ Test(void)
 	} data[ROWS];
 	SQLUSMALLINT statuses[ROWS];
 	SQLULEN num_row;
+	SQLULEN RowNumber;
 
 	int i;
 	SQLRETURN ErrCode;
@@ -40,16 +41,26 @@ Test(void)
 	printf("\n\nReading records from last to first:\n");
 	ErrCode = SQLFetchScroll(Statement, SQL_FETCH_LAST, -ROWS);
 	while ((ErrCode == SQL_SUCCESS) || (ErrCode == SQL_SUCCESS_WITH_INFO)) {
+		SQLULEN RowNumber;
+
 		/* Print this set of rows */
 		for (i = ROWS - 1; i >= 0; i--) {
 			if (statuses[i] != SQL_ROW_NOROW)
 				printf("\t %d, %s\n", (int) data[i].i, data[i].c);
 		}
 
+		CHK(SQLGetStmtAttr, (Statement, SQL_ROW_NUMBER, (SQLPOINTER)(&RowNumber), sizeof(RowNumber), NULL));
+		printf("---> We are in record No: %u\n", (unsigned int) RowNumber);
+
 		/* Read next rowset */
-		ErrCode = SQLFetchScroll(Statement, SQL_FETCH_RELATIVE, -ROWS);
+		if ( (RowNumber>1) && (RowNumber<ROWS) ) {
+			ErrCode=SQLFetchScroll(Statement, SQL_FETCH_RELATIVE, 1-RowNumber); 
+			for (i=RowNumber-1; i<ROWS; ++i)
+				statuses[i] = SQL_ROW_NOROW;
+		} else {
+			ErrCode=SQLFetchScroll(Statement, SQL_FETCH_RELATIVE, -ROWS);
+		}
 	}
-	printf("\nRecords 5, 4 and 3 are returned twice!!\n\n");
 }
 
 static void

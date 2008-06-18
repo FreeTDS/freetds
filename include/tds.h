@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.288 2008-05-27 22:24:49 jklowden Exp $ */
+/* $Id: tds.h,v 1.289 2008-06-18 09:06:26 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1484,6 +1484,7 @@ int tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params
 int tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
 int tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
 int tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row);
+int tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_number, TDS_UINT * row_count);
 int tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
 int tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
 int tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, TDSPARAMINFO * params);

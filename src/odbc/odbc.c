@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.482 2008-06-12 03:10:16 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.483 2008-06-18 09:06:26 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4094,7 +4094,13 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		src = &stmt->ard->header.sql_desc_bind_type;
 		break;
 	case SQL_ATTR_ROW_NUMBER:
-		/* TODO update this value */
+		/* TODO do not get info every time, cache somewhere */
+		if (stmt->cursor && odbc_lock_statement(stmt)) {
+			TDS_UINT row_number, row_count;
+
+			tds_cursor_get_cursor_info(stmt->dbc->tds_socket, stmt->cursor, &row_number, &row_count);
+			stmt->attr.row_number = row_number;
+		}
 		size = sizeof(stmt->attr.row_number);
 		src = &stmt->attr.row_number;
 		break;
