@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with a non-unitary rowset, using bottom-up direction */
 
-static char software_version[] = "$Id: cursor7.c,v 1.2 2008-06-18 09:06:27 freddy77 Exp $";
+static char software_version[] = "$Id: cursor7.c,v 1.3 2008-06-25 11:54:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -17,7 +17,6 @@ Test(void)
 	} data[ROWS];
 	SQLUSMALLINT statuses[ROWS];
 	SQLULEN num_row;
-	SQLULEN RowNumber;
 
 	int i;
 	SQLRETURN ErrCode;
@@ -48,6 +47,7 @@ Test(void)
 			if (statuses[i] != SQL_ROW_NOROW)
 				printf("\t %d, %s\n", (int) data[i].i, data[i].c);
 		}
+		printf("\n");
 
 		CHK(SQLGetStmtAttr, (Statement, SQL_ROW_NUMBER, (SQLPOINTER)(&RowNumber), sizeof(RowNumber), NULL));
 		printf("---> We are in record No: %u\n", (unsigned int) RowNumber);

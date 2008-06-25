@@ -1,3 +1,6 @@
+Tue Jun 25 13:54:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/cursor7.c: cleanup
+
 Wed Jun 18 11:05:19 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/odbc/odbc.c src/odbc/unittests/cursor7.c:
 	* src/tds/query.c:
@@ -354,4 +357,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2536 2008-06-18 09:06:26 freddy77 Exp $
+$Id: ChangeLog,v 1.2537 2008-06-25 11:54:35 freddy77 Exp $
