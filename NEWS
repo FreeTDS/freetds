@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.43.2.1 2008-01-10 20:58:43 jklowden Exp $
+$Id: NEWS,v 1.43.2.2 2008-06-27 03:11:42 jklowden Exp $
 
 Executive Summary of Changes in release 0.82
 --------------------------------------------
@@ -10,6 +10,7 @@ Executive Summary of Changes in release 0.82
 5.  23,710 lines added or deleted (101,022 total).
 6.  85 files added
 7.  21 unit tests added
+8.  libtds.so and tds.h no longer installed.  
 
 Details
 -------
@@ -58,6 +59,24 @@ general
   1 test for ctlib
   3 tests for dblib
   13 tests for odbc
+
+libtds.so
+- tds.h not installed 
+- libtds.a not installed
+- libtds.so not built (or installed)
+
+Applications using the FreeTDS API libraries -- db-lib, ct-lib, and ODBC -- 
+do not need to include tds.h nor link to libtds.  The API libraries are
+statically linked to libtds, which is no long supported as a shared object.  
+
+Some packages, notably PHP, rely on the presence of these files to determine 
+whether or not FreeTDS is installed.  (Better choices would be sybfront.h and 
+libsybdb.  These latter files will always be installed because they're needed
+by db-lib applications.)  To add null versions of these files, you might
+try:
+	touch tds.h
+	ar -rc libtds.so # etc.  
+	
 
 libTDS API changes
 - tds_add_row_column_size removed
