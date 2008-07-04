@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.220 2008-06-18 09:06:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.221 2008-07-04 21:08:49 jklowden Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2419,10 +2419,9 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 }
 
 int
-tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_number, TDS_UINT * row_count)
+tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_number, TDS_UINT *prow_count)
 {
-	int done_flags;
-	int retcode;
+	int done_flags, retcode;
 	TDS_INT result_type;
 
 	CHECK_TDS_EXTRA(tds);
@@ -2433,11 +2432,12 @@ tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_n
 	tdsdump_log(TDS_DBG_INFO1, "tds_cursor_get_cursor_info() cursor id = %d\n", cursor->cursor_id);
 
 	/* Assume not known */
-	*row_number = 0;
-	*row_count = 0;
+	assert(prow_number && prow_count);
+	*prow_number = 0;
+	*prow_count = 0;
 
 	if (IS_TDS7_PLUS(tds)) {
-		/* Change state to quering */
+		/* Change state to querying */
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
 
@@ -2501,7 +2501,8 @@ tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_n
 		for (;;) {
 			retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_PROC);
 			tdsdump_log(TDS_DBG_FUNC, "tds_cursor_get_cursor_info: tds_process_tokens returned %d\n", retcode);
-			tdsdump_log(TDS_DBG_FUNC, "    result_type=%d, TDS_DONE_COUNT=%x, TDS_DONE_ERROR=%x\n", result_type, (done_flags & TDS_DONE_COUNT), (done_flags & TDS_DONE_ERROR));
+			tdsdump_log(TDS_DBG_FUNC, "    result_type=%d, TDS_DONE_COUNT=%x, TDS_DONE_ERROR=%x\n", 
+						  result_type, (done_flags & TDS_DONE_COUNT), (done_flags & TDS_DONE_ERROR));
 			switch (retcode) {
 			case TDS_NO_MORE_RESULTS:
 				return TDS_SUCCEED;
@@ -2515,12 +2516,17 @@ tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_n
 					if (tds->has_status && tds->ret_status==0) {
 						TDSPARAMINFO *pinfo = tds->current_results;
 
-						/* Make sure the params retuned have the correct tipe and size */
-						if (pinfo && pinfo->num_cols==2 && pinfo->columns[0]->column_type==SYBINTN && pinfo->columns[1]->column_type==SYBINTN && pinfo->columns[0]->column_size==4 && pinfo->columns[1]->column_size==4) {
+						/* Make sure the params retuned have the correct type and size */
+						if (pinfo && pinfo->num_cols==2 
+							  && pinfo->columns[0]->column_type==SYBINTN 
+							  && pinfo->columns[1]->column_type==SYBINTN 
+							  && pinfo->columns[0]->column_size==4 
+							  && pinfo->columns[1]->column_size==4) {
 							/* Take the values */
-							*row_number = (TDS_UINT)(*(TDS_INT *) pinfo->columns[0]->column_data);
-							*row_count  = (TDS_UINT)(*(TDS_INT *) pinfo->columns[1]->column_data);
-							tdsdump_log(TDS_DBG_FUNC, "----------------> row_number=%u, row_count=%u\n", row_count, row_number);
+							*prow_number = (TDS_UINT)(*(TDS_INT *) pinfo->columns[0]->column_data);
+							*prow_count  = (TDS_UINT)(*(TDS_INT *) pinfo->columns[1]->column_data);
+							tdsdump_log(TDS_DBG_FUNC, "----------------> prow_number=%u, prow_count=%u\n", 
+										  *prow_count, *prow_number);
 						}
 					}
 				}
