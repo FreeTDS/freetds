@@ -8,7 +8,7 @@ anyone else can post a patch to SourceForge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.168 2008-05-22 01:32:30 jklowden Exp $
+To Do List	$Id: TODO,v 1.169 2008-07-04 21:08:57 jklowden Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
@@ -26,6 +26,8 @@ Must be fixed:
          (actually a ct_cancel() error)" 
 
 Broken:
+. HAVE_FUNC_GETSERVBYNAME_R_6 is defined by configure as 1 on 
+  NetBSD 2.0 even though it's not defined by the OS.  
 . Passing invalid character set names to server with tsql?
   tsql (and so libTDS) can pass invalid charset names to Sybase
   libTDS assume Sybase can handle this charset but it's false
