@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.289 2008-06-18 09:06:26 freddy77 Exp $ */
+/* $Id: tds.h,v 1.290 2008-07-04 21:08:39 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1009,6 +1009,7 @@ typedef struct tds_column
 	TDS_INT *column_lenbind;
 	TDS_INT column_textpos;
 	TDS_INT column_text_sqlgetdatapos;
+	TDS_CHAR column_text_sqlputdatainfo;
 
 	BCPCOLDATA *bcp_column_data;
 	/**

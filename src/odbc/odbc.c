@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.483 2008-06-18 09:06:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.484 2008-07-04 21:08:39 jklowden Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4652,6 +4652,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	SQLLEN dummy_cb;
 	int nSybType;
 
+	TDS_INT converted_column_cur_size;
 	int extra_bytes = 0;
 
 	INIT_HSTMT;
@@ -4690,6 +4691,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	colinfo = tds->current_results->columns[icol - 1];
+	converted_column_cur_size = colinfo->column_cur_size;
 
 	if (colinfo->column_cur_size < 0) {
 		*pcbValue = SQL_NULL_DATA;
@@ -4715,7 +4717,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			if (is_blob_type(colinfo->column_type))
 				src = ((TDSBLOB *) src)->textvalue;
 
-			if (fCType == SQL_C_CHAR && colinfo->column_text_sqlgetdatapos) {
+			if (fCType == SQL_C_CHAR) {
 				TDS_CHAR buf[3];
 				SQLLEN len;
 
@@ -4758,40 +4760,15 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 						}
 					} else {
 						nread = colinfo->column_text_sqlgetdatapos / 2;
-						if (nread >= colinfo->column_cur_size)
+						
+						if (colinfo->column_text_sqlgetdatapos > 0
+						    && nread >= colinfo->column_cur_size)
 							ODBC_RETURN(stmt, SQL_NO_DATA);
 					}
 					
 					src += nread;
 					srclen = colinfo->column_cur_size - nread;
-					break;
-				default:
-					if (colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-						ODBC_RETURN(stmt, SQL_NO_DATA);
-						
-					src += colinfo->column_text_sqlgetdatapos;
-					srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
-
-				}
-			} else if (fCType == SQL_C_BINARY) {
-				switch (nSybType) {
-				case SYBCHAR:
-				case SYBVARCHAR:
-				case SYBTEXT:
-				case XSYBCHAR:
-				case XSYBVARCHAR:
-					nread = (src[0] == '0' && toupper(src[1]) == 'X')? 2 : 0;
-						
-					while ((nread < colinfo->column_cur_size) && (src[nread] == ' ' || src[nread] == '\0')) 
-						nread++;
-
-					nread += colinfo->column_text_sqlgetdatapos * 2;
-					
-					if (nread && nread >= colinfo->column_cur_size)
-						ODBC_RETURN(stmt, SQL_NO_DATA);
-
-					src += nread;
-					srclen = colinfo->column_cur_size - nread;
+					converted_column_cur_size *= 2;
 					break;
 				default:
 					if (colinfo->column_text_sqlgetdatapos > 0
@@ -4842,7 +4819,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			if (colinfo->column_text_sqlgetdatapos == 0 && cbValueMax > 0)
 				++colinfo->column_text_sqlgetdatapos;
 			
-			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size) {	/* not all read ?? */
+			if (colinfo->column_text_sqlgetdatapos < converted_column_cur_size) {	/* not all read ?? */
 				odbc_errs_add(&stmt->errs, "01004", "String data, right truncated");
 				ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 			}
