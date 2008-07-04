@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.325 2008-06-12 01:00:48 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.326 2008-07-04 21:09:12 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -606,6 +606,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	/*
 	 * CHARBIND		Empty string (padded with blanks)
 	 * STRINGBIND		Empty string (padded with blanks, null-terminated)
+	 * NTBSTRINGBIND	Empty string (unpadded, null-terminated)
 	 * BINARYBIND		Empty array (padded with zeros)
 	 */
 	varaddr += pnullrep->len;
@@ -618,6 +619,9 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 		case STRINGBIND:
 			memset(varaddr, ' ', varlen);
 			varaddr[varlen-1] = '\0';
+			break;
+		case NTBSTRINGBIND:
+			varaddr[0] = '\0';
 			break;
 		case BINARYBIND:
 			memset(varaddr, 0, varlen);
