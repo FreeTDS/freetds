@@ -34,7 +34,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.59 2008-06-02 14:18:44 jklowden Exp $";
+static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.60 2008-07-05 22:57:54 jklowden Exp $";
 static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 #define CS_PUBLIC
@@ -748,6 +748,8 @@ CS_RETCODE cs_strcmp(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_INT type, CS_CHAR 
 		     CS_INT * result);
 CS_RETCODE cs_time(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen, CS_DATEREC * daterec);
 CS_RETCODE cs_will_convert(CS_CONTEXT * ctx, CS_INT srctype, CS_INT desttype, CS_BOOL * result);
+
+const char * cs_prretcode(int retcode);
 
 #ifdef __cplusplus
 #if 0

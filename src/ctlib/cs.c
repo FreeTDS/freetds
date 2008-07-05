@@ -35,6 +35,7 @@
 #endif
 
 #include <stdio.h>
+#include <assert.h>
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -49,13 +50,46 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.65 2007-12-23 21:12:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.66 2008-07-05 22:57:54 jklowden Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
 static CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
 static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message);
 static CS_INT cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count);
+
+const char *
+cs_prretcode(int retcode)
+{
+	static char unknown[12]="oops: ";
+	
+	switch(retcode) {
+	case CS_SUCCEED:	return "CS_SUCCEED";
+	case CS_FAIL:		return "CS_FAIL";
+	case CS_MEM_ERROR:	return "CS_MEM_ERROR";
+	case CS_PENDING:	return "CS_PENDING";
+	case CS_QUIET:		return "CS_QUIET";
+	case CS_BUSY:		return "CS_BUSY";
+	case CS_INTERRUPT:	return "CS_INTERRUPT";
+	case CS_BLK_HAS_TEXT:	return "CS_BLK_HAS_TEXT";
+	case CS_CONTINUE:	return "CS_CONTINUE";
+	case CS_FATAL:		return "CS_FATAL";
+	case CS_RET_HAFAILOVER:	return "CS_RET_HAFAILOVER";
+	case CS_UNSUPPORTED:	return "CS_UNSUPPORTED";
+
+	case CS_CANCELED:	return "CS_CANCELED";
+	case CS_ROW_FAIL:	return "CS_ROW_FAIL";
+	case CS_END_DATA:	return "CS_END_DATA";
+	case CS_END_RESULTS:	return "CS_END_RESULTS";
+	case CS_END_ITEM:	return "CS_END_ITEM";
+	case CS_NOMSG:		return "CS_NOMSG";
+	case CS_TIMED_OUT:	return "CS_TIMED_OUT";
+
+	default:
+		sprintf(unknown + 6, "%u ??", retcode);
+	}
+	return unknown;
+}
 
 /**
  * returns the fixed length of the specified data type, or 0 if not a 
@@ -452,22 +486,49 @@ CS_RETCODE
 cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
 {
 
-int src_type, src_len, desttype, destlen, len, i = 0;
+	int src_type, src_len, desttype, destlen, len, i = 0;
+	CONV_RESULT cres;
+	unsigned char *dest;
+	CS_RETCODE ret;
+	CS_INT dummy;
 
-CONV_RESULT cres;
+	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p)\n", ctx, srcfmt, srcdata, destfmt, destdata, resultlen);
 
-unsigned char *dest;
+	/* If destination is NULL we have a problem */
+	if (destdata == NULL) {
+		/* TODO: add error message */
+		tdsdump_log(TDS_DBG_FUNC, "error: destdata is null\n");
+		return CS_FAIL;
 
-CS_RETCODE ret;
+	}
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert()\n");
+	/* If destfmt is NULL we have a problem */
+	if (destfmt == NULL) {
+		/* TODO: add error message */
+		tdsdump_log(TDS_DBG_FUNC, "error: destfmt is null\n");
+		return CS_FAIL;
+
+	}
+	
+	if (resultlen == NULL) 
+		resultlen = &dummy;
+
+	/* If source is indicated to be NULL, set dest to low values */
+	if (srcdata == NULL) {
+		/* TODO: implement cs_setnull */
+		tdsdump_log(TDS_DBG_FUNC, "srcdata is null\n");
+		memset(destdata, '\0', destfmt->maxlength);
+		*resultlen = 0;
+		return CS_SUCCEED;
+
+	}
 
 	src_type = _ct_get_server_type(srcfmt->datatype);
-	src_len = srcfmt ? srcfmt->maxlength : 0;
+	src_len = srcfmt->maxlength;
 	desttype = _ct_get_server_type(destfmt->datatype);
-	destlen = destfmt ? destfmt->maxlength : 0;
+	destlen = destfmt->maxlength;
 
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert() srctype = %d (%d) desttype = %d (%d)\n",
+	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d (%d bytes)\n",
 		    src_type, src_len, desttype, destlen);
 
 	if (!is_fixed_type(desttype) && (destlen <= 0)) {
@@ -476,51 +537,36 @@ CS_RETCODE ret;
 
 	dest = (unsigned char *) destdata;
 
-	/* If source is indicated to be NULL, set dest to low values */
-
-	if (srcdata == NULL) {
-
-		tdsdump_log(TDS_DBG_FUNC, "cs_convert() srcdata is null\n");
-		memset(dest, '\0', destlen);
-		if (resultlen != NULL)
-			*resultlen = 0;
-		return CS_SUCCEED;
-
-	}
-
 	/* many times we are asked to convert a data type to itself */
 
 	if (src_type == desttype) {
+		int minlen = src_len < destlen? src_len : destlen;
 
-		tdsdump_log(TDS_DBG_FUNC, "cs_convert() srctype = desttype\n");
+		tdsdump_log(TDS_DBG_FUNC, "cs_convert() srctype == desttype\n");
 		switch (desttype) {
 
 		case SYBLONGBINARY:
 		case SYBBINARY:
 		case SYBVARBINARY:
 		case SYBIMAGE:
+			memcpy(dest, srcdata, src_len);
+			*resultlen = src_len;
+
 			if (src_len > destlen) {
+				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
 				ret = CS_FAIL;
 			} else {
 				switch (destfmt->format) {
 				case CS_FMT_PADNULL:
-					memcpy(dest, srcdata, src_len);
-					for (i = src_len; i < destlen; i++)
-						dest[i] = '\0';
-					if (resultlen != NULL)
-						*resultlen = destlen;
-					ret = CS_SUCCEED;
-					break;
+					memset(dest + src_len, '\0', destlen - src_len);
+					*resultlen = destlen;
+					/* fall through */
 				case CS_FMT_UNUSED:
-					memcpy(dest, srcdata, src_len);
-					if (resultlen != NULL)
-						*resultlen = src_len;
 					ret = CS_SUCCEED;
 					break;
 				default:
 					ret = CS_FAIL;
 					break;
-
 				}
 			}
 			break;
@@ -529,45 +575,38 @@ CS_RETCODE ret;
 		case SYBVARCHAR:
 		case SYBTEXT:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() desttype = character\n");
+
+			memcpy(dest, srcdata, minlen);
+			*resultlen = minlen;
+
 			if (src_len > destlen) {
-				tdsdump_log(TDS_DBG_FUNC, "src_len > destlen\n");
+				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
 				ret = CS_FAIL;
 			} else {
 				switch (destfmt->format) {
-
 				case CS_FMT_NULLTERM:
 					if (src_len == destlen) {
-						ret = CS_FAIL;	/* not enough room for data + a null terminator - error */
+						*resultlen = src_len;
+						tdsdump_log(TDS_DBG_FUNC, "error: no room for null terminator\n");
+						ret = CS_FAIL;
 					} else {
-						memcpy(dest, srcdata, src_len);
 						dest[src_len] = '\0';
-						if (resultlen != NULL)
-							*resultlen = src_len + 1;
+						*resultlen = src_len + 1;
 						ret = CS_SUCCEED;
 					}
 					break;
 
 				case CS_FMT_PADBLANK:
-					memcpy(dest, srcdata, src_len);
-					for (i = src_len; i < destlen; i++)
-						dest[i] = ' ';
-					if (resultlen != NULL)
-						*resultlen = destlen;
+					memset(dest + src_len, ' ', destlen - src_len);
+					*resultlen = destlen;
 					ret = CS_SUCCEED;
 					break;
-
 				case CS_FMT_PADNULL:
-					memcpy(dest, srcdata, src_len);
-					for (i = src_len; i < destlen; i++)
-						dest[i] = '\0';
-					if (resultlen != NULL)
-						*resultlen = destlen;
+					memset(dest + src_len, '\0', destlen - src_len);
+					*resultlen = destlen;
 					ret = CS_SUCCEED;
 					break;
 				case CS_FMT_UNUSED:
-					memcpy(dest, srcdata, src_len);
-					if (resultlen != NULL)
-						*resultlen = src_len;
 					ret = CS_SUCCEED;
 					break;
 				default:
@@ -588,9 +627,8 @@ CS_RETCODE ret;
 		case SYBMONEY4:
 		case SYBDATETIME:
 		case SYBDATETIME4:
-			memcpy(dest, srcdata, _cs_datatype_length(src_type));
-			if (resultlen != NULL)
-				*resultlen = _cs_datatype_length(src_type);
+			*resultlen = _cs_datatype_length(src_type);
+			memcpy(dest, srcdata, *resultlen);
 			ret = CS_SUCCEED;
 			break;
 
@@ -598,27 +636,30 @@ CS_RETCODE ret;
 		case SYBDECIMAL:
 			src_len = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) srcdata)->precision] + 2;
 		case SYBBITN:
+			memcpy(dest, srcdata, minlen);
+			*resultlen = minlen;
+
 			if (src_len > destlen) {
+				tdsdump_log(TDS_DBG_FUNC, "error: src_len > destlen\n");
 				ret = CS_FAIL;
 			} else {
-				memcpy(dest, srcdata, src_len);
-				if (resultlen != NULL)
-					*resultlen = src_len;
 				ret = CS_SUCCEED;
 			}
 			break;
 
 		default:
+			tdsdump_log(TDS_DBG_FUNC, "error: unrecognized type\n");
 			ret = CS_FAIL;
 			break;
 		}
 
+		tdsdump_log(TDS_DBG_FUNC, "cs_convert() returning  %s\n", cs_prretcode(ret));
 		return ret;
 
 	}
 
-
-	/* src type != dest type */
+	assert(src_type != desttype);
+	
 	/* set the output precision/scale for conversions to numeric type */
 	if (is_numeric_type(desttype)) {
 		cres.n.precision = destfmt->precision;
@@ -675,8 +716,7 @@ CS_RETCODE ret;
 			free(cres.ib);
 			for (i = len; i < destlen; i++)
 				dest[i] = '\0';
-			if (resultlen != NULL)
-				*resultlen = destlen;
+			*resultlen = destlen;
 			ret = CS_SUCCEED;
 		}
 		break;
@@ -685,72 +725,61 @@ CS_RETCODE ret;
 		/* fall trough, act same way of TINYINT */
 	case SYBINT1:
 		memcpy(dest, &(cres.ti), 1);
-		if (resultlen != NULL)
-			*resultlen = 1;
+		*resultlen = 1;
 		ret = CS_SUCCEED;
 		break;
 	case SYBINT2:
 		memcpy(dest, &(cres.si), 2);
-		if (resultlen != NULL)
-			*resultlen = 2;
+		*resultlen = 2;
 		ret = CS_SUCCEED;
 		break;
 	case SYBINT4:
 		memcpy(dest, &(cres.i), 4);
-		if (resultlen != NULL)
-			*resultlen = 4;
+		*resultlen = 4;
 		ret = CS_SUCCEED;
 		break;
 	case SYBINT8:
 		memcpy(dest, &(cres.bi), 8);
-		if (resultlen != NULL)
-			*resultlen = 8;
+		*resultlen = 8;
 		ret = CS_SUCCEED;
 		break;
 	case SYBFLT8:
 		memcpy(dest, &(cres.f), 8);
-		if (resultlen != NULL)
-			*resultlen = 8;
+		*resultlen = 8;
 		ret = CS_SUCCEED;
 		break;
 	case SYBREAL:
 		memcpy(dest, &(cres.r), 4);
-		if (resultlen != NULL)
-			*resultlen = 4;
+		*resultlen = 4;
 		ret = CS_SUCCEED;
 		break;
 	case SYBMONEY:
 
 		tdsdump_log(TDS_DBG_FUNC, "cs_convert() copying %d bytes to src\n", (int) sizeof(TDS_MONEY));
 		memcpy(dest, &(cres.m), sizeof(TDS_MONEY));
-		if (resultlen != NULL)
-			*resultlen = sizeof(TDS_MONEY);
+		*resultlen = sizeof(TDS_MONEY);
 		ret = CS_SUCCEED;
 		break;
 	case SYBMONEY4:
 		memcpy(dest, &(cres.m4), sizeof(TDS_MONEY4));
-		if (resultlen != NULL)
-			*resultlen = sizeof(TDS_MONEY4);
+		*resultlen = sizeof(TDS_MONEY4);
 		ret = CS_SUCCEED;
 		break;
 	case SYBDATETIME:
 		memcpy(dest, &(cres.dt), sizeof(TDS_DATETIME));
-		if (resultlen != NULL)
-			*resultlen = sizeof(TDS_DATETIME);
+		*resultlen = sizeof(TDS_DATETIME);
 		ret = CS_SUCCEED;
 		break;
 	case SYBDATETIME4:
 		memcpy(dest, &(cres.dt4), sizeof(TDS_DATETIME4));
-		if (resultlen != NULL)
-			*resultlen = sizeof(TDS_DATETIME4);
+		*resultlen = sizeof(TDS_DATETIME4);
 		ret = CS_SUCCEED;
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		src_len = tds_numeric_bytes_per_prec[cres.n.precision] + 2;
 		memcpy(dest, &(cres.n), src_len);
-		if (resultlen != NULL)
-			*resultlen = src_len;
+		*resultlen = src_len;
 		ret = CS_SUCCEED;
 		break;
 	case SYBCHAR:
@@ -770,8 +799,7 @@ CS_RETCODE ret;
 				} else {
 					memcpy(dest, cres.c, len);
 					dest[len] = 0;
-					if (resultlen != NULL)
-						*resultlen = len + 1;
+					*resultlen = len + 1;
 					ret = CS_SUCCEED;
 				}
 				break;
@@ -782,8 +810,7 @@ CS_RETCODE ret;
 				memcpy(dest, cres.c, len);
 				for (i = len; i < destlen; i++)
 					dest[i] = ' ';
-				if (resultlen != NULL)
-					*resultlen = destlen;
+				*resultlen = destlen;
 				ret = CS_SUCCEED;
 				break;
 
@@ -793,15 +820,13 @@ CS_RETCODE ret;
 				memcpy(dest, cres.c, len);
 				for (i = len; i < destlen; i++)
 					dest[i] = '\0';
-				if (resultlen != NULL)
-					*resultlen = destlen;
+				*resultlen = destlen;
 				ret = CS_SUCCEED;
 				break;
 			case CS_FMT_UNUSED:
 				tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_UNUSED\n");
 				memcpy(dest, cres.c, len);
-				if (resultlen != NULL)
-					*resultlen = len;
+				*resultlen = len;
 				ret = CS_SUCCEED;
 				break;
 			default:
@@ -815,7 +840,7 @@ CS_RETCODE ret;
 		ret = CS_FAIL;
 		break;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "cs_convert() returning  %d\n", ret);
+	tdsdump_log(TDS_DBG_FUNC, "cs_convert() returning  %s\n", cs_prretcode(ret));
 	return (ret);
 }
 

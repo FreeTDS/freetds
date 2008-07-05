@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.179 2008-05-22 01:32:32 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.180 2008-07-05 22:57:54 jklowden Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -135,7 +135,8 @@ _ct_get_user_api_layer_error(int error)
 {
 	switch (error) {
 	case 137:
-		return "A bind count of %1! is not consistent with the count supplied for existing binds. The current bind count is %2!.";
+		return  "A bind count of %1! is not consistent with the count supplied for existing binds. "
+			"The current bind count is %2!.";
 		break;
 	case 138:
 		return "Use direction CS_BLK_IN or CS_BLK_OUT for a bulk copy operation.";
@@ -1222,7 +1223,8 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 					return CS_SUCCEED;
 				}
 
-				tdsret = tds_process_tokens(tds, &res_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
+				tdsret = tds_process_tokens(tds, &res_type, NULL,
+							 TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 
 				/* set results state to show that the result set has rows... */
 
@@ -1445,8 +1447,10 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 
 	colinfo = resinfo->columns[item - 1];
 
-	/* check whether the request is for array binding and ensure that user */
-	/* supplies the same datafmt->count to the subsequent ct_bind calls    */
+	/* 
+	 * Check whether the request is for array binding, and ensure that the user
+	 * supplies the same datafmt->count to the subsequent ct_bind calls    
+	 */
 
 	bind_count = (datafmt->count == 0) ? 1 : datafmt->count;
 
@@ -1479,15 +1483,16 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 }
 
 CS_RETCODE
-ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read)
+ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * prows_read)
 {
 	TDS_INT ret_type;
 	TDS_INT ret;
 	TDS_INT marker;
 	TDS_INT temp_count;
 	TDSSOCKET *tds;
+	CS_INT rows_read_dummy;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_fetch()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_fetch(%p, %d, %d, %d, %p)\n", cmd, type, offset, option, prows_read);
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
@@ -1501,21 +1506,21 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 		_ct_cancel_cleanup(cmd);
 		return CS_CANCELED;
 	}
+	
+	if( prows_read == NULL )
+		prows_read = &rows_read_dummy;
 
 	tds = cmd->con->tds_socket;
 
-	/* We'll call a special function for fetches from a cursor            */
-	/* the processing is too incompatible to patch into a single function */
-
+	/* 
+	 * Call a special function for fetches from a cursor because 
+	 * the processing is too incompatible to patch into a single function 
+	 */
 	if (cmd->command_type == CS_CUR_CMD) {
-		return _ct_fetch_cursor(cmd, type, offset, option, rows_read);
+		return _ct_fetch_cursor(cmd, type, offset, option, prows_read);
 	}
 
-	if (rows_read)
-		*rows_read = 0;
-
-	/* taking a copy of the cmd->bind_count value. */
-	temp_count = cmd->bind_count;
+	*prows_read = 0;
 
 	if ( cmd->bind_count == CS_UNUSED )
 		cmd->bind_count = 1;
@@ -1528,8 +1533,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 		cmd->get_data_bytes_returned = 0;
 		if (_ct_bind_data(cmd->con->ctx, tds->current_results, tds->current_results, 0))
 			return CS_ROW_FAIL;
-		if (rows_read)
-			*rows_read = 1;
+		*prows_read = 1;
 		return CS_SUCCEED;
 	}
 
@@ -1542,17 +1546,18 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 
 
 	marker = tds_peek(tds);
-	if ((cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN) ||
-		(cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN) )
+	if ((cmd->curr_result_type == CS_ROW_RESULT    && marker != TDS_ROW_TOKEN)
+	||  (cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN) )
 		return CS_END_DATA;
 
 	/* Array Binding Code changes start here */
 
 	for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
 
-		ret = tds_process_tokens(tds, &ret_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
+		ret = tds_process_tokens(tds, &ret_type, NULL, 
+					 TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 
-		tdsdump_log(TDS_DBG_FUNC, "inside ct_fetch()process_row_tokens returned %d\n", ret);
+		tdsdump_log(TDS_DBG_FUNC, "inside ct_fetch() process_row_tokens returned %d\n", ret);
 
 		switch (ret) {
 			case TDS_SUCCEED:
@@ -1561,8 +1566,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * r
 					cmd->get_data_bytes_returned = 0;
 					if (_ct_bind_data(cmd->con->ctx, tds->current_results, tds->current_results, temp_count))
 						return CS_ROW_FAIL;
-					if (rows_read)
-						*rows_read = *rows_read + 1;
+					(*prows_read)++;
 					break;
 				}
 			case TDS_NO_MORE_RESULTS:
@@ -1650,7 +1654,8 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 			case CS_ROW_RESULT:
 				for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
 
-					ret = tds_process_tokens(tds, &restype, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
+					ret = tds_process_tokens(tds, &restype, NULL,
+							 TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 
 					tdsdump_log(TDS_DBG_FUNC, "_ct_fetch_cursor() tds_process_tokens returned %d\n", ret);
 
@@ -1658,7 +1663,8 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 						cmd->get_data_item = 0;
 						cmd->get_data_bytes_returned = 0;
 						if (restype == TDS_ROW_RESULT) {
-							if (_ct_bind_data(cmd->con->ctx, tds->current_results, tds->current_results, temp_count))
+							if (_ct_bind_data(cmd->con->ctx, tds->current_results,
+									  tds->current_results, temp_count))
 								return CS_ROW_FAIL;
 							if (rows_read)
 								*rows_read = *rows_read + 1;
@@ -1696,10 +1702,10 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 	unsigned char *src;
 	unsigned char *dest, *temp_add;
 	int result = 0;
-	TDS_INT srctype, srclen, desttype, len;
+	TDS_INT srctype, srclen, desttype;
 	CS_DATAFMT srcfmt, destfmt;
-	TDS_INT *datalen = NULL;
-	TDS_SMALLINT *nullind = NULL;
+	TDS_INT datalen_dummy, *pdatalen = &datalen_dummy;
+	TDS_SMALLINT nullind_dummy, *nullind = &nullind_dummy;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_bind_data()\n");
 
@@ -1708,10 +1714,8 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		curcol = resinfo->columns[i];
 		bindcol = bindinfo->columns[i];
 
-		tdsdump_log(TDS_DBG_FUNC, "_ct_bind_data(): column_type: %d column_len: %d\n",
-			curcol->column_type,
-			curcol->column_cur_size
-		);
+		tdsdump_log(TDS_DBG_FUNC, "_ct_bind_data(): column %d is type %d and has length %d\n",
+						i, curcol->column_type, curcol->column_cur_size);
 
 		if (curcol->column_hidden)
 			continue;
@@ -1720,28 +1724,28 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		srctype = curcol->column_type;
 		desttype = _ct_get_server_type(bindcol->column_bindtype);
 
-		/* retrieve the initial bound column_varaddress */
-		/* and increment it if offset specified         */
+		/* 
+		 * Retrieve the initial bound column_varaddress and increment it if offset specified         
+		 */
 
 		temp_add = (unsigned char *) bindcol->column_varaddr;
 		dest = temp_add + (offset * bindcol->column_bindlen);
 
 		if (bindcol->column_nullbind) {
 			nullind = bindcol->column_nullbind;
+			assert(nullind);
 			nullind += offset;
 		}
 		if (bindcol->column_lenbind) {
-			datalen = bindcol->column_lenbind;
-			datalen += offset;
+			pdatalen = bindcol->column_lenbind;
+			assert(pdatalen);
+			pdatalen += offset;
 		}
 
 		if (dest) {
-
 			if (curcol->column_cur_size < 0) {
-				if (nullind)
-					*nullind = -1;
-				if (datalen)
-					*datalen = 0;
+				*nullind = -1;
+				*pdatalen = 0;
 			} else {
 
 				srctype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
@@ -1759,22 +1763,17 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 				destfmt.format = bindcol->column_bindfmt;
 
 				/* if convert return FAIL mark error but process other columns */
-				if ((result= cs_convert(ctx, &srcfmt, (CS_VOID *) src, &destfmt, (CS_VOID *) dest, &len) != CS_SUCCEED)) {
+				if ((result= cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen) != CS_SUCCEED)) {
 					tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", result);
 					result = 1;
-					len = 0;
-					tdsdump_log(TDS_DBG_INFO1, "\n  convert failed for %d \n", srcfmt.datatype);
+					tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n", 
+									*pdatalen, srcfmt.datatype);
 				}
 
-				if (nullind)
-					*nullind = 0;
-				if (datalen) {
-					*datalen = len;
-				}
+				*nullind = 0;
 			}
 		} else {
-			if (datalen)
-				*datalen = 0;
+			*pdatalen = 0;
 		}
 	}
 	return result;
@@ -2001,70 +2000,31 @@ int
 _ct_get_server_type(int datatype)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_server_type(%d)\n", datatype);
+	
 	switch (datatype) {
-	case CS_IMAGE_TYPE:
-		return SYBIMAGE;
-		break;
-	case CS_BINARY_TYPE:
-		return SYBBINARY;
-		break;
-	case CS_BIT_TYPE:
-		return SYBBIT;
-		break;
-	case CS_CHAR_TYPE:
-		return SYBCHAR;
-		break;
+	case CS_IMAGE_TYPE:		return SYBIMAGE;
+	case CS_BINARY_TYPE:		return SYBBINARY;
+	case CS_BIT_TYPE:		return SYBBIT;	
+	case CS_CHAR_TYPE:		return SYBCHAR;	
 	case CS_LONG_TYPE:
-	case CS_BIGINT_TYPE:
-		return SYBINT8;
-		break;
-	case CS_INT_TYPE:
-		return SYBINT4;
-		break;
-	case CS_SMALLINT_TYPE:
-		return SYBINT2;
-		break;
-	case CS_TINYINT_TYPE:
-		return SYBINT1;
-		break;
-	case CS_REAL_TYPE:
-		return SYBREAL;
-		break;
-	case CS_FLOAT_TYPE:
-		return SYBFLT8;
-		break;
-	case CS_MONEY_TYPE:
-		return SYBMONEY;
-		break;
-	case CS_MONEY4_TYPE:
-		return SYBMONEY4;
-		break;
-	case CS_DATETIME_TYPE:
-		return SYBDATETIME;
-		break;
-	case CS_DATETIME4_TYPE:
-		return SYBDATETIME4;
-		break;
-	case CS_NUMERIC_TYPE:
-		return SYBNUMERIC;
-		break;
-	case CS_DECIMAL_TYPE:
-		return SYBDECIMAL;
-		break;
-	case CS_VARBINARY_TYPE:
-		return SYBVARBINARY;
-		break;
-	case CS_TEXT_TYPE:
-		return SYBTEXT;
-		break;
-	case CS_UNIQUE_TYPE:
-		return SYBUNIQUE;
-		break;
-	case CS_LONGBINARY_TYPE:	/* vicm */
-		return SYBLONGBINARY;
-		break;
-	case CS_UNICHAR_TYPE:
-		return SYBVARCHAR;
+	case CS_BIGINT_TYPE:		return SYBINT8;	
+	case CS_INT_TYPE:		return SYBINT4;	
+	case CS_SMALLINT_TYPE:		return SYBINT2;	
+	case CS_TINYINT_TYPE:		return SYBINT1;	
+	case CS_REAL_TYPE:		return SYBREAL;	
+	case CS_FLOAT_TYPE:		return SYBFLT8;	
+	case CS_MONEY_TYPE:		return SYBMONEY;
+	case CS_MONEY4_TYPE:		return SYBMONEY4;
+	case CS_DATETIME_TYPE:		return SYBDATETIME;
+	case CS_DATETIME4_TYPE:		return SYBDATETIME4;
+	case CS_NUMERIC_TYPE:		return SYBNUMERIC;
+	case CS_DECIMAL_TYPE:		return SYBDECIMAL;
+	case CS_VARBINARY_TYPE:		return SYBVARBINARY;
+	case CS_TEXT_TYPE:		return SYBTEXT;	
+	case CS_UNIQUE_TYPE:		return SYBUNIQUE;
+	case CS_LONGBINARY_TYPE:	return SYBLONGBINARY;
+	case CS_UNICHAR_TYPE:		return SYBVARCHAR;
+
 	default:
 		return -1;
 		break;
@@ -2159,7 +2119,8 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 					tdsdump_log(TDS_DBG_FUNC, "ct_cancel() command state READY/IDLE\n");
 					break;
 				case _CS_COMMAND_SENT:
-					tdsdump_log(TDS_DBG_FUNC, "ct_cancel() command state SENT results_state %d\n", cmd->results_state);
+					tdsdump_log(TDS_DBG_FUNC, "ct_cancel() command state SENT results_state %d\n",
+								   cmd->results_state);
 					if (cmd->results_state != _CS_RES_NONE) {
 						tdsdump_log(TDS_DBG_FUNC, "ct_cancel() sending a cancel \n");
 						tds_send_cancel(cmd_conn->tds_socket);
@@ -2929,150 +2890,50 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 
 	if (type == CS_CAP_RESPONSE) {
 		switch (capability) {
-		case CS_DATA_NOBOUNDARY:
-			idx = 13;
-			bitmask = 0x01;
-			break;
-		case CS_RES_NOTDSDEBUG:
-			idx = 13;
-			bitmask = 0x02;
-			break;
-		case CS_RES_NOSTRIPBLANKS:
-			idx = 13;
-			bitmask = 0x04;
-			break;
-		case CS_DATA_NOINT8:
-			idx = 13;
-			bitmask = 0x08;
-			break;
-		case CS_DATA_NOINTN:
-			idx = 14;
-			bitmask = 0x01;
-			break;
-		case CS_DATA_NODATETIMEN:
-			idx = 14;
-			bitmask = 0x02;
-			break;
-		case CS_DATA_NOMONEYN:
-			idx = 14;
-			bitmask = 0x04;
-			break;
-		case CS_CON_NOOOB:
-			idx = 14;
-			bitmask = 0x08;
-			break;
-		case CS_CON_NOINBAND:
-			idx = 14;
-			bitmask = 0x10;
-			break;
-		case CS_PROTO_NOTEXT:
-			idx = 14;
-			bitmask = 0x20;
-			break;
-		case CS_PROTO_NOBULK:
-			idx = 14;
-			bitmask = 0x40;
-			break;
-		case CS_DATA_NOSENSITIVITY:
-			idx = 14;
-			bitmask = 0x80;
-			break;
-		case CS_DATA_NOFLT4:
-			idx = 15;
-			bitmask = 0x01;
-			break;
-		case CS_DATA_NOFLT8:
-			idx = 15;
-			bitmask = 0x02;
-			break;
-		case CS_DATA_NONUM:
-			idx = 15;
-			bitmask = 0x04;
-			break;
-		case CS_DATA_NOTEXT:
-			idx = 15;
-			bitmask = 0x08;
-			break;
-		case CS_DATA_NOIMAGE:
-			idx = 15;
-			bitmask = 0x10;
-			break;
-		case CS_DATA_NODEC:
-			idx = 15;
-			bitmask = 0x20;
-			break;
-		case CS_DATA_NOLCHAR:
-			idx = 15;
-			bitmask = 0x40;
-			break;
-		case CS_DATA_NOLBIN:
-			idx = 15;
-			bitmask = 0x80;
-			break;
-		case CS_DATA_NOCHAR:
-			idx = 16;
-			bitmask = 0x01;
-			break;
-		case CS_DATA_NOVCHAR:
-			idx = 16;
-			bitmask = 0x02;
-			break;
-		case CS_DATA_NOBIN:
-			idx = 16;
-			bitmask = 0x04;
-			break;
-		case CS_DATA_NOVBIN:
-			idx = 16;
-			bitmask = 0x08;
-			break;
-		case CS_DATA_NOMNY8:
-			idx = 16;
-			bitmask = 0x10;
-			break;
-		case CS_DATA_NOMNY4:
-			idx = 16;
-			bitmask = 0x20;
-			break;
-		case CS_DATA_NODATE8:
-			idx = 16;
-			bitmask = 0x40;
-			break;
-		case CS_DATA_NODATE4:
-			idx = 16;
-			bitmask = 0x80;
-			break;
-		case CS_RES_NOMSG:
-			idx = 17;
-			bitmask = 0x02;
-			break;
-		case CS_RES_NOEED:
-			idx = 17;
-			bitmask = 0x04;
-			break;
-		case CS_RES_NOPARAM:
-			idx = 17;
-			bitmask = 0x08;
-			break;
-		case CS_DATA_NOINT1:
-			idx = 17;
-			bitmask = 0x10;
-			break;
-		case CS_DATA_NOINT2:
-			idx = 17;
-			bitmask = 0x20;
-			break;
-		case CS_DATA_NOINT4:
-			idx = 17;
-			bitmask = 0x40;
-			break;
-		case CS_DATA_NOBIT:
-			idx = 17;
-			bitmask = 0x80;
-			break;
+		case CS_DATA_NOBOUNDARY:	idx = 13; bitmask = 0x01;	break;
+		case CS_RES_NOTDSDEBUG:		idx = 13; bitmask = 0x02;	break;
+		case CS_RES_NOSTRIPBLANKS:	idx = 13; bitmask = 0x04;	break;
+		case CS_DATA_NOINT8:		idx = 13; bitmask = 0x08;	break;
+
+		case CS_DATA_NOINTN:		idx = 14; bitmask = 0x01;	break;
+		case CS_DATA_NODATETIMEN:	idx = 14; bitmask = 0x02;	break;
+		case CS_DATA_NOMONEYN:		idx = 14; bitmask = 0x04;	break;
+		case CS_CON_NOOOB:		idx = 14; bitmask = 0x08;	break;
+		case CS_CON_NOINBAND:		idx = 14; bitmask = 0x10;	break;
+		case CS_PROTO_NOTEXT:		idx = 14; bitmask = 0x20;	break;
+		case CS_PROTO_NOBULK:		idx = 14; bitmask = 0x40;	break;
+		case CS_DATA_NOSENSITIVITY:	idx = 14; bitmask = 0x80;	break;
+
+		case CS_DATA_NOFLT4:		idx = 15; bitmask = 0x01;	break;
+		case CS_DATA_NOFLT8:		idx = 15; bitmask = 0x02;	break;
+		case CS_DATA_NONUM:		idx = 15; bitmask = 0x04;	break;
+		case CS_DATA_NOTEXT:		idx = 15; bitmask = 0x08;	break;
+		case CS_DATA_NOIMAGE:		idx = 15; bitmask = 0x10;	break;
+		case CS_DATA_NODEC:		idx = 15; bitmask = 0x20;	break;
+		case CS_DATA_NOLCHAR:		idx = 15; bitmask = 0x40;	break;
+		case CS_DATA_NOLBIN:		idx = 15; bitmask = 0x80;	break;
+
+		case CS_DATA_NOCHAR:		idx = 16; bitmask = 0x01;	break;
+		case CS_DATA_NOVCHAR:		idx = 16; bitmask = 0x02;	break;
+		case CS_DATA_NOBIN:		idx = 16; bitmask = 0x04;	break;
+		case CS_DATA_NOVBIN:		idx = 16; bitmask = 0x08;	break;
+		case CS_DATA_NOMNY8:		idx = 16; bitmask = 0x10;	break;
+		case CS_DATA_NOMNY4:		idx = 16; bitmask = 0x20;	break;
+		case CS_DATA_NODATE8:		idx = 16; bitmask = 0x40;	break;
+		case CS_DATA_NODATE4:		idx = 16; bitmask = 0x80;	break;
+
+		case CS_RES_NOMSG:		idx = 17; bitmask = 0x02;	break;
+		case CS_RES_NOEED:		idx = 17; bitmask = 0x04;	break;
+		case CS_RES_NOPARAM:		idx = 17; bitmask = 0x08;	break;
+		case CS_DATA_NOINT1:		idx = 17; bitmask = 0x10;	break;
+		case CS_DATA_NOINT2:		idx = 17; bitmask = 0x20;	break;
+		case CS_DATA_NOINT4:		idx = 17; bitmask = 0x40;	break;
+		case CS_DATA_NOBIT:		idx = 17; bitmask = 0x80;	break;
+
 		default:
 			tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- attempt to set/get a non-existant capability\n");
 			return CS_FAIL;
-		}			/* end capability */
+		} /* end capability */
 
 		assert(13 <= idx && idx <= 17);
 		assert(bitmask);
@@ -3107,165 +2968,68 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 	 * These capabilities describe the types of requests that a server can support.
 	 */
 	switch (capability) {
-	case CS_PROTO_DYNPROC:
-		*(CS_BOOL *) value = mask[2] & 0x01 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_FLTN:
-		*(CS_BOOL *) value = mask[2] & 0x02 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_BITN:
-		*(CS_BOOL *) value = mask[2] & 0x04 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_INT8:
-		*(CS_BOOL *) value = mask[2] & 0x08 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_VOID:
-		*(CS_BOOL *) value = mask[2] & 0x10 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CON_INBAND:
-		*(CS_BOOL *) value = mask[3] & 0x01 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CON_LOGICAL:
-		*(CS_BOOL *) value = mask[3] & 0x02 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_PROTO_TEXT:
-		*(CS_BOOL *) value = mask[3] & 0x04 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_PROTO_BULK:
-		*(CS_BOOL *) value = mask[3] & 0x08 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_URGNOTIF:
-		*(CS_BOOL *) value = mask[3] & 0x10 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_SENSITIVITY:
-		*(CS_BOOL *) value = mask[3] & 0x20 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_BOUNDARY:
-		*(CS_BOOL *) value = mask[3] & 0x40 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_PROTO_DYNAMIC:
-		*(CS_BOOL *) value = mask[3] & 0x80 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_MONEYN:
-		*(CS_BOOL *) value = mask[4] & 0x01 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CSR_PREV:
-		*(CS_BOOL *) value = mask[4] & 0x02 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CSR_FIRST:
-		*(CS_BOOL *) value = mask[4] & 0x04 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CSR_LAST:
-		*(CS_BOOL *) value = mask[4] & 0x08 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CSR_ABS:
-		*(CS_BOOL *) value = mask[4] & 0x10 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CSR_REL:
-		*(CS_BOOL *) value = mask[4] & 0x20 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CSR_MULTI:
-		*(CS_BOOL *) value = mask[4] & 0x40 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_CON_OOB:
-		*(CS_BOOL *) value = mask[4] & 0x80 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_NUM:
-		*(CS_BOOL *) value = mask[5] & 0x01 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_TEXT:
-		*(CS_BOOL *) value = mask[5] & 0x02 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_IMAGE:
-		*(CS_BOOL *) value = mask[5] & 0x04 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_DEC:
-		*(CS_BOOL *) value = mask[5] & 0x08 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_LCHAR:
-		*(CS_BOOL *) value = mask[5] & 0x10 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_LBIN:
-		*(CS_BOOL *) value = mask[5] & 0x20 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_INTN:
-		*(CS_BOOL *) value = mask[5] & 0x40 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_DATETIMEN:
-		*(CS_BOOL *) value = mask[5] & 0x80 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_BIN:
-		*(CS_BOOL *) value = mask[6] & 0x01 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_VBIN:
-		*(CS_BOOL *) value = mask[6] & 0x02 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_MNY8:
-		*(CS_BOOL *) value = mask[6] & 0x04 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_MNY4:
-		*(CS_BOOL *) value = mask[6] & 0x08 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_DATE8:
-		*(CS_BOOL *) value = mask[6] & 0x10 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_DATE4:
-		*(CS_BOOL *) value = mask[6] & 0x20 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_FLT4:
-		*(CS_BOOL *) value = mask[6] & 0x40 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_FLT8:
-		*(CS_BOOL *) value = mask[6] & 0x80 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_MSG:
-		*(CS_BOOL *) value = mask[7] & 0x01 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_PARAM:
-		*(CS_BOOL *) value = mask[7] & 0x02 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_INT1:
-		*(CS_BOOL *) value = mask[7] & 0x04 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_INT2:
-		*(CS_BOOL *) value = mask[7] & 0x08 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_INT4:
-		*(CS_BOOL *) value = mask[7] & 0x10 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_BIT:
-		*(CS_BOOL *) value = mask[7] & 0x20 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_CHAR:
-		*(CS_BOOL *) value = mask[7] & 0x40 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_DATA_VCHAR:
-		*(CS_BOOL *) value = mask[7] & 0x80 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_LANG:
-		*(CS_BOOL *) value = mask[8] & 0x02 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_RPC:
-		*(CS_BOOL *) value = mask[8] & 0x04 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_NOTIF:
-		*(CS_BOOL *) value = mask[8] & 0x08 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_MSTMT:
-		*(CS_BOOL *) value = mask[8] & 0x10 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_BCP:
-		*(CS_BOOL *) value = mask[8] & 0x20 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_CURSOR:
-		*(CS_BOOL *) value = mask[8] & 0x40 ? CS_TRUE : CS_FALSE;
-		break;
-	case CS_REQ_DYN:
-		*(CS_BOOL *) value = mask[8] & 0x80 ? CS_TRUE : CS_FALSE;
-		break;
+	case CS_PROTO_DYNPROC:		*(CS_BOOL *) value = mask[2] & 0x01 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_FLTN:		*(CS_BOOL *) value = mask[2] & 0x02 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_BITN:		*(CS_BOOL *) value = mask[2] & 0x04 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_INT8:		*(CS_BOOL *) value = mask[2] & 0x08 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_VOID:		*(CS_BOOL *) value = mask[2] & 0x10 ? CS_TRUE : CS_FALSE;	break;
+
+	case CS_CON_INBAND:		*(CS_BOOL *) value = mask[3] & 0x01 ? CS_TRUE : CS_FALSE;	break;
+	case CS_CON_LOGICAL:		*(CS_BOOL *) value = mask[3] & 0x02 ? CS_TRUE : CS_FALSE;	break;
+	case CS_PROTO_TEXT:		*(CS_BOOL *) value = mask[3] & 0x04 ? CS_TRUE : CS_FALSE;	break;
+	case CS_PROTO_BULK:		*(CS_BOOL *) value = mask[3] & 0x08 ? CS_TRUE : CS_FALSE;	break;
+	case CS_REQ_URGNOTIF:		*(CS_BOOL *) value = mask[3] & 0x10 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_SENSITIVITY:	*(CS_BOOL *) value = mask[3] & 0x20 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_BOUNDARY:		*(CS_BOOL *) value = mask[3] & 0x40 ? CS_TRUE : CS_FALSE;	break;
+	case CS_PROTO_DYNAMIC:		*(CS_BOOL *) value = mask[3] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+
+	case CS_DATA_MONEYN:		*(CS_BOOL *) value = mask[4] & 0x01 ? CS_TRUE : CS_FALSE;	break;
+	case CS_CSR_PREV:		*(CS_BOOL *) value = mask[4] & 0x02 ? CS_TRUE : CS_FALSE;	break;
+	case CS_CSR_FIRST:		*(CS_BOOL *) value = mask[4] & 0x04 ? CS_TRUE : CS_FALSE;	break;
+	case CS_CSR_LAST:		*(CS_BOOL *) value = mask[4] & 0x08 ? CS_TRUE : CS_FALSE;	break;
+	case CS_CSR_ABS:		*(CS_BOOL *) value = mask[4] & 0x10 ? CS_TRUE : CS_FALSE;	break;
+	case CS_CSR_REL:		*(CS_BOOL *) value = mask[4] & 0x20 ? CS_TRUE : CS_FALSE;	break;
+	case CS_CSR_MULTI:		*(CS_BOOL *) value = mask[4] & 0x40 ? CS_TRUE : CS_FALSE;	break;
+	case CS_CON_OOB:		*(CS_BOOL *) value = mask[4] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+
+	case CS_DATA_NUM:		*(CS_BOOL *) value = mask[5] & 0x01 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_TEXT:		*(CS_BOOL *) value = mask[5] & 0x02 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_IMAGE:		*(CS_BOOL *) value = mask[5] & 0x04 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_DEC:		*(CS_BOOL *) value = mask[5] & 0x08 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_LCHAR:		*(CS_BOOL *) value = mask[5] & 0x10 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_LBIN:		*(CS_BOOL *) value = mask[5] & 0x20 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_INTN:		*(CS_BOOL *) value = mask[5] & 0x40 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_DATETIMEN:		*(CS_BOOL *) value = mask[5] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+
+	case CS_DATA_BIN:		*(CS_BOOL *) value = mask[6] & 0x01 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_VBIN:		*(CS_BOOL *) value = mask[6] & 0x02 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_MNY8:		*(CS_BOOL *) value = mask[6] & 0x04 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_MNY4:		*(CS_BOOL *) value = mask[6] & 0x08 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_DATE8:		*(CS_BOOL *) value = mask[6] & 0x10 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_DATE4:		*(CS_BOOL *) value = mask[6] & 0x20 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_FLT4:		*(CS_BOOL *) value = mask[6] & 0x40 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_FLT8:		*(CS_BOOL *) value = mask[6] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+
+	case CS_REQ_MSG:		*(CS_BOOL *) value = mask[7] & 0x01 ? CS_TRUE : CS_FALSE;	break;
+	case CS_REQ_PARAM:		*(CS_BOOL *) value = mask[7] & 0x02 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_INT1:		*(CS_BOOL *) value = mask[7] & 0x04 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_INT2:		*(CS_BOOL *) value = mask[7] & 0x08 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_INT4:		*(CS_BOOL *) value = mask[7] & 0x10 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_BIT:		*(CS_BOOL *) value = mask[7] & 0x20 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_CHAR:		*(CS_BOOL *) value = mask[7] & 0x40 ? CS_TRUE : CS_FALSE;	break;
+	case CS_DATA_VCHAR:		*(CS_BOOL *) value = mask[7] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+
+	case CS_REQ_LANG:		*(CS_BOOL *) value = mask[8] & 0x02 ? CS_TRUE : CS_FALSE;	break;
+	case CS_REQ_RPC:		*(CS_BOOL *) value = mask[8] & 0x04 ? CS_TRUE : CS_FALSE;	break;
+	case CS_REQ_NOTIF:		*(CS_BOOL *) value = mask[8] & 0x08 ? CS_TRUE : CS_FALSE;	break;
+	case CS_REQ_MSTMT:		*(CS_BOOL *) value = mask[8] & 0x10 ? CS_TRUE : CS_FALSE;	break;
+	case CS_REQ_BCP:		*(CS_BOOL *) value = mask[8] & 0x20 ? CS_TRUE : CS_FALSE;	break;
+	case CS_REQ_CURSOR:		*(CS_BOOL *) value = mask[8] & 0x40 ? CS_TRUE : CS_FALSE;	break;
+	case CS_REQ_DYN:		*(CS_BOOL *) value = mask[8] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+
 	default:
 		tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- attempt to get a non-existant capability\n");
-		return CS_FAIL;
+		return CS_FAIL;	
 		break;
 	}			/* end capability */
 
@@ -3281,7 +3045,7 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 	tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- attempt to set a read-only capability (type %d, action %d)\n",
 		type, action);
 	return CS_FAIL;
-}				/* end ct_capability( */
+} /* end ct_capability */
 
 
 CS_RETCODE
@@ -3828,7 +3592,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 SEND_OPTION:
 
 	tdsdump_log(TDS_DBG_FUNC, "\ttds_submit_optioncmd will be action(%s) option(%d) arg(%x) arglen(%d)\n",
-				action_string, tds_option, tds_argsize == 1 ? tds_argument.ti : (tds_argsize == 4 ? tds_argument.i : 0), tds_argsize);
+				action_string, tds_option, 
+				tds_argsize == 1 ? tds_argument.ti : (tds_argsize == 4 ? tds_argument.i : 0), tds_argsize);
 
 	if (tds_submit_optioncmd(tds, tds_command, tds_option, &tds_argument, tds_argsize) == TDS_FAIL) {
 		return CS_FAIL;
@@ -4240,7 +4005,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		/* actual data */
 		tdsdump_log(TDS_DBG_FUNC, "paraminfoalloc: status = %d, maxlen %d \n", p->status, p->maxlen);
 		tdsdump_log(TDS_DBG_FUNC,
-			    "paraminfoalloc: name = %*.*s, varint size %d column_type %d size %d, %d column_cur_size %d column_output = %d\n",
+			    "paraminfoalloc: name = %*.*s, varint size %d "
+			    "column_type %d size %d, %d column_cur_size %d column_output = %d\n",
 			    pcol->column_namelen, pcol->column_namelen, pcol->column_name,
 			    pcol->column_varint_size, pcol->column_type,
 			    pcol->on_server.column_size, pcol->column_size,
@@ -4300,7 +4066,8 @@ param_clear(CS_PARAM * pparam)
 
 
 static int
-_ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue)
+_ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT *datalen, 
+	       CS_SMALLINT *indicator, CS_BYTE byvalue)
 {
 	int param_is_null = 0;
 
@@ -4379,7 +4146,8 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID 
 
 				if (*(param->datalen) && data) {
 					if (*(param->datalen) == CS_NULLTERM) {
-						tdsdump_log(TDS_DBG_INFO1, " _ct_fill_param() about to strdup string %u bytes long\n",
+						tdsdump_log(TDS_DBG_INFO1, 
+							    " _ct_fill_param() about to strdup string %u bytes long\n",
 							    (unsigned int) strlen(data));
 						*(param->datalen) = strlen(data);
 					} else if (*(param->datalen) < 0) {

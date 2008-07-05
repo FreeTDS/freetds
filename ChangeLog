@@ -1,3 +1,11 @@
+Sat Jul  5 18:52:45 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* include/cspublic.h src/ctlib/cs.c src/ctlib/ct.c
+	- src/ctlib/unittests/Makefile.am src/ctlib/unittests/common.c
+	- src/ctlib/unittests/datafmt.c
+	- cs_convert sets output resultlen even when dest is too small. 
+	* src/odbc/prepare_query.c src/odbc/unittests/blob1.c
+	- make it compile....
+	
 Fri Jul  4 16:59:48 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/tds.h src/odbc/odbc.c
 	- src/odbc/prepare_query.c src/odbc/unittests/blob1.c
@@ -365,4 +373,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2538 2008-07-04 21:08:38 jklowden Exp $
+$Id: ChangeLog,v 1.2539 2008-07-05 22:57:53 jklowden Exp $
