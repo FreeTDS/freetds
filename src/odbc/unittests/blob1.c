@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.4 2008-01-12 00:14:11 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.5 2008-07-05 22:58:01 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -47,6 +47,16 @@ fill_chars(char *buf, size_t len, unsigned int start, unsigned int step)
 		buf[n] = 'a' + ((start+n) * step % ('z' - 'a' + 1));
 }
 
+static void
+fill_hex(char *buf, size_t len, unsigned int start, unsigned int step)
+{
+	size_t n;
+
+	for (n = 0; n < len; ++n)
+		sprintf(buf + 2*n, "%2x", (unsigned int)('a' + ((start+n) * step % ('z' - 'a' + 1))));
+}
+
+
 static int
 check_chars(const char *buf, size_t len, unsigned int start, unsigned int step)
 {
@@ -55,6 +65,21 @@ check_chars(const char *buf, size_t len, unsigned int start, unsigned int step)
 	for (n = 0; n < len; ++n)
 		if (buf[n] != 'a' + ((start+n) * step % ('z' - 'a' + 1)))
 			return 0;
+
+	return 1;
+}
+
+static int
+check_hex(const char *buf, size_t len, unsigned int start, unsigned int step)
+{
+	size_t n;
+	char symbol[3];
+
+	for (n = 0; n < len; ++n) {
+		sprintf(symbol, "%2x", (unsigned int)('a' + ((start+n) / 2 * step % ('z' - 'a' + 1))));
+		if (buf[n] != symbol[(start+n) % 2])
+			return 0;
+	}
 
 	return 1;
 }
@@ -93,6 +118,43 @@ readBlob(SQLHSTMT * stmth, SQLUSMALLINT pos)
 	return rcode;
 }
 
+static int
+readBlobAsChar(SQLHSTMT * stmth, SQLUSMALLINT pos, int step)
+{
+	SQLRETURN rcode = SQL_SUCCESS_WITH_INFO;
+	char buf[8192];
+	SQLLEN len, total = 0;
+	int i = 0;
+	int check;
+	int bufsize;
+	
+	if (step%2) bufsize = sizeof(buf) - 1;
+	else bufsize = sizeof(buf);
+
+	printf(">> readBlobAsChar field %d\n", pos);
+	while (rcode == SQL_SUCCESS_WITH_INFO) {
+		i++;
+		rcode = SQLGetData(stmth, pos, SQL_C_CHAR, (SQLPOINTER) buf, (SQLINTEGER) bufsize, &len);
+		if (!SQL_SUCCEEDED(rcode) || len <= 0)
+			break;
+		if (len > (SQLLEN) bufsize)
+			len = (SQLLEN) bufsize - 1;
+		printf(">>     step %d: %d bytes readed\n", i, (int) len);
+		
+		check =	check_hex(buf, len, 2*987 + total, 25);
+		if (!check) {
+			fprintf(stderr, "Wrong buffer content\n");
+			failed = 1;
+		}
+		total += len;
+	}
+	printf(">>   total bytes read = %d \n", (int) total);
+	if (total != 20000)
+		failed = 1;
+	return rcode;
+}
+
+
 int
 main(int argc, char **argv)
 {
@@ -106,12 +168,14 @@ main(int argc, char **argv)
 	SQLLEN vind1;
 	char buf2[NBYTES];
 	SQLLEN vind2;
+	char buf3[NBYTES*2 + 1];
+	SQLLEN vind3;
 	int cnt = 2;
 
 	use_odbc_version3 = 1;
 	Connect();
 
-	Command(Statement, "CREATE TABLE #tt ( k INT, t TEXT, b IMAGE, v INT )");
+	Command(Statement, "CREATE TABLE #tt ( k INT, t TEXT, b1 IMAGE, b2 IMAGE, v INT )");
 
 	/* Insert rows ... */
 
@@ -121,7 +185,7 @@ main(int argc, char **argv)
 		rcode = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt);
 		CHECK_RCODE(SQL_HANDLE_DBC, Connection, "SQLAllocHandle StmtH");
 
-		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "INSERT INTO #tt VALUES ( ?, ?, ?, ? )", SQL_NTS);
+		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "INSERT INTO #tt VALUES ( ?, ?, ?, ?, ? )", SQL_NTS);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPrepare");
 
 		SQLBindParameter(m_hstmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0);
@@ -133,8 +197,11 @@ main(int argc, char **argv)
 		SQLBindParameter(m_hstmt, 3, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0x10000000, 0, buf2, 0, &vind2);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 3");
 
-		SQLBindParameter(m_hstmt, 4, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0);
+		SQLBindParameter(m_hstmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARBINARY, 0x10000000, 0, buf3, 0, &vind3);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 4");
+
+		SQLBindParameter(m_hstmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0);
+		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 5");
 
 		key = i;
 		vind0 = 0;
@@ -144,6 +211,10 @@ main(int argc, char **argv)
 
 		fill_chars(buf2, NBYTES, 987, 25);
 		vind2 = SQL_LEN_DATA_AT_EXEC(NBYTES);
+		
+		memset(buf3, 0, sizeof(buf3));
+		vind3 = SQL_LEN_DATA_AT_EXEC(2*NBYTES+1);
+		
 
 		printf(">> insert... %d\n", i);
 		rcode = SQLExecute(m_hstmt);
@@ -155,10 +226,25 @@ main(int argc, char **argv)
 			CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLParamData StmtH");
 			printf(">> SQLParamData: ptr = %p  rcode = %d\n", (void *) p, rcode);
 			if (rcode == SQL_NEED_DATA) {
-				SQLRETURN rcode = SQLPutData(m_hstmt, p, NBYTES);
+				SQLRETURN rcode;
+				if (p == buf3) {
+					fill_hex(buf3, NBYTES, 987, 25);
+					
+					rcode = SQLPutData(m_hstmt, p, NBYTES - (i&1));
 
-				CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
-				printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES);
+					CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
+					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES - (i&1));
+					
+					rcode = SQLPutData(m_hstmt, p + NBYTES - (i&1), NBYTES + (i&1));
+
+					CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
+					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES + (i&1));
+				} else {
+					rcode = SQLPutData(m_hstmt, p, NBYTES);
+
+					CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
+					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES);
+				}
 			}
 		}
 
@@ -182,7 +268,7 @@ main(int argc, char **argv)
 			CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLSetStmtAttr SQL_ATTR_CURSOR_SENSITIVITY");
 		}
 
-		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "SELECT t, b, v FROM #tt WHERE k = ?", SQL_NTS);
+		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "SELECT t, b1, b2, v FROM #tt WHERE k = ?", SQL_NTS);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPrepare");
 
 		SQLBindParameter(m_hstmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &i, 0, &vind0);
@@ -192,7 +278,9 @@ main(int argc, char **argv)
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindCol 2");
 		SQLBindCol(m_hstmt, 2, SQL_C_BINARY, NULL, 0, &vind2);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindCol 3");
-		SQLBindCol(m_hstmt, 3, SQL_C_LONG, &key, 0, &vind0);
+		SQLBindCol(m_hstmt, 3, SQL_C_BINARY, NULL, 0, &vind3);
+		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindCol 4");
+		SQLBindCol(m_hstmt, 4, SQL_C_LONG, &key, 0, &vind0);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindCol 1");
 
 		vind0 = 0;
@@ -210,6 +298,8 @@ main(int argc, char **argv)
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "readBlob 1");
 		rcode = readBlob(m_hstmt, 2);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "readBlob 2");
+		rcode = readBlobAsChar(m_hstmt, 3, i);
+		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "readBlob 3 as SQL_C_CHAR");
 
 		rcode = SQLCloseCursor(m_hstmt);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLCloseCursor StmtH");
