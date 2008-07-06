@@ -1,7 +1,13 @@
+Sun Jul  6 12:25:38 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* src/ctlib/unittests/Makefile.am src/ctlib/unittests/common.c
+	* src/ctlib/unittests/common.h
+	- unit tests accept command-line options
+	* src/ctlib/unittests/datafmt.c added
+	
 Sat Jul  5 18:52:45 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/cspublic.h src/ctlib/cs.c src/ctlib/ct.c
-	- src/ctlib/unittests/Makefile.am src/ctlib/unittests/common.c
-	- src/ctlib/unittests/datafmt.c
+	* src/ctlib/unittests/Makefile.am src/ctlib/unittests/common.c
+	* src/ctlib/unittests/datafmt.c
 	- cs_convert sets output resultlen even when dest is too small. 
 	* src/odbc/prepare_query.c src/odbc/unittests/blob1.c
 	- make it compile....
@@ -373,4 +379,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2539 2008-07-05 22:57:53 jklowden Exp $
+$Id: ChangeLog,v 1.2540 2008-07-06 16:44:24 jklowden Exp $

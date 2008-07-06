@@ -1,10 +1,11 @@
-# $Id: Makefile.am,v 1.25 2007-08-16 08:10:09 freddy77 Exp $
+# $Id: Makefile.am,v 1.26 2008-07-06 16:44:24 jklowden Exp $
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 			connect_fail ct_options lang_ct_param array_bind cs_diag \
 			get_send_data rpc_ct_param rpc_ct_setparam ct_diagclient \
 			ct_diagserver ct_diagall cs_config cancel \
 			blk_in blk_out ct_cursor ct_cursors \
-			ct_dynamic blk_in2
+			ct_dynamic blk_in2 datafmt
+
 check_PROGRAMS	=	$(TESTS)
 
 t0001_SOURCES		= t0001.c common.c common.h
@@ -35,6 +36,7 @@ ct_cursor_SOURCES	= ct_cursor.c common.c common.h
 ct_cursors_SOURCES	= ct_cursors.c common.c common.h
 ct_dynamic_SOURCES	= ct_dynamic.c common.c common.h
 blk_in2_SOURCES		= blk_in2.c common.c common.h
+datafmt_SOURCES		= datafmt.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 if MINGW32
@@ -42,5 +44,6 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install
 endif
-LIBS		=	../libct.la @NETWORK_LIBS@
+#IBS		=	../libct.la @NETWORK_LIBS@
+LIBS		=	../.libs/libct.a @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out
