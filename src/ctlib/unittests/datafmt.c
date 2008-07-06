@@ -11,10 +11,10 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: datafmt.c,v 1.1 2008-07-06 16:38:26 jklowden Exp $";
+static char software_version[] = "$Id: datafmt.c,v 1.2 2008-07-06 17:00:32 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-/* Testing: array binding of result set */
+/* Testing: data truncation behavior of ct_fetch */
 int
 main(int argc, char *argv[])
 {
@@ -46,6 +46,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Login failed\n");
 		return 1;
 	}
+	verbose += common_pwd.fverbose;
 
 	strcpy(select, "select name from systypes where datalength(name) > 2*9 order by datalength(name)");
 	printf("%s\n", select);
