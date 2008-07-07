@@ -24,7 +24,7 @@
 #include "common.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: common.c,v 1.17 2008-07-06 16:44:24 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.18 2008-07-07 11:09:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -46,6 +46,27 @@ int servermsg_cb_invoked = 0;
 
 static CS_RETCODE continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose);
 
+#if defined(__MINGW32__) || defined(_MSC_VER)
+static char *
+tds_dirname(char* path)
+{
+	char *p, *p2;
+
+	for (p = path + strlen(path); --p > path && (*p == '/' || *p == '\\');)
+		*p = '\0';
+
+	p = strrchr(path, '/');
+	if (!p)
+		p = path;
+	p2 = strrchr(p, '\\');
+	if (p2)
+		p = p2;
+	*p = 0;
+	return path;
+}
+#define dirname tds_dirname
+
+#endif
 
 CS_RETCODE
 read_login_info(void)

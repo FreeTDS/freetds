@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.65 2008-07-05 22:58:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.66 2008-07-07 11:09:43 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -276,6 +276,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 
 	switch(StrLen_or_Ind) {
 	case SQL_NTS:
+		/* TODO WCHAR */
 		len = strlen((char *) DataPtr);
 		break;
 	case SQL_NULL_DATA:

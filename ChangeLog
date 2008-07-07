@@ -1,9 +1,13 @@
+Mon Jul 07 13:09:20 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/common.c: make portable to win32
+	* src/odbc/prepare_query.c: add small comment
+
 Sun Jul  6 12:25:38 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/ctlib/unittests/Makefile.am src/ctlib/unittests/common.c
 	* src/ctlib/unittests/common.h
 	- unit tests accept command-line options
 	* src/ctlib/unittests/datafmt.c added
-	
+
 Sat Jul  5 18:52:45 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/cspublic.h src/ctlib/cs.c src/ctlib/ct.c
 	* src/ctlib/unittests/Makefile.am src/ctlib/unittests/common.c
@@ -11,7 +15,7 @@ Sat Jul  5 18:52:45 EDT 2008	JK Lowden <jklowden@freetds.org>
 	- cs_convert sets output resultlen even when dest is too small. 
 	* src/odbc/prepare_query.c src/odbc/unittests/blob1.c
 	- make it compile....
-	
+
 Fri Jul  4 16:59:48 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/tds.h src/odbc/odbc.c
 	- src/odbc/prepare_query.c src/odbc/unittests/blob1.c
@@ -379,4 +383,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2540 2008-07-06 16:44:24 jklowden Exp $
+$Id: ChangeLog,v 1.2541 2008-07-07 11:09:40 freddy77 Exp $
