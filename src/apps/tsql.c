@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.118 2008-05-31 08:54:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.119 2008-07-07 18:28:27 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -95,12 +95,14 @@ enum
 	OPT_TIMER =    0x02,
 	OPT_NOFOOTER = 0x04,
 	OPT_NOHEADER = 0x08,
-	OPT_QUIET =    0x10
+	OPT_QUIET =    0x10,
+	OPT_VERBOSE =  0x20
 };
 
 static int istty = 0;
 static int global_opt_flags = 0;
 #define QUIET (global_opt_flags & OPT_QUIET)
+#define VERBOSE (global_opt_flags & OPT_VERBOSE)
 
 static char *opt_col_term = "\t";
 static char *opt_row_term = "\n";
@@ -392,7 +394,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 #endif
 
 
-	while ((opt = getopt(argc, argv, "H:S:I:P:U:p:Co:t:r:D:")) != -1) {
+	while ((opt = getopt(argc, argv, "H:S:I:P:U:p:Co:t:r:D:v")) != -1) {
 		switch (opt) {
 		case 't':
 			opt_col_term = strdup(optarg);
@@ -428,6 +430,9 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'p':
 			port = atoi(optarg);
+			break;
+		case 'v':
+			global_opt_flags |= OPT_VERBOSE;
 			break;
 		case 'C':
 			settings = tds_get_compiletime_settings();
@@ -587,6 +592,16 @@ slurp_input_file(char *fname, char **mybuf, int *bufsz, size_t *buflen, int *lin
 	fclose(fp);
 }
 
+static void
+print_instance_data(TDSCONNECTION *connection) 
+{
+	if (!connection)
+		return;
+	
+	if (!tds_dstr_isempty(&connection->instance_name))
+		printf("connecting to instance %s on port %d\n", tds_dstr_cstr(&connection->instance_name), connection->port);
+}
+
 extern const char STD_DATETIME_FMT[];
 
 int
@@ -682,13 +697,17 @@ main(int argc, char **argv)
 	}
 #endif
 	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
-		tds_free_connection(connection);
+		if( VERBOSE ) 
+			print_instance_data(connection);
+		print_instance_data(connection);
 		tds_free_socket(tds);
 		tds_free_login(login);
 		tds_free_context(context);
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);
 	}
+	if( VERBOSE ) 
+		print_instance_data(connection);
 	tds_free_connection(connection);
 	/* give the buffer an initial size */
 	bufsz = 4096;
