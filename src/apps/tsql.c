@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.119 2008-07-07 18:28:27 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.120 2008-07-07 18:40:44 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -699,7 +699,6 @@ main(int argc, char **argv)
 	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
 		if( VERBOSE ) 
 			print_instance_data(connection);
-		print_instance_data(connection);
 		tds_free_socket(tds);
 		tds_free_login(login);
 		tds_free_context(context);
