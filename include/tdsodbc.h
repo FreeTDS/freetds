@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.105 2008-03-13 13:23:31 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.106 2008-07-07 11:27:12 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -520,6 +520,15 @@ const char *parse_const_param(const char * s, TDS_SERVER_TYPE *type);
  * sql2tds.c
  */
 SQLRETURN sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol, int compute_row, const TDS_DESC* axd, unsigned int n_row);
+
+/*
+ * sqlwchar.c
+ */
+#if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
+size_t sqlwcslen(const SQLWCHAR * s);
+#else
+#define sqlwcslen wcslen
+#endif
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility pop

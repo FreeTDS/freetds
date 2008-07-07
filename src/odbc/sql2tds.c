@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.65 2008-01-07 21:00:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.66 2008-07-07 11:27:12 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -241,7 +241,10 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			odbc_errs_add(&stmt->errs, "HY090", NULL);
 			return SQL_ERROR;
 		}
-		len = strlen(src);
+		if (sql_src_type == SQL_C_WCHAR)
+			len = sqlwcslen(src);
+		else
+			len = strlen(src);
 		break;
 	case SQL_DEFAULT_PARAM:
 	case SQL_DATA_AT_EXEC:
@@ -254,6 +257,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			/* test for SQL_C_CHAR/SQL_C_BINARY */
 			switch (sql_src_type) {
 			case SQL_C_CHAR:
+			case SQL_C_WCHAR:
 			case SQL_C_BINARY:
 				break;
 			default:
@@ -265,6 +269,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			/* dynamic length allowed only for BLOB fields */
 			switch (drec_ipd->sql_desc_concise_type) {
 			case SQL_LONGVARCHAR:
+			case SQL_WLONGVARCHAR:
 			case SQL_LONGVARBINARY:
 				break;
 			default:
