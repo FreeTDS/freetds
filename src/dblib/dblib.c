@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.326 2008-07-04 21:09:12 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.327 2008-07-08 19:41:25 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4748,7 +4748,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 DBBOOL
 dbdead(DBPROCESS * dbproc)
 {
-	tdsdump_log(TDS_DBG_FUNC, "dbdead(%p) [%s]\n", dbproc, IS_TDSDEAD(dbproc->tds_socket)? "dead":"alive");
+	tdsdump_log(TDS_DBG_FUNC, "dbdead(%p) [%s]\n", dbproc, dbproc? IS_TDSDEAD(dbproc->tds_socket)? "dead":"alive" : "quite dead");
 	CHECK_PARAMETER(dbproc, SYBENULL, TRUE);
 
 	if (IS_TDSDEAD(dbproc->tds_socket))
