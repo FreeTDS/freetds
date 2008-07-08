@@ -1,11 +1,14 @@
-# $Id: Makefile.am,v 1.27 2008-07-07 21:43:24 jklowden Exp $
+# $Id: Makefile.am,v 1.28 2008-07-08 08:41:06 freddy77 Exp $
 
-TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
-			connect_fail ct_options lang_ct_param array_bind cs_diag \
-			get_send_data rpc_ct_param rpc_ct_setparam ct_diagclient \
-			ct_diagserver ct_diagall cs_config cancel \
-			blk_in blk_out ct_cursor ct_cursors \
-			ct_dynamic blk_in2 datafmt
+TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT) t0004$(EXEEXT) \
+			t0005$(EXEEXT) t0006$(EXEEXT) t0007$(EXEEXT) t0008$(EXEEXT) \
+			t0009$(EXEEXT) connect_fail$(EXEEXT) ct_options$(EXEEXT) \
+			lang_ct_param$(EXEEXT) array_bind$(EXEEXT) cs_diag$(EXEEXT) \
+			get_send_data$(EXEEXT) rpc_ct_param$(EXEEXT) rpc_ct_setparam$(EXEEXT) \
+			ct_diagclient$(EXEEXT) ct_diagserver$(EXEEXT) ct_diagall$(EXEEXT) \
+			cs_config$(EXEEXT) cancel$(EXEEXT) blk_in$(EXEEXT) \
+			blk_out$(EXEEXT) ct_cursor$(EXEEXT) ct_cursors$(EXEEXT) \
+			ct_dynamic$(EXEEXT) blk_in2$(EXEEXT) datafmt$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 

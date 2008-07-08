@@ -1,3 +1,6 @@
+Tue Jul 08 10:39:12 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/Makefile.am: make win32 happy
+
 Mon Jul  7 17:42:00 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/ctlib/unittests/Makefile.am link statically
 
@@ -396,4 +399,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2545 2008-07-07 21:43:23 jklowden Exp $
+$Id: ChangeLog,v 1.2546 2008-07-08 08:41:05 freddy77 Exp $
