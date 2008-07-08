@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.290 2008-07-04 21:08:39 jklowden Exp $ */
+/* $Id: tds.h,v 1.291 2008-07-08 08:45:09 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -498,6 +498,10 @@ typedef enum
 #define SYBUNIQUE	SYBUNIQUE
 	SYBVARIANT = 98, 	/* 0x62 */
 #define SYBVARIANT	SYBVARIANT
+	SYBMSUDT = 240,		/* 0xF0 */
+#define SYBMSUDT SYBMSUDT
+	SYBMSXML = 241,		/* 0xF1 */
+#define SYBMSXML SYBMSXML
 
 /*
  * Sybase only types
