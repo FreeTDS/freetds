@@ -40,7 +40,7 @@
 #include "pool.h"
 #include "tds.h"
 
-TDS_RCSID(var, "$Id: stream.c,v 1.25 2007-06-19 13:31:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: stream.c,v 1.26 2008-07-08 08:47:08 freddy77 Exp $");
 
 int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 
@@ -158,12 +158,23 @@ read_row(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *byte
 	return 1;
 }
 
+static void
+free_col_struct(struct tmp_col_struct *head)
+{
+	while (head) {
+		struct tmp_col_struct *prev = head;
+		head = prev->next;
+		free(prev->column_name);
+		free(prev);
+	}
+}
+
 static int
 read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *bytes_read)
 {
 	TDS_SMALLINT hdrsize;
 	int pos = 0;
-	int stop = 0, num_cols = 0;
+	int num_cols = 0;
 	int namelen;
 	struct tmp_col_struct *head = NULL, *cur = NULL, *prev;
 	int col;
@@ -175,14 +186,17 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 		*bytes_read = maxlen;
 		return 0;
 	}
-	/* FIX ME -- endian */
+	/* FIXME -- endian */
 	hdrsize = buf[1] + buf[2] * 256;
 	pos += 3;
 
-	while (!stop) {
+	for (;;) {
 		prev = cur;
 		cur = (struct tmp_col_struct *)
 			malloc(sizeof(struct tmp_col_struct));
+		cur->next = NULL;
+		cur->column_name = NULL;
+
 		if (prev)
 			prev->next = cur;
 		if (!head)
@@ -190,6 +204,7 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 
 		if (bytes_left(pmbr, buf, pos, maxlen, 1)) {
 			*bytes_read = maxlen;
+			free_col_struct(head);
 			return 0;
 		}
 		namelen = buf[pos++];
@@ -197,19 +212,19 @@ read_col_name(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int 
 
 		if (bytes_left(pmbr, buf, pos, maxlen, namelen)) {
 			*bytes_read = maxlen;
+			free_col_struct(head);
 			return 0;
 		}
 		cur->column_name = (char *) malloc(namelen + 1);
 		strncpy(cur->column_name, (char *) &buf[pos], namelen);
 		cur->column_name[namelen] = '\0';
-		cur->next = NULL;
 
 		pos += namelen;
 
 		num_cols++;
 
 		if (pos >= hdrsize)
-			stop = 1;
+			break;
 	}
 
 	tds_free_all_results(pmbr->tds);
