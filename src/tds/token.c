@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.345 2008-04-23 21:36:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.346 2008-07-08 17:16:55 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2500,6 +2500,10 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 	/* server name */
 	rc += tds_alloc_get_string(tds, &msg.server, tds_get_byte(tds));
+
+	if (!msg.server[0] && tds->connection) {
+		sprintf(msg.server, "[%s]", tds_dstr_cstr(&tds->connection->server_name));
+	}
 
 	/* stored proc name if available */
 	rc += tds_alloc_get_string(tds, &msg.proc_name, tds_get_byte(tds));

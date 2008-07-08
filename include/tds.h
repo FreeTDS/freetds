@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.291 2008-07-08 08:45:09 freddy77 Exp $ */
+/* $Id: tds.h,v 1.292 2008-07-08 17:16:55 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -165,7 +165,7 @@ typedef struct tdsunique
 	TDS_UCHAR Data4[8];
 } TDS_UNIQUE;
 
-/** information on data, used by tds_datecrack */
+/** Used by tds_datecrack */
 typedef struct tdsdaterec
 {
 	TDS_INT year;	       /**< year */
@@ -258,7 +258,7 @@ enum tds_end
 	, TDS_DONE_PROC 	= 0x08	/**< results are from a stored procedure */
 	, TDS_DONE_COUNT 	= 0x10	/**< count field in packet is valid */
 	, TDS_DONE_CANCELLED 	= 0x20	/**< acknowledging an attention command (usually a cancel) */
-	, TDS_DONE_EVENT 	= 0x40	/* part of an event notification. */
+	, TDS_DONE_EVENT 	= 0x40	/*   part of an event notification. */
 	, TDS_DONE_SRVERROR 	= 0x100	/**< SQL server server error */
 	
 	/* after the above flags, a TDS_DONE packet has a field describing the state of the transaction */
@@ -834,8 +834,8 @@ typedef struct tds_login
 	TDS_TINYINT major_version;	/* TDS version */
 	TDS_TINYINT minor_version;	/* TDS version */
 	int block_size;
-	DSTR language;		/* ie us-english */
-	DSTR server_charset;	/*  ie iso_1 */
+	DSTR language;			/* e.g. us-english */
+	DSTR server_charset;		/* e.g. iso_1 */
 	TDS_INT connect_timeout;
 	DSTR client_host_name;
 	DSTR app_name;
@@ -866,8 +866,8 @@ typedef struct tds_connection
 	DSTR client_host_name;
 	DSTR server_host_name;
 	DSTR app_name;
-	DSTR user_name;	    /**< account for login */
-	DSTR password;	    /**< password of account login */
+	DSTR user_name;	    	/**< account for login */
+	DSTR password;	    	/**< password of account login */
 	DSTR library;
 	TDS_TINYINT bulk_copy;
 	TDS_TINYINT suppress_language;
@@ -877,7 +877,7 @@ typedef struct tds_connection
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	DSTR client_charset;
 
-	DSTR ip_addr;	  /**< ip of server */
+	DSTR ip_addr;	  	/**< ip of server */
 	DSTR instance_name;
 	DSTR database;
 	DSTR dump_file;
@@ -1021,7 +1021,7 @@ typedef struct tds_column
 	 * For example, strings in some non-C programming languages are
 	 * made up of a one-byte length prefix, followed by the string
 	 * data itself.
-	 * If the data does not have a length prefix, set prefixlen to 0.
+	 * If the data do not have a length prefix, set prefixlen to 0.
 	 * Currently not very used in code, however do not remove.
 	 */
 	TDS_INT bcp_prefix_len;
@@ -1131,7 +1131,7 @@ typedef struct tds_upd_col
 } TDSUPDCOL;
 
 typedef enum {
-	  TDS_CURSOR_STATE_UNACTIONED = 0   /* initial value */
+	  TDS_CURSOR_STATE_UNACTIONED = 0   	/* initial value */
 	, TDS_CURSOR_STATE_REQUESTED = 1	/* called by ct_cursor */ 
 	, TDS_CURSOR_STATE_SENT = 2		/* sent to server */
 	, TDS_CURSOR_STATE_ACTIONED = 3		/* acknowledged by server */
@@ -1279,45 +1279,34 @@ struct tds_authentication
 typedef struct tds_authentication TDSAUTHENTICATION;
 
 /**
- * Hold information for a server connection
+ * Information for a server connection
  */
 struct tds_socket
 {
-	/* fixed and connect time */
-	/** tcp socket, INVALID_SOCKET if not connected */
-	TDS_SYS_SOCKET s;
+	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
 	TDS_SMALLINT major_version;
 	TDS_SMALLINT minor_version;
-	/** version of product (Sybase/MS and full version) */
-	TDS_UINT product_version;
+	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
 	char *product_name;
+
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	unsigned char broken_dates;
 	unsigned char option_flag2;
-	/* in/out buffers */
-	/** input buffer */
-	unsigned char *in_buf;
-	/** output buffer */
-	unsigned char *out_buf;
-	/** allocated input buffer */
-	unsigned int in_buf_max;
-	/** current position in in_buf */
-	unsigned in_pos;
-	/** current position in out_buf */
-	unsigned out_pos;
-	/** input buffer length */
-	unsigned in_len;
-	/* TODO remove blocksize from env and use out_len ?? */
-/*	unsigned out_len; */
-	/** input buffer type */
-	unsigned char in_flag;
-	/** output buffer type */
-	unsigned char out_flag;
-	/** true if current input buffer is the last one */
-	unsigned char last_packet;
+
+	unsigned char *in_buf;		/**< input buffer */
+	unsigned char *out_buf;		/**< output buffer */
+	unsigned int in_buf_max;	/**< allocated input buffer */
+	unsigned in_pos;		/**< current position in in_buf */
+	unsigned out_pos;		/**< current position in out_buf */
+	unsigned in_len;		/**< input buffer length */
+
+	unsigned char in_flag;		/**< input buffer type */
+	unsigned char out_flag;		/**< output buffer type */
+	unsigned char last_packet;	/**< true if current input buffer is the last one */
 	void *parent;
+
 	/**
-	 * info about current query. 
+	 * Current query information. 
 	 * Contains information in process, both normal and compute results.
 	 * This pointer shouldn't be freed; it's just an alias to another structure.
 	 */
@@ -1326,22 +1315,21 @@ struct tds_socket
 	TDS_INT num_comp_info;
 	TDSCOMPUTEINFO **comp_info;
 	TDSPARAMINFO *param_info;
-	TDSCURSOR *cur_cursor;	/**< cursor in use */
-	TDSCURSOR *cursors;	/**< linked list of cursors allocated for this connection */
-	TDS_TINYINT has_status; /**< true is ret_status is valid */
-	TDS_INT ret_status;     /**< return status from store procedure */
+	TDSCURSOR *cur_cursor;		/**< cursor in use */
+	TDSCURSOR *cursors;		/**< linked list of cursors allocated for this connection */
+	TDS_TINYINT has_status; 	/**< true is ret_status is valid */
+	TDS_INT ret_status;     	/**< return status from store procedure */
 	TDS_STATE state;
-	/** indicate we are waiting a cancel reply so discard tokens till acknowledge */
-	volatile unsigned char in_cancel;
-	/** rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
-	TDS_INT8 rows_affected;
-	/* timeout stuff from Jeff */
+
+	volatile 
+	unsigned char in_cancel; 	/**< indicate we are waiting a cancel reply; discard tokens till acknowledge */
+	
+	TDS_INT8 rows_affected;		/**< rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
 	TDS_INT query_timeout;
 	TDSENV env;
 
-	/* dynamic placeholder stuff */
-	/*@dependent@*/ TDSDYNAMIC *cur_dyn;	/**< dynamic structure in use */
-	TDSDYNAMIC *dyns;	/**< list of dynamic allocate for this connection */
+	TDSDYNAMIC *cur_dyn;		/**< dynamic structure in use */
+	TDSDYNAMIC *dyns;		/**< list of dynamic allocate for this connection */
 
 	int emul_little_endian;
 	char *date_fmt;
@@ -1349,8 +1337,7 @@ struct tds_socket
 	int char_conv_count;
 	TDSICONV **char_convs;
 
-	/** config for login stuff. After login this field is NULL */
-	TDSCONNECTION *connection;
+	TDSCONNECTION *connection;	/**< config for login stuff. After login this field is NULL */
 
 	int spid;
 	TDS_UCHAR collation[5];
