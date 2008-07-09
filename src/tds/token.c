@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.347 2008-07-09 09:41:10 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.348 2008-07-09 10:01:04 jklowden Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2502,7 +2502,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	rc += tds_alloc_get_string(tds, &msg.server, tds_get_byte(tds));
 
 	if ((!msg.server || !msg.server[0]) && tds->connection) {
-		free(msg.server);
+		TDS_ZERO_FREE(msg.server);
 		if (-1 == asprintf(&msg.server, "[%s]", tds_dstr_cstr(&tds->connection->server_name))) {
 			tdsdump_log(TDS_DBG_ERROR, "out of memory (%d), %s\n", errno, strerror(errno));
 			return TDS_FAIL;
