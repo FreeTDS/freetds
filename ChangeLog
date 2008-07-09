@@ -1,3 +1,6 @@
+Wed Jul  9 05:34:20 EDT 2008	JK Lowden <jklowden@freetds.org>
+	* src/tds/token.c use locally provided server name correctly
+
 Tue Jul  8 15:38:37 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c don't dereference a NULL dbproc. 
 
@@ -413,4 +416,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2550 2008-07-08 19:41:24 jklowden Exp $
+$Id: ChangeLog,v 1.2551 2008-07-09 09:41:07 jklowden Exp $
