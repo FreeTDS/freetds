@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.14 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.15 2008-07-11 09:29:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	Test("TINYINT", "231", SQL_C_BINARY, "E7");
 	Test("SMALLINT", "4321", SQL_C_BINARY, big_endian ? "10E1" : "E110");
 	Test("INT", "1234567", SQL_C_BINARY, big_endian ? "0012D687" : "87D61200");
-	if ((db_is_microsoft() && strncmp(version, "08.00.", 6) == 0)
+	if ((db_is_microsoft() && (strncmp(version, "08.00.", 6) == 0 || strncmp(version, "09.00.", 6) == 0))
 	    || (!db_is_microsoft() && strncmp(version, "15.00.", 6) >= 0)) {
 		int old_result = result;
 

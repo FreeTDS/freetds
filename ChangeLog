@@ -1,4 +1,9 @@
 Fri Jul 11 11:25:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/data.c src/odbc/unittests/genparams.c:
+	- make some tests run even on mssql2005
+	- add initial test for NVARCHAR
+
+Fri Jul 11 11:25:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c: cleanup
 
 Wed Jul  9 05:34:20 EDT 2008	JK Lowden <jklowden@freetds.org>
@@ -419,4 +424,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2552 2008-07-11 09:25:56 freddy77 Exp $
+$Id: ChangeLog,v 1.2553 2008-07-11 09:29:17 freddy77 Exp $

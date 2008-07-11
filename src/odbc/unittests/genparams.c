@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.25 2008-01-31 09:13:08 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.26 2008-07-11 09:29:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -133,7 +133,6 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	if (exec_direct) {
 		SQLRETURN rc;
 
-		out_len = 1;
 		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len));
 
 		rc = SQLExecDirect(Statement, (SQLCHAR *) sbuf, SQL_NTS);
@@ -145,7 +144,6 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		if (prepare_before)
 			CHK(SQLPrepare, (Statement, (SQLCHAR *) sbuf, SQL_NTS));
 
-		out_len = 1;
 		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len));
 
 		if (!prepare_before)
@@ -256,9 +254,10 @@ AllTests(void)
 	TestInput(SQL_C_DOUBLE, "MONEY", SQL_DOUBLE, "MONEY", "123.34");
 
 	/* TODO some Sybase versions */
-	if (db_is_microsoft() && strncmp(version, "08.00.", 6) == 0) {
+	if (db_is_microsoft() && (strncmp(version, "08.00.", 6) == 0 || strncmp(version, "09.00.", 6) == 0)) {
 		Test("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
 	}
 }
 
