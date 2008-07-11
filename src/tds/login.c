@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.173 2008-04-23 21:36:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.174 2008-07-11 09:25:56 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -314,10 +314,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	int retval;
 	int connect_timeout = 0;
 	int db_selected = 0;
-	char version[64];
-	char *str;
-	int len;
-	
+
 	/*
 	 * A major version of 0 means try to guess the TDS version. 
 	 * We try them in an order that should work. 
@@ -421,10 +418,6 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	memcpy(tds->capabilities, connection->capabilities, TDS_MAX_CAPABILITY);
 
-	retval = tds_version(tds, version);
-	if (!retval)
-		version[0] = '\0';
-
 	if (tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout) != TDS_SUCCEED)
 		return TDS_FAIL;
 	tds_set_state(tds, TDS_IDLE);
@@ -447,6 +440,9 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 	}
 
 	if (connection->text_size || (!db_selected && !tds_dstr_isempty(&connection->database))) {
+		char *str;
+		int len;
+
 		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&connection->database),-1);
 		if ((str = (char *) malloc(len)) == NULL)
 			return TDS_FAIL;
