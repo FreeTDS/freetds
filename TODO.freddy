@@ -43,6 +43,16 @@ Done handling
 Callback when state goes to IDLE
 Free unused cursors and dynamic and/or reuse them
 
+ODBC SQL_C_CHAR with wide
+-------------------------
+Check iso8859-1 for single ??
+test to review
+- data.c (char -> sql_c_char)
+- genparams.c
+- getdata.c ??
+- putdata.c ??
+- wchar.c
+
 Other
 -----
 Implement some sort of fast write to network writing directly to 

@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.97 2008-07-14 14:06:15 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.98 2008-07-14 15:12:42 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -537,7 +537,13 @@ odbc_sql_to_displaysize(int sqltype, TDSCOLUMN *col)
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
-		size = col->column_size;
+		size = col->on_server.column_size;
+		break;
+	/* FIXME sure ?? *2 or not ?? */
+	case SQL_WCHAR:
+	case SQL_WVARCHAR:
+	case SQL_WLONGVARCHAR:
+		size = col->on_server.column_size / 2;
 		break;
 	case SQL_BINARY:
 	case SQL_VARBINARY:
@@ -618,6 +624,12 @@ odbc_sql_to_c_type_default(int sql_type)
 	case SQL_CHAR:
 	case SQL_VARCHAR:
 	case SQL_LONGVARCHAR:
+	/* these types map to SQL_C_CHAR for compatibility with old applications */
+#ifdef SQL_C_WCHAR
+	case SQL_WCHAR:
+	case SQL_WVARCHAR:
+	case SQL_WLONGVARCHAR:
+#endif
 		return SQL_C_CHAR;
 		/* for compatibility numeric are converted to CHAR, not to structure */
 	case SQL_DECIMAL:
@@ -807,7 +819,8 @@ odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_
 		len = 0;
 		/* TODO add XML if defined */
 		/* FIXME, other types available */
-		if (drec_axd->sql_desc_concise_type == SQL_C_CHAR || drec_axd->sql_desc_concise_type == SQL_C_BINARY) {
+		if (drec_axd->sql_desc_concise_type == SQL_C_CHAR || drec_axd->sql_desc_concise_type == SQL_C_WCHAR
+		    || drec_axd->sql_desc_concise_type == SQL_C_BINARY) {
 			len = SQL_NTS;
 		} else {
 			int type = drec_axd->sql_desc_concise_type;
@@ -1055,6 +1068,7 @@ odbc_get_octet_len(int c_type, const struct _drecord *drec)
 	/* this shit is mine -- freddy77 */
 	switch (c_type) {
 	case SQL_C_CHAR:
+	case SQL_C_WCHAR:
 	case SQL_C_BINARY:
 		len = drec->sql_desc_octet_length;
 		break;

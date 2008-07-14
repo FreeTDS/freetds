@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.484 2008-07-04 21:08:39 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.485 2008-07-14 15:12:42 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1232,7 +1232,7 @@ _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQL
 	stmt->need_reprepare = 1;
 
 	/* TODO other types ?? handle SQL_C_DEFAULT */
-	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_BINARY)
+	if (drec->sql_desc_type == SQL_C_CHAR || drec->sql_desc_type == SQL_C_WCHAR || drec->sql_desc_type == SQL_C_BINARY)
 		drec->sql_desc_octet_length = cbValueMax;
 	drec->sql_desc_indicator_ptr = pcbValue;
 	drec->sql_desc_octet_length_ptr = pcbValue;
@@ -1573,6 +1573,7 @@ SQLBindCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	/* check conversion type */
 	switch (fCType) {
 	case SQL_C_CHAR:
+	case SQL_C_WCHAR:
 	case SQL_C_BINARY:
 	case SQL_C_DEFAULT:
 		/* check max buffer length */
