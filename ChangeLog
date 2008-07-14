@@ -1,3 +1,7 @@
+Mon Jul 14 10:14:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- minor SQLWCHAR improves
+
 Fri Jul 11 11:25:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/data.c src/odbc/unittests/genparams.c:
 	- make some tests run even on mssql2005
@@ -424,4 +428,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2553 2008-07-11 09:29:17 freddy77 Exp $
+$Id: ChangeLog,v 1.2554 2008-07-14 08:14:47 freddy77 Exp $

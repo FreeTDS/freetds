@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.66 2008-07-07 11:09:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.67 2008-07-14 08:14:48 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -245,6 +245,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	int need_bytes;
 	TDSCOLUMN *curcol;
 	TDSBLOB *blob;
+	int sql_src_type;
 
 	if (!stmt->params) {
 		tdsdump_log(TDS_DBG_FUNC, "error? continue_parse_prepared_query: no parameters provided");
@@ -274,10 +275,17 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		}
 	}		
 
+	/* get C type */
+	sql_src_type = drec_apd->sql_desc_concise_type;
+	if (sql_src_type == SQL_C_DEFAULT)
+		sql_src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+
 	switch(StrLen_or_Ind) {
 	case SQL_NTS:
-		/* TODO WCHAR */
-		len = strlen((char *) DataPtr);
+		if (sql_src_type == SQL_C_WCHAR)
+			len = sqlwcslen((SQLWCHAR *) DataPtr);
+		else
+			len = strlen((char *) DataPtr);
 		break;
 	case SQL_NULL_DATA:
 		len = 0;
@@ -306,24 +314,18 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	/* copy to destination */
 	if (blob) {
 		TDS_CHAR *p;
-		int dest_type, src_type, sql_src_type, res;
+		int dest_type, src_type, res;
 		CONV_RESULT ores;
 		TDS_DBC * dbc = stmt->dbc;
 		void *free_ptr = NULL;
 		int start = 0;
 		SQLPOINTER extradata = NULL;
 		SQLLEN extralen = 0;
-		
 
 		if (0 == (dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type))) {
 			odbc_errs_add(&dbc->errs, "07006", NULL); /* Restricted data type attribute violation */
 			return SQL_ERROR;
 		}
-			
-		/* get C type */
-		sql_src_type = drec_apd->sql_desc_concise_type;
-		if (sql_src_type == SQL_C_DEFAULT)
-			sql_src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
 
 		/* test source type */
 		/* TODO test intervals */
@@ -332,7 +334,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 			odbc_errs_add(&stmt->dbc->errs, "07006", NULL); /* Restricted data type attribute violation */
 			return SQL_ERROR;
 		}
-		
+
 		if (sql_src_type == SQL_C_CHAR) {
 			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
 			case SYBBINARY:
