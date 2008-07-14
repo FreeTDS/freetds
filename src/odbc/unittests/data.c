@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.15 2008-07-11 09:29:18 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.16 2008-07-14 13:07:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -22,6 +22,8 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 
 	/* execute a select to get data as wire */
 	sprintf(sbuf, "SELECT CONVERT(%s, '%s') AS data", type, value_to_convert);
+	if (strncmp(value_to_convert, "0x", 2) == 0)
+		sprintf(sbuf, "SELECT CONVERT(%s, %s) COLLATE Latin1_General_CI_AS AS data", type, value_to_convert);
 	Command(Statement, sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	CHK(SQLFetch, (Statement));
@@ -112,6 +114,11 @@ main(int argc, char *argv[])
 			if (!old_result)
 				result = 0;
 		}
+
+		/* nvarchar without extended characters */
+		Test("NVARCHAR(20)", "test", SQL_C_CHAR, "4 test");
+		/* nvarchar with extended characters */
+		Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_CHAR, "4 \x83hi\xf2");
 	}
 
 	Test("DECIMAL", "1234.5678", SQL_C_BINARY, "120001D3040000000000000000000000000000");
