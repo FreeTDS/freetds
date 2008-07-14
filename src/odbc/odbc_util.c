@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.96 2008-01-29 09:35:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.97 2008-07-14 14:06:15 jklowden Exp $");
 
 /**
  * \ingroup odbc_api
@@ -361,6 +361,8 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBUINTN:
 	case SYBUNITEXT:
 	case SYBXML:
+	case SYBMSUDT:
+	case SYBMSXML:
 		break;
 	}
 	return SQL_UNKNOWN_TYPE;
