@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.74 2008-01-17 06:56:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.75 2008-07-15 15:25:07 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -1028,6 +1028,7 @@ tds_ssl_write(BIO *b, const char* data, int len)
 		/* write to socket directly */
 		return tds_goodwrite(tds, data, len, 1);
 	}
+	/* write crypted data inside normal TDS packets */
 	tds_put_n(tds, data, len);
 	return len;
 }
