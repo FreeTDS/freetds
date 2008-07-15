@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.26 2008-07-11 09:29:18 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.27 2008-07-15 15:14:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -26,12 +26,16 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 	SQLLEN out_len = 0;
 	SQL_NUMERIC_STRUCT *num;
 	int i;
+	const char *sep;
 
 	ResetStatement();
 
 	/* build store procedure to test */
 	Command(Statement, "IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
-	sprintf(sbuf, "CREATE PROC spTestProc @i %s OUTPUT AS SELECT @i = CONVERT(%s, '%s')", type, type, value_to_convert);
+	sep = "'";
+	if (strncmp(value_to_convert, "0x", 2) == 0)
+		sep = "";
+	sprintf(sbuf, "CREATE PROC spTestProc @i %s OUTPUT AS SELECT @i = CONVERT(%s, %s%s%s)", type, type, sep, value_to_convert, sep);
 	Command(Statement, sbuf);
 	memset(out_buf, 0, sizeof(out_buf));
 
@@ -77,6 +81,9 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 		for (i = 0; i < out_len; ++i)
 			sprintf(strchr(sbuf, 0), "%02X", (int) out_buf[i]);
 		break;
+	case SQL_C_CHAR:
+		sprintf(sbuf, "%d %s", (int) out_len, out_buf);
+		break;
 	default:
 		/* not supported */
 		assert(0);
@@ -99,6 +106,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	const char *expected = value_to_convert;
 	size_t value_len = strlen(value_to_convert);
 	const char *p;
+	const char *sep = "'";
 
 	ResetStatement();
 
@@ -107,7 +115,9 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		value_len = p - value_to_convert;
 		expected = p + 4;
 	}
-	sprintf(sbuf, "SELECT CONVERT(%s, '%.*s')", type, (int) value_len, value_to_convert);
+	if (value_len >= 2 && strncmp(value_to_convert, "0x", 2) == 0)
+		sep = "";
+	sprintf(sbuf, "SELECT CONVERT(%s, %s%.*s%s)", type, sep, (int) value_len, value_to_convert, sep);
 	Command(Statement, sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	if (!SQL_SUCCEEDED(SQLFetch(Statement)))
@@ -156,7 +166,10 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 
 	/* check is row is present */
 	ResetStatement();
-	sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, '%s')", param_type, expected);
+	sep = "'";
+	if (strncmp(expected, "0x", 2) == 0)
+		sep = "";
+	sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
 	Command(Statement, sbuf);
 
 	CHK(SQLFetch, (Statement));
@@ -253,11 +266,28 @@ AllTests(void)
 
 	TestInput(SQL_C_DOUBLE, "MONEY", SQL_DOUBLE, "MONEY", "123.34");
 
+	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_VARCHAR, "VARCHAR(20)", "1EasyTest");
+	/* TODO use collate in sintax if available */
+	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_VARCHAR, "VARCHAR(20)", "me\xf4");
+
+	precision = 6;
+	/* output from char with conversions */
+	Test("VARCHAR(20)", "foo test", SQL_C_CHAR, SQL_VARCHAR, "6 foo te");
+	/* TODO use collate in sintax if available */
+	Test("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
+
 	/* TODO some Sybase versions */
 	if (db_is_microsoft() && (strncmp(version, "08.00.", 6) == 0 || strncmp(version, "09.00.", 6) == 0)) {
 		Test("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "\xa3h\xf9 -> 0xA3006800f900");
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "0xA3006800f900 -> \xa3h\xf9");
+
+		precision = 12;
+		Test("NVARCHAR(20)", "foo test", SQL_C_CHAR, SQL_WVARCHAR, "6 foo te");
+		/* TODO use collate in sintax if available */
+		Test("NVARCHAR(20)", "0xf800f900", SQL_C_CHAR, SQL_WVARCHAR, "2 \xf8\xf9");
 	}
 }
 
