@@ -215,7 +215,7 @@ upload "$OUTDIR/test2" '*.html'
 cd ..
 
 # do tests with sybase 15 server
-if test "$OUTDIR" = "out"; then
+if test "$OUTDIR" != "out0"; then
 	cp -f ../PWD.sybase15 PWD
 	read_pwd_fields
 	rm -rf logs
@@ -228,7 +228,7 @@ if test "$OUTDIR" = "out"; then
 fi
 
 # test autodiscovery
-if test "$OUTDIR" = "out"; then
+if test "$OUTDIR" != "out0"; then
 	save_coverage
 	# using tsql directly with grep do not update coverage informations
 	echo -e 'select @@version\ngo\nbye' | TDSVER=0.0 ./src/apps/tsql -S "$tSRV" -U "$tUID" -P "$tPWD" > out.txt || true

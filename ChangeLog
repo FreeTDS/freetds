@@ -1,3 +1,6 @@
+Tue Jul 15 11:51:59 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild: from version 0.82 do all tests
+
 Mon Jul 14 17:09:56 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO.freddy src/odbc/odbc.c src/odbc/odbc_util.c:
 	- small improves for SQLWCHAR support
@@ -438,4 +441,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2557 2008-07-14 15:12:42 freddy77 Exp $
+$Id: ChangeLog,v 1.2558 2008-07-15 09:52:16 freddy77 Exp $
