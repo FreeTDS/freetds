@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.33 2008-06-12 01:00:48 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.34 2008-07-15 09:53:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -124,7 +124,7 @@ ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char 
 	return erc;
 }
 
-int 
+static int 
 colwidth( DBPROCESS * dbproc, int icol ) 
 {
 	int width = dbwillconvert(dbcoltype(dbproc, icol), SYBCHAR);
@@ -260,7 +260,7 @@ main(int argc, char **argv)
 	}
 
 	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param5, 0, SYBVARCHAR, /*maxlen= */ -1, /* datalen= */ 2, &"OK:");
+	erc = dbrpcparam(dbproc, param5, 0, SYBVARCHAR, /*maxlen= */ -1, /* datalen= */ 2, (BYTE *) "OK:");
 	if (erc == FAIL) {
 		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
 		failed = 1;

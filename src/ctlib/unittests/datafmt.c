@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: datafmt.c,v 1.2 2008-07-06 17:00:32 jklowden Exp $";
+static char software_version[] = "$Id: datafmt.c,v 1.3 2008-07-15 09:53:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: data truncation behavior of ct_fetch */
@@ -72,12 +72,14 @@ main(int argc, char *argv[])
 			break;
 		case CS_CMD_FAIL:
 			fprintf(stderr, "ct_results() result_type CS_CMD_FAIL.\n");
+			free(addr);
 			return 1;
 		case CS_ROW_RESULT:
 
 			ret = ct_res_info(cmd, CS_NUMDATA, &num_cols, CS_UNUSED, NULL);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_res_info() failed");
+				free(addr);
 				return 1;
 			}
 			fprintf(stderr, "%d column%s\n", num_cols, num_cols==1? "":"s");
@@ -85,6 +87,7 @@ main(int argc, char *argv[])
 			ret = ct_describe(cmd, 1, &datafmt);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_describe() failed\n");
+				free(addr);
 				return 1;
 			}
 
@@ -105,6 +108,7 @@ main(int argc, char *argv[])
 			ret = ct_bind(cmd, 1, &datafmt, addr, &copied, &ind);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
+				free(addr);
 				return 1;
 			}
 
@@ -123,15 +127,19 @@ main(int argc, char *argv[])
 					break;
 				case CS_ROW_FAIL:
 					fprintf(stderr, "error: ct_fetch() returned CS_ROW_FAIL on row %d.\n", row_count);
+					free(addr);
 					return 1;
 				case CS_CANCELED:
 					fprintf(stderr, "error: ct_fetch() returned CS_CANCELED??\n");
+					free(addr);
 					return 1;
 				case CS_FAIL:
 					fprintf(stderr, "error: ct_fetch() returned CS_FAIL.\n");
+					free(addr);
 					return 1;
 				default:
 					fprintf(stderr, "error: ct_fetch() unexpected return.\n");
+					free(addr);
 					return 1;
 				}
 			}
@@ -145,10 +153,12 @@ main(int argc, char *argv[])
 		break;
 	case CS_FAIL:
 		fprintf(stderr, "ct_results() failed.\n");
+		free(addr);
 		return 1;
 		break;
 	default:
 		fprintf(stderr, "ct_results() unexpected return.\n");
+		free(addr);
 		return 1;
 	}
 
@@ -158,8 +168,10 @@ main(int argc, char *argv[])
 	ret = try_ctlogout(ctx, conn, cmd, verbose);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Logout failed\n");
+		free(addr);
 		return 1;
 	}
 
+	free(addr);
 	return 0;
 }

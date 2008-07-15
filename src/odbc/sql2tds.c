@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.67 2008-07-14 08:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.68 2008-07-15 09:53:00 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -242,7 +242,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			return SQL_ERROR;
 		}
 		if (sql_src_type == SQL_C_WCHAR)
-			len = sqlwcslen(src);
+			len = sqlwcslen((const SQLWCHAR *) src);
 		else
 			len = strlen(src);
 		break;
