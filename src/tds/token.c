@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.348 2008-07-09 10:01:04 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.349 2008-07-15 15:20:54 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -1437,6 +1437,11 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		break;
 	case 2:
 		curcol->column_size = tds_get_smallint(tds);
+#ifdef ENABLE_DEVELOPING
+		/* under TDS9 this means ?var???(MAX) */
+		if (curcol->column_size < 0 && IS_TDS90(tds))
+			curcol->column_size = 0x1ffffffflu;
+#endif
 		break;
 	case 1:
 		curcol->column_size = tds_get_byte(tds);
@@ -1938,6 +1943,26 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 	return TDS_SUCCEED;
 }
 
+#ifdef ENABLE_DEVELOPING
+static int
+tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
+{
+	TDS_INT8 len = tds_get_int8(tds);
+	TDS_INT chunk_len;
+
+	/* NULL */
+	if (len == -1) {
+		curcol->column_cur_size = -1;
+		return TDS_SUCCEED;
+	}
+
+	for (;;) {
+		chunk_len = tds_get_int(tds);
+		if (chunk_len < 0)
+			return TDS_SUCCEED;
+	}
+}
+#endif
 
 /**
  * Read a data from wire
@@ -1998,6 +2023,10 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		colsize = tds_get_int(tds);
 		break;
 	case 2:
+#ifdef ENABLE_DEVELOPING
+		if (curcol->column_size == 0x1ffffffflu)
+			return tds9_get_varmax(tds, curcol);
+#endif
 		colsize = tds_get_smallint(tds);
 		break;
 	case 1:
