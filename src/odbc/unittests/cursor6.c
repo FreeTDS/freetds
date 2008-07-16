@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with no binded columns */
 
-static char software_version[] = "$Id: cursor6.c,v 1.1 2008-06-05 16:08:46 freddy77 Exp $";
+static char software_version[] = "$Id: cursor6.c,v 1.2 2008-07-16 07:37:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int bind_all = 0;
@@ -97,17 +97,7 @@ main(int argc, char *argv[])
 	use_odbc_version3 = 1;
 	Connect();
 
-	retcode = SQLSetConnectAttr(Connection, SQL_ATTR_CURSOR_TYPE,  (SQLPOINTER) SQL_CURSOR_DYNAMIC, SQL_IS_INTEGER);
-	if (retcode != SQL_SUCCESS) {
-		CHK(SQLGetDiagRec, (SQL_HANDLE_DBC, Connection, 1, sqlstate, NULL, (SQLCHAR *) msg, sizeof(msg), NULL));
-		sqlstate[5] = 0;
-		if (strcmp((const char*) sqlstate, "S1092") == 0) {
-			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
-			Disconnect();
-			exit(0);
-		}
-		ODBC_REPORT_ERROR("SQLSetConnectAttr");
-	}
+	CheckCursor();
 
 	Init();
 
