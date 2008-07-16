@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.221 2008-07-04 21:08:49 jklowden Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.222 2008-07-16 13:58:34 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1471,7 +1471,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			s = tds_convert_string(tds, curcol->char_conv, s, colsize, &colsize);
 			if (!s) {
 				/* FIXME this is a bad place to return error... */
-				/* TODO on memory failure we should compute comverted size and use chunks */
+				/* TODO on memory failure we should compute converted size and use chunks */
 				return TDS_FAIL;
 			}
 			converted = 1;
@@ -1706,6 +1706,7 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 	/* row data */
 	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
 	for (i = 0; i < info->num_cols; i++) {
+		/* TODO check error */
 		tds_put_data(tds, info->columns[i]);
 	}
 }
