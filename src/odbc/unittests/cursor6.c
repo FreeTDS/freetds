@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with no binded columns */
 
-static char software_version[] = "$Id: cursor6.c,v 1.2 2008-07-16 07:37:07 freddy77 Exp $";
+static char software_version[] = "$Id: cursor6.c,v 1.3 2008-07-16 07:47:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int bind_all = 0;
@@ -90,10 +90,6 @@ static void Init(void)
 int
 main(int argc, char *argv[])
 {
-	unsigned char sqlstate[6];
-	unsigned char msg[256];
-	SQLRETURN retcode;
-
 	use_odbc_version3 = 1;
 	Connect();
 
