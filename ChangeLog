@@ -1,3 +1,6 @@
+Thu Jul 17 07:37:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* TODO: updated
+
 Wed Jul 16 09:36:42 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/cursor6.c src/odbc/unittests/cursor7.c:
 	- fixed for Sybase
@@ -456,4 +459,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2562 2008-07-16 07:37:06 freddy77 Exp $
+$Id: ChangeLog,v 1.2563 2008-07-17 05:37:43 freddy77 Exp $

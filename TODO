@@ -8,7 +8,7 @@ anyone else can post a patch to SourceForge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.169 2008-07-04 21:08:57 jklowden Exp $
+To Do List	$Id: TODO,v 1.170 2008-07-17 05:37:43 freddy77 Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
@@ -82,7 +82,7 @@ For future versions (in priority order within library):
   for completeness). If the reader knows a library to handle named pipes
   compatible with LGPL please tell us.
 . read on partial packet, do not wait entire one
-. detect if realloc/free accepts NULL pointers (in configure.in)
+. detect if realloc accepts NULL pointers (in configure.in)
 . support for password longer than 30 characters under Sybase
   (anybody know how ??)
 . under Sybase using prepared statements and BLOBs we shouldn't try to
@@ -93,6 +93,8 @@ For future versions (in priority order within library):
   with the client's charset.  More flexibility one both sides would be good.  
 . date/time on Sybase (from 12.5)
 . encrypted connection for Sybase
+. new mssql2005 protocol
+. new mssql2008 types
 
   db-lib
 . add DBTEXTLIMIT (dbsetopt), PHP require it to support textlimit ini value
@@ -136,10 +138,7 @@ For future versions (in priority order within library):
    is however a setting which is a mssql extension which threat hidden
    columns as normal)
  (cfr "SQLNumResultCols() is wrong (+1)" Jan 8 2008)
-. test: all binding types (input and output)
 . test: descriptors work
-  - ODBC 2 type returned (datetime)
-  - SQLDescribeCol return ODBC 2 type or 3 or based on configuration?
   - what happen to SQL_DESC_DATETIME_INTERVAL_CODE and SQL_DESC_CONCISE_TYPE
     changing only SQL_DESC_TYPE (with SQLSetDescField)
 . test: set SQL_C_DEFAULT and call SQLFetch (numeric, others)
