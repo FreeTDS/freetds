@@ -9,7 +9,7 @@ connecting to the CVS server.  Then follow these steps:
    installed:
 
 	automake	(GNU Automake, generates Makefile.in from Makefile.am)
-	autoconf	(GNU Autoconf, generates configure from configure.in)
+	autoconf	(GNU Autoconf, generates configure from configure.ac)
 	libtool		(GNU Libtool, library creation support scripts)
 	make		(GNU or BSD Make.)
 	gcc		(GNU Compiler Collection, for C code compilation)
@@ -62,4 +62,4 @@ the CVS tree via rsync:
 $ rsync -av rsync://freetds.cvs.sourceforge.net/cvsroot/freetds/* .
 	
 --
-$Id: INSTALL.CVS,v 1.8 2008-01-10 22:57:39 jklowden Exp $
+$Id: INSTALL.CVS,v 1.9 2008-07-17 11:52:33 freddy77 Exp $

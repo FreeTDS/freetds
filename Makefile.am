@@ -1,7 +1,7 @@
-# version $Id: Makefile.am,v 1.43 2006-03-24 21:59:51 jklowden Exp $
+# version $Id: Makefile.am,v 1.44 2008-07-17 11:52:34 freddy77 Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
-## See also AC_OUTPUT in configure.in
+## See also AC_OUTPUT in configure.ac
 
 SUBDIRS	=	include src doc samples win32
 

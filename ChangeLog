@@ -1,3 +1,8 @@
+Thu Jul 17 13:51:07 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* INSTALL INSTALL.CVS Makefile.am TODO vms/config_h.vms:
+	* win32/config.h:
+	- updated due to file rename
+
 Thu Jul 17 07:37:28 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO: updated
 
@@ -459,4 +464,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2563 2008-07-17 05:37:43 freddy77 Exp $
+$Id: ChangeLog,v 1.2564 2008-07-17 11:52:31 freddy77 Exp $

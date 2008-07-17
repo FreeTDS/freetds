@@ -1,6 +1,6 @@
-/* $Id: config_h.vms,v 1.8 2008-05-22 03:53:18 jklowden Exp $ */
+/* $Id: config_h.vms,v 1.9 2008-07-17 11:52:35 freddy77 Exp $ */
 
-/* include/config.h.in.  Generated from configure.in by autoheader.  */
+/* include/config.h.in.  Generated from configure.ac by autoheader.  */
 /* and edited by hand for VMS */
 
 #ifndef CONFIG_H_LOADED
