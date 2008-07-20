@@ -43,7 +43,7 @@ NTEXT support
 Lothar Krauss <lkrauss@wbs-blank.de>
 ODBC fixes
 
-Steve Langasek <vorlon@netexpress.net>
+Steve Langasek <vorlon@dodds.net>
 Off by one fixes and autoconf byte size thing. Debian package maintainer. 
 
 Mark J. Lilback <mark@lilback.com>
