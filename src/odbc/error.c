@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.54 2008-07-23 20:11:33 jklowden Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.55 2008-07-23 20:20:37 jklowden Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -405,6 +405,8 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 	errs->errs[n].server = strdup("DRIVER");
 	errs->errs[n].msg = msg ? strdup(msg) : odbc_get_msg(errs->errs[n].state3);
 	++errs->num_errors;
+
+	tdsdump_log(TDS_DBG_FUNC, "odbc_errs_add: \"%s\"\n", errs->errs[n].msg);
 }
 
 /* TODO check if TDS_UINT is correct for native error */
