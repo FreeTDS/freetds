@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.52 2008-05-07 08:42:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.53 2008-07-23 20:07:18 jklowden Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -509,9 +509,6 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
 	SQLHANDLE parent;
 
-	tdsdump_log(TDS_DBG_FUNC, "_SQLGetDiagRec(%d, %p, %d, %p, %p, %p, %d, %p)\n", 
-			handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
-
 	if (numRecord <= 0 || cbErrorMsgMax < 0)
 		return SQL_ERROR;
 
@@ -559,6 +556,9 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 
 	if (asprintf(&p, "%s%s", msgprefix, msg) < 0)
 		return SQL_ERROR;
+
+	tdsdump_log(TDS_DBG_FUNC, "_SQLError: \"%s\"\n", p);
+
 	result = odbc_set_string(szErrorMsg, cbErrorMsgMax, pcbErrorMsg, p, -1);
 	free(p);
 

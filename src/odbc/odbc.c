@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.485 2008-07-14 15:12:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.486 2008-07-23 20:07:18 jklowden Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3997,9 +3997,6 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 	size_t size;
 
 	INIT_HSTMT;
-
-	tdsdump_log(TDS_DBG_FUNC, "_SQLGetStmtAttr(%p, %d, %p, %d, %p)\n", 
-			hstmt, (int)Attribute, Value, (int)BufferLength, StringLength);
 
 	/* TODO assign directly, use macro for size */
 	switch (Attribute) {
