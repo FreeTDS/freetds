@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.486 2008-07-23 20:07:18 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.487 2008-07-24 22:04:50 jklowden Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5927,20 +5927,21 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 {
 	INIT_HSTMT;
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLParamData(%p, %p)\n", 
-			hstmt, prgbValue);
+	tdsdump_log(TDS_DBG_FUNC, "SQLParamData(%p, %p) [param_num %d, param_data_called = %d]\n", 
+					hstmt, prgbValue, stmt->param_num, stmt->param_data_called);
 
 	if (stmt->params && stmt->param_num <= stmt->param_count) {
 		SQLRETURN res;
 
 		if (stmt->param_num <= 0 || stmt->param_num > stmt->apd->header.sql_desc_count) {
-			/* TODO what error ?? */
+			tdsdump_log(TDS_DBG_FUNC, "SQLParamData: logic_error: parameter out of bounds: 0 <= %d < %d\n", 
+						   stmt->param_num, stmt->apd->header.sql_desc_count);
 			ODBC_RETURN(stmt, SQL_ERROR);
 		}
 
 		/*
 		 * TODO compute output value with this formula:
-		 * Bound Address + Binding Offset + ((Row Number – 1) x Element Size)
+		 * Bound Address + Binding Offset + ((Row Number - 1) x Element Size)
 		 * (see SQLParamData documentation)
 		 * This is needed for updates using SQLBulkOperation (not currently supported)
 		 */
@@ -5978,6 +5979,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 	}
 
 	/* TODO return correct error */
+	tdsdump_log(TDS_DBG_FUNC, "SQLPutData: returning SQL_ERROR\n");
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
 

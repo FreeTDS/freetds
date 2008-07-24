@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.75 2008-07-15 15:25:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.76 2008-07-24 22:04:50 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -459,15 +459,14 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 /**
  * Loops until we have received buflen characters
  * return -1 on failure
- * This function does not close the socket.  Maybe it should.  
  */
 static int
 tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfinished)
 {
 	int rc, got = 0;
 
-	if (buf == NULL || buflen < 1 || tds == NULL)
-		return 0;
+	if (tds == NULL || buf == NULL || buflen < 1)
+		return -1;
 
 	for (;;) {
 		int len;

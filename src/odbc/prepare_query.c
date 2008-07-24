@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.67 2008-07-14 08:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.68 2008-07-24 22:04:50 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -199,10 +199,15 @@ parse_prepared_query(struct _hstmt *stmt, int compute_row)
 	if (stmt->prepared_pos)
 		return prepared_rpc(stmt, compute_row);
 
+	tdsdump_log(TDS_DBG_FUNC, "parsing %d parameters\n", nparam);
+
 	for (; stmt->param_num <= stmt->param_count; ++nparam, ++stmt->param_num) {
-		/* find binded parameter */
+		/* find bound parameter */
 		if (stmt->param_num > stmt->apd->header.sql_desc_count || stmt->param_num > stmt->ipd->header.sql_desc_count) {
-			/* TODO set error */
+			tdsdump_log(TDS_DBG_FUNC, "parse_prepared_query: logic_error: parameter out of bounds: "
+						  "%d > %d || %d > %d\n", 
+						   stmt->param_num, stmt->apd->header.sql_desc_count, 
+						   stmt->param_num, stmt->ipd->header.sql_desc_count);
 			return SQL_ERROR;
 		}
 
@@ -246,6 +251,10 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	TDSCOLUMN *curcol;
 	TDSBLOB *blob;
 	int sql_src_type;
+	
+	assert(stmt);
+	
+	tdsdump_log(TDS_DBG_FUNC, "continue_parse_prepared_query with parameter %d\n", stmt->param_num);
 
 	if (!stmt->params) {
 		tdsdump_log(TDS_DBG_FUNC, "error? continue_parse_prepared_query: no parameters provided");

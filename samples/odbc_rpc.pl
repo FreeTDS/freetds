@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.7 2006-07-27 19:24:42 jklowden Exp $
+# $Id: odbc_rpc.pl,v 1.8 2008-07-24 22:04:49 jklowden Exp $
 #
 # Contributed by James K. Lowden and is hereby placed in 
 # the public domain.  No rights reserved.  
@@ -48,7 +48,16 @@ sub setup_error_handler($)
 
 $program = basename($0);
 
-Getopt::Std::getopts('U:P:D:d:h', \%opts);
+Getopt::Std::getopts('U:P:D:d:hlv', \%opts);
+
+if( $opts{l} ) {
+	foreach (@{ $DBI::EXPORT_TAGS{sql_types} }) {
+	      printf "%s=%d\n", $_, &{"DBI::$_"};
+	}
+	exit 0;
+}
+
+open VERBOSE, $opts{v}? '>&STDERR' : '>/dev/null' or die;
 
 my ($dsn, $user, $pass, $database);
 $dsn  = $opts{D}? $opts{D} : "dbi:ODBC:JDBC";
@@ -70,7 +79,7 @@ my $placeholders = '';
 if( @ARGV > 1 ) {
 	my @placeholders = ('?') x (@ARGV - 1); 
 	$placeholders = '(' . join( q(, ),  @placeholders ) . ')';
-	printf STDERR qq(%d arguments found for procedure "$ARGV[0]"\n), scalar(@placeholders);
+	printf VERBOSE qq(%d arguments found for procedure "$ARGV[0]"\n), scalar(@placeholders);
 }
 
 # Ready the odbc call
@@ -79,7 +88,7 @@ my $sth = $dbh->prepare( $sql );
 
 # Bind the return code as "inout".
 my $rc;
-print STDERR qq(Binding parameter #1, the return code\n);
+print VERBOSE qq(Binding parameter #1, the return code\n);
 $sth->bind_param_inout(1, \$rc, SQL_INTEGER);
 
 # Bind the input parameters (we don't do outputs in this example).
@@ -90,22 +99,31 @@ for( my $i=1; $i < @ARGV; $i++ ) {
     my $typename = 'SQL_VARCHAR';
     my $data = $ARGV[$i];
     if( $data =~ /^:([[:upper:]_]+):(.+)/ ) { # parse out the datatype, if any
-	$typename = $1;
-	$data = $2;
+    	$ARGV[$i] = $2;
+    	if( $1 eq 'FILE' ) {
+		$typename = 'SQL_LONGVARCHAR';
+		open INPUT, $2 or die qq(could not open "$2"\n);
+		my @data = <INPUT> or die qq(error reading "$2"\n);
+		$data = join '', @data;
+		close INPUT;
+	} else {
+		$typename = $1;
+		$data = $2;
+	}
         $type = eval($typename);
 	warn qq("$typename" will probably cause a "can't rebind parameter" message\n) 
 		if $type == SQL_DATETIME;
     }
-    printf STDERR qq(Binding parameter #%d (%s): "$data"\n), ($i+1), $typename;
+    printf VERBOSE qq(Binding parameter #%d (%s): "$data"\n), ($i+1), $typename;
     $sth->bind_param( 1 + $i, $data, $type );
 }
 
-print STDERR qq(\nExecuting: "$sth->{Statement}" with parameters '), 
+print STDOUT qq(\nExecuting: "$sth->{Statement}" with parameters '), 
 	     join(q(', '), @ARGV[1..$#ARGV]), qq('\n);
 
 # Execute the SQL and print the (possibly several) results
 $rc = $sth->execute;
-print STDERR qq(execute returned: '$rc'\n) if $rc;
+print STDOUT qq(execute returned: '$rc'\n) if $rc;
 
 $i = 1;
 while ( $sth->{Active} ) { 
@@ -121,3 +139,40 @@ $dbh->disconnect();
 
 exit 0;
 
+
+__END__
+
+=head1 NAME
+
+odbc_rpc - execute a stored procedure via DBD::ODBC
+
+=head1 SYNOPSIS
+
+odbc_rpc [-D dsn] [-U username] [-P password] I<procedure> [arg1[, argn]]
+odbc_rpc -l 
+
+=head1 DESCRIPTION
+
+Execute I<procedure> with zero or more arguments.  Arguments are assumed to be bound to 
+SQL_VARCHAR.  To use other bindings -- which might or might not work -- prefix the value with 
+:SQL_type: where type is a valid binding type.  For a list of recognized types, use "odbc_rpc -l". 
+
+To populate your parameter from a file instead of inline, use the form :FILE:filename.  odbc_rpc will
+open I<filename> and pass its contents as data.  
+
+
+=head1 EXAMPLE
+
+  odbc_rpc -D dbi:ODBC:mpquant -d testdb -U $U -P $P \
+  	   xmltest :FILE:samples/data.xml
+
+=head1 BUGS
+
+There is no way in DBD::ODBC to pass "long data".  The contents of the file must fit in memory. 
+
+
+=head1 Author
+
+Contributed to the FreeTDS project by James K. Lowden.  
+
+=cut
