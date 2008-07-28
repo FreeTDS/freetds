@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.487 2008-07-24 22:04:50 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.488 2008-07-28 20:58:19 jklowden Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -153,6 +153,28 @@ static void odbc_ird_check(TDS_STMT * stmt);
  * beg for GUI tools"
  * Bah!
  */
+
+static char *
+odbc_prret(SQLRETURN ret)
+{
+	static char unknown[32];
+	
+	switch (ret) {
+	case SQL_NULL_DATA:		return "SQL_ERROR or SQL_NULL_DATA";
+	case SQL_DATA_AT_EXEC:		return "SQL_DATA_AT_EXEC or SQL_INVALID_HANDLE";
+	case SQL_SUCCESS:		return "SQL_SUCCESS";
+	case SQL_SUCCESS_WITH_INFO:	return "SQL_SUCCESS_WITH_INFO";
+#if ODBCVER >= 0x0300
+	case SQL_NO_DATA:		return "SQL_NO_DATA";
+#endif
+	case SQL_STILL_EXECUTING:	return "SQL_STILL_EXECUTING";
+	case SQL_NEED_DATA:		return "SQL_NEED_DATA";
+	}
+	
+	snprintf(unknown, sizeof(unknown), "unknown: %d", (int)ret);
+
+	return unknown;
+}
 
 static void
 odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
@@ -3293,26 +3315,32 @@ SQLExecute(SQLHSTMT hstmt)
 
 	INIT_HSTMT;
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLExecute(%p)\n", 
-			hstmt);
+	tdsdump_log(TDS_DBG_FUNC, "SQLExecute(%p)\n", hstmt);
 
-	if (!stmt->prepared_query)
+	if (!stmt->prepared_query) {
 		/* TODO error report, only without DM ?? */
+		tdsdump_log(TDS_DBG_FUNC, "SQLExecute returns SQL_ERROR (not prepared)\n");
 		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
-	/* TODO rebuild should be done for every bingings change, not every time */
+	/* TODO rebuild should be done for every bindings change, not every time */
 	/* TODO free previous parameters */
 	/* build parameters list */
 	stmt->param_data_called = 0;
 	stmt->curr_param_row = 0;
-	res = start_parse_prepared_query(stmt, 1);
-	if (SQL_SUCCESS != res)
+	if ((res = start_parse_prepared_query(stmt, 1)) != SQL_SUCCESS) {
+		tdsdump_log(TDS_DBG_FUNC, "SQLExecute returns %s (start_parse_prepared_query failed)\n", odbc_prret(res));
 		ODBC_RETURN(stmt, res);
+	}
 
 	/* TODO test if two SQLPrepare on a statement */
 	/* TODO test unprepare on statement free or connection close */
 
-	return _SQLExecute(stmt);
+	res = _SQLExecute(stmt);
+
+	tdsdump_log(TDS_DBG_FUNC, "SQLExecute returns %s\n", odbc_prret(res));
+
+	return res;
 }
 
 static int
@@ -5922,8 +5950,8 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	ODBC_RETURN(stmt, res);
 }
 
-SQLRETURN ODBC_API
-SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
+static SQLRETURN 
+_SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 {
 	INIT_HSTMT;
 
@@ -5966,6 +5994,16 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 }
 
 SQLRETURN ODBC_API
+SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
+{
+	SQLRETURN ret = _SQLParamData(hstmt, prgbValue);
+	
+	tdsdump_log(TDS_DBG_FUNC, "SQLParamData returns %s\n", odbc_prret(ret));
+	
+	return ret;
+}
+
+SQLRETURN ODBC_API
 SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 {
 	INIT_HSTMT;
@@ -5973,13 +6011,18 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 	tdsdump_log(TDS_DBG_FUNC, "SQLPutData(%p, %p, %i)\n", hstmt, rgbValue, (int)cbValue);
 
 	if (stmt->prepared_query || stmt->prepared_query_is_rpc) {
+		SQLRETURN ret;
+		const TDSCOLUMN *curcol = stmt->params->columns[stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1)];
 		/* TODO do some more tests before setting this flag */
-		stmt->param_data_called = 1;
-		ODBC_RETURN(stmt, continue_parse_prepared_query(stmt, rgbValue, cbValue));
+		stmt->param_data_called = curcol->column_size == curcol->column_cur_size;
+		ret = continue_parse_prepared_query(stmt, rgbValue, cbValue);
+		tdsdump_log(TDS_DBG_FUNC, "SQLPutData returns %s, %d bytes left\n", 
+					  odbc_prret(ret), curcol->column_size - curcol->column_cur_size);
+		ODBC_RETURN(stmt, ret);
 	}
 
-	/* TODO return correct error */
-	tdsdump_log(TDS_DBG_FUNC, "SQLPutData: returning SQL_ERROR\n");
+	odbc_errs_add(&stmt->errs, "HY010", NULL);
+	tdsdump_log(TDS_DBG_FUNC, "SQLPutData returns SQL_ERROR (function sequence error)\n");
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
 

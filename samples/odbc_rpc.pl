@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.8 2008-07-24 22:04:49 jklowden Exp $
+# $Id: odbc_rpc.pl,v 1.9 2008-07-28 20:58:19 jklowden Exp $
 #
 # Contributed by James K. Lowden and is hereby placed in 
 # the public domain.  No rights reserved.  
@@ -42,7 +42,7 @@ sub setup_error_handler($)
 { my ($dbh) = @_;
 
 	$dbh->{odbc_err_handler} = \&err_handler;
-	$dbh->{odbc_async_exec} = 1;
+	#dbh->{odbc_async_exec} = 1;
 	print "odbc_async_exec is: $dbh->{odbc_async_exec}\n";
 }
 
@@ -68,7 +68,7 @@ die qq(Syntax: \t$program [-D dsn] [-U username] [-P password] procedure [arg1[,
 	if( $opts{h} || 0 == @ARGV );
 
 # Connect
-my $dbh = DBI->connect($dsn, $user, $pass, {RaiseError => 0, PrintError => 1, AutoCommit => 1})
+my $dbh = DBI->connect($dsn, $user, $pass, {RaiseError => 1, PrintError => 1, AutoCommit => 1})
 	or die "Unable for connect to $dsn $DBI::errstr";
 
 setup_error_handler($dbh);
@@ -115,7 +115,7 @@ for( my $i=1; $i < @ARGV; $i++ ) {
 		if $type == SQL_DATETIME;
     }
     printf VERBOSE qq(Binding parameter #%d (%s): "$data"\n), ($i+1), $typename;
-    $sth->bind_param( 1 + $i, $data, $type );
+    $sth->bind_param( 1 + $i, $data, $type ) or die $sth->errstr;
 }
 
 print STDOUT qq(\nExecuting: "$sth->{Statement}" with parameters '), 
