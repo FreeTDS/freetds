@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.177.2.1 2008-05-06 03:23:45 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.177.2.2 2008-07-29 14:07:41 jklowden Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -4084,11 +4084,22 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 
 	if (size > 0 && value) {
 		/* TODO check for BLOB and numeric */
-		if (size > curcol->column_size)
+		if (size > curcol->column_size) {
+			tdsdump_log(TDS_DBG_FUNC, "paramrowalloc(): RESIZE %d to %d\n", size, curcol->column_size);
 			size = curcol->column_size;
+		}
 		/* TODO blobs */
 		if (!is_blob_type(curcol->column_type))
 			memcpy(curcol->column_data, value, size);
+		else {
+			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
+			blob->textvalue = malloc(size);
+			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n",
+					size, blob->textvalue);
+			if (!blob->textvalue)
+				return NULL;
+			memcpy(blob->textvalue, value, size);
+		}
 		curcol->column_cur_size = size;
 	} else {
 		tdsdump_log(TDS_DBG_FUNC, "paramrowalloc(): setting parameter #%d to NULL\n", param_num);
