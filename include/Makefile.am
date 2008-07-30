@@ -9,7 +9,7 @@ nodist_include_HEADERS	=	tds_sysdep_public.h
 
 noinst_HEADERS	=	tds_configs.h \
 			tds_sysdep_private.h \
-			md4.h md5.h des.h \
+			md4.h md5.h des.h hmac_md5.h \
 			replacements.h \
 			tdsstring.h \
 			tdsodbc.h \
