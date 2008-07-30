@@ -1,3 +1,6 @@
+Wed Jul 30 23:25:26 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/challenge.c: additional cleanup and notes
+
 Wed Jul 30 16:36:52 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/challenge.c:
 	- merged patch #2031829 about NTLMv2, still some FIXME/TODO
@@ -495,4 +498,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2571 2008-07-30 14:38:07 freddy77 Exp $
+$Id: ChangeLog,v 1.2572 2008-07-30 21:25:53 freddy77 Exp $

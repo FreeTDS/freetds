@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.31 2008-07-30 14:38:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.32 2008-07-30 21:25:53 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -75,10 +75,7 @@ typedef struct
 	TDS_TINYINT     max_response_type;
 	TDS_SMALLINT    reserved1;
 	TDS_UINT        reserved2;
-	union {
-		TDS_UINT8       l;
-		unsigned char   s[8];
-	} timestamp;
+	TDS_UINT8       timestamp;
 	TDS_UCHAR       challenge[8];
 	TDS_UINT        unknown;
 	/* target info block - variable length */
@@ -581,36 +578,6 @@ unix_to_nt_time(TDS_UINT8 * nt, time_t t)
 	*nt = t2;
 }
 
-/* TODO I don't like this stuf here -- freddy77 */
-#ifdef WORDS_BIGENDIAN
-static TDS_UINT
-swap_32(TDS_UINT val)
-{
-	return (((((TDS_UINT) val) & 0xff000000) >> 24) | ((((TDS_UINT) val) & 0x00ff0000) >> 8) |
-		((((TDS_UINT) val) & 0x0000ff00) << 8) | ((((TDS_UINT) val) & 0x000000ff) << 24));
-}
-#endif
-
-static TDS_UINT8
-to_le(TDS_UINT8 val)
-{
-#ifndef WORDS_BIGENDIAN
-	return val;
-#else
-	union
-	{
-		TDS_UINT8 ll;
-		TDS_UINT l[2];
-	} w, r;
-
-	w.ll = val;
-	r.l[0] = swap_32(w.l[1]);
-	r.l[1] = swap_32(w.l[0]);
-	return r.ll;
-#endif
-}
-
-
 static void
 fill_names_blob_prefix(names_blob_prefix_t * prefix)
 {
@@ -623,7 +590,10 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 	prefix->max_response_type = 0x01;
 	prefix->reserved1 = 0x0000;
 	prefix->reserved2 = 0x00000000;
-	prefix->timestamp.l = to_le(nttime);
+#ifdef WORDS_BIGENDIAN
+	tds_swap_bytes(&nttime, 8);
+#endif
+	prefix->timestamp = nttime;
 	generate_random_buffer(prefix->challenge, sizeof(prefix->challenge));
 
 	prefix->unknown = 0x00000000;
@@ -689,7 +659,12 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 		tds_get_n(tds, NULL, target_info_offset - where);
 		where = target_info_offset;
 
-		/* TODO why + 4 ?? -- freddy77 */
+		/*
+		 * the + 4 came from blob structure, after Target Info 4
+		 * additional reserved bytes must be present
+		 * Search "davenport port"
+		 * (currently http://davenport.sourceforge.net/ntlm.html)
+		 */
 		names_blob_len = sizeof(names_blob_prefix_t) + target_info_len + 4;
 
 		/* read Target Info */
