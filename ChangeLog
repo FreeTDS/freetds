@@ -1,5 +1,8 @@
+Thu Jul 31 16:53:35 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/challenge.c: removed important FIXMEs
+
 Thu Jul 31 06:12:05 EDT 2008	JK Lowden <jklowden@freetds.org>
-	* doc/tds.html updated and cleaned up somewhat
+	* doc/tds.html: updated and cleaned up somewhat
 
 Wed Jul 30 23:25:26 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/challenge.c: additional cleanup and notes
@@ -501,4 +504,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2573 2008-07-31 10:13:37 jklowden Exp $
+$Id: ChangeLog,v 1.2574 2008-07-31 14:57:01 freddy77 Exp $

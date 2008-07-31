@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.32 2008-07-30 21:25:53 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.33 2008-07-31 14:57:02 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -81,7 +81,7 @@ typedef struct
 	/* target info block - variable length */
 } names_blob_prefix_t;
 
-static void
+static int
 tds_answer_challenge(TDSSOCKET * tds,
 		     TDSCONNECTION * connection,
 		     const unsigned char *challenge,
@@ -99,12 +99,9 @@ convert_to_upper(char *buf, int len)
 		buf[i] = toupper(buf[i]);
 }
 
-/* FIXME this function can fail, test result below in callers */
-static const char *
-convert_to_usc2le_string(TDSSOCKET * tds, const char *s, int len, int *out_len)
+static int
+convert_to_usc2le_string(TDSSOCKET * tds, const char *s, int len, char *out)
 {
-	char *buf;
-
 	const char *ib;
 	char *ob;
 	size_t il, ol;
@@ -115,34 +112,20 @@ convert_to_usc2le_string(TDSSOCKET * tds, const char *s, int len, int *out_len)
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS *) & char_conv->suppress;
 
 	if (char_conv->flags == TDS_ENCODING_MEMCPY) {
-		*out_len = len;
-		return s;
+		memcpy(out, s, len);
+		return len;
 	}
 
-	/* allocate needed buffer (+1 is to exclude 0 case) */
-	ol = len * char_conv->server_charset.max_bytes_per_char / char_conv->client_charset.min_bytes_per_char + 1;
-	buf = (char *) malloc(ol);
-	if (!buf)
-		return NULL;
-
+	/* convert */
 	ib = s;
 	il = len;
-	ob = buf;
+	ob = out;
+	ol = len * 2;
 	memset(suppress, 0, sizeof(char_conv->suppress));
-	if (tds_iconv(tds, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t) - 1) {
-		free(buf);
-		return NULL;
-	}
-	*out_len = ob - buf;
-	return buf;
-}
+	if (tds_iconv(tds, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+		return -1;
 
-
-static void
-convert_to_usc2le_string_free(const char *original, const char *converted)
-{
-	if (original != converted)
-		free((char *) converted);
+	return ob - out;
 }
 
 
@@ -156,13 +139,12 @@ generate_random_buffer(unsigned char *out, int len)
 		out[i] = rand() / (RAND_MAX / 256);
 }
 
-
-static void
+static int
 make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
 {
 	MD4_CTX context;
 	int passwd_len = 0;
-	const char *passwd_usc2le = NULL;
+	char passwd_usc2le[256];
 	int passwd_usc2le_len = 0;
 
 	passwd_len = strlen(passwd);
@@ -170,7 +152,11 @@ make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
 	if (passwd_len > 128)
 		passwd_len = 128;
 
-	passwd_usc2le = convert_to_usc2le_string(tds, passwd, passwd_len, &passwd_usc2le_len);
+	passwd_usc2le_len = convert_to_usc2le_string(tds, passwd, passwd_len, passwd_usc2le);
+	if (passwd_usc2le_len < 0) {
+		memset((char *) passwd_usc2le, 0, sizeof(passwd_usc2le));
+		return TDS_FAIL;
+	}
 
 	/* compute NTLM hash */
 	MD4Init(&context);
@@ -180,11 +166,11 @@ make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
 	/* with security is best be pedantic */
 	memset((char *) passwd_usc2le, 0, passwd_usc2le_len);
 	memset(&context, 0, sizeof(context));
-	convert_to_usc2le_string_free(passwd, passwd_usc2le);
+	return TDS_SUCCEED;
 }
 
 
-static void
+static int
 make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_hash[16])
 {
 	const char *user_name, *domain;
@@ -192,10 +178,9 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	const char *p;
 
 	unsigned char ntlm_hash[16];
-	char buf[256];
-	int buf_len = 0;
-	const char *buf_usc2le;
-	int buf_usc2le_len = 0;
+	char buf[128];
+	char buf_usc2le[512];
+	int buf_usc2le_len = 0, l, res;
 
 	user_name = tds_dstr_cstr(&tds->connection->user_name);
 	user_name_len = strlen(user_name);
@@ -212,26 +197,31 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	if (user_name_len > 128)
 		user_name_len = 128;
 	memcpy(buf, user_name, user_name_len);
-
 	convert_to_upper(buf, user_name_len);
+
+	l = convert_to_usc2le_string(tds, buf, user_name_len, buf_usc2le);
+	if (l < 0)
+		return TDS_FAIL;
+	buf_usc2le_len = l;
 
 	if (domain_len > 128)
 		domain_len = 128;
-	memcpy(buf + user_name_len, domain, domain_len);
 	/* Target is supposed to be case-sensitive */
 
-	buf_len = user_name_len + domain_len;
+	l = convert_to_usc2le_string(tds, domain, domain_len, buf_usc2le + l);
+	if (l < 0)
+		return TDS_FAIL;
+	buf_usc2le_len += l;
 
-	buf_usc2le = convert_to_usc2le_string(tds, buf, buf_len, &buf_usc2le_len);
 
-	make_ntlm_hash(tds, passwd, ntlm_hash);
+	res = make_ntlm_hash(tds, passwd, ntlm_hash);
 	hmac_md5(ntlm_hash, (const unsigned char *) buf_usc2le, buf_usc2le_len, ntlm_v2_hash);
 
 	/* with security is best be pedantic */
 	memset(&ntlm_hash, 0, sizeof(ntlm_hash));
 	memset(buf, 0, sizeof(buf));
 	memset((char *) buf_usc2le, 0, buf_usc2le_len);
-	convert_to_usc2le_string_free(buf, buf_usc2le);
+	return res;
 }
 
 
@@ -266,7 +256,7 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
  * @param flags NTLM flags from server side
  * @param answer buffer where to store crypted password
  */
-static void
+static int
 tds_answer_challenge(TDSSOCKET * tds,
 		     TDSCONNECTION * connection,
 		     const unsigned char *challenge,
@@ -280,7 +270,7 @@ tds_answer_challenge(TDSSOCKET * tds,
 	static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
 	DES_KEY ks;
 	unsigned char hash[24], ntlm2_challenge[16];
-	int ntlm_v;
+	int ntlm_v, res;
 
 	memset(answer, 0, sizeof(TDSANSWER));
 
@@ -292,21 +282,26 @@ tds_answer_challenge(TDSSOCKET * tds,
 		unsigned char ntlm_v2_hash[16];
 		const names_blob_prefix_t *names_blob_prefix;
 
-		make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
-
-		/* NTLMv2 response */
-		/* Size of lm_v2_response is 16 + names_blob_len */
-		/* FIXME check result */
-		*ntlm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob, names_blob_len, challenge);
+		res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
+		if (res != TDS_SUCCEED)
+			return res;
 
 		/* LMv2 response */
 		/* Take client's chalenge from names_blob */
 		names_blob_prefix = (const names_blob_prefix_t *) names_blob;
-		/* FIXME check result */
 		lm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob_prefix->challenge, 8, challenge);
+		if (!lm_v2_response)
+			return TDS_FAIL;
 		memcpy(answer->lm_resp, lm_v2_response, 24);
 		free(lm_v2_response);
-		return;
+
+		/* NTLMv2 response */
+		/* Size of lm_v2_response is 16 + names_blob_len */
+		*ntlm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob, names_blob_len, challenge);
+		if (!*ntlm_v2_response)
+			return TDS_FAIL;
+
+		return TDS_SUCCEED;
 	}
 
 	if (!(*flags & 0x80000)) {
@@ -351,7 +346,7 @@ tds_answer_challenge(TDSSOCKET * tds,
 	*flags = 0x8201;
 
 	/* NTLM/NTLM2 response */
-	make_ntlm_hash(tds, passwd, hash);
+	res = make_ntlm_hash(tds, passwd, hash);
 	memset(hash + 16, 0, 5);
 
 	tds_encrypt_answer(hash, challenge, answer->nt_resp);
@@ -360,6 +355,7 @@ tds_answer_challenge(TDSSOCKET * tds,
 	memset(&ks, 0, sizeof(ks));
 	memset(hash, 0, sizeof(hash));
 	memset(ntlm2_challenge, 0, sizeof(ntlm2_challenge));
+	return res;
 }
 
 
@@ -426,6 +422,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	int host_name_len;
 	int password_len;
 	int domain_len;
+	int rc;
 
 	unsigned char *ntlm_v2_response = NULL;
 	unsigned int ntlm_response_len = 24;
@@ -453,7 +450,10 @@ tds7_send_auth(TDSSOCKET * tds,
 	user_name = p + 1;
 	user_name_len = strlen(user_name);
 
-	tds_answer_challenge(tds, connection, challenge, &flags, names_blob, names_blob_len, &answer, &ntlm_v2_response);
+	rc = tds_answer_challenge(tds, connection, challenge, &flags, names_blob, names_blob_len, &answer, &ntlm_v2_response);
+	if (rc != TDS_SUCCEED)
+		return rc;
+
 	ntlm_response_len = ntlm_v2_response ? 16 + names_blob_len : 24;
 	lm_response_len = ntlm_v2_response ? 0 : 24;
 	/* lm_response_len = 24; */
