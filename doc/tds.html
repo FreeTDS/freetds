@@ -614,14 +614,14 @@ data         data. See results for detail
 <h4>Data info structure</h4>
 <pre>
   INT8          XCHAR[n]     INT8    INT32
-+-------------+------------+-------+-----------------+
++-------------+------------+-------+--------------------+
 | name length | param name | flags | usertype (TDS 5.0) |
-+-------------+------------+-------+-----------------+
-  INT8   varies  varies     INT8[5]      INT8
-+------+-------+----------+------------+---------------+
-| type | size  | optional | collate    | locale        |
++-------------+------------+-------+--------------------+
+  INT8   varies  varies     INT8[5]         INT8
++------+-------+----------+---------------+------------------+
+| type | size  | optional | collate       | locale           |
 |      | (opt) | (opt)    | info(TDS 7.1) | length (TDS 5.0) |
-+------+-------+----------+------------+---------------+
++------+-------+----------+---------------+------------------+
 
 name length   parameter name length (0 if unused)
 param name    parameter name
@@ -645,10 +645,10 @@ locale length locale information length. Usually 0 (if not locale
 <p>Under TDS 7.0+ is possible to chain multiple RPCs together. This is useful to limit packets and round-trips with server. RPCs can be chained using byte 0x80 (TDS 7.0/TDS 7.1) or 0xFF (TDS 7.2).</p>
 
 <pre>
-       INT8               INT8
-+-----+------------------+-------------+-----+
+       INT8                     INT8
++-----+------------------------+----------------+-----+
 | RPC | 0x80 (TDS 7.0/TDS 7.1) | 0xFF (TDS 7.2) | RPC | ...
-+-----+------------------+-------------+-----+
++-----+------------------------+----------------+-----+
 </pre>
 
 <hr>
@@ -988,11 +988,11 @@ No information. (1 byte, value=0 ?)
 <p>The TDS 7.0 column_info is formatted as follows for each column:</p>
 
 <pre>
- INT16      INT16   INT8   varies  varies     INT8[5]      INT8          UCS2LE[n]
-+----------+-------+------+-------+----------+------------+-------------+---------+
-| usertype | flags | type | size  | optional | collate    | name length | name    | 
+ INT16      INT16   INT8   varies  varies     INT8[5]         INT8          UCS2LE[n]
++----------+-------+------+-------+----------+---------------+-------------+---------+
+| usertype | flags | type | size  | optional | collate       | name length | name    | 
 |          |       |      | (opt) | (opt)    | info(TDS 7.1) |             |         |
-+----------+-------+------+-------+----------+------------+-------------+---------+
++----------+-------+------+-------+----------+---------------+-------------+---------+
 
 usertype	type modifier
 flags		bit flags
@@ -1127,11 +1127,11 @@ optional
 <p>column info:</p>
 
 <pre>
- INT8       INT8      INT32      INT8     varies  INT8            varies
-+----------+---------+----------+--------+-------+---------------+-------------+
-| operator | operand | usertype | column | size  | locale length | locale info |
+ INT8       INT8      INT32      INT8     varies  INT8               varies
++----------+---------+----------+--------+-------+------------------+----------------+
+| operator | operand | usertype | column | size  | locale length    | locale info    |
 |          |         |          |  type  | (opt) |  info (TDS 5.0)  | (TDS 5.0)      |
-+----------+---------+----------+--------+-------+---------------+-------------+
++----------+---------+----------+--------+-------+------------------+----------------+
 
 operator      operator
               0x4b COUNT
@@ -1283,10 +1283,10 @@ to a column is the number
 | length | msg number | state | level |
 +--------+------------+-------+-------+
 
- INT16      XCHAR[n]  INT8       XCHAR[n]  INT8       XCHAR[n]  INT16          INT32
-+----------+---------+----------+---------+----------+---------+--------------+--------------+
+ INT16      XCHAR[n]  INT8       XCHAR[n]  INT8       XCHAR[n]  INT16             INT32
++----------+---------+----------+---------+----------+---------+-----------------+-----------------+
 | m length | message | s length | server  | p length | process | line#(TDS 7.1-) | line# (TDS 7.2) |
-+----------+---------+----------+---------+----------+---------+--------------+--------------+
++----------+---------+----------+---------+----------+---------+-----------------+-----------------+
 
 length		Length of packet
 msg number	SQL message number
@@ -1490,10 +1490,10 @@ column info        <a href="#colInfo">column info</a>
 <b class="section">Done Inside Process (0xFF 255)</b><br>
 
 <pre>
- INT16       INT16     INT32               INT64
-+-----------+---------+-------------------+------------------+
+ INT16       INT16     INT32                  INT64
++-----------+---------+----------------------+---------------------+
 | bit flags | unknown | row count (TDS 7.1-) | row count (TDS 7.2) |
-+-----------+---------+-------------------+------------------+
++-----------+---------+----------------------+---------------------+
 
 Fields:
 bit flags          0x01 more results
@@ -1530,7 +1530,7 @@ The following people have contributed to this document:
 (short list)
 
 <h2>Document Status </h2>
-<P>$Id: tds.html,v 1.39 2008-07-31 10:13:38 jklowden Exp $</p>
+<P>$Id: tds.html,v 1.40 2008-07-31 16:40:32 freddy77 Exp $</p>
 <p>
     <a href="http://validator.w3.org/check?uri=referer"><img
         src="http://www.w3.org/Icons/valid-html401"
