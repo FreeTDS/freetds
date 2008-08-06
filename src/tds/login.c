@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.174 2008-07-11 09:25:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.175 2008-08-06 07:40:16 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -628,7 +628,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_byte(tds, 1);
 
 	/* network packet size */
-	if (connection->block_size < 1000000 && connection->block_size)
+	if (connection->block_size < 65536 && connection->block_size > 0)
 		sprintf(blockstr, "%d", connection->block_size);
 	else
 		strcpy(blockstr, "512");

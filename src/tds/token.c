@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.349 2008-07-15 15:20:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.350 2008-08-06 07:40:17 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2408,14 +2408,13 @@ tds_process_env_chg(TDSSOCKET * tds)
 	switch (type) {
 	case TDS_ENV_PACKSIZE:
 		new_block_size = atoi(newval);
-		if (new_block_size > tds->env.block_size) {
-			tdsdump_log(TDS_DBG_INFO1, "increasing block size from %s to %d\n", oldval, new_block_size);
+		if (new_block_size >= 512) {
+			tdsdump_log(TDS_DBG_INFO1, "changing block size from %s to %d\n", oldval, new_block_size);
 			/* 
-			 * I'm not aware of any way to shrink the 
-			 * block size but if it is possible, we don't 
-			 * handle it.
+			 * Is possible to have a shrink if server limits packet
+			 * size more than what we specified
 			 */
-			/* Reallocate buffer if impossible (strange values from server or out of memory) use older buffer */
+			/* Reallocate buffer if possible (strange values from server or out of memory) use older buffer */
 			tds_realloc_socket(tds, new_block_size);
 		}
 		break;

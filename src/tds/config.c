@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.133 2008-01-18 13:37:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.134 2008-08-06 07:40:15 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -495,8 +495,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	if (!strcmp(option, TDS_STR_VERSION)) {
 		tds_config_verstr(value, connection);
 	} else if (!strcmp(option, TDS_STR_BLKSZ)) {
-		if (atoi(value))
-			connection->block_size = atoi(value);
+		int val = atoi(value);
+		if (val >= 512 && val < 65536)
+			connection->block_size = val;
 	} else if (!strcmp(option, TDS_STR_SWAPDT)) {
 		connection->broken_dates = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_SWAPMNY)) {
