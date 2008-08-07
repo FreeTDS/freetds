@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.33 2008-07-31 14:57:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.34 2008-08-07 07:18:53 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -270,39 +270,9 @@ tds_answer_challenge(TDSSOCKET * tds,
 	static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
 	DES_KEY ks;
 	unsigned char hash[24], ntlm2_challenge[16];
-	int ntlm_v, res;
+	int res;
 
 	memset(answer, 0, sizeof(TDSANSWER));
-
-	ntlm_v = 2;
-
-	if (ntlm_v == 2) {
-		/* NTLMv2 */
-		unsigned char *lm_v2_response;
-		unsigned char ntlm_v2_hash[16];
-		const names_blob_prefix_t *names_blob_prefix;
-
-		res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
-		if (res != TDS_SUCCEED)
-			return res;
-
-		/* LMv2 response */
-		/* Take client's chalenge from names_blob */
-		names_blob_prefix = (const names_blob_prefix_t *) names_blob;
-		lm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob_prefix->challenge, 8, challenge);
-		if (!lm_v2_response)
-			return TDS_FAIL;
-		memcpy(answer->lm_resp, lm_v2_response, 24);
-		free(lm_v2_response);
-
-		/* NTLMv2 response */
-		/* Size of lm_v2_response is 16 + names_blob_len */
-		*ntlm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob, names_blob_len, challenge);
-		if (!*ntlm_v2_response)
-			return TDS_FAIL;
-
-		return TDS_SUCCEED;
-	}
 
 	if (!(*flags & 0x80000)) {
 		/* NTLM */
@@ -328,10 +298,36 @@ tds_answer_challenge(TDSSOCKET * tds,
 
 		tds_encrypt_answer(hash, challenge, answer->lm_resp);
 		memset(passwd_buf, 0, sizeof(passwd_buf));
+	} else if (names_blob_len > 0) {
+		/* NTLMv2 */
+		unsigned char *lm_v2_response;
+		unsigned char ntlm_v2_hash[16];
+		const names_blob_prefix_t *names_blob_prefix;
+
+		res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
+		if (res != TDS_SUCCEED)
+			return res;
+
+		/* LMv2 response */
+		/* Take client's challenge from names_blob */
+		names_blob_prefix = (const names_blob_prefix_t *) names_blob;
+		lm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob_prefix->challenge, 8, challenge);
+		if (!lm_v2_response)
+			return TDS_FAIL;
+		memcpy(answer->lm_resp, lm_v2_response, 24);
+		free(lm_v2_response);
+
+		/* NTLMv2 response */
+		/* Size of lm_v2_response is 16 + names_blob_len */
+		*ntlm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob, names_blob_len, challenge);
+		if (!*ntlm_v2_response)
+			return TDS_FAIL;
+
+		return TDS_SUCCEED;
 	} else {
+		/* NTLM2 */
 		MD5_CTX md5_ctx;
 
-		/* NTLM2 */
 		generate_random_buffer(hash, 8);
 		memset(hash + 8, 0, 16);
 		memcpy(answer->lm_resp, hash, 24);
