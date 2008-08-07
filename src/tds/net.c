@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.76 2008-07-24 22:04:50 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.77 2008-08-07 10:06:08 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -1025,7 +1025,8 @@ tds_ssl_write(BIO *b, const char* data, int len)
 
 	if (tds->tls_session) {
 		/* write to socket directly */
-		return tds_goodwrite(tds, data, len, 1);
+		/* TODO use cork if available here to fluch only on last chunk of packet ?? */
+		return tds_goodwrite(tds, data, len, tds->out_buf[1]);
 	}
 	/* write crypted data inside normal TDS packets */
 	tds_put_n(tds, data, len);

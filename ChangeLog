@@ -1,3 +1,6 @@
+Thu Aug 07 12:05:03 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: small network optimization
+
 Thu Aug 07 09:17:58 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/challenge.c: use NTLMv2 if possible
 
@@ -511,4 +514,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2576 2008-08-07 07:18:51 freddy77 Exp $
+$Id: ChangeLog,v 1.2577 2008-08-07 10:06:05 freddy77 Exp $
