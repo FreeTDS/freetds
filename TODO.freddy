@@ -52,6 +52,10 @@ test to review
 - getdata.c ??
 - putdata.c ??
 - wchar.c
+Is it possible to support direct binding for parameters using different
+encodings? For instance client <-> server iso8859-1 <-> ucs2. It should be
+possible changing TDSCOLUMN->char_conv. Some work should be done in 
+src/tds/iconv.c in order to get a valid char_conv changing client encoding.
 
 Other
 -----
