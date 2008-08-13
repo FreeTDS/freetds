@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-05-06 17:42:44 $</date>
-		<releaseinfo>$Revision: 1.113 $</releaseinfo>
+		<date>$Date: 2008-08-13 19:08:31 $</date>
+		<releaseinfo>$Revision: 1.114 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -56,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.113 $</>
-<member>$Date: 2008-05-06 17:42:44 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.113 2008-05-06 17:42:44 jklowden Exp $.</>
+<member>$Revision: 1.114 $</>
+<member>$Date: 2008-08-13 19:08:31 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.114 2008-08-13 19:08:31 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -568,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-05-06 17:42:44 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-08-13 19:08:31 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1822,6 +1822,34 @@ In the following example, a server named <literal>mssql</literal> will return da
 			<para>
 It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any specified character set during login, as 4.2 does.  A <acronym>TDS 7.0</> login packet uses <acronym>UCS-2</>.  
 			</para>
+		<sect2 id="localization.servernote"><title>Microsoft Server Note</title>
+			<para>
+String literals in SQL must be prefixed with 'N' unless the enclosed string can be represented in the server's <emphasis>single-byte</> character set, irrespective of the column's datatype.  For example, in the SQL statement 
+
+<para><informalexample>
+INSERT INTO tablename (greeting) VALUES ('Hallå')
+</informalexample></para>
+
+the string is subject to somewhat surprising treatment by the server.  
+			</para>
+			<para>
+When the server parses the SQL, it extracts the data values for insertion (or update, or comparison, etc.)  Unprefixed strings are converted to the single-byte character set of the server/database.<footnote><para>The precise rules are unknown to the author.</para></footnote>   Inserted data are then of course stored in the column.  In the case of UCS-2 columns &mdash; nchar/nvarchar/ntext &mdash; the value stored is that which results from a <emphasis>second</> conversion: from the single-byte form to the <acronym>UCS-2</> form.  
+			</para>
+			<para>
+The <emphasis>only</> safe way to enclose strings in SQL text is with an 'N' prefix:
+
+<para><informalexample>
+INSERT INTO tablename (greeting) VALUES (N'Hallå')
+</informalexample></para>
+
+			</para>
+			<formalpara><title>Commentary</>
+What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</> or <acronym>ISO 8859-1</> or anything else &mdash; it's converted to <acronym>UCS-2</> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</>.  If the column into which it's being inserted is also <acronym>UCS-2</>, there's no need to <empahsis>any</> conversion, much less two, and <emphasis>certainly</> no need to lose infomation.  
+			</para>
+			<para>
+Why this happens is anyone's guess.  Here's one: it makes the datatype of the column unimportant.  Regardless of whether you use char/varchar/text or nchar/nvarchar/ntext or a mixture of the two, the arriving SQL (if naïvely written) will store exactly the same characters.  
+			</para>
+		</sect2>
 		</sect1>
 		<sect1 id="domains">
 			<title>Domain Logins</title>
