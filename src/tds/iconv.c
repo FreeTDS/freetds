@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.132 2007-01-02 20:47:05 jklowden Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.133 2008-08-13 04:09:32 jklowden Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -101,7 +101,7 @@ tds_iconv_init(void)
 
 	/* fast tests for GNU-iconv */
 	cd = tds_sys_iconv_open("ISO-8859-1", "UTF-8");
-	if (cd != (iconv_t) - 1) {
+	if (cd != (iconv_t) -1) {
 		iconv_names[POS_ISO1] = "ISO-8859-1";
 		iconv_names[POS_UTF8] = "UTF-8";
 		tds_sys_iconv_close(cd);
@@ -118,7 +118,7 @@ tds_iconv_init(void)
 					continue;
 
 				cd = tds_sys_iconv_open(iconv_aliases[i].alias, iconv_aliases[j].alias);
-				if (cd != (iconv_t) - 1) {
+				if (cd != (iconv_t) -1) {
 					iconv_names[POS_ISO1] = iconv_aliases[i].alias;
 					iconv_names[POS_UTF8] = iconv_aliases[j].alias;
 					tds_sys_iconv_close(cd);
@@ -135,12 +135,12 @@ tds_iconv_init(void)
 
 	/* now search for UCS-2 */
 	cd = tds_sys_iconv_open(iconv_names[POS_ISO1], "UCS-2LE");
-	if (cd != (iconv_t) - 1) {
+	if (cd != (iconv_t) -1) {
 		iconv_names[POS_UCS2LE] = "UCS-2LE";
 		tds_sys_iconv_close(cd);
 	}
 	cd = tds_sys_iconv_open(iconv_names[POS_ISO1], "UCS-2BE");
-	if (cd != (iconv_t) - 1) {
+	if (cd != (iconv_t) -1) {
 		iconv_names[POS_UCS2BE] = "UCS-2BE";
 		tds_sys_iconv_close(cd);
 	}
@@ -152,7 +152,7 @@ tds_iconv_init(void)
 				continue;
 
 			cd = tds_sys_iconv_open(iconv_aliases[i].alias, iconv_names[POS_ISO1]);
-			if (cd != (iconv_t) - 1) {
+			if (cd != (iconv_t) -1) {
 				char ib[1];
 				char ob[4];
 				size_t il, ol;
@@ -194,7 +194,7 @@ tds_iconv_init(void)
 	ucs2name = iconv_names[POS_UCS2LE] ? iconv_names[POS_UCS2LE] : iconv_names[POS_UCS2BE];
 
 	for (i = 0; i < 4; ++i)
-		tdsdump_log(TDS_DBG_INFO1, "names for %s: %s\n", canonic_charsets[i].name,
+		tdsdump_log(TDS_DBG_INFO1, "local name for %s is %s\n", canonic_charsets[i].name,
 			    iconv_names[i] ? iconv_names[i] : "(null)");
 
 	/* success (it should always occurs) */
@@ -214,13 +214,13 @@ tds_get_iconv_name(int charset)
 
 	/* try using canonic name and UTF-8 and UCS2 */
 	cd = tds_sys_iconv_open(iconv_names[POS_UTF8], canonic_charsets[charset].name);
-	if (cd != (iconv_t) - 1) {
+	if (cd != (iconv_t) -1) {
 		iconv_names[charset] = canonic_charsets[charset].name;
 		tds_sys_iconv_close(cd);
 		return;
 	}
 	cd = tds_sys_iconv_open(ucs2name, canonic_charsets[charset].name);
-	if (cd != (iconv_t) - 1) {
+	if (cd != (iconv_t) -1) {
 		iconv_names[charset] = canonic_charsets[charset].name;
 		tds_sys_iconv_close(cd);
 		return;
@@ -232,14 +232,14 @@ tds_get_iconv_name(int charset)
 			continue;
 
 		cd = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_aliases[i].alias);
-		if (cd != (iconv_t) - 1) {
+		if (cd != (iconv_t) -1) {
 			iconv_names[charset] = iconv_aliases[i].alias;
 			tds_sys_iconv_close(cd);
 			return;
 		}
 
 		cd = tds_sys_iconv_open(ucs2name, iconv_aliases[i].alias);
-		if (cd != (iconv_t) - 1) {
+		if (cd != (iconv_t) -1) {
 			iconv_names[charset] = iconv_aliases[i].alias;
 			tds_sys_iconv_close(cd);
 			return;
@@ -263,10 +263,10 @@ tds_iconv_reset(TDSICONV *conv)
 	conv->client_charset.max_bytes_per_char = 1;
 
 	conv->server_charset.name = conv->client_charset.name = "";
-	conv->to_wire = (iconv_t) - 1;
-	conv->to_wire2 = (iconv_t) - 1;
-	conv->from_wire = (iconv_t) - 1;
-	conv->from_wire2 = (iconv_t) - 1;
+	conv->to_wire = (iconv_t) -1;
+	conv->to_wire2 = (iconv_t) -1;
+	conv->from_wire = (iconv_t) -1;
+	conv->from_wire2 = (iconv_t) -1;
 }
 
 /**
@@ -334,6 +334,8 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	TDS_ENCODING *client = &tds->char_convs[client2ucs2]->client_charset;
 	TDS_ENCODING *server = &tds->char_convs[client2ucs2]->server_charset;
 
+	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open(%p, %s)\n", tds, charset);
+
 #if !HAVE_ICONV_ALWAYS
 
 	strcpy(client->name, "ISO-8859-1");
@@ -360,7 +362,9 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	/* 
 	 * Client <-> UCS-2 (client2ucs2)
 	 */
-	tdsdump_log(TDS_DBG_FUNC, "iconv to convert client-side data to the \"%s\" character set\n", charset);
+	tdsdump_log(TDS_DBG_FUNC, "setting up conversions for client charset \"%s\"\n", charset);
+
+	tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, UCS_2LE);
 
 	fOK = tds_iconv_info_init(tds->char_convs[client2ucs2], charset, UCS_2LE);
 	if (!fOK)
@@ -382,6 +386,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	 */
 	tds->char_convs[client2server_chardata]->flags = TDS_ENCODING_MEMCPY;
 	if (tds->env.charset) {
+		tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, tds->env.charset);
 		fOK = tds_iconv_info_init(tds->char_convs[client2server_chardata], charset, tds->env.charset);
 		if (!fOK)
 			return;
@@ -396,8 +401,10 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 		if (tds->env.charset)
 			name = tds->env.charset;
 	}
+	tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", "ISO-8859-1", name);
 	fOK = tds_iconv_info_init(tds->char_convs[iso2server_metadata], "ISO-8859-1", name);
 
+	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open: done\n");
 #endif
 }
 
@@ -420,10 +427,10 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 
 	assert(client_name && server_name);
 
-	assert(char_conv->to_wire == (iconv_t) - 1);
-	assert(char_conv->to_wire2 == (iconv_t) - 1);
-	assert(char_conv->from_wire == (iconv_t) - 1);
-	assert(char_conv->from_wire2 == (iconv_t) - 1);
+	assert(char_conv->to_wire == (iconv_t) -1);
+	assert(char_conv->to_wire2 == (iconv_t) -1);
+	assert(char_conv->from_wire == (iconv_t) -1);
+	assert(char_conv->from_wire2 == (iconv_t) -1);
 
 	client_canonical = tds_canonical_charset(client_name);
 	server_canonical = tds_canonical_charset(server_name);
@@ -443,8 +450,8 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 
 	/* special case, same charset, no conversion */
 	if (client_canonical == server_canonical) {
-		char_conv->to_wire = (iconv_t) - 1;
-		char_conv->from_wire = (iconv_t) - 1;
+		char_conv->to_wire = (iconv_t) -1;
+		char_conv->from_wire = (iconv_t) -1;
 		char_conv->flags = TDS_ENCODING_MEMCPY;
 		return 1;
 	}
@@ -471,8 +478,8 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 
 	/* names available ?? */
 	if (!iconv_names[client_canonical][0] || !iconv_names[server_canonical][0]) {
-		char_conv->to_wire = (iconv_t) - 1;
-		char_conv->from_wire = (iconv_t) - 1;
+		char_conv->to_wire = (iconv_t) -1;
+		char_conv->from_wire = (iconv_t) -1;
 		char_conv->flags = TDS_ENCODING_MEMCPY;
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: use memcpy to convert \"%s\"->\"%s\"\n", client->name,
 			    server->name);
@@ -480,17 +487,17 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 	}
 
 	char_conv->to_wire = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[client_canonical]);
-	if (char_conv->to_wire == (iconv_t) - 1) {
+	if (char_conv->to_wire == (iconv_t) -1) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
 	}
 
 	char_conv->from_wire = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
-	if (char_conv->from_wire == (iconv_t) - 1) {
+	if (char_conv->from_wire == (iconv_t) -1) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", server->name, client->name);
 	}
 
 	/* try indirect conversions */
-	if (char_conv->to_wire == (iconv_t) - 1 || char_conv->from_wire == (iconv_t) - 1) {
+	if (char_conv->to_wire == (iconv_t) -1 || char_conv->from_wire == (iconv_t) -1) {
 		tds_iconv_info_close(char_conv);
 
 		/* TODO reuse some conversion, client charset is usually constant in all connection (or ISO8859-1) */
@@ -499,8 +506,8 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 		char_conv->from_wire = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_names[server_canonical]);
 		char_conv->from_wire2 = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[POS_UTF8]);
 
-		if (char_conv->to_wire == (iconv_t) - 1 || char_conv->to_wire2 == (iconv_t) - 1
-		    || char_conv->from_wire == (iconv_t) - 1 || char_conv->from_wire2 == (iconv_t) - 1) {
+		if (char_conv->to_wire == (iconv_t) -1 || char_conv->to_wire2 == (iconv_t) -1
+		    || char_conv->from_wire == (iconv_t) -1 || char_conv->from_wire2 == (iconv_t) -1) {
 
 			tds_iconv_info_close(char_conv);
 			tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\" indirectly\n",
@@ -513,7 +520,7 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 	
 	/* TODO, do some optimizations like UCS2 -> UTF8 min,max = 2,2 (UCS2) and 1,4 (UTF8) */
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: converting \"%s\"->\"%s\"\n", client->name, server->name);
+	/* tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: converting \"%s\"->\"%s\"\n", client->name, server->name); */
 
 	return 1;
 }
@@ -523,7 +530,7 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 static void
 _iconv_close(iconv_t * cd)
 {
-	static const iconv_t invalid = (iconv_t) - 1;
+	static const iconv_t invalid = (iconv_t) -1;
 
 	if (*cd != invalid) {
 		tds_sys_iconv_close(*cd);
@@ -606,7 +613,7 @@ size_t
 tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	  const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft)
 {
-	static const iconv_t invalid = (iconv_t) - 1;
+	static const iconv_t invalid = (iconv_t) -1;
 	const TDS_ENCODING *input_charset = NULL;
 	const char *output_charset_name = NULL;
 
@@ -851,7 +858,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 	/*
 	 * If cd isn't valid, it's just an indication that this column needs no conversion.  
 	 */
-	if (cd == (iconv_t) - 1) {
+	if (cd == (iconv_t) -1) {
 		assert(field_len <= *outbytesleft);
 		if (field_len > 0) {
 			if (1 != fread(outbuf, field_len, 1, stream)) {
@@ -1096,7 +1103,7 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 	/* init destination conversion */
 	/* TODO use largest fixed size for this platform */
 	cd2 = tds_sys_iconv_open("UCS-4", charset->name);
-	if (cd2 == (iconv_t) - 1)
+	if (cd2 == (iconv_t) -1)
 		return 0;
 
 	/* add part of input */
