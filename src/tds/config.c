@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.134 2008-08-06 07:40:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.135 2008-08-14 08:49:22 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -547,6 +547,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_dstr_copy(&connection->instance_name, value);
 	} else if (!strcmp(option, TDS_STR_ENCRYPTION)) {
 		tds_config_encryption(value, connection);
+	} else if (!strcmp(option, TDS_STR_ASA_DATABASE)) {
+		tds_dstr_copy(&connection->server_name, value);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}
@@ -555,7 +557,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 static void
 tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 {
-	if (!tds_dstr_isempty(&login->server_name)) {
+	if (!tds_dstr_isempty(&login->server_name) && tds_dstr_isempty(&connection->server_name)) {
 		tds_dstr_dup(&connection->server_name, &login->server_name);
 	}
 	if (login->major_version || login->minor_version) {
