@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-08-13 19:08:31 $</date>
-		<releaseinfo>$Revision: 1.114 $</releaseinfo>
+		<date>$Date: 2008-08-14 09:14:48 $</date>
+		<releaseinfo>$Revision: 1.115 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -56,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.114 $</>
-<member>$Date: 2008-08-13 19:08:31 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.114 2008-08-13 19:08:31 jklowden Exp $.</>
+<member>$Revision: 1.115 $</>
+<member>$Date: 2008-08-14 09:14:48 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.115 2008-08-14 09:14:48 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -568,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-08-13 19:08:31 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-08-14 09:14:48 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1826,9 +1826,9 @@ It is also worth clarifying that <acronym>TDS 7.0</> and above do not accept any
 			<para>
 String literals in SQL must be prefixed with 'N' unless the enclosed string can be represented in the server's <emphasis>single-byte</> character set, irrespective of the column's datatype.  For example, in the SQL statement 
 
-<para><informalexample>
-INSERT INTO tablename (greeting) VALUES ('Hallå')
-</informalexample></para>
+<informalexample><screen>
+INSERT INTO tablename (greeting) VALUES ('Hall&aring;')
+</screen></informalexample>
 
 the string is subject to somewhat surprising treatment by the server.  
 			</para>
@@ -1838,14 +1838,15 @@ When the server parses the SQL, it extracts the data values for insertion (or up
 			<para>
 The <emphasis>only</> safe way to enclose strings in SQL text is with an 'N' prefix:
 
-<para><informalexample>
-INSERT INTO tablename (greeting) VALUES (N'Hallå')
-</informalexample></para>
+<informalexample><screen>
+INSERT INTO tablename (greeting) VALUES (N'Hall&aring;')
+</screen></informalexample>
 
 			</para>
 			<formalpara><title>Commentary</>
-What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</> or <acronym>ISO 8859-1</> or anything else &mdash; it's converted to <acronym>UCS-2</> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</>.  If the column into which it's being inserted is also <acronym>UCS-2</>, there's no need to <empahsis>any</> conversion, much less two, and <emphasis>certainly</> no need to lose infomation.  
+<para>What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</> or <acronym>ISO 8859-1</> or anything else &mdash; it's converted to <acronym>UCS-2</> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</>.  If the column into which it's being inserted is also <acronym>UCS-2</>, there's no need to <emphasis>any</> conversion, much less two, and <emphasis>certainly</> no need to lose infomation.  
 			</para>
+			</formalpara>
 			<para>
 Why this happens is anyone's guess.  Here's one: it makes the datatype of the column unimportant.  Regardless of whether you use char/varchar/text or nchar/nvarchar/ntext or a mixture of the two, the arriving SQL (if naïvely written) will store exactly the same characters.  
 			</para>
