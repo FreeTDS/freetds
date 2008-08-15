@@ -11,7 +11,8 @@
 ;;	by Norman Walsh
 ;; See Chapter 3, "Customizing the Stylesheets"
 ;; http://docbook.sourceforge.net/release/dsssl/current/doc/custom.html
-;; $Id: userguide.dsl.in,v 1.2 2005-10-03 02:52:22 jklowden Exp $
+
+;; $Id: userguide.dsl.in,v 1.3 2008-08-15 04:47:05 jklowden Exp $
 
 ;; For note, tip, and warning: include little
 ;; gifs of a hand pointing a finger, or a yield sign, and so on.  
@@ -49,6 +50,12 @@
 (define %html40%
   ;; Generate HTML 4.0
   #t)
+
+;; Insert meta tag with encoding information into each generated HTML file.
+;; cf. http://www.dpawson.co.uk/docbook/dsssl/dssslgeneral.html 
+
+(define %html-header-tags% 
+  '(("META" ("HTTP-EQUIV" "Content-Type") ("CONTENT" "text/html; charset=utf-8"))))
 
 ;; Should the role attribute of emphasis be propagated to HTML as a
 ;; class attribute value? Source Code

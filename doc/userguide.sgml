@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-08-14 09:14:48 $</date>
-		<releaseinfo>$Revision: 1.115 $</releaseinfo>
+		<date>$Date: 2008-08-15 04:47:06 $</date>
+		<releaseinfo>$Revision: 1.116 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -56,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.115 $</>
-<member>$Date: 2008-08-14 09:14:48 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.115 2008-08-14 09:14:48 freddy77 Exp $.</>
+<member>$Revision: 1.116 $</>
+<member>$Date: 2008-08-15 04:47:06 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.116 2008-08-15 04:47:06 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -343,7 +343,7 @@ The <acronym>GNU</> development system can generate code for a wide variety of h
 			<sidebar><title>ODBC Preparation</title>
 	<para>If you intend to build the <productname>FreeTDS</> ODBC driver &mdash; and want to use a Driver Manager (DM), as most people do &mdash; install the Driver Manager before configuring <productname>FreeTDS</>.  <Command>configure</> will detect the the DM and use its header (<filename>.h</>) files for ODBC constants and such.  If your DM is installed in an unusual directory, you may have to provide the directory name as a parameter to <Command>configure</>.</para>
 	
-	<para><productname>FreeTDS</> doesn't <emphasis>require</> a DM.  You can build the ODBC driver without one, as long as you have the requisite header files: <filename>sql.h</>, <filename>sqlext.h</> and <filename>sqltypes.h</>.  These can be taken from either the iODBC or UnixODBC distributions. Put them wherever you like (e.g.,  <filename>/usr/local/include</filename>).  Because <productname>FreeTDS</> won't detect your (missing) DM, it won't automatically build the ODBC driver, so you'll have to tell <Command>configure</> what to do and where to look.  Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link> <option</>.
+	<para><productname>FreeTDS</> doesn't <emphasis>require</> a DM.  You can build the ODBC driver without one, as long as you have the requisite header files: <filename>sql.h</>, <filename>sqlext.h</> and <filename>sqltypes.h</>.  These can be taken from either the iODBC or UnixODBC distributions. Put them wherever you like (e.g.,  <filename>/usr/local/include</filename>).  Because <productname>FreeTDS</> won't detect your (missing) DM, it won't automatically build the ODBC driver, so you'll have to tell <Command>configure</> what to do and where to look.  Cf. <link linkend="withOdbcNoDM"><option>--with-odbc-nodm</></link>.
 </para>
 			</sidebar>
 			<para>
@@ -568,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-08-14 09:14:48 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-08-15 04:47:06 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1771,7 +1771,7 @@ In this example we want to force connections to a server named <literal>mssql</l
 <acronym>TDS</> 7.0 uses 2-byte Unicode (technically, <acronym>UCS-2</>) to transfer character data between servers and clients.  Included in <quote>character data</quote> are query text (i.e., <acronym>SQL</>), metadata (table names and such), and <foreignphrase>bona fide</> data of datatypes <literal>nchar</>, <literal>nvarchar</>, and <literal>ntext</>.  (Background information on Unicode and how it affects <productname>FreeTDS</productname> can be found in the <link linkend="Unicode">appendix</link>.)
 			</para>
 			<para>
-Because most Unix tools and environments do not support <acronym>UCS-2</>, <productname>FreeTDS</productname> provides for conversion by the client to other character sets.  The mechanism used is determined by the <filename>configure</> script, which looks for a <function>iconv</>(3) function, an implementation of the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.    If no <function>iconv</> library is found, or if it is explicitly disabled, <productname>FreeTDS</productname> will use its built-in <function>iconv</> substitute, and will be capable of converting among only <acronym>ISO 8859-1</>, <acronym>UTF-8</>, and <acronym>UCS-2</>.  
+Because most Unix tools and environments do not support <acronym>UCS-2</>, <productname>FreeTDS</productname> provides for conversion by the client to other character sets.  The mechanism used is determined by the <filename>configure</> script, which looks for a <function>iconv(3)</> function, an implementation of the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.    If no <function>iconv</> library is found, or if it is explicitly disabled, <productname>FreeTDS</productname> will use its built-in <function>iconv</> substitute, and will be capable of converting among only <acronym>ISO 8859-1</>, <acronym>UTF-8</>, and <acronym>UCS-2</>.  
 			</para>
 			<para>
 To learn what character set the client wants, <productname>FreeTDS</productname> prefers the applicable <link linkend="clientcharset"><filename>freetds.conf</></link> <literal>client charset</> property.  If that is not set, it parses the <envar>LANG</> environment variable.  In either case, the found string is passed to <function>iconv</>(3) (or its built-in replacment).  <footnote><para>The built-in replacement expects GNU iconv names: <literal>ISO-8859-1</>, <literal>US-ASCII</>, or <literal>UTF-8</>.</para></footnote>.  If neither is found, <acronym>UCS-2</> data are converted to <acronym>ISO 8859-1</>.  
@@ -1833,7 +1833,7 @@ INSERT INTO tablename (greeting) VALUES ('Hall&aring;')
 the string is subject to somewhat surprising treatment by the server.  
 			</para>
 			<para>
-When the server parses the SQL, it extracts the data values for insertion (or update, or comparison, etc.)  Unprefixed strings are converted to the single-byte character set of the server/database.<footnote><para>The precise rules are unknown to the author.</para></footnote>   Inserted data are then of course stored in the column.  In the case of UCS-2 columns &mdash; nchar/nvarchar/ntext &mdash; the value stored is that which results from a <emphasis>second</> conversion: from the single-byte form to the <acronym>UCS-2</> form.  
+When the server parses the SQL, it extracts the data values for insertion (or update, or comparison, etc.)  Unprefixed strings are converted to the single-byte character set of the server/database.<footnote><para>The precise rules are unknown to the author.</para></footnote>   Inserted data are then of course stored in the column.  In the case of UCS-2 columns &mdash; <literal>nchar</>, <literal>nvarchar</>, and <literal>ntext</> &mdash; the value stored is that which results from a <emphasis>second</> conversion: from the single-byte form to the <acronym>UCS-2</> form.  
 			</para>
 			<para>
 The <emphasis>only</> safe way to enclose strings in SQL text is with an 'N' prefix:
@@ -1843,10 +1843,10 @@ INSERT INTO tablename (greeting) VALUES (N'Hall&aring;')
 </screen></informalexample>
 
 			</para>
-			<formalpara><title>Commentary</>
-<para>What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</> or <acronym>ISO 8859-1</> or anything else &mdash; it's converted to <acronym>UCS-2</> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</>.  If the column into which it's being inserted is also <acronym>UCS-2</>, there's no need to <emphasis>any</> conversion, much less two, and <emphasis>certainly</> no need to lose infomation.  
+			<bridgehead renderas='sect3'>Commentary</bridgehead>
+			<para>
+What's surprising about this?  Versions 7.0 and later of the TDS protocol use UCS-2 to send SQL text.  No matter how your local client is configured &mdash; with <acronym>UCS-2</> or <acronym>ISO 8859-1</> or anything else &mdash; it's converted to <acronym>UCS-2</> before it's sent to the server.  And obviously arrives at the server as <acronym>UCS-2</>.  If the column into which it's being inserted is also <acronym>UCS-2</>, there's no need of <emphasis>any</> conversion, much less two, and <emphasis>certainly</> no need to lose infomation.  
 			</para>
-			</formalpara>
 			<para>
 Why this happens is anyone's guess.  Here's one: it makes the datatype of the column unimportant.  Regardless of whether you use char/varchar/text or nchar/nvarchar/ntext or a mixture of the two, the arriving SQL (if naïvely written) will store exactly the same characters.  
 			</para>

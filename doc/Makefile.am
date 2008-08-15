@@ -2,7 +2,7 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
-# $Id: Makefile.am,v 1.64 2008-05-08 18:37:21 jklowden Exp $
+# $Id: Makefile.am,v 1.65 2008-08-15 04:47:05 jklowden Exp $
 
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
@@ -169,7 +169,8 @@ $(DOCDIR)/userguide/index.htm: userguide.sgml  userguide.dsl.in api_status.txt
 ##		The crazy path is due to the above 'cd' command
 		SRCDOC=../../../$(srcdir); \
 		if test ! -r userguide.sgml; then ln -s $${SRCDOC}/userguide.sgml userguide.sgml; fi; \
-		openjade -d ../../../userguide.dsl -t sgml userguide.sgml; \
+		openjade -b utf-8 -w all -w no-empty -w no-unused-param \
+			 -d ../../../userguide.dsl -t sgml userguide.sgml; \
 		if test -h userguide.sgml; then rm userguide.sgml; fi; \
 ## 		and copy the stylesheet
 		cp $${SRCDOC}/userguide.css .; \
