@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.28 2008-07-08 08:41:06 freddy77 Exp $
+# $Id: Makefile.am,v 1.29 2008-08-15 09:55:23 freddy77 Exp $
 
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT) t0004$(EXEEXT) \
 			t0005$(EXEEXT) t0006$(EXEEXT) t0007$(EXEEXT) t0008$(EXEEXT) \
@@ -48,5 +48,5 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install
 endif
-LIBS		=	../libct.la -static @NETWORK_LIBS@
+LIBS		=	../libct.la ../../replacements/libreplacements.la @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out

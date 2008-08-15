@@ -1,3 +1,7 @@
+Fri Aug 15 11:55:05 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/Makefile.am:
+	- make win64 compile again
+
 Fri Aug 15 10:12:34 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/userguide.sgml: remove strange characters
 
@@ -535,4 +539,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2583 2008-08-15 08:13:09 freddy77 Exp $
+$Id: ChangeLog,v 1.2584 2008-08-15 09:55:22 freddy77 Exp $
