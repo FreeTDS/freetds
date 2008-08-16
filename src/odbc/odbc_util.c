@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.98 2008-07-14 15:12:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.99 2008-08-16 14:48:57 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -262,6 +262,14 @@ odbc_server_to_sql_type(int col_type, int col_size)
 		return SQL_VARCHAR;
 	case SYBTEXT:
 		return SQL_LONGVARCHAR;
+	case XSYBNCHAR:
+		return SQL_WCHAR;
+	/* TODO really sure ?? SYBNVARCHAR sybase only ?? */
+	case SYBNVARCHAR:
+	case XSYBNVARCHAR:
+		return SQL_WVARCHAR;
+	case SYBNTEXT:
+		return SQL_WLONGVARCHAR;
 	case SYBBIT:
 	case SYBBITN:
 		return SQL_BIT;
@@ -326,12 +334,6 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		return SQL_NUMERIC;
-		/* TODO this is ODBC 3.5 */
-	case SYBNTEXT:
-	case SYBNVARCHAR:
-	case XSYBNVARCHAR:
-	case XSYBNCHAR:
-		break;
 #if (ODBCVER >= 0x0300)
 	case SYBUNIQUE:
 #ifdef SQL_GUID
@@ -679,11 +681,19 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 {
 
 	switch (sql_type) {
-
+	case SQL_WCHAR:
+		if (IS_TDS7_PLUS(tds))
+			return XSYBNCHAR;
 	case SQL_CHAR:
 		return SYBCHAR;
+	case SQL_WVARCHAR:
+		if (IS_TDS7_PLUS(tds))
+			return XSYBNVARCHAR;
 	case SQL_VARCHAR:
 		return SYBVARCHAR;
+	case SQL_WLONGVARCHAR:
+		if (IS_TDS7_PLUS(tds))
+			return SYBNTEXT;
 	case SQL_LONGVARCHAR:
 		return SYBTEXT;
 	case SQL_DECIMAL:
@@ -860,6 +870,9 @@ odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_
 	TYPE_NORMAL(SQL_CHAR) \
 	TYPE_NORMAL(SQL_VARCHAR) \
 	TYPE_NORMAL(SQL_LONGVARCHAR) \
+	TYPE_NORMAL(SQL_WCHAR) \
+	TYPE_NORMAL(SQL_WVARCHAR) \
+	TYPE_NORMAL(SQL_WLONGVARCHAR) \
 \
 	TYPE_NORMAL(SQL_DECIMAL) \
 	TYPE_NORMAL(SQL_NUMERIC) \

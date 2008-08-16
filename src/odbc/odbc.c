@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.488 2008-07-28 20:58:19 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.489 2008-08-16 14:48:57 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2830,7 +2830,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO SQL_FALSE ?? */
 		drec->sql_desc_case_sensitive = SQL_TRUE;
 		/* TODO test error ?? */
-		odbc_set_concise_sql_type(odbc_server_to_sql_type(col->column_type, col->column_size), drec, 0);
+		odbc_set_concise_sql_type(odbc_server_to_sql_type(col->on_server.column_type, col->on_server.column_size), drec, 0);
 		/*
 		 * TODO how to handle when in datetime we change precision ?? 
 		 * should we change display size too ??
@@ -2846,8 +2846,16 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO other types for date ?? SQL_TYPE_DATE, SQL_TYPE_TIME */
 		if (drec->sql_desc_concise_type == SQL_TIMESTAMP || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
 			drec->sql_desc_length = sizeof("2000-01-01 12:00:00.0000")-1;
-		else
-			drec->sql_desc_length = col->column_size;
+		else switch (drec->sql_desc_concise_type) {
+		case SQL_WCHAR:
+		case SQL_WVARCHAR:
+		case SQL_WLONGVARCHAR:
+			drec->sql_desc_length = col->on_server.column_size / 2;
+			break;
+		default:
+			drec->sql_desc_length = col->on_server.column_size;
+			break;
+		}
 		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
 
 		if (!col->table_column_name) {
@@ -2924,7 +2932,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 			else if (drec->sql_desc_type == SQL_DATETIME)
 				len = sizeof(TIMESTAMP_STRUCT);
 			else
-				len = col->column_size;
+				len = col->on_server.column_size;
 			drec->sql_desc_octet_length = len;
 		}
 

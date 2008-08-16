@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.68 2008-07-15 09:53:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.69 2008-08-16 14:48:57 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -354,11 +354,11 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	case SYBLONGBINARY:
 	case SYBIMAGE:
 		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, &ores);
-		if (res < 0)
-			return SQL_ERROR;
-		blob = (TDSBLOB *) dest;
-		free(blob->textvalue);
-		blob->textvalue = ores.ib;
+		if (res >= 0) {
+			blob = (TDSBLOB *) dest;
+			free(blob->textvalue);
+			blob->textvalue = ores.ib;
+		}
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
