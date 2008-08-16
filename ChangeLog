@@ -1,3 +1,6 @@
+Sat Aug 16 20:08:03 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c: do not loose sync on conversion errors
+
 Sat Aug 16 16:47:21 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/sql2tds.c:
 	- allow SQL_WCHAR/SQL_WVARCHAR
@@ -545,4 +548,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2585 2008-08-16 14:48:57 freddy77 Exp $
+$Id: ChangeLog,v 1.2586 2008-08-16 18:08:22 freddy77 Exp $
