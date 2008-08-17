@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.74 2008-01-20 16:36:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.75 2008-08-17 20:46:24 freddy77 Exp $");
 
 static const char odbc_param_Servername[] = "Servername";
 static const char odbc_param_Address[] = "Address";
@@ -226,8 +226,12 @@ odbc_parse_connect_string(const char *connect_string, const char *connect_string
 	char option[16];
 
 	tds_dstr_init(&value);
-	for (p = connect_string; p && *p;) {
+	for (p = connect_string; p < connect_string_end && *p;) {
 		dest_s = NULL;
+
+		/* handle empty options */
+		while (p < connect_string_end && *p == ';')
+			++p;
 
 		/* parse option */
 		end = (const char *) memchr(p, '=', connect_string_end - p);
