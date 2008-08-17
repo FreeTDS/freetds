@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.489 2008-08-16 14:48:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.490 2008-08-17 07:27:16 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -6022,7 +6022,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 		SQLRETURN ret;
 		const TDSCOLUMN *curcol = stmt->params->columns[stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1)];
 		/* TODO do some more tests before setting this flag */
-		stmt->param_data_called = curcol->column_size == curcol->column_cur_size;
+		stmt->param_data_called = 1;
 		ret = continue_parse_prepared_query(stmt, rgbValue, cbValue);
 		tdsdump_log(TDS_DBG_FUNC, "SQLPutData returns %s, %d bytes left\n", 
 					  odbc_prret(ret), curcol->column_size - curcol->column_cur_size);
