@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.2 2008-08-17 07:44:45 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.3 2008-08-17 08:08:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -119,13 +119,13 @@ main(int argc, char *argv[])
 
 	/* insert with INSERT statements */
 	for (n = 1, p = strings; p[0] && p[1]; p += 2, ++n) {
-		sprintf(tmp, "INSERT INTO %s VALUES (%d,N'%s',N'%s')", table_name, n, p[0], p[1]);
+		sprintf(tmp, "INSERT INTO %s VALUES (%d,N'%s',N'%s')", table_name, (int) n, p[0], p[1]);
 		Command(Statement, tmp);
 	}
 
 	/* check rows */
 	for (n = 1, p = strings_hex; p[0] && p[1]; p += 2, ++n) {
-		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, n, p[0], p[1]);
+		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, (int) n, p[0], p[1]);
 		CheckNoRow(tmp);
 	}
 	sprintf(tmp, "DELETE FROM %s", table_name);
@@ -148,13 +148,13 @@ main(int argc, char *argv[])
 			SQL_WVARCHAR, 40, 0, (void *) p[1], 0, &s2_len));
 		s1_len = strlen(p[0]);
 		s2_len = strlen(p[1]);
-		printf("insert #%d\n", n);
+		printf("insert #%d\n", (int) n);
 		CHK(SQLExecute, (Statement));
 	}
 
 	/* check rows */
 	for (n = 1, p = strings_hex; p[0] && p[1]; p += 2, ++n) {
-		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, n, p[0], p[1]);
+		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, (int) n, p[0], p[1]);
 		CheckNoRow(tmp);
 	}
 
