@@ -1,3 +1,6 @@
+Sun Aug 17 10:42:41 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c: do not loose sync on conversion errors
+
 Thu Aug 07 13:23:10 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/hmac_md5.h(added) src/tds/hmac_md5.c(added):
 	* include/Makefile.am src/tds/Makefile.am src/tds/challenge.c:
@@ -196,4 +199,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.46 2008-08-07 11:24:35 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.47 2008-08-17 08:43:16 freddy77 Exp $

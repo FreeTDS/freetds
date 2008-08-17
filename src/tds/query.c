@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.217.2.1 2008-02-12 15:41:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.217.2.2 2008-08-17 08:43:16 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -388,6 +388,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
+			/* FIXME handle error */
 			tds_put_data(tds, param);
 		}
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
@@ -1197,6 +1198,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
+			/* FIXME handle error */
 			tds_put_data(tds, param);
 		}
 
@@ -1468,15 +1470,16 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 #endif
 			/* we need to convert data before */
 			/* TODO this can be a waste of memory... */
+			converted = 1;
 			s = tds_convert_string(tds, curcol->char_conv, s, colsize, &colsize);
 			if (!s) {
-				/* FIXME this is a bad place to return error... */
+				/* on conversion error put a empty string */
 				/* TODO on memory failure we should compute comverted size and use chunks */
-				return TDS_FAIL;
+				colsize = 0;
+				converted = -1;
 			}
-			converted = 1;
 		}
-			
+
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
 			blob = (TDSBLOB *) curcol->column_data;
@@ -1499,6 +1502,10 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			colsize = tds_get_size_by_type(curcol->on_server.column_type);
 			break;
 		}
+
+		/* conversion error, exit with an error */
+		if (converted < 0)
+			return TDS_FAIL;
 
 		/* put real data */
 		if (is_numeric_type(curcol->on_server.column_type)) {
@@ -1607,6 +1614,7 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			param = info->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
+			/* FIXME handle error */
 			tds_put_data(tds, param);
 		}
 
@@ -1706,6 +1714,7 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 	/* row data */
 	tds_put_byte(tds, TDS5_PARAMS_TOKEN);
 	for (i = 0; i < info->num_cols; i++) {
+		/* FIXME handle error */
 		tds_put_data(tds, info->columns[i]);
 	}
 }
@@ -1878,6 +1887,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME);
+			/* FIXME handle error */
 			tds_put_data(tds, param);
 		}
 
@@ -2221,6 +2231,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 				TDSCOLUMN *param = params->columns[i];
 				/* TODO check error */
 				tds_put_data_info(tds, param, 0);
+				/* FIXME handle error */
 				tds_put_data(tds, param);
 			}
 		}
@@ -2656,6 +2667,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 				param = params->columns[n];
 				/* TODO check error */
 				tds_put_data_info(tds, param, TDS_PUT_DATA_USE_NAME|TDS_PUT_DATA_PREFIX_NAME);
+				/* FIXME handle error */
 				tds_put_data(tds, param);
 			}
 		}
