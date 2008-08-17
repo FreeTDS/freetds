@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.1 2008-08-16 14:48:57 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.2 2008-08-17 07:44:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 	int res;
 	char tmp[2048];
 	SQLSMALLINT len;
-	const char **p;
+	const char * const*p;
 	SQLINTEGER n;
 	SQLLEN n_len;
 
@@ -142,10 +142,10 @@ main(int argc, char *argv[])
 		SQLLEN s1_len, s2_len;
 
 		CHK(SQLBindParameter, (Statement, 2, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WCHAR, 40, 0, p[0], 0, &s1_len));
+			SQL_WCHAR, 40, 0, (void *) p[0], 0, &s1_len));
 		/* FIXME this with SQL_VARCHAR produce wrong protocol data */
 		CHK(SQLBindParameter, (Statement, 3, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WVARCHAR, 40, 0, p[1], 0, &s2_len));
+			SQL_WVARCHAR, 40, 0, (void *) p[1], 0, &s2_len));
 		s1_len = strlen(p[0]);
 		s2_len = strlen(p[1]);
 		printf("insert #%d\n", n);
