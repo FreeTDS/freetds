@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Brian Bruns
- * Copyright (C) 2006, 2007  Frediano Ziglio
+ * Copyright (C) 2006, 2007, 2008  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.120 2008-07-07 18:40:44 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.121 2008-08-18 13:31:27 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 

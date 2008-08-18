@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2005 Frediano Ziglio
+ * Copyright (C) 2005-2008 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +20,7 @@
 #ifndef _tdsbytes_h_
 #define _tdsbytes_h_
 
-/* $Id: tdsbytes.h,v 1.3 2008-05-26 13:56:49 freddy77 Exp $ */
+/* $Id: tdsbytes.h,v 1.4 2008-08-18 13:31:26 freddy77 Exp $ */
 
 #ifndef _tds_h_
 #error tds.h must be included before tdsbytes.h

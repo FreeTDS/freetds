@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005 Frediano Ziglio
+ * Copyright (C) 2005-2008  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.75 2008-08-17 20:46:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.76 2008-08-18 13:31:27 freddy77 Exp $");
 
 static const char odbc_param_Servername[] = "Servername";
 static const char odbc_param_Address[] = "Address";

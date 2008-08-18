@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Brian Bruns
- * Copyright (C) 2004, 2005, 2006, 2007  Ziglio Frediano
+ * Copyright (C) 2004, 2005, 2006, 2007, 2008  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.77 2008-08-07 10:06:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.78 2008-08-18 13:31:27 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
