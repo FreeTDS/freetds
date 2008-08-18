@@ -116,7 +116,7 @@ find . \( -name \*.bb -o -name \*.bbg -o -name \*.da -o -name \*.gc\* \) -exec r
 rm -rf autom4te.cache doc/doc covtmp coverage DBD-*
 cvsclean || true
 if test "$(uname -m)" = "x86_64"; then
-	cp ../DBD-ODBC-1.15_2.tar.gz .
+	cp ../DBD-ODBC-1.16.tar.gz .
 else
 	cp ../DBD-ODBC-1.13.tar.gz .
 fi

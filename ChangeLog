@@ -1,3 +1,6 @@
+Mon Aug 18 09:17:26 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild: update DBD::ODBC
+
 Sun Aug 17 22:45:47 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/connectparams.c:
 	- skip empty options in SQLDriverConnect to make DBD::ODBC happy
@@ -559,4 +562,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2589 2008-08-17 20:46:24 freddy77 Exp $
+$Id: ChangeLog,v 1.2590 2008-08-18 07:17:43 freddy77 Exp $
