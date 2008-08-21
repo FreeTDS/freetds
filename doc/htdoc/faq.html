@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.21 2008-05-13 14:11:54 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.22 2008-08-21 03:52:22 jklowden Exp $ -->
 
 <head>
   <meta name="generator" content=
@@ -143,6 +143,8 @@
 
         <li><a href="#dateformat">My dates aren't formatted
         right!</a></li>
+        <li>My PHP script works from the command line but 
+		<a href="#php">fails in the browser!</a></li>
       </ul>
     </li>
   </ol>
@@ -859,12 +861,25 @@
 
   <p>As of version 0.60, the default datetime-&gt;string conversion
   is controlled by the <code>locale.conf</code> file. See the User
-  Guide for details.</p><!-- footer -->
+  Guide for details.</p>
+  
+
+  <h3 id="php">My PHP script fails in the browser!</h3>
+  
+  <p> This is usually a webserver configuration issue, typically
+  permissions reading <kbd>freetds.conf</kbd> or similar.  
+  Remember that the account running the e.g. Apache server is 
+  normally not the one you use to log in, or to test your script
+  with on the command line.  
+
+
+  
+  <!-- footer -->
   <hr size="1" />
   <font size="-1">Updates and comments <a href=
   "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a> 
   <br/>
-    <i>$Id: faq.html,v 1.21 2008-05-13 14:11:54 jklowden Exp $</i>
+    <i>$Id: faq.html,v 1.22 2008-08-21 03:52:22 jklowden Exp $</i>
 	</font>
 <hr/>
   <p>
