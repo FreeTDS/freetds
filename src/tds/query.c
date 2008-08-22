@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.224 2008-08-18 13:31:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.225 2008-08-22 05:27:22 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -2970,7 +2970,7 @@ tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * par
 	START_QUERY;
 	if (!num_placeholders) {
 		tds_put_string(tds, query, -1);
-		return tds_flush_packet(tds);
+		return TDS_SUCCEED;
 	}
 
 	s = query;

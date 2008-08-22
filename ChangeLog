@@ -1,3 +1,8 @@
+Fri Aug 22 07:25:58 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c:
+	- applied modified patch from Chris Reeves for fix
+	  tds_send_emulated_execute if no parameters
+
 Mon Aug 18 15:30:45 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsbytes.h include/tdsodbc.h src/apps/tsql.c:
 	* src/dblib/dblib.c src/odbc/connectparams.c:
@@ -574,4 +579,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2591 2008-08-18 13:31:26 freddy77 Exp $
+$Id: ChangeLog,v 1.2592 2008-08-22 05:27:21 freddy77 Exp $
