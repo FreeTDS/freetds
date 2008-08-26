@@ -49,7 +49,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.65 2007-12-23 21:12:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.65.2.1 2008-08-26 14:10:27 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -822,11 +822,9 @@ CS_RETCODE ret;
 CS_RETCODE
 cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * daterec)
 {
-TDS_DATETIME *dt;
-TDS_DATETIME4 *dt4;
-time_t tmp_secs_from_epoch;
-struct tm *t;
-TDSDATEREC dr;
+	TDS_DATETIME *dt;
+	TDS_DATETIME4 *dt4;
+	TDSDATEREC dr;
 
 	if (datetype == CS_DATETIME_TYPE) {
 		dt = (TDS_DATETIME *) dateval;
@@ -837,7 +835,6 @@ TDSDATEREC dr;
 	} else {
 		return CS_FAIL;
 	}
-	t = (struct tm *) gmtime(&tmp_secs_from_epoch);
 	daterec->dateyear = dr.year;
 	daterec->datemonth = dr.month;
 	daterec->datedmonth = dr.day;
