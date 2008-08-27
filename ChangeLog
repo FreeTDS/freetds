@@ -1,3 +1,7 @@
+Wed Aug 27 09:57:20 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/rowset.c:
+	- don't test for cursors if not implemented
+
 Wed Aug 27 09:43:45 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/data.c:
 	- don't test nvarchar if Sybase
@@ -590,4 +594,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2595 2008-08-27 07:44:38 freddy77 Exp $
+$Id: ChangeLog,v 1.2596 2008-08-27 07:59:25 freddy77 Exp $

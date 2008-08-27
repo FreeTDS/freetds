@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: rowset.c,v 1.2 2008-02-29 10:54:53 freddy77 Exp $";
+static char software_version[] = "$Id: rowset.c,v 1.3 2008-08-27 07:59:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -66,6 +66,8 @@ main(int argc, char *argv[])
 	test_err(-123);
 	test_err(-1);
 	test_err(0);
+
+	CheckCursor();
 
 	/* set some correct values */
 	CHK(SQLSetStmtAttr, (Statement, SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(2), 0));
