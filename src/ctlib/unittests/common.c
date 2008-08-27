@@ -24,7 +24,7 @@
 #include "common.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: common.c,v 1.18 2008-07-07 11:09:42 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.19 2008-08-27 07:28:46 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -169,7 +169,7 @@ establish_login(int argc, char **argv)
 	if (*options.DATABASE)
 		strcpy(DATABASE, options.DATABASE);
 	
-	return (*USER && *PASSWORD && *SERVER && *DATABASE)? CS_SUCCEED : CS_FAIL;
+	return (*USER && *SERVER && *DATABASE)? CS_SUCCEED : CS_FAIL;
 }
 
 extern const char STD_DATETIME_FMT[];
