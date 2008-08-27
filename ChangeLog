@@ -1,3 +1,7 @@
+Wed Aug 27 10:13:39 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/cursor6.c src/odbc/unittests/rowset.c:
+	- backported fixes for Sybase
+
 Tue Aug 26 16:08:00 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/cs.c:
 	- applied Andrew Victor patch for unused gmtime result
@@ -208,4 +212,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.49 2008-08-26 14:10:23 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.50 2008-08-27 08:16:02 freddy77 Exp $
