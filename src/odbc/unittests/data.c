@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.16 2008-07-14 13:07:43 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.17 2008-08-27 07:44:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -114,7 +114,9 @@ main(int argc, char *argv[])
 			if (!old_result)
 				result = 0;
 		}
+	}
 
+	if (db_is_microsoft() && (strncmp(version, "08.00.", 6) == 0 || strncmp(version, "09.00.", 6) == 0)) {
 		/* nvarchar without extended characters */
 		Test("NVARCHAR(20)", "test", SQL_C_CHAR, "4 test");
 		/* nvarchar with extended characters */
