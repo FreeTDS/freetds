@@ -1,3 +1,6 @@
+Fri Aug 29 16:18:44 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/genparams.c: update test
+
 Wed Aug 27 09:57:20 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/rowset.c:
 	- don't test for cursors if not implemented
@@ -594,4 +597,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2596 2008-08-27 07:59:25 freddy77 Exp $
+$Id: ChangeLog,v 1.2597 2008-08-29 14:19:17 freddy77 Exp $
