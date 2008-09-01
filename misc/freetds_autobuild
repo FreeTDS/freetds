@@ -4,8 +4,8 @@ export PATH="/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/usr/
 
 . $HOME/.bashrc
 
-# do not use ccache, not work well woth profile informations
-export PATH="/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:$HOME/bin:$HOME/install/bin"
+# do not use ccache, not work well with profile informations
+export PATH="/usr/kerberos/bin:/usr/local/bin:$HOME/bin:/bin:/usr/bin:/usr/X11R6/bin:$HOME/install/bin"
 
 GROUPDIR=/home/groups/f/fr/freetds/htdocs
 # directory to compile
