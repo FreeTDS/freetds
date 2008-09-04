@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.29 2008-09-01 15:17:57 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.30 2008-09-04 06:43:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -97,6 +97,8 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 	Command(Statement, "drop proc spTestProc");
 }
 
+static int check_truncation = 0;
+
 static void
 TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, const char *param_type, const char *value_to_convert)
 {
@@ -146,7 +148,10 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len));
 
 		rc = SQLExecDirect(Statement, (SQLCHAR *) sbuf, SQL_NTS);
-		if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
+		if (check_truncation) {
+			if (rc != SQL_ERROR)
+				ODBC_REPORT_ERROR("SQLExecDirect should return error!");
+		} else if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLExecDirect() failure!");
 	} else {
 		SQLRETURN rc;
@@ -160,23 +165,29 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 			CHK(SQLPrepare, (Statement, (SQLCHAR *) sbuf, SQL_NTS));
 
 		rc = SQLExecute(Statement);
-		if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
+		if (check_truncation) {
+			if (rc != SQL_ERROR)
+				ODBC_REPORT_ERROR("SQLExecute should return error!");
+		} else if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLExecute() failure!");
 	}
 
 	/* check is row is present */
-	ResetStatement();
-	sep = "'";
-	if (strncmp(expected, "0x", 2) == 0)
-		sep = "";
-	sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
-	Command(Statement, sbuf);
+	if (!check_truncation) {
+		ResetStatement();
+		sep = "'";
+		if (strncmp(expected, "0x", 2) == 0)
+			sep = "";
+		sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
+		Command(Statement, sbuf);
 
-	CHK(SQLFetch, (Statement));
-	if (SQLFetch(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("Row not expected");
-	if (SQLMoreResults(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("Recordset not expected");
+		CHK(SQLFetch, (Statement));
+		if (SQLFetch(Statement) != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("Row not expected");
+		if (SQLMoreResults(Statement) != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("Recordset not expected");
+	}
+	check_truncation = 0;
 	Command(Statement, "DROP TABLE #tmp_insert");
 }
 
@@ -283,6 +294,7 @@ AllTests(void)
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
 		/* test for invalid stream due to truncation*/
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "01234567890");
+		check_truncation = 1;
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "012345678901234567890");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "\xa3h\xf9 -> 0xA3006800f900");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "0xA3006800f900 -> \xa3h\xf9");

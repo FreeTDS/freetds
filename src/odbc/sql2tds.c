@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.70 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.71 2008-09-04 06:43:48 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -178,8 +178,14 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		if (dest_type != SYBUNIQUE && dest_type != SYBBITN && !is_fixed_type(dest_type)) {
 			curcol->column_cur_size = 0;
 			curcol->column_size = drec_ipd->sql_desc_length;
-			if (curcol->column_size < 0)
-				curcol->column_size = 0x7FFFFFFFl;
+			if (curcol->column_size < 0) {
+				curcol->on_server.column_size = curcol->column_size = 0x7FFFFFFFl;
+			} else {
+				if (is_unicode_type(dest_type))
+					curcol->on_server.column_size = curcol->column_size * 2;
+				else
+					curcol->on_server.column_size = curcol->column_size;
+			}
 		}
 	} else if (dest_type != SYBBIT) {
 		/* TODO only a trick... */

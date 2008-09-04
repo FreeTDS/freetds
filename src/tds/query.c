@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.225 2008-08-22 05:27:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.226 2008-09-04 06:43:49 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1273,6 +1273,44 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	return tds_flush_packet(tds);
 }
 
+/**
+ * Get column size for wire
+ */
+static int
+tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
+{
+	int size = curcol->on_server.column_size, min;
+
+	if (!size) {
+		size = curcol->column_size;
+		if (is_unicode_type(curcol->on_server.column_type))
+			size *= 2;
+	}
+
+	switch (curcol->column_varint_size) {
+	default:
+	case 0:
+		return size;
+	case 1:
+		size = MAX(MIN(size, 255), 1);
+		break;
+	case 2:
+		if (curcol->on_server.column_type == XSYBNVARCHAR || curcol->on_server.column_type == XSYBNCHAR)
+			min = 2;
+		else
+			min = 1;
+		size = MAX(MIN(size, 8000), min);
+		break;
+	case 4:
+		if (curcol->on_server.column_type == SYBNTEXT)
+			size = MAX(MIN(size, 0x7ffffffe), 2);
+		else
+			size = MAX(MIN(size, 0x7fffffff), 1);
+		break;
+	}
+/*	return curcol->on_server.column_size = size; */
+	return size;
+}
 
 /**
  * Put data information to wire
@@ -1343,17 +1381,18 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		tds_put_byte(tds, num->scale);
 #endif
 	} else {
+		int size = tds_fix_column_size(tds, curcol);
 		switch (curcol->column_varint_size) {
 		case 0:
 			break;
 		case 1:
-			tds_put_byte(tds, MAX(MIN(curcol->column_size, 255), 1));
+			tds_put_byte(tds, size);
 			break;
 		case 2:
-			tds_put_smallint(tds, MAX(MIN(curcol->column_size, 8000), 1));
+			tds_put_smallint(tds, size);
 			break;
 		case 4:
-			tds_put_int(tds, MAX(MIN(curcol->column_size, 0x7fffffff), 1));
+			tds_put_int(tds, size);
 			break;
 		}
 	}
@@ -1411,7 +1450,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	unsigned char *src;
 	TDS_NUMERIC *num;
 	TDSBLOB *blob = NULL;
-	TDS_INT colsize;
+	TDS_INT colsize, size;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
@@ -1438,6 +1477,8 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		}
 		return TDS_SUCCEED;
 	}
+
+	size = tds_fix_column_size(tds, curcol);
 
 	/*
 	 * TODO here we limit data sent with MIN, should mark somewhere
@@ -1483,18 +1524,18 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
 			blob = (TDSBLOB *) curcol->column_data;
-			colsize = MIN(colsize, 0x7fffffff);
+			colsize = MIN(colsize, size);
 			/* mssql require only size */
 			tds_put_int(tds, colsize);
 			break;
 		case 2:
-			colsize = MIN(colsize, 8000);
+			colsize = MIN(colsize, size);
 			tds_put_smallint(tds, colsize);
 			break;
 		case 1:
+			colsize = MIN(colsize, size);
 			if (is_numeric_type(curcol->on_server.column_type))
 				colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
-			colsize = MIN(colsize, 255);
 			tds_put_byte(tds, colsize);
 			break;
 		case 0:

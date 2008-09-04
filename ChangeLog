@@ -1,3 +1,9 @@
+Thu Sep 04 08:42:56 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- fill on_server.column_size
+	* src/odbc/unittests/genparams.c: test for truncation
+	* src/tds/query.c: do not send invalid sizes
+
 Mon Sep 01 17:16:05 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/genparams.c:
 	- reproduce bug detected by Sebastien Flaesch on column size
@@ -602,4 +608,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2598 2008-09-01 15:17:57 freddy77 Exp $
+$Id: ChangeLog,v 1.2599 2008-09-04 06:43:48 freddy77 Exp $
