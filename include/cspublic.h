@@ -34,7 +34,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.58.2.1 2008-05-19 14:23:52 jklowden Exp $";
+static const char rcsid_cspublic_h[] = "$Id: cspublic.h,v 1.58.2.2 2008-09-08 17:48:50 jklowden Exp $";
 static const void *const no_unused_cspublic_h_warn[] = { rcsid_cspublic_h, no_unused_cspublic_h_warn };
 
 #define CS_PUBLIC
@@ -446,7 +446,7 @@ enum
 #define CS_VERSION_150	15000
 
 #define BLK_VERSION_100 CS_VERSION_100
-#define BLK_VERSION_110 CS_VERSION_100
+#define BLK_VERSION_110 CS_VERSION_110
 #define BLK_VERSION_120 CS_VERSION_120
 #define BLK_VERSION_125 CS_VERSION_125
 #define BLK_VERSION_150 CS_VERSION_150
