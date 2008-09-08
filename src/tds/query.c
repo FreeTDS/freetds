@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.226 2008-09-04 06:43:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.227 2008-09-08 19:22:44 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -55,6 +55,7 @@ static int tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
 static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static char *tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, int converted_query_len, TDSPARAMINFO * params, size_t *out_len);
 static char *tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, size_t *out_len);
+static int tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
 
 static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static const char *tds_skip_comment(const char *s);
@@ -613,9 +614,12 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 {
 	const char *fmt = NULL;
 	int max_len = IS_TDS7_PLUS(tds) ? 8000 : 255;
+	int size;
 
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
+
+	size = tds_fix_column_size(tds, curcol);
 
 	switch (tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size)) {
 	case XSYBCHAR:
@@ -697,12 +701,14 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		if (IS_TDS7_PLUS(tds)) {
 			fmt = "NVARCHAR(%d)";
 			max_len = 4000;
+			size /= 2;
 		}
 		break;
 	case XSYBNCHAR:
 		if (IS_TDS7_PLUS(tds)) {
 			fmt = "NCHAR(%d)";
 			max_len = 4000;
+			size /= 2;
 		}
 		break;
 		/* nullable types should not occur here... */
@@ -723,9 +729,6 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	}
 
 	if (fmt) {
-		TDS_INT size = curcol->on_server.column_size;
-		if (!size)
-			size = curcol->column_size;
 		/* fill out */
 		sprintf(out, fmt, size > 0 ? (size > max_len ? max_len : size) : 1);
 		return TDS_SUCCEED;

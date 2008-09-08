@@ -1,3 +1,7 @@
+Mon Sep 08 21:21:57 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/utf8.c: test with small column sizes
+	* src/tds/query.c: fix column size preparing
+
 Mon Sep  8 13:49:19 EDT 2008	JK Lowden <jklowden@freetds.org>
 	* include/cspublic.h fix #define of BLK_VERSION_110 
 
@@ -611,4 +615,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2600 2008-09-08 17:50:25 jklowden Exp $
+$Id: ChangeLog,v 1.2601 2008-09-08 19:22:44 freddy77 Exp $

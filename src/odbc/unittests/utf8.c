@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.3 2008-08-17 08:08:06 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.4 2008-09-08 19:22:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -70,15 +70,58 @@ static const char * const strings_hex[] = {
 	NULL, NULL
 };
 
+static char tmp[2048];
+
+static void
+TestBinding(int minimun)
+{
+	const char * const*p;
+	SQLINTEGER n;
+	SQLLEN n_len;
+
+	sprintf(tmp, "DELETE FROM %s", table_name);
+	Command(Statement, tmp);
+
+	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
+	sprintf(tmp, "INSERT INTO %s VALUES(?,?,?)", table_name);
+	CHK(SQLPrepare, (Statement, (SQLCHAR *) tmp, SQL_NTS));
+	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_LONG,
+		SQL_INTEGER, 0, 0, &n, 0, &n_len));
+	n_len = sizeof(n);
+	
+	for (n = 1, p = strings; p[0] && p[1]; p += 2, ++n) {
+		SQLLEN s1_len, s2_len;
+		int len;
+
+		len = minimun ? (strlen(strings_hex[p-strings]) - 2) /4 : 40;
+		CHK(SQLBindParameter, (Statement, 2, SQL_PARAM_INPUT, SQL_C_CHAR,
+			SQL_WCHAR, len, 0, (void *) p[0], 0, &s1_len));
+		len = minimun ? (strlen(strings_hex[p+1-strings]) - 2) /4 : 40;
+		/* FIXME this with SQL_VARCHAR produce wrong protocol data */
+		CHK(SQLBindParameter, (Statement, 3, SQL_PARAM_INPUT, SQL_C_CHAR,
+			SQL_WVARCHAR, len, 0, (void *) p[1], 0, &s2_len));
+		s1_len = strlen(p[0]);
+		s2_len = strlen(p[1]);
+		printf("insert #%d\n", (int) n);
+		CHK(SQLExecute, (Statement));
+	}
+
+	/* check rows */
+	for (n = 1, p = strings_hex; p[0] && p[1]; p += 2, ++n) {
+		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, (int) n, p[0], p[1]);
+		CheckNoRow(tmp);
+	}
+
+	ResetStatement();
+}
+
 int
 main(int argc, char *argv[])
 {
 	int res;
-	char tmp[2048];
 	SQLSMALLINT len;
 	const char * const*p;
 	SQLINTEGER n;
-	SQLLEN n_len;
 
 	if (read_login_info())
 		exit(1);
@@ -128,35 +171,10 @@ main(int argc, char *argv[])
 		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, (int) n, p[0], p[1]);
 		CheckNoRow(tmp);
 	}
-	sprintf(tmp, "DELETE FROM %s", table_name);
-	Command(Statement, tmp);
 
-	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
-	sprintf(tmp, "INSERT INTO %s VALUES(?,?,?)", table_name);
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) tmp, SQL_NTS));
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_LONG,
-		SQL_INTEGER, 0, 0, &n, 0, &n_len));
-	n_len = sizeof(n);
-	
-	for (n = 1, p = strings; p[0] && p[1]; p += 2, ++n) {
-		SQLLEN s1_len, s2_len;
+	TestBinding(0);
 
-		CHK(SQLBindParameter, (Statement, 2, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WCHAR, 40, 0, (void *) p[0], 0, &s1_len));
-		/* FIXME this with SQL_VARCHAR produce wrong protocol data */
-		CHK(SQLBindParameter, (Statement, 3, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WVARCHAR, 40, 0, (void *) p[1], 0, &s2_len));
-		s1_len = strlen(p[0]);
-		s2_len = strlen(p[1]);
-		printf("insert #%d\n", (int) n);
-		CHK(SQLExecute, (Statement));
-	}
-
-	/* check rows */
-	for (n = 1, p = strings_hex; p[0] && p[1]; p += 2, ++n) {
-		sprintf(tmp, "IF NOT EXISTS(SELECT * FROM %s WHERE k = %d AND c = %s AND vc = %s) SELECT 1", table_name, (int) n, p[0], p[1]);
-		CheckNoRow(tmp);
-	}
+	TestBinding(1);
 
 	/* cleanup */
 	sprintf(tmp, "IF OBJECT_ID(N'%s') IS NOT NULL DROP TABLE %s", table_name, table_name);
