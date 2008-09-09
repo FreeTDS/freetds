@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.26 2005-04-15 20:30:18 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.27 2008-09-09 14:48:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -15,11 +15,15 @@ int read_login_info(void);
 int
 read_login_info(void)
 {
-	FILE *in;
+	FILE *in = NULL;
 	char line[512];
 	char *s1, *s2;
 
-	in = fopen("../../../PWD", "r");
+	s1 = getenv("TDSPWDFILE");
+	if (s1 && s1[0])
+		in = fopen(s1, "r");
+	if (!in)
+		in = fopen("../../../PWD", "r");
 	if (!in) {
 		fprintf(stderr, "Can not open PWD file\n\n");
 		return TDS_FAIL;

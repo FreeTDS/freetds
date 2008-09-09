@@ -1,3 +1,8 @@
+Tue Sep 09 16:41:08 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/common.c src/dblib/unittests/common.c:
+	* src/odbc/unittests/common.c src/tds/unittests/common.c:
+	- allow to override PWD file path using TDSPWDFILE environment
+
 Mon Sep 08 21:21:57 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/utf8.c: test with small column sizes
 	* src/tds/query.c: fix column size preparing
@@ -615,4 +620,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2601 2008-09-08 19:22:44 freddy77 Exp $
+$Id: ChangeLog,v 1.2602 2008-09-09 14:48:02 freddy77 Exp $

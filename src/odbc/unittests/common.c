@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.45 2008-05-22 03:53:17 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.46 2008-09-09 14:48:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -63,7 +63,7 @@ int
 read_login_info(void)
 {
 	static const char *PWD = "../../../PWD";
-	FILE *in;
+	FILE *in = NULL;
 	char line[512];
 	char *s1, *s2;
 #ifndef WIN32
@@ -71,11 +71,11 @@ read_login_info(void)
 	int len;
 #endif
 
-#if 0
-	in = fopen(".." TDS_SDIR_SEPARATOR ".." TDS_SDIR_SEPARATOR ".." TDS_SDIR_SEPARATOR "PWD", "r");
-#else
-	in = fopen(PWD, "r");
-#endif
+	s1 = getenv("TDSPWDFILE");
+	if (s1 && s1[0])
+		in = fopen(s1, "r");
+	if (!in)
+		in = fopen(PWD, "r");
 	if (!in)
 		in = fopen("PWD", "r");
 

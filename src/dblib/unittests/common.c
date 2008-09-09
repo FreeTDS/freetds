@@ -16,7 +16,7 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.23 2007-11-30 08:55:13 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.24 2008-09-09 14:48:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -90,7 +90,7 @@ read_login_info(int argc, char **argv)
 	extern char *optarg;
 	extern int optind;
 	
-	FILE *in;
+	FILE *in = NULL;
 #if !defined(__MINGW32__) && !defined(_MSC_VER)
 	int ch;
 #endif
@@ -140,8 +140,12 @@ read_login_info(int argc, char **argv)
 	}
 #endif
 	strcpy(filename, PWD);
-	
-	in = fopen(filename, "r");
+
+	s1 = getenv("TDSPWDFILE");
+	if (s1 && s1[0])
+		in = fopen(s1, "r");
+	if (!in)
+		in = fopen(filename, "r");
 	if (!in)
 		in = fopen("PWD", "r");
 	if (!in) {
