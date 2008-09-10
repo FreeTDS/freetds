@@ -1,3 +1,9 @@
+Wed Sep 10 13:19:53 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- move odbc_convert_err_set in odbc_util and reuse it
+	- improve sql2tds error handling
+
 Tue Sep 09 16:53:54 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/sql2tds.c: be coherent about constants
 
@@ -623,4 +629,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2603 2008-09-09 14:54:10 freddy77 Exp $
+$Id: ChangeLog,v 1.2604 2008-09-10 11:22:24 freddy77 Exp $

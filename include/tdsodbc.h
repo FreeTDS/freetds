@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.107 2008-08-18 13:31:26 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.108 2008-09-10 11:22:33 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -505,6 +505,7 @@ SQLSMALLINT odbc_get_concise_c_type(SQLSMALLINT type, SQLSMALLINT interval);
 SQLRETURN odbc_set_concise_c_type(SQLSMALLINT concise_type, struct _drecord *drec, int check_only);
 
 SQLLEN odbc_get_octet_len(int c_type, const struct _drecord *drec);
+void odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err);
 
 /*
  * prepare_query.c

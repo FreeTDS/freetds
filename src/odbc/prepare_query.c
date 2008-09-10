@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.70 2008-09-04 06:43:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.71 2008-09-10 11:22:36 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -366,17 +366,8 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 					data[1] = *(char*)DataPtr;
 				    
 					res = tds_convert(dbc->env->tds_ctx, src_type, data, 2, dest_type, &ores);
-					switch(res) {
-					case TDS_CONVERT_FAIL:
-					case TDS_CONVERT_NOAVAIL:
-					case TDS_CONVERT_SYNTAX:
-						odbc_errs_add(&dbc->errs, "07006", NULL); /* Restricted data type attribute violation */
-						return SQL_ERROR;
-					case TDS_CONVERT_NOMEM:
-						odbc_errs_add(&dbc->errs, "HY001", NULL); /* Memory allocation error */
-						return SQL_ERROR;
-					case TDS_CONVERT_OVERFLOW:
-						odbc_errs_add(&dbc->errs, "22003", NULL); /* Numeric value out of range */
+					if (res < 0) {
+						odbc_convert_err_set(&dbc->errs, res);
 						return SQL_ERROR;
 					}
 				    
@@ -394,19 +385,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 
 				res = tds_convert(dbc->env->tds_ctx, src_type, DataPtr+start, len, dest_type, &ores);
 				if (res < 0) {
-					switch(res) {
-					case TDS_CONVERT_FAIL:
-					case TDS_CONVERT_NOAVAIL:
-					case TDS_CONVERT_SYNTAX:
-						odbc_errs_add(&dbc->errs, "07006", NULL); /* Restricted data type attribute violation */
-						break;
-					case TDS_CONVERT_NOMEM:
-						odbc_errs_add(&dbc->errs, "HY001", NULL); /* Memory allocation error */
-						break;
-					case TDS_CONVERT_OVERFLOW:
-						odbc_errs_add(&dbc->errs, "22003", NULL); /* Numeric value out of range */
-						break;
-					}
+					odbc_convert_err_set(&dbc->errs, res);
 					free(extradata);
 					return SQL_ERROR;
 				}

@@ -33,12 +33,13 @@
 #include <assert.h>
 
 #include "tdsodbc.h"
+#include "tdsconvert.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.100 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.101 2008-09-10 11:22:35 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -1105,6 +1106,32 @@ odbc_get_octet_len(int c_type, const struct _drecord *drec)
 		break;
 	}
 	return len;
+}
+
+void
+odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err)
+{
+	/*
+	 * TODO we really need a column offset in the _sql_error structure so that caller can
+	 * invoke SQLGetDiagField to learn which column is failing
+	 */
+	switch (err) {
+	case TDS_CONVERT_NOAVAIL:
+		odbc_errs_add(errs, "HY003", NULL);
+		break;
+	case TDS_CONVERT_SYNTAX:
+		odbc_errs_add(errs, "22018", NULL);
+		break;
+	case TDS_CONVERT_OVERFLOW:
+		odbc_errs_add(errs, "22003", NULL);
+		break;
+	case TDS_CONVERT_FAIL:
+		odbc_errs_add(errs, "07006", NULL);
+		break;
+	case TDS_CONVERT_NOMEM:
+		odbc_errs_add(errs, "HY001", NULL);
+		break;
+	}
 }
 
 /** @} */

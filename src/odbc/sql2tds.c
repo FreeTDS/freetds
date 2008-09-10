@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.72 2008-09-09 14:54:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.73 2008-09-10 11:22:36 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -152,6 +152,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	/* what type to convert ? */
 	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
 	if (dest_type == TDS_FAIL)
+		/* TODO fill error */
 		return SQL_ERROR;
 	tdsdump_log(TDS_DBG_INFO2, "trace\n");
 
@@ -201,6 +202,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	/* TODO test intervals */
 	src_type = odbc_c_to_server_type(sql_src_type);
 	if (src_type == TDS_FAIL)
+		/* TODO fill error */
 		return SQL_ERROR;
 
 	/* we have no data to convert, just return */
@@ -218,6 +220,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			len = odbc_get_octet_len(sql_src_type, drec_apd);
 			if (len < 0)
 				/* TODO sure ? what happen to upper layer ?? */
+				/* TODO fill error */
 				return SQL_ERROR;
 		}
 		src += len * n_row;
@@ -254,7 +257,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		break;
 	case SQL_DEFAULT_PARAM:
 	case SQL_DATA_AT_EXEC:
-		/* TODO */
+		/* TODO fill error */
 		return SQL_ERROR;
 		break;
 	default:
@@ -267,6 +270,7 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			case SQL_C_BINARY:
 				break;
 			default:
+				/* TODO fill error */
 				return SQL_ERROR;
 			}
 			len = SQL_LEN_DATA_AT_EXEC(sql_len);
@@ -279,14 +283,17 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 			case SQL_LONGVARBINARY:
 				break;
 			default:
+				/* TODO fill error */
 				return SQL_ERROR;
 			}
 		}
 	}
 
 	/* allocate given space */
-	if (!tds_alloc_param_data(curcol))
+	if (!tds_alloc_param_data(curcol)) {
+		odbc_errs_add(&stmt->errs, "HY001", NULL);
 		return SQL_ERROR;
+	}
 
 	if (need_data) {
 		curcol->column_cur_size = 0;
@@ -403,8 +410,10 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		break;
 	}
 
-	if (res < 0)
+	if (res < 0) {
+		odbc_convert_err_set(&stmt->errs, res);
 		return SQL_ERROR;
+	}
 
 	curcol->column_cur_size = res;
 

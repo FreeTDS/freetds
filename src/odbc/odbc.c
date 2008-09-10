@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.491 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.492 2008-09-10 11:22:34 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -988,10 +988,10 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 		curcol->table_namelen = strlen(curcol->table_name);
 
 		switch (sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
-		case SQL_ERROR:
 		case SQL_NEED_DATA:
-			tds_free_param_results(params);
 			odbc_errs_add(&stmt->errs, "HY001", NULL);
+		case SQL_ERROR:
+			tds_free_param_results(params);
 			return NULL;
 		}
 	}
@@ -3435,32 +3435,6 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: returning result_type %d\n", result_type);
 			return result_type;
 		}
-	}
-}
-
-static void
-odbc_convert_err_set(struct _sql_errors *errs, TDS_INT err)
-{
-	/*
-	 * TODO we really need a column offset in the _sql_error structure so that caller can 
-	 * invoke SQLGetDiagField to learn which column is failing
-	 */
-	switch (err) {
-	case TDS_CONVERT_NOAVAIL:
-		odbc_errs_add(errs, "HY003", NULL);
-		break;
-	case TDS_CONVERT_SYNTAX:
-		odbc_errs_add(errs, "22018", NULL);
-		break;
-	case TDS_CONVERT_OVERFLOW:
-		odbc_errs_add(errs, "22003", NULL);
-		break;
-	case TDS_CONVERT_FAIL:
-		odbc_errs_add(errs, "07006", NULL);
-		break;
-	case TDS_CONVERT_NOMEM:
-		odbc_errs_add(errs, "HY001", NULL);
-		break;
 	}
 }
 
