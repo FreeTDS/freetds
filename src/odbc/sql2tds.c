@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.73 2008-09-10 11:22:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.74 2008-09-10 11:37:08 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -289,6 +289,15 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 		}
 	}
 
+	/* set NULL. For NULLs we don't need to allocate row buffer so avoid it */
+	if (!need_data) {
+		assert(drec_ipd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
+		if (sql_len == SQL_NULL_DATA) {
+			curcol->column_cur_size = -1;
+			return SQL_SUCCESS;
+		}
+	}
+
 	/* allocate given space */
 	if (!tds_alloc_param_data(curcol)) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
@@ -298,13 +307,6 @@ sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord 
 	if (need_data) {
 		curcol->column_cur_size = 0;
 		return SQL_NEED_DATA;
-	}
-
-	/* set null */
-	assert(drec_ipd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
-	if (sql_len == SQL_NULL_DATA) {
-		curcol->column_cur_size = -1;
-		return SQL_SUCCESS;
 	}
 
 	if (!src) {

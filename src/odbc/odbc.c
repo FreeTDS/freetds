@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.492 2008-09-10 11:22:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.493 2008-09-10 11:37:06 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -975,11 +975,6 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
                 params = temp_params;
 
 		curcol = params->columns[params->num_cols - 1];
-		if (!tds_alloc_param_data(curcol)) {
-			tds_free_param_results(params);
-			odbc_errs_add(&stmt->errs, "HY001", NULL);
-			return NULL;
-		}
 		tds_strlcpy(curcol->column_name, tds_dstr_cstr(&drec_ird->sql_desc_name), sizeof(curcol->column_name));
 		curcol->column_namelen = strlen(curcol->column_name);
 
