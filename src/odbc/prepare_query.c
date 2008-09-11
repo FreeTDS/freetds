@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.71 2008-09-10 11:22:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.72 2008-09-11 15:09:49 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -170,7 +170,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				return SQL_ERROR;
 			}
 
-			switch (sql2tds
+			switch (odbc_sql2tds
 				(stmt, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
 				 curcol, compute_row, stmt->apd, stmt->curr_param_row)) {
 			case SQL_ERROR:
@@ -219,7 +219,7 @@ parse_prepared_query(struct _hstmt *stmt, int compute_row)
 		}
 		stmt->params = temp_params;
 
-		switch (sql2tds
+		switch (odbc_sql2tds
 			(stmt, &stmt->ipd->records[stmt->param_num - 1], &stmt->apd->records[stmt->param_num - 1],
 			 stmt->params->columns[nparam], compute_row, stmt->apd, stmt->curr_param_row)) {
 		case SQL_ERROR:

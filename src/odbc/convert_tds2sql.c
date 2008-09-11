@@ -39,11 +39,11 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.51 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.52 2008-09-11 15:09:49 freddy77 Exp $");
 
 TDS_INT
-convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
-		const struct _drecord *drec_ixd)
+odbc_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
+	     const struct _drecord *drec_ixd)
 {
 	TDS_INT nDestSybType;
 	TDS_INT nRetVal = TDS_FAIL;
@@ -59,7 +59,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	int ret = TDS_CONVERT_FAIL;
 	int i, cplen;
 
-	tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: src is %d dest = %d\n", srctype, desttype);
+	tdsdump_log(TDS_DBG_FUNC, "odbc_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
 	assert(desttype != SQL_C_DEFAULT);
 
@@ -69,7 +69,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 
 	/* special case for binary type */
 	if (desttype == SQL_C_BINARY) {
-		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting binary data destlen = %lu \n", (unsigned long) destlen);
+		tdsdump_log(TDS_DBG_FUNC, "odbc_tds2sql: outputting binary data destlen = %lu \n", (unsigned long) destlen);
 
 		if (is_numeric_type(srctype)) {
 			desttype = SQL_C_NUMERIC;
@@ -128,7 +128,7 @@ convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srcl
 	switch (desttype) {
 
 	case SQL_C_CHAR:
-		tdsdump_log(TDS_DBG_FUNC, "convert_tds2sql: outputting character data destlen = %lu \n", (unsigned long) destlen);
+		tdsdump_log(TDS_DBG_FUNC, "odbc_tds2sql: outputting character data destlen = %lu \n", (unsigned long) destlen);
 
 		ret = nRetVal;
 		/* TODO handle not terminated configuration */

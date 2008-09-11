@@ -1,3 +1,8 @@
+Thu Sep 11 17:07:10 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/convert_tds2sql.c src/odbc/odbc.c:
+	* src/odbc/odbc_util.c src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- renamed sql2tds -> odbc_sql2tds and convert_tds2sql -> odbc_tds2sql
+
 Wed Sep 10 13:36:48 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/sql2tds.c:
 	- avoid useless buffer allocations
@@ -633,4 +638,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2605 2008-09-10 11:37:05 freddy77 Exp $
+$Id: ChangeLog,v 1.2606 2008-09-11 15:09:48 freddy77 Exp $

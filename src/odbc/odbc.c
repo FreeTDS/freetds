@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.493 2008-09-10 11:37:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.494 2008-09-11 15:09:49 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -982,7 +982,7 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 		tds_strlcpy(curcol->table_name, tds_dstr_cstr(&drec_ird->sql_desc_base_table_name), sizeof(curcol->table_name));
 		curcol->table_namelen = strlen(curcol->table_name);
 
-		switch (sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
+		switch (odbc_sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
 		case SQL_NEED_DATA:
 			odbc_errs_add(&stmt->errs, "HY001", NULL);
 		case SQL_ERROR:
@@ -3664,7 +3664,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				} else {
 					data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
 				}
-				len = convert_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
+				len = odbc_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
 				if (len < 0) {
 					odbc_convert_err_set(&stmt->errs, len);
@@ -4738,7 +4738,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 							ODBC_RETURN(stmt, SQL_NO_DATA);
 						
 						if (cbValueMax > 2) {
-							len = convert_tds2sql(context, nSybType, src + nread, 1, fCType, buf, sizeof(buf), NULL);
+							len = odbc_tds2sql(context, nSybType, src + nread, 1, fCType, buf, sizeof(buf), NULL);
 							if (len < 2) {
 								if (len < 0) 
 									odbc_convert_err_set(&stmt->errs, len);
@@ -4797,7 +4797,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			srclen = colinfo->column_cur_size;
 		}
 
-		*pcbValue = convert_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
+		*pcbValue = odbc_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
 		if (*pcbValue < 0) {
 			odbc_convert_err_set(&stmt->errs, *pcbValue);
 			ODBC_RETURN(stmt, SQL_ERROR);

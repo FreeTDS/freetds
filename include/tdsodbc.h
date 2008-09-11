@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.108 2008-09-10 11:22:33 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.109 2008-09-11 15:09:49 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -439,7 +439,7 @@ int odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection);
 /*
  * convert_tds2sql.c
  */
-TDS_INT convert_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
+TDS_INT odbc_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
 
 /*
  * descriptor.c
@@ -520,7 +520,7 @@ const char *parse_const_param(const char * s, TDS_SERVER_TYPE *type);
 /*
  * sql2tds.c
  */
-SQLRETURN sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol, int compute_row, const TDS_DESC* axd, unsigned int n_row);
+SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const struct _drecord *drec_axd, TDSCOLUMN *curcol, int compute_row, const TDS_DESC* axd, unsigned int n_row);
 
 /*
  * sqlwchar.c

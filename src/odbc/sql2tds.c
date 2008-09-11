@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.74 2008-09-10 11:37:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.75 2008-09-11 15:09:50 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -130,7 +130,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
  * @return SQL_SUCCESS, SQL_ERROR or SQL_NEED_DATA
  */
 SQLRETURN
-sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSCOLUMN *curcol,
+odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _drecord *drec_apd, TDSCOLUMN *curcol,
 	int compute_row, const TDS_DESC* axd, unsigned int n_row)
 {
 	TDS_DBC * dbc = stmt->dbc;
