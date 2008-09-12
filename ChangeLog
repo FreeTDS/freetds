@@ -1,3 +1,11 @@
+Fri Sep 12 17:05:54 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/config.c src/tds/token.c:
+	- removed is_binary_type macro, not used anymore
+	- removed broken_money setting, not used
+	- added no_data_conv to disable data conversions
+	* src/odbc/odbc.c src/odbc/unittests/data.c:
+	- updated to support no_data_conv
+
 Thu Sep 11 17:07:10 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/convert_tds2sql.c src/odbc/odbc.c:
 	* src/odbc/odbc_util.c src/odbc/prepare_query.c src/odbc/sql2tds.c:
@@ -638,4 +646,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2606 2008-09-11 15:09:48 freddy77 Exp $
+$Id: ChangeLog,v 1.2607 2008-09-12 15:12:23 freddy77 Exp $

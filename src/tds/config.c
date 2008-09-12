@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.136 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.137 2008-09-12 15:12:23 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -220,7 +220,6 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %x\n", "debug_flags", connection->debug_flags);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "text_size", connection->text_size);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "broken_dates", connection->broken_dates);
-		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "broken_money", connection->broken_money);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "emul_little_endian", connection->emul_little_endian);
 
 		tdsdump_close();
@@ -500,8 +499,6 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			connection->block_size = val;
 	} else if (!strcmp(option, TDS_STR_SWAPDT)) {
 		connection->broken_dates = tds_config_boolean(value);
-	} else if (!strcmp(option, TDS_STR_SWAPMNY)) {
-		connection->broken_money = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
 		tds_dstr_copy(&connection->dump_file, value);
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {

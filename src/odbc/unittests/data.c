@@ -3,7 +3,7 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.17 2008-08-27 07:44:39 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.18 2008-09-12 15:12:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -133,7 +133,7 @@ main(int argc, char *argv[])
 	Test("MONEY", "4321234.5678", SQL_C_BINARY, big_endian ? "0000000A0FA8114E" : "0A0000004E11A80F");
 
 	/* behavior is different from MS ODBC */
-	if (db_is_microsoft() && !driver_is_freetds()) {
+	if (db_is_microsoft()) {
 		Test("NCHAR(7)", "donald", SQL_C_BINARY, "64006F006E0061006C0064002000");
 		Test("NTEXT", "duck", SQL_C_BINARY, "6400750063006B00");
 		Test("NVARCHAR(20)", "daffy", SQL_C_BINARY, "64006100660066007900");

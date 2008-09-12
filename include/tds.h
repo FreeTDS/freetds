@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.293 2008-08-14 08:49:22 freddy77 Exp $ */
+/* $Id: tds.h,v 1.294 2008-09-12 15:12:23 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -749,7 +749,6 @@ typedef enum tds_encryption_level {
 #define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
-#define is_binary_type(x) (x==SYBLONGBINARY)
 #define is_char_type(x) (is_unicode_type(x) || is_ascii_type(x))
 #define is_similar_type(x, y) ((is_char_type(x) && is_char_type(y)) || ((is_unicode_type(x) && is_unicode_type(y))))
 
@@ -790,7 +789,6 @@ typedef enum tds_encryption_level {
 #define TDS_STR_VERSION  "tds version"
 #define TDS_STR_BLKSZ    "initial block size"
 #define TDS_STR_SWAPDT   "swap broken dates"
-#define TDS_STR_SWAPMNY  "swap broken money"
 #define TDS_STR_DUMPFILE "dump file"
 #define TDS_STR_DEBUGLVL "debug level"
 #define TDS_STR_DEBUGFLAGS "debug flags"
@@ -884,9 +882,8 @@ typedef struct tds_connection
 	DSTR dump_file;
 	int debug_flags;
 	int text_size;
-	int broken_dates;
-	int broken_money;
-	int emul_little_endian;
+	unsigned int broken_dates:1;
+	unsigned int emul_little_endian:1;
 } TDSCONNECTION;
 
 typedef struct tds_locale
@@ -1291,8 +1288,12 @@ struct tds_socket
 	char *product_name;
 
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
-	unsigned char broken_dates;
 	unsigned char option_flag2;
+	unsigned int broken_dates:1;
+	unsigned int emul_little_endian:1;
+#ifdef ENABLE_DEVELOPING
+	unsigned int no_data_conv:1;
+#endif
 
 	unsigned char *in_buf;		/**< input buffer */
 	unsigned char *out_buf;		/**< output buffer */
@@ -1332,7 +1333,6 @@ struct tds_socket
 	TDSDYNAMIC *cur_dyn;		/**< dynamic structure in use */
 	TDSDYNAMIC *dyns;		/**< list of dynamic allocate for this connection */
 
-	int emul_little_endian;
 	char *date_fmt;
 	const TDSCONTEXT *tds_ctx;
 	int char_conv_count;
