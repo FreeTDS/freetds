@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.352 2008-09-12 15:12:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.353 2008-09-13 07:18:46 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -3380,7 +3380,11 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (!curcol->char_conv && IS_TDS7_PLUS(tds) && is_ascii_type(curcol->on_server.column_type))
 		curcol->char_conv = tds->char_convs[client2server_chardata];
 
+#ifdef ENABLE_DEVELOPING
 	if (tds->no_data_conv || !curcol->char_conv)
+#else
+	if (!curcol->char_conv)
+#endif
 		return;
 
 	curcol->on_server.column_size = curcol->column_size;
