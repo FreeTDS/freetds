@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.495 2008-09-12 15:12:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.496 2008-09-14 07:45:24 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -372,7 +372,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 #ifdef ENABLE_DEVELOPING
-	dbc->tds_socket->no_data_conv = 1;
+	dbc->tds_socket->use_iconv = 0;
 #endif
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
 

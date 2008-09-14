@@ -1,3 +1,7 @@
+Sun Sep 14 09:44:55 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/odbc.c src/tds/mem.c src/tds/token.c:
+	- renamed TDSSOCKET->no_data_conv to TDSSOCKET->use_iconv
+
 Sat Sep 13 09:18:17 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c: fix compile if no --enable-development
 
@@ -649,4 +653,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2608 2008-09-13 07:18:46 freddy77 Exp $
+$Id: ChangeLog,v 1.2609 2008-09-14 07:45:24 freddy77 Exp $

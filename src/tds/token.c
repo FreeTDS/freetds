@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.353 2008-09-13 07:18:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.354 2008-09-14 07:45:25 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2100,7 +2100,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		 */
 		/* TODO this can lead to a big waste of memory */
 #ifdef ENABLE_DEVELOPING
-		if (!tds->no_data_conv)
+		if (tds->use_iconv)
 			new_blob_size = determine_adjusted_size(curcol->char_conv, colsize);
 		else
 			new_blob_size = colsize;
@@ -2131,7 +2131,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		
 		/* read the data */
 #ifdef ENABLE_DEVELOPING
-		if (!tds->no_data_conv && curcol->char_conv) {
+		if (tds->use_iconv && curcol->char_conv) {
 #else
 		if (curcol->char_conv) {
 #endif
@@ -2145,7 +2145,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->column_cur_size = colsize;
 
 #ifdef ENABLE_DEVELOPING
-		if (!tds->no_data_conv && curcol->char_conv) {
+		if (tds->use_iconv && curcol->char_conv) {
 #else
 		if (curcol->char_conv) {
 #endif
@@ -3381,7 +3381,7 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->char_conv = tds->char_convs[client2server_chardata];
 
 #ifdef ENABLE_DEVELOPING
-	if (tds->no_data_conv || !curcol->char_conv)
+	if (!tds->use_iconv || !curcol->char_conv)
 #else
 	if (!curcol->char_conv)
 #endif

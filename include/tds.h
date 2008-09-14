@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.294 2008-09-12 15:12:23 freddy77 Exp $ */
+/* $Id: tds.h,v 1.295 2008-09-14 07:45:24 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1292,7 +1292,7 @@ struct tds_socket
 	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
 #ifdef ENABLE_DEVELOPING
-	unsigned int no_data_conv:1;
+	unsigned int use_iconv:1;
 #endif
 
 	unsigned char *in_buf;		/**< input buffer */
