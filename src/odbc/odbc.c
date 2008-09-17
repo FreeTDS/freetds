@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.496 2008-09-14 07:45:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.497 2008-09-17 21:26:23 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -5889,7 +5889,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 
 	/*
 	 * Sybase return first nvarchar for char... and without length !!!
-	 * Some program use first entry so we discard all entry bfore varchar
+	 * Some program use first entry so we discard all entry before varchar
 	 */
 	n = 0;
 	while (tds->current_results) {
