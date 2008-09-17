@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.183 2008-06-12 01:00:48 jklowden Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.184 2008-09-17 12:16:08 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -140,64 +140,6 @@ static const char *tds_prtype(int token);
 #endif
 
 const char tds_hex_digits[16] = "0123456789abcdef";
-
-/**
- * Return type suitable for conversions (convert all nullable types to 
- * fixed type)
- * @param srctype type to convert
- * @param colsize size of type
- * @result type for conversion
- */
-int
-tds_get_conversion_type(int srctype, int colsize)
-{
-	switch (srctype) {
-	case SYBINTN:
-		switch (colsize) {
-		case 8:
-			return SYBINT8;
-		case 4:
-			return SYBINT4;
-		case 2:
-			return SYBINT2;
-		case 1:
-			return SYBINT1;
-		}
-		break;
-	case SYBFLTN:
-		switch (colsize) {
-		case 8:
-			return SYBFLT8;
-		case 4:
-			return SYBREAL;
-		}
-		break;
-	case SYBDATETIMN:
-		switch (colsize) {
-		case 8:
-			return SYBDATETIME;
-		case 4:
-			return SYBDATETIME4;
-		}
-		break;
-	case SYBMONEYN:
-		switch (colsize) {
-		case 8:
-			return SYBMONEY;
-		case 4:
-			return SYBMONEY4;
-		}
-		break;
-		/*
-		 * altough tds_convert handle SYBBITN other routine use this
-		 * function to retrieve not variant type
-		 */
-	case SYBBITN:
-		return SYBBIT;
-		break;
-	}
-	return srctype;
-}
 
 /**
  * Copy a terminated string to result and return len or TDS_CONVERT_NOMEM

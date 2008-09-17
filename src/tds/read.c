@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.106 2007-12-27 13:45:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.107 2008-09-17 12:16:08 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -313,63 +313,6 @@ tds_get_n(TDSSOCKET * tds, void *dest, int need)
 		tds->in_pos += need;
 	}
 	return dest;
-}
-
-/**
- * Return the number of bytes needed by specified type.
- */
-int
-tds_get_size_by_type(int servertype)
-{
-	switch (servertype) {
-	case SYBINT1:
-		return 1;
-		break;
-	case SYBINT2:
-		return 2;
-		break;
-	case SYBINT4:
-		return 4;
-		break;
-	case SYB5INT8:
-	case SYBINT8:
-		return 8;
-		break;
-	case SYBREAL:
-		return 4;
-		break;
-	case SYBFLT8:
-		return 8;
-		break;
-	case SYBDATETIME:
-		return 8;
-		break;
-	case SYBDATETIME4:
-		return 4;
-		break;
-	case SYBBIT:
-		return 1;
-		break;
-	case SYBBITN:
-		return 1;
-		break;
-	case SYBMONEY:
-		return 8;
-		break;
-	case SYBMONEY4:
-		return 4;
-		break;
-	case SYBUNIQUE:
-		return 16;
-		break;
-	/* this strange type is used just for null placeholder in rpc */
-	case SYBVOID:
-		return 0;
-		break;
-	default:
-		return -1;
-		break;
-	}
 }
 
 /*

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.64 2008-07-30 08:02:55 freddy77 Exp $
+# $Id: Makefile.am,v 1.65 2008-09-17 12:16:07 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
@@ -13,8 +13,8 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 libtds_la_LDFLAGS=
 libtds_la_LIBADD=
 
-noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h
-EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h
+noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h types.h
+EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h types.h
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox
@@ -51,5 +51,9 @@ encodings.h: encodings.pl alternative_character_sets.h Makefile
 
 num_limits.h: num_limits.pl Makefile
 	perl $(srcdir)/num_limits.pl > $@.tmp
+	mv $@.tmp $@
+
+types.h: types.pl Makefile ../../misc/types.txt
+	perl $(srcdir)/types.pl < $(srcdir)/../../misc/types.txt > $@.tmp
 	mv $@.tmp $@
 endif

@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.18 2007-06-21 07:21:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.19 2008-09-17 12:16:08 freddy77 Exp $");
 
 #if !ENABLE_EXTRA_CHECKS
 static int tds_get_cardinal_type(int datatype);
@@ -163,61 +163,4 @@ tds_get_cardinal_type(int datatype)
 	return datatype;
 }
 
-/**
- * tds_get_varint_size() returns the size of a variable length integer
- * returned in a TDS 7.0 result string
- */
-#if !ENABLE_EXTRA_CHECKS
-static
-#endif
-int
-tds_get_varint_size(TDSSOCKET * tds, int datatype)
-{
-	switch (datatype) {
-	case SYBTEXT:
-	case SYBNTEXT:
-	case SYBIMAGE:
-		return 4;
-	case SYBVOID:
-	case SYBINT1:
-	case SYBBIT:
-	case SYBINT2:
-	case SYBINT4:
-	case SYBINT8:
-	case SYBDATETIME4:
-	case SYBREAL:
-	case SYBMONEY:
-	case SYBDATETIME:
-	case SYBFLT8:
-	case SYBMONEY4:
-	case SYBSINT1:
-	case SYBUINT2:
-	case SYBUINT4:
-	case SYBUINT8:
-		return 0;
-	}
-
-	if (IS_TDS7_PLUS(tds)) {
-		switch (datatype) {
-		/* TODO support this strange type */
-		case SYBVARIANT:
-			return 4;
-		case XSYBCHAR:
-		case XSYBNCHAR:
-		case XSYBNVARCHAR:
-		case XSYBVARCHAR:
-		case XSYBBINARY:
-		case XSYBVARBINARY:
-			return 2;
-		}
-	} else if (IS_TDS50(tds)) {
-		switch (datatype) {
-		case SYBLONGBINARY:
-		case SYBLONGCHAR:
-			return 5;
-		case SYB5INT8:
-			return 0;
-		}
-	}
-	return 1;
-}
+#include "types.h"
