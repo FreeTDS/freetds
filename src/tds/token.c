@@ -42,7 +42,13 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.354 2008-09-14 07:45:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.355 2008-09-18 08:18:02 freddy77 Exp $");
+
+#ifdef ENABLE_DEVELOPING
+# define USE_ICONV tds->use_iconv
+#else
+# define USE_ICONV 1
+#endif
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2099,14 +2105,10 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		 * Here we allocate memory, if need be.  
 		 */
 		/* TODO this can lead to a big waste of memory */
-#ifdef ENABLE_DEVELOPING
-		if (tds->use_iconv)
+		if (USE_ICONV)
 			new_blob_size = determine_adjusted_size(curcol->char_conv, colsize);
 		else
 			new_blob_size = colsize;
-#else
-		new_blob_size = determine_adjusted_size(curcol->char_conv, colsize);
-#endif
 		if (new_blob_size == 0) {
 			curcol->column_cur_size = 0;
 			if (blob->textvalue)
@@ -2130,11 +2132,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->column_cur_size = new_blob_size;
 		
 		/* read the data */
-#ifdef ENABLE_DEVELOPING
-		if (tds->use_iconv && curcol->char_conv) {
-#else
-		if (curcol->char_conv) {
-#endif
+		if (USE_ICONV && curcol->char_conv) {
 			if (tds_get_char_data(tds, (char *) blob, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
 		} else {
@@ -2144,11 +2142,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	} else {		/* non-numeric and non-blob */
 		curcol->column_cur_size = colsize;
 
-#ifdef ENABLE_DEVELOPING
-		if (tds->use_iconv && curcol->char_conv) {
-#else
-		if (curcol->char_conv) {
-#endif
+		if (USE_ICONV && curcol->char_conv) {
 			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
 		} else {	
@@ -3380,11 +3374,7 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (!curcol->char_conv && IS_TDS7_PLUS(tds) && is_ascii_type(curcol->on_server.column_type))
 		curcol->char_conv = tds->char_convs[client2server_chardata];
 
-#ifdef ENABLE_DEVELOPING
-	if (!tds->use_iconv || !curcol->char_conv)
-#else
-	if (!curcol->char_conv)
-#endif
+	if (!USE_ICONV || !curcol->char_conv)
 		return;
 
 	curcol->on_server.column_size = curcol->column_size;
