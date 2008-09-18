@@ -39,14 +39,15 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.52 2008-09-11 15:09:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.53 2008-09-18 08:51:21 freddy77 Exp $");
 
 TDS_INT
-odbc_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
+odbc_tds2sql(TDS_STMT * stmt, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
 	     const struct _drecord *drec_ixd)
 {
 	TDS_INT nDestSybType;
 	TDS_INT nRetVal = TDS_FAIL;
+	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
 	CONV_RESULT ores;
 
@@ -64,8 +65,10 @@ odbc_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen,
 	assert(desttype != SQL_C_DEFAULT);
 
 	nDestSybType = odbc_c_to_server_type(desttype);
-	if (nDestSybType == TDS_FAIL)
+	if (nDestSybType == TDS_FAIL) {
+		odbc_errs_add(&stmt->errs, "HY003", NULL);
 		return TDS_CONVERT_NOAVAIL;
+	}
 
 	/* special case for binary type */
 	if (desttype == SQL_C_BINARY) {
@@ -75,8 +78,10 @@ odbc_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen,
 			desttype = SQL_C_NUMERIC;
 			nDestSybType = SYBNUMERIC;
 			/* prevent buffer overflow */
-			if (destlen < sizeof(SQL_NUMERIC_STRUCT))
+			if (destlen < sizeof(SQL_NUMERIC_STRUCT)) {
+				odbc_errs_add(&stmt->errs, "07006", NULL);
 				return TDS_CONVERT_FAIL;
+			}
 			ores.n.precision = ((TDS_NUMERIC *) src)->precision;
 			ores.n.scale = ((TDS_NUMERIC *) src)->scale;
 		} else {
@@ -88,8 +93,10 @@ odbc_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen,
 				memcpy(dest, src, cplen);
 			} else {
 				/* if destlen == 0 we return only length */
-				if (destlen != 0)
-					ret = TDS_CONVERT_FAIL;
+				if (destlen != 0) {
+					odbc_errs_add(&stmt->errs, "07006", NULL);
+					return TDS_CONVERT_FAIL;
+				}
 			}
 			return ret;
 		}
@@ -122,8 +129,10 @@ odbc_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen,
 	} else {
 		nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
 	}
-	if (nRetVal < 0)
+	if (nRetVal < 0) {
+		odbc_convert_err_set(&stmt->errs, nRetVal);
 		return nRetVal;
+	}
 
 	switch (desttype) {
 

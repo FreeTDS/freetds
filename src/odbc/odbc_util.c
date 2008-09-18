@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.102 2008-09-11 15:09:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.103 2008-09-18 08:51:22 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -113,7 +113,6 @@ void
 odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
-	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
 	/* TODO handle different type results (functions) on mssql2k */
 	if (stmt->prepared_query_is_func && tds->has_status) {
@@ -139,7 +138,7 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 		}
 #define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
 
-		len = odbc_tds2sql(context, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
+		len = odbc_tds2sql(stmt, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
 				   drec->sql_desc_concise_type, (void *) data_ptr, drec->sql_desc_octet_length, NULL);
 		if (len < 0)
 			return /* SQL_ERROR */ ;
@@ -156,7 +155,6 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDSPARAMINFO *info = tds->current_results;
-	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
 	int i_begin = stmt->prepared_query_is_func ? 1 : 0;
 	int i;
@@ -221,9 +219,8 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 		 * TODO why IPD ?? perhaps SQLBindParameter it's not correct ??
 		 * Or tests are wrong ??
 		 */
-		len = odbc_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size), src, srclen,
+		len = odbc_tds2sql(stmt, tds_get_conversion_type(colinfo->column_type, colinfo->column_size), src, srclen,
 				   c_type, (void *) data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
-		/* TODO error handling */
 		if (len < 0)
 			return /* SQL_ERROR */ ;
 		if (drec_apd->sql_desc_indicator_ptr)

@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.109 2008-09-11 15:09:49 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.110 2008-09-18 08:51:21 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -439,7 +439,7 @@ int odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection);
 /*
  * convert_tds2sql.c
  */
-TDS_INT odbc_tds2sql(TDSCONTEXT * context, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
+TDS_INT odbc_tds2sql(TDS_STMT * stmt, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen, const struct _drecord *drec_ixd);
 
 /*
  * descriptor.c

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.497 2008-09-17 21:26:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.498 2008-09-18 08:51:21 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3667,10 +3667,9 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				} else {
 					data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
 				}
-				len = odbc_tds2sql(context, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
+				len = odbc_tds2sql(stmt, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
 				if (len < 0) {
-					odbc_convert_err_set(&stmt->errs, len);
 					row_status = SQL_ROW_ERROR;
 					break;
 				}
@@ -4741,12 +4740,9 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 							ODBC_RETURN(stmt, SQL_NO_DATA);
 						
 						if (cbValueMax > 2) {
-							len = odbc_tds2sql(context, nSybType, src + nread, 1, fCType, buf, sizeof(buf), NULL);
-							if (len < 2) {
-								if (len < 0) 
-									odbc_convert_err_set(&stmt->errs, len);
+							len = odbc_tds2sql(stmt, nSybType, src + nread, 1, fCType, buf, sizeof(buf), NULL);
+							if (len < 2)
 								ODBC_RETURN(stmt, SQL_ERROR);
-							}
 							*(TDS_CHAR *) rgbValue = buf[1];
 							*((TDS_CHAR *) rgbValue + 1) = 0;
 						
@@ -4800,11 +4796,9 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			srclen = colinfo->column_cur_size;
 		}
 
-		*pcbValue = odbc_tds2sql(context, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
-		if (*pcbValue < 0) {
-			odbc_convert_err_set(&stmt->errs, *pcbValue);
+		*pcbValue = odbc_tds2sql(stmt, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
+		if (*pcbValue < 0)
 			ODBC_RETURN(stmt, SQL_ERROR);
-		}
 		
 		if (extra_bytes) {
 			colinfo->column_text_sqlgetdatapos += extra_bytes;
