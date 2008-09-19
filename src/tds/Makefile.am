@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.65 2008-09-17 12:16:07 freddy77 Exp $
+# $Id: Makefile.am,v 1.66 2008-09-19 13:38:07 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
@@ -34,6 +34,8 @@ endif
 
 ## We have to build num_limits.h because automake can't infer the
 ## dependency (on num_limits.pl).  
+
+data.c:	types.h
 
 if HAVE_PERL_SOURCES
 BUILT_SOURCES = tds_willconvert.h encodings.h num_limits.h
