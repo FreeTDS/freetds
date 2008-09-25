@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.6 2008-07-07 13:17:51 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.7 2008-09-25 08:06:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -76,7 +76,7 @@ check_hex(const char *buf, size_t len, unsigned int start, unsigned int step)
 	char symbol[3];
 
 	for (n = 0; n < len; ++n) {
-		sprintf(symbol, "%2X", (unsigned int)('a' + ((start+n) / 2 * step % ('z' - 'a' + 1))));
+		sprintf(symbol, "%2x", (unsigned int)('a' + ((start+n) / 2 * step % ('z' - 'a' + 1))));
 		if (buf[n] != symbol[(start+n) % 2])
 			return 0;
 	}
@@ -139,7 +139,6 @@ readBlobAsChar(SQLHSTMT * stmth, SQLUSMALLINT pos, int step)
 			break;
 		if (len > (SQLLEN) bufsize)
 			len = (SQLLEN) bufsize - 1;
-		len -= len % 2;
 		printf(">>     step %d: %d bytes readed\n", i, (int) len);
 		
 		check =	check_hex(buf, len, 2*987 + total, 25);
@@ -236,7 +235,7 @@ main(int argc, char **argv)
 					CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES - (i&1));
 					
-					rcode = SQLPutData(m_hstmt, p + NBYTES - 2 * (i&1), NBYTES + 2 * (i&1));
+					rcode = SQLPutData(m_hstmt, p + NBYTES - (i&1), NBYTES + (i&1));
 
 					CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES + (i&1));
