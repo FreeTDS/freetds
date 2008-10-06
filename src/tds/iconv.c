@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.133 2008-08-13 04:09:32 jklowden Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.134 2008-10-06 13:45:15 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -691,7 +691,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 				errno = 0;
 				irreversible = tds_sys_iconv(cd2, (ICONV_CONST char **) &pb, &l, outbuf, outbytesleft);
 				if (irreversible != (size_t) - 1) {
-					if (*inbytesleft)
+					if (inbytesleft && *inbytesleft)
 						break;
 					goto end_loop;
 				}
@@ -721,7 +721,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 			errno = temp_errno;
 			irreversible = temp_irreversible;
 			break;
-		} else if (io == to_client && conv->flags & TDS_ENCODING_SWAPBYTE) {
+		} else if (io == to_client && conv->flags & TDS_ENCODING_SWAPBYTE && inbuf) {
 			/* swap bytes if necessary */
 #if ENABLE_EXTRA_CHECKS
 			char tmp[8];
@@ -745,13 +745,20 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		} else {
 			irreversible = tds_sys_iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
 		}
-		if (irreversible != (size_t) - 1)
+		/* iconv success, return */
+		if (irreversible != (size_t) - 1) {
+			if (inbuf) {
+				inbuf = NULL;
+				inbytesleft = 0;
+				continue;
+			}
 			break;
+		}
 
 		if (errno == EILSEQ)
 			eilseq_raised = 1;
 
-		if (errno != EILSEQ || io != to_client)
+		if (errno != EILSEQ || io != to_client || !inbuf)
 			break;
 		/* 
 		 * Invalid input sequence encountered reading from server. 
