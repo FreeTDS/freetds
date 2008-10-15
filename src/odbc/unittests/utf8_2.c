@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test conversion of Hebrew characters (which have shift sequences) */
-static char software_version[] = "$Id: utf8_2.c,v 1.1 2008-10-06 13:45:15 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.2 2008-10-15 14:53:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 	for (n = 0, p = strings; p[n]; ++n) {
 		CHK(SQLFetch, (Statement));
 		if (n_len != strlen(p[n]) || strcmp(p[n], out) != 0) {
-			fprintf(stderr, "Wrong row %s\n", out);
+			fprintf(stderr, "Wrong row %d %s\n", n, out);
 			Disconnect();
 			return 1;
 		}

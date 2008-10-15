@@ -1,3 +1,6 @@
+Wed Oct 15 16:51:05 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/utf8_2.c: error message more verbose
+
 Mon Oct 06 15:43:03 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
 	* src/tds/iconv.c src/odbc/unittests/utf8_2.c(added):
@@ -685,4 +688,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2617 2008-10-06 13:45:15 freddy77 Exp $
+$Id: ChangeLog,v 1.2618 2008-10-15 14:53:00 freddy77 Exp $
