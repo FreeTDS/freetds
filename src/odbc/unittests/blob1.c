@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.7 2008-09-25 08:06:33 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.8 2008-10-16 14:08:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -139,6 +139,7 @@ readBlobAsChar(SQLHSTMT * stmth, SQLUSMALLINT pos, int step)
 			break;
 		if (len > (SQLLEN) bufsize)
 			len = (SQLLEN) bufsize - 1;
+		len -= len % 2;
 		printf(">>     step %d: %d bytes readed\n", i, (int) len);
 		
 		check =	check_hex(buf, len, 2*987 + total, 25);

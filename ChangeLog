@@ -1,3 +1,6 @@
+Thu Oct 16 16:08:40 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/blob1.c: make it works
+
 Thu Oct 16 13:26:27 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/convert_tds2sql.c src/odbc/odbc.c:
 	* src/odbc/odbc_util.c:
@@ -693,4 +696,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2619 2008-10-16 11:28:06 freddy77 Exp $
+$Id: ChangeLog,v 1.2620 2008-10-16 14:08:43 freddy77 Exp $
