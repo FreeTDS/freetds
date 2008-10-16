@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.72 2008-09-11 15:09:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.73 2008-10-16 14:09:57 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -328,7 +328,6 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		CONV_RESULT ores;
 		TDS_DBC * dbc = stmt->dbc;
 		void *free_ptr = NULL;
-		int start = 0;
 		SQLPOINTER extradata = NULL;
 		SQLLEN extralen = 0;
 
@@ -374,7 +373,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 					extradata = ores.ib;
 					extralen = res;
 					
-					start = 1;
+					DataPtr = (SQLPOINTER) (((char*)DataPtr) + 1);
 					--len;
 				}
 				
@@ -383,7 +382,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 					curcol->column_text_sqlputdatainfo = *((char*)DataPtr+len);
 				}
 
-				res = tds_convert(dbc->env->tds_ctx, src_type, DataPtr+start, len, dest_type, &ores);
+				res = tds_convert(dbc->env->tds_ctx, src_type, DataPtr, len, dest_type, &ores);
 				if (res < 0) {
 					odbc_convert_err_set(&dbc->errs, res);
 					free(extradata);
