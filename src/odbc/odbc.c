@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.498 2008-09-18 08:51:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.499 2008-10-16 11:28:07 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3667,7 +3667,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				} else {
 					data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
 				}
-				len = odbc_tds2sql(stmt, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
+				len = odbc_tds2sql(stmt, colinfo, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
 				if (len < 0) {
 					row_status = SQL_ROW_ERROR;
@@ -4657,9 +4657,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	SQLLEN dummy_cb;
 	int nSybType;
 
-	TDS_INT converted_column_cur_size;
-	int extra_bytes = 0;
-
 	INIT_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetData(%p, %u, %d, %p, %d, %p)\n", 
@@ -4696,7 +4693,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 	colinfo = tds->current_results->columns[icol - 1];
-	converted_column_cur_size = colinfo->column_cur_size;
 
 	if (colinfo->column_cur_size < 0) {
 		*pcbValue = SQL_NULL_DATA;
@@ -4715,79 +4711,17 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 		src = (TDS_CHAR *) colinfo->column_data;
 		if (is_variable_type(colinfo->column_type)) {
-			int nread = 0;
-			
 			/* 2003-8-29 check for an old bug -- freddy77 */
 			assert(colinfo->column_text_sqlgetdatapos >= 0);
 			if (is_blob_type(colinfo->column_type))
 				src = ((TDSBLOB *) src)->textvalue;
 
-			if (fCType == SQL_C_CHAR) {
-				TDS_CHAR buf[3];
-				SQLLEN len;
+			if (colinfo->column_text_sqlgetdatapos > 0
+			&&  colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
+				ODBC_RETURN(stmt, SQL_NO_DATA);
 
-				switch (nSybType) {
-				case SYBLONGBINARY:
-				case SYBBINARY:
-				case SYBVARBINARY:
-				case SYBIMAGE:
-				case XSYBBINARY:
-				case XSYBVARBINARY:
-				case TDS_CONVERT_BINARY:
-					if (colinfo->column_text_sqlgetdatapos % 2) {
-						nread = (colinfo->column_text_sqlgetdatapos - 1) / 2;
-						if (nread >= colinfo->column_cur_size)
-							ODBC_RETURN(stmt, SQL_NO_DATA);
-						
-						if (cbValueMax > 2) {
-							len = odbc_tds2sql(stmt, nSybType, src + nread, 1, fCType, buf, sizeof(buf), NULL);
-							if (len < 2)
-								ODBC_RETURN(stmt, SQL_ERROR);
-							*(TDS_CHAR *) rgbValue = buf[1];
-							*((TDS_CHAR *) rgbValue + 1) = 0;
-						
-							rgbValue++;
-							cbValueMax--;
-						
-							extra_bytes = 1;
-							nread++;
-
-							if (nread >= colinfo->column_cur_size)
-								ODBC_RETURN_(stmt);
-						} else {
-							if (cbValueMax) 
-								*(TDS_CHAR *) rgbValue = 0;
-							odbc_errs_add(&stmt->errs, "01004", "String data, right truncated");
-							ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
-						}
-					} else {
-						nread = colinfo->column_text_sqlgetdatapos / 2;
-						
-						if (colinfo->column_text_sqlgetdatapos > 0
-						    && nread >= colinfo->column_cur_size)
-							ODBC_RETURN(stmt, SQL_NO_DATA);
-					}
-					
-					src += nread;
-					srclen = colinfo->column_cur_size - nread;
-					converted_column_cur_size *= 2;
-					break;
-				default:
-					if (colinfo->column_text_sqlgetdatapos > 0
-					&&  colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-						ODBC_RETURN(stmt, SQL_NO_DATA);
-						
-					src += colinfo->column_text_sqlgetdatapos;
-					srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
-				}
-			} else {
-				if (colinfo->column_text_sqlgetdatapos > 0
-				&&  colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-					ODBC_RETURN(stmt, SQL_NO_DATA);
-
-				src += colinfo->column_text_sqlgetdatapos;
-				srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
-			}
+			src += colinfo->column_text_sqlgetdatapos;
+			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
 		} else {
 			if (colinfo->column_text_sqlgetdatapos > 0
 			&&  colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
@@ -4796,30 +4730,16 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			srclen = colinfo->column_cur_size;
 		}
 
-		*pcbValue = odbc_tds2sql(stmt, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
+		*pcbValue = odbc_tds2sql(stmt, colinfo, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
 		if (*pcbValue < 0)
 			ODBC_RETURN(stmt, SQL_ERROR);
 		
-		if (extra_bytes) {
-			colinfo->column_text_sqlgetdatapos += extra_bytes;
-			*pcbValue += extra_bytes;
-		}
-		
 		if (is_variable_type(colinfo->column_type) && (fCType == SQL_C_CHAR || fCType == SQL_C_BINARY)) {
-			/* calculate how many bytes were read */
-			int remaining = cbValueMax;
-
-			/* FIXME test on destination char ??? */
-			if (stmt->dbc->env->attr.output_nts != SQL_FALSE && fCType == SQL_C_CHAR && remaining > 0)
-				--remaining;
-			if (remaining > *pcbValue)
-				remaining = *pcbValue;
-			colinfo->column_text_sqlgetdatapos += remaining;
 			/* avoid infinite SQL_SUCCESS on empty strings */
 			if (colinfo->column_text_sqlgetdatapos == 0 && cbValueMax > 0)
 				++colinfo->column_text_sqlgetdatapos;
-			
-			if (colinfo->column_text_sqlgetdatapos < converted_column_cur_size) {	/* not all read ?? */
+
+			if (colinfo->column_text_sqlgetdatapos < colinfo->column_cur_size) {	/* not all read ?? */
 				odbc_errs_add(&stmt->errs, "01004", "String data, right truncated");
 				ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 			}

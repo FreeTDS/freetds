@@ -39,10 +39,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.53 2008-09-18 08:51:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.54 2008-10-16 11:28:07 freddy77 Exp $");
 
 TDS_INT
-odbc_tds2sql(TDS_STMT * stmt, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
+odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
 	     const struct _drecord *drec_ixd)
 {
 	TDS_INT nDestSybType;
@@ -59,6 +59,7 @@ odbc_tds2sql(TDS_STMT * stmt, int srctype, TDS_CHAR * src, TDS_UINT srclen, int 
 
 	int ret = TDS_CONVERT_FAIL;
 	int i, cplen;
+	int binary_conversion = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
@@ -91,6 +92,8 @@ odbc_tds2sql(TDS_STMT * stmt, int srctype, TDS_CHAR * src, TDS_UINT srclen, int 
 				assert(cplen >= 0);
 				/* do not NULL terminate binary buffer */
 				memcpy(dest, src, cplen);
+				if (curcol)
+					curcol->column_text_sqlgetdatapos += cplen;
 			} else {
 				/* if destlen == 0 we return only length */
 				if (destlen != 0) {
@@ -110,6 +113,18 @@ odbc_tds2sql(TDS_STMT * stmt, int srctype, TDS_CHAR * src, TDS_UINT srclen, int 
 	}
 
 	if (desttype == SQL_C_CHAR) {
+		switch (srctype) {
+		case SYBLONGBINARY:
+		case SYBBINARY:
+		case SYBVARBINARY:
+		case SYBIMAGE:
+		case XSYBBINARY:
+		case XSYBVARBINARY:
+			binary_conversion = 1;
+			if (destlen && !(destlen % 2))
+				--destlen;
+		}
+
 		nDestSybType = TDS_CONVERT_CHAR;
 		ores.cc.len = destlen >= 0 ? destlen : 0;
 		ores.cc.c = dest;
@@ -148,6 +163,8 @@ odbc_tds2sql(TDS_STMT * stmt, int srctype, TDS_CHAR * src, TDS_UINT srclen, int 
 			 * odbc always terminate but do not overwrite 
 			 * destination buffer more than needed
 			 */
+			if (curcol)
+				curcol->column_text_sqlgetdatapos += binary_conversion ? cplen / 2 : cplen;
 			dest[cplen] = 0;
 		} else {
 			/* if destlen == 0 we return only length */
