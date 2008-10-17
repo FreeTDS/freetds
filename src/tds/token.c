@@ -42,13 +42,9 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.355 2008-09-18 08:18:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.356 2008-10-17 09:38:10 freddy77 Exp $");
 
-#ifdef ENABLE_DEVELOPING
-# define USE_ICONV tds->use_iconv
-#else
-# define USE_ICONV 1
-#endif
+#define USE_ICONV tds->use_iconv
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
