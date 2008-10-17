@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.8 2008-10-16 14:08:44 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.9 2008-10-17 12:21:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -183,26 +183,15 @@ main(int argc, char **argv)
 	for (i = 0; i < cnt; i++) {
 
 		m_hstmt = NULL;
-		rcode = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt);
-		CHECK_RCODE(SQL_HANDLE_DBC, Connection, "SQLAllocHandle StmtH");
+		CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &m_hstmt));
 
-		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "INSERT INTO #tt VALUES ( ?, ?, ?, ?, ? )", SQL_NTS);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPrepare");
+		CHK(SQLPrepare, (m_hstmt, (SQLCHAR *) "INSERT INTO #tt VALUES ( ?, ?, ?, ?, ? )", SQL_NTS));
 
-		SQLBindParameter(m_hstmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 1");
-
-		SQLBindParameter(m_hstmt, 2, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARCHAR, 0x10000000, 0, buf1, 0, &vind1);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 2");
-
-		SQLBindParameter(m_hstmt, 3, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0x10000000, 0, buf2, 0, &vind2);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 3");
-
-		SQLBindParameter(m_hstmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARBINARY, 0x10000000, 0, buf3, 0, &vind3);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 4");
-
-		SQLBindParameter(m_hstmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 5");
+		CHK(SQLBindParameter, (m_hstmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0));
+		CHK(SQLBindParameter, (m_hstmt, 2, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARCHAR, 0x10000000, 0, buf1, 0, &vind1));
+		CHK(SQLBindParameter, (m_hstmt, 3, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0x10000000, 0, buf2, 0, &vind2));
+		CHK(SQLBindParameter, (m_hstmt, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARBINARY, 0x10000000, 0, buf3, 0, &vind3));
+		CHK(SQLBindParameter, (m_hstmt, 5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0));
 
 		key = i;
 		vind0 = 0;
@@ -227,30 +216,25 @@ main(int argc, char **argv)
 			CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLParamData StmtH");
 			printf(">> SQLParamData: ptr = %p  rcode = %d\n", (void *) p, rcode);
 			if (rcode == SQL_NEED_DATA) {
-				SQLRETURN rcode;
 				if (p == buf3) {
 					fill_hex(buf3, NBYTES, 987, 25);
 					
-					rcode = SQLPutData(m_hstmt, p, NBYTES - (i&1));
+					CHK(SQLPutData, (m_hstmt, p, NBYTES - (i&1)));
 
-					CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES - (i&1));
 					
-					rcode = SQLPutData(m_hstmt, p + NBYTES - (i&1), NBYTES + (i&1));
+					CHK(SQLPutData, (m_hstmt, p + NBYTES - (i&1), NBYTES + (i&1)));
 
-					CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES + (i&1));
 				} else {
-					rcode = SQLPutData(m_hstmt, p, NBYTES);
+					CHK(SQLPutData, (m_hstmt, p, NBYTES));
 
-					CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPutData StmtH");
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES);
 				}
 			}
 		}
 
-		rcode = SQLFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLFreeHandle StmtH");
+		CHK(SQLFreeHandle, (SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt));
 
 	}
 
@@ -259,41 +243,30 @@ main(int argc, char **argv)
 	for (i = 0; i < cnt; i++) {
 
 		m_hstmt = NULL;
-		rcode = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt);
-		CHECK_RCODE(SQL_HANDLE_DBC, Connection, "SQLAllocHandle StmtH");
+		CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &m_hstmt));
 
 		if (db_is_microsoft()) {
-			rcode = SQLSetStmtAttr(m_hstmt, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER);
-			CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLSetStmtAttr SQL_ATTR_CURSOR_SCROLLABLE");
-			rcode = SQLSetStmtAttr(m_hstmt, SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER);
-			CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLSetStmtAttr SQL_ATTR_CURSOR_SENSITIVITY");
+			CHK(SQLSetStmtAttr, (m_hstmt, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER));
+			CHK(SQLSetStmtAttr, (m_hstmt, SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER));
 		}
 
-		rcode = SQLPrepare(m_hstmt, (SQLCHAR *) "SELECT t, b1, b2, v FROM #tt WHERE k = ?", SQL_NTS);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLPrepare");
+		CHK(SQLPrepare, (m_hstmt, (SQLCHAR *) "SELECT t, b1, b2, v FROM #tt WHERE k = ?", SQL_NTS));
 
-		SQLBindParameter(m_hstmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &i, 0, &vind0);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindParameter 1");
+		CHK(SQLBindParameter, (m_hstmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &i, 0, &vind0));
 
-		SQLBindCol(m_hstmt, 1, SQL_C_BINARY, NULL, 0, &vind1);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindCol 2");
-		SQLBindCol(m_hstmt, 2, SQL_C_BINARY, NULL, 0, &vind2);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindCol 3");
-		SQLBindCol(m_hstmt, 3, SQL_C_BINARY, NULL, 0, &vind3);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindCol 4");
-		SQLBindCol(m_hstmt, 4, SQL_C_LONG, &key, 0, &vind0);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLBindCol 1");
+		CHK(SQLBindCol, (m_hstmt, 1, SQL_C_BINARY, NULL, 0, &vind1));
+		CHK(SQLBindCol, (m_hstmt, 2, SQL_C_BINARY, NULL, 0, &vind2));
+		CHK(SQLBindCol, (m_hstmt, 3, SQL_C_BINARY, NULL, 0, &vind3));
+		CHK(SQLBindCol, (m_hstmt, 4, SQL_C_LONG, &key, 0, &vind0));
 
 		vind0 = 0;
 		vind1 = SQL_DATA_AT_EXEC;
 		vind2 = SQL_DATA_AT_EXEC;
 
-		rcode = SQLExecute(m_hstmt);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLExecute StmtH");
+		CHK(SQLExecute, (m_hstmt));
 
-		rcode = SQLFetchScroll(m_hstmt, SQL_FETCH_NEXT, 0);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLFetchScroll StmtH");
-		printf(">> fetch... %d  rcode = %d\n", i, rcode);
+		CHK(SQLFetchScroll, (m_hstmt, SQL_FETCH_NEXT, 0));
+		printf(">> fetch... %d\n", i);
 
 		rcode = readBlob(m_hstmt, 1);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "readBlob 1");
@@ -302,11 +275,8 @@ main(int argc, char **argv)
 		rcode = readBlobAsChar(m_hstmt, 3, i);
 		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "readBlob 3 as SQL_C_CHAR");
 
-		rcode = SQLCloseCursor(m_hstmt);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLCloseCursor StmtH");
-
-		rcode = SQLFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "SQLFreeHandle StmtH");
+		CHK(SQLCloseCursor, (m_hstmt));
+		CHK(SQLFreeHandle, (SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt));
 	}
 
 	Disconnect();

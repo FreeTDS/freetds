@@ -12,16 +12,6 @@
 
 #ifdef HAVE_ALARM
 
-#define CHECK_RCODE(t,h,m) \
-   if ( rcode != SQL_NO_DATA \
-     && rcode != SQL_SUCCESS \
-     && rcode != SQL_SUCCESS_WITH_INFO  \
-     && rcode != SQL_NEED_DATA ) { \
-      fprintf(stderr,"Error %d at: %s\n",rcode,m); \
-      getErrorInfo(t,h); \
-      exit(1); \
-   }
-
 static char sqlstate[SQL_SQLSTATE_SIZE + 1];
 
 static void
@@ -58,9 +48,8 @@ sigalrm_handler(int s)
 	SQLRETURN rcode;
 
 	printf(">>>> SQLCancel() ...\n");
-	rcode = SQLCancel(Statement);
+	CHK(SQLCancel, (Statement));
 	printf(">>>> ... SQLCancel done rcode = %d\n", rcode);
-	CHECK_RCODE(SQL_HANDLE_STMT, Statement, "SQLCancel failed");
 
 	alarm(4);
 	signal(SIGALRM, exit_forced);
