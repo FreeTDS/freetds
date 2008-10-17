@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.104 2008-10-16 11:28:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.105 2008-10-17 08:30:03 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -140,7 +140,7 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 
 		len = odbc_tds2sql(stmt, NULL, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
 				   drec->sql_desc_concise_type, (void *) data_ptr, drec->sql_desc_octet_length, NULL);
-		if (len < 0)
+		if (len == SQL_NULL_DATA)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
 			LEN(drec->sql_desc_indicator_ptr) = 0;
@@ -221,7 +221,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 		 */
 		len = odbc_tds2sql(stmt, colinfo, tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size), src, srclen,
 				   c_type, (void *) data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
-		if (len < 0)
+		if (len == SQL_NULL_DATA)
 			return /* SQL_ERROR */ ;
 		if (drec_apd->sql_desc_indicator_ptr)
 			LEN(drec_apd->sql_desc_indicator_ptr) = 0;

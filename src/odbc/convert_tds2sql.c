@@ -39,9 +39,9 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.54 2008-10-16 11:28:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.55 2008-10-17 08:30:03 freddy77 Exp $");
 
-TDS_INT
+SQLLEN
 odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
 	     const struct _drecord *drec_ixd)
 {
@@ -57,7 +57,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	TIMESTAMP_STRUCT *tssp;
 	SQL_NUMERIC_STRUCT *num;
 
-	int ret = TDS_CONVERT_FAIL;
+	SQLLEN ret = SQL_NULL_DATA;
 	int i, cplen;
 	int binary_conversion = 0;
 
@@ -68,7 +68,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	nDestSybType = odbc_c_to_server_type(desttype);
 	if (nDestSybType == TDS_FAIL) {
 		odbc_errs_add(&stmt->errs, "HY003", NULL);
-		return TDS_CONVERT_NOAVAIL;
+		return SQL_NULL_DATA;
 	}
 
 	/* special case for binary type */
@@ -81,7 +81,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			/* prevent buffer overflow */
 			if (destlen < sizeof(SQL_NUMERIC_STRUCT)) {
 				odbc_errs_add(&stmt->errs, "07006", NULL);
-				return TDS_CONVERT_FAIL;
+				return SQL_NULL_DATA;
 			}
 			ores.n.precision = ((TDS_NUMERIC *) src)->precision;
 			ores.n.scale = ((TDS_NUMERIC *) src)->scale;
@@ -98,7 +98,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 				/* if destlen == 0 we return only length */
 				if (destlen != 0) {
 					odbc_errs_add(&stmt->errs, "07006", NULL);
-					return TDS_CONVERT_FAIL;
+					return SQL_NULL_DATA;
 				}
 			}
 			return ret;
@@ -146,7 +146,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	}
 	if (nRetVal < 0) {
 		odbc_convert_err_set(&stmt->errs, nRetVal);
-		return nRetVal;
+		return SQL_NULL_DATA;
 	}
 
 	switch (desttype) {
@@ -169,7 +169,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		} else {
 			/* if destlen == 0 we return only length */
 			if (destlen != 0)
-				ret = TDS_CONVERT_FAIL;
+				ret = SQL_NULL_DATA;
 		}
 		break;
 

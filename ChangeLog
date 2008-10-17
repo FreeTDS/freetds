@@ -1,3 +1,8 @@
+Fri Oct 17 10:26:55 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/convert_tds2sql.c src/odbc/odbc.c:
+	* src/odbc/odbc_util.c:
+	- allow SQL_NO_TOTAL from odbc_tds2sql
+
 Fri Oct 17 10:13:19 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: rollback SQLGetData changes to 1.481
 
@@ -706,4 +711,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2623 2008-10-17 08:15:21 freddy77 Exp $
+$Id: ChangeLog,v 1.2624 2008-10-17 08:30:03 freddy77 Exp $

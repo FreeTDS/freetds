@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.500 2008-10-17 08:15:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.501 2008-10-17 08:30:03 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3669,7 +3669,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				}
 				len = odbc_tds2sql(stmt, colinfo, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
 						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
-				if (len < 0) {
+				if (len == SQL_NULL_DATA) {
 					row_status = SQL_ROW_ERROR;
 					break;
 				}
@@ -4730,7 +4730,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		assert(fCType);
 
 		*pcbValue = odbc_tds2sql(stmt, colinfo, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
-		if (*pcbValue < 0)
+		if (*pcbValue == SQL_NULL_DATA)
 			ODBC_RETURN(stmt, SQL_ERROR);
 		
 		if (is_variable_type(colinfo->column_type) && (fCType == SQL_C_CHAR || fCType == SQL_C_BINARY)) {
