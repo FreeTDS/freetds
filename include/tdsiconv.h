@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-/* $Id: tdsiconv.h,v 1.36 2007-03-12 13:28:50 freddy77 Exp $ */
+/* $Id: tdsiconv.h,v 1.37 2008-10-17 08:39:16 freddy77 Exp $ */
 
 #if HAVE_ICONV
 #include <iconv.h>
@@ -166,6 +166,7 @@ size_t tds_iconv(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTIO
 		 const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
 const char *tds_canonical_charset_name(const char *charset_name);
 const char *tds_sybase_charset_name(const char *charset_name);
+TDSICONV *tds_iconv_get(TDSSOCKET * tds, const char *client_charset, const char *server_charset);
 
 #ifdef __cplusplus
 }

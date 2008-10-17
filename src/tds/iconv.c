@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.134 2008-10-06 13:45:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.135 2008-10-17 08:39:16 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -938,14 +938,15 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
  * Get a iconv info structure, allocate and initialize if needed
  */
 static TDSICONV *
-tds_iconv_get_info(TDSSOCKET * tds, const char *canonic_charset)
+tds_iconv_get_info(TDSSOCKET * tds, const char *canonic_client_charset, const char *canonic_server_charset)
 {
 	TDSICONV *info;
 	int i;
 
 	/* search a charset from already allocated charsets */
 	for (i = tds->char_conv_count; --i >= initial_char_conv_count;)
-		if (strcmp(canonic_charset, tds->char_convs[i]->server_charset.name) == 0)
+		if (strcmp(canonic_client_charset, tds->char_convs[i]->client_charset.name) == 0
+		    && strcmp(canonic_server_charset, tds->char_convs[i]->server_charset.name) == 0)
 			return tds->char_convs[i];
 
 	/* allocate a new iconv structure */
@@ -972,8 +973,26 @@ tds_iconv_get_info(TDSSOCKET * tds, const char *canonic_charset)
 
 	/* init */
 	/* TODO test allocation */
-	tds_iconv_info_init(info, tds->char_convs[client2ucs2]->client_charset.name, canonic_charset);
+	tds_iconv_info_init(info, canonic_client_charset, canonic_server_charset);
 	return info;
+}
+
+TDSICONV *
+tds_iconv_get(TDSSOCKET * tds, const char *client_charset, const char *server_charset)
+{
+	int canonic_client_charset_num = tds_canonical_charset(client_charset);
+	int canonic_server_charset_num = tds_canonical_charset(server_charset);
+
+	if (canonic_client_charset_num < 0) {
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_get: what is charset \"%s\"?\n", client_charset);
+		return NULL;
+	}
+	if (canonic_server_charset_num < 0) {
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_get: what is charset \"%s\"?\n", server_charset);
+		return NULL;
+	}
+
+	return tds_iconv_get_info(tds, canonic_charsets[canonic_client_charset_num].name, canonic_charsets[canonic_server_charset_num].name);
 }
 
 /* change singlebyte conversions according to server */
@@ -1002,7 +1021,7 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 		return;
 
 	/* find and set conversion */
-	char_conv = tds_iconv_get_info(tds, canonic_charset);
+	char_conv = tds_iconv_get_info(tds, tds->char_convs[client2ucs2]->client_charset.name, canonic_charset);
 	if (char_conv)
 		tds->char_convs[client2server_chardata] = char_conv;
 
@@ -1460,7 +1479,7 @@ tds_iconv_from_collate(TDSSOCKET * tds, int sql_collate, int lcid)
 	if (strcmp(tds->char_convs[client2server_chardata]->server_charset.name, charset) == 0)
 		return tds->char_convs[client2server_chardata];
 
-	return tds_iconv_get_info(tds, charset);
+	return tds_iconv_get_info(tds, tds->char_convs[client2ucs2]->client_charset.name, charset);
 }
 
 /** @} */
