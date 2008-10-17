@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.501 2008-10-17 08:30:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.502 2008-10-17 08:56:39 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -371,9 +371,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
-#ifdef ENABLE_DEVELOPING
 	dbc->tds_socket->use_iconv = 0;
-#endif
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
 
 	/* Set up our environment change hook */
@@ -3667,7 +3665,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				} else {
 					data_ptr += odbc_get_octet_len(c_type, drec_ard) * curr_row;
 				}
-				len = odbc_tds2sql(stmt, colinfo, tds_get_conversion_type(colinfo->column_type, colinfo->column_size),
+				len = odbc_tds2sql(stmt, colinfo, tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size),
 						      src, srclen, c_type, data_ptr, drec_ard->sql_desc_octet_length, drec_ard);
 				if (len == SQL_NULL_DATA) {
 					row_status = SQL_ROW_ERROR;
@@ -4717,7 +4715,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 			srclen = colinfo->column_cur_size;
 		}
-		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
+		nSybType = tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size);
 		if (fCType == SQL_C_DEFAULT)
 			fCType = odbc_sql_to_c_type_default(stmt->ird->records[icol - 1].sql_desc_concise_type);
 		if (fCType == SQL_ARD_TYPE) {

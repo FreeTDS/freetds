@@ -34,12 +34,73 @@
 
 #include "tdsodbc.h"
 #include "tdsconvert.h"
+#include "tdsiconv.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.55 2008-10-17 08:30:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.56 2008-10-17 08:56:39 freddy77 Exp $");
+
+#if SIZEOF_SQLWCHAR == 2
+# if WORDS_BIGENDIAN
+#  define ODBC_WIDE_NAME "UCS-2BE"
+# else
+#  define ODBC_WIDE_NAME "UCS-2LE"
+# endif
+#elif SIZEOF_SQLWCHAR == 4
+# if WORDS_BIGENDIAN
+#  define ODBC_WIDE_NAME "UCS-4BE"
+# else
+#  define ODBC_WIDE_NAME "UCS-4LE"
+# endif
+#else
+#error SIZEOF_SQLWCHAR not supported !!
+#endif
+
+static SQLLEN
+odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen)
+{
+	const char *ib;
+	char *ob;
+	size_t il, ol, err, char_size;
+
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
+
+	const TDSICONV *conv = curcol->char_conv;
+	if (!conv)
+		conv = tds->char_convs[client2server_chardata];
+	if (desttype == SQL_C_WCHAR) {
+		/* SQL_C_WCHAR, convert to wide encode */
+		conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->server_charset.name);
+	}
+
+	ib = src;
+	il = srclen;
+	ob = dest;
+	ol = 0;
+	char_size = desttype == SQL_C_CHAR ? 1 : SIZEOF_SQLWCHAR;
+	if (destlen >= char_size) {
+		ol = destlen - char_size;
+		memset(&conv->suppress, 0, sizeof(conv->suppress));
+		err = tds_iconv(tds, conv, to_client, &ib, &il, &ob, &ol);
+		ol = ob - dest;
+		if (curcol)
+			curcol->column_text_sqlgetdatapos += ib - src;
+		/* terminate string */
+		memset(ob, 0, char_size);
+	}
+
+	/* returned size have to take into account buffer left unconverted */
+	if (il == 0 || (conv->client_charset.min_bytes_per_char == conv->client_charset.max_bytes_per_char
+	    && conv->server_charset.min_bytes_per_char == conv->server_charset.max_bytes_per_char)) {
+		ol += il * conv->client_charset.min_bytes_per_char / conv->server_charset.min_bytes_per_char;
+	} else {
+		/* TODO convert and discard ?? or return proper SQL_NO_TOTAL values ?? */
+		return SQL_NO_TOTAL;
+	}
+	return ol;
+}
 
 SQLLEN
 odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
@@ -112,6 +173,20 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		ores.n.scale = 0;
 	}
 
+	if (is_char_type(srctype)) {
+		if (desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR)
+			return odbc_convert_char(stmt, curcol, src, srclen, desttype, dest, destlen);
+		if (is_unicode_type(srctype)) {
+			/*
+			 * TODO convert to single and then process normally.
+			 * Here we processed SQL_C_BINARY and SQL_C_*CHAR so only fixed types are left
+			 */
+		}
+	}
+
+	/*
+	 * TODO support SQL_C_WCHAR converting when needed
+	 */
 	if (desttype == SQL_C_CHAR) {
 		switch (srctype) {
 		case SYBLONGBINARY:
@@ -163,6 +238,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			 * odbc always terminate but do not overwrite 
 			 * destination buffer more than needed
 			 */
+			/* TODO check for source !!! */
 			if (curcol)
 				curcol->column_text_sqlgetdatapos += binary_conversion ? cplen / 2 : cplen;
 			dest[cplen] = 0;
