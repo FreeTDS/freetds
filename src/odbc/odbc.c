@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.499 2008-10-16 11:28:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.500 2008-10-17 08:15:21 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4695,8 +4695,28 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	colinfo = tds->current_results->columns[icol - 1];
 
 	if (colinfo->column_cur_size < 0) {
+		/* TODO check what should happen if pcbValue was NULL */
 		*pcbValue = SQL_NULL_DATA;
 	} else {
+		src = (TDS_CHAR *) colinfo->column_data;
+		if (is_variable_type(colinfo->column_type)) {
+			if (colinfo->column_text_sqlgetdatapos > 0
+			    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
+				ODBC_RETURN(stmt, SQL_NO_DATA);
+
+			/* 2003-8-29 check for an old bug -- freddy77 */
+			assert(colinfo->column_text_sqlgetdatapos >= 0);
+			if (is_blob_type(colinfo->column_type))
+				src = ((TDSBLOB *) src)->textvalue;
+			src += colinfo->column_text_sqlgetdatapos;
+			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
+		} else {
+			if (colinfo->column_text_sqlgetdatapos > 0
+			    && colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
+				ODBC_RETURN(stmt, SQL_NO_DATA);
+
+			srclen = colinfo->column_cur_size;
+		}
 		nSybType = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 		if (fCType == SQL_C_DEFAULT)
 			fCType = odbc_sql_to_c_type_default(stmt->ird->records[icol - 1].sql_desc_concise_type);
@@ -4708,27 +4728,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 			fCType = stmt->ard->records[icol - 1].sql_desc_concise_type;
 		}
 		assert(fCType);
-
-		src = (TDS_CHAR *) colinfo->column_data;
-		if (is_variable_type(colinfo->column_type)) {
-			/* 2003-8-29 check for an old bug -- freddy77 */
-			assert(colinfo->column_text_sqlgetdatapos >= 0);
-			if (is_blob_type(colinfo->column_type))
-				src = ((TDSBLOB *) src)->textvalue;
-
-			if (colinfo->column_text_sqlgetdatapos > 0
-			&&  colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-				ODBC_RETURN(stmt, SQL_NO_DATA);
-
-			src += colinfo->column_text_sqlgetdatapos;
-			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;
-		} else {
-			if (colinfo->column_text_sqlgetdatapos > 0
-			&&  colinfo->column_text_sqlgetdatapos >= colinfo->column_cur_size)
-				ODBC_RETURN(stmt, SQL_NO_DATA);
-
-			srclen = colinfo->column_cur_size;
-		}
 
 		*pcbValue = odbc_tds2sql(stmt, colinfo, nSybType, src, srclen, fCType, (TDS_CHAR *) rgbValue, cbValueMax, NULL);
 		if (*pcbValue < 0)
