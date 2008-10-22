@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.105 2008-10-17 08:30:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.106 2008-10-22 15:22:59 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -371,6 +371,7 @@ odbc_server_to_sql_type(int col_type, int col_size)
 /**
  * Pass this an SQL_C_* type and get a SYB* type which most closely corresponds
  * to the SQL_C_* type.
+ * This function can return XSYBNVARCHAR even if server do not support it
  */
 int
 odbc_c_to_server_type(int c_type)
@@ -379,6 +380,10 @@ odbc_c_to_server_type(int c_type)
 		/* FIXME this should be dependent on size of data !!! */
 	case SQL_C_BINARY:
 		return SYBBINARY;
+#ifdef SQL_C_WCHAR
+	case SQL_C_WCHAR:
+		return XSYBNVARCHAR;
+#endif
 		/* TODO what happen if varchar is more than 255 characters long */
 	case SQL_C_CHAR:
 		return SYBVARCHAR;
@@ -434,9 +439,6 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_INTERVAL_HOUR_TO_MINUTE:
 	case SQL_C_INTERVAL_HOUR_TO_SECOND:
 	case SQL_C_INTERVAL_MINUTE_TO_SECOND:
-#ifdef SQL_C_WCHAR
-	case SQL_C_WCHAR:
-#endif
 		break;
 	}
 	return TDS_FAIL;
@@ -973,6 +975,7 @@ odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord * drec, int 
 	TYPE_NORMAL(SQL_C_BINARY) \
 \
 	TYPE_NORMAL(SQL_C_CHAR) \
+	TYPE_NORMAL(SQL_C_WCHAR) \
 \
 	TYPE_NORMAL(SQL_C_NUMERIC) \
 \

@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.19 2008-10-22 14:15:24 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.20 2008-10-22 15:22:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -71,7 +71,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 		assert(out_len >=0 && (out_len % sizeof(SQLWCHAR)) == 0);
 		sprintf(sbuf, "%u ", (unsigned int) (out_len / sizeof(SQLWCHAR)));
 		wp = (SQLWCHAR*) out_buf;
-		for (i = 0; i < out_len; ++i)
+		for (i = 0; i < out_len / sizeof(SQLWCHAR); ++i)
 			if ((unsigned int) wp[i] < 256)
 				sprintf(strchr(sbuf, 0), "%c", (char) wp[i]);
 			else
@@ -146,7 +146,8 @@ main(int argc, char *argv[])
 
 		Test("VARCHAR(20)", "test", SQL_C_WCHAR, "4 test");
 		/* nvarchar with extended characters */
-		Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_WCHAR, "4 \\u0083hi\\u00f2");
+		Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_WCHAR, "4 \x83hi\xf2");
+		Test("NVARCHAR(20)", "0xA406A5FB", SQL_C_WCHAR, "2 \\u06a4\\ufba5");
 	}
 
 	/* case (1) */
