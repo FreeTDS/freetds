@@ -3,7 +3,17 @@
 
 /* Test various bind type */
 
-static char software_version[] = "$Id: data.c,v 1.18 2008-09-12 15:12:24 freddy77 Exp $";
+/*
+ * This test is useful to test odbc_tds2sql function
+ * odbc_tds2sql have some particular cases:
+ * (1) numeric -> binary  numeric is different in ODBC
+ * (2) *       -> binary  dependent from libTDS representation and ODBC one
+ * (3) binary  -> char    TODO
+ * (4) date    -> char    different format
+ * Also we have to check normal char and wide char
+ */
+
+static char software_version[] = "$Id: data.c,v 1.19 2008-10-22 14:15:24 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -15,6 +25,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	unsigned char out_buf[256];
 	SQLLEN out_len = 0;
 	SQL_NUMERIC_STRUCT *num;
+	SQLWCHAR *wp;
 	int i;
 
 	SQLFreeStmt(Statement, SQL_UNBIND);
@@ -56,6 +67,16 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 		out_buf[sizeof(out_buf) - 1] = 0;
 		sprintf(sbuf,"%u %s", (unsigned int) strlen((char *) out_buf), out_buf);
 		break;
+	case SQL_C_WCHAR:
+		assert(out_len >=0 && (out_len % sizeof(SQLWCHAR)) == 0);
+		sprintf(sbuf, "%u ", (unsigned int) (out_len / sizeof(SQLWCHAR)));
+		wp = (SQLWCHAR*) out_buf;
+		for (i = 0; i < out_len; ++i)
+			if ((unsigned int) wp[i] < 256)
+				sprintf(strchr(sbuf, 0), "%c", (char) wp[i]);
+			else
+				sprintf(strchr(sbuf, 0), "\\u%04x", (unsigned int) wp[i]);
+		break;
 	default:
 		/* not supported */
 		assert(0);
@@ -85,6 +106,7 @@ main(int argc, char *argv[])
 	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, "38 0 1 7B");
 
 	/* all binary results */
+	/* cases (2) */
 	Test("CHAR(7)", "pippo", SQL_C_BINARY, "706970706F2020");
 	Test("TEXT", "mickey", SQL_C_BINARY, "6D69636B6579");
 	Test("VARCHAR(20)", "foo", SQL_C_BINARY, "666F6F");
@@ -121,8 +143,13 @@ main(int argc, char *argv[])
 		Test("NVARCHAR(20)", "test", SQL_C_CHAR, "4 test");
 		/* nvarchar with extended characters */
 		Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_CHAR, "4 \x83hi\xf2");
+
+		Test("VARCHAR(20)", "test", SQL_C_WCHAR, "4 test");
+		/* nvarchar with extended characters */
+		Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_WCHAR, "4 \\u0083hi\\u00f2");
 	}
 
+	/* case (1) */
 	Test("DECIMAL", "1234.5678", SQL_C_BINARY, "120001D3040000000000000000000000000000");
 	Test("NUMERIC", "8765.4321", SQL_C_BINARY, "1200013D220000000000000000000000000000");
 
@@ -143,8 +170,11 @@ main(int argc, char *argv[])
 		Test("UNIQUEIDENTIFIER", "0DDF3B64-E692-11D1-AB06-00AA00BDD685", SQL_C_BINARY,
 		     big_endian ? "0DDF3B64E69211D1AB0600AA00BDD685" : "643BDF0D92E6D111AB0600AA00BDD685");
 
+	/* case (4) */
 	Test("DATETIME", "2006-06-09 11:22:44", SQL_C_CHAR, "23 2006-06-09 11:22:44.000");
 	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_CHAR, "19 2006-06-12 22:37:00");
+	Test("DATETIME", "2006-06-09 11:22:44", SQL_C_WCHAR, "23 2006-06-09 11:22:44.000");
+	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_WCHAR, "19 2006-06-12 22:37:00");
 
 	Disconnect();
 
