@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.56 2008-10-17 08:56:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.57 2008-10-22 20:16:11 freddy77 Exp $");
 
 #if SIZEOF_SQLWCHAR == 2
 # if WORDS_BIGENDIAN
@@ -184,10 +184,9 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		}
 	}
 
-	/*
-	 * TODO support SQL_C_WCHAR converting when needed
-	 */
-	if (desttype == SQL_C_CHAR) {
+	if (desttype == SQL_C_WCHAR)
+		destlen /= sizeof(SQLWCHAR);
+	if (desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR) {
 		switch (srctype) {
 		case SYBLONGBINARY:
 		case SYBBINARY:
@@ -205,7 +204,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		ores.cc.c = dest;
 	}
 
-	if (desttype == SQL_C_CHAR && (srctype == SYBDATETIME || srctype == SYBDATETIME4)) {
+	if ((desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR) && (srctype == SYBDATETIME || srctype == SYBDATETIME4)) {
 		char buf[40];
 		TDSDATEREC when;
 
@@ -242,6 +241,36 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			if (curcol)
 				curcol->column_text_sqlgetdatapos += binary_conversion ? cplen / 2 : cplen;
 			dest[cplen] = 0;
+		} else {
+			/* if destlen == 0 we return only length */
+			if (destlen != 0)
+				ret = SQL_NULL_DATA;
+		}
+		break;
+
+	case SQL_C_WCHAR:
+		tdsdump_log(TDS_DBG_FUNC, "odbc_tds2sql: outputting character data destlen = %lu \n", (unsigned long) destlen);
+
+		ret = nRetVal * sizeof(SQLWCHAR);
+		/* TODO handle not terminated configuration */
+		if (destlen > 0) {
+			SQLWCHAR *wp = (SQLWCHAR *) dest;
+			SQLCHAR  *p  = (SQLCHAR *)  dest;
+
+			cplen = (destlen - 1) > nRetVal ? nRetVal : (destlen - 1);
+			assert(cplen >= 0);
+			/*
+			 * odbc always terminate but do not overwrite 
+			 * destination buffer more than needed
+			 */
+			/* TODO check for source !!! */
+			if (curcol)
+				curcol->column_text_sqlgetdatapos += binary_conversion ? cplen / 2 : cplen;
+			wp[cplen] = 0;
+			for (;cplen > 0;) {
+				--cplen;
+				wp[cplen] = p[cplen];
+			}
 		} else {
 			/* if destlen == 0 we return only length */
 			if (destlen != 0)

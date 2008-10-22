@@ -1,3 +1,7 @@
+Mon Oct 22 22:15:20 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/convert_tds2sql.c src/odbc/unittests/data.c:
+	- support conversions from wire to SQL_C_WCHAR
+
 Mon Oct 22 17:21:18 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc_util.c src/odbc/unittests/data.c:
 	- initial SQL_C_WCHAR support
@@ -735,4 +739,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2630 2008-10-22 15:22:59 freddy77 Exp $
+$Id: ChangeLog,v 1.2631 2008-10-22 20:16:11 freddy77 Exp $

@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.20 2008-10-22 15:22:59 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.21 2008-10-22 20:16:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -138,6 +138,8 @@ main(int argc, char *argv[])
 		}
 	}
 
+	Test("INT", "-123", SQL_C_CHAR, "4 -123");
+	Test("INT", "78654", SQL_C_WCHAR, "5 78654");
 	if (db_is_microsoft() && (strncmp(version, "08.00.", 6) == 0 || strncmp(version, "09.00.", 6) == 0)) {
 		/* nvarchar without extended characters */
 		Test("NVARCHAR(20)", "test", SQL_C_CHAR, "4 test");
@@ -148,6 +150,7 @@ main(int argc, char *argv[])
 		/* nvarchar with extended characters */
 		Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_WCHAR, "4 \x83hi\xf2");
 		Test("NVARCHAR(20)", "0xA406A5FB", SQL_C_WCHAR, "2 \\u06a4\\ufba5");
+		/* TODO NVARCHAR -> SQL_C_LONG */
 	}
 
 	/* case (1) */
