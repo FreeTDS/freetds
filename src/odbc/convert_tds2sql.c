@@ -32,6 +32,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
+#include <ctype.h>
+
 #include "tdsodbc.h"
 #include "tdsconvert.h"
 #include "tdsiconv.h"
@@ -40,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.59 2008-10-23 12:33:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.60 2008-10-23 12:39:38 freddy77 Exp $");
 
 #if SIZEOF_SQLWCHAR == 2
 # if WORDS_BIGENDIAN
@@ -57,6 +59,8 @@ TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.59 2008-10-23 12:33:59 freddy77 Exp $
 #else
 #error SIZEOF_SQLWCHAR not supported !!
 #endif
+
+#define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
 static SQLLEN
 odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen)
@@ -102,6 +106,41 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 	return ol;
 }
 
+static int
+odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS_CHAR *buf, TDS_UINT buf_len)
+{
+	TDS_CHAR *p;
+	/* TODO check for endian */
+	
+	/* skip white spaces */
+	while (srclen > 1 && src[1] == 0 && TDS_ISSPACE(src[0])) {
+		srclen -= 2;
+		src += 2;
+	}
+
+	/* convert */
+	p = buf;
+	while (buf_len > 1 && srclen > 1 && src[1] == 0) {
+		*p++ = src[0];
+		--buf_len;
+		srclen -= 2;
+		src += 2;
+	}
+
+	/* skip white spaces */
+	while (srclen > 1 && src[1] == 0 && TDS_ISSPACE(src[0])) {
+		srclen -= 2;
+		src += 2;
+	}
+
+	/* still characters, wrong format */
+	if (srclen)
+		return -1;
+
+	*p = 0;
+	return p - buf;
+}
+
 SQLLEN
 odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
 	     const struct _drecord *drec_ixd)
@@ -115,6 +154,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	SQLLEN ret = SQL_NULL_DATA;
 	int i, cplen;
 	int binary_conversion = 0;
+	TDS_CHAR conv_buf[256];
 
 	tdsdump_log(TDS_DBG_FUNC, "odbc_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
@@ -172,9 +212,15 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			return odbc_convert_char(stmt, curcol, src, srclen, desttype, dest, destlen);
 		if (is_unicode_type(srctype)) {
 			/*
-			 * TODO convert to single and then process normally.
+			 * convert to single and then process normally.
 			 * Here we processed SQL_C_BINARY and SQL_C_*CHAR so only fixed types are left
 			 */
+			i = odbc_tds_convert_wide_iso(curcol, src, srclen, conv_buf, sizeof(conv_buf));
+			if (i < 0)
+				return SQL_NULL_DATA;
+			src = conv_buf;
+			srclen = i;
+			srctype = SYBVARCHAR;
 		}
 	}
 
