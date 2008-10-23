@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.58 2008-10-23 06:01:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.59 2008-10-23 12:33:59 freddy77 Exp $");
 
 #if SIZEOF_SQLWCHAR == 2
 # if WORDS_BIGENDIAN
@@ -111,12 +111,6 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
 	CONV_RESULT ores;
-
-	TDSDATEREC dr;
-	DATE_STRUCT *dsp;
-	TIME_STRUCT *tsp;
-	TIMESTAMP_STRUCT *tssp;
-	SQL_NUMERIC_STRUCT *num;
 
 	SQLLEN ret = SQL_NULL_DATA;
 	int i, cplen;
@@ -277,57 +271,66 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 
 	case SQL_C_TYPE_DATE:
 	case SQL_C_DATE:
+		{
+			TDSDATEREC dr;
+			DATE_STRUCT *dsp = (DATE_STRUCT *) dest;
 
-		/* we've already converted the returned value to a SYBDATETIME */
-		/* now decompose date into constituent parts...                */
+			/*
+			 * we've already converted the returned value to a SYBDATETIME
+			 * now decompose date into constituent parts...
+			 */
+			tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
 
-		tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+			dsp->year = dr.year;
+			dsp->month = dr.month + 1;
+			dsp->day = dr.day;
 
-		dsp = (DATE_STRUCT *) dest;
-
-		dsp->year = dr.year;
-		dsp->month = dr.month + 1;
-		dsp->day = dr.day;
-
-		ret = sizeof(DATE_STRUCT);
+			ret = sizeof(DATE_STRUCT);
+		}
 		break;
 
 	case SQL_C_TYPE_TIME:
 	case SQL_C_TIME:
+		{
+			TDSDATEREC dr;
+			TIME_STRUCT *tsp = (TIME_STRUCT *) dest;
 
-		/* we've already converted the returned value to a SYBDATETIME */
-		/* now decompose date into constituent parts...                */
+			/*
+			 * we've already converted the returned value to a SYBDATETIME
+			 * now decompose date into constituent parts...
+			 */
+			tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
 
-		tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+			tsp->hour = dr.hour;
+			tsp->minute = dr.minute;
+			tsp->second = dr.second;
 
-		tsp = (TIME_STRUCT *) dest;
-
-		tsp->hour = dr.hour;
-		tsp->minute = dr.minute;
-		tsp->second = dr.second;
-
-		ret = sizeof(TIME_STRUCT);
+			ret = sizeof(TIME_STRUCT);
+		}
 		break;
 
 	case SQL_C_TYPE_TIMESTAMP:
-	case SQL_C_TIMESTAMP:
+	case SQL_C_TIMESTAMP: 
+		{
+			TDSDATEREC dr;
+			TIMESTAMP_STRUCT *tssp = (TIMESTAMP_STRUCT *) dest;
 
-		/* we've already converted the returned value to a SYBDATETIME */
-		/* now decompose date into constituent parts...                */
+			/*
+			 * we've already converted the returned value to a SYBDATETIME
+			 * now decompose date into constituent parts...
+			 */
+			tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
 
-		tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+			tssp->year = dr.year;
+			tssp->month = dr.month + 1;
+			tssp->day = dr.day;
+			tssp->hour = dr.hour;
+			tssp->minute = dr.minute;
+			tssp->second = dr.second;
+			tssp->fraction = dr.millisecond * 1000000u;
 
-		tssp = (TIMESTAMP_STRUCT *) dest;
-
-		tssp->year = dr.year;
-		tssp->month = dr.month + 1;
-		tssp->day = dr.day;
-		tssp->hour = dr.hour;
-		tssp->minute = dr.minute;
-		tssp->second = dr.second;
-		tssp->fraction = dr.millisecond * 1000000u;
-
-		ret = sizeof(TIMESTAMP_STRUCT);
+			ret = sizeof(TIMESTAMP_STRUCT);
+		}
 		break;
 
 #ifdef SQL_C_SBIGINT
@@ -371,22 +374,24 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		break;
 
 	case SQL_C_NUMERIC:
-		/* ODBC numeric is quite different from TDS one ... */
-		num = (SQL_NUMERIC_STRUCT *) dest;
-		num->precision = ores.n.precision;
-		num->scale = ores.n.scale;
-		num->sign = ores.n.array[0] ^ 1;
-		/*
-		 * TODO can be greater than SQL_MAX_NUMERIC_LEN ?? 
-		 * seeing Sybase manual wire support bigger numeric but currently
-		 * DBs so not support such precision
-		 */
-		i = ODBC_MIN(tds_numeric_bytes_per_prec[ores.n.precision] - 1, SQL_MAX_NUMERIC_LEN);
-		memcpy(num->val, ores.n.array + 1, i);
-		tds_swap_bytes(num->val, i);
-		if (i < SQL_MAX_NUMERIC_LEN)
-			memset(num->val + i, 0, SQL_MAX_NUMERIC_LEN - i);
-		ret = sizeof(SQL_NUMERIC_STRUCT);
+		{
+			/* ODBC numeric is quite different from TDS one ... */
+			SQL_NUMERIC_STRUCT *num = (SQL_NUMERIC_STRUCT *) dest;
+			num->precision = ores.n.precision;
+			num->scale = ores.n.scale;
+			num->sign = ores.n.array[0] ^ 1;
+			/*
+			 * TODO can be greater than SQL_MAX_NUMERIC_LEN ?? 
+			 * seeing Sybase manual wire support bigger numeric but currently
+			 * DBs so not support such precision
+			 */
+			i = ODBC_MIN(tds_numeric_bytes_per_prec[ores.n.precision] - 1, SQL_MAX_NUMERIC_LEN);
+			memcpy(num->val, ores.n.array + 1, i);
+			tds_swap_bytes(num->val, i);
+			if (i < SQL_MAX_NUMERIC_LEN)
+				memset(num->val + i, 0, SQL_MAX_NUMERIC_LEN - i);
+			ret = sizeof(SQL_NUMERIC_STRUCT);
+		}
 		break;
 
 #ifdef SQL_C_GUID
