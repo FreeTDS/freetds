@@ -42,23 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.60 2008-10-23 12:39:38 freddy77 Exp $");
-
-#if SIZEOF_SQLWCHAR == 2
-# if WORDS_BIGENDIAN
-#  define ODBC_WIDE_NAME "UCS-2BE"
-# else
-#  define ODBC_WIDE_NAME "UCS-2LE"
-# endif
-#elif SIZEOF_SQLWCHAR == 4
-# if WORDS_BIGENDIAN
-#  define ODBC_WIDE_NAME "UCS-4BE"
-# else
-#  define ODBC_WIDE_NAME "UCS-4LE"
-# endif
-#else
-#error SIZEOF_SQLWCHAR not supported !!
-#endif
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.61 2008-10-23 15:07:49 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -110,7 +94,10 @@ static int
 odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS_CHAR *buf, TDS_UINT buf_len)
 {
 	TDS_CHAR *p;
-	/* TODO check for endian */
+	/*
+	 * TODO check for endian
+	 * This affect for instance Sybase under little endian system
+	 */
 	
 	/* skip white spaces */
 	while (srclen > 1 && src[1] == 0 && TDS_ISSPACE(src[0])) {

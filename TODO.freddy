@@ -47,11 +47,12 @@ ODBC SQL_C_CHAR with wide
 -------------------------
 Check iso8859-1 for single ??
 test to review
-- data.c (char -> sql_c_char)
+- data.c (char -> sql_c_char) DONE
 - genparams.c
 - getdata.c ??
 - putdata.c ??
 - wchar.c
+- blob1.c (SQLGetData test with binary -> char and between chars)
 Is it possible to support direct binding for parameters using different
 encodings? For instance client <-> server iso8859-1 <-> ucs2. It should be
 possible changing TDSCOLUMN->char_conv. Some work should be done in 

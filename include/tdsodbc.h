@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.112 2008-10-17 08:30:03 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.113 2008-10-23 15:07:48 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -529,6 +529,22 @@ SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const s
 size_t sqlwcslen(const SQLWCHAR * s);
 #else
 #define sqlwcslen wcslen
+#endif
+
+#if SIZEOF_SQLWCHAR == 2
+# if WORDS_BIGENDIAN
+#  define ODBC_WIDE_NAME "UCS-2BE"
+# else
+#  define ODBC_WIDE_NAME "UCS-2LE"
+# endif
+#elif SIZEOF_SQLWCHAR == 4
+# if WORDS_BIGENDIAN
+#  define ODBC_WIDE_NAME "UCS-4BE"
+# else
+#  define ODBC_WIDE_NAME "UCS-4LE"
+# endif
+#else
+#error SIZEOF_SQLWCHAR not supported !!
 #endif
 
 #if defined(__GNUC__) && __GNUC__ >= 4
