@@ -47,12 +47,13 @@
 
 #include "tdsodbc.h"
 #include "tdsconvert.h"
+#include "tdsiconv.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.75 2008-09-11 15:09:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.76 2008-10-23 15:09:29 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -156,8 +157,23 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		return SQL_ERROR;
 	tdsdump_log(TDS_DBG_INFO2, "trace\n");
 
+	/* get C type */
+	sql_src_type = drec_apd->sql_desc_concise_type;
+	if (sql_src_type == SQL_C_DEFAULT)
+		sql_src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
+
 	/* TODO what happen for unicode types ?? */
-	tds_set_param_type(dbc->tds_socket, curcol, dest_type);
+	if (is_char_type(dest_type) && sql_src_type == SQL_C_WCHAR) {
+		TDSSOCKET *tds = dbc->tds_socket;
+		TDSICONV *conv = tds->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
+
+		tds_set_column_type(tds, curcol, dest_type);
+
+                curcol->char_conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->server_charset.name);
+		memcpy(curcol->column_collation, tds->collation, sizeof(tds->collation));
+	} else {
+		tds_set_param_type(dbc->tds_socket, curcol, dest_type);
+	}
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = drec_ipd->sql_desc_precision;
 		curcol->column_scale = drec_ipd->sql_desc_scale;
@@ -192,11 +208,6 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		/* TODO only a trick... */
 		tds_set_param_type(dbc->tds_socket, curcol, tds_get_null_type(dest_type));
 	}
-
-	/* get C type */
-	sql_src_type = drec_apd->sql_desc_concise_type;
-	if (sql_src_type == SQL_C_DEFAULT)
-		sql_src_type = odbc_sql_to_c_type_default(drec_ipd->sql_desc_concise_type);
 
 	/* test source type */
 	/* TODO test intervals */
@@ -294,6 +305,25 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		assert(drec_ipd->sql_desc_parameter_type != SQL_PARAM_OUTPUT || sql_len == SQL_NULL_DATA);
 		if (sql_len == SQL_NULL_DATA) {
 			curcol->column_cur_size = -1;
+			return SQL_SUCCESS;
+		}
+	}
+
+	switch (dest_type) {
+	case SYBCHAR:
+	case SYBVARCHAR:
+	case XSYBCHAR:
+	case XSYBVARCHAR:
+	case XSYBNVARCHAR:
+	case XSYBNCHAR:
+	case SYBNVARCHAR:
+		if (!need_data && is_char_type(src_type)) {
+			if (curcol->column_data && curcol->column_data_free)
+				curcol->column_data_free(curcol);
+			curcol->column_data_free = NULL;
+			curcol->column_data = (TDS_UCHAR*) src;
+			curcol->column_size = len;
+			curcol->column_cur_size = len;
 			return SQL_SUCCESS;
 		}
 	}

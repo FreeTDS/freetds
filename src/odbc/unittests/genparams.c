@@ -4,7 +4,7 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.31 2008-10-17 08:06:23 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.32 2008-10-23 15:09:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -278,7 +278,8 @@ AllTests(void)
 	TestInput(SQL_C_DOUBLE, "MONEY", SQL_DOUBLE, "MONEY", "123.34");
 
 	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_VARCHAR, "VARCHAR(20)", "1EasyTest");
-	/* TODO use collate in sintax if available */
+	TestInput(SQL_C_WCHAR, "VARCHAR(10)", SQL_VARCHAR, "VARCHAR(10)", "Test 12345");
+	/* TODO use collate in syntax if available */
 	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_VARCHAR, "VARCHAR(20)", "me\xf4");
 
 	precision = 6;
@@ -307,6 +308,9 @@ AllTests(void)
 		Test("NVARCHAR(20)", "foo test", SQL_C_CHAR, SQL_WVARCHAR, "8 foo test");
 		/* TODO use collate in sintax if available */
 		Test("NVARCHAR(20)", "0xf800f900", SQL_C_CHAR, SQL_WVARCHAR, "2 \xf8\xf9");
+
+		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_WVARCHAR, "NVARCHAR(10)", "1EasyTest2");
+		TestInput(SQL_C_WCHAR, "NVARCHAR(3)", SQL_WVARCHAR, "NVARCHAR(3)", "0xf800a300bc06");
 	}
 }
 
