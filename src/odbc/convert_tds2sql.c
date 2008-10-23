@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.57 2008-10-22 20:16:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.58 2008-10-23 06:01:37 freddy77 Exp $");
 
 #if SIZEOF_SQLWCHAR == 2
 # if WORDS_BIGENDIAN
@@ -200,7 +200,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		}
 
 		nDestSybType = TDS_CONVERT_CHAR;
-		ores.cc.len = destlen >= 0 ? destlen : 0;
+		ores.cc.len = destlen;
 		ores.cc.c = dest;
 	}
 
@@ -214,7 +214,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		tds_strftime(buf, sizeof(buf), srctype == SYBDATETIME ? "%Y-%m-%d %H:%M:%S.%z" : "%Y-%m-%d %H:%M:%S", &when);
 
 		nRetVal = strlen(buf);
-		memcpy(dest, buf, destlen >= 0 ? (destlen < nRetVal ? destlen : nRetVal) : 0);
+		memcpy(dest, buf, destlen < nRetVal ? destlen : nRetVal);
 	} else {
 		nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
 	}
@@ -237,14 +237,12 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			 * odbc always terminate but do not overwrite 
 			 * destination buffer more than needed
 			 */
-			/* TODO check for source !!! */
-			if (curcol)
-				curcol->column_text_sqlgetdatapos += binary_conversion ? cplen / 2 : cplen;
+			/* update datapos only for binary source (char already handled) */
+			if (curcol && binary_conversion)
+				curcol->column_text_sqlgetdatapos += cplen / 2;
 			dest[cplen] = 0;
 		} else {
 			/* if destlen == 0 we return only length */
-			if (destlen != 0)
-				ret = SQL_NULL_DATA;
 		}
 		break;
 
@@ -263,18 +261,17 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			 * odbc always terminate but do not overwrite 
 			 * destination buffer more than needed
 			 */
-			/* TODO check for source !!! */
-			if (curcol)
-				curcol->column_text_sqlgetdatapos += binary_conversion ? cplen / 2 : cplen;
+			/* update datapos only for binary source (char already handled) */
+			if (curcol && binary_conversion)
+				curcol->column_text_sqlgetdatapos += cplen / 2;
+			/* convert in place and terminate */
 			wp[cplen] = 0;
-			for (;cplen > 0;) {
+			while (cplen > 0) {
 				--cplen;
 				wp[cplen] = p[cplen];
 			}
 		} else {
 			/* if destlen == 0 we return only length */
-			if (destlen != 0)
-				ret = SQL_NULL_DATA;
 		}
 		break;
 
