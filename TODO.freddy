@@ -51,7 +51,6 @@ test to review
 - genparams.c
 - getdata.c ??
 - putdata.c ??
-- wchar.c
 - blob1.c (SQLGetData test with binary -> char and between chars)
 Is it possible to support direct binding for parameters using different
 encodings? For instance client <-> server iso8859-1 <-> ucs2. It should be

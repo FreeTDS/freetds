@@ -4,22 +4,36 @@
 
 /* Test various type from odbc and to odbc */
 
-static char software_version[] = "$Id: genparams.c,v 1.33 2008-10-23 15:26:53 freddy77 Exp $";
+/*
+ * This test is useful to test odbc_sql2tds function using TestInput
+ * odbc_sql2tds have some particular cases:
+ * (1) char    -> char     handled differently with encoding problems DONE
+ * (2) date    -> *        different format
+ * (3) numeric -> *        different format DONE
+ * (4) *       -> numeric  take precision and scale from ipd
+ * (5) *       -> char     test wide
+ * (6) *       -> blob     test wchar and ntext
+ * (7) *       -> binary   test also with wchar
+ * (8) binary  -> *        test aldo with wchar
+ * Also we have to check normal char and wide char
+ */
+
+static char software_version[] = "$Id: genparams.c,v 1.34 2008-10-24 08:29:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
-static const int tds_no_dm = 1;
+static const char tds_no_dm = 1;
 #else
-static const int tds_no_dm = 0;
+static const char tds_no_dm = 0;
 #endif
 
-static int precision = 18;
-static int exec_direct = 0;
-static int prepare_before = 0;
-static int use_cursors = 0;
+static char precision = 18;
+static char exec_direct = 0;
+static char prepare_before = 0;
+static char use_cursors = 0;
 
 static void
-Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *expected)
+TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *expected)
 {
 	char sbuf[1024];
 	unsigned char out_buf[256];
@@ -97,7 +111,8 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQL
 	Command(Statement, "drop proc spTestProc");
 }
 
-static int check_truncation = 0;
+static char check_truncation = 0;
+static char use_nts = 0;
 
 static void
 TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, const char *param_type, const char *value_to_convert)
@@ -128,6 +143,10 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		ODBC_REPORT_ERROR("Row not expected");
 	if (SQLMoreResults(Statement) != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("Recordset not expected");
+	if (use_nts) {
+		out_len = SQL_NTS;
+		use_nts = 0;
+	}
 
 	/* create a table with a column of that type */
 	ResetStatement();
@@ -208,20 +227,20 @@ AllTests(void)
 
 	/* FIXME why should return 38 0 as precision and scale ?? correct ?? */
 	precision = 18;
-	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
-	Test("DECIMAL(18,2)", "123", SQL_C_NUMERIC, SQL_DECIMAL, "18 0 1 7B");
+	TestOutput("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "18 0 1 7B");
+	TestOutput("DECIMAL(18,2)", "123", SQL_C_NUMERIC, SQL_DECIMAL, "18 0 1 7B");
 	precision = 38;
-	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "38 0 1 7B");
+	TestOutput("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "38 0 1 7B");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_VARCHAR, "VARCHAR(20)", "12345");
 	/* MS driver behavior for output parameters is different */
 	if (driver_is_freetds())
-		Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "333133323333");
+		TestOutput("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "333133323333");
 	else
-		Test("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
+		TestOutput("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
 	/* FIXME our driver ignore precision for date */
 	precision = 3;
-	Test("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
-	Test("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP,
+	TestOutput("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
+	TestOutput("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP,
 	     big_endian ? "0000949700FB9640" : "979400004096FB00");
 	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34");
 
@@ -271,6 +290,7 @@ AllTests(void)
 	TestInput(SQL_C_UTINYINT, "TINYINT", SQL_TINYINT, "TINYINT", "231");
 
 	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_NUMERIC, "NUMERIC(20,3)", "765432.2 -> 765432");
+	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_VARCHAR, "VARCHAR(20)", "578246.234 -> 578246");
 
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "0");
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
@@ -284,13 +304,13 @@ AllTests(void)
 
 	precision = 6;
 	/* output from char with conversions */
-	Test("VARCHAR(20)", "foo test", SQL_C_CHAR, SQL_VARCHAR, "6 foo te");
+	TestOutput("VARCHAR(20)", "foo test", SQL_C_CHAR, SQL_VARCHAR, "6 foo te");
 	/* TODO use collate in sintax if available */
-	Test("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
+	TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
 
 	/* TODO some Sybase versions */
 	if (db_is_microsoft() && (strncmp(version, "08.00.", 6) == 0 || strncmp(version, "09.00.", 6) == 0)) {
-		Test("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
+		TestOutput("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
 		/* test for invalid stream due to truncation*/
@@ -305,16 +325,20 @@ AllTests(void)
 		TestInput(SQL_C_LONG, "INT", SQL_WVARCHAR, "NVARCHAR(100)", "45236");
 
 		precision = 6;
-		Test("NVARCHAR(20)", "foo test", SQL_C_CHAR, SQL_WVARCHAR, "6 foo te");
+		TestOutput("NVARCHAR(20)", "foo test", SQL_C_CHAR, SQL_WVARCHAR, "6 foo te");
 		precision = 12;
-		Test("NVARCHAR(20)", "foo test", SQL_C_CHAR, SQL_WVARCHAR, "8 foo test");
+		TestOutput("NVARCHAR(20)", "foo test", SQL_C_CHAR, SQL_WVARCHAR, "8 foo test");
 		/* TODO use collate in sintax if available */
-		Test("NVARCHAR(20)", "0xf800f900", SQL_C_CHAR, SQL_WVARCHAR, "2 \xf8\xf9");
+		TestOutput("NVARCHAR(20)", "0xf800f900", SQL_C_CHAR, SQL_WVARCHAR, "2 \xf8\xf9");
 
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_WVARCHAR, "NVARCHAR(10)", "1EasyTest2");
+		use_nts = 1;
+		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_WVARCHAR, "NVARCHAR(10)", "1EasyTest3");
 		TestInput(SQL_C_WCHAR, "NVARCHAR(3)", SQL_WVARCHAR, "NVARCHAR(3)", "0xf800a300bc06");
 
+#ifdef ENABLE_DEVELOPING
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_INTEGER, "INT", " -423785  -> -423785");
+#endif
 	}
 }
 

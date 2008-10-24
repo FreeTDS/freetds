@@ -49,7 +49,7 @@ sigalrm_handler(int s)
 
 	printf(">>>> SQLCancel() ...\n");
 	CHK(SQLCancel, (Statement));
-	printf(">>>> ... SQLCancel done rcode = %d\n", rcode);
+	printf(">>>> ... SQLCancel done\n");
 
 	alarm(4);
 	signal(SIGALRM, exit_forced);

@@ -26,15 +26,16 @@
 
 #include "tdsodbc.h"
 
-TDS_RCSID(var, "$Id: sqlwchar.c,v 1.1 2008-02-05 09:46:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sqlwchar.c,v 1.2 2008-10-24 08:29:22 freddy77 Exp $");
 
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s)
 {
-	size_t res = 0;
-	while (*s)
-		++s, ++res;
-	return res;
+	const SQLWCHAR *p = s;
+
+	while (*p)
+		++p;
+	return p - s;
 }
 #endif
 
