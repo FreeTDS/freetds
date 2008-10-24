@@ -42,10 +42,13 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.61 2008-10-23 15:07:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.62 2008-10-24 05:37:19 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
+/**
+ * Handle conversions from TDS (N)CHAR to ODBC (W)CHAR
+ */
 static SQLLEN
 odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen)
 {
@@ -90,6 +93,9 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 	return ol;
 }
 
+/**
+ * Handle conversions from TDS NCHAR to ISO8859-1 striping spaces (for fixed types)
+ */
 static int
 odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS_CHAR *buf, TDS_UINT buf_len)
 {
