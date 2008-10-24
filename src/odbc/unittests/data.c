@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.22 2008-10-23 08:02:45 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.23 2008-10-24 14:03:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -149,7 +149,9 @@ main(int argc, char *argv[])
 		/* nvarchar without extended characters */
 		Test("NVARCHAR(20)", "test", SQL_C_CHAR, "4 test");
 		/* nvarchar with extended characters */
-		Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_CHAR, "4 \x83hi\xf2");
+		/* don't test with MS which usually have a not compatible encoding */
+		if (driver_is_freetds())
+			Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_CHAR, "4 \x83hi\xf2");
 
 		Test("VARCHAR(20)", "test", SQL_C_WCHAR, "4 test");
 		/* nvarchar with extended characters */
