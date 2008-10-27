@@ -45,8 +45,6 @@ exit_forced(int s)
 static void
 sigalrm_handler(int s)
 {
-	SQLRETURN rcode;
-
 	printf(">>>> SQLCancel() ...\n");
 	CHK(SQLCancel, (Statement));
 	printf(">>>> ... SQLCancel done\n");
