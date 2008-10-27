@@ -7,18 +7,18 @@
 /*
  * This test is useful to test odbc_sql2tds function using TestInput
  * odbc_sql2tds have some particular cases:
- * (1) char    -> char     handled differently with encoding problems DONE
- * (2) date    -> *        different format
- * (3) numeric -> *        different format DONE
- * (4) *       -> numeric  take precision and scale from ipd
+ * (1) char    -> char     handled differently with encoding problems
+ * (2) date    -> *        different format TODO
+ * (3) numeric -> *        different format
+ * (4) *       -> numeric  take precision and scale from ipd TODO
  * (5) *       -> char     test wide
- * (6) *       -> blob     test wchar and ntext
- * (7) *       -> binary   test also with wchar
- * (8) binary  -> *        test aldo with wchar
+ * (6) *       -> blob     test wchar and ntext TODO
+ * (7) *       -> binary   test also with wchar TODO
+ * (8) binary  -> *        test also with wchar TODO
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.34 2008-10-24 08:29:22 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.35 2008-10-27 14:27:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -336,9 +336,7 @@ AllTests(void)
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_WVARCHAR, "NVARCHAR(10)", "1EasyTest3");
 		TestInput(SQL_C_WCHAR, "NVARCHAR(3)", SQL_WVARCHAR, "NVARCHAR(3)", "0xf800a300bc06");
 
-#ifdef ENABLE_DEVELOPING
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_INTEGER, "INT", " -423785  -> -423785");
-#endif
 	}
 }
 
