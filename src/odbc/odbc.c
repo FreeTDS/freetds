@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.502 2008-10-17 08:56:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.503 2008-10-27 14:23:23 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -160,8 +160,8 @@ odbc_prret(SQLRETURN ret)
 	static char unknown[32];
 	
 	switch (ret) {
-	case SQL_NULL_DATA:		return "SQL_ERROR or SQL_NULL_DATA";
-	case SQL_DATA_AT_EXEC:		return "SQL_DATA_AT_EXEC or SQL_INVALID_HANDLE";
+	case SQL_ERROR:			return "SQL_ERROR";
+	case SQL_INVALID_HANDLE:	return "SQL_INVALID_HANDLE";
 	case SQL_SUCCESS:		return "SQL_SUCCESS";
 	case SQL_SUCCESS_WITH_INFO:	return "SQL_SUCCESS_WITH_INFO";
 #if ODBCVER >= 0x0300
@@ -4731,7 +4731,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		if (*pcbValue == SQL_NULL_DATA)
 			ODBC_RETURN(stmt, SQL_ERROR);
 		
-		if (is_variable_type(colinfo->column_type) && (fCType == SQL_C_CHAR || fCType == SQL_C_BINARY)) {
+		if (is_variable_type(colinfo->column_type) && (fCType == SQL_C_CHAR || fCType == SQL_C_WCHAR || fCType == SQL_C_BINARY)) {
 			/* avoid infinite SQL_SUCCESS on empty strings */
 			if (colinfo->column_text_sqlgetdatapos == 0 && cbValueMax > 0)
 				++colinfo->column_text_sqlgetdatapos;

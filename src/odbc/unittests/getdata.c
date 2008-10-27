@@ -1,6 +1,7 @@
 #include "common.h"
+#include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.7 2008-06-12 03:10:16 jklowden Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.8 2008-10-27 14:23:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -50,6 +51,28 @@ test_err(const char *data, int c_type, const char *state)
 	ResetStatement();
 }
 
+static int lc;
+static int type;
+
+static int
+mycmp(const char *s1, const char *s2)
+{
+	SQLWCHAR buf[128], *wp;
+	unsigned l;
+
+	if (type == SQL_C_CHAR)
+		return strcmp(s1, s2);
+
+	l = strlen(s2);
+	assert(l < (sizeof(buf)/sizeof(buf[0])));
+	wp = buf;
+	do {
+		*wp++ = *s2;
+	} while (*s2++);
+
+	return memcmp(s1, buf, l * lc + lc);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -59,52 +82,63 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	/* TODO test with VARCHAR too */
-	Command(Statement, "SELECT CONVERT(TEXT,'Prova')");
+	lc = 1;
+	type = SQL_C_CHAR;
 
-	CHK(SQLFetch, (Statement));
+	for (;;) {
+		/* TODO test with VARCHAR too */
+		Command(Statement, "SELECT CONVERT(TEXT,'Prova')");
 
-	/* these 2 tests test an old severe BUG in FreeTDS */
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 0, NULL) != SQL_SUCCESS_WITH_INFO)
-		ODBC_REPORT_ERROR("Unable to get data");
+		CHK(SQLFetch, (Statement));
 
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 0, NULL) != SQL_SUCCESS_WITH_INFO)
-		ODBC_REPORT_ERROR("Unable to get data");
+		/* these 2 tests test an old severe BUG in FreeTDS */
+		if (SQLGetData(Statement, 1, type, buf, 0, NULL) != SQL_SUCCESS_WITH_INFO)
+			ODBC_REPORT_ERROR("Unable to get data");
 
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 3, NULL) != SQL_SUCCESS_WITH_INFO)
-		ODBC_REPORT_ERROR("Unable to get data");
-	if (strcmp(buf, "Pr") != 0) {
-		printf("Wrong data result 1\n");
-		exit(1);
+		if (SQLGetData(Statement, 1, type, buf, 0, NULL) != SQL_SUCCESS_WITH_INFO)
+			ODBC_REPORT_ERROR("Unable to get data");
+
+		if (SQLGetData(Statement, 1, type, buf, 3 * lc, NULL) != SQL_SUCCESS_WITH_INFO)
+			ODBC_REPORT_ERROR("Unable to get data");
+		if (mycmp(buf, "Pr") != 0) {
+			printf("Wrong data result 1\n");
+			exit(1);
+		}
+
+		CHK(SQLGetData, (Statement, 1, type, buf, 16, NULL));
+		if (mycmp(buf, "ova") != 0) {
+			printf("Wrong data result 2 res = '%s'\n", buf);
+			exit(1);
+		}
+
+		ResetStatement();
+
+		/* test with varchar, not blob but variable */
+		Command(Statement, "SELECT CONVERT(VARCHAR(100), 'Other test')");
+
+		CHK(SQLFetch, (Statement));
+
+		if (SQLGetData(Statement, 1, type, buf, 7 * lc, NULL) != SQL_SUCCESS_WITH_INFO)
+			ODBC_REPORT_ERROR("Unable to get data");
+		if (mycmp(buf, "Other ") != 0) {
+			printf("Wrong data result 1\n");
+			exit(1);
+		}
+
+		CHK(SQLGetData, (Statement, 1, type, buf, 16, NULL));
+		if (mycmp(buf, "test") != 0) {
+			printf("Wrong data result 2 res = '%s'\n", buf);
+			exit(1);
+		}
+
+		ResetStatement();
+
+		if (type != SQL_C_CHAR)
+			break;
+
+		type = SQL_C_WCHAR;
+		lc = sizeof(SQLWCHAR);
 	}
-
-	CHK(SQLGetData, (Statement, 1, SQL_C_CHAR, buf, 16, NULL));
-	if (strcmp(buf, "ova") != 0) {
-		printf("Wrong data result 2 res = '%s'\n", buf);
-		exit(1);
-	}
-
-	ResetStatement();
-
-	/* test with varchar, not blob but variable */
-	Command(Statement, "SELECT CONVERT(VARCHAR(100), 'Other test')");
-
-	CHK(SQLFetch, (Statement));
-
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 7, NULL) != SQL_SUCCESS_WITH_INFO)
-		ODBC_REPORT_ERROR("Unable to get data");
-	if (strcmp(buf, "Other ") != 0) {
-		printf("Wrong data result 1\n");
-		exit(1);
-	}
-
-	CHK(SQLGetData, (Statement, 1, SQL_C_CHAR, buf, 16, NULL));
-	if (strcmp(buf, "test") != 0) {
-		printf("Wrong data result 2 res = '%s'\n", buf);
-		exit(1);
-	}
-
-	ResetStatement();
 
 	/* test with fixed length */
 	Command(Statement, "SELECT CONVERT(INT, 12345)");
@@ -144,21 +178,33 @@ main(int argc, char *argv[])
 	/* overflow */
 	test_err("1234567890123456789", SQL_C_LONG,      "22003");
 
+	/* test for empty string from mssql */
 	if (db_is_microsoft()) {
-		Command(Statement, "SELECT CONVERT(TEXT,'')");
+		lc = 1;
+		type = SQL_C_CHAR;
 
-		CHK(SQLFetch, (Statement));
+		for (;;) {
+			Command(Statement, "SELECT CONVERT(TEXT,'')");
 
-		len = 1234;
-		CHK(SQLGetData, (Statement, 1, SQL_C_CHAR, buf, 1, &len));
+			CHK(SQLFetch, (Statement));
 
-		if (len != 0) {
-			fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
-			return 1;
-		}
+			len = 1234;
+			CHK(SQLGetData, (Statement, 1, type, buf, lc, &len));
 
-		if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 1, NULL) != SQL_NO_DATA)
-			ODBC_REPORT_ERROR("invalid return from SQLGetData");
+			if (len != 0) {
+				fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
+				return 1;
+			}
+
+			if (SQLGetData(Statement, 1, type, buf, lc, NULL) != SQL_NO_DATA)
+				ODBC_REPORT_ERROR("invalid return from SQLGetData");
+			ResetStatement();
+
+			if (type != SQL_C_CHAR)
+				break;
+			lc = sizeof(SQLWCHAR);
+			type = SQL_C_WCHAR;
+		}	
 	}
 
 	Disconnect();

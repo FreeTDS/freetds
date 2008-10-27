@@ -1,3 +1,8 @@
+Mon Oct 27 15:21:50 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* TODO.freddy src/odbc/odbc.c src/odbc/unittests/getdata.c:
+	- improve and fix test for SQLGetData and SQL_C_WCHAR
+	- small fix for odbc_prret
+
 Fri Oct 24 10:27:54 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO.freddy: update
 	* src/odbc/sql2tds.c: fix SQL_NTS for SQL_C_WCHAR
@@ -777,4 +782,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2638 2008-10-24 08:29:22 freddy77 Exp $
+$Id: ChangeLog,v 1.2639 2008-10-27 14:23:22 freddy77 Exp $

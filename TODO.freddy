@@ -49,7 +49,7 @@ Check iso8859-1 for single ??
 test to review
 - data.c (char -> sql_c_char) DONE
 - genparams.c
-- getdata.c ??
+- getdata.c DONE
 - putdata.c ??
 - blob1.c (SQLGetData test with binary -> char and between chars)
 Is it possible to support direct binding for parameters using different
