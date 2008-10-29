@@ -1,3 +1,6 @@
+Wed Oct 29 10:54:30 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/putdata.c: improve test for wide charaters
+
 Wed Oct 29 10:31:08 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
 	* src/odbc/unittests/cursor1.c src/odbc/unittests/data.c:
@@ -799,4 +802,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2643 2008-10-29 09:33:50 freddy77 Exp $
+$Id: ChangeLog,v 1.2644 2008-10-29 09:56:53 freddy77 Exp $
