@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.23 2008-03-12 13:35:50 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.24 2008-10-29 09:33:50 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -68,6 +68,8 @@ int Disconnect(void);
 void Command(HSTMT stmt, const char *command);
 SQLRETURN CommandWithResult(HSTMT stmt, const char *command);
 int db_is_microsoft(void);
+const char *db_version(void);
+unsigned int db_version_int(void);
 int driver_is_freetds(void);
 
 #define int2ptr(i) ((void*)(((char*)0)+(i)))

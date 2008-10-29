@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.35 2008-10-27 14:27:01 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.36 2008-10-29 09:33:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -211,7 +211,6 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 }
 
 static int big_endian = 1;
-static char version[32];
 
 static void
 AllTests(void)
@@ -309,7 +308,7 @@ AllTests(void)
 	TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
 
 	/* TODO some Sybase versions */
-	if (db_is_microsoft() && (strncmp(version, "08.00.", 6) == 0 || strncmp(version, "09.00.", 6) == 0)) {
+	if (db_is_microsoft() && db_version_int() >= 0x08000000u) {
 		TestOutput("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
@@ -343,13 +342,8 @@ AllTests(void)
 int
 main(int argc, char *argv[])
 {
-	SQLSMALLINT version_len;
-
 	use_odbc_version3 = 1;
 	Connect();
-
-	memset(version, 0, sizeof(version));
-	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
 
 	if (((char *) &big_endian)[0] == 1)
 		big_endian = 0;

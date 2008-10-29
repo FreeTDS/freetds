@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.14 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.15 2008-10-29 09:33:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef WIN32
@@ -149,16 +149,13 @@ DoTest(const char *type, int row_returned)
 int
 main(int argc, char *argv[])
 {
-	char version[32];
 	char type[32];
-	SQLSMALLINT version_len;
 	int mssql2005 = 0;
 
 	use_odbc_version3 = 0;
 	Connect();
 
-	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
-	if (db_is_microsoft() && strncmp(version, "09.00.", 6) == 0) {
+	if (db_is_microsoft() && db_version_int() >= 0x09000000u) {
 		mssql2005 = 1;
 		strcpy(expected_type, "VIEW");
 		CommandWithResult(Statement, "USE master");

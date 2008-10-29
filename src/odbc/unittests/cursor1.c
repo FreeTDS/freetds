@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.13 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.14 2008-10-29 09:33:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK_INFO(func,params) \
@@ -195,13 +195,9 @@ Test(int use_sql)
 int
 main(int argc, char *argv[])
 {
-	char version[32];
-	SQLSMALLINT version_len;
-
 	Connect();
 
-	SQLGetInfo(Connection, SQL_DBMS_VER, version, sizeof(version), &version_len);
-	if (db_is_microsoft() && strncmp(version, "09.00.", 6) == 0)
+	if (db_is_microsoft() && db_version_int() >= 0x09000000u)
 		mssql2005 = 1;
 
 	Test(1);

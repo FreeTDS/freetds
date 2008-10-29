@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.46 2008-09-09 14:48:04 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.47 2008-10-29 09:33:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -306,6 +306,30 @@ driver_is_freetds(void)
 		freetds_driver = (strstr(buf, "tds") != NULL);
 	}
 	return freetds_driver;
+}
+
+static char db_str_version[32];
+
+const char *db_version(void)
+{
+	SQLSMALLINT version_len;
+
+	if (!db_str_version[0])
+		CHK(SQLGetInfo, (Connection, SQL_DBMS_VER, db_str_version, sizeof(db_str_version), &version_len));
+
+	return db_str_version;
+}
+
+unsigned int db_version_int(void)
+{
+	unsigned int h, l;
+	if (sscanf(db_version(), "%u.%u.", &h, &l) != 2) {
+		fprintf(stderr, "Wrong db version: %s\n", db_version());
+		Disconnect();
+		exit(1);
+	}
+
+	return (h << 24) | ((l & 0xFFu) << 16);
 }
 
 void

@@ -1,3 +1,10 @@
+Wed Oct 29 10:31:08 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/cursor1.c src/odbc/unittests/data.c:
+	* src/odbc/unittests/genparams.c src/odbc/unittests/tables.c:
+	* src/odbc/unittests/utf8.c src/odbc/unittests/utf8_2.c:
+	- new function to read and check db version
+
 Wed Oct 29 09:41:42 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: fix small memory read overflow
 
@@ -792,4 +799,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2642 2008-10-29 08:42:37 freddy77 Exp $
+$Id: ChangeLog,v 1.2643 2008-10-29 09:33:50 freddy77 Exp $
