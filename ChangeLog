@@ -1,3 +1,6 @@
+Wed Oct 29 09:44:09 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: fix small memory read overflow
+
 Tue Feb 05 16:03:53 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: memory leak fix
 
