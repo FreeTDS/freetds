@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.184 2008-09-17 12:16:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.185 2008-10-29 08:42:38 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -3002,7 +3002,7 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
 	for (; p != pend; ++p) {
 		/* check for trailing spaces */
 		if (*p == blank) {
-			while (p != pend && *++p == blank);
+			while (++p != pend && *p == blank);
 			if (p != pend)
 				return TDS_CONVERT_SYNTAX;
 			break;
