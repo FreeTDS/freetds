@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.47 2008-10-29 09:33:50 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.48 2008-10-31 14:00:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -185,19 +185,12 @@ Connect(void)
 	if (read_login_info())
 		exit(1);
 
-	if (SQLAllocEnv(&Environment) != SQL_SUCCESS) {
-		printf("Unable to allocate env\n");
-		exit(1);
-	}
+	CHK(SQLAllocEnv, (&Environment));
 
 	if (use_odbc_version3)
 		SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
 
-	if (SQLAllocConnect(Environment, &Connection) != SQL_SUCCESS) {
-		printf("Unable to allocate connection\n");
-		SQLFreeEnv(Environment);
-		exit(1);
-	}
+	CHK(SQLAllocConnect, (Environment, &Connection));
 	printf("odbctest\n--------\n\n");
 	printf("connection parameters:\nserver:   '%s'\nuser:     '%s'\npassword: '%s'\ndatabase: '%s'\n",
 	       SERVER, USER, "????" /* PASSWORD */ , DATABASE);
@@ -211,10 +204,7 @@ Connect(void)
 		CheckReturn();
 	}
 
-	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS) {
-		printf("Unable to allocate statement\n");
-		CheckReturn();
-	}
+	CHK(SQLAllocStmt, (Connection, &Statement));
 
 	sprintf(command, "use %s", DATABASE);
 	printf("%s\n", command);
@@ -379,8 +369,7 @@ ResetStatement(void)
 {
 	SQLFreeStmt(Statement, SQL_DROP);
 	Statement = SQL_NULL_HSTMT;
-	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS)
-		ODBC_REPORT_ERROR("Unable to allocate statement");
+	CHK(SQLAllocStmt, (Connection, &Statement));
 }
 
 void
@@ -393,9 +382,7 @@ CheckCursor(void)
 		char output[256];
 		unsigned char sqlstate[6];
 
-		retcode = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL);
-		if (retcode != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("SQLGetDiagRec");
+		CHK(SQLGetDiagRec, (SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL));
 		sqlstate[5] = 0;
 		if (strcmp((const char*) sqlstate, "01S02") == 0) {
 			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");

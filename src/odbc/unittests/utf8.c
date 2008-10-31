@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.5 2008-10-29 09:33:50 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.6 2008-10-31 14:00:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	if (!db_is_microsoft() || db_version_int() >= 0x08000000u) {
+	if (!db_is_microsoft() || db_version_int() < 0x08000000u) {
 		Disconnect();
 		printf("Test for MSSQL only\n");
 		return 0;
