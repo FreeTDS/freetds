@@ -1,3 +1,8 @@
+Fri Oct 31 15:35:00 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/cursor1.c src/odbc/unittests/cursor5.c:
+	* src/odbc/unittests/utf8.c src/odbc/unittests/utf8_2.c:
+	- style updates, reuse macros
+
 Fri Oct 31 14:59:36 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/utf8.c src/odbc/unittests/utf8_2.c:
 	- fix test for MSSQL
@@ -808,4 +813,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2645 2008-10-31 14:00:11 freddy77 Exp $
+$Id: ChangeLog,v 1.2646 2008-10-31 14:35:23 freddy77 Exp $

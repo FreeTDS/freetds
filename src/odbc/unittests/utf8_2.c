@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test conversion of Hebrew characters (which have shift sequences) */
-static char software_version[] = "$Id: utf8_2.c,v 1.4 2008-10-31 14:00:11 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.5 2008-10-31 14:35:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -9,16 +9,9 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	if (SQLAllocEnv(&Environment) != SQL_SUCCESS) {
-		printf("Unable to allocate env\n");
-		exit(1);
-	}
+	CHK(SQLAllocEnv, (&Environment));
 	SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-	if (SQLAllocConnect(Environment, &Connection) != SQL_SUCCESS) {
-		printf("Unable to allocate connection\n");
-		SQLFreeEnv(Environment);
-		exit(1);
-	}
+	CHK(SQLAllocConnect, (Environment, &Connection));
 }
 
 static const char * const strings[] = {
@@ -73,10 +66,7 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS) {
-		printf("Unable to allocate statement\n");
-		CheckReturn();
-	}
+	CHK(SQLAllocStmt, (Connection, &Statement));
 
 	/* create test table */
 	Command(Statement, "CREATE TABLE #tmpHebrew (i INT, v VARCHAR(10) COLLATE Hebrew_CI_AI)");

@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.15 2008-10-31 14:00:11 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.16 2008-10-31 14:35:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHK_INFO(func,params) \
@@ -10,7 +10,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 		ODBC_REPORT_ERROR(#func); \
 	} while(0)
 
-#define SWAP_STMT(a,b) do { SQLHSTMT xyz = a; a = b; b = xyz; } while(0)
+#define SWAP_STMT(b) do { SQLHSTMT xyz = Statement; Statement = b; b = xyz; } while(0)
 
 static int mssql2005 = 0;
 
@@ -102,10 +102,10 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 			else
 				CHK(SQLSetPos, (Statement, i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE));
 			if (use_sql) {
-				SWAP_STMT(Statement, stmt2);
+				SWAP_STMT(stmt2);
 				CHK(SQLPrepare, (Statement, (SQLCHAR *) "DELETE FROM #test WHERE CURRENT OF C1", SQL_NTS));
 				CHK(SQLExecute, (Statement));
-				SWAP_STMT(Statement, stmt2);
+				SWAP_STMT(stmt2);
 			}
 		}
 
@@ -134,14 +134,14 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 				}
 			}
 			if (use_sql) {
-				SWAP_STMT(Statement, stmt2);
+				SWAP_STMT(stmt2);
 				CHK(SQLPrepare, (Statement, (SQLCHAR *) "UPDATE #test SET c=? WHERE CURRENT OF C1", SQL_NTS));
 				CHK(SQLBindParameter,
 				    (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, C_LEN, 0, c[i - 1], 0, NULL));
 				CHK(SQLExecute, (Statement));
 				/* FIXME this is not necessary for mssql driver */
 				SQLMoreResults(Statement);
-				SWAP_STMT(Statement, stmt2);
+				SWAP_STMT(stmt2);
 			}
 		}
 	}

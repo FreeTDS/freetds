@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.6 2008-10-31 14:00:11 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.7 2008-10-31 14:35:23 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -9,16 +9,9 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	if (SQLAllocEnv(&Environment) != SQL_SUCCESS) {
-		printf("Unable to allocate env\n");
-		exit(1);
-	}
+	CHK(SQLAllocEnv, (&Environment));
 	SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-	if (SQLAllocConnect(Environment, &Connection) != SQL_SUCCESS) {
-		printf("Unable to allocate connection\n");
-		SQLFreeEnv(Environment);
-		exit(1);
-	}
+	CHK(SQLAllocConnect, (Environment, &Connection));
 }
 
 static void
@@ -147,10 +140,7 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	if (SQLAllocStmt(Connection, &Statement) != SQL_SUCCESS) {
-		printf("Unable to allocate statement\n");
-		CheckReturn();
-	}
+	CHK(SQLAllocStmt, (Connection, &Statement));
 
 	/* create test table */
 	sprintf(tmp, "IF OBJECT_ID(N'%s') IS NOT NULL DROP TABLE %s", table_name, table_name);
