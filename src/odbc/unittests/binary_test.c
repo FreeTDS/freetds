@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.6 2007-10-16 15:12:22 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -24,38 +24,12 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #define TEST_BUF_LEN (1024*128)
 
 
-static SQLRETURN err;
 static unsigned char *buf;
 
-static int
-sqlreturn_noerr(SQLRETURN rv)
-{
-	return (rv == SQL_SUCCESS || rv == SQL_SUCCESS_WITH_INFO || rv == SQL_NO_DATA || rv == SQL_NEED_DATA);
-}
-
-/* return pointer to ODBC error string: caller owns storage */
-static const char *
-get_odbc_error(SQLHSTMT stmt_handle)
-{
-	SQLCHAR *error_buf = (SQLCHAR *) malloc(ERR_BUF_SIZE + 1);
-	SQLCHAR sql_state[100];
-	SQLINTEGER native_error;
-	SQLSMALLINT len;
-
-	err = SQLError(Environment, Connection, stmt_handle, sql_state, &native_error, error_buf, ERR_BUF_SIZE, &len);
-
-	assert(err != SQL_ERROR);
-
-	if (err == SQL_NO_DATA) {
-		strncpy((char *) error_buf, "(could not obtain error string)", ERR_BUF_SIZE);
-	}
-	return (const char *) error_buf;
-}
-
 static void
-show_error(const char *where, const char *what, int no)
+show_error(const char *where, const char *what)
 {
-	printf("ERROR in %s: %s [%d].\n", where, what, no);
+	printf("ERROR in %s: %s.\n", where, what);
 }
 
 static void
@@ -68,7 +42,7 @@ clean_up(void)
 static int
 test_insert(void *buf, SQLLEN buflen)
 {
-	SQLHSTMT stmt_handle;
+	SQLHSTMT old_Statement;
 	SQLLEN strlen_or_ind;
 	const char *qstr = "insert into " TEST_TABLE_NAME " values (?)";
 
@@ -76,46 +50,24 @@ test_insert(void *buf, SQLLEN buflen)
 	assert(Environment);
 
 	/* allocate new statement handle */
-	err = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &stmt_handle);
-	if (!sqlreturn_noerr(err)) {
-		show_error("test_insert(): allocating new statement handle", get_odbc_error(0), err);
-		return -1;
-	}
+	old_Statement = Statement;
+	Statement = SQL_NULL_HSTMT;
+	CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "SI");
 
 	/* execute query */
-	err = SQLPrepare(stmt_handle, (SQLCHAR *) qstr, SQL_NTS);
-	if (!sqlreturn_noerr(err)) {
-		show_error("test_insert(): preparing statement", get_odbc_error(stmt_handle), err);
-		SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-		stmt_handle = 0;
-		return -1;
-	}
+	CHKPrepare((SQLCHAR *) qstr, SQL_NTS, "SI");
 
 	strlen_or_ind = buflen;
-	err = SQLBindParameter(stmt_handle,
-			       1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, (SQLUINTEGER) (-1), 0, buf, buflen,
-			       &strlen_or_ind);
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, (SQLUINTEGER) (-1), 0, buf, buflen,
+			       &strlen_or_ind, "SI");
 
-	if (!sqlreturn_noerr(err)) {
-		show_error("test_insert(): binding to parameter", get_odbc_error(stmt_handle), err);
-		SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-		stmt_handle = 0;
-		return -1;
-	}
-
-	err = SQLExecute(stmt_handle);
-	if (!sqlreturn_noerr(err)) {
-		show_error("test_insert(): executing prepared query", get_odbc_error(stmt_handle), err);
-		SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-		stmt_handle = 0;
-		return -1;
-	}
+	CHKExecute("SI");
 
 	/* this command shouldn't fail */
-	Command(stmt_handle, "DECLARE @i INT");
+	Command(Statement, "DECLARE @i INT");
 
-	SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-	stmt_handle = 0;
+	SQLFreeHandle(SQL_HANDLE_STMT, Statement);
+	Statement = old_Statement;
 	return 0;
 }
 
@@ -123,7 +75,7 @@ test_insert(void *buf, SQLLEN buflen)
 static int
 test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 {
-	SQLHSTMT stmt_handle;
+	SQLHSTMT old_Statement;
 	SQLLEN strlen_or_ind = 0;
 	const char *qstr = "select * from " TEST_TABLE_NAME;
 
@@ -131,54 +83,26 @@ test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 	assert(Environment);
 
 	/* allocate new statement handle */
-	err = SQLAllocHandle(SQL_HANDLE_STMT, Connection, &stmt_handle);
-	if (!sqlreturn_noerr(err)) {
-		show_error("test_select(): allocating new statement handle", get_odbc_error(0), err);
-		return -1;
-	}
+	old_Statement = Statement;
+	Statement = SQL_NULL_HSTMT;
+	CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "SI");
 
 	/* execute query */
-	err = SQLExecDirect(stmt_handle, (SQLCHAR *) qstr, SQL_NTS);
-	if (!sqlreturn_noerr(err)) {
-		show_error("test_select(): executing query", get_odbc_error(stmt_handle), err);
-		SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-		stmt_handle = 0;
-		return -1;
-	}
+	CHKExecDirect((SQLCHAR *) qstr, SQL_NTS, "SINo");
 
 	/* fetch first page of first result row of unbound column */
-	err = SQLFetch(stmt_handle);
-	if (!sqlreturn_noerr(err)) {
-		show_error("test_select(): fetching results", get_odbc_error(stmt_handle), err);
-		SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-		stmt_handle = 0;
-		return -1;
-	}
+	CHKFetch("S");
 
 	strlen_or_ind = 0;
-	err = SQLGetData(stmt_handle, 1, SQL_C_BINARY, buf, buflen, &strlen_or_ind);
-	if (!sqlreturn_noerr(err)) {
-		show_error("test_select(): getting column", get_odbc_error(stmt_handle), err);
-		SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-		stmt_handle = 0;
-		return -1;
-	}
+	CHKGetData(1, SQL_C_BINARY, buf, buflen, &strlen_or_ind, "SINo");
 
 	*bytes_returned = ((strlen_or_ind > buflen || (strlen_or_ind == SQL_NO_TOTAL)) ? buflen : strlen_or_ind);
 
 	/* ensure that this was the only row */
-	err = SQLFetch(stmt_handle);
-	if (err != SQL_NO_DATA) {
-		show_error("test_select(): retrieving results",
-			   "Number of result rows must be exactly equal to 1.\n"
-			   "Please delete all entries from table '" TEST_TABLE_NAME "' and rerun test.", err);
-		SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-		stmt_handle = 0;
-		return -1;
-	}
+	CHKFetch("No");
 
-	SQLFreeHandle(SQL_HANDLE_STMT, stmt_handle);
-	stmt_handle = 0;
+	SQLFreeHandle(SQL_HANDLE_STMT, Statement);
+	Statement = old_Statement;
 	return 0;
 }
 
@@ -219,7 +143,7 @@ main(int argc, char **argv)
 
 	/* compare inserted and read back test patterns */
 	if (bytes_returned != TEST_BUF_LEN) {
-		show_error("main(): comparing buffers", "Mismatch in input and output pattern sizes.", 0);
+		show_error("main(): comparing buffers", "Mismatch in input and output pattern sizes.");
 		clean_up();
 		return -1;
 	}
@@ -227,7 +151,7 @@ main(int argc, char **argv)
 	for (i = 0; i < TEST_BUF_LEN; ++i) {
 		if (buf[i] != BYTE_AT(i)) {
 			printf("mismatch at pos %d %d != %d\n", i, buf[i], BYTE_AT(i));
-			show_error("main(): comparing buffers", "Mismatch in input and output patterns.", 0);
+			show_error("main(): comparing buffers", "Mismatch in input and output patterns.");
 			clean_up();
 			return -1;
 		}

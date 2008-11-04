@@ -2,29 +2,33 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-static char software_version[] = "$Id: rebindpar.c,v 1.7 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: rebindpar.c,v 1.8 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+#define SWAP_STMT(b) do { SQLHSTMT xyz = Statement; Statement = b; b = xyz; } while(0)
+
+static HSTMT stmt;
+
 static void
-TestInsert(HSTMT stmt, char *buf)
+TestInsert(char *buf)
 {
 	SQLLEN ind;
 	int l = strlen(buf);
 	char sql[200];
 
 	/* insert some data and test success */
-	CHK(SQLBindParameter, (stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, l, 0, buf, l, &ind));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, l, 0, buf, l, &ind, "S");
 
 	ind = l;
-	CHK(SQLExecute, (stmt));
+	CHKExecute("S");
 
+	SWAP_STMT(stmt);
 	sprintf(sql, "SELECT 1 FROM #tmp1 WHERE c = '%s'", buf);
 	Command(Statement, sql);
-	CHK(SQLFetch, (Statement));
-	if (SQLFetch(Statement) != SQL_NO_DATA || SQLMoreResults(Statement) != SQL_NO_DATA) {
-		fprintf(stderr, "One row expected!\n");
-		exit(1);
-	}
+	CHKFetch("S");
+	CHKFetch("No");
+	CHKMoreResults("No");
+	SWAP_STMT(stmt);
 }
 
 static void
@@ -33,7 +37,6 @@ Test(int prebind)
 	SQLLEN ind;
 	int i;
 	char buf[100];
-	HSTMT stmt;
 
 	/* build a string longer than 80 character (80 it's the default) */
 	buf[0] = 0;
@@ -42,22 +45,25 @@ Test(int prebind)
 
 	Command(Statement, "DELETE FROM #tmp1");
 
-	CHK(SQLAllocStmt, (Connection, &stmt));
+	CHKAllocStmt(&stmt, "S");
 
+	SWAP_STMT(stmt);
 	if (prebind)
-		CHK(SQLBindParameter, (stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 1, 0, buf, 1, &ind));
+		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 1, 0, buf, 1, &ind, "S");
 
-	CHK(SQLPrepare, (stmt, (SQLCHAR *) "INSERT INTO #tmp1(c) VALUES(?)", SQL_NTS));
+	CHKPrepare((SQLCHAR *) "INSERT INTO #tmp1(c) VALUES(?)", SQL_NTS, "S");
 
-	/* try to insert al empty string, should not fail */
+	/* try to insert an empty string, should not fail */
 	/* NOTE this is currently the only test for insert a empty string using rpc */
 	if (db_is_microsoft())
-		TestInsert(stmt, "");
-	TestInsert(stmt, "a");
-	TestInsert(stmt, "bb");
-	TestInsert(stmt, buf);
+		TestInsert("");
+	TestInsert("a");
+	TestInsert("bb");
+	TestInsert(buf);
 
-	CHK(SQLFreeStmt, (stmt, SQL_DROP));
+	CHKFreeStmt(SQL_DROP, "S");
+	Statement = SQL_NULL_HSTMT;
+	SWAP_STMT(stmt);
 }
 
 int

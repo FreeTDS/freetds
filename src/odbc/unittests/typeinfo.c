@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.9 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.10 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -20,30 +20,28 @@ TestName(int index, const char *expected_name)
 	} while(0)
 
 	/* retrieve with SQLDescribeCol */
-	CHK(SQLDescribeCol, (Statement, index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL));
+	CHKDescribeCol(index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL, "S");
 	NAME_TEST;
 
 	/* retrieve with SQLColAttribute */
-	CHK(SQLColAttribute, (Statement, index, SQL_DESC_NAME, name, sizeof(name), &len, NULL));
+	CHKColAttribute(index, SQL_DESC_NAME, name, sizeof(name), &len, NULL, "S");
 	if (db_is_microsoft())
 		NAME_TEST;
-	CHK(SQLColAttribute, (Statement, index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL));
+	CHKColAttribute(index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL, "S");
 	NAME_TEST;
 }
 
 static void
 FlushStatement(void)
 {
-	SQLRETURN retcode;
+	SQLRETURN RetCode;
 
-	while ((retcode = SQLFetch(Statement)) == SQL_SUCCESS);
-	if (retcode != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("SQLFetch failed");
+	while (CHKFetch("SNo") == SQL_SUCCESS)
+		;
 
 	/* Sybase store procedure seems to return extra empty results */
-	while ((retcode = SQLMoreResults(Statement)) == SQL_SUCCESS);
-	if (retcode != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("SQLMoreResults failed");
+	while (CHKMoreResults("SNo") == SQL_SUCCESS)
+		;
 }
 
 static void
@@ -51,12 +49,12 @@ CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type, int l
 {
 	SQLSMALLINT out_type;
 	SQLLEN ind;
+	SQLRETURN RetCode;
 
-	if (!SQL_SUCCEEDED(SQLBindCol(Statement, 2, SQL_C_SSHORT, &out_type, 0, &ind)))
-		ODBC_REPORT_ERROR("SQLBindCol failed");
-	if (!SQL_SUCCEEDED(SQLGetTypeInfo(Statement, type)))
-		ODBC_REPORT_ERROR("SQLGetTypeInfo failed");
-	switch (SQLFetch(Statement)) {
+	CHKBindCol(2, SQL_C_SSHORT, &out_type, 0, &ind, "SI");
+	CHKGetTypeInfo(type, "SI");
+	CHKFetch("SNo");
+	switch (RetCode) {
 	case SQL_SUCCESS:
 		if (expected == SQL_UNKNOWN_TYPE) {
 			fprintf(stderr, "Data not expected (type %d - %s) line %d\n", type, string_type, line);
@@ -76,8 +74,6 @@ CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type, int l
 			exit(1);
 		}
 		break;
-	default:
-		ODBC_REPORT_ERROR("SQLFetch failed");
 	}
 
 	SQLFreeStmt(Statement, SQL_UNBIND);
@@ -101,8 +97,7 @@ DoTest(int version3)
 	printf("Using ODBC version %d\n", version3 ? 3 : 2);
 
 	/* test column name */
-	if (!SQL_SUCCEEDED(SQLGetTypeInfo(Statement, SQL_ALL_TYPES)))
-		ODBC_REPORT_ERROR("SQLGetTypeInfo failed");
+	CHKGetTypeInfo(SQL_ALL_TYPES, "SI");
 	TestName(1, "TYPE_NAME");
 	TestName(2, "DATA_TYPE");
 	TestName(3, version3 ? "COLUMN_SIZE" : "PRECISION");
@@ -150,23 +145,15 @@ DoTest(int version3)
 	/* varchar/nvarchar before sysname */
 
 	/* test binding (not all column, required for Oracle) */
-	if (!SQL_SUCCEEDED(SQLGetTypeInfo(Statement, SQL_ALL_TYPES)))
-		ODBC_REPORT_ERROR("SQLGetTypeInfo failed");
-	if (!SQL_SUCCEEDED(SQLBindCol(Statement, 1, SQL_C_CHAR, name, sizeof(name), &ind1)))
-		ODBC_REPORT_ERROR("SQLBindCol failed");
-	if (!SQL_SUCCEEDED(SQLBindCol(Statement, 2, SQL_C_SSHORT, &type, 0, &ind2)))
-		ODBC_REPORT_ERROR("SQLBindCol failed");
-	if (!SQL_SUCCEEDED(SQLBindCol(Statement, 3, SQL_C_SLONG, &col_size, 0, &ind3)))
-		ODBC_REPORT_ERROR("SQLBindCol failed");
-	if (!SQL_SUCCEEDED(SQLBindCol(Statement, 6, SQL_C_CHAR, params, sizeof(params), &ind4)))
-		ODBC_REPORT_ERROR("SQLBindCol failed");
-	if (!SQL_SUCCEEDED(SQLBindCol(Statement, 10, SQL_C_SSHORT, &is_unsigned, 0, &ind5)))
-		ODBC_REPORT_ERROR("SQLBindCol failed");
-	if (!SQL_SUCCEEDED(SQLBindCol(Statement, 14, SQL_C_SSHORT, &min_scale, 0, &ind6)))
-		ODBC_REPORT_ERROR("SQLBindCol failed");
-	while ((retcode = SQLFetch(Statement)) == SQL_SUCCESS);
-	if (retcode != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("SQLFetch failed");
+	CHKGetTypeInfo(SQL_ALL_TYPES, "SI");
+	CHKBindCol(1, SQL_C_CHAR, name, sizeof(name), &ind1, "SI");
+	CHKBindCol(2, SQL_C_SSHORT, &type, 0, &ind2, "SI");
+	CHKBindCol(3, SQL_C_SLONG, &col_size, 0, &ind3, "SI");
+	CHKBindCol(6, SQL_C_CHAR, params, sizeof(params), &ind4, "SI");
+	CHKBindCol(10, SQL_C_SSHORT, &is_unsigned, 0, &ind5, "SI");
+	CHKBindCol(14, SQL_C_SSHORT, &min_scale, 0, &ind6, "SI");
+	while (CHKFetch("SNo") == SQL_SUCCESS)
+		;
 	SQLFreeStmt(Statement, SQL_UNBIND);
 	FlushStatement();
 

@@ -26,7 +26,7 @@
  * prepare or execute a query. This should fail and return an error message.
  */
 
-static char software_version[] = "$Id: prepclose.c,v 1.3 2006-07-24 09:40:46 freddy77 Exp $";
+static char software_version[] = "$Id: prepclose.c,v 1.4 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -65,7 +65,7 @@ static int
 Test(int direct)
 {
 	char buf[256];
-	SQLRETURN ret;
+	SQLRETURN RetCode;
 	unsigned char sqlstate[6];
 
 	Connect();
@@ -77,20 +77,11 @@ Test(int direct)
 
 	/* force disconnection closing socket */
 	if (direct)
-		ret = SQLExecDirect(Statement, (SQLCHAR *) "SELECT 1", SQL_NTS);
+		CHKExecDirect((SQLCHAR *) "SELECT 1", SQL_NTS, "E");
 	else
-		ret = SQLPrepare(Statement, (SQLCHAR *) "SELECT 1", SQL_NTS);
-	if (ret != SQL_ERROR) {
-		fprintf(stderr, "Error expected\n");
-		return 1;
-	}
+		CHKPrepare((SQLCHAR *) "SELECT 1", SQL_NTS, "E");
 
-	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL);
-	if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-		fprintf(stderr, "Error not set\n");
-		Disconnect();
-		return 1;
-	}
+	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL, "SI");
 	sqlstate[5] = 0;
 	printf("state=%s err=%s\n", (char*) sqlstate, buf);
 	

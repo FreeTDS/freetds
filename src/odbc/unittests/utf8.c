@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.7 2008-10-31 14:35:23 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.8 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -17,26 +17,21 @@ init_connect(void)
 static void
 CheckNoRow(const char *query)
 {
-	SQLRETURN retcode;
+	SQLRETURN RetCode;
 
-	retcode = SQLExecDirect(Statement, (SQLCHAR *) query, SQL_NTS);
-	if (retcode == SQL_NO_DATA)
+	CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
+	if (RetCode == SQL_NO_DATA)
 		return;
-
-	if (!SQL_SUCCEEDED(retcode))
-		ODBC_REPORT_ERROR("SQLExecDirect");
 
 	do {
 		SQLSMALLINT cols;
 
-		retcode = SQLNumResultCols(Statement, &cols);
-		if (retcode != SQL_SUCCESS || cols != 0) {
+		CHKNumResultCols(&cols, "S");
+		if (cols != 0) {
 			fprintf(stderr, "Data not expected here, query:\n\t%s\n", query);
 			exit(1);
 		}
-	} while ((retcode = SQLMoreResults(Statement)) == SQL_SUCCESS);
-	if (retcode != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("SQLMoreResults");
+	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
 }
 
 /* test table name, it contains two japanese characters */
@@ -77,9 +72,9 @@ TestBinding(int minimun)
 
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
 	sprintf(tmp, "INSERT INTO %s VALUES(?,?,?)", table_name);
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) tmp, SQL_NTS));
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_LONG,
-		SQL_INTEGER, 0, 0, &n, 0, &n_len));
+	CHKPrepare((SQLCHAR *) tmp, SQL_NTS, "S");
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG,
+		SQL_INTEGER, 0, 0, &n, 0, &n_len, "S");
 	n_len = sizeof(n);
 	
 	for (n = 1, p = strings; p[0] && p[1]; p += 2, ++n) {
@@ -87,16 +82,16 @@ TestBinding(int minimun)
 		int len;
 
 		len = minimun ? (strlen(strings_hex[p-strings]) - 2) /4 : 40;
-		CHK(SQLBindParameter, (Statement, 2, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WCHAR, len, 0, (void *) p[0], 0, &s1_len));
+		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR,
+			SQL_WCHAR, len, 0, (void *) p[0], 0, &s1_len, "S");
 		len = minimun ? (strlen(strings_hex[p+1-strings]) - 2) /4 : 40;
 		/* FIXME this with SQL_VARCHAR produce wrong protocol data */
-		CHK(SQLBindParameter, (Statement, 3, SQL_PARAM_INPUT, SQL_C_CHAR,
-			SQL_WVARCHAR, len, 0, (void *) p[1], 0, &s2_len));
+		CHKBindParameter(3, SQL_PARAM_INPUT, SQL_C_CHAR,
+			SQL_WVARCHAR, len, 0, (void *) p[1], 0, &s2_len, "S");
 		s1_len = strlen(p[0]);
 		s2_len = strlen(p[1]);
 		printf("insert #%d\n", (int) n);
-		CHK(SQLExecute, (Statement));
+		CHKExecute("S");
 	}
 
 	/* check rows */
@@ -111,7 +106,6 @@ TestBinding(int minimun)
 int
 main(int argc, char *argv[])
 {
-	int res;
 	SQLSMALLINT len;
 	const char * const*p;
 	SQLINTEGER n;
@@ -122,12 +116,7 @@ main(int argc, char *argv[])
 	/* connect string using DSN */
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;ClientCharset=UTF-8;", SERVER, USER, PASSWORD, DATABASE);
-	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
-		CheckReturn();
-		return 1;
-	}
+	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "SI");
 	if (!driver_is_freetds()) {
 		Disconnect();
 		printf("Driver is not FreeTDS, exiting\n");
@@ -140,7 +129,7 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	CHK(SQLAllocStmt, (Connection, &Statement));
+	CHKAllocStmt(&Statement, "S");
 
 	/* create test table */
 	sprintf(tmp, "IF OBJECT_ID(N'%s') IS NOT NULL DROP TABLE %s", table_name, table_name);

@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.14 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.15 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -26,17 +26,16 @@ main(int argc, char *argv[])
 		" return 24680\n"
 		"end");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &input, 0, &ind));
-
-	CHK(SQLBindParameter, (Statement, 2, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &out1, 0, &ind2));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &input, 0, &ind, "S");
+	CHKBindParameter(2, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &out1, 0, &ind2, "S");
 
 	/* TODO use {ts ...} for date */
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) "{call const_param(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS));
+	CHKPrepare((SQLCHAR *) "{call const_param(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS, "S");
 
 	input = 13579;
 	ind = sizeof(input);
 	out1 = output = 0xdeadbeef;
-	CHK(SQLExecute, (Statement));
+	CHKExecute("S");
 
 	if (out1 != 7654321) {
 		fprintf(stderr, "Invalid output %d (0x%x)\n", (int) out1, (int) out1);
@@ -46,17 +45,17 @@ main(int argc, char *argv[])
 	/* just to reset some possible buffers */
 	Command(Statement, "DECLARE @i INT");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind));
-	CHK(SQLBindParameter, (Statement, 2, SQL_PARAM_INPUT,  SQL_C_SLONG, SQL_INTEGER, 0, 0, &input,  0, &ind2));
-	CHK(SQLBindParameter, (Statement, 3, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &out1,   0, &ind3));
+	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind,  "S");
+	CHKBindParameter(2, SQL_PARAM_INPUT,  SQL_C_SLONG, SQL_INTEGER, 0, 0, &input,  0, &ind2, "S");
+	CHKBindParameter(3, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &out1,   0, &ind3, "S");
 
 	/* TODO use {ts ...} for date */
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) "{?=call const_param(?, , '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS));
+	CHKPrepare((SQLCHAR *) "{?=call const_param(?, , '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS, "S");
 
 	input = 13579;
 	ind2 = sizeof(input);
 	out1 = output = 0xdeadbeef;
-	CHK(SQLExecute, (Statement));
+	CHKExecute("S");
 
 	if (out1 != 7654321) {
 		fprintf(stderr, "Invalid output %d (0x%x)\n", (int) out1, (int) out1);
@@ -77,12 +76,12 @@ main(int argc, char *argv[])
 		" return 54321\n"
 		"end");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind));
+	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind, "S");
 
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) "{?=call const_param(12.5, 0x0102030405060708)}", SQL_NTS));
+	CHKPrepare((SQLCHAR *) "{?=call const_param(12.5, 0x0102030405060708)}", SQL_NTS, "S");
 
 	output = 0xdeadbeef;
-	CHK(SQLExecute, (Statement));
+	CHKExecute("S");
 
 	if (output != 54321) {
 		fprintf(stderr, "Invalid result %d (0x%x) expected 54321\n", (int) output, (int) output);
@@ -100,7 +99,7 @@ main(int argc, char *argv[])
 	/* catch problem reported by Peter Deacon */
 	output = 0xdeadbeef;
 	Command(Statement, "{CALL const_param('value')}");
-	CHK(SQLBindCol, (Statement, 1, SQL_C_SLONG, &output, 0, &ind));
+	CHKBindCol(1, SQL_C_SLONG, &output, 0, &ind, "S");
 	SQLFetch(Statement);
 
 	if (output != 8421) {

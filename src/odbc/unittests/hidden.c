@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: hidden.c,v 1.5 2008-10-17 12:21:10 freddy77 Exp $";
+static char software_version[] = "$Id: hidden.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -23,7 +23,7 @@ main(int argc, char **argv)
 
 	Command(Statement, "SELECT c, b FROM #tmp1");
 
-	CHK(SQLNumResultCols, (Statement, &cnt));
+	CHKNumResultCols(&cnt, "S");
 
 	if (cnt != 2) {
 		fprintf(stderr, "Wrong number of columns in result set: %d\n", (int) cnt);
@@ -34,14 +34,14 @@ main(int argc, char **argv)
 	/* test hidden column with cursors*/
 	CheckCursor();
 
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER));
+	CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER, "S");
+	CHKSetStmtAttr(SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER, "S");
 
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) "SELECT * FROM #t1", SQL_NTS));
+	CHKPrepare((SQLCHAR *) "SELECT * FROM #t1", SQL_NTS, "S");
 
-	CHK(SQLExecute, (Statement));
+	CHKExecute("S");
 
-	CHK(SQLNumResultCols, (Statement, &cnt));
+	CHKNumResultCols(&cnt, "S");
 
 	if (cnt != 3) {
 		fprintf(stderr, "Wrong number of columns in result set: %d\n", (int) cnt);

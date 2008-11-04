@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with a non-unitary rowset, using bottom-up direction */
 
-static char software_version[] = "$Id: cursor7.c,v 1.5 2008-07-16 07:47:02 freddy77 Exp $";
+static char software_version[] = "$Id: cursor7.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -19,27 +19,27 @@ Test(void)
 	SQLULEN num_row;
 
 	int i;
-	SQLRETURN ErrCode;
+	SQLRETURN RetCode;
 
 	ResetStatement();
 
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CONCURRENCY, int2ptr(SQL_CONCUR_READ_ONLY), 0));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_TYPE, int2ptr(SQL_CURSOR_STATIC), 0));
+	CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, int2ptr(SQL_CONCUR_READ_ONLY), 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, int2ptr(SQL_CURSOR_STATIC), 0, "S");
 
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) "SELECT c, i FROM #cursor7_test", SQL_NTS));
-	CHK(SQLExecute, (Statement));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_BIND_TYPE, int2ptr(sizeof(data[0])), 0));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_ARRAY_SIZE, int2ptr(ROWS), 0));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_STATUS_PTR, statuses, 0));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0));
+	CHKPrepare((SQLCHAR *) "SELECT c, i FROM #cursor7_test", SQL_NTS, "S");
+	CHKExecute("S");
+	CHKSetStmtAttr(SQL_ATTR_ROW_BIND_TYPE, int2ptr(sizeof(data[0])), 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, int2ptr(ROWS), 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_ROW_STATUS_PTR, statuses, 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0, "S");
 
-	CHK(SQLBindCol, (Statement, 1, SQL_C_CHAR, &data[0].c, sizeof(data[0].c), &data[0].ind_c));
-	CHK(SQLBindCol, (Statement, 2, SQL_C_LONG, &data[0].i, sizeof(data[0].i), &data[0].ind_i));
+	CHKBindCol(1, SQL_C_CHAR, &data[0].c, sizeof(data[0].c), &data[0].ind_c, "S");
+	CHKBindCol(2, SQL_C_LONG, &data[0].i, sizeof(data[0].i), &data[0].ind_i, "S");
 
 	/* Read records from last to first */
 	printf("\n\nReading records from last to first:\n");
-	ErrCode = SQLFetchScroll(Statement, SQL_FETCH_LAST, -ROWS);
-	while ((ErrCode == SQL_SUCCESS) || (ErrCode == SQL_SUCCESS_WITH_INFO)) {
+	CHKFetchScroll(SQL_FETCH_LAST, -ROWS, "SINo");
+	while (RetCode != SQL_NO_DATA) {
 		SQLULEN RowNumber;
 
 		/* Print this set of rows */
@@ -49,16 +49,16 @@ Test(void)
 		}
 		printf("\n");
 
-		CHK(SQLGetStmtAttr, (Statement, SQL_ROW_NUMBER, (SQLPOINTER)(&RowNumber), sizeof(RowNumber), NULL));
+		CHKGetStmtAttr(SQL_ROW_NUMBER, (SQLPOINTER)(&RowNumber), sizeof(RowNumber), NULL, "S");
 		printf("---> We are in record No: %u\n", (unsigned int) RowNumber);
 
 		/* Read next rowset */
 		if ( (RowNumber>1) && (RowNumber<ROWS) ) {
-			ErrCode=SQLFetchScroll(Statement, SQL_FETCH_RELATIVE, 1-RowNumber); 
+			CHKFetchScroll(SQL_FETCH_RELATIVE, 1-RowNumber, "SINo"); 
 			for (i=RowNumber-1; i<ROWS; ++i)
 				statuses[i] = SQL_ROW_NOROW;
 		} else {
-			ErrCode=SQLFetchScroll(Statement, SQL_FETCH_RELATIVE, -ROWS);
+			CHKFetchScroll(SQL_FETCH_RELATIVE, -ROWS, "SINo");
 		}
 	}
 }

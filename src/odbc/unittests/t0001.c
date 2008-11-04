@@ -1,13 +1,12 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.16 2008-02-08 09:28:04 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.17 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
 
-	int res;
 	int i;
 
 	SQLLEN cnamesize;
@@ -23,40 +22,28 @@ main(int argc, char *argv[])
 		"col1 varchar(30) not null,"
 		"col2 int not null,"
 		"col3 float not null," "col4 numeric(18,6) not null," "col5 datetime not null," "col6 text not null)";
-	CHK(CommandWithResult, (Statement, command));
+	Command(Statement, command);
 
 	command = "insert #odbctestdata values ("
 		"'ABCDEFGHIJKLMNOP',"
 		"123456," "1234.56," "123456.78," "'Sep 11 2001 10:00AM'," "'just to check returned length...')";
-	CHK(CommandWithResult, (Statement, command));
+	Command(Statement, command);
 
-	CHK(CommandWithResult, (Statement, "select * from #odbctestdata"));
+	Command(Statement, "select * from #odbctestdata");
 
-	res = SQLFetch(Statement);
-	if (res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
-		fprintf(stderr, "Unable to fetch row\n");
-		CheckReturn();
-	}
+	CHKFetch("SI");
 
 	for (i = 1; i <= 6; i++) {
-		CHK(SQLGetData, (Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize));
+		CHKGetData(i, SQL_C_CHAR, output, sizeof(output), &cnamesize, "S");
 
 		printf("output data >%s< len_or_ind = %d\n", output, (int) cnamesize);
 		if (cnamesize != strlen((char *) output))
 			return 1;
 	}
 
-	res = SQLFetch(Statement);
-	if (res != SQL_NO_DATA) {
-		fprintf(stderr, "Unable to fetch row\n");
-		CheckReturn();
-	}
+	CHKFetch("No");
 
-	res = SQLCloseCursor(Statement);
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to close cursor\n");
-		CheckReturn();
-	}
+	CHKCloseCursor("SI");
 
 	Command(Statement, "drop table #odbctestdata");
 

@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.12 2008-02-08 10:20:23 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.13 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -138,11 +138,11 @@ TestRawODBCPreparedQuery(void)
 
 	strcpy((char *) queryString, "SELECT * FROM #Products WHERE SupplierID = ?");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd, "S");
 
-	CHK(SQLPrepare, (Statement, queryString, SQL_NTS));
+	CHKPrepare(queryString, SQL_NTS, "S");
 
-	CHK(SQLExecute, (Statement));
+	CHKExecute("S");
 
 	count = 0;
 
@@ -209,9 +209,9 @@ TestRawODBCDirectQuery(void)
 
 	strcpy((char *) queryString, "SELECT * FROM #Products WHERE SupplierID = ?");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd, "S");
 
-	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
+	CHKExecDirect(queryString, SQL_NTS, "S");
 
 	count = 0;
 
@@ -291,7 +291,7 @@ TestRawODBCGuid(void)
 
 	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age ) \
                          VALUES ( 'Fang', 'Mike', 'dog', 'm', 12 );");
-	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
+	CHKExecDirect(queryString, SQL_NTS, "S");
 
 	AB_PRINT(("Insert row 2"));
 
@@ -304,10 +304,10 @@ TestRawODBCGuid(void)
 
 	lenOrInd = 0;
 	age = 3;
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &age, 0, &lenOrInd));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &age, 0, &lenOrInd, "S");
 
-	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
-	CHK(SQLFreeStmt, (Statement, SQL_CLOSE));
+	CHKExecDirect(queryString, SQL_NTS, "S");
+	CHKFreeStmt(SQL_CLOSE, "S");
 
 	AB_PRINT(("Insert row 3"));
 	/*
@@ -319,8 +319,8 @@ TestRawODBCGuid(void)
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "87654321-4321-4321-4321-123456789abc");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd));
-	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd, "S");
+	CHKExecDirect(queryString, SQL_NTS, "S");
 
 	AB_PRINT(("Insert row 4"));
 	/*
@@ -332,8 +332,8 @@ TestRawODBCGuid(void)
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "1234abcd-abcd-abcd-abcd-123456789abc");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 36, 0, guid, 0, &lenOrInd));
-	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, 36, 0, guid, 0, &lenOrInd, "S");
+	CHKExecDirect(queryString, SQL_NTS, "S");
 
 	AB_PRINT(("Insert row 5"));
 	/*
@@ -357,7 +357,7 @@ TestRawODBCGuid(void)
 	lenOrInd = 16;
 	strcpy((char *) (guid), "1234abcd-abcd-abcd-abcd-123456789abc");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_GUID, SQL_GUID, 16, 0, &sqlguid, 16, &lenOrInd));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_GUID, SQL_GUID, 16, 0, &sqlguid, 16, &lenOrInd, "S");
 	status = SQLExecDirect(Statement, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Insert row 5 failed"));
@@ -369,11 +369,11 @@ TestRawODBCGuid(void)
 	 */
 	AB_PRINT(("retrieving name and guid"));
 	strcpy((char *) (queryString), "SELECT name, guid FROM #pet");
-	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
+	CHKExecDirect(queryString, SQL_NTS, "S");
 	while (SQLFetch(Statement) == SQL_SUCCESS) {
 		count++;
-		CHK(SQLGetData, (Statement, 1, SQL_CHAR, name, 20, 0));
-		CHK(SQLGetData, (Statement, 2, SQL_CHAR, guid, 37, 0));
+		CHKGetData(1, SQL_CHAR, name, 20, 0, "S");
+		CHKGetData(2, SQL_CHAR, guid, 37, 0, "S");
 
 		AB_PRINT(("name: %-10s guid: %s", name, guid));
 	}
@@ -382,8 +382,7 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state if we try SELECT again).
 	 */
-	CHK(SQLFreeStmt, (Statement, SQL_CLOSE));
-	CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &Statement));
+	ResetStatement();
 
 
 	/*
@@ -392,11 +391,11 @@ TestRawODBCGuid(void)
 
 	AB_PRINT(("retrieving name and guid again"));
 	strcpy((char *) (queryString), "SELECT name, guid FROM #pet");
-	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
-	while (SQLFetch(Statement) == SQL_SUCCESS) {
+	CHKExecDirect(queryString, SQL_NTS, "S");
+	while (CHKFetch("SNo") == SQL_SUCCESS) {
 		count++;
-		CHK(SQLGetData, (Statement, 1, SQL_CHAR, name, 20, 0));
-		CHK(SQLGetData, (Statement, 2, SQL_GUID, &sqlguid, 16, 0));
+		CHKGetData(1, SQL_CHAR, name, 20, 0, "S");
+		CHKGetData(2, SQL_GUID, &sqlguid, 16, 0, "S");
 
 		AB_PRINT(("%-10s %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
 			  name,
@@ -410,8 +409,7 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state if we try SELECT again).
 	 */
-	CHK(SQLFreeStmt, (Statement, SQL_CLOSE));
-	CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &Statement));
+	ResetStatement();
 
 	/*
 	 * Now retrieve rows via stored procedure passing GUID as param.
@@ -422,12 +420,12 @@ TestRawODBCGuid(void)
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "87654321-4321-4321-4321-123456789abc");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd));
-	CHK(SQLExecDirect, (Statement, queryString, SQL_NTS));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd, "S");
+	CHKExecDirect(queryString, SQL_NTS, "S");
 	while (SQLFetch(Statement) == SQL_SUCCESS) {
 		count++;
-		CHK(SQLGetData, (Statement, 1, SQL_CHAR, name, 20, 0));
-		CHK(SQLGetData, (Statement, 2, SQL_CHAR, guid, 37, 0));
+		CHKGetData(1, SQL_CHAR, name, 20, 0, "S");
+		CHKGetData(2, SQL_CHAR, guid, 37, 0, "S");
 
 		AB_PRINT(("%-10s %s", name, guid));
 	}
@@ -436,8 +434,7 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state after a previous SELECT has occurred).
 	 */
-	CHK(SQLFreeStmt, (Statement, SQL_CLOSE));
-	CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &Statement));
+	ResetStatement();
 
 	/* cleanup */
 	CommandWithResult(Statement, "DROP PROC GetGUIDRows");

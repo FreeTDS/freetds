@@ -4,7 +4,7 @@
  * Try to make core dump using SQLBindParameter
  */
 
-static char software_version[] = "$Id: paramcore.c,v 1.4 2006-07-25 08:11:00 freddy77 Exp $";
+static char software_version[] = "$Id: paramcore.c,v 1.5 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{call sp_paramcore_test(?)}"
@@ -29,7 +29,6 @@ ReadError(void)
 int
 main(int argc, char *argv[])
 {
-	SQLRETURN rc;
 	SQLLEN cb = SQL_NTS;
 
 	use_odbc_version3 = 1;
@@ -40,20 +39,20 @@ main(int argc, char *argv[])
 	Command(Statement, "create proc sp_paramcore_test @s varchar(100) output as select @s = '12345'");
 
 	/* here we pass a NULL buffer for input SQL_NTS */
-	rc = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, NULL, OUTSTRING_LEN, &cb);
+	SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, NULL, OUTSTRING_LEN, &cb);
 	ReadError();
 
 	cb = SQL_NTS;
-	rc = CommandWithResult(Statement, SP_TEXT);
+	CommandWithResult(Statement, SP_TEXT);
 	ReadError();
 	ResetStatement();
 
 	/* here we pass a NULL buffer for input */
-	rc = SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_VARCHAR, 18, 0, NULL, OUTSTRING_LEN, &cb);
+	SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_VARCHAR, 18, 0, NULL, OUTSTRING_LEN, &cb);
 	ReadError();
 
 	cb = 1;
-	rc = CommandWithResult(Statement, SP_TEXT);
+	CommandWithResult(Statement, SP_TEXT);
 	ReadError();
 	ResetStatement();
 
@@ -64,11 +63,11 @@ main(int argc, char *argv[])
 #if 0	/* this fails even on native platforms */
 	/* here we pass a NULL buffer for output */
 	cb = sizeof(SQL_NUMERIC_STRUCT);
-	rc = SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_NUMERIC, SQL_NUMERIC, 18, 0, NULL, OUTSTRING_LEN, &cb);
+	SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_NUMERIC, SQL_NUMERIC, 18, 0, NULL, OUTSTRING_LEN, &cb);
 	ReadError();
 
 	cb = 1;
-	rc = CommandWithResult(Statement, SP_TEXT);
+	CommandWithResult(Statement, SP_TEXT);
 	ReadError();
 	ResetStatement();
 #endif

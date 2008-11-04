@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.13 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.14 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -35,35 +35,35 @@ Test(int discard_test)
 	Command(Statement, createErrorProcedure);
 
 	/* Start transaction */
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0));
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0, "S");
 
 	/* Insert a value */
 	Command(Statement, "EXEC testinsert 1");
 
 	/* we should be able to read row count */
-	CHK(SQLRowCount, (Statement, &rows));
+	CHKRowCount(&rows, "S");
 
 	/* Commit transaction */
-	CHK(SQLEndTran, (SQL_HANDLE_DBC, Connection, SQL_COMMIT));
+	CHKEndTran(SQL_HANDLE_DBC, Connection, SQL_COMMIT, "S");
 
 	SQLCloseCursor(Statement);
 
 	/* Start transaction */
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0));
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0, "S");
 
 	/* Insert another value */
 	Command(Statement, "EXEC testinsert 2");
 
 	/* Roll back transaction */
-	CHK(SQLEndTran, (SQL_HANDLE_DBC, Connection, SQL_ROLLBACK));
+	CHKEndTran(SQL_HANDLE_DBC, Connection, SQL_ROLLBACK, "S");
 
 	/* TODO test row inserted */
 
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_ON, 0));
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_ON, 0, "S");
 
 	/* generate an error */
 	Command(Statement, "EXEC testerror");
-	CHK(SQLBindCol, (Statement, 1, SQL_C_SLONG, &out_buf, sizeof(out_buf), &out_len));
+	CHKBindCol(1, SQL_C_SLONG, &out_buf, sizeof(out_buf), &out_len, "S");
 
 	while ((result = SQLFetch(Statement)) == SQL_SUCCESS) {
 		printf("\t%ld\n", (long int) out_buf);

@@ -40,7 +40,7 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.7 2008-02-08 09:28:05 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.8 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -48,18 +48,9 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	if (SQLAllocEnv(&Environment) != SQL_SUCCESS) {
-		fprintf(stderr, "Unable to allocate env\n");
-		exit(1);
-	}
-
+	CHKR(SQLAllocEnv, (&Environment), "S");
 	SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-
-	if (SQLAllocConnect(Environment, &Connection) != SQL_SUCCESS) {
-		fprintf(stderr, "Unable to allocate connection\n");
-		SQLFreeEnv(Environment);
-		exit(1);
-	}
+	CHKR(SQLAllocConnect, (Environment, &Connection), "S");
 }
 
 static pthread_t      fake_thread;
@@ -128,7 +119,6 @@ fake_thread_proc(void * arg)
 int
 main(int argc, char *argv[])
 {
-	int res;
 	char tmp[2048];
 	char sqlstate[6];
 	SQLSMALLINT len;
@@ -167,31 +157,19 @@ main(int argc, char *argv[])
 	printf("Fake server binded at port %d\n", port);
 
 	init_connect();
-	res = SQLSetConnectAttr(Connection, SQL_ATTR_CONNECTION_TIMEOUT, (SQLPOINTER) 10, sizeof(SQLINTEGER));
-	if (!SQL_SUCCEEDED(res))
-		ODBC_REPORT_ERROR("SQLSetConnectAttr error");
-	res = SQLSetConnectAttr(Connection, SQL_ATTR_LOGIN_TIMEOUT, (SQLPOINTER) 10, sizeof(SQLINTEGER));
-	if (!SQL_SUCCEEDED(res))
-		ODBC_REPORT_ERROR("SQLSetConnectAttr error");
+	CHKSetConnectAttr(SQL_ATTR_CONNECTION_TIMEOUT, (SQLPOINTER) 10, sizeof(SQLINTEGER), "SI");
+	CHKSetConnectAttr(SQL_ATTR_LOGIN_TIMEOUT, (SQLPOINTER) 10, sizeof(SQLINTEGER), "SI");
 
 	/* this is expected to work with unixODBC */
 	printf("try to connect to our port just to check connection timeout\n");
 	sprintf(tmp, "DRIVER=FreeTDS;SERVER=127.0.0.1;Port=%d;TDS_Version=7.0;UID=test;PWD=test;DATABASE=tempdb;", port);
 	start_time = time(NULL);
-	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
-	if (SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "SQLDriverConnect should fail (res=%d)\n", (int) res);
-		return 1;
-	}
+	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "E");
 	end_time = time(NULL);
 
 	strcpy(sqlstate, "XXXXX");
 	tmp[0] = 0;
-	res = SQLGetDiagRec(SQL_HANDLE_DBC, Connection, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) tmp, sizeof(tmp), NULL);
-	if (!SQL_SUCCEEDED(res)) {
-		printf("SQLGetDiagRec should not fail\n");
-		return 1;
-	}
+	CHKGetDiagRec(SQL_HANDLE_DBC, Connection, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) tmp, sizeof(tmp), NULL, "SI");
 	Disconnect();
 	CLOSESOCKET(fake_sock);
 	pthread_join(fake_thread, NULL);

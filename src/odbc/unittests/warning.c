@@ -14,7 +14,7 @@
  * inside recordset
  * Sybase do not return warning but test works the same
  */
-static char software_version[] = "$Id: warning.c,v 1.6 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: warning.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
@@ -28,23 +28,15 @@ static const int tds_no_dm = 0;
 static void
 Test(const char *query)
 {
-	int res;
+	SQLRETURN RetCode;
 
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) query, SQL_NTS));
+	CHKPrepare((SQLCHAR *) query, SQL_NTS, "S");
 
-	CHK(SQLExecute, (Statement));
+	CHKExecute("S");
 
-	res = SQLFetch(Statement);
-	if (res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
-		fprintf(stderr, "Unable to fetch row.\n");
-		CheckReturn();
-		exit(1);
-	}
+	CHKFetch("SI");
 
-	if (SQLFetch(Statement) != SQL_NO_DATA) {
-		fprintf(stderr, "Warning was returned as a result row -- bad!\n");
-		exit(1);
-	}
+	CHKFetch("No");
 
 	/*
 	 * Microsoft SQL Server 2000 provides a diagnostic record
@@ -57,10 +49,7 @@ Test(const char *query)
 	if (db_is_microsoft() && tds_no_dm) {
 		SQLCHAR output[256];
 
-		if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL))) {
-			fprintf(stderr, "SQLGetDiagRec should not fail\n");
-			exit(1);
-		}
+		CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL, "SI");
 		printf("Message: %s\n", (char *) output);
 	}
 

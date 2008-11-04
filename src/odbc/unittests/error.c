@@ -2,7 +2,7 @@
 
 /* some tests on error reporting */
 
-static char software_version[] = "$Id: error.c,v 1.4 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.5 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -11,10 +11,7 @@ static void ReadError(void);
 static void
 ReadError(void)
 {
-	if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL))) {
-		printf("SQLGetDiagRec should not fail\n");
-		exit(1);
-	}
+	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL, "SI");
 	printf("Message: %s\n", output);
 }
 
@@ -45,10 +42,9 @@ main(int argc, char *argv[])
 
 		/* TODO when multiple row fetch available test for error on some columns */
 
-		CHK(SQLFetch, (Statement));
-		CHK(SQLFetch, (Statement));
-		if (SQLFetch(Statement) != SQL_ERROR)
-			ODBC_REPORT_ERROR("SQLFetch succeed when it shouldn't");
+		CHKFetch("S");
+		CHKFetch("S");
+		CHKFetch("E");
 	}
 
 	ReadError();
@@ -62,12 +58,11 @@ main(int argc, char *argv[])
 	SQLFetch(Statement);
 	SQLMoreResults(Statement);
 
-	CHK(SQLAllocStmt, (Connection, &stmt));
+	CHKAllocStmt(&stmt, "S");
 
 	Command(Statement, "SELECT * FROM sysobjects");
 
-	if (CommandWithResult(stmt, "SELECT * FROM sysobjects") != SQL_ERROR)
-		ODBC_REPORT_ERROR("Error expected");
+	CHKR(CommandWithResult, (stmt, "SELECT * FROM sysobjects"), "E");
 
 	tmp_stmt = Statement;
 	Statement = stmt;

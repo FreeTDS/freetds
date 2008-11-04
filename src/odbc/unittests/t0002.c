@@ -1,14 +1,12 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.14 2008-02-08 09:28:04 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.15 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-
-	int res;
-	HSTMT stmt;
+	HSTMT old_Statement;
 
 	Connect();
 
@@ -22,44 +20,27 @@ main(int argc, char *argv[])
 	 * then make another query with first select and drop this statement
 	 * result should not disappear (required for DBD::ODBC)
 	 */
+	old_Statement = Statement;
+	Statement = SQL_NULL_HSTMT;
+	CHKAllocStmt(&Statement, "S");
 
-	CHK(SQLAllocStmt, (Connection, &stmt));
+	Command(Statement, "select * from #odbctestdata where 0=1");
 
-	Command(stmt, "select * from #odbctestdata where 0=1");
+	CHKFetch("No");
 
-	if (SQLFetch(stmt) != SQL_NO_DATA) {
-		fprintf(stderr, "Data not expected\n");
-		exit(1);
-	}
+	CHKCloseCursor("SI");
 
-	res = SQLCloseCursor(stmt);
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to close cursor\n");
-		CheckReturn();
-	}
-
-	Command(Statement, "select * from #odbctestdata");
+	Command(old_Statement, "select * from #odbctestdata");
 
 	/* drop first statement .. data should not disappear */
-	CHK(SQLFreeStmt, (stmt, SQL_DROP));
+	CHKFreeStmt(SQL_DROP, "S");
+	Statement = old_Statement;
 
-	res = SQLFetch(Statement);
-	if (res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
-		fprintf(stderr, "Unable to fetch row. Drop of previous statement discard results... bad!\n");
-		CheckReturn();
-	}
+	CHKFetch("SI");
 
-	res = SQLFetch(Statement);
-	if (res != SQL_NO_DATA) {
-		fprintf(stderr, "Unable to fetch row\n");
-		CheckReturn();
-	}
+	CHKFetch("No");
 
-	res = SQLCloseCursor(Statement);
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to close cursr\n");
-		CheckReturn();
-	}
+	CHKCloseCursor("SI");
 
 	Command(Statement, "drop table #odbctestdata");
 

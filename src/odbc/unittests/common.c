@@ -12,12 +12,13 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.48 2008-10-31 14:00:11 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.49 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
 HDBC Connection;
 HSTMT Statement;
+SQLRETURN RetCode;
 int use_odbc_version3 = 0;
 void (*odbc_set_conn_attr)(void) = NULL;
 
@@ -394,3 +395,50 @@ CheckCursor(void)
 	ResetStatement();
 }
 
+SQLRETURN
+CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLHANDLE handle, const char *func, const char *res)
+{
+	const char *p = res;
+	for (;;) {
+		if (*p == 'S') {
+			if (rc == SQL_SUCCESS)
+				return rc;
+			++p;
+		} else if (*p == 'I') {
+			if (rc == SQL_SUCCESS_WITH_INFO)
+				return rc;
+			++p;
+		} else if (*p == 'E') {
+			if (rc == SQL_ERROR)
+				return rc;
+			++p;
+		} else if (strncmp(p, "No", 2) == 0) {
+			if (rc == SQL_NO_DATA)
+				return rc;
+			p += 2;
+		} else if (strncmp(p, "Ne", 2) == 0) {
+			if (rc == SQL_NEED_DATA)
+				return rc;
+			p += 2;
+		} else {
+			ReportError("Wrong results specified", line, file);
+			return rc;
+		}
+	}
+	ReportError(func, line, file);
+	return rc;
+}
+
+SQLSMALLINT
+AllocHandleErrType(SQLSMALLINT type)
+{
+	switch (type) {
+	case SQL_HANDLE_DESC:
+		return SQL_HANDLE_STMT;
+	case SQL_HANDLE_STMT:
+		return SQL_HANDLE_DBC;
+	case SQL_HANDLE_DBC:
+		return SQL_HANDLE_ENV;
+	}
+	return 0;
+}

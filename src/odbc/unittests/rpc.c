@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.10 2008-02-08 08:31:19 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.11 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -41,10 +41,7 @@ init_proc(const char *name)
 		printf("Dropping procedure %s\n", name);
 		sprintf(cmd, "if exists (select 1 from sysobjects where name = '%s' and type = 'P') "
 				"DROP PROCEDURE %s", name, name);
-		if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) cmd, SQL_NTS))) {
-			CheckReturn();
-			exit(1);
-		}
+		CHKExecDirect((SQLCHAR *) cmd, SQL_NTS, "SI");
 	}
 
 	printf("Creating procedure %s\n", name);
@@ -65,10 +62,8 @@ static void
 Test(const char *name)
 {
 	int iresults=0, data_errors=0;
-	unsigned char sqlstate[6], msg[256];
-	SQLRETURN erc;
 	int ipar=0;
-	HSTMT stmt;
+	HSTMT Statement = SQL_NULL_HSTMT;
 	char call_cmd[128];
 	struct Argument { 
                 SQLSMALLINT       InputOutputType;  /* fParamType */
@@ -97,7 +92,7 @@ Test(const char *name)
 
 
 	printf("executing SQLAllocStmt\n");
-	CHK(SQLAllocStmt, (Connection, &stmt));
+	CHKAllocStmt(&Statement, "S");
 
 	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
 		printf("executing SQLBindParameter for parameter %d\n", 1+ipar);
@@ -107,7 +102,7 @@ Test(const char *name)
 			memset(args[ipar].ParameterValuePtr, 0, args[ipar].BufferLength);
 			memset(args[ipar].ParameterValuePtr, 'a', args[ipar].BufferLength - 1);
 		}
-		CHK(SQLBindParameter,	( stmt, 1+ipar
+		CHKBindParameter	( 1+ipar
 					, args[ipar].InputOutputType
 					, args[ipar].ValueType
 					, args[ipar].ParameterType
@@ -116,19 +111,16 @@ Test(const char *name)
 					, args[ipar].ParameterValuePtr
 					, args[ipar].BufferLength
 					, &args[ipar].ind
-					));
+					, "S"
+					);
 	}
 
 	sprintf(call_cmd, "{?=call %s(?,?,?,?,?)}", name );
 	printf("executing SQLPrepare: %s\n", call_cmd);
-	CHK(SQLPrepare, (stmt, (SQLCHAR *) call_cmd, SQL_NTS));
+	CHKPrepare((SQLCHAR *) call_cmd, SQL_NTS, "S");
 
 	printf("executing SQLExecute\n");
-	if (! SQL_SUCCEEDED(SQLExecute(stmt))) {
-		erc = SQLGetDiagRec(SQL_HANDLE_STMT, stmt, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
-		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
-		ODBC_REPORT_ERROR("Unable to execute SQLExecute\n");
-	}
+	CHKExecute("SI");
 
 	do {
 		static const char dashes[] = "------------------------------";
@@ -141,7 +133,7 @@ Test(const char *name)
 		SQLSMALLINT  nullable;
 
 		printf("executing SQLNumResultCols for result set %d\n", ++iresults);
-		CHK(SQLNumResultCols, (stmt,  &ncols));
+		CHKNumResultCols(&ncols, "S");
 
 		printf("executing SQLDescribeCol for %d column%c\n", ncols, (ncols == 1? ' ' : 's'));
 		printf("%-5.5s %-15.15s %5.5s %5.5s %5.5s %8.8s\n", "col", "name", "type", "size", "scale", "nullable"); 
@@ -149,34 +141,28 @@ Test(const char *name)
 		
 		for (icol=ncols; icol > 0; icol--) {
 			SQLULEN size;
-			CHK(SQLDescribeCol, (stmt, icol, name, sizeof(name),
-						    &namelen, &type, &size, &scale, &nullable));
+			CHKDescribeCol(icol, name, sizeof(name),
+				       &namelen, &type, &size, &scale, &nullable, "S");
 			printf("%-5d %-15s %5d %5ld %5d %8c\n", icol, name, type, (long int)size, scale, (nullable? 'Y' : 'N')); 
 		}
 
 		printf("executing SQLFetch...\n");
 		printf("\t%-30s\n\t%s\n", name, dashes);
-		for (nrows=0; (erc = SQLFetch(stmt)) == SQL_SUCCESS; nrows++) {
+		for (nrows=0; CHKFetch("SNo") == SQL_SUCCESS; nrows++) {
 			const SQLINTEGER icol = 1;
 			char buf[60];
 			SQLLEN len;
-			erc = SQLGetData( stmt
-					, icol
+			CHKGetData( icol
 					, SQL_C_CHAR	/* fCType */
 					, buf		/* rgbValue */
 					, sizeof(buf)	/* cbValueMax */
 	                		, &len		/* pcbValue */	
+					, "SI"
 					);
 			printf("\t%-30s\t(%2d bytes)\n", buf, (int) len);
 		}
+		printf("done.\n");
 
-		if (erc != SQL_NO_DATA_FOUND) {
-			erc = SQLGetDiagRec(SQL_HANDLE_STMT, stmt, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
-			fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
-			ODBC_REPORT_ERROR("Unable to execute SQLFetch\n");
-		} else {
-			printf("done.\n");
-		}
 		switch (iresults) {
 		case 1:
 			printf("0 rows expected, %d found\n", nrows);
@@ -193,13 +179,8 @@ Test(const char *name)
 		}
 
 		printf("executing SQLMoreResults...\n");
-	} while ((erc = SQLMoreResults(stmt)) == SQL_SUCCESS);
-
-	if (erc != SQL_NO_DATA_FOUND) {
-		ODBC_REPORT_ERROR("Unable to execute SQLMoreResults\n");
-	} else {
-		printf("done.\n");
-	}
+	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
+	printf("done.\n");
 
 	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
 		if (args[ipar].InputOutputType == SQL_PARAM_INPUT)
@@ -220,7 +201,8 @@ Test(const char *name)
 	}
 
 	printf("executing SQLFreeStmt\n");
-	CHK(SQLFreeStmt, (stmt, SQL_DROP));
+	CHKFreeStmt(SQL_DROP, "S");
+	Statement = SQL_NULL_HSTMT;
 
 	for (ipar = 0; ipar < sizeof(args)/sizeof(args[0]); ++ipar)
 		if (args[ipar].BufferLength > 0)

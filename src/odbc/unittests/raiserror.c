@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.21 2008-02-08 09:28:04 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.22 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -61,14 +61,8 @@ TestResult(SQLRETURN result0, int level, const char *func)
 	SqlState[0] = 0;
 	MessageText[0] = 0;
 	NativeError = 0;
-	/* result = SQLError(SQL_NULL_HENV, SQL_NULL_HDBC, Statement, SqlState, &NativeError, MessageText, 1000, &TextLength); */
-	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText),
-			       &TextLength);
-	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) result, SqlState, (int) NativeError, MessageText);
-	if (!SQL_SUCCEEDED(result)) {
-		fprintf(stderr, "SQLGetDiagRec error!\n");
-		exit(1);
-	}
+	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText), &TextLength, "SI");
+	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) RetCode, SqlState, (int) NativeError, MessageText);
 
 	if (strstr(MessageText, "An error occurred") == NULL) {
 		fprintf(stderr, "Wrong error returned!\n");
@@ -84,13 +78,11 @@ CheckData(const char *s, int line)
 {
 	char buf[80];
 	SQLLEN ind;
-	SQLRETURN result;
+	SQLRETURN RetCode;
 
-	result = SQLGetData(Statement, 1, SQL_C_CHAR, buf, sizeof(buf), &ind);
-	if (result != SQL_SUCCESS && result != SQL_ERROR)
-		MY_ERROR("SQLFetch invalid result");
+	CHKGetData(1, SQL_C_CHAR, buf, sizeof(buf), &ind, "SE");
 
-	if (result == SQL_ERROR) {
+	if (RetCode == SQL_ERROR) {
 		buf[0] = 0;
 		ind = 0;
 	}
@@ -153,10 +145,10 @@ Test(int level)
 	SQLBindParameter(Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
 			 &cbOutString);
 
-	CHK(SQLExecute, (Statement));
+	CHKExecute("S");
 
 	CheckData("");
-	CHK(SQLFetch, (Statement));
+	CHKFetch("S");
 	CheckData("Here is the first row");
 
 	result = SQLFetch(Statement);
@@ -169,10 +161,8 @@ Test(int level)
 
 		if (result != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLFetch should return NO DATA");
-		result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText,
-				       sizeof(MessageText), &TextLength);
-		if (result != SQL_NO_DATA)
-			ODBC_REPORT_ERROR("SQLGetDiagRec should return NO DATA");
+		CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText,
+				       sizeof(MessageText), &TextLength, "No");
 		result = SQLMoreResults(Statement);
 		expected = level > 10 ? SQL_ERROR : SQL_SUCCESS_WITH_INFO;
 		if (result != expected)
@@ -209,18 +199,17 @@ Test(int level)
 	}
 
 	if (!use_odbc_version3 || !g_nocount) {
-		CHK(SQLMoreResults, (Statement));
+		CHKMoreResults("S");
 		result = SQL_SUCCESS;
 	}
 
 	CheckReturnCode(result, INVALID_RETURN);
 
 	CheckData("");
-	CHK(SQLFetch, (Statement));
+	CHKFetch("S");
 	CheckData("Here is the last row");
 
-	if (SQLFetch(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("SQLFetch returned failure");
+	CHKFetch("No");
 	CheckData("");
 
 	if (!use_odbc_version3 || g_nocount)
@@ -245,7 +234,6 @@ Test(int level)
 static void
 Test2(int nocount, int second_select)
 {
-	SQLRETURN result;
 	char sql[512];
 
 	g_nocount = nocount;
@@ -257,9 +245,7 @@ Test2(int nocount, int second_select)
 
 	sprintf(sql, create_proc, nocount ? "     SET NOCOUNT ON\n" : "",
 		second_select ? "     SELECT 'Here is the last row' AS LastResult\n" : "");
-	result = CommandWithResult(Statement, sql);
-	if (result != SQL_SUCCESS && result != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("Unable to create temporary store");
+	CHKR(CommandWithResult, (Statement, sql), "SNo");
 
 	Test(5);
 

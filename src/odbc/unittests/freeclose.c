@@ -50,7 +50,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.6 2007-11-26 18:12:31 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -272,7 +272,6 @@ fake_thread_proc(void * arg)
 int
 main(int argc, char **argv)
 {
-	SQLHSTMT hstmt = NULL;
 	SQLLEN sql_nts = SQL_NTS;
 	const char *query;
 	SQLINTEGER id = 0;
@@ -316,8 +315,7 @@ main(int argc, char **argv)
 	/* real test */
 	Command(Statement, "CREATE TABLE #test(i int, c varchar(40))");
 
-	if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, Connection, &hstmt)))
-		return 1;
+	ResetStatement();
 
 	/* do not take into account connection statistics */
 	round_trips = 0;
@@ -325,30 +323,17 @@ main(int argc, char **argv)
 
 	query = "insert into #test values (?, ?)";
 
-	if (!SQL_SUCCEEDED(SQLBindParameter(hstmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts))
-	    ||
-	    !SQL_SUCCEEDED(SQLBindParameter
-			   (hstmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts))) 
-	{
-		SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-		return 1;
-	}
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
+	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
 
-	if (!SQL_SUCCEEDED(SQLPrepare(hstmt, (SQLCHAR *) query, SQL_NTS))) {
-		SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-		return 1;
-	}
-
+	CHKPrepare((SQLCHAR *) query, SQL_NTS, "SI");
 	for (id = 0; id < num_inserts; id++) {
 		sprintf(string, "This is a test (%d)", (int) id);
-		if (!SQL_SUCCEEDED(SQLExecute(hstmt))) {
-			SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-			return 1;
-		}
-		SQLFreeStmt(hstmt, SQL_CLOSE);
+		CHKExecute("SI");
+		CHKFreeStmt(SQL_CLOSE, "S");
 	}
 
-	SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+	ResetStatement();
 
 	Disconnect();
 

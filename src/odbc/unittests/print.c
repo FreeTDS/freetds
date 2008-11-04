@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.19 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.20 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -15,10 +15,7 @@ static const int tds_no_dm = 0;
 static void
 ReadError(void)
 {
-	if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL))) {
-		printf("SQLGetDiagRec should not fail\n");
-		exit(1);
-	}
+	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL, "SI");
 	printf("Message: %s\n", output);
 }
 
@@ -27,7 +24,6 @@ test(int odbc3)
 {
 	SQLLEN cnamesize;
 	const char *query;
-	SQLRETURN rc;
 
 	use_odbc_version3 = odbc3;
 
@@ -50,33 +46,28 @@ test(int odbc3)
 	if (odbc3) {
 		CHECK_COLS(0);
 		CHECK_ROWS(-1);
-		rc = SQLFetch(Statement);
-		if (rc != SQL_ERROR)
-			ODBC_REPORT_ERROR("Still data?");
-		CHK(SQLMoreResults, (Statement));
+		CHKFetch("E");
+		CHKMoreResults("S");
 	}
     
 	CHECK_COLS(1);
 	CHECK_ROWS(-1);
 
-	CHK(SQLFetch, (Statement));
+	CHKFetch("S");
 	CHECK_COLS(1);
 	CHECK_ROWS(-1);
-	if (SQLFetch(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("Still data?");
+	/* check no data */
+	CHKFetch("No");
 	CHECK_COLS(1);
 	CHECK_ROWS(1);
 
-	/* SQLMoreResults return NO DATA ... */
-	rc = SQLMoreResults(Statement);
-	if (rc != SQL_NO_DATA && rc != SQL_SUCCESS_WITH_INFO)
-		ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA or SUCCESS WITH INFO");
-
-	if (tds_no_dm && !odbc3 && rc != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
-
-	if (odbc3 && rc != SQL_SUCCESS_WITH_INFO)
-		ODBC_REPORT_ERROR("SQLMoreResults should return SUCCESS WITH INFO");
+	/* SQLMoreResults return NO DATA or SUCCESS WITH INFO ... */
+	if (tds_no_dm && !odbc3)
+		CHKMoreResults("No");
+	else if (odbc3)
+		CHKMoreResults("I");
+	else
+		CHKMoreResults("INo");
 
 	/*
 	 * ... but read error
@@ -103,9 +94,7 @@ test(int odbc3)
 		CHECK_COLS(0);
 		CHECK_ROWS(-1);
 
-		rc = SQLMoreResults(Statement);
-		if (rc != SQL_NO_DATA)
-			ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
+		CHKMoreResults("No");
 	}
 
 	/* issue invalid command and test error */
@@ -116,16 +105,10 @@ test(int odbc3)
 	ReadError();
 
 	/* test no data returned */
-	if (SQLFetch(Statement) != SQL_ERROR) {
-		printf("Row fetched ??\n");
-		return 1;
-	}
+	CHKFetch("E");
 	ReadError();
 
-	if (SQLGetData(Statement, 1, SQL_C_CHAR, output, sizeof(output), &cnamesize) != SQL_ERROR) {
-		printf("Data ??\n");
-		return 1;
-	}
+	CHKGetData(1, SQL_C_CHAR, output, sizeof(output), &cnamesize, "E");
 	ReadError();
 
 	Disconnect();

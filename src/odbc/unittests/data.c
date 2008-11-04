@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.24 2008-10-29 09:33:50 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.25 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -37,15 +37,9 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 		sprintf(sbuf, "SELECT CONVERT(%s, %s) COLLATE Latin1_General_CI_AS AS data", type, value_to_convert);
 	Command(Statement, sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
-	CHK(SQLFetch, (Statement));
-	if (SQLFetch(Statement) != SQL_NO_DATA) {
-		fprintf(stderr, "Row not expected\n");
-		exit(1);
-	}
-	if (SQLMoreResults(Statement) != SQL_NO_DATA) {
-		fprintf(stderr, "Recordset not expected\n");
-		exit(1);
-	}
+	CHKFetch("S");
+	CHKFetch("No");
+	CHKMoreResults("No");
 
 	/* test results */
 	sbuf[0] = 0;

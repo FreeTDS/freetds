@@ -3,19 +3,19 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.8 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.9 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 AutoCommit(int onoff)
 {
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0));
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0, "S");
 }
 
 static void
 EndTransaction(SQLSMALLINT type)
 {
-	CHK(SQLEndTran, (SQL_HANDLE_DBC, Connection, type));
+	CHKEndTran(SQL_HANDLE_DBC, Connection, type, "S");
 }
 
 int
@@ -50,15 +50,13 @@ main(int argc, char *argv[])
 	Connect();
 
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0));
+	CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0, "S");
 
 	i = 1;
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &i, 0, NULL));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &i, 0, NULL, "S");
 
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) "update test_timeout set t = 'bad' where n = ?", SQL_NTS));
-	ret = SQLExecute(Statement);
-	if (ret != SQL_ERROR)
-		ODBC_REPORT_ERROR("SQLExecute success ??");
+	CHKPrepare((SQLCHAR *) "update test_timeout set t = 'bad' where n = ?", SQL_NTS, "S");
+	CHKExecute("E");
 	EndTransaction(SQL_ROLLBACK);
 
 	/* TODO should return error S1T00 Timeout expired, test error message */

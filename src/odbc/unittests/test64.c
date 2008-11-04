@@ -1,7 +1,7 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.5 2008-02-13 08:52:09 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -33,7 +33,7 @@ check_ipd_params(void)
 static void
 set_ipd_params1(SQLULEN *ptr)
 {
-	CHK(SQLSetStmtAttr,(Statement, SQL_ATTR_PARAMS_PROCESSED_PTR, ptr, 0));
+	CHKSetStmtAttr(SQL_ATTR_PARAMS_PROCESSED_PTR, ptr, 0, "S");
 }
 
 static void
@@ -100,8 +100,8 @@ test_params(void)
 		(*p)(&len);
 		check_ipd_params();
 
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0));
-		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens));
+		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
+		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
 
 		Command(Statement, "INSERT INTO #tmp1(i) VALUES(?)");
 		SQLMoreResults(Statement);
@@ -150,7 +150,7 @@ check_ird_params(void)
 static void
 set_ird_params1(SQLULEN *ptr)
 {
-	CHK(SQLSetStmtAttr,(Statement, SQL_ATTR_ROWS_FETCHED_PTR, ptr, 0));
+	CHKSetStmtAttr(SQL_ATTR_ROWS_FETCHED_PTR, ptr, 0, "S");
 }
 
 static void
@@ -205,17 +205,17 @@ test_rows(void)
 			(*p)(&len);
 		check_ird_params();
 
-//		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0));
-//		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens));
+//		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
+//		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
 
 		CHK(SQLBindCol, (Statement, 1, SQL_C_ULONG, ids, 0, id_lens));
 		if (*p) {
-			CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_ARRAY_SIZE, (void *) int2ptr(ARRAY_SIZE), 0));
+			CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
 
 			Command(Statement, "SELECT DISTINCT i FROM #tmp1");
 			SQLFetch(Statement);
 		} else {
-			CHK(SQLSetStmtAttr, (Statement, SQL_ROWSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0));
+			CHKSetStmtAttr(SQL_ROWSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
 			Command(Statement, "SELECT DISTINCT i FROM #tmp1");
 			CHK(SQLExtendedFetch, (Statement, SQL_FETCH_NEXT, 0, &len, NULL));
 		}

@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.9 2008-02-08 09:28:03 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.10 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -39,21 +39,21 @@ Test(int bind_before)
 	Command(Statement, sp_define);
 
 	if (!bind_before)
-		CHK(SQLPrepare, (Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)));
+		CHKPrepare((SQLCHAR *) SP_TEXT, strlen(SP_TEXT), "S");
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode));
-	CHK(SQLBindParameter, (Statement, 2, SQL_PARAM_INPUT,  SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam,    0, &cbInParam));
-	CHK(SQLBindParameter, (Statement, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam,   0, &cbOutParam));
+	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode, "S");
+	CHKBindParameter(2, SQL_PARAM_INPUT,  SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam,    0, &cbInParam,    "S");
+	CHKBindParameter(3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam,   0, &cbOutParam,   "S");
 
 	OutString[0] = '\0';
 	strcpy(OutString, "Test");	/* Comment this line and we get an error!  Why? */
-	CHK(SQLBindParameter, (Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, 
-	    OUTSTRING_LEN, &cbOutString));
+	CHKBindParameter(4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, 
+	    OUTSTRING_LEN, &cbOutString, "S");
 
 	if (bind_before)
-		CHK(SQLPrepare, (Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)));
+		CHKPrepare((SQLCHAR *) SP_TEXT, strlen(SP_TEXT), "S");
 
-	CHK(SQLExecute, (Statement));
+	CHKExecute("S");
 
 	Command(Statement, "DROP PROC spTestProc");
 

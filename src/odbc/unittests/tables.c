@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.15 2008-10-29 09:33:50 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.16 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef WIN32
@@ -15,7 +15,7 @@ static void
 ReadCol(int i)
 {
 	strcpy(output, "NULL");
-	CHK(SQLGetData, (Statement, i, SQL_C_CHAR, output, sizeof(output), &cnamesize));
+	CHKGetData(i, SQL_C_CHAR, output, sizeof(output), &cnamesize, "S");
 }
 
 static void
@@ -35,14 +35,14 @@ TestName(int index, const char *expected_name)
 	} while(0)
 
 	/* retrieve with SQLDescribeCol */
-	CHK(SQLDescribeCol, (Statement, index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL));
+	CHKDescribeCol(index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL, "S");
 	NAME_TEST;
 
 	/* retrieve with SQLColAttribute */
-	CHK(SQLColAttribute, (Statement, index, SQL_DESC_NAME, name, sizeof(name), &len, NULL));
+	CHKColAttribute(index, SQL_DESC_NAME, name, sizeof(name), &len, NULL, "S");
 	if (db_is_microsoft())
 		NAME_TEST;
-	CHK(SQLColAttribute, (Statement, index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL));
+	CHKColAttribute(index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL, "S");
 	NAME_TEST;
 }
 
@@ -57,11 +57,11 @@ static void
 DoTest(const char *type, int row_returned)
 {
 	int table_len = SQL_NULL_DATA;
-	SQLRETURN ret;
+	SQLRETURN RetCode;
 	char table_buf[80];
 	int found = 0;
 
-#define PARAM(x) (SQLCHAR *) (x), (x) ? strlen(x) : SQL_NULL_DATA
+#define LEN(x) (x) ? strlen(x) : SQL_NULL_DATA
 
 	if (table) {
 		strcpy(table_buf, table);
@@ -70,11 +70,7 @@ DoTest(const char *type, int row_returned)
 	}
 
 	printf("Test type '%s' %s row\n", type ? type : "", row_returned ? "with" : "without");
-	if (!SQL_SUCCEEDED(SQLTables(Statement, PARAM(catalog), PARAM(schema), (SQLCHAR *) table_buf, table_len, PARAM(type)))) {
-		printf("Unable to execute statement\n");
-		CheckReturn();
-		exit(1);
-	}
+	CHKTables((SQLCHAR *) catalog, LEN(catalog), (SQLCHAR *) schema, LEN(schema), (SQLCHAR *) table_buf, table_len, (SQLCHAR *) type, LEN(type), "SI");
 
 	/* test column name (for DBD::ODBC) */
 	TestName(1, use_odbc_version3 || !driver_is_freetds() ? "TABLE_CAT" : "TABLE_QUALIFIER");
@@ -84,11 +80,7 @@ DoTest(const char *type, int row_returned)
 	TestName(5, "REMARKS");
 
 	if (row_returned) {
-		if (!SQL_SUCCEEDED(SQLFetch(Statement))) {
-			printf("Unable to fetch row\n");
-			CheckReturn();
-			exit(1);
-		}
+		CHKFetch("SI");
 
 		if (!expect) {
 			ReadCol(1);
@@ -114,8 +106,7 @@ DoTest(const char *type, int row_returned)
 		if (strcmp(output, expect) == 0)
 			found = 1;
 	}
-	ret = SQLFetch(Statement);
-	while (ret == SQL_SUCCESS && row_returned > 1) {
+	while (CHKFetch("SNo") == SQL_SUCCESS && row_returned > 1) {
 		if (expect) {
 			ReadCol(expect_col);
 			if (strcmp(output, expect) == 0)
@@ -123,12 +114,10 @@ DoTest(const char *type, int row_returned)
 		}
 		if (row_returned < 2)
 			break;
-		ret = SQLFetch(Statement);
 	}
 
-	if (ret != SQL_NO_DATA) {
+	if (RetCode != SQL_NO_DATA) {
 		printf("Unexpected data\n");
-		CheckReturn();
 		exit(1);
 	}
 
@@ -137,11 +126,7 @@ DoTest(const char *type, int row_returned)
 		exit(1);
 	}
 
-	if (!SQL_SUCCEEDED(SQLCloseCursor(Statement))) {
-		printf("Unable to close cursr\n");
-		CheckReturn();
-		exit(1);
-	}
+	CHKCloseCursor("SI");
 	expect = NULL;
 	expect_col = 3;
 }

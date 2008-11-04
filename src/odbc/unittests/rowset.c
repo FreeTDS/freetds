@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: rowset.c,v 1.3 2008-08-27 07:59:25 freddy77 Exp $";
+static char software_version[] = "$Id: rowset.c,v 1.4 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -11,24 +11,14 @@ ReadError(void)
 {
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	if (!SQL_SUCCEEDED(SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL))) {
-		printf("SQLGetDiagRec should not fail\n");
-		exit(1);
-	}
+	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 
 static void
 test_err(int n)
 {
-	SQLRETURN rc;
-
-	rc = SQLSetStmtAttr(Statement, SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(n), 0);
-	if (rc != SQL_ERROR) {
-		fprintf(stderr, "SQLSetStmtAttr should fail\n");
-		Disconnect();
-		exit(1);
-        }
+	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(n), 0, "E");
 	ReadError();
 	if (strcmp(odbc_sqlstate, "HY024") != 0) {
 		fprintf(stderr, "Unexpected sql state returned\n");
@@ -49,13 +39,12 @@ main(int argc, char *argv[])
 #endif
 	SQLUSMALLINT statuses[10];
 	char buf[32];
-	SQLRETURN rc;
 
 	use_odbc_version3 = 1;
 	Connect();
 
 	/* initial value should be 1 */
-	CHK(SQLGetStmtAttr, (Statement, SQL_ROWSET_SIZE, &len, sizeof(len), NULL));
+	CHKGetStmtAttr(SQL_ROWSET_SIZE, &len, sizeof(len), NULL, "S");
 	if (len != 1) {
 		fprintf(stderr, "len should be 1\n");
 		Disconnect();
@@ -70,8 +59,8 @@ main(int argc, char *argv[])
 	CheckCursor();
 
 	/* set some correct values */
-	CHK(SQLSetStmtAttr, (Statement, SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(2), 0));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(1), 0));
+	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(2), 0, "S");
+	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(1), 0, "S");
 
 	/* now check that SQLExtendedFetch works as expected */
 	Command(Statement, "CREATE TABLE #rowset(n INTEGER, c VARCHAR(20))");
@@ -86,16 +75,14 @@ main(int argc, char *argv[])
 	}
 
 	ResetStatement();
-	CHK(SQLSetStmtOption, (Statement, SQL_ATTR_CURSOR_TYPE, SQL_CURSOR_DYNAMIC));
-	rc = CommandWithResult(Statement, "SELECT * FROM #rowset ORDER BY n");
-	if (!SQL_SUCCEEDED(rc))
-		ODBC_REPORT_ERROR("SQLExecDirect error");
+	CHKSetStmtOption(SQL_ATTR_CURSOR_TYPE, SQL_CURSOR_DYNAMIC, "S");
+	CHKExecDirect((SQLCHAR *) "SELECT * FROM #rowset ORDER BY n", SQL_NTS, "SI");
 
-	CHK(SQLBindCol, (Statement, 2, SQL_C_CHAR, buf, sizeof(buf), &len));
+	CHKBindCol(2, SQL_C_CHAR, buf, sizeof(buf), &len, "S");
 
 	row_count = 0xdeadbeef;
 	memset(statuses, 0x55, sizeof(statuses));
-	CHK(SQLExtendedFetch, (Statement, SQL_FETCH_NEXT, 1, &row_count, statuses));
+	CHKExtendedFetch(SQL_FETCH_NEXT, 1, &row_count, statuses, "S");
 
 	if (row_count != 1 || statuses[0] != SQL_ROW_SUCCESS || strcmp(buf, "aaaaaaaaa") != 0) {
 		fprintf(stderr, "Invalid result\n");

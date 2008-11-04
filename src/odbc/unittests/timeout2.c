@@ -14,7 +14,7 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.5 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: timeout2.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(__MINGW32__) || defined(WIN32)
@@ -24,7 +24,6 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int
 main(int argc, char *argv[])
 {
-	SQLRETURN ret;
 	int i;
 
 	Connect();
@@ -36,17 +35,15 @@ main(int argc, char *argv[])
 
 		printf("Loop %d\n", i);
 
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 10, SQL_IS_UINTEGER));
+		CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 10, SQL_IS_UINTEGER, "S");
 
-		CHK(SQLPrepare, (Statement, (SQLCHAR*) "select * from #timeout", SQL_NTS));
-		CHK(SQLExecute, (Statement));
+		CHKPrepare((SQLCHAR*) "select * from #timeout", SQL_NTS, "S");
+		CHKExecute("S");
 
 		do {
-			while ((ret=SQLFetch(Statement)) == SQL_SUCCESS)
+			while (CHKFetch("SNo") == SQL_SUCCESS)
 				;
-			assert(ret == SQL_NO_DATA);
-		} while ((ret = SQLMoreResults(Statement)) == SQL_SUCCESS);
-		assert(ret == SQL_NO_DATA);
+		} while (CHKMoreResults("SNo") == SQL_SUCCESS);
 
 		if (i == 0) {
 			printf("Sleep 15 seconds to test if timeout occurs\n");

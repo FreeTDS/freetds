@@ -45,8 +45,10 @@ exit_forced(int s)
 static void
 sigalrm_handler(int s)
 {
+	SQLRETURN RetCode;
+
 	printf(">>>> SQLCancel() ...\n");
-	CHK(SQLCancel, (Statement));
+	CHKCancel("S");
 	printf(">>>> ... SQLCancel done\n");
 
 	alarm(4);
@@ -56,7 +58,7 @@ sigalrm_handler(int s)
 int
 main(int argc, char **argv)
 {
-	SQLRETURN rcode;
+	SQLRETURN RetCode;
 
 	use_odbc_version3 = 1;
 	Connect();
@@ -64,19 +66,15 @@ main(int argc, char **argv)
 	printf(">> Wait 5 minutes...\n");
 	alarm(4);
 	signal(SIGALRM, sigalrm_handler);
-	rcode = SQLExecDirect(Statement, (SQLCHAR *) "WAITFOR DELAY '000:05:00'", SQL_NTS);
+	CHKExecDirect((SQLCHAR *) "WAITFOR DELAY '000:05:00'", SQL_NTS, "E");
 	alarm(0);
-	if (rcode != SQL_ERROR) {
-		fprintf(stderr, "SQLExecDirect should return error\n");
-		return 1;
-	}
 	getErrorInfo(SQL_HANDLE_STMT, Statement);
 	if (strcmp(sqlstate, "HY008") != 0) {
 		fprintf(stderr, "Unexpected sql state returned\n");
 		Disconnect();
 		return 1;
 	}
-	printf(">> ...  done rcode = %d\n", rcode);
+	printf(">> ...  done RetCode = %d\n", RetCode);
 
 	ResetStatement();
 

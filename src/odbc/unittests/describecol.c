@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.14 2008-01-20 14:23:59 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.15 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -268,8 +268,7 @@ main(int argc, char *argv[])
 				continue;
 			}
 
-			if (!SQL_SUCCEEDED(SQLFetch(Statement)))
-				ODBC_REPORT_ERROR("Unable to fetch row");
+			CHKFetch("SI");
 			SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 			get_attr_p = get_attr_ird;
 		}

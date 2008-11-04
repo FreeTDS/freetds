@@ -1,14 +1,12 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: date.c,v 1.10 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: date.c,v 1.11 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 DoTest(int n)
 {
-	int res;
-
 	SQLCHAR output[256];
 
 	SQLSMALLINT colType;
@@ -20,18 +18,15 @@ DoTest(int n)
 
 	Command(Statement, "select convert(datetime, '2002-12-27 18:43:21')");
 
-	res = SQLFetch(Statement);
-	if (res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO)
-		ODBC_REPORT_ERROR("Unable to fetch row");
-
-	CHK(SQLDescribeCol, (Statement, 1, output, sizeof(output), NULL, &colType, &colSize, &colScale, &colNullable));
+	CHKFetch("SI");
+	CHKDescribeCol(1, output, sizeof(output), NULL, &colType, &colSize, &colScale, &colNullable, "S");
 
 	if (n == 0) {
 		memset(&ts, 0, sizeof(ts));
-		CHK(SQLGetData, (Statement, 1, SQL_C_TIMESTAMP, &ts, sizeof(ts), &dataSize));
+		CHKGetData(1, SQL_C_TIMESTAMP, &ts, sizeof(ts), &dataSize, "S");
 		sprintf((char *) output, "%04d-%02d-%02d %02d:%02d:%02d.000", ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second);
 	} else {
-		CHK(SQLGetData, (Statement, 1, SQL_C_CHAR, output, sizeof(output), &dataSize));
+		CHKGetData(1, SQL_C_CHAR, output, sizeof(output), &dataSize, "S");
 	}
 
 	printf("Date returned: %s\n", output);
@@ -40,13 +35,8 @@ DoTest(int n)
 		exit(1);
 	}
 
-	res = SQLFetch(Statement);
-	if (res != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("Unable to fetch row");
-
-	res = SQLCloseCursor(Statement);
-	if (!SQL_SUCCEEDED(res))
-		ODBC_REPORT_ERROR("Unable to close cursor");
+	CHKFetch("No");
+	CHKCloseCursor("SI");
 }
 
 int

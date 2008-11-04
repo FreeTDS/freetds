@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test conversion of Hebrew characters (which have shift sequences) */
-static char software_version[] = "$Id: utf8_2.c,v 1.5 2008-10-31 14:35:23 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -37,7 +37,6 @@ main(int argc, char *argv[])
 	char tmp[128];
 	char out[32];
 	SQLLEN n_len;
-	int res;
 	SQLSMALLINT len;
 	const char * const*p;
 	int n;
@@ -48,12 +47,7 @@ main(int argc, char *argv[])
 	/* connect string using DSN */
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;ClientCharset=UTF-8;", SERVER, USER, PASSWORD, DATABASE);
-	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
-		CheckReturn();
-		return 1;
-	}
+	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "SI");
 	if (!driver_is_freetds()) {
 		Disconnect();
 		printf("Driver is not FreeTDS, exiting\n");
@@ -66,7 +60,7 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	CHK(SQLAllocStmt, (Connection, &Statement));
+	CHKAllocStmt(&Statement, "S");
 
 	/* create test table */
 	Command(Statement, "CREATE TABLE #tmpHebrew (i INT, v VARCHAR(10) COLLATE Hebrew_CI_AI)");
@@ -81,9 +75,9 @@ main(int argc, char *argv[])
 	Command(Statement, "SELECT v FROM #tmpHebrew");
 
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
-	CHK(SQLBindCol, (Statement, 1, SQL_C_CHAR, out, sizeof(out), &n_len));
+	CHKBindCol(1, SQL_C_CHAR, out, sizeof(out), &n_len, "S");
 	for (n = 0, p = strings; p[n]; ++n) {
-		CHK(SQLFetch, (Statement));
+		CHKFetch("S");
 		if (n_len != strlen(p[n]) || strcmp(p[n], out) != 0) {
 			fprintf(stderr, "Wrong row %d %s\n", n, out);
 			Disconnect();

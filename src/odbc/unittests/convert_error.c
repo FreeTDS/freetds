@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.8 2008-01-31 09:13:08 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.9 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -22,13 +22,13 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 	++test_num;
 	sprintf(sql, "insert into #test_output values (%s, %s)", bind1, bind2);
 
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) sql, strlen(sql)));
+	CHKPrepare((SQLCHAR *) sql, strlen(sql), "S");
 	if (bind1[0] == '?')
-		CHK(SQLBindParameter, (Statement, id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 3, 0, &test_num, 0, &ind));
+		CHKBindParameter(id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 3, 0, &test_num, 0, &ind, "S");
 	if (bind2[0] == '?')
-		CHK(SQLBindParameter, (Statement, id++, SQL_PARAM_INPUT, SQL_C_CHAR, type2, strlen(val) + 1, 0, (SQLCHAR *) val,
-					 0, &ind));
-	CHK(SQLExecute, (Statement));
+		CHKBindParameter(id++, SQL_PARAM_INPUT, SQL_C_CHAR, type2, strlen(val) + 1, 0, (SQLCHAR *) val,
+					 0, &ind, "S");
+	CHKExecute("S");
 }
 
 int

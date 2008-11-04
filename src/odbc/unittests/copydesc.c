@@ -2,7 +2,7 @@
 
 /* Test SQLCopyDesc and SQLAllocHandle(SQL_HANDLE_DESC) */
 
-static char software_version[] = "$Id: copydesc.c,v 1.4 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: copydesc.c,v 1.5 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -15,20 +15,20 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	CHK(SQLGetStmtAttr, (Statement, SQL_ATTR_APP_ROW_DESC, &ard, 0, NULL));
+	CHKGetStmtAttr(SQL_ATTR_APP_ROW_DESC, &ard, 0, NULL, "S");
 
-	CHK(SQLBindCol, (Statement, 1, SQL_C_SLONG, &id, sizeof(SQLINTEGER), &ind1));
-	CHK(SQLBindCol, (Statement, 2, SQL_C_CHAR, name, sizeof(name), &ind2));
+	CHKBindCol(1, SQL_C_SLONG, &id, sizeof(SQLINTEGER), &ind1, "S");
+	CHKBindCol(2, SQL_C_CHAR, name, sizeof(name), &ind2, "S");
 
-	CHK(SQLAllocHandle, (SQL_HANDLE_DESC, Connection, &ard2));
+	CHKAllocHandle(SQL_HANDLE_DESC, Connection, &ard2, "S");
 
 	/*
 	 * this is an additional test to test additional allocation 
 	 * As of 0.64 for a bug in SQLAllocDesc we only allow to allocate one
 	 */
-	CHK(SQLAllocHandle, (SQL_HANDLE_DESC, Connection, &ard3));
+	CHKAllocHandle(SQL_HANDLE_DESC, Connection, &ard3, "S");
 
-	CHK(SQLCopyDesc, (ard, ard2));
+	CHKR(SQLCopyDesc, (ard, ard2), "S");
 
 	Disconnect();
 

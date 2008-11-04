@@ -7,21 +7,20 @@
  * TODO make it work and add to Makefile.am
  */
 
-static char software_version[] = "$Id: rownumber.c,v 1.3 2008-02-08 09:28:04 freddy77 Exp $";
+static char software_version[] = "$Id: rownumber.c,v 1.4 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 CheckRowNum(int n, int line)
 {
-	SQLRETURN res;
 	SQLUINTEGER value;
 
-	res = SQLGetStmtAttr(Statement, SQL_ATTR_ROW_NUMBER, &value, sizeof(value), NULL);
-	if (res != SQL_SUCCESS) {
-		if (res == SQL_ERROR && n < 0)
-			return;
-		ODBC_REPORT_ERROR("SQLGetStmtAttr failed");
+	if (n < 0) {
+		CHKGetStmtAttr(SQL_ATTR_ROW_NUMBER, &value, sizeof(value), NULL, "E");
+		return;
 	}
+
+	CHKGetStmtAttr(SQL_ATTR_ROW_NUMBER, &value, sizeof(value), NULL, "S");
 	if (value != n) {
 		fprintf(stderr, "Expected %d rows returned %d line %d\n", n, (int) value, line);
 		exit(1);
@@ -32,59 +31,35 @@ CheckRowNum(int n, int line)
 #define CHECK_ROWS(n) CheckRowNum(n,__LINE__)
 
 static void
-NextResults(SQLRETURN expected)
-{
-	if (SQLMoreResults(Statement) != expected) {
-		if (expected == SQL_SUCCESS)
-			fprintf(stderr, "Expected another recordset\n");
-		else
-			fprintf(stderr, "Not expected another recordset\n");
-		exit(1);
-	}
-}
-
-static void
-Fetch(SQLRETURN expected)
-{
-	if (SQLFetch(Statement) != expected) {
-		if (expected == SQL_SUCCESS)
-			fprintf(stderr, "Expected another record\n");
-		else
-			fprintf(stderr, "Not expected another record\n");
-		exit(1);
-	}
-}
-
-static void
 DoTest()
 {
 	int n = 0;
 	static const char query[] = "SELECT * FROM #tmp1 ORDER BY i SELECT * FROM #tmp1 WHERE i < 3 ORDER BY i";
 
 	/* execute a batch command and check row number */
-	CHK(SQLExecDirect, (Statement, (SQLCHAR *) query, SQL_NTS));
+	CHKExecDirect((SQLCHAR *) query, SQL_NTS, "S");
 
 	CHECK_ROWS(-1);
 	printf("Result %d\n", ++n);
-	Fetch(SQL_SUCCESS);
+	CHKFetch("S");
 	CHECK_ROWS(0);
-	Fetch(SQL_SUCCESS);
+	CHKFetch("S");
 	CHECK_ROWS(0);
-	Fetch(SQL_SUCCESS);
+	CHKFetch("S");
 	CHECK_ROWS(0);
-	Fetch(SQL_NO_DATA);
+	CHKFetch("No");
 	CHECK_ROWS(-1);
-	NextResults(SQL_SUCCESS);
+	CHKMoreResults("S");
 	CHECK_ROWS(-1);
 
 	printf("Result %d\n", ++n);
-	Fetch(SQL_SUCCESS);
+	CHKFetch("S");
 	CHECK_ROWS(0);
-	Fetch(SQL_SUCCESS);
+	CHKFetch("S");
 	CHECK_ROWS(0);
-	Fetch(SQL_NO_DATA);
+	CHKFetch("No");
 	CHECK_ROWS(-1);
-	NextResults(SQL_NO_DATA);
+	CHKMoreResults("No");
 	CHECK_ROWS(-1);
 }
 

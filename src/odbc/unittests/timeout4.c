@@ -39,7 +39,7 @@
  * prepare or execute a query. This should fail and return an error message.
  */
 
-static char software_version[] = "$Id: timeout4.c,v 1.2 2008-01-29 14:30:49 freddy77 Exp $";
+static char software_version[] = "$Id: timeout4.c,v 1.3 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -80,7 +80,7 @@ static int
 Test(int direct)
 {
 	char buf[256];
-	SQLRETURN ret;
+	SQLRETURN RetCode;
 	char sqlstate[6];
 	time_t start_time, end_time;
 
@@ -91,28 +91,19 @@ Test(int direct)
 		return 1;
 	}
 
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 10, SQL_IS_UINTEGER));
+	CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 10, SQL_IS_UINTEGER, "S");
 
 	alarm(30);
 	start_time = time(NULL);
 	if (direct)
-		ret = SQLExecDirect(Statement, (SQLCHAR *) "SELECT 1", SQL_NTS);
+		CHKExecDirect((SQLCHAR *) "SELECT 1", SQL_NTS, "E");
 	else
-		ret = SQLPrepare(Statement, (SQLCHAR *) "SELECT 1", SQL_NTS);
+		CHKPrepare((SQLCHAR *) "SELECT 1", SQL_NTS, "E");
 	end_time = time(NULL);
 	alarm(0);
-	if (ret != SQL_ERROR) {
-		fprintf(stderr, "Error expected\n");
-		return 1;
-	}
 
 	strcpy(sqlstate, "XXXXX");
-	ret = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL);
-	if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
-		fprintf(stderr, "Error not set\n");
-		Disconnect();
-		return 1;
-	}
+	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL, "SI");
 	sqlstate[5] = 0;
 	printf("Message: %s - %s\n", sqlstate, buf);
 	if (strcmp(sqlstate, "HYT00") || !strstr(buf, "Timeout")) {

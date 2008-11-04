@@ -3,7 +3,7 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.4 2008-03-18 08:22:23 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.5 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -14,25 +14,20 @@ ReadError(void)
 {
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	if (!SQL_SUCCEEDED
-	    (SQLGetDiagRec
-	     (SQL_HANDLE_DBC, Connection, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL))) {
-		printf("SQLGetDiagRec should not fail\n");
-		exit(1);
-	}
+	CHKGetDiagRec(SQL_HANDLE_DBC, Connection, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 
 static void
 AutoCommit(int onoff)
 {
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0));
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0, "S");
 }
 
 static void
 EndTransaction(SQLSMALLINT type)
 {
-	CHK(SQLEndTran, (SQL_HANDLE_DBC, Connection, type));
+	CHKEndTran(SQL_HANDLE_DBC, Connection, type, "S");
 }
 
 #define SWAP(t,a,b) do { t xyz = a; a = b; b = xyz; } while(0)
@@ -61,10 +56,8 @@ CheckDirtyRead(void)
 		return 0;	/* no dirty read */
 	}
 
-	CHK(SQLFetch, (Statement));
-	ret = SQLFetch(Statement);
-	if (ret != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("other rows ??");
+	CHKFetch("S");
+	CHKFetch("No");
 	SQLMoreResults(Statement);
 	EndTransaction(SQL_ROLLBACK);
 	SWAP_CONN();
@@ -79,7 +72,7 @@ CheckNonrepeatableRead(void)
 
 	/* transaction 2 read a row */
 	SWAP_CONN();
-	CHK(CommandWithResult, (Statement, "SELECT * FROM test_transaction WHERE t = 'initial' AND n = 1"));
+	Command(Statement, "SELECT * FROM test_transaction WHERE t = 'initial' AND n = 1");
 	SQLMoreResults(Statement);
 
 	/* transaction 1 change a row and commit */
@@ -99,10 +92,8 @@ CheckNonrepeatableRead(void)
 	/* second transaction try to fetch commited row */
 	Command(Statement, "SELECT * FROM test_transaction WHERE t = 'second' AND n = 1");
 
-	CHK(SQLFetch, (Statement));
-	ret = SQLFetch(Statement);
-	if (ret != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("other rows ??");
+	CHKFetch("S");
+	CHKFetch("No");
 	SQLMoreResults(Statement);
 	EndTransaction(SQL_ROLLBACK);
 	SWAP_CONN();
@@ -118,7 +109,7 @@ CheckPhantom(void)
 
 	/* transaction 2 read a row */
 	SWAP_CONN();
-	CHK(CommandWithResult, (Statement, "SELECT * FROM test_transaction WHERE t = 'initial'"));
+	Command(Statement, "SELECT * FROM test_transaction WHERE t = 'initial'");
 	SQLMoreResults(Statement);
 
 	/* transaction 1 insert a row that match critera */
@@ -138,11 +129,9 @@ CheckPhantom(void)
 	/* second transaction try to fetch commited row */
 	Command(Statement, "SELECT * FROM test_transaction WHERE t = 'initial'");
 
-	CHK(SQLFetch, (Statement));
-	CHK(SQLFetch, (Statement));
-	ret = SQLFetch(Statement);
-	if (ret != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("other rows ??");
+	CHKFetch("S");
+	CHKFetch("S");
+	CHKFetch("No");
 	SQLMoreResults(Statement);
 	EndTransaction(SQL_ROLLBACK);
 	SWAP_CONN();
@@ -158,7 +147,7 @@ static int global_txn;
 static void
 my_attrs(void)
 {
-	CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(global_txn), 0));
+	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(global_txn), 0, "S");
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
 }
 
@@ -181,9 +170,9 @@ Test(int txn, const char *expected)
 	if (test_with_connect) {
 		Disconnect();
 		ConnectWithTxn(txn);
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0));
+		CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0, "S");
 	} else {
-		CHK(SQLSetConnectAttr, (Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(txn), 0));
+		CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(txn), 0, "S");
 	}
 	SWAP_CONN();
 
@@ -219,7 +208,7 @@ main(int argc, char *argv[])
 	Command(Statement, "IF OBJECT_ID('test_transaction') IS NOT NULL DROP TABLE test_transaction");
 	Command(Statement, "CREATE TABLE test_transaction(n NUMERIC(18,0) PRIMARY KEY, t VARCHAR(30))");
 
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0));
+	CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0, "S");
 
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
 	Command(Statement, "INSERT INTO test_transaction(n, t) VALUES(1, 'initial')");
@@ -258,7 +247,7 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0));
+	CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0, "S");
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
 
 	SWAP_CONN();

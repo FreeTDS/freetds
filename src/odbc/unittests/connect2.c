@@ -5,7 +5,7 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.5 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: connect2.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -15,27 +15,14 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	if (SQLAllocEnv(&Environment) != SQL_SUCCESS) {
-		printf("Unable to allocate env\n");
-		exit(1);
-	}
-	if (SQLAllocConnect(Environment, &Connection) != SQL_SUCCESS) {
-		printf("Unable to allocate connection\n");
-		SQLFreeEnv(Environment);
-		exit(1);
-	}
+	CHKR(SQLAllocEnv, (&Environment), "S");
+	CHKR(SQLAllocConnect, (Environment, &Connection), "S");
 }
 
 static void
 normal_connect(void)
 {
-	int res;
-
-	res = SQLConnect(Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS);
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
-		CheckReturn();
-	}
+	CHKR(SQLConnect, (Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS), "SI");
 }
 
 static void
@@ -43,13 +30,8 @@ driver_connect(const char *conn_str)
 {
 	char tmp[1024];
 	SQLSMALLINT len;
-	int res;
 
-	res = SQLDriverConnect(Connection, NULL, (SQLCHAR *) conn_str, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT);
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to open data source (ret=%d)\n", res);
-		CheckReturn();
-	}
+	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) conn_str, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "SI");
 }
 
 static void
@@ -57,14 +39,9 @@ check_dbname(const char *dbname)
 {
 	SQLINTEGER len;
 	char out[512];
-	int res;
 
 	len = sizeof(out);
-	res = SQLGetConnectAttr(Connection, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) out, sizeof(out), &len);
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to get database name to %s\n", dbname);
-		CheckReturn();
-	}
+	CHKGetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) out, sizeof(out), &len, "SI");
 
 	if (strcmp(out, dbname) != 0) {
 		fprintf(stderr, "Current database (%s) is not %s\n", out, dbname);
@@ -75,20 +52,13 @@ check_dbname(const char *dbname)
 static void
 set_dbname(const char *dbname)
 {
-	int res;
-
-	res = SQLSetConnectAttr(Connection, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) dbname, strlen(dbname));
-	if (!SQL_SUCCEEDED(res)) {
-		fprintf(stderr, "Unable to set database name to %s\n", dbname);
-		CheckReturn();
-	}
+	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) dbname, strlen(dbname), "SI");
 }
 
 int
 main(int argc, char *argv[])
 {
 	char tmp[1024];
-	int res;
 
 	if (read_login_info())
 		exit(1);
@@ -107,11 +77,7 @@ main(int argc, char *argv[])
 
 	printf("SQLConnect after not existing..\n");
 	strcpy(tmp, "IDontExist");
-	res = SQLSetConnectAttr(Connection, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) tmp, strlen(tmp));
-	if (res != SQL_ERROR) {
-		fprintf(stderr, "SQLSetConnectAttr should fail\n");
-		return 1;
-	}
+	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) tmp, strlen(tmp), "E");
 	check_dbname("tempdb");
 
 	Disconnect();

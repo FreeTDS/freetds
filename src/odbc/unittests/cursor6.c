@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with no binded columns */
 
-static char software_version[] = "$Id: cursor6.c,v 1.3 2008-07-16 07:47:02 freddy77 Exp $";
+static char software_version[] = "$Id: cursor6.c,v 1.4 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int bind_all = 0;
@@ -25,18 +25,18 @@ static void Test(void)
 
 	/* this should not fail or return warnings */
 	if (use_cursors) {
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CONCURRENCY, int2ptr(SQL_CONCUR_READ_ONLY), 0));
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_TYPE, int2ptr(SQL_CURSOR_STATIC), 0));
+		CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, int2ptr(SQL_CONCUR_READ_ONLY), 0, "S");
+		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, int2ptr(SQL_CURSOR_STATIC), 0, "S");
 	}
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) "SELECT c, i FROM #cursor6_test", SQL_NTS));
-	CHK(SQLExecute, (Statement));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_BIND_TYPE, int2ptr(sizeof(data[0])), 0));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_ARRAY_SIZE, int2ptr(ROWS), 0));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROW_STATUS_PTR, statuses, 0));
-	CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0));
+	CHKPrepare((SQLCHAR *) "SELECT c, i FROM #cursor6_test", SQL_NTS, "S");
+	CHKExecute("S");
+	CHKSetStmtAttr(SQL_ATTR_ROW_BIND_TYPE, int2ptr(sizeof(data[0])), 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, int2ptr(ROWS), 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_ROW_STATUS_PTR, statuses, 0, "S");
+	CHKSetStmtAttr(SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0, "S");
 	if (bind_all)
-		CHK(SQLBindCol, (Statement, 1, SQL_C_CHAR, &data[0].c, sizeof(data[0].c), &data[0].ind_c));
-	CHK(SQLBindCol, (Statement, 2, SQL_C_LONG, &data[0].i, sizeof(data[0].i), &data[0].ind_i));
+		CHKBindCol(1, SQL_C_CHAR, &data[0].c, sizeof(data[0].c), &data[0].ind_c, "S");
+	CHKBindCol(2, SQL_C_LONG, &data[0].i, sizeof(data[0].i), &data[0].ind_i, "S");
 
 #define FILL(s, n) do { \
 	int _n; for (_n = 0; _n < sizeof(s)/sizeof(s[0]); ++_n) s[_n] = n; \
@@ -46,9 +46,9 @@ static void Test(void)
 	data[0].i = 0xdeadbeef;
 	data[1].i = 0xdeadbeef;
 	if (normal_fetch)
-		CHK(SQLFetch, (Statement));
+		CHKFetch("S");
 	else
-		CHK(SQLFetchScroll, (Statement, SQL_FETCH_NEXT, 0));
+		CHKFetchScroll(SQL_FETCH_NEXT, 0, "S");
 
 	/* now check row numbers */
 	printf("num_row %d statuses[0] %d statuses[1] %d odbc3 %d\n", (int) num_row,
@@ -69,9 +69,9 @@ static void Test(void)
 	FILL(statuses, 8765);
 	num_row = -3;
 	if (normal_fetch)
-		CHK(SQLFetch, (Statement));
+		CHKFetch("S");
 	else
-		CHK(SQLFetchScroll, (Statement, SQL_FETCH_NEXT, 0));
+		CHKFetchScroll(SQL_FETCH_NEXT, 0, "S");
 }
 
 static void Init(void)

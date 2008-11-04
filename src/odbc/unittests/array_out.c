@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.12 2008-01-29 14:30:48 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.13 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -74,7 +74,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 	SQLBindCol(Statement, 1, SQL_C_ULONG, &IDS(0), 0, &ID_LENS(0));
 	SQLBindCol(Statement, 2, SQL_C_CHAR, DESCS(0), desc_len, &DESC_LENS(0));
 
-	CHK(SQLExecDirect, (Statement, (SQLCHAR *) test_query, SQL_NTS));
+	CHKExecDirect((SQLCHAR *) test_query, SQL_NTS, "S");
 
 	ret = SQLFetch(Statement);
 	if (ret != expected)

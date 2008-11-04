@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.36 2008-10-29 09:33:50 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.37 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -55,28 +55,28 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 
 	if (use_cursors) {
 		ResetStatement();
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0));
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0));
+		CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0, "S");
+		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0, "S");
 	}
 
 	/* bind parameter */
 	if (exec_direct) {
-		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
-			     sizeof(out_buf), &out_len));
+		CHKBindParameter(1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
+			     sizeof(out_buf), &out_len, "S");
 
 		/* call store procedure */
-		CHK(SQLExecDirect, (Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS));
+		CHKExecDirect((SQLCHAR *) "{call spTestProc(?)}", SQL_NTS, "S");
 	} else {
 		if (prepare_before)
-			CHK(SQLPrepare, (Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS));
+			CHKPrepare((SQLCHAR *) "{call spTestProc(?)}", SQL_NTS, "S");
 
-		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
-			     sizeof(out_buf), &out_len));
+		CHKBindParameter(1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
+			     sizeof(out_buf), &out_len, "S");
 
 		if (!prepare_before)
-			CHK(SQLPrepare, (Statement, (SQLCHAR *) "{call spTestProc(?)}", SQL_NTS));
+			CHKPrepare((SQLCHAR *) "{call spTestProc(?)}", SQL_NTS, "S");
 
-		CHK(SQLExecute, (Statement));
+		CHKExecute("S");
 	}
 
 	/* test results */
@@ -137,12 +137,9 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	sprintf(sbuf, "SELECT CONVERT(%s, %s%.*s%s)", type, sep, (int) value_len, value_to_convert, sep);
 	Command(Statement, sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
-	if (!SQL_SUCCEEDED(SQLFetch(Statement)))
-		ODBC_REPORT_ERROR("Expected row");
-	if (SQLFetch(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("Row not expected");
-	if (SQLMoreResults(Statement) != SQL_NO_DATA)
-		ODBC_REPORT_ERROR("Recordset not expected");
+	CHKFetch("SI");
+	CHKFetch("No");
+	CHKMoreResults("No");
 	if (use_nts) {
 		out_len = SQL_NTS;
 		use_nts = 0;
@@ -155,40 +152,32 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 
 	if (use_cursors) {
 		ResetStatement();
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0));
-		CHK(SQLSetStmtAttr, (Statement, SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0));
+		CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0, "S");
+		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0, "S");
 	}
 
 	/* insert data using prepared statements */
 	sprintf(sbuf, "INSERT INTO #tmp_insert VALUES(?)");
 	if (exec_direct) {
-		SQLRETURN rc;
+		CHKBindParameter(1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len, "S");
 
-		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len));
-
-		rc = SQLExecDirect(Statement, (SQLCHAR *) sbuf, SQL_NTS);
-		if (check_truncation) {
-			if (rc != SQL_ERROR)
-				ODBC_REPORT_ERROR("SQLExecDirect should return error!");
-		} else if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
-			ODBC_REPORT_ERROR("SQLExecDirect() failure!");
+		if (check_truncation)
+			CHKExecDirect((SQLCHAR *) sbuf, SQL_NTS, "E");
+		else
+			CHKExecDirect((SQLCHAR *) sbuf, SQL_NTS, "SNo");
 	} else {
-		SQLRETURN rc;
-
 		if (prepare_before)
-			CHK(SQLPrepare, (Statement, (SQLCHAR *) sbuf, SQL_NTS));
+			CHKPrepare((SQLCHAR *) sbuf, SQL_NTS, "S");
 
-		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len));
+		CHKBindParameter(1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len, "S");
 
 		if (!prepare_before)
-			CHK(SQLPrepare, (Statement, (SQLCHAR *) sbuf, SQL_NTS));
+			CHKPrepare((SQLCHAR *) sbuf, SQL_NTS, "S");
 
-		rc = SQLExecute(Statement);
-		if (check_truncation) {
-			if (rc != SQL_ERROR)
-				ODBC_REPORT_ERROR("SQLExecute should return error!");
-		} else if (rc != SQL_SUCCESS && rc != SQL_NO_DATA)
-			ODBC_REPORT_ERROR("SQLExecute() failure!");
+		if (check_truncation)
+			CHKExecute("E");
+		else
+			CHKExecute("SNo");
 	}
 
 	/* check is row is present */
@@ -200,11 +189,9 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
 		Command(Statement, sbuf);
 
-		CHK(SQLFetch, (Statement));
-		if (SQLFetch(Statement) != SQL_NO_DATA)
-			ODBC_REPORT_ERROR("Row not expected");
-		if (SQLMoreResults(Statement) != SQL_NO_DATA)
-			ODBC_REPORT_ERROR("Recordset not expected");
+		CHKFetch("S");
+		CHKFetch("No");
+		CHKMoreResults("No");
 	}
 	check_truncation = 0;
 	Command(Statement, "DROP TABLE #tmp_insert");

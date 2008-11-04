@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.24 2008-10-29 09:33:50 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.25 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -36,6 +36,7 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 extern HENV Environment;
 extern HDBC Connection;
 extern HSTMT Statement;
+extern SQLRETURN RetCode;
 extern int use_odbc_version3;
 extern void (*odbc_set_conn_attr)(void);
 
@@ -59,9 +60,84 @@ void CheckCursor(void);
 #define ODBC_REPORT_ERROR(msg) ReportError(msg, __LINE__, __FILE__)
 
 #define CHK(func,params) \
-	do { if (func params != SQL_SUCCESS) \
+	do { if ((RetCode=(func params)) != SQL_SUCCESS) \
 		ODBC_REPORT_ERROR(#func); \
 	} while(0)
+
+SQLRETURN CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLHANDLE handle, const char *func, const char *res);
+#define CHKR(func, params, res) \
+	CheckRes(__FILE__, __LINE__, (RetCode=(func params)), 0, 0, #func, res)
+#define CHKR2(func, params, type, handle, res) \
+	CheckRes(__FILE__, __LINE__, (RetCode=(func params)), type, handle, #func, res)
+
+SQLSMALLINT AllocHandleErrType(SQLSMALLINT type);
+
+#define CHKAllocStmt(a,res) \
+	CHKR2(SQLAllocStmt, (Connection,a), SQL_HANDLE_DBC, Connection, res)
+#define CHKAllocHandle(a,b,c,res) \
+	CHKR2(SQLAllocHandle, (a,b,c), AllocHandleErrType(a), b, res)
+#define CHKBindCol(a,b,c,d,e,res) \
+	CHKR2(SQLBindCol, (Statement,a,b,c,d,e), SQL_HANDLE_STMT, Statement, res)
+#define CHKBindParameter(a,b,c,d,e,f,g,h,i,res) \
+	CHKR2(SQLBindParameter, (Statement,a,b,c,d,e,f,g,h,i), SQL_HANDLE_STMT, Statement, res)
+#define CHKCancel(res) \
+	CHKR2(SQLCancel, (Statement), SQL_HANDLE_STMT, Statement, res)
+#define CHKCloseCursor(res) \
+	CHKR2(SQLCloseCursor, (Statement), SQL_HANDLE_STMT, Statement, res)
+#define CHKColAttribute(a,b,c,d,e,f,res) \
+	CHKR2(SQLColAttribute, (Statement,a,b,c,d,e,f), SQL_HANDLE_STMT, Statement, res)
+#define CHKDescribeCol(a,b,c,d,e,f,g,h,res) \
+	CHKR2(SQLDescribeCol, (Statement,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, Statement, res)
+#define CHKEndTran(a,b,c,res) \
+	CHKR2(SQLEndTran, (a,b,c), a, b, res)
+#define CHKExecDirect(a,b,res) \
+	CHKR2(SQLExecDirect, (Statement,a,b), SQL_HANDLE_STMT, Statement, res)
+#define CHKExecute(res) \
+	CHKR2(SQLExecute, (Statement), SQL_HANDLE_STMT, Statement, res)
+#define CHKExtendedFetch(a,b,c,d,res) \
+	CHKR2(SQLExtendedFetch, (Statement,a,b,c,d), SQL_HANDLE_STMT, Statement, res)
+#define CHKFetch(res) \
+	CHKR2(SQLFetch, (Statement), SQL_HANDLE_STMT, Statement, res)
+#define CHKFetchScroll(a,b,res) \
+	CHKR2(SQLFetchScroll, (Statement,a,b), SQL_HANDLE_STMT, Statement, res)
+#define CHKFreeHandle(a,b,res) \
+	CHKR2(SQLFreeHandle, (a,b), a, b, res)
+#define CHKFreeStmt(a,res) \
+	CHKR2(SQLFreeStmt, (Statement,a), SQL_HANDLE_STMT, Statement, res)
+#define CHKGetConnectAttr(a,b,c,d,res) \
+	CHKR2(SQLGetConnectAttr, (Connection,a,b,c,d), SQL_HANDLE_DBC, Connection, res)
+#define CHKGetDiagRec(a,b,c,d,e,f,g,h,res) \
+	CHKR2(SQLGetDiagRec, (a,b,c,d,e,f,g,h), a, b, res)
+#define CHKGetStmtAttr(a,b,c,d,res) \
+	CHKR2(SQLGetStmtAttr, (Statement,a,b,c,d), SQL_HANDLE_STMT, Statement, res)
+#define CHKGetTypeInfo(a,res) \
+	CHKR2(SQLGetTypeInfo, (Statement,a), SQL_HANDLE_STMT, Statement, res)
+#define CHKGetData(a,b,c,d,e,res) \
+	CHKR2(SQLGetData, (Statement,a,b,c,d,e), SQL_HANDLE_STMT, Statement, res)
+#define CHKMoreResults(res) \
+	CHKR2(SQLMoreResults, (Statement), SQL_HANDLE_STMT, Statement, res)
+#define CHKNumResultCols(a,res) \
+	CHKR2(SQLNumResultCols, (Statement,a), SQL_HANDLE_STMT, Statement, res)
+#define CHKParamData(a,res) \
+	CHKR2(SQLParamData, (Statement,a), SQL_HANDLE_STMT, Statement, res)
+#define CHKPrepare(a,b,res) \
+	CHKR2(SQLPrepare, (Statement,a,b), SQL_HANDLE_STMT, Statement, res)
+#define CHKPutData(a,b,res) \
+	CHKR2(SQLPutData, (Statement,a,b), SQL_HANDLE_STMT, Statement, res)
+#define CHKRowCount(a,res) \
+	CHKR2(SQLRowCount, (Statement,a), SQL_HANDLE_STMT, Statement, res)
+#define CHKSetConnectAttr(a,b,c,res) \
+	CHKR2(SQLSetConnectAttr, (Connection,a,b,c), SQL_HANDLE_DBC, Connection, res)
+#define CHKSetCursorName(a,b,res) \
+	CHKR2(SQLSetCursorName, (Statement,a,b), SQL_HANDLE_STMT, Statement, res)
+#define CHKSetPos(a,b,c,res) \
+	CHKR2(SQLSetPos, (Statement,a,b,c), SQL_HANDLE_STMT, Statement, res)
+#define CHKSetStmtAttr(a,b,c,res) \
+	CHKR2(SQLSetStmtAttr, (Statement,a,b,c), SQL_HANDLE_STMT, Statement, res)
+#define CHKSetStmtOption(a,b,res) \
+	CHKR2(SQLSetStmtOption, (Statement,a,b), SQL_HANDLE_STMT, Statement, res)
+#define CHKTables(a,b,c,d,e,f,g,h,res) \
+	CHKR2(SQLTables, (Statement,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, Statement, res)
 
 int Connect(void);
 int Disconnect(void);

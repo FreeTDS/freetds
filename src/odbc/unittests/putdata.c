@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.12 2008-10-29 09:56:53 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.13 2008-11-04 10:59:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -18,7 +18,7 @@ main(int argc, char *argv[])
 	const char *p;
 	SQLPOINTER ptr;
 	unsigned char buf[256], *pb;
-	SQLRETURN retcode;
+	SQLRETURN RetCode;
 	int type, lc, sql_type;
 
 	Connect();
@@ -30,7 +30,7 @@ main(int argc, char *argv[])
 	type = SQL_C_CHAR;
 	lc = 1;
 	for (;;) {
-		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, type, sql_type, 0, 0, (SQLPOINTER) 123, 0, &ind));
+		CHKBindParameter(1, SQL_PARAM_INPUT, type, sql_type, 0, 0, (SQLPOINTER) 123, 0, &ind, "S");
 		/* length required */
 		ind = SQL_LEN_DATA_AT_EXEC(len * lc);
 
@@ -38,10 +38,9 @@ main(int argc, char *argv[])
 		 * test for char 
 		 */
 
-		CHK(SQLPrepare, (Statement, (SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS));
+		CHKPrepare((SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS, "S");
 
-		if (SQLExecute(Statement) != SQL_NEED_DATA)
-			ODBC_REPORT_ERROR("Wrong result executing statement");
+		CHKExecute("Ne");
 
 		p = test_text;
 		n = 5;
@@ -55,21 +54,20 @@ main(int argc, char *argv[])
 			if (l < n)
 				n = l;
 			if (type == SQL_C_CHAR) {
-				CHK(SQLPutData, (Statement, (char *) p, n));
+				CHKPutData((char *) p, n, "S");
 			} else {
 				SQLWCHAR buf[256];
 				int i;
 				for (i = 0; i < n; ++i)
 					buf[i] = p[i];
-				CHK(SQLPutData, (Statement, (char *) buf, n * lc));
+				CHKPutData((char *) buf, n * lc, "S");
 			}
 			p += n;
 			n *= 2;
 		}
-		CHK(SQLParamData, (Statement, &ptr));
+		CHKParamData(&ptr, "S");
 
-		if (SQLParamData(Statement, &ptr) != SQL_ERROR)
-			ODBC_REPORT_ERROR("Wrong result from SQLParamData");
+		CHKParamData(&ptr, "E");
 
 		/* check state  and reset some possible buffers */
 		Command(Statement, "DECLARE @i INT");
@@ -94,18 +92,16 @@ main(int argc, char *argv[])
 	 * test for binary 
 	 */
 
-	CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0, 0, (SQLPOINTER) 4567, 0, &ind));
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0, 0, (SQLPOINTER) 4567, 0, &ind, "S");
 	ind = SQL_LEN_DATA_AT_EXEC(254);
 
-	CHK(SQLPrepare, (Statement, (SQLCHAR *) "UPDATE #putdata SET b = ?", SQL_NTS));
+	CHKPrepare((SQLCHAR *) "UPDATE #putdata SET b = ?", SQL_NTS, "S");
 
-	if (SQLExecute(Statement) != SQL_NEED_DATA)
-		ODBC_REPORT_ERROR("Wrong result executing statement");
+	CHKExecute("Ne");
 
 	pb = buf;
 	n = 7;
-	if (SQLParamData(Statement, &ptr) != SQL_NEED_DATA)
-		ODBC_REPORT_ERROR("Wrong result from SQLParamData");
+	CHKParamData(&ptr, "Ne");
 	if (ptr != (SQLPOINTER) 4567)
 		ODBC_REPORT_ERROR("Wrong pointer from SQLParamData");
 	while (pb != (buf + 254)) {
@@ -113,37 +109,33 @@ main(int argc, char *argv[])
 
 		if (l < n)
 			n = l;
-		CHK(SQLPutData, (Statement, (char *) p, n));
+		CHKPutData((char *) p, n, "S");
 		pb += n;
 		n *= 2;
 	}
-	CHK(SQLParamData, (Statement, &ptr));
+	CHKParamData(&ptr, "S");
 
-	if (SQLParamData(Statement, &ptr) != SQL_ERROR)
-		ODBC_REPORT_ERROR("Wrong result from SQLParamData");
+	CHKParamData(&ptr, "E");
 
 	/* check state  and reset some possible buffers */
 	Command(Statement, "DECLARE @i2 INT");
 
 
 	/* test len == 0 case from ML */
-	CHK(SQLFreeStmt, (Statement, SQL_RESET_PARAMS));
+	CHKFreeStmt(SQL_RESET_PARAMS, "S");
 
 	type = SQL_C_CHAR;
 	for (;;) {
-		CHK(SQLPrepare, (Statement, (SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS));
+		CHKPrepare((SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS, "S");
 
-		CHK(SQLBindParameter, (Statement, 1, SQL_PARAM_INPUT, type, SQL_LONGVARCHAR, 0, 0, (PTR) 2, 0, &ind));
+		CHKBindParameter(1, SQL_PARAM_INPUT, type, SQL_LONGVARCHAR, 0, 0, (PTR) 2, 0, &ind, "S");
 
 		ind = SQL_LEN_DATA_AT_EXEC(0);
 
-		if ((retcode = SQLExecute(Statement)) != SQL_NEED_DATA) {
-			printf("Wrong result executing statement (retcode=%d)\n", (int) retcode);
-			exit(1);
-		}
-		while (retcode == SQL_NEED_DATA) {
-			retcode = SQLParamData(Statement, &ptr);
-			if (retcode == SQL_NEED_DATA) {
+		CHKExecute("Ne");
+		while (RetCode == SQL_NEED_DATA) {
+			RetCode = SQLParamData(Statement, &ptr);
+			if (RetCode == SQL_NEED_DATA) {
 				SQLPutData(Statement, "abc", 3);
 			}
 		}
