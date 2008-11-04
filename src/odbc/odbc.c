@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.503 2008-10-27 14:23:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.504 2008-11-04 15:24:49 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4648,6 +4648,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 {
 	/* TODO cursors fetch row if needed ?? */
 	TDSCOLUMN *colinfo;
+	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 	TDS_CHAR *src;
 	int srclen;
@@ -4682,15 +4683,18 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	tds = stmt->dbc->tds_socket;
 	context = stmt->dbc->env->tds_ctx;
 
-	if (!tds->current_results) {
+	resinfo = tds->current_results;
+	if (stmt->cursor && stmt->cursor->res_info)
+		resinfo = stmt->cursor->res_info;
+	if (!resinfo) {
 		odbc_errs_add(&stmt->errs, "HY010", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	if (icol <= 0 || icol > tds->current_results->num_cols) {
+	if (icol <= 0 || icol > resinfo->num_cols) {
 		odbc_errs_add(&stmt->errs, "07009", "Column out of range");
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
-	colinfo = tds->current_results->columns[icol - 1];
+	colinfo = resinfo->columns[icol - 1];
 
 	if (colinfo->column_cur_size < 0) {
 		/* TODO check what should happen if pcbValue was NULL */
