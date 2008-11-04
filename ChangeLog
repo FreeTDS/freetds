@@ -1,3 +1,6 @@
+Tue Nov 04 16:21:23 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: fix SQLGetData with cursors
+
 Wed Oct 29 09:43:05 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: fix small memory read overflow
 
@@ -222,4 +225,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.53 2008-10-29 08:44:25 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.54 2008-11-04 15:22:58 freddy77 Exp $
