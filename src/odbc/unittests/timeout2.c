@@ -14,7 +14,7 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: timeout2.c,v 1.7 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(__MINGW32__) || defined(WIN32)
@@ -28,8 +28,8 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	Command(Statement, "create table #timeout(i int)");
-	Command(Statement, "insert into #timeout values(1)");
+	Command("create table #timeout(i int)");
+	Command("insert into #timeout values(1)");
 
 	for (i = 0; i < 2; ++i) {
 

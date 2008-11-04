@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.20 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.21 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -32,10 +32,7 @@ test(int odbc3)
 	/* issue print statement and test message returned */
 	output[0] = 0;
 	query = "print 'START' select count(*) from sysobjects where name='sysobjects' print 'END'";
-	if (CommandWithResult(Statement, query) != SQL_SUCCESS_WITH_INFO) {
-		printf("SQLExecDirect should return SQL_SUCCESS_WITH_INFO\n");
-		return 1;
-	}
+	CHKR(CommandWithResult, (Statement, query), "I");
 	ReadError();
 	if (!strstr((char *) output, "START")) {
 		printf("Message invalid\n");
@@ -98,10 +95,7 @@ test(int odbc3)
 	}
 
 	/* issue invalid command and test error */
-	if (CommandWithResult(Statement, "SELECT donotexistsfield FROM donotexiststable") != SQL_ERROR) {
-		printf("SQLExecDirect returned strange results\n");
-		return 1;
-	}
+	CHKR(CommandWithResult, (Statement, "SELECT donotexistsfield FROM donotexiststable"), "E");
 	ReadError();
 
 	/* test no data returned */

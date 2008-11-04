@@ -5,19 +5,17 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: cursor4.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: cursor4.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 exec_direct(const char *stmt)
 {
-	SQLHSTMT old_Statement = Statement;
+	SQLHSTMT Statement = SQL_NULL_HSTMT;
 
-	Statement = SQL_NULL_HSTMT;
 	CHKAllocHandle(SQL_HANDLE_STMT, (SQLHANDLE) Connection, (SQLHANDLE *) & Statement, "S");
-	Command(Statement, stmt);
+	Command(stmt);
 	CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
-	Statement = old_Statement;
 }
 
 int

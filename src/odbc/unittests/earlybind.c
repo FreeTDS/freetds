@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: earlybind.c,v 1.3 2006-03-23 14:53:44 freddy77 Exp $";
+static char software_version[] = "$Id: earlybind.c,v 1.4 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -12,15 +12,15 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	Command(Statement, "CREATE TABLE #test(id INT, name VARCHAR(100))");
-	Command(Statement, "INSERT INTO #test(id, name) VALUES(8, 'sysobjects')");
+	Command("CREATE TABLE #test(id INT, name VARCHAR(100))");
+	Command("INSERT INTO #test(id, name) VALUES(8, 'sysobjects')");
 
 	/* bind before select */
 	SQLBindCol(Statement, 1, SQL_C_SLONG, &id, sizeof(SQLINTEGER), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, name, sizeof(name), &ind2);
 
 	/* do select */
-	Command(Statement, "SELECT id, name FROM #test WHERE name = 'sysobjects' SELECT 123, 'foo'");
+	Command("SELECT id, name FROM #test WHERE name = 'sysobjects' SELECT 123, 'foo'");
 
 	/* get results */
 	id = -1;
@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 	SQLMoreResults(Statement);
 
 	/* other select */
-	Command(Statement, "SELECT 321, 'minni'");
+	Command("SELECT 321, 'minni'");
 
 	/* get results */
 	id = -1;

@@ -2,7 +2,7 @@
 
 /* some tests on error reporting */
 
-static char software_version[] = "$Id: error.c,v 1.5 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.6 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -24,12 +24,12 @@ main(int argc, char *argv[])
 	Connect();
 
 	/* create a test table */
-	Command(Statement, "create table #tmp (i int)");
-	Command(Statement, "insert into #tmp values(3)");
-	Command(Statement, "insert into #tmp values(4)");
-	Command(Statement, "insert into #tmp values(5)");
-	Command(Statement, "insert into #tmp values(6)");
-	Command(Statement, "insert into #tmp values(7)");
+	Command("create table #tmp (i int)");
+	Command("insert into #tmp values(3)");
+	Command("insert into #tmp values(4)");
+	Command("insert into #tmp values(5)");
+	Command("insert into #tmp values(6)");
+	Command("insert into #tmp values(7)");
 
 	/* issue our command */
 	retcode = CommandWithResult(Statement, "select 100 / (i - 5) from #tmp order by i");
@@ -60,8 +60,9 @@ main(int argc, char *argv[])
 
 	CHKAllocStmt(&stmt, "S");
 
-	Command(Statement, "SELECT * FROM sysobjects");
+	Command("SELECT * FROM sysobjects");
 
+	/* a statement is already active so you get error */
 	CHKR(CommandWithResult, (stmt, "SELECT * FROM sysobjects"), "E");
 
 	tmp_stmt = Statement;

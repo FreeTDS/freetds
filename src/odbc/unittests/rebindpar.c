@@ -2,7 +2,7 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-static char software_version[] = "$Id: rebindpar.c,v 1.8 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: rebindpar.c,v 1.9 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SWAP_STMT(b) do { SQLHSTMT xyz = Statement; Statement = b; b = xyz; } while(0)
@@ -24,7 +24,7 @@ TestInsert(char *buf)
 
 	SWAP_STMT(stmt);
 	sprintf(sql, "SELECT 1 FROM #tmp1 WHERE c = '%s'", buf);
-	Command(Statement, sql);
+	Command(sql);
 	CHKFetch("S");
 	CHKFetch("No");
 	CHKMoreResults("No");
@@ -43,7 +43,7 @@ Test(int prebind)
 	for (i = 0; i < 21; ++i)
 		strcat(buf, "miao");
 
-	Command(Statement, "DELETE FROM #tmp1");
+	Command("DELETE FROM #tmp1");
 
 	CHKAllocStmt(&stmt, "S");
 
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 {
 	Connect();
 
-	Command(Statement, "CREATE TABLE #tmp1 (c VARCHAR(200))");
+	Command("CREATE TABLE #tmp1 (c VARCHAR(200))");
 
 	Test(1);
 	Test(0);

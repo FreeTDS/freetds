@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with a non-unitary rowset, using bottom-up direction */
 
-static char software_version[] = "$Id: cursor7.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: cursor7.c,v 1.7 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -71,10 +71,10 @@ Init(void)
 
 	printf("\n\nCreating table #cursor7_test with 12 records.\n");
 
-	Command(Statement, "\tCREATE TABLE #cursor7_test (i INT, c VARCHAR(20))");
+	Command("\tCREATE TABLE #cursor7_test (i INT, c VARCHAR(20))");
 	for (i = 1; i <= 12; ++i) {
 		sprintf(sql, "\tINSERT INTO #cursor7_test(i,c) VALUES(%d, 'a%db%dc%d')", i, i, i, i);
-		Command(Statement, sql);
+		Command(sql);
 	}
 
 }

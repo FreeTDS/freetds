@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with no binded columns */
 
-static char software_version[] = "$Id: cursor6.c,v 1.4 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: cursor6.c,v 1.5 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int bind_all = 0;
@@ -79,10 +79,10 @@ static void Init(void)
 	int i;
 	char sql[128];
 
-	Command(Statement, "CREATE TABLE #cursor6_test (i INT, c VARCHAR(20))");
+	Command("CREATE TABLE #cursor6_test (i INT, c VARCHAR(20))");
 	for (i = 1; i <= 10; ++i) {
 		sprintf(sql, "INSERT INTO #cursor6_test(i,c) VALUES(%d, 'a%db%dc%d')", i, i, i, i);
-		Command(Statement, sql);
+		Command(sql);
 	}
 
 }

@@ -4,7 +4,7 @@
  * Try to make core dump using SQLBindParameter
  */
 
-static char software_version[] = "$Id: paramcore.c,v 1.5 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: paramcore.c,v 1.6 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{call sp_paramcore_test(?)}"
@@ -36,7 +36,7 @@ main(int argc, char *argv[])
 	Connect();
 
 	CommandWithResult(Statement, "drop proc sp_paramcore_test");
-	Command(Statement, "create proc sp_paramcore_test @s varchar(100) output as select @s = '12345'");
+	Command("create proc sp_paramcore_test @s varchar(100) output as select @s = '12345'");
 
 	/* here we pass a NULL buffer for input SQL_NTS */
 	SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, NULL, OUTSTRING_LEN, &cb);
@@ -56,8 +56,8 @@ main(int argc, char *argv[])
 	ReadError();
 	ResetStatement();
 
-	Command(Statement, "drop proc sp_paramcore_test");
-	Command(Statement, "create proc sp_paramcore_test @s numeric(10,2) output as select @s = 12345.6");
+	Command("drop proc sp_paramcore_test");
+	Command("create proc sp_paramcore_test @s numeric(10,2) output as select @s = 12345.6");
 	ResetStatement();
 
 #if 0	/* this fails even on native platforms */
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	ResetStatement();
 #endif
 
-	Command(Statement, "drop proc sp_paramcore_test");
+	Command("drop proc sp_paramcore_test");
 
 	Disconnect();
 

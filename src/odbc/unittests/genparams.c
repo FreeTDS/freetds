@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.37 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.38 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -45,12 +45,12 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 	ResetStatement();
 
 	/* build store procedure to test */
-	Command(Statement, "IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
+	Command("IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
 	sep = "'";
 	if (strncmp(value_to_convert, "0x", 2) == 0)
 		sep = "";
 	sprintf(sbuf, "CREATE PROC spTestProc @i %s OUTPUT AS SELECT @i = CONVERT(%s, %s%s%s)", type, type, sep, value_to_convert, sep);
-	Command(Statement, sbuf);
+	Command(sbuf);
 	memset(out_buf, 0, sizeof(out_buf));
 
 	if (use_cursors) {
@@ -108,7 +108,7 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 		fprintf(stderr, "Wrong result\n  Got: %s\n  Expected: %s\n", sbuf, expected);
 		exit(1);
 	}
-	Command(Statement, "drop proc spTestProc");
+	Command("drop proc spTestProc");
 }
 
 static char check_truncation = 0;
@@ -135,7 +135,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	if (value_len >= 2 && strncmp(value_to_convert, "0x", 2) == 0)
 		sep = "";
 	sprintf(sbuf, "SELECT CONVERT(%s, %s%.*s%s)", type, sep, (int) value_len, value_to_convert, sep);
-	Command(Statement, sbuf);
+	Command(sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	CHKFetch("SI");
 	CHKFetch("No");
@@ -148,7 +148,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	/* create a table with a column of that type */
 	ResetStatement();
 	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s)", param_type);
-	Command(Statement, sbuf);
+	Command(sbuf);
 
 	if (use_cursors) {
 		ResetStatement();
@@ -187,14 +187,14 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		if (strncmp(expected, "0x", 2) == 0)
 			sep = "";
 		sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
-		Command(Statement, sbuf);
+		Command(sbuf);
 
 		CHKFetch("S");
 		CHKFetch("No");
 		CHKMoreResults("No");
 	}
 	check_truncation = 0;
-	Command(Statement, "DROP TABLE #tmp_insert");
+	Command("DROP TABLE #tmp_insert");
 }
 
 static int big_endian = 1;
@@ -248,7 +248,7 @@ AllTests(void)
 	m = ltime->tm_mon + 1;
 	d = ltime->tm_mday;
 	/* server concept of data can be different so try ask to server */
-	Command(Statement, "SELECT GETDATE()");
+	Command("SELECT GETDATE()");
 	SQLBindCol(Statement, 1, SQL_C_CHAR, date, sizeof(date), NULL);
 	if (SQLFetch(Statement) == SQL_SUCCESS) {
 		int a, b, c;

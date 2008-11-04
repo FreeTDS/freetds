@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test conversion of Hebrew characters (which have shift sequences) */
-static char software_version[] = "$Id: utf8_2.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.7 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -63,16 +63,16 @@ main(int argc, char *argv[])
 	CHKAllocStmt(&Statement, "S");
 
 	/* create test table */
-	Command(Statement, "CREATE TABLE #tmpHebrew (i INT, v VARCHAR(10) COLLATE Hebrew_CI_AI)");
+	Command("CREATE TABLE #tmpHebrew (i INT, v VARCHAR(10) COLLATE Hebrew_CI_AI)");
 
 	/* insert with INSERT statements */
 	for (n = 0, p = strings_hex; p[n]; ++n) {
 		sprintf(tmp, "INSERT INTO #tmpHebrew VALUES(%d, CAST(%s AS NVARCHAR(10)))", n+1, p[n]);
-		Command(Statement, tmp);
+		Command(tmp);
 	}
 
 	/* test conversions in libTDS */
-	Command(Statement, "SELECT v FROM #tmpHebrew");
+	Command("SELECT v FROM #tmpHebrew");
 
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
 	CHKBindCol(1, SQL_C_CHAR, out, sizeof(out), &n_len, "S");

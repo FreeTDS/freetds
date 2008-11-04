@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: date.c,v 1.11 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: date.c,v 1.12 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -16,7 +16,7 @@ DoTest(int n)
 
 	TIMESTAMP_STRUCT ts;
 
-	Command(Statement, "select convert(datetime, '2002-12-27 18:43:21')");
+	Command("select convert(datetime, '2002-12-27 18:43:21')");
 
 	CHKFetch("SI");
 	CHKDescribeCol(1, output, sizeof(output), NULL, &colType, &colSize, &colScale, &colNullable, "S");

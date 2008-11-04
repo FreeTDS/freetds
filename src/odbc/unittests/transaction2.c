@@ -3,7 +3,7 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.5 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.6 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -40,16 +40,16 @@ static HSTMT stmt = SQL_NULL_HSTMT;
 static int
 CheckDirtyRead(void)
 {
-	SQLRETURN ret;
+	SQLRETURN RetCode;
 
 	/* transaction 1 try to change a row but not commit */
-	Command(Statement, "UPDATE test_transaction SET t = 'second' WHERE n = 1");
+	Command("UPDATE test_transaction SET t = 'second' WHERE n = 1");
 
 	SWAP_CONN();
 
 	/* second transaction try to fetch uncommited row */
-	ret = CommandWithResult(Statement, "SELECT * FROM test_transaction WHERE t = 'second' AND n = 1");
-	if (ret == SQL_ERROR) {
+	CHKR(CommandWithResult, (Statement, "SELECT * FROM test_transaction WHERE t = 'second' AND n = 1"), "SE");
+	if (RetCode == SQL_ERROR) {
 		EndTransaction(SQL_ROLLBACK);
 		SWAP_CONN();
 		EndTransaction(SQL_ROLLBACK);
@@ -68,17 +68,17 @@ CheckDirtyRead(void)
 static int
 CheckNonrepeatableRead(void)
 {
-	SQLRETURN ret;
+	SQLRETURN RetCode;
 
 	/* transaction 2 read a row */
 	SWAP_CONN();
-	Command(Statement, "SELECT * FROM test_transaction WHERE t = 'initial' AND n = 1");
+	Command("SELECT * FROM test_transaction WHERE t = 'initial' AND n = 1");
 	SQLMoreResults(Statement);
 
 	/* transaction 1 change a row and commit */
 	SWAP_CONN();
-	ret = CommandWithResult(Statement, "UPDATE test_transaction SET t = 'second' WHERE n = 1");
-	if (ret == SQL_ERROR) {
+	CHKR(CommandWithResult, (Statement, "UPDATE test_transaction SET t = 'second' WHERE n = 1"), "SE");
+	if (RetCode == SQL_ERROR) {
 		EndTransaction(SQL_ROLLBACK);
 		SWAP_CONN();
 		EndTransaction(SQL_ROLLBACK);
@@ -90,14 +90,14 @@ CheckNonrepeatableRead(void)
 	SWAP_CONN();
 
 	/* second transaction try to fetch commited row */
-	Command(Statement, "SELECT * FROM test_transaction WHERE t = 'second' AND n = 1");
+	Command("SELECT * FROM test_transaction WHERE t = 'second' AND n = 1");
 
 	CHKFetch("S");
 	CHKFetch("No");
 	SQLMoreResults(Statement);
 	EndTransaction(SQL_ROLLBACK);
 	SWAP_CONN();
-	Command(Statement, "UPDATE test_transaction SET t = 'initial' WHERE n = 1");
+	Command("UPDATE test_transaction SET t = 'initial' WHERE n = 1");
 	EndTransaction(SQL_COMMIT);
 	return 1;
 }
@@ -105,17 +105,17 @@ CheckNonrepeatableRead(void)
 static int
 CheckPhantom(void)
 {
-	SQLRETURN ret;
+	SQLRETURN RetCode;
 
 	/* transaction 2 read a row */
 	SWAP_CONN();
-	Command(Statement, "SELECT * FROM test_transaction WHERE t = 'initial'");
+	Command("SELECT * FROM test_transaction WHERE t = 'initial'");
 	SQLMoreResults(Statement);
 
 	/* transaction 1 insert a row that match critera */
 	SWAP_CONN();
-	ret = CommandWithResult(Statement, "INSERT INTO test_transaction(n, t) VALUES(2, 'initial')");
-	if (ret == SQL_ERROR) {
+	CHKR(CommandWithResult, (Statement, "INSERT INTO test_transaction(n, t) VALUES(2, 'initial')"), "SE");
+	if (RetCode == SQL_ERROR) {
 		EndTransaction(SQL_ROLLBACK);
 		SWAP_CONN();
 		EndTransaction(SQL_ROLLBACK);
@@ -127,7 +127,7 @@ CheckPhantom(void)
 	SWAP_CONN();
 
 	/* second transaction try to fetch commited row */
-	Command(Statement, "SELECT * FROM test_transaction WHERE t = 'initial'");
+	Command("SELECT * FROM test_transaction WHERE t = 'initial'");
 
 	CHKFetch("S");
 	CHKFetch("S");
@@ -135,7 +135,7 @@ CheckPhantom(void)
 	SQLMoreResults(Statement);
 	EndTransaction(SQL_ROLLBACK);
 	SWAP_CONN();
-	Command(Statement, "DELETE test_transaction WHERE n = 2");
+	Command("DELETE test_transaction WHERE n = 2");
 	EndTransaction(SQL_COMMIT);
 	return 1;
 }
@@ -190,34 +190,34 @@ Test(int txn, const char *expected)
 int
 main(int argc, char *argv[])
 {
-	SQLRETURN ret;
+	SQLRETURN RetCode;
 
 	use_odbc_version3 = 1;
 	Connect();
 
 	/* Invalid argument value */
-	ret = SQLSetConnectAttr(Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ | SQL_TXN_READ_COMMITTED), 0);
+	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ | SQL_TXN_READ_COMMITTED), 0, "E");
 	ReadError();
-	if (ret != SQL_ERROR || strcmp(odbc_sqlstate, "HY024") != 0) {
+	if (strcmp(odbc_sqlstate, "HY024") != 0) {
 		Disconnect();
 		fprintf(stderr, "Unexpected success\n");
 		return 1;
 	}
 
 	/* here we can't use temporary table cause we use two connection */
-	Command(Statement, "IF OBJECT_ID('test_transaction') IS NOT NULL DROP TABLE test_transaction");
-	Command(Statement, "CREATE TABLE test_transaction(n NUMERIC(18,0) PRIMARY KEY, t VARCHAR(30))");
+	Command("IF OBJECT_ID('test_transaction') IS NOT NULL DROP TABLE test_transaction");
+	Command("CREATE TABLE test_transaction(n NUMERIC(18,0) PRIMARY KEY, t VARCHAR(30))");
 
 	CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 2, 0, "S");
 
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
-	Command(Statement, "INSERT INTO test_transaction(n, t) VALUES(1, 'initial')");
+	Command("INSERT INTO test_transaction(n, t) VALUES(1, 'initial')");
 
 #ifdef ENABLE_DEVELOPING
 	/* test setting with active transaction "Operation invalid at this time" */
-	ret = SQLSetConnectAttr(Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0);
+	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0, "E");
 	ReadError();
-	if (ret != SQL_ERROR || strcmp(odbc_sqlstate, "HY011") != 0) {
+	if (strcmp(odbc_sqlstate, "HY011") != 0) {
 		Disconnect();
 		fprintf(stderr, "Unexpected success\n");
 		return 1;
@@ -226,12 +226,12 @@ main(int argc, char *argv[])
 
 	EndTransaction(SQL_COMMIT);
 
-	Command(Statement, "SELECT * FROM test_transaction");
+	Command("SELECT * FROM test_transaction");
 
 	/* test setting with pending data */
-	ret = SQLSetConnectAttr(Connection, SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0);
+	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0, "E");
 	ReadError();
-	if (ret != SQL_ERROR || strcmp(odbc_sqlstate, "HY011") != 0) {
+	if (strcmp(odbc_sqlstate, "HY011") != 0) {
 		Disconnect();
 		fprintf(stderr, "Unexpected success\n");
 		return 1;
@@ -272,7 +272,7 @@ main(int argc, char *argv[])
 
 	/* Sybase do not accept DROP TABLE during a transaction */
 	AutoCommit(SQL_AUTOCOMMIT_ON);
-	Command(Statement, "DROP TABLE test_transaction");
+	Command("DROP TABLE test_transaction");
 
 	Disconnect();
 	return 0;

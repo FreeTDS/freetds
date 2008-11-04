@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.15 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.16 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -211,7 +211,7 @@ main(int argc, char *argv[])
 	get_attr_t get_attr_p = get_attr_none;
 
 	Connect();
-	Command(Statement, "SET TEXTSIZE 4096");
+	Command("SET TEXTSIZE 4096");
 
 	SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 
@@ -244,7 +244,7 @@ main(int argc, char *argv[])
 				use_odbc_version3 = odbc3;
 				Disconnect();
 				Connect();
-				Command(Statement, "SET TEXTSIZE 4096");
+				Command("SET TEXTSIZE 4096");
 				SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 			}
 		}

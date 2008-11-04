@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.13 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.14 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -37,74 +37,12 @@ typedef struct
 } DbTestEntry;
 
 /*
- * Output ODBC errors.
- */
-static void
-DispODBCErrs(void)
-{
-	SQLCHAR buffer[256];
-	SQLCHAR sqlState[16];
-
-	/* Statement errors */
-	if (Statement) {
-		while (SQLError(Environment, Connection, Statement, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
-			AB_ERROR(("%s, SQLSTATE=%s", buffer, sqlState));
-		}
-	}
-
-	/* Connection errors */
-	while (SQLError(Environment, Connection, SQL_NULL_HSTMT, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
-		AB_ERROR(("%s, SQLSTATE=%s", buffer, sqlState));
-	}
-
-	/* Environmental errors */
-	while (SQLError(Environment, SQL_NULL_HDBC, SQL_NULL_HSTMT, sqlState, 0, buffer, sizeof(buffer), 0) == SQL_SUCCESS) {
-		AB_ERROR(("%s, SQLSTATE=%s", buffer, sqlState));
-	}
-}
-
-/*
- * Output ODBC diagnostics. Only used for 'raw' ODBC tests.
- */
-static void
-DispODBCDiags(void)
-{
-	SQLSMALLINT recNumber;
-	SQLCHAR sqlState[10];
-	SQLINTEGER nativeError = -99;
-	SQLCHAR messageText[500];
-	SQLSMALLINT bufferLength = 500;
-	SQLSMALLINT textLength = -99;
-	SQLRETURN status;
-
-	recNumber = 1;
-
-	AB_FUNCT(("DispODBCDiags (in)"));
-
-	do {
-		status = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, recNumber,
-				       sqlState, &nativeError, messageText, bufferLength, &textLength);
-		if (status != SQL_SUCCESS) {
-			/* No data mean normal end of iteration. Anything else is error. */
-			if (status != SQL_NO_DATA) {
-				AB_ERROR(("SQLGetDiagRec status is %d", status));
-			}
-			break;
-		}
-		printf("DIAG #%d, sqlState=%s, nativeError=%d, message=%s\n", recNumber, sqlState, (int) nativeError, messageText);
-		recNumber++;
-	} while (status == SQL_SUCCESS);
-
-	AB_FUNCT(("DispODBCDiags (out)"));
-}
-
-/*
  * Test that makes a parameterized ODBC query using SQLPrepare and SQLExecute
  */
 static int
 TestRawODBCPreparedQuery(void)
 {
-	SQLCHAR queryString[200];
+	SQLCHAR *queryString;
 	SQLLEN lenOrInd = 0;
 	SQLSMALLINT supplierId = 4;
 	int count;
@@ -117,7 +55,7 @@ TestRawODBCPreparedQuery(void)
 
 	/* MAKE QUERY */
 
-	Command(Statement, "CREATE TABLE #Products ("
+	Command("CREATE TABLE #Products ("
 		"ProductID int NOT NULL ,"
 		"ProductName varchar (40) ,"
 		"SupplierID int NULL ,"
@@ -136,7 +74,7 @@ TestRawODBCPreparedQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(12,'Queso Manchego La Pastora',5,4,'10 - 500 g pkgs.',38.00,86,0,0,0)");
 	while (SQLMoreResults(Statement) == SQL_SUCCESS);
 
-	strcpy((char *) queryString, "SELECT * FROM #Products WHERE SupplierID = ?");
+	queryString = (SQLCHAR *) "SELECT * FROM #Products WHERE SupplierID = ?";
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd, "S");
 
@@ -175,7 +113,6 @@ TestRawODBCPreparedQuery(void)
 static int
 TestRawODBCDirectQuery(void)
 {
-	SQLCHAR queryString[200];
 	SQLLEN lenOrInd = 0;
 	SQLSMALLINT supplierId = 1;
 	int count;
@@ -188,7 +125,7 @@ TestRawODBCDirectQuery(void)
 
 	/* MAKE QUERY */
 
-	Command(Statement, "CREATE TABLE #Products ("
+	Command("CREATE TABLE #Products ("
 		"ProductID int NOT NULL ,"
 		"ProductName varchar (40) ,"
 		"SupplierID int NULL ,"
@@ -207,11 +144,9 @@ TestRawODBCDirectQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(5,'Chef Anton''s Gumbo Mix',2,2,'36 boxes',21.35,0,0,0,1) ");
 	while (SQLMoreResults(Statement) == SQL_SUCCESS);
 
-	strcpy((char *) queryString, "SELECT * FROM #Products WHERE SupplierID = ?");
-
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd, "S");
 
-	CHKExecDirect(queryString, SQL_NTS, "S");
+	CHKExecDirect((SQLCHAR *) "SELECT * FROM #Products WHERE SupplierID = ?", SQL_NTS, "S");
 
 	count = 0;
 
@@ -247,7 +182,7 @@ TestRawODBCGuid(void)
 {
 	SQLRETURN status;
 
-	SQLCHAR queryString[300];
+	SQLCHAR *queryString;
 	SQLLEN lenOrInd;
 	SQLSMALLINT age;
 	SQLCHAR guid[40];
@@ -267,30 +202,22 @@ TestRawODBCGuid(void)
 
 	AB_PRINT(("Creating #pet table"));
 
-	strcpy((char *) (queryString), "CREATE TABLE #pet (name VARCHAR(20), owner VARCHAR(20), "
-	       "species VARCHAR(20), sex CHAR(1), age INTEGER, " "guid UNIQUEIDENTIFIER DEFAULT NEWID() ); ");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS && status != SQL_NO_DATA) {
-		AB_ERROR(("Create table failed"));
-		goto odbcfail;
-	}
+	queryString = (SQLCHAR *) "CREATE TABLE #pet (name VARCHAR(20), owner VARCHAR(20), "
+	       "species VARCHAR(20), sex CHAR(1), age INTEGER, " "guid UNIQUEIDENTIFIER DEFAULT NEWID() ); ";
+	CHKExecDirect(queryString, SQL_NTS, "SNo");
 
 	CommandWithResult(Statement, "DROP PROC GetGUIDRows");
 
 	AB_PRINT(("Creating stored proc GetGUIDRows"));
 
-	strcpy((char *) (queryString), "CREATE PROCEDURE GetGUIDRows (@guidpar uniqueidentifier) AS \
-                SELECT name, guid FROM #pet WHERE guid = @guidpar");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
-	if (status != SQL_SUCCESS && status != SQL_NO_DATA) {
-		AB_ERROR(("Create procedure failed"));
-		goto odbcfail;
-	}
+	queryString = (SQLCHAR *) "CREATE PROCEDURE GetGUIDRows (@guidpar uniqueidentifier) AS \
+                SELECT name, guid FROM #pet WHERE guid = @guidpar";
+	CHKExecDirect(queryString, SQL_NTS, "SNo");
 
 	AB_PRINT(("Insert row 1"));
 
-	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age ) \
-                         VALUES ( 'Fang', 'Mike', 'dog', 'm', 12 );");
+	queryString = (SQLCHAR *) "INSERT INTO #pet( name, owner, species, sex, age ) \
+                         VALUES ( 'Fang', 'Mike', 'dog', 'm', 12 );";
 	CHKExecDirect(queryString, SQL_NTS, "S");
 
 	AB_PRINT(("Insert row 2"));
@@ -298,9 +225,9 @@ TestRawODBCGuid(void)
 	/*
 	 * Ok - new row with explicit GUID, but parameterised age.
 	 */
-	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
+	queryString = (SQLCHAR *) "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
                          VALUES ( 'Splash', 'Dan', 'fish', 'm', ?, \
-                         '12345678-1234-1234-1234-123456789012' );");
+                         '12345678-1234-1234-1234-123456789012' );";
 
 	lenOrInd = 0;
 	age = 3;
@@ -313,8 +240,8 @@ TestRawODBCGuid(void)
 	/*
 	 * Ok - new row with parameterised GUID.
 	 */
-	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
-                         VALUES ( 'Woof', 'Tom', 'cat', 'f', 2, ? );");
+	queryString = (SQLCHAR *) "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
+                         VALUES ( 'Woof', 'Tom', 'cat', 'f', 2, ? );";
 
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "87654321-4321-4321-4321-123456789abc");
@@ -326,8 +253,8 @@ TestRawODBCGuid(void)
 	/*
 	 * Ok - new row with parameterised GUID.
 	 */
-	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
-                         VALUES ( 'Spike', 'Diane', 'pig', 'f', 4, ? );");
+	queryString = (SQLCHAR *) "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
+                         VALUES ( 'Spike', 'Diane', 'pig', 'f', 4, ? );";
 
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "1234abcd-abcd-abcd-abcd-123456789abc");
@@ -339,8 +266,8 @@ TestRawODBCGuid(void)
 	/*
 	 * Ok - new row with parameterised GUID.
 	 */
-	strcpy((char *) (queryString), "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
-                         VALUES ( 'Fluffy', 'Sam', 'dragon', 'm', 16, ? );");
+	queryString = (SQLCHAR *) "INSERT INTO #pet( name, owner, species, sex, age, guid ) \
+                         VALUES ( 'Fluffy', 'Sam', 'dragon', 'm', 16, ? );";
 
 	sqlguid.Data1 = 0xaabbccdd;
 	sqlguid.Data2 = 0xeeff;
@@ -368,7 +295,7 @@ TestRawODBCGuid(void)
 	 * Now retrieve rows - especially GUID column values.
 	 */
 	AB_PRINT(("retrieving name and guid"));
-	strcpy((char *) (queryString), "SELECT name, guid FROM #pet");
+	queryString = (SQLCHAR *) "SELECT name, guid FROM #pet";
 	CHKExecDirect(queryString, SQL_NTS, "S");
 	while (SQLFetch(Statement) == SQL_SUCCESS) {
 		count++;
@@ -390,7 +317,7 @@ TestRawODBCGuid(void)
 	 */
 
 	AB_PRINT(("retrieving name and guid again"));
-	strcpy((char *) (queryString), "SELECT name, guid FROM #pet");
+	queryString = (SQLCHAR *) "SELECT name, guid FROM #pet";
 	CHKExecDirect(queryString, SQL_NTS, "S");
 	while (CHKFetch("SNo") == SQL_SUCCESS) {
 		count++;
@@ -416,7 +343,7 @@ TestRawODBCGuid(void)
 	 */
 	AB_PRINT(("retrieving name and guid"));
 
-	strcpy((char *) (queryString), "{call GetGUIDRows(?)}");
+	queryString = (SQLCHAR *) "{call GetGUIDRows(?)}";
 	lenOrInd = SQL_NTS;
 	strcpy((char *) (guid), "87654321-4321-4321-4321-123456789abc");
 
@@ -445,12 +372,6 @@ TestRawODBCGuid(void)
 
 	AB_FUNCT(("TestRawODBCGuid (out): ok"));
 	return TRUE;
-
-      odbcfail:
-	DispODBCErrs();
-	DispODBCDiags();
-	AB_FUNCT(("TestRawODBCGuid (out): error"));
-	return FALSE;
 }
 
 /**
@@ -507,9 +428,7 @@ main(int argc, char *argv[])
 {
 	use_odbc_version3 = 1;
 
-	if (RunTests()) {
+	if (RunTests())
 		return 0;	/* Success */
-	} else {
-		return 1;	/* Error code */
-	}
+	return 1;	/* Error code */
 }

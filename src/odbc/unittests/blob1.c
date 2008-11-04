@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.10 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.11 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -159,7 +159,6 @@ int
 main(int argc, char **argv)
 {
 	SQLRETURN RetCode;
-	SQLHSTMT m_hstmt = NULL;
 	SQLHSTMT old_Statement = SQL_NULL_HSTMT;
 	int i;
 
@@ -176,16 +175,16 @@ main(int argc, char **argv)
 	use_odbc_version3 = 1;
 	Connect();
 
-	Command(Statement, "CREATE TABLE #tt ( k INT, t TEXT, b1 IMAGE, b2 IMAGE, v INT )");
+	Command("CREATE TABLE #tt ( k INT, t TEXT, b1 IMAGE, b2 IMAGE, v INT )");
+
+	old_Statement = Statement;
+	Statement = SQL_NULL_HSTMT;
 
 	/* Insert rows ... */
 
 	for (i = 0; i < cnt; i++) {
 
-		m_hstmt = NULL;
-		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &m_hstmt, "S");
-		old_Statement = Statement;
-		Statement = m_hstmt;
+		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "S");
 
 		CHKPrepare((SQLCHAR *) "INSERT INTO #tt VALUES ( ?, ?, ?, ?, ? )", SQL_NTS, "S");
 
@@ -209,11 +208,11 @@ main(int argc, char **argv)
 		
 
 		printf(">> insert... %d\n", i);
-		CHKR(SQLExecute, (m_hstmt), "SINe");
+		CHKExecute("SINe");
 		while (RetCode == SQL_NEED_DATA) {
 			char *p;
 
-			CHKR(SQLParamData, (m_hstmt, (SQLPOINTER) & p), "SINe");
+			CHKParamData((SQLPOINTER) & p, "SINe");
 			printf(">> SQLParamData: ptr = %p  RetCode = %d\n", (void *) p, RetCode);
 			if (RetCode == SQL_NEED_DATA) {
 				if (p == buf3) {
@@ -234,18 +233,15 @@ main(int argc, char **argv)
 			}
 		}
 
-		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt, "S");
-		Statement = old_Statement;
+		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
+		Statement = SQL_NULL_HSTMT;
 	}
 
 	/* Now fetch rows ... */
 
 	for (i = 0; i < cnt; i++) {
 
-		m_hstmt = NULL;
-		CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &m_hstmt));
-		old_Statement = Statement;
-		Statement = m_hstmt;
+		CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &Statement));
 
 		if (db_is_microsoft()) {
 			CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER, "S");
@@ -271,16 +267,18 @@ main(int argc, char **argv)
 		printf(">> fetch... %d\n", i);
 
 		RetCode = readBlob(1);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "readBlob 1");
+		CHECK_RCODE(SQL_HANDLE_STMT, Statement, "readBlob 1");
 		RetCode = readBlob(2);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "readBlob 2");
+		CHECK_RCODE(SQL_HANDLE_STMT, Statement, "readBlob 2");
 		RetCode = readBlobAsChar(3, i);
-		CHECK_RCODE(SQL_HANDLE_STMT, m_hstmt, "readBlob 3 as SQL_C_CHAR");
+		CHECK_RCODE(SQL_HANDLE_STMT, Statement, "readBlob 3 as SQL_C_CHAR");
 
 		CHKCloseCursor("S");
-		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) m_hstmt, "S");
-		Statement = old_Statement;
+		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
+		Statement = SQL_NULL_HSTMT;
 	}
+	
+	Statement = old_Statement;
 
 	Disconnect();
 

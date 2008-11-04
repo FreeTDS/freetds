@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.11 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.12 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -32,7 +32,7 @@ static const char procedure_sql[] =
 		"END \n";
 
 
-static int
+static void
 init_proc(const char *name)
 {
 	static char cmd[4096];
@@ -47,15 +47,8 @@ init_proc(const char *name)
 	printf("Creating procedure %s\n", name);
 	sprintf(cmd, procedure_sql, name);
 
-	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) cmd, SQL_NTS))) {
-		if (name[0] == '#')
-			printf("Failed to create procedure %s. Wrong permission or not MSSQL.\n", name);
-		else
-			printf("Failed to create procedure %s. Wrong permission.\n", name);
-		CheckReturn();
-		exit(1);
-	}
-	return 0;
+	/* create procedure. Fails if wrong permission or not MSSQL */
+	CHKExecDirect((SQLCHAR *) cmd, SQL_NTS, "SI");
 }
 
 static void
@@ -231,7 +224,7 @@ main(int argc, char *argv[])
 	Test(proc_name);
 	
 	printf("dropping procedure\n");
-	Command(Statement, drop_proc);
+	Command(drop_proc);
 
 	Disconnect();
 

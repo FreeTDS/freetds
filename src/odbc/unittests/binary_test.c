@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -42,7 +42,7 @@ clean_up(void)
 static int
 test_insert(void *buf, SQLLEN buflen)
 {
-	SQLHSTMT old_Statement;
+	SQLHSTMT Statement = SQL_NULL_HSTMT;
 	SQLLEN strlen_or_ind;
 	const char *qstr = "insert into " TEST_TABLE_NAME " values (?)";
 
@@ -50,8 +50,6 @@ test_insert(void *buf, SQLLEN buflen)
 	assert(Environment);
 
 	/* allocate new statement handle */
-	old_Statement = Statement;
-	Statement = SQL_NULL_HSTMT;
 	CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "SI");
 
 	/* execute query */
@@ -64,10 +62,9 @@ test_insert(void *buf, SQLLEN buflen)
 	CHKExecute("SI");
 
 	/* this command shouldn't fail */
-	Command(Statement, "DECLARE @i INT");
+	Command("DECLARE @i INT");
 
 	SQLFreeHandle(SQL_HANDLE_STMT, Statement);
-	Statement = old_Statement;
 	return 0;
 }
 
@@ -75,7 +72,7 @@ test_insert(void *buf, SQLLEN buflen)
 static int
 test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 {
-	SQLHSTMT old_Statement;
+	SQLHSTMT Statement = SQL_NULL_HSTMT;
 	SQLLEN strlen_or_ind = 0;
 	const char *qstr = "select * from " TEST_TABLE_NAME;
 
@@ -83,8 +80,6 @@ test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 	assert(Environment);
 
 	/* allocate new statement handle */
-	old_Statement = Statement;
-	Statement = SQL_NULL_HSTMT;
 	CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "SI");
 
 	/* execute query */
@@ -102,7 +97,6 @@ test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 	CHKFetch("No");
 
 	SQLFreeHandle(SQL_HANDLE_STMT, Statement);
-	Statement = old_Statement;
 	return 0;
 }
 
@@ -119,8 +113,8 @@ main(int argc, char **argv)
 
 	Connect();
 
-	Command(Statement, "create table " TEST_TABLE_NAME " (im IMAGE)");
-	Command(Statement, "SET TEXTSIZE 1000000");
+	Command("create table " TEST_TABLE_NAME " (im IMAGE)");
+	Command("SET TEXTSIZE 1000000");
 
 	/* populate test buffer with ramp */
 	for (i = 0; i < TEST_BUF_LEN; i++) {

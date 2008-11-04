@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: cursor5.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLINTEGER v_int_3;
@@ -31,10 +31,10 @@ main(int argc, char **argv)
 
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER, "S");
 
-	Command(Statement, "create table #mytab1 (k int, c char(30))");
-	Command(Statement, "insert into #mytab1 values (1,'aaa')");
-	Command(Statement, "insert into #mytab1 values (2,'bbb')");
-	Command(Statement, "insert into #mytab1 values (3,'ccc')");
+	Command("create table #mytab1 (k int, c char(30))");
+	Command("insert into #mytab1 values (1,'aaa')");
+	Command("insert into #mytab1 values (2,'bbb')");
+	Command("insert into #mytab1 values (3,'ccc')");
 
 	ResetStatement();
 /*	CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_STATIC, 0, "S");	*/

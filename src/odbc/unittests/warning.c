@@ -14,7 +14,7 @@
  * inside recordset
  * Sybase do not return warning but test works the same
  */
-static char software_version[] = "$Id: warning.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: warning.c,v 1.8 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
@@ -61,8 +61,8 @@ main(void)
 {
 	Connect();
 
-	Command(Statement, "CREATE TABLE #warning(name varchar(20), value int null)");
-	Command(Statement, "INSERT INTO #warning VALUES('a', NULL)");
+	Command("CREATE TABLE #warning(name varchar(20), value int null)");
+	Command("INSERT INTO #warning VALUES('a', NULL)");
 
 	Test(one_null_with_warning);
 	Test("SELECT SUM(value) FROM #warning");

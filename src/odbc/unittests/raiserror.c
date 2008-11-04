@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.22 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.23 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -251,7 +251,7 @@ Test2(int nocount, int second_select)
 
 	Test(11);
 
-	Command(Statement, "DROP PROC #tmp1");
+	Command("DROP PROC #tmp1");
 }
 
 int

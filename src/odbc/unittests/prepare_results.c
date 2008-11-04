@@ -2,7 +2,7 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.10 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_results.c,v 1.11 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -14,10 +14,10 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	Command(Statement, "create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
+	Command("create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
 
 	/* reset state */
-	Command(Statement, "select * from #odbctestdata");
+	Command("select * from #odbctestdata");
 	SQLFetch(Statement);
 	SQLMoreResults(Statement);
 
@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 	}
 
 	/* TODO test SQLDescribeParam (when implemented) */
-	Command(Statement, "drop table #odbctestdata");
+	Command("drop table #odbctestdata");
 
 	Disconnect();
 

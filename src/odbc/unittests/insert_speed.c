@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: insert_speed.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: insert_speed.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SQL_QUERY_LENGTH 80
@@ -66,15 +66,15 @@ main(int argc, char **argv)
 	Connect();
 
 	CommandWithResult(Statement, "DROP TABLE test");
-	Command(Statement, "CREATE TABLE test(i int, c varchar(40))");
+	Command("CREATE TABLE test(i int, c varchar(40))");
 
 	insert_test_man();
 
-	Command(Statement, "DELETE FROM test");
+	Command("DELETE FROM test");
 
 	insert_test_auto();
 
-	Command(Statement, "DROP TABLE test");
+	Command("DROP TABLE test");
 
 	Disconnect();
 

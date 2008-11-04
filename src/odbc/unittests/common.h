@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.25 2008-11-04 10:59:02 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.26 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -120,6 +120,8 @@ SQLSMALLINT AllocHandleErrType(SQLSMALLINT type);
 	CHKR2(SQLNumResultCols, (Statement,a), SQL_HANDLE_STMT, Statement, res)
 #define CHKParamData(a,res) \
 	CHKR2(SQLParamData, (Statement,a), SQL_HANDLE_STMT, Statement, res)
+#define CHKParamOptions(a,b,res) \
+	CHKR2(SQLParamOptions, (Statement,a,b), SQL_HANDLE_STMT, Statement, res)
 #define CHKPrepare(a,b,res) \
 	CHKR2(SQLPrepare, (Statement,a,b), SQL_HANDLE_STMT, Statement, res)
 #define CHKPutData(a,b,res) \
@@ -141,7 +143,8 @@ SQLSMALLINT AllocHandleErrType(SQLSMALLINT type);
 
 int Connect(void);
 int Disconnect(void);
-void Command(HSTMT stmt, const char *command);
+SQLRETURN Command(HSTMT stmt, const char *command, const char *file, int line);
+#define Command(cmd) (RetCode=Command(Statement, cmd, __FILE__, __LINE__))
 SQLRETURN CommandWithResult(HSTMT stmt, const char *command);
 int db_is_microsoft(void);
 const char *db_version(void);

@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.13 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.14 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -18,7 +18,7 @@ typedef struct
 } Record;
 
 static void
-query_test(SQLRETURN expected, const char *expected_status)
+query_test(const char* expected, const char *expected_status)
 {
 #define ARRAY_SIZE 10
 
@@ -30,7 +30,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 	int desc_len = trunc ? 4 : 51;
 	int rec_size = 0;
 	Record *rec = NULL;
-	RETCODE ret;
+	RETCODE RetCode;
 	char status[20];
 
 	assert(Statement != SQL_NULL_HSTMT);
@@ -76,9 +76,7 @@ query_test(SQLRETURN expected, const char *expected_status)
 
 	CHKExecDirect((SQLCHAR *) test_query, SQL_NTS, "S");
 
-	ret = SQLFetch(Statement);
-	if (ret != expected)
-		ODBC_REPORT_ERROR("SQLFetch invalid result");
+	CHKFetch(expected);
 
 	assert(processed <= ARRAY_SIZE);
 
@@ -138,34 +136,34 @@ main(int argc, char *argv[])
 	use_odbc_version3 = 1;
 	Connect();
 
-	Command(Statement, "CREATE TABLE #odbc_test(i INT, t TEXT)");
+	Command("CREATE TABLE #odbc_test(i INT, t TEXT)");
 	for (i = 0; i < 10; ++i) {
 		char buf[128];
 
 		sprintf(buf, "INSERT INTO #odbc_test(i, t) VALUES(%d, '%crow number %d')", i + 1, 'a' + i, i * 13);
-		Command(Statement, buf);
+		Command(buf);
 	}
 
 	ResetStatement();
 
 	test_query = "SELECT * FROM #odbc_test ORDER BY i";
 	printf("test line %d\n", __LINE__);
-	query_test(SQL_SUCCESS, "VVVVVVVVVV");
+	query_test("S", "VVVVVVVVVV");
 
 	test_query = "SELECT * FROM #odbc_test WHERE i < 7 ORDER BY i";
 	printf("test line %d\n", __LINE__);
-	query_test(SQL_SUCCESS, "VVVVVV");
+	query_test("S", "VVVVVV");
 
 	/* binding row */
 	test_query = "SELECT * FROM #odbc_test ORDER BY i";
 	record_bind = 1;
 	printf("test line %d\n", __LINE__);
-	query_test(SQL_SUCCESS, "VVVVVVVVVV");
+	query_test("S", "VVVVVVVVVV");
 
 	/* row and truncation */
 	trunc = 1;
 	printf("test line %d\n", __LINE__);
-	query_test(SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
+	query_test("I", "!!!!!!!!!!");
 
 	/* TODO bind offset, SQLGetData, no bind, error */
 

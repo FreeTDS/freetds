@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.17 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.18 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SWAP_STMT(b) do { SQLHSTMT xyz = Statement; Statement = b; b = xyz; } while(0)
@@ -47,14 +47,14 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 	SQLRETURN RetCode;
 
 	/* create test table */
-	Command(Statement, "IF OBJECT_ID('tempdb..#test') IS NOT NULL DROP TABLE #test");
-	Command(Statement, create_sql);
+	Command("IF OBJECT_ID('tempdb..#test') IS NOT NULL DROP TABLE #test");
+	Command(create_sql);
 	for (i = 1; i <= 6; ++i) {
 		char sql_buf[80], data[10];
 		memset(data, 'a' + (i - 1), sizeof(data));
 		data[i] = 0;
 		sprintf(sql_buf, insert_sql, data, i);
-		Command(Statement, sql_buf);
+		Command(sql_buf);
 	}
 
 	/* set cursor options */
@@ -149,8 +149,8 @@ static void
 Test(int use_sql)
 {
 	CommandWithResult(Statement, "DROP TABLE #a");
-	Command(Statement, "CREATE TABLE #a(x int)");
-	Command(Statement, "INSERT INTO #a VALUES(123)");
+	Command("CREATE TABLE #a(x int)");
+	Command("INSERT INTO #a VALUES(123)");
 	Test0(use_sql, "CREATE TABLE #test(i int, c varchar(6))", "INSERT INTO #test(c, i) VALUES('%s', %d)", "SELECT x AS i, c FROM #test, #a");
 
 	Test0(use_sql, "CREATE TABLE #test(i int, c varchar(6))", "INSERT INTO #test(c, i) VALUES('%s', %d)", "SELECT i, c FROM #test");

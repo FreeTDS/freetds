@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.10 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.11 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -88,7 +88,7 @@ DoTest(int version3)
 	SQLSMALLINT type, is_unsigned;
 	SQLINTEGER col_size, min_scale;
 	SQLLEN ind1, ind2, ind3, ind4, ind5, ind6;
-	SQLRETURN retcode;
+	SQLRETURN RetCode;
 	int date_time_supported = 0;
 
 	use_odbc_version3 = version3;
@@ -124,8 +124,8 @@ DoTest(int version3)
 	/* numeric type for data */
 
 	/* test for date/time support */
-	retcode = CommandWithResult(Statement, "select cast(getdate() as date)");
-	if (retcode == SQL_SUCCESS)
+	RetCode = CommandWithResult(Statement, "select cast(getdate() as date)");
+	if (RetCode == SQL_SUCCESS)
 		date_time_supported = 1;
 	SQLCloseCursor(Statement);
 

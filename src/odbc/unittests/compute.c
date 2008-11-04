@@ -9,7 +9,7 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.11 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.12 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
@@ -78,12 +78,12 @@ main(int argc, char *argv[])
 {
 	Connect();
 
-	Command(Statement, "create table #tmp1 (c varchar(20), i int)");
-	Command(Statement, "insert into #tmp1 values('pippo', 12)");
-	Command(Statement, "insert into #tmp1 values('pippo', 34)");
-	Command(Statement, "insert into #tmp1 values('pluto', 1)");
-	Command(Statement, "insert into #tmp1 values('pluto', 2)");
-	Command(Statement, "insert into #tmp1 values('pluto', 3)");
+	Command("create table #tmp1 (c varchar(20), i int)");
+	Command("insert into #tmp1 values('pippo', 12)");
+	Command("insert into #tmp1 values('pippo', 34)");
+	Command("insert into #tmp1 values('pluto', 1)");
+	Command("insert into #tmp1 values('pluto', 2)");
+	Command("insert into #tmp1 values('pluto', 3)");
 
 
 	/* 
@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 	/* select * from #tmp1 compute sum(i) */
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	Command(Statement, "select * from #tmp1 order by c, i compute sum(i)");
+	Command("select * from #tmp1 order by c, i compute sum(i)");
 	CheckFetch("c", "pippo", "12");
 	CheckFetch("c", "pippo", "34");
 	CheckFetch("c", "pluto", "1");
@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 	/* select * from #tmp1 order by c compute sum(i) by c */
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	Command(Statement, "select c as mao, i from #tmp1 order by c, i compute sum(i) by c compute max(i)");
+	Command("select c as mao, i from #tmp1 order by c, i compute sum(i) by c compute max(i)");
 	CheckFetch("mao", "pippo", "12");
 	CheckFetch("mao", "pippo", "34");
 	CHKFetch("No");
@@ -160,7 +160,7 @@ main(int argc, char *argv[])
 	/* select * from #tmp1 where i = 2 compute min(i) */
 	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
 	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	Command(Statement, "select * from #tmp1 where i = 2 or i = 34 order by c, i compute min(i) by c");
+	Command("select * from #tmp1 where i = 2 or i = 34 order by c, i compute min(i) by c");
 	CheckFetch("c", "pippo", "34");
 	CHKFetch("No");
 	CHKMoreResults("S");

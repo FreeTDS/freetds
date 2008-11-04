@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.49 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.50 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -205,15 +205,12 @@ Connect(void)
 		CheckReturn();
 	}
 
-	CHK(SQLAllocStmt, (Connection, &Statement));
+	CHKAllocStmt(&Statement, "S");
 
 	sprintf(command, "use %s", DATABASE);
 	printf("%s\n", command);
 
-	if (!SQL_SUCCEEDED(SQLExecDirect(Statement, (SQLCHAR *) command, SQL_NTS))) {
-		printf("Unable to execute statement\n");
-		CheckReturn();
-	}
+	CHKExecDirect((SQLCHAR *) command, SQL_NTS, "SI");
 
 #ifndef TDS_NO_DM
 	/* unixODBC seems to require it */
@@ -241,19 +238,6 @@ Disconnect(void)
 		Environment = SQL_NULL_HENV;
 	}
 	return 0;
-}
-
-void
-Command(HSTMT stmt, const char *command)
-{
-	int result = 0;
-
-	printf("%s\n", command);
-	result = SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS);
-	if (result != SQL_SUCCESS && result != SQL_NO_DATA) {
-		fprintf(stderr, "Unable to execute statement\n");
-		CheckReturn();
-	}
 }
 
 SQLRETURN
@@ -327,16 +311,13 @@ void
 CheckCols(int n, int line, const char * file)
 {
 	SQLSMALLINT cols;
-	SQLRETURN res;
+	SQLRETURN RetCode;
 
-	res = SQLNumResultCols(Statement, &cols);
-	if (res != SQL_SUCCESS) {
-		if (res == SQL_ERROR && n < 0)
-			return;
-		fprintf(stderr, "%s:%d: Unable to get column numbers\n", file, line);
-		CheckReturn();
+	if (n < 0) {
+		CHKNumResultCols(&cols, "E");
+		return;
 	}
-
+	CHKNumResultCols(&cols, "S");
 	if (cols != n) {
 		fprintf(stderr, "%s:%d: Expected %d columns returned %d\n", file, line, n, (int) cols);
 		Disconnect();
@@ -348,16 +329,14 @@ void
 CheckRows(int n, int line, const char * file)
 {
 	SQLLEN rows;
-	SQLRETURN res;
+	SQLRETURN RetCode;
 
-	res = SQLRowCount(Statement, &rows);
-	if (res != SQL_SUCCESS) {
-		if (res == SQL_ERROR && n < -1)
-			return;
-		fprintf(stderr, "%s:%d: Unable to get row\n", file, line);
-		CheckReturn();
+	if (n < -1) {
+		CHKRowCount(&rows, "E");
+		return;
 	}
 
+	CHKRowCount(&rows, "S");
 	if (rows != n) {
 		fprintf(stderr, "%s:%d: Expected %d rows returned %d\n", file, line, n, (int) rows);
 		Disconnect();
@@ -370,7 +349,7 @@ ResetStatement(void)
 {
 	SQLFreeStmt(Statement, SQL_DROP);
 	Statement = SQL_NULL_HSTMT;
-	CHK(SQLAllocStmt, (Connection, &Statement));
+	CHKAllocStmt(&Statement, "S");
 }
 
 void
@@ -383,7 +362,7 @@ CheckCursor(void)
 		char output[256];
 		unsigned char sqlstate[6];
 
-		CHK(SQLGetDiagRec, (SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL));
+		CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL, "S");
 		sqlstate[5] = 0;
 		if (strcmp((const char*) sqlstate, "01S02") == 0) {
 			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
@@ -442,3 +421,12 @@ AllocHandleErrType(SQLSMALLINT type)
 	}
 	return 0;
 }
+
+#undef Command
+SQLRETURN
+Command(HSTMT stmt, const char *command, const char *file, int line)
+{
+	printf("%s\n", command);
+	return CheckRes(file, line, SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS), SQL_HANDLE_STMT, stmt, "Command", "SNo");
+}
+

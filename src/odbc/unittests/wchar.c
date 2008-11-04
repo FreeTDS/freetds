@@ -2,7 +2,7 @@
 
 /* test SQL_C_DEFAULT with NCHAR type */
 
-static char software_version[] = "$Id: wchar.c,v 1.2 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: wchar.c,v 1.3 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -16,7 +16,7 @@ main(int argc, char *argv[])
 	Connect();
 
 	CHKBindCol(1, SQL_C_DEFAULT, buf, 100, &ind, "S");
-	Command(Statement, "SELECT CONVERT(NCHAR(10), 'Pippo 123')");
+	Command("SELECT CONVERT(NCHAR(10), 'Pippo 123')");
 
 	/* get data */
 	memset(buf, 0, sizeof(buf));

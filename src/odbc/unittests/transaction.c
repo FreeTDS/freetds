@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.14 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.15 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -8,7 +8,7 @@ Test(int discard_test)
 {
 	SQLINTEGER out_buf;
 	SQLLEN out_len;
-	int result = 0;
+	SQLRETURN RetCode;
 	SQLLEN rows;
 	int retcode = 0;
 	char buf[512];
@@ -27,18 +27,18 @@ Test(int discard_test)
 	/* create stored proc */
 	CommandWithResult(Statement, "DROP PROCEDURE testinsert");
 
-	Command(Statement, createProcedure);
+	Command(createProcedure);
 
 	/* create stored proc that generates an error */
 	CommandWithResult(Statement, "DROP PROCEDURE testerror");
 
-	Command(Statement, createErrorProcedure);
+	Command(createErrorProcedure);
 
 	/* Start transaction */
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0, "S");
 
 	/* Insert a value */
-	Command(Statement, "EXEC testinsert 1");
+	Command("EXEC testinsert 1");
 
 	/* we should be able to read row count */
 	CHKRowCount(&rows, "S");
@@ -52,7 +52,7 @@ Test(int discard_test)
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0, "S");
 
 	/* Insert another value */
-	Command(Statement, "EXEC testinsert 2");
+	Command("EXEC testinsert 2");
 
 	/* Roll back transaction */
 	CHKEndTran(SQL_HANDLE_DBC, Connection, SQL_ROLLBACK, "S");
@@ -62,10 +62,10 @@ Test(int discard_test)
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_ON, 0, "S");
 
 	/* generate an error */
-	Command(Statement, "EXEC testerror");
+	Command("EXEC testerror");
 	CHKBindCol(1, SQL_C_SLONG, &out_buf, sizeof(out_buf), &out_len, "S");
 
-	while ((result = SQLFetch(Statement)) == SQL_SUCCESS) {
+	while (CHKFetch("SNo") == SQL_SUCCESS) {
 		printf("\t%ld\n", (long int) out_buf);
 		if (out_buf != 1) {
 			fprintf(stderr, "error: expected to select 1 got %ld\n", (long int) out_buf);
@@ -74,35 +74,12 @@ Test(int discard_test)
 		}
 	}
 
-	if (result != SQL_NO_DATA) {
-		ODBC_REPORT_ERROR("error: SQLFetch: testerror");
-		goto cleanup;
-	}
+	CHKMoreResults("E");
 
-	result = SQLMoreResults(Statement);
-	printf("SQLMoreResults returned %d\n", result);
-
-	if (result != SQL_ERROR) {
-		fprintf(stderr, "SQLMoreResults should return error\n");
-		retcode = 1;
-		goto cleanup;
-	}
-
-	result = SQLGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *)buf, sizeof(buf), NULL);
-	if (result != SQL_SUCCESS && result != SQL_SUCCESS_WITH_INFO) {
-		fprintf(stderr, "Error not set (line %d)\n", __LINE__);
-		retcode = 1;
-		goto cleanup;
-	}
+	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *)buf, sizeof(buf), NULL, "SI");
 	printf("err=%s\n", buf);
 
-	result = SQLMoreResults(Statement);
-	printf("SQLMoreResults returned %d\n", result);
-	if (result != SQL_NO_DATA) {
-		fprintf(stderr, "SQLMoreResults should return error");
-		retcode = 1;
-		goto cleanup;
-	}
+	CHKMoreResults("No");
 
       cleanup:
 	/* drop table */
@@ -121,7 +98,7 @@ main(int argc, char *argv[])
 
 	/* create table */
 	CommandWithResult(Statement, "DROP TABLE TestTransaction");
-	Command(Statement, "CREATE TABLE TestTransaction ( value INT )");
+	Command("CREATE TABLE TestTransaction ( value INT )");
 
 	if (!retcode)
 		retcode = Test(1);

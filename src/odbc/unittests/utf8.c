@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.8 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.9 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -68,7 +68,7 @@ TestBinding(int minimun)
 	SQLLEN n_len;
 
 	sprintf(tmp, "DELETE FROM %s", table_name);
-	Command(Statement, tmp);
+	Command(tmp);
 
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
 	sprintf(tmp, "INSERT INTO %s VALUES(?,?,?)", table_name);
@@ -133,14 +133,14 @@ main(int argc, char *argv[])
 
 	/* create test table */
 	sprintf(tmp, "IF OBJECT_ID(N'%s') IS NOT NULL DROP TABLE %s", table_name, table_name);
-	Command(Statement, tmp);
+	Command(tmp);
 	sprintf(tmp, "CREATE TABLE %s (k int, c NCHAR(10), vc NVARCHAR(10))", table_name);
-	Command(Statement, tmp);
+	Command(tmp);
 
 	/* insert with INSERT statements */
 	for (n = 1, p = strings; p[0] && p[1]; p += 2, ++n) {
 		sprintf(tmp, "INSERT INTO %s VALUES (%d,N'%s',N'%s')", table_name, (int) n, p[0], p[1]);
-		Command(Statement, tmp);
+		Command(tmp);
 	}
 
 	/* check rows */
@@ -155,7 +155,7 @@ main(int argc, char *argv[])
 
 	/* cleanup */
 	sprintf(tmp, "IF OBJECT_ID(N'%s') IS NOT NULL DROP TABLE %s", table_name, table_name);
-	Command(Statement, tmp);
+	Command(tmp);
 
 	Disconnect();
 	printf("Done.\n");

@@ -7,7 +7,7 @@
  * TODO make it work and add to Makefile.am
  */
 
-static char software_version[] = "$Id: rownumber.c,v 1.4 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: rownumber.c,v 1.5 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -70,11 +70,11 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	Command(Statement, "create table #tmp1 (i int)");
-	Command(Statement, "create table #tmp2 (i int)");
-	Command(Statement, "insert into #tmp1 values(1)");
-	Command(Statement, "insert into #tmp1 values(2)");
-	Command(Statement, "insert into #tmp1 values(5)");
+	Command("create table #tmp1 (i int)");
+	Command("create table #tmp2 (i int)");
+	Command("insert into #tmp1 values(1)");
+	Command("insert into #tmp1 values(2)");
+	Command("insert into #tmp1 values(5)");
 
 	DoTest();
 

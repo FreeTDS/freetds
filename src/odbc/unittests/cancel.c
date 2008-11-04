@@ -78,7 +78,7 @@ main(int argc, char **argv)
 
 	ResetStatement();
 
-	Command(Statement, "SELECT name FROM sysobjects WHERE 0=1");
+	Command("SELECT name FROM sysobjects WHERE 0=1");
 
 	Disconnect();
 	return 0;

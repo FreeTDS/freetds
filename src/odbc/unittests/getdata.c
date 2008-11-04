@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.9 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.10 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -26,7 +26,7 @@ test_err(const char *data, int c_type, const char *state)
 	char *buf = (char *) malloc(buf_size);
 
 	sprintf(sql, "SELECT '%s'", data);
-	Command(Statement, sql);
+	Command(sql);
 	SQLFetch(Statement);
 	CHKGetData(1, c_type, buf, buf_size, &ind, "E");
 	free(buf);
@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 
 	for (;;) {
 		/* TODO test with VARCHAR too */
-		Command(Statement, "SELECT CONVERT(TEXT,'Prova')");
+		Command("SELECT CONVERT(TEXT,'Prova')");
 
 		CHKFetch("S");
 
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 		ResetStatement();
 
 		/* test with varchar, not blob but variable */
-		Command(Statement, "SELECT CONVERT(VARCHAR(100), 'Other test')");
+		Command("SELECT CONVERT(VARCHAR(100), 'Other test')");
 
 		CHKFetch("S");
 
@@ -123,7 +123,7 @@ main(int argc, char *argv[])
 	}
 
 	/* test with fixed length */
-	Command(Statement, "SELECT CONVERT(INT, 12345)");
+	Command("SELECT CONVERT(INT, 12345)");
 
 	CHKFetch("S");
 
@@ -165,7 +165,7 @@ main(int argc, char *argv[])
 		type = SQL_C_CHAR;
 
 		for (;;) {
-			Command(Statement, "SELECT CONVERT(TEXT,'')");
+			Command("SELECT CONVERT(TEXT,'')");
 
 			CHKFetch("S");
 

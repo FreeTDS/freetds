@@ -50,7 +50,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -313,7 +313,7 @@ main(int argc, char **argv)
 	Connect();
 
 	/* real test */
-	Command(Statement, "CREATE TABLE #test(i int, c varchar(40))");
+	Command("CREATE TABLE #test(i int, c varchar(40))");
 
 	ResetStatement();
 

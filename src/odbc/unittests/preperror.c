@@ -2,7 +2,7 @@
 
 /* test error on prepared statement, from Nathaniel Talbott test */
 
-static char software_version[] = "$Id: preperror.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: preperror.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -14,7 +14,7 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	Command(Statement, "CREATE TABLE #urls ( recdate DATETIME ) ");
+	Command("CREATE TABLE #urls ( recdate DATETIME ) ");
 
 	/* test implicit conversion error */
 	CHKExecDirect((SQLCHAR *) "INSERT INTO #urls ( recdate ) VALUES ( '2003-10-1 10:11:1 0' )", SQL_NTS, "E");

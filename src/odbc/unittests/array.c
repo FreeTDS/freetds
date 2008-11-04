@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.14 2007-11-26 06:25:11 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.15 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -41,7 +41,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	ResetStatement();
 
 	CommandWithResult(Statement, "drop table #tmp1");
-	Command(Statement, "create table #tmp1 (id tinyint, value char(20))");
+	Command("create table #tmp1 (id tinyint, value char(20))");
 
 	SQLSetStmtAttr(Statement, SQL_ATTR_PARAM_BIND_TYPE, SQL_PARAM_BIND_BY_COLUMN, 0);
 	SQLSetStmtAttr(Statement, SQL_ATTR_PARAMSET_SIZE, (void *) ARRAY_SIZE, 0);

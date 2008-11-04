@@ -1,7 +1,7 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.7 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -17,10 +17,10 @@ check_ipd_params(void)
 	SQLHDESC desc;
 	SQLINTEGER ind;
 
-	CHK(SQLGetStmtAttr,(Statement, SQL_ATTR_PARAMS_PROCESSED_PTR, &ptr, sizeof(ptr), NULL));
+	CHKGetStmtAttr(SQL_ATTR_PARAMS_PROCESSED_PTR, &ptr, sizeof(ptr), NULL, "S");
 
 	/* get IPD */
-	CHK(SQLGetStmtAttr, (Statement, SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind));
+	CHKGetStmtAttr(SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind, "S");
 
 	CHK(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind));
 
@@ -43,7 +43,7 @@ set_ipd_params2(SQLULEN *ptr)
 	SQLINTEGER ind;
 
 	/* get IPD */
-	CHK(SQLGetStmtAttr, (Statement, SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind));
+	CHKGetStmtAttr(SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind, "S");
 
 	CHK(SQLSetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0));
 }
@@ -51,7 +51,7 @@ set_ipd_params2(SQLULEN *ptr)
 static void
 set_ipd_params3(SQLULEN *ptr)
 {
-	CHK(SQLParamOptions, (Statement, 2, ptr));
+	CHKParamOptions(2, ptr, "S");
 }
 
 typedef void (*rows_set_t)(SQLULEN*);
@@ -103,7 +103,7 @@ test_params(void)
 		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
 
-		Command(Statement, "INSERT INTO #tmp1(i) VALUES(?)");
+		Command("INSERT INTO #tmp1(i) VALUES(?)");
 		SQLMoreResults(Statement);
 		for (n = 0; n < ARRAY_SIZE; ++n)
 			SQLMoreResults(Statement);
@@ -134,10 +134,10 @@ check_ird_params(void)
 	SQLHDESC desc;
 	SQLINTEGER ind;
 
-	CHK(SQLGetStmtAttr,(Statement, SQL_ATTR_ROWS_FETCHED_PTR, &ptr, sizeof(ptr), NULL));
+	CHKGetStmtAttr(SQL_ATTR_ROWS_FETCHED_PTR, &ptr, sizeof(ptr), NULL, "S");
 
 	/* get IRD */
-	CHK(SQLGetStmtAttr, (Statement, SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind));
+	CHKGetStmtAttr(SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind, "S");
 
 	CHK(SQLGetDescField, (desc, 0, SQL_DESC_ROWS_PROCESSED_PTR, &ptr2, sizeof(ptr2), &ind));
 
@@ -160,7 +160,7 @@ set_ird_params2(SQLULEN *ptr)
 	SQLINTEGER ind;
 
 	/* get IRD */
-	CHK(SQLGetStmtAttr, (Statement, SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind));
+	CHKGetStmtAttr(SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind, "S");
 
 	CHK(SQLSetDescField, (desc, 1, SQL_DESC_ROWS_PROCESSED_PTR, ptr, 0));
 }
@@ -208,16 +208,16 @@ test_rows(void)
 //		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
 //		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
 
-		CHK(SQLBindCol, (Statement, 1, SQL_C_ULONG, ids, 0, id_lens));
+		CHKBindCol(1, SQL_C_ULONG, ids, 0, id_lens, "S");
 		if (*p) {
 			CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
 
-			Command(Statement, "SELECT DISTINCT i FROM #tmp1");
+			Command("SELECT DISTINCT i FROM #tmp1");
 			SQLFetch(Statement);
 		} else {
 			CHKSetStmtAttr(SQL_ROWSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
-			Command(Statement, "SELECT DISTINCT i FROM #tmp1");
-			CHK(SQLExtendedFetch, (Statement, SQL_FETCH_NEXT, 0, &len, NULL));
+			Command("SELECT DISTINCT i FROM #tmp1");
+			CHKExtendedFetch(SQL_FETCH_NEXT, 0, &len, NULL, "S");
 		}
 		SQLMoreResults(Statement);
 
@@ -244,7 +244,7 @@ main(void)
 	use_odbc_version3 = 1;
 	Connect();
 
-	Command(Statement, "create table #tmp1 (i int)");
+	Command("create table #tmp1 (i int)");
 
 	test_params();
 	test_rows();

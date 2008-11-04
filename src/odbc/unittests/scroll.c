@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: scroll.c,v 1.8 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: scroll.c,v 1.9 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -18,7 +18,6 @@ main(int argc, char *argv[])
 	SQLUSMALLINT statuses[ROWS];
 	SQLUSMALLINT i;
 	SQLULEN num_row;
-	SQLRETURN retcode;
 	int i_test;
 
 	typedef struct _test
@@ -48,13 +47,13 @@ main(int argc, char *argv[])
 	CheckCursor();
 
 	/* create test table */
-	Command(Statement, "IF OBJECT_ID('tempdb..#test') IS NOT NULL DROP TABLE #test");
-	Command(Statement, "CREATE TABLE #test(i int, c varchar(6))");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(1, 'a')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(2, 'bb')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(3, 'ccc')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(4, 'dddd')");
-	Command(Statement, "INSERT INTO #test(i, c) VALUES(5, 'eeeee')");
+	Command("IF OBJECT_ID('tempdb..#test') IS NOT NULL DROP TABLE #test");
+	Command("CREATE TABLE #test(i int, c varchar(6))");
+	Command("INSERT INTO #test(i, c) VALUES(1, 'a')");
+	Command("INSERT INTO #test(i, c) VALUES(2, 'bb')");
+	Command("INSERT INTO #test(i, c) VALUES(3, 'ccc')");
+	Command("INSERT INTO #test(i, c) VALUES(4, 'dddd')");
+	Command("INSERT INTO #test(i, c) VALUES(5, 'eeeee')");
 
 	/* set cursor options */
 	ResetStatement();
@@ -77,8 +76,11 @@ main(int argc, char *argv[])
 
 		printf("Test %d\n", i_test + 1);
 
-		retcode = SQLFetchScroll(Statement, t->type, t->irow);
-		if (retcode == SQL_SUCCESS) {
+		if (t->start == -1) {
+			CHKFetchScroll(t->type, t->irow, "No");
+		} else {
+			CHKFetchScroll(t->type, t->irow, "S");
+
 			if (t->start < 1) {
 				fprintf(stderr, "Rows not expected\n");
 				exit(1);
@@ -107,14 +109,7 @@ main(int argc, char *argv[])
 					exit(1);
 				}
 			}
-			continue;
 		}
-
-		if (retcode == SQL_NO_DATA && t->start == -1)
-			continue;
-
-		fprintf(stderr, "retcode = %d\n", retcode);
-		ODBC_REPORT_ERROR("SQLFetchScroll");
 	}
 
 	ResetStatement();

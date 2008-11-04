@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.16 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.17 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -86,11 +86,11 @@ main(int argc, char *argv[])
 {
 	Connect();
 
-	Command(Statement, "create table #tmp1 (i int)");
-	Command(Statement, "create table #tmp2 (i int)");
-	Command(Statement, "insert into #tmp1 values(1)");
-	Command(Statement, "insert into #tmp1 values(2)");
-	Command(Statement, "insert into #tmp1 values(5)");
+	Command("create table #tmp1 (i int)");
+	Command("create table #tmp2 (i int)");
+	Command("insert into #tmp1 values(1)");
+	Command("insert into #tmp1 values(2)");
+	Command("insert into #tmp1 values(5)");
 
 	printf("Use direct statement\n");
 	DoTest(0);

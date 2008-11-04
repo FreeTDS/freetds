@@ -3,7 +3,7 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.9 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.10 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -31,13 +31,13 @@ main(int argc, char *argv[])
 
 	/* here we can't use temporary table cause we use two connection */
 	CommandWithResult(Statement, "drop table test_timeout");
-	Command(Statement, "create table test_timeout(n numeric(18,0) primary key, t varchar(30))");
+	Command("create table test_timeout(n numeric(18,0) primary key, t varchar(30))");
 	AutoCommit(SQL_AUTOCOMMIT_OFF);
 
-	Command(Statement, "insert into test_timeout(n, t) values(1, 'initial')");
+	Command("insert into test_timeout(n, t) values(1, 'initial')");
 	EndTransaction(SQL_COMMIT);
 
-	Command(Statement, "update test_timeout set t = 'second' where n = 1");
+	Command("update test_timeout set t = 'second' where n = 1");
 
 	/* save this connection and do another */
 	env = Environment;
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 
 	/* Sybase do not accept DROP TABLE during a transaction */
 	AutoCommit(SQL_AUTOCOMMIT_ON);
-	Command(Statement, "drop table test_timeout");
+	Command("drop table test_timeout");
 
 	Disconnect();
 

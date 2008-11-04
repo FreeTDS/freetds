@@ -5,7 +5,7 @@
  * SQLSetStmtAttr
  */
 
-static char software_version[] = "$Id: attributes.c,v 1.4 2007-12-31 10:06:50 freddy77 Exp $";
+static char software_version[] = "$Id: attributes.c,v 1.5 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -278,7 +278,7 @@ main(int argc, char *argv[])
 	Connect();
 	/* TODO find another way */
 	CheckCursor();
-	Command(Statement, "SET TEXTSIZE 4096");
+	Command("SET TEXTSIZE 4096");
 
 	SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 
@@ -311,7 +311,7 @@ main(int argc, char *argv[])
 				use_odbc_version3 = odbc3;
 				Disconnect();
 				Connect();
-				Command(Statement, "SET TEXTSIZE 4096");
+				Command("SET TEXTSIZE 4096");
 				SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 			}
 			continue;

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.17 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.18 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -16,20 +16,20 @@ main(int argc, char *argv[])
 
 	Connect();
 
-	Command(Statement, "if object_id('tempdb..#odbctestdata') is not null drop table #odbctestdata");
+	Command("if object_id('tempdb..#odbctestdata') is not null drop table #odbctestdata");
 
 	command = "create table #odbctestdata ("
 		"col1 varchar(30) not null,"
 		"col2 int not null,"
 		"col3 float not null," "col4 numeric(18,6) not null," "col5 datetime not null," "col6 text not null)";
-	Command(Statement, command);
+	Command(command);
 
 	command = "insert #odbctestdata values ("
 		"'ABCDEFGHIJKLMNOP',"
 		"123456," "1234.56," "123456.78," "'Sep 11 2001 10:00AM'," "'just to check returned length...')";
-	Command(Statement, command);
+	Command(command);
 
-	Command(Statement, "select * from #odbctestdata");
+	Command("select * from #odbctestdata");
 
 	CHKFetch("SI");
 
@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 
 	CHKCloseCursor("SI");
 
-	Command(Statement, "drop table #odbctestdata");
+	Command("drop table #odbctestdata");
 
 	Disconnect();
 

@@ -1,7 +1,7 @@
 /* Tests 2 active statements */
 #include "common.h"
 
-static char software_version[] = "$Id: cursor3.c,v 1.7 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: cursor3.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -18,11 +18,11 @@ main(int argc, char **argv)
 
 	CheckCursor();
 
-	Command(Statement, "CREATE TABLE #t1 ( k INT, c VARCHAR(20))");
-	Command(Statement, "INSERT INTO #t1 VALUES (1, 'aaa')");
-	Command(Statement, "INSERT INTO #t1 VALUES (2, 'bbbbb')");
-	Command(Statement, "INSERT INTO #t1 VALUES (3, 'ccccccccc')");
-	Command(Statement, "INSERT INTO #t1 VALUES (4, 'dd')");
+	Command("CREATE TABLE #t1 ( k INT, c VARCHAR(20))");
+	Command("INSERT INTO #t1 VALUES (1, 'aaa')");
+	Command("INSERT INTO #t1 VALUES (2, 'bbbbb')");
+	Command("INSERT INTO #t1 VALUES (3, 'ccccccccc')");
+	Command("INSERT INTO #t1 VALUES (4, 'dd')");
 
 	old_Statement = Statement;
 

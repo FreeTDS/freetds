@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.13 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.14 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 	Connect();
 
 	/* create table to hold data */
-	Command(Statement, "CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
+	Command("CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
 
 	sql_type = SQL_LONGVARCHAR;
 	type = SQL_C_CHAR;
@@ -44,8 +44,7 @@ main(int argc, char *argv[])
 
 		p = test_text;
 		n = 5;
-		if (SQLParamData(Statement, &ptr) != SQL_NEED_DATA)
-			ODBC_REPORT_ERROR("Wrong result from SQLParamData");
+		CHKParamData(&ptr, "Ne");
 		if (ptr != (SQLPOINTER) 123)
 			ODBC_REPORT_ERROR("Wrong pointer from SQLParamData");
 		while (*p) {
@@ -70,7 +69,7 @@ main(int argc, char *argv[])
 		CHKParamData(&ptr, "E");
 
 		/* check state  and reset some possible buffers */
-		Command(Statement, "DECLARE @i INT");
+		Command("DECLARE @i INT");
 
 		if (sql_type == SQL_LONGVARCHAR && db_is_microsoft() && db_version_int() >= 0x08000000u) {
 			sql_type = SQL_WLONGVARCHAR;
@@ -118,7 +117,7 @@ main(int argc, char *argv[])
 	CHKParamData(&ptr, "E");
 
 	/* check state  and reset some possible buffers */
-	Command(Statement, "DECLARE @i2 INT");
+	Command("DECLARE @i2 INT");
 
 
 	/* test len == 0 case from ML */

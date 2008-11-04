@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: rowset.c,v 1.4 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: rowset.c,v 1.5 2008-11-04 14:46:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -24,7 +24,7 @@ test_err(int n)
 		fprintf(stderr, "Unexpected sql state returned\n");
 		Disconnect();
 		exit(1);
-        }
+	}
 }
 
 int
@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 	CHKSetStmtAttr(SQL_ROWSET_SIZE, (SQLPOINTER) int2ptr(1), 0, "S");
 
 	/* now check that SQLExtendedFetch works as expected */
-	Command(Statement, "CREATE TABLE #rowset(n INTEGER, c VARCHAR(20))");
+	Command("CREATE TABLE #rowset(n INTEGER, c VARCHAR(20))");
 	for (i = 0; i < 10; ++i) {
 		char s[10];
 		char sql[128];
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 		memset(s, 'a' + i, 9);
 		s[9] = 0;
 		sprintf(sql, "INSERT INTO #rowset(n,c) VALUES(%d,'%s')", i+1, s);
-		Command(Statement, sql);
+		Command(sql);
 	}
 
 	ResetStatement();

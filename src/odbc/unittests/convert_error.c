@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.9 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.10 2008-11-04 14:46:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -37,7 +37,7 @@ main(int argc, char **argv)
 	use_odbc_version3 = 1;
 	Connect();
 
-	Command(Statement, "create table #test_output (id int, msg text)");
+	Command("create table #test_output (id int, msg text)");
 
 	Test("?", SQL_INTEGER, "?", SQL_LONGVARCHAR);
 	Test("123", SQL_INTEGER, "?", SQL_LONGVARCHAR);
