@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.181 2008-11-05 14:27:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.182 2008-11-05 14:54:41 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -129,7 +129,7 @@ tds_get_dynid(TDSSOCKET * tds, char *id)
 TDSDYNAMIC *
 tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
 {
-	TDSDYNAMIC *dyn, *curr;
+	TDSDYNAMIC *dyn;
 	char tmp_id[30];
 
 	if (id) {

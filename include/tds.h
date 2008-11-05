@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.297 2008-11-05 14:27:49 freddy77 Exp $ */
+/* $Id: tds.h,v 1.298 2008-11-05 14:54:41 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1394,7 +1394,7 @@ int tds_alloc_row(TDSRESULTINFO * res_info);
 int tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
-TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, char *id);
+TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
 
 
