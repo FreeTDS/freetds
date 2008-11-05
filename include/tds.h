@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.284.2.2 2008-05-27 22:48:50 jklowden Exp $ */
+/* $Id: tds.h,v 1.284.2.3 2008-11-05 14:56:12 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1402,7 +1402,7 @@ int tds_alloc_row(TDSRESULTINFO * res_info);
 int tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
-TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, char *id);
+TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
 
 
@@ -1471,7 +1471,6 @@ int tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 int tds_send_cancel(TDSSOCKET * tds);
 const char *tds_next_placeholder(const char *start);
 int tds_count_placeholders(const char *query);
-int tds_get_dynid(TDSSOCKET * tds, char **id);
 int tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 int tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params);
 int tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);

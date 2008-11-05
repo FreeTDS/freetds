@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.343.2.1 2008-01-27 10:41:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.343.2.2 2008-11-05 14:56:12 freddy77 Exp $");
 
 static int tds_process_msg(TDSSOCKET * tds, int marker);
 static int tds_process_compute_result(TDSSOCKET * tds);
@@ -2601,7 +2601,7 @@ tds_process_cancel(TDSSOCKET * tds)
  * \param id   dynamic id to search
  */
 TDSDYNAMIC *
-tds_lookup_dynamic(TDSSOCKET * tds, char *id)
+tds_lookup_dynamic(TDSSOCKET * tds, const char *id)
 {
 	TDSDYNAMIC *curr;
 

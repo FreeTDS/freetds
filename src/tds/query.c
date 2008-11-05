@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.217.2.3 2008-08-22 05:29:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.217.2.4 2008-11-05 14:56:12 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, int query_len);
@@ -1009,16 +1009,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		return TDS_FAIL;
 
 	/* allocate a structure for this thing */
-	if (!id) {
-		char *tmp_id = NULL;
-
-		if (tds_get_dynid(tds, &tmp_id) == TDS_FAIL)
-			return TDS_FAIL;
-		dyn = tds_alloc_dynamic(tds, tmp_id);
-		free(tmp_id);
-	} else {
-		dyn = tds_alloc_dynamic(tds, id);
-	}
+	dyn = tds_alloc_dynamic(tds, id);
 	if (!dyn)
 		return TDS_FAIL;
 	
@@ -1143,7 +1134,6 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	int query_len;
 	TDSCOLUMN *param;
-	char *tmp_id = NULL;
 	TDSDYNAMIC *dyn;
 	int id_len;
 
@@ -1207,10 +1197,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	}
 
 	/* allocate a structure for this thing */
-	if (tds_get_dynid(tds, &tmp_id) == TDS_FAIL)
-		return TDS_FAIL;
-	dyn = tds_alloc_dynamic(tds, tmp_id);
-	free(tmp_id);
+	dyn = tds_alloc_dynamic(tds, NULL);
 
 	if (!dyn)
 		return TDS_FAIL;
@@ -1717,43 +1704,6 @@ tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags)
 		/* FIXME handle error */
 		tds_put_data(tds, info->columns[i]);
 	}
-}
-
-static volatile int inc_num = 1;
-
-/**
- * Get an id for dynamic query based on TDS information
- * \param tds state information for the socket and the TDS protocol
- * \return TDS_FAIL or TDS_SUCCEED
- */
-int
-tds_get_dynid(TDSSOCKET * tds, char **id)
-{
-	unsigned long n;
-	int i;
-	char *p;
-	char c;
-
-	CHECK_TDS_EXTRA(tds);
-
-	inc_num = (inc_num + 1) & 0xffff;
-	/* some version of Sybase require length <= 10, so we code id */
-	n = (unsigned long) tds;
-	if (!(p = (char *) malloc(16)))
-		return TDS_FAIL;
-	*id = p;
-	*p++ = (char) ('a' + (n % 26u));
-	n /= 26u;
-	for (i = 0; i < 9; ++i) {
-		c = (char) ('0' + (n % 36u));
-		*p++ = (c < ('0' + 10)) ? c : c + ('a' - '0' - 10);
-		/* printf("%d -> %d(%c)\n",n%36u,p[-1],p[-1]); */
-		n /= 36u;
-		if (i == 4)
-			n += 3u * inc_num;
-	}
-	*p++ = 0;
-	return TDS_SUCCEED;
 }
 
 /**

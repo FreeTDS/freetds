@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.175.2.1 2008-05-26 12:49:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.175.2.2 2008-11-05 14:56:12 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -81,6 +81,42 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
  * @{
  */
 
+static volatile int inc_num = 1;
+
+/**
+ * Get an id for dynamic query based on TDS information
+ * \param tds state information for the socket and the TDS protocol
+ * \return TDS_FAIL or TDS_SUCCEED
+ */
+static char *
+tds_get_dynid(TDSSOCKET * tds, char *id)
+{
+	unsigned long n;
+	int i;
+	char *p;
+	char c;
+
+	CHECK_TDS_EXTRA(tds);
+
+	inc_num = (inc_num + 1) & 0xffff;
+	/* some version of Sybase require length <= 10, so we code id */
+	n = (unsigned long) (TDS_INTPTR) tds;
+	p = id;
+	*p++ = (char) ('a' + (n % 26u));
+	n /= 26u;
+	for (i = 0; i < 9; ++i) {
+		c = (char) ('0' + (n % 36u));
+		*p++ = (c < ('0' + 10)) ? c : c + ('a' - '0' - 10);
+		/* printf("%d -> %d(%c)\n",n%36u,p[-1],p[-1]); */
+		n /= 36u;
+		if (i == 4)
+			n += 3u * inc_num;
+	}
+	*p++ = 0;
+	return id;
+}
+
+
 /**
  * \fn TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id)
  * \brief Allocate a dynamic statement.
@@ -93,14 +129,24 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 TDSDYNAMIC *
 tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
 {
-	TDSDYNAMIC *dyn, *curr;
+	TDSDYNAMIC *dyn;
+	char tmp_id[30];
 
-	/* check to see if id already exists (shouldn't) */
-	for (curr = tds->dyns; curr != NULL; curr = curr->next)
-		if (!strcmp(curr->id, id)) {
-			/* id already exists! just return it */
-			return curr;
+	if (id) {
+		/* check to see if id already exists (shouldn't) */
+		if (tds_lookup_dynamic(tds, id))
+			return NULL;
+	} else {
+		unsigned int n;
+		id = tmp_id;
+
+		for (n = 0;;) {
+			if (!tds_lookup_dynamic(tds, tds_get_dynid(tds, tmp_id)))
+				break;
+			if (++n == 256)
+				return NULL;
 		}
+	}
 
 	dyn = (TDSDYNAMIC *) calloc(1, sizeof(TDSDYNAMIC));
 	if (!dyn)
