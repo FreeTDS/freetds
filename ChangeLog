@@ -1,3 +1,9 @@
+Wed Nov 05 20:21:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/unittests/freeclose.c:
+	- reduce one round-trip with server
+	- improve freeclose test to detect complete rebindings
+	- use always cursor results if cursor used
+
 Wed Nov 05 15:54:26 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/mem.c src/tds/token.c:
 	- remove warning
@@ -893,4 +899,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2651 2008-11-05 14:54:41 freddy77 Exp $
+$Id: ChangeLog,v 1.2652 2008-11-05 19:23:32 freddy77 Exp $

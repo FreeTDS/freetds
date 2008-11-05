@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.504 2008-11-04 15:24:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.505 2008-11-05 19:23:32 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4248,6 +4248,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		TDSPARAMINFO *params = NULL;
 		TDSSOCKET *tds = stmt->dbc->tds_socket;
 
+		stmt->need_reprepare = 0;
 		/*
 		 * using TDS7+ we need parameters to prepare a query so try
 		 * to get them 
@@ -4683,9 +4684,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	tds = stmt->dbc->tds_socket;
 	context = stmt->dbc->env->tds_ctx;
 
-	resinfo = tds->current_results;
-	if (stmt->cursor && stmt->cursor->res_info)
-		resinfo = stmt->cursor->res_info;
+	resinfo = stmt->cursor ? stmt->cursor->res_info : tds->current_results;
 	if (!resinfo) {
 		odbc_errs_add(&stmt->errs, "HY010", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);

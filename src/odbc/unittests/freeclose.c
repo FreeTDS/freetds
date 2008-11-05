@@ -50,7 +50,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.9 2008-11-05 19:23:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -327,24 +327,57 @@ main(int argc, char **argv)
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
 
 	CHKPrepare((SQLCHAR *) query, SQL_NTS, "SI");
+	printf("%u round trips %u inserts\n", round_trips, inserts);
+
 	for (id = 0; id < num_inserts; id++) {
 		sprintf(string, "This is a test (%d)", (int) id);
 		CHKExecute("SI");
 		CHKFreeStmt(SQL_CLOSE, "S");
 	}
 
+	printf("%u round trips %u inserts\n", round_trips, inserts);
 	ResetStatement();
+
+	if (inserts > 1 || round_trips > num_inserts * 2 + 6) {
+		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
+		return 1;
+	}
+	printf("%u round trips %u inserts\n", round_trips, inserts);
+
+#ifdef ENABLE_DEVELOPING
+	/* check for SQL_RESET_PARAMS */
+	round_trips = 0;
+	inserts = 0;
+
+	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
+	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
+
+	CHKPrepare((SQLCHAR *) query, SQL_NTS, "SI");
+	printf("%u round trips %u inserts\n", round_trips, inserts);
+
+	for (id = 0; id < num_inserts; id++) {
+		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
+		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
+
+		sprintf(string, "This is a test (%d)", (int) id);
+		CHKExecute("SI");
+		CHKFreeStmt(SQL_RESET_PARAMS, "S");
+	}
+
+	printf("%u round trips %u inserts\n", round_trips, inserts);
+	ResetStatement();
+
+	if (inserts > 1 || round_trips > num_inserts * 2 + 6) {
+		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
+		return 1;
+	}
+	printf("%u round trips %u inserts\n", round_trips, inserts);
+#endif
 
 	Disconnect();
 
 	alarm(10);
 	pthread_join(fake_thread, NULL);
-
-	if (inserts > 2 || round_trips > num_inserts * 2 + 10) {
-		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
-		return 1;
-	}
-	printf("%u round trips %u inserts\n", round_trips, inserts);
 
 	return 0;
 }
