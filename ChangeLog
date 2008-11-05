@@ -1,3 +1,8 @@
+Wed Nov 05 15:26:17 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/unittests/toodynamic.c(added) include/tds.h:
+	* src/tds/mem.c src/tds/query.c src/tds/unittests/Makefile.am:
+	- fix problem for too dynamics reported by Man Min Yan
+
 Tue Nov 04 16:24:24 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/cursor3.c:
 	- fix SQLGetData with cursors
@@ -884,4 +889,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2649 2008-11-04 15:24:49 freddy77 Exp $
+$Id: ChangeLog,v 1.2650 2008-11-05 14:27:49 freddy77 Exp $

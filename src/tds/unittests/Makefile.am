@@ -1,10 +1,10 @@
-# $Id: Makefile.am,v 1.23 2007-08-16 08:10:11 freddy77 Exp $
+# $Id: Makefile.am,v 1.24 2008-11-05 14:27:49 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
 			convert$(EXEEXT) dataread$(EXEEXT) utf8_1$(EXEEXT)\
 			utf8_2$(EXEEXT) utf8_3$(EXEEXT) numeric$(EXEEXT) \
-			iconv_fread$(EXEEXT)
+			iconv_fread$(EXEEXT) toodynamic$(EXEEXT)
 
 # flags test commented, not necessary for 0.62
 # TODO add flags test again when needed
@@ -28,6 +28,7 @@ utf8_2_SOURCES	=	utf8_2.c common.c common.h
 utf8_3_SOURCES	=	utf8_3.c common.c common.h
 numeric_SOURCES =       numeric.c
 iconv_fread_SOURCES	= iconv_fread.c
+toodynamic_SOURCES	= toodynamic.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
 if MINGW32
