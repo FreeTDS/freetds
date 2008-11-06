@@ -1,3 +1,6 @@
+Thu Nov 06 15:39:50 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/challenge.c: make it compile under VC6
+
 Wed Nov 05 20:21:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/freeclose.c:
 	- reduce one round-trip with server
@@ -899,4 +902,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2652 2008-11-05 19:23:32 freddy77 Exp $
+$Id: ChangeLog,v 1.2653 2008-11-06 14:39:57 freddy77 Exp $

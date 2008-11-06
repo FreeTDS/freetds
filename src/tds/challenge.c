@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.35 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.36 2008-11-06 14:39:57 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -554,12 +554,12 @@ static const unsigned char ntlm_id[] = "NTLMSSP";
 static void
 unix_to_nt_time(TDS_UINT8 * nt, time_t t)
 {
-#define TIME_FIXUP_CONSTANT 11644473600LLU
+#define TIME_FIXUP_CONSTANT (((TDS_UINT8) 134774U) * 86400U)
 
 	TDS_UINT8 t2;
 
 	if (t == (time_t) - 1) {
-		*nt = (TDS_UINT8) - 1LL;
+		*nt = (TDS_UINT8) - ((TDS_INT8) 1);
 		return;
 	}
 	if (t == 0) {
