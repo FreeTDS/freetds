@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.26 2008-11-04 14:46:17 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.27 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -47,22 +47,17 @@ extern char DATABASE[512];
 extern char DRIVER[1024];
 
 int read_login_info(void);
-void CheckReturn(void);
 void ReportError(const char *msg, int line, const char *file);
 
 void CheckCols(int n, int line, const char * file);
 void CheckRows(int n, int line, const char * file);
 #define CHECK_ROWS(n) CheckRows(n, __LINE__, __FILE__)
 #define CHECK_COLS(n) CheckCols(n, __LINE__, __FILE__)
-void ResetStatement(void);
+void ResetStatementProc(SQLHSTMT *stmt, const char *file, int line);
+#define ResetStatement() ResetStatementProc(&Statement, __FILE__, __LINE__)
 void CheckCursor(void);
 
 #define ODBC_REPORT_ERROR(msg) ReportError(msg, __LINE__, __FILE__)
-
-#define CHK(func,params) \
-	do { if ((RetCode=(func params)) != SQL_SUCCESS) \
-		ODBC_REPORT_ERROR(#func); \
-	} while(0)
 
 SQLRETURN CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLHANDLE handle, const char *func, const char *res);
 #define CHKR(func, params, res) \
@@ -72,6 +67,10 @@ SQLRETURN CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_
 
 SQLSMALLINT AllocHandleErrType(SQLSMALLINT type);
 
+#define CHKAllocConnect(a,res) \
+	CHKR2(SQLAllocConnect, (Environment,a), SQL_HANDLE_ENV, Environment, res)
+#define CHKAllocEnv(a,res) \
+	CHKR2(SQLAllocEnv, (a), 0, 0, res)
 #define CHKAllocStmt(a,res) \
 	CHKR2(SQLAllocStmt, (Connection,a), SQL_HANDLE_DBC, Connection, res)
 #define CHKAllocHandle(a,b,c,res) \
@@ -88,6 +87,8 @@ SQLSMALLINT AllocHandleErrType(SQLSMALLINT type);
 	CHKR2(SQLColAttribute, (Statement,a,b,c,d,e,f), SQL_HANDLE_STMT, Statement, res)
 #define CHKDescribeCol(a,b,c,d,e,f,g,h,res) \
 	CHKR2(SQLDescribeCol, (Statement,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, Statement, res)
+#define CHKDriverConnect(a,b,c,d,e,f,g,res) \
+	CHKR2(SQLDriverConnect, (Connection,a,b,c,d,e,f,g), SQL_HANDLE_DBC, Connection, res)
 #define CHKEndTran(a,b,c,res) \
 	CHKR2(SQLEndTran, (a,b,c), a, b, res)
 #define CHKExecDirect(a,b,res) \

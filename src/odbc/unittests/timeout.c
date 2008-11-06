@@ -3,7 +3,7 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.10 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.11 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -24,7 +24,6 @@ main(int argc, char *argv[])
 	HENV env;
 	HDBC dbc;
 	HSTMT stmt;
-	SQLRETURN ret;
 	SQLINTEGER i;
 
 	Connect();
@@ -60,9 +59,7 @@ main(int argc, char *argv[])
 	EndTransaction(SQL_ROLLBACK);
 
 	/* TODO should return error S1T00 Timeout expired, test error message */
-	ret = CommandWithResult(Statement, "update test_timeout set t = 'bad' where n = 1");
-	if (ret != SQL_ERROR)
-		ODBC_REPORT_ERROR("SQLExecDirect success ??");
+	CHKR(CommandWithResult, (Statement, "update test_timeout set t = 'bad' where n = 1"), "E");
 
 	EndTransaction(SQL_ROLLBACK);
 

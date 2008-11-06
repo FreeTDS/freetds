@@ -2,7 +2,7 @@
 
 /* some tests on error reporting */
 
-static char software_version[] = "$Id: error.c,v 1.6 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.7 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -18,7 +18,7 @@ ReadError(void)
 int
 main(int argc, char *argv[])
 {
-	SQLRETURN retcode;
+	SQLRETURN RetCode;
 	HSTMT stmt, tmp_stmt;
 
 	Connect();
@@ -32,16 +32,15 @@ main(int argc, char *argv[])
 	Command("insert into #tmp values(7)");
 
 	/* issue our command */
-	retcode = CommandWithResult(Statement, "select 100 / (i - 5) from #tmp order by i");
+	if (db_is_microsoft())
+		CHKR(CommandWithResult, (Statement, "select 100 / (i - 5) from #tmp order by i"), "SE");
+	else
+		CHKR(CommandWithResult, (Statement, "select 100 / (i - 5) from #tmp order by i"), "E");
 
 	/* special case, Sybase detect error early */
-	if (retcode != SQL_ERROR || db_is_microsoft()) {
-
-		if (retcode != SQL_SUCCESS)
-			ODBC_REPORT_ERROR("Error in command");
+	if (RetCode != SQL_ERROR) {
 
 		/* TODO when multiple row fetch available test for error on some columns */
-
 		CHKFetch("S");
 		CHKFetch("S");
 		CHKFetch("E");

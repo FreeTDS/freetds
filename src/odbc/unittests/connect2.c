@@ -5,7 +5,7 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.6 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: connect2.c,v 1.7 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -15,8 +15,8 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	CHKR(SQLAllocEnv, (&Environment), "S");
-	CHKR(SQLAllocConnect, (Environment, &Connection), "S");
+	CHKAllocEnv(&Environment, "S");
+	CHKAllocConnect(&Connection, "S");
 }
 
 static void
@@ -31,7 +31,7 @@ driver_connect(const char *conn_str)
 	char tmp[1024];
 	SQLSMALLINT len;
 
-	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) conn_str, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "SI");
+	CHKDriverConnect(NULL, (SQLCHAR *) conn_str, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
 }
 
 static void

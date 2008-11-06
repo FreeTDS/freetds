@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test conversion of Hebrew characters (which have shift sequences) */
-static char software_version[] = "$Id: utf8_2.c,v 1.7 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.8 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -9,9 +9,9 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	CHK(SQLAllocEnv, (&Environment));
+	CHKAllocEnv(&Environment, "S");
 	SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-	CHK(SQLAllocConnect, (Environment, &Connection));
+	CHKAllocConnect(&Connection, "S");
 }
 
 static const char * const strings[] = {
@@ -47,7 +47,7 @@ main(int argc, char *argv[])
 	/* connect string using DSN */
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;ClientCharset=UTF-8;", SERVER, USER, PASSWORD, DATABASE);
-	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "SI");
+	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
 	if (!driver_is_freetds()) {
 		Disconnect();
 		printf("Driver is not FreeTDS, exiting\n");

@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.11 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.12 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -241,7 +241,7 @@ main(int argc, char **argv)
 
 	for (i = 0; i < cnt; i++) {
 
-		CHK(SQLAllocHandle, (SQL_HANDLE_STMT, Connection, &Statement));
+		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "S");
 
 		if (db_is_microsoft()) {
 			CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER, "S");

@@ -40,7 +40,7 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.8 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.9 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -48,9 +48,9 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	CHKR(SQLAllocEnv, (&Environment), "S");
+	CHKAllocEnv(&Environment, "S");
 	SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-	CHKR(SQLAllocConnect, (Environment, &Connection), "S");
+	CHKAllocConnect(&Connection, "S");
 }
 
 static pthread_t      fake_thread;
@@ -164,7 +164,7 @@ main(int argc, char *argv[])
 	printf("try to connect to our port just to check connection timeout\n");
 	sprintf(tmp, "DRIVER=FreeTDS;SERVER=127.0.0.1;Port=%d;TDS_Version=7.0;UID=test;PWD=test;DATABASE=tempdb;", port);
 	start_time = time(NULL);
-	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "E");
+	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "E");
 	end_time = time(NULL);
 
 	strcpy(sqlstate, "XXXXX");

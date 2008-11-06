@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.10 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.11 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -9,8 +9,8 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	CHKR(SQLAllocEnv, (&Environment), "S");
-	CHKR(SQLAllocConnect, (Environment, &Connection), "S");
+	CHKAllocEnv(&Environment, "S");
+	CHKAllocConnect(&Connection, "S");
 }
 
 int
@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 	printf("connect string DSN connect..\n");
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
-	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "SI");
+	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
 	Disconnect();
 
 	/* try connect string using old SERVERNAME specification */
@@ -68,7 +68,7 @@ main(int argc, char *argv[])
 	/* this is expected to work with unixODBC */
 	init_connect();
 	sprintf(tmp, "DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
-	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "SIE");
+	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (RetCode == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", RetCode);
 		++failures;
@@ -78,7 +78,7 @@ main(int argc, char *argv[])
 	/* this is expected to work with iODBC */
 	init_connect();
 	sprintf(tmp, "DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", DRIVER, SERVER, USER, PASSWORD, DATABASE);
-	CHKR(SQLDriverConnect, (Connection, NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT), "SIE");
+	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (RetCode == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", RetCode);
 		++failures;
@@ -87,7 +87,7 @@ main(int argc, char *argv[])
 
 	/* at least one should success.. */
 	if (failures > 1) {
-		CheckReturn();
+		ODBC_REPORT_ERROR("Too much failures");
 		exit(1);
 	}
 

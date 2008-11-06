@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.50 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.51 2008-11-06 15:56:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -168,30 +168,44 @@ ReportError(const char *errmsg, int line, const char *file)
 	exit(1);
 }
 
-void
-CheckReturn(void)
+static void
+ReportODBCError(const char *errmsg, SQLSMALLINT handletype, SQLHANDLE handle, SQLRETURN rc, int line, const char *file)
 {
-	ReportError("", 0, "");
+	SQLRETURN ret;
+	unsigned char sqlstate[6];
+	unsigned char msg[256];
+
+
+	if (errmsg[0]) {
+		if (line)
+			fprintf(stderr, "%s:%d %s\n", file, line, errmsg);
+		else
+			fprintf(stderr, "%s\n", errmsg);
+	}
+	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
+	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
+		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
+	Disconnect();
+	exit(1);
 }
 
 int
 Connect(void)
 {
 
-	int res;
-
+	SQLRETURN RetCode;
 
 	char command[512];
 
 	if (read_login_info())
 		exit(1);
 
-	CHK(SQLAllocEnv, (&Environment));
+	CHKAllocEnv(&Environment, "S");
 
 	if (use_odbc_version3)
 		SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
 
-	CHK(SQLAllocConnect, (Environment, &Connection));
+	CHKAllocConnect(&Connection, "S");
 	printf("odbctest\n--------\n\n");
 	printf("connection parameters:\nserver:   '%s'\nuser:     '%s'\npassword: '%s'\ndatabase: '%s'\n",
 	       SERVER, USER, "????" /* PASSWORD */ , DATABASE);
@@ -199,11 +213,7 @@ Connect(void)
 	if (odbc_set_conn_attr)
 		(*odbc_set_conn_attr)();
 
-	res = SQLConnect(Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS);
-	if (!SQL_SUCCEEDED(res)) {
-		printf("Unable to open data source (ret=%d)\n", res);
-		CheckReturn();
-	}
+	CHKR(SQLConnect, (Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS), "SI");
 
 	CHKAllocStmt(&Statement, "S");
 
@@ -290,7 +300,7 @@ const char *db_version(void)
 	SQLSMALLINT version_len;
 
 	if (!db_str_version[0])
-		CHK(SQLGetInfo, (Connection, SQL_DBMS_VER, db_str_version, sizeof(db_str_version), &version_len));
+		CHKR(SQLGetInfo, (Connection, SQL_DBMS_VER, db_str_version, sizeof(db_str_version), &version_len), "S");
 
 	return db_str_version;
 }
@@ -345,11 +355,11 @@ CheckRows(int n, int line, const char * file)
 }
 
 void
-ResetStatement(void)
+ResetStatementProc(SQLHSTMT *stmt, const char *file, int line)
 {
-	SQLFreeStmt(Statement, SQL_DROP);
-	Statement = SQL_NULL_HSTMT;
-	CHKAllocStmt(&Statement, "S");
+	SQLFreeStmt(*stmt, SQL_DROP);
+	*stmt = SQL_NULL_HSTMT;
+	CheckRes(file, line, SQLAllocStmt(Connection, stmt), SQL_HANDLE_DBC, Connection, "SQLAllocStmt", "S");
 }
 
 void
@@ -369,7 +379,7 @@ CheckCursor(void)
 			Disconnect();
 			exit(0);
 		}
-		ODBC_REPORT_ERROR("SQLSetStmtAttr");
+		ReportODBCError("SQLSetStmtAttr", SQL_HANDLE_STMT, Statement, retcode, __LINE__, __FILE__);
 	}
 	ResetStatement();
 }
@@ -399,12 +409,14 @@ CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLH
 			if (rc == SQL_NEED_DATA)
 				return rc;
 			p += 2;
+		} else if (!*p) {
+			break;
 		} else {
 			ReportError("Wrong results specified", line, file);
 			return rc;
 		}
 	}
-	ReportError(func, line, file);
+	ReportODBCError(func, handle_type, handle, rc, line, file);
 	return rc;
 }
 
