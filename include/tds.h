@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.298 2008-11-05 14:54:41 freddy77 Exp $ */
+/* $Id: tds.h,v 1.299 2008-11-07 16:25:52 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1211,7 +1211,7 @@ typedef struct tds_dynamic
 	 * is generated automatically by libTDS
 	 */
 	char id[30];
-	int dyn_state;
+	/* int dyn_state; */ /* TODO use it */
 	/** numeric id for mssql7+*/
 	TDS_INT num_id;
 	TDSPARAMINFO *res_info;	/**< query results */
