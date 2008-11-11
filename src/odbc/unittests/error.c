@@ -2,7 +2,7 @@
 
 /* some tests on error reporting */
 
-static char software_version[] = "$Id: error.c,v 1.7 2008-11-06 15:56:39 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.8 2008-11-11 08:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -32,12 +32,9 @@ main(int argc, char *argv[])
 	Command("insert into #tmp values(7)");
 
 	/* issue our command */
-	if (db_is_microsoft())
-		CHKR(CommandWithResult, (Statement, "select 100 / (i - 5) from #tmp order by i"), "SE");
-	else
-		CHKR(CommandWithResult, (Statement, "select 100 / (i - 5) from #tmp order by i"), "E");
+	CHKR(CommandWithResult, (Statement, "select 100 / (i - 5) from #tmp order by i"), "SE");
 
-	/* special case, Sybase detect error early */
+	/* special case, early Sybase detect error early */
 	if (RetCode != SQL_ERROR) {
 
 		/* TODO when multiple row fetch available test for error on some columns */

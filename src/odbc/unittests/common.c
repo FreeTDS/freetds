@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.51 2008-11-06 15:56:39 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.52 2008-11-11 08:40:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -178,9 +178,9 @@ ReportODBCError(const char *errmsg, SQLSMALLINT handletype, SQLHANDLE handle, SQ
 
 	if (errmsg[0]) {
 		if (line)
-			fprintf(stderr, "%s:%d %s\n", file, line, errmsg);
+			fprintf(stderr, "%s:%d rc=%d %s\n", file, line, (int) rc, errmsg);
 		else
-			fprintf(stderr, "%s\n", errmsg);
+			fprintf(stderr, "rc=%d %s\n", (int) rc, errmsg);
 	}
 	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
