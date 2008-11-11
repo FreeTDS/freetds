@@ -1,3 +1,6 @@
+Tue Nov 11 09:33:55 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/transaction2.c: fix test for Sybase
+
 Mon Nov 10 18:20:10 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/blob1.c: check proper return code
 
@@ -918,4 +921,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2656 2008-11-10 17:20:39 freddy77 Exp $
+$Id: ChangeLog,v 1.2657 2008-11-11 08:34:07 freddy77 Exp $

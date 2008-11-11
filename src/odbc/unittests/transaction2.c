@@ -3,7 +3,7 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.6 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.7 2008-11-11 08:34:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -144,6 +144,8 @@ static int test_with_connect = 0;
 
 static int global_txn;
 
+static int hide_error;
+
 static void
 my_attrs(void)
 {
@@ -160,7 +162,7 @@ ConnectWithTxn(int txn)
 	odbc_set_conn_attr = NULL;
 }
 
-static void
+static int
 Test(int txn, const char *expected)
 {
 	int dirty, repeatable, phantom;
@@ -182,9 +184,15 @@ Test(int txn, const char *expected)
 
 	sprintf(buf, "dirty %d non repeatable %d phantom %d", dirty, repeatable, phantom);
 	if (strcmp(buf, expected) != 0) {
+		if (hide_error) {
+			hide_error = 0;
+			return 0;
+		}
 		fprintf(stderr, "detected wrong TXN\nexpected '%s' got '%s'\n", expected, buf);
 		exit(1);
 	}
+	hide_error = 0;
+	return 1;
 }
 
 int
@@ -252,17 +260,18 @@ main(int argc, char *argv[])
 
 	SWAP_CONN();
 
-	Test(SQL_TXN_READ_UNCOMMITTED, "dirty 1 non repeatable 1 phantom 1");
-	Test(SQL_TXN_READ_COMMITTED, "dirty 0 non repeatable 1 phantom 1");
-	Test(SQL_TXN_REPEATABLE_READ, "dirty 0 non repeatable 0 phantom 1");
-	Test(SQL_TXN_SERIALIZABLE, "dirty 0 non repeatable 0 phantom 0");
-
-	test_with_connect = 1;
-
-	Test(SQL_TXN_READ_UNCOMMITTED, "dirty 1 non repeatable 1 phantom 1");
-	Test(SQL_TXN_READ_COMMITTED, "dirty 0 non repeatable 1 phantom 1");
-	Test(SQL_TXN_REPEATABLE_READ, "dirty 0 non repeatable 0 phantom 1");
-	Test(SQL_TXN_SERIALIZABLE, "dirty 0 non repeatable 0 phantom 0");
+	for (test_with_connect = 0; test_with_connect <= 1; ++test_with_connect) {
+		Test(SQL_TXN_READ_UNCOMMITTED, "dirty 1 non repeatable 1 phantom 1");
+		Test(SQL_TXN_READ_COMMITTED, "dirty 0 non repeatable 1 phantom 1");
+		if (db_is_microsoft()) {
+			Test(SQL_TXN_REPEATABLE_READ, "dirty 0 non repeatable 0 phantom 1");
+		} else {
+			hide_error = 1;
+			if (!Test(SQL_TXN_REPEATABLE_READ, "dirty 0 non repeatable 0 phantom 1"))
+				Test(SQL_TXN_REPEATABLE_READ, "dirty 0 non repeatable 0 phantom 0");
+		}
+		Test(SQL_TXN_SERIALIZABLE, "dirty 0 non repeatable 0 phantom 0");
+	}
 
 	Disconnect();
 
