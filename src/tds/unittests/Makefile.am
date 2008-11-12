@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.24 2008-11-05 14:27:49 freddy77 Exp $
+# $Id: Makefile.am,v 1.25 2008-11-12 00:47:41 jklowden Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
@@ -34,7 +34,7 @@ AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
-AM_LDFLAGS	=	-no-install
+AM_LDFLAGS	=	-no-install -L../.libs -Wl,--rpath,../.libs
 endif
 LIBS		=	../libtds.la ../../replacements/libreplacements.la @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out

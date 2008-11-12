@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.78 2008-10-06 13:45:15 freddy77 Exp $
+# $Id: Makefile.am,v 1.79 2008-11-12 00:47:41 jklowden Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -94,7 +94,7 @@ AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_SRCDIR=\"$(srcdir)\"
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
-AM_LDFLAGS	=	-no-install
+AM_LDFLAGS	=	-no-install -L../.libs -Wl,--rpath,../.libs
 endif
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) @NETWORK_LIBS@
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
