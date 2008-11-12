@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.329 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.330 2008-11-12 00:47:25 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1608,7 +1608,6 @@ _dbresults(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "dbresults: dbresults_state is %d (%s)\n", 
 					dbproc->dbresults_state, prdbresults_state(dbproc->dbresults_state));
 	switch ( dbproc->dbresults_state ) {
-
 	case _DB_RES_SUCCEED:
 		dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
 		return SUCCEED;
@@ -1697,6 +1696,9 @@ _dbresults(DBPROCESS * dbproc)
 				case _DB_RES_RESULTSET_ROWS : 
 					dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
 					return SUCCEED;
+					break;
+				case _DB_RES_NO_MORE_RESULTS:
+				case _DB_RES_SUCCEED:
 					break;
 				}
 				break;
@@ -3734,7 +3736,6 @@ dbprhead(DBPROCESS * dbproc)
 RETCODE
 dbrows(DBPROCESS * dbproc)
 {
-	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrows(%p)\n", dbproc);
@@ -3744,12 +3745,7 @@ dbrows(DBPROCESS * dbproc)
 	if (!(tds=dbproc->tds_socket))
 		return FAIL;
 
-	resinfo = tds->res_info;
-
-	if (resinfo && resinfo->rows_exist)
-		return SUCCEED;
-	else
-		return FAIL;
+	return (tds->res_info && tds->res_info->rows_exist)? SUCCEED : FAIL;
 }
 
 /**
@@ -4553,6 +4549,7 @@ dbsqlok(DBPROCESS * dbproc)
 	 * We're looking for a result token or a done token.
          */
 	while (!done) {
+		int retcode;
 		marker = tds_peek(tds);
 
 		/* If we hit a result token, then we know everything is OK.  */
@@ -4590,6 +4587,7 @@ dbsqlok(DBPROCESS * dbproc)
 				break;
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
+#if 0
 				if (done_flags & TDS_DONE_ERROR) {
 					tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status was error\n");
 
@@ -4608,6 +4606,15 @@ dbsqlok(DBPROCESS * dbproc)
 					return SUCCEED;
 				}
 				break;
+#else
+				retcode = (done_flags & TDS_DONE_ERROR)? FAIL : SUCCEED;
+				dbproc->dbresults_state = (done_flags & TDS_DONE_MORE_RESULTS)?
+					_DB_RES_NEXT_RESULT : _DB_RES_NO_MORE_RESULTS;
+
+				tdsdump_log(TDS_DBG_FUNC, "dbsqlok: returning %s with %s (%#x)\n", 
+						prdbretcode(retcode), prdbresults_state(dbproc->dbresults_state), done_flags);
+				return retcode;
+#endif
 			default:
 				break;
 			}

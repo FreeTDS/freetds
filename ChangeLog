@@ -1,3 +1,14 @@
+Tue Nov 11 19:42:30 EST 2008	JK Lowden <jklowden@freetds.org>
+	* include/dblib.h src/dblib/dblib.c 
+	- dbsqlok did not process entire packet
+	- Cf. ML today from Ted Hayes
+	* src/dblib/unittests/t0005.c cosmetic changes
+	* src/tds/Makefile.am remember to build types.h
+	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am
+	* src/odbc/unittests/Makefile.am 
+	* src/tds/unittests/Makefile.am
+	- set RPATH to prefer build tree
+
 Tue Nov 11 09:39:05 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/error.c: fix test for newer Sybase
 
@@ -924,4 +935,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2658 2008-11-11 08:40:17 freddy77 Exp $
+$Id: ChangeLog,v 1.2659 2008-11-12 00:47:25 jklowden Exp $

@@ -32,16 +32,16 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.43 2007-12-05 03:04:11 jklowden Exp $ */
+/* $Id: dblib.h,v 1.44 2008-11-12 00:47:25 jklowden Exp $ */
 
-enum {
-	  _DB_RES_INIT            = 0
-	, _DB_RES_RESULTSET_EMPTY = 1
-	, _DB_RES_RESULTSET_ROWS  = 2
-	, _DB_RES_NEXT_RESULT     = 3
-	, _DB_RES_NO_MORE_RESULTS = 4
-	, _DB_RES_SUCCEED         = 5
-};
+typedef enum tag_DB_RESULT_STATE {
+	  _DB_RES_INIT
+	, _DB_RES_RESULTSET_EMPTY
+	, _DB_RES_RESULTSET_ROWS
+	, _DB_RES_NEXT_RESULT
+	, _DB_RES_NO_MORE_RESULTS
+	, _DB_RES_SUCCEED
+} DB_RESULT_STATE;
 
 struct tds_dblib_loginrec
 {
@@ -147,7 +147,7 @@ struct tds_dblib_dbprocess
 
 	int noautofree;
 	int more_results;	/* boolean.  Are we expecting results? */
-	int dbresults_state;
+	DB_RESULT_STATE dbresults_state;
 	int dbresults_retcode;
 	BYTE *user_data;	/* see dbsetuserdata() and dbgetuserdata() */
 	unsigned char *dbbuf;	/* is dynamic!                   */
