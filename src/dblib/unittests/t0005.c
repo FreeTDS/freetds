@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.22 2007-12-04 02:06:38 jklowden Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.23 2008-11-12 00:47:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -137,7 +137,7 @@ main(int argc, char **argv)
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
-	fprintf(stdout, "This query should succeeded as we have fetched exactly the\n"
+	fprintf(stdout, "This query should succeeded as we have fetched the exact\n"
 			"number of rows in the result set\n");
 
 	sprintf(cmd, "select * from #dblib0005 where i < 6 order by i");
@@ -309,8 +309,8 @@ main(int argc, char **argv)
 	}
 	add_bread_crumb();
 
-	fprintf(stdout, "This next command should succeed as we have fetched exactly the.\n");
-	fprintf(stdout, "number of rows in the result set\n");
+	fprintf(stdout, "This next command should succeed as we have fetched the exact\n"
+			"number of rows in the result set\n");
 
 	sprintf(cmd, "select getdate()");
 	fprintf(stdout, "%s\n", cmd);
