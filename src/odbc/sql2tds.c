@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.78 2008-10-27 14:27:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.79 2008-11-12 10:38:15 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -181,9 +181,10 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 
 	/* what type to convert ? */
 	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
-	if (dest_type == TDS_FAIL)
-		/* TODO fill error */
+	if (dest_type == TDS_FAIL) {
+		odbc_errs_add(&stmt->errs, "07006", NULL);	/* Restricted data type attribute violation */
 		return SQL_ERROR;
+	}
 	tdsdump_log(TDS_DBG_INFO2, "trace\n");
 
 	/* get C type */
@@ -241,9 +242,10 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	/* test source type */
 	/* TODO test intervals */
 	src_type = odbc_c_to_server_type(sql_src_type);
-	if (src_type == TDS_FAIL)
-		/* TODO fill error */
+	if (src_type == TDS_FAIL) {
+		odbc_errs_add(&stmt->errs, "07006", NULL);	/* Restricted data type attribute violation */
 		return SQL_ERROR;
+	}
 
 	/* we have no data to convert, just return */
 	if (!compute_row)
@@ -297,7 +299,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		break;
 	case SQL_DEFAULT_PARAM:
 	case SQL_DATA_AT_EXEC:
-		/* TODO fill error */
+		odbc_errs_add(&stmt->errs, "07S01", NULL);	/* Invalid use of default parameter */
 		return SQL_ERROR;
 		break;
 	default:
@@ -310,7 +312,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 			case SQL_C_BINARY:
 				break;
 			default:
-				/* TODO fill error */
+				odbc_errs_add(&stmt->errs, "HY090", NULL);
 				return SQL_ERROR;
 			}
 			len = SQL_LEN_DATA_AT_EXEC(sql_len);
@@ -323,7 +325,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 			case SQL_LONGVARBINARY:
 				break;
 			default:
-				/* TODO fill error */
+				odbc_errs_add(&stmt->errs, "HY090", NULL);
 				return SQL_ERROR;
 			}
 		}

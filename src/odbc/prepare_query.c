@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.73 2008-10-16 14:09:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.74 2008-11-12 10:38:15 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -280,7 +280,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		case SQL_DEFAULT_PARAM:
 			break;	/* OK */
 		default:
-			odbc_errs_add(&stmt->dbc->errs, "HY009", NULL); /* Invalid use of null pointer */
+			odbc_errs_add(&stmt->errs, "HY009", NULL); /* Invalid use of null pointer */
 			return SQL_ERROR;
 		}
 	}		
@@ -302,7 +302,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		break;
 	case SQL_DEFAULT_PARAM:
 		/* FIXME: use the default if the parameter has one. */
-		odbc_errs_add(&stmt->dbc->errs, "07S01", NULL); /* Invalid use of default parameter */
+		odbc_errs_add(&stmt->errs, "07S01", NULL); /* Invalid use of default parameter */
 		return SQL_ERROR;
 	default:
 		if (DataPtr && StrLen_or_Ind < 0) {
@@ -311,7 +311,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 			 * the argument StrLen_or_Ind was less than 0 
 			 * but not equal to SQL_NTS or SQL_NULL_DATA."
 			 */
-			odbc_errs_add(&stmt->dbc->errs, "HY090", NULL);
+			odbc_errs_add(&stmt->errs, "HY090", NULL);
 			return SQL_ERROR;
 		}
 		len = StrLen_or_Ind;
@@ -332,7 +332,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		SQLLEN extralen = 0;
 
 		if (0 == (dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type))) {
-			odbc_errs_add(&dbc->errs, "07006", NULL); /* Restricted data type attribute violation */
+			odbc_errs_add(&stmt->errs, "07006", NULL); /* Restricted data type attribute violation */
 			return SQL_ERROR;
 		}
 
@@ -340,7 +340,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		/* TODO test intervals */
 		src_type = odbc_c_to_server_type(sql_src_type);
 		if (src_type == TDS_FAIL) {
-			odbc_errs_add(&stmt->dbc->errs, "07006", NULL); /* Restricted data type attribute violation */
+			odbc_errs_add(&stmt->errs, "07006", NULL); /* Restricted data type attribute violation */
 			return SQL_ERROR;
 		}
 
@@ -404,7 +404,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		if (!p) {
 			free(free_ptr);
 			free(extradata);
-			odbc_errs_add(&dbc->errs, "HY001", NULL); /* Memory allocation error */
+			odbc_errs_add(&stmt->errs, "HY001", NULL); /* Memory allocation error */
 			return SQL_ERROR;
 		}
 		blob->textvalue = p;

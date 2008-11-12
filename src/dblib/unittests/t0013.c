@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.23 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.24 2008-11-12 10:38:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -31,6 +31,7 @@ main(int argc, char **argv)
 	long numread;
 	BOOL readFirstImage;
 	char cmd[1024];
+	int data_ok;
 
 	set_malloc_options();
 
@@ -72,9 +73,9 @@ main(int argc, char **argv)
 		fprintf(stderr, "Cannot open input file: %s\n", argv[1]);
 		return 2;
 	}
-	result = fseek(fp, 0, SEEK_END);
+	fseek(fp, 0, SEEK_END);
 	isiz = ftell(fp);
-	result = fseek(fp, 0, SEEK_SET);
+	fseek(fp, 0, SEEK_SET);
 
 	blob = (char *) malloc(isiz);
 	fread((void *) blob, isiz, 1, fp);
@@ -107,8 +108,6 @@ main(int argc, char **argv)
 	}
 
 	while ((result = dbnextrow(dbproc)) != NO_MORE_ROWS) {
-		result = REG_ROW;
-		result = DBTXPLEN;
 		strcpy(objname, "#dblib0013.PigTure");
 		textPtr = dbtxptr(dbproc, 1);
 		timeStamp = dbtxtimestamp(dbproc, 1);
@@ -201,16 +200,21 @@ main(int argc, char **argv)
 		}
 	}
 
-	printf("Saving first blob data row to file: %s\n", argv[2]);
-	if ((fp = fopen(argv[2], "wb")) == NULL) {
-		fprintf(stderr, "Unable to open output file: %s\n", argv[2]);
-		return 3;
+	data_ok = 1;
+	if (memcmp(blob, rblob, numread) != 0) {
+		printf("Saving first blob data row to file: %s\n", argv[2]);
+		if ((fp = fopen(argv[2], "wb")) == NULL) {
+			fprintf(stderr, "Unable to open output file: %s\n", argv[2]);
+			return 3;
+		}
+		fwrite((void *) rblob, numread, 1, fp);
+		fclose(fp);
+		failed = 1;
+		data_ok = 0;
 	}
-	result = fwrite((void *) rblob, numread, 1, fp);
-	fclose(fp);
 
 	printf("Read blob data row %d --> %s %ld byte comparison\n",
-	       (int) testint, (memcmp(blob, rblob, numread)) ? "failed" : "PASSED", numread);
+	       (int) testint, data_ok ? "PASSED" : "failed", numread);
 	free(rblob);
 
 	if (dbnextrow(dbproc) != NO_MORE_ROWS) {

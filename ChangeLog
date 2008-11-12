@@ -1,3 +1,8 @@
+Wed Nov 12 11:36:32 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/t0013.c: check field data
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c:
+	- fix error result
+
 Tue Nov 11 19:42:30 EST 2008	JK Lowden <jklowden@freetds.org>
 	* include/dblib.h src/dblib/dblib.c 
 	- dbsqlok did not process entire packet
@@ -935,4 +940,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2659 2008-11-12 00:47:25 jklowden Exp $
+$Id: ChangeLog,v 1.2660 2008-11-12 10:38:15 freddy77 Exp $
