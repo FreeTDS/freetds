@@ -54,10 +54,10 @@ test to review
 - blob1.c (SQLGetData test with binary -> char and between chars)
 Is it possible to support direct binding for parameters using different
 encodings? For instance client <-> server iso8859-1 <-> ucs2. It should be
-possible changing TDSCOLUMN->char_conv. Some work should be done in 
-src/tds/iconv.c in order to get a valid char_conv changing client encoding.
+possible changing TDSCOLUMN->char_conv.
 Merge putdata and blob1 tests, tests (W)CHAR/BINARY -> (W)CHAR/BINARY (9 cases).
 Check blob1 dialog, seems to prepare twice during insert.
+Do merge a bit continue_parse_prepared_query and odbc_sql2tds ??
 
 Other
 -----
