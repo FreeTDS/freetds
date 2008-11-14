@@ -1,3 +1,7 @@
+Fri Nov 14 00:56:39 EST 2008	JK Lowden <jklowden@freetds.org>
+	* src/apps/bsqlodbc.c 
+	- better metadata and -V option for ODBC version
+
 Wed Nov 12 21:58:17 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* Makefile.am config.rpath: fix an issue with some libtool version
 
@@ -943,4 +947,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2661 2008-11-12 20:58:45 freddy77 Exp $
+$Id: ChangeLog,v 1.2662 2008-11-14 05:58:14 jklowden Exp $
