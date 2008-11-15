@@ -1,3 +1,8 @@
+Sat Nov 15 10:56:48 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds_sysdep_private.h src/apps/bsqlodbc.c:
+	* src/pool/member.c src/pool/user.c:
+	- remove some windows warnings
+
 Fri Nov 14 00:56:39 EST 2008	JK Lowden <jklowden@freetds.org>
 	* src/apps/bsqlodbc.c 
 	- better metadata and -V option for ODBC version
@@ -947,4 +952,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2662 2008-11-14 05:58:14 jklowden Exp $
+$Id: ChangeLog,v 1.2663 2008-11-15 09:57:06 freddy77 Exp $

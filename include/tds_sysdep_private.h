@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.25 2008-01-20 14:23:59 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.26 2008-11-15 09:57:06 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -69,8 +69,8 @@ typedef int pid_t;
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #include <windows.h>
-#define READSOCKET(a,b,c)	recv((a), (b), (c), TDS_NOSIGNAL)
-#define WRITESOCKET(a,b,c)	send((a), (b), (c), TDS_NOSIGNAL)
+#define READSOCKET(a,b,c)	recv((a), (char *) (b), (c), TDS_NOSIGNAL)
+#define WRITESOCKET(a,b,c)	send((a), (const char *) (b), (c), TDS_NOSIGNAL)
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define SOCKLEN_T int

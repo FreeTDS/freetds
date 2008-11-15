@@ -59,7 +59,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.41 2006-12-26 14:56:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.42 2008-11-15 09:57:06 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
@@ -260,14 +260,9 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 						pmbr->state = TDS_IDLE;
 						puser->user_state = TDS_SRV_IDLE;
 					}
-#ifdef MSG_NOSIGNAL	
 					/* cf. net.c for better technique.  */
-					ret = send(puser->tds->s, buf, tds->in_len, MSG_NOSIGNAL);
-#else
-					/* write(puser->tds->s, buf, tds->in_len); */
-					ret = send(puser->tds->s, buf, tds->in_len, 0);
-#endif
-					if (ret==-1) { /* couldn't write, ditch the user */
+					ret = WRITESOCKET(puser->tds->s, buf, tds->in_len);
+					if (ret < 0) { /* couldn't write, ditch the user */
 						fprintf(stdout, "member %d received error while writing\n",i);
 						pool_free_user(pmbr->current_user);
 						pool_deassign_member(pmbr);

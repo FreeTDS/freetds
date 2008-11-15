@@ -50,7 +50,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.11 2008-11-14 05:58:14 jklowden Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.12 2008-11-15 09:57:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -414,7 +414,7 @@ free_metadata(struct METADATA *metadata, struct DATA *data, int ncols)
 	free(data);
 }
 
-const char *
+static const char *
 prtype(SQLSMALLINT type)
 {
 	static char buffer[64];
