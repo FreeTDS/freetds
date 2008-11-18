@@ -1,3 +1,27 @@
+Mon Nov 17 19:46:34 EST 2008	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c 
+	- src/dblib/bcp.c src/dblib/unittests/bcp.c
+	- src/dblib/unittests/common.c src/dblib/unittests/common.h
+	- src/dblib/unittests/dbmorecmds.c
+	- src/dblib/unittests/hang.c src/dblib/unittests/null.c
+	- src/dblib/unittests/null2.c src/dblib/unittests/rpc.c
+	- src/dblib/unittests/setnull.c
+	- src/dblib/unittests/t0001.c src/dblib/unittests/t0002.c
+	- src/dblib/unittests/t0003.c src/dblib/unittests/t0004.c
+	- src/dblib/unittests/t0005.c src/dblib/unittests/t0006.c
+	- src/dblib/unittests/t0007.c src/dblib/unittests/t0008.c
+	- src/dblib/unittests/t0009.c src/dblib/unittests/t0011.c 
+	- src/dblib/unittests/t0012.c src/dblib/unittests/t0013.c
+	- src/dblib/unittests/t0014.c src/dblib/unittests/t0015.c
+	- src/dblib/unittests/t0016.c src/dblib/unittests/t0018.c
+	- src/dblib/unittests/t0020.c src/dblib/unittests/t0021.c
+	- src/dblib/unittests/t0022.c src/dblib/unittests/t0023.c
+	- src/dblib/unittests/text_buffer.c
+	- src/dblib/unittests/thread.c
+	- src/dblib/unittests/timeout.c
+	- win32/tds_sysdep_public.h
+	- begin making unittests work with Microsoft's library
+
 Sat Nov 15 10:56:48 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds_sysdep_private.h src/apps/bsqlodbc.c:
 	* src/pool/member.c src/pool/user.c:
@@ -952,4 +976,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2663 2008-11-15 09:57:06 freddy77 Exp $
+$Id: ChangeLog,v 1.2664 2008-11-18 01:16:49 jklowden Exp $

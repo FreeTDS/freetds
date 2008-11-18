@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.330 2008-11-12 00:47:25 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.331 2008-11-18 01:16:49 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4587,7 +4587,7 @@ dbsqlok(DBPROCESS * dbproc)
 				break;
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
-#if 0
+#if 1
 				if (done_flags & TDS_DONE_ERROR) {
 					tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status was error\n");
 
