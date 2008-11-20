@@ -3,16 +3,20 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.23 2008-08-21 03:58:14 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.24 2008-11-20 15:59:06 jklowden Exp $ -->
 
 <head>
   <meta name="generator" content=
   "HTML Tidy for NetBSD (vers 1st August 2004), see www.w3.org" />
 
   <title>FreeTDS Frequently Asked Questions</title>
+  
+  <style type="text/css">
+  	body {bgcolor = #F9F9F9}
+  </style> 
 </head>
 
-<body bgcolor="#F9F9F9">
+<body>
   <!-- generic header -->
 
   <table summary="table of contents">
@@ -53,7 +57,11 @@
         <li><a href="#Does.FreeTDS.support.Microsoft.servers">Does
         FreeTDS support Microsoft servers?</a></li>
 
-        <li><a href="#How.can.I.get.help">How can I get help (or
+         <li><a href="#Does.FreeTDS.support.my.server">
+	 Does version <i>X</i> of FreeTDS connect to version <i>Y</i> of 
+	 my Microsoft or Sybase server? </a></li>
+
+       <li><a href="#How.can.I.get.help">How can I get help (or
         support)?</a></li>
 
         <li><a href="#Who.is.responsible.for.FreeTDS">Who is
@@ -135,7 +143,9 @@
         <li><a href="#connectionrefused">What if I get a
         'connection refused' message?</a></li>
 
-        <li><a href="#integratedsecurity">The server is listening,
+         <li><a href="#encrypted">Do encrypted connections work?</a></li>
+
+       <li><a href="#integratedsecurity">The server is listening,
         but logins fail? (MS SQL only)</a></li>
 
         <li><a href="#textdata">My <tt>text</tt> data are being
@@ -189,6 +199,19 @@
   <p>Yes. Microsoft servers don't usually accept TDS 5.0
   connections. Use one of versions 4.2, 7.0 or 8.0 of the protocol.
   See the <a href=
+  "userguide/choosingtdsprotocol.htm">User
+  Guide</a> for details.</p>
+
+  <h3 id="Does.FreeTDS.support.my.server">
+  	Does version <i>X</i> of FreeTDS connect to version <i>Y</i> of 
+	 my Microsoft or Sybase server?</h3>
+
+  <p>For the last several years, every version of FreeTDS has been 
+  able to communicate with every kind of TDS server.  New servers 
+  sometimes introduce new protocol features, but the changes are small, 
+  and they're always compatible with old clients.  
+  Generally, you should use the latest version of the TDS protocol 
+  for your server.    See the <a href=
   "userguide/choosingtdsprotocol.htm">User
   Guide</a> for details.</p>
 
@@ -803,6 +826,11 @@
   "userguide/domains.htm">User Guide</a> for
   details. <a name="textdata" id="textdata"></a></p>
 
+  <h3 id="encrypted">Do encrypted connections work?</h3>
+  
+  <p>Encrypted connections to Microsoft SQL Server 2008 using 
+  FreeTDS 0.82 do not work.  Avoid them.  Patches welcome! </p>
+
   <h3>My <tt>text</tt> data are being truncated or are causing my
   client to break.</h3>
 
@@ -879,7 +907,7 @@
   <font size="-1">Updates and comments <a href=
   "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a> 
   <br/>
-    <i>$Id: faq.html,v 1.23 2008-08-21 03:58:14 jklowden Exp $</i>
+    <i>$Id: faq.html,v 1.24 2008-11-20 15:59:06 jklowden Exp $</i>
 	</font>
 <hr/>
   <p>
