@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-static char software_version[] = "$Id: thread.c,v 1.12 2007-12-20 21:57:35 freddy77 Exp $";
+static char software_version[] = "$Id: thread.c,v 1.13 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -149,7 +149,7 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", argv[0]);
 
 	dbinit();
 

@@ -5,7 +5,7 @@
 #include "common.h"
 #include "replacements.h"
 
-static char software_version[] = "$Id: setnull.c,v 1.8 2007-12-20 21:57:35 freddy77 Exp $";
+static char software_version[] = "$Id: setnull.c,v 1.9 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -76,7 +76,7 @@ main(int argc, char **argv)
 	
 	read_login_info(argc, argv);
 
-	printf("Start\n");
+	printf("Starting %s\n", argv[0]);
 	dbinit();
 
 	dberrhandle(syb_err_handler);

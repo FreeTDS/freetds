@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.14 2007-12-20 21:57:35 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.15 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #if HAVE_CONFIG_H
@@ -27,6 +27,15 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 
 #include <sqlfront.h>
 #include <sqldb.h>
+
+#if !defined(FREETDS_SRCDIR)
+#define FREETDS_SRCDIR "../../../.."
+#endif
+
+#if !defined(EXIT_FAILURE)
+#define EXIT_FAILURE 1
+#define EXIT_SUCCESS 0
+#endif
 
 #ifdef DBNTWIN32
 /*

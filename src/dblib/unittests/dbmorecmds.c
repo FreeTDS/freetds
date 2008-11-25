@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.12 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.13 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
@@ -22,7 +22,7 @@ main(int argc, char **argv)
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", argv[0]);
 	add_bread_crumb();
 
 	/* Fortify_EnterScope(); */

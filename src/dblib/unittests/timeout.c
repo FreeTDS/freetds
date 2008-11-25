@@ -7,7 +7,7 @@
 #include "common.h"
 #include <time.h>
 
-static char software_version[] = "$Id: timeout.c,v 1.4 2008-01-20 14:23:59 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.5 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int ntimeouts = 0, ncancels = 0;
@@ -17,6 +17,12 @@ int start_time;
 int timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int chkintr(DBPROCESS * dbproc);
 int hndlintr(DBPROCESS * dbproc);
+
+#if !defined(SYBETIME)
+#define SYBETIME SQLETIME
+#define INT_TIMEOUT INT_CANCEL
+dbsetinterrupt(DBPROCESS *dbproc, void* hand, void* p) {}
+#endif
 
 int
 timeout_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
@@ -101,7 +107,7 @@ main(int argc, char **argv)
 	
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", argv[0]);
 	add_bread_crumb();
 
 	dbinit();

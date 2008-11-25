@@ -16,7 +16,7 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.24 2008-09-09 14:48:03 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.25 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -154,7 +154,7 @@ read_login_info(int argc, char **argv)
 		in = fopen(filename, "r");
 		if (!in) {
 			fprintf(stderr, "Can not open %s file\n\n", filename);
-			return 1;
+			goto Override;
 		}
 	}
 
@@ -175,6 +175,7 @@ read_login_info(int argc, char **argv)
 	}
 	fclose(in);
 	
+	Override:
 	/* apply command-line overrides */
 	if (options.username) {
 		strcpy(USER, options.username);
@@ -191,6 +192,11 @@ read_login_info(int argc, char **argv)
 	if (options.database) {
 		strcpy(DATABASE, options.database);
 		free(options.database);
+	}
+
+	if (!*SERVER) {
+		fprintf(stderr, "no servername provided, quitting.\n");
+		exit(1);
 	}
 	
 	printf("found %s.%s for %s in \"%s\"\n", SERVER, DATABASE, USER, filename);
@@ -326,7 +332,10 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 		}
 	}
 
-	assert(0); /* no unanticipated messages allowed in unit tests */
+	if (severity) {
+		fprintf(stderr, "exit: no unanticipated messages allowed in unit tests\n");
+		exit(EXIT_FAILURE);
+	}
 	return 0;
 }
 
@@ -356,8 +365,8 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 	}
 
 	fprintf(stderr,
-		"DB-LIBRARY error (severity %d, dberr %d, oserr %d, dberrstr %s, oserrstr %s):\n",
-		severity, dberr, oserr, dberrstr ? dberrstr : "(null)", oserrstr ? oserrstr : "(null)");
+		"DB-LIBRARY error (dberr %d (severity %d): \"%s\"; oserr %d: \"%s\")\n",
+		dberr, severity, dberrstr ? dberrstr : "(null)", oserr, oserrstr ? oserrstr : "(null)");
 	fflush(stderr);
 
 	/*
@@ -373,6 +382,10 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 		}
 	}
 
-	assert(0); /* no unanticipated errors allowed in unit tests */
+	if (severity) {
+		fprintf(stderr, "error: no unanticipated errors allowed in unit tests\n");
+		exit(EXIT_FAILURE);
+	}
+
 	return INT_CANCEL;
 }

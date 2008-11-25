@@ -7,7 +7,7 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null.c,v 1.6 2007-12-14 10:23:38 freddy77 Exp $";
+static char software_version[] = "$Id: null.c,v 1.7 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
@@ -140,7 +140,7 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", argv[0]);
 
 	dbinit();
 

@@ -4,8 +4,9 @@
  */
 
 #include "common.h"
+#include <sys/stat.h>
 
-static char software_version[] = "$Id: t0016.c,v 1.26 2006-12-26 14:56:19 freddy77 Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.27 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -22,6 +23,9 @@ failure(const char *fmt, ...)
         va_end(ap);
 }
 
+#define INFILE_NAME "t0016.in"
+#define TABLE_NAME "#dblib0016"
+
 int
 main(int argc, char *argv[])
 {
@@ -31,12 +35,24 @@ main(int argc, char *argv[])
 	char sqlCmd[256];
 	RETCODE ret;
 	const char *out_file = "t0016.out";
-	const char *in_file = FREETDS_SRCDIR "/t0016.in";
+	const char *in_file = FREETDS_SRCDIR "/" INFILE_NAME;
 	const char *err_file = "t0016.err";
 	DBINT rows_copied;
 	int num_cols = 0;
 
 	FILE *input_file, *output_file;
+
+#if 1
+	struct stat sb;
+
+	if (0 != stat(in_file, &sb)) {
+		in_file = INFILE_NAME;
+		if (0 != stat(in_file, &sb)) {
+			perror("could not open " INFILE_NAME);
+			exit(1);
+		}
+	}
+#endif
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
@@ -44,7 +60,7 @@ main(int argc, char *argv[])
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	printf("Start\n");
+	printf("Starting %s\n", argv[0]);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
@@ -65,7 +81,7 @@ main(int argc, char *argv[])
 	dbloginfree(login);
 	printf("After logon\n");
 
-	printf("Creating table\n");
+	printf("Creating table '%s'\n", TABLE_NAME);
 	strcpy(sqlCmd, "create table #dblib0016 (f1 int not null, s1 int null, f2 numeric(10,2) null, ");
 	strcat(sqlCmd, "f3 varchar(255) not null, f4 datetime null) ");
 	dbcmd(dbproc, sqlCmd);
@@ -76,7 +92,8 @@ main(int argc, char *argv[])
 
 	/* BCP in */
 
-	ret = bcp_init(dbproc, "#dblib0016", in_file, err_file, DB_IN);
+	printf("bcp_init with in_file as '%s'\n", in_file);
+	ret = bcp_init(dbproc, TABLE_NAME, in_file, err_file, DB_IN);
 	if (ret != SUCCEED)
 		failure("bcp_init failed\n");
 
@@ -119,7 +136,7 @@ main(int argc, char *argv[])
 	/* BCP out */
 
 	rows_copied = 0;
-	ret = bcp_init(dbproc, "#dblib0016", out_file, err_file, DB_OUT);
+	ret = bcp_init(dbproc, TABLE_NAME, out_file, err_file, DB_OUT);
 	if (ret != SUCCEED)
 		failure("bcp_int failed\n");
 

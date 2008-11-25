@@ -37,8 +37,10 @@
 #include <sys/wait.h>
 #endif /* HAVE_SYS_WAIT_H */
 
-static char software_version[] = "$Id: hang.c,v 1.2 2007-06-04 12:15:57 freddy77 Exp $";
+static char software_version[] = "$Id: hang.c,v 1.3 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+char *UNITTEST;
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
 
@@ -82,7 +84,7 @@ test(int close_socket)
 	RETCODE ret;
 	int expected_error = -1;
 
-	printf("Start\n");
+	printf("Starting %s\n", UNITTEST);
 
 	dbinit();
 
@@ -141,6 +143,7 @@ test(int close_socket)
 int
 main(int argc, char **argv)
 {
+	UNITTEST = argv[0];
 	read_login_info(argc, argv);
 	if (test(0) || test(1))
 		return 1;

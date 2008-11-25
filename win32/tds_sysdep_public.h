@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.6 2008-01-20 14:23:59 freddy77 Exp $";
+static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.7 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_tds_sysdep_public_h_warn[] = { rcsid_tds_sysdep_public_h, no_unused_tds_sysdep_public_h_warn };
 
 #ifdef __cplusplus
@@ -29,6 +29,7 @@ extern "C"
 #endif
 
 #include <windows.h>
+#include <winsock2.h>
 #define tds_sysdep_int16_type short	/* 16-bit int */
 #define tds_sysdep_int32_type int	/* 32-bit int */
 #define tds_sysdep_int64_type __int64	/* 64-bit int */

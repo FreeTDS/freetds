@@ -5,26 +5,52 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.24 2008-11-12 10:38:15 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.25 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
 
 int failed = 0;
 
+#if !defined(FREETDS_SRCDIR)
+#define FREETDS_SRCDIR "../../../.."
+#endif
+
+#define TABLE_NAME "freetds_dblib_t0013"
+
 char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0013.out" };
+
+DBPROCESS *dbproc, *dbprocw;
+
+void
+drop_table(void)
+{
+	char cmd[1024];
+
+	if (!dbproc) 
+		return;
+
+	dbcancel(dbproc);
+
+	sprintf(cmd, "drop table " TABLE_NAME);
+	fprintf(stdout, "sql: %s\n", cmd);
+	dbcmd(dbproc, cmd);
+	dbsqlexec(dbproc);
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
+}
 
 int
 main(int argc, char **argv)
 {
 	LOGINREC *login;
-	DBPROCESS *dbproc;
 	int i;
 	DBINT testint;
 	FILE *fp;
 	long result, isiz;
 	char *blob, *rblob;
-	unsigned char *textPtr = NULL, *timeStamp = NULL;
+	DBBINARY *textPtr = NULL, *timeStamp = NULL;
 	char objname[256];
 	char sqlCmd[256];
 	char rbuf[BLOB_BLOCK_SIZE];
@@ -32,11 +58,13 @@ main(int argc, char **argv)
 	BOOL readFirstImage;
 	char cmd[1024];
 	int data_ok;
-
+#ifdef DBWRITE_OK_FOR_OVER_4K
+	int numtowrite, numwritten;
+#endif
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", argv[0]);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
@@ -52,13 +80,13 @@ main(int argc, char **argv)
 	fprintf(stdout, "About to open, PASSWORD: %s, USER: %s, SERVER: %s\n", "", "", "");	/* PASSWORD, USER, SERVER); */
 
 	dbproc = dbopen(login, SERVER);
+	dbprocw = dbopen(login, SERVER);
 	if (strlen(DATABASE)) {
 		dbuse(dbproc, DATABASE);
+		dbuse(dbprocw, DATABASE);
 	}
-	dbloginfree(login);
-	fprintf(stdout, "After logon\n");
-
-	fprintf(stdout, "About to read binary input file\n");
+	// dbloginfree(login);
+	fprintf(stdout, "logged in\n");
 
 	if (argc == 1) {
 		argv = testargs;
@@ -73,33 +101,37 @@ main(int argc, char **argv)
 		fprintf(stderr, "Cannot open input file: %s\n", argv[1]);
 		return 2;
 	}
+	fprintf(stdout, "Reading binary input file\n");
+
 	fseek(fp, 0, SEEK_END);
 	isiz = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
-	blob = (char *) malloc(isiz);
+	blob = malloc(isiz);
+	assert(blob);
 	fread((void *) blob, isiz, 1, fp);
 	fclose(fp);
 
-	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0013 (i int not null, PigTure image not null)");
-	dbsqlexec(dbproc);
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
-	}
-
-
-	fprintf(stdout, "insert\n");
-
-	sprintf(cmd, "insert into #dblib0013 values (1, '')");
-	fprintf(stdout, "%s\n", cmd);
+	sprintf(cmd, "create table " TABLE_NAME " (i int not null, PigTure image not null)");
+	fprintf(stdout, "sql: %s\n", cmd);
 	dbcmd(dbproc, cmd);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	sprintf(sqlCmd, "SELECT PigTure FROM #dblib0013 WHERE i = 1");
+	atexit(drop_table);
+
+	sprintf(cmd, "insert into " TABLE_NAME " values (1, '')");
+	fprintf(stdout, "sql: %s\n", cmd);
+	dbcmd(dbproc, cmd);
+	dbsqlexec(dbproc);
+	while (dbresults(dbproc) != NO_MORE_RESULTS) {
+		/* nop */
+	}
+
+	sprintf(sqlCmd, "SELECT PigTure FROM " TABLE_NAME " WHERE i = 1");
+	fprintf(stdout, "sql: %s\n", sqlCmd);
 	dbcmd(dbproc, sqlCmd);
 	dbsqlexec(dbproc);
 	if (dbresults(dbproc) != SUCCEED) {
@@ -107,40 +139,69 @@ main(int argc, char **argv)
 		return 4;
 	}
 
-	while ((result = dbnextrow(dbproc)) != NO_MORE_ROWS) {
-		strcpy(objname, "#dblib0013.PigTure");
+	for (i=0; (result = dbnextrow(dbproc)) != NO_MORE_ROWS; i++) {
+		assert(REG_ROW == result);
+		printf("fetching row %d\n", i+1);
+		strcpy(objname, TABLE_NAME ".PigTure");
 		textPtr = dbtxptr(dbproc, 1);
 		timeStamp = dbtxtimestamp(dbproc, 1);
+		break; /* can't proceed until no more rows */
 	}
+	assert(REG_ROW == result || 0 < i);
+	assert(0 < textPtr);
 
 	/*
 	 * Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
 	 * Use #ifndef for big buffer version (32-bit)
 	 */
+	fprintf(stdout, "writing text ... ");
 #ifndef DBWRITE_OK_FOR_OVER_4K
-	if (dbwritetext(dbproc, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, (BYTE*) blob) != SUCCEED)
+	if (dbwritetext(dbprocw, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, (BYTE*) blob) != SUCCEED)
 		return 5;
+	fprintf(stdout, "done (in one shot)\n");
+	for (; (result = dbnextrow(dbproc)) != NO_MORE_ROWS; i++) {
+		assert(REG_ROW == result);
+		printf("fetching row %d?\n", i+1);
+	}
 #else
-	if (dbwritetext(dbproc, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, NULL) != SUCCEED)
+	if (dbwritetext(dbprocw, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, NULL) != SUCCEED)
 		return 15;
-	dbsqlok(dbproc);
-	dbresults(dbproc);
+	fprintf(stdout, "done\n");
+
+	fprintf(stdout, "dbsqlok\n");
+	dbsqlok(dbprocw);
+	fprintf(stdout, "dbresults\n");
+	dbresults(dbprocw);
 
 	numtowrite = 0;
 	/* Send the update value in chunks. */
 	for (numwritten = 0; numwritten < isiz; numwritten += numtowrite) {
+		fprintf(stdout, "dbmoretext %d\n", 1 + numwritten);
 		numtowrite = (isiz - numwritten);
 		if (numtowrite > BLOB_BLOCK_SIZE)
 			numtowrite = BLOB_BLOCK_SIZE;
-		dbmoretext(dbproc, (DBINT) numtowrite, blob + numwritten);
+		dbmoretext(dbprocw, (DBINT) numtowrite, blob + numwritten);
 	}
-	dbsqlok(dbproc);
-	while (dbresults(dbproc) != NO_MORE_RESULTS);
+	dbsqlok(dbprocw);
+	while (dbresults(dbprocw) != NO_MORE_RESULTS){
+		printf("suprise!\n");
+	}
 #endif
+#if 0
+	if (SUCCEED != dbclose(dbproc)){
+		fprintf(stdout, "dbclose failed");
+		exit(1);
+	}
+	dbproc = dbopen(login, SERVER);
+	assert(dbproc);
+	if (strlen(DATABASE)) {
+		dbuse(dbproc, DATABASE);
+	}
+#endif
+	sprintf(cmd, "select i, PigTure from " TABLE_NAME " order by i");
 
-	fprintf(stdout, "select\n");
-
-	dbcmd(dbproc, "select * from #dblib0013 order by i");
+	fprintf(stdout, "sql: %s\n", cmd);
+	dbcmd(dbproc, cmd);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
@@ -150,36 +211,41 @@ main(int argc, char **argv)
 	}
 
 	for (i = 1; i <= dbnumcols(dbproc); i++) {
-		printf("col %d is %s\n", i, dbcolname(dbproc, i));
+		printf("col %d, \"%s\", is type %s\n", 
+			i, dbcolname(dbproc, i), dbprtype(dbcoltype(dbproc, i)));
+	}
+	if (2 != dbnumcols(dbproc)) {
+		fprintf(stderr, "Failed.  Expected 2 columns\n");
+		exit(1);
 	}
 
 	if (SUCCEED != dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint)) {
-		failed = 1;
 		fprintf(stderr, "Had problem with bind\n");
-		abort();
+		exit(1);
 	}
 
 	if (REG_ROW != dbnextrow(dbproc)) {
-		failed = 1;
 		fprintf(stderr, "Failed.  Expected a row\n");
 		exit(1);
 	}
 	if (testint != 1) {
 		failed = 1;
-		fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
-		abort();
+		fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", 1, (int) testint);
+		exit(1);
 	}
 	dbnextrow(dbproc);
 
 	/* get the image */
 	strcpy(sqlCmd, "SET TEXTSIZE 2147483647");
+	fprintf(stdout, "sql: %s\n", sqlCmd);
 	dbcmd(dbproc, sqlCmd);
 	dbsqlexec(dbproc);
 	dbresults(dbproc);
 
 	fprintf(stdout, "select 2\n");
 
-	sprintf(sqlCmd, "SELECT PigTure FROM #dblib0013 WHERE i = 1");
+	sprintf(sqlCmd, "SELECT PigTure FROM " TABLE_NAME " WHERE i = 1");
+	fprintf(stdout, "sql: %s\n", sqlCmd);
 	dbcmd(dbproc, sqlCmd);
 	dbsqlexec(dbproc);
 	if (dbresults(dbproc) != SUCCEED) {
@@ -224,6 +290,17 @@ main(int argc, char **argv)
 	}
 
 	free(blob);
+	drop_table();
+#if 1
+	dbclose(dbproc);
+#else
+	if (SUCCEED != dbclose(dbproc)){
+		fprintf(stdout, "dbclose failed");
+		abort();
+	}
+#endif
+	dbproc = 0;
+
 	dbexit();
 
 	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);

@@ -10,7 +10,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0002.c,v 1.21 2007-12-04 02:06:38 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.22 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -57,7 +57,7 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", argv[0]);
 	add_bread_crumb();
 
 	/* Fortify_EnterScope(); */

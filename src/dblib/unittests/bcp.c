@@ -13,7 +13,7 @@
 
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.14 2007-11-26 08:52:40 freddy77 Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.15 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -189,7 +189,7 @@ main(int argc, char **argv)
 
 	read_login_info(argc, argv);
 
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", argv[0]);
 	add_bread_crumb();
 
 	dbinit();

@@ -71,7 +71,7 @@ typedef struct _pbcb
 }
 TDS_PBCB;
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.172 2008-05-26 13:56:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.173 2008-11-25 22:58:28 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1400,6 +1400,12 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
 		 */
 		tdsdump_log(TDS_DBG_FUNC, "Data read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
+		if (i == 370 - 1) {
+			char buf[32];
+			memset(buf, '\0', sizeof(buf));
+			memcpy(buf, coldata, collen);
+			tdsdump_log(TDS_DBG_FUNC, "column 370 is '%s', converts to %f\n", buf, atof(buf));
+		}
 		if (hostcol->tab_colnum) {
 			if (data_is_null) {
 				bcpcol->bcp_column_data->is_null = 1;
@@ -2024,6 +2030,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	
 					}
 				}
+			} else {
+				printf("skipping row %d (because <= %d)\n", dbproc->hostfileinfo->firstrow, row_of_hostfile);
 			}
 		}
 

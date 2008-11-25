@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.27 2006-07-06 12:48:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.28 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -36,7 +36,7 @@ main(int argc, char **argv)
 	set_malloc_options();
 
 	read_login_info(argc, argv);
-	fprintf(stdout, "Start\n");
+	fprintf(stdout, "Starting %s\n", argv[0]);
 	dbinit();
 
 	dberrhandle(syb_err_handler);
