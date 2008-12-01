@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.25 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.26 2008-12-01 09:59:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -22,7 +22,7 @@ char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0013.out" };
 
 DBPROCESS *dbproc, *dbprocw;
 
-void
+static void
 drop_table(void)
 {
 	char cmd[1024];
