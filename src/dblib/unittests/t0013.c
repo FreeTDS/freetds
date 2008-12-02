@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.26 2008-12-01 09:59:35 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.27 2008-12-02 10:54:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -85,7 +85,7 @@ main(int argc, char **argv)
 		dbuse(dbproc, DATABASE);
 		dbuse(dbprocw, DATABASE);
 	}
-	// dbloginfree(login);
+	dbloginfree(login);
 	fprintf(stdout, "logged in\n");
 
 	if (argc == 1) {
