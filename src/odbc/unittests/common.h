@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.27 2008-11-06 15:56:39 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.28 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -36,7 +36,6 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 extern HENV Environment;
 extern HDBC Connection;
 extern HSTMT Statement;
-extern SQLRETURN RetCode;
 extern int use_odbc_version3;
 extern void (*odbc_set_conn_attr)(void);
 
@@ -61,9 +60,9 @@ void CheckCursor(void);
 
 SQLRETURN CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLHANDLE handle, const char *func, const char *res);
 #define CHKR(func, params, res) \
-	CheckRes(__FILE__, __LINE__, (RetCode=(func params)), 0, 0, #func, res)
+	CheckRes(__FILE__, __LINE__, (func params), 0, 0, #func, res)
 #define CHKR2(func, params, type, handle, res) \
-	CheckRes(__FILE__, __LINE__, (RetCode=(func params)), type, handle, #func, res)
+	CheckRes(__FILE__, __LINE__, (func params), type, handle, #func, res)
 
 SQLSMALLINT AllocHandleErrType(SQLSMALLINT type);
 
@@ -144,8 +143,9 @@ SQLSMALLINT AllocHandleErrType(SQLSMALLINT type);
 
 int Connect(void);
 int Disconnect(void);
-SQLRETURN Command(HSTMT stmt, const char *command, const char *file, int line);
-#define Command(cmd) (RetCode=Command(Statement, cmd, __FILE__, __LINE__))
+SQLRETURN CommandProc(HSTMT stmt, const char *command, const char *file, int line, const char *res);
+#define Command(cmd) CommandProc(Statement, cmd, __FILE__, __LINE__, "SNo")
+#define Command2(cmd, res) CommandProc(Statement, cmd, __FILE__, __LINE__, res)
 SQLRETURN CommandWithResult(HSTMT stmt, const char *command);
 int db_is_microsoft(void);
 const char *db_version(void);

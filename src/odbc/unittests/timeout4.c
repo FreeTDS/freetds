@@ -39,7 +39,7 @@
  * prepare or execute a query. This should fail and return an error message.
  */
 
-static char software_version[] = "$Id: timeout4.c,v 1.3 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: timeout4.c,v 1.4 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -80,7 +80,6 @@ static int
 Test(int direct)
 {
 	char buf[256];
-	SQLRETURN RetCode;
 	char sqlstate[6];
 	time_t start_time, end_time;
 

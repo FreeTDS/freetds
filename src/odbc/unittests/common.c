@@ -12,13 +12,12 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.52 2008-11-11 08:40:17 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.53 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
 HDBC Connection;
 HSTMT Statement;
-SQLRETURN RetCode;
 int use_odbc_version3 = 0;
 void (*odbc_set_conn_attr)(void) = NULL;
 
@@ -192,9 +191,6 @@ ReportODBCError(const char *errmsg, SQLSMALLINT handletype, SQLHANDLE handle, SQ
 int
 Connect(void)
 {
-
-	SQLRETURN RetCode;
-
 	char command[512];
 
 	if (read_login_info())
@@ -321,7 +317,6 @@ void
 CheckCols(int n, int line, const char * file)
 {
 	SQLSMALLINT cols;
-	SQLRETURN RetCode;
 
 	if (n < 0) {
 		CHKNumResultCols(&cols, "E");
@@ -339,7 +334,6 @@ void
 CheckRows(int n, int line, const char * file)
 {
 	SQLLEN rows;
-	SQLRETURN RetCode;
 
 	if (n < -1) {
 		CHKRowCount(&rows, "E");
@@ -434,11 +428,10 @@ AllocHandleErrType(SQLSMALLINT type)
 	return 0;
 }
 
-#undef Command
 SQLRETURN
-Command(HSTMT stmt, const char *command, const char *file, int line)
+CommandProc(HSTMT stmt, const char *command, const char *file, int line, const char *res)
 {
 	printf("%s\n", command);
-	return CheckRes(file, line, SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS), SQL_HANDLE_STMT, stmt, "Command", "SNo");
+	return CheckRes(file, line, SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS), SQL_HANDLE_STMT, stmt, "Command", res);
 }
 

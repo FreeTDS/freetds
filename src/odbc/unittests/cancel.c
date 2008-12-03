@@ -45,8 +45,6 @@ exit_forced(int s)
 static void
 sigalrm_handler(int s)
 {
-	SQLRETURN RetCode;
-
 	printf(">>>> SQLCancel() ...\n");
 	CHKCancel("S");
 	printf(">>>> ... SQLCancel done\n");
@@ -58,8 +56,6 @@ sigalrm_handler(int s)
 int
 main(int argc, char **argv)
 {
-	SQLRETURN RetCode;
-
 	use_odbc_version3 = 1;
 	Connect();
 
@@ -74,7 +70,6 @@ main(int argc, char **argv)
 		Disconnect();
 		return 1;
 	}
-	printf(">> ...  done RetCode = %d\n", RetCode);
 
 	ResetStatement();
 

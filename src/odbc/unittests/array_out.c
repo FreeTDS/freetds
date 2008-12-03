@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.14 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.15 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -30,7 +30,6 @@ query_test(const char* expected, const char *expected_status)
 	int desc_len = trunc ? 4 : 51;
 	int rec_size = 0;
 	Record *rec = NULL;
-	RETCODE RetCode;
 	char status[20];
 
 	assert(Statement != SQL_NULL_HSTMT);

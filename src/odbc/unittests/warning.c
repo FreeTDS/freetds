@@ -14,7 +14,7 @@
  * inside recordset
  * Sybase do not return warning but test works the same
  */
-static char software_version[] = "$Id: warning.c,v 1.8 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: warning.c,v 1.9 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
@@ -28,8 +28,6 @@ static const int tds_no_dm = 0;
 static void
 Test(const char *query)
 {
-	SQLRETURN RetCode;
-
 	CHKPrepare((SQLCHAR *) query, SQL_NTS, "S");
 
 	CHKExecute("S");

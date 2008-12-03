@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.15 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.16 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -8,7 +8,6 @@ Test(int discard_test)
 {
 	SQLINTEGER out_buf;
 	SQLLEN out_len;
-	SQLRETURN RetCode;
 	SQLLEN rows;
 	int retcode = 0;
 	char buf[512];

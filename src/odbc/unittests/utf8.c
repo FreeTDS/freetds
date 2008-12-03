@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.10 2008-11-06 15:56:39 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.11 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -17,10 +17,10 @@ init_connect(void)
 static void
 CheckNoRow(const char *query)
 {
-	SQLRETURN RetCode;
+	SQLRETURN rc;
 
-	CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
-	if (RetCode == SQL_NO_DATA)
+	rc = CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
+	if (rc == SQL_NO_DATA)
 		return;
 
 	do {

@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.14 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.15 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -131,7 +131,7 @@ main(int argc, char *argv[])
 
 		ind = SQL_LEN_DATA_AT_EXEC(0);
 
-		CHKExecute("Ne");
+		RetCode = CHKExecute("Ne");
 		while (RetCode == SQL_NEED_DATA) {
 			RetCode = SQLParamData(Statement, &ptr);
 			if (RetCode == SQL_NEED_DATA) {

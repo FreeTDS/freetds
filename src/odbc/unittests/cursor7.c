@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with a non-unitary rowset, using bottom-up direction */
 
-static char software_version[] = "$Id: cursor7.c,v 1.7 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: cursor7.c,v 1.8 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -38,7 +38,7 @@ Test(void)
 
 	/* Read records from last to first */
 	printf("\n\nReading records from last to first:\n");
-	CHKFetchScroll(SQL_FETCH_LAST, -ROWS, "SINo");
+	RetCode = CHKFetchScroll(SQL_FETCH_LAST, -ROWS, "SINo");
 	while (RetCode != SQL_NO_DATA) {
 		SQLULEN RowNumber;
 
@@ -54,11 +54,11 @@ Test(void)
 
 		/* Read next rowset */
 		if ( (RowNumber>1) && (RowNumber<ROWS) ) {
-			CHKFetchScroll(SQL_FETCH_RELATIVE, 1-RowNumber, "SINo"); 
+			RetCode = CHKFetchScroll(SQL_FETCH_RELATIVE, 1-RowNumber, "SINo"); 
 			for (i=RowNumber-1; i<ROWS; ++i)
 				statuses[i] = SQL_ROW_NOROW;
 		} else {
-			CHKFetchScroll(SQL_FETCH_RELATIVE, -ROWS, "SINo");
+			RetCode = CHKFetchScroll(SQL_FETCH_RELATIVE, -ROWS, "SINo");
 		}
 	}
 }

@@ -3,7 +3,7 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.7 2008-11-11 08:34:09 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.8 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -48,7 +48,7 @@ CheckDirtyRead(void)
 	SWAP_CONN();
 
 	/* second transaction try to fetch uncommited row */
-	CHKR(CommandWithResult, (Statement, "SELECT * FROM test_transaction WHERE t = 'second' AND n = 1"), "SE");
+	RetCode = Command2("SELECT * FROM test_transaction WHERE t = 'second' AND n = 1", "SE");
 	if (RetCode == SQL_ERROR) {
 		EndTransaction(SQL_ROLLBACK);
 		SWAP_CONN();
@@ -77,7 +77,7 @@ CheckNonrepeatableRead(void)
 
 	/* transaction 1 change a row and commit */
 	SWAP_CONN();
-	CHKR(CommandWithResult, (Statement, "UPDATE test_transaction SET t = 'second' WHERE n = 1"), "SE");
+	RetCode = Command2("UPDATE test_transaction SET t = 'second' WHERE n = 1", "SE");
 	if (RetCode == SQL_ERROR) {
 		EndTransaction(SQL_ROLLBACK);
 		SWAP_CONN();
@@ -114,7 +114,7 @@ CheckPhantom(void)
 
 	/* transaction 1 insert a row that match critera */
 	SWAP_CONN();
-	CHKR(CommandWithResult, (Statement, "INSERT INTO test_transaction(n, t) VALUES(2, 'initial')"), "SE");
+	RetCode = Command2("INSERT INTO test_transaction(n, t) VALUES(2, 'initial')", "SE");
 	if (RetCode == SQL_ERROR) {
 		EndTransaction(SQL_ROLLBACK);
 		SWAP_CONN();
@@ -198,8 +198,6 @@ Test(int txn, const char *expected)
 int
 main(int argc, char *argv[])
 {
-	SQLRETURN RetCode;
-
 	use_odbc_version3 = 1;
 	Connect();
 

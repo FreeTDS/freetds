@@ -2,7 +2,7 @@
 
 /* some tests on error reporting */
 
-static char software_version[] = "$Id: error.c,v 1.8 2008-11-11 08:40:17 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.9 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 	Command("insert into #tmp values(7)");
 
 	/* issue our command */
-	CHKR(CommandWithResult, (Statement, "select 100 / (i - 5) from #tmp order by i"), "SE");
+	RetCode = Command2("select 100 / (i - 5) from #tmp order by i", "SE");
 
 	/* special case, early Sybase detect error early */
 	if (RetCode != SQL_ERROR) {
@@ -58,11 +58,11 @@ main(int argc, char *argv[])
 
 	Command("SELECT * FROM sysobjects");
 
-	/* a statement is already active so you get error */
-	CHKR(CommandWithResult, (stmt, "SELECT * FROM sysobjects"), "E");
-
 	tmp_stmt = Statement;
 	Statement = stmt;
+
+	/* a statement is already active so you get error */
+	Command2("SELECT * FROM sysobjects", "E");
 
 	ReadError();
 

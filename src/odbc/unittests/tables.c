@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.16 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.17 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef WIN32
@@ -57,7 +57,6 @@ static void
 DoTest(const char *type, int row_returned)
 {
 	int table_len = SQL_NULL_DATA;
-	SQLRETURN RetCode;
 	char table_buf[80];
 	int found = 0;
 
@@ -114,11 +113,6 @@ DoTest(const char *type, int row_returned)
 		}
 		if (row_returned < 2)
 			break;
-	}
-
-	if (RetCode != SQL_NO_DATA) {
-		printf("Unexpected data\n");
-		exit(1);
 	}
 
 	if (expect && !found) {

@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.18 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.19 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SWAP_STMT(b) do { SQLHSTMT xyz = Statement; Statement = b; b = xyz; } while(0)
@@ -12,10 +12,10 @@ static int mssql2005 = 0;
 static void
 CheckNoRow(const char *query)
 {
-	SQLRETURN RetCode;
+	SQLRETURN rc;
 
-	CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
-	if (RetCode == SQL_NO_DATA)
+	rc = CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
+	if (rc == SQL_NO_DATA)
 		return;
 
 	do {
@@ -44,7 +44,6 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 	SQLUSMALLINT i;
 	SQLULEN num_row;
 	SQLHSTMT stmt2;
-	SQLRETURN RetCode;
 
 	/* create test table */
 	Command("IF OBJECT_ID('tempdb..#test') IS NOT NULL DROP TABLE #test");

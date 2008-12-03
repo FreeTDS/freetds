@@ -3,7 +3,7 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.11 2008-11-06 15:56:39 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.12 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	EndTransaction(SQL_ROLLBACK);
 
 	/* TODO should return error S1T00 Timeout expired, test error message */
-	CHKR(CommandWithResult, (Statement, "update test_timeout set t = 'bad' where n = 1"), "E");
+	Command2("update test_timeout set t = 'bad' where n = 1", "E");
 
 	EndTransaction(SQL_ROLLBACK);
 

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: cursor5.c,v 1.9 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLINTEGER v_int_3;
@@ -14,7 +14,7 @@ doFetch(int dir, int pos)
 {
 	SQLRETURN RetCode;
 
-	CHKFetchScroll(dir, pos, "SINo");
+	RetCode = CHKFetchScroll(dir, pos, "SINo");
 
 	if (RetCode != SQL_NO_DATA)
 		printf(">> fetch %2d %10d : %d [%s]\n", dir, pos, v_ind_3_1 ? (int) v_int_3 : -1, v_ind_3_2 ? v_char_3 : "null");

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.21 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.22 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -32,7 +32,7 @@ test(int odbc3)
 	/* issue print statement and test message returned */
 	output[0] = 0;
 	query = "print 'START' select count(*) from sysobjects where name='sysobjects' print 'END'";
-	CHKR(CommandWithResult, (Statement, query), "I");
+	Command2(query, "I");
 	ReadError();
 	if (!strstr((char *) output, "START")) {
 		printf("Message invalid\n");
@@ -95,7 +95,7 @@ test(int odbc3)
 	}
 
 	/* issue invalid command and test error */
-	CHKR(CommandWithResult, (Statement, "SELECT donotexistsfield FROM donotexiststable"), "E");
+	Command2("SELECT donotexistsfield FROM donotexiststable", "E");
 	ReadError();
 
 	/* test no data returned */

@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.13 2008-11-10 17:20:39 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.14 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define CHECK_RCODE(t,h,m) \
@@ -86,7 +86,7 @@ check_hex(const char *buf, size_t len, unsigned int start, unsigned int step)
 static int
 readBlob(SQLUSMALLINT pos)
 {
-	SQLRETURN RetCode;
+	SQLRETURN rc;
 	char buf[4096];
 	SQLLEN len, total = 0;
 	int i = 0;
@@ -95,8 +95,8 @@ readBlob(SQLUSMALLINT pos)
 	printf(">> readBlob field %d\n", pos);
 	while (1) {
 		i++;
-		CHKGetData(pos, SQL_C_BINARY, (SQLPOINTER) buf, (SQLINTEGER) sizeof(buf), &len, "SINo");
-		if (RetCode == SQL_NO_DATA || len <= 0)
+		rc = CHKGetData(pos, SQL_C_BINARY, (SQLPOINTER) buf, (SQLINTEGER) sizeof(buf), &len, "SINo");
+		if (rc == SQL_NO_DATA || len <= 0)
 			break;
 		if (len > (SQLLEN) sizeof(buf))
 			len = (SQLLEN) sizeof(buf);
@@ -114,13 +114,13 @@ readBlob(SQLUSMALLINT pos)
 	printf(">>   total bytes read = %d \n", (int) total);
 	if (total != 10000)
 		failed = 1;
-	return RetCode;
+	return rc;
 }
 
 static int
 readBlobAsChar(SQLUSMALLINT pos, int step)
 {
-	SQLRETURN RetCode = SQL_SUCCESS_WITH_INFO;
+	SQLRETURN rc = SQL_SUCCESS_WITH_INFO;
 	char buf[8192];
 	SQLLEN len, total = 0;
 	int i = 0;
@@ -131,10 +131,10 @@ readBlobAsChar(SQLUSMALLINT pos, int step)
 	else bufsize = sizeof(buf);
 
 	printf(">> readBlobAsChar field %d\n", pos);
-	while (RetCode == SQL_SUCCESS_WITH_INFO) {
+	while (rc == SQL_SUCCESS_WITH_INFO) {
 		i++;
-		CHKGetData(pos, SQL_C_CHAR, (SQLPOINTER) buf, (SQLINTEGER) bufsize, &len, "SINo");
-		if (RetCode == SQL_NO_DATA || len <= 0)
+		rc = CHKGetData(pos, SQL_C_CHAR, (SQLPOINTER) buf, (SQLINTEGER) bufsize, &len, "SINo");
+		if (rc == SQL_NO_DATA || len <= 0)
 			break;
 		if (len > (SQLLEN) bufsize)
 			len = (SQLLEN) bufsize - 1;
@@ -151,7 +151,7 @@ readBlobAsChar(SQLUSMALLINT pos, int step)
 	printf(">>   total bytes read = %d \n", (int) total);
 	if (total != 20000)
 		failed = 1;
-	return RetCode;
+	return rc;
 }
 
 
@@ -208,15 +208,13 @@ main(int argc, char **argv)
 		
 
 		printf(">> insert... %d\n", i);
-		CHKExecute("SINe");
+		RetCode = CHKExecute("SINe");
 		while (RetCode == SQL_NEED_DATA) {
 			char *p;
 
-			CHKParamData((SQLPOINTER) & p, "SINe");
+			RetCode = CHKParamData((SQLPOINTER) & p, "SINe");
 			printf(">> SQLParamData: ptr = %p  RetCode = %d\n", (void *) p, RetCode);
 			if (RetCode == SQL_NEED_DATA) {
-				SQLRETURN RetCode;
-
 				if (p == buf3) {
 					fill_hex(buf3, NBYTES, 987, 25);
 					

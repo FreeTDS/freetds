@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.11 2008-11-06 15:56:39 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.12 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -20,6 +20,7 @@ main(int argc, char *argv[])
 	SQLSMALLINT len;
 	int failures = 0;
 	int is_freetds = 1;
+	SQLRETURN rc;
 
 	if (read_login_info())
 		exit(1);
@@ -68,9 +69,9 @@ main(int argc, char *argv[])
 	/* this is expected to work with unixODBC */
 	init_connect();
 	sprintf(tmp, "DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
-	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
-	if (RetCode == SQL_ERROR) {
-		printf("Unable to open data source (ret=%d)\n", RetCode);
+	rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
+	if (rc == SQL_ERROR) {
+		printf("Unable to open data source (ret=%d)\n", rc);
 		++failures;
 	}
 	Disconnect();
@@ -78,9 +79,9 @@ main(int argc, char *argv[])
 	/* this is expected to work with iODBC */
 	init_connect();
 	sprintf(tmp, "DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", DRIVER, SERVER, USER, PASSWORD, DATABASE);
-	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
-	if (RetCode == SQL_ERROR) {
-		printf("Unable to open data source (ret=%d)\n", RetCode);
+	rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
+	if (rc == SQL_ERROR) {
+		printf("Unable to open data source (ret=%d)\n", rc);
 		++failures;
 	}
 	Disconnect();

@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.23 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.24 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -42,7 +42,7 @@ TestResult(SQLRETURN result0, int level, const char *func)
 	SQLINTEGER NativeError;
 	char MessageText[1000];
 	SQLSMALLINT TextLength;
-	SQLRETURN result = result0;
+	SQLRETURN result = result0, rc;
 
 	if (result == SQL_NO_DATA && strcmp(func, "SQLFetch") == 0)
 		result = SQL_SUCCESS_WITH_INFO;
@@ -61,8 +61,8 @@ TestResult(SQLRETURN result0, int level, const char *func)
 	SqlState[0] = 0;
 	MessageText[0] = 0;
 	NativeError = 0;
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText), &TextLength, "SI");
-	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) RetCode, SqlState, (int) NativeError, MessageText);
+	rc = CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText), &TextLength, "SI");
+	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) rc, SqlState, (int) NativeError, MessageText);
 
 	if (strstr(MessageText, "An error occurred") == NULL) {
 		fprintf(stderr, "Wrong error returned!\n");
@@ -78,11 +78,11 @@ CheckData(const char *s, int line)
 {
 	char buf[80];
 	SQLLEN ind;
-	SQLRETURN RetCode;
+	SQLRETURN rc;
 
-	CHKGetData(1, SQL_C_CHAR, buf, sizeof(buf), &ind, "SE");
+	rc = CHKGetData(1, SQL_C_CHAR, buf, sizeof(buf), &ind, "SE");
 
-	if (RetCode == SQL_ERROR) {
+	if (rc == SQL_ERROR) {
 		buf[0] = 0;
 		ind = 0;
 	}
@@ -245,7 +245,7 @@ Test2(int nocount, int second_select)
 
 	sprintf(sql, create_proc, nocount ? "     SET NOCOUNT ON\n" : "",
 		second_select ? "     SELECT 'Here is the last row' AS LastResult\n" : "");
-	CHKR(CommandWithResult, (Statement, sql), "SNo");
+	Command(sql);
 
 	Test(5);
 

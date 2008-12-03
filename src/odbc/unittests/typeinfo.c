@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.11 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.12 2008-12-03 12:55:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -34,8 +34,6 @@ TestName(int index, const char *expected_name)
 static void
 FlushStatement(void)
 {
-	SQLRETURN RetCode;
-
 	while (CHKFetch("SNo") == SQL_SUCCESS)
 		;
 
@@ -53,7 +51,7 @@ CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type, int l
 
 	CHKBindCol(2, SQL_C_SSHORT, &out_type, 0, &ind, "SI");
 	CHKGetTypeInfo(type, "SI");
-	CHKFetch("SNo");
+	RetCode = CHKFetch("SNo");
 	switch (RetCode) {
 	case SQL_SUCCESS:
 		if (expected == SQL_UNKNOWN_TYPE) {
@@ -88,7 +86,6 @@ DoTest(int version3)
 	SQLSMALLINT type, is_unsigned;
 	SQLINTEGER col_size, min_scale;
 	SQLLEN ind1, ind2, ind3, ind4, ind5, ind6;
-	SQLRETURN RetCode;
 	int date_time_supported = 0;
 
 	use_odbc_version3 = version3;
@@ -124,8 +121,7 @@ DoTest(int version3)
 	/* numeric type for data */
 
 	/* test for date/time support */
-	RetCode = CommandWithResult(Statement, "select cast(getdate() as date)");
-	if (RetCode == SQL_SUCCESS)
+	if (CommandWithResult(Statement, "select cast(getdate() as date)") == SQL_SUCCESS)
 		date_time_supported = 1;
 	SQLCloseCursor(Statement);
 
