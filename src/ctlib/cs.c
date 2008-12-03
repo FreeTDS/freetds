@@ -50,7 +50,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.67 2008-08-26 14:14:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.68 2008-12-03 08:37:11 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -61,7 +61,7 @@ static CS_INT cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count);
 const char *
 cs_prretcode(int retcode)
 {
-	static char unknown[12]="oops: ";
+	static char unknown[24];
 	
 	switch(retcode) {
 	case CS_SUCCEED:	return "CS_SUCCEED";
@@ -86,7 +86,7 @@ cs_prretcode(int retcode)
 	case CS_TIMED_OUT:	return "CS_TIMED_OUT";
 
 	default:
-		sprintf(unknown + 6, "%u ??", retcode);
+		sprintf(unknown, "oops: %u ??", retcode);
 	}
 	return unknown;
 }

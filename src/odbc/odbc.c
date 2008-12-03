@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.505 2008-11-05 19:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.506 2008-12-03 08:37:11 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -155,10 +155,8 @@ static void odbc_ird_check(TDS_STMT * stmt);
  */
 
 static char *
-odbc_prret(SQLRETURN ret)
+odbc_prret(SQLRETURN ret, char *unknown)
 {
-	static char unknown[32];
-	
 	switch (ret) {
 	case SQL_ERROR:			return "SQL_ERROR";
 	case SQL_INVALID_HANDLE:	return "SQL_INVALID_HANDLE";
@@ -175,6 +173,8 @@ odbc_prret(SQLRETURN ret)
 
 	return unknown;
 }
+#define ODBC_PRRET_BUF	char unknown_prret_buf[24]
+#define odbc_prret(ret) odbc_prret(ret, unknown_prret_buf)
 
 static void
 odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
@@ -3315,6 +3315,7 @@ SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 SQLRETURN ODBC_API
 SQLExecute(SQLHSTMT hstmt)
 {
+	ODBC_PRRET_BUF;
 	SQLRETURN res;
 
 	INIT_HSTMT;
@@ -5890,6 +5891,7 @@ _SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 SQLRETURN ODBC_API
 SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 {
+	ODBC_PRRET_BUF;
 	SQLRETURN ret = _SQLParamData(hstmt, prgbValue);
 	
 	tdsdump_log(TDS_DBG_FUNC, "SQLParamData returns %s\n", odbc_prret(ret));
@@ -5900,6 +5902,7 @@ SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 SQLRETURN ODBC_API
 SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 {
+	ODBC_PRRET_BUF;
 	INIT_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLPutData(%p, %p, %i)\n", hstmt, rgbValue, (int)cbValue);

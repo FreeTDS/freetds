@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.331 2008-11-18 01:16:49 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.332 2008-12-03 08:37:11 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1481,7 +1481,7 @@ dbexit()
 static const char *
 prdbresults_state(int retcode)
 {
-	static char unknown[12]="oops: ";
+	static char unknown[24];
 	switch(retcode) {
 	case _DB_RES_INIT:		return "_DB_RES_INIT";
 	case _DB_RES_RESULTSET_EMPTY:	return "_DB_RES_RESULTSET_EMPTY";
@@ -1490,7 +1490,7 @@ prdbresults_state(int retcode)
 	case _DB_RES_NO_MORE_RESULTS:	return "_DB_RES_NO_MORE_RESULTS";
 	case _DB_RES_SUCCEED:		return "_DB_RES_SUCCEED";
 	default:
-		sprintf(unknown + 6, "%u ??", retcode);
+		sprintf(unknown, "oops: %u ??", retcode);
 	}
 	return unknown;
 }
@@ -1498,7 +1498,7 @@ prdbresults_state(int retcode)
 static const char *
 prdbretcode(int retcode)
 {
-	static char unknown[12]="oops: ";
+	static char unknown[24];
 	switch(retcode) {
 	case REG_ROW:		return "REG_ROW/MORE_ROWS";
 	case NO_MORE_ROWS:	return "NO_MORE_ROWS";
@@ -1507,7 +1507,7 @@ prdbretcode(int retcode)
 	case SUCCEED:		return "SUCCEED";
 	case FAIL:		return "FAIL";
 	default:
-		sprintf(unknown + 6, "%u ??", retcode);
+		sprintf(unknown, "oops: %u ??", retcode);
 	}
 	return unknown;
 }
@@ -1515,14 +1515,14 @@ prdbretcode(int retcode)
 static const char *
 prretcode(int retcode)
 {
-	static char unknown[12]="oops";
+	static char unknown[24];
 	switch(retcode) {
 	case TDS_SUCCEED:		return "TDS_SUCCEED";
 	case TDS_FAIL:			return "TDS_FAIL";
 	case TDS_NO_MORE_RESULTS:	return "TDS_NO_MORE_RESULTS";
 	case TDS_CANCELLED:		return "TDS_CANCELLED";
 	default:
-		sprintf(unknown, "%u ??", retcode);
+		sprintf(unknown, "oops: %u ??", retcode);
 	}
 	return unknown;
 }
@@ -1530,7 +1530,7 @@ prretcode(int retcode)
 static const char *
 prresult_type(int result_type)
 {
-	static char unknown[12]="oops";
+	static char unknown[24];
 	switch(result_type) {
 	case TDS_ROW_RESULT:		return "TDS_ROW_RESULT";
 	case TDS_PARAM_RESULT:		return "TDS_PARAM_RESULT";
@@ -1548,7 +1548,7 @@ prresult_type(int result_type)
 	case TDS_DONEINPROC_RESULT:	return "TDS_DONEINPROC_RESULT";
 	case TDS_OTHERS_RESULT:		return "TDS_OTHERS_RESULT";
 	default:
-		sprintf(unknown, "%u ??", result_type);
+		sprintf(unknown, "oops: %u ??", result_type);
 	}
 	return unknown;
 }

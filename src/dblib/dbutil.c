@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.43 2008-08-17 07:44:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.44 2008-12-03 08:37:11 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -105,8 +105,8 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 		 * server messages with severity greater than 10.
 		 */
 		/* Cannot call dbperror() here because server messsage numbers (and text) are not in its lookup table. */
-		static char message[] = "General SQL Server error: Check messages from the SQL Server";
-		(*_dblib_err_handler)(dbproc, msg->severity, msg->msgno, 0, message, NULL);
+		static const char message[] = "General SQL Server error: Check messages from the SQL Server";
+		(*_dblib_err_handler)(dbproc, msg->severity, msg->msgno, 0, (char *) message, NULL);
 	}
 	return SUCCEED;
 }

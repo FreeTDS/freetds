@@ -1,3 +1,8 @@
+Wed Dec 03 09:35:32 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/cs.c src/dblib/dblib.c: avoid possible buffer overflow
+	* src/dblib/dbutil.c: make message const
+	* src/odbc/odbc.c: make odbc_prret thread safe
+
 Tue Dec 02 11:53:14 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/t0013.c: avoid leak
 
@@ -982,4 +987,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2667 2008-12-02 10:54:37 freddy77 Exp $
+$Id: ChangeLog,v 1.2668 2008-12-03 08:37:10 freddy77 Exp $
