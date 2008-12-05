@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.15 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.16 2008-12-05 08:32:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -10,12 +10,45 @@ static const char test_text[] =
 
 #define BYTE_AT(n) (((n) * 245 + 123) & 0xff)
 
+static void
+CheckNoRow(const char *query)
+{
+	SQLRETURN rc;
+
+	rc = CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
+	if (rc == SQL_NO_DATA)
+		return;
+
+	do {
+		SQLSMALLINT cols;
+
+		CHKNumResultCols(&cols, "S");
+		if (cols != 0) {
+			fprintf(stderr, "Data not expected here, query:\n\t%s\n", query);
+			Disconnect();
+			exit(1);
+		}
+	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
+}
+
+static int
+to_sqlwchar(SQLWCHAR *dst, const char *src, int n)
+{
+	int i;
+	for (i = 0; i < n; ++i)
+		dst[i] = src[i];
+	return n * sizeof(SQLWCHAR);
+}
+
+static char sql[1024];
+
 int
 main(int argc, char *argv[])
 {
 	SQLLEN ind;
 	int len = strlen(test_text), n, i;
 	const char *p;
+	char *pp;
 	SQLPOINTER ptr;
 	unsigned char buf[256], *pb;
 	SQLRETURN RetCode;
@@ -56,10 +89,7 @@ main(int argc, char *argv[])
 				CHKPutData((char *) p, n, "S");
 			} else {
 				SQLWCHAR buf[256];
-				int i;
-				for (i = 0; i < n; ++i)
-					buf[i] = p[i];
-				CHKPutData((char *) buf, n * lc, "S");
+				CHKPutData((char *) buf, to_sqlwchar(buf, p, n), "S");
 			}
 			p += n;
 			n *= 2;
@@ -108,7 +138,7 @@ main(int argc, char *argv[])
 
 		if (l < n)
 			n = l;
-		CHKPutData((char *) p, n, "S");
+		CHKPutData((char *) pb, n, "S");
 		pb += n;
 		n *= 2;
 	}
@@ -120,9 +150,28 @@ main(int argc, char *argv[])
 	Command("DECLARE @i2 INT");
 
 
-	/* test len == 0 case from ML */
 	CHKFreeStmt(SQL_RESET_PARAMS, "S");
 
+	/* check inserts ... */
+	strcpy(sql, "IF EXISTS(SELECT * FROM #putdata WHERE CONVERT(VARBINARY(255),b) <> 0x");
+	/* append binary */
+	for (i = 0; i < 254; ++i)
+		sprintf(strchr(sql, 0), "%02x", buf[i]);
+	strcat(sql, " OR CONVERT(VARCHAR(255),c) <> '");
+	/* append string */
+	pp = strchr(sql, 0);
+	p = test_text;
+	do {
+		*pp++ = *p;
+		if (*p == '\'')
+			*pp++ = *p;
+	} while(*p++);
+	strcat(sql, "') SELECT 1");
+	CheckNoRow(sql);
+
+	Command("DELETE FROM #putdata");
+
+	/* test len == 0 case from ML */
 	type = SQL_C_CHAR;
 	for (;;) {
 		CHKPrepare((SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS, "S");
@@ -135,7 +184,12 @@ main(int argc, char *argv[])
 		while (RetCode == SQL_NEED_DATA) {
 			RetCode = SQLParamData(Statement, &ptr);
 			if (RetCode == SQL_NEED_DATA) {
-				SQLPutData(Statement, "abc", 3);
+				if (type == SQL_C_CHAR) {
+					SQLPutData(Statement, "abc", 3);
+				} else {
+					SQLWCHAR buf[10];
+					SQLPutData(Statement, buf, to_sqlwchar(buf, "abc", 3));
+				}
 			}
 		}
 		if (type != SQL_C_CHAR)
@@ -144,7 +198,9 @@ main(int argc, char *argv[])
 		ResetStatement();
 	}
 
-	/* TODO check inserts ... */
+	/* check inserts ... */
+	CheckNoRow("IF EXISTS(SELECT * FROM #putdata WHERE c NOT LIKE 'abc') SELECT 1");
+
 	/* TODO test cancel inside SQLExecute */
 
 	Disconnect();

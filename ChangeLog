@@ -1,3 +1,6 @@
+Fri Dec 05 09:31:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/putdata.c: improve
+
 Wed Dec 03 13:54:18 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/array_out.c src/odbc/unittests/blob1.c:
 	* src/odbc/unittests/cancel.c src/odbc/unittests/common.c:
@@ -1003,4 +1006,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2669 2008-12-03 12:55:52 freddy77 Exp $
+$Id: ChangeLog,v 1.2670 2008-12-05 08:32:47 freddy77 Exp $
