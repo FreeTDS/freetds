@@ -3,7 +3,7 @@
 # List supported/unsupported functions for an ODBC data source
 
 # Contributed to the public domain by James K. Lowden
-# $Id: odbcfunc.pl,v 1.1 2008-12-08 22:44:26 jklowden Exp $
+# $Id: odbcfunc.pl,v 1.2 2008-12-08 22:47:07 jklowden Exp $
 
 use Getopt::Std;
 use File::Basename;
@@ -84,7 +84,9 @@ Prints results from the ODBC function SQLGetFunctions.
 
 =head1 OPTIONS
 
-=over 
+=over
+
+=item -I include path for sql.h and sqlext.h 
 
 =item -S DSN is a Data Source Name that uses the driver. 
 
@@ -93,3 +95,5 @@ Prints results from the ODBC function SQLGetFunctions.
 =item -P is a password, if required. 
 
 =item -v may have a value of 1 or 2, which prints more details. 
+
+=back
