@@ -1,3 +1,8 @@
+Tue Dec 09 10:38:07 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/hmac_md5.h include/tds.h include/tdsconvert.h:
+	* src/tds/tds_checks.h:
+	- optimize link using gcc4
+
 Fri Dec 05 09:31:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/putdata.c: improve
 
@@ -1006,4 +1011,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2670 2008-12-05 08:32:47 freddy77 Exp $
+$Id: ChangeLog,v 1.2671 2008-12-09 09:39:13 freddy77 Exp $

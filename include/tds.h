@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.299 2008-11-07 16:25:52 freddy77 Exp $ */
+/* $Id: tds.h,v 1.300 2008-12-09 09:39:14 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -39,6 +39,10 @@ typedef struct tds_socket TDSSOCKET;
 #ifdef _FREETDS_LIBRARY_SOURCE
 #include "tds_sysdep_private.h"
 #endif /* _FREETDS_LIBRARY_SOURCE */
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -1535,7 +1539,13 @@ unsigned int tds_gettime_ms(void);
 /* log.c */
 void tdsdump_off(void);
 void tdsdump_on(void);
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
+#endif
 int tdsdump_open(const char *filename);
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
 void tdsdump_close(void);
 void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, int length);
 void tdsdump_col(const TDSCOLUMN *col);
@@ -1604,6 +1614,10 @@ TDSAUTHENTICATION * tds_gss_get_auth(TDSSOCKET * tds);
 {
 #endif
 }
+#endif
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
 #endif
 
 #endif /* _tds_h_ */

@@ -20,10 +20,16 @@
 #ifndef _hmac_md5_h_
 #define _hmac_md5_h_
 
-/* $Id: hmac_md5.h,v 1.1 2008-07-30 08:02:54 freddy77 Exp $ */
+/* $Id: hmac_md5.h,v 1.2 2008-12-09 09:39:14 freddy77 Exp $ */
 
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility push(hidden)
+#endif
 void hmac_md5(const unsigned char key[16],
               const unsigned char* data, size_t data_len,
               unsigned char* digest);
+#if defined(__GNUC__) && __GNUC__ >= 4
+#pragma GCC visibility pop
+#endif
 
 #endif
