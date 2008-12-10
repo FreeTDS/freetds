@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.137 2008-09-12 15:12:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.138 2008-12-10 14:56:27 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -89,8 +89,6 @@ static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login);
 static int tds_lookup_port(const char *portname);
 static void tds_config_encryption(const char * value, TDSCONNECTION * connection);
-
-extern int tds_g_append_mode;
 
 static char *interf_file = NULL;
 

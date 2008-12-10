@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.23 2007-12-23 21:12:02 jklowden Exp $";
+static char software_version[] = "$Id: convert.c,v 1.24 2008-12-10 14:56:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -49,8 +49,6 @@ free_convert(int type, CONV_RESULT *cr)
 		break;
 	}
 }
-
-extern const char STD_DATETIME_FMT[];
 
 int
 main(int argc, char **argv)

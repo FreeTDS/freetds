@@ -24,7 +24,7 @@
 #include "common.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: common.c,v 1.20 2008-09-09 14:48:03 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.21 2008-12-10 14:56:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -175,8 +175,6 @@ establish_login(int argc, char **argv)
 	
 	return (*USER && *SERVER && *DATABASE)? CS_SUCCEED : CS_FAIL;
 }
-
-extern const char STD_DATETIME_FMT[];
 
 CS_RETCODE
 try_ctlogin_with_options(int argc, char **argv, CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd, int verbose)

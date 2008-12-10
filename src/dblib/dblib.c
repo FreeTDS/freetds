@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.332 2008-12-03 08:37:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.333 2008-12-10 14:56:26 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3228,7 +3228,6 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	return SUCCEED;
 }
 
-extern const char STD_DATETIME_FMT[];
 /**
  * \ingroup dblib_core
  * \brief Print a result set to stdout. 

@@ -50,7 +50,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.68 2008-12-03 08:37:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.69 2008-12-10 14:56:26 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -337,8 +337,6 @@ Cleanup:
 	_cs_locale_free(new_locale);
 	return NULL;
 }
-
-extern const char STD_DATETIME_FMT[];
 
 CS_RETCODE
 cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx)

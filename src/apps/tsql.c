@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.121 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.122 2008-12-10 14:56:26 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -601,8 +601,6 @@ print_instance_data(TDSCONNECTION *connection)
 	if (!tds_dstr_isempty(&connection->instance_name))
 		printf("connecting to instance %s on port %d\n", tds_dstr_cstr(&connection->instance_name), connection->port);
 }
-
-extern const char STD_DATETIME_FMT[];
 
 int
 main(int argc, char **argv)

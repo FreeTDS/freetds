@@ -1,3 +1,9 @@
+Wed Dec 10 15:55:30 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/apps/tsql.c src/ctlib/cs.c:
+	* src/ctlib/unittests/common.c src/dblib/dblib.c src/tds/config.c:
+	* src/tds/unittests/convert.c:
+	- declare tds_g_append_mode and STD_DATETIME_FMT in tds.h
+
 Tue Dec 09 10:38:07 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/hmac_md5.h include/tds.h include/tdsconvert.h:
 	* src/tds/tds_checks.h:
@@ -1011,4 +1017,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2671 2008-12-09 09:39:13 freddy77 Exp $
+$Id: ChangeLog,v 1.2672 2008-12-10 14:56:26 freddy77 Exp $

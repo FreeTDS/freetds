@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.300 2008-12-09 09:39:14 freddy77 Exp $ */
+/* $Id: tds.h,v 1.301 2008-12-10 14:56:26 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1392,6 +1392,7 @@ void tds_fix_connection(TDSCONNECTION * connection);
 void tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
 void tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(const char *interfloc);
+extern const char STD_DATETIME_FMT[];
 
 TDSLOCALE *tds_get_locale(void);
 int tds_alloc_row(TDSRESULTINFO * res_info);
@@ -1556,6 +1557,7 @@ void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...
 #endif
 ;
 extern int tds_debug_flags;
+extern int tds_g_append_mode;
 
 /* net.c */
 int tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);
