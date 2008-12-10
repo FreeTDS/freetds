@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-08-15 08:13:09 $</date>
-		<releaseinfo>$Revision: 1.117 $</releaseinfo>
+		<date>$Date: 2008-12-10 23:12:19 $</date>
+		<releaseinfo>$Revision: 1.118 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -56,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.117 $</>
-<member>$Date: 2008-08-15 08:13:09 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.117 2008-08-15 08:13:09 freddy77 Exp $.</>
+<member>$Revision: 1.118 $</>
+<member>$Date: 2008-12-10 23:12:19 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.118 2008-12-10 23:12:19 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -568,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-08-15 08:13:09 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-12-10 23:12:19 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1732,8 +1732,73 @@ The <option>-g</> is important to keep the symbol tables for debugging purposes.
 		<sect2 id="with.unixODBC"><title>With unixODBC</title>
 		
 			<para>
-Try <command>isql -v <replaceable>dsn</> <replaceable>username</> <replaceable>password</></command>, and have  a look at the log.  See if the right address and TDS version are being used.  Adjust to taste.  
+Try <command>isql -v <replaceable>dsn</> <replaceable>username</> <replaceable>password</></command>, and have a look at the log.  See if the right address and TDS version are being used.  Adjust to taste.  
 			</para>
+		<sect3 id="with.unixODBC.osql"><title>Use <command>osql</></title>
+
+			<para>
+The <command>osql</> utility is a Bourne shell script that checks your ODBC configuration.  If it approves, it invokes the unixODBC isql utility.  Cf. <command>man osql</> for details on its use.  
+
+<example id="e.g.odbcdiagnose.osql">
+	<title>Use <command>osql</> to test the ODBC setup.</title>
+<screen>
+<prompt>$ </prompt><userinput>make odbctest.o</userinput>
+
+<prompt>$ </prompt><userinput>osql -S $S -U$U -P$P</userinput>
+looking for odbc.ini and odbcinst.ini in /usr/local/etc
+        reading "/usr/home/mr_ed/.odbc.ini"
+[machine] found in "/usr/home/mr_ed/.odbc.ini"
+found this section:
+        [machine]
+        Database = testdb
+        Servername = machine
+        Trace           = Yes
+        TraceFile       = /tmp/unixodbc.trace
+
+looking for driver for DSN [machine]
+no driver mentioned for [machine] in .odbc.ini
+looking for driver for DSN [default]
+driver "FreeTDS" found for [default] in .odbc.ini
+found driver named "FreeTDS"
+FreeTDS is not a readable file
+looking for entry named [FreeTDS] in /usr/local/etc/odbcinst.ini
+driver "/usr/local/lib/libtdsodbc.so" found for [FreeTDS] in odbcinst.ini
+/usr/local/lib/libtdsodbc.so is a readable file
+Using ODBC-Combined strategy
+FreeTDS servername is "machine" (from /usr/home/mr_ed/.odbc.ini)
+looking for [machine] in /usr/home/mr_ed/.freetds.conf
+"/usr/home/mr_ed/.freetds.conf" is a readable file
+found this section:
+        [machine]
+                host = machine.example.com
+                port = 2500
+                tds version = 8.0
+
+machine.example.com has address 10.82.32.177
+
+                           DSN: machine
+                        Driver: /usr/local/lib/libtdsodbc.so
+             Server's hostname: machine.example.com
+                       Address: 10.82.32.177
+
+Attempting connection as mr_ed ...
++ exec isql machine mr_ed hayseed -v
++---------------------------------------+
+| Connected!                            |
+|                                       |
+| sql-statement                         |
+| help [tablename]                      |
+| quit                                  |
+|                                       |
++---------------------------------------+
+SQL>
+</screen>
+</example>
+			
+			</para>
+
+		</sect3>
+		
 		</sect2>
 		</sect1>
 		

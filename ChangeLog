@@ -1,3 +1,7 @@
+Wed Dec 10 18:07:31 EST 2008	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml
+	- add osql to unixODBC troubleshooting 
+
 Wed Dec 10 15:55:30 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/apps/tsql.c src/ctlib/cs.c:
 	* src/ctlib/unittests/common.c src/dblib/dblib.c src/tds/config.c:
@@ -1017,4 +1021,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2672 2008-12-10 14:56:26 freddy77 Exp $
+$Id: ChangeLog,v 1.2673 2008-12-10 23:12:18 jklowden Exp $
