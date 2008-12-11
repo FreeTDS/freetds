@@ -1,3 +1,8 @@
+Thu Dec 11 13:29:50 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/Makefile.am src/apps/datacopy.c src/apps/freebcp.c:
+	* src/apps/freebcp.h:
+	- avoid some possible buffer overflows
+
 Thu Dec 11 11:11:34 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/cancel.c: add test for thread
 
@@ -1024,4 +1029,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2674 2008-12-11 10:14:19 freddy77 Exp $
+$Id: ChangeLog,v 1.2675 2008-12-11 12:31:31 freddy77 Exp $

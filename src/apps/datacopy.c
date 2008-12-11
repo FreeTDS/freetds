@@ -171,10 +171,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 	int state;
 	int i;
 
-	char arg[FILENAME_MAX + 1];
-
-	char connection[256];
-	char owner[256];
+	char *arg;
 	char *tok;
 
 
@@ -187,7 +184,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 	state = GET_NEXTARG;
 
 	for (i = 1; i < argc; i++) {
-		strcpy(arg, argv[i]);
+		arg = argv[i];
 
 		switch (state) {
 
@@ -220,10 +217,9 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 				break;
 			case 'c':
 				pdata->cflag++;
-				if (strlen(arg) > 2) {
-					strcpy(owner, &arg[2]);
-					pdata->owner = strdup(owner);
-				} else
+				if (strlen(arg) > 2)
+					pdata->owner = strdup(&arg[2]);
+				else
 					state = GET_OWNER;
 				break;
 			case 'd':
@@ -232,9 +228,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			case 'S':
 				pdata->Sflag++;
 				if (strlen(arg) > 2) {
-					strcpy(connection, &arg[2]);
-
-					tok = strtok(connection, "/");
+					tok = strtok(arg + 2, "/");
 					if (!tok)
 						return FALSE;
 					pdata->sserver = strdup(tok);
@@ -265,9 +259,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			case 'D':
 				pdata->Dflag++;
 				if (strlen(arg) > 2) {
-					strcpy(connection, &arg[2]);
-
-					tok = strtok(connection, "/");
+					tok = strtok(arg + 2, "/");
 					if (!tok)
 						return FALSE;
 					pdata->dserver = strdup(tok);
@@ -316,14 +308,11 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 				fprintf(stderr, "If -c is specified an owner for the table must be provided.\n");
 				return FALSE;
 			}
-			strcpy(owner, arg);
-			pdata->owner = strdup(owner);
+			pdata->owner = strdup(arg);
 			state = GET_NEXTARG;
 			break;
 		case GET_SOURCE:
-			strcpy(connection, arg);
-
-			tok = strtok(connection, "/");
+			tok = strtok(arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->sserver = strdup(tok);
@@ -352,9 +341,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			break;
 
 		case GET_DEST:
-			strcpy(connection, arg);
-
-			tok = strtok(connection, "/");
+			tok = strtok(arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->dserver = strdup(tok);

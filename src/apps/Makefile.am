@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.27 2008-01-25 17:35:52 freddy77 Exp $
+# $Id: Makefile.am,v 1.28 2008-12-11 12:31:31 freddy77 Exp $
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
@@ -16,7 +16,7 @@ endif
 
 dist_bin_SCRIPTS = osql
 
-freebcp_LDADD	= ../dblib/libsybdb.la $(NETWORK_LIBS)
+freebcp_LDADD	= ../dblib/libsybdb.la ../replacements/libreplacements.la $(NETWORK_LIBS)
 freebcp_SOURCES = freebcp.c freebcp.h
 
 tsql_LDADD	= ../tds/libtds.la \

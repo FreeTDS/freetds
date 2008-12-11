@@ -41,11 +41,12 @@
 #endif
 
 #include "tds.h"
+#include "replacements.h"
 #include <sybfront.h>
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.49 2008-05-28 20:08:48 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.50 2008-12-11 12:31:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -170,7 +171,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	}
 
 	/* argument 2 - the direction */
-	strcpy(pdata->dbdirection, argv[2]);
+	tds_strlcpy(pdata->dbdirection, argv[2], sizeof(pdata->dbdirection));
 
 	if (strcmp(pdata->dbdirection, "in") == 0) {
 		pdata->direction = DB_IN;
@@ -184,7 +185,8 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	}
 
 	/* argument 3 - the datafile name */
-	strcpy(pdata->hostfilename, argv[3]);
+	free(pdata->hostfilename);
+	pdata->hostfilename = strdup(argv[3]);
 
 	/* 
 	 * Get the rest of the arguments 
@@ -203,7 +205,8 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			break;
 		case 'f':
 			pdata->fflag++;
-			strcpy(pdata->formatfile, optarg);
+			free(pdata->formatfile);
+			pdata->formatfile = strdup(optarg);
 			break;
 		case 'e':
 			pdata->eflag++;
@@ -262,7 +265,8 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			break;
 		case 'I':
 			pdata->Iflag++;
-			strcpy(pdata->interfacesfile, optarg);
+			free(pdata->interfacesfile);
+			pdata->interfacesfile = strdup(optarg);
 			break;
 		case 'S':
 			pdata->Sflag++;
