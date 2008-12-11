@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.333 2008-12-10 14:56:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.334 2008-12-11 12:37:57 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -208,7 +208,7 @@ typedef struct dblib_context
 DBLIBCONTEXT;
 
 static DBLIBCONTEXT g_dblib_ctx;
-static TDS_MUTEX_DECLARE(dblib_mutex);
+static TDS_MUTEX_DEFINE(dblib_mutex);
 
 static int g_dblib_version =
 #ifdef TDS42

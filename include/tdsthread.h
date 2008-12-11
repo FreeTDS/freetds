@@ -21,13 +21,14 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.3 2005-07-06 12:35:37 freddy77 Exp $ */
+/* $Id: tdsthread.h,v 1.4 2008-12-11 12:37:57 freddy77 Exp $ */
 
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
 
 #include <pthread.h>
 
-#define TDS_MUTEX_DECLARE(name) pthread_mutex_t name = PTHREAD_MUTEX_INITIALIZER
+#define TDS_MUTEX_DECLARE(name) pthread_mutex_t name
+#define TDS_MUTEX_DEFINE(name) pthread_mutex_t name = PTHREAD_MUTEX_INITIALIZER
 #define TDS_MUTEX_LOCK(a) pthread_mutex_lock(a)
 #define TDS_MUTEX_UNLOCK(a) pthread_mutex_unlock(a)
 #define TDS_MUTEX_T pthread_mutex_t
@@ -42,6 +43,7 @@
 #else
 
 #define TDS_MUTEX_DECLARE(name) int name
+#define TDS_MUTEX_DEFINE(name) int name
 #define TDS_MUTEX_LOCK(a)
 #define TDS_MUTEX_UNLOCK(a)
 #define TDS_MUTEX_T int

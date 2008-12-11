@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.7 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.8 2008-12-11 12:37:57 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
@@ -74,7 +74,7 @@ int tds_g_append_mode = 0;
 static char *g_dump_filename = NULL;
 static int write_dump = 0;	/* is TDS stream debug log turned on? */
 static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
-static TDS_MUTEX_DECLARE(g_dump_mutex);
+static TDS_MUTEX_DEFINE(g_dump_mutex);
 
 static FILE* tdsdump_append(void);
 
