@@ -10,7 +10,9 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#ifdef HAVE_ALARM
+#if defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM
+
+#include <pthread.h>
 
 static char sqlstate[SQL_SQLSTATE_SIZE + 1];
 
@@ -53,27 +55,76 @@ sigalrm_handler(int s)
 	signal(SIGALRM, exit_forced);
 }
 
+volatile int exit_thread;
+
+static void *
+wait_thread_proc(void * arg)
+{
+	int n;
+
+	sleep(4);
+
+	printf(">>>> SQLCancel() ...\n");
+	CHKCancel("S");
+	printf(">>>> ... SQLCancel done\n");
+	
+	for (n = 0; n < 4; ++n) {
+		sleep(1);
+		if (exit_thread)
+			return NULL;
+	}
+
+	exit_forced(0);
+	return NULL;
+}
+
+static void
+Test(int use_threads)
+{
+	pthread_t wait_thread;
+
+	printf("testing with %s\n", use_threads ? "threads" : "signals");
+	printf(">> Wait 5 minutes...\n");
+	if (!use_threads) {
+		alarm(4);
+		signal(SIGALRM, sigalrm_handler);
+	} else {
+		int err;
+
+		exit_thread = 0;
+		err = pthread_create(&wait_thread, NULL, wait_thread_proc, NULL);
+		if (err != 0) {
+			perror("pthread_create");
+			exit(1);
+		}
+	}
+	CHKExecDirect((SQLCHAR *) "WAITFOR DELAY '000:05:00'", SQL_NTS, "E");
+	exit_thread = 1;
+	if (!use_threads) {
+		alarm(0);
+	} else {
+		pthread_join(wait_thread, NULL);
+	}
+	getErrorInfo(SQL_HANDLE_STMT, Statement);
+	if (strcmp(sqlstate, "HY008") != 0) {
+		fprintf(stderr, "Unexpected sql state returned\n");
+		Disconnect();
+		exit(1);
+	}
+
+	ResetStatement();
+
+	Command("SELECT name FROM sysobjects WHERE 0=1");
+}
+
 int
 main(int argc, char **argv)
 {
 	use_odbc_version3 = 1;
 	Connect();
 
-	printf(">> Wait 5 minutes...\n");
-	alarm(4);
-	signal(SIGALRM, sigalrm_handler);
-	CHKExecDirect((SQLCHAR *) "WAITFOR DELAY '000:05:00'", SQL_NTS, "E");
-	alarm(0);
-	getErrorInfo(SQL_HANDLE_STMT, Statement);
-	if (strcmp(sqlstate, "HY008") != 0) {
-		fprintf(stderr, "Unexpected sql state returned\n");
-		Disconnect();
-		return 1;
-	}
-
-	ResetStatement();
-
-	Command("SELECT name FROM sysobjects WHERE 0=1");
+	Test(0);
+	Test(1);
 
 	Disconnect();
 	return 0;
