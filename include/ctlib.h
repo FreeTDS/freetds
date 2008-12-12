@@ -36,7 +36,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.25 2007-06-25 09:48:20 freddy77 Exp $";
+static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.26 2008-12-12 13:56:11 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -238,18 +238,11 @@ struct _cs_command_list
 	struct _cs_command *cmd;
 	struct _cs_command_list *next;
 };
- 
+
 struct _cs_blkdesc
 {
 	CS_CONNECTION *con;
-	CS_CHAR *tablename;
-	CS_CHAR *insert_stmt;
-	CS_INT direction;
-	CS_INT identity_insert_on;
-	CS_INT bind_count;
-	CS_INT xfer_init;
-	CS_INT var_cols;
-	TDSRESULTINFO *bindinfo;
+	TDSBCPINFO bcpinfo;
 };
 
 

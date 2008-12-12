@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.67 2008-11-12 00:47:35 jklowden Exp $
+# $Id: Makefile.am,v 1.68 2008-12-12 13:56:11 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
@@ -9,7 +9,7 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	locale.c challenge.c threadsafe.c vstrbuild.c md4.c md5.c \
 	des.c tdsstring.c getmac.c data.c net.c \
 	tds_checks.c tds_checks.h enum_cap.h log.c \
-	gssapi.c hmac_md5.c
+	gssapi.c hmac_md5.c bulk.c
 libtds_la_LDFLAGS=
 libtds_la_LIBADD=
 

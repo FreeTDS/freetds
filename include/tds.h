@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.301 2008-12-10 14:56:26 freddy77 Exp $ */
+/* $Id: tds.h,v 1.302 2008-12-12 13:56:11 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -292,6 +292,7 @@ typedef enum {	TDSEICONVIU    = 2400,
 		TDSEWRIT = 20006, 
 		TDSESOCK = 20008, 
 		TDSECONN = 20009, 
+		TDSEMEM  = 20010,
 		TDSEPWD  = 20014, 
 		TDSESEOF = 20017, 
 		TDSERPND = 20019, 
@@ -305,6 +306,7 @@ typedef enum {	TDSEICONVIU    = 2400,
 		TDSENEG  = 20210, 
 		TDSEUMSG = 20212, 
 		TDSECAPTYP  = 20213, 
+		TDSEBPROBADTYP = 20250,
 		TDSECLOSEIN = 20292 
 } TDSERRNO;
 
@@ -1584,6 +1586,23 @@ void tds_getmac(int s, unsigned char mac[6]);
 
 TDSAUTHENTICATION * tds_ntlm_get_auth(TDSSOCKET * tds);
 TDSAUTHENTICATION * tds_gss_get_auth(TDSSOCKET * tds);
+
+/* bulk.c */
+typedef struct tds_bcpinfo
+{
+	const char *hint;
+	void *parent;
+	TDS_CHAR *tablename;
+	TDS_CHAR *insert_stmt;
+	TDS_INT direction;
+	TDS_INT identity_insert_on;
+	TDS_INT xfer_init;
+	TDS_INT var_cols;
+	TDS_INT bind_count;
+	TDSRESULTINFO *bindinfo;
+} TDSBCPINFO;
+
+int tds_bcp_start_insert_stmt(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
 #define IS_TDS46(x) (x->major_version==4 && x->minor_version==6)

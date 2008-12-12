@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.44 2008-11-12 00:47:25 jklowden Exp $ */
+/* $Id: dblib.h,v 1.45 2008-12-12 13:56:11 freddy77 Exp $ */
 
 typedef enum tag_DB_RESULT_STATE {
 	  _DB_RES_INIT
@@ -86,19 +86,6 @@ typedef struct
 	TDS_INT batch;
 } BCP_HOSTFILEINFO;
 
-typedef struct
-{
-	const char *hint;
-	TDS_CHAR *tablename;
-	TDS_CHAR *insert_stmt;
-	TDS_INT direction;
-	TDS_INT queryout;
-	TDS_INT identity_insert_on;
-	TDS_INT xfer_init;
-	TDS_INT var_cols;
-	TDS_INT bind_count;
-	TDSRESULTINFO *bindinfo;
-} DB_BCPINFO;
 /* linked list of rpc parameters */
 
 typedef struct _DBREMOTE_PROC_PARAM
@@ -160,7 +147,7 @@ struct tds_dblib_dbprocess
 	DBOPTION *dbopts;
 	DBSTRING *dboptcmd;
 	BCP_HOSTFILEINFO *hostfileinfo;
-	DB_BCPINFO *bcpinfo;
+	TDSBCPINFO *bcpinfo;
 	DBREMOTE_PROC *rpc;
 	DBUSMALLINT envchange_rcv;
 	char dbcurdb[DBMAXNAME + 1];
