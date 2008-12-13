@@ -1,3 +1,9 @@
+Fri Dec 12 20:40:56 EST 2008	JK Lowden <jklowden@freetds.org>
+	* include/tds.h src/apps/tsql.c src/tds/log.c src/tds/net.c
+	- add -L to tsql to list servers using MC-SQLR CLNT_UCAST_EX. 
+	- This message type can be used to discover the default 
+	- port for Microsoft servers beginning with SQL Server 2000. 
+
 Fri Dec 12 14:53:03 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/ctlib.h include/dblib.h include/tds.h src/ctlib/blk.c:
 	* src/dblib/bcp.c src/tds/Makefile.am src/tds/bulk.c(added):
@@ -1038,4 +1044,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2677 2008-12-12 13:56:11 freddy77 Exp $
+$Id: ChangeLog,v 1.2678 2008-12-13 01:48:35 jklowden Exp $

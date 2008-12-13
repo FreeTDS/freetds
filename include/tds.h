@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.302 2008-12-12 13:56:11 freddy77 Exp $ */
+/* $Id: tds.h,v 1.303 2008-12-13 01:48:35 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1065,13 +1065,14 @@ typedef enum _TDS_STATE
 	TDS_DEAD	/**< no connection */
 } TDS_STATE;
 
-#define TDS_DBG_FUNC    __FILE__, ((__LINE__ << 4) | 7)
-#define TDS_DBG_INFO2   __FILE__, ((__LINE__ << 4) | 6)
-#define TDS_DBG_INFO1   __FILE__, ((__LINE__ << 4) | 5)
-#define TDS_DBG_NETWORK __FILE__, ((__LINE__ << 4) | 4)
-#define TDS_DBG_WARN    __FILE__, ((__LINE__ << 4) | 3)
-#define TDS_DBG_ERROR   __FILE__, ((__LINE__ << 4) | 2)
-#define TDS_DBG_SEVERE  __FILE__, ((__LINE__ << 4) | 1)
+#define TDS_DBG_LOGIN   __FILE__, ((__LINE__ << 4) | 11)
+#define TDS_DBG_FUNC    __FILE__, ((__LINE__ << 4) |  7)
+#define TDS_DBG_INFO2   __FILE__, ((__LINE__ << 4) |  6)
+#define TDS_DBG_INFO1   __FILE__, ((__LINE__ << 4) |  5)
+#define TDS_DBG_NETWORK __FILE__, ((__LINE__ << 4) |  4)
+#define TDS_DBG_WARN    __FILE__, ((__LINE__ << 4) |  3)
+#define TDS_DBG_ERROR   __FILE__, ((__LINE__ << 4) |  2)
+#define TDS_DBG_SEVERE  __FILE__, ((__LINE__ << 4) |  1)
 
 #define TDS_DBGFLAG_FUNC    0x80
 #define TDS_DBGFLAG_INFO2   0x40
@@ -1080,12 +1081,14 @@ typedef enum _TDS_STATE
 #define TDS_DBGFLAG_WARN    0x08
 #define TDS_DBGFLAG_ERROR   0x04
 #define TDS_DBGFLAG_SEVERE  0x02
-#define TDS_DBGFLAG_ALLLVL  0xfff
+#define TDS_DBGFLAG_ALL     0xfff
+#define TDS_DBGFLAG_LOGIN   0x0800
 #define TDS_DBGFLAG_PID     0x1000
 #define TDS_DBGFLAG_TIME    0x2000
 #define TDS_DBGFLAG_SOURCE  0x4000
 #define TDS_DBGFLAG_THREAD  0x8000
 
+#if 0
 /**
  * An attempt at better logging.
  * Using these bitmapped values, various logging features can be turned on and off.
@@ -1106,6 +1109,7 @@ enum TDS_DBG_LOG_STATE
 	, TDS_DBG_CONFIG = (1 << 7)	/**< replaces TDSDUMPCONFIG */
 	, TDS_DBG_DEFAULT = 0xFE	/**< all above except login packets */
 };
+#endif
 
 typedef struct tds_result_info TDSCOMPUTEINFO;
 
@@ -1566,6 +1570,7 @@ int tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int
 int tds_close_socket(TDSSOCKET * tds);
 int tds_read_packet(TDSSOCKET * tds);
 int tds_write_packet(TDSSOCKET * tds, unsigned char final);
+int tds7_get_instance_ports(FILE *output, const char *ip_addr);
 int tds7_get_instance_port(const char *ip_addr, const char *instance);
 int tds_ssl_init(TDSSOCKET *tds);
 void tds_ssl_deinit(TDSSOCKET *tds);

@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.122 2008-12-10 14:56:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.123 2008-12-13 01:48:35 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -96,11 +96,13 @@ enum
 	OPT_NOFOOTER = 0x04,
 	OPT_NOHEADER = 0x08,
 	OPT_QUIET =    0x10,
-	OPT_VERBOSE =  0x20
+	OPT_VERBOSE =  0x20,
+	OPT_INSTANCES= 0x40
 };
 
 static int istty = 0;
 static int global_opt_flags = 0;
+
 #define QUIET (global_opt_flags & OPT_QUIET)
 #define VERBOSE (global_opt_flags & OPT_VERBOSE)
 
@@ -194,6 +196,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 	}
 
 	while ((rc = tds_process_tokens(tds, &resulttype, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+		const int stop_mask = TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE;
 		if (opt_flags & OPT_TIMER) {
 			gettimeofday(&start, NULL);
 			print_rows = 0;
@@ -211,7 +214,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 		case TDS_COMPUTE_RESULT:
 		case TDS_ROW_RESULT:
 			rows = 0;
-			while ((rc = tds_process_tokens(tds, &resulttype, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
+			while ((rc = tds_process_tokens(tds, &resulttype, NULL, stop_mask)) == TDS_SUCCEED) {
 				if (resulttype != TDS_ROW_RESULT && resulttype != TDS_COMPUTE_RESULT)
 					break;
 
@@ -339,7 +342,7 @@ get_opt_flags(char *s, int *opt_flags)
 	*opt_flags = 0;
 	reset_getopt();
 	opterr = 0;		/* suppress error messages */
-	while ((opt = getopt(argc, argv, "fhqtv")) != -1) {
+	while ((opt = getopt(argc, argv, "fhLqtv")) != -1) {
 		switch (opt) {
 		case 'f':
 			*opt_flags |= OPT_NOFOOTER;
@@ -394,7 +397,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 #endif
 
 
-	while ((opt = getopt(argc, argv, "H:S:I:P:U:p:Co:t:r:D:v")) != -1) {
+	while ((opt = getopt(argc, argv, "H:S:I:P:U:p:Co:t:r:D:Lv")) != -1) {
 		switch (opt) {
 		case 't':
 			opt_col_term = strdup(optarg);
@@ -430,6 +433,9 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'p':
 			port = atoi(optarg);
+			break;
+		case 'L':
+			global_opt_flags |= OPT_INSTANCES;
 			break;
 		case 'v':
 			global_opt_flags |= OPT_VERBOSE;
@@ -476,6 +482,21 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	} else {
 		charset = "ISO-8859-1";
 		if (!QUIET) printf("using default charset \"%s\"\n", charset);
+	}
+	
+	if ((global_opt_flags & OPT_INSTANCES) && hostname) {
+		static const char suffix[] = ".instances";
+		char *filename = getenv("TDSDUMP");
+		if (filename) {
+			if ((filename = malloc(1+sizeof(suffix) + strlen(filename))) == NULL) 
+				exit(1);
+			strcpy(filename, getenv("TDSDUMP"));
+			strcat(filename, suffix);
+			tdsdump_open(filename);
+			free(filename);
+		}
+		tds7_get_instance_ports(stderr, hostname); /* must be dotted-decimal ip address */
+		tdsdump_close();
 	}
 
 	/* validate parameters */

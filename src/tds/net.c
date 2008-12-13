@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.78 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.79 2008-12-13 01:48:35 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -798,6 +798,170 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	return sent <= 0 ? TDS_FAIL : TDS_SUCCEED;
+}
+
+/**
+ * Get port of all instances
+ * @return default port number or 0 if error
+ * @remark experimental, cf. MS-SQLR.pdf.
+ */
+int
+tds7_get_instance_ports(FILE *output, const char *ip_addr)
+{
+	int num_try;
+	struct sockaddr_in sin;
+	ioctl_nonblocking_t ioctl_nonblocking;
+#if USE_POLL
+	struct pollfd fd;
+#else
+	struct timeval selecttimeout;
+	fd_set fds;
+#endif
+	int retval;
+	TDS_SYS_SOCKET s;
+	char msg[16*1024];
+	size_t msg_len = 0;
+	int port = 0;
+
+	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_ports(%s)\n", ip_addr);
+
+	sin.sin_addr.s_addr = inet_addr(ip_addr);
+	if (sin.sin_addr.s_addr == INADDR_NONE) {
+		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", ip_addr);
+		return 0;
+	}
+
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(1434);
+
+	/* create an UDP socket */
+	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_DGRAM, 0))) {
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
+		return 0;
+	}
+
+#if !USE_POLL
+#if !defined(WIN32) && defined(FD_SETSIZE)
+	if (s >= FD_SETSIZE) {
+		sock_errno = EINVAL;
+		return 0;
+	}
+#endif
+#endif
+
+	/*
+	 * on cluster environment is possible that reply packet came from
+	 * different IP so do not filter by ip with connect
+	 */
+
+	ioctl_nonblocking = 1;
+	if (IOCTLSOCKET(s, FIONBIO, &ioctl_nonblocking) < 0) {
+		CLOSESOCKET(s);
+		return 0;
+	}
+
+	/* 
+	 * Request the instance's port from the server.  
+	 * There is no easy way to detect if port is closed so we always try to
+	 * get a reply from server 16 times. 
+	 */
+	for (num_try = 0; num_try < 16 && msg_len == 0; ++num_try) {
+		/* send the request */
+		msg[0] = 3;
+		sendto(s, msg, 1, 0, (struct sockaddr *) &sin, sizeof(sin));
+
+#if USE_POLL
+		fd.fd = s;
+		fd.events = POLLIN;
+		fd.revents = 0;
+
+		retval = poll(&fd, 1, 1000);
+#else
+		FD_ZERO(&fds);
+		FD_SET(s, &fds);
+		selecttimeout.tv_sec = 1;
+		selecttimeout.tv_usec = 0;
+		
+		retval = select(s + 1, &fds, NULL, NULL, &selecttimeout);
+#endif
+		
+		/* on interrupt ignore */
+		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
+			continue;
+		
+		if (retval == 0) { /* timed out */
+#if 1
+			tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port: timed out on try %d of 16\n", num_try);
+			continue;
+#else
+			int rc;
+			tdsdump_log(TDS_DBG_INFO1, "timed out\n");
+
+			switch(rc = tdserror(NULL, NULL, TDSETIME, 0)) {
+			case TDS_INT_CONTINUE:
+				continue;	/* try again */
+
+			default:
+				tdsdump_log(TDS_DBG_ERROR, "error: client error handler returned %d\n", rc);
+			case TDS_INT_CANCEL: 
+				CLOSESOCKET(s);
+				return 0;
+			}
+#endif
+		}
+		if (retval < 0)
+			break;
+
+		/* got data, read and parse */
+		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 3 && msg[0] == 5) {
+			char *name, sep[2] = ";";
+
+			/* assure null terminated */
+			msg[msg_len] = 0;
+			tdsdump_dump_buf(TDS_DBG_INFO1, "instance info", msg, msg_len);
+			
+			if (0) {	/* To debug, print the whole string. */
+				char *p;
+
+				for (*sep = '\n', p=msg+3; p < msg + msg_len; p++) {
+					if( *p == ';' )
+						*p = *sep;
+				}
+				fprintf(output, msg + 3);
+			}
+
+			/*
+			 * Parse and print message.
+			 */
+			name = strtok(msg+3, sep);
+			while (name && output) {
+				int i;
+				static const char *names[] = { "ServerName", "InstanceName", "IsClustered", "Version", 
+							       "tcp", "np", "via" };
+				
+				for (i=0; name && i < TDS_VECTOR_SIZE(names); i++) {
+					const char *value = strtok(NULL, sep);
+					
+					if (strcmp(name, names[i]) != 0)
+						fprintf(output, "error: expecting '%s', found '%s'\n", names[i], name);
+					if (value) 
+						fprintf(output, "%15s %s\n", name, value);
+					else 
+						break;
+
+					name = strtok(NULL, sep);
+					
+					if (name && strcmp(name, names[0]) == 0)
+						break;
+				}
+				if (name) 
+					fprintf(output, "\n");
+			}
+		}
+	}
+	CLOSESOCKET(s);
+	tdsdump_log(TDS_DBG_ERROR, "default instance port is %d\n", port);
+	return port;
 }
 
 /**

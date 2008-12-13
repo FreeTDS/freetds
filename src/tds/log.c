@@ -66,10 +66,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.8 2008-12-11 12:37:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.9 2008-12-13 01:48:35 jklowden Exp $");
 
 /* for now all messages go to the log */
-int tds_debug_flags = TDS_DBGFLAG_ALLLVL | TDS_DBGFLAG_SOURCE;
+int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
 int tds_g_append_mode = 0;
 static char *g_dump_filename = NULL;
 static int write_dump = 0;	/* is TDS stream debug log turned on? */
