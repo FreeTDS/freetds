@@ -38,11 +38,10 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.46 2008-12-15 13:21:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.47 2008-12-15 15:52:10 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
-static CS_RETCODE _rowxfer_in_init(CS_BLKDESC * blkdesc);
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 
@@ -219,49 +218,35 @@ CS_RETCODE
 blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 {
 	TDSSOCKET *tds;
+	int rows_copied;
 
 	tdsdump_log(TDS_DBG_FUNC, "blk_done()\n");
 	tds = blkdesc->con->tds_socket;
 
 	switch (type) {
 	case CS_BLK_BATCH:
-
-		tds_flush_packet(tds);
-		/* TODO correct ?? */
-		tds_set_state(tds, TDS_PENDING);
-		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+		if (tds_bcp_done(tds, &rows_copied) != TDS_SUCCEED) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
 		if (outrow) 
-			*outrow = tds->rows_affected;
+			*outrow = rows_copied;
 		
-		tds_submit_query(tds, blkdesc->bcpinfo.insert_stmt);
-		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+		if (tds_bcp_start(tds, &blkdesc->bcpinfo) != TDS_SUCCEED) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
-
-		tds->out_flag = TDS_BULK;
-
-		if (IS_TDS7_PLUS(tds))
-			tds_bcp_send_colmetadata(tds, &blkdesc->bcpinfo);
-
 		break;
 		
 	case CS_BLK_ALL:
-
-		tds_flush_packet(tds);
-		/* TODO correct ?? */
-		tds_set_state(tds, TDS_PENDING);
-		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+		if (tds_bcp_done(tds, &rows_copied) != TDS_SUCCEED) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		
 		if (outrow) 
-			*outrow = tds->rows_affected;
+			*outrow = rows_copied;
 		
 		/* free allocated storage in blkdesc & initialise flags, etc. */
 	
@@ -697,15 +682,10 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 		 * retrieve details of the database table columns
 		 */
 
-		if (_rowxfer_in_init(blkdesc) == CS_FAIL)
-			return (CS_FAIL);
-
-
-		/* set packet type to send bulk data */
-		tds->out_flag = TDS_BULK;
-
-		if (IS_TDS7_PLUS(tds))
-			tds_bcp_send_colmetadata(tds, &blkdesc->bcpinfo);
+		if (tds_bcp_start_copy_in(tds, &blkdesc->bcpinfo) == TDS_FAIL) {
+			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
+			return CS_FAIL;
+		}
 
 		blkdesc->bcpinfo.xfer_init = 1;
 	} 
@@ -715,100 +695,6 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 
 		if (tds_bcp_send_record(tds, &blkdesc->bcpinfo, _blk_get_col_data, _blk_null_error, each_row) == TDS_SUCCEED) {
 	
-		}
-	}
-
-	return CS_SUCCEED;
-}
-
-static CS_RETCODE
-_rowxfer_in_init(CS_BLKDESC * blkdesc)
-{
-
-	TDSSOCKET *tds = blkdesc->con->tds_socket;
-	TDSCOLUMN *bcpcol;
-
-	int i;
-
-	int fixed_col_len_tot     = 0;
-	int variable_col_len_tot  = 0;
-	int column_bcp_data_size  = 0;
-	int bcp_record_size       = 0;
-	
-	TDSBCPINFO *bcpinfo = &blkdesc->bcpinfo;
-
-	if (tds_bcp_start_insert_stmt(tds, bcpinfo) == TDS_FAIL)
-		return CS_FAIL;
-
-	/*
-	 * In TDS 5 we get the column information as a result set from the "insert bulk" command.
-	 * We're going to ignore it.  
-	 */
-	if (tds_process_simple_query(tds) != TDS_SUCCEED) {
-		_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
-		return CS_FAIL;
-	}
-
-	/* FIXME find a better way, some other thread could change state here */
-	tds_set_state(tds, TDS_QUERYING);
-
-	/* 
-	 * Work out the number of "variable" columns.  These are either nullable or of 
-	 * varying length type e.g. varchar.   
-	 */
-	bcpinfo->var_cols = 0;
-
-	if (IS_TDS50(tds)) {
-		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-	
-			bcpcol = bcpinfo->bindinfo->columns[i];
-
-			/*
-			 * work out storage required for this datatype
-			 * blobs always require 16, numerics vary, the
-			 * rest can be taken from the server
-			 */
-
-			if (is_blob_type(bcpcol->on_server.column_type))
-				column_bcp_data_size  = 16;
-			else if (is_numeric_type(bcpcol->on_server.column_type))
-				column_bcp_data_size  = tds_numeric_bytes_per_prec[bcpcol->column_prec];
-			else
-				column_bcp_data_size  = bcpcol->column_size;
-
-			/*
-			 * now add that size into either fixed or variable
-			 * column totals...
-			 */
-
-			if (is_nullable_type(bcpcol->on_server.column_type) || bcpcol->column_nullable) {
-				bcpinfo->var_cols++;
-				variable_col_len_tot += column_bcp_data_size;
-			}
-			else {
-				fixed_col_len_tot += column_bcp_data_size;
-			}
-		}
-
-		/* this formula taken from sybase manual... */
-
-		bcp_record_size =  	4 +
-							fixed_col_len_tot +
-							variable_col_len_tot +
-							( (int)(variable_col_len_tot / 256 ) + 1 ) +
-							(bcpinfo->var_cols + 1) +
-							2;
-
-		tdsdump_log(TDS_DBG_FUNC, "current_record_size = %d\n", bcpinfo->bindinfo->row_size);
-		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
-
-		if (bcp_record_size > bcpinfo->bindinfo->row_size) {
-			bcpinfo->bindinfo->current_row = realloc(bcpinfo->bindinfo->current_row, bcp_record_size);
-			if (bcpinfo->bindinfo->current_row == NULL) {
-				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
-				return CS_FAIL;
-			}
-			bcpinfo->bindinfo->row_size = bcp_record_size;
 		}
 	}
 
