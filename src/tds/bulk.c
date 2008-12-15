@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.2 2008-12-15 12:33:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.3 2008-12-15 13:21:45 freddy77 Exp $");
 
 typedef struct tds_pbcb
 {
@@ -344,7 +344,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 			}
 
 			if ((get_col_data(bcpinfo, bindcol, offset)) != TDS_SUCCEED) {
-				tdsdump_log(TDS_DBG_INFO1, "blk_get_colData (column %d) failed\n", i + 1);
+				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 	 			return TDS_FAIL;
 			}
 			tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
@@ -522,7 +522,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 	assert(bcpinfo);
 	assert(rowbuffer);
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns(%p, %p, %d)\n", bcpinfo, rowbuffer, start);
+	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns(%p, %p, %p, %d, %p, %d)\n", bcpinfo, get_col_data, null_error, offset, rowbuffer, start);
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 
@@ -533,7 +533,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 			tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
 
 			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCEED) {
-				tdsdump_log(TDS_DBG_INFO1, "bcp_get_colData (column %d) failed\n", i + 1);
+				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 		 		return TDS_FAIL;
 			}
 
@@ -694,4 +694,92 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 	*pncols = ncols;
 
 	return ncols == 0? start : row_pos;
+}
+
+/** 
+ * \return TDS_SUCCEED or TDS_FAIL.
+ */
+int
+tds_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
+{
+	const static unsigned char colmetadata_token = 0x81;
+	TDSCOLUMN *bcpcol;
+	int i, num_cols;
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_colmetadata(%p, %p)\n", tds, bcpinfo);
+	assert(tds && bcpinfo);
+
+	/* 
+	 * Deep joy! For TDS 8 we have to send a colmetadata message followed by row data 
+	 */
+	tds_put_byte(tds, colmetadata_token);	/* 0x81 */
+
+	num_cols = 0;
+	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
+		bcpcol = bcpinfo->bindinfo->columns[i];
+		if ((!bcpinfo->identity_insert_on && bcpcol->column_identity) || 
+			bcpcol->column_timestamp) {
+			continue;
+		}
+		num_cols++;
+	}
+
+	tds_put_smallint(tds, num_cols);
+
+	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
+		bcpcol = bcpinfo->bindinfo->columns[i];
+
+		/*
+		 * dont send the (meta)data for timestamp columns, or
+		 * identity columns (unless indentity_insert is enabled
+		 */
+
+		if ((!bcpinfo->identity_insert_on && bcpcol->column_identity) || 
+			bcpcol->column_timestamp) {
+			continue;
+		}
+
+		if (IS_TDS90(tds))
+			tds_put_int(tds, bcpcol->column_usertype);
+		else
+			tds_put_smallint(tds, bcpcol->column_usertype);
+		tds_put_smallint(tds, bcpcol->column_flags);
+		tds_put_byte(tds, bcpcol->on_server.column_type);
+
+		switch (bcpcol->column_varint_size) {
+		case 4:
+			tds_put_int(tds, bcpcol->column_size);
+			break;
+		case 2:
+			tds_put_smallint(tds, bcpcol->column_size);
+			break;
+		case 1:
+			tds_put_byte(tds, bcpcol->column_size);
+			break;
+		case 0:
+			break;
+		default:
+			break;
+		}
+
+		if (is_numeric_type(bcpcol->on_server.column_type)) {
+			tds_put_byte(tds, bcpcol->column_prec);
+			tds_put_byte(tds, bcpcol->column_scale);
+		}
+		if (IS_TDS8_PLUS(tds)
+			&& is_collate_type(bcpcol->on_server.column_type)) {
+			tds_put_n(tds, bcpcol->column_collation, 5);
+		}
+		if (is_blob_type(bcpcol->on_server.column_type)) {
+			/* FIXME strlen return len in bytes not in characters required here */
+			tds_put_smallint(tds, strlen(bcpinfo->tablename));
+			tds_put_string(tds, bcpinfo->tablename, strlen(bcpinfo->tablename));
+		}
+		/* FIXME support multibyte string */
+		tds_put_byte(tds, bcpcol->column_namelen);
+		tds_put_string(tds, bcpcol->column_name, bcpcol->column_namelen);
+
+	}
+
+	return TDS_SUCCEED;
 }

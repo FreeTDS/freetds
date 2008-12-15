@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.175 2008-12-15 12:33:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.176 2008-12-15 13:21:45 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -82,7 +82,6 @@ static void _bcp_free_columns(DBPROCESS * dbproc);
 static void _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
 static int _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
-static RETCODE _bcp_send_colmetadata(DBPROCESS *);
 static RETCODE _bcp_start_copy_in(DBPROCESS *);
 static RETCODE _bcp_start_new_batch(DBPROCESS *);
 
@@ -1631,9 +1630,8 @@ bcp_sendrow(DBPROCESS * dbproc)
 		tds->out_flag = TDS_BULK;
 		tds_set_state(tds, TDS_QUERYING);
 
-		if (IS_TDS7_PLUS(tds)) {
-			_bcp_send_colmetadata(dbproc);
-		}
+		if (IS_TDS7_PLUS(tds))
+			tds_bcp_send_colmetadata(tds, dbproc->bcpinfo);
 
 		dbproc->bcpinfo->xfer_init = 1;
 
@@ -1687,9 +1685,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	tds->out_flag = TDS_BULK;
 	tds_set_state(tds, TDS_QUERYING);
 
-	if (IS_TDS7_PLUS(tds)) {
-		_bcp_send_colmetadata(dbproc);
-	}
+	if (IS_TDS7_PLUS(tds))
+		tds_bcp_send_colmetadata(tds, dbproc->bcpinfo);
 
 	row_of_hostfile = 0;
 	rows_written_so_far = 0;
@@ -2060,105 +2057,9 @@ _bcp_start_new_batch(DBPROCESS * dbproc)
 	tds->out_flag = TDS_BULK;
 	tds_set_state(tds, TDS_QUERYING);
 
-	if (IS_TDS7_PLUS(tds)) {
-		_bcp_send_colmetadata(dbproc);
-	}
+	if (IS_TDS7_PLUS(tds))
+		tds_bcp_send_colmetadata(tds, dbproc->bcpinfo);
 	
-	return SUCCEED;
-}
-
-/** 
- * \ingroup dblib_bcp_internal
- * \brief 
- *
- * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * 
- * \return SUCCEED or FAIL.
- * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
- */
-static RETCODE
-_bcp_send_colmetadata(DBPROCESS * dbproc)
-{
-	const static unsigned char colmetadata_token = 0x81;
-	TDSSOCKET *tds = dbproc->tds_socket;
-	TDSCOLUMN *bcpcol;
-	int i, num_cols;
-
-	tdsdump_log(TDS_DBG_FUNC, "_bcp_send_colmetadata(%p)\n", dbproc);
-	assert(dbproc);
-
-	/* 
-	 * Deep joy! For TDS 8 we have to send a colmetadata message followed by row data 
-	 */
-	tds_put_byte(tds, colmetadata_token);	/* 0x81 */
-
-	num_cols = 0;
-	for (i = 0; i < dbproc->bcpinfo->bindinfo->num_cols; i++) {
-		bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
-		if ((!dbproc->bcpinfo->identity_insert_on && bcpcol->column_identity) ||
-			bcpcol->column_timestamp) {
-			continue;
-		}
-		num_cols++;
-	}
-
-	tds_put_smallint(tds, num_cols);
-
-	for (i = 0; i < dbproc->bcpinfo->bindinfo->num_cols; i++) {
-		bcpcol = dbproc->bcpinfo->bindinfo->columns[i];
-
-	/*
-	 * dont send the (meta)data for timestamp columns, or
-	 * identity columns (unless indentity_insert is enabled
-	 */
-
-        if ((!dbproc->bcpinfo->identity_insert_on && bcpcol->column_identity) ||
-            bcpcol->column_timestamp) {
-            continue;
-        }
-
-		if (IS_TDS90(tds))
-			tds_put_int(tds, bcpcol->column_usertype);
-		else
-			tds_put_smallint(tds, bcpcol->column_usertype);
-		tds_put_smallint(tds, bcpcol->column_flags);
-		tds_put_byte(tds, bcpcol->on_server.column_type);
-
-		switch (bcpcol->column_varint_size) {
-		case 4:
-			tds_put_int(tds, bcpcol->column_size);
-			break;
-		case 2:
-			tds_put_smallint(tds, bcpcol->column_size);
-			break;
-		case 1:
-			tds_put_byte(tds, bcpcol->column_size);
-			break;
-		case 0:
-			break;
-		default:
-			break;
-		}
-
-		if (is_numeric_type(bcpcol->on_server.column_type)) {
-			tds_put_byte(tds, bcpcol->column_prec);
-			tds_put_byte(tds, bcpcol->column_scale);
-		}
-		if (IS_TDS8_PLUS(tds)
-		    && is_collate_type(bcpcol->on_server.column_type)) {
-			tds_put_n(tds, bcpcol->column_collation, 5);
-		}
-		if (is_blob_type(bcpcol->on_server.column_type)) {
-			/* FIXME strlen return len in bytes not in characters required here */
-			tds_put_smallint(tds, strlen(dbproc->bcpinfo->tablename));
-			tds_put_string(tds, dbproc->bcpinfo->tablename, strlen(dbproc->bcpinfo->tablename));
-		}
-		/* FIXME column_namelen contains len in bytes not in characters required here */
-		tds_put_byte(tds, bcpcol->column_namelen);
-		tds_put_string(tds, bcpcol->column_name, bcpcol->column_namelen);
-
-	}
-
 	return SUCCEED;
 }
 

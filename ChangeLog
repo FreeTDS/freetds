@@ -1,3 +1,8 @@
+Mon Dec 15 14:18:38 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/blk.c src/dblib/bcp.c src/tds/bulk.c:
+	- add and reuse tds_bcp_send_colmetadata
+	- fix some tdsdump_log in bulk.c
+
 Mon Dec 15 13:33:10 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/blk.c src/dblib/bcp.c src/tds/bulk.c:
 	- add and reuse tds_bcp_send_record
@@ -1064,4 +1069,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2680 2008-12-15 12:33:57 freddy77 Exp $
+$Id: ChangeLog,v 1.2681 2008-12-15 13:21:45 freddy77 Exp $

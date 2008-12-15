@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.305 2008-12-15 12:33:57 freddy77 Exp $ */
+/* $Id: tds.h,v 1.306 2008-12-15 13:21:45 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1616,6 +1616,8 @@ typedef int  (*tds_bcp_get_col_data) (TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int o
 typedef void (*tds_bcp_null_error)   (TDSBCPINFO *bulk, int index, int offset);
 int tds_bcp_start_insert_stmt(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 int tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset);
+int tds_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
 #define IS_TDS46(x) (x->major_version==4 && x->minor_version==6)

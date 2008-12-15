@@ -38,11 +38,10 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.45 2008-12-15 12:33:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.46 2008-12-15 13:21:45 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
-static CS_RETCODE _blk_send_colmetadata(CS_BLKDESC * blkdesc);
 static CS_RETCODE _rowxfer_in_init(CS_BLKDESC * blkdesc);
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
@@ -246,9 +245,8 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 
 		tds->out_flag = TDS_BULK;
 
-		if (IS_TDS7_PLUS(tds)) {
-			_blk_send_colmetadata(blkdesc);
-		}
+		if (IS_TDS7_PLUS(tds))
+			tds_bcp_send_colmetadata(tds, &blkdesc->bcpinfo);
 
 		break;
 		
@@ -706,9 +704,8 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 		/* set packet type to send bulk data */
 		tds->out_flag = TDS_BULK;
 
-		if (IS_TDS7_PLUS(tds)) {
-			_blk_send_colmetadata(blkdesc);
-		}
+		if (IS_TDS7_PLUS(tds))
+			tds_bcp_send_colmetadata(tds, &blkdesc->bcpinfo);
 
 		blkdesc->bcpinfo.xfer_init = 1;
 	} 
@@ -815,89 +812,6 @@ _rowxfer_in_init(CS_BLKDESC * blkdesc)
 		}
 	}
 
-	return CS_SUCCEED;
-}
-
-static CS_RETCODE
-_blk_send_colmetadata(CS_BLKDESC * blkdesc)
-{
-
-	TDSSOCKET *tds = blkdesc->con->tds_socket;
-	unsigned char colmetadata_token = 0x81;
-	TDSCOLUMN *bcpcol;
-	int i;
-	TDS_SMALLINT num_cols;
-
-	/* 
-	 * Deep joy! For TDS 8 we have to send a colmetadata message followed by row data 
-	 */
-	tds_put_byte(tds, colmetadata_token);	/* 0x81 */
-
-	num_cols = 0;
-	for (i = 0; i < blkdesc->bcpinfo.bindinfo->num_cols; i++) {
-		bcpcol = blkdesc->bcpinfo.bindinfo->columns[i];
-		if ((!blkdesc->bcpinfo.identity_insert_on && bcpcol->column_identity) || 
-			bcpcol->column_timestamp) {
-			continue;
-		}
-		num_cols++;
-	}
-
-	tds_put_smallint(tds, num_cols);
-
-	for (i = 0; i < blkdesc->bcpinfo.bindinfo->num_cols; i++) {
-		bcpcol = blkdesc->bcpinfo.bindinfo->columns[i];
-
-		/*
-		 * dont send the (meta)data for timestamp columns, or
-		 * identity columns (unless indentity_insert is enabled
-		 */
-
-		if ((!blkdesc->bcpinfo.identity_insert_on && bcpcol->column_identity) || 
-			bcpcol->column_timestamp) {
-			continue;
-		}
-
-		if (IS_TDS90(tds))
-			tds_put_int(tds, bcpcol->column_usertype);
-		else
-			tds_put_smallint(tds, bcpcol->column_usertype);
-		tds_put_smallint(tds, bcpcol->column_flags);
-		tds_put_byte(tds, bcpcol->on_server.column_type);
-
-		switch (bcpcol->column_varint_size) {
-		case 4:
-			tds_put_int(tds, bcpcol->column_size);
-			break;
-		case 2:
-			tds_put_smallint(tds, bcpcol->column_size);
-			break;
-		case 1:
-			tds_put_byte(tds, bcpcol->column_size);
-			break;
-		case 0:
-			break;
-		default:
-			break;
-		}
-
-		if (is_numeric_type(bcpcol->on_server.column_type)) {
-			tds_put_byte(tds, bcpcol->column_prec);
-			tds_put_byte(tds, bcpcol->column_scale);
-		}
-		if (IS_TDS8_PLUS(tds)
-			&& is_collate_type(bcpcol->on_server.column_type)) {
-			tds_put_n(tds, bcpcol->column_collation, 5);
-		}
-		if (is_blob_type(bcpcol->on_server.column_type)) {
-			tds_put_smallint(tds, strlen(blkdesc->bcpinfo.tablename));
-			tds_put_string(tds, blkdesc->bcpinfo.tablename, strlen(blkdesc->bcpinfo.tablename));
-		}
-		/* FIXME support multibyte string */
-		tds_put_byte(tds, bcpcol->column_namelen);
-		tds_put_string(tds, bcpcol->column_name, bcpcol->column_namelen);
-
-	}
 	return CS_SUCCEED;
 }
 
