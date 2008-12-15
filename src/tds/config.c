@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.138 2008-12-10 14:56:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.139 2008-12-15 05:31:15 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -109,6 +109,19 @@ static const char location[] = "(from $FREETDS)";
 static const char pid_logpath[] = "c:\\freetds.log.%d";
 static const char interfaces_path[] = "c:\\";
 #endif
+
+int
+tds_default_port(int major, int minor)
+{
+	switch(major) {
+	case 4:
+		if (minor == 6)
+			break;
+	case 5:
+		return 4000;
+	}
+	return 1433;
+}
 
 /**
  * \ingroup libtds
@@ -675,41 +688,43 @@ tds_config_env_tdshost(TDSCONNECTION * connection)
  * Set TDS version from given string
  * @param tdsver tds string version
  * @param connection where to store information
+ * @return as encoded hex value: high nybble major, low nybble minor.  
  */
-void
+unsigned char
 tds_config_verstr(const char *tdsver, TDSCONNECTION * connection)
 {
+	TDSCONNECTION dummy, *c = &dummy;
+	
+	if (connection) 
+		c = connection;
+	
 	if (!strcmp(tdsver, "42") || !strcmp(tdsver, "4.2")) {
-		connection->major_version = 4;
-		connection->minor_version = 2;
-		return;
+		c->major_version = 4;
+		c->minor_version = 2;
 	} else if (!strcmp(tdsver, "46") || !strcmp(tdsver, "4.6")) {
-		connection->major_version = 4;
-		connection->minor_version = 6;
-		return;
+		c->major_version = 4;
+		c->minor_version = 6;
 	} else if (!strcmp(tdsver, "50") || !strcmp(tdsver, "5.0")) {
-		connection->major_version = 5;
-		connection->minor_version = 0;
-		return;
+		c->major_version = 5;
+		c->minor_version = 0;
 	} else if (!strcmp(tdsver, "70") || !strcmp(tdsver, "7.0")) {
-		connection->major_version = 7;
-		connection->minor_version = 0;
-		return;
+		c->major_version = 7;
+		c->minor_version = 0;
 	} else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0")) {
-		connection->major_version = 8;
-		connection->minor_version = 0;
-		return;
+		c->major_version = 8;
+		c->minor_version = 0;
 #ifdef ENABLE_DEVELOPING
 	} else if (!strcmp(tdsver, "90") || !strcmp(tdsver, "9.0")) {
-		connection->major_version = 9;
-		connection->minor_version = 0;
-		return;
+		c->major_version = 9;
+		c->minor_version = 0;
 #endif
 	} else if (!strcmp(tdsver, "0.0")) {
-		connection->major_version = 0;
-		connection->minor_version = 0;
-		return;
-	}
+		c->major_version = 0;
+		c->minor_version = 0;
+	} else 
+		return 0;
+	
+	return (c->major_version << 4) | c->minor_version;
 }
 
 /**
@@ -778,7 +793,7 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 /**
  * Given a portname lookup the port.
  *
- * If we can't determine the port number than function return 0.
+ * If we can't determine the port number then return 0.
  */
 static int
 tds_lookup_port(const char *portname)
@@ -945,7 +960,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir, const char *f
 static void
 tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 {
-	int founded = 0;
+	int found = 0;
 
 	/* read $SYBASE/interfaces */
 
@@ -964,18 +979,18 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 	 */
 	if (interf_file) {
 		tdsdump_log(TDS_DBG_INFO1, "Looking for server in file %s.\n", interf_file);
-		founded = search_interface_file(connection, "", interf_file, server);
+		found = search_interface_file(connection, "", interf_file, server);
 	}
 
 	/*
 	 * if we haven't found the server yet then look for a $HOME/.interfaces file
 	 */
-	if (!founded) {
+	if (!found) {
 		char *path = tds_get_home_file(".interfaces");
 
 		if (path) {
 			tdsdump_log(TDS_DBG_INFO1, "Looking for server in %s.\n", path);
-			founded = search_interface_file(connection, "", path, server);
+			found = search_interface_file(connection, "", path, server);
 			free(path);
 		}
 	}
@@ -983,7 +998,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 	/*
 	 * if we haven't found the server yet then look in $SYBBASE/interfaces file
 	 */
-	if (!founded) {
+	if (!found) {
 		const char *sybase = getenv("SYBASE");
 #ifdef __VMS
 		/* We've got to be in unix syntax for later slash-joined concatenation. */
@@ -995,14 +1010,14 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 			sybase = interfaces_path;
 
 		tdsdump_log(TDS_DBG_INFO1, "Looking for server in %s/interfaces.\n", sybase);
-		founded = search_interface_file(connection, sybase, "interfaces", server);
+		found = search_interface_file(connection, sybase, "interfaces", server);
 	}
 
 	/*
 	 * If we still don't have the server and port then assume the user
 	 * typed an actual server name.
 	 */
-	if (!founded) {
+	if (!found) {
 		char ip_addr[255];
 		int ip_port;
 		const char *env_port;

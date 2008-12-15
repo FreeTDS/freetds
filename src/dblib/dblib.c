@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.334 2008-12-11 12:37:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.335 2008-12-15 05:31:14 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1146,7 +1146,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
-	if (tds_connect(dbproc->tds_socket, connection) == TDS_FAIL) {
+	if (tds_connect_and_login(dbproc->tds_socket, connection) == TDS_FAIL) {
 		tds_free_connection(connection);
 		dbclose(dbproc);
 		return NULL;
@@ -2714,7 +2714,10 @@ dbclrbuf(DBPROCESS * dbproc, DBINT n)
  * 
  * \param srctype type converting from
  * \param desttype type converting to
- * \remarks dbwillconvert() lies sometimes.  Some datatypes \em should be convertible but aren't yet in our implementation.   * \retval TRUE convertible, or should be. Legal unimplemented conversions return \em TRUE.  
+ * \remarks dbwillconvert() lies sometimes.  Some datatypes \em should be convertible but aren't yet in our implementation.  
+ *          Legal unimplemented conversions return \em TRUE.  
+ * \retval TRUE convertible, or should be. For conversions from a fix-length type to a character type (e.g. INT to VARCHAR), the value 
+ *         returned is the number of bytes needed hold the output.  
  * \retval FAIL not convertible.  
  * \sa dbaltbind(), dbbind(), dbconvert(), dbconvert_ps(), \c src/dblib/unittests/convert().c().
  */
@@ -4612,6 +4615,10 @@ dbsqlok(DBPROCESS * dbproc)
 
 				tdsdump_log(TDS_DBG_FUNC, "dbsqlok: returning %s with %s (%#x)\n", 
 						prdbretcode(retcode), prdbresults_state(dbproc->dbresults_state), done_flags);
+						
+				if (retcode == SUCCEED && (done_flags & TDS_DONE_MORE_RESULTS))
+					continue;
+					 
 				return retcode;
 #endif
 			default:

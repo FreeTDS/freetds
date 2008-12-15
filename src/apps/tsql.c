@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.123 2008-12-13 01:48:35 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.124 2008-12-15 05:31:14 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -370,6 +370,19 @@ get_opt_flags(char *s, int *opt_flags)
 	return 1;
 }
 
+int
+get_default_instance_port(const char hostname[])
+{
+	char ip[24] = {'\0'};
+	
+	tds_lookup_host(hostname, ip);
+	
+	if (!*ip) 
+		return 0;
+	
+	return tds7_get_instance_port(ip, "MSSQLSERVER");
+}
+
 static void
 populate_login(TDSLOGIN * login, int argc, char **argv)
 {
@@ -485,17 +498,19 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	}
 	
 	if ((global_opt_flags & OPT_INSTANCES) && hostname) {
-		static const char suffix[] = ".instances";
+		static const char template[] = "%s.instances";
+		char ip[24] = {'\0'};
 		char *filename = getenv("TDSDUMP");
+
 		if (filename) {
-			if ((filename = malloc(1+sizeof(suffix) + strlen(filename))) == NULL) 
+			if ((filename = malloc(sizeof(template) + strlen(filename))) == NULL) 
 				exit(1);
-			strcpy(filename, getenv("TDSDUMP"));
-			strcat(filename, suffix);
+			sprintf(filename, template, getenv("TDSDUMP"));
 			tdsdump_open(filename);
 			free(filename);
 		}
-		tds7_get_instance_ports(stderr, hostname); /* must be dotted-decimal ip address */
+		tds_lookup_host(hostname, ip);
+		tds7_get_instance_ports(stderr, ip);
 		tdsdump_close();
 	}
 
@@ -506,9 +521,25 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		exit(1);
 	}
 	if (hostname && !port) {
-		fprintf(stderr, "Missing argument -p \n");
-		tsql_print_usage(argv[0]);
-		exit(1);
+		/*
+		 * TODO: It would be convenient to have a function that looks up a reasonable port based on:
+		 * 	- TDSPORT environment variable
+		 * 	- config files
+		 * 	- get_default_instance_port
+		 *	- TDS version
+		 *	in that order. 
+		 */
+		if (!QUIET) {
+			printf("Missing argument -p, looking for default instance ... ", port);
+		}
+		if (0 == (port = get_default_instance_port(hostname))) {
+			printf("no reply from server\n");
+			tsql_print_usage(argv[0]);
+			exit(1);
+		} 
+		if (!QUIET)
+			printf("found default instance, port %d\n", port);
+		
 	}
 	if (!username) {
 		fprintf(stderr, "Missing argument -U \n");
@@ -682,8 +713,8 @@ main(int argc, char **argv)
 #if HAVE_FORK
 	if (connection && !QUIET) {
 		/*
-		 * Here we use a pipe so if even main program core the counter stops
-		 * Note that we do not read or write nothing from this pipe
+		 * We use a pipe so that the child is killed even main program aborts. 
+		 * Note that we do not read or write from this pipe. 
 		 */
 		if (pipe(pipes) < 0) {
 			perror("tsql: pipe");
@@ -715,7 +746,7 @@ main(int argc, char **argv)
 		close(pipes[0]);
 	}
 #endif
-	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
+	if (!connection || tds_connect_and_login(tds, connection) != TDS_SUCCEED) {
 		if( VERBOSE ) 
 			print_instance_data(connection);
 		tds_free_socket(tds);
@@ -724,12 +755,12 @@ main(int argc, char **argv)
 		fprintf(stderr, "There was a problem connecting to the server\n");
 		exit(1);
 	}
-	if( VERBOSE ) 
+	if (VERBOSE) 
 		print_instance_data(connection);
 	tds_free_connection(connection);
 	/* give the buffer an initial size */
 	bufsz = 4096;
-	mybuf = (char *) malloc(bufsz);
+	mybuf = malloc(bufsz);
 	mybuf[0] = '\0';
 	buflen = 0;
 

@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.79 2008-12-13 01:48:35 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.80 2008-12-15 05:31:15 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -119,7 +119,8 @@ TDS_RCSID(var, "$Id: net.c,v 1.79 2008-12-13 01:48:35 jklowden Exp $");
 # define TDSSELERR   4
 #endif
 
-static int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
+static int      tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
+static TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);
 
 
 /**
@@ -179,7 +180,17 @@ typedef unsigned int ioctl_nonblocking_t;
 typedef u_long ioctl_nonblocking_t;
 #endif
 
-int
+TDSERRNO
+tds_connect(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout)
+{
+	TDSERRNO erc = tds_open_socket(tds, ip_addr, port, timeout);
+	if (TDSEOK != erc) {
+		tdserror(tds->tds_ctx, tds, erc, tds->oserr);  
+	}
+	return erc;
+}
+
+static TDSERRNO
 tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout)
 {
 	struct sockaddr_in sin;
@@ -190,12 +201,14 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	int tds_error = TDSECONN;
 	char ip[20];
 
+	tds->oserr = 0;
+
 	memset(&sin, 0, sizeof(sin));
 
 	sin.sin_addr.s_addr = inet_addr(ip_addr);
 	if (sin.sin_addr.s_addr == INADDR_NONE) {
 		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", ip_addr);
-		return TDS_FAIL;
+		return TDSESOCK;
 	}
 
 	sin.sin_family = AF_INET;
@@ -206,9 +219,9 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			tds->major_version, tds->minor_version);
 
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
-		tdserror(tds->tds_ctx, tds, TDSESOCK, 0);  
+		tds->oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
-		return TDS_FAIL;
+		return TDSESOCK;
 	}
 
 #ifdef SO_KEEPALIVE
@@ -230,13 +243,13 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
 		char *message;
 
+		tds->oserr = sock_errno;
 		if (asprintf(&message, "tds_open_socket(): %s:%d", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port)) >= 0) {
 			perror(message);
 			free(message);
 		}
 		tds_close_socket(tds);
-		tdserror(tds->tds_ctx, tds, TDSECONN, 0);
-		return TDS_FAIL;
+		return TDSECONN;
 	}
 #else
 	if (!timeout) {
@@ -247,14 +260,16 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	/* enable non-blocking mode */
 	ioctl_nonblocking = 1;
 	if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_nonblocking) < 0) {
+		tds->oserr = sock_errno;
 		tds_close_socket(tds);
-		return TDS_FAIL;
+		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
 	}
 
 	retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
+		tds->oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", strerror(sock_errno));
 #if DEBUGGING_CONNECTING_PROBLEM
 		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != EINPROGRESS) {
@@ -275,7 +290,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			goto not_available;
 		
 		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) <= 0) {
-			tds_error = TDSESOCK;
+			tds_error = TDSECONN;
 			goto not_available;
 		}
 	}
@@ -285,23 +300,24 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	optlen = sizeof(len);
 	len = 0;
 	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
+		tds->oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", strerror(sock_errno));
 		goto not_available;
 	}
 	if (len != 0) {
+		tds->oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", strerror(len));
 		goto not_available;
 	}
 
 	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() succeeded\n");
-	return TDS_SUCCEED;
+	return TDSEOK;
 	
     not_available:
 	
 	tds_close_socket(tds);
-	tdserror(tds->tds_ctx, tds, tds_error, sock_errno);
 	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
-	return TDS_FAIL;
+	return tds_error;
 }
 
 int
@@ -310,11 +326,10 @@ tds_close_socket(TDSSOCKET * tds)
 	int rc = -1;
 
 	if (!IS_TDSDEAD(tds)) {
-		rc = CLOSESOCKET(tds->s);
+		if ((rc = CLOSESOCKET(tds->s)) == -1) 
+			tdserror(tds->tds_ctx, tds,  TDSECLOS, sock_errno);
 		tds->s = INVALID_SOCKET;
 		tds_set_state(tds, TDS_DEAD);
-		if (-1 == rc) 
-			tdserror(tds->tds_ctx, tds,  TDSECLOS, sock_errno);
 	}
 	return rc;
 }
@@ -574,34 +589,11 @@ tds_read_packet(TDSSOCKET * tds)
 
 		tds->in_len = 0;
 		tds->in_pos = 0;
-		tds->last_packet = 1;
 		if (tds->state != TDS_IDLE && len == 0) {
 			tds_close_socket(tds);
 		}
 		return -1;
 	}
-
-#if 0
-	/*
-	 * Note:
-	 * this was done by Gregg, I don't think its the real solution (it breaks
-	 * under 5.0, but I haven't gotten a result big enough to test this yet.
- 	 */
-	if (IS_TDS42(tds)) {
-		if (header[0] != 0x04 && header[0] != 0x0f) {
-			tdsdump_log(TDS_DBG_ERROR, "Invalid packet header %d\n", header[0]);
-			/*
-			 * Not sure if this is the best way to do the error 
-			 * handling here but this is the way it is currently 
-			 * being done.
-			 */
-			tds->in_len = 0;
-			tds->in_pos = 0;
-			tds->last_packet = 1;
-			return (-1);
-		}
-	}
-#endif
 
 	/* Convert our packet length from network to host byte order */
 	len = (((unsigned int) header[2]) << 8) | header[3];
@@ -643,15 +635,11 @@ tds_read_packet(TDSSOCKET * tds)
 			/* no need to call tdserror(), because goodread() already did */
 			tds->in_len = 0;
 			tds->in_pos = 0;
-			tds->last_packet = 1;
 			tds_close_socket(tds);
 			return -1;
 		}
 		have += nbytes;
 	}
-
-	/* Set the last packet flag */
-	tds->last_packet = (header[1] != 0);
 
 	/* set the received packet type flag */
 	tds->in_flag = header[0];
@@ -662,6 +650,15 @@ tds_read_packet(TDSSOCKET * tds)
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", tds->in_buf, tds->in_len);
 
 	return (tds->in_len);
+}
+
+int
+tds_lastpacket(TDSSOCKET * tds) 
+{
+	if (!tds || !tds->in_buf || tds->in_buf_max < 2)
+		return 1;
+	
+	return tds->in_buf[1] != 0;
 }
 
 /**

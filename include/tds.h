@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.303 2008-12-13 01:48:35 jklowden Exp $ */
+/* $Id: tds.h,v 1.304 2008-12-15 05:31:14 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -280,7 +280,8 @@ enum tds_end
  * These match the db-lib msgno, because the same values have the same meaning
  * in db-lib and ODBC.  ct-lib maps them to ct-lib numbers (todo). 
  */
-typedef enum {	TDSEICONVIU    = 2400, 
+typedef enum {	TDSEOK    = TDS_SUCCEED, 
+		TDSEICONVIU    = 2400, 
 		TDSEICONVAVAIL = 2401, 
 		TDSEICONVO     = 2402, 
 		TDSEICONVI     = 2403, 
@@ -1257,6 +1258,7 @@ typedef struct tds_multiple
 
 /* forward declaration */
 typedef struct tds_context TDSCONTEXT;
+typedef int (*err_handler_t) (const TDSCONTEXT *, TDSSOCKET *, TDSMESSAGE *);
 
 struct tds_context
 {
@@ -1292,6 +1294,7 @@ typedef struct tds_authentication TDSAUTHENTICATION;
 struct tds_socket
 {
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
+	int oserr;
 	TDS_SMALLINT major_version;
 	TDS_SMALLINT minor_version;
 	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
@@ -1312,7 +1315,6 @@ struct tds_socket
 
 	unsigned char in_flag;		/**< input buffer type */
 	unsigned char out_flag;		/**< output buffer type */
-	unsigned char last_packet;	/**< true if current input buffer is the last one */
 	void *parent;
 
 	/**
@@ -1388,6 +1390,7 @@ void tds_free_context(TDSCONTEXT * locale);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, int bufsize);
 
 /* config.c */
+int tds_default_port(int major, int minor);
 const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
 typedef void (*TDSCONFPARSE) (const char *option, const char *value, void *param);
 int tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
@@ -1395,7 +1398,7 @@ int tds_read_conf_file(TDSCONNECTION * connection, const char *server);
 void tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSCONNECTION *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_connection(TDSCONNECTION * connection);
-void tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
+unsigned char tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
 void tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
@@ -1462,7 +1465,7 @@ void tds_set_client_charset(TDSLOGIN * tds_login, const char *charset);
 void tds_set_language(TDSLOGIN * tds_login, const char *language);
 void tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver);
 void tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size);
-int tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection);
+int tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 
 /* query.c */
 int tds_submit_query(TDSSOCKET * tds, const char *query);
@@ -1546,6 +1549,7 @@ unsigned int tds_gettime_ms(void);
 /* log.c */
 void tdsdump_off(void);
 void tdsdump_on(void);
+int tdsdump_isopen(void);
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility pop
 #endif
@@ -1566,7 +1570,8 @@ extern int tds_debug_flags;
 extern int tds_g_append_mode;
 
 /* net.c */
-int tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);
+int tds_lastpacket(TDSSOCKET * tds);
+TDSERRNO tds_connect(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);
 int tds_close_socket(TDSSOCKET * tds);
 int tds_read_packet(TDSSOCKET * tds);
 int tds_write_packet(TDSSOCKET * tds, unsigned char final);

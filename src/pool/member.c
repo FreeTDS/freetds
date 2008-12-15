@@ -59,7 +59,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.42 2008-11-15 09:57:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.43 2008-12-15 05:31:14 jklowden Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
@@ -96,7 +96,7 @@ pool_mbr_login(TDS_POOL * pool)
 	context = tds_alloc_context(NULL);
 	tds = tds_alloc_socket(context, 512);
 	connection = tds_read_config_info(NULL, login, context->locale);
-	if (!connection || tds_connect(tds, connection) == TDS_FAIL) {
+	if (!connection || tds_connect_and_login(tds, connection) == TDS_FAIL) {
 		tds_free_socket(tds);
 		tds_free_connection(connection);
 		/* what to do? */
@@ -105,7 +105,7 @@ pool_mbr_login(TDS_POOL * pool)
 	}
 	tds_free_connection(connection);
 	/*
-	 * FIXME -- tds_connect no longer preallocates the in_buf need to 
+	 * FIXME -- tds_connect_and_login no longer preallocates the in_buf need to 
 	 * do something like what tds_read_packet does
 	 */
 	tds->in_buf = (unsigned char *) malloc(BLOCKSIZ);

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.83 2007-12-07 05:27:55 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.84 2008-12-15 05:31:15 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -361,11 +361,15 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		 * The client library must return a valid code.  It is not checked again here.
 		 */
 		rc = tds_ctx->err_handler(tds_ctx, tds, &msg);
+	 	tdsdump_log(TDS_DBG_FUNC, "tdserror: client library returned %s(%d)\n", retname(rc), rc);
 
 		TDS_ZERO_FREE(msg.sql_state);
+	} else {
+		const static char msg[] = "tdserror: client library not called because either "
+					  "tds_ctx (%x) or tds_ctx->err_handler is NULL\n";
+	 	tdsdump_log(TDS_DBG_FUNC, msg, tds_ctx);
 	}
 
- 	tdsdump_log(TDS_DBG_FUNC, "tdserror: client library returned %s(%d)\n", retname(rc), rc);
   
   	assert(!(msgno != TDSETIME && rc == TDS_INT_TIMEOUT));   /* client library should prevent */
 	assert(!(msgno != TDSETIME && rc == TDS_INT_CONTINUE));  /* client library should prevent */

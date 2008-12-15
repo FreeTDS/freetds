@@ -29,7 +29,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: query.c,v 1.17 2007-09-24 10:02:14 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.18 2008-12-15 05:31:14 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char *query;
@@ -138,7 +138,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				/* TODO: WE DON'T HANDLE PARAMETERS YET! */
 
 				/* eat the rest of the packet */
-				while (!tds->last_packet && tds_read_packet(tds) > 0) {
+				while (!tds_lastpacket(tds) && tds_read_packet(tds) > 0) {
 				}
 				return query;
 
@@ -146,7 +146,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				/* unexpected token */
 
 				/* eat the rest of the packet */
-				while (!tds->last_packet && tds_read_packet(tds) > 0) {
+				while (!tds_lastpacket(tds) && tds_read_packet(tds) > 0) {
 				}
 				return NULL;
 			}
@@ -181,7 +181,7 @@ char *tds_get_generic_query(TDSSOCKET * tds)
 				}
 
 				/* if more then read it */
-				if (tds->last_packet)
+				if (tds_lastpacket(tds))
 					break;
 				if (tds_read_packet(tds) < 0)
 					return NULL;

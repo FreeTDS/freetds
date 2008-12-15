@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.176 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.177 2008-12-15 05:31:15 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -306,12 +306,18 @@ free_save_context(TDSSAVECONTEXT *ctx)
  * Do a connection to socket
  * @param tds connection structure. This should be a non-connected connection.
  * @param connection info for connection
- * @return TDS_FAIL or TDS_SUCCEED
+ * @return TDS_FAIL or TDS_SUCCEED if a connection was made to the server's port.
+ * @return TDSERROR enumerated type if no TCP/IP connection could be formed. 
+ * @remark Possible error conditions:
+ *		- TDSESOCK: socket(2) failed: insufficient local resources
+ * 		- TDSECONN: connect(2) failed: invalid hostname or port (ETIMEDOUT, ECONNREFUSED, ENETUNREACH)
+ * 		- TDSEFCON: connect(2) succeeded, login packet not acknowledged.  
+ *		- TDS_FAIL: connect(2) succeeded, login failed.  
  */
 int
-tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
+tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-	int retval;
+	int erc;
 	int connect_timeout = 0;
 	int db_selected = 0;
 
@@ -335,32 +341,45 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		const TDSCONTEXT *old_ctx = tds->tds_ctx;
 		typedef void (*env_chg_func_t) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 		env_chg_func_t old_env_chg = tds->env_chg_func;
+		/* the context of a socket is const; we have to modify it to suppress error messages during multiple tries. */
+		TDSCONTEXT *mod_ctx = (TDSCONTEXT *)tds->tds_ctx;
+		err_handler_t err_handler = tds->tds_ctx->err_handler;
 
 		init_save_context(&save_ctx, old_ctx);
 		tds->tds_ctx = &save_ctx.ctx;
 		tds->env_chg_func = tds_save_env;
+		mod_ctx->err_handler = NULL;
+
 		for (i=0; i < TDS_VECTOR_SIZE(versions); ++i) {
 			connection->major_version = versions[i].major_version;
 			connection->minor_version = versions[i].minor_version;
-			/* fprintf(stdout, "trying TDSVER %d.%d\n", connection->major_version, connection->minor_version); */
 			reset_save_context(&save_ctx);
-			retval = tds_connect(tds, connection);
-			if (TDS_SUCCEED == retval)
+
+			if ((erc = tds_connect_and_login(tds, connection)) == TDS_FAIL) {
+				tds_close_socket(tds);
+			}
+			
+			if (erc != TDSEFCON)	/* TDSEFCON indicates wrong TDS version */
 				break;
-			tds_close_socket(tds);
 		}
+		
+		mod_ctx->err_handler = err_handler;
 		tds->env_chg_func = old_env_chg;
 		tds->tds_ctx = old_ctx;
 		replay_save_context(tds, &save_ctx);
 		free_save_context(&save_ctx);
-		return retval;
+		
+		if (erc != TDS_SUCCEED)
+			tdserror(tds->tds_ctx, tds, erc, tds->oserr); 
+
+		return erc;
 	}
 	
 
 	/*
 	 * If a dump file has been specified, start logging
 	 */
-	if (!tds_dstr_isempty(&connection->dump_file)) {
+	if (!tds_dstr_isempty(&connection->dump_file) && !tdsdump_isopen()) {
 		if (connection->debug_flags)
 			tds_debug_flags = connection->debug_flags;
 		tdsdump_open(tds_dstr_cstr(&connection->dump_file));
@@ -405,7 +424,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "No server specified!\n");
 		}
-		return TDS_FAIL;
+		return TDSECONN;
 	}
 
 	if (!IS_TDS50(tds) && !tds_dstr_isempty(&connection->instance_name))
@@ -413,30 +432,37 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	if (connection->port < 1) {
 		tdsdump_log(TDS_DBG_ERROR, "invalid port number\n");
-		return TDS_FAIL;
+		return TDSECONN;
 	}
 
 	memcpy(tds->capabilities, connection->capabilities, TDS_MAX_CAPABILITY);
 
-	if (tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout) != TDS_SUCCEED)
-		return TDS_FAIL;
+	if ((erc = tds_connect(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout)) != TDS_SUCCEED)
+		return erc;
+		
+	/*
+	 * Beyond this point, we're connected to the server.  We know we have a valid TCP/IP address+socket pair.  
+	 * Although network errors *might* happen, most problems from here on out will be TDS-level errors, 
+	 * either TDS version problems or authentication problems.  
+	 */
+		
 	tds_set_state(tds, TDS_IDLE);
 
 	if (IS_TDS8_PLUS(tds)) {
-		retval = tds8_do_login(tds, connection);
+		erc = tds8_do_login(tds, connection);
 		db_selected = 1;
 	} else if (IS_TDS7_PLUS(tds)) {
-		retval = tds7_send_login(tds, connection);
+		erc = tds7_send_login(tds, connection);
 		db_selected = 1;
 	} else {
 		tds->out_flag = TDS_LOGIN;
-		retval = tds_send_login(tds, connection);
+		erc = tds_send_login(tds, connection);
 	}
-	if (retval == TDS_FAIL || !tds_process_login_tokens(tds)) {
+	if (erc == TDS_FAIL || !tds_process_login_tokens(tds)) {
+		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", erc==TDS_SUCCEED? "accepted":"rejected");
 		tds_close_socket(tds);
 		tdserror(tds->tds_ctx, tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
-								/* If it's a bad login, the server will send that mesasge */
-		return TDS_FAIL;
+		return TDSEFCON;
 	}
 
 	if (connection->text_size || (!db_selected && !tds_dstr_isempty(&connection->database))) {
@@ -455,9 +481,9 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection)
 			strcat(str, "use ");
 			tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&connection->database), -1);
 		}
-		retval = tds_submit_query(tds, str);
+		erc = tds_submit_query(tds, str);
 		free(str);
-		if (retval != TDS_SUCCEED)
+		if (erc != TDS_SUCCEED)
 			return TDS_FAIL;
 
 		if (tds_process_simple_query(tds) != TDS_SUCCEED)
