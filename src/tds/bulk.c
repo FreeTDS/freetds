@@ -37,12 +37,17 @@
 
 #include "tds.h"
 #include "tds_checks.h"
+#include "tdsbytes.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.4 2008-12-15 15:52:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.5 2008-12-16 09:26:02 freddy77 Exp $");
+
+#ifndef MAX
+#define MAX(a,b) ( (a) > (b) ? (a) : (b) )
+#endif
 
 typedef struct tds_pbcb
 {
@@ -51,21 +56,124 @@ typedef struct tds_pbcb
 	unsigned int from_malloc;
 } TDSPBCB;
 
-static int tds_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+static int tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 static int tds_bcp_start_insert_stmt(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 static int tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, unsigned char * rowbuffer, int start);
 static int tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, TDS_UCHAR *rowbuffer, int start, int *pncols);
+static void tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
 
+int
+tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
+{
+	TDSRESULTINFO *resinfo;
+	TDSRESULTINFO *bindinfo = NULL;
+	TDSCOLUMN *curcol;
+	TDS_INT result_type;
+	int i, rc;
+
+	/* FIXME don't leave state in processing state */
+
+	/* TODO quote tablename if needed */
+	if (tds_submit_queryf(tds, "select * from %s where 0 = 1", bcpinfo->tablename) == TDS_FAIL)
+		/* TODO return an error ?? */
+		/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
+		return TDS_FAIL;
+
+	/* TODO check what happen if table is not present, cleanup on error */
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
+		   == TDS_SUCCEED) {
+	}
+	if (rc != TDS_NO_MORE_RESULTS)
+		return TDS_FAIL;
+
+	/* copy the results info from the TDS socket */
+	if (!tds->res_info)
+		return TDS_FAIL;
+
+	resinfo = tds->res_info;
+	if ((bindinfo = tds_alloc_results(resinfo->num_cols)) == NULL)
+		goto cleanup;
+
+	bindinfo->row_size = resinfo->row_size;
+
+	/* Copy the column metadata */
+	for (i = 0; i < bindinfo->num_cols; i++) {
+
+		curcol = bindinfo->columns[i];
+		
+		/*
+		 * TODO use memcpy ??
+		 * curcol and resinfo->columns[i] are both TDSCOLUMN.  
+		 * Why not "curcol = resinfo->columns[i];"?  Because the rest of TDSCOLUMN (below column_timestamp)
+		 * isn't being used.  Perhaps this "upper" part of TDSCOLUMN should be a substructure.
+		 * Or, see if the "lower" part is unused (and zeroed out) at this point, and just do one assignment.
+		 */
+		curcol->column_type = resinfo->columns[i]->column_type;
+		curcol->column_usertype = resinfo->columns[i]->column_usertype;
+		curcol->column_flags = resinfo->columns[i]->column_flags;
+		curcol->column_size = resinfo->columns[i]->column_size;
+		curcol->column_varint_size = resinfo->columns[i]->column_varint_size;
+		curcol->column_prec = resinfo->columns[i]->column_prec;
+		curcol->column_scale = resinfo->columns[i]->column_scale;
+		curcol->column_namelen = resinfo->columns[i]->column_namelen;
+		curcol->on_server.column_type = resinfo->columns[i]->on_server.column_type;
+		curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
+		curcol->char_conv = resinfo->columns[i]->char_conv;
+		memcpy(curcol->column_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
+		TDS_ZERO_FREE(curcol->table_column_name);
+		if (resinfo->columns[i]->table_column_name)
+			curcol->table_column_name = strdup(resinfo->columns[i]->table_column_name);
+		curcol->column_nullable = resinfo->columns[i]->column_nullable;
+		curcol->column_identity = resinfo->columns[i]->column_identity;
+		curcol->column_timestamp = resinfo->columns[i]->column_timestamp;
+		
+		memcpy(curcol->column_collation, resinfo->columns[i]->column_collation, 5);
+		
+		if (is_numeric_type(curcol->column_type)) {
+			curcol->bcp_column_data = tds_alloc_bcp_column_data(sizeof(TDS_NUMERIC));
+			((TDS_NUMERIC *) curcol->bcp_column_data->data)->precision = curcol->column_prec;
+			((TDS_NUMERIC *) curcol->bcp_column_data->data)->scale = curcol->column_scale;
+		} else {
+			curcol->bcp_column_data = 
+				tds_alloc_bcp_column_data(MAX(curcol->column_size,curcol->on_server.column_size));
+		}
+	}
+
+	bindinfo->current_row = malloc(bindinfo->row_size);
+	if (!bindinfo->current_row)
+		goto cleanup;
+	bindinfo->row_free = tds_bcp_row_free;
+
+	if (bcpinfo->identity_insert_on) {
+
+		if (tds_submit_queryf(tds, "set identity_insert %s on", bcpinfo->tablename) == TDS_FAIL)
+			goto cleanup;
+	
+		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
+			   == TDS_SUCCEED) {
+		}
+		if (rc != TDS_NO_MORE_RESULTS)
+			goto cleanup;
+	}
+
+	bcpinfo->bindinfo = bindinfo;
+	bcpinfo->bind_count = 0;
+	return TDS_SUCCEED;
+
+cleanup:
+	tds_free_results(bindinfo);
+	return TDS_FAIL;
+}
 /** 
  * \return TDS_SUCCEED or TDS_FAIL.
  */
 static int
-tds_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpcol, int first)
+tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpcol, int first)
 {
 	char buffer[32];
 	char *column_type = buffer;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_build_bulk_insert_stmt(%p, %p, %p, %d)\n", tds, clause, bcpcol, first);
+	tdsdump_log(TDS_DBG_FUNC, "tds7_build_bulk_insert_stmt(%p, %p, %p, %d)\n", tds, clause, bcpcol, first);
 
 	/* TODO reuse function in tds/query.c */
 	switch (bcpcol->on_server.column_type) {
@@ -246,17 +354,12 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 			bcpcol = bcpinfo->bindinfo->columns[i];
 
-			if (bcpinfo->identity_insert_on) {
-				if (!bcpcol->column_timestamp) {
-					tds_build_bulk_insert_stmt(tds, &colclause, bcpcol, firstcol);
-					firstcol = 0;
-				}
-			} else {
-				if (!bcpcol->column_identity && !bcpcol->column_timestamp) {
-					tds_build_bulk_insert_stmt(tds, &colclause, bcpcol, firstcol);
-					firstcol = 0;
-				}
-			}
+			if (bcpcol->column_timestamp)
+				continue;
+			if (!bcpinfo->identity_insert_on && bcpcol->column_identity)
+				continue;
+			tds7_build_bulk_insert_stmt(tds, &colclause, bcpcol, firstcol);
+			firstcol = 0;
 		}
 
 		if (bcpinfo->hint) {
@@ -285,9 +388,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 			return TDS_FAIL;
 	}
 
-	tds_submit_query(tds, query);
 	/* save the statement for later... */
-
 	bcpinfo->insert_stmt = query;
 
 	return TDS_SUCCEED;
@@ -312,8 +413,6 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 	unsigned char *record;
 	TDS_INT	 old_record_size;
 	TDS_INT	 new_record_size;
-	TDS_INT	     varint_4;
-	TDS_SMALLINT varint_2;
 	TDS_TINYINT  varint_1;
 
 	int row_pos;
@@ -386,18 +485,12 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 						memcpy(record, timestamp, 8); record += 8;
 						new_record_size += 25;
 					}
-					varint_4 = bindcol->bcp_column_data->datalen;
-#if WORDS_BIGENDIAN
-					tds_swap_datatype(SYBINT4, (unsigned char *)&varint_4);
-#endif
-					memcpy(record, &varint_4, 4); record += 4; new_record_size +=4;
+					TDS_PUT_UA4LE(record, bindcol->bcp_column_data->datalen);
+					record += 4; new_record_size +=4;
 					break;
 				case 2:
-					varint_2 = bindcol->bcp_column_data->datalen;
-#if WORDS_BIGENDIAN
-					tds_swap_datatype(SYBINT2, (unsigned char *)&varint_2);
-#endif
-					memcpy(record, &varint_2, 2); record += 2; new_record_size +=2;
+					TDS_PUT_UA2LE(record, bindcol->bcp_column_data->datalen);
+					record += 2; new_record_size +=2;
 					break;
 				case 1:
 					varint_1 = bindcol->bcp_column_data->datalen;
@@ -702,19 +795,18 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
  * \return TDS_SUCCEED or TDS_FAIL.
  */
 static int
-tds_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
+tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
-	const static unsigned char colmetadata_token = 0x81;
 	TDSCOLUMN *bcpcol;
 	int i, num_cols;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_colmetadata(%p, %p)\n", tds, bcpinfo);
+	tdsdump_log(TDS_DBG_FUNC, "tds7_bcp_send_colmetadata(%p, %p)\n", tds, bcpinfo);
 	assert(tds && bcpinfo);
 
 	/* 
 	 * Deep joy! For TDS 8 we have to send a colmetadata message followed by row data 
 	 */
-	tds_put_byte(tds, colmetadata_token);	/* 0x81 */
+	tds_put_byte(tds, TDS7_RESULT_TOKEN);	/* 0x81 */
 
 	num_cols = 0;
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
@@ -812,6 +904,10 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	tds_submit_query(tds, bcpinfo->insert_stmt);
 
+	/*
+	 * In TDS 5 we get the column information as a result set from the "insert bulk" command.
+	 * We're going to ignore it.  
+	 */
 	if (tds_process_simple_query(tds) != TDS_SUCCEED)
 		return TDS_FAIL;
 
@@ -820,7 +916,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	tds_set_state(tds, TDS_QUERYING);
 
 	if (IS_TDS7_PLUS(tds))
-		tds_bcp_send_colmetadata(tds, bcpinfo);
+		tds7_bcp_send_colmetadata(tds, bcpinfo);
 	
 	return TDS_SUCCEED;
 }
@@ -847,11 +943,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	if (tds_bcp_start_insert_stmt(tds, bcpinfo) == TDS_FAIL)
 		return TDS_FAIL;
 
-	/*
-	 * In TDS 5 we get the column information as a result set from the "insert bulk" command.
-	 * We're going to ignore it.  
-	 */
-	if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+	if (tds_bcp_start(tds, bcpinfo) != TDS_SUCCEED) {
 		/* TODO, in CTLib was _ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, ""); */
 		return TDS_FAIL;
 	}
@@ -968,14 +1060,6 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			bcpinfo->bindinfo->row_size = bcp_record_size;
 		}
 	}
-
-	/* set packet type to send bulk data */
-	tds->out_flag = TDS_BULK;
-	/* FIXME find a better way, some other thread could change state here */
-	tds_set_state(tds, TDS_QUERYING);
-
-	if (IS_TDS7_PLUS(tds))
-		tds_bcp_send_colmetadata(tds, bcpinfo);
 
 	return TDS_SUCCEED;
 }

@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.177 2008-12-15 15:52:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.178 2008-12-16 09:26:02 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -89,8 +89,6 @@ static RETCODE _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static RETCODE _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
 
-static void bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
-
 /** 
  * \ingroup dblib_bcp
  * \brief Prepare for bulk copy operation on a table
@@ -116,12 +114,6 @@ static void bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
 RETCODE
 bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction)
 {
-	TDSRESULTINFO *resinfo;
-	TDSRESULTINFO *bindinfo;
-	TDSCOLUMN *curcol;
-	TDS_INT result_type;
-	int i, rc;
-
 	tdsdump_log(TDS_DBG_FUNC, "bcp_init(%p, %s, %s, %s, %d)\n", 
 			dbproc, tblname? tblname:"NULL", hfile? hfile:"NULL", errfile? errfile:"NULL", direction);
 	CHECK_DBPROC();
@@ -189,83 +181,12 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	if (direction == DB_IN) {
 		TDSSOCKET *tds = dbproc->tds_socket;
 
-		if (tds_submit_queryf(tds, "SET FMTONLY ON select * from %s SET FMTONLY OFF", 
-								dbproc->bcpinfo->tablename) == TDS_FAIL) {
+		if (tds_bcp_init(tds, dbproc->bcpinfo) == TDS_FAIL) {
+			/* TODO return proper error */
 			/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
 			dbperror(dbproc, SYBEBCNT, 0);
 			return FAIL;
 		}
-	
-		/* TODO check what happen if table is not present, cleanup on error */
-		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
-		       == TDS_SUCCEED) {
-		}
-		if (rc != TDS_NO_MORE_RESULTS) {
-			return FAIL;
-		}
-	
-		if (!tds->res_info) {
-			return FAIL;
-		}
-	
-		/* TODO check what happen if table is not present, cleanup on error */
-		resinfo = tds->res_info;
-		if ((bindinfo = tds_alloc_results(resinfo->num_cols)) == NULL)
-			goto memory_error;
-	
-		bindinfo->row_size = resinfo->row_size;
-	
-		dbproc->bcpinfo->bindinfo = bindinfo;
-		dbproc->bcpinfo->bind_count = 0;
-	
-		/* Copy the column metadata */
-		for (i = 0; i < bindinfo->num_cols; i++) {
-	
-			curcol = bindinfo->columns[i];
-			
-			/*
-			 * TODO use memcpy ??
-			 * curcol and resinfo->columns[i] are both TDSCOLUMN.  
-			 * Why not "curcol = resinfo->columns[i];"?  Because the rest of TDSCOLUMN (below column_timestamp)
-			 * isn't being used.  Perhaps this "upper" part of TDSCOLUMN should be a substructure.
-			 * Or, see if the "lower" part is unused (and zeroed out) at this point, and just do one assignment.
-			 */
-			curcol->column_type = resinfo->columns[i]->column_type;
-			curcol->column_usertype = resinfo->columns[i]->column_usertype;
-			curcol->column_flags = resinfo->columns[i]->column_flags;
-			curcol->column_size = resinfo->columns[i]->column_size;
-			curcol->column_varint_size = resinfo->columns[i]->column_varint_size;
-			curcol->column_prec = resinfo->columns[i]->column_prec;
-			curcol->column_scale = resinfo->columns[i]->column_scale;
-			curcol->column_namelen = resinfo->columns[i]->column_namelen;
-			curcol->on_server.column_type = resinfo->columns[i]->on_server.column_type;
-			curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
-			curcol->char_conv = resinfo->columns[i]->char_conv;
-			memcpy(curcol->column_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
-			TDS_ZERO_FREE(curcol->table_column_name);
-			if (resinfo->columns[i]->table_column_name)
-				curcol->table_column_name = strdup(resinfo->columns[i]->table_column_name);
-			curcol->column_nullable = resinfo->columns[i]->column_nullable;
-			curcol->column_identity = resinfo->columns[i]->column_identity;
-			curcol->column_timestamp = resinfo->columns[i]->column_timestamp;
-			
-			memcpy(curcol->column_collation, resinfo->columns[i]->column_collation, 5);
-			
-			if (is_numeric_type(curcol->column_type)) {
-				curcol->bcp_column_data = tds_alloc_bcp_column_data(sizeof(TDS_NUMERIC));
-				((TDS_NUMERIC *) curcol->bcp_column_data->data)->precision = curcol->column_prec;
-				((TDS_NUMERIC *) curcol->bcp_column_data->data)->scale = curcol->column_scale;
-			} else {
-				curcol->bcp_column_data = 
-					tds_alloc_bcp_column_data(MAX(curcol->column_size,curcol->on_server.column_size));
-			}
-		}
-
-		bindinfo->current_row = malloc(bindinfo->row_size);
-		if (!bindinfo->current_row)
-			goto memory_error;
-		bindinfo->row_free = bcp_row_free;
-		return SUCCEED;
 	}
 
 	return SUCCEED;
@@ -1843,13 +1764,6 @@ bcp_exec(DBPROCESS * dbproc, DBINT *rows_copied)
 	_bcp_free_storage(dbproc);
 	
 	return ret;
-}
-
-static void 
-bcp_row_free(TDSRESULTINFO* result, unsigned char *row)
-{
-	result->row_size = 0;
-	TDS_ZERO_FREE(result->current_row);
 }
 
 /** 

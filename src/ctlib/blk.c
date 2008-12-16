@@ -38,7 +38,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.47 2008-12-15 15:52:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.48 2008-12-16 09:26:02 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
@@ -306,14 +306,6 @@ blk_gettext(SRV_PROC * srvproc, CS_BLKDESC * blkdescp, CS_BLK_ROW * rowp, CS_INT
 CS_RETCODE
 blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tnamelen)
 {
-	TDSCOLUMN *curcol;
-
-	TDSSOCKET *tds;
-	TDSRESULTINFO *resinfo;
-	TDSRESULTINFO *bindinfo;
-	TDS_INT result_type;
-	int i, rc;
-
 	tdsdump_log(TDS_DBG_FUNC, "blk_init()\n");
 
 	if (!blkdesc) {
@@ -361,95 +353,11 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	blkdesc->bcpinfo.xfer_init = 0;
 	blkdesc->bcpinfo.var_cols = 0;
 
-	tds = blkdesc->con->tds_socket;
-
-	/* TODO quote tablename if needed */
-	if (tds_submit_queryf(tds, "select * from %s where 0 = 1", blkdesc->bcpinfo.tablename) == TDS_FAIL) {
+	if (tds_bcp_init(blkdesc->con->tds_socket, &blkdesc->bcpinfo) == TDS_FAIL) {
 		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
-
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
-		   == TDS_SUCCEED) {
-	}
-	if (rc != TDS_NO_MORE_RESULTS) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
-		return CS_FAIL;
-	}
-
-	/* copy the results info from the TDS socket into CS_BLKDESC structure */
-
-	if (!tds->res_info) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
-		return CS_FAIL;
-	}
-
-	resinfo = tds->res_info;
-
-	if ((bindinfo = tds_alloc_results(resinfo->num_cols)) == NULL) {
-		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
-		return CS_FAIL;
-	}
-
-
-	bindinfo->row_size = resinfo->row_size;
-
-	for (i = 0; i < bindinfo->num_cols; i++) {
-
-		curcol = bindinfo->columns[i];
-
-		curcol->column_type = resinfo->columns[i]->column_type;
-		curcol->column_usertype = resinfo->columns[i]->column_usertype;
-		curcol->column_flags = resinfo->columns[i]->column_flags;
-		curcol->column_size = resinfo->columns[i]->column_size;
-		curcol->column_varint_size = resinfo->columns[i]->column_varint_size;
-		curcol->column_prec = resinfo->columns[i]->column_prec;
-		curcol->column_scale = resinfo->columns[i]->column_scale;
-		curcol->column_namelen = resinfo->columns[i]->column_namelen;
-		curcol->on_server.column_type = resinfo->columns[i]->on_server.column_type;
-		curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
-		curcol->char_conv = resinfo->columns[i]->char_conv;
-		memcpy(curcol->column_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
-		if (curcol->table_column_name)
-			TDS_ZERO_FREE(curcol->table_column_name);
-		if (resinfo->columns[i]->table_column_name)
-			curcol->table_column_name = strdup(resinfo->columns[i]->table_column_name);
-		curcol->column_nullable = resinfo->columns[i]->column_nullable;
-		curcol->column_identity = resinfo->columns[i]->column_identity;
-		curcol->column_timestamp = resinfo->columns[i]->column_timestamp;
-
-		memcpy(curcol->column_collation, resinfo->columns[i]->column_collation, 5);
-
-		if (is_numeric_type(curcol->column_type)) {
-			curcol->bcp_column_data = tds_alloc_bcp_column_data(sizeof(TDS_NUMERIC));
-			((TDS_NUMERIC *) curcol->bcp_column_data->data)->precision = curcol->column_prec;
-			((TDS_NUMERIC *) curcol->bcp_column_data->data)->scale = curcol->column_scale;
-		} else {
-			curcol->bcp_column_data = tds_alloc_bcp_column_data(curcol->on_server.column_size);
-		}
-	}
-
-	/* TODO check */
-	tds_alloc_row(bindinfo);
-
-	blkdesc->bcpinfo.bindinfo = bindinfo;
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
-
-	if (blkdesc->bcpinfo.identity_insert_on) {
-
-		if (tds_submit_queryf(tds, "set identity_insert %s on", blkdesc->bcpinfo.tablename) == TDS_FAIL) {
-			_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
-			return CS_FAIL;
-		}
-	
-		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
-			   == TDS_SUCCEED) {
-		}
-		if (rc != TDS_NO_MORE_RESULTS) {
-			_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
-			return CS_FAIL;
-		}
-	}
 
 	return CS_SUCCEED;
 }

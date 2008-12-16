@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.307 2008-12-15 15:52:10 freddy77 Exp $ */
+/* $Id: tds.h,v 1.308 2008-12-16 09:26:02 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1612,6 +1612,7 @@ typedef struct tds_bcpinfo
 	TDSRESULTINFO *bindinfo;
 } TDSBCPINFO;
 
+int tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 typedef int  (*tds_bcp_get_col_data) (TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
 typedef void (*tds_bcp_null_error)   (TDSBCPINFO *bulk, int index, int offset);
 int tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset);
