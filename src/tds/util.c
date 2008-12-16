@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.84 2008-12-15 05:31:15 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.85 2008-12-16 09:21:08 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -366,7 +366,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		TDS_ZERO_FREE(msg.sql_state);
 	} else {
 		const static char msg[] = "tdserror: client library not called because either "
-					  "tds_ctx (%x) or tds_ctx->err_handler is NULL\n";
+					  "tds_ctx (%p) or tds_ctx->err_handler is NULL\n";
 	 	tdsdump_log(TDS_DBG_FUNC, msg, tds_ctx);
 	}
 

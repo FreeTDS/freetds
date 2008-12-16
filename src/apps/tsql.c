@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.124 2008-12-15 05:31:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.125 2008-12-16 09:21:09 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -530,7 +530,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		 *	in that order. 
 		 */
 		if (!QUIET) {
-			printf("Missing argument -p, looking for default instance ... ", port);
+			printf("Missing argument -p, looking for default instance ... ");
 		}
 		if (0 == (port = get_default_instance_port(hostname))) {
 			printf("no reply from server\n");
