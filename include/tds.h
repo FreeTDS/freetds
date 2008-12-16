@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.308 2008-12-16 09:26:02 freddy77 Exp $ */
+/* $Id: tds.h,v 1.309 2008-12-16 15:41:18 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1619,6 +1619,10 @@ int tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_dat
 int tds_bcp_done(TDSSOCKET *tds, int *rows_copied);
 int tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 int tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+
+int tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size);
+int tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size);
+int tds_writetext_end(TDSSOCKET *tds);
 
 
 #define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)

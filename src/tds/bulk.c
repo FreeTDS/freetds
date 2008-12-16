@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.5 2008-12-16 09:26:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.6 2008-12-16 15:41:19 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -1061,5 +1061,52 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		}
 	}
 
+	return TDS_SUCCEED;
+}
+
+int
+tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size)
+{
+	if (tds_submit_queryf(tds,
+			      "writetext bulk %s 0x%s timestamp = 0x%s%s",
+			      objname, textptr, timestamp, with_log ? " with log" : "")
+	    != TDS_SUCCEED) {
+		return TDS_FAIL;
+	}
+
+	/* FIXME in this case processing all results can bring state to IDLE... not threading safe */
+	/* read the end token */
+	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+		return TDS_FAIL;
+
+	/* FIXME better transiction state */
+	tds->out_flag = TDS_BULK;
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		return TDS_FAIL;
+	tds_put_int(tds, size);
+	return TDS_SUCCEED;
+}
+
+int
+tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
+{
+	/* TODO check state */
+	if (tds->out_flag != TDS_BULK)
+		return TDS_FAIL;
+
+	/* TODO check size letft */
+	tds_put_n(tds, text, size);
+	return TDS_SUCCEED;
+}
+
+int
+tds_writetext_end(TDSSOCKET *tds)
+{
+	/* TODO check state */
+	if (tds->out_flag != TDS_BULK)
+		return TDS_FAIL;
+
+	tds_flush_packet(tds);
+	tds_set_state(tds, TDS_PENDING);
 	return TDS_SUCCEED;
 }

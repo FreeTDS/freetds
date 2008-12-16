@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.335 2008-12-15 05:31:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.336 2008-12-16 15:41:18 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -6298,21 +6298,10 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 			return FAIL;
 		}
 	}
-
-	if (tds_submit_queryf(dbproc->tds_socket,
-			      "writetext bulk %s 0x%s timestamp = 0x%s %s",
-			      objname, textptr_string, timestamp_string, ((log == TRUE) ? "with log" : ""))
-	    != TDS_SUCCEED) {
+	
+	if (tds_writetext_start(dbproc->tds_socket, objname, 
+		textptr_string, timestamp_string, (log == TRUE), size) != TDS_SUCCEED)
 		return FAIL;
-	}
-
-	/* read the end token */
-	if (tds_process_simple_query(dbproc->tds_socket) != TDS_SUCCEED)
-		return FAIL;
-
-	dbproc->tds_socket->out_flag = TDS_BULK;
-	tds_set_state(dbproc->tds_socket, TDS_QUERYING);
-	tds_put_int(dbproc->tds_socket, size);
 
 	if (!text) {
 		dbproc->text_size = size;
@@ -6320,9 +6309,8 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 		return SUCCEED;
 	}
 
-	tds_put_n(dbproc->tds_socket, text, size);
-	tds_flush_packet(dbproc->tds_socket);
-	tds_set_state(dbproc->tds_socket, TDS_PENDING);
+	tds_writetext_continue(dbproc->tds_socket, text, size);
+	tds_writetext_end(dbproc->tds_socket);
 
 	if (dbsqlok(dbproc) == SUCCEED && dbresults(dbproc) == SUCCEED)
 		return SUCCEED;
@@ -6422,21 +6410,17 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 
 	assert(dbproc->text_size >= dbproc->text_sent);
 
-	/* test dbproc value and state */
-	if (!dbproc || !dbproc->tds_socket || dbproc->tds_socket->out_flag != TDS_BULK)
-		return FAIL;
-
+	/* TODO this test should be inside tds_writetext_continue, currently not */
 	if (size < 0 || size > dbproc->text_size - dbproc->text_sent)
 		return FAIL;
 
 	if (size) {
-		tds_put_n(dbproc->tds_socket, text, size);
+		if (tds_writetext_continue(dbproc->tds_socket, text, size) != TDS_SUCCEED)
+			return FAIL;
 		dbproc->text_sent += size;
 
-		if (dbproc->text_sent == dbproc->text_size) {
-			tds_flush_packet(dbproc->tds_socket);
-			tds_set_state(dbproc->tds_socket, TDS_PENDING);
-		}
+		if (dbproc->text_sent == dbproc->text_size)
+			tds_writetext_end(dbproc->tds_socket);
 	}
 
 	return SUCCEED;

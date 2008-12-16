@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.182 2008-12-15 05:31:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.183 2008-12-16 15:41:18 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1079,8 +1079,7 @@ ct_send(CS_COMMAND * cmd)
 	}
 
 	if (cmd->command_type == CS_SEND_DATA_CMD) {
-		tds_flush_packet(tds);
-		tds_set_state(tds, TDS_PENDING);
+		tds_writetext_end(tds);
 		ct_set_command_state(cmd, _CS_COMMAND_SENT);
 	}
 
@@ -2735,7 +2734,6 @@ CS_RETCODE
 ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 {
 	TDSSOCKET *tds;
-	char writetext_cmd[512];
 
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
@@ -2782,32 +2780,16 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 		}
 		*c = '\0';
 
-		/* submit the "writetext bulk" command */
-
-		sprintf(writetext_cmd, "writetext bulk %s 0x%s timestamp = 0x%s%s",
-			cmd->iodesc->name,
-			textptr_string, timestamp_string, ((cmd->iodesc->log_on_update == CS_TRUE) ? " with log" : "")
-			);
-
-		if (tds_submit_query(tds, writetext_cmd) != TDS_SUCCEED) {
-			return CS_FAIL;
-		}
-
-		/* FIXME in this case processing all results can bring state to IDLE... not threading safe */
-		/* read the end token */
-		if (tds_process_simple_query(tds) != TDS_SUCCEED)
-			return CS_FAIL;
-
-		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		/* submit the writetext command */
+		if (tds_writetext_start(tds, cmd->iodesc->name,
+			textptr_string, timestamp_string, (cmd->iodesc->log_on_update == CS_TRUE), cmd->iodesc->total_txtlen) != TDS_SUCCEED)
 			return CS_FAIL;
 
 		cmd->send_data_started = 1;
-		tds->out_flag = TDS_BULK;
-		tds_put_int(tds, cmd->iodesc->total_txtlen);
 	}
 
-	tds->out_flag = TDS_BULK;
-	tds_put_n(tds, buffer, buflen);
+	if (tds_writetext_continue(tds, buffer, buflen) != TDS_SUCCEED)
+		return CS_FAIL;
 
 	return CS_SUCCEED;
 }
