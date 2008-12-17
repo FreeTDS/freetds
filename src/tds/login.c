@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.177 2008-12-15 05:31:15 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.178 2008-12-17 11:04:34 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -355,7 +355,7 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 			connection->minor_version = versions[i].minor_version;
 			reset_save_context(&save_ctx);
 
-			if ((erc = tds_connect_and_login(tds, connection)) == TDS_FAIL) {
+			if ((erc = tds_connect_and_login(tds, connection)) != TDS_SUCCEED) {
 				tds_close_socket(tds);
 			}
 			

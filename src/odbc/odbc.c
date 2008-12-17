@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.507 2008-12-15 05:31:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.508 2008-12-17 11:04:34 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -381,7 +381,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 
 	connection->connect_timeout = dbc->attr.connection_timeout;
 
-	if (tds_connect_and_login(dbc->tds_socket, connection) == TDS_FAIL) {
+	if (tds_connect_and_login(dbc->tds_socket, connection) != TDS_SUCCEED) {
 		tds_free_socket(dbc->tds_socket);
 		dbc->tds_socket = NULL;
 		odbc_errs_add(&dbc->errs, "08001", NULL);

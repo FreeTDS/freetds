@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.336 2008-12-16 15:41:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.337 2008-12-17 11:04:34 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1146,7 +1146,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
-	if (tds_connect_and_login(dbproc->tds_socket, connection) == TDS_FAIL) {
+	if (tds_connect_and_login(dbproc->tds_socket, connection) != TDS_SUCCEED) {
 		tds_free_connection(connection);
 		dbclose(dbproc);
 		return NULL;
