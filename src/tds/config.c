@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.139 2008-12-15 05:31:15 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.140 2008-12-17 11:12:02 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -688,43 +688,38 @@ tds_config_env_tdshost(TDSCONNECTION * connection)
  * Set TDS version from given string
  * @param tdsver tds string version
  * @param connection where to store information
- * @return as encoded hex value: high nybble major, low nybble minor.  
+ * @return as encoded hex value: high nybble major, low nybble minor.
  */
 unsigned char
 tds_config_verstr(const char *tdsver, TDSCONNECTION * connection)
 {
-	TDSCONNECTION dummy, *c = &dummy;
-	
-	if (connection) 
-		c = connection;
-	
-	if (!strcmp(tdsver, "42") || !strcmp(tdsver, "4.2")) {
-		c->major_version = 4;
-		c->minor_version = 2;
-	} else if (!strcmp(tdsver, "46") || !strcmp(tdsver, "4.6")) {
-		c->major_version = 4;
-		c->minor_version = 6;
-	} else if (!strcmp(tdsver, "50") || !strcmp(tdsver, "5.0")) {
-		c->major_version = 5;
-		c->minor_version = 0;
-	} else if (!strcmp(tdsver, "70") || !strcmp(tdsver, "7.0")) {
-		c->major_version = 7;
-		c->minor_version = 0;
-	} else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0")) {
-		c->major_version = 8;
-		c->minor_version = 0;
+	unsigned char version;
+
+	if (!strcmp(tdsver, "42") || !strcmp(tdsver, "4.2"))
+		version = 0x42;
+	else if (!strcmp(tdsver, "46") || !strcmp(tdsver, "4.6"))
+		version = 0x46;
+	else if (!strcmp(tdsver, "50") || !strcmp(tdsver, "5.0"))
+		version = 0x50;
+	else if (!strcmp(tdsver, "70") || !strcmp(tdsver, "7.0"))
+		version = 0x70;
+	else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0"))
+		version = 0x80;
 #ifdef ENABLE_DEVELOPING
-	} else if (!strcmp(tdsver, "90") || !strcmp(tdsver, "9.0")) {
-		c->major_version = 9;
-		c->minor_version = 0;
+	else if (!strcmp(tdsver, "90") || !strcmp(tdsver, "9.0"))
+		version = 0x90;
 #endif
-	} else if (!strcmp(tdsver, "0.0")) {
-		c->major_version = 0;
-		c->minor_version = 0;
-	} else 
+	else if (!strcmp(tdsver, "0.0"))
+		version = 0;
+	else 
 		return 0;
-	
-	return (c->major_version << 4) | c->minor_version;
+
+	if (connection) {
+		connection->major_version = version >> 4;
+		connection->minor_version = version & 0xf;
+	}
+
+	return version;
 }
 
 /**
