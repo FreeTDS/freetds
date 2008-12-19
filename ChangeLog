@@ -1,3 +1,6 @@
+Fri Dec 19 19:43:07 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/bulk.c: fix possible issue with 64 bit machines
+
 Fri Dec 19 17:22:14 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c:
 	- fix typo, process last empty field from sql browser
@@ -1110,4 +1113,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2691 2008-12-19 16:23:20 freddy77 Exp $
+$Id: ChangeLog,v 1.2692 2008-12-19 18:43:21 freddy77 Exp $

@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.7 2008-12-19 15:41:29 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.8 2008-12-19 18:43:21 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -500,8 +500,8 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 					break;
 				}
 
-				tdsdump_log(TDS_DBG_INFO1, "new_record_size = %d datalen = %d \n", 
-							record - bcpinfo->bindinfo->current_row, bindcol->bcp_column_data->datalen);
+				tdsdump_log(TDS_DBG_INFO1, "new_record_size = %ld datalen = %d\n", 
+							(long int) (record - bcpinfo->bindinfo->current_row), bindcol->bcp_column_data->datalen);
 
 #if WORDS_BIGENDIAN
 				tds_swap_datatype(tds_get_conversion_type(bindcol->column_type, bindcol->bcp_column_data->datalen),
@@ -522,8 +522,8 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 				}
 
 			}
-			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n",
-					old_record_size, record - bcpinfo->bindinfo->current_row);
+			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %ld\n",
+					old_record_size, (long int) (record - bcpinfo->bindinfo->current_row));
 		}
 
 		tds_put_byte(tds, TDS_ROW_TOKEN);   /* 0xd1 */
