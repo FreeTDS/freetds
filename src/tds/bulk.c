@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.6 2008-12-16 15:41:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.7 2008-12-19 15:41:29 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -79,6 +79,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
 		return TDS_FAIL;
 
+	/* TODO possibly stop at ROWFMT and copy before going to idle */
 	/* TODO check what happen if table is not present, cleanup on error */
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 		   == TDS_SUCCEED) {
@@ -148,7 +149,8 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 		if (tds_submit_queryf(tds, "set identity_insert %s on", bcpinfo->tablename) == TDS_FAIL)
 			goto cleanup;
-	
+
+		/* TODO use tds_process_simple_query */
 		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 			   == TDS_SUCCEED) {
 		}
@@ -349,6 +351,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 		colclause.cb = sizeof(clause_buffer);
 		colclause.from_malloc = 0;
 
+		/* TODO avoid asprintf, use always malloc-ed buffer */
 		firstcol = 1;
 
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
@@ -412,23 +415,15 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 
 	unsigned char *record;
 	TDS_INT	 old_record_size;
-	TDS_INT	 new_record_size;
-	TDS_TINYINT  varint_1;
-
-	int row_pos;
-	int row_sz_pos;
-	TDS_SMALLINT row_size;
-	int blob_cols = 0;
-	int var_cols_written = 0;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(offset %d)\n", offset);
+	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, %p, %d)\n", tds, bcpinfo, get_col_data, null_error, offset);
 
 	record = bcpinfo->bindinfo->current_row;
 	old_record_size = bcpinfo->bindinfo->row_size;
-	new_record_size = 0;
 
 	if (IS_TDS7_PLUS(tds)) {
+		TDS_TINYINT  varint_1;
 
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 	
@@ -462,12 +457,10 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 					case XSYBNVARCHAR:
 						memcpy(record, CHARBIN_NULL, 2);
 						record +=2;
-						new_record_size +=2;
 						break;
 					default:
 						*record = GEN_NULL;
 						record++;
-						new_record_size ++;
 						break;
 					}
 				} else {
@@ -483,14 +476,13 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 						*record = textptr_size; record++;
 						memcpy(record, textptr, 16); record += 16;
 						memcpy(record, timestamp, 8); record += 8;
-						new_record_size += 25;
 					}
 					TDS_PUT_UA4LE(record, bindcol->bcp_column_data->datalen);
-					record += 4; new_record_size +=4;
+					record += 4;
 					break;
 				case 2:
 					TDS_PUT_UA2LE(record, bindcol->bcp_column_data->datalen);
-					record += 2; new_record_size +=2;
+					record += 2;
 					break;
 				case 1:
 					varint_1 = bindcol->bcp_column_data->datalen;
@@ -502,14 +494,14 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 						varint_1 = bindcol->bcp_column_data->datalen;
 						tdsdump_log(TDS_DBG_INFO1, "varint_1 = %d\n", varint_1);
 					}
-					*record = varint_1; record++; new_record_size++;
+					*record = varint_1; record++;
 					break;
 				case 0:
 					break;
 				}
 
 				tdsdump_log(TDS_DBG_INFO1, "new_record_size = %d datalen = %d \n", 
-							new_record_size, bindcol->bcp_column_data->datalen);
+							record - bcpinfo->bindinfo->current_row, bindcol->bcp_column_data->datalen);
 
 #if WORDS_BIGENDIAN
 				tds_swap_datatype(tds_get_conversion_type(bindcol->column_type, bindcol->bcp_column_data->datalen),
@@ -524,22 +516,26 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 					size = tds_numeric_bytes_per_prec[num->precision];
 					memcpy(record, num->array, size);
 					record += size; 
-					new_record_size += size;
 				} else {
 					memcpy(record, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
 					record += bindcol->bcp_column_data->datalen;
-					new_record_size += bindcol->bcp_column_data->datalen;
 				}
 
 			}
 			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n",
-					old_record_size, new_record_size);
+					old_record_size, record - bcpinfo->bindinfo->current_row);
 		}
 
 		tds_put_byte(tds, TDS_ROW_TOKEN);   /* 0xd1 */
-		tds_put_n(tds, bcpinfo->bindinfo->current_row, new_record_size);
+		tds_put_n(tds, bcpinfo->bindinfo->current_row, record - bcpinfo->bindinfo->current_row);
 	}  /* IS_TDS7_PLUS */
 	else {
+		int row_pos;
+		int row_sz_pos;
+		TDS_SMALLINT row_size;
+		int blob_cols = 0;
+		int var_cols_written = 0;
+
 		memset(record, '\0', old_record_size);	/* zero the rowbuffer */
 
 		/*
