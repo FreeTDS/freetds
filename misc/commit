@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: commit,v 1.1 2008-12-19 15:48:53 freddy77 Exp $
+# $Id: commit,v 1.2 2008-12-19 19:22:17 freddy77 Exp $
 
 use strict;
 
@@ -30,16 +30,16 @@ while(<CHANGES>) {
 close(CHANGES);
 
 my @lastFiles; # all files collected
-my $lastComment = ''; # all comments collected
+my @lastComments = (); # all comments collected
 my @changeLog; # list of files with proper comments
 
 sub addChangeLog()
 {
+	@lastComments = grep { $_ ne '' } map { s/\s+/ /sg; s/^ //; s/ $//; $_ } @lastComments;
+	return if $#lastComments < 0;
 	die('comment with no files') if $#lastFiles < 0;
-	my @files = @lastFiles;
-	$lastComment =~ s/ $//;
-	push @changeLog, { files => \@files, comment => $lastComment };
-	$lastComment = '';
+	push @changeLog, { files => [@lastFiles], comments => [@lastComments] };
+	@lastComments = ();
 	@lastFiles = ();
 }
 
@@ -48,7 +48,7 @@ sub dumpChangeLog()
 	print "dumping changeLog\n";
 	foreach my $ch (@changeLog) {
 		print "\tfiles: ".join(' ',@{$ch->{files}})."
-\tcomment: $ch->{comment}
+\tcomments: - ".join("\n\t\t- ", @{$ch->{comments}})."
 ";
 	}
 }
@@ -61,8 +61,9 @@ sub parseLine($)
 	print "parsing line $line\n" if $debug;
 
 	# anything after : or - is a comment
-	if ($line =~ /(.*?)[-:](.*)/) {
-		($line, $comment) = ($1, $2);
+	if ($line =~ /(.*?)([-:])(.*)/) {
+		($line, $comment) = ($1, $3);
+		push(@lastComments, '') if $2 eq '-';
 		print "line $line comment $comment\n" if $debug;
 	}
 
@@ -77,10 +78,11 @@ sub parseLine($)
 
 	my $fileFound = 0;
 	foreach my $tok (split(/\s+/, $line)) {
+		next if $tok eq '';
 		print "token $tok\n" if $debug;
 		if (defined($changes{$tok})) {
 			# add comment to files
-			addChangeLog if ($lastComment);
+			addChangeLog();
 			$fileFound = 1;
 			die ("found two $tok references") if ++$changes{$tok} > 1;
 			push @lastFiles, $tok;
@@ -95,10 +97,9 @@ sub parseLine($)
 
 	$line =~ s/^\s+//s;
 	$comment =~ s/^\s+//s;
-	die ('two comments') if $line ne '' && $comment ne '';
-	$lastComment .= " $line $comment";
-	$lastComment =~ s/\s+/ /sg;
-	$lastComment =~ s/^ //;
+	die ('two comments in a line') if $line ne '' && $comment ne '';
+	push(@lastComments, '') if $#lastComments < 0;
+	$lastComments[-1] .= " $line $comment";
 }
 
 # extract first ChangeLog rows
@@ -120,7 +121,7 @@ while (<CL>) {
 	++$nRow;
 	die('too many start rows') if $nRow >= 20;
 }
-addChangeLog if ($lastComment);
+addChangeLog();
 die('files with no comments') if $#lastFiles >= 0;
 dumpChangeLog if $debug;
 close(CL);
@@ -144,19 +145,19 @@ sub splitLines($$$$$)
 }
 
 # compute ChangeLog lines and list of all files
-my $date = `date`;
+my $date = `LANG=C date`;
 chomp $date;
 my $norm = "$date    Frediano Ziglio <freddy77_A_gmail_D_com>\n";
 my @allFiles = ('ChangeLog');
 foreach my $ch (@changeLog) {
 	push @allFiles, @{$ch->{files}};
 	my $files = join(' ', @{$ch->{files}});
-	my $oneLine = "* $files: $ch->{comment}";
-	if (length($oneLine) + 8 <= $lineLimit) {
+	my $oneLine = "* $files: $ch->{comments}";
+	if (scalar @{$ch->{comments}} == 1 && length($oneLine) + 8 <= $lineLimit) {
 		$norm .= "\t$oneLine\n"
 	} else {
 		$norm .= splitLines($files, "\t* ", "\t* ", ':', $lineLimit - 11);
-		$norm .= splitLines($ch->{comment}, "\t- ", "\t  ", '', $lineLimit - 10);
+		$norm .= join('', map { splitLines($_, "\t- ", "\t  ", '', $lineLimit - 10) } @{$ch->{comments}});
 	}
 }
 print "Normalized ChangeLog:\n$norm";
