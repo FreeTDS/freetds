@@ -13,7 +13,7 @@
 
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.15 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.16 2008-12-19 10:38:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -23,20 +23,20 @@ static void test_bind(DBPROCESS * dbproc);
 /*
  * Static data for insertion
  */
-int not_null_bit = 1;
-char not_null_char[] = "a char";
-char not_null_varchar[] = "a varchar";
-char not_null_datetime[] 		= "Dec 17 2003  3:44PM";
-char not_null_smalldatetime[] 	= "Dec 17 2003  3:44PM";
-char not_null_money[] = "12.34";
-char not_null_smallmoney[] = "12.34";
-char not_null_float[] = "12.34";
-char not_null_real[] = "12.34";
-char not_null_decimal[] = "12.34";
-char not_null_numeric[] = "12.34";
-int not_null_int        = 1234;
-int not_null_smallint   = 1234;
-int not_null_tinyint    = 123;
+static int not_null_bit = 1;
+static char not_null_char[] = "a char";
+static char not_null_varchar[] = "a varchar";
+static char not_null_datetime[] 		= "Dec 17 2003  3:44PM";
+static char not_null_smalldatetime[] 	= "Dec 17 2003  3:44PM";
+static char not_null_money[] = "12.34";
+static char not_null_smallmoney[] = "12.34";
+static char not_null_float[] = "12.34";
+static char not_null_real[] = "12.34";
+static char not_null_decimal[] = "12.34";
+static char not_null_numeric[] = "12.34";
+static int not_null_int        = 1234;
+static int not_null_smallint   = 1234;
+static int not_null_tinyint    = 123;
 
 
 static int

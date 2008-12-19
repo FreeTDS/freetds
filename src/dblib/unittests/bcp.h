@@ -1,4 +1,4 @@
-char create_table_sql[] = 
+static const char create_table_sql[] = 
 "CREATE TABLE all_types_bcp_unittest (\n"
 "	  not_null_bit			bit NOT NULL\n"
 "\n"
