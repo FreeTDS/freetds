@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.80 2008-12-15 05:31:15 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.81 2008-12-19 16:23:20 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -800,7 +800,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 /**
  * Get port of all instances
  * @return default port number or 0 if error
- * @remark experimental, cf. MS-SQLR.pdf.
+ * @remark experimental, cf. MC-SQLR.pdf.
  */
 int
 tds7_get_instance_ports(FILE *output, const char *ip_addr)
@@ -1098,11 +1098,14 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 					break;
 				*p++ = 0;
 
-				value = p;
-				p = strchr(p, ';');
-				if (!p)
-					break;
-				*p++ = 0;
+				value = name;
+				if (*name) {
+					value = p;
+					p = strchr(p, ';');
+					if (!p)
+						break;
+					*p++ = 0;
+				}
 
 				if (strcasecmp(name, "InstanceName") == 0) {
 					if (strcasecmp(value, instance) != 0)

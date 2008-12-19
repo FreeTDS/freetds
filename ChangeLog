@@ -1,3 +1,7 @@
+Fri Dec 19 17:22:14 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c:
+	- fix typo, process last empty field from sql browser
+
 Fri Dec 19 16:40:53 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/bulk.c:
 	- notes, reduce variable scope, remove new_record_size
@@ -1106,4 +1110,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2690 2008-12-19 15:41:29 freddy77 Exp $
+$Id: ChangeLog,v 1.2691 2008-12-19 16:23:20 freddy77 Exp $
