@@ -1,3 +1,7 @@
+Fri Dec 19 11:36:53 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/blk.c: fix memory problem
+	* src/ctlib/ct.c: small optimization
+
 Wed Dec 17 12:10:29 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/config.c: optimize
 
@@ -1094,4 +1098,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2687 2008-12-17 11:12:02 freddy77 Exp $
+$Id: ChangeLog,v 1.2688 2008-12-19 10:37:51 freddy77 Exp $

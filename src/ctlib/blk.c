@@ -38,7 +38,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.48 2008-12-16 09:26:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.49 2008-12-19 10:37:51 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
@@ -598,7 +598,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 		blkdesc->bcpinfo.xfer_init = 1;
 	} 
 
-	blkdesc->bcpinfo.parent = &blkdesc;
+	blkdesc->bcpinfo.parent = blkdesc;
 	for (each_row = 0; each_row < rows_to_xfer; each_row++ ) {
 
 		if (tds_bcp_send_record(tds, &blkdesc->bcpinfo, _blk_get_col_data, _blk_null_error, each_row) == TDS_SUCCEED) {
@@ -638,6 +638,8 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 	 * retrieve the initial bound column_varaddress
 	 * and increment it if offset specified
 	 */
+
+	tdsdump_log(TDS_DBG_FUNC, "_blk_get_col_data(%p, %p, %d)\n", bulk, bindcol, offset);
 
 	src = (unsigned char *) bindcol->column_varaddr;
 	src += offset * bindcol->column_bindlen;

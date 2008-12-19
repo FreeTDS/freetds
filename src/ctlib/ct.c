@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.184 2008-12-17 11:04:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.185 2008-12-19 10:37:51 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -264,12 +264,11 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 	login = tds_alloc_login();
 	if (!login)
 		return CS_FAIL;
-	*con = (CS_CONNECTION *) malloc(sizeof(CS_CONNECTION));
+	*con = (CS_CONNECTION *) calloc(1, sizeof(CS_CONNECTION));
 	if (!*con) {
 		tds_free_login(login);
 		return CS_FAIL;
 	}
-	memset(*con, '\0', sizeof(CS_CONNECTION));
 	(*con)->tds_login = login;
 
 	/* so we know who we belong to */
