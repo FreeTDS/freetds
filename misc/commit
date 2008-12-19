@@ -1,0 +1,210 @@
+#!/usr/bin/perl
+
+# $Id: commit,v 1.1 2008-12-19 15:48:53 freddy77 Exp $
+
+use strict;
+
+my $debug = 0;
+my $lineLimit = 75; # maximun row length
+
+# parse arguments
+my $cvsMessage = '';
+foreach my $arg (@ARGV) {
+	$debug = 1, next if $arg eq '--debug';
+	die("wrong argument $cvsMessage\n") if $cvsMessage ne '';
+	$cvsMessage = $arg;
+}
+die("cvs commit message required\n") if $cvsMessage eq '';
+
+`freetds_local`;
+die('setting local') if $?;
+
+# extract file changed
+open(CHANGES, 'cvs diff 2> /dev/null | lsdiff |') or die('gettting file changed');
+my %changes;
+while(<CHANGES>) {
+	chomp;
+	print "detected file changed $_\n" if $debug;
+	$changes{$_} = 0;
+}
+close(CHANGES);
+
+my @lastFiles; # all files collected
+my $lastComment = ''; # all comments collected
+my @changeLog; # list of files with proper comments
+
+sub addChangeLog()
+{
+	die('comment with no files') if $#lastFiles < 0;
+	my @files = @lastFiles;
+	$lastComment =~ s/ $//;
+	push @changeLog, { files => \@files, comment => $lastComment };
+	$lastComment = '';
+	@lastFiles = ();
+}
+
+sub dumpChangeLog()
+{
+	print "dumping changeLog\n";
+	foreach my $ch (@changeLog) {
+		print "\tfiles: ".join(' ',@{$ch->{files}})."
+\tcomment: $ch->{comment}
+";
+	}
+}
+sub parseLine($)
+{
+	my ($line) = @_;
+	my $comment = '';
+	chomp $line;
+	print "lastFiles @lastFiles\n" if $debug;
+	print "parsing line $line\n" if $debug;
+
+	# anything after : or - is a comment
+	if ($line =~ /(.*?)[-:](.*)/) {
+		($line, $comment) = ($1, $2);
+		print "line $line comment $comment\n" if $debug;
+	}
+
+	# if start with * a file follows
+	my $needFile = 0;
+	if ($line =~ /^\s*\*\s*(.*)/) {
+		$needFile = 1;
+		$line = $1;
+	}
+
+	print "parsing line $line\n" if $debug;
+
+	my $fileFound = 0;
+	foreach my $tok (split(/\s+/, $line)) {
+		print "token $tok\n" if $debug;
+		if (defined($changes{$tok})) {
+			# add comment to files
+			addChangeLog if ($lastComment);
+			$fileFound = 1;
+			die ("found two $tok references") if ++$changes{$tok} > 1;
+			push @lastFiles, $tok;
+			print "file $tok detected\n" if $debug;
+			$line =~ s/.*?$tok\s*//;
+			print "line left $line\n" if $debug;
+		} else {
+			last
+		}
+	}
+	die('wrong format line, file expected') if $needFile && !$fileFound;
+
+	$line =~ s/^\s+//s;
+	$comment =~ s/^\s+//s;
+	die ('two comments') if $line ne '' && $comment ne '';
+	$lastComment .= " $line $comment";
+	$lastComment =~ s/\s+/ /sg;
+	$lastComment =~ s/^ //;
+}
+
+# extract first ChangeLog rows
+open(CL, '<', 'ChangeLog') or die ('opening ChangeLog');
+my $nRow = 1;
+my $begin = '';
+while (<CL>) {
+	my $hdr = 0;
+	if ($nRow == 1) {
+		my $norm = $_;
+		$norm =~ s/\s+/ /g;
+		$hdr = ($norm =~ /Frediano Ziglio/i);
+	}
+	if (!$hdr) {
+		last if $nRow != 1 && $_ ne "\n" && !/^[ \t]/;
+		&parseLine($_);
+		$begin .= $_;
+	}
+	++$nRow;
+	die('too many start rows') if $nRow >= 20;
+}
+addChangeLog if ($lastComment);
+die('files with no comments') if $#lastFiles >= 0;
+dumpChangeLog if $debug;
+close(CL);
+--$nRow;
+print "readed $nRow lines\n" if $debug;
+print "begin with: \n--- START ---\n$begin--- END ---\n" if $debug;
+
+sub splitLines($$$$$)
+{
+	my ($line, $start1, $start2, $end, $limit) = @_;
+	my $res = '';
+	my $start = $start1;
+	while (length($line) > $limit) {
+		die("unable to split line:\n'$line'") if ($line !~ /^(.{1,$limit}) (.*)$/);
+		$res .= "$start$1$end\n";
+		$start = $start2;
+		$line = $2;
+	}
+	$res .= "$start$line$end\n";
+	return $res;
+}
+
+# compute ChangeLog lines and list of all files
+my $date = `date`;
+chomp $date;
+my $norm = "$date    Frediano Ziglio <freddy77_A_gmail_D_com>\n";
+my @allFiles = ('ChangeLog');
+foreach my $ch (@changeLog) {
+	push @allFiles, @{$ch->{files}};
+	my $files = join(' ', @{$ch->{files}});
+	my $oneLine = "* $files: $ch->{comment}";
+	if (length($oneLine) + 8 <= $lineLimit) {
+		$norm .= "\t$oneLine\n"
+	} else {
+		$norm .= splitLines($files, "\t* ", "\t* ", ':', $lineLimit - 11);
+		$norm .= splitLines($ch->{comment}, "\t- ", "\t  ", '', $lineLimit - 10);
+	}
+}
+print "Normalized ChangeLog:\n$norm";
+print "Changed file list:\n".splitLines(join(' ',@allFiles), "\t", "\t", '', $lineLimit - 8);
+print "Message:\n\t$cvsMessage\n";
+
+# request confirm
+for (;;) {
+	print "Agree (yes|no)\n";
+	$! = '';
+	my $answer = <STDIN>;
+	die("error reading reply: $!") if !defined($answer);
+	chomp $answer;
+	last if $answer eq 'yes';
+	exit(0) if $answer eq 'no';
+}
+
+# change ChangeLog if needed
+open(CL, '<', 'ChangeLog') or die ('opening ChangeLog');
+open(CL2, '>', '.ChangeLog.tmp') or die ('opening ChangeLog');
+print CL2 "$norm\n";
+for my $i (1..$nRow) {
+	<CL>;
+}
+while (<CL>) {
+	print CL2 $_;
+}
+close(CL2);
+close(CL);
+rename('.ChangeLog.tmp', 'ChangeLog') or die('error renaming temp ChangeLog file');
+
+# commit 
+`freetds_remote`;
+die('setting local') if $?;
+$| = 1;
+if (!fork()) {
+	my @args = ('cvs', 'commit', '-m', $cvsMessage, @allFiles);
+	print "Command:\n\t".join(' ', @args)."\n" if $debug;
+	exec @args if !$debug;
+	exit(1);
+}
+wait();
+my $cvsOut = $?;
+
+`freetds_local`;
+die('setting local') if $?;
+
+die('cvs command failed') if $cvsOut;
+
+print "Everything went all right\n";
+
