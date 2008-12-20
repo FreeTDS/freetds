@@ -1,26 +1,28 @@
-AUTOMAKE_OPTIONS	=	1.5.3
+AUTOMAKE_OPTIONS =	1.5.3
 
-include_HEADERS	=	bkpublic.h cspublic.h cstypes.h ctpublic.h \
+include_HEADERS	=	bkpublic.h \
+			cspublic.h cstypes.h ctpublic.h \
 			sqldb.h sqlfront.h \
 			sybdb.h sybfront.h \
 			syberror.h odbcss.h
 
-nodist_include_HEADERS	=	tds_sysdep_public.h
+nodist_include_HEADERS	= tds_sysdep_public.h
 
-noinst_HEADERS	=	tds_configs.h \
-			tds_sysdep_private.h \
+noinst_HEADERS	=	ctlib.h \
+			dblib.h \
 			md4.h md5.h des.h hmac_md5.h \
 			replacements.h \
-			tdsstring.h \
-			tdsodbc.h \
-			tdsiconv.h \
-			dblib.h \
-			ctlib.h \
-			tdsthread.h \
-			tdsbytes.h \
 			replacements/readpassphrase.h \
 			tds.h tdsver.h tdsconvert.h \
-			tdssrv.h
+			tds_sysdep_private.h \
+			tdsbytes.h \
+			tdsiconv.h \
+			tdsodbc.h \
+			tdssrv.h \
+			tdsstring.h \
+			tdsthread.h \
+			tds_configs.h
+
 
 DISTCLEANFILES	=	tds_sysdep_public.h freetds_sysconfdir.h
 

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.37 2008-05-28 13:44:19 jklowden Exp $
+dnl $Id: configure.ac,v 1.38 2008-12-20 06:01:26 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.83.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.37 $)
+AC_REVISION($Revision: 1.38 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -238,12 +238,32 @@ AC_STRUCT_TIMEZONE
 AC_CHECK_MEMBERS([struct tm.__tm_zone],,,[#include <sys/types.h>
 #include <$ac_cv_struct_tm>
 ])
-AC_CHECK_HEADERS([unistd.h errno.h wchar.h sys/time.h sys/types.h \
-sys/param.h sys/stat.h sys/wait.h limits.h locale.h odbcss.h readpassphrase.h \
-signal.h libgen.h poll.h getopt.h])
+AC_CHECK_HEADERS([	errno.h \
+			getopt.h \
+			libgen.h \
+			limits.h \
+			locale.h \
+			odbcss.h \
+			poll.h \
+			readpassphrase.h \
+			signal.h \
+			sys/param.h \
+			sys/select.h \
+			sys/stat.h \
+			sys/time.h \
+			sys/types.h \
+			sys/wait.h \
+			unistd.h \
+			wchar.h ])
 if test $tds_mingw = no; then
-	AC_CHECK_HEADERS([sys/socket.h arpa/inet.h netdb.h netinet/in.h \
-netinet/tcp.h paths.h sys/ioctl.h langinfo.h])
+    AC_CHECK_HEADERS([	arpa/inet.h \
+			langinfo.h \
+			netdb.h \
+			netinet/in.h \
+			netinet/tcp.h \
+			paths.h \
+			sys/ioctl.h \
+			sys/socket.h ])
 fi
 AC_HAVE_INADDR_NONE
 
