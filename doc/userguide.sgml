@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-12-10 23:27:09 $</date>
-		<releaseinfo>$Revision: 1.119 $</releaseinfo>
+		<date>$Date: 2008-12-20 06:01:41 $</date>
+		<releaseinfo>$Revision: 1.120 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -56,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.119 $</>
-<member>$Date: 2008-12-10 23:27:09 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.119 2008-12-10 23:27:09 jklowden Exp $.</>
+<member>$Revision: 1.120 $</>
+<member>$Date: 2008-12-20 06:01:41 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.120 2008-12-20 06:01:41 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -568,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-12-10 23:27:09 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2008-12-20 06:01:41 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -2774,7 +2774,7 @@ If this fails, FreeTDS is either not finding your <filename>freetds.conf</filena
 <prompt>$ </prompt><userinput>export TDSDUMP=/tmp/freetds.log</userinput>
 </screen>
 Will generate a log file named <filename>freetds.log</filename> in the <filename>/tmp</filename> directory.  
-			<tip><para> The filenames <filename>stdout</> and <filename>stderr</> are also supported.  They can be handy if you want o interpserse the log output with your application's output, or if your application opens more than one connection.  (The logfile is otherwise normally truncatated each time the library connects to the server.) </para></tip>
+			<tip><para> The filenames <filename>stdout</> and <filename>stderr</> are also supported.  They can be handy if you want to intersperse the log output with your application's output, or if your application opens more than one connection.  (The logfile is otherwise normally truncatated each time the library connects to the server.) </para></tip>
 			</para>
 		</listitem>
 	</varlistentry>	
@@ -2791,7 +2791,7 @@ obtained, e.g. from environment variables, a <filename>freetds.conf</filename> f
 
 			<tip><para>
 What if you were running <productname>Apache</productname>/PHP?  <productname>Apache</productname> has many children.
-Setting the <envar>TDSDUMP</envar> variable to a null string will cause <productname>FreeTDS</productname> to open a log under every PID.
+Setting the <envar>TDSDUMP</envar> (and/or <envar>TDSDUMPCONFIG</envar>) variable to a null string will cause <productname>FreeTDS</productname> to open a log under every PID.
 <screen>
 <prompt>$ </prompt><userinput>export TDSDUMP=""</userinput>
 </screen>
