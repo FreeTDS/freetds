@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: commit,v 1.2 2008-12-19 19:22:17 freddy77 Exp $
+# $Id: commit,v 1.3 2008-12-20 19:13:41 freddy77 Exp $
 
 use strict;
 
@@ -20,7 +20,7 @@ die("cvs commit message required\n") if $cvsMessage eq '';
 die('setting local') if $?;
 
 # extract file changed
-open(CHANGES, 'cvs diff 2> /dev/null | lsdiff |') or die('gettting file changed');
+open(CHANGES, 'cvs diff 2> /dev/null | lsdiff |') or die('getting files changed');
 my %changes;
 while(<CHANGES>) {
 	chomp;
@@ -152,7 +152,7 @@ my @allFiles = ('ChangeLog');
 foreach my $ch (@changeLog) {
 	push @allFiles, @{$ch->{files}};
 	my $files = join(' ', @{$ch->{files}});
-	my $oneLine = "* $files: $ch->{comments}";
+	my $oneLine = "* $files: @{$ch->{comments}}";
 	if (scalar @{$ch->{comments}} == 1 && length($oneLine) + 8 <= $lineLimit) {
 		$norm .= "\t$oneLine\n"
 	} else {
