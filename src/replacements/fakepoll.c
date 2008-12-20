@@ -18,7 +18,7 @@
  * Converted to C and spruced up by James K. Lowden December 2008. 
  */
 
-static char software_version[] = "$Id: fakepoll.c,v 1.1 2008-12-20 06:01:47 jklowden Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.2 2008-12-20 19:11:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #include "fakepoll.h"
@@ -79,8 +79,10 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 			continue;
 		} 
 
+#if !defined(WIN32)
 		if (p->fd > maxfd)
 			maxfd = p->fd;
+#endif
 
 		/* POLLERR is never set coming in; poll(2) always reports errors */
 		/* But don't report if we're not listening to anything at all. */
@@ -92,6 +94,7 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 			FD_SET(p->fd, &fdsp);
 	}
 
+#if !defined(WIN32)
 	/* 
 	 * If any FD is too big for select(2), we need to return an error. 
 	 * Which one, though, is debatable.  There's no defined errno for 
@@ -105,6 +108,7 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 		errno = EINVAL;
 		return -1;
 	}
+#endif
 
 	/*
 	 * poll timeout is in milliseconds. Convert to struct timeval.
