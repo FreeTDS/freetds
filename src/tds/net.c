@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.82 2008-12-20 06:01:22 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.83 2008-12-20 19:30:55 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -926,7 +926,7 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 					if( *p == ';' )
 						*p = *sep;
 				}
-				fprintf(output, msg + 3);
+				fputs(msg + 3, output);
 			}
 
 			/*
