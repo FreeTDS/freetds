@@ -22,13 +22,7 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#if HAVE_STDLIB_H
 #include <stdlib.h>
-#endif /* HAVE_STDLIB_H */
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -47,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.182 2008-11-05 14:54:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.183 2008-12-20 06:01:21 jklowden Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -955,7 +949,9 @@ TDSLOGIN *
 tds_alloc_login(void)
 {
 	TDSLOGIN *tds_login;
-
+	const char *server_name = "SYBASE";
+	char *s;
+	
 	TEST_MALLOC(tds_login, TDSLOGIN);
 	tds_dstr_init(&tds_login->server_name);
 	tds_dstr_init(&tds_login->server_addr);
@@ -967,7 +963,16 @@ tds_alloc_login(void)
 	tds_dstr_init(&tds_login->password);
 	tds_dstr_init(&tds_login->library);
 	tds_dstr_init(&tds_login->client_charset);
+
+	if ((s=getenv("DSQUERY")) != NULL)
+		server_name = s;
+
+	if ((s=getenv("TDSQUERY")) != NULL)
+		server_name = s;
+
+	tds_dstr_copy(&tds_login->server_name, server_name);
 	memcpy(tds_login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
+
 	return tds_login;
 
       Cleanup:
@@ -993,6 +998,7 @@ tds_free_login(TDSLOGIN * login)
 		free(login);
 	}
 }
+
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {

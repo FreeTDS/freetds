@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.81 2008-12-19 16:23:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.82 2008-12-20 06:01:22 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -347,9 +347,11 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 {
 	int rc, seconds;
 	unsigned int poll_seconds;
+	const char *method = "poll(2)";
 #if !USE_POLL
 	fd_set fds[3];
 	fd_set *readfds = NULL, *writefds = NULL, *exceptfds = NULL;
+	method = "select(2)";
 #endif
 
 	assert(tds != NULL);
@@ -426,8 +428,8 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			case TDSSOCK_EINTR:
 				break;	/* let interrupt handler be called */
 			default: /* documented: EFAULT, EBADF, EINVAL */
-				tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
-						sock_errno, strerror(sock_errno));
+				tdsdump_log(TDS_DBG_ERROR, "error: %s returned %d, \"%s\"\n", 
+						method, sock_errno, strerror(sock_errno));
 				return rc;
 			}
 		}

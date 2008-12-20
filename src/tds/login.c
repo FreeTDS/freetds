@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.178 2008-12-17 11:04:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.179 2008-12-20 06:01:21 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -122,18 +122,26 @@ tds_set_app(TDSLOGIN * tds_login, const char *application)
 void
 tds_set_server(TDSLOGIN * tds_login, const char *server)
 {
-	if (!server || strlen(server) == 0) {
-		server = getenv("TDSQUERY");
-		tdsdump_log(TDS_DBG_INFO1, "Setting 'server_name' to '%s' from $TDSQUERY.\n", server);
+#if 0
+	// Doing this in tds_alloc_login instead
+	static const char *names[] = { "TDSQUERY", "DSQUERY", "SYBASE" };
+	int i;
+	
+	for (i=0; i < TDS_VECTOR_SIZE(names) && (!server || strlen(server) == 0); i++) {
+		const char *source;
+		if (i + 1 == TDS_VECTOR_SIZE(names)) {
+			server = names[i];
+			source = "compiled-in default";
+		} else {
+			server = getenv(names[i]);
+			source = names[i];
+		}
+		if (server) {
+			tdsdump_log(TDS_DBG_INFO1, "Setting TDSLOGIN::server_name to '%s' from %s.\n", server, source);
+		}
 	}
-	if (!server || strlen(server) == 0) {
-		server = getenv("DSQUERY");
-		tdsdump_log(TDS_DBG_INFO1, "Setting 'server_name' to '%s' from $DSQUERY.\n", server);
-	}
-	if (!server || strlen(server) == 0) {
-		server = "SYBASE";
-		tdsdump_log(TDS_DBG_INFO1, "Setting 'server_name' to '%s' (compiled-in default).\n", server);
-	}
+#endif
+	assert(server);
 	tds_dstr_copy(&tds_login->server_name, server);
 }
 
