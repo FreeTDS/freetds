@@ -1,3 +1,6 @@
+Mon Dec 22 16:32:17 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: use strtok_r instead of strtok
+
 Sat Dec 20 20:30:47 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: remove warning
 
@@ -1141,4 +1144,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2698 2008-12-20 19:30:55 freddy77 Exp $
+$Id: ChangeLog,v 1.2699 2008-12-22 15:33:55 freddy77 Exp $

@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.83 2008-12-20 19:30:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.84 2008-12-22 15:33:55 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -913,7 +913,7 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 
 		/* got data, read and parse */
 		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 3 && msg[0] == 5) {
-			char *name, sep[2] = ";";
+			char *name, sep[2] = ";", *save;
 
 			/* assure null terminated */
 			msg[msg_len] = 0;
@@ -932,14 +932,14 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 			/*
 			 * Parse and print message.
 			 */
-			name = strtok(msg+3, sep);
+			name = strtok_r(msg+3, sep, &save);
 			while (name && output) {
 				int i;
 				static const char *names[] = { "ServerName", "InstanceName", "IsClustered", "Version", 
 							       "tcp", "np", "via" };
-				
+
 				for (i=0; name && i < TDS_VECTOR_SIZE(names); i++) {
-					const char *value = strtok(NULL, sep);
+					const char *value = strtok_r(NULL, sep, &save);
 					
 					if (strcmp(name, names[i]) != 0)
 						fprintf(output, "error: expecting '%s', found '%s'\n", names[i], name);
@@ -948,8 +948,8 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 					else 
 						break;
 
-					name = strtok(NULL, sep);
-					
+					name = strtok_r(NULL, sep, &save);
+
 					if (name && strcmp(name, names[0]) == 0)
 						break;
 				}
