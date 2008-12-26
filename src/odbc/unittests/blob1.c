@@ -3,39 +3,12 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: blob1.c,v 1.14 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.15 2008-12-26 12:20:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-#define CHECK_RCODE(t,h,m) \
-   if ( RetCode != SQL_SUCCESS && RetCode != SQL_SUCCESS_WITH_INFO && RetCode != SQL_NO_DATA && RetCode != SQL_NEED_DATA ) { \
-      fprintf(stderr,"Error %d at: %s\n",RetCode,m); \
-      getErrorInfo(t,h); \
-      exit(1); \
-   }
 
 #define NBYTES 10000
 
 static int failed = 0;
-
-static void
-getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
-{
-	SQLCHAR sqlstate[SQL_SQLSTATE_SIZE + 1];
-	SQLINTEGER naterror = 0;
-	SQLCHAR msgtext[SQL_MAX_MESSAGE_LENGTH + 1];
-	SQLSMALLINT msgtextl = 0;
-
-	SQLGetDiagRec((SQLSMALLINT) sqlhdltype,
-			      (SQLHANDLE) sqlhandle,
-			      (SQLSMALLINT) 1,
-			      (SQLCHAR *) sqlstate,
-			      (SQLINTEGER *) & naterror,
-			      (SQLCHAR *) msgtext, (SQLSMALLINT) sizeof(msgtext), (SQLSMALLINT *) & msgtextl);
-	fprintf(stderr, "Diagnostic info:\n");
-	fprintf(stderr, "  SQL State: %s\n", (char *) sqlstate);
-	fprintf(stderr, "  SQL code : %d\n", (int) naterror);
-	fprintf(stderr, "  Message  : %s\n", (char *) msgtext);
-}
 
 static void
 fill_chars(char *buf, size_t len, unsigned int start, unsigned int step)
@@ -83,7 +56,7 @@ check_hex(const char *buf, size_t len, unsigned int start, unsigned int step)
 	return 1;
 }
 
-static int
+static void
 readBlob(SQLUSMALLINT pos)
 {
 	SQLRETURN rc;
@@ -114,10 +87,9 @@ readBlob(SQLUSMALLINT pos)
 	printf(">>   total bytes read = %d \n", (int) total);
 	if (total != 10000)
 		failed = 1;
-	return rc;
 }
 
-static int
+static void
 readBlobAsChar(SQLUSMALLINT pos, int step)
 {
 	SQLRETURN rc = SQL_SUCCESS_WITH_INFO;
@@ -151,7 +123,6 @@ readBlobAsChar(SQLUSMALLINT pos, int step)
 	printf(">>   total bytes read = %d \n", (int) total);
 	if (total != 20000)
 		failed = 1;
-	return rc;
 }
 
 
@@ -266,12 +237,9 @@ main(int argc, char **argv)
 		CHKFetchScroll(SQL_FETCH_NEXT, 0, "S");
 		printf(">> fetch... %d\n", i);
 
-		RetCode = readBlob(1);
-		CHECK_RCODE(SQL_HANDLE_STMT, Statement, "readBlob 1");
-		RetCode = readBlob(2);
-		CHECK_RCODE(SQL_HANDLE_STMT, Statement, "readBlob 2");
-		RetCode = readBlobAsChar(3, i);
-		CHECK_RCODE(SQL_HANDLE_STMT, Statement, "readBlob 3 as SQL_C_CHAR");
+		readBlob(1);
+		readBlob(2);
+		readBlobAsChar(3, i);
 
 		CHKCloseCursor("S");
 		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
