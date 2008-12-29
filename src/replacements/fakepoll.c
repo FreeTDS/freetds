@@ -18,7 +18,7 @@
  * Converted to C and spruced up by James K. Lowden December 2008. 
  */
 
-static char software_version[] = "$Id: fakepoll.c,v 1.3 2008-12-27 21:48:36 jklowden Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.4 2008-12-29 17:08:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #include "fakepoll.h"
@@ -93,7 +93,7 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 	}
 
 #if defined(WIN32)
-	/* Win32 cares about the number of desciptors, not the highest one. */
+	/* Win32 cares about the number of descriptors, not the highest one. */
 	maxfd = nfds;
 #endif
 	/* 
