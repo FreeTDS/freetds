@@ -1,3 +1,7 @@
+Sat Jan  3 10:25:24 EST 2009	JK Lowden <jklowden@freetds.org>
+	* src/tds/convert.c src/tds/tds_willconvert.pl
+	- support SYBUNIQUE and SYBIMAGE
+
 Sat Jan  3 15:56:46 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/fakepoll.c: check win32 maxfd in a different way
 
@@ -1157,4 +1161,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2703 2009-01-03 14:56:53 freddy77 Exp $
+$Id: ChangeLog,v 1.2704 2009-01-03 15:26:09 jklowden Exp $
