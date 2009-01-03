@@ -18,7 +18,7 @@
  * Converted to C and spruced up by James K. Lowden December 2008. 
  */
 
-static char software_version[] = "$Id: fakepoll.c,v 1.4 2008-12-29 17:08:12 freddy77 Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.5 2009-01-03 14:56:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #include "fakepoll.h"
@@ -79,8 +79,13 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 			continue;
 		} 
 
+#if defined(WIN32)
+		/* Win32 cares about the number of descriptors, not the highest one. */
+		++maxfd;
+#else
 		if (p->fd > maxfd)
 			maxfd = p->fd;
+#endif
 
 		/* POLLERR is never set coming in; poll(2) always reports errors */
 		/* But don't report if we're not listening to anything at all. */
@@ -92,10 +97,6 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 			FD_SET(p->fd, &fdsp);
 	}
 
-#if defined(WIN32)
-	/* Win32 cares about the number of descriptors, not the highest one. */
-	maxfd = nfds;
-#endif
 	/* 
 	 * If any FD is too big for select(2), we need to return an error. 
 	 * Which one, though, is debatable.  There's no defined errno for 

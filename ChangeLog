@@ -1,3 +1,6 @@
+Sat Jan  3 15:56:46 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/replacements/fakepoll.c: check win32 maxfd in a different way
+
 Mon Dec 29 18:08:00 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/fakepoll.c: fix typo in comment
 
@@ -1154,4 +1157,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2702 2008-12-29 17:08:12 freddy77 Exp $
+$Id: ChangeLog,v 1.2703 2009-01-03 14:56:53 freddy77 Exp $
