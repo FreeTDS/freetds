@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.18 2007-12-21 09:06:53 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.19 2009-01-07 02:58:37 jklowden Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -46,10 +46,12 @@
 #ifdef __cplusplus
 extern "C"
 {
-#if 0
-}
 #endif
-#endif
+
+#if !HAVE_POLL
+#include fakepoll.h
+#define poll(fds, nfds, timeout) fakepoll((fds), (nfds), (timeout))
+#endif /* !HAVE_POLL */
 
 #if defined(HAVE__VSNPRINTF) && !defined(HAVE_VSNPRINTF)
 #undef vsnprintf
@@ -97,9 +99,6 @@ int gettimeofday (struct timeval *tv, void *tz);
 #endif
 
 #ifdef __cplusplus
-#if 0
-{
-#endif
 }
 #endif
 
