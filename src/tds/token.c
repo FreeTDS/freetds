@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.357 2008-11-05 14:54:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.358 2009-01-07 02:58:54 jklowden Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2525,7 +2525,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		return TDS_FAIL;
 	}
 
-	tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() reading message from server\n");
+	tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() reading message %d from server\n", msg.msgno);
 	
 	rc = 0;
 	/* the message */
