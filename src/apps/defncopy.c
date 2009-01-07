@@ -48,7 +48,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: defncopy.c,v 1.12 2005-10-12 07:03:21 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.13 2009-01-07 02:58:47 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -221,6 +221,17 @@ parse_argument(const char argument[], PROCEDURE* procedure)
 		strcpy(procedure->owner, "dbo");
 		tds_strlcpy(procedure->name, argument, sizeof(procedure->name));
 	}
+}
+
+char * rtrim(char * s);
+
+char *
+rtrim(char * s)
+{
+	char *p = strchr(s, ' ');
+	if (p) 
+		*p = '\0';
+	return s;
 }
 
 /*
@@ -409,8 +420,11 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 
 		/* get size of decimal, numeric, char, and image types */
 		if (0 == strcasecmp("decimal", ddl[i].type) || 0 == strcasecmp("numeric", ddl[i].type)) {
-			if (ddl[i].precision && 0 != strcasecmp("NULL", ddl[i].precision))
-				ret = asprintf(&type, "%s(%d,%d)", ddl[i].type, *(int*)ddl[i].precision, *(int*)ddl[i].scale);
+			if (ddl[i].precision && 0 != strcasecmp("NULL", ddl[i].precision)) {
+				rtrim(ddl[i].precision);
+				rtrim(ddl[i].scale);
+				ret = asprintf(&type, "%s(%s,%s)", ddl[i].type, ddl[i].precision, ddl[i].scale);
+			}
 		} else {
 			for (t = varytypenames; *t; t++) {
 				if (0 == strcasecmp(*t, ddl[i].type)) {
