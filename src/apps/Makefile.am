@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.28 2008-12-11 12:31:31 freddy77 Exp $
+# $Id: Makefile.am,v 1.29 2009-01-09 04:59:58 jklowden Exp $
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
@@ -25,17 +25,19 @@ tsql_LDADD	= ../tds/libtds.la \
 
 bsqldb_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
-		  $(NETWORK_LIBS)
+		  $(NETWORK_LIBS) $(LIBICONV)
 
 if ODBC
-bsqlodbc_LDADD	= $(ODBCLIB) $(ODBCNODMLIBAPP) \
-		  ../replacements/libreplacements.la $(NETWORK_LIBS)
 bsqlodbc_CPPFLAGS	= $(ODBC_INC) $(AM_CPPFLAGS)
+bsqlodbc_LDADD	= $(ODBCLIB) $(ODBCNODMLIBAPP) \
+		  ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV)
 endif
 
 defncopy_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
-		  $(NETWORK_LIBS)
+		  $(NETWORK_LIBS) $(LIBICONV)
 
 datacopy_SOURCES= datacopy.c
-datacopy_LDADD	= ../dblib/libsybdb.la ../replacements/libreplacements.la $(NETWORK_LIBS)
+datacopy_LDADD	= ../dblib/libsybdb.la \
+		  ../replacements/libreplacements.la \
+		$(NETWORK_LIBS) $(LIBICONV)
