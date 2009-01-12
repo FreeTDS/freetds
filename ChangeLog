@@ -1,3 +1,6 @@
+Mon Jan 12 09:15:34 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/bsqldb.c: ask for password if not specified
+
 Mon Jan 12 09:08:21 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/tsql.c: make get_default_instance_port static
 
@@ -1177,4 +1180,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2707 2009-01-12 08:09:50 freddy77 Exp $
+$Id: ChangeLog,v 1.2708 2009-01-12 08:15:52 freddy77 Exp $

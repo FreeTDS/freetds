@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2004, 2005  James K. Lowden
+ * Copyright (C) 2004-2009  James K. Lowden
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -45,7 +45,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.33 2008-04-23 21:35:45 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.34 2009-01-12 08:15:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -755,6 +755,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 {
 	LOGINREC *login;
 	int ch;
+	int got_password = 0;
 
 	extern char *optarg;
 
@@ -784,6 +785,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			DBSETLUSER(login, optarg);
 			break;
 		case 'P':
+			got_password = 1;
 			DBSETLPWD(login, optarg);
 			break;
 		case 'S':
@@ -821,7 +823,14 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			exit(1);
 		}
 	}
-	
+
+	if (!got_password) {
+		char password[128];
+
+		readpassphrase("Password: ", password, sizeof(password), RPP_ECHO_OFF);
+		DBSETLPWD(login, password);
+        }
+
 	if (!options->servername) {
 		usage(options->appname);
 		exit(1);
