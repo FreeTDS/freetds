@@ -1,3 +1,10 @@
+Fri Jan 16 15:28:57 EST 2009	JK Lowden <jklowden@freetds.org>
+	* FreeTDS.sln 
+	* src/ctlib/ct-lib.vcproj src/dblib/db-lib.vcproj
+	* src/odbc/odbc.vcproj src/replacements/replacements.vcproj
+	* src/tds/TDS.vcproj
+	- add Visual Studio project files
+
 Fri Jan 16 15:19:20 EST 2009	JK Lowden <jklowden@freetds.org>
 	* include/md4.h include/md5.h
 	* include/replacements.h
@@ -1203,4 +1210,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2709 2009-01-16 20:27:55 jklowden Exp $
+$Id: ChangeLog,v 1.2710 2009-01-16 20:31:10 jklowden Exp $
