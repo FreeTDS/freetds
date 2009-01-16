@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.26 2008-11-15 09:57:06 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.27 2009-01-16 20:27:57 jklowden Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -67,7 +67,8 @@ typedef int pid_t;
 #define getpid() _gethostid()
 #endif	/* defined(DOS32X) */
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64)
+#include <winsock2.h>
 #include <windows.h>
 #define READSOCKET(a,b,c)	recv((a), (char *) (b), (c), TDS_NOSIGNAL)
 #define WRITESOCKET(a,b,c)	send((a), (const char *) (b), (c), TDS_NOSIGNAL)

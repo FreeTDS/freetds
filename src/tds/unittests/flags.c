@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.14 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: flags.c,v 1.15 2009-01-16 20:27:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -39,7 +39,7 @@ check_flags(TDSCOLUMN * curcol, int n, const char *possible_results)
 {
 	char msg[256];
 	char flags[256];
-	int l;
+	size_t l;
 	char *all_res = strdup(possible_results);
 	char *res;
 	int correct = 0;

@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.140 2008-12-17 11:12:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.141 2009-01-16 20:27:58 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -286,7 +286,7 @@ tds_get_home_file(const char *file)
 	home = tds_get_homedir();
 	if (!home)
 		return NULL;
-	if (asprintf(&path, "%s" TDS_SDIR_SEPARATOR "%s", home, file) < 0)
+	if (asprintf(&path, "%s/%s", home, file) < 0)
 		path = NULL;
 	free(home);
 	return path;

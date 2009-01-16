@@ -20,7 +20,7 @@
 #ifndef _tdsstring_h_
 #define _tdsstring_h_
 
-/* $Id: tdsstring.h,v 1.19 2007-07-01 10:10:52 freddy77 Exp $ */
+/* $Id: tdsstring.h,v 1.20 2009-01-16 20:27:57 jklowden Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -61,13 +61,13 @@ void tds_dstr_free(DSTR * s);
 
 DSTR* tds_dstr_dup(DSTR * s, const DSTR * src);
 DSTR* tds_dstr_copy(DSTR * s, const char *src);
-DSTR* tds_dstr_copyn(DSTR * s, const char *src, unsigned int length);
+DSTR* tds_dstr_copyn(DSTR * s, const char *src, size_t length);
 DSTR* tds_dstr_set(DSTR * s, char *src);
 
 /** limit length of string, MUST be <= current length */
-DSTR* tds_dstr_setlen(DSTR *s, unsigned int length);
+DSTR* tds_dstr_setlen(DSTR *s, size_t length);
 /** allocate space for length char */
-DSTR* tds_dstr_alloc(DSTR *s, unsigned int length);
+DSTR* tds_dstr_alloc(DSTR *s, size_t length);
 
 /** @} */
 

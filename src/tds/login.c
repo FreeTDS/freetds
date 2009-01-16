@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.179 2008-12-20 06:01:21 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.180 2009-01-16 20:27:58 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -506,7 +506,13 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 static int
 tds_put_login_string(TDSSOCKET * tds, const char *buf, int n)
 {
-	int buf_len = (buf ? strlen(buf) : 0);
+	char string[32];
+	const int buf_len = buf ? (int)strlen(buf) : 0;
+	memset(string, '<', sizeof(string));
+	memcpy(string, buf, n);
+	string[sizeof(string)-1] = '\0';
+	if(n)
+		tdsdump_dump_buf(TDS_DBG_INFO1, "login string", buf, n);
 
 	return tds_put_buf(tds, (const unsigned char *) buf, n, buf_len);
 }
@@ -616,7 +622,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (IS_TDS42(tds)) {
 		tds_put_login_string(tds, tds_dstr_cstr(&connection->password), 255);
 	} else {
-		len = tds_dstr_len(&connection->password);
+		len = (int)tds_dstr_len(&connection->password);
 		if (len > 253)
 			len = 0;
 		tds_put_byte(tds, 0);
@@ -713,20 +719,21 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	char unicode_string[256];
 	char *punicode;
 	size_t unicode_left;
-	int packet_size;
-	int block_size;
-	int current_pos;
+	size_t packet_size;
+	TDS_INT block_size;
+	size_t current_pos;
 
 	const char *user_name = tds_dstr_cstr(&connection->user_name);
-	int user_name_len = strlen(user_name);
-	int host_name_len = tds_dstr_len(&connection->client_host_name);
-	int app_name_len = tds_dstr_len(&connection->app_name);
+	// FIXME: These are defined as size_t, but should be TDS_SMALLINT. 
+	size_t user_name_len = strlen(user_name);
+	size_t host_name_len = tds_dstr_len(&connection->client_host_name);
+	size_t app_name_len = tds_dstr_len(&connection->app_name);
 	size_t password_len = tds_dstr_len(&connection->password);
-	int server_name_len = tds_dstr_len(&connection->server_name);
-	int library_len = tds_dstr_len(&connection->library);
-	int language_len = tds_dstr_len(&connection->language);
-	int database_len = tds_dstr_len(&connection->database);
-	int auth_len = 0;
+	size_t server_name_len = tds_dstr_len(&connection->server_name);
+	size_t library_len = tds_dstr_len(&connection->library);
+	size_t language_len = tds_dstr_len(&connection->language);
+	size_t database_len = tds_dstr_len(&connection->database);
+	size_t auth_len = 0;
 
 	tds->out_flag = TDS7_LOGIN;
 
@@ -768,7 +775,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tdsdump_log(TDS_DBG_INFO2, "quietly sending TDS 7+ login packet\n");
 	tdsdump_off();
 
-	tds_put_int(tds, packet_size);
+	TDS_PUT_INT(tds, packet_size);
 	if (IS_TDS90(tds)) {
 		tds_put_n(tds, tds9Version, 4);
 	} else if (IS_TDS8_PLUS(tds)) {
@@ -810,8 +817,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_n(tds, collation, 4);
 
 	/* host name */
-	tds_put_smallint(tds, current_pos);
-	tds_put_smallint(tds, host_name_len);
+	TDS_PUT_SMALLINT(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, host_name_len);
 	current_pos += host_name_len * 2;
 	if (tds->authentication) {
 		tds_put_smallint(tds, 0);
@@ -820,36 +827,36 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_smallint(tds, 0);
 	} else {
 		/* username */
-		tds_put_smallint(tds, current_pos);
-		tds_put_smallint(tds, user_name_len);
+		TDS_PUT_SMALLINT(tds, current_pos);
+		TDS_PUT_SMALLINT(tds, user_name_len);
 		current_pos += user_name_len * 2;
 		/* password */
-		tds_put_smallint(tds, current_pos);
-		tds_put_smallint(tds, password_len);
+		TDS_PUT_SMALLINT(tds, current_pos);
+		TDS_PUT_SMALLINT(tds, password_len);
 		current_pos += password_len * 2;
 	}
 	/* app name */
-	tds_put_smallint(tds, current_pos);
-	tds_put_smallint(tds, app_name_len);
+	TDS_PUT_SMALLINT(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, app_name_len);
 	current_pos += app_name_len * 2;
 	/* server name */
-	tds_put_smallint(tds, current_pos);
-	tds_put_smallint(tds, server_name_len);
+	TDS_PUT_SMALLINT(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, server_name_len);
 	current_pos += server_name_len * 2;
 	/* unknown */
 	tds_put_smallint(tds, 0);
 	tds_put_smallint(tds, 0);
 	/* library name */
-	tds_put_smallint(tds, current_pos);
-	tds_put_smallint(tds, library_len);
+	TDS_PUT_SMALLINT(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, library_len);
 	current_pos += library_len * 2;
 	/* language  - kostya@warmcat.excom.spb.su */
-	tds_put_smallint(tds, current_pos);
-	tds_put_smallint(tds, language_len);
+	TDS_PUT_SMALLINT(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, language_len);
 	current_pos += language_len * 2;
 	/* database name */
-	tds_put_smallint(tds, current_pos);
-	tds_put_smallint(tds, database_len);
+	TDS_PUT_SMALLINT(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, database_len);
 	current_pos += database_len * 2;
 
 	/* MAC address */
@@ -857,27 +864,27 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_n(tds, hwaddr, 6);
 
 	/* authentication stuff */
-	tds_put_smallint(tds, current_pos);
-	tds_put_smallint(tds, auth_len);	/* this matches numbers at end of packet */
+	TDS_PUT_SMALLINT(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, auth_len);	/* this matches numbers at end of packet */
 	current_pos += auth_len;
 
 	/* unknown */
-	tds_put_smallint(tds, current_pos);
+	TDS_PUT_SMALLINT(tds, current_pos);
 	tds_put_smallint(tds, 0);
 
 	if (IS_TDS90(tds)) {
-		tds_put_smallint(tds, current_pos);
+		TDS_PUT_SMALLINT(tds, current_pos);
 		tds_put_smallint(tds, 0);
 
 		tds_put_int(tds, 0);
 	}
 
 	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
-	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), host_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), (int)host_name_len);
 	if (!tds->authentication) {
 		const char *p;
 		TDSICONV *char_conv = tds->char_convs[client2ucs2];
-		tds_put_string(tds, tds_dstr_cstr(&connection->user_name), user_name_len);
+		tds_put_string(tds, tds_dstr_cstr(&connection->user_name), (int)user_name_len);
 		p = tds_dstr_cstr(&connection->password);
 		punicode = unicode_string;
 		unicode_left = sizeof(unicode_string);
@@ -892,11 +899,11 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds7_crypt_pass((unsigned char *) unicode_string, password_len, (unsigned char *) unicode_string);
 		tds_put_n(tds, unicode_string, password_len);
 	}
-	tds_put_string(tds, tds_dstr_cstr(&connection->app_name), app_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->server_name), server_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->library), library_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->language), language_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->database), database_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->app_name), (int)app_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->server_name), (int)server_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->library), (int)library_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->language), (int)language_len);
+	tds_put_string(tds, tds_dstr_cstr(&connection->database), (int)database_len);
 
 	if (tds->authentication)
 		tds_put_n(tds, tds->authentication->packet, auth_len);
@@ -913,9 +920,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
  * 'len' characters
  */
 unsigned char *
-tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass)
+tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *crypt_pass)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; i < len; i++)
 		crypt_pass[i] = ((clear_pass[i] << 4) | (clear_pass[i] >> 4)) ^ 0xA5;

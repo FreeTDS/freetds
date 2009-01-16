@@ -1,7 +1,7 @@
 #ifndef MD5_H
 #define MD5_H
 
-/* $Id: md5.h,v 1.4 2007-03-12 13:28:50 freddy77 Exp $ */
+/* $Id: md5.h,v 1.5 2009-01-16 20:27:56 jklowden Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -14,8 +14,7 @@ struct MD5Context {
 };
 
 void MD5Init(struct MD5Context *context);
-void MD5Update(struct MD5Context *context, unsigned char const *buf,
-	       unsigned len);
+void MD5Update(struct MD5Context *context, unsigned char const *buf, size_t len);
 void MD5Final(struct MD5Context *context, unsigned char *digest);
 void MD5Transform(TDS_UINT buf[4], TDS_UINT const in[16]);
 

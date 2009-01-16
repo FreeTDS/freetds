@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.107 2008-09-17 12:16:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.108 2009-01-16 20:27:58 jklowden Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -201,7 +201,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 
 	if (IS_TDS7_PLUS(tds)) {
 		if (dest == NULL) {
-			tds_get_n(tds, NULL, wire_bytes);
+			tds_get_n(tds, NULL, (int)wire_bytes);
 			return string_len;
 		}
 
@@ -270,8 +270,8 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 			return TDS_FAIL;
 		}
 	} else {
-		curcol->column_cur_size = wire_size;
-		if (tds_get_n(tds, dest, wire_size) == NULL) {
+		curcol->column_cur_size = (TDS_INT)wire_size;
+		if (tds_get_n(tds, dest, (int)wire_size) == NULL) {
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: failed to read %u from wire. \n",
 				    (unsigned int) wire_size);
 			return TDS_FAIL;
@@ -347,7 +347,7 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, size_t * wire_size
 		bufleft = TEMP_SIZE - bufleft;
 		if (bufleft > *wire_size)
 			bufleft = *wire_size;
-		tds_get_n(tds, (char *) bufp, bufleft);
+		tds_get_n(tds, (char *) bufp, (int)bufleft);
 		*wire_size -= bufleft;
 		bufleft += bufp - temp;
 
@@ -366,7 +366,7 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, size_t * wire_size
 			if (bufp == temp) {	/* tds_iconv did not convert anything, avoid infinite loop */
 				tdsdump_log(TDS_DBG_NETWORK, "No conversion possible: draining remaining %u bytes.\n",
 							     (unsigned int) *wire_size);
-				tds_get_n(tds, NULL, *wire_size); /* perhaps we should read unconverted data into outbuf? */
+				tds_get_n(tds, NULL, (int)(*wire_size)); /* perhaps we should read unconverted data into outbuf? */
 				*wire_size = 0;
 				break;
 			}
@@ -380,7 +380,7 @@ read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, size_t * wire_size
 	assert(*wire_size == 0 || *outbytesleft == 0);
 
 	TEMP_FREE;
-	return max_output - *outbytesleft;
+	return (int)(max_output - *outbytesleft);
 }
 
 /** @} */

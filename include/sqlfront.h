@@ -20,9 +20,9 @@
 #ifndef SQLFRONT_h
 #define SQLFRONT_h
 
-#include <sybfront.h>
+#include "./sybfront.h"
 
-static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.4 2007-08-02 11:32:57 freddy77 Exp $";
+static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.5 2009-01-16 20:27:56 jklowden Exp $";
 static const void *const no_unused_sqlfront_h_warn[] = { rcsid_sqlfront_h, no_unused_sqlfront_h_warn };
 
 typedef DBPROCESS * PDBPROCESS;

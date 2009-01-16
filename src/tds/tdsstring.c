@@ -40,7 +40,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: tdsstring.c,v 1.19 2007-07-01 10:10:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.20 2009-01-16 20:27:58 jklowden Exp $");
 
 
 /**
@@ -83,7 +83,7 @@ tds_dstr_free(DSTR * s)
  * @return string copied or NULL on memory error
  */
 DSTR*
-tds_dstr_copyn(DSTR * s, const char *src, unsigned int length)
+tds_dstr_copyn(DSTR * s, const char *src, size_t length)
 {
 	if (s->dstr_s != tds_str_empty)
 		free(s->dstr_s);
@@ -151,7 +151,7 @@ tds_dstr_dup(DSTR * s, const DSTR * src)
  * @param length   new length 
  */
 DSTR*
-tds_dstr_setlen(DSTR *s, unsigned int length)
+tds_dstr_setlen(DSTR *s, size_t length)
 {
 #if ENABLE_EXTRA_CHECKS
 	assert(s->dstr_size >= length);
@@ -171,7 +171,7 @@ tds_dstr_setlen(DSTR *s, unsigned int length)
  * @return string allocated or NULL on memory error
  */
 DSTR*
-tds_dstr_alloc(DSTR *s, unsigned int length)
+tds_dstr_alloc(DSTR *s, size_t length)
 {
 	char *p;
 	if (s->dstr_s != tds_str_empty)

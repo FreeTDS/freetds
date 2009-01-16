@@ -21,8 +21,8 @@
 #include <config.h>
 #endif
 
-#include "tds.h"
-#include "sybdb.h"
+#include <tds.h>
+#include <../../include/sybdb.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -32,7 +32,7 @@
 #undef dbopen
 #endif
 
-TDS_RCSID(var, "$Id: dbopen.c,v 1.11 2007-09-20 15:32:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbopen.c,v 1.12 2009-01-16 20:27:58 jklowden Exp $");
 
 DBPROCESS *
 dbopen(LOGINREC * login, const char *server)

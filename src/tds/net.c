@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.84 2008-12-22 15:33:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.85 2009-01-16 20:27:58 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -416,8 +416,8 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		if (exceptfds)
 			FD_SET(tds->s, exceptfds);
 
-		rc = select(tds->s + 1, readfds, writefds, exceptfds, ptv); 
-#endif
+		rc = select((int)tds->s + 1, readfds, writefds, exceptfds, ptv); 
+#endif /* USE_POLL */
 
 		if (rc > 0 ) {
 			return rc;
@@ -603,7 +603,7 @@ tds_read_packet(TDSSOCKET * tds)
 	/*
 	 * If this packet size is the largest we have gotten allocate space for it
 	 */
-	if (len > tds->in_buf_max) {
+	if ((unsigned int)len > tds->in_buf_max) {
 		unsigned char *p;
 
 		if (!tds->in_buf) {
@@ -881,7 +881,7 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 		selecttimeout.tv_sec = 1;
 		selecttimeout.tv_usec = 0;
 		
-		retval = select(s + 1, &fds, NULL, NULL, &selecttimeout);
+		retval = select((int)s + 1, &fds, NULL, NULL, &selecttimeout);
 #endif
 		
 		/* on interrupt ignore */
@@ -1031,7 +1031,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		/* send the request */
 		msg[0] = 4;
 		tds_strlcpy(msg + 1, instance, sizeof(msg) - 1);
-		sendto(s, msg, strlen(msg) + 1, 0, (struct sockaddr *) &sin, sizeof(sin));
+		sendto(s, msg, (int)strlen(msg) + 1, 0, (struct sockaddr *) &sin, sizeof(sin));
 
 #if USE_POLL
 		fd.fd = s;
@@ -1045,7 +1045,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		selecttimeout.tv_sec = 1;
 		selecttimeout.tv_usec = 0;
 		
-		retval = select(s + 1, &fds, NULL, NULL, &selecttimeout);
+		retval = select((int)s + 1, &fds, NULL, NULL, &selecttimeout);
 #endif
 		
 		/* on interrupt ignore */

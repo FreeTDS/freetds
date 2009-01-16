@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.8 2008-12-19 18:43:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.9 2009-01-16 20:27:58 jklowden Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -776,7 +776,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 			padj[i] = offsets[ncols-i] >> 8;
 			poff[i] = offsets[ncols-i] & 0xFF;
 		}
-		row_pos = poff + ncols + 1 - rowbuffer;
+		row_pos = (int)(poff + ncols + 1 - rowbuffer);
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d\n", i, ncols, row_pos);
@@ -862,8 +862,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		}
 		if (is_blob_type(bcpcol->on_server.column_type)) {
 			/* FIXME strlen return len in bytes not in characters required here */
-			tds_put_smallint(tds, strlen(bcpinfo->tablename));
-			tds_put_string(tds, bcpinfo->tablename, strlen(bcpinfo->tablename));
+			TDS_PUT_SMALLINT(tds, strlen(bcpinfo->tablename));
+			tds_put_string(tds, bcpinfo->tablename, (int)strlen(bcpinfo->tablename));
 		}
 		/* FIXME support multibyte string */
 		tds_put_byte(tds, bcpcol->column_namelen);

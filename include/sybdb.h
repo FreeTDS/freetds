@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.85 2007-12-02 23:01:37 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.86 2009-01-16 20:27:56 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -182,6 +182,8 @@ enum
 #define SYBREAL	SYBREAL
 	SYBBINARY = 45,		/* 0x2D */
 #define SYBBINARY	SYBBINARY
+	SYBVOID = 31,		/* 0x1F */
+#define SYBVOID	SYBVOID
 	SYBVARBINARY = 37,	/* 0x25 */
 #define SYBVARBINARY	SYBVARBINARY
 	SYBNUMERIC = 108,	/* 0x6C */
@@ -265,6 +267,7 @@ typedef struct
 } DBDATETIME4;
 
 #ifdef MSDBLIB
+#define DBDATETIM4 DBDATETIME4
 #define SQLCHAR SYBCHAR
 #endif
 
@@ -1052,7 +1055,8 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define dbsetlapp(x,y)		dbsetlname((x), (y), DBSETAPP)
 #define DBSETBCP		6
 #define BCP_SETL(x,y)		dbsetlbool((x), (y), DBSETBCP)
-#define DBSETNATLANG		7
+#define DBSETLSECURE(x)		dbsetlbool((x), (1), DBSETBCP)
+#define DBSETNATLANG		7	
 #define DBSETLNATLANG(x,y)	dbsetlname((x), (y), DBSETNATLANG)
 #define dbsetlnatlang(x,y)	dbsetlname((x), (y), DBSETNATLANG)
 #define DBSETNOSHORT		8	/* not implemented */

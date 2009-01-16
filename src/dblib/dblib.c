@@ -63,20 +63,20 @@
  * 	strucures are defined.  
  */
 #define SYBDBLIB 1
-#include "tds.h"
-#include "tdsthread.h"
-#include "sybfront.h"
-#include "sybdb.h"
-#include "syberror.h"
-#include "dblib.h"
-#include "tdsconvert.h"
-#include "replacements.h"
+#include <tds.h>
+#include <tdsthread.h>
+#include <tdsconvert.h>
+#include <replacements.h>
+#include <../../include/sybfront.h>
+#include <../../include/sybdb.h>
+#include <../../include/syberror.h>
+#include <dblib.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.337 2008-12-17 11:04:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.338 2009-01-16 20:27:57 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -563,7 +563,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 		memcpy(varaddr, pnullrep->bindval, pnullrep->len);
 		return SUCCEED;
 	default:
-		if (pnullrep->bindval && (varlen <= 0 || varlen >= pnullrep->len)) {
+		if (pnullrep->bindval && (varlen <= 0 || (size_t)varlen >= pnullrep->len)) {
 			memcpy(varaddr, pnullrep->bindval, pnullrep->len);
 		}
 	}
@@ -610,7 +610,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	 * BINARYBIND		Empty array (padded with zeros)
 	 */
 	varaddr += pnullrep->len;
-	varlen  -= pnullrep->len;
+	varlen  -= (int)pnullrep->len;
 	if (varlen > 0) {
 		switch (bindtype) {
 		case CHARBIND:
@@ -931,7 +931,7 @@ dbstring_concat(DBSTRING ** dbstrp, const char *p)
 		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
 	}
-	(*strp)->strtotlen = strlen(p);
+	(*strp)->strtotlen = (DBINT)strlen(p);
 	if (((*strp)->strtext = malloc((*strp)->strtotlen)) == NULL) {
 		TDS_ZERO_FREE(*strp);
 		dbperror(NULL, SYBEMEM, errno);
@@ -1241,9 +1241,6 @@ dbfcmd(DBPROCESS * dbproc, const char *fmt, ...)
 RETCODE
 dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 {
-	int newsz;
-	void *p;
-
 	tdsdump_log(TDS_DBG_FUNC, "dbcmd(%p, %s)\n", dbproc, cmdstring);
 	CHECK_DBPROC();
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
@@ -1266,16 +1263,18 @@ dbcmd(DBPROCESS * dbproc, const char *cmdstring)
 			return FAIL;
 		}
 		strcpy((char *) dbproc->dbbuf, cmdstring);
-		dbproc->dbbufsz = strlen(cmdstring) + 1;
+		dbproc->dbbufsz = (int)strlen(cmdstring) + 1;
 	} else {
-		newsz = strlen(cmdstring) + dbproc->dbbufsz;
+		void *p;
+		size_t newsz = strlen(cmdstring) + dbproc->dbbufsz;
+
 		if ((p = realloc(dbproc->dbbuf, newsz)) == NULL) {
 			dbperror(dbproc, SYBEMEM, errno);
 			return FAIL;
 		}
 		dbproc->dbbuf = (unsigned char *) p;
 		strcat((char *) dbproc->dbbuf, cmdstring);
-		dbproc->dbbufsz = newsz;
+		dbproc->dbbufsz = (int)newsz;
 	}
 
 	dbproc->command_state = DBCMDPEND;
@@ -1854,7 +1853,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	case SMALLDATETIMEBIND:
 	case SMALLMONEYBIND:
 	case TINYBIND:
-		bindlen = default_null_representations[bindtype].len;
+		bindlen = (int)default_null_representations[bindtype].len;
 		break;
 
 	case CHARBIND:
@@ -1862,9 +1861,9 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		CHECK_PARAMETER(bindlen >= 0, SYBEBBL, FAIL);
 		break;
 		
-	case NTBSTRINGBIND:	bindlen = strlen((char *) bindval);
+	case NTBSTRINGBIND:	bindlen = (int)strlen((char *) bindval);
 		break;
-	case STRINGBIND:	bindlen = strlen((char *) bindval);
+	case STRINGBIND:	bindlen = (int)strlen((char *) bindval);
 		break;
 	case VARYBINBIND:	bindlen = ((TDS_VARBINARY*) bindval)->len;
 		break;
@@ -2168,7 +2167,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 	/* srclen of -1 means the source data is definitely NULL terminated */
 	if (srclen == -1)
-		srclen = strlen((const char *) src);
+		srclen = (int)strlen((const char *) src);
 
 	/* oft times we are asked to convert a data type to itself */
 	if (srctype == desttype) {
@@ -2195,7 +2194,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		case SYBTEXT:
 			/* srclen of -1 means the source data is definitely NULL terminated */
 			if (srclen == -1)
-				srclen = strlen((const char *) src);
+				srclen = (int)strlen((const char *) src);
 
 			switch (destlen) {
 			case  0:	/* nothing to copy */
@@ -2682,7 +2681,7 @@ dbcount(DBPROCESS * dbproc)
 
 	if (!dbproc || !dbproc->tds_socket || dbproc->tds_socket->rows_affected == TDS_NO_COUNT)
 		return -1;
-	return dbproc->tds_socket->rows_affected;
+	return (DBINT)dbproc->tds_socket->rows_affected;
 }
 
 /**
@@ -3188,7 +3187,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 				memset(&when, 0, sizeof(when));
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
-				len = tds_strftime(buffer, buf_len, "%b %d %Y %I:%M%p", &when);
+				len = (int)tds_strftime(buffer, buf_len, "%b %d %Y %I:%M%p", &when);
 			} else {
 				len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1), 
 						desttype, (BYTE *) buffer, buf_len);
@@ -3294,7 +3293,7 @@ dbprrow(DBPROCESS * dbproc)
 					if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 						memset(&when, 0, sizeof(when));
 						tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
-						len = tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when);
+						len = (int)tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when);
 					} else {
 						len = dbconvert(dbproc, srctype, dbdata(dbproc, col + 1), dbdatlen(dbproc, col + 1),
 								desttype, (BYTE *) dest, sizeof(dest));
@@ -3425,7 +3424,7 @@ dbprrow(DBPROCESS * dbproc)
 				if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 					memset(&when, 0, sizeof(when));
 					tds_datecrack(srctype, dbadata(dbproc, computeid, col), &when);
-					len = tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when);
+					len = (int)tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when);
 				} else {
 					len = dbconvert(dbproc, srctype, dbadata(dbproc, computeid, col), -1, desttype,
 							(BYTE *) dest, sizeof(dest));
@@ -4551,7 +4550,6 @@ dbsqlok(DBPROCESS * dbproc)
 	 * We're looking for a result token or a done token.
          */
 	while (!done) {
-		int retcode;
 		marker = tds_peek(tds);
 
 		/* If we hit a result token, then we know everything is OK.  */
@@ -4732,7 +4730,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 	 * stores these data.
 	 */
 	if (info->by_cols > 0 && info->bycolumns[0] != byte_flag) {
-		unsigned int n;
+		int n;
 		TDS_TINYINT *p = malloc(sizeof(info->bycolumns[0]) + info->by_cols);
 		if (!p) {
 			dbperror(dbproc, SYBEMEM, errno);
@@ -6070,7 +6068,7 @@ dbsafestr(DBPROCESS * dbproc, const char *src, DBINT srclen, char *dest, DBINT d
 		return FAIL;
 
 	if (srclen == -1)
-		srclen = strlen(src);
+		srclen = (int)strlen(src);
 
 	if (quotetype == DBSINGLE || quotetype == DBBOTH)
 		squote = TRUE;
@@ -6908,7 +6906,7 @@ dbiordesc(DBPROCESS * dbproc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbiordesc(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
-	return dbproc->tds_socket->s;
+	return (int)dbproc->tds_socket->s;
 }
 
 
@@ -6925,7 +6923,7 @@ dbiowdesc(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "dbiowdesc(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
-	return dbproc->tds_socket->s;
+	return (int)dbproc->tds_socket->s;
 }
 
 DBBOOL
@@ -7814,7 +7812,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			assert(*(pformats - 1) == '\0'); 
 			if(*pformats != '\0') {
 				va_list ap;
-				int result_len, len = 2 * strlen(ptext);
+				int result_len, len = 2 * (int)strlen(ptext);
 				char * buffer = calloc(1, len);
 
 				if (buffer == NULL)

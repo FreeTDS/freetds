@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.135 2008-10-17 08:39:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.136 2009-01-16 20:27:58 jklowden Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -59,7 +59,7 @@ TDS_RCSID(var, "$Id: iconv.c,v 1.135 2008-10-17 08:39:16 freddy77 Exp $");
 static int bytes_per_char(TDS_ENCODING * charset);
 #endif
 static const char *collate2charset(int sql_collate, int lcid);
-static int skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
+static size_t skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size);
 static int tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *server_name);
 static int tds_iconv_init(void);
 static int tds_canonical_charset(const char *charset_name);
@@ -624,7 +624,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	ICONV_CONST char *pquest_mark = quest_mark;
 	size_t lquest_mark;
 	size_t irreversible;
-	char one_character;
+	size_t one_character;
 	char *p;
 	int eilseq_raised = 0;
 	/* cast away const-ness */
@@ -1080,7 +1080,7 @@ bytes_per_char(TDS_ENCODING * charset)
  * \returns number of bytes to skip.
  */
 /* FIXME possible buffer reading overflow ?? */
-static int
+static size_t
 skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **input, size_t * input_size)
 {
 	int charsize = CHARSIZE(charset);

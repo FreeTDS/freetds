@@ -1,3 +1,26 @@
+Fri Jan 16 15:19:20 EST 2009	JK Lowden <jklowden@freetds.org>
+	* include/md4.h include/md5.h
+	* include/replacements.h
+	* include/sqldb.h include/sqlfront.h include/sybdb.h
+	* include/tds.h include/tds_sysdep_private.h
+	* include/tdsstring.h
+	* samples/odbc_rpc.pl
+	* src/dblib/bcp.c src/dblib/dblib.c
+	* src/dblib/dbopen.c src/dblib/dbutil.c
+	* src/dblib/rpc.c src/dblib/xact.c
+	* src/replacements/fakepoll.c src/replacements/readpassphrase.c
+	* src/replacements/vasprintf.c
+	* src/tds/bulk.c src/tds/challenge.c src/tds/config.c
+	* src/tds/convert.c src/tds/getmac.c src/tds/iconv.c
+	* src/tds/log.c src/tds/login.c src/tds/md4.c
+	* src/tds/md5.c src/tds/mem.c src/tds/net.c src/tds/numeric.c
+	* src/tds/query.c src/tds/read.c src/tds/tdsstring.c
+	* src/tds/threadsafe.c src/tds/token.c src/tds/vstrbuild.c
+	* src/tds/write.c 
+	* src/tds/unittests/dynamic1.c src/tds/unittests/flags.c
+	* src/tds/unittests/numeric.c
+	- fewer warnings compiling for Win64
+
 Mon Jan 12 09:15:34 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/bsqldb.c: ask for password if not specified
 
@@ -1180,4 +1203,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2708 2009-01-12 08:15:52 freddy77 Exp $
+$Id: ChangeLog,v 1.2709 2009-01-16 20:27:55 jklowden Exp $

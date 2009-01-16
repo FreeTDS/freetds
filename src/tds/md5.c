@@ -29,7 +29,7 @@
 #include "tds.h"
 #include "md5.h"
 
-TDS_RCSID(var, "$Id: md5.c,v 1.2 2005-07-07 13:06:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: md5.c,v 1.3 2009-01-16 20:27:58 jklowden Exp $");
 
 #undef word32
 #define word32 TDS_UINT
@@ -73,7 +73,7 @@ void MD5Init(struct MD5Context *ctx)
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void MD5Update(struct MD5Context *ctx, unsigned char const *buf, unsigned len)
+void MD5Update(struct MD5Context *ctx, unsigned char const *buf, size_t len)
 {
     register word32 t;
 
@@ -82,7 +82,7 @@ void MD5Update(struct MD5Context *ctx, unsigned char const *buf, unsigned len)
     t = ctx->bits[0];
     if ((ctx->bits[0] = t + ((word32) len << 3)) < t)
 	ctx->bits[1]++;		/* Carry from low to high */
-    ctx->bits[1] += len >> 29;
+    ctx->bits[1] += (TDS_UINT)len >> 29;
 
     t = (t >> 3) & 0x3f;	/* Bytes already in shsInfo->data */
 

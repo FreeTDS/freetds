@@ -18,10 +18,10 @@
  * Converted to C and spruced up by James K. Lowden December 2008. 
  */
 
-static char software_version[] = "$Id: fakepoll.c,v 1.5 2009-01-03 14:56:53 freddy77 Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.6 2009-01-16 20:27:58 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#include "fakepoll.h"
+#include <replacements.h>
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>

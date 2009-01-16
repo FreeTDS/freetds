@@ -74,7 +74,8 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN64)
+#include <winsock2.h>
 #include <shlobj.h>
 #endif
 
@@ -84,12 +85,12 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.46 2007-05-30 07:56:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.47 2009-01-16 20:27:58 jklowden Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)
 {
-#if !defined(WIN32)
+#if !defined(WIN32) && !defined(WIN64)
 	struct tm *tm;
 	time_t t;
 

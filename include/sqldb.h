@@ -20,14 +20,46 @@
 #ifndef SQLDB_h
 #define SQLDB_h
 
-#include <sybdb.h>
+#include "./sybdb.h"
 
-/* 
- * TODO: add other Microsoft differences here e.g. SQLMONEY for SYBMONEY
- */
+#define SQLCHAR SYBCHAR
+#define SQLVARCHAR SYBVARCHAR
+#define SQLINTN SYBINTN
+#define SQLINT1 SYBINT1
+#define SQLINT2 SYBINT2
+#define SQLINT4 SYBINT4
+#define SQLINT8 SYBINT8
+#define SQLFLT8 SYBFLT8
+#define SQLDATETIME SYBDATETIME
+#define SQLBIT SYBBIT
+#define SQLTEXT SYBTEXT
+#define SQLIMAGE SYBIMAGE
+#define SQLMONEY4 SYBMONEY4
+#define SQLMONEY SYBMONEY
+#define SQLDATETIM4 SYBDATETIME4
+#define SQLFLT4 SYBREAL
+#define SQLBINARY SYBBINARY
+#define SQLVARBINARY SYBVARBINARY
+#define SQLNUMERIC SYBNUMERIC
+#define SQLDECIMAL SYBDECIMAL
+#define SQLFLTN SYBFLTN
+#define SQLMONEYN SYBMONEYN
+#define SQLDATETIMN SYBDATETIMN
+#define SQLVOID	SYBVOID
+
+#define SMALLDATETIBIND SMALLDATETIMEBIND
+
+#define DBERRHANDLE_PROC EHANDLEFUNC 
+#define DBMSGHANDLE_PROC MHANDLEFUNC 
+
 #define dbfreelogin(x) dbloginfree((x))
 
-static const char rcsid_sqldb_h[] = "$Id: sqldb.h,v 1.4 2007-10-24 21:57:32 jklowden Exp $";
+#define dbprocerrhandle(p, h) dberrhandle((h))
+#define dbprocmsghandle(p, h) dbmsghandle((h))
+
+#define dbwinexit()
+
+static const char rcsid_sqldb_h[] = "$Id: sqldb.h,v 1.5 2009-01-16 20:27:56 jklowden Exp $";
 static const void *const no_unused_sqldb_h_warn[] = { rcsid_sqldb_h, no_unused_sqldb_h_warn };
 
 

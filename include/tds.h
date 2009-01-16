@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.309 2008-12-16 15:41:18 freddy77 Exp $ */
+/* $Id: tds.h,v 1.310 2009-01-16 20:27:57 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1375,7 +1375,7 @@ void tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor);
 void tds_release_cursor(TDSSOCKET *tds, TDSCURSOR *cursor);
 void tds_free_bcp_column_data(BCPCOLDATA * coldata);
 
-int tds_put_n(TDSSOCKET * tds, const void *buf, int n);
+int tds_put_n(TDSSOCKET * tds, const void *buf, size_t n);
 int tds_put_string(TDSSOCKET * tds, const char *buf, int len);
 int tds_put_int(TDSSOCKET * tds, TDS_INT i);
 int tds_put_int8(TDSSOCKET * tds, TDS_INT8 i);
@@ -1407,7 +1407,7 @@ TDSLOCALE *tds_get_locale(void);
 int tds_alloc_row(TDSRESULTINFO * res_info);
 int tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
-unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, int len, unsigned char *crypt_pass);
+unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *crypt_pass);
 TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
 
@@ -1437,7 +1437,7 @@ char *tds_get_homedir(void);
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO * old_param);
 void tds_free_input_params(TDSDYNAMIC * dyn);
 void tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn);
-TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, int bufsize);
+TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
 TDSLOGIN *tds_alloc_login(void);
@@ -1558,7 +1558,7 @@ int tdsdump_open(const char *filename);
 #pragma GCC visibility push(hidden)
 #endif
 void tdsdump_close(void);
-void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, int length);
+void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length);
 void tdsdump_col(const TDSCOLUMN *col);
 void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 
@@ -1592,7 +1592,7 @@ TDS_INT tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s);
 TDS_INT tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, unsigned char new_scale);
 
 /* getmac.c */
-void tds_getmac(int s, unsigned char mac[6]);
+void tds_getmac(TDS_SYS_SOCKET s, unsigned char mac[6]);
 
 TDSAUTHENTICATION * tds_ntlm_get_auth(TDSSOCKET * tds);
 TDSAUTHENTICATION * tds_gss_get_auth(TDSSOCKET * tds);
@@ -1661,5 +1661,9 @@ int tds_writetext_end(TDSSOCKET *tds);
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility pop
 #endif
+
+#define TDS_PUT_INT(tds,v) tds_put_int((tds), ((TDS_INT)(v)))
+#define TDS_PUT_SMALLINT(tds,v) tds_put_smallint((tds), ((TDS_SMALLINT)(v)))
+#define TDS_PUT_BYTE(tds,v) tds_put_byte((tds), ((unsigned char)(v)))
 
 #endif /* _tds_h_ */

@@ -41,14 +41,14 @@
 #include <io.h>
 #endif
 
-#include "tds.h"
-#include "tdsiconv.h"
-#include "tdsconvert.h"
-#include "replacements.h"
-#include "sybfront.h"
-#include "sybdb.h"
-#include "syberror.h"
-#include "dblib.h"
+#include <tds.h>
+#include <tdsiconv.h>
+#include <tdsconvert.h>
+#include <replacements.h>
+#include <../../include/sybfront.h>
+#include <../../include/sybdb.h>
+#include <../../include/syberror.h>
+#include <dblib.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -61,15 +61,15 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.178 2008-12-16 09:26:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.179 2009-01-16 20:27:57 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
-#elif defined(WIN32)
+#elif defined(WIN32) || defined(WIN64)
 /* win32 version */
 typedef __int64 offset_type;
-#define fseeko(f,o,w) (_lseeki64(fileno(f),o,w) == -1)
-#define ftello(f) _telli64(fileno(f))
+#define fseeko(f,o,w) (_fseeki64((f),o,w) == -1)
+#define ftello(f) _ftelli64((f))
 #else
 /* use old version */
 #define fseeko(f,o,w) fseek(f,o,w)
@@ -914,7 +914,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					if ((srctype == SYBDATETIME || srctype == SYBDATETIME4)
 					    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
 						tds_datecrack(srctype, src, &when);
-						buflen = tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
+						buflen = (int)tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
 									 bcpdatefmt, &when);
 					} else {
 						/* 
@@ -1160,9 +1160,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		 * and set collen to the field's post-iconv size.  
 		 */
 		if (hostcol->term_len > 0) { /* delimited data file */
-			int file_bytes_left, file_len;
+			int file_len;
 			size_t col_bytes_left;
-			offset_type len;
+			offset_type file_bytes_left, len;
 			iconv_t cd;
 
 			len = _bcp_measure_terminated_field(hostfile, hostcol->terminator, hostcol->term_len);
@@ -1172,7 +1172,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				dbperror(dbproc, SYBEBCOR, 0);
 				return (FAIL);
 			}
-			collen = len;
+			collen = (int)len;
 			if (collen == 0)
 				data_is_null = 1;
 
@@ -1206,7 +1206,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			col_bytes_left = collen;
 			/* TODO make tds_iconv_fread handle terminator directly to avoid fseek in _bcp_measure_terminated_field */
 			file_bytes_left = tds_iconv_fread(cd, hostfile, file_len, hostcol->term_len, coldata, &col_bytes_left);
-			collen -= col_bytes_left;
+			collen -= (int)col_bytes_left;
 
 			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */
 
@@ -1423,7 +1423,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 		return -1;
 	}
 
-	for (sample_size = 1; (bytes_read = fread(sample, sample_size, 1, hostfile)) != 0;) {
+	for (sample_size = 1; (bytes_read = (int)fread(sample, sample_size, 1, hostfile)) != 0;) {
 
 		bytes_read *= sample_size;
 
@@ -1658,8 +1658,8 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					if (fread(row_in_error, chunk, 1, hostfile) != 1) {
 						printf("BILL fread failed after fseek\n");
 					}
-					count = fwrite(row_in_error, chunk, 1, errfile);
-					if( count < chunk ) {
+					count = (int)fwrite(row_in_error, chunk, 1, errfile);
+					if( (size_t)count < chunk ) {
 						dbperror(dbproc, SYBEBWEF, errno);
 					}
 					error_row_size -= chunk;
@@ -1778,7 +1778,7 @@ bcp_exec(DBPROCESS * dbproc, DBINT *rows_copied)
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
 static char *
-_bcp_fgets(char *buffer, size_t size, FILE *f)
+_bcp_fgets(char *buffer, int size, FILE *f)
 {
 	char *p = fgets(buffer, size, f);
 	if (p == NULL) 
@@ -1833,7 +1833,7 @@ bcp_readfmt(DBPROCESS * dbproc, char *filename)
 	}
 
 	if ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != NULL) {
-		lf_version = atof(buffer);
+		lf_version = (float)atof(buffer);
 	} else if (ferror(ffile)) {
 		dbperror(dbproc, SYBEBRFF, errno);
 		return FAIL;
@@ -2366,9 +2366,9 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 			data_is_null = 1;
 		else {
 			if (collen)
-				collen = (bindcol->column_bindlen < collen) ? bindcol->column_bindlen : collen;
+				collen = (int) ((bindcol->column_bindlen < (TDS_UINT)collen) ? bindcol->column_bindlen : (TDS_UINT)collen);
 			else
-				collen = bindcol->column_bindlen;
+				collen = (int) bindcol->column_bindlen;
 		}
 	}
 
@@ -2468,7 +2468,7 @@ rtrim(char *str, int len)
 	while (p > str && *p == ' ') {
 		*p-- = '\0';
 	}
-	return 1 + p - str;
+	return (int)(1 + p - str);
 }
 
 /** 

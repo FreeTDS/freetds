@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.19 2009-01-07 02:58:37 jklowden Exp $ */
+/* $Id: replacements.h,v 1.20 2009-01-16 20:27:56 jklowden Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -49,16 +49,18 @@ extern "C"
 #endif
 
 #if !HAVE_POLL
-#include fakepoll.h
+#include <fakepoll.h>
 #define poll(fds, nfds, timeout) fakepoll((fds), (nfds), (timeout))
 #endif /* !HAVE_POLL */
 
-#if defined(HAVE__VSNPRINTF) && !defined(HAVE_VSNPRINTF)
+#if !HAVE_VSNPRINTF
+#if  HAVE__VSNPRINTF
 #undef vsnprintf
 #define vsnprintf _vsnprintf
-#elif !HAVE_VSNPRINTF
+#else
 int vsnprintf(char *ret, size_t max, const char *fmt, va_list ap);
-#endif /* !HAVE_VSNPRINTF */
+#endif /*  HAVE_VSNPRINTF */
+#endif /* !HAVE__VSNPRINTF */
 
 #if !HAVE_ASPRINTF
 int asprintf(char **ret, const char *fmt, ...);

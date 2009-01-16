@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.184 2008-12-20 19:16:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.185 2009-01-16 20:27:58 jklowden Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -613,6 +613,31 @@ tds_free_all_results(TDSSOCKET * tds)
 	tds->has_status = 0;
 	tds->ret_status = 0;
 }
+/*
+ * Return 1 if winsock is initialized, else 0.
+ */
+static int
+winsock_initialized()
+{
+#if defined(_WIN32) || defined(_WIN64)
+	WSADATA wsa_data;
+	int erc;
+	DWORD how_much = 0;
+	WORD requested_version = MAKEWORD(2, 2);
+	 
+	if (SOCKET_ERROR != WSAEnumProtocols(NULL, NULL, &how_much)) 
+		return 1;
+
+	if (WSANOTINITIALISED != WSAGetLastError()) 
+		return 0;
+	
+	if (SOCKET_ERROR == (erc = WSAStartup(requested_version, &wsa_data))) {
+		fprintf(stderr, "tds_init_winsock: WSAStartup failed with %d(%s)\n", erc, WSAGetLastError() ); 
+		return 0;
+	}
+#endif
+	return 1;
+}
 
 TDSCONTEXT *
 tds_alloc_context(void * parent)
@@ -620,12 +645,13 @@ tds_alloc_context(void * parent)
 	TDSCONTEXT *context;
 	TDSLOCALE *locale;
 
-	locale = tds_get_locale();
-	if (!locale)
+	if (!winsock_initialized())
 		return NULL;
 
-	context = (TDSCONTEXT *) calloc(1, sizeof(TDSCONTEXT));
-	if (!context) {
+	if ((locale = tds_get_locale()) == NULL)
+		return NULL;
+
+	if ((context = calloc(1, sizeof(TDSCONTEXT))) == NULL) {
 		tds_free_locale(locale);
 		return NULL;
 	}
@@ -1037,7 +1063,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 }
 
 TDSSOCKET *
-tds_realloc_socket(TDSSOCKET * tds, int bufsize)
+tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 {
 	unsigned char *new_out_buf;
 
@@ -1049,7 +1075,7 @@ tds_realloc_socket(TDSSOCKET * tds, int bufsize)
 	if (tds->out_pos <= bufsize && bufsize > 0 && 
 	    (new_out_buf = (unsigned char *) realloc(tds->out_buf, bufsize + TDS_ADDITIONAL_SPACE)) != NULL) {
 		tds->out_buf = new_out_buf;
-		tds->env.block_size = bufsize;
+		tds->env.block_size = (int)bufsize;
 		return tds;
 	}
 	return NULL;

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.44 2008-08-18 13:31:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.45 2009-01-16 20:27:58 jklowden Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -323,7 +323,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	}
 
 	/* transform to 10 base number and output */
-	i = 4 * ((packet10k + TDS_VECTOR_SIZE(packet10k)) - p);	/* current digit */
+	i = 4 * (unsigned int)((packet10k + TDS_VECTOR_SIZE(packet10k)) - p);	/* current digit */
 	/* skip leading zeroes */
 	n = 1000;
 	remainder = *p;
@@ -371,21 +371,20 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 static int
 tds_packet_check_overflow(TDS_WORD *packet, unsigned int packet_len, unsigned int prec)
 {
-	unsigned int i;
-	int l, stop;
+	unsigned int i, len, stop;
 	const TDS_WORD *limit = &limits[limit_indexes[prec] + LIMIT_INDEXES_ADJUST * prec];
-	l = limit_indexes[prec+1] - limit_indexes[prec] + LIMIT_INDEXES_ADJUST;
+	len = limit_indexes[prec+1] - limit_indexes[prec] + LIMIT_INDEXES_ADJUST;
 	stop = prec / (sizeof(TDS_WORD) * 8);
 	/*
 	 * Now a number is
 	 * ... P[3] P[2] P[1] P[0]
 	 * while upper limit + 1 is
- 	 * zeroes limit[0 .. l-1] 0[0 .. stop-1]
+ 	 * zeroes limit[0 .. len-1] 0[0 .. stop-1]
 	 * we must assure that number < upper limit + 1
 	 */
-	if (packet_len >= l + stop) {
+	if (packet_len >= len + stop) {
 		/* higher packets must be zero */
-		for (i = packet_len; --i >= l + stop; )
+		for (i = packet_len; --i >= len + stop; )
 			if (packet[i] > 0)
 				return TDS_CONVERT_OVERFLOW;
 		/* test limit */

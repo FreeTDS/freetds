@@ -23,14 +23,14 @@
 
 /* test numeric scale */
 
-static char software_version[] = "$Id: numeric.c,v 1.4 2005-07-28 08:06:31 freddy77 Exp $";
+static char software_version[] = "$Id: numeric.c,v 1.5 2009-01-16 20:27:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
 static TDSCONTEXT ctx;
 
 static void
-test0(const char *src, int prec, int scale, int prec2, int scale2)
+test0(const char *src, int prec, int scale, int prec2, unsigned char scale2)
 {
 	int i;
 	char buf[256];
@@ -43,7 +43,7 @@ test0(const char *src, int prec, int scale, int prec2, int scale2)
 	memset(&cr.n, 0, sizeof(cr.n));
 	cr.n.precision = prec;
 	cr.n.scale = scale;
-	if (tds_convert(&ctx, SYBVARCHAR, src, strlen(src), SYBNUMERIC, &cr) < 0) {
+	if (tds_convert(&ctx, SYBVARCHAR, src, (TDS_UINT)strlen(src), SYBNUMERIC, &cr) < 0) {
 		fprintf(stderr, "Error getting numeric %s(%d,%d)\n", src, prec, scale);
 		exit(1);
 	}
@@ -68,7 +68,7 @@ test0(const char *src, int prec, int scale, int prec2, int scale2)
 	}
 	cr.n.precision = prec2;
 	cr.n.scale = scale2;
-	if (tds_convert(&ctx, SYBVARCHAR, src, strlen(src), SYBNUMERIC, &cr) < 0)
+	if (tds_convert(&ctx, SYBVARCHAR, src, (TDS_UINT)strlen(src), SYBNUMERIC, &cr) < 0)
 		strcpy(buf, "error");
 
 	/* change scale with function */

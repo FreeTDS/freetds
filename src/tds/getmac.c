@@ -44,7 +44,7 @@
 
 /* TODO get real MAC */
 void
-tds_getmac(int s, unsigned char mac[6])
+tds_getmac(TDS_SYS_SOCKET s, unsigned char mac[6])
 {
 /* implementation for Linux */
 #ifdef __linux__

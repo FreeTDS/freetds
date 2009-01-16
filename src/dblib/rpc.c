@@ -43,18 +43,18 @@
 
 #include <assert.h>
 
-#include "tds.h"
-#include "tdsconvert.h"
-#include "sybfront.h"
-#include "sybdb.h"
-#include "dblib.h"
-#include "replacements.h"
+#include <tds.h>
+#include <tdsconvert.h>
+#include <replacements.h>
+#include <../../include/sybfront.h>
+#include <../../include/sybdb.h>
+#include <dblib.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.65 2008-06-12 01:00:48 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.66 2009-01-16 20:27:58 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -415,7 +415,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		/* meta data */
 		if (p->name) {
 			tds_strlcpy(pcol->column_name, p->name, sizeof(pcol->column_name));
-			pcol->column_namelen = strlen(pcol->column_name);
+			pcol->column_namelen = (int)strlen(pcol->column_name);
 		}
 
 		tds_set_param_type(tds, pcol, temp_type);

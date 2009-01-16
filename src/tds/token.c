@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.358 2009-01-07 02:58:54 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.359 2009-01-16 20:27:58 jklowden Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -925,7 +925,7 @@ tds_process_col_name(TDSSOCKET * tds)
 		for (col = 0; col < num_names; ++col) {
 			curcol = info->columns[col];
 			tds_strlcpy(curcol->column_name, cur->name, sizeof(curcol->column_name));
-			curcol->column_namelen = strlen(curcol->column_name);
+			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
 			prev = cur;
 			cur = cur->next;
 			free(prev->name);
@@ -1159,7 +1159,7 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 
 			if (names && col_info[1] > 0 && col_info[1] <= num_names) {
 				tds_strlcpy(curcol->table_name, names[col_info[1] - 1], sizeof(curcol->table_name));
-				curcol->table_namelen = strlen(curcol->table_name);
+				curcol->table_namelen = (TDS_SMALLINT)strlen(curcol->table_name);
 			}
 		}
 		/* read real column name */
@@ -1353,7 +1353,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 		if (curcol->column_namelen == 0) {
 			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
-			curcol->column_namelen = strlen(curcol->column_name);
+			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
 		}
 
 		/*  User defined data type of the column */
@@ -1831,7 +1831,7 @@ tds5_process_result(TDSSOCKET * tds)
 		/* if label is empty, use the table column name */
 		if (!curcol->column_namelen && curcol->table_column_name) {
 			tds_strlcpy(curcol->column_name, curcol->table_column_name, sizeof(curcol->column_name));
-			curcol->column_namelen = strlen(curcol->column_name);
+			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
 		}
 
 		/* flags (4 bytes) */
@@ -2990,7 +2990,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 
 			assert(strlen(curcol->column_name) == curcol->column_namelen);
 			tds_strlcpy(curcol->column_name, cur->name, sizeof(curcol->column_name));
-			curcol->column_namelen = strlen(curcol->column_name);
+			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
 
 			next = cur->next;
 			free(cur->name);
@@ -3083,7 +3083,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 
 		if (!curcol->column_namelen) {
 			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
-			curcol->column_namelen = strlen(curcol->column_name);
+			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
 		}
 	}
 

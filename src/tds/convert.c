@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.186 2009-01-03 15:26:09 jklowden Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.187 2009-01-16 20:27:58 jklowden Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -156,7 +156,7 @@ string_to_result(int desttype, const char *s, CONV_RESULT * cr)
 	} else {
 		memcpy(cr->cc.c, s, len < cr->cc.len ? len : cr->cc.len);
 	}
-	return len;
+	return (TDS_INT)len;
 }
 
 #define string_to_result(s, cr) \
@@ -175,7 +175,7 @@ binary_to_result(int desttype, const void *data, size_t len, CONV_RESULT * cr)
 	} else {
 		memcpy(cr->cb.ib, data, len < cr->cb.len ? len : cr->cb.len);
 	}
-	return len;
+	return (TDS_INT)len;
 }
 
 #define binary_to_result(data, len, cr) \
@@ -206,7 +206,7 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 		cplen = srclen * 2;
-		if (cplen > cr->cc.len)
+		if ((TDS_UINT)cplen > cr->cc.len)
 			cplen = cr->cc.len;
 
 		c = cr->cc.c;
@@ -402,7 +402,7 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 	case SYBREAL:
 		/* FIXME not null terminated */
 		/* TODO check syntax and overflow */
-		cr->r = atof(src);
+		cr->r = (TDS_REAL)atof(src);
 		return sizeof(TDS_REAL);
 		break;
 	case SYBBIT:
@@ -1517,7 +1517,7 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		break;
 	case SYBREAL:
 		/* TODO check overflow */
-		cr->r = the_value;
+		cr->r = (TDS_REAL)the_value;
 		return sizeof(TDS_REAL);
 		break;
 	case SYBFLT8:

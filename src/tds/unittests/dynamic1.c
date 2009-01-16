@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.18 2007-09-13 06:58:48 freddy77 Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.19 2009-01-16 20:27:59 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -35,7 +35,7 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 {
 	TDSPARAMINFO *params;
 	TDSCOLUMN *curcol;
-	int len = strlen(s);
+	int len = (int)strlen(s);
 
 	tds_free_input_params(dyn);
 

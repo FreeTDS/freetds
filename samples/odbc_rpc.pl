@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $Id: odbc_rpc.pl,v 1.9 2008-07-28 20:58:19 jklowden Exp $
+# $Id: odbc_rpc.pl,v 1.10 2009-01-16 20:27:57 jklowden Exp $
 #
 # Contributed by James K. Lowden and is hereby placed in 
 # the public domain.  No rights reserved.  
@@ -72,6 +72,7 @@ my $dbh = DBI->connect($dsn, $user, $pass, {RaiseError => 1, PrintError => 1, Au
 	or die "Unable for connect to $dsn $DBI::errstr";
 
 setup_error_handler($dbh);
+$dbh->{odbc_putdata_start} = 2 ** 31;
 
 # Construct an odbc placeholder list like (?, ?, ?)
 # for any arguments after $ARGV[0]. 

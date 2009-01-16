@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.10 2008-12-15 05:31:15 jklowden Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.11 2009-01-16 20:27:58 jklowden Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
@@ -277,10 +277,9 @@ tdsdump_start(FILE *file, const char *fname, int line)
  * \param length   number of bytes in the buffer
  */
 void
-tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, int length)
+tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length)
 {
-	int i;
-	int j;
+	size_t i, j;
 #define BYTES_PER_LINE 16
 	const unsigned char *data = (const unsigned char *) buf;
 	const int debug_lvl = level_line & 15;
