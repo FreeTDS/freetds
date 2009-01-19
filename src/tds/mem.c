@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.185 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.186 2009-01-19 14:37:24 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -624,15 +624,15 @@ winsock_initialized()
 	int erc;
 	DWORD how_much = 0;
 	WORD requested_version = MAKEWORD(2, 2);
-	 
-	if (SOCKET_ERROR != WSAEnumProtocols(NULL, NULL, &how_much)) 
+
+	if (SOCKET_ERROR != WSAEnumProtocols(NULL, NULL, &how_much))
 		return 1;
 
-	if (WSANOTINITIALISED != WSAGetLastError()) 
+	if (WSANOTINITIALISED != WSAGetLastError())
 		return 0;
-	
+
 	if (SOCKET_ERROR == (erc = WSAStartup(requested_version, &wsa_data))) {
-		fprintf(stderr, "tds_init_winsock: WSAStartup failed with %d(%s)\n", erc, WSAGetLastError() ); 
+		fprintf(stderr, "tds_init_winsock: WSAStartup failed with %d(%s)\n", erc, WSAGetLastError() );
 		return 0;
 	}
 #endif
