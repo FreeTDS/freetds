@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2005-2008  Frediano Ziglio
+ * Copyright (C) 2005-2009  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.37 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.38 2009-01-21 08:34:01 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -123,7 +123,7 @@ convert_to_usc2le_string(TDSSOCKET * tds, const char *s, size_t len, char *out)
 	ol = len * 2;
 	memset(suppress, 0, sizeof(char_conv->suppress));
 	if (tds_iconv(tds, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
-		return -1;
+		return (size_t) -1;
 
 	return ob - out;
 }
@@ -153,7 +153,7 @@ make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
 		passwd_len = 128;
 
 	passwd_usc2le_len = convert_to_usc2le_string(tds, passwd, passwd_len, passwd_usc2le);
-	if (passwd_usc2le_len < 0) {
+	if (passwd_usc2le_len == (size_t) -1) {
 		memset((char *) passwd_usc2le, 0, sizeof(passwd_usc2le));
 		return TDS_FAIL;
 	}
@@ -200,7 +200,7 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	convert_to_upper(buf, user_name_len);
 
 	len = convert_to_usc2le_string(tds, buf, user_name_len, buf_usc2le);
-	if (len < 0)
+	if (len == (size_t) -1)
 		return TDS_FAIL;
 	buf_usc2le_len = len;
 
@@ -209,7 +209,7 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	/* Target is supposed to be case-sensitive */
 
 	len = convert_to_usc2le_string(tds, domain, domain_len, buf_usc2le + len);
-	if (len < 0)
+	if (len == (size_t) -1)
 		return TDS_FAIL;
 	buf_usc2le_len += len;
 
@@ -265,8 +265,6 @@ tds_answer_challenge(TDSSOCKET * tds,
 {
 #define MAX_PW_SZ 14
 	const char *passwd = tds_dstr_cstr(&connection->password);
-	size_t len;
-	size_t i;
 	static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
 	DES_KEY ks;
 	unsigned char hash[24], ntlm2_challenge[16];
@@ -276,6 +274,7 @@ tds_answer_challenge(TDSSOCKET * tds,
 
 	if (!(*flags & 0x80000)) {
 		/* NTLM */
+		size_t len, i;
 		unsigned char passwd_buf[MAX_PW_SZ];
 
 		/* convert password to upper and pad to 14 chars */
@@ -456,7 +455,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	tds_put_int(tds, 3);	/* sequence 3 */
 
 	/* FIXME *2 work only for single byte encodings */
-	current_pos = 64 + (domain_len + user_name_len + host_name_len) * 2;
+	current_pos = 64u + (domain_len + user_name_len + host_name_len) * 2u;
 
 	/* LM/LMv2 Response */
 	tds_put_smallint(tds, lm_response_len);	/* lan man resp length */
@@ -475,19 +474,19 @@ tds7_send_auth(TDSSOCKET * tds,
 	TDS_PUT_SMALLINT(tds, domain_len * 2);
 	TDS_PUT_SMALLINT(tds, domain_len * 2);
 	TDS_PUT_INT(tds, current_pos);
-	current_pos += domain_len * 2;
+	current_pos += domain_len * 2u;
 
 	/* username */
 	TDS_PUT_SMALLINT(tds, user_name_len * 2);
 	TDS_PUT_SMALLINT(tds, user_name_len * 2);
 	TDS_PUT_INT(tds, current_pos);
-	current_pos += user_name_len * 2;
+	current_pos += user_name_len * 2u;
 
 	/* Workstation Name */
 	TDS_PUT_SMALLINT(tds, host_name_len * 2);
 	TDS_PUT_SMALLINT(tds, host_name_len * 2);
 	TDS_PUT_INT(tds, current_pos);
-	current_pos += host_name_len * 2;
+	current_pos += host_name_len * 2u;
 
 	/* Session Key (optional) */
 	tds_put_smallint(tds, 0);

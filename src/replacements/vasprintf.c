@@ -30,7 +30,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vasprintf.c,v 1.19 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: vasprintf.c,v 1.20 2009-01-21 08:34:01 freddy77 Exp $");
 
 #if defined(HAVE__VSNPRINTF) && !defined(HAVE_VSNPRINTF)
 #undef HAVE_VSNPRINTF
@@ -67,10 +67,10 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 		free(buf);
 		buflen = (++chunks) * CHUNKSIZE;
 		/* 
-		 * len >= 0 are required for vsnprintf implementation that 
-		 * return -1 of buffer insufficient
+		 * len >= 0 is required for vsnprintf implementations that 
+		 * return -1 for insufficient buffer
 		 */
-		if (buflen <= (size_t) len) {
+		if (len >= 0 && buflen <= (size_t) len) {
 			buflen = len + 1;
 		}
 	}
