@@ -1,4 +1,3 @@
-#ifndef HAVE_POLL
 /*
  * poll(2) implemented with select(2), for systems without poll(2). 
  * Warning: a call to this poll() takes about 4K of stack space.
@@ -18,10 +17,19 @@
  * Converted to C and spruced up by James K. Lowden December 2008. 
  */
 
-static char software_version[] = "$Id: fakepoll.c,v 1.6 2009-01-16 20:27:58 jklowden Exp $";
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifndef HAVE_POLL
+
+static char software_version[] = "$Id: fakepoll.c,v 1.7 2009-01-21 08:43:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#include <replacements.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+#include "replacements.h"
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
