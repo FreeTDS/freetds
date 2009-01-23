@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.338 2009-01-16 20:27:57 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.339 2009-01-23 10:37:35 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1834,6 +1834,7 @@ RETCODE
 dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 {
 	BYTE *pval;
+	size_t len;
 	
 	tdsdump_log(TDS_DBG_FUNC, "dbsetnull(%p, %d, %d, %p)\n", dbproc, bindtype, bindlen, bindval);
 	
@@ -1853,21 +1854,22 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	case SMALLDATETIMEBIND:
 	case SMALLMONEYBIND:
 	case TINYBIND:
-		bindlen = (int)default_null_representations[bindtype].len;
+		len = default_null_representations[bindtype].len;
 		break;
 
 	case CHARBIND:
 	case BINARYBIND:
 		CHECK_PARAMETER(bindlen >= 0, SYBEBBL, FAIL);
+		len = bindlen;
 		break;
 		
-	case NTBSTRINGBIND:	bindlen = (int)strlen((char *) bindval);
+	case NTBSTRINGBIND:	len = strlen((char *) bindval);
 		break;
-	case STRINGBIND:	bindlen = (int)strlen((char *) bindval);
+	case STRINGBIND:	len = strlen((char *) bindval);
 		break;
-	case VARYBINBIND:	bindlen = ((TDS_VARBINARY*) bindval)->len;
+	case VARYBINBIND:	len = ((TDS_VARBINARY*) bindval)->len;
 		break;
-	case VARYCHARBIND:	bindlen = ((TDS_VARCHAR*) bindval)->len;
+	case VARYCHARBIND:	len = ((TDS_VARCHAR*) bindval)->len;
 		break;
 
 #if 0
@@ -1879,7 +1881,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		return FAIL;
 	}
 
-	if ((pval = malloc(bindlen)) == NULL) {
+	if ((pval = malloc(len)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
 	}
@@ -1888,12 +1890,12 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	if (dbproc->nullreps[bindtype].bindval != default_null_representations[bindtype].bindval)
 		free((BYTE*)dbproc->nullreps[bindtype].bindval);
 
-	memcpy(pval, bindval, bindlen);
+	memcpy(pval, bindval, len);
 	
 	dbproc->nullreps[bindtype].bindval = pval;
-	dbproc->nullreps[bindtype].len = bindlen;
+	dbproc->nullreps[bindtype].len = len;
 
-	tdsdump_dump_buf(TDS_DBG_NETWORK, "null representation set ", pval,  bindlen);
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "null representation set ", pval,  len);
 	return SUCCEED;
 }
 
@@ -4607,7 +4609,7 @@ dbsqlok(DBPROCESS * dbproc)
 				}
 				break;
 #else
-				retcode = (done_flags & TDS_DONE_ERROR)? FAIL : SUCCEED;
+				int retcode = (done_flags & TDS_DONE_ERROR)? FAIL : SUCCEED;
 				dbproc->dbresults_state = (done_flags & TDS_DONE_MORE_RESULTS)?
 					_DB_RES_NEXT_RESULT : _DB_RES_NO_MORE_RESULTS;
 

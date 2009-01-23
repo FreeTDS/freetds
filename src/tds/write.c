@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.77 2009-01-16 20:27:59 jklowden Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.78 2009-01-23 10:37:36 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -65,8 +65,6 @@ tds_put_n(TDSSOCKET * tds, const void *buf, size_t n)
 {
 	size_t left;
 	const unsigned char *bufp = (const unsigned char *) buf;
-
-	assert(n >= 0);
 
 	for (; n;) {
 		left = tds->env.block_size - tds->out_pos;
@@ -149,7 +147,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 				tdsdump_log(TDS_DBG_NETWORK, "Error: tds_put_string: "
 							     "Gave up converting %d bytes due to error %d.\n", 
 							     (int) inbytesleft, errno);
-				tdsdump_dump_buf(TDS_DBG_NETWORK, "Troublesome bytes", s, (int) inbytesleft);
+				tdsdump_dump_buf(TDS_DBG_NETWORK, "Troublesome bytes", s, inbytesleft);
 			}
 
 			if (poutbuf == outbuf) {	/* tds_iconv did not convert anything, avoid infinite loop */

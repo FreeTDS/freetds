@@ -1,3 +1,7 @@
+Fri Jan 23 11:35:21 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c src/tds/query.c src/tds/write.c:
+	- fix minor unsigned/signed issues
+
 Fri Jan 23 10:42:12 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c: remove buffer overflow reading
 
@@ -1223,4 +1227,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2714 2009-01-23 09:42:36 freddy77 Exp $
+$Id: ChangeLog,v 1.2715 2009-01-23 10:37:35 freddy77 Exp $
