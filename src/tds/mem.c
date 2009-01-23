@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.186 2009-01-19 14:37:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.187 2009-01-23 10:42:25 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -617,7 +617,7 @@ tds_free_all_results(TDSSOCKET * tds)
  * Return 1 if winsock is initialized, else 0.
  */
 static int
-winsock_initialized()
+winsock_initialized(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	WSADATA wsa_data;
