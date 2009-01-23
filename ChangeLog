@@ -1,3 +1,6 @@
+Fri Jan 23 10:42:12 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/login.c: remove buffer overflow reading
+
 Wed Jan 21 09:43:32 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/fakepoll.c: make it compile
 
@@ -1220,4 +1223,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2713 2009-01-21 08:43:54 freddy77 Exp $
+$Id: ChangeLog,v 1.2714 2009-01-23 09:42:36 freddy77 Exp $

@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.180 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.181 2009-01-23 09:42:36 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -506,14 +506,7 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 static int
 tds_put_login_string(TDSSOCKET * tds, const char *buf, int n)
 {
-	char string[32];
 	const int buf_len = buf ? (int)strlen(buf) : 0;
-	memset(string, '<', sizeof(string));
-	memcpy(string, buf, n);
-	string[sizeof(string)-1] = '\0';
-	if(n)
-		tdsdump_dump_buf(TDS_DBG_INFO1, "login string", buf, n);
-
 	return tds_put_buf(tds, (const unsigned char *) buf, n, buf_len);
 }
 
