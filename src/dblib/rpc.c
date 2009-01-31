@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.66 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.67 2009-01-31 19:13:20 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -76,7 +76,7 @@ static TDSPARAMINFO *param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc);
  * \sa dbrpcparam(), dbrpcsend()
  */
 RETCODE
-dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
+dbrpcinit(DBPROCESS * dbproc, const char rpcname[], DBSMALLINT options)
 {
 	DBREMOTE_PROC **rpc;
 	int dbrpcrecompile = 0;
@@ -161,7 +161,7 @@ dbrpcinit(DBPROCESS * dbproc, char *rpcname, DBSMALLINT options)
  * \sa dbrpcinit(), dbrpcsend()
  */
 RETCODE
-dbrpcparam(DBPROCESS * dbproc, char *paramname, BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE * value)
+dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DBINT maxlen, DBINT datalen, BYTE * value)
 {
 	char *name = NULL;
 	DBREMOTE_PROC *rpc;

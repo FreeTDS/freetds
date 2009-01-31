@@ -37,9 +37,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: xact.c,v 1.12 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: xact.c,v 1.13 2009-01-31 19:13:20 jklowden Exp $");
 
 
+#if defined(DBLIB_UNIMPLEMENTED)
 void
 build_xact_string(char *xact_name, char *service_name, DBINT commid, char *result)
 {
@@ -100,3 +101,4 @@ stat_xact(DBPROCESS * connect, DBINT commid)
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED stat_xact()\n");
 	return 0;
 }
+#endif

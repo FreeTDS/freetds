@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.60 2008-05-22 01:32:31 jklowden Exp $s
+# $Id: api_status.txt,v 1.61 2009-01-31 19:13:20 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -370,9 +370,9 @@ dblib	core     	dbnumorders			DBNUMORDERS	never
 dblib	core     	dbopen				(same)		OK
 dblib	core     	dbordercol			(same)		never
 dblib	core     	dbprhead			(same)		OK
-dblib	core     	dbprocerrhandle			n/a		never
+dblib	core     	dbprocerrhandle			n/a		aliases dberrhandle
 dblib	core     	dbprocinfo			n/a		never
-dblib	core     	dbprocmsghandle			n/a		never
+dblib	core     	dbprocmsghandle			n/a		aliases dbmsghandle
 dblib	core     	dbprrow				(same)		OK
 dblib	core     	dbprtype			(same)		OK
 dblib	core     	dbresults			(same)		OK
@@ -409,7 +409,7 @@ dblib	core     	dbuse				(same)		OK
 dblib	core     	dbvarylen			(same)		OK
 dblib	core     	n/a				dbversion	OK
 dblib	core     	dbwillconvert			(same)		OK
-dblib	core     	dbwinexit (Windows only)	n/a		never
+dblib	core     	dbwinexit (Windows only)	n/a		no-op macro
 dblib	cursor   	dbcursor			(same)		never
 dblib	cursor   	dbcursorbind			(same)		never
 dblib	cursor   	dbcursorclose			(same)		never

@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.339 2009-01-23 10:37:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.340 2009-01-31 19:13:20 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -813,6 +813,7 @@ dbsetllong(LOGINREC * login, long value, int which)
 	}
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /** \internal
  * \ingroup dblib_internal
  * \brief Set an integer value in a \c LOGINREC structure.  
@@ -837,6 +838,7 @@ dbsetlshort(LOGINREC * login, int value, int which)
 		break;
 	}
 }
+#endif
 
 /** \internal
  * \ingroup dblib_internal
@@ -1239,7 +1241,7 @@ dbfcmd(DBPROCESS * dbproc, const char *fmt, ...)
  * \sa dbfcmd(), dbfreebuf(), dbgetchar(), dbopen(), dbstrcpy(), dbstrlen().
  */
 RETCODE
-dbcmd(DBPROCESS * dbproc, const char *cmdstring)
+dbcmd(DBPROCESS * dbproc, const char cmdstring[])
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbcmd(%p, %s)\n", dbproc, cmdstring);
 	CHECK_DBPROC();
@@ -3751,6 +3753,7 @@ dbrows(DBPROCESS * dbproc)
 	return (tds->res_info && tds->res_info->rows_exist)? SUCCEED : FAIL;
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /**
  * \ingroup dblib_core
  * \brief Set the default character set for an application.
@@ -3767,6 +3770,7 @@ dbsetdeflang(char *language)
 	CHECK_PARAMETER_NOPROC(language, SYBENULP);
 	return SUCCEED;
 }
+#endif
 
 /**
  * \ingroup dblib_core
@@ -4851,6 +4855,7 @@ dbmsghandle(MHANDLEFUNC handler)
 	return retFun;
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /**
  * \ingroup dblib_money
  * \brief Add two DBMONEY values.
@@ -4955,6 +4960,7 @@ dbmnydivide(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2, DBMONEY * quotient)
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnydivide()\n");
 	return SUCCEED;
 }
+#endif
 
 /**
  * \ingroup dblib_money
@@ -4991,6 +4997,7 @@ dbmnycmp(DBPROCESS * dbproc, DBMONEY * m1, DBMONEY * m2)
 	return 0;
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /**
  * \ingroup dblib_money
  * \brief Multiply a DBMONEY value by a positive integer, and add an amount. 
@@ -5015,7 +5022,7 @@ dbmnyscale(DBPROCESS * dbproc, DBMONEY * amount, int multiplier, int addend)
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnyscale()\n");
 	return SUCCEED;
 }
-
+#endif
 
 /**
  * \ingroup dblib_money
@@ -5083,6 +5090,7 @@ dbmnymaxneg(DBPROCESS * dbproc, DBMONEY * amount)
 	return SUCCEED;
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /**
  * \ingroup dblib_money
  * \brief Get the least significant digit of a DBMONEY value, represented as a character.
@@ -5159,7 +5167,7 @@ dbmnydown(DBPROCESS * dbproc, DBMONEY * amount, int divisor, int *remainder)
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmnydown()\n");
 	return SUCCEED;
 }
-
+#endif
 
 /**
  * \ingroup dblib_money
@@ -5358,6 +5366,7 @@ dbmny4sub(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * diff)
 	return SUCCEED;
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /**
  * \ingroup dblib_money
  * \brief Multiply two DBMONEY4 values.
@@ -5413,6 +5422,7 @@ dbmny4divide(DBPROCESS * dbproc, DBMONEY4 * m1, DBMONEY4 * m2, DBMONEY4 * quotie
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbmny4divide()\n");
 	return FAIL;
 }
+#endif
 
 /**
  * \ingroup dblib_money
@@ -5549,6 +5559,7 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
 	return SUCCEED;
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /**
  * \ingroup dblib_core
  * \brief Clear remote passwords from the LOGINREC structure.
@@ -5584,6 +5595,7 @@ dbrpwset(LOGINREC * login, char *srvname, char *password, int pwlen)
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbrpwset()\n");
 	return SUCCEED;
 }
+#endif
 
 /**
  * \ingroup dblib_core
@@ -5775,7 +5787,7 @@ dbfreebuf(DBPROCESS * dbproc)
  * \sa dbisopt(), dbsetopt().
  */
 RETCODE
-dbclropt(DBPROCESS * dbproc, int option, char *param)
+dbclropt(DBPROCESS * dbproc, int option, const char param[])
 {
 	char *cmd;
 
@@ -5828,7 +5840,7 @@ dbclropt(DBPROCESS * dbproc, int option, char *param)
  * \sa dbclropt(), dbsetopt().
  */
 DBBOOL
-dbisopt(DBPROCESS * dbproc, int option, char *param)
+dbisopt(DBPROCESS * dbproc, int option, const char param[])
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbisopt(%p, %d, %s)\n", dbproc, option, param);
 	CHECK_PARAMETER(dbproc, SYBENULL, FALSE);
@@ -6401,7 +6413,7 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
  * \todo Check return value of called functions and return \c FAIL if appropriate. 
  */
 RETCODE
-dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
+dbmoretext(DBPROCESS * dbproc, DBINT size, const BYTE text[])
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbmoretext(%p, %d, %p)\n", dbproc, size, text);
 	CHECK_DBPROC();
@@ -6435,7 +6447,7 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
  * \sa dbopen(), TDSDUMP environment variable(). 
  */
 void
-dbrecftos(char *filename)
+dbrecftos(const char filename[])
 {
 	char *f;
 
@@ -6515,6 +6527,7 @@ dbversion()
 	return rcsid_var;
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /**
  * \ingroup dblib_core
  * \brief Set the default character set.  
@@ -6615,6 +6628,7 @@ dbregexec(DBPROCESS * dbproc, DBUSMALLINT options)
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbregexec()\n");
 	return SUCCEED;
 }
+#endif
 
 
 /**

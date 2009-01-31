@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.179 2009-01-16 20:27:57 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.180 2009-01-31 19:13:20 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1211,8 +1211,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */
 
 			if (file_bytes_left != 0) {
-				tdsdump_log(TDS_DBG_FUNC, "col %d: %d of %d bytes unread\nfile_bytes_left != 0!\n", 
-							(i+1), file_bytes_left, collen);
+				tdsdump_log(TDS_DBG_FUNC, "col %d: %ld of %d bytes unread\nfile_bytes_left != 0!\n", 
+							(i+1), (long)file_bytes_left, collen);
 				*row_error = TRUE;
 				free(coldata);
 				dbperror(dbproc, SYBEBCOR, 0);
@@ -1804,7 +1804,7 @@ _bcp_fgets(char *buffer, int size, FILE *f)
  * \sa 	bcp_colfmt(), bcp_colfmt_ps(), bcp_columns(), bcp_writefmt()
  */
 RETCODE
-bcp_readfmt(DBPROCESS * dbproc, char *filename)
+bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 {
 	BCP_HOSTCOLINFO *hostcol;
 	FILE *ffile;
@@ -2066,6 +2066,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 		return (FALSE);
 }
 
+#if defined(DBLIB_UNIMPLEMENTED)
 /** 
  * \ingroup dblib_bcp
  * \brief Write a format definition file. Not Implemented. 
@@ -2084,7 +2085,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
  * \sa 	bcp_colfmt(), bcp_colfmt_ps(), bcp_columns(), bcp_readfmt()
  */
 RETCODE
-bcp_writefmt(DBPROCESS * dbproc, char *filename)
+bcp_writefmt(DBPROCESS * dbproc, const char filename[])
 {
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED: bcp_writefmt(%p, %s)\n", dbproc, filename? filename:"NULL");
 	CHECK_DBPROC();
@@ -2132,6 +2133,7 @@ bcp_moretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 #endif
 	return FAIL;
 }
+#endif
 
 /** 
  * \ingroup dblib_bcp
