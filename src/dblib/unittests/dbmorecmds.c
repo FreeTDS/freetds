@@ -5,12 +5,11 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.13 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.14 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
-const static char query[] = "select count(*) from sysusers\n"
-			    "select name from sysobjects compute count(name)\n";
+
 int
 main(int argc, char **argv)
 {
@@ -65,7 +64,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0024 (i int not null, s char(10) not null)");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -73,19 +72,15 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 0; i < rows_to_add; i++) {
-		char cmd[1024];
-
-		sprintf(cmd, "insert into #dblib0024 values (%d, 'row %03d')", i, i);
-		fprintf(stdout, "%s\n", cmd);
-		dbcmd(dbproc, cmd);
+		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
 		}
 	}
 
-	fprintf(stdout, "select 1\n");
-	dbcmd(dbproc, "select count(*) from #dblib0024 -- order by i");
+	fprintf(stdout, "select one resultset\n");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
@@ -108,8 +103,8 @@ main(int argc, char **argv)
 
 	dbcancel(dbproc);
 
-	fprintf(stdout, query);
-	dbcmd(dbproc, query);
+	fprintf(stdout, "select two resultsets\n");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 
 	nresults = 0;
@@ -136,7 +131,7 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 	return failed ? 1 : 0;
 }

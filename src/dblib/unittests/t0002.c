@@ -10,7 +10,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0002.c,v 1.22 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.23 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -47,11 +47,6 @@ main(int argc, char **argv)
 
 	const int buffer_count = 10;
 	const int rows_to_add = 50;
-	const char tablename[] = "#dblib0002";
-	const char drop_if_exists[] = "if exists ( select 1 "
-						  "from tempdb..sysobjects "
-						  "where id = object_id('tempdb..%s') )\n"
-				      "\tdrop table %s\n";
 
 	set_malloc_options();
 
@@ -94,8 +89,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	add_bread_crumb();
-	fprintf(stdout, drop_if_exists, tablename, tablename);
-	dbfcmd(dbproc,  drop_if_exists, tablename, tablename);
+	sql_cmd(dbproc,  INPUT); /* drop table if exists */
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -108,31 +102,23 @@ main(int argc, char **argv)
 	}
 	add_bread_crumb();
 
-	fprintf(stdout, "create table %s (i int not null, s char(10) not null)\n", tablename);
-	dbfcmd(dbproc,  "create table %s (i int not null, s char(10) not null)", tablename);
+	sql_cmd(dbproc,  INPUT); /* create table */
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	fprintf(stdout, "insert into %s [%d rows]\n", tablename, rows_to_add);
 	for (i = 1; i <= rows_to_add; i++) {
-	char cmd[1024];
-
-		sprintf(cmd, "insert into %s values (%d, 'row %03d')", tablename, i, i);
-		dbcmd(dbproc, cmd);
+		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
 		}
 	}
 
-	fprintf(stdout, "select * from %s order by i\n", tablename);
-	dbfcmd(dbproc,  "select * from %s order by i\n", tablename);
-	dbfcmd(dbproc,  "select * from %s order by i\n", tablename);	/* two result sets */
+	sql_cmd(dbproc, INPUT);	/* two result sets */
 	dbsqlexec(dbproc);
 	add_bread_crumb();
-
 
 	for (iresults=1; iresults <= 2; iresults++ ) {
 		fprintf(stdout, "fetching resultset %i\n", iresults);
@@ -257,7 +243,7 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 	return failed ? 1 : 0;
 }

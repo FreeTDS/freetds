@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.7 2007-12-28 23:00:42 jklowden Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.8 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -28,21 +28,58 @@ static DBPROCESS *dbproc;
 static int silent = 0;
 static int check_idle = 0;
 
-static void
-query(const char *query)
+/* print functions adapted from src/dblib/dblib.c */
+static const char *
+prdbretcode(int retcode)
 {
-	printf("query: %s\n", query);
-	dbcmd(dbproc, (char *) query);
+	static char unknown[24];
+	switch(retcode) {
+	case REG_ROW:		return "REG_ROW/MORE_ROWS";
+	case NO_MORE_ROWS:	return "NO_MORE_ROWS";
+	case BUF_FULL:		return "BUF_FULL";
+	case NO_MORE_RESULTS:	return "NO_MORE_RESULTS";
+	case SUCCEED:		return "SUCCEED";
+	case FAIL:		return "FAIL";
+	default:
+		sprintf(unknown, "oops: %u ??", retcode);
+	}
+	return unknown;
+}
+
+static const char *
+prretcode(int retcode)
+{
+	static char unknown[24];
+	switch(retcode) {
+	case SUCCEED:		return "SUCCEED";
+	case FAIL:		return "FAIL";
+	case NO_MORE_RESULTS:	return "NO_MORE_RESULTS";
+	default:
+		sprintf(unknown, "oops: %u ??", retcode);
+	}
+	return unknown;
+}
+
+static RETCODE
+query(const char comment[])
+{
+	RETCODE erc;
+	
+	if (comment)
+		printf("%s\n", comment);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
-	while (dbresults(dbproc) == SUCCEED) {
+	while ((erc = dbresults(dbproc)) == SUCCEED) {
 		/* nop */
 	}
 }
 
+typedef const char* (*prfunc)(int);
+
 static void
-check_state(void)
+check_state(const char name[], prfunc print, int erc)
 {
-	printf("State ");
+	printf("State %-15s %-20s ", name, print(erc));
 	if (dbnumcols(dbproc) > 0)
 		printf("COLS(%d) ", dbnumcols(dbproc));
 	/* row count */
@@ -73,64 +110,48 @@ check_state(void)
 }
 
 static void
-do_test(const char *query)
+do_test(const char comment[])
 {
 	int ret;
+	prfunc print_with = NULL;
 
-	printf("test query %s\n", query);
-	dbcmd(dbproc, (char *) query);
+	if (comment)
+		printf("%s\n", comment);
+	sql_cmd(dbproc, INPUT);
 
-	printf("sqlexec ");
-	dbsqlexec(dbproc);
+	check_state("sqlexec ", prretcode, dbsqlexec(dbproc));
 
-	check_state();
-
-	printf("nextrow ");
-	dbnextrow(dbproc);
-
-	check_state();
-
-	printf("nextrow ");
-	dbnextrow(dbproc);
-
-	check_state();
-
-	printf("results ");
-	dbresults(dbproc);
-
-	check_state();
-
-	printf("nextrow ");
-	dbnextrow(dbproc);
-
-	check_state();
-
-	printf("nextrow ");
-	dbnextrow(dbproc);
-
-	check_state();
+	check_state("nextrow ", prdbretcode, dbnextrow(dbproc));
+	check_state("nextrow ", prdbretcode, dbnextrow(dbproc));
+	check_state("results ", prretcode,   dbresults(dbproc));
+	check_state("nextrow ", prdbretcode, dbnextrow(dbproc));
+	check_state("nextrow ", prdbretcode, dbnextrow(dbproc));
 
 	check_idle = 0;
 	for (;;) {
-		printf("results \n");
 		ret = dbresults(dbproc);
-		check_state();
-		if (ret != SUCCEED)
+		check_state("results ", prretcode, ret);
+		if (ret != SUCCEED) {
+			print_with = prretcode;
 			break;
+		}
 
 		do {
-			printf("nextrow ");
 			ret = dbnextrow(dbproc);
-			check_state();
-		} while (ret == SUCCEED);
+			check_state("nextrow ", prdbretcode, ret);
+		} while (ret == REG_ROW);
+		print_with = prdbretcode;
 	}
-	check_state();
+	check_state("more results?", print_with, ret);
 }
 
 int
 main(int argc, char *argv[])
 {
+	const static int invalid_column_name = 207;
+	RETCODE erc;
 	LOGINREC *login;	/* Our login information. */
+	int i;
 
 	setbuf(stdout, NULL);
 	read_login_info(argc, argv);
@@ -140,6 +161,16 @@ main(int argc, char *argv[])
 
 	dberrhandle(err_handler);
 	dbmsghandle(msg_handler);
+
+#if 0
+	/* 
+	 * FIXME: Should be able to use the common err/msg handlers, but something about
+	 * the IDLE checking causes them to fail.  Not sure about purpose of IDLE checking.
+	 * -- jkl January 2009
+	 */
+	dberrhandle(syb_err_handler);
+	dbmsghandle(syb_msg_handler);
+#endif
 
 	login = dblogin();
 	DBSETLUSER(login, USER);
@@ -153,35 +184,33 @@ main(int argc, char *argv[])
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 
-	query("create table #dummy (s char(10))");
-	query("insert into #dummy values('xxx')");
-	query("if object_id('done_test') is not NULL drop proc done_test");
-	query("create proc done_test @a varchar(10) output as select * from #dummy");
-	query("if object_id('done_test2') is not NULL drop proc done_test2");
-	query("create proc done_test2 as select * from #dummy where s = 'aaa' select * from #dummy");
-
+	for (i=0; i < 6; i++) {
+		erc = query(NULL);
+	}
+#if 0	
+	check_state("setup done ", prretcode, erc);
+	
+	printf("wasting results\n");
+	while ((erc = dbresults(dbproc)) == SUCCEED) {
+		while (dbnextrow(dbproc) == REG_ROW); /* no-op */
+	}	
+#endif
 	check_idle = 1;
 
-	/* normal row */
-	do_test("select * from #dummy");
-	/* normal row with no count */
-	query("set nocount on");
-	do_test("select * from #dummy");
-	query("set nocount off");
-	/* normal row without rows */
-	do_test("select * from #dummy where 0=1");
-	/* error query */
-	do_test("select dklghdlgkh from #dummy");
-	/* store procedure call with output parameters */
-	do_test("declare @s varchar(10) exec done_test @s output");
+	do_test("normal row with rowcount on");
+	query("turn rowcount off");
+	do_test("normal row with rowcount off");
+	query("turn rowcount back on");
+	do_test("normal row without rows");
+	dbsetuserdata(dbproc, &invalid_column_name);
+	do_test("error query");
+	do_test("stored procedure call with output parameters");
 
-	do_test("declare @i int");
+	do_test("execute done2");
 
-	do_test("exec done_test2");
-	do_test("declare @i int");
+	query("drop done_test");
 
-	query("drop proc done_test");
-	query("drop proc done_test2");
+	query("drop done_test2");
 
 	dbexit();
 	return 0;

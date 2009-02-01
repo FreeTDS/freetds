@@ -6,14 +6,14 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0011.c,v 1.13 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0011.c,v 1.14 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
 const char long_column[] = "This is a really long column to ensure that the next row ends properly.";
 const char short_column[] = "Short column";
 
-void insert_row(DBPROCESS * dbproc, char *cmd);
+void insert_row(DBPROCESS * dbproc);
 int select_rows(DBPROCESS * dbproc, int bind_type);
 
 int
@@ -43,14 +43,14 @@ main(int argc, char **argv)
 	dbloginfree(login);
 
 	fprintf(stdout, "Dropping table\n");
-	dbcmd(dbproc, "drop table #dblib0011");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0011 (i int not null, c1 char(200) not null, c2 char(200) null, vc varchar(200) null)");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -58,18 +58,15 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 
-	sprintf(cmd, "insert into #dblib0011 values (1, '%s','%s','%s')", long_column, long_column, long_column);
-	insert_row(dbproc, cmd);
-	sprintf(cmd, "insert into #dblib0011 values (2, '%s','%s','%s')", short_column, short_column, short_column);
-	insert_row(dbproc, cmd);
-	sprintf(cmd, "insert into #dblib0011 values (3, '%s',NULL,NULL)", short_column);
-	insert_row(dbproc, cmd);
+	insert_row(dbproc);
+	insert_row(dbproc);
+	insert_row(dbproc);
 
 	failed = select_rows(dbproc, STRINGBIND);
 
 	dbexit();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }
 
@@ -84,7 +81,7 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 
 
 	fprintf(stdout, "select\n");
-	dbcmd(dbproc, "select * from #dblib0011 order by i");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 
 
@@ -133,10 +130,9 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 }
 
 void
-insert_row(DBPROCESS * dbproc, char *cmd)
+insert_row(DBPROCESS * dbproc)
 {
-	fprintf(stdout, "%s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */

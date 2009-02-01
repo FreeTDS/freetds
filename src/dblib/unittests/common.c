@@ -16,7 +16,9 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.25 2008-11-25 22:58:29 jklowden Exp $";
+#include <err.h>
+
+static char software_version[] = "$Id: common.c,v 1.26 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -32,10 +34,18 @@ static memcheck_t *breadcrumbs = NULL;
 static int num_breadcrumbs = 0;
 static const unsigned int BREADCRUMB = 0xABCD7890;
 
+#if !defined(PATH_MAX)
+#define PATH_MAX 256
+#endif
+
 char USER[512];
 char SERVER[512];
 char PASSWORD[512];
 char DATABASE[512];
+
+static char sql_file[PATH_MAX];
+FILE* INPUT;
+
 static char *DIRNAME = NULL;
 static const char *BASENAME = NULL;
 
@@ -80,23 +90,17 @@ tds_dirname(char* path)
 
 #endif
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 512
-#endif
-
 int
 read_login_info(int argc, char **argv)
 {
-	extern char *optarg;
-	extern int optind;
-	
+	size_t len;
 	FILE *in = NULL;
 #if !defined(__MINGW32__) && !defined(_MSC_VER)
 	int ch;
 #endif
 	char line[512];
 	char *s1, *s2;
-	char filename[MAXPATHLEN];
+	char filename[PATH_MAX];
 	static const char *PWD = "../../../PWD";
 	struct { char *username, *password, *servername, *database; char fverbose; } options;
 	
@@ -200,7 +204,45 @@ read_login_info(int argc, char **argv)
 	}
 	
 	printf("found %s.%s for %s in \"%s\"\n", SERVER, DATABASE, USER, filename);
+	
+#if 0
+	dbrecftos(BASENAME);
+#endif
+	len = snprintf(sql_file, sizeof(sql_file), "%s.sql", BASENAME);
+	assert(len <= sizeof(sql_file));
+
+	if ((INPUT = fopen(sql_file, "r")) == NULL) {
+		fflush(stdout);
+		warnx("could not open SQL input file \"%s\"\n", sql_file);
+	}
+	
+	printf("SQL text will be read from %s\n", sql_file);
+
 	return 0;
+}
+
+/*
+ * Fill the command buffer from a file while echoing it to standard output.
+ */
+RETCODE 
+sql_cmd(DBPROCESS *dbproc, FILE *stream)
+{
+	char line[2048], *p = line;
+	int i = 0;
+	RETCODE erc=SUCCEED;
+	
+	while ((p = fgets(line, (int)sizeof(line), stream)) != NULL && strcasecmp("go\n", p) != 0) {
+		printf("\t%3d: %s", ++i, p);
+		if ((erc = dbcmd(dbproc, p)) != SUCCEED) {
+			errx(1, "%s: error: could write \"%s\" to dbcmd()\n", BASENAME, p);
+		}
+	}
+
+	if (ferror(stream)) {
+		errx(1, "%s: error: could not read SQL input file \"%s\"\n", BASENAME, sql_file);
+	}
+
+	return erc;
 }
 
 void
@@ -306,6 +348,7 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 	 * If the severity is something other than 0 or the msg number is
 	 * 0 (user informational messages).
 	 */
+	fflush(stdout);
 	if (severity >= 0 || msgno == 0) {
 		/*
 		 * If the message was something other than informational, and
@@ -364,6 +407,7 @@ syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *db
 		}
 	}
 
+	fflush(stdout);
 	fprintf(stderr,
 		"DB-LIBRARY error (dberr %d (severity %d): \"%s\"; oserr %d: \"%s\")\n",
 		dberr, severity, dberrstr ? dberrstr : "(null)", oserr, oserrstr ? oserrstr : "(null)");

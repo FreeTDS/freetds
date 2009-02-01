@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.27 2008-12-02 10:54:38 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.28 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -25,16 +25,12 @@ DBPROCESS *dbproc, *dbprocw;
 static void
 drop_table(void)
 {
-	char cmd[1024];
-
 	if (!dbproc) 
 		return;
 
 	dbcancel(dbproc);
 
-	sprintf(cmd, "drop table " TABLE_NAME);
-	fprintf(stdout, "sql: %s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -52,11 +48,9 @@ main(int argc, char **argv)
 	char *blob, *rblob;
 	DBBINARY *textPtr = NULL, *timeStamp = NULL;
 	char objname[256];
-	char sqlCmd[256];
 	char rbuf[BLOB_BLOCK_SIZE];
 	long numread;
 	BOOL readFirstImage;
-	char cmd[1024];
 	int data_ok;
 #ifdef DBWRITE_OK_FOR_OVER_4K
 	int numtowrite, numwritten;
@@ -112,9 +106,7 @@ main(int argc, char **argv)
 	fread((void *) blob, isiz, 1, fp);
 	fclose(fp);
 
-	sprintf(cmd, "create table " TABLE_NAME " (i int not null, PigTure image not null)");
-	fprintf(stdout, "sql: %s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -122,17 +114,13 @@ main(int argc, char **argv)
 
 	atexit(drop_table);
 
-	sprintf(cmd, "insert into " TABLE_NAME " values (1, '')");
-	fprintf(stdout, "sql: %s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	sprintf(sqlCmd, "SELECT PigTure FROM " TABLE_NAME " WHERE i = 1");
-	fprintf(stdout, "sql: %s\n", sqlCmd);
-	dbcmd(dbproc, sqlCmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	if (dbresults(dbproc) != SUCCEED) {
 		fprintf(stderr, "Error inserting blob\n");
@@ -198,10 +186,7 @@ main(int argc, char **argv)
 		dbuse(dbproc, DATABASE);
 	}
 #endif
-	sprintf(cmd, "select i, PigTure from " TABLE_NAME " order by i");
-
-	fprintf(stdout, "sql: %s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
@@ -236,17 +221,13 @@ main(int argc, char **argv)
 	dbnextrow(dbproc);
 
 	/* get the image */
-	strcpy(sqlCmd, "SET TEXTSIZE 2147483647");
-	fprintf(stdout, "sql: %s\n", sqlCmd);
-	dbcmd(dbproc, sqlCmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	dbresults(dbproc);
 
 	fprintf(stdout, "select 2\n");
 
-	sprintf(sqlCmd, "SELECT PigTure FROM " TABLE_NAME " WHERE i = 1");
-	fprintf(stdout, "sql: %s\n", sqlCmd);
-	dbcmd(dbproc, sqlCmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	if (dbresults(dbproc) != SUCCEED) {
 		fprintf(stderr, "Error extracting blob\n");
@@ -303,6 +284,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

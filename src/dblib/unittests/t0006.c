@@ -6,7 +6,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0006.c,v 1.17 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.18 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -92,7 +92,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0006 (i int not null, s char(10) not null)");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -100,10 +100,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 1; i < rows_to_add; i++) {
-	char cmd[1024];
-
-		sprintf(cmd, "insert into #dblib0006 values (%d, 'row %04d')", i, i);
-		dbcmd(dbproc, cmd);
+		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
@@ -111,7 +108,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "first select\n");
-	if (SUCCEED != dbcmd(dbproc, "select * from #dblib0006 where i<50 order by i")) {
+	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -148,7 +145,7 @@ main(int argc, char **argv)
 	testint = -1;
 	strcpy(teststr, "bogus");
 	fprintf(stdout, "second select\n");
-	dbcmd(dbproc, "select * from #dblib0006 where i>=25 order by i");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
@@ -174,7 +171,7 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 	return failed ? 1 : 0;
 }

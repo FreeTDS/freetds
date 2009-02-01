@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.24 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.25 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -17,7 +17,6 @@ main(int argc, char **argv)
 	int i;
 	char teststr[1024];
 	DBINT testint;
-	char cmd[1024];
 	int failed = 0;
 	int expected_error;
 
@@ -56,7 +55,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
-	if (SUCCEED != dbcmd(dbproc, "create table #dblib0005 " "(i int not null, s char(10) not null)")) {
+	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -72,8 +71,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 1; i < rows_to_add; i++) {
-		sprintf(cmd, "insert into #dblib0005 values (%d, 'row %04d')", i, i);
-		dbcmd(dbproc, cmd);
+		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
@@ -81,9 +79,7 @@ main(int argc, char **argv)
 	}
 
 
-	sprintf(cmd, "select * from #dblib0005 where i < 5 order by i");
-	fprintf(stdout, "%s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
@@ -140,13 +136,10 @@ main(int argc, char **argv)
 	fprintf(stdout, "This query should succeeded as we have fetched the exact\n"
 			"number of rows in the result set\n");
 
-	sprintf(cmd, "select * from #dblib0005 where i < 6 order by i");
-	fprintf(stdout, "%s\n", cmd);
-	
 	expected_error = 20019;
 	dbsetuserdata(dbproc, (BYTE*) &expected_error);
 
-	if (SUCCEED != dbcmd(dbproc, cmd)) {
+	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -205,12 +198,9 @@ main(int argc, char **argv)
 		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
 	}
 
-	fprintf(stdout, "This query should fail as we have not fetched all the\n");
-	fprintf(stdout, "rows in the result set\n");
+	fprintf(stdout, "Testing anticipated failure\n");
 
-	sprintf(cmd, "select * from #dblib0005 where i > 950 order by i");
-	fprintf(stdout, "%s\n", cmd);
-	if (SUCCEED != dbcmd(dbproc, cmd)) {
+	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -225,8 +215,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
-	sprintf(cmd, "if object_id('t0005_proc') is not null drop procedure t0005_proc");
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -236,12 +225,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating proc\n");
-	sprintf(cmd, "create proc t0005_proc (@b int out) as\nbegin\n"
-		"select * from #dblib0005 where i < 6 order by i\n" "select @b = 42\n" "end\n");
-
-	fprintf(stdout, "%s\n", cmd);
-
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
 		fprintf(stderr, "%s:%d: failed to create procedure\n", __FILE__, __LINE__);
@@ -252,10 +236,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "calling proc\n");
-	sprintf(cmd, "declare @myout int exec t0005_proc @b = @myout output");
-	fprintf(stdout, "%s\n", cmd);
-
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
 		fprintf(stderr, "%s:%d: failed to call procedure\n", __FILE__, __LINE__);
@@ -309,12 +290,11 @@ main(int argc, char **argv)
 	}
 	add_bread_crumb();
 
-	fprintf(stdout, "This next command should succeed as we have fetched the exact\n"
-			"number of rows in the result set\n");
+	fprintf(stdout, "Calling dbsqlexec before dbnextrow returns NO_MORE_ROWS\n");
+	fprintf(stdout, "The following command should succeed because\n"
+			"we have fetched the exact number of rows in the result set\n");
 
-	sprintf(cmd, "select getdate()");
-	fprintf(stdout, "%s\n", cmd);
-	if (SUCCEED != dbcmd(dbproc, cmd)) {
+	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -326,7 +306,7 @@ main(int argc, char **argv)
 
 	dbcancel(dbproc);
 
-	dbcmd(dbproc, "drop procedure t0005_proc");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -335,7 +315,7 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 	return failed ? 1 : 0;
 }

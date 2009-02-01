@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0012.c,v 1.22 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0012.c,v 1.23 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -15,8 +15,6 @@ main(int argc, char *argv[])
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
-	char cmd[512];
-	char sqlCmd[256];
 	char datestring[256];
 	DBDATEREC dateinfo;
 	DBDATETIME mydatetime;
@@ -45,29 +43,23 @@ main(int argc, char *argv[])
 	fprintf(stdout, "After logon\n");
 
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0012 (dt datetime not null)");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 
-	sprintf(cmd, "insert into #dblib0012 values ('Feb 27 2001 10:24:35:056AM')");
-	fprintf(stdout, "%s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 
-	sprintf(cmd, "insert into #dblib0012 values ('Dec 25 1898 07:30:00:567PM')");
-	fprintf(stdout, "%s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
-	sprintf(sqlCmd, "SELECT dt FROM #dblib0012");
-	dbcmd(dbproc, sqlCmd);
 	dbsqlexec(dbproc);
 	dbresults(dbproc);
 
@@ -108,7 +100,7 @@ main(int argc, char *argv[])
 	dbclose(dbproc);
 	dbexit();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 	return failed ? 1 : 0;
 }

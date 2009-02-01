@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0009.c,v 1.15 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0009.c,v 1.16 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -60,19 +60,19 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0009 (i int not null, s char(10) not null)");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
 	fprintf(stdout, "insert\n");
-	dbcmd(dbproc, "insert into #dblib0009 values (1, 'abcdef')");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
-	dbcmd(dbproc, "insert into #dblib0009 values (2, 'abc')");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 
 
 	fprintf(stdout, "select\n");
-	dbcmd(dbproc, "select * from #dblib0009 order by i");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 

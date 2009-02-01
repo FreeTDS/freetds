@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0017.c,v 1.27 2006-08-25 09:04:18 freddy77 Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.28 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -68,14 +68,14 @@ main(int argc, char *argv[])
 	printf("done\n");
 
 	printf("Creating table ... ");
-	dbcmd(dbproc, "create table #dblib0017 (c1 int null, c2 text)");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 	printf("done\n");
 
-	dbcmd(dbproc, "insert into #dblib0017(c1,c2) values(1144201745,'prova di testo questo testo dovrebbe andare a finire in un campo text')");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 	printf("done\n");
 
 	printf("Issuing SELECT ... ");
-	dbcmd(dbproc, "select * from #dblib0017 where 0=1");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	printf("done\nFetching metadata ... ");
 	if (dbresults(dbproc) != FAIL) {
@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 	printf("%d rows copied\n", rows_copied);
 
 	/* delete rows */
-	dbcmd(dbproc, "delete from #dblib0017");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 	printf("done\n");
 
 	printf("Issuing SELECT ... ");
-	dbcmd(dbproc, "select * from #dblib0017 where 0=1");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	printf("done\nFetching metadata ... ");
 	if (dbresults(dbproc) != FAIL) {
@@ -194,7 +194,7 @@ main(int argc, char *argv[])
 
 	/* test we inserted correctly row */
 	if (!failed) {
-		dbcmd(dbproc, "SET NOCOUNT ON DECLARE @n INT SELECT @n = COUNT(*) FROM #dblib0017 WHERE c1=1144201745 AND c2 LIKE 'prova di testo questo testo dovrebbe andare a finire in un campo text' IF @n <> 1 SELECT 0");
+		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			while ((ret=dbnextrow(dbproc)) != NO_MORE_ROWS) {

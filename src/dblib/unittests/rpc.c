@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.35 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.36 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[4096];
@@ -48,8 +48,7 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	if (name[0] != '#') {
 		fprintf(stdout, "Dropping procedure %s\n", name);
 		add_bread_crumb();
-		sprintf(cmd, "DROP PROCEDURE %s", name);
-		dbcmd(dbproc, cmd);
+		sql_cmd(dbproc, INPUT);
 		add_bread_crumb();
 		dbsqlexec(dbproc);
 		add_bread_crumb();
@@ -60,8 +59,7 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	}
 
 	fprintf(stdout, "Creating procedure %s\n", name);
-	sprintf(cmd, procedure_sql, name);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	if ((ret = dbsqlexec(dbproc)) == FAIL) {
 		add_bread_crumb();
 		if (name[0] == '#')
@@ -414,8 +412,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping procedure\n");
 	add_bread_crumb();
-	sprintf(cmd, "DROP PROCEDURE %s", proc_name);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -426,7 +423,7 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 
 	free(save_param.name);

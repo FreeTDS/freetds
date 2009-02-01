@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0022.c,v 1.25 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.26 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -56,7 +56,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
-	dbcmd(dbproc, "if object_id('t0022') is not null drop proc t0022");
+	sql_cmd(dbproc, INPUT);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -72,7 +72,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating proc\n");
-	dbcmd(dbproc, "create proc t0022 (@b int out) as\nbegin\n select @b = 42\n return 66\nend\n");
+	sql_cmd(dbproc, INPUT);
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
 		fprintf(stdout, "Failed to create proc t0022.\n");
@@ -88,7 +88,7 @@ main(int argc, char **argv)
 
 	sprintf(cmd, "declare @b int\nexec t0022 @b = @b output\n");
 	fprintf(stdout, "%s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
@@ -157,7 +157,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
-	dbcmd(dbproc, "drop proc t0022");
+	sql_cmd(dbproc, INPUT);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -170,7 +170,7 @@ main(int argc, char **argv)
 	 */
 	
 	fprintf(stdout, "Dropping proc t0022a\n");
-	dbcmd(dbproc, "if object_id('t0022a') is not null drop proc t0022a");
+	sql_cmd(dbproc, INPUT);
 
 	dbsqlexec(dbproc);
 
@@ -185,7 +185,7 @@ main(int argc, char **argv)
 	assert(erc == NO_MORE_RESULTS);
 
 	fprintf(stdout, "creating proc t0022a\n");
-	dbcmd(dbproc, "create proc t0022a (@b int) as\nreturn @b\n");
+	sql_cmd(dbproc, INPUT);
 	if (dbsqlexec(dbproc) == FAIL) {
 		fprintf(stdout, "Failed to create proc t0022a.\n");
 		exit(1);
@@ -198,9 +198,7 @@ main(int argc, char **argv)
 		assert(erc == NO_MORE_ROWS);
 	}
 
-	sprintf(cmd, "exec t0022a 17 exec t0022a 1024\n");
-	fprintf(stdout, "%s\n", cmd);
-	dbcmd(dbproc, cmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 
 	for (i=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; i++) {
@@ -234,7 +232,7 @@ main(int argc, char **argv)
 	assert(erc == NO_MORE_RESULTS);
 	
 	fprintf(stdout, "Dropping proc t0022a\n");
-	dbcmd(dbproc, "drop proc t0022a");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -247,7 +245,7 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 	return failed ? 1 : 0;
 }

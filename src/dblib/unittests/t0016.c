@@ -6,7 +6,7 @@
 #include "common.h"
 #include <sys/stat.h>
 
-static char software_version[] = "$Id: t0016.c,v 1.27 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.28 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -82,9 +82,7 @@ main(int argc, char *argv[])
 	printf("After logon\n");
 
 	printf("Creating table '%s'\n", TABLE_NAME);
-	strcpy(sqlCmd, "create table #dblib0016 (f1 int not null, s1 int null, f2 numeric(10,2) null, ");
-	strcat(sqlCmd, "f3 varchar(255) not null, f4 datetime null) ");
-	dbcmd(dbproc, sqlCmd);
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -99,7 +97,7 @@ main(int argc, char *argv[])
 
 	printf("return from bcp_init = %d\n", ret);
 
-	ret = dbcmd(dbproc, "select * from #dblib0016 where 0=1");
+	ret = sql_cmd(dbproc, INPUT);
 	printf("return from dbcmd = %d\n", ret);
 
 	ret = dbsqlexec(dbproc);
@@ -141,7 +139,7 @@ main(int argc, char *argv[])
 		failure("bcp_int failed\n");
 
 	printf("select\n");
-	dbcmd(dbproc, "select * from #dblib0016 where 0=1");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != FAIL) {

@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.15 2008-11-25 22:58:29 jklowden Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.16 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #if HAVE_CONFIG_H
@@ -76,6 +76,7 @@ extern char PASSWORD[512];
 extern char USER[512];
 extern char SERVER[512];
 extern char DATABASE[512];
+extern FILE* INPUT;
 
 void set_malloc_options(void);
 int read_login_info(int argc, char **argv);
@@ -85,6 +86,8 @@ void free_bread_crumb(void);
 int syb_msg_handler(DBPROCESS * dbproc,
 		    DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line);
 int syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
+
+RETCODE sql_cmd(DBPROCESS *dbproc, FILE *stream);
 
 #define int2ptr(i) ((void*)(((char*)0)+(i)))
 #define ptr2int(p) ((int)(((char*)(p))-((char*)0)))

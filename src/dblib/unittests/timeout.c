@@ -7,7 +7,7 @@
 #include "common.h"
 #include <time.h>
 
-static char software_version[] = "$Id: timeout.c,v 1.5 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.6 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int ntimeouts = 0, ncancels = 0;
@@ -159,7 +159,7 @@ main(int argc, char **argv)
 	}
 	printf ("issuing a query that will take 30 seconds\n");
 
-	if (FAIL == dbcmd(dbproc, "select getdate() as 'begintime' waitfor delay '00:00:30' select getdate() as 'endtime' ")) {
+	if (FAIL == sql_cmd(dbproc, INPUT)) {
 		fprintf(stderr, "Failed: dbcmd\n");
 		exit(1);
 	}
@@ -237,7 +237,7 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 
 	return failed ? 1 : 0;

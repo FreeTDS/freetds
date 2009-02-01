@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0021.c,v 1.13 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0021.c,v 1.14 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -59,6 +59,6 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }

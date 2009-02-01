@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.28 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.29 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -85,14 +85,14 @@ main(int argc, char **argv)
 
 	/* FIXME this test seem to not work using temporary tables (sybase?)... */
 	fprintf(stdout, "Dropping table\n");
-	dbcmd(dbproc, "if object_id('dblib0014') is not null drop table dblib0014");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table dblib0014 (i int not null, PigTure image not null)");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -103,9 +103,8 @@ main(int argc, char **argv)
 	for (i = 0; i < rows_to_add; i++) {
 	char cmd[1024];
 
-		sprintf(cmd, "insert into dblib0014 values (%d, '')", i);
 		fprintf(stdout, "%s\n", cmd);
-		dbcmd(dbproc, cmd);
+		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
@@ -113,8 +112,7 @@ main(int argc, char **argv)
 	}
 
 	for (i = 0; i < rows_to_add; i++) {
-		sprintf(sqlCmd, "SELECT PigTure FROM dblib0014 WHERE i = %d", i);
-		dbcmd(dbproc, sqlCmd);
+		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		if (dbresults(dbproc) != SUCCEED) {
 			fprintf(stderr, "Error inserting blob\n");
@@ -159,7 +157,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "select\n");
 
-	dbcmd(dbproc, "select * from dblib0014 order by i");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
@@ -250,7 +248,7 @@ main(int argc, char **argv)
 	free(blob);
 
 	fprintf(stdout, "Dropping table\n");
-	dbcmd(dbproc, "drop table dblib0014");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */

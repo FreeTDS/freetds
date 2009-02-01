@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0018.c,v 1.19 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0018.c,v 1.20 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -55,7 +55,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
-	dbcmd(dbproc, "create table #dblib0018 (i int not null, s char(10) not null)");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -63,11 +63,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 0; i < rows_to_add; i++) {
-	char cmd[1024];
-
-		sprintf(cmd, "insert into #dblib0018 values (%d, 'row %03d')", i, i);
-		fprintf(stdout, "%s\n", cmd);
-		dbcmd(dbproc, cmd);
+		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
@@ -80,7 +76,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "select\n");
-	dbcmd(dbproc, "select * into #tmp0 from #dblib0018\nselect * from #tmp0 order by i");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
@@ -170,7 +166,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	dbcmd(dbproc, "update #dblib0018 set s = 'row 000'");
+	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -188,7 +184,7 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	free_bread_crumb();
 	return failed ? 1 : 0;
 }

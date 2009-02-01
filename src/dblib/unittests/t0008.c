@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0008.c,v 1.17 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: t0008.c,v 1.18 2009-02-01 22:29:39 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -159,10 +159,8 @@ main(int argc, char **argv)
 	dbexit();
 	add_bread_crumb();
 
-	if (last_read == rows_to_add - 1)
-		printf("dblib okay for %s\n", __FILE__);
-	else
-		fprintf(stderr, "dblib failed for %s last_read %d\n", __FILE__, (int) last_read);
+	fprintf(stdout, "%s %s (last_read: %d)\n", __FILE__, ((last_read != rows_to_add - 1)? "failed!" : "OK"), (int) last_read);
+
 	free_bread_crumb();
 	return (last_read == rows_to_add - 1) ? 0 : 1;
 }
