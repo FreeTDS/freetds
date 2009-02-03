@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.45 2009-02-01 23:40:56 jklowden Exp $
+# $Id: Makefile.am,v 1.46 2009-02-03 05:00:48 jklowden Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -13,12 +13,14 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			setnull$(EXEEXT)
 check_PROGRAMS	=	$(TESTS)
 
-EXTRA_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql \
+SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql \
 		t0001.sql t0002.sql t0003.sql t0004.sql t0005.sql t0006.sql t0007.sql t0009.sql \
 		t0011.sql t0012.sql t0013.sql t0014.sql t0015.sql t0016.sql t0017.sql t0018.sql \
 		t0020.sql t0022.sql t0023.sql text_buffer.sql timeout.sql
 
-t0001_SOURCES	=	t0001.c common.c common.h
+nodist_bin_SCRIPTS	= $(SQL_DIST)
+
+t0001_SOURCES	=	t0001.c common.c common.h t0001.sql
 t0002_SOURCES	=	t0002.c common.c common.h
 t0003_SOURCES	=	t0003.c common.c common.h
 t0004_SOURCES	=	t0004.c common.c common.h
@@ -59,7 +61,7 @@ else
 AM_LDFLAGS	=	-no-install -L../.libs -Wl,--rpath,../.libs
 endif
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la @NETWORK_LIBS@
-EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32)
+EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32) 
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err t0017.out
 
@@ -76,3 +78,5 @@ clean-local:
 EXTRA_DIST_WIN32 = vc6 dblib.dsw dblib.mak
 endif
 
+$(SQL_DIST): 
+	ln -s $(srcdir)/$@ .
