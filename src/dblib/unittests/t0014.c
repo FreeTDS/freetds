@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.29 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.30 2009-02-03 09:10:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -101,9 +101,6 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 0; i < rows_to_add; i++) {
-	char cmd[1024];
-
-		fprintf(stdout, "%s\n", cmd);
 		sql_cmd(dbproc, INPUT);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
