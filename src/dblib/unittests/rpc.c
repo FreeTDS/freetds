@@ -5,10 +5,9 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.36 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.37 2009-02-05 08:49:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static char cmd[4096];
 static int init_proc(DBPROCESS * dbproc, const char *name);
 int ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line);

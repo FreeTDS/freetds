@@ -6,7 +6,7 @@
 #include "common.h"
 #include <sys/stat.h>
 
-static char software_version[] = "$Id: t0016.c,v 1.28 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.29 2009-02-05 08:49:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -32,7 +32,6 @@ main(int argc, char *argv[])
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	int i;
-	char sqlCmd[256];
 	RETCODE ret;
 	const char *out_file = "t0016.out";
 	const char *in_file = FREETDS_SRCDIR "/" INFILE_NAME;

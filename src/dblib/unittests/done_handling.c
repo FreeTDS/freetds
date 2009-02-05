@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.8 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.9 2009-02-05 08:49:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -60,16 +60,14 @@ prretcode(int retcode)
 	return unknown;
 }
 
-static RETCODE
+static void
 query(const char comment[])
 {
-	RETCODE erc;
-	
 	if (comment)
 		printf("%s\n", comment);
 	sql_cmd(dbproc, INPUT);
 	dbsqlexec(dbproc);
-	while ((erc = dbresults(dbproc)) == SUCCEED) {
+	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 }
@@ -149,7 +147,6 @@ int
 main(int argc, char *argv[])
 {
 	const static int invalid_column_name = 207;
-	RETCODE erc;
 	LOGINREC *login;	/* Our login information. */
 	int i;
 
@@ -184,9 +181,8 @@ main(int argc, char *argv[])
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 
-	for (i=0; i < 6; i++) {
-		erc = query(NULL);
-	}
+	for (i=0; i < 6; i++)
+		query(NULL);
 #if 0	
 	check_state("setup done ", prretcode, erc);
 	
@@ -202,7 +198,7 @@ main(int argc, char *argv[])
 	do_test("normal row with rowcount off");
 	query("turn rowcount back on");
 	do_test("normal row without rows");
-	dbsetuserdata(dbproc, &invalid_column_name);
+	dbsetuserdata(dbproc, (BYTE*) &invalid_column_name);
 	do_test("error query");
 	do_test("stored procedure call with output parameters");
 

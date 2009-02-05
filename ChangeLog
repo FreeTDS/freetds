@@ -1,3 +1,9 @@
+Thu Feb  5 09:49:08 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/done_handling.c src/dblib/unittests/rpc.c:
+	* src/dblib/unittests/t0011.c src/dblib/unittests/t0016.c:
+	* src/dblib/unittests/t0023.c:
+	- remove warnings
+
 Tue Feb  3 10:10:24 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/t0014.c: fix memory error
 
@@ -1271,4 +1277,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2719 2009-02-03 09:10:58 freddy77 Exp $
+$Id: ChangeLog,v 1.2720 2009-02-05 08:49:45 freddy77 Exp $

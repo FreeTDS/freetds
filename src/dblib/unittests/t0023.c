@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0023.c,v 1.14 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0023.c,v 1.15 2009-02-05 08:49:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -18,7 +18,6 @@ main(int argc, char *argv[])
 {
 	LOGINREC *login;
 	DBPROCESS *dbproc;
-	char cmd[1024];
 	int i;
 	DBINT rowint;
 	DBCHAR rowchar[2];
