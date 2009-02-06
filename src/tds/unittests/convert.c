@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.25 2009-02-06 11:12:01 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.26 2009-02-06 14:26:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -291,6 +291,9 @@ main(int argc, char **argv)
 			break;
 		case SYBINT8:
 			tds_int8 = cr.bi;
+			break;
+		case SYBUNIQUE:
+			tds_unique = cr.u;
 			break;
 		default:
 			break;

@@ -159,7 +159,7 @@ fi
 
 # upload our test results
 cd logs
-perl -pe "\$_ = '' if \$_ =~ /^2:bcp.c: In function 'bcp_colfmt'|^2:bcp.c:\\d+: warning: suggest parentheses around && within \\|\\|/" < log.txt | ../misc/online.pl
+perl -pe "\$_ = '' if \$_ =~ /^2:bcp.c: In function 'bcp_colfmt'|^2:bcp.c:\\d+: warning: suggest parentheses around && within \\|\\||^2:.*content model is mixed but does not allow #PCDATA everywhere/" < log.txt | ../misc/online.pl
 upload "$OUTDIR/test" '*.html'
 cd ..
 
