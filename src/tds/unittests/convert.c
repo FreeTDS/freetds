@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #endif
 
-static char software_version[] = "$Id: convert.c,v 1.24 2008-12-10 14:56:27 freddy77 Exp $";
+static char software_version[] = "$Id: convert.c,v 1.25 2009-02-06 11:12:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int g_result = 0;
@@ -91,6 +91,8 @@ main(int argc, char **argv)
 
 	TDS_REAL tds_real;
 	TDS_FLOAT tds_float;
+
+	TDS_UNIQUE tds_unique;
 
 	if (argc > 1) {
 		iterations = atoi(argv[1]);
@@ -153,6 +155,9 @@ main(int argc, char **argv)
 				cr.n.precision = 8;
 				cr.n.scale = 2;
 				break;
+			case SYBUNIQUE:
+				src = "A8C60F70-5BD4-3E02-B769-7CCCCA585DCC";
+				break;
 			case SYBBIT:
 			default:
 				src = "1";
@@ -201,6 +206,7 @@ main(int argc, char **argv)
 			srclen = sizeof(money4);
 			break;
 		case SYBBIT:
+		case SYBBITN:
 			src = (char *) &bit_input;
 			srclen = sizeof(bit_input);
 			break;
@@ -211,6 +217,10 @@ main(int argc, char **argv)
 		case SYBDATETIME4:
 			src = (char *) &datetime4;
 			srclen = sizeof(datetime4);
+			break;
+		case SYBUNIQUE:
+			src = (char *) &tds_unique;
+			srclen = sizeof(tds_unique);
 			break;
 		/*****  not defined yet
 			case SYBBOUNDARY:
