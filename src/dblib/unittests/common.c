@@ -18,7 +18,7 @@
 
 #include <err.h>
 
-static char software_version[] = "$Id: common.c,v 1.26 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.27 2009-02-06 10:11:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -89,6 +89,16 @@ tds_dirname(char* path)
 #define dirname tds_dirname
 
 #endif
+
+char free_file_registered = 0;
+static void
+free_file(void)
+{
+	if (INPUT) {
+		fclose(INPUT);
+		INPUT = NULL;
+	}
+}
 
 int
 read_login_info(int argc, char **argv)
@@ -215,6 +225,10 @@ read_login_info(int argc, char **argv)
 		fflush(stdout);
 		warnx("could not open SQL input file \"%s\"\n", sql_file);
 	}
+
+	if (!free_file_registered)
+		atexit(free_file);
+	free_file_registered = 1;
 	
 	printf("SQL text will be read from %s\n", sql_file);
 
