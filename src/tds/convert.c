@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.187 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.188 2009-02-07 00:26:22 jklowden Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2877,6 +2877,42 @@ tds_willconvert(int srctype, int desttype)
 #endif
 }
 
+#if 0
+select day(d) as day, datepart(dw, d) as weekday, datepart(week, d) as week, d as 'date' from #t order by d
+day         weekday     week        date                                                   
+----------- ----------- ----------- ----------
+          1           5           1 2009-01-01 Thursday
+          2           6           1 2009-01-02 Friday
+          3           7           1 2009-01-03 Saturday
+          4           1           2 2009-01-04 Sunday
+          5           2           2 2009-01-05
+          6           3           2 2009-01-06
+          7           4           2 2009-01-07
+          8           5           2 2009-01-08
+          9           6           2 2009-01-09
+         10           7           2 2009-01-10
+         11           1           3 2009-01-11
+         12           2           3 2009-01-12
+         13           3           3 2009-01-13
+         14           4           3 2009-01-14
+         15           5           3 2009-01-15
+         16           6           3 2009-01-16
+         17           7           3 2009-01-17
+         18           1           4 2009-01-18
+         19           2           4 2009-01-19
+         20           3           4 2009-01-20
+         21           4           4 2009-01-21
+         22           5           4 2009-01-22
+         23           6           4 2009-01-23
+         24           7           4 2009-01-24
+         25           1           5 2009-01-25
+         26           2           5 2009-01-26
+         27           3           5 2009-01-27
+         28           4           5 2009-01-28
+         29           5           5 2009-01-29
+         30           6           5 2009-01-30
+         31           7           5 2009-01-31
+#endif
 /**
  * Convert from db date format to a structured date format
  * @param datetype source date type. SYBDATETIME or SYBDATETIME4
@@ -2939,8 +2975,10 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 
 	dr->year = years;
 	dr->month = months;
+	dr->quarter = months / 3;
 	dr->day = days;
 	dr->dayofyear = ydays;
+	dr->week = -1;
 	dr->weekday = wday;
 	dr->hour = hours;
 	dr->minute = mins;

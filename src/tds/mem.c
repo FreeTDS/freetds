@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.187 2009-01-23 10:42:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.188 2009-02-07 00:26:22 jklowden Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -616,23 +616,27 @@ tds_free_all_results(TDSSOCKET * tds)
 /*
  * Return 1 if winsock is initialized, else 0.
  */
+const char *tds_prwsaerror( int erc );
 static int
 winsock_initialized(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	WSADATA wsa_data;
 	int erc;
-	DWORD how_much = 0;
+	WSAPROTOCOL_INFO protocols[8];
+	DWORD how_much = sizeof(protocols);
 	WORD requested_version = MAKEWORD(2, 2);
-
-	if (SOCKET_ERROR != WSAEnumProtocols(NULL, NULL, &how_much))
+	 
+	if (SOCKET_ERROR != WSAEnumProtocols(NULL, protocols, &how_much)) 
 		return 1;
 
-	if (WSANOTINITIALISED != WSAGetLastError())
+	if (WSANOTINITIALISED != (erc = WSAGetLastError())) {
+		fprintf(stderr, "tds_init_winsock: WSAEnumProtocols failed with %d(%s)\n", erc, tds_prwsaerror(erc) ); 
 		return 0;
-
+	}
+	
 	if (SOCKET_ERROR == (erc = WSAStartup(requested_version, &wsa_data))) {
-		fprintf(stderr, "tds_init_winsock: WSAStartup failed with %d(%s)\n", erc, WSAGetLastError() );
+		fprintf(stderr, "tds_init_winsock: WSAStartup failed with %d(%s)\n", erc, tds_prwsaerror(erc) ); 
 		return 0;
 	}
 #endif

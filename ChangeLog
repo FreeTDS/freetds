@@ -1,3 +1,8 @@
+Fri Feb  6 19:22:16 EST 2009	JK Lowden <jklowden@freetds.org>
+	* include/sybdb.h include/tds.h src/dblib/dblib.c 
+	* src/tds/convert.c src/tds/mem.c src/tds/net.c
+	- better winsock initialization and dbdatecrack
+
 Fri Feb  6 15:25:10 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/freetds_autobuild: remove openjade warning
 	* src/tds/unittests/convert.c: make valgrind happy
@@ -1290,4 +1295,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2724 2009-02-06 14:26:54 freddy77 Exp $
+$Id: ChangeLog,v 1.2725 2009-02-07 00:26:22 jklowden Exp $

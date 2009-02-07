@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.85 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.86 2009-02-07 00:26:22 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -1129,6 +1129,128 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	tdsdump_log(TDS_DBG_ERROR, "instance port is %d\n", port);
 	return port;
 }
+
+#if defined(_WIN32)
+const char *
+tds_prwsaerror( int erc ) 
+{
+	switch(erc) {
+	case WSAEINTR: /* 10004 */
+		return "WSAEINTR: Interrupted function call.";
+	case WSAEACCES: /* 10013 */
+		return "WSAEACCES: Permission denied.";
+	case WSAEFAULT: /* 10014 */
+		return "WSAEFAULT: Bad address.";
+	case WSAEINVAL: /* 10022 */
+		return "WSAEINVAL: Invalid argument.";
+	case WSAEMFILE: /* 10024 */
+		return "WSAEMFILE: Too many open files.";
+	case WSAEWOULDBLOCK: /* 10035 */
+		return "WSAEWOULDBLOCK: Resource temporarily unavailable.";
+	case WSAEINPROGRESS: /* 10036 */
+		return "WSAEINPROGRESS: Operation now in progress.";
+	case WSAEALREADY: /* 10037 */
+		return "WSAEALREADY: Operation already in progress.";
+	case WSAENOTSOCK: /* 10038 */
+		return "WSAENOTSOCK: Socket operation on nonsocket.";
+	case WSAEDESTADDRREQ: /* 10039 */
+		return "WSAEDESTADDRREQ: Destination address required.";
+	case WSAEMSGSIZE: /* 10040 */
+		return "WSAEMSGSIZE: Message too long.";
+	case WSAEPROTOTYPE: /* 10041 */
+		return "WSAEPROTOTYPE: Protocol wrong type for socket.";
+	case WSAENOPROTOOPT: /* 10042 */
+		return "WSAENOPROTOOPT: Bad protocol option.";
+	case WSAEPROTONOSUPPORT: /* 10043 */
+		return "WSAEPROTONOSUPPORT: Protocol not supported.";
+	case WSAESOCKTNOSUPPORT: /* 10044 */
+		return "WSAESOCKTNOSUPPORT: Socket type not supported.";
+	case WSAEOPNOTSUPP: /* 10045 */
+		return "WSAEOPNOTSUPP: Operation not supported.";
+	case WSAEPFNOSUPPORT: /* 10046 */
+		return "WSAEPFNOSUPPORT: Protocol family not supported.";
+	case WSAEAFNOSUPPORT: /* 10047 */
+		return "WSAEAFNOSUPPORT: Address family not supported by protocol family.";
+	case WSAEADDRINUSE: /* 10048 */
+		return "WSAEADDRINUSE: Address already in use.";
+	case WSAEADDRNOTAVAIL: /* 10049 */
+		return "WSAEADDRNOTAVAIL: Cannot assign requested address.";
+	case WSAENETDOWN: /* 10050 */
+		return "WSAENETDOWN: Network is down.";
+	case WSAENETUNREACH: /* 10051 */
+		return "WSAENETUNREACH: Network is unreachable.";
+	case WSAENETRESET: /* 10052 */
+		return "WSAENETRESET: Network dropped connection on reset.";
+	case WSAECONNABORTED: /* 10053 */
+		return "WSAECONNABORTED: Software caused connection abort.";
+	case WSAECONNRESET: /* 10054 */
+		return "WSAECONNRESET: Connection reset by peer.";
+	case WSAENOBUFS: /* 10055 */
+		return "WSAENOBUFS: No buffer space available.";
+	case WSAEISCONN: /* 10056 */
+		return "WSAEISCONN: Socket is already connected.";
+	case WSAENOTCONN: /* 10057 */
+		return "WSAENOTCONN: Socket is not connected.";
+	case WSAESHUTDOWN: /* 10058 */
+		return "WSAESHUTDOWN: Cannot send after socket shutdown.";
+	case WSAETIMEDOUT: /* 10060 */
+		return "WSAETIMEDOUT: Connection timed out.";
+	case WSAECONNREFUSED: /* 10061 */
+		return "WSAECONNREFUSED: Connection refused.";
+	case WSAEHOSTDOWN: /* 10064 */
+		return "WSAEHOSTDOWN: Host is down.";
+	case WSAEHOSTUNREACH: /* 10065 */
+		return "WSAEHOSTUNREACH: No route to host.";
+	case WSAEPROCLIM: /* 10067 */
+		return "WSAEPROCLIM: Too many processes.";
+	case WSASYSNOTREADY: /* 10091 */
+		return "WSASYSNOTREADY: Network subsystem is unavailable.";
+	case WSAVERNOTSUPPORTED: /* 10092 */
+		return "WSAVERNOTSUPPORTED: Winsock.dll version out of range.";
+	case WSANOTINITIALISED: /* 10093 */
+		return "WSANOTINITIALISED: Successful WSAStartup not yet performed.";
+	case WSAEDISCON: /* 10101 */
+		return "WSAEDISCON: Graceful shutdown in progress.";
+	case WSATYPE_NOT_FOUND: /* 10109 */
+		return "WSATYPE_NOT_FOUND: Class type not found.";
+	case WSAHOST_NOT_FOUND: /* 11001 */
+		return "WSAHOST_NOT_FOUND: Host not found.";
+	case WSATRY_AGAIN: /* 11002 */
+		return "WSATRY_AGAIN: Nonauthoritative host not found.";
+	case WSANO_RECOVERY: /* 11003 */
+		return "WSANO_RECOVERY: This is a nonrecoverable error.";
+	case WSANO_DATA: /* 11004 */
+		return "WSANO_DATA: Valid name, no data record of requested type.";
+	case WSA_INVALID_HANDLE: /* OS dependent */
+		return "WSA_INVALID_HANDLE: Specified event object handle is invalid.";
+	case WSA_INVALID_PARAMETER: /* OS dependent */
+		return "WSA_INVALID_PARAMETER: One or more parameters are invalid.";
+	case WSA_IO_INCOMPLETE: /* OS dependent */
+		return "WSA_IO_INCOMPLETE: Overlapped I/O event object not in signaled state.";
+	case WSA_IO_PENDING: /* OS dependent */
+		return "WSA_IO_PENDING: Overlapped operations will complete later.";
+	case WSA_NOT_ENOUGH_MEMORY: /* OS dependent */
+		return "WSA_NOT_ENOUGH_MEMORY: Insufficient memory available.";
+	case WSA_OPERATION_ABORTED: /* OS dependent */
+		return "WSA_OPERATION_ABORTED: Overlapped operation aborted.";
+#if defined(WSAINVALIDPROCTABLE)
+	case WSAINVALIDPROCTABLE: /* OS dependent */
+		return "WSAINVALIDPROCTABLE: Invalid procedure table from service provider.";
+#endif
+#if defined(WSAINVALIDPROVIDER)
+	case WSAINVALIDPROVIDER: /* OS dependent */
+		return "WSAINVALIDPROVIDER: Invalid service provider version number.";
+#endif
+#if defined(WSAPROVIDERFAILEDINIT)
+	case WSAPROVIDERFAILEDINIT: /* OS dependent */
+		return "WSAPROVIDERFAILEDINIT: Unable to initialize a service provider.";
+#endif
+	case WSASYSCALLFAILURE: /* OS dependent */
+		return "WSASYSCALLFAILURE: System call failure.";
+	}
+	return "undocumented WSA error code";
+}
+#endif
 
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 

@@ -62,7 +62,6 @@
  * 	This affects how certain application-addressable 
  * 	strucures are defined.  
  */
-#define SYBDBLIB 1
 #include <tds.h>
 #include <tdsthread.h>
 #include <tdsconvert.h>
@@ -76,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.340 2009-01-31 19:13:20 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.341 2009-02-07 00:26:22 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1836,7 +1835,6 @@ RETCODE
 dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 {
 	BYTE *pval;
-	size_t len;
 	
 	tdsdump_log(TDS_DBG_FUNC, "dbsetnull(%p, %d, %d, %p)\n", dbproc, bindtype, bindlen, bindval);
 	
@@ -1856,22 +1854,21 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	case SMALLDATETIMEBIND:
 	case SMALLMONEYBIND:
 	case TINYBIND:
-		len = default_null_representations[bindtype].len;
+		bindlen = (int)default_null_representations[bindtype].len;
 		break;
 
 	case CHARBIND:
 	case BINARYBIND:
 		CHECK_PARAMETER(bindlen >= 0, SYBEBBL, FAIL);
-		len = bindlen;
 		break;
 		
-	case NTBSTRINGBIND:	len = strlen((char *) bindval);
+	case NTBSTRINGBIND:	bindlen = (int)strlen((char *) bindval);
 		break;
-	case STRINGBIND:	len = strlen((char *) bindval);
+	case STRINGBIND:	bindlen = (int)strlen((char *) bindval);
 		break;
-	case VARYBINBIND:	len = ((TDS_VARBINARY*) bindval)->len;
+	case VARYBINBIND:	bindlen = ((TDS_VARBINARY*) bindval)->len;
 		break;
-	case VARYCHARBIND:	len = ((TDS_VARCHAR*) bindval)->len;
+	case VARYCHARBIND:	bindlen = ((TDS_VARCHAR*) bindval)->len;
 		break;
 
 #if 0
@@ -1883,7 +1880,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		return FAIL;
 	}
 
-	if ((pval = malloc(len)) == NULL) {
+	if ((pval = malloc(bindlen)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
 	}
@@ -1892,12 +1889,12 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	if (dbproc->nullreps[bindtype].bindval != default_null_representations[bindtype].bindval)
 		free((BYTE*)dbproc->nullreps[bindtype].bindval);
 
-	memcpy(pval, bindval, len);
+	memcpy(pval, bindval, bindlen);
 	
 	dbproc->nullreps[bindtype].bindval = pval;
-	dbproc->nullreps[bindtype].len = len;
+	dbproc->nullreps[bindtype].len = bindlen;
 
-	tdsdump_dump_buf(TDS_DBG_NETWORK, "null representation set ", pval,  len);
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "null representation set ", pval,  bindlen);
 	return SUCCEED;
 }
 
@@ -5531,19 +5528,24 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
  * \sa dbconvert(), dbdata(), dbdatechar(), dbdatename(), dbdatepart().
  */
 RETCODE
-dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
+dbdatecrack(DBPROCESS * dbproc, DBDATEREC * output, DBDATETIME * datetime)
 {
+#if MSDBLIB
+	const int msdblib = 1;
+#else
+	const int msdblib = 0;
+#endif
 	TDSDATEREC dr;
+	struct tds_sybase_dbdaterec *di = (struct tds_sybase_dbdaterec*) output;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbdatecrack(%p, %p, %p)\n", dbproc, di, datetime);
-	CHECK_DBPROC();
-	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
-	CHECK_NULP(di, "dbdatecrack", 2, FAIL);
+	tdsdump_log(TDS_DBG_FUNC, "dbdatecrack(%p, %p, %p)\n", dbproc, output, datetime);
+	CHECK_NULP(output, "dbdatecrack", 2, FAIL);
 	CHECK_PARAMETER(datetime, SYBENDTP, FAIL);
 
 	tds_datecrack(SYBDATETIME, datetime, &dr);
 
 	di->dateyear = dr.year;
+	di->quarter = dr.quarter;
 	di->datemonth = dr.month;
 	di->datedmonth = dr.day;
 	di->datedyear = dr.dayofyear;
@@ -5552,7 +5554,9 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * datetime)
 	di->dateminute = dr.minute;
 	di->datesecond = dr.second;
 	di->datemsecond = dr.millisecond;
-	if (dbproc->msdblib) {
+	/* Revert to compiled-in default if dbproc can't be used to find the runtime override. */
+	if( dbproc && dbproc->msdblib || msdblib && !dbproc  ) {
+		++di->quarter;
 		++di->datemonth;
 		++di->datedweek;
 	}

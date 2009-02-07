@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.310 2009-01-16 20:27:57 jklowden Exp $ */
+/* $Id: tds.h,v 1.311 2009-02-07 00:26:22 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -173,9 +173,11 @@ typedef struct tdsunique
 typedef struct tdsdaterec
 {
 	TDS_INT year;	       /**< year */
+	TDS_INT quarter;       /**< quarter (0-3) */
 	TDS_INT month;	       /**< month number (0-11) */
 	TDS_INT day;	       /**< day of month (1-31) */
 	TDS_INT dayofyear;     /**< day of year  (1-366) */
+	TDS_INT week;          /**< 1 - 54 (can be 54 in leap year) */
 	TDS_INT weekday;       /**< day of week  (0-6, 0 = sunday) */
 	TDS_INT hour;	       /**< 0-23 */
 	TDS_INT minute;	       /**< 0-59 */
