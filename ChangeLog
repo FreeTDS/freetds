@@ -1,3 +1,8 @@
+Wed Feb 11 15:39:34 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am:
+	* src/odbc/unittests/Makefile.am src/tds/unittests/Makefile.am:
+	- use libtool -R option instead of -Wl,--rpath
+
 Tue Feb 10 21:39:47 EST 2009	JK Lowden <jklowden@freetds.org>
 	* doc/getting_started.txt doc/policy.txt
 	* doc/userguide.sgml doc/htdoc/contrib.html
@@ -1301,4 +1306,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2726 2009-02-11 02:41:58 jklowden Exp $
+$Id: ChangeLog,v 1.2727 2009-02-11 14:40:15 freddy77 Exp $

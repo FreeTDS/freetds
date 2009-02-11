@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.46 2009-02-03 05:00:48 jklowden Exp $
+# $Id: Makefile.am,v 1.47 2009-02-11 14:40:15 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -58,7 +58,7 @@ AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
-AM_LDFLAGS	=	-no-install -L../.libs -Wl,--rpath,../.libs
+AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la @NETWORK_LIBS@
 EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32) 
