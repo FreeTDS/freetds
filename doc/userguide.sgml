@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2008-12-20 06:01:41 $</date>
-		<releaseinfo>$Revision: 1.120 $</releaseinfo>
+		<date>$Date: 2009-02-11 02:41:58 $</date>
+		<releaseinfo>$Revision: 1.121 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -56,9 +56,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.120 $</>
-<member>$Date: 2008-12-20 06:01:41 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.120 2008-12-20 06:01:41 jklowden Exp $.</>
+<member>$Revision: 1.121 $</>
+<member>$Date: 2009-02-11 02:41:58 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.121 2009-02-11 02:41:58 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -568,7 +568,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2008-12-20 06:01:41 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2009-02-11 02:41:58 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -3971,7 +3971,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr,
 			</para>
 			<simplelist columns=2>
 				<member>
-<ulink url="mailto:camber@ais.org">Brian Bruns</ulink> (camber@ais.org)</member>
+<ulink url="mailto:brian@bruns.org">Brian Bruns</ulink> (brian@bruns.org)</member>
 <member>Started this crazy thing</>
 				<member>
 <ulink url="mailto:misa@dntis.ro">Mihai Ibanescu</ulink> (misa@dntis.ro)</member>

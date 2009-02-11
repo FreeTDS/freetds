@@ -1,3 +1,9 @@
+Tue Feb 10 21:39:47 EST 2009	JK Lowden <jklowden@freetds.org>
+	* doc/getting_started.txt doc/policy.txt
+	* doc/userguide.sgml doc/htdoc/contrib.html
+	* doc/htdoc/faq.html
+	- updated brian's address
+
 Fri Feb  6 19:22:16 EST 2009	JK Lowden <jklowden@freetds.org>
 	* include/sybdb.h include/tds.h src/dblib/dblib.c 
 	* src/tds/convert.c src/tds/mem.c src/tds/net.c
@@ -1295,4 +1301,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2725 2009-02-07 00:26:22 jklowden Exp $
+$Id: ChangeLog,v 1.2726 2009-02-11 02:41:58 jklowden Exp $

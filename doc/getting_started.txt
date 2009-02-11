@@ -78,6 +78,6 @@ it.
 Misc
 ----
 
-Please send fixes and updates to this document to Brian Bruns (camber@ais.org)
+Please send fixes and updates to this document to Brian Bruns (brian@bruns.org)
 I realize it's a little rough right now but I wanted to at least put something
 out.

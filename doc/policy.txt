@@ -52,9 +52,9 @@ release), old FAQ entries should be reviewed.
 
 --
 Date: Fri, 9 Nov 2001 08:07:18 -0500 (EST)
-From: Brian Bruns <camber@ais.org>
+From: Brian Bruns <brian@bruns.org>
 To: <james.cameron@compaq.com>
-Cc: <jklowden@speakeasy.org>
+Cc: <jklowden@freetds.org>
 Subject: Re: FreeTDS Documentation Design Policy, Draft
 In-Reply-To: <3BEB6E09.9BC32E58@stl.dec.com>
 Message-ID: <Pine.LNX.4.33.0111090753430.2606-100000@localhost.localdomain>
