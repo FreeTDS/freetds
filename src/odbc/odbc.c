@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.508 2008-12-17 11:04:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.509 2009-02-23 16:08:34 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2199,12 +2199,12 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
 
-	if (nRecordNumber > desc->header.sql_desc_count || nRecordNumber < 0) {
+	if (nRecordNumber > desc->header.sql_desc_count || nRecordNumber <= 0) {
 		odbc_errs_add(&desc->errs, "07009", NULL);
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
 
-	drec = &desc->records[nRecordNumber];
+	drec = &desc->records[nRecordNumber - 1];
 
 	/* check for valid types and return "HY021" if not */
 	if (desc->type == DESC_IPD) {
@@ -2257,12 +2257,12 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
 
-	if (RecordNumber > desc->header.sql_desc_count || RecordNumber < 0) {
+	if (RecordNumber > desc->header.sql_desc_count || RecordNumber <= 0) {
 		odbc_errs_add(&desc->errs, "07009", NULL);
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
 
-	drec = &desc->records[RecordNumber];
+	drec = &desc->records[RecordNumber - 1];
 
 	if ((rc = odbc_set_string(Name, BufferLength, StringLength, tds_dstr_cstr(&drec->sql_desc_name), -1)) != SQL_SUCCESS)
 		odbc_errs_add(&desc->errs, "01004", NULL);
