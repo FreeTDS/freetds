@@ -1,3 +1,6 @@
+Mon Feb 23 17:15:24 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: applied patch by Amir Shamsuddin to fix core
+
 Wed Oct 29 09:44:09 CET 2008    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: fix small memory read overflow
 
