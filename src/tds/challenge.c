@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2005  Frediano Ziglio
+ * Copyright (C) 2005-2009  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.30.2.1 2008-08-07 11:27:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.30.2.2 2009-02-26 18:33:54 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -554,12 +554,12 @@ static const unsigned char ntlm_id[] = "NTLMSSP";
 static void
 unix_to_nt_time(TDS_UINT8 * nt, time_t t)
 {
-#define TIME_FIXUP_CONSTANT 11644473600LLU
+#define TIME_FIXUP_CONSTANT (((TDS_UINT8) 134774U) * 86400U)
 
 	TDS_UINT8 t2;
 
 	if (t == (time_t) - 1) {
-		*nt = (TDS_UINT8) - 1LL;
+		*nt = (TDS_UINT8) - ((TDS_INT8) 1);
 		return;
 	}
 	if (t == 0) {

@@ -1,3 +1,6 @@
+Thu Feb 26 19:33:37 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/challenge.c: backported fix for Windows compiler
+
 Mon Feb 23 17:10:50 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: applied patch by Amir Shamsuddin to fix core
 
@@ -232,4 +235,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.56 2009-02-23 16:11:21 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.57 2009-02-26 18:33:53 freddy77 Exp $
