@@ -1,3 +1,8 @@
+Thu Feb 26 20:04:00 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/dblib/bcp.c:
+	- fixes for MingW
+	- don't use old winsock library
+
 Mon Feb 23 17:07:41 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: applied patch by Amir Shamsuddin to fix core
 
@@ -1309,4 +1314,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2728 2009-02-23 16:08:33 freddy77 Exp $
+$Id: ChangeLog,v 1.2729 2009-02-26 19:04:10 freddy77 Exp $

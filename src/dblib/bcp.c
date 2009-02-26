@@ -61,15 +61,20 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.180 2009-01-31 19:13:20 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.181 2009-02-26 19:04:10 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
 #elif defined(WIN32) || defined(WIN64)
 /* win32 version */
 typedef __int64 offset_type;
-#define fseeko(f,o,w) (_fseeki64((f),o,w) == -1)
-#define ftello(f) _ftelli64((f))
+# if defined(HAVE__FSEEKI64) && defined(HAVE__FTELLI64)
+#  define fseeko(f,o,w) (_fseeki64((f),o,w) == -1)
+#  define ftello(f) _ftelli64((f))
+# else
+#  define fseeko(f,o,w) (_lseeki64(fileno(f),o,w) == -1)
+#  define ftello(f) _telli64(fileno(f))
+# endif
 #else
 /* use old version */
 #define fseeko(f,o,w) fseek(f,o,w)
