@@ -16,9 +16,7 @@
 #include "replacements.h"
 #endif
 
-#include <err.h>
-
-static char software_version[] = "$Id: common.c,v 1.27 2009-02-06 10:11:09 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.28 2009-02-27 10:37:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -223,7 +221,7 @@ read_login_info(int argc, char **argv)
 
 	if ((INPUT = fopen(sql_file, "r")) == NULL) {
 		fflush(stdout);
-		warnx("could not open SQL input file \"%s\"\n", sql_file);
+		fprintf(stderr, "could not open SQL input file \"%s\"\n", sql_file);
 	}
 
 	if (!free_file_registered)
@@ -248,12 +246,14 @@ sql_cmd(DBPROCESS *dbproc, FILE *stream)
 	while ((p = fgets(line, (int)sizeof(line), stream)) != NULL && strcasecmp("go\n", p) != 0) {
 		printf("\t%3d: %s", ++i, p);
 		if ((erc = dbcmd(dbproc, p)) != SUCCEED) {
-			errx(1, "%s: error: could write \"%s\" to dbcmd()\n", BASENAME, p);
+			fprintf(stderr, "%s: error: could write \"%s\" to dbcmd()\n", BASENAME, p);
+			exit(1);
 		}
 	}
 
 	if (ferror(stream)) {
-		errx(1, "%s: error: could not read SQL input file \"%s\"\n", BASENAME, sql_file);
+		fprintf(stderr, "%s: error: could not read SQL input file \"%s\"\n", BASENAME, sql_file);
+		exit(1);
 	}
 
 	return erc;
