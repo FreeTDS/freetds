@@ -50,7 +50,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.9 2008-11-05 19:23:33 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.10 2009-02-27 10:11:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -188,7 +188,7 @@ fake_thread_proc(void * arg)
 	memset(&sin, 0, sizeof(sin));
 	len = sizeof(sin);
 	alarm(30);
-	if ((fake_sock = accept(s, (struct sockaddr *) &sin, &len)) < 0) {
+	if ((fake_sock = tds_accept(s, (struct sockaddr *) &sin, &len)) < 0) {
 		perror("accept");
 		exit(1);
 	}
@@ -288,7 +288,7 @@ main(int argc, char **argv)
 	}
 
 	remote_addr_len = sizeof(remote_addr);
-	if (getpeername(last_socket, &remote_addr, &remote_addr_len)) {
+	if (tds_getpeername(last_socket, &remote_addr, &remote_addr_len)) {
 		fprintf(stderr, "Unable to get remote address\n");
 		return 1;
 	}

@@ -48,7 +48,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.33 2008-11-15 09:57:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.34 2009-02-27 10:11:42 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
@@ -109,7 +109,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 
 	fprintf(stderr, "accepting connection\n");
 	len = sizeof(*sin);
-	if (TDS_IS_SOCKET_INVALID(fd = accept(s, (struct sockaddr *) sin, &len))) {
+	if (TDS_IS_SOCKET_INVALID(fd = tds_accept(s, (struct sockaddr *) sin, &len))) {
 		perror("accept");
 		return NULL;
 	}

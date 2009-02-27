@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.27 2009-01-16 20:27:57 jklowden Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.28 2009-02-27 10:11:42 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -158,6 +158,50 @@ typedef DWORD pid_t;
 
 #ifndef SOCKLEN_T
 # define SOCKLEN_T socklen_t
+#endif
+
+#define tds_accept      accept
+#define tds_getpeername getpeername
+#define tds_getsockopt  getsockopt
+#define tds_getsockname getsockname
+#define tds_recvfrom    recvfrom
+
+#if defined(__hpux__) && SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
+# if HAVE__XPG_ACCEPT
+#  undef tds_accept
+#  define tds_accept _xpg_accept
+# elif HAVE___ACCEPT
+#  undef tds_accept
+#  define tds_accept __accept
+# endif
+# if HAVE__XPG_GETPEERNAME
+#  undef tds_getpeername
+#  define tds_getpeername _xpg_getpeername
+# elif HAVE___GETPEERNAME
+#  undef tds_getpeername
+#  define tds_getpeername __getpeername
+# endif
+# if HAVE__XPG_GETSOCKOPT
+#  undef tds_getsockopt
+#  define tds_getsockopt _xpg_getsockopt
+# elif HAVE___GETSOCKOPT
+#  undef tds_getsockopt
+#  define tds_getsockopt __getsockopt
+# endif
+# if HAVE__XPG_GETSOCKNAME
+#  undef tds_getsockname
+#  define tds_getsockname _xpg_getsockname
+# elif HAVE___GETSOCKNAME
+#  undef tds_getsockname
+#  define tds_getsockname __getsockname
+# endif
+# if HAVE__XPG_RECVFROM
+#  undef tds_recvfrom
+#  define tds_recvfrom _xpg_recvfrom
+# elif HAVE___RECVFROM
+#  undef tds_recvfrom
+#  define tds_recvfrom __recvfrom
+# endif
 #endif
 
 #ifndef TDS_SDIR_SEPARATOR

@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.86 2009-02-07 00:26:22 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.87 2009-02-27 10:11:43 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -299,7 +299,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	/* check socket error */
 	optlen = sizeof(len);
 	len = 0;
-	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
+	if (tds_getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
 		tds->oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", strerror(sock_errno));
 		goto not_available;
