@@ -6,7 +6,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0006.c,v 1.18 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.19 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -92,7 +92,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -100,7 +100,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 1; i < rows_to_add; i++) {
-		sql_cmd(dbproc, INPUT);
+		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
@@ -108,7 +108,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "first select\n");
-	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
+	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -145,7 +145,7 @@ main(int argc, char **argv)
 	testint = -1;
 	strcpy(teststr, "bogus");
 	fprintf(stdout, "second select\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 

@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.28 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.29 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -30,7 +30,7 @@ drop_table(void)
 
 	dbcancel(dbproc);
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -106,7 +106,7 @@ main(int argc, char **argv)
 	fread((void *) blob, isiz, 1, fp);
 	fclose(fp);
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -114,13 +114,13 @@ main(int argc, char **argv)
 
 	atexit(drop_table);
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	if (dbresults(dbproc) != SUCCEED) {
 		fprintf(stderr, "Error inserting blob\n");
@@ -186,7 +186,7 @@ main(int argc, char **argv)
 		dbuse(dbproc, DATABASE);
 	}
 #endif
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
@@ -221,13 +221,13 @@ main(int argc, char **argv)
 	dbnextrow(dbproc);
 
 	/* get the image */
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	dbresults(dbproc);
 
 	fprintf(stdout, "select 2\n");
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	if (dbresults(dbproc) != SUCCEED) {
 		fprintf(stderr, "Error extracting blob\n");

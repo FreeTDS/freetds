@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0022.c,v 1.26 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.27 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -56,7 +56,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -72,7 +72,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating proc\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
 		fprintf(stdout, "Failed to create proc t0022.\n");
@@ -88,7 +88,7 @@ main(int argc, char **argv)
 
 	sprintf(cmd, "declare @b int\nexec t0022 @b = @b output\n");
 	fprintf(stdout, "%s\n", cmd);
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
@@ -157,7 +157,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -170,7 +170,7 @@ main(int argc, char **argv)
 	 */
 	
 	fprintf(stdout, "Dropping proc t0022a\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 
 	dbsqlexec(dbproc);
 
@@ -185,7 +185,7 @@ main(int argc, char **argv)
 	assert(erc == NO_MORE_RESULTS);
 
 	fprintf(stdout, "creating proc t0022a\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
 		fprintf(stdout, "Failed to create proc t0022a.\n");
 		exit(1);
@@ -198,7 +198,7 @@ main(int argc, char **argv)
 		assert(erc == NO_MORE_ROWS);
 	}
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 	for (i=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; i++) {
@@ -232,7 +232,7 @@ main(int argc, char **argv)
 	assert(erc == NO_MORE_RESULTS);
 	
 	fprintf(stdout, "Dropping proc t0022a\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */

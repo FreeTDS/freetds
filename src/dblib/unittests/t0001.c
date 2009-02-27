@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.28 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.29 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -82,20 +82,20 @@ main(int argc, char **argv)
 #ifdef DBQUOTEDIDENT
 	fprintf(stdout, "QUOTED_IDENTIFIER is %s\n", (dbisopt(dbproc, DBQUOTEDIDENT, NULL))? "ON":"OFF");
 #endif
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 
-	for (i = 0; i < rows_to_add && sql_cmd(dbproc, INPUT) == SUCCEED; i++) {
+	for (i = 0; i < rows_to_add && sql_cmd(dbproc) == SUCCEED; i++) {
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) == SUCCEED) {
 			/* nop */
 		}
 	}
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 

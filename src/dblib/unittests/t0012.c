@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0012.c,v 1.23 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0012.c,v 1.24 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int failed = 0;
 
@@ -43,19 +43,19 @@ main(int argc, char *argv[])
 	fprintf(stdout, "After logon\n");
 
 	fprintf(stdout, "creating table\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
 	}
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */

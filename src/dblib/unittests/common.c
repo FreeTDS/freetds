@@ -16,7 +16,7 @@
 #include "replacements.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.28 2009-02-27 10:37:41 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.29 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -42,7 +42,7 @@ char PASSWORD[512];
 char DATABASE[512];
 
 static char sql_file[PATH_MAX];
-FILE* INPUT;
+static FILE* input_file;
 
 static char *DIRNAME = NULL;
 static const char *BASENAME = NULL;
@@ -92,9 +92,9 @@ char free_file_registered = 0;
 static void
 free_file(void)
 {
-	if (INPUT) {
-		fclose(INPUT);
-		INPUT = NULL;
+	if (input_file) {
+		fclose(input_file);
+		input_file = NULL;
 	}
 }
 
@@ -219,7 +219,7 @@ read_login_info(int argc, char **argv)
 	len = snprintf(sql_file, sizeof(sql_file), "%s.sql", BASENAME);
 	assert(len <= sizeof(sql_file));
 
-	if ((INPUT = fopen(sql_file, "r")) == NULL) {
+	if ((input_file = fopen(sql_file, "r")) == NULL) {
 		fflush(stdout);
 		fprintf(stderr, "could not open SQL input file \"%s\"\n", sql_file);
 	}
@@ -237,13 +237,13 @@ read_login_info(int argc, char **argv)
  * Fill the command buffer from a file while echoing it to standard output.
  */
 RETCODE 
-sql_cmd(DBPROCESS *dbproc, FILE *stream)
+sql_cmd(DBPROCESS *dbproc)
 {
 	char line[2048], *p = line;
 	int i = 0;
 	RETCODE erc=SUCCEED;
 	
-	while ((p = fgets(line, (int)sizeof(line), stream)) != NULL && strcasecmp("go\n", p) != 0) {
+	while ((p = fgets(line, (int)sizeof(line), input_file)) != NULL && strcasecmp("go\n", p) != 0) {
 		printf("\t%3d: %s", ++i, p);
 		if ((erc = dbcmd(dbproc, p)) != SUCCEED) {
 			fprintf(stderr, "%s: error: could write \"%s\" to dbcmd()\n", BASENAME, p);
@@ -251,7 +251,7 @@ sql_cmd(DBPROCESS *dbproc, FILE *stream)
 		}
 	}
 
-	if (ferror(stream)) {
+	if (ferror(input_file)) {
 		fprintf(stderr, "%s: error: could not read SQL input file \"%s\"\n", BASENAME, sql_file);
 		exit(1);
 	}

@@ -6,7 +6,7 @@
 #include "common.h"
 #include <sys/stat.h>
 
-static char software_version[] = "$Id: t0016.c,v 1.29 2009-02-05 08:49:45 freddy77 Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.30 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	printf("After logon\n");
 
 	printf("Creating table '%s'\n", TABLE_NAME);
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -96,7 +96,7 @@ main(int argc, char *argv[])
 
 	printf("return from bcp_init = %d\n", ret);
 
-	ret = sql_cmd(dbproc, INPUT);
+	ret = sql_cmd(dbproc);
 	printf("return from dbcmd = %d\n", ret);
 
 	ret = dbsqlexec(dbproc);
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 		failure("bcp_int failed\n");
 
 	printf("select\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != FAIL) {

@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.37 2009-02-05 08:49:45 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.38 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int init_proc(DBPROCESS * dbproc, const char *name);
@@ -47,7 +47,7 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	if (name[0] != '#') {
 		fprintf(stdout, "Dropping procedure %s\n", name);
 		add_bread_crumb();
-		sql_cmd(dbproc, INPUT);
+		sql_cmd(dbproc);
 		add_bread_crumb();
 		dbsqlexec(dbproc);
 		add_bread_crumb();
@@ -58,7 +58,7 @@ init_proc(DBPROCESS * dbproc, const char *name)
 	}
 
 	fprintf(stdout, "Creating procedure %s\n", name);
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	if ((ret = dbsqlexec(dbproc)) == FAIL) {
 		add_bread_crumb();
 		if (name[0] == '#')
@@ -411,7 +411,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping procedure\n");
 	add_bread_crumb();
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();

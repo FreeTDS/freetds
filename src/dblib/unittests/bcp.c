@@ -13,7 +13,7 @@
 
 #include "bcp.h"
 
-static char software_version[] = "$Id: bcp.c,v 1.17 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: bcp.c,v 1.18 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char cmd[512];
@@ -46,7 +46,7 @@ init(DBPROCESS * dbproc, const char *name)
 	RETCODE rc;
 
 	fprintf(stdout, "Dropping %s.%s..%s\n", SERVER, DATABASE, name);
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -58,8 +58,8 @@ init(DBPROCESS * dbproc, const char *name)
 	add_bread_crumb();
 
 	fprintf(stdout, "Creating %s.%s..%s\n", SERVER, DATABASE, name);
-	sql_cmd(dbproc, INPUT);
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
+	sql_cmd(dbproc);
 
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
@@ -271,7 +271,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 #if 1
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 
 	dbsqlexec(dbproc);
 	while ((i=dbresults(dbproc)) == SUCCEED) {
@@ -287,7 +287,7 @@ main(int argc, char **argv)
 	} else {
 		fprintf(stdout, "Dropping table %s\n", table_name);
 		add_bread_crumb();
-		sql_cmd(dbproc, INPUT);
+		sql_cmd(dbproc);
 		add_bread_crumb();
 		dbsqlexec(dbproc);
 		add_bread_crumb();

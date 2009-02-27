@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.19 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.20 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -14,7 +14,7 @@ create_tables(DBPROCESS * dbproc, int rows_to_add)
 	int i;
 
 	fprintf(stdout, "creating table\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -22,7 +22,7 @@ create_tables(DBPROCESS * dbproc, int rows_to_add)
 
 	fprintf(stdout, "insert\n");
 	for (i = 1; i < rows_to_add; i++) {
-		sql_cmd(dbproc, INPUT);
+		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
@@ -36,7 +36,7 @@ start_query(DBPROCESS * dbproc)
 {
 	int i;
 
-	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
+	if (SUCCEED != sql_cmd(dbproc)) {
 		return 0;
 	}
 	if (SUCCEED != dbsqlexec(dbproc)) {

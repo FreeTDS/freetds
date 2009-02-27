@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0011.c,v 1.15 2009-02-05 08:49:45 freddy77 Exp $";
+static char software_version[] = "$Id: t0011.c,v 1.16 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -42,14 +42,14 @@ main(int argc, char **argv)
 	dbloginfree(login);
 
 	fprintf(stdout, "Dropping table\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
 	fprintf(stdout, "creating table\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -80,7 +80,7 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 
 
 	fprintf(stdout, "select\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 
@@ -131,7 +131,7 @@ select_rows(DBPROCESS * dbproc, int bind_type)
 void
 insert_row(DBPROCESS * dbproc)
 {
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */

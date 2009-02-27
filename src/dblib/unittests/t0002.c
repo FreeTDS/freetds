@@ -10,7 +10,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0002.c,v 1.23 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.24 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -89,7 +89,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	add_bread_crumb();
-	sql_cmd(dbproc,  INPUT); /* drop table if exists */
+	sql_cmd(dbproc); /* drop table if exists */
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -102,21 +102,21 @@ main(int argc, char **argv)
 	}
 	add_bread_crumb();
 
-	sql_cmd(dbproc,  INPUT); /* create table */
+	sql_cmd(dbproc); /* create table */
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 
 	for (i = 1; i <= rows_to_add; i++) {
-		sql_cmd(dbproc, INPUT);
+		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
 		}
 	}
 
-	sql_cmd(dbproc, INPUT);	/* two result sets */
+	sql_cmd(dbproc);	/* two result sets */
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 

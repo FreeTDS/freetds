@@ -7,7 +7,7 @@
 #include "common.h"
 #include <time.h>
 
-static char software_version[] = "$Id: timeout.c,v 1.6 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.7 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int ntimeouts = 0, ncancels = 0;
@@ -159,7 +159,7 @@ main(int argc, char **argv)
 	}
 	printf ("issuing a query that will take 30 seconds\n");
 
-	if (FAIL == sql_cmd(dbproc, INPUT)) {
+	if (FAIL == sql_cmd(dbproc)) {
 		fprintf(stderr, "Failed: dbcmd\n");
 		exit(1);
 	}

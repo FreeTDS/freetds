@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: dbmorecmds.c,v 1.14 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: dbmorecmds.c,v 1.15 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version,	no_unused_var_warn };
 
 int failed = 0;
@@ -64,7 +64,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -72,7 +72,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 0; i < rows_to_add; i++) {
-		sql_cmd(dbproc, INPUT);
+		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "select one resultset\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
@@ -104,7 +104,7 @@ main(int argc, char **argv)
 	dbcancel(dbproc);
 
 	fprintf(stdout, "select two resultsets\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 
 	nresults = 0;

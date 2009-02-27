@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.25 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.26 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -55,7 +55,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating table\n");
-	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
+	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "insert\n");
 	for (i = 1; i < rows_to_add; i++) {
-		sql_cmd(dbproc, INPUT);
+		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			/* nop */
@@ -79,7 +79,7 @@ main(int argc, char **argv)
 	}
 
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
 
@@ -139,7 +139,7 @@ main(int argc, char **argv)
 	expected_error = 20019;
 	dbsetuserdata(dbproc, (BYTE*) &expected_error);
 
-	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
+	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -200,7 +200,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Testing anticipated failure\n");
 
-	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
+	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -215,7 +215,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "Dropping proc\n");
 	add_bread_crumb();
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	add_bread_crumb();
 	dbsqlexec(dbproc);
 	add_bread_crumb();
@@ -225,7 +225,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	fprintf(stdout, "creating proc\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
 		fprintf(stderr, "%s:%d: failed to create procedure\n", __FILE__, __LINE__);
@@ -236,7 +236,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "calling proc\n");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	if (dbsqlexec(dbproc) == FAIL) {
 		add_bread_crumb();
 		fprintf(stderr, "%s:%d: failed to call procedure\n", __FILE__, __LINE__);
@@ -294,7 +294,7 @@ main(int argc, char **argv)
 	fprintf(stdout, "The following command should succeed because\n"
 			"we have fetched the exact number of rows in the result set\n");
 
-	if (SUCCEED != sql_cmd(dbproc, INPUT)) {
+	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
 		failed = 1;
 	}
@@ -306,7 +306,7 @@ main(int argc, char **argv)
 
 	dbcancel(dbproc);
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */

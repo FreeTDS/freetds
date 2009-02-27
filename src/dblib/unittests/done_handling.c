@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.9 2009-02-05 08:49:45 freddy77 Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.10 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -65,7 +65,7 @@ query(const char comment[])
 {
 	if (comment)
 		printf("%s\n", comment);
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) == SUCCEED) {
 		/* nop */
@@ -115,7 +115,7 @@ do_test(const char comment[])
 
 	if (comment)
 		printf("%s\n", comment);
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 
 	check_state("sqlexec ", prretcode, dbsqlexec(dbproc));
 

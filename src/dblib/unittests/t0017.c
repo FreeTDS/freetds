@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0017.c,v 1.28 2009-02-01 22:29:39 jklowden Exp $";
+static char software_version[] = "$Id: t0017.c,v 1.29 2009-02-27 15:52:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -68,14 +68,14 @@ main(int argc, char *argv[])
 	printf("done\n");
 
 	printf("Creating table ... ");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
 	}
 	printf("done\n");
 
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 	printf("done\n");
 
 	printf("Issuing SELECT ... ");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	printf("done\nFetching metadata ... ");
 	if (dbresults(dbproc) != FAIL) {
@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 	printf("%d rows copied\n", rows_copied);
 
 	/* delete rows */
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
 		/* nop */
@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 	printf("done\n");
 
 	printf("Issuing SELECT ... ");
-	sql_cmd(dbproc, INPUT);
+	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	printf("done\nFetching metadata ... ");
 	if (dbresults(dbproc) != FAIL) {
@@ -194,7 +194,7 @@ main(int argc, char *argv[])
 
 	/* test we inserted correctly row */
 	if (!failed) {
-		sql_cmd(dbproc, INPUT);
+		sql_cmd(dbproc);
 		dbsqlexec(dbproc);
 		while (dbresults(dbproc) != NO_MORE_RESULTS) {
 			while ((ret=dbnextrow(dbproc)) != NO_MORE_ROWS) {
