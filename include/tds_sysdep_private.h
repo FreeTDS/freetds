@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.28 2009-02-27 10:11:42 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.29 2009-02-27 10:46:24 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -158,6 +158,15 @@ typedef DWORD pid_t;
 
 #ifndef SOCKLEN_T
 # define SOCKLEN_T socklen_t
+#endif
+
+#if !defined(__WIN32__) && !defined(_WIN32) && !defined(WIN32)
+typedef int TDS_SYS_SOCKET;
+#define INVALID_SOCKET -1
+#define TDS_IS_SOCKET_INVALID(s) ((s) < 0)
+#else
+typedef SOCKET TDS_SYS_SOCKET;
+#define TDS_IS_SOCKET_INVALID(s) ((s) == INVALID_SOCKET)
 #endif
 
 #define tds_accept      accept

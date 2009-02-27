@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-/* $Id: tds_sysdep_public.h.in,v 1.12 2008-01-20 14:23:59 freddy77 Exp $ */
+/* $Id: tds_sysdep_public.h.in,v 1.13 2009-02-27 10:46:24 freddy77 Exp $ */
 
 #ifdef __cplusplus
 extern "C"
@@ -67,15 +67,6 @@ extern "C"
 #ifndef tds_sysdep_intptr_type
 #define tds_sysdep_intptr_type @tds_sysdep_intptr_type@
 #endif				/* !tds_sysdep_intptr_type */
-
-#if !defined(__WIN32__) && !defined(_WIN32) && !defined(WIN32)
-typedef int TDS_SYS_SOCKET;
-#define INVALID_SOCKET -1
-#define TDS_IS_SOCKET_INVALID(s) ((s) < 0)
-#else
-typedef SOCKET TDS_SYS_SOCKET;
-#define TDS_IS_SOCKET_INVALID(s) ((s) == INVALID_SOCKET)
-#endif
 
 #if !defined(MSDBLIB) && !defined(SYBDBLIB)
 @dblib_define@
