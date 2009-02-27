@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.11 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.12 2009-02-27 10:07:34 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
@@ -318,7 +318,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 		/*
 		 * print the offset as a 4 digit hex number
 		 */
-		p += sprintf(p, "%04x", i);
+		p += sprintf(p, "%04x", ((unsigned int) i) & 0xffffu);
 
 		/*
 		 * print each byte in hex

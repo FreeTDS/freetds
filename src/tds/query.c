@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.230 2009-01-23 10:37:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.231 2009-02-27 10:07:34 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -927,7 +927,8 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 static void
 tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len)
 {
-	size_t len, i, num_placeholders;
+	size_t len;
+	int i, num_placeholders;
 	const char *s, *e;
 	char buf[24];
 	const char *const query_end = query + query_len;
