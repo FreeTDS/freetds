@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.87 2009-02-27 10:11:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.88 2009-02-28 17:38:50 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -581,7 +581,7 @@ tds_read_packet(TDSSOCKET * tds)
 			tds->in_pos = 0;
 			return -1;
 		}
-
+		
 		/* GW ADDED */
 		/*
 		 * Not sure if this is the best way to do the error
@@ -596,6 +596,8 @@ tds_read_packet(TDSSOCKET * tds)
 		}
 		return -1;
 	}
+
+	tdsdump_dump_buf(TDS_DBG_HEADER, "Received header", header, sizeof(header));	
 
 	/* Convert our packet length from network to host byte order */
 	len = (((unsigned int) header[2]) << 8) | header[3];

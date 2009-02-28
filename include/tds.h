@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.311 2009-02-07 00:26:22 jklowden Exp $ */
+/* $Id: tds.h,v 1.312 2009-02-28 17:38:50 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1069,6 +1069,7 @@ typedef enum _TDS_STATE
 } TDS_STATE;
 
 #define TDS_DBG_LOGIN   __FILE__, ((__LINE__ << 4) | 11)
+#define TDS_DBG_HEADER  __FILE__, ((__LINE__ << 4) | 10)
 #define TDS_DBG_FUNC    __FILE__, ((__LINE__ << 4) |  7)
 #define TDS_DBG_INFO2   __FILE__, ((__LINE__ << 4) |  6)
 #define TDS_DBG_INFO1   __FILE__, ((__LINE__ << 4) |  5)
@@ -1086,6 +1087,7 @@ typedef enum _TDS_STATE
 #define TDS_DBGFLAG_SEVERE  0x02
 #define TDS_DBGFLAG_ALL     0xfff
 #define TDS_DBGFLAG_LOGIN   0x0800
+#define TDS_DBGFLAG_HEADER  0x0400
 #define TDS_DBGFLAG_PID     0x1000
 #define TDS_DBGFLAG_TIME    0x2000
 #define TDS_DBGFLAG_SOURCE  0x4000
