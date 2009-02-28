@@ -11,5 +11,9 @@ Needs Fixing
 3. dbwritetext() and friends do not work under TDS 7.0
 4. There is a bug with the order of returns from ct_results() such that rows
    affected doesn't show up in sqsh.
+5. ct-lib placeholders do not work with TDS 7.0+.  To fix 
+   this requires either an SQL parser or API modification, 
+   because the library has to determine the SQL datatype 
+   of the placeholder variable.  
 
 

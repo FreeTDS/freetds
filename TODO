@@ -8,12 +8,17 @@ anyone else can post a patch to SourceForge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.171 2008-07-17 11:52:34 freddy77 Exp $
+To Do List	$Id: TODO,v 1.172 2009-02-28 17:38:43 jklowden Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
 	tds_send_cancel in tds_goodwrite (wrong??)
-
+BUG: ML 2009-02-10 "Problem with Set TEXT field to NULL"
+	libtds seems to misinterpret NULL TEXT fields as 
+	zero-length strings. 
+BUG: sending ICONV charset name, not TDS name in 
+	5.0 login packet.  
+	
 Must be fixed:
 . ctlib parameters, handle all case even in tds7
   . handle and test prepared query
