@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.88 2009-02-07 00:26:22 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.89 2009-02-28 17:38:39 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -374,41 +374,40 @@ typedef struct tds_dblib_dbprocess DBPROCESS;
  * Sybase & Microsoft use different names for the dbdaterec members. 
  * Keep these two structures physically identical in memory.  
  * dbdatecrack() casts one to the other for ease of implementation. 
- * N.B. Microsoft documents the members as int, not long.   
  *
  * Giving credit where credit is due, we can acknowledge that
  * Microsoft chose the better names here, hands down.  ("datedmonth"?!)
  */
 struct tds_microsoft_dbdaterec
 {
-	long year;		/* 1753 - 9999  	   */
-	long quarter;		/* 1 - 4 		   */
-	long month;		/* 1 - 12 		   */
-	long day;		/* 1 - 31 		   */
-	long dayofyear;		/* 1 - 366 		   */
-	long week;            	/* 1 - 54 (for leap years) */
-	long weekday;		/* 1 - 7 (Mon. - Sun.)     */
-	long hour;		/* 0 - 23 		   */
-	long minute;		/* 0 - 59 		   */
-	long second;		/* 0 - 59 		   */
-	long millisecond;	/* 0 - 999 		   */
-	long tzone;		/* 0 - 127  (Sybase only)  */	
+	DBINT year;		/* 1753 - 9999  	   */
+	DBINT quarter;		/* 1 - 4 		   */
+	DBINT month;		/* 1 - 12 		   */
+	DBINT day;		/* 1 - 31 		   */
+	DBINT dayofyear;	/* 1 - 366 		   */
+	DBINT week;            	/* 1 - 54 (for leap years) */
+	DBINT weekday;		/* 1 - 7 (Mon. - Sun.)     */
+	DBINT hour;		/* 0 - 23 		   */
+	DBINT minute;		/* 0 - 59 		   */
+	DBINT second;		/* 0 - 59 		   */
+	DBINT millisecond;	/* 0 - 999 		   */
+	DBINT tzone;		/* 0 - 127  (Sybase only)  */	
 };					
 
 struct tds_sybase_dbdaterec
 {
-	long dateyear;		/* 1900 and counting	  */ 
-	long quarter;		/* 0 - 3 (Microsoft only) */
-	long datemonth;		/* 0 - 11   	     	  */
-	long datedmonth;	/* 1 - 31   	     	  */
-	long datedyear;		/* 1 - 366  	     	  */
-	long week;            	/* 1 - 54 (Microsoft only) */
-	long datedweek;		/* 0 - 6    	     	  */
-	long datehour; 		/* 0 - 23   	     	  */
-	long dateminute;	/* 0 - 59   	     	  */
-	long datesecond;	/* 0 - 59   	     	  */
-	long datemsecond;	/* 0 - 997  	     	  */
-	long datetzone;		/* 0 - 127  	     	  */
+	DBINT dateyear;		/* 1900 and counting	  */ 
+	DBINT quarter;		/* 0 - 3 (Microsoft only) */
+	DBINT datemonth;	/* 0 - 11   	     	  */
+	DBINT datedmonth;	/* 1 - 31   	     	  */
+	DBINT datedyear;	/* 1 - 366  	     	  */
+	DBINT week;            	/* 1 - 54 (Microsoft only) */
+	DBINT datedweek;	/* 0 - 6    	     	  */
+	DBINT datehour; 	/* 0 - 23   	     	  */
+	DBINT dateminute;	/* 0 - 59   	     	  */
+	DBINT datesecond;	/* 0 - 59   	     	  */
+	DBINT datemsecond;	/* 0 - 997  	     	  */
+	DBINT datetzone;	/* 0 - 127  	     	  */
 };
 
 #ifdef MSDBLIB
