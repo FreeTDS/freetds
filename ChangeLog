@@ -1,3 +1,6 @@
+Mon Mar  2 08:58:31 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/msvc6/libTDS.dsp: add needed files
+
 Mon Mar  2 00:09:58 EST 2009	JK Lowden <jklowden@freetds.org>
 	* src/dblib/bcp.c src/dblib/dblib.c
 	* samples/bcp_test.cpp samples/Makefile.bcp_test
@@ -1360,4 +1363,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2736 2009-03-02 05:39:44 jklowden Exp $
+$Id: ChangeLog,v 1.2737 2009-03-02 07:59:02 freddy77 Exp $

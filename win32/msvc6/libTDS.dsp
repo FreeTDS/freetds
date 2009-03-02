@@ -129,6 +129,10 @@ SOURCE=..\..\src\tds\md5.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\tds\hmac_md5.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\tds\mem.c
 # End Source File
 # Begin Source File
@@ -198,6 +202,10 @@ SOURCE=..\..\include\md4.h
 # Begin Source File
 
 SOURCE=..\..\include\md5.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\hmac_md5.h
 # End Source File
 # Begin Source File
 
