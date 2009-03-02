@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.181 2009-02-26 19:04:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.182 2009-03-02 05:39:45 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -93,6 +93,57 @@ static offset_type _bcp_measure_terminated_field(FILE * hostfile, BYTE * termina
 static RETCODE _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static RETCODE _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
+
+/*
+ * "If a host file is being used ... the default data formats are as follows:
+ *
+ *  > The order, type, length and number of the columns in the host file are 
+ *    assumed to be identical to the order, type and number of the columns in the database table.
+ *  > If a given database column's data is fixed-length, 
+ *    then the host file's  data column will also be fixed-length. 
+ *  > If a given database column's data is variable-length or may contain null values, 
+ *    the host file's data column will be prefixed by 
+ *	a 4-byte length value for SYBTEXT and SYBIMAGE data types, and 
+ *	a 1-byte length value for all other types.
+ *  > There are no terminators of any kind between host file columns."
+ */
+
+static void
+init_hostfile_columns(DBPROCESS *dbproc)
+{
+	const int ncols = dbproc->bcpinfo->bindinfo->num_cols;
+	RETCODE erc;
+	int icol;
+	
+	if (ncols == 0)
+		return;
+		
+	if ((erc = bcp_columns(dbproc, ncols)) != SUCCEED) {
+		assert(erc == SUCCEED);
+		return;
+	}
+		
+	for (icol = 0; icol < ncols; icol++) {
+		const TDSCOLUMN *pcol = dbproc->bcpinfo->bindinfo->columns[icol];
+		int prefixlen = 0, termlen = 0;
+		
+		switch (pcol->column_type) {
+		case SYBTEXT:
+		case SYBIMAGE:
+			prefixlen = 4;
+			break;
+		default:
+			prefixlen = dbvarylen(dbproc, icol+1)? 1 : 0;
+		}
+		
+		erc = bcp_colfmt(dbproc, icol+1, pcol->column_type, prefixlen, pcol->column_size, NULL, termlen, icol+1);
+		
+		assert(erc == SUCCEED);
+		if (erc != SUCCEED)
+			return;
+	}
+}
+
 
 /** 
  * \ingroup dblib_bcp
@@ -152,22 +203,6 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return (FAIL);
 	}
 
-	if (hfile != NULL) {
-
-		dbproc->hostfileinfo = calloc(1, sizeof(BCP_HOSTFILEINFO));
-
-		if (dbproc->hostfileinfo == NULL)
-			goto memory_error;
-		if ((dbproc->hostfileinfo->hostfile = strdup(hfile)) == NULL)
-			goto memory_error;
-
-		if (errfile != NULL)
-			if ((dbproc->hostfileinfo->errorfile = strdup(errfile)) == NULL)
-				goto memory_error;
-	} else {
-		dbproc->hostfileinfo = NULL;
-	}
-
 	/* Allocate storage */
 	
 	dbproc->bcpinfo = calloc(1, sizeof(TDSBCPINFO));
@@ -183,16 +218,34 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	dbproc->bcpinfo->var_cols   = 0;
 	dbproc->bcpinfo->bind_count = 0;
 
-	if (direction == DB_IN) {
-		TDSSOCKET *tds = dbproc->tds_socket;
-
-		if (tds_bcp_init(tds, dbproc->bcpinfo) == TDS_FAIL) {
+	if (1 || direction == DB_IN) {
+		if (tds_bcp_init(dbproc->tds_socket, dbproc->bcpinfo) == TDS_FAIL) {
 			/* TODO return proper error */
 			/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
 			dbperror(dbproc, SYBEBCNT, 0);
 			return FAIL;
 		}
 	}
+
+	/* Prepare default hostfile columns */
+	
+	if (hfile == NULL) {
+		dbproc->hostfileinfo = NULL;
+		return SUCCEED;
+	}
+
+	dbproc->hostfileinfo = calloc(1, sizeof(BCP_HOSTFILEINFO));
+
+	if (dbproc->hostfileinfo == NULL)
+		goto memory_error;
+	if ((dbproc->hostfileinfo->hostfile = strdup(hfile)) == NULL)
+		goto memory_error;
+
+	if (errfile != NULL)
+		if ((dbproc->hostfileinfo->errorfile = strdup(errfile)) == NULL)
+			goto memory_error;
+
+	init_hostfile_columns(dbproc);
 
 	return SUCCEED;
 
@@ -701,36 +754,27 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	tds = dbproc->tds_socket;
 	assert(tds);
 
-	if (!(hostfile = fopen(dbproc->hostfileinfo->hostfile, "w"))) {
-		dbperror(dbproc, SYBEBCUO, errno);
-		return FAIL;
-	}
-
 	bcpdatefmt = getenv("FREEBCP_DATEFMT");
 	if (!bcpdatefmt)
 		bcpdatefmt = "%Y-%m-%d %H:%M:%S.%z";
 
 	if (dbproc->bcpinfo->direction == DB_QUERYOUT ) {
 		if (tds_submit_query(tds, dbproc->bcpinfo->tablename) == TDS_FAIL) {
-			fclose(hostfile);
 			return FAIL;
 		}
 	} else {
 		/* TODO quote if needed */
 		if (tds_submit_queryf(tds, "select * from %s", dbproc->bcpinfo->tablename) == TDS_FAIL) {
-			fclose(hostfile);
 			return FAIL;
 		}
 	}
 
 	tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS);
 	if (tdsret == TDS_FAIL || tdsret == TDS_CANCELLED) {
-		fclose(hostfile);
 		return FAIL;
 	}
 	if (!tds->res_info) {
 		/* TODO flush/cancel to keep consistent state */
-		fclose(hostfile);
 		return FAIL;
 	}
 
@@ -861,21 +905,27 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		hostcol->bcp_column_data->datalen = destlen;
 	}
 
-	/* fetch a row of data from the server */
-
 	/*
 	 * TODO above we allocate many buffer just to convert and store 
 	 * to file.. avoid all that passages...
 	 */
 
-	while (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) == TDS_SUCCEED) {
+	if (!(hostfile = fopen(dbproc->hostfileinfo->hostfile, "w"))) {
+		dbperror(dbproc, SYBEBCUO, errno);
+		return FAIL;
+	}
+
+	/* fetch a row of data from the server */
+
+	while (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) 
+		== TDS_SUCCEED) {
 
 		if (result_type != TDS_ROW_RESULT && result_type != TDS_COMPUTE_RESULT)
 			break;
 
 		row_of_query++;
 
-		/* skip rows outside of the firstrow/lastrow range , if specified */
+		/* skip rows outside of the firstrow/lastrow range, if specified */
 		if (dbproc->hostfileinfo->firstrow <= row_of_query && 
 						      row_of_query <= MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF)) {
 

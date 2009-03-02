@@ -1,3 +1,9 @@
+Mon Mar  2 00:09:58 EST 2009	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c src/dblib/dblib.c
+	* samples/bcp_test.cpp samples/Makefile.bcp_test
+	- bcp_init sets default values for host file columns
+	- if host_filename is not NULL.
+
 Sat Feb 28 12:32:06 EST 2009	JK Lowden <jklowden@freetds.org>
 	* include/sybdb.h DBDATEREC members are 32-bit
 	* BUGS TODO more things to fix
@@ -1354,4 +1360,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2735 2009-02-28 17:38:38 jklowden Exp $
+$Id: ChangeLog,v 1.2736 2009-03-02 05:39:44 jklowden Exp $
