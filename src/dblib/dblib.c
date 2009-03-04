@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.342 2009-03-02 05:39:45 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.343 2009-03-04 17:41:11 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1097,7 +1097,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbopen(%p, %s, [%s])\n", login, server, msdblib? "microsoft" : "sybase");
 
-	CHECK_NULP(server, dbopen, 2, 0);
+	CHECK_NULP(server, "dbopen", 2, NULL);
 	
 	if ((dbproc = calloc(1, sizeof(DBPROCESS))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
