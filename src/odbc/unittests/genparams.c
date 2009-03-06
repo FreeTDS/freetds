@@ -12,13 +12,13 @@
  * (3) numeric -> *        different format
  * (4) *       -> numeric  take precision and scale from ipd TODO
  * (5) *       -> char     test wide
- * (6) *       -> blob     test wchar and ntext TODO
+ * (6) *       -> blob     test wchar and ntext
  * (7) *       -> binary   test also with wchar TODO
  * (8) binary  -> *        test also with wchar TODO
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.38 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.39 2009-03-06 17:34:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -186,7 +186,12 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		sep = "'";
 		if (strncmp(expected, "0x", 2) == 0)
 			sep = "";
-		sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
+		if (strcmp(param_type, "TEXT") == 0)
+			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(VARCHAR(255), col) = CONVERT(VARCHAR(255), %s%s%s)", sep, expected, sep);
+		else if (strcmp(param_type, "NTEXT") == 0)
+			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(NVARCHAR(2000), col) = CONVERT(NVARCHAR(2000), %s%s%s)", sep, expected, sep);
+		else
+			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
 		Command(sbuf);
 
 		CHKFetch("S");
@@ -218,6 +223,7 @@ AllTests(void)
 	precision = 38;
 	TestOutput("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "38 0 1 7B");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_VARCHAR, "VARCHAR(20)", "12345");
+	TestInput(SQL_C_LONG, "INTEGER", SQL_LONGVARCHAR, "TEXT", "12345");
 	/* MS driver behavior for output parameters is different */
 	if (driver_is_freetds())
 		TestOutput("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "333133323333");
@@ -277,6 +283,7 @@ AllTests(void)
 
 	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_NUMERIC, "NUMERIC(20,3)", "765432.2 -> 765432");
 	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_VARCHAR, "VARCHAR(20)", "578246.234 -> 578246");
+	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_LONGVARCHAR, "TEXT", "578246.234 -> 578246");
 
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "0");
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
@@ -284,9 +291,12 @@ AllTests(void)
 	TestInput(SQL_C_DOUBLE, "MONEY", SQL_DOUBLE, "MONEY", "123.34");
 
 	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_VARCHAR, "VARCHAR(20)", "1EasyTest");
+	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "TEXT", "1EasyTest");
 	TestInput(SQL_C_WCHAR, "VARCHAR(10)", SQL_VARCHAR, "VARCHAR(10)", "Test 12345");
+	TestInput(SQL_C_WCHAR, "VARCHAR(10)", SQL_LONGVARCHAR, "TEXT", "Test 12345");
 	/* TODO use collate in syntax if available */
 	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_VARCHAR, "VARCHAR(20)", "me\xf4");
+	TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "TEXT", "me\xf4");
 
 	precision = 6;
 	/* output from char with conversions */
@@ -299,16 +309,23 @@ AllTests(void)
 		TestOutput("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WLONGVARCHAR, "NTEXT", "test");
 		/* test for invalid stream due to truncation*/
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "01234567890");
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WLONGVARCHAR, "NTEXT", "01234567890");
 #ifdef ENABLE_DEVELOPING
 		check_truncation = 1;
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "012345678901234567890");
+		check_truncation = 1;
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WLONGVARCHAR, "NTEXT", "012345678901234567890");
 #endif
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "\xa3h\xf9 -> 0xA3006800f900");
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WLONGVARCHAR, "NTEXT", "\xa3h\xf9 -> 0xA3006800f900");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "0xA3006800f900 -> \xa3h\xf9");
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WLONGVARCHAR, "NTEXT", "0xA3006800f900 -> \xa3h\xf9");
 
 		TestInput(SQL_C_LONG, "INT", SQL_WVARCHAR, "NVARCHAR(100)", "45236");
+		TestInput(SQL_C_LONG, "INT", SQL_WLONGVARCHAR, "NTEXT", "45236");
 
 		precision = 6;
 		TestOutput("NVARCHAR(20)", "foo test", SQL_C_CHAR, SQL_WVARCHAR, "6 foo te");
@@ -318,9 +335,13 @@ AllTests(void)
 		TestOutput("NVARCHAR(20)", "0xf800f900", SQL_C_CHAR, SQL_WVARCHAR, "2 \xf8\xf9");
 
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_WVARCHAR, "NVARCHAR(10)", "1EasyTest2");
+		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_WLONGVARCHAR, "NTEXT", "1EasyTest2");
 		use_nts = 1;
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_WVARCHAR, "NVARCHAR(10)", "1EasyTest3");
+		use_nts = 1;
+		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_WLONGVARCHAR, "NTEXT", "1EasyTest3");
 		TestInput(SQL_C_WCHAR, "NVARCHAR(3)", SQL_WVARCHAR, "NVARCHAR(3)", "0xf800a300bc06");
+		TestInput(SQL_C_WCHAR, "NVARCHAR(3)", SQL_WLONGVARCHAR, "NTEXT", "0xf800a300bc06");
 
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_INTEGER, "INT", " -423785  -> -423785");
 	}

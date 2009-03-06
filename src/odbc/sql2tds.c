@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.79 2008-11-12 10:38:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.80 2009-03-06 17:34:31 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -153,6 +153,15 @@ odbc_wstr2str(TDS_STMT * stmt, const char *src, int* len)
 
 	*len = p - out;
 	return out;
+}
+
+static void
+_odbc_blob_free(TDSCOLUMN *col)
+{
+        if (!col->column_data)
+                return;
+
+        TDS_ZERO_FREE(col->column_data);
 }
 
 /**
@@ -348,11 +357,24 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	case XSYBNVARCHAR:
 	case XSYBNCHAR:
 	case SYBNVARCHAR:
+	case SYBNTEXT:
+	case SYBTEXT:
 		if (!need_data && (sql_src_type == SQL_C_CHAR || sql_src_type == SQL_C_WCHAR)) {
 			if (curcol->column_data && curcol->column_data_free)
 				curcol->column_data_free(curcol);
 			curcol->column_data_free = NULL;
-			curcol->column_data = (TDS_UCHAR*) src;
+			if (dest_type == SYBNTEXT || dest_type == SYBTEXT) {
+				TDSBLOB *blob = (TDSBLOB *) calloc(1, sizeof(TDSBLOB));
+				if (!blob) {
+					odbc_errs_add(&stmt->errs, "HY001", NULL);
+					return SQL_ERROR;
+				}
+				blob->textvalue = src;
+				curcol->column_data = (TDS_UCHAR*) blob;
+				curcol->column_data_free = _odbc_blob_free;
+			} else {
+				curcol->column_data = (TDS_UCHAR*) src;
+			}
 			curcol->column_size = len;
 			curcol->column_cur_size = len;
 			return SQL_SUCCESS;
@@ -434,8 +456,9 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		if (res > curcol->column_size)
 			res = curcol->column_size;
 		break;
-	case SYBTEXT:
 	case SYBNTEXT:
+		dest_type = SYBTEXT;
+	case SYBTEXT:
 	case SYBLONGBINARY:
 	case SYBIMAGE:
 		res = tds_convert(dbc->env->tds_ctx, src_type, src, len, dest_type, &ores);
