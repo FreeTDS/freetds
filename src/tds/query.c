@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006, 2007, 2008  Frediano Ziglio
+ * Copyright (C) 2006, 2007, 2008, 2009  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.233 2009-03-06 02:27:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.234 2009-03-06 20:18:51 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1450,12 +1450,6 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	src = curcol->column_data;
-	if (is_blob_type(curcol->column_type)) {
-		blob = (TDSBLOB *) src;
-		src = (unsigned char *) blob->textvalue;
-	}
-
 	tdsdump_log(TDS_DBG_INFO1, "tds_put_data: colsize = %d\n", (int) colsize);
 
 	if (curcol->column_cur_size < 0) {
@@ -1478,6 +1472,12 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	colsize = curcol->column_cur_size;
 
 	size = tds_fix_column_size(tds, curcol);
+
+	src = curcol->column_data;
+	if (is_blob_type(curcol->column_type)) {
+		blob = (TDSBLOB *) src;
+		src = (unsigned char *) blob->textvalue;
+	}
 
 	s = (char *) src;
 
