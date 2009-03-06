@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.141 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.142 2009-03-06 14:32:12 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -1010,7 +1010,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 
 	/*
 	 * If we still don't have the server and port then assume the user
-	 * typed an actual server name.
+	 * typed an actual server host name.
 	 */
 	if (!found) {
 		char ip_addr[255];
@@ -1048,8 +1048,10 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		 * lookup the host
 		 */
 		tds_lookup_host(server, ip_addr);
-		if (ip_addr[0])
+		if (ip_addr[0]) {
+			tds_dstr_copy(&connection->server_host_name, server);
 			tds_dstr_copy(&connection->ip_addr, ip_addr);
+		}
 		if (ip_port)
 			connection->port = ip_port;
 	}

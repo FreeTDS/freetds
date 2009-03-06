@@ -1,3 +1,6 @@
+Fri Mar  6 15:30:58 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/config.c: fix kerberos login with no freetds.conf
+
 Fri Mar  6 10:13:41 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/putdata.c: just some comments
 
@@ -1378,4 +1381,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2742 2009-03-06 09:14:09 freddy77 Exp $
+$Id: ChangeLog,v 1.2743 2009-03-06 14:32:05 freddy77 Exp $
