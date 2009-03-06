@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.16 2008-12-05 08:32:48 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.17 2009-03-06 09:14:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -101,6 +101,7 @@ main(int argc, char *argv[])
 		/* check state  and reset some possible buffers */
 		Command("DECLARE @i INT");
 
+		/* use server ntext if available */
 		if (sql_type == SQL_LONGVARCHAR && db_is_microsoft() && db_version_int() >= 0x08000000u) {
 			sql_type = SQL_WLONGVARCHAR;
 			continue;
@@ -152,7 +153,7 @@ main(int argc, char *argv[])
 
 	CHKFreeStmt(SQL_RESET_PARAMS, "S");
 
-	/* check inserts ... */
+	/* check inserts ... there should be all equal rows */
 	strcpy(sql, "IF EXISTS(SELECT * FROM #putdata WHERE CONVERT(VARBINARY(255),b) <> 0x");
 	/* append binary */
 	for (i = 0; i < 254; ++i)

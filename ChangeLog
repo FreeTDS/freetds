@@ -1,3 +1,6 @@
+Fri Mar  6 10:13:41 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/putdata.c: just some comments
+
 Fri Mar  6 03:27:07 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/query.c: fix genparams test for Sybase
 
@@ -1375,4 +1378,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2741 2009-03-06 02:27:13 freddy77 Exp $
+$Id: ChangeLog,v 1.2742 2009-03-06 09:14:09 freddy77 Exp $
