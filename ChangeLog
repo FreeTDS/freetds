@@ -1,3 +1,6 @@
+Fri Mar  6 02:52:12 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c: fix putdata test for Sybase
+
 Wed Mar  4 18:51:16 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: remove a warning and change style
 
@@ -1369,4 +1372,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2739 2009-03-04 17:51:25 freddy77 Exp $
+$Id: ChangeLog,v 1.2740 2009-03-06 01:52:20 freddy77 Exp $

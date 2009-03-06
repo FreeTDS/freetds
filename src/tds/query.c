@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.231 2009-02-27 10:07:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.232 2009-03-06 01:52:20 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -2882,6 +2882,9 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	char buf[256];
 	int quote = 0;
 
+	TDS_CHAR *save_src;
+	int converted = 0;
+
 	CHECK_TDS_EXTRA(tds);
 	CHECK_PARAMINFO_EXTRA(params);
 
@@ -2896,7 +2899,32 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	
 	if (is_blob_type(curcol->column_type))
 		src = ((TDSBLOB *)src)->textvalue;
-	
+
+	save_src = src;
+
+	/* TODO I don't like copy&paste too much, see above -- freddy77 */
+	/* convert string if needed */
+	if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY) {
+		size_t output_size;
+#if 0
+		/* TODO this case should be optimized */
+		/* we know converted bytes */
+		if (curcol->char_conv->client_charset.min_bytes_per_char == curcol->char_conv->client_charset.max_bytes_per_char 
+		    && curcol->char_conv->server_charset.min_bytes_per_char == curcol->char_conv->server_charset.max_bytes_per_char) {
+			converted_size = colsize * curcol->char_conv->server_charset.min_bytes_per_char / curcol->char_conv->client_charset.min_bytes_per_char;
+
+		} else {
+#endif
+		/* we need to convert data before */
+		/* TODO this can be a waste of memory... */
+		converted = 1;
+		src = (TDS_CHAR*) tds_convert_string(tds, curcol->char_conv, src, src_len, &output_size);
+		src_len = (int) output_size;
+		if (!src)
+			/* conversion error, exit with an error */
+			return TDS_FAIL;
+	}
+
 	/* we could try to use only tds_convert but is not good in all cases */
 	switch (curcol->column_type) {
 	/* binary/char, do conversion in line */
@@ -2938,6 +2966,8 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 			tds_put_string(tds, "\'", 1);
 		free(cr.c);
 	}
+	if (converted)
+		tds_convert_string_free(save_src, src);
 	return TDS_SUCCEED;
 }
 
