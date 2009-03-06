@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.232 2009-03-06 01:52:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.233 2009-03-06 02:27:14 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1444,10 +1444,17 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	TDSBLOB *blob = NULL;
 	size_t colsize, size;
 
+	const char *s;
+	int converted = 0;
+
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
 	src = curcol->column_data;
+	if (is_blob_type(curcol->column_type)) {
+		blob = (TDSBLOB *) src;
+		src = (unsigned char *) blob->textvalue;
+	}
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_put_data: colsize = %d\n", (int) colsize);
 
@@ -1472,52 +1479,44 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	size = tds_fix_column_size(tds, curcol);
 
+	s = (char *) src;
+
+	/* convert string if needed */
+	if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY) {
+		size_t output_size;
+#if 0
+		/* TODO this case should be optimized */
+		/* we know converted bytes */
+		if (curcol->char_conv->client_charset.min_bytes_per_char == curcol->char_conv->client_charset.max_bytes_per_char 
+		    && curcol->char_conv->server_charset.min_bytes_per_char == curcol->char_conv->server_charset.max_bytes_per_char) {
+			converted_size = colsize * curcol->char_conv->server_charset.min_bytes_per_char / curcol->char_conv->client_charset.min_bytes_per_char;
+
+		} else {
+#endif
+		/* we need to convert data before */
+		/* TODO this can be a waste of memory... */
+		converted = 1;
+		s = tds_convert_string(tds, curcol->char_conv, s, colsize, &output_size);
+		colsize = (TDS_INT)output_size;
+		if (!s) {
+			/* on conversion error put a empty string */
+			/* TODO on memory failure we should compute converted size and use chunks */
+			colsize = 0;
+			converted = -1;
+		}
+	}
+
 	/*
 	 * TODO here we limit data sent with MIN, should mark somewhere
 	 * and inform client ??
 	 * Test proprietary behavior
 	 */
 	if (IS_TDS7_PLUS(tds)) {
-		const char *s;
-		int converted = 0;
-
 		tdsdump_log(TDS_DBG_INFO1, "tds_put_data: not null param varint_size = %d\n",
 			    curcol->column_varint_size);
 
-		if (is_blob_type(curcol->column_type)) {
-			blob = (TDSBLOB *) src;
-			src = (unsigned char *) blob->textvalue;
-		}
-		s = (char *) src;
-
-		/* convert string if needed */
-		if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY) {
-			size_t output_size;
-#if 0
-			/* TODO this case should be optimized */
-			/* we know converted bytes */
-			if (curcol->char_conv->client_charset.min_bytes_per_char == curcol->char_conv->client_charset.max_bytes_per_char 
-			    && curcol->char_conv->server_charset.min_bytes_per_char == curcol->char_conv->server_charset.max_bytes_per_char) {
-				converted_size = colsize * curcol->char_conv->server_charset.min_bytes_per_char / curcol->char_conv->client_charset.min_bytes_per_char;
-
-			} else {
-#endif
-			/* we need to convert data before */
-			/* TODO this can be a waste of memory... */
-			converted = 1;
-			s = tds_convert_string(tds, curcol->char_conv, s, colsize, &output_size);
-			colsize = (TDS_INT)output_size;
-			if (!s) {
-				/* on conversion error put a empty string */
-				/* TODO on memory failure we should compute converted size and use chunks */
-				colsize = 0;
-				converted = -1;
-			}
-		}
-			
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
-			blob = (TDSBLOB *) curcol->column_data;
 			colsize = MIN(colsize, size);
 			/* mssql require only size */
 			tds_put_int(tds, colsize);
@@ -1566,14 +1565,11 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 #endif
 			tds_put_n(tds, s, colsize);
 		}
-		if (converted)
-			tds_convert_string_free((char*)src, s);
 	} else {
 		/* TODO ICONV handle charset conversions for data */
 		/* put size of data */
 		switch (curcol->column_varint_size) {
 		case 4:	/* It's a BLOB... */
-			blob = (TDSBLOB *) curcol->column_data;
 			tds_put_byte(tds, 16);
 			tds_put_n(tds, blob->textptr, 16);
 			tds_put_n(tds, blob->timestamp, 8);
@@ -1596,29 +1592,33 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			break;
 		}
 
+		/* conversion error, exit with an error */
+		if (converted < 0)
+			return TDS_FAIL;
+
 		/* put real data */
 		if (is_numeric_type(curcol->column_type)) {
 			num = (TDS_NUMERIC *) src;
 			tds_put_n(tds, num->array, colsize);
-		} else if (is_blob_type(curcol->column_type)) {
-			blob = (TDSBLOB *) src;
-			/* FIXME ICONV handle conversion when needed */
-			tds_put_n(tds, blob->textvalue, colsize);
+		} else if (blob) {
+			tds_put_n(tds, s, colsize);
 		} else {
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds->emul_little_endian && colsize < 64) {
+			if (tds->emul_little_endian && !converted && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
-				memcpy(buf, src, colsize);
+				memcpy(buf, s, colsize);
 				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
-				src = buf;
+				s = (char *) buf;
 			}
 #endif
-			tds_put_n(tds, src, colsize);
+			tds_put_n(tds, s, colsize);
 		}
 	}
+	if (converted)
+		tds_convert_string_free((char*)src, s);
 	return TDS_SUCCEED;
 }
 
