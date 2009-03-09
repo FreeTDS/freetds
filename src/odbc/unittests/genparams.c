@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.39 2009-03-06 17:34:31 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.40 2009-03-09 20:35:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -180,7 +180,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 			CHKExecute("SNo");
 	}
 
-	/* check is row is present */
+	/* check if row is present */
 	if (!check_truncation) {
 		ResetStatement();
 		sep = "'";
@@ -202,6 +202,58 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	Command("DROP TABLE #tmp_insert");
 }
 
+/* stripped down version of TestInput for NULLs */
+static void
+NullInput(SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *param_type)
+{
+	char sbuf[1024];
+	SQLLEN out_len = SQL_NULL_DATA;
+
+	ResetStatement();
+
+	/* create a table with a column of that type */
+	ResetStatement();
+	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s NULL)", param_type);
+	Command(sbuf);
+
+	if (use_cursors) {
+		ResetStatement();
+		CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0, "S");
+		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0, "S");
+	}
+
+	/* insert data using prepared statements */
+	sprintf(sbuf, "INSERT INTO #tmp_insert VALUES(?)");
+	if (exec_direct) {
+		CHKBindParameter(1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, NULL, 1, &out_len, "S");
+
+		CHKExecDirect((SQLCHAR *) sbuf, SQL_NTS, "SNo");
+	} else {
+		if (prepare_before)
+			CHKPrepare((SQLCHAR *) sbuf, SQL_NTS, "S");
+
+		CHKBindParameter(1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, NULL, 1, &out_len, "S");
+
+		if (!prepare_before)
+			CHKPrepare((SQLCHAR *) sbuf, SQL_NTS, "S");
+
+		CHKExecute("SNo");
+	}
+
+	/* check if row is present */
+	ResetStatement();
+	if (!db_is_microsoft() && strcmp(param_type, "TEXT") == 0)
+		Command("SELECT * FROM #tmp_insert WHERE col LIKE ''");
+	else
+		Command("SELECT * FROM #tmp_insert WHERE col IS NULL");
+
+	CHKFetch("S");
+	CHKFetch("No");
+	CHKMoreResults("No");
+	Command("DROP TABLE #tmp_insert");
+}
+
+
 static int big_endian = 1;
 
 static void
@@ -215,6 +267,18 @@ AllTests(void)
 	char date[128];
 
 	printf("use_cursors %d exec_direct %d prepare_before %d\n", use_cursors, exec_direct, prepare_before);
+
+	/* test some NULLs */
+	NullInput(SQL_C_CHAR, SQL_VARCHAR, "VARCHAR(100)");
+	NullInput(SQL_C_CHAR, SQL_LONGVARCHAR, "TEXT");
+	NullInput(SQL_C_LONG, SQL_INTEGER, "INTEGER");
+	NullInput(SQL_C_LONG, SQL_LONGVARCHAR, "TEXT");
+	NullInput(SQL_C_TYPE_TIMESTAMP, SQL_TYPE_TIMESTAMP, "DATETIME");
+	NullInput(SQL_C_FLOAT,  SQL_REAL, "FLOAT");
+	NullInput(SQL_C_NUMERIC, SQL_LONGVARCHAR, "TEXT");
+	if (db_is_microsoft() && db_version_int() >= 0x08000000u)
+		NullInput(SQL_C_BIT, SQL_BIT, "BIT");
+	NullInput(SQL_C_DOUBLE, SQL_DOUBLE, "MONEY");
 
 	/* FIXME why should return 38 0 as precision and scale ?? correct ?? */
 	precision = 18;
