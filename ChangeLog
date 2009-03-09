@@ -1,3 +1,6 @@
+Mon Mar  9 21:53:46 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* TODO.freddy src/odbc/unittests/genparams.c: add test for binary
+
 Mon Mar  9 21:35:38 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO.freddy src/odbc/unittests/genparams.c:
 	- add test for NULL input data
@@ -1392,4 +1395,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2746 2009-03-09 20:35:47 freddy77 Exp $
+$Id: ChangeLog,v 1.2747 2009-03-09 20:53:53 freddy77 Exp $

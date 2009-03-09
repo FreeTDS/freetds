@@ -13,12 +13,12 @@
  * (4) *       -> numeric  take precision and scale from ipd TODO
  * (5) *       -> char     test wide
  * (6) *       -> blob     test wchar and ntext
- * (7) *       -> binary   test also with wchar TODO
- * (8) binary  -> *        test also with wchar TODO
+ * (7) *       -> binary   test also with wchar
+ * (8) binary  -> *        test also with wchar
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.40 2009-03-09 20:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.41 2009-03-09 20:53:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -190,6 +190,8 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(VARCHAR(255), col) = CONVERT(VARCHAR(255), %s%s%s)", sep, expected, sep);
 		else if (strcmp(param_type, "NTEXT") == 0)
 			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(NVARCHAR(2000), col) = CONVERT(NVARCHAR(2000), %s%s%s)", sep, expected, sep);
+		else if (strcmp(param_type, "IMAGE") == 0)
+			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(VARBINARY(255), col) = CONVERT(VARBINARY(255), %s%s%s)", sep, expected, sep);
 		else
 			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
 		Command(sbuf);
@@ -349,6 +351,12 @@ AllTests(void)
 	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_VARCHAR, "VARCHAR(20)", "578246.234 -> 578246");
 	TestInput(SQL_C_NUMERIC, "NUMERIC(20,3)", SQL_LONGVARCHAR, "TEXT", "578246.234 -> 578246");
 
+	TestInput(SQL_C_CHAR, "VARCHAR(100)", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
+	TestInput(SQL_C_CHAR, "TEXT", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
+	TestInput(SQL_C_CHAR, "VARCHAR(100)", SQL_LONGVARBINARY, "IMAGE", "4145544F -> AETO");
+	TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_VARCHAR, "VARCHAR(20)", "0x4145544F -> 4145544F");
+	TestInput(SQL_C_BINARY, "IMAGE", SQL_VARCHAR, "VARCHAR(20)", "0x4145544F -> 4145544F");
+
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "0");
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
 
@@ -408,6 +416,12 @@ AllTests(void)
 		TestInput(SQL_C_WCHAR, "NVARCHAR(3)", SQL_WLONGVARCHAR, "NTEXT", "0xf800a300bc06");
 
 		TestInput(SQL_C_WCHAR, "NVARCHAR(10)", SQL_INTEGER, "INT", " -423785  -> -423785");
+
+		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
+		TestInput(SQL_C_CHAR, "NTEXT", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
+
+		TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_WVARCHAR, "NVARCHAR(20)", "0x4145544F -> 4145544F");
+		TestInput(SQL_C_BINARY, "IMAGE", SQL_WVARCHAR, "NVARCHAR(20)", "0x4145544F -> 4145544F");
 	}
 }
 
