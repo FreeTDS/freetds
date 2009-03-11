@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.182 2009-03-02 05:39:45 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.183 2009-03-11 09:07:33 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -388,6 +388,7 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	   int host_termlen, int table_colnum)
 {
 	BCP_HOSTCOLINFO *hostcol;
+	BYTE *terminator = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_colfmt(%p, %d, %d, %d, %d, %p)\n", 
 		    dbproc, host_colnum, host_type, host_prefixlen, (int) host_collen, host_term);
@@ -450,18 +451,19 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	hostcol = dbproc->hostfileinfo->host_columns[host_colnum - 1];
 
 	/* TODO add precision scale and join with bcp_colfmt_ps */
+	if (host_term && host_termlen > 0) {
+		if ((terminator = malloc(host_termlen)) == NULL) {
+			dbperror(dbproc, SYBEMEM, errno);
+			return FAIL;
+		}
+		memcpy(terminator, host_term, host_termlen);
+	}
 	hostcol->host_column = host_colnum;
 	hostcol->datatype = host_type;
 	hostcol->prefix_len = host_prefixlen;
 	hostcol->column_len = host_collen;
-	if (host_term && host_termlen >= 0) {
-		free(hostcol->terminator);
-		if ((hostcol->terminator = malloc(host_termlen)) == NULL) {
-			dbperror(dbproc, SYBEMEM, errno);
-			return FAIL;
-		}
-		memcpy(hostcol->terminator, host_term, host_termlen);
-	}
+	free(hostcol->terminator);
+	hostcol->terminator = terminator;
 	hostcol->term_len = host_termlen;
 	hostcol->tab_colnum = table_colnum;
 
