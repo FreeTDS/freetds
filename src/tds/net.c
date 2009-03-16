@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.89 2009-03-16 03:16:39 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.90 2009-03-16 07:49:57 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -1319,7 +1319,7 @@ tds_push_func(gnutls_transport_ptr ptr, const void* data, size_t len)
 	TDSSOCKET *tds = (TDSSOCKET *) ptr;
 #else
 static int
-tds_ssl_write(BIO *b, const char* data, size_t len)
+tds_ssl_write(BIO *b, const char* data, int len)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
 #endif
