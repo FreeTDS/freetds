@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.53 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.54 2009-03-16 12:19:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -70,6 +70,9 @@ read_login_info(void)
 	char path[1024];
 	int len;
 #endif
+
+	setbuf(stdout, NULL);
+	setbuf(stderr, NULL);
 
 	s1 = getenv("TDSPWDFILE");
 	if (s1 && s1[0])

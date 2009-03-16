@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.16 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.17 2009-03-16 12:19:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -39,32 +39,36 @@ main(int argc, char *argv[])
 
 	if (out1 != 7654321) {
 		fprintf(stderr, "Invalid output %d (0x%x)\n", (int) out1, (int) out1);
-		exit(1);
+		return 1;
 	}
 
 	/* just to reset some possible buffers */
 	Command("DECLARE @i INT");
 
-	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind,  "S");
-	CHKBindParameter(2, SQL_PARAM_INPUT,  SQL_C_SLONG, SQL_INTEGER, 0, 0, &input,  0, &ind2, "S");
-	CHKBindParameter(3, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &out1,   0, &ind3, "S");
+	/* MS ODBC don't support empty parameters altough documented so avoid this test */
+	if (driver_is_freetds()) {
 
-	/* TODO use {ts ...} for date */
-	CHKPrepare((SQLCHAR *) "{?=call const_param(?, , '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS, "S");
+		CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind,  "S");
+		CHKBindParameter(2, SQL_PARAM_INPUT,  SQL_C_SLONG, SQL_INTEGER, 0, 0, &input,  0, &ind2, "S");
+		CHKBindParameter(3, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &out1,   0, &ind3, "S");
 
-	input = 13579;
-	ind2 = sizeof(input);
-	out1 = output = 0xdeadbeef;
-	CHKExecute("S");
+		/* TODO use {ts ...} for date */
+		CHKPrepare((SQLCHAR *) "{?=call const_param(?, , '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS, "S");
 
-	if (out1 != 7654321) {
-		fprintf(stderr, "Invalid output %d (0x%x)\n", (int) out1, (int) out1);
-		exit(1);
-	}
+		input = 13579;
+		ind2 = sizeof(input);
+		out1 = output = 0xdeadbeef;
+		CHKExecute("S");
 
-	if (output != 24680) {
-		fprintf(stderr, "Invalid result %d (0x%x) expected 24680\n", (int) output, (int) output);
-		exit(1);
+		if (out1 != 7654321) {
+			fprintf(stderr, "Invalid output %d (0x%x)\n", (int) out1, (int) out1);
+			return 1;
+		}
+
+		if (output != 24680) {
+			fprintf(stderr, "Invalid result %d (0x%x) expected 24680\n", (int) output, (int) output);
+			return 1;
+		}
 	}
 
 	Command("IF OBJECT_ID('const_param') IS NOT NULL DROP PROC const_param");
