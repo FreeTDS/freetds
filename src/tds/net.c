@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.88 2009-02-28 17:38:50 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.89 2009-03-16 03:16:39 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -667,43 +667,53 @@ tds_lastpacket(TDSSOCKET * tds)
 
 /**
  * \param tds the famous socket
- * \param p pointer to buffer
+ * \param buffer data to send
  * \param len bytes in buffer
  * \param last 1 if this is the last packet, else 0
  * \return len on success, <0 on failure
  */
 static int
-tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char last)
+tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned char last)
 {
-	int remaining = len;
-	int nput, rc, err=0;
+	const unsigned char *p = buffer;
+	int rc;
+
+	assert(tds && buffer);
 
 	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
 	if (TDS_IS_SOCKET_INVALID(tds->s))
 		return -1;
 
-	while (remaining > 0) {
+	while (p - buffer < len) {
 		if ((rc = tds_select(tds, TDSSELWRITE, tds->query_timeout)) > 0) {
+			size_t remaining = len - (p - buffer);
 #ifdef USE_MSGMORE
-			nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+			ssize_t nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 			/* In case the kernel does not support MSG_MORE, try again without it */
 			if (nput < 0 && errno == EINVAL && !last)
 				nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
 #else
-			nput = WRITESOCKET(tds->s, p, remaining);
+			ssize_t nput = WRITESOCKET(tds->s, p, remaining);
 #endif
-			if (nput < 0 && sock_errno == EAGAIN)
+			if (nput > 0) {
+				p += nput;
 				continue;
-			/* detect connection close */
-			if (nput <= 0) {
-				tdserror(tds->tds_ctx, tds, nput == 0 ? TDSESEOF : TDSEWRIT, sock_errno);
-				tds_close_socket(tds);
-				return -1;
- 			}
+			}
+			
+			if (0 == nput || nput < 0 && sock_errno == EAGAIN)
+				continue;
+
+			assert(nput < 0);
+			
+			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", sock_errno, strerror(sock_errno));
+			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);
+			tds_close_socket(tds);
+			return -1;
+
 		} else if (rc < 0) {
 			if (sock_errno == EAGAIN) /* shouldn't happen, but OK, retry */
 				continue;
-			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", err, strerror(err));
+			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", sock_errno, strerror(sock_errno));
 			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);
 			tds_close_socket(tds);
 			return -1;
@@ -713,9 +723,13 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 			case TDS_INT_CONTINUE:
 				continue;
 			case TDS_INT_TIMEOUT:
-				/* FIXME we are not able to send a packet and we want to send a packet ?? */
+				/* 
+				 * "Cancel the operation ... but leave the dbproc in working condition." 
+				 * We must try to send the cancel packet, else we have to abandon the dbproc.  
+				 * If it can't be done, a harder error e.g. ECONNRESET will bubble up.  
+				 */
 				tds_send_cancel(tds);
-				continue; /* fixme: or return? */
+				continue; 
 			default:
 			case TDS_INT_CANCEL:
 				tds_close_socket(tds);
@@ -723,9 +737,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 			}
 			assert(0); /* not reached */
 		}
-
-		p += nput;
-		remaining -= nput;
+		assert(0); /* not reached */
 	}
 
 #ifdef USE_CORK
@@ -1307,7 +1319,7 @@ tds_push_func(gnutls_transport_ptr ptr, const void* data, size_t len)
 	TDSSOCKET *tds = (TDSSOCKET *) ptr;
 #else
 static int
-tds_ssl_write(BIO *b, const char* data, int len)
+tds_ssl_write(BIO *b, const char* data, size_t len)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
 #endif
