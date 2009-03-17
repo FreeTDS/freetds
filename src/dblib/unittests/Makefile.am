@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2009-02-11 14:40:15 freddy77 Exp $
+# $Id: Makefile.am,v 1.48 2009-03-17 13:34:39 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -18,7 +18,7 @@ SQL_DIST = 	bcp.sql dbmorecmds.sql done_handling.sql rpc.sql \
 		t0011.sql t0012.sql t0013.sql t0014.sql t0015.sql t0016.sql t0017.sql t0018.sql \
 		t0020.sql t0022.sql t0023.sql text_buffer.sql timeout.sql
 
-nodist_bin_SCRIPTS	= $(SQL_DIST)
+noinst_SCRIPTS	= $(SQL_DIST)
 
 t0001_SOURCES	=	t0001.c common.c common.h t0001.sql
 t0002_SOURCES	=	t0002.c common.c common.h
@@ -61,7 +61,7 @@ else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la @NETWORK_LIBS@
-EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32) 
+EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32) $(SQL_DIST)
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err t0017.out
 

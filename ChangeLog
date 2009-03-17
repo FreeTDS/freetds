@@ -1,3 +1,6 @@
+Tue Mar 17 14:34:15 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/Makefile.am: fix distribution
+
 Tue Mar 17 10:05:23 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/genparams.c src/odbc/unittests/moreandcount.c:
 	* src/odbc/unittests/typeinfo.c:
@@ -1414,4 +1417,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2752 2009-03-17 09:05:47 freddy77 Exp $
+$Id: ChangeLog,v 1.2753 2009-03-17 13:34:37 freddy77 Exp $
