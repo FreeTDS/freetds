@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.41 2009-03-09 20:53:53 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.42 2009-03-17 09:05:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -354,8 +354,8 @@ AllTests(void)
 	TestInput(SQL_C_CHAR, "VARCHAR(100)", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
 	TestInput(SQL_C_CHAR, "TEXT", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
 	TestInput(SQL_C_CHAR, "VARCHAR(100)", SQL_LONGVARBINARY, "IMAGE", "4145544F -> AETO");
-	TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_VARCHAR, "VARCHAR(20)", "0x4145544F -> 4145544F");
-	TestInput(SQL_C_BINARY, "IMAGE", SQL_VARCHAR, "VARCHAR(20)", "0x4145544F -> 4145544F");
+	TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_VARCHAR, "VARCHAR(20)", "0x4145544F -> AETO");
+	TestInput(SQL_C_BINARY, "IMAGE", SQL_VARCHAR, "VARCHAR(20)", "0x4145544F -> AETO");
 
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "0");
 	TestInput(SQL_C_BIT, "BIT", SQL_BIT, "BIT", "1");
@@ -420,8 +420,8 @@ AllTests(void)
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
 		TestInput(SQL_C_CHAR, "NTEXT", SQL_VARBINARY, "VARBINARY(20)", "4145544F -> AETO");
 
-		TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_WVARCHAR, "NVARCHAR(20)", "0x4145544F -> 4145544F");
-		TestInput(SQL_C_BINARY, "IMAGE", SQL_WVARCHAR, "NVARCHAR(20)", "0x4145544F -> 4145544F");
+		TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
+		TestInput(SQL_C_BINARY, "IMAGE", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
 	}
 }
 

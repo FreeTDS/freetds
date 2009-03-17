@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.12 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.13 2009-03-17 09:05:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -49,6 +49,7 @@ CheckType(SQLSMALLINT type, SQLSMALLINT expected, const char *string_type, int l
 	SQLLEN ind;
 	SQLRETURN RetCode;
 
+	printf("CheckType %d\n", line);
 	CHKBindCol(2, SQL_C_SSHORT, &out_type, 0, &ind, "SI");
 	CHKGetTypeInfo(type, "SI");
 	RetCode = CHKFetch("SNo");
@@ -87,17 +88,22 @@ DoTest(int version3)
 	SQLINTEGER col_size, min_scale;
 	SQLLEN ind1, ind2, ind3, ind4, ind5, ind6;
 	int date_time_supported = 0;
+	int name_version3;
 
 	use_odbc_version3 = version3;
+	name_version3 = version3;
 	Connect();
 
 	printf("Using ODBC version %d\n", version3 ? 3 : 2);
 
 	/* test column name */
+	/* MS ODBC use always ODBC 3 names even in ODBC 2 mode */
+	if (!driver_is_freetds())
+		name_version3 = 1;
 	CHKGetTypeInfo(SQL_ALL_TYPES, "SI");
 	TestName(1, "TYPE_NAME");
 	TestName(2, "DATA_TYPE");
-	TestName(3, version3 ? "COLUMN_SIZE" : "PRECISION");
+	TestName(3, name_version3 ? "COLUMN_SIZE" : "PRECISION");
 	TestName(4, "LITERAL_PREFIX");
 	TestName(5, "LITERAL_SUFFIX");
 	TestName(6, "CREATE_PARAMS");
@@ -105,8 +111,8 @@ DoTest(int version3)
 	TestName(8, "CASE_SENSITIVE");
 	TestName(9, "SEARCHABLE");
 	TestName(10, "UNSIGNED_ATTRIBUTE");
-	TestName(11, version3 ? "FIXED_PREC_SCALE" : "MONEY");
-	TestName(12, version3 ? "AUTO_UNIQUE_VALUE" : "AUTO_INCREMENT");
+	TestName(11, name_version3 ? "FIXED_PREC_SCALE" : "MONEY");
+	TestName(12, name_version3 ? "AUTO_UNIQUE_VALUE" : "AUTO_INCREMENT");
 	TestName(13, "LOCAL_TYPE_NAME");
 	TestName(14, "MINIMUM_SCALE");
 	TestName(15, "MAXIMUM_SCALE");
@@ -132,10 +138,20 @@ DoTest(int version3)
 
 	CHECK_TYPE(SQL_DATE, date_time_supported && !version3 ? SQL_DATE : SQL_UNKNOWN_TYPE);
 	CHECK_TYPE(SQL_TIME, date_time_supported && !version3 ? SQL_TIME : SQL_UNKNOWN_TYPE);
-	CHECK_TYPE(SQL_TYPE_DATE, date_time_supported && version3 ? SQL_TYPE_DATE : SQL_UNKNOWN_TYPE);
-	CHECK_TYPE(SQL_TYPE_TIME, date_time_supported && version3 ? SQL_TYPE_TIME : SQL_UNKNOWN_TYPE);
-	CHECK_TYPE(SQL_TIMESTAMP, version3 ? SQL_UNKNOWN_TYPE : SQL_TIMESTAMP);
-	CHECK_TYPE(SQL_TYPE_TIMESTAMP, version3 ? SQL_TYPE_TIMESTAMP : SQL_UNKNOWN_TYPE);
+	/* MS ODBC returns S1004 (HY004), TODO support it */
+	if (driver_is_freetds() || version3) {
+		CHECK_TYPE(SQL_TYPE_DATE, date_time_supported && version3 ? SQL_TYPE_DATE : SQL_UNKNOWN_TYPE);
+		CHECK_TYPE(SQL_TYPE_TIME, date_time_supported && version3 ? SQL_TYPE_TIME : SQL_UNKNOWN_TYPE);
+	}
+	/* TODO MS ODBC handle SQL_TIMESTAMP even for ODBC 3 */
+	if (driver_is_freetds())
+		CHECK_TYPE(SQL_TIMESTAMP, version3 ? SQL_UNKNOWN_TYPE : SQL_TIMESTAMP);
+	else
+		CHECK_TYPE(SQL_TIMESTAMP, version3 ? SQL_TYPE_TIMESTAMP : SQL_TIMESTAMP);
+	/* MS ODBC returns S1004 (HY004), TODO support it */
+	if (driver_is_freetds() || version3) {
+		CHECK_TYPE(SQL_TYPE_TIMESTAMP, version3 ? SQL_TYPE_TIMESTAMP : SQL_UNKNOWN_TYPE);
+	}
 
 	/* TODO implement this part of test */
 	/* varchar/nvarchar before sysname */
