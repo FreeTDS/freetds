@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.234 2009-03-06 20:18:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.235 2009-03-19 16:02:36 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1450,7 +1450,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	tdsdump_log(TDS_DBG_INFO1, "tds_put_data: colsize = %d\n", (int) colsize);
+	tdsdump_log(TDS_DBG_INFO1, "tds_put_data: colsize = %d\n", (int) curcol->column_cur_size);
 
 	if (curcol->column_cur_size < 0) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_put_data: null param\n");
