@@ -277,7 +277,7 @@ rm errors.txt
 rm -rf include doc
 find -name Makefile.in  |xargs rm
 find -name \*.in  | grep -v 'unittests\|PWD' | xargs rm
-find \( -type f -o -type l \) -a \( ! -name \*.bat -a ! -name \*.exe -a ! -name \*.def -a ! -name \*.dll -a ! -name \*.be -a ! -name \*.conf -a ! -name \*.exp -a ! -name \*.bin -a ! -name \*.in \) | xargs rm
+find \( -type f -o -type l \) -a \( ! -name \*.bat -a ! -name \*.exe -a ! -name \*.def -a ! -name \*.dll -a ! -name \*.be -a ! -name \*.conf -a ! -name \*.exp -a ! -name \*.bin -a ! -name \*.in -a ! -name \*.sql \) | xargs rm
 
 find -name \*.exe | grep '/\.libs/' | while read X; do mv "${X%/.libs/*}/.libs/${X#*/.libs/}" "${X%/.libs/*}/${X#*/.libs/}"; done
 find -type d -exec rmdir {} \; 2> /dev/null || true
