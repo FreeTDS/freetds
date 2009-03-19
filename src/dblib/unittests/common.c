@@ -12,11 +12,9 @@
 #include <sys/param.h>
 #endif /* HAVE_SYS_PARAM_H */
 
-#ifndef DBNTWIN32
 #include "replacements.h"
-#endif
 
-static char software_version[] = "$Id: common.c,v 1.29 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.30 2009-03-19 13:11:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -353,7 +351,7 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 	if (dbproc != NULL) {
 		pexpected_msgno = (int *) dbgetuserdata(dbproc);
 		if (pexpected_msgno && *pexpected_msgno == msgno) {
-			fprintf(stdout, "OK: anticipated message arrived: %d %s\n", msgno, msgtext);
+			fprintf(stdout, "OK: anticipated message arrived: %d %s\n", (int) msgno, msgtext);
 			*pexpected_msgno = 0;
 			return 0;
 		}

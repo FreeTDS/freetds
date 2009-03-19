@@ -7,8 +7,10 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null.c,v 1.7 2008-11-25 22:58:29 jklowden Exp $";
+static char software_version[] = "$Id: null.c,v 1.8 2009-03-19 13:11:41 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+#ifndef DBNTWIN32
 
 static DBPROCESS *dbproc = NULL;
 static int failed = 0;
@@ -181,4 +183,11 @@ main(int argc, char **argv)
 
 	return failed ? 1 : 0;
 }
+#else
+int main(void)
+{
+	fprintf(stderr, "Not supported by MS DBLib\n");
+	return 0;
+}
+#endif
 
