@@ -10,6 +10,7 @@ errore() {
 NTWDBLIB=no
 TYPE=win32
 ARCHIVE='tar jcvf "freetds-$PACKAGE_VERSION.$TYPE.tar.bz2" "freetds-$PACKAGE_VERSION"'
+PACK=yes
 for param
 do
 	case $param in
@@ -26,6 +27,9 @@ do
 	--ntwdblib)
 		NTWDBLIB=yes
 		;;
+	--no-pack)
+		PACK=no
+		;;
 	--help)
 		echo "Usage: $0 [OPTION]..."
 		echo '  --help          this help'
@@ -33,6 +37,7 @@ do
 		echo '  --zip           compress with zip'
 		echo '  --gzip          compress with gzip'
 		echo '  --ntwdblib      use ntwdblib instead of our'
+		echo "  --no-pack       don't clean and pack files"
 		exit 0
 		;;
 	*)
@@ -273,6 +278,11 @@ _EOF
 fi
 cat errors.txt | grep -v '^.libs/lt-\|^mkdir: cannot create directory ..libs.: File exists$' | perl -ne 'if (/visibility attribute not supported in this configuration/) {$ignore=1;$_=""} else {$ignore=0} ; print $old if !$ignore; $old=$_; END { print $old }' > ../${TYPE}_errors.txt
 rm errors.txt
+
+if test "$PACK" = "no"; then
+	echo "No packaging requested, exiting"
+	exit 0
+fi
 
 rm -rf include doc
 find -name Makefile.in  |xargs rm

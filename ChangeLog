@@ -1,3 +1,6 @@
+Thu Mar 19 16:12:41 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/prepare_win32.sh: no pack option
+
 Thu Mar 19 16:09:30 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/common.c src/replacements/basename.c:
 	- fix some problems under win32
@@ -1433,4 +1436,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2757 2009-03-19 15:09:55 freddy77 Exp $
+$Id: ChangeLog,v 1.2758 2009-03-19 15:12:57 freddy77 Exp $
