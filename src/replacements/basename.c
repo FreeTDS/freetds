@@ -30,7 +30,13 @@
 
 #if ! HAVE_BASENAME
 
-TDS_RCSID(var, "$Id: basename.c,v 1.3 2008-10-02 08:08:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: basename.c,v 1.4 2009-03-19 15:09:56 freddy77 Exp $");
+
+#ifdef WIN32
+#define TDS_ISDIR_SEPARATOR(c) ((c) == '/' || (c) == '\\')
+#else
+#define TDS_ISDIR_SEPARATOR(c) ((c) == '/')
+#endif
 
 char *tds_basename(char *path)
 {
@@ -39,12 +45,19 @@ char *tds_basename(char *path)
 	if (path == NULL)
 		return path;
 
-	for (p = path + strlen(path); --p > path && *p == '/';)
+	/* remove trailing directories separators */
+	for (p = path + strlen(path); --p > path && TDS_ISDIR_SEPARATOR(*p);)
 		*p = '\0';
 
 	p = strrchr(path, '/');
-
-	return p ? p : path;
+	if (p)
+		path = p + 1;
+#ifdef WIN32
+	p = strrchr(path, '\\');
+	if (p)
+		path = p + 1;
+#endif
+	return path;
 }
 #endif
 

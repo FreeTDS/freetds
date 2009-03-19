@@ -14,7 +14,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.30 2009-03-19 13:11:41 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.31 2009-03-19 15:09:56 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -111,6 +111,10 @@ read_login_info(int argc, char **argv)
 	struct { char *username, *password, *servername, *database; char fverbose; } options;
 	
 	BASENAME = tds_basename((char *)argv[0]);
+#ifdef WIN32
+	s1 = strrchr(BASENAME, '.');
+	if (s1) *s1 = 0;
+#endif
 	DIRNAME = dirname((char *)argv[0]);
 	
 	memset(&options, 0, sizeof(options));
