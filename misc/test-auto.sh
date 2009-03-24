@@ -4,8 +4,8 @@
 
 # set -e
 
-BUILD=1
-CONFIGURE=0
+BUILD=yes
+CONFIGURE=no
 for param
 do
 	case $param in
@@ -14,10 +14,10 @@ do
 		exit 0
 		;;
 	--no-build)
-		BUILD=0
+		BUILD=no
 		;;
 	--configure)
-		CONFIGURE=1
+		CONFIGURE=yes
 		;;
 	esac
 done
@@ -62,8 +62,8 @@ if gmake --help 2> /dev/null > /dev/null; then
 fi
 
 # execute configure
-if test $CONFIGURE = 1; then
-	BUILD=1
+if test $CONFIGURE = yes; then
+	BUILD=yes
 	output_save "configuration" conf ./configure --enable-extra-checks $TDS_AUTO_CONFIG
 	if test $RES != 0; then
 		echo "error during configure"
@@ -71,7 +71,7 @@ if test $CONFIGURE = 1; then
 	fi
 fi
 
-if test $BUILD = 1; then
+if test $BUILD = yes; then
 
 	echo Making ...
 	$MAKE clean > /dev/null 2> /dev/null
