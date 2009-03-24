@@ -29,15 +29,15 @@
 #endif /* HAVE_UNISTD_H */
 
 #include <tds.h>
-#include <../../include/sybfront.h>
-#include <../../include/sybdb.h>
+#include <sybfront.h>
+#include <sybdb.h>
 #include <dblib.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: xact.c,v 1.13 2009-01-31 19:13:20 jklowden Exp $");
+TDS_RCSID(var, "$Id: xact.c,v 1.14 2009-03-24 01:22:14 jklowden Exp $");
 
 
 #if defined(DBLIB_UNIMPLEMENTED)

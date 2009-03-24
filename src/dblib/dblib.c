@@ -66,16 +66,16 @@
 #include <tdsthread.h>
 #include <tdsconvert.h>
 #include <replacements.h>
-#include <../../include/sybfront.h>
-#include <../../include/sybdb.h>
-#include <../../include/syberror.h>
+#include <sybfront.h>
+#include <sybdb.h>
+#include <syberror.h>
 #include <dblib.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.345 2009-03-23 13:28:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.346 2009-03-24 01:22:14 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1095,10 +1095,20 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	DBPROCESS *dbproc = NULL;
 	TDSCONNECTION *connection;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbopen(%p, %s, [%s])\n", login, server, msdblib? "microsoft" : "sybase");
+	tdsdump_log(TDS_DBG_FUNC, "dbopen(%p, %s, [%s])\n", login, server? server : "0x0", msdblib? "microsoft" : "sybase");
 
-	CHECK_NULP(server, "dbopen", 2, NULL);
-	
+	/*
+	 * Sybase supports the DSQUERY environment variable and falls back to "SYBASE" if server is NULL. 
+	 * Microsoft uses a NULL or "" server to indicate a local server.  
+	 * FIXME: support local server for win32.  
+	 */
+	if (!server && !msdblib) {
+		if ((server = getenv("TDSQUERY")) == NULL)
+			if ((server = getenv("DSQUERY")) == NULL)
+				server = "SYBASE";
+		tdsdump_log(TDS_DBG_FUNC, "servername set to %s", server);
+	}
+
 	if ((dbproc = calloc(1, sizeof(DBPROCESS))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;

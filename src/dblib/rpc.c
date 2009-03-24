@@ -46,15 +46,15 @@
 #include <tds.h>
 #include <tdsconvert.h>
 #include <replacements.h>
-#include <../../include/sybfront.h>
-#include <../../include/sybdb.h>
+#include <sybfront.h>
+#include <sybdb.h>
 #include <dblib.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.67 2009-01-31 19:13:20 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.68 2009-03-24 01:22:14 jklowden Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);

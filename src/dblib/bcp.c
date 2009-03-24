@@ -45,9 +45,9 @@
 #include <tdsiconv.h>
 #include <tdsconvert.h>
 #include <replacements.h>
-#include <../../include/sybfront.h>
-#include <../../include/sybdb.h>
-#include <../../include/syberror.h>
+#include <sybfront.h>
+#include <sybdb.h>
+#include <syberror.h>
 #include <dblib.h>
 
 #ifdef DMALLOC
@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.183 2009-03-11 09:07:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.184 2009-03-24 01:22:14 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;

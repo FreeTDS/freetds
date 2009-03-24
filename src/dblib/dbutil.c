@@ -30,15 +30,15 @@
 #endif /* HAVE_STDLIB_H */
 
 #include <tds.h>
-#include <../../include/sybdb.h>
-#include <../../include/syberror.h>
+#include <sybdb.h>
+#include <syberror.h>
 #include <dblib.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.45 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.46 2009-03-24 01:22:14 jklowden Exp $");
 
 /*
  * test include consistency 
