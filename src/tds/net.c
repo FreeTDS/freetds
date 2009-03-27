@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.90 2009-03-16 07:49:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.91 2009-03-27 09:22:49 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -700,7 +700,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 				continue;
 			}
 			
-			if (0 == nput || nput < 0 && sock_errno == EAGAIN)
+			if (0 == nput || sock_errno == EAGAIN)
 				continue;
 
 			assert(nput < 0);

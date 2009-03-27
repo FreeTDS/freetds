@@ -1,3 +1,6 @@
+Fri Mar 27 10:22:22 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: remove warning and check
+
 Tue Mar 24 11:38:29 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/test-auto.sh: style update
 
@@ -1452,4 +1455,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2762 2009-03-24 10:39:02 freddy77 Exp $
+$Id: ChangeLog,v 1.2763 2009-03-27 09:22:48 freddy77 Exp $
