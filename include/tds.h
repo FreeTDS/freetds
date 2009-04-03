@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.284.2.3 2008-11-05 14:56:12 freddy77 Exp $ */
+/* $Id: tds.h,v 1.284.2.4 2009-04-03 09:40:05 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -805,6 +805,7 @@ typedef enum tds_encryption_level {
 #define TDS_STR_APPENDMODE	"dump file append"
 #define TDS_STR_DATEFMT	"date format"
 #define TDS_STR_INSTANCE "instance"
+#define TDS_STR_ASA_DATABASE	"asa database"
 #define TDS_STR_ENCRYPTION	 "encryption"
 /* conf values */
 #define TDS_STR_ENCRYPTION_OFF	 "off"
