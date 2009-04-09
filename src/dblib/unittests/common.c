@@ -14,7 +14,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.31 2009-03-19 15:09:56 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.32 2009-04-09 01:40:25 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -110,12 +110,25 @@ read_login_info(int argc, char **argv)
 	static const char *PWD = "../../../PWD";
 	struct { char *username, *password, *servername, *database; char fverbose; } options;
 	
-	BASENAME = tds_basename((char *)argv[0]);
-#ifdef WIN32
+#ifdef __VMS
+	{
+		/* basename expects unix format */
+		strncpy(filename, argv[0],  PATH_MAX);
+		s1 = strrchr(filename, ';'); /* trim version; extension trimmed later */
+		if (s1) *s1 = 0;
+		const char *unixspec = decc$translate_vms(filename);
+		strncpy(filename, unixspec,  PATH_MAX);
+	}
+#else
+	strncpy(filename, argv[0],  PATH_MAX);
+#endif
+	
+	BASENAME = tds_basename(filename);
+#if defined(WIN32) || defined(__VMS)
 	s1 = strrchr(BASENAME, '.');
 	if (s1) *s1 = 0;
 #endif
-	DIRNAME = dirname((char *)argv[0]);
+	DIRNAME = dirname(filename);
 	
 	memset(&options, 0, sizeof(options));
 	

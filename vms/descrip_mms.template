@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.13 2008-05-22 03:53:18 jklowden Exp $
+# $Id: descrip_mms.template,v 1.14 2009-04-09 01:40:25 jklowden Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -71,17 +71,17 @@ CC = CC/DECC
 .SUFFIXES : $(E) $(OLB) $(OBJ) .C .H
 
 .IFDEF ODBC
-CDEFINE = "$(TDSVER)","HAVE_CONFIG_H"=1,"UNIXODBC"
+CDEFINE = "$(TDSVER)","HAVE_CONFIG_H"=1,_FREETDS_LIBRARY_SOURCE=1,"UNIXODBC"
 CODBCFLAGS = /NAMES=(AS_IS,SHORTENED)
 .ELSE
-CDEFINE = $(TDSVER),HAVE_CONFIG_H=1
+CDEFINE = $(TDSVER),HAVE_CONFIG_H=1,_FREETDS_LIBRARY_SOURCE=1
 CODBCFLAGS = /NAMES=SHORTENED
 .ENDIF
 CPREFIX = ALL
-CINCLUDE = "./","./include","./src/tds"$(ODBC_INC)
+CINCLUDE = "./","./include"$(ODBC_INC)
 
 .IFDEF __DEBUG__
-CDBGFLAGS = /DEBUG/NOOPTIMIZE/LIST=$(MMS$TARGET_NAME)/SHOW=ALL
+CDBGFLAGS = /DEBUG/NOOPTIMIZE/LIST=$(MMS$TARGET_NAME)/SHOW=(EXPANSION,INCLUDE)
 LDBGFLAGS = /DEBUG/MAP
 .ELSE
 CDBGFLAGS =
@@ -106,10 +106,10 @@ STRTOK_ROBJ = @STRTOK_ROBJ@
 LIBICONVOBJ = @LIBICONVOBJ@
 SNPRINTFOBJ = @SNPRINTFOBJ@
 
-TDSOBJS = [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), [.src.tds]convert$(OBJ), \
-	[.src.tds]data$(OBJ), [.src.tds]des$(OBJ), [.src.tds]getmac$(OBJ), \
-	[.src.tds]iconv$(OBJ), [.src.tds]locale$(OBJ), [.src.tds]login$(OBJ), \
-	[.src.tds]md4$(OBJ), [.src.tds]mem$(OBJ), [.src.tds]numeric$(OBJ), \
+TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ), \
+	[.src.tds]convert$(OBJ), [.src.tds]data$(OBJ), [.src.tds]des$(OBJ), [.src.tds]getmac$(OBJ), \
+	[.src.tds]gssapi$(OBJ), [.src.tds]hmac_md5$(OBJ), [.src.tds]iconv$(OBJ), [.src.tds]locale$(OBJ), \
+	[.src.tds]login$(OBJ), [.src.tds]md4$(OBJ), [.src.tds]mem$(OBJ), [.src.tds]numeric$(OBJ), \
 	[.src.tds]query$(OBJ), [.src.tds]read$(OBJ), [.src.tds]tdsstring$(OBJ), \
 	[.src.tds]threadsafe$(OBJ), [.src.tds]token$(OBJ), [.src.tds]util$(OBJ), \
 	[.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), [.src.tds]md5$(OBJ), \
@@ -573,7 +573,7 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
 
 [.src.tds.unittests]convert$(OBJ) : [.src.tds.unittests]convert.c
-	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE),[.src.tds]) $(CDBGFLAGS) $(MMS$SOURCE)
 
 [.src.tds.unittests]dataread$(E) : [.src.tds.unittests]dataread$(OBJ) [.src.tds.unittests]common$(OBJ)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library

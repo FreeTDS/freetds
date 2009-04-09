@@ -1,3 +1,9 @@
+Wed Apr  8 21:35:02 EDT 2009	JK Lowden <jklowden@freetds.org>
+	* include/fakepoll.h src/dblib/unittests/common.c
+	* vms/config_h.vms vms/descrip_mms.template
+	- apply patch from Craig A. Berry ML 8 April 2009
+	* doc/userguide.sgml document ASA Servername
+
 Fri Mar 27 10:22:22 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: remove warning and check
 
@@ -1455,4 +1461,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2763 2009-03-27 09:22:48 freddy77 Exp $
+$Id: ChangeLog,v 1.2764 2009-04-09 01:40:25 jklowden Exp $
