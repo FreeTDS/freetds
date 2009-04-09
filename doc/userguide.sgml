@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2009-02-11 02:41:58 $</date>
-		<releaseinfo>$Revision: 1.121 $</releaseinfo>
+		<date>$Date: 2009-04-09 01:40:37 $</date>
+		<releaseinfo>$Revision: 1.122 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -27,6 +27,7 @@
 		  <year>2006</year>
 		  <year>2007</year>
 		  <year>2008</year>
+		  <year>2009</year>
 		  <holder>Brian Bruns and James K. Lowden</holder>
 		</copyright>
 		<legalnotice><para>
@@ -56,9 +57,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.121 $</>
-<member>$Date: 2009-02-11 02:41:58 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.121 2009-02-11 02:41:58 jklowden Exp $.</>
+<member>$Revision: 1.122 $</>
+<member>$Date: 2009-04-09 01:40:37 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.122 2009-04-09 01:40:37 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -568,7 +569,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2009-02-11 02:41:58 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2009-04-09 01:40:37 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -779,8 +780,8 @@ The actual name and location of <filename>freetds.conf</filename> may be specifi
 		<sect2 id="freetdsconfformat">
 			<title>What it looks like</title>
 			<para>
-The <filename>freetds.conf</filename> file is composed of two types of sections: a 
-<literal>[global]</literal> section,  and one <literal>[<replaceable>dataserver</replaceable>]</literal> section for each dataserver.  Settings in the <literal>[global]</literal> section affect all dataservers, but can be overridden in a <literal>[<replaceable>dataserver</replaceable>]</literal> section.  For example
+The <filename>freetds.conf</filename> file is composed of two types of sections: one
+<literal>[global]</literal> section,  and a <literal>[<replaceable>dataserver</replaceable>]</literal> section for each dataserver.  Settings in the <literal>[global]</literal> section affect all dataservers, but can be overridden in a <literal>[<replaceable>dataserver</replaceable>]</literal> section.  For example
 			</para>
 <example id="e.g.freetdsconf">
 <title>A <filename>freetds.conf</filename> file example</title>
@@ -807,10 +808,7 @@ The <filename>freetds.conf</filename> file is composed of two types of sections:
 In this example, the default  <acronym>TDS</> version for all dataservers is set to <literal>4.2</>.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses <literal>5.0</literal>, and <literal>myserver3</literal> (a MSSQL 2000 server) which uses <literal>8.0</literal>.
 	</para>
 	<para>
-Note that <literal>myserver3</literal> uses a named instance configuration, instead of a port number.  
-	</para>
-	<para>
-Usually, it is sufficient to state the only server's hostname and TDS protocol.  Everything else can be inferred, unless your setup (or your server's) strays from the defaults.  
+Usually, it is sufficient to state just the server's hostname and TDS protocol version.  Everything else can be inferred, unless your setup (or your server's) strays from the defaults.  
 	<tip><para>Some people seem to feel safer using the IP address for the server, rather than its name.  We don't recommend you do that.  Use the name, and benefit from the inherent advantages.  That's why DNS was invented in the first place, you know.  </para></tip>
 	</para>
 	<para>
@@ -888,11 +886,19 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 	</row>
 
 	<row>
+	<entry>ASA database</entry>
+	<entry>valid database name</entry>
+	<entry>dataserver [<replaceable>section</>] name</entry>
+	<entry>Specifies the name of the default database when connecting to an ASA server.  A TDS 5.0 login packet has a field called <literal>lservname</>.   For most TDS servers, <literal>lservname</> is a user-defined string with no inherent meaning.  ASA servers, however, requires that <literal>lservname</>  contain a valid database name, and sets that as the default database for the connection.  FreeTDS normally fills <literal>lservname</>  with the [<replaceable>section</>]text..   This entry instead sets the database name independently of the [<replaceable>section</>] name.   </entry>
+	</row>
+
+	<row>
 	<entry>initial block size</entry>
 	<entry>multiple of 512</entry>
 	<entry>512</entry>
 	<entry>Specifies the maximum size of a protocol block.  Don't mess with unless you know what you are doing.</entry>
 	</row>
+
 	<row>
 	<entry>dump file</entry>
 	<entry>any valid file name</entry>
