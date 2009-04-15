@@ -14,7 +14,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.32 2009-04-09 01:40:25 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.33 2009-04-15 08:00:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -42,6 +42,7 @@ char DATABASE[512];
 static char sql_file[PATH_MAX];
 static FILE* input_file;
 
+static char *ARGV0 = NULL;
 static char *DIRNAME = NULL;
 static const char *BASENAME = NULL;
 
@@ -94,6 +95,12 @@ free_file(void)
 		fclose(input_file);
 		input_file = NULL;
 	}
+	if (ARGV0) {
+		DIRNAME = NULL;
+		BASENAME = NULL;
+		free(ARGV0);
+		ARGV0 = NULL;
+	}
 }
 
 int
@@ -113,22 +120,21 @@ read_login_info(int argc, char **argv)
 #ifdef __VMS
 	{
 		/* basename expects unix format */
-		strncpy(filename, argv[0],  PATH_MAX);
-		s1 = strrchr(filename, ';'); /* trim version; extension trimmed later */
+		s1 = strrchr(argv[0], ';'); /* trim version; extension trimmed later */
 		if (s1) *s1 = 0;
-		const char *unixspec = decc$translate_vms(filename);
-		strncpy(filename, unixspec,  PATH_MAX);
+		const char *unixspec = decc$translate_vms(argv[0]);
+		ARGV0 = strdup(unixspec);
 	}
 #else
-	strncpy(filename, argv[0],  PATH_MAX);
+	ARGV0 = strdup(argv[0]);
 #endif
 	
-	BASENAME = tds_basename(filename);
+	BASENAME = tds_basename(ARGV0);
 #if defined(WIN32) || defined(__VMS)
-	s1 = strrchr(BASENAME, '.');
+	s1 = strrchr(ARGV0, '.');
 	if (s1) *s1 = 0;
 #endif
-	DIRNAME = dirname(filename);
+	DIRNAME = dirname(ARGV0);
 	
 	memset(&options, 0, sizeof(options));
 	
