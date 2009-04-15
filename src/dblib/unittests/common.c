@@ -14,7 +14,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.33 2009-04-15 08:00:20 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.34 2009-04-15 20:55:03 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -80,6 +80,11 @@ tds_dirname(char* path)
 	p2 = strrchr(p, '\\');
 	if (p2)
 		p = p2;
+	if (p == path) {
+		if (*p == '/' || *p == '\\')
+			return "\\";
+		return ".";
+	}
 	*p = 0;
 	return path;
 }

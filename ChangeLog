@@ -1,3 +1,6 @@
+Wed Apr 15 22:54:49 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/common.c: fix dirname for win32
+
 Wed Apr 15 09:59:47 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/common.c: fix core detecting sql input file
 
@@ -1464,4 +1467,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2765 2009-04-15 08:00:20 freddy77 Exp $
+$Id: ChangeLog,v 1.2766 2009-04-15 20:55:03 freddy77 Exp $
