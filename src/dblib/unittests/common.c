@@ -14,7 +14,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.34 2009-04-15 20:55:03 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.35 2009-04-16 07:24:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -136,7 +136,7 @@ read_login_info(int argc, char **argv)
 	
 	BASENAME = tds_basename(ARGV0);
 #if defined(WIN32) || defined(__VMS)
-	s1 = strrchr(ARGV0, '.');
+	s1 = strrchr(BASENAME, '.');
 	if (s1) *s1 = 0;
 #endif
 	DIRNAME = dirname(ARGV0);
