@@ -1,3 +1,6 @@
+Fri Apr 17 19:16:14 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/sybase_tests: set LD_RUN_PATH to find proper libraries
+
 Fri Apr 17 16:28:55 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/sybase_tests: script to compile dblib unittests using Sybase
 
@@ -1477,4 +1480,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2769 2009-04-17 14:29:37 freddy77 Exp $
+$Id: ChangeLog,v 1.2770 2009-04-17 17:16:22 freddy77 Exp $

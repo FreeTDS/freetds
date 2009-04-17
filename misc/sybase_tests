@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# $Id: sybase_tests,v 1.1 2009-04-17 14:29:44 freddy77 Exp $
+# $Id: sybase_tests,v 1.2 2009-04-17 17:16:28 freddy77 Exp $
 # these commands build dblib tests using Sybase dblib
 
 errore() {
@@ -34,6 +34,11 @@ handle_exit() {
 cd src/dblib/unittests
 rm -f *.o *.exe
 make clean
+if test "$LD_RUN_PATH" != ""; then
+	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib:$LD_RUN_PATH"
+else
+	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib"
+fi
 trap handle_exit EXIT
 echo '#include <sybfront.h>' > sqlfront.h
 echo '#include <sybdb.h>' > sqldb.h
