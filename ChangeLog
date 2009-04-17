@@ -1,3 +1,7 @@
+Fri Apr 17 11:54:00 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/common.c: disable output buffering
+	* src/dblib/unittests/null2.c: fix for MS library
+
 Thu Apr 16 09:23:45 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/common.c: fix extension stripping
 
@@ -1470,4 +1474,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2767 2009-04-16 07:24:25 freddy77 Exp $
+$Id: ChangeLog,v 1.2768 2009-04-17 09:54:27 freddy77 Exp $

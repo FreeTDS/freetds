@@ -14,7 +14,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.35 2009-04-16 07:24:25 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.36 2009-04-17 09:54:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -121,6 +121,9 @@ read_login_info(int argc, char **argv)
 	char filename[PATH_MAX];
 	static const char *PWD = "../../../PWD";
 	struct { char *username, *password, *servername, *database; char fverbose; } options;
+
+	setbuf(stdout, NULL);
+	setbuf(stderr, NULL);
 	
 #ifdef __VMS
 	{
