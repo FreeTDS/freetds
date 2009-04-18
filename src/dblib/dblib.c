@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.346 2009-03-24 01:22:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.347 2009-04-18 19:35:38 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -747,6 +747,11 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		return FAIL;
 	}
 
+	if (TDS_MAX_LOGIN_STR_SZ < strlen(value)) {
+		dbperror(NULL, SYBENTLL, 0);
+		return FAIL;
+	}
+
 	switch (which) {
 	case DBSETHOST:
 		tds_set_host(login->tds_login, value);
@@ -772,7 +777,6 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		tds_set_language(login->tds_login, value);
 		return SUCCEED;
 		break;
-	case DBSETHID:
 	default:
 		dbperror(NULL, SYBEASUL, 0); /* Attempt to set unknown LOGINREC field */
 		return FAIL;
@@ -862,7 +866,6 @@ dbsetlbool(LOGINREC * login, int value, int which)
 		tds_set_bulk(login->tds_login, (TDS_TINYINT) value);
 		return SUCCEED;
 		break;
-	case DBSETNOSHORT:
 	case DBSETENCRYPT:
 	case DBSETLABELED:
 	default:
@@ -1127,7 +1130,11 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	tds_set_server(login->tds_login, server);
 
-	dbproc->tds_socket = tds_alloc_socket(dblib_get_tds_ctx(), 512);
+	if ((dbproc->tds_socket = tds_alloc_socket(dblib_get_tds_ctx(), 512)) == NULL ){
+		dbperror(NULL, SYBEMEM, 0);
+		return NULL;
+	}
+	
 
 	tds_set_parent(dbproc->tds_socket, dbproc);
 	dbproc->tds_socket->option_flag2 &= ~0x02;	/* we're not an ODBC driver */
@@ -1136,7 +1143,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	dbproc->dbcurdb[0] = '\0';
 	dbproc->servcharset[0] = '\0';
 
-	connection = tds_read_config_info(NULL, login->tds_login, g_dblib_ctx.tds_ctx->locale);
+	connection = tds_read_config_info(dbproc->tds_socket, login->tds_login, g_dblib_ctx.tds_ctx->locale);
 	if (!connection) {
 		dbclose(dbproc);
 		return NULL;
@@ -7626,7 +7633,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEIMCL,       EXCONSISTENCY,	"Illegal money column length returned by Adaptive Server. Legal money lengths are 4 "
 						"and 8 bytes\0" }
 	, { SYBEINLN,              EXUSER,	"Interface file: unexpected end-of-line\0" }
-	, { SYBEINTF,              EXUSER,	"Server name not found in interface file\0" }
+	, { SYBEINTF,              EXUSER,	"Server name not found in configuration files\0" }
 	, { SYBEINUMCL,     EXCONSISTENCY,	"Invalid numeric column length returned by the server\0" }
 	, { SYBEIPV,               EXINFO,	"%1! is an illegal value for the %2! parameter of %3!\0%d %s %s" }
 	, { SYBEISOI,       EXCONSISTENCY,	"International Release: Invalid sort-order information found\0" }

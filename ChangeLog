@@ -1,3 +1,10 @@
+Sat Apr 18 15:18:39 EDT 2009	JK Lowden <jklowden@freetds.org>
+	* include/sybdb.h include/tds.h
+	* src/apps/bsqldb.c src/apps/tsql.c
+	* src/ctlib/ct.c src/dblib/dblib.c src/odbc/odbc.c
+	* src/tds/config.c src/tds/login.c src/tds/util.c
+	- support TDSEINTF and TDSEUHST to distinguish name-lookup failures.
+
 Sat Apr 18 17:21:15 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/timeout.c:
 	- fix test according to vendors behavior
@@ -1484,4 +1491,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2771 2009-04-18 15:21:49 freddy77 Exp $
+$Id: ChangeLog,v 1.2772 2009-04-18 19:35:38 jklowden Exp $

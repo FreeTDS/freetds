@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.509 2009-02-23 16:08:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.510 2009-04-18 19:35:38 jklowden Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1871,7 +1871,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	}
 	drec = &ird->records[icol - 1];
 
-	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLColAttribute: fDescType is %d\n", fDescType);
+	tdsdump_log(TDS_DBG_INFO1, "SQLColAttribute: fDescType is %d\n", fDescType);
 
 	switch (fDescType) {
 	case SQL_DESC_AUTO_UNIQUE_VALUE:
@@ -2021,7 +2021,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		IOUT(SQLSMALLINT, drec->sql_desc_updatable);
 		break;
 	default:
-		tdsdump_log(TDS_DBG_INFO2, "odbc:SQLColAttribute: fDescType %d not catered for...\n", fDescType);
+		tdsdump_log(TDS_DBG_INFO2, "SQLColAttribute: fDescType %d not catered for...\n", fDescType);
 		odbc_errs_add(&stmt->errs, "HY091", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 		break;
@@ -2352,7 +2352,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		ODBC_RETURN(desc, SQL_NO_DATA);
 	drec = &desc->records[icol - 1];
 
-	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLGetDescField: fDescType is %d\n", fDescType);
+	tdsdump_log(TDS_DBG_INFO1, "SQLGetDescField: fDescType is %d\n", fDescType);
 
 	switch (fDescType) {
 	case SQL_DESC_AUTO_UNIQUE_VALUE:
@@ -2567,7 +2567,7 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 	}
 	drec = &desc->records[icol - 1];
 
-	tdsdump_log(TDS_DBG_INFO1, "odbc:SQLColAttributes: fDescType is %d\n", fDescType);
+	tdsdump_log(TDS_DBG_INFO1, "SQLColAttributes: fDescType is %d\n", fDescType);
 
 	switch (fDescType) {
 	case SQL_DESC_AUTO_UNIQUE_VALUE:
@@ -3860,7 +3860,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 
 	/* check if option correct */
 	if (fOption != SQL_DROP && fOption != SQL_CLOSE && fOption != SQL_UNBIND && fOption != SQL_RESET_PARAMS) {
-		tdsdump_log(TDS_DBG_ERROR, "odbc:SQLFreeStmt: Unknown option %d\n", fOption);
+		tdsdump_log(TDS_DBG_ERROR, "SQLFreeStmt: Unknown option %d\n", fOption);
 		odbc_errs_add(&stmt->errs, "HY092", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
@@ -4874,7 +4874,7 @@ SQLGetFunctions(SQLHDBC hdbc, SQLUSMALLINT fFunction, SQLUSMALLINT FAR * pfExist
 #endif
 
 	case SQL_API_ALL_FUNCTIONS:
-		tdsdump_log(TDS_DBG_FUNC, "odbc:SQLGetFunctions: " "fFunction is SQL_API_ALL_FUNCTIONS\n");
+		tdsdump_log(TDS_DBG_FUNC, "SQLGetFunctions: " "fFunction is SQL_API_ALL_FUNCTIONS\n");
 		for (i = 0; i < 100; ++i) {
 			pfExists[i] = SQL_FALSE;
 		}
@@ -6671,7 +6671,7 @@ odbc_log_unimplemented_type(const char function_name[], int fType)
 		break;
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "odbc: not implemented: %s: option/type %d(%s) [category %s]\n", function_name, fType, name,
+	tdsdump_log(TDS_DBG_INFO1, "not implemented: %s: option/type %d(%s) [category %s]\n", function_name, fType, name,
 		    category);
 
 	return;

@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.89 2009-02-28 17:38:39 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.90 2009-04-18 19:35:38 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -555,7 +555,6 @@ char *dbtabname(DBPROCESS * dbprocess, int tabnum);
 char *dbtabsoruce(DBPROCESS * dbprocess, int colnum, int *tabnum);
 
 RETCODE dbsetlshort(LOGINREC * login, int value, int which);
-#define DBSETLHIER(x,y)		dbsetlshort((x), (y), DBSETHIER)
 
 RETCODE dbsendpassthru(DBPROCESS * dbprocess, DBVOIDPTR bufp);
 RETCODE dbrecvpassthru(DBPROCESS * dbprocess, DBVOIDPTR * bufp);
@@ -1113,8 +1112,10 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETPWD		3
 #define DBSETLPWD(x,y)		dbsetlname((x), (y), DBSETPWD)
 #define dbsetlpwd(x,y)		dbsetlname((x), (y), DBSETPWD)
-#define DBSETHID		4	/* not implemented */
-#define DBSETLHID(x,y)		dbsetlname((x), (y), DBSETHID)
+#if defined(DBLIB_UNIMPLEMENTED)
+# define DBSETHID		4	/* not implemented */
+# define DBSETLHID(x,y)		dbsetlname((x), (y), DBSETHID)
+#endif
 #define DBSETAPP		5
 #define DBSETLAPP(x,y)		dbsetlname((x), (y), DBSETAPP)
 #define dbsetlapp(x,y)		dbsetlname((x), (y), DBSETAPP)
@@ -1124,9 +1125,12 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETNATLANG		7	
 #define DBSETLNATLANG(x,y)	dbsetlname((x), (y), DBSETNATLANG)
 #define dbsetlnatlang(x,y)	dbsetlname((x), (y), DBSETNATLANG)
-#define DBSETNOSHORT		8	/* not implemented */
-#define DBSETLNOSHORT(x,y)	dbsetlbool((x), (y), DBSETNOSHORT)
-#define DBSETHIER		9	/* not implemented */
+#if defined(DBLIB_UNIMPLEMENTED)
+# define DBSETNOSHORT		8	/* not implemented */
+# define DBSETLNOSHORT(x,y)	dbsetlbool((x), (y), DBSETNOSHORT)
+# define DBSETHIER		9	/* not implemented */
+# define DBSETLHIER(x,y)	dbsetlshort((x), (y), DBSETHIER)
+#endif
 #define DBSETCHARSET		10
 #define DBSETLCHARSET(x,y)	dbsetlname((x), (y), DBSETCHARSET)
 #define DBSETPACKET		11

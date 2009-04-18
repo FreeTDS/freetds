@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.126 2009-01-12 08:09:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.127 2009-04-18 19:35:38 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -697,8 +697,9 @@ main(int argc, char **argv)
 
 	/* Try to open a connection */
 	tds = tds_alloc_socket(context, 512);
+	assert(tds);
 	tds_set_parent(tds, NULL);
-	connection = tds_read_config_info(NULL, login, context->locale);
+	connection = tds_read_config_info(tds, login, context->locale);
 
 	if (opt_default_db) {
 		tds_dstr_copy(&connection->database, opt_default_db);
@@ -707,8 +708,7 @@ main(int argc, char **argv)
 
 	/* 
 	 * If we're able to establish an ip address for the server, we'll try to connect to it. 
-	 * If that machine is currently unreachable
-	 * show a timer connecting to the server 
+	 * If that machine is currently unreachable, show a timer connecting to the server. 
 	 */
 #if HAVE_FORK
 	if (connection && !QUIET) {

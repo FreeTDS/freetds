@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.142 2009-03-06 14:32:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.143 2009-04-18 19:35:38 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -84,7 +84,7 @@ static void tds_config_env_tdsver(TDSCONNECTION * connection);
 static void tds_config_env_tdsport(TDSCONNECTION * connection);
 static void tds_config_env_tdshost(TDSCONNECTION * connection);
 static int tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection);
-static void tds_read_interfaces(const char *server, TDSCONNECTION * connection);
+static int tds_read_interfaces(const char *server, TDSCONNECTION * connection);
 static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login);
 static int tds_lookup_port(const char *portname);
@@ -192,7 +192,11 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	if (!tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name))) {
 		/* fallback to interfaces file */
 		tdsdump_log(TDS_DBG_INFO1, "Failed in reading conf file.  Trying interface files.\n");
-		tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection);
+		if (!tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection)) {
+			tdsdump_log(TDS_DBG_INFO1, "Failed to find [%s] in configuration files; trying '%s' instead.\n", 
+						   tds_dstr_cstr(&login->server_name), tds_dstr_cstr(&connection->server_name));
+			tdserror(tds->tds_ctx, tds, TDSEINTF, 0);
+		}
 	}
 
 	/* Override config file settings with environment variables. */
@@ -200,7 +204,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 
 	/* And finally apply anything from the login structure */
 	tds_config_login(connection, login);
-
+	
 	if (opened) {
 		tdsdump_log(TDS_DBG_INFO1, "Final connection parameters:\n");
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_name", tds_dstr_cstr(&connection->server_name));
@@ -235,6 +239,16 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 
 		tdsdump_close();
 	}
+
+	/*
+	 * If a dump file has been specified, start logging
+	 */
+	if (!tds_dstr_isempty(&connection->dump_file) && !tdsdump_isopen()) {
+		if (connection->debug_flags)
+			tds_debug_flags = connection->debug_flags;
+		tdsdump_open(tds_dstr_cstr(&connection->dump_file));
+	}
+
 	return connection;
 }
 
@@ -744,8 +758,9 @@ tds_set_interfaces_file_loc(const char *interf)
 }
 
 /**
- * Given a servername lookup the hostname. The server ip will be stored 
- * in the string 'ip' in dotted-decimal notation.
+ * Get the IP address for a hostname. Store server's IP address 
+ * in the string 'ip' in dotted-decimal notation.  (The "hostname" might itself
+ * be a dotted-decimal address.  
  *
  * If we can't determine the IP address then 'ip' will be set to empty
  * string.
@@ -765,8 +780,8 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	int h_errnop;
 
 	/*
-	 * Only call gethostbyname if servername is not an ip address. 
-	 * This call take a while and is useless for an ip address.
+	 * Call gethostbyname(3) only if servername is not an ip address. 
+	 * This call takes a while and is useless for an ip address.
 	 * mlilback 3/2/02
 	 */
 	ip_addr = inet_addr(servername);
@@ -783,7 +798,7 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 
 		tds_inet_ntoa_r(*ptr, ip, 17);
 	}
-}				/* tds_lookup_host()  */
+}
 
 /**
  * Given a portname lookup the port.
@@ -952,7 +967,7 @@ search_interface_file(TDSCONNECTION * connection, const char *dir, const char *f
  *
  * @note This function uses only the interfaces file and is deprecated.
  */
-static void
+static int
 tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 {
 	int found = 0;
@@ -1045,7 +1060,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 			tdsdump_log(TDS_DBG_INFO1, "Setting 'ip_port' to %d as a guess.\n", ip_port);
 
 		/*
-		 * lookup the host
+		 * look up the host
 		 */
 		tds_lookup_host(server, ip_addr);
 		if (ip_addr[0]) {
@@ -1055,6 +1070,8 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 		if (ip_port)
 			connection->port = ip_port;
 	}
+
+	return found;
 }
 
 /**

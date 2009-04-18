@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.185 2008-12-19 10:37:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.186 2009-04-18 19:35:38 jklowden Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -586,7 +586,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	if (!(con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512)))
 		return CS_FAIL;
 	tds_set_parent(con->tds_socket, (void *) con);
-	if (!(connection = tds_read_config_info(NULL, con->tds_login, ctx->tds_ctx->locale))) {
+	if (!(connection = tds_read_config_info(con->tds_socket, con->tds_login, ctx->tds_ctx->locale))) {
 		tds_free_socket(con->tds_socket);
 		con->tds_socket = NULL;
 		return CS_FAIL;

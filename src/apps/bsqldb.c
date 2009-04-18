@@ -45,7 +45,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.34 2009-01-12 08:15:52 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.35 2009-04-18 19:35:38 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -112,15 +112,14 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 	
+	/* Install our error and message handlers */
+	dberrhandle(err_handler);
+	dbmsghandle(msg_handler);
 
 	memset(&options, 0, sizeof(options));
 	options.headers = stderr;
 	login = get_login(argc, argv, &options); /* get command-line parameters and call dblogin() */
 	assert(login != NULL);
-
-	/* Install our error and message handlers */
-	dberrhandle(err_handler);
-	dbmsghandle(msg_handler);
 
 	/* 
 	 * Override stdin, stdout, and stderr, as required 
@@ -163,8 +162,8 @@ main(int argc, char *argv[])
 	/* 
 	 * Connect to the server 
 	 */
-	dbproc = dbopen(login, options.servername);
-	assert(dbproc != NULL);
+	if ((dbproc = dbopen(login, options.servername)) == NULL)
+		return 1;
 	
 	/* Switch to the specified database, if any */
 	if (options.database)

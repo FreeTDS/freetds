@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.182 2009-02-28 17:38:50 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.183 2009-04-18 19:35:38 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -426,6 +426,7 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* verify that ip_addr is not empty */
 	if (tds_dstr_isempty(&connection->ip_addr)) {
+		tdserror(tds->tds_ctx, tds, TDSEUHST, 0 );
 		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is empty\n");
 		if (!tds_dstr_isempty(&connection->server_name)) {
 			tdsdump_log(TDS_DBG_ERROR, "Server %s not found!\n", tds_dstr_cstr(&connection->server_name));

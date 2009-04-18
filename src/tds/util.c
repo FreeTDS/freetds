@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.85 2008-12-16 09:21:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.86 2009-04-18 19:35:38 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -268,8 +268,10 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSEREAD,              EXCOMM,	"Read from the server failed" }
 	, { TDSETIME,              EXTIME,	"Adaptive Server connection timed out" }
 	, { TDSESEOF,              EXCOMM,	"Unexpected EOF from the server" }
+	, { TDSEINTF,          	   EXUSER,	"Server name not found in configuration files." }
 	, { TDSESOCK,              EXCOMM,	"Unable to open socket" }
 	, { TDSESYNC,              EXCOMM,	"Read attempted while out of synchronization with Adaptive Server" }
+	, { TDSEUHST,	           EXUSER,	"Unknown host machine name." }
 	, { TDSEUMSG,              EXCOMM,	"Unknown message-id in MSG datastream" }
 	, { TDSEUSCT,              EXCOMM,	"Unable to set communications timer" }
 	, { TDSEUTDS,              EXCOMM,	"Unrecognized TDS version received from the server" }

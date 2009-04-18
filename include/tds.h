@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.312 2009-02-28 17:38:50 jklowden Exp $ */
+/* $Id: tds.h,v 1.313 2009-04-18 19:35:38 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -296,6 +296,8 @@ typedef enum {	TDSEOK    = TDS_SUCCEED,
 		TDSESOCK = 20008, 
 		TDSECONN = 20009, 
 		TDSEMEM  = 20010,
+		TDSEINTF = 20012,	/* Server name not found in interface file */
+		TDSEUHST = 20013,	/* Unknown host machine name. */
 		TDSEPWD  = 20014, 
 		TDSESEOF = 20017, 
 		TDSERPND = 20019, 
