@@ -7,7 +7,7 @@
 #include "common.h"
 #include <time.h>
 
-static char software_version[] = "$Id: timeout.c,v 1.7 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.8 2009-04-18 15:21:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int ntimeouts = 0, ncancels = 0;
@@ -176,8 +176,8 @@ main(int argc, char **argv)
 	/* wait for it to execute */
 	printf("executing dbsqlok\n");
 	erc = dbsqlok(dbproc);
-	if (erc == FAIL) {
-		fprintf(stderr, "Failed: dbsqlok\n");
+	if (erc != FAIL) {
+		fprintf(stderr, "dbsqlok should fail for timeout\n");
 		exit(1);
 	}
 
@@ -222,8 +222,8 @@ main(int argc, char **argv)
 			}
 			break;
 		case FAIL:
-			printf("OK: dbresults returned FAIL, probably caused by the timeout\n");
-			break;
+			printf("dbresults returned FAIL\n");
+			exit(1);
 		default:
 			printf("unexpected return code %d from dbresults\n", erc);
 			exit(1);
