@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.347 2009-04-18 19:35:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.348 2009-04-20 08:56:18 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4547,8 +4547,6 @@ RETCODE
 dbsqlok(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds;
-
-	unsigned char marker;
 	int done = 0, done_flags;
 	TDS_INT result_type;
 
@@ -4572,14 +4570,6 @@ dbsqlok(DBPROCESS * dbproc)
 	 * We're looking for a result token or a done token.
          */
 	while (!done) {
-		marker = tds_peek(tds);
-
-		/* If we hit a result token, then we know everything is OK.  */
-		if (is_result_token(marker)) {
-			tdsdump_log(TDS_DBG_FUNC, "dbsqlok() exits on result token 0x%x\n", marker);
-			return SUCCEED;
-		}
-
 		/* 
 		 * If we hit an end token -- e.g. if the command
 		 * submitted returned no data (like an insert) -- then
@@ -4591,6 +4581,7 @@ dbsqlok(DBPROCESS * dbproc)
 			return SUCCEED;
 			break;
 
+		case TDS_CANCELLED:
 		case TDS_FAIL:
 			return FAIL;
 			break;
