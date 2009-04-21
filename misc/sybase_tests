@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# $Id: sybase_tests,v 1.2 2009-04-17 17:16:28 freddy77 Exp $
+# $Id: sybase_tests,v 1.3 2009-04-21 13:41:07 freddy77 Exp $
 # these commands build dblib tests using Sybase dblib
 
 errore() {
@@ -22,29 +22,24 @@ set -e
 make -j4
 TESTS_ENVIRONMENT=true make -j4 check
 
-handle_exit() {
-	echo Exiting
-	if test -r "$MAINDIR/src/dblib/unittests/Makefile.no_sybase"; then
-		cp -f "$MAINDIR/src/dblib/unittests/Makefile.no_sybase" "$MAINDIR/src/dblib/unittests/Makefile" && rm -f "$MAINDIR/src/dblib/unittests/Makefile.no_sybase"
-	fi
-	rm -f "$MAINDIR/src/dblib/unittests/sqlfront.h" "$MAINDIR/src/dblib/unittests/sqldb.h"
-}
-
 # rebuild tests
 cd src/dblib/unittests
-rm -f *.o *.exe
-make clean
+if test ! -r Makefile.no_sybase -o Makefile -nt Makefile.no_sybase; then
+	rm -f Makefile.no_sybase
+	echo '#include <sybfront.h>' > sqlfront.h
+	echo '#include <sybdb.h>' > sqldb.h
+	perl -pi.no_sybase -e "\$_ =~ s{ -I\\\$\\(top_(build|src)dir\\)/include}{ -I$SYBASE/$OCSDIR/include -I\\\$(top_builddir)/include} if (/^(DEFAULT_INCLUDES|AM_CPPFLAGS)\s*=/);
+\$_ =~ s{../libsybdb.la}{-lsybdb -lsybunic} if (/^LIBS\s*=/);
+\$_ =~ s{-L../.libs -R \\\$\\(abs_builddir\\)/../.libs}{-L$SYBASE/$OCSDIR/lib} if (/^AM_LDFLAGS\s*=/);
+" Makefile
+	touch Makefile.no_sybase
+	rm -f *.o *.exe
+	make clean
+fi
 if test "$LD_RUN_PATH" != ""; then
 	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib:$LD_RUN_PATH"
 else
 	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib"
 fi
-trap handle_exit EXIT
-echo '#include <sybfront.h>' > sqlfront.h
-echo '#include <sybdb.h>' > sqldb.h
-perl -pi.no_sybase -e "\$_ =~ s{ -I\\\$\\(top_(build|src)dir\\)/include}{ -I$SYBASE/$OCSDIR/include -I\\\$(top_builddir)/include} if (/^(DEFAULT_INCLUDES|AM_CPPFLAGS)\s*=/);
-\$_ =~ s{../libsybdb.la}{-lsybdb -lsybunic} if (/^LIBS\s*=/);
-\$_ =~ s{-L../.libs -R \\\$\\(abs_builddir\\)/../.libs}{-L$SYBASE/$OCSDIR/lib} if (/^AM_LDFLAGS\s*=/);
-" Makefile
 TESTS_ENVIRONMENT=true make -j4 check 
 
