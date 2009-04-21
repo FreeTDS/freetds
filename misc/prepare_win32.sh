@@ -330,6 +330,7 @@ if "%OK%"=="1" type out.txt >> ok.txt
 :fine
 ' > src/odbc/unittests/go.bat
 unix2dos src/odbc/unittests/go.bat
+ln src/odbc/unittests/go.bat src/dblib/unittests/go.bat
 
 cd ..
 eval "$ARCHIVE"

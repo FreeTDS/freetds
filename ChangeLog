@@ -1,3 +1,6 @@
+Tue Apr 21 11:43:31 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/prepare_win32.sh: batch for dblib tests
+
 Mon Apr 20 10:55:17 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: fix timeout test
 
@@ -1494,4 +1497,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2773 2009-04-20 08:56:17 freddy77 Exp $
+$Id: ChangeLog,v 1.2774 2009-04-21 09:44:30 freddy77 Exp $
