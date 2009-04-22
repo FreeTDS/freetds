@@ -1,3 +1,6 @@
+Wed Apr 22 17:11:00 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/t0008.c: fix test
+
 Tue Apr 21 15:39:35 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/sybase_tests: improve
 
@@ -1500,4 +1503,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2775 2009-04-21 13:41:05 freddy77 Exp $
+$Id: ChangeLog,v 1.2776 2009-04-22 15:11:20 freddy77 Exp $
