@@ -10,7 +10,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0002.c,v 1.24 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.25 2009-04-23 09:36:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
@@ -44,6 +44,7 @@ main(int argc, char **argv)
 	STATUS rc;
 	int i, iresults;
 	char teststr[1024];
+	int rows_in_buffer, limit_rows;
 
 	const int buffer_count = 10;
 	const int rows_to_add = 50;
@@ -129,6 +130,7 @@ main(int argc, char **argv)
 				fprintf(stderr, "Buffering with multiple resultsets is broken.\n");
 			exit(1);
 		}
+		rows_in_buffer = 0;
 		add_bread_crumb();
 
 		for (i = 1; i <= dbnumcols(dbproc); i++) {
@@ -144,11 +146,21 @@ main(int argc, char **argv)
 		add_bread_crumb();
 
 		/* Fetch a result set */
-		/* Second resultset stops at row 40 */
-		for (i=0; i < rows_to_add - (iresults == 2 ? buffer_count : 0);) {
+		/* Second resultset stops at row 46 */
+		limit_rows = rows_to_add - (iresults == 2 ? 4 : 0);
+		for (i=0; i < limit_rows;) {
 
-			fprintf(stdout, "clearing %d rows from buffer\n", buffer_count);
+			fprintf(stdout, "clearing %d rows from buffer\n", rows_in_buffer ? buffer_count - 1 : buffer_count);
+#ifdef MICROSOFT_DBLIB
+			if (i == 0) {
+				rc = dbnextrow(dbproc);
+				assert(rc == REG_ROW);
+				++i;
+				rows_in_buffer = 1;
+			}
+#endif
 			dbclrbuf(dbproc, buffer_count);
+			rows_in_buffer = rows_in_buffer ? 1 : 0;
 
 			do {
 				int rc;
@@ -162,15 +174,15 @@ main(int argc, char **argv)
 						fprintf(stderr, "Failed: dbnextrow returned BUF_FULL (%d).  Fix dbclrbuf.\n", rc);
 					exit(1);
 				}
+				++rows_in_buffer;
 				add_bread_crumb();
 				verify(i, testint, teststr);
-			} while (i % buffer_count);
+			} while (rows_in_buffer < buffer_count && i < limit_rows);
 
-			if (iresults == 1 && i == rows_to_add) {
+			if (rows_in_buffer == buffer_count) {
 				/* The buffer should be full */
 				assert(BUF_FULL == dbnextrow(dbproc));
 			}
-				
 		}
 		if (iresults == 1) {
 			fprintf(stdout, "clearing %d rows from buffer\n", buffer_count);
@@ -180,10 +192,11 @@ main(int argc, char **argv)
 			}
 		}
 	}
+	printf("\n");
 
 	/* 
 	 * Now test the buffered rows.  
-	 * Should be operating on rows 31-40 of 2nd resultset 
+	 * Should be operating on rows 37-46 of 2nd resultset 
 	 */
 	rc = dbgetrow(dbproc, 1);
 	add_bread_crumb();
@@ -191,50 +204,50 @@ main(int argc, char **argv)
 		fprintf(stderr, "Failed: dbgetrow returned %d.\n", rc);
 	assert(rc == NO_MORE_ROWS);
 
-	rc = dbgetrow(dbproc, 31);
+	rc = dbgetrow(dbproc, 37);
 	add_bread_crumb();
 	if(rc != REG_ROW)
 		fprintf(stderr, "Failed: dbgetrow returned %d.\n", rc);
 	assert(rc == REG_ROW);
-	verify(31, testint, teststr);	/* first buffered row should be 31 */
+	verify(37, testint, teststr);	/* first buffered row should be 37 */
 
 	rc = dbnextrow(dbproc);
 	add_bread_crumb();
 	if(rc != REG_ROW)
 		fprintf(stderr, "Failed: dbgetrow returned %d.\n", rc);
 	assert(rc == REG_ROW);
-	verify(32, testint, teststr);	/* next buffered row should be 32 */
+	verify(38, testint, teststr);	/* next buffered row should be 38 */
 
 	rc = dbgetrow(dbproc, 11);
 	add_bread_crumb();
 	assert(rc == NO_MORE_ROWS);	/* only 10 (not 11) rows buffered */
 
-	rc = dbgetrow(dbproc, 40);
+	rc = dbgetrow(dbproc, 46);
 	add_bread_crumb();
 	assert(rc == REG_ROW);
-	verify(40, testint, teststr);	/* last buffered row should be 40 */
+	verify(46, testint, teststr);	/* last buffered row should be 46 */
 
 	/* Attempt dbnextrow when buffer has no space (10 out of 10 in use). */
 	rc = dbnextrow(dbproc);
 	assert(rc == BUF_FULL);
 
-	dbclrbuf(dbproc, 3);		/* remove rows 31, 32, and 33 */
+	dbclrbuf(dbproc, 3);		/* remove rows 37, 38, and 39 */
 
 	rc = dbnextrow(dbproc);
 	add_bread_crumb();
 	assert(rc == REG_ROW);
-	verify(41, testint, teststr);	/* fetch row from database, should be 41 */
+	verify(47, testint, teststr);	/* fetch row from database, should be 47 */
 
 	rc = dbnextrow(dbproc);
 	add_bread_crumb();
 	assert(rc == REG_ROW);
-	verify(42, testint, teststr);	/* fetch row from database, should be 42 */
+	verify(48, testint, teststr);	/* fetch row from database, should be 48 */
 
-	/* buffer contains 9 rows (34-42) try removing 10 rows */
+	/* buffer contains 8 rows (40-47) try removing 10 rows */
 	dbclrbuf(dbproc, buffer_count);
 
 	while (dbnextrow(dbproc) != NO_MORE_ROWS) {
-		/* waste rows 43-50 */
+		/* waste rows 49-50 */
 	}
 
 	dbclose(dbproc); /* close while buffer not cleared: OK */
