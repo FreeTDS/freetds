@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# $Id: sybase_tests,v 1.3 2009-04-21 13:41:07 freddy77 Exp $
+# $Id: sybase_tests,v 1.4 2009-04-23 09:41:08 freddy77 Exp $
 # these commands build dblib tests using Sybase dblib
 
 errore() {
@@ -15,6 +15,12 @@ cd "$SYBASE"
 OCSDIR=`echo OCS-*`
 cd "$MAINDIR"
 test -d "$SYBASE/$OCSDIR" || errore "OCS directory not found"
+
+if test "$LD_RUN_PATH" != ""; then
+	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib:$LD_RUN_PATH"
+else
+	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib"
+fi
 
 # build
 trap 'echo Error at line $LINENO' ERR
@@ -35,11 +41,6 @@ if test ! -r Makefile.no_sybase -o Makefile -nt Makefile.no_sybase; then
 	touch Makefile.no_sybase
 	rm -f *.o *.exe
 	make clean
-fi
-if test "$LD_RUN_PATH" != ""; then
-	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib:$LD_RUN_PATH"
-else
-	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib"
 fi
 TESTS_ENVIRONMENT=true make -j4 check 
 
