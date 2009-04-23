@@ -1,3 +1,10 @@
+Thu Apr 23 15:12:24 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/buffering.h src/dblib/dblib.c:
+	- add internal test for buffering
+	- clear row number if deleted
+	- fix buffer_delete_rows
+	- fix dbclrbuf not clearing all rows
+
 Thu Apr 23 11:40:43 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/sybase_tests: fix rebuild
 
@@ -1509,4 +1516,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2778 2009-04-23 09:41:08 freddy77 Exp $
+$Id: ChangeLog,v 1.2779 2009-04-23 13:12:42 freddy77 Exp $

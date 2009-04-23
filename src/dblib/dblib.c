@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.348 2009-04-20 08:56:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.349 2009-04-23 13:12:43 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2723,6 +2723,10 @@ dbclrbuf(DBPROCESS * dbproc, DBINT n)
 		return;
 
 	if (dbproc->dbopts[DBBUFFER].factive) {
+		DBPROC_ROWBUF * buf = &(dbproc->row_buf);
+		int count = buffer_count(buf);
+		if (n >= count)
+			n = count - 1;
 		buffer_delete_rows(&(dbproc->row_buf), n);
 	}
 }

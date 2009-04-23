@@ -13,6 +13,71 @@ static void buffer_struct_print(const DBPROC_ROWBUF *buf);
 static int buffer_save_row(DBPROCESS *dbproc);
 static DBLIB_BUFFER_ROW* buffer_row_address(const DBPROC_ROWBUF * buf, int idx);
 
+#if ENABLE_EXTRA_CHECKS
+static void buffer_check(const DBPROC_ROWBUF *buf)
+{
+	int i;
+
+	/* no buffering */
+	if (buf->capacity == 0 || buf->capacity == 1) {
+		assert(buf->head == 0);
+		assert(buf->tail == 0);
+		assert(buf->rows == NULL);
+		return;
+	}
+
+	assert(buf->capacity > 0);
+	assert(buf->head >= 0);
+	assert(buf->tail >= 0);
+	assert(buf->head < buf->capacity);
+	assert(buf->tail <= buf->capacity);
+
+	/* check empty */
+	if (buf->tail == buf->capacity) {
+		assert(buf->head == 0);
+		for (i = 0; buf->rows && i < buf->capacity; ++i) {
+			assert(buf->rows[i].resinfo == NULL);
+			assert(buf->rows[i].row_data == NULL);
+			assert(buf->rows[i].sizes == NULL);
+			assert(buf->rows[i].row == 0);
+		}
+		return;
+	}
+
+	if (buf->rows == NULL)
+		return;
+
+	/* check filled part */
+	i = buf->tail;
+	do {
+		assert(i >= 0 && i < buf->capacity);
+		assert(buf->rows[i].resinfo != NULL);
+		assert(buf->rows[i].row > 0);
+		assert(buf->rows[i].row <= buf->received);
+		++i;
+		if (i == buf->capacity)
+			i = 0;
+	} while (i != buf->head);
+
+	/* check empty part */
+	if (buf->head != buf->tail) {
+		i = buf->head;
+		do {
+			assert(i >= 0 && i < buf->capacity);
+			assert(buf->rows[i].resinfo == NULL);
+			assert(buf->rows[i].row_data == NULL);
+			assert(buf->rows[i].sizes == NULL);
+			assert(buf->rows[i].row == 0);
+			++i;
+			if (i == buf->capacity)
+				i = 0;
+		} while (i != buf->tail);
+	}
+}
+#define BUFFER_CHECK(buf) buffer_check(buf)
+#else
+#define BUFFER_CHECK(buf) do {} while(0)
+#endif
 /** 
  * A few words on the buffering design.
  *
@@ -45,6 +110,7 @@ static DBLIB_BUFFER_ROW* buffer_row_address(const DBPROC_ROWBUF * buf, int idx);
 static int
 buffer_count(const DBPROC_ROWBUF *buf)
 {
+	BUFFER_CHECK(buf);
 	return (buf->head > buf->tail) ?
 		buf->head - buf->tail :				/* |...TddddH....| */
 		buf->capacity - (buf->tail - buf->head); 	/* |ddddH....Tddd| */
@@ -56,6 +122,7 @@ buffer_count(const DBPROC_ROWBUF *buf)
 static int
 buffer_is_full(const DBPROC_ROWBUF *buf)
 {
+	BUFFER_CHECK(buf);
 	return buf->capacity == buffer_count(buf) && buf->capacity > 1;
 }
 
@@ -63,6 +130,7 @@ buffer_is_full(const DBPROC_ROWBUF *buf)
 static int
 buffer_index_valid(const DBPROC_ROWBUF *buf, int idx)
 {
+	BUFFER_CHECK(buf);
 	if (buf->tail <= buf->head)
 		if (buf->head <= idx && idx <= buf->tail)
 			return 1;
@@ -91,6 +159,7 @@ buffer_free_row(DBLIB_BUFFER_ROW *row)
 	}
 	tds_free_results(row->resinfo);
 	row->resinfo = NULL;
+	row->row = 0;
 }
  
 /*
@@ -106,23 +175,26 @@ buffer_free_row(DBLIB_BUFFER_ROW *row)
 static void
 buffer_free(DBPROC_ROWBUF *buf)
 {
+	BUFFER_CHECK(buf);
 	if (buf->rows != NULL) {
 		int i;
 		for (i = 0; i < buf->capacity; ++i)
 			buffer_free_row(&buf->rows[i]);
 		TDS_ZERO_FREE(buf->rows);
 	}
+	BUFFER_CHECK(buf);
 }
 
 /*
  * When no rows are currently buffered (and the buffer is allocated)
- * set the indices to their initial postions.
+ * set the indices to their initial positions.
  */
 static void
 buffer_reset(DBPROC_ROWBUF *buf)
 {
 	buf->head = 0;
 	buf->current = buf->tail = buf->capacity;
+	BUFFER_CHECK(buf);
 }
 
 static int
@@ -141,13 +213,13 @@ buffer_idx_increment(const DBPROC_ROWBUF *buf, int idx)
 static DBLIB_BUFFER_ROW*
 buffer_row_address(const DBPROC_ROWBUF * buf, int idx)
 {
-	if (!(idx >= 0 && idx < buf->capacity)) {
+	BUFFER_CHECK(buf);
+	if (idx < 0 || idx >= buf->capacity) {
 		printf("idx is %d:\n", idx);
 		buffer_struct_print(buf);
-		assert(idx >= 0);
-		assert(idx < buf->capacity);
+		return NULL;
 	}
-	
+
 	return &(buf->rows[idx]);
 }
 
@@ -157,6 +229,7 @@ buffer_row_address(const DBPROC_ROWBUF * buf, int idx)
 static DBINT
 buffer_idx2row(const DBPROC_ROWBUF *buf, int idx)
 {
+	BUFFER_CHECK(buf);
 	return buffer_row_address(buf, idx)->row;
 }
 
@@ -167,7 +240,8 @@ static int
 buffer_row2idx(const DBPROC_ROWBUF *buf, int row_number)
 {
 	int i, ii, idx = -1;
-	
+
+	BUFFER_CHECK(buf);
 	if (buf->tail == buf->capacity) {
 		assert (buf->head == 0);
 		return -1;	/* no rows buffered */
@@ -189,26 +263,26 @@ buffer_row2idx(const DBPROC_ROWBUF *buf, int row_number)
 }
 
 /**
- * Deleting a row doesn't from the buffer doesn't affect 
- * memory allocation.  It just makes the space available 
- * for a different row.  
+ * Deleting a row from the buffer doesn't affect memory allocation.
+ * It just makes the space available for a different row.
  */
 static void
 buffer_delete_rows(DBPROC_ROWBUF * buf,	int count)
 {
 	int i;
 
+	BUFFER_CHECK(buf);
 	if (count < 0 || count > buffer_count(buf)) {
 		count = buffer_count(buf);
 	}
 
 	for (i=0; i < count; i++) {
 		if (buf->tail < buf->capacity)
-			buffer_free_row(&buf->rows[i]);
+			buffer_free_row(&buf->rows[buf->tail]);
 		buf->tail = buffer_idx_increment(buf, buf->tail);
 		/* 
 		 * If deleting rows from the buffer catches the tail to the head, 
-		 * return to the initial postion.  Otherwise, it will look full.
+		 * return to the initial position.  Otherwise, it will look full.
 		 */
 		if (buf->tail == buf->head) {
 			buffer_reset(buf);
@@ -218,6 +292,7 @@ buffer_delete_rows(DBPROC_ROWBUF * buf,	int count)
 #if 0
 	buffer_struct_print(buf);
 #endif
+	BUFFER_CHECK(buf);
 }
 
 static void
@@ -229,6 +304,7 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 	const DBLIB_BUFFER_ROW *row;
 
 	tdsdump_log(TDS_DBG_FUNC, "buffer_transfer_bound_data(%p %d %d %p %d)\n", buf, res_type, compute_id, dbproc, idx);
+	BUFFER_CHECK(buf);
 	assert(buffer_index_valid(buf, idx));
 
 	row = buffer_row_address(buf, idx);
@@ -408,13 +484,6 @@ buffer_add_row(DBPROCESS *dbproc, TDSRESULTINFO *resinfo)
 	if (buffer_is_full(buf))
 		return -1;
 
-	/* initial condition is head == 0 and tail == capacity */
-	if (buf->tail == buf->capacity) {
-		/* bumping this tail will set it to zero */
-		assert(buf->head == 0);
-		buf->tail = buffer_idx_increment(buf, buf->tail);
-	}
-
 	row = buffer_row_address(buf, buf->head);
 
 	/* bump the row number, write it, and move the data to head */
@@ -431,6 +500,13 @@ buffer_add_row(DBPROCESS *dbproc, TDSRESULTINFO *resinfo)
 	row->sizes = (TDS_INT *) calloc(resinfo->num_cols, sizeof(TDS_INT));
 	for (i = 0; i < resinfo->num_cols; ++i)
 		row->sizes[i] = resinfo->columns[i]->column_cur_size;
+
+	/* initial condition is head == 0 and tail == capacity */
+	if (buf->tail == buf->capacity) {
+		/* bumping this tail will set it to zero */
+		assert(buf->head == 0);
+		buf->tail = 0;
+	}
 
 	/* update current, bump the head */
 	buf->current = buf->head;
