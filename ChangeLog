@@ -1,3 +1,6 @@
+Thu Apr 30 08:48:24 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/check_symbols.txt misc/order_coverage.pl: notes and updates
+
 Thu Apr 23 15:29:30 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/commit: small fix
 
@@ -1519,4 +1522,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2780 2009-04-23 13:29:40 freddy77 Exp $
+$Id: ChangeLog,v 1.2781 2009-04-30 06:48:49 freddy77 Exp $

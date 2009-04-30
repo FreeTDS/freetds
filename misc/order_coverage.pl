@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# $Id: order_coverage.pl,v 1.1 2008-08-28 09:34:46 freddy77 Exp $
+# $Id: order_coverage.pl,v 1.2 2009-04-30 06:48:50 freddy77 Exp $
+# This utility create some sorted version of GCOV results
 
 %processed = ();
 @to_process = ();

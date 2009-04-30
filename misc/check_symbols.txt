@@ -158,7 +158,7 @@ tds_quote_string
 tds_read_conf_file
 tds_read_conf_section
 tds_read_config_info
-tds_read_packet
+!tds_read_packet
 tds_realloc_socket
 tds_release_cursor
 tds_send_cancel
