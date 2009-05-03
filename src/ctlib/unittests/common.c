@@ -24,7 +24,7 @@
 #include "common.h"
 #include "ctlib.h"
 
-static char software_version[] = "$Id: common.c,v 1.21 2008-12-10 14:56:26 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.22 2009-05-03 19:32:57 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -264,6 +264,9 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		}
 		return ret;
 	}
+	
+	printf("connecting as %s to %s.%s\n", USER, SERVER, DATABASE);
+	
 	ret = ct_connect(*conn, SERVER, CS_NULLTERM);
 	if (ret != CS_SUCCEED) {
 		if (verbose) {

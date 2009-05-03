@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.186 2009-04-18 19:35:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.187 2009-05-03 19:32:57 jklowden Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -89,6 +89,8 @@ static CS_DYNAMIC * _ct_locate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 static const char *
 _ct_get_layer(int layer)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_ct_get_layer(%d)\n", layer);
+
 	switch (layer) {
 	case 1:
 		return "user api layer";
@@ -105,6 +107,8 @@ _ct_get_layer(int layer)
 static const char *
 _ct_get_origin(int origin)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_ct_get_origin(%d)\n", origin);
+
 	switch (origin) {
 	case 1:
 		return "external error";
@@ -133,6 +137,8 @@ _ct_get_origin(int origin)
 static const char *
 _ct_get_user_api_layer_error(int error)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_ct_get_user_api_layer_error(%d)\n", error);
+
 	switch (error) {
 	case 137:
 		return  "A bind count of %1! is not consistent with the count supplied for existing binds. "
@@ -170,6 +176,8 @@ _ct_get_msgstr(const char *funcname, int layer, int origin, int severity, int nu
 {
 	char *m;
 
+	tdsdump_log(TDS_DBG_FUNC, "_ct_get_msgstr(%s, %d, %d, %d, %d)\n", funcname, layer, origin, severity, number);
+
 	if (asprintf(&m,
 		     "%s: %s: %s: %s", funcname, _ct_get_layer(layer), _ct_get_origin(origin), _ct_get_user_api_layer_error(number)
 	    ) < 0) {
@@ -185,6 +193,8 @@ _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, 
 	va_list ap;
 	CS_CLIENTMSG cm;
 	char *msgstr;
+
+	tdsdump_log(TDS_DBG_FUNC, "_ctclient_msg(%p, %s, %d, %d, %d, %d, %s)\n", con, funcname, layer, origin, severity, number, fmt);
 
 	va_start(ap, fmt);
 
@@ -211,11 +221,11 @@ _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, 
 }
 
 static CS_RETCODE
-ct_set_command_state(CS_COMMAND *cmd, CS_INT state) {
-
-	tdsdump_log(TDS_DBG_FUNC, "setting command state from %s to %s\n",
-		    ct_describe_cmd_state(cmd->command_state),
-		    ct_describe_cmd_state(state));
+ct_set_command_state(CS_COMMAND *cmd, CS_INT state) 
+{
+	tdsdump_log(TDS_DBG_FUNC, "setting command state to %s (from %s)\n",
+		    ct_describe_cmd_state(state),
+		    ct_describe_cmd_state(cmd->command_state));
 
 	cmd->command_state = state;
 
@@ -223,7 +233,10 @@ ct_set_command_state(CS_COMMAND *cmd, CS_INT state) {
 }
 
 static char *
-ct_describe_cmd_state(CS_INT state) {
+ct_describe_cmd_state(CS_INT state) 
+{
+	tdsdump_log(TDS_DBG_FUNC, "ct_describe_cmd_state(%d)\n", state);
+
 	switch (state) {
 	case _CS_COMMAND_IDLE:
 		return "IDLE";
@@ -240,7 +253,8 @@ ct_describe_cmd_state(CS_INT state) {
 CS_RETCODE
 ct_exit(CS_CONTEXT * ctx, CS_INT unused)
 {
-	tdsdump_log(TDS_DBG_FUNC, "ct_exit()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_exit(%p, %d)\n", ctx, unused);
+
 	return CS_SUCCEED;
 }
 
@@ -249,9 +263,11 @@ ct_init(CS_CONTEXT * ctx, CS_INT version)
 {
 	/* uncomment the next line to get pre-login trace */
 	/* tdsdump_open("/tmp/tds2.log"); */
-	tdsdump_log(TDS_DBG_FUNC, "ct_init()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_init(%p, %d)\n", ctx, version);
+	
 	ctx->tds_ctx->msg_handler = _ct_handle_server_message;
 	ctx->tds_ctx->err_handler = _ct_handle_client_message;
+
 	return CS_SUCCEED;
 }
 
@@ -260,7 +276,8 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 {
 	TDSLOGIN *login;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_con_alloc()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_con_alloc(%p, %p)\n", ctx, con);
+
 	login = tds_alloc_login();
 	if (!login)
 		return CS_FAIL;
@@ -285,6 +302,8 @@ CS_RETCODE
 ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, CS_VOID * func)
 {
 	int (*funcptr) (void *, void *, void *) = (int (*)(void *, void *, void *)) func;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_callback(%p, %p, %d, %d, %p)\n", ctx, con, action, type, func);
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_callback() action = %s\n", CS_GET ? "CS_GET" : "CS_SET");
 	/* one of these has to be defined */
@@ -330,6 +349,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 	TDSSOCKET *tds;
 	TDSLOGIN *tds_login;
 	char *set_buffer = NULL;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_con_props(%p, %d, %d, %p, %d, %p)\n", con, action, property, buffer, buflen, out_len);
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_con_props() action = %s property = %d\n", CS_GET ? "CS_GET" : "CS_SET", property);
 
@@ -565,7 +586,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	CS_CONTEXT *ctx;
 	TDSCONNECTION *connection;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_connect() servername = %s\n", servername ? servername : "NULL");
+	tdsdump_log(TDS_DBG_FUNC, "ct_connect(%p, %s, %d)\n", con, servername ? servername : "NULL", snamelen);
 
 	if (!tds_dstr_isempty(&con->tds_login->server_addr)) {
 		server = tds_dstr_buf(&con->tds_login->server_addr);
@@ -635,6 +656,8 @@ CS_RETCODE
 ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 {
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc(%p, %p)\n", con, cmd);
+
 	CS_COMMAND_LIST *command_list;
 	CS_COMMAND_LIST *pcommand;
 
@@ -676,10 +699,9 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 CS_RETCODE
 ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen, CS_INT option)
 {
-	int query_len;
-	int current_query_len;
+	int query_len, current_query_len;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_command()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_command(%p, %d, %p, %d, %d)\n", cmd, type, buffer, buflen, option);
 
 	/* Unless we are in the process of building a CS_LANG_CMD   */
 	/* type command, then clear everything, ready to start anew */
@@ -821,6 +843,8 @@ _ct_initialise_cmd(CS_COMMAND *cmd)
 	free(cmd->query);
 	cmd->query = NULL;
 
+	tdsdump_log(TDS_DBG_FUNC, "_ct_initialise_cmd(%p)\n", cmd);
+
 	if (cmd->input_params) {
 		param_clear(cmd->input_params);
 		cmd->input_params = NULL;
@@ -840,6 +864,8 @@ ct_send(CS_COMMAND * cmd)
 	TDSPARAMINFO *pparam_info;
 	TDSCURSOR *cursor;
 	TDSDYNAMIC *tdsdyn;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_send(%p)\n", cmd);
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_send() command_type = %d\n", cmd->command_type);
 
@@ -1091,12 +1117,11 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 {
 	TDSSOCKET *tds;
 	CS_CONTEXT *context;
-
 	int tdsret;
 	CS_INT res_type;
 	CS_INT done_flags;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_results()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_results(%p, %p)\n", cmd, result_type);
 
 	if (cmd->cancel_state == _CS_CANCEL_PENDING) {
 		_ct_cancel_cleanup(cmd);
@@ -1431,6 +1456,8 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 	CS_CONNECTION *con = cmd->con;
 	CS_INT bind_count;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_bind(%p, %d, %p, %p, %p, %p)\n", cmd, item, datafmt, buffer, copied, indicator);
+
 	tdsdump_log(TDS_DBG_FUNC, "ct_bind() datafmt count = %d column_number = %d\n", datafmt->count, item);
 
 	if (!con || !con->tds_socket)
@@ -1606,7 +1633,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 	TDS_INT done_flags;
 	TDS_INT rows_this_fetch = 0;
 
-	tdsdump_log(TDS_DBG_FUNC, "_ct_fetch_cursor()\n");
+	tdsdump_log(TDS_DBG_FUNC, "_ct_fetch_cursor(%p, %d, %d, %d, %p)\n", cmd, type, offset, option, rows_read);
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
@@ -1694,18 +1721,15 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 int
 _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset)
 {
-	int i;
-	TDSCOLUMN *curcol;
-	TDSCOLUMN *bindcol;
-	unsigned char *src;
-	unsigned char *dest, *temp_add;
-	int result = 0;
+	TDSCOLUMN *curcol, *bindcol;
+	unsigned char *src, *dest, *temp_add;
+	int i, result = 0;
 	TDS_INT srctype, srclen, desttype;
 	CS_DATAFMT srcfmt, destfmt;
 	TDS_INT datalen_dummy, *pdatalen = &datalen_dummy;
 	TDS_SMALLINT nullind_dummy, *nullind = &nullind_dummy;
 
-	tdsdump_log(TDS_DBG_FUNC, "_ct_bind_data()\n");
+	tdsdump_log(TDS_DBG_FUNC, "_ct_bind_data(%p, %p, %p, %d)\n", ctx, resinfo, bindinfo, offset);
 
 	for (i = 0; i < resinfo->num_cols; i++) {
 
@@ -1781,6 +1805,9 @@ CS_RETCODE
 ct_cmd_drop(CS_COMMAND * cmd)
 {
 	CS_RETCODE ret;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop(%p)\n", cmd);
+
 	ret = _ct_cmd_drop(cmd, 1);
 	return ret;
 }
@@ -1793,7 +1820,8 @@ _ct_cmd_drop(CS_COMMAND * cmd, CS_INT free_conn_ref)
 	CS_COMMAND_LIST *next = NULL;
 	CS_CONNECTION *con;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop()\n");
+	tdsdump_log(TDS_DBG_FUNC, "_ct_cmd_drop(%p, %d)\n", cmd, free_conn_ref);
+
 	if (cmd) {
 		free(cmd->query);
 		if (cmd->input_params)
@@ -1847,7 +1875,8 @@ _ct_cmd_drop(CS_COMMAND * cmd, CS_INT free_conn_ref)
 CS_RETCODE
 ct_close(CS_CONNECTION * con, CS_INT option)
 {
-	tdsdump_log(TDS_DBG_FUNC, "ct_close()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_close(%p, %d)\n", con, option);
+
 	tds_free_socket(con->tds_socket);
 	con->tds_socket = NULL;
 	return CS_SUCCEED;
@@ -1856,10 +1885,10 @@ ct_close(CS_CONNECTION * con, CS_INT option)
 CS_RETCODE
 ct_con_drop(CS_CONNECTION * con)
 {
-	CS_COMMAND_LIST *currptr;
-	CS_COMMAND_LIST *freeptr;
+	CS_COMMAND_LIST *currptr, *freeptr;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_con_drop()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_con_drop(%p)\n", con);
+
 	if (con) {
 		free(con->userdata);
 		if (con->tds_login)
@@ -1885,6 +1914,7 @@ int
 _ct_get_client_type(int datatype, int usertype, int size)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", datatype, usertype, size);
+
 	switch (datatype) {
 	case SYBBIT:
 	case SYBBITN:
@@ -2037,7 +2067,7 @@ ct_cancel(CS_CONNECTION * conn, CS_COMMAND * cmd, CS_INT type)
 	CS_COMMAND *conn_cmd;
 	CS_CONNECTION *cmd_conn;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_cancel()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_cancel(%p, %p, %d)\n", conn, cmd, type);
 
 	/*
 	 * Comments taken from Sybase ct-library reference manual
@@ -2239,6 +2269,8 @@ _ct_cancel_cleanup(CS_COMMAND * cmd)
 {
 	CS_CONNECTION * con;
 
+	tdsdump_log(TDS_DBG_FUNC, "_ct_cancel_cleanup(%p)\n", cmd);
+
 	con = cmd->con;
 
 	if (con && !IS_TDSDEAD(con->tds_socket))
@@ -2258,7 +2290,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	TDSCOLUMN *curcol;
 	int len;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_describe()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_describe(%p, %d, %p)\n", cmd, item, datafmt);
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
@@ -2314,7 +2346,7 @@ ct_res_info(CS_COMMAND * cmd, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_I
 	CS_INT int_val;
 	int i;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_res_info()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_res_info(%p, %d, %p, %d, %p)\n", cmd, type, buffer, buflen, out_len);
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
@@ -2356,6 +2388,8 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 {
 	CS_RETCODE ret = CS_SUCCEED;
 	CS_INT *buf = (CS_INT *) buffer;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_config(%p, %d, %d, %p, %d, %p)\n", ctx, action, property, buffer, buflen, outlen);
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_config() action = %s property = %d\n",
 		    CS_GET ? "CS_GET" : CS_SET ? "CS_SET" : CS_SUPPORTED ? "CS_SUPPORTED" : "CS_CLEAR", property);
@@ -2442,6 +2476,8 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 	TDSSOCKET *tds;
 	TDSCURSOR *cursor;
 	int maxcp;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_props(%p, %d, %d, %p, %d, %p)\n", cmd, action, property, buffer, buflen, outlen);
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
@@ -2534,6 +2570,8 @@ ct_compute_info(CS_COMMAND * cmd, CS_INT type, CS_INT colnum, CS_VOID * buffer, 
 	TDS_SMALLINT *src_by_col_ptr;
 	int i;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_compute_info(%p, %d, %d, %p, %d, %p)\n", cmd, type, colnum, buffer, buflen, outlen);
+
 	tdsdump_log(TDS_DBG_FUNC, "ct_compute_info() type = %d, colnum = %d\n", type, colnum);
 
 	if (!cmd->con || !cmd->con->tds_socket)
@@ -2615,6 +2653,8 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 	TDSCOLUMN *curcol;
 	unsigned char *src;
 	TDS_INT srclen;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_get_data(%p, %d, %p, %d, %p)\n", cmd, item, buffer, buflen, outlen);
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_get_data() item = %d buflen = %d\n", item, buflen);
 
@@ -2734,6 +2774,8 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 {
 	TDSSOCKET *tds;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_send_data(%p, %p, %d)\n", cmd, buffer, buflen);
+
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
 	char *c;
@@ -2799,13 +2841,13 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_data_info(%p, %d, %d, %p)\n", cmd, action, colnum, iodesc);
+
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
 
 	tds = cmd->con->tds_socket;
 	resinfo = tds->current_results;
-
-	tdsdump_log(TDS_DBG_FUNC, "ct_data_info() colnum %d\n", colnum);
 
 	switch (action) {
 	case CS_SET:
@@ -2865,7 +2907,8 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 	unsigned char bitmask = 0;
 	unsigned char *mask;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_capability()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_capability(%p, %d, %d, %d, %p)\n", con, action, type, capability, value);
+
 	login = (TDSLOGIN *) con->tds_login;
 	mask = login->capabilities;
 
@@ -3036,13 +3079,14 @@ ct_dynamic(CS_COMMAND * cmd, CS_INT type, CS_CHAR * id, CS_INT idlen, CS_CHAR * 
 	CS_CONNECTION *con;
 	CS_DYNAMIC *dyn;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_dynamic(%p, %d, %p, %d, %p, %d)\n", cmd, type, id, idlen, buffer, buflen);
+
 	if (!cmd->con)
 		return CS_FAIL;
 
 	cmd->command_type = CS_DYNAMIC_CMD;
 	cmd->dynamic_cmd = type;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_dynamic(%d)\n", type);
 	con = cmd->con;
 
 	switch (type) {
@@ -3101,8 +3145,8 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 	CS_PARAM **pparam;
 	CS_PARAM *param;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_param(%p, %p, %p, %d, %hd)\n", cmd, datafmt, data, datalen, indicator);
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_param()\n");
 	tdsdump_log(TDS_DBG_INFO1, "ct_param() data addr = %p data length = %d\n", data, datalen);
 
 	if (cmd == NULL)
@@ -3202,6 +3246,8 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 	CS_PARAM **pparam;
 	CS_PARAM *param;
 	CS_DYNAMIC *dyn;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_setparam(%p, %p, %p, %p, %p)\n", cmd, datafmt, data, datalen, indicator);
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_setparam() command type = %d, data type = %d\n", cmd->command_type, datafmt->datatype);
 
@@ -3317,6 +3363,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	TDS_OPTION_ARG tds_argument;
 	TDS_INT tds_argsize = 0;
 	TDSSOCKET *tds;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_options(%p, %d, %d, %p, %d, %p)\n", con, action, option, param, paramlen, outlen);
 
 	const char *action_string = NULL;
 	int i;
@@ -3629,6 +3677,9 @@ ct_poll(CS_CONTEXT * ctx, CS_CONNECTION * connection, CS_INT milliseconds, CS_CO
 	CS_INT * compid, CS_INT * compstatus)
 {
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED ct_poll()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_poll(%p, %p, %d, %p, %p, %p, %p)\n", 
+				ctx, connection, milliseconds, compconn, compcmd, compid, compstatus);
+
 	return CS_FAIL;
 }
 
@@ -3637,6 +3688,8 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 {
 	TDSSOCKET *tds;
 	TDSCURSOR *cursor;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_cursor(%p, %d, %p, %d, %p, %d, %d)\n", cmd, type, name, namelen, text, tlen, option);
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
@@ -3766,6 +3819,8 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 static int
 _ct_fetchable_results(CS_COMMAND * cmd)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_ct_fetchable_results(%p)\n", cmd);
+
 	switch (cmd->curr_result_type) {
 	case CS_COMPUTE_RESULT:
 	case CS_CURSOR_RESULT:
@@ -3784,8 +3839,9 @@ _ct_process_return_status(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDS_INT saved_status;
 
-	enum
-	{ num_cols = 1 };
+	tdsdump_log(TDS_DBG_FUNC, "_ct_process_return_status(%p)\n", tds);
+
+	enum { num_cols = 1 };
 
 	assert(tds);
 	saved_status = tds->ret_status;
@@ -3825,8 +3881,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 	const void *row = tds_alloc_param_data(curcol);
 
 	tdsdump_log(TDS_DBG_INFO1, "paramrowalloc, size = %d, data = %p, row_size = %d\n",
-				size, curcol->column_data,
-				params->row_size);
+				size, curcol->column_data, params->row_size);
 	if (!row)
 		return NULL;
 
@@ -3873,6 +3928,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 	CS_INT temp_datalen;
 	int param_is_null;
 
+	tdsdump_log(TDS_DBG_FUNC, "paraminfoalloc(%p, %p)\n", tds, first_param);
 
 	/* sanity */
 	if (first_param == NULL)
@@ -4017,6 +4073,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 static void
 rpc_clear(CSREMOTE_PROC * rpc)
 {
+	tdsdump_log(TDS_DBG_FUNC, "rpc_clear(%p)\n", rpc);
+
 	if (rpc == NULL)
 		return;
 
@@ -4032,6 +4090,8 @@ rpc_clear(CSREMOTE_PROC * rpc)
 static void
 param_clear(CS_PARAM * pparam)
 {
+	tdsdump_log(TDS_DBG_FUNC, "param_clear(%p)\n", pparam);
+
 	if (pparam == NULL)
 		return;
 
@@ -4062,6 +4122,9 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 	       CS_SMALLINT *indicator, CS_BYTE byvalue)
 {
 	int param_is_null = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "_ct_fill_param(%d, %p, %p, %p, %p, %p, %x)\n", 
+				cmd_type, param, datafmt, data, datalen, indicator, byvalue);
 
 	if (cmd_type == CS_DYNAMIC_CMD) {
 		param->name = NULL;
@@ -4199,6 +4262,8 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 CS_RETCODE
 ct_diag(CS_CONNECTION * conn, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer)
 {
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag(%p, %d, %d, %d, %p)\n", conn, operation, type, idx, buffer);
+
 	switch (operation) {
 	case CS_INIT:
 		if (conn->ctx->cs_errhandletype == _CS_ERRHAND_CB) {
@@ -4287,14 +4352,15 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 	struct cs_diag_msg_client **curptr;
 	struct cs_diag_msg_svr **scurptr;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeclientmsg(%p, %p, %p)\n", context, conn, message);
+
 	CS_INT msg_count = 0;
 
 	curptr = &(conn->ctx->clientstore);
 
 	scurptr = &(conn->ctx->svrstore);
 
-	/* if we already have a list of messages, */
-	/* go to the end of the list...           */
+	/* if we already have a list of messages, go to the end of the list... */
 
 	while (*curptr != NULL) {
 		msg_count++;
@@ -4343,13 +4409,14 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 	struct cs_diag_msg_svr **curptr;
 	struct cs_diag_msg_client **ccurptr;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeservermsg(%p, %p, %p)\n", context, conn, message);
+
 	CS_INT msg_count = 0;
 
 	curptr = &(conn->ctx->svrstore);
 	ccurptr = &(conn->ctx->clientstore);
 
-	/* if we already have a list of messages, */
-	/* go to the end of the list...           */
+	/* if we already have a list of messages, go to the end of the list...  */
 
 	while (*curptr != NULL) {
 		msg_count++;
@@ -4398,10 +4465,11 @@ ct_diag_getclientmsg(CS_CONTEXT * context, CS_INT idx, CS_CLIENTMSG * message)
 	struct cs_diag_msg_client *curptr;
 	CS_INT msg_count = 0, msg_found = 0;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_getclientmsg(%p, %d, %p)\n", context, idx, message);
+
 	curptr = context->clientstore;
 
-	/* if we already have a list of messages, */
-	/* go to the end of the list...           */
+	/* if we already have a list of messages, go to the end of the list...  */
 
 	while (curptr != NULL) {
 		msg_count++;
@@ -4425,10 +4493,11 @@ ct_diag_getservermsg(CS_CONTEXT * context, CS_INT idx, CS_SERVERMSG * message)
 	struct cs_diag_msg_svr *curptr;
 	CS_INT msg_count = 0, msg_found = 0;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_getservermsg(%p, %d, %p)\n", context, idx, message);
+
 	curptr = context->svrstore;
 
-	/* if we already have a list of messages, */
-	/* go to the end of the list...           */
+	/* if we already have a list of messages, go to the end of the list...  */
 
 	while (curptr != NULL) {
 		msg_count++;
@@ -4452,6 +4521,8 @@ _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type)
 {
 	struct cs_diag_msg_client *curptr, *freeptr;
 	struct cs_diag_msg_svr *scurptr, *sfreeptr;
+
+	tdsdump_log(TDS_DBG_FUNC, "_ct_diag_clearmsg(%p, %d)\n", context, type);
 
 	if (type == CS_CLIENTMSG_TYPE || type == CS_ALLMSG_TYPE) {
 		curptr = context->clientstore;
@@ -4485,6 +4556,8 @@ ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count)
 	struct cs_diag_msg_client *curptr;
 	struct cs_diag_msg_svr *scurptr;
 
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_countmsg(%p, %d, %p)\n", context, type, count);
+
 	CS_INT msg_count = 0;
 
 	if (type == CS_CLIENTMSG_TYPE || type == CS_ALLMSG_TYPE) {
@@ -4517,6 +4590,8 @@ _ct_allocate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 	CS_DYNAMIC *dyn;
 	CS_DYNAMIC **pdyn;
 	int id_len;
+
+	tdsdump_log(TDS_DBG_FUNC, "_ct_allocate_dynamic(%p, %p, %d)\n", con, id, idlen);
 
 	dyn = (CS_DYNAMIC *) malloc(sizeof(CS_DYNAMIC));
 
@@ -4552,6 +4627,8 @@ _ct_locate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 	CS_DYNAMIC *dyn;
 	int id_len;
 
+	tdsdump_log(TDS_DBG_FUNC, "_ct_locate_dynamic(%p, %p, %d)\n", con, id, idlen);
+
 	if (idlen == CS_NULLTERM)
 		id_len = strlen(id);
 	else
@@ -4576,6 +4653,8 @@ _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 	CS_DYNAMIC_LIST *next = NULL;
 	TDSDYNAMIC *tdsdyn;
 	char myid[256];
+
+	tdsdump_log(TDS_DBG_FUNC, "_ct_deallocate_dynamic(%p, %p)\n", con, dyn);
 
 	strcpy(myid,"");
 

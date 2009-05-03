@@ -50,7 +50,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.69 2008-12-10 14:56:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.70 2009-05-03 19:32:57 jklowden Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -63,6 +63,8 @@ cs_prretcode(int retcode)
 {
 	static char unknown[24];
 	
+	tdsdump_log(TDS_DBG_FUNC, "cs_prretcode(%d)\n", retcode);
+
 	switch(retcode) {
 	case CS_SUCCEED:	return "CS_SUCCEED";
 	case CS_FAIL:		return "CS_FAIL";
@@ -98,6 +100,8 @@ cs_prretcode(int retcode)
 static int 
 _cs_datatype_length(int dtype)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_cs_datatype_length(%d)\n", dtype);
+
 	switch (dtype) {
 		case SYBINT1:
 			return 1;
@@ -129,6 +133,8 @@ _cs_datatype_length(int dtype)
 static const char *
 _cs_get_layer(int layer)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_cs_get_layer(%d)\n", layer);
+
 	switch (layer) {
 	case 2:
 		return "cslib user api layer";
@@ -142,6 +148,8 @@ _cs_get_layer(int layer)
 static const char *
 _cs_get_origin(int origin)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_cs_get_origin(%d)\n", origin);
+
 	switch (origin) {
 	case 1:
 		return "external error";
@@ -164,6 +172,8 @@ _cs_get_origin(int origin)
 static const char *
 _cs_get_user_api_layer_error(int error)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_cs_get_user_api_layer_error(%d)\n", error);
+
 	switch (error) {
 	case 3:
 		return "Memory allocation failure.";
@@ -188,6 +198,8 @@ _cs_get_msgstr(const char *funcname, int layer, int origin, int severity, int nu
 {
 	char *m;
 
+	tdsdump_log(TDS_DBG_FUNC, "_cs_get_msgstr(%s, %d, %d, %d, %d)\n", funcname, layer, origin, severity, number);
+
 	if (asprintf(&m, "%s: %s: %s: %s", funcname, _cs_get_layer(layer), _cs_get_origin(origin), (layer == 2)
 		     ? _cs_get_user_api_layer_error(number)
 		     : "unrecognized error") < 0) {
@@ -202,6 +214,8 @@ _csclient_msg(CS_CONTEXT * ctx, const char *funcname, int layer, int origin, int
 	va_list ap;
 	CS_CLIENTMSG cm;
 	char *msgstr;
+
+	tdsdump_log(TDS_DBG_FUNC, "_csclient_msg(%p, %s, %d, %d, %d, %d, %s)\n", ctx, funcname, layer, origin, severity, number, fmt);
 
 	va_start(ap, fmt);
 
@@ -234,12 +248,16 @@ _csclient_msg(CS_CONTEXT * ctx, const char *funcname, int layer, int origin, int
 static CS_LOCALE *
 _cs_locale_alloc(void)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_cs_locale_alloc()\n");
+
 	return (CS_LOCALE *) calloc(1, sizeof(CS_LOCALE));
 }
 
 static void
 _cs_locale_free_contents(CS_LOCALE *locale)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_cs_locale_free_contents(%p)\n", locale);
+
 	/* free strings */
 	free(locale->language);
 	locale->language = NULL;
@@ -254,6 +272,8 @@ _cs_locale_free_contents(CS_LOCALE *locale)
 void 
 _cs_locale_free(CS_LOCALE *locale)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_cs_locale_free(%p)\n", locale);
+
 	/* free contents */
 	_cs_locale_free_contents(locale);
 
@@ -265,6 +285,8 @@ _cs_locale_free(CS_LOCALE *locale)
 int
 _cs_locale_copy_inplace(CS_LOCALE *new_locale, CS_LOCALE *orig)
 {
+	tdsdump_log(TDS_DBG_FUNC, "_cs_locale_copy_inplace(%p, %p)\n", new_locale, orig);
+
 	_cs_locale_free_contents(new_locale);
 	if (orig->language) {
 		new_locale->language = strdup(orig->language);
@@ -302,6 +324,8 @@ CS_LOCALE *
 _cs_locale_copy(CS_LOCALE *orig)
 {
 	CS_LOCALE *new_locale;
+
+	tdsdump_log(TDS_DBG_FUNC, "_cs_locale_copy(%p)\n", orig);
 
 	new_locale = _cs_locale_alloc();
 	if (!new_locale)
@@ -341,7 +365,9 @@ Cleanup:
 CS_RETCODE
 cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx)
 {
-TDSCONTEXT *tds_ctx;
+	TDSCONTEXT *tds_ctx;
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_ctx_alloc(%d, %p)\n", version, ctx);
 
 	*ctx = (CS_CONTEXT *) malloc(sizeof(CS_CONTEXT));
 	memset(*ctx, '\0', sizeof(CS_CONTEXT));
@@ -361,7 +387,9 @@ TDSCONTEXT *tds_ctx;
 CS_RETCODE
 cs_ctx_global(CS_INT version, CS_CONTEXT ** ctx)
 {
-static CS_CONTEXT *global_cs_ctx = NULL;
+	static CS_CONTEXT *global_cs_ctx = NULL;
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_ctx_global(%d, %p)\n", version, ctx);
 
 	if (global_cs_ctx != NULL) {
 		*ctx = global_cs_ctx;
@@ -377,6 +405,8 @@ static CS_CONTEXT *global_cs_ctx = NULL;
 CS_RETCODE
 cs_ctx_drop(CS_CONTEXT * ctx)
 {
+	tdsdump_log(TDS_DBG_FUNC, "cs_ctx_drop(%p)\n", ctx);
+
 	if (ctx) {
 		_ct_diag_clearmsg(ctx, CS_ALLMSG_TYPE);
 		free(ctx->userdata);
@@ -390,8 +420,9 @@ cs_ctx_drop(CS_CONTEXT * ctx)
 CS_RETCODE
 cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-/* declared  for - CS_USERDATA changes - swapna*/
-CS_INT maxcp;
+	CS_INT maxcp;	/* declared  for - CS_USERDATA changes - swapna*/
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_config(%p, %d, %d, %p, %d, %p)\n", ctx, action, property, buffer, buflen, outlen);
 
 	if (action == CS_GET) {
 		if (buffer == NULL) {
@@ -483,7 +514,6 @@ CS_INT maxcp;
 CS_RETCODE
 cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT * destfmt, CS_VOID * destdata, CS_INT * resultlen)
 {
-
 	int src_type, src_len, desttype, destlen, len, i = 0;
 	CONV_RESULT cres;
 	unsigned char *dest;
@@ -849,6 +879,8 @@ cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * d
 	TDS_DATETIME4 *dt4;
 	TDSDATEREC dr;
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_dt_crack(%p, %d, %p, %p)\n", ctx, datetype, dateval, daterec);
+
 	if (datetype == CS_DATETIME_TYPE) {
 		dt = (TDS_DATETIME *) dateval;
 		tds_datecrack(SYBDATETIME, dt, &dr);
@@ -877,6 +909,8 @@ cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr)
 {
 	CS_LOCALE *tds_csloc;
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_loc_alloc(%p, %p)\n", ctx, locptr);
+
 	tds_csloc = _cs_locale_alloc();
 	if (!tds_csloc)
 		return CS_FAIL;
@@ -888,6 +922,8 @@ cs_loc_alloc(CS_CONTEXT * ctx, CS_LOCALE ** locptr)
 CS_RETCODE
 cs_loc_drop(CS_CONTEXT * ctx, CS_LOCALE * locale)
 {
+	tdsdump_log(TDS_DBG_FUNC, "cs_loc_drop(%p, %p)\n", ctx, locale);
+
 	if (!locale)
 		return CS_FAIL;
 
@@ -899,6 +935,8 @@ CS_RETCODE
 cs_locale(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
 	CS_RETCODE code = CS_FAIL;
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_locale(%p, %d, %p, %d, %p, %d, %p)\n", ctx, action, locale, type, buffer, buflen, outlen);
 
 	if (action == CS_SET) {
 		switch (type) {
@@ -1082,6 +1120,9 @@ CS_RETCODE
 cs_dt_info(CS_CONTEXT * ctx, CS_INT action, CS_LOCALE * locale, CS_INT type, CS_INT item, CS_VOID * buffer, CS_INT buflen,
 	   CS_INT * outlen)
 {
+	tdsdump_log(TDS_DBG_FUNC, "cs_dt_info(%p, %d, %p, %d, %d, %p, %d, %p)\n", 
+				ctx, action, locale, type, item, buffer, buflen, outlen);
+
 	if (action == CS_SET) {
 		switch (type) {
 		case CS_DT_CONVFMT:
@@ -1098,6 +1139,9 @@ cs_strbuild(CS_CONTEXT * ctx, CS_CHAR * buffer, CS_INT buflen, CS_INT * resultle
 	va_list ap;
 	CS_RETCODE rc;
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_strbuild(%p, %p, %d, %p, %p, %d, %p, %d)\n", 
+				ctx, buffer, buflen, resultlen, text, textlen, formats, formatlen);
+
 	va_start(ap, formatlen);
 	rc = tds_vstrbuild(buffer, buflen, resultlen, text, textlen, formats, formatlen, ap);
 	va_end(ap);
@@ -1108,6 +1152,8 @@ CS_RETCODE
 cs_calc(CS_CONTEXT * ctx, CS_INT op, CS_INT datatype, CS_VOID * var1, CS_VOID * var2, CS_VOID * dest)
 {
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_calc(%p, %d, %d, %p, %p, %p)\n", ctx, op, datatype, var1, var2, dest);
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_calc()\n");
 	return CS_FAIL;
 }
@@ -1115,6 +1161,8 @@ cs_calc(CS_CONTEXT * ctx, CS_INT op, CS_INT datatype, CS_VOID * var1, CS_VOID * 
 CS_RETCODE
 cs_cmp(CS_CONTEXT * ctx, CS_INT datatype, CS_VOID * var1, CS_VOID * var2, CS_INT * result)
 {
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_cmp(%p, %d, %p, %p, %p)\n", ctx, datatype, var1, var2, result);
 
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_cmp()\n");
 	return CS_FAIL;
@@ -1124,6 +1172,8 @@ CS_RETCODE
 cs_conv_mult(CS_CONTEXT * ctx, CS_LOCALE * srcloc, CS_LOCALE * destloc, CS_INT * conv_multiplier)
 {
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_conv_mult(%p, %p, %p, %p)\n", ctx, srcloc, destloc, conv_multiplier);
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_conv_mult()\n");
 	return CS_FAIL;
 }
@@ -1131,6 +1181,8 @@ cs_conv_mult(CS_CONTEXT * ctx, CS_LOCALE * srcloc, CS_LOCALE * destloc, CS_INT *
 CS_RETCODE
 cs_diag(CS_CONTEXT * ctx, CS_INT operation, CS_INT type, CS_INT idx, CS_VOID * buffer)
 {
+	tdsdump_log(TDS_DBG_FUNC, "cs_diag(%p, %d, %d, %d, %p)\n", ctx, operation, type, idx, buffer);
+
 	switch (operation) {
 
 		case CS_INIT:
@@ -1189,6 +1241,9 @@ cs_manage_convert(CS_CONTEXT * ctx, CS_INT action, CS_INT srctype, CS_CHAR * src
 		  CS_CHAR * destname, CS_INT destnamelen, CS_INT * conv_multiplier, CS_CONV_FUNC * func)
 {
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_manage_convert(%p, %d, %d, %p, %d, %d, %p, %d, %p, %p)\n", 
+				ctx, action, srctype, srcname, srcnamelen, desttype, destname, destnamelen, conv_multiplier, func);
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_manage_convert()\n");
 	return CS_FAIL;
 }
@@ -1196,6 +1251,8 @@ cs_manage_convert(CS_CONTEXT * ctx, CS_INT action, CS_INT srctype, CS_CHAR * src
 CS_RETCODE
 cs_objects(CS_CONTEXT * ctx, CS_INT action, CS_OBJNAME * objname, CS_OBJDATA * objdata)
 {
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_objects(%p, %d, %p, %p)\n", ctx, action, objname, objdata);
 
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_objects()\n");
 	return CS_FAIL;
@@ -1205,6 +1262,8 @@ CS_RETCODE
 cs_set_convert(CS_CONTEXT * ctx, CS_INT action, CS_INT srctype, CS_INT desttype, CS_CONV_FUNC * func)
 {
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_set_convert(%p, %d, %d, %d, %p)\n", ctx, action, srctype, desttype, func);
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_set_convert()\n");
 	return CS_FAIL;
 }
@@ -1212,6 +1271,8 @@ cs_set_convert(CS_CONTEXT * ctx, CS_INT action, CS_INT srctype, CS_INT desttype,
 CS_RETCODE
 cs_setnull(CS_CONTEXT * ctx, CS_DATAFMT * datafmt, CS_VOID * buffer, CS_INT buflen)
 {
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_setnull(%p, %p, %p, %d)\n", ctx, datafmt, buffer, buflen);
 
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_setnull()\n");
 	return CS_FAIL;
@@ -1222,6 +1283,9 @@ cs_strcmp(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_INT type, CS_CHAR * str1, CS_
 	  CS_INT * result)
 {
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_strcmp(%p, %p, %d, %p, %d, %p, %d, %p)\n", 
+					ctx, locale, type, str1, len1, str2, len2, result);
+
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_strcmp()\n");
 	return CS_FAIL;
 }
@@ -1229,6 +1293,8 @@ cs_strcmp(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_INT type, CS_CHAR * str1, CS_
 CS_RETCODE
 cs_time(CS_CONTEXT * ctx, CS_LOCALE * locale, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen, CS_DATEREC * daterec)
 {
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_time(%p, %p, %p, %d, %p, %p)\n", ctx, locale, buffer, buflen, outlen, daterec);
 
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED cs_time()\n");
 	return CS_FAIL;
@@ -1238,6 +1304,8 @@ CS_RETCODE
 cs_will_convert(CS_CONTEXT * ctx, CS_INT srctype, CS_INT desttype, CS_BOOL * result)
 {
 
+	tdsdump_log(TDS_DBG_FUNC, "cs_will_convert(%p, %d, %d, %p)\n", ctx, srctype, desttype, result);
+
 	*result = (tds_willconvert(srctype, desttype) ? CS_TRUE : CS_FALSE);
 	return CS_SUCCEED;
 }
@@ -1245,9 +1313,10 @@ cs_will_convert(CS_CONTEXT * ctx, CS_INT srctype, CS_INT desttype, CS_BOOL * res
 static CS_INT 
 cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message)
 {
+	struct cs_diag_msg **curptr;
+	CS_INT msg_count = 0;
 
-struct cs_diag_msg **curptr;
-CS_INT msg_count = 0;
+	tdsdump_log(TDS_DBG_FUNC, "cs_diag_storemsg(%p, %p)\n", context, message);
 
 	curptr = &(context->msgstore);
 
@@ -1286,9 +1355,10 @@ CS_INT msg_count = 0;
 static CS_INT 
 cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message)
 {
+	struct cs_diag_msg *curptr;
+	CS_INT msg_count = 0, msg_found = 0;
 
-struct cs_diag_msg *curptr;
-CS_INT msg_count = 0, msg_found = 0;
+	tdsdump_log(TDS_DBG_FUNC, "cs_diag_getmsg(%p, %d, %p)\n", context, idx, message);
 
 	curptr = context->msgstore;
 
@@ -1314,8 +1384,9 @@ CS_INT msg_count = 0, msg_found = 0;
 static CS_INT 
 cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type)
 {
+	struct cs_diag_msg *curptr, *freeptr;
 
-struct cs_diag_msg *curptr, *freeptr;
+	tdsdump_log(TDS_DBG_FUNC, "cs_diag_clearmsg(%p, %d)\n", context, type);
 
 	curptr = context->msgstore;
 	context->msgstore = NULL;
@@ -1332,8 +1403,10 @@ struct cs_diag_msg *curptr, *freeptr;
 static CS_INT 
 cs_diag_countmsg(CS_CONTEXT *context, CS_INT *count)
 {
-struct cs_diag_msg *curptr;
-CS_INT msg_count = 0;
+	struct cs_diag_msg *curptr;
+	CS_INT msg_count = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "cs_diag_countmsg(%p, %p)\n", context, count);
 
 	curptr = context->msgstore;
 

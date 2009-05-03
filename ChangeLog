@@ -1,3 +1,9 @@
+Sun May  3 15:26:26 EDT 2009	JK Lowden <jklowden@freetds.org>
+	* src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c
+	* src/ctlib/ctutil.c src/ctlib/unittests/common.c
+	* src/dblib/dbutil.c BUGS
+	- better ct-lib logging
+
 Thu Apr 30 08:48:24 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/check_symbols.txt misc/order_coverage.pl: notes and updates
 
@@ -1522,4 +1528,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2781 2009-04-30 06:48:49 freddy77 Exp $
+$Id: ChangeLog,v 1.2782 2009-05-03 19:32:56 jklowden Exp $

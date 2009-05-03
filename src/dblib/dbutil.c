@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.46 2009-03-24 01:22:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.47 2009-05-03 19:32:57 jklowden Exp $");
 
 /*
  * test include consistency 
@@ -209,7 +209,7 @@ _dblib_check_and_handle_interrupt(void * vdbproc)
 	if (dbproc->chkintr == NULL || dbproc->hndlintr == NULL)
 		return INT_CONTINUE;
 		
-	tdsdump_log(TDS_DBG_FUNC, "tds_int_handler %p [%p, %p]", dbproc, dbproc->chkintr, dbproc->hndlintr);
+	tdsdump_log(TDS_DBG_FUNC, "_dblib_check_and_handle_interrupt %p [%p, %p]\n", dbproc, dbproc->chkintr, dbproc->hndlintr);
 
 	if (dbproc->chkintr(dbproc)){
 		switch (ret = dbproc->hndlintr(dbproc)) {

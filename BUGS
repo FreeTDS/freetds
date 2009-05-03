@@ -15,7 +15,7 @@ Needs Fixing
    this requires either an SQL parser or API modification, 
    because the library has to determine the SQL datatype 
    of the placeholder variable.  
-6. ML Mar 19 2009: "Error in freebcp in", spurious error. 
+6. ML Mar 21 2009: "freebcp error HINT -b doesnt work", freebcp -n broken. 
 
 
 

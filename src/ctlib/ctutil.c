@@ -32,7 +32,7 @@
 /* #include "fortify.h" */
 
 
-TDS_RCSID(var, "$Id: ctutil.c,v 1.29 2008-08-17 07:44:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ctutil.c,v 1.30 2009-05-03 19:32:57 jklowden Exp $");
 
 /*
  * test include consistency 
@@ -98,6 +98,8 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	CS_CONTEXT *ctx = NULL;
 	int ret = (int) CS_SUCCEED;
 
+	tdsdump_log(TDS_DBG_FUNC, "_ct_handle_client_message(%p, %p, %p)\n", ctx_tds, tds, msg);
+
 	if (tds && tds->parent) {
 		con = (CS_CONNECTION *) tds->parent;
 	}
@@ -149,6 +151,8 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	CS_CONNECTION *con = NULL;
 	CS_CONTEXT *ctx = NULL;
 	int ret = (int) CS_SUCCEED;
+
+	tdsdump_log(TDS_DBG_FUNC, "_ct_handle_server_message(%p, %p, %p)\n", ctx_tds, tds, msg);
 
 	if (tds && tds->parent) {
 		con = (CS_CONNECTION *) tds->parent;
