@@ -21,8 +21,8 @@ static void buffer_check(const DBPROC_ROWBUF *buf)
 	/* no buffering */
 	if (buf->capacity == 0 || buf->capacity == 1) {
 		assert(buf->head == 0);
-		assert(buf->tail == 0);
-		assert(buf->rows == NULL);
+		assert(buf->tail == 0 || buf->tail == 1);
+		assert(buf->capacity == 1 || buf->rows == NULL);
 		return;
 	}
 
@@ -432,12 +432,14 @@ buffer_set_capacity(DBPROCESS *dbproc, int nrows)
 
 	if (0 == nrows) {
 		buf->capacity = 1;
+		BUFFER_CHECK(buf);
 		return;
 	}
 
 	assert(0 < nrows);
 
 	buf->capacity = nrows;
+	BUFFER_CHECK(buf);
 }
 
 /*

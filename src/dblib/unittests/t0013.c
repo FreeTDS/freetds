@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.29 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.30 2009-05-11 07:53:26 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -105,6 +105,8 @@ main(int argc, char **argv)
 	assert(blob);
 	fread((void *) blob, isiz, 1, fp);
 	fclose(fp);
+
+	drop_table();
 
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
