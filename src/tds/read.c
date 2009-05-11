@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.108 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.109 2009-05-11 09:05:11 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -71,7 +71,7 @@ tds_get_byte(TDSSOCKET * tds)
 {
 	int rc;
 
-	if (tds->in_pos >= tds->in_len) {
+	while (tds->in_pos >= tds->in_len) {
 		do {
 			if (IS_TDSDEAD(tds) || (rc = tds_read_packet(tds)) < 0)
 				return 0;
