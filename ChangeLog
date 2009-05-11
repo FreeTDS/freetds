@@ -1,3 +1,6 @@
+Mon May 11 09:24:40 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/ct.c: remove warnings and duplicate logs
+
 Sun May  3 15:26:26 EDT 2009	JK Lowden <jklowden@freetds.org>
 	* src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c
 	* src/ctlib/ctutil.c src/ctlib/unittests/common.c
@@ -1528,4 +1531,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2782 2009-05-03 19:32:56 jklowden Exp $
+$Id: ChangeLog,v 1.2783 2009-05-11 07:25:24 freddy77 Exp $

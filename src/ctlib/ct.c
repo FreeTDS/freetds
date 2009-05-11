@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.187 2009-05-03 19:32:57 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.188 2009-05-11 07:25:25 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -655,13 +655,10 @@ Cleanup:
 CS_RETCODE
 ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 {
-
-	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc(%p, %p)\n", con, cmd);
-
 	CS_COMMAND_LIST *command_list;
 	CS_COMMAND_LIST *pcommand;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc(%p, %p)\n", con, cmd);
 
 	*cmd = (CS_COMMAND *) malloc(sizeof(CS_COMMAND));
 	if (!*cmd)
@@ -2774,15 +2771,13 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 {
 	TDSSOCKET *tds;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_send_data(%p, %p, %d)\n", cmd, buffer, buflen);
-
 	char textptr_string[35];	/* 16 * 2 + 2 (0x) + 1 */
 	char timestamp_string[19];	/* 8 * 2 + 2 (0x) + 1 */
 	char *c;
 	int s;
 	char hex2[3];
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_send_data()\n");
+	tdsdump_log(TDS_DBG_FUNC, "ct_send_data(%p, %p, %d)\n", cmd, buffer, buflen);
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
@@ -3364,8 +3359,6 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 	TDS_INT tds_argsize = 0;
 	TDSSOCKET *tds;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_options(%p, %d, %d, %p, %d, %p)\n", con, action, option, param, paramlen, outlen);
-
 	const char *action_string = NULL;
 	int i;
 
@@ -3391,6 +3384,8 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		, { CS_OPT_STATS_IO,       TDS_OPT_STAT_IO        }
 		, { CS_OPT_STATS_TIME,     TDS_OPT_STAT_TIME      }
 	};
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_options(%p, %d, %d, %p, %d, %p)\n", con, action, option, param, paramlen, outlen);
 
 	if (param == NULL)
 		return CS_FAIL;
@@ -3839,9 +3834,9 @@ _ct_process_return_status(TDSSOCKET * tds)
 	TDSCOLUMN *curcol;
 	TDS_INT saved_status;
 
-	tdsdump_log(TDS_DBG_FUNC, "_ct_process_return_status(%p)\n", tds);
-
 	enum { num_cols = 1 };
+
+	tdsdump_log(TDS_DBG_FUNC, "_ct_process_return_status(%p)\n", tds);
 
 	assert(tds);
 	saved_status = tds->ret_status;
@@ -4352,9 +4347,9 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 	struct cs_diag_msg_client **curptr;
 	struct cs_diag_msg_svr **scurptr;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeclientmsg(%p, %p, %p)\n", context, conn, message);
-
 	CS_INT msg_count = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeclientmsg(%p, %p, %p)\n", context, conn, message);
 
 	curptr = &(conn->ctx->clientstore);
 
@@ -4409,9 +4404,9 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 	struct cs_diag_msg_svr **curptr;
 	struct cs_diag_msg_client **ccurptr;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeservermsg(%p, %p, %p)\n", context, conn, message);
-
 	CS_INT msg_count = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_storeservermsg(%p, %p, %p)\n", context, conn, message);
 
 	curptr = &(conn->ctx->svrstore);
 	ccurptr = &(conn->ctx->clientstore);
@@ -4556,9 +4551,9 @@ ct_diag_countmsg(CS_CONTEXT * context, CS_INT type, CS_INT * count)
 	struct cs_diag_msg_client *curptr;
 	struct cs_diag_msg_svr *scurptr;
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_diag_countmsg(%p, %d, %p)\n", context, type, count);
-
 	CS_INT msg_count = 0;
+
+	tdsdump_log(TDS_DBG_FUNC, "ct_diag_countmsg(%p, %d, %p)\n", context, type, count);
 
 	if (type == CS_CLIENTMSG_TYPE || type == CS_ALLMSG_TYPE) {
 		curptr = context->clientstore;
