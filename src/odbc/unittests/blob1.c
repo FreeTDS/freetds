@@ -2,8 +2,10 @@
 /* Test from Sebastien Flaesch */
 
 #include "common.h"
+#include <ctype.h>
+#include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.15 2008-12-26 12:20:50 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.16 2009-05-11 15:12:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -49,7 +51,7 @@ check_hex(const char *buf, size_t len, unsigned int start, unsigned int step)
 
 	for (n = 0; n < len; ++n) {
 		sprintf(symbol, "%2x", (unsigned int)('a' + ((start+n) / 2 * step % ('z' - 'a' + 1))));
-		if (buf[n] != symbol[(start+n) % 2])
+		if (tolower((unsigned char) buf[n]) != symbol[(start+n) % 2])
 			return 0;
 	}
 
@@ -89,8 +91,19 @@ readBlob(SQLUSMALLINT pos)
 		failed = 1;
 }
 
+static int
+from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
+{
+	int i;
+	for (i = 0; i < n; ++i) {
+		assert(src[i] >= 0 && src[i] < 256);
+		dst[i] = src[i];
+	}
+	return n;
+}
+
 static void
-readBlobAsChar(SQLUSMALLINT pos, int step)
+readBlobAsChar(SQLUSMALLINT pos, int step, int wide)
 {
 	SQLRETURN rc = SQL_SUCCESS_WITH_INFO;
 	char buf[8192];
@@ -98,21 +111,33 @@ readBlobAsChar(SQLUSMALLINT pos, int step)
 	int i = 0;
 	int check;
 	int bufsize;
+
+	SQLSMALLINT type = SQL_C_CHAR;
+	unsigned int char_len = 1;
+	if (wide) {
+		char_len = sizeof(SQLWCHAR);
+		type = SQL_C_WCHAR;
+	}
 	
-	if (step%2) bufsize = sizeof(buf) - 1;
+	if (step%2) bufsize = sizeof(buf) - char_len;
 	else bufsize = sizeof(buf);
 
 	printf(">> readBlobAsChar field %d\n", pos);
 	while (rc == SQL_SUCCESS_WITH_INFO) {
 		i++;
-		rc = CHKGetData(pos, SQL_C_CHAR, (SQLPOINTER) buf, (SQLINTEGER) bufsize, &len, "SINo");
+		rc = CHKGetData(pos, type, (SQLPOINTER) buf, (SQLINTEGER) bufsize, &len, "SINo");
 		if (rc == SQL_NO_DATA || len <= 0)
 			break;
 		if (len > (SQLLEN) bufsize)
-			len = (SQLLEN) bufsize - 1;
-		len -= len % 2;
+			len = (SQLLEN) bufsize - char_len;
+		len -= len % (2u * char_len);
 		printf(">>     step %d: %d bytes readed\n", i, (int) len);
-		
+
+		if (wide) {
+			len /= sizeof(SQLWCHAR);
+			from_sqlwchar((char *) buf, (SQLWCHAR *) buf, len + 1);
+		}
+
 		check =	check_hex(buf, len, 2*987 + total, 25);
 		if (!check) {
 			fprintf(stderr, "Wrong buffer content\n");
@@ -141,7 +166,7 @@ main(int argc, char **argv)
 	SQLLEN vind2;
 	char buf3[NBYTES*2 + 1];
 	SQLLEN vind3;
-	int cnt = 2;
+	int cnt = 2, wide;
 
 	use_odbc_version3 = 1;
 	Connect();
@@ -210,6 +235,7 @@ main(int argc, char **argv)
 
 	/* Now fetch rows ... */
 
+	for (wide = 0; wide < 2; ++wide)
 	for (i = 0; i < cnt; i++) {
 
 		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "S");
@@ -239,7 +265,7 @@ main(int argc, char **argv)
 
 		readBlob(1);
 		readBlob(2);
-		readBlobAsChar(3, i);
+		readBlobAsChar(3, i, wide);
 
 		CHKCloseCursor("S");
 		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
