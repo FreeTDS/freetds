@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.184 2009-03-24 01:22:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.185 2009-05-20 16:36:58 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -408,6 +408,11 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 
 	if (host_colnum < 1) {
 		dbperror(dbproc, SYBEBCFO, 0);
+		return FAIL;
+	}
+
+	if (host_colnum > dbproc->hostfileinfo->host_colcount) {
+		dbperror(dbproc, SYBECNOR, 0);
 		return FAIL;
 	}
 
