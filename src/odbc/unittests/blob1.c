@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.16 2009-05-11 15:12:45 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.17 2009-05-20 16:27:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -58,8 +58,38 @@ check_hex(const char *buf, size_t len, unsigned int start, unsigned int step)
 	return 1;
 }
 
+#define MAX_TESTS 10
+typedef struct {
+	unsigned num;
+	SQLSMALLINT c_type, sql_type;
+	const char *db_type;
+	unsigned gen1, gen2;
+	SQLLEN vind;
+	char *buf;
+} test_info;
+
+static test_info test_infos[MAX_TESTS];
+static unsigned num_tests = 0;
+
 static void
-readBlob(SQLUSMALLINT pos)
+dump(FILE* out, const char* start, void* buf, unsigned len)
+{
+	unsigned n;
+	char s[17];
+	if (len >= 16)
+		len = 16;
+	fprintf(out, "%s", start);
+	for (n = 0; n < len; ++n) {
+		unsigned char c = ((unsigned char*)buf)[n];
+		fprintf(out, " %02X", c);
+		s[n] = (c >= 0x20 && c < 127) ? (char) c : '.';
+	}
+	s[len] = 0;
+	fprintf(out, " - %s\n", s);
+}
+
+static void
+readBlob(test_info *t)
 {
 	SQLRETURN rc;
 	char buf[4096];
@@ -67,21 +97,19 @@ readBlob(SQLUSMALLINT pos)
 	int i = 0;
 	int check;
 
-	printf(">> readBlob field %d\n", pos);
+	printf(">> readBlob field %d\n", t->num);
 	while (1) {
 		i++;
-		rc = CHKGetData(pos, SQL_C_BINARY, (SQLPOINTER) buf, (SQLINTEGER) sizeof(buf), &len, "SINo");
+		rc = CHKGetData(t->num, SQL_C_BINARY, (SQLPOINTER) buf, (SQLINTEGER) sizeof(buf), &len, "SINo");
 		if (rc == SQL_NO_DATA || len <= 0)
 			break;
 		if (len > (SQLLEN) sizeof(buf))
 			len = (SQLLEN) sizeof(buf);
 		printf(">>     step %d: %d bytes readed\n", i, (int) len);
-		if (pos == 1)
-			check = check_chars(buf, len, 123 + total, 1);
-		else
-			check =	check_chars(buf, len, 987 + total, 25);
+		check = check_chars(buf, len, t->gen1 + total, t->gen2);
 		if (!check) {
 			fprintf(stderr, "Wrong buffer content\n");
+			dump(stderr, " buf ", buf, len);
 			failed = 1;
 		}
 		total += len;
@@ -103,11 +131,11 @@ from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
 }
 
 static void
-readBlobAsChar(SQLUSMALLINT pos, int step, int wide)
+readBlobAsChar(test_info *t, int step, int wide)
 {
 	SQLRETURN rc = SQL_SUCCESS_WITH_INFO;
 	char buf[8192];
-	SQLLEN len, total = 0;
+	SQLLEN len, total = 0, len2;
 	int i = 0;
 	int check;
 	int bufsize;
@@ -122,15 +150,21 @@ readBlobAsChar(SQLUSMALLINT pos, int step, int wide)
 	if (step%2) bufsize = sizeof(buf) - char_len;
 	else bufsize = sizeof(buf);
 
-	printf(">> readBlobAsChar field %d\n", pos);
+	printf(">> readBlobAsChar field %d\n", t->num);
 	while (rc == SQL_SUCCESS_WITH_INFO) {
 		i++;
-		rc = CHKGetData(pos, type, (SQLPOINTER) buf, (SQLINTEGER) bufsize, &len, "SINo");
+		rc = CHKGetData(t->num, type, (SQLPOINTER) buf, (SQLINTEGER) bufsize, &len, "SINo");
 		if (rc == SQL_NO_DATA || len <= 0)
 			break;
-		if (len > (SQLLEN) bufsize)
-			len = (SQLLEN) bufsize - char_len;
+		rc = CHKGetData(t->num, type, (SQLPOINTER) buf, 0, &len2, "SINo");
+//		printf("out_len %u bufsize %u len2 %u\n", (unsigned) len, (unsigned) bufsize, (unsigned) len2);
+		if (rc == SQL_SUCCESS_WITH_INFO)
+			len = len - len2;
+#if 0
+		if (len > (SQLLEN) (bufsize - char_len))
+			len = (SQLLEN) (bufsize - char_len);
 		len -= len % (2u * char_len);
+#endif
 		printf(">>     step %d: %d bytes readed\n", i, (int) len);
 
 		if (wide) {
@@ -138,9 +172,10 @@ readBlobAsChar(SQLUSMALLINT pos, int step, int wide)
 			from_sqlwchar((char *) buf, (SQLWCHAR *) buf, len + 1);
 		}
 
-		check =	check_hex(buf, len, 2*987 + total, 25);
+		check =	check_hex(buf, len, 2*t->gen1 + total, t->gen2);
 		if (!check) {
 			fprintf(stderr, "Wrong buffer content\n");
+			dump(stderr, " buf ", buf, len);
 			failed = 1;
 		}
 		total += len;
@@ -150,6 +185,37 @@ readBlobAsChar(SQLUSMALLINT pos, int step, int wide)
 		failed = 1;
 }
 
+static void
+add_test(SQLSMALLINT c_type, SQLSMALLINT sql_type, const char *db_type, unsigned gen1, unsigned gen2)
+{
+	test_info *t = NULL;
+	size_t buf_len;
+
+	if (num_tests >= MAX_TESTS) {
+		fprintf(stderr, "too max tests\n");
+		exit(1);
+	}
+
+	t = &test_infos[num_tests++];
+	t->num = num_tests;
+	t->c_type = c_type;
+	t->sql_type = sql_type;
+	t->db_type = db_type;
+	t->gen1 = gen1;
+	t->gen2 = gen2;
+	t->vind = 0;
+	buf_len = (c_type == SQL_C_CHAR) ? NBYTES*2+1: NBYTES;
+	t->buf = (char*) malloc(buf_len);
+	if (!t->buf) {
+		fprintf(stderr, "memory error\n");
+		exit(1);
+	}
+	if (c_type != SQL_C_CHAR)
+		fill_chars(t->buf, NBYTES, t->gen1, t->gen2);
+	else
+		memset(t->buf, 0, buf_len);
+	t->vind = SQL_LEN_DATA_AT_EXEC(buf_len);
+}
 
 int
 main(int argc, char **argv)
@@ -160,18 +226,26 @@ main(int argc, char **argv)
 
 	int key;
 	SQLLEN vind0;
-	char buf1[NBYTES];
-	SQLLEN vind1;
-	char buf2[NBYTES];
-	SQLLEN vind2;
-	char buf3[NBYTES*2 + 1];
-	SQLLEN vind3;
 	int cnt = 2, wide;
+	char sql[256];
+	test_info *t = NULL;
 
 	use_odbc_version3 = 1;
 	Connect();
 
-	Command("CREATE TABLE #tt ( k INT, t TEXT, b1 IMAGE, b2 IMAGE, v INT )");
+	add_test(SQL_C_BINARY, SQL_LONGVARCHAR,   "TEXT",  123, 1 );
+	add_test(SQL_C_BINARY, SQL_LONGVARBINARY, "IMAGE", 987, 25);
+	add_test(SQL_C_CHAR,   SQL_LONGVARBINARY, "IMAGE", 987, 25);
+	if (db_is_microsoft()) {
+		add_test(SQL_C_BINARY, SQL_WLONGVARCHAR, "NTEXT", 765, 12);
+		add_test(SQL_C_CHAR,   SQL_WLONGVARCHAR, "NTEXT", 237, 71);
+	}
+
+	strcpy(sql, "CREATE TABLE #tt(k INT");
+	for (t = test_infos; t < test_infos+num_tests; ++t)
+		sprintf(strchr(sql, 0), ",f%u %s", t->num, t->db_type);
+	strcat(sql, ",v INT)");
+	Command(sql);
 
 	old_Statement = Statement;
 	Statement = SQL_NULL_HSTMT;
@@ -182,26 +256,20 @@ main(int argc, char **argv)
 
 		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "S");
 
-		CHKPrepare((SQLCHAR *) "INSERT INTO #tt VALUES ( ?, ?, ?, ?, ? )", SQL_NTS, "S");
+		strcpy(sql, "INSERT INTO #tt VALUES(?");
+		for (t = test_infos; t < test_infos+num_tests; ++t)
+			strcat(sql, ",?");
+		strcat(sql, ",?)");
+		CHKPrepare((SQLCHAR *) sql, SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0, "S");
-		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARCHAR, 0x10000000, 0, buf1, 0, &vind1, "S");
-		CHKBindParameter(3, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0x10000000, 0, buf2, 0, &vind2, "S");
-		CHKBindParameter(4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_LONGVARBINARY, 0x10000000, 0, buf3, 0, &vind3, "S");
-		CHKBindParameter(5, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0, "S");
+		for (t = test_infos; t < test_infos+num_tests; ++t)
+			CHKBindParameter(t->num+1, SQL_PARAM_INPUT, t->c_type, t->sql_type, 0x10000000, 0, t->buf, 0, &t->vind, "S");
+
+		CHKBindParameter(num_tests+2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0, "S");
 
 		key = i;
 		vind0 = 0;
-
-		fill_chars(buf1, NBYTES, 123, 1);
-		vind1 = SQL_LEN_DATA_AT_EXEC(NBYTES);
-
-		fill_chars(buf2, NBYTES, 987, 25);
-		vind2 = SQL_LEN_DATA_AT_EXEC(NBYTES);
-		
-		memset(buf3, 0, sizeof(buf3));
-		vind3 = SQL_LEN_DATA_AT_EXEC(2*NBYTES+1);
-		
 
 		printf(">> insert... %d\n", i);
 		RetCode = CHKExecute("SINe");
@@ -211,13 +279,16 @@ main(int argc, char **argv)
 			RetCode = CHKParamData((SQLPOINTER) & p, "SINe");
 			printf(">> SQLParamData: ptr = %p  RetCode = %d\n", (void *) p, RetCode);
 			if (RetCode == SQL_NEED_DATA) {
-				if (p == buf3) {
-					fill_hex(buf3, NBYTES, 987, 25);
-					
+				for (t = test_infos; t < test_infos+num_tests && t->buf != p; ++t)
+					;
+				assert(t < test_infos+num_tests);
+				if (t->c_type == SQL_C_CHAR) {
+					fill_hex(p, NBYTES, t->gen1, t->gen2);
+
 					CHKPutData(p, NBYTES - (i&1), "S");
 
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES - (i&1));
-					
+
 					CHKPutData(p + NBYTES - (i&1), NBYTES + (i&1), "S");
 
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES + (i&1));
@@ -245,36 +316,45 @@ main(int argc, char **argv)
 			CHKSetStmtAttr(SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER, "S");
 		}
 
-		CHKPrepare((SQLCHAR *) "SELECT t, b1, b2, v FROM #tt WHERE k = ?", SQL_NTS, "S");
+		strcpy(sql, "SELECT ");
+		for (t = test_infos; t < test_infos+num_tests; ++t)
+			sprintf(strchr(sql, 0), "f%u,", t->num);
+		strcat(sql, "v FROM #tt WHERE k = ?");
+		CHKPrepare((SQLCHAR *) sql, SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &i, 0, &vind0, "S");
 
-		CHKBindCol(1, SQL_C_BINARY, NULL, 0, &vind1, "S");
-		CHKBindCol(2, SQL_C_BINARY, NULL, 0, &vind2, "S");
-		CHKBindCol(3, SQL_C_BINARY, NULL, 0, &vind3, "S");
-		CHKBindCol(4, SQL_C_LONG, &key, 0, &vind0, "S");
+		for (t = test_infos; t < test_infos+num_tests; ++t) {
+			t->vind = SQL_DATA_AT_EXEC;
+			CHKBindCol(t->num, SQL_C_BINARY, NULL, 0, &t->vind, "S");
+		}
+		CHKBindCol(num_tests+1, SQL_C_LONG, &key, 0, &vind0, "S");
 
 		vind0 = 0;
-		vind1 = SQL_DATA_AT_EXEC;
-		vind2 = SQL_DATA_AT_EXEC;
 
 		CHKExecute("S");
 
 		CHKFetchScroll(SQL_FETCH_NEXT, 0, "S");
 		printf(">> fetch... %d\n", i);
 
-		readBlob(1);
-		readBlob(2);
-		readBlobAsChar(3, i, wide);
+		for (t = test_infos; t < test_infos+num_tests; ++t) {
+			if (t->c_type == SQL_C_CHAR)
+				readBlobAsChar(t, i, wide);
+			else
+				readBlob(t);
+		}
 
 		CHKCloseCursor("S");
 		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
 		Statement = SQL_NULL_HSTMT;
 	}
-	
+
 	Statement = old_Statement;
 
 	Disconnect();
+
+	if (!failed)
+		printf("ok!\n");
 
 	return failed ? 1 : 0;
 }
