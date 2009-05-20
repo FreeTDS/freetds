@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.7 2008-05-09 18:49:04 jklowden Exp $
+# $Id: osql,v 1.8 2009-05-20 14:17:31 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -41,59 +41,75 @@ fi
 
 # Establish ODBC prefix directory
 
-ODBC_DIR=$(strings ${ISQL} | grep ^/ | grep -v elf | grep -v '\.so\.' | head -1 | sed 's/lib$/etc/' )
+ISQL_DIR=$(strings ${ISQL} | grep ^/ | grep -v elf | grep -v '\.so\.' | head -1 | sed 's/lib$/etc/' )
 
-# N.B.  better than head(1) would be a loop to test the strings.  Since we're looking for a directory, 
-# something like this might work:
-# for D in $(strings ${ISQL} | grep ^/ | grep -v elf | sed 's/lib$/etc/' )
-# do
-# 	if [ -d $D ]
-# 	then
-# 		ODBC_DIR = $D
-# 	fi
-# done
+INI_DIRNAME="/tmp/$(basename $0).$$"
+exec 3> ${INI_DIRNAME}
 
-if [ -z "${ODBC_DIR}" ]
+# if no hard-coded directory is found in the isql executable, check the libraries. 
+if [ -z "${OVER_DIR}" ]
+then 
+	echo "checking shared odbc libraries linked to isql for default directories..."
+	(echo ${ISQL_DIR}; ldd "${ISQL}" | awk '/[-]lodbc/ {print $3}') \
+	| while read L
+	  do 
+	  	strings "$L" | grep '^/' | grep -v '/lib' \
+		| while read D 
+		  do 
+		  	if [ ! -s "${INI_DIRNAME}" ]
+			then
+			  	printf "	trying $D ... "
+			  	if [ -d "$D" -a -r "${D}/odbc.ini" ]
+				then
+					printf $D >&3
+					printf "OK"
+				fi
+				printf "\n"
+			fi
+		  done
+	  done
+fi
+
+ODBC_DIR=$(cat ${INI_DIRNAME}) && rm ${INI_DIRNAME}
+
+if [ -z "${ODBC_DIR}" -a -z "${OVER_DIR}" ]
 then
-	echo "$(basename $0): error: no potential directory strings in \"$(command -v isql)\""
+	echo "$(basename $0): problem: no potential directory strings in \"$(command -v isql)\""
+	echo "$(basename $0): advice: use \"osql -I DIR\" where DIR unixODBC\'s install prefix e.g. /usr/local"
 	echo "isql strings are:"
 	strings ${ISQL} | grep ^/ | sed 's/^/+ /'
-	exit 1
+	#xit 1
 fi
 
 if [ "${OVER_DIR}" ]
 then
 	if [ -d "${ODBC_DIR}" ]
 	then
-		echo "\"${ODBC_DIR}\" (from isql) is a directory, "
-		echo "	but is overridden by \"${OVER_DIR}\"."
+		echo "\"${ODBC_DIR}\" (from isql) is a directory, overridden by"
 	else 
-		echo "${ODBC_DIR} (from isql) is not a directory"
-		echo "	and is overridden by \"${OVER_DIR}\"."
+		echo "\"${ODBC_DIR}\" (from isql) is NOT a directory, overridden by"
 	fi
+	echo "\"${OVER_DIR}\"."
 	
 	if [ -d "${OVER_DIR}" ]
 	then
 		ODBC_DIR=${OVER_DIR}
 	else
 		echo "$(basename $0): error: \"${OVER_DIR}\" is not a directory (disallowing)"
+		exit 1
 	fi
 fi
 
-if [ ! -d "${ODBC_DIR}" ]
-then
-	echo "$(basename $0): error: ${ODBC_DIR} (from isql) is not a directory!"
-	echo "isql strings are:"
-	strings ${ISQL} | grep ^/ | grep -v elf | grep -v '\.so\.' | sed 's/^/+ /'
-	return 1
-fi
-
-echo "looking for odbc.ini and odbcinst.ini in ${ODBC_DIR}"
-
 # Look for server entry in odbc.ini 
-
+echo 'checking odbc.ini files'
 for F in "${HOME}/.odbc.ini" "${ODBC_DIR}/odbc.ini"
 do
+	if [ ! -d "$(dirname $F)" ]
+	then
+		echo "$(dirname $0): error: $(basename $F) is not a directory!" 
+		continue
+	fi
+	
 	if [ -r "$F" ]
 	then
 		echo '	'reading \"$F\"
@@ -145,7 +161,7 @@ do
 			continue
 		fi
 
-		DRIVER=$(echo ${DRIVER_LINE} | awk '{print $3}')
+		DRIVER=$(echo ${DRIVER_LINE} | awk -F '[[:space:]]*=[[:space:]]*' '{print $2}')
 		if [ "${DRIVER}" ]
 		then
 			echo "driver \"${DRIVER}\" found for [$D] in $(basename ${ODBC_INI})"
