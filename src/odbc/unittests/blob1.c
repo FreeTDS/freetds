@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.19 2009-05-21 16:41:27 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.20 2009-05-21 21:58:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -261,6 +261,7 @@ main(int argc, char **argv)
 	use_odbc_version3 = 1;
 	Connect();
 
+	/* tests (W)CHAR/BINARY -> (W)CHAR/BINARY (9 cases) */
 	add_test(SQL_C_BINARY, SQL_LONGVARCHAR,   "TEXT",  123, 1 );
 	add_test(SQL_C_BINARY, SQL_LONGVARBINARY, "IMAGE", 987, 25);
 	add_test(SQL_C_CHAR,   SQL_LONGVARBINARY, "IMAGE", 987, 25);

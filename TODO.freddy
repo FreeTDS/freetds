@@ -46,16 +46,10 @@ Free unused cursors and dynamic and/or reuse them
 ODBC SQL_C_CHAR with wide
 -------------------------
 Check iso8859-1 for single ??
-test to review
-- data.c (char -> sql_c_char) DONE
-- genparams.c DONE
-- getdata.c DONE
-- putdata.c DONE
-- blob1.c (SQLGetData test with binary -> char and between chars)
 Is it possible to support direct binding for parameters using different
 encodings? For instance client <-> server iso8859-1 <-> ucs2. It should be
 possible changing TDSCOLUMN->char_conv.
-Merge putdata and blob1 tests, tests (W)CHAR/BINARY -> (W)CHAR/BINARY (9 cases).
+Merge putdata and blob1 tests.
 Check blob1 dialog, seems to prepare twice during insert.
 Do merge a bit continue_parse_prepared_query and odbc_sql2tds ??
 
