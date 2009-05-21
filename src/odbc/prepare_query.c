@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.74 2008-11-12 10:38:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.75 2009-05-21 16:35:21 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -324,27 +324,20 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	/* copy to destination */
 	if (blob) {
 		TDS_CHAR *p;
-		int dest_type, src_type, res;
-		CONV_RESULT ores;
-		TDS_DBC * dbc = stmt->dbc;
 		void *free_ptr = NULL;
 		SQLPOINTER extradata = NULL;
 		SQLLEN extralen = 0;
 
-		if (0 == (dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type))) {
-			odbc_errs_add(&stmt->errs, "07006", NULL); /* Restricted data type attribute violation */
-			return SQL_ERROR;
-		}
-
-		/* test source type */
-		/* TODO test intervals */
-		src_type = odbc_c_to_server_type(sql_src_type);
-		if (src_type == TDS_FAIL) {
-			odbc_errs_add(&stmt->errs, "07006", NULL); /* Restricted data type attribute violation */
-			return SQL_ERROR;
-		}
-
 		if (sql_src_type == SQL_C_CHAR) {
+			int dest_type, res;
+			CONV_RESULT ores;
+			TDS_DBC * dbc = stmt->dbc;
+
+			if (0 == (dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type))) {
+				odbc_errs_add(&stmt->errs, "07006", NULL); /* Restricted data type attribute violation */
+				return SQL_ERROR;
+			}
+
 			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
 			case SYBBINARY:
 			case SYBVARBINARY:
@@ -352,9 +345,9 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 			case XSYBVARBINARY:
 			case SYBLONGBINARY:
 			case SYBIMAGE:
-				if (!*((char*)DataPtr+len-1))
+				if (len && !*((char*)DataPtr+len-1))
 					--len;
-					
+
 				if (!len)
 					return SQL_SUCCESS;
 					
@@ -364,7 +357,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 					data[0] = curcol->column_text_sqlputdatainfo;
 					data[1] = *(char*)DataPtr;
 				    
-					res = tds_convert(dbc->env->tds_ctx, src_type, data, 2, dest_type, &ores);
+					res = tds_convert(dbc->env->tds_ctx, SYBVARCHAR, data, 2, dest_type, &ores);
 					if (res < 0) {
 						odbc_convert_err_set(&dbc->errs, res);
 						return SQL_ERROR;
@@ -382,7 +375,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 					curcol->column_text_sqlputdatainfo = *((char*)DataPtr+len);
 				}
 
-				res = tds_convert(dbc->env->tds_ctx, src_type, DataPtr, len, dest_type, &ores);
+				res = tds_convert(dbc->env->tds_ctx, SYBVARCHAR, DataPtr, len, dest_type, &ores);
 				if (res < 0) {
 					odbc_convert_err_set(&dbc->errs, res);
 					free(extradata);
