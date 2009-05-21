@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.75 2009-05-21 16:35:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.76 2009-05-21 16:39:38 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -206,8 +206,8 @@ parse_prepared_query(struct _hstmt *stmt, int compute_row)
 		/* find bound parameter */
 		if (stmt->param_num > stmt->apd->header.sql_desc_count || stmt->param_num > stmt->ipd->header.sql_desc_count) {
 			tdsdump_log(TDS_DBG_FUNC, "parse_prepared_query: logic_error: parameter out of bounds: "
-						  "%d > %d || %d > %d\n", 
-						   stmt->param_num, stmt->apd->header.sql_desc_count, 
+						  "%d > %d || %d > %d\n",
+						   stmt->param_num, stmt->apd->header.sql_desc_count,
 						   stmt->param_num, stmt->ipd->header.sql_desc_count);
 			return SQL_ERROR;
 		}
@@ -252,9 +252,9 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	TDSCOLUMN *curcol;
 	TDSBLOB *blob;
 	int sql_src_type;
-	
+
 	assert(stmt);
-	
+
 	tdsdump_log(TDS_DBG_FUNC, "continue_parse_prepared_query with parameter %d\n", stmt->param_num);
 
 	if (!stmt->params) {
@@ -283,7 +283,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 			odbc_errs_add(&stmt->errs, "HY009", NULL); /* Invalid use of null pointer */
 			return SQL_ERROR;
 		}
-	}		
+	}
 
 	/* get C type */
 	sql_src_type = drec_apd->sql_desc_concise_type;
@@ -307,8 +307,8 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	default:
 		if (DataPtr && StrLen_or_Ind < 0) {
 			/*
-			 * "The argument DataPtr was not a null pointer, and 
-			 * the argument StrLen_or_Ind was less than 0 
+			 * "The argument DataPtr was not a null pointer, and
+			 * the argument StrLen_or_Ind was less than 0
 			 * but not equal to SQL_NTS or SQL_NULL_DATA."
 			 */
 			odbc_errs_add(&stmt->errs, "HY090", NULL);
@@ -324,20 +324,10 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	/* copy to destination */
 	if (blob) {
 		TDS_CHAR *p;
-		void *free_ptr = NULL;
-		SQLPOINTER extradata = NULL;
-		SQLLEN extralen = 0;
+		int binary_convert = 0;
+		SQLLEN orig_len;
 
 		if (sql_src_type == SQL_C_CHAR) {
-			int dest_type, res;
-			CONV_RESULT ores;
-			TDS_DBC * dbc = stmt->dbc;
-
-			if (0 == (dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type))) {
-				odbc_errs_add(&stmt->errs, "07006", NULL); /* Restricted data type attribute violation */
-				return SQL_ERROR;
-			}
-
 			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
 			case SYBBINARY:
 			case SYBVARBINARY:
@@ -350,71 +340,71 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 
 				if (!len)
 					return SQL_SUCCESS;
-					
-				if (curcol->column_cur_size > 0
-				&&  curcol->column_text_sqlputdatainfo) {
-					TDS_CHAR data[2];
-					data[0] = curcol->column_text_sqlputdatainfo;
-					data[1] = *(char*)DataPtr;
-				    
-					res = tds_convert(dbc->env->tds_ctx, SYBVARCHAR, data, 2, dest_type, &ores);
-					if (res < 0) {
-						odbc_convert_err_set(&dbc->errs, res);
-						return SQL_ERROR;
-					}
-				    
-					extradata = ores.ib;
-					extralen = res;
-					
-					DataPtr = (SQLPOINTER) (((char*)DataPtr) + 1);
-					--len;
-				}
-				
-			        if (len&1) {
-					--len;
-					curcol->column_text_sqlputdatainfo = *((char*)DataPtr+len);
-				}
 
-				res = tds_convert(dbc->env->tds_ctx, SYBVARCHAR, DataPtr, len, dest_type, &ores);
-				if (res < 0) {
-					odbc_convert_err_set(&dbc->errs, res);
-					free(extradata);
-					return SQL_ERROR;
-				}
-			    
-				DataPtr = free_ptr = ores.ib;
-				len = res;
+				binary_convert = 1;
+				orig_len = len;
+				len = len / 2u + 1u;
 				break;
 			}
 		}
 
 		if (blob->textvalue)
-			p = (TDS_CHAR *) realloc(blob->textvalue, len + extralen + curcol->column_cur_size);
+			p = (TDS_CHAR *) realloc(blob->textvalue, len + curcol->column_cur_size);
 		else {
 			assert(curcol->column_cur_size == 0);
-			p = (TDS_CHAR *) malloc(len + extralen);
+			p = (TDS_CHAR *) malloc(len);
 		}
 		if (!p) {
-			free(free_ptr);
-			free(extradata);
 			odbc_errs_add(&stmt->errs, "HY001", NULL); /* Memory allocation error */
 			return SQL_ERROR;
 		}
 		blob->textvalue = p;
-		if (extralen) {
-			memcpy(blob->textvalue + curcol->column_cur_size, extradata, extralen);
-			curcol->column_cur_size += extralen;
+
+		p += curcol->column_cur_size;
+		if (binary_convert) {
+			int res;
+
+			len = orig_len;
+
+			if (curcol->column_cur_size > 0
+			&&  curcol->column_text_sqlputdatainfo) {
+				TDS_CHAR data[2];
+				data[0] = curcol->column_text_sqlputdatainfo;
+				data[1] = *(char*)DataPtr;
+
+				res = tds_char2hex(p, 1, data, 2);
+				if (res < 0) {
+					odbc_convert_err_set(&stmt->errs, res);
+					return SQL_ERROR;
+				}
+				p += res;
+
+				DataPtr = (SQLPOINTER) (((char*)DataPtr) + 1);
+				--len;
+			}
+
+			if (len&1) {
+				--len;
+				curcol->column_text_sqlputdatainfo = *((char*)DataPtr+len);
+			}
+
+			res = tds_char2hex(p, len / 2u, DataPtr, len);
+			if (res < 0) {
+				odbc_convert_err_set(&stmt->errs, res);
+				return SQL_ERROR;
+			}
+			p += res;
+
+			len = p - (blob->textvalue + curcol->column_cur_size);
+		} else {
+			memcpy(blob->textvalue + curcol->column_cur_size, DataPtr, len);
 		}
-		memcpy(blob->textvalue + curcol->column_cur_size, DataPtr, len);
-		
-		free(extradata);
-		free(free_ptr);
 	} else {
 		memcpy(curcol->column_data + curcol->column_cur_size, DataPtr, len);
 	}
-	
+
 	curcol->column_cur_size += len;
-	
+
 	if (blob && curcol->column_cur_size > curcol->column_size)
 		curcol->column_size = curcol->column_cur_size;
 

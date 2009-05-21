@@ -1,3 +1,7 @@
+Thu May 21 18:39:31 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsconvert.h src/odbc/prepare_query.c src/tds/convert.c:
+	- extract and reuse tds_char2hex
+
 Thu May 21 18:35:15 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/prepare_query.c: improve continue_parse_prepared_query
 
@@ -1562,4 +1566,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2792 2009-05-21 16:35:21 freddy77 Exp $
+$Id: ChangeLog,v 1.2793 2009-05-21 16:39:37 freddy77 Exp $

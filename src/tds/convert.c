@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.188 2009-02-07 00:26:22 jklowden Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.189 2009-05-21 16:39:38 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -277,11 +277,51 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 	return TDS_CONVERT_NOAVAIL;
 }
 
+TDS_INT
+tds_char2hex(TDS_CHAR *dest, TDS_UINT destlen, const TDS_CHAR * src, TDS_UINT srclen)
+{
+	unsigned int i;
+	unsigned char hex1, c = 0;
+
+	/* if srclen if odd we must add a "0" before ... */
+	i = 0;		/* number where to start converting */
+	if (srclen & 1) {
+		++srclen;
+		i = 1;
+		--src;
+	}
+	for (; i < srclen; ++i) {
+		hex1 = src[i];
+
+		if ('0' <= hex1 && hex1 <= '9')
+			hex1 &= 0x0f;
+		else {
+			hex1 &= 0x20 ^ 0xff;	/* mask off 0x20 to ensure upper case */
+			if ('A' <= hex1 && hex1 <= 'F') {
+				hex1 -= ('A' - 10);
+			} else {
+				tdsdump_log(TDS_DBG_INFO1,
+					    "error_handler:  attempt to convert data stopped by syntax error in source field \n");
+				return TDS_CONVERT_SYNTAX;
+			}
+		}
+		assert(hex1 < 0x10);
+
+		if ((i/2u) >= destlen)
+			continue;
+
+		if (i & 1)
+			dest[i / 2u] = c | hex1;
+		else
+			c = hex1 << 4;
+	}
+	return srclen / 2u;
+}
+
 static TDS_INT
 tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
 {
 	unsigned int i, j;
-	unsigned char hex1;
 
 	TDS_INT8 mymoney;
 	char mynumber[39];
@@ -324,46 +364,13 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		/* a binary string output will be half the length of */
 		/* the string which represents it in hexadecimal     */
 
-		/* if srclen if odd we must add a "0" before ... */
-		j = 0;		/* number where to start converting */
-		if (srclen & 1) {
-			++srclen;
-			j = 1;
-			--src;
-		}
 		ib = cr->cb.ib;
 		if (desttype != TDS_CONVERT_BINARY) {
-			cr->ib = (TDS_CHAR *) malloc(srclen / 2);
+			cr->ib = (TDS_CHAR *) malloc((srclen + 1u) / 2u);
 			test_alloc(cr->ib);
 			ib = cr->ib;
 		}
-
-		for (i = srclen; i > j;) {
-			hex1 = src[--i];
-
-			if ('0' <= hex1 && hex1 <= '9')
-				hex1 &= 0x0f;
-			else {
-				hex1 &= 0x20 ^ 0xff;	/* mask off 0x20 to ensure upper case */
-				if ('A' <= hex1 && hex1 <= 'F') {
-					hex1 -= ('A' - 10);
-				} else {
-					tdsdump_log(TDS_DBG_INFO1,
-						    "error_handler:  attempt to convert data stopped by syntax error in source field \n");
-					return TDS_CONVERT_SYNTAX;
-				}
-			}
-			assert(hex1 < 0x10);
-
-			if (desttype == TDS_CONVERT_BINARY && (i/2) >= cr->cb.len)
-				continue;
-
-			if (i & 1)
-				ib[i / 2] = hex1;
-			else
-				ib[i / 2] |= hex1 << 4;
-		}
-		return srclen / 2;
+		return tds_char2hex(ib, desttype == TDS_CONVERT_BINARY ? cr->cb.len : 0xffffffffu, src, srclen);
 		break;
 	case SYBINT1:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
