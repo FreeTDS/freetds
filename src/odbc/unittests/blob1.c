@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.17 2009-05-20 16:27:57 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.18 2009-05-21 16:30:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -120,6 +120,15 @@ readBlob(test_info *t)
 }
 
 static int
+to_sqlwchar(SQLWCHAR *dst, const char *src, int n)
+{
+	int i = n;
+	while (--i >= 0)
+		dst[i] = (unsigned char) src[i];
+	return n * sizeof(SQLWCHAR);
+}
+
+static int
 from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
 {
 	int i;
@@ -204,17 +213,36 @@ add_test(SQLSMALLINT c_type, SQLSMALLINT sql_type, const char *db_type, unsigned
 	t->gen1 = gen1;
 	t->gen2 = gen2;
 	t->vind = 0;
-	buf_len = (c_type == SQL_C_CHAR) ? NBYTES*2+1: NBYTES;
+	switch (c_type) {
+	case SQL_C_CHAR:
+		buf_len =  NBYTES*2+1;
+		break;
+	case SQL_C_WCHAR:
+		buf_len = (NBYTES*2+1) * sizeof(SQLWCHAR);
+		break;
+	default:
+		buf_len = NBYTES;
+	}
 	t->buf = (char*) malloc(buf_len);
 	if (!t->buf) {
 		fprintf(stderr, "memory error\n");
 		exit(1);
 	}
-	if (c_type != SQL_C_CHAR)
+	if (c_type != SQL_C_CHAR && c_type != SQL_C_WCHAR)
 		fill_chars(t->buf, NBYTES, t->gen1, t->gen2);
 	else
 		memset(t->buf, 0, buf_len);
 	t->vind = SQL_LEN_DATA_AT_EXEC(buf_len);
+}
+
+static void
+free_tests()
+{
+	while (num_tests > 0) {
+		test_info *t = &test_infos[--num_tests];
+		free(t->buf);
+		t->buf = NULL;
+	}
 }
 
 int
@@ -236,9 +264,13 @@ main(int argc, char **argv)
 	add_test(SQL_C_BINARY, SQL_LONGVARCHAR,   "TEXT",  123, 1 );
 	add_test(SQL_C_BINARY, SQL_LONGVARBINARY, "IMAGE", 987, 25);
 	add_test(SQL_C_CHAR,   SQL_LONGVARBINARY, "IMAGE", 987, 25);
+	add_test(SQL_C_CHAR,   SQL_LONGVARCHAR,   "TEXT",  343, 47);
+	add_test(SQL_C_WCHAR,  SQL_LONGVARBINARY, "IMAGE", 561, 29);
+	add_test(SQL_C_WCHAR,  SQL_LONGVARCHAR,   "TEXT",  698, 24);
 	if (db_is_microsoft()) {
 		add_test(SQL_C_BINARY, SQL_WLONGVARCHAR, "NTEXT", 765, 12);
 		add_test(SQL_C_CHAR,   SQL_WLONGVARCHAR, "NTEXT", 237, 71);
+		add_test(SQL_C_WCHAR,  SQL_WLONGVARCHAR, "NTEXT", 687, 68);
 	}
 
 	strcpy(sql, "CREATE TABLE #tt(k INT");
@@ -253,6 +285,9 @@ main(int argc, char **argv)
 	/* Insert rows ... */
 
 	for (i = 0; i < cnt; i++) {
+		/* MS do not save correctly char -> binary */
+		if (!driver_is_freetds() && i)
+			continue;
 
 		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "S");
 
@@ -282,14 +317,20 @@ main(int argc, char **argv)
 				for (t = test_infos; t < test_infos+num_tests && t->buf != p; ++t)
 					;
 				assert(t < test_infos+num_tests);
-				if (t->c_type == SQL_C_CHAR) {
-					fill_hex(p, NBYTES, t->gen1, t->gen2);
+				if (t->c_type == SQL_C_CHAR || t->c_type == SQL_C_WCHAR) {
+					unsigned char_len = 1;
 
-					CHKPutData(p, NBYTES - (i&1), "S");
+					fill_hex(p, NBYTES, t->gen1, t->gen2);
+					if (t->c_type == SQL_C_WCHAR) {
+						char_len = sizeof(SQLWCHAR);
+						to_sqlwchar((SQLWCHAR*) p, p, NBYTES * 2);
+					}
+
+					CHKPutData(p, (NBYTES - (i&1)) * char_len, "S");
 
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES - (i&1));
 
-					CHKPutData(p + NBYTES - (i&1), NBYTES + (i&1), "S");
+					CHKPutData(p + (NBYTES - (i&1)) * char_len, (NBYTES + (i&1)) * char_len, "S");
 
 					printf(">> param %p: total bytes written = %d\n", (void *) p, NBYTES + (i&1));
 				} else {
@@ -308,6 +349,10 @@ main(int argc, char **argv)
 
 	for (wide = 0; wide < 2; ++wide)
 	for (i = 0; i < cnt; i++) {
+		/* MS do not save correctly char -> binary */
+		if (!driver_is_freetds() && i)
+			continue;
+
 
 		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "S");
 
@@ -338,7 +383,7 @@ main(int argc, char **argv)
 		printf(">> fetch... %d\n", i);
 
 		for (t = test_infos; t < test_infos+num_tests; ++t) {
-			if (t->c_type == SQL_C_CHAR)
+			if (t->c_type == SQL_C_CHAR || t->c_type == SQL_C_WCHAR)
 				readBlobAsChar(t, i, wide);
 			else
 				readBlob(t);
@@ -351,6 +396,7 @@ main(int argc, char **argv)
 
 	Statement = old_Statement;
 
+	free_tests();
 	Disconnect();
 
 	if (!failed)
