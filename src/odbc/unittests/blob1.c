@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.18 2009-05-21 16:30:57 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.19 2009-05-21 16:41:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -133,7 +133,7 @@ from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
 {
 	int i;
 	for (i = 0; i < n; ++i) {
-		assert(src[i] >= 0 && src[i] < 256);
+		assert(src[i] < 256);
 		dst[i] = src[i];
 	}
 	return n;
@@ -236,7 +236,7 @@ add_test(SQLSMALLINT c_type, SQLSMALLINT sql_type, const char *db_type, unsigned
 }
 
 static void
-free_tests()
+free_tests(void)
 {
 	while (num_tests > 0) {
 		test_info *t = &test_infos[--num_tests];

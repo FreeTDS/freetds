@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.76 2009-05-21 16:39:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.77 2009-05-21 16:41:27 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -243,6 +243,48 @@ start_parse_prepared_query(struct _hstmt *stmt, int compute_row)
 	return parse_prepared_query(stmt, compute_row);
 }
 
+static TDS_INT
+odbc_wchar2hex(TDS_CHAR *dest, TDS_UINT destlen, const SQLWCHAR * src, TDS_UINT srclen)
+{
+	unsigned int i;
+	SQLWCHAR hex1, c = 0;
+
+	/* if srclen if odd we must add a "0" before ... */
+	i = 0;		/* number where to start converting */
+	if (srclen & 1) {
+		++srclen;
+		i = 1;
+		--src;
+	}
+	for (; i < srclen; ++i) {
+		hex1 = src[i];
+
+		if ('0' <= hex1 && hex1 <= '9')
+			hex1 &= 0x0f;
+		else {
+			hex1 &= (SQLWCHAR) ~0x20u;	/* mask off 0x20 to ensure upper case */
+			if ('A' <= hex1 && hex1 <= 'F') {
+				hex1 -= ('A' - 10);
+			} else {
+				tdsdump_log(TDS_DBG_INFO1,
+					    "error_handler:  attempt to convert data stopped by syntax error in source field \n");
+				return TDS_CONVERT_SYNTAX;
+			}
+		}
+		assert(hex1 < 0x10);
+
+		if ((i/2u) >= destlen)
+			continue;
+
+		if (i & 1)
+			dest[i / 2u] = c | hex1;
+		else
+			c = hex1 << 4;
+	}
+	return srclen / 2u;
+}
+
+
 int
 continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN StrLen_or_Ind)
 {
@@ -327,7 +369,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 		int binary_convert = 0;
 		SQLLEN orig_len;
 
-		if (sql_src_type == SQL_C_CHAR) {
+		if (sql_src_type == SQL_C_CHAR || sql_src_type == SQL_C_WCHAR) {
 			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {
 			case SYBBINARY:
 			case SYBVARBINARY:
@@ -335,8 +377,11 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 			case XSYBVARBINARY:
 			case SYBLONGBINARY:
 			case SYBIMAGE:
-				if (len && !*((char*)DataPtr+len-1))
+				if (len && sql_src_type == SQL_C_CHAR && !*((char*)DataPtr+len-1))
 					--len;
+
+				if (sql_src_type == SQL_C_WCHAR)
+					len /= sizeof(SQLWCHAR);
 
 				if (!len)
 					return SQL_SUCCESS;
@@ -368,27 +413,30 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 
 			if (curcol->column_cur_size > 0
 			&&  curcol->column_text_sqlputdatainfo) {
-				TDS_CHAR data[2];
+				SQLWCHAR data[2];
 				data[0] = curcol->column_text_sqlputdatainfo;
-				data[1] = *(char*)DataPtr;
+				data[1] = (sql_src_type == SQL_C_CHAR) ? *(unsigned char*)DataPtr : *(SQLWCHAR*)DataPtr;
 
-				res = tds_char2hex(p, 1, data, 2);
+				res = odbc_wchar2hex(p, 1, data, 2);
 				if (res < 0) {
 					odbc_convert_err_set(&stmt->errs, res);
 					return SQL_ERROR;
 				}
 				p += res;
 
-				DataPtr = (SQLPOINTER) (((char*)DataPtr) + 1);
+				DataPtr = (SQLPOINTER) (((char*)DataPtr) +
+					(sql_src_type == SQL_C_CHAR ? 1 : sizeof(SQLWCHAR)));
 				--len;
 			}
 
 			if (len&1) {
 				--len;
-				curcol->column_text_sqlputdatainfo = *((char*)DataPtr+len);
+				curcol->column_text_sqlputdatainfo = (sql_src_type == SQL_C_CHAR) ? ((char*)DataPtr)[len] : ((SQLWCHAR*)DataPtr)[len];
 			}
 
-			res = tds_char2hex(p, len / 2u, DataPtr, len);
+			res = (sql_src_type == SQL_C_CHAR) ?
+				tds_char2hex(p, len / 2u, DataPtr, len):
+				odbc_wchar2hex(p, len / 2u, DataPtr, len);
 			if (res < 0) {
 				odbc_convert_err_set(&stmt->errs, res);
 				return SQL_ERROR;
