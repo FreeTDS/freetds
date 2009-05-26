@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.235 2009-03-19 16:02:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.236 2009-05-26 16:20:32 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1440,7 +1440,6 @@ static int
 tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	unsigned char *src;
-	TDS_NUMERIC *num;
 	TDSBLOB *blob = NULL;
 	size_t colsize, size;
 
@@ -1598,7 +1597,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 		/* put real data */
 		if (is_numeric_type(curcol->column_type)) {
-			num = (TDS_NUMERIC *) src;
+			TDS_NUMERIC *num = (TDS_NUMERIC *) src;
 			tds_put_n(tds, num->array, colsize);
 		} else if (blob) {
 			tds_put_n(tds, s, colsize);

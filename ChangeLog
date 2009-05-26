@@ -1,3 +1,6 @@
+Tue May 26 18:18:50 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c: reduce num scope
+
 Fri May 22 19:33:28 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/sql2tds.c: fix genparams
 
@@ -1576,4 +1579,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2796 2009-05-22 17:33:35 freddy77 Exp $
+$Id: ChangeLog,v 1.2797 2009-05-26 16:20:32 freddy77 Exp $
