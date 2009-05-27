@@ -1,3 +1,6 @@
+Wed May 27 19:57:53 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/genparams.c: fix for MS ODBC
+
 Tue May 26 18:18:50 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/query.c: reduce num scope
 
@@ -1579,4 +1582,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2797 2009-05-26 16:20:32 freddy77 Exp $
+$Id: ChangeLog,v 1.2798 2009-05-27 17:58:02 freddy77 Exp $

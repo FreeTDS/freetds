@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.42 2009-03-17 09:05:47 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.43 2009-05-27 17:58:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -78,6 +78,13 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 
 		CHKExecute("S");
 	}
+
+	/*
+	 * MS OBDC requires it cause first recordset is a recordset with a
+	 * warning caused by the way it execute RPC (via EXEC statement)
+	 */
+	if (use_cursors && !driver_is_freetds())
+		SQLMoreResults(Statement);
 
 	/* test results */
 	sbuf[0] = 0;
@@ -297,7 +304,9 @@ AllTests(void)
 		TestOutput("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
 	/* FIXME our driver ignore precision for date */
 	precision = 3;
-	TestOutput("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
+	/* Some MS driver incorrectly prepare with smalldatetime*/
+	if (!use_cursors || driver_is_freetds())
+		TestOutput("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
 	TestOutput("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP,
 	     big_endian ? "0000949700FB9640" : "979400004096FB00");
 	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34");
