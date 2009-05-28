@@ -1,3 +1,6 @@
+Thu May 28 18:17:43 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/data.c: add tests for mssql2005 types
+
 Thu May 28 18:15:23 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/common.h: add SYBDECIMAL
 
@@ -1585,4 +1588,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2799 2009-05-28 16:15:29 freddy77 Exp $
+$Id: ChangeLog,v 1.2800 2009-05-28 16:17:49 freddy77 Exp $

@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.26 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.27 2009-05-28 16:17:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -177,6 +177,13 @@ main(int argc, char *argv[])
 	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_CHAR, "19 2006-06-12 22:37:00");
 	Test("DATETIME", "2006-06-09 11:22:44", SQL_C_WCHAR, "23 2006-06-09 11:22:44.000");
 	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_WCHAR, "19 2006-06-12 22:37:00");
+
+	if (db_is_microsoft() && db_version_int() >= 0x09000000u) {
+		Test("VARCHAR(MAX)", "goodbye!", SQL_C_CHAR, "8 goodbye!");
+		Test("NVARCHAR(MAX)", "Micio mao", SQL_C_CHAR, "9 Micio mao");
+		Test("VARBINARY(MAX)", "ciao", SQL_C_BINARY, "6369616F");
+		Test("XML", "<a b=\"aaa\"><b>ciao</b>hi</a>", SQL_C_CHAR, "28 <a b=\"aaa\"><b>ciao</b>hi</a>");
+	}
 
 	Disconnect();
 
