@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.21 2008-10-28 12:50:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.22 2009-05-28 16:23:32 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -177,7 +177,8 @@ tds_check_column_extra(const TDSCOLUMN * column)
 
 	assert(column);
 
-	assert(column->column_varint_size <= 5 && column->column_varint_size != 3);
+	/* 8 is for varchar(max) or similar */
+	assert(column->column_varint_size == 8 || (column->column_varint_size <= 5 && column->column_varint_size != 3));
 
 	assert(column->column_scale <= column->column_prec);
 	assert(column->column_prec <= 77);
@@ -193,9 +194,19 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(tds_get_cardinal_type(column->on_server.column_type) == column->column_type
 		|| (tds_get_null_type(column->column_type) == column->on_server.column_type 
 		&& column->column_varint_size == 1 && is_fixed_type(column->column_type)));
+
+	varint_ok = 0;
+	if (is_blob_type(column->column_type)) {
+		assert(column->column_varint_size >= 4);
+	} else if (column->column_varint_size == 8) {
+		assert(column->on_server.column_type == XSYBVARCHAR || column->on_server.column_type == XSYBVARBINARY || column->on_server.column_type == XSYBNVARCHAR);
+		varint_ok = 1;
+	} else {
+		assert(column->column_varint_size < 3);
+	}
 	tds.minor_version = 0;
 	tds.major_version = 5;
-	varint_ok = tds_get_varint_size(&tds, column->on_server.column_type) == column->column_varint_size;
+	varint_ok = varint_ok || tds_get_varint_size(&tds, column->on_server.column_type) == column->column_varint_size;
 	tds.major_version = 7;
 	varint_ok = varint_ok || tds_get_varint_size(&tds, column->on_server.column_type) == column->column_varint_size;
 	assert(varint_ok);

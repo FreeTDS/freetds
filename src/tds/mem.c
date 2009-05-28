@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.188 2009-02-07 00:26:22 jklowden Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.189 2009-05-28 16:23:32 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -291,7 +291,7 @@ _tds_param_free(TDSCOLUMN *col)
 	if (!col->column_data)
 		return;
 
-	if (is_blob_type(col->column_type)) {
+	if (is_blob_col(col)) {
 		TDSBLOB *blob = (TDSBLOB *) col->column_data;
 		free(blob->textvalue);
 	}
@@ -313,7 +313,7 @@ tds_alloc_param_data(TDSCOLUMN * curparam)
 
 	if (is_numeric_type(curparam->column_type)) {
 		data_size = sizeof(TDS_NUMERIC);
-	} else if (is_blob_type(curparam->column_type)) {
+	} else if (is_blob_col(curparam)) {
 		data_size = sizeof(TDSBLOB);
 	} else {
 		data_size = curparam->column_size;
@@ -330,7 +330,7 @@ tds_alloc_param_data(TDSCOLUMN * curparam)
 	if (!data)
 		return NULL;
 	/* if is a blob reset buffer */
-	if (is_blob_type(curparam->column_type))
+	if (is_blob_col(curparam))
 		memset(data, 0, sizeof(TDSBLOB));
 
 	return data;
@@ -438,7 +438,7 @@ _tds_row_free(TDSRESULTINFO *res_info, unsigned char *row)
 	for (i = 0; i < res_info->num_cols; ++i) {
 		col = res_info->columns[i];
 		
-		if (is_blob_type(col->column_type)) {
+		if (is_blob_col(col)) {
 			TDSBLOB *blob = (TDSBLOB *) &row[col->column_data - res_info->current_row];
 			if (blob->textvalue)
 				TDS_ZERO_FREE(blob->textvalue);
@@ -469,7 +469,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 
 		if (is_numeric_type(col->column_type)) {
 			row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_type(col->column_type)) {
+		} else if (is_blob_col(col)) {
 			row_size += sizeof(TDSBLOB);
 		} else {
 			row_size += col->column_size;
@@ -494,7 +494,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 
 		if (is_numeric_type(col->column_type)) {
 			row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_type(col->column_type)) {
+		} else if (is_blob_col(col)) {
 			row_size += sizeof(TDSBLOB);
 		} else {
 			row_size += col->column_size;

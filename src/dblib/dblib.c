@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.349 2009-04-23 13:12:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.350 2009-05-28 16:23:32 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3094,7 +3094,7 @@ dbdata(DBPROCESS * dbproc, int column)
 	if (colinfo->column_cur_size < 0)
 		return NULL;
 
-	if (is_blob_type(colinfo->column_type)) {
+	if (is_blob_col(colinfo)) {
 		BYTE *res = (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
 		if (!res)
 			return (BYTE *) empty;
@@ -4181,7 +4181,7 @@ dbadata(DBPROCESS * dbproc, int computeid, int column)
 	if (!colinfo)
 		return NULL;
 
-	if (is_blob_type(colinfo->column_type)) {
+	if (is_blob_col(colinfo)) {
 		return (BYTE *) ((TDSBLOB *) colinfo->column_data)->textvalue;
 	}
 
@@ -6241,7 +6241,7 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 	tdsdump_log(TDS_DBG_FUNC, "dbtxtimestamp(%p, %d)\n", dbproc, column);
 
 	colinfo = dbcolptr(dbproc, column);
-	if (!colinfo || !is_blob_type(colinfo->column_type))
+	if (!colinfo || !is_blob_col(colinfo))
 		return NULL;
 
 	blob = (TDSBLOB *) colinfo->column_data;
@@ -6267,7 +6267,7 @@ dbtxptr(DBPROCESS * dbproc, int column)
 	tdsdump_log(TDS_DBG_FUNC, "dbtxptr(%p, %d)\n", dbproc, column);
 
 	colinfo = dbcolptr(dbproc, column);
-	if (!colinfo || !is_blob_type(colinfo->column_type))
+	if (!colinfo || !is_blob_col(colinfo))
 		return NULL;
 
 	blob = (TDSBLOB *) colinfo->column_data;

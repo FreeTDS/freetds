@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.68 2009-03-24 01:22:14 jklowden Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.69 2009-05-28 16:23:32 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -334,7 +334,7 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 		return NULL;
 	if (size > 0 && value) {
 		tdsdump_log(TDS_DBG_FUNC, "copying %d bytes of data to parameter #%d\n", size, param_num);
-		if (!is_blob_type(curcol->column_type)) {
+		if (!is_blob_col(curcol)) {
 			memcpy(curcol->column_data, value, size);
 		} else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;

@@ -1,3 +1,13 @@
+Thu May 28 18:23:16 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h misc/types.txt src/apps/tsql.c src/ctlib/ct.c:
+	* src/dblib/bcp.c src/dblib/buffering.h src/dblib/dblib.c:
+	* src/dblib/rpc.c src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c src/tds/mem.c:
+	* src/tds/query.c src/tds/read.c src/tds/tds_checks.c:
+	* src/tds/token.c src/tds/unittests/dataread.c:
+	* src/tds/unittests/utf8_1.c src/tds/unittests/utf8_2.c:
+	- improve support for mssql2005 types (still under development)
+
 Thu May 28 18:17:43 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/data.c: add tests for mssql2005 types
 
@@ -1588,4 +1598,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2800 2009-05-28 16:17:49 freddy77 Exp $
+$Id: ChangeLog,v 1.2801 2009-05-28 16:23:31 freddy77 Exp $

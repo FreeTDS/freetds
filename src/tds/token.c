@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.359 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.360 2009-05-28 16:23:32 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1441,8 +1441,10 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->column_size = tds_get_smallint(tds);
 #ifdef ENABLE_DEVELOPING
 		/* under TDS9 this means ?var???(MAX) */
-		if (curcol->column_size < 0 && IS_TDS90(tds))
+		if (curcol->column_size < 0 && IS_TDS90(tds)) {
 			curcol->column_size = 0x1ffffffflu;
+			curcol->column_varint_size = 8;
+		}
 #endif
 		break;
 	case 1:
@@ -1951,6 +1953,8 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	TDS_INT8 len = tds_get_int8(tds);
 	TDS_INT chunk_len;
+	TDS_CHAR **p;
+	size_t offset;
 
 	/* NULL */
 	if (len == -1) {
@@ -1958,11 +1962,28 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		return TDS_SUCCEED;
 	}
 
+	curcol->column_cur_size = 0;
+	offset = 0;
+	p = &(((TDSBLOB*) curcol->column_data)->textvalue);
 	for (;;) {
+		TDS_CHAR *tmp;
+
 		chunk_len = tds_get_int(tds);
-		if (chunk_len < 0)
+		if (chunk_len <= 0) {
+			curcol->column_cur_size = offset;
 			return TDS_SUCCEED;
+		}
+		if (*p)
+			tmp = (TDS_CHAR*) malloc(chunk_len);
+		else
+			tmp = (TDS_CHAR*) realloc(*p, offset + chunk_len);
+		if (!tmp)
+			return TDS_FAIL;
+		*p = tmp;
+		tds_get_n(tds, *p + offset, chunk_len);
+		offset += chunk_len;
 	}
+	return TDS_SUCCEED;
 }
 #endif
 
@@ -2024,11 +2045,11 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	case 5:
 		colsize = tds_get_int(tds);
 		break;
-	case 2:
 #ifdef ENABLE_DEVELOPING
-		if (curcol->column_size == 0x1ffffffflu)
-			return tds9_get_varmax(tds, curcol);
+	case 8:
+		return tds9_get_varmax(tds, curcol);
 #endif
+	case 2:
 		colsize = tds_get_smallint(tds);
 		break;
 	case 1:
@@ -2090,7 +2111,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_swap_numeric(num);
 		}
 		curcol->column_cur_size = colsize;
-	} else if (is_blob_type(curcol->column_type)) {
+	} else if (is_blob_col(curcol)) {
 		TDS_CHAR *p;
 		int new_blob_size;
 		assert(blob == (TDSBLOB *) dest); 	/* cf. column_varint_size case 4, above */

@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.19 2007-10-16 15:12:23 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.20 2009-05-28 16:23:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -119,7 +119,7 @@ test0(const char *type, ...)
 
 		assert(i_row < num_data);
 
-		if (is_blob_type(curcol->column_type)) {
+		if (is_blob_col(curcol)) {
 			TDSBLOB *blob = (TDSBLOB *) src;
 
 			src = blob->textvalue;

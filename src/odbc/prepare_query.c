@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.77 2009-05-21 16:41:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.78 2009-05-28 16:23:32 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -311,7 +311,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 
 	curcol = stmt->params->columns[stmt->param_num - (stmt->prepared_query_is_func ? 2 : 1)];
 	blob = NULL;
-	if (is_blob_type(curcol->column_type))
+	if (is_blob_col(curcol))
 		blob = (TDSBLOB *) curcol->column_data;
 	assert(curcol->column_cur_size <= curcol->column_size);
 	need_bytes = curcol->column_size - curcol->column_cur_size;

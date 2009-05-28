@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.188 2009-05-11 07:25:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.189 2009-05-28 16:23:31 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1770,7 +1770,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 				srctype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
 
 				src = curcol->column_data;
-				if (is_blob_type(curcol->column_type))
+				if (is_blob_col(curcol))
 					src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
 				srclen = curcol->column_cur_size;
@@ -2691,7 +2691,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		curcol = resinfo->columns[item - 1];
 
 		src = curcol->column_data;
-		if (is_blob_type(curcol->column_type)) {
+		if (is_blob_col(curcol)) {
 			blob = (TDSBLOB *) src;
 			src = (unsigned char *) blob->textvalue;
 		}
@@ -2731,7 +2731,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		/* get at the source data */
 		curcol = resinfo->columns[item - 1];
 		src = curcol->column_data;
-		if (is_blob_type(curcol->column_type))
+		if (is_blob_col(curcol))
 			src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
 	}
@@ -3887,7 +3887,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 			size = curcol->column_size;
 		}
 		/* TODO blobs */
-		if (!is_blob_type(curcol->column_type))
+		if (!is_blob_col(curcol))
 			memcpy(curcol->column_data, value, size);
 		else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;

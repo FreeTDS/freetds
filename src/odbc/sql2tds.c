@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.82 2009-05-22 17:33:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.83 2009-05-28 16:23:32 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -206,7 +206,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		TDSSOCKET *tds = dbc->tds_socket;
 		TDSICONV *conv = tds->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
 
-		tds_set_column_type(tds, curcol, dest_type);
+		tds_set_param_type(tds, curcol, dest_type);
 
                 curcol->char_conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->server_charset.name);
 		memcpy(curcol->column_collation, tds->collation, sizeof(tds->collation));

@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.236 2009-05-26 16:20:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.237 2009-05-28 16:23:32 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1473,7 +1473,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	size = tds_fix_column_size(tds, curcol);
 
 	src = curcol->column_data;
-	if (is_blob_type(curcol->column_type)) {
+	if (is_blob_col(curcol)) {
 		blob = (TDSBLOB *) src;
 		src = (unsigned char *) blob->textvalue;
 	}
@@ -2896,7 +2896,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 		return TDS_SUCCEED;
 	}
 	
-	if (is_blob_type(curcol->column_type))
+	if (is_blob_col(curcol))
 		src = ((TDSBLOB *)src)->textvalue;
 
 	save_src = src;

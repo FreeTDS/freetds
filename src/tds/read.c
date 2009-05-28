@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.109 2009-05-11 09:05:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.110 2009-05-28 16:23:32 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -232,7 +232,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 	TDSBLOB *blob = NULL;
 	char *dest = row_buffer;
 
-	if (is_blob_type(curcol->column_type)) {
+	if (is_blob_col(curcol)) {
 		blob = (TDSBLOB *) row_buffer;
 		dest = blob->textvalue;
 	}

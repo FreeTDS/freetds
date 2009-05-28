@@ -27,7 +27,7 @@ SYBMONEY	ALL	0	1	0	0	0	0	0	0	8	SYBMONEYN
 SYBMONEY4	ALL	0	1	0	0	0	0	0	0	4	SYBMONEYN
 SYBMONEYN	ALL	1	0	1	0	0	0	0	0	-1	0
 SYBMSUDT	MS	??	0	1	1	??	0	??	??	-1	0
-SYBMSXML	MS	??	0	1	1	??	0	??	??	-1	0
+SYBMSXML	MS	8	0	1	1	1	0	0	0	-1	0
 SYBNTEXT	MS	4	0	1	1	1	0	1	0	-1	0
 SYBNUMERIC	ALL	1	0	1	0	0	1	0	0	-1	0
 SYBNVARCHAR	MS	??	0	1	1	0	0	1	0	-1	0	# Same as XSYBNVARCHAR ??
@@ -63,5 +63,5 @@ XSYBVARCHAR	MS	2	0	1	1	0	0	0	1	-1	0
 # tds_get_conversion_type from nullable to not nullable
 # tds_get_cardinal_type ??
 
-# $Id: types.txt,v 1.1 2008-09-17 07:28:36 freddy77 Exp $
+# $Id: types.txt,v 1.2 2009-05-28 16:23:31 freddy77 Exp $
 

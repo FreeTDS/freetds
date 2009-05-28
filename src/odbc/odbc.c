@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.510 2009-04-18 19:35:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.511 2009-05-28 16:23:32 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -3655,7 +3655,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				TDS_CHAR *data_ptr = (TDS_CHAR *) drec_ard->sql_desc_data_ptr;
 
 				src = (TDS_CHAR *) colinfo->column_data;
-				if (is_blob_type(colinfo->column_type))
+				if (is_blob_col(colinfo))
 					src = ((TDSBLOB *) src)->textvalue;
 				srclen = colinfo->column_cur_size;
 				c_type = drec_ard->sql_desc_concise_type;
@@ -4708,7 +4708,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 
 			/* 2003-8-29 check for an old bug -- freddy77 */
 			assert(colinfo->column_text_sqlgetdatapos >= 0);
-			if (is_blob_type(colinfo->column_type))
+			if (is_blob_col(colinfo))
 				src = ((TDSBLOB *) src)->textvalue;
 			src += colinfo->column_text_sqlgetdatapos;
 			srclen = colinfo->column_cur_size - colinfo->column_text_sqlgetdatapos;

@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.14 2007-01-18 07:58:08 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.15 2009-05-28 16:23:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -107,7 +107,7 @@ test(int n, int type)
 	curcol = tds->current_results->columns[0];
 	src = (char*) curcol->column_data;
 
-	if (is_blob_type(curcol->column_type)) {
+	if (is_blob_col(curcol)) {
 		TDSBLOB *blob = (TDSBLOB *) src;
 
 		src = blob->textvalue;

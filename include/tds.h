@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.313 2009-04-18 19:35:38 jklowden Exp $ */
+/* $Id: tds.h,v 1.314 2009-05-28 16:23:31 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -754,6 +754,7 @@ typedef enum tds_encryption_level {
 	(x)==XSYBNCHAR)
 
 #define is_blob_type(x) (x==SYBTEXT || x==SYBIMAGE || x==SYBNTEXT)
+#define is_blob_col(x) ((x)->column_varint_size > 2)
 /* large type means it has a two byte size field */
 /* define is_large_type(x) (x>128) */
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)

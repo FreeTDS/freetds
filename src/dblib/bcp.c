@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.185 2009-05-20 16:36:58 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.186 2009-05-28 16:23:32 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -948,7 +948,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 				src = curcol->column_data;
 
-				if (is_blob_type(curcol->column_type)) {
+				if (is_blob_col(curcol)) {
 					src = (BYTE *) ((TDSBLOB *) src)->textvalue;
 				}
 
