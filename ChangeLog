@@ -1,3 +1,6 @@
+Thu May 28 18:15:23 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/common.h: add SYBDECIMAL
+
 Wed May 27 19:57:53 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/genparams.c: fix for MS ODBC
 
@@ -1582,4 +1585,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2798 2009-05-27 17:58:02 freddy77 Exp $
+$Id: ChangeLog,v 1.2799 2009-05-28 16:15:29 freddy77 Exp $

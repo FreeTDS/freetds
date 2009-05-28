@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.18 2009-03-19 13:11:41 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.19 2009-05-28 16:15:29 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #if HAVE_CONFIG_H
@@ -64,6 +64,7 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 #define SYBTEXT     SQLTEXT
 #define SYBBINARY   SQLBINARY
 #define SYBIMAGE    SQLIMAGE
+#define SYBDECIMAL  SQLDECIMAL
 
 #define dberrhandle(h) dberrhandle((DBERRHANDLE_PROC) h)
 #define dbmsghandle(h) dbmsghandle((DBMSGHANDLE_PROC) h)
