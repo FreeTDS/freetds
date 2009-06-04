@@ -1,3 +1,6 @@
+Thu Jun  4 07:39:49 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/api_status.txt: updated
+
 Wed Jun  3 23:41:17 EDT 2009	JK Lowden <jklowden@freetds.org>
 	* doc/api_status.txt doc/userguide.sgml
 	- added ClientCharset connection attribute
@@ -1602,4 +1605,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2802 2009-06-04 03:45:32 jklowden Exp $
+$Id: ChangeLog,v 1.2803 2009-06-04 05:39:56 freddy77 Exp $
