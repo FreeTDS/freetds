@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.189 2009-05-28 16:23:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.190 2009-06-06 01:42:29 jklowden Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2015,6 +2015,9 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		if (usertype == USER_UNICHAR_TYPE || usertype == USER_UNIVARCHAR_TYPE)
 			return CS_UNICHAR_TYPE;
 		return CS_CHAR_TYPE;
+		break;
+	case SYBNVARCHAR:
+		return CS_UNICHAR_TYPE;
 		break;
 	}
 
@@ -4034,7 +4037,10 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 				return NULL;
 			pcol->on_server.column_size = pcol->column_size = p->maxlen;
 			pcol->column_cur_size = temp_datalen;
-			if (temp_datalen > 0 && temp_datalen > p->maxlen)
+			if (p->maxlen == 0 && pcol->column_type == SYBNVARCHAR) {
+				pcol->on_server.column_size = pcol->column_size = temp_datalen*2;
+			}
+			else if (temp_datalen > 0 && temp_datalen > p->maxlen)
 				pcol->on_server.column_size = pcol->column_size = temp_datalen;
 		} else {
 			pcol->column_cur_size = pcol->column_size;

@@ -50,7 +50,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.70 2009-05-03 19:32:57 jklowden Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.71 2009-06-06 01:42:29 jklowden Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -601,6 +601,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 
 		case SYBCHAR:
 		case SYBVARCHAR:
+		case SYBNVARCHAR:
 		case SYBTEXT:
 			tdsdump_log(TDS_DBG_FUNC, "cs_convert() desttype = character\n");
 
@@ -812,6 +813,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		break;
 	case SYBCHAR:
 	case SYBVARCHAR:
+	case SYBNVARCHAR:
 	case SYBTEXT:
 		if (len > destlen) {
 			fprintf(stderr, "error_handler: Data-conversion resulted in overflow.\n");

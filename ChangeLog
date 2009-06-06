@@ -1,3 +1,9 @@
+Fri Jun  5 21:36:29 EDT 2009	JK Lowden <jklowden@freetds.org>
+	* src/ctlib/cs.c src/ctlib/ct.c
+	* src/tds/convert.c src/tds/data.c
+	- Applied patch from Andrew Victor ML 24 November 2008
+	- "CTLib implementation handles NVARCHAR strings as VARCHAR"
+
 Thu Jun  4 07:39:49 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/api_status.txt: updated
 
@@ -1605,4 +1611,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2803 2009-06-04 05:39:56 freddy77 Exp $
+$Id: ChangeLog,v 1.2804 2009-06-06 01:42:28 jklowden Exp $

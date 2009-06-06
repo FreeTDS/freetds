@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.189 2009-05-21 16:39:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.190 2009-06-06 01:42:29 jklowden Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -340,6 +340,7 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		return srclen;
 
 	case CASE_ALL_CHAR:
+	case SYBNVARCHAR:		/* CHAR return as Unicode */
 		cr->c = (TDS_CHAR *) malloc(srclen + 1);
 		test_alloc(cr->c);
 		memcpy(cr->c, src, srclen);
