@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2009-06-04 03:45:33 $</date>
-		<releaseinfo>$Revision: 1.123 $</releaseinfo>
+		<date>$Date: 2009-06-06 16:24:11 $</date>
+		<releaseinfo>$Revision: 1.124 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -57,9 +57,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.123 $</>
-<member>$Date: 2009-06-04 03:45:33 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.123 2009-06-04 03:45:33 jklowden Exp $.</>
+<member>$Revision: 1.124 $</>
+<member>$Date: 2009-06-06 16:24:11 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.124 2009-06-06 16:24:11 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -569,7 +569,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2009-06-04 03:45:33 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2009-06-06 16:24:11 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1536,9 +1536,10 @@ The following table defines all possible ODBC connection attributes for the <pro
 	</row>
 	<row>
 	<entry><literal>ClientCharset</></entry>
-	<entry>A name recognized by the iconv library linked to FreeTDS</entry>
-	<entry>Taken from the LANG environment variable, maybe?</entry>
-	<entry>Character set (encoding) used by the client.  </entry>
+	<entry>A name recognized by the iconv library linked to FreeTDS.
+	This correspond to <literal>client charset</> in <filename>freetds.conf</>.</entry>
+	<entry>ISO8859-1</entry>
+	<entry>Character set (encoding) used by the client.</entry>
 	</row>
 	<row>
 	<entry><literal>APP</></entry>
