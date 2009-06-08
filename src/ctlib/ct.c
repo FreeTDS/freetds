@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.190 2009-06-06 01:42:29 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.191 2009-06-08 19:39:39 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1958,9 +1958,9 @@ _ct_get_client_type(int datatype, int usertype, int size)
 			return CS_REAL_TYPE;
 		} else if (size == 8) {
 			return CS_FLOAT_TYPE;
-		} else {
-			fprintf(stderr, "Error! unknown float size of %d\n", size);
 		}
+		fprintf(stderr, "Error! unknown float size of %d\n", size);
+		break;
 	case SYBMONEY:
 		return CS_MONEY_TYPE;
 		break;
@@ -1972,9 +1972,9 @@ _ct_get_client_type(int datatype, int usertype, int size)
 			return CS_MONEY4_TYPE;
 		} else if (size == 8) {
 			return CS_MONEY_TYPE;
-		} else {
-			fprintf(stderr, "Error! unknown money size of %d\n", size);
 		}
+		fprintf(stderr, "Error! unknown money size of %d\n", size);
+		break;
 	case SYBDATETIME:
 		return CS_DATETIME_TYPE;
 		break;
@@ -1986,9 +1986,8 @@ _ct_get_client_type(int datatype, int usertype, int size)
 			return CS_DATETIME4_TYPE;
 		} else if (size == 8) {
 			return CS_DATETIME_TYPE;
-		} else {
-			fprintf(stderr, "Error! unknown date size of %d\n", size);
 		}
+		fprintf(stderr, "Error! unknown date size of %d\n", size);
 		break;
 	case SYBNUMERIC:
 		return CS_NUMERIC_TYPE;

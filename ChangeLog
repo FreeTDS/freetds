@@ -1,3 +1,6 @@
+Mon Jun  8 21:39:32 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/ct.c: avoid improper fall through on error
+
 Mon Jun  8 20:38:45 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* BUGS: updated
 
@@ -1617,4 +1620,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2806 2009-06-08 18:38:52 freddy77 Exp $
+$Id: ChangeLog,v 1.2807 2009-06-08 19:39:39 freddy77 Exp $
