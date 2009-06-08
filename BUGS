@@ -7,15 +7,12 @@ Needs Fixing
 ------------
 1. Fix formatting of dbprhead/dbprrow...its a little off
    (Anybody care?)
-2. text/image does not work for row buffering under dblib.
-3. dbwritetext() and friends do not work under TDS 7.0
-4. There is a bug with the order of returns from ct_results() such that rows
+2. dbwritetext() and friends do not work under TDS 7.0
+3. There is a bug with the order of returns from ct_results() such that rows
    affected doesn't show up in sqsh.
-5. ct-lib placeholders do not work with TDS 7.0+.  To fix 
+4. ct-lib placeholders do not work with TDS 7.0+.  To fix 
    this requires either an SQL parser or API modification, 
    because the library has to determine the SQL datatype 
    of the placeholder variable.  
-6. ML Mar 21 2009: "freebcp error HINT -b doesnt work", freebcp -n broken. 
-
-
+5. ML Mar 21 2009: "freebcp error HINT -b doesnt work", freebcp -n broken. 
 
