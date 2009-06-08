@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.191 2009-06-08 19:39:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.192 2009-06-08 19:55:11 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -48,7 +48,6 @@ static char * ct_describe_cmd_state(CS_INT state);
  * @return 0 on success
  */
 static int _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read);
-int _ct_get_client_type(int datatype, int usertype, int size);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
 static int _ct_process_return_status(TDSSOCKET * tds);
 
@@ -1767,7 +1766,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 				*pdatalen = 0;
 			} else {
 
-				srctype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
+				srctype = _ct_get_client_type(curcol);
 
 				src = curcol->column_data;
 				if (is_blob_col(curcol))
@@ -1908,11 +1907,11 @@ ct_con_drop(CS_CONNECTION * con)
 }
 
 int
-_ct_get_client_type(int datatype, int usertype, int size)
+_ct_get_client_type(TDSCOLUMN *col)
 {
-	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", datatype, usertype, size);
+	tdsdump_log(TDS_DBG_FUNC, "_ct_get_client_type(type %d, user %d, size %d)\n", col->column_type, col->column_usertype, col->column_size);
 
-	switch (datatype) {
+	switch (col->column_type) {
 	case SYBBIT:
 	case SYBBITN:
 		return CS_BIT_TYPE;
@@ -1934,7 +1933,7 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		return CS_TINYINT_TYPE;
 		break;
 	case SYBINTN:
-		switch (size) {
+		switch (col->column_size) {
 		case 8:
 			return CS_BIGINT_TYPE;
 		case 4:
@@ -1944,7 +1943,7 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		case 1:
 			return CS_TINYINT_TYPE;
 		default:
-			fprintf(stderr, "Unknown size %d for SYBINTN\n", size);
+			fprintf(stderr, "Unknown size %d for SYBINTN\n", col->column_size);
 		}
 		break;
 	case SYBREAL:
@@ -1954,12 +1953,12 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		return CS_FLOAT_TYPE;
 		break;
 	case SYBFLTN:
-		if (size == 4) {
+		if (col->column_size == 4) {
 			return CS_REAL_TYPE;
-		} else if (size == 8) {
+		} else if (col->column_size == 8) {
 			return CS_FLOAT_TYPE;
 		}
-		fprintf(stderr, "Error! unknown float size of %d\n", size);
+		fprintf(stderr, "Error! unknown float size of %d\n", col->column_size);
 		break;
 	case SYBMONEY:
 		return CS_MONEY_TYPE;
@@ -1968,12 +1967,12 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		return CS_MONEY4_TYPE;
 		break;
 	case SYBMONEYN:
-		if (size == 4) {
+		if (col->column_size == 4) {
 			return CS_MONEY4_TYPE;
-		} else if (size == 8) {
+		} else if (col->column_size == 8) {
 			return CS_MONEY_TYPE;
 		}
-		fprintf(stderr, "Error! unknown money size of %d\n", size);
+		fprintf(stderr, "Error! unknown money size of %d\n", col->column_size);
 		break;
 	case SYBDATETIME:
 		return CS_DATETIME_TYPE;
@@ -1982,12 +1981,12 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		return CS_DATETIME4_TYPE;
 		break;
 	case SYBDATETIMN:
-		if (size == 4) {
+		if (col->column_size == 4) {
 			return CS_DATETIME4_TYPE;
-		} else if (size == 8) {
+		} else if (col->column_size == 8) {
 			return CS_DATETIME_TYPE;
 		}
-		fprintf(stderr, "Error! unknown date size of %d\n", size);
+		fprintf(stderr, "Error! unknown date size of %d\n", col->column_size);
 		break;
 	case SYBNUMERIC:
 		return CS_NUMERIC_TYPE;
@@ -2011,7 +2010,7 @@ _ct_get_client_type(int datatype, int usertype, int size)
 		return CS_UNIQUE_TYPE;
 		break;
 	case SYBLONGBINARY:
-		if (usertype == USER_UNICHAR_TYPE || usertype == USER_UNIVARCHAR_TYPE)
+		if (col->column_usertype == USER_UNICHAR_TYPE || col->column_usertype == USER_UNIVARCHAR_TYPE)
 			return CS_UNICHAR_TYPE;
 		return CS_CHAR_TYPE;
 		break;
@@ -2309,7 +2308,7 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->name[len] = 0;
 	datafmt->namelen = len;
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
-	datafmt->datatype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
+	datafmt->datatype = _ct_get_client_type(curcol);
 	tdsdump_log(TDS_DBG_INFO1, "ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 		    curcol->column_type);
 	/* FIXME is ok this value for numeric/decimal? */

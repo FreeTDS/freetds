@@ -36,7 +36,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.26 2008-12-12 13:56:11 freddy77 Exp $";
+static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.27 2009-06-08 19:55:11 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -270,7 +270,7 @@ int _ct_handle_server_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDS
 int _ct_handle_client_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE * msgptr);
 int _ct_get_server_type(int datatype);
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
-int _ct_get_client_type(int datatype, int usertype, int size);
+int _ct_get_client_type(TDSCOLUMN *col);
 void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, int severity, int number,
 		   const char *fmt, ...);
 CS_INT _ct_diag_clearmsg(CS_CONTEXT * context, CS_INT type);

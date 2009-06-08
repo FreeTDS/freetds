@@ -1,3 +1,7 @@
+Mon Jun  8 21:54:55 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/ctlib.h src/ctlib/blk.c src/ctlib/ct.c:
+	- make _ct_get_client_type call shorter
+
 Mon Jun  8 21:39:32 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/ct.c: avoid improper fall through on error
 
@@ -1620,4 +1624,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2807 2009-06-08 19:39:39 freddy77 Exp $
+$Id: ChangeLog,v 1.2808 2009-06-08 19:55:11 freddy77 Exp $

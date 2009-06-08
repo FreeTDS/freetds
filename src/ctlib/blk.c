@@ -38,7 +38,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.50 2009-05-03 19:32:57 jklowden Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.51 2009-06-08 19:55:11 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
@@ -194,7 +194,7 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->name[len] = 0;
 	datafmt->namelen = len;
 	/* need to turn the SYBxxx into a CS_xxx_TYPE */
-	datafmt->datatype = _ct_get_client_type(curcol->column_type, curcol->column_usertype, curcol->column_size);
+	datafmt->datatype = _ct_get_client_type(curcol);
 	tdsdump_log(TDS_DBG_INFO1, "blk_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 			curcol->column_type);
 	/* FIXME is ok this value for numeric/decimal? */
@@ -714,7 +714,7 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 			srcfmt.datatype = srctype;
 			srcfmt.maxlength = srclen;
 
-			destfmt.datatype  = _ct_get_client_type(bindcol->column_type, bindcol->column_usertype, bindcol->column_size);
+			destfmt.datatype  = _ct_get_client_type(bindcol);
 			destfmt.maxlength = bindcol->column_size;
 			destfmt.precision = bindcol->column_prec;
 			destfmt.scale     = bindcol->column_scale;
