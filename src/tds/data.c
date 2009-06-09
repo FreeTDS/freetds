@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.20 2009-06-06 01:42:29 jklowden Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.21 2009-06-09 06:50:12 freddy77 Exp $");
 
 #if !ENABLE_EXTRA_CHECKS
 static int tds_get_cardinal_type(int datatype);
@@ -84,9 +84,6 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 			break;
 		case SYBBINARY:
 			type = XSYBBINARY;
-			break;
-		case SYBNVARCHAR:
-			type = XSYBNVARCHAR;
 			break;
 			/* avoid warning on other types */
 		default:
@@ -155,7 +152,6 @@ tds_get_cardinal_type(int datatype)
 	case SYBNTEXT:
 		return SYBTEXT;
 	case XSYBNVARCHAR:
-		return SYBNVARCHAR;
 	case XSYBVARCHAR:
 		return SYBVARCHAR;
 	case XSYBNCHAR:
