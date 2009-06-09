@@ -38,7 +38,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.51 2009-06-08 19:55:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.52 2009-06-09 08:55:23 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
@@ -50,8 +50,7 @@ blk_alloc(CS_CONNECTION * connection, CS_INT version, CS_BLKDESC ** blk_pointer)
 {
 	tdsdump_log(TDS_DBG_FUNC, "blk_alloc(%p, %d, %p)\n", connection, version, blk_pointer);
 
-	*blk_pointer = (CS_BLKDESC *) malloc(sizeof(CS_BLKDESC));
-	memset(*blk_pointer, '\0', sizeof(CS_BLKDESC));
+	*blk_pointer = (CS_BLKDESC *) calloc(1, sizeof(CS_BLKDESC));
 
 	/* so we know who we belong to */
 	(*blk_pointer)->con = connection;

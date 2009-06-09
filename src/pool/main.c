@@ -57,7 +57,7 @@
 
 #include "pool.h"
 
-TDS_RCSID(var, "$Id: main.c,v 1.24 2007-09-17 08:46:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: main.c,v 1.25 2009-06-09 08:55:23 freddy77 Exp $");
 
 /* to be set by sig term */
 static int term = 0;
@@ -87,8 +87,7 @@ pool_init(char *name)
 
 	/* initialize the pool */
 
-	pool = (TDS_POOL *) malloc(sizeof(TDS_POOL));
-	memset(pool, '\0', sizeof(TDS_POOL));
+	pool = (TDS_POOL *) calloc(1, sizeof(TDS_POOL));
 	/* FIXME -- read this from the conf file */
 	if (!pool_read_conf_file(name, pool)) {
 		fprintf(stderr, "Configuration for pool ``%s'' not found.\n", name);

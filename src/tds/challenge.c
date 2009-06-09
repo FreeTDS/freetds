@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.38 2009-01-21 08:34:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.39 2009-06-09 08:55:23 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -660,10 +660,9 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 		names_blob_len = sizeof(names_blob_prefix_t) + target_info_len + 4;
 
 		/* read Target Info */
-		names_blob = (unsigned char *) malloc(names_blob_len);
+		names_blob = (unsigned char *) calloc(names_blob_len, 1);
 		if (!names_blob)
 			return TDS_FAIL;
-		memset(names_blob, 0, names_blob_len);
 
 		fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
 		tds_get_n(tds, names_blob + sizeof(names_blob_prefix_t), target_info_len);

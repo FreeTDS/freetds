@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.193 2009-06-09 06:50:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.194 2009-06-09 08:55:23 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -659,10 +659,9 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_alloc(%p, %p)\n", con, cmd);
 
-	*cmd = (CS_COMMAND *) malloc(sizeof(CS_COMMAND));
+	*cmd = (CS_COMMAND *) calloc(1, sizeof(CS_COMMAND));
 	if (!*cmd)
 		return CS_FAIL;
-	memset(*cmd, '\0', sizeof(CS_COMMAND));
 
 	/* so we know who we belong to */
 	(*cmd)->con = con;
@@ -670,8 +669,7 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 	/* initialise command state */
 	ct_set_command_state(*cmd, _CS_COMMAND_IDLE);
 
-	command_list = malloc(sizeof(CS_COMMAND_LIST));
-	memset(command_list, '\0', sizeof(CS_COMMAND_LIST));
+	command_list = calloc(1, sizeof(CS_COMMAND_LIST));
 	command_list->cmd = *cmd;
 	command_list->next = NULL;
 
@@ -759,21 +757,18 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 		if (cmd == NULL)
 			return CS_FAIL;
 
-		cmd->rpc = (CSREMOTE_PROC *) malloc(sizeof(CSREMOTE_PROC));
+		cmd->rpc = (CSREMOTE_PROC *) calloc(1, sizeof(CSREMOTE_PROC));
 		if (cmd->rpc == NULL)
 			return CS_FAIL;
-
-		memset(cmd->rpc, 0, sizeof(CSREMOTE_PROC));
 
 		if (buflen == CS_NULLTERM) {
 			cmd->rpc->name = strdup(buffer);
 			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
 		} else if (buflen > 0) {
-			cmd->rpc->name = (char *) malloc(buflen + 1);
+			cmd->rpc->name = (char *) calloc(1, buflen + 1);
 			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
-			memset(cmd->rpc->name, 0, buflen + 1);
 			strncpy(cmd->rpc->name, (const char *) buffer, buflen);
 		} else {
 			return CS_FAIL;
@@ -3152,10 +3147,9 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 			return CS_FAIL;
 		}
 
-		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
+		param = (CSREMOTE_PROC_PARAM *) calloc(1, sizeof(CSREMOTE_PROC_PARAM));
 		if (!param)
 			return CS_FAIL;
-		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, &datalen, &indicator, 1)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_param() failed to add rpc param\n");
@@ -3182,8 +3176,7 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 			return CS_FAIL;
 		}
 
-		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
-		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
+		param = (CSREMOTE_PROC_PARAM *) calloc(1, sizeof(CSREMOTE_PROC_PARAM));
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, &datalen, &indicator, 1)) {
 			free(param);
@@ -3208,10 +3201,9 @@ ct_param(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT datalen,
 			return CS_FAIL;
 		}
 
-		param = (CS_DYNAMIC_PARAM *) malloc(sizeof(CS_DYNAMIC_PARAM));
+		param = (CS_DYNAMIC_PARAM *) calloc(1, sizeof(CS_DYNAMIC_PARAM));
 		if (!param)
 			return CS_FAIL;
-		memset(param, 0, sizeof(CS_DYNAMIC_PARAM));
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, &datalen, &indicator, 1)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_param() failed to add CS_DYNAMIC param\n");
@@ -3259,8 +3251,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 			return CS_FAIL;
 		}
 
-		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
-		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
+		param = (CSREMOTE_PROC_PARAM *) calloc(1, sizeof(CSREMOTE_PROC_PARAM));
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add rpc param\n");
@@ -3292,8 +3283,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 			return CS_FAIL;
 		}
 
-		param = (CS_DYNAMIC_PARAM *) malloc(sizeof(CS_DYNAMIC_PARAM));
-		memset(param, 0, sizeof(CS_DYNAMIC_PARAM));
+		param = (CS_DYNAMIC_PARAM *) calloc(1, sizeof(CS_DYNAMIC_PARAM));
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add dynamic param\n");
@@ -3324,8 +3314,7 @@ ct_setparam(CS_COMMAND * cmd, CS_DATAFMT * datafmt, CS_VOID * data, CS_INT * dat
 			return CS_FAIL;
 		}
 
-		param = (CSREMOTE_PROC_PARAM *) malloc(sizeof(CSREMOTE_PROC_PARAM));
-		memset(param, 0, sizeof(CSREMOTE_PROC_PARAM));
+		param = (CSREMOTE_PROC_PARAM *) calloc(1, sizeof(CSREMOTE_PROC_PARAM));
 
 		if (CS_SUCCEED != _ct_fill_param(cmd->command_type, param, datafmt, data, datalen, indicator, 0)) {
 			tdsdump_log(TDS_DBG_INFO1, "ct_setparam() failed to add language param\n");
@@ -4127,10 +4116,9 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 			if (param->name == NULL)
 				return CS_FAIL;
 		} else if (datafmt->namelen > 0) {
-			param->name = malloc(datafmt->namelen + 1);
+			param->name = calloc(1, datafmt->namelen + 1);
 			if (param->name == NULL)
 				return CS_FAIL;
-			memset(param->name, 0, datafmt->namelen + 1);
 			strncpy(param->name, datafmt->name, datafmt->namelen);
 		} else {
 			param->name = NULL;
@@ -4586,7 +4574,7 @@ _ct_allocate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_allocate_dynamic(%p, %p, %d)\n", con, id, idlen);
 
-	dyn = (CS_DYNAMIC *) malloc(sizeof(CS_DYNAMIC));
+	dyn = (CS_DYNAMIC *) calloc(1, sizeof(CS_DYNAMIC));
 
 	if (idlen == CS_NULLTERM)
 		id_len = strlen(id);
@@ -4594,7 +4582,6 @@ _ct_allocate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 		id_len = idlen;
 
 	if (dyn != NULL) {
-		memset(dyn, '\0', sizeof(CS_DYNAMIC));
 		dyn->id = malloc(id_len + 1);
 		strncpy(dyn->id, id, id_len);
 		dyn->id[id_len] = '\0';

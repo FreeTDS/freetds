@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.360 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.361 2009-06-09 08:55:23 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1391,10 +1391,8 @@ tds_process_compute_result(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "processing tds compute result. by_cols = %d\n", by_cols);
 
 	if (by_cols) {
-		if ((info->bycolumns = (TDS_SMALLINT *) malloc(by_cols * sizeof(TDS_SMALLINT))) == NULL)
+		if ((info->bycolumns = (TDS_SMALLINT *) calloc(by_cols, sizeof(TDS_SMALLINT))) == NULL)
 			return TDS_FAIL;
-
-		memset(info->bycolumns, '\0', by_cols * sizeof(TDS_SMALLINT));
 	}
 	info->by_cols = by_cols;
 

@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.76 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.77 2009-06-09 08:55:23 freddy77 Exp $");
 
 static const char odbc_param_Servername[] = "Servername";
 static const char odbc_param_Address[] = "Address";
@@ -548,9 +548,8 @@ static const char *aAuth[] = {
 static HODBCINSTPROPERTY
 addProperty(HODBCINSTPROPERTY hLastProperty)
 {
-	hLastProperty->pNext = (HODBCINSTPROPERTY) malloc(sizeof(ODBCINSTPROPERTY));
+	hLastProperty->pNext = (HODBCINSTPROPERTY) calloc(1, sizeof(ODBCINSTPROPERTY));
 	hLastProperty = hLastProperty->pNext;
-	memset(hLastProperty, 0, sizeof(ODBCINSTPROPERTY));
 	return hLastProperty;
 }
 

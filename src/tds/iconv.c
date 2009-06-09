@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.136 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.137 2009-06-09 08:55:23 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -281,13 +281,12 @@ tds_iconv_alloc(TDSSOCKET * tds)
 
 	assert(!tds->char_convs);
 	if (!(tds->char_convs = (TDSICONV **) malloc(sizeof(TDSICONV *) * (initial_char_conv_count + 1))))
-	return 1;
-	char_conv = (TDSICONV *) malloc(sizeof(TDSICONV) * initial_char_conv_count);
+		return 1;
+	char_conv = (TDSICONV *) calloc(initial_char_conv_count, sizeof(TDSICONV));
 	if (!char_conv) {
 		TDS_ZERO_FREE(tds->char_convs);
 		return 1;
 	}
-	memset(char_conv, 0, sizeof(TDSICONV) * initial_char_conv_count);
 	tds->char_conv_count = initial_char_conv_count + 1;
 
 	for (i = 0; i < initial_char_conv_count; ++i) {

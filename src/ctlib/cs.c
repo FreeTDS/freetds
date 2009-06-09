@@ -50,7 +50,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.72 2009-06-09 06:50:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.73 2009-06-09 08:55:23 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -369,8 +369,7 @@ cs_ctx_alloc(CS_INT version, CS_CONTEXT ** ctx)
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_ctx_alloc(%d, %p)\n", version, ctx);
 
-	*ctx = (CS_CONTEXT *) malloc(sizeof(CS_CONTEXT));
-	memset(*ctx, '\0', sizeof(CS_CONTEXT));
+	*ctx = (CS_CONTEXT *) calloc(1, sizeof(CS_CONTEXT));
 	tds_ctx = tds_alloc_context(*ctx);
 	if (!tds_ctx) {
 		free(*ctx);

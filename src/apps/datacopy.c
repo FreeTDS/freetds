@@ -798,8 +798,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 
 	for (col = 0; col < src_numcols; col++) {
 
-		srcdata[col] = (MIGCOLDATA *) malloc(sizeof(MIGCOLDATA));
-		memset(srcdata[col], '\0', sizeof(MIGCOLDATA));
+		srcdata[col] = (MIGCOLDATA *) calloc(1, sizeof(MIGCOLDATA));
 		srcdata[col]->coltype = dbcoltype(dbsrc, col + 1);
 		srcdata[col]->collen = dbcollen(dbsrc, col + 1);
 

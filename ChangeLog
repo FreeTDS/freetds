@@ -1,3 +1,10 @@
+Tue Jun  9 10:54:29 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/datacopy.c src/ctlib/blk.c src/ctlib/cs.c:
+	* src/ctlib/ct.c src/odbc/connectparams.c src/odbc/descriptor.c:
+	* src/pool/main.c src/pool/member.c src/tds/challenge.c:
+	* src/tds/iconv.c src/tds/token.c:
+	- use calloc instead of malloc and memset
+
 Tue Jun  9 08:49:43 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/cs.c src/ctlib/ct.c src/tds/convert.c src/tds/data.c:
 	- revert Andrew Victor patch
@@ -1628,4 +1635,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2809 2009-06-09 06:50:12 freddy77 Exp $
+$Id: ChangeLog,v 1.2810 2009-06-09 08:55:23 freddy77 Exp $

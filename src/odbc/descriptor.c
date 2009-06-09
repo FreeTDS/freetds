@@ -47,10 +47,9 @@ desc_alloc(SQLHANDLE parent, int desc_type, int alloc_type)
 {
 	TDS_DESC *desc;
 
-	desc = (TDS_DESC *) malloc(sizeof(TDS_DESC));
+	desc = (TDS_DESC *) calloc(1, sizeof(TDS_DESC));
 	if (!desc)
 		return NULL;
-	memset(desc, 0, sizeof(TDS_DESC));
 
 	/* set defualt header values */
 	desc->htype = SQL_HANDLE_DESC;

@@ -59,7 +59,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.44 2008-12-17 11:04:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.45 2009-06-09 08:55:23 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
@@ -108,8 +108,7 @@ pool_mbr_login(TDS_POOL * pool)
 	 * FIXME -- tds_connect_and_login no longer preallocates the in_buf need to 
 	 * do something like what tds_read_packet does
 	 */
-	tds->in_buf = (unsigned char *) malloc(BLOCKSIZ);
-	memset(tds->in_buf, 0, BLOCKSIZ);
+	tds->in_buf = (unsigned char *) calloc(BLOCKSIZ, 1);
 
 	if (pool->database && strlen(pool->database)) {
 		query = (char *) malloc(strlen(pool->database) + 5);
@@ -181,8 +180,7 @@ pool_mbr_init(TDS_POOL * pool)
 	/* allocate room for pool members */
 
 	pool->members = (TDS_POOL_MEMBER *)
-		malloc(sizeof(TDS_POOL_MEMBER) * pool->num_members);
-	memset(pool->members, '\0', sizeof(TDS_POOL_MEMBER) * pool->num_members);
+		calloc(pool->num_members, sizeof(TDS_POOL_MEMBER));
 
 	/* open connections for each member */
 
