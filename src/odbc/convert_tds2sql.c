@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.62 2008-10-24 05:37:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.63 2009-06-10 18:54:38 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -152,6 +152,15 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	tdsdump_log(TDS_DBG_FUNC, "odbc_tds2sql: src is %d dest = %d\n", srctype, desttype);
 
 	assert(desttype != SQL_C_DEFAULT);
+
+	if (curcol) {
+		if (is_blob_col(curcol))
+			src = ((TDSBLOB *) src)->textvalue;
+		if (is_variable_type(curcol->column_type)) {
+			src += curcol->column_text_sqlgetdatapos;
+			srclen -= curcol->column_text_sqlgetdatapos;
+		}
+	}
 
 	nDestSybType = odbc_c_to_server_type(desttype);
 	if (nDestSybType == TDS_FAIL) {

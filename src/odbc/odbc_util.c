@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.107 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.108 2009-06-10 18:54:38 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -209,8 +209,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 		}
 
 		src = (TDS_CHAR *) colinfo->column_data;
-		if (is_blob_col(colinfo))
-			src = ((TDSBLOB *) src)->textvalue;
+		colinfo->column_text_sqlgetdatapos = 0;
 		srclen = colinfo->column_cur_size;
 		c_type = drec_apd->sql_desc_concise_type;
 		if (c_type == SQL_C_DEFAULT)
