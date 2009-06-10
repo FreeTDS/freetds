@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.194 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.195 2009-06-10 16:44:56 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -4157,48 +4157,42 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 		param->ind = &param->indicator_value;
 		*(param->ind) = *indicator;
 
-		/* here's one way of passing a null parameter */
-
-		if (*indicator == -1) {
+		/*
+		 * There are two ways to indicate a parameter with a null value:
+		 * - Pass indicator as -1. In this case, data and datalen are ignored.
+		 * - Pass data as NULL and datalen as 0 or CS_UNUSED
+		 */
+		if (*indicator == -1 || (data == NULL && (*datalen == 0 || *datalen == CS_UNUSED))) {
 			param->value = NULL;
 			*(param->datalen) = 0;
 			param_is_null = 1;
 		} else {
+			/* datafmt.datalen is ignored for fixed length types */
 
-			/* and here's another... */
-			if ((*datalen == 0 || *datalen == CS_UNUSED) && data == NULL) {
+			if (is_fixed_type(param->type)) {
+				*(param->datalen) = tds_get_size_by_type(param->type);
+			} else {
+				*(param->datalen) = (*datalen == CS_UNUSED) ? 0 : *datalen;
+			}
+
+			if (*(param->datalen) && data) {
+				if (*(param->datalen) == CS_NULLTERM) {
+					tdsdump_log(TDS_DBG_INFO1,
+						    " _ct_fill_param() about to strdup string %u bytes long\n",
+						    (unsigned int) strlen(data));
+					*(param->datalen) = strlen(data);
+				} else if (*(param->datalen) < 0) {
+					return CS_FAIL;
+				}
+				param->value = malloc(*(param->datalen));
+				if (param->value == NULL)
+					return CS_FAIL;
+				memcpy(param->value, data, *(param->datalen));
+				param->param_by_value = 1;
+			} else {
 				param->value = NULL;
 				*(param->datalen) = 0;
 				param_is_null = 1;
-			} else {
-
-				/* datafmt.datalen is ignored for fixed length types */
-
-				if (is_fixed_type(param->type)) {
-					*(param->datalen) = tds_get_size_by_type(param->type);
-				} else {
-					*(param->datalen) = (*datalen == CS_UNUSED) ? 0 : *datalen;
-				}
-
-				if (*(param->datalen) && data) {
-					if (*(param->datalen) == CS_NULLTERM) {
-						tdsdump_log(TDS_DBG_INFO1, 
-							    " _ct_fill_param() about to strdup string %u bytes long\n",
-							    (unsigned int) strlen(data));
-						*(param->datalen) = strlen(data);
-					} else if (*(param->datalen) < 0) {
-						return CS_FAIL;
-					}
-					param->value = malloc(*(param->datalen));
-					if (param->value == NULL)
-						return CS_FAIL;
-					memcpy(param->value, data, *(param->datalen));
-					param->param_by_value = 1;
-				} else {
-					param->value = NULL;
-					*(param->datalen) = 0;
-					param_is_null = 1;
-				}
 			}
 		}
 
