@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.27 2009-05-28 16:17:49 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.28 2009-06-12 08:53:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -35,6 +35,8 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	sprintf(sbuf, "SELECT CONVERT(%s, '%s') AS data", type, value_to_convert);
 	if (strncmp(value_to_convert, "0x", 2) == 0)
 		sprintf(sbuf, "SELECT CONVERT(%s, %s) COLLATE Latin1_General_CI_AS AS data", type, value_to_convert);
+	else if (strcmp(type, "SQL_VARIANT") == 0)
+		sprintf(sbuf, "SELECT CONVERT(SQL_VARIANT, %s) AS data", value_to_convert);
 	Command(sbuf);
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	CHKFetch("S");
@@ -177,6 +179,16 @@ main(int argc, char *argv[])
 	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_CHAR, "19 2006-06-12 22:37:00");
 	Test("DATETIME", "2006-06-09 11:22:44", SQL_C_WCHAR, "23 2006-06-09 11:22:44.000");
 	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_WCHAR, "19 2006-06-12 22:37:00");
+
+#ifdef ENABLE_DEVELOPING
+	if (db_is_microsoft() && db_version_int() >= 0x08000000u) {
+		Test("SQL_VARIANT", "CAST('123' AS INT)", SQL_C_CHAR, "3 123");
+		Test("SQL_VARIANT", "CAST('ciao' AS VARCHAR(10))", SQL_C_CHAR, "4 ciao");
+		Test("SQL_VARIANT", "CAST('321' AS VARBINARY(10))", SQL_C_CHAR, "6 333231");
+		Test("SQL_VARIANT", "CAST('-123.4' AS FLOAT)", SQL_C_CHAR, "6 -123.4");
+		Test("SQL_VARIANT", "CAST('-123.4' AS NUMERIC(10,2))", SQL_C_CHAR, "6 -123.4");
+	}
+#endif
 
 	if (db_is_microsoft() && db_version_int() >= 0x09000000u) {
 		Test("VARCHAR(MAX)", "goodbye!", SQL_C_CHAR, "8 goodbye!");

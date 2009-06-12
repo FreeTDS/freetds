@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.191 2009-06-09 06:50:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.192 2009-06-12 08:53:49 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1619,6 +1619,13 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 	TDS_INT length = 0;
 
 	assert(srclen >= 0 && srclen <= 2147483647u);
+
+	if (srctype == SYBVARIANT) {
+		TDSVARIANT *v = (TDSVARIANT*) src;
+		srctype = v->type;
+		src = v->data;
+		srclen = v->data_len;
+	}
 
 	switch (srctype) {
 	case CASE_ALL_CHAR:

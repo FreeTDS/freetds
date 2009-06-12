@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.314 2009-05-28 16:23:31 freddy77 Exp $ */
+/* $Id: tds.h,v 1.315 2009-06-12 08:53:49 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -916,6 +916,18 @@ typedef struct tds_blob
 	TDS_CHAR textptr[16];
 	TDS_CHAR timestamp[8];
 } TDSBLOB;
+
+/**
+ * Store variant informations
+ */
+typedef struct tds_variant
+{
+	TDS_CHAR *data;
+	TDS_INT size;
+	TDS_INT data_len;
+	TDS_UCHAR type;
+	TDS_UCHAR collation[5];
+} TDSVARIANT;
 
 /** 
  * TDS 8.0 collation informations.

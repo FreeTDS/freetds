@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.22 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.23 2009-06-12 08:53:49 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -201,6 +201,8 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	} else if (column->column_varint_size == 8) {
 		assert(column->on_server.column_type == XSYBVARCHAR || column->on_server.column_type == XSYBVARBINARY || column->on_server.column_type == XSYBNVARCHAR);
 		varint_ok = 1;
+	} else if (column->column_type == SYBVARIANT) {
+		assert(column->column_varint_size == 4);
 	} else {
 		assert(column->column_varint_size < 3);
 	}

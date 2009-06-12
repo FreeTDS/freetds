@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.361 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.362 2009-06-12 08:53:49 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1985,6 +1985,93 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 }
 #endif
 
+static int
+tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
+{
+#ifdef ENABLE_DEVELOPING
+	int colsize = tds_get_int(tds), varint;
+	TDS_UCHAR type, info_len;
+	TDSVARIANT *v;
+
+	/* NULL */
+	curcol->column_cur_size = -1;
+	if (colsize < 2) {
+		tds_get_n(tds, NULL, colsize);
+		return TDS_SUCCEED;
+	}
+
+	v = (TDSVARIANT*) curcol->column_data;
+	v->type = type = tds_get_byte(tds);
+	info_len = tds_get_byte(tds);
+	colsize -= 2;
+	if (info_len > colsize)
+		goto error_type;
+	if (is_collate_type(type)) {
+		if (sizeof(v->collation) > info_len)
+			goto error_type;
+		tds_get_n(tds, v->collation, sizeof(v->collation));
+		colsize -= sizeof(v->collation);
+		info_len -= sizeof(v->collation);
+	}
+	/* special case for numeric */
+	if (is_numeric_type(type)) {
+		TDS_NUMERIC *num;
+		if (info_len != 2)
+			goto error_type;
+		if (v->data)
+			TDS_ZERO_FREE(v->data);
+		v->data_len = sizeof(TDS_NUMERIC);
+		num = (TDS_NUMERIC*) calloc(1, sizeof(TDS_NUMERIC));
+		v->data = num;
+		num->precision = tds_get_byte(tds);
+		num->scale     = tds_get_byte(tds);
+		colsize -= 2;
+		/* FIXME check prec/scale, don't let server crash us */
+		if (colsize > sizeof(num->array))
+			goto error_type;
+		tds_get_n(tds, num->array, colsize);
+		if (IS_TDS7_PLUS(tds))
+			tds_swap_numeric(num);
+		return TDS_SUCCEED;
+	}
+	varint = tds_get_varint_size(tds, type);
+	if (varint != info_len)
+		goto error_type;
+	switch (varint) {
+	case 0:
+		v->size = tds_get_size_by_type(type);
+		break;
+	case 1:
+		v->size = tds_get_byte(tds);
+		break;
+	case 2:
+		v->size = tds_get_smallint(tds);
+		break;
+	default:
+		goto error_type;
+	}
+	colsize -= info_len;
+	curcol->column_cur_size = colsize;
+	if (v->data)
+		TDS_ZERO_FREE(v->data);
+	v->data_len = colsize;
+	if (colsize) {
+		v->data = (TDS_CHAR*) malloc(colsize);
+		tds_get_n(tds, v->data, colsize);
+	}
+	return TDS_SUCCEED;
+
+error_type:
+	tds_get_n(tds, NULL, colsize);
+	return TDS_FAIL;
+#else
+	int colsize = tds_get_int(tds);
+	tds_get_n(tds, NULL, colsize);
+	curcol->column_cur_size = -1;
+	return TDS_SUCCEED;
+#endif
+}
+
 /**
  * Read a data from wire
  * \param tds state information for the socket and the TDS protocol
@@ -2013,12 +2100,8 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		 * len (int32), type (int8), 7 (int8), collation, column size (int16) -- [n]char, [n]varchar, binary, varbinary 
 		 * BLOBS (text/image) not supported
 		 */
-		if (curcol->column_type == SYBVARIANT) {
-			colsize = tds_get_int(tds);
-			tds_get_n(tds, NULL, colsize);
-			curcol->column_cur_size = -1;
-			return TDS_SUCCEED;
-		}
+		if (curcol->column_type == SYBVARIANT)
+			return tds7_get_variant(tds, curcol);
 		
 		/*
 		 * LONGBINARY
