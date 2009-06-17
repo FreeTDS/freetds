@@ -1,3 +1,6 @@
+Wed Jun 17 19:07:24 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/iconv.c: reuse some macros for version check
+
 Wed Jun 17 18:20:53 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/iconv.c: fix iconv portability problem
 
@@ -1651,4 +1654,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2814 2009-06-17 16:20:59 freddy77 Exp $
+$Id: ChangeLog,v 1.2815 2009-06-17 17:07:30 freddy77 Exp $

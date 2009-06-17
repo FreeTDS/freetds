@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.138 2009-06-17 16:20:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.139 2009-06-17 17:07:31 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -395,7 +395,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	 * ISO8859-1 <-> server meta data
 	 */
 	name = UCS_2LE;
-	if (tds->major_version < 7) {
+	if (!IS_TDS7_PLUS(tds)) {
 		name = "ISO-8859-1";
 		if (tds->env.charset)
 			name = tds->env.charset;
@@ -1008,7 +1008,7 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 	int canonic_charset_num = tds_canonical_charset(charset);
 	const char *canonic_charset;
 
-	if (tds->major_version >= 7 && canonic_charset_num == TDS_CHARSET_ISO_8859_1)
+	if (IS_TDS7_PLUS(tds) && canonic_charset_num == TDS_CHARSET_ISO_8859_1)
 		canonic_charset_num = TDS_CHARSET_CP1252;
 
 	/* ignore request to change to unknown charset */
@@ -1029,7 +1029,7 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 		tds->char_convs[client2server_chardata] = char_conv;
 
 	/* if sybase change also server conversions */
-	if (tds->major_version >= 7)
+	if (IS_TDS7_PLUS(tds))
 		return;
 
 	char_conv = tds->char_convs[iso2server_metadata];
