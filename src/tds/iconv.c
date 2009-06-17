@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.137 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.138 2009-06-17 16:20:59 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -746,9 +746,13 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		}
 		/* iconv success, return */
 		if (irreversible != (size_t) - 1) {
+			/* here we detect end of conversion and try to reset shift state */
 			if (inbuf) {
+				/*
+				 * if inbuf or *inbuf is NULL iconv reset the shift state.
+				 * Note that setting inbytesleft to NULL can cause core so don't do it!
+				 */
 				inbuf = NULL;
-				inbytesleft = 0;
 				continue;
 			}
 			break;
