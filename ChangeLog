@@ -1,3 +1,6 @@
+Fri Jun 19 09:49:26 EDT 2009	JK Lowden <jklowden@freetds.org>
+	* CVSROOT/config added $FreeTDS$ local keyword
+
 Wed Jun 17 19:07:24 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/iconv.c: reuse some macros for version check
 
@@ -1654,4 +1657,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2815 2009-06-17 17:07:30 freddy77 Exp $
+$FreeTDS$
