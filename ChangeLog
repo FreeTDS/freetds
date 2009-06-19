@@ -1,6 +1,3 @@
-Fri Jun 19 09:50:29 EDT 2009	JK Lowden <jklowden@freetds.org>
-	* ChangeLog testing local keyword expansion
-
 Fri Jun 19 09:49:26 EDT 2009	JK Lowden <jklowden@freetds.org>
 	* CVSROOT/config added $FreeTDS$ local keyword
 
