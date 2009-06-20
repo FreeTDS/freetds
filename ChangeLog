@@ -1,3 +1,6 @@
+Sat Jun 20 17:57:22 EDT 2009	JK Lowden <jklowden@freetds.org>
+	* CVSROOT/config removed local keyword because not supported
+
 Fri Jun 19 09:50:29 EDT 2009	JK Lowden <jklowden@freetds.org>
 	* ChangeLog testing local keyword expansion
 
@@ -1661,4 +1664,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2821 2009-06-19 14:05:40 jklowden Exp $
+$Id: ChangeLog,v 1.2822 2009-06-20 21:58:26 jklowden Exp $
