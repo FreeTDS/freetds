@@ -1,3 +1,6 @@
+Tue Jun 23 19:49:52 EDT 2009	JK Lowden <jklowden@freetds.org>
+	* doc/htdoc/news.html added HP/UX news
+
 Sat Jun 20 17:57:22 EDT 2009	JK Lowden <jklowden@freetds.org>
 	* CVSROOT/config removed local keyword because not supported
 
@@ -1664,4 +1667,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2822 2009-06-20 21:58:26 jklowden Exp $
+$Id: ChangeLog,v 1.2823 2009-06-23 23:52:04 jklowden Exp $
