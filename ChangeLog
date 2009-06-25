@@ -1,3 +1,6 @@
+Thu Jun 25 22:51:09 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/ct.c: Andrew Victor patch for empty strings (modified)
+
 Thu Jun 25 22:47:37 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/ct.c: comment style
 
@@ -1674,4 +1677,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2825 2009-06-25 20:47:48 freddy77 Exp $
+$Id: ChangeLog,v 1.2826 2009-06-25 20:51:17 freddy77 Exp $

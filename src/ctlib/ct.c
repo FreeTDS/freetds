@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.196 2009-06-25 20:47:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.197 2009-06-25 20:51:17 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -3867,7 +3867,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 	if (!row)
 		return NULL;
 
-	if (size > 0 && value) {
+	if (value) {
 		/* TODO check for BLOB and numeric */
 		if (size > curcol->column_size) {
 			tdsdump_log(TDS_DBG_FUNC, "paramrowalloc(): RESIZE %d to %d\n", size, curcol->column_size);
@@ -4176,7 +4176,7 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 				*(param->datalen) = (*datalen == CS_UNUSED) ? 0 : *datalen;
 			}
 
-			if (*(param->datalen) && data) {
+			if (data) {
 				if (*(param->datalen) == CS_NULLTERM) {
 					tdsdump_log(TDS_DBG_INFO1,
 						    " _ct_fill_param() about to strdup string %u bytes long\n",
@@ -4185,7 +4185,7 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 				} else if (*(param->datalen) < 0) {
 					return CS_FAIL;
 				}
-				param->value = malloc(*(param->datalen));
+				param->value = malloc(*(param->datalen) ? *(param->datalen) : 1);
 				if (param->value == NULL)
 					return CS_FAIL;
 				memcpy(param->value, data, *(param->datalen));
