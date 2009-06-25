@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.195 2009-06-10 16:44:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.196 2009-06-25 20:47:48 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -3924,9 +3924,10 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			return NULL;
 		}
 
-		/* The parameteter data has been passed by reference */
-		/* i.e. using ct_setparam rather than ct_param       */
-
+		/*
+		 * The parameteter data has been passed by reference
+		 * i.e. using ct_setparam rather than ct_param
+		 */
 		if (p->param_by_value == 0) {
 
 			param_is_null = 0;
