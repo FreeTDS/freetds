@@ -16,11 +16,11 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.7 2006-12-26 14:56:18 freddy77 Exp $";
+static char software_version[] = "$Id: lang_ct_param.c,v 1.8 2009-06-25 20:32:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *query =
-	"insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)";
+	"insert into #ctparam_lang (name,name2,age,cost,bdate,fval) values (@in1, @in2, @in3, @moneyval, @dateval, @floatval)";
 
 CS_RETCODE ex_servermsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_SERVERMSG * errmsg);
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	ct_callback(ctx, NULL, CS_SET, CS_SERVERMSG_CB, (CS_VOID *) ex_servermsg_cb);
 
 	strcpy(cmdbuf, "create table #ctparam_lang (id numeric identity not null, \
-		name varchar(30), age int, cost money, bdate datetime, fval float) ");
+		name varchar(30), name2 varchar(20), age int, cost money, bdate datetime, fval float) ");
 
 	ret = run_command(cmd, cmdbuf);
 
@@ -74,7 +74,7 @@ main(int argc, char *argv[])
 	/* if worked, test by position */
 	if (0 == errCode)
 		errCode = insert_test(conn, cmd, 0);
-	query = "insert into #ctparam_lang (name,age,cost,bdate,fval) values (?, ?, ?, ?, ?)";
+	query = "insert into #ctparam_lang (name,name2,age,cost,bdate,fval) values (?, ?, ?, ?, ?, ?)";
 	if (0 == errCode)
 		errCode = insert_test(conn, cmd, 0);
 
@@ -111,6 +111,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	CS_DATEREC datevar;
 	char moneystring[10];
 	char dummy_name[30];
+	char dummy_name2[20];
 	CS_INT destlen;
 
 	/* clear table */
@@ -123,6 +124,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 	intvar = 2;
 	floatvar = 0.12;
 	strcpy(dummy_name, "joe blow");
+	strcpy(dummy_name2, "");
 	strcpy(moneystring, "300.90");
 
 	/*
@@ -198,6 +200,21 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 
 	if (useNames)
 		strcpy(datafmt.name, "@in2");
+	else
+		datafmt.name[0] = 0;
+	datafmt.maxlength = 255;
+	datafmt.namelen = CS_NULLTERM;
+	datafmt.datatype = CS_CHAR_TYPE;
+	datafmt.status = CS_INPUTVALUE;
+
+	ret = ct_param(cmd, &datafmt, dummy_name2, strlen(dummy_name2), 0);
+	if (CS_SUCCEED != ret) {
+		fprintf(stderr, "ct_param(char) failed\n");
+		return 1;
+	}
+
+	if (useNames)
+		strcpy(datafmt.name, "@in3");
 	else
 		datafmt.name[0] = 0;
 	datafmt.namelen = CS_NULLTERM;
@@ -308,7 +325,7 @@ insert_test(CS_CONNECTION *conn, CS_COMMAND *cmd, int useNames)
 		fprintf(stderr, "ct_results returned unexpected result %d.\n", (int) ret);
 
 	/* test row inserted */
-	ret = run_command(cmd, "if not exists(select * from #ctparam_lang) select 1");
+	ret = run_command(cmd, "if not exists(select * from #ctparam_lang where name = 'joe blow' and name2 is not null and age = 2) select 1");
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "check row inserted failed\n");
 		exit(1);

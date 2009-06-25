@@ -1,3 +1,7 @@
+Thu Jun 25 22:31:53 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/lang_ct_param.c:
+	- add test for empty not null strings
+
 Tue Jun 23 19:49:52 EDT 2009	JK Lowden <jklowden@freetds.org>
 	* doc/htdoc/news.html added HP/UX news
 
@@ -1667,4 +1671,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2823 2009-06-23 23:52:04 jklowden Exp $
+$Id: ChangeLog,v 1.2824 2009-06-25 20:32:01 freddy77 Exp $
