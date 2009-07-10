@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.186 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.187 2009-07-10 18:03:52 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -857,12 +857,6 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				destlen = -1;
 				break;
 			case SYBCHAR:
-				buflen = curcol->column_size + 1;
-				if (curcol->column_nullable)
-					destlen = -1;
-				else
-					destlen = -2;
-				break;
 			case SYBTEXT:
 				/* FIXME column_size ?? if 2gb ?? */
 				buflen = curcol->column_size + 1;
@@ -1761,9 +1755,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 						tds_bcp_start(tds, dbproc->bcpinfo);
 					}
 				}
-			} else {
-				printf("skipping row %d (because <= %d)\n", dbproc->hostfileinfo->firstrow, row_of_hostfile);
-			}
+			} 
 		}
 
 		row_start = ftello(hostfile);
