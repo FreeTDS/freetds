@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.8 2009-05-20 14:17:31 jklowden Exp $
+# $Id: osql,v 1.9 2009-07-14 21:50:27 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -157,17 +157,18 @@ do
 				| grep -Ei '^[[:space:]]*driver[[:space:]]*=')
 		if [ -z "${DRIVER_LINE}" ]
 		then
-			echo "no driver mentioned for [$D] in $(basename ${ODBC_INI})"
+			echo "  no driver mentioned for [$D] in $(basename ${ODBC_INI})"
 			continue
 		fi
 
+		echo "  found driver line: \"${DRIVER_LINE}\""
 		DRIVER=$(echo ${DRIVER_LINE} | awk -F '[[:space:]]*=[[:space:]]*' '{print $2}')
 		if [ "${DRIVER}" ]
 		then
-			echo "driver \"${DRIVER}\" found for [$D] in $(basename ${ODBC_INI})"
+			echo "  driver \"${DRIVER}\" found for [$D] in $(basename ${ODBC_INI})"
 			break
 		else
-			echo "driver line incomplete for [$D] in $(basename ${ODBC_INI})"
+			echo "  driver line for [$D] incomplete in $(basename ${ODBC_INI})"
 			continue
 		fi
 	fi
@@ -181,12 +182,12 @@ fi
 
 # get filename of driver
 echo found driver named \"${DRIVER}\"
-if [ ! -r "${DRIVER}" ]
+if [ -d "${DRIVER}" -o ! -x "${DRIVER}" ]
 then
 	# not a filename, look it up
 	DRIVERNAME=${DRIVER}
 	ODBC_INST="${ODBC_DIR}/odbcinst.ini"
-	echo "${DRIVERNAME} is not a readable file"
+	echo "\"${DRIVERNAME}\" is not an executable file"
 	echo "looking for entry named [${DRIVERNAME}] in ${ODBC_INST}"
 
 	grep "${DRIVERNAME}" ${ODBC_INST} > /dev/null
@@ -204,31 +205,32 @@ then
 				| grep -Ei '^[[:space:]]*driver[[:space:]]*=')
 	if [ -z "${DRIVER_LINE}" ]
 	then
-		echo "no driver mentioned for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
+		echo "$(basename $0): no driver mentioned for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
 		exit 1
 	fi
 
+	echo "  found driver line: \"${DRIVER_LINE}\""
 	DRIVER=$(echo ${DRIVER_LINE} | awk '{print $3}')
 	if [ -z "${DRIVER}" ]
 	then
-		echo "driver line incomplete for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
+		echo "$(basename $0): driver line incomplete for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
 		exit 1
 	fi
 
-	echo "driver \"${DRIVER}\" found for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
+	echo "  found driver ${DRIVER} for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
 fi
 
 if [ -z "${DRIVER}" ]
 then
-	echo 'error: sorry, failed sanity check: ${DRIVER} is null' 
+	echo $(basename $0): 'error: sorry, failed sanity check: ${DRIVER} is null' 
 	exit 1
 fi
 
-if [ -r "${DRIVER}" ]
+if [ -x "${DRIVER}" ]
 then
-	echo "${DRIVER} is a readable file"
+	echo "${DRIVER} is an executable file"
 else
-	echo "${DRIVER} is not a readable file"
+	echo "${DRIVER} is not an executable file"
 	echo "$(basename $0): error: no driver found for ${DSN}"
 	exit 1
 fi
@@ -360,6 +362,15 @@ printf "%30s:\t%-30s\n" Address ${ADDRESS}
 printf "\n";
 
 echo Attempting connection as ${USERNAME} ... 
-set -x
-exec isql ${DSN} ${USERNAME} ${PASSWORD} -v
+
+if [ -z "${TDSDUMP}" ]
+then 
+	TDSDUMP_AUTO="/tmp/$(basename $0).dump.$$"
+	export TDSDUMP=${TDSDUMP_AUTO}
+fi
+
+( set -x; isql ${DSN} ${USERNAME} ${PASSWORD} -v ) \
+	|| sed -ne 's/Connecting/FAILED &/p' ${TDSDUMP}
+
+test "${TDSDUMP_AUTO}" && rm -f ${TDSDUMP_AUTO}
 
