@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.9 2009-07-14 21:50:27 jklowden Exp $
+# $Id: osql,v 1.10 2009-07-15 15:42:49 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -46,11 +46,11 @@ ISQL_DIR=$(strings ${ISQL} | grep ^/ | grep -v elf | grep -v '\.so\.' | head -1 
 INI_DIRNAME="/tmp/$(basename $0).$$"
 exec 3> ${INI_DIRNAME}
 
-# if no hard-coded directory is found in the isql executable, check the libraries. 
+# Check the libraries, too. 
 if [ -z "${OVER_DIR}" ]
 then 
 	echo "checking shared odbc libraries linked to isql for default directories..."
-	(echo ${ISQL_DIR}; ldd "${ISQL}" | awk '/[-]lodbc/ {print $3}') \
+	(echo ${ISQL_DIR}; ldd "${ISQL}" | awk '/libodbc\./ {print $3}') \
 	| while read L
 	  do 
 	  	strings "$L" | grep '^/' | grep -v '/lib' \
@@ -63,6 +63,8 @@ then
 				then
 					printf $D >&3
 					printf "OK"
+				else
+					printf "no"
 				fi
 				printf "\n"
 			fi
@@ -148,7 +150,7 @@ sed -ne "${SED_CMD}" ${ODBC_INI}
 # Find the driver in the servername or default section
 for D in "${DSN}" 'default' 
 do
-	echo "looking for driver for DSN [$D]"
+	echo "looking for driver for DSN [$D] in ${ODBC_INI}"
 	grep "$D" ${ODBC_INI} > /dev/null
 	if [ $? -eq 0 ]
 	then
@@ -256,7 +258,7 @@ if [ $? -eq 0 ] # ODBC-Combined
 then
 	TDS_SERVER=$(echo ${SERVER_LINE} | awk '{print $3}')
 	echo 'Using ODBC-Combined strategy'
-	echo "FreeTDS servername is \"${TDS_SERVER}\" (from ${ODBC_INI})"
+	echo "DSN [${DSN}] has servername \"${TDS_SERVER}\" (from ${ODBC_INI})"
 	if [ -z "${TDS_SERVER}" ]
 	then
 		exit 1
@@ -273,15 +275,15 @@ then
 	
 	for F in "${HOME}/.freetds.conf" "${FREETDS_DIR}/freetds.conf"
 	do
-		echo "looking for [${TDS_SERVER}] in $F"
 		if [ -r "$F" ]
 		then
-			echo "\"$F\" is a readable file"
+			echo $F is a readable file
 		else
 			echo cannot read \"$F\"
 			continue
 		fi
 
+		echo "looking for [${TDS_SERVER}] in $F"
 		grep "[${TDS_SERVER}]" $F > /dev/null
 
 		if [ $? -eq 0 ]
@@ -289,7 +291,7 @@ then
 			FREETDS_CONF=$F
 			break
 		else
-			echo "[${TDS_SERVER}]" not found in \"$F\"
+			echo "[${TDS_SERVER}]" not found in $F
 		fi
 	done
 	
@@ -350,16 +352,18 @@ then
 	exit 1
 fi
 
-echo ${HOST} has address ${ADDRESS}
+#cho ${HOST} has address ${ADDRESS}
 
 # Report what we know and exec isql 
 
-printf "\n";
-printf "%30s:\t%-30s\n" DSN ${DSN}
-printf "%30s:\t%-30s\n" Driver ${DRIVER}
-printf "%30s:\t%-30s\n" "Server's hostname" ${HOST}
-printf "%30s:\t%-30s\n" Address ${ADDRESS}
-printf "\n";
+printf "\n"
+printf "Configuration looks OK.  Connection details:\n\n"
+printf "%22s:\t%-30s\n"  DSN ${DSN}
+printf "%22s:\t%-30s\n"  odbc.ini "${ODBC_INI}"
+printf "%22s:\t%-30s\n"  Driver ${DRIVER}
+printf "%22s:\t%-30s\n" "Server hostname" ${HOST}
+printf "%22s:\t%-30s\n"  Address ${ADDRESS}
+printf "\n"
 
 echo Attempting connection as ${USERNAME} ... 
 
