@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.10 2009-07-15 15:42:49 jklowden Exp $
+# $Id: osql,v 1.11 2009-07-16 14:37:10 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -87,9 +87,9 @@ if [ "${OVER_DIR}" ]
 then
 	if [ -d "${ODBC_DIR}" ]
 	then
-		echo "\"${ODBC_DIR}\" (from isql) is a directory, overridden by"
+		echo "\"${ODBC_DIR}\" is a directory, overridden by"
 	else 
-		echo "\"${ODBC_DIR}\" (from isql) is NOT a directory, overridden by"
+		echo "\"${ODBC_DIR}\" is NOT a directory, overridden by"
 	fi
 	echo "\"${OVER_DIR}\"."
 	
@@ -97,7 +97,7 @@ then
 	then
 		ODBC_DIR=${OVER_DIR}
 	else
-		echo "$(basename $0): error: \"${OVER_DIR}\" is not a directory (disallowing)"
+		echo "$(basename $0): error: \"${OVER_DIR}\" is not a directory"
 		exit 1
 	fi
 fi
@@ -108,15 +108,15 @@ for F in "${HOME}/.odbc.ini" "${ODBC_DIR}/odbc.ini"
 do
 	if [ ! -d "$(dirname $F)" ]
 	then
-		echo "$(dirname $0): error: $(basename $F) is not a directory!" 
+		echo "warning: $(dirname $F) is not a directory" 
 		continue
 	fi
 	
 	if [ -r "$F" ]
 	then
-		echo '	'reading \"$F\"
+		echo "	reading $F"
 	else
-		echo '	'cannot read \"$F\"
+		echo "	cannot read \"$F\""
 		continue
 	fi
 
@@ -124,11 +124,11 @@ do
 
 	if [ $? -eq 0 ]
 	then
-		echo "[${DSN}]" found in \"$F\"
+		echo "[${DSN}] found in $F"
 		ODBC_INI=$F
 		break
 	else
-		echo "[${DSN}]" not found in \"$F\"
+		echo "[${DSN}] not found in $F"
 	fi
 done
 
@@ -164,7 +164,7 @@ do
 		fi
 
 		echo "  found driver line: \"${DRIVER_LINE}\""
-		DRIVER=$(echo ${DRIVER_LINE} | awk -F '[[:space:]]*=[[:space:]]*' '{print $2}')
+		DRIVER=$(echo ${DRIVER_LINE} | awk -F '=' '{print $2}' | sed 's/[[:space:]][[:space:]]*//g')
 		if [ "${DRIVER}" ]
 		then
 			echo "  driver \"${DRIVER}\" found for [$D] in $(basename ${ODBC_INI})"
