@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.183 2009-04-18 19:35:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.184 2009-07-16 17:34:04 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -927,13 +927,6 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 static int
 tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-#if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
-	/*
-	 * In case we do not have SSL enabled do not send pre-login so
-	 * if server has certificate but no force encryption login success
-	 */
-	return tds7_send_login(tds, connection);
-#else
 	int i, len, ret;
 	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
 	int instance_name_len = strlen(instance_name) + 1;
@@ -987,12 +980,17 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	/* netlib version */
 	tds_put_n(tds, IS_TDS90(tds) ? netlib9 : netlib8, 6);
 	/* encryption */
-	tds_put_byte(tds, connection->encryption_level ? 1 : 0);
+#if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
+	/* not supported */
+	tds_put_byte(tds, 2);
+#else
+	tds_put_byte(tds, connection->encryption_level >= TDS_ENCRYPTION_REQUIRE ? 1 : 0);
+#endif
 	/* instance */
 	tds_put_n(tds, instance_name, instance_name_len);
 	/* pid */
 	tds_put_int(tds, getpid());
-	/* ???? unknown ??? */
+	/* MARS (1 enabled) */
 	if (IS_TDS90(tds))
 		tds_put_byte(tds, 0);
 	if (tds_flush_packet(tds) == TDS_FAIL)
@@ -1042,7 +1040,10 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 		return tds7_send_login(tds, connection);
 	}
-
+#if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
+	tdsdump_log(TDS_DBG_ERROR, "server required encryption but support is not compiled in\n");
+	return TDS_FAIL;
+#else
 	/*
 	 * if server has a certificate it require at least a crypted login
 	 * (even if data is not encrypted)
