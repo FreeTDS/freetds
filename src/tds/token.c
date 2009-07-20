@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.362 2009-06-12 08:53:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.363 2009-07-20 17:41:27 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1581,7 +1581,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	tdsdump_log(TDS_DBG_INFO1, "tds_get_data_info(%p, %p, %d) %s", tds, curcol, is_param, is_param? "[for parameter]" : "");
+	tdsdump_log(TDS_DBG_INFO1, "tds_get_data_info(%p, %p, %d) %s\n", tds, curcol, is_param, is_param? "[for parameter]" : "");
 
 	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
 	curcol->column_name[curcol->column_namelen] = '\0';
