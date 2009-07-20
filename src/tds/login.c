@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.184 2009-07-16 17:34:04 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.185 2009-07-20 17:38:12 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -927,11 +927,14 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 static int
 tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-	int i, len, ret;
+	int i, len;
 	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
 	int instance_name_len = strlen(instance_name) + 1;
 	TDS_CHAR crypt_flag;
 	unsigned int start_pos = 21;
+#if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
+	int ret;
+#endif
 
 #define START_POS 21
 #define UI16BE(n) ((n) >> 8), ((n) & 0xffu)

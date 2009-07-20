@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.315 2009-06-12 08:53:49 freddy77 Exp $ */
+/* $Id: tds.h,v 1.316 2009-07-20 17:38:12 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1598,6 +1598,7 @@ int tds7_get_instance_ports(FILE *output, const char *ip_addr);
 int tds7_get_instance_port(const char *ip_addr, const char *instance);
 int tds_ssl_init(TDSSOCKET *tds);
 void tds_ssl_deinit(TDSSOCKET *tds);
+const char *tds_prwsaerror(int erc);
 
 
 
