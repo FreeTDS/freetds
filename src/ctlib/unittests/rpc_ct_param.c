@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_param.c,v 1.8 2006-12-29 19:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_param.c,v 1.9 2009-07-21 06:44:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -91,7 +91,7 @@ main(int argc, char *argv[])
 	strcpy(cmdbuf, "create proc sample_rpc (@intparam int, \
         @sintparam smallint output, @floatparam float output, \
         @moneyparam money output,  \
-        @dateparam datetime output, @charparam char(20) output, \
+        @dateparam datetime output, @charparam char(20) output, @empty varchar(20) output, \
         @binaryparam    binary(20) output) \
         as ");
 
@@ -102,6 +102,7 @@ main(int argc, char *argv[])
         select @moneyparam = @moneyparam + convert(money, @intparam) \
         select @dateparam = getdate() \
         select @charparam = \'The char parameters\' \
+        select @empty = \'\' \
         select @binaryparam = @binaryparam \
         print \'This is the message printed out by sample_rpc.\'");
 
@@ -240,6 +241,22 @@ main(int argc, char *argv[])
 	strcpy(datafmt.name, "@charparam");
 	datafmt.namelen = CS_NULLTERM;
 	datafmt.datatype = CS_CHAR_TYPE;
+	datafmt.maxlength = 60;
+	datafmt.status = CS_RETURN;
+	datafmt.locale = NULL;
+
+	/*
+	 * The character string variable is filled in by the RPC so pass NULL
+	 * for the data 0 for data length, and -1 for the indicator arguments.
+	 */
+	if ((ret = ct_param(cmd, &datafmt, NULL, 0, -1)) != CS_SUCCEED) {
+		fprintf(stderr, "ct_param(char) failed");
+		return 1;
+	}
+
+	strcpy(datafmt.name, "@empty");
+	datafmt.namelen = CS_NULLTERM;
+	datafmt.datatype = CS_VARCHAR_TYPE;
 	datafmt.maxlength = 60;
 	datafmt.status = CS_RETURN;
 	datafmt.locale = NULL;
