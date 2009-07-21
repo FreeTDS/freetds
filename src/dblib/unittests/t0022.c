@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0022.c,v 1.27 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.28 2009-07-21 06:40:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -14,7 +14,6 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int
 main(int argc, char **argv)
 {
-	char cmd[1024];
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	int i;
@@ -86,8 +85,6 @@ main(int argc, char **argv)
 		assert(erc == NO_MORE_ROWS);
 	}
 
-	sprintf(cmd, "declare @b int\nexec t0022 @b = @b output\n");
-	fprintf(stdout, "%s\n", cmd);
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	add_bread_crumb();
