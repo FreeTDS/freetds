@@ -46,7 +46,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.50 2008-12-11 12:31:31 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.51 2009-07-23 18:22:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -192,7 +192,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	 * Get the rest of the arguments 
 	 */
 	optind = 4; /* start processing options after table, direction, & filename */
-	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:I:S:h:T:A:O:0:ncEdvV")) != -1) {
+	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:I:S:h:T:A:O:0:C:ncEdvV")) != -1) {
 		switch (ch) {
 		case 'v':
 		case 'V':
@@ -287,6 +287,9 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			pdata->Aflag++;
 			pdata->packetsize = atoi(optarg);
 			break;
+		case 'C':
+			pdata->charset = strdup(optarg);
+			break;
 		case '?':
 		default:
 			pusage();
@@ -361,6 +364,8 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 	DBSETLUSER(login, pdata->user);
 	DBSETLPWD(login, pdata->pass);
 	DBSETLAPP(login, "FreeBCP");
+	if (pdata->charset)
+		DBSETLCHARSET(login, pdata->charset);
 
 	/* if packet size specified, set in login record */
 
@@ -373,7 +378,7 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 	BCP_SETL(login, TRUE);
 
 	/*
-	 * ** Get a connection to the database.
+	 * Get a connection to the database.
 	 */
 
 	if ((*pdbproc = dbopen(login, pdata->server)) == NULL) {
