@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.185 2009-07-20 17:38:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.186 2009-08-17 16:52:31 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -593,7 +593,8 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_login_string(tds, tds_dstr_cstr(&connection->client_host_name), TDS_MAX_LOGIN_STR_SZ);	/* client host name */
 	tds_put_login_string(tds, tds_dstr_cstr(&connection->user_name), TDS_MAX_LOGIN_STR_SZ);	/* account name */
 	tds_put_login_string(tds, tds_dstr_cstr(&connection->password), TDS_MAX_LOGIN_STR_SZ);	/* account password */
-	tds_put_login_string(tds, "37876", TDS_MAX_LOGIN_STR_SZ);	/* host process */
+	sprintf(blockstr, "%d", (int) getpid());
+	tds_put_login_string(tds, blockstr, TDS_MAX_LOGIN_STR_SZ);	/* host process */
 #ifdef WORDS_BIGENDIAN
 	if (tds->emul_little_endian) {
 		tds_put_n(tds, le1, 6);

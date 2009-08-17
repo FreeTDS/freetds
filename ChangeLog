@@ -1,3 +1,6 @@
+Mon Aug 17 18:52:20 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/login.c: applied David Wood patch for Sybase host process
+
 Fri Aug 14 15:53:01 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac:
 	- use pkg-config instead of libgnutls-config if possible
@@ -1712,4 +1715,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2837 2009-08-14 13:53:16 freddy77 Exp $
+$Id: ChangeLog,v 1.2838 2009-08-17 16:52:31 freddy77 Exp $
