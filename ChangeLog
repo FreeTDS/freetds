@@ -1,3 +1,6 @@
+Tue Aug 18 17:04:42 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/ct.c: small fix for empty strings
+
 Tue Aug 18 14:23:46 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/freetds_autobuild:
 	- remove 0.64 support
@@ -1727,4 +1730,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2841 2009-08-18 12:23:41 freddy77 Exp $
+$Id: ChangeLog,v 1.2842 2009-08-18 15:04:13 freddy77 Exp $
