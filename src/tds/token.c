@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.364 2009-07-24 15:06:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.365 2009-08-18 15:07:11 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1971,7 +1971,7 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			curcol->column_cur_size = offset;
 			return TDS_SUCCEED;
 		}
-		if (*p)
+		if (*p == NULL)
 			tmp = (TDS_CHAR*) malloc(chunk_len);
 		else
 			tmp = (TDS_CHAR*) realloc(*p, offset + chunk_len);
