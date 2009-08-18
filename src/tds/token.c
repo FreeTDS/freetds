@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.365 2009-08-18 15:07:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.366 2009-08-18 15:11:12 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1432,6 +1432,9 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
 
 	switch (curcol->column_varint_size) {
+	case 8:
+		curcol->column_size = 0x7ffffffflu;
+		break;
 	case 4:
 		curcol->column_size = tds_get_int(tds);
 		break;
@@ -1440,7 +1443,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 #ifdef ENABLE_DEVELOPING
 		/* under TDS9 this means ?var???(MAX) */
 		if (curcol->column_size < 0 && IS_TDS90(tds)) {
-			curcol->column_size = 0x1ffffffflu;
+			curcol->column_size = 0x3ffffffflu;
 			curcol->column_varint_size = 8;
 		}
 #endif
@@ -1485,7 +1488,8 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_get_byte(tds);
 		curcol->table_namelen =
 			tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
-	}
+	} else if (IS_TDS90(tds) && curcol->column_type == SYBMSXML)
+		tds_get_byte(tds);
 
 	/*
 	 * under 7.0 lengths are number of characters not

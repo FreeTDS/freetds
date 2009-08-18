@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.108 2009-06-10 18:54:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.109 2009-08-18 15:11:12 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -341,6 +341,8 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBVARIANT:
 		break;
 #endif
+	case SYBMSXML:
+		return SQL_CHAR;
 		/*
 		 * TODO what should I do with these types ?? 
 		 * return other types can cause additional problems
@@ -361,7 +363,6 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBUNITEXT:
 	case SYBXML:
 	case SYBMSUDT:
-	case SYBMSXML:
 		break;
 	}
 	return SQL_UNKNOWN_TYPE;
@@ -523,6 +524,8 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 		/* SET_INFO("sql_variant", "", ""); */
 		break;
 #endif
+	case SYBMSXML:
+		SET_INFO("xml", "'", "'");
 	}
 	SET_INFO("", "", "");
 #undef SET_INFO
