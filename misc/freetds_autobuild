@@ -15,8 +15,6 @@ OUTDIR=out
 # additional flags for Autogen (current version)
 #FLAGS_ADD=--enable-developing
 FLAGS_ADD=
-# additional flags for Autogen (old version)
-FLAGS_ADD_OLD=
 WORKDIR=ftds_comp
 
 upload()
@@ -64,6 +62,14 @@ read_pwd_fields()
 	tDB=`grep '^DB=' < PWD | sed 's,^...,,'`
 }
 
+init_log()
+{
+	rm -rf logs
+	mkdir logs
+	touch logs/log.txt
+	ln -f logs/log.txt ../${WORKDIR}_log.txt
+}
+
 rm ~/freetds.log /tmp/sql.log
 
 ignore=
@@ -73,12 +79,6 @@ do
 	case "$param" in
 	$ignore)
 		ignore=
-		;;
-	--previous)
-		OUTDIR=out0
-		FTDSDIR=freetds64
-		FLAGS_ADD="$FLAGS_ADD_OLD"
-		WORKDIR=ftds_comp_old
 		;;
 	--version)
 		ignore=$1
@@ -129,11 +129,10 @@ cp -f ../PWD PWD
 read_pwd_fields
 make clean
 export LD_LIBRARY_PATH=$PWD/src/odbc/.libs/
-rm -rf logs
-mkdir logs
-./misc/test-auto.sh > logs/log.txt
+init_log
+./misc/test-auto.sh >> logs/log.txt
 
-if test "$OUTDIR" = "out" -a -r doc/doxy.log; then
+if test \( "$OUTDIR" = "out" -o "$OUTDIR" = "out82" \) -a -r doc/doxy.log; then
 	fixdoxyres < doc/doxy.log > doc/doxy.html
 	upload_file "doxy.html" "doc/doxy.html"
 	if test -d doc/doc/freetds-*/reference; then
@@ -206,40 +205,34 @@ fi
 # do tests with sybase server
 cp -f ../PWD.sybase PWD
 read_pwd_fields
-rm -rf logs
-mkdir logs
-./misc/test-auto.sh --no-build > logs/log.txt
+init_log
+./misc/test-auto.sh --no-build >> logs/log.txt
 cd logs
 ../misc/online.pl < log.txt
 upload "$OUTDIR/test2" '*.html'
 cd ..
 
 # do tests with sybase 15 server
-if test "$OUTDIR" != "out0"; then
-	cp -f ../PWD.sybase15 PWD
-	read_pwd_fields
-	rm -rf logs
-	mkdir logs
-	./misc/test-auto.sh --no-build > logs/log.txt
-	cd logs
-	../misc/online.pl < log.txt
-	upload "$OUTDIR/test3" '*.html'
-	cd ..
-fi
+cp -f ../PWD.sybase15 PWD
+read_pwd_fields
+init_log
+./misc/test-auto.sh --no-build >> logs/log.txt
+cd logs
+../misc/online.pl < log.txt
+upload "$OUTDIR/test3" '*.html'
+cd ..
 
 # test autodiscovery
-if test "$OUTDIR" != "out0"; then
-	save_coverage
-	# using tsql directly with grep do not update coverage informations
-	echo -e 'select @@version\ngo\nbye' | TDSVER=0.0 ./src/apps/tsql -S "$tSRV" -U "$tUID" -P "$tPWD" > out.txt || true
-	if grep -q 'Adaptive Server Enterprise' out.txt; then
-		echo "autodiscovery ok"
-	else
-		echo "autodiscovery failed!"
-		restore_coverage
-	fi
-	rm -f out.txt
+save_coverage
+# using tsql directly with grep do not update coverage informations
+echo -e 'select @@version\ngo\nbye' | TDSVER=0.0 ./src/apps/tsql -S "$tSRV" -U "$tUID" -P "$tPWD" > out.txt || true
+if grep -q 'Adaptive Server Enterprise' out.txt; then
+	echo "autodiscovery ok"
+else
+	echo "autodiscovery failed!"
+	restore_coverage
 fi
+rm -f out.txt
 
 # restore PWD file
 cp -f ../PWD PWD

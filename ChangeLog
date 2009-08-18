@@ -1,3 +1,8 @@
+Tue Aug 18 14:23:46 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild:
+	- remove 0.64 support
+	- reuse a new function
+
 Tue Aug 18 13:09:13 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/query.c: fix empty string binding for Sybase
 
@@ -1722,4 +1727,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2840 2009-08-18 11:09:13 freddy77 Exp $
+$Id: ChangeLog,v 1.2841 2009-08-18 12:23:41 freddy77 Exp $
