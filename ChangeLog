@@ -1,3 +1,6 @@
+Tue Aug 18 13:09:13 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c: fix empty string binding for Sybase
+
 Tue Aug 18 09:27:03 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/tds_checks.c:
 	- remove too strict test (fails for Sybase LONGCHAR)
@@ -1719,4 +1722,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2839 2009-08-18 07:26:46 freddy77 Exp $
+$Id: ChangeLog,v 1.2840 2009-08-18 11:09:13 freddy77 Exp $

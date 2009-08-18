@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.237 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.238 2009-08-18 11:09:13 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1481,7 +1481,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	s = (char *) src;
 
 	/* convert string if needed */
-	if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY) {
+	if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY && colsize) {
 		size_t output_size;
 #if 0
 		/* TODO this case should be optimized */
@@ -1582,6 +1582,14 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		case 1:
 			if (is_numeric_type(curcol->column_type))
 				colsize = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) src)->precision];
+			if (!colsize) {
+				tds_put_byte(tds, 1);
+				if (is_char_type(curcol->column_type))
+					tds_put_byte(tds, ' ');
+				else
+					tds_put_byte(tds, 0);
+				return TDS_SUCCEED;
+			}
 			colsize = MIN(colsize, 255);
 			tds_put_byte(tds, colsize);
 			break;
