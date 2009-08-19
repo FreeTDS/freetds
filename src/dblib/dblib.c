@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.350 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.351 2009-08-19 09:50:37 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4551,7 +4551,7 @@ RETCODE
 dbsqlok(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds;
-	int done = 0, done_flags;
+	int done_flags;
 	TDS_INT result_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbsqlok(%p)\n", dbproc);
@@ -4573,7 +4573,7 @@ dbsqlok(DBPROCESS * dbproc)
 	 * We want to skip any messages which are not processable. 
 	 * We're looking for a result token or a done token.
          */
-	while (!done) {
+	for (;;) {
 		/* 
 		 * If we hit an end token -- e.g. if the command
 		 * submitted returned no data (like an insert) -- then
