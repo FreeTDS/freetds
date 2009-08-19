@@ -1,3 +1,6 @@
+Wed Aug 19 13:48:28 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/data.c src/tds/token.c: handle variant data
+
 Wed Aug 19 11:51:14 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: small improve
 
@@ -1741,4 +1744,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2845 2009-08-19 09:50:37 freddy77 Exp $
+$Id: ChangeLog,v 1.2846 2009-08-19 11:47:52 freddy77 Exp $

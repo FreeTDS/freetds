@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.366 2009-08-18 15:11:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.367 2009-08-19 11:47:52 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1992,7 +1992,6 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 static int
 tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
-#ifdef ENABLE_DEVELOPING
 	int colsize = tds_get_int(tds), varint;
 	TDS_UCHAR type, info_len;
 	TDSVARIANT *v;
@@ -2026,13 +2025,14 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			TDS_ZERO_FREE(v->data);
 		v->data_len = sizeof(TDS_NUMERIC);
 		num = (TDS_NUMERIC*) calloc(1, sizeof(TDS_NUMERIC));
-		v->data = num;
+		v->data = (TDS_CHAR *) num;
 		num->precision = tds_get_byte(tds);
 		num->scale     = tds_get_byte(tds);
 		colsize -= 2;
 		/* FIXME check prec/scale, don't let server crash us */
 		if (colsize > sizeof(num->array))
 			goto error_type;
+		curcol->column_cur_size = colsize;
 		tds_get_n(tds, num->array, colsize);
 		if (IS_TDS7_PLUS(tds))
 			tds_swap_numeric(num);
@@ -2068,12 +2068,6 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 error_type:
 	tds_get_n(tds, NULL, colsize);
 	return TDS_FAIL;
-#else
-	int colsize = tds_get_int(tds);
-	tds_get_n(tds, NULL, colsize);
-	curcol->column_cur_size = -1;
-	return TDS_SUCCEED;
-#endif
 }
 
 /**
