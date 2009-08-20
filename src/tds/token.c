@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.370 2009-08-20 17:53:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.371 2009-08-20 18:59:29 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2009,8 +2009,8 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		tds_get_n(tds, v->collation, sizeof(v->collation));
 		colsize -= sizeof(v->collation);
 		info_len -= sizeof(v->collation);
-		curcol->char_conv =
-			tds_iconv_from_collate(tds, v->collation);
+		curcol->char_conv = is_unicode_type(type) ? 
+			tds->char_convs[client2ucs2] : tds_iconv_from_collate(tds, v->collation);
 	}
 	/* special case for numeric */
 	if (is_numeric_type(type)) {

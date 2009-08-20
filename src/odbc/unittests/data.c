@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.29 2009-08-19 11:47:52 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.30 2009-08-20 18:59:29 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -182,7 +182,10 @@ main(int argc, char *argv[])
 
 	if (db_is_microsoft() && db_version_int() >= 0x08000000u) {
 		Test("SQL_VARIANT", "CAST('123' AS INT)", SQL_C_CHAR, "3 123");
+		Test("SQL_VARIANT", "CAST('hello' AS CHAR(6))", SQL_C_CHAR, "6 hello ");
 		Test("SQL_VARIANT", "CAST('ciao' AS VARCHAR(10))", SQL_C_CHAR, "4 ciao");
+		Test("SQL_VARIANT", "CAST('foo' AS NVARCHAR(10))", SQL_C_CHAR, "3 foo");
+		Test("SQL_VARIANT", "CAST('Super' AS NCHAR(8))", SQL_C_CHAR, "8 Super   ");
 		Test("SQL_VARIANT", "CAST('321' AS VARBINARY(10))", SQL_C_CHAR, "6 333231");
 		Test("SQL_VARIANT", "CAST('-123.4' AS FLOAT)", SQL_C_CHAR, "6 -123.4");
 		Test("SQL_VARIANT", "CAST('-123.4' AS NUMERIC(10,2))", SQL_C_CHAR, "7 -123.40");
