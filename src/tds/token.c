@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.368 2009-08-20 17:49:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.369 2009-08-20 17:51:15 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1440,13 +1440,11 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		break;
 	case 2:
 		curcol->column_size = tds_get_smallint(tds);
-#ifdef ENABLE_DEVELOPING
 		/* under TDS9 this means ?var???(MAX) */
 		if (curcol->column_size < 0 && IS_TDS90(tds)) {
 			curcol->column_size = 0x3ffffffflu;
 			curcol->column_varint_size = 8;
 		}
-#endif
 		break;
 	case 1:
 		curcol->column_size = tds_get_byte(tds);
@@ -1949,7 +1947,6 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 	return TDS_SUCCEED;
 }
 
-#ifdef ENABLE_DEVELOPING
 static int
 tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
@@ -1987,7 +1984,6 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	}
 	return TDS_SUCCEED;
 }
-#endif
 
 static int
 tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
@@ -2139,10 +2135,8 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		blob = (TDSBLOB *) curcol->column_data;
 		colsize = tds_get_int(tds);
 		break;
-#ifdef ENABLE_DEVELOPING
 	case 8:
 		return tds9_get_varmax(tds, curcol);
-#endif
 	case 2:
 		colsize = tds_get_smallint(tds);
 		break;

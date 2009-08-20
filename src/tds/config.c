@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.143 2009-04-18 19:35:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.144 2009-08-20 17:51:15 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -717,12 +717,10 @@ tds_config_verstr(const char *tdsver, TDSCONNECTION * connection)
 		version = 0x50;
 	else if (!strcmp(tdsver, "70") || !strcmp(tdsver, "7.0"))
 		version = 0x70;
-	else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0"))
+	else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0") || !strcmp(tdsver, "7.1"))
 		version = 0x80;
-#ifdef ENABLE_DEVELOPING
-	else if (!strcmp(tdsver, "90") || !strcmp(tdsver, "9.0"))
+	else if (!strcmp(tdsver, "7.2"))
 		version = 0x90;
-#endif
 	else if (!strcmp(tdsver, "0.0"))
 		version = 0;
 	else 

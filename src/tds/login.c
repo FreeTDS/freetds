@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.186 2009-08-17 16:52:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.187 2009-08-20 17:51:15 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -337,11 +337,16 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		TDS_TINYINT major_version;
 		TDS_TINYINT minor_version;
 	} versions[] =
-		{ { 8, 0 }
+		{ { 9, 0 }
+		, { 8, 0 }
 		, { 7, 0 }
 		, { 5, 0 }
 		, { 4, 2 }
 		};
+
+	/* disable tds9 if iconv wanted, currently not supported */
+	if (connection->major_version == 9 && tds->use_iconv)
+		connection->major_version = 8;
 
 	if (connection->major_version == 0) {
 		unsigned int i;
@@ -358,7 +363,7 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds->env_chg_func = tds_save_env;
 		mod_ctx->err_handler = NULL;
 
-		for (i=0; i < TDS_VECTOR_SIZE(versions); ++i) {
+		for (i=tds->use_iconv ? 1: 0; i < TDS_VECTOR_SIZE(versions); ++i) {
 			connection->major_version = versions[i].major_version;
 			connection->minor_version = versions[i].minor_version;
 			reset_save_context(&save_ctx);
