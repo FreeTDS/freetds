@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.369 2009-08-20 17:51:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.370 2009-08-20 17:53:06 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1472,8 +1472,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		 */
 		tds_get_n(tds, curcol->column_collation, 5);
 		curcol->char_conv =
-			tds_iconv_from_collate(tds, curcol->column_collation[4],
-					       curcol->column_collation[1] * 256 + curcol->column_collation[0]);
+			tds_iconv_from_collate(tds, curcol->column_collation);
 	}
 
 	/* NOTE adjustements must be done after curcol->char_conv initialization */
@@ -1681,8 +1680,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	if (IS_TDS8_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
 		tds_get_n(tds, curcol->column_collation, 5);
 		curcol->char_conv =
-			tds_iconv_from_collate(tds, curcol->column_collation[4],
-					       curcol->column_collation[1] * 256 + curcol->column_collation[0]);
+			tds_iconv_from_collate(tds, curcol->column_collation);
 	}
 
 	/* Adjust column size according to client's encoding */
@@ -2012,8 +2010,7 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		colsize -= sizeof(v->collation);
 		info_len -= sizeof(v->collation);
 		curcol->char_conv =
-			tds_iconv_from_collate(tds, v->collation[4],
-					       v->collation[1] * 256 + v->collation[0]);
+			tds_iconv_from_collate(tds, v->collation);
 	}
 	/* special case for numeric */
 	if (is_numeric_type(type)) {

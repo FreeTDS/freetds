@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.139 2009-06-17 17:07:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.140 2009-08-20 17:53:06 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -1470,8 +1470,10 @@ collate2charset(int sql_collate, int lcid)
  * Get iconv information from a LCID (to support different column encoding under MSSQL2K)
  */
 TDSICONV *
-tds_iconv_from_collate(TDSSOCKET * tds, int sql_collate, int lcid)
+tds_iconv_from_collate(TDSSOCKET * tds, TDS_UCHAR collate[5])
 {
+	const int sql_collate = collate[4];
+	const int lcid = collate[1] * 256 + collate[0];
 	const char *charset = collate2charset(sql_collate, lcid);
 
 #if ENABLE_EXTRA_CHECKS

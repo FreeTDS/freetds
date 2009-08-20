@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.318 2009-08-20 17:51:46 freddy77 Exp $ */
+/* $Id: tds.h,v 1.319 2009-08-20 17:53:06 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1440,7 +1440,7 @@ void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);
 void tds7_srv_charset_changed(TDSSOCKET * tds, int sql_collate, int lcid);
 int tds_iconv_alloc(TDSSOCKET * tds);
 void tds_iconv_free(TDSSOCKET * tds);
-TDSICONV *tds_iconv_from_collate(TDSSOCKET * tds, int sql_collate, int lcid);
+TDSICONV *tds_iconv_from_collate(TDSSOCKET * tds, TDS_UCHAR collate[5]);
 
 /* threadsafe.c */
 char *tds_timestamp_str(char *str, int maxlen);
