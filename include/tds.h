@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.317 2009-08-20 17:49:07 freddy77 Exp $ */
+/* $Id: tds.h,v 1.318 2009-08-20 17:51:46 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -758,7 +758,7 @@ typedef enum tds_encryption_level {
 /* large type means it has a two byte size field */
 /* define is_large_type(x) (x>128) */
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
-#define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
+#define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT || x==SYBMSXML)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
 #define is_char_type(x) (is_unicode_type(x) || is_ascii_type(x))
