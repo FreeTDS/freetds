@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.512 2009-06-10 18:54:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.513 2009-08-20 15:14:19 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -1891,6 +1891,8 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		break;
 #if SQL_COLUMN_TYPE != SQL_DESC_CONCISE_TYPE
 	case SQL_COLUMN_TYPE:
+#endif
+	case SQL_DESC_CONCISE_TYPE:
 		/* special case, get ODBC 2 type, not ODBC 3 SQL_DESC_CONCISE_TYPE (different for datetime) */
 		if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 			IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
@@ -1915,11 +1917,6 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 			IOUT(SQLSMALLINT, type);
 		}
 		break;
-#else
-	case SQL_DESC_CONCISE_TYPE:
-		IOUT(SQLSMALLINT, drec->sql_desc_concise_type);
-		break;
-#endif
 	case SQL_DESC_DISPLAY_SIZE:
 		IOUT(SQLLEN, drec->sql_desc_display_size);
 		break;
