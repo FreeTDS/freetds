@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.110 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.111 2009-08-20 17:50:05 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -289,12 +289,13 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 void *
 tds_get_n(TDSSOCKET * tds, void *dest, int need)
 {
-	int have;
-
 	assert(need >= 0);
 
-	have = (tds->in_len - tds->in_pos);
-	while (need > have) {
+	for (;;) {
+		int have = tds->in_len - tds->in_pos;
+
+		if (need <= have)
+			break;
 		/* We need more than is in the buffer, copy what is there */
 		if (dest != NULL) {
 			memcpy((char *) dest, tds->in_buf + tds->in_pos, have);
@@ -303,7 +304,6 @@ tds_get_n(TDSSOCKET * tds, void *dest, int need)
 		need -= have;
 		if (tds_read_packet(tds) < 0)
 			return NULL;
-		have = tds->in_len - tds->in_pos;
 	}
 	if (need > 0) {
 		/* get the remainder if there is any */
