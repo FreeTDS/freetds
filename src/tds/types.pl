@@ -31,7 +31,7 @@ while ($line = readLine()) {
 	$types{$type{'name'}} = \%type;
 }
 
-my $id = '$Id: types.pl,v 1.1 2008-09-17 12:16:09 freddy77 Exp $';
+my $id = '$Id: types.pl,v 1.2 2009-08-20 17:49:07 freddy77 Exp $';
 $id =~ s/\$Id/CVS Id/;
 $id =~ s/\$\s*$//;
 print qq|/*
@@ -78,9 +78,6 @@ print q|/**
  * tds_get_varint_size() returns the size of a variable length integer
  * returned in a TDS 7.0 result string
  */
-#if !ENABLE_EXTRA_CHECKS
-static
-#endif
 int
 tds_get_varint_size(TDSSOCKET * tds, int datatype)
 {

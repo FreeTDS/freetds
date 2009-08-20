@@ -35,11 +35,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.21 2009-06-09 06:50:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.22 2009-08-20 17:49:07 freddy77 Exp $");
 
 #if !ENABLE_EXTRA_CHECKS
 static int tds_get_cardinal_type(int datatype);
-static int tds_get_varint_size(TDSSOCKET * tds, int datatype);
 #endif
 
 /**

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.367 2009-08-19 11:47:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.368 2009-08-20 17:49:07 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2015,6 +2015,9 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		tds_get_n(tds, v->collation, sizeof(v->collation));
 		colsize -= sizeof(v->collation);
 		info_len -= sizeof(v->collation);
+		curcol->char_conv =
+			tds_iconv_from_collate(tds, v->collation[4],
+					       v->collation[1] * 256 + v->collation[0]);
 	}
 	/* special case for numeric */
 	if (is_numeric_type(type)) {
@@ -2058,11 +2061,22 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_cur_size = colsize;
 	if (v->data)
 		TDS_ZERO_FREE(v->data);
-	v->data_len = colsize;
 	if (colsize) {
-		v->data = (TDS_CHAR*) malloc(colsize);
-		tds_get_n(tds, v->data, colsize);
+		if (USE_ICONV && curcol->char_conv) {
+			curcol->column_cur_size = colsize = determine_adjusted_size(curcol->char_conv, colsize);
+			v->data = (TDS_CHAR*) malloc(colsize);
+			if (!v->data)
+				return TDS_FAIL;
+			if (tds_get_char_data(tds, (char *) v->data, colsize, curcol) == TDS_FAIL)
+				return TDS_FAIL;
+		} else {
+			v->data = (TDS_CHAR*) malloc(colsize);
+			if (!v->data)
+				return TDS_FAIL;
+			tds_get_n(tds, v->data, colsize);
+		}
 	}
+	v->data_len = colsize;
 	return TDS_SUCCEED;
 
 error_type:

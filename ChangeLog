@@ -1,3 +1,7 @@
+Thu Aug 20 19:48:56 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/data.c src/tds/token.c src/tds/types.pl:
+	- use iconv on variant
+
 Thu Aug 20 17:14:29 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: fix describecol test
 
@@ -1747,4 +1751,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2847 2009-08-20 15:14:18 freddy77 Exp $
+$Id: ChangeLog,v 1.2848 2009-08-20 17:49:07 freddy77 Exp $
