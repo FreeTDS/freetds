@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.91 2009-03-27 09:22:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.92 2009-08-21 09:58:30 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -347,11 +347,12 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 {
 	int rc, seconds;
 	unsigned int poll_seconds;
-	const char *method = "poll(2)";
-#if !USE_POLL
+#if USE_POLL
+	static const char method[] = "poll(2)";
+#else
+	static const char method[] = "select(2)";
 	fd_set fds[3];
 	fd_set *readfds = NULL, *writefds = NULL, *exceptfds = NULL;
-	method = "select(2)";
 #endif
 
 	assert(tds != NULL);
