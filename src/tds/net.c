@@ -103,10 +103,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.92 2009-08-21 09:58:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.93 2009-08-21 10:00:07 freddy77 Exp $");
 
 #undef USE_POLL
-#if defined(HAVE_POLL_H) && defined(HAVE_POLL)
+#if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
 # define USE_POLL 1
 # define TDSSELREAD  POLLIN
 # define TDSSELWRITE POLLOUT
