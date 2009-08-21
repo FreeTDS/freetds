@@ -35,11 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.22 2009-08-20 17:49:07 freddy77 Exp $");
-
-#if !ENABLE_EXTRA_CHECKS
-static int tds_get_cardinal_type(int datatype);
-#endif
+TDS_RCSID(var, "$Id: data.c,v 1.23 2009-08-21 10:11:20 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -137,9 +133,6 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 	}
 }
 
-#if !ENABLE_EXTRA_CHECKS
-static
-#endif
 int
 tds_get_cardinal_type(int datatype)
 {

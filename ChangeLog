@@ -1,3 +1,7 @@
+Fri Aug 21 12:10:57 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/data.c src/tds/token.c:
+	- fix variant type for data converted to client encoding
+
 Fri Aug 21 12:01:24 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c:
 	- make ssl more threadsafe using pthread in libgcrypt if possible
@@ -1782,4 +1786,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2856 2009-08-21 10:01:52 freddy77 Exp $
+$Id: ChangeLog,v 1.2857 2009-08-21 10:11:19 freddy77 Exp $
