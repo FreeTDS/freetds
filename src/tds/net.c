@@ -94,6 +94,10 @@
 #include <assert.h>
 
 #ifdef HAVE_GNUTLS
+#if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
+#include "tdsthread.h"
+#include <gcrypt.h>
+#endif
 #include <gnutls/gnutls.h>
 #elif defined(HAVE_OPENSSL)
 #include <openssl/ssl.h>
@@ -103,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.93 2009-08-21 10:00:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.94 2009-08-21 10:01:52 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -1355,6 +1359,13 @@ tds_tls_deinit(void)
 }
 #endif
 
+#if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
+GCRY_THREAD_OPTION_PTHREAD_IMPL;
+#define tds_gcry_init() gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread)
+#else
+#define tds_gcry_init() do {} while(0)
+#endif
+
 int
 tds_ssl_init(TDSSOCKET *tds)
 {
@@ -1388,8 +1399,10 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	/* FIXME place somewhere else, deinit at end */
 	ret = 0;
-	if (!tls_initialized)
+	if (!tls_initialized) {
+		tds_gcry_init();
 		ret = gnutls_global_init();
+	}
 	if (ret == 0) {
 		tls_initialized = 1;
 

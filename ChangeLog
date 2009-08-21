@@ -1,3 +1,7 @@
+Fri Aug 21 12:01:24 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c:
+	- make ssl more threadsafe using pthread in libgcrypt if possible
+
 Fri Aug 21 11:59:39 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c:
 	- fix a problem with Interix (cfr
@@ -1778,4 +1782,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2855 2009-08-21 10:00:07 freddy77 Exp $
+$Id: ChangeLog,v 1.2856 2009-08-21 10:01:52 freddy77 Exp $
