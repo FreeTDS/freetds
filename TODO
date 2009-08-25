@@ -8,7 +8,7 @@ anyone else can post a patch to SourceForge.
 In this way we can communicate with each
 other about the project's priorities and needs.  
 
-To Do List	$Id: TODO,v 1.172 2009-02-28 17:38:43 jklowden Exp $
+To Do List	$Id: TODO,v 1.173 2009-08-25 05:00:53 freddy77 Exp $
 ------------
 
 Bug? ML 2007-05-30 "dbsqlexec() never returns" 
@@ -31,8 +31,6 @@ Must be fixed:
          (actually a ct_cancel() error)" 
 
 Broken:
-. HAVE_FUNC_GETSERVBYNAME_R_6 is defined by configure as 1 on 
-  NetBSD 2.0 even though it's not defined by the OS.  
 . Passing invalid character set names to server with tsql?
   tsql (and so libTDS) can pass invalid charset names to Sybase
   libTDS assume Sybase can handle this charset but it's false
@@ -82,7 +80,6 @@ For future versions (in priority order within library):
 . review the way parameters are packed 
   (too complicate, see ctlib bulk, cf "bulk copy and row buffer")
 . improve cursor support on dblib and ctlib
-. support for VARIANT type (requested one time, 2003-8-1)
 . support for NT named pipe (requested long ago for mssql6.5 server, only
   for completeness). If the reader knows a library to handle named pipes
   compatible with LGPL please tell us.
