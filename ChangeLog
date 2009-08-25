@@ -1,3 +1,7 @@
+Tue Aug 25 16:31:41 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild:
+	- update DBD::ODBC test, fix for config.rpath required
+
 Tue Aug 25 16:23:49 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* doc/freebcp.txt doc/freetds.conf.5 doc/tds_ssl.html:
 	* doc/userguide.sgml include/sybdb.h include/tds.h src/dblib/bcp.c:
@@ -1796,4 +1800,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2858 2009-08-25 14:25:35 freddy77 Exp $
+$Id: ChangeLog,v 1.2859 2009-08-25 14:31:56 freddy77 Exp $
