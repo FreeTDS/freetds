@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: t0022.c,v 1.28 2009-07-21 06:40:16 freddy77 Exp $";
+static char software_version[] = "$Id: t0022.c,v 1.29 2009-08-25 14:25:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -104,11 +104,11 @@ main(int argc, char **argv)
 
 	add_bread_crumb();
 
-#if defined(DBTDS_7_0) && defined(DBTDS_8_0) && defined(DBTDS_9_0)
+#if defined(DBTDS_7_0) && defined(DBTDS_7_1) && defined(DBTDS_7_2)
 	if ((dbnumrets(dbproc) == 0)
 	    && ((DBTDS(dbproc) == DBTDS_7_0)
-		|| (DBTDS(dbproc) == DBTDS_8_0)
-		|| (DBTDS(dbproc) == DBTDS_9_0))) {
+		|| (DBTDS(dbproc) == DBTDS_7_1)
+		|| (DBTDS(dbproc) == DBTDS_7_2))) {
 		fprintf(stdout, "WARNING:  Received no return parameters from server!\n");
 		fprintf(stdout, "WARNING:  This is likely due to a bug in Microsoft\n");
 		fprintf(stdout, "WARNING:  SQL Server 7.0 SP3 and later.\n");

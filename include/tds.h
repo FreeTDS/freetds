@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.320 2009-08-21 10:11:19 freddy77 Exp $ */
+/* $Id: tds.h,v 1.321 2009-08-25 14:25:35 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -776,24 +776,22 @@ typedef enum tds_encryption_level {
 #define TDS_DEF_CHARSET		"iso_1"
 #define TDS_DEF_LANG		"us_english"
 #if TDS42
-#define TDS_DEF_MAJOR		4
-#define TDS_DEF_MINOR		2
+#define TDS_DEFAULT_VERSION	0x402
 #define TDS_DEF_PORT		1433
 #elif TDS46
-#define TDS_DEF_MAJOR		4
-#define TDS_DEF_MINOR		6
+#define TDS_DEFAULT_VERSION	0x406
 #define TDS_DEF_PORT		4000
 #elif TDS70
-#define TDS_DEF_MAJOR		7
-#define TDS_DEF_MINOR		0
+#define TDS_DEFAULT_VERSION	0x700
 #define TDS_DEF_PORT		1433
-#elif TDS80
-#define TDS_DEF_MAJOR		8
-#define TDS_DEF_MINOR		0
+#elif TDS71
+#define TDS_DEFAULT_VERSION	0x701
+#define TDS_DEF_PORT		1433
+#elif TDS72
+#define TDS_DEFAULT_VERSION	0x702
 #define TDS_DEF_PORT		1433
 #else
-#define TDS_DEF_MAJOR		5
-#define TDS_DEF_MINOR		0
+#define TDS_DEFAULT_VERSION	0x500
 #define TDS_DEF_PORT		4000
 #endif
 
@@ -842,8 +840,7 @@ typedef struct tds_login
 	DSTR server_name;
 	DSTR server_addr;
 	int port;
-	TDS_TINYINT major_version;	/* TDS version */
-	TDS_TINYINT minor_version;	/* TDS version */
+	TDS_USMALLINT tds_version;	/* TDS version */
 	int block_size;
 	DSTR language;			/* e.g. us-english */
 	DSTR server_charset;		/* e.g. iso_1 */
@@ -868,8 +865,7 @@ typedef struct tds_connection
 	/* first part of structure is the same of login one */
 	DSTR server_name; /**< server name (in freetds.conf) */
 	int port;	   /**< port of database service */
-	TDS_TINYINT major_version;
-	TDS_TINYINT minor_version;
+	TDS_USMALLINT tds_version;
 	int block_size;
 	DSTR language;
 	DSTR server_charset;	/**< charset of server */
@@ -1314,8 +1310,7 @@ struct tds_socket
 {
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
 	int oserr;
-	TDS_SMALLINT major_version;
-	TDS_SMALLINT minor_version;
+	TDS_USMALLINT tds_version;
 	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
 	char *product_name;
 
@@ -1417,7 +1412,7 @@ int tds_read_conf_file(TDSCONNECTION * connection, const char *server);
 void tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSCONNECTION *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_connection(TDSCONNECTION * connection);
-unsigned char tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
+TDS_USMALLINT tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
 void tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
@@ -1647,15 +1642,18 @@ int tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
 int tds_writetext_end(TDSSOCKET *tds);
 
 
-#define IS_TDS42(x) (x->major_version==4 && x->minor_version==2)
-#define IS_TDS46(x) (x->major_version==4 && x->minor_version==6)
-#define IS_TDS50(x) (x->major_version==5 && x->minor_version==0)
-#define IS_TDS70(x) (x->major_version==7 && x->minor_version==0)
-#define IS_TDS80(x) (x->major_version==8 && x->minor_version==0)
-#define IS_TDS90(x) (x->major_version==9 && x->minor_version==0)
+#define IS_TDS42(x) (x->tds_version==0x402)
+#define IS_TDS46(x) (x->tds_version==0x406)
+#define IS_TDS50(x) (x->tds_version==0x500)
+#define IS_TDS70(x) (x->tds_version==0x700)
+#define IS_TDS71(x) (x->tds_version==0x701)
+#define IS_TDS72(x) (x->tds_version==0x702)
 
-#define IS_TDS7_PLUS(x) ((x)->major_version>=7)
-#define IS_TDS8_PLUS(x) ((x)->major_version>=8)
+#define IS_TDS7_PLUS(x) ((x)->tds_version>=0x700)
+#define IS_TDS71_PLUS(x) ((x)->tds_version>=0x701)
+
+#define TDS_MAJOR(x) ((x)->tds_version >> 8)
+#define TDS_MINOR(x) ((x)->tds_version & 0xff)
 
 #define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID((x)->s))
 

@@ -159,7 +159,7 @@ write_all_strings(DSNINFO * di)
 	sprintf(tmp, "%u", di->connection->port);
 	WRITESTR("Port", tmp);
 
-	sprintf(tmp, "%d.%d", di->connection->major_version, di->connection->minor_version);
+	sprintf(tmp, "%d.%d", TDS_MAJOR(di->connection), TDS_MINOR(di->connection));
 	WRITESTR("TDS_Version", tmp);
 
 	sprintf(tmp, "%u", di->connection->text_size);
@@ -215,7 +215,7 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	const char *pstr;
 	int major, minor, i;
 	static const char *protocols[] = {
-		"TDS 4.2", "TDS 4.6", "TDS 5.0", "TDS 7.0", "TDS 8.0", NULL
+		"TDS 4.2", "TDS 4.6", "TDS 5.0", "TDS 7.0", "TDS 7.1", "TDS 7.2", NULL
 	};
 
 	switch (message) {
@@ -232,7 +232,7 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 		/* copy info from DSNINFO to the dialog */
 		SendDlgItemMessage(hDlg, IDC_DSNNAME, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->dsn));
-		sprintf(tmp, "TDS %d.%d", di->connection->major_version, di->connection->minor_version);
+		sprintf(tmp, "TDS %d.%d", TDS_MAJOR(di->connection), TDS_MINOR(di->connection));
 		SendDlgItemMessage(hDlg, IDC_PROTOCOL, CB_SELECTSTRING, -1, (LPARAM) tmp);
 		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->connection->server_name));
 		sprintf(tmp, "%u", di->connection->port);
@@ -261,8 +261,11 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SendDlgItemMessage(hDlg, IDC_PROTOCOL, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
 		minor = 0;
 		if (sscanf(tmp, "%*[^0-9]%d.%d", &major, &minor) > 1) {
-			di->connection->major_version = major;
-			di->connection->minor_version = minor;
+			if (major == 8 && minor == 0) {
+				major = 7;
+				minor = 1;
+			}
+			di->connection->tds_version = (major << 8) | minor;
 		}
 		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
 		tds_dstr_copy(&di->connection->server_name, tmp);

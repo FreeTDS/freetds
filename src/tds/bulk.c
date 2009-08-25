@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.9 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.10 2009-08-25 14:25:35 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -829,7 +829,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			continue;
 		}
 
-		if (IS_TDS90(tds))
+		if (IS_TDS72(tds))
 			tds_put_int(tds, bcpcol->column_usertype);
 		else
 			tds_put_smallint(tds, bcpcol->column_usertype);
@@ -856,7 +856,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			tds_put_byte(tds, bcpcol->column_prec);
 			tds_put_byte(tds, bcpcol->column_scale);
 		}
-		if (IS_TDS8_PLUS(tds)
+		if (IS_TDS71_PLUS(tds)
 			&& is_collate_type(bcpcol->on_server.column_type)) {
 			tds_put_n(tds, bcpcol->column_collation, 5);
 		}

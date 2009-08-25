@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.144 2009-08-20 17:51:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.145 2009-08-25 14:25:35 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -209,8 +209,8 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "Final connection parameters:\n");
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_name", tds_dstr_cstr(&connection->server_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "port", connection->port);
-		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "major_version", (int)connection->major_version);
-		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "minor_version", (int)connection->minor_version);
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "major_version", TDS_MAJOR(connection));
+		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "minor_version", TDS_MINOR(connection));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "block_size", connection->block_size);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "language", tds_dstr_cstr(&connection->language));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_charset", tds_dstr_cstr(&connection->server_charset));
@@ -582,10 +582,8 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 	if (!tds_dstr_isempty(&login->server_name) && tds_dstr_isempty(&connection->server_name)) {
 		tds_dstr_dup(&connection->server_name, &login->server_name);
 	}
-	if (login->major_version || login->minor_version) {
-		connection->major_version = login->major_version;
-		connection->minor_version = login->minor_version;
-	}
+	if (login->tds_version)
+		connection->tds_version = login->tds_version;
 	if (!tds_dstr_isempty(&login->language)) {
 		tds_dstr_dup(&connection->language, &login->language);
 	}
@@ -704,32 +702,30 @@ tds_config_env_tdshost(TDSCONNECTION * connection)
  * @param connection where to store information
  * @return as encoded hex value: high nybble major, low nybble minor.
  */
-unsigned char
+TDS_USMALLINT
 tds_config_verstr(const char *tdsver, TDSCONNECTION * connection)
 {
-	unsigned char version;
+	TDS_USMALLINT version;
 
 	if (!strcmp(tdsver, "42") || !strcmp(tdsver, "4.2"))
-		version = 0x42;
+		version = 0x402;
 	else if (!strcmp(tdsver, "46") || !strcmp(tdsver, "4.6"))
-		version = 0x46;
+		version = 0x406;
 	else if (!strcmp(tdsver, "50") || !strcmp(tdsver, "5.0"))
-		version = 0x50;
+		version = 0x500;
 	else if (!strcmp(tdsver, "70") || !strcmp(tdsver, "7.0"))
-		version = 0x70;
+		version = 0x700;
 	else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0") || !strcmp(tdsver, "7.1"))
-		version = 0x80;
+		version = 0x701;
 	else if (!strcmp(tdsver, "7.2"))
-		version = 0x90;
+		version = 0x702;
 	else if (!strcmp(tdsver, "0.0"))
 		version = 0;
 	else 
 		return 0;
 
-	if (connection) {
-		connection->major_version = version >> 4;
-		connection->minor_version = version & 0xf;
-	}
+	if (connection)
+		connection->tds_version = version;
 
 	return version;
 }
@@ -1143,20 +1139,16 @@ tds_get_compiletime_settings(void)
 #		endif
 #		ifdef TDS46
 			, "4.6"
-#		else
-#		ifdef TDS50
+#		elif TDS50
 			, "5.0"
-#		else
-#		ifdef TDS70
+#		elif TDS70
 			, "7.0"
-#		else
-#		ifdef TDS80
-			, "8.0"
+#		elif TDS71
+			, "7.1"
+#		elif TDS72
+			, "7.2"
 #		else
 			, "4.2"
-#		endif
-#		endif
-#		endif
 #		endif
 #		ifdef IODBC
 			, 1

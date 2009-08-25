@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.187 2009-07-10 18:03:52 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.188 2009-08-25 14:25:35 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -183,7 +183,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	/* 
 	 * Validate other parameters 
 	 */
-	if (dbproc->tds_socket->major_version < 5) {
+	if (dbproc->tds_socket->tds_version < 0x500) {
 		dbperror(dbproc, SYBETDSVER, 0);
 		return (FAIL);
 	}

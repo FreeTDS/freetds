@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.372 2009-08-21 10:11:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.373 2009-08-25 14:25:35 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1100,7 +1100,7 @@ tds_process_tabname(TDSSOCKET *tds)
 	hdrsize = tds_get_smallint(tds);
 
 	/* different structure for tds8 */
-	if (IS_TDS8_PLUS(tds))
+	if (IS_TDS71_PLUS(tds))
 		num_names = tds8_read_table_names(tds, hdrsize, &head);
 	else
 		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
@@ -1419,7 +1419,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_COLUMN_EXTRA(curcol);
 
 	/*  User defined data type of the column */
-	curcol->column_usertype = IS_TDS90(tds) ? tds_get_int(tds) : tds_get_smallint(tds);
+	curcol->column_usertype = IS_TDS72(tds) ? tds_get_int(tds) : tds_get_smallint(tds);
 
 	curcol->column_flags = tds_get_smallint(tds);	/*  Flags */
 
@@ -1441,7 +1441,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	case 2:
 		curcol->column_size = tds_get_smallint(tds);
 		/* under TDS9 this means ?var???(MAX) */
-		if (curcol->column_size < 0 && IS_TDS90(tds)) {
+		if (curcol->column_size < 0 && IS_TDS72(tds)) {
 			curcol->column_size = 0x3ffffffflu;
 			curcol->column_varint_size = 8;
 		}
@@ -1463,7 +1463,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		/* FIXME check prec/scale, don't let server crash us */
 	}
 
-	if (IS_TDS8_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
+	if (IS_TDS71_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
 		/* based on true type as sent by server */
 		/*
 		 * first 2 bytes are windows code (such as 0x409 for english)
@@ -1481,11 +1481,11 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (is_blob_type(curcol->column_type)) {
 		/* discard this additional byte */
 		/* TODO discover its meaning */
-		if (IS_TDS90(tds))
+		if (IS_TDS72(tds))
 			tds_get_byte(tds);
 		curcol->table_namelen =
 			tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
-	} else if (IS_TDS90(tds) && curcol->column_type == SYBMSXML)
+	} else if (IS_TDS72(tds) && curcol->column_type == SYBMSXML)
 		tds_get_byte(tds);
 
 	/*
@@ -1619,7 +1619,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 			, might_be_nullable	= 0x0800 
 		};
 		/* TODO: implement members in TDSCOLUMN */
-		if (IS_TDS90(tds)) {
+		if (IS_TDS72(tds)) {
 			curcol->is_computed = 		(curcol->column_flags & (1 << 4)) > 1;
 			curcol->us_reserved_odbc1 = 	(curcol->column_flags & (1 << 5)) > 1;
 			curcol->us_reserved_odbc2 = 	(curcol->column_flags & (1 << 6)) > 1;
@@ -1628,7 +1628,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 #endif 
 	} 
 
-	if (IS_TDS90(tds)) {
+	if (IS_TDS72(tds)) {
 		tds_get_n(tds, NULL, 2);
 #if 0
 		/* TODO: implement members in TDSCOLUMN, values untested */
@@ -1677,7 +1677,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 
 	/* read sql collation info */
 	/* TODO: we should use it ! */
-	if (IS_TDS8_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
+	if (IS_TDS71_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
 		tds_get_n(tds, curcol->column_collation, 5);
 		curcol->char_conv =
 			tds_iconv_from_collate(tds, curcol->column_collation);
@@ -2413,7 +2413,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	 * have no result set.
 	 */
 
-	rows_affected = IS_TDS90(tds) ? tds_get_int8(tds) : tds_get_int(tds);
+	rows_affected = IS_TDS72(tds) ? tds_get_int8(tds) : tds_get_int(tds);
 	tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %" TDS_I64_FORMAT "\n", rows_affected);
 	if (done_count_valid)
 		tds->rows_affected = rows_affected;
@@ -2496,7 +2496,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 
 	/* discard byte values, not still supported */
 	/* TODO support them */
-	if (IS_TDS8_PLUS(tds) && type > TDS_ENV_PACKSIZE) {
+	if (IS_TDS71_PLUS(tds) && type > TDS_ENV_PACKSIZE) {
 		/* discard new one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		/* discard old one */
@@ -2653,7 +2653,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	rc += tds_alloc_get_string(tds, &msg.proc_name, tds_get_byte(tds));
 
 	/* line number in the sql statement where the problem occured */
-	msg.line_number = IS_TDS90(tds) ? tds_get_int(tds) : tds_get_smallint(tds);
+	msg.line_number = IS_TDS72(tds) ? tds_get_int(tds) : tds_get_smallint(tds);
 
 	/*
 	 * If the server doesen't provide an sqlstate, map one via server native errors

@@ -5,8 +5,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2009-06-06 16:24:11 $</date>
-		<releaseinfo>$Revision: 1.124 $</releaseinfo>
+		<date>$Date: 2009-08-25 14:25:35 $</date>
+		<releaseinfo>$Revision: 1.125 $</releaseinfo>
 		<title><productname>FreeTDS</productname> User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running <productname>FreeTDS</productname></subtitle>
 		<author>
@@ -57,9 +57,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.124 $</>
-<member>$Date: 2009-06-06 16:24:11 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.124 2009-06-06 16:24:11 freddy77 Exp $.</>
+<member>$Revision: 1.125 $</>
+<member>$Date: 2009-08-25 14:25:35 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.125 2009-08-25 14:25:35 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the <productname>FreeTDS</productname> 
@@ -153,11 +153,19 @@ Introduced for <productname>SQL Server 7.0</productname>.  Includes support for 
 			</para>
 			</listitem></varlistentry>
 
-			<varlistentry><term>TDS 8.0
+			<varlistentry><term>TDS 7.1
 			  Microsoft</term>
 			<listitem>
 			<para>
 Introduced for <productname>SQL Server 2000</productname>.  Includes support for big integer (64-bit <structname>int</structname>) and <quote>variant</quote> datatypes. 
+			</para>
+			</listitem></varlistentry>
+
+			<varlistentry><term>TDS 7.2
+			  Microsoft</term>
+			<listitem>
+			<para>
+Introduced for <productname>SQL Server 2005</productname>.  Includes support for varchar(max), varbinary(max), xml datatypes and MARS.
 			</para>
 			</listitem></varlistentry>
 
@@ -172,7 +180,7 @@ Introduced for <productname>SQL Server 2000</productname>.  Includes support for
 In early 1997, the only option for connecting to a Sybase server from Linux or other free systems was an aging Sybase-released version of <productname>OpenClient</productname>.  Unfortunately it had a few problems.  The original release was <symbol>a.out</>-based, although Greg Thain did a great service in converting the library to ELF.  Secondly, it included only the newer <systemitem class="library">ct-lib</systemitem> <acronym>API</>.  The older <systemitem class="library">db-lib</systemitem> <acronym>API</> was missing.
 			</para>
 			<para>
-Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productname> project, had some <systemitem class="library">db-lib</systemitem> programs he wanted to run under Linux, and thus began the <productname>FreeTDS</productname> project. The original work focused on <systemitem class="library">db-lib</systemitem> and version 5.0 of the protocol, but quickly expanded to include a <systemitem class="library">ct-lib</systemitem> compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0 and 8.0</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.
+Brian Bruns, a Sybase DBA and originator of the <productname>FreeTDS</productname> project, had some <systemitem class="library">db-lib</systemitem> programs he wanted to run under Linux, and thus began the <productname>FreeTDS</productname> project. The original work focused on <systemitem class="library">db-lib</systemitem> and version 5.0 of the protocol, but quickly expanded to include a <systemitem class="library">ct-lib</systemitem> compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0 and 7.1</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.
 			</para>
 			<para>
 As the project matured, it gained new participants.  Frediano Ziglio greatly expanded the <systemitem class="library">ODBC</systemitem> driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our <systemitem class="library">ct-lib</systemitem>.  Your humble author joined the project to add documentation, and wound up as the project's maintainer.  Such are the rewards for doing a good deed.  
@@ -392,7 +400,7 @@ There are a few optional arguments to <Command>configure</> that may be importan
 			<varlistentry>
 				<term><Option>--with-tdsver=<replaceable>VER</>
 					</Option></term>
-				<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, and <literal>8.0</literal>.</para>
+				<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, <literal>7.1</literal> and <literal>7.2</literal>.</para>
 					<para>The default is <literal>5.0</literal> if this argument is not passed to <Command>configure</Command>.</para>
 					</listitem>
 				</varlistentry>
@@ -569,7 +577,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2009-06-06 16:24:11 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2009-08-25 14:25:35 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -703,8 +711,8 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 	</row>
 	<row>
 	<entry>Microsoft SQL Server 2000</entry>
-	<entry>8.0</entry>
-	<entry>Include support for <symbol>bigint</> (64 bit integers), <symbol>variant</> and collation on all fields. <symbol>variant</> is not supported; collation is not widely used. </entry>
+	<entry>7.1</entry>
+	<entry>Include support for <symbol>bigint</> (64 bit integers), <symbol>variant</> and collation on all fields. Collation is not widely used. </entry>
 	</row>
 </tbody>	
 </tgroup>
@@ -801,11 +809,11 @@ The <filename>freetds.conf</filename> file is composed of two types of sections:
 [myserver3]
 	host = instancebox.mydomain.com
 	instance = foo
-	tds version = 8.0
+	tds version = 7.1
 </programlisting>
 </example>
 	<para>
-In this example, the default  <acronym>TDS</> version for all dataservers is set to <literal>4.2</>.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses <literal>5.0</literal>, and <literal>myserver3</literal> (a MSSQL 2000 server) which uses <literal>8.0</literal>.
+In this example, the default  <acronym>TDS</> version for all dataservers is set to <literal>4.2</>.  It is then overridden for <literal>myserver2</literal> (a Sybase server) which uses <literal>5.0</literal>, and <literal>myserver3</literal> (a MSSQL 2000 server) which uses <literal>7.1</literal>.
 	</para>
 	<para>
 Usually, it is sufficient to state just the server's hostname and TDS protocol version.  Everything else can be inferred, unless your setup (or your server's) strays from the defaults.  
@@ -832,7 +840,7 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 		Overridden by <link  linkend="TDSVER">TDSVER</link>.  
 		</entry> 
 	<entry>The <acronym>TDS</> protocol version to use when connecting.</entry>
-	<entry>4.2, 5.0, 7.0, 8.0</entry>
+	<entry>4.2, 5.0, 7.0, 7.1, 7.2</entry>
 	</row>
 	<row>
 	<entry>host</entry>
@@ -929,13 +937,13 @@ It bears mentioning here that prior versions of <productname>FreeTDS</productnam
 	<entry>emulate little endian</entry>
 	<entry>yes/no</entry>
 	<entry>no</entry>
-	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</> 7.0/8.0 on big endian hosts</entry>
+	<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</> 7.0 or above on big endian hosts</entry>
 	</row>
 	<row>
 	<entry id="clientcharset">client charset</entry>
 	<entry>any valid iconv character set</entry>
 	<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Localization">Localization and <acronym>TDS</> 7.0</link> for more information.  </para></footnote></entry>
-	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0/8.0.
+	<entry>Makes <productname>FreeTDS</productname> use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0 or above.
 As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need to match the server's charset to insert any characters the server supports.</entry>
 	</row>
 	<row>
@@ -1155,7 +1163,7 @@ In a typical system, no environment variables need be used.  They're sometimes h
 	<varlistentry>
 		<term id="TDSPORT"><envar>TDSPORT</envar></term>
 		<listitem>
-			<para>specifies a TCP port number at which the dataserver is listening.  It overrides the default port (1433 for TDS 4.2/7.0/8.0, 4000 for TDS 5.0) as well as any port specified in the <filename>freetds.conf</filename> file.</para>
+			<para>specifies a TCP port number at which the dataserver is listening.  It overrides the default port (1433 for TDS 4.2/7.0/7.1/7.2, 4000 for TDS 5.0) as well as any port specified in the <filename>freetds.conf</filename> file.</para>
 		</listitem>
 	</varlistentry>	
 	<varlistentry>
@@ -1785,7 +1793,7 @@ found this section:
         [machine]
                 host = machine.example.com
                 port = 2500
-                tds version = 8.0
+                tds version = 7.1
 
 machine.example.com has address 10.82.32.177
 
@@ -1829,8 +1837,8 @@ Several version of Microsoft SQL server have a bug that affects big endian clien
 <Note><para>The terms <emphasis>big endian</emphasis> and <emphasis>little endian</emphasis> come originally from Gulliver's Travels.  In computer science they refer to the the integer byte-order for a processor.  Big endian processors, such as Sparc and PowerPC store the most significant byte in the first memory location of a multi-byte integer.  Little endian processors, such as Intel and Alpha do it the other way around.  So the 16-bit number 258 would be 0x0102 on big endian and 0x0201 on little endian machines.</para></Note>
 
 <para>
-In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 and 8.0 will automatically emulate little endian mode regardless of the <filename>freetds.conf</filename> setting.
-<emphasis>You shouldn't use this option, set another protocol version instead (7.0 or 8.0)</emphasis>.
+In this example we want to force connections to a server named <literal>mssql</literal> to emulate a little endian client.  We are using protocol version 4.2 here, version 7.0 or above will automatically emulate little endian mode regardless of the <filename>freetds.conf</filename> setting.
+<emphasis>You shouldn't use this option, set another protocol version instead (7.0, 7.1 or 7.2)</emphasis>.
 </para>
 <example id="e.g.LittleEndian">
 <title>Emulate Little Endian <filename>freetds.conf</filename> setting</title>
@@ -1932,7 +1940,7 @@ Why this happens is anyone's guess.  Here's one: it makes the datatype of the co
 		</sect1>
 		<sect1 id="domains">
 			<title>Domain Logins</title>
-<Note><para>Domain logins can be used only with TDS protocol versions 7.0 and 8.0.</para></Note>
+<Note><para>Domain logins can be used only with TDS protocol versions 7.0 or above.</para></Note>
 			<para>
 As mentioned in the installation chapter, <productname>Microsoft SQL Server</productname> includes the ability to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol.
 <productname>FreeTDS</productname> began supporting domain logins in version 0.60.
@@ -4239,7 +4247,7 @@ While UTF-8 solves many technical problems, it doesn't magically transform every
 		</section>
 		<section id="UnicodeFreeTDS"><title>Unicode and FreeTDS</title>
 			<para>
-Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most applications linked to <productname>FreeTDS</productname> are not prepared to deal with UCS-2 data, <productname>FreeTDS</productname> can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  <productname>FreeTDS</productname> determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 8.0, per result set column).  It discovers the client's encoding in <filename>freetds.conf</filename>.  <productname>FreeTDS</productname> will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.  
+Microsoft servers using TDS 7.0 and above (anything since SQL Server 6.5) transmit their data in UCS-2 format (16-bit integers).  Because most applications linked to <productname>FreeTDS</productname> are not prepared to deal with UCS-2 data, <productname>FreeTDS</productname> can convert the data to something more acceptable, including <acronym>ASCII</>.  To do so, it employs an  <productname>iconv</productname>  library.  <productname>FreeTDS</productname> determines the server's encoding from the TDS protocol and information reported by the server (generally per connection, but in the case of TDS 7.1, per result set column).  It discovers the client's encoding in <filename>freetds.conf</filename>.  <productname>FreeTDS</productname> will happily convert and convey your data in any <emphasis>single-byte</emphasis> format that <productname>iconv</productname> can provide.  In practice, this normally means some form of ISO 8859-x or UTF-8.
 			</para>
 			<para>
 At some future time, <productname>FreeTDS</productname> aims to support Unicode and other multi-byte character sets.  It does not do so at the current time.  

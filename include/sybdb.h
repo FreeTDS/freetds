@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.90 2009-04-18 19:35:38 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.91 2009-08-25 14:25:35 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -73,7 +73,9 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBVERSION_100     2
 #define DBVERSION_42      3
 #define DBVERSION_70      4
-#define DBVERSION_80      5
+#define DBVERSION_71      5
+#define DBVERSION_80      DBVERSION_71
+#define DBVERSION_72      6
 
 /* these two are defined by Microsoft for dbsetlversion() */
 #define DBVER42 	  DBVERSION_42
@@ -94,6 +96,8 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBTDS_7_0               8	/* Microsoft SQL Server 7.0 */
 #define DBTDS_8_0               9	/* Microsoft SQL Server 2000 */
 #define DBTDS_9_0               10	/* Microsoft SQL Server 2005 */
+#define DBTDS_7_1               9	/* Microsoft SQL Server 2000 */
+#define DBTDS_7_2               10	/* Microsoft SQL Server 2005 */
 
 #define DBTXPLEN 16
 

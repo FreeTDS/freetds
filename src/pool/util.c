@@ -33,7 +33,7 @@
 #include "pool.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: util.c,v 1.13 2006-12-26 14:56:20 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.14 2009-08-25 14:25:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -73,7 +73,7 @@ dump_login(TDSLOGIN * login)
 	fprintf(stderr, "pass %s\n", tds_dstr_cstr(&login->password));
 	fprintf(stderr, "app  %s\n", tds_dstr_cstr(&login->app_name));
 	fprintf(stderr, "srvr %s\n", tds_dstr_cstr(&login->server_name));
-	fprintf(stderr, "vers %d.%d\n", login->major_version, login->minor_version);
+	fprintf(stderr, "vers %d.%d\n", TDS_MAJOR(login), TDS_MINOR(login));
 	fprintf(stderr, "lib  %s\n", tds_dstr_cstr(&login->library));
 	fprintf(stderr, "lang %s\n", tds_dstr_cstr(&login->language));
 	fprintf(stderr, "char %s\n", tds_dstr_cstr(&login->server_charset));

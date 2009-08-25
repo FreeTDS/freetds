@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.86 2009-04-18 19:35:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.87 2009-08-25 14:25:35 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -194,10 +194,10 @@ tds_version(TDSSOCKET * tds_socket, char *pversion_string)
 	int iversion = 0;
 
 	if (tds_socket) {
-		iversion = 10 * tds_socket->major_version + tds_socket->minor_version;
+		iversion = 10 * TDS_MAJOR(tds_socket) + TDS_MINOR(tds_socket);
 
 		if (pversion_string) {
-			sprintf(pversion_string, "%d.%d", tds_socket->major_version, tds_socket->minor_version);
+			sprintf(pversion_string, "%d.%d", TDS_MAJOR(tds_socket), TDS_MINOR(tds_socket));
 		}
 	}
 

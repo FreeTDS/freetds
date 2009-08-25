@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.190 2009-07-20 17:38:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.191 2009-08-25 14:25:35 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -812,8 +812,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 	/* fill in all hardcoded defaults */
 	if (!tds_dstr_copy(&connection->server_name, TDS_DEF_SERVER))
 		goto Cleanup;
-	connection->major_version = TDS_DEF_MAJOR;
-	connection->minor_version = TDS_DEF_MINOR;
+	connection->tds_version = TDS_DEFAULT_VERSION;
 	connection->port = TDS_DEF_PORT;
 	connection->block_size = 0;
 	/* TODO use system default ?? */

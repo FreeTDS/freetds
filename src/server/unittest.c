@@ -44,7 +44,7 @@
 #define sleep(s) Sleep((s)*1000)
 #endif
 
-static char software_version[] = "$Id: unittest.c,v 1.18 2008-01-07 14:07:21 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.19 2009-08-25 14:25:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);
@@ -126,7 +126,7 @@ dump_login(TDSLOGIN * login)
 	printf("pass %s\n", tds_dstr_cstr(&login->password));
 	printf("app  %s\n", tds_dstr_cstr(&login->app_name));
 	printf("srvr %s\n", tds_dstr_cstr(&login->server_name));
-	printf("vers %d.%d\n", login->major_version, login->minor_version);
+	printf("vers %d.%d\n", TDS_MAJOR(login), TDS_MINOR(login));
 	printf("lib  %s\n", tds_dstr_cstr(&login->library));
 	printf("lang %s\n", tds_dstr_cstr(&login->language));
 	printf("char %s\n", tds_dstr_cstr(&login->server_charset));

@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.351 2009-08-19 09:50:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.352 2009-08-25 14:25:35 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -222,8 +222,11 @@ DBVERSION_46;
 #ifdef TDS70
 DBVERSION_70;
 #endif
-#ifdef TDS80
-DBVERSION_80;
+#ifdef TDS71
+DBVERSION_71;
+#endif
+#ifdef TDS72
+DBVERSION_72;
 #endif
 
 
@@ -890,12 +893,10 @@ dbsetlversion (LOGINREC * login, BYTE version)
 		
 	switch (version) {
 	case DBVER42:
-		login->tds_login->major_version = 4;
-		login->tds_login->minor_version = 2;
+		login->tds_login->tds_version = 0x402;
 		return SUCCEED;
 	case DBVER60:
-		login->tds_login->major_version = 6;
-		login->tds_login->minor_version = 0;
+		login->tds_login->tds_version = 0x600;
 		return SUCCEED;
 	}
 	
@@ -6505,24 +6506,19 @@ dbtds(DBPROCESS * dbproc)
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	if (dbproc->tds_socket) {
-		switch (dbproc->tds_socket->major_version) {
-		case 4:
-			switch (dbproc->tds_socket->minor_version) {
-			case 2:
-				return DBTDS_4_2;
-			case 6:
-				return DBTDS_4_6;
-			default:
-				return DBTDS_UNKNOWN;
-			}
-		case 5:
+		switch (dbproc->tds_socket->tds_version) {
+		case 0x402:
+			return DBTDS_4_2;
+		case 0x406:
+			return DBTDS_4_6;
+		case 0x500:
 			return DBTDS_5_0;
-		case 7:
+		case 0x700:
 			return DBTDS_7_0;
-		case 8:
-			return DBTDS_8_0;
-		case 9:
-			return DBTDS_9_0;
+		case 0x701:
+			return DBTDS_7_1;
+		case 0x702:
+			return DBTDS_7_2;
 		default:
 			return DBTDS_UNKNOWN;
 		}

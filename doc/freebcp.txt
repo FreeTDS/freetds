@@ -122,7 +122,7 @@ OPTIONS
 NOTES
   When connecting to a Sybase database server, it is required that the
   TDS 5.0 protocol be used. When connecting to a Microsoft SQL Server
-  2000 database server, the TDS 8.0 protocol is required.
+  2000 database server, the TDS 7.1 protocol is required.
 
   Theoretically both Sybase and Microsoft support the TDS 4.2 protocol,
   but in reality they implement the bcp portion of TDS 4.2 differently.

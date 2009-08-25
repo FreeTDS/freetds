@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: server.c,v 1.25 2008-05-28 21:08:33 freddy77 Exp $";
+static char software_version[] = "$Id: server.c,v 1.26 2009-08-25 14:25:35 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void
@@ -166,8 +166,8 @@ tds_send_login_ack(TDSSOCKET * tds, const char *progname)
 		tds_put_byte(tds, 0);
 	} else {
 		tds_put_byte(tds, 1);
-		tds_put_byte(tds, tds->major_version);
-		tds_put_byte(tds, tds->minor_version);
+		tds_put_byte(tds, TDS_MAJOR(tds));
+		tds_put_byte(tds, TDS_MINOR(tds));
 	}
 	tds_put_byte(tds, 0);	/* unknown */
 	tds_put_byte(tds, 0);	/* unknown */
@@ -230,7 +230,7 @@ tds_send_done(TDSSOCKET * tds, int token, TDS_SMALLINT flags, TDS_INT numrows)
 	tds_put_byte(tds, token);
 	tds_put_smallint(tds, flags);
 	tds_put_smallint(tds, 2); /* are these two bytes the transaction status? */
-	if (IS_TDS90(tds))
+	if (IS_TDS72(tds))
 		tds_put_int8(tds, numrows);
 	else
 		tds_put_int(tds, numrows);
@@ -399,7 +399,7 @@ tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
  */
 void tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
-	switch (tds->major_version) {
+	switch (TDS_MAJOR(tds)) {
 	case 4:
 		/*
 		 * TDS4 uses TDS_COLNAME_TOKEN to send column names, and
@@ -416,8 +416,6 @@ void tds_send_table_header(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 		break;
 
 	case 7:
-	case 8:
-	case 9:
 		/*
 		 * TDS7+ uses a TDS7_RESULT_TOKEN to send all column
 		 * information.

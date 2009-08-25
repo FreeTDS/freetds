@@ -1,3 +1,13 @@
+Tue Aug 25 16:23:49 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/freebcp.txt doc/freetds.conf.5 doc/tds_ssl.html:
+	* doc/userguide.sgml include/sybdb.h include/tds.h src/dblib/bcp.c:
+	* src/dblib/dblib.c src/dblib/unittests/t0022.c src/pool/util.c:
+	* src/server/login.c src/server/server.c src/server/unittest.c:
+	* src/tds/bulk.c src/tds/config.c src/tds/login.c src/tds/mem.c:
+	* src/tds/net.c src/tds/query.c src/tds/tds_checks.c:
+	* src/tds/token.c src/tds/util.c win32/winsetup.c:
+	- Use MS protocol version (7.1 for mssql2k and 7.2 for mssql2k5)
+
 Fri Aug 21 12:10:57 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/data.c src/tds/token.c:
 	- fix variant type for data converted to client encoding
@@ -1786,4 +1796,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2857 2009-08-21 10:11:19 freddy77 Exp $
+$Id: ChangeLog,v 1.2858 2009-08-25 14:25:35 freddy77 Exp $
