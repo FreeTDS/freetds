@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.23 2009-08-21 10:11:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.24 2009-08-26 12:32:11 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -127,6 +127,24 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 		curcol->on_server.column_type = SYBFLTN;
 		curcol->column_varint_size = 1;
 		curcol->column_cur_size = -1;
+		break;
+	case SYBNTEXT:
+		if (IS_TDS72(tds)) {
+			curcol->column_varint_size = 8;
+			curcol->on_server.column_type = XSYBNVARCHAR;
+		}
+		break;
+	case SYBTEXT:
+		if (IS_TDS72(tds)) {
+			curcol->column_varint_size = 8;
+			curcol->on_server.column_type = XSYBVARCHAR;
+		}
+		break;
+	case SYBIMAGE:
+		if (IS_TDS72(tds)) {
+			curcol->column_varint_size = 8;
+			curcol->on_server.column_type = XSYBVARBINARY;
+		}
 		break;
 	default:
 		break;

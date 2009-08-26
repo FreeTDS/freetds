@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.240 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.241 2009-08-26 12:32:11 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -624,7 +624,10 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		break;
 	case SYBVARCHAR:
 	case XSYBVARCHAR:
-		fmt = "VARCHAR(%u)";
+		if (curcol->column_varint_size == 8)
+			fmt = "VARCHAR(MAX)";
+		else
+			fmt = "VARCHAR(%u)";
 		break;
 	case SYBINT1:
 		fmt = "TINYINT";
@@ -673,7 +676,10 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		break;
 	case SYBVARBINARY:
 	case XSYBVARBINARY:
-		fmt = "VARBINARY(%u)";
+		if (curcol->column_varint_size == 8)
+			fmt = "VARBINARY(MAX)";
+		else
+			fmt = "VARBINARY(%u)";
 		break;
 	case SYBNUMERIC:
 		fmt = "NUMERIC(%d,%d)";
@@ -694,7 +700,9 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		break;
 	case SYBNVARCHAR:
 	case XSYBNVARCHAR:
-		if (IS_TDS7_PLUS(tds)) {
+		if (curcol->column_varint_size == 8) {
+			fmt = "NVARCHAR(MAX)";
+		} else if (IS_TDS7_PLUS(tds)) {
 			fmt = "NVARCHAR(%u)";
 			max_len = 4000;
 			size /= 2u;
@@ -1382,6 +1390,9 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		case 4:
 			tds_put_int(tds, size);
 			break;
+		case 8:
+			tds_put_smallint(tds, 0xffff);
+			break;
 		}
 	}
 
@@ -1456,6 +1467,9 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		case 2:
 			tds_put_smallint(tds, -1);
 			break;
+		case 8:
+			tds_put_int8(tds, -1);
+			break;
 		default:
 			assert(curcol->column_varint_size);
 			/* FIXME not good for SYBLONGBINARY/SYBLONGCHAR (still not supported) */
@@ -1511,6 +1525,10 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			    curcol->column_varint_size);
 
 		switch (curcol->column_varint_size) {
+		case 8:
+			tds_put_int8(tds, colsize);
+			tds_put_int(tds, colsize);
+			break;
 		case 4:	/* It's a BLOB... */
 			colsize = MIN(colsize, size);
 			/* mssql require only size */
@@ -1560,6 +1578,9 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 #endif
 			tds_put_n(tds, s, colsize);
 		}
+		/* finish chunk for varchar/varbinary(max) */
+		if (curcol->column_varint_size == 8 && colsize)
+			tds_put_int(tds, 0);
 	} else {
 		/* TODO ICONV handle charset conversions for data */
 		/* put size of data */

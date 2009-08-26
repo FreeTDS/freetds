@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.373 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.374 2009-08-26 12:32:11 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1659,6 +1659,11 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	case 2:
 		/* assure > 0 */
 		curcol->column_size = tds_get_smallint(tds);
+                /* under TDS9 this means ?var???(MAX) */
+		if (curcol->column_size < 0 && IS_TDS72(tds)) {
+			curcol->column_size = 0x3ffffffflu;
+			curcol->column_varint_size = 8;
+		}
 		break;
 	case 1:
 		curcol->column_size = tds_get_byte(tds);

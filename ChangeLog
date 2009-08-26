@@ -1,3 +1,8 @@
+Wed Aug 26 14:31:33 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/sql2tds.c src/odbc/unittests/genparams.c src/tds/data.c:
+	* src/tds/query.c src/tds/tds_checks.c src/tds/token.c:
+	- more fixes for varchar(max)/varbinary(max)
+
 Wed Aug 26 14:18:35 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/common.c:
 	- make check now works if configure was launched from another
@@ -1808,4 +1813,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2861 2009-08-26 12:19:01 freddy77 Exp $
+$Id: ChangeLog,v 1.2862 2009-08-26 12:32:11 freddy77 Exp $

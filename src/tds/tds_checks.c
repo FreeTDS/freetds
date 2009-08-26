@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.26 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.27 2009-08-26 12:32:11 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -191,16 +191,21 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(strlen(column->column_name) < sizeof(column->column_name));
 
 	/* check type and server type same or SQLNCHAR -> SQLCHAR */
+#define SPECIAL(type, server_type, varint) \
+	if (column->column_type == type && column->on_server.column_type == server_type && column->column_varint_size == varint) {} else
+	SPECIAL(SYBTEXT, XSYBVARCHAR, 8)
+	SPECIAL(SYBTEXT, XSYBNVARCHAR, 8)
+	SPECIAL(SYBIMAGE, XSYBVARBINARY, 8)
 	assert(tds_get_cardinal_type(column->on_server.column_type) == column->column_type
-		|| (tds_get_null_type(column->column_type) == column->on_server.column_type 
+		|| (tds_get_null_type(column->column_type) == column->on_server.column_type
 		&& column->column_varint_size == 1 && is_fixed_type(column->column_type)));
 
 	varint_ok = 0;
-	if (is_blob_type(column->column_type)) {
-		assert(column->column_varint_size >= 4);
-	} else if (column->column_varint_size == 8) {
+	if (column->column_varint_size == 8) {
 		assert(column->on_server.column_type == XSYBVARCHAR || column->on_server.column_type == XSYBVARBINARY || column->on_server.column_type == XSYBNVARCHAR || column->on_server.column_type == SYBMSXML);
 		varint_ok = 1;
+	} else if (is_blob_type(column->column_type)) {
+		assert(column->column_varint_size >= 4);
 	} else if (column->column_type == SYBVARIANT) {
 		assert(column->column_varint_size == 4);
 	}

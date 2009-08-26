@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.43 2009-05-27 17:58:02 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.44 2009-08-26 12:32:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -431,6 +431,13 @@ AllTests(void)
 
 		TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
 		TestInput(SQL_C_BINARY, "IMAGE", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
+	}
+	if (db_is_microsoft() && db_version_int() >= 0x09000000u) {
+		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARCHAR(MAX)", "1EasyTest");
+		TestInput(SQL_C_BINARY, "VARBINARY(20)", SQL_LONGVARBINARY, "VARBINARY(MAX)", "Anything will suite!");
+#ifdef ENABLE_DEVELOPING
+		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARBINARY(MAX)", "1EasyTest");
+#endif
 	}
 }
 

@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.83 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.84 2009-08-26 12:32:11 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -366,7 +366,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 			if (curcol->column_data && curcol->column_data_free)
 				curcol->column_data_free(curcol);
 			curcol->column_data_free = NULL;
-			if (dest_type == SYBNTEXT || dest_type == SYBTEXT) {
+			if (is_blob_col(curcol)) {
 				TDSBLOB *blob = (TDSBLOB *) calloc(1, sizeof(TDSBLOB));
 				if (!blob) {
 					odbc_errs_add(&stmt->errs, "HY001", NULL);
