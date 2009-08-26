@@ -14,7 +14,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.36 2009-04-17 09:54:27 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.37 2009-08-26 12:19:01 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -245,7 +245,7 @@ read_login_info(int argc, char **argv)
 #if 0
 	dbrecftos(BASENAME);
 #endif
-	len = snprintf(sql_file, sizeof(sql_file), "%s.sql", BASENAME);
+	len = snprintf(sql_file, sizeof(sql_file), "%s/%s.sql", FREETDS_SRCDIR, BASENAME);
 	assert(len <= sizeof(sql_file));
 
 	if ((input_file = fopen(sql_file, "r")) == NULL) {
