@@ -69,16 +69,15 @@ cd fakebin
 echo "#!/bin/sh
 exit 1" > openjade
 cp openjade doxygen
-# gawk it's used by txt2man
-cp openjade gawk
+cp openjade txt2man
 cp openjade autoheader
 # perl is used by some perl rules
 cp openjade perl
-chmod +x openjade doxygen gawk autoheader perl
+chmod +x openjade doxygen txt2man autoheader perl
 cd ..
 if ! openjade --help; then true; else echo 'succedeed ?'; false; fi
 if ! doxygen --help; then true; else echo 'succeeded ?'; false; fi
-if ! gawk --help; then true; else echo 'succeeded ?'; false; fi
+if ! txt2man --help; then true; else echo 'succeeded ?'; false; fi
 if ! autoheader --help; then true; else echo 'succeeded ?'; false; fi
 if ! perl --help; then true; else echo 'succeeded ?'; false; fi
 echo "fakebin ok" >> "$LOG"
