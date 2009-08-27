@@ -120,6 +120,28 @@ Test(int use_threads)
 int
 main(int argc, char **argv)
 {
+	if (read_login_info())
+		exit(1);
+
+	/*
+	 * prepare our odbcinst.ini
+	 * is better to do it before connect cause uniODBC cache INIs
+	 * the name must be odbcinst.ini cause unixODBC accept only this name
+	 */
+	if (DRIVER[0]) {
+		FILE *f = fopen("odbcinst.ini", "w");
+
+		if (f) {
+			fprintf(f, "[FreeTDS]\nDriver = %s\nThreading = 0\n", DRIVER);
+			fclose(f);
+			/* force iODBC */
+			setenv("ODBCINSTINI", "./odbcinst.ini", 1);
+			setenv("SYSODBCINSTINI", "./odbcinst.ini", 1);
+			/* force unixODBC (only directory) */
+			setenv("ODBCSYSINI", ".", 1);
+		}
+	}
+
 	use_odbc_version3 = 1;
 	Connect();
 

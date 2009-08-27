@@ -1,3 +1,7 @@
+Thu Aug 27 15:36:42 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/cancel.c:
+	- override odbcinst.ini in cancel test to avoid hang using unixODBC
+
 Thu Aug 27 14:31:52 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/genparams.c: update genparams test
 
@@ -1816,4 +1820,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2863 2009-08-27 12:32:14 freddy77 Exp $
+$Id: ChangeLog,v 1.2864 2009-08-27 13:37:40 freddy77 Exp $
