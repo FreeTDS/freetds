@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.44 2009-08-26 12:32:11 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.45 2009-08-27 12:32:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -297,11 +297,12 @@ AllTests(void)
 	TestOutput("NUMERIC(18,2)", "123", SQL_C_NUMERIC, SQL_NUMERIC, "38 0 1 7B");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_VARCHAR, "VARCHAR(20)", "12345");
 	TestInput(SQL_C_LONG, "INTEGER", SQL_LONGVARCHAR, "TEXT", "12345");
-	/* MS driver behavior for output parameters is different */
+	/*
+	 * MS driver behavior for output parameters is different
+	 * former returns "313233" while newer "333133323333"
+	 */
 	if (driver_is_freetds())
 		TestOutput("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "333133323333");
-	else
-		TestOutput("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "313233");
 	/* FIXME our driver ignore precision for date */
 	precision = 3;
 	/* Some MS driver incorrectly prepare with smalldatetime*/
@@ -435,9 +436,6 @@ AllTests(void)
 	if (db_is_microsoft() && db_version_int() >= 0x09000000u) {
 		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARCHAR(MAX)", "1EasyTest");
 		TestInput(SQL_C_BINARY, "VARBINARY(20)", SQL_LONGVARBINARY, "VARBINARY(MAX)", "Anything will suite!");
-#ifdef ENABLE_DEVELOPING
-		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARBINARY(MAX)", "1EasyTest");
-#endif
 	}
 }
 
