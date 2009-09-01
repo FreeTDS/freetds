@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.352 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.353 2009-09-01 08:02:36 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2190,8 +2190,19 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	if (srclen == -1)
 		srclen = (int)strlen((const char *) src);
 
+	/* FIXME what happen if client do not reset values ??? */
+	/* FIXME act differently for ms and sybase */
+	if (is_numeric_type(desttype)) {
+		num = (DBNUMERIC *) dest;
+		if (num->precision <= 0 || num->precision > MAXPRECISION || num->scale < 0 || num->scale > num->precision) {
+			dres.n.precision = 18;
+			dres.n.scale = 0;
+		} else {
+			dres.n.precision = num->precision;
+			dres.n.scale = num->scale;
+		}
 	/* oft times we are asked to convert a data type to itself */
-	if (srctype == desttype) {
+	} else if (srctype == desttype) {
 		ret = -2;  /* to make sure we always set it */
 		tdsdump_log(TDS_DBG_INFO1, "dbconvert() srctype == desttype\n");
 		switch (desttype) {
@@ -2262,12 +2273,6 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			memcpy(dest, src, ret);
 			break;
 
-		case SYBNUMERIC:
-		case SYBDECIMAL:
-			memcpy(dest, src, sizeof(DBNUMERIC));
-			ret = sizeof(DBNUMERIC);
-			break;
-
 		default:
 			ret = -1;
 			break;
@@ -2276,7 +2281,6 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		return ret;
 	}
 	/* end srctype == desttype */
-	assert(srctype != desttype);
 
 	/*
 	 * Character types need no conversion.  Just move the data.
@@ -2286,20 +2290,6 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			memcpy(dest, src, srclen);
 			return srclen;
 		}
-	}
-
-	/* FIXME what happen if client do not reset values ??? */
-	/* FIXME act differently for ms and sybase */
-	if (is_numeric_type(desttype)) {
-		num = (DBNUMERIC *) dest;
-		if (num->precision == 0)
-			dres.n.precision = 18;
-		else
-			dres.n.precision = num->precision;
-		if (num->scale == 0)
-			dres.n.scale = 0;
-		else
-			dres.n.scale = num->scale;
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "dbconvert() calling tds_convert\n");
@@ -7125,7 +7115,16 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 
 	/* oft times we are asked to convert a data type to itself */
 
-	if ((srctype == desttype) ||
+	if (is_numeric_type(desttype)) {
+		num = (DBNUMERIC *) dest;
+		if (num->precision <= 0 || num->precision > MAXPRECISION || num->scale < 0 || num->scale > num->precision) {
+			dres.n.precision = 18;
+			dres.n.scale = 0;
+		} else {
+			dres.n.precision = num->precision;
+			dres.n.scale = num->scale;
+		}
+	} else if ((srctype == desttype) ||
 		(is_similar_type(srctype, desttype))) {
 
 		tdsdump_log(TDS_DBG_INFO1, "copy_data_to_host_var() srctype == desttype\n");
@@ -7220,11 +7219,6 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 			memcpy(dest, src, ret);
 			break;
 
-		case SYBNUMERIC:
-		case SYBDECIMAL:
-			memcpy(dest, src, sizeof(DBNUMERIC));
-			break;
-
 		default:
 			break;
 		}
@@ -7234,20 +7228,6 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 		return;
 
 	} /* end srctype == desttype */
-
-	assert(srctype != desttype);
-
-	if (is_numeric_type(desttype)) {
-		num = (DBNUMERIC *) dest;
-		if (num->precision == 0)
-			dres.n.precision = 18;
-		else
-			dres.n.precision = num->precision;
-		if (num->scale == 0)
-			dres.n.scale = 0;
-		else
-			dres.n.scale = num->scale;
-	}
 
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
 

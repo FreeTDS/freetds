@@ -1,3 +1,6 @@
+Tue Sep  1 10:01:45 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c: fix numeric -> numeric conversions
+
 Tue Sep  1 07:47:25 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/rpc.c src/dblib/unittests/.cvsignore:
 	* src/dblib/unittests/Makefile.am src/dblib/unittests/common.c:
@@ -1827,4 +1830,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2865 2009-09-01 05:47:31 freddy77 Exp $
+$Id: ChangeLog,v 1.2866 2009-09-01 08:02:36 freddy77 Exp $
