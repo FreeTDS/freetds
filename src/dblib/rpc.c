@@ -54,7 +54,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.69 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.70 2009-09-01 05:47:31 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -335,6 +335,8 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 	if (size > 0 && value) {
 		tdsdump_log(TDS_DBG_FUNC, "copying %d bytes of data to parameter #%d\n", size, param_num);
 		if (!is_blob_col(curcol)) {
+			if (is_numeric_type(curcol->column_type))
+				memset(curcol->column_data, 0, sizeof(TDS_NUMERIC));
 			memcpy(curcol->column_data, value, size);
 		} else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
@@ -398,6 +400,15 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 
 		tdsdump_log(TDS_DBG_INFO1, "parm_info_alloc(): parameter null-ness = %d\n", param_is_null);
 
+		pcol = params->columns[i];
+
+		if (temp_value && is_numeric_type(temp_type)) {
+			DBDECIMAL *dec = (DBDECIMAL*) temp_value;
+			pcol->column_prec = dec->precision;
+			pcol->column_scale = dec->scale;
+			if (dec->precision > 0 && dec->precision <= MAXPRECISION)
+				temp_datalen = tds_numeric_bytes_per_prec[dec->precision] + 2;
+		}
 		if (param_is_null || (p->status & DBRPCRETURN)) {
 			if (param_is_null) {
 				temp_datalen = 0;
@@ -409,8 +420,6 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		} else if (is_fixed_type(temp_type)) {
 			temp_datalen = tds_get_size_by_type(temp_type);
 		}
-
-		pcol = params->columns[i];
 
 		/* meta data */
 		if (p->name) {

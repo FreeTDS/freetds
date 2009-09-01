@@ -14,7 +14,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.37 2009-08-26 12:19:01 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.38 2009-09-01 05:47:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -271,7 +271,12 @@ sql_cmd(DBPROCESS *dbproc)
 	char line[2048], *p = line;
 	int i = 0;
 	RETCODE erc=SUCCEED;
-	
+
+	if (!input_file) {
+		fprintf(stderr, "%s: error: SQL input file \"%s\" not opened\n", BASENAME, sql_file);
+		exit(1);
+	}
+
 	while ((p = fgets(line, (int)sizeof(line), input_file)) != NULL && strcasecmp("go\n", p) != 0) {
 		printf("\t%3d: %s", ++i, p);
 		if ((erc = dbcmd(dbproc, p)) != SUCCEED) {
@@ -286,6 +291,15 @@ sql_cmd(DBPROCESS *dbproc)
 	}
 
 	return erc;
+}
+
+RETCODE
+sql_rewind(void)
+{
+	if (!input_file)
+		return FAIL;
+	rewind(input_file);
+	return SUCCEED;
 }
 
 void

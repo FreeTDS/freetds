@@ -1,3 +1,10 @@
+Tue Sep  1 07:47:25 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/rpc.c src/dblib/unittests/.cvsignore:
+	* src/dblib/unittests/Makefile.am src/dblib/unittests/common.c:
+	* src/dblib/unittests/common.h src/dblib/unittests/numeric.c:
+	* src/dblib/unittests/numeric.sql:
+	- add and fix test for numeric in dblib
+
 Thu Aug 27 15:36:42 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/cancel.c:
 	- override odbcinst.ini in cancel test to avoid hang using unixODBC
@@ -1820,4 +1827,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2864 2009-08-27 13:37:40 freddy77 Exp $
+$Id: ChangeLog,v 1.2865 2009-09-01 05:47:31 freddy77 Exp $
