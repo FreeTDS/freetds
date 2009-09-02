@@ -34,6 +34,7 @@ tds_bcp_send_record
 tds_bcp_start
 tds_bcp_start_copy_in
 tds_canonical_charset_name
+tds_char2hex
 tds_check_column_extra
 tds_check_context_extra
 tds_check_cursor_extra
