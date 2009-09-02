@@ -58,22 +58,24 @@ test(int bind_type)
 		/* nop */
 	}
 
-	ret = dbcmd(dbproc,
-		    "SET ARITHABORT ON;"
-		    "SET CONCAT_NULL_YIELDS_NULL ON;"
-		    "SET ANSI_NULLS ON;"
-		    "SET ANSI_NULL_DFLT_ON ON;"
-		    "SET ANSI_PADDING ON;"
-		    "SET ANSI_WARNINGS ON;"
-		    "SET ANSI_NULL_DFLT_ON ON;"
-		    "SET CURSOR_CLOSE_ON_COMMIT ON;"
-		    "SET QUOTED_IDENTIFIER ON");
-	chk(ret, "dbcmd");
-	ret = dbsqlexec(dbproc);
-	chk(ret, "dbsqlexec");
+	if (DBTDS_5_0 < DBTDS(dbproc)) {
+		ret = dbcmd(dbproc,
+			    "SET ARITHABORT ON;"
+			    "SET CONCAT_NULL_YIELDS_NULL ON;"
+			    "SET ANSI_NULLS ON;"
+			    "SET ANSI_NULL_DFLT_ON ON;"
+			    "SET ANSI_PADDING ON;"
+			    "SET ANSI_WARNINGS ON;"
+			    "SET ANSI_NULL_DFLT_ON ON;"
+			    "SET CURSOR_CLOSE_ON_COMMIT ON;"
+			    "SET QUOTED_IDENTIFIER ON");
+		chk(ret, "dbcmd");
+		ret = dbsqlexec(dbproc);
+		chk(ret, "dbsqlexec");
 
-	ret = dbcancel(dbproc);
-	chk(ret, "dbcancel");
+		ret = dbcancel(dbproc);
+		chk(ret, "dbcancel");
+	}
 
 	ret = dbrpcinit(dbproc, "testDecimal", 0);
 	chk(ret, "dbrpcinit");

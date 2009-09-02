@@ -1,3 +1,6 @@
+Wed Sep  2 11:26:14 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/numeric.c: fix dblib numeric test for Sybase
+
 Tue Sep  1 10:01:45 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: fix numeric -> numeric conversions
 
@@ -1830,4 +1833,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2866 2009-09-01 08:02:36 freddy77 Exp $
+$Id: ChangeLog,v 1.2867 2009-09-02 09:27:01 freddy77 Exp $
