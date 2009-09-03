@@ -1,3 +1,6 @@
+Thu Sep  3 11:25:04 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/challenge.c: fix NTLM2 check
+
 Wed Sep  2 11:26:14 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/numeric.c: fix dblib numeric test for Sybase
 
@@ -1833,4 +1836,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2867 2009-09-02 09:27:01 freddy77 Exp $
+$Id: ChangeLog,v 1.2868 2009-09-03 09:25:55 freddy77 Exp $

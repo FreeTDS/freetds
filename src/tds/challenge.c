@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.39 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.40 2009-09-03 09:25:55 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -272,7 +272,21 @@ tds_answer_challenge(TDSSOCKET * tds,
 
 	memset(answer, 0, sizeof(TDSANSWER));
 
-	if (!(*flags & 0x80000)) {
+	if ((*flags & 0x80000) != 0) {
+		/* NTLM2 */
+		MD5_CTX md5_ctx;
+
+		generate_random_buffer(hash, 8);
+		memset(hash + 8, 0, 16);
+		memcpy(answer->lm_resp, hash, 24);
+
+		MD5Init(&md5_ctx);
+		MD5Update(&md5_ctx, challenge, 8);
+		MD5Update(&md5_ctx, hash, 8);
+		MD5Final(&md5_ctx, ntlm2_challenge);
+		challenge = ntlm2_challenge;
+		memset(&md5_ctx, 0, sizeof(md5_ctx));
+	} else if (names_blob_len <= 0) {
 		/* NTLM */
 		size_t len, i;
 		unsigned char passwd_buf[MAX_PW_SZ];
@@ -297,7 +311,7 @@ tds_answer_challenge(TDSSOCKET * tds,
 
 		tds_encrypt_answer(hash, challenge, answer->lm_resp);
 		memset(passwd_buf, 0, sizeof(passwd_buf));
-	} else if (names_blob_len > 0) {
+	} else {
 		/* NTLMv2 */
 		unsigned char *lm_v2_response;
 		unsigned char ntlm_v2_hash[16];
@@ -322,21 +336,9 @@ tds_answer_challenge(TDSSOCKET * tds,
 		if (!*ntlm_v2_response)
 			return TDS_FAIL;
 
+		/* local not supported */
+		*flags &= 0x4000;
 		return TDS_SUCCEED;
-	} else {
-		/* NTLM2 */
-		MD5_CTX md5_ctx;
-
-		generate_random_buffer(hash, 8);
-		memset(hash + 8, 0, 16);
-		memcpy(answer->lm_resp, hash, 24);
-
-		MD5Init(&md5_ctx);
-		MD5Update(&md5_ctx, challenge, 8);
-		MD5Update(&md5_ctx, hash, 8);
-		MD5Final(&md5_ctx, ntlm2_challenge);
-		challenge = ntlm2_challenge;
-		memset(&md5_ctx, 0, sizeof(md5_ctx));
 	}
 	*flags = 0x8201;
 
