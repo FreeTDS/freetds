@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.374 2009-08-26 12:32:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.375 2009-09-03 11:53:47 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2137,6 +2137,8 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	case 5:
 		blob = (TDSBLOB *) curcol->column_data;
 		colsize = tds_get_int(tds);
+		if (colsize == 0)
+			colsize = -1;
 		break;
 	case 8:
 		return tds9_get_varmax(tds, curcol);
