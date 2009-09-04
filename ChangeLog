@@ -1,3 +1,6 @@
+Fri Sep  4 09:11:38 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac vms/README.vms: Fix --with-tdsver option
+
 Thu Sep  3 13:53:26 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO src/tds/token.c:
 	- fix NULL becaming empty strings under Sybase
@@ -1840,4 +1843,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2869 2009-09-03 11:53:46 freddy77 Exp $
+$Id: ChangeLog,v 1.2870 2009-09-04 07:12:18 freddy77 Exp $

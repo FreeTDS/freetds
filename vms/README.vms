@@ -39,13 +39,13 @@ by sypplying the following macros to the make utility:
 TDSVER
 
 This macro expects a value that will be passed directly to the C compiler. 
-Valid values are TDS42, TDS50 (the default), TDS70, and TDS80.  Consult the
+Valid values are TDS42, TDS50 (the default), TDS70, and TDS71.  Consult the
 [.doc] directory for more information about the TDS protocol, what servers
 use which versions, and the history of the versions.
 
 Example:
 
-    $ MMK/MACRO="TDSVER"="TDS80"
+    $ MMK/MACRO="TDSVER"="TDS71"
 
 
 MSDBLIB
@@ -111,4 +111,4 @@ now you'll have to roll your own.
 
 
 Last updated: 	6-NOV-2004	Craig A. Berry	<craigberry@mac.com>
-$Id: README.vms,v 1.3 2004-11-07 08:59:34 freddy77 Exp $
+$Id: README.vms,v 1.4 2009-09-04 07:12:18 freddy77 Exp $

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.41 2009-08-14 13:53:17 freddy77 Exp $
+dnl $Id: configure.ac,v 1.42 2009-09-04 07:12:18 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.83.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.41 $)
+AC_REVISION($Revision: 1.42 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -460,15 +460,15 @@ AC_HAVE_MALLOC_OPTIONS
 AC_MSG_RESULT(checking compile-time options)
 
 AC_ARG_WITH(tdsver,
-AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/8.0) [5.0]]))
+AS_HELP_STRING([--with-tdsver=VERSION], [TDS protocol version (4.2/4.6/5.0/7.0/7.1) [5.0]]))
 if test "$with_tdsver" = "4.2"; then
 	AC_DEFINE(TDS42, 1, [Define to use TDS 4.2 by default])
 elif test "$with_tdsver" = "4.6"; then
 	AC_DEFINE(TDS46, 1, [Define to use TDS 4.6 by default])
 elif test "$with_tdsver" = "7.0"; then
 	AC_DEFINE(TDS70, 1, [Define to use TDS 7.0 by default])
-elif test "$with_tdsver" = "8.0"; then
-	AC_DEFINE(TDS80, 1, [Define to use TDS 8.0 by default])
+elif test "$with_tdsver" = "7.1"; then
+	AC_DEFINE(TDS71, 1, [Define to use TDS 7.1 by default])
 else
 	AC_DEFINE(TDS50, 1, [Define to use TDS 5.0 by default])
 fi
