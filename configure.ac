@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.42 2009-09-04 07:12:18 freddy77 Exp $
+dnl $Id: configure.ac,v 1.43 2009-09-14 10:02:13 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.83.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.42 $)
+AC_REVISION($Revision: 1.43 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -256,6 +256,7 @@ AC_CHECK_HEADERS([	errno.h \
 			sys/stat.h \
 			sys/time.h \
 			sys/types.h \
+			sys/resource.h \
 			sys/wait.h \
 			unistd.h \
 			wchar.h ])
@@ -438,7 +439,7 @@ AC_CHECK_FUNCS([vsnprintf _vsnprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer _lseeki64 _telli64 \
-_fseeki64 _ftelli64])
+_fseeki64 _ftelli64 setrlimit])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \

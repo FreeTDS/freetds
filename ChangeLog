@@ -1,3 +1,7 @@
+Mon Sep 14 12:02:10 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/dblib/unittests/common.c:
+	- limit stack use in dblib tests
+
 Fri Sep  4 09:11:38 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac vms/README.vms: Fix --with-tdsver option
 
@@ -1843,4 +1847,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2870 2009-09-04 07:12:18 freddy77 Exp $
+$Id: ChangeLog,v 1.2871 2009-09-14 10:02:13 freddy77 Exp $

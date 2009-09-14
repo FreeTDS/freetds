@@ -12,9 +12,17 @@
 #include <sys/param.h>
 #endif /* HAVE_SYS_PARAM_H */
 
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif /* HAVE_SYS_TIME_H */
+
+#if HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif /* HAVE_SYS_RESOURCE_H */
+
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.38 2009-09-01 05:47:31 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.39 2009-09-14 10:02:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -121,6 +129,17 @@ read_login_info(int argc, char **argv)
 	char filename[PATH_MAX];
 	static const char *PWD = "../../../PWD";
 	struct { char *username, *password, *servername, *database; char fverbose; } options;
+
+#if defined(HAVE_SETRLIMIT) && defined(RLIMIT_STACK)
+#define MAX_STACK (8*1024*1024)
+
+	struct rlimit rlim;
+
+	if (!getrlimit(RLIMIT_STACK, &rlim) && (rlim.rlim_cur == RLIM_INFINITY || rlim.rlim_cur > MAX_STACK)) {
+		rlim.rlim_cur = MAX_STACK;
+		setrlimit(RLIMIT_STACK, &rlim);
+	}
+#endif
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
