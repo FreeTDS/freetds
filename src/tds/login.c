@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.172 2007-12-31 10:06:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.172.2.1 2009-09-28 14:14:30 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -944,6 +944,13 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	assert(start_pos >= 21 && start_pos <= sizeof(buf));
 	assert(buf[start_pos-1] == 0xff);
+
+	/*
+	 * fix a problem with mssql2k which doesn't like
+	 * packet splitted during SSL handshake
+	 */
+	if (tds->env.block_size < 4096)
+		tds_realloc_socket(tds, 4096);
 
 	/* do prelogin */
 	tds->out_flag = TDS8_PRELOGIN;
