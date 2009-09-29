@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.179.2.2 2008-10-29 08:44:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.179.2.3 2009-09-29 09:15:17 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1479,7 +1479,7 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBMONEY:
 		if (the_value > (TDS_REAL) (TDS_INT8_MAX / 10000) || the_value < (TDS_REAL) (TDS_INT8_MIN / 10000))
 			return TDS_CONVERT_OVERFLOW;
-		mymoney = ((TDS_INT8) the_value) * 10000;
+		mymoney = (TDS_INT8) (the_value * 10000);
 		cr->m.mny = mymoney;
 		return sizeof(TDS_MONEY);
 		break;
@@ -1487,7 +1487,7 @@ tds_convert_real(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBMONEY4:
 		if (the_value > (TDS_REAL) (TDS_INT_MAX / 10000) || the_value < (TDS_REAL) (TDS_INT_MIN / 10000))
 			return TDS_CONVERT_OVERFLOW;
-		mymoney4 = ((TDS_INT) the_value) * 10000;
+		mymoney4 = (TDS_INT) (the_value * 10000);
 		cr->m4.mny4 = mymoney4;
 		return sizeof(TDS_MONEY4);
 		break;
@@ -1563,14 +1563,14 @@ tds_convert_flt8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBMONEY:
 		if (the_value > (TDS_FLOAT) (TDS_INT8_MAX / 10000) || the_value < (TDS_FLOAT) (TDS_INT8_MIN / 10000))
 			return TDS_CONVERT_OVERFLOW;
-		cr->m.mny = ((TDS_INT8) the_value) * 10000;
+		cr->m.mny = (TDS_INT8) (the_value * 10000);
 
 		return sizeof(TDS_MONEY);
 		break;
 	case SYBMONEY4:
 		if (the_value > (TDS_FLOAT) (TDS_INT_MAX / 10000) || the_value < (TDS_FLOAT) (TDS_INT_MIN / 10000))
 			return TDS_CONVERT_OVERFLOW;
-		cr->m4.mny4 = ((TDS_INT) the_value) * 10000;
+		cr->m4.mny4 = (TDS_INT) (the_value * 10000);
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBREAL:
