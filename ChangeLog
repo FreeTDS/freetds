@@ -1,3 +1,6 @@
+Tue Sep 29 11:15:56 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: fix float to money precision during conversion
+
 Mon Sep 28 16:06:37 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c: Fix SSL connection under mssql2k
 
@@ -1850,4 +1853,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2872 2009-09-28 14:07:04 freddy77 Exp $
+$Id: ChangeLog,v 1.2873 2009-09-29 09:16:10 freddy77 Exp $
