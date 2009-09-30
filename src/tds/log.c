@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.12 2009-02-27 10:07:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.13 2009-09-30 11:52:06 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
@@ -466,15 +466,19 @@ tdsdump_col(const TDSCOLUMN *col)
 	
 	switch(type) {
 	case SYBCHAR: 
-	case SYBVARCHAR: 
-		data = calloc(1, 1 + col->column_cur_size);
-		if( !data ) {
-			tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", typename);
-			return;
+	case SYBVARCHAR:
+		if (col->column_cur_size >= 0) {
+			data = calloc(1, 1 + col->column_cur_size);
+			if (!data) {
+				tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", typename);
+				return;
+			}
+			memcpy(data, col->column_data, col->column_cur_size);
+			tdsdump_log(TDS_DBG_FUNC, "type %s has value \"%s\"\n", typename, data);
+			free(data);
+		} else {
+			tdsdump_log(TDS_DBG_FUNC, "type %s has value NULL\n", typename);
 		}
-		memcpy(data, col->column_data, col->column_cur_size);
-		tdsdump_log(TDS_DBG_FUNC, "type %s has value \"%s\"\n", typename, data); 
-		free(data);
 		break;
 	case SYBINT1: 
 		tdsdump_log(TDS_DBG_FUNC, "type %s has value %d\n", typename, (int)*(TDS_TINYINT*)col->column_data); 
