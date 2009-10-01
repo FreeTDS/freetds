@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.140 2009-08-20 17:53:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.141 2009-10-01 09:48:43 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -389,6 +389,10 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 		fOK = tds_iconv_info_init(tds->char_convs[client2server_chardata], charset, tds->env.charset);
 		if (!fOK)
 			return;
+	} else {
+		int canonic_charset = tds_canonical_charset(charset);
+		tds->char_convs[client2server_chardata]->client_charset = canonic_charsets[canonic_charset];
+		tds->char_convs[client2server_chardata]->server_charset = canonic_charsets[canonic_charset];
 	}
 
 	/* 

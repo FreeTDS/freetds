@@ -1,3 +1,7 @@
+Thu Oct  1 11:47:53 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/convert_tds2sql.c src/tds/iconv.c:
+	- Avoid core using SQLWCHAR and TDS 4.2
+
 Wed Sep 30 13:51:16 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/log.c: Avoid memory problems logging data
 
@@ -1856,4 +1860,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2874 2009-09-30 11:52:05 freddy77 Exp $
+$Id: ChangeLog,v 1.2875 2009-10-01 09:48:43 freddy77 Exp $
