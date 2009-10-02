@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.198 2009-08-18 15:04:13 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.199 2009-10-02 09:24:07 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2024,6 +2024,7 @@ _ct_get_server_type(int datatype)
 	case CS_BINARY_TYPE:		return SYBBINARY;
 	case CS_BIT_TYPE:		return SYBBIT;	
 	case CS_CHAR_TYPE:		return SYBCHAR;	
+	case CS_VARCHAR_TYPE:		return SYBVARCHAR;
 	case CS_LONG_TYPE:
 	case CS_BIGINT_TYPE:		return SYBINT8;	
 	case CS_INT_TYPE:		return SYBINT4;	

@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.241 2009-08-26 12:32:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.242 2009-10-02 09:24:08 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -57,6 +57,7 @@ static char *tds7_build_param_def_from_query(TDSSOCKET * tds, const char* conver
 static char *tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, size_t *out_len);
 static size_t tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
 
+static int tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n);
 static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static const char *tds_skip_comment(const char *s);
 static int tds_count_placeholders_ucs2le(const char *query, const char *query_end);
@@ -729,6 +730,8 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBUINT4:
 	case SYBUINT8:
 	case SYBVARIANT:
+	default:
+		tdsdump_log(TDS_DBG_ERROR, "Unknown type %d\n", tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size));
 		break;
 	}
 
@@ -1854,6 +1857,56 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	return tds_query_flush_packet(tds);
 }
 
+static int
+tds_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
+{
+	TDSCOLUMN *param;
+	int i, n;
+	int num_params = params ? params->num_cols : 0;
+	const char *sep = " ";
+	char buf[80];
+
+	/* create params and set */
+	for (i = 0, n = 0; i < num_params; ++i) {
+
+		param = params->columns[i];
+
+		/* declare and set output parameters */
+		if (!param->column_output)
+			continue;
+		++n;
+		sprintf(buf, " DECLARE @P%d ", n);
+		tds_get_column_declaration(tds, param, buf + strlen(buf));
+		sprintf(buf + strlen(buf), " SET @P%d=", n);
+		tds_put_string(tds, buf, -1);
+		tds_put_param_as_string(tds, params, i);
+	}
+
+	/* put exec statement */
+	tds_put_string(tds, " EXEC ", 6);
+	tds_put_string(tds, rpc_name, -1);
+
+	/* put arguments */
+	for (i = 0, n = 0; i < num_params; ++i) {
+		param = params->columns[i];
+		tds_put_string(tds, sep, -1);
+		if (param->column_namelen > 0) {
+			tds_put_string(tds, param->column_name, param->column_namelen);
+			tds_put_string(tds, "=", 1);
+		}
+		if (param->column_output) {
+			++n;
+			sprintf(buf, "@P%d OUTPUT", n);
+			tds_put_string(tds, buf, -1);
+		} else {
+			tds_put_param_as_string(tds, params, i);
+		}
+		sep = ",";
+	}
+
+	return tds_query_flush_packet(tds);
+}
+
 /**
  * tds_submit_rpc() call a RPC from server. Output parameters will be stored in tds->param_info
  * \param tds      state information for the socket and the TDS protocol
@@ -1935,7 +1988,10 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 		return tds_query_flush_packet(tds);
 	}
 
-	/* TODO emulate it for TDS4.x, send RPC for mssql */
+	/* emulate it for TDS4.x, send RPC for mssql */
+	if (tds->tds_version < 0x500)
+		return tds_send_emulated_rpc(tds, rpc_name, params);
+
 	/* TODO continue, support for TDS4?? */
 	tds_set_state(tds, TDS_IDLE);
 	return TDS_FAIL;

@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.27 2009-08-26 12:32:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.28 2009-10-02 09:24:08 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -186,6 +186,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	/* I don't like this that much... freddy77 */
 	if (column->column_type == 0)
 		return;
+	assert(column->column_type > 0);
 
 	assert(strlen(column->table_name) < sizeof(column->table_name));
 	assert(strlen(column->column_name) < sizeof(column->column_name));
