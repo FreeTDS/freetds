@@ -1,3 +1,6 @@
+Sat Oct  3 11:19:20 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: unprepare optimization for emulated dynamics
+
 Fri Oct  2 11:23:18 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/ct.c src/tds/query.c src/tds/tds_checks.c:
 	- Support RPCs using tds 4.2
@@ -1864,4 +1867,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2876 2009-10-02 09:24:07 freddy77 Exp $
+$Id: ChangeLog,v 1.2877 2009-10-03 09:19:27 freddy77 Exp $

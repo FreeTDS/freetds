@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.513 2009-08-20 15:14:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.514 2009-10-03 09:19:27 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -6853,7 +6853,10 @@ odbc_free_dynamic(TDS_STMT * stmt)
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
 	if (stmt->dyn) {
-		if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {
+		if (stmt->dyn->emulated) {
+			tds_free_dynamic(tds, stmt->dyn);
+			stmt->dyn = NULL;
+		} else if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {
 			if (tds_process_simple_query(tds) != TDS_SUCCEED)
 				ODBC_RETURN(stmt, SQL_ERROR);
 			tds_free_dynamic(tds, stmt->dyn);
