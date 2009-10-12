@@ -1,3 +1,7 @@
+Mon Oct 12 09:26:46 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/prepare_win32.sh:
+	- add comments to misc/prepare_win32.sh script
+
 Sat Oct  3 11:19:20 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: unprepare optimization for emulated dynamics
 
@@ -1867,4 +1871,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2877 2009-10-03 09:19:27 freddy77 Exp $
+$Id: ChangeLog,v 1.2878 2009-10-12 07:27:50 freddy77 Exp $

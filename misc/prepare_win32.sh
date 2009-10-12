@@ -1,6 +1,11 @@
 #!/bin/bash
 
-# these commands prepare for win32 distribution
+# These commands prepare for win32 distribution
+
+# It uses MingW to cross compile
+# Useful for testing ODBC under Windows
+# With --ntwdblib option you can compile dblib tests against MS dblib so
+# to test tests with MS dblib
 
 errore() {
 	echo $* >&2
