@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.320.2.1 2008-05-26 12:49:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.320.2.2 2009-10-16 08:03:49 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4537,8 +4537,10 @@ dbsqlok(DBPROCESS * dbproc)
 
 	tds = dbproc->tds_socket;
 
-	/* dbsqlok has been called after dbmoretext() */
-	/* This is the trigger to send the text data. */
+	/*
+	 * dbsqlok has been called after dbmoretext()
+	 * This is the trigger to send the text data.
+	 */
 
 	if (dbproc->text_sent) {
 		tds_flush_packet(tds);
@@ -6260,7 +6262,6 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	CHECK_NULP(textptr, "dbwritetext", 3, FAIL);
 	CHECK_NULP(timestamp, "dbwritetext", 5, FAIL);
 	CHECK_PARAMETER(size, SYBEZTXT, FAIL);
-	CHECK_NULP(text, "dbwritetext", 8, FAIL);
 
 	if (IS_TDSDEAD(dbproc->tds_socket))
 		return FAIL;
@@ -6306,6 +6307,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	tds_put_n(dbproc->tds_socket, text, size);
 	tds_flush_packet(dbproc->tds_socket);
 	tds_set_state(dbproc->tds_socket, TDS_PENDING);
+	dbproc->text_sent = 0;
 
 	if (dbsqlok(dbproc) == SUCCEED && dbresults(dbproc) == SUCCEED)
 		return SUCCEED;
@@ -6419,6 +6421,7 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, BYTE * text)
 		if (dbproc->text_sent == dbproc->text_size) {
 			tds_flush_packet(dbproc->tds_socket);
 			tds_set_state(dbproc->tds_socket, TDS_PENDING);
+			dbproc->text_sent = 0;
 		}
 	}
 
