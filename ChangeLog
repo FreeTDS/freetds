@@ -1,3 +1,6 @@
+Fri Oct 16 09:58:46 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c: Fix dbwritetext with text == NULL
+
 Mon Oct 12 09:26:46 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/prepare_win32.sh:
 	- add comments to misc/prepare_win32.sh script
@@ -1871,4 +1874,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2878 2009-10-12 07:27:50 freddy77 Exp $
+$Id: ChangeLog,v 1.2879 2009-10-16 07:59:39 freddy77 Exp $
