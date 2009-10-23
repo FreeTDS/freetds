@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.145 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.146 2009-10-23 19:21:49 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -86,7 +86,9 @@ static void tds_config_env_tdshost(TDSCONNECTION * connection);
 static int tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection);
 static int tds_read_interfaces(const char *server, TDSCONNECTION * connection);
 static int tds_config_boolean(const char *value);
+#if PARSE_SERVER_NAME_FOR_PORT
 static int parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login);
+#endif
 static int tds_lookup_port(const char *portname);
 static void tds_config_encryption(const char * value, TDSCONNECTION * connection);
 
@@ -182,11 +184,13 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	tdsdump_log(TDS_DBG_INFO1, "Getting connection information for [%s].\n", 
 			    tds_dstr_cstr(&login->server_name));	/* (The server name is set in login.c.) */
 
+#if PARSE_SERVER_NAME_FOR_PORT
+	/* Don't parse the [servername] key to a freetds.conf section. */
 	if (parse_server_name_for_port(connection, login)) {
 		tdsdump_log(TDS_DBG_INFO1, "Parsed servername, now %s on %d.\n", 
 			    tds_dstr_cstr(&connection->server_name), login->port);
 	}
-
+#endif
 	/* Read the config files. */
 	tdsdump_log(TDS_DBG_INFO1, "Attempting to read conf files.\n");
 	if (!tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name))) {
@@ -1068,6 +1072,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 	return found;
 }
 
+#if PARSE_SERVER_NAME_FOR_PORT
 /**
  * Check the server name to find port info first
  * Warning: connection-> & login-> are all modified when needed
@@ -1103,7 +1108,7 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 
 	return 1;
 }
-
+#endif
 
 /**
  * Return a structure capturing the compile-time settings provided to the
