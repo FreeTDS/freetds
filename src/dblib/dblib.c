@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.354 2009-10-16 07:59:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.355 2009-10-23 19:21:45 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -5532,7 +5532,13 @@ dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
  * \param datetime \em input: \c DBDATETIME to be converted.
  * \retval SUCCEED always.
  * \remarks The members of \a di have different names, depending on whether \c --with-msdblib was configured. 
- * \sa dbconvert(), dbdata(), dbdatechar(), dbdatename(), dbdatepart().
+ * 
+ * If DBPROCESS is NULL, dbdatecrack() uses the compiled in default 
+ * value of MSDBLIB as of when libsybdb was compiled, irrespective of its value when the 
+ * application is compiled.  This can lead to incorrect results because Sybase and Microsoft use different
+ * ranges -- [0,11] vs. [1,12] -- for the month. 
+ * 
+ * \sa dbconvert(), dbdata(), dbdatechar(), dbdatename(), dbdatepart(), tdsdbopen().
  */
 RETCODE
 dbdatecrack(DBPROCESS * dbproc, DBDATEREC * output, DBDATETIME * datetime)

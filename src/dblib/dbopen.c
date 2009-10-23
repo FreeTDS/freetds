@@ -32,13 +32,17 @@
 #undef dbopen
 #endif
 
-TDS_RCSID(var, "$Id: dbopen.c,v 1.12 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbopen.c,v 1.13 2009-10-23 19:21:45 jklowden Exp $");
 
+/**
+ * Normally not used. 
+ * The function is linked in only if the --enable-sybase-compat configure option is used.  
+ * Cf. sybdb.h dbopen() macros, and dbdatecrack(). 
+ */
 DBPROCESS *
 dbopen(LOGINREC * login, const char *server)
 {
-	/* default it's platform specific */
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(DOS32X)
+#if MSDBLIB
 	return tdsdbopen(login, server, 1);
 #else
 	return tdsdbopen(login, server, 0);
