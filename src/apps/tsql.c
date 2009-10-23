@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.128 2009-05-28 16:23:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.129 2009-10-23 19:21:38 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -512,6 +512,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		tds_lookup_host(hostname, ip);
 		tds7_get_instance_ports(stderr, ip);
 		tdsdump_close();
+		exit(0);
 	}
 
 	/* validate parameters */
