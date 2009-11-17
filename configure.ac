@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.29.2.13 2008-05-28 13:40:28 jklowden Exp $
+dnl $Id: configure.ac,v 1.29.2.14 2009-11-17 13:51:34 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.82.1)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.29.2.13 $)
+AC_REVISION($Revision: 1.29.2.14 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -107,6 +107,7 @@ fi
 AC_CHECK_PROG(DOXYGEN,doxygen,doxygen)
 AC_CHECK_PROG(ODBC_CONFIG,odbc_config,odbc_config)
 AM_CONDITIONAL(HAVE_DOXYGEN, [test -n "$DOXYGEN"])
+AC_CHECK_PROG(PKG_CONFIG,pkg-config,pkg-config)
 
 # ------------------------------------------------------------
 # Check for CVS-only sources.
@@ -633,8 +634,13 @@ AC_ARG_WITH(gnutls,
 AS_HELP_STRING([--with-gnutls], [build with TLS support]))
 if test "$with_gnutls" = "yes"; then
 	AC_DEFINE(HAVE_GNUTLS, 1, [Define to 1 if you have GNU tls.])
-	CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
-	NETWORK_LIBS="$NETWORK_LIBS `libgnutls-config --libs`"
+	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --libs gnutls > /dev/null 2>&1; then
+		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gnutls`"
+		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gnutls`"
+	else
+		CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
+		NETWORK_LIBS="$NETWORK_LIBS `libgnutls-config --libs`"
+	fi
 else
 	CHECK_OPENSSL
 fi

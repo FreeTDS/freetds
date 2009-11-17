@@ -1,3 +1,7 @@
+Tue Nov 17 14:50:03 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac:
+	- use pkg-config instead of libgnutls-config if possible
+
 Fri Oct 16 10:03:01 CEST 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: Fix dbwritetext with text == NULL
 
@@ -257,4 +261,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.64 2009-10-16 08:03:49 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.65 2009-11-17 13:51:34 freddy77 Exp $
