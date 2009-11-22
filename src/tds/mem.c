@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.191 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.192 2009-11-22 21:49:49 jklowden Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -998,15 +998,15 @@ tds_alloc_login(void)
 	if ((s=getenv("TDSQUERY")) != NULL)
 		server_name = s;
 
-	if (!tds_dstr_copy(&tds_login->server_name, server_name))
-		goto Cleanup;
+	if (!tds_dstr_copy(&tds_login->server_name, server_name)) {
+		free(tds_login);
+		return NULL;
+	}
+
 	memcpy(tds_login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 
+	Cleanup:
 	return tds_login;
-
-      Cleanup:
-	free(tds_login);
-	return NULL;
 }
 
 void

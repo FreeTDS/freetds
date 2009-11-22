@@ -1,3 +1,8 @@
+Sun Nov 22 16:46:00 EST 2009	JK Lowden <jklowden@freetds.org>
+	* src/tds/config.c src/tds/mem.c
+	- No error if valid DNS name not in freetds.conf. 
+	- Better reporting of server name on login failure. 
+
 Thu Nov 19 09:44:19 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: fix SQLColAttributes for ODBC 2 clients
 
@@ -1892,4 +1897,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2883 2009-11-19 08:45:49 freddy77 Exp $
+$Id: ChangeLog,v 1.2884 2009-11-22 21:49:48 jklowden Exp $
