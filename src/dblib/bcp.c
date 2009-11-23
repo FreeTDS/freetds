@@ -61,7 +61,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.188 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.189 2009-11-23 08:50:28 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1976,6 +1976,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 	int whichcol;
 	char term[30];
 	int i;
+	char *lasts;
 
 	enum nextcol
 	{
@@ -1993,7 +1994,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 	assert(ci);
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_readfmt_colinfo(%p, %s, %p)\n", dbproc, buf, ci);
 
-	tok = strtok(buf, " \t");
+	tok = strtok_r(buf, " \t", &lasts);
 	whichcol = HOST_COLUMN;
 
 	/* TODO use a better way to get an int atoi is very error prone */
@@ -2112,7 +2113,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 			break;
 
 		}
-		tok = strtok(NULL, " \t");
+		tok = strtok_r(NULL, " \t", &lasts);
 	}
 	if (whichcol == NO_MORE_COLS)
 		return (TRUE);
