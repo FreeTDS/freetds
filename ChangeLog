@@ -1,3 +1,6 @@
+Tue Nov 24 16:48:17 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/config.c: small optimization
+
 Mon Nov 23 12:30:27 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/msvc6/libTDS.dsp: Add bulk.c to msvc6 project file
 
@@ -1904,4 +1907,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2886 2009-11-23 11:31:08 freddy77 Exp $
+$Id: ChangeLog,v 1.2887 2009-11-24 15:48:52 freddy77 Exp $

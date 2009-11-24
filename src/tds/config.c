@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.149 2009-11-22 21:49:49 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.150 2009-11-24 15:48:52 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -968,11 +968,10 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 
 	/* read $SYBASE/interfaces */
 
-	if (!server || strlen(server) == 0) {
+	if (!server || !server[0]) {
 		server = getenv("TDSQUERY");
-		if (!server || strlen(server) == 0) {
+		if (!server || !server[0])
 			server = "SYBASE";
-		}
 		tdsdump_log(TDS_DBG_INFO1, "Setting server to %s from $TDSQUERY.\n", server);
 
 	}
