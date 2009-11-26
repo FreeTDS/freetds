@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.24 2009-08-26 12:32:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.25 2009-11-26 09:07:28 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -47,7 +47,7 @@ tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type)
 {
 	/* set type */
 	curcol->on_server.column_type = type;
-	curcol->column_type = tds_get_cardinal_type(type);
+	curcol->column_type = tds_get_cardinal_type(type, curcol->column_usertype);
 
 	/* set size */
 	curcol->column_cur_size = -1;
@@ -152,7 +152,7 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 }
 
 int
-tds_get_cardinal_type(int datatype)
+tds_get_cardinal_type(int datatype, int usertype)
 {
 	switch (datatype) {
 	case XSYBVARBINARY:
@@ -169,6 +169,13 @@ tds_get_cardinal_type(int datatype)
 		return SYBCHAR;
 	case SYB5INT8:
 		return SYBINT8;
+	case SYBLONGBINARY:
+		switch (usertype) {
+		case USER_UNICHAR_TYPE:
+		case USER_UNIVARCHAR_TYPE:
+			return SYBTEXT;
+		}
+		break;
 	}
 	return datatype;
 }

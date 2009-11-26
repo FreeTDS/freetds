@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.321 2009-08-25 14:25:35 freddy77 Exp $ */
+/* $Id: tds.h,v 1.322 2009-11-26 09:07:28 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1425,7 +1425,7 @@ unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsi
 TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
 int tds_get_varint_size(TDSSOCKET * tds, int datatype);
-int tds_get_cardinal_type(int datatype);
+int tds_get_cardinal_type(int datatype, int usertype);
 
 
 

@@ -1,3 +1,8 @@
+Thu Nov 26 10:06:51 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/data.c src/tds/tds_checks.c:
+	* src/tds/tds_checks.h src/tds/token.c:
+	- Fix univarchar in Sybase servers
+
 Tue Nov 24 16:48:17 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/config.c: small optimization
 
@@ -1907,4 +1912,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2887 2009-11-24 15:48:52 freddy77 Exp $
+$Id: ChangeLog,v 1.2888 2009-11-26 09:07:27 freddy77 Exp $

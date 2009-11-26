@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.28 2009-10-02 09:24:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.29 2009-11-26 09:07:28 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -197,7 +197,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	SPECIAL(SYBTEXT, XSYBVARCHAR, 8)
 	SPECIAL(SYBTEXT, XSYBNVARCHAR, 8)
 	SPECIAL(SYBIMAGE, XSYBVARBINARY, 8)
-	assert(tds_get_cardinal_type(column->on_server.column_type) == column->column_type
+	assert(tds_get_cardinal_type(column->on_server.column_type, column->column_usertype) == column->column_type
 		|| (tds_get_null_type(column->column_type) == column->on_server.column_type
 		&& column->column_varint_size == 1 && is_fixed_type(column->column_type)));
 
