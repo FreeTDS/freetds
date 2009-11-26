@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.150 2009-11-24 15:48:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.151 2009-11-26 09:47:41 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -367,6 +367,8 @@ static int
 tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection)
 {
 	tds_read_conf_section(in, "global", tds_parse_conf_section, connection);
+	if (!server[0])
+		return 0;
 	rewind(in);
 	return tds_read_conf_section(in, server, tds_parse_conf_section, connection);
 }

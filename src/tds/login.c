@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.189 2009-09-28 14:07:04 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.190 2009-11-26 09:47:41 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -142,14 +142,6 @@ tds_set_server(TDSLOGIN * tds_login, const char *server)
 #endif
 	assert(server);
 	tds_dstr_copy(&tds_login->server_name, server);
-}
-
-void
-tds_set_server_addr(TDSLOGIN * tds_login, const char *server_addr)
-{
-	if (server_addr) {
-		tds_dstr_copy(&tds_login->server_addr, server_addr);
-	}
 }
 
 void

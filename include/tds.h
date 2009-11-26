@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.322 2009-11-26 09:07:28 freddy77 Exp $ */
+/* $Id: tds.h,v 1.323 2009-11-26 09:47:41 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -838,7 +838,6 @@ typedef union
 typedef struct tds_login
 {
 	DSTR server_name;
-	DSTR server_addr;
 	int port;
 	TDS_USMALLINT tds_version;	/* TDS version */
 	int block_size;
@@ -1474,7 +1473,6 @@ void tds_set_bulk(TDSLOGIN * tds_login, TDS_TINYINT enabled);
 void tds_set_user(TDSLOGIN * tds_login, const char *username);
 void tds_set_app(TDSLOGIN * tds_login, const char *application);
 void tds_set_host(TDSLOGIN * tds_login, const char *hostname);
-void tds_set_server_addr(TDSLOGIN * tds_login, const char *server_addr);
 void tds_set_library(TDSLOGIN * tds_login, const char *library);
 void tds_set_server(TDSLOGIN * tds_login, const char *server);
 void tds_set_client_charset(TDSLOGIN * tds_login, const char *charset);

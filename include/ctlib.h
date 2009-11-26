@@ -36,7 +36,7 @@ extern "C"
 #endif
 #endif
 
-static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.27 2009-06-08 19:55:11 freddy77 Exp $";
+static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.28 2009-11-26 09:47:41 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
 #include <tds.h>
@@ -127,6 +127,7 @@ struct _cs_connection
 	CS_LOCALE *locale;
 	CS_COMMAND_LIST *cmds;
 	CS_DYNAMIC_LIST *dynlist;
+	char *server_addr;
 };
 
 /*

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.192 2009-11-22 21:49:49 jklowden Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.193 2009-11-26 09:47:41 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -982,7 +982,6 @@ tds_alloc_login(void)
 	
 	TEST_MALLOC(tds_login, TDSLOGIN);
 	tds_dstr_init(&tds_login->server_name);
-	tds_dstr_init(&tds_login->server_addr);
 	tds_dstr_init(&tds_login->language);
 	tds_dstr_init(&tds_login->server_charset);
 	tds_dstr_init(&tds_login->client_host_name);
@@ -1017,7 +1016,6 @@ tds_free_login(TDSLOGIN * login)
 		tds_dstr_zero(&login->password);
 		tds_dstr_free(&login->password);
 		tds_dstr_free(&login->server_name);
-		tds_dstr_free(&login->server_addr);
 		tds_dstr_free(&login->language);
 		tds_dstr_free(&login->server_charset);
 		tds_dstr_free(&login->client_host_name);

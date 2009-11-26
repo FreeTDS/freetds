@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.200 2009-11-23 08:50:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.201 2009-11-26 09:47:41 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -286,6 +286,7 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 		return CS_FAIL;
 	}
 	(*con)->tds_login = login;
+	(*con)->server_addr = NULL;
 
 	/* so we know who we belong to */
 	(*con)->ctx = ctx;
@@ -347,7 +348,6 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 	CS_INT intval = 0, maxcp;
 	TDSSOCKET *tds;
 	TDSLOGIN *tds_login;
-	char *set_buffer = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_con_props(%p, %d, %d, %p, %d, %p)\n", con, action, property, buffer, buflen, out_len);
 
@@ -357,6 +357,8 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 	tds_login = con->tds_login;
 
 	if (action == CS_SET) {
+		char *set_buffer = NULL;
+
 		if (property == CS_USERNAME || property == CS_PASSWORD || property == CS_APPNAME ||
 			property == CS_HOSTNAME || property == CS_SERVERADDR) {
 			if (buflen == CS_NULLTERM) {
@@ -402,8 +404,10 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			if (!host || !port)
 				return CS_FAIL;
 
-			portno= (int)strtol(port, NULL, 10);
-			tds_set_server_addr(tds_login, host);
+			portno = (int)strtol(port, NULL, 10);
+			if (portno < 1 || portno >= 65536)
+				return CS_FAIL;
+			con->server_addr = strdup(host);
 			tds_set_port(tds_login, portno);
 			break;
 		}
@@ -587,8 +591,8 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_connect(%p, %s, %d)\n", con, servername ? servername : "NULL", snamelen);
 
-	if (!tds_dstr_isempty(&con->tds_login->server_addr)) {
-		server = tds_dstr_buf(&con->tds_login->server_addr);
+	if (con->server_addr) {
+		server = "";
 	} else if (snamelen == 0 || snamelen == CS_UNUSED) {
 		server = NULL;
 	} else if (snamelen == CS_NULLTERM) {
@@ -611,6 +615,8 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		con->tds_socket = NULL;
 		return CS_FAIL;
 	}
+	if (con->server_addr)
+		tds_dstr_copy(&connection->server_host_name, con->server_addr);
 
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
@@ -1896,6 +1902,7 @@ ct_con_drop(CS_CONNECTION * con)
 		}
 		if (con->locale)
 			_cs_locale_free(con->locale);
+		free(con->server_addr);
 		free(con);
 	}
 	return CS_SUCCEED;

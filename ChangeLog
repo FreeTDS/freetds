@@ -1,3 +1,8 @@
+Thu Nov 26 10:46:01 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/ctlib.h include/tds.h src/ctlib/ct.c src/tds/config.c:
+	* src/tds/login.c src/tds/mem.c:
+	- Move server_addr into ctlib
+
 Thu Nov 26 10:06:51 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/data.c src/tds/tds_checks.c:
 	* src/tds/tds_checks.h src/tds/token.c:
@@ -1912,4 +1917,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2888 2009-11-26 09:07:27 freddy77 Exp $
+$Id: ChangeLog,v 1.2889 2009-11-26 09:47:40 freddy77 Exp $
