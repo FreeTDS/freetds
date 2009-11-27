@@ -1,3 +1,6 @@
+Fri Nov 27 19:34:26 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc_util.c: backported fix for SQL_GUID len
+
 Tue Nov 17 14:50:03 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac:
 	- use pkg-config instead of libgnutls-config if possible
@@ -261,4 +264,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.65 2009-11-17 13:51:34 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.66 2009-11-27 18:34:37 freddy77 Exp $
