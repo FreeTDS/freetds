@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.109 2009-08-18 15:11:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.110 2009-11-27 18:01:48 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -519,7 +519,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 #if (ODBCVER >= 0x0300)
 	case SYBUNIQUE:
 		/* FIXME for Sybase ?? */
-		SET_INFO("uniqueidentifier", "'", "'");
+		SET_INFO2("uniqueidentifier", "'", "'", 36);
 	case SYBVARIANT:
 		/* SET_INFO("sql_variant", "", ""); */
 		break;
