@@ -1,3 +1,8 @@
+Fri Nov 27 17:15:36 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/unittests/getdata.c:
+	- Fix SQLGetData from fixed to CHAR not returning always
+	  SQL_SUCCESS
+
 Thu Nov 26 10:46:01 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/ctlib.h include/tds.h src/ctlib/ct.c src/tds/config.c:
 	* src/tds/login.c src/tds/mem.c:
@@ -1917,4 +1922,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2889 2009-11-26 09:47:40 freddy77 Exp $
+$Id: ChangeLog,v 1.2890 2009-11-27 16:16:38 freddy77 Exp $

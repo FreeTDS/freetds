@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.10 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.11 2009-11-27 16:16:39 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -64,7 +64,7 @@ mycmp(const char *s1, const char *s2)
 int
 main(int argc, char *argv[])
 {
-	char buf[16];
+	char buf[32];
 	SQLINTEGER int_buf;
 	SQLLEN len;
 
@@ -142,19 +142,42 @@ main(int argc, char *argv[])
 
 	ResetStatement();
 
+	/* test with numeric */
+	Command("SELECT CONVERT(NUMERIC(18,5), 1850000000000)");
+
+	CHKFetch("S");
+
+	memset(buf, 'x', sizeof(buf));
+	CHKGetData(1, SQL_C_CHAR, buf, 14, NULL, "S");
+	buf[sizeof(buf)-1] = 0;
+	if (strcmp(buf, "1850000000000") != 0) {
+		printf("Wrong data result: %s\n", buf);
+		exit(1);
+	}
+
+	/* should give NO DATA */
+	CHKGetData(1, SQL_C_CHAR, buf, 14, NULL, "No");
+	buf[sizeof(buf)-1] = 0;
+	if (strcmp(buf, "1850000000000") != 0) {
+		printf("Wrong data result 3 res = %s\n", buf);
+		exit(1);
+	}
+
+	ResetStatement();
+
 	Disconnect();
 
 	use_odbc_version3 = 1;
 	Connect();
 
 	/* test error from SQLGetData */
-	/* wrong constant */
+	/* wrong constant, SQL_VARCHAR is invalid as C type */
 	test_err("prova 123",           SQL_VARCHAR,     "HY003");
 	/* use ARD but no ARD data column */
 	test_err("prova 123",           SQL_ARD_TYPE,    "07009");
 	/* wrong conversion, int */
 	test_err("prova 123",           SQL_C_LONG,      "22018");
-	/* wrong conversion, int */
+	/* wrong conversion, date */
 	test_err("prova 123",           SQL_C_TIMESTAMP, "22018");
 	/* overflow */
 	test_err("1234567890123456789", SQL_C_LONG,      "22003");
