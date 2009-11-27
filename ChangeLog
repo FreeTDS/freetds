@@ -1,3 +1,6 @@
+Fri Nov 27 19:38:53 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: conversions returns correctly no unicode
+
 Fri Nov 27 19:36:40 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: backported fix for SQLGetData
 
@@ -267,4 +270,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.67 2009-11-27 18:36:49 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.68 2009-11-27 18:39:02 freddy77 Exp $
