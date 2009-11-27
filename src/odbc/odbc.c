@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.14 2009-02-23 16:11:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.15 2009-11-27 18:36:49 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4776,7 +4776,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 				ODBC_RETURN(stmt, SQL_SUCCESS_WITH_INFO);
 			}
 		} else {
-			colinfo->column_text_sqlgetdatapos = colinfo->column_size;
+			colinfo->column_text_sqlgetdatapos = colinfo->column_cur_size;
 		}
 	}
 	ODBC_RETURN_(stmt);
