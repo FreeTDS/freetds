@@ -13,11 +13,13 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.30 2009-08-20 18:59:29 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.31 2009-11-29 19:02:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
 static char sbuf[1024];
+
+static int ignore_select_error = 0;
 
 static void
 Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, const char *expected)
@@ -37,7 +39,17 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 		sprintf(sbuf, "SELECT CONVERT(%s, %s) COLLATE Latin1_General_CI_AS AS data", type, value_to_convert);
 	else if (strcmp(type, "SQL_VARIANT") == 0)
 		sprintf(sbuf, "SELECT CONVERT(SQL_VARIANT, %s) AS data", value_to_convert);
-	Command(sbuf);
+	else if (strncmp(value_to_convert, "u&'", 3) == 0)
+		sprintf(sbuf, "SELECT CONVERT(%s, %s) AS data", type, value_to_convert);
+	if (ignore_select_error) {
+		if (Command2(sbuf, "SENo") == SQL_ERROR) {
+			ResetStatement();
+			return;
+		}
+	} else {
+		Command(sbuf);
+	}
+	ignore_select_error = 0;
 	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	CHKFetch("S");
 	CHKFetch("No");
@@ -152,6 +164,9 @@ main(int argc, char *argv[])
 		/* NVARCHAR -> SQL_C_LONG */
 		Test("NVARCHAR(20)", "-24785  ", SQL_C_LONG, "-24785");
 	}
+
+	ignore_select_error = 1;
+	Test("UNIVARCHAR(10)", "u&'\\06A4\\FBA5'", SQL_C_WCHAR, "2 \\u06a4\\ufba5");
 
 	/* case (1) */
 	Test("DECIMAL", "1234.5678", SQL_C_BINARY, "120001D3040000000000000000000000000000");
