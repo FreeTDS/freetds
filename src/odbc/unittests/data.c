@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.31 2009-11-29 19:02:45 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.32 2009-11-29 20:06:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -202,7 +202,8 @@ main(int argc, char *argv[])
 		Test("SQL_VARIANT", "CAST('foo' AS NVARCHAR(10))", SQL_C_CHAR, "3 foo");
 		Test("SQL_VARIANT", "CAST('Super' AS NCHAR(8))", SQL_C_CHAR, "8 Super   ");
 		Test("SQL_VARIANT", "CAST('321' AS VARBINARY(10))", SQL_C_CHAR, "6 333231");
-		Test("SQL_VARIANT", "CAST('-123.4' AS FLOAT)", SQL_C_CHAR, "6 -123.4");
+		/* for some reasons MS ODBC seems to convert -123.4 to -123.40000000000001 */
+		Test("SQL_VARIANT", "CAST('-123.5' AS FLOAT)", SQL_C_CHAR, "6 -123.5");
 		Test("SQL_VARIANT", "CAST('-123.4' AS NUMERIC(10,2))", SQL_C_CHAR, "7 -123.40");
 	}
 

@@ -1,3 +1,6 @@
+Sun Nov 29 21:06:18 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/data.c: Fix MS ODBC problem during test
+
 Sun Nov 29 20:02:37 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/data.c: Test univarchar from server
 
@@ -1932,4 +1935,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2893 2009-11-29 19:02:45 freddy77 Exp $
+$Id: ChangeLog,v 1.2894 2009-11-29 20:06:28 freddy77 Exp $
