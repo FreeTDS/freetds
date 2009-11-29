@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.11 2009-11-27 16:16:39 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.12 2009-11-29 20:16:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -67,6 +67,7 @@ main(int argc, char *argv[])
 	char buf[32];
 	SQLINTEGER int_buf;
 	SQLLEN len;
+	SQLRETURN rc;
 
 	Connect();
 
@@ -164,6 +165,40 @@ main(int argc, char *argv[])
 	}
 
 	ResetStatement();
+
+
+	/* test int to truncated string */
+	Command("SELECT CONVERT(INTEGER, 12345)");
+	CHKFetch("S");
+
+	/* error 22003 */
+	CHKGetData(1, SQL_C_CHAR, buf, 4, NULL, "E");
+	ReadError();
+	if (strcmp(odbc_sqlstate, "22003") != 0) {
+		fprintf(stderr, "Unexpected sql state %s returned\n", odbc_sqlstate);
+		Disconnect();
+		exit(1);
+	}
+	CHKGetData(1, SQL_C_CHAR, buf, 2, NULL, "No");
+	ResetStatement();
+
+	/* test unique identifier to truncated string */
+	rc = Command2("SELECT CONVERT(UNIQUEIDENTIFIER, 'AA7DF450-F119-11CD-8465-00AA00425D90')", "SENo");
+	if (rc != SQL_ERROR) {
+		CHKFetch("S");
+
+		/* error 22003 */
+		CHKGetData(1, SQL_C_CHAR, buf, 17, NULL, "E");
+		ReadError();
+		if (strcmp(odbc_sqlstate, "22003") != 0) {
+			fprintf(stderr, "Unexpected sql state %s returned\n", odbc_sqlstate);
+			Disconnect();
+			exit(1);
+		}
+		CHKGetData(1, SQL_C_CHAR, buf, 2, NULL, "No");
+	}
+	ResetStatement();
+
 
 	Disconnect();
 
