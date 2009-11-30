@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.16 2009-11-27 18:39:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.17 2009-11-30 10:17:16 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -2938,6 +2938,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	/* set cursor name for TDS7+ */
 	if (ret == TDS_SUCCEED && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
 		ret = tds_process_simple_query(tds);
+		stmt->row_count = tds->rows_affected;
 		stmt->dbc->current_statement = NULL;
 		if (ret == TDS_SUCCEED && cursor->cursor_id != 0) {
 			ret = tds_cursor_setname(tds, cursor);
@@ -2988,6 +2989,8 @@ _SQLExecute(TDS_STMT * stmt)
 
 	stmt->curr_param_row = 0;
 	stmt->num_param_rows = ODBC_MAX(1, stmt->apd->header.sql_desc_array_size);
+
+	stmt->row_count = TDS_NO_COUNT;
 
 	if (stmt->prepared_query_is_rpc) {
 		/* TODO support stmt->apd->header.sql_desc_array_size for RPC */
@@ -3069,6 +3072,7 @@ _SQLExecute(TDS_STMT * stmt)
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
 		}
+		stmt->row_count = TDS_NO_COUNT;
 		if (stmt->num_param_rows <= 1) {
 			dyn = stmt->dyn;
 			tds_free_input_params(dyn);
@@ -3106,7 +3110,6 @@ _SQLExecute(TDS_STMT * stmt)
 	if (!odbc_lock_statement(stmt))
 		ODBC_RETURN_(stmt);
 
-	stmt->row_count = TDS_NO_COUNT;
 	stmt->row_status = PRE_NORMAL_ROW;
 
 	stmt->curr_param_row = 0;
