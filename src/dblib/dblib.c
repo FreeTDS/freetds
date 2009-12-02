@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.355 2009-10-23 19:21:45 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.356 2009-12-02 22:35:25 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4544,6 +4544,7 @@ dbsqlok(DBPROCESS * dbproc)
 	TDSSOCKET *tds;
 	int done_flags;
 	TDS_INT result_type;
+	RETCODE return_code = SUCCEED;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbsqlok(%p)\n", dbproc);
 	CHECK_DBPROC();
@@ -4567,13 +4568,25 @@ dbsqlok(DBPROCESS * dbproc)
 	 * We're looking for a result token or a done token.
          */
 	for (;;) {
+		int tds_code;
 		/* 
 		 * If we hit an end token -- e.g. if the command
 		 * submitted returned no data (like an insert) -- then
 		 * we process the end token to extract the status code. 
 		 */
 		tdsdump_log(TDS_DBG_FUNC, "dbsqlok() not done, calling tds_process_tokens()\n");
-		switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) {
+
+		tds_code = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
+
+		/* 
+		 * The error flag may be set for any intervening DONEINPROC packet, in particular
+		 * by a RAISERROR statement.  Microsoft db-lib returns FAIL in that case. 
+		 */
+		if (done_flags & TDS_DONE_ERROR) {
+			return_code = FAIL;
+		}
+		
+		switch (tds_code) {
 		case TDS_NO_MORE_RESULTS:
 			return SUCCEED;
 			break;
@@ -4595,26 +4608,27 @@ dbsqlok(DBPROCESS * dbproc)
 				tdsdump_log(TDS_DBG_FUNC, "dbsqlok() found result token\n");
 				return SUCCEED;
 				break;
+			case TDS_DONEINPROC_RESULT:
+				break;
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
+				tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status is %s\n", prdbretcode(return_code));
 #if 1
 				if (done_flags & TDS_DONE_ERROR) {
-					tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status was error\n");
 
 					if (done_flags & TDS_DONE_MORE_RESULTS) {
 						dbproc->dbresults_state = _DB_RES_NEXT_RESULT;
-						return SUCCEED;
 					} else {
 						dbproc->dbresults_state = _DB_RES_NO_MORE_RESULTS;
 					}
 
-					return FAIL;
 				} else {
 					tdsdump_log(TDS_DBG_FUNC, "dbsqlok() end status was success\n");
 
 					dbproc->dbresults_state = _DB_RES_SUCCEED;
-					return SUCCEED;
 				}
+
+				return return_code;
 				break;
 #else
 				int retcode = (done_flags & TDS_DONE_ERROR)? FAIL : SUCCEED;
@@ -4630,6 +4644,8 @@ dbsqlok(DBPROCESS * dbproc)
 				return retcode;
 #endif
 			default:
+				tdsdump_log(TDS_DBG_FUNC, "%s %d: logic error: tds_process_tokens result_type %d\n", 
+						__FILE__, __LINE__, result_type);
 				break;
 			}
 			break;
