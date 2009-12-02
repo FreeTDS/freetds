@@ -1,3 +1,10 @@
+Wed Dec  2 17:30:10 EST 2009	JK Lowden <jklowden@freetds.org>
+	* include/sqldb.h add Microsoft db-lib error symbols
+	* src/dblib/dblib.c 
+	- dbsqlok returns FAIL if error encountered in any DONEINPROC
+	- packet prior to returning.  Should return FAIL for
+	- RAISERROR('msg', 16,1).
+
 Sun Nov 29 21:16:19 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/getdata.c:
 	- Check error if conversion truncate data
@@ -1939,4 +1946,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2895 2009-11-29 20:16:36 freddy77 Exp $
+$Id: ChangeLog,v 1.2896 2009-12-02 22:35:16 jklowden Exp $
