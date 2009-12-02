@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.356 2009-12-02 22:35:25 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.357 2009-12-02 22:58:21 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2193,8 +2193,8 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	/* FIXME what happen if client do not reset values ??? */
 	/* FIXME act differently for ms and sybase */
 	if (is_numeric_type(desttype)) {
-		num = (DBNUMERIC *) dest;
-		if (num->precision <= 0 || num->precision > MAXPRECISION || num->scale < 0 || num->scale > num->precision) {
+		num = (DBNUMERIC *) dest;	                         /* num->scale is unsigned */
+		if (num->precision <= 0 || num->precision > MAXPRECISION || num->scale > num->precision) { 
 			dres.n.precision = 18;
 			dres.n.scale = 0;
 		} else {
@@ -7122,7 +7122,6 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	CONV_RESULT dres;
 	DBINT ret;
 	int i, len;
-	DBNUMERIC *num;
 	DBSMALLINT indicator_value = 0;
 
 	int limited_dest_space = 0;
@@ -7142,8 +7141,8 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	/* oft times we are asked to convert a data type to itself */
 
 	if (is_numeric_type(desttype)) {
-		num = (DBNUMERIC *) dest;
-		if (num->precision <= 0 || num->precision > MAXPRECISION || num->scale < 0 || num->scale > num->precision) {
+		DBNUMERIC *num = (DBNUMERIC *) dest;	                         /* num->scale is unsigned */
+		if (num->precision <= 0 || num->precision > MAXPRECISION || num->scale > num->precision) { 
 			dres.n.precision = 18;
 			dres.n.scale = 0;
 		} else {

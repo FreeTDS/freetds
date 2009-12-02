@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.78 2009-05-28 16:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.79 2009-12-02 22:58:21 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -367,7 +367,7 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 	if (blob) {
 		TDS_CHAR *p;
 		int binary_convert = 0;
-		SQLLEN orig_len;
+		SQLLEN orig_len = len;
 
 		if (sql_src_type == SQL_C_CHAR || sql_src_type == SQL_C_WCHAR) {
 			switch (tds_get_conversion_type(curcol->column_type, curcol->column_size)) {

@@ -1,3 +1,7 @@
+Wed Dec  2 17:56:52 EST 2009	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c src/odbc/prepare_query.c src/tds/login.c
+	- warning & uninitialized variable cleanup
+
 Wed Dec  2 17:30:10 EST 2009	JK Lowden <jklowden@freetds.org>
 	* include/sqldb.h add Microsoft db-lib error symbols
 	* src/dblib/dblib.c 
@@ -1946,4 +1950,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2896 2009-12-02 22:35:16 jklowden Exp $
+$Id: ChangeLog,v 1.2897 2009-12-02 22:58:21 jklowden Exp $

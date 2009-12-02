@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.190 2009-11-26 09:47:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.191 2009-12-02 22:58:21 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -316,7 +316,7 @@ free_save_context(TDSSAVECONTEXT *ctx)
 int
 tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-	int erc;
+	int erc = TDSEFCON;
 	int connect_timeout = 0;
 	int db_selected = 0;
 
@@ -351,7 +351,7 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds->env_chg_func = tds_save_env;
 		mod_ctx->err_handler = NULL;
 
-		for (i=tds->use_iconv ? 1: 0; i < TDS_VECTOR_SIZE(versions); ++i) {
+		for (i = tds->use_iconv? 1 : 0; i < TDS_VECTOR_SIZE(versions); ++i) {
 			connection->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
