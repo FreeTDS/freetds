@@ -1,3 +1,7 @@
+Fri Dec  4 11:34:10 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/getdata.c:
+	- check buffer unchanged if overflow detected
+
 Wed Dec  2 17:56:52 EST 2009	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c src/odbc/prepare_query.c src/tds/login.c
 	- warning & uninitialized variable cleanup
@@ -1950,4 +1954,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2897 2009-12-02 22:58:21 jklowden Exp $
+$Id: ChangeLog,v 1.2898 2009-12-04 10:35:06 freddy77 Exp $

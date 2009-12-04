@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.12 2009-11-29 20:16:36 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.13 2009-12-04 10:35:06 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -172,7 +172,13 @@ main(int argc, char *argv[])
 	CHKFetch("S");
 
 	/* error 22003 */
+	memset(buf, 'x', sizeof(buf));
 	CHKGetData(1, SQL_C_CHAR, buf, 4, NULL, "E");
+	buf[4] = 0;
+	if (strcmp(buf, "xxxx") != 0) {
+		fprintf(stderr, "Wrong buffer result buf = %s\n", buf);
+		exit(1);
+	}
 	ReadError();
 	if (strcmp(odbc_sqlstate, "22003") != 0) {
 		fprintf(stderr, "Unexpected sql state %s returned\n", odbc_sqlstate);
