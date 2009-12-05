@@ -1,3 +1,6 @@
+Sat Dec  5 14:43:00 EST 2009	JK Lowden <jklowden@freetds.org>
+	* src/apps/tsql.c applied small optind patch from ML
+
 Fri Dec  4 11:34:10 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/getdata.c:
 	- check buffer unchanged if overflow detected
@@ -15,7 +18,7 @@ Wed Dec  2 17:30:10 EST 2009	JK Lowden <jklowden@freetds.org>
 
 Sun Nov 29 21:16:19 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/getdata.c:
-	- Check error if conversion truncate data
+	- Check error if conversion truncates data
 
 Sun Nov 29 21:06:18 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/data.c: Fix MS ODBC problem during test
@@ -1954,4 +1957,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2898 2009-12-04 10:35:06 freddy77 Exp $
+$Id: ChangeLog,v 1.2899 2009-12-05 20:25:31 jklowden Exp $

@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.129 2009-10-23 19:21:38 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.130 2009-12-05 20:25:31 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -313,8 +313,10 @@ reset_getopt(void)
 {
 #ifdef HAVE_GETOPT_OPTRESET
 	optreset = 1;
-#endif
 	optind = 1;
+#else
+	optind = 0;
+#endif
 }
 
 /*
