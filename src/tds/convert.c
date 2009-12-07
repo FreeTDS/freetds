@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.193 2009-09-29 09:16:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.194 2009-12-07 16:22:12 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -351,7 +351,7 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 
 		/* skip leading "0x" or "0X" */
 
-		if (src[0] == '0' && (src[1] == 'x' || src[1] == 'X')) {
+		if (srclen >= 2 && src[0] == '0' && (src[1] == 'x' || src[1] == 'X')) {
 			src += 2;
 			srclen -= 2;
 		}

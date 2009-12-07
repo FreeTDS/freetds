@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.13 2009-12-04 10:35:06 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.14 2009-12-07 16:22:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -249,6 +249,20 @@ main(int argc, char *argv[])
 			lc = sizeof(SQLWCHAR);
 			type = SQL_C_WCHAR;
 		}	
+
+		Command("SELECT CONVERT(TEXT,'')");
+
+		CHKFetch("S");
+
+		len = 1234;
+		CHKGetData(1, SQL_C_BINARY, buf, 1, &len, "S");
+
+		if (len != 0) {
+			fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
+			return 1;
+		}
+
+		CHKGetData(1, SQL_C_BINARY, buf, 1, NULL, "No");
 	}
 
 	Disconnect();
