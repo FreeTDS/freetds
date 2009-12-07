@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.17 2009-11-30 10:17:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.18 2009-12-07 16:07:31 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -4712,7 +4712,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 				case SYBTEXT:
 				case XSYBCHAR:
 				case XSYBVARCHAR:
-					nread = (src[0] == '0' && toupper(src[1]) == 'X')? 2 : 0;
+					nread = (colinfo->column_cur_size >= 2 && src[0] == '0' && toupper(src[1]) == 'X')? 2 : 0;
 						
 					while ((nread < colinfo->column_cur_size) && (src[nread] == ' ' || src[nread] == '\0')) 
 						nread++;

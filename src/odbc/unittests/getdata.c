@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: getdata.c,v 1.4.2.2 2008-06-18 04:11:39 jklowden Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.4.2.3 2009-12-07 16:07:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -161,6 +161,25 @@ main(int argc, char *argv[])
 
 		len = 1234;
 		if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 1, &len) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("invalid return from SQLGetData");
+
+		if (len != 0) {
+			fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
+			return 1;
+		}
+
+		if (SQLGetData(Statement, 1, SQL_C_CHAR, buf, 1, NULL) != SQL_NO_DATA)
+			ODBC_REPORT_ERROR("invalid return from SQLGetData");
+
+		ResetStatement();
+
+		Command(Statement, "SELECT CONVERT(TEXT,'')");
+
+		if (SQLFetch(Statement) != SQL_SUCCESS)
+			ODBC_REPORT_ERROR("Unable to fetch row");
+
+		len = 1234;
+		if (SQLGetData(Statement, 1, SQL_C_BINARY, buf, 1, &len) != SQL_SUCCESS)
 			ODBC_REPORT_ERROR("invalid return from SQLGetData");
 
 		if (len != 0) {
