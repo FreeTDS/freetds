@@ -9,21 +9,15 @@
 #include <stdio.h>
 #include <ctpublic.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.11 2005-06-29 07:21:08 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.12 2009-12-13 10:36:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_CONTEXT *ctx;
-int allSuccess = 1;
+static int allSuccess = 1;
 
 typedef const char *STR;
 
-int DoTest(CS_INT fromtype, void *fromdata, CS_INT fromlen,
-	   CS_INT totype, CS_INT tomaxlen,
-	   CS_RETCODE tores, void *todata, CS_INT tolen,
-	   STR sdecl,
-	   STR sfromtype, STR sfromdata, STR sfromlen, STR stotype, STR stomaxlen, STR stores, STR stodata, STR stolen, int line);
-
-int
+static int
 DoTest(
 	      /* source information */
 	      CS_INT fromtype, void *fromdata, CS_INT fromlen,
@@ -31,8 +25,11 @@ DoTest(
 	      CS_INT totype, CS_INT tomaxlen,
 	      /* expected result */
 	      CS_RETCODE tores, void *todata, CS_INT tolen,
+	      /* fields in string format */
 	      STR sdecl,
-	      STR sfromtype, STR sfromdata, STR sfromlen, STR stotype, STR stomaxlen, STR stores, STR stodata, STR stolen, int line)
+	      STR sfromtype, STR sfromdata, STR sfromlen, STR stotype, STR stomaxlen, STR stores, STR stodata, STR stolen,
+	      /* source line number for error reporting */
+	      int line)
 {
 	CS_DATAFMT destfmt, srcfmt;
 	CS_INT reslen;
