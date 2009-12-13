@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.201 2009-11-26 09:47:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.202 2009-12-13 09:48:55 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2014,7 +2014,7 @@ _ct_get_client_type(TDSCOLUMN *col)
 	case SYBLONGBINARY:
 		if (col->column_usertype == USER_UNICHAR_TYPE || col->column_usertype == USER_UNIVARCHAR_TYPE)
 			return CS_UNICHAR_TYPE;
-		return CS_CHAR_TYPE;
+		return CS_LONGBINARY_TYPE;
 		break;
 	}
 
