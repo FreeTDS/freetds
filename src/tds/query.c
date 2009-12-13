@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.242 2009-10-02 09:24:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.243 2009-12-13 10:37:37 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1390,6 +1390,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		case 2:
 			tds_put_smallint(tds, size);
 			break;
+		case 5:
 		case 4:
 			tds_put_int(tds, size);
 			break;
@@ -1437,6 +1438,8 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		len += curcol->column_namelen;
 	if (is_numeric_type(curcol->on_server.column_type))
 		len += 2;
+	if (curcol->column_varint_size == 5)
+		return len + 4;
 	return len + curcol->column_varint_size;
 }
 
@@ -1464,6 +1467,9 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (curcol->column_cur_size < 0) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_put_data: null param\n");
 		switch (curcol->column_varint_size) {
+		case 5:
+			tds_put_int(tds, 0);
+			break;
 		case 4:
 			tds_put_int(tds, -1);
 			break;
@@ -1588,6 +1594,10 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		/* TODO ICONV handle charset conversions for data */
 		/* put size of data */
 		switch (curcol->column_varint_size) {
+		case 5:	/* It's a LONGBINARY */
+			colsize = MIN(colsize, 0x7fffffff);
+			tds_put_int(tds, colsize);
+			break;
 		case 4:	/* It's a BLOB... */
 			tds_put_byte(tds, 16);
 			tds_put_n(tds, blob->textptr, 16);

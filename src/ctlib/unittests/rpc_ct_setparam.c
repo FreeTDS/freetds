@@ -18,7 +18,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.9 2006-12-29 19:00:33 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.10 2009-12-13 10:37:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);
@@ -87,7 +87,7 @@ main(int argc, char *argv[])
         @sintparam smallint output, @floatparam float output, \
         @moneyparam money output,  \
         @dateparam datetime output, @charparam char(20) output, \
-        @binaryparam    binary(20) output) \
+        @binaryparam    varbinary(2000) output) \
         as ");
 
 	strcat(cmdbuf, "select @intparam, @sintparam, @floatparam, @moneyparam, \
@@ -266,8 +266,8 @@ main(int argc, char *argv[])
 
 	strcpy(datafmt.name, "@binaryparam");
 	datafmt.namelen = CS_NULLTERM;
-	datafmt.datatype = CS_BINARY_TYPE;
-	datafmt.maxlength = 255;
+	datafmt.datatype = CS_LONGBINARY_TYPE;
+	datafmt.maxlength = 2000;
 	datafmt.status = CS_RETURN;
 	datafmt.locale = NULL;
 
