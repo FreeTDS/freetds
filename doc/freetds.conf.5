@@ -1,4 +1,4 @@
-.\" $Id: freetds.conf.5,v 1.3 2009-08-25 14:25:35 freddy77 Exp $
+.\" $Id: freetds.conf.5,v 1.4 2009-12-14 01:02:27 jklowden Exp $
 .Dd December 23, 2007
 .Os [FreeTDS] [@version@]
 .Dt FREETDS.CONF 5
@@ -10,7 +10,7 @@
 .Sh SYNOPSIS
 The 
 .Pa freetds.conf
-file describes Sybase and Microsoft dataservers to the
+file describes Sybase and Microsoft database servers to the
 FreeTDS library.  It comprises sections headed by a servername, followed by a
 list of connection properties denoted as name-value pairs.  Defaults are
 defined via a 
@@ -106,7 +106,7 @@ allow encrypted connections only
 .El
 .
 .It host
-Name of the host the dataserver is running on.
+Name of the host the server is running on.
 .Bl -tag -width "default:" -compact
 .It Domain:
 host name or IP address
@@ -134,7 +134,7 @@ none
 .El
 .
 .It port
-port number that the dataserver is listening to
+port number that the server is listening to
 .Bl -tag -width "default:" -compact
 .It Domain:
 any valid port
@@ -171,6 +171,14 @@ none (wait forever)
 .El
 .
 .El
+.Pp
+Do not define both 
+.Fa port
+and
+.Fa instance Ns
+\&.  One implies the other.  
+
+
 .Pp
 Boolean property values may be denoted as on/off, true/false, or 1/0.
 .
