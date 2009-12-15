@@ -1,3 +1,7 @@
+Tue Dec 15 10:52:43 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/connectparams.c src/odbc/odbc.c:
+	- Avoid wrong configuration problem reporting problems
+
 Tue Dec 15 10:13:12 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/connectparams.c:
 	- Update Unixodbc configuration settings for TDS version
@@ -1982,4 +1986,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2905 2009-12-15 09:13:45 freddy77 Exp $
+$Id: ChangeLog,v 1.2906 2009-12-15 09:53:26 freddy77 Exp $

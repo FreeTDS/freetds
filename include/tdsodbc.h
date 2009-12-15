@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.113 2008-10-23 15:07:48 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.114 2009-12-15 09:53:27 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -433,8 +433,8 @@ BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
  * \param connection          structure where to store informations
  * \return 0 if error, 1 otherwise
  */
-int odbc_parse_connect_string(const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection);
-int odbc_get_dsn_info(const char *DSN, TDSCONNECTION * connection);
+int odbc_parse_connect_string(TDS_DBC *dbc, const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection);
+int odbc_get_dsn_info(TDS_DBC *dbc, const char *DSN, TDSCONNECTION * connection);
 
 /*
  * convert_tds2sql.c
