@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.18 2009-12-07 16:07:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.464.2.19 2009-12-15 15:15:05 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -845,9 +845,10 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szProcName, cbProcName, szColumnName, cbColumnName);
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_sproc_columns ", 4, "O@procedure_qualifier", szCatalogName, cbCatalogName,
+		odbc_stat_execute(stmt, "sp_sproc_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
+				  "O@procedure_qualifier", szCatalogName, cbCatalogName,
 				  "P@procedure_owner", szSchemaName, cbSchemaName, "P@procedure_name", szProcName, cbProcName,
-				  "P@column_name", szColumnName, cbColumnName);
+				  "P@column_name", szColumnName, cbColumnName, "V@ODBCVer", (char*) NULL, 0);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
 		odbc_col_setname(stmt, 2, "PROCEDURE_SCHEM");
@@ -4460,9 +4461,10 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName, szColumnName, cbColumnName);
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_columns ", 4, "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
+		odbc_stat_execute(stmt, "sp_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
+				  "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
 				  cbSchemaName, "O@table_qualifier", szCatalogName, cbCatalogName, "P@column_name", szColumnName,
-				  cbColumnName);
+				  cbColumnName, "V@ODBCVer", (char*) NULL, 0);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
@@ -6392,9 +6394,10 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 		col_type = 'V';
 
 	retcode =
-		odbc_stat_execute(stmt, "sp_special_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 6 : 4, "O", szTableName,
+		odbc_stat_execute(stmt, "sp_special_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 7 : 4, "O", szTableName,
 				  cbTableName, "O", szSchemaName, cbSchemaName, "O@qualifier", szCatalogName, cbCatalogName,
-				  "@col_type", &col_type, 1, "@scope", &scope, 1, "@nullable", &nullable, 1);
+				  "@col_type", &col_type, 1, "@scope", &scope, 1, "@nullable", &nullable, 1,
+				  "V@ODBCVer", (char*) NULL, 0);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
 		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
@@ -6789,6 +6792,8 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 		p = va_arg(marker, char *);
 
 		switch (*p) {
+		case 'V':	/* ODBC version */
+			len += strlen(p) + 3;
 		case 'O':	/* ordinary arguments */
 		case 'P':	/* pattern value arguments */
 			params[i].type = *p++;
@@ -6829,14 +6834,17 @@ odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...)
 	strcpy(p, begin);
 	p += strlen(begin);
 	for (i = 0; i < nparams; ++i) {
-		if (!params[i].value)
+		if (!params[i].value && params[i].type != 'V')
 			continue;
 		if (params[i].name[0]) {
 			strcpy(p, params[i].name);
 			p += strlen(params[i].name);
 			*p++ = '=';
 		}
-		p += odbc_quote_metadata(stmt->dbc, params[i].type, p, params[i].value, params[i].len);
+		if (params[i].type != 'V')
+			p += odbc_quote_metadata(stmt->dbc, params[i].type, p, params[i].value, params[i].len);
+		else
+			*p++ = (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) ? '3': '2';
 		*p++ = ',';
 	}
 	*--p = '\0';
