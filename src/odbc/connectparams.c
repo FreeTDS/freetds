@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.77 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.78 2009-12-15 09:13:46 freddy77 Exp $");
 
 static const char odbc_param_Servername[] = "Servername";
 static const char odbc_param_Address[] = "Address";
@@ -514,7 +514,8 @@ static const char *const aTDSver[] = {
 	"4.2",
 	"5.0",
 	"7.0",
-	"8.0",
+	"7.1",
+	"7.2",
 	NULL
 };
 
@@ -627,8 +628,9 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 		"The TDS protocol version.\n"
 		" 4.2 MSSQL 6.5 or Sybase < 10.x\n"
 		" 5.0 Sybase >= 10.x\n"
-		" 7.0 MSSQL 7 or MSSQL 2000\n"
-		" 8.0 MSSQL 2000");
+		" 7.0 MSSQL 7\n"
+		" 7.1 MSSQL 2000\n"
+		" 7.2 MSSQL 2005");
 
 	hLastProperty = definePropertyList(hLastProperty, odbc_param_Language, "us_english", (void*) aLanguage, sizeof(aLanguage),
 		"The default language setting.");

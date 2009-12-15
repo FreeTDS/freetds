@@ -1,3 +1,7 @@
+Tue Dec 15 10:13:12 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/connectparams.c:
+	- Update Unixodbc configuration settings for TDS version
+
 Sun Dec 13 20:01:01 EST 2009	JK Lowden <jklowden@freetds.org>
 	* doc/freetds.conf.5 doc/userguide.sgml
 	- updated documentation in preparation for upcoming release. 
@@ -1978,4 +1982,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2904 2009-12-14 01:02:26 jklowden Exp $
+$Id: ChangeLog,v 1.2905 2009-12-15 09:13:45 freddy77 Exp $
