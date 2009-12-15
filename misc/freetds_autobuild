@@ -150,7 +150,7 @@ fi
 
 # save logs for debug
 rm -f $HOME/log_tds.txt
-ln logs/log.txt $HOME/log_tds.txt
+ln logs/log.txt ../log_tds.txt
 
 # test Perl
 save_coverage
