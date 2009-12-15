@@ -133,7 +133,7 @@ parse_wacky_dsn_string(LPCSTR attribs, DSNINFO * di)
 	}
 
 	/* let odbc_parse_connect_string() parse the ;-delimited version */
-	odbc_parse_connect_string(build, build + strlen(build), di->connection);
+	odbc_parse_connect_string(NULL, build, build + strlen(build), di->connection);
 }
 
 

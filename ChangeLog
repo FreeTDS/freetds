@@ -1,3 +1,7 @@
+Tue Dec 15 12:45:47 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/connectparams.c win32/winsetup.c:
+	- Fix compile under Windows
+
 Tue Dec 15 12:23:27 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/common.h src/odbc/unittests/stats.c:
@@ -1991,4 +1995,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2907 2009-12-15 11:23:46 freddy77 Exp $
+$Id: ChangeLog,v 1.2908 2009-12-15 11:46:39 freddy77 Exp $
