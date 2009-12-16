@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.357 2009-12-02 22:58:21 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.358 2009-12-16 08:22:57 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4542,7 +4542,6 @@ RETCODE
 dbsqlok(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds;
-	int done_flags;
 	TDS_INT result_type;
 	RETCODE return_code = SUCCEED;
 
@@ -4569,6 +4568,8 @@ dbsqlok(DBPROCESS * dbproc)
          */
 	for (;;) {
 		int tds_code;
+		int done_flags = 0;
+
 		/* 
 		 * If we hit an end token -- e.g. if the command
 		 * submitted returned no data (like an insert) -- then
