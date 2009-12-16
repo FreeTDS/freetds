@@ -1,3 +1,6 @@
+Wed Dec 16 13:54:52 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/convert_tds2sql.c: Fix conversion for uni(var)char
+
 Wed Dec 16 09:22:41 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: Fix uninitilized memory access problem
 
@@ -1998,4 +2001,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2909 2009-12-16 08:22:57 freddy77 Exp $
+$Id: ChangeLog,v 1.2910 2009-12-16 12:55:21 freddy77 Exp $

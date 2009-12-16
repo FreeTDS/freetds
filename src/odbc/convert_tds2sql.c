@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.66 2009-10-01 09:48:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.67 2009-12-16 12:55:21 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -157,6 +157,10 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 
 	if (curcol) {
 		if (is_blob_col(curcol)) {
+			if (srctype == SYBLONGBINARY && (
+			    curcol->column_usertype == USER_UNICHAR_TYPE ||
+			    curcol->column_usertype == USER_UNIVARCHAR_TYPE))
+				srctype = SYBTEXT;
 			if (curcol->column_type == SYBVARIANT)
 				srctype = ((TDSVARIANT *) src)->type;
 			src = ((TDSBLOB *) src)->textvalue;
