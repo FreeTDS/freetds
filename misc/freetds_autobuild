@@ -149,7 +149,7 @@ if test \( "$OUTDIR" = "out" -o "$OUTDIR" = "out82" \) -a -r doc/doxy.log; then
 fi
 
 # save logs for debug
-rm -f $HOME/log_tds.txt
+rm -f ../log_tds.txt
 ln logs/log.txt ../log_tds.txt
 
 # test Perl
