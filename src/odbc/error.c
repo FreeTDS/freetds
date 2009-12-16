@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.57 2008-08-18 13:31:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.58 2009-12-16 13:06:30 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -384,10 +384,13 @@ void
 odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 {
 	struct _sql_error *p;
-	int n = errs->num_errors;
+	int n;
 
 	assert(sqlstate);
+	if (!errs)
+		return;
 
+	n = errs->num_errors;
 	if (errs->errs)
 		p = (struct _sql_error *) realloc(errs->errs, sizeof(struct _sql_error) * (n + 1));
 	else

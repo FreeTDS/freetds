@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.80 2009-12-15 11:46:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.81 2009-12-16 13:06:30 freddy77 Exp $");
 
 static const char odbc_param_Servername[] = "Servername";
 static const char odbc_param_Address[] = "Address";
@@ -111,15 +111,14 @@ static int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR
 #endif
 
 static int
-parse_server(TDS_DBC *dbc, char *server, TDSCONNECTION * connection)
+parse_server(TDS_ERRS *errs, char *server, TDSCONNECTION * connection)
 {
 	char ip[64];
 	char *p = (char *) strchr(server, '\\');
 
 	if (p) {
 		if (!tds_dstr_copy(&connection->instance_name, p+1)) {
-			if (dbc)
-				odbc_errs_add(&dbc->errs, "HY001", NULL);
+			odbc_errs_add(errs, "HY001", NULL);
 			return 0;
 		}
 		*p = 0;
@@ -127,8 +126,7 @@ parse_server(TDS_DBC *dbc, char *server, TDSCONNECTION * connection)
 
 	tds_lookup_host(server, ip);
 	if (!tds_dstr_copy(&connection->ip_addr, ip)) {
-		if (dbc)
-			odbc_errs_add(&dbc->errs, "HY001", NULL);
+		odbc_errs_add(errs, "HY001", NULL);
 		return 0;
 	}
 
@@ -149,7 +147,7 @@ myGetPrivateProfileString(const char *DSN, const char *key, char *buf)
  * @return 1 if success 0 otherwhise
  */
 int
-odbc_get_dsn_info(TDS_DBC *dbc, const char *DSN, TDSCONNECTION * connection)
+odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection)
 {
 	char tmp[FILENAME_MAX];
 	int freetds_conf_less = 1;
@@ -160,13 +158,11 @@ odbc_get_dsn_info(TDS_DBC *dbc, const char *DSN, TDSCONNECTION * connection)
 		tds_dstr_copy(&connection->server_name, tmp);
 		tds_read_conf_file(connection, tmp);
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
-			if (dbc)
-				odbc_errs_add(&dbc->errs, "HY000", "You cannot specify both SERVERNAME and SERVER");
+			odbc_errs_add(errs, "HY000", "You cannot specify both SERVERNAME and SERVER");
 			return 0;
 		}
 		if (myGetPrivateProfileString(DSN, odbc_param_Address, tmp) > 0) {
-			if (dbc)
-				odbc_errs_add(&dbc->errs, "HY000", "You cannot specify both SERVERNAME and ADDRESS");
+			odbc_errs_add(errs, "HY000", "You cannot specify both SERVERNAME and ADDRESS");
 			return 0;
 		}
 	}
@@ -184,7 +180,7 @@ odbc_get_dsn_info(TDS_DBC *dbc, const char *DSN, TDSCONNECTION * connection)
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
 			tds_dstr_copy(&connection->server_name, tmp);
 			if (!address_specified) {
-				if (!parse_server(dbc, tmp, connection))
+				if (!parse_server(errs, tmp, connection))
 					return 0;
 			}
 		}
@@ -235,7 +231,7 @@ odbc_get_dsn_info(TDS_DBC *dbc, const char *DSN, TDSCONNECTION * connection)
  * @return 1 if success 0 otherwhise
  */
 int
-odbc_parse_connect_string(TDS_DBC *dbc, const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection)
+odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection)
 {
 	const char *p, *end;
 	DSTR *dest_s, value;
@@ -285,8 +281,7 @@ odbc_parse_connect_string(TDS_DBC *dbc, const char *connect_string, const char *
 			end = connect_string_end;
 
 		if (!tds_dstr_copyn(&value, p, end - p)) {
-			if (dbc)
-				odbc_errs_add(&dbc->errs, "HY001", NULL);
+			odbc_errs_add(errs, "HY001", NULL);
 			return 0;
 		}
 
@@ -294,14 +289,13 @@ odbc_parse_connect_string(TDS_DBC *dbc, const char *connect_string, const char *
 			/* error if servername or DSN specified */
 			if ((cfgs & (CFG_DSN|CFG_SERVERNAME)) != 0) {
 				tds_dstr_free(&value);
-				if (dbc)
-					odbc_errs_add(&dbc->errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
+				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
 				return 0;
 			}
 			if (!cfgs) {
 				dest_s = &connection->server_name;
 				/* not that safe cast but works -- freddy77 */
-				if (!parse_server(dbc, (char *) tds_dstr_cstr(&value), connection)) {
+				if (!parse_server(errs, (char *) tds_dstr_cstr(&value), connection)) {
 					tds_dstr_free(&value);
 					return 0;
 				}
@@ -310,8 +304,7 @@ odbc_parse_connect_string(TDS_DBC *dbc, const char *connect_string, const char *
 		} else if (strcasecmp(option, "SERVERNAME") == 0) {
 			if ((cfgs & (CFG_DSN|CFG_SERVER)) != 0) {
 				tds_dstr_free(&value);
-				if (dbc)
-					odbc_errs_add(&dbc->errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
+				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
 				return 0;
 			}
 			if (!cfgs) {
@@ -324,12 +317,11 @@ odbc_parse_connect_string(TDS_DBC *dbc, const char *connect_string, const char *
 		} else if (strcasecmp(option, "DSN") == 0) {
 			if ((cfgs & (CFG_SERVER|CFG_SERVERNAME)) != 0) {
 				tds_dstr_free(&value);
-				if (dbc)
-					odbc_errs_add(&dbc->errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
+				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
 				return 0;
 			}
 			if (!cfgs) {
-				if (!odbc_get_dsn_info(dbc, tds_dstr_cstr(&value), connection)) {
+				if (!odbc_get_dsn_info(errs, tds_dstr_cstr(&value), connection)) {
 					tds_dstr_free(&value);
 					return 0;
 				}

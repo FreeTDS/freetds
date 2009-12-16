@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.519 2009-12-15 11:23:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.520 2009-12-16 13:06:30 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -447,7 +447,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		tds_dstr_dup(&connection->database, &dbc->attr.current_catalog);
 
 	/* parse the DSN string */
-	odbc_parse_connect_string(dbc, (const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connection);
+	odbc_parse_connect_string(&dbc->errs, (const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connection);
 
 	/* add login info */
 	if (hwnd) {
@@ -1717,7 +1717,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 		tds_dstr_copy(&dbc->dsn, "DEFAULT");
 
 
-	if (!odbc_get_dsn_info(dbc, tds_dstr_cstr(&dbc->dsn), connection)) {
+	if (!odbc_get_dsn_info(&dbc->errs, tds_dstr_cstr(&dbc->dsn), connection)) {
 		tds_free_connection(connection);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
