@@ -60,10 +60,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.521 2009-12-17 10:33:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.522 2009-12-17 21:08:59 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
-static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
+static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
 static SQLRETURN _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt);
 static SQLRETURN _SQLAllocDesc(SQLHDBC hdbc, SQLHDESC FAR * phdesc);
 static SQLRETURN _SQLFreeConnect(SQLHDBC hdbc);
@@ -1320,7 +1320,7 @@ SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * Output
 		return _SQLAllocConnect(InputHandle, OutputHandle);
 		break;
 	case SQL_HANDLE_ENV:
-		return _SQLAllocEnv(OutputHandle);
+		return _SQLAllocEnv(OutputHandle, SQL_OV_ODBC3);
 		break;
 	case SQL_HANDLE_DESC:
 		return _SQLAllocDesc(InputHandle, OutputHandle);
@@ -1392,20 +1392,20 @@ SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 }
 
 static SQLRETURN
-_SQLAllocEnv(SQLHENV FAR * phenv)
+_SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 {
 	TDS_ENV *env;
 	TDSCONTEXT *ctx;
 
-	tdsdump_log(TDS_DBG_FUNC, "_SQLAllocEnv(%p)\n", 
-			phenv);
+	tdsdump_log(TDS_DBG_FUNC, "_SQLAllocEnv(%p, %d)\n",
+			phenv, (int) odbc_version);
 
 	env = (TDS_ENV *) calloc(1, sizeof(TDS_ENV));
 	if (!env)
 		return SQL_ERROR;
 
 	env->htype = SQL_HANDLE_ENV;
-	env->attr.odbc_version = SQL_OV_ODBC2;
+	env->attr.odbc_version = odbc_version;
 	/* TODO use it */
 	env->attr.output_nts = SQL_TRUE;
 
@@ -1432,7 +1432,7 @@ SQLAllocEnv(SQLHENV FAR * phenv)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocEnv(%p)\n", phenv);
 
-	return _SQLAllocEnv(phenv);
+	return _SQLAllocEnv(phenv, SQL_OV_ODBC2);
 }
 
 static SQLRETURN
