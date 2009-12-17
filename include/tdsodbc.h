@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.115 2009-12-16 13:06:30 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.116 2009-12-17 10:33:59 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -326,6 +326,15 @@ typedef enum
 	PRE_NORMAL_ROW
 } TDS_ODBC_ROW_STATUS;
 
+typedef enum
+{
+	ODBC_SPECIAL_NONE = 0,
+	ODBC_SPECIAL_GETTYPEINFO = 1,
+	ODBC_SPECIAL_COLUMNS = 2,
+	ODBC_SPECIAL_PROCEDURECOLUMNS = 3,
+	ODBC_SPECIAL_SPECIALCOLUMNS = 4
+} TDS_ODBC_SPECIAL_ROWS;
+
 struct _hstmt
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
@@ -370,7 +379,7 @@ struct _hstmt
 	SQLULEN sql_rowset_size;
 	struct _hsattr attr;
 	DSTR cursor_name;	/* auto generated cursor name */
-	int special_row;
+	TDS_ODBC_SPECIAL_ROWS special_row;
 	/* do NOT free cursor, free from socket or attach to connection */
 	TDSCURSOR *cursor;
 	unsigned char cancel_sent;

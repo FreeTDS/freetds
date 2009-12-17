@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.520 2009-12-16 13:06:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.521 2009-12-17 10:33:59 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv);
@@ -666,7 +666,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 		ODBC_RETURN(stmt, SQL_NO_DATA);
 
 	stmt->row_count = TDS_NO_COUNT;
-	stmt->special_row = 0;
+	stmt->special_row = ODBC_SPECIAL_NONE;
 
 	/* TODO this code is TOO similar to _SQLExecute, merge it - freddy77 */
 	/* try to go to the next recordset */
@@ -927,6 +927,8 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 		odbc_col_setname(stmt, 9, "BUFFER_LENGTH");
 		odbc_col_setname(stmt, 10, "DECIMAL_DIGITS");
 		odbc_col_setname(stmt, 11, "NUM_PREC_RADIX");
+		if (TDS_IS_SYBASE(stmt->dbc->tds_socket))
+			stmt->special_row = ODBC_SPECIAL_PROCEDURECOLUMNS;
 	}
 	ODBC_RETURN_(stmt);
 }
@@ -3435,6 +3437,38 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 	}
 }
 
+static void
+odbc_fix_data_type_col(TDS_STMT *stmt, int idx)
+{
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSRESULTINFO *resinfo;
+	TDSCOLUMN *colinfo;
+
+	if (!tds)
+		return;
+
+	resinfo = tds->current_results;
+	if (!resinfo || resinfo->num_cols <= idx)
+		return;
+
+	colinfo = resinfo->columns[idx];
+	if (colinfo->column_cur_size < 0)
+		return;
+
+	switch (tds_get_conversion_type(colinfo->column_type, colinfo->column_size)) {
+	case SYBINT2: {
+		TDS_SMALLINT *data = (TDS_SMALLINT *) colinfo->column_data;
+		*data = odbc_swap_datetime_sql_type(*data);
+		}
+		break;
+	case SYBINT4: {
+		TDS_INT *data = (TDS_INT *) colinfo->column_data;
+		*data = odbc_swap_datetime_sql_type(*data);
+		}
+		break;
+	}
+}
+
 /*
  * - handle correctly SQLGetData (for forward cursors accept only row_size == 1
  *   for other types application must use SQLSetPos)
@@ -3591,7 +3625,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 				 * if compute tds_process_tokens above returns TDS_NO_MORE_RESULTS
 				 */
 				stmt->row_status = PRE_NORMAL_ROW;
-				stmt->special_row = 0;
+				stmt->special_row = ODBC_SPECIAL_NONE;
 #if 0
 				odbc_populate_ird(stmt);
 #endif
@@ -3607,15 +3641,21 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 
 			/* handle special row */
 			switch (stmt->special_row) {
-			case 1: /* GetTypeInfo row convert type */
-				resinfo = tds->current_results;
-				if (resinfo->num_cols >= 2) {
-					colinfo = resinfo->columns[1];
-					if (colinfo->column_type == SYBINT2) {
-						TDS_SMALLINT *data = (TDS_SMALLINT *) colinfo->column_data;
-						*data = odbc_swap_datetime_sql_type(*data);
-					}
-				}
+			case ODBC_SPECIAL_GETTYPEINFO:
+				odbc_fix_data_type_col(stmt, 1);
+				break;
+			case ODBC_SPECIAL_COLUMNS:
+				odbc_fix_data_type_col(stmt, 4);
+				odbc_fix_data_type_col(stmt, 13); /* TODO sure ?? */
+				break;
+			case ODBC_SPECIAL_PROCEDURECOLUMNS:
+				odbc_fix_data_type_col(stmt, 5);
+				odbc_fix_data_type_col(stmt, 14); /* TODO sure ?? */
+				break;
+			case ODBC_SPECIAL_SPECIALCOLUMNS:
+				odbc_fix_data_type_col(stmt, 2);
+				break;
+			case ODBC_SPECIAL_NONE:
 				break;
 			}
 		}
@@ -4543,6 +4583,8 @@ SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
 		odbc_col_setname(stmt, 8, "BUFFER_LENGTH");
 		odbc_col_setname(stmt, 9, "DECIMAL_DIGITS");
 		odbc_col_setname(stmt, 10, "NUM_PREC_RADIX");
+		if (TDS_IS_SYBASE(stmt->dbc->tds_socket))
+			stmt->special_row = ODBC_SPECIAL_COLUMNS;
 	}
 	ODBC_RETURN_(stmt);
 }
@@ -5754,25 +5796,30 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	int varchar_pos = -1, n;
 	static const char sql_templ[] = "EXEC sp_datatype_info %d";
 	char sql[sizeof(sql_templ) + 30];
+	int odbc3;
 
 	INIT_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetTypeInfo(%p, %d)\n", hstmt, fSqlType);
 
 	tds = stmt->dbc->tds_socket;
+	odbc3 = (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3);
 
 	/* For MSSQL6.5 and Sybase 11.9 sp_datatype_info work */
 	/* TODO what about early Sybase products ? */
 	/* TODO Does Sybase return all ODBC3 columns? Add them if not */
 	/* TODO ODBC3 convert type to ODBC version 2 (date) */
-	if (TDS_IS_SYBASE(tds) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
-		fSqlType = odbc_swap_datetime_sql_type(fSqlType);
-		stmt->special_row = 1;
+	if (odbc3) {
+		if (TDS_IS_SYBASE(tds)) {
+			sprintf(sql, sql_templ, odbc_swap_datetime_sql_type(fSqlType));
+			stmt->special_row = ODBC_SPECIAL_GETTYPEINFO;
+		} else {
+			sprintf(sql, sql_templ, fSqlType);
+			strcat(sql, ",3");
+		}
+	} else {
+		sprintf(sql, sql_templ, fSqlType);
 	}
-
-	sprintf(sql, sql_templ, fSqlType);
-	if (TDS_IS_MSSQL(tds) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
-		strcat(sql, ",3");
 	if (SQL_SUCCESS != odbc_set_stmt_query(stmt, sql, strlen(sql)))
 		ODBC_RETURN(stmt, SQL_ERROR);
 
@@ -5780,17 +5827,17 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	res = _SQLExecute(stmt);
 
 	odbc_upper_column_names(stmt);
-	if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
+	if (odbc3) {
 		odbc_col_setname(stmt, 3, "COLUMN_SIZE");
 		odbc_col_setname(stmt, 11, "FIXED_PREC_SCALE");
 		odbc_col_setname(stmt, 12, "AUTO_UNIQUE_VALUE");
 	}
 
 	/* workaround for a mispelled column name in Sybase */
-	if (TDS_IS_SYBASE(stmt->dbc->tds_socket) && stmt->dbc->env->attr.odbc_version != SQL_OV_ODBC3)
+	if (TDS_IS_SYBASE(stmt->dbc->tds_socket) && !odbc3)
 		odbc_col_setname(stmt, 3, "PRECISION");
 
-	if (TDS_IS_MSSQL(stmt->dbc->tds_socket) || fSqlType != 12 || res != SQL_SUCCESS)
+	if (TDS_IS_MSSQL(stmt->dbc->tds_socket) || fSqlType != SQL_VARCHAR || res != SQL_SUCCESS)
 		ODBC_RETURN(stmt, res);
 
 	/*
@@ -6394,6 +6441,8 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 		odbc_col_setname(stmt, 5, "COLUMN_SIZE");
 		odbc_col_setname(stmt, 6, "BUFFER_LENGTH");
 		odbc_col_setname(stmt, 7, "DECIMAL_DIGITS");
+		if (TDS_IS_SYBASE(stmt->dbc->tds_socket))
+			stmt->special_row = ODBC_SPECIAL_SPECIALCOLUMNS;
 	}
 	ODBC_RETURN_(stmt);
 }
