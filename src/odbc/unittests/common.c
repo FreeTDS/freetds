@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.54 2009-03-16 12:19:03 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.55 2009-12-22 18:56:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -199,12 +199,15 @@ Connect(void)
 	if (read_login_info())
 		exit(1);
 
-	CHKAllocEnv(&Environment, "S");
-
-	if (use_odbc_version3)
+	if (use_odbc_version3) {
+		CHKAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &Environment, "S");
 		SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
+		CHKAllocHandle(SQL_HANDLE_DBC, Environment, &Connection, "S");
+	} else {
+		CHKAllocEnv(&Environment, "S");
+		CHKAllocConnect(&Connection, "S");
+	}
 
-	CHKAllocConnect(&Connection, "S");
 	printf("odbctest\n--------\n\n");
 	printf("connection parameters:\nserver:   '%s'\nuser:     '%s'\npassword: '%s'\ndatabase: '%s'\n",
 	       SERVER, USER, "????" /* PASSWORD */ , DATABASE);
