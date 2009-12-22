@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.67 2009-12-16 12:55:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.68 2009-12-22 20:58:25 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -75,7 +75,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 	char_size = desttype == SQL_C_CHAR ? 1 : SIZEOF_SQLWCHAR;
 	if (destlen >= char_size) {
 		ol = destlen - char_size;
-		memset(&conv->suppress, 0, sizeof(conv->suppress));
+		memset((TDSICONV *)&conv->suppress, 0, sizeof(conv->suppress));
 		err = tds_iconv(tds, conv, to_client, &ib, &il, &ob, &ol);
 		ol = ob - dest;
 		if (curcol)
