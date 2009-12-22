@@ -1,3 +1,6 @@
+Tue Dec 22 20:01:16 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: Better way to fix data_type for date
+
 Tue Dec 22 20:00:18 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/common.c: Don't call SQLAllocEnv for ODBC 3
 
@@ -2016,4 +2019,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2914 2009-12-22 18:56:22 freddy77 Exp $
+$Id: ChangeLog,v 1.2915 2009-12-22 18:57:20 freddy77 Exp $
