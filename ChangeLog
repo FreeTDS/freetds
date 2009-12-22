@@ -1,3 +1,6 @@
+Tue Dec 22 21:46:02 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* config.rpath Makefile.am: backport fix for libtool
+
 Tue Dec 22 21:19:53 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c src/odbc/unittests/Makefile.am:
 	* src/odbc/unittests/.cvsignore src/odbc/unittests/stats.c:
@@ -288,4 +291,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.72 2009-12-22 20:16:00 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.73 2009-12-22 20:42:01 freddy77 Exp $
