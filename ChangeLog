@@ -1,3 +1,7 @@
+Tue Dec 22 15:56:11 EST 2009	JK Lowden <jklowden@freetds.org>
+	* Nmakefile added, builds db-lib on Win32 with nmake.exe
+	* src/odbc/convert_tds2sql.c remove unneeded cast
+
 Tue Dec 22 20:01:16 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: Better way to fix data_type for date
 
@@ -2019,4 +2023,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2915 2009-12-22 18:57:20 freddy77 Exp $
+$Id: ChangeLog,v 1.2916 2009-12-22 20:58:21 jklowden Exp $

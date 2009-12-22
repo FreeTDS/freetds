@@ -1,0 +1,246 @@
+# $Id: Nmakefile,v 1.1 2009-12-22 20:58:21 jklowden Exp $
+# Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
+# Makefiles, unlike Visual Studio project files, are stable over time.  
+# Contributed to the public domain by James K. Lowden, February 2009
+
+# Define in the environment or on the command line:
+# 1. CONFIGURATION = debug/release
+# 2. PLATFORM = win32/x64
+# These will determine what is built and where outputs are placed. 
+#
+# Example invocation:
+#	nmake.exe -f Nmakefile -nologo PLATFORM=win32 CONFIGURATION=debug
+#	
+
+DBLIB_DIR        = src\dblib
+REPLACEMENTS_DIR = src\replacements
+TDS_DIR          = src\tds
+
+DBLIB_OUT        = $(DBLIB_DIR)\$(PLATFORM)\$(CONFIGURATION)
+REPLACEMENTS_OUT = $(REPLACEMENTS_DIR)\$(PLATFORM)\$(CONFIGURATION)
+TDS_OUT          = $(TDS_DIR)\$(PLATFORM)\$(CONFIGURATION)
+
+DBLIB_SRC = 	$(DBLIB_DIR)\bcp.c \
+		$(DBLIB_DIR)\dblib.c \
+		$(DBLIB_DIR)\dbopen.c \
+		$(DBLIB_DIR)\dbutil.c \
+		$(DBLIB_DIR)\rpc.c \
+		$(DBLIB_DIR)\xact.c 
+
+DBLIB_OBJ = 	$(DBLIB_OUT)\bcp.obj \
+		$(DBLIB_OUT)\dblib.obj \
+		$(DBLIB_OUT)\dbopen.obj \
+		$(DBLIB_OUT)\dbutil.obj \
+		$(DBLIB_OUT)\rpc.obj \
+		$(DBLIB_OUT)\xact.obj 
+
+REPLACEMENTS_SRC =	$(REPLACEMENTS_DIR)\asprintf.c \
+			$(REPLACEMENTS_DIR)\basename.c \
+			$(REPLACEMENTS_DIR)\fakepoll.c \
+			$(REPLACEMENTS_DIR)\gettimeofday.c \
+			$(REPLACEMENTS_DIR)\iconv.c \
+			$(REPLACEMENTS_DIR)\readpassphrase.c \
+			$(REPLACEMENTS_DIR)\strlcat.c \
+			$(REPLACEMENTS_DIR)\strlcpy.c \
+			$(REPLACEMENTS_DIR)\strtok_r.c \
+			$(REPLACEMENTS_DIR)\vasprintf.c 
+
+REPLACEMENTS_OBJ =	$(REPLACEMENTS_OUT)\asprintf.obj \
+			$(REPLACEMENTS_OUT)\basename.obj \
+			$(REPLACEMENTS_OUT)\fakepoll.obj \
+			$(REPLACEMENTS_OUT)\gettimeofday.obj \
+			$(REPLACEMENTS_OUT)\iconv.obj \
+			$(REPLACEMENTS_OUT)\readpassphrase.obj \
+			$(REPLACEMENTS_OUT)\strlcat.obj \
+			$(REPLACEMENTS_OUT)\strlcpy.obj \
+			$(REPLACEMENTS_OUT)\strtok_r.obj \
+			$(REPLACEMENTS_OUT)\vasprintf.obj 
+
+TDS_SRC =	$(TDS_DIR)\bulk.c \
+		$(TDS_DIR)\challenge.c \
+		$(TDS_DIR)\config.c \
+		$(TDS_DIR)\convert.c \
+		$(TDS_DIR)\data.c \
+		$(TDS_DIR)\des.c \
+		$(TDS_DIR)\getmac.c \
+		$(TDS_DIR)\gssapi.c \
+		$(TDS_DIR)\hmac_md5.c \
+		$(TDS_DIR)\iconv.c \
+		$(TDS_DIR)\locale.c \
+		$(TDS_DIR)\log.c \
+		$(TDS_DIR)\login.c \
+		$(TDS_DIR)\md4.c \
+		$(TDS_DIR)\md5.c \
+		$(TDS_DIR)\mem.c \
+		$(TDS_DIR)\net.c \
+		$(TDS_DIR)\numeric.c \
+		$(TDS_DIR)\query.c \
+		$(TDS_DIR)\read.c \
+		$(TDS_DIR)\tds_checks.c \
+		$(TDS_DIR)\tdsstring.c \
+		$(TDS_DIR)\threadsafe.c \
+		$(TDS_DIR)\token.c \
+		$(TDS_DIR)\util.c \
+		$(TDS_DIR)\vstrbuild.c \
+		$(TDS_DIR)\write.c 
+
+TDS_OBJ =	$(TDS_OUT)\bulk.obj \
+		$(TDS_OUT)\challenge.obj \
+		$(TDS_OUT)\config.obj \
+		$(TDS_OUT)\convert.obj \
+		$(TDS_OUT)\data.obj \
+		$(TDS_OUT)\des.obj \
+		$(TDS_OUT)\getmac.obj \
+		$(TDS_OUT)\gssapi.obj \
+		$(TDS_OUT)\hmac_md5.obj \
+		$(TDS_OUT)\iconv.obj \
+		$(TDS_OUT)\locale.obj \
+		$(TDS_OUT)\log.obj \
+		$(TDS_OUT)\login.obj \
+		$(TDS_OUT)\md4.obj \
+		$(TDS_OUT)\md5.obj \
+		$(TDS_OUT)\mem.obj \
+		$(TDS_OUT)\net.obj \
+		$(TDS_OUT)\numeric.obj \
+		$(TDS_OUT)\query.obj \
+		$(TDS_OUT)\read.obj \
+		$(TDS_OUT)\tds_checks.obj \
+		$(TDS_OUT)\tdsstring.obj \
+		$(TDS_OUT)\threadsafe.obj \
+		$(TDS_OUT)\token.obj \
+		$(TDS_OUT)\util.obj \
+		$(TDS_OUT)\vstrbuild.obj \
+		$(TDS_OUT)\write.obj 
+
+one: $(DBLIB_OUT)\db-lib.lib 
+
+#
+# Sadly the environment settings for building for different architectures
+# is undocumented.  Microsoft's directions are to run the requisite 
+# batch file without explaining what it does.  While it's possible to 
+# read the file -- and it's not complicated -- it's impossible to 
+# know the purpose of setting PATH/INCLUDE/LIB just so.  Worse, the 
+# settings are per-machine, and if the file is lost, the only way to 
+# recreate it is to reinstall the compiler.  
+#
+# The "solution" is to follow their advice.  Run vcvarsall.bat with the 
+# appropriate argument to set up the environment, and go from there.  
+#
+# As of this writing, the variables are:
+# x86 Native: Vcvarsall "x86" 
+# x64 Native: Vcvarsall "amd64"
+# x64 Cross:  Vcvarsall "x86_amd64"
+#
+
+all: build-win32d build-win32r build-win64d build-win64r
+
+build-win32d: 
+	$(MAKE) -fNmakefile -nologo PLATFORM=win32 CONFIGURATION=debug
+build-win32r: 
+	$(MAKE) -fNmakefile -nologo PLATFORM=win32 CONFIGURATION=release
+build-win64d: 
+	$(MAKE) -fNmakefile -nologo PLATFORM=win64 CONFIGURATION=debug
+build-win64r: 
+	$(MAKE) -fNmakefile -nologo PLATFORM=win64 CONFIGURATION=release
+
+$(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT):
+	md $@
+
+$(DBLIB_OUT)\db-lib.lib: $(DBLIB_OUT) $(DBLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
+	@echo building $@ >&2
+	lib -nologo -out:"$@" 	$(DBLIB_OBJ) \
+				$(REPLACEMENTS_OUT)\replacements.lib \
+				$(TDS_OUT)\tds.lib
+$(REPLACEMENTS_OUT)\replacements.lib: $(REPLACEMENTS_OUT) $(REPLACEMENTS_OBJ)
+	lib -nologo -out:"$@" $(REPLACEMENTS_OBJ) 
+$(TDS_OUT)\tds.lib: $(TDS_OUT) $(TDS_OBJ)
+	lib -nologo -out:"$@" $(TDS_OBJ) 
+
+#
+# set compiler flags
+#
+INC = 	-I "include" -I "include\x64"
+FLG = 	-nologo	-W3 -Wp64 -c -EHsc -TC -Gm  -errorReport:prompt 
+DEF = 	-D "_MBCS" -D "_LIB" \
+	-D "_CRT_SECURE_NO_WARNINGS" \
+	-D "HAVE_CONFIG_H" \
+	-D "_FREETDS_LIBRARY_SOURCE" 
+DBG = -MTd -Od -D "_DEBUG"  -ZI -RTC1	
+REL = -MT  -O2 -D "_NDEBUG" -Zi	
+
+CC = cl $(FLG) $(DEF) $(INC)
+CC32 = $(CC) -D "WIN32"	
+CC64 = $(CC) 
+
+## Rules ##
+
+#
+# dblib
+#
+#c.{$(DBLIB_DIR)\win32\debug}.obj::
+{$(DBLIB_DIR)}.c{$(DBLIB_DIR)\win32\debug}.obj::
+	$(CC32) $(DBG) 	-Fo"$(DBLIB_OUT)\\" \
+			-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$<
+
+{$(DBLIB_DIR)\}.c{$(DBLIB_DIR)\win32\release}.obj::
+	$(CC32) $(REL) 	-Fo"$(DBLIB_OUT)\\" \
+			-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$<
+
+{$(DBLIB_DIR)}.c{$(DBLIB_DIR)\x64\debug}.obj::
+	$(CC64) $(DBG) 	-Fo"$(DBLIB_OUT)\\" \
+			-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$<
+
+{$(DBLIB_DIR)}.c{$(DBLIB_DIR)\x64\release}.obj::
+	$(CC64) $(REL) 	-Fo"$(DBLIB_OUT)\\" \
+			-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$<
+
+#
+# replacements
+#
+{$(REPLACEMENTS_DIR)}.c{$(REPLACEMENTS_DIR)\win32\debug}.obj::
+	$(CC32) $(DBG) 	-Fo"$(REPLACEMENTS_OUT)\\" \
+			-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
+	$<
+
+{$(REPLACEMENTS_DIR)}.c{$(REPLACEMENTS_DIR)\win32\release}.obj::
+	$(CC32) $(REL) 	-Fo"$(REPLACEMENTS_OUT)\\" \
+			-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
+	$<
+
+{$(REPLACEMENTS_DIR)}.c{$(REPLACEMENTS_DIR)\x64\debug}.obj::
+	$(CC64) $(DBG) 	-Fo"$(REPLACEMENTS_OUT)\\" \
+			-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
+	$<
+
+{$(REPLACEMENTS_DIR)}.c{$(REPLACEMENTS_DIR)\x64\release}.obj::
+	$(CC64) $(REL) 	-Fo"$(REPLACEMENTS_OUT)\\" \
+			-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
+	$<
+
+#
+# tds
+#
+{$(TDS_DIR)}.c{$(TDS_DIR)\win32\debug}.obj::
+	$(CC32) $(DBG) 	-Fo"$(TDS_OUT)\\" \
+			-Fd"$(TDS_OUT)\vc80.pdb" \
+	$<
+
+{$(TDS_DIR)}.c{$(TDS_DIR)\win32\release}.obj::
+	$(CC32) $(REL) 	-Fo"$(TDS_OUT)\\" \
+			-Fd"$(TDS_OUT)\vc80.pdb" \
+	$<
+
+{$(TDS_DIR)}.c{$(TDS_DIR)\x64\debug}.obj::
+	$(CC64) $(DBG) 	-Fo"$(TDS_OUT)\\" \
+			-Fd"$(TDS_OUT)\vc80.pdb" \
+	$<
+
+{$(TDS_DIR)}.c{$(TDS_DIR)\x64\release}.obj::
+	$(CC64) $(REL) 	-Fo"$(TDS_OUT)\\" \
+			-Fd"$(TDS_OUT)\vc80.pdb" \
+	$<
+
