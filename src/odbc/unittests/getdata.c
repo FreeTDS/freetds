@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.14 2009-12-07 16:22:12 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.15 2009-12-28 12:42:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char odbc_err[256];
@@ -108,7 +108,7 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 
-		CHKGetData(1, type, buf, 16, NULL, "S");
+		CHKGetData(1, type, buf, 20, NULL, "S");
 		if (mycmp(buf, "test") != 0) {
 			printf("Wrong data result 2 res = '%s'\n", buf);
 			exit(1);
