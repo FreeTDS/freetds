@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.323 2009-11-26 09:47:41 freddy77 Exp $ */
+/* $Id: tds.h,v 1.324 2009-12-28 13:30:31 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -995,7 +995,7 @@ typedef struct tds_column
 		TDS_INT column_size;
 	} on_server;
 
-	const TDSICONV *char_conv;	/**< refers to previously allocated iconv information */
+	TDSICONV *char_conv;	/**< refers to previously allocated iconv information */
 
 	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];

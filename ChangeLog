@@ -1,3 +1,8 @@
+Mon Dec 28 14:30:21 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/convert_tds2sql.c src/odbc/odbc.c:
+	* src/odbc/unittests/getdata.c:
+	- Fix SQLGetData converting fixed to variable with truncation
+
 Mon Dec 28 13:42:02 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/getdata.c:
 	- Fix problem with iODBC (where sizeof(SQLWCHAR) == 4)
@@ -2027,4 +2032,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2917 2009-12-28 12:42:14 freddy77 Exp $
+$Id: ChangeLog,v 1.2918 2009-12-28 13:30:31 freddy77 Exp $
