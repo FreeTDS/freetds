@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2003-2008  Frediano Ziglio
+ * Copyright (C) 2003-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.69 2009-12-28 13:30:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.70 2010-01-07 13:56:55 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -78,7 +78,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 		memset(&conv->suppress, 0, sizeof(conv->suppress));
 		conv->suppress.e2big = 1;
 		err = tds_iconv(tds, conv, to_client, &ib, &il, &ob, &ol);
-		ol = ob - dest;
+		ol = ob - dest; /* bytes written */
 		if (curcol)
 			curcol->column_text_sqlgetdatapos += ib - src;
 		/* terminate string */

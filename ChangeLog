@@ -1,3 +1,6 @@
+Thu Jan  7 14:56:27 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/convert_tds2sql.c: added small comments
+
 Mon Dec 28 14:30:21 CET 2009    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/odbc/convert_tds2sql.c src/odbc/odbc.c:
 	* src/odbc/unittests/getdata.c:
@@ -2032,4 +2035,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2918 2009-12-28 13:30:31 freddy77 Exp $
+$Id: ChangeLog,v 1.2919 2010-01-07 13:56:55 freddy77 Exp $
