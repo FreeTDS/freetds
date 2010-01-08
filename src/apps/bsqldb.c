@@ -45,8 +45,14 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.35 2009-04-18 19:35:38 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.36 2010-01-08 22:08:01 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+
+#ifdef WIN32
+#define NULL_DEVICE "NUL:"
+#else
+#define NULL_DEVICE "/dev/null"
+#endif
 
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, 
@@ -148,7 +154,7 @@ main(int argc, char *argv[])
 	if (options.fverbose) {
 		options.verbose = stderr;
 	} else {
-		static const char null_device[] = "/dev/null";
+		static const char null_device[] = NULL_DEVICE;
 		options.verbose = fopen(null_device, "w");
 		if (options.verbose == NULL) {
 			fprintf(stderr, "%s:%d unable to open %s for verbose operation: %s\n", 
@@ -756,7 +762,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	int ch;
 	int got_password = 0;
 
-	extern char *optarg;
+	extern const char *optarg;
 
 	assert(options && argv);
 	

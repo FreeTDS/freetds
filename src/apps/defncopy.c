@@ -17,6 +17,39 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifdef MicrosoftsDbLib
+#ifdef WIN32
+# pragma warning( disable : 4142 )
+# include "win32.microsoft/have.h"
+# include "../../include/replacements.win32.hacked.h"
+# define strcasecmp(A, B) stricmp((A), (B))
+int getopt(int argc, const char *argv[], char *optstring);
+
+# ifndef DBNTWIN32
+#  define DBNTWIN32
+
+// As of Visual Studio .NET 2003, define WIN32_LEAN_AND_MEAN to avoid redefining LPCBYTE in sqlfront.h
+// Unless it was already defined, undefine it after windows.h has been included.  
+// (windows.h includes a bunch of stuff needed by sqlfront.h.  Bleh.)
+#  ifndef WIN32_LEAN_AND_MEAN
+#   define WIN32_LEAN_AND_MEAN
+#   define WIN32_LEAN_AND_MEAN_DEFINED_HERE
+#  endif
+#  include <windows.h>
+#  include <winsock2.h>
+#  ifdef WIN32_LEAN_AND_MEAN_DEFINED_HERE
+#   undef WIN32_LEAN_AND_MEAN_DEFINED_HERE
+#   undef WIN32_LEAN_AND_MEAN
+#  endif
+#  include <process.h>
+#  include <sqlfront.h>
+#  include <sqldb.h>
+
+#endif // DBNTWIN32
+# include "win32.microsoft/syb2ms.h"
+#endif
+#endif /* MicrosoftsDbLib */
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -46,16 +79,33 @@
 
 #include <sqlfront.h>
 #include <sybdb.h>
+#ifndef MicrosoftsDbLib
 #include "replacements.h"
+#else
 
-static char software_version[] = "$Id: defncopy.c,v 1.13 2009-01-07 02:58:47 jklowden Exp $";
+#ifndef WIN32
+# include "replacements.h"
+#endif
+#endif /* MicrosoftsDbLib */
+
+static char software_version[] = "$Id: defncopy.c,v 1.14 2010-01-08 22:08:01 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+#ifndef MicrosoftsDbLib
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, 
 		char *srvname, char *procname, int line);
+#else
+static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, const char dberrstr[], const char oserrstr[]);
+static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const char msgtext[], 
+		const char srvname[], const char procname[], unsigned short int line);
+#endif /* MicrosoftsDbLib */
 
+#ifndef MicrosoftsDbLib
 struct METADATA { char *name, *source, *format_string; int type, size; };
+#else
+struct METADATA { const char *name, *source, *format_string; int type, size; };
+#endif /* MicrosoftsDbLib */
 
 typedef struct _options 
 { 
@@ -83,6 +133,7 @@ static void usage(const char invoked_as[]);
 
 /* global variables */
 OPTIONS options;
+char use_statement[512];
 /* end global variables */
 
 
@@ -101,8 +152,13 @@ main(int argc, char *argv[])
 	int i, nrows;
 
 	/* Initialize db-lib */
+#if WIN32 && defined(MicrosoftsDbLib)
+	LPCSTR msg = dbinit();	
+	if (msg == NULL) {
+#else 
 	erc = dbinit();	
 	if (erc == FAIL) {
+#endif /* MicrosoftsDbLib */
 		fprintf(stderr, "%s:%d: dbinit() failed\n", options.appname, __LINE__);
 		exit(1);
 	}
@@ -120,14 +176,14 @@ main(int argc, char *argv[])
 	 * Override stdin, stdout, and stderr, as required 
 	 */
 	if (options.input_filename) {
-		if (freopen(options.input_filename, "r", stdin) == NULL) {
+		if (freopen(options.input_filename, "rb", stdin) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.input_filename, strerror(errno));
 			exit(1);
 		}
 	}
 
 	if (options.output_filename) {
-		if (freopen(options.output_filename, "w", stdout) == NULL) {
+		if (freopen(options.output_filename, "wb", stdout) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", options.appname, options.output_filename, strerror(errno));
 			exit(1);
 		}
@@ -147,14 +203,19 @@ main(int argc, char *argv[])
 	 * Read the procedure names and move their texts.  
 	 */
 	for (i=options.optind; i < argc; i++) {
+#ifndef MicrosoftsDbLib
 		static const char query[] = " select	c.text"
+#else
+		static const char query[] = " select	cast(c.text as text)"
+#endif /* MicrosoftsDbLib */
+					 ", number "
 					 " from	syscomments  as c"
 					 " join 	sysobjects as o"
 					 " on 		o.id = c.id"
 					 " where	o.name = '%s'"
 					 " and 	o.uid = user_id('%s')"
 					 " and		o.type not in ('U', 'S')" /* no user or system tables */
-					 " order by 	c.colid"
+					 " order by 	c.number, c.colid"
 					;
 		static const char query_table[] = " execute sp_help '%s.%s' ";
 
@@ -181,6 +242,7 @@ main(int argc, char *argv[])
 		
 		if (0 == nrows) {
 			erc = dbfcmd(dbproc, query_table, procedure.owner, procedure.name);
+			assert(SUCCEED == erc);
 			erc = dbsqlexec(dbproc);
 			if (erc == FAIL) {
 				fprintf(stderr, "%s:%d: dbsqlexec() failed\n", options.appname, __LINE__);
@@ -315,18 +377,26 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				if (p) {
 					*p = '\0'; /* we don't care where it's located */
 				}
-				/* Microsoft version: clustered, unique, primary key located on PRIMARY */
+				/* Microsoft version: [non]clustered[, unique][, primary key] located on PRIMARY */
 				p = strstr(index_description, "primary key");
 				if (p) {
 					fprimary = 1;
 					*p = '\0'; /* we don't care where it's located */
 					if ((p = strchr(index_description, ',')) != NULL) 
 						*p = '\0'; /* we use only the first term (clustered/nonclustered) */
+				} else {
+					/* reorder "unique" and "clustered" */
+					char nonclustered[] = "nonclustered", unique[] = "unique";
+					char *pclustering = nonclustered;
+					if (NULL == strstr(index_description, pclustering)) {
+						pclustering += 3;
+						if (NULL == strstr(index_description, pclustering)) 
+							*pclustering = '\0';
+					}
+					if (NULL == strstr(index_description, unique))
+						unique[0] = '\0';
+					sprintf(index_description, "%s %s", unique, pclustering);
 				}
-				while ((p = strchr(index_description, ',')) != NULL) {
-					*p = ' ';	/* and we don't need the comma */
-				}
-
 				/* Put it to a temporary file; we'll print it after the CREATE TABLE statement. */
 				if (fprimary) {
 					fprintf(create_index, "ALTER TABLE %s.%s ADD CONSTRAINT %s PRIMARY KEY %s (%s)\nGO\n\n", 
@@ -399,7 +469,11 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	 * We've collected the description for the columns in the 'ddl' array.  
 	 * Now we'll print the CREATE TABLE statement in jkl's preferred format.  
 	 */
-	printf("CREATE TABLE %s.%s\n", procedure->owner, procedure->name);
+	if (nrows == 0) {
+		fclose(create_index);
+		return nrows;
+	}
+	printf("%sCREATE TABLE %s.%s\n", use_statement, procedure->owner, procedure->name);
 	for (i=0; i < nrows; i++) {
 		static const char *varytypenames[] =    { "char"  		
 							, "nchar"  		
@@ -460,15 +534,18 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 int /* return count of SQL text rows */
 print_results(DBPROCESS *dbproc) 
 {
-	static const char empty_string[] = "";
-	struct METADATA *metadata = NULL;
-	struct DATA { char *buffer; int status; } *data = NULL;
-	
 	RETCODE erc;
 	int row_code;
-	int c, ret;
 	int iresultset;
-	int nrows=0, ncols=0, ncomputeids;
+	int nrows=0;
+	int prior_procedure_number=1;
+	
+	/* bound variables */
+	enum column_id { ctext=1, number=2 };
+	char sql_text[8000];
+	int	 sql_text_status;
+	int	 procedure_number; /* for create proc abc;2 */
+	int	 procedure_number_status;
 	
 	/* 
 	 * Set up each result set with dbresults()
@@ -479,120 +556,54 @@ print_results(DBPROCESS *dbproc)
 			return -1;
 		}
 
-		if (SUCCEED != dbrows(dbproc)) {
+		if (SUCCEED != DBROWS(dbproc)) {
 			return 0;
 		}
 
-		/* Free prior allocations, if any. */
-		for (c=0; c < ncols; c++) {
-			free(metadata[c].format_string);
-			free(data[c].buffer);
+		/* 
+		 * Bind the columns to our variables.  
+		 */
+		if (sizeof(sql_text) < dbcollen(dbproc, ctext) ) {
+			assert(sizeof(sql_text) >= dbcollen(dbproc, ctext));
+			return 0;
 		}
-		free(metadata);
-		metadata = NULL;
-		free(data);
-		data = NULL;
-		ncols = 0;
-		
-		/* 
-		 * Allocate memory for metadata and bound columns 
-		 */
-		ncols = dbnumcols(dbproc);	
+		erc = dbbind(dbproc, ctext, NTBSTRINGBIND, sizeof(sql_text), (BYTE *) sql_text);
+		if (erc == FAIL) {
+			fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, ctext);
+			return -1;
+		}
+		erc = dbnullbind(dbproc, ctext, &sql_text_status);
+		if (erc == FAIL) {
+			fprintf(stderr, "%s:%d: dbnullbind(), column %d failed\n", options.appname, __LINE__, ctext);
+			return -1;
+		}
 
-		metadata = (struct METADATA*) calloc(ncols, sizeof(struct METADATA));
-		assert(metadata);
-
-		data = (struct DATA*) calloc(ncols, sizeof(struct DATA));
-		assert(data);
-		
-		/* The hard-coded queries don't generate compute rows. */
-		ncomputeids = dbnumcompute(dbproc);
-		assert(0 == ncomputeids);
-
-		/* 
-		 * For each column, get its name, type, and size. 
-		 * Allocate a buffer to hold the data, and bind the buffer to the column.
-		 * "bind" here means to give db-lib the address of the buffer we want filled as each row is fetched.
-		 */
-
-		for (c=0; c < ncols; c++) {
-			int width;
-			/* Get and print the metadata.  Optional: get only what you need. */
-			char *name = dbcolname(dbproc, c+1);
-			metadata[c].name = (name)? name : (char*) empty_string;
-
-			name = dbcolsource(dbproc, c+1);
-			metadata[c].source = (name)? name : (char*) empty_string;
-
-			metadata[c].type = dbcoltype(dbproc, c+1);
-			metadata[c].size = dbcollen(dbproc, c+1);
-			assert(metadata[c].size != -1); /* -1 means indicates an out-of-range request*/
-
-#if 0
-			fprintf(stderr, "%6d  %30s  %30s  %15s  %6d  %6d  \n", 
-				c+1, metadata[c].name, metadata[c].source, dbprtype(metadata[c].type), 
-				metadata[c].size,  dbvarylen(dbproc, c+1));
-#endif 
-			/* 
-			 * Build the column header format string, based on the column width. 
-			 * This is just one solution to the question, "How wide should my columns be when I print them out?"
-			 */
-			width = get_printable_size(metadata[c].type, metadata[c].size);
-			if (width < strlen(metadata[c].name))
-				width = strlen(metadata[c].name);
-				
-			ret = set_format_string(&metadata[c], (c+1 < ncols)? "  " : "\n");
-			if (ret <= 0) {
-				fprintf(stderr, "%s:%d: asprintf(), column %d failed\n", options.appname, __LINE__, c+1);
-				return -1;
-			}
-
-			/* 
-			 * Bind the column to our variable.
-			 * We bind everything to strings, because we want db-lib to convert everything to strings for us.
-			 * If you're performing calculations on the data in your application, you'd bind the numeric data
-			 * to C integers and floats, etc. instead. 
-			 * 
-			 * It is not necessary to bind to every column returned by the query.  
-			 * Data in unbound columns are simply never copied to the user's buffers and are thus 
-			 * inaccesible to the application.  
-			 */
-
-			data[c].buffer = calloc(1, metadata[c].size);
-			assert(data[c].buffer);
-
-			erc = dbbind(dbproc, c+1, STRINGBIND, -1, (BYTE *) data[c].buffer);
-			if (erc == FAIL) {
-				fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, c+1);
-				return -1;
-			}
-
-			erc = dbnullbind(dbproc, c+1, &data[c].status);
-			if (erc == FAIL) {
-				fprintf(stderr, "%s:%d: dbnullbind(), column %d failed\n", options.appname, __LINE__, c+1);
-				return -1;
-			}
+		erc = dbbind(dbproc, number, INTBIND, -1, (BYTE *) &procedure_number);
+		if (erc == FAIL) {
+			fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, number);
+			return -1;
+		}
+		erc = dbnullbind(dbproc, number, &procedure_number_status);
+		if (erc == FAIL) {
+			fprintf(stderr, "%s:%d: dbnullbind(), column %d failed\n", options.appname, __LINE__, number);
+			return -1;
 		}
 
 		/* 
 		 * Print the data to stdout.  
 		 */
-		for (;(row_code = dbnextrow(dbproc)) != NO_MORE_ROWS; nrows++) {
+		fprintf(stdout, "%s", use_statement);
+		for (;(row_code = dbnextrow(dbproc)) != NO_MORE_ROWS; nrows++, prior_procedure_number = procedure_number) {
 			switch (row_code) {
 			case REG_ROW:
-				for (c=0; c < ncols; c++) {
-					switch (data[c].status) { /* handle nulls */
-					case -1: 	/* is null */
-						fprintf(stderr, "defncopy: error: unexpected NULL row in SQL text\n");
-						break;
-					case 0:	/* OK */
-					default:	/* >1 is datlen when buffer is too small */
-						fprintf(stdout, "%s", data[c].buffer);
-						break;
-					}
+				if ( -1 == sql_text_status) { 
+					fprintf(stderr, "defncopy: error: unexpected NULL row in SQL text\n");
+				} else {
+					if (prior_procedure_number != procedure_number)
+						fprintf(stdout, "\nGO\n");
+					fprintf(stdout, "%s", sql_text);
 				}
 				break;
-				
 			case BUF_FULL:
 			default:
 				fprintf(stderr, "defncopy: error: expected REG_ROW (%d), got %d instead\n", REG_ROW, row_code);
@@ -601,13 +612,17 @@ print_results(DBPROCESS *dbproc)
 			} /* row_code */
 
 		} /* wend dbnextrow */
-		fprintf(stdout, "\n");
+		fprintf(stdout, "\nGO\n");
 
 	} /* wend dbresults */
 	return nrows;
 }
 
+#ifndef MicrosoftsDbLib
 static int
+#else
+static size_t
+#endif /* MicrosoftsDbLib */
 get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 {
 	switch (type) {
@@ -665,7 +680,12 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 static int
 set_format_string(struct METADATA * meta, const char separator[])
 {
+#ifndef MicrosoftsDbLib
 	int width, ret;
+#else
+	size_t width;
+	int ret;
+#endif /* MicrosoftsDbLib */
 	const char *size_and_width;
 	assert(meta);
 
@@ -717,6 +737,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 {
 	LOGINREC *login;
 	int ch;
+	int fdomain = TRUE;
 
 	extern char *optarg;
 	extern int optind;
@@ -734,9 +755,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	
 	DBSETLAPP(login, options->appname);
 	
-	if (-1 == gethostname(options->hostname, sizeof(options->hostname))) {
-		perror("unable to get hostname");
-	} else {
+	if (-1 != gethostname(options->hostname, sizeof(options->hostname))) {
 		DBSETLHOST(login, options->hostname);
 	}
 
@@ -744,9 +763,11 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		switch (ch) {
 		case 'U':
 			DBSETLUSER(login, optarg);
+			fdomain = FALSE;
 			break;
 		case 'P':
 			DBSETLPWD(login, optarg);
+			fdomain = FALSE;
 			break;
 		case 'S':
 			options->servername = strdup(optarg);
@@ -776,6 +797,12 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		}
 	}
 
+#ifdef MicrosoftsDbLib
+#if WIN32
+	if (fdomain) 
+		DBSETLSECURE(login);
+#endif
+#endif /* MicrosoftsDbLib */
 	if (!options->servername) {
 		usage(options->appname);
 		exit(1);
@@ -787,7 +814,11 @@ get_login(int argc, char *argv[], OPTIONS *options)
 }
 
 static int
+#ifndef MicrosoftsDbLib
 err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+#else
+err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, const char dberrstr[], const char oserrstr[])
+#endif /* MicrosoftsDbLib */
 {
 
 	if (dberr) {
@@ -804,7 +835,12 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 }
 
 static int
+#ifndef MicrosoftsDbLib
 msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
+#else
+msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const char msgtext[], 
+		const char srvname[], const char procname[], unsigned short int line)
+#endif /* MicrosoftsDbLib */
 {
 	char *dbname, *endquote; 
 
@@ -817,7 +853,7 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 		if (!endquote)
 			break;
 		*endquote = '\0';
-		fprintf(stdout, "USE %s\nGO\n\n", dbname);
+		sprintf(use_statement, "USE %s\nGO\n\n", dbname);
 		return 0;		
 
 	case 0:	/* Ignore print messages */

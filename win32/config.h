@@ -219,7 +219,7 @@
 #define TDS_I64_FORMAT "I64d"
 
 /* Version number of package */
-#define VERSION "0.65"
+#define VERSION "0.83.dev"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
@@ -240,4 +240,10 @@
 #ifdef _MSC_VER
 #define inline __inline
 #endif
+
+#include <winsock2.h>
+#include <BaseTsd.h>
+
+typedef SSIZE_T ssize_t;
+
 

@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.1 2009-12-22 20:58:21 jklowden Exp $
+# $Id: Nmakefile,v 1.2 2010-01-08 22:08:01 jklowden Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -12,13 +12,17 @@
 #	nmake.exe -f Nmakefile -nologo PLATFORM=win32 CONFIGURATION=debug
 #	
 
+MKDIR = MD
+
 DBLIB_DIR        = src\dblib
 REPLACEMENTS_DIR = src\replacements
 TDS_DIR          = src\tds
+APPS_DIR         = src\apps
 
 DBLIB_OUT        = $(DBLIB_DIR)\$(PLATFORM)\$(CONFIGURATION)
 REPLACEMENTS_OUT = $(REPLACEMENTS_DIR)\$(PLATFORM)\$(CONFIGURATION)
 TDS_OUT          = $(TDS_DIR)\$(PLATFORM)\$(CONFIGURATION)
+APPS_OUT         = $(APPS_DIR)\$(PLATFORM)\$(CONFIGURATION)
 
 DBLIB_SRC = 	$(DBLIB_DIR)\bcp.c \
 		$(DBLIB_DIR)\dblib.c \
@@ -38,6 +42,7 @@ REPLACEMENTS_SRC =	$(REPLACEMENTS_DIR)\asprintf.c \
 			$(REPLACEMENTS_DIR)\basename.c \
 			$(REPLACEMENTS_DIR)\fakepoll.c \
 			$(REPLACEMENTS_DIR)\gettimeofday.c \
+			$(REPLACEMENTS_DIR)\getopt.c \
 			$(REPLACEMENTS_DIR)\iconv.c \
 			$(REPLACEMENTS_DIR)\readpassphrase.c \
 			$(REPLACEMENTS_DIR)\strlcat.c \
@@ -49,6 +54,7 @@ REPLACEMENTS_OBJ =	$(REPLACEMENTS_OUT)\asprintf.obj \
 			$(REPLACEMENTS_OUT)\basename.obj \
 			$(REPLACEMENTS_OUT)\fakepoll.obj \
 			$(REPLACEMENTS_OUT)\gettimeofday.obj \
+			$(REPLACEMENTS_OUT)\getopt.obj \
 			$(REPLACEMENTS_OUT)\iconv.obj \
 			$(REPLACEMENTS_OUT)\readpassphrase.obj \
 			$(REPLACEMENTS_OUT)\strlcat.obj \
@@ -112,7 +118,34 @@ TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\vstrbuild.obj \
 		$(TDS_OUT)\write.obj 
 
-one: $(DBLIB_OUT)\db-lib.lib 
+# not yet:	$(APPS_DIR)\bsqlodbc.c 
+
+APPS_SRC =	$(APPS_DIR)\bsqldb.c \
+		$(APPS_DIR)\datacopy.c \
+		$(APPS_DIR)\defncopy.c \
+		$(APPS_DIR)\freebcp.c \
+		$(APPS_DIR)\tsql.c 
+
+APPS_OBJ =	$(APPS_OUT)\bsqldb.obj \
+		$(APPS_OUT)\datacopy.obj \
+		$(APPS_OUT)\defncopy.obj \
+		$(APPS_OUT)\freebcp.obj \
+		$(APPS_OUT)\tsql.obj 
+
+APPS_EXE =	$(APPS_OUT)\bsqldb.exe \
+		$(APPS_OUT)\datacopy.exe \
+		$(APPS_OUT)\defncopy.exe \
+		$(APPS_OUT)\freebcp.exe \
+		$(APPS_OUT)\tsql.exe 
+
+db-lib: $(DBLIB_OUT)\db-lib.lib 
+
+apps: $(DBLIB_OUT)\db-lib.lib $(APPS_EXE)
+tsql: $(APPS_OUT)\tsql.exe 
+bsqldb: $(APPS_OUT)\bsqldb.exe 
+
+##(APPS_OUT)\bsqldb.exe: $(APPS_DIR)\bsqldb.exe $(DBLIB_OUT)\db-lib.lib
+# Don't know how to create this dependency without explicitly defining every output. 
 
 #
 # Sadly the environment settings for building for different architectures
@@ -135,16 +168,33 @@ one: $(DBLIB_OUT)\db-lib.lib
 all: build-win32d build-win32r build-win64d build-win64r
 
 build-win32d: 
-	$(MAKE) -fNmakefile -nologo PLATFORM=win32 CONFIGURATION=debug
+	$(MAKE) -fNmakefile -nologo apps PLATFORM=win32 CONFIGURATION=debug
 build-win32r: 
-	$(MAKE) -fNmakefile -nologo PLATFORM=win32 CONFIGURATION=release
+	$(MAKE) -fNmakefile -nologo apps PLATFORM=win32 CONFIGURATION=release
 build-win64d: 
-	$(MAKE) -fNmakefile -nologo PLATFORM=win64 CONFIGURATION=debug
+	$(MAKE) -fNmakefile -nologo apps PLATFORM=win64 CONFIGURATION=debug
 build-win64r: 
-	$(MAKE) -fNmakefile -nologo PLATFORM=win64 CONFIGURATION=release
+	$(MAKE) -fNmakefile -nologo apps PLATFORM=win64 CONFIGURATION=release
 
-$(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT):
-	md $@
+clean:
+	@if "" equ "$(PLATFORM)" 	PLATFORM not defined, see comments in Nmakefile >&2 && exit 1
+	@if "" equ "$(CONFIGURATION)" 	CONFIGURATION not defined, see comments in Nmakefile >&2 && exit 1
+	if exist $(DBLIB_OUT) 		del /q $(DBLIB_OUT)\*.obj 
+	if exist $(REPLACEMENTS_OUT) 	del /q $(REPLACEMENTS_OUT)\*.obj 
+	if exist $(TDS_OUT) 		del /q $(TDS_OUT)\*.obj 
+	if exist $(APPS_OUT) 		del /q $(APPS_OUT)\*.obj $(APPS_OUT)\*.exe
+
+clean-app:
+	@if "" equ "$(PLATFORM)" 	PLATFORM not defined, see comments in Nmakefile >&2 && exit 1
+	@if "" equ "$(CONFIGURATION)" 	CONFIGURATION not defined, see comments in Nmakefile >&2 && exit 1
+	if exist $(APPS_OUT) 		del /q $(APPS_OUT)\*.obj $(APPS_OUT)\*.exe
+
+# Create output directories
+$(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
+	@echo creating output directory for configuration: "$(PLATFORM)|$(CONFIGURATION)"
+	@if "" equ "$(PLATFORM)" 	PLATFORM not defined, see comments in Nmakefile >&2 && exit 1
+	@if "" equ "$(CONFIGURATION)" 	CONFIGURATION not defined, see comments in Nmakefile >&2 && exit 1
+	$(MKDIR) $@
 
 $(DBLIB_OUT)\db-lib.lib: $(DBLIB_OUT) $(DBLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
 	@echo building $@ >&2
@@ -159,18 +209,20 @@ $(TDS_OUT)\tds.lib: $(TDS_OUT) $(TDS_OBJ)
 #
 # set compiler flags
 #
-INC = 	-I "include" -I "include\x64"
-FLG = 	-nologo	-W3 -Wp64 -c -EHsc -TC -Gm  -errorReport:prompt 
-DEF = 	-D "_MBCS" -D "_LIB" \
-	-D "_CRT_SECURE_NO_WARNINGS" \
+INC = 	-I "include" -I "win32" -I "include\x64" 
+FLG = 	-nologo	-W3 -Wp64 -EHsc -TC -Gm  -errorReport:prompt 
+DEF = 	-D "_MBCS" -D "_LIB" -D "WIN32" \
+	-D "_CRT_SECURE_NO_WARNINGS" -D _CRT_NONSTDC_NO_DEPRECATE \
 	-D "HAVE_CONFIG_H" \
 	-D "_FREETDS_LIBRARY_SOURCE" 
 DBG = -MTd -Od -D "_DEBUG"  -ZI -RTC1	
-REL = -MT  -O2 -D "_NDEBUG" -Zi	
+REL = -MT  -O2 -D "_NDEBUG" -Zi
+
+MSLIBS = Ws2_32.lib shell32.lib	
 
 CC = cl $(FLG) $(DEF) $(INC)
-CC32 = $(CC) -D "WIN32"	
-CC64 = $(CC) 
+CC32 = $(CC)
+CC64 = $(CC)
 
 ## Rules ##
 
@@ -179,68 +231,91 @@ CC64 = $(CC)
 #
 #c.{$(DBLIB_DIR)\win32\debug}.obj::
 {$(DBLIB_DIR)}.c{$(DBLIB_DIR)\win32\debug}.obj::
-	$(CC32) $(DBG) 	-Fo"$(DBLIB_OUT)\\" \
-			-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$(CC32) -c $(DBG) 	-Fo"$(DBLIB_OUT)\\" \
+				-Fd"$(DBLIB_OUT)\vc80.pdb" \
 	$<
 
 {$(DBLIB_DIR)\}.c{$(DBLIB_DIR)\win32\release}.obj::
-	$(CC32) $(REL) 	-Fo"$(DBLIB_OUT)\\" \
-			-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$(CC32) -c $(REL) 	-Fo"$(DBLIB_OUT)\\" \
+				-Fd"$(DBLIB_OUT)\vc80.pdb" \
 	$<
 
 {$(DBLIB_DIR)}.c{$(DBLIB_DIR)\x64\debug}.obj::
-	$(CC64) $(DBG) 	-Fo"$(DBLIB_OUT)\\" \
-			-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$(CC64) -c $(DBG) 	-Fo"$(DBLIB_OUT)\\" \
+				-Fd"$(DBLIB_OUT)\vc80.pdb" \
 	$<
 
 {$(DBLIB_DIR)}.c{$(DBLIB_DIR)\x64\release}.obj::
-	$(CC64) $(REL) 	-Fo"$(DBLIB_OUT)\\" \
-			-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$(CC64) -c $(REL) 	-Fo"$(DBLIB_OUT)\\" \
+				-Fd"$(DBLIB_OUT)\vc80.pdb" \
 	$<
 
 #
 # replacements
 #
 {$(REPLACEMENTS_DIR)}.c{$(REPLACEMENTS_DIR)\win32\debug}.obj::
-	$(CC32) $(DBG) 	-Fo"$(REPLACEMENTS_OUT)\\" \
-			-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
+	$(CC32) -c $(DBG) 	-Fo"$(REPLACEMENTS_OUT)\\" \
+				-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
 	$<
 
 {$(REPLACEMENTS_DIR)}.c{$(REPLACEMENTS_DIR)\win32\release}.obj::
-	$(CC32) $(REL) 	-Fo"$(REPLACEMENTS_OUT)\\" \
-			-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
+	$(CC32) -c $(REL) 	-Fo"$(REPLACEMENTS_OUT)\\" \
+				-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
 	$<
 
 {$(REPLACEMENTS_DIR)}.c{$(REPLACEMENTS_DIR)\x64\debug}.obj::
-	$(CC64) $(DBG) 	-Fo"$(REPLACEMENTS_OUT)\\" \
+	$(CC64) -c $(DBG) 	-Fo"$(REPLACEMENTS_OUT)\\" \
 			-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
-	$<
+	$<		
 
 {$(REPLACEMENTS_DIR)}.c{$(REPLACEMENTS_DIR)\x64\release}.obj::
-	$(CC64) $(REL) 	-Fo"$(REPLACEMENTS_OUT)\\" \
-			-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
+	$(CC64) -c $(REL) 	-Fo"$(REPLACEMENTS_OUT)\\" \
+				-Fd"$(REPLACEMENTS_OUT)\vc80.pdb" \
 	$<
 
 #
 # tds
 #
 {$(TDS_DIR)}.c{$(TDS_DIR)\win32\debug}.obj::
-	$(CC32) $(DBG) 	-Fo"$(TDS_OUT)\\" \
-			-Fd"$(TDS_OUT)\vc80.pdb" \
+	$(CC32) -c $(DBG) 	-Fo"$(TDS_OUT)\\" \
+				-Fd"$(TDS_OUT)\vc80.pdb" \
 	$<
 
 {$(TDS_DIR)}.c{$(TDS_DIR)\win32\release}.obj::
-	$(CC32) $(REL) 	-Fo"$(TDS_OUT)\\" \
-			-Fd"$(TDS_OUT)\vc80.pdb" \
+	$(CC32) -c $(REL) 	-Fo"$(TDS_OUT)\\" \
+				-Fd"$(TDS_OUT)\vc80.pdb" \
 	$<
 
 {$(TDS_DIR)}.c{$(TDS_DIR)\x64\debug}.obj::
-	$(CC64) $(DBG) 	-Fo"$(TDS_OUT)\\" \
-			-Fd"$(TDS_OUT)\vc80.pdb" \
+	$(CC64) -c $(DBG) 	-Fo"$(TDS_OUT)\\" \
+				-Fd"$(TDS_OUT)\vc80.pdb" \
 	$<
 
 {$(TDS_DIR)}.c{$(TDS_DIR)\x64\release}.obj::
-	$(CC64) $(REL) 	-Fo"$(TDS_OUT)\\" \
-			-Fd"$(TDS_OUT)\vc80.pdb" \
+	$(CC64) -c $(REL) 	-Fo"$(TDS_OUT)\\" \
+				-Fd"$(TDS_OUT)\vc80.pdb" \
 	$<
+
+#
+# Utilities
+#
+{$(APPS_DIR)}.c{$(APPS_DIR)\win32\debug}.exe:
+	@if not exist $(APPS_OUT) $(MKDIR) $(APPS_OUT)
+	$(CC32) $(DBG) 	-Fd"$(APPS_OUT)\vc80.pdb" -Fe$@ \
+	$< -link -LIBPATH:$(DBLIB_OUT) db-lib.lib $(MSLIBS)
+	
+{$(APPS_DIR)\}.c{$(APPS_DIR)\win32\release}.exe:
+	@if not exist $(APPS_OUT) $(MKDIR) $(APPS_OUT)
+	$(CC32) $(REL) -Fe$@ -Fd"$(APPS_OUT)\vc80.pdb" \
+	$< -link -LIBPATH:$(DBLIB_OUT) db-lib.lib $(MSLIBS)
+
+{$(APPS_DIR)}.c{$(APPS_DIR)\x64\debug}.exe:
+	@if not exist $(APPS_OUT) $(MKDIR) $(APPS_OUT)
+	$(CC64) $(DBG) -Fe$@ -Fd"$(APPS_OUT)\vc80.pdb" \
+	$< -link -LIBPATH:$(DBLIB_OUT) db-lib.lib $(MSLIBS)
+
+{$(APPS_DIR)}.c{$(APPS_DIR)\x64\release}.exe:
+	@if not exist $(APPS_OUT) $(MKDIR) $(APPS_OUT)
+	$(CC64) $(REL) -Fe$@ -Fd"$(APPS_OUT)\vc80.pdb" \
+	$< -link -LIBPATH:$(DBLIB_OUT) db-lib.lib $(MSLIBS)
 

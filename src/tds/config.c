@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.151 2009-11-26 09:47:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.152 2010-01-08 22:08:01 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -271,18 +271,22 @@ tds_try_conf_file(const char *path, const char *how, const char *server, TDSCONN
 	int found = 0;
 	FILE *in;
 
-	if ((in = fopen(path, "r")) != NULL) {
-		tdsdump_log(TDS_DBG_INFO1, "Found conf file '%s' %s.\n", path, how);
-		found = tds_read_conf_sections(in, server, connection);
-
-		if (found) {
-			tdsdump_log(TDS_DBG_INFO1, "Success: [%s] defined in %s.\n", server, path);
-		} else {
-			tdsdump_log(TDS_DBG_INFO2, "[%s] not found.\n", server);
-		}
-
-		fclose(in);
+	if ((in = fopen(path, "r")) == NULL) {
+		tdsdump_log(TDS_DBG_INFO1, "Could not open '%s' (%s).\n", path, how);
+		return found;
 	}
+
+	tdsdump_log(TDS_DBG_INFO1, "Found conf file '%s' %s.\n", path, how);
+	found = tds_read_conf_sections(in, server, connection);
+
+	if (found) {
+		tdsdump_log(TDS_DBG_INFO1, "Success: [%s] defined in %s.\n", server, path);
+	} else {
+		tdsdump_log(TDS_DBG_INFO2, "[%s] not found.\n", server);
+	}
+
+	fclose(in);
+
 	return found;
 }
 

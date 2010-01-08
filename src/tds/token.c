@@ -38,11 +38,18 @@
 #include "tdsiconv.h"
 #include "tds_checks.h"
 #include "replacements.h"
-#ifdef DMALLOC
-#include <dmalloc.h>
+
+/* Microsoft's linker complains about missing tds_get_varint_size */
+#ifdef WIN32
+# define TDS_GET_VARINT_SIZE_ONLY
+# include "types.h"
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.376 2009-11-26 09:07:28 freddy77 Exp $");
+#ifdef DMALLOC
+ <dmalloc.h>
+#endif
+
+TDS_RCSID(var, "$Id: token.c,v 1.377 2010-01-08 22:08:01 jklowden Exp $");
 
 #define USE_ICONV tds->use_iconv
 

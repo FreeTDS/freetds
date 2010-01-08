@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.45 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.46 2010-01-08 22:08:01 jklowden Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -366,6 +366,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 #endif
 
 /* include to check limits */
+
 #include "num_limits.h"
 
 static int

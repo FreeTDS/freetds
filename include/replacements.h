@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.20 2009-01-16 20:27:56 jklowden Exp $ */
+/* $Id: replacements.h,v 1.21 2010-01-08 22:08:01 jklowden Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -97,7 +97,13 @@ char *tds_basename(char *path);
 #endif
 
 #if defined(WIN32)
+# if !defined(strncasecmp) 
+#     define  strncasecmp(x,y,z) strnicmp((x),(y),(z))
+# endif
 int gettimeofday (struct timeval *tv, void *tz);
+int getopt(int argc, char * const argv[], const char *optstring);
+extern const char *optarg;
+extern int optind, offset, opterr;
 #endif
 
 #ifdef __cplusplus

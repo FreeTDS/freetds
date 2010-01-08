@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.95 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.96 2010-01-08 22:08:01 jklowden Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -133,6 +133,8 @@ static TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned i
  */
 
 #ifdef WIN32
+const char * tds_prwsaerror( int erc );
+#define strerror(x) tds_prwsaerror((x))
 int
 _tds_socket_init(void)
 {
@@ -309,7 +311,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		goto not_available;
 	}
 	if (len != 0) {
-		tds->oserr = sock_errno;
+		tds->oserr = len;
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", strerror(len));
 		goto not_available;
 	}

@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.130 2009-12-05 20:25:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.131 2010-01-08 22:08:01 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -384,6 +384,10 @@ get_default_instance_port(const char hostname[])
 	
 	return tds7_get_instance_port(ip, "MSSQLSERVER");
 }
+
+#if !defined(LC_ALL)
+# define LC_ALL 0
+#endif
 
 static void
 populate_login(TDSLOGIN * login, int argc, char **argv)
