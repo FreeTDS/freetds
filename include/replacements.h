@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.21 2010-01-08 22:08:01 jklowden Exp $ */
+/* $Id: replacements.h,v 1.22 2010-01-08 22:41:35 jklowden Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -102,7 +102,7 @@ char *tds_basename(char *path);
 # endif
 int gettimeofday (struct timeval *tv, void *tz);
 int getopt(int argc, char * const argv[], const char *optstring);
-extern const char *optarg;
+extern char *optarg;
 extern int optind, offset, opterr;
 #endif
 

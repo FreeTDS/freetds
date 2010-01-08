@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.194 2010-01-08 22:08:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.195 2010-01-08 22:41:35 jklowden Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -622,7 +622,7 @@ winsock_initialized(void)
 #if defined(_WIN32) || defined(_WIN64)
 	WSADATA wsa_data;
 	int erc;
-	WSAPROTOCOL_INFO protocols[8];
+	WSAPROTOCOL_INFO protocols[64];
 	DWORD how_much = sizeof(protocols);
 	WORD requested_version = MAKEWORD(2, 2);
 	 
