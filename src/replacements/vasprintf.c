@@ -15,6 +15,10 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -30,7 +34,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vasprintf.c,v 1.20 2009-01-21 08:34:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: vasprintf.c,v 1.21 2010-01-09 09:17:47 freddy77 Exp $");
 
 #if defined(HAVE__VSNPRINTF) && !defined(HAVE_VSNPRINTF)
 #undef HAVE_VSNPRINTF
@@ -57,6 +61,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 	buflen = chunks * CHUNKSIZE;
 	for (;;) {
 		if ((buf = malloc(buflen)) == NULL) {
+			errno = ENOMEM;
 			*ret = NULL;
 			return -1;
 		}
@@ -109,8 +114,10 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 
 	if (len < 0)
 		return len;
-	if ((buf = malloc(len + 1)) == NULL)
+	if ((buf = malloc(len + 1)) == NULL) {
+		errno = ENOMEM;
 		return -1;
+	}
 	if (vsprintf(buf, fmt, ap) != len)
 		return -1;
 	*ret = buf;
