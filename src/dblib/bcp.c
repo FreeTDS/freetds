@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -61,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.189 2009-11-23 08:50:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.190 2010-01-09 14:32:12 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -390,8 +391,8 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	BCP_HOSTCOLINFO *hostcol;
 	BYTE *terminator = NULL;
 
-	tdsdump_log(TDS_DBG_FUNC, "bcp_colfmt(%p, %d, %d, %d, %d, %p)\n", 
-		    dbproc, host_colnum, host_type, host_prefixlen, (int) host_collen, host_term);
+	tdsdump_log(TDS_DBG_FUNC, "bcp_colfmt(%p, %d, %d, %d, %d, %p, %d, %d)\n", 
+		    dbproc, host_colnum, host_type, host_prefixlen, (int) host_collen, host_term, host_termlen, table_colnum);
 	CHECK_DBPROC();
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
@@ -399,6 +400,9 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 
 	/* Microsoft specifies a "file_termlen" of zero if there's no terminator */
 	if (dbproc->msdblib && host_termlen == 0)
+		host_termlen = -1;
+
+	if (host_termlen < 0)
 		host_termlen = -1;
 
 	if (dbproc->hostfileinfo->host_colcount == 0) {
@@ -448,7 +452,7 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 	 * If there's a positive terminator length, we need a valid terminator pointer.
 	 * If the terminator length is 0 or -1, then there's no terminator.
 	 */
-	if (host_term == NULL && host_termlen > 0 || host_term != NULL && host_termlen == 0) {
+	if (host_term == NULL && host_termlen > 0) {
 		dbperror(dbproc, SYBEVDPT, 0);	/* "all variable-length data must have either a length-prefix ..." */
 		return FAIL;
 	}
