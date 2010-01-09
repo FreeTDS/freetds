@@ -1,3 +1,6 @@
+Sat Jan  9 20:04:51 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/test64.c: More verbose
+
 Sat Jan  9 15:31:46 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/bcp.c: Ignore terminator pointer if terminator len <= 0
 
@@ -2067,4 +2070,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2927 2010-01-09 14:32:12 freddy77 Exp $
+$Id: ChangeLog,v 1.2928 2010-01-09 19:05:07 freddy77 Exp $

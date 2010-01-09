@@ -1,7 +1,7 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.8 2008-11-06 15:56:39 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.9 2010-01-09 19:05:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -196,6 +196,8 @@ test_rows(void)
 
 	/* now see results */
 	for (p = row_set; ; ++p) {
+		const char *test_name = NULL;
+
 		ResetStatement();
 		len = 0xdeadbeef;
 		len <<= 16;
@@ -214,10 +216,12 @@ test_rows(void)
 
 			Command("SELECT DISTINCT i FROM #tmp1");
 			SQLFetch(Statement);
+			test_name = "SQLSetStmtAttr";
 		} else {
 			CHKSetStmtAttr(SQL_ROWSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
 			Command("SELECT DISTINCT i FROM #tmp1");
 			CHKExtendedFetch(SQL_FETCH_NEXT, 0, &len, NULL, "S");
+			test_name = "SQLExtendedFetch";
 		}
 		SQLMoreResults(Statement);
 
@@ -226,7 +230,7 @@ test_rows(void)
 		h = len >> 16;
 		l &= 0xfffffffflu;
 		if (h != 0 || l != 2) {
-			fprintf(stderr, "Wrong number returned in rows high %lu(0x%lx) low %lu(0x%lx)\n", h, h, l, l);
+			fprintf(stderr, "Wrong number returned in rows high %lu(0x%lx) low %lu(0x%lx) test %s\n", h, h, l, l, test_name);
 			exit(1);
 		}
 
@@ -241,6 +245,11 @@ test_rows(void)
 int
 main(void)
 {
+	if (sizeof(SQLLEN) != 8) {
+		printf("Not possible for this platform.\n");
+		return 0;
+	}
+
 	use_odbc_version3 = 1;
 	Connect();
 
