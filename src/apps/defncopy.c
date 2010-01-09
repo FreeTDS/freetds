@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2004  James K. Lowden
+ * Copyright (C) 2004-2010  James K. Lowden
  *
  * This program  is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -88,7 +88,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #endif
 #endif /* MicrosoftsDbLib */
 
-static char software_version[] = "$Id: defncopy.c,v 1.14 2010-01-08 22:08:01 jklowden Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.15 2010-01-09 10:55:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef MicrosoftsDbLib
@@ -102,9 +102,9 @@ static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severi
 #endif /* MicrosoftsDbLib */
 
 #ifndef MicrosoftsDbLib
-struct METADATA { char *name, *source, *format_string; int type, size; };
+struct METADATA { char *name, *source; int type, size; };
 #else
-struct METADATA { const char *name, *source, *format_string; int type, size; };
+struct METADATA { const char *name, *source; int type, size; };
 #endif /* MicrosoftsDbLib */
 
 typedef struct _options 
@@ -127,8 +127,6 @@ static int print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure);
 static int print_results(DBPROCESS *dbproc);
 static LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
 static void parse_argument(const char argument[], PROCEDURE* procedure);
-static int set_format_string(struct METADATA * meta, const char separator[]);
-static int get_printable_size(int type, int size);
 static void usage(const char invoked_as[]);
 
 /* global variables */
@@ -616,89 +614,6 @@ print_results(DBPROCESS *dbproc)
 
 	} /* wend dbresults */
 	return nrows;
-}
-
-#ifndef MicrosoftsDbLib
-static int
-#else
-static size_t
-#endif /* MicrosoftsDbLib */
-get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
-{
-	switch (type) {
-	case SYBINTN:
-		switch (size) {
-		case 1:
-			return 3;
-		case 2:
-			return 6;
-		case 4:
-			return 11;
-		case 8:
-			return 21;
-		}
-	case SYBINT1:
-		return 3;
-	case SYBINT2:
-		return 6;
-	case SYBINT4:
-		return 11;
-	case SYBINT8:
-		return 21;
-	case SYBVARCHAR:
-	case SYBCHAR:
-		return size;
-	case SYBFLT8:
-		return 11;	/* FIX ME -- we do not track precision */
-	case SYBREAL:
-		return 11;	/* FIX ME -- we do not track precision */
-	case SYBMONEY:
-		return 12;	/* FIX ME */
-	case SYBMONEY4:
-		return 12;	/* FIX ME */
-	case SYBDATETIME:
-		return 26;	/* FIX ME */
-	case SYBDATETIME4:
-		return 26;	/* FIX ME */
-#if 0	/* seems not to be exported to sybdb.h */
-	case SYBBITN:
-#endif
-	case SYBBIT:
-		return 1;
-		/* FIX ME -- not all types present */
-	default:
-		return 0;
-	}
-
-}
-
-/** 
- * Build the column header format string, based on the column width. 
- * This is just one solution to the question, "How wide should my columns be when I print them out?"
- */
-#define is_character_data(x)   (x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
-static int
-set_format_string(struct METADATA * meta, const char separator[])
-{
-#ifndef MicrosoftsDbLib
-	int width, ret;
-#else
-	size_t width;
-	int ret;
-#endif /* MicrosoftsDbLib */
-	const char *size_and_width;
-	assert(meta);
-
-	/* right justify numbers, left justify strings */
-	size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
-	
-	width = get_printable_size(meta->type, meta->size);
-	if (width < strlen(meta->name))
-		width = strlen(meta->name);
-
-	ret = asprintf(&meta->format_string, size_and_width, width, width, separator);
-		       
-	return ret;
 }
 
 static void
