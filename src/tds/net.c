@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Brian Bruns
- * Copyright (C) 2004, 2005, 2006, 2007, 2008  Ziglio Frediano
+ * Copyright (C) 2004-2010  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.96 2010-01-08 22:08:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.97 2010-01-09 09:33:17 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -133,7 +133,6 @@ static TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned i
  */
 
 #ifdef WIN32
-const char * tds_prwsaerror( int erc );
 #define strerror(x) tds_prwsaerror((x))
 int
 _tds_socket_init(void)

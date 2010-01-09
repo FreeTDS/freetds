@@ -1,3 +1,6 @@
+Sat Jan  9 10:33:10 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: Avoid double definition
+
 Sat Jan  9 10:17:41 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/vasprintf.c:
 	- Fix possible wrong error report if malloc does not set errno
@@ -2051,4 +2054,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2922 2010-01-09 09:17:46 freddy77 Exp $
+$Id: ChangeLog,v 1.2923 2010-01-09 09:33:17 freddy77 Exp $
