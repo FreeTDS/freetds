@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.98 2010-01-09 09:50:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.99 2010-01-09 23:41:52 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -276,7 +276,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		tds->oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", sock_strerror(sock_errno));
 #if DEBUGGING_CONNECTING_PROBLEM
-		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != EINPROGRESS) {
+		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != TDSSOCK_EINPROGRESS) {
 			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", &sin, sizeof(sin));
 			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
 							      "%s = %x\n" 
@@ -500,7 +500,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 
 			len = READSOCKET(tds->s, buf + got, buflen);
 
-			if (len < 0 && sock_errno == EAGAIN)
+			if (len < 0 && TDSSOCK_WOULDBLOCK(sock_errno))
 				continue;
 			/* detect connection close */
 			if (len <= 0) {
@@ -509,7 +509,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 				return -1;
 			}
 		} else if (len < 0) {
-			if (sock_errno == EAGAIN) /* shouldn't happen, but OK */
+			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK */
 				continue;
 			tdserror(tds->tds_ctx, tds, TDSEREAD, sock_errno);
 			tds_close_socket(tds);
@@ -705,7 +705,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 				continue;
 			}
 			
-			if (0 == nput || sock_errno == EAGAIN)
+			if (0 == nput || TDSSOCK_WOULDBLOCK(sock_errno))
 				continue;
 
 			assert(nput < 0);
@@ -716,7 +716,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			return -1;
 
 		} else if (rc < 0) {
-			if (sock_errno == EAGAIN) /* shouldn't happen, but OK, retry */
+			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK, retry */
 				continue;
 			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", sock_errno, sock_strerror(sock_errno));
 			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);

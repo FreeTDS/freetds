@@ -21,7 +21,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.30 2010-01-09 09:50:16 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.31 2010-01-09 23:41:52 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -84,6 +84,7 @@ void _tds_socket_done(void);
 
 #define TDSSOCK_EINTR WSAEINTR
 #define TDSSOCK_EINPROGRESS WSAEWOULDBLOCK
+#define TDSSOCK_WOULDBLOCK(e) ((e)==WSAEWOULDBLOCK)
 #define sock_errno WSAGetLastError()
 #define sock_strerror(n) tds_prwsaerror(n)
 #ifndef __MINGW32__
@@ -128,6 +129,14 @@ typedef DWORD pid_t;
 
 #ifndef TDSSOCK_EINPROGRESS 
 #define TDSSOCK_EINPROGRESS EINPROGRESS
+#endif
+
+#ifndef TDSSOCK_WOULDBLOCK
+# if defined(EWOULDBLOCK) && EAGAIN != EWOULDBLOCK
+#  define TDSSOCK_WOULDBLOCK(e) ((e)==EAGAIN||(e)==EWOULDBLOCK)
+# else
+#  define TDSSOCK_WOULDBLOCK(e) ((e)==EAGAIN)
+# endif
 #endif
 
 #ifndef INITSOCKET
