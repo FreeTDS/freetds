@@ -88,7 +88,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #endif
 #endif /* MicrosoftsDbLib */
 
-static char software_version[] = "$Id: defncopy.c,v 1.15 2010-01-09 10:55:44 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.16 2010-01-09 13:10:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef MicrosoftsDbLib
@@ -99,12 +99,6 @@ static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severi
 static int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, const char dberrstr[], const char oserrstr[]);
 static int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, const char msgtext[], 
 		const char srvname[], const char procname[], unsigned short int line);
-#endif /* MicrosoftsDbLib */
-
-#ifndef MicrosoftsDbLib
-struct METADATA { char *name, *source; int type, size; };
-#else
-struct METADATA { const char *name, *source; int type, size; };
 #endif /* MicrosoftsDbLib */
 
 typedef struct _options 
@@ -128,10 +122,11 @@ static int print_results(DBPROCESS *dbproc);
 static LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
 static void parse_argument(const char argument[], PROCEDURE* procedure);
 static void usage(const char invoked_as[]);
+static char * rtrim(char * s);
 
 /* global variables */
-OPTIONS options;
-char use_statement[512];
+static OPTIONS options;
+static char use_statement[512];
 /* end global variables */
 
 
@@ -283,9 +278,7 @@ parse_argument(const char argument[], PROCEDURE* procedure)
 	}
 }
 
-char * rtrim(char * s);
-
-char *
+static char *
 rtrim(char * s)
 {
 	char *p = strchr(s, ' ');
@@ -312,7 +305,7 @@ rtrim(char * s)
  *	10. Access_Rule_name       Collation
  *	11. Identity	
  */
-int
+static int
 print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure) 
 {
  	struct DDL { char *name, *type, *length, *precision, *scale, *nullable; } *ddl = NULL;
@@ -529,7 +522,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 	return nrows;
 }
 
-int /* return count of SQL text rows */
+static int /* return count of SQL text rows */
 print_results(DBPROCESS *dbproc) 
 {
 	RETCODE erc;
