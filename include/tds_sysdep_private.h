@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +21,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.29 2009-02-27 10:46:24 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.30 2010-01-09 09:50:16 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -84,6 +85,7 @@ void _tds_socket_done(void);
 #define TDSSOCK_EINTR WSAEINTR
 #define TDSSOCK_EINPROGRESS WSAEWOULDBLOCK
 #define sock_errno WSAGetLastError()
+#define sock_strerror(n) tds_prwsaerror(n)
 #ifndef __MINGW32__
 typedef DWORD pid_t;
 #endif
@@ -114,6 +116,10 @@ typedef DWORD pid_t;
 
 #ifndef sock_errno
 #define sock_errno errno
+#endif
+
+#ifndef sock_strerror
+#define sock_strerror(n) strerror(n)
 #endif
 
 #ifndef TDSSOCK_EINTR

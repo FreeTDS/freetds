@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.97 2010-01-09 09:33:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.98 2010-01-09 09:50:16 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -133,7 +133,6 @@ static TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned i
  */
 
 #ifdef WIN32
-#define strerror(x) tds_prwsaerror((x))
 int
 _tds_socket_init(void)
 {
@@ -225,7 +224,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
 		tds->oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return TDSESOCK;
 	}
 
@@ -275,7 +274,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
 		tds->oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", sock_strerror(sock_errno));
 #if DEBUGGING_CONNECTING_PROBLEM
 		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != EINPROGRESS) {
 			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", &sin, sizeof(sin));
@@ -306,12 +305,12 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	len = 0;
 	if (tds_getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
 		tds->oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", sock_strerror(sock_errno));
 		goto not_available;
 	}
 	if (len != 0) {
 		tds->oserr = len;
-		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", strerror(len));
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", sock_strerror(len));
 		goto not_available;
 	}
 
@@ -435,7 +434,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 				break;	/* let interrupt handler be called */
 			default: /* documented: EFAULT, EBADF, EINVAL */
 				tdsdump_log(TDS_DBG_ERROR, "error: %s returned %d, \"%s\"\n", 
-						method, sock_errno, strerror(sock_errno));
+						method, sock_errno, sock_strerror(sock_errno));
 				return rc;
 			}
 		}
@@ -711,7 +710,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 
 			assert(nput < 0);
 			
-			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", sock_errno, strerror(sock_errno));
+			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", sock_errno, sock_strerror(sock_errno));
 			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);
 			tds_close_socket(tds);
 			return -1;
@@ -719,7 +718,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 		} else if (rc < 0) {
 			if (sock_errno == EAGAIN) /* shouldn't happen, but OK, retry */
 				continue;
-			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", sock_errno, strerror(sock_errno));
+			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", sock_errno, sock_strerror(sock_errno));
 			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);
 			tds_close_socket(tds);
 			return -1;
@@ -855,7 +854,7 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 
 	/* create an UDP socket */
 	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_DGRAM, 0))) {
-		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return 0;
 	}
 
@@ -1018,7 +1017,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 
 	/* create an UDP socket */
 	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_DGRAM, 0))) {
-		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return 0;
 	}
 
