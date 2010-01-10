@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.358 2009-12-16 08:22:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.359 2010-01-10 14:43:11 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -287,7 +287,7 @@ dblib_get_tds_ctx(void)
 		if (g_dblib_ctx.tds_ctx->locale && !g_dblib_ctx.tds_ctx->locale->date_fmt) {
 			/* set default in case there's no locale file */
 			const static char date_format[] = 
-#ifndef WIN32
+#ifndef _WIN32
 							   "%b %e %Y %I:%M:%S:%z%p";
 #else
 							   "%b %d %Y %I:%M:%S:%z%p";
@@ -7817,7 +7817,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
 
-#ifdef WIN32
+#ifdef _WIN32
 	/*
 	 * Unfortunately MingW uses the "old" msvcrt.dll (Visual C++ 2005 uses
 	 * a newer version) which does not set errno when allocation functions

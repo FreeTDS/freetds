@@ -6,13 +6,13 @@
 
 #include <ctype.h>
 
-#ifndef WIN32
+#ifndef _WIN32
 #include "tds_sysdep_private.h"
 #else
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.55 2009-12-22 18:56:22 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.56 2010-01-10 14:43:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -27,7 +27,7 @@ char PASSWORD[512];
 char DATABASE[512];
 char DRIVER[1024];
 
-#ifndef WIN32
+#ifndef _WIN32
 static int
 check_lib(char *path, const char *file)
 {
@@ -66,7 +66,7 @@ read_login_info(void)
 	FILE *in = NULL;
 	char line[512];
 	char *s1, *s2;
-#ifndef WIN32
+#ifndef _WIN32
 	char path[1024];
 	int len;
 #endif
@@ -103,7 +103,7 @@ read_login_info(void)
 	}
 	fclose(in);
 
-#ifndef WIN32
+#ifndef _WIN32
 	/* find our driver */
 	if (!getcwd(path, sizeof(path)))
 		return 0;

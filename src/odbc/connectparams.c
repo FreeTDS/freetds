@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.81 2009-12-16 13:06:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.82 2010-01-10 14:43:11 freddy77 Exp $");
 
 static const char odbc_param_Servername[] = "Servername";
 static const char odbc_param_Address[] = "Address";
@@ -384,7 +384,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 
-#ifdef WIN32
+#ifdef _WIN32
 #  error There is something wrong  in configuration...
 #endif
 

@@ -38,7 +38,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
 #endif
 
@@ -62,11 +62,11 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.190 2010-01-09 14:32:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.191 2010-01-10 14:43:11 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
-#elif defined(WIN32) || defined(WIN64)
+#elif defined(_WIN32) || defined(_WIN64)
 /* win32 version */
 typedef __int64 offset_type;
 # if defined(HAVE__FSEEKI64) && defined(HAVE__FTELLI64)

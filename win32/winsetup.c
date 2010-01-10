@@ -192,7 +192,7 @@ validate(DSNINFO * di)
 	return NULL;
 }
 
-#ifndef WIN64
+#ifndef _WIN64
 #define GetWindowUserData(wnd)       GetWindowLong((wnd), GWL_USERDATA)
 #define SetWindowUserData(wnd, data) SetWindowLong((wnd), GWL_USERDATA, (data))
 #else

@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.524 2009-12-28 13:30:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.525 2010-01-10 14:43:11 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -451,7 +451,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 
 	/* add login info */
 	if (hwnd) {
-#ifdef WIN32
+#ifdef _WIN32
 		/* prompt for login information */
 		if (!get_login_info(hwnd, connection)) {
 			tds_free_connection(connection);

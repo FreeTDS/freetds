@@ -22,7 +22,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.39 2009-09-14 10:02:13 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.40 2010-01-10 14:43:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -157,7 +157,7 @@ read_login_info(int argc, char **argv)
 #endif
 	
 	BASENAME = tds_basename(ARGV0);
-#if defined(WIN32) || defined(__VMS)
+#if defined(_WIN32) || defined(__VMS)
 	s1 = strrchr(BASENAME, '.');
 	if (s1) *s1 = 0;
 #endif

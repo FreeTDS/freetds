@@ -34,7 +34,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vasprintf.c,v 1.21 2010-01-09 09:17:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: vasprintf.c,v 1.22 2010-01-10 14:43:12 freddy77 Exp $");
 
 #if defined(HAVE__VSNPRINTF) && !defined(HAVE_VSNPRINTF)
 #undef HAVE_VSNPRINTF
@@ -94,7 +94,7 @@ vasprintf(char **ret, const char *fmt, va_list ap)
 
 #ifdef _REENTRANT
 
-# ifdef WIN32
+# ifdef _WIN32
 #  error Win32 do not have /dev/null, should use vsnprintf version
 # endif
 

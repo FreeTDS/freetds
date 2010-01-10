@@ -231,7 +231,7 @@ static void handler(int s)
 	signo = s;
 }
 
-#else /* WIN32 */
+#else /* _WIN32 */
 
 char *
 readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
@@ -269,6 +269,6 @@ readpassphrase(const char *prompt, char *buf, size_t bufsiz, int flags)
 	return (ch == EOF ? NULL : buf);
 }
  
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 #endif /* HAVE_READPASSPHRASE */

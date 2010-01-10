@@ -18,7 +18,7 @@
  */
 
 #ifdef MicrosoftsDbLib
-#ifdef WIN32
+#ifdef _WIN32
 # pragma warning( disable : 4142 )
 # include "win32.microsoft/have.h"
 # include "../../include/replacements.win32.hacked.h"
@@ -83,12 +83,12 @@ int getopt(int argc, const char *argv[], char *optstring);
 #include "replacements.h"
 #else
 
-#ifndef WIN32
+#ifndef _WIN32
 # include "replacements.h"
 #endif
 #endif /* MicrosoftsDbLib */
 
-static char software_version[] = "$Id: defncopy.c,v 1.16 2010-01-09 13:10:30 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.17 2010-01-10 14:43:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef MicrosoftsDbLib
@@ -145,7 +145,7 @@ main(int argc, char *argv[])
 	int i, nrows;
 
 	/* Initialize db-lib */
-#if WIN32 && defined(MicrosoftsDbLib)
+#if _WIN32 && defined(MicrosoftsDbLib)
 	LPCSTR msg = dbinit();	
 	if (msg == NULL) {
 #else 
@@ -706,7 +706,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	}
 
 #ifdef MicrosoftsDbLib
-#if WIN32
+#if _WIN32
 	if (fdomain) 
 		DBSETLSECURE(login);
 #endif

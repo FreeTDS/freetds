@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.116 2009-12-17 10:33:59 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.117 2010-01-10 14:43:11 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #pragma GCC visibility push(hidden)
@@ -430,7 +430,7 @@ typedef struct _hchk TDS_CHK;
 #endif
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
 #endif
 

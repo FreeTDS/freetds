@@ -1,9 +1,9 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.17 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.18 2010-01-10 14:43:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#ifdef WIN32
+#ifdef _WIN32
 #undef strcasecmp
 #define strcasecmp stricmp
 #endif

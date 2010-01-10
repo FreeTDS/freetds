@@ -1,4 +1,4 @@
-/* $Id: fakepoll.h,v 1.2 2009-04-09 01:40:25 jklowden Exp $ */
+/* $Id: fakepoll.h,v 1.3 2010-01-10 14:43:11 freddy77 Exp $ */
 #if !defined(_FAKE_POLL_H) && !defined(HAVE_POLL)
 #define _FAKE_POLL_H
 
@@ -15,7 +15,7 @@
 #include <sys/select.h>
 #endif 
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <winsock2.h>
 #endif
 

@@ -64,7 +64,7 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <process.h>
 #endif
 
@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.152 2010-01-08 22:08:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.153 2010-01-10 14:43:12 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -94,7 +94,7 @@ static char *interf_file = NULL;
 
 #define TDS_ISSPACE(c) isspace((unsigned char ) (c))
 
-#if !defined(WIN32) && !defined(DOS32X)
+#if !defined(_WIN32) && !defined(DOS32X)
        const char STD_DATETIME_FMT[] = "%b %e %Y %I:%M%p";
 static const char pid_config_logpath[] = "/tmp/tdsconfig.log.%d";
 static const char freetds_conf[] = "%s/etc/freetds.conf";

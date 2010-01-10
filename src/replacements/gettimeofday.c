@@ -21,7 +21,7 @@
 #include <config.h>
 #endif
 
-#if defined(WIN32)
+#if defined(_WIN32)
 
 #if HAVE_ERRNO_H
 #include <errno.h>
@@ -30,7 +30,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: gettimeofday.c,v 1.4 2008-10-02 08:08:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gettimeofday.c,v 1.5 2010-01-10 14:43:11 freddy77 Exp $");
 /*
  * Number of micro-seconds between the beginning of the Windows epoch
  * (Jan. 1, 1601) and the Unix epoch (Jan. 1, 1970).

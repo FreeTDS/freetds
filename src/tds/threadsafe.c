@@ -74,7 +74,7 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
-#if defined(WIN32) || defined(WIN64)
+#if defined(_WIN32) || defined(_WIN64)
 #include <winsock2.h>
 #include <shlobj.h>
 #endif
@@ -85,12 +85,12 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.47 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.48 2010-01-10 14:43:12 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)
 {
-#if !defined(WIN32) && !defined(WIN64)
+#if !defined(_WIN32) && !defined(_WIN64)
 	struct tm *tm;
 	time_t t;
 
@@ -133,7 +133,7 @@ tds_timestamp_str(char *str, int maxlen)
 	strcat(str, usecs);
 #endif
 
-#else /* WIN32 */
+#else /* _WIN32 */
 	SYSTEMTIME st;
 
 	GetLocalTime(&st);
@@ -513,7 +513,7 @@ tds_getservbyname_r(const char *name, const char *proto, struct servent *result,
 char *
 tds_get_homedir(void)
 {
-#ifndef WIN32
+#ifndef _WIN32
 /* if is available getpwuid_r use it */
 #if defined(HAVE_GETUID) && defined(HAVE_GETPWUID_R)
 	struct passwd *pw, bpw;
@@ -550,7 +550,7 @@ tds_get_homedir(void)
 		return NULL;
 	return strdup(home);
 #endif
-#else /* WIN32 */
+#else /* _WIN32 */
 	/*
 	 * For win32 we return application data cause we use "HOME" 
 	 * only to store configuration files

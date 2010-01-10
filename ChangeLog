@@ -1,3 +1,18 @@
+Sun Jan 10 15:42:50 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/fakepoll.h include/replacements.h include/tdsodbc.h:
+	* src/apps/bsqldb.c src/apps/defncopy.c src/dblib/bcp.c:
+	* src/dblib/dblib.c src/dblib/unittests/common.c:
+	* src/odbc/connectparams.c src/odbc/odbc.c:
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/tables.c src/odbc/unittests/timeout2.c:
+	* src/replacements/basename.c src/replacements/fakepoll.c:
+	* src/replacements/gettimeofday.c:
+	* src/replacements/readpassphrase.c src/replacements/vasprintf.c:
+	* src/tds/config.c src/tds/convert.c src/tds/log.c src/tds/login.c:
+	* src/tds/net.c src/tds/threadsafe.c src/tds/util.c:
+	* win32/winlogin.c win32/winsetup.c:
+	- Use _WIN32 and _WIN64 instead of WIN32 and WIN64
+
 Sun Jan 10 14:49:39 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/db-lib.vcproj src/replacements/replacements.vcproj:
 	- Be consistent about WIN32/WIN64 defines
@@ -2078,4 +2093,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2930 2010-01-10 13:50:31 freddy77 Exp $
+$Id: ChangeLog,v 1.2931 2010-01-10 14:43:11 freddy77 Exp $

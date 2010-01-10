@@ -54,7 +54,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <process.h>
 #endif
 
@@ -66,10 +66,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.13 2009-09-30 11:52:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.14 2010-01-10 14:43:12 freddy77 Exp $");
 
 /* for now all messages go to the log */
-int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
+int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE | TDS_DBGFLAG_PID | TDS_DBGFLAG_THREAD;
 int tds_g_append_mode = 0;
 static char *g_dump_filename = NULL;
 static int write_dump = 0;	/* is TDS stream debug log turned on? */
@@ -249,6 +249,14 @@ tdsdump_start(FILE *file, const char *fname, int line)
 		pbuf += sprintf(pbuf, "%d", (int) getpid());
 		started = 1;
 	}
+
+	if (tds_debug_flags & TDS_DBGFLAG_THREAD) {
+		if (started)
+			*pbuf++ = ' ';
+		pbuf += sprintf(pbuf, "%d", (int) pthread_self());
+		started = 1;
+	}
+
 
 	if ((tds_debug_flags & TDS_DBGFLAG_SOURCE) && fname && line) {
 		const char *p;

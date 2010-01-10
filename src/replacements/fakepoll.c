@@ -23,7 +23,7 @@
 
 #ifndef HAVE_POLL
 
-static char software_version[] = "$Id: fakepoll.c,v 1.7 2009-01-21 08:43:54 freddy77 Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.8 2010-01-10 14:43:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #include <stdarg.h>
@@ -87,7 +87,7 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 			continue;
 		} 
 
-#if defined(WIN32)
+#if defined(_WIN32)
 		/* Win32 cares about the number of descriptors, not the highest one. */
 		++maxfd;
 #else

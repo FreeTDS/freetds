@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.99 2010-01-09 23:41:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.100 2010-01-10 14:43:12 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -132,7 +132,7 @@ static TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned i
  * @{ 
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 int
 _tds_socket_init(void)
 {
@@ -178,7 +178,7 @@ _tds_socket_done(void)
 #define USE_NODELAY 1
 #endif
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
 typedef unsigned int ioctl_nonblocking_t;
 #else
 typedef u_long ioctl_nonblocking_t;
@@ -363,7 +363,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 	assert(timeout_seconds >= 0);
 
 #if !USE_POLL
-#if !defined(WIN32) && defined(FD_SETSIZE)
+#if !defined(_WIN32) && defined(FD_SETSIZE)
 	if (tds->s >= FD_SETSIZE) {
 		sock_errno = EINVAL;
 		return -1;
@@ -765,7 +765,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	int sent;
 	unsigned int left = 0;
 
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
 	void (*oldsig) (int);
 #endif
 
@@ -785,7 +785,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
 	oldsig = signal(SIGPIPE, SIG_IGN);
 	if (oldsig == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
@@ -803,7 +803,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 #endif
 		sent = tds_goodwrite(tds, tds->out_buf, tds->out_pos, final);
 
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}
@@ -859,7 +859,7 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 	}
 
 #if !USE_POLL
-#if !defined(WIN32) && defined(FD_SETSIZE)
+#if !defined(_WIN32) && defined(FD_SETSIZE)
 	if (s >= FD_SETSIZE) {
 		sock_errno = EINVAL;
 		return 0;
@@ -1022,7 +1022,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	}
 
 #if !USE_POLL
-#if !defined(WIN32) && defined(FD_SETSIZE)
+#if !defined(_WIN32) && defined(FD_SETSIZE)
 	if (s >= FD_SETSIZE) {
 		sock_errno = EINVAL;
 		return 0;

@@ -53,7 +53,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <process.h>
 #endif
 
@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.87 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.88 2010-01-10 14:43:12 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -207,7 +207,7 @@ tds_version(TDSSOCKET * tds_socket, char *pversion_string)
 unsigned int
 tds_gettime_ms(void)
 {
-#ifdef WIN32
+#ifdef _WIN32
 	return GetTickCount();
 #elif defined(HAVE_GETHRTIME)
 	return (unsigned int) (gethrtime() / 1000000u);

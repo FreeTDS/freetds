@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.194 2009-12-07 16:22:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.195 2010-01-10 14:43:12 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -862,7 +862,7 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
 		/* TODO: fix for all platform. Search for lltoa/_i64toa */
-#if defined(WIN32) 
+#if defined(_WIN32)
 		_i64toa(buf, tmp_str, 10);
 #elif SIZEOF_LONG < 8
 		sprintf(tmp_str, "%" TDS_I64_FORMAT, buf);
@@ -924,7 +924,7 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		/* TODO portability problem. See above */
-#if defined(WIN32) 
+#if defined(_WIN32)
 		_i64toa(buf, tmp_str, 10);
 #elif SIZEOF_LONG < 8
 		sprintf(tmp_str, "%" TDS_I64_FORMAT, buf);
