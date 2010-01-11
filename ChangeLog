@@ -1,3 +1,8 @@
+Mon Jan 11 09:00:59 EST 2010	JK Lowden <jklowden@freetds.org>
+	* include/replacements.h strcasecmp macro
+	* src/apps/defncopy.c unrevert to 1.17 again
+	* src/tds/log.c define pthread_self() as zero for win32
+
 Mon Jan 11 08:39:49 EST 2010	JK Lowden <jklowden@freetds.org>
 	* src/apps/defncopy.c revert to previous version
 
@@ -2096,4 +2101,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2932 2010-01-11 13:42:22 jklowden Exp $
+$Id: ChangeLog,v 1.2933 2010-01-11 14:03:17 jklowden Exp $

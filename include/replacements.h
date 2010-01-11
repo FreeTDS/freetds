@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.23 2010-01-10 14:43:11 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.24 2010-01-11 14:03:17 jklowden Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -97,6 +97,9 @@ char *tds_basename(char *path);
 #endif
 
 #if defined(_WIN32)
+# if !defined(strcasecmp) 
+#     define  strcasecmp(A, B) stricmp((A), (B))
+# endif
 # if !defined(strncasecmp) 
 #     define  strncasecmp(x,y,z) strnicmp((x),(y),(z))
 # endif
