@@ -1,3 +1,6 @@
+Mon Jan 11 13:03:29 EST 2010	JK Lowden <jklowden@freetds.org>
+	* include/replacements.h more care with strcasecmp macro
+
 Mon Jan 11 19:00:10 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/log.c: removed wrongly committed patch
 
@@ -2110,4 +2113,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2936 2010-01-11 18:00:16 freddy77 Exp $
+$Id: ChangeLog,v 1.2937 2010-01-11 18:04:04 jklowden Exp $

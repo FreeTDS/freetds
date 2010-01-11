@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.24 2010-01-11 14:03:17 jklowden Exp $ */
+/* $Id: replacements.h,v 1.25 2010-01-11 18:04:04 jklowden Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -96,11 +96,24 @@ size_t tds_strlcat(char *dest, const char *src, size_t len);
 char *tds_basename(char *path);
 #endif
 
+/* 
+ * Microsoft's C Runtime library is missing strcasecmp and strncasecmp. 
+ * Other Win32 C runtime libraries, notably minwg, may define it. 
+ * There is no symbol uniquely defined in Microsoft's header files that 
+ * can be used by the preprocessor to know whether we're compiling for
+ * Microsoft's library or not (or which version).  Thus there's no
+ * way to automatically decide whether or not to define strcasecmp
+ * in terms of stricmp.  
+ * 
+ * The Microsoft *compiler* defines _MSC_VER.  On the assumption that
+ * anyone using their compiler is also using their library, the below 
+ * tests check _MSC_VER as a proxy. 
+ */
 #if defined(_WIN32)
-# if !defined(strcasecmp) 
+# if !defined(strcasecmp) && defined(_MSC_VER) 
 #     define  strcasecmp(A, B) stricmp((A), (B))
 # endif
-# if !defined(strncasecmp) 
+# if !defined(strncasecmp) && defined(_MSC_VER)
 #     define  strncasecmp(x,y,z) strnicmp((x),(y),(z))
 # endif
 int gettimeofday (struct timeval *tv, void *tz);
