@@ -77,7 +77,7 @@ init_log()
 	ln -f logs/log.txt ../${WORKDIR}_log.txt
 }
 
-rm ~/freetds.log /tmp/sql.log
+rm -f ~/freetds.log /tmp/sql.log
 
 ignore=
 for param
@@ -92,6 +92,10 @@ do
 		OUTDIR=out$1
 		FTDSDIR=freetds$1
 		WORKDIR=ftds_comp$1
+		;;
+	--help)
+		echo "Syntax: freetds_autobuild [--version VERSION]"
+		exit 1
 		;;
 	*)
 		echo 'Option not supported!' 1>&2
