@@ -20,7 +20,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.324 2009-12-28 13:30:31 freddy77 Exp $ */
+/* $Id: tds.h,v 1.325 2010-01-11 18:14:10 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -287,7 +287,8 @@ typedef enum {	TDSEOK    = TDS_SUCCEED,
 		TDSEICONVAVAIL = 2401, 
 		TDSEICONVO     = 2402, 
 		TDSEICONVI     = 2403, 
-		TDSEICONV2BIG  = 2404, 
+		TDSEICONV2BIG  = 2404,
+		TDSEPORTINSTANCE	= 2500,
 		TDSESYNC = 20001, 
 		TDSEFCON = 20002, 
 		TDSETIME = 20003, 

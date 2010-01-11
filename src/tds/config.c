@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.153 2010-01-10 14:43:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.154 2010-01-11 18:14:10 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -630,10 +630,8 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 	if (login->block_size) {
 		connection->block_size = login->block_size;
 	}
-	if (login->port) {
+	if (login->port)
 		connection->port = login->port;
-		tds_dstr_copy(&connection->instance_name, "");
-	}
 	if (login->connect_timeout)
 		connection->connect_timeout = login->connect_timeout;
 
@@ -1040,11 +1038,7 @@ tds_read_interfaces(const char *server, TDSCONNECTION * connection)
 			 * Not set in the [global] section of the
 			 * configure file, take a guess.
 			 */
-#ifdef TDS50
-			ip_port = 4000;
-#else
-			ip_port = 1433;
-#endif
+			ip_port = TDS_DEF_PORT;
 		} else {
 			/*
 			 * Preserve setting from the [global] section
@@ -1091,14 +1085,12 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 	if (pSep && pSep != server) {	/* yes, i found it! */
 		/* modify connection-> && login->server_name & ->port */
 		login->port = connection->port = atoi(pSep + 1);
-		tds_dstr_copy(&connection->instance_name, "");
 	} else {
 		/* handle instance name */
 		pSep = strrchr(server, '\\');
 		if (!pSep || pSep == server)
 			return 0;
 
-		login->port = connection->port = 0;
 		tds_dstr_copy(&connection->instance_name, pSep + 1);
 	}
 

@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.192 2010-01-10 14:43:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.193 2010-01-11 18:14:10 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -424,6 +424,11 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "No server specified!\n");
 		}
+		return TDSECONN;
+	}
+
+	if (connection->port && !tds_dstr_isempty(&connection->instance_name)) {
+		tdserror(tds->tds_ctx, tds, TDSEPORTINSTANCE, 0);
 		return TDSECONN;
 	}
 
