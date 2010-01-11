@@ -55,7 +55,8 @@
 #endif /* HAVE_UNISTD_H */
 
 #ifdef _WIN32
-#include <process.h>
+# include <process.h>
+# define pthread_self() 0
 #endif
 
 #include "tds.h"
@@ -66,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.14 2010-01-10 14:43:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.15 2010-01-11 14:03:23 jklowden Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE | TDS_DBGFLAG_PID | TDS_DBGFLAG_THREAD;
