@@ -1,3 +1,6 @@
+Mon Jan 11 19:00:10 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/log.c: removed wrongly committed patch
+
 Mon Jan 11 18:56:17 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c: unneeded with newer types.h
 
@@ -2107,4 +2110,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2935 2010-01-11 17:56:30 freddy77 Exp $
+$Id: ChangeLog,v 1.2936 2010-01-11 18:00:16 freddy77 Exp $
