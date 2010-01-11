@@ -1,3 +1,6 @@
+Mon Jan 11 18:56:17 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: unneeded with newer types.h
+
 Mon Jan 11 18:52:52 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/freetds_autobuild: added help
 
@@ -2104,4 +2107,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2934 2010-01-11 17:53:00 freddy77 Exp $
+$Id: ChangeLog,v 1.2935 2010-01-11 17:56:30 freddy77 Exp $
