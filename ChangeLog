@@ -1,3 +1,9 @@
+Tue Jan 12 10:38:18 EST 2010	JK Lowden <jklowden@freetds.org>
+	* Makefile.am src/apps/tsql.c src/replacements/getopt.c
+	* win32/config.h
+	- Win32 support: Added getopt.c from NetBSD and made tsql 
+	- compile without warnings
+
 Tue Jan 12 11:20:04 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/strtok_r.c: Fix strtok_r function
 
@@ -2121,4 +2127,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2939 2010-01-12 10:20:41 freddy77 Exp $
+$Id: ChangeLog,v 1.2940 2010-01-12 15:43:17 jklowden Exp $

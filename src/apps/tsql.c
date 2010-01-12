@@ -59,7 +59,9 @@
 #endif /* HAVE_STRING_H */
 
 #if HAVE_UNISTD_H
-#include <unistd.h>
+# include <unistd.h>
+#elif defined(_WIN32)
+# include <io.h>
 #endif /* HAVE_UNISTD_H */
 
 /* HP-UX require some constants defined by limits.h */
@@ -85,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.131 2010-01-08 22:08:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.132 2010-01-12 15:43:17 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -115,7 +117,7 @@ static void tsql_print_usage(const char *progname);
 static int get_opt_flags(char *s, int *opt_flags);
 static void populate_login(TDSLOGIN * login, int argc, char **argv);
 static int tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
-static void slurp_input_file(char *fname, char **mybuf, int *bufsz, size_t *buflen, int *line);
+static void slurp_input_file(char *fname, char **mybuf, size_t *bufsz, size_t *buflen, int *line);
 
 static char *
 tsql_readline(char *prompt)
@@ -138,7 +140,7 @@ tsql_readline(char *prompt)
 		printf("%s", prompt);
 	for (;;) {
 		/* read a piece */
-		if (fgets(line + pos, sz - pos, stdin) == NULL) {
+		if (fgets(line + pos, (int)(sz - pos), stdin) == NULL) {
 			if (pos)
 				return line;
 			break;
@@ -624,7 +626,7 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 }
 
 static void
-slurp_input_file(char *fname, char **mybuf, int *bufsz, size_t *buflen, int *line)
+slurp_input_file(char *fname, char **mybuf, size_t *bufsz, size_t *buflen, int *line)
 {
 	FILE *fp = NULL;
 	register char *n;
@@ -668,7 +670,7 @@ main(int argc, char **argv)
 	char prompt[20];
 	int line = 0;
 	char *mybuf;
-	int bufsz = 4096;
+	size_t bufsz = 4096;
 	size_t buflen = 0;
 	TDSSOCKET *tds;
 	TDSLOGIN *login;

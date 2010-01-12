@@ -246,4 +246,4 @@
 
 typedef SSIZE_T ssize_t;
 
-
+#define HAVE_LOCALE_H 1
