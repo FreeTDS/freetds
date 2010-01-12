@@ -1,3 +1,6 @@
+Tue Jan 12 11:20:04 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/replacements/strtok_r.c: Fix strtok_r function
+
 Mon Jan 11 19:14:03 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/config.c src/tds/login.c src/tds/mem.c:
 	* src/tds/util.c:
@@ -2118,4 +2121,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2938 2010-01-11 18:14:10 freddy77 Exp $
+$Id: ChangeLog,v 1.2939 2010-01-12 10:20:41 freddy77 Exp $
