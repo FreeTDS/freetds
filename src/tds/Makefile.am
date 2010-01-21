@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.68 2008-12-12 13:56:11 freddy77 Exp $
+# $Id: Makefile.am,v 1.69 2010-01-21 08:34:04 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
@@ -14,7 +14,7 @@ libtds_la_LDFLAGS=
 libtds_la_LIBADD=
 
 noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h types.h
-EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h types.h
+EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h types.h TDS.vcproj
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox

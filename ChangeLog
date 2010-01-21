@@ -1,3 +1,8 @@
+Thu Jan 21 09:33:32 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* Makefile.am src/dblib/Makefile.am src/replacements/Makefile.am:
+	* src/tds/Makefile.am:
+	- Distribute VC++ projects
+
 Thu Jan 21 09:24:26 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/db-lib.vcproj src/replacements/replacements.vcproj:
 	* src/tds/TDS.vcproj:
@@ -2132,4 +2137,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2941 2010-01-21 08:27:44 freddy77 Exp $
+$Id: ChangeLog,v 1.2942 2010-01-21 08:34:04 freddy77 Exp $

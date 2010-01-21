@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.15 2009-01-07 02:58:37 jklowden Exp $
+# $Id: Makefile.am,v 1.16 2010-01-21 08:34:04 freddy77 Exp $
 AM_CPPFLAGS=			-I$(top_srcdir)/include -I$(top_srcdir)/src/replacements
 noinst_LTLIBRARIES=		libreplacements.la
 libreplacements_la_SOURCES=	iconv.c gettimeofday.c fakepoll.c
@@ -11,5 +11,6 @@ EXTRA_DIST=	asprintf.c \
 		strlcat.c \
 		strlcpy.c \
 		strtok_r.c \
-		vasprintf.c 
+		vasprintf.c \
+		replacements.vcproj
 

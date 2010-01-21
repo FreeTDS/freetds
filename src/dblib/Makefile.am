@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.36 2007-11-22 08:44:54 freddy77 Exp $
+# $Id: Makefile.am,v 1.37 2010-01-21 08:34:04 freddy77 Exp $
 SUBDIRS		=	unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 
@@ -11,7 +11,7 @@ MINGW_SOURCES   =	../../win32/initnet.c
 else
 MINGW_SOURCES   =
 endif
-EXTRA_DIST	=	dbopen.c buffering.h
+EXTRA_DIST	=	dbopen.c buffering.h db-lib.vcproj
 libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c $(DBOPEN) $(MINGW_SOURCES)
 # version bumped for 0.63, I hope we'll bump it less in the future -- freddy77
 if MACOSX
