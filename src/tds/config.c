@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006, 2007, 2008, 2009  Frediano Ziglio
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.154 2010-01-11 18:14:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.155 2010-01-21 13:41:31 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -157,7 +157,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	char *s;
 	char *path;
 	pid_t pid;
-	int opened = 0;
+	int opened = 0, found;
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	connection = tds_alloc_connection(locale);
@@ -184,9 +184,16 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 
 	/* Read the config files. */
 	tdsdump_log(TDS_DBG_INFO1, "Attempting to read conf files.\n");
-	if (!tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name)) &&
-		(!parse_server_name_for_port(connection, login) ||
-		 !tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name)))) {
+	found = tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name));
+	if (!found) {
+		if (parse_server_name_for_port(connection, login)) {
+			found = tds_read_conf_file(connection, tds_dstr_cstr(&connection->server_name));
+			/* do it again to really override what found in freetds.conf */
+			if (found)
+				parse_server_name_for_port(connection, login);
+		}
+	}
+	if (!found) {
 		/* fallback to interfaces file */
 		tdsdump_log(TDS_DBG_INFO1, "Failed in reading conf file.  Trying interface files.\n");
 		if (!tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection)) {
@@ -1085,6 +1092,7 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 	if (pSep && pSep != server) {	/* yes, i found it! */
 		/* modify connection-> && login->server_name & ->port */
 		login->port = connection->port = atoi(pSep + 1);
+		tds_dstr_copy(&connection->instance_name, "");
 	} else {
 		/* handle instance name */
 		pSep = strrchr(server, '\\');
@@ -1092,10 +1100,10 @@ parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login)
 			return 0;
 
 		tds_dstr_copy(&connection->instance_name, pSep + 1);
+		connection->port = 0;
 	}
 
-	tds_dstr_setlen(&login->server_name, pSep - server);
-	if (!tds_dstr_dup(&connection->server_name, &login->server_name))
+	if (!tds_dstr_copyn(&connection->server_name, server, pSep - server))
 		return 0;
 
 	return 1;
