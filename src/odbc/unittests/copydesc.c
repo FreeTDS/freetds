@@ -2,7 +2,7 @@
 
 /* Test SQLCopyDesc and SQLAllocHandle(SQL_HANDLE_DESC) */
 
-static char software_version[] = "$Id: copydesc.c,v 1.5 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: copydesc.c,v 1.6 2010-01-22 10:45:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -29,6 +29,8 @@ main(int argc, char *argv[])
 	CHKAllocHandle(SQL_HANDLE_DESC, Connection, &ard3, "S");
 
 	CHKR(SQLCopyDesc, (ard, ard2), "S");
+
+	CHKFreeHandle(SQL_HANDLE_DESC, ard3, "S");
 
 	Disconnect();
 

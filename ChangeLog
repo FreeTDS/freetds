@@ -1,3 +1,6 @@
+Fri Jan 22 11:45:04 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/copydesc.c: check _SQLFreeDesc
+
 Fri Jan 22 11:43:29 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/token.c:
 	- do not define tds_swap_datatype if not needed
@@ -2148,4 +2151,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2945 2010-01-22 10:43:48 freddy77 Exp $
+$Id: ChangeLog,v 1.2946 2010-01-22 10:45:19 freddy77 Exp $
