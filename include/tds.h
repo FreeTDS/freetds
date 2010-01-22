@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.325 2010-01-11 18:14:10 freddy77 Exp $ */
+/* $Id: tds.h,v 1.326 2010-01-22 10:43:48 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1516,7 +1517,9 @@ int tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn
 
 /* token.c */
 int tds_process_cancel(TDSSOCKET * tds);
+#ifdef WORDS_BIGENDIAN
 void tds_swap_datatype(int coltype, unsigned char *buf);
+#endif
 void tds_swap_numeric(TDS_NUMERIC *num);
 int tds_get_token_size(int marker);
 int tds_process_login_tokens(TDSSOCKET * tds);
