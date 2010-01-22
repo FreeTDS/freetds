@@ -62,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.191 2010-01-10 14:43:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.192 2010-01-22 22:41:48 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1151,13 +1151,22 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		 * FIXME I think tab_colnum can be out of range - freddy77
 		 */
 		if (hostcol->tab_colnum) {
+			if (hostcol->tab_colnum > dbproc->bcpinfo->bindinfo->num_cols) {
+				tdsdump_log(TDS_DBG_FUNC, "error: file wider than table: %d/%d\n", 
+							  i+1, dbproc->bcpinfo->bindinfo->num_cols);
+				dbperror(dbproc, SYBEBEOF, NULL);
+				return FAIL;
+			}
+			tdsdump_log(TDS_DBG_FUNC, "host column %d uses bcpcol %d (%p)\n", 
+				                  i+1, hostcol->tab_colnum, bcpcol);
 			bcpcol = dbproc->bcpinfo->bindinfo->columns[hostcol->tab_colnum - 1];
+			assert(bcpcol != NULL);
 		}
 
 		/* detect prefix len */
 		if (bcpcol && hostcol->prefix_len == -1) {
-			int plen = bcpcol->column_varint_size;
-			hostcol->prefix_len = plen == 5 ? 4 : plen;
+			int len = bcpcol->column_varint_size;
+			hostcol->prefix_len = len == 5 ? 4 : len;
 		}
 
 		/* a prefix length, if extant, specifies how many bytes to read */
