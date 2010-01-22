@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.69 2010-01-21 08:34:04 freddy77 Exp $
+# $Id: Makefile.am,v 1.70 2010-01-22 09:37:58 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
@@ -41,7 +41,7 @@ if HAVE_PERL_SOURCES
 BUILT_SOURCES = tds_willconvert.h encodings.h num_limits.h types.h
 
 clean-local: 
-	cd $(srcdir) && rm -f $(EXTRA_DIST)
+	cd $(srcdir) && rm -f $(BUILT_SOURCES)
 	
 tds_willconvert.h: tds_willconvert.pl Makefile
 	perl $(srcdir)/tds_willconvert.pl > $@.tmp
