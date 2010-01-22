@@ -22,7 +22,7 @@ Release: 1
 Vendor: www.freetds.org 
 License: LGPL 
 Group: System Environment/Libraries 
-Source: http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/%{name}-%{version}.tar.gz 
+Source: http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/%{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-buildroot
 %{?tds_builddep:BuildRequires: %{tds_builddep}}
 %{?tds_dep:Requires: %tds_dep}

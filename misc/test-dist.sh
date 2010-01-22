@@ -55,8 +55,8 @@ make dist
 echo "make distribution ok" >> "$LOG"
 
 # untar to test it, should already contains documentation
-DIR=`echo freetds-* | sed s,.tar.gz$,,g`
-gunzip -dc freetds-*.tar.gz | tar xf -
+DIR=`echo freetds-* | sed s,.tar.bz2$,,g`
+bzip2 -dc freetds-*.tar.bz2 | tar xf -
 test -d "$DIR"
 cd "$DIR"
 echo "untar ok" >> "$LOG"
@@ -116,7 +116,7 @@ make dist
 # finally big test. I hope you have a fast machine :)
 cd ..
 rm -rf "$DIR"
-gunzip -dc freetds-*.tar.gz | tar xf -
+bzip2 -dc freetds-*.tar.bz2 | tar xf -
 cd "$DIR"
 ./configure
 if test ! -e PWD -a -e "$ORIGDIR/../PWD"; then
@@ -139,7 +139,7 @@ if rpmbuild --help > /dev/null 2>&1; then
 	RPMCMD=rpmbuild
 fi
 if $RPMCMD --help > /dev/null 2>&1; then
-	$RPMCMD -ta freetds-*.tar.gz || exit 1
+	$RPMCMD -ta freetds-*.tar.bz2 || exit 1
 	echo "rpm test ok" >> "$LOG"
 else
 	echo "rpm test skipped, no rpm detected" >> "$LOG"

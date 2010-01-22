@@ -1,3 +1,8 @@
+Fri Jan 22 13:40:35 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac freetds.spec.in misc/prepare_win32.sh:
+	* misc/test-dist.sh:
+	- package bzip2 file instead of gz one
+
 Fri Jan 22 11:45:04 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/copydesc.c: check _SQLFreeDesc
 
@@ -2151,4 +2156,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2946 2010-01-22 10:45:19 freddy77 Exp $
+$Id: ChangeLog,v 1.2947 2010-01-22 12:42:13 freddy77 Exp $

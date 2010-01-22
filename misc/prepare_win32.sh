@@ -67,10 +67,14 @@ if test "$PACKAGE_VERSION" = ""; then
 	PACKAGE_VERSION="$VERSION"
 fi
 test "$PACKAGE_VERSION" != "" || errore "PACKAGE_VERSION not found"
-test -r "freetds-$PACKAGE_VERSION.tar.gz" || make dist
-test -r "freetds-$PACKAGE_VERSION.tar.gz" || errore "package not found"
+test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || make dist
+test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || errore "package not found"
 rm -rf "freetds-$PACKAGE_VERSION"
-tar zxvf "freetds-$PACKAGE_VERSION.tar.gz"
+if test -r "freetds-$PACKAGE_VERSION.tar.gz"; then
+	gunzip -dc "freetds-$PACKAGE_VERSION.tar.gz" | tar xvf -
+else
+	bunzip2 -dc "freetds-$PACKAGE_VERSION.tar.bz2" | tar xvf -
+fi
 cd "freetds-$PACKAGE_VERSION" || errore "Directory not found"
 
 if ! $HOST-gcc --help > /dev/null 2> /dev/null; then
