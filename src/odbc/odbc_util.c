@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005, 2006, 2007, 2008 Frediano Ziglio
+ * Copyright (C) 2005-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.110 2009-11-27 18:01:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.111 2010-01-23 20:42:25 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -271,6 +271,7 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBBITN:
 		return SQL_BIT;
 #if (ODBCVER >= 0x0300)
+	case SYB5INT8:
 	case SYBINT8:
 		/* TODO return numeric for odbc2 and convert bigint to numeric */
 		return SQL_BIGINT;
@@ -355,7 +356,6 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBUINT1:
 	case SYBDATE:
 	case SYBDATEN:
-	case SYB5INT8:
 	case SYBINTERVAL:
 	case SYBTIME:
 	case SYBTIMEN:

@@ -1,3 +1,6 @@
+Sat Jan 23 21:42:18 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc_util.c: silly patch for Sybase bigint
+
 Sat Jan 23 21:25:35 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c:
 	- Removed 2009-12-22 patch "Better way to fix data_type for date"
@@ -2164,4 +2167,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2949 2010-01-23 20:25:56 freddy77 Exp $
+$Id: ChangeLog,v 1.2950 2010-01-23 20:42:25 freddy77 Exp $
