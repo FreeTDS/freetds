@@ -20,8 +20,8 @@
 #ifndef TDS_CHECKS_H
 #define TDS_CHECKS_H
 
-/* $Id: tds_checks.h,v 1.5 2009-11-26 09:07:28 freddy77 Exp $ */
-#if defined(__GNUC__) && __GNUC__ >= 4
+/* $Id: tds_checks.h,v 1.6 2010-01-25 23:05:59 freddy77 Exp $ */
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
 #endif
 
@@ -50,7 +50,7 @@ void tds_check_cursor_extra(const TDSCURSOR * cursor);
 void tds_check_dynamic_extra(const TDSDYNAMIC * dynamic);
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility pop
 #endif
 #endif /* TDS_CHECKS_H */

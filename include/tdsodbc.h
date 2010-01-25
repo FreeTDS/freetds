@@ -66,9 +66,9 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.117 2010-01-10 14:43:11 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.118 2010-01-25 23:05:59 freddy77 Exp $ */
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
 #define ODBC_API SQL_API __attribute__((externally_visible))
 #else
@@ -558,7 +558,7 @@ size_t sqlwcslen(const SQLWCHAR * s);
 #error SIZEOF_SQLWCHAR not supported !!
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility pop
 #endif
 

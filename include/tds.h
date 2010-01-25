@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.326 2010-01-22 10:43:48 freddy77 Exp $ */
+/* $Id: tds.h,v 1.327 2010-01-25 23:05:58 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -41,7 +41,7 @@ typedef struct tds_socket TDSSOCKET;
 #include "tds_sysdep_private.h"
 #endif /* _FREETDS_LIBRARY_SOURCE */
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
 #endif
 
@@ -1568,11 +1568,11 @@ unsigned int tds_gettime_ms(void);
 void tdsdump_off(void);
 void tdsdump_on(void);
 int tdsdump_isopen(void);
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility pop
 #endif
 int tdsdump_open(const char *filename);
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
 #endif
 void tdsdump_close(void);
@@ -1680,7 +1680,7 @@ int tds_writetext_end(TDSSOCKET *tds);
 }
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility pop
 #endif
 

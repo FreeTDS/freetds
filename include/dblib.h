@@ -20,7 +20,7 @@
 #ifndef _dblib_h_
 #define _dblib_h_
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
 #endif
 
@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.45 2008-12-12 13:56:11 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.46 2010-01-25 23:05:58 freddy77 Exp $ */
 
 typedef enum tag_DB_RESULT_STATE {
 	  _DB_RES_INIT
@@ -199,7 +199,7 @@ extern EHANDLEFUNC _dblib_err_handler;
 }
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility pop
 #endif
 

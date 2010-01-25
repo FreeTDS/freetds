@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-/* $Id: tdsiconv.h,v 1.37 2008-10-17 08:39:16 freddy77 Exp $ */
+/* $Id: tdsiconv.h,v 1.38 2010-01-25 23:05:58 freddy77 Exp $ */
 
 #if HAVE_ICONV
 #include <iconv.h>
@@ -50,7 +50,7 @@ typedef void *iconv_t;
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
 #endif
 
@@ -172,7 +172,7 @@ TDSICONV *tds_iconv_get(TDSSOCKET * tds, const char *client_charset, const char 
 }
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility pop
 #endif
 
