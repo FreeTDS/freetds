@@ -1,3 +1,6 @@
+Mon Jan 25 15:23:22 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/version.rc.in: update copyright note
+
 Sat Jan 23 21:42:18 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc_util.c: silly patch for Sybase bigint
 
@@ -2167,4 +2170,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2950 2010-01-23 20:42:25 freddy77 Exp $
+$Id: ChangeLog,v 1.2951 2010-01-25 14:24:11 freddy77 Exp $
