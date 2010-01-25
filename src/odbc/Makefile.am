@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.46 2008-07-07 11:27:12 freddy77 Exp $
+# $Id: Makefile.am,v 1.47 2010-01-25 23:06:59 freddy77 Exp $
 SUBDIRS		= unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
@@ -15,10 +15,10 @@ libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 if MINGW32
 libtdsodbc_la_LIBADD=	../../win32/setup.res ../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) \
 	$(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
-libtdsodbc_la_LDFLAGS = -Wl,--enable-stdcall-fixup -Wl,-s -Wl,../../win32/FreeTDS.def -Wl,../../win32/setup.res $(FREETDS_SYMBOLIC)
+libtdsodbc_la_LDFLAGS = -Wl,--enable-stdcall-fixup -Wl,-s -Wl,$(top_srcdir)/win32/FreeTDS.def -Wl,../../win32/setup.res $(FREETDS_SYMBOLIC)
 
 .rc.res:
-	$(RC) -i $< --input-format=rc -o $@ -O coff
+	$(RC) -i $< -I $(top_builddir)/win32 --input-format=rc -o $@ -O coff
 else
 libtdsodbc_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
 if MACOSX

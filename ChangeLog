@@ -1,3 +1,6 @@
+Tue Jan 26 00:06:54 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/Makefile.am: fix windows build out of directory
+
 Tue Jan 26 00:05:46 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/ctlib.h include/dblib.h include/des.h include/hmac_md5.h:
 	* include/md4.h include/md5.h include/replacements.h:
@@ -2178,4 +2181,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2952 2010-01-25 23:05:58 freddy77 Exp $
+$Id: ChangeLog,v 1.2953 2010-01-25 23:06:59 freddy77 Exp $
