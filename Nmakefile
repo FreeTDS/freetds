@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.2 2010-01-08 22:08:01 jklowden Exp $
+# $Id: Nmakefile,v 1.3 2010-01-26 16:28:05 jklowden Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -13,6 +13,7 @@
 #	
 
 MKDIR = MD
+MV = move /Y
 
 DBLIB_DIR        = src\dblib
 REPLACEMENTS_DIR = src\replacements
@@ -196,7 +197,34 @@ $(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
 	@if "" equ "$(CONFIGURATION)" 	CONFIGURATION not defined, see comments in Nmakefile >&2 && exit 1
 	$(MKDIR) $@
 
-$(DBLIB_OUT)\db-lib.lib: $(DBLIB_OUT) $(DBLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
+#
+# Generate distributed header files
+#
+include\tdsver.h:
+	perl -e"@a=localtime; printf qq(#undef  TDS_VERSION_NO\n#define TDS_VERSION_NO \"freetds v0.83.dev.%d%02d%02d\"\n), 1900+$$a[5], 1+$$a[-1], $$a[3]" \
+	> $@.err 
+	move /Y $@.err $@
+
+include\types.h:
+	perl src\tds\types.pl misc\types.txt > $@.err
+	move /Y $@.err $@
+
+src\tds\tds_willconvert.h: src\tds\tds_willconvert.pl
+	perl src\tds\tds_willconvert.pl > $@.tmp
+	$(MV) $@.tmp $@
+
+src\tds\encodings.h: src\tds\encodings.pl src\tds\alternative_character_sets.h
+	perl src\tds\encodings.pl src\tds > $@.tmp 2> NUL:
+	$(MV) $@.tmp $@
+
+src\tds\num_limits.h: src\tds\num_limits.pl
+	perl src\tds\num_limits.pl > $@.tmp
+	$(MV) $@.tmp $@
+
+GENERATED_FILES = include\tdsver.h include\types.h \
+	src\tds\tds_willconvert.h src\tds\encodings.h src\tds\num_limits.h
+
+$(DBLIB_OUT)\db-lib.lib: $(GENERATED_FILES) $(DBLIB_OUT) $(DBLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
 	@echo building $@ >&2
 	lib -nologo -out:"$@" 	$(DBLIB_OBJ) \
 				$(REPLACEMENTS_OUT)\replacements.lib \
