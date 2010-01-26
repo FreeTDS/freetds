@@ -421,6 +421,9 @@ ConfigTranslator(HWND hwndParent, DWORD * pvOption)
 	return TRUE;
 }
 
+/**
+ * Allow install using regsvr32
+ */
 HRESULT WINAPI
 DllRegisterServer(void)
 {
@@ -457,6 +460,9 @@ DllRegisterServer(void)
 	return S_OK;
 }
 
+/**
+ * Allow uninstall using regsvr32 command
+ */
 HRESULT WINAPI
 DllUnregisterServer(void)
 {
