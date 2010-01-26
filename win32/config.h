@@ -205,6 +205,9 @@
 /* The size of a `__int64', as computed by sizeof. */
 #define SIZEOF___INT64 8
 
+/* Define to 1 if you want to use SSPI for Win32 */
+#define HAVE_SSPI 1
+
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 

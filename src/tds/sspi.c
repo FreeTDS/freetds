@@ -30,6 +30,7 @@
 #endif /* HAVE_STRING_H */
 
 #if HAVE_SSPI
+#define SECURITY_WIN32
 
 #include <windows.h>
 #include <security.h>
@@ -44,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.1 2010-01-26 11:21:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.2 2010-01-26 18:15:39 jklowden Exp $");
 
 /**
  * \ingroup libtds
@@ -131,7 +132,7 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 	auth_buf = (TDS_UCHAR *) malloc(len);
 	if (!auth_buf)
 		return TDS_FAIL;
-	tds_get_n(tds, auth_buf, len);
+	tds_get_n(tds, auth_buf, (int)len);
 
 	in_desc.ulVersion  = out_desc.ulVersion  = SECBUFFER_VERSION;
 	in_desc.cBuffers   = out_desc.cBuffers   = 1;
@@ -140,15 +141,13 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 
 	in_buf.BufferType = SECBUFFER_TOKEN;
 	in_buf.pvBuffer   = auth_buf;
-	in_buf.cbBuffer   = len;
+	in_buf.cbBuffer   = (ULONG)len;
 
 	out_buf.BufferType = SECBUFFER_TOKEN;
 	out_buf.pvBuffer   = auth->tds_auth.packet;
 	out_buf.cbBuffer   = NTLMBUF_LEN;
 
-	status = sec_fn->InitializeSecurityContextA(&auth->cred, &auth->cred_ctx,
-		// (char *) host,
-		NULL,
+	status = sec_fn->InitializeSecurityContextA(&auth->cred, &auth->cred_ctx, NULL,  
 		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
 		0, SECURITY_NETWORK_DREP, &in_desc,
 		0, &auth->cred_ctx, &out_desc,
@@ -212,9 +211,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	buf.BufferType = SECBUFFER_TOKEN;
 	buf.pvBuffer   = auth->tds_auth.packet;
 
-	status = sec_fn->InitializeSecurityContextA(&auth->cred, NULL,
-		//(char *) host,
-		"",
+	status = sec_fn->InitializeSecurityContext(&auth->cred, NULL, "",
 		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
 		0, SECURITY_NETWORK_DREP,
 		NULL, 0,
@@ -234,7 +231,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	return &auth->tds_auth;
 }
 
-#endif
+#endif /* HAVE_SSPI */
 
 /** @} */
 
