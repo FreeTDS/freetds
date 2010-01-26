@@ -76,3 +76,5 @@ EXPORTS
 	ConfigDSN
 	ConfigDriver
 	ConfigTranslator
+	DllRegisterServer
+	DllUnregisterServer
