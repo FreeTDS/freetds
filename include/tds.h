@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.327 2010-01-25 23:05:58 freddy77 Exp $ */
+/* $Id: tds.h,v 1.328 2010-01-26 11:21:10 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1613,8 +1613,12 @@ TDS_INT tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_p
 /* getmac.c */
 void tds_getmac(TDS_SYS_SOCKET s, unsigned char mac[6]);
 
+#ifndef HAVE_SSPI
 TDSAUTHENTICATION * tds_ntlm_get_auth(TDSSOCKET * tds);
 TDSAUTHENTICATION * tds_gss_get_auth(TDSSOCKET * tds);
+#else
+TDSAUTHENTICATION * tds_sspi_get_auth(TDSSOCKET * tds);
+#endif
 
 /* bulk.c */
 typedef struct tds_bcpinfo

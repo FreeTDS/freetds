@@ -1,20 +1,29 @@
-# $Id: Makefile.am,v 1.70 2010-01-22 09:37:58 freddy77 Exp $
+# $Id: Makefile.am,v 1.71 2010-01-26 11:21:10 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
 
 noinst_LTLIBRARIES	=	libtds.la
+if HAVE_SSPI
+AUTH_FILES_DIST	= challenge.c md4.c md5.c des.c gssapi.c hmac_md5.c
+AUTH_FILES	= sspi.c
+else
+AUTH_FILES	= challenge.c md4.c md5.c des.c gssapi.c hmac_md5.c
+AUTH_FILES_DIST	= sspi.c
+endif
 libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	write.c convert.c numeric.c config.c query.c iconv.c \
-	locale.c challenge.c threadsafe.c vstrbuild.c md4.c md5.c \
-	des.c tdsstring.c getmac.c data.c net.c \
+	locale.c threadsafe.c vstrbuild.c \
+	tdsstring.c getmac.c data.c net.c \
 	tds_checks.c tds_checks.h enum_cap.h log.c \
-	gssapi.c hmac_md5.c bulk.c
+	bulk.c \
+	$(AUTH_FILES)
 libtds_la_LDFLAGS=
 libtds_la_LIBADD=
 
 noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h types.h
-EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h types.h TDS.vcproj
+EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h types.h \
+	TDS.vcproj $(AUTH_FILES_DIST)
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox

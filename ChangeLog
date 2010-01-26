@@ -1,3 +1,8 @@
+Tue Jan 26 12:20:56 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac include/tds.h src/tds/Makefile.am src/tds/login.c:
+	* src/tds/sspi.c:
+	- add experimental support for SSPI (not enabled by default)
+
 Tue Jan 26 12:09:58 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/FreeTDS.def win32/winsetup.c:
 	- allow driver registration like ole controls
@@ -2185,4 +2190,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2954 2010-01-26 11:10:51 freddy77 Exp $
+$Id: ChangeLog,v 1.2955 2010-01-26 11:21:10 freddy77 Exp $

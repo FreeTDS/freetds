@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005, 2006, 2007, 2008  Ziglio Frediano
+ * Copyright (C) 2005-2010  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.193 2010-01-11 18:14:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.194 2010-01-26 11:21:10 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -743,6 +743,14 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
 
 	/* check ntlm */
+#ifdef HAVE_SSPI
+	if (strchr(user_name, '\\') != NULL || user_name_len == 0) {
+		tds->authentication = tds_sspi_get_auth(tds);
+		if (!tds->authentication)
+			return TDS_FAIL;
+		auth_len = tds->authentication->packet_len;
+		packet_size += auth_len;
+#else
 	if (strchr(user_name, '\\') != NULL) {
 		tds->authentication = tds_ntlm_get_auth(tds);
 		if (!tds->authentication)
@@ -750,15 +758,16 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		auth_len = tds->authentication->packet_len;
 		packet_size += auth_len;
 	} else if (user_name_len == 0) {
-#ifdef ENABLE_KRB5
+# ifdef ENABLE_KRB5
 		/* try kerberos */
 		tds->authentication = tds_gss_get_auth(tds);
 		if (!tds->authentication)
 			return TDS_FAIL;
 		auth_len = tds->authentication->packet_len;
 		packet_size += auth_len;
-#else
+# else
 		return TDS_FAIL;
+# endif
 #endif
 	} else
 		packet_size += (user_name_len + password_len) * 2;
