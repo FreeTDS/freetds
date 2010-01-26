@@ -1,3 +1,6 @@
+Tue Jan 26 14:41:18 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/winsetup.c: avoid silly buffer overflow
+
 Tue Jan 26 12:20:56 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac include/tds.h src/tds/Makefile.am src/tds/login.c:
 	* src/tds/sspi.c:
@@ -2190,4 +2193,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2955 2010-01-26 11:21:10 freddy77 Exp $
+$Id: ChangeLog,v 1.2956 2010-01-26 13:43:09 freddy77 Exp $

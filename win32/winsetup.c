@@ -396,18 +396,21 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 BOOL INSTAPI
 ConfigDriver(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszArgs, LPSTR lpszMsg, WORD cbMsgMax, WORD * pcbMsgOut)
 {
+	const char *msg = NULL;
+
 	/* TODO finish ?? */
 	switch (fRequest) {
 	case ODBC_INSTALL_DRIVER:
-		/* FIXME possible buffer overflow */
-		strcpy(lpszMsg, "Hello");
-		*pcbMsgOut = strlen(lpszMsg);
+		msg = "Hello";
 		break;
 	case ODBC_REMOVE_DRIVER:
-		/* FIXME possible buffer overflow */
-		strcpy(lpszMsg, "Goodbye");
-		*pcbMsgOut = strlen(lpszMsg);
+		msg = "Goodbye";
 		break;
+	}
+
+	if (msg && lpszMsg && cbMsgMax > strlen(msg)) {
+		strcpy(lpszMsg, msg);
+		*pcbMsgOut = strlen(msg);
 	}
 	return TRUE;
 }
