@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.359 2010-01-10 14:43:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.360 2010-01-27 03:21:08 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7805,7 +7805,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 int
 dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 {
-	static const char int_exit_text[] = "FreeTDS: db-lib: exiting because client error handler returned %d for msgno %d\n";
+	static const char int_exit_text[] = "FreeTDS: db-lib: exiting because client error handler returned %s for msgno %d\n";
 	static const char int_invalid_text[] = "%s (%d) received from client-installed error handler for nontimeout for error %d."
 					       "  Treating as INT_EXIT\n";
 	static const DBLIB_ERROR_MESSAGE default_message = { 0, EXCONSISTENCY, "unrecognized msgno" };
@@ -7814,6 +7814,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	
 	int i, rc = INT_CANCEL;
 	char *os_msgtext = strerror(errnum), *rc_name;
+	char db_msgtext[32] = "INT_CANCEL"; 
 
 	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
 
@@ -7927,6 +7928,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		return rc;	/* normal case */
 		break;
 	default:
+		sprintf(db_msgtext, "%d", rc);
 		tdsdump_log(TDS_DBG_SEVERE, int_invalid_text, "Invalid return code", rc, msgno);
 		/* fall through */
 	case INT_EXIT:
@@ -7934,7 +7936,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			/* Microsoft behavior */
 			return INT_CANCEL;
 		}
-		fprintf(stderr, int_exit_text, rc, msgno);
+		fprintf(stderr, int_exit_text, db_msgtext, msgno);
 		tdsdump_log(TDS_DBG_SEVERE, int_exit_text, rc, msgno);
 		break;
 	}
