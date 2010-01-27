@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.2 2010-01-26 18:15:39 jklowden Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.3 2010-01-27 08:08:32 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -147,7 +147,7 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 	out_buf.pvBuffer   = auth->tds_auth.packet;
 	out_buf.cbBuffer   = NTLMBUF_LEN;
 
-	status = sec_fn->InitializeSecurityContextA(&auth->cred, &auth->cred_ctx, NULL,  
+	status = sec_fn->InitializeSecurityContext(&auth->cred, &auth->cred_ctx, NULL,
 		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
 		0, SECURITY_NETWORK_DREP, &in_desc,
 		0, &auth->cred_ctx, &out_desc,
@@ -190,7 +190,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 
 	/* TODO parse user/pass and use them if available */
 	/* TODO use SPNEGO to use Kerberos if possible */
-	if (sec_fn->AcquireCredentialsHandleA(NULL, (char *)"NTLM", SECPKG_CRED_OUTBOUND,
+	if (sec_fn->AcquireCredentialsHandle(NULL, (char *)"NTLM", SECPKG_CRED_OUTBOUND,
 		NULL, NULL, // ntlm->p_identity,
 		NULL, NULL, &auth->cred, &ts) != SEC_E_OK) {
 		free(auth);
