@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.155 2010-01-21 13:41:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.156 2010-01-27 12:16:09 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -771,7 +771,7 @@ tds_set_interfaces_file_loc(const char *interf)
  * string.
  */
 /* TODO callers seem to set always connection info... change it */
-void
+int
 tds_lookup_host(const char *servername,	/* (I) name of the server                  */
 		char *ip	/* (O) dotted-decimal ip address of server */
 	)
@@ -792,7 +792,7 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	ip_addr = inet_addr(servername);
 	if (ip_addr != INADDR_NONE) {
 		tds_strlcpy(ip, servername, 17);
-		return;
+		return TDS_SUCCEED;
 	}
 
 	host = tds_gethostbyname_r(servername, &result, buffer, sizeof(buffer), &h_errnop);
@@ -802,7 +802,9 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 		struct in_addr *ptr = (struct in_addr *) host->h_addr;
 
 		tds_inet_ntoa_r(*ptr, ip, 17);
+		return TDS_SUCCEED;
 	}
+	return TDS_FAIL;
 }
 
 /**

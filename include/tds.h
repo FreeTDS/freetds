@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.328 2010-01-26 11:21:10 freddy77 Exp $ */
+/* $Id: tds.h,v 1.329 2010-01-27 12:16:09 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1414,7 +1414,7 @@ void tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSCONNECTION *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_connection(TDSCONNECTION * connection);
 TDS_USMALLINT tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
-void tds_lookup_host(const char *servername, char *ip);
+int tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
 
