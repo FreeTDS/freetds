@@ -38,6 +38,7 @@
 #include <rpc.h>
 
 #include "tds.h"
+#include "tdsthread.h"
 #include "tdsstring.h"
 #include "replacements.h"
 
@@ -45,7 +46,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.5 2010-01-27 12:22:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.6 2010-01-27 15:35:18 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -68,37 +69,48 @@ typedef struct tds_sspi_auth
 
 static HMODULE secdll = NULL;
 static PSecurityFunctionTableA sec_fn = NULL;
+static TDS_MUTEX_DEFINE(sec_mutex);
 
 static int
 tds_init_secdll(void)
 {
-	/* FIXME therad safe !!! */
-	if (!secdll) {
-		OSVERSIONINFO osver;
+	int res = 0;
 
-		memset(&osver, 0, sizeof(osver));
-		osver.dwOSVersionInfoSize = sizeof(osver);
-		if (!GetVersionEx(&osver))
-			return 0;
-		if (osver.dwPlatformId == VER_PLATFORM_WIN32_NT && osver.dwMajorVersion <= 4)
-			secdll = LoadLibrary("security.dll");
-		else
-			secdll = LoadLibrary("secur32.dll");
-		if (!secdll)
-			return 0;
+	if (sec_fn)
+		return 1;
+
+	TDS_MUTEX_LOCK(&sec_mutex);
+	for (;;) {
+		if (!secdll) {
+			OSVERSIONINFO osver;
+
+			memset(&osver, 0, sizeof(osver));
+			osver.dwOSVersionInfoSize = sizeof(osver);
+			if (!GetVersionEx(&osver))
+				break;
+			if (osver.dwPlatformId == VER_PLATFORM_WIN32_NT && osver.dwMajorVersion <= 4)
+				secdll = LoadLibrary("security.dll");
+			else
+				secdll = LoadLibrary("secur32.dll");
+			if (!secdll)
+				break;
+		}
+		if (!sec_fn) {
+			INIT_SECURITY_INTERFACE_A pInitSecurityInterface;
+
+			pInitSecurityInterface = (INIT_SECURITY_INTERFACE_A) GetProcAddress(secdll, "InitSecurityInterfaceA");
+			if (!pInitSecurityInterface)
+				break;
+
+			sec_fn = pInitSecurityInterface();
+			if (!sec_fn)
+				break;
+		}
+		res = 1;
+		break;
 	}
-	if (!sec_fn) {
-		INIT_SECURITY_INTERFACE_A pInitSecurityInterface;
-
-		pInitSecurityInterface = (INIT_SECURITY_INTERFACE_A) GetProcAddress(secdll, "InitSecurityInterfaceA");
-		if (!pInitSecurityInterface)
-			return 0;
-
-		sec_fn = pInitSecurityInterface();
-		if (!sec_fn)
-			return 0;
-	}
-	return 1;
+	TDS_MUTEX_UNLOCK(&sec_mutex);
+	return res;
 }
 
 static int

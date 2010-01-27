@@ -1,3 +1,6 @@
+Wed Jan 27 16:34:28 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/sspi.c: fix thread issue with SSPI
+
 Wed Jan 27 16:29:44 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsthread.h src/tds/Makefile.am src/tds/ptw32_MCS_lock.c:
 	* src/tds/win_mutex.c:
@@ -2230,4 +2233,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2965 2010-01-27 15:32:02 freddy77 Exp $
+$Id: ChangeLog,v 1.2966 2010-01-27 15:35:18 freddy77 Exp $
