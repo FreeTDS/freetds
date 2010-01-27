@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.71 2010-01-26 11:21:10 freddy77 Exp $
+# $Id: Makefile.am,v 1.72 2010-01-27 15:32:04 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
@@ -16,14 +16,14 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 	locale.c threadsafe.c vstrbuild.c \
 	tdsstring.c getmac.c data.c net.c \
 	tds_checks.c tds_checks.h enum_cap.h log.c \
-	bulk.c \
+	bulk.c win_mutex.c \
 	$(AUTH_FILES)
 libtds_la_LDFLAGS=
 libtds_la_LIBADD=
 
 noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h types.h
 EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h types.h \
-	TDS.vcproj $(AUTH_FILES_DIST)
+	TDS.vcproj ptw32_MCS_lock.c $(AUTH_FILES_DIST)
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox
