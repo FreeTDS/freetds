@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006, 2007, 2008  Frediano Ziglio
+ * Copyright (C) 2006-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.360 2010-01-27 03:21:08 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.361 2010-01-27 15:39:00 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7937,7 +7937,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			return INT_CANCEL;
 		}
 		fprintf(stderr, int_exit_text, db_msgtext, msgno);
-		tdsdump_log(TDS_DBG_SEVERE, int_exit_text, rc, msgno);
+		tdsdump_log(TDS_DBG_SEVERE, int_exit_text, db_msgtext, msgno);
 		break;
 	}
 	exit(EXIT_FAILURE);
