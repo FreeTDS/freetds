@@ -62,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.192 2010-01-22 22:41:48 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.193 2010-01-27 23:15:39 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1154,7 +1154,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			if (hostcol->tab_colnum > dbproc->bcpinfo->bindinfo->num_cols) {
 				tdsdump_log(TDS_DBG_FUNC, "error: file wider than table: %d/%d\n", 
 							  i+1, dbproc->bcpinfo->bindinfo->num_cols);
-				dbperror(dbproc, SYBEBEOF, NULL);
+				dbperror(dbproc, SYBEBEOF, 0);
 				return FAIL;
 			}
 			tdsdump_log(TDS_DBG_FUNC, "host column %d uses bcpcol %d (%p)\n", 
