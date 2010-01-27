@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.526 2010-01-23 20:25:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.527 2010-01-27 08:31:26 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -471,12 +471,6 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 	if (tds_dstr_isempty(&connection->server_name)) {
 		tds_free_connection(connection);
 		odbc_errs_add(&dbc->errs, "IM007", "Could not find Servername or server parameter");
-		ODBC_RETURN(dbc, SQL_ERROR);
-	}
-
-	if (tds_dstr_isempty(&connection->user_name)) {
-		tds_free_connection(connection);
-		odbc_errs_add(&dbc->errs, "IM007", "Could not find UID parameter");
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 

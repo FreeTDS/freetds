@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.3 2010-01-27 08:08:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.4 2010-01-27 08:31:26 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -147,7 +147,7 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 	out_buf.pvBuffer   = auth->tds_auth.packet;
 	out_buf.cbBuffer   = NTLMBUF_LEN;
 
-	status = sec_fn->InitializeSecurityContext(&auth->cred, &auth->cred_ctx, NULL,
+	status = sec_fn->InitializeSecurityContext(&auth->cred, &auth->cred_ctx, NULL /* TODO SPN */,
 		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
 		0, SECURITY_NETWORK_DREP, &in_desc,
 		0, &auth->cred_ctx, &out_desc,
@@ -175,11 +175,32 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	SECURITY_STATUS status;
 	ULONG attrs;
 	TimeStamp ts;
+	SEC_WINNT_AUTH_IDENTITY identity;
+	const char *p, *user_name;
 
 	TDSSSPIAUTH *auth;
+	TDSCONNECTION *connection = tds->connection;
+
+	/* check connection */
+	if (!connection)
+		return TDS_FAIL;
 
 	if (!tds_init_secdll())
 		return NULL;
+
+	/* parse username/password informations */
+	memset(&identity, 0, sizeof(identity));
+	user_name = tds_dstr_cstr(&connection->user_name);
+	if ((p = strchr(user_name, '\\')) != NULL) {
+		identity.Flags = SEC_WINNT_AUTH_IDENTITY_ANSI;
+		identity.Password = (unsigned short *) tds_dstr_cstr(&connection->password);
+		identity.PasswordLength = tds_dstr_len(&connection->password);
+		identity.Domain = (unsigned short *) user_name;
+		identity.DomainLength = p - user_name;
+		user_name = p + 1;
+		identity.User = (unsigned short *) user_name;
+		identity.UserLength = strlen(user_name);
+	}
 
 	auth = (TDSSSPIAUTH *) calloc(1, sizeof(TDSSSPIAUTH));
 	if (!auth || !tds->connection)
@@ -188,10 +209,9 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	auth->tds_auth.free = tds_sspi_free;
 	auth->tds_auth.handle_next = tds_sspi_handle_next;
 
-	/* TODO parse user/pass and use them if available */
 	/* TODO use SPNEGO to use Kerberos if possible */
 	if (sec_fn->AcquireCredentialsHandle(NULL, (char *)"NTLM", SECPKG_CRED_OUTBOUND,
-		NULL, NULL, // ntlm->p_identity,
+		NULL, identity.Domain ? &identity : NULL,
 		NULL, NULL, &auth->cred, &ts) != SEC_E_OK) {
 		free(auth);
 		return NULL;
@@ -211,7 +231,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	buf.BufferType = SECBUFFER_TOKEN;
 	buf.pvBuffer   = auth->tds_auth.packet;
 
-	status = sec_fn->InitializeSecurityContext(&auth->cred, NULL, "",
+	status = sec_fn->InitializeSecurityContext(&auth->cred, NULL, "" /* TODO SPN */,
 		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
 		0, SECURITY_NETWORK_DREP,
 		NULL, 0,
