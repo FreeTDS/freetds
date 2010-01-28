@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.100 2010-01-10 14:43:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.101 2010-01-28 13:15:21 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -273,10 +273,10 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
-		tds->oserr = sock_errno;
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", sock_strerror(sock_errno));
+		int err = tds->oserr = sock_errno;
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", sock_strerror(err));
 #if DEBUGGING_CONNECTING_PROBLEM
-		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != TDSSOCK_EINPROGRESS) {
+		if (err != ECONNREFUSED && err != ENETUNREACH && err != TDSSOCK_EINPROGRESS) {
 			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", &sin, sizeof(sin));
 			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
 							      "%s = %x\n" 
@@ -290,7 +290,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 							);
 		}
 #endif
-		if (sock_errno != TDSSOCK_EINPROGRESS)
+		if (err != TDSSOCK_EINPROGRESS)
 			goto not_available;
 		
 		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) <= 0) {
@@ -691,6 +691,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 
 	while (p - buffer < len) {
 		if ((rc = tds_select(tds, TDSSELWRITE, tds->query_timeout)) > 0) {
+			int err;
 			size_t remaining = len - (p - buffer);
 #ifdef USE_MSGMORE
 			ssize_t nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
@@ -704,22 +705,24 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 				p += nput;
 				continue;
 			}
-			
-			if (0 == nput || TDSSOCK_WOULDBLOCK(sock_errno))
+
+			err = sock_errno;
+			if (0 == nput || TDSSOCK_WOULDBLOCK(err))
 				continue;
 
 			assert(nput < 0);
-			
-			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", sock_errno, sock_strerror(sock_errno));
-			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);
+
+			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
+			tdserror(tds->tds_ctx, tds, TDSEWRIT, err);
 			tds_close_socket(tds);
 			return -1;
 
 		} else if (rc < 0) {
-			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK, retry */
+			int err = sock_errno;
+			if (TDSSOCK_WOULDBLOCK(err)) /* shouldn't happen, but OK, retry */
 				continue;
-			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", sock_errno, sock_strerror(sock_errno));
-			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);
+			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", err, sock_strerror(err));
+			tdserror(tds->tds_ctx, tds, TDSEWRIT, err);
 			tds_close_socket(tds);
 			return -1;
 		} else { /* timeout */
