@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.83 2010-01-27 12:16:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.84 2010-01-28 08:54:35 freddy77 Exp $");
 
 static const char odbc_param_Servername[] = "Servername";
 static const char odbc_param_Address[] = "Address";
@@ -287,7 +287,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			return 0;
 		}
 
-		if (strcasecmp(option, "SERVER") == 0) {
+		if (strcasecmp(option, odbc_param_Server) == 0) {
 			/* error if servername or DSN specified */
 			if ((cfgs & (CFG_DSN|CFG_SERVERNAME)) != 0) {
 				tds_dstr_free(&value);
@@ -303,7 +303,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				}
 				cfgs = CFG_SERVER;
 			}
-		} else if (strcasecmp(option, "SERVERNAME") == 0) {
+		} else if (strcasecmp(option, odbc_param_Servername) == 0) {
 			if ((cfgs & (CFG_DSN|CFG_SERVER)) != 0) {
 				tds_dstr_free(&value);
 				odbc_errs_add(errs, "HY000", "Only one between SERVER, SERVERNAME and DSN can be specified");
@@ -331,7 +331,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				p = connect_string;
 				continue;
 			}
-		} else if (strcasecmp(option, "DATABASE") == 0) {
+		} else if (strcasecmp(option, odbc_param_Database) == 0) {
 			dest_s = &connection->database;
 		} else if (strcasecmp(option, "UID") == 0) {
 			dest_s = &connection->user_name;
@@ -341,7 +341,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			dest_s = &connection->app_name;
 		} else if (strcasecmp(option, "WSID") == 0) {
 			dest_s = &connection->client_host_name;
-		} else if (strcasecmp(option, "LANGUAGE") == 0) {
+		} else if (strcasecmp(option, odbc_param_Language) == 0) {
 			tds_parse_conf_section(TDS_STR_LANGUAGE, tds_dstr_cstr(&value), connection);
 		} else if (strcasecmp(option, odbc_param_Port) == 0) {
 			tds_parse_conf_section(TDS_STR_PORT, tds_dstr_cstr(&value), connection);
