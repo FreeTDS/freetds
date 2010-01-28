@@ -1,3 +1,6 @@
+Thu Jan 28 11:06:05 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/sspi.c: remove wrong TODO comment
+
 Thu Jan 28 09:53:35 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/connectparams.c: reuse string constants
 
@@ -2245,4 +2248,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2970 2010-01-28 08:54:35 freddy77 Exp $
+$Id: ChangeLog,v 1.2971 2010-01-28 10:07:18 freddy77 Exp $

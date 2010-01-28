@@ -46,7 +46,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.6 2010-01-27 15:35:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.7 2010-01-28 10:07:18 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -225,7 +225,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	auth->tds_auth.free = tds_sspi_free;
 	auth->tds_auth.handle_next = tds_sspi_handle_next;
 
-	/* TODO use SPNEGO to use Kerberos if possible */
+	/* using Negotiate system will use proper protocol (either NTLM or Kerberos) */
 	if (sec_fn->AcquireCredentialsHandle(NULL, (char *)"Negotiate", SECPKG_CRED_OUTBOUND,
 		NULL, identity.Domain ? &identity : NULL,
 		NULL, NULL, &auth->cred, &ts) != SEC_E_OK) {
