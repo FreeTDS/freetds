@@ -22,7 +22,9 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.5 2010-01-27 15:32:04 freddy77 Exp $ */
+/* $Id: tdsthread.h,v 1.6 2010-01-28 13:31:51 freddy77 Exp $ */
+
+#undef TDS_HAVE_MUTEX
 
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
 
@@ -31,6 +33,8 @@
 #define TDS_MUTEX_DEFINE(name) pthread_mutex_t name = PTHREAD_MUTEX_INITIALIZER
 #define TDS_MUTEX_LOCK(a) pthread_mutex_lock(a)
 #define TDS_MUTEX_UNLOCK(a) pthread_mutex_unlock(a)
+
+#define TDS_HAVE_MUTEX 1
 
 #elif defined(_WIN32)
 
@@ -47,6 +51,8 @@ void tds_win_mutex_lock(tds_win_mutex_t *mutex);
 #define TDS_MUTEX_LOCK(a) \
 	do { if ((a)->done) EnterCriticalSection(&(a)->crit); else tds_win_mutex_lock(a); } while(0)
 #define TDS_MUTEX_UNLOCK(a) LeaveCriticalSection(&(a)->crit)
+
+#define TDS_HAVE_MUTEX 1
 
 #else
 

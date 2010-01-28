@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006-2008 Frediano Ziglio
+ * Copyright (C) 2006-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -66,7 +66,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.16 2010-01-11 18:00:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.17 2010-01-28 13:31:51 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
@@ -154,7 +154,7 @@ tdsdump_open(const char *filename)
 	if (tds_g_append_mode) {
 		g_dump_filename = strdup(filename);
 		/* if mutex are available do not reopen file every time */
-#ifdef TDS_HAVE_PTHREAD_MUTEX
+#ifdef TDS_HAVE_MUTEX
 		g_dumpfile = tdsdump_append();
 #endif
 	} else if (!strcmp(filename, "stdout")) {
@@ -296,7 +296,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	TDS_MUTEX_LOCK(&g_dump_mutex);
 
 	dumpfile = g_dumpfile;
-#ifdef TDS_HAVE_PTHREAD_MUTEX
+#ifdef TDS_HAVE_MUTEX
 	if (tds_g_append_mode && dumpfile == NULL)
 		dumpfile = g_dumpfile = tdsdump_append();
 #else
@@ -354,7 +354,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 
 	fflush(dumpfile);
 
-#ifndef TDS_HAVE_PTHREAD_MUTEX
+#ifndef TDS_HAVE_MUTEX
 	if (tds_g_append_mode) {
 		if (dumpfile != stdout && dumpfile != stderr)
 			fclose(dumpfile);
@@ -389,7 +389,7 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 	TDS_MUTEX_LOCK(&g_dump_mutex);
 
 	dumpfile = g_dumpfile;
-#ifdef TDS_HAVE_PTHREAD_MUTEX
+#ifdef TDS_HAVE_MUTEX
 	if (tds_g_append_mode && dumpfile == NULL)
 		dumpfile = g_dumpfile = tdsdump_append();
 #else
@@ -411,7 +411,7 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 
 	fflush(dumpfile);
 
-#ifndef TDS_HAVE_PTHREAD_MUTEX
+#ifndef TDS_HAVE_MUTEX
 	if (tds_g_append_mode) {
 		if (dumpfile != stdout && dumpfile != stderr)
 			fclose(dumpfile);
