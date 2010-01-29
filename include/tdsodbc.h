@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2004, 2005, 2006, 2007, 2008  Frediano Ziglio
+ * Copyright (C) 2004-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.118 2010-01-25 23:05:59 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.119 2010-01-29 18:57:03 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -434,9 +434,45 @@ typedef struct _hchk TDS_CHK;
 BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
 #endif
 
+#define ODBC_PARAM_LIST \
+	ODBC_PARAM(Servername) \
+	ODBC_PARAM(Server) \
+	ODBC_PARAM(DSN) \
+	ODBC_PARAM(UID) \
+	ODBC_PARAM(PWD) \
+	ODBC_PARAM(Address) \
+	ODBC_PARAM(Port) \
+	ODBC_PARAM(TDS_Version) \
+	ODBC_PARAM(Language) \
+	ODBC_PARAM(Database) \
+	ODBC_PARAM(TextSize) \
+	ODBC_PARAM(PacketSize) \
+	ODBC_PARAM(ClientCharset) \
+	ODBC_PARAM(DumpFile) \
+	ODBC_PARAM(DumpFileAppend) \
+	ODBC_PARAM(DebugFlags) \
+	ODBC_PARAM(Encryption) \
+	ODBC_PARAM(Trusted_Connection) \
+	ODBC_PARAM(APP) \
+	ODBC_PARAM(WSID)
+
+#define ODBC_PARAM(p) ODBC_PARAM_##p,
+enum {
+	ODBC_PARAM_LIST
+	ODBC_PARAM_SIZE
+};
+#undef ODBC_PARAM
+
+
 /*
  * connectparams.h
  */
+
+typedef struct {
+	const char *p;
+	size_t len;
+} TDS_PARSED_PARAM;
+
 /**
  * Parses a connection string for SQLDriverConnect().
  * \param connect_string      point to connection string
@@ -444,8 +480,11 @@ BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
  * \param connection          structure where to store informations
  * \return 0 if error, 1 otherwise
  */
-int odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection);
+int odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection, TDS_PARSED_PARAM *parsed_params);
 int odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection);
+#ifdef _WIN32
+int odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **out);
+#endif
 
 /*
  * convert_tds2sql.c

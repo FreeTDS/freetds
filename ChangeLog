@@ -1,3 +1,8 @@
+Fri Jan 29 19:56:51 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h include/tdsodbc.h src/odbc/connectparams.c:
+	* src/odbc/odbc.c src/tds/config.c win32/winsetup.c:
+	- complete connection string if possible
+
 Fri Jan 29 15:08:07 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/setup.rc: make popup window always visible
 
@@ -2261,4 +2266,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2975 2010-01-29 14:08:56 freddy77 Exp $
+$Id: ChangeLog,v 1.2976 2010-01-29 18:57:03 freddy77 Exp $

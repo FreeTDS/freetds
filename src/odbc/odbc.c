@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.527 2010-01-27 08:31:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.528 2010-01-29 18:57:03 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -411,6 +411,7 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 {
 	TDSCONNECTION *connection;
 	int conlen = odbc_get_string_size(cbConnStrIn, szConnStrIn);
+	TDS_PARSED_PARAM params[ODBC_PARAM_SIZE];
 
 	INIT_HDBC;
 
@@ -447,26 +448,48 @@ SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALL
 		tds_dstr_dup(&connection->database, &dbc->attr.current_catalog);
 
 	/* parse the DSN string */
-	odbc_parse_connect_string(&dbc->errs, (const char *) szConnStrIn, (const char *) szConnStrIn + conlen, connection);
+	if (!odbc_parse_connect_string(&dbc->errs, (const char *) szConnStrIn, (const char *) szConnStrIn + conlen,
+				       connection, params))
+		ODBC_RETURN(dbc, SQL_ERROR);
+
+	odbc_set_string(szConnStrOut, cbConnStrOutMax, pcbConnStrOut, (const char *) szConnStrIn, conlen);
 
 	/* add login info */
-	if (hwnd) {
+	if (hwnd && fDriverCompletion != SQL_DRIVER_NOPROMPT
+	    && (fDriverCompletion == SQL_DRIVER_PROMPT || (!params[ODBC_PARAM_UID].p && !params[ODBC_PARAM_Trusted_Connection].p)
+		|| tds_dstr_isempty(&connection->server_name))) {
 #ifdef _WIN32
+		char *out = NULL;
+
 		/* prompt for login information */
 		if (!get_login_info(hwnd, connection)) {
 			tds_free_connection(connection);
 			odbc_errs_add(&dbc->errs, "08001", "User canceled login");
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
+		if (tds_dstr_isempty(&connection->user_name)) {
+			params[ODBC_PARAM_UID].p = NULL;
+			params[ODBC_PARAM_PWD].p = NULL;
+			params[ODBC_PARAM_Trusted_Connection].p = "Yes";
+			params[ODBC_PARAM_Trusted_Connection].len = 3;
+		} else {
+			params[ODBC_PARAM_UID].p   = tds_dstr_cstr(&connection->user_name);
+			params[ODBC_PARAM_UID].len = tds_dstr_len(&connection->user_name);
+			params[ODBC_PARAM_PWD].p   = tds_dstr_cstr(&connection->password);
+			params[ODBC_PARAM_PWD].len = tds_dstr_len(&connection->password);
+			params[ODBC_PARAM_Trusted_Connection].p = NULL;
+		}
+		if (!odbc_build_connect_string(&dbc->errs, params, &out))
+			ODBC_RETURN(dbc, SQL_ERROR);
+
+		odbc_set_string(szConnStrOut, cbConnStrOutMax, pcbConnStrOut, out, -1);
+		tdsdump_log(TDS_DBG_INFO1, "connection string is now: %s\n", out);
+		free(out);
 #else
 		/* we dont support a dialog box */
 		odbc_errs_add(&dbc->errs, "HYC00", NULL);
 #endif
 	}
-
-	/* TODO what should be correct behavior for output string?? -- freddy77 */
-	if (szConnStrOut)
-		odbc_set_string(szConnStrOut, cbConnStrOutMax, pcbConnStrOut, (const char *) szConnStrIn, conlen);
 
 	if (tds_dstr_isempty(&connection->server_name)) {
 		tds_free_connection(connection);
@@ -3800,7 +3823,7 @@ SQLFetchScroll(SQLHSTMT hstmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 SQLRETURN ODBC_API
 SQLFreeHandle(SQLSMALLINT HandleType, SQLHANDLE Handle)
 {
-	tdsdump_log(TDS_DBG_INFO1, "SQLFreeHandle(%d, 0x%p)\n", HandleType, (void *) Handle);
+	tdsdump_log(TDS_DBG_INFO1, "SQLFreeHandle(%d, %p)\n", HandleType, (void *) Handle);
 
 	switch (HandleType) {
 	case SQL_HANDLE_STMT:

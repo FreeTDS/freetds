@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.156 2010-01-27 12:16:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.157 2010-01-29 18:57:03 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -85,7 +85,6 @@ static void tds_config_env_tdsport(TDSCONNECTION * connection);
 static void tds_config_env_tdshost(TDSCONNECTION * connection);
 static int tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection);
 static int tds_read_interfaces(const char *server, TDSCONNECTION * connection);
-static int tds_config_boolean(const char *value);
 static int parse_server_name_for_port(TDSCONNECTION * connection, TDSLOGIN * login);
 static int tds_lookup_port(const char *portname);
 static void tds_config_encryption(const char * value, TDSCONNECTION * connection);
@@ -396,7 +395,7 @@ static const struct {
 	{ "false",	0 }
 };
 
-static int
+int
 tds_config_boolean(const char *value)
 {
 	int p;
