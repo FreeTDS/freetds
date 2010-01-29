@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.329 2010-01-27 12:16:09 freddy77 Exp $ */
+/* $Id: tds.h,v 1.330 2010-01-29 14:04:59 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -852,13 +852,13 @@ typedef struct tds_login
 	DSTR password;
 	
 	DSTR library;	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
-	TDS_TINYINT bulk_copy;
-	TDS_TINYINT suppress_language;
 	TDS_TINYINT encryption_level;
 
 	TDS_INT query_timeout;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	DSTR client_charset;
+	unsigned int bulk_copy:1;
+	unsigned int suppress_language:1;
 } TDSLOGIN;
 
 typedef struct tds_connection
@@ -877,8 +877,6 @@ typedef struct tds_connection
 	DSTR user_name;	    	/**< account for login */
 	DSTR password;	    	/**< password of account login */
 	DSTR library;
-	TDS_TINYINT bulk_copy;
-	TDS_TINYINT suppress_language;
 	TDS_TINYINT encryption_level;
 
 	TDS_INT query_timeout;
@@ -893,6 +891,8 @@ typedef struct tds_connection
 	int text_size;
 	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
+	unsigned int bulk_copy:1;
+	unsigned int suppress_language:1;
 } TDSCONNECTION;
 
 typedef struct tds_locale
