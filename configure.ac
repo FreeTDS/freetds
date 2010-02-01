@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.45 2010-01-26 11:21:10 freddy77 Exp $
+dnl $Id: configure.ac,v 1.46 2010-02-01 10:10:19 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.83.dev.esyscmd(echo -n $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.45 $)
+AC_REVISION($Revision: 1.46 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip])
 AC_CONFIG_HEADERS(include/config.h)
@@ -134,7 +134,7 @@ AC_SUBST(HAVE_PERL_SOURCES)
 # Checks for libraries.
 # ------------------------------------------------------------
 AC_ARG_ENABLE(krb5,
-  AS_HELP_STRING([--enable-krb5], [enable Kerberos support (EXPERIMENTAL)]))
+  AS_HELP_STRING([--enable-krb5], [enable Kerberos support]))
 
 OLDLIBS="$LIBS"
 LIBS=""
@@ -234,7 +234,7 @@ fi
 
 # check for SSPI
 AC_ARG_ENABLE(sspi,
-  AS_HELP_STRING([--enable-sspi], [enable SSPI support (EXPERIMENTAL)]))
+  AS_HELP_STRING([--enable-sspi], [enable SSPI support]))
 # disable by default
 enable_sspi=${enable_sspi-no}
 # only if MingW (TODO other compilers)

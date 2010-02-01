@@ -9,8 +9,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2009-12-14 01:02:27 $</date>
-		<releaseinfo>$Revision: 1.126 $</releaseinfo>
+		<date>$Date: 2010-02-01 10:10:20 $</date>
+		<releaseinfo>$Revision: 1.127 $</releaseinfo>
 		<title>&freetds; User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 		<author>
@@ -61,9 +61,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.126 $</>
-<member>$Date: 2009-12-14 01:02:27 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.126 2009-12-14 01:02:27 jklowden Exp $.</>
+<member>$Revision: 1.127 $</>
+<member>$Date: 2010-02-01 10:10:20 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.127 2010-02-01 10:10:20 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the &freetds; 
@@ -432,6 +432,27 @@ There are a few optional arguments to <Command>configure</> that may be importan
 				</listitem>
 				</varlistentry>
 			<varlistentry>
+				<term><Option>--disable-apps
+					</Option></term>
+				<listitem><para>Do not attempt to build applications like tsql.
+				</para>
+				</listitem>
+				</varlistentry>
+			<varlistentry>
+				<term><Option>--disable-server
+					</Option></term>
+				<listitem><para>Do not attempt to build server stuff.
+				</para>
+				</listitem>
+				</varlistentry>
+			<varlistentry>
+				<term><Option>--disable-pool
+					</Option></term>
+				<listitem><para>Do not attempt to build pool stuff.
+				</para>
+				</listitem>
+				</varlistentry>
+			<varlistentry>
 				<term><Option>--disable-libiconv</Option></term>
 				<listitem><para>By default, <command>configure</> will search your system for an <systemitem class="library">iconv</systemitem> library for use with Microsoft servers (because TDS 7.0 employs Unicode).  This switch prevents that search.  If no <systemitem class="library">iconv</systemitem> library is used, &freetds; relies on its built-in iconv emulation, which is capable of converting ISO-8859-1 to UCS-2, sufficient for many applications.  </para>
 					</listitem>
@@ -462,6 +483,20 @@ There are a few optional arguments to <Command>configure</> that may be importan
 				<listitem><para>Enable close compatibility with Sybase's ABI, at the expense of other features.  Currently, this enables the generation of a dbopen() entry point in <systemitem class="library">db-lib</systemitem>, which may clash with the <systemitem class="library">DBM</systemitem> function with the same name.  Absolutely <emphasis>not required</> for use with other free software.  </para>
 					</listitem>
 			</varlistentry>
+
+			<varlistentry>
+				<term><Option>--enable-krb5</Option></term>
+				<listitem><para>Enable Kerberos support. With Kerberos you can connect to server using your stored Kerberos ticket.
+					This require you to configure Kerberos support on your machine.
+				</para></listitem>
+				</varlistentry>
+
+			<varlistentry>
+				<term><Option>--enable-sspi</Option></term>
+				<listitem><para>Enable SSPI support. SSPI is a Windows library that allow you to use your current logged account for 
+					authentication. This allow you to login without entering a password again.
+				</para></listitem>
+				</varlistentry>
 
 			<varlistentry>
 				<term><Option>--enable-extra-checks</Option></term>
@@ -543,8 +578,8 @@ With any luck, you've built and installed the &freetds; libraries.
 				<listitem><para>The Borland Builder 6.0 compiler is also reported to work, but requires some tweaking of the <literal>#include</> statements.  We would apply any patches that make this work cleanly.</para></listitem>
 
 			</itemizedlist>	
+			</para>
 
-Threadsafe operation will not be enabled.  </para>
 			<para>From the Department of Double Emulation: &freetds; builds as a <filename>.dll</> under <productname>WINE</> and as a <filename>.a</> under <productname>Interix</>.  See the mailing list archives (second half of 2003) for details.  </para>
 		</sect2>
 		<sect2 id="VMS"><title>VMS&reg;</title>
@@ -581,7 +616,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2009-12-14 01:02:27 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2010-02-01 10:10:20 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1728,6 +1763,13 @@ The following table defines all possible ODBC connection attributes for the <pro
 	<entry>DB dependent</entry>
 	<entry>Size of packets to server.  Some users saw some performance gain by increasing this value.  Normally you shouldn't set it.  </entry>
 	</row>
+	<row>
+	<entry><literal>Trusted_Connection</></entry>
+	<entry>Yes/No</entry>
+	<entry>No</entry>
+	<entry>Use your current account instead of <literal>UID</>/<literal>PWD</> attributes.
+		This option require SSPI or Kerberos. This superceed <literal>UID</>/<literal>PWD</> attributes.</entry>
+	</row>
 </tbody>
 </tgroup>
 </table>
@@ -2114,31 +2156,6 @@ The SQL Server machine may belong to an NT domain.  &freetds; provides an encryp
 			<para>
 Support for domain logins in &freetds; is limited to the TCP/IP network protocol stack.   &freetds; does not currently implement support for Named Pipe-based SQL connections &mdash; that is, connections transported over the DCE/RPC interface, which uses TCP port 139, 445, or 135 on Win32 machines depending on the type of encapsulation used for DCE/RPC itself. Supporting this would require a fairly extensive DCE/RPC library for Unix.   <productname>Samba</productname> has one that is licensed under the GPL and therefore not usable by LGPL-licensed projects such as &freetds; . 
 			</para>
-			<para>
-Your domain controller must allow authentication over TCP/IP, or you will be unable to log in.  One symptom of a server that requires Named Pipes for authentication is an error message such as:
-			</para>
-			<para>
-<informalexample><screen><computeroutput>
-Login failed for user '(null)'. 
-Reason: Not associated with a trusted SQL Server connection.
-</computeroutput></screen></informalexample>
-			</para>
-			<para>
-The telltale sign being <literal>user '(null)'</>.  
-			</para>
-			<para>
-If you suspect a problem along these lines, you could ask your friendly system administrator to check the following setting:
-
-<programlisting>
-Computer Configuration
- 	\Windows Settings
-		\Security Settings
-			\Local Policies
-				\Security Options
-					\LAN Manager Authentication Level
-</programlisting>
-The setting should be <quote><literal>Send LM & NTLM responses</></quote>.  
-  			</para>
 
 <para>
 For a technical description of the protocol used for domain logins, see 
@@ -2146,6 +2163,16 @@ For a technical description of the protocol used for domain logins, see
 </para>
 		</sect2>
 		</sect1>
+		<sect1 id="kerberos">
+			<title>Kerberos support</title>
+			<para>In order to take advantage of Kerberos you have to set up your machine with keytab from your Active Directory.
+				To configure your stuff you could use samba or configure directly Kerberos (<filename>/etc/krb5.conf</>).
+			</para>
+			<para>By default Unix do not initialize Kerberos ticket with your login account. You have to use kinit to initialize ticket.
+				You could also configure Kerberos in PAM in order to initialize Kerberos ticket at login time. 
+			</para>
+		</sect1>
+
 		<sect1 id="appendmode">
 			<title>Appending Dump Files</title>
 			<para>
@@ -2827,7 +2854,7 @@ Server</productname> uses the facilities of the host operating system (<productn
 username alone, without requiring a separate login name and password.
 			</para>
 <Note><para>
-The &freetds; supports integrated security mode.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter.
+The &freetds; supports integrated security mode.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter. If you have Active Directory you can also use Kerberos, see <link linkend="kerberos">Kerberos support</link>.
 </para></Note>
 			<para>
 &freetds; supports the traditional database
@@ -4162,7 +4189,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr,
 <ulink url="mailto:thompbil@exchange.uk.ml.com">Bill Thompson</ulink> (thompbil@exchange.uk.ml.com)</member>
 <member>Completer of the <systemitem class="library">db-lib</systemitem> bcp API and author of <application>freebcp</application>.</>
 				<member>
-<ulink url="mailto:freddy77@angelfire.com">Frediano Ziglio</ulink> (freddy77@angelfire.com)</member>
+<ulink url="mailto:freddy77@gmail.com">Frediano Ziglio</ulink> (freddy77@gmail.com)</member>
 <member>Extended the ODBC library, and added many, many fixes and enhancements to libtds.  </>
 			</simplelist>
 			<para>
