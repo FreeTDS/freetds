@@ -6,7 +6,7 @@
 
 #include <unistd.h>
 
-static char software_version[] = "$Id: null2.c,v 1.6 2009-04-17 09:54:27 freddy77 Exp $";
+static char software_version[] = "$Id: null2.c,v 1.7 2010-02-01 14:56:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
@@ -185,12 +185,14 @@ main(int argc, char **argv)
 
 	test("NVARCHAR(10)", 0);
 #ifndef DBNTWIN32
-	test("NTEXT", 0);
+	if (dbtds(dbproc) >= DBTDS_7_0)
+		test("NTEXT", 0);
 #endif
 
 	test("VARCHAR(MAX)", 0);
 #ifndef DBNTWIN32
-	test("NVARCHAR(MAX)", 0);
+	if (dbtds(dbproc) >= DBTDS_7_0)
+		test("NVARCHAR(MAX)", 0);
 #endif
 
 	dbexit();

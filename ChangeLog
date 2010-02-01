@@ -1,3 +1,6 @@
+Mon Feb  1 15:55:30 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/null2.c: make null2 test work using TDS 4.2
+
 Mon Feb  1 11:15:12 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/connectparams.c src/odbc/odbc.c:
 	- update for trusted connections, support Trusted_Connection
@@ -2274,4 +2277,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2978 2010-02-01 10:16:05 freddy77 Exp $
+$Id: ChangeLog,v 1.2979 2010-02-01 14:56:28 freddy77 Exp $
