@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.528 2010-01-29 18:57:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.529 2010-02-01 10:16:05 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -1758,7 +1758,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	}
 
 	/* password */
-	if (szAuthStr) {
+	if (szAuthStr && !tds_dstr_isempty(&connection->user_name)) {
 		if (!tds_dstr_copyn(&connection->password, (char *) szAuthStr, odbc_get_string_size(cbAuthStr, szAuthStr))) {
 			tds_free_connection(connection);
 			odbc_errs_add(&dbc->errs, "HY001", NULL);

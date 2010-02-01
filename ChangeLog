@@ -1,3 +1,8 @@
+Mon Feb  1 11:15:12 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/connectparams.c src/odbc/odbc.c:
+	- update for trusted connections, support Trusted_Connection
+	  attribute in odbc.ini
+
 Mon Feb  1 11:09:51 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac doc/userguide.sgml: update documentation
 
@@ -2269,4 +2274,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2977 2010-02-01 10:10:19 freddy77 Exp $
+$Id: ChangeLog,v 1.2978 2010-02-01 10:16:05 freddy77 Exp $

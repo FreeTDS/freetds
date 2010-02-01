@@ -37,17 +37,19 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.85 2010-01-29 18:57:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.86 2010-02-01 10:16:05 freddy77 Exp $");
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;
 ODBC_PARAM_LIST
 #undef ODBC_PARAM
 
+#ifdef _WIN32
 #define ODBC_PARAM(p) odbc_param_##p,
 static const char *odbc_param_names[] = {
 	ODBC_PARAM_LIST
 };
 #undef ODBC_PARAM
+#endif
 
 #if !HAVE_SQLGETPRIVATEPROFILESTRING
 
@@ -216,6 +218,11 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection)
 
 	if (myGetPrivateProfileString(DSN, odbc_param_Encryption, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_ENCRYPTION, tmp, connection);
+
+	if (myGetPrivateProfileString(DSN, odbc_param_Trusted_Connection, tmp) > 0 && tds_config_boolean(tmp)) {
+		tds_dstr_copy(&connection->user_name, "");
+		tds_dstr_copy(&connection->password, "");
+	}
 
 	return 1;
 }
