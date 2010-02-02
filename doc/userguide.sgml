@@ -9,8 +9,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2010-02-01 10:10:20 $</date>
-		<releaseinfo>$Revision: 1.127 $</releaseinfo>
+		<date>$Date: 2010-02-02 09:37:39 $</date>
+		<releaseinfo>$Revision: 1.128 $</releaseinfo>
 		<title>&freetds; User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 		<author>
@@ -32,6 +32,7 @@
 		  <year>2007</year>
 		  <year>2008</year>
 		  <year>2009</year>
+		  <year>2010</year>
 		  <holder>Brian Bruns and James K. Lowden</holder>
 		</copyright>
 		<legalnotice><para>
@@ -61,9 +62,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.127 $</>
-<member>$Date: 2010-02-01 10:10:20 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.127 2010-02-01 10:10:20 freddy77 Exp $.</>
+<member>$Revision: 1.128 $</>
+<member>$Date: 2010-02-02 09:37:39 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.128 2010-02-02 09:37:39 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the &freetds; 
@@ -616,7 +617,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2010-02-01 10:10:20 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2010-02-02 09:37:39 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -2173,6 +2174,30 @@ For a technical description of the protocol used for domain logins, see
 			</para>
 		</sect1>
 
+		<sect1 id="uothread">
+			<title>Threading on unixODBC</title>
+			<para><productname>unixODBC</> use strong thread locking policy. This cause big locks using default configurations for &freetds; which lead to performance issues using multi-thread applications (every single operation get serialized). In order to avoid this problem you have to set up threading model on <filename>odbcinst.ini</> (this configuration is supported only in this file).
+<example id="odbcinstthread"><title>Sample <filename>odbcinst.ini</> for threading model</title>
+<programlisting>
+[FreeTDS]
+	Driver = /usr/local/freetds/lib/libtdsodbc.so
+	Threading = 1
+</programlisting>
+</example>
+<example id="odbcinithread"><title>Sample <filename>odbc.ini</> for threading model</title>
+<programlisting>
+[Server1]
+	Driver = FreeTDS
+	Server = myServer1
+	Port = 1433
+	TDS_Version = 7.2
+</programlisting>
+</example>
+You can use also a connection string like <literal>DRIVER=FreeTDS;SERVER=myServer1;PORT=1433;TDS_Version=7.2;</>.
+			</para>
+		</sect1>
+
+
 		<sect1 id="appendmode">
 			<title>Appending Dump Files</title>
 			<para>
@@ -2753,6 +2778,43 @@ symbols for version use 100
 </screen>
 			</para>
 		</sect1>
+
+		<sect1 id="qt">
+			<title>Qt</title>
+			<para><productname>Qt</> has two driver to access SQL Server databases: QTDS and QODBC.
+				At the time of writing (January 2010) QTDS has a performance problem cause it does not reuse connection but do a connection for every query so use QODBC.
+			</para>
+			<para>There are however some problems with wide character support on Qt. Qt assume sizeof(SQLWCHAR) == 2 however using some DM (like <productname>iODBC</> using Linux which is the default setting on <productname>Ubuntu</>) which could lead to wrong characters conversion.
+			</para>
+		</sect1>
+
+		<sect1 id="uodbc">
+			<title>ODBC on Unix</title>
+			<para><productname>ODBC</> have many issues under Unix mainly due to lack of specifications.
+			</para>
+			<sect2 id="uodbc64">
+				<title>ODBC and 64-bit</title>
+				<para>On first specifications ODBC was only 32-bit. Converting it to 64-bit there was not good specification which leads to wrong declarations and problems. For instance some SQLINTEGER are used for pointer offsets specification but SQLINTEGER was 32-bit while pointer offsets must be 64-bit. Also row numbers and other stuffs are now 64-bit.
+				</para>
+				<para>If you use <productname>unixODBC</> I would recommend at least version 2.2.14. Former versions have issues if used on 64-bit environments.</para>
+			</sect2>
+			<sect2 id="uodbcwchar">
+				<title>sizeof(SQLWCHAR)</title>
+				<para>Under Windows you have sizeof(wchar_t) == sizeof(SQLWCHAR) == 2 but on many Unix systems you have sizeof(wchar_t) == 4. The problem is that some DM decided to keep sizeof(SQLWCHAR) == 2 (like <productname>unixODBC</>) while in other DM sizeof(SQLWCHAR) == sizeof(wchar_t) == 4 (like <productname>iODBC</>). This leads to ABI imcompatibility between applications and drivers. If you compile &freetds; ODBC driver using <productname>iODBC</> on such systems (like Linux) do not use the driver using <productname>unixODBC</> and viceversa.
+				</para>
+				<para>You can compile &freetds; with both includes and rename the library to use two ABI (for instance having a <filename>libtdsiodbc.so</> and a <filename>libtdsuodbc.so</>).
+				</para>
+				<para>As the time of writing <productname>Ubuntu</> compiled Qt using <productname>iODBC</> but mostly packages use <productname>unixODBC</>. If you plan to use Qt using &freetds; ODBC driver you should have a <productname>iODBC</> compatible driver. Also QODBC Qt driver have problems with <productname>iODBC</> and SQLWCHAR (see <link linkend="qt">Qt</link>). Due to these problems I would suggest to not use this configuration (Qt database) on <productname>Ubuntu</>.
+				</para>
+			</sect2>
+			<sect2 id="uodbcchar">
+				<title>Default charset</title>
+				<para>Is not possible to specify charset under ODBC and there was not so clear specifications. For this reason by default many DM converting from multi-byte to wide characters assume ISO8859-1 charset. For this reason even &freetds; driver assume ISO8859-1 by default. Also some DM have problems converting multi-byte encodings (like UTF-8) assuming a byte get converted to a single wide character (and viceversa). This can create problems if you use multi-byte encoding for &freetds; driver.
+				</para>
+			</sect2>
+		</sect1>
+
+
 	</chapter>
 				<!-- ////////////////// CHAPTER /////////////////////// -->
 	<chapter id="troubleshooting">

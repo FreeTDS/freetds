@@ -1,3 +1,6 @@
+Tue Feb  2 10:35:20 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* doc/userguide.sgml: add some ODBC considerations
+
 Mon Feb  1 15:55:30 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/null2.c: make null2 test work using TDS 4.2
 
@@ -2277,4 +2280,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2979 2010-02-01 14:56:28 freddy77 Exp $
+$Id: ChangeLog,v 1.2980 2010-02-02 09:37:39 freddy77 Exp $
