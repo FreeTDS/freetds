@@ -50,7 +50,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.12 2008-11-15 09:57:06 freddy77 Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.13 2010-02-05 22:09:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -69,6 +69,7 @@ struct METADATA
 	char *name, *format_string;
 	const char *source;
 	SQLSMALLINT type;
+	SQLINTEGER nchars;
 	SQLULEN size, width;
 };
 struct DATA { char *buffer; SQLLEN len; int status; };
@@ -462,6 +463,20 @@ prtype(SQLSMALLINT type)
 	return buffer;
 }
 
+#define is_character_data(x)   (x==SQL_CHAR	    || \
+				x==SQL_VARCHAR	    || \
+				x==SQL_LONGVARCHAR  || \
+				x==SQL_WCHAR	    || \
+				x==SQL_WVARCHAR     || \
+				x==SQL_WLONGVARCHAR)
+
+static SQLLEN 
+bufsize(const struct METADATA *meta)
+{
+	assert(meta);
+	return meta->size > meta->width? meta->size : meta->width;
+}
+
 static void
 print_results(SQLHSTMT hStmt) 
 {
@@ -509,8 +524,10 @@ print_results(SQLHSTMT hStmt)
 		 */
 
 		fprintf(options.verbose, "Metadata\n");
-		fprintf(options.verbose, "%-6s  %-30s  %-10s  %-18s  %-6s  %-6s  \n", "col", "name", "type value", "type name", "size", "varies");
-		fprintf(options.verbose, "%.6s  %.30s  %.10s  %.18s  %.6s  %.6s  \n", dashes, dashes, dashes, dashes, dashes, dashes);
+		fprintf(options.verbose, "%-6s  %-30s  %-10s  %-18s  %-6s  %-6s  \n", 
+					 "col", "name", "type value", "type name", "size", "varies");
+		fprintf(options.verbose, "%.6s  %.30s  %.10s  %.18s  %.6s  %.6s  \n", 
+					 dashes, dashes, dashes, dashes, dashes, dashes);
 		for (c=0; c < ncols; c++) {
 			/* Get and print the metadata.  Optional: get only what you need. */
 			SQLCHAR name[512];
@@ -526,6 +543,29 @@ print_results(SQLHSTMT hStmt)
 			name[namelen] = '\0';
 			metadata[c].name = strdup((char *) name);
 			metadata[c].width = (ndigits > metadata[c].size)? ndigits : metadata[c].size;
+			
+			if (is_character_data(metadata[c].type)) {
+				SQLHDESC hDesc;
+				SQLINTEGER buflen;
+				
+				metadata[c].nchars = metadata[c].size;
+				
+				if ((erc = SQLAllocHandle(SQL_HANDLE_DESC, hStmt, &hDesc)) != SQL_SUCCESS) {
+					odbc_perror(hStmt, erc, "SQLAllocHandle", "failed");
+					exit(EXIT_FAILURE);
+				} 
+				if ((erc = SQLGetDescField(hDesc, c+1, SQL_DESC_OCTET_LENGTH, 
+								&metadata[c].size, sizeof(metadata[c].size), 
+								&buflen)) != SQL_SUCCESS) {
+					odbc_perror(hStmt, erc, "SQLGetDescField", "failed");
+					exit(EXIT_FAILURE);
+				} 
+				
+				if ((erc = SQLFreeHandle(SQL_HANDLE_DESC, hStmt)) != SQL_SUCCESS) {
+					odbc_perror(hStmt, erc, "SQLFreeHandle", "failed");
+					exit(EXIT_FAILURE);
+				} 
+			}
 
 			fprintf(options.verbose, "%6d  %30s  %10d  %18s  %6lu  %6d  \n", 
 				c+1, metadata[c].name, (int)metadata[c].type, prtype(metadata[c].type), 
@@ -561,11 +601,11 @@ print_results(SQLHSTMT hStmt)
 			 * inaccesible to the application.  
 			 */
 
-			data[c].buffer = calloc(1, metadata[c].width);
+			data[c].buffer = calloc(1, bufsize(&metadata[c]));
 			assert(data[c].buffer);
 
 			if ((erc = SQLBindCol(hStmt, c+1, SQL_C_CHAR, (SQLPOINTER)data[c].buffer, 
-						metadata[c].width, &data[c].len)) != SQL_SUCCESS){
+						bufsize(&metadata[c]), &data[c].len)) != SQL_SUCCESS){
 				odbc_perror(hStmt, erc, "SQLBindCol", "failed");
 				exit(EXIT_FAILURE);
 			} 
@@ -696,12 +736,6 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
  * Build the column header format string, based on the column width. 
  * This is just one solution to the question, "How wide should my columns be when I print them out?"
  */
-#define is_character_data(x)   (x==SQL_CHAR	    || \
-				x==SQL_VARCHAR	    || \
-				x==SQL_LONGVARCHAR  || \
-				x==SQL_WCHAR	    || \
-				x==SQL_WVARCHAR     || \
-				x==SQL_WLONGVARCHAR)
 static int
 set_format_string(struct METADATA * meta, const char separator[])
 {
