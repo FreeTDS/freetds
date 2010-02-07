@@ -50,7 +50,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.13 2010-02-05 22:09:31 jklowden Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.14 2010-02-07 21:55:54 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -628,11 +628,10 @@ print_results(SQLHSTMT hStmt)
 		 */
 		while (ncols > 0 && (erc = SQLFetch(hStmt)) != SQL_NO_DATA) {
 			switch(erc) {
-			case SQL_SUCCESS:
-				break;
 			case SQL_SUCCESS_WITH_INFO:
 				print_error_message(SQL_HANDLE_STMT, hStmt);
-				continue;
+			case SQL_SUCCESS:
+				break;
 			default:
 				odbc_perror(hStmt, erc, "SQLFetch", "failed");
 				exit(EXIT_FAILURE);
