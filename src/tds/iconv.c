@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.141 2009-10-01 09:48:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.142 2010-02-07 21:56:10 jklowden Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -204,8 +204,8 @@ tds_iconv_init(void)
 /**
  * Get iconv name given canonic
  */
-static void
-tds_get_iconv_name(int charset)
+static const char *
+tds_set_iconv_name(int charset)
 {
 	int i;
 	iconv_t cd;
@@ -217,13 +217,13 @@ tds_get_iconv_name(int charset)
 	if (cd != (iconv_t) -1) {
 		iconv_names[charset] = canonic_charsets[charset].name;
 		tds_sys_iconv_close(cd);
-		return;
+		return iconv_names[charset];
 	}
 	cd = tds_sys_iconv_open(ucs2name, canonic_charsets[charset].name);
 	if (cd != (iconv_t) -1) {
 		iconv_names[charset] = canonic_charsets[charset].name;
 		tds_sys_iconv_close(cd);
-		return;
+		return iconv_names[charset];
 	}
 
 	/* try all alternatives */
@@ -235,19 +235,20 @@ tds_get_iconv_name(int charset)
 		if (cd != (iconv_t) -1) {
 			iconv_names[charset] = iconv_aliases[i].alias;
 			tds_sys_iconv_close(cd);
-			return;
+			return iconv_names[charset];
 		}
 
 		cd = tds_sys_iconv_open(ucs2name, iconv_aliases[i].alias);
 		if (cd != (iconv_t) -1) {
 			iconv_names[charset] = iconv_aliases[i].alias;
 			tds_sys_iconv_close(cd);
-			return;
+			return iconv_names[charset];
 		}
 	}
 
-	/* charset not found, use memcpy */
-	iconv_names[charset] = "";
+	/* charset not found, pretend it's ISO 8859-1 */
+	iconv_names[charset] = canonic_charsets[POS_ISO1].name;
+	return NULL;
 }
 
 static void
@@ -474,19 +475,19 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 	}
 
 	/* get iconv names */
-	if (!iconv_names[client_canonical])
-		tds_get_iconv_name(client_canonical);
-	if (!iconv_names[server_canonical])
-		tds_get_iconv_name(server_canonical);
-
-	/* names available ?? */
-	if (!iconv_names[client_canonical][0] || !iconv_names[server_canonical][0]) {
-		char_conv->to_wire = (iconv_t) -1;
-		char_conv->from_wire = (iconv_t) -1;
-		char_conv->flags = TDS_ENCODING_MEMCPY;
-		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: use memcpy to convert \"%s\"->\"%s\"\n", client->name,
-			    server->name);
-		return 0;
+	if (!iconv_names[client_canonical]) {
+		if (!tds_set_iconv_name(client_canonical)) {
+			tdsdump_log(TDS_DBG_FUNC, "\"%s\" not supported by iconv, using \"%s\" instead\n",
+						  client_name, iconv_names[client_canonical]);
+		}
+	}
+	
+	assert(iconv_names[server_canonical]);
+	if (!iconv_names[server_canonical]) {
+		if (!tds_set_iconv_name(server_canonical)) {
+			tdsdump_log(TDS_DBG_FUNC, "\"%s\" not supported by iconv, using \"%s\" instead\n",
+						  server_name, iconv_names[server_canonical]);
+		}
 	}
 
 	char_conv->to_wire = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[client_canonical]);

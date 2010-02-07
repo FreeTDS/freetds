@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.89 2010-01-11 18:14:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.90 2010-02-07 21:56:10 jklowden Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -255,7 +255,7 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  "
 						"Unconverted bytes were changed to question marks ('?')" }
 	, { TDSEICONV2BIG,   EXCONVERSION,	"Some character(s) could not be converted into client's character set" }
-	, { TDSEPORTINSTANCE,      EXCOMM,      "Both port and instance specified" }
+	, { TDSEPORTINSTANCE,      EXUSER,      "Both port and instance specified" }
 	, { TDSERPND,           EXPROGRAM,	"Attempt to initiate a new Adaptive Server operation with results pending" }
 	, { TDSEBTOK,              EXCOMM,	"Bad token from the server: Datastream processing out of sync" }
 	, { TDSECAP,               EXCOMM,	"DB-Library capabilities not accepted by the Server" }

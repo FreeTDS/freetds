@@ -36,6 +36,10 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif 
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -76,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.157 2010-01-29 18:57:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.158 2010-02-07 21:56:10 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -376,11 +380,30 @@ tds_read_conf_file(TDSCONNECTION * connection, const char *server)
 static int
 tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection)
 {
+	TDSCONNECTION defaults;
+	int found;
+
 	tds_read_conf_section(in, "global", tds_parse_conf_section, connection);
+
 	if (!server[0])
 		return 0;
 	rewind(in);
-	return tds_read_conf_section(in, server, tds_parse_conf_section, connection);
+	defaults = *connection;
+
+	found = tds_read_conf_section(in, server, tds_parse_conf_section, connection);
+	
+	/* 
+	 * If both instance and port are specified and neither one came from the default, it's an error 
+	 * TODO: If port/instance is specified in the non-default, it has priority over the default setting. 
+	 * TODO: test this. 
+	 */
+	if (!tds_dstr_isempty(&connection->instance_name) && connection->port && 
+	  !(!tds_dstr_isempty(   &defaults.instance_name) ||    defaults.port)) {
+		tdsdump_log(TDS_DBG_ERROR, "error: cannot specify both port %d and instance %s.\n", 
+						connection->port, tds_dstr_cstr(&connection->instance_name));
+		/* tdserror(tds->tds_ctx, tds, TDSEPORTINSTANCE, 0); */
+	}
+	return found;
 }
 
 static const struct {
@@ -539,11 +562,10 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_dstr_copy(&connection->dump_file, value);
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {
 		char *end;
-		long l;
-		errno = 0;
-		l = strtol(value, &end, 0);
-		if (errno == 0 && *end == 0)
-			connection->debug_flags = l;
+		long flags;
+		flags = strtol(value, &end, 0);
+		if (*value != '\0' && *end == '\0' && flags != LONG_MIN && flags != LONG_MAX)
+			connection->debug_flags = flags;
 	} else if (!strcmp(option, TDS_STR_TIMEOUT) || !strcmp(option, TDS_STR_QUERY_TIMEOUT)) {
 		if (atoi(value))
 			connection->query_timeout = atoi(value);

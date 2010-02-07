@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.91 2009-08-25 14:25:35 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.92 2010-02-07 21:56:09 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -786,6 +786,7 @@ DBINT dbvarylen(DBPROCESS * dbproc, int column);
 				/* cf. doc/dblib_errors.txt for more iconv error values. */
 				/* Reserve a few slots for other iconv-related issues. */
 #define SYBETDSVER	 2410 	/* Cannot bcp with TDSVER < 5.0 */
+#define SYBEPORT	 2500	/* Both port and instance specified */
 #define SYBESYNC        20001	/* Read attempted while out of synchronization with SQL Server. */
 #define SYBEFCON        20002	/* SQL Server connection failed. */
 #define SYBETIME        20003	/* SQL Server connection timed out. */

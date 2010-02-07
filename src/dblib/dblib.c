@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.362 2010-01-28 05:35:55 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.363 2010-02-07 21:56:09 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7477,6 +7477,9 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEICONVI,      EXCONVERSION,	"Some character(s) could not be converted into client's character set.  Unconverted "
 						"bytes were changed to question marks ('?')\0" }
 	, { SYBEICONV2BIG,   EXCONVERSION,	"Buffer overflow converting characters from client into server's character set\0" }
+	
+	
+	, { SYBEPORT, 	   	   EXUSER,	"Both port and instance specified\0" }
 	, { SYBETDSVER, 	   EXUSER,	"Cannot bcp with TDSVER < 5.0\0" }
 	, { SYBEAAMT,           EXPROGRAM,	"User attempted a dbaltbind with mismatched column and variable types\0" }
 	, { SYBEABMT,           EXPROGRAM,	"User attempted a dbbind with mismatched column and variable types\0" }
