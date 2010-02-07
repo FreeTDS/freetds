@@ -9,8 +9,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2010-02-02 09:37:39 $</date>
-		<releaseinfo>$Revision: 1.128 $</releaseinfo>
+		<date>$Date: 2010-02-07 21:55:49 $</date>
+		<releaseinfo>$Revision: 1.129 $</releaseinfo>
 		<title>&freetds; User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 		<author>
@@ -62,9 +62,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.128 $</>
-<member>$Date: 2010-02-02 09:37:39 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.128 2010-02-02 09:37:39 freddy77 Exp $.</>
+<member>$Revision: 1.129 $</>
+<member>$Date: 2010-02-07 21:55:49 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.129 2010-02-07 21:55:49 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the &freetds; 
@@ -617,7 +617,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2010-02-02 09:37:39 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2010-02-07 21:55:49 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -796,18 +796,19 @@ and 7.0.  Version 7.0 is recommended for compatibility with SQL Server tools.
 				<member>listens for an answer from the server</member>
 			</simplelist>
 		-->	
-			<para>&freetds; tries the following steps, in order, to convert the servername to an IP address, stopping when it succeeds. 
+			<para>&freetds; converts the servername to an IP address by following the steps below, stopping when it succeeds. 
 			<orderedlist><title>Name lookup sequence
 				<footnote><para>This description applies to db-lib and ct-lib.  ODBC lookup is different.  </para></footnote>
 				</title>
 				<listitem><para>Find <replaceable>servername</> in &freetdsconf;.  If a section with that name exists, use the hostname, port, and TDS version specified therein.  </para></listitem>
-				<listitem><para>Attempt to convert <replaceable>servername</> to an IP address with <function>inet_addr(3)</>.  If successful, use the compiled-in default port and TDS version.  </para></listitem>
-				<listitem><para>Request name-lookup from the operating system via <function>gethostbyname(3)</> or similar.  If successful, use the compiled-in default port and TDS version.  </para></listitem>
+				<listitem><para>Attempt to convert <replaceable>servername</> to an IP address with <function>inet_addr(3)</>.   </para></listitem>
+				<listitem><para>Request name-lookup from the operating system via <function>gethostbyname(3)</> or similar.   </para></listitem>
 			</orderedlist>
-
-			As you can see, if most of your servers use the same TDS version and answer to the default port, then you don't need to list them all in &freetdsconf;.  You can simply compile in the right defaults &mdash; or set the <envar>TDSPORT</envar> and <envar>TDSVER</envar> environment variables &mdash; and rely on DNS for name resolution.  
 			
+			If the TDS version and port are not read from &freetdsconf;, they are derived from the compiled-in defaults and overridden by applicable environment variables.  
+			</para>
 			
+			<para>As you can see, if most of your servers use the same TDS version and answer to the default port, then you don't need to list them all in &freetdsconf;.  You can simply compile in the right defaults &mdash; or set the <envar>TDSPORT</envar> and <envar>TDSVER</envar> environment variables &mdash; and rely on DNS for name resolution.  
 			</para>
 		</sect1>
 
@@ -1213,7 +1214,7 @@ In a typical system, no environment variables need be used.  They're sometimes h
 	<varlistentry>
 		<term id="FREETDS"><envar>FREETDS</envar></term>
 		<listitem>
-			<para>may be used to specify the name and location of the &freetdsconf; file.  In prior versions of &freetds;, this variable was known as <envar>FREETDSCONF</envar>. </para>
+			<para>may be used to specify the name and location of the &freetdsconf; file.  In prior versions of &freetds; this variable was known as <envar>FREETDSCONF</envar>. </para>
 		</listitem>
 	</varlistentry>	
 	<varlistentry>
@@ -1350,11 +1351,7 @@ When you're done, you should see something very like this:
 			
 			<sect2 id="tsql"><title><application>tsql</application></title>
 
-			<para>The <firstterm>tsql</> utility is provided as part of FreeTDS expressly for troubleshooting.  <command>tsql</> is superficially similar to an <command>isql</>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  For details on the use of <command>tsql</>, consult its man page. </para>
-			<para><command>tsql</> can either use or bypass the configuration files.  By trying both options, you can usually determine if it's your server that's not responding, or your configuration files that are messed up. </para> 
-
-			<sect3 id="tsql.freetds.conf"><title><replaceable>servername</> Lookup</title>
-			<para><application>tsql</> reports where it looks for &freetdsconf; and other compile-time settings with <command>tsql -C</>.  
+			<para>The <firstterm>tsql</> utility is provided as part of FreeTDS expressly for troubleshooting.  <command>tsql</> is superficially similar to an <command>isql</>, but uses <filename>libtds</filename> directly, bypassing the client libraries (e.g., <systemitem class="library">db-lib</systemitem>).  It can also  report where it looks for &freetdsconf; and other compile-time settings (with <command>tsql -C</>).  
 			</para>
 <example id="e.g.tsqlShowsettings">
 <title>Show compile-time settings with <command>tsql</></title>
@@ -1378,6 +1375,10 @@ Compile-time settings (established with the "configure" script):
 </screen>
 </example>
 
+			<para>For details on the use of <command>tsql</>, consult its man page. </para>
+
+			<sect3 id="tsql.freetds.conf"><title><replaceable>servername</> Lookup</title>
+			<para>If all goes well, the first time you fire up <command>tsql</> it connects and you can issue your first query.  More often, though, the result is less joyous.  Listed below for your troubleshooting pleasure are a variety of <replaceable>servername</> lookup failures and their corresponding messages.  </para>
 			<para>When <replaceable>servername</> cannot be converted to an address, up to two messages may result.  Successful conversion (by any means) never produces an error message.  
 			
 <example id="e.g.notfound">
@@ -1394,7 +1395,7 @@ Msg 20013, Level 2, State -1, Server OpenClient, Line -1
 Unknown host machine name.
 There was a problem connecting to the server
 </computeroutput>
-<prompt>$ </prompt><userinput>host emforester</userinput>
+<prompt>$ </prompt><userinput>host nobox</userinput>
 <computeroutput>
 Host not found.
 </computeroutput>
@@ -1420,7 +1421,7 @@ There was a problem connecting to the server
 </computeroutput>
 </screen>
 </example>	
-			Unfortunately, the <quote>host machine name</quote> isn't mentioned in the error message.  Fortunately, this kind of setup problem is rarely encountered by users.  
+			Unfortunately, the <quote>host machine name</quote> (the right side of the <literal>host</> line in &freetdsconf;) isn't mentioned in the error message.  Fortunately, this kind of setup problem is rarely encountered by users.  
 			</para>
 			<para>If name lookup succeeds, &freetds; next attempts to connect to the server.  <emphasis>To connect</> means to form at TCP connection by calling <function>connect(2)</>.  A valid connection must exist before any information can be exchanged with the server.  Specifically, we need a connection before we can log in.  
 			</para>
