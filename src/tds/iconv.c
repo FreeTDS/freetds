@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.142 2010-02-07 21:56:10 jklowden Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.143 2010-02-08 12:16:43 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -482,7 +482,6 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 		}
 	}
 	
-	assert(iconv_names[server_canonical]);
 	if (!iconv_names[server_canonical]) {
 		if (!tds_set_iconv_name(server_canonical)) {
 			tdsdump_log(TDS_DBG_FUNC, "\"%s\" not supported by iconv, using \"%s\" instead\n",

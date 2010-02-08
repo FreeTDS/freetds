@@ -1,3 +1,6 @@
+Mon Feb  8 13:15:46 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/iconv.c: remove wrong assert
+
 Mon Feb  8 10:46:55 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/config.c: fix some memory problems
 
@@ -2301,4 +2304,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2985 2010-02-08 09:48:08 freddy77 Exp $
+$Id: ChangeLog,v 1.2986 2010-02-08 12:16:43 freddy77 Exp $
