@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.158 2010-02-07 21:56:10 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.159 2010-02-08 09:48:09 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -380,7 +380,9 @@ tds_read_conf_file(TDSCONNECTION * connection, const char *server)
 static int
 tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection)
 {
-	TDSCONNECTION defaults;
+	DSTR default_instance;
+	int default_port;
+
 	int found;
 
 	tds_read_conf_section(in, "global", tds_parse_conf_section, connection);
@@ -388,21 +390,25 @@ tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection
 	if (!server[0])
 		return 0;
 	rewind(in);
-	defaults = *connection;
+
+	tds_dstr_init(&default_instance);
+	tds_dstr_dup(&default_instance, &connection->instance_name);
+	default_port = connection->port;
 
 	found = tds_read_conf_section(in, server, tds_parse_conf_section, connection);
-	
+
 	/* 
 	 * If both instance and port are specified and neither one came from the default, it's an error 
 	 * TODO: If port/instance is specified in the non-default, it has priority over the default setting. 
 	 * TODO: test this. 
 	 */
-	if (!tds_dstr_isempty(&connection->instance_name) && connection->port && 
-	  !(!tds_dstr_isempty(   &defaults.instance_name) ||    defaults.port)) {
+	if (!tds_dstr_isempty(&connection->instance_name) && connection->port &&
+	    !(!tds_dstr_isempty(&default_instance) || default_port)) {
 		tdsdump_log(TDS_DBG_ERROR, "error: cannot specify both port %d and instance %s.\n", 
 						connection->port, tds_dstr_cstr(&connection->instance_name));
 		/* tdserror(tds->tds_ctx, tds, TDSEPORTINSTANCE, 0); */
 	}
+	tds_dstr_free(&default_instance);
 	return found;
 }
 
