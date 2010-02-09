@@ -21,7 +21,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.31 2010-01-09 23:41:52 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.32 2010-02-09 08:40:07 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -94,6 +94,7 @@ typedef DWORD pid_t;
 #define strncasecmp strnicmp
 #define atoll _atoi64
 #define vsnprintf _vsnprintf
+#define snprintf _snprintf
 
 #ifndef WIN32
 #define WIN32 1
