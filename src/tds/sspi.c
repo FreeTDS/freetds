@@ -46,7 +46,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.7 2010-01-28 10:07:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.8 2010-02-12 10:16:17 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -251,10 +251,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	/* build SPN */
 	server_name = tds_dstr_cstr(&connection->server_host_name);
 	if (strchr(server_name, '.') == NULL) {
-		struct hostent result;
-		int h_errnop;
-
-		struct hostent *host = tds_gethostbyname_r(server_name, &result, auth->tds_auth.packet, NTLMBUF_LEN, &h_errnop);
+		struct hostent *host = gethostbyname(server_name);
 		if (host && strchr(host->h_name, '.') != NULL)
 			server_name = host->h_name;
 	}

@@ -22,7 +22,7 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.6 2010-01-28 13:31:51 freddy77 Exp $ */
+/* $Id: tdsthread.h,v 1.7 2010-02-12 10:16:17 freddy77 Exp $ */
 
 #undef TDS_HAVE_MUTEX
 
@@ -38,8 +38,10 @@
 
 #elif defined(_WIN32)
 
+struct ptw32_mcs_node_t_;
+
 typedef struct tds_win_mutex_t_ {
-	void *lock;
+	struct ptw32_mcs_node_t_ *lock;
 	LONG done;
 	CRITICAL_SECTION crit;
 } tds_win_mutex_t;
