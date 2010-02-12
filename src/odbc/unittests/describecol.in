@@ -152,7 +152,7 @@ attr SQL_DESC_PRECISION 11
 attr SQL_DESC_SCALE 0
 attr SQL_DESC_DISPLAY_SIZE 11
 
-select nchar(12) 'hi!'
+select nchar(12) 'hi!'+nchar(10)
 attr SQL_COLUMN_LENGTH 24
 attr SQL_COLUMN_PRECISION 12
 attr SQL_COLUMN_SCALE 0
@@ -162,7 +162,7 @@ attr SQL_DESC_PRECISION 12
 attr SQL_DESC_SCALE 0
 attr SQL_DESC_DISPLAY_SIZE 12
 
-select nvarchar(13) 'hi!'
+select nvarchar(13) 'hi!'+nchar(10)
 attr SQL_COLUMN_LENGTH 26
 attr SQL_COLUMN_PRECISION 13
 attr SQL_COLUMN_SCALE 0
@@ -378,7 +378,7 @@ attr SQL_DESC_PRECISION 11
 attr SQL_DESC_SCALE 0
 attr SQL_DESC_DISPLAY_SIZE 11
 
-select nchar(12) 'hi!'
+select nchar(12) 'hi!'+nchar(10)
 attr SQL_COLUMN_LENGTH 24
 attr SQL_COLUMN_PRECISION 12
 attr SQL_COLUMN_SCALE 0
@@ -388,7 +388,7 @@ attr SQL_DESC_PRECISION 12
 attr SQL_DESC_SCALE 0
 attr SQL_DESC_DISPLAY_SIZE 12
 
-select nvarchar(13) 'hi!'
+select nvarchar(13) 'hi!'+nchar(10)
 attr SQL_COLUMN_LENGTH 26
 attr SQL_COLUMN_PRECISION 13
 attr SQL_COLUMN_SCALE 0
