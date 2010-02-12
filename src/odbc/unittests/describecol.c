@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.16 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.17 2010-02-12 09:04:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -152,6 +152,14 @@ get_attr_ird(ATTR_PARAMS)
 	ret = SQLColAttribute(Statement, 1, attr->value, NULL, SQL_IS_INTEGER, NULL, &i);
 	if (!SQL_SUCCEEDED(ret))
 		fatal("Line %u: failure not expected\n", line_num);
+	/* SQL_DESC_LENGTH is the same of SQLDescribeCol len */
+	if (attr->value == SQL_DESC_LENGTH) {
+		SQLSMALLINT si;
+		SQLULEN li;
+		CHKDescribeCol(1, NULL, 0, NULL, &si, &li, &si, &si, "S");
+		if (i != li)
+			fatal("Line %u: attr %s SQLDescribeCol len %ld != SQLColAttribute len %ld\n", line_num, attr->name, (long) li, (long) i);
+	}
 	return i;
 }
 
