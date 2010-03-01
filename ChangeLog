@@ -1,3 +1,7 @@
+Mon Mar  1 13:37:28 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/login.c src/tds/net.c src/tds/token.c:
+	- remove some exit calls (original patch from David Dick)
+
 Fri Feb 12 11:15:46 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsthread.h src/dblib/bcp.c src/tds/sspi.c:
 	* src/tds/win_mutex.c:
@@ -2326,4 +2330,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2991 2010-02-12 10:16:16 freddy77 Exp $
+$Id: ChangeLog,v 1.2992 2010-03-01 12:38:09 freddy77 Exp $

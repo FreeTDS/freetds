@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.379 2010-01-22 10:43:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.380 2010-03-01 12:38:10 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -3280,10 +3280,10 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 		arg = tds_get_int(tds);
 		break;
 	default:
-		tdsdump_log(TDS_DBG_INFO1, "oops: cannot process option of size %d\n", argsize);
-		assert(argsize <= 4);
-		exit(1);	 /* FIXME: stream would become desynchronized */
-		break;
+		tdsdump_log(TDS_DBG_INFO1, "oops: cannot process option %d of size %d\n", option, argsize);
+		/* ignore argument */
+		tds_get_n(tds, NULL, argsize);
+		return TDS_FAIL;
 	}
 	tdsdump_log(TDS_DBG_INFO1, "received option %d value %d\n", option, arg);
 

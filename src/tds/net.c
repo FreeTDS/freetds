@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.101 2010-01-28 13:15:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.102 2010-03-01 12:38:10 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -464,8 +464,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			default:
 				tdsdump_log(TDS_DBG_NETWORK, 
 					"tds_select: invalid interupt handler return code: %d\n", timeout_action);
-				exit(EXIT_FAILURE);
-				break;
+				return -1;
 			}
 		}
 		/* 

@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.195 2010-02-07 21:56:10 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.196 2010-03-01 12:38:10 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -573,7 +573,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		memcpy(program_version, "\005\000\000\000", 4);
 	} else {
 		tdsdump_log(TDS_DBG_SEVERE, "Unknown protocol version!\n");
-		exit(1);
+		return TDS_FAIL;
 	}
 	/*
 	 * the following code is adapted from  Arno Pedusaar's 
