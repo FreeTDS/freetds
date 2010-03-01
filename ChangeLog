@@ -1,3 +1,8 @@
+Mon Mar  1 15:50:06 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/prepclose.c src/odbc/unittests/timeout3.c:
+	* src/odbc/unittests/timeout4.c:
+	- update for future implementations
+
 Mon Mar  1 15:32:43 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/freeclose.c: ported freeclose test to Windows
 
@@ -2333,4 +2338,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2993 2010-03-01 14:33:04 freddy77 Exp $
+$Id: ChangeLog,v 1.2994 2010-03-01 14:50:55 freddy77 Exp $

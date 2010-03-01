@@ -40,7 +40,7 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.10 2009-02-27 10:11:42 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.11 2010-03-01 14:50:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -99,7 +99,7 @@ fake_thread_proc(void * arg)
 	memset(&sin, 0, sizeof(sin));
 	len = sizeof(sin);
 	alarm(30);
-	if ((fake_sock = tds_accept(s, (struct sockaddr *) &sin, &len)) < 0) {
+	if (TDS_IS_SOCKET_INVALID(fake_sock = tds_accept(s, (struct sockaddr *) &sin, &len))) {
 		perror("accept");
 		exit(1);
 	}
