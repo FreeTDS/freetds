@@ -52,7 +52,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.11 2010-03-01 14:33:04 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.12 2010-03-01 14:52:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -315,6 +315,7 @@ main(int argc, char **argv)
 	TDS_SYS_SOCKET last_socket;
 	int port;
 	const int num_inserts = 20;
+	int is_freetds;
 
 #ifdef _WIN32
 	WSADATA wsaData;
@@ -335,6 +336,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	is_freetds = driver_is_freetds();
 	Disconnect();
 
 	/* init fake server, behave like a proxy */
@@ -348,7 +350,7 @@ main(int argc, char **argv)
 	printf("Fake server binded at port %d\n", port);
 
 	/* override connections */
-	if (driver_is_freetds()) {
+	if (is_freetds) {
 		setenv("TDSHOST", "127.0.0.1", 1);
 		sprintf(string, "%d", port);
 		setenv("TDSPORT", string, 1);
