@@ -43,18 +43,21 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
-#if defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM && HAVE_FSTAT && defined(S_IFSOCK)
+#if (defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM && HAVE_FSTAT && defined(S_IFSOCK)) || defined(_WIN32)
 
 #include <ctype.h>
+#if HAVE_PTHREAD
 #include <pthread.h>
+#endif
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.10 2009-02-27 10:11:42 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.11 2010-03-01 14:33:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
 
+#ifndef _WIN32
 static int
 find_last_socket(void)
 {
@@ -69,21 +72,47 @@ find_last_socket(void)
 	}
 	return max_socket;
 }
+#else
+static TDS_SYS_SOCKET
+find_last_socket(void)
+{
+	TDS_SYS_SOCKET max_socket = INVALID_SOCKET;
+	int i;
+
+	for (i = 4; i <= (4096*4); i += 4) {
+		struct sockaddr addr;
+		socklen_t addr_len;
+
+		if (tds_getpeername((TDS_SYS_SOCKET) i, &addr, &addr_len))
+			continue;
+		max_socket = (TDS_SYS_SOCKET) i;
+	}
+	
+	return max_socket;
+}
+#endif
 
 static struct sockaddr remote_addr;
-socklen_t remote_addr_len;
+static socklen_t remote_addr_len;
 
-static pthread_t      fake_thread;
 static TDS_SYS_SOCKET fake_sock;
 
-static void *fake_thread_proc(void * arg);
+#ifndef _WIN32
+static pthread_t      fake_thread;
+#define THREADAPI
+#else
+static HANDLE fake_thread;
+#define THREADAPI WINAPI
+#define pthread_join(th,fl) WaitForSingleObject(th,INFINITE)
+#define alarm(n) do { ; } while(0)
+#endif
+static void* THREADAPI fake_thread_proc(void *arg);
 
 static int
 init_fake_server(int ip_port)
 {
 	struct sockaddr_in sin;
 	TDS_SYS_SOCKET s;
-	int err;
 
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_addr.s_addr = INADDR_ANY;
@@ -100,11 +129,18 @@ init_fake_server(int ip_port)
 		return 1;
 	}
 	listen(s, 5);
-	err = pthread_create(&fake_thread, NULL, fake_thread_proc, int2ptr(s));
-	if (err != 0) {
+#ifndef _WIN32
+	if (pthread_create(&fake_thread, NULL, fake_thread_proc, int2ptr(s)) != 0) {
 		perror("pthread_create");
 		exit(1);
 	}
+#else
+	fake_thread = CreateThread(NULL, 0, fake_thread_proc, int2ptr(s), 0, NULL);
+	if (!fake_thread) {
+		fprintf(stderr, "CreateThread error %u\n", (unsigned) GetLastError());
+		exit(1);
+	}
+#endif
 	return 0;
 }
 
@@ -175,7 +211,7 @@ count_insert(const char* buf, size_t len)
 static unsigned int round_trips = 0;
 static enum { sending, receiving } flow = sending;
 
-static void *
+static void *THREADAPI
 fake_thread_proc(void * arg)
 {
 	TDS_SYS_SOCKET s = ptr2int(arg), server_sock;
@@ -225,7 +261,7 @@ fake_thread_proc(void * arg)
 		res = select(max_fd + 1, &fds_read, &fds_write, &fds_error, NULL);
 		alarm(0);
 		if (res < 0) {
-			if (errno == EINTR)
+			if (sock_errno == TDSSOCK_EINTR)
 				continue;
 			perror("select");
 			exit(1);
@@ -276,13 +312,19 @@ main(int argc, char **argv)
 	const char *query;
 	SQLINTEGER id = 0;
 	char string[64];
-	int last_socket, port;
+	TDS_SYS_SOCKET last_socket;
+	int port;
 	const int num_inserts = 20;
+
+#ifdef _WIN32
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(1, 1), &wsaData);
+#endif
 
 	Connect();
 
 	last_socket = find_last_socket();
-	if (last_socket < 0) {
+	if (TDS_IS_SOCKET_INVALID(last_socket)) {
 		fprintf(stderr, "Error finding last socket opened\n");
 		return 1;
 	}
@@ -306,11 +348,23 @@ main(int argc, char **argv)
 	printf("Fake server binded at port %d\n", port);
 
 	/* override connections */
-	setenv("TDSHOST", "127.0.0.1", 1);
-	sprintf(string, "%d", port);
-	setenv("TDSPORT", string, 1);
+	if (driver_is_freetds()) {
+		setenv("TDSHOST", "127.0.0.1", 1);
+		sprintf(string, "%d", port);
+		setenv("TDSPORT", string, 1);
 
-	Connect();
+		Connect();
+	} else {
+		char tmp[2048];
+		SQLSMALLINT len;
+
+		CHKAllocEnv(&Environment, "S");
+		CHKAllocConnect(&Connection, "S");
+		sprintf(tmp, "DRIVER={SQL Server};SERVER=127.0.0.1,%d;UID=%s;PWD=%s;DATABASE=%s;Network=DBMSSOCN;", port, USER, PASSWORD, DATABASE);
+		printf("connection string: %s\n", tmp);
+		CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
+		CHKAllocStmt(&Statement, "S");
+	}
 
 	/* real test */
 	Command("CREATE TABLE #test(i int, c varchar(40))");
