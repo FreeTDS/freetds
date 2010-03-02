@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.90 2010-02-07 21:56:10 jklowden Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.91 2010-03-02 08:32:36 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -374,18 +374,12 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 	}
 
   
-  	assert(!(msgno != TDSETIME && rc == TDS_INT_TIMEOUT));   /* client library should prevent */
-	assert(!(msgno != TDSETIME && rc == TDS_INT_CONTINUE));  /* client library should prevent */
-	
-	if (msgno != TDSETIME) {
-		switch(rc) {
-		case TDS_INT_TIMEOUT:
-		case TDS_INT_CONTINUE:
-		 	tdsdump_log(TDS_DBG_FUNC, "exit: %s(%d) valid only for TDSETIME\n", retname(rc), rc);
-			exit(1);
-		default:
-			break;
-		}
+  	assert(msgno == TDSETIME || rc != TDS_INT_TIMEOUT);   /* client library should prevent */
+	assert(msgno == TDSETIME || rc != TDS_INT_CONTINUE);  /* client library should prevent */
+
+	if (msgno != TDSETIME && rc != TDS_INT_CANCEL) {
+		tdsdump_log(TDS_DBG_SEVERE, "exit: %s(%d) valid only for TDSETIME\n", retname(rc), rc);
+		rc = TDS_INT_CANCEL;
 	}
 
  	if (rc == TDS_INT_TIMEOUT) {
