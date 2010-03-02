@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.31 2010-03-02 15:07:00 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.32 2010-03-02 15:41:37 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -149,6 +149,8 @@ SQLSMALLINT AllocHandleErrType(SQLSMALLINT type);
 	CHKR2(SQLProcedureColumns, (Statement,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, Statement, res)
 #define CHKColumns(a,b,c,d,e,f,g,h,res) \
 	CHKR2(SQLColumns, (Statement,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, Statement, res)
+#define CHKGetDescRec(a,b,c,d,e,f,g,h,i,j,res) \
+	CHKR2(SQLGetDescRec, (Descriptor,a,b,c,d,e,f,g,h,i,j), SQL_HANDLE_STMT, Descriptor, res)
 
 int Connect(void);
 int Disconnect(void);

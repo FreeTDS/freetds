@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.529 2010-02-01 10:16:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.530 2010-03-02 15:41:37 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -2268,15 +2268,18 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetDescRec(%p, %d, %p, %d, %p, %p, %p, %p, %p, %p, %p)\n", 
 			hdesc, RecordNumber, Name, BufferLength, StringLength, Type, SubType, Length, Precision, Scale, Nullable);
 
+	if (RecordNumber <= 0) {
+		odbc_errs_add(&desc->errs, "07009", NULL);
+		ODBC_RETURN(desc, SQL_ERROR);
+	}
+
 	if (desc->type == DESC_IRD && desc->header.sql_desc_count) {
 		odbc_errs_add(&desc->errs, "HY007", NULL);
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
 
-	if (RecordNumber > desc->header.sql_desc_count || RecordNumber <= 0) {
-		odbc_errs_add(&desc->errs, "07009", NULL);
-		ODBC_RETURN(desc, SQL_ERROR);
-	}
+	if (RecordNumber > desc->header.sql_desc_count)
+		ODBC_RETURN(desc, SQL_NO_DATA);
 
 	drec = &desc->records[RecordNumber - 1];
 
