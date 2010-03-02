@@ -1,23 +1,15 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.22 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.23 2010-03-02 15:07:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
-static void ReadError(void);
 
 #ifdef TDS_NO_DM
 static const int tds_no_dm = 1;
 #else
 static const int tds_no_dm = 0;
 #endif
-
-static void
-ReadError(void)
-{
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL, "SI");
-	printf("Message: %s\n", output);
-}
 
 static int
 test(int odbc3)
@@ -34,11 +26,11 @@ test(int odbc3)
 	query = "print 'START' select count(*) from sysobjects where name='sysobjects' print 'END'";
 	Command2(query, "I");
 	ReadError();
-	if (!strstr((char *) output, "START")) {
+	if (!strstr(odbc_err, "START")) {
 		printf("Message invalid\n");
 		return 1;
 	}
-	output[0] = 0;
+	odbc_err[0] = 0;
 
 	if (odbc3) {
 		CHECK_COLS(0);
@@ -71,13 +63,12 @@ test(int odbc3)
 	 * (unixODBC till 2.2.11 do not read errors on NO DATA, skip test)
 	 */
 	if (tds_no_dm || odbc3) {
-		output[0] = 0;
 		ReadError();
-		if (!strstr((char *) output, "END")) {
+		if (!strstr(odbc_err, "END")) {
 			printf("Message invalid\n");
 			return 1;
 		}
-		output[0] = 0;
+		odbc_err[0] = 0;
 	}
 
 	if (!odbc3) {

@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.30 2010-01-10 14:43:11 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.31 2010-03-02 15:07:00 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -38,6 +38,9 @@ extern HDBC Connection;
 extern HSTMT Statement;
 extern int use_odbc_version3;
 extern void (*odbc_set_conn_attr)(void);
+extern char odbc_err[512];
+extern char odbc_sqlstate[6];
+
 
 extern char USER[512];
 extern char SERVER[512];
@@ -47,6 +50,8 @@ extern char DRIVER[1024];
 
 int read_login_info(void);
 void ReportError(const char *msg, int line, const char *file);
+void ReadError(void);
+
 
 void CheckCols(int n, int line, const char * file);
 void CheckRows(int n, int line, const char * file);

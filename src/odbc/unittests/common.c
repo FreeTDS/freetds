@@ -12,7 +12,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.56 2010-01-10 14:43:11 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.57 2010-03-02 15:07:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -439,5 +439,17 @@ CommandProc(HSTMT stmt, const char *command, const char *file, int line, const c
 {
 	printf("%s\n", command);
 	return CheckRes(file, line, SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS), SQL_HANDLE_STMT, stmt, "Command", res);
+}
+
+char odbc_err[512];
+char odbc_sqlstate[6];
+
+void
+ReadError(void)
+{
+	memset(odbc_err, 0, sizeof(odbc_err));
+	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
+	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
+	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 

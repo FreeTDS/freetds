@@ -1,21 +1,8 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.16 2009-12-28 13:30:31 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.17 2010-03-02 15:07:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-static char odbc_err[256];
-static char odbc_sqlstate[6];
-
-static void
-ReadError(void)
-{
-	memset(odbc_err, 0, sizeof(odbc_err));
-	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) odbc_sqlstate,
-		      NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
-	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
-}
 
 static void
 test_err(const char *data, int c_type, const char *state)

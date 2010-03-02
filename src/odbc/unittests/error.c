@@ -2,18 +2,8 @@
 
 /* some tests on error reporting */
 
-static char software_version[] = "$Id: error.c,v 1.9 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: error.c,v 1.10 2010-03-02 15:07:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-static SQLCHAR output[256];
-static void ReadError(void);
-
-static void
-ReadError(void)
-{
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL, "SI");
-	printf("Message: %s\n", output);
-}
 
 int
 main(int argc, char *argv[])
@@ -44,7 +34,7 @@ main(int argc, char *argv[])
 	}
 
 	ReadError();
-	if (!strstr((char *) output, "zero")) {
+	if (!strstr(odbc_err, "zero")) {
 		fprintf(stderr, "Message invalid\n");
 		return 1;
 	}

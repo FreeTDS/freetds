@@ -1,19 +1,7 @@
 #include "common.h"
 
-static char software_version[] = "$Id: rowset.c,v 1.5 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: rowset.c,v 1.6 2010-03-02 15:07:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
-static char odbc_err[256];
-static char odbc_sqlstate[6];
-
-static void
-ReadError(void)
-{
-	memset(odbc_err, 0, sizeof(odbc_err));
-	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
-	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
-}
 
 static void
 test_err(int n)

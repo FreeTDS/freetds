@@ -3,14 +3,11 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.8 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.9 2010-03-02 15:07:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static char odbc_err[256];
-static char odbc_sqlstate[6];
-
 static void
-ReadError(void)
+ReadErrorConn(void)
 {
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
@@ -203,7 +200,7 @@ main(int argc, char *argv[])
 
 	/* Invalid argument value */
 	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ | SQL_TXN_READ_COMMITTED), 0, "E");
-	ReadError();
+	ReadErrorConn();
 	if (strcmp(odbc_sqlstate, "HY024") != 0) {
 		Disconnect();
 		fprintf(stderr, "Unexpected success\n");
@@ -222,7 +219,7 @@ main(int argc, char *argv[])
 #ifdef ENABLE_DEVELOPING
 	/* test setting with active transaction "Operation invalid at this time" */
 	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0, "E");
-	ReadError();
+	ReadErrorConn();
 	if (strcmp(odbc_sqlstate, "HY011") != 0) {
 		Disconnect();
 		fprintf(stderr, "Unexpected success\n");
@@ -236,7 +233,7 @@ main(int argc, char *argv[])
 
 	/* test setting with pending data */
 	CHKSetConnectAttr(SQL_ATTR_TXN_ISOLATION, int2ptr(SQL_TXN_REPEATABLE_READ), 0, "E");
-	ReadError();
+	ReadErrorConn();
 	if (strcmp(odbc_sqlstate, "HY011") != 0) {
 		Disconnect();
 		fprintf(stderr, "Unexpected success\n");

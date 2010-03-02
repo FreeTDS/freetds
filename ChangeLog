@@ -1,3 +1,10 @@
+Tue Mar  2 16:06:34 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
+	* src/odbc/unittests/error.c src/odbc/unittests/getdata.c:
+	* src/odbc/unittests/paramcore.c src/odbc/unittests/print.c:
+	* src/odbc/unittests/rowset.c src/odbc/unittests/transaction2.c:
+	- add ReadError and reuse it
+
 Tue Mar  2 09:32:02 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/util.c:
 	- remove last exit calls (original patch from David Dick)
@@ -2345,4 +2352,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2996 2010-03-02 08:32:36 freddy77 Exp $
+$Id: ChangeLog,v 1.2997 2010-03-02 15:07:00 freddy77 Exp $
