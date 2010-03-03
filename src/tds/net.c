@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.71.2.1 2008-01-12 00:21:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.71.2.2 2010-03-03 13:15:05 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -187,7 +187,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	ioctl_nonblocking_t ioctl_nonblocking;
 	int retval;
 #endif
-	int len;
+	int len, err;
 	int tds_error = TDSECONN;
 	char ip[20];
 #if defined(DOS32X) || defined(WIN32)
@@ -212,8 +212,9 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			tds->major_version, tds->minor_version);
 
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
+		err = sock_errno;
 		tdserror(tds->tds_ctx, tds, TDSESOCK, 0);  
-		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(sock_errno));
+		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", strerror(err));
 		return TDS_FAIL;
 	}
 
@@ -261,9 +262,10 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
-		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", strerror(sock_errno));
+		err = sock_errno;
+		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", strerror(err));
 #if DEBUGGING_CONNECTING_PROBLEM
-		if (sock_errno != ECONNREFUSED && sock_errno != ENETUNREACH && sock_errno != EINPROGRESS) {
+		if (err != ECONNREFUSED && err != ENETUNREACH && err != EINPROGRESS) {
 			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", &sin, sizeof(sin));
 			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
 							      "%s = %x\n" 
@@ -277,10 +279,11 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 							);
 		}
 #endif
-		if (sock_errno != TDSSOCK_EINPROGRESS)
+		if (err != TDSSOCK_EINPROGRESS)
 			goto not_available;
 		
 		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) <= 0) {
+			err = sock_errno;
 			tds_error = TDSESOCK;
 			goto not_available;
 		}
@@ -292,7 +295,8 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	optlen = sizeof(len);
 	len = 0;
 	if (getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
-		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", strerror(sock_errno));
+		err = sock_errno;
+		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", strerror(err));
 		goto not_available;
 	}
 	if (len != 0) {
@@ -306,7 +310,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
     not_available:
 	
 	tds_close_socket(tds);
-	tdserror(tds->tds_ctx, tds, tds_error, sock_errno);
+	tdserror(tds->tds_ctx, tds, tds_error, err);
 	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
 	return TDS_FAIL;
 }
@@ -317,11 +321,14 @@ tds_close_socket(TDSSOCKET * tds)
 	int rc = -1;
 
 	if (!IS_TDSDEAD(tds)) {
+		int err;
+
 		rc = CLOSESOCKET(tds->s);
+		err = sock_errno;
 		tds->s = INVALID_SOCKET;
 		tds_set_state(tds, TDS_DEAD);
 		if (-1 == rc) 
-			tdserror(tds->tds_ctx, tds,  TDSECLOS, sock_errno);
+			tdserror(tds->tds_ctx, tds,  TDSECLOS, err);
 	}
 	return rc;
 }
@@ -385,6 +392,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 	 */
 	poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
 	for (seconds = timeout_seconds; timeout_seconds == 0 || seconds > 0; seconds -= poll_seconds) {
+		int err;
 #if USE_POLL
 		struct pollfd fd;
 		int timeout = poll_seconds ? poll_seconds * 1000 : -1;
@@ -408,22 +416,23 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		rc = select(tds->s + 1, readfds, writefds, exceptfds, ptv); 
 #endif
 
+		err = sock_errno;
 		if (rc > 0 ) {
 			return rc;
 		}
 
 		if (rc < 0) {
-			switch (sock_errno) {
+			switch (err) {
 			case TDSSOCK_EINTR:
 				break;	/* let interrupt handler be called */
 			default: /* documented: EFAULT, EBADF, EINVAL */
 				tdsdump_log(TDS_DBG_ERROR, "error: select(2) returned 0x%x, \"%s\"\n", 
-						sock_errno, strerror(sock_errno));
+						err, strerror(err));
 				return rc;
 			}
 		}
 
-		assert(rc == 0 || (rc < 0 && sock_errno == TDSSOCK_EINTR));
+		assert(rc == 0 || (rc < 0 && err == TDSSOCK_EINTR));
 
 		if (tds->tds_ctx && tds->tds_ctx->int_handler) {	/* interrupt handler installed */
 			/*
@@ -476,7 +485,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 		return 0;
 
 	for (;;) {
-		int len;
+		int len, err;
 
 		if (IS_TDSDEAD(tds))
 			return -1;
@@ -487,22 +496,25 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 #else
 			len = recv(tds->s, buf + got, buflen, MSG_NOSIGNAL);
 #endif
-			if (len < 0 && sock_errno == EAGAIN)
+			err = sock_errno;
+			if (len < 0 && err == EAGAIN)
 				continue;
 			/* detect connection close */
 			if (len <= 0) {
-				tdserror(tds->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, sock_errno);
+				tdserror(tds->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, err);
 				tds_close_socket(tds);
 				return -1;
 			}
 		} else if (len < 0) {
-			if (sock_errno == EAGAIN) /* shouldn't happen, but OK */
+			err = sock_errno;
+			if (err == EAGAIN) /* shouldn't happen, but OK */
 				continue;
-			tdserror(tds->tds_ctx, tds, TDSEREAD, sock_errno);
+			tdserror(tds->tds_ctx, tds, TDSEREAD, err);
 			tds_close_socket(tds);
 			return -1;
 		} else { /* timeout */
-			switch (rc = tdserror(tds->tds_ctx, tds, TDSETIME, sock_errno)) {
+			err = sock_errno;
+			switch (rc = tdserror(tds->tds_ctx, tds, TDSETIME, err)) {
 			case TDS_INT_CONTINUE:
 				continue;
 			case TDS_INT_TIMEOUT:
@@ -692,6 +704,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 
 	while (remaining > 0) {
 		if ((rc = tds_select(tds, TDSSELWRITE, tds->query_timeout)) > 0) {
+			int err;
 #ifdef USE_MSGMORE
 			nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 			/* In case the kernel does not support MSG_MORE, try again without it */
@@ -702,24 +715,25 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *p, int len, unsigned char la
 #else
 			nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
 #endif
-			if (nput < 0 && sock_errno == EAGAIN)
+			err = sock_errno;
+			if (nput < 0 && err == EAGAIN)
 				continue;
 			/* detect connection close */
 			if (nput <= 0) {
-				tdserror(tds->tds_ctx, tds, nput == 0 ? TDSESEOF : TDSEWRIT, sock_errno);
+				tdserror(tds->tds_ctx, tds, nput == 0 ? TDSESEOF : TDSEWRIT, err);
 				tds_close_socket(tds);
 				return -1;
 			}
 		} else if (rc < 0) {
-			if (sock_errno == EAGAIN) /* shouldn't happen, but OK, retry */
+			if (err == EAGAIN) /* shouldn't happen, but OK, retry */
 				continue;
 			tdsdump_log(TDS_DBG_NETWORK, "TDS: Write failed in tds_write_packet\nError: %d (%s)\n", err, strerror(err));
-			tdserror(tds->tds_ctx, tds, TDSEWRIT, sock_errno);
+			tdserror(tds->tds_ctx, tds, TDSEWRIT, err);
 			tds_close_socket(tds);
 			return -1;
 		} else { /* timeout */
 			tdsdump_log(TDS_DBG_NETWORK, "tds_goodwrite(): timed out, asking client\n");
-			switch (rc = tdserror(tds->tds_ctx, tds, TDSETIME, sock_errno)) {
+			switch (rc = tdserror(tds->tds_ctx, tds, TDSETIME, err)) {
 			case TDS_INT_CONTINUE:
 				continue;
 			case TDS_INT_TIMEOUT:
