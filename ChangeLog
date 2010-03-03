@@ -1,3 +1,6 @@
+Wed Mar  3 09:08:14 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/write.c: compute length supporting all character sets
+
 Tue Mar  2 16:40:46 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/common.h:
@@ -2359,4 +2362,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.2998 2010-03-02 15:41:37 freddy77 Exp $
+$Id: ChangeLog,v 1.2999 2010-03-03 08:08:56 freddy77 Exp $

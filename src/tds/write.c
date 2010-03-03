@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.78 2009-01-23 10:37:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.79 2010-03-03 08:08:57 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -107,13 +107,19 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	if (len < 0) {
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */
 			len = (int)strlen(s);
-		} else if (client->min_bytes_per_char == 2 && client->max_bytes_per_char == 2) {	/* UCS-2 or variant */
+		} else if (client->min_bytes_per_char == 2) {	/* UCS-2 or variant */
 			const char *p = s;
 
 			while (p[0] || p[1])
 				p += 2;
 			len = (int)(p - s);
 
+		} else if (client->min_bytes_per_char == 4) {	/* UCS-4 or variant */
+			const char *p = s;
+
+			while (p[0] || p[1] || p[2] || p[3])
+				p += 4;
+			len = (int)(p - s);
 		} else {
 			assert(client->min_bytes_per_char < 3);	/* FIXME */
 		}
