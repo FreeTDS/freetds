@@ -41,11 +41,15 @@
 #include <string.h>
 #endif
 
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
+
 #include <sqlfront.h>
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.38 2010-01-10 14:43:11 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.39 2010-04-03 12:36:45 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -407,20 +411,26 @@ print_results(DBPROCESS *dbproc)
 			 * inaccesible to the application.  
 			 */
 
-			data[c].buffer = calloc(1, metadata[c].width);
-			assert(data[c].buffer);
+			if (metadata[c].width < INT_MAX) {
+				data[c].buffer = calloc(1, 1 + metadata[c].width); /* allow for null terminator */
+				assert(data[c].buffer);
 
-			erc = dbbind(dbproc, c+1, bindtype, 0, (BYTE *) data[c].buffer);
-			if (erc == FAIL) {
-				fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, c+1);
-				return;
+				erc = dbbind(dbproc, c+1, bindtype, 0, (BYTE *) data[c].buffer);
+				if (erc == FAIL) {
+					fprintf(stderr, "%s:%d: dbbind(), column %d failed\n", options.appname, __LINE__, c+1);
+					return;
+				}
+
+				erc = dbnullbind(dbproc, c+1, &data[c].status);
+				if (erc == FAIL) {
+					fprintf(stderr, "%s:%d: dbnullbind(), column %d failed\n", options.appname, __LINE__, c+1);
+					return;
+				}
+			} else {
+				/* We don't bind text buffers, but use dbreadtext instead. */
+				data[c].buffer = NULL;
 			}
 
-			erc = dbnullbind(dbproc, c+1, &data[c].status);
-			if (erc == FAIL) {
-				fprintf(stderr, "%s:%d: dbnullbind(), column %d failed\n", options.appname, __LINE__, c+1);
-				return;
-			}
 		}
 		
 		/* 
@@ -520,6 +530,20 @@ print_results(DBPROCESS *dbproc)
 			switch (row_code) {
 			case REG_ROW:
 				for (c=0; c < ncols; c++) {
+					if (metadata[c].width == INT_MAX) { /* TEXT/IMAGE */
+						BYTE *p = dbdata(dbproc, c+1);
+						size_t len = dbdatlen(dbproc, c+1);
+						if (len == 0) {
+							p = "NULL";
+							len = strlen(p);
+						}
+						if (fwrite(p, len, 1, stdout) != 1) {
+							perror("could not write to output file");
+							exit(EXIT_FAILURE);
+						}
+						fprintf(stdout, metadata[c].format_string); /* col/row separator */
+						continue;
+					}
 					switch (data[c].status) { /* handle nulls */
 					case -1: /* is null */
 						/* TODO: FreeTDS 0.62 does not support dbsetnull() */
@@ -633,6 +657,8 @@ static int
 get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 {
 	switch (type) {
+	case SYBBIT:
+		return 1;
 	case SYBINTN:
 		switch (size) {
 		case 1:
@@ -667,16 +693,23 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 		return 26;	/* FIX ME */
 	case SYBDATETIME4:
 		return 26;	/* FIX ME */
-#if 0	/* seems not to be exported to sybdb.h */
+#if 0	/* not exported by sybdb.h */
 	case SYBBITN:
+	case SYBLONGBINARY:
+	case SYBLONGCHAR:
+	case SYBNTEXT:
+	case SYBNVARCHAR:
 #endif
-	case SYBBIT:
-		return 1;
-		/* FIX ME -- not all types present */
-	default:
-		return 0;
+	case SYBBINARY:
+	case SYBIMAGE:
+	case SYBTEXT:
+	case SYBVARBINARY:
+		return INT_MAX;
 	}
-
+	
+	/* FIX ME -- not all types present */
+	fprintf(stderr, "type %d not supported, sorry\n", type);
+	exit(EXIT_FAILURE);
 }
 
 /** 
@@ -692,13 +725,18 @@ set_format_string(struct METADATA * meta, const char separator[])
 	assert(meta);
 
 	if(0 == strcmp(options.colsep, default_colsep)) { 
-		/* right justify numbers, left justify strings */
-		size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
-		
-		width = get_printable_size(meta->type, meta->size);
+		if ((width = get_printable_size(meta->type, meta->size)) == INT_MAX) {
+			/* TEXT/IMAGE: no attempt to format the column; just splat the data */
+			meta->format_string = strdup(separator);
+			return strlen(meta->format_string);
+		}
+			
 		if (width < strlen(meta->name))
 			width = strlen(meta->name);
 
+		/* right justify numbers, left justify strings */
+		size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
+		
 		ret = asprintf(&meta->format_string, size_and_width, width, width, separator);
 	} else {
 		/* For anything except the default two-space separator, don't justify the strings. */
