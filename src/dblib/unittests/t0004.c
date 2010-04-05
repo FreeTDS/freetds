@@ -1,12 +1,12 @@
 /* 
  * Purpose: Test retrieving data and attempting to initiate a new query with results pending
- * Functions: dbnextrow dbresults dbsqlexec 
+ * Functions: dbnextrow dbresults dbsqlexec dbgetchar 
  */
 
 #include "common.h"
 
 
-static char software_version[] = "$Id: t0004.c,v 1.19 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.20 2010-04-05 18:49:30 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -18,7 +18,7 @@ main(int argc, char **argv)
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	int i, expected_error;
-	char teststr[1024];
+	char *s, teststr[1024];
 	DBINT testint;
 	int failed = 0;
 
@@ -132,6 +132,16 @@ main(int argc, char **argv)
 
 
 	fprintf(stdout, "second select\n");
+	fprintf(stdout, "testing dbgetchar...\n");
+	for (i=0; (s = dbgetchar(dbproc, i)) != NULL; i++) {
+		putchar(*s);
+		if (!(isprint((unsigned char)*s) || iscntrl((unsigned char)*s))) {
+			fprintf(stderr, "%s:%d: dbgetchar failed with %x at position %d\n", __FILE__, __LINE__, *s, i);
+			failed = 1;
+			break;
+		}
+	}
+	fprintf(stdout, "<== end of command buffer\n");
 
 	if (SUCCEED != sql_cmd(dbproc)) {
 		fprintf(stderr, "%s:%d: dbcmd failed\n", __FILE__, __LINE__);
