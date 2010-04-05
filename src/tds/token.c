@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.380 2010-03-01 12:38:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.381 2010-04-05 18:49:25 jklowden Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -236,7 +236,10 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", _tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
-	default: /* SYBEBTOK */
+	case TDS_NBC_ROW_TOKEN:
+		tdsdump_log(TDS_DBG_ERROR, "error: cannot process TDS_NBC_ROW_TOKEN %d(%x)!\n", marker, (unsigned char) marker);
+		/* fall out */
+	default: 
 		tds_close_socket(tds);
 		tdserror(tds->tds_ctx, tds, TDSEBTOK, 0);
 		tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n", marker, (unsigned char) marker);
@@ -306,7 +309,6 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	int marker;
 	int len;
 	int memrc = 0;
-	unsigned char major_ver, minor_ver;
 	unsigned char ack;
 	TDS_UINT product_version;
 
@@ -315,6 +317,11 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens()\n");
 	/* get_incoming(tds->s); */
 	do {
+		struct 	{ unsigned char major, minor, tiny[2]; 
+			  unsigned int reported; 
+			  char *name;
+			} ver;
+		
 		marker = tds_get_byte(tds);
 		tdsdump_log(TDS_DBG_FUNC, "looking for login token, got  %x(%s)\n", marker, _tds_token_name(marker));
 
@@ -326,46 +333,66 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			/* TODO function */
 			len = tds_get_smallint(tds);
 			ack = tds_get_byte(tds);
-			major_ver = tds_get_byte(tds);
-			minor_ver = tds_get_byte(tds);
-			tds_get_n(tds, NULL, 2);
-			/* ignore product name length, see below */
+			
+			ver.major = tds_get_byte(tds);
+			ver.minor = tds_get_byte(tds);
+			ver.tiny[1] = tds_get_byte(tds);
+			ver.tiny[2] = tds_get_byte(tds);
+			ver.reported = (ver.major << 24) | (ver.minor << 16) | (ver.tiny[1] << 8) | ver.tiny[2];
+			
+			/* Log reported server product name, cf. MS-TDS LOGINACK documentation. */
+			switch(ver.reported) {
+			case 0x07000000: 
+				ver.name = "7.0"; break;
+			case 0x07010000: 
+				ver.name = "2000"; break;
+			case 0x71000001: 
+				ver.name = "2000 SP1"; break;
+			case 0x72090002: 
+				ver.name = "2005"; break;
+			case 0x730A0003: 
+				ver.name = "2008 (no NBCROW or fSparseColumnSet)"; break;
+			case 0x730B0003: 
+				ver.name = "2008"; break;
+			default:
+				ver.name = "unknown"; break;
+			}
+			
+			tdsdump_log(TDS_DBG_FUNC, "server reports TDS version %x.%x.%x.%x\n", 
+							ver.major, ver.minor, ver.tiny[1], ver.tiny[2]);
+			tdsdump_log(TDS_DBG_FUNC, "Product name for 0x%x is %s\n", ver.reported, ver.name);
+			
+			/* Get server product name. */
+			/* Ignore product name length; some servers seem to set it incorrectly.  */
 			tds_get_byte(tds);
 			product_version = 0;
-			/* get server product name */
-			/* compute length from packet, some version seem to fill this information wrongly */
+			/* Compute product name length from packet length. */
 			len -= 10;
 			free(tds->product_name);
-			if (major_ver >= 7u) {
+			if (ver.major >= 7u) {
 				product_version = 0x80000000u;
 				memrc += tds_alloc_get_string(tds, &tds->product_name, len / 2);
-			} else if (major_ver >= 5) {
+			} else if (ver.major >= 5) {
 				memrc += tds_alloc_get_string(tds, &tds->product_name, len);
 			} else {
 				memrc += tds_alloc_get_string(tds, &tds->product_name, len);
 				if (tds->product_name != NULL && strstr(tds->product_name, "Microsoft") != NULL)
 					product_version = 0x80000000u;
 			}
+			
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 24;
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 16;
 			product_version |= ((TDS_UINT) tds_get_byte(tds)) << 8;
 			product_version |= tds_get_byte(tds);
+
 			/*
 			 * MSSQL 6.5 and 7.0 seem to return strange values for this
 			 * using TDS 4.2, something like 5F 06 32 FF for 6.50
 			 */
-			if (major_ver == 4 && minor_ver == 2 && (product_version & 0xff0000ffu) == 0x5f0000ffu)
+			if (ver.major == 4 && ver.minor == 2 && (product_version & 0xff0000ffu) == 0x5f0000ffu)
 				product_version = ((product_version & 0xffff00u) | 0x800000u) << 8;
 			tds->product_version = product_version;
-#ifdef WORDS_BIGENDIAN
-			/* TODO do a best check */
-/*
-				
-				if (major_ver==7) {
-					tds->broken_dates=1;
-				}
-*/
-#endif
+
 			/*
 			 * TDS 5.0 reports 5 on success 6 on failure
 			 * TDS 4.2 reports 1 on success and is not
@@ -393,9 +420,12 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			succeed = TDS_FAIL;
 		}
 	}
-	tdsdump_log(TDS_DBG_FUNC, "leaving tds_process_login_tokens() returning %d\n", succeed);
 	if (memrc != 0)
 		succeed = TDS_FAIL;
+		
+	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens() returning %s\n", 
+					(succeed == TDS_SUCCEED)? "TDS_SUCCEED" : "TDS_FAIL");
+
 	return succeed;
 }
 
@@ -1523,7 +1553,6 @@ static int
 tds7_process_result(TDSSOCKET * tds)
 {
 	int col, num_cols, result;
-	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 
 	CHECK_TDS_EXTRA(tds);
@@ -1558,12 +1587,31 @@ tds7_process_result(TDSSOCKET * tds)
 	 * loop through the columns populating COLINFO struct from
 	 * server response
 	 */
+	tdsdump_log(TDS_DBG_INFO1, "setting up %d columns\n", num_cols);
 	for (col = 0; col < num_cols; col++) {
-
-		curcol = info->columns[col];
-
-		tdsdump_log(TDS_DBG_INFO1, "setting up column %d\n", col);
+		TDSCOLUMN *curcol = info->columns[col];
+		
 		tds7_get_data_info(tds, curcol);
+	}
+		
+	if (num_cols > 0) {
+		static char dashes[31] = "------------------------------";
+		tdsdump_log(TDS_DBG_INFO1, " %-20s %-15s %-15s %-7s\n", "name", "size/wsize", "type/wtype", "utype");
+		tdsdump_log(TDS_DBG_INFO1, " %-20s %15s %15s %7s\n", dashes+10, dashes+30-15, dashes+30-15, dashes+30-7);
+	}
+	for (col = 0; col < num_cols; col++) {
+		char name[TDS_SYSNAME_SIZE] = {'\0'};
+		TDSCOLUMN *curcol = info->columns[col];
+
+		if (curcol->column_namelen > 0) {
+			memcpy(name, curcol->column_name, curcol->column_namelen);
+			name[curcol->column_namelen] = '\0';
+		}
+		tdsdump_log(TDS_DBG_INFO1, " %-20s %7d/%-7d %7d/%-7d %7d\n", 
+						name, 
+						curcol->column_size, curcol->on_server.column_size, 
+						curcol->column_type, curcol->on_server.column_type, 
+						curcol->column_usertype);
 	}
 
 	/* all done now allocate a row for tds_process_row to use */

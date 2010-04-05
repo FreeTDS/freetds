@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.331 2010-01-29 18:57:03 freddy77 Exp $ */
+/* $Id: tds.h,v 1.332 2010-04-05 18:49:25 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -348,6 +348,7 @@ typedef enum {	TDSEOK    = TDS_SUCCEED,
 #define TDS_LOGINACK_TOKEN        173	/* 0xAD                              */
 #define TDS_CONTROL_TOKEN         174	/* 0xAE    TDS_CONTROL               */
 #define TDS_ROW_TOKEN             209	/* 0xD1                              */
+#define TDS_NBC_ROW_TOKEN         210	/* 0xD2    as of TDS 7.3.B           */ /* not implemented */
 #define TDS_CMP_ROW_TOKEN         211	/* 0xD3                              */
 #define TDS5_PARAMS_TOKEN         215	/* 0xD7    TDS 5.0 only              */
 #define TDS_CAPABILITY_TOKEN      226	/* 0xE2                              */

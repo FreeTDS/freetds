@@ -1,3 +1,7 @@
+Mon Apr  5 14:45:37 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* include/tds.h src/tds/token.c log table metadata succintly
+	* src/dblib/unittests/t0004.c test dbgetchar()
+
 Mon Apr  5 14:44:11 EDT 2010	JK Lowden <jklowden@freetds.org>
 	* src/apps/bsqldb.c Support TEXT datatype with any field terminator
 
@@ -2371,4 +2375,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3002 2010-04-05 18:45:42 jklowden Exp $
+$Id: ChangeLog,v 1.3003 2010-04-05 18:49:25 jklowden Exp $
