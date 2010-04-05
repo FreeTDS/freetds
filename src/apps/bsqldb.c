@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.39 2010-04-03 12:36:45 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.40 2010-04-05 18:45:44 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -720,30 +720,29 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 static int
 set_format_string(struct METADATA * meta, const char separator[])
 {
-	int width, ret;
+	int width;
 	const char *size_and_width;
 	assert(meta);
 
-	if(0 == strcmp(options.colsep, default_colsep)) { 
-		if ((width = get_printable_size(meta->type, meta->size)) == INT_MAX) {
-			/* TEXT/IMAGE: no attempt to format the column; just splat the data */
-			meta->format_string = strdup(separator);
-			return strlen(meta->format_string);
-		}
-			
-		if (width < strlen(meta->name))
-			width = strlen(meta->name);
-
-		/* right justify numbers, left justify strings */
-		size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
-		
-		ret = asprintf(&meta->format_string, size_and_width, width, width, separator);
-	} else {
-		/* For anything except the default two-space separator, don't justify the strings. */
-		ret = asprintf(&meta->format_string, "%%s%s", separator);
+	if ((width = get_printable_size(meta->type, meta->size)) == INT_MAX) {
+		/* TEXT/IMAGE: no attempt to format the column; just splat the data */
+		meta->format_string = strdup(separator);
+		return strlen(meta->format_string);
 	}
-		       
-	return ret;
+
+	/* For anything except the default two-space separator, don't justify the strings. */
+	if(0 != strcmp(options.colsep, default_colsep)) { 
+		return asprintf(&meta->format_string, "%%s%s", separator);
+	}
+		
+	/* Set the printing width large enough for the data or its title, whichever is greater. */
+	if (width < strlen(meta->name))
+		width = strlen(meta->name);
+
+	/* right justify numbers, left justify strings */
+	size_and_width = is_character_data(meta->type)? "%%-%d.%ds%s" : "%%%d.%ds%s";
+
+	return asprintf(&meta->format_string, size_and_width, width, width, separator);
 }
 
 static void

@@ -1,3 +1,6 @@
+Mon Apr  5 14:44:11 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* src/apps/bsqldb.c Support TEXT datatype with any field terminator
+
 Sat Apr  3 06:57:18 EDT 2010	JK Lowden <jklowden@freetds.org>
 	* src/apps/bsqldb.c Support TEXT datatype
 
@@ -2368,4 +2371,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3001 2010-04-03 12:36:45 jklowden Exp $
+$Id: ChangeLog,v 1.3002 2010-04-05 18:45:42 jklowden Exp $
