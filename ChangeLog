@@ -1,3 +1,6 @@
+Thu Apr  8 10:23:34 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/t0004.c: remove undeclared warning
+
 Thu Apr  8 10:17:24 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/apps/tsql.c src/tds/token.c:
 	- fix tsql and variant type
@@ -2382,4 +2385,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3005 2010-04-08 08:19:16 freddy77 Exp $
+$Id: ChangeLog,v 1.3006 2010-04-08 08:24:20 freddy77 Exp $

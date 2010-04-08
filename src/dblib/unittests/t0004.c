@@ -4,9 +4,9 @@
  */
 
 #include "common.h"
+#include <ctype.h>
 
-
-static char software_version[] = "$Id: t0004.c,v 1.20 2010-04-05 18:49:30 jklowden Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.21 2010-04-08 08:24:20 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
