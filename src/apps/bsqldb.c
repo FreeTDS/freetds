@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.40 2010-04-05 18:45:44 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.41 2010-04-08 09:02:55 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -534,10 +534,8 @@ print_results(DBPROCESS *dbproc)
 						BYTE *p = dbdata(dbproc, c+1);
 						size_t len = dbdatlen(dbproc, c+1);
 						if (len == 0) {
-							p = "NULL";
-							len = strlen(p);
-						}
-						if (fwrite(p, len, 1, stdout) != 1) {
+							fputs("NULL", stdout);
+						} else if (fwrite(p, len, 1, stdout) != 1) {
 							perror("could not write to output file");
 							exit(EXIT_FAILURE);
 						}
