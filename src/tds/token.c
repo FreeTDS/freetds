@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.382 2010-04-08 07:36:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.383 2010-04-08 08:19:16 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -81,6 +81,17 @@ static int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static /*@observer@*/ const char *tds_pr_op(int op);
 static int tds_alloc_get_string(TDSSOCKET * tds, /*@special@*/ char **string, int len) /*allocates *string*/;
 
+#if ENABLE_EXTRA_CHECKS
+
+#if defined(__GNUC__) && __GNUC__ >= 2
+#define COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1] __attribute__ ((unused))
+#else
+#define COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1]
+#endif
+
+#endif
 
 /**
  * \ingroup libtds
@@ -2037,6 +2048,11 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCEED;
 }
 
+#if ENABLE_EXTRA_CHECKS
+COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSBLOB*)0)->textvalue));
+COMPILE_CHECK(tds_variant_offset,(TDS_INTPTR)(&((TDSVARIANT*)0)->data) == (TDS_INTPTR)(&((TDSBLOB*)0)->textvalue));
+#endif
+
 static int
 tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
@@ -2114,7 +2130,7 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			v->data = (TDS_CHAR*) malloc(curcol->column_cur_size);
 			if (!v->data)
 				return TDS_FAIL;
-			if (tds_get_char_data(tds, (char *) v->data, colsize, curcol) == TDS_FAIL)
+			if (tds_get_char_data(tds, (char *) v, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
 			colsize = curcol->column_cur_size;
 			v->type = tds_get_cardinal_type(type, 0);

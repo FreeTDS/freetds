@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.332 2010-04-05 18:49:25 jklowden Exp $ */
+/* $Id: tds.h,v 1.333 2010-04-08 08:19:16 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -920,6 +920,7 @@ typedef struct tds_blob
  */
 typedef struct tds_variant
 {
+	/* this MUST have same position and place of textvalue in tds_blob */
 	TDS_CHAR *data;
 	TDS_INT size;
 	TDS_INT data_len;

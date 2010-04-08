@@ -87,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.132 2010-01-12 15:43:17 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.133 2010-04-08 08:19:16 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -237,7 +237,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 					ctype = tds_get_conversion_type(col->column_type, col->column_size);
 
 					src = col->column_data;
-					if (is_blob_col(col))
+					if (is_blob_col(col) && col->column_type != SYBVARIANT)
 						src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 					srclen = col->column_cur_size;
 
