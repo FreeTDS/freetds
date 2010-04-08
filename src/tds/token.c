@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.381 2010-04-05 18:49:25 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.382 2010-04-08 07:36:49 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2110,12 +2110,13 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		TDS_ZERO_FREE(v->data);
 	if (colsize) {
 		if (USE_ICONV && curcol->char_conv) {
-			curcol->column_cur_size = colsize = determine_adjusted_size(curcol->char_conv, colsize);
-			v->data = (TDS_CHAR*) malloc(colsize);
+			curcol->column_cur_size = determine_adjusted_size(curcol->char_conv, colsize);
+			v->data = (TDS_CHAR*) malloc(curcol->column_cur_size);
 			if (!v->data)
 				return TDS_FAIL;
 			if (tds_get_char_data(tds, (char *) v->data, colsize, curcol) == TDS_FAIL)
 				return TDS_FAIL;
+			colsize = curcol->column_cur_size;
 			v->type = tds_get_cardinal_type(type, 0);
 		} else {
 			v->data = (TDS_CHAR*) malloc(colsize);
