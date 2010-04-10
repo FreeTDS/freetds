@@ -66,13 +66,13 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.17 2010-01-28 13:31:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.18 2010-04-10 14:22:09 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
 int tds_g_append_mode = 0;
 static char *g_dump_filename = NULL;
-static int write_dump = 0;	/* is TDS stream debug log turned on? */
+int tds_write_dump = 0;	/* is TDS stream debug log turned on? */
 static FILE *g_dumpfile = NULL;	/* file pointer for dump log          */
 static TDS_MUTEX_DEFINE(g_dump_mutex);
 
@@ -93,7 +93,7 @@ void
 tdsdump_off(void)
 {
 	TDS_MUTEX_LOCK(&g_dump_mutex);
-	write_dump = 0;
+	tds_write_dump = 0;
 	TDS_MUTEX_UNLOCK(&g_dump_mutex);
 }				/* tdsdump_off()  */
 
@@ -105,7 +105,7 @@ void
 tdsdump_on(void)
 {
 	TDS_MUTEX_LOCK(&g_dump_mutex);
-	write_dump = 1;
+	tds_write_dump = 1;
 	TDS_MUTEX_UNLOCK(&g_dump_mutex);
 }
 
@@ -166,7 +166,7 @@ tdsdump_open(const char *filename)
 	}
 
 	if (result)
-		write_dump = 1;
+		tds_write_dump = 1;
 	TDS_MUTEX_UNLOCK(&g_dump_mutex);
 
 	if (result) {
@@ -221,7 +221,7 @@ void
 tdsdump_close(void)
 {
 	TDS_MUTEX_LOCK(&g_dump_mutex);
-	write_dump = 0;
+	tds_write_dump = 0;
 	if (g_dumpfile != NULL && g_dumpfile != stdout && g_dumpfile != stderr)
 		fclose(g_dumpfile);
 	g_dumpfile = NULL;
@@ -287,7 +287,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 	char line_buf[BYTES_PER_LINE * 8 + 16], *p;
 	FILE *dumpfile;
 
-	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !write_dump)
+	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !tds_write_dump)
 		return;
 
 	if (!g_dumpfile && !g_dump_filename)
@@ -366,6 +366,7 @@ tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, con
 }				/* tdsdump_dump_buf()  */
 
 
+#undef tdsdump_log
 /**
  * Write a message to the debug log.  
  * \param file name of the log file
@@ -380,7 +381,7 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 	va_list ap;
 	FILE *dumpfile;
 
-	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !write_dump)
+	if (((tds_debug_flags >> debug_lvl) & 1) == 0 || !tds_write_dump)
 		return;
 
 	if (!g_dumpfile && !g_dump_filename)
@@ -419,6 +420,8 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 #endif
 	TDS_MUTEX_UNLOCK(&g_dump_mutex);
 }				/* tdsdump_log()  */
+#define tdsdump_log if (tds_write_dump) tdsdump_log
+
 
 /**
  * Write a column value to the debug log.  

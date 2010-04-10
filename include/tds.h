@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.333 2010-04-08 08:19:16 freddy77 Exp $ */
+/* $Id: tds.h,v 1.334 2010-04-10 14:22:09 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1581,12 +1581,15 @@ int tdsdump_open(const char *filename);
 void tdsdump_close(void);
 void tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length);
 void tdsdump_col(const TDSCOLUMN *col);
+#undef tdsdump_log
 void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
-
 #if defined(__GNUC__) && __GNUC__ >= 2
 	__attribute__ ((__format__ (__printf__, 3, 4)))
 #endif
 ;
+#define tdsdump_log if (tds_write_dump) tdsdump_log
+
+extern int tds_write_dump;
 extern int tds_debug_flags;
 extern int tds_g_append_mode;
 

@@ -1,3 +1,7 @@
+Sat Apr 10 16:21:49 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/log.c:
+	- make execution faster if log disabled (patch from Steve Brown)
+
 Thu Apr  8 11:02:24 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/bsqldb.c: remove some conversion warnings
 
@@ -2388,4 +2392,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3007 2010-04-08 09:02:55 freddy77 Exp $
+$Id: ChangeLog,v 1.3008 2010-04-10 14:22:09 freddy77 Exp $
