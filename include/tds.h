@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.334 2010-04-10 14:22:09 freddy77 Exp $ */
+/* $Id: tds.h,v 1.335 2010-04-10 14:29:36 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -681,6 +681,14 @@ typedef enum tds_encryption_level {
 
 #define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
+
+#if defined(__GNUC__) && __GNUC__ >= 3
+# define TDS_LIKELY(x)	__builtin_expect(!!(x), 1)
+# define TDS_UNLIKELY(x)	__builtin_expect(!!(x), 0)
+#else
+# define TDS_LIKELY(x)	(x)
+# define TDS_UNLIKELY(x)	(x)
+#endif
 
 /*
  * TODO use system macros for optimization
@@ -1587,7 +1595,7 @@ void tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...
 	__attribute__ ((__format__ (__printf__, 3, 4)))
 #endif
 ;
-#define tdsdump_log if (tds_write_dump) tdsdump_log
+#define tdsdump_log if (TDS_UNLIKELY(tds_write_dump)) tdsdump_log
 
 extern int tds_write_dump;
 extern int tds_debug_flags;
