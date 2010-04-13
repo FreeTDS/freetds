@@ -22,9 +22,11 @@
 
 #include <ctpublic.h>
 #include "common.h"
+#ifdef TDS_STATIC_CAST
 #include "ctlib.h"
+#endif
 
-static char software_version[] = "$Id: common.c,v 1.22 2009-05-03 19:32:57 jklowden Exp $";
+static char software_version[] = "$Id: common.c,v 1.23 2010-04-13 13:19:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -210,7 +212,9 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 {
 	CS_RETCODE ret;
 	char query[30];
+#ifdef TDS_STATIC_CAST
 	TDSCONTEXT *tds_ctx;
+#endif
 
 	ret = cs_ctx_alloc(CS_VERSION_100, ctx);
 	if (ret != CS_SUCCEED) {
@@ -220,12 +224,14 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		return ret;
 	}
 
+#ifdef TDS_STATIC_CAST
 	/* Force default date format, some tests rely on it */
 	tds_ctx = (TDSCONTEXT *) (*ctx)->tds_ctx;
 	if (tds_ctx && tds_ctx->locale && tds_ctx->locale->date_fmt) {
 		free(tds_ctx->locale->date_fmt);
 		tds_ctx->locale->date_fmt = strdup("%b %d %Y %I:%M%p");
 	}
+#endif
 
 	ret = ct_init(*ctx, CS_VERSION_100);
 	if (ret != CS_SUCCEED) {

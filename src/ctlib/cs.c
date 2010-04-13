@@ -50,7 +50,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.73 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.74 2010-04-13 13:19:12 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -733,19 +733,17 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	case SYBBINARY:
 	case SYBVARBINARY:
 	case SYBIMAGE:
-
+		ret = CS_SUCCEED;
 		if (len > destlen) {
-			free(cres.ib);
-			fprintf(stderr, "error_handler: Data-conversion resulted in overflow.\n");
+			tdsdump_log(TDS_DBG_FUNC, "error_handler: Data-conversion resulted in overflow\n");
 			ret = CS_FAIL;
-		} else {
-			memcpy(dest, cres.ib, len);
-			free(cres.ib);
-			for (i = len; i < destlen; i++)
-				dest[i] = '\0';
-			*resultlen = destlen;
-			ret = CS_SUCCEED;
+			len = destlen;
 		}
+		memcpy(dest, cres.ib, len);
+		free(cres.ib);
+		for (i = len; i < destlen; i++)
+			dest[i] = '\0';
+		*resultlen = destlen;
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -812,54 +810,51 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
+		ret = CS_SUCCEED;
 		if (len > destlen) {
-			fprintf(stderr, "error_handler: Data-conversion resulted in overflow.\n");
+			tdsdump_log(TDS_DBG_FUNC, "Data-conversion resulted in overflow\n");
+			len = destlen;
 			ret = CS_FAIL;
-		} else {
-			switch (destfmt->format) {
+		}
+		switch (destfmt->format) {
 
-			case CS_FMT_NULLTERM:
-				tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_NULLTERM\n");
-				if (len == destlen) {
-					tdsdump_log(TDS_DBG_FUNC, "not enough room for data + a null terminator - error\n");
-					ret = CS_FAIL;	/* not enough room for data + a null terminator - error */
-				} else {
-					memcpy(dest, cres.c, len);
-					dest[len] = 0;
-					*resultlen = len + 1;
-					ret = CS_SUCCEED;
-				}
-				break;
-
-			case CS_FMT_PADBLANK:
-				tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADBLANK\n");
-				/* strcpy here can lead to a small buffer overflow */
+		case CS_FMT_NULLTERM:
+			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_NULLTERM\n");
+			if (len == destlen) {
+				tdsdump_log(TDS_DBG_FUNC, "not enough room for data + a null terminator - error\n");
+				ret = CS_FAIL;	/* not enough room for data + a null terminator - error */
+			} else {
 				memcpy(dest, cres.c, len);
-				for (i = len; i < destlen; i++)
-					dest[i] = ' ';
-				*resultlen = destlen;
-				ret = CS_SUCCEED;
-				break;
-
-			case CS_FMT_PADNULL:
-				tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADNULL\n");
-				/* strcpy here can lead to a small buffer overflow */
-				memcpy(dest, cres.c, len);
-				for (i = len; i < destlen; i++)
-					dest[i] = '\0';
-				*resultlen = destlen;
-				ret = CS_SUCCEED;
-				break;
-			case CS_FMT_UNUSED:
-				tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_UNUSED\n");
-				memcpy(dest, cres.c, len);
-				*resultlen = len;
-				ret = CS_SUCCEED;
-				break;
-			default:
-				ret = CS_FAIL;
-				break;
+				dest[len] = 0;
+				*resultlen = len + 1;
 			}
+			break;
+
+		case CS_FMT_PADBLANK:
+			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADBLANK\n");
+			/* strcpy here can lead to a small buffer overflow */
+			memcpy(dest, cres.c, len);
+			for (i = len; i < destlen; i++)
+				dest[i] = ' ';
+			*resultlen = destlen;
+			break;
+
+		case CS_FMT_PADNULL:
+			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_PADNULL\n");
+			/* strcpy here can lead to a small buffer overflow */
+			memcpy(dest, cres.c, len);
+			for (i = len; i < destlen; i++)
+				dest[i] = '\0';
+			*resultlen = destlen;
+			break;
+		case CS_FMT_UNUSED:
+			tdsdump_log(TDS_DBG_FUNC, "cs_convert() FMT_UNUSED\n");
+			memcpy(dest, cres.c, len);
+			*resultlen = len;
+			break;
+		default:
+			ret = CS_FAIL;
+			break;
 		}
 		free(cres.c);
 		break;

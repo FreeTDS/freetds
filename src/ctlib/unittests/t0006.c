@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <ctpublic.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.12 2009-12-13 10:36:54 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.13 2010-04-13 13:19:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_CONTEXT *ctx;
@@ -91,7 +91,7 @@ DoTest(
 	/* success */
 	return 0;
       Failed:
-	fprintf(stderr, "Test %s failed (ret=%d len=%d)\n", err, retcode, reslen);
+	fprintf(stderr, "Test %s failed (ret=%d len=%d)\n", err, (int) retcode, (int) reslen);
 	fprintf(stderr, "line: %d\n  DO_TEST(%s,\n"
 		"\t   %s,%s,%s,\n"
 		"\t   %s,%s,\n"
@@ -111,7 +111,9 @@ int
 main(int argc, char **argv)
 {
 	CS_RETCODE ret;
+#ifdef tds_sysdep_int64_type
 	volatile tds_sysdep_int64_type one = 1;
+#endif
 	int verbose = 1;
 
 	fprintf(stdout, "%s: Testing conversion\n", __FILE__);
@@ -235,6 +237,7 @@ main(int argc, char **argv)
 		-1230000}
 		, CS_CHAR_TYPE, test, 4, CS_MONEY4_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));
 
+#ifdef tds_sysdep_int64_type
 	DO_TEST(CS_INT test = 1234678;
 		CS_MONEY test2;
 		test2.mnyhigh = ((one * 1234678) * 10000) >> 32;
@@ -245,6 +248,7 @@ main(int argc, char **argv)
 		test2.mnyhigh = ((one * -8765) * 10000) >> 32;
 		test2.mnylow = (CS_UINT) ((one * -8765) * 10000),
 		CS_INT_TYPE, &test, sizeof(test), CS_MONEY_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));
+#endif
 
 	DO_TEST(CS_INT test = 12345;
 		CS_CHAR test2[] = "12345",
@@ -263,6 +267,30 @@ main(int argc, char **argv)
 	/* unterminated number */
 	DO_TEST(CS_CHAR test[] = " - 12345";
 		CS_INT test2 = -12, CS_CHAR_TYPE, test, 5, CS_INT_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));
+
+	/* to binary */
+	DO_TEST(CS_CHAR test[] = "abc";
+		CS_CHAR test2[] = "abc", CS_BINARY_TYPE, test, 3, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);
+#if 0
+	DO_TEST(CS_CHAR test[] = "abcdef";
+		CS_CHAR test2[] = "ab", CS_BINARY_TYPE, test, 6, CS_BINARY_TYPE, 2, CS_FAIL, test2, 2);
+	DO_TEST(CS_CHAR test[] = "abc";
+		CS_CHAR test2[] = "ab", CS_BINARY_TYPE, test, 3, CS_BINARY_TYPE, 2, CS_FAIL, test2, 2);
+#endif
+	DO_TEST(CS_CHAR test[] = "616263";
+		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 6, CS_BINARY_TYPE, 3, CS_SUCCEED, test2, 3);
+	DO_TEST(CS_CHAR test[] = "616263646566";
+		CS_CHAR test2[] = "abc", CS_CHAR_TYPE, test, 12, CS_BINARY_TYPE, 3, CS_FAIL, test2, 3);
+
+	/* to char */
+	DO_TEST(CS_INT test = 1234567;
+		CS_CHAR test2[] = "1234567", CS_INT_TYPE, &test, sizeof(test), CS_CHAR_TYPE, 7, CS_SUCCEED, test2, 7);
+	DO_TEST(CS_CHAR test[] = "abc";
+		CS_CHAR test2[] = "ab", CS_CHAR_TYPE, test, 3, CS_CHAR_TYPE, 2, CS_FAIL, test2, 2);
+	DO_TEST(CS_CHAR test[] = "abc";
+		CS_CHAR test2[] = "616263", CS_BINARY_TYPE, test, 3, CS_CHAR_TYPE, 6, CS_SUCCEED, test2, 6);
+	DO_TEST(CS_CHAR test[] = "abcdef";
+		CS_CHAR test2[] = "616263", CS_BINARY_TYPE, test, 6, CS_CHAR_TYPE, 6, CS_FAIL, test2, 6);
 
 	ret = cs_ctx_drop(ctx);
 	if (ret != CS_SUCCEED) {
