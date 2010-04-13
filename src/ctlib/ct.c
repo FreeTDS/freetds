@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.202 2009-12-13 09:48:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.203 2010-04-13 13:23:32 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2326,7 +2326,13 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 		datafmt->status |= CS_CANBENULL;
 	if (curcol->column_identity)
 		datafmt->status |= CS_IDENTITY;
-	if (strcmp(datafmt->name, "txts") == 0)
+	if (curcol->column_writeable)
+		datafmt->status |= CS_UPDATABLE;
+	if (curcol->column_key)
+		datafmt->status |= CS_KEY;
+	if (curcol->column_hidden)
+		datafmt->status |= CS_HIDDEN;
+	if (curcol->column_timestamp)
 		datafmt->status |= CS_TIMESTAMP;
 
 	datafmt->count = 1;
