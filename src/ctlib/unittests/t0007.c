@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.9 2007-06-19 12:07:59 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.10 2010-04-26 09:09:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
@@ -27,16 +27,17 @@ main(int argc, char **argv)
 	CS_INT result_type;
 	CS_INT num_cols;
 
-	CS_DATAFMT datafmt[3];
-	CS_INT datalength[3];
-	CS_SMALLINT ind[3];
+	CS_DATAFMT datafmt[4];
+	CS_INT datalength[4];
+	CS_SMALLINT ind[4];
 	CS_INT count, row_count = 0;
 
-	CS_CHAR name[3][1024];
+	CS_CHAR name[4][1024];
 
 	name[0][0] = 0;
 	name[1][0] = 0;
 	name[2][0] = 0;
+	name[3][0] = 0;
 
 	fprintf(stdout, "%s: Retrieve CS_CHAR_TYPE using ct_bind()\n", __FILE__);
 	if (verbose) {
@@ -48,7 +49,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	ret = ct_command(cmd, CS_LANG_CMD, "SELECT CONVERT(VARCHAR(7),'1234') AS test, CONVERT(VARCHAR(7),'') AS test2, CONVERT(VARCHAR(7),NULL) AS test3", CS_NULLTERM, CS_UNUSED);
+	ret = ct_command(cmd, CS_LANG_CMD, "SELECT CONVERT(VARCHAR(7),'1234') AS test, CONVERT(VARCHAR(7),'') AS test2, CONVERT(VARCHAR(7),NULL) AS test3, CONVERT(NUMERIC(38,2), 123.45) as test4", CS_NULLTERM, CS_UNUSED);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_command() failed\n");
 		return 1;
@@ -73,8 +74,8 @@ main(int argc, char **argv)
 				fprintf(stderr, "ct_res_info() failed");
 				return 1;
 			}
-			if (num_cols != 3) {
-				fprintf(stderr, "num_cols %d != 1", num_cols);
+			if (num_cols != 4) {
+				fprintf(stderr, "num_cols %d != 4", num_cols);
 				return 1;
 			}
 			if (ct_describe(cmd, 1, &datafmt[0]) != CS_SUCCEED) {
@@ -98,13 +99,27 @@ main(int argc, char **argv)
 			}
 
 			if (ct_describe(cmd, 3, &datafmt[2]) != CS_SUCCEED) {
-				fprintf(stderr, "ct_describe() failed");
+				fprintf(stderr, "ct_describe() failed\n");
 				return 1;
 			}
 			datafmt[2].format = CS_FMT_NULLTERM;
 			++datafmt[2].maxlength;
 			if (datafmt[2].maxlength > 1024) {
 				datafmt[2].maxlength = 1024;
+			}
+
+			if (ct_describe(cmd, 4, &datafmt[3]) != CS_SUCCEED) {
+				fprintf(stderr, "ct_describe() failed\n");
+				return 1;
+			}
+			datafmt[3].format = CS_FMT_NULLTERM;
+			if (datafmt[3].maxlength != sizeof(CS_NUMERIC)) {
+				fprintf(stderr, "wrong maxlength for numeric\n");
+				return 1;
+			}
+			++datafmt[3].maxlength;
+			if (datafmt[3].maxlength > 1024) {
+				datafmt[3].maxlength = 1024;
 			}
 
 			if (ct_bind(cmd, 1, &datafmt[0], name[0], &datalength[0], &ind[0]) != CS_SUCCEED) {
@@ -116,6 +131,10 @@ main(int argc, char **argv)
 				return 1;
 			}
 			if (ct_bind(cmd, 3, &datafmt[2], name[2], &datalength[2], &ind[2]) != CS_SUCCEED) {
+				fprintf(stderr, "ct_bind() failed\n");
+				return 1;
+			}
+			if (ct_bind(cmd, 4, &datafmt[3], name[3], &datalength[3], &ind[3]) != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
 				return 1;
 			}

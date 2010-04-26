@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.203 2010-04-13 13:23:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.204 2010-04-26 09:09:49 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -2311,8 +2311,10 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 	datafmt->datatype = _ct_get_client_type(curcol);
 	tdsdump_log(TDS_DBG_INFO1, "ct_describe() datafmt->datatype = %d server type %d\n", datafmt->datatype,
 		    curcol->column_type);
-	/* FIXME is ok this value for numeric/decimal? */
-	datafmt->maxlength = curcol->column_size;
+	if (is_numeric_type(curcol->column_type))
+		datafmt->maxlength = sizeof(CS_NUMERIC);
+	else
+		datafmt->maxlength = curcol->column_size;
 	datafmt->usertype = curcol->column_usertype;
 	datafmt->precision = curcol->column_prec;
 	datafmt->scale = curcol->column_scale;
