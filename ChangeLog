@@ -1,3 +1,6 @@
+Fri Apr 30 17:57:22 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* src/tds/mem.c initilize client charset per setlocale(3) and friends
+
 Mon Apr 26 11:09:11 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/ct.c src/ctlib/unittests/t0007.c:
 	- fix maxlength returned by ct_describe for numeric types
@@ -2410,4 +2413,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3012 2010-04-26 09:09:48 freddy77 Exp $
+$Id: ChangeLog,v 1.3013 2010-04-30 21:59:42 jklowden Exp $

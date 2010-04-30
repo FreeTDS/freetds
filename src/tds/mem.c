@@ -37,11 +37,23 @@
 #include "replacements.h"
 #include "enum_cap.h"
 
+#ifdef STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif /* HAVE_LOCALE_H */
+
+#ifdef HAVE_LANGINFO_H
+#include <langinfo.h>
+#endif /* HAVE_LANGINFO_H */
+
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.196 2010-01-11 18:14:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.197 2010-04-30 21:59:43 jklowden Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -678,8 +690,29 @@ TDSLOCALE *
 tds_alloc_locale(void)
 {
 	TDSLOCALE *locale;
+#if !(HAVE_NL_LANGINFO && defined(CODESET))
+	char *lc_all;
+#endif
 
 	TEST_MALLOC(locale, TDSLOCALE);
+
+	locale->client_charset = strdup("ISO-8859-1"); 
+	
+#if HAVE_NL_LANGINFO && defined(CODESET)
+	locale->client_charset = nl_langinfo(CODESET);
+#else
+	if ((lc_all = strdup(setlocale(LC_ALL, NULL)) == NULL)
+		goto Cleanup;
+
+	if (strtok(lc_all, ".")) {
+		char *encoding = strtok(NULL, "@");
+		if (encoding) {
+			locale->client_charset = strdup(encoding);
+		}
+	}
+#endif
+	tdsdump_log(TDS_DBG_FUNC, "tds_alloc_locale(): initialized locale to \"%s\"\n", locale->client_charset? locale->client_charset : "NULL");
+
 	return locale;
 
       Cleanup:
