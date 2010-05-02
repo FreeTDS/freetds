@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.197 2010-04-30 21:59:43 jklowden Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.198 2010-05-02 11:52:13 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -696,26 +696,33 @@ tds_alloc_locale(void)
 
 	TEST_MALLOC(locale, TDSLOCALE);
 
-	locale->client_charset = strdup("ISO-8859-1"); 
-	
 #if HAVE_NL_LANGINFO && defined(CODESET)
-	locale->client_charset = nl_langinfo(CODESET);
+	locale->client_charset = strdup(nl_langinfo(CODESET));
 #else
-	if ((lc_all = strdup(setlocale(LC_ALL, NULL)) == NULL)
+	locale->client_charset = strdup("ISO-8859-1");
+	if (!locale->client_charset)
+		goto Cleanup;
+
+	if ((lc_all = strdup(setlocale(LC_ALL, NULL))) == NULL)
 		goto Cleanup;
 
 	if (strtok(lc_all, ".")) {
 		char *encoding = strtok(NULL, "@");
 		if (encoding) {
+			free(locale->client_charset);
 			locale->client_charset = strdup(encoding);
 		}
 	}
+	free(lc_all);
 #endif
+	if (!locale->client_charset)
+		goto Cleanup;
 	tdsdump_log(TDS_DBG_FUNC, "tds_alloc_locale(): initialized locale to \"%s\"\n", locale->client_charset? locale->client_charset : "NULL");
 
 	return locale;
 
       Cleanup:
+	tds_free_locale(locale);
 	return NULL;
 }
 static const unsigned char defaultcaps[] = { 
