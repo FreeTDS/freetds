@@ -1,3 +1,6 @@
+Fri May  7 13:55:20 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* configure.ac produce gzip tarball, too. 
+
 Thu May  6 21:08:58 EDT 2010	JK Lowden <jklowden@freetds.org>
 	* src/dblib/unittests/rpc.c src/dblib/unittests/rpc.sql
 	- tidied up and added explicit test for null varchar input	
@@ -2422,4 +2425,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3015 2010-05-07 02:55:27 jklowden Exp $
+$Id: ChangeLog,v 1.3016 2010-05-07 20:18:29 jklowden Exp $
