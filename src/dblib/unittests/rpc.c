@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.38 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.39 2010-05-07 02:55:27 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int init_proc(DBPROCESS * dbproc, const char *name);
@@ -128,6 +128,25 @@ colwidth( DBPROCESS * dbproc, int icol )
 	return 255 == width? dbcollen(dbproc, icol) : width;
 }
 
+char param_data1[64];
+int param_data2, param_data3;
+
+struct parameters_t {
+	char         *name;
+	BYTE         status;
+	int          type;
+	DBINT        maxlen;
+	DBINT        datalen;
+	BYTE         *value;
+} bindings[] = 
+	{ { "@null_input", DBRPCRETURN, SYBCHAR,  -1,   0, NULL }
+	, { "@first_type", DBRPCRETURN, SYBCHAR,  sizeof(param_data1), 0, (BYTE *) &param_data1 }
+	, { "@nullout",    DBRPCRETURN, SYBINT4,  -1,   0, (BYTE *) &param_data2 }
+	, { "@nrows",      DBRPCRETURN, SYBINT4,  -1,  -1, (BYTE *) &param_data3 }
+	, { "@c",          0,        SYBVARCHAR,   0,   0, NULL }
+	, { "@nv",         0,        SYBVARCHAR,  -1,   2, (BYTE *) "OK:" }
+	}, *pb = bindings;
+
 int
 main(int argc, char **argv)
 {
@@ -139,17 +158,9 @@ main(int argc, char **argv)
 	char *retname = NULL;
 	int i, failed = 0;
 	int rettype = 0, retlen = 0, return_status = 0;
-	char proc[] = "#t0022", 
-	     param0[] = "@null_input", 
-	     param1[] = "@first_type", 
-	     param2[] = "@nullout",
-	     param3[] = "@nrows",
-	     param4[] = "@c",
-	     param5[] = "@nv";
+	char proc[] = "#t0022";
 	char *proc_name = proc;
 
-	char param_data1[64];
-	int param_data2, param_data3;
 	int num_resultset = 0, num_empty_resultset = 0;
 
 	static const char dashes30[] = "------------------------------";
@@ -220,49 +231,14 @@ main(int argc, char **argv)
 		failed = 1;
 	}
 
-	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param0, DBRPCRETURN, SYBCHAR, /*maxlen= */ -1, /* datlen= */ 0, NULL);
-	if (erc == FAIL) {
-		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
-		failed = 1;
-	}
+	for (pb = bindings; pb < bindings + sizeof(bindings)/sizeof(bindings[0]); pb++) {
+		printf("executing dbrpcparam for %s\n", pb->name);
+		if ((erc = dbrpcparam(dbproc, pb->name, pb->status, pb->type, pb->maxlen, pb->datalen, pb->value)) == FAIL) {
+			fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
+			failed++;
+		}
 
-	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param1, DBRPCRETURN, SYBCHAR, /*maxlen= */ sizeof(param_data1), /* datlen= */ 0, (BYTE *) & param_data1);
-	if (erc == FAIL) {
-		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
-		failed = 1;
 	}
-
-	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param2, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, /* datalen= */ 0, (BYTE *) & param_data2);
-	if (erc == FAIL) {
-		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
-		failed = 1;
-	}
-
-	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param3, DBRPCRETURN, SYBINT4, /*maxlen= */ -1, /* datalen= */ -1, (BYTE *) & param_data3);
-	if (erc == FAIL) {
-		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
-		failed = 1;
-	}
-
-	/* test for strange parameters using input */
-	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param4, 0, SYBVARCHAR, /*maxlen= */ 0, /* datalen= */ 0, NULL);
-	if (erc == FAIL) {
-		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
-		failed = 1;
-	}
-
-	printf("executing dbrpcparam\n");
-	erc = dbrpcparam(dbproc, param5, 0, SYBVARCHAR, /*maxlen= */ -1, /* datalen= */ 2, (BYTE *) "OK:");
-	if (erc == FAIL) {
-		fprintf(stderr, "Failed line %d: dbrpcparam\n", __LINE__);
-		failed = 1;
-	}
-
 	printf("executing dbrpcsend\n");
 	param_data3 = 0x11223344;
 	erc = dbrpcsend(dbproc);
@@ -366,8 +342,8 @@ main(int argc, char **argv)
 	/* 
 	 * Test the last parameter for expected outcome 
 	 */
-	if ((save_param.name == NULL) || strcmp(save_param.name, param3)) {
-		fprintf(stderr, "Expected retname to be '%s', got ", param3);
+	if ((save_param.name == NULL) || strcmp(save_param.name, bindings[3].name)) {
+		fprintf(stderr, "Expected retname to be '%s', got ", bindings[3].name);
 		if (save_param.name == NULL) 
 			fprintf(stderr, "<NULL> instead.\n");
 		else
@@ -396,8 +372,8 @@ main(int argc, char **argv)
 
 
 	/* Test number of result sets */
-	if (num_resultset != 3) {
-		fprintf(stderr, "Expected 3 resultset got %d.\n", num_resultset);
+	if (num_resultset != 4) {
+		fprintf(stderr, "Expected 4 resultset got %d.\n", num_resultset);
 		exit(1);
 	}
 	if (num_empty_resultset != 1) {
