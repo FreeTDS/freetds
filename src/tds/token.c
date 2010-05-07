@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.383 2010-04-08 08:19:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.384 2010-05-07 21:11:30 jklowden Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -347,9 +347,9 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			
 			ver.major = tds_get_byte(tds);
 			ver.minor = tds_get_byte(tds);
+			ver.tiny[0] = tds_get_byte(tds);
 			ver.tiny[1] = tds_get_byte(tds);
-			ver.tiny[2] = tds_get_byte(tds);
-			ver.reported = (ver.major << 24) | (ver.minor << 16) | (ver.tiny[1] << 8) | ver.tiny[2];
+			ver.reported = (ver.major << 24) | (ver.minor << 16) | (ver.tiny[0] << 8) | ver.tiny[1];
 			
 			/* Log reported server product name, cf. MS-TDS LOGINACK documentation. */
 			switch(ver.reported) {
@@ -370,7 +370,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			}
 			
 			tdsdump_log(TDS_DBG_FUNC, "server reports TDS version %x.%x.%x.%x\n", 
-							ver.major, ver.minor, ver.tiny[1], ver.tiny[2]);
+							ver.major, ver.minor, ver.tiny[0], ver.tiny[1]);
 			tdsdump_log(TDS_DBG_FUNC, "Product name for 0x%x is %s\n", ver.reported, ver.name);
 			
 			/* Get server product name. */

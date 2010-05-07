@@ -1,3 +1,6 @@
+Fri May  7 17:09:50 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* src/tds/token.c Applied today's ML patch from Craig A. Berry
+
 Fri May  7 13:55:20 EDT 2010	JK Lowden <jklowden@freetds.org>
 	* configure.ac produce gzip tarball, too. 
 
@@ -2425,4 +2428,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3016 2010-05-07 20:18:29 jklowden Exp $
+$Id: ChangeLog,v 1.3017 2010-05-07 21:11:29 jklowden Exp $
