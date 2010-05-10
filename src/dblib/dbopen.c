@@ -22,7 +22,7 @@
 #endif
 
 #include <tds.h>
-#include <../../include/sybdb.h>
+#include <sybdb.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -32,7 +32,7 @@
 #undef dbopen
 #endif
 
-TDS_RCSID(var, "$Id: dbopen.c,v 1.13 2009-10-23 19:21:45 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbopen.c,v 1.14 2010-05-10 15:10:47 freddy77 Exp $");
 
 /**
  * Normally not used. 
