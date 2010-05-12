@@ -1,4 +1,4 @@
-/* $Id: fakepoll.h,v 1.3 2010-01-10 14:43:11 freddy77 Exp $ */
+/* $Id: fakepoll.h,v 1.4 2010-05-12 08:15:27 freddy77 Exp $ */
 #if !defined(_FAKE_POLL_H) && !defined(HAVE_POLL)
 #define _FAKE_POLL_H
 
@@ -30,29 +30,49 @@
 #define FD_SETSIZE OPEN_MAX
 #endif
 
-// poll flags
-#define POLLIN  0x0001
-#define POLLOUT 0x0004
-#define POLLERR 0x0008
+#ifndef _WIN32
+/* poll flags */
+# define POLLIN  0x0001
+# define POLLOUT 0x0004
+# define POLLERR 0x0008
 
-// synonyms
-#define POLLNORM POLLIN
-#define POLLPRI POLLIN
-#define POLLRDNORM POLLIN
-#define POLLRDBAND POLLIN
-#define POLLWRNORM POLLOUT
-#define POLLWRBAND POLLOUT
+/* synonyms */
+# define POLLNORM POLLIN
+# define POLLPRI POLLIN
+# define POLLRDNORM POLLIN
+# define POLLRDBAND POLLIN
+# define POLLWRNORM POLLOUT
+# define POLLWRBAND POLLOUT
 
-// ignored
-#define POLLHUP 0x0010
-#define POLLNVAL 0x0020
-
+/* ignored */
+# define POLLHUP 0x0010
+# define POLLNVAL 0x0020
 typedef struct pollfd {
     int fd;		/* file descriptor to poll */
     short events;	/* events of interest on fd */
     short revents;	/* events that occurred on fd */
 } pollfd_t;
 
+#else /* Windows */
+/*
+ * Windows use different constants then Unix
+ * Newer version have a WSAPoll which is equal to Unix poll
+ */
+# if !defined(POLLRDNORM) && !defined(POLLWRNORM)
+#  define POLLIN  0x0300
+#  define POLLOUT 0x0010
+#  define POLLERR 0x0001
+#  define POLLRDNORM 0x0100
+#  define POLLWRNORM 0x0010
+typedef struct pollfd {
+    SOCKET fd;	/* file descriptor to poll */
+    short events;	/* events of interest on fd */
+    short revents;	/* events that occurred on fd */
+} pollfd_t;
+# else
+typedef struct pollfd pollfd_t;
+# endif
+#endif
 
 int fakepoll(struct pollfd fds[], int nfds, int timeout);
 

@@ -23,7 +23,7 @@
 
 #ifndef HAVE_POLL
 
-static char software_version[] = "$Id: fakepoll.c,v 1.8 2010-01-10 14:43:11 freddy77 Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.9 2010-05-12 08:15:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #include <stdarg.h>
@@ -67,6 +67,22 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 	struct pollfd *p;
 	const struct pollfd *endp = fds? fds + nfds : NULL;
 	int selected, polled = 0, maxfd = 0;
+
+#if defined(_WIN32)
+	typedef int WSAAPI (*WSAPoll_t)(struct pollfd fds[], ULONG nfds, INT timeout);
+	static WSAPoll_t poll_p = (WSAPoll_t) -1;
+	if (poll_p == (WSAPoll_t) -1) {
+		HMODULE mod;
+
+		poll_p = NULL;
+		mod = GetModuleHandle("ws2_32");
+		if (mod)
+			poll_p = (WSAPoll_t) GetProcAddress(mod, "WSAPoll");
+	}
+	/* Windows 2008 have WSAPoll which is semantically equal to poll */
+	if (poll_p != NULL)
+		return poll_p(fds, nfds, timeout);
+#endif
 
 	if (fds == NULL) {
 		errno = EFAULT;
