@@ -1,3 +1,6 @@
+Wed May 12 10:13:17 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds_sysdep_private.h: fix minor issue with MingW
+
 Wed May 12 09:59:17 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: workaround for header incompatibility
 
@@ -2435,4 +2438,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3019 2010-05-12 08:00:10 freddy77 Exp $
+$Id: ChangeLog,v 1.3020 2010-05-12 08:13:58 freddy77 Exp $
