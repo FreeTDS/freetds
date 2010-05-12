@@ -23,7 +23,7 @@
 
 #ifndef HAVE_POLL
 
-static char software_version[] = "$Id: fakepoll.c,v 1.9 2010-05-12 08:15:27 freddy77 Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.10 2010-05-12 11:19:16 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #include <stdarg.h>
@@ -69,7 +69,7 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 	int selected, polled = 0, maxfd = 0;
 
 #if defined(_WIN32)
-	typedef int WSAAPI (*WSAPoll_t)(struct pollfd fds[], ULONG nfds, INT timeout);
+	typedef int (WSAAPI *WSAPoll_t)(struct pollfd fds[], ULONG nfds, INT timeout);
 	static WSAPoll_t poll_p = (WSAPoll_t) -1;
 	if (poll_p == (WSAPoll_t) -1) {
 		HMODULE mod;
