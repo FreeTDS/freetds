@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.102 2010-03-01 12:38:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.103 2010-05-12 08:00:11 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -148,8 +148,12 @@ _tds_socket_done(void)
 }
 #endif
 
-#if !defined(SOL_TCP) && defined(IPPROTO_TCP)
-#define SOL_TCP IPPROTO_TCP
+#if !defined(SOL_TCP) && (defined(IPPROTO_TCP) || defined(_WIN32))
+/* fix incompatibility between MS headers */
+# ifndef IPPROTO_TCP
+#  define IPPROTO_TCP IPPROTO_TCP
+# endif
+# define SOL_TCP IPPROTO_TCP
 #endif
 
 /* Optimize the way we send packets */
