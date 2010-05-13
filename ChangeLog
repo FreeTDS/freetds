@@ -1,3 +1,7 @@
+Fri May 14 00:06:28 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac win32/Makefile.am win32/freetds.nsi:
+	- remove Dev-C++ project files (obsolete)
+
 Wed May 12 13:18:25 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/fakepoll.c: small compile fix for Visual Studio
 
@@ -2445,4 +2449,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3022 2010-05-12 11:19:16 freddy77 Exp $
+$Id: ChangeLog,v 1.3023 2010-05-13 22:06:38 freddy77 Exp $

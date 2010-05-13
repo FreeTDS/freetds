@@ -53,7 +53,7 @@ ShowUnInstDetails show
 Section "MainSection" SEC01
   SetOutPath "$SYSDIR"
   SetOverwrite ifnewer
-  File "dev-cpp\FreeTDS.dll"
+  File ".\FreeTDS.dll"
 
   ; install driver
   WriteRegStr ${ODBC_ROOT_KEY} "${ODBC_REGKEY}" "Driver" "$SYSDIR\FreeTDS.dll"
