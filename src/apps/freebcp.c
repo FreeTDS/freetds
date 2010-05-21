@@ -46,7 +46,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.51 2009-07-23 18:22:00 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.52 2010-05-21 13:54:28 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -173,11 +173,11 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	/* argument 2 - the direction */
 	tds_strlcpy(pdata->dbdirection, argv[2], sizeof(pdata->dbdirection));
 
-	if (strcmp(pdata->dbdirection, "in") == 0) {
+	if (strcasecmp(pdata->dbdirection, "in") == 0) {
 		pdata->direction = DB_IN;
-	} else if (strcmp(pdata->dbdirection, "out") == 0) {
+	} else if (strcasecmp(pdata->dbdirection, "out") == 0) {
 		pdata->direction = DB_OUT;
-	} else if (strcmp(pdata->dbdirection, "queryout") == 0) {
+	} else if (strcasecmp(pdata->dbdirection, "queryout") == 0) {
 		pdata->direction = DB_QUERYOUT;
 	} else {
 		fprintf(stderr, "Copy direction must be either 'in', 'out' or 'queryout'.\n");

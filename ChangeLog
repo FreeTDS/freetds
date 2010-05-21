@@ -1,3 +1,8 @@
+Fri May 21 15:53:53 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/freebcp.c:
+	- freebcp's direction doesn't need to be case sensitive (from Craig
+	  A. Berry).
+
 Fri May 14 00:06:28 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac win32/Makefile.am win32/freetds.nsi:
 	- remove Dev-C++ project files (obsolete)
@@ -2449,4 +2454,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3023 2010-05-13 22:06:38 freddy77 Exp $
+$Id: ChangeLog,v 1.3024 2010-05-21 13:54:27 freddy77 Exp $
