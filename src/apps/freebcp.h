@@ -1,4 +1,4 @@
-static char rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.14 2009-07-23 18:22:00 freddy77 Exp $";
+static char rcsid_freebcp_h[] = "$Id: freebcp.h,v 1.15 2010-05-21 14:10:31 freddy77 Exp $";
 static void *no_unused_freebcp_h_warn[] = { rcsid_freebcp_h, no_unused_freebcp_h_warn };
 
 enum states
@@ -70,5 +70,7 @@ typedef struct pd
 	int Tflag;
 	int Aflag;
 	int Eflag;
+	char *inputfile;
+	char *outputfile;
 }
 BCPPARAMDATA;

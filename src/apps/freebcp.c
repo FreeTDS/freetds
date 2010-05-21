@@ -24,6 +24,10 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#if HAVE_ERRNO_H
+#include <errno.h>
+#endif /* HAVE_ERRNO_H */
+
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
@@ -46,7 +50,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.52 2010-05-21 13:54:28 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.53 2010-05-21 14:10:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -192,7 +196,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	 * Get the rest of the arguments 
 	 */
 	optind = 4; /* start processing options after table, direction, & filename */
-	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:I:S:h:T:A:O:0:C:ncEdvV")) != -1) {
+	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:i:I:S:h:T:A:o:O:0:C:ncEdvV")) != -1) {
 		switch (ch) {
 		case 'v':
 		case 'V':
@@ -263,6 +267,10 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 				pdata->pass = strdup(optarg);
 			}
 			break;
+		case 'i':
+			free(pdata->inputfile);
+			pdata->inputfile = strdup(optarg);
+			break;
 		case 'I':
 			pdata->Iflag++;
 			free(pdata->interfacesfile);
@@ -274,6 +282,10 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 			break;
 		case 'h':
 			pdata->hint = strdup(optarg);
+			break;
+		case 'o':
+			free(pdata->outputfile);
+			pdata->outputfile = strdup(optarg);
 			break;
 		case 'O':
 		case '0':
@@ -323,6 +335,27 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 		if (!pdata->rflag || !pdata->rowterm) {		/* row terminator not specified */
 			pdata->rowterm =  "\n";
 			pdata->rowtermlen = 1;
+		}
+	}
+
+	/*
+	 * Override stdin and/or stdout if requested.
+	 */
+
+	/* FIXME -- Since we don't implement prompting for field data types when neither -c nor -n
+	 * is specified, redirecting stdin doesn't do much yet.
+	 */
+	if (pdata->inputfile) {
+		if (freopen(pdata->inputfile, "rb", stdout) == NULL) {
+			fprintf(stderr, "%s: unable to open %s: %s\n", "freebcp", pdata->inputfile, strerror(errno));
+			exit(1);
+		}
+	}
+
+	if (pdata->outputfile) {
+		if (freopen(pdata->outputfile, "wb", stdout) == NULL) {
+			fprintf(stderr, "%s: unable to open %s: %s\n", "freebcp", pdata->outputfile, strerror(errno));
+			exit(1);
 		}
 	}
 
@@ -700,6 +733,7 @@ pusage(void)
 	fprintf(stderr, "        [-U username] [-P password] [-I interfaces_file] [-S server]\n");
 	fprintf(stderr, "        [-v] [-d] [-h \"hint [,...]\" [-O \"set connection_option on|off, ...]\"\n");
 	fprintf(stderr, "        [-A packet size] [-T text or image size] [-E]\n");
+	fprintf(stderr, "        [-i input_file] [-o output_file]\n");
 	fprintf(stderr, "        \n");
 	fprintf(stderr, "example: freebcp testdb.dbo.inserttest in inserttest.txt -S mssql -U guest -P password -c\n");
 }

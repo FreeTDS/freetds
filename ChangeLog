@@ -1,3 +1,7 @@
+Fri May 21 16:10:04 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/freebcp.c src/apps/freebcp.h:
+	- add -i and -o options to freebcp (patch from Craig A. Berry)
+
 Fri May 21 16:01:47 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* vms/Makefile.am vms/descrip_mms.template vms/edit.c:
 	* vms/getpass.c:
@@ -2459,4 +2463,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3025 2010-05-21 14:02:08 freddy77 Exp $
+$Id: ChangeLog,v 1.3026 2010-05-21 14:10:31 freddy77 Exp $
