@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.363 2010-02-07 21:56:09 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.364 2010-05-21 15:18:49 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3556,6 +3556,7 @@ _get_printable_size(TDSCOLUMN * colinfo)
 		return 12;
 	case SYBDATETIME:
 	case SYBDATETIME4:
+	case SYBDATETIMN:
 		return 26;
 	case SYBUNIQUE:
 		return 36;

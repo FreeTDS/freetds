@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.41 2010-04-08 09:02:55 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.42 2010-05-21 15:18:49 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -688,8 +688,8 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 	case SYBMONEY4:
 		return 12;	/* FIX ME */
 	case SYBDATETIME:
-		return 26;	/* FIX ME */
 	case SYBDATETIME4:
+	case SYBDATETIMN:
 		return 26;	/* FIX ME */
 #if 0	/* not exported by sybdb.h */
 	case SYBBITN:

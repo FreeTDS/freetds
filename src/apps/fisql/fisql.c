@@ -175,8 +175,8 @@ get_printable_size(int type, int size)
 	case SYBMONEY4:
 		return 12;	/* FIX ME */
 	case SYBDATETIME:
-		return 26;	/* FIX ME */
 	case SYBDATETIME4:
+	case SYBDATETIMN:
 		return 26;	/* FIX ME */
 #if 0				/* seems not to be exported to sybdb.h */
 	case SYBBITN:
