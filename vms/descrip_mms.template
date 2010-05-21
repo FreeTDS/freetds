@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.14 2009-04-09 01:40:25 jklowden Exp $
+# $Id: descrip_mms.template,v 1.15 2010-05-21 14:02:08 freddy77 Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -187,6 +187,9 @@ $(TDSODBCOBJS) : $(CONFIGS)
 	@ write sysconfh "#define FREETDS_SYSCONFDIR ""/FREETDS_ROOT"""
 	@ close sysconfh
 
+[.include]tds_sysdep_public.h_in :
+	@ IF F$SEARCH("$(MMS$TARGET)") .EQS. "" THEN COPY [.include]tds_sysdep_public^.h.in $(MMS$TARGET)
+
 [.include]tds_sysdep_public.h : [.include]tds_sysdep_public.h_in
 	@ open/write vmsconfigtmp vmsconfigtmp.com
 	@ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
@@ -221,6 +224,15 @@ $(TDSODBCOBJS) : $(CONFIGS)
 	@ open/write readlineh $(MMS$TARGET)
 	@ write readlineh "char *readline(char *prompt);"
 	@ write readlineh "int rl_inhibit_completion;"
+	@ write readlineh "/* The following are needed for fisql. */"
+	@ write readlineh "FILE **rl_outstream_get_addr(void);"
+	@ write readlineh "#define rl_outstream (*rl_outstream_get_addr())"
+	@ write readlineh "FILE **rl_instream_get_addr(void);"
+	@ write readlineh "#define rl_instream (*rl_instream_get_addr())"
+	@ write readlineh "static const char *rl_readline_name = NULL;"
+	@ write readlineh "#define rl_bind_key(c,f)      do {} while(0)"
+	@ write readlineh "#define rl_reset_line_state() do {} while(0)"
+	@ write readlineh "#define rl_on_new_line()      do {} while(0)"
 	@ close readlineh 
 
 [.include]history.h :
@@ -278,7 +290,7 @@ $(TDSODBCSHR) : []libtdsodbc$(OLB)
 
 # Build the utility programs and the pool server
 
-apps : freebcp$(E) tsql$(E) bsqldb$(E) defncopy$(E) tdspool$(E)
+apps : freebcp$(E) tsql$(E) bsqldb$(E) defncopy$(E) tdspool$(E) fisql$(E)
 	@ continue
 
 freebcp$(E) : [.src.apps]freebcp$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
@@ -305,6 +317,19 @@ defncopy$(E) : [.src.apps]defncopy$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
 
 tdspool$(E) : $(TDSPOOLOBJS) []libtdssrv$(OLB) []libtds$(OLB)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(TDSPOOLOBJS), []libtdssrv$(OLB)/library, []libtds$(OLB)/library
+
+
+fisql$(E) : [.src.apps.fisql]fisql$(OBJ) [.src.apps.fisql]interrupt$(OBJ) [.src.apps.fisql]handlers$(OBJ) [.vms]edit$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
+
+[.src.apps.fisql]fisql$(OBJ) : [.src.apps.fisql]fisql.c
+	@ define/nolog/user_mode readline [.include]
+	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
+
+[.src.apps.fisql]interrupt$(OBJ) : [.src.apps.fisql]interrupt.c
+
+[.src.apps.fisql]handlers$(OBJ) : [.src.apps.fisql]handlers.c
+
 
 # Run the test suite
 

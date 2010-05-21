@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2003  Craig A. Berry	craigberry@mac.com	23-JAN-2003
+ * Copyright (C) 2003, 2010  Craig A. Berry	craigberry@mac.com
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -42,10 +42,13 @@
 #include <strings.h>
 
 #include <replacements/readpassphrase.h>
+#include "readline.h"
 
-static char software_version[] = "$Id: getpass.c,v 1.5 2005-12-29 10:24:34 freddy77 Exp $";
+static FILE *tds_rl_instream = NULL;
+static FILE *tds_rl_outstream = NULL;
+
+static char software_version[] = "$Id: getpass.c,v 1.6 2010-05-21 14:02:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-static char passbuff[128];
 
 /* 
  * A collection of assorted UNIXy input functions for VMS.  The core
@@ -128,14 +131,16 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 	prompt_dsc.dsc$a_pointer = myprompt;
 	prompt_dsc.dsc$w_length = strlen(myprompt);
 
-	/* Disable Ctrl-T and Ctrl-Y */
-	ctrl_mask = LIB$M_CLI_CTRLT | LIB$M_CLI_CTRLY;
-	status = LIB$DISABLE_CTRL(&ctrl_mask, &saved_ctrl_mask);
-	if (!$VMS_STATUS_SUCCESS(status)) {
-		errno = EVMSERR;
-		vaxc$errno = status;
-		free(myprompt);
-		return NULL;
+	if (!(flags & RPP_ECHO_ON) && (ttdevclass == DC$_TERM)) {
+		/* Disable Ctrl-T and Ctrl-Y */
+		ctrl_mask = LIB$M_CLI_CTRLT | LIB$M_CLI_CTRLY;
+		status = LIB$DISABLE_CTRL(&ctrl_mask, &saved_ctrl_mask);
+		if (!$VMS_STATUS_SUCCESS(status)) {
+			errno = EVMSERR;
+			vaxc$errno = status;
+			free(myprompt);
+			return NULL;
+		}
 	}
 
 	/* 
@@ -161,7 +166,7 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 		status = SYS$ASSIGN(&ttdsc, &ttchan, 0, 0, 0);
 		if ($VMS_STATUS_SUCCESS(status)) {
 
-			unsigned long qio_func = IO$_READPROMPT | IO$M_NOECHO;
+			unsigned long qio_func = IO$_READPROMPT | IO$M_NOECHO | IO$M_PURGE;
 
 			if (!(flags & RPP_TIMEOUT_OFF))
 				qio_func |= IO$M_TIMED;
@@ -239,15 +244,17 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 
 	free(myprompt);
 
-	/* 
-	 * Reenable previous control processing.
-	 */
-	status = LIB$ENABLE_CTRL(&saved_ctrl_mask);
+	if (!(flags & RPP_ECHO_ON) && (ttdevclass == DC$_TERM)) {
+		/*
+		 * Reenable previous control processing.
+		 */
+		status = LIB$ENABLE_CTRL(&saved_ctrl_mask);
 
-	if (!$VMS_STATUS_SUCCESS(status)) {
-		errno = EVMSERR;
-		vaxc$errno = status;
-		return NULL;
+		if (!$VMS_STATUS_SUCCESS(status)) {
+			errno = EVMSERR;
+			vaxc$errno = status;
+			return NULL;
+		}
 	}
 
 	return retval;
@@ -271,10 +278,12 @@ getpass(const char *prompt)
 char *
 readline(char *prompt)
 {
-
-	char *buf = NULL;
-	char *s = readpassphrase((const char *) prompt, passbuf, sizeof(passbuf),
-				 RPP_ECHO_ON | RPP_TIMEOUT_OFF);
+	char *buf = NULL, *s = NULL, *p = NULL;
+	if (tds_rl_instream == NULL)
+		s = readpassphrase((const char *) prompt, passbuf, sizeof(passbuf),
+					 RPP_ECHO_ON | RPP_TIMEOUT_OFF);
+	else
+		s = fgets(passbuf, sizeof(passbuf), tds_rl_instream);
 
 	if (s != NULL) {
 		buf = (char *) malloc(strlen(s) + 1);
@@ -288,3 +297,17 @@ void
 add_history(const char *s)
 {
 }
+
+
+FILE **
+rl_instream_get_addr(void)
+{
+	return &tds_rl_instream;
+}
+
+FILE **
+rl_outstream_get_addr(void)
+{
+	return &tds_rl_outstream;
+}
+
