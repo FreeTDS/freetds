@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.111 2010-01-23 20:42:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.112 2010-06-18 19:33:15 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -74,6 +74,7 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const char *sql, int sql_len)
 	stmt->prepared_pos = NULL;
 	stmt->curr_param_row = 0;
 	stmt->num_param_rows = 1;
+	stmt->need_reprepare = 0;
 
 	if (stmt->prepared_query)
 		TDS_ZERO_FREE(stmt->prepared_query);

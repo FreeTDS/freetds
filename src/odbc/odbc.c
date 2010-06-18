@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.531 2010-03-22 14:42:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.532 2010-06-18 19:33:15 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -88,6 +88,7 @@ static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 static SQLRETURN odbc_free_cursor(TDS_STMT * stmt);
+static SQLRETURN odbc_prepare(TDS_STMT *stmt);
 static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
 static int odbc_lock_statement(TDS_STMT* stmt);
@@ -403,6 +404,70 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 
 	/* this overwrite any error arrived (wanted behavior, Sybase return error for conversion errors) */
 	ODBC_RETURN(dbc, SQL_SUCCESS);
+}
+
+static SQLRETURN
+odbc_prepare(TDS_STMT *stmt)
+{
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	int in_row = 0;
+
+	if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params) == TDS_FAIL)
+		ODBC_RETURN(stmt, SQL_ERROR);
+
+	/* try to go to the next recordset */
+	/* TODO merge with similar code */
+	desc_free_records(stmt->ird);
+	stmt->row_status = PRE_NORMAL_ROW;
+	for (;;) {
+		TDS_INT result_type;
+		int done_flags;
+
+		switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_DONE)) {
+		case TDS_SUCCEED:
+			switch (result_type) {
+			case TDS_DONE_RESULT:
+			case TDS_DONEPROC_RESULT:
+			case TDS_DONEINPROC_RESULT:
+				stmt->row_count = tds->rows_affected;
+				if (done_flags & TDS_DONE_ERROR && !stmt->dyn->emulated)
+					stmt->errs.lastrc = SQL_ERROR;
+				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
+				stmt->row = 0;
+				break;
+
+			case TDS_ROWFMT_RESULT:
+				/* store first row informations */
+				if (!in_row)
+					odbc_populate_ird(stmt);
+				stmt->row = 0;
+				stmt->row_count = TDS_NO_COUNT;
+				stmt->row_status = PRE_NORMAL_ROW;
+				in_row = 1;
+				break;
+			}
+			continue;
+		case TDS_NO_MORE_RESULTS:
+			break;
+		case TDS_CANCELLED:
+			odbc_errs_add(&stmt->errs, "HY008", NULL);
+		default:
+			stmt->errs.lastrc = SQL_ERROR;
+			break;
+		}
+
+		if (stmt->dbc->current_statement == stmt)
+			stmt->dbc->current_statement = NULL;
+		if (stmt->errs.lastrc == SQL_ERROR && !stmt->dyn->emulated) {
+			TDSDYNAMIC *dyn = stmt->dyn;
+			stmt->dyn = NULL;
+			tds_free_dynamic(tds, dyn);
+		}
+		ODBC_RETURN_(stmt);
+	}
+
+	stmt->need_reprepare = 0;
+	ODBC_RETURN_(stmt);
 }
 
 SQLRETURN ODBC_API
@@ -4300,14 +4365,13 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 	/* TODO support getting info for RPC */
 	if (!stmt->prepared_query_is_rpc
 		 && (stmt->attr.cursor_type == SQL_CURSOR_FORWARD_ONLY && stmt->attr.concurrency == SQL_CONCUR_READ_ONLY)) {
-		TDSDYNAMIC *dyn;
 
-		TDS_INT result_type;
-		int in_row = 0;
-		int done_flags;
-		TDSPARAMINFO *params = NULL;
 		TDSSOCKET *tds = stmt->dbc->tds_socket;
+		TDSPARAMINFO *params = NULL;
 
+		tds_free_param_results(stmt->params);
+		stmt->params = NULL;
+		stmt->param_num = 0;
 		stmt->need_reprepare = 0;
 		/*
 		 * using TDS7+ we need parameters to prepare a query so try
@@ -4341,59 +4405,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 		if (!odbc_lock_statement(stmt))
 			ODBC_RETURN_(stmt);
-		if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, params) == TDS_FAIL) {
-			tds_free_param_results(params);
-			ODBC_RETURN(stmt, SQL_ERROR);
-		}
-
-		/* try to go to the next recordset */
-		/* TODO merge with similar code */
-		desc_free_records(stmt->ird);
-		stmt->row_status = PRE_NORMAL_ROW;
-		for (;;) {
-			switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_DONE)) {
-			case TDS_SUCCEED:
-				switch (result_type) {
-				case TDS_DONE_RESULT:
-				case TDS_DONEPROC_RESULT:
-				case TDS_DONEINPROC_RESULT:
-					stmt->row_count = tds->rows_affected;
-					if (done_flags & TDS_DONE_ERROR && !stmt->dyn->emulated)
-						stmt->errs.lastrc = SQL_ERROR;
-					/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
-					stmt->row = 0;
-					break;
-
-				case TDS_ROWFMT_RESULT:
-					/* store first row informations */
-					if (!in_row)
-						odbc_populate_ird(stmt);
-					stmt->row = 0;
-					stmt->row_count = TDS_NO_COUNT;
-					stmt->row_status = PRE_NORMAL_ROW;
-					in_row = 1;
-					break;
-				}
-				continue;
-			case TDS_NO_MORE_RESULTS:
-				break;
-			case TDS_CANCELLED:
-				odbc_errs_add(&stmt->errs, "HY008", NULL);
-			default:
-				stmt->errs.lastrc = SQL_ERROR;
-				break;
-			}
-
-			if (stmt->dbc->current_statement == stmt)
-				stmt->dbc->current_statement = NULL;
-			if (stmt->errs.lastrc == SQL_ERROR && !stmt->dyn->emulated) {
-				dyn = stmt->dyn;
-				stmt->dyn = NULL;
-				tds_free_dynamic(tds, dyn);
-			}
-			/* TODO ?? tds_free_param_results(params); */
-			ODBC_RETURN_(stmt);
-		}
+		return odbc_prepare(stmt);
 	}
 
 	ODBC_RETURN_(stmt);
@@ -5891,6 +5903,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 			break;
 		case TDS_CANCELLED:
 			odbc_errs_add(&stmt->errs, "HY008", NULL);
+			res = SQL_ERROR;
 			break;
 		}
 		if (!tds->current_results)

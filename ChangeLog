@@ -1,3 +1,7 @@
+Fri Jun 18 21:33:02 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/odbc_util.c:
+	- Move prepare code to odbc_prepare
+
 Fri May 21 17:18:05 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/bsqldb.c src/apps/fisql/fisql.c src/dblib/dblib.c:
 	- handle column size for SYBDATETIMN data type (Craig A. Berry)
@@ -2467,4 +2471,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3027 2010-05-21 15:18:48 freddy77 Exp $
+$Id: ChangeLog,v 1.3028 2010-06-18 19:33:14 freddy77 Exp $
