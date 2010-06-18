@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.532 2010-06-18 19:33:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.533 2010-06-18 19:48:56 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -88,6 +88,9 @@ static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 static SQLRETURN odbc_free_cursor(TDS_STMT * stmt);
+#ifdef ENABLE_DEVELOPING
+static SQLRETURN odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs);
+#endif
 static SQLRETURN odbc_prepare(TDS_STMT *stmt);
 static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
@@ -405,6 +408,39 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 	/* this overwrite any error arrived (wanted behavior, Sybase return error for conversion errors) */
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
+
+#ifdef ENABLE_DEVELOPING
+static SQLRETURN
+odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
+{
+	TDSPARAMINFO *save_params = stmt->params;
+	int save_param_num = stmt->param_num;
+	SQLRETURN res;
+
+	if (!stmt->need_reprepare || stmt->prepared_query_is_rpc)
+		return SQL_SUCCESS;
+
+	stmt->params = NULL;
+	stmt->param_num = 0;
+	/* FIXME error */
+	res = start_parse_prepared_query(stmt, 0);
+	if (res != SQL_SUCCESS) {
+		stmt->params = save_params;
+		stmt->param_num = save_param_num;
+		return SQL_ERROR;
+	}
+
+	/* FIXME where error are put ?? on stmt... */
+	if (!odbc_lock_statement(stmt)) {
+		stmt->params = save_params;
+		stmt->param_num = save_param_num;
+		ODBC_RETURN_(stmt);
+	}
+	tds_free_param_results(save_params);
+
+	return odbc_prepare(stmt);
+}
+#endif
 
 static SQLRETURN
 odbc_prepare(TDS_STMT *stmt)
@@ -1262,6 +1298,17 @@ SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER B
 
 #endif
 
+#ifdef ENABLE_DEVELOPING
+#define IRD_UPDATE(desc, errs, exit) \
+	do { \
+		if (desc->type == DESC_IRD && ((TDS_STMT*)desc->parent)->need_reprepare && \
+		    odbc_update_ird((TDS_STMT*)desc->parent, errs) != SQL_SUCCESS) \
+			exit; \
+	} while(0)
+#else
+#define IRD_UPDATE(desc, errs, exit) do { } while(0)
+#endif
+
 static SQLRETURN
 _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
 		  SQLULEN cbColDef, SQLSMALLINT ibScale, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
@@ -1854,6 +1901,7 @@ SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSM
 			hstmt, icol, szColName, cbColNameMax, pcbColName, pfSqlType, pcbColDef, pibScale, pfNullable);
 
 	ird = stmt->ird;
+	IRD_UPDATE(ird, &stmt->errs, ODBC_RETURN(stmt, SQL_ERROR));
 
 	if (icol <= 0 || icol > ird->header.sql_desc_count) {
 		odbc_errs_add(&stmt->errs, "07009", "Column out of range");
@@ -1932,6 +1980,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 #define IOUT(type, src) *pfDesc = src
 #endif
 
+	IRD_UPDATE(ird, &stmt->errs, ODBC_RETURN(stmt, SQL_ERROR));
 
 	/* dont check column index for these */
 	switch (fDescType) {
@@ -2338,6 +2387,7 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 		ODBC_RETURN(desc, SQL_ERROR);
 	}
 
+	IRD_UPDATE(desc, &desc->errs, ODBC_RETURN(desc, SQL_ERROR));
 	if (RecordNumber > desc->header.sql_desc_count)
 		ODBC_RETURN(desc, SQL_NO_DATA);
 
@@ -2414,6 +2464,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		ODBC_RETURN_(desc);
 		break;
 	case SQL_DESC_COUNT:
+		IRD_UPDATE(desc, &desc->errs, ODBC_RETURN(desc, SQL_ERROR));
 		IOUT(SQLSMALLINT, desc->header.sql_desc_count);
 		ODBC_RETURN_(desc);
 		break;
@@ -2423,6 +2474,7 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		break;
 	}
 
+	IRD_UPDATE(desc, &desc->errs, ODBC_RETURN(desc, SQL_ERROR));
 	if (!desc->header.sql_desc_count) {
 		odbc_errs_add(&desc->errs, "07005", NULL);
 		ODBC_RETURN(desc, SQL_ERROR);
@@ -2804,6 +2856,7 @@ SQLCopyDesc(SQLHDESC hdesc, SQLHDESC htarget)
 		odbc_errs_add(&target->errs, "HY016", NULL);
 		ODBC_RETURN(target, SQL_ERROR);
 	}
+	IRD_UPDATE(desc, &desc->errs, ODBC_RETURN(target, SQL_ERROR));
 
 	ODBC_RETURN(target, desc_copy(target, desc));
 }
@@ -4327,6 +4380,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 #endif
+	IRD_UPDATE(stmt->ird, &stmt->errs, ODBC_RETURN(stmt, SQL_ERROR));
 	*pccol = stmt->ird->header.sql_desc_count;
 	ODBC_RETURN_(stmt);
 }
@@ -4367,7 +4421,9 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		 && (stmt->attr.cursor_type == SQL_CURSOR_FORWARD_ONLY && stmt->attr.concurrency == SQL_CONCUR_READ_ONLY)) {
 
 		TDSSOCKET *tds = stmt->dbc->tds_socket;
+#ifndef ENABLE_DEVELOPING
 		TDSPARAMINFO *params = NULL;
+#endif
 
 		tds_free_param_results(stmt->params);
 		stmt->params = NULL;
@@ -4380,6 +4436,10 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		 * prepare sepatarely so this is not an issue
 		 */
 		if (IS_TDS7_PLUS(tds)) {
+#ifdef ENABLE_DEVELOPING
+			stmt->need_reprepare = 1;
+			ODBC_RETURN_(stmt);
+#else
 			SQLRETURN res;
 
 			/* use current parameter informations if availables */
@@ -4400,6 +4460,7 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 			 * compute row for execute
 			 */
 			stmt->param_num = 0;
+#endif
 		}
 
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");

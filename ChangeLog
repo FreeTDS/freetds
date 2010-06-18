@@ -1,3 +1,6 @@
+Fri Jun 18 21:48:50 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: defer prepare
+
 Fri Jun 18 21:33:02 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/odbc_util.c:
 	- Move prepare code to odbc_prepare
@@ -2471,4 +2474,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3028 2010-06-18 19:33:14 freddy77 Exp $
+$Id: ChangeLog,v 1.3029 2010-06-18 19:48:56 freddy77 Exp $
