@@ -1,3 +1,6 @@
+Sat Jun 19 09:53:14 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/pool/member.c src/tds/unittests/common.c: fix possible core
+
 Sat Jun 19 09:47:38 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* README.Windows: add initial README file for windows
 
@@ -2477,4 +2480,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3030 2010-06-19 07:47:52 freddy77 Exp $
+$Id: ChangeLog,v 1.3031 2010-06-19 07:53:21 freddy77 Exp $

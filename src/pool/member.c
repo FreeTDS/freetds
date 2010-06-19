@@ -59,7 +59,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.45 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.46 2010-06-19 07:53:21 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
@@ -95,7 +95,7 @@ pool_mbr_login(TDS_POOL * pool)
 	tds_set_packet(login, 512);
 	context = tds_alloc_context(NULL);
 	tds = tds_alloc_socket(context, 512);
-	connection = tds_read_config_info(NULL, login, context->locale);
+	connection = tds_read_config_info(tds, login, context->locale);
 	if (!connection || tds_connect_and_login(tds, connection) != TDS_SUCCEED) {
 		tds_free_socket(tds);
 		tds_free_connection(connection);
