@@ -1,3 +1,6 @@
+Sat Jun 19 09:47:38 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* README.Windows: add initial README file for windows
+
 Fri Jun 18 21:48:50 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: defer prepare
 
@@ -2474,4 +2477,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3029 2010-06-18 19:48:56 freddy77 Exp $
+$Id: ChangeLog,v 1.3030 2010-06-19 07:47:52 freddy77 Exp $
