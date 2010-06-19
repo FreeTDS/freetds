@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.243 2009-12-13 10:37:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.244 2010-06-19 09:51:36 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1269,6 +1269,112 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		tds_put_params(tds, params, 0);
 
 	return tds_flush_packet(tds);
+}
+
+/**
+ * tds8_submit_prepexec() creates a temporary stored procedure in the server.
+ * \param tds     state information for the socket and the TDS protocol
+ * \param query   language query with given placeholders (?)
+ * \param id      string to identify the dynamic query. Pass NULL for automatic generation.
+ * \param dyn_out will receive allocated TDSDYNAMIC*. Any older allocated dynamic won't be freed, Can be NULL.
+ * \param params  parameters to use. It can be NULL even if parameters are present. Used only for TDS7+
+ * \return TDS_FAIL or TDS_SUCCEED
+ */
+int
+tds8_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params)
+{
+	int query_len;
+	int rc;
+	TDSDYNAMIC *dyn;
+	size_t definition_len = 0;
+	char *param_definition = NULL;
+	size_t converted_query_len;
+	const char *converted_query;
+
+	CHECK_TDS_EXTRA(tds);
+	if (params)
+		CHECK_PARAMINFO_EXTRA(params);
+
+	if (!query || !IS_TDS7_PLUS(tds))
+		return TDS_FAIL;
+
+	/* allocate a structure for this thing */
+	dyn = tds_alloc_dynamic(tds, id);
+	if (!dyn)
+		return TDS_FAIL;
+
+	tds->cur_dyn = dyn;
+
+	if (dyn_out)
+		*dyn_out = dyn;
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		goto failure_nostate;
+
+	query_len = (int)strlen(query);
+
+	converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, &converted_query_len);
+	if (!converted_query)
+		goto failure;
+
+	param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
+	if (!param_definition) {
+		tds_convert_string_free(query, converted_query);
+		goto failure;
+	}
+
+	tds->out_flag = TDS_RPC;
+	START_QUERY;
+	/* procedure name */
+	if (IS_TDS71_PLUS(tds)) {
+		tds_put_smallint(tds, -1);
+		tds_put_smallint(tds, TDS_SP_PREPEXEC);
+	} else {
+		tds_put_smallint(tds, 10);
+		TDS_PUT_N_AS_UCS2(tds, "sp_prepexec");
+	}
+	tds_put_smallint(tds, 0);
+
+	/* return param handle (int) */
+	tds_put_byte(tds, 0);
+	tds_put_byte(tds, 1);	/* result */
+	tds_put_byte(tds, SYBINTN);
+	tds_put_byte(tds, 4);
+	tds_put_byte(tds, 0);
+
+	tds7_put_params_definition(tds, param_definition, definition_len);
+	tds7_put_query_params(tds, converted_query, converted_query_len);
+	tds_convert_string_free(query, converted_query);
+	free(param_definition);
+
+	if (params) {
+		int i;
+
+		for (i = 0; i < params->num_cols; i++) {
+			TDSCOLUMN *param = params->columns[i];
+			/* TODO check error */
+			tds_put_data_info(tds, param, 0);
+			/* FIXME handle error */
+			tds_put_data(tds, param);
+		}
+	}
+
+	tds->internal_sp_called = TDS_SP_PREPEXEC;
+
+	rc = tds_query_flush_packet(tds);
+	if (rc != TDS_FAIL)
+		return rc;
+
+failure:
+	/* TODO correct if writing fail ?? */
+	tds_set_state(tds, TDS_IDLE);
+
+failure_nostate:
+	tds->cur_dyn = NULL;
+	tds_free_dynamic(tds, dyn);
+	if (dyn_out)
+		*dyn_out = NULL;
+	return TDS_FAIL;
 }
 
 /**

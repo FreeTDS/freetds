@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.533 2010-06-18 19:48:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.534 2010-06-19 09:51:36 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -88,9 +88,7 @@ static void odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name);
 static SQLRETURN odbc_stat_execute(TDS_STMT * stmt, const char *begin, int nparams, ...);
 static SQLRETURN odbc_free_dynamic(TDS_STMT * stmt);
 static SQLRETURN odbc_free_cursor(TDS_STMT * stmt);
-#ifdef ENABLE_DEVELOPING
 static SQLRETURN odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs);
-#endif
 static SQLRETURN odbc_prepare(TDS_STMT *stmt);
 static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
@@ -409,7 +407,6 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 	ODBC_RETURN(dbc, SQL_SUCCESS);
 }
 
-#ifdef ENABLE_DEVELOPING
 static SQLRETURN
 odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 {
@@ -440,7 +437,6 @@ odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 
 	return odbc_prepare(stmt);
 }
-#endif
 
 static SQLRETURN
 odbc_prepare(TDS_STMT *stmt)
@@ -1298,16 +1294,12 @@ SQLGetEnvAttr(SQLHENV henv, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER B
 
 #endif
 
-#ifdef ENABLE_DEVELOPING
 #define IRD_UPDATE(desc, errs, exit) \
 	do { \
 		if (desc->type == DESC_IRD && ((TDS_STMT*)desc->parent)->need_reprepare && \
 		    odbc_update_ird((TDS_STMT*)desc->parent, errs) != SQL_SUCCESS) \
 			exit; \
 	} while(0)
-#else
-#define IRD_UPDATE(desc, errs, exit) do { } while(0)
-#endif
 
 static SQLRETURN
 _SQLBindParameter(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fParamType, SQLSMALLINT fCType, SQLSMALLINT fSqlType,
@@ -3262,6 +3254,13 @@ _SQLExecute(TDS_STMT * stmt)
 			if (ret == TDS_SUCCEED)
 				ret = tds_multiple_done(tds, &multiple);
 		}
+	} else if (stmt->num_param_rows <= 1 && IS_TDS71_PLUS(tds) && (!stmt->dyn || stmt->need_reprepare)) {
+			if (stmt->dyn) {
+				if (odbc_free_dynamic(stmt) != SQL_SUCCESS)
+					ODBC_RETURN(stmt, SQL_ERROR);
+			}
+			stmt->need_reprepare = 0;
+			ret = tds8_submit_prepexec(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params);
 	} else {
 		/* TODO cursor change way of calling */
 		/* SQLPrepare */
@@ -4421,9 +4420,6 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		 && (stmt->attr.cursor_type == SQL_CURSOR_FORWARD_ONLY && stmt->attr.concurrency == SQL_CONCUR_READ_ONLY)) {
 
 		TDSSOCKET *tds = stmt->dbc->tds_socket;
-#ifndef ENABLE_DEVELOPING
-		TDSPARAMINFO *params = NULL;
-#endif
 
 		tds_free_param_results(stmt->params);
 		stmt->params = NULL;
@@ -4436,31 +4432,8 @@ SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
 		 * prepare sepatarely so this is not an issue
 		 */
 		if (IS_TDS7_PLUS(tds)) {
-#ifdef ENABLE_DEVELOPING
 			stmt->need_reprepare = 1;
 			ODBC_RETURN_(stmt);
-#else
-			SQLRETURN res;
-
-			/* use current parameter informations if availables */
-			res = start_parse_prepared_query(stmt, 0);
-			if (res != SQL_SUCCESS) {
-				/*
-				 * not all parameters are bounded, prepare
-				 * with dummy parameters however we need to
-				 * prepare again later
-				 * TODO prepare only getting information
-				 */
-				stmt->need_reprepare = 1;
-			} else {
-				params = stmt->params;
-			}
-			/*
-			 * we can't reuse parsed parameters cause we didn't
-			 * compute row for execute
-			 */
-			stmt->param_num = 0;
-#endif
 		}
 
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");

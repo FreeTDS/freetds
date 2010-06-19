@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.384 2010-05-07 21:11:30 jklowden Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.385 2010-06-19 09:51:36 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -625,7 +625,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 						cursor->srv_status &= ~(TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_OPEN|TDS_CUR_ISTAT_DEALLOC);
 						cursor->srv_status |= cursor->cursor_id ? TDS_CUR_ISTAT_OPEN : TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_DEALLOC;
 					}
-					if (tds->internal_sp_called == TDS_SP_PREPARE 
+					if ((tds->internal_sp_called == TDS_SP_PREPARE || tds->internal_sp_called == TDS_SP_PREPEXEC)
 					    && tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
 						tds->cur_dyn->num_id = *(TDS_INT *) curcol->column_data;
 					}
@@ -740,6 +740,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			switch (tds->internal_sp_called) {
 			case 0: 
 			case TDS_SP_PREPARE: 
+			case TDS_SP_PREPEXEC:
 			case TDS_SP_EXECUTE: 
 			case TDS_SP_UNPREPARE: 
 			case TDS_SP_EXECUTESQL:

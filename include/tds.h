@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.335 2010-04-10 14:29:36 freddy77 Exp $ */
+/* $Id: tds.h,v 1.336 2010-06-19 09:51:36 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1500,6 +1500,7 @@ int tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * p
 int tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);
 int tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
 int tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
+int tds8_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
 int tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 int tds_send_cancel(TDSSOCKET * tds);
 const char *tds_next_placeholder(const char *start);
