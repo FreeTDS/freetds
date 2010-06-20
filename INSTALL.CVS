@@ -13,6 +13,7 @@ connecting to the CVS server.  Then follow these steps:
 	libtool		(GNU Libtool, library creation support scripts)
 	make		(GNU or BSD Make.)
 	gcc		(GNU Compiler Collection, for C code compilation)
+	perl		(Perl, used to generate some files)
 	
 	Autotool versions that work:
 	$ (autoconf --version; automake --version; libtool --version) |grep GNU
@@ -62,4 +63,4 @@ the CVS tree via rsync:
 $ rsync -av rsync://freetds.cvs.sourceforge.net/cvsroot/freetds/* .
 	
 --
-$Id: INSTALL.CVS,v 1.9 2008-07-17 11:52:33 freddy77 Exp $
+$Id: INSTALL.CVS,v 1.10 2010-06-20 08:38:41 freddy77 Exp $
