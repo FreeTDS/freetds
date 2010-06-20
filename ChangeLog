@@ -1,3 +1,6 @@
+Sun Jun 20 14:19:31 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/test-dist.sh: fix test script due to 2 distribution files
+
 Sun Jun 20 10:38:35 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* INSTALL.CVS: add Perl to tools required for CVS build
 
@@ -2488,4 +2491,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3033 2010-06-20 08:38:41 freddy77 Exp $
+$Id: ChangeLog,v 1.3034 2010-06-20 12:19:41 freddy77 Exp $

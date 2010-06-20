@@ -55,7 +55,7 @@ make dist
 echo "make distribution ok" >> "$LOG"
 
 # untar to test it, should already contains documentation
-DIR=`echo freetds-* | sed s,.tar.bz2$,,g`
+DIR=`echo freetds-*.tar.bz2 | sed s,.tar.bz2$,,g`
 bzip2 -dc freetds-*.tar.bz2 | tar xf -
 test -d "$DIR"
 cd "$DIR"
