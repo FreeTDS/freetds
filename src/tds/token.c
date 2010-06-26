@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.385 2010-06-19 09:51:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.386 2010-06-26 09:14:50 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1588,6 +1588,7 @@ tds7_process_result(TDSSOCKET * tds)
 		return TDS_FAIL;
 	tds->current_results = info;
 	if (tds->cur_cursor) {
+		tds_free_results(tds->cur_cursor->res_info);
 		tds->cur_cursor->res_info = info;
 		tdsdump_log(TDS_DBG_INFO1, "set current_results to cursor->res_info\n");
 	} else {

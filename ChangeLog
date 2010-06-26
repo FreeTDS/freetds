@@ -1,3 +1,6 @@
+Sat Jun 26 11:14:37 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: fix a leak if cursor returns multiple resultsets
+
 Sat Jun 26 10:03:51 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/cursor2.c: remove warning
 
@@ -2500,4 +2503,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3037 2010-06-26 08:03:57 freddy77 Exp $
+$Id: ChangeLog,v 1.3038 2010-06-26 09:14:49 freddy77 Exp $
