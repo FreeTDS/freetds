@@ -1,3 +1,12 @@
+Sat Jun 26 19:50:00 CEST 2010   Craig A. Berry <craigberry@mac.com>
+	* Makefile.am, src/apps/defncopy.c, src/apps/fisql/fisql.c,
+	* src/apps/freebcp.c, vms/Makefile.am, vms/config_h.vms,
+	* vms/descrip_mms.template, vms/vargdefs.h, vms/vmsarg_command_bcp.cld,
+	* vms/vmsarg_command_defncopy.cld, vms/vmsarg_command_isql.cld,
+	* vms/vmsarg_mapping_bcp.c, ms/vmsarg_mapping_defncopy.c,
+	* vms/vmsarg_mapping_isql.c, vms/vmsarg_parse.c
+	- VMS-style native command syntax for fisql, freebcp, and defncopy
+
 Sat Jun 26 11:14:37 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c: fix a leak if cursor returns multiple resultsets
 
@@ -2503,4 +2512,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3038 2010-06-26 09:14:49 freddy77 Exp $
+$Id: ChangeLog,v 1.3039 2010-06-26 23:58:43 berryc Exp $
