@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.15 2010-05-21 14:02:08 freddy77 Exp $
+# $Id: descrip_mms.template,v 1.16 2010-06-26 23:47:02 berryc Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -293,10 +293,21 @@ $(TDSODBCSHR) : []libtdsodbc$(OLB)
 apps : freebcp$(E) tsql$(E) bsqldb$(E) defncopy$(E) tdspool$(E) fisql$(E)
 	@ continue
 
-freebcp$(E) : [.src.apps]freebcp$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
+[]vmsarg_parse$(OBJ) : [.vms]vmsarg_parse.c
+       $(CC) $(CFLAGS)/INCLUDE=([.vms],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
-[.src.apps]freebcp$(OBJ) : [.src.apps]freebcp.c
+
+freebcp$(E) : [.src.apps]freebcp$(OBJ) []vmsarg_mapping_bcp$(OBJ) []vmsarg_command_bcp$(OBJ) []vmsarg_parse$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
+
+[.src.apps]freebcp$(OBJ) : [.src.apps]freebcp.c []libsybdb$(OLB) []libtds$(OLB)
+
+[]vmsarg_mapping_bcp$(OBJ) : [.vms]vmsarg_mapping_bcp.c
+       $(CC) $(CFLAGS)/INCLUDE=([.vms],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[]vmsarg_command_bcp$(OBJ) : [.vms]vmsarg_command_bcp.cld
+       SET COMMAND/OBJECT=$(MMS$TARGET) $(MMS$SOURCE)
+
 
 tsql$(E) : [.src.apps]tsql$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
@@ -305,24 +316,34 @@ tsql$(E) : [.src.apps]tsql$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
 	@ define/nolog/user_mode readline [.include]
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
 
+
 bsqldb$(E) : [.src.apps]bsqldb$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
 
 [.src.apps]bsqldb$(OBJ) : [.src.apps]bsqldb.c
 
-defncopy$(E) : [.src.apps]defncopy$(OBJ) []libsybdb$(OLB) []libtds$(OLB)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
 
-[.src.apps]defncopy$(OBJ) : [.src.apps]defncopy.c
+defncopy$(E) : [.src.apps]defncopy$(OBJ) []vmsarg_mapping_defncopy$(OBJ) []vmsarg_command_defncopy$(OBJ) []vmsarg_parse$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
+ 
+[.src.apps]defncopy$(OBJ) : [.src.apps]defncopy.c []libsybdb$(OLB) []libtds$(OLB)
+
+[]vmsarg_mapping_defncopy$(OBJ) : [.vms]vmsarg_mapping_defncopy.c
+       $(CC) $(CFLAGS)/INCLUDE=([.vms],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[]vmsarg_command_defncopy$(OBJ) : [.vms]vmsarg_command_defncopy.cld
+       SET COMMAND/OBJECT=$(MMS$TARGET) $(MMS$SOURCE)
+
 
 tdspool$(E) : $(TDSPOOLOBJS) []libtdssrv$(OLB) []libtds$(OLB)
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(TDSPOOLOBJS), []libtdssrv$(OLB)/library, []libtds$(OLB)/library
 
 
-fisql$(E) : [.src.apps.fisql]fisql$(OBJ) [.src.apps.fisql]interrupt$(OBJ) [.src.apps.fisql]handlers$(OBJ) [.vms]edit$(OBJ)
-	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
-
-[.src.apps.fisql]fisql$(OBJ) : [.src.apps.fisql]fisql.c
+fisql$(E) : [.src.apps.fisql]fisql$(OBJ) [.src.apps.fisql]interrupt$(OBJ) [.src.apps.fisql]handlers$(OBJ) [.vms]edit$(OBJ) \
+    []vmsarg_mapping_isql$(OBJ) []vmsarg_command_isql$(OBJ) []vmsarg_parse$(OBJ)
+ 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libsybdb$(OLB)/library, []libtds$(OLB)/library
+ 
+[.src.apps.fisql]fisql$(OBJ) : [.src.apps.fisql]fisql.c []libsybdb$(OLB) []libtds$(OLB)
 	@ define/nolog/user_mode readline [.include]
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
 
@@ -330,6 +351,11 @@ fisql$(E) : [.src.apps.fisql]fisql$(OBJ) [.src.apps.fisql]interrupt$(OBJ) [.src.
 
 [.src.apps.fisql]handlers$(OBJ) : [.src.apps.fisql]handlers.c
 
+[]vmsarg_mapping_isql$(OBJ) : [.vms]vmsarg_mapping_isql.c
+       $(CC) $(CFLAGS)/INCLUDE=([.vms],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[]vmsarg_command_isql$(OBJ) : [.vms]vmsarg_command_isql.cld
+       SET COMMAND/OBJECT=$(MMS$TARGET) $(MMS$SOURCE)
 
 # Run the test suite
 

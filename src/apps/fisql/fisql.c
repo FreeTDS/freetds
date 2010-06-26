@@ -268,6 +268,11 @@ main(int argc, char *argv[])
 	int nby;
 	char adash;
 
+#ifdef __VMS
+        /* Convert VMS-style arguments to Unix-style */
+        parse_vms_args(&argc, &argv);
+#endif
+
 	editor = getenv("EDITOR");
 	if (!editor) {
 		editor = getenv("VISUAL");

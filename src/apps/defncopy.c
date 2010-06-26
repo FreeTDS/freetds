@@ -87,7 +87,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #endif
 #endif /* MicrosoftsDbLib */
 
-static char software_version[] = "$Id: defncopy.c,v 1.19 2010-01-11 14:03:20 jklowden Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.20 2010-06-26 23:47:02 berryc Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef MicrosoftsDbLib
@@ -142,6 +142,11 @@ main(int argc, char *argv[])
 	PROCEDURE procedure;
 	RETCODE erc;
 	int i, nrows;
+
+#ifdef __VMS
+        /* Convert VMS-style arguments to Unix-style */
+        parse_vms_args(&argc, &argv);
+#endif
 
 	/* Initialize db-lib */
 #if _WIN32 && defined(MicrosoftsDbLib)

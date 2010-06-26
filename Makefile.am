@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.47 2010-01-21 08:34:04 freddy77 Exp $
+# version $Id: Makefile.am,v 1.48 2010-06-26 23:47:01 berryc Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.ac
@@ -9,11 +9,22 @@ ACLOCAL_AMFLAGS = -I m4
 
 VMS	=	vms/config_h.vms \
 		vms/configure.com \
+		vms/edit.c \
 		vms/descrip_mms.template \
 		vms/getpass.c \
 		vms/libodbc.opt \
+		vms/Makefile.am \
 		vms/odbc_driver_axp.opt \
-		vms/README.vms
+		vms/README.vms \
+		vms/vargdefs.h \
+		vms/vmsarg_command_bcp.cld \
+		vms/vmsarg_command_defncopy.cld \
+		vms/vmsarg_command_isql.cld \
+		vms/vmsarg_mapping_bcp.c \
+		vms/vmsarg_mapping_defncopy.c \
+		vms/vmsarg_mapping_isql.c \
+		vms/vmsarg_parse.c
+
 
 EXTRA_DIST = 	$(VMS) interfaces PWD.in BUGS \
 		freetds.conf locales.conf \

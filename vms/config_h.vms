@@ -1,4 +1,4 @@
-/* $Id: config_h.vms,v 1.10 2009-04-09 01:40:25 jklowden Exp $ */
+/* $Id: config_h.vms,v 1.11 2010-06-26 23:47:02 berryc Exp $ */
 
 /* include/config.h.in.  Generated from configure.ac by autoheader.  */
 /* and edited by hand for VMS */
@@ -345,5 +345,8 @@ char * readpassphrase(const char *, char *, size_t, int);
 #define HAVE_SQLLEN 1
 #define HAVE_SQLSETPOSIROW 1
 #define TDS_SQLCOLATTRIBUTE_SQLLEN 1
+
+/* Prototype for routine to convert VMS-style arguments to Unix-style. */
+int parse_vms_args(int *argc, char **argv[]);
 
 #endif /* CONFIG_H_LOADED */
