@@ -5,7 +5,7 @@
  * 2) Test cursor returns results on language RPCs
  */
 
-static char software_version[] = "$Id: cursor2.c,v 1.8 2010-06-26 07:23:40 freddy77 Exp $";
+static char software_version[] = "$Id: cursor2.c,v 1.9 2010-06-26 08:03:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -13,7 +13,6 @@ main(int argc, char *argv[])
 {
 	unsigned char sqlstate[6];
 	unsigned char msg[256];
-	SQLRETURN retcode;
 
 	Connect();
 
