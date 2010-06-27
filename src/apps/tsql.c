@@ -87,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.133 2010-04-08 08:19:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.134 2010-06-27 17:46:43 berryc Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -297,7 +297,8 @@ static void
 tsql_print_usage(const char *progname)
 {
 	fprintf(stderr,
-		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>] [-I <config file>] [-o <options>] [-t delim] [-r delim] [-D database]\n"
+		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>]\n"
+		"\t\t[-I <config file>] [-J <client charset>] [-o <options>] [-t delim] [-r delim] [-D database]\n"
 		"\t%s -C\n"
 		"Options:\n"
 		"\tf\tDo not print footer\n"
@@ -402,23 +403,10 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	char *confile = NULL;
 	int port = 0;
 	int opt;
-	const char *locale = NULL;
 	const char *charset = NULL;
 	char *opt_flags_str = NULL;
 
-	setlocale(LC_ALL, "");
-	locale = setlocale(LC_ALL, NULL);
-
-#if HAVE_LOCALE_CHARSET
-	charset = locale_charset();
-#endif
-#if HAVE_NL_LANGINFO && defined(CODESET)
-	if (!charset)
-		charset = nl_langinfo(CODESET);
-#endif
-
-
-	while ((opt = getopt(argc, argv, "H:S:I:P:U:p:Co:t:r:D:Lv")) != -1) {
+	while ((opt = getopt(argc, argv, "H:S:I:J:P:U:p:Co:t:r:D:Lv")) != -1) {
 		switch (opt) {
 		case 't':
 			opt_col_term = strdup(optarg);
@@ -451,6 +439,9 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		case 'I':
 			free(confile);
 			confile = strdup(optarg);
+			break;
+		case 'J':
+			charset = strdup(optarg);
 			break;
 		case 'p':
 			port = atoi(optarg);
@@ -495,16 +486,6 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		}
 	}
 
-
-	if (locale)
-		if (!QUIET) printf("locale is \"%s\"\n", locale);
-	if (charset) {
-		if (!QUIET) printf("locale charset is \"%s\"\n", charset);
-	} else {
-		charset = "ISO-8859-1";
-		if (!QUIET) printf("using default charset \"%s\"\n", charset);
-	}
-	
 	if ((global_opt_flags & OPT_INSTANCES) && hostname) {
 		static const char template[] = "%s.instances";
 		char ip[24] = {'\0'};
@@ -582,7 +563,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		tds_set_app(login, "TSQL");
 		tds_set_library(login, "TDS-Library");
 		tds_set_server(login, servername);
-		tds_set_client_charset(login, charset);
+		if (charset) tds_set_client_charset(login, charset);
 		tds_set_language(login, "us_english");
 		tds_set_passwd(login, password);
 		if (confile) {
@@ -595,7 +576,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		tds_set_library(login, "TDS-Library");
 		tds_set_server(login, hostname);
 		tds_set_port(login, port);
-		tds_set_client_charset(login, charset);
+		if (charset) tds_set_client_charset(login, charset);
 		tds_set_language(login, "us_english");
 		tds_set_passwd(login, password);
 	}
@@ -681,6 +662,8 @@ main(int argc, char **argv)
 	pid_t timer_pid = 0;
 	int pipes[2];
 #endif
+	const char *locale = NULL;
+	const char *charset = NULL;
 
 	istty = isatty(0);
 
@@ -709,6 +692,32 @@ main(int argc, char **argv)
 	assert(tds);
 	tds_set_parent(tds, NULL);
 	connection = tds_read_config_info(tds, login, context->locale);
+
+	setlocale(LC_ALL, "");
+	locale = setlocale(LC_ALL, NULL);
+
+#if HAVE_LOCALE_CHARSET
+	charset = locale_charset();
+#endif
+#if HAVE_NL_LANGINFO && defined(CODESET)
+	if (!charset)
+		charset = nl_langinfo(CODESET);
+#endif
+
+	if (locale)
+		if (!QUIET) printf("locale is \"%s\"\n", locale);
+	if (charset) {
+		if (!QUIET) printf("locale charset is \"%s\"\n", charset);
+	}
+	
+	if (tds_dstr_isempty(&connection->client_charset)) {
+		if (!charset)
+			charset = "ISO-8859-1";
+
+		tds_set_client_charset(login, charset);
+		tds_dstr_dup(&connection->client_charset, &login->client_charset);
+	}
+	if (!QUIET) printf("using default charset \"%s\"\n", tds_dstr_cstr(&connection->client_charset));
 
 	if (opt_default_db) {
 		tds_dstr_copy(&connection->database, opt_default_db);

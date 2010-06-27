@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.336 2010-06-19 09:51:36 freddy77 Exp $ */
+/* $Id: tds.h,v 1.337 2010-06-27 17:46:43 berryc Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -908,7 +908,6 @@ typedef struct tds_locale
 {
 	char *language;
 	char *server_charset;
-	char *client_charset;
 	char *date_fmt;
 } TDSLOCALE;
 

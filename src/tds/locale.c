@@ -22,6 +22,10 @@
 #include <config.h>
 #endif
 
+#if HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -41,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: locale.c,v 1.28 2007-10-16 15:12:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: locale.c,v 1.29 2010-06-27 17:46:43 berryc Exp $");
 
 
 static void tds_parse_locale(const char *option, const char *value, void *param);
@@ -68,12 +72,16 @@ tds_get_locale(void)
 	if (in) {
 		tds_read_conf_section(in, "default", tds_parse_locale, locale);
 
+#if HAVE_LOCALE_H
+		setlocale(LC_ALL, "");
+		s = setlocale(LC_ALL, NULL);
+#else
 		s = getenv("LANG");
+#endif
 		if (s && s[0]) {
 			int found;
 			char buf[128];
 			const char *strip = "@._";
-			const char *charset = NULL;
 
 			/* do not change environment !!! */
 			tds_strlcpy(buf, s, sizeof(buf));
@@ -96,18 +104,12 @@ tds_get_locale(void)
 				if (!s)
 					continue;
 				*s = 0;
-				if (*strip == '.')
-					charset = s+1;
 				rewind(in);
 				found = tds_read_conf_section(in, buf, tds_parse_locale, locale);
 			}
 
-			/* charset specified in LANG ?? */
-			if (charset) {
-				free(locale->client_charset);
-				locale->client_charset = strdup(charset);
-			}
 		}
+
 
 		fclose(in);
 	}

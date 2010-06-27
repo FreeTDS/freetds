@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.198 2010-05-02 11:52:13 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.199 2010-06-27 17:46:43 berryc Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -690,34 +690,8 @@ TDSLOCALE *
 tds_alloc_locale(void)
 {
 	TDSLOCALE *locale;
-#if !(HAVE_NL_LANGINFO && defined(CODESET))
-	char *lc_all;
-#endif
 
 	TEST_MALLOC(locale, TDSLOCALE);
-
-#if HAVE_NL_LANGINFO && defined(CODESET)
-	locale->client_charset = strdup(nl_langinfo(CODESET));
-#else
-	locale->client_charset = strdup("ISO-8859-1");
-	if (!locale->client_charset)
-		goto Cleanup;
-
-	if ((lc_all = strdup(setlocale(LC_ALL, NULL))) == NULL)
-		goto Cleanup;
-
-	if (strtok(lc_all, ".")) {
-		char *encoding = strtok(NULL, "@");
-		if (encoding) {
-			free(locale->client_charset);
-			locale->client_charset = strdup(encoding);
-		}
-	}
-	free(lc_all);
-#endif
-	if (!locale->client_charset)
-		goto Cleanup;
-	tdsdump_log(TDS_DBG_FUNC, "tds_alloc_locale(): initialized locale to \"%s\"\n", locale->client_charset? locale->client_charset : "NULL");
 
 	return locale;
 
@@ -832,6 +806,9 @@ tds_alloc_connection(TDSLOCALE * locale)
 {
 	TDSCONNECTION *connection;
 	char hostname[128];
+#if !(HAVE_NL_LANGINFO && defined(CODESET))
+	char *lc_all;
+#endif
 
 	TEST_MALLOC(connection, TDSCONNECTION);
 	tds_dstr_init(&connection->server_name);
@@ -854,9 +831,28 @@ tds_alloc_connection(TDSLOCALE * locale)
 		goto Cleanup;
 	connection->tds_version = TDS_DEFAULT_VERSION;
 	connection->block_size = 0;
-	/* TODO use system default ?? */
+
+	setlocale(LC_ALL, "");
+#if HAVE_NL_LANGINFO && defined(CODESET)
+	if (!tds_dstr_copy(&connection->client_charset, nl_langinfo(CODESET)))
+		goto Cleanup;;
+#else
 	if (!tds_dstr_copy(&connection->client_charset, "ISO-8859-1"))
 		goto Cleanup;
+
+	if ((lc_all = strdup(setlocale(LC_ALL, NULL))) == NULL)
+		goto Cleanup;
+
+	if (strtok(lc_all, ".")) {
+		char *encoding = strtok(NULL, "@");
+		if (encoding) {
+			if (!tds_dstr_copy(&connection->client_charset, encoding))
+				goto Cleanup;
+		}
+	}
+	free(lc_all);
+#endif
+
 	if (locale) {
 		if (locale->language)
 			if (!tds_dstr_copy(&connection->language, locale->language))
@@ -1154,7 +1150,6 @@ tds_free_locale(TDSLOCALE * locale)
 	free(locale->language);
 	free(locale->server_charset);
 	free(locale->date_fmt);
-	free(locale->client_charset);
 	free(locale);
 }
 

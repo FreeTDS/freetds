@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.143 2010-02-08 12:16:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.144 2010-06-27 17:46:43 berryc Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -440,12 +440,12 @@ tds_iconv_info_init(TDSICONV * char_conv, const char *client_name, const char *s
 	server_canonical = tds_canonical_charset(server_name);
 
 	if (client_canonical < 0) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: client charset name \"%s\" unrecognized\n", client->name);
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: client charset name \"%s\" unrecognized\n", client_name);
 		return 0;
 	}
 
 	if (server_canonical < 0) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: server charset name \"%s\" unrecognized\n", client->name);
+		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: server charset name \"%s\" unrecognized\n", server_name);
 		return 0;
 	}
 
