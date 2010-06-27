@@ -50,7 +50,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.14 2010-02-07 21:55:54 jklowden Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.15 2010-06-27 23:58:12 berryc Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);
@@ -840,6 +840,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			break;
 		case 'P':
 			login->password = strdup(optarg);
+			memset(optarg, 0, strlen(optarg));
 			break;
 		case 'S':
 			options->servername = strdup(optarg);

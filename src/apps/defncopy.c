@@ -87,7 +87,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #endif
 #endif /* MicrosoftsDbLib */
 
-static char software_version[] = "$Id: defncopy.c,v 1.20 2010-06-26 23:47:02 berryc Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.21 2010-06-27 23:58:12 berryc Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef MicrosoftsDbLib
@@ -679,6 +679,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			break;
 		case 'P':
 			DBSETLPWD(login, optarg);
+			memset(optarg, 0, strlen(optarg));
 			fdomain = FALSE;
 			break;
 		case 'S':

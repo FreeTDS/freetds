@@ -50,7 +50,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.54 2010-06-26 23:47:02 berryc Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.55 2010-06-27 23:58:12 berryc Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -268,8 +268,10 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 				nl = strchr(pwd, '\n');
 				if(nl) *nl = '\0';
 				pdata->pass = strdup(pwd);
+				memset(pwd, 0, 255);
 			} else {
 				pdata->pass = strdup(optarg);
+				memset(optarg, 0, strlen(optarg));
 			}
 			break;
 		case 'i':

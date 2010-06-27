@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.42 2010-05-21 15:18:49 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.43 2010-06-27 23:58:12 berryc Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -827,6 +827,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		case 'P':
 			got_password = 1;
 			DBSETLPWD(login, optarg);
+			memset(optarg, 0, strlen(optarg));
 			break;
 		case 'S':
 			options->servername = strdup(optarg);

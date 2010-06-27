@@ -450,6 +450,8 @@ main(int argc, char *argv[])
 		DBSETLUSER(login, username);
 	}
 	DBSETLPWD(login, password);
+	memset(password, 0, strlen(password));
+
 	if (char_set) {
 		DBSETLCHARSET(login, char_set);
 	}

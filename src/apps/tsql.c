@@ -87,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.134 2010-06-27 17:46:43 berryc Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.135 2010-06-27 23:58:12 berryc Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -435,6 +435,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		case 'P':
 			free(password);
 			password = strdup(optarg);
+			memset(optarg, 0, strlen(optarg));
 			break;
 		case 'I':
 			free(confile);
@@ -580,6 +581,8 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		tds_set_language(login, "us_english");
 		tds_set_passwd(login, password);
 	}
+
+	memset(password, 0, strlen(password));
 
 	/* free up all the memory */
 	free(confile);
