@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.534 2010-06-19 09:51:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.535 2010-06-28 19:51:11 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -3976,6 +3976,9 @@ _SQLFreeConnect(SQLHDBC hdbc)
 	tds_free_socket(dbc->tds_socket);
 
 	/* free attributes */
+#ifdef TDS_NO_DM
+	tds_dstr_free(&dbc->attr.tracefile);
+#endif
 	tds_dstr_free(&dbc->attr.current_catalog);
 	tds_dstr_free(&dbc->attr.translate_lib);
 
