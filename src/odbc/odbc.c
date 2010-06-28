@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.535 2010-06-28 19:51:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.536 2010-06-28 20:24:49 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -958,7 +958,7 @@ SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLC
 	}
 #endif
 
-	if (!tds_dstr_copyn(&query, (const char *) szSqlStrIn, odbc_get_string_size(cbSqlStrIn, szSqlStrIn))) {
+	if (!odbc_dstr_copy(&query, cbSqlStrIn, szSqlStrIn)) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -1835,7 +1835,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 
 	/* data source name */
 	if (szDSN || (*szDSN))
-		tds_dstr_copyn(&dbc->dsn, (const char *) szDSN, odbc_get_string_size(cbDSN, szDSN));
+		odbc_dstr_copy(&dbc->dsn, cbDSN, szDSN);
 	else
 		tds_dstr_copy(&dbc->dsn, "DEFAULT");
 
@@ -1854,7 +1854,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	 */
 	/* user id */
 	if (szUID && (*szUID)) {
-		if (!tds_dstr_copyn(&connection->user_name, (char *) szUID, odbc_get_string_size(cbUID, szUID))) {
+		if (!odbc_dstr_copy(&connection->user_name, cbUID, szUID)) {
 			tds_free_connection(connection);
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
@@ -1863,7 +1863,7 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 
 	/* password */
 	if (szAuthStr && !tds_dstr_isempty(&connection->user_name)) {
-		if (!tds_dstr_copyn(&connection->password, (char *) szAuthStr, odbc_get_string_size(cbAuthStr, szAuthStr))) {
+		if (!odbc_dstr_copy(&connection->password, cbAuthStr, szAuthStr)) {
 			tds_free_connection(connection);
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
@@ -2743,14 +2743,9 @@ SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_NAME:
-		{
-			/* FIXME test len >= 0 */
-			int len = odbc_get_string_size(BufferLength, (SQLCHAR *) Value);
-
-			if (!tds_dstr_copyn(&drec->sql_desc_name, Value, len)) {
-				odbc_errs_add(&desc->errs, "HY001", NULL);
-				result = SQL_ERROR;
-			}
+		if (!odbc_dstr_copy(&drec->sql_desc_name, BufferLength, Value)) {
+			odbc_errs_add(&desc->errs, "HY001", NULL);
+			result = SQL_ERROR;
 		}
 		break;
 	case SQL_DESC_NULLABLE:
@@ -4492,7 +4487,7 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	if (!tds_dstr_copyn(&stmt->cursor_name, (const char *) szCursor, odbc_get_string_size(cbCursor, szCursor))) {
+	if (!odbc_dstr_copy(&stmt->cursor_name, cbCursor, szCursor)) {
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
@@ -6101,8 +6096,7 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 			odbc_errs_add(&dbc->errs, "HY090", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
-		len = odbc_get_string_size(StringLength, (SQLCHAR *) ValuePtr);
-		if (tds_dstr_copyn(&dbc->attr.tracefile, (const char *) ValuePtr, len))
+		if (odbc_dstr_copy(&dbc->attr.tracefile, StringLength, (SQLCHAR *) ValuePtr))
 			ODBC_RETURN_(dbc);
 		else {
 			odbc_errs_add(&dbc->errs, "HY001", NULL);

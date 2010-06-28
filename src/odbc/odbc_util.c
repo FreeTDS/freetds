@@ -33,13 +33,14 @@
 #include <assert.h>
 
 #include "tdsodbc.h"
+#include "tdsstring.h"
 #include "tdsconvert.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.112 2010-06-18 19:33:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.113 2010-06-28 20:24:49 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -242,6 +243,12 @@ odbc_get_string_size(int size, SQLCHAR * str)
 	}
 	/* SQL_NULL_DATA or any other strange value */
 	return 0;
+}
+
+DSTR*
+odbc_dstr_copy(DSTR *s, int size, SQLCHAR * str)
+{
+	return tds_dstr_copyn(s, (const char *) str, odbc_get_string_size(size, str));
 }
 
 /**
