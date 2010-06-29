@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.199 2010-06-27 17:46:43 berryc Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.200 2010-06-29 12:01:17 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -806,7 +806,9 @@ tds_alloc_connection(TDSLOCALE * locale)
 {
 	TDSCONNECTION *connection;
 	char hostname[128];
-#if !(HAVE_NL_LANGINFO && defined(CODESET))
+#if HAVE_NL_LANGINFO && defined(CODESET)
+	char *charset;
+#else
 	char *lc_all;
 #endif
 
@@ -834,7 +836,10 @@ tds_alloc_connection(TDSLOCALE * locale)
 
 	setlocale(LC_ALL, "");
 #if HAVE_NL_LANGINFO && defined(CODESET)
-	if (!tds_dstr_copy(&connection->client_charset, nl_langinfo(CODESET)))
+	charset = nl_langinfo(CODESET);
+	if (strcmp(tds_canonical_charset_name(charset), "US-ASCII") == 0)
+		charset = "ISO-8859-1";
+	if (!tds_dstr_copy(&connection->client_charset, charset))
 		goto Cleanup;;
 #else
 	if (!tds_dstr_copy(&connection->client_charset, "ISO-8859-1"))
