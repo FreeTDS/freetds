@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.200 2010-06-29 12:01:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.201 2010-06-29 12:07:54 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -809,7 +809,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 #if HAVE_NL_LANGINFO && defined(CODESET)
 	char *charset;
 #else
-	char *lc_all;
+	char *lc_all, *tok = NULL;
 #endif
 
 	TEST_MALLOC(connection, TDSCONNECTION);
@@ -848,8 +848,8 @@ tds_alloc_connection(TDSLOCALE * locale)
 	if ((lc_all = strdup(setlocale(LC_ALL, NULL))) == NULL)
 		goto Cleanup;
 
-	if (strtok(lc_all, ".")) {
-		char *encoding = strtok(NULL, "@");
+	if (strtok_r(lc_all, ".", &tok)) {
+		char *encoding = strtok_r(NULL, "@", &tok);
 		if (encoding) {
 			if (!tds_dstr_copy(&connection->client_charset, encoding))
 				goto Cleanup;
