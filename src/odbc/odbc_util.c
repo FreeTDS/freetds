@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.113 2010-06-28 20:24:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.114 2010-07-02 13:38:24 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -54,14 +54,14 @@ TDS_RCSID(var, "$Id: odbc_util.c,v 1.113 2010-06-28 20:24:49 freddy77 Exp $");
  */
 
 static int
-odbc_set_stmt(TDS_STMT * stmt, char **dest, const char *sql, int sql_len)
+odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
 	char *p;
 
 	assert(dest == &stmt->prepared_query || dest == &stmt->query);
 
 	if (sql_len == SQL_NTS)
-		sql_len = strlen(sql);
+		sql_len = strlen((const char*) sql);
 	else if (sql_len <= 0)
 		return SQL_ERROR;
 
@@ -98,16 +98,16 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const char *sql, int sql_len)
 }
 
 int
-odbc_set_stmt_query(TDS_STMT * stmt, const char *sql, int sql_len)
+odbc_set_stmt_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
-	return odbc_set_stmt(stmt, &stmt->query, sql, sql_len);
+	return odbc_set_stmt(stmt, &stmt->query, sql, sql_len _wide);
 }
 
 
 int
-odbc_set_stmt_prepared_query(TDS_STMT * stmt, const char *sql, int sql_len)
+odbc_set_stmt_prepared_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
-	return odbc_set_stmt(stmt, &stmt->prepared_query, sql, sql_len);
+	return odbc_set_stmt(stmt, &stmt->prepared_query, sql, sql_len _wide);
 }
 
 
@@ -233,7 +233,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 }
 
 int
-odbc_get_string_size(int size, SQLCHAR * str)
+odbc_get_string_size(int size, ODBC_CHAR * str _WIDE)
 {
 	if (str) {
 		if (size == SQL_NTS)
@@ -246,7 +246,7 @@ odbc_get_string_size(int size, SQLCHAR * str)
 }
 
 DSTR*
-odbc_dstr_copy(DSTR *s, int size, SQLCHAR * str)
+odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str _WIDE)
 {
 	return tds_dstr_copyn(s, (const char *) str, odbc_get_string_size(size, str));
 }
@@ -756,44 +756,28 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 
 /**
  * Copy a string to client setting size according to ODBC convenction
+ * @param dbc       database connection. Can be NULL
  * @param buffer    client buffer
  * @param cbBuffer  client buffer size (in bytes)
  * @param pcbBuffer pointer to SQLSMALLINT to hold string size
  * @param s         string to copy
  * @param len       len of string to copy. <0 null terminated
+ * @param flag      set of flag 0x10 SQLINTEGER
  */
 SQLRETURN
-odbc_set_string(SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer, const char *s, int len)
+odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void FAR * pcbBuffer, const char *s, int len, int flag)
 {
 	SQLRETURN result = SQL_SUCCESS;
 
 	if (len < 0)
 		len = strlen(s);
 
-	if (pcbBuffer)
-		*pcbBuffer = len;
-	if (len >= cbBuffer) {
-		len = cbBuffer - 1;
-		result = SQL_SUCCESS_WITH_INFO;
+	if (pcbBuffer) {
+		if (flag & 0x10)
+			*((SQLINTEGER *) pcbBuffer) = len;
+		else
+			*((SQLSMALLINT *) pcbBuffer) = len;
 	}
-	if (buffer && len >= 0) {
-		/* buffer can overlap, use memmove, thanks to Valgrind */
-		memmove((char *) buffer, s, len);
-		((char *) buffer)[len] = 0;
-	}
-	return result;
-}
-
-SQLRETURN
-odbc_set_string_i(SQLPOINTER buffer, SQLINTEGER cbBuffer, SQLINTEGER FAR * pcbBuffer, const char *s, int len)
-{
-	SQLRETURN result = SQL_SUCCESS;
-
-	if (len < 0)
-		len = strlen(s);
-
-	if (pcbBuffer)
-		*pcbBuffer = len;
 	if (len >= cbBuffer) {
 		len = cbBuffer - 1;
 		result = SQL_SUCCESS_WITH_INFO;

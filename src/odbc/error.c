@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.59 2010-07-02 09:30:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.60 2010-07-02 13:38:24 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -508,6 +508,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	struct _sql_errors *errs;
 	const char *msg;
 	char *p;
+	TDS_DBC *dbc = NULL;
 
 	static const char msgprefix[] = "[FreeTDS][SQL Server]";
 
@@ -522,18 +523,21 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	errs = &((TDS_CHK *) handle)->errs;
 	switch (handleType) {
 	case SQL_HANDLE_STMT:
-		odbc_ver = ((TDS_STMT *) handle)->dbc->env->attr.odbc_version;
+		dbc = ((TDS_STMT *) handle)->dbc;
+		odbc_ver = dbc->env->attr.odbc_version;
 		break;
 
 	case SQL_HANDLE_DBC:
-		odbc_ver = ((TDS_DBC *) handle)->env->attr.odbc_version;
+		dbc = (TDS_DBC *) handle;
+		odbc_ver = dbc->env->attr.odbc_version;
 		break;
 
 	case SQL_HANDLE_ENV:
 		odbc_ver = ((TDS_ENV *) handle)->attr.odbc_version;
 		break;
 	case SQL_HANDLE_DESC:
-		odbc_ver = desc_get_dbc((TDS_DESC *) handle)->env->attr.odbc_version;
+		dbc = desc_get_dbc((TDS_DESC *) handle);
+		odbc_ver = dbc->env->attr.odbc_version;
 		break;
 	default:
 		return SQL_INVALID_HANDLE;
@@ -559,7 +563,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	if (asprintf(&p, "%s%s", msgprefix, msg) < 0)
 		return SQL_ERROR;
 
-	result = odbc_set_string(szErrorMsg, cbErrorMsgMax, pcbErrorMsg, p, -1);
+	result = odbc_set_string(dbc, szErrorMsg, cbErrorMsgMax, pcbErrorMsg, p, -1 _wide);
 	free(p);
 
 	if (pfNativeError)
@@ -591,7 +595,7 @@ SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, S
 	} else
 		return SQL_INVALID_HANDLE;
 
-	result = _SQLGetDiagRec(type, handle, 1, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
+	result = _SQLGetDiagRec(type, handle, 1, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg _wide);
 
 	if (result == SQL_SUCCESS) {
 		/* remove first error */
@@ -677,7 +681,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			return SQL_ERROR;
 
 		/* TODO */
-		return odbc_set_string(buffer, cbBuffer, pcbBuffer, "", 0);
+		return odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, "", 0 _wide);
 
 	case SQL_DIAG_DYNAMIC_FUNCTION_CODE:
 		*(SQLINTEGER *) buffer = 0;
@@ -721,9 +725,9 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	case SQL_DIAG_CLASS_ORIGIN:
 	case SQL_DIAG_SUBCLASS_ORIGIN:
 		if (odbc_ver == SQL_OV_ODBC2)
-			result = odbc_set_string(buffer, cbBuffer, pcbBuffer, "ISO 9075", -1);
+			result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, "ISO 9075", -1 _wide);
 		else
-			result = odbc_set_string(buffer, cbBuffer, pcbBuffer, "ODBC 3.0", -1);
+			result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, "ODBC 3.0", -1 _wide);
 		break;
 
 	case SQL_DIAG_COLUMN_NUMBER:
@@ -750,12 +754,12 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		else
 			cplen = 0;
 
-		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, tmp, cplen);
+		result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, tmp, cplen _wide);
 		break;
 
 	case SQL_DIAG_MESSAGE_TEXT:
 		msg = errs->errs[numRecord].msg;
-		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, -1);
+		result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, msg, -1 _wide);
 		break;
 
 	case SQL_DIAG_NATIVE:
@@ -782,7 +786,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 			}
 			break;
 		}
-		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, -1);
+		result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, msg, -1 _wide);
 		break;
 
 	case SQL_DIAG_SQLSTATE:
@@ -791,7 +795,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		else
 			msg = errs->errs[numRecord].state2;
 
-		result = odbc_set_string(buffer, cbBuffer, pcbBuffer, msg, 5);
+		result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, msg, 5 _wide);
 		break;
 
 	default:
