@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.120 2010-06-28 20:24:49 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.121 2010-07-02 09:30:49 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -499,6 +499,7 @@ SQLRETURN desc_free(TDS_DESC * desc);
 SQLRETURN desc_alloc_records(TDS_DESC * desc, unsigned count);
 SQLRETURN desc_copy(TDS_DESC * dest, TDS_DESC * src);
 SQLRETURN desc_free_records(TDS_DESC * desc);
+TDS_DBC *desc_get_dbc(TDS_DESC *desc);
 
 /*
  * odbc.c

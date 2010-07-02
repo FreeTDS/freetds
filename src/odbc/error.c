@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.58 2009-12-16 13:06:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.59 2010-07-02 09:30:49 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -512,7 +512,6 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	static const char msgprefix[] = "[FreeTDS][SQL Server]";
 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
-	SQLHANDLE parent;
 
 	if (numRecord <= 0 || cbErrorMsgMax < 0)
 		return SQL_ERROR;
@@ -534,11 +533,7 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 		odbc_ver = ((TDS_ENV *) handle)->attr.odbc_version;
 		break;
 	case SQL_HANDLE_DESC:
-		parent = ((TDS_DESC *) handle)->parent;
-		if (((TDS_CHK *) parent)->htype == SQL_HANDLE_DBC)
-			odbc_ver = ((TDS_DBC *) parent)->env->attr.odbc_version;
-		else
-			odbc_ver = ((TDS_STMT *) parent)->dbc->env->attr.odbc_version;
+		odbc_ver = desc_get_dbc((TDS_DESC *) handle)->env->attr.odbc_version;
 		break;
 	default:
 		return SQL_INVALID_HANDLE;
@@ -637,7 +632,6 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 	TDS_STMT *stmt = NULL;
 	TDS_DBC *dbc = NULL;
 	TDS_ENV *env = NULL;
-	SQLHANDLE parent;
 	char tmp[16];
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagField(%d, %p, %d, %d, %p, %d, %p)\n", 
@@ -666,13 +660,7 @@ SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord,
 		break;
 
 	case SQL_HANDLE_DESC:
-		parent = ((TDS_DESC *) handle)->parent;
-		if (((TDS_CHK *) parent)->htype == SQL_HANDLE_DBC) {
-			dbc = (TDS_DBC *) parent;
-		} else {
-			stmt = (TDS_STMT *) parent;
-			dbc = stmt->dbc;
-		}
+		dbc = desc_get_dbc((TDS_DESC *) handle);
 		env = dbc->env;
 		break;
 

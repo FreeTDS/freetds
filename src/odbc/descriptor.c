@@ -213,3 +213,13 @@ desc_free(TDS_DESC * desc)
 	}
 	return SQL_SUCCESS;
 }
+
+TDS_DBC *
+desc_get_dbc(TDS_DESC *desc)
+{
+	if (IS_HSTMT(desc->parent))
+		return ((TDS_STMT *) desc->parent)->dbc;
+
+	return (TDS_DBC *) desc->parent;
+}
+
