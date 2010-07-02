@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-/* $Id: tdsiconv.h,v 1.38 2010-01-25 23:05:58 freddy77 Exp $ */
+/* $Id: tdsiconv.h,v 1.39 2010-07-02 23:55:56 freddy77 Exp $ */
 
 #if HAVE_ICONV
 #include <iconv.h>
@@ -60,50 +60,6 @@ extern "C"
 #endif
 
 #if ! HAVE_ICONV
-
-	/* FYI, the first 4 entries look like this:
-	 *      {"ISO-8859-1",  1, 1}, -> 0
-	 *      {"US-ASCII",    1, 4}, -> 1
-	 *      {"UCS-2LE",     2, 2}, -> 2
-	 *      {"UCS-2BE",     2, 2}, -> 3
-	 *
-	 * These conversions are supplied by src/replacements/iconv.c for the sake of those who don't 
-	 * have or otherwise need an iconv.
-	 */
-enum ICONV_CD_VALUE
-{
-	  Like_to_Like = 0x100
-	, Latin1_ASCII  = 0x01
-	, ASCII_Latin1  = 0x10
-
-	, Latin1_UCS2LE = 0x02
-	, UCS2LE_Latin1 = 0x20
-	, ASCII_UCS2LE  = 0x12
-	, UCS2LE_ASCII  = 0x21
-
-	, Latin1_UTF8	= 0x03
-	, UTF8_Latin1	= 0x30
-	, ASCII_UTF8	= 0x13
-	, UTF8_ASCII	= 0x31
-	, UCS2LE_UTF8	= 0x23
-	, UTF8_UCS2LE	= 0x32
-
-#ifdef DOS32X
-	, WinEE_UCS2LE  = 0x42
-	, UCS2LE_WinEE  = 0x24
-	, WinCYR_UCS2LE = 0x52
-	, UCS2LE_WinCYR = 0x25
-	, WinTUR_UCS2LE = 0x62
-	, UCS2LE_WinTUR = 0x26
-	, WinARA_UCS2LE = 0x72
-	, UCS2LE_WinARA = 0x27
-#endif
-	/* these aren't needed 
-	 * , Latin1_UCS2BE = 0x03
-	 * , UCS2BE_Latin1 = 0x30
-	 */
-};
-
 iconv_t tds_sys_iconv_open(const char *tocode, const char *fromcode);
 size_t tds_sys_iconv(iconv_t cd, const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
 int tds_sys_iconv_close(iconv_t cd);

@@ -53,12 +53,46 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.16 2008-01-20 14:23:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.17 2010-07-02 23:55:56 freddy77 Exp $");
 
 /**
  * \addtogroup conv
  * @{ 
  */
+
+	/* FYI, the first 4 entries look like this:
+	 *      {"ISO-8859-1",  1, 1}, -> 0
+	 *      {"US-ASCII",    1, 4}, -> 1
+	 *      {"UCS-2LE",     2, 2}, -> 2
+	 *      {"UCS-2BE",     2, 2}, -> 3
+	 *
+	 * These conversions are supplied by src/replacements/iconv.c for the sake of those who don't
+	 * have or otherwise need an iconv.
+	 */
+enum ICONV_CD_VALUE
+{
+	  Like_to_Like = 0x100
+	, Latin1_ASCII  = 0x01
+	, ASCII_Latin1  = 0x10
+
+	, Latin1_UCS2LE = 0x02
+	, UCS2LE_Latin1 = 0x20
+	, ASCII_UCS2LE  = 0x12
+	, UCS2LE_ASCII  = 0x21
+
+	, Latin1_UTF8	= 0x03
+	, UTF8_Latin1	= 0x30
+	, ASCII_UTF8	= 0x13
+	, UTF8_ASCII	= 0x31
+	, UCS2LE_UTF8	= 0x23
+	, UTF8_UCS2LE	= 0x32
+
+	/* these aren't needed
+	 * , Latin1_UCS2BE = 0x03
+	 * , UCS2BE_Latin1 = 0x30
+	 */
+};
+
 
 /** 
  * Inputs are FreeTDS canonical names, no other. No alias list is consulted.  
