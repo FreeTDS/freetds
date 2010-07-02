@@ -65,19 +65,13 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.91 2010-03-02 08:32:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.92 2010-07-02 18:57:34 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
 {
 	if (tds)
 		tds->parent = the_parent;
-}
-
-void *
-tds_get_parent(TDSSOCKET * tds)
-{
-	return (tds->parent);
 }
 
 /**

@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.386 2010-06-26 09:14:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.387 2010-07-02 18:57:32 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2637,7 +2637,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 /**
  * tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
  * for calling the CLI's message handling routine
- * returns TDS_SUCCEED if informational, TDS_ERROR if error.
+ * returns TDS_SUCCEED if informational, TDS_FAIL if error.
  */
 static int
 tds_process_msg(TDSSOCKET * tds, int marker)
@@ -2749,7 +2749,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 			case TDS5_PARAMFMT2_TOKEN:
 			case TDS5_PARAMS_TOKEN:
 				if (tds_process_default_tokens(tds, next_marker) != TDS_SUCCEED)
-					++rc;
+					--rc;
 				continue;
 			}
 			break;
@@ -2765,7 +2765,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 
 	if (rc != 0) {
 		tds_free_msg(&msg);
-		return TDS_ERROR;
+		return TDS_FAIL;
 	}
 	
 	/* special case, */

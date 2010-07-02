@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.337 2010-06-27 17:46:43 berryc Exp $ */
+/* $Id: tds.h,v 1.338 2010-07-02 18:57:32 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -316,13 +316,6 @@ typedef enum {	TDSEOK    = TDS_SUCCEED,
 		TDSEBPROBADTYP = 20250,
 		TDSECLOSEIN = 20292 
 } TDSERRNO;
-
-/*
- * TDS_ERROR indicates a successful processing, but that a TDS_ERROR_TOKEN or TDS_EED_TOKEN error was encountered.  
- * TDS_FAIL indicates an unrecoverable failure.
- */
-#define TDS_ERROR            3
-#define TDS_DONT_RETURN      42
 
 #define TDS5_PARAMFMT2_TOKEN       32	/* 0x20 */
 #define TDS_LANGUAGE_TOKEN         33	/* 0x21    TDS 5.0 only              */
@@ -1570,7 +1563,6 @@ int tds_get_size_by_type(int servertype);
 int tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum);
 TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
 void tds_set_parent(TDSSOCKET * tds, void *the_parent);
-void *tds_get_parent(TDSSOCKET * tds);
 int tds_swap_bytes(unsigned char *buf, int bytes);
 int tds_version(TDSSOCKET * tds_socket, char *pversion_string);
 unsigned int tds_gettime_ms(void);
