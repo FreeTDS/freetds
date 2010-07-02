@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.47 2010-01-25 23:06:59 freddy77 Exp $
+# $Id: Makefile.am,v 1.48 2010-07-02 14:07:57 freddy77 Exp $
 SUBDIRS		= unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
@@ -11,7 +11,7 @@ MINGW_SOURCES	=
 endif
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c \
-	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c $(MINGW_SOURCES)
+	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h $(MINGW_SOURCES)
 if MINGW32
 libtdsodbc_la_LIBADD=	../../win32/setup.res ../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) \
 	$(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)

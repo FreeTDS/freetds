@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.537 2010-07-02 13:38:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.538 2010-07-02 14:07:57 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -502,9 +502,10 @@ odbc_prepare(TDS_STMT *stmt)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrIn, SQLCHAR FAR * szConnStrOut,
-		 SQLSMALLINT cbConnStrOutMax, SQLSMALLINT FAR * pcbConnStrOut, SQLUSMALLINT fDriverCompletion)
+#define FUNC NAME(SQLDriverConnect) (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHAR(szConnStrIn), P(SQLSMALLINT,cbConnStrIn), \
+	PCHAR(szConnStrOut), P(SQLSMALLINT,cbConnStrOutMax), P(SQLSMALLINT FAR *,pcbConnStrOut), \
+	P(SQLUSMALLINT,fDriverCompletion) WIDE)
+#include "sqlwparams.h"
 {
 	TDSCONNECTION *connection;
 	int conlen = odbc_get_string_size(cbConnStrIn, szConnStrIn);
@@ -617,10 +618,9 @@ SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrI
 #endif
 
 
-SQLRETURN ODBC_API
-SQLColumnPrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
-		    SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLCHAR FAR * szColumnName,
-		    SQLSMALLINT cbColumnName)
+#define FUNC NAME(SQLColumnPrivileges) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName), \
+	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName), PCHAR(szColumnName), P(SQLSMALLINT,cbColumnName) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 
@@ -710,11 +710,11 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 	ODBC_RETURN(stmt, ret);
 }
 
-SQLRETURN ODBC_API
-SQLForeignKeys(SQLHSTMT hstmt, SQLCHAR FAR * szPkCatalogName, SQLSMALLINT cbPkCatalogName, SQLCHAR FAR * szPkSchemaName,
-	       SQLSMALLINT cbPkSchemaName, SQLCHAR FAR * szPkTableName, SQLSMALLINT cbPkTableName, SQLCHAR FAR * szFkCatalogName,
-	       SQLSMALLINT cbFkCatalogName, SQLCHAR FAR * szFkSchemaName, SQLSMALLINT cbFkSchemaName, SQLCHAR FAR * szFkTableName,
-	       SQLSMALLINT cbFkTableName)
+#define FUNC NAME(SQLForeignKeys) (P(SQLHSTMT,hstmt), PCHAR(szPkCatalogName), P(SQLSMALLINT,cbPkCatalogName), PCHAR(szPkSchemaName),\
+	P(SQLSMALLINT,cbPkSchemaName), PCHAR(szPkTableName), P(SQLSMALLINT,cbPkTableName), PCHAR(szFkCatalogName),\
+	P(SQLSMALLINT,cbFkCatalogName), PCHAR(szFkSchemaName), P(SQLSMALLINT,cbFkSchemaName), PCHAR(szFkTableName),\
+	P(SQLSMALLINT,cbFkTableName) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 
@@ -937,9 +937,9 @@ SQLMoreResults(SQLHSTMT hstmt)
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
-SQLRETURN ODBC_API
-SQLNativeSql(SQLHDBC hdbc, SQLCHAR FAR * szSqlStrIn, SQLINTEGER cbSqlStrIn, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStrMax,
-	     SQLINTEGER FAR * pcbSqlStr)
+#define FUNC NAME(SQLNativeSql) (P(SQLHDBC,hdbc), PCHAR(szSqlStrIn), P(SQLINTEGER,cbSqlStrIn), PCHAR(szSqlStr), \
+	P(SQLINTEGER,cbSqlStrMax), P(SQLINTEGER FAR *,pcbSqlStr) WIDE)
+#include "sqlwparams.h"
 {
 	SQLRETURN ret = SQL_SUCCESS;
 	DSTR query;
@@ -996,9 +996,9 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 	return _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER) (TDS_INTPTR) crow, 0);
 }
 
-SQLRETURN ODBC_API
-SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
-	       SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName)
+#define FUNC NAME(SQLPrimaryKeys) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),\
+	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 
@@ -1017,10 +1017,10 @@ SQLPrimaryKeys(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalo
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
-		    SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName, SQLCHAR FAR * szColumnName,
-		    SQLSMALLINT cbColumnName)
+#define FUNC NAME(SQLProcedureColumns) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),\
+	P(SQLSMALLINT,cbSchemaName), PCHAR(szProcName), P(SQLSMALLINT,cbProcName), PCHAR(szColumnName),\
+	P(SQLSMALLINT,cbColumnName) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 
@@ -1047,9 +1047,9 @@ SQLProcedureColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbC
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLProcedures(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
-	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szProcName, SQLSMALLINT cbProcName)
+#define FUNC NAME(SQLProcedures) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),\
+	P(SQLSMALLINT,cbSchemaName), PCHAR(szProcName), P(SQLSMALLINT,cbProcName) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 
@@ -1188,9 +1188,9 @@ SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLTablePrivileges(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
-		   SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName)
+#define FUNC NAME(SQLTablePrivileges) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),\
+	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 
@@ -1798,9 +1798,9 @@ SQLCancel(SQLHSTMT hstmt)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * szUID, SQLSMALLINT cbUID, SQLCHAR FAR * szAuthStr,
-	   SQLSMALLINT cbAuthStr)
+#define FUNC NAME(SQLConnect) (P(SQLHDBC,hdbc), PCHAR(szDSN), P(SQLSMALLINT,cbDSN), PCHAR(szUID), P(SQLSMALLINT,cbUID), \
+	PCHAR(szAuthStr), P(SQLSMALLINT,cbAuthStr) WIDE)
+#include "sqlwparams.h"
 {
 	SQLRETURN result;
 	TDSCONNECTION *connection;
@@ -1880,9 +1880,10 @@ SQLConnect(SQLHDBC hdbc, SQLCHAR FAR * szDSN, SQLSMALLINT cbDSN, SQLCHAR FAR * s
 	ODBC_RETURN_(dbc);
 }
 
-SQLRETURN ODBC_API
-SQLDescribeCol(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLCHAR FAR * szColName, SQLSMALLINT cbColNameMax, SQLSMALLINT FAR * pcbColName,
-	       SQLSMALLINT FAR * pfSqlType, SQLULEN FAR * pcbColDef, SQLSMALLINT FAR * pibScale, SQLSMALLINT FAR * pfNullable)
+#define FUNC NAME(SQLDescribeCol) (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,icol), PCHAR(szColName), P(SQLSMALLINT,cbColNameMax), \
+	P(SQLSMALLINT FAR *,pcbColName), P(SQLSMALLINT FAR *,pfSqlType), P(SQLULEN FAR *,pcbColDef), \
+	P(SQLSMALLINT FAR *,pibScale), P(SQLSMALLINT FAR *,pfNullable) WIDE)
+#include "sqlwparams.h"
 {
 	TDS_DESC *ird;
 	struct _drecord *drec;
@@ -2361,10 +2362,10 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 	ODBC_RETURN_(desc);
 }
 
-SQLRETURN ODBC_API
-SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALLINT BufferLength, SQLSMALLINT * StringLength,
-	      SQLSMALLINT * Type, SQLSMALLINT * SubType, SQLLEN FAR * Length, SQLSMALLINT * Precision, SQLSMALLINT * Scale,
-	      SQLSMALLINT * Nullable)
+#define FUNC NAME(SQLGetDescRec) (P(SQLHDESC,hdesc), P(SQLSMALLINT,RecordNumber), PCHAR(Name), P(SQLSMALLINT,BufferLength), \
+	P(SQLSMALLINT *,StringLength), P(SQLSMALLINT *,Type), P(SQLSMALLINT *,SubType), P(SQLLEN FAR *,Length), \
+	P(SQLSMALLINT *,Precision), P(SQLSMALLINT *,Scale), P(SQLSMALLINT *,Nullable) WIDE)
+#include "sqlwparams.h"
 {
 	struct _drecord *drec = NULL;
 	SQLRETURN rc = SQL_SUCCESS;
@@ -2409,9 +2410,9 @@ SQLGetDescRec(SQLHDESC hdesc, SQLSMALLINT RecordNumber, SQLCHAR * Name, SQLSMALL
 	ODBC_RETURN(desc, rc);
 }
 
-SQLRETURN ODBC_API
-SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOINTER Value, SQLINTEGER BufferLength,
-		SQLINTEGER * StringLength)
+#define FUNC NAME(SQLGetDescField) (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLINT,fDescType), P(SQLPOINTER,Value), \
+	P(SQLINTEGER,BufferLength), P(SQLINTEGER *,StringLength) WIDE)
+#include "sqlwparams.h"
 {
 	struct _drecord *drec;
 	SQLRETURN result = SQL_SUCCESS;
@@ -2615,8 +2616,9 @@ SQLGetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOIN
 #undef IOUT
 }
 
-SQLRETURN ODBC_API
-SQLSetDescField(SQLHDESC hdesc, SQLSMALLINT icol, SQLSMALLINT fDescType, SQLPOINTER Value, SQLINTEGER BufferLength)
+#define FUNC NAME(SQLSetDescField) (P(SQLHDESC,hdesc), P(SQLSMALLINT,icol), P(SQLSMALLINT,fDescType), \
+	P(SQLPOINTER,Value), P(SQLINTEGER,BufferLength) WIDE)
+#include "sqlwparams.h"
 {
 	struct _drecord *drec;
 	SQLRETURN result = SQL_SUCCESS;
@@ -3414,8 +3416,8 @@ _SQLExecute(TDS_STMT * stmt)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLExecDirect(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
+#define FUNC NAME(SQLExecDirect) (P(SQLHSTMT,hstmt), PCHAR(szSqlStr), P(SQLINTEGER,cbSqlStr) WIDE)
+#include "sqlwparams.h"
 {
 	SQLRETURN res;
 
@@ -4382,8 +4384,8 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLPrepare(SQLHSTMT hstmt, SQLCHAR FAR * szSqlStr, SQLINTEGER cbSqlStr)
+#define FUNC NAME(SQLPrepare) (P(SQLHSTMT,hstmt), PCHAR(szSqlStr), P(SQLINTEGER,cbSqlStr) WIDE)
+#include "sqlwparams.h"
 {
 	SQLRETURN retcode;
 
@@ -4473,8 +4475,8 @@ SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 	return rc;
 }
 
-SQLRETURN ODBC_API
-SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
+#define FUNC NAME(SQLSetCursorName) (P(SQLHSTMT,hstmt), PCHAR(szCursor), P(SQLSMALLINT,cbCursor) WIDE)
+#include "sqlwparams.h"
 {
 	INIT_HSTMT;
 
@@ -4494,8 +4496,8 @@ SQLSetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursor)
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLGetCursorName(SQLHSTMT hstmt, SQLCHAR FAR * szCursor, SQLSMALLINT cbCursorMax, SQLSMALLINT FAR * pcbCursor)
+#define FUNC NAME(SQLGetCursorName) (P(SQLHSTMT,hstmt), PCHAR(szCursor), P(SQLSMALLINT,cbCursorMax), P(SQLSMALLINT FAR *,pcbCursor) WIDE)
+#include "sqlwparams.h"
 {
 	SQLRETURN rc;
 
@@ -4621,12 +4623,12 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
  *                 [ , [ @ODBCVer = ] ODBCVer ] 
  *
  */
-SQLRETURN ODBC_API
-SQLColumns(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName,	/* object_qualifier */
-	   SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,	/* object_owner */
-	   SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName,	/* object_name */
-	   SQLSMALLINT cbTableName, SQLCHAR FAR * szColumnName,	/* column_name */
-	   SQLSMALLINT cbColumnName)
+#define FUNC NAME(SQLColumns) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName),	/* object_qualifier */ \
+	P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),	/* object_owner */ \
+	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName),	/* object_name */ \
+	P(SQLSMALLINT,cbTableName), PCHAR(szColumnName),	/* column_name */ \
+	P(SQLSMALLINT,cbColumnName) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 
@@ -6438,10 +6440,10 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	return _SQLSetStmtAttr(hstmt, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS);
 }
 
-SQLRETURN ODBC_API
-SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName,
-		  SQLCHAR FAR * szSchemaName, SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName,
-		  SQLUSMALLINT fScope, SQLUSMALLINT fNullable)
+#define FUNC NAME(SQLSpecialColumns) (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,fColType), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), \
+	PCHAR(szSchemaName), P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName), \
+	P(SQLUSMALLINT,fScope), P(SQLUSMALLINT,fNullable) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 	char nullable, scope, col_type;
@@ -6516,10 +6518,10 @@ SQLSpecialColumns(SQLHSTMT hstmt, SQLUSMALLINT fColType, SQLCHAR FAR * szCatalog
 	ODBC_RETURN_(stmt);
 }
 
-SQLRETURN ODBC_API
-SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
-	      SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLUSMALLINT fUnique,
-	      SQLUSMALLINT fAccuracy)
+#define FUNC NAME(SQLStatistics) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName), \
+	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName), P(SQLUSMALLINT,fUnique), \
+	P(SQLUSMALLINT,fAccuracy) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 	char unique, accuracy;
@@ -6577,11 +6579,10 @@ SQLStatistics(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalog
 	ODBC_RETURN_(stmt);
 }
 
-
-SQLRETURN ODBC_API
-SQLTables(SQLHSTMT hstmt, SQLCHAR FAR * szCatalogName, SQLSMALLINT cbCatalogName, SQLCHAR FAR * szSchemaName,
-	  SQLSMALLINT cbSchemaName, SQLCHAR FAR * szTableName, SQLSMALLINT cbTableName, SQLCHAR FAR * szTableType,
-	  SQLSMALLINT cbTableType)
+#define FUNC NAME(SQLTables) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName), \
+	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName), PCHAR(szTableType), \
+	P(SQLSMALLINT,cbTableType) WIDE)
+#include "sqlwparams.h"
 {
 	int retcode;
 	char *type = NULL;

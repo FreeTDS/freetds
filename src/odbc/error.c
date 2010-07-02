@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.60 2010-07-02 13:38:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.61 2010-07-02 14:07:57 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -572,9 +572,9 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	return result;
 }
 
-SQLRETURN ODBC_API
-SQLError(SQLHENV henv, SQLHDBC hdbc, SQLHSTMT hstmt, SQLCHAR FAR * szSqlState, SQLINTEGER FAR * pfNativeError,
-	 SQLCHAR FAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
+#define FUNC NAME(SQLError) (P(SQLHENV,henv), P(SQLHDBC,hdbc), P(SQLHSTMT,hstmt), PCHAR(szSqlState), P(SQLINTEGER FAR *,pfNativeError),\
+	PCHAR(szErrorMsg), P(SQLSMALLINT,cbErrorMsgMax), P(SQLSMALLINT FAR *,pcbErrorMsg) WIDE)
+#include "sqlwparams.h"
 {
 	SQLRETURN result;
 	SQLSMALLINT type;
@@ -623,9 +623,9 @@ SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, S
 }
 
 
-SQLRETURN ODBC_API
-SQLGetDiagField(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLSMALLINT diagIdentifier, SQLPOINTER buffer,
-		SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer)
+#define FUNC NAME(SQLGetDiagField) (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQLSMALLINT,numRecord),\
+	P(SQLSMALLINT,diagIdentifier), P(SQLPOINTER,buffer), P(SQLSMALLINT,cbBuffer), P(SQLSMALLINT FAR *,pcbBuffer) WIDE)
+#include "sqlwparams.h"
 {
 	SQLRETURN result = SQL_SUCCESS;
 	struct _sql_errors *errs;
