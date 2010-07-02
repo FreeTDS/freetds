@@ -1,3 +1,7 @@
+Fri Jul  2 11:01:08 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/stats.c:
+	- correct wrong assumption about statistics functions
+
 Tue Jun 29 14:07:32 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/mem.c: do not use strtok which is not reentrant
 
@@ -2540,4 +2544,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3046 2010-06-29 12:07:54 freddy77 Exp $
+$Id: ChangeLog,v 1.3047 2010-07-02 09:01:22 freddy77 Exp $

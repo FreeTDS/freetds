@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: stats.c,v 1.1 2009-12-15 11:23:47 freddy77 Exp $";
+static char software_version[] = "$Id: stats.c,v 1.2 2010-07-02 09:01:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLLEN cnamesize;
@@ -20,7 +20,7 @@ static const char *proc = "stat_proc";
 static const char *table = "stat_proc";
 static const char *column = "@t";
 
-#define LEN(x) (x) ? strlen(x) : SQL_NULL_DATA
+#define LEN(x) (x) ? strlen(x) : 0
 
 static void
 TestProc(const char *type, const char *expected)
