@@ -48,12 +48,13 @@
 #include "tdsodbc.h"
 #include "tdsconvert.h"
 #include "tdsiconv.h"
+#include "tdsstring.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.84 2009-08-26 12:32:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.85 2010-07-03 09:14:36 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -211,10 +212,20 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
                 curcol->char_conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->server_charset.name);
 		memcpy(curcol->column_collation, tds->collation, sizeof(tds->collation));
 	} else {
+#ifdef ENABLE_ODBC_WIDE
+		TDSSOCKET *tds = dbc->tds_socket;
+		TDSICONV *conv = tds->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
+
+		tds_set_param_type(tds, curcol, dest_type);
+		/* use binary format for binary to char */
+		if (is_char_type(dest_type))
+			curcol->char_conv = sql_src_type == SQL_C_BINARY ? NULL : tds_iconv_get(tds, tds_dstr_cstr(&dbc->original_charset), conv->server_charset.name);
+#else
 		tds_set_param_type(dbc->tds_socket, curcol, dest_type);
 		/* use binary format for binary to char */
 		if (sql_src_type == SQL_C_BINARY && is_char_type(dest_type))
 			curcol->char_conv = NULL;
+#endif
 	}
 	if (is_numeric_type(curcol->column_type)) {
 		curcol->column_prec = drec_ipd->sql_desc_precision;

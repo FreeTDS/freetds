@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.122 2010-07-02 13:38:24 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.123 2010-07-03 09:14:36 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -250,6 +250,11 @@ struct _hdbc
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
 	DSTR server;		/* aka Instance */
+#ifdef ENABLE_ODBC_WIDE
+	DSTR original_charset;
+	TDSICONV *mb_conv;
+#endif
+
 	/**
 	 * Statement executing. This should be set AFTER sending query
 	 * to avoid race condition and assure to not overwrite it if
@@ -531,13 +536,24 @@ void odbc_check_desc_extra(TDS_DESC * desc);
 /*
  * odbc_util.h
  */
+
 /* helpers for ODBC wide string support */
 #undef _wide
 #undef _WIDE
+#ifdef ENABLE_ODBC_WIDE
+typedef union {
+	char mb[1];
+	SQLWCHAR wide[1];
+} ODBC_CHAR;
+# define _wide ,wide
+# define _wide0 ,0
+# define _WIDE ,int wide
+#else
 # define _wide
 # define _wide0
 # define _WIDE
 # define ODBC_CHAR SQLCHAR
+#endif
 int odbc_set_stmt_query(struct _hstmt *stmt, const ODBC_CHAR *sql, int sql_len _WIDE);
 int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const ODBC_CHAR *sql, int sql_len _WIDE);
 void odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row);
@@ -556,10 +572,17 @@ SQLINTEGER odbc_get_param_len(const struct _drecord *drec_axd, const struct _dre
 DSTR* odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str _WIDE);
 
 SQLRETURN odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void FAR * pcbBuffer, const char *s, int len, int flag);
+#ifdef ENABLE_ODBC_WIDE
+static inline SQLRETURN odbc_set_string(TDS_DBC *dbc, SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer, const char *s, int len _WIDE)
+{ return odbc_set_string_flag(dbc, buffer, cbBuffer, (void FAR*) pcbBuffer, s, len, 0|wide); }
+static inline SQLRETURN odbc_set_string_i(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, SQLINTEGER FAR * pcbBuffer, const char *s, int len _WIDE)
+{ return odbc_set_string_flag(dbc, buffer, cbBuffer, (void FAR*) pcbBuffer, s, len, 0x10|wide); }
+#else
 static inline SQLRETURN odbc_set_string(TDS_DBC *dbc, SQLPOINTER buffer, SQLSMALLINT cbBuffer, SQLSMALLINT FAR * pcbBuffer, const char *s, int len _WIDE)
 { return odbc_set_string_flag(dbc, buffer, cbBuffer, (void FAR*) pcbBuffer, s, len, 0); }
 static inline SQLRETURN odbc_set_string_i(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, SQLINTEGER FAR * pcbBuffer, const char *s, int len _WIDE)
 { return odbc_set_string_flag(dbc, buffer, cbBuffer, (void FAR*) pcbBuffer, s, len, 0x10); }
+#endif
 
 SQLSMALLINT odbc_get_concise_sql_type(SQLSMALLINT type, SQLSMALLINT interval);
 SQLRETURN odbc_set_concise_sql_type(SQLSMALLINT concise_type, struct _drecord *drec, int check_only);

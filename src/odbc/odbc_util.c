@@ -33,6 +33,7 @@
 #include <assert.h>
 
 #include "tdsodbc.h"
+#include "tdsiconv.h"
 #include "tdsstring.h"
 #include "tdsconvert.h"
 
@@ -40,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.114 2010-07-02 13:38:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.115 2010-07-03 09:14:36 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -53,6 +54,22 @@ TDS_RCSID(var, "$Id: odbc_util.c,v 1.114 2010-07-02 13:38:24 freddy77 Exp $");
  * @{ 
  */
 
+#ifdef ENABLE_ODBC_WIDE
+static char *odbc_iso2utf(const char *s, int len);
+static char *odbc_mb2utf(TDS_DBC *dbc, const char *s, int len);
+static char *odbc_wide2utf(const SQLWCHAR *s, int len);
+#else
+static char *odbc_strndup(const char *s, int len)
+{
+	char *out = (char*) malloc(len+1);
+	if (!out)
+		return NULL;
+	memcpy(out, s, len);
+	out[len] = 0;
+	return out;
+}
+#endif
+
 static int
 odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
@@ -61,7 +78,11 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _W
 	assert(dest == &stmt->prepared_query || dest == &stmt->query);
 
 	if (sql_len == SQL_NTS)
+#ifdef ENABLE_ODBC_WIDE
+		sql_len = wide ? sqlwcslen(sql->wide) : strlen(sql->mb);
+#else
 		sql_len = strlen((const char*) sql);
+#endif
 	else if (sql_len <= 0)
 		return SQL_ERROR;
 
@@ -83,16 +104,13 @@ odbc_set_stmt(TDS_STMT * stmt, char **dest, const ODBC_CHAR *sql, int sql_len _W
 	if (stmt->query)
 		TDS_ZERO_FREE(stmt->query);
 
-	*dest = p = (char *) malloc(sql_len + 1);
+#ifdef ENABLE_ODBC_WIDE
+	*dest = p = wide ? odbc_wide2utf(sql->wide, sql_len) : odbc_mb2utf(stmt->dbc, sql->mb, sql_len);
+#else
+	*dest = p = odbc_strndup((const char*) sql, sql_len);
+#endif
 	if (!p)
 		return SQL_ERROR;
-
-	if (sql) {
-		memcpy(p, sql, sql_len);
-		p[sql_len] = 0;
-	} else {
-		p[0] = 0;
-	}
 
 	return SQL_SUCCESS;
 }
@@ -108,6 +126,319 @@ int
 odbc_set_stmt_prepared_query(TDS_STMT * stmt, const ODBC_CHAR *sql, int sql_len _WIDE)
 {
 	return odbc_set_stmt(stmt, &stmt->prepared_query, sql, sql_len _wide);
+}
+
+int
+odbc_get_string_size(int size, ODBC_CHAR * str _WIDE)
+{
+	if (str) {
+		if (size == SQL_NTS)
+#ifdef ENABLE_ODBC_WIDE
+			return wide ? sqlwcslen(str->wide) : strlen(str->mb);
+#else
+			return strlen((const char*) str);
+#endif
+		if (size >= 0)
+			return size;
+	}
+	/* SQL_NULL_DATA or any other strange value */
+	return 0;
+}
+
+#ifdef ENABLE_ODBC_WIDE
+static char *
+odbc_iso2utf(const char *s, int len)
+{
+	int i, o_len = len + 1;
+	char *out, *p;
+
+	for (i = 0; i < len; ++i)
+		if ((s[i] & 0x80) != 0)
+			++o_len;
+
+	out = (char *) malloc(o_len);
+	if (!out) return NULL;
+
+	for (p = out; len > 0; --len) {
+		unsigned char u = (unsigned char) *s++;
+		if ((u & 0x80) != 0) {
+			*p++ = 0xc0 | (0x1f & (u >> 6));
+			*p++ = 0x80 | (0x3f & u);
+		} else {
+			*p++ = u;
+		}
+	}
+	*p = 0;
+	return out;
+}
+
+static char *
+odbc_wide2utf(const SQLWCHAR *s, int len)
+{
+	int i, o_len = len + 1;
+	char *out, *p;
+#if SIZEOF_SQLWCHAR > 2
+# define MASK(n) ((0xffffffffu << (n)) & 0xffffffffu)
+#else
+# define MASK(n) ((0xffffu << (n)) & 0xffffu)
+#endif
+
+	for (i = 0; i < len; ++i) {
+		if ((s[i] & MASK(7)) == 0)
+			continue;
+		++o_len;
+		if ((s[i] & MASK(11)) == 0)
+			continue;
+		++o_len;
+#if SIZEOF_SQLWCHAR > 2
+		if ((s[i] & MASK(16)) == 0)
+			continue;
+		++o_len;
+		if ((s[i] & MASK(21)) == 0)
+			continue;
+		++o_len;
+		if ((s[i] & MASK(26)) == 0)
+			continue;
+		++o_len;
+#endif
+	}
+
+	out = (char *) malloc(o_len);
+	if (!out) return NULL;
+
+	for (p = out; len > 0; --len) {
+		SQLWCHAR u = *s++;
+		if ((u & MASK(7)) == 0) {
+			*p++ = u;
+			continue;
+		}
+		if ((u & MASK(11)) == 0) {
+			*p++ = 0xc0 | (0x1f & (u >> 6));
+		} else {
+#if SIZEOF_SQLWCHAR > 2
+			if ((u & MASK(16)) == 0) {
+				*p++ = 0xe0 | (0x0f & (u >> 12));
+			} else {
+				if ((u & MASK(21)) == 0) {
+					if ((u & MASK(26)) == 0) {
+						*p++ = 0xfc | (0x01 & (u >> 30));
+						*p++ = 0x80 | (0x3f & (u >> 24));
+					} else {
+						*p++ = 0xf8 | (0x03 & (u >> 24));
+					}
+					*p++ = 0x80 | (0x3f & (u >> 18));
+				} else {
+					*p++ = 0xf0 | (0x07 & (u >> 18));
+				}
+				*p++ = 0x80 | (0x3f & (u >> 12));
+			}
+			*p++ = 0x80 | (0x3f & (u >> 6));
+#else
+			*p++ = 0xe0 | (0x0f & (u >> 12));
+			*p++ = 0x80 | (0x3f & (u >> 6));
+#endif
+		}
+		*p++ = 0x80 | (0x3f & u);
+	}
+	*p = 0;
+	return out;
+}
+
+static char *
+odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
+{
+	char *buf;
+
+	const char *ib;
+	char *ob;
+	size_t il, ol;
+	TDSICONV *char_conv = dbc->mb_conv;
+
+	if (!char_conv)
+		return odbc_iso2utf(s, len);
+
+	il = len;
+
+	/* allocate needed buffer (+1 is to exclude 0 case) */
+	ol = il * char_conv->server_charset.max_bytes_per_char / char_conv->client_charset.min_bytes_per_char + 1;
+	buf = (char *) malloc(ol);
+	if (!buf)
+		return NULL;
+
+	ib = s;
+	ob = buf;
+	--ol; /* leave space for terminator */
+
+	/* char_conv is only mostly const */
+	memset((TDS_ERRNO_MESSAGE_FLAGS*) &char_conv->suppress, 0, sizeof(char_conv->suppress));
+	if (tds_iconv(dbc->tds_socket, char_conv, to_server, &ib, &il, &ob, &ol) == (size_t)-1) {
+		free(buf);
+		return NULL;
+	}
+	*ob = 0;
+	return buf;
+}
+#endif
+
+DSTR*
+odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str _WIDE)
+{
+#ifdef ENABLE_ODBC_WIDE
+	int len = odbc_get_string_size(size, str _wide);
+	char *buf;
+
+	if (wide)
+		buf = odbc_wide2utf(str->wide, len);
+	else
+		buf = odbc_mb2utf(dbc, str->mb, len);
+	if (!buf)
+		return NULL;
+
+	return tds_dstr_set(s, buf);
+#else
+	return tds_dstr_copyn(s, (const char *) str, odbc_get_string_size(size, str));
+#endif
+}
+
+/**
+ * Copy a string to client setting size according to ODBC convenction
+ * @param dbc       database connection. Can be NULL
+ * @param buffer    client buffer
+ * @param cbBuffer  client buffer size (in bytes)
+ * @param pcbBuffer pointer to SQLSMALLINT to hold string size
+ * @param s         string to copy
+ * @param len       len of string to copy. <0 null terminated
+ * @param flag      set of flag 0x10 SQLINTEGER
+ */
+SQLRETURN
+odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void FAR * pcbBuffer, const char *s, int len, int flag)
+{
+	SQLRETURN result = SQL_SUCCESS;
+	int out_len = 0;
+
+	if (len < 0)
+		len = strlen(s);
+
+#ifdef ENABLE_ODBC_WIDE
+	if ((flag & 1) != 0) {
+		/* wide characters */
+		const unsigned char *p = (const unsigned char*) s;
+		SQLWCHAR *dest = (SQLWCHAR*) buffer;
+
+		cbBuffer = cbBuffer >= 0 ? cbBuffer / SIZEOF_SQLWCHAR : 0;
+		while (len) {
+			unsigned char mask;
+			unsigned u;
+			int l;
+
+			if (!(p[0] & 0x80)) {
+				mask = 0x7f; l = 1;
+			} else if ((p[0] & 0xe0) == 0xc0) {
+				mask = 0x1f; l = 2;
+			} else if ((p[0] & 0xf0) == 0xe0) {
+				mask = 0x0f; l = 3;
+			} else if ((p[0] & 0xf8) == 0xf0) {
+				mask = 0x07; l = 4;
+			} else if ((p[0] & 0xfc) == 0xf8) {
+				mask = 0x03; l = 5;
+			} else {
+				mask = 0x7f; l = 1;
+			}
+			if (len < l)
+				break;
+			len -= l;
+			u = *p++ & mask;
+			while(--l)
+				u = (u << 6) | (*p++ & 0x3f);
+			++out_len;
+			if (!dest)
+				continue;
+			if (cbBuffer > 1) {
+				*dest++ = (SQLWCHAR) u;
+				--cbBuffer;
+				continue;
+			}
+			result = SQL_SUCCESS_WITH_INFO;
+		}
+		/* terminate buffer */
+		if (dest && cbBuffer)
+			*dest = 0;
+		out_len *= SIZEOF_SQLWCHAR;
+	} else if (1 || !dbc || !dbc->mb_conv) {
+		/* to ISO-8859-1 */
+		const unsigned char *p = (const unsigned char*) s;
+		unsigned char *dest = (unsigned char*) buffer;
+
+		while (len) {
+			unsigned char mask;
+			unsigned u;
+			int l;
+
+			if (!(p[0] & 0x80)) {
+				mask = 0x7f; l = 1;
+			} else if ((p[0] & 0xe0) == 0xc0) {
+				mask = 0x1f; l = 2;
+			} else if ((p[0] & 0xf0) == 0xe0) {
+				mask = 0x0f; l = 3;
+			} else if ((p[0] & 0xf8) == 0xf0) {
+				mask = 0x07; l = 4;
+			} else if ((p[0] & 0xfc) == 0xf8) {
+				mask = 0x03; l = 5;
+			} else {
+				mask = 0x7f; l = 1;
+			}
+			if (len < l)
+				break;
+			len -= l;
+			u = *p++ & mask;
+			while(--l)
+				u = (u << 6) | (*p++ & 0x3f);
+			++out_len;
+			if (!dest)
+				continue;
+			if (cbBuffer > 1) {
+				*dest++ = u > 0x100 ? '?' : u;
+				--cbBuffer;
+				continue;
+			}
+			result = SQL_SUCCESS_WITH_INFO;
+		}
+		/* terminate buffer */
+		if (dest && cbBuffer)
+			*dest = 0;
+	} else {
+		/* TODO convert and set correctly length !!! */
+		if (len >= cbBuffer) {
+			len = cbBuffer - 1;
+			result = SQL_SUCCESS_WITH_INFO;
+		}
+		if (buffer && len >= 0) {
+			/* buffer can overlap, use memmove, thanks to Valgrind */
+			memmove((char *) buffer, s, len);
+			((char *) buffer)[len] = 0;
+		}
+	}
+#else
+	out_len = len;
+	if (len >= cbBuffer) {
+		len = cbBuffer - 1;
+		result = SQL_SUCCESS_WITH_INFO;
+	}
+	if (buffer && len >= 0) {
+		/* buffer can overlap, use memmove, thanks to Valgrind */
+		memmove((char *) buffer, s, len);
+		((char *) buffer)[len] = 0;
+	}
+#endif
+
+	/* set output length */
+	if (pcbBuffer) {
+		if (flag & 0x10)
+			*((SQLINTEGER *) pcbBuffer) = out_len;
+		else
+			*((SQLSMALLINT *) pcbBuffer) = out_len;
+	}
+	return result;
 }
 
 
@@ -230,25 +561,6 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 			LEN(drec_apd->sql_desc_octet_length_ptr) = len;
 #undef LEN
 	}
-}
-
-int
-odbc_get_string_size(int size, ODBC_CHAR * str _WIDE)
-{
-	if (str) {
-		if (size == SQL_NTS)
-			return strlen((const char *) str);
-		if (size >= 0)
-			return size;
-	}
-	/* SQL_NULL_DATA or any other strange value */
-	return 0;
-}
-
-DSTR*
-odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str _WIDE)
-{
-	return tds_dstr_copyn(s, (const char *) str, odbc_get_string_size(size, str));
 }
 
 /**
@@ -752,42 +1064,6 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 	default:
 		return 0;
 	}
-}
-
-/**
- * Copy a string to client setting size according to ODBC convenction
- * @param dbc       database connection. Can be NULL
- * @param buffer    client buffer
- * @param cbBuffer  client buffer size (in bytes)
- * @param pcbBuffer pointer to SQLSMALLINT to hold string size
- * @param s         string to copy
- * @param len       len of string to copy. <0 null terminated
- * @param flag      set of flag 0x10 SQLINTEGER
- */
-SQLRETURN
-odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void FAR * pcbBuffer, const char *s, int len, int flag)
-{
-	SQLRETURN result = SQL_SUCCESS;
-
-	if (len < 0)
-		len = strlen(s);
-
-	if (pcbBuffer) {
-		if (flag & 0x10)
-			*((SQLINTEGER *) pcbBuffer) = len;
-		else
-			*((SQLSMALLINT *) pcbBuffer) = len;
-	}
-	if (len >= cbBuffer) {
-		len = cbBuffer - 1;
-		result = SQL_SUCCESS_WITH_INFO;
-	}
-	if (buffer && len >= 0) {
-		/* buffer can overlap, use memmove, thanks to Valgrind */
-		memmove((char *) buffer, s, len);
-		((char *) buffer)[len] = 0;
-	}
-	return result;
 }
 
 /** Returns the version of the RDBMS in the ODBC format */
