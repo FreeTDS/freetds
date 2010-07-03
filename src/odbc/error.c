@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.61 2010-07-02 14:07:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.62 2010-07-03 06:57:02 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -500,9 +500,9 @@ sqlstate2to3(char *state)
 	SQLS_MAP("S1T00", "HYT00");
 }
 
-static SQLRETURN
-_SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLCHAR FAR * szSqlState,
-	       SQLINTEGER FAR * pfNativeError, SQLCHAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
+#define FUNC NAME(SQLGetDiagRec) (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQLSMALLINT,numRecord), PCHAR(szSqlState),\
+	P(SQLINTEGER FAR *,pfNativeError), PCHAR(szErrorMsg), P(SQLSMALLINT,cbErrorMsgMax), P(SQLSMALLINT FAR *,pcbErrorMsg) WIDE)
+#include "sqlwparams.h"
 {
 	SQLRETURN result;
 	struct _sql_errors *errs;
@@ -513,6 +513,9 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 	static const char msgprefix[] = "[FreeTDS][SQL Server]";
 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
+
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagRec(%d, %p, %d, %p, %p, %p, %d, %p)\n",
+			handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
 
 	if (numRecord <= 0 || cbErrorMsgMax < 0)
 		return SQL_ERROR;
@@ -551,9 +554,9 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 
 	if (szSqlState) {
 		if (odbc_ver == SQL_OV_ODBC3)
-			strcpy((char *) szSqlState, errs->errs[numRecord].state3);
+			odbc_set_string(dbc, szSqlState, 24, NULL, errs->errs[numRecord].state3, -1 _wide);
 		else
-			strcpy((char *) szSqlState, errs->errs[numRecord].state2);
+			odbc_set_string(dbc, szSqlState, 24, NULL, errs->errs[numRecord].state2, -1 _wide);
 	}
 
 	msg = errs->errs[numRecord].msg;
@@ -604,24 +607,6 @@ _SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, 
 
 	return result;
 }
-
-#if (ODBCVER >= 0x0300)
-SQLRETURN ODBC_API
-SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, SQLCHAR FAR * szSqlState,
-	      SQLINTEGER FAR * pfNativeError, SQLCHAR * szErrorMsg, SQLSMALLINT cbErrorMsgMax, SQLSMALLINT FAR * pcbErrorMsg)
-{
-	SQLRETURN ret;
-	
-	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagRec(%d, %p, %d, %p, %p, %p, %d, %p)\n", 
-			handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
-	
-	ret =_SQLGetDiagRec(handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
-	
-	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagRec returning %d\n", ret);
-	
-	return ret;
-}
-
 
 #define FUNC NAME(SQLGetDiagField) (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQLSMALLINT,numRecord),\
 	P(SQLSMALLINT,diagIdentifier), P(SQLPOINTER,buffer), P(SQLSMALLINT,cbBuffer), P(SQLSMALLINT FAR *,pcbBuffer) WIDE)
@@ -803,4 +788,4 @@ SQLGetDiagRec(SQLSMALLINT handleType, SQLHANDLE handle, SQLSMALLINT numRecord, S
 	}
 	return result;
 }
-#endif
+

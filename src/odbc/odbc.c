@@ -60,7 +60,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.538 2010-07-02 14:07:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.539 2010-07-03 06:57:02 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -71,9 +71,6 @@ static SQLRETURN _SQLFreeEnv(SQLHENV henv);
 static SQLRETURN _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force);
 static SQLRETURN _SQLFreeDesc(SQLHDESC hdesc);
 static SQLRETURN _SQLExecute(TDS_STMT * stmt);
-static SQLRETURN _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
-					    SQLINTEGER * StringLength);
-static SQLRETURN _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength _WIDE);
 static SQLRETURN _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength);
 static SQLRETURN _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength,
 					 SQLINTEGER * StringLength);
@@ -256,7 +253,7 @@ change_autocommit(TDS_DBC * dbc, int state)
 }
 
 static SQLRETURN
-change_database(TDS_DBC * dbc, char *database, int database_len)
+change_database(TDS_DBC * dbc, const char *database, int database_len)
 {
 	TDSSOCKET *tds = dbc->tds_socket;
 
@@ -518,7 +515,7 @@ odbc_prepare(TDS_STMT *stmt)
 
 #ifdef TDS_NO_DM
 	/* Check string length */
-	if (!IS_VALID_LEN(conlen) || conlen == 0) {
+	if (!IS_VALID_LEN(cbConnStrIn) || cbConnStrIn == 0) {
 		odbc_errs_add(&dbc->errs, "HY090", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -1834,7 +1831,7 @@ SQLCancel(SQLHSTMT hstmt)
 	}
 
 	/* data source name */
-	if (szDSN || (*szDSN))
+	if (odbc_get_string_size(cbDSN, szDSN _wide))
 		odbc_dstr_copy(dbc, &dbc->dsn, cbDSN, szDSN _wide);
 	else
 		tds_dstr_copy(&dbc->dsn, "DEFAULT");
@@ -1853,7 +1850,7 @@ SQLCancel(SQLHSTMT hstmt)
 	 * so you do not check in ini file
 	 */
 	/* user id */
-	if (szUID && (*szUID)) {
+	if (odbc_get_string_size(cbUID, szUID _wide)) {
 		if (!odbc_dstr_copy(dbc, &connection->user_name, cbUID, szUID _wide)) {
 			tds_free_connection(connection);
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
@@ -2184,7 +2181,7 @@ SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType,
 	tdsdump_log(TDS_DBG_FUNC, "SQLColAttribute(%p, %u, %u, %p, %d, %p, %p)\n", 
 			hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, pfDesc);
 
-	return _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, pfDesc);
+	return _SQLColAttribute(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, pfDesc _wide0);
 }
 #endif
 
@@ -4655,8 +4652,9 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
 	ODBC_RETURN_(stmt);
 }
 
-static SQLRETURN
-_SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
+#define FUNC NAME(SQLGetConnectAttr) (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOINTER,Value), P(SQLINTEGER,BufferLength),\
+	P(SQLINTEGER *,StringLength) WIDE)
+#include "sqlwparams.h"
 {
 	const char *p = NULL;
 	SQLRETURN rc;
@@ -4733,17 +4731,6 @@ _SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTE
 	rc = odbc_set_string_i(dbc, Value, BufferLength, StringLength, p, -1 _wide);
 	ODBC_RETURN(dbc, rc);
 }
-
-#if ODBCVER >= 0x300
-SQLRETURN ODBC_API
-SQLGetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
-{
-	tdsdump_log(TDS_DBG_FUNC, "SQLGetConnectAttr(%p, %d, %p, %d, %p)\n", 
-			hdbc, (int)Attribute, Value, (int)BufferLength, StringLength);
-
-	return _SQLGetConnectAttr(hdbc, Attribute, Value, BufferLength, StringLength);
-}
-#endif
 
 SQLRETURN ODBC_API
 SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
@@ -6034,8 +6021,8 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 }
 
 
-static SQLRETURN
-_SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength _WIDE)
+#define FUNC NAME(SQLSetConnectAttr) (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOINTER,ValuePtr), P(SQLINTEGER,StringLength) _WIDE)
+#include "sqlwparams.h"
 {
 	SQLULEN u_value = (SQLULEN) (TDS_INTPTR) ValuePtr;
 	int len = 0;
@@ -6121,15 +6108,6 @@ _SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLI
 	}
 	odbc_errs_add(&dbc->errs, "HY092", NULL);
 	ODBC_RETURN(dbc, SQL_ERROR);
-}
-
-SQLRETURN ODBC_API
-SQLSetConnectAttr(SQLHDBC hdbc, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
-{
-	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectAttr(%p, %d, %p, %d)\n", 
-			hdbc, (int)Attribute, ValuePtr, (int)StringLength);
-
-	return _SQLSetConnectAttr(hdbc, Attribute, ValuePtr, StringLength _wide0);
 }
 
 SQLRETURN ODBC_API

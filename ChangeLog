@@ -1,3 +1,7 @@
+Sat Jul  3 08:56:51 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/error.c src/odbc/odbc.c src/odbc/sqlwparams.h:
+	- other wide encoding merges
+
 Sat Jul  3 01:55:38 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsiconv.h src/replacements/iconv.c:
 	- cleanup iconv replacement
@@ -2566,4 +2570,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3052 2010-07-02 23:55:50 freddy77 Exp $
+$Id: ChangeLog,v 1.3053 2010-07-03 06:57:01 freddy77 Exp $
