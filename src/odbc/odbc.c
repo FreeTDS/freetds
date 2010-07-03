@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.540 2010-07-03 09:14:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.541 2010-07-03 09:49:12 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -6084,7 +6084,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 }
 
 
-#define FUNC NAME(SQLSetConnectAttr) (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOINTER,ValuePtr), P(SQLINTEGER,StringLength) _WIDE)
+#define FUNC NAME(SQLSetConnectAttr) (P(SQLHDBC,hdbc), P(SQLINTEGER,Attribute), P(SQLPOINTER,ValuePtr), P(SQLINTEGER,StringLength) WIDE)
 #include "sqlwparams.h"
 {
 	SQLULEN u_value = (SQLULEN) (TDS_INTPTR) ValuePtr;

@@ -1,3 +1,6 @@
+Sat Jul  3 11:49:05 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/odbc/odbc.c: minor issues
+
 Sat Jul  3 11:14:29 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac include/tdsodbc.h src/odbc/convert_tds2sql.c:
 	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/sql2tds.c:
@@ -2584,4 +2587,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3056 2010-07-03 09:14:36 freddy77 Exp $
+$Id: ChangeLog,v 1.3057 2010-07-03 09:49:11 freddy77 Exp $
