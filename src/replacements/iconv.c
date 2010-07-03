@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.18 2010-07-03 06:57:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.19 2010-07-03 08:53:13 freddy77 Exp $");
 
 /**
  * \addtogroup conv
@@ -203,7 +203,7 @@ static int
 put_ucs2le(unsigned char *buf, int buf_len, ICONV_CHAR c)
 {
 	if (c >= 0x10000u)
-		return -EINVAL;
+		return -EILSEQ;
 	if (buf_len < 2)
 		return -E2BIG;
 	TDS_PUT_A2LE(buf, c);
@@ -223,7 +223,7 @@ static int
 put_ucs2be(unsigned char *buf, int buf_len, ICONV_CHAR c)
 {
 	if (c >= 0x10000u)
-		return -EINVAL;
+		return -EILSEQ;
 	if (buf_len < 2)
 		return -E2BIG;
 	TDS_PUT_A2BE(buf, c);
@@ -243,7 +243,7 @@ static int
 put_iso1(unsigned char *buf, int buf_len, ICONV_CHAR c)
 {
 	if (c >= 0x100u)
-		return -EINVAL;
+		return -EILSEQ;
 	if (buf_len < 1)
 		return -E2BIG;
 	buf[0] = (unsigned char) c;
@@ -265,7 +265,7 @@ static int
 put_ascii(unsigned char *buf, int buf_len, ICONV_CHAR c)
 {
 	if (c >= 0x80u)
-		return -EINVAL;
+		return -EILSEQ;
 	if (buf_len < 1)
 		return -E2BIG;
 	buf[0] = (unsigned char) c;
@@ -281,7 +281,7 @@ get_err(const unsigned char *p, int len, ICONV_CHAR *out)
 static int
 put_err(unsigned char *buf, int buf_len, ICONV_CHAR c)
 {
-	return -EINVAL;
+	return -EILSEQ;
 }
 
 typedef int (*iconv_get_t)(const unsigned char *p, int len,     ICONV_CHAR *out);
@@ -410,7 +410,7 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 
 			written = put_func(ob, ol, out_c);
 			if (TDS_UNLIKELY(written < 0)) {
-				local_errno = -readed;
+				local_errno = -written;
 				break;
 			}
 			il -= readed;

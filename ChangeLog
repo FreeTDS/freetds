@@ -1,3 +1,6 @@
+Sat Jul  3 10:53:03 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/replacements/iconv.c: fix return codes from replacement iconv
+
 Sat Jul  3 08:57:50 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/replacements/iconv.c:
 	- rewrote iconv replacement adding support for ucs4
@@ -2574,4 +2577,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3054 2010-07-03 06:57:56 freddy77 Exp $
+$Id: ChangeLog,v 1.3055 2010-07-03 08:53:13 freddy77 Exp $
