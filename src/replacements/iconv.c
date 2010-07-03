@@ -22,12 +22,7 @@
  * Its purpose is to allow ASCII clients to communicate with Microsoft servers
  * that encode their metadata in Unicode (UCS-2).  
  *
- * The conversion algorithm relies on the fact that UCS-2 shares codepoints
- * between 0 and 255 with ISO-8859-1.  To create UCS-2, we add a high byte
- * whose value is zero.  To create ISO-8859-1, we strip the high byte.  
- *
- * If we receive an input character whose value is greater than 255, we return an 
- * out-of-range error.  The caller (tds_iconv) should emit an error message.  
+ * It supports ISO-8859-1, ASCII, UCS-2, UCS-4 and UTF-8
  */
 
 #if HAVE_CONFIG_H
@@ -47,52 +42,257 @@
 #include <ctype.h>
 
 #include "tds.h"
+#include "tdsbytes.h"
 #include "tdsiconv.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.17 2010-07-02 23:55:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.18 2010-07-03 06:57:56 freddy77 Exp $");
 
 /**
  * \addtogroup conv
  * @{ 
  */
 
-	/* FYI, the first 4 entries look like this:
-	 *      {"ISO-8859-1",  1, 1}, -> 0
-	 *      {"US-ASCII",    1, 4}, -> 1
-	 *      {"UCS-2LE",     2, 2}, -> 2
-	 *      {"UCS-2BE",     2, 2}, -> 3
-	 *
-	 * These conversions are supplied by src/replacements/iconv.c for the sake of those who don't
-	 * have or otherwise need an iconv.
-	 */
 enum ICONV_CD_VALUE
 {
-	  Like_to_Like = 0x100
-	, Latin1_ASCII  = 0x01
-	, ASCII_Latin1  = 0x10
-
-	, Latin1_UCS2LE = 0x02
-	, UCS2LE_Latin1 = 0x20
-	, ASCII_UCS2LE  = 0x12
-	, UCS2LE_ASCII  = 0x21
-
-	, Latin1_UTF8	= 0x03
-	, UTF8_Latin1	= 0x30
-	, ASCII_UTF8	= 0x13
-	, UTF8_ASCII	= 0x31
-	, UCS2LE_UTF8	= 0x23
-	, UTF8_UCS2LE	= 0x32
-
-	/* these aren't needed
-	 * , Latin1_UCS2BE = 0x03
-	 * , UCS2BE_Latin1 = 0x30
-	 */
+	Like_to_Like = 0x100
 };
 
+typedef TDS_UINT ICONV_CHAR;
+
+static const unsigned char utf_lengths[256] = {
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0,
+};
+
+static const unsigned char utf_masks[7] = {
+	0, 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01
+};
+
+static int
+get_utf(const unsigned char *p, int len, ICONV_CHAR *out)
+{
+	ICONV_CHAR uc;
+	int l;
+
+	l = utf_lengths[p[0]];
+	if (TDS_UNLIKELY(l == 0))
+		return -EILSEQ;
+	if (TDS_UNLIKELY(len < l))
+		return -EINVAL;
+
+	len = l;
+	uc = *p++ & utf_masks[l];
+	while(--l)
+		uc = (uc << 6) | (*p++ & 0x3f);
+	*out = uc;
+	return len;
+}
+
+static int
+put_utf(unsigned char *buf, int buf_len, ICONV_CHAR c)
+{
+#define MASK(n) ((0xffffffffu << (n)) & 0xffffffffu)
+	int o_len;
+	unsigned mask;
+
+	if ((c & MASK(7)) == 0) {
+		if (buf_len < 1)
+			return -E2BIG;
+		*buf = (unsigned char) c;
+		return 1;
+	}
+
+	o_len = 2;
+	for (;;) {
+		if ((c & MASK(11)) == 0)
+			break;
+		++o_len;
+		if ((c & MASK(16)) == 0)
+			break;
+		++o_len;
+		if ((c & MASK(21)) == 0)
+			break;
+		++o_len;
+		if ((c & MASK(26)) == 0)
+			break;
+		++o_len;
+		if ((c & MASK(31)) != 0)
+			return -EINVAL;
+	}
+
+	if (buf_len < o_len)
+		return -E2BIG;
+	buf += o_len;
+	mask = 0xff80;
+	for (;;) {
+		*--buf = 0x80 | (c & 0x3f);
+		c >>= 6;
+		mask >>= 1;
+		if (c < 0x40) {
+			*--buf = mask | c;
+			break;
+		}
+	}
+	return o_len;
+}
+
+static int
+get_ucs4le(const unsigned char *p, int len, ICONV_CHAR *out)
+{
+	if (len < 4)
+		return -EINVAL;
+	*out = TDS_GET_A4LE(p);
+	return 4;
+}
+
+static int
+put_ucs4le(unsigned char *buf, int buf_len, ICONV_CHAR c)
+{
+	if (buf_len < 4)
+		return -E2BIG;
+	TDS_PUT_A4LE(buf, c);
+	return 4;
+}
+
+static int
+get_ucs4be(const unsigned char *p, int len, ICONV_CHAR *out)
+{
+	if (len < 4)
+		return -EINVAL;
+	*out = TDS_GET_A4BE(p);
+	return 4;
+}
+
+static int
+put_ucs4be(unsigned char *buf, int buf_len, ICONV_CHAR c)
+{
+	if (buf_len < 4)
+		return -E2BIG;
+	TDS_PUT_A4BE(buf, c);
+	return 4;
+}
+
+static int
+get_ucs2le(const unsigned char *p, int len, ICONV_CHAR *out)
+{
+	if (len < 2)
+		return -EINVAL;
+	*out = TDS_GET_A2LE(p);
+	return 2;
+}
+
+static int
+put_ucs2le(unsigned char *buf, int buf_len, ICONV_CHAR c)
+{
+	if (c >= 0x10000u)
+		return -EINVAL;
+	if (buf_len < 2)
+		return -E2BIG;
+	TDS_PUT_A2LE(buf, c);
+	return 2;
+}
+
+static int
+get_ucs2be(const unsigned char *p, int len, ICONV_CHAR *out)
+{
+	if (len < 2)
+		return -EINVAL;
+	*out = TDS_GET_A2BE(p);
+	return 2;
+}
+
+static int
+put_ucs2be(unsigned char *buf, int buf_len, ICONV_CHAR c)
+{
+	if (c >= 0x10000u)
+		return -EINVAL;
+	if (buf_len < 2)
+		return -E2BIG;
+	TDS_PUT_A2BE(buf, c);
+	return 2;
+}
+
+static int
+get_iso1(const unsigned char *p, int len, ICONV_CHAR *out)
+{
+	if (len < 1)
+		return -EINVAL;
+	*out = p[0];
+	return 1;
+}
+
+static int
+put_iso1(unsigned char *buf, int buf_len, ICONV_CHAR c)
+{
+	if (c >= 0x100u)
+		return -EINVAL;
+	if (buf_len < 1)
+		return -E2BIG;
+	buf[0] = (unsigned char) c;
+	return 1;
+}
+
+static int
+get_ascii(const unsigned char *p, int len, ICONV_CHAR *out)
+{
+	if (len < 1)
+		return -EINVAL;
+	if (p[0] >= 0x80)
+		return -EILSEQ;
+	*out = p[0];
+	return 1;
+}
+
+static int
+put_ascii(unsigned char *buf, int buf_len, ICONV_CHAR c)
+{
+	if (c >= 0x80u)
+		return -EINVAL;
+	if (buf_len < 1)
+		return -E2BIG;
+	buf[0] = (unsigned char) c;
+	return 1;
+}
+
+static int
+get_err(const unsigned char *p, int len, ICONV_CHAR *out)
+{
+	return -EILSEQ;
+}
+
+static int
+put_err(unsigned char *buf, int buf_len, ICONV_CHAR c)
+{
+	return -EINVAL;
+}
+
+typedef int (*iconv_get_t)(const unsigned char *p, int len,     ICONV_CHAR *out);
+typedef int (*iconv_put_t)(unsigned char *buf,     int buf_len, ICONV_CHAR c);
+
+static const iconv_get_t iconv_gets[8] = {
+	get_iso1, get_ascii, get_ucs2le, get_ucs2be, get_ucs4le, get_ucs4be, get_utf, get_err
+};
+static const iconv_put_t iconv_puts[8] = {
+	put_iso1, put_ascii, put_ucs2le, put_ucs2be, put_ucs4le, put_ucs4be, put_utf, put_err
+};
 
 /** 
  * Inputs are FreeTDS canonical names, no other. No alias list is consulted.  
@@ -103,7 +303,7 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 	int i;
 	unsigned int fromto;
 	const char *enc_name;
-	unsigned char encodings[2] = { 0xFF, 0xFF };
+	unsigned char encodings[2];
 
 	static char first_time = 1;
 
@@ -115,48 +315,39 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 	/* match both inputs to our canonical names */
 	enc_name = fromcode;
 	for (i=0; i < 2; ++i) {
+		unsigned char encoding;
 
-		if (strcmp(enc_name, "ISO-8859-1") == 0) {
-			encodings[i] = 0;
-		} else if (strcmp(enc_name, "US-ASCII") == 0) {
-			encodings[i] = 1;
-		} else if (strcmp(enc_name, "UCS-2LE") == 0) {
-			encodings[i] = 2;
-		} else if (strcmp(enc_name, "UTF-8") == 0) {
-			encodings[i] = 3;
+		if (strcmp(enc_name, "ISO-8859-1") == 0)
+			encoding = 0;
+		else if (strcmp(enc_name, "US-ASCII") == 0)
+			encoding = 1;
+		else if (strcmp(enc_name, "UCS-2LE") == 0)
+			encoding = 2;
+		else if (strcmp(enc_name, "UCS-2BE") == 0)
+			encoding = 3;
+		else if (strcmp(enc_name, "UCS-4LE") == 0)
+			encoding = 4;
+		else if (strcmp(enc_name, "UCS-4BE") == 0)
+			encoding = 5;
+		else if (strcmp(enc_name, "UTF-8") == 0)
+			encoding = 6;
+		else {
+			errno = EINVAL;
+			return (iconv_t)(-1);
 		}
+		encodings[i] = encoding;
 
 		enc_name = tocode;
 	}
-	
+
 	fromto = (encodings[0] << 4) | (encodings[1] & 0x0F);
 
 	/* like to like */
 	if (encodings[0] == encodings[1]) {
 		fromto = Like_to_Like;
 	}
-	
-	switch (fromto) {
-	case Like_to_Like:
-	case Latin1_ASCII:
-	case ASCII_Latin1:
-	case Latin1_UCS2LE:
-	case UCS2LE_Latin1:
-	case ASCII_UCS2LE:
-	case UCS2LE_ASCII:
-	case Latin1_UTF8:
-	case UTF8_Latin1:
-	case ASCII_UTF8:
-	case UTF8_ASCII:
-	case UCS2LE_UTF8:
-	case UTF8_UCS2LE:
-		return (iconv_t) (TDS_INTPTR) fromto;
-		break;
-	default:
-		break;
-	}
-	errno = EINVAL;
-	return (iconv_t)(-1);
+
+	return (iconv_t) (TDS_INTPTR) fromto;
 } 
 
 int 
@@ -168,10 +359,6 @@ tds_sys_iconv_close (iconv_t cd)
 size_t 
 tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft)
 {
-	size_t copybytes;
-	const unsigned char *p;
-	unsigned char ascii_mask = 0;
-	unsigned int n;
 	const unsigned char *ib;
 	unsigned char *ob;
 	size_t il, ol;
@@ -198,198 +385,39 @@ tds_sys_iconv (iconv_t cd, const char* * inbuf, size_t *inbytesleft, char* * out
 	ib = (const unsigned char*) *inbuf;
 	ob = (unsigned char*) *outbuf;
 
-	copybytes = (il < ol)? il : ol;
+	if (CD == Like_to_Like) {
+		size_t copybytes = (il < ol)? il : ol;
 
-	switch (CD) {
-	case ASCII_UTF8:
-	case UTF8_ASCII:
-	case Latin1_ASCII:
-		for (p = ib; p < ib + il; ++p) {
-			if (*p & 0x80) {
-				local_errno = EILSEQ;
-				copybytes = p - ib;
-				break;
-			}
-		}
-		/* fall through */
-	case ASCII_Latin1:
-	case Like_to_Like:
 		memcpy(ob, ib, copybytes);
 		ob += copybytes;
 		ol -= copybytes;
 		ib += copybytes;
 		il -= copybytes;
-		break;
-	case ASCII_UCS2LE:
-	case Latin1_UCS2LE:
-		if (CD == ASCII_UCS2LE)
-			ascii_mask = 0x80;
-		while (il > 0 && ol > 1) {
-			if ((ib[0] & ascii_mask) != 0) {
-				local_errno = EILSEQ;
-				break;
-			}
-			*ob++ = *ib++;
-			*ob++ = '\0';
-			ol -= 2;
-			--il;
-		}
-		break;
-	case UCS2LE_ASCII:
-	case UCS2LE_Latin1:
-		if (CD == UCS2LE_ASCII)
-			ascii_mask = 0x80;
-		while (il > 1 && ol > 0) {
-			if ( ib[1] || (ib[0] & ascii_mask) != 0) {
-				local_errno = EILSEQ;
-				break;
-			}
-			*ob++ = *ib;
-			--ol;
-
-			ib += 2;
-			il -= 2;
-		}
-		/* input should be an even number of bytes */
-		if (!local_errno && il == 1 && ol > 0)
-			local_errno = EINVAL;
-		break;
-	case UTF8_Latin1:
-		while (il > 0 && ol > 0) {
-			/* silly case, ASCII */
-			if ( (ib[0] & 0x80) == 0) {
-				*ob++ = *ib++;
-				--il;
-				--ol;
-				continue;
-			}
-
-			if (il == 1) {
-				local_errno = EINVAL;
-				break;
-			}
-
-			if ( ib[0] > 0xC3 || ib[0] < 0xC0 || (ib[1] & 0xC0) != 0x80) {
-				local_errno = EILSEQ;
-				break;
-			}
-
-			*ob++ = (*ib) << 6 | (ib[1] & 0x3F);
-			--ol;
-			ib += 2;
-			il -= 2;
-		}
-		break;
-	case Latin1_UTF8:
-		while (il > 0 && ol > 0) {
-			/* silly case, ASCII */
-			if ( (ib[0] & 0x80) == 0) {
-				*ob++ = *ib++;
-				--il;
-				--ol;
-				continue;
-			}
-
-			if (ol == 1)
-				break;
-			*ob++ = 0xC0 | (ib[0] >> 6);
-			*ob++ = 0x80 | (ib[0] & 0x3F);
-			ol -= 2;
-			++ib;
-			--il;
-		}
-		break;
-	case UTF8_UCS2LE:
-		while (il > 0 && ol > 1) {
-			/* silly case, ASCII */
-			if ( (ib[0] & 0x80) == 0) {
-				*ob++ = *ib++;
-				*ob++ = 0;
-				il -= 1;
-				ol -= 2;
-				continue;
-			}
-
-			if (il == 1) {
-				local_errno = EINVAL;
-				break;
-			}
-
-			if ( (ib[0] & 0xE0) == 0xC0) {
-				if ( (ib[1] & 0xC0) != 0x80) {
-					local_errno = EILSEQ;
-					break;
-				}
-
-				*ob++ = ((ib[0] & 0x3) << 6) | (ib[1] & 0x3F);
-				*ob++ = (ib[0] & 0x1F) >> 2;
-				ol -= 2;
-				ib += 2;
-				il -= 2;
-				continue;
-			}
-
-			if (il == 2) {
-				local_errno = EINVAL;
-				break;
-			}
-
-			if ( (ib[0] & 0xF0) == 0xE0) {
-				if ( (ib[1] & 0xC0) != 0x80 || (ib[2] & 0xC0) != 0x80) {
-					local_errno = EILSEQ;
-					break;
-				}
-
-				*ob++ = ((ib[1] & 0x3) << 6) | (ib[2] & 0x3F);
-				*ob++ = (ib[0] & 0xF) << 4 | ((ib[1] & 0x3F) >> 2);
-				ol -= 2;
-				ib += 3;
-				il -= 3;
-				continue;
-			}
-
-			local_errno = EILSEQ;
-			break;
-		}
-		break;
-	case UCS2LE_UTF8:
-		while (il > 1 && ol > 0) {
-			n = ((unsigned int)ib[1]) << 8 | ib[0];
-			/* ASCII */
-			if ( n < 0x80 ) {
-				*ob++ = n;
-				ol -= 1;
-				ib += 2;
-				il -= 2;
-				continue;
-			}
-
-			if (ol == 1)
-				break;
-
-			if ( n < 0x800 ) {
-				*ob++ = 0xC0 | (n >> 6);
-				*ob++ = 0x80 | (n & 0x3F);
-				ol -= 2;
-				ib += 2;
-				il -= 2;
-				continue;
-			}
-
-			if (ol == 2)
-				break;
-
-			*ob++ = 0xE0 | (n >> 12);
-			*ob++ = 0x80 | ((n >> 6) & 0x3F);
-			*ob++ = 0x80 | (n & 0x3F);
-			ol -= 3;
-			ib += 2;
-			il -= 2;
-		}
-		break;
-	default:
+	} else if (CD & ~0x77) {
 		local_errno = EINVAL;
-		break;
+	} else {
+		iconv_get_t get_func = iconv_gets[(CD>>4) & 7];
+		iconv_put_t put_func = iconv_puts[ CD     & 7];
+
+		while (il) {
+			ICONV_CHAR out_c;
+			int readed = get_func(ib, il, &out_c), written;
+
+			if (TDS_UNLIKELY(readed < 0)) {
+				local_errno = -readed;
+				break;
+			}
+
+			written = put_func(ob, ol, out_c);
+			if (TDS_UNLIKELY(written < 0)) {
+				local_errno = -readed;
+				break;
+			}
+			il -= readed;
+			ib += readed;
+			ol -= written;
+			ob += written;
+		}
 	}
 
 	/* back to source */
