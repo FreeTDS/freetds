@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.17 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -13,11 +13,11 @@ main(int argc, char *argv[])
 	SQLINTEGER out1;
 	char out2[30];
 
-	Connect();
+	odbc_connect();
 
-	Command("IF OBJECT_ID('simpleresult') IS NOT NULL DROP PROC simpleresult");
+	odbc_command("IF OBJECT_ID('simpleresult') IS NOT NULL DROP PROC simpleresult");
 
-	Command("create proc simpleresult @i int as begin return @i end");
+	odbc_command("create proc simpleresult @i int as begin return @i end");
 
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &input, 0, &ind2, "S");
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind, "S");
@@ -35,13 +35,13 @@ main(int argc, char *argv[])
 	}
 
 	/* should return "Invalid cursor state" */
-	if (SQLFetch(Statement) != SQL_ERROR) {
+	if (SQLFetch(odbc_stmt) != SQL_ERROR) {
 		printf("Data not expected\n");
 		exit(1);
 	}
 
 	/* just to reset some possible buffers */
-	Command("DECLARE @i INT");
+	odbc_command("DECLARE @i INT");
 
 	/* same test but with SQLExecDirect and same bindings */
 	input = 567;
@@ -57,15 +57,15 @@ main(int argc, char *argv[])
 	/* should return "Invalid cursor state" */
 	CHKFetch("E");
 
-	Command("drop proc simpleresult");
+	odbc_command("drop proc simpleresult");
 
-	Command("IF OBJECT_ID('simpleresult2') IS NOT NULL DROP PROC simpleresult2");
+	odbc_command("IF OBJECT_ID('simpleresult2') IS NOT NULL DROP PROC simpleresult2");
 
 	/* force cursor close */
-	SQLCloseCursor(Statement);
+	SQLCloseCursor(odbc_stmt);
 
 	/* test output parameter */
-	Command("create proc simpleresult2 @i int, @x int output, @y varchar(20) output as begin select @x = 6789 select @y = 'test foo' return @i end");
+	odbc_command("create proc simpleresult2 @i int, @x int output, @y varchar(20) output as begin select @x = 6789 select @y = 'test foo' return @i end");
 
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0,  0, &output, 0,            &ind,  "S");
 	CHKBindParameter(2, SQL_PARAM_INPUT,  SQL_C_SLONG, SQL_INTEGER, 0,  0, &input,  0,            &ind2, "S");
@@ -92,19 +92,19 @@ main(int argc, char *argv[])
 	/* should return "Invalid cursor state" */
 	CHKFetch("E");
 
-	Command("drop proc simpleresult2");
+	odbc_command("drop proc simpleresult2");
 
 	/*
 	 * test from shiv kumar
 	 * Cfr ML 2006-11-21 "specifying a 0 for the StrLen_or_IndPtr in the
 	 * SQLBindParameter call is not working on AIX"
 	 */
-	Command("IF OBJECT_ID('rpc_read') IS NOT NULL DROP PROC rpc_read");
+	odbc_command("IF OBJECT_ID('rpc_read') IS NOT NULL DROP PROC rpc_read");
 
-	ResetStatement();
+	odbc_reset_statement();
 
-	Command("create proc rpc_read @i int, @x timestamp as begin select 1 return 1234 end");
-	SQLCloseCursor(Statement);
+	odbc_command("create proc rpc_read @i int, @x timestamp as begin select 1 return 1234 end");
+	SQLCloseCursor(odbc_stmt);
 
 	CHKPrepare((SQLCHAR *) "{ ? = CALL rpc_read ( ?, ? ) }" , SQL_NTS, "S");
 
@@ -123,8 +123,8 @@ main(int argc, char *argv[])
 
 	CHKFetch("No");
 
-	ResetStatement();
-	Command("drop proc rpc_read");
+	odbc_reset_statement();
+	odbc_command("drop proc rpc_read");
 
 	/*
 	 * Test from Joao Amaral
@@ -133,14 +133,14 @@ main(int argc, char *argv[])
 	 * (with is supported only by mssql and do not return all stuff as 
 	 * select does)
 	 */
-	if (db_is_microsoft()) {
+	if (odbc_db_is_microsoft()) {
 
-		ResetStatement();
+		odbc_reset_statement();
 
-		Command("IF OBJECT_ID('sp_test') IS NOT NULL DROP PROC sp_test");
-		Command("create proc sp_test @res int output as set @res = 456");
+		odbc_command("IF OBJECT_ID('sp_test') IS NOT NULL DROP PROC sp_test");
+		odbc_command("create proc sp_test @res int output as set @res = 456");
 
-		ResetStatement();
+		odbc_reset_statement();
 
 		CHKPrepare((SQLCHAR *) "{ call sp_test(?)}", SQL_NTS, "S");
 		CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind, "S");
@@ -152,10 +152,10 @@ main(int argc, char *argv[])
 			fprintf(stderr, "Invalid result %d(%x)\n", (int) output, (int) output);
 			return 1;
 		}
-		Command("drop proc sp_test");
+		odbc_command("drop proc sp_test");
 	}
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

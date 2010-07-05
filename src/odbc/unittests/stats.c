@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: stats.c,v 1.2 2010-07-02 09:01:22 freddy77 Exp $";
+static char software_version[] = "$Id: stats.c,v 1.3 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLLEN cnamesize;
@@ -27,10 +27,10 @@ TestProc(const char *type, const char *expected)
 {
 	char sql[256];
 
-	Command("IF OBJECT_ID('stat_proc') IS NOT NULL DROP PROC stat_proc");
+	odbc_command("IF OBJECT_ID('stat_proc') IS NOT NULL DROP PROC stat_proc");
 
 	sprintf(sql, "CREATE PROC stat_proc(@t %s) AS RETURN 0", type);
-	Command(sql);
+	odbc_command(sql);
 
 	column = "@t";
 	CHKProcedureColumns((SQLCHAR *) catalog, LEN(catalog), (SQLCHAR *) schema, LEN(schema), (SQLCHAR *) proc, LEN(proc), (SQLCHAR *) column, LEN(column), "SI");
@@ -40,7 +40,7 @@ TestProc(const char *type, const char *expected)
 	ReadCol(6);
 	if (strcmp(output, expected) != 0) {
 		fprintf(stderr, "Got \"%s\" expected \"%s\"\n", output, expected);
-		Disconnect();
+		odbc_disconnect();
 		exit(1);
 	}
 
@@ -52,10 +52,10 @@ TestTable(const char *type, const char *expected)
 {
 	char sql[256];
 
-	Command("IF OBJECT_ID('stat_t') IS NOT NULL DROP TABLE stat_t");
+	odbc_command("IF OBJECT_ID('stat_t') IS NOT NULL DROP TABLE stat_t");
 
 	sprintf(sql, "CREATE TABLE stat_t(t %s)", type);
-	Command(sql);
+	odbc_command(sql);
 
 	column = "t";
 	table = "stat_t";
@@ -66,7 +66,7 @@ TestTable(const char *type, const char *expected)
 	ReadCol(5);
 	if (strcmp(output, expected) != 0) {
 		fprintf(stderr, "Got \"%s\" expected \"%s\"\n", output, expected);
-		Disconnect();
+		odbc_disconnect();
 		exit(1);
 	}
 
@@ -88,22 +88,22 @@ main(int argc, char *argv[])
 {
 	char int_buf[32];
 
-	use_odbc_version3 = 0;
-	Connect();
+	odbc_use_version3 = 0;
+	odbc_connect();
 
 	TestProc("DATETIME", STR(SQL_TIMESTAMP));
 	TestTable("DATETIME", STR(SQL_TIMESTAMP));
 
-	Disconnect();
+	odbc_disconnect();
 
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
 	TestProc("DATETIME", STR(SQL_TYPE_TIMESTAMP));
 	TestTable("DATETIME", STR(SQL_TYPE_TIMESTAMP));
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

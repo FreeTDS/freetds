@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: type.c,v 1.8 2007-11-26 18:12:31 freddy77 Exp $";
+static char software_version[] = "$Id: type.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 struct type
@@ -104,7 +104,7 @@ main(int argc, char **argv)
 	SQLLEN lind;
 	SQLHDESC desc;
 
-	Connect();
+	odbc_connect();
 
 	/*
 	 * test setting two time a descriptor
@@ -115,14 +115,14 @@ main(int argc, char **argv)
 	/* test C types */
 	for (p = types; p->name; ++p) {
 		if (SQL_SUCCEEDED
-		    (SQLBindParameter(Statement, 1, SQL_PARAM_INPUT, p->type, SQL_VARCHAR, (SQLUINTEGER) (-1), 0, buf, 16, &lind))) {
+		    (SQLBindParameter(odbc_stmt, 1, SQL_PARAM_INPUT, p->type, SQL_VARCHAR, (SQLUINTEGER) (-1), 0, buf, 16, &lind))) {
 			SQLSMALLINT concise_type, type, code;
 			SQLHDESC desc;
 
 			concise_type = type = code = 0;
 
 			/* get APD */
-			SQLGetStmtAttr(Statement, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
+			SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
 
 			SQLGetDescField(desc, 1, SQL_DESC_TYPE, &type, sizeof(SQLSMALLINT), &ind);
 			SQLGetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, &concise_type, sizeof(SQLSMALLINT), &ind);
@@ -139,7 +139,7 @@ main(int argc, char **argv)
 			fprintf(stderr, "Error setting type %d (%s)\n", (int) p->type, p->name);
 
 			concise_type = p->type;
-			SQLGetStmtAttr(Statement, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
+			SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_PARAM_DESC, &desc, sizeof(desc), &ind);
 			if (SQL_SUCCEEDED
 			    (SQLSetDescField(desc, 1, SQL_DESC_CONCISE_TYPE, int2ptr(concise_type), sizeof(SQLSMALLINT))))
 			{
@@ -159,7 +159,7 @@ main(int argc, char **argv)
 	printf("\n\n");
 
 	/* test SQL types */
-	SQLGetStmtAttr(Statement, SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind);
+	SQLGetStmtAttr(odbc_stmt, SQL_ATTR_IMP_PARAM_DESC, &desc, sizeof(desc), &ind);
 	for (p = types; p->name; ++p) {
 		SQLSMALLINT concise_type = p->type;
 
@@ -181,7 +181,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	Disconnect();
+	odbc_disconnect();
 
 	return result;
 }

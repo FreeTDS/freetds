@@ -9,7 +9,7 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.12 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.13 2010-07-05 09:20:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
@@ -40,7 +40,7 @@ TestName(SQLSMALLINT index, const char *expected_name)
 
 	/* retrieve with SQLColAttribute */
 	CHKColAttribute(index, SQL_DESC_NAME, name, sizeof(name), &len, NULL, "S");
-	if (db_is_microsoft())
+	if (odbc_db_is_microsoft())
 		NAME_TEST;
 	CHKColAttribute(index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL, "S");
 	NAME_TEST;
@@ -76,14 +76,14 @@ CheckFetch(const char *c1name, const char *c1, const char *c2)
 int
 main(int argc, char *argv[])
 {
-	Connect();
+	odbc_connect();
 
-	Command("create table #tmp1 (c varchar(20), i int)");
-	Command("insert into #tmp1 values('pippo', 12)");
-	Command("insert into #tmp1 values('pippo', 34)");
-	Command("insert into #tmp1 values('pluto', 1)");
-	Command("insert into #tmp1 values('pluto', 2)");
-	Command("insert into #tmp1 values('pluto', 3)");
+	odbc_command("create table #tmp1 (c varchar(20), i int)");
+	odbc_command("insert into #tmp1 values('pippo', 12)");
+	odbc_command("insert into #tmp1 values('pippo', 34)");
+	odbc_command("insert into #tmp1 values('pluto', 1)");
+	odbc_command("insert into #tmp1 values('pluto', 2)");
+	odbc_command("insert into #tmp1 values('pluto', 3)");
 
 
 	/* 
@@ -93,9 +93,9 @@ main(int argc, char *argv[])
 
 
 	/* select * from #tmp1 compute sum(i) */
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	Command("select * from #tmp1 order by c, i compute sum(i)");
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	odbc_command("select * from #tmp1 order by c, i compute sum(i)");
 	CheckFetch("c", "pippo", "12");
 	CheckFetch("c", "pippo", "34");
 	CheckFetch("c", "pluto", "1");
@@ -105,8 +105,8 @@ main(int argc, char *argv[])
 	CHKMoreResults("S");
 
 	/* why I need to rebind ?? ms bug of feature ?? */
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	col2[0] = '@';
 	CheckFetch("sum", "52", "@");
 	CHKFetch("No");
@@ -116,38 +116,38 @@ main(int argc, char *argv[])
 
 
 	/* select * from #tmp1 order by c compute sum(i) by c */
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	Command("select c as mao, i from #tmp1 order by c, i compute sum(i) by c compute max(i)");
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	odbc_command("select c as mao, i from #tmp1 order by c, i compute sum(i) by c compute max(i)");
 	CheckFetch("mao", "pippo", "12");
 	CheckFetch("mao", "pippo", "34");
 	CHKFetch("No");
 	CHKMoreResults("S");
 
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	strcpy(col2, "##");
 	CheckFetch("sum", "46", "##");
 	CHKFetch("No");
 	CHKMoreResults("S");
 
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	CheckFetch("mao", "pluto", "1");
 	CheckFetch("mao", "pluto", "2");
 	CheckFetch("mao", "pluto", "3");
 	CHKFetch("No");
 	CHKMoreResults("S");
 
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	strcpy(col2, "%");
 	CheckFetch("sum", "6", "%");
 	CHKFetch("No");
 	CHKMoreResults("S");
 
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	strcpy(col2, "&");
 	CheckFetch("max", "34", "&");
 	CHKFetch("No");
@@ -158,9 +158,9 @@ main(int argc, char *argv[])
 	/* test skip recordset with computed rows */
 
 	/* select * from #tmp1 where i = 2 compute min(i) */
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
-	Command("select * from #tmp1 where i = 2 or i = 34 order by c, i compute min(i) by c");
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	odbc_command("select * from #tmp1 where i = 2 or i = 34 order by c, i compute min(i) by c");
 	CheckFetch("c", "pippo", "34");
 	CHKFetch("No");
 	CHKMoreResults("S");
@@ -168,8 +168,8 @@ main(int argc, char *argv[])
 	/* here just skip results, before a row */
 	CHKMoreResults("S");
 
-	SQLBindCol(Statement, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
-	SQLBindCol(Statement, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, col1, sizeof(col1), &ind1);
+	SQLBindCol(odbc_stmt, 2, SQL_C_CHAR, col2, sizeof(col2), &ind2);
 	CheckFetch("c", "pluto", "2");
 	CHKFetch("No");
 	CHKMoreResults("S");
@@ -178,6 +178,6 @@ main(int argc, char *argv[])
 	CHKMoreResults("No");
 
 
-	Disconnect();
+	odbc_disconnect();
 	return 0;
 }

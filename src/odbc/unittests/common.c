@@ -13,20 +13,20 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.58 2010-07-05 07:20:47 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.59 2010-07-05 09:20:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-HENV Environment;
-HDBC Connection;
-HSTMT Statement;
-int use_odbc_version3 = 0;
+HENV odbc_env;
+HDBC odbc_conn;
+HSTMT odbc_stmt;
+int odbc_use_version3 = 0;
 void (*odbc_set_conn_attr)(void) = NULL;
 
-char USER[512];
-char SERVER[512];
-char PASSWORD[512];
-char DATABASE[512];
-char DRIVER[1024];
+char odbc_user[512];
+char odbc_server[512];
+char odbc_password[512];
+char odbc_database[512];
+char odbc_driver[1024];
 
 #ifndef _WIN32
 static int
@@ -61,7 +61,7 @@ odbc_setenv(const char *name, const char *value, int overwrite)
 #endif
 
 int
-read_login_info(void)
+odbc_read_login_info(void)
 {
 	static const char *PWD = "../../../PWD";
 	FILE *in = NULL;
@@ -93,13 +93,13 @@ read_login_info(void)
 		if (!s1 || !s2)
 			continue;
 		if (!strcmp(s1, "UID")) {
-			strcpy(USER, s2);
+			strcpy(odbc_user, s2);
 		} else if (!strcmp(s1, "SRV")) {
-			strcpy(SERVER, s2);
+			strcpy(odbc_server, s2);
 		} else if (!strcmp(s1, "PWD")) {
-			strcpy(PASSWORD, s2);
+			strcpy(odbc_password, s2);
 		} else if (!strcmp(s1, "DB")) {
-			strcpy(DATABASE, s2);
+			strcpy(odbc_database, s2);
 		}
 	}
 	fclose(in);
@@ -124,12 +124,12 @@ read_login_info(void)
 	    && !check_lib(path, ".libs/libtdsodbc.dll") && !check_lib(path, ".libs/libtdsodbc.dylib")
 	    && !check_lib(path, "_libs/libtdsodbc.exe"))
 		return 0;
-	strcpy(DRIVER, path);
+	strcpy(odbc_driver, path);
 
 	/* craft out odbc.ini, avoid to read wrong one */
 	in = fopen("odbc.ini", "w");
 	if (in) {
-		fprintf(in, "[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n", SERVER, DRIVER, DATABASE, SERVER);
+		fprintf(in, "[%s]\nDriver = %s\nDatabase = %s\nServername = %s\n", odbc_server, odbc_driver, odbc_database, odbc_server);
 		fclose(in);
 		setenv("ODBCINI", "./odbc.ini", 1);
 		setenv("SYSODBCINI", "./odbc.ini", 1);
@@ -139,7 +139,7 @@ read_login_info(void)
 }
 
 void
-ReportError(const char *errmsg, int line, const char *file)
+odbc_report_error(const char *errmsg, int line, const char *file)
 {
 	SQLSMALLINT handletype;
 	SQLHANDLE handle;
@@ -148,15 +148,15 @@ ReportError(const char *errmsg, int line, const char *file)
 	unsigned char msg[256];
 
 
-	if (Statement) {
+	if (odbc_stmt) {
 		handletype = SQL_HANDLE_STMT;
-		handle = Statement;
-	} else if (Connection) {
+		handle = odbc_stmt;
+	} else if (odbc_conn) {
 		handletype = SQL_HANDLE_DBC;
-		handle = Connection;
+		handle = odbc_conn;
 	} else {
 		handletype = SQL_HANDLE_ENV;
-		handle = Environment;
+		handle = odbc_env;
 	}
 	if (errmsg[0]) {
 		if (line)
@@ -167,7 +167,7 @@ ReportError(const char *errmsg, int line, const char *file)
 	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
 		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
-	Disconnect();
+	odbc_disconnect();
 	exit(1);
 }
 
@@ -188,73 +188,73 @@ ReportODBCError(const char *errmsg, SQLSMALLINT handletype, SQLHANDLE handle, SQ
 	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
 		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
-	Disconnect();
+	odbc_disconnect();
 	exit(1);
 }
 
 int
-Connect(void)
+odbc_connect(void)
 {
 	char command[512];
 
-	if (read_login_info())
+	if (odbc_read_login_info())
 		exit(1);
 
-	if (use_odbc_version3) {
-		CHKAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &Environment, "S");
-		SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-		CHKAllocHandle(SQL_HANDLE_DBC, Environment, &Connection, "S");
+	if (odbc_use_version3) {
+		CHKAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &odbc_env, "S");
+		SQLSetEnvAttr(odbc_env, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
+		CHKAllocHandle(SQL_HANDLE_DBC, odbc_env, &odbc_conn, "S");
 	} else {
-		CHKAllocEnv(&Environment, "S");
-		CHKAllocConnect(&Connection, "S");
+		CHKAllocEnv(&odbc_env, "S");
+		CHKAllocConnect(&odbc_conn, "S");
 	}
 
 	printf("odbctest\n--------\n\n");
 	printf("connection parameters:\nserver:   '%s'\nuser:     '%s'\npassword: '%s'\ndatabase: '%s'\n",
-	       SERVER, USER, "????" /* PASSWORD */ , DATABASE);
+	       odbc_server, odbc_user, "????" /* odbc_password */ , odbc_database);
 
 	if (odbc_set_conn_attr)
 		(*odbc_set_conn_attr)();
 
-	CHKR(SQLConnect, (Connection, (SQLCHAR *) SERVER, SQL_NTS, (SQLCHAR *) USER, SQL_NTS, (SQLCHAR *) PASSWORD, SQL_NTS), "SI");
+	CHKR(SQLConnect, (odbc_conn, (SQLCHAR *) odbc_server, SQL_NTS, (SQLCHAR *) odbc_user, SQL_NTS, (SQLCHAR *) odbc_password, SQL_NTS), "SI");
 
-	CHKAllocStmt(&Statement, "S");
+	CHKAllocStmt(&odbc_stmt, "S");
 
-	sprintf(command, "use %s", DATABASE);
+	sprintf(command, "use %s", odbc_database);
 	printf("%s\n", command);
 
 	CHKExecDirect((SQLCHAR *) command, SQL_NTS, "SI");
 
 #ifndef TDS_NO_DM
 	/* unixODBC seems to require it */
-	SQLMoreResults(Statement);
+	SQLMoreResults(odbc_stmt);
 #endif
 	return 0;
 }
 
 int
-Disconnect(void)
+odbc_disconnect(void)
 {
-	if (Statement) {
-		SQLFreeStmt(Statement, SQL_DROP);
-		Statement = SQL_NULL_HSTMT;
+	if (odbc_stmt) {
+		SQLFreeStmt(odbc_stmt, SQL_DROP);
+		odbc_stmt = SQL_NULL_HSTMT;
 	}
 
-	if (Connection) {
-		SQLDisconnect(Connection);
-		SQLFreeConnect(Connection);
-		Connection = SQL_NULL_HDBC;
+	if (odbc_conn) {
+		SQLDisconnect(odbc_conn);
+		SQLFreeConnect(odbc_conn);
+		odbc_conn = SQL_NULL_HDBC;
 	}
 
-	if (Environment) {
-		SQLFreeEnv(Environment);
-		Environment = SQL_NULL_HENV;
+	if (odbc_env) {
+		SQLFreeEnv(odbc_env);
+		odbc_env = SQL_NULL_HENV;
 	}
 	return 0;
 }
 
 SQLRETURN
-CommandWithResult(HSTMT stmt, const char *command)
+odbc_command_with_result(HSTMT stmt, const char *command)
 {
 	printf("%s\n", command);
 	return SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS);
@@ -262,7 +262,7 @@ CommandWithResult(HSTMT stmt, const char *command)
 
 static int ms_db = -1;
 int
-db_is_microsoft(void)
+odbc_db_is_microsoft(void)
 {
 	char buf[64];
 	SQLSMALLINT len;
@@ -270,7 +270,7 @@ db_is_microsoft(void)
 
 	if (ms_db < 0) {
 		buf[0] = 0;
-		SQLGetInfo(Connection, SQL_DBMS_NAME, buf, sizeof(buf), &len);
+		SQLGetInfo(odbc_conn, SQL_DBMS_NAME, buf, sizeof(buf), &len);
 		for (i = 0; buf[i]; ++i)
 			buf[i] = tolower(buf[i]);
 		ms_db = (strstr(buf, "microsoft") != NULL);
@@ -280,7 +280,7 @@ db_is_microsoft(void)
 
 static int freetds_driver = -1;
 int
-driver_is_freetds(void)
+odbc_driver_is_freetds(void)
 {
 	char buf[64];
 	SQLSMALLINT len;
@@ -288,7 +288,7 @@ driver_is_freetds(void)
 
 	if (freetds_driver < 0) {
 		buf[0] = 0;
-		SQLGetInfo(Connection, SQL_DRIVER_NAME, buf, sizeof(buf), &len);
+		SQLGetInfo(odbc_conn, SQL_DRIVER_NAME, buf, sizeof(buf), &len);
 		for (i = 0; buf[i]; ++i)
 			buf[i] = tolower(buf[i]);
 		freetds_driver = (strstr(buf, "tds") != NULL);
@@ -298,22 +298,22 @@ driver_is_freetds(void)
 
 static char db_str_version[32];
 
-const char *db_version(void)
+const char *odbc_db_version(void)
 {
 	SQLSMALLINT version_len;
 
 	if (!db_str_version[0])
-		CHKR(SQLGetInfo, (Connection, SQL_DBMS_VER, db_str_version, sizeof(db_str_version), &version_len), "S");
+		CHKR(SQLGetInfo, (odbc_conn, SQL_DBMS_VER, db_str_version, sizeof(db_str_version), &version_len), "S");
 
 	return db_str_version;
 }
 
-unsigned int db_version_int(void)
+unsigned int odbc_db_version_int(void)
 {
 	unsigned int h, l;
-	if (sscanf(db_version(), "%u.%u.", &h, &l) != 2) {
-		fprintf(stderr, "Wrong db version: %s\n", db_version());
-		Disconnect();
+	if (sscanf(odbc_db_version(), "%u.%u.", &h, &l) != 2) {
+		fprintf(stderr, "Wrong db version: %s\n", odbc_db_version());
+		odbc_disconnect();
 		exit(1);
 	}
 
@@ -321,7 +321,7 @@ unsigned int db_version_int(void)
 }
 
 void
-CheckCols(int n, int line, const char * file)
+odbc_check_cols(int n, int line, const char * file)
 {
 	SQLSMALLINT cols;
 
@@ -332,13 +332,13 @@ CheckCols(int n, int line, const char * file)
 	CHKNumResultCols(&cols, "S");
 	if (cols != n) {
 		fprintf(stderr, "%s:%d: Expected %d columns returned %d\n", file, line, n, (int) cols);
-		Disconnect();
+		odbc_disconnect();
 		exit(1);
 	}
 }
 
 void
-CheckRows(int n, int line, const char * file)
+odbc_check_rows(int n, int line, const char * file)
 {
 	SQLLEN rows;
 
@@ -350,43 +350,43 @@ CheckRows(int n, int line, const char * file)
 	CHKRowCount(&rows, "S");
 	if (rows != n) {
 		fprintf(stderr, "%s:%d: Expected %d rows returned %d\n", file, line, n, (int) rows);
-		Disconnect();
+		odbc_disconnect();
 		exit(1);
 	}
 }
 
 void
-ResetStatementProc(SQLHSTMT *stmt, const char *file, int line)
+odbc_reset_statement_proc(SQLHSTMT *stmt, const char *file, int line)
 {
 	SQLFreeStmt(*stmt, SQL_DROP);
 	*stmt = SQL_NULL_HSTMT;
-	CheckRes(file, line, SQLAllocStmt(Connection, stmt), SQL_HANDLE_DBC, Connection, "SQLAllocStmt", "S");
+	odbc_check_res(file, line, SQLAllocStmt(odbc_conn, stmt), SQL_HANDLE_DBC, odbc_conn, "SQLAllocStmt", "S");
 }
 
 void
-CheckCursor(void)
+odbc_check_cursor(void)
 {
 	SQLRETURN retcode;
 
-	retcode = SQLSetStmtAttr(Statement, SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_ROWVER, 0);
+	retcode = SQLSetStmtAttr(odbc_stmt, SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_ROWVER, 0);
 	if (retcode != SQL_SUCCESS) {
 		char output[256];
 		unsigned char sqlstate[6];
 
-		CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL, "S");
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL, "S");
 		sqlstate[5] = 0;
 		if (strcmp((const char*) sqlstate, "01S02") == 0) {
 			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
-			Disconnect();
+			odbc_disconnect();
 			exit(0);
 		}
-		ReportODBCError("SQLSetStmtAttr", SQL_HANDLE_STMT, Statement, retcode, __LINE__, __FILE__);
+		ReportODBCError("SQLSetStmtAttr", SQL_HANDLE_STMT, odbc_stmt, retcode, __LINE__, __FILE__);
 	}
-	ResetStatement();
+	odbc_reset_statement();
 }
 
 SQLRETURN
-CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLHANDLE handle, const char *func, const char *res)
+odbc_check_res(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLHANDLE handle, const char *func, const char *res)
 {
 	const char *p = res;
 	for (;;) {
@@ -413,7 +413,7 @@ CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLH
 		} else if (!*p) {
 			break;
 		} else {
-			ReportError("Wrong results specified", line, file);
+			odbc_report_error("Wrong results specified", line, file);
 			return rc;
 		}
 	}
@@ -422,7 +422,7 @@ CheckRes(const char *file, int line, SQLRETURN rc, SQLSMALLINT handle_type, SQLH
 }
 
 SQLSMALLINT
-AllocHandleErrType(SQLSMALLINT type)
+odbc_alloc_handle_err_type(SQLSMALLINT type)
 {
 	switch (type) {
 	case SQL_HANDLE_DESC:
@@ -436,21 +436,21 @@ AllocHandleErrType(SQLSMALLINT type)
 }
 
 SQLRETURN
-CommandProc(HSTMT stmt, const char *command, const char *file, int line, const char *res)
+odbc_command_proc(HSTMT stmt, const char *command, const char *file, int line, const char *res)
 {
 	printf("%s\n", command);
-	return CheckRes(file, line, SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS), SQL_HANDLE_STMT, stmt, "Command", res);
+	return odbc_check_res(file, line, SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS), SQL_HANDLE_STMT, stmt, "odbc_command", res);
 }
 
 char odbc_err[512];
 char odbc_sqlstate[6];
 
 void
-ReadError(void)
+odbc_read_error(void)
 {
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 

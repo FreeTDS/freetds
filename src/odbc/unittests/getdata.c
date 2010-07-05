@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.17 2010-03-02 15:07:00 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -13,17 +13,17 @@ test_err(const char *data, int c_type, const char *state)
 	char *buf = (char *) malloc(buf_size);
 
 	sprintf(sql, "SELECT '%s'", data);
-	Command(sql);
-	SQLFetch(Statement);
+	odbc_command(sql);
+	SQLFetch(odbc_stmt);
 	CHKGetData(1, c_type, buf, buf_size, &ind, "E");
 	free(buf);
-	ReadError();
+	odbc_read_error();
 	if (strcmp(odbc_sqlstate, state) != 0) {
 		fprintf(stderr, "Unexpected sql state returned\n");
-		Disconnect();
+		odbc_disconnect();
 		exit(1);
 	}
-	ResetStatement();
+	odbc_reset_statement();
 }
 
 static int lc;
@@ -56,14 +56,14 @@ main(int argc, char *argv[])
 	SQLLEN len;
 	SQLRETURN rc;
 
-	Connect();
+	odbc_connect();
 
 	lc = 1;
 	type = SQL_C_CHAR;
 
 	for (;;) {
 		/* TODO test with VARCHAR too */
-		Command("SELECT CONVERT(TEXT,'Prova')");
+		odbc_command("SELECT CONVERT(TEXT,'Prova')");
 
 		CHKFetch("S");
 
@@ -82,10 +82,10 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 
-		ResetStatement();
+		odbc_reset_statement();
 
 		/* test with varchar, not blob but variable */
-		Command("SELECT CONVERT(VARCHAR(100), 'Other test')");
+		odbc_command("SELECT CONVERT(VARCHAR(100), 'Other test')");
 
 		CHKFetch("S");
 
@@ -101,7 +101,7 @@ main(int argc, char *argv[])
 			exit(1);
 		}
 
-		ResetStatement();
+		odbc_reset_statement();
 
 		if (type != SQL_C_CHAR)
 			break;
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 	}
 
 	/* test with fixed length */
-	Command("SELECT CONVERT(INT, 12345)");
+	odbc_command("SELECT CONVERT(INT, 12345)");
 
 	CHKFetch("S");
 
@@ -128,10 +128,10 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* test with numeric */
-	Command("SELECT CONVERT(NUMERIC(18,5), 1850000000000)");
+	odbc_command("SELECT CONVERT(NUMERIC(18,5), 1850000000000)");
 
 	CHKFetch("S");
 
@@ -151,11 +151,11 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	ResetStatement();
+	odbc_reset_statement();
 
 
 	/* test int to truncated string */
-	Command("SELECT CONVERT(INTEGER, 12345)");
+	odbc_command("SELECT CONVERT(INTEGER, 12345)");
 	CHKFetch("S");
 
 	/* error 22003 */
@@ -168,37 +168,37 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 #endif
-	ReadError();
+	odbc_read_error();
 	if (strcmp(odbc_sqlstate, "22003") != 0) {
 		fprintf(stderr, "Unexpected sql state %s returned\n", odbc_sqlstate);
-		Disconnect();
+		odbc_disconnect();
 		exit(1);
 	}
 	CHKGetData(1, SQL_C_CHAR, buf, 2, NULL, "No");
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* test unique identifier to truncated string */
-	rc = Command2("SELECT CONVERT(UNIQUEIDENTIFIER, 'AA7DF450-F119-11CD-8465-00AA00425D90')", "SENo");
+	rc = odbc_command2("SELECT CONVERT(UNIQUEIDENTIFIER, 'AA7DF450-F119-11CD-8465-00AA00425D90')", "SENo");
 	if (rc != SQL_ERROR) {
 		CHKFetch("S");
 
 		/* error 22003 */
 		CHKGetData(1, SQL_C_CHAR, buf, 17, NULL, "E");
-		ReadError();
+		odbc_read_error();
 		if (strcmp(odbc_sqlstate, "22003") != 0) {
 			fprintf(stderr, "Unexpected sql state %s returned\n", odbc_sqlstate);
-			Disconnect();
+			odbc_disconnect();
 			exit(1);
 		}
 		CHKGetData(1, SQL_C_CHAR, buf, 2, NULL, "No");
 	}
-	ResetStatement();
+	odbc_reset_statement();
 
 
-	Disconnect();
+	odbc_disconnect();
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
 	/* test error from SQLGetData */
 	/* wrong constant, SQL_VARCHAR is invalid as C type */
@@ -213,12 +213,12 @@ main(int argc, char *argv[])
 	test_err("1234567890123456789", SQL_C_LONG,      "22003");
 
 	/* test for empty string from mssql */
-	if (db_is_microsoft()) {
+	if (odbc_db_is_microsoft()) {
 		lc = 1;
 		type = SQL_C_CHAR;
 
 		for (;;) {
-			Command("SELECT CONVERT(TEXT,'')");
+			odbc_command("SELECT CONVERT(TEXT,'')");
 
 			CHKFetch("S");
 
@@ -231,7 +231,7 @@ main(int argc, char *argv[])
 			}
 
 			CHKGetData(1, type, buf, lc, NULL, "No");
-			ResetStatement();
+			odbc_reset_statement();
 
 			if (type != SQL_C_CHAR)
 				break;
@@ -239,7 +239,7 @@ main(int argc, char *argv[])
 			type = SQL_C_WCHAR;
 		}	
 
-		Command("SELECT CONVERT(TEXT,'')");
+		odbc_command("SELECT CONVERT(TEXT,'')");
 
 		CHKFetch("S");
 
@@ -254,7 +254,7 @@ main(int argc, char *argv[])
 		CHKGetData(1, SQL_C_BINARY, buf, 1, NULL, "No");
 	}
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

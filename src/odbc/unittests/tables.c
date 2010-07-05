@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.18 2010-01-10 14:43:11 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.19 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -40,7 +40,7 @@ TestName(int index, const char *expected_name)
 
 	/* retrieve with SQLColAttribute */
 	CHKColAttribute(index, SQL_DESC_NAME, name, sizeof(name), &len, NULL, "S");
-	if (db_is_microsoft())
+	if (odbc_db_is_microsoft())
 		NAME_TEST;
 	CHKColAttribute(index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL, "S");
 	NAME_TEST;
@@ -72,8 +72,8 @@ DoTest(const char *type, int row_returned)
 	CHKTables((SQLCHAR *) catalog, LEN(catalog), (SQLCHAR *) schema, LEN(schema), (SQLCHAR *) table_buf, table_len, (SQLCHAR *) type, LEN(type), "SI");
 
 	/* test column name (for DBD::ODBC) */
-	TestName(1, use_odbc_version3 || !driver_is_freetds() ? "TABLE_CAT" : "TABLE_QUALIFIER");
-	TestName(2, use_odbc_version3 || !driver_is_freetds() ? "TABLE_SCHEM" : "TABLE_OWNER");
+	TestName(1, odbc_use_version3 || !odbc_driver_is_freetds() ? "TABLE_CAT" : "TABLE_QUALIFIER");
+	TestName(2, odbc_use_version3 || !odbc_driver_is_freetds() ? "TABLE_SCHEM" : "TABLE_OWNER");
 	TestName(3, "TABLE_NAME");
 	TestName(4, "TABLE_TYPE");
 	TestName(5, "REMARKS");
@@ -131,13 +131,13 @@ main(int argc, char *argv[])
 	char type[32];
 	int mssql2005 = 0;
 
-	use_odbc_version3 = 0;
-	Connect();
+	odbc_use_version3 = 0;
+	odbc_connect();
 
-	if (db_is_microsoft() && db_version_int() >= 0x09000000u) {
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x09000000u) {
 		mssql2005 = 1;
 		strcpy(expected_type, "VIEW");
-		CommandWithResult(Statement, "USE master");
+		odbc_command_with_result(odbc_stmt, "USE master");
 	}
 
 	DoTest(NULL, 1);
@@ -151,19 +151,19 @@ main(int argc, char *argv[])
 	sprintf(type, "TABLE,'%s'", expected_type);
 	DoTest(type, 1);
 
-	Disconnect();
+	odbc_disconnect();
 
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
 	if (mssql2005)
-		CommandWithResult(Statement, "USE master");
+		odbc_command_with_result(odbc_stmt, "USE master");
 
 	sprintf(type, "'%s'", expected_type);
 	DoTest(type, 1);
 	/* TODO this should work even for Sybase and mssql 2005 */
-	if (db_is_microsoft()) {
+	if (odbc_db_is_microsoft()) {
 		/* here table is a name of table */
 		catalog = "%";
 		schema = NULL;
@@ -197,7 +197,7 @@ main(int argc, char *argv[])
 	expect_col = 2;
 	DoTest(NULL, 2);
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

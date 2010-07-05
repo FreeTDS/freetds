@@ -2,7 +2,7 @@
 
 /* test SQL_C_DEFAULT with NCHAR type */
 
-static char software_version[] = "$Id: wchar.c,v 1.3 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: wchar.c,v 1.4 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -12,20 +12,20 @@ main(int argc, char *argv[])
 	SQLLEN ind;
 	int failed = 0;
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
 	CHKBindCol(1, SQL_C_DEFAULT, buf, 100, &ind, "S");
-	Command("SELECT CONVERT(NCHAR(10), 'Pippo 123')");
+	odbc_command("SELECT CONVERT(NCHAR(10), 'Pippo 123')");
 
 	/* get data */
 	memset(buf, 0, sizeof(buf));
 	CHKFetch("S");
 
-	SQLMoreResults(Statement);
-	SQLMoreResults(Statement);
+	SQLMoreResults(odbc_stmt);
+	SQLMoreResults(odbc_stmt);
 
-	Disconnect();
+	odbc_disconnect();
 
 	if (strcmp(buf, "Pippo 123 ") != 0) {
 		fprintf(stderr, "Wrong results '%s'\n", buf);

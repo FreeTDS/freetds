@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.45 2009-08-27 12:32:14 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.46 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -42,19 +42,19 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 	int i;
 	const char *sep;
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* build store procedure to test */
-	Command("IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
+	odbc_command("IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
 	sep = "'";
 	if (strncmp(value_to_convert, "0x", 2) == 0)
 		sep = "";
 	sprintf(sbuf, "CREATE PROC spTestProc @i %s OUTPUT AS SELECT @i = CONVERT(%s, %s%s%s)", type, type, sep, value_to_convert, sep);
-	Command(sbuf);
+	odbc_command(sbuf);
 	memset(out_buf, 0, sizeof(out_buf));
 
 	if (use_cursors) {
-		ResetStatement();
+		odbc_reset_statement();
 		CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0, "S");
 		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0, "S");
 	}
@@ -83,8 +83,8 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 	 * MS OBDC requires it cause first recordset is a recordset with a
 	 * warning caused by the way it execute RPC (via EXEC statement)
 	 */
-	if (use_cursors && !driver_is_freetds())
-		SQLMoreResults(Statement);
+	if (use_cursors && !odbc_driver_is_freetds())
+		SQLMoreResults(odbc_stmt);
 
 	/* test results */
 	sbuf[0] = 0;
@@ -115,7 +115,7 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 		fprintf(stderr, "Wrong result\n  Got: %s\n  Expected: %s\n", sbuf, expected);
 		exit(1);
 	}
-	Command("drop proc spTestProc");
+	odbc_command("drop proc spTestProc");
 }
 
 static char check_truncation = 0;
@@ -132,7 +132,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	const char *p;
 	const char *sep = "'";
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* execute a select to get data as wire */
 	if ((p = strstr(value_to_convert, " -> ")) != NULL) {
@@ -142,8 +142,8 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	if (value_len >= 2 && strncmp(value_to_convert, "0x", 2) == 0)
 		sep = "";
 	sprintf(sbuf, "SELECT CONVERT(%s, %s%.*s%s)", type, sep, (int) value_len, value_to_convert, sep);
-	Command(sbuf);
-	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
+	odbc_command(sbuf);
+	SQLBindCol(odbc_stmt, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	CHKFetch("SI");
 	CHKFetch("No");
 	CHKMoreResults("No");
@@ -153,12 +153,12 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	}
 
 	/* create a table with a column of that type */
-	ResetStatement();
+	odbc_reset_statement();
 	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s)", param_type);
-	Command(sbuf);
+	odbc_command(sbuf);
 
 	if (use_cursors) {
-		ResetStatement();
+		odbc_reset_statement();
 		CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0, "S");
 		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0, "S");
 	}
@@ -189,7 +189,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 
 	/* check if row is present */
 	if (!check_truncation) {
-		ResetStatement();
+		odbc_reset_statement();
 		sep = "'";
 		if (strncmp(expected, "0x", 2) == 0)
 			sep = "";
@@ -201,14 +201,14 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE CONVERT(VARBINARY(255), col) = CONVERT(VARBINARY(255), %s%s%s)", sep, expected, sep);
 		else
 			sprintf(sbuf, "SELECT * FROM #tmp_insert WHERE col = CONVERT(%s, %s%s%s)", param_type, sep, expected, sep);
-		Command(sbuf);
+		odbc_command(sbuf);
 
 		CHKFetch("S");
 		CHKFetch("No");
 		CHKMoreResults("No");
 	}
 	check_truncation = 0;
-	Command("DROP TABLE #tmp_insert");
+	odbc_command("DROP TABLE #tmp_insert");
 }
 
 /* stripped down version of TestInput for NULLs */
@@ -218,15 +218,15 @@ NullInput(SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *param_ty
 	char sbuf[1024];
 	SQLLEN out_len = SQL_NULL_DATA;
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* create a table with a column of that type */
-	ResetStatement();
+	odbc_reset_statement();
 	sprintf(sbuf, "CREATE TABLE #tmp_insert (col %s NULL)", param_type);
-	Command(sbuf);
+	odbc_command(sbuf);
 
 	if (use_cursors) {
-		ResetStatement();
+		odbc_reset_statement();
 		CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0, "S");
 		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0, "S");
 	}
@@ -250,16 +250,16 @@ NullInput(SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *param_ty
 	}
 
 	/* check if row is present */
-	ResetStatement();
-	if (!db_is_microsoft() && strcmp(param_type, "TEXT") == 0)
-		Command("SELECT * FROM #tmp_insert WHERE col LIKE ''");
+	odbc_reset_statement();
+	if (!odbc_db_is_microsoft() && strcmp(param_type, "TEXT") == 0)
+		odbc_command("SELECT * FROM #tmp_insert WHERE col LIKE ''");
 	else
-		Command("SELECT * FROM #tmp_insert WHERE col IS NULL");
+		odbc_command("SELECT * FROM #tmp_insert WHERE col IS NULL");
 
 	CHKFetch("S");
 	CHKFetch("No");
 	CHKMoreResults("No");
-	Command("DROP TABLE #tmp_insert");
+	odbc_command("DROP TABLE #tmp_insert");
 }
 
 
@@ -285,7 +285,7 @@ AllTests(void)
 	NullInput(SQL_C_TYPE_TIMESTAMP, SQL_TYPE_TIMESTAMP, "DATETIME");
 	NullInput(SQL_C_FLOAT,  SQL_REAL, "FLOAT");
 	NullInput(SQL_C_NUMERIC, SQL_LONGVARCHAR, "TEXT");
-	if (db_is_microsoft() && db_version_int() >= 0x08000000u)
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u)
 		NullInput(SQL_C_BIT, SQL_BIT, "BIT");
 	NullInput(SQL_C_DOUBLE, SQL_DOUBLE, "MONEY");
 
@@ -301,12 +301,12 @@ AllTests(void)
 	 * MS driver behavior for output parameters is different
 	 * former returns "313233" while newer "333133323333"
 	 */
-	if (driver_is_freetds())
+	if (odbc_driver_is_freetds())
 		TestOutput("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "333133323333");
 	/* FIXME our driver ignore precision for date */
 	precision = 3;
 	/* Some MS driver incorrectly prepare with smalldatetime*/
-	if (!use_cursors || driver_is_freetds())
+	if (!use_cursors || odbc_driver_is_freetds())
 		TestOutput("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
 	TestOutput("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP,
 	     big_endian ? "0000949700FB9640" : "979400004096FB00");
@@ -330,9 +330,9 @@ AllTests(void)
 	m = ltime->tm_mon + 1;
 	d = ltime->tm_mday;
 	/* server concept of data can be different so try ask to server */
-	Command("SELECT GETDATE()");
-	SQLBindCol(Statement, 1, SQL_C_CHAR, date, sizeof(date), NULL);
-	if (SQLFetch(Statement) == SQL_SUCCESS) {
+	odbc_command("SELECT GETDATE()");
+	SQLBindCol(odbc_stmt, 1, SQL_C_CHAR, date, sizeof(date), NULL);
+	if (SQLFetch(odbc_stmt) == SQL_SUCCESS) {
 		int a, b, c;
 		if (sscanf(date, "%d-%d-%d", &a, &b, &c) == 3) {
 			y = a;
@@ -340,9 +340,9 @@ AllTests(void)
 			d = c;
 		}
 	}
-	SQLFetch(Statement);
-	SQLMoreResults(Statement);
-	SQLFreeStmt(Statement, SQL_UNBIND);
+	SQLFetch(odbc_stmt);
+	SQLMoreResults(odbc_stmt);
+	SQLFreeStmt(odbc_stmt, SQL_UNBIND);
 	sprintf(buf, "2003-07-22 13:02:03 -> %04d-%02d-%02d 13:02:03", (int) y, (int) m, (int) d);
 	TestInput(SQL_C_TYPE_TIME, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", buf);
 
@@ -387,7 +387,7 @@ AllTests(void)
 	TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
 
 	/* TODO some Sybase versions */
-	if (db_is_microsoft() && db_version_int() >= 0x08000000u) {
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u) {
 		TestOutput("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
@@ -433,7 +433,7 @@ AllTests(void)
 		TestInput(SQL_C_BINARY, "VARBINARY(100)", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
 		TestInput(SQL_C_BINARY, "IMAGE", SQL_WVARCHAR, "NVARCHAR(20)", "0x4100450054004F00 -> AETO");
 	}
-	if (db_is_microsoft() && db_version_int() >= 0x09000000u) {
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x09000000u) {
 		TestInput(SQL_C_CHAR, "VARCHAR(20)", SQL_LONGVARCHAR, "VARCHAR(MAX)", "1EasyTest");
 		TestInput(SQL_C_BINARY, "VARBINARY(20)", SQL_LONGVARBINARY, "VARBINARY(MAX)", "Anything will suite!");
 	}
@@ -442,17 +442,17 @@ AllTests(void)
 int
 main(int argc, char *argv[])
 {
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
 	if (((char *) &big_endian)[0] == 1)
 		big_endian = 0;
 
 	for (use_cursors = 0; use_cursors <= 1; ++use_cursors) {
 		if (use_cursors) {
-			if (!tds_no_dm || !driver_is_freetds())
-				ResetStatement();
-			CheckCursor();
+			if (!tds_no_dm || !odbc_driver_is_freetds())
+				odbc_reset_statement();
+			odbc_check_cursor();
 		}
 
 		exec_direct = 1;
@@ -466,7 +466,7 @@ main(int argc, char *argv[])
 		AllTests();
 	}
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done successfully!\n");
 	return 0;

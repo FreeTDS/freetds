@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: scroll.c,v 1.9 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: scroll.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -41,22 +41,22 @@ main(int argc, char *argv[])
 	};
 	const int num_tests = sizeof(tests) / sizeof(TEST);
 
-	use_odbc_version3 = 1;
+	odbc_use_version3 = 1;
 
-	Connect();
-	CheckCursor();
+	odbc_connect();
+	odbc_check_cursor();
 
 	/* create test table */
-	Command("IF OBJECT_ID('tempdb..#test') IS NOT NULL DROP TABLE #test");
-	Command("CREATE TABLE #test(i int, c varchar(6))");
-	Command("INSERT INTO #test(i, c) VALUES(1, 'a')");
-	Command("INSERT INTO #test(i, c) VALUES(2, 'bb')");
-	Command("INSERT INTO #test(i, c) VALUES(3, 'ccc')");
-	Command("INSERT INTO #test(i, c) VALUES(4, 'dddd')");
-	Command("INSERT INTO #test(i, c) VALUES(5, 'eeeee')");
+	odbc_command("IF OBJECT_ID('tempdb..#test') IS NOT NULL DROP TABLE #test");
+	odbc_command("CREATE TABLE #test(i int, c varchar(6))");
+	odbc_command("INSERT INTO #test(i, c) VALUES(1, 'a')");
+	odbc_command("INSERT INTO #test(i, c) VALUES(2, 'bb')");
+	odbc_command("INSERT INTO #test(i, c) VALUES(3, 'ccc')");
+	odbc_command("INSERT INTO #test(i, c) VALUES(4, 'dddd')");
+	odbc_command("INSERT INTO #test(i, c) VALUES(5, 'eeeee')");
 
 	/* set cursor options */
-	ResetStatement();
+	odbc_reset_statement();
 	CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_ROWVER, 0, "S");
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, 0, "S");
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, 0, "S");
@@ -112,8 +112,8 @@ main(int argc, char *argv[])
 		}
 	}
 
-	ResetStatement();
+	odbc_reset_statement();
 
-	Disconnect();
+	odbc_disconnect();
 	return 0;
 }

@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.24 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.25 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -61,7 +61,7 @@ TestResult(SQLRETURN result0, int level, const char *func)
 	SqlState[0] = 0;
 	MessageText[0] = 0;
 	NativeError = 0;
-	rc = CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText), &TextLength, "SI");
+	rc = CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText), &TextLength, "SI");
 	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) rc, SqlState, (int) NativeError, MessageText);
 
 	if (strstr(MessageText, "An error occurred") == NULL) {
@@ -71,7 +71,7 @@ TestResult(SQLRETURN result0, int level, const char *func)
 	}
 }
 
-#define MY_ERROR(msg) ReportError(msg, line, __FILE__)
+#define MY_ERROR(msg) odbc_report_error(msg, line, __FILE__)
 
 static void
 CheckData(const char *s, int line)
@@ -120,7 +120,7 @@ Test(int level)
 
 	char sql[80];
 
-	printf("ODBC %d nocount %s select %s level %d\n", use_odbc_version3 ? 3 : 2,
+	printf("ODBC %d nocount %s select %s level %d\n", odbc_use_version3 ? 3 : 2,
 	       g_nocount ? "yes" : "no", g_second_select ? "yes" : "no", level);
 
 	ReturnCode = INVALID_RETURN;
@@ -128,21 +128,21 @@ Test(int level)
 
 	/* test with SQLExecDirect */
 	sprintf(sql, "RAISERROR('An error occurred.', %d, 1)", level);
-	result = CommandWithResult(Statement, sql);
+	result = odbc_command_with_result(odbc_stmt, sql);
 
 	TestResult(result, level, "SQLExecDirect");
 
 	/* test with SQLPrepare/SQLExecute */
-	if (!SQL_SUCCEEDED(SQLPrepare(Statement, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)))) {
+	if (!SQL_SUCCEEDED(SQLPrepare(odbc_stmt, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)))) {
 		fprintf(stderr, "SQLPrepare failure!\n");
 		exit(1);
 	}
 
-	SQLBindParameter(Statement, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode);
-	SQLBindParameter(Statement, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam);
-	SQLBindParameter(Statement, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam, 0, &cbOutParam);
+	SQLBindParameter(odbc_stmt, 1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode);
+	SQLBindParameter(odbc_stmt, 2, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam, 0, &cbInParam);
+	SQLBindParameter(odbc_stmt, 3, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &OutParam, 0, &cbOutParam);
 	strcpy(OutString, "Test");
-	SQLBindParameter(Statement, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
+	SQLBindParameter(odbc_stmt, 4, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, OUTSTRING_LEN, 0, OutString, OUTSTRING_LEN,
 			 &cbOutString);
 
 	CHKExecute("S");
@@ -151,8 +151,8 @@ Test(int level)
 	CHKFetch("S");
 	CheckData("Here is the first row");
 
-	result = SQLFetch(Statement);
-	if (use_odbc_version3) {
+	result = SQLFetch(odbc_stmt);
+	if (odbc_use_version3) {
 		SQLCHAR SqlState[6];
 		SQLINTEGER NativeError;
 		char MessageText[1000];
@@ -161,13 +161,13 @@ Test(int level)
 
 		if (result != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLFetch should return NO DATA");
-		CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, SqlState, &NativeError, (SQLCHAR *) MessageText,
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, (SQLCHAR *) MessageText,
 				       sizeof(MessageText), &TextLength, "No");
-		result = SQLMoreResults(Statement);
+		result = SQLMoreResults(odbc_stmt);
 		expected = level > 10 ? SQL_ERROR : SQL_SUCCESS_WITH_INFO;
 		if (result != expected)
 			ODBC_REPORT_ERROR("SQLMoreResults returned unexpected result");
-		if (use_odbc_version3 && !g_second_select && g_nocount) {
+		if (odbc_use_version3 && !g_second_select && g_nocount) {
 			CheckReturnCode(result, 0);
 			ReturnCode = INVALID_RETURN;
 			TestResult(result, level, "SQLMoreResults");
@@ -175,30 +175,30 @@ Test(int level)
 		} else {
 			TestResult(result, level, "SQLMoreResults");
 		}
-		CHECK_ROWS(-1);
+		ODBC_CHECK_ROWS(-1);
 	} else {
 		TestResult(result, level, "SQLFetch");
 	}
 
-	if (driver_is_freetds())
+	if (odbc_driver_is_freetds())
 		CheckData("");
 
 	if (!g_second_select) {
-		CHECK_ROWS(-1);
+		ODBC_CHECK_ROWS(-1);
 		CheckReturnCode(result, g_nocount ? 0 : INVALID_RETURN);
 
-		result = SQLMoreResults(Statement);
+		result = SQLMoreResults(odbc_stmt);
 #ifdef ENABLE_DEVELOPING
 		if (result != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLMoreResults should return NO DATA");
 
-		CHECK_ROWS(-2);
+		ODBC_CHECK_ROWS(-2);
 #endif
 		CheckReturnCode(result, 0);
 		return;
 	}
 
-	if (!use_odbc_version3 || !g_nocount) {
+	if (!odbc_use_version3 || !g_nocount) {
 		CHKMoreResults("S");
 		result = SQL_SUCCESS;
 	}
@@ -212,7 +212,7 @@ Test(int level)
 	CHKFetch("No");
 	CheckData("");
 
-	if (!use_odbc_version3 || g_nocount)
+	if (!odbc_use_version3 || g_nocount)
 		CheckReturnCode(result, 0);
 #ifdef ENABLE_DEVELOPING
 	else
@@ -220,7 +220,7 @@ Test(int level)
 #endif
 
 	/* FIXME how to handle return in store procedure ??  */
-	result = SQLMoreResults(Statement);
+	result = SQLMoreResults(odbc_stmt);
 #ifdef ENABLE_DEVELOPING
 	if (result != SQL_NO_DATA)
 		ODBC_REPORT_ERROR("SQLMoreResults return other data");
@@ -240,34 +240,34 @@ Test2(int nocount, int second_select)
 	g_second_select = second_select;
 
 	/* this test do not work with Sybase */
-	if (!db_is_microsoft())
+	if (!odbc_db_is_microsoft())
 		return;
 
 	sprintf(sql, create_proc, nocount ? "     SET NOCOUNT ON\n" : "",
 		second_select ? "     SELECT 'Here is the last row' AS LastResult\n" : "");
-	Command(sql);
+	odbc_command(sql);
 
 	Test(5);
 
 	Test(11);
 
-	Command("DROP PROC #tmp1");
+	odbc_command("DROP PROC #tmp1");
 }
 
 int
 main(int argc, char *argv[])
 {
-	Connect();
+	odbc_connect();
 
 	Test2(0, 1);
 
 	Test2(1, 1);
 
-	Disconnect();
+	odbc_disconnect();
 
-	use_odbc_version3 = 1;
+	odbc_use_version3 = 1;
 
-	Connect();
+	odbc_connect();
 
 	Test2(0, 1);
 	Test2(1, 1);
@@ -275,7 +275,7 @@ main(int argc, char *argv[])
 	Test2(0, 0);
 	Test2(1, 0);
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

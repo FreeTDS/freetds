@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.18 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.19 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -14,22 +14,22 @@ main(int argc, char *argv[])
 	const char *command;
 	SQLCHAR output[256];
 
-	Connect();
+	odbc_connect();
 
-	Command("if object_id('tempdb..#odbctestdata') is not null drop table #odbctestdata");
+	odbc_command("if object_id('tempdb..#odbctestdata') is not null drop table #odbctestdata");
 
 	command = "create table #odbctestdata ("
 		"col1 varchar(30) not null,"
 		"col2 int not null,"
 		"col3 float not null," "col4 numeric(18,6) not null," "col5 datetime not null," "col6 text not null)";
-	Command(command);
+	odbc_command(command);
 
 	command = "insert #odbctestdata values ("
 		"'ABCDEFGHIJKLMNOP',"
 		"123456," "1234.56," "123456.78," "'Sep 11 2001 10:00AM'," "'just to check returned length...')";
-	Command(command);
+	odbc_command(command);
 
-	Command("select * from #odbctestdata");
+	odbc_command("select * from #odbctestdata");
 
 	CHKFetch("SI");
 
@@ -45,9 +45,9 @@ main(int argc, char *argv[])
 
 	CHKCloseCursor("SI");
 
-	Command("drop table #odbctestdata");
+	odbc_command("drop table #odbctestdata");
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

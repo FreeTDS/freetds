@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.32 2009-11-29 20:06:28 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.33 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -30,8 +30,8 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	SQLWCHAR *wp;
 	int i;
 
-	SQLFreeStmt(Statement, SQL_UNBIND);
-	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
+	SQLFreeStmt(odbc_stmt, SQL_UNBIND);
+	SQLFreeStmt(odbc_stmt, SQL_RESET_PARAMS);
 
 	/* execute a select to get data as wire */
 	sprintf(sbuf, "SELECT CONVERT(%s, '%s') AS data", type, value_to_convert);
@@ -42,15 +42,15 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	else if (strncmp(value_to_convert, "u&'", 3) == 0)
 		sprintf(sbuf, "SELECT CONVERT(%s, %s) AS data", type, value_to_convert);
 	if (ignore_select_error) {
-		if (Command2(sbuf, "SENo") == SQL_ERROR) {
-			ResetStatement();
+		if (odbc_command2(sbuf, "SENo") == SQL_ERROR) {
+			odbc_reset_statement();
 			return;
 		}
 	} else {
-		Command(sbuf);
+		odbc_command(sbuf);
 	}
 	ignore_select_error = 0;
-	SQLBindCol(Statement, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
+	SQLBindCol(odbc_stmt, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	CHKFetch("S");
 	CHKFetch("No");
 	CHKMoreResults("No");
@@ -106,7 +106,7 @@ main(int argc, char *argv[])
 {
 	int big_endian = 1;
 
-	Connect();
+	odbc_connect();
 
 	if (((char *) &big_endian)[0] == 1)
 		big_endian = 0;
@@ -123,7 +123,7 @@ main(int argc, char *argv[])
 	Test("IMAGE", "cricetone", SQL_C_BINARY, "6372696365746F6E65");
 	Test("VARBINARY(20)", "teo", SQL_C_BINARY, "74656F");
 	/* TODO only MS ?? */
-	if (db_is_microsoft())
+	if (odbc_db_is_microsoft())
 		Test("TIMESTAMP", "abcdefghi", SQL_C_BINARY, "6162636465666768");
 
 	Test("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
@@ -134,8 +134,8 @@ main(int argc, char *argv[])
 	Test("TINYINT", "231", SQL_C_BINARY, "E7");
 	Test("SMALLINT", "4321", SQL_C_BINARY, big_endian ? "10E1" : "E110");
 	Test("INT", "1234567", SQL_C_BINARY, big_endian ? "0012D687" : "87D61200");
-	if ((db_is_microsoft() && db_version_int() >= 0x08000000u)
-	    || (!db_is_microsoft() && strncmp(db_version(), "15.00.", 6) >= 0)) {
+	if ((odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u)
+	    || (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0)) {
 		int old_result = result;
 
 		Test("BIGINT", "123456789012345", SQL_C_BINARY, big_endian ? "00007048860DDF79" : "79DF0D8648700000");
@@ -149,12 +149,12 @@ main(int argc, char *argv[])
 	Test("INT", "-123", SQL_C_CHAR, "4 -123");
 	Test("INT", "78654", SQL_C_WCHAR, "5 78654");
 	Test("VARCHAR(10)", "  51245  ", SQL_C_LONG, "51245");
-	if (db_is_microsoft() && (strncmp(db_version(), "08.00.", 6) == 0 || strncmp(db_version(), "09.00.", 6) == 0)) {
+	if (odbc_db_is_microsoft() && (strncmp(odbc_db_version(), "08.00.", 6) == 0 || strncmp(odbc_db_version(), "09.00.", 6) == 0)) {
 		/* nvarchar without extended characters */
 		Test("NVARCHAR(20)", "test", SQL_C_CHAR, "4 test");
 		/* nvarchar with extended characters */
 		/* don't test with MS which usually have a not compatible encoding */
-		if (driver_is_freetds())
+		if (odbc_driver_is_freetds())
 			Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_CHAR, "4 \x83hi\xf2");
 
 		Test("VARCHAR(20)", "test", SQL_C_WCHAR, "4 test");
@@ -179,13 +179,13 @@ main(int argc, char *argv[])
 	Test("MONEY", "4321234.5678", SQL_C_BINARY, big_endian ? "0000000A0FA8114E" : "0A0000004E11A80F");
 
 	/* behavior is different from MS ODBC */
-	if (db_is_microsoft()) {
+	if (odbc_db_is_microsoft()) {
 		Test("NCHAR(7)", "donald", SQL_C_BINARY, "64006F006E0061006C0064002000");
 		Test("NTEXT", "duck", SQL_C_BINARY, "6400750063006B00");
 		Test("NVARCHAR(20)", "daffy", SQL_C_BINARY, "64006100660066007900");
 	}
 
-	if (db_is_microsoft())
+	if (odbc_db_is_microsoft())
 		Test("UNIQUEIDENTIFIER", "0DDF3B64-E692-11D1-AB06-00AA00BDD685", SQL_C_BINARY,
 		     big_endian ? "0DDF3B64E69211D1AB0600AA00BDD685" : "643BDF0D92E6D111AB0600AA00BDD685");
 
@@ -195,7 +195,7 @@ main(int argc, char *argv[])
 	Test("DATETIME", "2006-06-09 11:22:44", SQL_C_WCHAR, "23 2006-06-09 11:22:44.000");
 	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_WCHAR, "19 2006-06-12 22:37:00");
 
-	if (db_is_microsoft() && db_version_int() >= 0x08000000u) {
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u) {
 		Test("SQL_VARIANT", "CAST('123' AS INT)", SQL_C_CHAR, "3 123");
 		Test("SQL_VARIANT", "CAST('hello' AS CHAR(6))", SQL_C_CHAR, "6 hello ");
 		Test("SQL_VARIANT", "CAST('ciao' AS VARCHAR(10))", SQL_C_CHAR, "4 ciao");
@@ -207,14 +207,14 @@ main(int argc, char *argv[])
 		Test("SQL_VARIANT", "CAST('-123.4' AS NUMERIC(10,2))", SQL_C_CHAR, "7 -123.40");
 	}
 
-	if (db_is_microsoft() && db_version_int() >= 0x09000000u) {
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x09000000u) {
 		Test("VARCHAR(MAX)", "goodbye!", SQL_C_CHAR, "8 goodbye!");
 		Test("NVARCHAR(MAX)", "Micio mao", SQL_C_CHAR, "9 Micio mao");
 		Test("VARBINARY(MAX)", "ciao", SQL_C_BINARY, "6369616F");
 		Test("XML", "<a b=\"aaa\"><b>ciao</b>hi</a>", SQL_C_CHAR, "28 <a b=\"aaa\"><b>ciao</b>hi</a>");
 	}
 
-	Disconnect();
+	odbc_disconnect();
 
 	if (!result)
 		printf("Done successfully!\n");

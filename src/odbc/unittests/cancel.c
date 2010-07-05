@@ -105,22 +105,22 @@ Test(int use_threads)
 	} else {
 		pthread_join(wait_thread, NULL);
 	}
-	getErrorInfo(SQL_HANDLE_STMT, Statement);
+	getErrorInfo(SQL_HANDLE_STMT, odbc_stmt);
 	if (strcmp(sqlstate, "HY008") != 0) {
 		fprintf(stderr, "Unexpected sql state returned\n");
-		Disconnect();
+		odbc_disconnect();
 		exit(1);
 	}
 
-	ResetStatement();
+	odbc_reset_statement();
 
-	Command("SELECT name FROM sysobjects WHERE 0=1");
+	odbc_command("SELECT name FROM sysobjects WHERE 0=1");
 }
 
 int
 main(int argc, char **argv)
 {
-	if (read_login_info())
+	if (odbc_read_login_info())
 		exit(1);
 
 	/*
@@ -128,11 +128,11 @@ main(int argc, char **argv)
 	 * is better to do it before connect cause uniODBC cache INIs
 	 * the name must be odbcinst.ini cause unixODBC accept only this name
 	 */
-	if (DRIVER[0]) {
+	if (odbc_driver[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
 
 		if (f) {
-			fprintf(f, "[FreeTDS]\nDriver = %s\nThreading = 0\n", DRIVER);
+			fprintf(f, "[FreeTDS]\nDriver = %s\nThreading = 0\n", odbc_driver);
 			fclose(f);
 			/* force iODBC */
 			setenv("ODBCINSTINI", "./odbcinst.ini", 1);
@@ -142,13 +142,13 @@ main(int argc, char **argv)
 		}
 	}
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
 	Test(0);
 	Test(1);
 
-	Disconnect();
+	odbc_disconnect();
 	return 0;
 }
 

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: print.c,v 1.23 2010-03-02 15:07:00 freddy77 Exp $";
+static char software_version[] = "$Id: print.c,v 1.24 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLCHAR output[256];
@@ -17,15 +17,15 @@ test(int odbc3)
 	SQLLEN cnamesize;
 	const char *query;
 
-	use_odbc_version3 = odbc3;
+	odbc_use_version3 = odbc3;
 
-	Connect();
+	odbc_connect();
 
 	/* issue print statement and test message returned */
 	output[0] = 0;
 	query = "print 'START' select count(*) from sysobjects where name='sysobjects' print 'END'";
-	Command2(query, "I");
-	ReadError();
+	odbc_command2(query, "I");
+	odbc_read_error();
 	if (!strstr(odbc_err, "START")) {
 		printf("Message invalid\n");
 		return 1;
@@ -33,22 +33,22 @@ test(int odbc3)
 	odbc_err[0] = 0;
 
 	if (odbc3) {
-		CHECK_COLS(0);
-		CHECK_ROWS(-1);
+		ODBC_CHECK_COLS(0);
+		ODBC_CHECK_ROWS(-1);
 		CHKFetch("E");
 		CHKMoreResults("S");
 	}
     
-	CHECK_COLS(1);
-	CHECK_ROWS(-1);
+	ODBC_CHECK_COLS(1);
+	ODBC_CHECK_ROWS(-1);
 
 	CHKFetch("S");
-	CHECK_COLS(1);
-	CHECK_ROWS(-1);
+	ODBC_CHECK_COLS(1);
+	ODBC_CHECK_ROWS(-1);
 	/* check no data */
 	CHKFetch("No");
-	CHECK_COLS(1);
-	CHECK_ROWS(1);
+	ODBC_CHECK_COLS(1);
+	ODBC_CHECK_ROWS(1);
 
 	/* SQLMoreResults return NO DATA or SUCCESS WITH INFO ... */
 	if (tds_no_dm && !odbc3)
@@ -63,7 +63,7 @@ test(int odbc3)
 	 * (unixODBC till 2.2.11 do not read errors on NO DATA, skip test)
 	 */
 	if (tds_no_dm || odbc3) {
-		ReadError();
+		odbc_read_error();
 		if (!strstr(odbc_err, "END")) {
 			printf("Message invalid\n");
 			return 1;
@@ -74,29 +74,29 @@ test(int odbc3)
 	if (!odbc3) {
 		if (tds_no_dm) {
 #if 0
-			CHECK_COLS(-1);
+			ODBC_CHECK_COLS(-1);
 #endif
-			CHECK_ROWS(-2);
+			ODBC_CHECK_ROWS(-2);
 		}
 	} else {
-		CHECK_COLS(0);
-		CHECK_ROWS(-1);
+		ODBC_CHECK_COLS(0);
+		ODBC_CHECK_ROWS(-1);
 
 		CHKMoreResults("No");
 	}
 
 	/* issue invalid command and test error */
-	Command2("SELECT donotexistsfield FROM donotexiststable", "E");
-	ReadError();
+	odbc_command2("SELECT donotexistsfield FROM donotexiststable", "E");
+	odbc_read_error();
 
 	/* test no data returned */
 	CHKFetch("E");
-	ReadError();
+	odbc_read_error();
 
 	CHKGetData(1, SQL_C_CHAR, output, sizeof(output), &cnamesize, "E");
-	ReadError();
+	odbc_read_error();
 
-	Disconnect();
+	odbc_disconnect();
 
 	return 0;
 }

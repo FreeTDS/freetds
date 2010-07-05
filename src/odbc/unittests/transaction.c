@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.16 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.17 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
@@ -24,44 +24,44 @@ Test(int discard_test)
 		"INSERT INTO TestTransaction VALUES ( @value )\n%s", discard_test ? "SELECT * FROM TestTransaction\n" : "");
 
 	/* create stored proc */
-	CommandWithResult(Statement, "DROP PROCEDURE testinsert");
+	odbc_command_with_result(odbc_stmt, "DROP PROCEDURE testinsert");
 
-	Command(createProcedure);
+	odbc_command(createProcedure);
 
 	/* create stored proc that generates an error */
-	CommandWithResult(Statement, "DROP PROCEDURE testerror");
+	odbc_command_with_result(odbc_stmt, "DROP PROCEDURE testerror");
 
-	Command(createErrorProcedure);
+	odbc_command(createErrorProcedure);
 
 	/* Start transaction */
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0, "S");
 
 	/* Insert a value */
-	Command("EXEC testinsert 1");
+	odbc_command("EXEC testinsert 1");
 
 	/* we should be able to read row count */
 	CHKRowCount(&rows, "S");
 
 	/* Commit transaction */
-	CHKEndTran(SQL_HANDLE_DBC, Connection, SQL_COMMIT, "S");
+	CHKEndTran(SQL_HANDLE_DBC, odbc_conn, SQL_COMMIT, "S");
 
-	SQLCloseCursor(Statement);
+	SQLCloseCursor(odbc_stmt);
 
 	/* Start transaction */
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_OFF, 0, "S");
 
 	/* Insert another value */
-	Command("EXEC testinsert 2");
+	odbc_command("EXEC testinsert 2");
 
 	/* Roll back transaction */
-	CHKEndTran(SQL_HANDLE_DBC, Connection, SQL_ROLLBACK, "S");
+	CHKEndTran(SQL_HANDLE_DBC, odbc_conn, SQL_ROLLBACK, "S");
 
 	/* TODO test row inserted */
 
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (void *) SQL_AUTOCOMMIT_ON, 0, "S");
 
 	/* generate an error */
-	Command("EXEC testerror");
+	odbc_command("EXEC testerror");
 	CHKBindCol(1, SQL_C_SLONG, &out_buf, sizeof(out_buf), &out_len, "S");
 
 	while (CHKFetch("SNo") == SQL_SUCCESS) {
@@ -75,15 +75,15 @@ Test(int discard_test)
 
 	CHKMoreResults("E");
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *)buf, sizeof(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, (SQLCHAR *)buf, sizeof(buf), NULL, "SI");
 	printf("err=%s\n", buf);
 
 	CHKMoreResults("No");
 
       cleanup:
 	/* drop table */
-	CommandWithResult(Statement, "DROP PROCEDURE testinsert");
-	CommandWithResult(Statement, "DROP PROCEDURE testerror");
+	odbc_command_with_result(odbc_stmt, "DROP PROCEDURE testinsert");
+	odbc_command_with_result(odbc_stmt, "DROP PROCEDURE testerror");
 
 	return retcode;
 }
@@ -93,11 +93,11 @@ main(int argc, char *argv[])
 {
 	int retcode = 0;
 
-	Connect();
+	odbc_connect();
 
 	/* create table */
-	CommandWithResult(Statement, "DROP TABLE TestTransaction");
-	Command("CREATE TABLE TestTransaction ( value INT )");
+	odbc_command_with_result(odbc_stmt, "DROP TABLE TestTransaction");
+	odbc_command("CREATE TABLE TestTransaction ( value INT )");
 
 	if (!retcode)
 		retcode = Test(1);
@@ -105,9 +105,9 @@ main(int argc, char *argv[])
 		retcode = Test(0);
 
 	/* drop table */
-	CommandWithResult(Statement, "DROP TABLE TestTransaction");
+	odbc_command_with_result(odbc_stmt, "DROP TABLE TestTransaction");
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return retcode;

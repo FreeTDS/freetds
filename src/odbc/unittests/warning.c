@@ -14,7 +14,7 @@
  * inside recordset
  * Sybase do not return warning but test works the same
  */
-static char software_version[] = "$Id: warning.c,v 1.9 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: warning.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
@@ -44,28 +44,28 @@ Test(const char *query)
 	 * We check for "NO DM" cause unixODBC till 2.2.11 do not read
 	 * errors on SQL_NO_DATA
 	 */
-	if (db_is_microsoft() && tds_no_dm) {
+	if (odbc_db_is_microsoft() && tds_no_dm) {
 		SQLCHAR output[256];
 
-		CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, NULL, NULL, output, sizeof(output), NULL, "SI");
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, NULL, NULL, output, sizeof(output), NULL, "SI");
 		printf("Message: %s\n", (char *) output);
 	}
 
-	ResetStatement();
+	odbc_reset_statement();
 }
 
 int
 main(void)
 {
-	Connect();
+	odbc_connect();
 
-	Command("CREATE TABLE #warning(name varchar(20), value int null)");
-	Command("INSERT INTO #warning VALUES('a', NULL)");
+	odbc_command("CREATE TABLE #warning(name varchar(20), value int null)");
+	odbc_command("INSERT INTO #warning VALUES('a', NULL)");
 
 	Test(one_null_with_warning);
 	Test("SELECT SUM(value) FROM #warning");
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

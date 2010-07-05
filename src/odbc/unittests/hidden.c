@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: hidden.c,v 1.7 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: hidden.c,v 1.8 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -12,16 +12,16 @@ main(int argc, char **argv)
 	SQLSMALLINT cnt = 0;
 	int failed = 0;
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
-	Command("CREATE TABLE #t1 ( k INT, c CHAR(10), vc VARCHAR(10) )");
-	Command("CREATE TABLE #tmp1 (i NUMERIC(10,0) IDENTITY PRIMARY KEY, b VARCHAR(20) NULL, c INT NOT NULL)");
+	odbc_command("CREATE TABLE #t1 ( k INT, c CHAR(10), vc VARCHAR(10) )");
+	odbc_command("CREATE TABLE #tmp1 (i NUMERIC(10,0) IDENTITY PRIMARY KEY, b VARCHAR(20) NULL, c INT NOT NULL)");
 
 	/* test hidden column with FOR BROWSE */
-	ResetStatement();
+	odbc_reset_statement();
 
-	Command("SELECT c, b FROM #tmp1");
+	odbc_command("SELECT c, b FROM #tmp1");
 
 	CHKNumResultCols(&cnt, "S");
 
@@ -29,10 +29,10 @@ main(int argc, char **argv)
 		fprintf(stderr, "Wrong number of columns in result set: %d\n", (int) cnt);
 		failed = 1;
 	}
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* test hidden column with cursors*/
-	CheckCursor();
+	odbc_check_cursor();
 
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER, "S");
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER, "S");
@@ -48,7 +48,7 @@ main(int argc, char **argv)
 		failed = 1;
 	}
 
-	Disconnect();
+	odbc_disconnect();
 
 	return failed ? 1: 0;
 }

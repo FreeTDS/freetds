@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.21 2010-07-05 07:20:47 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.22 2010-07-05 09:20:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -229,7 +229,7 @@ int
 main(int argc, char **argv)
 {
 	SQLRETURN RetCode;
-	SQLHSTMT old_Statement = SQL_NULL_HSTMT;
+	SQLHSTMT old_odbc_stmt = SQL_NULL_HSTMT;
 	int i;
 
 	int key;
@@ -238,8 +238,8 @@ main(int argc, char **argv)
 	char sql[256];
 	test_info *t = NULL;
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
 	/* tests (W)CHAR/BINARY -> (W)CHAR/BINARY (9 cases) */
 	add_test(SQL_C_BINARY, SQL_LONGVARCHAR,   "TEXT",  123, 1 );
@@ -248,7 +248,7 @@ main(int argc, char **argv)
 	add_test(SQL_C_CHAR,   SQL_LONGVARCHAR,   "TEXT",  343, 47);
 	add_test(SQL_C_WCHAR,  SQL_LONGVARBINARY, "IMAGE", 561, 29);
 	add_test(SQL_C_WCHAR,  SQL_LONGVARCHAR,   "TEXT",  698, 24);
-	if (db_is_microsoft()) {
+	if (odbc_db_is_microsoft()) {
 		add_test(SQL_C_BINARY, SQL_WLONGVARCHAR, "NTEXT", 765, 12);
 		add_test(SQL_C_CHAR,   SQL_WLONGVARCHAR, "NTEXT", 237, 71);
 		add_test(SQL_C_WCHAR,  SQL_WLONGVARCHAR, "NTEXT", 687, 68);
@@ -258,19 +258,19 @@ main(int argc, char **argv)
 	for (t = test_infos; t < test_infos+num_tests; ++t)
 		sprintf(strchr(sql, 0), ",f%u %s", t->num, t->db_type);
 	strcat(sql, ",v INT)");
-	Command(sql);
+	odbc_command(sql);
 
-	old_Statement = Statement;
-	Statement = SQL_NULL_HSTMT;
+	old_odbc_stmt = odbc_stmt;
+	odbc_stmt = SQL_NULL_HSTMT;
 
 	/* Insert rows ... */
 
 	for (i = 0; i < cnt; i++) {
 		/* MS do not save correctly char -> binary */
-		if (!driver_is_freetds() && i)
+		if (!odbc_driver_is_freetds() && i)
 			continue;
 
-		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "S");
+		CHKAllocHandle(SQL_HANDLE_STMT, odbc_conn, &odbc_stmt, "S");
 
 		strcpy(sql, "INSERT INTO #tt VALUES(?");
 		for (t = test_infos; t < test_infos+num_tests; ++t)
@@ -322,8 +322,8 @@ main(int argc, char **argv)
 			}
 		}
 
-		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
-		Statement = SQL_NULL_HSTMT;
+		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) odbc_stmt, "S");
+		odbc_stmt = SQL_NULL_HSTMT;
 	}
 
 	/* Now fetch rows ... */
@@ -331,13 +331,13 @@ main(int argc, char **argv)
 	for (wide = 0; wide < 2; ++wide)
 	for (i = 0; i < cnt; i++) {
 		/* MS do not save correctly char -> binary */
-		if (!driver_is_freetds() && i)
+		if (!odbc_driver_is_freetds() && i)
 			continue;
 
 
-		CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "S");
+		CHKAllocHandle(SQL_HANDLE_STMT, odbc_conn, &odbc_stmt, "S");
 
-		if (db_is_microsoft()) {
+		if (odbc_db_is_microsoft()) {
 			CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER, "S");
 			CHKSetStmtAttr(SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER, "S");
 		}
@@ -371,14 +371,14 @@ main(int argc, char **argv)
 		}
 
 		CHKCloseCursor("S");
-		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
-		Statement = SQL_NULL_HSTMT;
+		CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) odbc_stmt, "S");
+		odbc_stmt = SQL_NULL_HSTMT;
 	}
 
-	Statement = old_Statement;
+	odbc_stmt = old_odbc_stmt;
 
 	free_tests();
-	Disconnect();
+	odbc_disconnect();
 
 	if (!failed)
 		printf("ok!\n");

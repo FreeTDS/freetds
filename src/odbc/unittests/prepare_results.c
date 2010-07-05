@@ -2,7 +2,7 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.11 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_results.c,v 1.12 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -12,14 +12,14 @@ main(int argc, char *argv[])
 	SQLULEN size;
 	char name[128];
 
-	Connect();
+	odbc_connect();
 
-	Command("create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
+	odbc_command("create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
 
 	/* reset state */
-	Command("select * from #odbctestdata");
-	SQLFetch(Statement);
-	SQLMoreResults(Statement);
+	odbc_command("select * from #odbctestdata");
+	SQLFetch(odbc_stmt);
+	SQLMoreResults(odbc_stmt);
 
 	/* test query returns column information for update */
 	CHKPrepare((SQLCHAR *) "update #odbctestdata set i = 20", SQL_NTS, "S");
@@ -50,7 +50,7 @@ main(int argc, char *argv[])
 
 	CHKDescribeCol(2, (SQLCHAR *) name, sizeof(name), &namelen, &type, &size, &digits, &nullable, "S");
 
-	if (type != SQL_CHAR || strcmp(name, "c") != 0 || (size != 20 && (db_is_microsoft() || size != 40))) {
+	if (type != SQL_CHAR || strcmp(name, "c") != 0 || (size != 20 && (odbc_db_is_microsoft() || size != 40))) {
 		fprintf(stderr, "wrong column 2 informations (type %d name '%s' size %d)\n", (int) type, name, (int) size);
 		exit(1);
 	}
@@ -63,9 +63,9 @@ main(int argc, char *argv[])
 	}
 
 	/* TODO test SQLDescribeParam (when implemented) */
-	Command("drop table #odbctestdata");
+	odbc_command("drop table #odbctestdata");
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

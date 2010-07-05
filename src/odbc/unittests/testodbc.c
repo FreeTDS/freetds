@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: testodbc.c,v 1.14 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: testodbc.c,v 1.15 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef DEBUG
@@ -51,11 +51,11 @@ TestRawODBCPreparedQuery(void)
 
 	/* INIT */
 
-	Connect();
+	odbc_connect();
 
 	/* MAKE QUERY */
 
-	Command("CREATE TABLE #Products ("
+	odbc_command("CREATE TABLE #Products ("
 		"ProductID int NOT NULL ,"
 		"ProductName varchar (40) ,"
 		"SupplierID int NULL ,"
@@ -72,7 +72,7 @@ TestRawODBCPreparedQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(74,'Longlife Tofu',4,7,'5 kg pkg.',10.00,4,20,5,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(11,'Queso Cabrales',5,4,'1 kg pkg.',21.00,22,30,30,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(12,'Queso Manchego La Pastora',5,4,'10 - 500 g pkgs.',38.00,86,0,0,0)");
-	while (SQLMoreResults(Statement) == SQL_SUCCESS);
+	while (SQLMoreResults(odbc_stmt) == SQL_SUCCESS);
 
 	queryString = (SQLCHAR *) "SELECT * FROM #Products WHERE SupplierID = ?";
 
@@ -84,7 +84,7 @@ TestRawODBCPreparedQuery(void)
 
 	count = 0;
 
-	while (SQLFetch(Statement) == SQL_SUCCESS) {
+	while (SQLFetch(odbc_stmt) == SQL_SUCCESS) {
 		count++;
 	}
 	AB_PRINT(("Got %d rows", count));
@@ -101,7 +101,7 @@ TestRawODBCPreparedQuery(void)
 
 	/* CLOSEDOWN */
 
-	Disconnect();
+	odbc_disconnect();
 
 	AB_FUNCT(("TestRawODBCPreparedQuery (out): ok"));
 	return TRUE;
@@ -121,11 +121,11 @@ TestRawODBCDirectQuery(void)
 
 	/* INIT */
 
-	Connect();
+	odbc_connect();
 
 	/* MAKE QUERY */
 
-	Command("CREATE TABLE #Products ("
+	odbc_command("CREATE TABLE #Products ("
 		"ProductID int NOT NULL ,"
 		"ProductName varchar (40) ,"
 		"SupplierID int NULL ,"
@@ -142,7 +142,7 @@ TestRawODBCDirectQuery(void)
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(3,'Aniseed Syrup',1,2,'12 - 550 ml bottles',10.00,13,70,25,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(4,'Chef Anton''s Cajun Seasoning',2,2,'48 - 6 oz jars',22.00,53,0,0,0) "
 		"INSERT INTO #Products(ProductID,ProductName,SupplierID,CategoryID,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(5,'Chef Anton''s Gumbo Mix',2,2,'36 boxes',21.35,0,0,0,1) ");
-	while (SQLMoreResults(Statement) == SQL_SUCCESS);
+	while (SQLMoreResults(odbc_stmt) == SQL_SUCCESS);
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &supplierId, 0, &lenOrInd, "S");
 
@@ -150,7 +150,7 @@ TestRawODBCDirectQuery(void)
 
 	count = 0;
 
-	while (SQLFetch(Statement) == SQL_SUCCESS) {
+	while (SQLFetch(odbc_stmt) == SQL_SUCCESS) {
 		count++;
 	}
 	AB_PRINT(("Got %d rows", count));
@@ -167,7 +167,7 @@ TestRawODBCDirectQuery(void)
 
 	/* CLOSEDOWN */
 
-	Disconnect();
+	odbc_disconnect();
 
 	AB_FUNCT(("TestRawODBCDirectQuery (out): ok"));
 	return TRUE;
@@ -193,10 +193,10 @@ TestRawODBCGuid(void)
 
 	AB_FUNCT(("TestRawODBCGuid (in)"));
 
-	Connect();
+	odbc_connect();
 	
-	if (!db_is_microsoft()) {
-		Disconnect();
+	if (!odbc_db_is_microsoft()) {
+		odbc_disconnect();
 		return TRUE;
 	}
 
@@ -206,7 +206,7 @@ TestRawODBCGuid(void)
 	       "species VARCHAR(20), sex CHAR(1), age INTEGER, " "guid UNIQUEIDENTIFIER DEFAULT NEWID() ); ";
 	CHKExecDirect(queryString, SQL_NTS, "SNo");
 
-	CommandWithResult(Statement, "DROP PROC GetGUIDRows");
+	odbc_command_with_result(odbc_stmt, "DROP PROC GetGUIDRows");
 
 	AB_PRINT(("Creating stored proc GetGUIDRows"));
 
@@ -285,7 +285,7 @@ TestRawODBCGuid(void)
 	strcpy((char *) (guid), "1234abcd-abcd-abcd-abcd-123456789abc");
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_GUID, SQL_GUID, 16, 0, &sqlguid, 16, &lenOrInd, "S");
-	status = SQLExecDirect(Statement, queryString, SQL_NTS);
+	status = SQLExecDirect(odbc_stmt, queryString, SQL_NTS);
 	if (status != SQL_SUCCESS) {
 		AB_ERROR(("Insert row 5 failed"));
 		AB_ERROR(("Sadly this was expected in *nix ODBC. Carry on."));
@@ -297,7 +297,7 @@ TestRawODBCGuid(void)
 	AB_PRINT(("retrieving name and guid"));
 	queryString = (SQLCHAR *) "SELECT name, guid FROM #pet";
 	CHKExecDirect(queryString, SQL_NTS, "S");
-	while (SQLFetch(Statement) == SQL_SUCCESS) {
+	while (SQLFetch(odbc_stmt) == SQL_SUCCESS) {
 		count++;
 		CHKGetData(1, SQL_CHAR, name, 20, 0, "S");
 		CHKGetData(2, SQL_CHAR, guid, 37, 0, "S");
@@ -309,7 +309,7 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state if we try SELECT again).
 	 */
-	ResetStatement();
+	odbc_reset_statement();
 
 
 	/*
@@ -336,7 +336,7 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state if we try SELECT again).
 	 */
-	ResetStatement();
+	odbc_reset_statement();
 
 	/*
 	 * Now retrieve rows via stored procedure passing GUID as param.
@@ -349,7 +349,7 @@ TestRawODBCGuid(void)
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_GUID, 0, 0, guid, 0, &lenOrInd, "S");
 	CHKExecDirect(queryString, SQL_NTS, "S");
-	while (SQLFetch(Statement) == SQL_SUCCESS) {
+	while (SQLFetch(odbc_stmt) == SQL_SUCCESS) {
 		count++;
 		CHKGetData(1, SQL_CHAR, name, 20, 0, "S");
 		CHKGetData(2, SQL_CHAR, guid, 37, 0, "S");
@@ -361,14 +361,14 @@ TestRawODBCGuid(void)
 	 * Realloc cursor handle - (Windows ODBC considers it an invalid cursor
 	 * state after a previous SELECT has occurred).
 	 */
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* cleanup */
-	CommandWithResult(Statement, "DROP PROC GetGUIDRows");
+	odbc_command_with_result(odbc_stmt, "DROP PROC GetGUIDRows");
 
 	/* CLOSEDOWN */
 
-	Disconnect();
+	odbc_disconnect();
 
 	AB_FUNCT(("TestRawODBCGuid (out): ok"));
 	return TRUE;
@@ -426,7 +426,7 @@ RunTests(void)
 int
 main(int argc, char *argv[])
 {
-	use_odbc_version3 = 1;
+	odbc_use_version3 = 1;
 
 	if (RunTests())
 		return 0;	/* Success */

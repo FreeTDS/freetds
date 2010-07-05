@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.12 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.13 2010-07-05 09:20:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -9,8 +9,8 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	CHKAllocEnv(&Environment, "S");
-	CHKAllocConnect(&Connection, "S");
+	CHKAllocEnv(&odbc_env, "S");
+	CHKAllocConnect(&odbc_conn, "S");
 }
 
 int
@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 	int is_freetds = 1;
 	SQLRETURN rc;
 
-	if (read_login_info())
+	if (odbc_read_login_info())
 		exit(1);
 
 	/*
@@ -30,11 +30,11 @@ main(int argc, char *argv[])
 	 * is better to do it before connect cause uniODBC cache INIs
 	 * the name must be odbcinst.ini cause unixODBC accept only this name
 	 */
-	if (DRIVER[0]) {
+	if (odbc_driver[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
 
 		if (f) {
-			fprintf(f, "[FreeTDS]\nDriver = %s\n", DRIVER);
+			fprintf(f, "[FreeTDS]\nDriver = %s\n", odbc_driver);
 			fclose(f);
 			/* force iODBC */
 			setenv("ODBCINSTINI", "./odbcinst.ini", 1);
@@ -45,10 +45,10 @@ main(int argc, char *argv[])
 	}
 
 	printf("SQLConnect connect..\n");
-	Connect();
-	if (!driver_is_freetds())
+	odbc_connect();
+	if (!odbc_driver_is_freetds())
 		is_freetds = 0;
-	Disconnect();
+	odbc_disconnect();
 
 	if (!is_freetds) {
 		printf("Driver is not FreeTDS, exiting\n");
@@ -58,9 +58,9 @@ main(int argc, char *argv[])
 	/* try connect string with using DSN */
 	printf("connect string DSN connect..\n");
 	init_connect();
-	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
+	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_server, odbc_user, odbc_password, odbc_database);
 	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
-	Disconnect();
+	odbc_disconnect();
 
 	/* try connect string using old SERVERNAME specification */
 	printf("connect string SERVERNAME connect..\n");
@@ -68,23 +68,23 @@ main(int argc, char *argv[])
 
 	/* this is expected to work with unixODBC */
 	init_connect();
-	sprintf(tmp, "DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", SERVER, USER, PASSWORD, DATABASE);
+	sprintf(tmp, "DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_server, odbc_user, odbc_password, odbc_database);
 	rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
 		++failures;
 	}
-	Disconnect();
+	odbc_disconnect();
 
 	/* this is expected to work with iODBC */
 	init_connect();
-	sprintf(tmp, "DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", DRIVER, SERVER, USER, PASSWORD, DATABASE);
+	sprintf(tmp, "DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_driver, odbc_server, odbc_user, odbc_password, odbc_database);
 	rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
 		++failures;
 	}
-	Disconnect();
+	odbc_disconnect();
 
 	/* at least one should success.. */
 	if (failures > 1) {

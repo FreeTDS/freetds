@@ -5,7 +5,7 @@
  * SQLSetStmtAttr
  */
 
-static char software_version[] = "$Id: attributes.c,v 1.5 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: attributes.c,v 1.6 2010-07-05 09:20:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -232,16 +232,16 @@ get_attr_stmt(ATTR_PARAMS)
 	case type_INTEGER:
 	case type_UINTEGER:
 		i = 0xdeadbeef;
-		ret = SQLGetStmtAttr(Statement, attr->value, (SQLPOINTER) & i, sizeof(SQLINTEGER), &ind);
+		ret = SQLGetStmtAttr(odbc_stmt, attr->value, (SQLPOINTER) & i, sizeof(SQLINTEGER), &ind);
 		break;
 	case type_SMALLINT:
 		si = 0xbeef;
-		ret = SQLGetStmtAttr(Statement, attr->value, (SQLPOINTER) & si, sizeof(SQLSMALLINT), &ind);
+		ret = SQLGetStmtAttr(odbc_stmt, attr->value, (SQLPOINTER) & si, sizeof(SQLSMALLINT), &ind);
 		i = si;
 		break;
 	case type_LEN:
 		li = 0xdeadbeef;
-		ret = SQLGetStmtAttr(Statement, attr->value, (SQLPOINTER) & li, sizeof(SQLLEN), &ind);
+		ret = SQLGetStmtAttr(odbc_stmt, attr->value, (SQLPOINTER) & li, sizeof(SQLLEN), &ind);
 		i = li;
 		break;
 	case type_VOIDP:
@@ -275,12 +275,12 @@ main(int argc, char *argv[])
 	SQLLEN len;
 	get_attr_t get_attr_p = get_attr_stmt;
 
-	Connect();
+	odbc_connect();
 	/* TODO find another way */
-	CheckCursor();
-	Command("SET TEXTSIZE 4096");
+	odbc_check_cursor();
+	odbc_command("SET TEXTSIZE 4096");
 
-	SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
+	SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 
 	f = fopen(in_file, "r");
 	if (!f)
@@ -307,12 +307,12 @@ main(int argc, char *argv[])
 		if (strcmp(cmd, "odbc") == 0) {
 			int odbc3 = get_int(strtok(NULL, SEP)) == 3 ? 1 : 0;
 
-			if (use_odbc_version3 != odbc3) {
-				use_odbc_version3 = odbc3;
-				Disconnect();
-				Connect();
-				Command("SET TEXTSIZE 4096");
-				SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
+			if (odbc_use_version3 != odbc3) {
+				odbc_use_version3 = odbc3;
+				odbc_disconnect();
+				odbc_connect();
+				odbc_command("SET TEXTSIZE 4096");
+				SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 			}
 			continue;
 		}
@@ -330,19 +330,19 @@ main(int argc, char *argv[])
 			switch (attr->type) {
 			case type_UINTEGER:
 			case type_INTEGER:
-				ret = SQLSetStmtAttr(Statement, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(odbc_stmt, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLINTEGER));
 				break;
 			case type_SMALLINT:
-				ret = SQLSetStmtAttr(Statement, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(odbc_stmt, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLSMALLINT));
 				break;
 			case type_LEN:
-				ret = SQLSetStmtAttr(Statement, attr->value, int2ptr(lookup(value, attr->lookup)),
+				ret = SQLSetStmtAttr(odbc_stmt, attr->value, int2ptr(lookup(value, attr->lookup)),
 						      sizeof(SQLLEN));
 				break;
 			case type_CHARP:
-				ret = SQLSetStmtAttr(Statement, attr->value, (SQLPOINTER) value, SQL_NTS);
+				ret = SQLSetStmtAttr(odbc_stmt, attr->value, (SQLPOINTER) value, SQL_NTS);
 				break;
 			case type_VOIDP:
 			case type_DESC:
@@ -372,7 +372,7 @@ main(int argc, char *argv[])
 		}
 
 		if (strcmp(cmd, "reset") == 0) {
-			ResetStatement();
+			odbc_reset_statement();
 			continue;
 		}
 
@@ -380,7 +380,7 @@ main(int argc, char *argv[])
 	}
 
 	fclose(f);
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return g_result;

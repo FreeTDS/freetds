@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.12 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.13 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -56,7 +56,7 @@ Test(const char *name)
 {
 	int iresults=0, data_errors=0;
 	int ipar=0;
-	HSTMT Statement = SQL_NULL_HSTMT;
+	HSTMT odbc_stmt = SQL_NULL_HSTMT;
 	char call_cmd[128];
 	struct Argument { 
                 SQLSMALLINT       InputOutputType;  /* fParamType */
@@ -85,7 +85,7 @@ Test(const char *name)
 
 
 	printf("executing SQLAllocStmt\n");
-	CHKAllocStmt(&Statement, "S");
+	CHKAllocStmt(&odbc_stmt, "S");
 
 	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
 		printf("executing SQLBindParameter for parameter %d\n", 1+ipar);
@@ -195,7 +195,7 @@ Test(const char *name)
 
 	printf("executing SQLFreeStmt\n");
 	CHKFreeStmt(SQL_DROP, "S");
-	Statement = SQL_NULL_HSTMT;
+	odbc_stmt = SQL_NULL_HSTMT;
 
 	for (ipar = 0; ipar < sizeof(args)/sizeof(args[0]); ++ipar)
 		if (args[ipar].BufferLength > 0)
@@ -216,7 +216,7 @@ main(int argc, char *argv[])
 	strcat(drop_proc, proc_name);
 	
 	printf("connecting\n");
-	Connect();
+	odbc_connect();
 	
 	init_proc(proc_name);
 
@@ -224,9 +224,9 @@ main(int argc, char *argv[])
 	Test(proc_name);
 	
 	printf("dropping procedure\n");
-	Command(drop_proc);
+	odbc_command(drop_proc);
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

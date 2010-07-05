@@ -1,44 +1,44 @@
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.16 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.17 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-#define SWAP_STMT(b) do { SQLHSTMT xyz = Statement; Statement = b; b = xyz; } while(0)
+#define SWAP_STMT(b) do { SQLHSTMT xyz = odbc_stmt; odbc_stmt = b; b = xyz; } while(0)
 
 int
 main(int argc, char *argv[])
 {
-	HSTMT old_Statement;
+	HSTMT old_odbc_stmt;
 
-	Connect();
+	odbc_connect();
 
-	Command("if object_id('tempdb..#odbctestdata') is not null drop table #odbctestdata");
+	odbc_command("if object_id('tempdb..#odbctestdata') is not null drop table #odbctestdata");
 
-	Command("create table #odbctestdata (i int)");
-	Command("insert #odbctestdata values (123)");
+	odbc_command("create table #odbctestdata (i int)");
+	odbc_command("insert #odbctestdata values (123)");
 
 	/*
 	 * now we allocate another statement, select, get all results
 	 * then make another query with first select and drop this statement
 	 * result should not disappear (required for DBD::ODBC)
 	 */
-	old_Statement = Statement;
-	Statement = SQL_NULL_HSTMT;
-	CHKAllocStmt(&Statement, "S");
+	old_odbc_stmt = odbc_stmt;
+	odbc_stmt = SQL_NULL_HSTMT;
+	CHKAllocStmt(&odbc_stmt, "S");
 
-	Command("select * from #odbctestdata where 0=1");
+	odbc_command("select * from #odbctestdata where 0=1");
 
 	CHKFetch("No");
 
 	CHKCloseCursor("SI");
 
-	SWAP_STMT(old_Statement);
-	Command("select * from #odbctestdata");
-	SWAP_STMT(old_Statement);
+	SWAP_STMT(old_odbc_stmt);
+	odbc_command("select * from #odbctestdata");
+	SWAP_STMT(old_odbc_stmt);
 
 	/* drop first statement .. data should not disappear */
 	CHKFreeStmt(SQL_DROP, "S");
-	Statement = old_Statement;
+	odbc_stmt = old_odbc_stmt;
 
 	CHKFetch("SI");
 
@@ -46,9 +46,9 @@ main(int argc, char *argv[])
 
 	CHKCloseCursor("SI");
 
-	Command("drop table #odbctestdata");
+	odbc_command("drop table #odbctestdata");
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

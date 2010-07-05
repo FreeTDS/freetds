@@ -14,7 +14,7 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.8 2010-01-10 14:43:11 freddy77 Exp $";
+static char software_version[] = "$Id: timeout2.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(__MINGW32__) || defined(_WIN32)
@@ -26,10 +26,10 @@ main(int argc, char *argv[])
 {
 	int i;
 
-	Connect();
+	odbc_connect();
 
-	Command("create table #timeout(i int)");
-	Command("insert into #timeout values(1)");
+	odbc_command("create table #timeout(i int)");
+	odbc_command("insert into #timeout values(1)");
 
 	for (i = 0; i < 2; ++i) {
 
@@ -50,13 +50,13 @@ main(int argc, char *argv[])
 			sleep(15);
 		}
 
-		SQLFreeStmt(Statement, SQL_CLOSE);
-		SQLFreeStmt(Statement, SQL_UNBIND);
-		SQLFreeStmt(Statement, SQL_RESET_PARAMS);
-		SQLCloseCursor(Statement);
+		SQLFreeStmt(odbc_stmt, SQL_CLOSE);
+		SQLFreeStmt(odbc_stmt, SQL_UNBIND);
+		SQLFreeStmt(odbc_stmt, SQL_RESET_PARAMS);
+		SQLCloseCursor(odbc_stmt);
 	}
 
-	Disconnect();
+	odbc_disconnect();
 
 	return 0;
 }

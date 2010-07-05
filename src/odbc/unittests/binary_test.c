@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.9 2010-07-05 09:20:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -36,21 +36,21 @@ static void
 clean_up(void)
 {
 	free(buf);
-	Disconnect();
+	odbc_disconnect();
 }
 
 static int
 test_insert(void *buf, SQLLEN buflen)
 {
-	SQLHSTMT Statement = SQL_NULL_HSTMT;
+	SQLHSTMT odbc_stmt = SQL_NULL_HSTMT;
 	SQLLEN strlen_or_ind;
 	const char *qstr = "insert into " TEST_TABLE_NAME " values (?)";
 
-	assert(Connection);
-	assert(Environment);
+	assert(odbc_conn);
+	assert(odbc_env);
 
 	/* allocate new statement handle */
-	CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "SI");
+	CHKAllocHandle(SQL_HANDLE_STMT, odbc_conn, &odbc_stmt, "SI");
 
 	/* execute query */
 	CHKPrepare((SQLCHAR *) qstr, SQL_NTS, "SI");
@@ -62,9 +62,9 @@ test_insert(void *buf, SQLLEN buflen)
 	CHKExecute("SI");
 
 	/* this command shouldn't fail */
-	Command("DECLARE @i INT");
+	odbc_command("DECLARE @i INT");
 
-	SQLFreeHandle(SQL_HANDLE_STMT, Statement);
+	SQLFreeHandle(SQL_HANDLE_STMT, odbc_stmt);
 	return 0;
 }
 
@@ -72,15 +72,15 @@ test_insert(void *buf, SQLLEN buflen)
 static int
 test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 {
-	SQLHSTMT Statement = SQL_NULL_HSTMT;
+	SQLHSTMT odbc_stmt = SQL_NULL_HSTMT;
 	SQLLEN strlen_or_ind = 0;
 	const char *qstr = "select * from " TEST_TABLE_NAME;
 
-	assert(Connection);
-	assert(Environment);
+	assert(odbc_conn);
+	assert(odbc_env);
 
 	/* allocate new statement handle */
-	CHKAllocHandle(SQL_HANDLE_STMT, Connection, &Statement, "SI");
+	CHKAllocHandle(SQL_HANDLE_STMT, odbc_conn, &odbc_stmt, "SI");
 
 	/* execute query */
 	CHKExecDirect((SQLCHAR *) qstr, SQL_NTS, "SINo");
@@ -96,7 +96,7 @@ test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 	/* ensure that this was the only row */
 	CHKFetch("No");
 
-	SQLFreeHandle(SQL_HANDLE_STMT, Statement);
+	SQLFreeHandle(SQL_HANDLE_STMT, odbc_stmt);
 	return 0;
 }
 
@@ -111,10 +111,10 @@ main(int argc, char **argv)
 	/* do not allocate so big memory in stack */
 	buf = (unsigned char *) malloc(TEST_BUF_LEN);
 
-	Connect();
+	odbc_connect();
 
-	Command("create table " TEST_TABLE_NAME " (im IMAGE)");
-	Command("SET TEXTSIZE 1000000");
+	odbc_command("create table " TEST_TABLE_NAME " (im IMAGE)");
+	odbc_command("SET TEXTSIZE 1000000");
 
 	/* populate test buffer with ramp */
 	for (i = 0; i < TEST_BUF_LEN; i++) {

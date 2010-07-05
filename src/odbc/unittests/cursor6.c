@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with no binded columns */
 
-static char software_version[] = "$Id: cursor6.c,v 1.5 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: cursor6.c,v 1.6 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int bind_all = 0;
@@ -21,7 +21,7 @@ static void Test(void)
 	SQLUSMALLINT statuses[ROWS];
 	SQLULEN num_row;
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* this should not fail or return warnings */
 	if (use_cursors) {
@@ -52,9 +52,9 @@ static void Test(void)
 
 	/* now check row numbers */
 	printf("num_row %d statuses[0] %d statuses[1] %d odbc3 %d\n", (int) num_row,
-		(int) statuses[0], (int) statuses[1], use_odbc_version3);
+		(int) statuses[0], (int) statuses[1], odbc_use_version3);
 
-	if (use_odbc_version3 || !normal_fetch) {
+	if (odbc_use_version3 || !normal_fetch) {
 		if (num_row != ROWS || statuses[0] != SQL_ROW_SUCCESS || statuses[1] != SQL_ROW_SUCCESS) {
 			fprintf(stderr, "result error 1\n");
 			exit(1);
@@ -79,10 +79,10 @@ static void Init(void)
 	int i;
 	char sql[128];
 
-	Command("CREATE TABLE #cursor6_test (i INT, c VARCHAR(20))");
+	odbc_command("CREATE TABLE #cursor6_test (i INT, c VARCHAR(20))");
 	for (i = 1; i <= 10; ++i) {
 		sprintf(sql, "INSERT INTO #cursor6_test(i,c) VALUES(%d, 'a%db%dc%d')", i, i, i, i);
-		Command(sql);
+		odbc_command(sql);
 	}
 
 }
@@ -90,10 +90,10 @@ static void Init(void)
 int
 main(int argc, char *argv[])
 {
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
-	CheckCursor();
+	odbc_check_cursor();
 
 	Init();
 
@@ -103,11 +103,11 @@ main(int argc, char *argv[])
 			ALL(normal_fetch)
 				Test();
 
-	Disconnect();
+	odbc_disconnect();
 
-	use_odbc_version3 = 0;
+	odbc_use_version3 = 0;
 
-	Connect();
+	odbc_connect();
 	Init();
 
 	ALL(use_cursors)
@@ -115,7 +115,7 @@ main(int argc, char *argv[])
 			ALL(normal_fetch)
 				Test();
 
-	Disconnect();
+	odbc_disconnect();
 	
 	return 0;
 }

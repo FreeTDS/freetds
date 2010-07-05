@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.17 2010-02-12 09:04:58 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -149,7 +149,7 @@ get_attr_ird(ATTR_PARAMS)
 	if (attr->type == type_CHARP)
 		fatal("Line %u: CHAR* check still not supported\n", line_num);
 	i = 0xdeadbeef;
-	ret = SQLColAttribute(Statement, 1, attr->value, NULL, SQL_IS_INTEGER, NULL, &i);
+	ret = SQLColAttribute(odbc_stmt, 1, attr->value, NULL, SQL_IS_INTEGER, NULL, &i);
 	if (!SQL_SUCCEEDED(ret))
 		fatal("Line %u: failure not expected\n", line_num);
 	/* SQL_DESC_LENGTH is the same of SQLDescribeCol len */
@@ -173,7 +173,7 @@ get_attr_ard(ATTR_PARAMS)
 	SQLHDESC desc = SQL_NULL_HDESC;
 
 	/* get ARD */
-	SQLGetStmtAttr(Statement, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
+	SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
 
 	ret = SQL_ERROR;
 	switch (attr->type) {
@@ -218,10 +218,10 @@ main(int argc, char *argv[])
 	SQLLEN len;
 	get_attr_t get_attr_p = get_attr_none;
 
-	Connect();
-	Command("SET TEXTSIZE 4096");
+	odbc_connect();
+	odbc_command("SET TEXTSIZE 4096");
 
-	SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
+	SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 
 	f = fopen(in_file, "r");
 	if (!f)
@@ -248,12 +248,12 @@ main(int argc, char *argv[])
 		if (strcmp(cmd, "odbc") == 0) {
 			int odbc3 = get_int(strtok(NULL, SEP)) == 3 ? 1 : 0;
 
-			if (use_odbc_version3 != odbc3) {
-				use_odbc_version3 = odbc3;
-				Disconnect();
-				Connect();
-				Command("SET TEXTSIZE 4096");
-				SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
+			if (odbc_use_version3 != odbc3) {
+				odbc_use_version3 = odbc3;
+				odbc_disconnect();
+				odbc_connect();
+				odbc_command("SET TEXTSIZE 4096");
+				SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 			}
 		}
 
@@ -263,21 +263,21 @@ main(int argc, char *argv[])
 			const char *value = strtok(NULL, SEP);
 			char sql[sizeof(buf) + 40];
 
-			SQLMoreResults(Statement);
-			ResetStatement();
+			SQLMoreResults(odbc_stmt);
+			odbc_reset_statement();
 
 			sprintf(sql, "SELECT CONVERT(%s, %s) AS col", type, value);
 
 			/* ignore error, we only need precision of known types */
 			get_attr_p = get_attr_none;
-			if (CommandWithResult(Statement, sql) != SQL_SUCCESS) {
-				ResetStatement();
-				SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
+			if (odbc_command_with_result(odbc_stmt, sql) != SQL_SUCCESS) {
+				odbc_reset_statement();
+				SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 				continue;
 			}
 
 			CHKFetch("SI");
-			SQLBindCol(Statement, 1, SQL_C_SLONG, &i, sizeof(i), &len);
+			SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
 			get_attr_p = get_attr_ird;
 		}
 
@@ -293,7 +293,7 @@ main(int argc, char *argv[])
 				fatal("Line %u: value not defined\n", line_num);
 
 			/* get ARD */
-			SQLGetStmtAttr(Statement, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
+			SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
 
 			ret = SQL_ERROR;
 			switch (attr->type) {
@@ -336,7 +336,7 @@ main(int argc, char *argv[])
 	}
 
 	fclose(f);
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return g_result;

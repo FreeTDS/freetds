@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: insert_speed.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: insert_speed.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SQL_QUERY_LENGTH 80
@@ -17,7 +17,7 @@ insert_test_auto(void)
 	SQLINTEGER id = 0;
 	char string[64];
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
@@ -28,7 +28,7 @@ insert_test_auto(void)
 		CHKExecute("SI");
 	}
 
-	ResetStatement();
+	odbc_reset_statement();
 }
 
 
@@ -44,7 +44,7 @@ insert_test_man(void)
 
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(commit_off), SQL_IS_INTEGER, "SI");
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
@@ -55,28 +55,28 @@ insert_test_man(void)
 		CHKExecute("SI");
 	}
 
-	SQLEndTran(SQL_HANDLE_DBC, Connection, SQL_COMMIT);
-	SQLSetConnectAttr(Connection, SQL_ATTR_AUTOCOMMIT, int2ptr(commit_on), SQL_IS_INTEGER);
-	ResetStatement();
+	SQLEndTran(SQL_HANDLE_DBC, odbc_conn, SQL_COMMIT);
+	SQLSetConnectAttr(odbc_conn, SQL_ATTR_AUTOCOMMIT, int2ptr(commit_on), SQL_IS_INTEGER);
+	odbc_reset_statement();
 }
 
 int
 main(int argc, char **argv)
 {
-	Connect();
+	odbc_connect();
 
-	CommandWithResult(Statement, "DROP TABLE test");
-	Command("CREATE TABLE test(i int, c varchar(40))");
+	odbc_command_with_result(odbc_stmt, "DROP TABLE test");
+	odbc_command("CREATE TABLE test(i int, c varchar(40))");
 
 	insert_test_man();
 
-	Command("DELETE FROM test");
+	odbc_command("DELETE FROM test");
 
 	insert_test_auto();
 
-	Command("DROP TABLE test");
+	odbc_command("DROP TABLE test");
 
-	Disconnect();
+	odbc_disconnect();
 
 	return 0;
 }

@@ -39,7 +39,7 @@
  * prepare or execute a query. This should fail and return an error message.
  */
 
-static char software_version[] = "$Id: timeout4.c,v 1.5 2010-03-01 14:50:55 freddy77 Exp $";
+static char software_version[] = "$Id: timeout4.c,v 1.6 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -83,7 +83,7 @@ Test(int direct)
 	char sqlstate[6];
 	time_t start_time, end_time;
 
-	Connect();
+	odbc_connect();
 
 	if (!shutdown_last_socket()) {
 		fprintf(stderr, "Error shutting down connection\n");
@@ -106,7 +106,7 @@ Test(int direct)
 	alarm(0);
 
 	strcpy(sqlstate, "XXXXX");
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL, "SI");
 	sqlstate[5] = 0;
 	printf("Message: %s - %s\n", sqlstate, buf);
 	if (strcmp(sqlstate, "HYT00") || !strstr(buf, "Timeout")) {
@@ -118,7 +118,7 @@ Test(int direct)
 		return 1;
 	}
 
-	Disconnect();
+	odbc_disconnect();
 
 	if (end_socket >= 0)
 		close(end_socket);
@@ -130,7 +130,7 @@ Test(int direct)
 int
 main(void)
 {
-	use_odbc_version3 = 1;
+	odbc_use_version3 = 1;
 
 	if (Test(0) || Test(1))
 		return 1;

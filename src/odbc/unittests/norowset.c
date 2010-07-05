@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: norowset.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: norowset.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Test that a select following a store procedure execution return results */
@@ -11,16 +11,16 @@ main(int argc, char *argv[])
 	char output[256];
 	SQLLEN dataSize;
 
-	Connect();
+	odbc_connect();
 
-	CommandWithResult(Statement, "drop proc sp_norowset_test");
+	odbc_command_with_result(odbc_stmt, "drop proc sp_norowset_test");
 
-	Command("create proc sp_norowset_test as begin declare @i int end");
+	odbc_command("create proc sp_norowset_test as begin declare @i int end");
 
-	Command("exec sp_norowset_test");
+	odbc_command("exec sp_norowset_test");
 
 	/* note, mssql 2005 seems to not return row for tempdb, use always master */
-	Command("select name from master..sysobjects where name = 'sysobjects'");
+	odbc_command("select name from master..sysobjects where name = 'sysobjects'");
 	CHKFetch("S");
 
 	CHKGetData(1, SQL_C_CHAR, output, sizeof(output), &dataSize, "S");
@@ -34,9 +34,9 @@ main(int argc, char *argv[])
 
 	CHKMoreResults("No");
 
-	Command("drop proc sp_norowset_test");
+	odbc_command("drop proc sp_norowset_test");
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

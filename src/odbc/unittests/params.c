@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.11 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.12 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -30,13 +30,13 @@ Test(int bind_before)
 	SQLLEN cbReturnCode = 0, cbInParam = 0, cbOutParam = 0;
 	SQLLEN cbOutString = SQL_NTS;
 
-	Connect();
+	odbc_connect();
 
 	/* drop proc */
-	Command("IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
+	odbc_command("IF OBJECT_ID('spTestProc') IS NOT NULL DROP PROC spTestProc");
 
 	/* create proc */
-	Command(sp_define);
+	odbc_command(sp_define);
 
 	if (!bind_before)
 		CHKPrepare((SQLCHAR *) SP_TEXT, strlen(SP_TEXT), "S");
@@ -55,7 +55,7 @@ Test(int bind_before)
 
 	CHKExecute("S");
 
-	Command("DROP PROC spTestProc");
+	odbc_command("DROP PROC spTestProc");
 
 	printf("Output:\n");
 	printf("   Return Code = %d\n", (int) ReturnCode);
@@ -73,7 +73,7 @@ Test(int bind_before)
 		return 1;
 	}
 
-	Disconnect();
+	odbc_disconnect();
 	return 0;
 }
 

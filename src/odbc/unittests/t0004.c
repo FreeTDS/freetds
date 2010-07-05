@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0004.c,v 1.17 2008-11-04 10:59:02 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -41,12 +41,12 @@ Test(int use_indicator)
 int
 main(int argc, char *argv[])
 {
-	Connect();
+	odbc_connect();
 
 	Test(1);
 	Test(0);
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

@@ -52,7 +52,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.12 2010-03-01 14:52:52 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.13 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -322,7 +322,7 @@ main(int argc, char **argv)
 	WSAStartup(MAKEWORD(1, 1), &wsaData);
 #endif
 
-	Connect();
+	odbc_connect();
 
 	last_socket = find_last_socket();
 	if (TDS_IS_SOCKET_INVALID(last_socket)) {
@@ -336,8 +336,8 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	is_freetds = driver_is_freetds();
-	Disconnect();
+	is_freetds = odbc_driver_is_freetds();
+	odbc_disconnect();
 
 	/* init fake server, behave like a proxy */
 	for (port = 12340; port < 12350; ++port)
@@ -355,23 +355,23 @@ main(int argc, char **argv)
 		sprintf(string, "%d", port);
 		setenv("TDSPORT", string, 1);
 
-		Connect();
+		odbc_connect();
 	} else {
 		char tmp[2048];
 		SQLSMALLINT len;
 
-		CHKAllocEnv(&Environment, "S");
-		CHKAllocConnect(&Connection, "S");
-		sprintf(tmp, "DRIVER={SQL Server};SERVER=127.0.0.1,%d;UID=%s;PWD=%s;DATABASE=%s;Network=DBMSSOCN;", port, USER, PASSWORD, DATABASE);
+		CHKAllocEnv(&odbc_env, "S");
+		CHKAllocConnect(&odbc_conn, "S");
+		sprintf(tmp, "DRIVER={SQL Server};SERVER=127.0.0.1,%d;UID=%s;PWD=%s;DATABASE=%s;Network=DBMSSOCN;", port, odbc_user, odbc_password, odbc_database);
 		printf("connection string: %s\n", tmp);
 		CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
-		CHKAllocStmt(&Statement, "S");
+		CHKAllocStmt(&odbc_stmt, "S");
 	}
 
 	/* real test */
-	Command("CREATE TABLE #test(i int, c varchar(40))");
+	odbc_command("CREATE TABLE #test(i int, c varchar(40))");
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	/* do not take into account connection statistics */
 	round_trips = 0;
@@ -392,7 +392,7 @@ main(int argc, char **argv)
 	}
 
 	printf("%u round trips %u inserts\n", round_trips, inserts);
-	ResetStatement();
+	odbc_reset_statement();
 
 	if (inserts > 1 || round_trips > num_inserts * 2 + 6) {
 		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
@@ -421,7 +421,7 @@ main(int argc, char **argv)
 	}
 
 	printf("%u round trips %u inserts\n", round_trips, inserts);
-	ResetStatement();
+	odbc_reset_statement();
 
 	if (inserts > 1 || round_trips > num_inserts * 2 + 6) {
 		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
@@ -430,7 +430,7 @@ main(int argc, char **argv)
 	printf("%u round trips %u inserts\n", round_trips, inserts);
 #endif
 
-	Disconnect();
+	odbc_disconnect();
 
 	alarm(10);
 	pthread_join(fake_thread, NULL);

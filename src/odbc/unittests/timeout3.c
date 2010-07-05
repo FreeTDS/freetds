@@ -40,7 +40,7 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.11 2010-03-01 14:50:55 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.12 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -48,9 +48,9 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	CHKAllocEnv(&Environment, "S");
-	SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-	CHKAllocConnect(&Connection, "S");
+	CHKAllocEnv(&odbc_env, "S");
+	SQLSetEnvAttr(odbc_env, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
+	CHKAllocConnect(&odbc_conn, "S");
 }
 
 static pthread_t      fake_thread;
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 	int port;
 	time_t start_time, end_time;
 
-	if (read_login_info())
+	if (odbc_read_login_info())
 		exit(1);
 
 	/*
@@ -133,11 +133,11 @@ main(int argc, char *argv[])
 	 * is better to do it before connect cause uniODBC cache INIs
 	 * the name must be odbcinst.ini cause unixODBC accept only this name
 	 */
-	if (DRIVER[0]) {
+	if (odbc_driver[0]) {
 		FILE *f = fopen("odbcinst.ini", "w");
 
 		if (f) {
-			fprintf(f, "[FreeTDS]\nDriver = %s\n", DRIVER);
+			fprintf(f, "[FreeTDS]\nDriver = %s\n", odbc_driver);
 			fclose(f);
 			/* force iODBC */
 			setenv("ODBCINSTINI", "./odbcinst.ini", 1);
@@ -169,8 +169,8 @@ main(int argc, char *argv[])
 
 	strcpy(sqlstate, "XXXXX");
 	tmp[0] = 0;
-	CHKGetDiagRec(SQL_HANDLE_DBC, Connection, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) tmp, sizeof(tmp), NULL, "SI");
-	Disconnect();
+	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) tmp, sizeof(tmp), NULL, "SI");
+	odbc_disconnect();
 	CLOSESOCKET(fake_sock);
 	pthread_join(fake_thread, NULL);
 

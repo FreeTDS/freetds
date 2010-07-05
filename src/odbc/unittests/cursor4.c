@@ -5,17 +5,17 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: cursor4.c,v 1.8 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: cursor4.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 exec_direct(const char *stmt)
 {
-	SQLHSTMT Statement = SQL_NULL_HSTMT;
+	SQLHSTMT odbc_stmt = SQL_NULL_HSTMT;
 
-	CHKAllocHandle(SQL_HANDLE_STMT, (SQLHANDLE) Connection, (SQLHANDLE *) & Statement, "S");
-	Command(stmt);
-	CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
+	CHKAllocHandle(SQL_HANDLE_STMT, (SQLHANDLE) odbc_conn, (SQLHANDLE *) & odbc_stmt, "S");
+	odbc_command(stmt);
+	CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) odbc_stmt, "S");
 }
 
 int
@@ -24,15 +24,15 @@ main(int argc, char **argv)
 	char buff[64];
 	SQLLEN ind;
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
-	CheckCursor();
+	odbc_check_cursor();
 
 	exec_direct("CREATE TABLE #t1 ( k INT, c VARCHAR(20))");
 	exec_direct("INSERT INTO #t1 VALUES (1, 'aaa')");
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_LOCK, SQL_IS_UINTEGER, "S");
 
@@ -60,10 +60,10 @@ main(int argc, char **argv)
 
 	printf(">> New value after update = [%s] (should be [xxx]) \n", buff);
 
-	CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) Statement, "S");
-	Statement = SQL_NULL_HSTMT;
+	CHKFreeHandle(SQL_HANDLE_STMT, (SQLHANDLE) odbc_stmt, "S");
+	odbc_stmt = SQL_NULL_HSTMT;
 
-	Disconnect();
+	odbc_disconnect();
 
 	return 0;
 }

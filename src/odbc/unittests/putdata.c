@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.17 2009-03-06 09:14:09 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -25,7 +25,7 @@ CheckNoRow(const char *query)
 		CHKNumResultCols(&cols, "S");
 		if (cols != 0) {
 			fprintf(stderr, "Data not expected here, query:\n\t%s\n", query);
-			Disconnect();
+			odbc_disconnect();
 			exit(1);
 		}
 	} while (CHKMoreResults("SNo") == SQL_SUCCESS);
@@ -54,10 +54,10 @@ main(int argc, char *argv[])
 	SQLRETURN RetCode;
 	int type, lc, sql_type;
 
-	Connect();
+	odbc_connect();
 
 	/* create table to hold data */
-	Command("CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
+	odbc_command("CREATE TABLE #putdata (c TEXT NULL, b IMAGE NULL)");
 
 	sql_type = SQL_LONGVARCHAR;
 	type = SQL_C_CHAR;
@@ -99,10 +99,10 @@ main(int argc, char *argv[])
 		CHKParamData(&ptr, "E");
 
 		/* check state  and reset some possible buffers */
-		Command("DECLARE @i INT");
+		odbc_command("DECLARE @i INT");
 
 		/* use server ntext if available */
-		if (sql_type == SQL_LONGVARCHAR && db_is_microsoft() && db_version_int() >= 0x08000000u) {
+		if (sql_type == SQL_LONGVARCHAR && odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u) {
 			sql_type = SQL_WLONGVARCHAR;
 			continue;
 		}
@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 	CHKParamData(&ptr, "E");
 
 	/* check state  and reset some possible buffers */
-	Command("DECLARE @i2 INT");
+	odbc_command("DECLARE @i2 INT");
 
 
 	CHKFreeStmt(SQL_RESET_PARAMS, "S");
@@ -170,7 +170,7 @@ main(int argc, char *argv[])
 	strcat(sql, "') SELECT 1");
 	CheckNoRow(sql);
 
-	Command("DELETE FROM #putdata");
+	odbc_command("DELETE FROM #putdata");
 
 	/* test len == 0 case from ML */
 	type = SQL_C_CHAR;
@@ -183,20 +183,20 @@ main(int argc, char *argv[])
 
 		RetCode = CHKExecute("Ne");
 		while (RetCode == SQL_NEED_DATA) {
-			RetCode = SQLParamData(Statement, &ptr);
+			RetCode = SQLParamData(odbc_stmt, &ptr);
 			if (RetCode == SQL_NEED_DATA) {
 				if (type == SQL_C_CHAR) {
-					SQLPutData(Statement, "abc", 3);
+					SQLPutData(odbc_stmt, "abc", 3);
 				} else {
 					SQLWCHAR buf[10];
-					SQLPutData(Statement, buf, to_sqlwchar(buf, "abc", 3));
+					SQLPutData(odbc_stmt, buf, to_sqlwchar(buf, "abc", 3));
 				}
 			}
 		}
 		if (type != SQL_C_CHAR)
 			break;
 		type = SQL_C_WCHAR;
-		ResetStatement();
+		odbc_reset_statement();
 	}
 
 	/* check inserts ... */
@@ -204,7 +204,7 @@ main(int argc, char *argv[])
 
 	/* TODO test cancel inside SQLExecute */
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

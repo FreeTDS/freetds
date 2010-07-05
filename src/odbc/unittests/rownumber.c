@@ -7,7 +7,7 @@
  * TODO make it work and add to Makefile.am
  */
 
-static char software_version[] = "$Id: rownumber.c,v 1.5 2008-11-04 14:46:18 freddy77 Exp $";
+static char software_version[] = "$Id: rownumber.c,v 1.6 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -27,8 +27,8 @@ CheckRowNum(int n, int line)
 	}
 }
 
-#undef CHECK_ROWS
-#define CHECK_ROWS(n) CheckRowNum(n,__LINE__)
+#undef ODBC_CHECK_ROWS
+#define ODBC_CHECK_ROWS(n) CheckRowNum(n,__LINE__)
 
 static void
 DoTest()
@@ -39,46 +39,46 @@ DoTest()
 	/* execute a batch command and check row number */
 	CHKExecDirect((SQLCHAR *) query, SQL_NTS, "S");
 
-	CHECK_ROWS(-1);
+	ODBC_CHECK_ROWS(-1);
 	printf("Result %d\n", ++n);
 	CHKFetch("S");
-	CHECK_ROWS(0);
+	ODBC_CHECK_ROWS(0);
 	CHKFetch("S");
-	CHECK_ROWS(0);
+	ODBC_CHECK_ROWS(0);
 	CHKFetch("S");
-	CHECK_ROWS(0);
+	ODBC_CHECK_ROWS(0);
 	CHKFetch("No");
-	CHECK_ROWS(-1);
+	ODBC_CHECK_ROWS(-1);
 	CHKMoreResults("S");
-	CHECK_ROWS(-1);
+	ODBC_CHECK_ROWS(-1);
 
 	printf("Result %d\n", ++n);
 	CHKFetch("S");
-	CHECK_ROWS(0);
+	ODBC_CHECK_ROWS(0);
 	CHKFetch("S");
-	CHECK_ROWS(0);
+	ODBC_CHECK_ROWS(0);
 	CHKFetch("No");
-	CHECK_ROWS(-1);
+	ODBC_CHECK_ROWS(-1);
 	CHKMoreResults("No");
-	CHECK_ROWS(-1);
+	ODBC_CHECK_ROWS(-1);
 }
 
 int
 main(int argc, char *argv[])
 {
-	use_odbc_version3 = 1;
+	odbc_use_version3 = 1;
 
-	Connect();
+	odbc_connect();
 
-	Command("create table #tmp1 (i int)");
-	Command("create table #tmp2 (i int)");
-	Command("insert into #tmp1 values(1)");
-	Command("insert into #tmp1 values(2)");
-	Command("insert into #tmp1 values(5)");
+	odbc_command("create table #tmp1 (i int)");
+	odbc_command("create table #tmp2 (i int)");
+	odbc_command("insert into #tmp1 values(1)");
+	odbc_command("insert into #tmp1 values(2)");
+	odbc_command("insert into #tmp1 values(5)");
 
 	DoTest();
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

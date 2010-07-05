@@ -26,7 +26,7 @@
  * prepare or execute a query. This should fail and return an error message.
  */
 
-static char software_version[] = "$Id: prepclose.c,v 1.6 2010-03-01 14:50:55 freddy77 Exp $";
+static char software_version[] = "$Id: prepclose.c,v 1.7 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -67,7 +67,7 @@ Test(int direct)
 	char buf[256];
 	unsigned char sqlstate[6];
 
-	Connect();
+	odbc_connect();
 
 	if (!close_last_socket()) {
 		fprintf(stderr, "Error closing connection\n");
@@ -84,11 +84,11 @@ Test(int direct)
 			CHKNumResultCols(&cols, "E");
 	}
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL, "SI");
 	sqlstate[5] = 0;
 	printf("state=%s err=%s\n", (char*) sqlstate, buf);
 	
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

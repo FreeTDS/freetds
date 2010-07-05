@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.10 2008-11-04 14:46:17 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.11 2010-07-05 09:20:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -17,7 +17,7 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 	SQLLEN ind = 4;
 	int id = 1;
 
-	SQLFreeStmt(Statement, SQL_RESET_PARAMS);
+	SQLFreeStmt(odbc_stmt, SQL_RESET_PARAMS);
 
 	++test_num;
 	sprintf(sql, "insert into #test_output values (%s, %s)", bind1, bind2);
@@ -34,10 +34,10 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 int
 main(int argc, char **argv)
 {
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
-	Command("create table #test_output (id int, msg text)");
+	odbc_command("create table #test_output (id int, msg text)");
 
 	Test("?", SQL_INTEGER, "?", SQL_LONGVARCHAR);
 	Test("123", SQL_INTEGER, "?", SQL_LONGVARCHAR);
@@ -50,12 +50,12 @@ main(int argc, char **argv)
 	 * be emulated loosing column informations from server and Sybase do
 	 * not convert implicitly VARCHAR to INT
 	 */
-	if (db_is_microsoft())
+	if (odbc_db_is_microsoft())
 		Test("?", SQL_VARCHAR, "?", SQL_LONGVARCHAR);
 	else
 		++test_num;
 
-	Disconnect();
+	odbc_disconnect();
 
 	return 0;
 }

@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.11 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.12 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -9,9 +9,9 @@ static void init_connect(void);
 static void
 init_connect(void)
 {
-	CHKAllocEnv(&Environment, "S");
-	SQLSetEnvAttr(Environment, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
-	CHKAllocConnect(&Connection, "S");
+	CHKAllocEnv(&odbc_env, "S");
+	SQLSetEnvAttr(odbc_env, SQL_ATTR_ODBC_VERSION, (SQLPOINTER) (SQL_OV_ODBC3), SQL_IS_UINTEGER);
+	CHKAllocConnect(&odbc_conn, "S");
 }
 
 static void
@@ -68,7 +68,7 @@ TestBinding(int minimun)
 	SQLLEN n_len;
 
 	sprintf(tmp, "DELETE FROM %s", table_name);
-	Command(tmp);
+	odbc_command(tmp);
 
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
 	sprintf(tmp, "INSERT INTO %s VALUES(?,?,?)", table_name);
@@ -100,7 +100,7 @@ TestBinding(int minimun)
 		CheckNoRow(tmp);
 	}
 
-	ResetStatement();
+	odbc_reset_statement();
 }
 
 int
@@ -110,37 +110,37 @@ main(int argc, char *argv[])
 	const char * const*p;
 	SQLINTEGER n;
 
-	if (read_login_info())
+	if (odbc_read_login_info())
 		exit(1);
 
 	/* connect string using DSN */
 	init_connect();
-	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;ClientCharset=UTF-8;", SERVER, USER, PASSWORD, DATABASE);
+	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;ClientCharset=UTF-8;", odbc_server, odbc_user, odbc_password, odbc_database);
 	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
-	if (!driver_is_freetds()) {
-		Disconnect();
+	if (!odbc_driver_is_freetds()) {
+		odbc_disconnect();
 		printf("Driver is not FreeTDS, exiting\n");
 		return 0;
 	}
 
-	if (!db_is_microsoft() || db_version_int() < 0x08000000u) {
-		Disconnect();
+	if (!odbc_db_is_microsoft() || odbc_db_version_int() < 0x08000000u) {
+		odbc_disconnect();
 		printf("Test for MSSQL only\n");
 		return 0;
 	}
 
-	CHKAllocStmt(&Statement, "S");
+	CHKAllocStmt(&odbc_stmt, "S");
 
 	/* create test table */
 	sprintf(tmp, "IF OBJECT_ID(N'%s') IS NOT NULL DROP TABLE %s", table_name, table_name);
-	Command(tmp);
+	odbc_command(tmp);
 	sprintf(tmp, "CREATE TABLE %s (k int, c NCHAR(10), vc NVARCHAR(10))", table_name);
-	Command(tmp);
+	odbc_command(tmp);
 
 	/* insert with INSERT statements */
 	for (n = 1, p = strings; p[0] && p[1]; p += 2, ++n) {
 		sprintf(tmp, "INSERT INTO %s VALUES (%d,N'%s',N'%s')", table_name, (int) n, p[0], p[1]);
-		Command(tmp);
+		odbc_command(tmp);
 	}
 
 	/* check rows */
@@ -155,9 +155,9 @@ main(int argc, char *argv[])
 
 	/* cleanup */
 	sprintf(tmp, "IF OBJECT_ID(N'%s') IS NOT NULL DROP TABLE %s", table_name, table_name);
-	Command(tmp);
+	odbc_command(tmp);
 
-	Disconnect();
+	odbc_disconnect();
 	printf("Done.\n");
 	return 0;
 }

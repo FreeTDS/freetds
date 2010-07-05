@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.18 2009-03-17 09:05:47 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.19 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -30,68 +30,68 @@ DoTest(int prepare)
 	}
 	if (!prepare) {
 		printf("Result %d\n", ++n);
-		CHECK_COLS(0);
-		CHECK_ROWS(1);
+		ODBC_CHECK_COLS(0);
+		ODBC_CHECK_ROWS(1);
 		CHKMoreResults("S");
 	}
 	printf("Result %d\n", ++n);
-	CHECK_COLS(1);
-	CHECK_ROWS(-1);
+	ODBC_CHECK_COLS(1);
+	ODBC_CHECK_ROWS(-1);
 	CHKFetch("S");
 	CHKFetch("S");
-	CHECK_COLS(1);
-	CHECK_ROWS(-1);
+	ODBC_CHECK_COLS(1);
+	ODBC_CHECK_ROWS(-1);
 	CHKFetch("No");
-	CHECK_COLS(1);
-	CHECK_ROWS(2);
+	ODBC_CHECK_COLS(1);
+	ODBC_CHECK_ROWS(2);
 	CHKMoreResults("S");
 	if (!prepare) {
 		printf("Result %d\n", ++n);
-		CHECK_COLS(0);
-		CHECK_ROWS(1);
+		ODBC_CHECK_COLS(0);
+		ODBC_CHECK_ROWS(1);
 		CHKMoreResults("S");
 		printf("Result %d\n", ++n);
-		CHECK_COLS(0);
-		CHECK_ROWS(2);
+		ODBC_CHECK_COLS(0);
+		ODBC_CHECK_ROWS(2);
 		CHKMoreResults("S");
 	}
 	printf("Result %d\n", ++n);
-	CHECK_COLS(1);
-	CHECK_ROWS(-1);
+	ODBC_CHECK_COLS(1);
+	ODBC_CHECK_ROWS(-1);
 	CHKFetch("S");
-	CHECK_COLS(1);
-	CHECK_ROWS(-1);
+	ODBC_CHECK_COLS(1);
+	ODBC_CHECK_ROWS(-1);
 	CHKFetch("No");
-	CHECK_COLS(1);
+	ODBC_CHECK_COLS(1);
 	if (prepare) {
 		/* collapse 2 recordset... after a lot of testing this is the behavior! */
-		if (driver_is_freetds())
-			CHECK_ROWS(2);
+		if (odbc_driver_is_freetds())
+			ODBC_CHECK_ROWS(2);
 	} else {
-		CHECK_ROWS(1);
+		ODBC_CHECK_ROWS(1);
 		CHKMoreResults("S");
-		CHECK_COLS(0);
-		CHECK_ROWS(2);
+		ODBC_CHECK_COLS(0);
+		ODBC_CHECK_ROWS(2);
 	}
 
 	CHKMoreResults("No");
 #ifndef TDS_NO_DM
 	if (!prepare)
-		CHECK_COLS(-1);
-	CHECK_ROWS(-2);
+		ODBC_CHECK_COLS(-1);
+	ODBC_CHECK_ROWS(-2);
 #endif
 }
 
 int
 main(int argc, char *argv[])
 {
-	Connect();
+	odbc_connect();
 
-	Command("create table #tmp1 (i int)");
-	Command("create table #tmp2 (i int)");
-	Command("insert into #tmp1 values(1)");
-	Command("insert into #tmp1 values(2)");
-	Command("insert into #tmp1 values(5)");
+	odbc_command("create table #tmp1 (i int)");
+	odbc_command("create table #tmp2 (i int)");
+	odbc_command("insert into #tmp1 values(1)");
+	odbc_command("insert into #tmp1 values(2)");
+	odbc_command("insert into #tmp1 values(5)");
 
 	printf("Use direct statement\n");
 	DoTest(0);
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 	printf("Use prepared statement\n");
 	DoTest(1);
 
-	Disconnect();
+	odbc_disconnect();
 
 	printf("Done.\n");
 	return 0;

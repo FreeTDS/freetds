@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with a non-unitary rowset, using bottom-up direction */
 
-static char software_version[] = "$Id: cursor7.c,v 1.8 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: cursor7.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -21,7 +21,7 @@ Test(void)
 	int i;
 	SQLRETURN RetCode;
 
-	ResetStatement();
+	odbc_reset_statement();
 
 	CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, int2ptr(SQL_CONCUR_READ_ONLY), 0, "S");
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, int2ptr(SQL_CURSOR_STATIC), 0, "S");
@@ -71,10 +71,10 @@ Init(void)
 
 	printf("\n\nCreating table #cursor7_test with 12 records.\n");
 
-	Command("\tCREATE TABLE #cursor7_test (i INT, c VARCHAR(20))");
+	odbc_command("\tCREATE TABLE #cursor7_test (i INT, c VARCHAR(20))");
 	for (i = 1; i <= 12; ++i) {
 		sprintf(sql, "\tINSERT INTO #cursor7_test(i,c) VALUES(%d, 'a%db%dc%d')", i, i, i, i);
-		Command(sql);
+		odbc_command(sql);
 	}
 
 }
@@ -82,16 +82,16 @@ Init(void)
 int
 main(int argc, char *argv[])
 {
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
-	CheckCursor();
+	odbc_check_cursor();
 
 	Init();
 
 	Test();
 
-	Disconnect();
+	odbc_disconnect();
 
 	return 0;
 }

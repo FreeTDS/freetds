@@ -1,7 +1,7 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.9 2010-01-09 19:05:07 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -91,7 +91,7 @@ test_params(void)
 
 	/* now see results */
 	for (p = param_set; *p != NULL; ++p) {
-		ResetStatement();
+		odbc_reset_statement();
 		len = 0xdeadbeef;
 		len <<= 16;
 		len <<= 16;
@@ -103,10 +103,10 @@ test_params(void)
 		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
 
-		Command("INSERT INTO #tmp1(i) VALUES(?)");
-		SQLMoreResults(Statement);
+		odbc_command("INSERT INTO #tmp1(i) VALUES(?)");
+		SQLMoreResults(odbc_stmt);
 		for (n = 0; n < ARRAY_SIZE; ++n)
-			SQLMoreResults(Statement);
+			SQLMoreResults(odbc_stmt);
 		l = len;
 		len >>= 16;
 		h = len >> 16;
@@ -198,7 +198,7 @@ test_rows(void)
 	for (p = row_set; ; ++p) {
 		const char *test_name = NULL;
 
-		ResetStatement();
+		odbc_reset_statement();
 		len = 0xdeadbeef;
 		len <<= 16;
 		len <<= 16;
@@ -214,16 +214,16 @@ test_rows(void)
 		if (*p) {
 			CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
 
-			Command("SELECT DISTINCT i FROM #tmp1");
-			SQLFetch(Statement);
+			odbc_command("SELECT DISTINCT i FROM #tmp1");
+			SQLFetch(odbc_stmt);
 			test_name = "SQLSetStmtAttr";
 		} else {
 			CHKSetStmtAttr(SQL_ROWSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
-			Command("SELECT DISTINCT i FROM #tmp1");
+			odbc_command("SELECT DISTINCT i FROM #tmp1");
 			CHKExtendedFetch(SQL_FETCH_NEXT, 0, &len, NULL, "S");
 			test_name = "SQLExtendedFetch";
 		}
-		SQLMoreResults(Statement);
+		SQLMoreResults(odbc_stmt);
 
 		l = len;
 		len >>= 16;
@@ -250,15 +250,15 @@ main(void)
 		return 0;
 	}
 
-	use_odbc_version3 = 1;
-	Connect();
+	odbc_use_version3 = 1;
+	odbc_connect();
 
-	Command("create table #tmp1 (i int)");
+	odbc_command("create table #tmp1 (i int)");
 
 	test_params();
 	test_rows();
 
-	Disconnect();
+	odbc_disconnect();
 	return 0;
 }
 

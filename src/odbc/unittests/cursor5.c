@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.9 2008-12-03 12:55:52 freddy77 Exp $";
+static char software_version[] = "$Id: cursor5.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLINTEGER v_int_3;
@@ -25,18 +25,18 @@ doFetch(int dir, int pos)
 int
 main(int argc, char **argv)
 {
-	use_odbc_version3 = 1;
-	Connect();
-	CheckCursor();
+	odbc_use_version3 = 1;
+	odbc_connect();
+	odbc_check_cursor();
 
 	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER, "S");
 
-	Command("create table #mytab1 (k int, c char(30))");
-	Command("insert into #mytab1 values (1,'aaa')");
-	Command("insert into #mytab1 values (2,'bbb')");
-	Command("insert into #mytab1 values (3,'ccc')");
+	odbc_command("create table #mytab1 (k int, c char(30))");
+	odbc_command("insert into #mytab1 values (1,'aaa')");
+	odbc_command("insert into #mytab1 values (2,'bbb')");
+	odbc_command("insert into #mytab1 values (3,'ccc')");
 
-	ResetStatement();
+	odbc_reset_statement();
 /*	CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_STATIC, 0, "S");	*/
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, SQL_IS_UINTEGER, "S");
 
@@ -65,6 +65,6 @@ main(int argc, char **argv)
 
 	CHKCloseCursor("SI");
 
-	Disconnect();
+	odbc_disconnect();
 	return 0;
 }
