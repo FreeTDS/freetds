@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.542 2010-07-05 06:59:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.543 2010-07-05 14:22:40 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -6664,10 +6664,6 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
 
-	cbCatalogName = tds_dstr_len(&catalog_name);
-	cbSchemaName = tds_dstr_len(&schema_name);
-	cbTableType = tds_dstr_len(&table_type);
-
 	/* support wildcards on catalog (only odbc 3) */
 	wildcards = 0;
 	if (stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3 && stmt->dbc->attr.metadata_id == SQL_FALSE &&
@@ -6675,17 +6671,14 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 		wildcards = 1;
 
 	proc = "sp_tables ";
-	if (cbCatalogName > 0) {
+	if (!tds_dstr_isempty(&catalog_name)) {
 		if (wildcards) {
 			/* if catalog specified and wildcards use sp_tableswc under mssql2k */
 			if (TDS_IS_MSSQL(tds) && tds->product_version >= TDS_MS_VER(8,0,0)) {
 				proc = "sp_tableswc ";
-				if (cbSchemaName == SQL_NULL_DATA) {
+				if (tds_dstr_isempty(&schema_name))
 					tds_dstr_copy(&schema_name, "%");
-					cbSchemaName = 1;
-				}
 			}
-
 			/*
 			 * TODO support wildcards on catalog even for Sybase
 			 * first execute a select name from master..sysdatabases where name like catalog quoted
@@ -6699,7 +6692,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	}
 
 	/* fix type if needed quoting it */
-	if (cbTableType > 0) {
+	if (!tds_dstr_isempty(&table_type)) {
 		int to_fix = 0;
 		int elements = 0;
 		const char *p = tds_dstr_cstr(&table_type);
@@ -6752,14 +6745,20 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 			}
 			*dst = 0;
 			tds_dstr_set(&table_type, type);
-			cbTableType = tds_dstr_len(&table_type);
 		}
 	}
 
-	retcode =
-		odbc_stat_execute(stmt _wide, proc, 4, "P@table_name", szTableName, cbTableName, "!P@table_owner", tds_dstr_cstr(&schema_name),
-				  cbSchemaName, "!P@table_qualifier", tds_dstr_cstr(&catalog_name), cbCatalogName,
-				  "!@table_type", tds_dstr_cstr(&table_type), cbTableType);
+	/* special case for catalog list */
+	if (strcmp(tds_dstr_cstr(&catalog_name), "%") == 0 && cbTableName <= 0 && cbSchemaName <= 0) {
+		retcode =
+			odbc_stat_execute(stmt _wide, "sp_tables @table_name='', @table_owner='', @table_qualifier='%' ", 0);
+	} else {
+		retcode =
+			odbc_stat_execute(stmt _wide, proc, 4, "P@table_name", szTableName, cbTableName,
+				"!P@table_owner", tds_dstr_cstr(&schema_name), tds_dstr_len(&schema_name),
+				"!P@table_qualifier", tds_dstr_cstr(&catalog_name), tds_dstr_len(&catalog_name),
+				"!@table_type", tds_dstr_cstr(&table_type), tds_dstr_len(&table_type));
+	}
 	tds_dstr_free(&schema_name);
 	tds_dstr_free(&catalog_name);
 	tds_dstr_free(&table_type);

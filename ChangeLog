@@ -1,3 +1,6 @@
+Mon Jul  5 16:22:33 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: fix for SQLTables and sybase
+
 Mon Jul  5 16:22:06 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/blob1.c: support SQL_NO_TOTAL from SQLGetData
 
@@ -2639,4 +2642,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3061 2010-07-05 14:22:19 freddy77 Exp $
+$Id: ChangeLog,v 1.3062 2010-07-05 14:22:40 freddy77 Exp $
