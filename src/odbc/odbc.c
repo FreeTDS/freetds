@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.541 2010-07-03 09:49:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.542 2010-07-05 06:59:36 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -5997,6 +5997,8 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 		resinfo = tds->current_results;
 		colinfo = resinfo->columns[0];
 		name = (char *) colinfo->column_data;
+		if (is_blob_col(colinfo))
+			name = (char*) ((TDSBLOB *) name)->textvalue;
 		/* skip nvarchar and sysname */
 		if (colinfo->column_cur_size == 7 && memcmp("varchar", name, 7) == 0) {
 			varchar_pos = n;

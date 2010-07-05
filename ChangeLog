@@ -1,3 +1,6 @@
+Mon Jul  5 08:58:59 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: fix possible problem using utf8 on Sybase
+
 Sat Jul  3 11:49:05 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/odbc/odbc.c: minor issues
 
@@ -2587,4 +2590,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3057 2010-07-03 09:49:11 freddy77 Exp $
+$Id: ChangeLog,v 1.3058 2010-07-05 06:59:35 freddy77 Exp $
