@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.22 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.23 2010-07-05 14:22:19 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -115,8 +115,10 @@ readBlob(test_info *t)
 		total += len;
 	}
 	printf(">>   total bytes read = %d \n", (int) total);
-	if (total != 10000)
+	if (total != 10000) {
+		fprintf(stderr, "Wrong buffer length, expected 20000\n");
 		failed = 1;
+	}
 }
 
 static void
@@ -143,11 +145,15 @@ readBlobAsChar(test_info *t, int step, int wide)
 	while (rc == SQL_SUCCESS_WITH_INFO) {
 		i++;
 		rc = CHKGetData(t->num, type, (SQLPOINTER) buf, (SQLINTEGER) bufsize, &len, "SINo");
+		if (rc == SQL_SUCCESS_WITH_INFO && len == SQL_NO_TOTAL) {
+			len = bufsize - char_len;
+			rc = SQL_SUCCESS;
+		}
 		if (rc == SQL_NO_DATA || len <= 0)
 			break;
 		rc = CHKGetData(t->num, type, (SQLPOINTER) buf, 0, &len2, "SINo");
 //		printf("out_len %u bufsize %u len2 %u\n", (unsigned) len, (unsigned) bufsize, (unsigned) len2);
-		if (rc == SQL_SUCCESS_WITH_INFO)
+		if (rc == SQL_SUCCESS_WITH_INFO && len2 != SQL_NO_TOTAL)
 			len = len - len2;
 #if 0
 		if (len > (SQLLEN) (bufsize - char_len))
@@ -170,8 +176,10 @@ readBlobAsChar(test_info *t, int step, int wide)
 		total += len;
 	}
 	printf(">>   total bytes read = %d \n", (int) total);
-	if (total != 20000)
+	if (total != 20000) {
+		fprintf(stderr, "Wrong buffer length, expected 20000\n");
 		failed = 1;
+	}
 }
 
 static void
