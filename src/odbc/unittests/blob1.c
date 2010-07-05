@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.20 2009-05-21 21:58:43 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.21 2010-07-05 07:20:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -119,26 +119,6 @@ readBlob(test_info *t)
 		failed = 1;
 }
 
-static int
-to_sqlwchar(SQLWCHAR *dst, const char *src, int n)
-{
-	int i = n;
-	while (--i >= 0)
-		dst[i] = (unsigned char) src[i];
-	return n * sizeof(SQLWCHAR);
-}
-
-static int
-from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
-{
-	int i;
-	for (i = 0; i < n; ++i) {
-		assert(src[i] < 256);
-		dst[i] = src[i];
-	}
-	return n;
-}
-
 static void
 readBlobAsChar(test_info *t, int step, int wide)
 {
@@ -178,7 +158,7 @@ readBlobAsChar(test_info *t, int step, int wide)
 
 		if (wide) {
 			len /= sizeof(SQLWCHAR);
-			from_sqlwchar((char *) buf, (SQLWCHAR *) buf, len + 1);
+			odbc_from_sqlwchar((char *) buf, (SQLWCHAR *) buf, len + 1);
 		}
 
 		check =	check_hex(buf, len, 2*t->gen1 + total, t->gen2);
@@ -324,7 +304,7 @@ main(int argc, char **argv)
 					fill_hex(p, NBYTES, t->gen1, t->gen2);
 					if (t->c_type == SQL_C_WCHAR) {
 						char_len = sizeof(SQLWCHAR);
-						to_sqlwchar((SQLWCHAR*) p, p, NBYTES * 2);
+						odbc_to_sqlwchar((SQLWCHAR*) p, p, NBYTES * 2);
 					}
 
 					CHKPutData(p, (NBYTES - (i&1)) * char_len, "S");

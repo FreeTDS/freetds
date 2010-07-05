@@ -1,3 +1,8 @@
+Mon Jul  5 09:20:20 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/blob1.c src/odbc/unittests/common.c:
+	* src/odbc/unittests/common.h:
+	- move to/from sqlwchar to common code
+
 Mon Jul  5 08:58:59 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: fix possible problem using utf8 on Sybase
 
@@ -2590,4 +2595,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3058 2010-07-05 06:59:35 freddy77 Exp $
+$Id: ChangeLog,v 1.3059 2010-07-05 07:20:47 freddy77 Exp $

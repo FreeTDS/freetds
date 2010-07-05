@@ -4,6 +4,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#include <assert.h>
 #include <ctype.h>
 
 #ifndef _WIN32
@@ -12,7 +13,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.57 2010-03-02 15:07:00 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.58 2010-07-05 07:20:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV Environment;
@@ -451,5 +452,25 @@ ReadError(void)
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
 	CHKGetDiagRec(SQL_HANDLE_STMT, Statement, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
+}
+
+int
+odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, int n)
+{
+	int i = n;
+	while (--i >= 0)
+		dst[i] = (unsigned char) src[i];
+	return n * sizeof(SQLWCHAR);
+}
+
+int
+odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
+{
+	int i;
+	for (i = 0; i < n; ++i) {
+		assert(src[i] < 256);
+		dst[i] = src[i];
+	}
+	return n;
 }
 

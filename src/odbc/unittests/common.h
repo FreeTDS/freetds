@@ -21,7 +21,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.32 2010-03-02 15:41:37 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.33 2010-07-05 07:20:47 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -171,3 +171,7 @@ void odbc_setenv(const char *name, const char *value, int overwrite);
 
 #define setenv odbc_setenv
 #endif
+
+int odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, int n);
+int odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n);
+
