@@ -89,7 +89,36 @@ SYMBOL_VECTOR = (SQLAllocConnect=PROCEDURE,-
 		SQLStatistics=PROCEDURE,-
 		SQLTablePrivileges=PROCEDURE,-
 		SQLTables=PROCEDURE,-
-		SQLTransact=PROCEDURE)
+		SQLTransact=PROCEDURE,-
+		SQLColAttributeW=PROCEDURE,-
+		SQLColumnPrivilegesW=PROCEDURE,-
+		SQLColumnsW=PROCEDURE,-
+		SQLConnectW=PROCEDURE,-
+		SQLDescribeColW=PROCEDURE,-
+		SQLDriverConnectW=PROCEDURE,-
+		SQLErrorW=PROCEDURE,-
+		SQLExecDirectW=PROCEDURE,-
+		SQLForeignKeysW=PROCEDURE,-
+		SQLGetConnectAttrW=PROCEDURE,-
+		SQLGetCursorNameW=PROCEDURE,-
+		SQLGetDescFieldW=PROCEDURE,-
+		SQLGetDescRecW=PROCEDURE,-
+		SQLGetDiagFieldW=PROCEDURE,-
+		SQLGetDiagRecW=PROCEDURE,-
+		SQLGetInfoW=PROCEDURE,-
+		SQLNativeSqlW=PROCEDURE,-
+		SQLPrepareW=PROCEDURE,-
+		SQLPrimaryKeysW=PROCEDURE,-
+		SQLProcedureColumnsW=PROCEDURE,-
+		SQLProceduresW=PROCEDURE,-
+		SQLSetConnectAttrW=PROCEDURE,-
+		SQLSetCursorNameW=PROCEDURE,-
+		SQLSetDescFieldW=PROCEDURE,-
+		SQLSpecialColumnsW=PROCEDURE,-
+		SQLStatisticsW=PROCEDURE,-
+		SQLTablePrivilegesW=PROCEDURE,-
+		SQLTablesW=PROCEDURE)
+)
 !
 !		SQLBrowseConnect=PROCEDURE,-
 !		SQLDescribeParam=PROCEDURE,-

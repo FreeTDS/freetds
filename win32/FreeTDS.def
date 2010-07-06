@@ -78,3 +78,32 @@ EXPORTS
 	ConfigTranslator
 	DllRegisterServer
 	DllUnregisterServer
+	SQLColAttributeW
+	SQLColumnPrivilegesW
+	SQLColumnsW
+	SQLConnectW
+	SQLDescribeColW
+	SQLDriverConnectW
+	SQLErrorW
+	SQLExecDirectW
+	SQLForeignKeysW
+	SQLGetConnectAttrW
+	SQLGetCursorNameW
+	SQLGetDescFieldW
+	SQLGetDescRecW
+	SQLGetDiagFieldW
+	SQLGetDiagRecW
+	SQLGetInfoW
+	SQLNativeSqlW
+	SQLPrepareW
+	SQLPrimaryKeysW
+	SQLProcedureColumnsW
+	SQLProceduresW
+	SQLSetConnectAttrW
+	SQLSetCursorNameW
+	SQLSetDescFieldW
+	SQLSpecialColumnsW
+	SQLStatisticsW
+	SQLTablePrivilegesW
+	SQLTablesW
+
