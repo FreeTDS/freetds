@@ -192,6 +192,7 @@ tds_submit_execdirect
 tds_submit_execute
 tds_submit_optioncmd
 tds_submit_prepare
+tds8_submit_prepexec
 tds_submit_query
 tds_submit_query_params
 tds_submit_queryf
@@ -219,3 +220,6 @@ tdsdump_off
 tdsdump_on
 tdsdump_open
 !tdserror
+tds_config_boolean
+tds_write_dump
+

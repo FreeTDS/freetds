@@ -1,3 +1,6 @@
+Wed Jul  7 15:39:20 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/check_symbols.txt: add missing symbols
+
 Tue Jul  6 11:23:28 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/checkexport.sh vms/odbc_driver_axp.opt:
 	* win32/FreeTDS.def:
@@ -2650,4 +2653,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3064 2010-07-06 09:23:43 freddy77 Exp $
+$Id: ChangeLog,v 1.3065 2010-07-07 13:39:36 freddy77 Exp $
