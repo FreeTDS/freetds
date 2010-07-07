@@ -174,11 +174,23 @@ perl -pe "\$_ = '' if \$_ =~ /^2:bcp.c: In function 'bcp_colfmt'|^2:bcp.c:\\d+: 
 upload "$OUTDIR/test" '*.html'
 cd ..
 
+# test connection using named port
+save_coverage
+# using tsql directly with grep do not update coverage informations
+echo -e 'select @@version\ngo\nbye' | TDSPORT=ms-sql-s ./src/apps/tsql -S $tSRV -U "$tUID" -P "$tPWD" > out.txt || true
+if grep -q 'Microsoft Corporation' out.txt; then
+	echo "named port ok"
+else
+	echo "named port failed!"
+	restore_coverage
+fi
+rm -f out.txt
+
 # test domain password and TDSPORT with service name
 if test "$DOMAIN_UID" != ""; then
 	save_coverage
 	# using tsql directly with grep do not update coverage informations
-	echo -e 'select @@version\ngo\nbye' | TDSPORT=ms-sql-s TDSDUMP=stdout ./src/apps/tsql -S $tSRV -U "$DOMAIN_UID" -P "$DOMAIN_PWD" > out.txt || true
+	echo -e 'select @@version\ngo\nbye' | TDSDUMP=stdout ./src/apps/tsql -S $tSRV -U "$DOMAIN_UID" -P "$DOMAIN_PWD" > out.txt || true
 	if grep -q 'Microsoft Corporation' out.txt; then
 		echo "domain password ok"
 	else
@@ -188,6 +200,7 @@ if test "$DOMAIN_UID" != ""; then
 	rm -f out.txt
 fi
 
+# test connection forcing port
 if test "$MSSQL_PORT" != ""; then
 	save_coverage
 	# using tsql directly with grep do not update coverage informations
@@ -201,6 +214,7 @@ if test "$MSSQL_PORT" != ""; then
 	rm -f out.txt
 fi
 
+# test connection using instance name
 if test "$MSSQL_INSTANCE" != ""; then
 	save_coverage
 	# using tsql directly with grep do not update coverage informations
