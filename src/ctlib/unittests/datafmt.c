@@ -11,7 +11,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: datafmt.c,v 1.3 2008-07-15 09:53:00 freddy77 Exp $";
+static char software_version[] = "$Id: datafmt.c,v 1.4 2010-07-07 13:57:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: data truncation behavior of ct_fetch */
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 
 			while ((ret = ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, &count)) != CS_END_DATA) {
 
-				fprintf(stderr, "ct_fetch() row %d returned %s.\n", row_count, cs_prretcode(ret));
+				fprintf(stderr, "ct_fetch() row %d returned %d.\n", row_count, (int) ret);
 				addr[copied] = '\0';
 				fprintf(stderr, "copied %d bytes: [%s]\n", copied, addr);
 				row_count += count;

@@ -1,3 +1,7 @@
+Wed Jul  7 15:56:44 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/sybase_tests src/ctlib/unittests/datafmt.c:
+	- update script to build tests even for ctlib
+
 Wed Jul  7 15:39:20 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/check_symbols.txt: add missing symbols
 
@@ -2653,4 +2657,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3065 2010-07-07 13:39:36 freddy77 Exp $
+$Id: ChangeLog,v 1.3066 2010-07-07 13:57:02 freddy77 Exp $

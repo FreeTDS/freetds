@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# $Id: sybase_tests,v 1.4 2009-04-23 09:41:08 freddy77 Exp $
-# these commands build dblib tests using Sybase dblib
+# $Id: sybase_tests,v 1.5 2010-07-07 13:57:02 freddy77 Exp $
+# these commands build dblib and ctlib tests using Sybase libraries
 
 errore() {
 	echo $* >&2
@@ -25,22 +25,26 @@ fi
 # build
 trap 'echo Error at line $LINENO' ERR
 set -e
-make -j4
-TESTS_ENVIRONMENT=true make -j4 check
+make
 
 # rebuild tests
-cd src/dblib/unittests
-if test ! -r Makefile.no_sybase -o Makefile -nt Makefile.no_sybase; then
-	rm -f Makefile.no_sybase
-	echo '#include <sybfront.h>' > sqlfront.h
-	echo '#include <sybdb.h>' > sqldb.h
-	perl -pi.no_sybase -e "\$_ =~ s{ -I\\\$\\(top_(build|src)dir\\)/include}{ -I$SYBASE/$OCSDIR/include -I\\\$(top_builddir)/include} if (/^(DEFAULT_INCLUDES|AM_CPPFLAGS)\s*=/);
+for dir in src/ctlib/unittests src/ctlib/unittests; do
+	cd $dir
+	if test ! -r Makefile.no_sybase -o Makefile -nt Makefile.no_sybase; then
+		rm -f Makefile.no_sybase
+		echo '#include <sybfront.h>' > sqlfront.h
+		echo '#include <sybdb.h>' > sqldb.h
+		perl -pi.no_sybase -e "\$_ =~ s{ -I\\\$\\(top_(build|src)dir\\)/include}{ -I$SYBASE/$OCSDIR/include -I\\\$(top_builddir)/include} if (/^(DEFAULT_INCLUDES|AM_CPPFLAGS)\s*=/);
 \$_ =~ s{../libsybdb.la}{-lsybdb -lsybunic} if (/^LIBS\s*=/);
+\$_ =~ s{../libct.la}{-lsybct -lsybcs -lsybblk} if (/^LIBS\s*=/);
 \$_ =~ s{-L../.libs -R \\\$\\(abs_builddir\\)/../.libs}{-L$SYBASE/$OCSDIR/lib} if (/^AM_LDFLAGS\s*=/);
 " Makefile
-	touch Makefile.no_sybase
-	rm -f *.o *.exe
+		touch Makefile.no_sybase
+		rm -f *.o *.exe
+		make clean
+	fi
 	make clean
-fi
-TESTS_ENVIRONMENT=true make -j4 check 
+	TESTS_ENVIRONMENT=true make check
+	cd ../../..
+done
 
