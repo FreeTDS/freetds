@@ -183,6 +183,14 @@ SOURCE=..\..\src\tds\vstrbuild.c
 
 SOURCE=..\..\src\tds\write.c
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\src\tds\sspi.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\tds\win_mutex.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 

@@ -141,6 +141,10 @@ SOURCE=..\..\src\odbc\sql2tds.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\odbc\sqlwchar.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\winlogin.c
 # End Source File
 # Begin Source File

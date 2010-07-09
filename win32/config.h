@@ -10,6 +10,12 @@
 /* Define to enable extra checks on code */
 /* #undef ENABLE_EXTRA_CHECKS 1 */
 
+/* Defined if --enable-krb5 used and library detected */
+/* #undef ENABLE_KRB5 1 */
+
+/* Define to enable ODBC wide string support */
+#define ENABLE_ODBC_WIDE 1
+
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 /* #undef HAVE_ARPA_INET_H */
 
@@ -29,7 +35,7 @@
    gethostbyaddr_r(). */
 /* #undef HAVE_FUNC_GETHOSTBYADDR_R_5 */
 
-/* Define to 1 if your system provides the 6-parameter version of
+/* Define to 1 if your system provides the 7-parameter version of
    gethostbyaddr_r(). */
 /* #undef HAVE_FUNC_GETHOSTBYADDR_R_7 */
 
@@ -97,6 +103,9 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 /* #undef HAVE_NETINET_IN_H */
 
+/* Define to 1 if you have the <odbcss.h> header file. */
+/* #undef HAVE_ODBCSS_H */
+
 /* Define to 1 if you have the <paths.h> header file. */
 /* #undef HAVE_PATHS_H */
 
@@ -105,6 +114,21 @@
 
 /* Define to 1 if you have the SQLGetPrivateProfileString function. */
 #define HAVE_SQLGETPRIVATEPROFILESTRING 1
+
+/* Define if sqltypes.h define SQLLEN */
+#define HAVE_SQLLEN 1
+
+/* Define to 1 if the system has the type `SQLROWOFFSET'. */
+/* #undef HAVE_SQLROWOFFSET */
+
+/* Define to 1 if the system has the type `SQLROWSETSIZE'. */
+/* #undef HAVE_SQLROWSETSIZE */
+
+/* Define to 1 if the system has the type `SQLSETPOSIROW'. */
+/* #undef HAVE_SQLSETPOSIROW */
+
+/* Defined if --enable-sspi and SSPI detected */
+#define HAVE_SSPI 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -170,7 +194,7 @@
 #define PACKAGE_BUGREPORT ""
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME ""
+#define PACKAGE_NAME "FreeTDS"
 
 /* Define to the full name and version of this package. */
 #define PACKAGE_STRING ""
@@ -201,6 +225,9 @@
 
 /* The size of a `short', as computed by sizeof. */
 #define SIZEOF_SHORT 2
+
+/* The size of `SQLWCHAR', as computed by sizeof. */
+#define SIZEOF_SQLWCHAR 2
 
 /* The size of a `__int64', as computed by sizeof. */
 #define SIZEOF___INT64 8
