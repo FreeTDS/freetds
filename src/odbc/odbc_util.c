@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.116 2010-07-05 20:49:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.117 2010-07-17 19:58:25 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -284,11 +284,12 @@ odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
 }
 #endif
 
-DSTR*
-odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str _WIDE)
-{
 #ifdef ENABLE_ODBC_WIDE
-	int len = odbc_get_string_size(size, str _wide);
+DSTR*
+odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str, int flag)
+{
+	int wide = flag&1;
+	int len = odbc_get_string_size((flag&0x20) && size >= 0 ? size/SIZEOF_SQLWCHAR : size, str, wide);
 	char *buf;
 
 	if (wide)
@@ -299,10 +300,14 @@ odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str _WIDE)
 		return NULL;
 
 	return tds_dstr_set(s, buf);
-#else
-	return tds_dstr_copyn(s, (const char *) str, odbc_get_string_size(size, str));
-#endif
 }
+#else
+DSTR*
+odbc_dstr_copy(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str)
+{
+	return tds_dstr_copyn(s, (const char *) str, odbc_get_string_size(size, str));
+}
+#endif
 
 /**
  * Copy a string to client setting size according to ODBC convenction
@@ -329,7 +334,10 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		const unsigned char *p = (const unsigned char*) s;
 		SQLWCHAR *dest = (SQLWCHAR*) buffer;
 
-		cbBuffer = cbBuffer >= 0 ? cbBuffer / SIZEOF_SQLWCHAR : 0;
+		if (cbBuffer < 0)
+			cbBuffer = 0;
+		if (!(flag&0x20))
+			cbBuffer /= SIZEOF_SQLWCHAR;
 		while (len) {
 			unsigned char mask;
 			unsigned u;
@@ -367,7 +375,8 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		/* terminate buffer */
 		if (dest && cbBuffer)
 			*dest = 0;
-		out_len *= SIZEOF_SQLWCHAR;
+		if (!(flag&0x20))
+			out_len *= SIZEOF_SQLWCHAR;
 	} else if (!dbc || !dbc->mb_conv) {
 		/* to ISO-8859-1 */
 		const unsigned char *p = (const unsigned char*) s;

@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.63 2010-07-17 18:05:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.64 2010-07-17 19:58:24 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -555,7 +555,7 @@ sqlstate2to3(char *state)
 	if (szSqlState) {
 		const char *state =
 			(odbc_ver == SQL_OV_ODBC3) ? errs->errs[numRecord].state3 : errs->errs[numRecord].state2;
-		odbc_set_string(dbc, szSqlState, 24, NULL, state, -1 _wide);
+		odbc_set_string(dbc, szSqlState, 24, NULL, state, -1);
 	}
 
 	msg = errs->errs[numRecord].msg;
@@ -565,7 +565,7 @@ sqlstate2to3(char *state)
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagRec: \"%s\"\n", p);
 
-	result = odbc_set_string(dbc, szErrorMsg, cbErrorMsgMax, pcbErrorMsg, p, -1 _wide);
+	result = odbc_set_string(dbc, szErrorMsg, cbErrorMsgMax, pcbErrorMsg, p, -1);
 	free(p);
 
 	if (pfNativeError)
@@ -665,7 +665,7 @@ sqlstate2to3(char *state)
 			return SQL_ERROR;
 
 		/* TODO */
-		return odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, "", 0 _wide);
+		return odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, "", 0);
 
 	case SQL_DIAG_DYNAMIC_FUNCTION_CODE:
 		*(SQLINTEGER *) buffer = 0;
@@ -709,9 +709,9 @@ sqlstate2to3(char *state)
 	case SQL_DIAG_CLASS_ORIGIN:
 	case SQL_DIAG_SUBCLASS_ORIGIN:
 		if (odbc_ver == SQL_OV_ODBC2)
-			result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, "ISO 9075", -1 _wide);
+			result = odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, "ISO 9075", -1);
 		else
-			result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, "ODBC 3.0", -1 _wide);
+			result = odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, "ODBC 3.0", -1);
 		break;
 
 	case SQL_DIAG_COLUMN_NUMBER:
@@ -738,12 +738,12 @@ sqlstate2to3(char *state)
 		else
 			cplen = 0;
 
-		result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, tmp, cplen _wide);
+		result = odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, tmp, cplen);
 		break;
 
 	case SQL_DIAG_MESSAGE_TEXT:
 		msg = errs->errs[numRecord].msg;
-		result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, msg, -1 _wide);
+		result = odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, msg, -1);
 		break;
 
 	case SQL_DIAG_NATIVE:
@@ -770,7 +770,7 @@ sqlstate2to3(char *state)
 			}
 			break;
 		}
-		result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, msg, -1 _wide);
+		result = odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, msg, -1);
 		break;
 
 	case SQL_DIAG_SQLSTATE:
@@ -779,7 +779,7 @@ sqlstate2to3(char *state)
 		else
 			msg = errs->errs[numRecord].state2;
 
-		result = odbc_set_string(dbc, buffer, cbBuffer, pcbBuffer, msg, 5 _wide);
+		result = odbc_set_string_oct(dbc, buffer, cbBuffer, pcbBuffer, msg, 5);
 		break;
 
 	default:
