@@ -88,20 +88,25 @@ EXPORTS
 	SQLExecDirectW
 	SQLForeignKeysW
 	SQLGetConnectAttrW
+	SQLGetConnectOptionW
 	SQLGetCursorNameW
 	SQLGetDescFieldW
 	SQLGetDescRecW
 	SQLGetDiagFieldW
 	SQLGetDiagRecW
 	SQLGetInfoW
+	SQLGetTypeInfoW = SQLGetTypeInfo
+	SQLGetStmtAttrW
 	SQLNativeSqlW
 	SQLPrepareW
 	SQLPrimaryKeysW
 	SQLProcedureColumnsW
 	SQLProceduresW
 	SQLSetConnectAttrW
+	SQLSetConnectOptionW
 	SQLSetCursorNameW
 	SQLSetDescFieldW
+	SQLSetStmtAttrW
 	SQLSpecialColumnsW
 	SQLStatisticsW
 	SQLTablePrivilegesW
