@@ -1,3 +1,6 @@
+Sat Jul 17 16:42:27 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: add some missing functions for wide support
+
 Sat Jul 17 16:25:40 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/config.h: added missing declaration
 
@@ -2671,4 +2674,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3070 2010-07-17 14:25:49 freddy77 Exp $
+$Id: ChangeLog,v 1.3071 2010-07-17 14:42:33 freddy77 Exp $

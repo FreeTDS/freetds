@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.543 2010-07-05 14:22:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.544 2010-07-17 14:42:33 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -4395,6 +4395,17 @@ SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGE
 
 	return _SQLGetStmtAttr(hstmt, Attribute, Value, BufferLength, StringLength);
 }
+
+#ifdef ENABLE_ODBC_WIDE
+SQLRETURN ODBC_API
+SQLGetStmtAttrW(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEGER BufferLength, SQLINTEGER * StringLength)
+{
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetStmtAttr(%p, %d, %p, %d, %p)\n",
+			hstmt, (int)Attribute, Value, (int)BufferLength, StringLength);
+
+	return _SQLGetStmtAttr(hstmt, Attribute, Value, BufferLength, StringLength);
+}
+#endif
 #endif
 
 SQLRETURN ODBC_API
@@ -4787,6 +4798,16 @@ SQLGetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
 
 	return _SQLGetConnectAttr(hdbc, (SQLINTEGER) fOption, pvParam, SQL_MAX_OPTION_STRING_LENGTH, NULL _wide0);
 }
+
+#ifdef ENABLE_ODBC_WIDE
+SQLRETURN ODBC_API
+SQLGetConnectOptionW(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLPOINTER pvParam)
+{
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetConnectOptionW(%p, %u, %p)\n", hdbc, fOption, pvParam);
+
+	return _SQLGetConnectAttr(hdbc, (SQLINTEGER) fOption, pvParam, SQL_MAX_OPTION_STRING_LENGTH, NULL, 1);
+}
+#endif
 
 SQLRETURN ODBC_API
 SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgbValue, SQLLEN cbValueMax, SQLLEN FAR * pcbValue)
@@ -6192,6 +6213,15 @@ SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 	return _SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS _wide0);
 }
 
+#ifdef ENABLE_ODBC_WIDE
+SQLRETURN ODBC_API
+SQLSetConnectOptionW(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
+{
+	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectOptionW(%p, %d, %u)\n", hdbc, fOption, (unsigned)vParam);
+	return _SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS, 1);
+}
+#endif
+
 static SQLRETURN
 _SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
 {
@@ -6483,6 +6513,17 @@ SQLSetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINT
 
 	return _SQLSetStmtAttr(hstmt, Attribute, ValuePtr, StringLength);
 }
+
+#ifdef ENABLE_ODBC_WIDE
+SQLRETURN ODBC_API
+SQLSetStmtAttrW(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER ValuePtr, SQLINTEGER StringLength)
+{
+	tdsdump_log(TDS_DBG_FUNC, "SQLSetStmtAttr(%p, %d, %p, %d)\n",
+			hstmt, (int)Attribute, ValuePtr, (int)StringLength);
+
+	return _SQLSetStmtAttr(hstmt, Attribute, ValuePtr, StringLength);
+}
+#endif
 #endif
 
 SQLRETURN ODBC_API
