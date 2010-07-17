@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.62 2010-07-03 06:57:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.63 2010-07-17 18:05:24 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -553,18 +553,17 @@ sqlstate2to3(char *state)
 	rank_errors(errs);
 
 	if (szSqlState) {
-		if (odbc_ver == SQL_OV_ODBC3)
-			odbc_set_string(dbc, szSqlState, 24, NULL, errs->errs[numRecord].state3, -1 _wide);
-		else
-			odbc_set_string(dbc, szSqlState, 24, NULL, errs->errs[numRecord].state2, -1 _wide);
+		const char *state =
+			(odbc_ver == SQL_OV_ODBC3) ? errs->errs[numRecord].state3 : errs->errs[numRecord].state2;
+		odbc_set_string(dbc, szSqlState, 24, NULL, state, -1 _wide);
 	}
 
 	msg = errs->errs[numRecord].msg;
 
-	tdsdump_log(TDS_DBG_FUNC, "_SQLError: \"%s\"\n", msg);
-
 	if (asprintf(&p, "%s%s", msgprefix, msg) < 0)
 		return SQL_ERROR;
+
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagRec: \"%s\"\n", p);
 
 	result = odbc_set_string(dbc, szErrorMsg, cbErrorMsgMax, pcbErrorMsg, p, -1 _wide);
 	free(p);

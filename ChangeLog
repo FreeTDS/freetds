@@ -1,3 +1,6 @@
+Sat Jul 17 20:05:19 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/error.c: small optimization
+
 Sat Jul 17 19:45:43 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/FreeTDS.def: adding missing wide exports
 
@@ -2680,4 +2683,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3073 2010-07-17 17:45:51 freddy77 Exp $
+$Id: ChangeLog,v 1.3074 2010-07-17 18:05:24 freddy77 Exp $
