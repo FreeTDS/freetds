@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.544 2010-07-17 14:42:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.545 2010-07-17 14:49:52 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -1531,7 +1531,6 @@ SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLAllocConnect(%p, %p)\n", henv, phdbc);
 
-	odbc_errs_reset(&((TDS_ENV *) henv)->errs);
 	return _SQLAllocConnect(henv, phdbc);
 }
 
@@ -1800,6 +1799,10 @@ SQLCancel(SQLHSTMT hstmt)
 	tdsdump_log(TDS_DBG_FUNC, "SQLCancel(%p)\n", hstmt);
 
 	tds = stmt->dbc->tds_socket;
+	if (!tds) {
+		odbc_errs_add(&stmt->errs, "HY010", NULL);
+		ODBC_RETURN(stmt, SQL_ERROR);
+	}
 
 	/* FIXME test current statement */
 
@@ -4106,7 +4109,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		 * FIXME -- otherwise make sure the current statement is complete
 		 */
 		/* do not close other running query ! */
-		if (tds->state != TDS_IDLE && tds->state != TDS_DEAD && stmt->dbc->current_statement == stmt) {
+		if (tds && tds->state != TDS_IDLE && tds->state != TDS_DEAD && stmt->dbc->current_statement == stmt) {
 			if (tds_send_cancel(tds) == TDS_SUCCEED)
 				tds_process_cancel(tds);
 		}
@@ -5087,7 +5090,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 	SQLUINTEGER mssql7plus_mask = 0;
 	int out_len = -1;
 
-	tdsdump_log(TDS_DBG_FUNC, "_SQLGetInfo(%p, %u, %p, %d, %p\n", 
+	tdsdump_log(TDS_DBG_FUNC, "_SQLGetInfo(%p, %u, %p, %d, %p)\n",
 			dbc, fInfoType, rgbInfoValue, cbInfoValueMax, pcbInfoValue);
 
 #define SIVAL out_len = sizeof(SQLSMALLINT), *((SQLSMALLINT *) rgbInfoValue)
@@ -5325,7 +5328,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_DBMS_NAME:
-		p = tds->product_name;
+		p = tds ? tds->product_name : NULL;
 		break;
 	case SQL_DBMS_VER:
 		if (!dbc->tds_socket)
@@ -5846,7 +5849,7 @@ SQLGetInfoW(SQLHDBC hdbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLSM
 {
 	INIT_HDBC;
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLGetInfo(%p, %d, %p, %d, %p)\n",
+	tdsdump_log(TDS_DBG_FUNC, "SQLGetInfoW(%p, %d, %p, %d, %p)\n",
 			hdbc, fInfoType, rgbInfoValue, cbInfoValueMax, pcbInfoValue);
 
 	ODBC_RETURN(dbc, _SQLGetInfo(dbc, fInfoType, rgbInfoValue, cbInfoValueMax, pcbInfoValue, 1));
@@ -7136,7 +7139,7 @@ odbc_free_cursor(TDS_STMT * stmt)
 	TDSCURSOR *cursor = stmt->cursor;
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
-	if (cursor) {
+	if (cursor && tds) {
 		int error = 1;
 		cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
 		/* TODO if fail add to odbc to free later, when we are in idle */
