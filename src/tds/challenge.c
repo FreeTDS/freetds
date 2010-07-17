@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.40 2009-09-03 09:25:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.41 2010-07-17 20:05:52 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -732,9 +732,9 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	/* built NTLMSSP authentication packet */
 	memcpy(packet, ntlm_id, 8);
 	/* sequence 1 client -> server */
-	TDS_PUT_A4LE(packet + 8, 1);
+	TDS_PUT_A4(packet + 8, TDS_HOST4LE(1));
 	/* flags */
-	TDS_PUT_A4LE(packet + 12, 0x08b201);
+	TDS_PUT_A4(packet + 12, TDS_HOST4LE(0x08b201));
 
 	/* domain info */
 	TDS_PUT_A2LE(packet + 16, domain_len);

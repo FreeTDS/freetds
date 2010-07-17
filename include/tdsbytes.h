@@ -20,7 +20,7 @@
 #ifndef _tdsbytes_h_
 #define _tdsbytes_h_
 
-/* $Id: tdsbytes.h,v 1.4 2008-08-18 13:31:26 freddy77 Exp $ */
+/* $Id: tdsbytes.h,v 1.5 2010-07-17 20:05:52 freddy77 Exp $ */
 
 #ifndef _tds_h_
 #error tds.h must be included before tdsbytes.h
@@ -109,6 +109,10 @@
 # undef TDS_PUT_A4BE
 # define TDS_PUT_A2BE(ptr,val) (*((TDS_USMALLINT*)(ptr)) = (val))
 # define TDS_PUT_A4BE(ptr,val) (*((TDS_UINT*)(ptr)) = (val))
+# define TDS_HOST2LE(val) TDS_BYTE_SWAP16(val)
+# define TDS_HOST4LE(val) TDS_BYTE_SWAP32(val)
+# define TDS_HOST2BE(val) (val)
+# define TDS_HOST4BE(val) (val)
 #else
 # define TDS_GET_A1(ptr)  TDS_GET_A1LE(ptr)
 # define TDS_GET_UA1(ptr) TDS_GET_UA1LE(ptr)
@@ -131,6 +135,10 @@
 # undef TDS_PUT_A4LE
 # define TDS_PUT_A2LE(ptr,val) (*((TDS_USMALLINT*)(ptr)) = (val))
 # define TDS_PUT_A4LE(ptr,val) (*((TDS_UINT*)(ptr)) = (val))
+# define TDS_HOST2LE(val) (val)
+# define TDS_HOST4LE(val) (val)
+# define TDS_HOST2BE(val) TDS_BYTE_SWAP16(val)
+# define TDS_HOST4BE(val) TDS_BYTE_SWAP32(val)
 #endif
 
 /* these platform support unaligned fetch/store */
