@@ -1,3 +1,6 @@
+Sat Jul 17 16:25:40 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/config.h: added missing declaration
+
 Fri Jul  9 17:17:56 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/config.h win32/msvc6/FreeTDS.dsp win32/msvc6/libTDS.dsp:
 	- update Windows project files
@@ -2668,4 +2671,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3069 2010-07-09 15:18:22 freddy77 Exp $
+$Id: ChangeLog,v 1.3070 2010-07-17 14:25:49 freddy77 Exp $

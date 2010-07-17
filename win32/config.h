@@ -5,13 +5,13 @@
 /* #undef BSD_COMP */
 
 /* Define to enable work in progress code */
-/* #undef ENABLE_DEVELOPING 1 */
+/* #undef ENABLE_DEVELOPING */
 
 /* Define to enable extra checks on code */
-/* #undef ENABLE_EXTRA_CHECKS 1 */
+/* #undef ENABLE_EXTRA_CHECKS */
 
 /* Defined if --enable-krb5 used and library detected */
-/* #undef ENABLE_KRB5 1 */
+/* #undef ENABLE_KRB5 */
 
 /* Define to enable ODBC wide string support */
 #define ENABLE_ODBC_WIDE 1
@@ -205,31 +205,34 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 
-/* The size of a `char', as computed by sizeof. */
+/* The size of `char', as computed by sizeof. */
 #define SIZEOF_CHAR 1
 
-/* The size of a `double', as computed by sizeof. */
+/* The size of `double', as computed by sizeof. */
 #define SIZEOF_DOUBLE 8
 
-/* The size of a `float', as computed by sizeof. */
+/* The size of `float', as computed by sizeof. */
 #define SIZEOF_FLOAT 4
 
-/* The size of a `int', as computed by sizeof. */
+/* The size of `int', as computed by sizeof. */
 #define SIZEOF_INT 4
 
-/* The size of a `long', as computed by sizeof. */
+/* The size of `long', as computed by sizeof. */
 #define SIZEOF_LONG 4
 
-/* The size of a `long long', as computed by sizeof. */
+/* The size of `long long', as computed by sizeof. */
 #define SIZEOF_LONG_LONG 0
 
-/* The size of a `short', as computed by sizeof. */
+/* The size of `short', as computed by sizeof. */
 #define SIZEOF_SHORT 2
 
 /* The size of `SQLWCHAR', as computed by sizeof. */
 #define SIZEOF_SQLWCHAR 2
 
-/* The size of a `__int64', as computed by sizeof. */
+/* The size of `wchar_t', as computed by sizeof. */
+#define SIZEOF_WCHAR_T 2
+
+/* The size of `__int64', as computed by sizeof. */
 #define SIZEOF___INT64 8
 
 /* Define to 1 if you want to use SSPI for Win32 */
