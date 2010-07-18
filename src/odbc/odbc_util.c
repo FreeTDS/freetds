@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.117 2010-07-17 19:58:25 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.118 2010-07-18 06:45:00 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -336,7 +336,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 
 		if (cbBuffer < 0)
 			cbBuffer = 0;
-		if (!(flag&0x20))
+		if (flag&0x20)
 			cbBuffer /= SIZEOF_SQLWCHAR;
 		while (len) {
 			unsigned char mask;
@@ -375,7 +375,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		/* terminate buffer */
 		if (dest && cbBuffer)
 			*dest = 0;
-		if (!(flag&0x20))
+		if (flag&0x20)
 			out_len *= SIZEOF_SQLWCHAR;
 	} else if (!dbc || !dbc->mb_conv) {
 		/* to ISO-8859-1 */

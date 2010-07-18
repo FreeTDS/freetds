@@ -1,3 +1,7 @@
+Sun Jul 18 08:44:51 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc_util.c:
+	- wrong logic converting octect <-> character count
+
 Sat Jul 17 22:05:47 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsbytes.h src/tds/challenge.c: small optimization
 
@@ -2691,4 +2695,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3076 2010-07-17 20:05:52 freddy77 Exp $
+$Id: ChangeLog,v 1.3077 2010-07-18 06:45:00 freddy77 Exp $
