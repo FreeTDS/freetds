@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.546 2010-07-17 19:58:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.547 2010-07-18 06:45:23 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -5365,7 +5365,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		p = "libtdsodbc.so";
 		break;
 	case SQL_DRIVER_ODBC_VER:
-		p = "03.00";
+		p = "03.50";
 		break;
 	case SQL_DRIVER_VER:
 		/* TODO check ##.##.#### format */
