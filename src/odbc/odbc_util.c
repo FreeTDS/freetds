@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.118 2010-07-18 06:45:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.119 2010-07-18 07:26:24 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -153,6 +153,7 @@ odbc_iso2utf(const char *s, int len)
 	int i, o_len = len + 1;
 	char *out, *p;
 
+	assert(s && len >= 0);
 	for (i = 0; i < len; ++i)
 		if ((s[i] & 0x80) != 0)
 			++o_len;
@@ -170,6 +171,7 @@ odbc_iso2utf(const char *s, int len)
 		}
 	}
 	*p = 0;
+	assert(p+1-out <= o_len);
 	return out;
 }
 
@@ -184,6 +186,7 @@ odbc_wide2utf(const SQLWCHAR *s, int len)
 # define MASK(n) ((0xffffu << (n)) & 0xffffu)
 #endif
 
+	assert(len >= 0 && (s || len == 0));
 	for (i = 0; i < len; ++i) {
 		if ((s[i] & MASK(7)) == 0)
 			continue;
@@ -242,6 +245,7 @@ odbc_wide2utf(const SQLWCHAR *s, int len)
 		*p++ = 0x80 | (0x3f & u);
 	}
 	*p = 0;
+	assert(p+1-out <= o_len);
 	return out;
 }
 
@@ -265,6 +269,7 @@ odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
 
 	/* allocate needed buffer (+1 is to exclude 0 case) */
 	ol = il * char_conv->server_charset.max_bytes_per_char / char_conv->client_charset.min_bytes_per_char + 1;
+	assert(ol > 0);
 	buf = (char *) malloc(ol);
 	if (!buf)
 		return NULL;
@@ -324,6 +329,9 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 {
 	SQLRETURN result = SQL_SUCCESS;
 	int out_len = 0;
+#ifndef NDEBUG
+	size_t initial_size;
+#endif
 
 	if (len < 0)
 		len = strlen(s);
@@ -338,6 +346,9 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 			cbBuffer = 0;
 		if (flag&0x20)
 			cbBuffer /= SIZEOF_SQLWCHAR;
+#ifndef NDEBUG
+		initial_size = cbBuffer;
+#endif
 		while (len) {
 			unsigned char mask;
 			unsigned u;
@@ -373,8 +384,12 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 			result = SQL_SUCCESS_WITH_INFO;
 		}
 		/* terminate buffer */
-		if (dest && cbBuffer)
-			*dest = 0;
+		assert(dest == NULL || dest-(SQLWCHAR*) buffer == out_len);
+		if (dest && cbBuffer) {
+			*dest++ = 0;
+			assert(dest-(SQLWCHAR*) buffer <= initial_size);
+		}
+		assert(dest == NULL || dest-(SQLWCHAR*) buffer <= initial_size);
 		if (flag&0x20)
 			out_len *= SIZEOF_SQLWCHAR;
 	} else if (!dbc || !dbc->mb_conv) {
@@ -382,6 +397,10 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		const unsigned char *p = (const unsigned char*) s;
 		unsigned char *dest = (unsigned char*) buffer;
 
+		assert(cbBuffer >= 0);
+#ifndef NDEBUG
+		initial_size = cbBuffer;
+#endif
 		while (len) {
 			unsigned char mask;
 			unsigned u;
@@ -416,9 +435,13 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 			}
 			result = SQL_SUCCESS_WITH_INFO;
 		}
+		assert(dest == NULL || dest-(unsigned char*) buffer == out_len);
 		/* terminate buffer */
-		if (dest && cbBuffer)
-			*dest = 0;
+		if (dest && cbBuffer) {
+			*dest++ = 0;
+			assert(dest-(unsigned char*) buffer <= initial_size);
+		}
+		assert(dest == NULL || dest-(unsigned char*) buffer <= initial_size);
 	} else if (dbc->mb_conv->flags == TDS_ENCODING_MEMCPY) {
 		/* to UTF-8 */
 		if (len >= cbBuffer) {
