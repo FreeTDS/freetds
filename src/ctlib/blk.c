@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998-2004, 2005  Brian Bruns, Bill Thompson
+ * Copyright (C) 1998-2004, 2005, 2010  Brian Bruns, Bill Thompson
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -38,7 +38,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.52 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.53 2010-07-19 10:06:07 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
@@ -435,11 +435,9 @@ blk_rowdrop(SRV_PROC * srvproc, CS_BLK_ROW * row)
 CS_RETCODE
 blk_rowxfer(CS_BLKDESC * blkdesc)
 {
-	CS_INT row_count = 1;
-
 	tdsdump_log(TDS_DBG_FUNC, "blk_rowxfer(%p)\n", blkdesc);
 
-	return blk_rowxfer_mult(blkdesc, &row_count);
+	return blk_rowxfer_mult(blkdesc, NULL);
 }
 
 CS_RETCODE
