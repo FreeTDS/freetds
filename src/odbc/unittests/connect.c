@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.13 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.14 2010-07-19 11:52:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -13,12 +13,30 @@ init_connect(void)
 	CHKAllocConnect(&odbc_conn, "S");
 }
 
+#ifdef _WIN32
+#include <odbcinst.h>
+
+static char *entry = NULL;
+
+static char *
+get_entry(const char *key)
+{
+	static char buf[256];
+
+	entry = NULL;
+	if (SQLGetPrivateProfileString(odbc_server, key, "", buf, sizeof(buf), "odbc.ini") > 0)
+		entry = buf;
+
+	return entry;
+}
+#endif
+
 int
 main(int argc, char *argv[])
 {
 	char tmp[2048];
 	SQLSMALLINT len;
-	int failures = 0;
+	int succeeded = 0;
 	int is_freetds = 1;
 	SQLRETURN rc;
 
@@ -49,6 +67,7 @@ main(int argc, char *argv[])
 	if (!odbc_driver_is_freetds())
 		is_freetds = 0;
 	odbc_disconnect();
+	++succeeded;
 
 	if (!is_freetds) {
 		printf("Driver is not FreeTDS, exiting\n");
@@ -61,6 +80,7 @@ main(int argc, char *argv[])
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_server, odbc_user, odbc_password, odbc_database);
 	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
 	odbc_disconnect();
+	++succeeded;
 
 	/* try connect string using old SERVERNAME specification */
 	printf("connect string SERVERNAME connect..\n");
@@ -72,7 +92,8 @@ main(int argc, char *argv[])
 	rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
-		++failures;
+	} else {
+		++succeeded;
 	}
 	odbc_disconnect();
 
@@ -82,13 +103,30 @@ main(int argc, char *argv[])
 	rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
-		++failures;
+	} else {
+		++succeeded;
 	}
 	odbc_disconnect();
 
+#ifdef _WIN32
+	if (get_entry("SERVER")) {
+		init_connect();
+		sprintf(tmp, "DRIVER=FreeTDS;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;", entry, odbc_user, odbc_password, odbc_database);
+		if (get_entry("TDS_Version"))
+			sprintf(strchr(tmp, 0), "TDS_Version=%s;", entry);
+		rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
+		if (rc == SQL_ERROR) {
+			printf("Unable to open data source (ret=%d)\n", rc);
+		} else {
+			++succeeded;
+		}
+		odbc_disconnect();
+	}
+#endif
+
 	/* at least one should success.. */
-	if (failures > 1) {
-		ODBC_REPORT_ERROR("Too much failures");
+	if (succeeded < 3) {
+		ODBC_REPORT_ERROR("Too few successes");
 		exit(1);
 	}
 

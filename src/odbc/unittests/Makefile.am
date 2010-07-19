@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.82 2010-03-02 15:41:37 freddy77 Exp $
+# $Id: Makefile.am,v 1.83 2010-07-19 11:52:15 freddy77 Exp $
 TESTS		=	\
 			t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) connect$(EXEEXT) print$(EXEEXT)\
@@ -32,6 +32,7 @@ t0002_SOURCES	=	t0002.c common.c common.h
 t0003_SOURCES	=	t0003.c common.c common.h
 t0004_SOURCES	=	t0004.c common.c common.h
 connect_SOURCES	=	connect.c common.c common.h
+connect_LDFLAGS = $(ODBCINSTLIB)
 print_SOURCES	=	print.c common.c common.h
 date_SOURCES	=	date.c common.c common.h
 norowset_SOURCES	= norowset.c common.c common.h
