@@ -44,7 +44,7 @@ typedef struct _pbcb
 	unsigned int cb;
 } TDS_PBCB;
 
-TDS_RCSID(var, "$Id: blk.c,v 1.43 2007-12-31 10:06:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.43.2.1 2010-07-19 10:04:23 freddy77 Exp $");
 
 static CS_RETCODE _blk_get_col_data(CS_BLKDESC *, TDSCOLUMN *, int );
 static int _blk_add_variable_columns(CS_BLKDESC * blkdesc, int offset, unsigned char * rowbuffer, int start, int *var_cols);
@@ -541,9 +541,7 @@ blk_rowdrop(SRV_PROC * srvproc, CS_BLK_ROW * row)
 CS_RETCODE
 blk_rowxfer(CS_BLKDESC * blkdesc)
 {
-	CS_INT row_count = 1;
-
-	return blk_rowxfer_mult(blkdesc, &row_count);
+	return blk_rowxfer_mult(blkdesc, NULL);
 }
 
 CS_RETCODE
