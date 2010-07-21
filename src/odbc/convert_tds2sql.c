@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.71 2010-07-03 09:14:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.72 2010-07-21 05:56:27 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -70,6 +70,10 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 #ifdef ENABLE_ODBC_WIDE
 	} else {
 		conv = tds_iconv_get(tds, tds_dstr_cstr(&stmt->dbc->original_charset), conv->server_charset.name);
+		if (!conv)
+			conv = tds_iconv_get(tds, tds_dstr_cstr(&stmt->dbc->original_charset), "ISO-8859-1");
+		if (!conv)
+			conv = tds_iconv_get(tds, "ISO-8859-1", "ISO-8859-1");
 #endif
 	}
 

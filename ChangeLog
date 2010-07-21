@@ -1,3 +1,7 @@
+Wed Jul 21 07:56:18 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/convert_tds2sql.c src/tds/mem.c:
+	- avoid core if locale not detected
+
 Tue Jul 20 09:56:36 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/error.c: fix compile using no-gnu compiler
 
@@ -2712,4 +2716,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3082 2010-07-20 07:56:51 freddy77 Exp $
+$Id: ChangeLog,v 1.3083 2010-07-21 05:56:27 freddy77 Exp $

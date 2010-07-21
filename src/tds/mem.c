@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2008 Frediano Ziglio
+ * Copyright (C) 2005-2010 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.201 2010-06-29 12:07:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.202 2010-07-21 05:56:27 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -850,6 +850,16 @@ tds_alloc_connection(TDSLOCALE * locale)
 
 	if (strtok_r(lc_all, ".", &tok)) {
 		char *encoding = strtok_r(NULL, "@", &tok);
+#ifdef _WIN32
+		/* windows give numeric codepage*/
+		if (encoding && atoi(encoding) > 0) {
+			char *p;
+			if (asprintf(&p, "CP%s", encoding) >= 0) {
+				free(encoding);
+				lc_all = encoding = p;
+			}
+		}
+#endif
 		if (encoding) {
 			if (!tds_dstr_copy(&connection->client_charset, encoding))
 				goto Cleanup;
