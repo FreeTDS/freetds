@@ -49,7 +49,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.43 2010-06-27 23:58:12 berryc Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.44 2010-07-21 20:12:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -114,6 +114,8 @@ main(int argc, char *argv[])
 	LOGINREC *login;
 	DBPROCESS *dbproc;
 	RETCODE erc;
+
+	setlocale(LC_ALL, "");
 
 	/* Initialize db-lib */
 	erc = dbinit();	

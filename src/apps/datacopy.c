@@ -110,6 +110,8 @@ main(int argc, char **argv)
 	DBPROCESS *dbsrc;
 	DBPROCESS *dbtarget;
 
+	setlocale(LC_ALL, "");
+
 	memset(&params, '\0', sizeof(params));
 
 	if (process_parameters(argc, argv, &params) == FALSE) {

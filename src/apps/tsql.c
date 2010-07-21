@@ -87,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.135 2010-06-27 23:58:12 berryc Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.136 2010-07-21 20:12:18 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -675,6 +675,8 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	setlocale(LC_ALL, "");
+
 	/* grab a login structure */
 	login = tds_alloc_login();
 
@@ -696,7 +698,6 @@ main(int argc, char **argv)
 	tds_set_parent(tds, NULL);
 	connection = tds_read_config_info(tds, login, context->locale);
 
-	setlocale(LC_ALL, "");
 	locale = setlocale(LC_ALL, NULL);
 
 #if HAVE_LOCALE_CHARSET

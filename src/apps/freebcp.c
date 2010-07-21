@@ -50,7 +50,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.55 2010-06-27 23:58:12 berryc Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.56 2010-07-21 20:12:18 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -73,6 +73,8 @@ main(int argc, char **argv)
 	BCPPARAMDATA params;
 	DBPROCESS *dbproc;
 	int ok = FALSE;
+
+	setlocale(LC_ALL, "");
 
 #ifdef __VMS
         /* Convert VMS-style arguments to Unix-style */

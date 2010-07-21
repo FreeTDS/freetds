@@ -268,6 +268,8 @@ main(int argc, char *argv[])
 	int nby;
 	char adash;
 
+	setlocale(LC_ALL, "");
+
 #ifdef __VMS
         /* Convert VMS-style arguments to Unix-style */
         parse_vms_args(&argc, &argv);
