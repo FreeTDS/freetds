@@ -50,6 +50,10 @@
 # endif
 #endif
 
+#if HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
 #include <sybfront.h>
 #include <sybdb.h>
 

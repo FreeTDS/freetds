@@ -31,6 +31,11 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
+
+#if HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
 #include <sybfront.h>
 #include <sybdb.h>
 #include "terminal.h"
