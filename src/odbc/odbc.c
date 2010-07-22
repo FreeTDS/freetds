@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.547 2010-07-18 06:45:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.548 2010-07-22 14:24:14 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -3190,12 +3190,14 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	tds_set_state(tds, TDS_PENDING);
 	/* set cursor name for TDS7+ */
 	if (ret == TDS_SUCCEED && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
-		ret = tds_process_simple_query(tds);
+		ret = odbc_process_tokens(stmt, TDS_RETURN_MSG|TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE);
 		stmt->row_count = tds->rows_affected;
 		stmt->dbc->current_statement = NULL;
-		if (ret == TDS_SUCCEED && cursor->cursor_id != 0) {
+		if (ret == TDS_CMD_DONE && cursor->cursor_id != 0) {
 			ret = tds_cursor_setname(tds, cursor);
 			tds_set_state(tds, TDS_PENDING);
+		} else {
+			ret = (ret == TDS_CMD_FAIL) ? TDS_FAIL : TDS_SUCCEED;
 		}
 		if (!cursor->cursor_id) {
 			stmt->cursor = NULL;

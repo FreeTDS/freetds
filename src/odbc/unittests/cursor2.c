@@ -5,7 +5,7 @@
  * 2) Test cursor returns results on language RPCs
  */
 
-static char software_version[] = "$Id: cursor2.c,v 1.10 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: cursor2.c,v 1.11 2010-07-22 14:24:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -15,10 +15,9 @@ main(int argc, char *argv[])
 	unsigned char msg[256];
 
 	odbc_connect();
+	odbc_check_cursor();
 
 	odbc_command("CREATE TABLE #cursor2_test (i INT)");
-
-	odbc_check_cursor();
 
 	odbc_reset_statement();
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_DYNAMIC, SQL_IS_INTEGER, "S");
@@ -30,7 +29,7 @@ main(int argc, char *argv[])
 
 
 	odbc_reset_statement();
-	odbc_command_with_result(odbc_stmt, "drop proc sp_test");
+	odbc_command_with_result(odbc_stmt, "if object_id('sp_test') is not null drop proc sp_test");
 	odbc_command("create proc sp_test @name varchar(30) as select 0 as pippo select 1 as 'test', @name as 'nome'");
 
 	odbc_reset_statement();
