@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.119 2010-07-18 07:26:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.120 2010-07-22 14:11:41 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -294,7 +294,7 @@ DSTR*
 odbc_dstr_copy_flag(TDS_DBC *dbc, DSTR *s, int size, ODBC_CHAR * str, int flag)
 {
 	int wide = flag&1;
-	int len = odbc_get_string_size((flag&0x20) && size >= 0 ? size/SIZEOF_SQLWCHAR : size, str, wide);
+	int len = odbc_get_string_size((flag&0x21) == 0x21 && size >= 0 ? size/SIZEOF_SQLWCHAR : size, str, wide);
 	char *buf;
 
 	if (wide)
