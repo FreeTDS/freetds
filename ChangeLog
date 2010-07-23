@@ -1,3 +1,6 @@
+Fri Jul 23 09:42:11 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/prepare_results.c: use ird to get column count
+
 Thu Jul 22 16:23:52 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/cursor2.c: fix cursor2 issue
 
@@ -2735,4 +2738,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3087 2010-07-22 14:24:14 freddy77 Exp $
+$Id: ChangeLog,v 1.3088 2010-07-23 07:42:25 freddy77 Exp $

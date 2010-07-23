@@ -2,39 +2,35 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.12 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_results.c,v 1.13 2010-07-23 07:42:25 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-int
-main(int argc, char *argv[])
+static void
+Test(int use_ird)
 {
 	SQLSMALLINT count, namelen, type, digits, nullable;
 	SQLULEN size;
+	SQLHDESC desc;
+	SQLINTEGER ind;
 	char name[128];
-
-	odbc_connect();
-
-	odbc_command("create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
-
-	/* reset state */
-	odbc_command("select * from #odbctestdata");
-	SQLFetch(odbc_stmt);
-	SQLMoreResults(odbc_stmt);
-
-	/* test query returns column information for update */
-	CHKPrepare((SQLCHAR *) "update #odbctestdata set i = 20", SQL_NTS, "S");
-
-	CHKNumResultCols(&count, "S");
-
-	if (count != 0) {
-		fprintf(stderr, "Wrong number of columns returned. Got %d expected 0\n", (int) count);
-		exit(1);
-	}
 
 	/* test query returns column information */
 	CHKPrepare((SQLCHAR *) "select * from #odbctestdata select * from #odbctestdata", SQL_NTS, "S");
 
-	CHKNumResultCols(&count, "S");
+	SQLNumParams(odbc_stmt, &count);
+	if (count != 0) {
+		fprintf(stderr, "Wrong number of params returned. Got %d expected 0\n", (int) count);
+		exit(1);
+	}
+
+	if (use_ird) {
+		/* get IRD */
+		CHKGetStmtAttr(SQL_ATTR_IMP_ROW_DESC, &desc, sizeof(desc), &ind, "S");
+
+		CHKR(SQLGetDescField, (desc, 0, SQL_DESC_COUNT, &count, sizeof(count), &ind), "S");
+	} else {
+		CHKNumResultCols(&count, "S");
+	}
 
 	if (count != 3) {
 		fprintf(stderr, "Wrong number of columns returned. Got %d expected 3\n", (int) count);
@@ -61,6 +57,35 @@ main(int argc, char *argv[])
 		fprintf(stderr, "wrong column 3 informations (type %d name '%s' size %d)\n", (int) type, name, (int) size);
 		exit(1);
 	}
+}
+
+int
+main(int argc, char *argv[])
+{
+	SQLSMALLINT count;
+
+	odbc_connect();
+
+	odbc_command("create table #odbctestdata (i int, c char(20), n numeric(34,12) )");
+
+	/* reset state */
+	odbc_command("select * from #odbctestdata");
+	SQLFetch(odbc_stmt);
+	SQLMoreResults(odbc_stmt);
+
+	/* test query returns column information for update */
+	CHKPrepare((SQLCHAR *) "update #odbctestdata set i = 20", SQL_NTS, "S");
+
+	CHKNumResultCols(&count, "S");
+
+	if (count != 0) {
+		fprintf(stderr, "Wrong number of columns returned. Got %d expected 0\n", (int) count);
+		exit(1);
+	}
+
+	Test(0);
+	odbc_reset_statement();
+	Test(1);
 
 	/* TODO test SQLDescribeParam (when implemented) */
 	odbc_command("drop table #odbctestdata");
