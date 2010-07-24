@@ -49,7 +49,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.144 2010-06-27 17:46:43 berryc Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.145 2010-07-24 12:41:03 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -1101,6 +1101,8 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 
 	/* usually fixed size and UTF-8 do not have state, so do not reset it */
 	if (charsize) {
+		if (charsize > *input_size)
+			return 0;
 		*input += charsize;
 		*input_size -= charsize;
 		return charsize;
@@ -1121,6 +1123,8 @@ skip_one_input_sequence(iconv_t cd, const TDS_ENCODING * charset, const char **i
 		do {
 			++charsize;
 		} while ((c <<= 1) & 0x80);
+		if (charsize > *input_size)
+			return 0;
 		*input += charsize;
 		*input_size -= charsize;
 		return charsize;
