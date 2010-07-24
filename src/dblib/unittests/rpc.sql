@@ -8,7 +8,7 @@ CREATE PROCEDURE #t0022
 AS 
 BEGIN 
 if @null_input is not NULL begin 
-	select 'error: should be NULL' as status, @null_input as '@null_input'
+	select 'error: should be NULL' as status, @null_input as 'null_input'
 	return -42
 end else begin
 	print 'Good: @null_input is NULL'
@@ -26,12 +26,12 @@ select distinct convert(varchar(30), name) as 'type'  from systypes
 where name in ('int', 'char', 'text') 
 select @nrows = @@rowcount 
 select distinct @nv as '@nv', convert(varchar(30), name) as name  from sysobjects where type = 'S' 
-select	  @null_input as '@null_input'
-	, @first_type as '@first_type'
-	, @nullout as '@nullout'
-	, @nrows as '@nrows'
-	, @c as '@c'
-	, @nv as '@nv'
+select	  @null_input as 'null_input'
+	, @first_type as 'first_type'
+	, @nullout as 'nullout'
+	, @nrows as 'nrows'
+	, @c as 'c'
+	, @nv as 'nv'
 	into #parameters
 select * from #parameters
 return 42 
@@ -50,7 +50,7 @@ CREATE PROCEDURE t0022
 AS 
 BEGIN 
 if @null_input is not NULL begin 
-	select 'error: should be NULL' as status, @null_input as '@null_input'
+	select 'error: should be NULL' as status, @null_input as 'null_input'
 	return -42
 end else begin
 	print '@null_input is NULL, as expected'
@@ -68,12 +68,12 @@ select distinct convert(varchar(30), name) as 'type'  from systypes
 where name in ('int', 'char', 'text') 
 select @nrows = @@rowcount 
 select distinct @nv as '@nv', convert(varchar(30), name) as name  from sysobjects where type = 'S' 
-select	  @null_input as '@null_input'
-	, @first_type as '@first_type'
-	, @nullout as '@nullout'
-	, @nrows as '@nrows'
-	, @c as '@c'
-	, @nv as '@nv'
+select	  @null_input as 'null_input'
+	, @first_type as 'first_type'
+	, @nullout as 'nullout'
+	, @nrows as 'nrows'
+	, @c as 'c'
+	, @nv as 'nv'
 	into #parameters
 select * from #parameters
 return 42 

@@ -22,7 +22,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.40 2010-01-10 14:43:11 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.41 2010-07-24 08:08:09 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -448,6 +448,7 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 			 */
 			fprintf(stdout, "%s\n", msgtext);
 			fflush(stdout);
+			severity = 0;
 		}
 	}
 
