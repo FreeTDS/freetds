@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.120 2010-07-22 14:11:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.121 2010-07-24 08:26:01 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -329,7 +329,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 {
 	SQLRETURN result = SQL_SUCCESS;
 	int out_len = 0;
-#ifndef NDEBUG
+#if !defined(NDEBUG) && defined(ENABLE_ODBC_WIDE)
 	size_t initial_size;
 #endif
 
