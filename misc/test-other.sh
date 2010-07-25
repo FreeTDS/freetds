@@ -184,9 +184,9 @@ FILE='php5.2-latest.tar.bz2'
 if test $do_php = yes -a -f "$FILE"; then
 	# need to recompile ??
 	if test ! -x phpinst/bin/php -o "$FILE" -nt phpinst/bin/php; then
-		rm -rf php5.2-200* phpinst lib
+		rm -rf php5.2-201* phpinst lib
 		bunzip2 -c "$FILE" | tar xvf -
-		DIR=`echo php5.2-200*`
+		DIR=`echo php5.2-201*`
 		MAINDIR=$PWD
 		mkdir lib
 		cp src/dblib/.libs/lib*.s[ol]* lib

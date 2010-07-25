@@ -1,3 +1,6 @@
+Sun Jul 25 12:46:17 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/test-other.sh: update year
+
 Sun Jul 25 12:02:49 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* phptests/types.php: add php test
 
@@ -2763,4 +2766,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3095 2010-07-25 10:02:56 freddy77 Exp $
+$Id: ChangeLog,v 1.3096 2010-07-25 10:46:25 freddy77 Exp $
