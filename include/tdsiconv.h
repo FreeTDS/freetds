@@ -20,7 +20,7 @@
 #ifndef _tds_iconv_h_
 #define _tds_iconv_h_
 
-/* $Id: tdsiconv.h,v 1.39 2010-07-02 23:55:56 freddy77 Exp $ */
+/* $Id: tdsiconv.h,v 1.40 2010-07-25 08:40:19 freddy77 Exp $ */
 
 #if HAVE_ICONV
 #include <iconv.h>
@@ -79,7 +79,7 @@ typedef struct _character_set_alias
 	int canonic;
 } CHARACTER_SET_ALIAS;
 
-typedef struct _tds_errno_message_flags {
+typedef struct tds_errno_message_flags {
 	unsigned int e2big:1;
 	unsigned int eilseq:1;
 	unsigned int einval:1;

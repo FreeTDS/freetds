@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.204 2010-07-25 07:49:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.205 2010-07-25 08:40:19 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -298,7 +298,7 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 }
 
 static void
-_tds_param_free(TDSCOLUMN *col)
+tds_param_free(TDSCOLUMN *col)
 {
 	if (!col->column_data)
 		return;
@@ -335,7 +335,7 @@ tds_alloc_param_data(TDSCOLUMN * curparam)
 	/* allocate data */
 	if (curparam->column_data && curparam->column_data_free)
 		curparam->column_data_free(curparam);
-	curparam->column_data_free = _tds_param_free;
+	curparam->column_data_free = tds_param_free;
 
 	data = malloc(data_size);
 	curparam->column_data = data;
@@ -439,7 +439,7 @@ tds_alloc_results(int num_cols)
 }
 
 static void
-_tds_row_free(TDSRESULTINFO *res_info, unsigned char *row)
+tds_row_free(TDSRESULTINFO *res_info, unsigned char *row)
 {
 	int i;
 	const TDSCOLUMN *col;
@@ -495,7 +495,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 	res_info->current_row = ptr;
 	if (!ptr)
 		return TDS_FAIL;
-	res_info->row_free = _tds_row_free;
+	res_info->row_free = tds_row_free;
 
 	/* fill column_data */
 	row_size = 0;

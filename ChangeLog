@@ -1,3 +1,8 @@
+Sun Jul 25 10:40:08 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h include/tds_sysdep_private.h include/tdsiconv.h:
+	* src/tds/mem.c src/tds/net.c src/tds/token.c src/tds/util.c:
+	- normalize some names
+
 Sun Jul 25 09:48:50 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/ct.c src/tds/mem.c:
 	- cleanup unused declarations
@@ -2755,4 +2760,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3093 2010-07-25 07:49:00 freddy77 Exp $
+$Id: ChangeLog,v 1.3094 2010-07-25 08:40:18 freddy77 Exp $

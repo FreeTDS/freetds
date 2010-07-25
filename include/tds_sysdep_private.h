@@ -21,7 +21,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.34 2010-05-12 08:13:58 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.35 2010-07-25 08:40:19 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -76,10 +76,10 @@ typedef int pid_t;
 #define CLOSESOCKET(a)		closesocket((a))
 #define IOCTLSOCKET(a,b,c)	ioctlsocket((a), (b), (c))
 #define SOCKLEN_T int
-int  _tds_socket_init(void);
-#define INITSOCKET()	_tds_socket_init()
-void _tds_socket_done(void);
-#define DONESOCKET()	_tds_socket_done()
+int  tds_socket_init(void);
+#define INITSOCKET()	tds_socket_init()
+void tds_socket_done(void);
+#define DONESOCKET()	tds_socket_done()
 #define NETDB_REENTRANT 1	/* BSD-style netdb interface is reentrant */
 
 #define TDSSOCK_EINTR WSAEINTR

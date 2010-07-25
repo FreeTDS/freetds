@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.387 2010-07-02 18:57:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.388 2010-07-25 08:40:19 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -75,7 +75,7 @@ static int tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_par
 
 static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
-static /*@observer@*/ const char *_tds_token_name(unsigned char marker);
+static /*@observer@*/ const char *tds_token_name(unsigned char marker);
 static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static /*@observer@*/ const char *tds_pr_op(int op);
@@ -119,7 +119,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 
 	CHECK_TDS_EXTRA(tds);
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_process_default_tokens() marker is %x(%s)\n", marker, _tds_token_name(marker));
+	tdsdump_log(TDS_DBG_FUNC, "tds_process_default_tokens() marker is %x(%s)\n", marker, tds_token_name(marker));
 
 	if (IS_TDSDEAD(tds)) {
 		tdsdump_log(TDS_DBG_FUNC, "leaving tds_process_default_tokens() connection dead\n");
@@ -234,7 +234,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	case TDS_LOGINACK_TOKEN:
 	case TDS_ORDERBY_TOKEN:
 	case TDS_CONTROL_TOKEN:
-		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_smallint(tds));
 		break;
 	case TDS_TABNAME_TOKEN:	/* used for FOR BROWSE query */
@@ -244,7 +244,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		return tds_process_colinfo(tds, NULL, 0);
 		break;
 	case TDS_ORDERBY2_TOKEN:
-		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_WARN, "Eating %s token\n", tds_token_name(marker));
 		tds_get_n(tds, NULL, tds_get_int(tds));
 		break;
 	case TDS_NBC_ROW_TOKEN:
@@ -334,7 +334,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			} ver;
 		
 		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_FUNC, "looking for login token, got  %x(%s)\n", marker, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_FUNC, "looking for login token, got  %x(%s)\n", marker, tds_token_name(marker));
 
 		switch (marker) {
 		case TDS_AUTH_TOKEN:
@@ -551,7 +551,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 	for (;;) {
 
 		marker = tds_get_byte(tds);
-		tdsdump_log(TDS_DBG_INFO1, "processing result tokens.  marker is  %x(%s)\n", marker, _tds_token_name(marker));
+		tdsdump_log(TDS_DBG_INFO1, "processing result tokens.  marker is  %x(%s)\n", marker, tds_token_name(marker));
 
 		switch (marker) {
 		case TDS7_RESULT_TOKEN:
@@ -3445,7 +3445,7 @@ tds_prtype(int token)
 /** @} */
 
 static const char *
-_tds_token_name(unsigned char marker)
+tds_token_name(unsigned char marker)
 {
 	switch (marker) {
 

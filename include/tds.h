@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.339 2010-07-25 07:49:01 freddy77 Exp $ */
+/* $Id: tds.h,v 1.340 2010-07-25 08:40:19 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -58,7 +58,7 @@ extern "C"
  * This structure is returned by tds_get_compiletime_settings
  */
 
-typedef struct _tds_compiletime_settings
+typedef struct tds_compiletime_settings
 {
 	const char *freetds_version;	/* release version of FreeTDS */
 	const char *sysconfdir;		/* location of freetds.conf */
@@ -73,11 +73,10 @@ typedef struct _tds_compiletime_settings
 
 } TDS_COMPILETIME_SETTINGS;
 
-struct DSTR_STRUCT {
+typedef struct tds_dstr {
 	char *dstr_s;
 	size_t dstr_size;
-};
-typedef struct DSTR_STRUCT DSTR;
+} DSTR;
 
 /**
  * @file tds.h
@@ -935,14 +934,14 @@ typedef struct
  * Information relevant to libiconv.  The name is an iconv name, not 
  * the same as found in master..syslanguages. 
  */
-typedef struct _tds_encoding
+typedef struct tds_encoding
 {
 	const char *name;
 	unsigned char min_bytes_per_char;
 	unsigned char max_bytes_per_char;
 } TDS_ENCODING;
 
-typedef struct _tds_bcpcoldata
+typedef struct tds_bcpcoldata
 {
 	TDS_UCHAR *data;
 	TDS_INT    datalen;
@@ -1146,7 +1145,7 @@ typedef enum {
 	, TDS_CURSOR_STATE_ACTIONED = 3		/* acknowledged by server */
 } TDS_CURSOR_STATE;
 
-typedef struct _tds_cursor_status
+typedef struct tds_cursor_status
 {
 	TDS_CURSOR_STATE declare;
 	TDS_CURSOR_STATE cursor_row;
@@ -1156,7 +1155,7 @@ typedef struct _tds_cursor_status
 	TDS_CURSOR_STATE dealloc;
 } TDS_CURSOR_STATUS;
 
-typedef enum _tds_cursor_operation
+typedef enum tds_cursor_operation
 {
 	TDS_CURSOR_POSITION = 0,
 	TDS_CURSOR_UPDATE = 1,
@@ -1164,7 +1163,7 @@ typedef enum _tds_cursor_operation
 	TDS_CURSOR_INSERT = 4
 } TDS_CURSOR_OPERATION;
 
-typedef enum _tds_cursor_fetch
+typedef enum tds_cursor_fetch
 {
 	TDS_CURSOR_FETCH_NEXT = 1,
 	TDS_CURSOR_FETCH_PREV,
@@ -1177,9 +1176,9 @@ typedef enum _tds_cursor_fetch
 /**
  * Holds informations about a cursor
  */
-typedef struct _tds_cursor 
+typedef struct tds_cursor
 {
-	struct _tds_cursor *next;	/**< next in linked list, keep first */
+	struct tds_cursor *next;	/**< next in linked list, keep first */
 	TDS_INT ref_count;		/**< reference counter so client can retain safely a pointer */
 	TDS_TINYINT cursor_name_len;	/**< length of cursor name > 0 and <= 30  */
 	char *cursor_name;		/**< name of the cursor */
@@ -1278,15 +1277,13 @@ enum TDS_ICONV_ENTRY
 	, initial_char_conv_count	/* keep last */
 };
 
-struct tds_authentication
+typedef struct tds_authentication
 {
 	TDS_UCHAR *packet;
 	int packet_len;
 	int (*free)(TDSSOCKET * tds, struct tds_authentication * auth);
 	int (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
-};
-
-typedef struct tds_authentication TDSAUTHENTICATION;
+} TDSAUTHENTICATION;
 
 /**
  * Information for a server connection

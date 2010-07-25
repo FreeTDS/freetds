@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.103 2010-05-12 08:00:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.104 2010-07-25 08:40:19 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -134,7 +134,7 @@ static TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned i
 
 #ifdef _WIN32
 int
-_tds_socket_init(void)
+tds_socket_init(void)
 {
 	WSADATA wsadata;
 
@@ -142,7 +142,7 @@ _tds_socket_init(void)
 }
 
 void
-_tds_socket_done(void)
+tds_socket_done(void)
 {
 	WSACleanup();
 }

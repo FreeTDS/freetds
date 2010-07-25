@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.92 2010-07-02 18:57:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.93 2010-07-25 08:40:19 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)
@@ -233,7 +233,7 @@ tds_gettime_ms(void)
 #define EXFATAL       10
 #define EXCONSISTENCY 11
 
-typedef struct _tds_error_message 
+typedef struct tds_error_message
 {
 	TDSERRNO msgno;
 	int severity;
