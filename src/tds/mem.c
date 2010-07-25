@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.203 2010-07-21 20:12:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.204 2010-07-25 07:49:01 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -1149,7 +1149,6 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_ssl_deinit(tds);
 #endif
 		tds_close_socket(tds);
-		free(tds->date_fmt);
 		tds_iconv_free(tds);
 		free(tds->product_name);
 		free(tds);

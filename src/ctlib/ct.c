@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.204 2010-04-26 09:09:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.205 2010-07-25 07:49:01 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -628,11 +628,12 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 			if (!tds_dstr_copy(&connection->language, con->locale->language)) 
 				goto Cleanup;
 		}
-		if (con->locale->time) {
-			free(con->tds_socket->date_fmt);
+		if (con->locale->time && con->tds_socket->tds_ctx) {
+			TDSLOCALE *locale = con->tds_socket->tds_ctx->locale;
+			free(locale->date_fmt);
 			/* TODO convert format from CTLib to libTDS */
-			con->tds_socket->date_fmt = strdup(con->locale->time);
-			if (!con->tds_socket->date_fmt)
+			locale->date_fmt = strdup(con->locale->time);
+			if (!locale->date_fmt)
 				goto Cleanup;
 		}
 		/* TODO how to handle this?

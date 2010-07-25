@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.338 2010-07-02 18:57:32 freddy77 Exp $ */
+/* $Id: tds.h,v 1.339 2010-07-25 07:49:01 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -374,24 +374,6 @@ enum {
 	TDS_CUR_ISTAT_ROWCNT    = 0x20,
 	TDS_CUR_ISTAT_DEALLOC   = 0x40
 };
-
-/* 
- * Cursor Declare, SetRows, Open and Close all return 0x83 token. 
- * But only SetRows includes the rowcount (4 byte) in the stream. 
- * So for Setrows we read the rowcount from the stream and not for others. 
- * These values are useful to determine when to read the rowcount from the packet
- */
-#define IS_DECLARE  100
-#define IS_CURROW   200
-#define IS_OPEN     300
-#define IS_CLOSE    400
-
-/* states for tds_process_messages() */
-#define PROCESS_ROWS    0
-#define PROCESS_RESULTS 1
-#define CANCEL_PROCESS  2
-#define GOTO_1ST_ROW    3
-#define LOGIN           4
 
 /* environment type field */
 #define TDS_ENV_DATABASE  	1
@@ -1360,7 +1342,6 @@ struct tds_socket
 	TDSDYNAMIC *cur_dyn;		/**< dynamic structure in use */
 	TDSDYNAMIC *dyns;		/**< list of dynamic allocate for this connection */
 
-	char *date_fmt;
 	const TDSCONTEXT *tds_ctx;
 	int char_conv_count;
 	TDSICONV **char_convs;
