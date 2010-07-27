@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.205 2010-07-25 08:40:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.206 2010-07-27 08:53:12 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -831,6 +831,12 @@ tds_alloc_connection(TDSLOCALE * locale)
 	/* fill in all hardcoded defaults */
 	if (!tds_dstr_copy(&connection->server_name, TDS_DEF_SERVER))
 		goto Cleanup;
+	/*
+	 * TDS 7.0:
+	 * 0x02 indicates ODBC driver
+	 * 0x01 means change to initial language must succeed
+	 */
+	connection->option_flag2 = 0x03;
 	connection->tds_version = TDS_DEFAULT_VERSION;
 	connection->block_size = 0;
 
@@ -1087,12 +1093,6 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
 	tds_socket->parent = NULL;
-	/*
-	 * TDS 7.0: 
-	 * 0x02 indicates ODBC driver
-	 * 0x01 means change to initial language must succeed
-	 */
-	tds_socket->option_flag2 = 0x03;
 	tds_socket->env.block_size = bufsize;
 
 	tds_socket->use_iconv = 1;

@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.340 2010-07-25 08:40:19 freddy77 Exp $ */
+/* $Id: tds.h,v 1.341 2010-07-27 08:53:12 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -864,6 +864,7 @@ typedef struct tds_connection
 
 	TDS_INT query_timeout;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
+	unsigned char option_flag2;
 	DSTR client_charset;
 
 	DSTR ip_addr;	  	/**< ip of server */
@@ -1297,7 +1298,6 @@ struct tds_socket
 	char *product_name;
 
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
-	unsigned char option_flag2;
 	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;

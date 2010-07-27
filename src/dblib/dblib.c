@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.364 2010-05-21 15:18:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.365 2010-07-27 08:53:12 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1157,7 +1157,6 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	
 
 	tds_set_parent(dbproc->tds_socket, dbproc);
-	dbproc->tds_socket->option_flag2 &= ~0x02;	/* we're not an ODBC driver */
 	dbproc->tds_socket->env_chg_func = db_env_chg;
 	dbproc->envchange_rcv = 0;
 	dbproc->dbcurdb[0] = '\0';
@@ -1168,6 +1167,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		dbclose(dbproc);
 		return NULL;
 	}
+	connection->option_flag2 &= ~0x02;	/* we're not an ODBC driver */
 
 	dbproc->chkintr = NULL;
 	dbproc->hndlintr = NULL;

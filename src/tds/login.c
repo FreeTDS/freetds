@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.196 2010-03-01 12:38:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.197 2010-07-27 08:53:12 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -692,7 +692,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	static const unsigned char connection_id[] = { 0x00, 0x00, 0x00, 0x00 };
 	unsigned char option_flag1 = 0x00;
-	unsigned char option_flag2 = tds->option_flag2;
+	unsigned char option_flag2 = connection->option_flag2;
 	static const unsigned char sql_type_flag = 0x00;
 	static const unsigned char reserved_flag = 0x00;
 
