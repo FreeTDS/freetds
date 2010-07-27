@@ -1,3 +1,6 @@
+Tue Jul 27 09:18:53 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/sybase_tests: fix dblib build with Sybase libraries
+
 Sun Jul 25 12:46:17 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/test-other.sh: update year
 
@@ -2766,4 +2769,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3096 2010-07-25 10:46:25 freddy77 Exp $
+$Id: ChangeLog,v 1.3097 2010-07-27 07:19:18 freddy77 Exp $

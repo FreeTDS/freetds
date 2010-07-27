@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# $Id: sybase_tests,v 1.5 2010-07-07 13:57:02 freddy77 Exp $
+# $Id: sybase_tests,v 1.6 2010-07-27 07:19:18 freddy77 Exp $
 # these commands build dblib and ctlib tests using Sybase libraries
 
 errore() {
@@ -28,8 +28,9 @@ set -e
 make
 
 # rebuild tests
-for dir in src/ctlib/unittests src/ctlib/unittests; do
+for dir in src/dblib/unittests src/ctlib/unittests; do
 	cd $dir
+	export LD_RUN_PATH="$SYBASE/$OCSDIR/lib"
 	if test ! -r Makefile.no_sybase -o Makefile -nt Makefile.no_sybase; then
 		rm -f Makefile.no_sybase
 		echo '#include <sybfront.h>' > sqlfront.h
