@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.341 2010-07-27 08:53:12 freddy77 Exp $ */
+/* $Id: tds.h,v 1.342 2010-07-30 07:29:48 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1292,7 +1292,7 @@ typedef struct tds_authentication
 struct tds_socket
 {
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
-	int oserr;
+
 	TDS_USMALLINT tds_version;
 	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
 	char *product_name;
@@ -1331,7 +1331,7 @@ struct tds_socket
 
 	volatile 
 	unsigned char in_cancel; 	/**< indicate we are waiting a cancel reply; discard tokens till acknowledge */
-	
+
 	TDS_INT8 rows_affected;		/**< rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
 	TDS_INT query_timeout;
 	TDSENV env;
@@ -1573,7 +1573,7 @@ extern int tds_g_append_mode;
 
 /* net.c */
 int tds_lastpacket(TDSSOCKET * tds);
-TDSERRNO tds_connect(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);
+TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout, int *p_oserr);
 int tds_close_socket(TDSSOCKET * tds);
 int tds_read_packet(TDSSOCKET * tds);
 int tds_write_packet(TDSSOCKET * tds, unsigned char final);

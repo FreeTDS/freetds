@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.197 2010-07-27 08:53:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.198 2010-07-30 07:29:48 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -313,8 +313,8 @@ free_save_context(TDSSAVECONTEXT *ctx)
  * 		- TDSEFCON: connect(2) succeeded, login packet not acknowledged.  
  *		- TDS_FAIL: connect(2) succeeded, login failed.  
  */
-int
-tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
+static int
+tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 {
 	int erc = TDSEFCON;
 	int connect_timeout = 0;
@@ -355,7 +355,7 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 			connection->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
-			if ((erc = tds_connect_and_login(tds, connection)) != TDS_SUCCEED) {
+			if ((erc = tds_connect(tds, connection, p_oserr)) != TDS_SUCCEED) {
 				tds_close_socket(tds);
 			}
 			
@@ -370,7 +370,7 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		free_save_context(&save_ctx);
 		
 		if (erc != TDS_SUCCEED)
-			tdserror(tds->tds_ctx, tds, erc, tds->oserr); 
+			tdserror(tds->tds_ctx, tds, erc, *p_oserr);
 
 		return erc;
 	}
@@ -403,12 +403,6 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		}
 	}
 
-	/* specified a date format? */
-	/*
-	 * if (connection->date_fmt) {
-	 * tds->date_fmt=strdup(connection->date_fmt);
-	 * }
-	 */
 	connect_timeout = connection->connect_timeout;
 
 	/* Jeff's hack - begin */
@@ -437,8 +431,10 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	memcpy(tds->capabilities, connection->capabilities, TDS_MAX_CAPABILITY);
 
-	if ((erc = tds_connect(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout)) != TDS_SUCCEED)
+	if ((erc = tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout, p_oserr)) != TDSEOK) {
+		tdserror(tds->tds_ctx, tds, erc, *p_oserr);
 		return erc;
+	}
 		
 	/*
 	 * Beyond this point, we're connected to the server.  We know we have a valid TCP/IP address+socket pair.  
@@ -493,6 +489,13 @@ tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds->query_timeout = connection->query_timeout;
 	tds->connection = NULL;
 	return TDS_SUCCEED;
+}
+
+int
+tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
+{
+	int oserr = 0;
+	return tds_connect(tds, connection, &oserr);
 }
 
 static int

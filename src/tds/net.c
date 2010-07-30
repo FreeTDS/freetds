@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.104 2010-07-25 08:40:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.105 2010-07-30 07:29:48 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
@@ -124,7 +124,6 @@ TDS_RCSID(var, "$Id: net.c,v 1.104 2010-07-25 08:40:19 freddy77 Exp $");
 #endif
 
 static int      tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
-static TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout);
 
 
 /**
@@ -189,17 +188,7 @@ typedef u_long ioctl_nonblocking_t;
 #endif
 
 TDSERRNO
-tds_connect(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout)
-{
-	TDSERRNO erc = tds_open_socket(tds, ip_addr, port, timeout);
-	if (TDSEOK != erc) {
-		tdserror(tds->tds_ctx, tds, erc, tds->oserr);  
-	}
-	return erc;
-}
-
-static TDSERRNO
-tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout)
+tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout, int *p_oserr)
 {
 	struct sockaddr_in sin;
 	ioctl_nonblocking_t ioctl_nonblocking;
@@ -209,7 +198,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	int tds_error = TDSECONN;
 	char ip[20];
 
-	tds->oserr = 0;
+	*p_oserr = 0;
 
 	memset(&sin, 0, sizeof(sin));
 
@@ -227,7 +216,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			TDS_MAJOR(tds), TDS_MINOR(tds));
 
 	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
-		tds->oserr = sock_errno;
+		*p_oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return TDSESOCK;
 	}
@@ -251,7 +240,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
 		char *message;
 
-		tds->oserr = sock_errno;
+		*p_oserr = sock_errno;
 		if (asprintf(&message, "tds_open_socket(): %s:%d", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port)) >= 0) {
 			perror(message);
 			free(message);
@@ -268,7 +257,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	/* enable non-blocking mode */
 	ioctl_nonblocking = 1;
 	if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_nonblocking) < 0) {
-		tds->oserr = sock_errno;
+		*p_oserr = sock_errno;
 		tds_close_socket(tds);
 		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
 	}
@@ -277,7 +266,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
-		int err = tds->oserr = sock_errno;
+		int err = *p_oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", sock_strerror(err));
 #if DEBUGGING_CONNECTING_PROBLEM
 		if (err != ECONNREFUSED && err != ENETUNREACH && err != TDSSOCK_EINPROGRESS) {
@@ -308,12 +297,12 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	optlen = sizeof(len);
 	len = 0;
 	if (tds_getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
-		tds->oserr = sock_errno;
+		*p_oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", sock_strerror(sock_errno));
 		goto not_available;
 	}
 	if (len != 0) {
-		tds->oserr = len;
+		*p_oserr = len;
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) reported: %s\n", sock_strerror(len));
 		goto not_available;
 	}

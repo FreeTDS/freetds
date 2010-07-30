@@ -1,3 +1,7 @@
+Fri Jul 30 09:29:34 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/login.c src/tds/net.c:
+	- remove oserr from tds_socket
+
 Fri Jul 30 09:17:15 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac src/odbc/Makefile.am win32/FreeTDS.def:
 	- win32/FreeTDSW.def
@@ -2778,4 +2782,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3099 2010-07-30 07:17:27 freddy77 Exp $
+$Id: ChangeLog,v 1.3100 2010-07-30 07:29:48 freddy77 Exp $
