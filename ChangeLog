@@ -1,3 +1,8 @@
+Fri Jul 30 09:17:15 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/odbc/Makefile.am win32/FreeTDS.def:
+	- win32/FreeTDSW.def
+	* win32/Makefile.am: fix MingW compile if wide odbc disabled
+
 Tue Jul 27 10:52:58 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/dblib/dblib.c src/tds/login.c src/tds/mem.c:
 	- moved option_flag2 from tds_socket to tds_connection
@@ -2773,4 +2778,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3098 2010-07-27 08:53:12 freddy77 Exp $
+$Id: ChangeLog,v 1.3099 2010-07-30 07:17:27 freddy77 Exp $
