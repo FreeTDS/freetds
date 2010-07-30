@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.49 2010-07-30 07:17:27 freddy77 Exp $
+# $Id: Makefile.am,v 1.50 2010-07-30 09:09:36 freddy77 Exp $
 SUBDIRS		= unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
@@ -13,14 +13,9 @@ libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c \
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h $(MINGW_SOURCES)
 if MINGW32
-if ODBC_WIDE
-DEFFILE = FreeTDSW.def
-else
-DEFFILE = FreeTDS.def
-endif
 libtdsodbc_la_LIBADD=	../../win32/setup.res ../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) \
 	$(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
-libtdsodbc_la_LDFLAGS = -Wl,--enable-stdcall-fixup -Wl,-s -Wl,$(top_srcdir)/win32/$(DEFFILE) -Wl,../../win32/setup.res $(FREETDS_SYMBOLIC)
+libtdsodbc_la_LDFLAGS = -Wl,--kill-at -Wl,--enable-stdcall-fixup -Wl,-s -Wl,$(top_srcdir)/win32/FreeTDS.def -Wl,../../win32/setup.res $(FREETDS_SYMBOLIC)
 
 .rc.res:
 	$(RC) -i $< -I $(top_builddir)/win32 --input-format=rc -o $@ -O coff

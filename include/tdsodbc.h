@@ -66,13 +66,23 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.124 2010-07-17 19:58:24 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.125 2010-07-30 09:09:36 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
 #define ODBC_API SQL_API __attribute__((externally_visible))
 #else
 #define ODBC_API SQL_API
+#endif
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+#  ifdef __GNUC__
+#    define ODBC_PUBLIC __attribute__((dllexport))
+#  else
+#    define ODBC_PUBLIC __declspec(dllexport)
+#  endif
+#else
+#  define ODBC_PUBLIC
 #endif
 
 #define ODBC_MAX(a,b) ( (a) > (b) ? (a) : (b) )

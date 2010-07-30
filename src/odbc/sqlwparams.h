@@ -20,7 +20,7 @@ static SQLRETURN FUNC;
 #define NAME(a) a
 #define WIDE
 #define PCHAR(a) SQLCHAR* a
-SQLRETURN ODBC_API FUNC {
+SQLRETURN ODBC_PUBLIC ODBC_API FUNC {
 
 #undef NAME
 #undef WIDE
@@ -43,7 +43,7 @@ SQLRETURN ODBC_API FUNC {
 #define WIDE
 #define P(a,b) a b
 #define PCHAR(a) SQLWCHAR * a
-SQLRETURN ODBC_API FUNC {
+SQLRETURN ODBC_PUBLIC ODBC_API FUNC {
 
 #undef NAME
 #undef WIDE

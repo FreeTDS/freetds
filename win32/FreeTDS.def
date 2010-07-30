@@ -78,4 +78,5 @@ EXPORTS
 	ConfigTranslator
 	DllRegisterServer
 	DllUnregisterServer
+	SQLGetTypeInfoW = SQLGetTypeInfo
 

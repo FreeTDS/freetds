@@ -1,3 +1,9 @@
+Fri Jul 30 11:08:37 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac include/tdsodbc.h src/odbc/Makefile.am:
+	* src/odbc/odbc.c src/odbc/sqlwparams.h win32/FreeTDS.def:
+	* win32/Makefile.am:
+	- find a better way to export automatically without DEF changes
+
 Fri Jul 30 09:33:51 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/read.c: simplify tds_get_byte
 
@@ -2785,4 +2791,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3101 2010-07-30 07:34:06 freddy77 Exp $
+$Id: ChangeLog,v 1.3102 2010-07-30 09:09:36 freddy77 Exp $
