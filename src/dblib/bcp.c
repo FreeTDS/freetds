@@ -62,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.194 2010-02-12 10:16:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.195 2010-07-31 11:31:16 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2386,7 +2386,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 	TDS_SMALLINT si;
 	TDS_INT li;
 	TDS_INT desttype;
-	int collen;
+	int collen, coltype;
 	int data_is_null;
 	int bytes_read;
 	int converted_data_size;
@@ -2442,10 +2442,12 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 		}
 	}
 
-	/* Fixed Length data - this overrides anything else specified */
+	desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
 
-	if (is_fixed_type(bindcol->column_bindtype)) {
-		collen = tds_get_size_by_type(bindcol->column_bindtype);
+	/* Fixed Length data - this overrides anything else specified */
+	coltype = bindcol->column_bindtype == 0 ? desttype : bindcol->column_bindtype;
+	if (is_fixed_type(coltype)) {
+		collen = tds_get_size_by_type(coltype);
 	}
 
 	/* read the data, finally */
@@ -2466,10 +2468,8 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 		bindcol->bcp_column_data->datalen = 0;
 		bindcol->bcp_column_data->is_null = 1;
 	} else {
-		desttype = tds_get_conversion_type(bindcol->column_type, bindcol->column_size);
-
 		if ((converted_data_size =
-		     dbconvert(dbproc, bindcol->column_bindtype,
+		     dbconvert(dbproc, coltype,
 			       (BYTE *) dataptr, collen,
 			       desttype, bindcol->bcp_column_data->data, bindcol->column_size)) == FAIL) {
 			return TDS_FAIL;
