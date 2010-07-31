@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.26 2009-02-11 14:40:15 freddy77 Exp $
+# $Id: Makefile.am,v 1.27 2010-07-31 08:05:59 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
@@ -36,5 +36,5 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
-LIBS		=	../libtds.la ../../replacements/libreplacements.la @NETWORK_LIBS@
+LIBS		=	../libtds.la ../../replacements/libreplacements.la $(LIBICONV) @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out
