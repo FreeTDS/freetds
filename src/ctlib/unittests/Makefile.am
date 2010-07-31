@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.25 2007-08-16 08:10:09 freddy77 Exp $
+# $Id: Makefile.am,v 1.25.2.1 2010-07-31 08:05:20 freddy77 Exp $
 TESTS		=	t0001 t0002 t0003 t0004 t0005 t0006 t0007 t0008 t0009 \
 			connect_fail ct_options lang_ct_param array_bind cs_diag \
 			get_send_data rpc_ct_param rpc_ct_setparam ct_diagclient \
@@ -42,5 +42,5 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install
 endif
-LIBS		=	../libct.la @NETWORK_LIBS@
+LIBS		=	../libct.la ../../replacements/libreplacements.la $(LIBICONV) @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out
