@@ -1,3 +1,6 @@
+Sat Jul 31 13:20:26 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsthread.h: allow mutex declaration inside structures
+
 Sat Jul 31 10:05:48 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am:
 	* src/tds/unittests/Makefile.am:
@@ -2796,4 +2799,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3103 2010-07-31 08:05:59 freddy77 Exp $
+$Id: ChangeLog,v 1.3104 2010-07-31 11:20:34 freddy77 Exp $
