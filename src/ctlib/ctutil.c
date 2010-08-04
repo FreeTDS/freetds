@@ -32,7 +32,7 @@
 /* #include "fortify.h" */
 
 
-TDS_RCSID(var, "$Id: ctutil.c,v 1.30 2009-05-03 19:32:57 jklowden Exp $");
+TDS_RCSID(var, "$Id: ctutil.c,v 1.31 2010-08-04 07:09:19 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -50,8 +50,6 @@ TDS_RCSID(var, "$Id: ctutil.c,v 1.30 2009-05-03 19:32:57 jklowden Exp $");
 
 #define TEST_EQUAL(t,a,b) COMPILE_CHECK(t,a==b)
 
-TEST_EQUAL(t01,CS_FAIL,TDS_FAIL);
-TEST_EQUAL(t02,CS_SUCCEED,TDS_SUCCEED);
 TEST_EQUAL(t03,CS_NULLTERM,TDS_NULLTERM);
 TEST_EQUAL(t04,CS_CMD_SUCCEED,TDS_CMD_SUCCEED);
 TEST_EQUAL(t05,CS_CMD_FAIL,TDS_CMD_FAIL);
@@ -150,7 +148,7 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	CS_SERVERMSG errmsg;
 	CS_CONNECTION *con = NULL;
 	CS_CONTEXT *ctx = NULL;
-	int ret = (int) CS_SUCCEED;
+	CS_RETCODE ret = CS_SUCCEED;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_handle_server_message(%p, %p, %p)\n", ctx_tds, tds, msg);
 
@@ -187,5 +185,5 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	} else if (con->ctx->_servermsg_cb) {
 		ret = con->ctx->_servermsg_cb(con->ctx, con, &errmsg);
 	}
-	return ret;
+	return ret == CS_SUCCEED ? TDS_SUCCEED : TDS_FAIL;
 }
