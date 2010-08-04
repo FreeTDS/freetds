@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.122 2010-08-04 06:55:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.123 2010-08-04 08:04:48 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -839,29 +839,31 @@ odbc_c_to_server_type(int c_type)
 void
 odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
 {
-#define SET_INFO(type, prefix, suffix) \
+#define SET_INFO(type, prefix, suffix) do { \
 	drec->sql_desc_literal_prefix = prefix; \
 	drec->sql_desc_literal_suffix = suffix; \
 	drec->sql_desc_type_name = type; \
-	return;
-#define SET_INFO2(type, prefix, suffix, len) \
+	return; \
+	} while(0)
+#define SET_INFO2(type, prefix, suffix, len) do { \
 	drec->sql_desc_length = len; \
-	SET_INFO(type, prefix, suffix)
+	SET_INFO(type, prefix, suffix); \
+	} while(0)
 
 	/* FIXME finish, support for N type (nvarchar) */
 	switch (tds_get_conversion_type(col->column_type, col->column_size)) {
 	case XSYBCHAR:
 	case SYBCHAR:
-		if (col->column_type == XSYBNCHAR)
+		if (col->on_server.column_type == XSYBNCHAR)
 			SET_INFO("nchar", "'", "'");
 		SET_INFO("char", "'", "'");
 	case XSYBVARCHAR:
 	case SYBVARCHAR:
-		if (col->column_type == SYBNVARCHAR || col->column_type == XSYBNVARCHAR)
+		if (col->on_server.column_type == SYBNVARCHAR || col->on_server.column_type == XSYBNVARCHAR)
 			SET_INFO("nvarchar", "'", "'");
 		SET_INFO("varchar", "'", "'");
 	case SYBTEXT:
-		if (col->column_type == SYBNTEXT)
+		if (col->on_server.column_type == SYBNTEXT)
 			SET_INFO("ntext", "'", "'");
 		SET_INFO("text", "'", "'");
 	case SYBBIT:
