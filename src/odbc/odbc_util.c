@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.121 2010-07-24 08:26:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.122 2010-08-04 06:55:45 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -703,7 +703,7 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBMONEY:
 	case SYBMONEY4:
 	case SYBMONEYN:
-		return SQL_FLOAT;
+		return SQL_DECIMAL;
 	case SYBDATETIME:
 	case SYBDATETIME4:
 	case SYBDATETIMN:
@@ -852,11 +852,17 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 	switch (tds_get_conversion_type(col->column_type, col->column_size)) {
 	case XSYBCHAR:
 	case SYBCHAR:
+		if (col->column_type == XSYBNCHAR)
+			SET_INFO("nchar", "'", "'");
 		SET_INFO("char", "'", "'");
 	case XSYBVARCHAR:
 	case SYBVARCHAR:
+		if (col->column_type == SYBNVARCHAR || col->column_type == XSYBNVARCHAR)
+			SET_INFO("nvarchar", "'", "'");
 		SET_INFO("varchar", "'", "'");
 	case SYBTEXT:
+		if (col->column_type == SYBNTEXT)
+			SET_INFO("ntext", "'", "'");
 		SET_INFO("text", "'", "'");
 	case SYBBIT:
 	case SYBBITN:
@@ -913,7 +919,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 		/* FIXME for Sybase ?? */
 		SET_INFO2("uniqueidentifier", "'", "'", 36);
 	case SYBVARIANT:
-		/* SET_INFO("sql_variant", "", ""); */
+		SET_INFO("sql_variant", "", "");
 		break;
 #endif
 	case SYBMSXML:
@@ -963,7 +969,13 @@ odbc_sql_to_displaysize(int sqltype, TDSCOLUMN *col)
 		break;
 	case SQL_DECIMAL:
 	case SQL_NUMERIC:
-		size = col->column_prec + 2;
+		/* TODO check money format returned by propretary ODBC, scale == 4 but we use 2 digits */
+		if (col->column_type == SYBMONEY || (col->column_type == SYBMONEYN && col->column_size == 8))
+			size = 21;
+		else if (col->column_type == SYBMONEY4 || (col->column_type == SYBMONEYN && col->column_size == 4))
+			size = 12;
+		else
+			size = col->column_prec + 2;
 		break;
 	case SQL_DATE:
 	case SQL_TYPE_DATE:
@@ -989,11 +1001,6 @@ odbc_sql_to_displaysize(int sqltype, TDSCOLUMN *col)
 		/* TODO check REAL/FLOAT format */
 		if (col->column_type == SYBREAL || (col->column_type == SYBFLTN && col->column_size == 4))
 			size = 14;
-		/* TODO check money format returned by propretary ODBC, scale == 4 but we use 2 digits */
-		else if (col->column_type == SYBMONEY || (col->column_type == SYBMONEYN && col->column_size == 8))
-			size = 21;
-		else if (col->column_type == SYBMONEY4 || (col->column_type == SYBMONEYN && col->column_size == 4))
-			size = 12;
 		else 
 			size = 24;	/* FIXME -- what should the correct size be? */
 		break;

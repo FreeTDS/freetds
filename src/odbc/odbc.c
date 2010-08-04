@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.549 2010-07-30 09:09:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.550 2010-08-04 06:55:45 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -3010,10 +3010,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		if (!tds_dstr_copyn(&drec->sql_desc_label, col->column_name, col->column_namelen))
 			return SQL_ERROR;
 
-		/* TODO other types for date ?? SQL_TYPE_DATE, SQL_TYPE_TIME */
-		if (drec->sql_desc_concise_type == SQL_TIMESTAMP || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP)
-			drec->sql_desc_length = sizeof("2000-01-01 12:00:00.0000")-1;
-		else switch (drec->sql_desc_concise_type) {
+		switch (drec->sql_desc_concise_type) {
 		case SQL_WCHAR:
 		case SQL_WVARCHAR:
 		case SQL_WLONGVARCHAR:
@@ -3085,7 +3082,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_unnamed = tds_dstr_isempty(&drec->sql_desc_name) ? SQL_UNNAMED : SQL_NAMED;
 		/* TODO use is_nullable_type ?? */
 		drec->sql_desc_nullable = col->column_nullable ? SQL_TRUE : SQL_FALSE;
-		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL) {
+		if (drec->sql_desc_concise_type == SQL_NUMERIC) {
 			drec->sql_desc_num_prec_radix = 10;
 			drec->sql_desc_octet_length = col->column_prec + 2;
 		} else {
@@ -3104,10 +3101,26 @@ odbc_populate_ird(TDS_STMT * stmt)
 		}
 
 		drec->sql_desc_octet_length_ptr = NULL;
-		drec->sql_desc_precision = type == SYBDATETIME ? 3 : col->column_prec;
+		switch (type) {
+		case SYBDATETIME:
+			drec->sql_desc_precision = 3;
+			drec->sql_desc_scale     = 3;
+			break;
+		case SYBMONEY:
+			drec->sql_desc_precision = 19;
+			drec->sql_desc_scale     = 4;
+			break;
+		case SYBMONEY4:
+			drec->sql_desc_precision = 10;
+			drec->sql_desc_scale     = 4;
+			break;
+		default:
+			drec->sql_desc_precision = col->column_prec;
+			drec->sql_desc_scale     = col->column_scale;
+			break;
+		}
 		/* TODO test timestamp from db, FOR BROWSE query */
 		drec->sql_desc_rowver = SQL_FALSE;
-		drec->sql_desc_scale = type == SYBDATETIME ? 3 : ((type == SYBMONEY || type == SYBMONEY4) ? 4 : col->column_scale);
 		/* TODO seem not correct */
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		/* TODO perhaps TINYINY and BIT.. */

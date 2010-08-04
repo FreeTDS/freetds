@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.19 2010-08-04 06:55:45 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -115,6 +115,7 @@ static const struct attribute attributes[] = {
 	ATTR(SQL_DESC_PRECISION, SMALLINT),
 	ATTR(SQL_DESC_SCALE, SMALLINT),
 	ATTR(SQL_DESC_DISPLAY_SIZE, INTEGER),
+	ATTR(SQL_DESC_TYPE_NAME, CHARP),
 	ATTR2(SQL_DESC_CONCISE_TYPE, SMALLINT, sql_types),
 	ATTR2(SQL_DESC_TYPE, SMALLINT, sql_types)
 #undef ATTR2
@@ -137,17 +138,30 @@ lookup_attr(const char *name)
 
 #define SEP " \t\n"
 
-#define ATTR_PARAMS const struct attribute *attr, int expected
-typedef int (*get_attr_t) (ATTR_PARAMS);
+#define ATTR_PARAMS const struct attribute *attr, const char *expected_value
+typedef void (*check_attr_t) (ATTR_PARAMS);
 
-static int
-get_attr_ird(ATTR_PARAMS)
+static void
+check_attr_ird(ATTR_PARAMS)
 {
 	SQLLEN i;
 	SQLRETURN ret;
 
-	if (attr->type == type_CHARP)
-		fatal("Line %u: CHAR* check still not supported\n", line_num);
+	if (attr->type == type_CHARP) {
+		char buf[128];
+		SQLSMALLINT len;
+
+		ret = SQLColAttribute(odbc_stmt, 1, attr->value, buf, sizeof(buf), &len, NULL);
+		if (!SQL_SUCCEEDED(ret))
+			fatal("Line %u: failure not expected\n", line_num);
+		buf[sizeof(buf)-1] = 0;
+		if (strcmp(buf, expected_value) != 0) {
+			g_result = 1;
+			fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", line_num, attr->name, buf, expected_value);
+		}
+		return;
+	}
+
 	i = 0xdeadbeef;
 	ret = SQLColAttribute(odbc_stmt, 1, attr->value, NULL, SQL_IS_INTEGER, NULL, &i);
 	if (!SQL_SUCCEEDED(ret))
@@ -160,17 +174,21 @@ get_attr_ird(ATTR_PARAMS)
 		if (i != li)
 			fatal("Line %u: attr %s SQLDescribeCol len %ld != SQLColAttribute len %ld\n", line_num, attr->name, (long) li, (long) i);
 	}
-	return i;
+	if (i != lookup(expected_value, attr->lookup)) {
+		g_result = 1;
+		fprintf(stderr, "Line %u: invalid %s got %ld expected %s\n", line_num, attr->name, (long int) i, expected_value);
+	}
 }
 
-static int
-get_attr_ard(ATTR_PARAMS)
+static void
+check_attr_ard(ATTR_PARAMS)
 {
 	SQLINTEGER i, ind;
 	SQLSMALLINT si;
 	SQLLEN li;
 	SQLRETURN ret;
 	SQLHDESC desc = SQL_NULL_HDESC;
+	char buf[128];
 
 	/* get ARD */
 	SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
@@ -192,19 +210,27 @@ get_attr_ard(ATTR_PARAMS)
 		i = li;
 		break;
 	case type_CHARP:
-		fatal("Line %u: CHAR* check still not supported\n", line_num);
-		break;
+		ret = SQLGetDescField(desc, 1, attr->value, buf, sizeof(buf), &ind);
+		if (!SQL_SUCCEEDED(ret))
+			fatal("Line %u: failure not expected\n", line_num);
+		if (strcmp(buf, expected_value) != 0) {
+			g_result = 1;
+			fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", line_num, attr->name, buf, expected_value);
+		}
+		return;
 	}
 	if (!SQL_SUCCEEDED(ret))
 		fatal("Line %u: failure not expected\n", line_num);
-	return i;
+	if (i != lookup(expected_value, attr->lookup)) {
+		g_result = 1;
+		fprintf(stderr, "Line %u: invalid %s got %ld expected %s\n", line_num, attr->name, (long int) i, expected_value);
+	}
 }
 
 /* do not retry any attribute just return expected value so to make caller happy */
-static int
-get_attr_none(ATTR_PARAMS)
+static void
+check_attr_none(ATTR_PARAMS)
 {
-	return expected;
 }
 
 int
@@ -216,7 +242,7 @@ main(int argc, char *argv[])
 	char buf[256];
 	SQLINTEGER i;
 	SQLLEN len;
-	get_attr_t get_attr_p = get_attr_none;
+	check_attr_t check_attr_p = check_attr_none;
 
 	odbc_connect();
 	odbc_command("SET TEXTSIZE 4096");
@@ -269,7 +295,7 @@ main(int argc, char *argv[])
 			sprintf(sql, "SELECT CONVERT(%s, %s) AS col", type, value);
 
 			/* ignore error, we only need precision of known types */
-			get_attr_p = get_attr_none;
+			check_attr_p = check_attr_none;
 			if (odbc_command_with_result(odbc_stmt, sql) != SQL_SUCCESS) {
 				odbc_reset_statement();
 				SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
@@ -278,7 +304,7 @@ main(int argc, char *argv[])
 
 			CHKFetch("SI");
 			SQLBindCol(odbc_stmt, 1, SQL_C_SLONG, &i, sizeof(i), &len);
-			get_attr_p = get_attr_ird;
+			check_attr_p = check_attr_ird;
 		}
 
 		/* set attribute */
@@ -315,23 +341,18 @@ main(int argc, char *argv[])
 			}
 			if (!SQL_SUCCEEDED(ret))
 				fatal("Line %u: failure not expected setting ARD attribute\n", line_num);
-			get_attr_p = get_attr_ard;
+			check_attr_p = check_attr_ard;
 		}
 
 		/* test attribute */
 		if (strcmp(cmd, "attr") == 0) {
 			const struct attribute *attr = lookup_attr(strtok(NULL, SEP));
-			char *value = strtok(NULL, SEP);
-			int i, expected = lookup(value, attr->lookup);
+			char *expected = strtok(NULL, SEP);
 
-			if (!value)
+			if (!expected)
 				fatal("Line %u: value not defined\n", line_num);
 
-			i = get_attr_p(attr, expected);
-			if (i != expected) {
-				g_result = 1;
-				fprintf(stderr, "Line %u: invalid %s got %d expected %d\n", line_num, attr->name, i, expected);
-			}
+			check_attr_p(attr, expected);
 		}
 	}
 

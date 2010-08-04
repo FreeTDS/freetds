@@ -1,3 +1,9 @@
+Wed Aug  4 08:55:25 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/odbc_util.c:
+	* src/odbc/unittests/describecol.c:
+	* src/odbc/unittests/describecol.in:
+	- fix problem for pyodbc and money
+
 Sat Jul 31 13:31:08 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/bcp.c: fix bcp_bind with vartype == 0
 
@@ -2802,4 +2808,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3105 2010-07-31 11:31:15 freddy77 Exp $
+$Id: ChangeLog,v 1.3106 2010-08-04 06:55:45 freddy77 Exp $
