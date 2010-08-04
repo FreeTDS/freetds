@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.550 2010-08-04 06:55:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.551 2010-08-04 11:01:34 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -3010,16 +3010,6 @@ odbc_populate_ird(TDS_STMT * stmt)
 		if (!tds_dstr_copyn(&drec->sql_desc_label, col->column_name, col->column_namelen))
 			return SQL_ERROR;
 
-		switch (drec->sql_desc_concise_type) {
-		case SQL_WCHAR:
-		case SQL_WVARCHAR:
-		case SQL_WLONGVARCHAR:
-			drec->sql_desc_length = col->on_server.column_size / 2;
-			break;
-		default:
-			drec->sql_desc_length = col->on_server.column_size;
-			break;
-		}
 		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
 
 		if (!col->table_column_name) {
@@ -3082,23 +3072,10 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_unnamed = tds_dstr_isempty(&drec->sql_desc_name) ? SQL_UNNAMED : SQL_NAMED;
 		/* TODO use is_nullable_type ?? */
 		drec->sql_desc_nullable = col->column_nullable ? SQL_TRUE : SQL_FALSE;
-		if (drec->sql_desc_concise_type == SQL_NUMERIC) {
+		if (drec->sql_desc_concise_type == SQL_NUMERIC)
 			drec->sql_desc_num_prec_radix = 10;
-			drec->sql_desc_octet_length = col->column_prec + 2;
-		} else {
-			SQLLEN len; 
-
+		else
 			drec->sql_desc_num_prec_radix = 0;
-			if (type == SYBMONEY)
-				len = 21;
-			else if (type == SYBMONEY4)
-				len = 12;
-			else if (drec->sql_desc_type == SQL_DATETIME)
-				len = sizeof(TIMESTAMP_STRUCT);
-			else
-				len = col->on_server.column_size;
-			drec->sql_desc_octet_length = len;
-		}
 
 		drec->sql_desc_octet_length_ptr = NULL;
 		switch (type) {
