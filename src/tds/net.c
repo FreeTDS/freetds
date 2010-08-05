@@ -107,21 +107,12 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.105 2010-07-30 07:29:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.106 2010-08-05 09:25:00 freddy77 Exp $");
 
-#undef USE_POLL
-#if defined(HAVE_POLL_H) && defined(HAVE_POLL) && !defined(C_INTERIX)
-# define USE_POLL 1
-# define TDSSELREAD  POLLIN
-# define TDSSELWRITE POLLOUT
+#define TDSSELREAD  POLLIN
+#define TDSSELWRITE POLLOUT
 /* error is always returned */
-# define TDSSELERR   0
-#else
-# define USE_POLL 0
-# define TDSSELREAD  1
-# define TDSSELWRITE 2
-# define TDSSELERR   4
-#endif
+#define TDSSELERR   0
 
 static int      tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 
@@ -344,37 +335,11 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 {
 	int rc, seconds;
 	unsigned int poll_seconds;
-#if USE_POLL
 	static const char method[] = "poll(2)";
-#else
-	static const char method[] = "select(2)";
-	fd_set fds[3];
-	fd_set *readfds = NULL, *writefds = NULL, *exceptfds = NULL;
-#endif
 
 	assert(tds != NULL);
 	assert(timeout_seconds >= 0);
 
-#if !USE_POLL
-#if !defined(_WIN32) && defined(FD_SETSIZE)
-	if (tds->s >= FD_SETSIZE) {
-		sock_errno = EINVAL;
-		return -1;
-	}
-#endif
-	if ((tds_sel & TDSSELREAD) != 0) {
-		FD_ZERO(&fds[0]);
-		readfds = &fds[0];
-	}
-	if ((tds_sel & TDSSELWRITE) != 0) {
-		FD_ZERO(&fds[1]);
-		writefds = &fds[1];
-	}
-	if ((tds_sel & TDSSELERR) != 0) {
-		FD_ZERO(&fds[2]);
-		exceptfds = &fds[2];
-	}
-#endif
 
 	/* 
 	 * The select loop.  
@@ -393,7 +358,6 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 	 */
 	poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
 	for (seconds = timeout_seconds; timeout_seconds == 0 || seconds > 0; seconds -= poll_seconds) {
-#if USE_POLL
 		struct pollfd fd;
 		int timeout = poll_seconds ? poll_seconds * 1000 : -1;
 
@@ -401,21 +365,6 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		fd.events = tds_sel;
 		fd.revents = 0;
 		rc = poll(&fd, 1, timeout);
-#else
-		struct timeval tv, *ptv = poll_seconds? &tv : NULL;
-
-		tv.tv_sec = poll_seconds;
-		tv.tv_usec = 0; 
-
-		if (readfds)
-			FD_SET(tds->s, readfds);
-		if (writefds)
-			FD_SET(tds->s, writefds);
-		if (exceptfds)
-			FD_SET(tds->s, exceptfds);
-
-		rc = select((int)tds->s + 1, readfds, writefds, exceptfds, ptv); 
-#endif /* USE_POLL */
 
 		if (rc > 0 ) {
 			return rc;
@@ -824,12 +773,7 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 	int num_try;
 	struct sockaddr_in sin;
 	ioctl_nonblocking_t ioctl_nonblocking;
-#if USE_POLL
 	struct pollfd fd;
-#else
-	struct timeval selecttimeout;
-	fd_set fds;
-#endif
 	int retval;
 	TDS_SYS_SOCKET s;
 	char msg[16*1024];
@@ -853,15 +797,6 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 		return 0;
 	}
 
-#if !USE_POLL
-#if !defined(_WIN32) && defined(FD_SETSIZE)
-	if (s >= FD_SETSIZE) {
-		sock_errno = EINVAL;
-		return 0;
-	}
-#endif
-#endif
-
 	/*
 	 * on cluster environment is possible that reply packet came from
 	 * different IP so do not filter by ip with connect
@@ -883,20 +818,11 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 		msg[0] = 3;
 		sendto(s, msg, 1, 0, (struct sockaddr *) &sin, sizeof(sin));
 
-#if USE_POLL
 		fd.fd = s;
 		fd.events = POLLIN;
 		fd.revents = 0;
 
 		retval = poll(&fd, 1, 1000);
-#else
-		FD_ZERO(&fds);
-		FD_SET(s, &fds);
-		selecttimeout.tv_sec = 1;
-		selecttimeout.tv_usec = 0;
-		
-		retval = select((int)s + 1, &fds, NULL, NULL, &selecttimeout);
-#endif
 		
 		/* on interrupt ignore */
 		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
@@ -987,12 +913,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	int num_try;
 	struct sockaddr_in sin;
 	ioctl_nonblocking_t ioctl_nonblocking;
-#if USE_POLL
 	struct pollfd fd;
-#else
-	struct timeval selecttimeout;
-	fd_set fds;
-#endif
 	int retval;
 	TDS_SYS_SOCKET s;
 	char msg[1024];
@@ -1016,15 +937,6 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		return 0;
 	}
 
-#if !USE_POLL
-#if !defined(_WIN32) && defined(FD_SETSIZE)
-	if (s >= FD_SETSIZE) {
-		sock_errno = EINVAL;
-		return 0;
-	}
-#endif
-#endif
-
 	/*
 	 * on cluster environment is possible that reply packet came from
 	 * different IP so do not filter by ip with connect
@@ -1047,20 +959,11 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		tds_strlcpy(msg + 1, instance, sizeof(msg) - 1);
 		sendto(s, msg, (int)strlen(msg) + 1, 0, (struct sockaddr *) &sin, sizeof(sin));
 
-#if USE_POLL
 		fd.fd = s;
 		fd.events = POLLIN;
 		fd.revents = 0;
 
 		retval = poll(&fd, 1, 1000);
-#else
-		FD_ZERO(&fds);
-		FD_SET(s, &fds);
-		selecttimeout.tv_sec = 1;
-		selecttimeout.tv_usec = 0;
-		
-		retval = select((int)s + 1, &fds, NULL, NULL, &selecttimeout);
-#endif
 		
 		/* on interrupt ignore */
 		if (retval < 0 && sock_errno == TDSSOCK_EINTR)

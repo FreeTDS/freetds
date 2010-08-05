@@ -1,3 +1,6 @@
+Thu Aug  5 11:24:51 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: use fakepoll
+
 Thu Aug  5 10:58:27 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/replacements.h src/replacements/fakepoll.c: fix fakepoll
 
@@ -2823,4 +2826,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3110 2010-08-05 08:58:36 freddy77 Exp $
+$Id: ChangeLog,v 1.3111 2010-08-05 09:25:00 freddy77 Exp $
