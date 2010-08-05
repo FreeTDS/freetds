@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.26 2010-01-25 23:05:58 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.27 2010-08-05 08:58:36 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -39,6 +39,11 @@
 # include <libgen.h>
 #endif
 
+#if !HAVE_POLL
+#include <fakepoll.h>
+#define poll(fds, nfds, timeout) fakepoll((fds), (nfds), (timeout))
+#endif /* !HAVE_POLL */
+
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
 #endif
@@ -47,11 +52,6 @@
 extern "C"
 {
 #endif
-
-#if !HAVE_POLL
-#include <fakepoll.h>
-#define poll(fds, nfds, timeout) fakepoll((fds), (nfds), (timeout))
-#endif /* !HAVE_POLL */
 
 #if !HAVE_VSNPRINTF
 #if  HAVE__VSNPRINTF

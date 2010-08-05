@@ -23,7 +23,7 @@
 
 #ifndef HAVE_POLL
 
-static char software_version[] = "$Id: fakepoll.c,v 1.10 2010-05-12 11:19:16 freddy77 Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.11 2010-08-05 08:58:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #include <stdarg.h>
@@ -129,11 +129,13 @@ fakepoll(struct pollfd fds[], int nfds, int timeout)
 	 * select(2) returns EINVAL, and so do we.  
 	 * EFAULT might be better.
 	 */ 
+#if !defined(_WIN32)
 	if (maxfd > FD_SETSIZE) {
 		assert(FD_SETSIZE > 0);
 		errno = EINVAL;
 		return -1;
 	}
+#endif
 
 	/*
 	 * poll timeout is in milliseconds. Convert to struct timeval.
