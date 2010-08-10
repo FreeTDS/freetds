@@ -1,3 +1,6 @@
+Tue Aug 10 09:40:00 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac m4/acx_pthread.m4: fix compile with HP-UX compiler
+
 Thu Aug  5 11:24:51 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: use fakepoll
 
@@ -2826,4 +2829,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3111 2010-08-05 09:25:00 freddy77 Exp $
+$Id: ChangeLog,v 1.3112 2010-08-10 07:40:09 freddy77 Exp $
