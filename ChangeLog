@@ -1,3 +1,6 @@
+Tue Aug 10 09:38:59 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac m4/acx_pthread.m4: backport patch for HP-UX compiler
+
 Sat Jul 31 10:05:09 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/unittests/Makefile.am src/dblib/unittests/Makefile.am:
 	* src/tds/unittests/Makefile.am:
@@ -308,4 +311,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.77 2010-07-31 08:05:20 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.78 2010-08-10 07:39:13 freddy77 Exp $

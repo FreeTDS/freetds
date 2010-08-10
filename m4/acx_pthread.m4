@@ -120,6 +120,12 @@ case "${host_cpu}-${host_os}" in
 
         acx_pthread_flags="-pthreads pthread -mt -pthread $acx_pthread_flags"
         ;;
+
+        # The HP-UX compiler just warns about options it does not understand
+        # but it needs -mt.
+        *-hpux*)
+        acx_pthread_flags="-mt $acx_pthread_flags"
+        ;;
 esac
 
 if test x"$acx_pthread_ok" = xno; then

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.29.2.14 2009-11-17 13:51:34 freddy77 Exp $
+dnl $Id: configure.ac,v 1.29.2.15 2010-08-10 07:39:14 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.82.1)
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.29.2.14 $)
+AC_REVISION($Revision: 1.29.2.15 $)
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(include/config.h)
@@ -81,6 +81,7 @@ CPPFLAGS="$CPPFLAGS -D_FREETDS_LIBRARY_SOURCE"
 AC_PROG_CC
 AC_PROG_CPP
 AM_PROG_CC_C_O
+AC_C_INLINE
 
 dnl Disable libtool 1.5 support for languages we don't use
 dnl (cfr http://lists.gnu.org/archive/html/libtool/2005-08/msg00137.html)
