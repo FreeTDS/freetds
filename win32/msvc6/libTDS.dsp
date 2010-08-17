@@ -273,6 +273,10 @@ SOURCE=.\iconv_replacement.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\replacements\fakepoll.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\replacements\strlcpy.c
 # End Source File
 # Begin Source File

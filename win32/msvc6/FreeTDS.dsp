@@ -109,7 +109,7 @@ SOURCE=..\..\src\odbc\error.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\FreeTDS.def
+SOURCE=..\FreeTDS_w.def
 # End Source File
 # Begin Source File
 
