@@ -14,13 +14,15 @@ errore() {
 
 NTWDBLIB=no
 TYPE=win32
+HOSTS='i386-mingw32 i586-mingw32msvc'
 ARCHIVE='tar jcvf "freetds-$PACKAGE_VERSION.$TYPE.tar.bz2" "freetds-$PACKAGE_VERSION"'
 PACK=yes
+
 for param
 do
 	case $param in
 	--win64)
-		HOST=x86_64-pc-mingw32
+		HOSTS='x86_64-w64-mingw32 x86_64-pc-mingw32'
 		TYPE=win64
 		;;
 	--zip)
@@ -52,11 +54,17 @@ do
 	esac
 done
 
-if test "$TYPE" = "win32"; then
-	HOST=i386-mingw32
-	if ! $HOST-gcc --help > /dev/null 2> /dev/null; then
-		HOST=i586-mingw32msvc
+# search valid HOST
+HOST=
+for h in $HOSTS; do
+	if $h-gcc --help > /dev/null 2> /dev/null; then
+		HOST=$h
+		break
 	fi
+done
+if test x$HOST = x; then
+	echo "Valid host not found in $HOSTS" 1>&2
+	exit 1
 fi
 
 PACKAGE_VERSION=

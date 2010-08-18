@@ -1,3 +1,6 @@
+Wed Aug 18 13:37:35 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/prepare_win32.sh: search correct host
+
 Wed Aug 18 13:27:30 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/replacements.h: add missing declaration
 
@@ -2837,4 +2840,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3114 2010-08-18 11:27:46 freddy77 Exp $
+$Id: ChangeLog,v 1.3115 2010-08-18 11:37:36 freddy77 Exp $
