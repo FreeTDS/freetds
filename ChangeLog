@@ -1,3 +1,6 @@
+Wed Aug 18 13:27:30 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/replacements.h: add missing declaration
+
 Tue Aug 17 15:15:57 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h win32/FreeTDS_w.def win32/Makefile.am:
 	* win32/msvc6/FreeTDS.dsp win32/msvc6/libTDS.dsp:
@@ -2834,4 +2837,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3113 2010-08-17 13:16:05 freddy77 Exp $
+$Id: ChangeLog,v 1.3114 2010-08-18 11:27:46 freddy77 Exp $
