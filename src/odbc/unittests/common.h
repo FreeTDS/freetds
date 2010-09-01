@@ -1,4 +1,5 @@
 #ifdef _WIN32
+#include <winsock2.h>
 #include <windows.h>
 #include <direct.h>
 #endif
@@ -21,7 +22,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.34 2010-07-05 09:20:32 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.35 2010-09-01 08:39:38 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN

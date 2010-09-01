@@ -50,7 +50,6 @@
 #include <assert.h>
 #include <ctype.h>
 #include <assert.h>
-#include <olectl.h>
 
 #include "resource.h"
 
@@ -59,6 +58,8 @@
 #include "tdsstring.h"
 #include "tdsconvert.h"
 #include "replacements.h"
+
+#include <olectl.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>

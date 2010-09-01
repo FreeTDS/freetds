@@ -52,7 +52,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.13 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.14 2010-09-01 08:39:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -100,13 +100,15 @@ static TDS_SYS_SOCKET fake_sock;
 #ifndef _WIN32
 static pthread_t      fake_thread;
 #define THREADAPI
+#define THREADRET void*
 #else
 static HANDLE fake_thread;
 #define THREADAPI WINAPI
+#define THREADRET DWORD
 #define pthread_join(th,fl) WaitForSingleObject(th,INFINITE)
 #define alarm(n) do { ; } while(0)
 #endif
-static void* THREADAPI fake_thread_proc(void *arg);
+static THREADRET THREADAPI fake_thread_proc(void *arg);
 
 static int
 init_fake_server(int ip_port)
@@ -211,7 +213,7 @@ count_insert(const char* buf, size_t len)
 static unsigned int round_trips = 0;
 static enum { sending, receiving } flow = sending;
 
-static void *THREADAPI
+static THREADRET THREADAPI
 fake_thread_proc(void * arg)
 {
 	TDS_SYS_SOCKET s = ptr2int(arg), server_sock;
@@ -302,7 +304,7 @@ fake_thread_proc(void * arg)
 	}
 	CLOSESOCKET(fake_sock);
 	CLOSESOCKET(server_sock);
-	return NULL;
+	return (THREADRET) 0;
 }
 
 int

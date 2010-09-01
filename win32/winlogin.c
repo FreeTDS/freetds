@@ -49,7 +49,6 @@
 #include <assert.h>
 #include <ctype.h>
 #include <assert.h>
-#include <shlobj.h>
 
 #include "resource.h"
 
@@ -58,6 +57,8 @@
 #include "tdsstring.h"
 #include "tdsconvert.h"
 #include "replacements.h"
+
+#include <shlobj.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
