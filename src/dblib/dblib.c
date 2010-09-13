@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.366 2010-09-13 16:38:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.367 2010-09-13 16:39:28 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -915,7 +915,13 @@ dbsetlversion (LOGINREC * login, BYTE version)
 		login->tds_login->tds_version = 0x402;
 		return SUCCEED;
 	case DBVER60:
-		login->tds_login->tds_version = 0x600;
+		login->tds_login->tds_version = 0x700;
+		return SUCCEED;
+	case DBVERSION_71:
+		tds_set_version(login->tds_login, 7, 1);
+		return SUCCEED;
+	case DBVERSION_72:
+		tds_set_version(login->tds_login, 7, 2);
 		return SUCCEED;
 	}
 	
@@ -2703,6 +2709,15 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
  * 	- for select, count of rows returned, after all rows have been fetched.  
  * \sa DBCOUNT(), dbnextrow(), dbresults().
  */
+BOOL
+dbiscount(DBPROCESS * dbproc)
+{
+	tdsdump_log(TDS_DBG_FUNC, "dbiscount(%p)\n", dbproc);
+	CHECK_PARAMETER(dbproc, SYBENULL, -1);
+
+	return dbproc->tds_socket && dbproc->tds_socket->rows_affected != TDS_NO_COUNT;
+}
+
 DBINT
 dbcount(DBPROCESS * dbproc)
 {
@@ -2889,6 +2904,9 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 			pdbcol->Precision = ps->precision;
 			pdbcol->Scale = ps->scale;
 		}
+
+		pdbcol->Updatable = colinfo->column_writeable ? TRUE : FALSE;
+		pdbcol->Identity = colinfo->column_identity ? TRUE : FALSE;
 
 		return SUCCEED;
 	}
