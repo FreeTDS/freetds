@@ -1,3 +1,7 @@
+Mon Sep 13 22:09:46 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* configure.ac use printf, not echo -n
+	* include/sybdb.h src/dblib/dblib.c mark dbpoll as unimplemented 
+
 Mon Sep 13 20:53:12 EDT 2010	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c fix error-handler recursion
 	* src/apps/tsql.c format errors better
@@ -2861,4 +2865,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3119 2010-09-14 00:56:18 jklowden Exp $
+$Id: ChangeLog,v 1.3120 2010-09-14 02:12:37 jklowden Exp $
