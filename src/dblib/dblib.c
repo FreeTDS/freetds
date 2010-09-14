@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.367 2010-09-13 16:39:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.368 2010-09-14 00:56:18 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4841,7 +4841,9 @@ DBBOOL
 dbdead(DBPROCESS * dbproc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbdead(%p) [%s]\n", dbproc, dbproc? IS_TDSDEAD(dbproc->tds_socket)? "dead":"alive" : "quite dead");
-	CHECK_PARAMETER(dbproc, SYBENULL, TRUE);
+
+	if( NULL == dbproc ) 
+		return TRUE;
 
 	if (IS_TDSDEAD(dbproc->tds_socket))
 		return TRUE;
@@ -4872,8 +4874,6 @@ dbdead(DBPROCESS * dbproc)
 static int
 default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
-	assert( ! (dbproc == NULL && DBDEAD(dbproc)) );  /* a non-process can't be a dead process */
-	
 	tdsdump_log(TDS_DBG_FUNC, "default_err_handler %p, %d, %d, %d, %p, %p", dbproc, severity, dberr, oserr, dberrstr, oserrstr);
 
 	if (DBDEAD(dbproc) && (!dbproc || !dbproc->msdblib)) {
@@ -7873,8 +7873,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	const DBLIB_ERROR_MESSAGE *msg = &default_message;
 	
 	int i, rc = INT_CANCEL;
-	char *os_msgtext = strerror(errnum), *rc_name;
-	char db_msgtext[32] = "INT_CANCEL"; 
+	char *os_msgtext = strerror(errnum), *rc_name = "logic error";
 
 	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
 
@@ -7988,7 +7987,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		return rc;	/* normal case */
 		break;
 	default:
-		sprintf(db_msgtext, "%d", rc);
+		sprintf(rc_name, "%d", rc);
 		tdsdump_log(TDS_DBG_SEVERE, int_invalid_text, "Invalid return code", rc, msgno);
 		/* fall through */
 	case INT_EXIT:
@@ -7996,8 +7995,8 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			/* Microsoft behavior */
 			return INT_CANCEL;
 		}
-		fprintf(stderr, int_exit_text, db_msgtext, msgno);
-		tdsdump_log(TDS_DBG_SEVERE, int_exit_text, db_msgtext, msgno);
+		fprintf(stderr, int_exit_text, rc_name, msgno);
+		tdsdump_log(TDS_DBG_SEVERE, int_exit_text, rc_name, msgno);
 		break;
 	}
 	exit(EXIT_FAILURE);

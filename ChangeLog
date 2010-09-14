@@ -1,3 +1,7 @@
+Mon Sep 13 20:53:12 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c fix error-handler recursion
+	* src/apps/tsql.c format errors better
+
 Mon Sep 13 18:32:55 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/sybdb.h src/dblib/dblib.c:
 	- patch from LacaK
@@ -2857,4 +2861,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3118 2010-09-13 16:38:21 freddy77 Exp $
+$Id: ChangeLog,v 1.3119 2010-09-14 00:56:18 jklowden Exp $
