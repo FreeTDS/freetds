@@ -87,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.136 2010-07-21 20:12:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.137 2010-09-14 00:56:22 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -117,6 +117,7 @@ static void tsql_print_usage(const char *progname);
 static int get_opt_flags(char *s, int *opt_flags);
 static void populate_login(TDSLOGIN * login, int argc, char **argv);
 static int tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
+static int tsql_handle_error  (const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
 static void slurp_input_file(char *fname, char **mybuf, size_t *bufsz, size_t *buflen, int *line);
 
 static char *
@@ -602,10 +603,25 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 
 	if (msg->msgno != 5701 && msg->msgno != 5703
 	    && msg->msgno != 20018) {
-		fprintf(stderr, "Msg %d, Level %d, State %d, Server %s, Line %d\n%s\n",
-			msg->msgno, msg->severity, msg->state, msg->server, msg->line_number, msg->message);
+		fprintf(stderr, "Msg %d (severity %d, state %d) from %s", 
+			msg->msgno, msg->severity, msg->state, msg->server);
+		if (msg->proc_name && strlen(msg->proc_name))
+			fprintf(stderr, ", Procedure %s", msg->proc_name);
+		if (msg->line_number > 0)
+			fprintf(stderr, " Line %d", msg->line_number);
+		fprintf(stderr, ":\n\t\"%s\"\n", msg->message);
 	}
 
+	return 0;
+}
+
+static int	/* error from library, not message from server */
+tsql_handle_error(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg)
+{
+	fprintf(stderr, "Error %d (severity %d):\n\t%s\n", msg->msgno, msg->severity, msg->message);
+	if (0 != msg->oserr) {
+		fprintf(stderr, "\tOS error %d, \"%s\"\n", msg->oserr, strerror(msg->oserr));
+	}
 	return TDS_INT_CANCEL;
 }
 
@@ -687,7 +703,7 @@ main(int argc, char **argv)
 	}
 
 	context->msg_handler = tsql_handle_message;
-	context->err_handler = tsql_handle_message;
+	context->err_handler = tsql_handle_error;
 
 	/* process all the command line args into the login structure */
 	populate_login(login, argc, argv);
