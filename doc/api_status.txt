@@ -1,7 +1,7 @@
 #!/usr/pkg/bin/perl
 # API status document
 #
-# $Id: api_status.txt,v 1.63 2009-06-04 05:39:56 freddy77 Exp $s
+# $Id: api_status.txt,v 1.64 2010-09-14 14:40:43 jklowden Exp $s
 #
 # This tab-delimited file is a database of the "readiness" of the various
 # APIs.  Please feel free to modify it if you notice something is missing or 
@@ -329,7 +329,7 @@ dblib	core     	dbgettime			DBGETTIME	OK
 dblib	core     	dbgetuserdata			(same)		OK
 dblib	core     	dbinit				(same)		OK
 dblib	core     	dbisavail			DBISAVAIL	OK
-dblib	core     	dbiscount			n/a		never
+dblib	core     	dbiscount			n/a		OK
 dblib	core     	dbisopt				(same)		partial
 dblib	core     	dblastrow			DBLASTROW	OK
 dblib	core     	dblogin				(same)		OK
