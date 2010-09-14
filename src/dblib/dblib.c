@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.368 2010-09-14 00:56:18 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.369 2010-09-14 02:12:47 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -6945,6 +6945,7 @@ dbaltlen(DBPROCESS * dbproc, int computeid, int column)
  * \sa  DBIORDESC(), DBRBUF(), dbresults(), dbreghandle(), dbsqlok(). 
  * \todo Unimplemented.
  */
+#if defined(DBLIB_UNIMPLEMENTED)
 RETCODE
 dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *return_reason)
 {
@@ -6956,7 +6957,7 @@ dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *re
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED dbpoll()\n");
 	return SUCCEED;
 }
-
+#endif
 
 /** \internal
  * \ingroup dblib_internal

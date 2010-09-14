@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.94 2010-09-13 16:39:28 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.95 2010-09-14 02:12:47 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -530,6 +530,7 @@ RETCODE dbnpdefine(DBPROCESS * dbprocess, DBCHAR * procedure_name, DBSMALLINT na
 
 int DBNUMORDERS(DBPROCESS * dbprocess);
 
+RETCODE dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *return_reason);
 int dbordercol(DBPROCESS * dbprocess, int order);
 
 RETCODE dbregdrop(DBPROCESS * dbprocess, DBCHAR * procnm, DBSMALLINT namelen);
@@ -725,7 +726,6 @@ DBPROCESS *dbopen(LOGINREC * login, const char *server);
 #define PHP_SYBASE_DBOPEN dbopen
 #endif
 
-RETCODE dbpoll(DBPROCESS * dbproc, long milliseconds, DBPROCESS ** ready_dbproc, int *return_reason);
 void dbprhead(DBPROCESS * dbproc);
 RETCODE dbprrow(DBPROCESS * dbproc);
 const char *dbprtype(int token);
