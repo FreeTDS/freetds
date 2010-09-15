@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.20 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.21 2010-09-15 03:55:44 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -52,7 +52,7 @@ start_query(DBPROCESS * dbproc)
 
 	for (i = 1; i <= dbnumcols(dbproc); i++) {
 		add_bread_crumb();
-		printf("col %d is %s\n", i, dbcolname(dbproc, i));
+		printf("col %d is named \"%s\"\n", i, dbcolname(dbproc, i));
 		add_bread_crumb();
 	}
 	return 1;
@@ -118,7 +118,7 @@ main(int argc, char **argv)
 	add_bread_crumb();
 
 	for (i = 1; i <= 2; i++) {
-	char expected[1024];
+		char expected[1024];
 
 		sprintf(expected, "row %07d", i);
 
@@ -158,6 +158,45 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s:%d: start_query should have failed but didn't\n", __FILE__, __LINE__);
 		failed = 1;
 	}
+
+	add_bread_crumb();
+	dbcancel(dbproc);
+	
+	/* 
+	 * Test Binary binding
+	 */
+	if (!start_query(dbproc)) {
+		fprintf(stderr, "%s:%d: start_query failed\n", __FILE__, __LINE__);
+		failed = 1;
+	}
+
+ 	dbbind(dbproc, 1, VARYBINBIND, sizeof(testint), (BYTE *) &testint);
+	dbbind(dbproc, 2, BINARYBIND, sizeof(teststr), (BYTE *) teststr);
+
+	for (i = 1; i <= 2; i++) {
+		char expected[1024];
+
+		sprintf(expected, "row %07d", i);
+
+		testint = -1;
+		strcpy(teststr, "bogus");
+
+		if (REG_ROW != dbnextrow(dbproc)) {
+			fprintf(stderr, "Failed.  Expected a row\n");
+			abort();
+		}
+		if (testint != i) {
+			fprintf(stderr, "Failed, line %d.  Expected i to be %d, was %d\n", __LINE__, i, (int) testint);
+			abort();
+		}
+		if (0 != strncmp(teststr, expected, strlen(expected))) {
+			fprintf(stdout, "Failed, line %d.  Expected s to be |%s|, was |%s|\n", __LINE__, expected, teststr);
+			abort();
+		}
+		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
+	}
+
+
 
 	add_bread_crumb();
 	dbexit();

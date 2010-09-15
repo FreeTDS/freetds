@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.369 2010-09-14 02:12:47 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.370 2010-09-15 03:55:44 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2116,6 +2116,7 @@ _db_get_server_type(int bindtype)
 		return SYBMONEY4;
 		break;
 	case BINARYBIND:
+	case VARYBINBIND:
 		return SYBBINARY;
 		break;
 	case VARYCHARBIND:

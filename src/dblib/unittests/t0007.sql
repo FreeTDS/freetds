@@ -25,3 +25,8 @@ go
  */
 select * from #dblib0007 where i>=5 order by i
 go
+/*
+ * Third select for binary bindings
+ */
+select * from #dblib0007 where i<=5 order by i
+go
