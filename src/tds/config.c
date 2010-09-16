@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.159 2010-02-08 09:48:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.160 2010-09-16 07:37:23 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -564,6 +564,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			connection->block_size = val;
 	} else if (!strcmp(option, TDS_STR_SWAPDT)) {
 		connection->broken_dates = tds_config_boolean(value);
+	} else if (!strcmp(option, TDS_GSSAPI_DELEGATION)) {
+		/* gssapi flag addition */
+		connection->gssapi_use_delegation = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
 		tds_dstr_copy(&connection->dump_file, value);
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {

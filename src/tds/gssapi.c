@@ -57,7 +57,6 @@
 
 #ifdef ENABLE_KRB5
 
-#include <gssapi/gssapi_generic.h>
 #include <gssapi/gssapi_krb5.h>
 
 #include "tds.h"
@@ -68,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.10 2007-11-13 09:14:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.11 2010-09-16 07:37:23 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -146,6 +145,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	const char *server_name;
 	/* Storage for reentrant getaddrby* calls */
 	char buffer[4096];
+	int gssapi_flags;
 
 	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
@@ -205,9 +205,17 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	token_ptr = GSS_C_NO_BUFFER;
 	auth->gss_context = GSS_C_NO_CONTEXT;
 
+	/* We may ask for delegation based on config in the tds.conf and other conf files */
+	/* We always want to ask for the mutual, replay, and integ flags */
+	gssapi_flags = GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG;
+	if (tds->connection->gssapi_use_delegation)
+		gssapi_flags |= GSS_C_DELEG_FLAG;
+
 	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, 
 					/* GSS_C_DELEG_FLAG GSS_C_MUTUAL_FLAG ?? */
-					GSS_C_NULL_OID, GSS_C_REPLAY_FLAG, 0, NULL,	/* no channel bindings */
+					GSS_C_NULL_OID,
+					gssapi_flags,
+					0, NULL,	/* no channel bindings */
 					token_ptr, NULL,	/* ignore mech type */
 					&send_tok, &ret_flags, NULL);	/* ignore time_rec */
 

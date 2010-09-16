@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.342 2010-07-30 07:29:48 freddy77 Exp $ */
+/* $Id: tds.h,v 1.343 2010-09-16 07:37:23 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -808,6 +808,8 @@ typedef enum tds_encryption_level {
 #define TDS_STR_ENCRYPTION_OFF	 "off"
 #define TDS_STR_ENCRYPTION_REQUEST "request"
 #define TDS_STR_ENCRYPTION_REQUIRE "require"
+/* Defines to enable optional GSSAPI delegation */
+#define TDS_GSSAPI_DELEGATION "enable gssapi delegation"
 
 
 /* TODO do a better check for alignment than this */
@@ -877,6 +879,7 @@ typedef struct tds_connection
 	unsigned int emul_little_endian:1;
 	unsigned int bulk_copy:1;
 	unsigned int suppress_language:1;
+	unsigned int gssapi_use_delegation:1;
 } TDSCONNECTION;
 
 typedef struct tds_locale
