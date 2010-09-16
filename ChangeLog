@@ -1,3 +1,6 @@
+Thu Sep 16 13:11:46 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsthread.h: init mutex fixes
+
 Thu Sep 16 13:09:29 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/Makefile.am win32/dblib.def win32/msvc6/FreeTDS.dsw:
 	* win32/msvc6/Makefile.am win32/msvc6/dblib_dll.dsp:
@@ -2889,4 +2892,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3126 2010-09-16 11:10:01 freddy77 Exp $
+$Id: ChangeLog,v 1.3127 2010-09-16 11:12:08 freddy77 Exp $
