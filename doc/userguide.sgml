@@ -9,8 +9,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2010-02-07 21:55:49 $</date>
-		<releaseinfo>$Revision: 1.129 $</releaseinfo>
+		<date>$Date: 2010-09-16 07:44:33 $</date>
+		<releaseinfo>$Revision: 1.130 $</releaseinfo>
 		<title>&freetds; User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 		<author>
@@ -62,9 +62,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.129 $</>
-<member>$Date: 2010-02-07 21:55:49 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.129 2010-02-07 21:55:49 jklowden Exp $.</>
+<member>$Revision: 1.130 $</>
+<member>$Date: 2010-09-16 07:44:33 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.130 2010-09-16 07:44:33 freddy77 Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the &freetds; 
@@ -617,7 +617,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2010-02-07 21:55:49 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2010-09-16 07:44:33 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -1042,6 +1042,12 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 	<entry>off/request/required</entry>
 	<entry>off</entry>
 	<entry>Specify if encryption is desidered. Supported for Microsoft servers. <symbol>off</> disables encryption (only if needed); <symbol>request</> means use if available; <symbol>required</> means create and allow encrypted connections only.</entry>
+	</row>
+	<row>
+	<entry>enable gssapi delegation</entry>
+	<entry>on/off</entry>
+	<entry>off</entry>
+	<entry>Enable delegation flag using Kerberos.</entry>
 	</row>
 </tbody>
 </tgroup>
