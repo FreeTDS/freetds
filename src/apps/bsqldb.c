@@ -53,7 +53,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.45 2010-07-22 09:55:37 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.46 2010-09-16 20:33:28 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -819,13 +819,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	
 	DBSETLAPP(login, options->appname);
 	
-	if (-1 == gethostname(options->hostname, sizeof(options->hostname))) {
-		perror("unable to get hostname");
-	} else {
-		DBSETLHOST(login, options->hostname);
-	}
-
-	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:hqv")) != -1) {
+	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:H:hqv")) != -1) {
 		switch (ch) {
 		case 'U':
 			DBSETLUSER(login, optarg);
@@ -858,6 +852,9 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		case 'h':
 			options->headers = stdout;
 			break;
+		case 'H':
+			strcpy(options->hostname, optarg);
+			break;
 		case 'q':
 			options->fquiet = 1;
 			break;
@@ -869,6 +866,16 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			usage(options->appname);
 			exit(1);
 		}
+	}
+
+	if( !options->hostname[0] ) {
+		if (-1 == gethostname(options->hostname, sizeof(options->hostname))) {
+			perror("unable to get hostname");
+		}
+	}
+
+	if( options->hostname[0] ) {
+		DBSETLHOST(login, options->hostname);
 	}
 
 	if (!got_password) {

@@ -38,6 +38,8 @@ OPTIONS
 
   -h  Print column headers with the data to the same file. 
   
+  -H  Override hostname sent to server. 
+  
   -q  Do not print column metadata, return status, or rowcount. Overrides -h. 
 
   -v  Verbose mode, for more information about the db-lib interaction.
