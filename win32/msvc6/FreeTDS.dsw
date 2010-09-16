@@ -33,6 +33,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "dblib_dll"=".\dblib_dll.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libTDS
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "libTDS"=".\libTDS.dsp" - Package Owner=<4>
 
 Package=<5>
