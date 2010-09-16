@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.370 2010-09-15 03:55:44 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.371 2010-09-16 12:30:43 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2699,16 +2699,13 @@ dbanullbind(DBPROCESS * dbproc, int computeid, int column, DBINT * indicator)
 	return SUCCEED;
 }
 
-/** \internal
- * \ingroup dblib_internal
- * \brief Get count of rows processed
- * 
+/**
+ * \ingroup dblib_core
+ * \brief Indicates whether or not the count returned by dbcount is real (Microsoft-compatibility feature).
  * 
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \returns 
- * 	- for insert/update/delete, count of rows affected.
- * 	- for select, count of rows returned, after all rows have been fetched.  
- * \sa DBCOUNT(), dbnextrow(), dbresults().
+ * \returns TRUE if the count returned by dbcount is real or FALSE if the count returned by dbcount is not real.
+ * \sa DBCOUNT(), dbcount().
  */
 BOOL
 dbiscount(DBPROCESS * dbproc)
@@ -2719,6 +2716,17 @@ dbiscount(DBPROCESS * dbproc)
 	return dbproc->tds_socket && dbproc->tds_socket->rows_affected != TDS_NO_COUNT;
 }
 
+/**
+ * \ingroup dblib_core
+ * \brief Get count of rows processed
+ *
+ *
+ * \param dbproc contains all information needed by db-lib to manage communications with the server.
+ * \returns
+ * 	- for insert/update/delete, count of rows affected.
+ * 	- for select, count of rows returned, after all rows have been fetched.
+ * \sa DBCOUNT(), dbnextrow(), dbresults().
+ */
 DBINT
 dbcount(DBPROCESS * dbproc)
 {
