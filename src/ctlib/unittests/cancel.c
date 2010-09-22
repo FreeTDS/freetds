@@ -10,7 +10,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.12 2008-01-20 14:23:59 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.13 2010-09-22 07:03:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(HAVE_ALARM) && defined(HAVE_SETITIMER)
@@ -51,6 +51,8 @@ main(int argc, char **argv)
 	struct itimerval timer;
 	char query[1024];
 
+	unsigned clock = 200000;
+
 	fprintf(stdout, "%s: Check asynchronous called ct_cancel()\n", __FILE__);
 	if (verbose) {
 		fprintf(stdout, "Trying login\n");
@@ -77,49 +79,56 @@ main(int argc, char **argv)
 	/* Set SIGALRM signal handler */
 	signal(SIGALRM, catch_alrm);
 
-	/* TODO better to use alarm AFTER ct_send ?? */
-	/* Set timer */
-	timer.it_interval.tv_sec = 0;
-	timer.it_interval.tv_usec = 100000;
-	timer.it_value.tv_sec = 0;
-	timer.it_value.tv_usec = 100000;
-	if (0 != setitimer(ITIMER_REAL, &timer, NULL)) {
-		fprintf(stderr, "Could not set realtime timer.\n");
-		return 1;
-	}
-
-	/* Issue a command returning many rows */
-	ret = ct_command(cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3, #t0010 t4", CS_NULLTERM, CS_UNUSED);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "ct_command() failed.\n");
-		return 1;
-	}
-
-	ret = ct_send(cmd);
-	if (ret != CS_SUCCEED) {
-		fprintf(stderr, "first ct_send() failed.\n");
-		return 1;
-	}
-
-	/* Save a global reference for the interrupt handler */
-	g_cmd = cmd;
-
-	while ((ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
-		printf("More results?...\n");
-		if (result_type == CS_STATUS_RESULT)
-			continue;
-
-		switch ((int) result_type) {
-		case CS_ROW_RESULT:
-			printf("do_fetch() returned: %d\n", do_fetch(cmd, &cnt));
-			break;
+	for (;;) {
+		/* TODO better to use alarm AFTER ct_send ?? */
+		/* Set timer */
+		timer.it_interval.tv_sec = 0;
+		timer.it_interval.tv_usec = clock;
+		timer.it_value.tv_sec = 0;
+		timer.it_value.tv_usec = clock;
+		if (0 != setitimer(ITIMER_REAL, &timer, NULL)) {
+			fprintf(stderr, "Could not set realtime timer.\n");
+			return 1;
 		}
-	}
 
-	/* We should not have received all rows, as the alarm signal cancelled it... */
-	if (10000 <= cnt) {
-		fprintf(stderr, "All rows read, this may not occur.\n");
-		return 1;
+		/* Issue a command returning many rows */
+		ret = ct_command(cmd, CS_LANG_CMD, "SELECT * FROM #t0010 t1, #t0010 t2, #t0010 t3, #t0010 t4", CS_NULLTERM, CS_UNUSED);
+		if (ret != CS_SUCCEED) {
+			fprintf(stderr, "ct_command() failed.\n");
+			return 1;
+		}
+
+		ret = ct_send(cmd);
+		if (ret != CS_SUCCEED) {
+			fprintf(stderr, "first ct_send() failed.\n");
+			return 1;
+		}
+
+		/* Save a global reference for the interrupt handler */
+		g_cmd = cmd;
+
+		while ((ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
+			printf("More results?...\n");
+			if (result_type == CS_STATUS_RESULT)
+				continue;
+
+			switch ((int) result_type) {
+			case CS_ROW_RESULT:
+				printf("do_fetch() returned: %d\n", do_fetch(cmd, &cnt));
+				break;
+			}
+		}
+
+		/* We should not have received all rows, as the alarm signal cancelled it... */
+		if (cnt < 10000)
+			break;
+
+		if (clock <= 5000) {
+			fprintf(stderr, "All rows read, this may not occur.\n");
+			return 1;
+		}
+		g_cmd = NULL;
+		clock /= 2;
 	}
 
 	/* Remove timer */

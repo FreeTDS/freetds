@@ -1,3 +1,9 @@
+Wed Sep 22 09:03:37 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/unittests/cancel.c src/dblib/unittests/done_handling.c:
+	* src/odbc/unittests/array_out.c:
+	- fix some portability issues with Solaris/SPARC (thanks to Peter
+	  C. Norton)
+
 Thu Sep 16 16:32:02 EDT 2010	JK Lowden <jklowden@freetds.org>
 	* doc/bsqldb.txt src/apps/bsqldb.c
 	- add -H hostname to override hostname sent to server
@@ -2900,4 +2906,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3129 2010-09-16 20:33:28 jklowden Exp $
+$Id: ChangeLog,v 1.3130 2010-09-22 07:03:59 freddy77 Exp $

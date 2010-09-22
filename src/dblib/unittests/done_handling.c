@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: done_handling.c,v 1.10 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: done_handling.c,v 1.11 2010-09-22 07:03:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -222,7 +222,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 	fprintf(stderr, "DB-Library error (severity %d):\n\t%s\n", severity, dberrstr);
 
 	if (oserr != DBNOERR)
-		fprintf(stderr, "Operating-system error:\n\t%s\n", oserrstr);
+		fprintf(stderr, "Operating-system error:\n\t%s\n", oserrstr ? oserrstr : "(null)");
 	fflush(stderr);
 
 	return INT_CANCEL;

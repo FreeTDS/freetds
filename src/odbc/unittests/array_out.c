@@ -3,7 +3,7 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array_out.c,v 1.16 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: array_out.c,v 1.17 2010-09-22 07:03:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
@@ -47,7 +47,7 @@ query_test(const char* expected, const char *expected_status)
 		id_lens = (SQLLEN *) malloc(sizeof(SQLLEN) * ARRAY_SIZE);
 		assert(descs && ids && desc_lens && id_lens);
 	} else {
-		rec_size = sizeof(Record) + ((sizeof(SQLCHAR) * desc_len + sizeof(SQLINTEGER) - 1) & ~(sizeof(SQLINTEGER) - 1));
+		rec_size = (sizeof(Record) + (sizeof(SQLCHAR) * desc_len + sizeof(SQLLEN) - 1)) & ~(sizeof(SQLLEN) - 1);
 		SQLSetStmtAttr(odbc_stmt, SQL_ATTR_ROW_BIND_TYPE, int2ptr(rec_size), 0);
 		rec = (Record *) malloc(rec_size * ARRAY_SIZE);
 		ids = &rec->id;
