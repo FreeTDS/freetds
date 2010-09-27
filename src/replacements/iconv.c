@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.19 2010-07-03 08:53:13 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.20 2010-09-27 07:25:24 freddy77 Exp $");
 
 /**
  * \addtogroup conv
@@ -63,7 +63,7 @@ enum ICONV_CD_VALUE
 
 typedef TDS_UINT ICONV_CHAR;
 
-static const unsigned char utf_lengths[256] = {
+static const unsigned char utf8_lengths[256] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -82,24 +82,24 @@ static const unsigned char utf_lengths[256] = {
 	4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0,
 };
 
-static const unsigned char utf_masks[7] = {
+static const unsigned char utf8_masks[7] = {
 	0, 0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01
 };
 
 static int
-get_utf(const unsigned char *p, int len, ICONV_CHAR *out)
+get_utf8(const unsigned char *p, int len, ICONV_CHAR *out)
 {
 	ICONV_CHAR uc;
 	int l;
 
-	l = utf_lengths[p[0]];
+	l = utf8_lengths[p[0]];
 	if (TDS_UNLIKELY(l == 0))
 		return -EILSEQ;
 	if (TDS_UNLIKELY(len < l))
 		return -EINVAL;
 
 	len = l;
-	uc = *p++ & utf_masks[l];
+	uc = *p++ & utf8_masks[l];
 	while(--l)
 		uc = (uc << 6) | (*p++ & 0x3f);
 	*out = uc;
@@ -107,7 +107,7 @@ get_utf(const unsigned char *p, int len, ICONV_CHAR *out)
 }
 
 static int
-put_utf(unsigned char *buf, int buf_len, ICONV_CHAR c)
+put_utf8(unsigned char *buf, int buf_len, ICONV_CHAR c)
 {
 #define MASK(n) ((0xffffffffu << (n)) & 0xffffffffu)
 	int o_len;
@@ -191,43 +191,83 @@ put_ucs4be(unsigned char *buf, int buf_len, ICONV_CHAR c)
 }
 
 static int
-get_ucs2le(const unsigned char *p, int len, ICONV_CHAR *out)
+get_utf16le(const unsigned char *p, int len, ICONV_CHAR *out)
 {
+	ICONV_CHAR c, c2;
+
 	if (len < 2)
 		return -EINVAL;
-	*out = TDS_GET_A2LE(p);
+	c = TDS_GET_A2LE(p);
+	if ((c & 0xfc00) == 0xd800) {
+		if (len < 4)
+			return -EINVAL;
+		c2 = TDS_GET_A2LE(p+2);
+		if ((c2 & 0xfc00) != 0xdc00)
+			return -EILSEQ;
+		*out = (c << 10) + c2 - ((0xd800 << 10) + 0xdc00 - 0x10000);
+		return 4;
+	}
+	*out = c;
 	return 2;
 }
 
 static int
-put_ucs2le(unsigned char *buf, int buf_len, ICONV_CHAR c)
+put_utf16le(unsigned char *buf, int buf_len, ICONV_CHAR c)
 {
-	if (c >= 0x10000u)
+	if (c >= 0x110000u)
 		return -EILSEQ;
-	if (buf_len < 2)
+	if (c < 0x10000u) {
+		if (buf_len < 2)
+			return -E2BIG;
+		TDS_PUT_A2LE(buf, c);
+		return 2;
+	}
+	if (buf_len < 4)
 		return -E2BIG;
-	TDS_PUT_A2LE(buf, c);
-	return 2;
+	c -= 0x10000u;
+	TDS_PUT_A2LE(buf,   0xd800 + (c >> 10));
+	TDS_PUT_A2LE(buf+2, 0xdc00 + (c & 0x3ffu));
+	return 4;
 }
 
 static int
-get_ucs2be(const unsigned char *p, int len, ICONV_CHAR *out)
+get_utf16be(const unsigned char *p, int len, ICONV_CHAR *out)
 {
+	ICONV_CHAR c, c2;
+
 	if (len < 2)
 		return -EINVAL;
-	*out = TDS_GET_A2BE(p);
+	c = TDS_GET_A2BE(p);
+	if ((c & 0xfc00) == 0xd800) {
+		if (len < 4)
+			return -EINVAL;
+		c2 = TDS_GET_A2BE(p+2);
+		if ((c2 & 0xfc00) != 0xdc00)
+			return -EILSEQ;
+		*out = (c << 10) + c2 - ((0xd800 << 10) + 0xdc00 - 0x10000);
+		return 4;
+	}
+	*out = c;
 	return 2;
 }
 
 static int
-put_ucs2be(unsigned char *buf, int buf_len, ICONV_CHAR c)
+put_utf16be(unsigned char *buf, int buf_len, ICONV_CHAR c)
 {
-	if (c >= 0x10000u)
+	if (c >= 0x110000u)
 		return -EILSEQ;
-	if (buf_len < 2)
+	if (c < 0x10000u) {
+		if (buf_len < 2)
+			return -E2BIG;
+		TDS_PUT_A2BE(buf, c);
+		return 2;
+	}
+	if (buf_len < 4)
 		return -E2BIG;
-	TDS_PUT_A2BE(buf, c);
-	return 2;
+	c -= 0x10000u;
+	TDS_PUT_A2BE(buf,   0xd800 + (c >> 10));
+	TDS_PUT_A2BE(buf+2, 0xdc00 + (c & 0x3ffu));
+	return 4;
 }
 
 static int
@@ -288,10 +328,10 @@ typedef int (*iconv_get_t)(const unsigned char *p, int len,     ICONV_CHAR *out)
 typedef int (*iconv_put_t)(unsigned char *buf,     int buf_len, ICONV_CHAR c);
 
 static const iconv_get_t iconv_gets[8] = {
-	get_iso1, get_ascii, get_ucs2le, get_ucs2be, get_ucs4le, get_ucs4be, get_utf, get_err
+	get_iso1, get_ascii, get_utf16le, get_utf16be, get_ucs4le, get_ucs4be, get_utf8, get_err
 };
 static const iconv_put_t iconv_puts[8] = {
-	put_iso1, put_ascii, put_ucs2le, put_ucs2be, put_ucs4le, put_ucs4be, put_utf, put_err
+	put_iso1, put_ascii, put_utf16le, put_utf16be, put_ucs4le, put_ucs4be, put_utf8, put_err
 };
 
 /** 
@@ -321,9 +361,9 @@ tds_sys_iconv_open (const char* tocode, const char* fromcode)
 			encoding = 0;
 		else if (strcmp(enc_name, "US-ASCII") == 0)
 			encoding = 1;
-		else if (strcmp(enc_name, "UCS-2LE") == 0)
+		else if (strcmp(enc_name, "UCS-2LE") == 0 || strcmp(enc_name, "UTF-16LE") == 0)
 			encoding = 2;
-		else if (strcmp(enc_name, "UCS-2BE") == 0)
+		else if (strcmp(enc_name, "UCS-2BE") == 0 || strcmp(enc_name, "UTF-16BE") == 0)
 			encoding = 3;
 		else if (strcmp(enc_name, "UCS-4LE") == 0)
 			encoding = 4;

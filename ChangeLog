@@ -1,3 +1,6 @@
+Mon Sep 27 09:25:08 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/replacements/iconv.c: add utf16 support to iconv replacement
+
 Wed Sep 22 09:03:37 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/unittests/cancel.c src/dblib/unittests/done_handling.c:
 	* src/odbc/unittests/array_out.c:
@@ -2906,4 +2909,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3130 2010-09-22 07:03:59 freddy77 Exp $
+$Id: ChangeLog,v 1.3131 2010-09-27 07:25:24 freddy77 Exp $
