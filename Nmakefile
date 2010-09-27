@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.4 2010-01-26 18:15:39 jklowden Exp $
+# $Id: Nmakefile,v 1.5 2010-09-27 21:53:48 jklowden Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -90,6 +90,7 @@ TDS_SRC =	$(TDS_DIR)\bulk.c \
 		$(TDS_DIR)\token.c \
 		$(TDS_DIR)\util.c \
 		$(TDS_DIR)\vstrbuild.c \
+		$(TDS_DIR)\win_mutex.c \
 		$(TDS_DIR)\write.c 
 
 TDS_OBJ =	$(TDS_OUT)\bulk.obj \
@@ -119,6 +120,7 @@ TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\token.obj \
 		$(TDS_OUT)\util.obj \
 		$(TDS_OUT)\vstrbuild.obj \
+		$(TDS_OUT)\win_mutex.obj \
 		$(TDS_OUT)\write.obj 
 
 # not yet:	$(APPS_DIR)\bsqlodbc.c 
@@ -250,7 +252,7 @@ REL = -MT  -O2 -D "_NDEBUG" -Zi
 
 MSLIBS = Ws2_32.lib shell32.lib	
 
-CC = cl $(FLG) $(DEF) $(INC)
+CC = cl $(CFLAGS) $(FLG) $(DEF) $(INC)
 CC32 = $(CC)
 CC64 = $(CC)
 
@@ -329,6 +331,8 @@ CC64 = $(CC)
 #
 # Utilities
 #
+$(APPS_EXE): $(DBLIB_OUT)\db-lib.lib
+
 {$(APPS_DIR)}.c{$(APPS_DIR)\win32\debug}.exe:
 	@if not exist $(APPS_OUT) $(MKDIR) $(APPS_OUT)
 	$(CC32) $(DBG) 	-Fd"$(APPS_OUT)\vc80.pdb" -Fe$@ \

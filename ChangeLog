@@ -1,3 +1,7 @@
+Mon Sep 27 17:53:10 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* Nmakefile src/tds/config.c src/tds/mem.c
+	- fix Win32 problems 
+
 Mon Sep 27 09:25:08 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/iconv.c: add utf16 support to iconv replacement
 
@@ -2909,4 +2913,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3131 2010-09-27 07:25:24 freddy77 Exp $
+$Id: ChangeLog,v 1.3132 2010-09-27 21:53:48 jklowden Exp $

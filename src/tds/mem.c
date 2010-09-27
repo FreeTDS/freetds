@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.206 2010-07-27 08:53:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.207 2010-09-27 21:53:48 jklowden Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -860,7 +860,6 @@ tds_alloc_connection(TDSLOCALE * locale)
 		if (encoding && atoi(encoding) > 0) {
 			char *p;
 			if (asprintf(&p, "CP%s", encoding) >= 0) {
-				free(encoding);
 				lc_all = encoding = p;
 			}
 		}
