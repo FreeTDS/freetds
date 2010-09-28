@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.389 2010-09-28 08:14:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.390 2010-09-28 09:55:26 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -76,7 +76,7 @@ static int tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_par
 static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
 static /*@observer@*/ const char *tds_token_name(unsigned char marker);
-static void adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol);
+static void adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static /*@observer@*/ const char *tds_pr_op(int op);
 static int tds_alloc_get_string(TDSSOCKET * tds, /*@special@*/ char **string, int len) /*allocates *string*/;
@@ -3533,7 +3533,7 @@ tds_token_name(unsigned char marker)
  * Adjust column size according to client's encoding 
  */
 static void
-adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
+adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
