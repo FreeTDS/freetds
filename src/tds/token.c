@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.388 2010-07-25 08:40:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.389 2010-09-28 08:14:17 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -3541,13 +3541,22 @@ adjust_character_column_size(const TDSSOCKET * tds, TDSCOLUMN * curcol)
 	if (is_unicode_type(curcol->on_server.column_type))
 		curcol->char_conv = tds->char_convs[client2ucs2];
 
-	/* Sybase UNI(VAR)CHAR fields are transmitted via SYBLONGBINARY and in UTF-16*/
+	/* Sybase UNI(VAR)CHAR fields are transmitted via SYBLONGBINARY and in UTF-16 */
 	if (curcol->on_server.column_type == SYBLONGBINARY && (
 		curcol->column_usertype == USER_UNICHAR_TYPE ||
 		curcol->column_usertype == USER_UNIVARCHAR_TYPE)) {
-		/* FIXME ucs2 is not UTF-16... */
-		/* FIXME what happen if client is big endian ?? */
-		curcol->char_conv = tds->char_convs[client2ucs2];
+#ifdef WORDS_BIGENDIAN
+		static const char sybase_utf[] = "UTF-16BE";
+#else
+		static const char sybase_utf[] = "UTF-16LE";
+#endif
+
+		curcol->char_conv = tds_iconv_get(tds, tds->char_convs[client2ucs2]->client_charset.name, sybase_utf);
+
+		/* fallback to UCS-2LE */
+		/* FIXME should be useless. Does not works always */
+		if (!curcol->char_conv)
+			curcol->char_conv = tds->char_convs[client2ucs2];
 	}
 
 	/* FIXME: and sybase ?? */

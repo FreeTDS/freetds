@@ -1,3 +1,6 @@
+Tue Sep 28 10:13:57 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: fix problem for UNI(VAR)CHAR encoding
+
 Mon Sep 27 17:53:10 EDT 2010	JK Lowden <jklowden@freetds.org>
 	* Nmakefile src/tds/config.c src/tds/mem.c
 	- fix Win32 problems 
@@ -2913,4 +2916,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3132 2010-09-27 21:53:48 jklowden Exp $
+$Id: ChangeLog,v 1.3133 2010-09-28 08:14:17 freddy77 Exp $
