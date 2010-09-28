@@ -1,3 +1,6 @@
+Tue Sep 28 11:00:33 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/FreeTDS_w.def: add missing exports
+
 Tue Sep 28 10:19:51 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/mem.c: fix memory leak
 
@@ -2919,4 +2922,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3134 2010-09-28 08:20:11 freddy77 Exp $
+$Id: ChangeLog,v 1.3135 2010-09-28 09:01:19 freddy77 Exp $
