@@ -1,3 +1,6 @@
+Fri Oct  1 10:28:46 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/ctlib/ct.c: cleanup
+
 Tue Sep 28 17:09:28 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/challenge.c: removed a warning compiling for big endian
 
@@ -2928,4 +2931,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3137 2010-09-28 15:09:39 freddy77 Exp $
+$Id: ChangeLog,v 1.3138 2010-10-01 08:28:54 freddy77 Exp $

@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.205 2010-07-25 07:49:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.206 2010-10-01 08:28:54 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1722,7 +1722,6 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 	TDSCOLUMN *curcol, *bindcol;
 	unsigned char *src, *dest, *temp_add;
 	int i, result = 0;
-	TDS_INT srctype, srclen, desttype;
 	CS_DATAFMT srcfmt, destfmt;
 	TDS_INT datalen_dummy, *pdatalen = &datalen_dummy;
 	TDS_SMALLINT nullind_dummy, *nullind = &nullind_dummy;
@@ -1739,10 +1738,6 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 
 		if (curcol->column_hidden)
 			continue;
-
-
-		srctype = curcol->column_type;
-		desttype = _ct_get_server_type(bindcol->column_bindtype);
 
 		/* 
 		 * Retrieve the initial bound column_varaddress and increment it if offset specified         
@@ -1768,15 +1763,12 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 				*pdatalen = 0;
 			} else {
 
-				srctype = _ct_get_client_type(curcol);
-
 				src = curcol->column_data;
 				if (is_blob_col(curcol))
 					src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
 
-				srclen = curcol->column_cur_size;
-				srcfmt.datatype = srctype;
-				srcfmt.maxlength = srclen;
+				srcfmt.datatype = _ct_get_client_type(curcol);
+				srcfmt.maxlength = curcol->column_cur_size;
 
 				destfmt.datatype = bindcol->column_bindtype;
 				destfmt.maxlength = bindcol->column_bindlen;
