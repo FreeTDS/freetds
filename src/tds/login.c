@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.198 2010-07-30 07:29:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.199 2010-10-02 07:07:17 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -421,7 +421,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		return TDSECONN;
 	}
 
-	if (!IS_TDS50(tds) && !tds_dstr_isempty(&connection->instance_name))
+	if (!IS_TDS50(tds) && !tds_dstr_isempty(&connection->instance_name) && !connection->port)
 		connection->port = tds7_get_instance_port(tds_dstr_cstr(&connection->ip_addr), tds_dstr_cstr(&connection->instance_name));
 
 	if (connection->port < 1) {
