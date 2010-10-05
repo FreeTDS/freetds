@@ -1,3 +1,8 @@
+Tue Oct  5 10:36:23 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/ctlib.h src/ctlib/cs.c src/ctlib/ct.c:
+	* src/ctlib/unittests/t0006.c:
+	- fix CS_VARCHAR_TYPE/CS_VARBINARY_TYPE on ctlib
+
 Sat Oct  2 09:07:11 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c:
 	- avoid udp 1434 probe if port specified (patch from SF case
@@ -2936,4 +2941,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3139 2010-10-02 07:07:16 freddy77 Exp $
+$Id: ChangeLog,v 1.3140 2010-10-05 08:36:36 freddy77 Exp $

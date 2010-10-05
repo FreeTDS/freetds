@@ -39,7 +39,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.206 2010-10-01 08:28:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.207 2010-10-05 08:36:36 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -1990,13 +1990,11 @@ _ct_get_client_type(TDSCOLUMN *col)
 		return CS_DECIMAL_TYPE;
 		break;
 	case SYBBINARY:
+	case SYBVARBINARY:
 		return CS_BINARY_TYPE;
 		break;
 	case SYBIMAGE:
 		return CS_IMAGE_TYPE;
-		break;
-	case SYBVARBINARY:
-		return CS_VARBINARY_TYPE;
 		break;
 	case SYBTEXT:
 		return CS_TEXT_TYPE;
@@ -3914,10 +3912,9 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 	TDSCOLUMN *pcol;
 	TDSPARAMINFO *params = NULL;
 
-	int temp_type;
+	int temp_type, tds_type;
 	CS_BYTE *temp_value;
 	CS_INT temp_datalen;
-	int param_is_null;
 
 	tdsdump_log(TDS_DBG_FUNC, "paraminfoalloc(%p, %p)\n", tds, first_param);
 
@@ -3937,32 +3934,30 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		 * The parameteter data has been passed by reference
 		 * i.e. using ct_setparam rather than ct_param
 		 */
+		temp_type = p->datatype;
+		tds_type = _ct_get_server_type(p->datatype);
 		if (p->param_by_value == 0) {
 
-			param_is_null = 0;
 			temp_datalen = 0;
 			temp_value = NULL;
-			temp_type = p->type;
 
 			/* here's one way of passing a null parameter */
 
 			if (*(p->ind) == -1) {
 				temp_value = NULL;
 				temp_datalen = 0;
-				param_is_null = 1;
 			} else {
 
 				/* and here's another... */
 				if ((*(p->datalen) == 0 || *(p->datalen) == CS_UNUSED) && p->value == NULL) {
 					temp_value = NULL;
 					temp_datalen = 0;
-					param_is_null = 1;
 				} else {
 
 					/* datafmt.datalen is ignored for fixed length types */
 
-					if (is_fixed_type(temp_type)) {
-						temp_datalen = tds_get_size_by_type(temp_type);
+					if (is_fixed_type(tds_type)) {
+						temp_datalen = tds_get_size_by_type(tds_type);
 					} else {
 						temp_datalen = (*(p->datalen) == CS_UNUSED) ? 0 : *(p->datalen);
 					}
@@ -3972,42 +3967,21 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 					} else {
 						temp_value = NULL;
 						temp_datalen = 0;
-						param_is_null = 1;
 					}
 				}
 			}
-
-			if (param_is_null) {
-				switch (temp_type) {
-				case SYBINT1:
-				case SYBINT2:
-				case SYBINT4:
-				/* TODO check if supported ?? */
-				case SYBINT8:
-					temp_type = SYBINTN;
-					break;
-				case SYBDATETIME:
-				case SYBDATETIME4:
-					temp_type = SYBDATETIMN;
-					break;
-				case SYBFLT8:
-					temp_type = SYBFLTN;
-					break;
-				case SYBBIT:
-					temp_type = SYBBITN;
-					break;
-				case SYBMONEY:
-				case SYBMONEY4:
-					temp_type = SYBMONEYN;
-					break;
-				default:
-					break;
-				}
-			}
 		} else {
-			temp_type = p->type;
 			temp_value = p->value;
 			temp_datalen = *(p->datalen);
+		}
+
+		if (temp_type == CS_VARCHAR_TYPE || temp_type == CS_VARBINARY_TYPE) {
+			CS_VARCHAR *vc = (CS_VARCHAR *) temp_value;
+
+			if (vc) {
+				temp_datalen = vc->len;
+				temp_value   = (CS_BYTE *) vc->str;
+			}
 		}
 
 		pcol = params->columns[i];
@@ -4019,7 +3993,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			pcol->column_namelen = strlen(pcol->column_name);
 		}
 
-		tds_set_param_type(tds, pcol, temp_type);
+		tds_set_param_type(tds, pcol, tds_type);
 
 		if (temp_datalen == CS_NULLTERM && temp_value)
 			temp_datalen = strlen((const char*) temp_value);
@@ -4030,7 +4004,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			if (p->maxlen < 0)
 				return NULL;
 			pcol->on_server.column_size = pcol->column_size = p->maxlen;
-			pcol->column_cur_size = temp_datalen;
+			pcol->column_cur_size = temp_value ? temp_datalen : -1;
 			if (temp_datalen > 0 && temp_datalen > p->maxlen)
 				pcol->on_server.column_size = pcol->column_size = temp_datalen;
 		} else {
@@ -4113,7 +4087,7 @@ static int
 _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT *datalen, 
 	       CS_SMALLINT *indicator, CS_BYTE byvalue)
 {
-	int param_is_null = 0;
+	int param_is_null = 0, desttype;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_fill_param(%d, %p, %p, %p, %p, %p, %x)\n", 
 				cmd_type, param, datafmt, data, datalen, indicator, byvalue);
@@ -4142,9 +4116,10 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 	 * translate datafmt.datatype, e.g. CS_SMALLINT_TYPE
 	 * to Server type, e.g. SYBINT2
 	 */
-	param->type = _ct_get_server_type(datafmt->datatype);
+	desttype = _ct_get_server_type(datafmt->datatype);
+	param->datatype = datafmt->datatype;
 
-	if (is_numeric_type(param->type)) {
+	if (is_numeric_type(desttype)) {
 		param->scale = datafmt->scale;
 		param->precision = datafmt->precision;
 		if (param->scale < 0 || param->precision < 0
@@ -4154,8 +4129,8 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 
 	param->maxlen = datafmt->maxlength;
 
-	if (is_fixed_type(param->type)) {
-		param->maxlen = tds_get_size_by_type(param->type);
+	if (is_fixed_type(desttype)) {
+		param->maxlen = tds_get_size_by_type(desttype);
 	}
 
 	param->param_by_value = byvalue;
@@ -4179,8 +4154,8 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 		} else {
 			/* datafmt.datalen is ignored for fixed length types */
 
-			if (is_fixed_type(param->type)) {
-				*(param->datalen) = tds_get_size_by_type(param->type);
+			if (is_fixed_type(desttype)) {
+				*(param->datalen) = tds_get_size_by_type(desttype);
 			} else {
 				*(param->datalen) = (*datalen == CS_UNUSED) ? 0 : *datalen;
 			}
@@ -4203,34 +4178,6 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 				param->value = NULL;
 				*(param->datalen) = 0;
 				param_is_null = 1;
-			}
-		}
-
-		if (param_is_null) {
-			switch (param->type) {
-			case SYBINT1:
-			case SYBINT2:
-			case SYBINT4:
-			/* TODO check if supported ?? */
-			case SYBINT8:
-				param->type = SYBINTN;
-				break;
-			case SYBDATETIME:
-			case SYBDATETIME4:
-				param->type = SYBDATETIMN;
-				break;
-			case SYBFLT8:
-				param->type = SYBFLTN;
-				break;
-			case SYBBIT:
-				param->type = SYBBITN;
-				break;
-			case SYBMONEY:
-			case SYBMONEY4:
-				param->type = SYBMONEYN;
-				break;
-			default:
-				break;
 			}
 		}
 	} else {		/* not by value, i.e. by reference */

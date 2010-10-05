@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <ctpublic.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.13 2010-04-13 13:19:12 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.14 2010-10-05 08:36:36 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_CONTEXT *ctx;
@@ -75,6 +75,14 @@ DoTest(
 
 	/* test buffer */
 	if (todata && memcmp(todata, buffer, tolen) != 0) {
+		unsigned n;
+		for (n = 0; n < tolen; ++n)
+			printf("%02x ", ((unsigned char*)todata)[n]);
+		printf("\n");
+		for (n = 0; n < tolen; ++n)
+			printf("%02x ", ((unsigned char*)buffer)[n]);
+		printf("\n");
+
 		err = "result data";
 		goto Failed;
 	}
@@ -254,12 +262,13 @@ main(int argc, char **argv)
 		CS_CHAR test2[] = "12345",
 		CS_INT_TYPE, &test, sizeof(test), CS_CHAR_TYPE, sizeof(test2), CS_SUCCEED, test2, sizeof(test2) - 1);
 
-/*
-   DO_TEST(CS_INT test = 12345; CS_CHAR test2[] = "\005" "12345",
-	   CS_INT_TYPE,&test,sizeof(test),
-	   CS_VARBINARY_TYPE,sizeof(test2),
-	   CS_SUCCEED,test2,sizeof(test2)-1);
-*/
+	{ CS_VARCHAR test2 = { 5, "12345"};
+	memset(test2.str+5, 23, 251);
+	DO_TEST(CS_INT test = 12345,
+		CS_INT_TYPE,&test,sizeof(test),
+		CS_VARCHAR_TYPE,sizeof(test2),
+		CS_SUCCEED,&test2,sizeof(test2));
+	}
 
 	DO_TEST(CS_CHAR test[] = "12345";
 		CS_INT test2 = 12345, CS_CHAR_TYPE, test, 5, CS_INT_TYPE, sizeof(test2), CS_SUCCEED, &test2, sizeof(test2));

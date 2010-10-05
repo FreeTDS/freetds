@@ -50,7 +50,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.75 2010-08-04 07:09:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.76 2010-10-05 08:36:36 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -518,6 +518,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	unsigned char *dest;
 	CS_RETCODE ret;
 	CS_INT dummy;
+	CS_VARCHAR *destvc = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_convert(%p, %p, %p, %p, %p, %p)\n", ctx, srcfmt, srcdata, destfmt, destdata, resultlen);
 
@@ -552,8 +553,18 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 
 	src_type = _ct_get_server_type(srcfmt->datatype);
 	src_len = srcfmt->maxlength;
+	if (srcfmt->datatype == CS_VARCHAR_TYPE || srcfmt->datatype == CS_VARBINARY_TYPE) {
+		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
+		src_len = vc->len;
+		srcdata = vc->str;
+	}
 	desttype = _ct_get_server_type(destfmt->datatype);
 	destlen = destfmt->maxlength;
+	if (destfmt->datatype == CS_VARCHAR_TYPE || destfmt->datatype == CS_VARBINARY_TYPE) {
+		destvc = (CS_VARCHAR *) destdata;
+		destlen  = sizeof(destvc->str);
+		destdata = destvc->str;
+	}
 
 	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d (%d bytes)\n",
 		    src_type, src_len, desttype, destlen);
@@ -595,6 +606,10 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 					ret = CS_FAIL;
 					break;
 				}
+			}
+			if (destvc) {
+				destvc->len = minlen;
+				*resultlen = sizeof(*destvc);
 			}
 			break;
 
@@ -641,6 +656,10 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 					ret = CS_FAIL;
 					break;
 				}
+			}
+			if (destvc) {
+				destvc->len = minlen;
+				*resultlen = sizeof(*destvc);
 			}
 			break;
 		case SYBINT1:
@@ -741,9 +760,13 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		}
 		memcpy(dest, cres.ib, len);
 		free(cres.ib);
+		*resultlen = destlen;
+		if (destvc) {
+			destvc->len = len;
+			*resultlen = sizeof(*destvc);
+		}
 		for (i = len; i < destlen; i++)
 			dest[i] = '\0';
-		*resultlen = destlen;
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -855,6 +878,10 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		default:
 			ret = CS_FAIL;
 			break;
+		}
+		if (destvc) {
+			destvc->len = len;
+			*resultlen = sizeof(*destvc);
 		}
 		free(cres.c);
 		break;
