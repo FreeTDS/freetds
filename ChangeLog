@@ -1,3 +1,6 @@
+Mon Oct 11 14:57:13 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: fix for OpenSSL
+
 Wed Oct  6 10:02:53 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: fix typo
 
@@ -2944,4 +2947,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3141 2010-10-06 08:03:00 freddy77 Exp $
+$Id: ChangeLog,v 1.3142 2010-10-11 12:57:41 freddy77 Exp $

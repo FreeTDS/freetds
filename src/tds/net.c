@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.107 2010-10-06 08:03:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.108 2010-10-11 12:57:41 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -1482,6 +1482,11 @@ tds_ssl_init(TDSSOCKET *tds)
 
 		/* use priorities... */
 		SSL_set_cipher_list(con, OPENSSL_CIPHERS);
+
+#ifdef SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
+		/* this disable a security improvement but allow connection... */
+		SSL_set_options(con, SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
+#endif
 
 		/* Perform the TLS handshake */
 		tls_msg = "handshake";
