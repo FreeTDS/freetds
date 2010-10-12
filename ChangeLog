@@ -1,3 +1,7 @@
+Tue Oct 12 11:29:23 EDT 2010	JK Lowden <jklowden@freetds.org>
+	* Nmakefile src/replacements/Makefile.am
+	- works with tarball if FROM_TARBALL defined 
+
 Tue Oct 12 13:48:14 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: change OpenSSL ciphers
 
@@ -2950,4 +2954,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3143 2010-10-12 11:48:27 freddy77 Exp $
+$Id: ChangeLog,v 1.3144 2010-10-12 15:36:24 jklowden Exp $

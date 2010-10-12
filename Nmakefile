@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.5 2010-09-27 21:53:48 jklowden Exp $
+# $Id: Nmakefile,v 1.6 2010-10-12 15:36:24 jklowden Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -10,6 +10,8 @@
 #
 # Example invocation:
 #	nmake.exe -f Nmakefile -nologo PLATFORM=win32 CONFIGURATION=debug
+# If using with tarball distribution (not CVS):
+#	nmake.exe -f Nmakefile PLATFORM=win32 CONFIGURATION=debug FROM_TARBALL=
 #	
 
 MKDIR = MD
@@ -201,6 +203,7 @@ $(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
 	@if "" equ "$(CONFIGURATION)" 	CONFIGURATION not defined, see comments in Nmakefile >&2 && exit 1
 	$(MKDIR) $@
 
+!IFNDEF FROM_TARBALL
 #
 # Generate distributed header files
 #
@@ -209,7 +212,7 @@ include\tdsver.h:
 	> $@.err 
 	move /Y $@.err $@
 
-include\types.h:
+src\tds\types.h:
 	perl src\tds\types.pl misc\types.txt > $@.err
 	move /Y $@.err $@
 
@@ -224,8 +227,9 @@ src\tds\encodings.h: src\tds\encodings.pl src\tds\alternative_character_sets.h
 src\tds\num_limits.h: src\tds\num_limits.pl
 	perl src\tds\num_limits.pl > $@.tmp
 	$(MV) $@.tmp $@
+!ENDIF
 
-GENERATED_FILES = include\tdsver.h include\types.h \
+GENERATED_FILES = include\tdsver.h src\tds\types.h \
 	src\tds\tds_willconvert.h src\tds\encodings.h src\tds\num_limits.h
 
 $(DBLIB_OUT)\db-lib.lib: $(GENERATED_FILES) $(DBLIB_OUT) $(DBLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
