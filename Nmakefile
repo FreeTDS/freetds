@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.6 2010-10-12 15:36:24 jklowden Exp $
+# $Id: Nmakefile,v 1.7 2010-10-13 17:49:17 jklowden Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -8,10 +8,9 @@
 # 2. PLATFORM = win32/x64
 # These will determine what is built and where outputs are placed. 
 #
-# Example invocation:
+# Example invocations:
 #	nmake.exe -f Nmakefile -nologo PLATFORM=win32 CONFIGURATION=debug
-# If using with tarball distribution (not CVS):
-#	nmake.exe -f Nmakefile PLATFORM=win32 CONFIGURATION=debug FROM_TARBALL=
+#	nmake.exe -f Nmakefile -nologo build-win32d
 #	
 
 MKDIR = MD
@@ -149,7 +148,9 @@ db-lib: $(DBLIB_OUT)\db-lib.lib
 
 apps: $(DBLIB_OUT)\db-lib.lib $(APPS_EXE)
 tsql: $(APPS_OUT)\tsql.exe 
-bsqldb: $(APPS_OUT)\bsqldb.exe 
+bsqldb: $(APPS_OUT)\bsqldb.exe
+help:
+	@echo targets: db-lib, apps, tsql, bsqldb
 
 ##(APPS_OUT)\bsqldb.exe: $(APPS_DIR)\bsqldb.exe $(DBLIB_OUT)\db-lib.lib
 # Don't know how to create this dependency without explicitly defining every output. 
@@ -171,6 +172,15 @@ bsqldb: $(APPS_OUT)\bsqldb.exe
 # x64 Native: Vcvarsall "amd64"
 # x64 Cross:  Vcvarsall "x86_amd64"
 #
+
+# Check that cl.exe is in the PATH.  Cf. "help FOR" to see how this works.  
+# See above comments regarding environment setup.  
+#
+COMPILER = cl.exe
+!IF 0 != [for /f %I in ("$(COMPILER)") DO @dir /b "%~dp$$PATH:I\$(COMPILER)" > NUL:]
+!MESSAGE cl.exe not in PATH
+!ERROR Perhaps run vcvarsall.bat to set up the command-line development environment?
+!ENDIF
 
 all: build-win32d build-win32r build-win64d build-win64r
 
@@ -203,7 +213,20 @@ $(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
 	@if "" equ "$(CONFIGURATION)" 	CONFIGURATION not defined, see comments in Nmakefile >&2 && exit 1
 	$(MKDIR) $@
 
-!IFNDEF FROM_TARBALL
+#
+# Some header files are generated with Perl for consistency.  
+# The Perl scripts are maintained in CVS, and someone developing 
+# with CVS needs Perl to build FreeTDS.  
+#
+# To avoid any dependency on Perl for everyone else, the 
+# distribution tarball contains the pre-generated files.  
+#
+# The preprocessing test below checks for the existence of a CVS 
+# directory, which wouldn't be present in a freshly unpacked tarball.  
+# If it finds one, it enables the code to generate the header files. 
+#
+
+!IF 0 == [dir /b /ad CVS]
 #
 # Generate distributed header files
 #
