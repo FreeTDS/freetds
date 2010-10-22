@@ -1,3 +1,6 @@
+Fri Oct 22 22:14:48 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/config.h: add missing define for msvc6
+
 Wed Oct 13 13:47:03 EDT 2010	JK Lowden <jklowden@freetds.org>
 	* Nmakefile 
 	- remove FROM_TARBALL, test for CVS instead, and check if 
@@ -2959,4 +2962,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3145 2010-10-13 17:49:17 jklowden Exp $
+$Id: ChangeLog,v 1.3146 2010-10-22 20:14:53 freddy77 Exp $

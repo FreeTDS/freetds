@@ -91,6 +91,12 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
+/* Define to 1 if you have the <limits.h> header file. */
+#define HAVE_LIMITS_H 1
+
+/* Define to 1 if you have the <locale.h> header file. */
+#define HAVE_LOCALE_H 1
+
 /* Define to 1 if your system provides the malloc_options variable. */
 /* #undef HAVE_MALLOC_OPTIONS */
 
@@ -279,4 +285,3 @@
 
 typedef SSIZE_T ssize_t;
 
-#define HAVE_LOCALE_H 1
