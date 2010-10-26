@@ -5,9 +5,11 @@
 
 #include "common.h"
 
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif /* HAVE_UNISTD_H */
 
-static char software_version[] = "$Id: null.c,v 1.8 2009-03-19 13:11:41 freddy77 Exp $";
+static char software_version[] = "$Id: null.c,v 1.9 2010-10-26 08:12:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef DBNTWIN32

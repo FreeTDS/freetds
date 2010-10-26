@@ -1,3 +1,8 @@
+Tue Oct 26 10:12:21 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac misc/prepare_win32.sh src/ctlib/unittests/cancel.c:
+	* src/dblib/unittests/null.c src/dblib/unittests/null2.c:
+	- some fixes for win64 and MingW
+
 Fri Oct 22 22:14:48 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/config.h: add missing define for msvc6
 
@@ -2962,4 +2967,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3146 2010-10-22 20:14:53 freddy77 Exp $
+$Id: ChangeLog,v 1.3147 2010-10-26 08:12:48 freddy77 Exp $

@@ -22,7 +22,7 @@ for param
 do
 	case $param in
 	--win64)
-		HOSTS='x86_64-w64-mingw32 x86_64-pc-mingw32'
+		HOSTS='x86_64-w64-mingw32 x86_64-pc-mingw32 amd64-mingw32msvc'
 		TYPE=win64
 		;;
 	--zip)

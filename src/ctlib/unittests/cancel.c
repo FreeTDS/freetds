@@ -5,12 +5,16 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/types.h>
+
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 #include <signal.h>
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.13 2010-09-22 07:03:59 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.14 2010-10-26 08:12:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(HAVE_ALARM) && defined(HAVE_SETITIMER)

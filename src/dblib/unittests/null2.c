@@ -4,9 +4,11 @@
 
 #include "common.h"
 
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif /* HAVE_UNISTD_H */
 
-static char software_version[] = "$Id: null2.c,v 1.7 2010-02-01 14:56:28 freddy77 Exp $";
+static char software_version[] = "$Id: null2.c,v 1.8 2010-10-26 08:12:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static DBPROCESS *dbproc = NULL;
