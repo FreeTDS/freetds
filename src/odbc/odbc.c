@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.551 2010-08-04 11:01:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.552 2010-10-29 14:52:40 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -424,8 +424,11 @@ odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 	int save_param_num = stmt->param_num;
 	SQLRETURN res;
 
-	if (!stmt->need_reprepare || stmt->prepared_query_is_rpc)
+	if (!stmt->need_reprepare || stmt->prepared_query_is_rpc
+	    || !stmt->dbc || !IS_TDS7_PLUS(stmt->dbc->tds_socket)) {
+		stmt->need_reprepare = 0;
 		return SQL_SUCCESS;
+	}
 
 	stmt->params = NULL;
 	stmt->param_num = 0;

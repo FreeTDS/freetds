@@ -1,3 +1,9 @@
+Fri Oct 29 16:52:15 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c src/odbc/unittests/.cvsignore:
+	* src/odbc/unittests/Makefile.am:
+	- src/odbc/unittests/peter.c
+	- Sybase does not need to prepare again changing parameters
+
 Fri Oct 29 10:49:12 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/types.txt src/odbc/unittests/genparams.c src/tds/data.c:
 	* src/tds/types.pl:
@@ -2972,4 +2978,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3148 2010-10-29 08:49:30 freddy77 Exp $
+$Id: ChangeLog,v 1.3149 2010-10-29 14:52:40 freddy77 Exp $
