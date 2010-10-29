@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.25 2009-11-26 09:07:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.26 2010-10-29 08:49:30 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -84,6 +84,9 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 		default:
 			break;
 		}
+	} else if (IS_TDS50(tds)) {
+		if (type == SYBINT8)
+			type = SYB5INT8;
 	}
 	tds_set_column_type(tds, curcol, type);
 

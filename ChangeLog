@@ -1,3 +1,8 @@
+Fri Oct 29 10:49:12 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/types.txt src/odbc/unittests/genparams.c src/tds/data.c:
+	* src/tds/types.pl:
+	- fix SYB5INT8 type
+
 Tue Oct 26 10:12:21 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac misc/prepare_win32.sh src/ctlib/unittests/cancel.c:
 	* src/dblib/unittests/null.c src/dblib/unittests/null2.c:
@@ -2967,4 +2972,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3147 2010-10-26 08:12:48 freddy77 Exp $
+$Id: ChangeLog,v 1.3148 2010-10-29 08:49:30 freddy77 Exp $

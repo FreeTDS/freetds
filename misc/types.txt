@@ -1,5 +1,5 @@
 Name	vendor	varint	fixed	nullable	variable	blob	numeric	unicode	ascii	size	nullable type
-SYB5INT8	SYB	0	0	0	0	0	0	0	0	8	SYBINTN
+SYB5INT8	SYB	0	1	0	0	0	0	0	0	8	SYBINTN
 SYBBINARY	ALL	1	0	1	1	0	0	0	0	-1	0
 SYBBIT	ALL	0	1	0	0	0	0	0	0	1	SYBBITN
 SYBBITN	MS	1	0	1	0	0	0	0	0	1	0	# Sybase bit is not nullable
@@ -63,5 +63,5 @@ XSYBVARCHAR	MS	2	0	1	1	0	0	0	1	-1	0
 # tds_get_conversion_type from nullable to not nullable
 # tds_get_cardinal_type ??
 
-# $Id: types.txt,v 1.3 2009-08-18 15:11:12 freddy77 Exp $
+# $Id: types.txt,v 1.4 2010-10-29 08:49:30 freddy77 Exp $
 

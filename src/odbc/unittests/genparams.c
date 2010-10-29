@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.46 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.47 2010-10-29 08:49:30 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -386,10 +386,12 @@ AllTests(void)
 	/* TODO use collate in sintax if available */
 	TestOutput("VARCHAR(20)", "0xf8f9", SQL_C_CHAR, SQL_VARCHAR, "2 \xf8\xf9");
 
-	/* TODO some Sybase versions */
-	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u) {
+	if ((odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u)
+	    || (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0)) {
 		TestOutput("BIGINT", "-987654321065432", SQL_C_BINARY, SQL_BIGINT, big_endian ? "FFFC7DBBCF083228" : "283208CFBB7DFCFF");
 		TestInput(SQL_C_SBIGINT, "BIGINT", SQL_BIGINT, "BIGINT", "-12345678901234");
+	}
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u) {
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WCHAR, "NVARCHAR(100)", "test");
 		TestInput(SQL_C_CHAR, "NVARCHAR(100)", SQL_WLONGVARCHAR, "NTEXT", "test");
 		/* test for invalid stream due to truncation*/

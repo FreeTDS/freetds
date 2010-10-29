@@ -31,7 +31,7 @@ while ($line = readLine()) {
 	$types{$type{'name'}} = \%type;
 }
 
-my $id = '$Id: types.pl,v 1.2 2009-08-20 17:49:07 freddy77 Exp $';
+my $id = '$Id: types.pl,v 1.3 2010-10-29 08:49:30 freddy77 Exp $';
 $id =~ s/\$Id/CVS Id/;
 $id =~ s/\$\s*$//;
 print qq|/*
@@ -141,7 +141,9 @@ foreach my $type (sort &unique(map { $_->{nullable_type} } @list)) {
 		break;\n|;
 	}
 }
-print q|	}
+print q|	case SYB5INT8:
+		return SYBINT8;
+	}
 	return srctype;
 }
 
