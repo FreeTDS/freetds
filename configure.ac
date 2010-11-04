@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.57 2010-10-26 08:12:48 freddy77 Exp $
+dnl $Id: configure.ac,v 1.58 2010-11-04 19:38:33 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.83.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.57 $)
+AC_REVISION($Revision: 1.58 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_HEADERS(include/config.h)
@@ -136,7 +136,15 @@ AC_SUBST(HAVE_PERL_SOURCES)
 # Checks for libraries.
 # ------------------------------------------------------------
 AC_ARG_ENABLE(krb5,
-  AS_HELP_STRING([--enable-krb5], [enable Kerberos support]))
+  AS_HELP_STRING([--enable-krb5@<:@=LIB@:>@], [enable Kerberos support, optionally with library]))
+
+krb5_libs=auto
+case $enable_krb5 in
+  yes) ;;
+  "" | no) krb5_libs= ;;
+  -* | */* | *.a | *.so | *.so.* | *.o) krb5_libs="$enable_krb5" ;;
+  *) krb5_libs="-l$enable_krb5" ;;
+esac
 
 OLDLIBS="$LIBS"
 LIBS=""
@@ -151,6 +159,7 @@ case $host in
 	else
 		LIBS="-lws2_32"
 	fi
+	krb5_libs=
 	AM_CONDITIONAL(MINGW32, true)
 	;;
 *-*-hpux*)
@@ -165,12 +174,6 @@ case $host in
 	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED"
 	LIBS="$LIBS -lxnet"
 	AC_SEARCH_LIBS(gethostbyname, nsl)
-	if test "$enable_krb5" = "yes" ; then
-		AC_SEARCH_LIBS(gss_init_sec_context, [gssapi_krb5 gssapi])
-		if test "$ac_cv_search_gss_init_sec_context" != no; then
-			AC_DEFINE(ENABLE_KRB5, 1, [Defined if --enable-krb5 used and library detected])
-		fi
-	fi
 
 	# check for _xpg_ functions
 	AC_CHECK_FUNCS([_xpg_accept _xpg_getpeername _xpg_getsockname _xpg_getsockopt _xpg_recvfrom \
@@ -180,16 +183,25 @@ case $host in
 *)
 	AC_SEARCH_LIBS(socket, socket)
 	AC_SEARCH_LIBS(gethostbyname, nsl)
-	if test "$enable_krb5" = "yes" ; then
-		AC_SEARCH_LIBS(gss_init_sec_context, [gssapi_krb5 gssapi])
-		if test "$ac_cv_search_gss_init_sec_context" != no; then
-			AC_DEFINE(ENABLE_KRB5, 1, [Defined if --enable-krb5 used and library detected])
-		fi
-	fi
 
 	AM_CONDITIONAL(MINGW32, false)
 	;;
 esac
+
+case "$krb5_libs" in
+"" ) ;;
+"auto")
+	AC_SEARCH_LIBS(gss_init_sec_context, [gssapi_krb5 gssapi])
+	if test "$ac_cv_search_gss_init_sec_context" != no; then
+		AC_DEFINE(ENABLE_KRB5, 1, [Defined if --enable-krb5 used and library detected])
+	fi
+	;;
+*)
+	AC_DEFINE(ENABLE_KRB5, 1, [Defined if --enable-krb5 used and library detected])
+	LIBS="$LIBS $krb5_libs"
+	;;
+esac
+
 NETWORK_LIBS="$LIBS"
 LIBS="$OLDLIBS"
 AC_SUBST(NETWORK_LIBS)
