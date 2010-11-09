@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2005-2009  Frediano Ziglio
+ * Copyright (C) 2005-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.42 2010-09-28 15:09:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.43 2010-11-09 12:36:10 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -287,7 +287,8 @@ tds_answer_challenge(TDSSOCKET * tds,
 		challenge = ntlm2_challenge;
 		memset(&md5_ctx, 0, sizeof(md5_ctx));
 	} else if (names_blob_len <= 0) {
-		/* NTLM */
+		/* LM */
+#if TDS_USE_LM
 		size_t len, i;
 		unsigned char passwd_buf[MAX_PW_SZ];
 
@@ -311,6 +312,9 @@ tds_answer_challenge(TDSSOCKET * tds,
 
 		tds_encrypt_answer(hash, challenge, answer->lm_resp);
 		memset(passwd_buf, 0, sizeof(passwd_buf));
+#else
+		memset(answer->lm_resp, 0, sizeof(answer->lm_resp));
+#endif
 	} else {
 		/* NTLMv2 */
 		unsigned char *lm_v2_response;
