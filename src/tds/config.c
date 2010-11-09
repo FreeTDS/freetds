@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.161 2010-09-27 21:53:48 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.162 2010-11-09 15:46:42 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -613,6 +613,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_config_encryption(value, connection);
 	} else if (!strcmp(option, TDS_STR_ASA_DATABASE)) {
 		tds_dstr_copy(&connection->server_name, value);
+	} else if (!strcmp(option, TDS_STR_USENTLMV2)) {
+		connection->use_ntlmv2 = tds_config_boolean(value);
 	} else {
 		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option '%s' ... ignoring.\n", option);
 	}

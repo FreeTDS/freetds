@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.87 2010-07-08 09:39:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.88 2010-11-09 15:46:42 freddy77 Exp $");
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;
 ODBC_PARAM_LIST
@@ -225,6 +225,9 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection)
 	if (myGetPrivateProfileString(DSN, odbc_param_Encryption, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_ENCRYPTION, tmp, connection);
 
+	if (myGetPrivateProfileString(DSN, odbc_param_UseNTLMv2, tmp) > 0)
+		tds_parse_conf_section(TDS_STR_USENTLMV2, tmp, connection);
+
 	if (myGetPrivateProfileString(DSN, odbc_param_Trusted_Connection, tmp) > 0 && tds_config_boolean(tmp)) {
 		tds_dstr_copy(&connection->user_name, "");
 		tds_dstr_copy(&connection->password, "");
@@ -377,6 +380,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tds_parse_conf_section(TDS_STR_DEBUGFLAGS, tds_dstr_cstr(&value), connection);
 		} else if (CHK_PARAM(Encryption)) {
 			tds_parse_conf_section(TDS_STR_ENCRYPTION, tds_dstr_cstr(&value), connection);
+		} else if (CHK_PARAM(UseNTLMv2)) {
+			tds_parse_conf_section(TDS_STR_USENTLMV2, tds_dstr_cstr(&value), connection);
 		} else if (CHK_PARAM(Trusted_Connection)) {
 			trusted = tds_config_boolean(tds_dstr_cstr(&value));
 			tdsdump_log(TDS_DBG_INFO1, "trusted %s -> %d\n", tds_dstr_cstr(&value), trusted);

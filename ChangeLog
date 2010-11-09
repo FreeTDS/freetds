@@ -1,3 +1,8 @@
+Tue Nov  9 16:46:15 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h include/tdsodbc.h src/odbc/connectparams.c:
+	* src/tds/challenge.c src/tds/config.c:
+	- add "use ntlmv2" option
+
 Tue Nov  9 16:41:37 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/sspi.c: fix possible problem with sspi.h header
 
@@ -2991,4 +2996,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3153 2010-11-09 15:42:04 freddy77 Exp $
+$Id: ChangeLog,v 1.3154 2010-11-09 15:46:42 freddy77 Exp $

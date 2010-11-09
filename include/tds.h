@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.343 2010-09-16 07:37:23 freddy77 Exp $ */
+/* $Id: tds.h,v 1.344 2010-11-09 15:46:42 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -804,6 +804,7 @@ typedef enum tds_encryption_level {
 #define TDS_STR_INSTANCE "instance"
 #define TDS_STR_ASA_DATABASE	"asa database"
 #define TDS_STR_ENCRYPTION	 "encryption"
+#define TDS_STR_USENTLMV2	"use ntlmv2"
 /* conf values */
 #define TDS_STR_ENCRYPTION_OFF	 "off"
 #define TDS_STR_ENCRYPTION_REQUEST "request"
@@ -880,6 +881,7 @@ typedef struct tds_connection
 	unsigned int bulk_copy:1;
 	unsigned int suppress_language:1;
 	unsigned int gssapi_use_delegation:1;
+	unsigned int use_ntlmv2:1;
 } TDSCONNECTION;
 
 typedef struct tds_locale

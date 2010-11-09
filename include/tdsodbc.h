@@ -66,7 +66,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.126 2010-08-17 13:16:05 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.127 2010-11-09 15:46:42 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -465,7 +465,8 @@ BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
 	ODBC_PARAM(Encryption) \
 	ODBC_PARAM(Trusted_Connection) \
 	ODBC_PARAM(APP) \
-	ODBC_PARAM(WSID)
+	ODBC_PARAM(WSID) \
+	ODBC_PARAM(UseNTLMv2)
 
 #define ODBC_PARAM(p) ODBC_PARAM_##p,
 enum {

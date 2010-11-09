@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.44 2010-11-09 12:48:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.45 2010-11-09 15:46:42 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -248,6 +248,44 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
 	return mac;
 }
 
+static int
+tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
+		     TDSCONNECTION * connection,
+		     const unsigned char *challenge,
+		     TDS_UINT * flags,
+		     const unsigned char *names_blob, TDS_INT names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
+{
+	int res;
+	const char *passwd = tds_dstr_cstr(&connection->password);
+
+	/* NTLMv2 */
+	unsigned char *lm_v2_response;
+	unsigned char ntlm_v2_hash[16];
+	const names_blob_prefix_t *names_blob_prefix;
+
+	res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
+	if (res != TDS_SUCCEED)
+		return res;
+
+	/* LMv2 response */
+	/* Take client's challenge from names_blob */
+	names_blob_prefix = (const names_blob_prefix_t *) names_blob;
+	lm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob_prefix->challenge, 8, challenge);
+	if (!lm_v2_response)
+		return TDS_FAIL;
+	memcpy(answer->lm_resp, lm_v2_response, 24);
+	free(lm_v2_response);
+
+	/* NTLMv2 response */
+	/* Size of lm_v2_response is 16 + names_blob_len */
+	*ntlm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob, names_blob_len, challenge);
+	if (!*ntlm_v2_response)
+		return TDS_FAIL;
+
+	/* local not supported, avoid NTLM2 */
+	*flags &= ~(0x80000|0x4000);
+	return TDS_SUCCEED;
+}
 
 /**
  * Crypt a given password using schema required for NTLMv1 or NTLM2 authentication
@@ -265,14 +303,16 @@ tds_answer_challenge(TDSSOCKET * tds,
 {
 #define MAX_PW_SZ 14
 	const char *passwd = tds_dstr_cstr(&connection->password);
-	static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
 	DES_KEY ks;
 	unsigned char hash[24], ntlm2_challenge[16];
 	int res;
 
 	memset(answer, 0, sizeof(TDSANSWER));
 
-	if ((*flags & 0x80000) != 0) {
+	if (connection->use_ntlmv2) {
+		return tds_answer_challenge_ntlmv2(tds, connection, challenge, flags,
+						   names_blob, names_blob_len, answer, ntlm_v2_response);
+	} else if ((*flags & 0x80000) != 0) {
 		/* NTLM2 */
 		MD5_CTX md5_ctx;
 
@@ -286,11 +326,12 @@ tds_answer_challenge(TDSSOCKET * tds,
 		MD5Final(&md5_ctx, ntlm2_challenge);
 		challenge = ntlm2_challenge;
 		memset(&md5_ctx, 0, sizeof(md5_ctx));
-	} else if (names_blob_len <= 0) {
+	} else {
 		/* LM */
 #if TDS_USE_LM
 		size_t len, i;
 		unsigned char passwd_buf[MAX_PW_SZ];
+		static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
 
 		/* convert password to upper and pad to 14 chars */
 		memset(passwd_buf, 0, MAX_PW_SZ);
@@ -315,34 +356,6 @@ tds_answer_challenge(TDSSOCKET * tds,
 #else
 		memset(answer->lm_resp, 0, sizeof(answer->lm_resp));
 #endif
-	} else {
-		/* NTLMv2 */
-		unsigned char *lm_v2_response;
-		unsigned char ntlm_v2_hash[16];
-		const names_blob_prefix_t *names_blob_prefix;
-
-		res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
-		if (res != TDS_SUCCEED)
-			return res;
-
-		/* LMv2 response */
-		/* Take client's challenge from names_blob */
-		names_blob_prefix = (const names_blob_prefix_t *) names_blob;
-		lm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob_prefix->challenge, 8, challenge);
-		if (!lm_v2_response)
-			return TDS_FAIL;
-		memcpy(answer->lm_resp, lm_v2_response, 24);
-		free(lm_v2_response);
-
-		/* NTLMv2 response */
-		/* Size of lm_v2_response is 16 + names_blob_len */
-		*ntlm_v2_response = make_lm_v2_response(ntlm_v2_hash, names_blob, names_blob_len, challenge);
-		if (!*ntlm_v2_response)
-			return TDS_FAIL;
-
-		/* local not supported, avoid NTLM2 */
-		*flags &= ~(0x80000|0x4000);
-		return TDS_SUCCEED;
 	}
 	*flags = 0x8201;
 
@@ -743,7 +756,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	/* sequence 1 client -> server */
 	TDS_PUT_A4(packet + 8, TDS_HOST4LE(1));
 	/* flags */
-	TDS_PUT_A4(packet + 12, TDS_HOST4LE(0x08b205));
+	TDS_PUT_A4(packet + 12, TDS_HOST4LE(0x08b201));
 
 	/* domain info */
 	TDS_PUT_A2LE(packet + 16, domain_len);
