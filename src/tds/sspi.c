@@ -21,6 +21,9 @@
 #include <config.h>
 #endif
 
+/* fix possible bug in sspi.h header */
+#define FreeCredentialHandle FreeCredentialsHandle
+
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
@@ -46,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.8 2010-02-12 10:16:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.9 2010-11-09 15:42:04 freddy77 Exp $");
 
 /**
  * \ingroup libtds
