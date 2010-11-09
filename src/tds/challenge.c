@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.43 2010-11-09 12:36:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.44 2010-11-09 12:48:38 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -340,8 +340,8 @@ tds_answer_challenge(TDSSOCKET * tds,
 		if (!*ntlm_v2_response)
 			return TDS_FAIL;
 
-		/* local not supported */
-		*flags &= 0x4000;
+		/* local not supported, avoid NTLM2 */
+		*flags &= ~(0x80000|0x4000);
 		return TDS_SUCCEED;
 	}
 	*flags = 0x8201;
@@ -648,6 +648,11 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 		if (data_block_offset >= 56 && where + 8 <= length) {
 			/* Version 3 -- The Context, Target Information, and OS Version structure are all present. */
 			tds_get_n(tds, NULL, 8);	/* OS Version Structure */
+#if 0
+			/* if we have a version server handle NTLMv2 */
+			if (target_info_len > 0)
+				flags &= ~0x80000;
+#endif
 			where += 8;
 		}
 	}
@@ -726,7 +731,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	auth->tds_auth.free = tds_ntlm_free;
 	auth->tds_auth.handle_next = tds_ntlm_handle_next;
 
-	auth->tds_auth.packet_len = auth_len = 32 + host_name_len + domain_len;
+	auth->tds_auth.packet_len = auth_len = 40 + host_name_len + domain_len;
 	auth->tds_auth.packet = packet = malloc(auth_len);
 	if (!packet) {
 		free(auth);
@@ -738,27 +743,29 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	/* sequence 1 client -> server */
 	TDS_PUT_A4(packet + 8, TDS_HOST4LE(1));
 	/* flags */
-	TDS_PUT_A4(packet + 12, TDS_HOST4LE(0x08b201));
+	TDS_PUT_A4(packet + 12, TDS_HOST4LE(0x08b205));
 
 	/* domain info */
 	TDS_PUT_A2LE(packet + 16, domain_len);
 	TDS_PUT_A2LE(packet + 18, domain_len);
-	TDS_PUT_A4LE(packet + 20, 32 + host_name_len);
+	TDS_PUT_A4LE(packet + 20, 40 + host_name_len);
 
 	/* hostname info */
 	TDS_PUT_A2LE(packet + 24, host_name_len);
 	TDS_PUT_A2LE(packet + 26, host_name_len);
-	TDS_PUT_A4LE(packet + 28, 32);
+	TDS_PUT_A4  (packet + 28, TDS_HOST4LE(40));
 
 	/*
 	 * here XP put version like 05 01 28 0a (5.1.2600),
 	 * similar to GetVersion result
 	 * and some unknown bytes like 00 00 00 0f
 	 */
+	TDS_PUT_A4(packet + 32, TDS_HOST4LE(0x0a280105));
+	TDS_PUT_A4(packet + 36, TDS_HOST4LE(0x0f000000));
 
 	/* hostname and domain */
-	memcpy(packet + 32, tds_dstr_cstr(&tds->connection->client_host_name), host_name_len);
-	memcpy(packet + 32 + host_name_len, domain, domain_len);
+	memcpy(packet + 40, tds_dstr_cstr(&tds->connection->client_host_name), host_name_len);
+	memcpy(packet + 40 + host_name_len, domain, domain_len);
 
 	return (TDSAUTHENTICATION *) auth;
 }

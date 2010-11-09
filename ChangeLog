@@ -1,3 +1,7 @@
+Tue Nov  9 13:48:22 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/challenge.c:
+	- send OSversion in NTLM type 1, fix flags using NTLMv2
+
 Tue Nov  9 13:34:50 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/challenge.c: disable LANMAN authentication (too unsecure)
 
@@ -2984,4 +2988,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3151 2010-11-09 12:36:10 freddy77 Exp $
+$Id: ChangeLog,v 1.3152 2010-11-09 12:48:37 freddy77 Exp $
