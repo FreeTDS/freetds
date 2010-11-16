@@ -26,6 +26,10 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#if HAVE_STDDEF_H
+#include <stddef.h>
+#endif /* HAVE_STDDEF_H */
+
 #include <ctype.h>
 
 #if HAVE_STRING_H
@@ -45,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.45 2010-11-09 15:46:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.46 2010-11-16 13:25:15 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -61,6 +65,11 @@ TDS_RCSID(var, "$Id: challenge.c,v 1.45 2010-11-09 15:46:42 freddy77 Exp $");
 /*
  * The following code is based on some psuedo-C code from ronald@innovation.ch
  */
+
+#ifndef offsetof
+# define offsetof(st, m) \
+     ((size_t) ( (char *)&((st *)(0))->m - (char *)0 ))
+#endif
 
 typedef struct tds_answer
 {
@@ -79,6 +88,7 @@ typedef struct
 	TDS_UCHAR       challenge[8];
 	TDS_UINT        unknown;
 	/* target info block - variable length */
+	TDS_UCHAR	target_info[4];
 } names_blob_prefix_t;
 
 static int
@@ -96,7 +106,7 @@ convert_to_upper(char *buf, size_t len)
 	size_t i;
 
 	for (i = 0; i < len; i++)
-		buf[i] = toupper(buf[i]);
+		buf[i] = toupper((unsigned char) buf[i]);
 }
 
 static size_t
@@ -282,8 +292,10 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 	if (!*ntlm_v2_response)
 		return TDS_FAIL;
 
-	/* local not supported, avoid NTLM2 */
-	*flags &= ~(0x80000|0x4000);
+	memset(ntlm_v2_hash, 0, sizeof(ntlm_v2_hash));
+
+	/* local not supported */
+	*flags &= ~0x4000;
 	return TDS_SUCCEED;
 }
 
@@ -436,7 +448,7 @@ tds7_send_auth(TDSSOCKET * tds,
 
 	unsigned char *ntlm_v2_response = NULL;
 	unsigned int ntlm_response_len = 24;
-	unsigned int lm_response_len = 24;
+	const unsigned int lm_response_len = 24;
 
 	TDSCONNECTION *connection = tds->connection;
 
@@ -465,8 +477,6 @@ tds7_send_auth(TDSSOCKET * tds,
 		return rc;
 
 	ntlm_response_len = ntlm_v2_response ? 16 + names_blob_len : 24;
-	lm_response_len = ntlm_v2_response ? 0 : 24;
-	/* lm_response_len = 24; */
 	/* ntlm_response_len = 0; */
 
 	tds->out_flag = TDS7_AUTH;
@@ -681,7 +691,7 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 		 * Search "davenport port"
 		 * (currently http://davenport.sourceforge.net/ntlm.html)
 		 */
-		names_blob_len = sizeof(names_blob_prefix_t) + target_info_len + 4;
+		names_blob_len = offsetof(names_blob_prefix_t, target_info) + target_info_len + 4;
 
 		/* read Target Info */
 		names_blob = (unsigned char *) calloc(names_blob_len, 1);
@@ -689,7 +699,7 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 			return TDS_FAIL;
 
 		fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
-		tds_get_n(tds, names_blob + sizeof(names_blob_prefix_t), target_info_len);
+		tds_get_n(tds, names_blob + offsetof(names_blob_prefix_t, target_info), target_info_len);
 		where += target_info_len;
 	} else {
 		names_blob = NULL;
