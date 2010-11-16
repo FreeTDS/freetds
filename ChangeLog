@@ -1,3 +1,7 @@
+Tue Nov 16 11:29:37 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/threadsafe.c:
+	- fix possible core (patch from Peter C. Norton)
+
 Tue Nov  9 16:46:15 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h include/tdsodbc.h src/odbc/connectparams.c:
 	* src/tds/challenge.c src/tds/config.c:
@@ -2996,4 +3000,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3154 2010-11-09 15:46:42 freddy77 Exp $
+$Id: ChangeLog,v 1.3155 2010-11-16 10:29:56 freddy77 Exp $

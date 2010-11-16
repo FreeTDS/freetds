@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
- * Copyright (C) 2005  Frediano Ziglio
+ * Copyright (C) 2005-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -85,7 +85,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.48 2010-01-10 14:43:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.49 2010-11-16 10:29:56 freddy77 Exp $");
 
 char *
 tds_timestamp_str(char *str, int maxlen)
@@ -520,7 +520,9 @@ tds_get_homedir(void)
 	char buf[1024];
 
 # if defined(HAVE_FUNC_GETPWUID_R_5)
-	if (getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw))
+	/* getpwuid_r can return 0 if uid is not found so check pw */
+	pw = NULL;
+	if (getpwuid_r(getuid(), &bpw, buf, sizeof(buf), &pw) || !pw)
 		return NULL;
 
 # elif defined(HAVE_FUNC_GETPWUID_R_4_PW)
