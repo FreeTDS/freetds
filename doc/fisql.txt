@@ -4,7 +4,8 @@ NAME
 SYNOPSIS
 
   fisql [-e] [-F] [-g] [-p] [-n] [-v] [-X] [-Y]
-	\[a] [-a display_charset] [-c cmdend] [-E editor]
+	\[a] [-a display_charset] [-c cmdend] 
+	\[a] [-D database] [-E editor]
 	\[a] [-h headers] [-H hostname] [-i inputfile]
 	\[a] [-I interfaces_file] [-J client_charset]
 	\[a] [-l login_timeout] [-m errorlevel]
@@ -24,6 +25,8 @@ OPTIONS
 	-a display_charset  The client charset name. Not implemented. 
 
 	-c cmdend  Command terminator, defaults to go. 
+        
+	-D      Database name on the server to use.
 
 	-e  Echo SQL input (usually in outputfile)
 

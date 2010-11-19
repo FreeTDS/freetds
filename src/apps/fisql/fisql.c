@@ -271,7 +271,8 @@ main(int argc, char *argv[])
 	int printedcompute = 0;
 	BYTE *bylist;
 	int nby;
-	char adash;
+       char adash;
+       const char *database_name = NULL;
 
 	setlocale(LC_ALL, "");
 
@@ -290,7 +291,7 @@ main(int argc, char *argv[])
 
 	opterr = 0;
 	optarg = NULL;
-	while (!errflg && (c = getopt(argc, argv, "eFgpnvXYa:c:E:h:H:i:I:J:l:m:o:P:s:S:t:U:w:y:z:A:"))
+	while (!errflg && (c = getopt(argc, argv, "eFgpnvXYa:c:D:E:h:H:i:I:J:l:m:o:P:s:S:t:U:w:y:z:A:"))
 	       != -1) {
 		switch (c) {
 		case 'e':
@@ -386,9 +387,12 @@ main(int argc, char *argv[])
 		case 'z':
 			language = optarg;
 			break;
-		case 'A':
+               case 'A':
 			size = atoi(optarg);
 			break;
+               case 'D':
+                        database_name = optarg;
+                        break;
 		default:
 			errflg++;
 			break;
@@ -397,7 +401,7 @@ main(int argc, char *argv[])
 
 	if (errflg) {
 		fprintf(stderr, "usage: fisql [-e] [-F] [-g] [-p] [-n] [-v] [-X] [-Y]\n");
-		fprintf(stderr, "\t[-a display_charset] [-c cmdend] [-E editor]\n");
+		fprintf(stderr, "\t[-a display_charset] [-c cmdend] [-D database_name] [-E editor]\n");
 		fprintf(stderr, "\t[-h headers] [-H hostname] [-i inputfile]\n");
 		fprintf(stderr, "\t[-I interfaces_file] [-J client character set]\n");
 		fprintf(stderr, "\t[-l login_timeout] [-m errorlevel]\n");
@@ -503,6 +507,9 @@ main(int argc, char *argv[])
 	if (perfstats) {
 		dbsetopt(dbproc, DBSTAT, "time", 0);
 	}
+        if (database_name) {
+                dbuse(dbproc, database_name);
+        }
 
 	while (1) {
 		if (sigsetjmp(restart, 1)) {
