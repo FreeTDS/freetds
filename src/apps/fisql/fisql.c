@@ -271,14 +271,14 @@ main(int argc, char *argv[])
 	int printedcompute = 0;
 	BYTE *bylist;
 	int nby;
-       char adash;
-       const char *database_name = NULL;
+	char adash;
+	const char *database_name = NULL;
 
 	setlocale(LC_ALL, "");
 
 #ifdef __VMS
-        /* Convert VMS-style arguments to Unix-style */
-        parse_vms_args(&argc, &argv);
+	/* Convert VMS-style arguments to Unix-style */
+	parse_vms_args(&argc, &argv);
 #endif
 
 	editor = getenv("EDITOR");
@@ -387,12 +387,12 @@ main(int argc, char *argv[])
 		case 'z':
 			language = optarg;
 			break;
-               case 'A':
+		case 'A':
 			size = atoi(optarg);
 			break;
-               case 'D':
-                        database_name = optarg;
-                        break;
+		case 'D':
+			database_name = optarg;
+			break;
 		default:
 			errflg++;
 			break;
@@ -507,9 +507,9 @@ main(int argc, char *argv[])
 	if (perfstats) {
 		dbsetopt(dbproc, DBSTAT, "time", 0);
 	}
-        if (database_name) {
-                dbuse(dbproc, database_name);
-        }
+	if (database_name) {
+		dbuse(dbproc, database_name);
+	}
 
 	while (1) {
 		if (sigsetjmp(restart, 1)) {
