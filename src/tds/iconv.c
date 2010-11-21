@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -49,7 +50,7 @@
 /* define this for now; remove when done testing */
 #define HAVE_ICONV_ALWAYS 1
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.145 2010-07-24 12:41:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.146 2010-11-21 21:24:09 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -1297,6 +1298,7 @@ collate2charset(int sql_collate, int lcid)
 	case 114:		/* SQL_Latin1_General_CP1253_CI_AS */
 	case 120:		/* SQL_MixDiction_CP1253_CS_AS */
 	case 121:		/* SQL_AltDiction_CP1253_CS_AS */
+	case 122:		/* SQL_AltDiction2_CP1253_CS_AS */
 	case 124:		/* SQL_Latin1_General_CP1253_CI_AI */
 		return "CP1253";
 	case 137:		/* SQL_Latin1_General_CP1255_CS_AS */

@@ -1,3 +1,7 @@
+Sun Nov 21 22:24:02 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/iconv.c:
+	- fix encoding problem with SQL_AltDiction2_CP1253_CS_AS
+
 Fri Nov 19 18:30:55 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/fisql/fisql.c: spaces -> tabs
 
@@ -3010,4 +3014,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3158 2010-11-19 17:31:05 freddy77 Exp $
+$Id: ChangeLog,v 1.3159 2010-11-21 21:24:09 freddy77 Exp $
