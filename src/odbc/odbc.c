@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.552 2010-10-29 14:52:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.553 2010-11-25 19:31:49 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -653,7 +653,7 @@ SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrI
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName, szColumnName, cbColumnName);
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_column_privileges ", 4, "O@table_qualifier", szCatalogName, cbCatalogName,
+		odbc_stat_execute(stmt _wide, "sp_column_privileges", 4, "O@table_qualifier", szCatalogName, cbCatalogName,
 				  "O@table_owner", szSchemaName, cbSchemaName, "O@table_name", szTableName, cbTableName,
 				  "P@column_name", szColumnName, cbColumnName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
@@ -747,7 +747,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 			hstmt, szPkCatalogName, cbPkCatalogName, szPkSchemaName, cbPkSchemaName, szPkTableName, cbPkTableName, szFkCatalogName, cbFkCatalogName, szFkSchemaName, cbFkSchemaName, szFkTableName, cbFkTableName);
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_fkeys ", 6, "O@pktable_qualifier", szPkCatalogName, cbPkCatalogName, "O@pktable_owner",
+		odbc_stat_execute(stmt _wide, "sp_fkeys", 6, "O@pktable_qualifier", szPkCatalogName, cbPkCatalogName, "O@pktable_owner",
 				  szPkSchemaName, cbPkSchemaName, "O@pktable_name", szPkTableName, cbPkTableName,
 				  "O@fktable_qualifier", szFkCatalogName, cbFkCatalogName, "O@fktable_owner", szFkSchemaName,
 				  cbFkSchemaName, "O@fktable_name", szFkTableName, cbFkTableName);
@@ -1031,7 +1031,7 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName);
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_pkeys ", 3, "O@table_qualifier", szCatalogName, cbCatalogName, "O@table_owner",
+		odbc_stat_execute(stmt _wide, "sp_pkeys", 3, "O@table_qualifier", szCatalogName, cbCatalogName, "O@table_owner",
 				  szSchemaName, cbSchemaName, "O@table_name", szTableName, cbTableName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
@@ -1053,7 +1053,7 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szProcName, cbProcName, szColumnName, cbColumnName);
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_sproc_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
+		odbc_stat_execute(stmt _wide, "sp_sproc_columns", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
 				  "O@procedure_qualifier", szCatalogName, cbCatalogName,
 				  "P@procedure_owner", szSchemaName, cbSchemaName, "P@procedure_name", szProcName, cbProcName,
 				  "P@column_name", szColumnName, cbColumnName, "V@ODBCVer", (char*) NULL, 0);
@@ -1082,7 +1082,7 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szProcName, cbProcName);
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "..sp_stored_procedures ", 3, "P@sp_name", szProcName, cbProcName, "P@sp_owner", szSchemaName,
+		odbc_stat_execute(stmt _wide, "..sp_stored_procedures", 3, "P@sp_name", szProcName, cbProcName, "P@sp_owner", szSchemaName,
 				  cbSchemaName, "O@sp_qualifier", szCatalogName, cbCatalogName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "PROCEDURE_CAT");
@@ -1223,7 +1223,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName);
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_table_privileges ", 3, "O@table_qualifier", szCatalogName, cbCatalogName,
+		odbc_stat_execute(stmt _wide, "sp_table_privileges", 3, "O@table_qualifier", szCatalogName, cbCatalogName,
 				  "P@table_owner", szSchemaName, cbSchemaName, "P@table_name", szTableName, cbTableName);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
@@ -4692,7 +4692,7 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
 			hstmt, szCatalogName, cbCatalogName, szSchemaName, cbSchemaName, szTableName, cbTableName, szColumnName, cbColumnName);
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
+		odbc_stat_execute(stmt _wide, "sp_columns", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4,
 				  "P@table_name", szTableName, cbTableName, "P@table_owner", szSchemaName,
 				  cbSchemaName, "O@table_qualifier", szCatalogName, cbCatalogName, "P@column_name", szColumnName,
 				  cbColumnName, "V@ODBCVer", (char*) NULL, 0);
@@ -6597,7 +6597,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 		col_type = 'V';
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_special_columns ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 7 : 4, "O", szTableName,
+		odbc_stat_execute(stmt _wide, "sp_special_columns", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 7 : 4, "O", szTableName,
 				  cbTableName, "O", szSchemaName, cbSchemaName, "O@qualifier", szCatalogName, cbCatalogName,
 				  "!@col_type", &col_type, 1, "!@scope", &scope, 1, "!@nullable", &nullable, 1,
 				  "V@ODBCVer", (char*) NULL, 0);
@@ -6660,7 +6660,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 		unique = 'N';
 
 	retcode =
-		odbc_stat_execute(stmt _wide, "sp_statistics ", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4, "O@table_qualifier",
+		odbc_stat_execute(stmt _wide, "sp_statistics", TDS_IS_MSSQL(stmt->dbc->tds_socket) ? 5 : 4, "O@table_qualifier",
 				  szCatalogName, cbCatalogName, "O@table_owner", szSchemaName, cbSchemaName, "O@table_name",
 				  szTableName, cbTableName, "!@is_unique", &unique, 1, "!@accuracy", &accuracy, 1);
 	if (SQL_SUCCEEDED(retcode) && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3) {
@@ -6710,12 +6710,12 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	    (strchr(tds_dstr_cstr(&catalog_name), '%') || strchr(tds_dstr_cstr(&catalog_name), '_')))
 		wildcards = 1;
 
-	proc = "sp_tables ";
+	proc = "sp_tables";
 	if (!tds_dstr_isempty(&catalog_name)) {
 		if (wildcards) {
 			/* if catalog specified and wildcards use sp_tableswc under mssql2k */
 			if (TDS_IS_MSSQL(tds) && tds->product_version >= TDS_MS_VER(8,0,0)) {
-				proc = "sp_tableswc ";
+				proc = "sp_tableswc";
 				if (tds_dstr_isempty(&schema_name))
 					tds_dstr_copy(&schema_name, "%");
 			}
@@ -6727,7 +6727,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 			 */
 		} else {
 			/* if catalog specified and not wildcards use catatog on name (catalog..sp_tables) */
-			proc = "..sp_tables ";
+			proc = "..sp_tables";
 		}
 	}
 
@@ -6791,7 +6791,8 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	/* special case for catalog list */
 	if (strcmp(tds_dstr_cstr(&catalog_name), "%") == 0 && cbTableName <= 0 && cbSchemaName <= 0) {
 		retcode =
-			odbc_stat_execute(stmt _wide, "sp_tables @table_name='', @table_owner='', @table_qualifier='%' ", 0);
+			odbc_stat_execute(stmt _wide, "sp_tables", 3, "P@table_name", NULL, 0,
+				"!P@table_owner", NULL, 0, "!P@table_qualifier", NULL, 0);
 	} else {
 		retcode =
 			odbc_stat_execute(stmt _wide, proc, 4, "P@table_name", szTableName, cbTableName,
@@ -7004,7 +7005,7 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 
 	/* read all params and calc len required */
 	va_start(marker, nparams);
-	len = strlen(begin) + 2;
+	len = strlen(begin) + 3;
 	for (i = 0; i < nparams; ++i) {
 		int param_len, convert = 1;
 		DSTR *out;
@@ -7073,6 +7074,7 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 		p += tds_quote_id(stmt->dbc->tds_socket, p, tds_dstr_cstr(&params[param_qualifier].value), tds_dstr_len(&params[param_qualifier].value));
 	strcpy(p, begin);
 	p += strlen(begin);
+	*p++ = ' ';
 	for (i = 0; i < nparams; ++i) {
 		if (tds_dstr_isempty(&params[i].value) && params[i].type != 'V')
 			continue;
