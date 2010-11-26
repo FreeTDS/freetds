@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.553 2010-11-25 19:31:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.554 2010-11-26 19:05:30 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -515,9 +515,8 @@ odbc_prepare(TDS_STMT *stmt)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLDriverConnect) (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHAR(szConnStrIn), P(SQLSMALLINT,cbConnStrIn), \
-	PCHAR(szConnStrOut), P(SQLSMALLINT,cbConnStrOutMax), P(SQLSMALLINT FAR *,pcbConnStrOut), \
-	P(SQLUSMALLINT,fDriverCompletion) WIDE)
+#define FUNC NAME(SQLDriverConnect) (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn,SQLSMALLINT), \
+	PCHAROUT(ConnStrOut,SQLSMALLINT), P(SQLUSMALLINT,fDriverCompletion) WIDE)
 #include "sqlwparams.h"
 {
 	TDSCONNECTION *connection;
@@ -641,8 +640,8 @@ SQLBrowseConnect(SQLHDBC hdbc, SQLCHAR FAR * szConnStrIn, SQLSMALLINT cbConnStrI
 #endif
 
 
-#define FUNC NAME(SQLColumnPrivileges) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName), \
-	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName), PCHAR(szColumnName), P(SQLSMALLINT,cbColumnName) WIDE)
+#define FUNC NAME(SQLColumnPrivileges) (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT), PCHARIN(SchemaName,SQLSMALLINT), \
+	PCHARIN(TableName,SQLSMALLINT), PCHARIN(ColumnName,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	int retcode;
@@ -733,10 +732,10 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 	ODBC_RETURN(stmt, ret);
 }
 
-#define FUNC NAME(SQLForeignKeys) (P(SQLHSTMT,hstmt), PCHAR(szPkCatalogName), P(SQLSMALLINT,cbPkCatalogName), PCHAR(szPkSchemaName),\
-	P(SQLSMALLINT,cbPkSchemaName), PCHAR(szPkTableName), P(SQLSMALLINT,cbPkTableName), PCHAR(szFkCatalogName),\
-	P(SQLSMALLINT,cbFkCatalogName), PCHAR(szFkSchemaName), P(SQLSMALLINT,cbFkSchemaName), PCHAR(szFkTableName),\
-	P(SQLSMALLINT,cbFkTableName) WIDE)
+#define FUNC NAME(SQLForeignKeys) (P(SQLHSTMT,hstmt), PCHARIN(PkCatalogName,SQLSMALLINT),\
+	PCHARIN(PkSchemaName,SQLSMALLINT), PCHARIN(PkTableName,SQLSMALLINT),\
+	PCHARIN(FkCatalogName,SQLSMALLINT), PCHARIN(FkSchemaName,SQLSMALLINT),\
+	PCHARIN(FkTableName,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	int retcode;
@@ -960,8 +959,8 @@ SQLMoreResults(SQLHSTMT hstmt)
 	ODBC_RETURN(stmt, SQL_ERROR);
 }
 
-#define FUNC NAME(SQLNativeSql) (P(SQLHDBC,hdbc), PCHAR(szSqlStrIn), P(SQLINTEGER,cbSqlStrIn), PCHAR(szSqlStr), \
-	P(SQLINTEGER,cbSqlStrMax), P(SQLINTEGER FAR *,pcbSqlStr) WIDE)
+#define FUNC NAME(SQLNativeSql) (P(SQLHDBC,hdbc), PCHARIN(SqlStrIn,SQLINTEGER),\
+	PCHAROUT(SqlStr,SQLINTEGER) WIDE)
 #include "sqlwparams.h"
 {
 	SQLRETURN ret = SQL_SUCCESS;
@@ -1019,8 +1018,8 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 	return _SQLSetStmtAttr(hstmt, SQL_ATTR_PARAMSET_SIZE, (SQLPOINTER) (TDS_INTPTR) crow, 0);
 }
 
-#define FUNC NAME(SQLPrimaryKeys) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),\
-	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName) WIDE)
+#define FUNC NAME(SQLPrimaryKeys) (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),\
+	PCHARIN(SchemaName,SQLSMALLINT), PCHARIN(TableName,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	int retcode;
@@ -1040,9 +1039,8 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLProcedureColumns) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),\
-	P(SQLSMALLINT,cbSchemaName), PCHAR(szProcName), P(SQLSMALLINT,cbProcName), PCHAR(szColumnName),\
-	P(SQLSMALLINT,cbColumnName) WIDE)
+#define FUNC NAME(SQLProcedureColumns) (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),\
+	PCHARIN(SchemaName,SQLSMALLINT), PCHARIN(ProcName,SQLSMALLINT), PCHARIN(ColumnName,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	int retcode;
@@ -1070,8 +1068,8 @@ SQLParamOptions(SQLHSTMT hstmt, SQLULEN crow, SQLULEN FAR * pirow)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLProcedures) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),\
-	P(SQLSMALLINT,cbSchemaName), PCHAR(szProcName), P(SQLSMALLINT,cbProcName) WIDE)
+#define FUNC NAME(SQLProcedures) (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),\
+	PCHARIN(SchemaName,SQLSMALLINT), PCHARIN(ProcName,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	int retcode;
@@ -1211,8 +1209,8 @@ SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLTablePrivileges) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),\
-	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName) WIDE)
+#define FUNC NAME(SQLTablePrivileges) (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),\
+	PCHARIN(SchemaName,SQLSMALLINT), PCHARIN(TableName,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	int retcode;
@@ -1827,8 +1825,8 @@ SQLCancel(SQLHSTMT hstmt)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLConnect) (P(SQLHDBC,hdbc), PCHAR(szDSN), P(SQLSMALLINT,cbDSN), PCHAR(szUID), P(SQLSMALLINT,cbUID), \
-	PCHAR(szAuthStr), P(SQLSMALLINT,cbAuthStr) WIDE)
+#define FUNC NAME(SQLConnect) (P(SQLHDBC,hdbc), PCHARIN(DSN,SQLSMALLINT), PCHARIN(UID,SQLSMALLINT), \
+	PCHARIN(AuthStr,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	SQLRETURN result;
@@ -1909,8 +1907,8 @@ SQLCancel(SQLHSTMT hstmt)
 	ODBC_RETURN_(dbc);
 }
 
-#define FUNC NAME(SQLDescribeCol) (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,icol), PCHAR(szColName), P(SQLSMALLINT,cbColNameMax), \
-	P(SQLSMALLINT FAR *,pcbColName), P(SQLSMALLINT FAR *,pfSqlType), P(SQLULEN FAR *,pcbColDef), \
+#define FUNC NAME(SQLDescribeCol) (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,icol), PCHAROUT(ColName,SQLSMALLINT),\
+	P(SQLSMALLINT FAR *,pfSqlType), P(SQLULEN FAR *,pcbColDef), \
 	P(SQLSMALLINT FAR *,pibScale), P(SQLSMALLINT FAR *,pfNullable) WIDE)
 #include "sqlwparams.h"
 {
@@ -2410,8 +2408,8 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 	ODBC_RETURN_(desc);
 }
 
-#define FUNC NAME(SQLGetDescRec) (P(SQLHDESC,hdesc), P(SQLSMALLINT,RecordNumber), PCHAR(Name), P(SQLSMALLINT,BufferLength), \
-	P(SQLSMALLINT *,StringLength), P(SQLSMALLINT *,Type), P(SQLSMALLINT *,SubType), P(SQLLEN FAR *,Length), \
+#define FUNC NAME(SQLGetDescRec) (P(SQLHDESC,hdesc), P(SQLSMALLINT,RecordNumber), PCHAROUT(Name,SQLSMALLINT), \
+	P(SQLSMALLINT *,Type), P(SQLSMALLINT *,SubType), P(SQLLEN FAR *,Length), \
 	P(SQLSMALLINT *,Precision), P(SQLSMALLINT *,Scale), P(SQLSMALLINT *,Nullable) WIDE)
 #include "sqlwparams.h"
 {
@@ -2421,7 +2419,7 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 	INIT_HDESC;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLGetDescRec(%p, %d, %p, %d, %p, %p, %p, %p, %p, %p, %p)\n", 
-			hdesc, RecordNumber, Name, BufferLength, StringLength, Type, SubType, Length, Precision, Scale, Nullable);
+			hdesc, RecordNumber, szName, cbNameMax, pcbName, Type, SubType, Length, Precision, Scale, Nullable);
 
 	if (RecordNumber <= 0) {
 		odbc_errs_add(&desc->errs, "07009", NULL);
@@ -2439,7 +2437,7 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 
 	drec = &desc->records[RecordNumber - 1];
 
-	if ((rc = odbc_set_string(desc_get_dbc(desc), Name, BufferLength, StringLength, tds_dstr_cstr(&drec->sql_desc_name), -1)) != SQL_SUCCESS)
+	if ((rc = odbc_set_string(desc_get_dbc(desc), szName, cbNameMax, pcbName, tds_dstr_cstr(&drec->sql_desc_name), -1)) != SQL_SUCCESS)
 		odbc_errs_add(&desc->errs, "01004", NULL);
 
 	if (Type)
@@ -3456,7 +3454,7 @@ _SQLExecute(TDS_STMT * stmt)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLExecDirect) (P(SQLHSTMT,hstmt), PCHAR(szSqlStr), P(SQLINTEGER,cbSqlStr) WIDE)
+#define FUNC NAME(SQLExecDirect) (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE)
 #include "sqlwparams.h"
 {
 	SQLRETURN res;
@@ -4438,7 +4436,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLPrepare) (P(SQLHSTMT,hstmt), PCHAR(szSqlStr), P(SQLINTEGER,cbSqlStr) WIDE)
+#define FUNC NAME(SQLPrepare) (P(SQLHSTMT,hstmt), PCHARIN(SqlStr,SQLINTEGER) WIDE)
 #include "sqlwparams.h"
 {
 	SQLRETURN retcode;
@@ -4529,7 +4527,7 @@ SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 	return rc;
 }
 
-#define FUNC NAME(SQLSetCursorName) (P(SQLHSTMT,hstmt), PCHAR(szCursor), P(SQLSMALLINT,cbCursor) WIDE)
+#define FUNC NAME(SQLSetCursorName) (P(SQLHSTMT,hstmt), PCHARIN(Cursor,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	INIT_HSTMT;
@@ -4550,7 +4548,7 @@ SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLGetCursorName) (P(SQLHSTMT,hstmt), PCHAR(szCursor), P(SQLSMALLINT,cbCursorMax), P(SQLSMALLINT FAR *,pcbCursor) WIDE)
+#define FUNC NAME(SQLGetCursorName) (P(SQLHSTMT,hstmt), PCHAROUT(Cursor,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	SQLRETURN rc;
@@ -4677,11 +4675,11 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
  *                 [ , [ @ODBCVer = ] ODBCVer ] 
  *
  */
-#define FUNC NAME(SQLColumns) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName),	/* object_qualifier */ \
-	P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName),	/* object_owner */ \
-	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName),	/* object_name */ \
-	P(SQLSMALLINT,cbTableName), PCHAR(szColumnName),	/* column_name */ \
-	P(SQLSMALLINT,cbColumnName) WIDE)
+#define FUNC NAME(SQLColumns) (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),	/* object_qualifier */ \
+	PCHARIN(SchemaName,SQLSMALLINT),	/* object_owner */ \
+	PCHARIN(TableName,SQLSMALLINT),	/* object_name */ \
+	PCHARIN(ColumnName,SQLSMALLINT)	/* column_name */ \
+	WIDE)
 #include "sqlwparams.h"
 {
 	int retcode;
@@ -6533,8 +6531,8 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	return _SQLSetStmtAttr(hstmt, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS);
 }
 
-#define FUNC NAME(SQLSpecialColumns) (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,fColType), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), \
-	PCHAR(szSchemaName), P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName), \
+#define FUNC NAME(SQLSpecialColumns) (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,fColType), PCHARIN(CatalogName,SQLSMALLINT), \
+	PCHARIN(SchemaName,SQLSMALLINT), PCHARIN(TableName,SQLSMALLINT), \
 	P(SQLUSMALLINT,fScope), P(SQLUSMALLINT,fNullable) WIDE)
 #include "sqlwparams.h"
 {
@@ -6611,8 +6609,8 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLStatistics) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName), \
-	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName), P(SQLUSMALLINT,fUnique), \
+#define FUNC NAME(SQLStatistics) (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),\
+	PCHARIN(SchemaName,SQLSMALLINT), PCHARIN(TableName,SQLSMALLINT), P(SQLUSMALLINT,fUnique), \
 	P(SQLUSMALLINT,fAccuracy) WIDE)
 #include "sqlwparams.h"
 {
@@ -6672,9 +6670,8 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	ODBC_RETURN_(stmt);
 }
 
-#define FUNC NAME(SQLTables) (P(SQLHSTMT,hstmt), PCHAR(szCatalogName), P(SQLSMALLINT,cbCatalogName), PCHAR(szSchemaName), \
-	P(SQLSMALLINT,cbSchemaName), PCHAR(szTableName), P(SQLSMALLINT,cbTableName), PCHAR(szTableType), \
-	P(SQLSMALLINT,cbTableType) WIDE)
+#define FUNC NAME(SQLTables) (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT), \
+	PCHARIN(SchemaName,SQLSMALLINT), PCHARIN(TableName,SQLSMALLINT), PCHARIN(TableType,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	int retcode;

@@ -44,7 +44,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.65 2010-07-20 07:56:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.66 2010-11-26 19:05:30 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -501,7 +501,7 @@ sqlstate2to3(char *state)
 }
 
 #define FUNC NAME(SQLGetDiagRec) (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQLSMALLINT,numRecord), PCHAR(szSqlState),\
-	P(SQLINTEGER FAR *,pfNativeError), PCHAR(szErrorMsg), P(SQLSMALLINT,cbErrorMsgMax), P(SQLSMALLINT FAR *,pcbErrorMsg) WIDE)
+	P(SQLINTEGER FAR *,pfNativeError), PCHAROUT(ErrorMsg,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	SQLRETURN result;
@@ -575,7 +575,7 @@ sqlstate2to3(char *state)
 }
 
 #define FUNC NAME(SQLError) (P(SQLHENV,henv), P(SQLHDBC,hdbc), P(SQLHSTMT,hstmt), PCHAR(szSqlState), P(SQLINTEGER FAR *,pfNativeError),\
-	PCHAR(szErrorMsg), P(SQLSMALLINT,cbErrorMsgMax), P(SQLSMALLINT FAR *,pcbErrorMsg) WIDE)
+	PCHAROUT(ErrorMsg,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
 	SQLRETURN result;

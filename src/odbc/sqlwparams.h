@@ -6,10 +6,14 @@
 #undef WIDE
 #undef P
 #undef PCHAR
+#undef PCHARIN
+#undef PCHAROUT
 #define NAME(a) _ ## a
 #define WIDE , int wide
 #define P(a,b) a b
 #define PCHAR(a) ODBC_CHAR* a
+#define PCHARIN(n,t) PCHAR(sz ## n), P(t, cb ## n)
+#define PCHAROUT(n,t) PCHAR(sz ## n), P(t, cb ## n ## Max), P(t FAR*, pcb ## n)
 static SQLRETURN FUNC;
 
 
@@ -76,10 +80,14 @@ static SQLRETURN FUNC
 #undef WIDE
 #undef P
 #undef PCHAR
+#undef PCHARIN
+#undef PCHAROUT
 #define NAME(a) _ ## a
 #define WIDE
 #define P(a,b) a b
 #define PCHAR(a) SQLCHAR* a
+#define PCHARIN(n,t) PCHAR(sz ## n), P(t, cb ## n)
+#define PCHAROUT(n,t) PCHAR(sz ## n), P(t, cb ## n ## Max), P(t FAR*, pcb ## n)
 static SQLRETURN FUNC;
 
 
