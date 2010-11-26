@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2003, 2004, 2005 Frediano Ziglio
+ * Copyright (C) 2003-2010 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.26 2010-10-29 08:49:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.27 2010-11-26 08:41:26 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -132,19 +132,19 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 		curcol->column_cur_size = -1;
 		break;
 	case SYBNTEXT:
-		if (IS_TDS72(tds)) {
+		if (IS_TDS72_PLUS(tds)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBNVARCHAR;
 		}
 		break;
 	case SYBTEXT:
-		if (IS_TDS72(tds)) {
+		if (IS_TDS72_PLUS(tds)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBVARCHAR;
 		}
 		break;
 	case SYBIMAGE:
-		if (IS_TDS72(tds)) {
+		if (IS_TDS72_PLUS(tds)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBVARBINARY;
 		}

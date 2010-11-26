@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006, 2007, 2008, 2009  Frediano Ziglio
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.244 2010-06-19 09:51:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.245 2010-11-26 08:41:26 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -250,7 +250,7 @@ static const TDS_UCHAR tds9_query_start[] = {
 
 #define START_QUERY \
 do { \
-	if (IS_TDS72(tds)) \
+	if (IS_TDS72_PLUS(tds)) \
 		tds_start_query(tds); \
 } while(0)
 
@@ -2606,7 +2606,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 			/* strangely dynamic cursor do not support absolute so emulate it with first + relative */
 			tds7_put_cursor_fetch(tds, cursor->cursor_id, 1, 0, 0);
 			/* TODO define constant */
-			tds_put_byte(tds, IS_TDS72(tds) ? 0xff : 0x80);
+			tds_put_byte(tds, IS_TDS72_PLUS(tds) ? 0xff : 0x80);
 			tds7_put_cursor_fetch(tds, cursor->cursor_id, 0x20, i_row, cursor->cursor_rows);
 		} else {
 			/* TODO check fetch_type ?? */
@@ -3264,7 +3264,7 @@ tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn)
 	if (IS_TDS7_PLUS(tds)) {
 		if (multiple->flags & MUL_STARTED) {
 			/* TODO define constant */
-			tds_put_byte(tds, IS_TDS72(tds) ? 0xff : 0x80);
+			tds_put_byte(tds, IS_TDS72_PLUS(tds) ? 0xff : 0x80);
 		}
 		multiple->flags |= MUL_STARTED;
 

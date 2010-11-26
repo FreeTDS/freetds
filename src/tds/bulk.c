@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2008  Frediano Ziglio
+ * Copyright (C) 2008-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.10 2009-08-25 14:25:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.11 2010-11-26 08:41:26 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -829,7 +829,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			continue;
 		}
 
-		if (IS_TDS72(tds))
+		if (IS_TDS72_PLUS(tds))
 			tds_put_int(tds, bcpcol->column_usertype);
 		else
 			tds_put_smallint(tds, bcpcol->column_usertype);

@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.199 2010-10-02 07:07:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.200 2010-11-26 08:41:26 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -333,7 +333,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		};
 
 	/* disable tds9 if iconv wanted, currently not supported */
-	if (IS_TDS72(connection) && tds->use_iconv)
+	if (IS_TDS72_PLUS(connection) && tds->use_iconv)
 		connection->tds_version = 0x701;
 
 	if (TDS_MAJOR(connection) == 0) {
@@ -689,9 +689,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	static const unsigned char client_progver[] = { 6, 0x83, 0xf2, 0xf8 };
 
-	static const unsigned char tds7Version[] = { 0x00, 0x00, 0x00, 0x70 };
-	static const unsigned char tds8Version[] = { 0x01, 0x00, 0x00, 0x71 };
-	static const unsigned char tds9Version[] = { 0x02, 0x00, 0x09, 0x72 };
+	static const unsigned char tds70Version[] = { 0x00, 0x00, 0x00, 0x70 };
+	static const unsigned char tds71Version[] = { 0x01, 0x00, 0x00, 0x71 };
+	static const unsigned char tds72Version[] = { 0x02, 0x00, 0x09, 0x72 };
 
 	static const unsigned char connection_id[] = { 0x00, 0x00, 0x00, 0x00 };
 	unsigned char option_flag1 = 0x00;
@@ -736,7 +736,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (password_len > 128)
 		password_len = 128;
 
-	current_pos = IS_TDS72(tds) ? 86 + 8 : 86;	/* ? */
+	current_pos = IS_TDS72_PLUS(tds) ? 86 + 8 : 86;	/* ? */
 
 	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
 
@@ -775,12 +775,12 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tdsdump_off();
 #endif
 	TDS_PUT_INT(tds, packet_size);
-	if (IS_TDS72(tds)) {
-		tds_put_n(tds, tds9Version, 4);
+	if (IS_TDS72_PLUS(tds)) {
+		tds_put_n(tds, tds72Version, 4);
 	} else if (IS_TDS71_PLUS(tds)) {
-		tds_put_n(tds, tds8Version, 4);
+		tds_put_n(tds, tds71Version, 4);
 	} else {
-		tds_put_n(tds, tds7Version, 4);
+		tds_put_n(tds, tds70Version, 4);
 	}
 
 	if (connection->block_size < 1000000 && connection->block_size >= 512)
@@ -867,14 +867,16 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	TDS_PUT_SMALLINT(tds, auth_len);	/* this matches numbers at end of packet */
 	current_pos += auth_len;
 
-	/* unknown */
+	/* db file */
 	TDS_PUT_SMALLINT(tds, current_pos);
 	tds_put_smallint(tds, 0);
 
-	if (IS_TDS72(tds)) {
+	if (IS_TDS72_PLUS(tds)) {
+		/* new password */
 		TDS_PUT_SMALLINT(tds, current_pos);
 		tds_put_smallint(tds, 0);
 
+		/* SSPI long */
 		tds_put_int(tds, 0);
 	}
 
@@ -963,7 +965,7 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	TDS_UCHAR *p;
 
 	SET_UI16BE(13, instance_name_len);
-	if (!IS_TDS72(tds)) {
+	if (!IS_TDS72_PLUS(tds)) {
 		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
 		buf[20] = 0xff;
 	} else {
@@ -992,7 +994,7 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	tds_put_n(tds, buf, start_pos);
 	/* netlib version */
-	tds_put_n(tds, IS_TDS72(tds) ? netlib9 : netlib8, 6);
+	tds_put_n(tds, IS_TDS72_PLUS(tds) ? netlib9 : netlib8, 6);
 	/* encryption */
 #if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
 	/* not supported */
@@ -1005,7 +1007,7 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	/* pid */
 	tds_put_int(tds, getpid());
 	/* MARS (1 enabled) */
-	if (IS_TDS72(tds))
+	if (IS_TDS72_PLUS(tds))
 		tds_put_byte(tds, 0);
 	if (tds_flush_packet(tds) == TDS_FAIL)
 		return TDS_FAIL;
