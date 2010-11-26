@@ -1,3 +1,6 @@
+Fri Nov 26 20:17:27 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/challenge.c: improve random in challenge code
+
 Fri Nov 26 20:05:17 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/error.c src/odbc/odbc.c src/odbc/sqlwparams.h:
 	- add PCHARIN/PCHAROUT macros to declare char parameters
@@ -3027,4 +3030,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3162 2010-11-26 19:05:30 freddy77 Exp $
+$Id: ChangeLog,v 1.3163 2010-11-26 19:17:35 freddy77 Exp $

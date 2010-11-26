@@ -45,11 +45,15 @@
 #include "des.h"
 #include "tdsiconv.h"
 
+#if defined(HAVE_OPENSSL)
+#include <openssl/ssl.h>
+#endif
+
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.46 2010-11-16 13:25:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.47 2010-11-26 19:17:35 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -143,6 +147,13 @@ static void
 generate_random_buffer(unsigned char *out, int len)
 {
 	int i;
+
+#if defined(HAVE_OPENSSL)
+	if (RAND_bytes(out, len) == 1)
+		return;
+	if (RAND_pseudo_bytes(out, len) >= 0)
+		return;
+#endif
 
 	/* TODO find a better random... */
 	for (i = 0; i < len; ++i)
