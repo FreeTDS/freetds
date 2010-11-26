@@ -1,3 +1,7 @@
+Fri Nov 26 20:46:45 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/encodings.pl src/tds/iconv.c:
+	- use numeric constant for canonic charsets
+
 Fri Nov 26 20:17:27 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/challenge.c: improve random in challenge code
 
@@ -3030,4 +3034,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3163 2010-11-26 19:17:35 freddy77 Exp $
+$Id: ChangeLog,v 1.3164 2010-11-26 19:46:55 freddy77 Exp $

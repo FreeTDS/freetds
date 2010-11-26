@@ -30,7 +30,7 @@ $filename = "${srcdir}sybase_character_sets.h";
 open(OUT, ">$filename") or die qq($basename: could not open "$filename"\n);
 print OUT "/*\n";
 print OUT " * This file produced from $0\n";
-print OUT ' * $Id: encodings.pl,v 1.11 2008-03-11 08:36:41 freddy77 Exp $', "\n";
+print OUT ' * $Id: encodings.pl,v 1.12 2010-11-26 19:46:55 freddy77 Exp $', "\n";
 print OUT " */\n";
 
 # look up the canonical name
@@ -77,7 +77,7 @@ close(OUT);
 print "/*\n";
 $date = localtime;
 print " * This file produced from $0 on $date\n";
-print ' * $Id: encodings.pl,v 1.11 2008-03-11 08:36:41 freddy77 Exp $', "\n";
+print ' * $Id: encodings.pl,v 1.12 2010-11-26 19:46:55 freddy77 Exp $', "\n";
 print " */\n";
 
 %charsets = ();
@@ -128,9 +128,11 @@ $index{"UCS-2LE"} = $i++;
 $index{"UCS-2BE"} = $i++;
 foreach $n (sort grep(!/^(ISO-8859-1|UTF-8|UCS-2LE|UCS-2BE)$/,keys %charsets))
 {
-	$index{$n} = $i;
-	$i++ if $n;
+	next if exists($index{$n}) || !$n;
+	$index{$n} = $i++;
 }
+
+print "#ifdef TDS_ICONV_ENCODING_TABLES\n\n";
 
 # output all charset
 print "static const TDS_ENCODING canonic_charsets[] = {\n";
@@ -138,22 +140,13 @@ $i=0;
 foreach $n (sort { $index{$a} <=> $index{$b} } keys %charsets)
 {
 	my ($a, $b) = @{$charsets{$n}};
-	my $index = ($n)? (sprintf "/* %3d */", $i) : "\t";
-	printf "\t{%20s,\t$a, $b},\t%s\n", qq/"$n"/, $index;
-	$i++ if $n;
+	next if !$n;
+	printf "\t{%20s,\t$a, $b, %3d},\t/* %3d */\n", qq/"$n"/, $i, $i;
+	++$i;
 }
-print "\t{\"\",\t0, 0}\n";
+die('too much encodings') if $i >= 256;
+print "\t{\"\",\t0, 0, 0}\n";
 print "};\n\n";
-
-# output enumerated charset indexes
-print "enum {\n";
-$i=0;
-foreach $n (sort { $index{$a} <=> $index{$b} } keys %charsets)
-{
-	$n =~ tr/-a-z/_A-Z/;
-	printf "\t%30s =%4d,\n", "TDS_CHARSET_$n", $i++;
-}
-printf "\t%30s =%4d\n};\n\n", "TDS_NUM_CHARSETS", $i++;
 
 # output all alias
 print "static const CHARACTER_SET_ALIAS iconv_aliases[] = {\n";
@@ -175,7 +168,19 @@ foreach $n (sort keys %sybase)
 	printf "\t{%20s, %3d },\n", qq/"$n"/, $a;
 }
 print "\t{NULL,\t0}\n";
-print "};\n\n";
+print "};\n";
+
+print "#endif\n\n";
+
+# output enumerated charset indexes
+print "enum {\n";
+$i=0;
+foreach $n (sort { $index{$a} <=> $index{$b} } keys %charsets)
+{
+	$n =~ tr/-a-z/_A-Z/;
+	printf "\t%30s =%4d,\n", "TDS_CHARSET_$n", $i++;
+}
+printf "\t%30s =%4d\n};\n\n", "TDS_NUM_CHARSETS", $i++;
 
 exit 0;
 __DATA__

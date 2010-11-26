@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.345 2010-11-26 08:41:26 freddy77 Exp $ */
+/* $Id: tds.h,v 1.346 2010-11-26 19:46:55 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -945,6 +945,7 @@ typedef struct tds_encoding
 	const char *name;
 	unsigned char min_bytes_per_char;
 	unsigned char max_bytes_per_char;
+	unsigned char canonic;
 } TDS_ENCODING;
 
 typedef struct tds_bcpcoldata
