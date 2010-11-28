@@ -186,18 +186,18 @@ ptw32_mcs_lock_release(ptw32_mcs_local_node_t * node)
 	ptw32_mcs_lock_t *lock = node->lock;
 
 	ptw32_mcs_local_node_t *next = (ptw32_mcs_local_node_t *)
-		InterlockedCompareExchangePointer(&node->next, 0, 0);	/* MBR fence */
+		InterlockedCompareExchangePointer((void * volatile*) &node->next, 0, 0);	/* MBR fence */
 
 	if (0 == next) {
 		/* no known successor */
-		if (node == (ptw32_mcs_local_node_t *) InterlockedCompareExchangePointer(lock, 0, node)) {
+		if (node == (ptw32_mcs_local_node_t *) InterlockedCompareExchangePointer((void * volatile*) lock, 0, node)) {
 			/* no successor, lock is free now */
 			return;
 		}
 
 		/* wait for successor */
 		ptw32_mcs_flag_wait(&node->nextFlag);
-		next = (ptw32_mcs_local_node_t *) InterlockedCompareExchangePointer(&node->next, 0, 0);	/* MBR fence */
+		next = (ptw32_mcs_local_node_t *) InterlockedCompareExchangePointer((void * volatile*) &node->next, 0, 0);	/* MBR fence */
 	}
 
 	/* pass the lock */
