@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.391 2010-11-26 08:41:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.392 2010-12-03 15:01:29 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1483,7 +1483,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		break;
 	case 2:
 		curcol->column_size = tds_get_smallint(tds);
-		/* under TDS9 this means ?var???(MAX) */
+		/* under TDS7.2 this means ?var???(MAX) */
 		if (curcol->column_size < 0 && IS_TDS72_PLUS(tds)) {
 			curcol->column_size = 0x3ffffffflu;
 			curcol->column_varint_size = 8;
@@ -1743,7 +1743,6 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	}
 
 	/* read sql collation info */
-	/* TODO: we should use it ! */
 	if (IS_TDS71_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
 		tds_get_n(tds, curcol->column_collation, 5);
 		curcol->char_conv =
