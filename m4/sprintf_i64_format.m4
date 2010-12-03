@@ -1,4 +1,4 @@
-dnl $Id: sprintf_i64_format.m4,v 1.9 2007-07-07 17:55:48 freddy77 Exp $
+dnl $Id: sprintf_i64_format.m4,v 1.10 2010-12-03 16:01:12 freddy77 Exp $
 ##
 # Test for 64bit integer sprintf format specifier
 # ld   64 bit machine
@@ -24,7 +24,9 @@ if test "x$tds_i64_format" = "x"; then
 #include <stdlib.h>
 
 #if !defined(__GLIBC__) || __GLIBC__ < 2 || !defined(__GLIBC_MINOR__) || __GLIBC_MINOR__ < 2
-#error no proper glibc
+# if !defined(__APPLE__)
+#  error no proper glibc or darwin system
+# endif
 #endif
 
 int main()
