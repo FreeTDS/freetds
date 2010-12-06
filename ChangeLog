@@ -1,3 +1,7 @@
+Mon Dec  6 16:23:53 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/data.c src/tds/token.c:
+	- fix protocol problem with TDS7.2 and XML with schema
+
 Fri Dec  3 17:01:00 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* m4/sprintf_i64_format.m4:
 	- fix problem for cross compiled Darwin system
@@ -3049,4 +3053,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3168 2010-12-03 16:01:09 freddy77 Exp $
+$Id: ChangeLog,v 1.3169 2010-12-06 15:24:28 freddy77 Exp $

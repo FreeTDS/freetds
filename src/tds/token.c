@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.392 2010-12-03 15:01:29 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.393 2010-12-06 15:24:28 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1523,13 +1523,26 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	if (is_blob_type(curcol->column_type)) {
 		/* discard this additional byte */
-		/* TODO discover its meaning */
-		if (IS_TDS72_PLUS(tds))
-			tds_get_byte(tds);
-		curcol->table_namelen =
-			tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
-	} else if (IS_TDS72_PLUS(tds) && curcol->column_type == SYBMSXML)
-		tds_get_byte(tds);
+		if (IS_TDS72_PLUS(tds)) {
+			unsigned char num_parts = tds_get_byte(tds);
+			/* TODO do not discard first ones */
+			for (; num_parts; --num_parts) {
+				curcol->table_namelen =
+					tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
+			}
+		} else {
+			curcol->table_namelen =
+				tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
+		}
+	} else if (IS_TDS72_PLUS(tds) && curcol->column_type == SYBMSXML) {
+		unsigned char has_schema = tds_get_byte(tds);
+		if (has_schema) {
+			/* discard schema informations */
+			tds_get_string(tds, tds_get_byte(tds), NULL, 0);	/* dbname */
+			tds_get_string(tds, tds_get_byte(tds), NULL, 0);	/* schema owner */
+			tds_get_string(tds, tds_get_smallint(tds), NULL, 0);	/* schema collection */
+		}
+	}
 
 	/*
 	 * under 7.0 lengths are number of characters not
