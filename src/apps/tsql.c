@@ -87,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.137 2010-09-14 00:56:22 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.138 2010-12-10 20:46:22 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -393,6 +393,17 @@ get_default_instance_port(const char hostname[])
 # define LC_ALL 0
 #endif
 
+#ifdef HAVE_SSPI
+const char have_sspi[] = "yes";
+#else 
+const char have_sspi[] = "no";
+#endif
+#ifdef ENABLE_KRB5
+const char enable_krb5[] = "yes";
+#else 
+const char enable_krb5[] = "no";
+#endif
+
 static void
 populate_login(TDSLOGIN * login, int argc, char **argv)
 {
@@ -456,7 +467,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'C':
 			settings = tds_get_compiletime_settings();
-			printf("%s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n",
+			printf("%s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n",
 			       "Compile-time settings (established with the \"configure\" script)",
 			       "Version", settings->freetds_version,
 			       "freetds.conf directory", settings->sysconfdir, 
@@ -468,7 +479,9 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			       "iconv library", settings->libiconv ? "yes" : "no",
 			       "TDS version", settings->tdsver,
 			       "iODBC", settings->iodbc ? "yes" : "no", 
-			       "unixodbc", settings->unixodbc ? "yes" : "no");
+			       "unixodbc", settings->unixodbc ? "yes" : "no", 
+			       "SSPI \"trusted\" logins", have_sspi, 
+			       "Keberos", enable_krb5);
 			exit(0);
 			break;
 		default:
