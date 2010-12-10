@@ -41,7 +41,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.95 2010-09-14 02:12:47 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.96 2010-12-10 20:46:19 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -266,13 +266,17 @@ typedef struct
 
 typedef struct
 {
-	DBUSMALLINT days;
-	DBUSMALLINT minutes;
+	DBUSMALLINT days;	// days since Jan-1-1900
+	DBUSMALLINT minutes;	// minutes since midnight
 } DBDATETIME4;
 
 #ifdef MSDBLIB
-#define DBDATETIM4 DBDATETIME4
-#define SQLCHAR SYBCHAR
+# define SQLCHAR SYBCHAR
+	typedef struct
+	{
+		DBUSMALLINT numdays;
+		DBUSMALLINT nummins;
+	} DBDATETIM4;
 #endif
 
 typedef struct tds_dblib_loginrec LOGINREC;

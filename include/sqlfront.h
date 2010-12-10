@@ -22,11 +22,30 @@
 
 #include "./sybfront.h"
 
-static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.5 2009-01-16 20:27:56 jklowden Exp $";
+static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.6 2010-12-10 20:46:19 jklowden Exp $";
 static const void *const no_unused_sqlfront_h_warn[] = { rcsid_sqlfront_h, no_unused_sqlfront_h_warn };
 
 typedef DBPROCESS * PDBPROCESS;
 typedef LOGINREC  * PLOGINREC;
 typedef DBCURSOR  * PDBCURSOR;
+
+typedef       int  *	LPINT;
+typedef       char *	LPSTR;
+typedef       BYTE *	LPBYTE;
+typedef       void *	LPVOID;
+typedef const char *	LPCSTR;
+
+typedef const LPINT          LPCINT;
+typedef const LPBYTE         LPCBYTE ;
+typedef       USHORT *       LPUSHORT;
+typedef const LPUSHORT       LPCUSHORT;
+typedef       DBINT *        LPDBINT;
+typedef const LPDBINT        LPCDBINT;
+typedef       DBBINARY *     LPDBBINARY;
+typedef const LPDBBINARY     LPCDBBINARY;
+typedef       DBDATEREC *    LPDBDATEREC;
+typedef const LPDBDATEREC    LPCDBDATEREC;
+typedef       DBDATETIME *   LPDBDATETIME;
+typedef const LPDBDATETIME   LPCDBDATETIME;
 
 #endif
