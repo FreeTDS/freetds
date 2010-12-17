@@ -1,3 +1,9 @@
+Thu Dec 16 20:24:00 CST 2010    Craig A. Berry <craigberry@mac.com>
+        * vms/getpass.c Base VMS getpass/readline on stdin, not SYS$COMMAND.
+
+Thu Dec 16 20:18:00 CST 2010    Craig A. Berry <craigberry@mac.com>
+	* src/apps/freebcp.c Fix typo in -i option.
+
 Fri Dec 10 15:42:12 EST 2010	JK Lowden <jklowden@freetds.org>
 	* include/sqlfront.h include/sybdb.h Better Win32 compatibility
 	* src/apps/tsql.c report Kerberos compiled-in status
@@ -3057,4 +3063,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3170 2010-12-10 20:46:19 jklowden Exp $
+$Id: ChangeLog,v 1.3171 2010-12-17 04:26:21 berryc Exp $

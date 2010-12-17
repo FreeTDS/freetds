@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <unistd.h>
 
 #include <replacements/readpassphrase.h>
 #include "readline.h"
@@ -47,7 +48,7 @@
 static FILE *tds_rl_instream = NULL;
 static FILE *tds_rl_outstream = NULL;
 
-static char software_version[] = "$Id: getpass.c,v 1.6 2010-05-21 14:02:08 freddy77 Exp $";
+static char software_version[] = "$Id: getpass.c,v 1.7 2010-12-17 04:26:21 berryc Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* 
@@ -63,7 +64,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
  * already stored in the command recall buffer by SMG$READ_COMPOSED_LINE.
  */
 
-#define MY_PASSWORD_LEN 1024
+#define MY_PASSWORD_LEN 8192
 #define RECALL_SIZE     50	/* Lines in recall buffer. */
 #define DEFAULT_TIMEOUT 30	/* Seconds to wait for user input. */
 
@@ -80,15 +81,16 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 	unsigned long ctrl_mask, saved_ctrl_mask = 0;
 	int timeout_secs = 0;
 	int *timeout_ptr = NULL;
-	unsigned long dvi_item, ttdevclass, status = 0;
+	unsigned long status = 0;
 	unsigned short iosb[4];
-	unsigned short ttchan, result_len = 0;
+	unsigned short ttchan, result_len = 0, stdin_is_tty;
 
-	$DESCRIPTOR(ttdsc, "SYS$COMMAND:");
+	$DESCRIPTOR(ttdsc, "");
 	$DESCRIPTOR(pbuf_dsc, "");
 	$DESCRIPTOR(prompt_dsc, "");
 	char *retval = NULL;
 	char *myprompt = NULL;
+	char input_fspec[MY_PASSWORD_LEN + 1];
 
 	if (pbuf == NULL || buflen == 0) {
 		errno = EINVAL;
@@ -98,24 +100,25 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 	pbuf_dsc.dsc$a_pointer = pbuf;
 	pbuf_dsc.dsc$w_length = buflen - 1;
 
+
 	/*
-	 * Find out if SYS$COMMAND is a terminal.
+	 * If stdin is not a terminal and only reading from a terminal is allowed, we
+	 * stop here.  
 	 */
-	dvi_item = DVI$_DEVCLASS;
-	status = LIB$GETDVI(&dvi_item, 0, &ttdsc, &ttdevclass);
-	if (!$VMS_STATUS_SUCCESS(status)) {
-		/* We might fail for perfectly good reasons, like
-		 * SYS$COMMAND is not a device. 
-		 */
-		ttdevclass = 0;
+	stdin_is_tty = isatty(fileno(stdin));
+	if (stdin_is_tty != 1 && (flags & RPP_REQUIRE_TTY)) {
+		errno = ENOTTY;
+		return NULL;
 	}
 
 	/*
-	 * If it's not a terminal and only reading from a terminal is allowed, we
-	 * stop here.  
+	 * We need the file or device associated with stdin in VMS format.
 	 */
-	if ((ttdevclass != DC$_TERM) && (flags & RPP_REQUIRE_TTY)) {
-		errno = ENOTTY;
+	if (fgetname(stdin, input_fspec, 1)) {
+		ttdsc.dsc$a_pointer = (char *)&input_fspec;
+		ttdsc.dsc$w_length = strlen(input_fspec);
+	} else {
+		errno = EMFILE;
 		return NULL;
 	}
 
@@ -131,7 +134,7 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 	prompt_dsc.dsc$a_pointer = myprompt;
 	prompt_dsc.dsc$w_length = strlen(myprompt);
 
-	if (!(flags & RPP_ECHO_ON) && (ttdevclass == DC$_TERM)) {
+	if (!(flags & RPP_ECHO_ON) && (stdin_is_tty)) {
 		/* Disable Ctrl-T and Ctrl-Y */
 		ctrl_mask = LIB$M_CLI_CTRLT | LIB$M_CLI_CTRLY;
 		status = LIB$DISABLE_CTRL(&ctrl_mask, &saved_ctrl_mask);
@@ -156,7 +159,7 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 		timeout_ptr = &timeout_secs;
 	}
 
-	if (!(flags & RPP_ECHO_ON) && (ttdevclass == DC$_TERM)) {
+	if (!(flags & RPP_ECHO_ON) && (stdin_is_tty)) {
 		/* 
 		 * If we are suppressing echoing, get a line of input with $QIOW.  
 		 * Non-echoed lines are not stored for recall.  (The same thing
@@ -244,7 +247,7 @@ readpassphrase(const char *prompt, char *pbuf, size_t buflen, int flags)
 
 	free(myprompt);
 
-	if (!(flags & RPP_ECHO_ON) && (ttdevclass == DC$_TERM)) {
+	if (!(flags & RPP_ECHO_ON) && (stdin_is_tty)) {
 		/*
 		 * Reenable previous control processing.
 		 */
