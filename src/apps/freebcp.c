@@ -54,7 +54,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.57 2010-07-22 09:55:37 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.58 2010-12-17 04:31:36 berryc Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -359,7 +359,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	 * is specified, redirecting stdin doesn't do much yet.
 	 */
 	if (pdata->inputfile) {
-		if (freopen(pdata->inputfile, "rb", stdout) == NULL) {
+		if (freopen(pdata->inputfile, "rb", stdin) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", "freebcp", pdata->inputfile, strerror(errno));
 			exit(1);
 		}
