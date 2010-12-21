@@ -53,7 +53,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.46 2010-09-16 20:33:28 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.47 2010-12-21 16:55:24 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -801,7 +801,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 {
 	LOGINREC *login;
 	int ch;
-	int got_password = 0;
+	char *username = NULL, *password = NULL;
 
 	extern char *optarg;
 
@@ -822,11 +822,10 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:H:hqv")) != -1) {
 		switch (ch) {
 		case 'U':
-			DBSETLUSER(login, optarg);
+			username = strdup(optarg);
 			break;
 		case 'P':
-			got_password = 1;
-			DBSETLPWD(login, optarg);
+			password = strdup(optarg);
 			memset(optarg, 0, strlen(optarg));
 			break;
 		case 'S':
@@ -868,6 +867,10 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		}
 	}
 
+	if (username) 
+		DBSETLUSER(login, username);
+	
+
 	if( !options->hostname[0] ) {
 		if (-1 == gethostname(options->hostname, sizeof(options->hostname))) {
 			perror("unable to get hostname");
@@ -878,7 +881,11 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		DBSETLHOST(login, options->hostname);
 	}
 
-	if (!got_password) {
+	/* Look for a password if a username was provided, else assume domain login */
+	if (password) {
+		DBSETLPWD(login, password);
+		memset(password, 0, strlen(password));
+	} else if (username) {
 		char password[128];
 
 		readpassphrase("Password: ", password, sizeof(password), RPP_ECHO_OFF);

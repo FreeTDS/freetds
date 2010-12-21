@@ -87,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.138 2010-12-10 20:46:22 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.139 2010-12-21 16:55:24 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -113,7 +113,6 @@ static char *opt_row_term = "\n";
 static char *opt_default_db = NULL;
 
 static int do_query(TDSSOCKET * tds, char *buf, int opt_flags);
-static void tsql_print_usage(const char *progname);
 static int get_opt_flags(char *s, int *opt_flags);
 static void populate_login(TDSLOGIN * login, int argc, char **argv);
 static int tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * msg);
@@ -295,24 +294,6 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 }
 
 static void
-tsql_print_usage(const char *progname)
-{
-	fprintf(stderr,
-		"Usage:\t%s [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>]\n"
-		"\t\t[-I <config file>] [-J <client charset>] [-o <options>] [-t delim] [-r delim] [-D database]\n"
-		"\t%s -C\n"
-		"Options:\n"
-		"\tf\tDo not print footer\n"
-		"\th\tDo not print header\n"
-		"\tt\tPrint time informations\n"
-		"\tv\tPrint TDS version\n"
-		"\tq\tQuiet\n\n"
-		"\tDelimiters can be multi-char strings appropriately escaped for your shell.\n"
-		"\tDefault column delimitor is <tab>; default row delimiter is <newline>\n",
-		progname, progname);
-}
-
-static void
 reset_getopt(void)
 {
 #ifdef HAVE_GETOPT_OPTRESET
@@ -408,13 +389,10 @@ static void
 populate_login(TDSLOGIN * login, int argc, char **argv)
 {
 	const TDS_COMPILETIME_SETTINGS *settings;
-	char *hostname = NULL;
-	char *servername = NULL;
-	char *username = NULL;
-	char *password = NULL;
+	char *hostname = NULL, *servername = NULL;
+	char *username = NULL, *password = NULL;
 	char *confile = NULL;
-	int port = 0;
-	int opt;
+	int opt, port=0, use_domain_login=0;
 	const char *charset = NULL;
 	char *opt_flags_str = NULL;
 
@@ -485,7 +463,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			exit(0);
 			break;
 		default:
-			tsql_print_usage(argv[0]);
+			fprintf(stderr, "%s: error: invalid option %c\n", argv[0], (char)opt);
 			exit(1);
 			break;
 		}
@@ -521,8 +499,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 
 	/* validate parameters */
 	if (!servername && !hostname) {
-		fprintf(stderr, "Missing argument -S or -H\n");
-		tsql_print_usage(argv[0]);
+		fprintf(stderr, "%s: error: Missing argument -S or -H\n", argv[0]);
 		exit(1);
 	}
 	if (hostname && !port) {
@@ -538,35 +515,29 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			printf("Missing argument -p, looking for default instance ... ");
 		}
 		if (0 == (port = get_default_instance_port(hostname))) {
-			printf("no reply from server\n");
-			tsql_print_usage(argv[0]);
+			fprintf(stderr, "%s: no default port provided by host %s\n", argv[0], hostname);
 			exit(1);
 		} 
 		if (!QUIET)
 			printf("found default instance, port %d\n", port);
 		
 	}
+	/* A NULL username indicates a domain (trusted) login */
 	if (!username) {
-		fprintf(stderr, "Missing argument -U \n");
-		tsql_print_usage(argv[0]);
-		exit(1);
-	}
-	if (!servername && !hostname) {
-		tsql_print_usage(argv[0]);
-		exit(1);
+		username = calloc(1, 1);
+		use_domain_login = 1;
 	}
 	if (!password) {
-		password = (char*) malloc(128);
-		readpassphrase("Password: ", password, 128, RPP_ECHO_OFF);
+		password = calloc(1, 128);
+		if (!use_domain_login)
+			readpassphrase("Password: ", password, 128, RPP_ECHO_OFF);
 	}
 	if (!opt_col_term) {
-		fprintf(stderr, "Missing delimiter for -t (check escaping)\n");
-		tsql_print_usage(argv[0]);
+		fprintf(stderr, "%s: missing delimiter for -t (check escaping)\n", argv[0]);
 		exit(1);
 	}
 	if (!opt_row_term) {
-		fprintf(stderr, "Missing delimiter for -r (check escaping)\n");
-		tsql_print_usage(argv[0]);
+		fprintf(stderr, "%s: missing delimiter for -r (check escaping)\n", argv[0]);
 		exit(1);
 	}
 
