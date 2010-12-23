@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.372 2010-12-21 16:55:24 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.373 2010-12-23 09:32:27 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -84,7 +84,7 @@ static char *_dbprdate(char *timestr);
 static int _dbnullable(DBPROCESS * dbproc, int column);
 static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
-static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBSMALLINT *);
+static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBINT *);
 static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
 static RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
@@ -7185,12 +7185,12 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 static void
 copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, 
 				int desttype, BYTE * dest, DBINT destlen,
-				int bindtype, DBSMALLINT *indicator)
+				int bindtype, DBINT *indicator)
 {
 	CONV_RESULT dres;
 	DBINT ret;
 	int i, len;
-	DBSMALLINT indicator_value = 0;
+	DBINT indicator_value = 0;
 
 	int limited_dest_space = 0;
 
