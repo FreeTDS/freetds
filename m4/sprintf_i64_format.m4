@@ -1,4 +1,4 @@
-dnl $Id: sprintf_i64_format.m4,v 1.10 2010-12-03 16:01:12 freddy77 Exp $
+dnl $Id: sprintf_i64_format.m4,v 1.11 2010-12-28 14:37:10 freddy77 Exp $
 ##
 # Test for 64bit integer sprintf format specifier
 # ld   64 bit machine
@@ -9,16 +9,19 @@ dnl $Id: sprintf_i64_format.m4,v 1.10 2010-12-03 16:01:12 freddy77 Exp $
 AC_DEFUN([SPRINTF_I64_FORMAT],
 [tds_i64_format=
 
+# Win32 case
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
 #if !defined(__MINGW32__) || !defined(__MSVCRT__)
 this should produce an error!
 #endif
 ],[return 0;]),[tds_i64_format="I64d"])
 
+# long is 64 bit
 if test "x$ac_cv_sizeof_long" = "x8"; then
 	tds_i64_format=ld
 fi
 
+# long long support
 if test "x$tds_i64_format" = "x"; then
 	AC_LINK_IFELSE([AC_LANG_SOURCE([[
 #include <stdlib.h>
@@ -36,6 +39,21 @@ long long ll = atoll(buf);
 return 0;
 }
 ]])],[tds_i64_format="lld"])
+fi
+
+# extract from inttypes.h
+if test "x$tds_i64_format" = "x"; then
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[[#include <stdio.h>
+#include <inttypes.h>
+char test_fmt[] = "Start PRId64:" PRId64 ":End PRId64";
+]],
+[[]])],
+[for arg in l ll I64 L; do
+	if grep "Start PRId64:${arg}d:End PRId64" conftest.$ac_objext >/dev/null ; then
+        	tds_i64_format=$arg
+	fi
+done])
 fi
 
 if test "x$tds_i64_format" = "x"; then

@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.393 2010-12-06 15:24:28 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.394 2010-12-28 14:37:10 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2501,7 +2501,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	 */
 
 	rows_affected = IS_TDS72_PLUS(tds) ? tds_get_int8(tds) : tds_get_int(tds);
-	tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %" TDS_I64_FORMAT "\n", rows_affected);
+	tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %" PRId64 "\n", rows_affected);
 	if (done_count_valid)
 		tds->rows_affected = rows_affected;
 	else

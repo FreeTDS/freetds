@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -64,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.195 2010-01-10 14:43:12 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.196 2010-12-28 14:37:10 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -861,14 +862,7 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		/* TODO: fix for all platform. Search for lltoa/_i64toa */
-#if defined(_WIN32)
-		_i64toa(buf, tmp_str, 10);
-#elif SIZEOF_LONG < 8
-		sprintf(tmp_str, "%" TDS_I64_FORMAT, buf);
-#else
-		sprintf(tmp_str, "%ld", buf);
-#endif
+		sprintf(tmp_str, "%" PRId64, buf);
 		return string_to_result(tmp_str, cr);
 		break;
 	case CASE_ALL_BINARY:
@@ -923,14 +917,7 @@ tds_convert_int8(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * 
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		/* TODO portability problem. See above */
-#if defined(_WIN32)
-		_i64toa(buf, tmp_str, 10);
-#elif SIZEOF_LONG < 8
-		sprintf(tmp_str, "%" TDS_I64_FORMAT, buf);
-#else
-		sprintf(tmp_str, "%ld", buf);
-#endif
+		sprintf(tmp_str, "%" PRId64, buf);
 		return stringz_to_numeric(tmp_str, cr);
 		break;
 		/* conversions not allowed */

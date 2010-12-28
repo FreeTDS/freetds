@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2005-2008  Frediano Ziglio
+ * Copyright (C) 2005-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.46 2010-01-08 22:08:01 jklowden Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.47 2010-12-28 14:37:10 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -116,16 +116,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	frac = (int) (n % 100);
 	n /= 100;
 	/* if machine is 64 bit you do not need to split n */
-#if defined(TDS_I64_FORMAT)
-	sprintf(p, "%" TDS_I64_FORMAT ".%02d", n, frac);
-#elif SIZEOF_LONG < 8
-	if (n >= 1000000000) {
-		sprintf(p, "%ld%09ld.%02d", (long)(n / 1000000000), (long)(n % 1000000000), frac);
-	} else
-		sprintf(p, "%ld.%02d", (long)n, frac);
-#else
-	sprintf(p, "%ld.%02d", (long)n, frac);
-#endif
+	sprintf(p, "%" PRId64 ".%02d", n, frac);
 	return s;
 #else
 	unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];

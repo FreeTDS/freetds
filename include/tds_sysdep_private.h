@@ -21,7 +21,7 @@
 #ifndef _tds_sysdep_private_h_
 #define _tds_sysdep_private_h_
 
-/* $Id: tds_sysdep_private.h,v 1.35 2010-07-25 08:40:19 freddy77 Exp $ */
+/* $Id: tds_sysdep_private.h,v 1.36 2010-12-28 14:37:10 freddy77 Exp $ */
 
 #undef TDS_RCSID
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -234,6 +234,14 @@ typedef SOCKET TDS_SYS_SOCKET;
 #ifndef TDS_SDIR_SEPARATOR
 #define TDS_SDIR_SEPARATOR "/"
 #endif /* !TDS_SDIR_SEPARATOR */
+
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
+#ifndef PRId64
+#define PRId64 TDS_I64_FORMAT
+#endif
 
 #ifdef __cplusplus
 #if 0
