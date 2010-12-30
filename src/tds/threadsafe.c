@@ -85,24 +85,43 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.49 2010-11-16 10:29:56 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.50 2010-12-30 18:28:24 freddy77 Exp $");
+
+struct tm *
+tds_localtime_r(const time_t *timep, struct tm *result)
+{
+	struct tm *tm;
+
+#if defined(_REENTRANT) && !defined(_WIN32)
+#if HAVE_FUNC_LOCALTIME_R_TM
+	tm = localtime_r(timep, result);
+#else
+	tm = NULL;
+	if (!localtime_r(timep, result))
+		tm = result;
+#endif /* HAVE_FUNC_LOCALTIME_R_TM */
+#else
+	tm = localtime(timep);
+	if (tm) {
+		memcpy(result, tm, sizeof(*result));
+		tm = result;
+	}
+#endif
+	return tm;
+}
 
 char *
 tds_timestamp_str(char *str, int maxlen)
 {
 #if !defined(_WIN32) && !defined(_WIN64)
 	struct tm *tm;
+	struct tm res;
 	time_t t;
 
 #if HAVE_GETTIMEOFDAY
 	struct timeval tv;
 	char usecs[10];
-#endif
-#if defined(_REENTRANT)
-	struct tm res;
-#endif
 
-#if HAVE_GETTIMEOFDAY
 	gettimeofday(&tv, NULL);
 	t = tv.tv_sec;
 #else
@@ -113,17 +132,7 @@ tds_timestamp_str(char *str, int maxlen)
 	time(&t);
 #endif
 
-#if defined(_REENTRANT)
-#if HAVE_FUNC_LOCALTIME_R_TM
-	tm = localtime_r(&t, &res);
-#else
-	tm = NULL;
-	if (!localtime_r(&t, &res))
-		tm = &res;
-#endif /* HAVE_FUNC_LOCALTIME_R_TM */
-#else
-	tm = localtime(&t);
-#endif
+	tm = tds_localtime_r(&t, &res);
 
 /**	strftime(str, maxlen - 6, "%Y-%m-%d %H:%M:%S", tm); **/
 	strftime(str, maxlen - 6, "%H:%M:%S", tm);

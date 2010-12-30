@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.346 2010-11-26 19:46:55 freddy77 Exp $ */
+/* $Id: tds.h,v 1.347 2010-12-30 18:28:24 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1428,6 +1428,7 @@ TDSICONV *tds_iconv_from_collate(TDSSOCKET * tds, TDS_UCHAR collate[5]);
 
 /* threadsafe.c */
 char *tds_timestamp_str(char *str, int maxlen);
+struct tm *tds_localtime_r(const time_t *timep, struct tm *result);
 struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop);
 struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen,
 				    int *h_errnop);

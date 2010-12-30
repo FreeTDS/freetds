@@ -1,3 +1,7 @@
+Thu Dec 30 19:28:16 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/sql2tds.c src/tds/threadsafe.c:
+	- fix time shift problem
+
 Thu Dec 30 19:18:05 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/Makefile.am src/odbc/unittests/test64.c:
 	- add small test for 64bit problems
@@ -3102,4 +3106,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3181 2010-12-30 18:18:11 freddy77 Exp $
+$Id: ChangeLog,v 1.3182 2010-12-30 18:28:24 freddy77 Exp $

@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2008  Frediano Ziglio
+ * Copyright (C) 2005-2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -54,16 +54,15 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.85 2010-07-03 09:14:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.86 2010-12-30 18:28:24 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 {
-	struct tds_time src_tm;
+	struct tm src_tm;
+	int tm_ms;
 	unsigned int dt_time;
-	TDS_INT dt_days;
 	int i;
-	int got_date = 1;
 	time_t curr_time;
 
 	const DATE_STRUCT *src_date = (const DATE_STRUCT *) src;
@@ -79,11 +78,10 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 		src_tm.tm_hour = 0;
 		src_tm.tm_min = 0;
 		src_tm.tm_sec = 0;
-		src_tm.tm_ms = 0;
+		tm_ms = 0;
 		break;
 	case SQL_C_TIME:
 	case SQL_C_TYPE_TIME:
-		got_date = 0;
 #if HAVE_GETTIMEOFDAY
 		{
 			struct timeval tv;
@@ -93,11 +91,11 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 #else
 		curr_time = time(NULL);
 #endif
-		dt_days = (curr_time / 86400u) + (70u * 365u + 17u);
+		tds_localtime_r(&curr_time, &src_tm);
 		src_tm.tm_hour = src_time->hour;
 		src_tm.tm_min = src_time->minute;
 		src_tm.tm_sec = src_time->second;
-		src_tm.tm_ms = 0;
+		tm_ms = 0;
 		break;
 	case SQL_C_TIMESTAMP:
 	case SQL_C_TYPE_TIMESTAMP:
@@ -107,23 +105,20 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 		src_tm.tm_hour = src_timestamp->hour;
 		src_tm.tm_min = src_timestamp->minute;
 		src_tm.tm_sec = src_timestamp->second;
-		src_tm.tm_ms = src_timestamp->fraction / 1000000lu;
+		tm_ms = src_timestamp->fraction / 1000000lu;
 		break;
 	default:
 		return TDS_FAIL;
 	}
 
 	/* TODO code copied from convert.c, function */
-	if (got_date) {
-		i = (src_tm.tm_mon - 13) / 12;
-		dt_days = 1461 * (src_tm.tm_year + 300 + i) / 4 +
-			(367 * (src_tm.tm_mon - 1 - 12 * i)) / 12 - (3 * ((src_tm.tm_year + 400 + i) / 100)) / 4 +
-			src_tm.tm_mday - 109544;
-	}
+	i = (src_tm.tm_mon - 13) / 12;
+	dt->dtdays = 1461 * (src_tm.tm_year + 300 + i) / 4 +
+		(367 * (src_tm.tm_mon - 1 - 12 * i)) / 12 - (3 * ((src_tm.tm_year + 400 + i) / 100)) / 4 +
+		src_tm.tm_mday - 109544;
 
-	dt->dtdays = dt_days;
 	dt_time = (src_tm.tm_hour * 60 + src_tm.tm_min) * 60 + src_tm.tm_sec;
-	dt->dttime = dt_time * 300 + (src_tm.tm_ms * 3 + 5) / 10;
+	dt->dttime = dt_time * 300 + (tm_ms * 3 + 5) / 10;
 	return sizeof(TDS_DATETIME);
 }
 
