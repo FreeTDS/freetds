@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0013.c,v 1.30 2009-05-11 07:53:26 freddy77 Exp $";
+static char software_version[] = "$Id: t0013.c,v 1.31 2010-12-30 18:11:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
@@ -37,8 +37,8 @@ drop_table(void)
 	}
 }
 
-int
-main(int argc, char **argv)
+static int
+test(int argc, char **argv, int over4k)
 {
 	LOGINREC *login;
 	int i;
@@ -52,9 +52,7 @@ main(int argc, char **argv)
 	long numread;
 	BOOL readFirstImage;
 	int data_ok;
-#ifdef DBWRITE_OK_FOR_OVER_4K
 	int numtowrite, numwritten;
-#endif
 	set_malloc_options();
 
 	read_login_info(argc, argv);
@@ -145,38 +143,38 @@ main(int argc, char **argv)
 	 * Use #ifndef for big buffer version (32-bit)
 	 */
 	fprintf(stdout, "writing text ... ");
-#ifndef DBWRITE_OK_FOR_OVER_4K
-	if (dbwritetext(dbprocw, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, (BYTE*) blob) != SUCCEED)
-		return 5;
-	fprintf(stdout, "done (in one shot)\n");
-	for (; (result = dbnextrow(dbproc)) != NO_MORE_ROWS; i++) {
-		assert(REG_ROW == result);
-		printf("fetching row %d?\n", i+1);
-	}
-#else
-	if (dbwritetext(dbprocw, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, NULL) != SUCCEED)
-		return 15;
-	fprintf(stdout, "done\n");
+	if (over4k) {
+		if (dbwritetext(dbprocw, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, (BYTE*) blob) != SUCCEED)
+			return 5;
+		fprintf(stdout, "done (in one shot)\n");
+		for (; (result = dbnextrow(dbproc)) != NO_MORE_ROWS; i++) {
+			assert(REG_ROW == result);
+			printf("fetching row %d?\n", i+1);
+		}
+	} else {
+		if (dbwritetext(dbprocw, objname, textPtr, DBTXPLEN, timeStamp, FALSE, isiz, NULL) != SUCCEED)
+			return 15;
+		fprintf(stdout, "done\n");
 
-	fprintf(stdout, "dbsqlok\n");
-	dbsqlok(dbprocw);
-	fprintf(stdout, "dbresults\n");
-	dbresults(dbprocw);
+		fprintf(stdout, "dbsqlok\n");
+		dbsqlok(dbprocw);
+		fprintf(stdout, "dbresults\n");
+		dbresults(dbprocw);
 
-	numtowrite = 0;
-	/* Send the update value in chunks. */
-	for (numwritten = 0; numwritten < isiz; numwritten += numtowrite) {
-		fprintf(stdout, "dbmoretext %d\n", 1 + numwritten);
-		numtowrite = (isiz - numwritten);
-		if (numtowrite > BLOB_BLOCK_SIZE)
-			numtowrite = BLOB_BLOCK_SIZE;
-		dbmoretext(dbprocw, (DBINT) numtowrite, blob + numwritten);
+		numtowrite = 0;
+		/* Send the update value in chunks. */
+		for (numwritten = 0; numwritten < isiz; numwritten += numtowrite) {
+			fprintf(stdout, "dbmoretext %d\n", 1 + numwritten);
+			numtowrite = (isiz - numwritten);
+			if (numtowrite > BLOB_BLOCK_SIZE)
+				numtowrite = BLOB_BLOCK_SIZE;
+			dbmoretext(dbprocw, (DBINT) numtowrite, (BYTE *) (blob + numwritten));
+		}
+		dbsqlok(dbprocw);
+		while (dbresults(dbprocw) != NO_MORE_RESULTS){
+			printf("suprise!\n");
+		}
 	}
-	dbsqlok(dbprocw);
-	while (dbresults(dbprocw) != NO_MORE_RESULTS){
-		printf("suprise!\n");
-	}
-#endif
 #if 0
 	if (SUCCEED != dbclose(dbproc)){
 		fprintf(stdout, "dbclose failed");
@@ -286,6 +284,19 @@ main(int argc, char **argv)
 
 	dbexit();
 
+	return 0;
+}
+
+int
+main(int argc, char **argv)
+{
+	int res = test(argc, argv, 0);
+	if (!res)
+		res = test(argc, argv, 1);
+	if (res)
+		return res;
+
 	fprintf(stdout, "%s %s\n", __FILE__, (failed ? "failed!" : "OK"));
 	return failed ? 1 : 0;
 }
+

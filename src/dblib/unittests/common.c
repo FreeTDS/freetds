@@ -22,7 +22,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.41 2010-07-24 08:08:09 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.42 2010-12-30 18:11:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -48,7 +48,7 @@ char PASSWORD[512];
 char DATABASE[512];
 
 static char sql_file[PATH_MAX];
-static FILE* input_file;
+static FILE* input_file = NULL;
 
 static char *ARGV0 = NULL;
 static char *DIRNAME = NULL;
@@ -143,7 +143,8 @@ read_login_info(int argc, char **argv)
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
-	
+
+	free(ARGV0);
 #ifdef __VMS
 	{
 		/* basename expects unix format */
@@ -267,6 +268,8 @@ read_login_info(int argc, char **argv)
 	len = snprintf(sql_file, sizeof(sql_file), "%s/%s.sql", FREETDS_SRCDIR, BASENAME);
 	assert(len <= sizeof(sql_file));
 
+	if (input_file)
+		fclose(input_file);
 	if ((input_file = fopen(sql_file, "r")) == NULL) {
 		fflush(stdout);
 		fprintf(stderr, "could not open SQL input file \"%s\"\n", sql_file);

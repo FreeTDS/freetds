@@ -5,17 +5,15 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0014.c,v 1.31 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: t0014.c,v 1.32 2010-12-30 18:11:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define BLOB_BLOCK_SIZE 4096
 
-int failed = 0;
-
 char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0014.out" };
 
-int
-main(int argc, char **argv)
+static int
+test(int argc, char **argv, int over4k)
 {
 	const int rows_to_add = 3;
 	LOGINREC *login;
@@ -32,6 +30,7 @@ main(int argc, char **argv)
 	char rbuf[BLOB_BLOCK_SIZE];
 	long numread;
 	BOOL readFirstImage;
+	int numtowrite, numwritten;
 
 	set_malloc_options();
 
@@ -127,28 +126,26 @@ main(int argc, char **argv)
 			 * Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
 			 * Use #ifndef for big buffer version (32-bit)
 			 */
-#if 1
-/* DBWRITE_OK_FOR_OVER_4K */
-			if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, (BYTE*) blob) != SUCCEED)
-				return 5;
-#else
-			if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, NULL) != SUCCEED)
-				return 15;
-			dbsqlok(blobproc);
-			dbresults(blobproc);
+			if (over4k) {
+				if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, (BYTE*) blob) != SUCCEED)
+					return 5;
+			} else {
+				if (dbwritetext(blobproc, objname, textPtr, DBTXPLEN, timeStamp, TRUE, isiz, NULL) != SUCCEED)
+					return 15;
+				dbsqlok(blobproc);
+				dbresults(blobproc);
 
-			numtowrite = 0;
-			/* Send the update value in chunks. */
-			for (numwritten = 0; numwritten < isiz; numwritten += numtowrite) {
-				numtowrite = (isiz - numwritten);
-				if (numtowrite > BLOB_BLOCK_SIZE)
-					numtowrite = BLOB_BLOCK_SIZE;
-				dbmoretext(blobproc, (DBINT) numtowrite, blob + numwritten);
+				numtowrite = 0;
+				/* Send the update value in chunks. */
+				for (numwritten = 0; numwritten < isiz; numwritten += numtowrite) {
+					numtowrite = (isiz - numwritten);
+					if (numtowrite > BLOB_BLOCK_SIZE)
+						numtowrite = BLOB_BLOCK_SIZE;
+					dbmoretext(blobproc, (DBINT) numtowrite, (BYTE *) (blob + numwritten));
+				}
+				dbsqlok(blobproc);
+				while (dbresults(blobproc) != NO_MORE_RESULTS);
 			}
-			dbsqlok(blobproc);
-			while (dbresults(blobproc) != NO_MORE_RESULTS);
-
-#endif
 		}
 	}
 
@@ -158,7 +155,6 @@ main(int argc, char **argv)
 	dbsqlexec(dbproc);
 
 	if (dbresults(dbproc) != SUCCEED) {
-		failed = 1;
 		fprintf(stdout, "Was expecting a result set.");
 		exit(1);
 	}
@@ -168,7 +164,6 @@ main(int argc, char **argv)
 	}
 
 	if (SUCCEED != dbbind(dbproc, 1, INTBIND, -1, (BYTE *) & testint)) {
-		failed = 1;
 		fprintf(stderr, "Had problem with bind\n");
 		abort();
 	}
@@ -179,12 +174,10 @@ main(int argc, char **argv)
 		sprintf(expected, "row %03d", i);
 
 		if (REG_ROW != dbnextrow(dbproc)) {
-			failed = 1;
 			fprintf(stderr, "Failed.  Expected a row\n");
 			exit(1);
 		}
 		if (testint != i) {
-			failed = 1;
 			fprintf(stderr, "Failed.  Expected i to be %d, was %d\n", i, (int) testint);
 			abort();
 		}
@@ -237,7 +230,6 @@ main(int argc, char **argv)
 	}
 
 	if (dbnextrow(dbproc) != NO_MORE_ROWS) {
-		failed = 1;
 		fprintf(stderr, "Was expecting no more rows\n");
 		exit(1);
 	}
@@ -253,6 +245,21 @@ main(int argc, char **argv)
 
 	dbexit();
 
-	fprintf(stdout, "dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
-	return failed ? 1 : 0;
+	return 0;
 }
+
+int
+main(int argc, char **argv)
+{
+	int res;
+
+	res = test(argc, argv, 0);
+	if (!res)
+		res = test(argc, argv, 1);
+	if (res)
+		return res;
+
+	fprintf(stdout, "dblib okay on %s\n", __FILE__);
+	return 0;
+}
+

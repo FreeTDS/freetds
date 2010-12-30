@@ -1,3 +1,8 @@
+Thu Dec 30 19:10:58 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/common.c src/dblib/unittests/t0013.c:
+	* src/dblib/unittests/t0014.c:
+	- improve dbmoretext tests
+
 Thu Dec 30 15:53:06 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/sybdb.h src/dblib/unittests/t0007.c:
 	- correct t0007 test (still broken), fix DBVARYCHAR declaration
@@ -3093,4 +3098,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3179 2010-12-30 14:53:12 freddy77 Exp $
+$Id: ChangeLog,v 1.3180 2010-12-30 18:11:07 freddy77 Exp $
