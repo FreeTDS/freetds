@@ -1,3 +1,8 @@
+Thu Dec 30 19:53:59 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/dblib/dblib.c src/dblib/unittests/t0007.c:
+	* src/dblib/unittests/t0007.sql:
+	- fix VARYBINBIND in dblib
+
 Thu Dec 30 19:28:16 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/odbc/sql2tds.c src/tds/threadsafe.c:
 	- fix time shift problem
@@ -3106,4 +3111,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3182 2010-12-30 18:28:24 freddy77 Exp $
+$Id: ChangeLog,v 1.3183 2010-12-30 18:54:08 freddy77 Exp $

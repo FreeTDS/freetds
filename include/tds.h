@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.347 2010-12-30 18:28:24 freddy77 Exp $ */
+/* $Id: tds.h,v 1.348 2010-12-30 18:54:08 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -157,7 +157,7 @@ typedef struct tdsvarbinary
 } TDS_VARBINARY;
 typedef struct tdsvarchar
 {
-	TDS_INT len;
+	TDS_SMALLINT len;
 	TDS_CHAR array[256];
 } TDS_VARCHAR;
 

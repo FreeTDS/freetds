@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.373 2010-12-23 09:32:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.374 2010-12-30 18:54:08 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -459,7 +459,7 @@ static NULLREP default_null_representations[MAXBINDTYPES] = {
 	/* STRINGBIND	     1  */	, {         NULL, 0 }
 	/* NTBSTRINGBIND     2  */	, { (BYTE*) &null_CHAR, sizeof(null_CHAR) }
 	/* VARYCHARBIND      3  */	, { (BYTE*) &null_VARYCHAR, sizeof(null_VARYCHAR) }
-	/* VARYBINBIND       4  */	, {         &null_BINARY, sizeof(null_BINARY) }
+	/* VARYBINBIND       4  */	, { (BYTE*) &null_VARYCHAR, sizeof(null_VARYCHAR) }
 	/* no such bind      5  */	, {         NULL, 0 }			
 	/* TINYBIND	     6  */	, {         &null_TINYINT, sizeof(null_TINYINT) }
 	/* SMALLBIND	     7  */	, { (BYTE*) &null_SMALLINT, sizeof(null_SMALLINT) }
@@ -2116,8 +2116,10 @@ _db_get_server_type(int bindtype)
 		return SYBMONEY4;
 		break;
 	case BINARYBIND:
-	case VARYBINBIND:
 		return SYBBINARY;
+		break;
+	case VARYBINBIND:
+		return SYBVARBINARY;
 		break;
 	case VARYCHARBIND:
 		return SYBVARCHAR;
@@ -7354,16 +7356,29 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	}
 
 	switch (desttype) {
+	case SYBVARBINARY:
 	case SYBBINARY:
 	case SYBIMAGE:
-		if (len > destlen && destlen >= 0) {
-			dbperror(dbproc, SYBECOFL, 0);
+		if (bindtype == VARYBINBIND) {
+			if (limited_dest_space) {
+				if (len > sizeof(((DBVARYBIN *)dest)->array)) {
+					dbperror(dbproc, SYBECOFL, 0);
+					indicator_value = len;
+					len = sizeof(((DBVARYBIN *)dest)->array);
+				}
+			}
+			memcpy(((DBVARYBIN *)dest)->array, dres.c, len);
+			((DBVARYBIN *)dest)->len = len;
 		} else {
-			memcpy(dest, dres.ib, len);
-			TDS_ZERO_FREE(dres.ib);
-			if (len < destlen)
-				memset(dest + len, 0, destlen - len);
+			if (len > destlen && destlen >= 0) {
+				dbperror(dbproc, SYBECOFL, 0);
+			} else {
+				memcpy(dest, dres.ib, len);
+				if (len < destlen)
+					memset(dest + len, 0, destlen - len);
+			}
 		}
+		TDS_ZERO_FREE(dres.ib);
 		break;
 	case SYBINT1:
 		memcpy(dest, &(dres.ti), 1);
@@ -7454,10 +7469,10 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 				break;
 			case VARYCHARBIND: /* strip trailing blanks, NO null term */
 				if (limited_dest_space) {
-					if (len > destlen) {
+					if (len > sizeof(((DBVARYCHAR *)dest)->str)) {
 						dbperror(dbproc, SYBECOFL, 0);
 						indicator_value = len;
-						len = destlen;
+						len = sizeof(((DBVARYCHAR *)dest)->str);
 					}
 				} 
 				memcpy(((DBVARYCHAR *)dest)->str, dres.c, len);

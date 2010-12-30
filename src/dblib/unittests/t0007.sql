@@ -28,5 +28,5 @@ go
 /*
  * Third select for binary bindings
  */
-select * from #dblib0007 where i<=5 order by i
+select i, s, i from #dblib0007 x where x.i<=5 order by x.i
 go

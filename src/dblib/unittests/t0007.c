@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.22 2010-12-30 14:53:12 freddy77 Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.23 2010-12-30 18:54:08 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -174,17 +174,23 @@ main(int argc, char **argv)
 
 	dbbind(dbproc, 1, VARYBINBIND, sizeof(testvbin), (BYTE *) &testvbin);
 	dbbind(dbproc, 2, VARYCHARBIND, sizeof(testvstr), (BYTE *) &testvstr);
++	dbbind(dbproc, 3, BINARYBIND, sizeof(testint), (BYTE *) &testint);
 
 	for (i = 1; i <= 2; i++) {
 		char expected[1024];
 
 		sprintf(expected, "row %07d ", i);
 
+		testint = -1;
 		memset(&testvbin, '*', sizeof(testvbin));
 		memset(&testvstr, '*', sizeof(testvstr));
 
 		if (REG_ROW != dbnextrow(dbproc)) {
 			fprintf(stderr, "Failed.  Expected a row\n");
+			abort();
+		}
+		if (testint != i) {
+			fprintf(stderr, "Failed, line %d.  Expected i to be %d, was %d (0x%x)\n", __LINE__, i, (int) testint, (int) testint);
 			abort();
 		}
 		if (testvbin.len != sizeof(testint)) {
