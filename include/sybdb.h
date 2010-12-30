@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2010  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -41,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.96 2010-12-10 20:46:19 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.97 2010-12-30 14:53:12 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -234,10 +235,16 @@ typedef unsigned tds_sysdep_int16_type DBUSMALLINT;
 
 typedef struct 
 {
-	DBINT len;
-    char  str[256];
+	DBSMALLINT len;
+	char  str[256];
 } DBVARYCHAR;
-   
+
+typedef struct
+{
+	DBSMALLINT len;
+	unsigned char  array[256];
+} DBVARYBIN;
+
 typedef struct
 {
 	unsigned char precision;

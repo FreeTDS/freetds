@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0007.c,v 1.21 2010-09-15 03:55:44 jklowden Exp $";
+static char software_version[] = "$Id: t0007.c,v 1.22 2010-12-30 14:53:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -66,6 +66,8 @@ main(int argc, char **argv)
 	int i;
 	char teststr[1024];
 	DBINT testint;
+	DBVARYBIN  testvbin;
+	DBVARYCHAR testvstr;
 	int failed = 0;
 	int expected_error;
 
@@ -170,30 +172,36 @@ main(int argc, char **argv)
 		failed = 1;
 	}
 
- 	dbbind(dbproc, 1, VARYBINBIND, sizeof(testint), (BYTE *) &testint);
-	dbbind(dbproc, 2, BINARYBIND, sizeof(teststr), (BYTE *) teststr);
+	dbbind(dbproc, 1, VARYBINBIND, sizeof(testvbin), (BYTE *) &testvbin);
+	dbbind(dbproc, 2, VARYCHARBIND, sizeof(testvstr), (BYTE *) &testvstr);
 
 	for (i = 1; i <= 2; i++) {
 		char expected[1024];
 
-		sprintf(expected, "row %07d", i);
+		sprintf(expected, "row %07d ", i);
 
-		testint = -1;
-		strcpy(teststr, "bogus");
+		memset(&testvbin, '*', sizeof(testvbin));
+		memset(&testvstr, '*', sizeof(testvstr));
 
 		if (REG_ROW != dbnextrow(dbproc)) {
 			fprintf(stderr, "Failed.  Expected a row\n");
 			abort();
 		}
+		if (testvbin.len != sizeof(testint)) {
+			fprintf(stderr, "Failed, line %d.  Expected bin lenght to be %d, was %d\n", __LINE__, (int) sizeof(testint), (int) testvbin.len);
+			abort();
+		}
+		testint = *((DBINT*) testvbin.array);
 		if (testint != i) {
-			fprintf(stderr, "Failed, line %d.  Expected i to be %d, was %d\n", __LINE__, i, (int) testint);
+			fprintf(stderr, "Failed, line %d.  Expected i to be %d, was %d (0x%x)\n", __LINE__, i, (int) testint, (int) testint);
 			abort();
 		}
-		if (0 != strncmp(teststr, expected, strlen(expected))) {
-			fprintf(stdout, "Failed, line %d.  Expected s to be |%s|, was |%s|\n", __LINE__, expected, teststr);
+		if (testvstr.len != strlen(expected) || 0 != strncmp(testvstr.str, expected, strlen(expected))) {
+			fprintf(stdout, "Failed, line %d.  Expected s to be |%s|, was |%s|\n", __LINE__, expected, testvstr.str);
 			abort();
 		}
-		printf("Read a row of data -> %d %s\n", (int) testint, teststr);
+		testvstr.str[testvstr.len] = 0;
+		printf("Read a row of data -> %d %s\n", (int) testint, testvstr.str);
 	}
 
 
