@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.374 2010-12-30 18:54:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.375 2010-12-30 19:44:44 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1641,7 +1641,7 @@ _dbresults(DBPROCESS * dbproc)
 {
 	RETCODE retcode = FAIL;
 	TDSSOCKET *tds;
-	int result_type, done_flags;
+	int result_type = 0, done_flags;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbresults(%p)\n", dbproc);
 	CHECK_DBPROC();
