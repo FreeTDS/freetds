@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.35 2010-12-30 12:41:51 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.36 2010-12-30 19:50:21 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -149,6 +149,8 @@ main(int argc, char *argv[])
 	Test("INT", "-123", SQL_C_CHAR, "4 -123");
 	Test("INT", "78654", SQL_C_WCHAR, "5 78654");
 	Test("VARCHAR(10)", "  51245  ", SQL_C_LONG, "51245");
+	Test("VARCHAR(20)", "  15.1245  ", SQL_C_NUMERIC, "38 0 1 0F");
+	Test("VARCHAR(20)", "  15  ", SQL_C_NUMERIC, "38 0 1 0F");
 	if (odbc_db_is_microsoft() && (strncmp(odbc_db_version(), "08.00.", 6) == 0 || strncmp(odbc_db_version(), "09.00.", 6) == 0)) {
 		/* nvarchar without extended characters */
 		Test("NVARCHAR(20)", "test", SQL_C_CHAR, "4 test");
