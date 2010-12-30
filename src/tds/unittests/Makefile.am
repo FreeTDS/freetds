@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.27 2010-07-31 08:05:59 freddy77 Exp $
+# $Id: Makefile.am,v 1.28 2010-12-30 12:04:52 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
@@ -23,9 +23,9 @@ dynamic1_SOURCES =	dynamic1.c common.c common.h
 convert_SOURCES	=	convert.c
 dataread_SOURCES	=	dataread.c common.c common.h
 # flags_SOURCES	=	flags.c common.c common.h
-utf8_1_SOURCES	=	utf8_1.c common.c common.h
+utf8_1_SOURCES	=	utf8_1.c common.c common.h utf8.c
 utf8_2_SOURCES	=	utf8_2.c common.c common.h
-utf8_3_SOURCES	=	utf8_3.c common.c common.h
+utf8_3_SOURCES	=	utf8_3.c common.c common.h utf8.c
 numeric_SOURCES =       numeric.c
 iconv_fread_SOURCES	= iconv_fread.c
 toodynamic_SOURCES	= toodynamic.c common.c common.h

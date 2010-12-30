@@ -1,7 +1,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.8 2006-12-26 14:56:21 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.9 2010-12-30 12:04:52 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #if HAVE_CONFIG_H
@@ -33,5 +33,10 @@ int try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int 
 int try_tds_logout(TDSLOGIN * login, TDSSOCKET * tds, int verbose);
 
 int run_query(TDSSOCKET * tds, const char *query);
+
+extern int utf8_max_len;
+
+int get_unichar(const char **psrc);
+char *to_utf8(const char *src, char *dest);
 
 #endif

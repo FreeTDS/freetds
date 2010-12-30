@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2010 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -21,57 +22,10 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_3.c,v 1.6 2005-04-14 11:35:47 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_3.c,v 1.7 2010-12-30 12:04:52 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
-
-static int max_len = 0;
-
-static char *
-to_utf8(const char *src, char *dest)
-{
-	unsigned char *p = (unsigned char *) dest;
-	int len = 0;
-
-	for (; *src;) {
-		if (src[0] == '&' && src[1] == '#') {
-			const char *end = strchr(src, ';');
-			char tmp[16];
-			int radix = 10;
-			int n;
-
-			assert(end);
-			src += 2;
-			if (toupper(*src) == 'X') {
-				radix = 16;
-				++src;
-			}
-			memcpy(tmp, src, end - src);
-			tmp[end - src] = 0;
-			n = strtol(tmp, NULL, radix);
-			assert(n > 0 && n < 0x10000);
-			if (n >= 0x1000) {
-				*p++ = 0xe0 | (n >> 12);
-				*p++ = 0x80 | ((n >> 6) & 0x3f);
-				*p++ = 0x80 | (n & 0x3f);
-			} else if (n >= 0x80) {
-				*p++ = 0xc0 | (n >> 6);
-				*p++ = 0x80 | (n & 0x3f);
-			} else {
-				*p++ = (unsigned char) n;
-			}
-			src = end + 1;
-		} else {
-			*p++ = *src++;
-		}
-		++len;
-	}
-	if (len > max_len)
-		max_len = len;
-	*p = 0;
-	return dest;
-}
 
 static void
 test(const char *buf)
