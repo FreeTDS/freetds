@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <gnutls/gnutls.h>
 
-/* $Id: bounce.c,v 1.1 2007-10-23 10:08:52 freddy77 Exp $ */
+/* $Id: bounce.c,v 1.2 2010-12-30 12:39:11 freddy77 Exp $ */
 
 /* This small application make man-in-the-middle with a crypted SQL Server
  * to be able to see decrypted login
@@ -86,7 +86,7 @@ tds_pull_func(gnutls_transport_ptr ptr, void *data, size_t len)
 		len = packet_len - pos;
 	memcpy(data, packet + pos, len);
 	pos += len;
-	printf("read %d bytes\n", len);
+	printf("read %d bytes\n", (int) len);
 	return len;
 }
 
@@ -268,7 +268,7 @@ main()
 	int sd, ret;
 	struct sockaddr_in sa_serv;
 	struct sockaddr_in sa_cli;
-	int client_len;
+	socklen_t client_len;
 	char topbuf[512];
 	gnutls_session_t session;
 	char buffer[MAX_BUF + 1];
@@ -348,7 +348,7 @@ main()
 		packet_len = 0;
 
 		/* do with client */
-		gnutls_transport_set_ptr(session, (gnutls_transport_ptr_t) sd);
+		gnutls_transport_set_ptr(session, (gnutls_transport_ptr_t) (((char*)0)+sd));
 		ret = gnutls_handshake(session);
 		if (ret < 0) {
 			close(sd);
