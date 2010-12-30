@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.14 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.15 2010-12-30 13:06:31 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -168,6 +168,16 @@ DoTest(int version3)
 		;
 	SQLFreeStmt(odbc_stmt, SQL_UNBIND);
 	Flushodbc_stmt();
+
+	/* check WVARCHAR for no pending data */
+	if (odbc_db_is_microsoft() || strncmp(odbc_db_version(), "15.00.", 6) >= 0) {
+		CHKGetTypeInfo(SQL_WVARCHAR, "SI");
+		CHKFetch("S");
+		if (odbc_db_is_microsoft())
+			CHKFetch("S");
+		CHKFetch("No");
+		CHKGetTypeInfo(SQL_BINARY, "SI");
+	}
 
 	odbc_disconnect();
 }
