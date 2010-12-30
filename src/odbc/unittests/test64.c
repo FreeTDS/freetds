@@ -1,7 +1,7 @@
 /* test win64 consistency */
 #include "common.h"
 
-static char software_version[] = "$Id: test64.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: test64.c,v 1.11 2010-12-30 18:18:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /*
@@ -259,6 +259,7 @@ main(void)
 	test_rows();
 
 	odbc_disconnect();
+	printf("Done\n");
 	return 0;
 }
 
