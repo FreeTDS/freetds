@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.34 2010-12-06 15:24:28 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.35 2010-12-30 12:41:51 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -218,6 +218,12 @@ main(int argc, char *argv[])
 		odbc_command("CREATE XML SCHEMA COLLECTION test_schema AS '<schema xmlns=\"http://www.w3.org/2001/XMLSchema\"><element name=\"test\" type=\"string\"/></schema>'");
 		Test("XML(test_schema)", "<test>ciao</test>", SQL_C_CHAR, "17 <test>ciao</test>");
 		odbc_command("DROP XML SCHEMA COLLECTION test_schema");
+	}
+
+	if (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0) {
+		/* FIXME sure ?? with date and time always ?? */
+		Test("DATE", "1923-12-02", SQL_C_CHAR, "23 1923-12-02 00:00:00.000");
+		Test("TIME", "12:23:45", SQL_C_CHAR, "23 1900-01-01 12:23:45.000");
 	}
 
 	odbc_disconnect();

@@ -1,3 +1,6 @@
+Thu Dec 30 13:41:44 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/data.c: test Sybase DATE and TIME
+
 Thu Dec 30 13:04:41 CET 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/unittests/Makefile.am src/tds/unittests/common.h:
 	* src/tds/unittests/utf8_1.c src/tds/unittests/utf8_3.c:
@@ -3082,4 +3085,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3176 2010-12-30 12:12:47 freddy77 Exp $
+$Id: ChangeLog,v 1.3177 2010-12-30 12:41:51 freddy77 Exp $
