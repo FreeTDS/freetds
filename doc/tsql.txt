@@ -1,7 +1,7 @@
 NAME
   tsql - utility to test FreeTDS connections and queries
 SYNOPSIS
-  tsql 	{ -S servername [-I inside] | -H hostname -p port } 
+  tsql 	{ -S servername [-I interface] | -H hostname -p port } 
  	-U username [-P password] [-o options]
 	
   tsql	-C
@@ -33,7 +33,7 @@ OPTIONS
 
 	-S servername  the Database Server to which to connect.
 
-	-I inside  a freetds.conf or interfaces file describing servername
+	-I interface  a freetds.conf or interfaces file describing servername
 
 	-H hostname  the DNS hostname of the server
 
@@ -43,6 +43,8 @@ OPTIONS
 
 	-P password  database password.
 	
+	-L list server "instances" (with -H)
+
 	-C  prints some of the compile-time configuration parameters.  
 
 	-o options  apply the options specified to every command.
@@ -60,6 +62,12 @@ Typing "version" displays the TDS protocol version.
 
 Command batches may be separated with "go" or "GO". If "GO", the version
 string is reported before executing the batch. 
+
+After prompting for the password, tsql will attempt to connect to the remote
+server.  tsql displays a counter indicating the number of seconds that
+it is attempting to connect.  Typically, tsql should immediately respond
+with a '1>' prompt.  If you see the counter (1, 2, 3, ...), most likely tsql
+is unable to connect to the indicated server.
 
 If you can connect with "tsql -S servername", your basic FreeTDS installation
 is working. 

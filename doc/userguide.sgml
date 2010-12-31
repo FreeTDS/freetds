@@ -9,8 +9,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2010-09-16 07:44:33 $</date>
-		<releaseinfo>$Revision: 1.130 $</releaseinfo>
+		<date>$Date: 2010-12-31 04:12:07 $</date>
+		<releaseinfo>$Revision: 1.131 $</releaseinfo>
 		<title>&freetds; User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 		<author>
@@ -62,9 +62,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.130 $</>
-<member>$Date: 2010-09-16 07:44:33 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.130 2010-09-16 07:44:33 freddy77 Exp $.</>
+<member>$Revision: 1.131 $</>
+<member>$Date: 2010-12-31 04:12:07 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.131 2010-12-31 04:12:07 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the &freetds; 
@@ -215,18 +215,16 @@ project on SourceForge.  It is a fork of the
 		  </sect2>
 		<sect2 id="Status">
 			<title>Status</title>
-			<para>
-The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  That is not to say that these drivers are complete; they're not.  But they faithfully implement a useful &mdash; and widely used &mdash; subset of their <acronym>API</>s.  
+			<para>The libraries are portable, mature, and stable.  They're expected to compile readily and normally do not crash or corrupt data.  There is a logging feature to aid in diagnosing problems.  While they do not include every feature provided by the vendors' libaries, they do faithfully implement a useful &mdash; and widely used &mdash; subset of their <acronym>API</>s.  
 			</para>
-			<para>
-In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, &freetds;  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <command>freebcp</>, a replacement for Sybase's <application>bcp</application> utility.  
+			<para>The <systemitem class="library">db-lib</systemitem> and <systemitem class="library">ct-lib</systemitem> <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.  
 			</para>
-			<para>
-The <systemitem class="library">ODBC</> driver should be fully ODBC 3.0 compliant.  Any problems found in the currently implemented <acronym>API</> subset are cheerfully  addressed.  
+			<para>The <systemitem class="library">ODBC</> driver should be fully ODBC 3.0 compliant.  
 			</para>
-			<para>
-Basic <link linkend="apireference">API coverage</link> information for all libraries may be found in this manual.  It is maintained in <filename>doc/api_status.txt</>, included in the source distribution.   			
+			<para>Basic <link linkend="apireference">API coverage</link> information for all libraries may be found in this manual.  It is maintained in <filename>doc/api_status.txt</>, included in the source distribution.   			
 			</para> 
+			<para>In addition to the core <systemitem class="library">db-lib</systemitem> <acronym>API</>, &freetds;  includes a full implementation of <systemitem class="library">db-lib</systemitem>'s <acronym>bcp</> functions, as well as <command>freebcp</>, a replacement for Sybase's <application>bcp</application> utility.  
+			</para>
 			<para>How big is it?  &freetds; has over 90,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, &freetds;'s success so far lies somewhere between the Beetle and the Edsel.  
 			</para>
 			<para>Who uses it?  Oh, pretty much everyone.  &freetds; users almost certainly number in the tens of thousands.  It's used by large corporations, by the U.S. federal government (e.g. <ulink url="http://www.ncbi.nlm.nih.gov/books/bv.fcgi?rid=toolkit.chapter.ch_dbapi">Database Access Library</ulink> at the National Center for Biotechnology Information) and, judging by the mailing list, by many webservers running Apache and PHP.  Microsoft recommends &freetds; to their customers who want access to Microsoft SQL Server from non-Win32 clients. So do we.  
@@ -236,10 +234,6 @@ Basic <link linkend="apireference">API coverage</link> information for all libra
 			<title>Languages besides C and Java</title>
 			<para>
 You may be wondering how these libraries fit with Perl, PHP, TCL, Python, or other popular scripting languages.  Most of these languages have bindings to Sybase that use either the <systemitem class="library">db-lib</systemitem> or <systemitem class="library">ct-lib</systemitem> <acronym>API</>, for which &freetds; is intended as a drop-in replacement.  For instance, Michael Peppler's <systemitem class="library">DBD::Sybase</systemitem> works very well using &freetds; to access Sybase or Microsoft <productname>SQL Server</productname>s.  <productname>PHP</productname> has options for <filename>sybase</filename> (<systemitem class="library">db-lib</systemitem>) and <filename>sybase-ct</filename> (<systemitem class="library">ct-lib</systemitem>) <acronym>API</>s.
-			</para>
-			<para>
-Not to be outdone, the folks at the <firstterm>O'Caml</> project have a binding for that language.  You can read more about it on <ulink url="http://kenn.frap.net/ocaml-freetds/">
-Kenn Knowles's</ulink> site; see also his <ulink url="http://www.merjis.com/developers/">ocamldbi</ulink> driver.  
 			</para>
 		</sect2>
 		<sect2 id="alternatives">
@@ -475,7 +469,7 @@ There are a few optional arguments to <Command>configure</> that may be importan
 			<varlistentry>
 				<term><Option>--enable-msdblib</Option></term>
 				<listitem><para>Enable Microsoft behavior in the <systemitem class="library">db-lib</systemitem> <acronym>API</> where it diverges from Sybase's.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically needed only for porting Win32 applications to Unix.</para>
-					<para>As of version 0.63, this option specifies just the default behavior. Programs can change the default at compile time by defining MSDBLIB or SYBDBLIB (for Microsoft or Sybase behavior, respectively) .</para>
+					<para>This option specifies default behavior. Programs can change the default at compile time by defining MSDBLIB or SYBDBLIB (for Microsoft or Sybase behavior, respectively).</para>
 					</listitem>
 				</varlistentry>
 
@@ -494,8 +488,7 @@ There are a few optional arguments to <Command>configure</> that may be importan
 
 			<varlistentry>
 				<term><Option>--enable-sspi</Option></term>
-				<listitem><para>Enable SSPI support. SSPI is a Windows library that allow you to use your current logged account for 
-					authentication. This allow you to login without entering a password again.
+				<listitem><para>Enable SSPI support. SSPI is a Micrsoft library that allows you to use your current logged account for authentication.  With this option enabled, FreeTDS supports "trusted logins" for Win32/64, just as Microsoft's own implmentations do.  
 				</para></listitem>
 				</varlistentry>
 
@@ -617,7 +610,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2010-09-16 07:44:33 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2010-12-31 04:12:07 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -754,13 +747,16 @@ The <acronym>TDS</> protocol version is probably something you'd rather not know
 	<entry>7.1</entry>
 	<entry>Include support for <symbol>bigint</> (64 bit integers), <symbol>variant</> and collation on all fields. Collation is not widely used. </entry>
 	</row>
+	<row>
+	<entry>Microsoft SQL Server 2005</entry>
+	<entry>7.2</entry>
+	<entry>Includes support for varchar(max), varbinary(max), xml datatypes and MARS<footnote><para><emphasis>Multiple Active Result Sets</>. &freetds; does not support MARS.  </para></footnote>.</entry>
+	</row>
 </tbody>	
 </tgroup>
 </table>
 			</para>
-			<para>
-Why downgrade your protocol?  If you encounter a bug, reverting to 4.2 can help isolate it.  If you're using low-bandwidth connections, 4.2 is faster than 7.0, because 7.0 transfers all character data in UCS-2 (Unicode, 2 bytes/character).  
-However TDS 4.2 has many limitations (see below).  If you encounter problems, please report them to the mailing list.  
+			<para>For best results, use the highest version of hte protocol supported by your server.  If you encounter problems, try a lower version.  If that works, though, please report it to the mailing list!  
 			</para>
 			<para>
 			<ItemizedList><title>TDS 4.2 has limitations</title>
@@ -819,7 +815,7 @@ and 7.0.  Version 7.0 is recommended for compatibility with SQL Server tools.
 			<para>
 Just as DNS defines hostnames for  network addresses, &freetdsconf; uses a <firstterm>servername</> to define the properties of your server.  <footnote>
 	<para>In general, the servername is arbitrary and local; it's used only by your client programs to tell &freetds; which server to connect to.  You can choose any name you like.  </para>
-	<para><productname>Sybase SQL Anywhere</productname> (a/k/a Sybase ASA), however, is fussy.  You must use the database's name as your servername.  Otherwise, the server will refuse your connection.  </para>
+	<para><productname>Sybase SQL Anywhere</productname> (a/k/a Sybase ASA), however, is fussy.  Unless you use the <link linkend="asa.database">ASA Database</link> property, you must use the database's name as your servername.  Otherwise, the server will refuse your connection.  </para>
 	</footnote> 
 In particular, &freetds; needs to know:
 			<ItemizedList><title>Primary Server Properties</title>
@@ -909,11 +905,11 @@ It bears mentioning here that prior versions of &freetds; were quite fussy about
 <tbody>
 	<row>
 	<entry>tds version</entry>
+	<entry>4.2, 5.0, 7.0, 7.1, 7.2, <literal>auto</></entry>
 	<entry><parameter>--with-tdsver</> value (<literal>5.0</> if unspecified) 
 		Overridden by <link  linkend="TDSVER">TDSVER</link>.  
 		</entry> 
-	<entry>The <acronym>TDS</> protocol version to use when connecting.</entry>
-	<entry>4.2, 5.0, 7.0, 7.1, 7.2</entry>
+	<entry>The <acronym>TDS</> protocol version to use when connecting.  <quote><literal>auto</></quote> tells &freetds; to use an autodetection (trial-and-error) algorithm to choose the protocol version. </entry>
 	</row>
 	<row>
 	<entry>host</entry>
@@ -961,16 +957,23 @@ It bears mentioning here that prior versions of &freetds; were quite fussy about
 	</entrytbl>
 	<entry>	The port number that the servername is listening to.  
 		<emphasis>Please note:</emphasis>
-			The "defaults" to the left are the server's default settings.   &freetds; chooses its default port based on the TDS protocol version: <literal>5000</> for <acronym>TDS</> <literal>5.0</>, and <literal>1433</> for everything else.  
+			The "defaults" to the left are the server's default settings.   &freetds; chooses its default port based on the TDS protocol version: <literal>5000</> for <acronym>TDS</> <literal>5.0</>, and <literal>1433</> for everything else.  Mutually exclusive with <emphasis>instance</>, below.  
 		Overridden by <link  linkend="TDSPORT">TDSPORT</link>.
 	</entry>
 	</row>
 
 	<row>
-	<entry>ASA database</entry>
+	<entry>instance</entry>
+	<entry>instance name</entry>
+	<entry>none</entry>
+	<entry><para>Name of Microsoft SQL Server <emphasis>instance</> to connect to. The port will be detected automatically.  Mutually exclusive with <emphasis>port</>, above.  Requires UDP connection to port 1434 on the server.  </para></entry>
+	</row>
+
+	<row>
+	<entry id="asa.database">ASA database</entry>
 	<entry>valid database name</entry>
 	<entry>servername [<replaceable>section</>] name</entry>
-	<entry>Specifies the name of the default database when connecting to an ASA server.  A TDS 5.0 login packet has a field called <literal>lservname</>.   For most TDS servers, <literal>lservname</> is a user-defined string with no inherent meaning.  ASA servers, however, requires that <literal>lservname</>  contain a valid database name, and sets that as the default database for the connection.  FreeTDS normally fills <literal>lservname</>  with the [<replaceable>section</>]text..   This entry instead sets the database name independently of the [<replaceable>section</>] name.   </entry>
+	<entry>Specifies the name of the default database when connecting to an ASA server.  A TDS 5.0 login packet has a field called <literal>lservname</>.   For most TDS servers, <literal>lservname</> is a user-defined string with no inherent meaning.  ASA servers, however, requires that <literal>lservname</>  contain a valid database name, and sets that as the default database for the connection.  FreeTDS normally fills <literal>lservname</>  with the [<replaceable>section</>] text..   This entry instead sets the database name independently of the [<replaceable>section</>] name.   </entry>
 	</row>
 
 	<row>
@@ -1017,19 +1020,13 @@ It bears mentioning here that prior versions of &freetds; were quite fussy about
 	<entry>any valid iconv character set</entry>
 	<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Localization">Localization and <acronym>TDS</> 7.0</link> for more information.  </para></footnote></entry>
 	<entry>Makes &freetds; use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0 or above.
-As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need to match the server's charset to insert any characters the server supports.</entry>
+&freetds; uses iconv to convert all character data, so there's no need to match the server's charset to insert any characters the server supports.</entry>
 	</row>
 	<row>
 	<entry>text size</entry>
 	<entry>0 to 4,294,967,295</entry>
 	<entry>4,294,967,295</entry>
 	<entry>default value of TEXTSIZE, in bytes.  For <type>text</type> and <type>image</type> datatypes, sets the maximum width of any returned column. Cf. <command>set TEXTSIZE</> in the <acronym>T-SQL</> documentation for your server.  </entry>
-	</row>
-	<row>
-	<entry>instance</entry>
-	<entry>instance name</entry>
-	<entry>none</entry>
-	<entry><para>Name of Microsoft SQL Server <emphasis>instance</> to connect to. The port will be detected automatically.</para></entry>
 	</row>
 	<row>
 	<entry>debug flags</entry>
@@ -1126,7 +1123,7 @@ As of 0.62 FreeTDS uses iconv to convert all character data, so there's no need 
 			</sect3>
 
 			<sect3><title>Deprecated options</>	
-	<para>As of version 0.62 the following options are deprecated and supported only for backward compatibility.</para>
+	<para>The following options have long been deprecated.</para>
 
 <itemizedlist id="lst.freetds.conf.deprecated" spacing="compact">
 	<title>Deprecated &freetdsconf; settings</title>
@@ -1388,17 +1385,18 @@ Compile-time settings (established with the "configure" script):
 			<para>When <replaceable>servername</> cannot be converted to an address, up to two messages may result.  Successful conversion (by any means) never produces an error message.  
 			
 <example id="e.g.notfound">
-<title>Failure to find or resolve <replaceable>servername</></title>
+<title>Failure to find <replaceable>servername</> in &freetdsconf;</title>
 <screen>
 <prompt>$ </prompt><userinput>tsql -S <replaceable>nobox</replaceable> -U <replaceable>sa</replaceable> </userinput>
 <prompt>Password: </prompt>
 <computeroutput>
 locale is "C"
 locale charset is "646"
-Msg 20012, Level 2, State -1, Server OpenClient, Line -1
-Server name not found in configuration files.
-Msg 20013, Level 2, State -1, Server OpenClient, Line -1
-Unknown host machine name.
+Password: 
+Error 20012 (severity 2):
+	Server name not found in configuration files.
+Error 20013 (severity 2):
+	Unknown host machine name.
 There was a problem connecting to the server
 </computeroutput>
 <prompt>$ </prompt><userinput>host nobox</userinput>
@@ -1408,10 +1406,10 @@ Host not found.
 </screen>
 </example>
 
-In the above case <literal>nobox</> was not found in &freetdsconf; and was is not a valid hostname according to DNS.  
+In the above case message 20012 indicates <literal>nobox</> was not found in &freetdsconf;.  The library then treated <literal>nobox</> as a network hostname but found it also not to be valid per DNS, leading to message 20013.  
 			</para>
 
-			<para>If <replaceable>servername</> is found but refers to an invalid hostname, only message 20013 is returned. 
+			<para>If <replaceable>servername</> is found in the configuration files, but refers to an invalid hostname, only message 20013 is returned. 
 
 <example id="e.g.badname">
 <title>Failure to resolve hostname for <replaceable>servername</></title>
@@ -1421,17 +1419,19 @@ In the above case <literal>nobox</> was not found in &freetdsconf; and was is no
 <computeroutput>
 locale is "C"
 locale charset is "646"
-Msg 20013, Level 2, State -1, Server OpenClient, Line -1
-Unknown host machine name.
+Error 20013 (severity 2):
+        Unknown host machine name.
 There was a problem connecting to the server
 </computeroutput>
 </screen>
 </example>	
 			Unfortunately, the <quote>host machine name</quote> (the right side of the <literal>host</> line in &freetdsconf;) isn't mentioned in the error message.  Fortunately, this kind of setup problem is rarely encountered by users.  
 			</para>
+			</sect3>
+			<sect3 id="tsql.connect"><title>Connecting to the Server</title>
 			<para>If name lookup succeeds, &freetds; next attempts to connect to the server.  <emphasis>To connect</> means to form at TCP connection by calling <function>connect(2)</>.  A valid connection must exist before any information can be exchanged with the server.  Specifically, we need a connection before we can log in.  
 			</para>
-			<para>A few things can go wrong at this point.  The address returned by DNS may not be that of the machine hosting the server.  The machine may be down.  The server may not be running.  The server may be running but not listening to the port &freetds; is attempting to connect to.  In rare cases, both ends are correctly configured, but a firewall stands in the way. 
+			<para>A few things can go wrong at this point.  The address returned by DNS may not be that of the machine hosting the server, or indeed of <emphasis>any</> machine!  The machine may be down.  The server may not be running.  The server may be running but not listening to the port &freetds; is attempting to connect to.  In rare cases, both ends are correctly configured, but a firewall stands in the way. 
 			</para>
 			<para>If no server accepts the connection, no connection can be established.  It's difficult to know why, and the message is consequently vague. 
 
@@ -1593,7 +1593,7 @@ The connection attributes are provided as a single argument, a string of concate
 But <productname>FreeTDS</> did not start out as an ODBC driver (remember db-lib and ct-lib), and has always had its own way to store server properties: &freetdsconf;.  When Brian added the <productname>FreeTDS</> ODBC driver, he began by supporting the old <function>SQLConnect</>, using <filename>odbc.ini</> to describe the DSN.  That choice complied with the expectations of the Driver Managers, and minimized the amount of duplicated information in the configuration files.  But it can be a little confusing, too, because <filename>odbc.ini</> in effect points to &freetdsconf;.  We call this configuration <firstterm>ODBC-combined</>, because it supports all three <productname>FreeTDS</> libraries.  
 			</para>
 			<para>
-With version 0.60, the <productname>FreeTDS</> ODBC library started to see fuller implementation. The driver was made able to read the connection attributes directly from <filename>odbc.ini</>, rather than leaning on &freetdsconf;.  For installations that don't need db-lib and ct-lib, this <firstterm>ODBC-only</> setup is simpler.  			</para>
+As progress on the the &freetds; ODBC library progressed, the driver was made able to read the connection attributes directly from <filename>odbc.ini</>, rather than leaning on &freetdsconf;.  For installations that don't need db-lib and ct-lib, this <firstterm>ODBC-only</> setup is simpler.  			</para>
 			<para>
 More recently, <function>SQLDriverConnect</> was added to <productname>FreeTDS</>.  As described above, this function allows the application to specify connection attributes with reference to either, or neither, configuration file.  It's your choice.  In making that choice, keep the following terms clear in your mind:
 			</para>
@@ -2136,7 +2136,8 @@ Why this happens is anyone's guess.  Here's one: it makes the datatype of the co
 <Note><para>Domain logins can be used only with TDS protocol versions 7.0 or above.</para></Note>
 			<para>
 As mentioned in the installation chapter, <productname>Microsoft SQL Server</productname> includes the ability to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol.
-&freetds; began supporting domain logins in version 0.60.
+			</para>
+			<para>Domain logins may or may not support single sign-on (connecting without prompting for a password) depending on how &freetds; was configured.  For Windows hosts (both 32- and 64-bit), if SSPI is enabled, &freetds; will log in using so-called "trusted authentication".  For Linux (and similar) hosts, enabling Kerberos provides similar functionality.  If neither option is enabled, &freetds; can <emphasis>still</> log in using the domain account, but the user must re-enter the password, as described next.  
 			</para>
 			<para>
 To use domain logins, use the <literal>'DOMAIN\username'</> syntax for the username and use the domain password.  

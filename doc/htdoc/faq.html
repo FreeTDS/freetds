@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.25 2009-02-11 02:41:58 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.26 2010-12-31 04:12:07 jklowden Exp $ -->
 
 <head>
   <meta name="generator" content=
@@ -119,6 +119,8 @@
         <li><a href="#Are.there.any.known.issues">Are there any
         known issues?</a></li>
 
+        <li><a href="#What.features.are.missing">What features are missing</a> compared to the vendors' implementations?</li>
+
         <li><a href="#pending">Why does each connection support
         only one query at a time?</a></li>
 
@@ -155,6 +157,8 @@
         right!</a></li>
         <li>My PHP script works from the command line but 
 		<a href="#php">fails in the browser!</a></li>
+		
+		<li>How do I debug my <a href="#oracle">Oracle Heterogeneous Services</a> error?</li>
       </ul>
     </li>
   </ol>
@@ -567,9 +571,7 @@
   DBI::ODBC load for other systems. On the downside, it may be a
   little less robust than DBD::Sybase.</p>
 
-  <h3>Are there any known issues?</h3>
-  	<a name="Are.there.any.known.issues" 
-	     id="Are.there.any.known.issues"></a>
+  <h3 id="Are.there.any.known.issues">Are there any known issues?</h3>
   <ul>
     <li>ODBC can be confusing to set up. See the <tt>samples</tt>
     directory for example <tt>.ini</tt> files, and follow the User
@@ -596,6 +598,20 @@
   sometimes be misleading. In the latter case, it's often necessary
   to examine the log file to understand what went wrong. </p>
 
+ <h3 id="What.features.are.missing"> What features are missing compared to the vendors' implementations?</h3>
+ 
+ 	<p>In no particular order: </p>
+	<ul>
+		<li>MARS</li>
+		<li>db-lib browse API</li>
+		<li>Parameterized queries in ct-lib with TDS 7.0+ (i.e. Microsoft servers)</li>
+		<li>ct-lib money functions</li>
+	</ul>
+	
+	<p>For specific functions, consult <code>doc/api_status.txt</code> in your distribution. </p>
+	
+	<p>Very few programs actually need the missing functionality.  Parameterized ct-lib queries would benefit Perl DBD::Sybase users, but the functionality would require departing from Sybase's documented API.  MARS comes up because there must be thousands of people whom Microsoft has convinced they need it, but the benefits are meager compared to the complexity.  </p>
+	
   <h3>Why does each connection support only one query at a time?</h3>
 	<a name="pending" id="pending"></a>
 
@@ -635,13 +651,19 @@
     That's not as bad as it sounds, and it certainly not unheard of
     to have 4 or more simultaneous connections supporting an
     application.</li>
-  </ul>It's important to realize that the selection of rows and
+  </ul>
+  
+  <p>It's important to realize that the selection of rows and
   their accumulation into a container of some sort are two
   different functions. A TDS server issues its results a row at a
   time, which the client library dutifully makes available to the
   application on arrival. It's up to the application&mdash;or a
   higher-level library&mdash;to form a "rowset" of some kind if
-  desired.
+  desired.</p>
+  
+  <p><i>But what about MARS&reg;</i> you ask?  <i>Doesn't that solve the problem?</i>  Well, no.  MARS <i>does</i> make a TDS server more similar to other vendors' servers, and Microsoft benefits from one more just-like-the-others feature for its ODBC driver.  But Microsoft claims a patent on MARS, the documentation is incomplete, and supporting it would introduce significant complexity.</p>
+  
+  <p>MARS might get implemented one day; more surprising things have happened.  But the technical advantages it provides to the programmer are over server-side cursors or simply using another connection are vanishingly small.  </p>
 
   <h4>PHP note</h4>If you use PHP, you will still run into this
   problem even if you create a new connection. The reason is that
@@ -900,14 +922,19 @@
   normally not the one you use to log in, or to test your script
   with on the command line.  </p>
 
-
+	<h3 id="oracle">How do I debug my Oracle Heterogeneous Services error?</h3>
+	
+	<p>The message produced by the Oracle server is seldom detailed enough to understand what's wrong.  
+		Really, the only way to debug these errors reliably is with a TDSDUMP log of the session. 
+		The log will contain any error messages from the server and/or from the library.  Often that's
+		all the information needed.  If not, post the log to the mailing list. </p>
   
   <!-- footer -->
   <hr size="1" />
   <font size="-1">Updates and comments <a href=
   "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a> 
   <br/>
-    <i>$Id: faq.html,v 1.25 2009-02-11 02:41:58 jklowden Exp $</i>
+    <i>$Id: faq.html,v 1.26 2010-12-31 04:12:07 jklowden Exp $</i>
 	</font>
 <hr/>
   <p>
