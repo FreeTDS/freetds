@@ -1,3 +1,7 @@
+Mon Jan  3 15:25:36 EST 2011	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c 
+	- TDSPORT and TDSVER override even if no configuration file found
+
 Fri Dec 31 11:33:05 EST 2010	JK Lowden <jklowden@freetds.org>
 	* doc/api_status.txt doc/htdoc/faq.html
 	- updated per Frediano and corrected validation errors
@@ -3122,4 +3126,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3186 2010-12-31 16:34:15 jklowden Exp $
+$Id: ChangeLog,v 1.3187 2011-01-03 20:27:53 jklowden Exp $
