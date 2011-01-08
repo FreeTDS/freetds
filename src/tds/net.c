@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Brian Bruns
- * Copyright (C) 2004-2010  Ziglio Frediano
+ * Copyright (C) 2004-2011  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -107,7 +107,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.109 2010-10-12 11:48:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.110 2011-01-08 01:36:29 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -215,6 +215,15 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 #ifdef SO_KEEPALIVE
 	len = 1;
 	setsockopt(tds->s, SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
+#endif
+
+#if defined(__APPLE__) && defined(SO_NOSIGPIPE)
+	len = 1;
+	if (setsockopt(tds->s, SOL_SOCKET, SO_NOSIGPIPE, (const void *) &len, sizeof(len))) {
+		*p_oserr = sock_errno;
+		tds_close_socket(tds);
+		return TDSESOCK;
+	}
 #endif
 
 	len = 1;
@@ -639,6 +648,8 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			/* In case the kernel does not support MSG_MORE, try again without it */
 			if (nput < 0 && errno == EINVAL && !last)
 				nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
+#elif defined(__APPLE__) && defined(SO_NOSIGPIPE)
+			ssize_t nput = send(tds->s, p, remaining, 0);
 #else
 			ssize_t nput = WRITESOCKET(tds->s, p, remaining);
 #endif
@@ -709,7 +720,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	int sent;
 	unsigned int left = 0;
 
-#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
 	void (*oldsig) (int);
 #endif
 
@@ -729,7 +740,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
-#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
 	oldsig = signal(SIGPIPE, SIG_IGN);
 	if (oldsig == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
@@ -747,7 +758,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 #endif
 		sent = tds_goodwrite(tds, tds->out_buf, tds->out_pos, final);
 
-#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
 		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
 	}
