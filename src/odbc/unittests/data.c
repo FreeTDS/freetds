@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.36 2010-12-30 19:50:21 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.37 2011-01-08 01:19:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -207,6 +207,7 @@ main(int argc, char *argv[])
 		/* for some reasons MS ODBC seems to convert -123.4 to -123.40000000000001 */
 		Test("SQL_VARIANT", "CAST('-123.5' AS FLOAT)", SQL_C_CHAR, "6 -123.5");
 		Test("SQL_VARIANT", "CAST('-123.4' AS NUMERIC(10,2))", SQL_C_CHAR, "7 -123.40");
+		Test("SQL_VARIANT", "CAST('0DDF3B64-E692-11D1-AB06-00AA00BDD685' AS UNIQUEIDENTIFIER)", SQL_C_CHAR, "36 0DDF3B64-E692-11D1-AB06-00AA00BDD685");
 	}
 
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x09000000u) {

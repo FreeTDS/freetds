@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2010  Frediano Ziglio
+ * Copyright (C) 2005-2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.394 2010-12-28 14:37:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.395 2011-01-08 01:19:48 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2118,7 +2118,7 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_swap_numeric(num);
 		return TDS_SUCCEED;
 	}
-	varint = tds_get_varint_size(tds, type);
+	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds, type);
 	if (varint != info_len)
 		goto error_type;
 	switch (varint) {

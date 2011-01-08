@@ -1,3 +1,7 @@
+Sat Jan  8 02:19:38 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/data.c src/tds/token.c:
+	- fix unique inside variant
+
 Mon Jan  3 15:25:36 EST 2011	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c 
 	- TDSPORT and TDSVER override even if no configuration file found
@@ -3126,4 +3130,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3187 2011-01-03 20:27:53 jklowden Exp $
+$Id: ChangeLog,v 1.3188 2011-01-08 01:19:48 freddy77 Exp $
