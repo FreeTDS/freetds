@@ -1,3 +1,6 @@
+Sun Jan  9 23:34:50 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/test-other.sh: add --help option
+
 Sat Jan  8 02:36:23 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: small optimization for darwin os
 
@@ -3133,4 +3136,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3189 2011-01-08 01:36:29 freddy77 Exp $
+$Id: ChangeLog,v 1.3190 2011-01-09 22:34:57 freddy77 Exp $

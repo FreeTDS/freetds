@@ -33,6 +33,16 @@ do
 		do_perl=no
 		do_php=yes
 		;;
+	--help)
+		echo "Usage: $0 [OPTION]..."
+		echo '  --help          this help'
+		echo '  --verbose       verbose output'
+		echo '  --no-perl       do not execute Perl test'
+		echo '  --no-php        do not execute PHP test'
+		echo '  --perl-only     only Perl test'
+		echo '  --php-only      only PHP test'
+		exit 0
+		;;
 	*)
 		echo 'Option not supported!' 1>&2
 		exit 1
