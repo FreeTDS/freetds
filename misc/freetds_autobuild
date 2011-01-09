@@ -105,6 +105,7 @@ do
 done
 
 set -e
+trap 'echo Error at line $LINENO' ERR
 
 DOMAIN_UID=
 DOMAIN_PWD=
@@ -119,8 +120,10 @@ cd $HOME/cpp/freetds/$FTDSDIR
 cd ..
 rm -rf $WORKDIR
 trap handle_exit EXIT
-cp -rp $FTDSDIR $WORKDIR
+test -h freetds
 rm -f freetds
+test -d $FTDSDIR
+cp -rp $FTDSDIR $WORKDIR
 ln -s $WORKDIR freetds
 cd $WORKDIR
 find . \( -name \*.bb -o -name \*.bbg -o -name \*.da -o -name \*.gc\* \) -exec rm -f {} \;
