@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006, 2007, 2008, 2009, 2010  Frediano Ziglio
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.245 2010-11-26 08:41:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.246 2011-01-12 09:21:11 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -716,6 +716,10 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 			size /= 2u;
 		}
 		break;
+	case SYBVARIANT:
+		if (IS_TDS7_PLUS(tds))
+			fmt = "SQL_VARIANT";
+		break;
 		/* nullable types should not occur here... */
 	case SYBFLTN:
 	case SYBMONEYN:
@@ -729,7 +733,6 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBUINT2:
 	case SYBUINT4:
 	case SYBUINT8:
-	case SYBVARIANT:
 	default:
 		tdsdump_log(TDS_DBG_ERROR, "Unknown type %d\n", tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size));
 		break;
