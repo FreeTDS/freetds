@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2010  Frediano Ziglio
+ * Copyright (C) 2010, 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -62,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.195 2010-07-31 11:31:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.196 2011-01-14 14:18:15 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2376,7 +2376,7 @@ _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param bindcol 
  * 
- * \return SUCCEED or FAIL.
+ * \return TDS_SUCCEED or TDS_FAIL.
  * \sa 	_bcp_add_fixed_columns, _bcp_add_variable_columns, _bcp_send_bcp_record
  */
 static int
@@ -2546,8 +2546,6 @@ rtrim(char *str, int len)
  * \brief 
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * 
- * \return SUCCEED or FAIL.
  */
 static void
 _bcp_free_columns(DBPROCESS * dbproc)
@@ -2574,7 +2572,6 @@ _bcp_free_columns(DBPROCESS * dbproc)
  *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * 
- * \return SUCCEED or FAIL.
  * \sa 	bcp_done(), bcp_exec(), bcp_init()
  */
 static void
@@ -2598,7 +2595,5 @@ _bcp_free_storage(DBPROCESS * dbproc)
 		dbproc->bcpinfo->bindinfo = NULL;
 		TDS_ZERO_FREE(dbproc->bcpinfo);
 	}
-
-	return;
 }
 

@@ -1,3 +1,6 @@
+Fri Jan 14 15:15:21 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/bcp.c src/dblib/dblib.c: minor dblib results changes
+
 Wed Jan 12 10:21:03 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/query.c: support SQL_VARIANT passing parameters
 
@@ -3139,4 +3142,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3191 2011-01-12 09:21:11 freddy77 Exp $
+$Id: ChangeLog,v 1.3192 2011-01-14 14:18:14 freddy77 Exp $

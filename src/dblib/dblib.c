@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006-2010  Frediano Ziglio
+ * Copyright (C) 2006-2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.376 2011-01-03 20:27:54 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.377 2011-01-14 14:18:15 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -4044,7 +4044,7 @@ dbcmdrow(DBPROCESS * dbproc)
 	tds = dbproc->tds_socket;
 	if (tds->res_info)
 		return SUCCEED;
-	return TDS_FAIL;
+	return FAIL;
 }
 
 /**
@@ -4095,7 +4095,7 @@ dbadlen(DBPROCESS * dbproc, int computeid, int column)
 
 	colinfo = dbacolptr(dbproc, computeid, column, 0);
 	if (!colinfo)
-		return FAIL;
+		return -1;
 
 	len = colinfo->column_cur_size < 0? 0 : colinfo->column_cur_size;
 
@@ -4125,7 +4125,7 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 
 	colinfo = dbacolptr(dbproc, computeid, column, 0);
 	if (!colinfo)
-		return FAIL;
+		return -1;
 
 	switch (colinfo->column_type) {
 	case SYBVARCHAR:
@@ -5740,7 +5740,6 @@ dbsetuserdata(DBPROCESS * dbproc, BYTE * ptr)
 	CHECK_PARAMETER(dbproc, SYBENULL, );
 
 	dbproc->user_data = ptr;
-	return;
 }
 
 /**
@@ -7105,7 +7104,7 @@ dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *for
 	rc = tds_vstrbuild(charbuf, bufsize, &resultlen, text, TDS_NULLTERM, formats, TDS_NULLTERM, ap);
 	charbuf[resultlen] = '\0';
 	va_end(ap);
-	return rc;
+	return rc == TDS_SUCCEED ? SUCCEED : FAIL;
 }
 
 static char *
