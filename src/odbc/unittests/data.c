@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.37 2011-01-08 01:19:48 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.38 2011-01-17 22:05:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -96,7 +96,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	}
 
 	if (strcmp(sbuf, expected) != 0) {
-		fprintf(stderr, "Wrong result\n  Got: %s\n  Expected: %s\n", sbuf, expected);
+		fprintf(stderr, "Wrong result\n  Got:      %s\n  Expected: %s\n", sbuf, expected);
 		result = 1;
 	}
 }
