@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.395 2011-01-08 01:19:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.396 2011-01-17 22:27:41 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -1404,19 +1404,8 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
-		switch (curcol->column_varint_size) {
-		case 4:
-			curcol->column_size = tds_get_int(tds);
-			break;
-		case 2:
-			curcol->column_size = tds_get_smallint(tds);
-			break;
-		case 1:
-			curcol->column_size = tds_get_byte(tds);
-			break;
-		case 0:
-			break;
-		}
+		tds_data_get_info(tds, curcol);
+
 		tdsdump_log(TDS_DBG_INFO1, "processing result. column_size %d\n", curcol->column_size);
 
 		/* Adjust column size according to client's encoding */
@@ -1474,75 +1463,13 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
 
-	switch (curcol->column_varint_size) {
-	case 8:
-		curcol->column_size = 0x7ffffffflu;
-		break;
-	case 4:
-		curcol->column_size = tds_get_int(tds);
-		break;
-	case 2:
-		curcol->column_size = tds_get_smallint(tds);
-		/* under TDS7.2 this means ?var???(MAX) */
-		if (curcol->column_size < 0 && IS_TDS72_PLUS(tds)) {
-			curcol->column_size = 0x3ffffffflu;
-			curcol->column_varint_size = 8;
-		}
-		break;
-	case 1:
-		curcol->column_size = tds_get_byte(tds);
-		break;
-	case 0:
-		break;
-	}
+	tds_data_get_info(tds, curcol);
 
 	/* Adjust column size according to client's encoding */
 	curcol->on_server.column_size = curcol->column_size;
 
-	/* numeric and decimal have extra info */
-	if (is_numeric_type(curcol->column_type)) {
-		curcol->column_prec = tds_get_byte(tds);	/* precision */
-		curcol->column_scale = tds_get_byte(tds);	/* scale */
-		/* FIXME check prec/scale, don't let server crash us */
-	}
-
-	if (IS_TDS71_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
-		/* based on true type as sent by server */
-		/*
-		 * first 2 bytes are windows code (such as 0x409 for english)
-		 * other 2 bytes ???
-		 * last bytes is id in syscharsets
-		 */
-		tds_get_n(tds, curcol->column_collation, 5);
-		curcol->char_conv =
-			tds_iconv_from_collate(tds, curcol->column_collation);
-	}
-
 	/* NOTE adjustements must be done after curcol->char_conv initialization */
 	adjust_character_column_size(tds, curcol);
-
-	if (is_blob_type(curcol->column_type)) {
-		/* discard this additional byte */
-		if (IS_TDS72_PLUS(tds)) {
-			unsigned char num_parts = tds_get_byte(tds);
-			/* TODO do not discard first ones */
-			for (; num_parts; --num_parts) {
-				curcol->table_namelen =
-					tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
-			}
-		} else {
-			curcol->table_namelen =
-				tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
-		}
-	} else if (IS_TDS72_PLUS(tds) && curcol->column_type == SYBMSXML) {
-		unsigned char has_schema = tds_get_byte(tds);
-		if (has_schema) {
-			/* discard schema informations */
-			tds_get_string(tds, tds_get_byte(tds), NULL, 0);	/* dbname */
-			tds_get_string(tds, tds_get_byte(tds), NULL, 0);	/* schema owner */
-			tds_get_string(tds, tds_get_smallint(tds), NULL, 0);	/* schema collection */
-		}
-	}
 
 	/*
 	 * under 7.0 lengths are number of characters not
@@ -1722,45 +1649,10 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 
 	tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
-	switch (curcol->column_varint_size) {
-	case 4:
-		curcol->column_size = tds_get_int(tds);
-		/* Only read table_name for blob columns (eg. not for SYBLONGBINARY) */
-		if (is_blob_type (curcol->column_type)) {
-			curcol->table_namelen =
-				tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
-		}
-		break;
-	case 2:
-		/* assure > 0 */
-		curcol->column_size = tds_get_smallint(tds);
-                /* under TDS9 this means ?var???(MAX) */
-		if (curcol->column_size < 0 && IS_TDS72_PLUS(tds)) {
-			curcol->column_size = 0x3ffffffflu;
-			curcol->column_varint_size = 8;
-		}
-		break;
-	case 1:
-		curcol->column_size = tds_get_byte(tds);
-		break;
-	case 0:
-		break;
-	}
+
+	tds_data_get_info(tds, curcol);
+
 	tdsdump_log(TDS_DBG_INFO1, "processing result. column_size %d\n", curcol->column_size);
-
-	/* numeric and decimal have extra info */
-	if (is_numeric_type(curcol->column_type)) {
-		curcol->column_prec = tds_get_byte(tds);	/* precision */
-		curcol->column_scale = tds_get_byte(tds);	/* scale */
-		/* FIXME check prec/scale, don't let server crash us */
-	}
-
-	/* read sql collation info */
-	if (IS_TDS71_PLUS(tds) && is_collate_type(curcol->on_server.column_type)) {
-		tds_get_n(tds, curcol->column_collation, 5);
-		curcol->char_conv =
-			tds_iconv_from_collate(tds, curcol->column_collation);
-	}
 
 	/* Adjust column size according to client's encoding */
 	curcol->on_server.column_size = curcol->column_size;
@@ -1925,37 +1817,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
-		switch (curcol->column_varint_size) {
-		case 4:
-			if (curcol->column_type == SYBTEXT || curcol->column_type == SYBIMAGE) {
-				curcol->column_size = tds_get_int(tds);
-
-				/* save name */
-				curcol->table_namelen =
-					tds_get_string(tds, tds_get_smallint(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
-			} else
-				tdsdump_log(TDS_DBG_INFO1, "UNHANDLED TYPE %x\n", curcol->column_type);
-			break;
-		case 5:
-			curcol->column_size = tds_get_int(tds);
-			break;
-		case 2:
-			curcol->column_size = tds_get_smallint(tds);
-			break;
-		case 1:
-			curcol->column_size = tds_get_byte(tds);
-			break;
-		case 0:
-			curcol->column_size = tds_get_size_by_type(curcol->column_type);
-			break;
-		}
-
-		/* numeric and decimal have extra info */
-		if (is_numeric_type(curcol->column_type)) {
-			curcol->column_prec = tds_get_byte(tds);	/* precision */
-			curcol->column_scale = tds_get_byte(tds);	/* scale */
-			/* FIXME check prec/scale, don't let server crash us */
-		}
+		tds_data_get_info(tds, curcol);
 
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
@@ -3023,37 +2885,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		/* column type */
 		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
-		/* column size */
-		switch (curcol->column_varint_size) {
-		case 5:
-			curcol->column_size = tds_get_int(tds);
-			break;
-		case 4:
-			if (curcol->column_type == SYBTEXT || curcol->column_type == SYBIMAGE) {
-				curcol->column_size = tds_get_int(tds);
-				/* read table name */
-				curcol->table_namelen =
-					tds_get_string(tds, tds_get_smallint(tds), curcol->table_name,
-						       sizeof(curcol->table_name) - 1);
-			} else
-				tdsdump_log(TDS_DBG_INFO1, "UNHANDLED TYPE %x\n", curcol->column_type);
-			break;
-		case 2:
-			curcol->column_size = tds_get_smallint(tds);
-			break;
-		case 1:
-			curcol->column_size = tds_get_byte(tds);
-			break;
-		case 0:
-			break;
-		}
-
-		/* numeric and decimal have extra info */
-		if (is_numeric_type(curcol->column_type)) {
-			curcol->column_prec = tds_get_byte(tds);	/* precision */
-			curcol->column_scale = tds_get_byte(tds);	/* scale */
-			/* FIXME check prec/scale, don't let server crash us */
-		}
+		tds_data_get_info(tds, curcol);
 
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;

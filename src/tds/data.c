@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2003-2010 Frediano Ziglio
+ * Copyright (C) 2003-2011 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.27 2010-11-26 08:41:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.28 2011-01-17 22:27:41 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -181,6 +181,79 @@ tds_get_cardinal_type(int datatype, int usertype)
 		break;
 	}
 	return datatype;
+}
+
+TDS_INT
+tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
+{
+	switch (col->column_varint_size) {
+	case 8:
+		col->column_size = 0x7ffffffflu;
+		break;
+	case 5:
+	case 4:
+		col->column_size = tds_get_int(tds);
+		break;
+	case 2:
+		/* assure > 0 */
+		col->column_size = tds_get_smallint(tds);
+		/* under TDS9 this means ?var???(MAX) */
+		if (col->column_size < 0 && IS_TDS72_PLUS(tds)) {
+			col->column_size = 0x3ffffffflu;
+			col->column_varint_size = 8;
+		}
+		break;
+	case 1:
+		col->column_size = tds_get_byte(tds);
+		break;
+	case 0:
+		col->column_size = tds_get_size_by_type(col->column_type);
+		break;
+	}
+
+	/* numeric and decimal have extra info */
+	if (is_numeric_type(col->column_type)) {
+		col->column_prec = tds_get_byte(tds);        /* precision */
+		col->column_scale = tds_get_byte(tds);       /* scale */
+		/* FIXME check prec/scale, don't let server crash us */
+	}
+
+	if (IS_TDS71_PLUS(tds) && is_collate_type(col->on_server.column_type)) {
+		/* based on true type as sent by server */
+		/*
+		 * first 2 bytes are windows code (such as 0x409 for english)
+		 * other 2 bytes ???
+		 * last bytes is id in syscharsets
+		 */
+		tds_get_n(tds, col->column_collation, 5);
+		col->char_conv =
+			tds_iconv_from_collate(tds, col->column_collation);
+	}
+
+	/* Only read table_name for blob columns (eg. not for SYBLONGBINARY) */
+	if (is_blob_type(col->on_server.column_type)) {
+		/* discard this additional byte */
+		if (IS_TDS72_PLUS(tds)) {
+			unsigned char num_parts = tds_get_byte(tds);
+			/* TODO do not discard first ones */
+			for (; num_parts; --num_parts) {
+				col->table_namelen =
+				tds_get_string(tds, tds_get_smallint(tds), col->table_name, sizeof(col->table_name) - 1);
+			}
+		} else {
+			col->table_namelen =
+				tds_get_string(tds, tds_get_smallint(tds), col->table_name, sizeof(col->table_name) - 1);
+		}
+	} else if (IS_TDS72_PLUS(tds) && col->on_server.column_type == SYBMSXML) {
+		unsigned char has_schema = tds_get_byte(tds);
+		if (has_schema) {
+			/* discard schema informations */
+			tds_get_string(tds, tds_get_byte(tds), NULL, 0);        /* dbname */
+			tds_get_string(tds, tds_get_byte(tds), NULL, 0);        /* schema owner */
+			tds_get_string(tds, tds_get_smallint(tds), NULL, 0);    /* schema collection */
+		}
+	}
+	return TDS_SUCCEED;
 }
 
 #include "types.h"

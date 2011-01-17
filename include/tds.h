@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2010  Frediano Ziglio
+ * Copyright (C) 2010, 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.348 2010-12-30 18:54:08 freddy77 Exp $ */
+/* $Id: tds.h,v 1.349 2011-01-17 22:27:40 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1520,6 +1520,7 @@ int tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@out@
 /* data.c */
 void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 void tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type);
+TDS_INT tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col);
 
 
 /* tds_convert.c */
