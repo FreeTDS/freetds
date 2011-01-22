@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.147 2010-11-26 19:46:55 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.148 2011-01-22 20:11:28 jklowden Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -1173,7 +1173,7 @@ tds_canonical_charset_name(const char *charset_name)
 	if (res >= 0)
 		return canonic_charsets[res].name;
 
-	return NULL;
+	return charset_name;	/* hope for the best */
 }
 
 /**
