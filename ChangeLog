@@ -1,3 +1,7 @@
+Tue Jan 25 00:52:04 EST 2011	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml include/sybdb.h
+	- remove use and reference to sqlfront.h.  
+
 Sat Jan 22 15:04:21 EST 2011	JK Lowden <jklowden@freetds.org>
 	* src/tds/iconv.c tds_canonical_charset_name cannot return NULL
 
@@ -3149,4 +3153,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3194 2011-01-22 20:11:27 jklowden Exp $
+$Id: ChangeLog,v 1.3195 2011-01-25 06:18:53 jklowden Exp $

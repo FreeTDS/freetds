@@ -9,8 +9,8 @@
 ]>
 <book>
 	<bookinfo>
-		<date>$Date: 2010-12-31 04:12:07 $</date>
-		<releaseinfo>$Revision: 1.131 $</releaseinfo>
+		<date>$Date: 2011-01-25 06:18:53 $</date>
+		<releaseinfo>$Revision: 1.132 $</releaseinfo>
 		<title>&freetds; User Guide</title>
 		<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 		<author>
@@ -62,9 +62,9 @@ This guide is here for you, and we hope that you will be here for it, that other
 The version you're reading is:
 			</para> 
   			<simplelist type='vert'>
-<member>$Revision: 1.131 $</>
-<member>$Date: 2010-12-31 04:12:07 $</>
-<member>CVS control number $Id: userguide.sgml,v 1.131 2010-12-31 04:12:07 jklowden Exp $.</>
+<member>$Revision: 1.132 $</>
+<member>$Date: 2011-01-25 06:18:53 $</>
+<member>CVS control number $Id: userguide.sgml,v 1.132 2011-01-25 06:18:53 jklowden Exp $.</>
   			</simplelist>
 			</footnote>
 can be found on the &freetds; 
@@ -610,7 +610,7 @@ url="http://www.madgoat.com">www.madgoat.com</ulink>).</para>
 		</sect3>
 		</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
-  			<para>As of this writing ($Date: 2010-12-31 04:12:07 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
+  			<para>As of this writing ($Date: 2011-01-25 06:18:53 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.  </para>
 
 		<sect3 id="OSX.Build.Update">
 			<title>Alternative build procedure</title>
@@ -3538,7 +3538,7 @@ the extent to which it is implemented.  The <emphasis>Status</> field may be:
 #include <libgen.h>
 ]]>
 
-#include &lt;sqlfront.h&gt;	<lineannotation>/* <filename>sqlfront.h</> always comes first */</lineannotation>
+#include &lt;sybfront.h&gt;	<lineannotation>/* <filename>sybfront.h</> always comes first */</lineannotation>
 #include &lt;sybdb.h&gt;	<lineannotation>/* <filename>sybdb.h</> is the only other file you need */</lineannotation>
 
 int err_handler(DBPROCESS*, int, int, int, char*, char*);

@@ -42,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.97 2010-12-30 14:53:12 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.98 2011-01-25 06:18:53 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -173,8 +173,12 @@ enum
 #define SYBDATETIME	SYBDATETIME
 	SYBBIT = 50,		/* 0x32 */
 #define SYBBIT	SYBBIT
+	SYBBITN = 104,		/* 0x68 */
+#define SYBBITN	SYBBITN
 	SYBTEXT = 35,		/* 0x23 */
 #define SYBTEXT	SYBTEXT
+	SYBNTEXT = 99,		/* 0x63 */
+#define SYBNTEXT	SYBNTEXT
 	SYBIMAGE = 34,		/* 0x22 */
 #define SYBIMAGE	SYBIMAGE
 	SYBMONEY4 = 122,	/* 0x7A */
@@ -199,8 +203,10 @@ enum
 #define SYBFLTN	SYBFLTN
 	SYBMONEYN = 110,	/* 0x6E */
 #define SYBMONEYN	SYBMONEYN
-	SYBDATETIMN = 111	/* 0x6F */
+	SYBDATETIMN = 111,	/* 0x6F */
 #define SYBDATETIMN	SYBDATETIMN
+	SYBNVARCHAR = 103	/* 0x67 */
+#define SYBNVARCHAR	SYBNVARCHAR
 };
 
 #define SYBAOPCNT  0x4b
