@@ -1,3 +1,7 @@
+Fri Feb 11 14:54:17 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/replacements/iconv.c:
+	- improve iconv replacement unsigned/signed declaration
+
 Tue Jan 25 00:52:04 EST 2011	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml include/sybdb.h
 	- remove use and reference to sqlfront.h.  
@@ -3153,4 +3157,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3195 2011-01-25 06:18:53 jklowden Exp $
+$Id: ChangeLog,v 1.3196 2011-02-11 13:54:43 freddy77 Exp $
