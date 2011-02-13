@@ -1,3 +1,6 @@
+Sat Feb 12 20:53:19 EST 2011	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml	Add linker appendix
+
 Fri Feb 11 14:54:17 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/iconv.c:
 	- improve iconv replacement unsigned/signed declaration
@@ -3157,4 +3160,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3196 2011-02-11 13:54:43 freddy77 Exp $
+$Id: ChangeLog,v 1.3197 2011-02-13 01:54:37 jklowden Exp $
