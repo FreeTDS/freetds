@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.201 2010-11-30 10:55:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.202 2011-02-17 21:42:29 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -333,8 +333,10 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		};
 
 	/* disable tds9 if iconv wanted, currently not supported */
-	if (IS_TDS72_PLUS(connection) && tds->use_iconv)
+	if (IS_TDS72_PLUS(connection) && tds->use_iconv) {
 		connection->tds_version = 0x701;
+		tdserror(tds->tds_ctx, tds, TDSEVERDOWN, 0);
+	}
 
 	if (TDS_MAJOR(connection) == 0) {
 		unsigned int i;
