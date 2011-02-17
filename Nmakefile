@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.7 2010-10-13 17:49:17 jklowden Exp $
+# $Id: Nmakefile,v 1.8 2011-02-17 15:55:24 jklowden Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -12,6 +12,13 @@
 #	nmake.exe -f Nmakefile -nologo PLATFORM=win32 CONFIGURATION=debug
 #	nmake.exe -f Nmakefile -nologo build-win32d
 #	
+
+!IFNDEF PLATFORM
+PLATFORM = Win32
+!ENDIF
+!IFNDEF CONFIGURATION
+CONFIGURATION = Debug
+!ENDIF
 
 MKDIR = MD
 MV = move /Y
@@ -226,7 +233,7 @@ $(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
 # If it finds one, it enables the code to generate the header files. 
 #
 
-!IF 0 == [dir /b /ad CVS]
+!IF 0 == [dir /b /ad CVS 2>NUL:]
 #
 # Generate distributed header files
 #
