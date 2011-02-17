@@ -42,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.98 2011-01-25 06:18:53 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.99 2011-02-17 15:55:36 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -796,6 +796,7 @@ RETCODE dbstrcpy(DBPROCESS * dbproc, int start, int numbytes, char *dest);
 int dbstrlen(DBPROCESS * dbproc);
 DBINT dbvarylen(DBPROCESS * dbproc, int column);
 
+#define SYBEVERDOWN	  100	/* TDS version downgraded . */
 #define SYBEICONVIU	 2400	/* Some character(s) could not be converted into client's character set. */
 #define SYBEICONVAVAIL	 2401	/* Character set conversion is not available between client character set '%.*s' and server character set '%.*s'.*/
 #define SYBEICONVO	 2402	/* Error converting characters into server's character set. Some character(s) could not be converted.*/

@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.349 2011-01-17 22:27:40 freddy77 Exp $ */
+/* $Id: tds.h,v 1.350 2011-02-17 15:55:36 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -283,6 +283,7 @@ enum tds_end
  * in db-lib and ODBC.  ct-lib maps them to ct-lib numbers (todo). 
  */
 typedef enum {	TDSEOK    = TDS_SUCCEED, 
+		TDSEVERDOWN    =  100,
 		TDSEICONVIU    = 2400, 
 		TDSEICONVAVAIL = 2401, 
 		TDSEICONVO     = 2402, 

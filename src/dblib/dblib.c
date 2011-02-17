@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.377 2011-01-14 14:18:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.378 2011-02-17 15:55:36 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7515,7 +7515,8 @@ typedef struct _dblib_error_message
  * an extra NULL to indicate a zero-length format string. 
  */
 static const DBLIB_ERROR_MESSAGE dblib_error_messages[] = 
-	{ { SYBEICONVIU,     EXCONVERSION,	"Some character(s) could not be converted into client's character set\0" }
+	{ { SYBEVERDOWN, 	   EXINFO,	"TDS version downgraded to '%1!'\0%s" }
+	, { SYBEICONVIU,     EXCONVERSION,	"Some character(s) could not be converted into client's character set\0" }
 	, { SYBEICONVAVAIL,  EXCONVERSION,	"Character set conversion is not available between client character set '%1!' and "
 						"server character set '%2!'\0%s %s" }
 	, { SYBEICONVO,      EXCONVERSION,	"Error converting characters into server's character set. Some character(s) could "
