@@ -49,11 +49,11 @@
 #include <locale.h>
 #endif
 
-#include <sqlfront.h>
+#include <sybfront.h>
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.47 2010-12-21 16:55:24 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.48 2011-02-17 15:55:28 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
