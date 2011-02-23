@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.284.2.4 2009-04-03 09:40:05 freddy77 Exp $ */
+/* $Id: tds.h,v 1.284.2.5 2011-02-23 08:03:53 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1395,7 +1396,7 @@ int tds_read_conf_file(TDSCONNECTION * connection, const char *server);
 TDSCONNECTION *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_connection(TDSCONNECTION * connection);
 void tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
-void tds_lookup_host(const char *servername, char *ip);
+int tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(const char *interfloc);
 
 TDSLOCALE *tds_get_locale(void);

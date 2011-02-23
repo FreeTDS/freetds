@@ -1,3 +1,7 @@
+Wed Feb 23 09:03:11 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/connectparams.c src/tds/config.c:
+	- backported fix for server_host_name setting in odbc
+
 Tue Aug 10 09:38:59 CEST 2010    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac m4/acx_pthread.m4: backport patch for HP-UX compiler
 
@@ -311,4 +315,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.78 2010-08-10 07:39:13 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.79 2011-02-23 08:03:53 freddy77 Exp $

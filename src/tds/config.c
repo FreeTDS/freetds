@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006, 2007  Frediano Ziglio
+ * Copyright (C) 2006-2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -76,7 +76,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.132.2.1 2009-04-03 09:40:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.132.2.2 2011-02-23 08:03:53 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -724,14 +724,15 @@ tds_set_interfaces_file_loc(const char *interf)
 }
 
 /**
- * Given a servername lookup the hostname. The server ip will be stored 
- * in the string 'ip' in dotted-decimal notation.
+ * Get the IP address for a hostname. Store server's IP address
+ * in the string 'ip' in dotted-decimal notation.  (The "hostname" might itself
+ * be a dotted-decimal address.
  *
  * If we can't determine the IP address then 'ip' will be set to empty
  * string.
  */
 /* TODO callers seem to set always connection info... change it */
-void
+int
 tds_lookup_host(const char *servername,	/* (I) name of the server                  */
 		char *ip	/* (O) dotted-decimal ip address of server */
 	)
@@ -745,14 +746,14 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	int h_errnop;
 
 	/*
-	 * Only call gethostbyname if servername is not an ip address. 
-	 * This call take a while and is useless for an ip address.
+	 * Call gethostbyname(3) only if servername is not an ip address.
+	 * This call takes a while and is useless for an ip address.
 	 * mlilback 3/2/02
 	 */
 	ip_addr = inet_addr(servername);
 	if (ip_addr != INADDR_NONE) {
 		tds_strlcpy(ip, servername, 17);
-		return;
+		return TDS_SUCCEED;
 	}
 
 	host = tds_gethostbyname_r(servername, &result, buffer, sizeof(buffer), &h_errnop);
@@ -762,8 +763,10 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 		struct in_addr *ptr = (struct in_addr *) host->h_addr;
 
 		tds_inet_ntoa_r(*ptr, ip, 17);
+		return TDS_SUCCEED;
 	}
-}				/* tds_lookup_host()  */
+	return TDS_FAIL;
+}
 
 /**
  * Given a portname lookup the port.
