@@ -1,3 +1,6 @@
+Sat Mar 12 07:52:15 EST 2011	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml fine tune linker appendix
+	
 Thu Feb 17 16:40:58 EST 2011	JK Lowden <jklowden@freetds.org>
 	* Nmakefile more help for building under Windows
 
@@ -3170,4 +3173,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3199 2011-02-17 21:42:29 jklowden Exp $
+$Id: ChangeLog,v 1.3200 2011-03-12 12:54:00 jklowden Exp $

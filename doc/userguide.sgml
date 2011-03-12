@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-02-13 01:54:38 $</date>
-	<releaseinfo>$Revision: 1.133 $</releaseinfo>
+	<date>$Date: 2011-03-12 12:54:01 $</date>
+	<releaseinfo>$Revision: 1.134 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.133 $</>
-				<member>$Date: 2011-02-13 01:54:38 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.133 2011-02-13 01:54:38 jklowden Exp $.</>
+				<member>$Revision: 1.134 $</>
+				<member>$Date: 2011-03-12 12:54:01 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.134 2011-03-12 12:54:01 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -523,7 +523,32 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>Building for Windows using Microsoft's compiler is supported via the <filename>NMakefile</filename> included in the distribution.  Set up the command-line build environment per Microsoft's instructions, and run e.g. 
 
 <screen>
-	<prompt>$ </prompt><userinput>nmake -fNmakefile -nologo apps PLATFORM=win32 CONFIGURATION=debug</userinput></screen></para>
+	<prompt>$ </prompt><userinput>nmake -fNmakefile -nologo apps PLATFORM=win32 CONFIGURATION=debug</userinput></screen>
+	
+The assumed availability of standard <filename>.h</filename> files is captured in <filename>win32/config.h</filename>.  If you encounter difficulties related to missing include files, examine the indicated file for an include guard, and compare it to  	<filename>win32/config.h</filename>.  For example, you get an error like this:
+<example><title>Missing include file in Windows</title>
+<screen>
+<computeroutput>&hellip;
+asprintf.c
+include\tds_sysdep_private.h(239) : fatal error C1083: Cannot open include file: 'inttypes.h': No such file or directory
+</computeroutput></screen>
+</example>
+
+<filename>src/replacements/asprintf.c</filename>  includes <filename>include/tds_sysdep_private.h</filename>, where you find 
+
+<screen><computeroutput>238  #ifdef HAVE_INTTYPES_H
+239  #include &lt;inttypes.h&gt;
+240  #endif
+</computeroutput></screen>
+
+and, sure enough, <filename>asprintf.c</filename> earlier includes <filename>win32/config.h</filename>, which says
+
+<screen>91  /* Define to 1 if you have the &lt;inttypes.h&gt; header file. */
+92  #define HAVE_INTTYPES_H 1</screen>
+
+Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your system.  </para>
+
+<para>Let's review: <filename>config.h</filename> defines a bunch of preprocessor definitions that (try to) describe your build environment to the compiler.  In this example, it got one wrong, causing the compiler to look for a file that isn't present, creating the error.  The solution is <emphasis> not</emphasis> to change the &freetds; source code, but merely to comment out line 92 in <filename>config.h</filename>.   </para>
 
 <note><para>Perhaps you're shaking your head at such an <quote>old school</quote> approach.  Over the years, Microsoft's proprietary project-configuration files have proved difficult to support.  Every version is different, and there are a great many versions in use <quote>in the wild</quote> at any one time.  As the project changes, it becomes impossible to maintain these kinds of files.  </para></note>
 
@@ -544,6 +569,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>From the Department of Double Emulation: &freetds; builds as a <filename>.dll</> under <productname>WINE</> and as a <filename>.a</> under <productname>Interix</>.  See the mailing list archives (second half of 2003) for details.</para>
 				</sect3>
 			</sect2>
+		
 		<sect2 id="VMS"><title>VMS&reg;</title>
 
 <para>&freetds; will probably build and run on most versions of OpenVMS Alpha 7.0 and later with DEC/Compaq C 6.0 or later.  Other prerequisites:
@@ -581,7 +607,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-02-13 01:54:38 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.</para>
+<para>As of this writing ($Date: 2011-03-12 12:54:01 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.</para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
@@ -4092,7 +4118,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 					<callout arearefs="samplecode.errors.msghandler.suppress"><para>Some messages don't convey much, as though the server gets lonely sometimes.  You're not obliged to print every one.</para></callout>
 					<callout arearefs="samplecode.errors.msghandler.severity"><para>Severities are defined in the <emphasis>server</> documentation, and can be set by the <symbol>T-SQL RAISERROR</> statement.</para></callout>
 					<callout arearefs="samplecode.errors.msghandler.return"><para>Message handlers <emphasis>always and only ever</> return zero.</para></callout>
-					<callout arearefs="samplecode.errors.errhandler.args"><para>When first writing the handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dberrhandle()</>. <footnote><para>If that advice sounds familiar, it's because it bears repeating.</para></footnote></para></callout>
+					<callout arearefs="samplecode.errors.errhandler.args"><para>When first writing the handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dberrhandle()</>. <footnote><para>If that 					advice sounds familiar, it's because it bears repeating.</para></footnote></para></callout>
 					<callout arearefs="samplecode.errors.errhandler.msgs"><para>Some messages are so severe they provoke <symbol>db-lib</> into calling the error handler, too!  If you have both installed &mdash; and of course you do, right? &mdash; then you can skip those lacking an error number.</para></callout>
 					<callout arearefs="samplecode.errors.errhandler.return"><para>While <symbol>INT_CANCEL</> is the most common return code, it's not the only one.  For one thing, the error handler's return code can control how long <symbol>db-lib</> keeps retrying timeout errors.  See the documentation for details.</para></callout>
 					</calloutlist></para>
@@ -4196,13 +4222,13 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 
 <!-- ////////////////// Appendix  ////////////////// -->
 
-<Appendix id="rutime.linker">
+<Appendix id="rtl">
 	<title>On Linkers</title>
 	<Abstract><para>&freetds; is a library, obviously, its functions invoked by an application.  How the application finds the library can be mysterious.  In the interest of making &freetds; easier to use, this appendix discusses how it all works.   </para>
 	<para>This appendix focusses on <emphasis>using</emphasis> &freetds; in your application.  It isn't intended to help in building &freetds;, although the background information it provides might be useful.  </para>	
 	</Abstract>
 
-	<section id="rutime.linker.define.function">
+	<section id="rtl.define.function">
 		<title>What is a C function?</title>
 
 <para>A C function is a named bit of code.</para>
@@ -4214,7 +4240,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			<listitem><para>Convert source code into object code </para></listitem>
 			<listitem><para>Put in jumps to defined functions </para></listitem>
 			<listitem><para>Create a list of defined functions, and their addresses </para></listitem>
-			<listitem><para>Create a list of undefined ones </para></listitem>
+			<listitem><para>Create a list of undefined functions </para></listitem>
 		</itemizedlist>
 
 The <command>nm</command> utility displays function names.  Here are the ones defined by <filename>bsqldb.c</filename> (in <filename>bsqsldb.o</filename>):
@@ -4256,7 +4282,7 @@ static int set_format_string(struct METADATA * meta, const char separator[]);
                  U dbaltcolid
                  U dbaltlen</computeroutput></screen>
 
-Two things to note.  First, the functions defined by <filename>bsqldb.o</filename> have addresses, and those that don't, don't.  Second, <emphasis>only the name</emphasis> identifies the function.  It's been that way since about 1978, and it's one reason C libraries are so useful: to find a function, the tool need only <firstterm>resolve the name</firstterm>, i.e. convert the name into an address.  The caller (the programmer, really) has to know the function's inputs and semantics (how it behaves), but the tool's job is bone simple.  Which turns out to be quite handy.        
+Two things to note.  First, the functions defined by <filename>bsqldb.o</filename> have addresses, and undefined functions don't.  Second, <emphasis>only the name</emphasis> identifies the function.  It's been that way since about 1978, and it's one reason C libraries are so useful: to find a function, the tool need only <firstterm>resolve the name</firstterm>, i.e. convert the name into an address.  The caller (the programmer, really) has to know the function's inputs and semantics (how it behaves), but the tool's job is bone simple.  Which turns out to be quite handy.        
 	</para>
 
 <!--
@@ -4266,20 +4292,20 @@ It has an address &mdash; a location &mdash; in the <firstterm>text</firstterm> 
 -->
 			</section>
 	
-	<section id="rutime.linker.define.library">
+	<section id="rtl.define.library">
 		<title>What is a C library?</title>
 <para>A C library is a set of named functions, for example <literal>dbinit()</literal> or <literal>SQLConnect()</literal>.  Or, for that matter, <literal>fopen(3)</literal><footnote><para>The Unix convention is to put in parentheses behind the name the section of the manual in which the function is documented.  &freetds; functions don't get numbers because they're not in the manual.  Yet.  </para></footnote>.  </para>
 
 <para>Libraries come in two flavors: <firstterm>static</firstterm> and <firstterm>dynamic</firstterm>.  </para>
 
-		<section id="rutime.linker.define.library.static">
+		<section id="rtl.define.library.static">
 			<title>Static libraries</title>
 <para>Static libraries (also known as <firstterm>archives</firstterm>) have been around as long as C itself.  Like a <literal>.zip</literal> file, they're just a bag of object files &mdash; containing functions, of course &mdash; with a table of contents in front giving the address of each name<footnote><para>Or, depending on how you look at it, the name of each address.</para></footnote>.  Static libraries are created from object files using a <firstterm>librarian</firstterm> utility of some kind.  One such programs is <command>ar</command>, for <emphasis>archive</emphasis>.  </para>
 
 <para>Static libraries are part of the build environment.  Functions in static libraries are joined to a program's main module by a <firstterm>static linker</firstterm> at build time to produce an executable program.  The executable incorporates the libraries' object code into its own body, making it completely self-sufficient.  </para>
 		</section>
 
-		<section id="rutime.linker.define.library.dynamic">
+		<section id="rtl.define.library.dynamic">
 			<title>Dynamic libraries</title>
 
 <para>Dynamic libraries are the new kid on the block, as these things go, arriving on the Unix scene circa 1985.   Like a static library, a dynamic library is a collection of functions with a table of contents.  They are referenced at build time to give the executatble information about how they will eventually be used, but they aren't <emphasis>used</emphasis> until run time.  </para>
@@ -4293,7 +4319,7 @@ It has an address &mdash; a location &mdash; in the <firstterm>text</firstterm> 
 
 <para>C header files include <firstterm>functional prototypes</firstterm>, declarations (not <emphasis>definitions)</emphasis> of functions.  Functional prototypes describe to the compiler each function's parameters, allowing the compiler to confirm that the function is being called correctly.  </para>
 
-<para>Most of the functions declared in header files are implemented in libraries.  However, there's <emphasis>no mechanical or automatic relationship</emphasis> between the functional prototypes in the header files and the implementation of those same functions in a library.  The <literal>.h</literal> file is maintained by hand, by the programmer, and is used to generate a library.  The header file and associated library are distributed and installed together (one hopes), but correct installation and subsequent use by the compiler &amp; linker require human beings to keep track of the pair.  Failure to do so leads to <quote>interesting</quote> development and even run-time problems, especially with libraries whose functions' parameters frequently change from version to version. </para>
+<para>Most of the functions declared in header files are implemented in libraries.  However, there's <emphasis>no mechanical or automatic relationship</emphasis> between the functional prototypes in the header files and their implementation in a library.  The <literal>.h</literal> file is maintained by hand, by the programmer, and is used to generate a library.  The header file and associated library are distributed and installed together (one hopes), but correct installation and subsequent use by the compiler &amp; linker require human beings to keep track of the pair.  Failure to do so leads to <quote>interesting</quote> development and even run-time problems, especially with libraries whose functions' parameters change from version to version. </para>
 
 <para>For example, imagine a function <literal>f(int g)</literal> defined in library <filename>libf.so</filename> and declared in <filename>f.h</filename>.  In a later version of <filename>libf.so</filename>, the function's parameter is changed to use a pointer, <literal>f(int *p)</literal>, and <filename>f.h</filename> is likewise updated.  Possible errors that cannot be prevented by the linker include: 
 
@@ -4314,7 +4340,7 @@ These errors are possible because C functions are identified to the linker <emph
 
 <para>A linker, any linker, knits together object files (some of which may be in libraries) such that every function needed by the program has a definition.  If the linker fails to locate a definition for even one function, it will fail and the program will not run.  </para>
 
-<para>Returning to <link linkend="bsqldb.unresolved"><filename>bsqldb.o</filename></link>, we can use <command>nm</command> to see which functions are unresolved, and determine whether or not a particular library contains them.  We'll ignore the first symbols start with an underscore, marking them per the C standard as being provided by the implementation<footnote><para>Why and how leading underscores enter into this discussion is just one more example of arcane historical practices one needs to know to master the subject.  For our purposes, though, it's enough to know that <quote>implementation-provided</quote> functions like these &mdash; functions provided by the C standard library &mdash; often have an underscored prepended.  </para></footnote>, and focus on the last five in this abbreviated list.  
+<para>Returning to <link linkend="bsqldb.unresolved"><filename>bsqldb.o</filename></link>, we can use <command>nm</command> to see which functions are unresolved, and determine whether or not a particular library contains them.  We'll ignore the symbols that start with an underscore, marking them per the C standard as being provided by the implementation<footnote><para>Why and how leading underscores enter into this discussion is just one more example of arcane historical practices one needs to know to master the subject.  For our purposes, though, it's enough to know that <quote>implementation-provided</quote> functions like these &mdash; functions provided by the C standard library &mdash; often have an underscored prepended.  </para></footnote>, and focus on the last five in this abbreviated list.  
 
  <variablelist>
  	<title>Some unresolved functions in <filename>bsqldb.o</filename></title>
@@ -4382,7 +4408,7 @@ Although these examples refer to static libraries, <command>nm</command> works j
 
 			<section>
 				<title>Knitting together the object modules</title>
-<para>The static linker merges your object files into one executable.  Your project's object files may refer freely (usually) to each other's functions, and the linker will match them up.  It will catenate them together, compute every funtion's offset from the start of the executable, and replace every function reference with the actual address needed for the executable it's constructing.  For library functions, definitions are copied from the library and appended to the output file (executable).  The placeholder addresses left by the compiler are similarly replaced by offsets.  </para>
+<para>The static linker merges your object files into one executable.  Your project's object files may refer freely (usually) to each other's functions, and the linker will match them up.  It will catenate them together, compute every function's offset from the start of the executable, and replace every function reference with the actual address needed for the executable it's constructing.  For library functions, definitions are copied from the library and appended to the output file (executable).  The placeholder addresses left by the compiler are similarly replaced by offsets.  </para>
 				</section>
 
 			<section>
@@ -4474,7 +4500,15 @@ Although these examples refer to static libraries, <command>nm</command> works j
         -lsybdb.5 => /usr/local/lib/libsybdb.so.5</computeroutput>
 </screen>
 
-Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figuring out this information by itself.  All it does is report the results of its interrogation of the runtime linker.  As the configuration of the runtime linker is changed, so changes the output of <command>ldd</command>.  </para>
+Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figuring out this information by itself.  It just reports the results of its interrogation of the runtime linker.  As the configuration of the runtime linker is changed, so changes the output of <command>ldd</command>.  </para>
+				</section>
+
+			<section id="linker.dynamic.win32">
+				<title>A Word about Windows&reg;</title>
+<para>WIndows executables use the older COFF format, which has no provision for an <literal>RPATH</>.  The runtime linker searches the <literal>PATH</> instead, after some built-in locations that usually include the current working directory.  Neither <command>ldd</command> nor any similar utility is included in the basic product.  </para>
+
+<para>It has been said that Unix is for <emphasis>programmers</emphasis> and Windows is for <emphasis>users</>, and perhaps that roughtly describes the  intention.  But the Unix features listed above &mdash; <literal>RPATH</> and <command>ldd</command> &mdash; as well as a canonical filesystem hierarchy and dynamic library versioning, all promote a better <emphasis>user</emphasis> experience.  Because of them, the problem of DLL conflicts in Windows hardly exists in Unix.  Yet they are neither new nor secrect nor patented nor complicated; Microsoft could have adopted years ago (as Apple finally did).  We therefore know that the 20-year old phenomemon known as &ldquo;DLL hell&rdquo; is not inevitable, but a <emphasis>choice</> signifying nothing so much as Microsoft's indifference to its customers.  </para>
+
 				</section>
 
 			<section id="linker.dynamic.advice">
@@ -4487,6 +4521,14 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 				</section>
 
 			</section> <!-- end linker.dynamic -->
+		</section>
+	<section id="linker.conclusion">
+		<title>Keep in Mind</title>
+<para>The compiler's job ends on the last line of each source code file.  A header file describes a function <emphasis>for the compiler</>, not the linker.  </para>
+
+<para>The linker, static or runtime, uses only the function's name to resolve references.  Function parameters and semantics are invisible to it.  </para>
+
+<para>The programmer and, to a lesser degree, the sysadmin direct the choice of which library to link to an executable.  A missing function will prevent execution.  A wrong function will promote wrong execution.  Don't do that.  </para>
 		</section>
 	</Appendix>
 
