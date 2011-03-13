@@ -1,3 +1,10 @@
+Sun Mar 13 14:40:55 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* doc/bsqldb.txt doc/freebcp.txt doc/tsql.txt
+	- doc/userguide.sgml
+	- updated for upcoming release
+	* src/apps/bsqldb.c support numeric/decimal
+	* src/apps/freebcp.c allow no username for trusted logins
+
 Sat Mar 12 07:52:15 EST 2011	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml fine tune linker appendix
 	
@@ -3173,4 +3180,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3200 2011-03-12 12:54:00 jklowden Exp $
+$Id: ChangeLog,v 1.3201 2011-03-13 21:32:39 jklowden Exp $

@@ -1,10 +1,10 @@
 NAME
-  bsqldb - batch SQL script processor using db-lib
+  bsqldb - batch SQL script processor using DB-Library
 
 SYNOPSIS
-  bsqldb [-U username] [-P password] [-S server] [-D database]
-         [-i input_file] [-o output_file] [-e error_file]
-         [-t field_term] [-qv]
+  bsqldb [-U username] [-P password] [-S servername] [-D database]
+         [-i input_file] [-o output_file] [-e error_file] [-H hostname]
+         [-t field_term] [-hqv]
 
 DESCRIPTION
   bsqldb is a utility program distributed with FreeTDS.
@@ -14,15 +14,16 @@ DESCRIPTION
   the command "go" on a line by itself as a separator between batches. The last
   batch need not be followed by "go".
 
-  bsqldb makes use of the db-lib API provided by FreeTDS. This 
+  bsqldb makes use of the DB-Library API provided by FreeTDS. This 
   API is of course also available to application developers.
 
 OPTIONS
-  -U username   Database server login name.
-
+  -U username   Database server login name. If username is not provided, a domain
+  login is attempted for TDS 7+ connections.
+  
   -P password   Database server password.
 
-  -S server	Database server to which to connect.
+  -S servername	Database server to which to connect.
 
   -D database	Database to use.
 
@@ -38,21 +39,24 @@ OPTIONS
 
   -h  Print column headers with the data to the same file. 
   
-  -H  Override hostname sent to server. 
+  -H  hostname Override name of client sent to server. 
   
   -q  Do not print column metadata, return status, or rowcount. Overrides -h. 
 
-  -v  Verbose mode, for more information about the db-lib interaction.
+  -v  Verbose mode, for more information about the DB-Libraryrary interaction.
   This also reports the result set metadata, including and return code. All
   verbose data are written to standard error (or -e), so as not to interfere 
   with the data stream.
+
+ENVIRONMENT
+  DSQUERY	default servername
 
 NOTES
   bsqldb is a filter; it reads from standard input, writes to standard output, 
   and writes errors to standard error. The -i, -o, and -e options override 
   these, of course.
 
-  The source code for bsqldb is intended as a model for db-lib users. db-lib
+  The source code for bsqldb is intended as a model for DB-Library users. DB-Library
   has a rich set of functions, and it can be hard sometimes to understand how to
   use them, particularly the first time. If you are using it in this way and
   find something unclear, you are encouraged to email the author your

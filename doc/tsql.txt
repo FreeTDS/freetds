@@ -39,7 +39,8 @@ OPTIONS
 
 	-p port  the port at which SQL Server is listening
 
-	-U username  database login name.
+	-U username  database login name. If username is not provided, a domain
+	login is attempted for TDS 7+ connections.
 
 	-P password  database password.
 	
