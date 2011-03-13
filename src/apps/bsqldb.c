@@ -53,7 +53,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.48 2011-02-17 15:55:28 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.49 2011-03-13 21:32:46 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -661,6 +661,7 @@ static int
 get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 {
 	switch (type) {
+	case SYBBITN:
 	case SYBBIT:
 		return 1;
 	case SYBINTN:
@@ -680,11 +681,15 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 		return 6;
 	case SYBINT4:
 		return 11;
+	case SYBDECIMAL:
+	case SYBNUMERIC:
 	case SYBINT8:
 		return 21;
 	case SYBVARCHAR:
 	case SYBCHAR:
 		return size;
+	case SYBNVARCHAR:
+		return size/2;
 	case SYBFLT8:
 		return 11;	/* FIX ME -- we do not track precision */
 	case SYBREAL:
@@ -698,15 +703,13 @@ get_printable_size(int type, int size)	/* adapted from src/dblib/dblib.c */
 	case SYBDATETIMN:
 		return 26;	/* FIX ME */
 #if 0	/* not exported by sybdb.h */
-	case SYBBITN:
 	case SYBLONGBINARY:
 	case SYBLONGCHAR:
-	case SYBNTEXT:
-	case SYBNVARCHAR:
 #endif
 	case SYBBINARY:
 	case SYBIMAGE:
 	case SYBTEXT:
+	case SYBNTEXT:
 	case SYBVARBINARY:
 		return INT_MAX;
 	}
@@ -818,6 +821,8 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	}
 	
 	DBSETLAPP(login, options->appname);
+	
+	options->servername = getenv("DSQUERY");
 	
 	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:H:hqv")) != -1) {
 		switch (ch) {
