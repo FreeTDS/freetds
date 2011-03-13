@@ -54,7 +54,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.58 2010-12-17 04:31:36 berryc Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.59 2011-03-13 21:32:49 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -324,21 +324,27 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 
 	/* 
 	 * Check for required/disallowed option combinations 
+	 * If no username is provided, rely on domain login. 
 	 */
 	 
-	/* these must be specified */
-	if (!pdata->Uflag || !pdata->Pflag || !pdata->Sflag) {
-		fprintf(stderr, "All 3 options -U, -P, -S must be supplied.\n");
-		return (FALSE);
+	/* Server */
+	if (!pdata->Sflag) {
+		if ((pdata->server = getenv("DSQUERY")) != NULL) {
+			pdata->server = strdup(pdata->server);	/* can be freed */
+			pdata->Sflag++;
+		} else {
+			fprintf(stderr, "-S must be supplied.\n");
+			return (FALSE);
+		}
 	}
 
-	/* only one of these can be specified */
+	/* Only one of these can be specified */
 	if (pdata->cflag + pdata->nflag + pdata->fflag != 1) {
 		fprintf(stderr, "Exactly one of options -c, -n, -f must be supplied.\n");
 		return (FALSE);
 	}
 
-	/* character mode file: Fill in some default values*/
+	/* Character mode file: fill in default values */
 	if (pdata->cflag) {
 
 		if (!pdata->tflag || !pdata->fieldterm) {	/* field terminator not specified */
@@ -407,13 +413,16 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 	if (!login)
 		return FALSE;
 
-	DBSETLUSER(login, pdata->user);
-	DBSETLPWD(login, pdata->pass);
+	if (pdata->user)
+		DBSETLUSER(login, pdata->user);
+	if (pdata->pass) {
+		DBSETLPWD(login, pdata->pass);
+		memset(pdata->pass, 0, strlen(pdata->pass));
+	}
+	
 	DBSETLAPP(login, "FreeBCP");
 	if (pdata->charset)
 		DBSETLCHARSET(login, pdata->charset);
-
-	/* if packet size specified, set in login record */
 
 	if (pdata->Aflag && pdata->packetsize > 0) {
 		DBSETLPACKET(login, pdata->packetsize);
