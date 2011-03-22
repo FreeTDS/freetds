@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-03-22 00:41:31 $</date>
-	<releaseinfo>$Revision: 1.136 $</releaseinfo>
+	<date>$Date: 2011-03-22 13:11:14 $</date>
+	<releaseinfo>$Revision: 1.137 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.136 $</>
-				<member>$Date: 2011-03-22 00:41:31 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.136 2011-03-22 00:41:31 jklowden Exp $.</>
+				<member>$Revision: 1.137 $</>
+				<member>$Date: 2011-03-22 13:11:14 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.137 2011-03-22 13:11:14 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -616,7 +616,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-03-22 00:41:31 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing ($Date: 2011-03-22 13:11:14 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
@@ -744,6 +744,10 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>Microsoft SQL Server 2005</entry>
 							<entry>7.2</entry>
 							<entry>Includes support for varchar(max), varbinary(max), xml datatypes and MARS<footnote><para><emphasis>Multiple Active Result Sets</>. &freetds; does not support MARS.</para></footnote>.</entry>
+							</row>
+						<row>
+							<entry>Microsoft SQL Server 2008</entry>
+							<entry>7.2 (unchanged)</entry>
 							</row>
 						</tbody>
 					</tgroup>
