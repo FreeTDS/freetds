@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-03-12 12:54:01 $</date>
-	<releaseinfo>$Revision: 1.134 $</releaseinfo>
+	<date>$Date: 2011-03-22 00:23:24 $</date>
+	<releaseinfo>$Revision: 1.135 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.134 $</>
-				<member>$Date: 2011-03-12 12:54:01 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.134 2011-03-12 12:54:01 jklowden Exp $.</>
+				<member>$Revision: 1.135 $</>
+				<member>$Date: 2011-03-22 00:23:24 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.135 2011-03-22 00:23:24 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -83,17 +83,18 @@
 	<title>What is &freetds;?</title>
 	
 
-<para>&freetds; is re-implementation of C libraries originally implmented by Sybase and Microsoft SQL Server.  It includes drop-in replacements for 
+<para>&freetds; is re-implementation of C libraries originally marketed by Sybase and Microsoft SQL Server.  It allows many open source applications such as <productname>Perl</productname> and <productname>PHP</productname> (or your own C or C++ program) to connect to Sybase or Microsoft <productname>SQL Server</productname>.  </para>
+
+<para>&freetds; provides drop-in replacements for 
 
 <itemizedlist>
-	<listitem><para>Sybase's <systemitem class="library">DB-Library</systemitem> or <systemitem class="library">CT-Library</systemitem></para></listitem>
-	<listitem><para>Microsoft's <systemitem class="library">DB-Library</systemitem> (which differs in small details from Sybase's)</para></listitem>
-	<listitem><para>an <systemitem class="library">ODBC library</systemitem> similar that provided by the vendors</para></listitem>
+	<listitem><para>Sybase's &dblib; and &ctlib;</para></listitem>
+	<listitem><para>Microsoft's &dblib; (which differs in small details from Sybase's)</para></listitem>
+	<listitem><para>the &odbc; drivers from both vendors</para></listitem>
+	<listitem><para>interactive SQL and BCP utilities</para></listitem>
 </itemizedlist>
 
-The <quote>TDS</quote> part of the name comes from name of the protocol used to communicate with such servers: the Tabular Data Stream.   
-
-&freetds; allows many open source applications such as <productname>Perl</productname> and <productname>PHP</productname> (or your own C or C++ program) to connect to Sybase or Microsoft <productname>SQL Server</productname>.</para>
+The <quote>TDS</quote> part of the name comes from name of the protocol used to communicate with such servers: the Tabular Data Stream.  </para>
 
 <para>&freetds; is distributed in source code form, and is expected to compile on just about any operating system.  That means every form of Unix&reg; and Unix-like&trade; system (including notable variants such as Interix&reg; and QNX&reg;), as well as Win32&reg;, VMS&reg;, and OS X&reg;.  If it doesn't compile on your system &mdash; and you're not using MS-DOS&reg; &mdash; it's probably considered a bug.</para>
 
@@ -104,17 +105,17 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 <para><acronym>TDS</> is a <firstterm>protocol</firstterm>, a set of rules describing how to transmit data between two computers.  Like any protocol, it defines the types of messages that can be sent, and the order in which they may be sent.  Protocols describe the <quote>bits on the wire</quote>, how data flow.</para>
 
-<para>In reading this manual, it may be helpful to keep in mind that a protocol is not an <acronym>API</>, although the two are related.  The server recognizes and speaks a protocol; anything that can send it the correct combination of bytes in the right order can communicate with it.  But programmers aren't generally in the business of sending bytes; that's the job of a library.  Over the years, there have been a few libraries &mdash; each with its own <acronym>API</> &mdash; that do the work of moving SQL through a <acronym>TDS</> pipe.  <systemitem class="library">ODBC</systemitem>, &dblib;, and &ctlib; have very different <acronym>API</>s, but they're all one to the server, because on the wire they speak <acronym>TDS</>.</para>
+<para>In reading this manual, it may be helpful to keep in mind that a protocol is not an <acronym>API</>, although the two are related.  The server recognizes and speaks a protocol; anything that can send it the correct combination of bytes in the right order can communicate with it.  But programmers aren't generally in the business of sending bytes; that's the job of a library.  Over the years, there have been a few libraries &mdash; each with its own <acronym>API</> &mdash; that do the work of moving SQL through a <acronym>TDS</> pipe.  &odbc;, &dblib;, and &ctlib; have very different <acronym>API</>s, but they're all one to the server, because on the wire they speak <acronym>TDS</>.</para>
 
-<para>The <acronym>TDS</> protocol was designed and developed by Sybase Inc. for their Sybase <productname>SQL Server</productname> relational database engine in 1984.  The problem Sybase faced then still exists: There was no commonly accepted application-level protocol to transfer data between a database server and its client.  To encourage the use of their product, Sybase came up with <systemitem class="library">DB-Library</systemitem>.</para>
+<para>The <acronym>TDS</> protocol was designed and developed by Sybase Inc. for their Sybase <productname>SQL Server</productname> relational database engine in 1984.  The problem Sybase faced then still exists: There was no commonly accepted application-level protocol to transfer data between a database server and its client.  To encourage the use of their product, Sybase came up with &dblib;.</para>
 
-<para><systemitem class="library">DB-Library</systemitem> provided an <acronym>API</> to the client program, and communicated with the server.  What it sent to the server took the form of a stream of bytes meant for tables of data, a Tabular Data Stream.</para>
+<para>&dblib; provided an <acronym>API</> to the client program, and communicated with the server.  What it sent to the server took the form of a stream of bytes meant for tables of data, a Tabular Data Stream.</para>
 
-<para>In 1990 Sybase entered into a technology sharing agreement with Microsoft which resulted in Microsoft marketing its own <productname>SQL Server</productname>. Microsoft kept the <systemitem class="library">DB-Library</systemitem> <acronym>API</> and added <systemitem class="library">ODBC</systemitem>.  (Microsoft has since added other <acronym>API</>s, too.  It no longer supports its own <systemitem class="library">DB-Library</systemitem> implementation.) At about the same time, Sybase introduced a more powerful <quote>successor</quote> to <systemitem class="library">DB-Library</systemitem>, called <systemitem class="library">CT-Library</systemitem>, and called the pair <productname><firstterm>OpenClient</firstterm></productname>.</para>
+<para>In 1990 Sybase entered into a technology sharing agreement with Microsoft which resulted in Microsoft marketing its own <productname>SQL Server</productname>. Microsoft kept the &dblib; <acronym>API</> and added &odbc;.  (Microsoft has since added other <acronym>API</>s, too.  It no longer supports its own &dblib; implementation.) At about the same time, Sybase introduced a more powerful <quote>successor</quote> to &dblib;, called &ctlib;, and called the pair <productname><firstterm>OpenClient</firstterm></productname>.</para>
 
-<para><systemitem class="library">CT-Library</systemitem>, <systemitem class="library">DB-Library</systemitem>, and <systemitem class="library">ODBC</systemitem> are <acronym>API</>s that &mdash; however different their programming style may be &mdash; all communicate with the server in the same way.  The language they use is <acronym>TDS</>.</para>
+<para>&ctlib;, &dblib;, and &odbc; are <acronym>API</>s that &mdash; however different their programming style may be &mdash; all communicate with the server in the same way.  The language they use is <acronym>TDS</>.</para>
 
-<para>The <acronym>TDS</> protocol comes in several flavors, most of which have never been openly documented.  If anything, it's probably considered to be something like a trade secret, or at least proprietary technology.  The exception is <acronym>TDS</> 5.0, used exclusively by Sybase, for which documentation is available <ulink url="http://crm.sybase.com/sybase/www/ESD/tds_spec_download.jsp">from Sybase</ulink>.</para>
+<para>The <acronym>TDS</> protocol comes in several flavors, most of which were not openly documented.  If anything, it was considered to be something like a trade secret, or at least proprietary technology.  The exception is <acronym>TDS</> 5.0, used exclusively by Sybase, for which documentation is available <ulink url="http://crm.sybase.com/sybase/www/ESD/tds_spec_download.jsp">from Sybase</ulink>.</para>
 		</sect1>
 	
 	<sect1 id="tdshistory">
@@ -132,46 +133,43 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>The version in use at the time of the Sybase/Microsoft split.</para>
 					</listitem></varlistentry>
 			
-			<varlistentry><term><acronym>TDS 5.0</acronym>
-					Sybase</term>
-				<listitem>
-
-<para>Introduced for Sybase.  Because TDS 5.0 includes negotiated capabilities through which protocol features can be expanded, we are unlikely to see a new <acronym>TDS</> version from Sybase.</para>
-					</listitem></varlistentry>
+			<varlistentry>
+				<term><acronym>TDS 5.0</acronym> Sybase</term>
+				<listitem><para>Introduced for Sybase.  Because TDS 5.0 includes negotiated capabilities through which protocol features can be expanded, we are unlikely to see a new <acronym>TDS</> version from Sybase.</para></listitem>
+				</varlistentry>
 			
-			<varlistentry><term><acronym>TDS 7.0</acronym>
-					Microsoft</term>
-				<listitem>
-
-<para>Introduced for <productname>SQL Server 7.0</productname>.  Includes support for the extended datatypes in <productname>SQL Server 7.0</productname> (such as <structname>char</structname>/<structname>varchar</structname> fields of more than 255 characters).  It also includes support for Unicode.</para>
-					</listitem></varlistentry>
+			<varlistentry>
+				<term><acronym>TDS 7.0</acronym> Microsoft</term>
+				<listitem><para>Introduced for <productname>SQL Server 7.0</productname>.  Includes support for the extended datatypes in <productname>SQL Server 7.0</productname> (such as <structname>char</structname>/<structname>varchar</structname> fields of more than 255 characters).  It also includes support for Unicode.</para></listitem>
+				</varlistentry>
 			
-			<varlistentry><term>TDS 7.1
-					Microsoft</term>
-				<listitem>
-
-<para>Introduced for <productname>SQL Server 2000</productname>.  Includes support for big integer (64-bit <structname>int</structname>) and <quote>variant</quote> datatypes.</para>
-					</listitem></varlistentry>
+			<varlistentry>
+				<term>TDS 7.1 Microsoft</term> 
+				<term><emphasis>was</emphasis> 8.0
+					<footnote><para>Earlier &freetds; documentation referred to versions 7, 8 and 9.  Microsoft subsequently published a protocol specification document denoting 7.1 and 7.2, and one finds scattered references using that scheme elsewhere, too.  For that reason, &freetds; switched to Microsoft's nomenclature.  </para></footnote>
+					</term>
+				<listitem><para>Introduced for <productname>SQL Server 2000</productname>.  Includes support for big integer (64-bit <structname>int</structname>) and <quote>variant</quote> datatypes.</para></listitem>
+				</varlistentry>
 			
-			<varlistentry><term>TDS 7.2
-					Microsoft</term>
-				<listitem>
+			<varlistentry>
+				<term>TDS 7.2 Microsoft</term>
+				<term><emphasis>was</emphasis> 9.0</term>
+				<listitem><para>Introduced for <productname>SQL Server 2005</productname>.  Includes support for varchar(max), varbinary(max), xml datatypes and MARS.</para></listitem>
+				</varlistentry>
 
-<para>Introduced for <productname>SQL Server 2005</productname>.  Includes support for varchar(max), varbinary(max), xml datatypes and MARS.</para>
-					</listitem></varlistentry>
-			
 			</variablelist>
 		</sect1>
 	
-	<sect1 id="FreeTDShistory"> <title>History of &freetds;</title>
+	<sect1 id="FreeTDShistory">
+		<title>History of &freetds;</title>
 
 <para>&freetds; was and is developed by observation and experimentation, which is to say, by trial and error.</para>
 
 <para>In early 1997, the only option for connecting to a Sybase server from Linux or other free systems was an aging Sybase-released version of <productname>OpenClient</productname>.  Unfortunately it had a few problems.  The original release was <symbol>a.out</>-based, although Greg Thain did a great service in converting the library to ELF.  Secondly, it included only the newer &ctlib; <acronym>API</>.  The older &dblib; <acronym>API</> was missing.</para>
 
-<para>Brian Bruns, a Sybase DBA and originator of the &freetds; project, had some &dblib; programs he wanted to run under Linux, and thus began the &freetds; project. The original work focused on &dblib; and version 5.0 of the protocol, but quickly expanded to include a &ctlib; compatible layer and <acronym>TDS</> version 4.2.  Later support for <systemitem class="library">ODBC</systemitem> and <acronym>TDS 7.0 and 7.1</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.</para>
+<para>Brian Bruns, a Sybase DBA and originator of the &freetds; project, had some &dblib; programs he wanted to run under Linux, and thus began the &freetds; project. The original work focused on &dblib; and version 5.0 of the protocol, but quickly expanded to include a &ctlib; compatible layer and <acronym>TDS</> version 4.2.  Later support for &odbc; and <acronym>TDS 7.0 and 7.1</> was added. Craig Spannring wrote a Java  <acronym>JDBC</> driver which became <productname>FreeTDS/JDBC</productname>.</para>
 
-<para>As the project matured, it gained new participants.  Frediano Ziglio greatly expanded the <systemitem class="library">ODBC</systemitem> driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our &ctlib;.  Your humble author joined the project to add documentation, and wound up as the project's maintainer.  Such are the rewards for doing a good deed.</para>
+<para>As the project matured, it gained new participants.  Frediano Ziglio greatly expanded the &odbc; driver, and continues to improve both it and the underlying TDS library.  Bill Thompson wrote most of the present BCP system and added cursors to our &ctlib;.  Your humble author joined the project to add documentation, and in 2002 became its maintainer.  Such are the rewards for doing a good deed.</para>
 
 <para>There have been many other contributions.  Please see the <filename>AUTHORS</> in the distribution for a (we hope) complete list.</para>
 		</sect1>
@@ -182,7 +180,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 <para>&freetds; consists of two projects.  The &freetds; C libraries and &freetds;/ <acronym>JDBC</>.</para>
 			<itemizedlist mark=opencircle>
-				<listitem><para>The &freetds; C libraries support three separate <acronym>API</>s: &dblib;, &ctlib;, and <systemitem class="library">ODBC</systemitem>.  Underlying these three is libtds, which handles the low-level details of the <acronym>TDS</> protocol, such as sending, receiving, and datatype conversion.  This document and the <ulink url="http://www.freetds.org/">FreeTDS</ulink> website are dedicated to these libraries.
+				<listitem><para>The &freetds; C libraries support three separate <acronym>API</>s: &dblib;, &ctlib;, and &odbc;.  Underlying these three is libtds, which handles the low-level details of the <acronym>TDS</> protocol, such as sending, receiving, and datatype conversion.  This document and the <ulink url="http://www.freetds.org/">FreeTDS</ulink> website are dedicated to these libraries.
 </para></listitem>
 				<listitem><para>If Java is your game, we refer you to the
 						<ulink url="http://sourceforge.net/projects/jtds/">jTDS</ulink>
@@ -194,7 +192,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 		<sect2 id="Status">
 			<title>Status</title>
 
-<para>The libraries are portable, mature, and stable.  They're expected to compile readily and normally do not crash or corrupt data.  There is a logging feature to aid in diagnosing problems.  While they do not include every feature provided by the vendors' libaries, they do faithfully implement a useful &mdash; and widely used &mdash; subset of their <acronym>API</>s.</para>
+<para>The libraries are portable, mature, and stable.  They're expected to compile readily and normally do not crash or corrupt data.  Extensive logging  aids in diagnosing problems.  While they do not include every feature provided by the vendors' libraries, they do faithfully implement a useful &mdash; and widely used &mdash; subset of their <acronym>API</>s.</para>
 
 <para>The &dblib; and &ctlib; <acronym>API</>s have been usable for several years.  They have been successfully  substituted for Sybase's own libraries in a variety of venues, including <productname>Perl</productname> and <productname>PHP</productname>.</para>
 
@@ -202,11 +200,13 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 <para>Basic <link linkend="apireference">API coverage</link> information for all libraries may be found in this manual.  It is maintained in <filename>doc/api_status.txt</>, included in the source distribution.</para>
 
+<para><note><para>For Microsoft servers, &freetds; now offers the best &dblib; for any OS on the planet (including Windows!) thanks not only to the hard work of its contributors, but also to Microsoft's<footnote><para>Microsoft ceased enhancing &dblib; in 2001, advising customers to <quote>avoid using &dblib;</quote>.  For Microsoft's unmaintained product, that's good advice.  But if the &dblib; specification meets your needs, &freetds; permits you to keep using it with little loss (and some gain) of functionality. </para></footnote> strategy.   It is the only Win64 implementation of &dblib;, and the only  Win32 implementation to support modern versions of the protocol.  (SQL Server 2008 still accepts the TDS 4.2 connections that Microsoft's old library uses, but rejects BCP uploads with a spurious permission-denied message.) </para></note></para>
+
 <para>In addition to the core &dblib; <acronym>API</>, &freetds;  includes a full implementation of &dblib;'s <acronym>bcp</> functions, as well as <command>freebcp</>, a replacement for Sybase's <application>bcp</application> utility.</para>
 
-<para>How big is it?  &freetds; has over 90,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, &freetds;'s success so far lies somewhere between the Beetle and the Edsel.</para>
+<para>How big is it?  &freetds; has over 100,000 lines of C code, maintained by a handful of developers.  Patches arrive irregularly, varying in size from one-liners to thousand-line monsters.  Almost all are applied or used in some way.  The mailing list has some 700 or so subscribers at this writing.  Safe to say, &freetds;'s success so far lies somewhere between the Beetle and the Edsel.</para>
 
-<para>Who uses it?  Oh, pretty much everyone.  &freetds; users almost certainly number in the tens of thousands.  It's used by large corporations, by the U.S. federal government (e.g. <ulink url="http://www.ncbi.nlm.nih.gov/books/bv.fcgi?rid=toolkit.chapter.ch_dbapi">Database Access Library</ulink> at the National Center for Biotechnology Information) and, judging by the mailing list, by many webservers running Apache and PHP.  Microsoft recommends &freetds; to their customers who want access to Microsoft SQL Server from non-Win32 clients. So do we.</para>
+<para>Who uses it?  Oh, pretty much everyone.  &freetds; users number in the tens of thousands.  It's used by large corporations, by the U.S. federal government (e.g. <ulink url="http://www.ncbi.nlm.nih.gov/books/bv.fcgi?rid=toolkit.chapter.ch_dbapi">Database Access Library</ulink> at the National Center for Biotechnology Information) and, judging by the mailing list, by many webservers running Apache and PHP.  Sybase recommends &freetds; for their EAServer product.  Microsoft recommends &freetds; to their customers who want access to Microsoft SQL Server from non-Win32 clients.  So do we.</para>
 			</sect2>
 		<sect2 id="Languages">
 			<title>Languages besides C and Java</title>
@@ -227,19 +227,19 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 						</listitem>
 					</varlistentry>
 				<varlistentry>
-					<term><systemitem class="library">ODBC</systemitem> bridge products</term>
-					<listitem><para>They use the <systemitem class="library">ODBC</systemitem> driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.  We know of <productname>EasySoft ODBC-ODBC Bridge</productname> from <ulink url="http://www.easysoft.com">EasySoft</ulink>, <productname>Universal Data Access Driver</productname> from <ulink url="http://www.openlinksw.com">OpenLink Software</ulink>, <productname>SequeLink</productname> from <ulink url="http://www.merant.com/">Merant</ulink>, and
-							<Application><systemitem class="library">ODBC</systemitem> Router</Application> from <ulink url="http://www.augsoft.com/">August Software</ulink> Corporation.</para>
+					<term>&odbc; bridge products</term>
+					<listitem><para>They use the &odbc; driver on the NT box where your <productname>SQL Server</productname> runs so you'll never have trouble with new protocols and the like.  On the downside, they can be costly and may be inefficient.  We know of <productname>EasySoft ODBC-ODBC Bridge</productname> from <ulink url="http://www.easysoft.com">EasySoft</ulink>, <productname>Universal Data Access Driver</productname> from <ulink url="http://www.openlinksw.com">OpenLink Software</ulink>, <productname>SequeLink</productname> from <ulink url="http://www.merant.com/">Merant</ulink>, and
+							<Application>&odbc; Router</Application> from <ulink url="http://www.augsoft.com/">August Software</ulink> Corporation.</para>
 						</listitem>
 					</varlistentry>
 				<varlistentry>
-					<term>Inline <systemitem class="library">ODBC</systemitem> driver</term>
-					<listitem><para>Based on <systemitem class="library">libtds</systemitem>, this is a native <systemitem class="library">ODBC</systemitem> driver for i386 *nix. It is free in price, but comes only as a binary at the present time.</para>
+					<term>Inline &odbc; driver</term>
+					<listitem><para>Based on <systemitem class="library">libtds</systemitem>, this is a native &odbc; driver for i386 *nix. It is free in price, but comes only as a binary at the present time.</para>
 						</listitem>
 					</varlistentry>
 				<varlistentry>
 					<term>DBD::Proxy</term>
-					<listitem><para>We have no direct experience with this Perl-only option.  It has the same caveats as an <systemitem class="library">ODBC</systemitem> bridge except it's free.</para>
+					<listitem><para>We have no direct experience with this Perl-only option.  It has the same caveats as an &odbc; bridge except it's free.</para>
 						</listitem>
 					</varlistentry>
 				</variablelist>
@@ -257,7 +257,14 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 	<sect1 id="gnu">
 		<title>The <acronym>GNU</> World</title>
 
-<para>&freetds; uses <acronym>GNU</> <application>Automake</application>, <application>Autoconf</application>, and <application>libtool</application> to increase portability.</para>
+<para>&freetds; uses <acronym>GNU</> <application>Autoconf</application>, <application>Automake</application>, and <application>libtool</application><footnote>
+		<itemizedlist spacing="compact">
+			<title>Versions used for this release</title>
+			<listitem><para>autoconf (GNU Autoconf) 2.65</para></listitem>
+			<listitem><para>automake (GNU automake) 1.11.1</para></listitem>
+			<listitem><para>ltmain.sh (GNU libtool) 2.2.6b</para></listitem>
+			</itemizedlist>
+	</footnote> to increase portability.</para>
 
 <para>For many people, the preceding sentence says it all (good or bad).  If you're familiar with the <acronym>GNU</> system, you can probably just download the tarball and get away with scanning the <filename>README</filename> impatiently and then following your instincts.  Because everyone is a beginner once and no one is an expert at everything, we'll try to explain things in plain English where possible, and to define our terms as we go along.</para>
 
@@ -278,7 +285,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 	<prompt>$ </prompt><userinput>cvs -d:pserver:anonymous@freetds.cvs.sourceforge.net:/cvsroot/freetds login</userinput>
 	<prompt>$ </prompt><userinput>cvs -z3 -d:pserver:anonymous@freetds.cvs.sourceforge.net:/cvsroot/freetds checkout -P freetds</userinput>
 	<prompt>Password: </prompt>
-	<prompt>$ </prompt><userinput>make install</userinput></screen></para>
+	<prompt>$ </prompt></screen></para>
 
 <para>For those behind firewalls or otherwise unable to access <productname>CVS</productname>, nightly snapshots of <productname>CVS</productname> are rolled up into tarballs for your convenience.  They can be downloaded from
 			<ulink url="ftp://ftp.ibiblio.org/pub/Linux/ALPHA/freetds/freetds-current.tgz">ibiblio.org</ulink>.  Tarballs are generated around 3am EST (GMT-5).</para>
@@ -295,14 +302,14 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 </para></note>
 		<sect2 id="Experts"><title>For Experts</title>
 <screen>
-	<prompt>$ </prompt><userinput>./configure --prefix=/usr/local/freetds</userinput>
+	<prompt>$ </prompt><userinput>./configure --prefix=/usr/local</userinput>
 	<prompt>$ </prompt><userinput>make</userinput>
 	<prompt>$ </prompt><userinput>su root</userinput>
 	<prompt>Password: </prompt>
 	<prompt>$ </prompt><userinput>make install</userinput></screen>
 	
 
-<para>Building from CVS is described in the file INSTALL.CVS.</para>
+<para>Building from CVS is described in the file <filename>INSTALL.CVS</filename>.</para>
 			
 			</sect2>
 		<sect2 id="Everyone"><title>For Everyone Else </title>
@@ -321,9 +328,9 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>The simplest form of running <Command>configure</> is:
 <screen>
 	<prompt>$ </prompt><userinput>./configure</userinput></screen>
-	and sometimes that's enough.  <Command>configure</> accepts some command-line arguments, too, and you may need to provide some, depending on what your environment looks like.</para>
+	and sometimes that's enough.  <command>configure</> accepts command-line arguments, too, and you may need to provide some, depending on what your environment looks like.</para>
 
-<para>There are a few optional arguments to <Command>configure</> that may be important to you.  For a complete list, see <command>configure --help</command>.</para>
+<para>There are a few optional arguments to <command>configure</> that may be important to you.  For a complete list, see <command>configure --help</command>.</para>
 			<sect3 id="Configure.Options" XrefLabel="Options to configure">
 				<title><command>configure</> options</title>
 				<variablelist id="tab.configure.Directories">
@@ -428,7 +435,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 				<variablelist id="tab.turnon"><title>Things you can turn on</title>
 					<varlistentry>
 						<term><Option>--enable-msdblib</Option></term>
-						<listitem><para>Enable Microsoft behavior in the &dblib; <acronym>API</> where it diverges from Sybase's.  (For instance, Microsoft uses different names for the members of its date structure.)  Typically needed only for porting Win32 applications to Unix.</para>
+						<listitem><para>Enable Microsoft behavior in the &dblib; <acronym>API</> where it diverges from Sybase's.  Use this option if you are replacing Microsoft's libraries with &freetds;</para>
 
 <para>This option specifies default behavior. Programs can change the default at compile time by defining MSDBLIB or SYBDBLIB (for Microsoft or Sybase behavior, respectively).</para>
 							</listitem>
@@ -548,9 +555,11 @@ and, sure enough, <filename>asprintf.c</filename> earlier includes <filename>win
 
 Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your system.  </para>
 
-<para>Let's review: <filename>config.h</filename> defines a bunch of preprocessor definitions that (try to) describe your build environment to the compiler.  In this example, it got one wrong, causing the compiler to look for a file that isn't present, creating the error.  The solution is <emphasis> not</emphasis> to change the &freetds; source code, but merely to comment out line 92 in <filename>config.h</filename>.   </para>
+<para>Let's review: <filename>config.h</filename> has preprocessor definitions that (try to) describe the build environment to the compiler.  In this example, it got one wrong, causing the compiler to look for a file that isn't present, creating the error.  The solution is <emphasis> not</emphasis> to change the &freetds; source code, but merely to comment out line 92 in <filename>config.h</filename>.   </para>
 
-<note><para>Perhaps you're shaking your head at such an <quote>old school</quote> approach.  Over the years, Microsoft's proprietary project-configuration files have proved difficult to support.  Every version is different, and there are a great many versions in use <quote>in the wild</quote> at any one time.  As the project changes, it becomes impossible to maintain these kinds of files.  </para></note>
+<note><para>Perhaps you're shaking your head at such an <quote>old school</quote> approach.  Over the years, Microsoft's proprietary project-configuration files have proved difficult to support.  Every version is different, and there are a great many versions in use <quote>in the wild</quote> at any one time.  As the project changes, it becomes impossible to maintain these kinds of files.  </para>
+
+	<para>For Windows applications that use &freetds; the hard-won wisdom is <emphasis>just use the <filename>NMakefile</filename>, please, thanks!</emphasis>  If you like a visual environment and visual debugging, no problem: Microsoft's tools support <quote>Makefile projects</quote>.  The author has direct knowledge of developers for whom that arrangement works quite well. </para></note>
 
 			<sect3><title>Other ways to build under Windows&reg;</title>
 				
@@ -607,7 +616,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-03-12 12:54:01 $), the regular distribution compiles on OS X.  Releases prior to 0.63 either did not compile or required patching.</para>
+<para>As of this writing ($Date: 2011-03-22 00:23:24 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
@@ -740,21 +749,17 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 					</tgroup>
 				</table></para>
 
-<para>For best results, use the highest version of hte protocol supported by your server.  If you encounter problems, try a lower version.  If that works, though, please report it to the mailing list!</para>
+<para>For best results, use the highest version of the protocol supported by your server.  If you encounter problems, try a lower version.  If that works, though, please report it to the mailing list!
+	<footnote><para>Want to help?  Try out the auto-protocol feature.   &freetds; has experimental support for iteratively trying protocol connections until it finds one the server accepts.  This is suitable when query responses are non-trivial (because the tiny delay in connecting is thus insignificant).  Try setting your TDS version to <literal>0</> and report your results.  </para></footnote></para>
 
-<para><ItemizedList><title>TDS 4.2 has limitations</title>
-				<listitem><para><acronym>ASCII</> only, of course.
-</para></listitem>
-				<listitem><para><acronym>RPC</> is not supported.
-</para></listitem>
-				<listitem><para><acronym>BCP</> is not supported.
-</para></listitem>
-				<listitem><para><structname>varchar</structname> fields are limited to 255 characters.  If your table defines longer fields, they'll be truncated.
-</para></listitem>
-				<listitem><para>dynamic queries (also called <firstterm>prepared statements</>) are not supported.
-</para></listitem>
-				</ItemizedList></para>
-		
+<para><ItemizedList>
+			<title>TDS 4.2 has limitations</title>
+			<listitem><para><acronym>ASCII</> only, of course.</para></listitem>
+			<listitem><para><acronym>RPC</> is not supported.</para></listitem>
+			<listitem><para><acronym>BCP</> is not supported.</para></listitem>
+			<listitem><para><structname>varchar</structname> fields are limited to 255 characters.  If your table defines longer fields, they'll be truncated.</para></listitem>
+			<listitem><para>dynamic queries (also called <firstterm>prepared statements</>) are not supported.</para></listitem>
+			</ItemizedList></para>
 
 <para> The protocol version may also affect how database servers interpret
 			commands.  For example, Microsoft SQL Server 2000 is known to behave differently with versions 4.2
@@ -1690,8 +1695,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							</row>
 						<row>
 							<entry><literal>ClientCharset</></entry>
-							<entry>A name recognized by the iconv library linked to FreeTDS.
-								This correspond to <literal>client charset</> in &freetdsconf;.</entry>
+							<entry>A name recognized by the iconv library linked to FreeTDS.  Corresponds to <literal>client charset</> in &freetdsconf;.</entry>
 							<entry>ISO 8859-1</entry>
 							<entry>Character set (encoding) used by the client.</entry>
 							</row>
@@ -1722,21 +1726,20 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 						<row>
 							<entry><literal>TextSize</></entry>
 							<entry>Any</entry>
-							<entry>DB dependent</entry>
+							<entry>Server-dependent</entry>
 							<entry>Maximum size returned from server for blobs.</entry>
 							</row>
 						<row>
 							<entry><literal>PacketSize</></entry>
 							<entry>Any</entry>
-							<entry>DB dependent</entry>
+							<entry>Server-dependent</entry>
 							<entry>Size of packets to server.  Some users saw some performance gain by increasing this value.  Normally you shouldn't set it.  </entry>
 							</row>
 						<row>
 							<entry><literal>Trusted_Connection</></entry>
 							<entry>Yes/No</entry>
 							<entry>No</entry>
-							<entry>Use your current account instead of <literal>UID</>/<literal>PWD</> attributes.
-								This option require SSPI or Kerberos. This superceed <literal>UID</>/<literal>PWD</> attributes.</entry>
+							<entry>Use your current account instead of <literal>UID</>/<literal>PWD</> attributes.  This option require SSPI or Kerberos and supersedes any <literal>UID</>/<literal>PWD</> attributes passed from the application.</entry>
 							</row>
 						</tbody>
 					</tgroup>
@@ -1885,9 +1888,11 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 <para>If <command>tsql</> works and <command>isql</> doesn't, you've isolated the problem to the ODBC setup.  &freetds; might have some interoperability problems, but mere connection to the database isn't one of them!  If <command>tsql</>
 			doesn't work, turn on logging with <envar>TDSDUMP</>.  The log will tell you what TCP/IP name (and address) <productname>FreeTDS</> is attempting to connect to, and what version of the TDS protocol it's using.</para>
 		
-		<sect2 id="with.iodbc"><title>With iODBC</title>	
+		<sect2 id="with.iodbc">
+			<title>With iODBC</title>	
 
-<para>	<productname>iODBC</productname> comes with a sample command line query program called <command>odbctest</> that is located in the <filename>iodbc/samples</filename> directory.  Using this program you can get a listing of DSNs, connect, and issue queries.  It is often useful to compile a program such as this directly against the &freetds; driver instead of using a driver manager.  This makes it simpler to debug if something goes wrong.  To do so, simply compile and install the <systemitem class="library">ODBC</systemitem> driver with <productname>iODBC</productname> as normal <footnote><para>When compiling directly to &freetds; you still need the Driver Manager's header files.</para></footnote>, then compile and link the program directly:
+<para>	<productname>iODBC</productname> comes with a sample command line query program called <command>odbctest</>, located in the <filename>iodbc/samples</filename> directory.  Using this program you can get a listing of DSNs, connect, and issue queries.  
+	<tip><para>For debugging purposes, you may wish to link a program such as <command>odbctest</> directly to &freetds; instead of to the driver manager.  <footnote><para>Why?  Once the program is started in the debugger, the driver entry points become viable breakpoints.  Because the DM loads the driver dynamically with <function>dlopen(3)</function>, no driver addresses even <emphasis>exist</emphasis> until the runtime linker loads it. </para></footnote>  To do so, compile and install the &odbc; driver with <productname>iODBC</productname> as normal <footnote><para>When linking directly to &freetds; you still need the Driver Manager's header files.</para></footnote>, then compile and link the program:
 				
 				<example id="e.g.odbctest.nodm">
 					<title>Compile <filename>odbctest</> without a driver manager.</title>
@@ -1896,7 +1901,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<prompt>$ </prompt><userinput>gcc -g -o odbctest odbctest.o /usr/local/freetds/lib/libtdsodbc.a</userinput></screen>
 	</example>
 	
-				The <option>-g</> is important to keep the symbol tables for debugging purposes.  Now you can run <command>gdb</> or another debugger and set breakpoints on functions in the library without the driver manager getting in the way.</para>
+				Now you can run <command>gdb</> or another debugger and set breakpoints on functions in the library without the driver manager getting in the way.</para></tip></para>
 			</sect2>
 		
 		<sect2 id="with.unixODBC"><title>With unixODBC</title>
@@ -1961,8 +1966,10 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	|                                       |
 	+---------------------------------------+
 	SQL></screen>
-						</example>					</para>
-				
+						</example></para>
+
+<para>The reader is here advised that the <command>isql</command> that comes with many versions of unixODBC will truncate text and surprise in other ways without warning.  If it behaves strangely, try &freetds;'s <command>bsqlodbc</command> before you decide you've found a &freetds; bug.  </para>
+
 				</sect3>
 			
 			</sect2>
@@ -2067,11 +2074,16 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 		<title>Domain Logins</title>
 		<Note><para>Domain logins can be used only with TDS protocol versions 7.0 or above.</para></Note>
 
-<para>As mentioned in the installation chapter, <productname>Microsoft SQL Server</productname> includes the ability to use domain logins instead of standard server logins.  The advantage of doing this is that the passwords are encrypted on the wire using a challenge-response protocol.</para>
+<para>As mentioned in the installation chapter, <productname>Microsoft SQL Server</productname> includes the ability to use domain
+	<footnote><para>The term <firstterm>domain</> in this context is a Microsoft term.  It refers to what's sometimes called an <firstterm>NT domain</firstterm>.  It's unrelated to the DNS domain.  DNS domains are used for name resolution.  NT domains are used for authentication.  Authentication is done by the domain controller, often the <firstterm>Primary Domain Controller</firstterm> (PDC).</para>
+	<para>The SQL Server machine may belong to an NT domain.  &freetds; provides an encrypted password &mdash; a domain password, known to the domain controller &mdash; that the server will ask the domain controller to verify.</para></footnote> 
+logins instead of standard server logins.  Passwords are encrypted on the wire using a challenge-response protocol.  &freetds; plays nice with such logins.  </para>
 
-<para>Domain logins may or may not support single sign-on (connecting without prompting for a password) depending on how &freetds; was configured.  For Windows hosts (both 32- and 64-bit), if SSPI is enabled, &freetds; will log in using so-called "trusted authentication".  For Linux (and similar) hosts, enabling Kerberos provides similar functionality.  If neither option is enabled, &freetds; can <emphasis>still</> log in using the domain account, but the user must re-enter the password, as described next.</para>
+<para>&freetds; supports single sign-on (connecting without prompting for a username &amp; password) or not, depending on how it was configured.  For Windows hosts (both 32- and 64-bit), if SSPI is enabled, &freetds; will log in using so-called <quote>trusted authentication</quote>.  For non-Windows hosts, enabling Kerberos provides similar functionality.  </para>
 
-<para>To use domain logins, use the <literal>'DOMAIN\username'</> syntax for the username and use the domain password.</para>
+<para>When neither option is enabled, &freetds; can <emphasis>still</> log in using the domain account, but the user must supply the username &amp; password.</para>
+
+<para>To use domain logins without SSPI or Kerberos, use the <literal>'DOMAIN\username'</> syntax for the username and use the domain password.</para>
 		<example id="e.g.domainlogin"><title>Logging in with a domain login</title>
 <screen>
 	<computeroutput>$ </computeroutput><userinput>tsql -S camelot -U 'NOTTINGHAM\lancelot' -P roundtable</userinput>
@@ -2082,10 +2094,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	1></screen>
 	</example>
 	
-
 <para>When &freetds; sees the <quote><literal>\</></quote> character, it automatically chooses a domain login.</para>
-		<Note><para>The term <firstterm>domain</> in this context is a Microsoft term.  It refers to what's sometimes called an <firstterm>NT domain</firstterm>.  It's unrelated to the DNS domain.  DNS domains are used for name resolution.  NT domains are used for authentication.  Authentication is done by the domain controller, often the <firstterm>Primary Domain Controller</firstterm> (PDC).
-</para><para>The SQL Server machine may belong to an NT domain.  &freetds; provides an encrypted password &mdash; a domain password, known to the domain controller &mdash; that the server will ask the domain controller to verify.</para></Note>
 		
 		<sect2 id="domaindetails">
 			<title>Implementation details</title>
@@ -2099,13 +2108,15 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 		</sect1>
 	<sect1 id="kerberos">
 		<title>Kerberos Support</title>
-<para>Perhaps surprisingly, Kerberos can be used to authenticate to Microsoft SQL Servers.  This affords single-signon (or, at most, <quote>double-signon</quote>) capability in non-Windows environment. <footnote><para>The reason this works is that much of Active Directory is based on Kerberos. </para></footnote></para>
+<para>Perhaps surprisingly,
+	<footnote><para>It works because much of Active Directory is based on Kerberos.  <emphasis>From each according to his ability; to each according to his needs. </emphasis></para></footnote>
+Kerberos can be used to authenticate to Microsoft SQL Servers.  This affords single-signon (or, at most, <quote>double-signon</quote>) capability in non-Windows environment. </para>
 
-<para>To take advantage of Kerberos you have to set up your machine with keytab from your Active Directory.
-			To configure your stuff you could use <ulink url="http://www.samba.org/">Samba</ulink> or configure Kerberos directly (<filename>/etc/krb5.conf</>).  <command>configure</command> includes options to define the location of your Kerberos installation  (cf. <xref linkend="Configure.Options">).  </para>
+<para>To take advantage of Kerberos you have to set up your machine with keytab
+	<footnote><para>No, the author does not really know what he's talking about.</para></footnote> 
+from your Active Directory.  You could use <ulink url="http://www.samba.org/">Samba</ulink> or configure Kerberos directly (<filename>/etc/krb5.conf</>).  <command>configure</command> includes options to define the location of your Kerberos installation  (cf. <xref linkend="Configure.Options">).  </para>
 
-<para>By default UNIX does not initialize a Kerberos ticket with your login account. You have to use <command>kinit</command> to initialize a ticket.
-			You could also configure Kerberos in PAM in order to initialize Kerberos ticket at login time.</para>
+<para>By default UNIX does not initialize a Kerberos ticket with your login account. You must use <command>kinit</command> to initialize a ticket.  You could also configure Kerberos in PAM to initialize a Kerberos ticket at login time.</para>
 		</sect1>
 	
 	<sect1 id="uothread">
@@ -2159,19 +2170,20 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<sect1 id="tdspool">
 		<title>TDS Connection Pooling</title>
 
-<para>&freetds; 0.52 was the first to include a <acronym>TDS</> Connection Pooling server.  It lives in the <filename>src/pool</filename> directory.</para>
+<para>The Connection Pooling server swims in the <filename>src/pool</filename> directory.</para>
 
-<para>The &freetds; connection pool is a server process, it acts just like a <productname>SQL Server</productname>.  You can use any program to attach to it that you could use to attach to a real <productname>SQL Server</productname>.  The pool in turn connects to the <productname>SQL Server</productname> and database you specify, and attempts to share these connections.  See the <filename>README</filename> in the pool directory for a more detailed description of its inner workings.</para>
+<para>The &freetds; connection pool is a server process; it emulates a <productname>SQL Server</productname>.  Any program that can attach to a real <productname>SQL Server</productname> may instead elect to attach to the pool server.  The pool in turn connects to the <productname>SQL Server</productname> and database you specify, and attempts to share these connections.  See the <filename>src/pool/README</filename> for a more detailed description of its inner workings.</para>
 
-<para>To configure the pooling server, first make sure &freetds; has a working entry for the real <productname>SQL Server</productname> by connecting to it with <application>SQSH</application> or another program.</para>
-		<Note><para>The &freetds; connection pool currently only supports <acronym>TDS</> version 4.2.  <emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
+<para>To configure the pool server, first make sure &freetds; has a working entry for the real <productname>SQL Server</productname> by connecting to it with <application>SQSH</application> or another program.</para>
+		
+<Note><para>The &freetds; connection pool currently only supports <acronym>TDS</> version 4.2.  <emphasis>This restriction applies to both the client-to-pool and pool-to-server connections!</emphasis>
 </para></Note>
 
 <para>After FreeTDS has been installed, you will find an executable named <command>tdspool</command> in the <filename>/usr/local/bin</filename> directory (or whatever directory was specified with the <command>configure</> <option>--with-prefix flag</> option).</para>
 
-<para>Next, edit the <filename>pool.conf</filename> file in the &freetds;'s <filename>etc</filename> directory.  The <filename>pool.conf</filename> file is formatted like the &freetdsconf; with a section name in brackets and options for each section in key/value pairs.</para>
+<para>Edit <filename>pool.conf</filename> in the &freetds;'s <filename>etc</filename> directory.  The <filename>pool.conf</filename> file is formatted like &freetdsconf;, with a section name in brackets and options for each section in key/value pairs.</para>
 
-<para>Just like the &freetdsconf; file there are two types of sections, a <literal>[global]</literal> section whose options affect all pools, and a section with the name of the pool for pool-specific options.  The following options are supported and may appear in either section.</para>
+<para>Just as in &freetdsconf; there are two types of sections, a <literal>[global]</literal> section whose options affect all pools, and a section with the name of the pool for pool-specific options.  The following options are supported and may appear in either section.</para>
 
 <para><table id="tab.pool.conf">
 				<title>pool.conf settings</title>
@@ -2260,7 +2272,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 
 <para>The <literal>[mypool]</literal> section defines a pool named <literal>mypool</literal> that will listen on port 5000.  It will login to a <productname>SQL Server</productname> named <literal>fooserv</literal> using the user <literal>webuser</literal> and the ever so clever password of <literal>secret</literal>.  Once logged in, the connections will use the database <literal>ebiz</literal> instead of webuser's default database.  Also, since this <productname>SQL Server</productname> has a limited number of <acronym>CAL</>s (Client Access Licenses), we are restricting the maximum number of connections to 7, which overrides the <literal>global</literal> setting of 10.</para>
 
-<para>Now you can run <Command>tdspool</Command> with the name of the pool you are serving.
+<para>Run <Command>tdspool</Command> with the name of the pool you are serving.
 <screen>
 	<prompt>$ </prompt><userinput> tdspool mypool</userinput></screen></para>
 
@@ -2349,17 +2361,17 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 <para>  A non-interactive equivalent of the <symbol>isql</> utility programs distributed by Sybase and Microsoft. Like them, <command>bsqldb</> uses the command <quote>go</> on a line by itself as a separator between batches. The last batch need not be followed by <quote>go</>.</para>
 					
 
-<para><command>bsqldb</> makes use of the <symbol>db-lib</> <acronym>API</>. Intended for production use.</para>
+<para><command>bsqldb</> makes use of the &dblib; <acronym>API</>. Intended for production use.</para>
 					</listitem>
 				</varlistentry>
 			<varlistentry>
 				<term>bsqlodbc</term>
 				<listitem>
 
-<para>A non-interactive equivalent of the <symbol>isql</> utility programs distributed by Sybase and Microsoft. Like them, <command>bsqlodbc</> uses the command <quote>go</> on a line by itself as a separator between batches. The last batch need not be followed by <quote>go</>.  It uses the <acronym>ODBC</> <acronym>API</>.</para>
+<para>A non-interactive equivalent of the <symbol>isql</> utility programs distributed by Sybase and Microsoft. Like them, <command>bsqlodbc</> uses the command <quote>go</> on a line by itself as a separator between batches. The last batch need not be followed by <quote>go</>.  It uses the &odbc; <acronym>API</>.</para>
 					
 
-<para><command>bsqlodbc</> is a demonstration project, but can also aid in isolating problems.  <acronym>ODBC</> applications typically have many layers, and it can be difficult to know if a problem arises in a layer, or in the interface between layers.  By executing a query in <command>bsqlodbc</>, you can see if the functionality of the <acronym>ODBC</> driver works when used as the folks who wrote the driver thought it would be used.</para>
+<para><command>bsqlodbc</> is a demonstration project, but can also aid in isolating problems.  &odbc; applications typically have many layers, and it can be difficult to know if a problem arises in a layer, or in the interface between layers.  By executing a query in <command>bsqlodbc</>, you can see if the functionality of the &odbc; driver works when used as the folks who wrote the driver thought it would be used.</para>
 					</listitem>
 				</varlistentry>
 									
@@ -2372,7 +2384,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 
 <para><command>datacopy</> will move table data from one server to another without the need for intermediate files. <command>datacopy</> is much faster and more efficient than is <command>freebcp</> out/in.</para>
 
-<para><command>datacopy</> makes use of the <symbol>db-lib</> bcp <acronym>API</>.</para>
+<para><command>datacopy</> makes use of the &dblib; bcp <acronym>API</>.</para>
 					</listitem>
 				</varlistentry>
 			
@@ -2401,7 +2413,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 
 <para>Replicates the functionality of the <symbol>bcp</> utility programs distributed by Sybase and Microsoft.</para>
 
-<para><command>freebcp</> makes use of the <symbol>db-lib</> bcp <acronym>API</>.</para>
+<para><command>freebcp</> makes use of the &dblib; bcp <acronym>API</>.</para>
 
 <para>The manual pages or online help for Sybase or SQL Server can be referenced for more detailed information on bcp functionality.</para>
 					</listitem>
@@ -2419,7 +2431,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 				<term>tsql</term>
 				<listitem>
 
-<para>A diagnostic tool that uses uses the lowest level <productname>FreeTDS</> library, <symbol>libtds</>, as a way to isolate potential  bugs  in  the  protocol implementation.</para>
+<para>A diagnostic tool that uses uses the lowest level &freetds; library, <symbol>libtds</>, as a way to isolate potential  bugs  in  the  protocol implementation.</para>
 
 <para><command>tsql</> is <emphasis>not</> a replacement for a complete <symbol>isql</>.</para>
 					</listitem>
@@ -2484,7 +2496,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 		
 		<sect2 id="DBD.ODBC"><title>DBD::ODBC</title>
 
-<para>You may also use <systemitem class="library">DBD::ODBC</systemitem> with the &freetds; <systemitem class="library">ODBC</systemitem> driver.  You may find this attractive if you're familiar with <systemitem class="library">DBD::ODBC</systemitem>.</para>
+<para>You may also use <systemitem class="library">DBD::ODBC</systemitem> with the &freetds; &odbc; driver.  You may find this attractive if you're familiar with <systemitem class="library">DBD::ODBC</systemitem>.</para>
 			</sect2>
 		<sect2 id="Sybperl"><title>Sybperl</title>
 
@@ -2578,7 +2590,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<sect1 id="php">
 		<title>PHP</title>
 
-<para>There are three options for building PHP with support for &freetds; corresponding to the three <acronym>API</>s that &freetds; supports: &dblib;, &ctlib;, and <systemitem class="library">ODBC</systemitem>.
+<para>There are three options for building PHP with support for &freetds; corresponding to the three <acronym>API</>s that &freetds; supports: &dblib;, &ctlib;, and &odbc;.
 			<note><para>All these examples build the CGI version.  Consult <ulink url="http://www.php.net/docs.php">PHP's documentation</ulink> for building the Apache module and including other extensions.</para></note></para>
 		<sect2 id="phpDblib">
 			<title>&dblib;</title>
@@ -2624,9 +2636,9 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	We hope an upcoming version of PHP will automatically detect the presence of &freetds; and include only the <literal>-lct</literal> library.</para>
 	</sect2>
 	<sect2 id="ODBC">
-	<title><systemitem class="library">ODBC</systemitem></title>
+	<title>&odbc;</title>
 
-<para>The third and newest option is to use the &freetds; <systemitem class="library">ODBC</systemitem> driver with PHP.  First build the <productname>iODBC</productname> or <productname>unixODBC</productname> driver manager and &freetds; as detailed in <xref linkend="prepodbc">.  Then build PHP with support for ODBC.
+<para>The third and newest option is to use the &freetds; &odbc; driver with PHP.  First build the <productname>iODBC</productname> or <productname>unixODBC</productname> driver manager and &freetds; as detailed in <xref linkend="prepodbc">.  Then build PHP with support for ODBC.
 <screen>
 	<prompt>$ </prompt><userinput>cd php</userinput>
 	<prompt>$ </prompt><userinput>./configure --with-iodbc=/usr/local</userinput>
@@ -2690,24 +2702,24 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<sect1 id="uodbc">
 		<title>ODBC on Unix</title>
 
-<para><productname>ODBC</> have many issues under Unix mainly due to lack of specifications.</para>
-		<sect2 id="uodbc64">
+<para>&odbc; has some issues on Unix, mainly due to lack of clean specifications.</para>
+		<sect2 id="uodbc.64">
 			<title>ODBC and 64-bit</title>
 
-<para>ODBC was originally specified as 32-bit<footnote><para>In fact, the earliest versions were 16-bit.</para></footnote>.  Its evolution to 64-bit took place in the absence of a good specification which led to conflicting declarations and associated problems.  For instance, some parameters are defined as SQLINTEGER but are used for pointer offsets.   But SQLINTEGER was (and remains) 32-bit, while pointer offsets must be 64-bit.  Also row numbers and some other formerly 32-bity quantities are now 64-bit.</para>
+<para>ODBC was originally specified as 32-bit<footnote><para>In fact, the earliest versions were 16-bit.</para></footnote>.  Its evolution to 64-bit took place in the absence of a good specification which led to conflicting declarations and associated problems.  For instance, some parameters are defined as SQLINTEGER but are used for pointer offsets.   But SQLINTEGER was (and remains) 32-bit, while pointer offsets must be 64-bit.  Also row numbers and some other formerly 32-bit quantities are now 64-bit.</para>
 
 <para>If you use <productname>unixODBC</> Frediano would recommend at least version 2.2.14. Earlier versions have issues if used on 64-bit environments.</para>
 			</sect2>
-		<sect2 id="uodbcwchar">
+		<sect2 id="uodbc.wchar">
 			<title>sizeof(SQLWCHAR)</title>
 
-<para>Under Windows <literal>sizeof(wchar_t) == sizeof(SQLWCHAR) == 2</literal> but on many Unix systems you have <literal>sizeof(wchar_t) == 4</literal>.  And some DMs decided to keep <literal>sizeof(SQLWCHAR) == 2</literal> (including <productname>unixODBC</>) while in other DM <literal>sizeof(SQLWCHAR) == sizeof(wchar_t) == 4</literal> (namely <productname>iODBC</>). This leads to incompatibile ABIs between applications and drivers. If you compile the &freetds; ODBC driver using <productname>iODBC</> take care to ensure all drivers are compiled with the same header files.</para>
+<para>Under Windows <literal>sizeof(wchar_t) == sizeof(SQLWCHAR) == 2</literal> but on many Unix systems you have <literal>sizeof(wchar_t) == 4</literal>.  And some DMs decided to keep <literal>sizeof(SQLWCHAR) == 2</literal> (including <productname>unixODBC</>) while in other DM <literal>sizeof(SQLWCHAR) == sizeof(wchar_t) == 4</literal> (namely <productname>iODBC</>). This leads to incompatible ABIs between applications and drivers. If you compile the &freetds; ODBC driver using <productname>iODBC</> take care to ensure all drivers are compiled with the same header files.</para>
 
 <para>Alternatively, compile &freetds; with both includes and rename the library to use two ABIs (for instance having a <filename>libtdsiodbc.so</> and a <filename>libtdsuodbc.so</>).</para>
 
-<para>As of the time of writing <productname>Ubuntu</> compiled Qt using <productname>iODBC</> but most packages use <productname>unixODBC</>. If you plan to use Qt with the &freetds; ODBC driver, you should have an <productname>iODBC</>-compatible driver. Also be aware that the QODBC Qt driver has problems with <productname>iODBC</> and <literal>SQLWCHAR</literal> (see <link linkend="qt">Qt</link>). Due to these problems Frediano suggests not to use this configuration (Qt database) on <productname>Ubuntu</> at this time.</para>
+<para>At the time of writing <productname>Ubuntu</> compiled Qt using <productname>iODBC</> but most packages use <productname>unixODBC</>. If you plan to use Qt with the &freetds; &odbc; driver, you should have an <productname>iODBC</>-compatible driver. Also be aware that the QODBC Qt driver has problems with <productname>iODBC</> and <literal>SQLWCHAR</literal> (see <link linkend="qt">Qt</link>). Due to these problems Frediano suggests not using this configuration (Qt database) on <productname>Ubuntu</> at this time.</para>
 			</sect2>
-		<sect2 id="uodbcchar">
+		<sect2 id="uodbc.char">
 			<title>Default charset</title>
 
 <para>Character encoding is yet another trap.  ODBC makes no provision for specifying client character encoding. By default many DM converting from multi-byte to wide characters assume the client uses ISO 8859-1.  Even the &freetds; driver assumes ISO 8859-1 by default.  Also some DM have problems converting multi-byte encodings (like UTF-8), by assuming a byte can be converted to a single wide character (and vice versa). That creates problems if you use multi-byte encoding for &freetds; driver.</para>
@@ -2725,6 +2737,26 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 		</epigraph>
 	<sect1 id="knownissues">
 		<title>Known Issues</title>
+
+		<sect2 id="known.porting">
+			<title>Porting Issues</title>
+
+			<sect3 id="known.dates">
+				<title>Date Structures and Offsets</title>
+
+<para>Microsoft and Sybase use different &dblib; date structures <emphasis>and conventions</emphasis>.  Notably months can by [0,11] or [1,12].  Pay careful attention to the results of <function>dbdatecrack()</function>.  </para>
+				</sect3>
+	
+			<sect3 id="known.float">
+				<title>Floating Point</title>
+
+<para>Precision may surprise you if you pay attention.  Microsoft's &dblib; promotes single-precision to double in <function>dbbind()</function> by appending zeros; C promotes it to the nearest double.  &freetds; relies on the C compiler.  </para>
+
+<para>Math libraries vary, too.  If porting an application whose output uses functions such at <function>log(3)</function>, expect differences in different implementations.  Perfectly consistent results between OSes will require the use of a single math library.  </para>
+				</sect3>
+		
+		</sect2>
+			
 		<sect2 id="Textfields">
 			<title><type>Text</type> Fields</title>
 
@@ -2746,8 +2778,9 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	
 				Another way to handle control the default <envar>TEXTSIZE</envar> is to use the setting in <link linkend="freetdsconfformat">&freetdsconf;</link>.</para>
 			</sect2>
-		<sect2 id="Endianism">
-			<title>Endianism</title>
+
+			<sect2 id="Endianism">
+				<title>Endianism</title>
 
 <para>If either your server or your client is a big endian system, pay careful attention to all references to endianism anywhere near &freetds;.  See the section on <link linkend="emulle">Little Endian Emulation</link> for details.</para>
 			</sect2>
@@ -2761,7 +2794,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 		<sect2 id="IntegratedSecurity">
 			<title>Microsoft's <quote>Integrated Security</quote></title>
 
-<para>&freetds; may be unable to connect to the server.  The error message that appears will be <computeroutput>"Login failed for user 'example'.  Reason: Not associated with a trusted SQL Server connection"</computeroutput>.  To solve this, turn on <productname>SQL Server</productname> authentication:</para>
+<para>&freetds; may be unable to connect to the server.  The error message will be <computeroutput>"Login failed for user 'example'.  Reason: Not associated with a trusted SQL Server connection"</computeroutput>.  To solve this, turn on <productname>SQL Server</productname> authentication:</para>
 			<ItemizedList>
 				<listitem><para>Open the <emphasis><productname>SQL Server</productname> Enterprise Manager</emphasis>,
 </para></listitem>
@@ -2778,46 +2811,16 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 				</ItemizedList>
 
 <para>These instructions apply to Microsoft <productname>SQL Server 7</productname> and <productname>SQL Server 2000</productname>.</para>
-			<sect3 id="Background">
-				<title><productname>SQL Server</productname>'s Security Model</title>
 
-<para>Microsoft supports two security models in three permutations:
-					
-					<ItemizedList>
-						<listitem><para><firstterm>Windows NT Authentication Mode</>.  The operating system performs authentication; users will <emphasis>not</emphasis> have explicit <productname>SQL Server</productname> accounts.
-</para></listitem>
-						<listitem><para><firstterm>Standard Mode</>.  <productname>SQL Server</productname> authenticates connections itself without consulting the operating system.  Users of course need <productname>SQL Server</productname> accounts to log in.
-</para></listitem>
-						<listitem><para><firstterm>Mixed Mode</> Combines the above two.
-</para></listitem>
-						</ItemizedList>
-					For normal operation, you need either Standard or Mixed mode.</para>
-
-<para><quote>Windows NT Authentication</quote>, often called <quote>integrated security</quote>,
-					relies on Microsoft's <emphasis>domain login</emphasis>. In it, a user's network security attributes are established at network login time. When connecting to the database server, <productname>SQL
-						Server</productname> uses the facilities of the host operating system (<productname>Windows NT </productname> or similar) to determine the authenticated network username.
-					<productname>SQL Server</productname> then permits or denies login access based on that network
-					username alone, without requiring a separate login name and password.</para>
-				<Note><para>The &freetds; supports integrated security mode.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter. If you have Active Directory you can also use Kerberos, see <link linkend="kerberos">Kerberos support</link>.
+<Note><para>&freetds; supports integrated security mode, too.  If you have <productname>SQL Server</productname> running in integrated (domain) mode along with a Windows PDC, and wish to try it, see <link linkend="domains">Domain Logins</link> in the <link linkend="configs">Advanced Configurations</link> chapter. If you have Active Directory you can also use Kerberos, see <link linkend="kerberos">Kerberos support</link>.
 </para></Note>
 
-<para>&freetds; supports the traditional database
-					security model, which Microsoft terms <quote>SQL Server
-						Authentication</quote> but is frequently known as <quote>standard
-						security</quote>. Username+Password pairs have to be passed to the
-					server explicitly.</para>
-
-<para>Mixed Mode allows users to connect using either authentication
-					method. Users who connect through a <productname>Windows NT</productname> account can make use
-					of trusted connections in either Windows NT Authentication Mode or
-					Mixed Mode. After successful connection to <productname>SQL
-						Server</productname>, the security mechanism is the same for both
-					modes.</para>
-				</sect3>
 			</sect2>
 		</sect1>
+
 	<sect1 id="serverthere">
 		<title>Is the server there?</title>
+
 		<sect2 id="serverthere.ping">
 			<title>Start with <command>ping</></title>
 
@@ -2829,13 +2832,13 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<prompt>$ </prompt><userinput>ping -c1 <replaceable>myhost</replaceable></userinput>
 	<computeroutput>
 	PING myhost (127.0.0.1) from 127.0.0.1 : 56(84) bytes of data.
-	64 bytes from myhost (127.0.0.1): icmp_seq=0 ttl=255 time=250 usec
-	</computeroutput></screen>
+	64 bytes from myhost (127.0.0.1): icmp_seq=0 ttl=255 time=250 usec</computeroutput></screen>
 	</example>
 	A successful ping shows that your network isn't preventing you from reaching the machine hosting the server.</para>
 	</sect2>
+	
 	<sect2 id="serverthere.telnet">
-	<title>Test with <command>telnet</></title>
+		<title>Test with <command>telnet</></title>
 
 <para>Attempt to <command>telnet</> to the port, to verify that the servername is listening.
 				<example id="e.g.troubleshooting.telnet">
@@ -2845,16 +2848,15 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<computeroutput>
 	Trying 127.0.0.1...
 	Connected to myhost.
-	Escape character is '^]'.
-	</computeroutput></screen>
+	Escape character is '^]'. </computeroutput></screen>
 	</example>
-	If you get output as above, the servername is listening.  If you get a 'Connection Refused' message, you're talking to the wrong host, wrong port, or the servername is down.
-	<footnote><para>To exit <command>telnet</>:  When connected, telnet's command mode may be entered by
-	typing the telnet <firstterm>escape character</firstterm> (initially <keysym>Ctrl</keysym>-<keysym>]</keysym>, as above).  Once in command mode, <command>telnet</> may be exited with the command <command>quit</>.
+If you get output as above, the servername is listening.  If you get a 'Connection Refused' message, you're talking to the wrong host, wrong port, or the servername is down.
+	<footnote><para>To exit <command>telnet</>:  When connected, telnet's command mode may be entered by typing the telnet <firstterm>escape character</firstterm> (initially <keysym>Ctrl</keysym>-<keysym>]</keysym>, as above).  Once in command mode, <command>telnet</> may be exited with the command <command>quit</>.
 </para></footnote></para>
+
 	</sect2>
 	<sect2 id="serverthere.tsql">
-	<title>Test with <command>tsql</></title>
+		<title>Test with <command>tsql</></title>
 
 <para><command>tsql</> can be run in two ways, one which uses &freetdsconf; and one which connects directly using the host and port.  First attempt a connection using host and port.
 				<example id="e.g.troubleshooting.tsql.noconf">
@@ -2867,9 +2869,9 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 
 <para>If you receive a message like
 <screen>
-	<computeroutput>
-	Msg. No.: 18450 Severity: 14 State: 1 Login failed- User: loginid Reason: Not defined as a valid user of a trusted SQL Server connection
-	</computeroutput></screen>
+	<computeroutput>Msg. No.: 18450 Severity: 14 State: 1 Login failed- User: loginid 
+	Reason: Not defined as a valid user of a trusted SQL Server connection </computeroutput></screen>
+	
 	<productname>SQL Server</productname> is accepting only <quote>domain</quote> logins.  This applies only to Microsoft <productname>SQL Server</productname> and you'll need to have your DBA verify that <quote>server logins</quote> are allowed, or use a <link linkend="domains">domain login</link>.				</para>
 
 <para>Finally, if you received a prompt, then try <command>tsql</> using the servername.
@@ -2881,8 +2883,9 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	If this fails, FreeTDS is either not finding your &freetdsconf; file, finding the wrong one, or there is an error in the file.</para>
 	</sect2>
 	</sect1>
+
 	<sect1 id="Logging">
-	<title>Logging</title>
+		<title>Logging</title>
 
 <para>&freetds; has quite extensive logging capabilities.  These are often invaluable in setting up new configurations, when it's hard to be sure precisely what configuration information is being used, and what communication is (not) working.   Often such questions can be quickly resolved by turning on logging and examining the logs.</para>
 		<sect2 id="Environment"><title>Environment Variables that Control Logging</title>
@@ -2895,7 +2898,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 <screen>
 	<prompt>$ </prompt><userinput>export TDSDUMP=/tmp/freetds.log</userinput></screen>
 	Will generate a log file named <filename>freetds.log</filename> in the <filename>/tmp</filename> directory.
-	<tip><para> The filenames <filename>stdout</> and <filename>stderr</> are also supported.  They can be handy if you want to intersperse the log output with your application's output, or if your application opens more than one connection.  (The logfile is otherwise normally truncatated each time the library connects to the server.)</para></tip></para>
+	<tip><para> The filenames <filename>stdout</> and <filename>stderr</> are also supported.  They can be handy if you want to intersperse the log output with your application's output, or if your application opens more than one connection.  (The logfile is otherwise normally truncated each time the library connects to the server.)</para></tip></para>
 	</listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3054,13 +3057,14 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 <programlisting>
 	#define NOREVERSELOOKUPS
 	</programlisting>
-					in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
-					<Note><para> Reverse lookup code has been removed as of version 0.62 due to wrong implementation.</para></Note></para>
+
+in <filename>src/tds/config.c</>, rebuilding, and reinstalling.
+
+	<Note><para> Reverse lookup code has been removed as of version 0.62 because it was poorly implemented.</para></Note></para>
 				</listitem>
 			<listitem>
 
-<para>Packet size.  Check packet size setting on &freetdsconf; (see <literal>initial block size</>). Default value (no configuration) is usually fine. The slowness is due to multiple packet to use.
-					Under <productname><acronym>GNU</>/Linux</productname> system we use an optimization to reduce network traffic so you shouldn't see much difference using this system.</para>
+<para>Packet size.  The default packet size setting in &freetdsconf; (see <literal>initial block size</>) is usually fine. Slowness can potentially be due to multiple packet to use.  Under <productname><acronym>GNU</>/Linux</productname> system we use an optimization to reduce network traffic; you shouldn't see much difference using this system.</para>
 				</listitem>
 			</itemizedlist>
 				
@@ -3101,8 +3105,7 @@ Compile-time settings (established with the "configure" script)
                               iODBC: no
                            unixodbc: no
               SSPI "trusted" logins: no
-                            Keberos: no
-      </computeroutput></screen>
+                            Keberos: no </computeroutput></screen>
       
 For &odbc; setup issues, the <command>osql</command> script is intended to confirm the configuration files are all sane.  If it fails to report a problem, please post a message describing the problem to the mailing list.  Thanks.  </para>
 
@@ -3236,7 +3239,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 
 <para>We have just begun an independent reference manual to &freetds;; the main <acronym>API</> documents are the work of the server vendors.  We're using <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen</>, which extracts documentation directly from comments in the source code, and we're maybe 25% done.</para>
 
-<para>The <acronym>TDS</> protocol is partly documented, as are the <acronym>API</>s to <filename>libtds</filename> and <systemitem class="library">db-lib</>, but much remains.</para>
+<para>The <acronym>TDS</> protocol is partly documented, as are the <acronym>API</>s to <filename>libtds</filename> and &dblib;, but much remains.</para>
 			</sect2>
 		<sect2 id="webmaster">
 			<title>Be the Webmaster</title>
@@ -3289,7 +3292,8 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 <para>What can &freetds; do that can't be done any other way?  Glad you asked.  &freetds; can</para>
 		<ItemizedList>
 			<listitem><para>Connect to every version of either vendor's server, using the same binaries.</para></listitem>
-			<listitem><para>Provide a &ctlib; interface to Microsoft <productname>SQL Server</productname>.  This feature alone allows <productname>DBD::Sybase</> and <command>sqsh</>, among others, to connect to Microsoft's product.</para></listitem>
+			<listitem><para>Provide a &ctlib; for Microsoft <productname>SQL Server</>.  This feature alone allows <productname>DBD::Sybase</> and <command>sqsh</>, among others, to connect to Microsoft's product.</para></listitem>
+			<listitem><para>Provide a modern &dblib; for Microsoft <productname>SQL Server</>: Win32/64, and TDS 7+.  </para></listitem>
 			<listitem><para>Provide a bcp-capable interface and command-line utility on unix-like operating systems for  Microsoft <productname>SQL Server</productname>.</para></listitem>
 			<listitem><para>Run on many more operating systems than either vendor's libraries do.</para></listitem>
 			<listitem><para>Get fixed, instead of telling you to get stuffed.</para></listitem>
@@ -3313,7 +3317,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 
 <para>The <ulink url="../reference/index.html">reference manual</ulink> is installed as part of <productname>FreeTDS</>.  It can be regenerated at any time using <productname>Doxygen</productname> with <command>cd <filename>doc</>; make doc</command>.</para>
 
-<para>The reference manual is a work in progress: only the db-lib library is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen website</>.</para>
+<para>The reference manual is a work in progress: only &dblib; is completely documented, and quite minimally at that.  Should you find it inadequate, you may be interested to learn it's not hard to add to, technically.  <productname>Doxygen</productname> generates a manual from encoded comments in the source code.  Its markup syntax is not hard to learn.  You can read more about it at the <ulink url="http://www.stack.nl/~dimitri/doxygen/">Doxygen website</>.</para>
 
 <para>Basic API coverage information for the db-lib, ct-lib, and ODBC client libraries is maintained in <filename>doc/api_status.txt</>, included in the source distribution.  For your convenience and enjoyment, we include that file in the following sections.  In each table, we note for the function
 			<footnote><para>Sybase and Microsoft sometimes use slightly different names for the same function.  It is the intention of the <option>--enable-msdblib</> option to align
@@ -3321,7 +3325,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 			the extent to which it is implemented.  The <emphasis>Status</> field may be:
 			
 			<variablelist id="dblib.api.status">
-				<title>db-lib API function status domain</title>
+				<title>&dblib; API function status domain</title>
 				<varlistentry>
 					<term>(blank)</term>
 					<listitem>
@@ -3354,9 +3358,9 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 		</sect1>
 	
 	<sect1 id="dblib.api.summary">
-		<title>db-lib API Implementation Summary</title>
+		<title>&dblib; API Implementation Summary</title>
 
-<para>Microsoft's version of db-lib is
+<para>Microsoft's version of &dblib; is
 			<ulink url="http://msdn.microsoft.com/en-us/library/aa936988(SQL.80).aspx">online</ulink>.
 			Sybase's is both
 			<ulink url="http://manuals.sybase.com/onlinebooks/group-cnarc/cng1110e/dblib/@Generic__BookTextView;pt=4602;nh=1">online</ulink>
@@ -3394,7 +3398,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 
 <para>Few things are harder to put up with than the annoyance of a good example.</para> </epigraph>
 		
-		<abstract><para>Below is a complete sample working db-lib program, presented as a series of examples.
+		<abstract><para>Below is a complete sample working &dblib; program, presented as a series of examples.
 				<itemizedlist><title>Features of sample code</title>
 					<listitem><para>Processes command-line options to select the server, database, username, and password</para></listitem>
 					<listitem><para>Remaining arguments on the command line comprise the SQL query to execute</para></listitem>
@@ -3409,7 +3413,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 
 <para>Correct handling of errors is extremely important in database applications because they involve two systems most others don't: the network and the database server.  Both can give rise to errors that, if not detected and reported when they occur, let the application proceed blithely on until something truly mysterious happens.  In the worst case, in the absence of a properly reported error, the application may <emphasis>seem</> to have updated the data, when in fact it did not.</para>
 
-<para>Every db-lib application uses the network, making it subject to network failures.  Database programs also almost always have very high data integrity requirements.  It is necessary to know the row was absolutely, positively committed, once and only once, without error or exception.  Without taking great care to trap and handle all error conditions, no statement about the program's reliability can be made with confidence.</para></sidebar></important></para>
+<para>Every &dblib; application uses the network, making it subject to network failures.  Database programs also almost always have very high data integrity requirements.  It is necessary to know the row was absolutely, positively committed, once and only once, without error or exception.  Without taking great care to trap and handle all error conditions, no statement about the program's reliability can be made with confidence.</para></sidebar></important></para>
 		
 
 <para><orderedlist><title>How to Get and Build the sample code</title>
@@ -3438,11 +3442,11 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 <para>We now proceed to the code proper.</para>
 				
 		<sect2 id="samplecode.include"><title>Header files</title>
-			<abstract><para>We need two header files to use db-lib.  We need a few others to deal with I/O in C, as you know.  Also declare the error and message handler functions, more about which later.</para></abstract>
+			<abstract><para>We need two header files to use &dblib;.  We need a few others to deal with I/O in C, as you know.  Also declare the error and message handler functions, more about which later.</para></abstract>
 			
 
 <para><example id="e.g.samplecode.dblib.include">
-					<title>Sample Code: <symbol>db-lib</> header files</title>
+					<title>Sample Code: &dblib; header files</title>
 					<programlisting linenumbering="unnumbered">
 <![CDATA[
 #include <stdio.h>
@@ -3467,7 +3471,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			
 
 <para><example id="e.g.samplecode.dblib.prolog">
-					<title>Sample Code: <symbol>db-lib</> prolog</title>
+					<title>Sample Code: &dblib; prolog</title>
 <programlisting linenumbering="unnumbered">
 	extern char *optarg;
 	extern int optind;
@@ -3528,7 +3532,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 <para><symbol>DBPROCESS</> is a structure that describes the connection.  It is returned by <function>dbopen()</>.</para></callout>
 					<callout arearefs="samplecode.init.retcode">
 
-<para><symbol>RETCODE</> is the most common return code type for <symbol>db-lib</> functions.</para></callout>
+<para><symbol>RETCODE</> is the most common return code type for &dblib; functions.</para></callout>
 					</calloutlist></para>
 			</sect2>
 		
@@ -3537,7 +3541,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			
 
 <para><example id="e.g.samplecode.dblib.Initialize">
-					<title>Sample Code: <symbol>db-lib</> Initialize</title>
+					<title>Sample Code: &dblib; Initialize</title>
 <programlisting linenumbering="unnumbered">
 	
 	<co id="samplecode.init.dbinit" label="initialize">
@@ -3585,7 +3589,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			
 
 <para><example id="e.g.samplecode.dblib.Connect">
-					<title>Sample Code: <symbol>db-lib</> Connect to the server</title>
+					<title>Sample Code: &dblib; Connect to the server</title>
 <programlisting>
 	if ((dbproc = dbopen(login, options.servername)) == NULL) {
 	fprintf(stderr, "%s:%d: unable to connect to %s as %s\n",
@@ -3604,13 +3608,13 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			</sect2>
 		
 		<sect2 id="samplecode.query"><title>Send a query</title>
-			<abstract><para><symbol>db-lib</> maintains a <firstterm>command buffer</> to hold the SQL to be sent to the server.  Two functions &mdash; <function>dbcmd()</> and <function>dbfcmd()</> &mdash; build up the query from strings of text. The command buffer is reset after the query is sent to the server.</para>
+			<abstract><para>&dblib; maintains a <firstterm>command buffer</> to hold the SQL to be sent to the server.  Two functions &mdash; <function>dbcmd()</> and <function>dbfcmd()</> &mdash; build up the query from strings of text. The command buffer is reset after the query is sent to the server.</para>
 
 <para>We left the SQL on the command line.  We fetch it now and send it to the server.</para></abstract>
 			
 
 <para><example id="e.g.samplecode.dblib.send">
-					<title>Sample Code: <symbol>db-lib</> Send a query</title>
+					<title>Sample Code: &dblib; Send a query</title>
 <programlisting>
 	for (i=0; i < argc; i++) {
 	assert(argv[i]);
@@ -3637,7 +3641,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			</sect2>
 		
 		<sect2 id="samplecode.results"><title>Fetch Results</title>
-			<abstract><para>A query may produce zero, one, or more results.  Broadly, that entails providing buffers to <symbol>db-lib</> to fill, and iterating over the results a row (and column) at a time.</para></abstract>
+			<abstract><para>A query may produce zero, one, or more results.  Broadly, that entails providing buffers to &dblib; to fill, and iterating over the results a row (and column) at a time.</para></abstract>
 			
 			<bridgehead id="samplecode.results.kinds.of.results" renderas="sect3">Kinds of Results</>
 			
@@ -3747,16 +3751,16 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			<bridgehead id="samplecode.results.binding" renderas="sect3">Binding</>
 			
 
-<para>Each time <symbol>dbresults()</> returns <symbol>SUCCEED</>, there is something to retrieve. <symbol>db-lib</> has different functions to deal with the different kinds of results.  The functions are of two kinds: those that convert the data into a form desired by the application, known as <firstterm>binding</>, and those that return the data in <quote>native</> form.</para>
+<para>Each time <symbol>dbresults()</> returns <symbol>SUCCEED</>, there is something to retrieve. &dblib; has different functions to deal with the different kinds of results.  The functions are of two kinds: those that convert the data into a form desired by the application, known as <firstterm>binding</>, and those that return the data in <quote>native</> form.</para>
 			
 
 <para>To understand binding, it may be easiest to examine two primitive functions, <function>dbdata()</> and <function>dbconvert()</>.  <function>dbdata()</> returns a pointer to the column's data.  The data to which it points are in <quote>native</> form, 4 bytes for an <symbol>INT</>, 8 bytes for a <symbol>DATETIME</> and so on.  <function>dbconvert()</> converts between datatypes; you can hand it an integer and get back a character array (or a <symbol>C double</>.  You might think of  <function>dbconvert()</> as <function>atoi(3)</> on steroids). <function>dbbind()</> combines these two functions.  The application indicates in what form it would like to use each column, and the library converts them  on the fly as each row is read.</para>
 			
 
-<para>To <emphasis>bind a column</> is to provide a buffer to <symbol>db-lib</> to fill and indicate which datatype the buffer is meant to hold. <footnote><para>This is the sort of thing <symbol>C++</>'s type system does so much better</para></footnote></para>
+<para>To <emphasis>bind a column</> is to provide a buffer to &dblib; to fill and indicate which datatype the buffer is meant to hold. <footnote><para>This is the sort of thing <symbol>C++</>'s type system does so much better</para></footnote></para>
 			
 
-<para>It may be well to pause here to observe the three ways a datatype is described in a <symbol>db-lib</> program.
+<para>It may be well to pause here to observe the three ways a datatype is described in a &dblib; program.
 				<variablelist id="list.datatypes"><title><function>db-lib</> Datatype Descriptors</title>
 					<varlistentry>
 						<term>Sever Datatype</term>
@@ -3782,7 +3786,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 					</variablelist></para>
 						
 
-<para>Typically it's more convenient to have <symbol>db-lib</> convert the data into the desired form.  The function that does that is <function>dbind()</>.  So: after fetching the metadata, and before fetching the data, we usually prepare the bound columns.</para>
+<para>Typically it's more convenient to have &dblib; convert the data into the desired form.  The function that does that is <function>dbind()</>.  So: after fetching the metadata, and before fetching the data, we usually prepare the bound columns.</para>
 			
 			<bridgehead id="samplecode.results.fetching.data" renderas="sect3">Fetching Data</>
 			
@@ -3896,14 +3900,14 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			
 
 <para><important><title>Fetch All Rows!</title>
-					<sidebar><para><symbol>db-lib</> doesn't insist every column &mdash; or even any column &mdash; be bound or otherwise retrieved into the application's variables.  There is, however, one absolutely <emphasis>crucial, inflexible, unalterable</emphasis> requirement: the application must <emphasis>process all rows produced by the query</>.  Before the <symbol>DBPROCESS</> can be used for another query, the application must either fetch all rows, or cancel the results and receive an acknowledgement from the server. Cancelling is beyond the scope of this document, so for now  <emphasis> fetch all rows</>.</para></sidebar></important></para>
+					<sidebar><para>&dblib; doesn't insist every column &mdash; or even any column &mdash; be bound or otherwise retrieved into the application's variables.  There is, however, one absolutely <emphasis>crucial, inflexible, unalterable</emphasis> requirement: the application must <emphasis>process all rows produced by the query</>.  Before the <symbol>DBPROCESS</> can be used for another query, the application must either fetch all rows, or cancel the results and receive an acknowledgement from the server. Cancelling is beyond the scope of this document, so for now  <emphasis> fetch all rows</>.</para></sidebar></important></para>
 			
 
 <para>Now, at last, some sample code that fetches data.  In the interest of simplicity, we don't bind anything except regular rows.</para>
 			
 
 <para><example id="e.g.samplecode.dblib.fetch">
-					<title>Sample Code: <symbol>db-lib</> Fetch Results</title>
+					<title>Sample Code: &dblib; Fetch Results</title>
 <programlisting>
 	while ((erc = dbresults(dbproc)) != NO_MORE_RESULTS) {
 	struct COL 						<co id="samplecode.results.dbresults">
@@ -4023,7 +4027,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 	</programlisting></example>
 				<calloutlist id="co.fetching"><title>Data-fetching Notes</title>
 					<callout arearefs="samplecode.results.dbresults"><para>As soon as <function>dbresults()</> reports <symbol>SUCCESS</>, the row's metadata are available.</para></callout>
-					<callout arearefs="samplecode.results.c"><para><symbol>db-lib</> columns start with 1.</para></callout>
+					<callout arearefs="samplecode.results.c"><para>&dblib; columns start with 1.</para></callout>
 					<callout arearefs="samplecode.results.dbcollen"><para><function>dbcollen()</> returns the sizeof the native data (e.g. 4 bytes for a T-SQL <symbol>INT</>).  We'll use <function>dbbind()</> to convert everything to strings.  If the column is <symbol>[VAR]CHAR</>, we want the column's defined size, otherwise we want its maximum size when represented as a string, which FreeTDS's <function>dbwillconvert()</> returns (for fixed-length datatypes).  <footnote><para>For IMAGE data, we need to multiply by 2, because <function>dbbind()</> will convert each byte to a hexadecimal pair.  The example program will report an error with IMAGE data.</para></footnote></para></callout>
 					<callout arearefs="samplecode.results.dbbind"><para><symbol>NTBSTRINGBIND</> null-terminates the character array for us.  <quote>NTB</> might perhaps stand for <quote>null terminating byte</>.</para></callout>
 					<callout arearefs="samplecode.results.dbnullbind"><para>A zero-length string is not a NULL!  <function>dbnullbind()</> arranges for the passed buffer to be set to -1 whenever that column is NULL for a particular row.</para></callout>
@@ -4033,7 +4037,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			</sect2>
 		
 		<sect2 id="samplecode.errors"><title>Messages and Errors</title>
-			<abstract><para>Errors may originate on the server or in the library itself.  The former are known as <firstterm>messages</> (because they are: they arrive as messages from the server); the latter are termed <firstterm>errors</>.  Their handling is a little intimidating.  It requires writing and installing a callback function (whose parameters are predefined by <symbol>db-lib</>), and thinking about how to handle different types of errors.</para></abstract>
+			<abstract><para>Errors may originate on the server or in the library itself.  The former are known as <firstterm>messages</> (because they are: they arrive as messages from the server); the latter are termed <firstterm>errors</>.  Their handling is a little intimidating.  It requires writing and installing a callback function (whose parameters are predefined by &dblib;), and thinking about how to handle different types of errors.</para></abstract>
 			
 			<variablelist><title>Kinds of Errors</title>
 				<varlistentry>
@@ -4047,7 +4051,7 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 					<term>Errors</term>
 					<listitem>
 
-<para><emphasis>Errors</> arise either because the application has misused <symbol>db-lib</> in some way &mdash; say, passed a NULL <symbol>DBPROCESS</> pointer or tried to issue a query while results were pending &mdash; or because some trouble cropped up in communicating with the server (couldn't find it, say, or didn't hear back from it).</para>
+<para><emphasis>Errors</> arise either because the application has misused &dblib; in some way &mdash; say, passed a NULL <symbol>DBPROCESS</> pointer or tried to issue a query while results were pending &mdash; or because some trouble cropped up in communicating with the server (couldn't find it, say, or didn't hear back from it).</para>
 						</listitem>
 					</varlistentry>
 				</variablelist>
@@ -4055,11 +4059,11 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 <para>Why these two require distinct handling is lost in the mists of time. But it does help to keep them distinct in your mind, especially while reading the documentation.</para>
 			
 
-<para>To have <symbol>db-lib</> use your handler, pass its name to the appropriate  <function>dberrhandle()</> or <function>dbmsghandle()</> function immediately after calling <function>dbinit()</>.</para>
+<para>To have &dblib; use your handler, pass its name to the appropriate  <function>dberrhandle()</> or <function>dbmsghandle()</> function immediately after calling <function>dbinit()</>.</para>
 			
 
 <para><example id="e.g.samplecode.dblib.errors">
-					<title>Sample Code: <symbol>db-lib</> Error and Message handlers</title>
+					<title>Sample Code: &dblib; Error and Message handlers</title>
 <programlisting>
 	int
 	msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity,
@@ -4119,8 +4123,8 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 					<callout arearefs="samplecode.errors.msghandler.severity"><para>Severities are defined in the <emphasis>server</> documentation, and can be set by the <symbol>T-SQL RAISERROR</> statement.</para></callout>
 					<callout arearefs="samplecode.errors.msghandler.return"><para>Message handlers <emphasis>always and only ever</> return zero.</para></callout>
 					<callout arearefs="samplecode.errors.errhandler.args"><para>When first writing the handler, pay careful attention to the precise type of each parameter.  Only by carefully matching them will you convince a modern <symbol>C</> compiler that the address of your function is of the type accepted by <function>dberrhandle()</>. <footnote><para>If that 					advice sounds familiar, it's because it bears repeating.</para></footnote></para></callout>
-					<callout arearefs="samplecode.errors.errhandler.msgs"><para>Some messages are so severe they provoke <symbol>db-lib</> into calling the error handler, too!  If you have both installed &mdash; and of course you do, right? &mdash; then you can skip those lacking an error number.</para></callout>
-					<callout arearefs="samplecode.errors.errhandler.return"><para>While <symbol>INT_CANCEL</> is the most common return code, it's not the only one.  For one thing, the error handler's return code can control how long <symbol>db-lib</> keeps retrying timeout errors.  See the documentation for details.</para></callout>
+					<callout arearefs="samplecode.errors.errhandler.msgs"><para>Some messages are so severe they provoke &dblib; into calling the error handler, too!  If you have both installed &mdash; and of course you do, right? &mdash; then you can skip those lacking an error number.</para></callout>
+					<callout arearefs="samplecode.errors.errhandler.return"><para>While <symbol>INT_CANCEL</> is the most common return code, it's not the only one.  For one thing, the error handler's return code can control how long &dblib; keeps retrying timeout errors.  See the documentation for details.</para></callout>
 					</calloutlist></para>
 			
 
@@ -4135,13 +4139,13 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 							<function>getuserdata()</>.</para></listitem>
 					</orderedlist>
 				
-				<tip><para>If your application is written in <symbol>C++</>, you may be tempted to use <function>throw()</>. Don't!  Your handler is a <symbol>C</> function and, more important, <emphasis>it's an extension of <symbol>db-lib</></emphasis>.  You can put a <function>throw()</> in your handler and it will compile. But when it executes, it's going to rip through <symbol>db-lib</>'s stack.  Your application will be unuseable at that point, if it doesn't cause a segment fault.</para></tip></para>
+				<tip><para>If your application is written in <symbol>C++</>, you may be tempted to use <function>throw()</>. Don't!  Your handler is a <symbol>C</> function and, more important, <emphasis>it's an extension of &dblib;</emphasis>.  You can put a <function>throw()</> in your handler and it will compile. But when it executes, it's going to rip through &dblib;'s stack.  Your application will be unuseable at that point, if it doesn't cause a segment fault.</para></tip></para>
 			
 			</sect2>
 		
 		<sect2 id="samplecode.wrapup"><title>Last Remarks</title>
 
-<para>We've reached the end of our <symbol>db-lib</> tour.  The almost 300 lines of <symbol>C</> above constitute program with these features:
+<para>We've reached the end of our &dblib; tour.  The almost 300 lines of <symbol>C</> above constitute program with these features:
 				<itemizedlist><title> Sample Code features</>
 					<listitem><para>Accepts command-line parameters and SQL.</para></listitem>
 					<listitem><para>Checks for errors and server messages.</para></listitem>
@@ -4529,6 +4533,7 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 <para>The linker, static or runtime, uses only the function's name to resolve references.  Function parameters and semantics are invisible to it.  </para>
 
 <para>The programmer and, to a lesser degree, the sysadmin direct the choice of which library to link to an executable.  A missing function will prevent execution.  A wrong function will promote wrong execution.  Don't do that.  </para>
+
 		</section>
 	</Appendix>
 

@@ -1,3 +1,6 @@
+Mon Mar 21 20:21:51 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml updated for upcoming release
+
 Sun Mar 13 14:40:55 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* doc/bsqldb.txt doc/freebcp.txt doc/tsql.txt
 	- doc/userguide.sgml
@@ -3180,4 +3183,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3201 2011-03-13 21:32:39 jklowden Exp $
+$Id: ChangeLog,v 1.3202 2011-03-22 00:23:23 jklowden Exp $
