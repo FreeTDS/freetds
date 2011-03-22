@@ -62,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.196 2011-01-14 14:18:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.197 2011-03-22 17:54:13 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2352,6 +2352,9 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	colinfo->column_varaddr  = (char *)varaddr;
 	colinfo->column_bindtype = vartype;
 	colinfo->column_bindlen  = varlen;
+
+	TDS_ZERO_FREE(colinfo->bcp_terminator);
+	colinfo->bcp_term_len = 0;
 	if((colinfo->bcp_terminator =  malloc(termlen)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
