@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-03-22 16:00:44 $</date>
-	<releaseinfo>$Revision: 1.138 $</releaseinfo>
+	<date>$Date: 2011-03-22 16:03:44 $</date>
+	<releaseinfo>$Revision: 1.139 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.138 $</>
-				<member>$Date: 2011-03-22 16:00:44 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.138 2011-03-22 16:00:44 jklowden Exp $.</>
+				<member>$Revision: 1.139 $</>
+				<member>$Date: 2011-03-22 16:03:44 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.139 2011-03-22 16:03:44 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -519,7 +519,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 	<para>Create a build directory for the binaries, and invoke <command>../configure $(cat ../.build_options)</>. </para>
 	
-	<para>This approach lets you remove the binaries at any time and rebuild from scratch using the same options</para>
+	<para>This approach lets you remove the binaries at any time and rebuild from scratch using the same options.</para>
 	
 	</tip></para>
 				</sect3>
@@ -626,7 +626,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-03-22 16:00:44 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing ($Date: 2011-03-22 16:03:44 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
