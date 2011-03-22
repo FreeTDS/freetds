@@ -1,3 +1,8 @@
+Tue Mar 22 13:51:32 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* autogen.sh neater output
+	* src/apps/tsql.c spell Kerberos correctly
+	* src/dblib/bcp.c initialize bcp_terminator
+
 Mon Mar 21 20:21:51 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml updated for upcoming release
 
@@ -3183,4 +3188,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3202 2011-03-22 00:23:23 jklowden Exp $
+$Id: ChangeLog,v 1.3203 2011-03-22 17:54:04 jklowden Exp $

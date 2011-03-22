@@ -1,7 +1,7 @@
 #!/bin/sh
 # Run this to generate all the initial makefiles, etc.
 
-# $Id: autogen.sh,v 1.9 2006-10-21 12:23:07 freddy77 Exp $
+# $Id: autogen.sh,v 1.10 2011-03-22 17:54:04 jklowden Exp $
 
 # From automake.info:
 #
@@ -34,7 +34,9 @@ PKG_NAME="FreeTDS."
 #conf_flags="--enable-maintainer-mode --enable-compile-warnings" #--enable-iso-c
 
 if test x$NOCONFIGURE = x; then
-  echo Running $srcdir/configure $conf_flags "$@" ...
+  echo Running $srcdir/configure $conf_flags "$@" '...' \
+  	| tr ' ' \\n \
+  	| sed  's/^-/	&/'
   $srcdir/configure $conf_flags "$@" \
   && echo Now type \`make\' to compile $PKG_NAME
 else
