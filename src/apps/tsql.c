@@ -87,7 +87,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.139 2010-12-21 16:55:24 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.140 2011-03-22 17:54:09 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -459,7 +459,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			       "iODBC", settings->iodbc ? "yes" : "no", 
 			       "unixodbc", settings->unixodbc ? "yes" : "no", 
 			       "SSPI \"trusted\" logins", have_sspi, 
-			       "Keberos", enable_krb5);
+			       "Kerberos", enable_krb5);
 			exit(0);
 			break;
 		default:
