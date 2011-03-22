@@ -8,13 +8,13 @@
 	<!ENTITY dblib '<systemitem class="library">DB-Library</systemitem>'>
 	<!ENTITY ctlib '<systemitem class="library">CT-Library</systemitem>'>
 	<!ENTITY odbc  '<systemitem class="library">ODBC</systemitem>'> 
-	<!ENTITY version "0.92"> <!--  echo '0.84 + 0.5 * (1.0 - 0.84)' -->
+	<!ENTITY version "0.91"> <!--  echo  $(( (100 - 82)/2 + 82))-->
 	<!ENTITY freetdsconf "<filename>freetds.conf</filename>">
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-03-22 00:23:24 $</date>
-	<releaseinfo>$Revision: 1.135 $</releaseinfo>
+	<date>$Date: 2011-03-22 00:41:31 $</date>
+	<releaseinfo>$Revision: 1.136 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.135 $</>
-				<member>$Date: 2011-03-22 00:23:24 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.135 2011-03-22 00:23:24 jklowden Exp $.</>
+				<member>$Revision: 1.136 $</>
+				<member>$Date: 2011-03-22 00:41:31 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.136 2011-03-22 00:41:31 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -616,7 +616,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-03-22 00:23:24 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing ($Date: 2011-03-22 00:41:31 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
