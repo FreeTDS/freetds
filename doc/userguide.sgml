@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-03-22 13:11:14 $</date>
-	<releaseinfo>$Revision: 1.137 $</releaseinfo>
+	<date>$Date: 2011-03-22 16:00:44 $</date>
+	<releaseinfo>$Revision: 1.138 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.137 $</>
-				<member>$Date: 2011-03-22 13:11:14 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.137 2011-03-22 13:11:14 jklowden Exp $.</>
+				<member>$Revision: 1.138 $</>
+				<member>$Date: 2011-03-22 16:00:44 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.138 2011-03-22 16:00:44 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -328,7 +328,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>The simplest form of running <Command>configure</> is:
 <screen>
 	<prompt>$ </prompt><userinput>./configure</userinput></screen>
-	and sometimes that's enough.  <command>configure</> accepts command-line arguments, too, and you may need to provide some, depending on what your environment looks like.</para>
+	and sometimes that's enough.  <command>configure</> accepts command-line arguments, too, and you may need to provide some, depending on your environment.</para>
 
 <para>There are a few optional arguments to <command>configure</> that may be important to you.  For a complete list, see <command>configure --help</command>.</para>
 			<sect3 id="Configure.Options" XrefLabel="Options to configure">
@@ -449,14 +449,13 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 					
 					<varlistentry>
 						<term><Option>--enable-krb5</Option></term>
-						<listitem><para>Enable Kerberos support. With Kerberos you can connect to server using your stored Kerberos ticket.
-								This require you to configure Kerberos support on your machine.
+						<listitem><para>Enable Kerberos support. With Kerberos you can connect to server using your stored Kerberos ticket.  Obviously requires Kerberos be configured on the machine.
 </para></listitem>
 						</varlistentry>
 					
 					<varlistentry>
 						<term><Option>--enable-sspi</Option></term>
-						<listitem><para>Enable SSPI support. SSPI is a Micrsoft library that allows you to use your current logged account for authentication.  With this option enabled, FreeTDS supports "trusted logins" for Win32/64, just as Microsoft's own implmentations do.
+						<listitem><para>Enable SSPI support. SSPI is a Micrsoft library that allows you to use your current logged-in account for authentication.  With this option enabled, FreeTDS supports "trusted logins" for Win32/64, just as Microsoft's own implementations do.
 </para></listitem>
 						</varlistentry>
 					
@@ -512,6 +511,17 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 <para>You normally need to be root to <command>make install</command>, unless you used the <option>--prefix</> option during configuration to install into your own directory.</para>
 
 <para>With any luck, you've built and installed the &freetds; libraries.</para>
+
+<para><tip>
+	<title>Two bits of advice, if you like to keep things tidy and keep track of what you did. </title>
+
+	<para>Create a file to hold your configure options called, say, <filename>.build_options</>.</para>
+
+	<para>Create a build directory for the binaries, and invoke <command>../configure $(cat ../.build_options)</>. </para>
+	
+	<para>This approach lets you remove the binaries at any time and rebuild from scratch using the same options</para>
+	
+	</tip></para>
 				</sect3>
 			</sect2>
 		</sect1>
@@ -616,7 +626,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-03-22 13:11:14 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing ($Date: 2011-03-22 16:00:44 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
