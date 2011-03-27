@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.350 2011-02-17 15:55:36 jklowden Exp $ */
+/* $Id: tds.h,v 1.351 2011-03-27 16:36:53 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -844,6 +844,7 @@ typedef struct tds_login
 	TDS_INT query_timeout;
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	DSTR client_charset;
+	DSTR database;
 	unsigned int bulk_copy:1;
 	unsigned int suppress_language:1;
 } TDSLOGIN;
@@ -1468,6 +1469,7 @@ void tds_set_library(TDSLOGIN * tds_login, const char *library);
 void tds_set_server(TDSLOGIN * tds_login, const char *server);
 void tds_set_client_charset(TDSLOGIN * tds_login, const char *charset);
 void tds_set_language(TDSLOGIN * tds_login, const char *language);
+void tds_set_database_name(TDSLOGIN * tds_login, const char *dbname);
 void tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver);
 void tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size);
 int tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection);

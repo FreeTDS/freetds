@@ -1,3 +1,8 @@
+Sun Mar 27 12:34:23 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* include/sybdb.h include/tds.h
+	- src/dblib/dblib.c src/tds/config.c src/tds/login.c
+	- Support DBSETLDBNAME
+
 Tue Mar 22 13:51:32 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* autogen.sh neater output
 	* src/apps/tsql.c spell Kerberos correctly
@@ -3188,4 +3193,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3203 2011-03-22 17:54:04 jklowden Exp $
+$Id: ChangeLog,v 1.3204 2011-03-27 16:36:53 jklowden Exp $
