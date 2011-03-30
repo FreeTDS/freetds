@@ -1,3 +1,6 @@
+Wed Mar 30 14:53:04 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac: future developing version!
+
 Wed Mar 30 13:29:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/odbc/odbc.c src/tds/query.c:
 	- avoid unnecessary prepare and unprepare
@@ -3197,4 +3200,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205 2011-03-30 11:29:34 freddy77 Exp $
+$Id: ChangeLog,v 1.3206 2011-03-30 12:53:19 freddy77 Exp $
