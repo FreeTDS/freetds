@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001  Brian Bruns
- * Copyright (C) 2002-2010  Frediano Ziglio
+ * Copyright (C) 2002-2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.555 2010-12-28 14:37:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.556 2011-03-30 11:29:34 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -500,17 +500,16 @@ odbc_prepare(TDS_STMT *stmt)
 			stmt->errs.lastrc = SQL_ERROR;
 			break;
 		}
-
-		if (stmt->dbc->current_statement == stmt)
-			stmt->dbc->current_statement = NULL;
-		if (stmt->errs.lastrc == SQL_ERROR && !stmt->dyn->emulated) {
-			TDSDYNAMIC *dyn = stmt->dyn;
-			stmt->dyn = NULL;
-			tds_free_dynamic(tds, dyn);
-		}
-		ODBC_RETURN_(stmt);
+		break;
 	}
 
+	if (stmt->dbc->current_statement == stmt)
+		stmt->dbc->current_statement = NULL;
+	if (stmt->errs.lastrc == SQL_ERROR && !stmt->dyn->emulated) {
+		TDSDYNAMIC *dyn = stmt->dyn;
+		stmt->dyn = NULL;
+		tds_free_dynamic(tds, dyn);
+	}
 	stmt->need_reprepare = 0;
 	ODBC_RETURN_(stmt);
 }
@@ -7112,7 +7111,7 @@ odbc_free_dynamic(TDS_STMT * stmt)
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
 	if (stmt->dyn) {
-		if (stmt->dyn->emulated) {
+		if (!tds_needs_unprepare(tds, stmt->dyn)) {
 			tds_free_dynamic(tds, stmt->dyn);
 			stmt->dyn = NULL;
 		} else if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {

@@ -1,3 +1,7 @@
+Wed Mar 30 13:29:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/odbc.c src/tds/query.c:
+	- avoid unnecessary prepare and unprepare
+
 Sun Mar 27 12:34:23 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* include/sybdb.h include/tds.h
 	- src/dblib/dblib.c src/tds/config.c src/tds/login.c
@@ -3193,4 +3197,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3204 2011-03-27 16:36:53 jklowden Exp $
+$Id: ChangeLog,v 1.3205 2011-03-30 11:29:34 freddy77 Exp $
