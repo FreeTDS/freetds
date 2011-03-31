@@ -1,3 +1,6 @@
+Thu Mar 31 10:20:43 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac: forgot rc versions
+
 Wed Mar 30 14:55:28 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: release version
 
@@ -3200,4 +3203,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205.2.1 2011-03-30 12:55:41 freddy77 Exp $
+$Id: ChangeLog,v 1.3205.2.2 2011-03-31 08:21:02 freddy77 Exp $
