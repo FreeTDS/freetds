@@ -1,3 +1,7 @@
+Sat Apr  2 07:18:16 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dblib.c src/tds/config.c src/tds/login.c
+	- Support DBSETLDBNAME (really, this time)
+
 Sat Apr  2 07:12:57 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml fixed indentation of sample code. 
 
@@ -3206,4 +3210,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3208 2011-04-02 11:15:05 jklowden Exp $
+$Id: ChangeLog,v 1.3209 2011-04-02 11:19:33 jklowden Exp $

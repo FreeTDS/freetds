@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.202 2011-02-17 21:42:29 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.203 2011-04-02 11:19:35 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -160,6 +160,12 @@ void
 tds_set_language(TDSLOGIN * tds_login, const char *language)
 {
 	tds_dstr_copy(&tds_login->language, language);
+}
+
+void
+tds_set_database_name(TDSLOGIN * tds_login, const char *dbname)
+{
+	tds_dstr_copy(&tds_login->database, dbname);
 }
 
 void

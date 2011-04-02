@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.162 2010-11-09 15:46:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.163 2011-04-02 11:19:35 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -639,6 +639,11 @@ tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login)
 		tds_dstr_dup(&connection->client_charset, &login->client_charset);
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "client_charset",
 			    tds_dstr_cstr(&connection->client_charset));
+	}
+	if (!tds_dstr_isempty(&login->database)) {
+		tds_dstr_dup(&connection->database, &login->database);
+		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "database_name",
+			    tds_dstr_cstr(&connection->database));
 	}
 	if (!tds_dstr_isempty(&login->client_host_name)) {
 		tds_dstr_dup(&connection->client_host_name, &login->client_host_name);
