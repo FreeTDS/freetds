@@ -17,8 +17,8 @@ Wed Mar 30 13:29:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 
 Sun Mar 27 12:34:23 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* include/sybdb.h include/tds.h
-	- src/dblib/dblib.c src/tds/config.c src/tds/login.c
-	- Support DBSETLDBNAME
+	* src/dblib/dblib.c src/tds/config.c src/tds/login.c
+	- Support DBSETLDBNAME from Ken Collins cf. ML 27 Mar 2011
 
 Tue Mar 22 13:51:32 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* autogen.sh neater output
@@ -3210,4 +3210,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3209 2011-04-02 11:19:33 jklowden Exp $
+$Id: ChangeLog,v 1.3210 2011-04-02 11:28:37 jklowden Exp $
