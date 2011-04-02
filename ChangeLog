@@ -1,3 +1,6 @@
+Sat Apr  2 07:12:57 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml fixed indentation of sample code. 
+
 Fri Apr  1 13:44:39 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: avoid string format problem
 
@@ -3203,4 +3206,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3207 2011-04-01 11:44:59 freddy77 Exp $
+$Id: ChangeLog,v 1.3208 2011-04-02 11:15:05 jklowden Exp $
