@@ -62,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.197 2011-03-22 17:54:13 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.198 2011-04-07 08:06:37 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -614,6 +614,7 @@ bcp_getbatchsize(DBPROCESS * dbproc)
  * 		- \b KILOBYTES_PER_BATCH The approximate number of kilobytes to use for a batch size
  * 		- \b TABLOCK Lock the table
  * 		- \b CHECK_CONSTRAINTS Apply constraints
+ * 		- \b FIRE_TRIGGERS Fire any INSERT triggers on the target table
  * \param valuelen The strlen of \a value.  
  * 
  * \return SUCCEED or FAIL.
@@ -626,7 +627,7 @@ bcp_options(DBPROCESS * dbproc, int option, BYTE * value, int valuelen)
 {
 	int i;
 	static const char *const hints[] = {
-		"ORDER", "ROWS_PER_BATCH", "KILOBYTES_PER_BATCH", "TABLOCK", "CHECK_CONSTRAINTS", NULL
+		"ORDER", "ROWS_PER_BATCH", "KILOBYTES_PER_BATCH", "TABLOCK", "CHECK_CONSTRAINTS", "FIRE_TRIGGERS", NULL
 	};
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_options(%p, %d, %p, %d)\n", dbproc, option, value, valuelen);

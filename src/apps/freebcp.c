@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
+ * Copyright (C) 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -54,7 +55,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.59 2011-03-13 21:32:49 jklowden Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.60 2011-04-07 08:06:37 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -70,6 +71,7 @@ int setoptions (DBPROCESS * dbproc, BCPPARAMDATA * params);
 int err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 int msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname,
 		int line);
+static int set_bcp_hints(BCPPARAMDATA *pdata, DBPROCESS *pdbproc);
 
 int
 main(int argc, char **argv)
@@ -444,15 +446,6 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 	dbloginfree(login);
 	login = NULL;
 
-	/* set hint if any */
-	if (pdata->hint) {
-		int erc = bcp_options(*pdbproc, BCPHINTS, (BYTE *) pdata->hint, strlen(pdata->hint));
-
-		if (erc != SUCCEED)
-			fprintf(stderr, "db-lib: Unable to set hint \"%s\"\n", pdata->hint);
-		return FALSE;
-	}
-
 	return (TRUE);
 
 }
@@ -494,6 +487,9 @@ file_character(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	}
 
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
+		return FALSE;
+
+	if (!set_bcp_hints(pdata, dbproc))
 		return FALSE;
 
 	if (pdata->Eflag) {
@@ -591,6 +587,9 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
 		return FALSE;
 
+	if (!set_bcp_hints(pdata, dbproc))
+		return FALSE;
+
 	if (pdata->Eflag) {
 
 		bcp_control(dbproc, BCPKEEPIDENTITY, 1);
@@ -647,6 +646,9 @@ file_formatted(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	int li_rowsread;
 
 	if (FAIL == bcp_init(dbproc, pdata->dbobject, pdata->hostfilename, pdata->errorfile, dir))
+		return FALSE;
+
+	if (!set_bcp_hints(pdata, dbproc))
 		return FALSE;
 
 	if (pdata->Eflag) {
@@ -742,6 +744,19 @@ setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params){
 		return FALSE;
 	}
 
+	return TRUE;
+}
+
+static int
+set_bcp_hints(BCPPARAMDATA *pdata, DBPROCESS *pdbproc)
+{
+	/* set hint if any */
+	if (pdata->hint) {
+		if (bcp_options(pdbproc, BCPHINTS, (BYTE *) pdata->hint, strlen(pdata->hint)) != SUCCEED) {
+			fprintf(stderr, "db-lib: Unable to set hint \"%s\"\n", pdata->hint);
+			return FALSE;
+		}
+	}
 	return TRUE;
 }
 

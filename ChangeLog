@@ -1,3 +1,8 @@
+Thu Apr  7 10:06:28 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/freebcp.c src/dblib/bcp.c:
+	- bcp path from Bill Thompson: support FIRE_TRIGGERS hint, fix -h
+	  in freebcp app
+
 Sat Apr  2 07:18:16 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c src/tds/config.c src/tds/login.c
 	- Support DBSETLDBNAME (really, this time)
@@ -3210,4 +3215,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3210 2011-04-02 11:28:37 jklowden Exp $
+$Id: ChangeLog,v 1.3211 2011-04-07 08:06:37 freddy77 Exp $
