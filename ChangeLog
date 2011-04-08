@@ -1,3 +1,6 @@
+Fri Apr  8 09:11:34 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: backport patch for OpenSSL
+
 Wed Feb 23 09:03:11 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/odbc/connectparams.c src/tds/config.c:
 	- backported fix for server_host_name setting in odbc
@@ -315,4 +318,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog  truncated because of release
 	* ChangeLog-0.82 added because of release
 	
-$Id: ChangeLog,v 1.2454.2.79 2011-02-23 08:03:53 freddy77 Exp $
+$Id: ChangeLog,v 1.2454.2.80 2011-04-08 07:11:50 freddy77 Exp $

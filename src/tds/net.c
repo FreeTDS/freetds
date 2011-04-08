@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Brian Bruns
- * Copyright (C) 2004, 2005, 2006, 2007  Ziglio Frediano
+ * Copyright (C) 2004-2011  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -103,7 +103,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.71.2.2 2010-03-03 13:15:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.71.2.3 2011-04-08 07:11:50 freddy77 Exp $");
 
 #undef USE_POLL
 #if defined(HAVE_POLL_H) && defined(HAVE_POLL)
@@ -1291,6 +1291,11 @@ tds_ssl_init(TDSSOCKET *tds)
 
 		/* use priorities... */
 		SSL_set_cipher_list(con, OPENSSL_CIPHERS);
+
+#ifdef SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
+		/* this disable a security improvement but allow connection... */
+		SSL_set_options(con, SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
+#endif
 
 		/* Perform the TLS handshake */
 		tls_msg = "handshake";
