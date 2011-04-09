@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.31 2011-04-09 22:40:35 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.32 2011-04-09 22:43:38 jklowden Exp $ -->
 
 <head>
 	<title>FreeTDS Frequently Asked Questions</title>
@@ -452,12 +452,10 @@
   servers, you may be surprised when you first encounter this
   aspect of the TDS protocol. When a TDS server&mdash;be it by
   Microsoft or Sybase&mdash;responds to a query, it may send a result
-  set to the client. The server does not construct a complete
-  result set first, unless it needs to (say, to execute an
-  <tt>ORDER BY</tt> clause). Instead, it sends the rows as they're
-  selected/formed, in real time (if you will). Likewise, the client
-  libraries do <i>not</i> read all the rows from the server before
-  making them available to the client application.</p>
+  set to the client. The server sends the rows as they're
+  selected/formed, in real time (if you will). The client
+  libraries make the rows available to the client application 
+  as they arrive.</p>
 
   <p>The client library is tightly coupled to the server; they are
   synchronized, share state information. The server requires the
@@ -760,7 +758,7 @@
   <font size="-1">Updates and comments <a href=
   "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a> 
   <br/>
-    <i>$Id: faq.html,v 1.31 2011-04-09 22:40:35 jklowden Exp $</i>
+    <i>$Id: faq.html,v 1.32 2011-04-09 22:43:38 jklowden Exp $</i>
 	</font>
 <hr/>
   <p>
