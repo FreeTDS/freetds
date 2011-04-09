@@ -22,5 +22,9 @@ Fri Apr  1 13:44:39 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 Wed Mar 30 14:53:04 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: future developing version!
 	
+Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* ChangeLog  truncated because of release
+	* ChangeLog-0.91 added because of release
+
 $FreeTDS$
-$Id: ChangeLog,v 1.3213 2011-04-09 14:04:13 jklowden Exp $
+$Id: ChangeLog,v 1.3214 2011-04-09 20:16:12 jklowden Exp $
