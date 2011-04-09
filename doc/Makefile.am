@@ -2,7 +2,7 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
-# $Id: Makefile.am,v 1.65 2008-08-15 04:47:05 jklowden Exp $
+# $Id: Makefile.am,v 1.65.4.1 2011-04-09 13:57:58 jklowden Exp $
 
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
@@ -34,8 +34,11 @@ EXTRA_DIST =	api_status.txt bcp.txt cap.txt getting_started.txt \
 		$(man_MANS) freebcp.txt tsql.txt osql.txt fisql.txt \
 		bsqldb.txt bsqlodbc.txt defncopy.txt datacopy.txt \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
-		$(IMAGES) $(CALLOUTS) grep_sample_code \
+		images grep_sample_code \
 		tds_ssl.html
+
+dist-hook:
+	find $(distdir)/doc -name CVS -exec rm -rf {} ';'
 
 man_MANS	= freebcp.1 tsql.1 osql.1 bsqldb.1 bsqlodbc.1 defncopy.1 datacopy.1 fisql.1 \
 		  freetds.conf.5
