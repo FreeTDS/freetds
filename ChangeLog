@@ -1,3 +1,6 @@
+Sat Apr  9 08:48:22 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* doc/Makefile.am make dist works
+
 Thu Apr  7 10:06:28 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/freebcp.c src/dblib/bcp.c:
 	- bcp path from Bill Thompson: support FIRE_TRIGGERS hint, fix -h
@@ -3215,4 +3218,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3211 2011-04-07 08:06:37 freddy77 Exp $
+$Id: ChangeLog,v 1.3212 2011-04-09 12:49:23 jklowden Exp $
