@@ -3,7 +3,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<!-- $Id: faq.html,v 1.30 2011-04-09 22:33:21 jklowden Exp $ -->
+<!-- $Id: faq.html,v 1.31 2011-04-09 22:40:35 jklowden Exp $ -->
 
 <head>
 	<title>FreeTDS Frequently Asked Questions</title>
@@ -109,7 +109,7 @@
         compile PHP 3 with FreeTDS?</a></li>
 
         <li><a href="#Which.API">How should I choose among
-        <tt>db-lib</tt>, <tt>ct-lib</tt>, and
+        <tt>DB-Library</tt>, <tt>CT-Library</tt>, and
         <tt>ODBC</tt>?</a></li>
 
         <li><a href="#where.is.libtds.so">Where is <kbd>libtds.so</kbd>?</a></li>
@@ -249,7 +249,7 @@
       <p>For a more complete history, see AUTHORS in the distribution.  
       Thanks also go to the folks at A2i, Inc. <a href=
       "http://www.a2i.com">http://www.a2i.com</a> for funding the original
-      development of db-lib host file bulk copy and writetext
+      development of DB-Library host file bulk copy and writetext
       support, and to Dave Poyourow there for helping with the
       debugging.</p>
 
@@ -373,7 +373,7 @@
     working.</p>
   </blockquote>
 
-  <h3 id="Which.API">How should I choose among <tt>db-lib</tt>, <tt>ct-lib</tt>,
+  <h3 id="Which.API">How should I choose among <tt>DB-Library</tt>, <tt>CT-Library</tt>,
   and <tt>ODBC</tt>?</h3>
 
   <p><tt>FreeTDS</tt> offers three client libraries and one
@@ -391,7 +391,7 @@
   as a shared object.  There is a static library <kbd>libtds.a</kbd>, 
   although it's not installed by <b><kbd>make install</kbd></b>.  
   <kbd>libtds</kbd> is statically linked to the "official" client 
-  libraries, <kbd>ct-lib</kbd>, <kbd>db-lib</kbd>, and <kbd>ODBC</kbd>.  </p>
+  libraries, <kbd>CT-Library</kbd>, <kbd>DB-Library</kbd>, and <kbd>ODBC</kbd>.  </p>
   
   <p>Distributing <kbd>libtds</kbd> as a shared object did more harm
   than good.  Proper versioning and support was a burden on the 
@@ -437,14 +437,14 @@
  	<p>In no particular order: </p>
 	<ul>
 		<li>MARS</li>
-		<li>db-lib browse API</li>
-		<li>Parameterized queries in ct-lib with TDS 7.0+ (i.e. Microsoft servers)</li>
-		<li>ct-lib money functions</li>
+		<li>DB-Library browse API</li>
+		<li>Parameterized queries in CT-Library with TDS 7.0+ (i.e. Microsoft servers)</li>
+		<li>CT-Library money functions</li>
 	</ul>
 	
 	<p>For specific functions, consult <code>doc/api_status.txt</code> in your distribution. </p>
 	
-	<p>Very few programs actually need the missing functionality.  Parameterized ct-lib queries would benefit Perl DBD::Sybase users, but the functionality would require departing from Sybase's documented API.  MARS comes up because there must be thousands of people whom Microsoft has convinced they need it, but the benefits are meager compared to the complexity.  </p>
+	<p>Very few programs actually need the missing functionality.  Parameterized CT-Library queries would benefit Perl DBD::Sybase users, but the functionality would require departing from Sybase's documented API.  MARS comes up because there must be thousands of people whom Microsoft has convinced they need it, but the benefits are meager compared to the complexity.  </p>
 	
   <h3 id="pending">Why does each connection support only one query at a time?</h3>
 
@@ -527,7 +527,7 @@
   <p><i>I'm not getting my output parameters returned, but I seem
          to be doing everything right!</i> </p> 
   <p>That's not a question!</p>
-  <p>Microsoft SQL Server 7 with SP3, and later versions, quietly changed (which is to say, broke) how they respond to queries that execute stored procedures with output parameters.  Earlier servers let you send a query like <font size="-1"><code>EXECUTE A @P OUTPUT</code></font> and fetch the output parameter as a special result row (technique varying by library).  Newer servers simply don't send back that data.  To elicit output parameters from them, you have to use the RPC protocols such as the db-lib <a href="reference/a00336.html#a129">dbrpcparam</a>.  
+  <p>Microsoft SQL Server 7 with SP3, and later versions, quietly changed (which is to say, broke) how they respond to queries that execute stored procedures with output parameters.  Earlier servers let you send a query like <font size="-1"><code>EXECUTE A @P OUTPUT</code></font> and fetch the output parameter as a special result row (technique varying by library).  Newer servers simply don't send back that data.  To elicit output parameters from them, you have to use the RPC protocols such as the DB-Library <a href="reference/a00336.html#a129">dbrpcparam</a>.  
   </p>
          
   <h3 id="unknownmarker">What does this <tt>unknown marker</tt> message mean?</h3>
@@ -717,8 +717,8 @@
   driver (which is used by among other things the Query Analyzer
   tool) converts <tt>datetime</tt> to an ISO format. That format
   has the advantages of being all numeric: sortable, unambiguous,
-  and locale-independent. The vendors' <code>db-lib</code> and
-  <code>ct-lib</code>, in contrast, use the <code>MMM DD YYYY
+  and locale-independent. The vendors' <code>DB-Library</code> and
+  <code>CT-Library</code>, in contrast, use the <code>MMM DD YYYY
   hh:mm</code> format.
 
   <p>If you want to be sure your queries always return dates in a
@@ -760,7 +760,7 @@
   <font size="-1">Updates and comments <a href=
   "mailto:jklowden@freetds.org">FreeTDS FAQ Master</a> 
   <br/>
-    <i>$Id: faq.html,v 1.30 2011-04-09 22:33:21 jklowden Exp $</i>
+    <i>$Id: faq.html,v 1.31 2011-04-09 22:40:35 jklowden Exp $</i>
 	</font>
 <hr/>
   <p>
