@@ -1,3 +1,7 @@
+Mon Apr 11 11:56:44 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/defncopy.c:
+	- include sybfront.h instead of sqlfront.h (from patches #3172166)
+
 Sat Apr  9 10:02:49 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog ChangeLog-0.91 start a new change log
 
@@ -27,4 +31,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3214 2011-04-09 20:16:12 jklowden Exp $
+$Id: ChangeLog,v 1.3215 2011-04-11 09:56:53 freddy77 Exp $

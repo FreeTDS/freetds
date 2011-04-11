@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2004-2010  James K. Lowden
+ * Copyright (C) 2004-2011  James K. Lowden
  *
  * This program  is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -80,7 +80,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #include <locale.h>
 #endif
 
-#include <sqlfront.h>
+#include <sybfront.h>
 #include <sybdb.h>
 #ifndef MicrosoftsDbLib
 #include "replacements.h"
@@ -91,7 +91,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #endif
 #endif /* MicrosoftsDbLib */
 
-static char software_version[] = "$Id: defncopy.c,v 1.23 2010-07-22 09:55:37 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.24 2011-04-11 09:56:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef MicrosoftsDbLib
