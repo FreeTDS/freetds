@@ -1,3 +1,6 @@
+Mon Apr 11 17:33:55 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* include/tds.h include netinet/in.h
+
 Mon Apr 11 15:40:25 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/challenge.c: fix OpenSSL compile problem
 
@@ -3220,4 +3223,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205.2.7 2011-04-11 13:40:45 freddy77 Exp $
+$Id: ChangeLog,v 1.3205.2.8 2011-04-11 21:35:55 jklowden Exp $
