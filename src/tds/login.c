@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2010  Ziglio Frediano
+ * Copyright (C) 2005-2011  Ziglio Frediano
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.202 2011-02-17 21:42:29 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.202.2.1 2011-04-11 13:33:41 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -160,6 +160,12 @@ void
 tds_set_language(TDSLOGIN * tds_login, const char *language)
 {
 	tds_dstr_copy(&tds_login->language, language);
+}
+
+void
+tds_set_database_name(TDSLOGIN * tds_login, const char *dbname)
+{
+	tds_dstr_copy(&tds_login->database, dbname);
 }
 
 void

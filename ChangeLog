@@ -1,3 +1,7 @@
+Mon Apr 11 15:33:27 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c src/tds/config.c src/tds/login.c:
+	- support DBSETLDBNAME (really, this time)
+
 Mon Apr 11 11:58:50 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/defncopy.c:
 	- include sybfront.h instead of sqlfront.h (from patches #3172166)
@@ -3213,4 +3217,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205.2.5 2011-04-11 09:59:00 freddy77 Exp $
+$Id: ChangeLog,v 1.3205.2.6 2011-04-11 13:33:40 freddy77 Exp $
