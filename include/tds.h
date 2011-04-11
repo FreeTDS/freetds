@@ -21,12 +21,15 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.352 2011-03-30 11:29:34 freddy77 Exp $ */
+/* $Id: tds.h,v 1.353 2011-04-11 21:36:05 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
 
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NET_INET_IN_H */
 #if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
