@@ -1,3 +1,8 @@
+Tue Apr 12 11:26:29 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* src/dblib/bcp.c 
+	- bcp_send row returns FAIL if dbconvert fails to 
+	- convert the bound buffer to the column datatype
+
 Mon Apr 11 17:33:38 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* include/tds.h include netinet/in.h
 
@@ -37,4 +42,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3217 2011-04-11 21:36:05 jklowden Exp $
+$Id: ChangeLog,v 1.3218 2011-04-12 15:30:35 jklowden Exp $
