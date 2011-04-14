@@ -11,9 +11,11 @@ fisql.1
 libtds
 reference
 userguide.dsl
+put
 doc
 ctlib.api.sgml
 dblib.api.sgml
 doxy.log
 odbc.api.sgml
 bsqlodbc.1
+t

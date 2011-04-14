@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.163 2011-04-02 11:19:35 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.164 2011-04-14 02:47:08 jklowden Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -723,7 +723,7 @@ tds_config_env_tdsver(TDSCONNECTION * connection)
 
 	if ((tdsver = getenv("TDSVER"))) {
 		tds_config_verstr(tdsver, connection);
-		tdsdump_log(TDS_DBG_INFO1, "Setting 'tdsver' to %s from $TDSVER.\n", tdsver);
+		tdsdump_log(TDS_DBG_INFO1, "TDS version set to %s from $TDSVER.\n", tdsver);
 
 	}
 	return;
@@ -775,7 +775,7 @@ tds_config_verstr(const char *tdsver, TDSCONNECTION * connection)
 	if (connection)
 		connection->tds_version = version;
 
-	tdsdump_log(TDS_DBG_INFO1, "Setting tds version to %s (0x%0x) from $TDSVER.\n", tdsver, version);
+	tdsdump_log(TDS_DBG_INFO1, "Setting tds version to %s (0x%0x).\n", tdsver, version);
 
 	return version;
 }

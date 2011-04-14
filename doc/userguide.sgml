@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-04-02 11:15:05 $</date>
-	<releaseinfo>$Revision: 1.140 $</releaseinfo>
+	<date>$Date: 2011-04-14 02:47:07 $</date>
+	<releaseinfo>$Revision: 1.141 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.140 $</>
-				<member>$Date: 2011-04-02 11:15:05 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.140 2011-04-02 11:15:05 jklowden Exp $.</>
+				<member>$Revision: 1.141 $</>
+				<member>$Date: 2011-04-14 02:47:07 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.141 2011-04-14 02:47:07 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -626,7 +626,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-04-02 11:15:05 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing ($Date: 2011-04-14 02:47:07 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
@@ -3139,6 +3139,7 @@ For &odbc; setup issues, the <command>osql</command> script is intended to confi
 				<simplelist type='vert' columns='1'>
 					<member><productname>SQL Server</productname> version</member>
 					<member>&freetds; version (or snapshot date, if not a release)</member>
+					<member>any options used with <command>configure</command></member>
 					<member>which client library you are using</member>
 					<member>what language or Perl module, as appropriate, you're using</member>
 					<member>your client OS and hardware architecture</member>
