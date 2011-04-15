@@ -62,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.197 2011-03-22 17:54:13 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.197.2.1 2011-04-15 00:22:03 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1716,7 +1716,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 				fseeko(hostfile, row_start, SEEK_SET);
 
 				while (error_row_size > 0) {
-					size_t chunk = error_row_size > chunk_size ? chunk_size : error_row_size;
+					size_t chunk = error_row_size > chunk_size ? chunk_size : (size_t) error_row_size;
 
 					if (!row_in_error) {
 						if ((row_in_error = malloc(chunk)) == NULL) {
@@ -2474,7 +2474,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 		if ((converted_data_size =
 		     dbconvert(dbproc, coltype,
 			       (BYTE *) dataptr, collen,
-			       desttype, bindcol->bcp_column_data->data, bindcol->column_size)) == FAIL) {
+			       desttype, bindcol->bcp_column_data->data, bindcol->column_size)) == -1) {
 			return TDS_FAIL;
 		}
 
