@@ -1,4 +1,22 @@
-$Id: NEWS,v 1.44 2008-01-10 22:57:39 jklowden Exp $
+$Id: NEWS,v 1.44.4.1 2011-04-15 00:21:48 jklowden Exp $
+
+Summary of Changes in release 0.91
+--------------------------------------------
+1.  Full Kerberos and SSPI support for passwordless login to
+    Microsoft SQL Server from Unix and Windows clients.  
+    Includes Keberos delegation option.  
+2.  Full support for DB-Library under Win32/64 via NMAKE.EXE. 
+3.  Built-in support for UTF-8.  
+4.  Support for wide characters in ODBC.  
+5.  Support for varchar(max) and varbinary(max). 
+6.  Better thread-safety in ODBC.  
+7.  Error messages distinguish between connect and login errors.  
+8.  Bulk-copy functions in CT-Library.  
+
+TDS versions new reflect Microsoft's nomenclature.  The previous 
+version numbers (8.0 and 9.0) are now 7.1 and 7.2.  See the UG
+for details.  
+
 
 Executive Summary of Changes in release 0.82
 --------------------------------------------
