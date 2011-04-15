@@ -1,3 +1,6 @@
+Fri Apr 15 09:01:57 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* NEWS: fix typo
+
 Fri Apr 15 08:59:04 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/config.c: fix overriding port or instance
 
@@ -3232,4 +3235,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205.2.10 2011-04-15 06:59:16 freddy77 Exp $
+$Id: ChangeLog,v 1.3205.2.11 2011-04-15 07:02:10 freddy77 Exp $
