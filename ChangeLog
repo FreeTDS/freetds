@@ -1,3 +1,6 @@
+Fri Apr 15 08:56:07 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/config.c: fix overriding port or instance
+
 Wed Apr 13 22:45:23 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* doc/.cvsignore doc/userguide.sgml src/tds/config.c
 	- minor changes to log messages 
@@ -46,4 +49,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3219 2011-04-14 02:47:07 jklowden Exp $
+$Id: ChangeLog,v 1.3220 2011-04-15 06:56:19 freddy77 Exp $

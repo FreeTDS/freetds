@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2006, 2007, 2008, 2009, 2010  Frediano Ziglio
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.164 2011-04-14 02:47:08 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.165 2011-04-15 06:56:19 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -190,10 +190,17 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	found = tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name));
 	if (!found) {
 		if (parse_server_name_for_port(connection, login)) {
+			char ip_addr[256];
+
 			found = tds_read_conf_file(connection, tds_dstr_cstr(&connection->server_name));
 			/* do it again to really override what found in freetds.conf */
-			if (found)
+			if (found) {
 				parse_server_name_for_port(connection, login);
+			} else if (tds_lookup_host(tds_dstr_cstr(&connection->server_name), ip_addr) == TDS_SUCCEED) {
+				tds_dstr_dup(&connection->server_host_name, &connection->server_name);
+				tds_dstr_copy(&connection->ip_addr, ip_addr);
+				found = 1;
+			}
 		}
 	}
 	if (!found) {
