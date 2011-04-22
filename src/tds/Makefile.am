@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.72 2010-01-27 15:32:04 freddy77 Exp $
+# $Id: Makefile.am,v 1.73 2011-04-22 14:13:13 freddy77 Exp $
 
 SUBDIRS			=	unittests
 AM_CPPFLAGS		=	-I$(top_srcdir)/include
@@ -21,8 +21,8 @@ libtds_la_SOURCES=	mem.c token.c util.c login.c read.c \
 libtds_la_LDFLAGS=
 libtds_la_LIBADD=
 
-noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h types.h
-EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h types.h \
+noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h tds_types.h
+EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h tds_types.h \
 	TDS.vcproj ptw32_MCS_lock.c $(AUTH_FILES_DIST)
 
 if HAVE_DOXYGEN
@@ -44,10 +44,10 @@ endif
 ## We have to build num_limits.h because automake can't infer the
 ## dependency (on num_limits.pl).  
 
-data.c:	types.h
+data.c:	tds_types.h
 
 if HAVE_PERL_SOURCES
-BUILT_SOURCES = tds_willconvert.h encodings.h num_limits.h types.h
+BUILT_SOURCES = tds_willconvert.h encodings.h num_limits.h tds_types.h
 
 clean-local: 
 	cd $(srcdir) && rm -f $(BUILT_SOURCES)
@@ -64,7 +64,7 @@ num_limits.h: num_limits.pl Makefile
 	perl $(srcdir)/num_limits.pl > $@.tmp
 	mv $@.tmp $@
 
-types.h: types.pl Makefile ../../misc/types.txt
+tds_types.h: types.pl Makefile ../../misc/types.txt
 	perl $(srcdir)/types.pl < $(srcdir)/../../misc/types.txt > $@.tmp
 	mv $@.tmp $@
 endif

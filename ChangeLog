@@ -1,3 +1,7 @@
+Fri Apr 22 16:13:04 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/.cvsignore src/tds/Makefile.am src/tds/data.c:
+	- avoid header name clash
+
 Fri Apr 15 08:56:07 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/config.c: fix overriding port or instance
 
@@ -49,4 +53,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3220 2011-04-15 06:56:19 freddy77 Exp $
+$Id: ChangeLog,v 1.3221 2011-04-22 14:13:13 freddy77 Exp $
