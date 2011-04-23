@@ -1,3 +1,7 @@
+Sat Apr 23 16:55:00 CDT 2011     Craig A. Berry <craigberry@mac.com>
+	* vms/descrip_mms.template
+	- Build more of the newer tests we weren't building.
+ 
 Fri Apr 22 16:13:04 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/.cvsignore src/tds/Makefile.am src/tds/data.c:
 	- avoid header name clash
@@ -53,4 +57,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3221 2011-04-22 14:13:13 freddy77 Exp $
+$Id: ChangeLog,v 1.3222 2011-04-23 21:58:16 berryc Exp $
