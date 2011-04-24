@@ -16,7 +16,7 @@ export PATH="/usr/kerberos/bin:/usr/local/bin:$HOME/bin:/bin:/usr/bin:/usr/X11R6
 
 GROUPDIR=/home/groups/f/fr/freetds/htdocs
 # directory to compile
-FTDSDIR=freetds83
+FTDSDIR=freetds91
 # output directory on server
 OUTDIR=out
 # additional flags for Autogen (current version)
@@ -136,7 +136,7 @@ else
 fi
 cp ../php5.2-latest.tar.bz2 .
 
-cp ../freetds83/config.rpath .
+cp ../freetds91/config.rpath .
 LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --with-gnutls $FLAGS_ADD
 
 # compile, test with mssql server
