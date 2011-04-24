@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.556 2011-03-30 11:29:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.556.2.1 2011-04-24 18:26:02 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -420,8 +420,6 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 static SQLRETURN
 odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 {
-	TDSPARAMINFO *save_params = stmt->params;
-	int save_param_num = stmt->param_num;
 	SQLRETURN res;
 
 	if (!stmt->need_reprepare || stmt->prepared_query_is_rpc
@@ -430,23 +428,25 @@ odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 		return SQL_SUCCESS;
 	}
 
-	stmt->params = NULL;
-	stmt->param_num = 0;
+	/* FIXME where error are put ?? on stmt... */
+	if (!odbc_lock_statement(stmt))
+		ODBC_RETURN_(stmt);
+
 	/* FIXME error */
 	res = start_parse_prepared_query(stmt, 0);
 	if (res != SQL_SUCCESS) {
-		stmt->params = save_params;
-		stmt->param_num = save_param_num;
-		return SQL_ERROR;
+		/* prepare with dummy parameters just to fill IRD */
+		tds_free_param_results(stmt->params);
+		stmt->params = NULL;
+		stmt->param_num = 0;
+		/*
+		 * TODO
+		 * we need to prepare again with parameters but need_reprepare
+		 * flag is reset by odbc_prepare... perhaps should be checked
+		 * later, not calling describeCol or similar
+		 * we need prepare to get dynamic and cause we change parameters
+		 */
 	}
-
-	/* FIXME where error are put ?? on stmt... */
-	if (!odbc_lock_statement(stmt)) {
-		stmt->params = save_params;
-		stmt->param_num = save_param_num;
-		ODBC_RETURN_(stmt);
-	}
-	tds_free_param_results(save_params);
 
 	return odbc_prepare(stmt);
 }
