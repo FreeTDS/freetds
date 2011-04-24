@@ -2,7 +2,7 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.13 2010-07-23 07:42:25 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_results.c,v 1.14 2011-04-24 18:24:34 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -73,9 +73,35 @@ main(int argc, char *argv[])
 	SQLFetch(odbc_stmt);
 	SQLMoreResults(odbc_stmt);
 
+	/* test query returns column information for select without param */
+	odbc_reset_statement();
+	CHKPrepare((SQLCHAR *) "select * from #odbctestdata", SQL_NTS, "S");
+
+	count = -1;
+	CHKNumResultCols(&count, "S");
+
+	if (count != 3) {
+		fprintf(stderr, "Wrong number of columns returned. Got %d expected 3\n", (int) count);
+		exit(1);
+	}
+
+	/* test query returns column information for select with param */
+	odbc_reset_statement();
+	CHKPrepare((SQLCHAR *) "select c,n from #odbctestdata where i=?", SQL_NTS, "S");
+
+	count = -1;
+	CHKNumResultCols(&count, "S");
+
+	if (count != 2) {
+		fprintf(stderr, "Wrong number of columns returned. Got %d expected 2\n", (int) count);
+		exit(1);
+	}
+
 	/* test query returns column information for update */
+	odbc_reset_statement();
 	CHKPrepare((SQLCHAR *) "update #odbctestdata set i = 20", SQL_NTS, "S");
 
+	count = -1;
 	CHKNumResultCols(&count, "S");
 
 	if (count != 0) {
