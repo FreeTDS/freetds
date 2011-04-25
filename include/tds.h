@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.353 2011-04-11 21:36:05 jklowden Exp $ */
+/* $Id: tds.h,v 1.354 2011-04-25 12:00:07 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -969,16 +969,16 @@ enum
  */
 typedef struct tds_column
 {
-	TDS_SMALLINT column_type;	/**< This type can be different from wire type because 
-	 				 * conversion (e.g. UCS-2->Ascii) can be applied.    
-					 * I'm beginning to wonder about the wisdom of this, however. 
-					 * April 2003 jkl
-					 */
 	TDS_INT column_usertype;
 	TDS_INT column_flags;
 
 	TDS_INT column_size;		/**< maximun size of data. For fixed is the size. */
 
+	TDS_TINYINT column_type;	/**< This type can be different from wire type because
+	 				 * conversion (e.g. UCS-2->Ascii) can be applied.
+					 * I'm beginning to wonder about the wisdom of this, however.
+					 * April 2003 jkl
+					 */
 	TDS_TINYINT column_varint_size;	/**< size of length when reading from wire (0, 1, 2 or 4) */
 
 	TDS_TINYINT column_prec;	/**< precision for decimal/numeric */
@@ -988,7 +988,7 @@ typedef struct tds_column
 	TDS_SMALLINT table_namelen;
 	struct
 	{
-		TDS_SMALLINT column_type;	/**< type of data, saved from wire */
+		TDS_TINYINT column_type;	/**< type of data, saved from wire */
 		TDS_INT column_size;
 	} on_server;
 

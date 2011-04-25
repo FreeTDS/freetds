@@ -1,3 +1,6 @@
+Mon Apr 25 13:59:52 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h: use tinyint for column_type
+
 Sun Apr 24 20:24:26 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c src/odbc/unittests/prepare_results.c:
 	- fix problem preparing before binding parameters
@@ -61,4 +64,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3223 2011-04-24 18:24:34 freddy77 Exp $
+$Id: ChangeLog,v 1.3224 2011-04-25 12:00:06 freddy77 Exp $
