@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.19 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.20 2011-04-28 07:56:05 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -54,7 +54,7 @@ static int expect_col = 3;
 static char expected_type[20] = "SYSTEM TABLE";
 
 static void
-DoTest(const char *type, int row_returned)
+DoTest(const char *type, int row_returned, int line)
 {
 	int table_len = SQL_NULL_DATA;
 	char table_buf[80];
@@ -68,7 +68,7 @@ DoTest(const char *type, int row_returned)
 		table_len = strlen(table);
 	}
 
-	printf("Test type '%s' %s row\n", type ? type : "", row_returned ? "with" : "without");
+	printf("Test type '%s' %s row at line %d\n", type ? type : "", row_returned ? "with" : "without", line);
 	CHKTables((SQLCHAR *) catalog, LEN(catalog), (SQLCHAR *) schema, LEN(schema), (SQLCHAR *) table_buf, table_len, (SQLCHAR *) type, LEN(type), "SI");
 
 	/* test column name (for DBD::ODBC) */
@@ -124,6 +124,8 @@ DoTest(const char *type, int row_returned)
 	expect = NULL;
 	expect_col = 3;
 }
+
+#define DoTest(a,b) DoTest(a,b,__LINE__)
 
 int
 main(int argc, char *argv[])
