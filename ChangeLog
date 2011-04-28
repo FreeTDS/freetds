@@ -1,3 +1,6 @@
+Thu Apr 28 14:20:24 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: fix for tds 7.1 revision 1 (mssql2k without SPs)
+
 Thu Apr 28 09:54:55 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/tables.c: be more verbose
 
@@ -67,4 +70,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3225 2011-04-28 07:56:05 freddy77 Exp $
+$Id: ChangeLog,v 1.3226 2011-04-28 12:20:43 freddy77 Exp $
