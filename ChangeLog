@@ -1,3 +1,6 @@
+Thu Apr 28 16:50:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: rollback patch for SQLTables
+
 Thu Apr 28 09:47:00 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/token.c: fix for tds 7.1 revision 1 (mssql2k without SPs)
 
@@ -3249,4 +3252,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205.2.15 2011-04-28 07:47:17 freddy77 Exp $
+$Id: ChangeLog,v 1.3205.2.16 2011-04-28 14:50:41 freddy77 Exp $
