@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.396 2011-01-17 22:27:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.396.2.1 2011-04-28 07:47:17 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -927,6 +927,8 @@ tds_read_namelist(TDSSOCKET * tds, int remainder, struct namelist **p_head, int 
 		}
 
 		remainder -= namelen;
+		if (IS_TDS7_PLUS(tds))
+			remainder -= namelen;
 		num_names++;
 	}
 
@@ -1143,7 +1145,8 @@ tds_process_tabname(TDSSOCKET *tds)
 	hdrsize = tds_get_smallint(tds);
 
 	/* different structure for tds8 */
-	if (IS_TDS71_PLUS(tds))
+	/* hdrsize check is required for tds7.1 revision 1 (mssql without SPs) */
+	if (IS_TDS71_PLUS(tds) && (!IS_TDS71(tds) || (hdrsize & 1) != 0))
 		num_names = tds8_read_table_names(tds, hdrsize, &head);
 	else
 		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
