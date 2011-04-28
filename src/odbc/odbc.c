@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.557 2011-04-24 18:24:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.558 2011-04-28 14:52:22 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -6787,8 +6787,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	/* special case for catalog list */
 	if (strcmp(tds_dstr_cstr(&catalog_name), "%") == 0 && cbTableName <= 0 && cbSchemaName <= 0) {
 		retcode =
-			odbc_stat_execute(stmt _wide, "sp_tables", 3, "P@table_name", NULL, 0,
-				"!P@table_owner", NULL, 0, "!P@table_qualifier", NULL, 0);
+			odbc_stat_execute(stmt _wide, "sp_tables @table_name='', @table_owner='', @table_qualifier='%' ", 0);
 	} else {
 		retcode =
 			odbc_stat_execute(stmt _wide, proc, 4, "P@table_name", szTableName, cbTableName,
