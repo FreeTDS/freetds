@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.397 2011-04-28 12:20:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.398 2011-04-28 15:02:25 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -342,6 +342,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			break;
 		case TDS_LOGINACK_TOKEN:
 			/* TODO function */
+			tds->tds71rev1 = 0;
 			len = tds_get_smallint(tds);
 			ack = tds_get_byte(tds);
 			
@@ -350,7 +351,10 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			ver.tiny[0] = tds_get_byte(tds);
 			ver.tiny[1] = tds_get_byte(tds);
 			ver.reported = (ver.major << 24) | (ver.minor << 16) | (ver.tiny[0] << 8) | ver.tiny[1];
-			
+
+			if (ver.reported == 0x07010000)
+				tds->tds71rev1 = 1;
+
 			/* Log reported server product name, cf. MS-TDS LOGINACK documentation. */
 			switch(ver.reported) {
 			case 0x07000000: 
@@ -1147,8 +1151,8 @@ tds_process_tabname(TDSSOCKET *tds)
 
 	/* different structure for tds8 */
 	/* hdrsize check is required for tds7.1 revision 1 (mssql without SPs) */
-	/* TODO distinguish the two releases ?? */
-	if (IS_TDS71_PLUS(tds) && (!IS_TDS71(tds) || (hdrsize & 1) != 0))
+	/* TODO change tds_version ?? */
+	if (IS_TDS71_PLUS(tds) && (!IS_TDS71(tds) || !tds->tds71rev1))
 		num_names = tds8_read_table_names(tds, hdrsize, &head);
 	else
 		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
