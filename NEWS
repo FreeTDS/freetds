@@ -1,4 +1,4 @@
-$Id: NEWS,v 1.44.4.2 2011-04-15 07:02:10 freddy77 Exp $
+$Id: NEWS,v 1.44.4.3 2011-05-03 00:53:20 jklowden Exp $
 
 Summary of Changes in release 0.91
 --------------------------------------------
@@ -10,7 +10,7 @@ Summary of Changes in release 0.91
 4.  Support for wide characters in ODBC.  
 5.  Support for varchar(max) and varbinary(max). 
 6.  Better thread-safety in ODBC.  
-7.  Error messages distinguish between connect and login errors.  
+7.  Distinguish between connect and login errors.  
 8.  Bulk-copy functions in CT-Library.  
 
 TDS versions now reflect Microsoft's nomenclature.  The previous 
