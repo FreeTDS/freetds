@@ -61,7 +61,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.558 2011-04-28 14:52:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.559 2011-05-06 16:47:32 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -3294,7 +3294,7 @@ _SQLExecute(TDS_STMT * stmt)
 					ODBC_RETURN(stmt, SQL_ERROR);
 			}
 			stmt->need_reprepare = 0;
-			ret = tds8_submit_prepexec(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params);
+			ret = tds71_submit_prepexec(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params);
 	} else {
 		/* TODO cursor change way of calling */
 		/* SQLPrepare */
@@ -3311,7 +3311,7 @@ _SQLExecute(TDS_STMT * stmt)
 			stmt->need_reprepare = 0;
 
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
-			/* TODO use tds_submit_prepexec (mssql2k, tds8) */
+			/* TODO use tds_submit_prepexec (mssql2k, tds71) */
 			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params) == TDS_FAIL) {
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_RETURN(stmt, SQL_ERROR);

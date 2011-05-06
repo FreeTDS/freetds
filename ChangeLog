@@ -1,3 +1,9 @@
+Fri May  6 18:47:17 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h include/tdssrv.h src/odbc/odbc.c:
+	* src/odbc/unittests/data.c src/server/login.c src/server/server.c:
+	* src/tds/login.c src/tds/query.c src/tds/read.c src/tds/token.c:
+	- fix version names from 8.0 to 7.1
+
 Fri May  6 18:27:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/ct.c src/ctlib/ctutil.c:
 	* src/dblib/dblib.c src/tds/mem.c:
@@ -82,4 +88,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3229 2011-05-06 16:27:26 freddy77 Exp $
+$Id: ChangeLog,v 1.3230 2011-05-06 16:47:32 freddy77 Exp $

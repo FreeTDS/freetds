@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.112 2010-07-30 07:34:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.113 2011-05-06 16:47:32 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -251,7 +251,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 	if (curcol->char_conv) {
 		/*
 		 * TODO The conversion should be selected from curcol and tds version
-		 * TDS8/single -> use curcol collation
+		 * TDS7.1/single -> use curcol collation
 		 * TDS7/single -> use server single byte
 		 * TDS7+/unicode -> use server (always unicode)
 		 * TDS5/4.2 -> use server 

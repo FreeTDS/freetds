@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.356 2011-05-06 16:27:27 freddy77 Exp $ */
+/* $Id: tds.h,v 1.357 2011-05-06 16:47:32 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -70,7 +70,7 @@ typedef struct tds_compiletime_settings
 	int sybase_compat;	/* enable increased Open Client binary compatibility */
 	int threadsafe;		/* compile for thread safety default=no */
 	int libiconv;		/* search for libiconv in DIR/include and DIR/lib */
-	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/8.0) 5.0 */
+	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/7.1) 5.0 */
 	int iodbc;		/* build odbc driver against iODBC in DIR */
 	int unixodbc;		/* build odbc driver against unixODBC in DIR */
 
@@ -639,7 +639,7 @@ typedef enum tds_packet_type
 	TDS_NORMAL = 15,
 	TDS7_LOGIN = 16,
 	TDS7_AUTH = 17,
-	TDS8_PRELOGIN = 18
+	TDS71_PRELOGIN = 18
 } TDS_PACKET_TYPE;
 
 typedef enum tds_encryption_level {
@@ -910,14 +910,14 @@ typedef struct tds_variant
 } TDSVARIANT;
 
 /** 
- * TDS 8.0 collation informations.
+ * TDS 7.1 collation informations.
  */
 typedef struct
 {
 	TDS_USMALLINT locale_id;	/* master..syslanguages.lcid */
 	TDS_USMALLINT flags;
 	TDS_UCHAR charset_id;		/* or zero */
-} TDS8_COLLATION;
+} TDS71_COLLATION;
 
 /* SF stands for "sort flag" */
 #define TDS_SF_BIN                   (TDS_USMALLINT) 0x100
@@ -1470,7 +1470,7 @@ int tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * p
 int tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);
 int tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
 int tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
-int tds8_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
+int tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
 int tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 int tds_send_cancel(TDSSOCKET * tds);
 const char *tds_next_placeholder(const char *start);

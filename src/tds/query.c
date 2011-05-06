@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.247 2011-03-30 11:29:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.248 2011-05-06 16:47:32 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1275,7 +1275,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 }
 
 /**
- * tds8_submit_prepexec() creates a temporary stored procedure in the server.
+ * tds71_submit_prepexec() creates a temporary stored procedure in the server.
  * \param tds     state information for the socket and the TDS protocol
  * \param query   language query with given placeholders (?)
  * \param id      string to identify the dynamic query. Pass NULL for automatic generation.
@@ -1284,7 +1284,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
  * \return TDS_FAIL or TDS_SUCCEED
  */
 int
-tds8_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params)
+tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params)
 {
 	int query_len;
 	int rc;
@@ -1509,7 +1509,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 		}
 	}
 
-	/* TDS8 output collate information */
+	/* TDS7.1 output collate information */
 	if (IS_TDS71_PLUS(tds) && is_collate_type(curcol->on_server.column_type))
 		tds_put_n(tds, tds->collation, 5);
 

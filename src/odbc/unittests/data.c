@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.38 2011-01-17 22:05:37 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.39 2011-05-06 16:47:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 
 		Test("BIGINT", "123456789012345", SQL_C_BINARY, big_endian ? "00007048860DDF79" : "79DF0D8648700000");
 		if (result && strcmp(sbuf, "13000179DF0D86487000000000000000000000") == 0) {
-			fprintf(stderr, "Ignore previous error. You should configure TDS 8.0 for this!!!\n");
+			fprintf(stderr, "Ignore previous error. You should configure TDS 7.1 for this!!!\n");
 			if (!old_result)
 				result = 0;
 		}

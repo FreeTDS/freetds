@@ -51,10 +51,10 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.203 2011-04-02 11:19:35 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.204 2011-05-06 16:47:32 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
-static int tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
+static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 
 void
@@ -453,7 +453,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 	tds_set_state(tds, TDS_IDLE);
 
 	if (IS_TDS71_PLUS(tds)) {
-		erc = tds8_do_login(tds, connection);
+		erc = tds71_do_login(tds, connection);
 		db_selected = 1;
 	} else if (IS_TDS7_PLUS(tds)) {
 		erc = tds7_send_login(tds, connection);
@@ -939,7 +939,7 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 }
 
 static int
-tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
+tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
 	int i, len;
 	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
@@ -998,7 +998,7 @@ tds8_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_realloc_socket(tds, 4096);
 
 	/* do prelogin */
-	tds->out_flag = TDS8_PRELOGIN;
+	tds->out_flag = TDS71_PRELOGIN;
 
 	tds_put_n(tds, buf, start_pos);
 	/* netlib version */

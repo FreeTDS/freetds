@@ -58,7 +58,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.55 2009-08-25 14:25:35 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.56 2011-05-06 16:47:32 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -309,10 +309,10 @@ tds_alloc_read_login(TDSSOCKET * tds)
 		tds7_read_login(tds, login);
 		break;
 
-	case 0x12: /* TDS8+ prelogin, hopefully followed by a login */
+	case 0x12: /* TDS7.1+ prelogin, hopefully followed by a login */
 		tds->tds_version = 0x701;
 		/* ignore client and just send our reply TODO... finish */
-		tds8_send_prelogin(tds);
+		tds71_send_prelogin(tds);
 		tds_flush_packet(tds);
 		if (tds_read_packet(tds) < 0 || tds->in_flag != 0x10) {
 			tds_free_login(login);
