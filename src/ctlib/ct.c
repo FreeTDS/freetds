@@ -1,6 +1,7 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001  Brian Bruns
  * Copyright (C) 2002, 2003, 2004, 2005  James K. Lowden
+ * Copyright (C) 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -39,7 +40,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.207 2010-10-05 08:36:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.208 2011-05-06 16:27:27 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -3691,8 +3692,8 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 	switch (type) {
 	case CS_CURSOR_DECLARE:
 
-		cursor = tds_alloc_cursor(tds, name, namelen == CS_NULLTERM ? strlen(name) + 1 : namelen,
-						text, tlen == CS_NULLTERM ? strlen(text) + 1 : tlen);
+		cursor = tds_alloc_cursor(tds, name, namelen == CS_NULLTERM ? strlen(name) : namelen,
+						text, tlen == CS_NULLTERM ? strlen(text) : tlen);
 		if (!cursor)
 			return CS_FAIL;
 

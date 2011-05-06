@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.380 2011-04-02 11:19:34 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.381 2011-05-06 16:27:27 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1918,9 +1918,9 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		break;
 	case STRINGBIND:	bindlen = (int)strlen((char *) bindval);
 		break;
-	case VARYBINBIND:	bindlen = ((TDS_VARBINARY*) bindval)->len;
+	case VARYBINBIND:	bindlen = ((DBVARYBIN*) bindval)->len;
 		break;
-	case VARYCHARBIND:	bindlen = ((TDS_VARCHAR*) bindval)->len;
+	case VARYCHARBIND:	bindlen = ((DBVARYCHAR*) bindval)->len;
 		break;
 
 #if 0

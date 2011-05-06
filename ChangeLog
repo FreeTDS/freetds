@@ -1,3 +1,8 @@
+Fri May  6 18:27:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/ct.c src/ctlib/ctutil.c:
+	* src/dblib/dblib.c src/tds/mem.c:
+	- clean tds.h header
+
 Thu Apr 28 17:02:05 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/token.c:
 	- correct fix to detect tds 7.1 revision 1
@@ -77,4 +82,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3228 2011-04-28 15:02:25 freddy77 Exp $
+$Id: ChangeLog,v 1.3229 2011-05-06 16:27:26 freddy77 Exp $

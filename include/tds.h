@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.355 2011-04-28 15:02:25 freddy77 Exp $ */
+/* $Id: tds.h,v 1.356 2011-05-06 16:27:27 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -152,17 +152,6 @@ typedef struct tdsdatetime4
 	TDS_USMALLINT days;
 	TDS_USMALLINT minutes;
 } TDS_DATETIME4;
-
-typedef struct tdsvarbinary
-{
-	TDS_SMALLINT len;
-	TDS_CHAR array[256];
-} TDS_VARBINARY;
-typedef struct tdsvarchar
-{
-	TDS_SMALLINT len;
-	TDS_CHAR array[256];
-} TDS_VARCHAR;
 
 typedef struct tdsunique
 {
@@ -1192,12 +1181,9 @@ typedef struct tds_cursor
 {
 	struct tds_cursor *next;	/**< next in linked list, keep first */
 	TDS_INT ref_count;		/**< reference counter so client can retain safely a pointer */
-	TDS_TINYINT cursor_name_len;	/**< length of cursor name > 0 and <= 30  */
 	char *cursor_name;		/**< name of the cursor */
 	TDS_INT cursor_id;		/**< cursor id returned by the server after cursor declare */
-	TDS_TINYINT options;		/**< read only|updatable */
-	TDS_TINYINT hasargs;		/**< cursor parameters exists ? */
-	TDS_USMALLINT query_len;	/**< SQL query length */
+	TDS_TINYINT options;		/**< read only|updatable TODO use it */
 	char *query;                 	/**< SQL query */
 	/* TODO for updatable columns */
 	/* TDS_TINYINT number_upd_cols; */	/**< number of updatable columns */

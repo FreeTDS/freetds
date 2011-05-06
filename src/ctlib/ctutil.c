@@ -1,5 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -32,7 +33,7 @@
 /* #include "fortify.h" */
 
 
-TDS_RCSID(var, "$Id: ctutil.c,v 1.31 2010-08-04 07:09:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ctutil.c,v 1.32 2011-05-06 16:27:27 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -80,8 +81,6 @@ TEST_ATTRIBUTE(t30,TDS_NUMERIC,array,CS_NUMERIC,array);
 TEST_ATTRIBUTE(t30,TDS_NUMERIC,precision,CS_DECIMAL,precision);
 TEST_ATTRIBUTE(t31,TDS_NUMERIC,scale,CS_DECIMAL,scale);
 TEST_ATTRIBUTE(t32,TDS_NUMERIC,array,CS_DECIMAL,array);
-TEST_ATTRIBUTE(t33,TDS_VARBINARY,len,CS_VARBINARY,len);
-TEST_ATTRIBUTE(t34,TDS_VARBINARY,array,CS_VARBINARY,array);
 #endif
 
 /* 

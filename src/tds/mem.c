@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2010 Frediano Ziglio
+ * Copyright (C) 2005-2011 Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.208 2010-09-28 08:20:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.209 2011-05-06 16:27:27 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -927,14 +927,10 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	++cursor->ref_count;
 
 	TEST_CALLOC(cursor->cursor_name, char, namelen + 1);
-
-	strcpy(cursor->cursor_name, name);
-	cursor->cursor_name_len = namelen;
+	memcpy(cursor->cursor_name, name, namelen);
 
 	TEST_CALLOC(cursor->query, char, querylen + 1);
-
-	strcpy(cursor->query, query);
-	cursor->query_len = querylen;
+	memcpy(cursor->query, query, querylen);
 
 	return cursor;
 
