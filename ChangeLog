@@ -1,3 +1,6 @@
+Sat May  7 21:00:35 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac: detect correctly odbcss.h
+
 Fri May  6 18:47:17 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h include/tdssrv.h src/odbc/odbc.c:
 	* src/odbc/unittests/data.c src/server/login.c src/server/server.c:
@@ -88,4 +91,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3230 2011-05-06 16:47:32 freddy77 Exp $
+$Id: ChangeLog,v 1.3231 2011-05-07 19:00:44 freddy77 Exp $

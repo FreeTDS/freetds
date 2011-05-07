@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.61 2011-03-30 12:53:19 freddy77 Exp $
+dnl $Id: configure.ac,v 1.62 2011-05-07 19:00:44 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.92.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.61 $)
+AC_REVISION($Revision: 1.62 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_HEADERS(include/config.h)
@@ -273,7 +273,6 @@ AC_CHECK_HEADERS([	errno.h \
 			libgen.h \
 			limits.h \
 			locale.h \
-			odbcss.h \
 			poll.h \
 			readpassphrase.h \
 			signal.h \
@@ -288,6 +287,13 @@ AC_CHECK_HEADERS([	errno.h \
 			unistd.h \
 			wchar.h \
 			inttypes.h])
+AC_CHECK_HEADERS([windows.h sql.h odbcss.h],[],[],[[#ifdef HAVE_WINDOWS_H
+# include <windows.h>
+#endif
+#ifdef HAVE_SQL_H
+# include <sql.h>
+#endif
+]])
 if test $tds_mingw = no; then
     AC_CHECK_HEADERS([	arpa/inet.h \
 			langinfo.h \
