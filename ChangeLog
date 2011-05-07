@@ -1,3 +1,6 @@
+Sat May  7 21:18:18 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sqlfront.h: compile fix for MingW
+
 Sat May  7 21:00:35 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: detect correctly odbcss.h
 
@@ -91,4 +94,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3231 2011-05-07 19:00:44 freddy77 Exp $
+$Id: ChangeLog,v 1.3232 2011-05-07 19:18:23 freddy77 Exp $
