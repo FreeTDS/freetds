@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.248 2011-05-06 16:47:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.249 2011-05-08 22:41:36 jklowden Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -759,11 +759,9 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 static char *
 tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, size_t converted_query_len, TDSPARAMINFO * params, size_t *out_len)
 {
-	size_t size = 512;
-	char *param_str;
-	char *p;
+	size_t len = 0, size = 512;
+	char *param_str, *p;
 	char declaration[40];
-	size_t l = 0;
 	int i, count;
 
 	assert(IS_TDS7_PLUS(tds));
@@ -780,13 +778,13 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 		return NULL;
 
 	for (i = 0; i < count; ++i) {
-		if (l > 0u) {
-			param_str[l++] = ',';
-			param_str[l++] = 0;
+		if (len > 0u) {
+			param_str[len++] = ',';
+			param_str[len++] = 0;
 		}
 
 		/* realloc on insufficient space */
-		while ((l + (2u * 40u)) > size) {
+		while ((len + (2u * 40u)) > size) {
 			p = (char *) realloc(param_str, size += 512u);
 			if (!p)
 				goto Cleanup;
@@ -799,13 +797,13 @@ tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 			if (tds_get_column_declaration(tds, params->columns[i], declaration + strlen(declaration)) == TDS_FAIL)
 				goto Cleanup;
 		} else {
-			strcat(declaration, "varchar(80)");
+			strcat(declaration, "varchar(4000)");
 		}
 
 		/* convert it to ucs2 and append */
-		l += tds_ascii_to_ucs2(param_str + l, declaration);
+		len += tds_ascii_to_ucs2(param_str + len, declaration);
 	}
-	*out_len = l;
+	*out_len = len;
 	return param_str;
 
       Cleanup:
