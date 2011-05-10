@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.206 2011-05-10 21:20:43 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.207 2011-05-10 21:42:52 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -730,36 +730,41 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		SEND_YUKON_BINARY_XML	= 0x02, 
 		REQUEST_USER_INSTANCE	= 0x04, 
 		UNKNOWN_COLLATION_HANDLING	= 0x08, 
-		ANY_COLLATION		= 0x10, 
-		OPTION_FLAG3_VALUE = UNKNOWN_COLLATION_HANDLING
+		ANY_COLLATION		= 0x10
 	};
 	
 	static const unsigned char 
 		client_progver[] = {   6, 0x83, 0xf2, 0xf8 }, 
 
-		tds70Version[]  = { 0x00, 0x00, 0x00, 0x70 },
-		tds71Version[]  = { 0x01, 0x00, 0x00, 0x71 },
-		tds72Version[]  = { 0x02, 0x00, 0x09, 0x72 },
-		tds73aVersion[] = { 0x03, 0x00, 0x0A, 0x73 },	     /* no NBCROW */
-		tds73bVersion[] = { 0x03, 0x00, 0x0B, 0x73 }, 
-
+		tds70Version[] = { 0x00, 0x00, 0x00, 0x70 },
+		tds71Version[] = { 0x01, 0x00, 0x00, 0x71 },
+		tds72Version[] = { 0x02, 0x00, 0x09, 0x72 },
+#if SUPPORT_NBCROW
+		tds73Version[] = { 0x03, 0x00, 0x0B, 0x73 }, 
+#else
+		tds73Version[] = { 0x03, 0x00, 0x0A, 0x73 },	     /* 7.3.A, no NBCROW */
+#endif		
 		connection_id[] = { 0x00, 0x00, 0x00, 0x00 }, 
-		
 		time_zone[] = { 0x88, 0xff, 0xff, 0xff }, 
 		collation[] = { 0x36, 0x04, 0x00, 0x00 }, 
 		
 		sql_type_flag = 0x00, 
 		reserved_flag = 0x00;
 
+	const unsigned char *ptds7version = tds70Version;
+	
 	TDS_INT block_size = 4096;
+	
 	unsigned char option_flag1 = SET_LANG_ON | USE_DB_NOTIFY | INIT_DB_FATAL;
 	unsigned char option_flag2 = connection->option_flag2;
-	unsigned char hwaddr[6];
+	unsigned char option_flag3 = UNKNOWN_COLLATION_HANDLING;
 
+	unsigned char hwaddr[6];
 	size_t unicode_left, packet_size, current_pos;
 	int rc;
 
 	const char *user_name = tds_dstr_cstr(&connection->user_name);
+
 	// FIXME: These are defined as size_t, but should be TDS_SMALLINT. 
 	size_t user_name_len = strlen(user_name);
 	size_t host_name_len = tds_dstr_len(&connection->client_host_name);
@@ -822,13 +827,24 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tdsdump_off();
 #endif
 	TDS_PUT_INT(tds, packet_size);
-	if (IS_TDS72_PLUS(tds)) {
-		tds_put_n(tds, tds72Version, sizeof(tds72Version));
-	} else if (IS_TDS71_PLUS(tds)) {
-		tds_put_n(tds, tds71Version, sizeof(tds71Version));
-	} else {
-		tds_put_n(tds, tds70Version, sizeof(tds70Version));
+	switch (connection->tds_version) {
+	case 0x700:
+		ptds7version = tds70Version;
+		break;
+	case 0x701:
+		ptds7version = tds71Version;
+		break;
+	case 0x702:
+		ptds7version = tds72Version;
+		break;
+	case 0x703:
+		ptds7version = tds73Version;
+		break;
+	default:
+		assert(0 && 0x700 <= connection->tds_version && connection->tds_version <= 0x703);
 	}
+	
+	tds_put_n(tds, ptds7version, sizeof(tds70Version));
 
 	if (512 <= connection->block_size && connection->block_size < 1000000)
 		block_size = connection->block_size;
@@ -851,6 +867,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	if (tds->authentication)
 		option_flag2 |= INTEGRATED_SECURITY_ON;
+
+	if (connection->tds_version >= 0x703)
+		tds_put_byte(tds, option_flag3);
 
 	tds_put_byte(tds, option_flag2);
 

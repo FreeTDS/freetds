@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.357 2011-05-06 16:47:32 freddy77 Exp $ */
+/* $Id: tds.h,v 1.358 2011-05-10 21:42:51 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1644,6 +1644,7 @@ int tds_writetext_end(TDSSOCKET *tds);
 #define IS_TDS7_PLUS(x) ((x)->tds_version>=0x700)
 #define IS_TDS71_PLUS(x) ((x)->tds_version>=0x701)
 #define IS_TDS72_PLUS(x) ((x)->tds_version>=0x702)
+#define IS_TDS73_PLUS(x) ((x)->tds_version>=0x703)
 
 #define TDS_MAJOR(x) ((x)->tds_version >> 8)
 #define TDS_MINOR(x) ((x)->tds_version & 0xff)
