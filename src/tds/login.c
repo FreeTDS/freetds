@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.204 2011-05-06 16:47:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.205 2011-05-10 20:41:23 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -693,8 +693,47 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 static int
 tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-	int rc;
-
+	enum option_flag1_values {
+		BYTE_ORDER_X86		= 0, 
+		CHARSET_ASCII		= 0, 
+		DUMPLOAD_ON 		= 0, 
+		FLOAT_IEEE_754		= 0, 
+		INIT_DB_WARN		= 0, 
+		SET_LANG_OFF		= 0, 
+		USE_DB_SILENT		= 0, 
+		BYTE_ORDER_68000	= 0x01, 
+		CHARSET_EBDDIC		= 0x02, 
+		FLOAT_VAX		= 0x04, 
+		FLOAT_ND5000		= 0x08, 
+		DUMPLOAD_OFF		= 0x10,	/* prevent BCP */ 
+		USE_DB_NOTIFY		= 0x20, 
+		INIT_DB_FATAL		= 0x40, 
+		SET_LANG_ON		= 0x80
+	};
+	enum option_flag2_values {
+		INIT_LANG_WARN		= 0, 
+		INTEGRATED_SECURTY_OFF	= 0, 
+		ODBC_OFF		= 0, 
+		USER_NORMAL		= 0,	/* SQL Server login */
+		INIT_LANG_REQUIRED	= 0x01, 
+		ODBC_ON			= 0x02, 
+		TRANSACTION_BOUNDARY71	= 0x04,	/* removed in TDS 7.2 */
+		CACHE_CONNECT71		= 0x08,	/* removed in TDS 7.2 */
+		USER_SERVER		= 0x10,	/* reserved */
+		USER_REMUSER		= 0x20,	/* DQ login */
+		USER_SQLREPL		= 0x40,	/* replication login */
+		INTEGRATED_SECURITY_ON	= 0x80
+	};
+	enum option_flag3_values {	/* TDS 7.3+ */
+		RESTRICTED_COLLATION	= 0, 
+		CHANGE_PASSWORD		= 0x01, 
+		SEND_YUKON_BINARY_XML	= 0x02, 
+		REQUEST_USER_INSTANCE	= 0x04, 
+		UNKNOWN_COLLATION_HANDLING	= 0x08, 
+		ANY_COLLATION		= 0x10, 
+		OPTION_FLAG3_VALUE = UNKNOWN_COLLATION_HANDLING
+	};
+	
 	static const unsigned char client_progver[] = { 6, 0x83, 0xf2, 0xf8 };
 
 	static const unsigned char tds70Version[] = { 0x00, 0x00, 0x00, 0x70 };
@@ -702,7 +741,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	static const unsigned char tds72Version[] = { 0x02, 0x00, 0x09, 0x72 };
 
 	static const unsigned char connection_id[] = { 0x00, 0x00, 0x00, 0x00 };
-	unsigned char option_flag1 = 0x00;
+	unsigned char option_flag1 = SET_LANG_ON | USE_DB_NOTIFY | INIT_DB_FATAL;
 	unsigned char option_flag2 = connection->option_flag2;
 	static const unsigned char sql_type_flag = 0x00;
 	static const unsigned char reserved_flag = 0x00;
@@ -717,8 +756,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	char *punicode;
 	size_t unicode_left;
 	size_t packet_size;
-	TDS_INT block_size;
+	TDS_INT block_size = 4096;
 	size_t current_pos;
+	int rc;
 
 	const char *user_name = tds_dstr_cstr(&connection->user_name);
 	// FIXME: These are defined as size_t, but should be TDS_SMALLINT. 
@@ -784,44 +824,42 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 #endif
 	TDS_PUT_INT(tds, packet_size);
 	if (IS_TDS72_PLUS(tds)) {
-		tds_put_n(tds, tds72Version, 4);
+		tds_put_n(tds, tds72Version, sizeof(tds72Version));
 	} else if (IS_TDS71_PLUS(tds)) {
-		tds_put_n(tds, tds71Version, 4);
+		tds_put_n(tds, tds71Version, sizeof(tds71Version));
 	} else {
-		tds_put_n(tds, tds70Version, 4);
+		tds_put_n(tds, tds70Version, sizeof(tds70Version));
 	}
 
-	if (connection->block_size < 1000000 && connection->block_size >= 512)
+	if (512 <= connection->block_size && connection->block_size < 1000000)
 		block_size = connection->block_size;
-	else
-		block_size = 4096;	/* SQL server default */
+
 	tds_put_int(tds, block_size);	/* desired packet size being requested by client */
 
 	if (block_size > tds->env.block_size)
 		tds_realloc_socket(tds, block_size);
 
-	tds_put_n(tds, client_progver, 4);	/* client program version ? */
+	tds_put_n(tds, client_progver, sizeof(client_progver));	/* client program version ? */
 
 	tds_put_int(tds, getpid());	/* process id of this process */
 
-	tds_put_n(tds, connection_id, 4);
+	tds_put_n(tds, connection_id, sizeof(connection_id));
 
-	option_flag1 |= 0x80;	/* enable warning messages if SET LANGUAGE issued   */
-	option_flag1 |= 0x40;	/* change to initial database must succeed          */
-	option_flag1 |= 0x20;	/* enable warning messages if USE <database> issued */
-
+	if (!connection->bulk_copy)
+		option_flag1 |= DUMPLOAD_OFF;
+		
 	tds_put_byte(tds, option_flag1);
 
 	if (tds->authentication)
-		option_flag2 |= 0x80;	/* enable domain login security                     */
+		option_flag2 |= INTEGRATED_SECURITY_ON;
 
 	tds_put_byte(tds, option_flag2);
 
 	tds_put_byte(tds, sql_type_flag);
 	tds_put_byte(tds, reserved_flag);
 
-	tds_put_n(tds, time_zone, 4);
-	tds_put_n(tds, collation, 4);
+	tds_put_n(tds, time_zone, sizeof(time_zone));
+	tds_put_n(tds, collation, sizeof(collation));
 
 	/* host name */
 	TDS_PUT_SMALLINT(tds, current_pos);
