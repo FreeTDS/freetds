@@ -1,3 +1,6 @@
+Tue May 10 17:19:27 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* src/tds/login.c more tds7_send_login() cleanup
+
 Tue May 10 16:38:13 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* src/tds/login.c 
 	- Replace magic numbers with enums and prevent BCP if
@@ -111,4 +114,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3236 2011-05-10 20:41:23 jklowden Exp $
+$Id: ChangeLog,v 1.3237 2011-05-10 21:20:43 jklowden Exp $

@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.205 2011-05-10 20:41:23 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.206 2011-05-10 21:20:43 jklowden Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -734,30 +734,29 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		OPTION_FLAG3_VALUE = UNKNOWN_COLLATION_HANDLING
 	};
 	
-	static const unsigned char client_progver[] = { 6, 0x83, 0xf2, 0xf8 };
+	static const unsigned char 
+		client_progver[] = {   6, 0x83, 0xf2, 0xf8 }, 
 
-	static const unsigned char tds70Version[] = { 0x00, 0x00, 0x00, 0x70 };
-	static const unsigned char tds71Version[] = { 0x01, 0x00, 0x00, 0x71 };
-	static const unsigned char tds72Version[] = { 0x02, 0x00, 0x09, 0x72 };
+		tds70Version[]  = { 0x00, 0x00, 0x00, 0x70 },
+		tds71Version[]  = { 0x01, 0x00, 0x00, 0x71 },
+		tds72Version[]  = { 0x02, 0x00, 0x09, 0x72 },
+		tds73aVersion[] = { 0x03, 0x00, 0x0A, 0x73 },	     /* no NBCROW */
+		tds73bVersion[] = { 0x03, 0x00, 0x0B, 0x73 }, 
 
-	static const unsigned char connection_id[] = { 0x00, 0x00, 0x00, 0x00 };
+		connection_id[] = { 0x00, 0x00, 0x00, 0x00 }, 
+		
+		time_zone[] = { 0x88, 0xff, 0xff, 0xff }, 
+		collation[] = { 0x36, 0x04, 0x00, 0x00 }, 
+		
+		sql_type_flag = 0x00, 
+		reserved_flag = 0x00;
+
+	TDS_INT block_size = 4096;
 	unsigned char option_flag1 = SET_LANG_ON | USE_DB_NOTIFY | INIT_DB_FATAL;
 	unsigned char option_flag2 = connection->option_flag2;
-	static const unsigned char sql_type_flag = 0x00;
-	static const unsigned char reserved_flag = 0x00;
-
-	static const unsigned char time_zone[] = { 0x88, 0xff, 0xff, 0xff };
-	static const unsigned char collation[] = { 0x36, 0x04, 0x00, 0x00 };
-
 	unsigned char hwaddr[6];
 
-	/* 0xb4,0x00,0x30,0x00,0xe4,0x00,0x00,0x00; */
-	char unicode_string[256];
-	char *punicode;
-	size_t unicode_left;
-	size_t packet_size;
-	TDS_INT block_size = 4096;
-	size_t current_pos;
+	size_t unicode_left, packet_size, current_pos;
 	int rc;
 
 	const char *user_name = tds_dstr_cstr(&connection->user_name);
@@ -929,11 +928,12 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
 	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), (int)host_name_len);
 	if (!tds->authentication) {
+		char unicode_string[256], *punicode = unicode_string;
 		const char *p;
 		TDSICONV *char_conv = tds->char_convs[client2ucs2];
+
 		tds_put_string(tds, tds_dstr_cstr(&connection->user_name), (int)user_name_len);
 		p = tds_dstr_cstr(&connection->password);
-		punicode = unicode_string;
 		unicode_left = sizeof(unicode_string);
 
 		memset(&char_conv->suppress, 0, sizeof(char_conv->suppress));
