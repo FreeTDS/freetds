@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 2007  Frediano Ziglio
+ * Copyright (C) 2007-2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -67,7 +67,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.11 2010-09-16 07:37:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.11.2.1 2011-05-10 13:21:30 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -86,6 +86,7 @@ typedef struct tds_gss_auth
 	gss_ctx_id_t gss_context;
 	gss_name_t target_name;
 	char *sname;
+	OM_uint32 last_stat;
 } TDSGSSAUTH;
 
 static int
@@ -111,10 +112,44 @@ tds_gss_free(TDSSOCKET * tds, struct tds_authentication * tds_auth)
 	return TDS_SUCCEED;
 }
 
+static int tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr);
+
 static int
 tds_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
 {
-	return TDS_FAIL;
+	int res;
+	gss_buffer_desc recv_tok;
+
+	if (((struct tds_gss_auth *) auth)->last_stat != GSS_S_CONTINUE_NEEDED)
+		return TDS_FAIL;
+
+	if (auth->packet) {
+		OM_uint32 min_stat;
+		gss_buffer_desc send_tok;
+
+		send_tok.value = (void *) auth->packet;
+		send_tok.length = auth->packet_len;
+		gss_release_buffer(&min_stat, &send_tok);
+		auth->packet = NULL;
+	}
+
+	recv_tok.length = len;
+	recv_tok.value = (char* ) malloc(len);
+	if (!recv_tok.value)
+		return TDS_FAIL;
+	tds_get_n(tds, recv_tok.value, len);
+
+	res = tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok);
+	free(recv_tok.value);
+	if (res != TDS_SUCCEED)
+		return TDS_FAIL;
+
+	if (auth->packet_len) {
+		tds->out_flag = TDS7_AUTH;
+		tds_put_n(tds, auth->packet, auth->packet_len);
+		return tds_flush_packet(tds);
+	}
+	return TDS_SUCCEED;
 }
 
 /**
@@ -137,15 +172,13 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	 * a bit more verbose
 	 * dinamically load library ??
 	 */
-	gss_buffer_desc send_tok, *token_ptr;
+	gss_buffer_desc send_tok;
 	OM_uint32 maj_stat, min_stat;
 	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
 	static gss_OID_desc nt_principal = { 10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
-	OM_uint32 ret_flags;
 	const char *server_name;
 	/* Storage for reentrant getaddrby* calls */
 	char buffer[4096];
-	int gssapi_flags;
 
 	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
@@ -154,6 +187,8 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 	auth->tds_auth.free = tds_gss_free;
 	auth->tds_auth.handle_next = tds_gss_handle_next;
+	auth->gss_context = GSS_C_NO_CONTEXT;
+	auth->last_stat = GSS_S_COMPLETE;
 
 	server_name = tds_dstr_cstr(&tds->connection->server_host_name);
 	if (strchr(server_name, '.') == NULL) {
@@ -178,10 +213,25 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	send_tok.value = auth->sname;
 	send_tok.length = strlen(auth->sname);
 	maj_stat = gss_import_name(&min_stat, &send_tok, &nt_principal, &auth->target_name);
-	if (maj_stat != GSS_S_COMPLETE) {
+
+	if (maj_stat != GSS_S_COMPLETE
+	    || tds_gss_continue(tds, auth, GSS_C_NO_BUFFER) == TDS_FAIL) {
 		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
+
+	return (TDSAUTHENTICATION *) auth;
+}
+
+static int
+tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr)
+{
+	gss_buffer_desc send_tok;
+	OM_uint32 maj_stat, min_stat;
+	OM_uint32 ret_flags;
+	int gssapi_flags;
+
+	auth->last_stat = GSS_S_COMPLETE;
 
 	send_tok.value = NULL;
 	send_tok.length = 0;
@@ -202,9 +252,6 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	 * and only if the server has another token to send us.
 	 */
 
-	token_ptr = GSS_C_NO_BUFFER;
-	auth->gss_context = GSS_C_NO_CONTEXT;
-
 	/* We may ask for delegation based on config in the tds.conf and other conf files */
 	/* We always want to ask for the mutual, replay, and integ flags */
 	gssapi_flags = GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG;
@@ -219,25 +266,10 @@ tds_gss_get_auth(TDSSOCKET * tds)
 					token_ptr, NULL,	/* ignore mech type */
 					&send_tok, &ret_flags, NULL);	/* ignore time_rec */
 
-/*
-	if (token_ptr != GSS_C_NO_BUFFER)
-		free(recv_tok.value);
-*/
-
-/*
-	if (send_tok.length != 0) {
-		if (send_token(s, v1_format ? 0 : TOKEN_CONTEXT, &send_tok) < 0) {
-			(void) gss_release_buffer(&min_stat, &send_tok);
-			(void) gss_release_name(&min_stat, &target_name);
-			return -1;
-		}
-*/
-/*	(void) gss_release_buffer(&min_stat, &send_tok); */
-
+	auth->last_stat = maj_stat;
 	if (maj_stat != GSS_S_COMPLETE && maj_stat != GSS_S_CONTINUE_NEEDED) {
 		gss_release_buffer(&min_stat, &send_tok);
-		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
-		return NULL;
+		return TDS_FAIL;
 	}
 
 /*
@@ -252,7 +284,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 	auth->tds_auth.packet = (TDS_UCHAR *) send_tok.value;
 	auth->tds_auth.packet_len = send_tok.length;
-	return (TDSAUTHENTICATION *) auth;
+	return TDS_SUCCEED;
 }
 
 #endif

@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.396.2.2 2011-04-29 07:04:29 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.396.2.3 2011-05-10 13:21:30 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -337,9 +337,6 @@ tds_process_login_tokens(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_FUNC, "looking for login token, got  %x(%s)\n", marker, tds_token_name(marker));
 
 		switch (marker) {
-		case TDS_AUTH_TOKEN:
-			tds_process_auth(tds);
-			break;
 		case TDS_LOGINACK_TOKEN:
 			/* TODO function */
 			tds->tds71rev1 = 0;
