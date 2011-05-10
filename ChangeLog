@@ -1,3 +1,8 @@
+Tue May 10 14:52:32 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/.cvsignore src/odbc/unittests/Makefile.am:
+	* src/odbc/unittests/prepare_warn.c:
+	- add test from Sebastien Flaesch for cursor state
+
 Sun May  8 18:37:44 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* configure.ac added AC_CONFIG_MACRO_DIR per autoconf warning
 	* src/tds/query.c use varchar(4000) per ML patch from Ed Avis
@@ -98,4 +103,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3233 2011-05-08 22:41:32 jklowden Exp $
+$Id: ChangeLog,v 1.3234 2011-05-10 12:53:07 freddy77 Exp $
