@@ -1,3 +1,6 @@
+Tue May 10 23:06:37 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* src/apps/osql correct servername feedback
+
 Tue May 10 17:42:06 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* include/tds.h src/tds/login.c
 	- first attempt and TDS 7.3 login
@@ -118,4 +121,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3238 2011-05-10 21:42:51 jklowden Exp $
+$Id: ChangeLog,v 1.3239 2011-05-11 03:08:12 jklowden Exp $

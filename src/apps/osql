@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: osql,v 1.11 2009-07-16 14:37:10 jklowden Exp $
+# $Id: osql,v 1.12 2011-05-11 03:08:13 jklowden Exp $
 #
 # Check odbc.ini, odbcinst, and, optionally, freetds.conf, 
 # then execute isql (assume it's unixODBC's isql).  
@@ -256,7 +256,7 @@ echo ${SERVER_LINE} | grep -i servername >/dev/null
 #
 if [ $? -eq 0 ] # ODBC-Combined
 then
-	TDS_SERVER=$(echo ${SERVER_LINE} | awk '{print $3}')
+	TDS_SERVER=$(echo ${SERVER_LINE} | awk -F '=[[:space:]]*' '{print $2}')
 	echo 'Using ODBC-Combined strategy'
 	echo "DSN [${DSN}] has servername \"${TDS_SERVER}\" (from ${ODBC_INI})"
 	if [ -z "${TDS_SERVER}" ]
