@@ -11,6 +11,10 @@ SYBDATEN	SYB	1	0	1	0	0	0	0	0	4	0
 SYBDATETIME	ALL	0	1	0	0	0	0	0	0	8	SYBDATETIMN
 SYBDATETIME4	ALL	0	1	0	0	0	0	0	0	4	SYBDATETIMN
 SYBDATETIMN	ALL	1	0	1	0	0	0	0	0	-1	0
+SYBMSDATE	MS	1	0	1	0	0	0	0	0	4	0
+SYBMSTIME	MS	1	0	1	0	0	0	0	0	-1	0
+SYBMSDATETIME2	MS	1	0	1	0	0	0	0	0	-1	0
+SYBMSDATETIMEOFFSET	MS	1	0	1	0	0	0	0	0	-1	0
 SYBDECIMAL	ALL	1	0	1	0	0	1	0	0	-1	0
 SYBFLT8	ALL	0	1	0	0	0	0	0	0	8	SYBFLTN
 SYBFLTN	ALL	1	0	1	0	0	0	0	0	-1	0
@@ -59,9 +63,9 @@ XSYBVARCHAR	MS	2	0	1	1	0	0	0	1	-1	0
 # XSYBVARCHAR blob se TDS9 ??
 # char if ascii or unicode
 # there are some type that allow size 0 or a constants (SYBDATEN, SYBUNIQUE)
-# some type (BITN, DATEN, UNIQUE) have size but are nullable
+# some type (BITN, DATEN, UNIQUE, MSDATE) have size but are nullable
 # tds_get_conversion_type from nullable to not nullable
 # tds_get_cardinal_type ??
 
-# $Id: types.txt,v 1.4 2010-10-29 08:49:30 freddy77 Exp $
+# $Id: types.txt,v 1.5 2011-05-12 19:40:57 freddy77 Exp $
 

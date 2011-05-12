@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2010  Frediano Ziglio
+ * Copyright (C) 2005-2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.88 2010-11-09 15:46:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.89 2011-05-12 19:40:57 freddy77 Exp $");
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;
 ODBC_PARAM_LIST
@@ -626,6 +626,7 @@ static const char *const aTDSver[] = {
 	"7.0",
 	"7.1",
 	"7.2",
+	"7.3",
 	NULL
 };
 
@@ -740,7 +741,9 @@ ODBCINSTGetProperties(HODBCINSTPROPERTY hLastProperty)
 		" 5.0 Sybase >= 10.x\n"
 		" 7.0 MSSQL 7\n"
 		" 7.1 MSSQL 2000\n"
-		" 7.2 MSSQL 2005");
+		" 7.2 MSSQL 2005\n"
+		" 7.3 MSSQL 2008"
+		);
 
 	hLastProperty = definePropertyList(hLastProperty, odbc_param_Language, "us_english", (void*) aLanguage, sizeof(aLanguage),
 		"The default language setting.");

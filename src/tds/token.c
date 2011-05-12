@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.400 2011-05-10 13:19:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.401 2011-05-12 19:40:57 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -2241,6 +2241,11 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			break;
 		}
 
+		if (curcol->on_server.column_type == SYBMSDATE) {
+			dest[3] = 0;
+			curcol->column_cur_size = sizeof(TDS_INT);
+		}
+
 		if (curcol->column_type == SYBDATETIME4) {
 			tdsdump_log(TDS_DBG_INFO1, "datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
 		}
@@ -2944,6 +2949,7 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 	case SYBINT4:
 	case SYBMONEY4:
 	case SYBREAL:
+	case SYBMSDATE:
 		tds_swap_bytes(buf, 4);
 		break;
 	case SYBINT8:
@@ -3285,6 +3291,8 @@ tds_prtype(int token)
 		TYPE(XSYBNVARCHAR, "x UCS-2 varchar");
 		TYPE(XSYBVARBINARY, "xvarbinary");
 		TYPE(XSYBVARCHAR, "xvarchar");
+		TYPE(SYBMSDATE, "date");
+		TYPE(SYBMSTIME, "time");
 	default:
 		break;
 	}

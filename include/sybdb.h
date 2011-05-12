@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
- * Copyright (C) 2010  Frediano Ziglio
+ * Copyright (C) 2010, 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -42,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.100 2011-03-27 16:36:53 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.101 2011-05-12 19:40:57 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -77,6 +77,7 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBVERSION_71      5
 #define DBVERSION_80      DBVERSION_71
 #define DBVERSION_72      6
+#define DBVERSION_73      7
 
 /* these two are defined by Microsoft for dbsetlversion() */
 #define DBVER42 	  DBVERSION_42
@@ -99,6 +100,7 @@ static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_s
 #define DBTDS_9_0               10	/* Microsoft SQL Server 2005 */
 #define DBTDS_7_1               9	/* Microsoft SQL Server 2000 */
 #define DBTDS_7_2               10	/* Microsoft SQL Server 2005 */
+#define DBTDS_7_3               11	/* Microsoft SQL Server 2008 */
 
 #define DBTXPLEN 16
 

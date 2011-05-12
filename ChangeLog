@@ -1,3 +1,10 @@
+Thu May 12 21:40:42 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sybdb.h include/tds.h misc/types.txt src/dblib/dblib.c:
+	* src/odbc/connectparams.c src/odbc/unittests/data.c:
+	* src/tds/config.c src/tds/convert.c src/tds/data.c:
+	* src/tds/tds_checks.c src/tds/token.c win32/winsetup.c:
+	- add more about tds 7.3
+
 Tue May 10 23:06:37 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* src/apps/osql correct servername feedback
 
@@ -121,4 +128,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3239 2011-05-11 03:08:12 jklowden Exp $
+$Id: ChangeLog,v 1.3240 2011-05-12 19:40:57 freddy77 Exp $

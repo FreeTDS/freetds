@@ -80,7 +80,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.165 2011-04-15 06:56:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.166 2011-05-12 19:40:57 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -774,6 +774,8 @@ tds_config_verstr(const char *tdsver, TDSCONNECTION * connection)
 		version = 0x701;
 	else if (!strcmp(tdsver, "7.2"))
 		version = 0x702;
+	else if (!strcmp(tdsver, "7.3"))
+		version = 0x703;
 	else if (!strcmp(tdsver, "0.0"))
 		version = 0;
 	else 
@@ -1199,6 +1201,8 @@ tds_get_compiletime_settings(void)
 			, "7.1"
 #		elif TDS72
 			, "7.2"
+#		elif TDS73
+			, "7.3"
 #		else
 			, "4.2"
 #		endif

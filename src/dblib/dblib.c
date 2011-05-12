@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.381 2011-05-06 16:27:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.382 2011-05-12 19:40:57 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -6609,6 +6609,8 @@ dbtds(DBPROCESS * dbproc)
 			return DBTDS_7_1;
 		case 0x702:
 			return DBTDS_7_2;
+		case 0x703:
+			return DBTDS_7_3;
 		default:
 			return DBTDS_UNKNOWN;
 		}

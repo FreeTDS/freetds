@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.39 2011-05-06 16:47:32 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.40 2011-05-12 19:40:57 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -221,6 +221,33 @@ main(int argc, char *argv[])
 		odbc_command("CREATE XML SCHEMA COLLECTION test_schema AS '<schema xmlns=\"http://www.w3.org/2001/XMLSchema\"><element name=\"test\" type=\"string\"/></schema>'");
 		Test("XML(test_schema)", "<test>ciao</test>", SQL_C_CHAR, "17 <test>ciao</test>");
 		odbc_command("DROP XML SCHEMA COLLECTION test_schema");
+	}
+
+	/* MSSQL 2008*/
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0A000000u) {
+		/* FIXME sure ?? with date and time always ?? */
+		Test("DATE", "1923-12-02", SQL_C_CHAR, "10 1923-12-02");
+		Test("DATE", "1923-12-02", SQL_C_BINARY, big_endian ? "0783000C0002" : "83070C000200");
+
+		Test("TIME", "12:23:45", SQL_C_CHAR, "16 12:23:45.0000000");
+		Test("TIME", "12:23:45", SQL_C_BINARY, big_endian ? "000C0017002D000000000000" : "0C0017002D00000000000000");
+
+		Test("TIME(4)", "12:23:45", SQL_C_CHAR, "13 12:23:45.0000");
+		Test("TIME(4)", "12:23:45", SQL_C_BINARY, big_endian ? "000C0017002D000000000000" : "0C0017002D00000000000000");
+
+		// TODO out of range :(
+		Test("DATETIME2", "12:23:45", SQL_C_CHAR, "27 1900-01-01 12:23:45.0000000");
+		Test("DATETIME2", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D00000000" : "6C07010001000C0017002D0000000000");
+
+		Test("DATETIME2(4)", "12:23:45", SQL_C_CHAR, "24 1900-01-01 12:23:45.0000");
+		Test("DATETIME2(4)", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D00000000" : "6C07010001000C0017002D0000000000");
+
+		// TODO out of range :(
+		Test("DATETIMEOFFSET", "12:23:45", SQL_C_CHAR, "34 1900-01-01 12:23:45.0000000 +00:00");
+		Test("DATETIMEOFFSET", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D0000000000000000" : "6C07010001000C0017002D000000000000000000");
+
+		Test("DATETIMEOFFSET(4)", "12:23:45", SQL_C_CHAR, "31 1900-01-01 12:23:45.0000 +00:00");
+		Test("DATETIMEOFFSET(4)", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D0000000000000000" : "6C07010001000C0017002D000000000000000000");
 	}
 
 	if (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0) {

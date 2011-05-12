@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.358 2011-05-10 21:42:51 jklowden Exp $ */
+/* $Id: tds.h,v 1.359 2011-05-12 19:40:57 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -483,6 +483,10 @@ typedef enum
 #define SYBMSUDT SYBMSUDT
 	SYBMSXML = 241,		/* 0xF1 */
 #define SYBMSXML SYBMSXML
+	SYBMSDATE = 40,  	/* 0x28 */
+	SYBMSTIME = 41,  	/* 0x29 */
+	SYBMSDATETIME2 = 42,  	/* 0x2a */
+	SYBMSDATETIMEOFFSET = 43,/* 0x2b */
 
 /*
  * Sybase only types
@@ -703,7 +707,8 @@ typedef enum tds_encryption_level {
 			x==SYBMONEY     || \
 			x==SYBMONEY4    || \
 			x==SYBVOID      || \
-			x==SYBUNIQUE)
+			x==SYBUNIQUE    || \
+			x==SYBMSDATE)
 #define is_nullable_type(x) ( \
 			x==SYBBITN      || \
                      x==SYBINTN      || \
@@ -767,6 +772,9 @@ typedef enum tds_encryption_level {
 #define TDS_DEF_PORT		1433
 #elif TDS72
 #define TDS_DEFAULT_VERSION	0x702
+#define TDS_DEF_PORT		1433
+#elif TDS73
+#define TDS_DEFAULT_VERSION	0x703
 #define TDS_DEF_PORT		1433
 #else
 #define TDS_DEFAULT_VERSION	0x500
@@ -1640,6 +1648,7 @@ int tds_writetext_end(TDSSOCKET *tds);
 #define IS_TDS70(x) (x->tds_version==0x700)
 #define IS_TDS71(x) (x->tds_version==0x701)
 #define IS_TDS72(x) (x->tds_version==0x702)
+#define IS_TDS73(x) (x->tds_version==0x703)
 
 #define IS_TDS7_PLUS(x) ((x)->tds_version>=0x700)
 #define IS_TDS71_PLUS(x) ((x)->tds_version>=0x701)

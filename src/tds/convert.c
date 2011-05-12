@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2010  Frediano Ziglio
+ * Copyright (C) 2010, 2011  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.196 2010-12-28 14:37:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.197 2011-05-12 19:40:57 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1909,8 +1909,8 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 	}
 
 	i = (t->tm_mon - 13) / 12;
-	dt_days = 1461 * (t->tm_year + 300 + i) / 4 +
-		(367 * (t->tm_mon - 1 - 12 * i)) / 12 - (3 * ((t->tm_year + 400 + i) / 100)) / 4 + t->tm_mday - 109544;
+	dt_days = 1461 * (t->tm_year + 1900 + i) / 4 +
+		(367 * (t->tm_mon - 1 - 12 * i)) / 12 - (3 * ((t->tm_year + 2000 + i) / 100)) / 4 + t->tm_mday - 693932;
 
 	free(in);
 
@@ -2955,7 +2955,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	 * -53690 is minimun  (1753-1-1) (Gregorian calendar start in 1732) 
 	 * 2958463 is maximun (9999-12-31)
 	 */
-	l = dt_days + 146038;
+	l = dt_days + (146038 + 146097*4);
 	wday = (l + 4) % 7;
 	n = (4 * l) / 146097;	/* n century */
 	l = l - (146097 * n + 3) / 4;	/* days from xx00-02-28 (y-m-d) */
@@ -2967,7 +2967,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	days = l - (2447 * j) / 80;
 	l = j / 11;
 	months = j + 1 - 12 * l;
-	years = 100 * (n + 15) + i + l;
+	years = 100 * (n - 1) + i + l;
 	if (l == 0 && (years & 3) == 0 && (years % 100 != 0 || years % 400 == 0))
 		++ydays;
 

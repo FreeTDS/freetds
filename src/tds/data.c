@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.29 2011-04-22 14:13:13 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.30 2011-05-12 19:40:57 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -103,6 +103,9 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 		break;
 	case SYBBITN:
 		curcol->on_server.column_size = curcol->column_size = sizeof(TDS_TINYINT);
+		break;
+	case SYBMSDATE:
+		curcol->on_server.column_size = curcol->column_size = 4;
 		break;
 	/* mssql 2005 don't like SYBINT4 as parameter closing connection  */
 	case SYBINT1:
@@ -204,7 +207,10 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		}
 		break;
 	case 1:
-		col->column_size = tds_get_byte(tds);
+		if (col->column_type == SYBMSDATE)
+			col->column_size = 4;
+		else
+			col->column_size = tds_get_byte(tds);
 		break;
 	case 0:
 		col->column_size = tds_get_size_by_type(col->column_type);
