@@ -1,3 +1,6 @@
+Thu May 12 22:32:19 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/typeinfo.c: fix typo
+
 Thu May 12 21:40:42 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/sybdb.h include/tds.h misc/types.txt src/dblib/dblib.c:
 	* src/odbc/connectparams.c src/odbc/unittests/data.c:
@@ -128,4 +131,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3240 2011-05-12 19:40:57 freddy77 Exp $
+$Id: ChangeLog,v 1.3241 2011-05-12 20:32:30 freddy77 Exp $
