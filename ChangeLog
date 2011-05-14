@@ -1,3 +1,6 @@
+Sat May 14 09:02:31 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dbutil.c pass DBNOERR to error handler
+
 Sat May 14 08:06:27 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: remove useless declare
 
@@ -134,4 +137,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3242 2011-05-14 06:06:33 freddy77 Exp $
+$Id: ChangeLog,v 1.3243 2011-05-14 13:03:01 jklowden Exp $
