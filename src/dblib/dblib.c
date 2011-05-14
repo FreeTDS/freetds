@@ -52,8 +52,6 @@
 
 #if HAVE_ERRNO_H
 # include <errno.h>
-#else
-  static int errno=0;
 #endif /* HAVE_ERRNO_H */
 
 /** 
@@ -75,7 +73,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.382 2011-05-12 19:40:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.383 2011-05-14 06:06:33 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
