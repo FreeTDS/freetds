@@ -1,3 +1,7 @@
+Mon May 16 11:52:31 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* TODO.freddy:
+	- add a new tdsproto.h file and put protocol related defines here
+
 Mon May 16 10:51:06 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* Nmakefile README.Windows include/fakepoll.h src/apps/bsqldb.c:
 	* src/apps/bsqlodbc.c src/apps/datacopy.c src/apps/defncopy.c:
@@ -208,4 +212,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3246 2011-05-16 08:51:40 freddy77 Exp $
+$Id: ChangeLog,v 1.3247 2011-05-16 09:53:10 freddy77 Exp $
