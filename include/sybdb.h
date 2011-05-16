@@ -42,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.101 2011-05-12 19:40:57 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.102 2011-05-16 08:16:12 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -150,7 +150,7 @@ typedef int BOOL;
 #endif
 #endif
 
-#if !defined(_FREETDS_LIBRARY_SOURCE) || !defined(_tds_h_)
+#ifndef _tds_h_
 /* copied from tds.h */
 /* TODO find a best way... */
 enum

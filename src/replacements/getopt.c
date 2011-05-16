@@ -39,9 +39,7 @@
 # define _DIAGASSERT(x) assert((x))
 #endif
 
-#ifdef _FREETDS_LIBRARY_SOURCE
-# include "tds_sysdep_private.h"
-#endif /* _FREETDS_LIBRARY_SOURCE */
+#include "tds_sysdep_private.h"
 
 #if defined(LIBC_SCCS) && !defined(lint)
 # if 0
@@ -50,7 +48,7 @@
   __RCSID("$NetBSD: getopt.c,v 1.27 2005/11/29 03:12:00 christos Exp $");
 # endif
 #else
- TDS_RCSID(var, "$Id: getopt.c,v 1.3 2010-02-07 00:33:54 freddy77 Exp $");
+ TDS_RCSID(var, "$Id: getopt.c,v 1.4 2011-05-16 08:16:13 freddy77 Exp $");
 #endif /* LIBC_SCCS and not lint */
 
 #if !defined(_WIN32)

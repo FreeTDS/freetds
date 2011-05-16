@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.63 2011-05-08 22:41:32 jklowden Exp $
+dnl $Id: configure.ac,v 1.64 2011-05-16 08:16:12 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.92.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.63 $)
+AC_REVISION($Revision: 1.64 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_HEADERS(include/config.h)
@@ -70,11 +70,6 @@ fi
 
 AC_GNU_SOURCE
 AC_SYS_LARGEFILE
-
-# ------------------------------------------------------------
-# Flag to include library-private definitions
-# ------------------------------------------------------------
-CPPFLAGS="$CPPFLAGS -D_FREETDS_LIBRARY_SOURCE"
 
 # ------------------------------------------------------------
 # Checks for programs.

@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.359 2011-05-12 19:40:57 freddy77 Exp $ */
+/* $Id: tds.h,v 1.360 2011-05-16 08:16:12 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -40,9 +40,7 @@ typedef struct tds_socket TDSSOCKET;
 
 #include "tdsver.h"
 #include "tds_sysdep_public.h"
-#ifdef _FREETDS_LIBRARY_SOURCE
 #include "tds_sysdep_private.h"
-#endif /* _FREETDS_LIBRARY_SOURCE */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)

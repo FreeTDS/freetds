@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.10 2011-02-17 22:12:22 jklowden Exp $
+# $Id: Nmakefile,v 1.11 2011-05-16 08:16:12 freddy77 Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -282,8 +282,7 @@ FLG = 	-nologo	-W3 -Wp64 -EHsc -TC -Gm  -errorReport:prompt
 DEF = 	-D "_MBCS" -D "_LIB" -D "WIN32" \
 	-D MSDBLIB \
 	-D "_CRT_SECURE_NO_WARNINGS" -D _CRT_NONSTDC_NO_DEPRECATE \
-	-D "HAVE_CONFIG_H" \
-	-D "_FREETDS_LIBRARY_SOURCE" 
+	-D "HAVE_CONFIG_H"
 DBG = -MTd -Od -D "_DEBUG"  -ZI -RTC1	
 REL = -MT  -O2 -D "_NDEBUG" -Zi
 
