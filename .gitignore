@@ -17,3 +17,4 @@ PWD
 doxyfile
 test-dist.log
 compile
+install-sh
