@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.360 2011-05-16 08:16:12 freddy77 Exp $ */
+/* $Id: tds.h,v 1.361 2011-05-16 09:57:37 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -115,49 +115,7 @@ typedef tds_sysdep_int64_type TDS_INT8;			/* 64-bit integer  */
 typedef unsigned tds_sysdep_int64_type TDS_UINT8;	/* 64-bit unsigned */
 typedef tds_sysdep_intptr_type TDS_INTPTR;
 
-typedef struct tdsnumeric
-{
-	unsigned char precision;
-	unsigned char scale;
-	unsigned char array[33];
-} TDS_NUMERIC;
-
-typedef struct tdsoldmoney
-{
-	TDS_INT mnyhigh;
-	TDS_UINT mnylow;
-} TDS_OLD_MONEY;
-
-typedef union tdsmoney
-{
-	TDS_OLD_MONEY tdsoldmoney;
-	TDS_INT8 mny;
-} TDS_MONEY;
-
-typedef struct tdsmoney4
-{
-	TDS_INT mny4;
-} TDS_MONEY4;
-
-typedef struct tdsdatetime
-{
-	TDS_INT dtdays;
-	TDS_INT dttime;
-} TDS_DATETIME;
-
-typedef struct tdsdatetime4
-{
-	TDS_USMALLINT days;
-	TDS_USMALLINT minutes;
-} TDS_DATETIME4;
-
-typedef struct tdsunique
-{
-	TDS_UINT Data1;
-	TDS_USMALLINT Data2;
-	TDS_USMALLINT Data3;
-	TDS_UCHAR Data4[8];
-} TDS_UNIQUE;
+#include "tdsproto.h"
 
 /** Used by tds_datecrack */
 typedef struct tdsdaterec
@@ -307,52 +265,6 @@ typedef enum {	TDSEOK    = TDS_SUCCEED,
 		TDSECLOSEIN = 20292 
 } TDSERRNO;
 
-#define TDS5_PARAMFMT2_TOKEN       32	/* 0x20 */
-#define TDS_LANGUAGE_TOKEN         33	/* 0x21    TDS 5.0 only              */
-#define TDS_ORDERBY2_TOKEN         34	/* 0x22 */
-#define TDS_ROWFMT2_TOKEN          97	/* 0x61    TDS 5.0 only              */
-#define TDS_LOGOUT_TOKEN          113	/* 0x71    TDS 5.0 only? ct_close()  */
-#define TDS_RETURNSTATUS_TOKEN    121	/* 0x79                              */
-#define TDS_PROCID_TOKEN          124	/* 0x7C    TDS 4.2 only - TDS_PROCID */
-#define TDS7_RESULT_TOKEN         129	/* 0x81    TDS 7.0 only              */
-#define TDS7_COMPUTE_RESULT_TOKEN 136	/* 0x88    TDS 7.0 only              */
-#define TDS_COLNAME_TOKEN         160	/* 0xA0    TDS 4.2 only              */
-#define TDS_COLFMT_TOKEN          161	/* 0xA1    TDS 4.2 only - TDS_COLFMT */
-#define TDS_DYNAMIC2_TOKEN        163	/* 0xA3 */
-#define TDS_TABNAME_TOKEN         164	/* 0xA4 */
-#define TDS_COLINFO_TOKEN         165	/* 0xA5 */
-#define TDS_OPTIONCMD_TOKEN   	  166	/* 0xA6 */
-#define TDS_COMPUTE_NAMES_TOKEN   167	/* 0xA7 */
-#define TDS_COMPUTE_RESULT_TOKEN  168	/* 0xA8 */
-#define TDS_ORDERBY_TOKEN         169	/* 0xA9    TDS_ORDER                 */
-#define TDS_ERROR_TOKEN           170	/* 0xAA                              */
-#define TDS_INFO_TOKEN            171	/* 0xAB                              */
-#define TDS_PARAM_TOKEN           172	/* 0xAC    RETURNVALUE?              */
-#define TDS_LOGINACK_TOKEN        173	/* 0xAD                              */
-#define TDS_CONTROL_TOKEN         174	/* 0xAE    TDS_CONTROL               */
-#define TDS_ROW_TOKEN             209	/* 0xD1                              */
-#define TDS_NBC_ROW_TOKEN         210	/* 0xD2    as of TDS 7.3.B           */ /* not implemented */
-#define TDS_CMP_ROW_TOKEN         211	/* 0xD3                              */
-#define TDS5_PARAMS_TOKEN         215	/* 0xD7    TDS 5.0 only              */
-#define TDS_CAPABILITY_TOKEN      226	/* 0xE2                              */
-#define TDS_ENVCHANGE_TOKEN       227	/* 0xE3                              */
-#define TDS_EED_TOKEN             229	/* 0xE5                              */
-#define TDS_DBRPC_TOKEN           230	/* 0xE6                              */
-#define TDS5_DYNAMIC_TOKEN        231	/* 0xE7    TDS 5.0 only              */
-#define TDS5_PARAMFMT_TOKEN       236	/* 0xEC    TDS 5.0 only              */
-#define TDS_AUTH_TOKEN            237	/* 0xED    TDS 7.0 only              */
-#define TDS_RESULT_TOKEN          238	/* 0xEE                              */
-#define TDS_DONE_TOKEN            253	/* 0xFD    TDS_DONE                  */
-#define TDS_DONEPROC_TOKEN        254	/* 0xFE    TDS_DONEPROC              */
-#define TDS_DONEINPROC_TOKEN      255	/* 0xFF    TDS_DONEINPROC            */
-
-/* CURSOR support: TDS 5.0 only*/
-#define TDS_CURCLOSE_TOKEN        128  /* 0x80    TDS 5.0 only              */
-#define TDS_CURDELETE_TOKEN       129  /* 0x81    TDS 5.0 only              */
-#define TDS_CURFETCH_TOKEN        130  /* 0x82    TDS 5.0 only              */
-#define TDS_CURINFO_TOKEN         131  /* 0x83    TDS 5.0 only              */
-#define TDS_CUROPEN_TOKEN         132  /* 0x84    TDS 5.0 only              */
-#define TDS_CURDECLARE_TOKEN      134  /* 0x86    TDS 5.0 only              */
 
 enum {
 	TDS_CUR_ISTAT_UNUSED    = 0x00,
@@ -365,243 +277,9 @@ enum {
 	TDS_CUR_ISTAT_DEALLOC   = 0x40
 };
 
-/* environment type field */
-#define TDS_ENV_DATABASE  	1
-#define TDS_ENV_LANG      	2
-#define TDS_ENV_CHARSET   	3
-#define TDS_ENV_PACKSIZE  	4
-#define TDS_ENV_LCID        	5
-#define TDS_ENV_SQLCOLLATION	7
-#define TDS_ENV_BEGINTRANS	8
-#define TDS_ENV_COMMITTRANS	9
-#define TDS_ENV_ROLLBACKTRANS	10
-
 /* string types */
 #define TDS_NULLTERM -9
 
-/* Microsoft internal stored procedure id's */
-
-#define TDS_SP_CURSOR           1
-#define TDS_SP_CURSOROPEN       2
-#define TDS_SP_CURSORPREPARE    3
-#define TDS_SP_CURSOREXECUTE    4
-#define TDS_SP_CURSORPREPEXEC   5
-#define TDS_SP_CURSORUNPREPARE  6
-#define TDS_SP_CURSORFETCH      7
-#define TDS_SP_CURSOROPTION     8
-#define TDS_SP_CURSORCLOSE      9
-#define TDS_SP_EXECUTESQL      10
-#define TDS_SP_PREPARE         11
-#define TDS_SP_EXECUTE         12
-#define TDS_SP_PREPEXEC        13
-#define TDS_SP_PREPEXECRPC     14
-#define TDS_SP_UNPREPARE       15
-/* 
- * <rant> Sybase does an awful job of this stuff, non null ints of size 1 2 
- * and 4 have there own codes but nullable ints are lumped into INTN
- * sheesh! </rant>
- */
-typedef enum
-{
-	SYBCHAR = 47,		/* 0x2F */
-#define SYBCHAR	SYBCHAR
-	SYBVARCHAR = 39,	/* 0x27 */
-#define SYBVARCHAR	SYBVARCHAR
-	SYBINTN = 38,		/* 0x26 */
-#define SYBINTN	SYBINTN
-	SYBINT1 = 48,		/* 0x30 */
-#define SYBINT1	SYBINT1
-	SYBINT2 = 52,		/* 0x34 */
-#define SYBINT2	SYBINT2
-	SYBINT4 = 56,		/* 0x38 */
-#define SYBINT4	SYBINT4
-	SYBFLT8 = 62,		/* 0x3E */
-#define SYBFLT8	SYBFLT8
-	SYBDATETIME = 61,	/* 0x3D */
-#define SYBDATETIME	SYBDATETIME
-	SYBBIT = 50,		/* 0x32 */
-#define SYBBIT	SYBBIT
-	SYBTEXT = 35,		/* 0x23 */
-#define SYBTEXT	SYBTEXT
-	SYBNTEXT = 99,		/* 0x63 */
-#define SYBNTEXT	SYBNTEXT
-	SYBIMAGE = 34,		/* 0x22 */
-#define SYBIMAGE	SYBIMAGE
-	SYBMONEY4 = 122,	/* 0x7A */
-#define SYBMONEY4	SYBMONEY4
-	SYBMONEY = 60,		/* 0x3C */
-#define SYBMONEY	SYBMONEY
-	SYBDATETIME4 = 58,	/* 0x3A */
-#define SYBDATETIME4	SYBDATETIME4
-	SYBREAL = 59,		/* 0x3B */
-#define SYBREAL	SYBREAL
-	SYBBINARY = 45,		/* 0x2D */
-#define SYBBINARY	SYBBINARY
-	SYBVOID = 31,		/* 0x1F */
-#define SYBVOID	SYBVOID
-	SYBVARBINARY = 37,	/* 0x25 */
-#define SYBVARBINARY	SYBVARBINARY
-	SYBBITN = 104,		/* 0x68 */
-#define SYBBITN	SYBBITN
-	SYBNUMERIC = 108,	/* 0x6C */
-#define SYBNUMERIC	SYBNUMERIC
-	SYBDECIMAL = 106,	/* 0x6A */
-#define SYBDECIMAL	SYBDECIMAL
-	SYBFLTN = 109,		/* 0x6D */
-#define SYBFLTN	SYBFLTN
-	SYBMONEYN = 110,	/* 0x6E */
-#define SYBMONEYN	SYBMONEYN
-	SYBDATETIMN = 111,	/* 0x6F */
-#define SYBDATETIMN	SYBDATETIMN
-
-/*
- * MS only types
- */
-	SYBNVARCHAR = 103,	/* 0x67 */
-#define SYBNVARCHAR	SYBNVARCHAR
-	SYBINT8 = 127,		/* 0x7F */
-#define SYBINT8	SYBINT8
-	XSYBCHAR = 175,		/* 0xAF */
-#define XSYBCHAR	XSYBCHAR
-	XSYBVARCHAR = 167,	/* 0xA7 */
-#define XSYBVARCHAR	XSYBVARCHAR
-	XSYBNVARCHAR = 231,	/* 0xE7 */
-#define XSYBNVARCHAR	XSYBNVARCHAR
-	XSYBNCHAR = 239,	/* 0xEF */
-#define XSYBNCHAR	XSYBNCHAR
-	XSYBVARBINARY = 165,	/* 0xA5 */
-#define XSYBVARBINARY	XSYBVARBINARY
-	XSYBBINARY = 173,	/* 0xAD */
-#define XSYBBINARY	XSYBBINARY
-	SYBUNIQUE = 36,		/* 0x24 */
-#define SYBUNIQUE	SYBUNIQUE
-	SYBVARIANT = 98, 	/* 0x62 */
-#define SYBVARIANT	SYBVARIANT
-	SYBMSUDT = 240,		/* 0xF0 */
-#define SYBMSUDT SYBMSUDT
-	SYBMSXML = 241,		/* 0xF1 */
-#define SYBMSXML SYBMSXML
-	SYBMSDATE = 40,  	/* 0x28 */
-	SYBMSTIME = 41,  	/* 0x29 */
-	SYBMSDATETIME2 = 42,  	/* 0x2a */
-	SYBMSDATETIMEOFFSET = 43,/* 0x2b */
-
-/*
- * Sybase only types
- */
-	SYBLONGBINARY = 225,	/* 0xE1 */
-#define SYBLONGBINARY	SYBLONGBINARY
-	SYBUINT1 = 64,		/* 0x40 */
-#define SYBUINT1	SYBUINT1
-	SYBUINT2 = 65,		/* 0x41 */
-#define SYBUINT2	SYBUINT2
-	SYBUINT4 = 66,		/* 0x42 */
-#define SYBUINT4	SYBUINT4
-	SYBUINT8 = 67,		/* 0x43 */
-#define SYBUINT8	SYBUINT8
-	SYBBLOB = 36,		/* 0x24 */
-#define SYBBLOB		SYBBLOB
-	SYBBOUNDARY = 104,	/* 0x68 */
-#define SYBBOUNDARY	SYBBOUNDARY
-	SYBDATE = 49,		/* 0x31 */
-#define SYBDATE		SYBDATE
-	SYBDATEN = 123,		/* 0x7B */
-#define SYBDATEN	SYBDATEN
-	SYB5INT8 = 191,		/* 0xBF */
-#define SYB5INT8		SYB5INT8
-	SYBINTERVAL = 46,	/* 0x2E */
-#define SYBINTERVAL	SYBINTERVAL
-	SYBLONGCHAR = 175,	/* 0xAF */
-#define SYBLONGCHAR	SYBLONGCHAR
-	SYBSENSITIVITY = 103,	/* 0x67 */
-#define SYBSENSITIVITY	SYBSENSITIVITY
-	SYBSINT1 = 176,		/* 0xB0 */
-#define SYBSINT1	SYBSINT1
-	SYBTIME = 51,		/* 0x33 */
-#define SYBTIME		SYBTIME
-	SYBTIMEN = 147,		/* 0x93 */
-#define SYBTIMEN	SYBTIMEN
-	SYBUINTN = 68,		/* 0x44 */
-#define SYBUINTN	SYBUINTN
-	SYBUNITEXT = 174,	/* 0xAE */
-#define SYBUNITEXT	SYBUNITEXT
-	SYBXML = 163,		/* 0xA3 */
-#define SYBXML		SYBXML
-
-} TDS_SERVER_TYPE;
-
-
-typedef enum
-{
-	USER_UNICHAR_TYPE = 34,		/* 0x22 */
-	USER_UNIVARCHAR_TYPE = 35	/* 0x23 */
-} TDS_USER_TYPE;
-
-#define SYBAOPCNT  0x4b
-#define SYBAOPCNTU 0x4c
-#define SYBAOPSUM  0x4d
-#define SYBAOPSUMU 0x4e
-#define SYBAOPAVG  0x4f
-#define SYBAOPAVGU 0x50
-#define SYBAOPMIN  0x51
-#define SYBAOPMAX  0x52
-
-/* mssql2k compute operator */
-#define SYBAOPCNT_BIG		0x09
-#define SYBAOPSTDEV		0x30
-#define SYBAOPSTDEVP		0x31
-#define SYBAOPVAR		0x32
-#define SYBAOPVARP		0x33
-#define SYBAOPCHECKSUM_AGG	0x72
-
-
-/** 
- * options that can be sent with a TDS_OPTIONCMD token
- */
-typedef enum
-{
-	  TDS_OPT_SET = 1	/* Set an option. */
-	, TDS_OPT_DEFAULT = 2	/* Set option to its default value. */
-	, TDS_OPT_LIST = 3	/* Request current setting of a specific option. */
-	, TDS_OPT_INFO = 4	/* Report current setting of a specific option. */
-} TDS_OPTION_CMD;
-
-typedef enum
-{
-	  TDS_OPT_DATEFIRST = 1		/* 0x01 */
-	, TDS_OPT_TEXTSIZE = 2		/* 0x02 */
-	, TDS_OPT_STAT_TIME = 3		/* 0x03 */
-	, TDS_OPT_STAT_IO = 4		/* 0x04 */
-	, TDS_OPT_ROWCOUNT = 5		/* 0x05 */
-	, TDS_OPT_NATLANG = 6		/* 0x06 */
-	, TDS_OPT_DATEFORMAT = 7	/* 0x07 */
-	, TDS_OPT_ISOLATION = 8		/* 0x08 */
-	, TDS_OPT_AUTHON = 9		/* 0x09 */
-	, TDS_OPT_CHARSET = 10		/* 0x0a */
-	, TDS_OPT_SHOWPLAN = 13		/* 0x0d */
-	, TDS_OPT_NOEXEC = 14		/* 0x0e */
-	, TDS_OPT_ARITHIGNOREON = 15	/* 0x0f */
-	, TDS_OPT_ARITHABORTON = 17	/* 0x11 */
-	, TDS_OPT_PARSEONLY = 18	/* 0x12 */
-	, TDS_OPT_GETDATA = 20		/* 0x14 */
-	, TDS_OPT_NOCOUNT = 21		/* 0x15 */
-	, TDS_OPT_FORCEPLAN = 23	/* 0x17 */
-	, TDS_OPT_FORMATONLY = 24	/* 0x18 */
-	, TDS_OPT_CHAINXACTS = 25	/* 0x19 */
-	, TDS_OPT_CURCLOSEONXACT = 26	/* 0x1a */
-	, TDS_OPT_FIPSFLAG = 27		/* 0x1b */
-	, TDS_OPT_RESTREES = 28		/* 0x1c */
-	, TDS_OPT_IDENTITYON = 29	/* 0x1d */
-	, TDS_OPT_CURREAD = 30		/* 0x1e */
-	, TDS_OPT_CURWRITE = 31		/* 0x1f */
-	, TDS_OPT_IDENTITYOFF = 32	/* 0x20 */
-	, TDS_OPT_AUTHOFF = 33		/* 0x21 */
-	, TDS_OPT_ANSINULL = 34		/* 0x22 */
-	, TDS_OPT_QUOTED_IDENT = 35	/* 0x23 */
-	, TDS_OPT_ARITHIGNOREOFF = 36	/* 0x24 */
-	, TDS_OPT_ARITHABORTOFF = 37	/* 0x25 */
-	, TDS_OPT_TRUNCABORT = 38	/* 0x26 */
-} TDS_OPTION;
 
 typedef union tds_option_arg
 {
@@ -610,39 +288,6 @@ typedef union tds_option_arg
 	TDS_CHAR *c;
 } TDS_OPTION_ARG;
 
-enum {
-	TDS_OPT_ARITHOVERFLOW = 0x01,
-	TDS_OPT_NUMERICTRUNC = 0x02
-};
-
-enum TDS_OPT_DATEFIRST_CHOICE
-{
-	TDS_OPT_MONDAY = 1, TDS_OPT_TUESDAY = 2, TDS_OPT_WEDNESDAY = 3, TDS_OPT_THURSDAY = 4, TDS_OPT_FRIDAY = 5, TDS_OPT_SATURDAY =
-		6, TDS_OPT_SUNDAY = 7
-};
-
-enum TDS_OPT_DATEFORMAT_CHOICE
-{
-	TDS_OPT_FMTMDY = 1, TDS_OPT_FMTDMY = 2, TDS_OPT_FMTYMD = 3, TDS_OPT_FMTYDM = 4, TDS_OPT_FMTMYD = 5, TDS_OPT_FMTDYM = 6
-};
-enum TDS_OPT_ISOLATION_CHOICE
-{
-	TDS_OPT_LEVEL1 = 1, TDS_OPT_LEVEL3 = 3
-};
-
-typedef enum tds_packet_type
-{
-	TDS_QUERY = 1,
-	TDS_LOGIN = 2,
-	TDS_RPC = 3,
-	TDS_REPLY = 4,
-	TDS_CANCEL = 6,
-	TDS_BULK = 7,
-	TDS_NORMAL = 15,
-	TDS7_LOGIN = 16,
-	TDS7_AUTH = 17,
-	TDS71_PRELOGIN = 18
-} TDS_PACKET_TYPE;
 
 typedef enum tds_encryption_level {
 	TDS_ENCRYPTION_OFF, TDS_ENCRYPTION_REQUEST, TDS_ENCRYPTION_REQUIRE
@@ -914,27 +559,6 @@ typedef struct tds_variant
 	TDS_UCHAR type;
 	TDS_UCHAR collation[5];
 } TDSVARIANT;
-
-/** 
- * TDS 7.1 collation informations.
- */
-typedef struct
-{
-	TDS_USMALLINT locale_id;	/* master..syslanguages.lcid */
-	TDS_USMALLINT flags;
-	TDS_UCHAR charset_id;		/* or zero */
-} TDS71_COLLATION;
-
-/* SF stands for "sort flag" */
-#define TDS_SF_BIN                   (TDS_USMALLINT) 0x100
-#define TDS_SF_WIDTH_INSENSITIVE     (TDS_USMALLINT) 0x080
-#define TDS_SF_KATATYPE_INSENSITIVE  (TDS_USMALLINT) 0x040
-#define TDS_SF_ACCENT_SENSITIVE      (TDS_USMALLINT) 0x020
-#define TDS_SF_CASE_INSENSITIVE      (TDS_USMALLINT) 0x010
-
-/* UT stands for user type */
-#define TDS_UT_TIMESTAMP             80
-
 
 /**
  * Information relevant to libiconv.  The name is an iconv name, not 

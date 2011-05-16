@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.208 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.209 2011-05-16 09:57:37 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -691,46 +691,6 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 static int
 tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 {
-	enum option_flag1_values {
-		BYTE_ORDER_X86		= 0, 
-		CHARSET_ASCII		= 0, 
-		DUMPLOAD_ON 		= 0, 
-		FLOAT_IEEE_754		= 0, 
-		INIT_DB_WARN		= 0, 
-		SET_LANG_OFF		= 0, 
-		USE_DB_SILENT		= 0, 
-		BYTE_ORDER_68000	= 0x01, 
-		CHARSET_EBDDIC		= 0x02, 
-		FLOAT_VAX		= 0x04, 
-		FLOAT_ND5000		= 0x08, 
-		DUMPLOAD_OFF		= 0x10,	/* prevent BCP */ 
-		USE_DB_NOTIFY		= 0x20, 
-		INIT_DB_FATAL		= 0x40, 
-		SET_LANG_ON		= 0x80
-	};
-	enum option_flag2_values {
-		INIT_LANG_WARN		= 0, 
-		INTEGRATED_SECURTY_OFF	= 0, 
-		ODBC_OFF		= 0, 
-		USER_NORMAL		= 0,	/* SQL Server login */
-		INIT_LANG_REQUIRED	= 0x01, 
-		ODBC_ON			= 0x02, 
-		TRANSACTION_BOUNDARY71	= 0x04,	/* removed in TDS 7.2 */
-		CACHE_CONNECT71		= 0x08,	/* removed in TDS 7.2 */
-		USER_SERVER		= 0x10,	/* reserved */
-		USER_REMUSER		= 0x20,	/* DQ login */
-		USER_SQLREPL		= 0x40,	/* replication login */
-		INTEGRATED_SECURITY_ON	= 0x80
-	};
-	enum option_flag3_values {	/* TDS 7.3+ */
-		RESTRICTED_COLLATION	= 0, 
-		CHANGE_PASSWORD		= 0x01, 
-		SEND_YUKON_BINARY_XML	= 0x02, 
-		REQUEST_USER_INSTANCE	= 0x04, 
-		UNKNOWN_COLLATION_HANDLING	= 0x08, 
-		ANY_COLLATION		= 0x10
-	};
-	
 	static const unsigned char 
 		client_progver[] = {   6, 0x83, 0xf2, 0xf8 }, 
 
@@ -753,9 +713,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	
 	TDS_INT block_size = 4096;
 	
-	unsigned char option_flag1 = SET_LANG_ON | USE_DB_NOTIFY | INIT_DB_FATAL;
+	unsigned char option_flag1 = TDS_SET_LANG_ON | TDS_USE_DB_NOTIFY | TDS_INIT_DB_FATAL;
 	unsigned char option_flag2 = connection->option_flag2;
-	unsigned char option_flag3 = UNKNOWN_COLLATION_HANDLING;
+	unsigned char option_flag3 = TDS_UNKNOWN_COLLATION_HANDLING;
 
 	unsigned char hwaddr[6];
 	size_t unicode_left, packet_size, current_pos;
@@ -859,12 +819,12 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_n(tds, connection_id, sizeof(connection_id));
 
 	if (!connection->bulk_copy)
-		option_flag1 |= DUMPLOAD_OFF;
+		option_flag1 |= TDS_DUMPLOAD_OFF;
 		
 	tds_put_byte(tds, option_flag1);
 
 	if (tds->authentication)
-		option_flag2 |= INTEGRATED_SECURITY_ON;
+		option_flag2 |= TDS_INTEGRATED_SECURITY_ON;
 
 	if (connection->tds_version >= 0x703)
 		tds_put_byte(tds, option_flag3);

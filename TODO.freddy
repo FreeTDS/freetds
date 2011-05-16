@@ -82,3 +82,11 @@ Rebuild all test support (virtual machines, chroot, msde+mssql2005)
 Add a test for rpm (redhat, suse?)
 disabling thread safety don't check for thread-safe functions
 check cross compiled odbc driver, exports, resource version (test-dist)
+
+
+
+Full thread
+MARS
+reprepare in libTDS so to fix ctlib (see ML)
+sql parser to support SQLDescribeParam using mssql (100% DBD::ODBC)
+new date types

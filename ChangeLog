@@ -1,3 +1,7 @@
+Mon May 16 11:57:08 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h include/tdsproto.h src/tds/login.c:
+	- add a new tdsproto.h file and put protocol related defines here
+
 Mon May 16 11:52:31 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO.freddy:
 	- add a new tdsproto.h file and put protocol related defines here
@@ -212,4 +216,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3247 2011-05-16 09:53:10 freddy77 Exp $
+$Id: ChangeLog,v 1.3248 2011-05-16 09:57:37 freddy77 Exp $
