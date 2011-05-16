@@ -1,3 +1,6 @@
+Mon May 16 10:08:17 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/bulk.c: fix strange space encoding
+
 Sat May 14 09:02:31 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dbutil.c pass DBNOERR to error handler
 
@@ -137,4 +140,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3243 2011-05-14 13:03:01 jklowden Exp $
+$Id: ChangeLog,v 1.3244 2011-05-16 08:08:31 freddy77 Exp $

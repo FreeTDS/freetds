@@ -43,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.11 2010-11-26 08:41:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.12 2011-05-16 08:08:31 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -759,7 +759,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 	 *	4.  Start of column 1
 	 *  The length of each column is computed by subtracting its start from the its successor's start. 
 	 *
-	 * The algorithm below computes both tables. If the adjustment table isn't needed, the 
+	 * The algorithm below computes both tables. If the adjustment table isn't needed, the 
 	 * effect is to overwrite it with the offset table.  
 	 */
 	while (ncols && offsets[ncols] == offsets[ncols-1])
