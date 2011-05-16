@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -107,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.110 2011-01-08 01:36:29 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.111 2011-05-16 08:51:40 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT

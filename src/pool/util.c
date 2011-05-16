@@ -17,9 +17,7 @@
  *
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -33,7 +31,7 @@
 #include "pool.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: util.c,v 1.14 2009-08-25 14:25:35 freddy77 Exp $";
+static char software_version[] = "$Id: util.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void

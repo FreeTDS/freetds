@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -65,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.197 2011-05-12 19:40:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.198 2011-05-16 08:51:40 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 

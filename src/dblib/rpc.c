@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -54,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.70 2009-09-01 05:47:31 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.71 2011-05-16 08:51:40 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);

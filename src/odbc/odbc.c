@@ -33,9 +33,7 @@
  * 04.FEB.02	PAH         Fixed small error preventing SQLBindParameter from being called
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -61,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.559 2011-05-06 16:47:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.560 2011-05-16 08:51:40 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);

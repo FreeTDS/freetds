@@ -17,11 +17,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/* $Id: hmac_md5.c,v 1.2 2010-01-08 22:08:01 jklowden Exp $ */
+/* $Id: hmac_md5.c,v 1.3 2011-05-16 08:51:40 freddy77 Exp $ */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include "tds.h"
 #include "md5.h"

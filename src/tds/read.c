@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if HAVE_ERRNO_H
 #include <errno.h>
@@ -47,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.113 2011-05-06 16:47:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.114 2011-05-16 08:51:40 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);

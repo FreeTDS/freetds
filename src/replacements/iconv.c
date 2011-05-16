@@ -26,9 +26,7 @@
  * It supports ISO-8859-1, ASCII, UCS-2, UCS-4 and UTF-8
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if ! HAVE_ICONV
 
@@ -50,7 +48,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.21 2011-02-11 13:54:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.22 2011-05-16 08:51:40 freddy77 Exp $");
 
 /**
  * \addtogroup conv

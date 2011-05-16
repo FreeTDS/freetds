@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -62,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.199 2011-04-12 15:30:37 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.200 2011-05-16 08:51:40 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;

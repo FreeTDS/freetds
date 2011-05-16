@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 
@@ -50,7 +48,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.76 2010-10-05 08:36:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.77 2011-05-16 08:51:40 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);

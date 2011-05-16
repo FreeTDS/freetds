@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -28,7 +26,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-/* $Id: strlcpy.c,v 1.1 2005-07-18 18:50:20 freddy77 Exp $ */
+/* $Id: strlcpy.c,v 1.2 2011-05-16 08:51:40 freddy77 Exp $ */
 
 size_t 
 tds_strlcpy(char *dest, const char *src, size_t len)

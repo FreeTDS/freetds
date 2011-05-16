@@ -22,9 +22,7 @@
  * Description: Controls the result stream processing.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -40,7 +38,7 @@
 #include "pool.h"
 #include "tds.h"
 
-TDS_RCSID(var, "$Id: stream.c,v 1.26 2008-07-08 08:47:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: stream.c,v 1.27 2011-05-16 08:51:40 freddy77 Exp $");
 
 int pool_find_end_token(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int len);
 

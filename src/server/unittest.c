@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -44,7 +42,7 @@
 #define sleep(s) Sleep((s)*1000)
 #endif
 
-static char software_version[] = "$Id: unittest.c,v 1.19 2009-08-25 14:25:35 freddy77 Exp $";
+static char software_version[] = "$Id: unittest.c,v 1.20 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void dump_login(TDSLOGIN * login);

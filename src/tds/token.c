@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -43,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.401 2011-05-12 19:40:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.402 2011-05-16 08:51:40 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 

@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
 
@@ -53,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.209 2011-05-06 16:27:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.210 2011-05-16 08:51:40 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);

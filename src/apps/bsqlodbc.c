@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdio.h>
 #include <assert.h>
@@ -54,7 +52,7 @@
 #include <sqlext.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqlodbc.c,v 1.17 2010-07-22 09:55:37 freddy77 Exp $";
+static char software_version[] = "$Id: bsqlodbc.c,v 1.18 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char * next_query(void);

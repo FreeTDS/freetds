@@ -4,9 +4,7 @@
 #include <direct.h>
 #endif
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -22,7 +20,7 @@
 #include <sql.h>
 #include <sqlext.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.35 2010-09-01 08:39:38 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.36 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN

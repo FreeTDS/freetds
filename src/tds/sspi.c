@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 /* fix possible bug in sspi.h header */
 #define FreeCredentialHandle FreeCredentialsHandle
@@ -49,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.9 2010-11-09 15:42:04 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.10 2011-05-16 08:51:40 freddy77 Exp $");
 
 /**
  * \ingroup libtds

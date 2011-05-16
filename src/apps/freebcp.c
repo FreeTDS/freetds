@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdio.h>
 #include <ctype.h>
@@ -55,7 +53,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.60 2011-04-07 08:06:37 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.61 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);

@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -33,7 +31,7 @@
 /* #include "fortify.h" */
 
 
-TDS_RCSID(var, "$Id: ctutil.c,v 1.32 2011-05-06 16:27:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ctutil.c,v 1.33 2011-05-16 08:51:40 freddy77 Exp $");
 
 /*
  * test include consistency 

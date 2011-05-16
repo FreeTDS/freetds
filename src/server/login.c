@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -58,7 +56,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.56 2011-05-06 16:47:32 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.57 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *

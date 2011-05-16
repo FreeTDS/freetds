@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if HAVE_LOCALE_H
 #include <locale.h>
@@ -45,7 +43,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: locale.c,v 1.30 2010-07-21 20:12:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: locale.c,v 1.31 2011-05-16 08:51:40 freddy77 Exp $");
 
 
 static void tds_parse_locale(const char *option, const char *value, void *param);

@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -37,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.47 2010-12-28 14:37:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.48 2011-05-16 08:51:40 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary

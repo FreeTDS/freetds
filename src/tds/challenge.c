@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -53,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.48 2011-04-11 13:44:02 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.49 2011-05-16 08:51:40 freddy77 Exp $");
 
 /**
  * \ingroup libtds

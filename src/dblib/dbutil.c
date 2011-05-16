@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -38,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.48 2011-05-14 13:03:02 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.49 2011-05-16 08:51:40 freddy77 Exp $");
 
 /*
  * test include consistency 

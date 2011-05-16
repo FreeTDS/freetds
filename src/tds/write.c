@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -49,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.79 2010-03-03 08:08:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.80 2011-05-16 08:51:40 freddy77 Exp $");
 
 /**
  * \addtogroup network

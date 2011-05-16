@@ -4,9 +4,7 @@
  * public domain.  no warranty.  use at your own risk.  have a nice day.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -18,7 +16,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: strtok_r.c,v 1.7 2010-01-12 10:20:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: strtok_r.c,v 1.8 2011-05-16 08:51:40 freddy77 Exp $");
 
 #undef strtok_r
 char *
@@ -46,7 +44,7 @@ strtok_r(char *str, const char *sep, char **lasts)
 
 #ifdef TDS_INTERNAL_TEST
 
-/* gcc -O2 -Wall strtok_r.c -o strtok -DTDS_INTERNAL_TEST -I../../include -DHAVE_CONFIG_H */
+/* gcc -O2 -Wall strtok_r.c -o strtok -DTDS_INTERNAL_TEST -I../../include */
 
 #include <stdlib.h>
 

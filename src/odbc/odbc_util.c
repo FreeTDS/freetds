@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -41,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.124 2010-08-04 11:01:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.125 2011-05-16 08:51:40 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api

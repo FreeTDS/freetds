@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -35,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.30 2011-05-12 19:40:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.31 2011-05-16 08:51:40 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 

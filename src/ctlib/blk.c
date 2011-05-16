@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -38,7 +36,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.53 2010-07-19 10:06:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.54 2011-05-16 08:51:40 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);

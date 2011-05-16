@@ -17,16 +17,14 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
 
 #include "tdsodbc.h"
 
-TDS_RCSID(var, "$Id: sqlwchar.c,v 1.2 2008-10-24 08:29:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sqlwchar.c,v 1.3 2011-05-16 08:51:40 freddy77 Exp $");
 
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s)

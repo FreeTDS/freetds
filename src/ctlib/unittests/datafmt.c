@@ -1,6 +1,4 @@
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -11,7 +9,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: datafmt.c,v 1.4 2010-07-07 13:57:02 freddy77 Exp $";
+static char software_version[] = "$Id: datafmt.c,v 1.5 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: data truncation behavior of ct_fetch */

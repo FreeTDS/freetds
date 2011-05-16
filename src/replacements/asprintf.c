@@ -4,9 +4,7 @@
  * public domain.  no warranty.  use at your own risk.  have a nice day.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -18,7 +16,7 @@
 #include "tds_sysdep_private.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: asprintf.c,v 1.7 2006-08-23 14:26:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: asprintf.c,v 1.8 2011-05-16 08:51:40 freddy77 Exp $");
 
 int
 asprintf(char **ret, const char *fmt, ...)

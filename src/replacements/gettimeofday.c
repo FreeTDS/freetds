@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if defined(_WIN32)
 
@@ -30,7 +28,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: gettimeofday.c,v 1.5 2010-01-10 14:43:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gettimeofday.c,v 1.6 2011-05-16 08:51:40 freddy77 Exp $");
 /*
  * Number of micro-seconds between the beginning of the Windows epoch
  * (Jan. 1, 1601) and the Unix epoch (Jan. 1, 1970).

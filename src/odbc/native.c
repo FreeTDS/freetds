@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -43,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: native.c,v 1.29 2006-03-21 12:24:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: native.c,v 1.30 2011-05-16 08:51:40 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 #define TDS_ISALPHA(c) isalpha((unsigned char) (c))

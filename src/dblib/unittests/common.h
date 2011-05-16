@@ -2,12 +2,10 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.20 2009-09-01 05:47:31 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.21 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>

@@ -23,9 +23,7 @@
  * pool member.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -57,7 +55,7 @@
 
 #include "pool.h"
 
-TDS_RCSID(var, "$Id: main.c,v 1.25 2009-06-09 08:55:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: main.c,v 1.26 2011-05-16 08:51:40 freddy77 Exp $");
 
 /* to be set by sig term */
 static int term = 0;

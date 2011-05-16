@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -34,7 +32,7 @@
 #include "tds.h"
 #include "tdsthread.h"
 
-TDS_RCSID(var, "$Id: win_mutex.c,v 1.2 2010-02-12 10:16:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: win_mutex.c,v 1.3 2011-05-16 08:51:40 freddy77 Exp $");
 
 #include "ptw32_MCS_lock.c"
 

@@ -17,9 +17,7 @@
  *
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -59,7 +57,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.46 2010-06-19 07:53:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.47 2011-05-16 08:51:40 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);

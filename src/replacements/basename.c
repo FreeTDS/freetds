@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -30,7 +28,7 @@
 
 #if ! HAVE_BASENAME
 
-TDS_RCSID(var, "$Id: basename.c,v 1.5 2010-01-10 14:43:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: basename.c,v 1.6 2011-05-16 08:51:40 freddy77 Exp $");
 
 #ifdef _WIN32
 #define TDS_ISDIR_SEPARATOR(c) ((c) == '/' || (c) == '\\')

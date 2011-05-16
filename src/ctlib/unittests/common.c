@@ -1,6 +1,4 @@
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
 
@@ -26,7 +24,7 @@
 #include "ctlib.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.23 2010-04-13 13:19:12 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.24 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];

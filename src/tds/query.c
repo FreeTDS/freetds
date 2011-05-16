@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -46,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.249 2011-05-08 22:41:36 jklowden Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.250 2011-05-16 08:51:40 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);

@@ -21,9 +21,7 @@ You should add ws2_32.lib do dependencies.
 
 replacements and TDS library are designed to be static libraries.
 
-You have to define these macros
-- HAVE_CONFIG_H
-- UNIXODBC (for ODBC stuff)
+You have to define UNIXODBC macro (for ODBC stuff).
 
 Also you need to include win32 and include directory (in this order!)
 

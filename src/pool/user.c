@@ -17,9 +17,7 @@
  *
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -48,7 +46,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.34 2009-02-27 10:11:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.35 2011-05-16 08:51:40 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);

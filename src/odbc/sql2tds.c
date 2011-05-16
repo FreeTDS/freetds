@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <assert.h>
 
@@ -54,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.86 2010-12-30 18:28:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.87 2011-05-16 08:51:40 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)

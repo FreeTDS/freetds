@@ -1,11 +1,8 @@
-/* $Id: fakepoll.h,v 1.4 2010-05-12 08:15:27 freddy77 Exp $ */
+/* $Id: fakepoll.h,v 1.5 2011-05-16 08:51:40 freddy77 Exp $ */
 #if !defined(_FAKE_POLL_H) && !defined(HAVE_POLL)
 #define _FAKE_POLL_H
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif 
-
 
 #if HAVE_LIMITS_H
 #include <limits.h>

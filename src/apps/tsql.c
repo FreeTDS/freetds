@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -87,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.140 2011-03-22 17:54:09 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.141 2011-05-16 08:51:40 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 

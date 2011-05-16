@@ -1,6 +1,4 @@
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -11,7 +9,7 @@
 #include <bkpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: blk_out.c,v 1.5 2006-01-30 15:31:56 freddy77 Exp $";
+static char software_version[] = "$Id: blk_out.c,v 1.6 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* Testing: array binding of result set */

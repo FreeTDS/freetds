@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -35,7 +33,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vstrbuild.c,v 1.16 2009-01-16 20:27:59 jklowden Exp $");
+TDS_RCSID(var, "$Id: vstrbuild.c,v 1.17 2011-05-16 08:51:40 freddy77 Exp $");
 
 struct string_linked_list
 {

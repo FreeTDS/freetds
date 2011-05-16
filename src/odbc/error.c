@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -44,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.66 2010-11-26 19:05:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.67 2011-05-16 08:51:40 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);

@@ -32,9 +32,7 @@
  * All modifications are placed under the license of libmcrypt.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -43,7 +41,7 @@
 #include "tds.h"
 #include "des.h"
 
-TDS_RCSID(var, "$Id: des.c,v 1.15 2005-07-07 13:06:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: des.c,v 1.16 2011-05-16 08:51:40 freddy77 Exp $");
 
 static void permute_ip(des_cblock inblock, DES_KEY * key, des_cblock outblock);
 static void permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock);

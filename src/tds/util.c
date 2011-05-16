@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 
@@ -65,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.93 2010-07-25 08:40:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.94 2011-05-16 08:51:40 freddy77 Exp $");
 
 void
 tds_set_parent(TDSSOCKET * tds, void *the_parent)

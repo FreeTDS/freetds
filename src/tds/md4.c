@@ -31,9 +31,7 @@
 /*
  * File from mhash library (mhash.sourceforge.net)
  */
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -42,7 +40,7 @@
 #include "tds.h"
 #include "md4.h"
 
-TDS_RCSID(var, "$Id: md4.c,v 1.8 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: md4.c,v 1.9 2011-05-16 08:51:40 freddy77 Exp $");
 
 #undef word32
 #define word32 TDS_UINT

@@ -31,9 +31,7 @@
 /* This file implements the a login dialog for the FreeTDS ODBC driver.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>

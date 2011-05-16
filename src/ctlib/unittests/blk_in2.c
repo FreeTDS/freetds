@@ -2,12 +2,10 @@
  * Test from MATSUMOTO, Tadashi
  * Cfr "blk_init fails by the even number times execution" on ML, 2007-03-09
  * This mix bulk and cancel
- * $Id: blk_in2.c,v 1.1 2007-03-12 12:33:03 freddy77 Exp $
+ * $Id: blk_in2.c,v 1.2 2011-05-16 08:51:40 freddy77 Exp $
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
 #include <assert.h>

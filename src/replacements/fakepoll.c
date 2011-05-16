@@ -17,13 +17,11 @@
  * Converted to C and spruced up by James K. Lowden December 2008. 
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #ifndef HAVE_POLL
 
-static char software_version[] = "$Id: fakepoll.c,v 1.11 2010-08-05 08:58:36 freddy77 Exp $";
+static char software_version[] = "$Id: fakepoll.c,v 1.12 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #include <stdarg.h>

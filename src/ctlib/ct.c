@@ -19,9 +19,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -40,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.208 2011-05-06 16:27:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.209 2011-05-16 08:51:40 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);

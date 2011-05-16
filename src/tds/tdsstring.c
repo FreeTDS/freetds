@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -40,7 +38,7 @@
 #include "tds.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: tdsstring.c,v 1.20 2009-01-16 20:27:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: tdsstring.c,v 1.21 2011-05-16 08:51:40 freddy77 Exp $");
 
 
 /**

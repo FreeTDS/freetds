@@ -1,3 +1,61 @@
+Mon May 16 10:51:06 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* Nmakefile README.Windows include/fakepoll.h src/apps/bsqldb.c:
+	* src/apps/bsqlodbc.c src/apps/datacopy.c src/apps/defncopy.c:
+	* src/apps/fisql/fisql.c src/apps/freebcp.c src/apps/tsql.c:
+	* src/ctlib/blk.c src/ctlib/cs.c src/ctlib/ct.c src/ctlib/ctutil.c:
+	* src/ctlib/unittests/array_bind.c src/ctlib/unittests/blk_in.c:
+	* src/ctlib/unittests/blk_in2.c src/ctlib/unittests/blk_out.c:
+	* src/ctlib/unittests/cancel.c src/ctlib/unittests/common.c:
+	* src/ctlib/unittests/connect_fail.c:
+	* src/ctlib/unittests/cs_config.c src/ctlib/unittests/cs_diag.c:
+	* src/ctlib/unittests/ct_cursor.c src/ctlib/unittests/ct_cursors.c:
+	* src/ctlib/unittests/ct_diagall.c:
+	* src/ctlib/unittests/ct_diagclient.c:
+	* src/ctlib/unittests/ct_diagserver.c:
+	* src/ctlib/unittests/ct_dynamic.c:
+	* src/ctlib/unittests/ct_options.c src/ctlib/unittests/datafmt.c:
+	* src/ctlib/unittests/get_send_data.c:
+	* src/ctlib/unittests/lang_ct_param.c:
+	* src/ctlib/unittests/rpc_ct_param.c:
+	* src/ctlib/unittests/rpc_ct_setparam.c:
+	* src/ctlib/unittests/t0001.c src/ctlib/unittests/t0002.c:
+	* src/ctlib/unittests/t0003.c src/ctlib/unittests/t0004.c:
+	* src/ctlib/unittests/t0005.c src/ctlib/unittests/t0006.c:
+	* src/ctlib/unittests/t0007.c src/ctlib/unittests/t0008.c:
+	* src/ctlib/unittests/t0009.c src/dblib/bcp.c:
+	* src/dblib/db-lib.vcproj src/dblib/dblib.c src/dblib/dbopen.c:
+	* src/dblib/dbutil.c src/dblib/rpc.c src/dblib/unittests/common.h:
+	* src/dblib/xact.c src/odbc/connectparams.c:
+	* src/odbc/convert_tds2sql.c src/odbc/descriptor.c:
+	* src/odbc/error.c src/odbc/native.c src/odbc/odbc.c:
+	* src/odbc/odbc_checks.c src/odbc/odbc_util.c:
+	* src/odbc/prepare_query.c src/odbc/sql2tds.c src/odbc/sqlwchar.c:
+	* src/odbc/unittests/common.h src/pool/config.c src/pool/main.c:
+	* src/pool/member.c src/pool/stream.c src/pool/user.c:
+	* src/pool/util.c src/replacements/asprintf.c:
+	* src/replacements/atoll.c src/replacements/basename.c:
+	* src/replacements/fakepoll.c src/replacements/gettimeofday.c:
+	* src/replacements/iconv.c src/replacements/readpassphrase.c:
+	* src/replacements/replacements.vcproj src/replacements/strlcat.c:
+	* src/replacements/strlcpy.c src/replacements/strtok_r.c:
+	* src/replacements/vasprintf.c src/server/login.c:
+	* src/server/query.c src/server/server.c src/server/unittest.c:
+	* src/tds/TDS.vcproj src/tds/bulk.c src/tds/challenge.c:
+	* src/tds/config.c src/tds/convert.c src/tds/data.c src/tds/des.c:
+	* src/tds/getmac.c src/tds/gssapi.c src/tds/hmac_md5.c:
+	* src/tds/iconv.c src/tds/locale.c src/tds/log.c src/tds/login.c:
+	* src/tds/md4.c src/tds/md5.c src/tds/mem.c src/tds/net.c:
+	* src/tds/numeric.c src/tds/query.c src/tds/read.c src/tds/sspi.c:
+	* src/tds/tds_checks.c src/tds/tdsstring.c src/tds/threadsafe.c:
+	* src/tds/token.c src/tds/unittests/common.h src/tds/util.c:
+	* src/tds/vstrbuild.c src/tds/win_mutex.c src/tds/write.c:
+	* vms/descrip_mms.template vms/getpass.c win32/dev-cpp/FreeTDS.dev:
+	* win32/dev-cpp/Makefile.win win32/msvc6/FreeTDS.dsp:
+	* win32/msvc6/dblib.dsp win32/msvc6/dblib_dll.dsp:
+	* win32/msvc6/libTDS.dsp win32/msvc6/libct.dsp win32/winlogin.c:
+	* win32/winsetup.c:
+	- remove check for HAVE_CONFIG_H, always defined
+
 Mon May 16 10:15:29 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* Nmakefile README.Windows configure.ac include/sybdb.h:
 	* include/tds.h src/dblib/db-lib.vcproj src/replacements/getopt.c:
@@ -150,4 +208,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3245 2011-05-16 08:16:12 freddy77 Exp $
+$Id: ChangeLog,v 1.3246 2011-05-16 08:51:40 freddy77 Exp $

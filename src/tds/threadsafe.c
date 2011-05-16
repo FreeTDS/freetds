@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -85,7 +83,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.50 2010-12-30 18:28:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.51 2011-05-16 08:51:40 freddy77 Exp $");
 
 struct tm *
 tds_localtime_r(const time_t *timep, struct tm *result)

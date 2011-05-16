@@ -16,7 +16,7 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 # 
-# $Id: descrip_mms.template,v 1.18 2011-05-16 08:16:13 freddy77 Exp $
+# $Id: descrip_mms.template,v 1.19 2011-05-16 08:51:40 freddy77 Exp $
 
 # OpenVMS description file for FreeTDS
 
@@ -71,10 +71,10 @@ CC = CC/DECC
 .SUFFIXES : $(E) $(OLB) $(OBJ) .C .H
 
 .IFDEF ODBC
-CDEFINE = "$(TDSVER)","HAVE_CONFIG_H"=1,"UNIXODBC"
+CDEFINE = "$(TDSVER)","UNIXODBC"
 CODBCFLAGS = /NAMES=(AS_IS,SHORTENED)
 .ELSE
-CDEFINE = $(TDSVER),HAVE_CONFIG_H=1
+CDEFINE = $(TDSVER)
 CODBCFLAGS = /NAMES=SHORTENED
 .ENDIF
 CPREFIX = ALL

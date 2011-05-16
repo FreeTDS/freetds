@@ -1,6 +1,4 @@
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
 
@@ -18,7 +16,7 @@
 #define MAX(X,Y)      (((X) > (Y)) ? (X) : (Y))
 #define MIN(X,Y)      (((X) < (Y)) ? (X) : (Y))
 
-static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.10 2009-12-13 10:37:37 freddy77 Exp $";
+static char software_version[] = "$Id: rpc_ct_setparam.c,v 1.11 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 CS_RETCODE ex_clientmsg_cb(CS_CONTEXT * context, CS_CONNECTION * connection, CS_CLIENTMSG * errmsg);

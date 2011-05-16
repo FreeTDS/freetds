@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -42,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.148 2011-01-22 20:11:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.149 2011-05-16 08:51:40 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )

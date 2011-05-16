@@ -16,9 +16,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #undef NDEBUG
 
@@ -44,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.30 2011-05-12 19:40:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.31 2011-05-16 08:51:40 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 

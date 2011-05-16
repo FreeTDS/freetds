@@ -1,6 +1,4 @@
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -14,7 +12,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: cancel.c,v 1.14 2010-10-26 08:12:48 freddy77 Exp $";
+static char software_version[] = "$Id: cancel.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(HAVE_ALARM) && defined(HAVE_SETITIMER)

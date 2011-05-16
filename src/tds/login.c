@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -51,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.207 2011-05-10 21:42:52 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.208 2011-05-16 08:51:40 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);

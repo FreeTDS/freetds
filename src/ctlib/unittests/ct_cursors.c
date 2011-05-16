@@ -1,7 +1,4 @@
-
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
 
@@ -12,7 +9,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_cursors.c,v 1.3 2006-01-30 15:31:56 freddy77 Exp $";
+static char software_version[] = "$Id: ct_cursors.c,v 1.4 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int

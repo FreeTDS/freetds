@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "dbdll_Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I ".." /I "../../include" /I "../../src" /D "HAVE_CONFIG_H" /D "UNIXODBC" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /D "HAVE_SQLGETPRIVATEPROFILESTRING" /FR /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I ".." /I "../../include" /I "../../src" /D "UNIXODBC" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /D "HAVE_SQLGETPRIVATEPROFILESTRING" /FR /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "dbdll_Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".." /I "../../include" /D "HAVE_CONFIG_H" /D "UNIXODBC" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /D "HAVE_SQLGETPRIVATEPROFILESTRING" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".." /I "../../include" /D "UNIXODBC" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FREETDS_EXPORTS" /D "HAVE_SQLGETPRIVATEPROFILESTRING" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe

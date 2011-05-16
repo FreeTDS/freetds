@@ -1,6 +1,4 @@
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -16,7 +14,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: lang_ct_param.c,v 1.8 2009-06-25 20:32:01 freddy77 Exp $";
+static char software_version[] = "$Id: lang_ct_param.c,v 1.9 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *query =

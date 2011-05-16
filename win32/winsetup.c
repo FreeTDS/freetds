@@ -32,9 +32,7 @@
  * this includes the ConfigDSN() and ConfigDriver() functions.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #include <stdarg.h>
 #include <stdio.h>

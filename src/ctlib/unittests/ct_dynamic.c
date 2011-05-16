@@ -1,6 +1,4 @@
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif /* HAVE_CONFIG_H */
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -10,7 +8,7 @@
 #include <ctpublic.h>
 #include "common.h"
 
-static char software_version[] = "$Id: ct_dynamic.c,v 1.3 2006-04-20 10:07:47 freddy77 Exp $";
+static char software_version[] = "$Id: ct_dynamic.c,v 1.4 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define QUERY_STRING "insert into #ctparam_lang (name,age,cost,bdate,fval) values (@in1, @in2, @moneyval, @dateval, @floatval)"

@@ -17,9 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <tds.h>
 #include <sybdb.h>
@@ -32,7 +30,7 @@
 #undef dbopen
 #endif
 
-TDS_RCSID(var, "$Id: dbopen.c,v 1.14 2010-05-10 15:10:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbopen.c,v 1.15 2011-05-16 08:51:40 freddy77 Exp $");
 
 /**
  * Normally not used. 

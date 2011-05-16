@@ -18,9 +18,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -37,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.89 2011-05-12 19:40:57 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.90 2011-05-16 08:51:40 freddy77 Exp $");
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;
 ODBC_PARAM_LIST

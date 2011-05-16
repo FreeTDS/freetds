@@ -26,9 +26,7 @@
 static const char rcsid[] = "$OpenBSD: readpassphrase.c,v 1.16 2003/06/17 21:56:23 millert Exp $";
 #endif /* LIBC_SCCS and not lint */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #ifndef HAVE_READPASSPHRASE
 
