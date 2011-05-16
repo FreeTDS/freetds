@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.31 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.32 2011-05-16 13:31:11 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -257,7 +257,7 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 			tds_get_string(tds, tds_get_smallint(tds), NULL, 0);    /* schema collection */
 		}
 	}
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 #include "tds_types.h"

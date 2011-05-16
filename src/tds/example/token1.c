@@ -11,7 +11,7 @@ while (!done) {
 
 	switch (tdsret) {
 
-	case TDS_SUCCEED:
+	case TDS_SUCCESS:
 
 		cmd->curr_result_type = res_type;
 
@@ -33,7 +33,7 @@ while (!done) {
 
 			tdsret = tds_process_row_tokens(tds, &rowtype);
 
-			if (tdsret == TDS_SUCCEED) {
+			if (tdsret == TDS_SUCCESS) {
 				if (rowtype == TDS_COMP_ROW) {
 					cmd->row_prefetched = 1;
 					retcode = CS_SUCCEED;

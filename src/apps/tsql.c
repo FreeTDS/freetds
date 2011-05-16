@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.141 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.142 2011-05-16 13:31:11 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -190,12 +190,12 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 	char message[128];
 
 	rc = tds_submit_query(tds, buf);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;
 	}
 
-	while ((rc = tds_process_tokens(tds, &resulttype, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &resulttype, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 		const int stop_mask = TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE;
 		if (opt_flags & OPT_TIMER) {
 			gettimeofday(&start, NULL);
@@ -214,7 +214,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 		case TDS_COMPUTE_RESULT:
 		case TDS_ROW_RESULT:
 			rows = 0;
-			while ((rc = tds_process_tokens(tds, &resulttype, NULL, stop_mask)) == TDS_SUCCEED) {
+			while ((rc = tds_process_tokens(tds, &resulttype, NULL, stop_mask)) == TDS_SUCCESS) {
 				if (resulttype != TDS_ROW_RESULT && resulttype != TDS_COMPUTE_RESULT)
 					break;
 
@@ -766,7 +766,7 @@ main(int argc, char **argv)
 		close(pipes[0]);
 	}
 #endif
-	if (!connection || tds_connect_and_login(tds, connection) != TDS_SUCCEED) {
+	if (!connection || tds_connect_and_login(tds, connection) != TDS_SUCCESS) {
 		if( VERBOSE ) 
 			print_instance_data(connection);
 		tds_free_socket(tds);

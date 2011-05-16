@@ -31,7 +31,7 @@
 /* #include "fortify.h" */
 
 
-TDS_RCSID(var, "$Id: ctutil.c,v 1.33 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ctutil.c,v 1.34 2011-05-16 13:31:11 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -182,5 +182,5 @@ _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 	} else if (con->ctx->_servermsg_cb) {
 		ret = con->ctx->_servermsg_cb(con->ctx, con, &errmsg);
 	}
-	return ret == CS_SUCCEED ? TDS_SUCCEED : TDS_FAIL;
+	return ret == CS_SUCCEED ? TDS_SUCCESS : TDS_FAIL;
 }

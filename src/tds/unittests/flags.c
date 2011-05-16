@@ -21,7 +21,7 @@
 
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: flags.c,v 1.15 2009-01-16 20:27:59 jklowden Exp $";
+static char software_version[] = "$Id: flags.c,v 1.16 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSLOGIN *login;
@@ -76,10 +76,10 @@ test_begin(const char *cmd)
 	TDS_INT result_type;
 
 	fprintf(stdout, "%s: Testing query\n", cmd);
-	if (tds_submit_query(tds, cmd) != TDS_SUCCEED)
+	if (tds_submit_query(tds, cmd) != TDS_SUCCESS)
 		fatal_error("tds_submit_query() failed");
 
-	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED)
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCESS)
 		fatal_error("tds_process_tokens() failed");
 
 	if (result_type != TDS_ROWFMT_RESULT)
@@ -96,7 +96,7 @@ test_end(void)
 	TDS_INT result_type;
 	int done_flags;
 
-	if (tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS) != TDS_SUCCEED)
+	if (tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS) != TDS_SUCCESS)
 		fatal_error("tds_process_tokens() failed");
 
 	if (result_type != TDS_DONE_RESULT)
@@ -116,13 +116,13 @@ main(int argc, char **argv)
 	char mymsg[256];
 
 	fprintf(stdout, "%s: Testing flags from server\n", __FILE__);
-	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCEED) {
+	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}
 
 	if (run_query(tds, "create table #tmp1 (i numeric(10,0) identity primary key, b varchar(20) null, c int not null)") !=
-	    TDS_SUCCEED)
+	    TDS_SUCCESS)
 		fatal_error("creating table error");
 
 	/* TDS 4.2 without FOR BROWSE clause seem to forget flags... */

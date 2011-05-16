@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: numeric.c,v 1.48 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: numeric.c,v 1.49 2011-05-16 13:31:11 freddy77 Exp $");
 
 /* 
  * these routines use arrays of unsigned char to handle arbitrary
@@ -291,7 +291,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 				} while (--i);
 			}
 			*s++ = 0;
-			return TDS_SUCCEED;
+			return TDS_SUCCESS;
 		}
 	}
 	packet_start = pnum;
@@ -341,7 +341,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	}
 	*s++ = 0;
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 #ifndef HAVE_INT64

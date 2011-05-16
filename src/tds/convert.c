@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.198 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.199 2011-05-16 13:31:11 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2917,7 +2917,7 @@ day         weekday     week        date
  * @param datetype source date type. SYBDATETIME or SYBDATETIME4
  * @param di       source date
  * @param dr       destination date
- * @return TDS_FAIL or TDS_SUCCEED
+ * @return TDS_FAIL or TDS_SUCCESS
  */
 TDS_INT
 tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
@@ -2983,7 +2983,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	dr->minute = mins;
 	dr->second = secs;
 	dr->millisecond = ms;
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -3015,7 +3015,7 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
 		++p;
 	if (p == pend) {
 		*res = 0;
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	/* check for sign */
@@ -3068,7 +3068,7 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
 		*res = num;
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -3092,7 +3092,7 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 		++p;
 	if (p == pend) {
 		*res = 0;
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	/* check for sign */
@@ -3144,7 +3144,7 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 		*res = num;
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 

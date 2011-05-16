@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.10 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.11 2011-05-16 13:31:11 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -124,7 +124,7 @@ tds_sspi_free(TDSSOCKET * tds, struct tds_authentication * tds_auth)
 	free(auth->tds_auth.packet);
 	free(auth->sname);
 	free(auth);
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 enum { NTLMBUF_LEN = 4096 };
@@ -173,7 +173,7 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 	if (status != SEC_E_OK)
 		return TDS_FAIL;
 	if (out_buf.cbBuffer == 0)
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 
 	tds_put_n(tds, auth->tds_auth.packet, out_buf.cbBuffer);
 

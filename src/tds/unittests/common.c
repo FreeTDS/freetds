@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.30 2010-06-19 07:53:21 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.31 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -46,7 +46,7 @@ read_login_info(void)
 		}
 	}
 	fclose(in);
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 TDSCONTEXT *test_context = NULL;
@@ -97,7 +97,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	*tds = tds_alloc_socket(test_context, 512);
 	tds_set_parent(*tds, NULL);
 	connection = tds_read_config_info(*tds, *login, test_context->locale);
-	if (!connection || tds_connect_and_login(*tds, connection) != TDS_SUCCEED) {
+	if (!connection || tds_connect_and_login(*tds, connection) != TDS_SUCCESS) {
 		if (connection) {
 			tds_free_socket(*tds);
 			*tds = NULL;
@@ -108,7 +108,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	}
 	tds_free_connection(connection);
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 
@@ -123,7 +123,7 @@ try_tds_logout(TDSLOGIN * login, TDSSOCKET * tds, int verbose)
 	tds_free_login(login);
 	tds_free_context(test_context);
 	test_context = NULL;
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /* Run query for which there should be no return results */
@@ -134,12 +134,12 @@ run_query(TDSSOCKET * tds, const char *query)
 	int result_type;
 
 	rc = tds_submit_query(tds, query);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_submit_query() failed for query '%s'\n", query);
 		return TDS_FAIL;
 	}
 
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 
 		switch (result_type) {
 		case TDS_DONE_RESULT:
@@ -161,5 +161,5 @@ run_query(TDSSOCKET * tds, const char *query)
 		return TDS_FAIL;
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }

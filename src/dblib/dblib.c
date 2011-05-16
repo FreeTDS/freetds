@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.384 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.385 2011-05-16 13:31:11 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1195,7 +1195,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
-	if (tds_connect_and_login(dbproc->tds_socket, connection) != TDS_SUCCEED) {
+	if (tds_connect_and_login(dbproc->tds_socket, connection) != TDS_SUCCESS) {
 		tds_free_connection(connection);
 		dbclose(dbproc);
 		return NULL;
@@ -1564,7 +1564,7 @@ prretcode(int retcode)
 {
 	static char unknown[24];
 	switch(retcode) {
-	case TDS_SUCCEED:		return "TDS_SUCCEED";
+	case TDS_SUCCESS:		return "TDS_SUCCESS";
 	case TDS_FAIL:			return "TDS_FAIL";
 	case TDS_NO_MORE_RESULTS:	return "TDS_NO_MORE_RESULTS";
 	case TDS_CANCELLED:		return "TDS_CANCELLED";
@@ -1678,7 +1678,7 @@ _dbresults(DBPROCESS * dbproc)
 
 		switch (retcode) {
 
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 
 			switch (result_type) {
 	
@@ -2042,7 +2042,7 @@ dbnextrow(DBPROCESS * dbproc)
 
 		/* Get the row from the TDS stream.  */
 		switch (tds_process_tokens(tds, &res_type, NULL, mask)) {
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 			if (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT) {
 				if (res_type == TDS_COMPUTE_RESULT)
 					computeid = tds->current_results->computeid;
@@ -4665,7 +4665,7 @@ dbsqlok(DBPROCESS * dbproc)
 			return FAIL;
 			break;
 
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 			switch (result_type) {
 			case TDS_ROWFMT_RESULT:
 				buffer_free(&dbproc->row_buf);
@@ -6414,7 +6414,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	}
 	
 	if (tds_writetext_start(dbproc->tds_socket, objname, 
-		textptr_string, timestamp_string, (log == TRUE), size) != TDS_SUCCEED)
+		textptr_string, timestamp_string, (log == TRUE), size) != TDS_SUCCESS)
 		return FAIL;
 
 	if (!text) {
@@ -6488,7 +6488,7 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 		switch (tds_process_tokens(dbproc->tds_socket, &result_type, NULL, mask)) {
 		case TDS_FAIL:
 			return -1;
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 			if (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT)
 				break;
 		case TDS_NO_MORE_RESULTS:
@@ -6530,7 +6530,7 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, const BYTE text[])
 		return FAIL;
 
 	if (size) {
-		if (tds_writetext_continue(dbproc->tds_socket, text, size) != TDS_SUCCEED)
+		if (tds_writetext_continue(dbproc->tds_socket, text, size) != TDS_SUCCESS)
 			return FAIL;
 		dbproc->text_sent += size;
 
@@ -6861,14 +6861,14 @@ dbsqlsend(DBPROCESS * dbproc)
 		rc = tds_submit_query(dbproc->tds_socket, cmdstr);
 		free(cmdstr);
 		dbstring_free(&(dbproc->dboptcmd));
-		if (rc != TDS_SUCCEED) {
+		if (rc != TDS_SUCCESS) {
 			return FAIL;
 		}
 		dbproc->avail_flag = FALSE;
 		dbproc->envchange_rcv = 0;
 		dbproc->dbresults_state = _DB_RES_INIT;
 		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
-		       == TDS_SUCCEED);
+		       == TDS_SUCCESS);
 		if (rc != TDS_NO_MORE_RESULTS) {
 			return FAIL;
 		}
@@ -6881,7 +6881,7 @@ dbsqlsend(DBPROCESS * dbproc)
 		fflush(dbproc->ftos);
 	}
 
-	if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf) != TDS_SUCCEED) {
+	if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf) != TDS_SUCCESS) {
 		return FAIL;
 	}
 	dbproc->avail_flag = FALSE;
@@ -7106,7 +7106,7 @@ dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *for
 	rc = tds_vstrbuild(charbuf, bufsize, &resultlen, text, TDS_NULLTERM, formats, TDS_NULLTERM, ap);
 	charbuf[resultlen] = '\0';
 	va_end(ap);
-	return rc == TDS_SUCCEED ? SUCCEED : FAIL;
+	return rc == TDS_SUCCESS ? SUCCEED : FAIL;
 }
 
 static char *

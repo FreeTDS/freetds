@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.402 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.403 2011-05-16 13:31:11 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -254,7 +254,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n", marker, (unsigned char) marker);
 		return TDS_FAIL;
 	}
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static int
@@ -267,11 +267,11 @@ tds_set_spid(TDSSOCKET * tds)
 
 	CHECK_TDS_EXTRA(tds);
 
-	if (tds_submit_query(tds, "select @@spid") != TDS_SUCCEED) {
+	if (tds_submit_query(tds, "select @@spid") != TDS_SUCCESS) {
 		return TDS_FAIL;
 	}
 
-	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_ROW|TDS_RETURN_DONE)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_ROW|TDS_RETURN_DONE)) == TDS_SUCCESS) {
 
 		switch (result_type) {
 
@@ -302,7 +302,7 @@ tds_set_spid(TDSSOCKET * tds)
 	if (rc != TDS_NO_MORE_RESULTS) 
 		return TDS_FAIL;
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -410,7 +410,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			 * present on failure
 			 */
 			if (ack == 5 || ack == 1)
-				succeed = TDS_SUCCEED;
+				succeed = TDS_SUCCESS;
 			/* authentication is now useless */
 			if (tds->authentication) {
 				tds->authentication->free(tds, tds->authentication);
@@ -426,7 +426,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	/* TODO why ?? */
 	tds->spid = tds->rows_affected;
 	if (tds->spid == 0) {
-		if (tds_set_spid(tds) != TDS_SUCCEED) {
+		if (tds_set_spid(tds) != TDS_SUCCESS) {
 			tdsdump_log(TDS_DBG_ERROR, "tds_set_spid() failed\n");
 			succeed = TDS_FAIL;
 		}
@@ -435,7 +435,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 		succeed = TDS_FAIL;
 		
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_login_tokens() returning %s\n", 
-					(succeed == TDS_SUCCEED)? "TDS_SUCCEED" : "TDS_FAIL");
+					(succeed == TDS_SUCCESS)? "TDS_SUCCESS" : "TDS_FAIL");
 
 	return succeed;
 }
@@ -508,7 +508,7 @@ tds_process_auth(TDSSOCKET * tds)
  *  </tr></table>
  * @param flag Flags to select token type to stop/return
  * @todo Complete TDS_DESCRIBE_RESULT description
- * @retval TDS_SUCCEED if a result set is available for processing.
+ * @retval TDS_SUCCESS if a result set is available for processing.
  * @retval TDS_FAIL on error.
  * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.
  * @retval anything returned by one of the many functions it calls.  :-(
@@ -547,7 +547,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 	if (tds_set_state(tds, TDS_READING) != TDS_READING)
 		return TDS_FAIL;
 
-	rc = TDS_SUCCEED;
+	rc = TDS_SUCCESS;
 	for (;;) {
 
 		marker = tds_get_byte(tds);
@@ -577,7 +577,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				marker = tds_get_byte(tds);
 				if (marker != TDS_TABNAME_TOKEN) {
 					tds_unget_byte(tds);
-					rc = TDS_SUCCEED;
+					rc = TDS_SUCCESS;
 					break;
 				}
 				rc = tds_process_tabname(tds);
@@ -687,7 +687,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				tds->has_status = 1;
 				tds->ret_status = ret_status;
 				tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens: return status is %d\n", tds->ret_status);
-				rc = TDS_SUCCEED;
+				rc = TDS_SUCCESS;
 			}
 			break;
 		case TDS5_DYNAMIC_TOKEN:
@@ -841,11 +841,11 @@ tds_process_simple_query(TDSSOCKET * tds)
 	TDS_INT res_type;
 	TDS_INT done_flags;
 	int     rc;
-	int     ret = TDS_SUCCEED;
+	int     ret = TDS_SUCCESS;
 
 	CHECK_TDS_EXTRA(tds);
 
-	while ((rc = tds_process_tokens(tds, &res_type, &done_flags, TDS_RETURN_DONE)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &res_type, &done_flags, TDS_RETURN_DONE)) == TDS_SUCCESS) {
 		switch (res_type) {
 
 			case TDS_DONE_RESULT:
@@ -976,7 +976,7 @@ tds_process_col_name(TDSSOCKET * tds)
 			free(prev->name);
 			free(prev);
 		}
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	tds_free_namelist(head);
@@ -1163,7 +1163,7 @@ tds_process_tabname(TDSSOCKET *tds)
 	for (cur = head, i = 0; i < num_names; ++i, cur = cur->next)
 		names[i] = cur->name;
 
-	rc = TDS_SUCCEED;
+	rc = TDS_SUCCESS;
 	marker = tds_get_byte(tds);
 	if (marker != TDS_COLINFO_TOKEN)
 		tds_unget_byte(tds);
@@ -1228,7 +1228,7 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 		}
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -1308,7 +1308,7 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 
 	tds->current_results = *pinfo;
 	tds_unget_byte(tds);
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -1330,10 +1330,10 @@ tds_process_params_result_token(TDSSOCKET * tds)
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol) != TDS_SUCCEED)
+		if (tds_get_data(tds, curcol) != TDS_SUCCESS)
 			return TDS_FAIL;
 	}
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -1497,7 +1497,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	CHECK_COLUMN_EXTRA(curcol);
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -1522,7 +1522,7 @@ tds7_process_result(TDSSOCKET * tds)
 
 	if (num_cols == -1) {
 		tdsdump_log(TDS_DBG_INFO1, "no meta data\n");
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	tds_free_all_results(tds);
@@ -1662,7 +1662,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	curcol->on_server.column_size = curcol->column_size;
 	adjust_character_column_size(tds, curcol);
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -1880,14 +1880,14 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol) != TDS_SUCCEED) {
+		if (tds_get_data(tds, curcol) != TDS_SUCCESS) {
 			tdsdump_log(TDS_DBG_INFO1, "tds_process_compute() FAIL: tds_get_data() failed\n");
 			return TDS_FAIL;
 		}
 	}
 	if (pcomputeid)
 		*pcomputeid = id;
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static int
@@ -1901,7 +1901,7 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	/* NULL */
 	if (len == -1) {
 		curcol->column_cur_size = -1;
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	curcol->column_cur_size = 0;
@@ -1913,7 +1913,7 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		chunk_len = tds_get_int(tds);
 		if (chunk_len <= 0) {
 			curcol->column_cur_size = offset;
-			return TDS_SUCCEED;
+			return TDS_SUCCESS;
 		}
 		if (*p == NULL)
 			tmp = (TDS_CHAR*) malloc(chunk_len);
@@ -1925,7 +1925,7 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		tds_get_n(tds, *p + offset, chunk_len);
 		offset += chunk_len;
 	}
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 #if ENABLE_EXTRA_CHECKS
@@ -1944,7 +1944,7 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_cur_size = -1;
 	if (colsize < 2) {
 		tds_get_n(tds, NULL, colsize);
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	v = (TDSVARIANT*) curcol->column_data;
@@ -1982,7 +1982,7 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		tds_get_n(tds, num->array, colsize);
 		if (IS_TDS7_PLUS(tds))
 			tds_swap_numeric(num);
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds, type);
 	if (varint != info_len)
@@ -2022,7 +2022,7 @@ tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		}
 	}
 	v->data_len = colsize;
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 
 error_type:
 	tds_get_n(tds, NULL, colsize);
@@ -2033,7 +2033,7 @@ error_type:
  * Read a data from wire
  * \param tds state information for the socket and the TDS protocol
  * \param curcol column where store column information
- * \return TDS_FAIL on error or TDS_SUCCEED
+ * \return TDS_FAIL on error or TDS_SUCCESS
  */
 static int
 tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
@@ -2111,7 +2111,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	/* set NULL flag in the row buffer */
 	if (colsize < 0) {
 		curcol->column_cur_size = -1;
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	/* 
@@ -2169,7 +2169,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			curcol->column_cur_size = 0;
 			if (blob->textvalue)
 				TDS_ZERO_FREE(blob->textvalue);
-			return TDS_SUCCEED;
+			return TDS_SUCCESS;
 		}
 
 		p = blob->textvalue; /* save pointer in case realloc fails */
@@ -2283,7 +2283,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), dest);
 	}
 #endif
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -2308,10 +2308,10 @@ tds_process_row(TDSSOCKET * tds)
 	for (i = 0; i < info->num_cols; i++) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d \n", i);
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol) != TDS_SUCCEED)
+		if (tds_get_data(tds, curcol) != TDS_SUCCESS)
 			return TDS_FAIL;
 	}
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -2381,7 +2381,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	if (IS_TDSDEAD(tds))
 		return TDS_FAIL;
 
-	return was_cancelled ? TDS_CANCELLED : TDS_SUCCEED;
+	return was_cancelled ? TDS_CANCELLED : TDS_SUCCESS;
 }
 
 /**
@@ -2435,21 +2435,21 @@ tds_process_env_chg(TDSSOCKET * tds)
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->collation now", tds->collation, 5);
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	if (type == TDS_ENV_BEGINTRANS) {
 		size = tds_get_byte(tds);
 		tds_get_n(tds, tds->tds9_transaction, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	if (type == TDS_ENV_COMMITTRANS || type == TDS_ENV_ROLLBACKTRANS) {
 		memset(tds->tds9_transaction, 0, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		tds_get_n(tds, NULL, tds_get_byte(tds));
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	/* discard byte values, not still supported */
@@ -2459,7 +2459,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	/* fetch the new value */
@@ -2514,13 +2514,13 @@ tds_process_env_chg(TDSSOCKET * tds)
 			free(newval);
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
  * tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
  * for calling the CLI's message handling routine
- * returns TDS_SUCCEED if informational, TDS_FAIL if error.
+ * returns TDS_SUCCESS if informational, TDS_FAIL if error.
  */
 static int
 tds_process_msg(TDSSOCKET * tds, int marker)
@@ -2631,7 +2631,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 			case TDS5_PARAMFMT_TOKEN:
 			case TDS5_PARAMFMT2_TOKEN:
 			case TDS5_PARAMS_TOKEN:
-				if (tds_process_default_tokens(tds, next_marker) != TDS_SUCCEED)
+				if (tds_process_default_tokens(tds, next_marker) != TDS_SUCCESS)
 					--rc;
 				continue;
 			}
@@ -2676,9 +2676,9 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	
 	tds_free_msg(&msg);
 	
-	tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() returning TDS_SUCCEED\n");
+	tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() returning TDS_SUCCESS\n");
 	
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -2724,10 +2724,10 @@ tds_process_cancel(TDSSOCKET * tds)
 
 	/* silly cases, nothing to do */
 	if (!tds->in_cancel)
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	/* TODO handle cancellation sending data */
 	if (tds->state != TDS_PENDING)
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 
 	/* TODO support TDS5 cancel, wait for cancel packet first, then wait for done */
 	for (;;) {
@@ -2737,9 +2737,9 @@ tds_process_cancel(TDSSOCKET * tds)
 		case TDS_FAIL:
 			return TDS_FAIL;
 		case TDS_CANCELLED:
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 		case TDS_NO_MORE_RESULTS:
-			return TDS_SUCCEED;
+			return TDS_SUCCESS;
 		}
 	}
 }
@@ -3035,7 +3035,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 			free(cur);
 			cur = next;
 		}
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	tds_free_namelist(head);
@@ -3167,7 +3167,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 		if ((cursor_status & TDS_CUR_ISTAT_DEALLOC) != 0)
 			tds_cursor_deallocated(tds, cursor);
 	} 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static int
@@ -3213,7 +3213,7 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 
 	tds->option_value = arg;
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static const char *

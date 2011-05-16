@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.49 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.50 2011-05-16 13:31:11 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -185,7 +185,7 @@ make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
 	/* with security is best be pedantic */
 	memset((char *) passwd_usc2le, 0, passwd_usc2le_len);
 	memset(&context, 0, sizeof(context));
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 
@@ -283,7 +283,7 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 	const names_blob_prefix_t *names_blob_prefix;
 
 	res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
-	if (res != TDS_SUCCEED)
+	if (res != TDS_SUCCESS)
 		return res;
 
 	/* LMv2 response */
@@ -305,7 +305,7 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 
 	/* local not supported */
 	*flags &= ~0x4000;
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -482,7 +482,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	user_name_len = strlen(user_name);
 
 	rc = tds_answer_challenge(tds, connection, challenge, &flags, names_blob, names_blob_len, &answer, &ntlm_v2_response);
-	if (rc != TDS_SUCCEED)
+	if (rc != TDS_SUCCESS)
 		return rc;
 
 	ntlm_response_len = ntlm_v2_response ? 16 + names_blob_len : 24;
@@ -575,7 +575,7 @@ tds_ntlm_free(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth)
 	free(auth->tds_auth.packet);
 	free(auth);
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static const unsigned char ntlm_id[] = "NTLMSSP";

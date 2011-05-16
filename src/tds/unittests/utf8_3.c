@@ -22,7 +22,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: utf8_3.c,v 1.7 2010-12-30 12:04:52 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_3.c,v 1.8 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -42,12 +42,12 @@ test(const char *buf)
 
 	/* do a select and check all results */
 	rc = tds_submit_query(tds, query);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		exit(1);
 	}
 
-	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCESS) {
 		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
@@ -57,7 +57,7 @@ test(const char *buf)
 		exit(1);
 	}
 
-	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCESS) {
 		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
@@ -68,7 +68,7 @@ test(const char *buf)
 	}
 
 	i = 0;
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
 
 		TDSCOLUMN *curcol;
 
@@ -91,12 +91,12 @@ test(const char *buf)
 		++i;
 	}
 
-	if (rc != TDS_SUCCEED || result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT) {
+	if (rc != TDS_SUCCESS || result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT) {
 		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 		exit(1);
 	}
 
-	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_NO_MORE_RESULTS:
 			return;
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 	strcpy(CHARSET, "UTF-8");
 
 	ret = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (ret != TDS_SUCCEED) {
+	if (ret != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}

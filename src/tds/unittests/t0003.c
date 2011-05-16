@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0003.c,v 1.17 2004-12-02 13:20:45 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.18 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 
@@ -32,19 +32,19 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "%s: Testing DB change -- 'use tempdb'\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}
 
 	rc = tds_submit_query(tds, "use tempdb");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;
 	}
 
 	/* warning: this mucks with some internals to get the env chg message */
-	if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+	if (tds_process_simple_query(tds) != TDS_SUCCESS) {
 		fprintf(stderr, "query results failed\n");
 		return 1;
 	}

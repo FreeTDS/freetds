@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.114 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.115 2011-05-16 13:31:11 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -216,7 +216,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
  * \param row_buffer  destination buffer in current_row. Can't be NULL
  * \param wire_size   size to read from wire (in bytes)
  * \param curcol      column information
- * \return TDS_SUCCEED or TDS_FAIL (probably memory error on text data)
+ * \return TDS_SUCCESS or TDS_FAIL (probably memory error on text data)
  * \todo put a TDSICONV structure in every TDSCOLUMN
  */
 int
@@ -243,7 +243,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		curcol->column_cur_size = 0;
 		if (blob)
 			TDS_ZERO_FREE(blob->textvalue);
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	if (curcol->char_conv) {
@@ -271,7 +271,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 			return TDS_FAIL;
 		}
 	}
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**

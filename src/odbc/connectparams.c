@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.90 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.91 2011-05-16 13:31:11 freddy77 Exp $");
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;
 ODBC_PARAM_LIST
@@ -125,7 +125,7 @@ parse_server(TDS_ERRS *errs, char *server, TDSCONNECTION * connection)
 		}
 	}
 
-	if (tds_lookup_host(server, ip) == TDS_SUCCEED)
+	if (tds_lookup_host(server, ip) == TDS_SUCCESS)
 		tds_dstr_copy(&connection->server_host_name, server);
 
 	if (!tds_dstr_copy(&connection->ip_addr, ip)) {

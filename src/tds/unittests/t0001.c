@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0001.c,v 1.7 2006-12-15 03:20:30 jklowden Exp $";
+static char software_version[] = "$Id: t0001.c,v 1.8 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define TESTING_CAPABILITY 0
@@ -133,7 +133,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "%s: Testing login, logout\n", __FILE__);
 	ret = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (ret != TDS_SUCCEED) {
+	if (ret != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}

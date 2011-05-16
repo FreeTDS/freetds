@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.200 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.201 2011-05-16 13:31:11 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -922,7 +922,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	/* fetch a row of data from the server */
 
 	while (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) 
-		== TDS_SUCCEED) {
+		== TDS_SUCCESS) {
 
 		if (result_type != TDS_ROW_RESULT && result_type != TDS_COMPUTE_RESULT)
 			break;
@@ -1747,12 +1747,12 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			if (dbproc->hostfileinfo->firstrow <= row_of_hostfile && 
 							      row_of_hostfile <= MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF)) {
 
-				if (tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, _bcp_null_error, 0) == TDS_SUCCEED) {
+				if (tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, _bcp_null_error, 0) == TDS_SUCCESS) {
 			
 					rows_written_so_far++;
 	
 					if (dbproc->hostfileinfo->batch > 0 && rows_written_so_far == dbproc->hostfileinfo->batch) {
-						if (tds_bcp_done(tds, &rows_written_so_far) != TDS_SUCCEED) {
+						if (tds_bcp_done(tds, &rows_written_so_far) != TDS_SUCCESS) {
 							if (errfile)
 								fclose(errfile);
 							fclose(hostfile);
@@ -2221,7 +2221,7 @@ bcp_batch(DBPROCESS * dbproc)
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
 
-	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCEED)
+	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCESS)
 		return FAIL;
 
 	tds_bcp_start(dbproc->tds_socket, dbproc->bcpinfo);
@@ -2249,7 +2249,7 @@ bcp_done(DBPROCESS * dbproc)
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
 
-	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCEED)
+	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCESS)
 		return -1;
 
 	_bcp_free_storage(dbproc);
@@ -2378,7 +2378,7 @@ _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
  * \param bindcol 
  * 
- * \return TDS_SUCCEED or TDS_FAIL.
+ * \return TDS_SUCCESS or TDS_FAIL.
  * \sa 	_bcp_add_fixed_columns, _bcp_add_variable_columns, _bcp_send_bcp_record
  */
 static int
@@ -2482,13 +2482,13 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 		assert(converted_data_size > 0);
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static int
 _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 {
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**

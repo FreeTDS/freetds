@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: dataread.c,v 1.20 2009-05-28 16:23:32 freddy77 Exp $";
+static char software_version[] = "$Id: dataread.c,v 1.21 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -40,7 +40,7 @@ test(const char *type, const char *value, const char *result)
 static void
 exec_query(const char *query)
 {
-	if (tds_submit_query(tds, query) != TDS_SUCCEED || tds_process_simple_query(tds) != TDS_SUCCEED) {
+	if (tds_submit_query(tds, query) != TDS_SUCCESS || tds_process_simple_query(tds) != TDS_SUCCESS) {
                 fprintf(stderr, "executing query failed\n");
                 exit(1);
         }
@@ -85,12 +85,12 @@ test0(const char *type, ...)
 
 	/* execute it */
 	rc = tds_submit_query(tds, "SELECT * FROM #tmp");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		exit(1);
 	}
 
-	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCESS) {
 		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
@@ -100,7 +100,7 @@ test0(const char *type, ...)
 		exit(1);
 	}
 
-	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCESS) {
 		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
@@ -111,7 +111,7 @@ test0(const char *type, ...)
 	}
 
 	i_row = 0;
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED && (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT)) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS && (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT)) {
 
 		TDSCOLUMN *curcol = tds->current_results->columns[0];
 		TDS_CHAR *src = (TDS_CHAR *) curcol->column_data;
@@ -138,12 +138,12 @@ test0(const char *type, ...)
 		++i_row;
 	}
 
-	if (rc != TDS_NO_MORE_RESULTS && rc != TDS_SUCCEED) {
+	if (rc != TDS_NO_MORE_RESULTS && rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 		exit(1);
 	}
 
-	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_NO_MORE_RESULTS:
 			return;
@@ -168,7 +168,7 @@ int
 main(int argc, char **argv)
 {
 	fprintf(stdout, "%s: Testing conversion from server\n", __FILE__);
-	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCEED) {
+	if (try_tds_login(&login, &tds, __FILE__, 0) != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}

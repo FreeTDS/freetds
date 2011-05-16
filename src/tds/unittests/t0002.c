@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0002.c,v 1.14 2006-01-24 15:03:27 freddy77 Exp $";
+static char software_version[] = "$Id: t0002.c,v 1.15 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -59,18 +59,18 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "%s: Test basic submit query, results\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}
 
 	rc = tds_submit_query(tds, "select db_name() dbname, user_name() username");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;
 	}
 
-	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			if (tds->res_info->num_cols != num_cols) {
@@ -91,7 +91,7 @@ main(int argc, char **argv)
 
 		case TDS_ROW_RESULT:
 
-			while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
+			while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
 				if (result_type != TDS_ROW_RESULT || result_type != TDS_COMPUTE_RESULT)
 					break;
 				if (verbose) {
@@ -100,7 +100,7 @@ main(int argc, char **argv)
 					}
 				}
 			}
-			if (rc != TDS_SUCCEED) {
+			if (rc != TDS_SUCCESS) {
 				fprintf(stderr, "tds_process_tokens() unexpected return\n");
 			}
 			break;

@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0005.c,v 1.18 2006-01-24 15:03:28 freddy77 Exp $";
+static char software_version[] = "$Id: t0005.c,v 1.19 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *value_as_string(TDSSOCKET * tds, int col_idx);
@@ -40,7 +40,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "%s: Test large (>512 bytes) replies\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}
@@ -48,23 +48,23 @@ main(int argc, char **argv)
 	/* do not test error, remove always table */
 	rc = run_query(tds, "DROP TABLE #test_table");
 	rc = run_query(tds, "CREATE TABLE #test_table (id int, name varchar(255))");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 
 	sprintf(large_sql, "INSERT #test_table (id, name) VALUES (0, 'A%s')", len200);
 	rc = run_query(tds, large_sql);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 	sprintf(large_sql, "INSERT #test_table (id, name) VALUES (1, 'B%s')", len200);
 	rc = run_query(tds, large_sql);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 	sprintf(large_sql, "INSERT #test_table (id, name) VALUES (2, 'C%s')", len200);
 	rc = run_query(tds, large_sql);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 
@@ -72,7 +72,7 @@ main(int argc, char **argv)
 	 * The heart of the test
 	 */
 	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
 			for (i = 0; i < tds->res_info->num_cols; i++) {

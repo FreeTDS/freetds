@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.13 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.14 2011-05-16 13:31:11 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -107,7 +107,7 @@ tds_gss_free(TDSSOCKET * tds, struct tds_authentication * tds_auth)
 		gss_delete_sec_context(&min_stat, &auth->gss_context, GSS_C_NO_BUFFER);
 	free(auth);
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static int tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr);
@@ -139,7 +139,7 @@ tds_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t le
 
 	res = tds_gss_continue(tds, (struct tds_gss_auth *) auth, &recv_tok);
 	free(recv_tok.value);
-	if (res != TDS_SUCCEED)
+	if (res != TDS_SUCCESS)
 		return TDS_FAIL;
 
 	if (auth->packet_len) {
@@ -147,7 +147,7 @@ tds_gss_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t le
 		tds_put_n(tds, auth->packet, auth->packet_len);
 		return tds_flush_packet(tds);
 	}
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -282,7 +282,7 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 
 	auth->tds_auth.packet = (TDS_UCHAR *) send_tok.value;
 	auth->tds_auth.packet_len = send_tok.length;
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 #endif

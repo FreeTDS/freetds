@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.15 2009-05-28 16:23:32 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.16 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -69,12 +69,12 @@ test(int n, int type)
 		sprintf(strchr(tmp, 0), "%02X", 0x30 + (i % 10));
 	sprintf(buf, "select convert(varchar(255), 0x%s%s%s)", prefix, tmp, suffix);
 	rc = tds_submit_query(tds, buf);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		exit(1);
 	}
 
-	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCESS) {
 		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
@@ -84,7 +84,7 @@ test(int n, int type)
 		exit(1);
 	}
 
-	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCEED) {
+	if (tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS) != TDS_SUCCESS) {
 		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
@@ -99,7 +99,7 @@ test(int n, int type)
 	tds->current_results->columns[0]->char_conv = tds->char_convs[client2server_chardata];
 
 	rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "tds_process_tokens() failed\n");
 		exit(1);
 	}
@@ -149,12 +149,12 @@ test(int n, int type)
 	}
 
 	rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
-	if (rc != TDS_SUCCEED || result_type == TDS_ROW_RESULT) {
+	if (rc != TDS_SUCCESS || result_type == TDS_ROW_RESULT) {
 		fprintf(stderr, "tds_process_tokens() unexpected return\n");
 		exit(1);
 	}
 
-	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_NO_MORE_RESULTS:
 			break;
@@ -214,7 +214,7 @@ main(int argc, char **argv)
 	strcpy(CHARSET, "ISO8859-1");
 
 	ret = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (ret != TDS_SUCCEED) {
+	if (ret != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}

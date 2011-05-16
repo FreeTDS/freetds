@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: dynamic1.c,v 1.19 2009-01-16 20:27:59 jklowden Exp $";
+static char software_version[] = "$Id: dynamic1.c,v 1.20 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int discard_result(TDSSOCKET * tds);
@@ -67,9 +67,9 @@ test(TDSSOCKET * tds, TDSDYNAMIC * dyn, TDS_INT n, const char *s)
 	tds_alloc_param_data(curcol);
 	memcpy(curcol->column_data, s, len);
 
-	if (tds_submit_execute(tds, dyn) != TDS_SUCCEED)
+	if (tds_submit_execute(tds, dyn) != TDS_SUCCESS)
 		fatal_error("tds_submit_execute() error");
-	if (discard_result(tds) != TDS_SUCCEED)
+	if (discard_result(tds) != TDS_SUCCESS)
 		fatal_error("tds_submit_execute() output error");
 }
 
@@ -84,20 +84,20 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "%s: Test dynamic queries\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (rc != TDS_SUCCEED)
+	if (rc != TDS_SUCCESS)
 		fatal_error("try_tds_login() failed");
 
 	run_query(tds, "DROP TABLE #dynamic1");
-	if (run_query(tds, "CREATE TABLE #dynamic1 (i INT, c VARCHAR(40))") != TDS_SUCCEED)
+	if (run_query(tds, "CREATE TABLE #dynamic1 (i INT, c VARCHAR(40))") != TDS_SUCCESS)
 		fatal_error("creating table error");
 
 	if (tds->cur_dyn)
 		fatal_error("already a dynamic query??");
 
 	/* prepare to insert */
-	if (tds_submit_prepare(tds, "INSERT INTO #dynamic1(i,c) VALUES(?,?)", NULL, &dyn, NULL) != TDS_SUCCEED)
+	if (tds_submit_prepare(tds, "INSERT INTO #dynamic1(i,c) VALUES(?,?)", NULL, &dyn, NULL) != TDS_SUCCESS)
 		fatal_error("tds_submit_prepare() error");
-	if (discard_result(tds) != TDS_SUCCEED)
+	if (discard_result(tds) != TDS_SUCCESS)
 		fatal_error("tds_submit_prepare() output error");
 
 	if (!dyn)
@@ -107,31 +107,31 @@ main(int argc, char **argv)
 	test(tds, dyn, 123, "dynamic");
 
 	/* some test */
-	if (run_query(tds, "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 IF @n <> 1 SELECT 0") != TDS_SUCCEED)
+	if (run_query(tds, "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 IF @n <> 1 SELECT 0") != TDS_SUCCESS)
 		fatal_error("checking rows");
 
 	if (run_query(tds, "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 WHERE i = 123 AND c = 'dynamic' IF @n <> 1 SELECT 0")
-	    != TDS_SUCCEED)
+	    != TDS_SUCCESS)
 		fatal_error("checking rows 1");
 
 	/* insert one record */
 	test(tds, dyn, 654321, "a longer string");
 
 	/* some test */
-	if (run_query(tds, "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 IF @n <> 2 SELECT 0") != TDS_SUCCEED)
+	if (run_query(tds, "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 IF @n <> 2 SELECT 0") != TDS_SUCCESS)
 		fatal_error("checking rows");
 
 	if (run_query(tds, "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 WHERE i = 123 AND c = 'dynamic' IF @n <> 1 SELECT 0")
-	    != TDS_SUCCEED)
+	    != TDS_SUCCESS)
 		fatal_error("checking rows 2");
 
 	if (run_query
 	    (tds,
 	     "DECLARE @n INT SELECT @n = COUNT(*) FROM #dynamic1 WHERE i = 654321 AND c = 'a longer string' IF @n <> 1 SELECT 0") !=
-	    TDS_SUCCEED)
+	    TDS_SUCCESS)
 		fatal_error("checking rows 3");
 
-	if (run_query(tds, "DROP TABLE #dynamic1") != TDS_SUCCEED)
+	if (run_query(tds, "DROP TABLE #dynamic1") != TDS_SUCCESS)
 		fatal_error("dropping table error");
 
 	try_tds_logout(login, tds, verbose);
@@ -144,7 +144,7 @@ discard_result(TDSSOCKET * tds)
 	int rc;
 	int result_type;
 
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 
 		switch (result_type) {
 		case TDS_DONE_RESULT:
@@ -167,5 +167,5 @@ discard_result(TDSSOCKET * tds)
 		return TDS_FAIL;
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }

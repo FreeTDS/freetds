@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.560 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.561 2011-05-16 13:31:11 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -235,11 +235,11 @@ change_autocommit(TDS_DBC * dbc, int state)
 		/* TODO better idle check, not thread safe */
 		if (tds->state == TDS_IDLE)
 			tds->query_timeout = dbc->default_query_timeout;
-		if (tds_submit_query(tds, query) != TDS_SUCCEED) {
+		if (tds_submit_query(tds, query) != TDS_SUCCESS) {
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change transaction status");
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
-		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+		if (tds_process_simple_query(tds) != TDS_SUCCESS) {
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change transaction status");
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
@@ -277,13 +277,13 @@ change_database(TDS_DBC * dbc, const char *database, int database_len)
 		/* TODO better idle check, not thread safe */
 		if (tds->state == TDS_IDLE)
 			tds->query_timeout = dbc->default_query_timeout;
-		if (tds_submit_query(tds, query) != TDS_SUCCEED) {
+		if (tds_submit_query(tds, query) != TDS_SUCCESS) {
 			free(query);
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change database");
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 		free(query);
-		if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+		if (tds_process_simple_query(tds) != TDS_SUCCESS) {
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change database");
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
@@ -329,9 +329,9 @@ change_txn(TDS_DBC * dbc, SQLUINTEGER txn_isolation)
 
 	tds->query_timeout = dbc->default_query_timeout;
 	sprintf(query, "SET TRANSACTION ISOLATION LEVEL %s", level);
-	if (tds_submit_query(tds, query) != TDS_SUCCEED)
+	if (tds_submit_query(tds, query) != TDS_SUCCESS)
 		ODBC_RETURN(dbc, SQL_ERROR);
-	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+	if (tds_process_simple_query(tds) != TDS_SUCCESS)
 		ODBC_RETURN(dbc, SQL_ERROR);
 
 	return SQL_SUCCESS;
@@ -388,7 +388,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 	tds_dstr_copy(&connection->client_charset, "UTF-8");
 #endif
 
-	if (tds_connect_and_login(dbc->tds_socket, connection) != TDS_SUCCEED) {
+	if (tds_connect_and_login(dbc->tds_socket, connection) != TDS_SUCCESS) {
 		tds_free_socket(dbc->tds_socket);
 		dbc->tds_socket = NULL;
 		odbc_errs_add(&dbc->errs, "08001", NULL);
@@ -467,7 +467,7 @@ odbc_prepare(TDS_STMT *stmt)
 		int done_flags;
 
 		switch (tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_DONE)) {
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 			switch (result_type) {
 			case TDS_DONE_RESULT:
 			case TDS_DONEPROC_RESULT:
@@ -1188,7 +1188,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT
 		ODBC_RETURN_(stmt);
 	}
 
-	if (tds_cursor_update(tds, stmt->cursor, op, irow, params) != TDS_SUCCEED) {
+	if (tds_cursor_update(tds, stmt->cursor, op, irow, params) != TDS_SUCCESS) {
 		tds_free_param_results(params);
 		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -1198,7 +1198,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT
 
 	ret = tds_process_simple_query(tds);
 	stmt->dbc->current_statement = NULL;
-	if (ret != TDS_SUCCEED) {
+	if (ret != TDS_SUCCESS) {
 		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN(stmt, SQL_ERROR);
 	}
@@ -3168,16 +3168,16 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	cursor->concurrency = 0x2000 | i;
 
 	ret = tds_cursor_declare(tds, cursor, params, &send);
-	if (ret != TDS_SUCCEED)
+	if (ret != TDS_SUCCESS)
 		return ret;
 	ret = tds_cursor_open(tds, cursor, params, &send);
-	if (ret != TDS_SUCCEED)
+	if (ret != TDS_SUCCESS)
 		return ret;
 	/* TODO read results, set row count, check type and scroll returned */
 	ret = tds_flush_packet(tds);
 	tds_set_state(tds, TDS_PENDING);
 	/* set cursor name for TDS7+ */
-	if (ret == TDS_SUCCEED && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
+	if (ret == TDS_SUCCESS && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
 		ret = odbc_process_tokens(stmt, TDS_RETURN_MSG|TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE);
 		stmt->row_count = tds->rows_affected;
 		stmt->dbc->current_statement = NULL;
@@ -3185,7 +3185,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 			ret = tds_cursor_setname(tds, cursor);
 			tds_set_state(tds, TDS_PENDING);
 		} else {
-			ret = (ret == TDS_CMD_FAIL) ? TDS_FAIL : TDS_SUCCEED;
+			ret = (ret == TDS_CMD_FAIL) ? TDS_FAIL : TDS_SUCCESS;
 		}
 		if (!cursor->cursor_id) {
 			stmt->cursor = NULL;
@@ -3273,7 +3273,7 @@ _SQLExecute(TDS_STMT * stmt)
 			TDSMULTIPLE multiple;
 
 			ret = tds_multiple_init(tds, &multiple, TDS_MULTIPLE_QUERY);
-			for (stmt->curr_param_row = 0; ret == TDS_SUCCEED; ) {
+			for (stmt->curr_param_row = 0; ret == TDS_SUCCESS; ) {
 				/* submit a query */
 				ret = tds_multiple_query(tds, &multiple, stmt->query, stmt->params);
 				if (++stmt->curr_param_row >= stmt->num_param_rows)
@@ -3283,7 +3283,7 @@ _SQLExecute(TDS_STMT * stmt)
 				if (start_parse_prepared_query(stmt, 1) != SQL_SUCCESS)
 					break;
 			}
-			if (ret == TDS_SUCCEED)
+			if (ret == TDS_SUCCESS)
 				ret = tds_multiple_done(tds, &multiple);
 		}
 	} else if (stmt->num_param_rows <= 1 && IS_TDS71_PLUS(tds) && (!stmt->dyn || stmt->need_reprepare)) {
@@ -3314,7 +3314,7 @@ _SQLExecute(TDS_STMT * stmt)
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_RETURN(stmt, SQL_ERROR);
 			}
-			if (tds_process_simple_query(tds) != TDS_SUCCEED) {
+			if (tds_process_simple_query(tds) != TDS_SUCCESS) {
 				dyn = stmt->dyn;
 				stmt->dyn = NULL;
 				tds_free_dynamic(tds, dyn);
@@ -3336,7 +3336,7 @@ _SQLExecute(TDS_STMT * stmt)
 			TDSMULTIPLE multiple;
 
 			ret = tds_multiple_init(tds, &multiple, TDS_MULTIPLE_EXECUTE);
-			for (stmt->curr_param_row = 0; ret == TDS_SUCCEED; ) {
+			for (stmt->curr_param_row = 0; ret == TDS_SUCCESS; ) {
 				dyn = stmt->dyn;
 				tds_free_input_params(dyn);
 				dyn->params = stmt->params;
@@ -3350,11 +3350,11 @@ _SQLExecute(TDS_STMT * stmt)
 				if (start_parse_prepared_query(stmt, 1) != SQL_SUCCESS)
 					break;
 			}
-			if (ret == TDS_SUCCEED)
+			if (ret == TDS_SUCCESS)
 				ret = tds_multiple_done(tds, &multiple);
 		}
 	}
-	if (ret != TDS_SUCCEED)
+	if (ret != TDS_SUCCESS)
 		ODBC_RETURN(stmt, SQL_ERROR);
 	/* catch all errors */
 	if (!odbc_lock_statement(stmt))
@@ -3723,7 +3723,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 			tds_cursor_setrows(tds, cursor, &send);
 		}
 
-		if (tds_cursor_fetch(tds, cursor, fetch_type, FetchOffset) != TDS_SUCCEED) {
+		if (tds_cursor_fetch(tds, cursor, fetch_type, FetchOffset) != TDS_SUCCESS) {
 			/* TODO what kind of error ?? */
 			ODBC_SAFE_ERROR(stmt);
 			ODBC_RETURN(stmt, SQL_ERROR);
@@ -4100,7 +4100,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		 */
 		/* do not close other running query ! */
 		if (tds && tds->state != TDS_IDLE && tds->state != TDS_DEAD && stmt->dbc->current_statement == stmt) {
-			if (tds_send_cancel(tds) == TDS_SUCCEED)
+			if (tds_send_cancel(tds) == TDS_SUCCESS)
 				tds_process_cancel(tds);
 		}
 
@@ -4589,12 +4589,12 @@ change_transaction(TDS_DBC * dbc, int state)
 	/* TODO better idle check, not thread safe */
 	if (tds->state == TDS_IDLE)
 		tds->query_timeout = dbc->default_query_timeout;
-	if (tds_submit_query(tds, query) != TDS_SUCCEED) {
+	if (tds_submit_query(tds, query) != TDS_SUCCESS) {
 		odbc_errs_add(&dbc->errs, "HY000", "Could not perform COMMIT or ROLLBACK");
 		return SQL_ERROR;
 	}
 
-	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+	if (tds_process_simple_query(tds) != TDS_SUCCESS)
 		return SQL_ERROR;
 
 	/* TODO some query can collect errors so perhaps it's better to return SUCCES_WITH_INFO in such case... */
@@ -5991,7 +5991,7 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 			break;
 
 		switch (tds_process_tokens(stmt->dbc->tds_socket, &result_type, &compute_id, TDS_STOPAT_ROWFMT|TDS_RETURN_ROW)) {
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 			if (result_type == TDS_ROW_RESULT)
 				break;
 		case TDS_NO_MORE_RESULTS:
@@ -7111,8 +7111,8 @@ odbc_free_dynamic(TDS_STMT * stmt)
 		if (!tds_needs_unprepare(tds, stmt->dyn)) {
 			tds_free_dynamic(tds, stmt->dyn);
 			stmt->dyn = NULL;
-		} else if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCEED) {
-			if (tds_process_simple_query(tds) != TDS_SUCCEED)
+		} else if (tds_submit_unprepare(tds, stmt->dyn) == TDS_SUCCESS) {
+			if (tds_process_simple_query(tds) != TDS_SUCCESS)
 				ODBC_RETURN(stmt, SQL_ERROR);
 			tds_free_dynamic(tds, stmt->dyn);
 			stmt->dyn = NULL;
@@ -7134,8 +7134,8 @@ odbc_free_cursor(TDS_STMT * stmt)
 		int error = 1;
 		cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
 		/* TODO if fail add to odbc to free later, when we are in idle */
-		if (tds_cursor_close(tds, cursor) == TDS_SUCCEED) {
-			if (tds_process_simple_query(tds) == TDS_SUCCEED)
+		if (tds_cursor_close(tds, cursor) == TDS_SUCCESS) {
+			if (tds_process_simple_query(tds) == TDS_SUCCESS)
 				error = 0;
 			/* TODO check error */
 			tds_cursor_dealloc(tds, cursor);

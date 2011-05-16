@@ -78,7 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.167 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.168 2011-05-16 13:31:11 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -194,7 +194,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 			/* do it again to really override what found in freetds.conf */
 			if (found) {
 				parse_server_name_for_port(connection, login);
-			} else if (tds_lookup_host(tds_dstr_cstr(&connection->server_name), ip_addr) == TDS_SUCCEED) {
+			} else if (tds_lookup_host(tds_dstr_cstr(&connection->server_name), ip_addr) == TDS_SUCCESS) {
 				tds_dstr_dup(&connection->server_host_name, &connection->server_name);
 				tds_dstr_copy(&connection->ip_addr, ip_addr);
 				found = 1;
@@ -799,13 +799,13 @@ tds_set_interfaces_file_loc(const char *interf)
 		TDS_ZERO_FREE(interf_file);
 	/* If no filename passed, leave it NULL */
 	if ((interf == NULL) || (interf[0] == '\0')) {
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 	/* Set to new value */
 	if ((interf_file = strdup(interf)) == NULL) {
 		return TDS_FAIL;
 	}
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -838,7 +838,7 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 	ip_addr = inet_addr(servername);
 	if (ip_addr != INADDR_NONE) {
 		tds_strlcpy(ip, servername, 17);
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 
 	host = tds_gethostbyname_r(servername, &result, buffer, sizeof(buffer), &h_errnop);
@@ -848,7 +848,7 @@ tds_lookup_host(const char *servername,	/* (I) name of the server               
 		struct in_addr *ptr = (struct in_addr *) host->h_addr;
 
 		tds_inet_ntoa_r(*ptr, ip, 17);
-		return TDS_SUCCEED;
+		return TDS_SUCCESS;
 	}
 	return TDS_FAIL;
 }

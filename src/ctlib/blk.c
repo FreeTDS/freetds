@@ -36,7 +36,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.54 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.55 2011-05-16 13:31:11 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
@@ -228,7 +228,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 
 	switch (type) {
 	case CS_BLK_BATCH:
-		if (tds_bcp_done(tds, &rows_copied) != TDS_SUCCEED) {
+		if (tds_bcp_done(tds, &rows_copied) != TDS_SUCCESS) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
@@ -236,14 +236,14 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		if (outrow) 
 			*outrow = rows_copied;
 		
-		if (tds_bcp_start(tds, &blkdesc->bcpinfo) != TDS_SUCCEED) {
+		if (tds_bcp_start(tds, &blkdesc->bcpinfo) != TDS_SUCCESS) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		break;
 		
 	case CS_BLK_ALL:
-		if (tds_bcp_done(tds, &rows_copied) != TDS_SUCCEED) {
+		if (tds_bcp_done(tds, &rows_copied) != TDS_SUCCESS) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
@@ -530,12 +530,12 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 			return CS_FAIL;
 		}
 	
-		while ((ret = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+		while ((ret = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 			if (result_type == TDS_ROW_RESULT)
 				break;
 		}
 	
-		if (ret != TDS_SUCCEED || result_type != TDS_ROW_RESULT) {
+		if (ret != TDS_SUCCESS || result_type != TDS_ROW_RESULT) {
 			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
@@ -556,7 +556,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 		tdsdump_log(TDS_DBG_FUNC, "blk_rowxfer_out() process_row_tokens returned %d\n", ret);
 
 		switch (ret) {
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 			if (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT) {
 				if (result_type == TDS_ROW_RESULT) {
 					if (_ct_bind_data( blkdesc->con->ctx, tds->current_results, blkdesc->bcpinfo.bindinfo, temp_count))
@@ -616,7 +616,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 	blkdesc->bcpinfo.parent = blkdesc;
 	for (each_row = 0; each_row < rows_to_xfer; each_row++ ) {
 
-		if (tds_bcp_send_record(tds, &blkdesc->bcpinfo, _blk_get_col_data, _blk_null_error, each_row) == TDS_SUCCEED) {
+		if (tds_bcp_send_record(tds, &blkdesc->bcpinfo, _blk_get_col_data, _blk_null_error, each_row) == TDS_SUCCESS) {
 	
 		}
 	}

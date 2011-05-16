@@ -57,7 +57,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.47 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.48 2011-05-16 13:31:11 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
@@ -94,7 +94,7 @@ pool_mbr_login(TDS_POOL * pool)
 	context = tds_alloc_context(NULL);
 	tds = tds_alloc_socket(context, 512);
 	connection = tds_read_config_info(tds, login, context->locale);
-	if (!connection || tds_connect_and_login(tds, connection) != TDS_SUCCEED) {
+	if (!connection || tds_connect_and_login(tds, connection) != TDS_SUCCESS) {
 		tds_free_socket(tds);
 		tds_free_connection(connection);
 		/* what to do? */
@@ -113,12 +113,12 @@ pool_mbr_login(TDS_POOL * pool)
 		sprintf(query, "use %s", pool->database);
 		rc = tds_submit_query(tds, query);
 		free(query);
-		if (rc != TDS_SUCCEED) {
+		if (rc != TDS_SUCCESS) {
 			fprintf(stderr, "changing database failed\n");
 			return NULL;
 		}
 
-		if (tds_process_simple_query(tds) != TDS_SUCCEED)
+		if (tds_process_simple_query(tds) != TDS_SUCCESS)
 			return NULL;
 	}
 

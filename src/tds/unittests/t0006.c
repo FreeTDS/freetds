@@ -19,7 +19,7 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0006.c,v 1.25 2006-01-24 15:03:28 freddy77 Exp $";
+static char software_version[] = "$Id: t0006.c,v 1.26 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSCONTEXT ctx;
@@ -71,7 +71,7 @@ main(int argc, char **argv)
 
 	printf("%s: Test SYBREAL, SYBFLT8 values\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}
@@ -83,11 +83,11 @@ main(int argc, char **argv)
 	if (verbose)
 		printf("Starting SYBREAL tests\n");
 	rc = run_query(tds, "DROP TABLE #test_table");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 	rc = run_query(tds, "CREATE TABLE #test_table (id int, val real)");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 
@@ -96,7 +96,7 @@ main(int argc, char **argv)
 		if (verbose)
 			printf("%s\n", sql);
 		rc = run_query(tds, sql);
-		if (rc != TDS_SUCCEED) {
+		if (rc != TDS_SUCCESS) {
 			return 1;
 		}
 	}
@@ -104,7 +104,7 @@ main(int argc, char **argv)
 	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
 
 	row_count = 0;
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
 			resinfo = tds->res_info;
@@ -152,11 +152,11 @@ main(int argc, char **argv)
 	if (verbose)
 		printf("Starting SYBFLT8 tests\n");
 	rc = run_query(tds, "DROP TABLE #test_table");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 	rc = run_query(tds, "CREATE TABLE #test_table (id int, val float(48))");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 
@@ -165,13 +165,13 @@ main(int argc, char **argv)
 		if (verbose)
 			printf("%s\n", sql);
 		rc = run_query(tds, sql);
-		if (rc != TDS_SUCCEED) {
+		if (rc != TDS_SUCCESS) {
 			return 1;
 		}
 	}
 
 	rc = tds_submit_query(tds, "SELECT * FROM #test_table");
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROW|TDS_RETURN_COMPUTE)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROW_RESULT:
 			resinfo = tds->res_info;

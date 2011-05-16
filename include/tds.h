@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.361 2011-05-16 09:57:37 freddy77 Exp $ */
+/* $Id: tds.h,v 1.362 2011-05-16 13:31:11 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -141,7 +141,7 @@ typedef struct tdsdaterec
  */
 extern const int tds_numeric_bytes_per_prec[];
 
-#define TDS_SUCCEED          1
+#define TDS_SUCCESS          1
 #define TDS_FAIL             0
 #define TDS_NO_MORE_RESULTS  2
 #define TDS_CANCELLED        3
@@ -230,7 +230,7 @@ enum tds_end
  * These match the db-lib msgno, because the same values have the same meaning
  * in db-lib and ODBC.  ct-lib maps them to ct-lib numbers (todo). 
  */
-typedef enum {	TDSEOK    = TDS_SUCCEED, 
+typedef enum {	TDSEOK    = TDS_SUCCESS, 
 		TDSEVERDOWN    =  100,
 		TDSEICONVIU    = 2400, 
 		TDSEICONVAVAIL = 2401, 

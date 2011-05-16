@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.209 2011-05-16 09:57:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.210 2011-05-16 13:31:11 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -309,7 +309,7 @@ free_save_context(TDSSAVECONTEXT *ctx)
  * Do a connection to socket
  * @param tds connection structure. This should be a non-connected connection.
  * @param connection info for connection
- * @return TDS_FAIL or TDS_SUCCEED if a connection was made to the server's port.
+ * @return TDS_FAIL or TDS_SUCCESS if a connection was made to the server's port.
  * @return TDSERROR enumerated type if no TCP/IP connection could be formed. 
  * @remark Possible error conditions:
  *		- TDSESOCK: socket(2) failed: insufficient local resources
@@ -361,7 +361,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 			connection->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
-			if ((erc = tds_connect(tds, connection, p_oserr)) != TDS_SUCCEED) {
+			if ((erc = tds_connect(tds, connection, p_oserr)) != TDS_SUCCESS) {
 				tds_close_socket(tds);
 			}
 			
@@ -375,7 +375,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		replay_save_context(tds, &save_ctx);
 		free_save_context(&save_ctx);
 		
-		if (erc != TDS_SUCCEED)
+		if (erc != TDS_SUCCESS)
 			tdserror(tds->tds_ctx, tds, erc, *p_oserr);
 
 		return erc;
@@ -461,7 +461,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		erc = tds_send_login(tds, connection);
 	}
 	if (erc == TDS_FAIL || !tds_process_login_tokens(tds)) {
-		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", erc==TDS_SUCCEED? "accepted":"rejected");
+		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", erc==TDS_SUCCESS? "accepted":"rejected");
 		tds_close_socket(tds);
 		tdserror(tds->tds_ctx, tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
 		return TDSEFCON;
@@ -485,16 +485,16 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		}
 		erc = tds_submit_query(tds, str);
 		free(str);
-		if (erc != TDS_SUCCEED)
+		if (erc != TDS_SUCCESS)
 			return TDS_FAIL;
 
-		if (tds_process_simple_query(tds) != TDS_SUCCEED)
+		if (tds_process_simple_query(tds) != TDS_SUCCESS)
 			return TDS_FAIL;
 	}
 
 	tds->query_timeout = connection->query_timeout;
 	tds->connection = NULL;
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 int
@@ -1090,13 +1090,13 @@ tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* here we have to do encryption ... */
 
-	if (tds_ssl_init(tds) != TDS_SUCCEED)
+	if (tds_ssl_init(tds) != TDS_SUCCESS)
 		return TDS_FAIL;
 
 	ret = tds7_send_login(tds, connection);
 
 	/* if flag is 0 it means that after login server continue not encrypted */
-	if (crypt_flag == 0 || ret != TDS_SUCCEED)
+	if (crypt_flag == 0 || ret != TDS_SUCCESS)
 		tds_ssl_deinit(tds);
 
 	return ret;

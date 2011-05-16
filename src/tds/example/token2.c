@@ -1,5 +1,5 @@
 if ((ret = tds_process_row_tokens(dbproc->tds_socket, &rowtype))
-    == TDS_SUCCEED) {
+    == TDS_SUCCESS) {
 	if (rowtype == TDS_REG_ROW) {
 		/* Add the row to the row buffer */
 		resinfo = tds->current_results;

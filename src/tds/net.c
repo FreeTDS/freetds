@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.111 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.112 2011-05-16 13:31:11 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -768,7 +768,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	tds->out_pos = left + 8;
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
-	return sent <= 0 ? TDS_FAIL : TDS_SUCCEED;
+	return sent <= 0 ? TDS_FAIL : TDS_SUCCESS;
 }
 
 /**
@@ -1365,7 +1365,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	tds->tls_session = session;
 	tds->tls_credentials = xcred;
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 void
@@ -1514,7 +1514,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	tds->tls_session = con;
 	tds->tls_credentials = NULL;
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 void

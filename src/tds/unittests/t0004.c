@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.20 2006-01-24 15:03:27 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.21 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -56,7 +56,7 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "%s: Test large (>512 bytes) queries\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
 		return 1;
 	}
@@ -64,15 +64,15 @@ main(int argc, char **argv)
 	/* do not check error here, if TABLE is not create this give error */
 	rc = run_query(tds, "DROP TABLE #longquerytest");
 	rc = run_query(tds, "CREATE TABLE #longquerytest (name varchar(255))");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 	rc = run_query(tds, "INSERT #longquerytest (name) VALUES ('incorrect')");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 	rc = run_query(tds, "INSERT #longquerytest (name) VALUES ('correct')");
-	if (rc != TDS_SUCCEED) {
+	if (rc != TDS_SUCCESS) {
 		return 1;
 	}
 
@@ -83,7 +83,7 @@ main(int argc, char **argv)
 		fprintf(stdout, "block size %d\n", tds->env.block_size);
 	}
 	rc = tds_submit_query(tds, long_query);
-	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCEED) {
+	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_RETURN_ROWFMT|TDS_RETURN_ROW)) == TDS_SUCCESS) {
 		switch (result_type) {
 		case TDS_ROWFMT_RESULT:
 			if (tds->res_info->columns[0]->column_type != SYBVARCHAR) {

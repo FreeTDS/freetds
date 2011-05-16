@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.80 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.81 2011-05-16 13:31:11 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -288,7 +288,7 @@ tds_init_write_buf(TDSSOCKET * tds)
 
 /**
  * Flush packet to server
- * @return TDS_FAIL or TDS_SUCCEED
+ * @return TDS_FAIL or TDS_SUCCESS
  */
 int
 tds_flush_packet(TDSSOCKET * tds)

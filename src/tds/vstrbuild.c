@@ -33,7 +33,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vstrbuild.c,v 1.17 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: vstrbuild.c,v 1.18 2011-05-16 13:31:11 freddy77 Exp $");
 
 struct string_linked_list
 {
@@ -194,7 +194,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen,
 		}
 	}
 
-	rc = TDS_SUCCEED;
+	rc = TDS_SUCCESS;
 
       out:
 	free(string_array);

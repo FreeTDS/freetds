@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.209 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.210 2011-05-16 13:31:11 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -641,7 +641,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		*/
 	}
 
-	if (tds_connect_and_login(con->tds_socket, connection) != TDS_SUCCEED)
+	if (tds_connect_and_login(con->tds_socket, connection) != TDS_SUCCESS)
 		goto Cleanup;
 
 	tds_free_connection(connection);
@@ -1180,7 +1180,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 		switch (tdsret) {
 
-		case TDS_SUCCEED:
+		case TDS_SUCCESS:
 
 			cmd->curr_result_type = res_type;
 
@@ -1251,7 +1251,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 				cmd->results_state = _CS_RES_RESULTSET_ROWS;
 
 				*result_type = res_type;
-				if (tdsret == TDS_SUCCEED && (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT)) {
+				if (tdsret == TDS_SUCCESS && (res_type == TDS_ROW_RESULT || res_type == TDS_COMPUTE_RESULT)) {
 					if (res_type == TDS_COMPUTE_RESULT) {
 						cmd->row_prefetched = 1;
 						return CS_SUCCEED;
@@ -1582,7 +1582,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 		tdsdump_log(TDS_DBG_FUNC, "inside ct_fetch() process_row_tokens returned %d\n", ret);
 
 		switch (ret) {
-			case TDS_SUCCEED:
+			case TDS_SUCCESS:
 				if (ret_type == TDS_ROW_RESULT || ret_type == TDS_COMPUTE_RESULT) {
 					cmd->get_data_item = 0;
 					cmd->get_data_bytes_returned = 0;
@@ -1669,7 +1669,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 		return CS_FAIL;
 	}
 
-	while ((tds_process_tokens(tds, &restype, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCEED) {
+	while ((tds_process_tokens(tds, &restype, &done_flags, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 		switch (restype) {
 			case CS_ROWFMT_RESULT:
 				break;
@@ -1681,7 +1681,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 
 					tdsdump_log(TDS_DBG_FUNC, "_ct_fetch_cursor() tds_process_tokens returned %d\n", ret);
 
-					if (ret == TDS_SUCCEED && (restype == TDS_ROW_RESULT || restype == TDS_COMPUTE_RESULT)) {
+					if (ret == TDS_SUCCESS && (restype == TDS_ROW_RESULT || restype == TDS_COMPUTE_RESULT)) {
 						cmd->get_data_item = 0;
 						cmd->get_data_bytes_returned = 0;
 						if (restype == TDS_ROW_RESULT) {
@@ -2817,13 +2817,13 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 
 		/* submit the writetext command */
 		if (tds_writetext_start(tds, cmd->iodesc->name,
-			textptr_string, timestamp_string, (cmd->iodesc->log_on_update == CS_TRUE), cmd->iodesc->total_txtlen) != TDS_SUCCEED)
+			textptr_string, timestamp_string, (cmd->iodesc->log_on_update == CS_TRUE), cmd->iodesc->total_txtlen) != TDS_SUCCESS)
 			return CS_FAIL;
 
 		cmd->send_data_started = 1;
 	}
 
-	if (tds_writetext_continue(tds, buffer, buflen) != TDS_SUCCEED)
+	if (tds_writetext_continue(tds, buffer, buflen) != TDS_SUCCESS)
 		return CS_FAIL;
 
 	return CS_SUCCEED;
@@ -3850,14 +3850,14 @@ _ct_process_return_status(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "generating return status row. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 
-	if (tds_alloc_row(info) != TDS_SUCCEED)
+	if (tds_alloc_row(info) != TDS_SUCCESS)
 		return TDS_FAIL;
 
 	assert(curcol->column_data != NULL);
 
 	*(TDS_INT *) curcol->column_data = saved_status;
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /* Code added for RPC functionality  - SUHA */

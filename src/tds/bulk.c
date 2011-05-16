@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.13 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.14 2011-05-16 13:31:11 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -80,7 +80,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	/* TODO possibly stop at ROWFMT and copy before going to idle */
 	/* TODO check what happen if table is not present, cleanup on error */
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
-		   == TDS_SUCCEED) {
+		   == TDS_SUCCESS) {
 	}
 	if (rc != TDS_NO_MORE_RESULTS)
 		return TDS_FAIL;
@@ -150,7 +150,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 		/* TODO use tds_process_simple_query */
 		while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
-			   == TDS_SUCCEED) {
+			   == TDS_SUCCESS) {
 		}
 		if (rc != TDS_NO_MORE_RESULTS)
 			goto cleanup;
@@ -158,14 +158,14 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	bcpinfo->bindinfo = bindinfo;
 	bcpinfo->bind_count = 0;
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 
 cleanup:
 	tds_free_results(bindinfo);
 	return TDS_FAIL;
 }
 /** 
- * \return TDS_SUCCEED or TDS_FAIL.
+ * \return TDS_SUCCESS or TDS_FAIL.
  */
 static int
 tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpcol, int first)
@@ -330,7 +330,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 	strcat(clause->pb, " ");
 	strcat(clause->pb, column_type);
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static int
@@ -392,11 +392,11 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 	/* save the statement for later... */
 	bcpinfo->insert_stmt = query;
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /** 
- * \return TDS_SUCCEED or TDS_FAIL.
+ * \return TDS_SUCCESS or TDS_FAIL.
  */
 int
 tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
@@ -437,7 +437,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 				continue;
 			}
 
-			if ((get_col_data(bcpinfo, bindcol, offset)) != TDS_SUCCEED) {
+			if ((get_col_data(bcpinfo, bindcol, offset)) != TDS_SUCCESS) {
 				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 	 			return TDS_FAIL;
 			}
@@ -573,7 +573,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 			bindcol = bcpinfo->bindinfo->columns[i];
 			if (is_blob_type(bindcol->column_type)) {
-				if ((get_col_data(bcpinfo, bindcol, offset)) != TDS_SUCCEED) {
+				if ((get_col_data(bcpinfo, bindcol, offset)) != TDS_SUCCESS) {
 					return TDS_FAIL;
 				}
 				/* unknown but zero */
@@ -593,7 +593,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		}
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /**
@@ -621,7 +621,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 
 			tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
 
-			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCEED) {
+			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCESS) {
 				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 		 		return TDS_FAIL;
 			}
@@ -708,7 +708,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 
 			tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
 
-			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCEED)
+			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCESS)
 		 		return TDS_FAIL;
 
 			/* If it's a NOT NULL column, and we have no data, throw an error. */
@@ -786,7 +786,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 }
 
 /** 
- * \return TDS_SUCCEED or TDS_FAIL.
+ * \return TDS_SUCCESS or TDS_FAIL.
  */
 static int
 tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
@@ -869,7 +869,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 int
@@ -882,13 +882,13 @@ tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 
 	tds_set_state(tds, TDS_PENDING);
 
-	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+	if (tds_process_simple_query(tds) != TDS_SUCCESS)
 		return TDS_FAIL;
 
 	if (rows_copied)
 		*rows_copied = tds->rows_affected;
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 int
@@ -902,7 +902,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	 * In TDS 5 we get the column information as a result set from the "insert bulk" command.
 	 * We're going to ignore it.  
 	 */
-	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+	if (tds_process_simple_query(tds) != TDS_SUCCESS)
 		return TDS_FAIL;
 
 	/* TODO problem with thread safety */
@@ -912,7 +912,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	if (IS_TDS7_PLUS(tds))
 		tds7_bcp_send_colmetadata(tds, bcpinfo);
 	
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 static void 
@@ -937,7 +937,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	if (tds_bcp_start_insert_stmt(tds, bcpinfo) == TDS_FAIL)
 		return TDS_FAIL;
 
-	if (tds_bcp_start(tds, bcpinfo) != TDS_SUCCEED) {
+	if (tds_bcp_start(tds, bcpinfo) != TDS_SUCCESS) {
 		/* TODO, in CTLib was _ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, ""); */
 		return TDS_FAIL;
 	}
@@ -1055,7 +1055,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		}
 	}
 
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 int
@@ -1064,13 +1064,13 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 	if (tds_submit_queryf(tds,
 			      "writetext bulk %s 0x%s timestamp = 0x%s%s",
 			      objname, textptr, timestamp, with_log ? " with log" : "")
-	    != TDS_SUCCEED) {
+	    != TDS_SUCCESS) {
 		return TDS_FAIL;
 	}
 
 	/* FIXME in this case processing all results can bring state to IDLE... not threading safe */
 	/* read the end token */
-	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+	if (tds_process_simple_query(tds) != TDS_SUCCESS)
 		return TDS_FAIL;
 
 	/* FIXME better transiction state */
@@ -1078,7 +1078,7 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 	tds_put_int(tds, size);
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 int
@@ -1090,7 +1090,7 @@ tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
 
 	/* TODO check size letft */
 	tds_put_n(tds, text, size);
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 int
@@ -1102,5 +1102,5 @@ tds_writetext_end(TDSSOCKET *tds)
 
 	tds_flush_packet(tds);
 	tds_set_state(tds, TDS_PENDING);
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }

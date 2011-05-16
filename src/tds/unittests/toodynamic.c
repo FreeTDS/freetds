@@ -23,7 +23,7 @@
  * generated IDs are reused on a base of 2^16
  */
 
-static char software_version[] = "$Id: toodynamic.c,v 1.1 2008-11-05 14:27:49 freddy77 Exp $";
+static char software_version[] = "$Id: toodynamic.c,v 1.2 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -45,20 +45,20 @@ main(int argc, char **argv)
 
 	fprintf(stdout, "%s: Test creating a lot of dynamic queries\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
-	if (rc != TDS_SUCCEED)
+	if (rc != TDS_SUCCESS)
 		fatal_error("try_tds_login() failed");
 
 	run_query(tds, "DROP TABLE #test");
-	if (run_query(tds, "CREATE TABLE #test (i INT, c VARCHAR(40))") != TDS_SUCCEED)
+	if (run_query(tds, "CREATE TABLE #test (i INT, c VARCHAR(40))") != TDS_SUCCESS)
 		fatal_error("creating table error");
 
 	if (tds->cur_dyn)
 		fatal_error("already a dynamic query??");
 
 	/* prepare to insert */
-	if (tds_submit_prepare(tds, "UPDATE #test SET c = 'test' WHERE i = ?", NULL, &dyn, NULL) != TDS_SUCCEED)
+	if (tds_submit_prepare(tds, "UPDATE #test SET c = 'test' WHERE i = ?", NULL, &dyn, NULL) != TDS_SUCCESS)
 		fatal_error("tds_submit_prepare() error");
-	if (tds_process_simple_query(tds) != TDS_SUCCEED)
+	if (tds_process_simple_query(tds) != TDS_SUCCESS)
 		fatal_error("tds_process_simple_query() error");
 	if (!dyn)
 		fatal_error("dynamic not present??");
@@ -78,15 +78,15 @@ main(int argc, char **argv)
 	for (n = 0; n < 20; ++n) {
 		TDSDYNAMIC *dyn2;
 
-		if (tds_submit_prepare(tds, "INSERT INTO #test(i,c) VALUES(?,?)", NULL, &dyn2, NULL) != TDS_SUCCEED)
+		if (tds_submit_prepare(tds, "INSERT INTO #test(i,c) VALUES(?,?)", NULL, &dyn2, NULL) != TDS_SUCCESS)
 			fatal_error("tds_submit_prepare() error");
 		if (dyn == dyn2)
 			fatal_error("got duplicated dynamic");
-		if (tds_process_simple_query(tds) != TDS_SUCCEED)
+		if (tds_process_simple_query(tds) != TDS_SUCCESS)
 			fatal_error("tds_process_simple_query() error");
 		if (!dyn2)
 			fatal_error("dynamic not present??");
-		if (tds_submit_unprepare(tds, dyn2) != TDS_SUCCEED || tds_process_simple_query(tds) != TDS_SUCCEED)
+		if (tds_submit_unprepare(tds, dyn2) != TDS_SUCCESS || tds_process_simple_query(tds) != TDS_SUCCESS)
 			fatal_error("unprepare error");
 		tds_free_dynamic(tds, dyn2);
 	}

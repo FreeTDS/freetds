@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.210 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.211 2011-05-16 13:31:11 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -90,7 +90,7 @@ static volatile int inc_num = 1;
 /**
  * Get an id for dynamic query based on TDS information
  * \param tds state information for the socket and the TDS protocol
- * \return TDS_FAIL or TDS_SUCCEED
+ * \return TDS_FAIL or TDS_SUCCESS
  */
 static char *
 tds_get_dynid(TDSSOCKET * tds, char *id)
@@ -514,7 +514,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 	}
 
 	memset(ptr, '\0', res_info->row_size);
-	return TDS_SUCCEED;
+	return TDS_SUCCESS;
 }
 
 int
