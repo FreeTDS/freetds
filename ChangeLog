@@ -1,3 +1,6 @@
+Thu May 19 16:56:41 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sybdb.h src/dblib/dblib.c: support bigint on dblib
+
 Thu May 19 11:07:35 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/freetds_autobuild: use git
 
@@ -241,4 +244,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3251 2011-05-19 09:07:44 freddy77 Exp $
+$Id: ChangeLog,v 1.3252 2011-05-19 14:57:07 freddy77 Exp $
