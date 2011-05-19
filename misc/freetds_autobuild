@@ -128,7 +128,8 @@ ln -s $WORKDIR freetds
 cd $WORKDIR
 find . \( -name \*.bb -o -name \*.bbg -o -name \*.da -o -name \*.gc\* \) -exec rm -f {} \;
 rm -rf autom4te.cache doc/doc covtmp coverage DBD-*
-cvsclean || true
+#cvsclean || true
+git clean -fd 
 if test "$(uname -m)" = "x86_64"; then
 	cp ../DBD-ODBC-1.22.tar.gz .
 else

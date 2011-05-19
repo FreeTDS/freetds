@@ -1,3 +1,6 @@
+Thu May 19 11:07:35 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild: use git
+
 Mon May 16 15:28:08 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h misc/commit src/apps/tsql.c src/ctlib/blk.c:
 	* src/ctlib/cs.c src/ctlib/ct.c src/ctlib/ctutil.c src/dblib/bcp.c:
@@ -238,4 +241,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3250 2011-05-16 13:31:11 freddy77 Exp $
+$Id: ChangeLog,v 1.3251 2011-05-19 09:07:44 freddy77 Exp $
