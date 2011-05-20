@@ -58,6 +58,22 @@
 #define SQLROWSETSIZE SQLULEN
 #endif
 
+#ifndef SQL_COPT_SS_BASE
+#define SQL_COPT_SS_BASE	1200
+#endif
+
+#ifndef SQL_COPT_SS_MARS_ENABLED
+#define SQL_COPT_SS_MARS_ENABLED	(SQL_COPT_SS_BASE+24)
+#endif
+
+#ifndef SQL_MARS_ENABLED_NO
+#define SQL_MARS_ENABLED_NO	0
+#endif
+
+#ifndef SQL_MARS_ENABLED_YES
+#define SQL_MARS_ENABLED_YES	1
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -66,7 +82,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.127 2010-11-09 15:46:42 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.128 2011-05-20 20:56:34 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -238,6 +254,7 @@ struct _hcattr
 	DSTR translate_lib;
 	SQLUINTEGER translate_option;
 	SQLUINTEGER txn_isolation;
+	SQLUINTEGER mars_enabled;
 	SQLUINTEGER cursor_type;
 #ifdef TDS_NO_DM
 	SQLUINTEGER trace;
@@ -466,7 +483,8 @@ BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
 	ODBC_PARAM(Trusted_Connection) \
 	ODBC_PARAM(APP) \
 	ODBC_PARAM(WSID) \
-	ODBC_PARAM(UseNTLMv2)
+	ODBC_PARAM(UseNTLMv2) \
+	ODBC_PARAM(MARS_Connection)
 
 #define ODBC_PARAM(p) ODBC_PARAM_##p,
 enum {

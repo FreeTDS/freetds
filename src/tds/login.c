@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.210 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.211 2011-05-20 20:56:35 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -977,7 +977,7 @@ tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		2, UI16BE(START_POS + 6 + 1), UI16BE(0),
 		/* process id */
 		3, UI16BE(0), UI16BE(4),
-		/* ???? unknown ??? */
+		/* MARS enables */
 		4, UI16BE(0), UI16BE(1),
 		/* end */
 		0xff

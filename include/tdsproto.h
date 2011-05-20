@@ -321,10 +321,12 @@ typedef enum tds_packet_type
 	TDS_REPLY = 4,
 	TDS_CANCEL = 6,
 	TDS_BULK = 7,
+	TDS7_TRANS = 14,	/* transaction management */
 	TDS_NORMAL = 15,
 	TDS7_LOGIN = 16,
 	TDS7_AUTH = 17,
-	TDS71_PRELOGIN = 18
+	TDS71_PRELOGIN = 18,
+	TDS71_SMP = 0x53
 } TDS_PACKET_TYPE;
 
 /** 

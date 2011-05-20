@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.91 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.92 2011-05-20 20:56:34 freddy77 Exp $");
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;
 ODBC_PARAM_LIST
@@ -231,6 +231,10 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection)
 		tds_dstr_copy(&connection->password, "");
 	}
 
+	if (myGetPrivateProfileString(DSN, odbc_param_MARS_Connection, tmp) > 0 && tds_config_boolean(tmp)) {
+		connection->mars = 1;
+	}
+
 	return 1;
 }
 
@@ -385,6 +389,9 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			tdsdump_log(TDS_DBG_INFO1, "trusted %s -> %d\n", tds_dstr_cstr(&value), trusted);
 			num_param = -1;
 			/* TODO odbc_param_Address field */
+		} else if (CHK_PARAM(MARS_Connection)) {
+			if (tds_config_boolean(tds_dstr_cstr(&value)))
+				connection->mars = 1;
 		}
 
 		if (num_param >= 0 && parsed_params) {

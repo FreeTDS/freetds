@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.561 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.562 2011-05-20 20:56:34 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -381,6 +381,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 	tds_fix_connection(connection);
 
 	connection->connect_timeout = dbc->attr.connection_timeout;
+	connection->mars = (dbc->attr.mars_enabled != SQL_MARS_ENABLED_NO);
 
 #ifdef ENABLE_ODBC_WIDE
 	/* force utf-8 in order to support wide characters */
@@ -1518,6 +1519,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 #endif
 	dbc->attr.translate_option = 0;
 	dbc->attr.txn_isolation = SQL_TXN_READ_COMMITTED;
+	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
 
 	*phdbc = (SQLHDBC) dbc;
 
@@ -4767,6 +4769,10 @@ SQLSetParam(SQLHSTMT hstmt, SQLUSMALLINT ipar, SQLSMALLINT fCType, SQLSMALLINT f
 		*((SQLUINTEGER *) Value) = dbc->attr.txn_isolation;
 		ODBC_RETURN_(dbc);
 		break;
+	case SQL_COPT_SS_MARS_ENABLED:
+		*((SQLUINTEGER *) Value) = dbc->attr.mars_enabled;
+		ODBC_RETURN_(dbc);
+		break;
 	case SQL_ATTR_TRANSLATE_LIB:
 	case SQL_ATTR_TRANSLATE_OPTION:
 		odbc_errs_add(&dbc->errs, "HYC00", NULL);
@@ -6188,6 +6194,10 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 			if (change_txn(dbc, u_value) == SQL_SUCCESS)
 				dbc->attr.txn_isolation = u_value;
 		}
+		ODBC_RETURN_(dbc);
+		break;
+	case SQL_COPT_SS_MARS_ENABLED:
+		dbc->attr.mars_enabled = u_value;
 		ODBC_RETURN_(dbc);
 		break;
 	case SQL_ATTR_TRANSLATE_LIB:

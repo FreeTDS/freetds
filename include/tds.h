@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.362 2011-05-16 13:31:11 freddy77 Exp $ */
+/* $Id: tds.h,v 1.363 2011-05-20 20:56:34 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -527,6 +527,7 @@ typedef struct tds_connection
 	unsigned int suppress_language:1;
 	unsigned int gssapi_use_delegation:1;
 	unsigned int use_ntlmv2:1;
+	unsigned int mars:1;
 } TDSCONNECTION;
 
 typedef struct tds_locale
