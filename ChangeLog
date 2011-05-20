@@ -1,3 +1,6 @@
+Fri May 20 22:53:24 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/vstrbuild.c: fix minor tds_vstrbuild issues
+
 Thu May 19 16:56:41 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/sybdb.h src/dblib/dblib.c: support bigint on dblib
 
@@ -244,4 +247,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3252 2011-05-19 14:57:07 freddy77 Exp $
+$Id: ChangeLog,v 1.3253 2011-05-20 20:53:35 freddy77 Exp $

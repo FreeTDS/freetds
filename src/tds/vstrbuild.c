@@ -33,7 +33,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vstrbuild.c,v 1.18 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: vstrbuild.c,v 1.19 2011-05-20 20:53:36 freddy77 Exp $");
 
 struct string_linked_list
 {
@@ -47,7 +47,7 @@ struct string_linked_list
  */
 
 static char *
-norm_fmt(const char *fmt, size_t fmtlen)
+norm_fmt(const char *fmt, int fmtlen)
 {
 	char *newfmt;
 	char *cp;
@@ -56,9 +56,9 @@ norm_fmt(const char *fmt, size_t fmtlen)
 	if (fmtlen == TDS_NULLTERM) {
 		fmtlen = strlen(fmt);
 	}
-	if ((newfmt = (char *) malloc(fmtlen + 1)) == NULL) {
-		return TDS_FAIL;
-	}
+	if ((newfmt = (char *) malloc(fmtlen + 1)) == NULL)
+		return NULL;
+
 	for (cp = newfmt; fmtlen > 0; fmtlen--, fmt++) {
 		switch (*fmt) {
 		case ',':
