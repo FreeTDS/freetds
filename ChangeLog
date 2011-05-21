@@ -1,3 +1,7 @@
+Sat May 21 14:10:30 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* doc/userguide.sgml corrected typos
+	* src/dblib/bcp.c relaxed per ML from Bill Thompson today. 
+
 Sat May 21 15:04:50 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/bcp.c: fix _bcp_get_term_var check
 
@@ -255,4 +259,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3255 2011-05-21 13:04:58 freddy77 Exp $
+$Id: ChangeLog,v 1.3256 2011-05-21 18:27:21 jklowden Exp $
