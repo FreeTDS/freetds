@@ -62,7 +62,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.197.2.2 2011-05-21 13:07:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.197.2.3 2011-05-21 18:31:48 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2248,6 +2248,10 @@ bcp_done(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "bcp_done(%p)\n", dbproc);
 	CHECK_DBPROC();
 	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
+	
+	if (!(dbproc->bcpinfo))
+		return -1;
+
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
 
 	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCEED)
@@ -2512,7 +2516,7 @@ _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 {
 	int bufpos;
 
-	assert(term_len > 0);
+	assert(term_len >= 0);
 
 	/* if bufpos becomes negative, we probably failed to find the terminator */
 	for (bufpos = 0; bufpos >= 0 && memcmp(pdata, term, term_len) != 0; pdata++) {
