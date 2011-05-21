@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-03-22 16:03:44 $</date>
-	<releaseinfo>$Revision: 1.139 $</releaseinfo>
+	<date>$Date: 2011-05-21 18:31:37 $</date>
+	<releaseinfo>$Revision: 1.139.2.1 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.139 $</>
-				<member>$Date: 2011-03-22 16:03:44 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.139 2011-03-22 16:03:44 jklowden Exp $.</>
+				<member>$Revision: 1.139.2.1 $</>
+				<member>$Date: 2011-05-21 18:31:37 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.139.2.1 2011-05-21 18:31:37 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -626,7 +626,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-03-22 16:03:44 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing ($Date: 2011-05-21 18:31:37 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
@@ -4525,7 +4525,7 @@ Important to understand: <command>ldd</command> is <emphasis>not</emphasis> figu
 				<title>A Word about Windows&reg;</title>
 <para>WIndows executables use the older COFF format, which has no provision for an <literal>RPATH</>.  The runtime linker searches the <literal>PATH</> instead, after some built-in locations that usually include the current working directory.  Neither <command>ldd</command> nor any similar utility is included in the basic product.  </para>
 
-<para>It has been said that Unix is for <emphasis>programmers</emphasis> and Windows is for <emphasis>users</>, and perhaps that roughtly describes the  intention.  But the Unix features listed above &mdash; <literal>RPATH</> and <command>ldd</command> &mdash; as well as a canonical filesystem hierarchy and dynamic library versioning, all promote a better <emphasis>user</emphasis> experience.  Because of them, the problem of DLL conflicts in Windows hardly exists in Unix.  Yet they are neither new nor secrect nor patented nor complicated; Microsoft could have adopted years ago (as Apple finally did).  We therefore know that the 20-year old phenomemon known as &ldquo;DLL hell&rdquo; is not inevitable, but a <emphasis>choice</> signifying nothing so much as Microsoft's indifference to its customers.  </para>
+<para>It has been said that Unix is for <emphasis>programmers</emphasis> and Windows is for <emphasis>users</>, and perhaps that roughly describes the  intention.  But the Unix features listed above &mdash; <literal>RPATH</> and <command>ldd</command> &mdash; as well as a canonical filesystem hierarchy and dynamic library versioning, all promote a better <emphasis>user</emphasis> experience.  Because of them, the problem of DLL conflicts in Windows hardly exists in Unix.  Yet they are neither new nor secrect nor patented nor complicated; Microsoft could have adopted them years ago (as Apple finally did).  We therefore know that the 20-year old phenomemon known as &ldquo;DLL hell&rdquo; is not inevitable, but a <emphasis>choice</> signifying nothing so much as Microsoft's indifference to its customers.  </para>
 
 				</section>
 
