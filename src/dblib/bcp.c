@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.201 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.202 2011-05-21 13:04:59 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -91,7 +91,7 @@ static int rtrim(char *, int);
 static offset_type _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
 static RETCODE _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
-static RETCODE _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
+static int _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
 
 /*
  * "If a host file is being used ... the default data formats are as follows:
@@ -2504,9 +2504,9 @@ _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
  * \param term 
  * \param term_len 
  * 
- * \return SUCCEED or FAIL.
+ * \return data length.
  */
-static RETCODE
+static int
 _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 {
 	int bufpos;
@@ -2518,7 +2518,7 @@ _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 		bufpos++;
 	}
 	
-	assert(bufpos > 0);
+	assert(bufpos >= 0);
 	return bufpos;
 }
 
