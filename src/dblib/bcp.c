@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.203 2011-05-21 18:27:28 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.204 2011-05-22 12:40:58 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2515,7 +2515,7 @@ _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len)
 {
 	int bufpos;
 
-	assert(term_len >= 0);
+	assert(term_len > 0);
 
 	/* if bufpos becomes negative, we probably failed to find the terminator */
 	for (bufpos = 0; bufpos >= 0 && memcmp(pdata, term, term_len) != 0; pdata++) {
