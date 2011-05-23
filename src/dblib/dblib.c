@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.386 2011-05-19 14:57:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.387 2011-05-23 19:27:09 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1972,7 +1972,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
  * \retval FAIL \a dbproc is dead or not enabled
  * \sa dbaltbind(), dbbind(), dbcanquery(), dbclrbuf(), dbgetrow(), dbnextrow(), dbprrow().
  */
-RETCODE
+STATUS
 dbsetrow(DBPROCESS * dbproc, DBINT row)
 {
 	const int idx = buffer_row2idx(&dbproc->row_buf, row);

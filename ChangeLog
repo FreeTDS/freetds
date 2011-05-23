@@ -1,3 +1,6 @@
+Mon May 23 21:27:01 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sybdb.h src/dblib/dblib.c: fix some return codes
+
 Mon May 23 21:20:11 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/Makefile.am: add tdsproto.h to distribution
 
@@ -265,4 +268,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3258 2011-05-23 19:20:17 freddy77 Exp $
+$Id: ChangeLog,v 1.3259 2011-05-23 19:27:09 freddy77 Exp $

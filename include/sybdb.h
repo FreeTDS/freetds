@@ -42,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.103 2011-05-19 14:57:07 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.104 2011-05-23 19:27:09 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -617,10 +617,10 @@ RETCODE dbaltbind(DBPROCESS * dbprocess, int computeid, int column, int vartype,
 RETCODE dbaltbind_ps(DBPROCESS * dbprocess, int computeid, int column, int vartype, DBINT varlen, BYTE * varaddr,
 		     DBTYPEINFO * typeinfo);
 int dbaltcolid(DBPROCESS * dbproc, int computeid, int column);
-RETCODE dbaltlen(DBPROCESS * dbproc, int computeid, int column);
+DBINT dbaltlen(DBPROCESS * dbproc, int computeid, int column);
 int dbaltop(DBPROCESS * dbproc, int computeid, int column);
 int dbalttype(DBPROCESS * dbproc, int computeid, int column);
-RETCODE dbaltutype(DBPROCESS * dbproc, int computeid, int column);
+DBINT dbaltutype(DBPROCESS * dbproc, int computeid, int column);
 RETCODE dbanullbind(DBPROCESS * dbprocess, int computeid, int column, DBINT * indicator);
 RETCODE dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr);
 RETCODE dbbind_ps(DBPROCESS * dbprocess, int column, int vartype, DBINT varlen, BYTE * varaddr, DBTYPEINFO * typeinfo);
@@ -1174,9 +1174,9 @@ RETCODE dbsetlversion (LOGINREC * login, BYTE version);
 #define DBSETLVERSION(login, version) dbsetlversion((login), (version))
 
 RETCODE bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char *errfile, int direction);
-RETCODE bcp_done(DBPROCESS * dbproc);
+DBINT bcp_done(DBPROCESS * dbproc);
 
-RETCODE bcp_batch(DBPROCESS * dbproc);
+DBINT bcp_batch(DBPROCESS * dbproc);
 RETCODE bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen, BYTE * terminator, int termlen, int type,
 		 int table_column);
 RETCODE bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column);
