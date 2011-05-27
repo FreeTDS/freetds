@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.211 2011-05-23 20:32:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.212 2011-05-27 08:59:04 freddy77 Exp $");
 
 
 static char * ct_describe_cmd_state(CS_INT state);
@@ -219,7 +219,7 @@ _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int origin, 
 }
 
 static CS_RETCODE
-ct_set_command_state(CS_COMMAND *cmd, CS_INT state) 
+ct_set_command_state(CS_COMMAND *cmd, CS_INT state)
 {
 	tdsdump_log(TDS_DBG_FUNC, "setting command state to %s (from %s)\n",
 		    ct_describe_cmd_state(state),
@@ -231,7 +231,7 @@ ct_set_command_state(CS_COMMAND *cmd, CS_INT state)
 }
 
 static char *
-ct_describe_cmd_state(CS_INT state) 
+ct_describe_cmd_state(CS_INT state)
 {
 	tdsdump_log(TDS_DBG_FUNC, "ct_describe_cmd_state(%d)\n", state);
 
@@ -262,7 +262,7 @@ ct_init(CS_CONTEXT * ctx, CS_INT version)
 	/* uncomment the next line to get pre-login trace */
 	/* tdsdump_open("/tmp/tds2.log"); */
 	tdsdump_log(TDS_DBG_FUNC, "ct_init(%p, %d)\n", ctx, version);
-	
+
 	ctx->tds_ctx->msg_handler = _ct_handle_server_message;
 	ctx->tds_ctx->err_handler = _ct_handle_client_message;
 
@@ -620,11 +620,11 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
 		if (con->locale->charset) {
-			if (!tds_dstr_copy(&connection->server_charset, con->locale->charset)) 
+			if (!tds_dstr_copy(&connection->server_charset, con->locale->charset))
 				goto Cleanup;
 		}
 		if (con->locale->language) {
-			if (!tds_dstr_copy(&connection->language, con->locale->language)) 
+			if (!tds_dstr_copy(&connection->language, con->locale->language))
 				goto Cleanup;
 		}
 		if (con->locale->time && con->tds_socket->tds_ctx) {
@@ -1469,9 +1469,9 @@ ct_bind(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt, CS_VOID * buffer, C
 
 	colinfo = resinfo->columns[item - 1];
 
-	/* 
+	/*
 	 * Check whether the request is for array binding, and ensure that the user
-	 * supplies the same datafmt->count to the subsequent ct_bind calls    
+	 * supplies the same datafmt->count to the subsequent ct_bind calls
 	 */
 
 	bind_count = (datafmt->count == 0) ? 1 : datafmt->count;
@@ -1528,15 +1528,15 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 		_ct_cancel_cleanup(cmd);
 		return CS_CANCELED;
 	}
-	
+
 	if( prows_read == NULL )
 		prows_read = &rows_read_dummy;
 
 	tds = cmd->con->tds_socket;
 
-	/* 
-	 * Call a special function for fetches from a cursor because 
-	 * the processing is too incompatible to patch into a single function 
+	/*
+	 * Call a special function for fetches from a cursor because
+	 * the processing is too incompatible to patch into a single function
 	 */
 	if (cmd->command_type == CS_CUR_CMD) {
 		return _ct_fetch_cursor(cmd, type, offset, option, prows_read);
@@ -1576,7 +1576,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 
 	for (temp_count = 0; temp_count < cmd->bind_count; temp_count++) {
 
-		ret = tds_process_tokens(tds, &ret_type, NULL, 
+		ret = tds_process_tokens(tds, &ret_type, NULL,
 					 TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 
 		tdsdump_log(TDS_DBG_FUNC, "inside ct_fetch() process_row_tokens returned %d\n", ret);
@@ -1732,8 +1732,8 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 		if (curcol->column_hidden)
 			continue;
 
-		/* 
-		 * Retrieve the initial bound column_varaddress and increment it if offset specified         
+		/*
+		 * Retrieve the initial bound column_varaddress and increment it if offset specified
 		 */
 
 		temp_add = (unsigned char *) bindcol->column_varaddr;
@@ -1771,7 +1771,7 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 				if ((result= cs_convert(ctx, &srcfmt, src, &destfmt, dest, pdatalen) != CS_SUCCEED)) {
 					tdsdump_log(TDS_DBG_FUNC, "cs_convert-result = %d\n", result);
 					result = 1;
-					tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n", 
+					tdsdump_log(TDS_DBG_INFO1, "error: converted only %d bytes for type %d \n",
 									*pdatalen, srcfmt.datatype);
 				}
 
@@ -2009,20 +2009,20 @@ int
 _ct_get_server_type(int datatype)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_server_type(%d)\n", datatype);
-	
+
 	switch (datatype) {
 	case CS_IMAGE_TYPE:		return SYBIMAGE;
 	case CS_BINARY_TYPE:		return SYBBINARY;
-	case CS_BIT_TYPE:		return SYBBIT;	
-	case CS_CHAR_TYPE:		return SYBCHAR;	
+	case CS_BIT_TYPE:		return SYBBIT;
+	case CS_CHAR_TYPE:		return SYBCHAR;
 	case CS_VARCHAR_TYPE:		return SYBVARCHAR;
 	case CS_LONG_TYPE:
-	case CS_BIGINT_TYPE:		return SYBINT8;	
-	case CS_INT_TYPE:		return SYBINT4;	
-	case CS_SMALLINT_TYPE:		return SYBINT2;	
-	case CS_TINYINT_TYPE:		return SYBINT1;	
-	case CS_REAL_TYPE:		return SYBREAL;	
-	case CS_FLOAT_TYPE:		return SYBFLT8;	
+	case CS_BIGINT_TYPE:		return SYBINT8;
+	case CS_INT_TYPE:		return SYBINT4;
+	case CS_SMALLINT_TYPE:		return SYBINT2;
+	case CS_TINYINT_TYPE:		return SYBINT1;
+	case CS_REAL_TYPE:		return SYBREAL;
+	case CS_FLOAT_TYPE:		return SYBFLT8;
 	case CS_MONEY_TYPE:		return SYBMONEY;
 	case CS_MONEY4_TYPE:		return SYBMONEY4;
 	case CS_DATETIME_TYPE:		return SYBDATETIME;
@@ -2030,7 +2030,7 @@ _ct_get_server_type(int datatype)
 	case CS_NUMERIC_TYPE:		return SYBNUMERIC;
 	case CS_DECIMAL_TYPE:		return SYBDECIMAL;
 	case CS_VARBINARY_TYPE:		return SYBVARBINARY;
-	case CS_TEXT_TYPE:		return SYBTEXT;	
+	case CS_TEXT_TYPE:		return SYBTEXT;
 	case CS_UNIQUE_TYPE:		return SYBUNIQUE;
 	case CS_LONGBINARY_TYPE:	return SYBLONGBINARY;
 	case CS_UNICHAR_TYPE:		return SYBVARCHAR;
@@ -3041,7 +3041,7 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 
 	default:
 		tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- attempt to get a non-existant capability\n");
-		return CS_FAIL;	
+		return CS_FAIL;
 		break;
 	}			/* end capability */
 
@@ -3461,7 +3461,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		case CS_FALSE:
 			break;	/* end valid choices */
 		default:
-			if (action == CS_SET) 
+			if (action == CS_SET)
 				return CS_FAIL;
 		}
 		break;
@@ -3474,7 +3474,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_option = TDS_OPT_ARITHABORTOFF;
 			break;
 		default:
-			if (action == CS_SET) 
+			if (action == CS_SET)
 				return CS_FAIL;
 			tds_option = TDS_OPT_ARITHABORTON;
 		}
@@ -3490,7 +3490,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_option = TDS_OPT_ARITHIGNOREOFF;
 			break;
 		default:
-			if (action == CS_SET) 
+			if (action == CS_SET)
 				return CS_FAIL;
 		}
 		tds_argument.i = TDS_OPT_ARITHOVERFLOW | TDS_OPT_NUMERICTRUNC;
@@ -3532,7 +3532,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_argument.ti = TDS_OPT_SATURDAY;
 			break;
 		default:
-			if (action == CS_SET) 
+			if (action == CS_SET)
 				return CS_FAIL;
 		}
 		tds_argsize = (action == CS_SET) ? 1 : 0;
@@ -3559,7 +3559,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_argument.ti = TDS_OPT_FMTDYM;
 			break;
 		default:
-			if (action == CS_SET) 
+			if (action == CS_SET)
 				return CS_FAIL;
 		}
 		tds_argsize = (action == CS_SET) ? 1 : 0;
@@ -3578,7 +3578,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 			tds_argument.ti = TDS_OPT_LEVEL3;
 			break;
 		default:
-			if (action == CS_SET) 
+			if (action == CS_SET)
 				return CS_FAIL;
 		}
 		tds_argsize = (action == CS_SET) ? 1 : 0;
@@ -3590,7 +3590,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 		case CS_FALSE:
 			break;
 		default:
-			if (action == CS_SET) 
+			if (action == CS_SET)
 				return CS_FAIL;
 		}
 		tds_argument.ti = !*(char *) param;
@@ -3603,7 +3603,7 @@ ct_options(CS_CONNECTION * con, CS_INT action, CS_INT option, CS_VOID * param, C
 SEND_OPTION:
 
 	tdsdump_log(TDS_DBG_FUNC, "\ttds_submit_optioncmd will be action(%s) option(%d) arg(%x) arglen(%d)\n",
-				action_string, tds_option, 
+				action_string, tds_option,
 				tds_argsize == 1 ? tds_argument.ti : (tds_argsize == 4 ? tds_argument.i : 0), tds_argsize);
 
 	if (tds_submit_optioncmd(tds, tds_command, tds_option, &tds_argument, tds_argsize) == TDS_FAIL) {
@@ -3659,7 +3659,7 @@ ct_poll(CS_CONTEXT * ctx, CS_CONNECTION * connection, CS_INT milliseconds, CS_CO
 	CS_INT * compid, CS_INT * compstatus)
 {
 	tdsdump_log(TDS_DBG_FUNC, "UNIMPLEMENTED ct_poll()\n");
-	tdsdump_log(TDS_DBG_FUNC, "ct_poll(%p, %p, %d, %p, %p, %p, %p)\n", 
+	tdsdump_log(TDS_DBG_FUNC, "ct_poll(%p, %p, %d, %p, %p, %p, %p)\n",
 				ctx, connection, milliseconds, compconn, compcmd, compid, compstatus);
 
 	return CS_FAIL;
@@ -4077,12 +4077,12 @@ param_clear(CS_PARAM * pparam)
 
 
 static int
-_ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT *datalen, 
+_ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT *datalen,
 	       CS_SMALLINT *indicator, CS_BYTE byvalue)
 {
 	int param_is_null = 0, desttype;
 
-	tdsdump_log(TDS_DBG_FUNC, "_ct_fill_param(%d, %p, %p, %p, %p, %p, %x)\n", 
+	tdsdump_log(TDS_DBG_FUNC, "_ct_fill_param(%d, %p, %p, %p, %p, %p, %x)\n",
 				cmd_type, param, datafmt, data, datalen, indicator, byvalue);
 
 	if (cmd_type == CS_DYNAMIC_CMD) {
