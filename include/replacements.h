@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.28 2010-08-18 11:27:47 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.29 2011-05-27 09:18:59 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -95,6 +95,8 @@ size_t tds_strlcat(char *dest, const char *src, size_t len);
 #else
 char *tds_basename(char *path);
 #endif
+
+char *getpassarg(char *arg);
 
 /* 
  * Microsoft's C Runtime library is missing strcasecmp and strncasecmp. 

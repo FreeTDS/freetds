@@ -51,7 +51,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.50 2011-05-16 08:51:40 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.51 2011-05-27 09:18:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -828,8 +828,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			username = strdup(optarg);
 			break;
 		case 'P':
-			password = strdup(optarg);
-			memset(optarg, 0, strlen(optarg));
+			password = getpassarg(optarg);
 			break;
 		case 'S':
 			options->servername = strdup(optarg);
