@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.142 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.143 2011-05-27 09:00:11 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -390,12 +390,16 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	char *hostname = NULL, *servername = NULL;
 	char *username = NULL, *password = NULL;
 	char *confile = NULL;
+	const char *appname = "TSQL";
 	int opt, port=0, use_domain_login=0;
 	const char *charset = NULL;
 	char *opt_flags_str = NULL;
 
-	while ((opt = getopt(argc, argv, "H:S:I:J:P:U:p:Co:t:r:D:Lv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:H:S:I:J:P:U:p:Co:t:r:D:Lv")) != -1) {
 		switch (opt) {
+		case 'a':
+			appname = optarg;
+			break;
 		case 't':
 			opt_col_term = strdup(optarg);
 			break;
@@ -544,7 +548,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 	/* if it's a servername */
 	if (servername) {
 		tds_set_user(login, username);
-		tds_set_app(login, "TSQL");
+		tds_set_app(login, appname);
 		tds_set_library(login, "TDS-Library");
 		tds_set_server(login, servername);
 		if (charset) tds_set_client_charset(login, charset);
@@ -556,7 +560,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 		/* else we specified hostname/port */
 	} else {
 		tds_set_user(login, username);
-		tds_set_app(login, "TSQL");
+		tds_set_app(login, appname);
 		tds_set_library(login, "TDS-Library");
 		tds_set_server(login, hostname);
 		tds_set_port(login, port);

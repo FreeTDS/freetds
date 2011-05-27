@@ -1,3 +1,6 @@
+Fri May 27 10:59:53 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/tsql.c: add -a option to tsql
+
 Fri May 27 10:58:57 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/ct.c: remove spaces at end of line
 
@@ -274,4 +277,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3261 2011-05-27 08:59:04 freddy77 Exp $
+$Id: ChangeLog,v 1.3262 2011-05-27 09:00:11 freddy77 Exp $
