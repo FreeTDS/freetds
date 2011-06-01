@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.204 2011-05-22 12:40:58 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.205 2011-06-01 07:39:53 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -217,13 +217,11 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	dbproc->bcpinfo->var_cols   = 0;
 	dbproc->bcpinfo->bind_count = 0;
 
-	if (1 || direction == DB_IN) {
-		if (tds_bcp_init(dbproc->tds_socket, dbproc->bcpinfo) == TDS_FAIL) {
-			/* TODO return proper error */
-			/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
-			dbperror(dbproc, SYBEBCNT, 0);
-			return FAIL;
-		}
+	if (tds_bcp_init(dbproc->tds_socket, dbproc->bcpinfo) == TDS_FAIL) {
+		/* TODO return proper error */
+		/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
+		dbperror(dbproc, SYBEBCNT, 0);
+		return FAIL;
 	}
 
 	/* Prepare default hostfile columns */

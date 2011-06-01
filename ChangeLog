@@ -1,3 +1,7 @@
+Wed Jun  1 09:39:47 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/dblib/bcp.c src/tds/bulk.c:
+	- fix bcp for queryout
+
 Wed Jun  1 09:03:09 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h: fix enumeration name
 
@@ -286,4 +290,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3264 2011-06-01 07:03:12 freddy77 Exp $
+$Id: ChangeLog,v 1.3265 2011-06-01 07:39:53 freddy77 Exp $

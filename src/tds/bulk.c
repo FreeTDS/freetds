@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.14 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.15 2011-06-01 07:39:53 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -68,11 +68,17 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	TDSCOLUMN *curcol;
 	TDS_INT result_type;
 	int i, rc;
+	const char *fmt;
 
 	/* FIXME don't leave state in processing state */
 
 	/* TODO quote tablename if needed */
-	if (tds_submit_queryf(tds, "select * from %s where 0 = 1", bcpinfo->tablename) == TDS_FAIL)
+	if (bcpinfo->direction != TDS_BCP_QUERYOUT)
+	    fmt = "SET FMTONLY ON select * from %s SET FMTONLY OFF";
+	else
+	    fmt = "SET FMTONLY ON %s SET FMTONLY OFF";
+
+	if (tds_submit_queryf(tds, fmt, bcpinfo->tablename) == TDS_FAIL)
 		/* TODO return an error ?? */
 		/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
 		return TDS_FAIL;
