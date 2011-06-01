@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.363 2011-05-20 20:56:34 freddy77 Exp $ */
+/* $Id: tds.h,v 1.364 2011-06-01 07:03:12 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -686,7 +686,7 @@ typedef struct tds_result_info
 } TDSRESULTINFO;
 
 /** values for tds->state */
-typedef enum _TDS_STATE
+typedef enum tds_states
 {
 	TDS_IDLE,	/**< no data expected */
 	TDS_QUERYING,	/**< client is sending request */
