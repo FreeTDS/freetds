@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.206 2011-06-02 19:14:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.207 2011-06-02 20:33:44 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1249,12 +1249,12 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 			file_len = collen;
 			if (bcpcol->char_conv) {
+				TDSICONV *char_conv = bcpcol->char_conv;
 				collen *= char_conv->server_charset.max_bytes_per_char;
 				collen += char_conv->client_charset.min_bytes_per_char - 1;
 				collen /= char_conv->client_charset.min_bytes_per_char;
-				cd = bcpcol->char_conv->to_wire;
+				cd = char_conv->to_wire;
 				tdsdump_log(TDS_DBG_FUNC, "Adjusted collen is %d.\n", collen);
-
 			} else {
 				cd = (iconv_t) - 1;
 			}
