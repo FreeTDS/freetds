@@ -1,3 +1,6 @@
+Thu Jun  2 21:14:53 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/bcp.c: fix bcp conversion
+
 Thu Jun  2 16:39:49 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/freebcp.c src/apps/tsql.c:
 	- improve usage messages (Christos)
@@ -294,4 +297,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3266 2011-06-02 14:39:49 freddy77 Exp $
+$Id: ChangeLog,v 1.3267 2011-06-02 19:14:49 freddy77 Exp $
