@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.144 2011-05-27 09:18:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.145 2011-06-02 14:39:50 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -292,6 +292,23 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 }
 
 static void
+tsql_print_usage(const char *progname)
+{
+	fprintf(stderr,
+		"Usage:\t%s [-a <appname>] [-S <server> | -H <hostname> -p <port>] -U <username> [-P <password>] [-I <config file>] [-o <options>] [-t delim] [-r delim] [-D database]\n"
+		"\t%s -C\n"
+		"Options:\n"
+		"\tf\tDo not print footer\n"
+		"\th\tDo not print header\n"
+		"\tt\tPrint time informations\n"
+		"\tv\tPrint TDS version\n"
+		"\tq\tQuiet\n\n"
+		"\tDelimiters can be multi-char strings appropriately escaped for your shell.\n"
+		"\tDefault column delimitor is <tab>; default row delimiter is <newline>\n",
+		progname, progname);
+}
+
+static void
 reset_getopt(void)
 {
 #ifdef HAVE_GETOPT_OPTRESET
@@ -464,7 +481,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			exit(0);
 			break;
 		default:
-			fprintf(stderr, "%s: error: invalid option %c\n", argv[0], (char)opt);
+			tsql_print_usage(argv[0]);
 			exit(1);
 			break;
 		}

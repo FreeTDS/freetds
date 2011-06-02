@@ -53,7 +53,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.62 2011-05-27 09:18:59 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.63 2011-06-02 14:39:50 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -750,7 +750,7 @@ set_bcp_hints(BCPPARAMDATA *pdata, DBPROCESS *pdbproc)
 void
 pusage(void)
 {
-	fprintf(stderr, "usage:  freebcp [[database_name.]owner.]table_name {in | out} datafile\n");
+	fprintf(stderr, "usage:  freebcp [[database_name.]owner.]table_name|query {in | out | queryout } datafile\n");
 	fprintf(stderr, "        [-m maxerrors] [-f formatfile] [-e errfile]\n");
 	fprintf(stderr, "        [-F firstrow] [-L lastrow] [-b batchsize]\n");
 	fprintf(stderr, "        [-n] [-c] [-t field_terminator] [-r row_terminator]\n");
