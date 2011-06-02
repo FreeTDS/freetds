@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.352.2.2 2011-04-29 07:04:29 freddy77 Exp $ */
+/* $Id: tds.h,v 1.352.2.3 2011-06-02 19:19:30 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1621,6 +1621,15 @@ TDSAUTHENTICATION * tds_sspi_get_auth(TDSSOCKET * tds);
 #endif
 
 /* bulk.c */
+
+/** bcp direction */
+enum tds_bcp_directions
+{
+	TDS_BCP_IN = 1,
+	TDS_BCP_OUT = 2,
+	TDS_BCP_QUERYOUT = 3
+};
+
 typedef struct tds_bcpinfo
 {
 	const char *hint;
