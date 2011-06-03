@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.96 2011-06-03 21:05:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.97 2011-06-03 21:13:27 freddy77 Exp $");
 
 /**
  * Set state of TDS connection, with logging and checking.
@@ -107,7 +107,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		tds->state = state;
 		break;
 	case TDS_IDLE:
-		if (tds->state == TDS_DEAD && TDS_IS_SOCKET_INVALID(tds->s)) {
+		if (tds->state == TDS_DEAD && TDS_IS_SOCKET_INVALID(tds_get_s(tds))) {
 			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n",
 				state_names[prior_state], state_names[state]);
 			return tds->state;

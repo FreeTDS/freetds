@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.32 2011-06-03 21:04:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.33 2011-06-03 21:13:27 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -69,8 +69,8 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 		assert(invalid_state);
 	}
 
-	assert(tds->state == TDS_DEAD || !TDS_IS_SOCKET_INVALID(tds->s));
-	assert(tds->state != TDS_DEAD || TDS_IS_SOCKET_INVALID(tds->s));
+	assert(tds->state == TDS_DEAD || !TDS_IS_SOCKET_INVALID(tds_get_s(tds)));
+	assert(tds->state != TDS_DEAD || TDS_IS_SOCKET_INVALID(tds_get_s(tds)));
 
 	/* test env */
 	tds_check_env_extra(&tds->env);

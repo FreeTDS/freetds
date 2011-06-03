@@ -55,7 +55,7 @@
 
 #include "pool.h"
 
-TDS_RCSID(var, "$Id: main.c,v 1.26 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: main.c,v 1.27 2011-06-03 21:13:27 freddy77 Exp $");
 
 /* to be set by sig term */
 static int term = 0;
@@ -198,9 +198,9 @@ pool_main_loop(TDS_POOL * pool)
 			puser = (TDS_POOL_USER *) & pool->users[i];
 			/* skip dead connections */
 			if (!IS_TDSDEAD(puser->tds)) {
-				if (puser->tds->s > maxfd)
-					maxfd = puser->tds->s;
-				FD_SET(puser->tds->s, &rfds);
+				if (tds_get_s(puser->tds) > maxfd)
+					maxfd = tds_get_s(puser->tds);
+				FD_SET(tds_get_s(puser->tds), &rfds);
 			}
 		}
 
@@ -208,9 +208,9 @@ pool_main_loop(TDS_POOL * pool)
 		for (i = 0; i < pool->num_members; i++) {
 			pmbr = (TDS_POOL_MEMBER *) & pool->members[i];
 			if (!IS_TDSDEAD(pmbr->tds)) {
-				if (pmbr->tds->s > maxfd)
-					maxfd = pmbr->tds->s;
-				FD_SET(pmbr->tds->s, &rfds);
+				if (tds_get_s(pmbr->tds) > maxfd)
+					maxfd = tds_get_s(pmbr->tds);
+				FD_SET(tds_get_s(pmbr->tds), &rfds);
 			}
 		}
 	}			/* while !term */

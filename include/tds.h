@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.367 2011-06-03 21:05:32 freddy77 Exp $ */
+/* $Id: tds.h,v 1.368 2011-06-03 21:13:27 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -990,6 +990,8 @@ struct tds_socket
 #define tds_set_ctx(tds, val) do { ((tds)->tds_ctx) = (val); } while(0)
 #define tds_get_parent(tds) ((tds)->parent)
 #define tds_set_parent(tds, val) do { ((tds)->parent) = (val); } while(0)
+#define tds_get_s(tds) ((tds)->s)
+#define tds_set_s(tds, val) do { ((tds)->s) = (val); } while(0)
 
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);

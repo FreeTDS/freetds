@@ -46,7 +46,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.35 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.36 2011-06-03 21:13:27 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
@@ -120,7 +120,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	/* FIX ME - little endian emulation should be config file driven */
 	tds->emul_little_endian = 1;
 	tds->in_buf = (unsigned char *) calloc(1, BLOCKSIZ);
-	tds->s = fd;
+	tds_set_s(tds, fd);
 	if (!tds->in_buf) {
 		tds_free_socket(tds);
 		return NULL;
@@ -165,7 +165,7 @@ pool_process_users(TDS_POOL * pool, fd_set * fds)
 		if (!puser->tds)
 			continue;	/* dead connection */
 
-		if (FD_ISSET(puser->tds->s, fds)) {
+		if (FD_ISSET(tds_get_s(puser->tds), fds)) {
 			cnt++;
 			switch (puser->user_state) {
 			case TDS_SRV_LOGIN:
@@ -247,7 +247,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 	tds = puser->tds;
 	/* FIXME read entire packet !!! */
-	tds->in_len = read(tds->s, tds->in_buf, tds->in_buf_max);
+	tds->in_len = read(tds_get_s(tds), tds->in_buf, tds->in_buf_max);
 	if (tds->in_len == 0) {
 		fprintf(stderr, "user disconnected\n");
 		pool_free_user(puser);
@@ -297,7 +297,7 @@ pool_user_query(TDS_POOL * pool, TDS_POOL_USER * puser)
 		pmbr->state = TDS_QUERYING;
 		pool_assign_member(pmbr, puser);
 		/* cf. net.c for better technique.  */
-		ret = WRITESOCKET(pmbr->tds->s, puser->tds->in_buf, puser->tds->in_len);
+		ret = WRITESOCKET(tds_get_s(pmbr->tds), puser->tds->in_buf, puser->tds->in_len);
 		/* write failed, cleanup member */
 		if (ret < 0) {
 			pool_free_member(pmbr);

@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.213 2011-06-03 21:04:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.214 2011-06-03 21:13:27 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -881,7 +881,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	current_pos += database_len * 2;
 
 	/* MAC address */
-	tds_getmac(tds->s, hwaddr);
+	tds_getmac(tds_get_s(tds), hwaddr);
 	tds_put_n(tds, hwaddr, 6);
 
 	/* authentication stuff */

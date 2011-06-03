@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.388 2011-06-03 21:05:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.389 2011-06-03 21:13:27 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7044,7 +7044,7 @@ dbiordesc(DBPROCESS * dbproc)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbiordesc(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
-	return (int)dbproc->tds_socket->s;
+	return (int) tds_get_s(dbproc->tds_socket);
 }
 
 
@@ -7061,7 +7061,7 @@ dbiowdesc(DBPROCESS * dbproc)
 	tdsdump_log(TDS_DBG_FUNC, "dbiowdesc(%p)\n", dbproc);
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
-	return (int)dbproc->tds_socket->s;
+	return (int) tds_get_s(dbproc->tds_socket);
 }
 
 DBBOOL

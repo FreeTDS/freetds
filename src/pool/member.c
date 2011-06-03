@@ -57,7 +57,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.48 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.49 2011-06-03 21:13:27 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
@@ -220,7 +220,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 
 		tds = pmbr->tds;
 		time_now = time(NULL);
-		if (FD_ISSET(tds->s, fds)) {
+		if (FD_ISSET(tds_get_s(tds), fds)) {
 			pmbr->last_used_tm = time_now;
 			cnt++;
 			/* tds->in_len = read(tds->s, tds->in_buf, BLOCKSIZ); */
@@ -257,7 +257,7 @@ pool_process_members(TDS_POOL * pool, fd_set * fds)
 						puser->user_state = TDS_SRV_IDLE;
 					}
 					/* cf. net.c for better technique.  */
-					ret = WRITESOCKET(puser->tds->s, buf, tds->in_len);
+					ret = WRITESOCKET(tds_get_s(puser->tds), buf, tds->in_len);
 					if (ret < 0) { /* couldn't write, ditch the user */
 						fprintf(stdout, "member %d received error while writing\n",i);
 						pool_free_user(pmbr->current_user);
@@ -330,9 +330,9 @@ pool_packet_read(TDS_POOL_MEMBER * pmbr)
 	tds = pmbr->tds;
 
 	if (pmbr->need_more) {
-		tds->in_len += read(tds->s, &tds->in_buf[tds->in_len], BLOCKSIZ - tds->in_len);
+		tds->in_len += read(tds_get_s(tds), &tds->in_buf[tds->in_len], BLOCKSIZ - tds->in_len);
 	} else {
-		tds->in_len = read(tds->s, tds->in_buf, BLOCKSIZ);
+		tds->in_len = read(tds_get_s(tds), tds->in_buf, BLOCKSIZ);
 	}
 	packet_len = ntohs(*(short *) &tds->in_buf[2]);
 	if (tds->in_len < packet_len) {

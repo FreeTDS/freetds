@@ -56,7 +56,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.57 2011-05-16 08:51:40 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.58 2011-06-03 21:13:27 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -106,7 +106,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	}
 	CLOSESOCKET(s);
 	tds = tds_alloc_socket(ctx, 8192);
-	tds->s = fd;
+	tds_set_s(tds, fd);
 	tds->out_flag = TDS_LOGIN;
 	/* TODO proper charset */
 	tds_iconv_open(tds, "ISO8859-1");

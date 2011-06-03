@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.114 2011-06-03 21:05:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.115 2011-06-03 21:13:27 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -204,7 +204,8 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port), 
 			TDS_MAJOR(tds), TDS_MINOR(tds));
 
-	if (TDS_IS_SOCKET_INVALID(tds->s = socket(AF_INET, SOCK_STREAM, 0))) {
+	tds_set_s(tds, socket(AF_INET, SOCK_STREAM, 0));
+	if (TDS_IS_SOCKET_INVALID(tds_get_s(tds))) {
 		*p_oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return TDSESOCK;
@@ -212,12 +213,12 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 #ifdef SO_KEEPALIVE
 	len = 1;
-	setsockopt(tds->s, SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
+	setsockopt(tds_get_s(tds), SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
 #endif
 
 #if defined(__APPLE__) && defined(SO_NOSIGPIPE)
 	len = 1;
-	if (setsockopt(tds->s, SOL_SOCKET, SO_NOSIGPIPE, (const void *) &len, sizeof(len))) {
+	if (setsockopt(tds_get_s(tds), SOL_SOCKET, SO_NOSIGPIPE, (const void *) &len, sizeof(len))) {
 		*p_oserr = sock_errno;
 		tds_close_socket(tds);
 		return TDSESOCK;
@@ -226,16 +227,16 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 	len = 1;
 #if defined(USE_NODELAY) || defined(USE_MSGMORE)
-	setsockopt(tds->s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+	setsockopt(tds_get_s(tds), SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
 #elif defined(USE_CORK)
-	if (setsockopt(tds->s, SOL_TCP, TCP_CORK, (const void *) &len, sizeof(len)) < 0)
-		setsockopt(tds->s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+	if (setsockopt(tds_get_s(tds), SOL_TCP, TCP_CORK, (const void *) &len, sizeof(len)) < 0)
+		setsockopt(tds_get_s(tds), SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
 #else
 #error One should be defined
 #endif
 
 #ifdef  DOS32X			/* the other connection doesn't work  on WATTCP32 */
-	if (connect(tds->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+	if (connect(tds_get_s(tds), (struct sockaddr *) &sin, sizeof(sin)) < 0) {
 		char *message;
 
 		*p_oserr = sock_errno;
@@ -254,13 +255,13 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 	/* enable non-blocking mode */
 	ioctl_nonblocking = 1;
-	if (IOCTLSOCKET(tds->s, FIONBIO, &ioctl_nonblocking) < 0) {
+	if (IOCTLSOCKET(tds_get_s(tds), FIONBIO, &ioctl_nonblocking) < 0) {
 		*p_oserr = sock_errno;
 		tds_close_socket(tds);
 		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
 	}
 
-	retval = connect(tds->s, (struct sockaddr *) &sin, sizeof(sin));
+	retval = connect(tds_get_s(tds), (struct sockaddr *) &sin, sizeof(sin));
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
@@ -294,7 +295,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	/* check socket error */
 	optlen = sizeof(len);
 	len = 0;
-	if (tds_getsockopt(tds->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
+	if (tds_getsockopt(tds_get_s(tds), SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
 		*p_oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", sock_strerror(sock_errno));
 		goto not_available;
@@ -321,9 +322,9 @@ tds_close_socket(TDSSOCKET * tds)
 	int rc = -1;
 
 	if (!IS_TDSDEAD(tds)) {
-		if ((rc = CLOSESOCKET(tds->s)) == -1) 
+		if ((rc = CLOSESOCKET(tds_get_s(tds))) == -1) 
 			tdserror(tds_get_ctx(tds), tds,  TDSECLOS, sock_errno);
-		tds->s = INVALID_SOCKET;
+		tds_set_s(tds, INVALID_SOCKET);
 		tds_set_state(tds, TDS_DEAD);
 	}
 	return rc;
@@ -368,7 +369,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		struct pollfd fd;
 		int timeout = poll_seconds ? poll_seconds * 1000 : -1;
 
-		fd.fd = tds->s;
+		fd.fd = tds_get_s(tds);
 		fd.events = tds_sel;
 		fd.revents = 0;
 		rc = poll(&fd, 1, timeout);
@@ -446,7 +447,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 
 		if ((len = tds_select(tds, TDSSELREAD, tds->query_timeout)) > 0) {
 
-			len = READSOCKET(tds->s, buf + got, buflen);
+			len = READSOCKET(tds_get_s(tds), buf + got, buflen);
 
 			if (len < 0 && TDSSOCK_WOULDBLOCK(sock_errno))
 				continue;
@@ -634,7 +635,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 	assert(tds && buffer);
 
 	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
-	if (TDS_IS_SOCKET_INVALID(tds->s))
+	if (TDS_IS_SOCKET_INVALID(tds_get_s(tds)))
 		return -1;
 
 	while (p - buffer < len) {
@@ -642,14 +643,14 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			int err;
 			size_t remaining = len - (p - buffer);
 #ifdef USE_MSGMORE
-			ssize_t nput = send(tds->s, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+			ssize_t nput = send(tds_get_s(tds), p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 			/* In case the kernel does not support MSG_MORE, try again without it */
 			if (nput < 0 && errno == EINVAL && !last)
-				nput = send(tds->s, p, remaining, MSG_NOSIGNAL);
+				nput = send(tds_get_s(tds), p, remaining, MSG_NOSIGNAL);
 #elif defined(__APPLE__) && defined(SO_NOSIGPIPE)
-			ssize_t nput = send(tds->s, p, remaining, 0);
+			ssize_t nput = send(tds_get_s(tds), p, remaining, 0);
 #else
-			ssize_t nput = WRITESOCKET(tds->s, p, remaining);
+			ssize_t nput = WRITESOCKET(tds_get_s(tds), p, remaining);
 #endif
 			if (nput > 0) {
 				p += nput;
@@ -703,9 +704,9 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 	if (last) {
 		int opt;
 		opt = 0;
-		setsockopt(tds->s, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+		setsockopt(tds_get_s(tds), SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
 		opt = 1;
-		setsockopt(tds->s, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+		setsockopt(tds_get_s(tds), SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
 	}
 #endif
 
