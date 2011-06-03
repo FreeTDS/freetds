@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.369 2011-06-03 21:14:48 freddy77 Exp $ */
+/* $Id: tds.h,v 1.370 2011-06-03 21:40:55 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1306,12 +1306,12 @@ int tds_writetext_end(TDSSOCKET *tds);
 #define TDS_MAJOR(x) ((x)->tds_version >> 8)
 #define TDS_MINOR(x) ((x)->tds_version & 0xff)
 
-#define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID((x)->conn.s))
+#define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID(tds_conn(x)->s))
 
 /** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDS_SOCKET*. */
-#define TDS_IS_SYBASE(x) (!(x->conn.product_version & 0x80000000u))
+#define TDS_IS_SYBASE(x) (!(tds_conn(x)->product_version & 0x80000000u))
 /** Check if product is Microsft SQL Server. x should be a TDS_SOCKET*. */
-#define TDS_IS_MSSQL(x) ((x->conn.product_version & 0x80000000u)!=0)
+#define TDS_IS_MSSQL(x) ((tds_conn(x)->product_version & 0x80000000u)!=0)
 
 /** Calc a version number for mssql. Use with TDS_MS_VER(7,0,842).
  * For test for a range of version you can use check like
