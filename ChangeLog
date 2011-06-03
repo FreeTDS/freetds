@@ -1,3 +1,6 @@
+Fri Jun  3 23:43:40 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/write.c: small write optimization
+
 Fri Jun  3 23:40:56 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/ctutil.c: minor style changes
 
@@ -336,4 +339,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3275 2011-06-03 21:40:54 freddy77 Exp $
+$Id: ChangeLog,v 1.3276 2011-06-03 21:43:37 freddy77 Exp $
