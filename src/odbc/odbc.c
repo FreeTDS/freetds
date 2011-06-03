@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.563 2011-06-03 21:05:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.564 2011-06-03 21:14:48 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -372,7 +372,7 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
-	dbc->tds_socket->use_iconv = 0;
+	tds_conn(dbc->tds_socket)->use_iconv = 0;
 	tds_set_parent(dbc->tds_socket, (void *) dbc);
 
 	/* Set up our environment change hook */
@@ -5097,7 +5097,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 
 	if ((tds = dbc->tds_socket) != NULL) {
 		is_ms = TDS_IS_MSSQL(tds);
-		smajor = (tds->product_version >> 24) & 0x7F;
+		smajor = (tds_conn(tds)->product_version >> 24) & 0x7F;
 		if (is_ms && smajor >= 7)
 			mssql7plus_mask = ~((SQLUINTEGER) 0);
 	}
@@ -5324,7 +5324,7 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		break;
 #endif /* ODBCVER >= 0x0300 */
 	case SQL_DBMS_NAME:
-		p = tds ? tds->product_name : NULL;
+		p = tds ? tds_conn(tds)->product_name : NULL;
 		break;
 	case SQL_DBMS_VER:
 		if (!dbc->tds_socket)
@@ -6718,7 +6718,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 	if (!tds_dstr_isempty(&catalog_name)) {
 		if (wildcards) {
 			/* if catalog specified and wildcards use sp_tableswc under mssql2k */
-			if (TDS_IS_MSSQL(tds) && tds->product_version >= TDS_MS_VER(8,0,0)) {
+			if (TDS_IS_MSSQL(tds) && tds_conn(tds)->product_version >= TDS_MS_VER(8,0,0)) {
 				proc = "sp_tableswc";
 				if (tds_dstr_isempty(&schema_name))
 					tds_dstr_copy(&schema_name, "%");

@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.214 2011-06-03 21:13:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.215 2011-06-03 21:14:48 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -337,7 +337,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		};
 
 	/* disable tds9 if iconv wanted, currently not supported */
-	if (IS_TDS72_PLUS(connection) && tds->use_iconv) {
+	if (IS_TDS72_PLUS(connection) && tds_conn(tds)->use_iconv) {
 		connection->tds_version = 0x701;
 		tdserror(tds_get_ctx(tds), tds, TDSEVERDOWN, 0);
 	}
@@ -357,7 +357,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		tds->env_chg_func = tds_save_env;
 		mod_ctx->err_handler = NULL;
 
-		for (i = tds->use_iconv? 1 : 0; i < TDS_VECTOR_SIZE(versions); ++i) {
+		for (i = tds_conn(tds)->use_iconv? 1 : 0; i < TDS_VECTOR_SIZE(versions); ++i) {
 			connection->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
@@ -394,11 +394,11 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 	tds->connection = connection;
 
 	tds->tds_version = connection->tds_version;
-	tds->emul_little_endian = connection->emul_little_endian;
+	tds_conn(tds)->emul_little_endian = connection->emul_little_endian;
 #ifdef WORDS_BIGENDIAN
 	if (IS_TDS7_PLUS(tds)) {
 		/* TDS 7/8 only supports little endian */
-		tds->emul_little_endian = 1;
+		tds_conn(tds)->emul_little_endian = 1;
 	}
 #endif
 
@@ -435,7 +435,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		return TDSECONN;
 	}
 
-	memcpy(tds->capabilities, connection->capabilities, TDS_MAX_CAPABILITY);
+	memcpy(tds_conn(tds)->capabilities, connection->capabilities, TDS_MAX_CAPABILITY);
 
 	if ((erc = tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout, p_oserr)) != TDSEOK) {
 		tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
@@ -596,7 +596,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	sprintf(blockstr, "%d", (int) getpid());
 	tds_put_login_string(tds, blockstr, TDS_MAX_LOGIN_STR_SZ);	/* host process */
 #ifdef WORDS_BIGENDIAN
-	if (tds->emul_little_endian) {
+	if (tds_conn(tds)->emul_little_endian) {
 		tds_put_n(tds, le1, 6);
 	} else {
 		tds_put_n(tds, be1, 6);
@@ -635,7 +635,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_n(tds, program_version, 4);	/* program version ? */
 	}
 #ifdef WORDS_BIGENDIAN
-	if (tds->emul_little_endian) {
+	if (tds_conn(tds)->emul_little_endian) {
 		tds_put_n(tds, le2, 3);
 	} else {
 		tds_put_n(tds, be2, 3);
@@ -677,7 +677,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_n(tds, magic50, 4);
 		tds_put_byte(tds, TDS_CAPABILITY_TOKEN);
 		tds_put_smallint(tds, TDS_MAX_CAPABILITY);
-		tds_put_n(tds, tds->capabilities, TDS_MAX_CAPABILITY);
+		tds_put_n(tds, tds_conn(tds)->capabilities, TDS_MAX_CAPABILITY);
 	}
 
 	return tds_flush_packet(tds);
@@ -737,9 +737,9 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds->out_flag = TDS7_LOGIN;
 
 	/* discard possible previous authentication */
-	if (tds->authentication) {
-		tds->authentication->free(tds, tds->authentication);
-		tds->authentication = NULL;
+	if (tds_conn(tds)->authentication) {
+		tds_conn(tds)->authentication->free(tds, tds_conn(tds)->authentication);
+		tds_conn(tds)->authentication = NULL;
 	}
 
 	/* avoid overflow limiting password */
@@ -753,25 +753,25 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	/* check ntlm */
 #ifdef HAVE_SSPI
 	if (strchr(user_name, '\\') != NULL || user_name_len == 0) {
-		tds->authentication = tds_sspi_get_auth(tds);
-		if (!tds->authentication)
+		tds_conn(tds)->authentication = tds_sspi_get_auth(tds);
+		if (!tds_conn(tds)->authentication)
 			return TDS_FAIL;
-		auth_len = tds->authentication->packet_len;
+		auth_len = tds_conn(tds)->authentication->packet_len;
 		packet_size += auth_len;
 #else
 	if (strchr(user_name, '\\') != NULL) {
-		tds->authentication = tds_ntlm_get_auth(tds);
-		if (!tds->authentication)
+		tds_conn(tds)->authentication = tds_ntlm_get_auth(tds);
+		if (!tds_conn(tds)->authentication)
 			return TDS_FAIL;
-		auth_len = tds->authentication->packet_len;
+		auth_len = tds_conn(tds)->authentication->packet_len;
 		packet_size += auth_len;
 	} else if (user_name_len == 0) {
 # ifdef ENABLE_KRB5
 		/* try kerberos */
-		tds->authentication = tds_gss_get_auth(tds);
-		if (!tds->authentication)
+		tds_conn(tds)->authentication = tds_gss_get_auth(tds);
+		if (!tds_conn(tds)->authentication)
 			return TDS_FAIL;
-		auth_len = tds->authentication->packet_len;
+		auth_len = tds_conn(tds)->authentication->packet_len;
 		packet_size += auth_len;
 # else
 		return TDS_FAIL;
@@ -823,7 +823,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		
 	tds_put_byte(tds, option_flag1);
 
-	if (tds->authentication)
+	if (tds_conn(tds)->authentication)
 		option_flag2 |= TDS_INTEGRATED_SECURITY_ON;
 
 	if (connection->tds_version >= 0x703)
@@ -841,7 +841,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	TDS_PUT_SMALLINT(tds, current_pos);
 	TDS_PUT_SMALLINT(tds, host_name_len);
 	current_pos += host_name_len * 2;
-	if (tds->authentication) {
+	if (tds_conn(tds)->authentication) {
 		tds_put_smallint(tds, 0);
 		tds_put_smallint(tds, 0);
 		tds_put_smallint(tds, 0);
@@ -904,7 +904,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
 	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), (int)host_name_len);
-	if (!tds->authentication) {
+	if (!tds_conn(tds)->authentication) {
 		char unicode_string[256], *punicode = unicode_string;
 		const char *p;
 		TDSICONV *char_conv = tds->char_convs[client2ucs2];
@@ -929,8 +929,8 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_string(tds, tds_dstr_cstr(&connection->language), (int)language_len);
 	tds_put_string(tds, tds_dstr_cstr(&connection->database), (int)database_len);
 
-	if (tds->authentication)
-		tds_put_n(tds, tds->authentication->packet, auth_len);
+	if (tds_conn(tds)->authentication)
+		tds_put_n(tds, tds_conn(tds)->authentication->packet, auth_len);
 
 	rc = tds_flush_packet(tds);
 	tdsdump_on();

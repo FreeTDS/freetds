@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.214 2011-06-03 21:13:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.215 2011-06-03 21:14:48 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -1089,7 +1089,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_set_parent(tds_socket, NULL);
 	tds_socket->env.block_size = bufsize;
 
-	tds_socket->use_iconv = 1;
+	tds_conn(tds_socket)->use_iconv = 1;
 	if (tds_iconv_alloc(tds_socket))
 		goto Cleanup;
 
@@ -1128,9 +1128,9 @@ void
 tds_free_socket(TDSSOCKET * tds)
 {
 	if (tds) {
-		if (tds->authentication)
-			tds->authentication->free(tds, tds->authentication);
-		tds->authentication = NULL;
+		if (tds_conn(tds)->authentication)
+			tds_conn(tds)->authentication->free(tds, tds_conn(tds)->authentication);
+		tds_conn(tds)->authentication = NULL;
 		tds_free_all_results(tds);
 		tds_free_env(tds);
 		while (tds->dyns)
@@ -1144,7 +1144,7 @@ tds_free_socket(TDSSOCKET * tds)
 #endif
 		tds_close_socket(tds);
 		tds_iconv_free(tds);
-		free(tds->product_name);
+		free(tds_conn(tds)->product_name);
 		free(tds);
 	}
 }

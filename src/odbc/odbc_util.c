@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.125 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.126 2011-06-03 21:14:48 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -1156,8 +1156,9 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 void
 odbc_rdbms_version(TDSSOCKET * tds, char *pversion_string)
 {
-	sprintf(pversion_string, "%.02d.%.02d.%.04d", (int) ((tds->product_version & 0x7F000000) >> 24),
-		(int) ((tds->product_version & 0x00FF0000) >> 16), (int) (tds->product_version & 0x0000FFFF));
+	TDS_UINT version = tds_conn(tds)->product_version;
+	sprintf(pversion_string, "%.02d.%.02d.%.04d", (int) ((version & 0x7F000000) >> 24),
+		(int) ((version & 0x00FF0000) >> 16), (int) (version & 0x0000FFFF));
 }
 
 /** Return length of parameter from parameter information */

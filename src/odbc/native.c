@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: native.c,v 1.30 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: native.c,v 1.31 2011-06-03 21:14:48 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 #define TDS_ISALPHA(c) isalpha((unsigned char) (c))
@@ -90,7 +90,7 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 
 	assert(dbc && buf);
 
-	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && dbc->tds_socket->product_version >= TDS_MS_VER(7, 0, 0);
+	server_scalar = TDS_IS_MSSQL(dbc->tds_socket) && tds_conn(dbc->tds_socket)->product_version >= TDS_MS_VER(7, 0, 0);
 
 	/*
 	 * we can do it because result string will be

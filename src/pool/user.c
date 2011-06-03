@@ -46,7 +46,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.36 2011-06-03 21:13:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.37 2011-06-03 21:14:48 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
@@ -118,7 +118,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	}
 	tds_set_parent(tds, NULL);
 	/* FIX ME - little endian emulation should be config file driven */
-	tds->emul_little_endian = 1;
+	tds_conn(tds)->emul_little_endian = 1;
 	tds->in_buf = (unsigned char *) calloc(1, BLOCKSIZ);
 	tds_set_s(tds, fd);
 	if (!tds->in_buf) {

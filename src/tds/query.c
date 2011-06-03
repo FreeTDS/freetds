@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.252 2011-06-03 21:04:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.253 2011-06-03 21:14:48 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1682,7 +1682,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds->emul_little_endian && !converted && colsize < 64) {
+			if (tds_conn(tds)->emul_little_endian && !converted && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);
@@ -1748,7 +1748,7 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 #ifdef WORDS_BIGENDIAN
 			unsigned char buf[64];
 
-			if (tds->emul_little_endian && !converted && colsize < 64) {
+			if (tds_conn(tds)->emul_little_endian && !converted && colsize < 64) {
 				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
 					    tds_get_conversion_type(curcol->column_type, colsize));
 				memcpy(buf, s, colsize);

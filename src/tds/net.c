@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.115 2011-06-03 21:13:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.116 2011-06-03 21:14:48 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -494,11 +494,11 @@ static int
 goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
 #ifdef HAVE_GNUTLS
-	if (tds->tls_session)
-		return gnutls_record_recv(tds->tls_session, buf, buflen);
+	if (tds_conn(tds)->tls_session)
+		return gnutls_record_recv(tds_conn(tds)->tls_session, buf, buflen);
 #elif defined(HAVE_OPENSSL)
-	if (tds->tls_session)
-		return SSL_read((SSL*) tds->tls_session, buf, buflen);
+	if (tds_conn(tds)->tls_session)
+		return SSL_read((SSL*) tds_conn(tds)->tls_session, buf, buflen);
 #endif
 	return tds_goodread(tds, buf, buflen, 0);
 }
@@ -747,12 +747,12 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 #endif
 
 #ifdef HAVE_GNUTLS
-	if (tds->tls_session)
-		sent = gnutls_record_send(tds->tls_session, tds->out_buf, tds->out_pos);
+	if (tds_conn(tds)->tls_session)
+		sent = gnutls_record_send(tds_conn(tds)->tls_session, tds->out_buf, tds->out_pos);
 	else
 #elif defined(HAVE_OPENSSL)
 	if (tds->tls_session)
-		sent = SSL_write((SSL*) tds->tls_session, tds->out_buf, tds->out_pos);
+		sent = SSL_write((SSL*) tds_conn(tds)->tls_session, tds->out_buf, tds->out_pos);
 	else
 #endif
 		sent = tds_goodwrite(tds, tds->out_buf, tds->out_pos, final);
@@ -1201,7 +1201,7 @@ tds_ssl_read(BIO *b, char* data, int len)
 	if (tds->out_pos > 8)
 		tds_flush_packet(tds);
 
-	if (tds->tls_session) {
+	if (tds_conn(tds)->tls_session) {
 		/* read directly from socket */
 		return tds_goodread(tds, data, len, 1);
 	}
@@ -1238,7 +1238,7 @@ tds_ssl_write(BIO *b, const char* data, int len)
 #endif
 	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
 
-	if (tds->tls_session) {
+	if (tds_conn(tds)->tls_session) {
 		/* write to socket directly */
 		/* TODO use cork if available here to flush only on last chunk of packet ?? */
 		return tds_goodwrite(tds, data, len, tds->out_buf[1]);
@@ -1363,8 +1363,8 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
-	tds->tls_session = session;
-	tds->tls_credentials = xcred;
+	tds_conn(tds)->tls_session = session;
+	tds_conn(tds)->tls_credentials = xcred;
 
 	return TDS_SUCCESS;
 }
@@ -1372,13 +1372,13 @@ tds_ssl_init(TDSSOCKET *tds)
 void
 tds_ssl_deinit(TDSSOCKET *tds)
 {
-	if (tds->tls_session) {
-		gnutls_deinit(tds->tls_session);
-		tds->tls_session = NULL;
+	if (tds_conn(tds)->tls_session) {
+		gnutls_deinit(tds_conn(tds)->tls_session);
+		tds_conn(tds)->tls_session = NULL;
 	}
-	if (tds->tls_credentials) {
-		gnutls_certificate_free_credentials(tds->tls_credentials);
-		tds->tls_credentials = NULL;
+	if (tds_conn(tds)->tls_credentials) {
+		gnutls_certificate_free_credentials(tds_conn(tds)->tls_credentials);
+		tds_conn(tds)->tls_credentials = NULL;
 	}
 }
 
@@ -1512,8 +1512,8 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
-	tds->tls_session = con;
-	tds->tls_credentials = NULL;
+	tds_conn(tds)->tls_session = con;
+	tds_conn(tds)->tls_credentials = NULL;
 
 	return TDS_SUCCESS;
 }
@@ -1521,10 +1521,10 @@ tds_ssl_init(TDSSOCKET *tds)
 void
 tds_ssl_deinit(TDSSOCKET *tds)
 {
-	if (tds->tls_session) {
+	if (tds_conn(tds)->tls_session) {
 		/* NOTE do not call SSL_shutdown here */
-		SSL_free(tds->tls_session);
-		tds->tls_session = NULL;
+		SSL_free(tds_conn(tds)->tls_session);
+		tds_conn(tds)->tls_session = NULL;
 	}
 }
 #endif

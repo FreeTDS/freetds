@@ -1,3 +1,10 @@
+Fri Jun  3 23:14:48 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/odbc/native.c src/odbc/odbc.c:
+	* src/odbc/odbc_util.c src/pool/user.c src/tds/login.c:
+	* src/tds/mem.c src/tds/net.c src/tds/query.c src/tds/read.c:
+	* src/tds/token.c src/tds/write.c:
+	- move connection related fields from TDSSOCKET to TDSSOCKETCONN
+
 Fri Jun  3 23:13:22 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/dblib/dblib.c src/pool/main.c:
 	* src/pool/member.c src/pool/user.c src/server/login.c:
@@ -326,4 +333,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3273 2011-06-03 21:13:27 freddy77 Exp $
+$Id: ChangeLog,v 1.3274 2011-06-03 21:14:48 freddy77 Exp $

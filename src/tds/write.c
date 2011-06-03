@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.81 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.82 2011-06-03 21:14:48 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -185,7 +185,7 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 #if WORDS_BIGENDIAN
 	TDS_UINT h;
 
-	if (tds->emul_little_endian) {
+	if (tds_conn(tds)->emul_little_endian) {
 		h = (TDS_UINT) i;
 		tds_put_byte(tds, h & 0x000000FF);
 		tds_put_byte(tds, (h & 0x0000FF00) >> 8);
@@ -207,7 +207,7 @@ tds_put_int(TDSSOCKET * tds, TDS_INT i)
 {
 #if TDS_ADDITIONAL_SPACE == 0
 #if WORDS_BIGENDIAN
-	if (tds->emul_little_endian) {
+	if (tds_conn(tds)->emul_little_endian) {
 		tds_put_byte(tds, i & 0x000000FF);
 		tds_put_byte(tds, (i & 0x0000FF00) >> 8);
 		tds_put_byte(tds, (i & 0x00FF0000) >> 16);
@@ -224,7 +224,7 @@ tds_put_int(TDSSOCKET * tds, TDS_INT i)
 
 	p = &tds->out_buf[tds->out_pos];
 #if WORDS_BIGENDIAN
-	if (tds->emul_little_endian)
+	if (tds_conn(tds)->emul_little_endian)
 		TDS_PUT_UA4LE(p, i);
 	else
 		TDS_PUT_UA4(p, i);
@@ -241,7 +241,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 {
 #if TDS_ADDITIONAL_SPACE == 0
 #if WORDS_BIGENDIAN
-	if (tds->emul_little_endian) {
+	if (tds_conn(tds)->emul_little_endian) {
 		tds_put_byte(tds, si & 0x000000FF);
 		tds_put_byte(tds, (si & 0x0000FF00) >> 8);
 		return 0;
@@ -256,7 +256,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 
 	p = &tds->out_buf[tds->out_pos];
 #if WORDS_BIGENDIAN
-	if (tds->emul_little_endian)
+	if (tds_conn(tds)->emul_little_endian)
 		TDS_PUT_UA2LE(p, si);
 	else
 		TDS_PUT_UA2(p, si);

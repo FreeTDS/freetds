@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.368 2011-06-03 21:13:27 freddy77 Exp $ */
+/* $Id: tds.h,v 1.369 2011-06-03 21:14:48 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -914,14 +914,13 @@ typedef struct tds_authentication
 	int (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
 } TDSAUTHENTICATION;
 
-/**
- * Information for a server connection
- */
-struct tds_socket
+/* field related to connection */
+struct tds_socket_conn
 {
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
+	void *parent;
+	const TDSCONTEXT *tds_ctx;
 
-	TDS_USMALLINT tds_version;
 	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
 	char *product_name;
 
@@ -930,6 +929,21 @@ struct tds_socket
 	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;
 	unsigned int tds71rev1:1;
+
+	void *tls_session;
+	void *tls_credentials;
+	TDSAUTHENTICATION *authentication;
+};
+typedef struct tds_socket_conn TDSSOCKETCONN;
+
+/**
+ * Information for a server connection
+ */
+struct tds_socket
+{
+	TDSSOCKETCONN conn;
+
+	TDS_USMALLINT tds_version;
 
 	unsigned char *in_buf;		/**< input buffer */
 	unsigned char *out_buf;		/**< output buffer */
@@ -940,7 +954,6 @@ struct tds_socket
 
 	unsigned char in_flag;		/**< input buffer type */
 	unsigned char out_flag;		/**< output buffer type */
-	void *parent;
 
 	/**
 	 * Current query information. 
@@ -968,7 +981,6 @@ struct tds_socket
 	TDSDYNAMIC *cur_dyn;		/**< dynamic structure in use */
 	TDSDYNAMIC *dyns;		/**< list of dynamic allocate for this connection */
 
-	const TDSCONTEXT *tds_ctx;
 	int char_conv_count;
 	TDSICONV **char_convs;
 
@@ -980,18 +992,16 @@ struct tds_socket
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	int internal_sp_called;
 
-	void *tls_session;
-	void *tls_credentials;
-	TDSAUTHENTICATION *authentication;
 	int option_value;
 };
 
-#define tds_get_ctx(tds) ((tds)->tds_ctx)
-#define tds_set_ctx(tds, val) do { ((tds)->tds_ctx) = (val); } while(0)
-#define tds_get_parent(tds) ((tds)->parent)
-#define tds_set_parent(tds, val) do { ((tds)->parent) = (val); } while(0)
-#define tds_get_s(tds) ((tds)->s)
-#define tds_set_s(tds, val) do { ((tds)->s) = (val); } while(0)
+#define tds_conn(tds) (&(tds)->conn)
+#define tds_get_ctx(tds) ((tds)->conn.tds_ctx)
+#define tds_set_ctx(tds, val) do { ((tds)->conn.tds_ctx) = (val); } while(0)
+#define tds_get_parent(tds) ((tds)->conn.parent)
+#define tds_set_parent(tds, val) do { ((tds)->conn.parent) = (val); } while(0)
+#define tds_get_s(tds) ((tds)->conn.s)
+#define tds_set_s(tds, val) do { ((tds)->conn.s) = (val); } while(0)
 
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);
@@ -1296,12 +1306,12 @@ int tds_writetext_end(TDSSOCKET *tds);
 #define TDS_MAJOR(x) ((x)->tds_version >> 8)
 #define TDS_MINOR(x) ((x)->tds_version & 0xff)
 
-#define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID((x)->s))
+#define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID((x)->conn.s))
 
 /** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDS_SOCKET*. */
-#define TDS_IS_SYBASE(x) (!(x->product_version & 0x80000000u))
+#define TDS_IS_SYBASE(x) (!(x->conn.product_version & 0x80000000u))
 /** Check if product is Microsft SQL Server. x should be a TDS_SOCKET*. */
-#define TDS_IS_MSSQL(x) ((x->product_version & 0x80000000u)!=0)
+#define TDS_IS_MSSQL(x) ((x->conn.product_version & 0x80000000u)!=0)
 
 /** Calc a version number for mssql. Use with TDS_MS_VER(7,0,842).
  * For test for a range of version you can use check like
