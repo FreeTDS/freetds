@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.49 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.50 2011-06-03 21:05:32 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -78,7 +78,7 @@ TEST_ATTRIBUTE(t30,TDS_NUMERIC,array,DBNUMERIC,array);
 int
 _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
-	DBPROCESS *dbproc = (tds && tds->parent)? (DBPROCESS *) tds->parent : NULL;
+	DBPROCESS *dbproc = (tds && tds_get_parent(tds))? (DBPROCESS *) tds_get_parent(tds) : NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "_dblib_handle_info_message(%p, %p, %p)\n", tds_ctx, tds, msg);
 	tdsdump_log(TDS_DBG_FUNC, "msgno %d: \"%s\"\n", msg->msgno, msg->message);
@@ -135,7 +135,7 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 int
 _dblib_handle_err_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
-	DBPROCESS *dbproc = (tds && tds->parent)? (DBPROCESS *) tds->parent : NULL;
+	DBPROCESS *dbproc = (tds && tds_get_parent(tds))? (DBPROCESS *) tds_get_parent(tds) : NULL;
 	int rc = INT_CANCEL;
 
 	assert(_dblib_err_handler);

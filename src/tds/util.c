@@ -63,14 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.95 2011-06-03 21:04:15 freddy77 Exp $");
-
-void
-tds_set_parent(TDSSOCKET * tds, void *the_parent)
-{
-	if (tds)
-		tds->parent = the_parent;
-}
+TDS_RCSID(var, "$Id: util.c,v 1.96 2011-06-03 21:05:32 freddy77 Exp $");
 
 /**
  * Set state of TDS connection, with logging and checking.

@@ -1,3 +1,9 @@
+Fri Jun  3 23:05:32 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/ctutil.c src/dblib/dblib.c:
+	* src/dblib/dbutil.c src/odbc/odbc.c src/tds/mem.c src/tds/net.c:
+	* src/tds/util.c:
+	- use macros to access parent field of TDSSOCKET
+
 Fri Jun  3 23:04:13 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/apps/tsql.c src/ctlib/ct.c src/tds/bulk.c:
 	* src/tds/config.c src/tds/iconv.c src/tds/login.c src/tds/mem.c:
@@ -313,4 +319,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3271 2011-06-03 21:04:14 freddy77 Exp $
+$Id: ChangeLog,v 1.3272 2011-06-03 21:05:32 freddy77 Exp $

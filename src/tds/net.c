@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.113 2011-06-03 21:04:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.114 2011-06-03 21:05:32 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -400,7 +400,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			 * - Flush the results using dbcancel 
 			 * - Process the results normally"
 			 */
-			int timeout_action = (*tds_get_ctx(tds)->int_handler) (tds->parent);
+			int timeout_action = (*tds_get_ctx(tds)->int_handler) (tds_get_parent(tds));
 #if 0
 			tdsdump_log(TDS_DBG_ERROR, "tds_ctx->int_handler returned %d\n", timeout_action);
 #endif

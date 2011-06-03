@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.562 2011-05-20 20:56:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.563 2011-06-03 21:05:32 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -345,7 +345,7 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	if (tds == NULL) {
 		return;
 	}
-	dbc = (TDS_DBC *) tds->parent;
+	dbc = (TDS_DBC *) tds_get_parent(tds);
 	if (!dbc)
 		return;
 
@@ -2271,7 +2271,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 
 	if (msg->msgno == TDSETIME) {
 		tdsdump_log(TDS_DBG_INFO1, "in timeout\n");
-		if (tds && (dbc = (TDS_DBC *) tds->parent) && dbc->current_statement) {
+		if (tds && (dbc = (TDS_DBC *) tds_get_parent(tds)) && dbc->current_statement) {
 			TDS_STMT *stmt = dbc->current_statement;
 			/* cancel sent, handling interrupt */
 			if (tds->in_cancel && stmt->cancel_sent) {
@@ -2300,8 +2300,8 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		return TDS_INT_TIMEOUT;
 	}
 
-	if (tds && tds->parent) {
-		dbc = (TDS_DBC *) tds->parent;
+	if (tds && tds_get_parent(tds)) {
+		dbc = (TDS_DBC *) tds_get_parent(tds);
 		errs = &dbc->errs;
 		if (dbc->current_statement)
 			errs = &dbc->current_statement->errs;

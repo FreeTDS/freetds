@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.366 2011-06-03 21:04:14 freddy77 Exp $ */
+/* $Id: tds.h,v 1.367 2011-06-03 21:05:32 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -988,6 +988,8 @@ struct tds_socket
 
 #define tds_get_ctx(tds) ((tds)->tds_ctx)
 #define tds_set_ctx(tds, val) do { ((tds)->tds_ctx) = (val); } while(0)
+#define tds_get_parent(tds) ((tds)->parent)
+#define tds_set_parent(tds, val) do { ((tds)->parent) = (val); } while(0)
 
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);
@@ -1176,7 +1178,6 @@ int tds_get_size_by_type(int servertype);
 /* util.c */
 int tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum);
 TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
-void tds_set_parent(TDSSOCKET * tds, void *the_parent);
 int tds_swap_bytes(unsigned char *buf, int bytes);
 int tds_version(TDSSOCKET * tds_socket, char *pversion_string);
 unsigned int tds_gettime_ms(void);

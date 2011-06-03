@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.387 2011-05-23 19:27:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.388 2011-06-03 21:05:32 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -322,10 +322,9 @@ db_env_chg(TDSSOCKET * tds, int type, char *oldval, char *newval)
 		
 	tdsdump_log(TDS_DBG_FUNC, "db_env_chg(%p, %d, %s, %s)\n", tds, type, oldval, newval);
 
-	if (tds == NULL || tds->parent == NULL ) {
+	if (!tds || !tds_get_parent(tds))
 		return;
-	}
-	dbproc = (DBPROCESS *) tds->parent;
+	dbproc = (DBPROCESS *) tds_get_parent(tds);
 
 	dbproc->envchange_rcv |= (1 << (type - 1));
 	switch (type) {
@@ -1521,7 +1520,7 @@ dbexit()
 		g_dblib_ctx.connection_list[i] = NULL;
 		if (tds) {
 			++count;
-			dbproc = (DBPROCESS *) tds->parent;
+			dbproc = (DBPROCESS *) tds_get_parent(tds);
 			tds_free_socket(tds);
 			if (dbproc) {
 				/* avoid locking in dbclose */
