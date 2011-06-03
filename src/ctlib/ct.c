@@ -38,10 +38,10 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.212 2011-05-27 08:59:04 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.213 2011-06-03 06:55:18 freddy77 Exp $");
 
 
-static char * ct_describe_cmd_state(CS_INT state);
+static const char * ct_describe_cmd_state(CS_INT state);
 /**
  * Read a row of data
  * @return 0 on success
@@ -230,7 +230,7 @@ ct_set_command_state(CS_COMMAND *cmd, CS_INT state)
 	return CS_SUCCEED;
 }
 
-static char *
+static const char *
 ct_describe_cmd_state(CS_INT state)
 {
 	tdsdump_log(TDS_DBG_FUNC, "ct_describe_cmd_state(%d)\n", state);
