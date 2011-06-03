@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.31 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.32 2011-06-03 21:04:15 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -130,7 +130,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	assert(found || tds->cur_dyn == NULL);
 
 	/* test tds_ctx */
-	tds_check_context_extra(tds->tds_ctx);
+	tds_check_context_extra(tds_get_ctx(tds));
 
 	/* TODO test char_conv_count, char_convs */
 

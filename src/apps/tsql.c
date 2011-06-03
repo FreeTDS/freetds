@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.145 2011-06-02 14:39:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.146 2011-06-03 21:04:14 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -240,7 +240,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 					srclen = col->column_cur_size;
 
 
-					if (tds_convert(tds->tds_ctx, ctype, (TDS_CHAR *) src, srclen, SYBVARCHAR, &dres) < 0)
+					if (tds_convert(tds_get_ctx(tds), ctype, (TDS_CHAR *) src, srclen, SYBVARCHAR, &dres) < 0)
 						continue;
 					if (print_rows)  {
 						if (i) fputs(opt_col_term, stdout);
@@ -273,7 +273,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 				msg.server = "tsql";
 				sprintf(message, "using TDS version %s", version);
 				msg.message = message;
-				tsql_handle_message(tds->tds_ctx, tds, &msg);
+				tsql_handle_message(tds_get_ctx(tds), tds, &msg);
 			}
 		}
 		if (opt_flags & OPT_TIMER) {
@@ -285,7 +285,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 			memset(&msg, 0, sizeof(TDSMESSAGE));
 			msg.server = "tsql";
 			msg.message = message;
-			tsql_handle_message(tds->tds_ctx, tds, &msg);
+			tsql_handle_message(tds_get_ctx(tds), tds, &msg);
 		}
 	}
 	return 0;

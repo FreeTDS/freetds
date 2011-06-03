@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.251 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.252 2011-06-03 21:04:15 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -3167,7 +3167,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYBUNIQUE:
 		quote = 1;
 	default:
-		res = tds_convert(tds->tds_ctx, tds_get_conversion_type(curcol->column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
+		res = tds_convert(tds_get_ctx(tds), tds_get_conversion_type(curcol->column_type, curcol->column_size), src, src_len, SYBCHAR, &cr);
 		if (res < 0)
 			return TDS_FAIL;
 		if (quote)
@@ -3481,7 +3481,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 						srclen = col->column_cur_size;
  
  
-						tds_convert(tds->tds_ctx, ctype, (TDS_CHAR *) src, srclen, SYBINT4, &dres);
+						tds_convert(tds_get_ctx(tds), ctype, (TDS_CHAR *) src, srclen, SYBINT4, &dres);
 						optionval = dres.i;
 					}
 					break;

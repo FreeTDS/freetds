@@ -78,7 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.168 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.169 2011-06-03 21:04:15 freddy77 Exp $");
 
 static void tds_config_login(TDSCONNECTION * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSCONNECTION * connection);
@@ -208,7 +208,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 			tdsdump_log(TDS_DBG_INFO1, "Failed to find [%s] in configuration files; trying '%s' instead.\n", 
 						   tds_dstr_cstr(&login->server_name), tds_dstr_cstr(&connection->server_name));
 			if (tds_dstr_isempty(&connection->ip_addr))
-				tdserror(tds->tds_ctx, tds, TDSEINTF, 0);
+				tdserror(tds_get_ctx(tds), tds, TDSEINTF, 0);
 		}
 	}
 
@@ -411,7 +411,7 @@ tds_read_conf_sections(FILE * in, const char *server, TDSCONNECTION * connection
 	    !(!tds_dstr_isempty(&default_instance) || default_port)) {
 		tdsdump_log(TDS_DBG_ERROR, "error: cannot specify both port %d and instance %s.\n", 
 						connection->port, tds_dstr_cstr(&connection->instance_name));
-		/* tdserror(tds->tds_ctx, tds, TDSEPORTINSTANCE, 0); */
+		/* tdserror(tds_get_ctx(tds), tds, TDSEPORTINSTANCE, 0); */
 	}
 	tds_dstr_free(&default_instance);
 	return found;

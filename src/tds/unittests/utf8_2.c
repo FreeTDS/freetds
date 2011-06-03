@@ -22,7 +22,7 @@
 #include <assert.h>
 
 /* try conversion from utf8 to iso8859-1 */
-static char software_version[] = "$Id: utf8_2.c,v 1.16 2011-05-16 13:31:11 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.17 2011-06-03 21:04:15 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDSSOCKET *tds;
@@ -220,7 +220,7 @@ main(int argc, char **argv)
 	}
 
 	/* override a const in a safe way */
-	my_err = &tds->tds_ctx->err_handler;
+	my_err = &tds_get_ctx(tds)->err_handler;
 	*((perr*)my_err) = err_handler;
 
 	/* prepend some characters to check part of sequence error */

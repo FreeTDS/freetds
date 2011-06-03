@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.15 2011-06-01 07:39:53 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.16 2011-06-03 21:04:15 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -305,7 +305,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 		sprintf(column_type, "uniqueidentifier  ");
 		break;
 	default:
-		tdserror(tds->tds_ctx, tds, TDSEBPROBADTYP, errno);
+		tdserror(tds_get_ctx(tds), tds, TDSEBPROBADTYP, errno);
 		tdsdump_log(TDS_DBG_FUNC, "error: cannot build bulk insert statement. unrecognized server datatype %d\n",
 			    bcpcol->on_server.column_type);
 		return TDS_FAIL;
@@ -318,7 +318,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 		char *temp = malloc(2 * clause->cb);
 
 		if (!temp) {
-			tdserror(tds->tds_ctx, tds, TDSEMEM, errno);
+			tdserror(tds_get_ctx(tds), tds, TDSEMEM, errno);
 			return TDS_FAIL;
 		}
 		strcpy(temp, clause->pb);

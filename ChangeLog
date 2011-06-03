@@ -1,3 +1,10 @@
+Fri Jun  3 23:04:13 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/apps/tsql.c src/ctlib/ct.c src/tds/bulk.c:
+	* src/tds/config.c src/tds/iconv.c src/tds/login.c src/tds/mem.c:
+	* src/tds/net.c src/tds/query.c src/tds/tds_checks.c:
+	* src/tds/token.c src/tds/unittests/utf8_2.c src/tds/util.c:
+	- use macros to access tds_ctx field in TDSSOCKET
+
 Fri Jun  3 08:55:18 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/ct.c: constification
 
@@ -306,4 +313,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3270 2011-06-03 06:55:18 freddy77 Exp $
+$Id: ChangeLog,v 1.3271 2011-06-03 21:04:14 freddy77 Exp $

@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.212 2011-05-23 20:32:03 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.213 2011-06-03 21:04:15 freddy77 Exp $");
 
 static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
 static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
@@ -237,10 +237,10 @@ tds_save_env(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	TDSSAVECONTEXT *ctx;
 	struct tds_save_env *env;
 
-	if (tds->tds_ctx->msg_handler != tds_save_msg)
+	if (tds_get_ctx(tds)->msg_handler != tds_save_msg)
 		return;
 
-	ctx = (TDSSAVECONTEXT *) tds->tds_ctx;
+	ctx = (TDSSAVECONTEXT *) tds_get_ctx(tds);
 	if (ctx->num_env >= TDS_VECTOR_SIZE(ctx->envs))
 		return;
 
@@ -268,11 +268,11 @@ replay_save_context(TDSSOCKET *tds, TDSSAVECONTEXT *ctx)
 	/* replay all recorded messages */
 	for (n = 0; n < ctx->num_msg; ++n)
 		if (ctx->msgs[n].type == 0) {
-			if (tds->tds_ctx->msg_handler)
-				tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &ctx->msgs[n].msg);
+			if (tds_get_ctx(tds)->msg_handler)
+				tds_get_ctx(tds)->msg_handler(tds_get_ctx(tds), tds, &ctx->msgs[n].msg);
 		} else {
-			if (tds->tds_ctx->err_handler)
-				tds->tds_ctx->err_handler(tds->tds_ctx, tds, &ctx->msgs[n].msg);
+			if (tds_get_ctx(tds)->err_handler)
+				tds_get_ctx(tds)->err_handler(tds_get_ctx(tds), tds, &ctx->msgs[n].msg);
 		}
 
 	/* replay all recorded envs */
@@ -339,21 +339,21 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 	/* disable tds9 if iconv wanted, currently not supported */
 	if (IS_TDS72_PLUS(connection) && tds->use_iconv) {
 		connection->tds_version = 0x701;
-		tdserror(tds->tds_ctx, tds, TDSEVERDOWN, 0);
+		tdserror(tds_get_ctx(tds), tds, TDSEVERDOWN, 0);
 	}
 
 	if (TDS_MAJOR(connection) == 0) {
 		unsigned int i;
 		TDSSAVECONTEXT save_ctx;
-		const TDSCONTEXT *old_ctx = tds->tds_ctx;
+		const TDSCONTEXT *old_ctx = tds_get_ctx(tds);
 		typedef void (*env_chg_func_t) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 		env_chg_func_t old_env_chg = tds->env_chg_func;
 		/* the context of a socket is const; we have to modify it to suppress error messages during multiple tries. */
-		TDSCONTEXT *mod_ctx = (TDSCONTEXT *)tds->tds_ctx;
-		err_handler_t err_handler = tds->tds_ctx->err_handler;
+		TDSCONTEXT *mod_ctx = (TDSCONTEXT *) tds_get_ctx(tds);
+		err_handler_t err_handler = tds_get_ctx(tds)->err_handler;
 
 		init_save_context(&save_ctx, old_ctx);
-		tds->tds_ctx = &save_ctx.ctx;
+		tds_set_ctx(tds, &save_ctx.ctx);
 		tds->env_chg_func = tds_save_env;
 		mod_ctx->err_handler = NULL;
 
@@ -371,12 +371,12 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		
 		mod_ctx->err_handler = err_handler;
 		tds->env_chg_func = old_env_chg;
-		tds->tds_ctx = old_ctx;
+		tds_set_ctx(tds, old_ctx);
 		replay_save_context(tds, &save_ctx);
 		free_save_context(&save_ctx);
 		
 		if (erc != TDS_SUCCESS)
-			tdserror(tds->tds_ctx, tds, erc, *p_oserr);
+			tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
 
 		return erc;
 	}
@@ -417,7 +417,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 
 	/* verify that ip_addr is not empty */
 	if (tds_dstr_isempty(&connection->ip_addr)) {
-		tdserror(tds->tds_ctx, tds, TDSEUHST, 0 );
+		tdserror(tds_get_ctx(tds), tds, TDSEUHST, 0 );
 		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is empty\n");
 		if (!tds_dstr_isempty(&connection->server_name)) {
 			tdsdump_log(TDS_DBG_ERROR, "Server %s not found!\n", tds_dstr_cstr(&connection->server_name));
@@ -438,7 +438,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 	memcpy(tds->capabilities, connection->capabilities, TDS_MAX_CAPABILITY);
 
 	if ((erc = tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout, p_oserr)) != TDSEOK) {
-		tdserror(tds->tds_ctx, tds, erc, *p_oserr);
+		tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
 		return erc;
 	}
 		
@@ -463,7 +463,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 	if (erc == TDS_FAIL || tds_process_login_tokens(tds) == TDS_FAIL) {
 		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", erc==TDS_SUCCESS? "accepted":"rejected");
 		tds_close_socket(tds);
-		tdserror(tds->tds_ctx, tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
+		tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
 		return TDSEFCON;
 	}
 

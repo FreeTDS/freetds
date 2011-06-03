@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.403 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.404 2011-06-03 21:04:15 freddy77 Exp $");
 
 #define USE_ICONV tds->use_iconv
 
@@ -250,7 +250,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		/* fall out */
 	default: 
 		tds_close_socket(tds);
-		tdserror(tds->tds_ctx, tds, TDSEBTOK, 0);
+		tdserror(tds_get_ctx(tds), tds, TDSEBTOK, 0);
 		tdsdump_log(TDS_DBG_ERROR, "Unknown marker: %d(%x)!!\n", marker, (unsigned char) marker);
 		return TDS_FAIL;
 	}
@@ -2662,9 +2662,9 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		/* EED can be followed to PARAMFMT/PARAMS, do not store it in dynamic */
 		tds->cur_dyn = NULL;
 
-		if (tds->tds_ctx->msg_handler) {
+		if (tds_get_ctx(tds)->msg_handler) {
 			tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() calling client msg handler\n");
-			tds->tds_ctx->msg_handler(tds->tds_ctx, tds, &msg);
+			tds_get_ctx(tds)->msg_handler(tds_get_ctx(tds), tds, &msg);
 		} else if (msg.msgno) {
 			tdsdump_log(TDS_DBG_WARN,
 				    "Msg %d, Severity %d, State %d, Server %s, Line %d\n%s\n",

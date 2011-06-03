@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.211 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.212 2011-06-03 21:04:15 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -1082,7 +1082,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TDSSOCKET *tds_socket;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
-	tds_socket->tds_ctx = context;
+	tds_set_ctx(tds_socket, context);
 	tds_socket->in_buf_max = 0;
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 

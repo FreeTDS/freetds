@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.365 2011-06-01 07:39:53 freddy77 Exp $ */
+/* $Id: tds.h,v 1.366 2011-06-03 21:04:14 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -985,6 +985,9 @@ struct tds_socket
 	TDSAUTHENTICATION *authentication;
 	int option_value;
 };
+
+#define tds_get_ctx(tds) ((tds)->tds_ctx)
+#define tds_set_ctx(tds, val) do { ((tds)->tds_ctx) = (val); } while(0)
 
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);

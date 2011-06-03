@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.112 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.113 2011-06-03 21:04:15 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -322,7 +322,7 @@ tds_close_socket(TDSSOCKET * tds)
 
 	if (!IS_TDSDEAD(tds)) {
 		if ((rc = CLOSESOCKET(tds->s)) == -1) 
-			tdserror(tds->tds_ctx, tds,  TDSECLOS, sock_errno);
+			tdserror(tds_get_ctx(tds), tds,  TDSECLOS, sock_errno);
 		tds->s = INVALID_SOCKET;
 		tds_set_state(tds, TDS_DEAD);
 	}
@@ -363,7 +363,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 	 * 2.  select(2) returns an important error.  (return to caller)
 	 * A timeout of zero says "wait forever".  We do that by passing a NULL timeval pointer to select(2). 
 	 */
-	poll_seconds = (tds->tds_ctx && tds->tds_ctx->int_handler)? 1 : timeout_seconds;
+	poll_seconds = (tds_get_ctx(tds) && tds_get_ctx(tds)->int_handler)? 1 : timeout_seconds;
 	for (seconds = timeout_seconds; timeout_seconds == 0 || seconds > 0; seconds -= poll_seconds) {
 		struct pollfd fd;
 		int timeout = poll_seconds ? poll_seconds * 1000 : -1;
@@ -390,7 +390,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 
 		assert(rc == 0 || (rc < 0 && sock_errno == TDSSOCK_EINTR));
 
-		if (tds->tds_ctx && tds->tds_ctx->int_handler) {	/* interrupt handler installed */
+		if (tds_get_ctx(tds) && tds_get_ctx(tds)->int_handler) {	/* interrupt handler installed */
 			/*
 			 * "If hndlintr() returns INT_CANCEL, DB-Library sends an attention token [TDS_BUFSTAT_ATTN]
 			 * to the server. This causes the server to discontinue command processing. 
@@ -400,7 +400,7 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			 * - Flush the results using dbcancel 
 			 * - Process the results normally"
 			 */
-			int timeout_action = (*tds->tds_ctx->int_handler) (tds->parent);
+			int timeout_action = (*tds_get_ctx(tds)->int_handler) (tds->parent);
 #if 0
 			tdsdump_log(TDS_DBG_ERROR, "tds_ctx->int_handler returned %d\n", timeout_action);
 #endif
@@ -452,18 +452,18 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 				continue;
 			/* detect connection close */
 			if (len <= 0) {
-				tdserror(tds->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, sock_errno);
+				tdserror(tds_get_ctx(tds), tds, len == 0 ? TDSESEOF : TDSEREAD, sock_errno);
 				tds_close_socket(tds);
 				return -1;
 			}
 		} else if (len < 0) {
 			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK */
 				continue;
-			tdserror(tds->tds_ctx, tds, TDSEREAD, sock_errno);
+			tdserror(tds_get_ctx(tds), tds, TDSEREAD, sock_errno);
 			tds_close_socket(tds);
 			return -1;
 		} else { /* timeout */
-			switch (rc = tdserror(tds->tds_ctx, tds, TDSETIME, sock_errno)) {
+			switch (rc = tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
 			case TDS_INT_CONTINUE:
 				continue;
 			case TDS_INT_TIMEOUT:
@@ -528,7 +528,7 @@ tds_read_packet(TDSSOCKET * tds)
 	if ((len = goodread(tds, header, sizeof(header))) < (int) sizeof(header)) {
 		/* GW ADDED */
 		if (len < 0) {
-			/* not needed because goodread() already called:  tdserror(tds->tds_ctx, tds, TDSEREAD, 0); */
+			/* not needed because goodread() already called:  tdserror(tds_get_ctx(tds), tds, TDSEREAD, 0); */
 			tds_close_socket(tds);
 			tds->in_len = 0;
 			tds->in_pos = 0;
@@ -663,7 +663,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			assert(nput < 0);
 
 			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
-			tdserror(tds->tds_ctx, tds, TDSEWRIT, err);
+			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			tds_close_socket(tds);
 			return -1;
 
@@ -672,12 +672,12 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			if (TDSSOCK_WOULDBLOCK(err)) /* shouldn't happen, but OK, retry */
 				continue;
 			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", err, sock_strerror(err));
-			tdserror(tds->tds_ctx, tds, TDSEWRIT, err);
+			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			tds_close_socket(tds);
 			return -1;
 		} else { /* timeout */
 			tdsdump_log(TDS_DBG_NETWORK, "tds_goodwrite(): timed out, asking client\n");
-			switch (rc = tdserror(tds->tds_ctx, tds, TDSETIME, sock_errno)) {
+			switch (rc = tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
 			case TDS_INT_CONTINUE:
 				continue;
 			case TDS_INT_TIMEOUT:

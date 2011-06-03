@@ -40,7 +40,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: iconv.c,v 1.149 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: iconv.c,v 1.150 2011-06-03 21:04:15 freddy77 Exp $");
 
 #define CHARSIZE(charset) ( ((charset)->min_bytes_per_char == (charset)->max_bytes_per_char )? \
 				(charset)->min_bytes_per_char : 0 )
@@ -787,13 +787,13 @@ end_loop:
 		/* invalid multibyte input sequence encountered */
 		if (io == to_client) {
 			if (irreversible == (size_t) - 1) {
-				tdserror(tds->tds_ctx, tds, TDSEICONV2BIG, 0);
+				tdserror(tds_get_ctx(tds), tds, TDSEICONV2BIG, 0);
 			} else {
-				tdserror(tds->tds_ctx, tds, TDSEICONVI, 0);
+				tdserror(tds_get_ctx(tds), tds, TDSEICONVI, 0);
 				errno = 0;
 			}
 		} else {
-			tdserror(tds->tds_ctx, tds, TDSEICONVO, 0);
+			tdserror(tds_get_ctx(tds), tds, TDSEICONVO, 0);
 		}
 		suppress->eilseq = 1;
 	}
@@ -803,13 +803,13 @@ end_loop:
 		if (suppress->einval)
 			break;
 		/* in chunk conversion this can mean we end a chunk inside a character */
-		tdserror(tds->tds_ctx, tds, TDSEICONVAVAIL, 0);
+		tdserror(tds_get_ctx(tds), tds, TDSEICONVAVAIL, 0);
 		suppress->einval = 1;
 		break;
 	case E2BIG:		/* output buffer has no more room */
 		if (suppress->e2big)
 			break;
-		tdserror(tds->tds_ctx, tds, TDSEICONVIU, 0);
+		tdserror(tds_get_ctx(tds), tds, TDSEICONVIU, 0);
 		suppress->e2big = 1;
 		break;
 	default:
