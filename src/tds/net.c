@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.117 2011-06-04 07:17:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.118 2011-06-04 08:13:35 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -402,9 +402,6 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			 * - Process the results normally"
 			 */
 			int timeout_action = (*tds_get_ctx(tds)->int_handler) (tds_get_parent(tds));
-#if 0
-			tdsdump_log(TDS_DBG_ERROR, "tds_ctx->int_handler returned %d\n", timeout_action);
-#endif
 			switch (timeout_action) {
 			case TDS_INT_CONTINUE:		/* keep waiting */
 				continue;
@@ -467,9 +464,6 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 			switch (rc = tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
 			case TDS_INT_CONTINUE:
 				continue;
-			case TDS_INT_TIMEOUT:
-				tds_send_cancel(tds);
-				continue; /* fixme: or return? */
 			default:
 			case TDS_INT_CANCEL:
 				tds_close_socket(tds);
@@ -683,14 +677,6 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			switch (rc = tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
 			case TDS_INT_CONTINUE:
 				continue;
-			case TDS_INT_TIMEOUT:
-				/* 
-				 * "Cancel the operation ... but leave the dbproc in working condition." 
-				 * We must try to send the cancel packet, else we have to abandon the dbproc.  
-				 * If it can't be done, a harder error e.g. ECONNRESET will bubble up.  
-				 */
-				tds_send_cancel(tds);
-				continue; 
 			default:
 			case TDS_INT_CANCEL:
 				tds_close_socket(tds);

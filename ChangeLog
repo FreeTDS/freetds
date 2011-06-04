@@ -1,3 +1,6 @@
+Sat Jun  4 10:13:39 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: cleanup
+
 Sat Jun  4 09:17:38 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: cache socket in tds_goodwrite
 
@@ -345,4 +348,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3278 2011-06-04 07:17:34 freddy77 Exp $
+$Id: ChangeLog,v 1.3279 2011-06-04 08:13:35 freddy77 Exp $
