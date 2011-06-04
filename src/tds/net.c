@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.116 2011-06-03 21:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.117 2011-06-04 07:17:34 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -631,11 +631,13 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 {
 	const unsigned char *p = buffer;
 	int rc;
+	TDS_SYS_SOCKET sock;
 
 	assert(tds && buffer);
+	sock = tds_get_s(tds);
 
 	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
-	if (TDS_IS_SOCKET_INVALID(tds_get_s(tds)))
+	if (TDS_IS_SOCKET_INVALID(sock))
 		return -1;
 
 	while (p - buffer < len) {
@@ -643,14 +645,14 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			int err;
 			size_t remaining = len - (p - buffer);
 #ifdef USE_MSGMORE
-			ssize_t nput = send(tds_get_s(tds), p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+			ssize_t nput = send(sock, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 			/* In case the kernel does not support MSG_MORE, try again without it */
 			if (nput < 0 && errno == EINVAL && !last)
-				nput = send(tds_get_s(tds), p, remaining, MSG_NOSIGNAL);
+				nput = send(sock, p, remaining, MSG_NOSIGNAL);
 #elif defined(__APPLE__) && defined(SO_NOSIGPIPE)
-			ssize_t nput = send(tds_get_s(tds), p, remaining, 0);
+			ssize_t nput = send(sock, p, remaining, 0);
 #else
-			ssize_t nput = WRITESOCKET(tds_get_s(tds), p, remaining);
+			ssize_t nput = WRITESOCKET(sock, p, remaining);
 #endif
 			if (nput > 0) {
 				p += nput;
@@ -704,9 +706,9 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 	if (last) {
 		int opt;
 		opt = 0;
-		setsockopt(tds_get_s(tds), SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
 		opt = 1;
-		setsockopt(tds_get_s(tds), SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
+		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
 	}
 #endif
 
