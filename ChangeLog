@@ -1,3 +1,6 @@
+Sat Jun  4 10:15:12 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: change the way autocommit is sent to server
+
 Sat Jun  4 10:14:25 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/query.c:
 	- add functions to submit transaction changes
@@ -352,4 +355,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3280 2011-06-04 08:14:24 freddy77 Exp $
+$Id: ChangeLog,v 1.3281 2011-06-04 08:15:09 freddy77 Exp $

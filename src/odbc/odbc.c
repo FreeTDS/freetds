@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.565 2011-06-03 21:51:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.566 2011-06-04 08:15:09 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -207,7 +207,7 @@ static SQLRETURN
 change_autocommit(TDS_DBC * dbc, int state)
 {
 	TDSSOCKET *tds = dbc->tds_socket;
-	char query[80];
+	int ret;
 
 	if (dbc->attr.autocommit == state)
 		return SQL_SUCCESS;
@@ -217,28 +217,16 @@ change_autocommit(TDS_DBC * dbc, int state)
 	 * may not initialized.
 	 */
 	if (tds) {
-		/*
-		 * mssql: SET IMPLICIT_TRANSACTION ON
-		 * sybase: SET CHAINED ON
-		 */
-
-		/* implicit transactions are on if autocommit is off :-| */
-		if (TDS_IS_MSSQL(tds))
-			sprintf(query, "SET IMPLICIT_TRANSACTIONS %s", (state == SQL_AUTOCOMMIT_ON) ? "OFF" : "ON");
-		else {
-			/* Sybase, do not use SET CHAINED but emulate for compatility */
-			if (state == SQL_AUTOCOMMIT_ON)
-				strcpy(query, "WHILE @@TRANCOUNT > 0 COMMIT");
-			else
-				strcpy(query, "BEGIN TRANSACTION");
-		}
-
-		tdsdump_log(TDS_DBG_INFO1, "change_autocommit: executing %s\n", query);
-
 		/* TODO better idle check, not thread safe */
 		if (tds->state == TDS_IDLE)
 			tds->query_timeout = dbc->default_query_timeout;
-		if (tds_submit_query(tds, query) != TDS_SUCCESS) {
+
+		if (state == SQL_AUTOCOMMIT_ON)
+			ret = tds_submit_rollback(tds, 0);
+		else
+			ret = tds_submit_begin_tran(tds);
+
+		if (ret != TDS_SUCCESS) {
 			odbc_errs_add(&dbc->errs, "HY000", "Could not change transaction status");
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
@@ -4576,15 +4564,15 @@ SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 static SQLRETURN
 change_transaction(TDS_DBC * dbc, int state)
 {
-	const char *query;
 	TDSSOCKET *tds = dbc->tds_socket;
+	int cont, ret;
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%p,%d)\n", dbc, state);
 
-	if (dbc->attr.autocommit == SQL_AUTOCOMMIT_ON || TDS_IS_MSSQL(tds))
-		query = state ? "IF @@TRANCOUNT > 0 COMMIT" : "IF @@TRANCOUNT > 0 ROLLBACK";
+	if (dbc->attr.autocommit == SQL_AUTOCOMMIT_ON)
+		cont = 0;
 	else
-		query = state ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION";
+		cont = 1;
 
 	/* if pending drop all recordset, don't issue cancel */
 	if (tds->state == TDS_PENDING && dbc->current_statement != NULL) {
@@ -4596,7 +4584,13 @@ change_transaction(TDS_DBC * dbc, int state)
 	/* TODO better idle check, not thread safe */
 	if (tds->state == TDS_IDLE)
 		tds->query_timeout = dbc->default_query_timeout;
-	if (tds_submit_query(tds, query) != TDS_SUCCESS) {
+
+	if (state)
+		ret = tds_submit_commit(tds, cont);
+	else
+		ret = tds_submit_rollback(tds, cont);
+
+	if (ret != TDS_SUCCESS) {
 		odbc_errs_add(&dbc->errs, "HY000", "Could not perform COMMIT or ROLLBACK");
 		return SQL_ERROR;
 	}
