@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.370 2011-06-03 21:40:55 freddy77 Exp $ */
+/* $Id: tds.h,v 1.371 2011-06-04 08:14:24 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1127,6 +1127,9 @@ int tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 int tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 int tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params);
 int tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);
+int tds_submit_begin_tran(TDSSOCKET *tds);
+int tds_submit_rollback(TDSSOCKET *tds, int cont);
+int tds_submit_commit(TDSSOCKET *tds, int cont);
 int tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
 const char *tds_skip_quoted(const char *s);

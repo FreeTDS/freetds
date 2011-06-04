@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.253 2011-06-03 21:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.254 2011-06-04 08:14:24 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -3562,6 +3562,79 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 		}
 	}
 	return TDS_SUCCESS;
+}
+
+int
+tds_submit_begin_tran(TDSSOCKET *tds)
+{
+	CHECK_TDS_EXTRA(tds);
+
+	if (!IS_TDS72(tds))
+		return tds_submit_query(tds, "BEGIN TRANSACTION");
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		return TDS_FAIL;
+
+	tds->out_flag = TDS7_TRANS;
+	tds_start_query(tds);
+
+	/* begin transaction */
+	tds_put_smallint(tds, 5);
+	tds_put_byte(tds, 0);	/* new transaction level TODO */
+	tds_put_byte(tds, 0);	/* new transaction name */
+
+	return tds_query_flush_packet(tds);
+}
+
+
+int
+tds_submit_rollback(TDSSOCKET *tds, int cont)
+{
+	CHECK_TDS_EXTRA(tds);
+
+	if (!IS_TDS72(tds))
+		return tds_submit_query(tds, cont ? "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK");
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		return TDS_FAIL;
+
+	tds->out_flag = TDS7_TRANS;
+	tds_start_query(tds);
+	tds_put_smallint(tds, 8);	/* rollback */
+	tds_put_byte(tds, 0);	/* name */
+	if (cont) {
+		tds_put_byte(tds, 1);
+		tds_put_byte(tds, 0);	/* new transaction level TODO */
+		tds_put_byte(tds, 0);	/* new transaction name */
+	} else {
+		tds_put_byte(tds, 0);	/* do not continue */
+	}
+	return tds_query_flush_packet(tds);
+}
+
+int
+tds_submit_commit(TDSSOCKET *tds, int cont)
+{
+	CHECK_TDS_EXTRA(tds);
+
+	if (!IS_TDS72(tds))
+		return tds_submit_query(tds, cont ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 COMMIT");
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
+		return TDS_FAIL;
+
+	tds->out_flag = TDS7_TRANS;
+	tds_start_query(tds);
+	tds_put_smallint(tds, 7);	/* commit */
+	tds_put_byte(tds, 0);	/* name */
+	if (cont) {
+		tds_put_byte(tds, 1);
+		tds_put_byte(tds, 0);	/* new transaction level TODO */
+		tds_put_byte(tds, 0);	/* new transaction name */
+	} else {
+		tds_put_byte(tds, 0);	/* do not continue */
+	}
+	return tds_query_flush_packet(tds);
 }
 
 /*
