@@ -82,7 +82,11 @@ Rebuild all test support (virtual machines, chroot, msde+mssql2005)
 Add a test for rpm (redhat, suse?)
 disabling thread safety don't check for thread-safe functions
 check cross compiled odbc driver, exports, resource version (test-dist)
-
+bcp
+  tests colfmt after init
+  test encodings loading data
+  extract to file and import again
+  table with id
 
 
 Full thread
