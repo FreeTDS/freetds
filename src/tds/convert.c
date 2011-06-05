@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.199 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.200 2011-06-05 09:21:49 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2716,7 +2716,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 #endif
 
 	/* one more character is required because we replace %z with 3 digits */
-	our_format = malloc(strlen(format) + 2);
+	our_format = (char*) malloc(strlen(format) + 2);
 	if (!our_format)
 		return 0;
 

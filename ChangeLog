@@ -1,3 +1,11 @@
+Sun Jun  5 11:21:50 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sybdb.h src/ctlib/ct.c src/dblib/buffering.h:
+	* src/dblib/dblib.c src/odbc/odbc.c src/odbc/prepare_query.c:
+	* src/tds/bulk.c src/tds/challenge.c src/tds/convert.c:
+	* src/tds/log.c src/tds/mem.c src/tds/net.c src/tds/query.c:
+	* src/tds/token.c:
+	- add some casts
+
 Sun Jun  5 11:20:33 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/bulk.c: style updates
 
@@ -358,4 +366,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3282 2011-06-05 09:20:27 freddy77 Exp $
+$Id: ChangeLog,v 1.3283 2011-06-05 09:21:49 freddy77 Exp $

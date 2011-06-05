@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.566 2011-06-04 08:15:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.567 2011-06-05 09:21:49 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -2783,7 +2783,7 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_NAME:
-		if (!odbc_dstr_copy_oct(desc_get_dbc(desc), &drec->sql_desc_name, BufferLength, Value)) {
+		if (!odbc_dstr_copy_oct(desc_get_dbc(desc), &drec->sql_desc_name, BufferLength, (SQLCHAR*) Value)) {
 			odbc_errs_add(&desc->errs, "HY001", NULL);
 			result = SQL_ERROR;
 		}
@@ -6138,7 +6138,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 			SQLRETURN ret;
 
 			tds_dstr_init(&s);
-			if (!odbc_dstr_copy_oct(dbc, &s, StringLength, ValuePtr)) {
+			if (!odbc_dstr_copy_oct(dbc, &s, StringLength, (SQLCHAR*) ValuePtr)) {
 				odbc_errs_add(&dbc->errs, "HY001", NULL);
 				ODBC_RETURN(dbc, SQL_ERROR);
 			}
@@ -6744,7 +6744,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 		for (;;) {
 			const char *begin = p;
 
-			p = memchr(p, ',', end - p);
+			p = (const char*) memchr(p, ',', end - p);
 			if (!p)
 				p = end;
 			++elements;
@@ -6770,7 +6770,7 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 			for (;;) {
 				const char *begin = p;
 
-				p = memchr(p, ',', end - p);
+				p = (const char*) memchr(p, ',', end - p);
 				if (!p)
 					p = end;
 				if ((p - begin) < 2 || begin[0] != '\'' || p[-1] != '\'') {

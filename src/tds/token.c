@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.405 2011-06-03 21:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.406 2011-06-05 09:21:49 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -2706,7 +2706,7 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, int len)
 		*string = NULL;
 		return -1;
 	}
-	s = realloc(s, out_len + 1);
+	s = (char*) realloc(s, out_len + 1);
 	s[out_len] = '\0';
 	*string = s;
 	return 0;

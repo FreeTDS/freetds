@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.389 2011-06-03 21:13:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.390 2011-06-05 09:21:49 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -2000,7 +2000,7 @@ dbsetrow(DBPROCESS * dbproc, DBINT row)
  * No row was read from the server
  * \sa dbaltbind(), dbbind(), dbcanquery(), dbclrbuf(), dbgetrow(), dbprrow(), dbsetrow().
  */
-RETCODE
+STATUS
 dbnextrow(DBPROCESS * dbproc)
 {
 	TDSRESULTINFO *resinfo;
@@ -5597,7 +5597,7 @@ dbmny4copy(DBPROCESS * dbproc, DBMONEY4 * src, DBMONEY4 * dest)
  * \retval   1 d1 > d2.
  * \sa dbdate4cmp(), dbmnycmp(), dbmny4cmp().
  */
-RETCODE
+int
 dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbdatecmp(%p, %p, %p)\n", dbproc, d1, d2);
@@ -7957,7 +7957,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			if(*pformats != '\0') {
 				va_list ap;
 				int result_len, len = 2 * (int)strlen(ptext);
-				char * buffer = calloc(1, len);
+				char * buffer = (char*) calloc(1, len);
 
 				if (buffer == NULL)
 					break;

@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.254 2011-06-04 08:14:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.255 2011-06-05 09:21:49 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -207,7 +207,7 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 		if (pos + len + 12 >= size) {
 			char *p;
 			size = pos + len + 30;
-			p = realloc(out, size);
+			p = (char*) realloc(out, size);
 			if (!p) {
 				free(out);
 				return NULL;

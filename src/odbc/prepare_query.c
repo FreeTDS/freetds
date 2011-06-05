@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: prepare_query.c,v 1.80 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: prepare_query.c,v 1.81 2011-06-05 09:21:49 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -433,8 +433,8 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 			}
 
 			res = (sql_src_type == SQL_C_CHAR) ?
-				tds_char2hex(p, len / 2u, DataPtr, len):
-				odbc_wchar2hex(p, len / 2u, DataPtr, len);
+				tds_char2hex(p, len / 2u, (const TDS_CHAR*) DataPtr, len):
+				odbc_wchar2hex(p, len / 2u, (const SQLWCHAR*) DataPtr, len);
 			if (res < 0) {
 				odbc_convert_err_set(&stmt->errs, res);
 				return SQL_ERROR;

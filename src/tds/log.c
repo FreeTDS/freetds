@@ -64,7 +64,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: log.c,v 1.20 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: log.c,v 1.21 2011-06-05 09:21:49 freddy77 Exp $");
 
 /* for now all messages go to the log */
 int tds_debug_flags = TDS_DBGFLAG_ALL | TDS_DBGFLAG_SOURCE;
@@ -469,7 +469,7 @@ tdsdump_col(const TDSCOLUMN *col)
 	case SYBCHAR: 
 	case SYBVARCHAR:
 		if (col->column_cur_size >= 0) {
-			data = calloc(1, 1 + col->column_cur_size);
+			data = (char*) calloc(1, 1 + col->column_cur_size);
 			if (!data) {
 				tdsdump_log(TDS_DBG_FUNC, "no memory to log data for type %s\n", typename);
 				return;

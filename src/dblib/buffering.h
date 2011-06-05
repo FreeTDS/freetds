@@ -10,7 +10,7 @@ typedef struct dblib_buffer_row {
 } DBLIB_BUFFER_ROW;
 
 static void buffer_struct_print(const DBPROC_ROWBUF *buf);
-static int buffer_save_row(DBPROCESS *dbproc);
+static RETCODE buffer_save_row(DBPROCESS *dbproc);
 static DBLIB_BUFFER_ROW* buffer_row_address(const DBPROC_ROWBUF * buf, int idx);
 
 #if ENABLE_EXTRA_CHECKS
@@ -516,7 +516,7 @@ buffer_add_row(DBPROCESS *dbproc, TDSRESULTINFO *resinfo)
 	return buf->current;
 }
 
-static int
+static RETCODE
 buffer_save_row(DBPROCESS *dbproc)
 {
 	DBPROC_ROWBUF *buf = &dbproc->row_buf;

@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.215 2011-06-03 21:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.216 2011-06-05 09:21:49 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -336,7 +336,7 @@ tds_alloc_param_data(TDSCOLUMN * curparam)
 	curparam->column_data_free = tds_param_free;
 
 	data = malloc(data_size);
-	curparam->column_data = data;
+	curparam->column_data = (unsigned char*) data;
 	if (!data)
 		return NULL;
 	/* if is a blob reset buffer */
@@ -664,7 +664,7 @@ tds_alloc_context(void * parent)
 	if ((locale = tds_get_locale()) == NULL)
 		return NULL;
 
-	if ((context = calloc(1, sizeof(TDSCONTEXT))) == NULL) {
+	if ((context = (TDSCONTEXT*) calloc(1, sizeof(TDSCONTEXT))) == NULL) {
 		tds_free_locale(locale);
 		return NULL;
 	}
@@ -805,7 +805,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 	TDSCONNECTION *connection;
 	char hostname[128];
 #if HAVE_NL_LANGINFO && defined(CODESET)
-	char *charset;
+	const char *charset;
 #else
 	char *lc_all, *tok = NULL;
 #endif

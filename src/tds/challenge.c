@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.50 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.51 2011-06-05 09:21:49 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -256,7 +256,7 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
 	int mac_len = 16 + client_data_len;
 	unsigned char *mac;
 
-	mac = malloc(mac_len);
+	mac = (unsigned char*) malloc(mac_len);
 	if (!mac)
 		return NULL;
 
@@ -764,7 +764,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	auth->tds_auth.handle_next = tds_ntlm_handle_next;
 
 	auth->tds_auth.packet_len = auth_len = 40 + host_name_len + domain_len;
-	auth->tds_auth.packet = packet = malloc(auth_len);
+	auth->tds_auth.packet = packet = (TDS_UCHAR*) malloc(auth_len);
 	if (!packet) {
 		free(auth);
 		return NULL;

@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.214 2011-06-03 21:04:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.215 2011-06-05 09:21:49 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -675,7 +675,7 @@ ct_cmd_alloc(CS_CONNECTION * con, CS_COMMAND ** cmd)
 	/* initialise command state */
 	ct_set_command_state(*cmd, _CS_COMMAND_IDLE);
 
-	command_list = calloc(1, sizeof(CS_COMMAND_LIST));
+	command_list = (CS_COMMAND_LIST*) calloc(1, sizeof(CS_COMMAND_LIST));
 	command_list->cmd = *cmd;
 	command_list->next = NULL;
 
@@ -768,7 +768,7 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 			return CS_FAIL;
 
 		if (buflen == CS_NULLTERM) {
-			cmd->rpc->name = strdup(buffer);
+			cmd->rpc->name = strdup((const char*) buffer);
 			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
 		} else if (buflen > 0) {
@@ -2439,7 +2439,7 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			case CS_GET: {
 				if (buffer && buflen > 0 && outlen) {
 					const TDS_COMPILETIME_SETTINGS *settings= tds_get_compiletime_settings();
-					*outlen= snprintf(buffer, buflen, "%s", settings->freetds_version);
+					*outlen= snprintf((char*) buffer, buflen, "%s", settings->freetds_version);
 					((char*)buffer)[buflen - 1]= 0;
 					if (*outlen < 0)
 						*outlen = strlen((char*) buffer);
@@ -2525,7 +2525,7 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 				size_t len = strlen(cursor->cursor_name);
 				if (len >= buflen)
 					return CS_FAIL;
-				strcpy(buffer, cursor->cursor_name);
+				strcpy((char*) buffer, cursor->cursor_name);
 				if (outlen) *outlen = len;
 			}
 			if (property == CS_CUR_ROWCOUNT) {
@@ -2672,7 +2672,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 		/* allocare needed descriptor if needed */
 		free(cmd->iodesc);
-		cmd->iodesc = calloc(1, sizeof(CS_IODESC));
+		cmd->iodesc = (CS_IODESC*) calloc(1, sizeof(CS_IODESC));
 		if (!cmd->iodesc)
 			return CS_FAIL;
 
@@ -2817,7 +2817,7 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 		cmd->send_data_started = 1;
 	}
 
-	if (tds_writetext_continue(tds, buffer, buflen) != TDS_SUCCESS)
+	if (tds_writetext_continue(tds, (const TDS_UCHAR*) buffer, buflen) != TDS_SUCCESS)
 		return CS_FAIL;
 
 	return CS_SUCCEED;
@@ -2841,7 +2841,7 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 	case CS_SET:
 
 		free(cmd->iodesc);
-		cmd->iodesc = malloc(sizeof(CS_IODESC));
+		cmd->iodesc = (CS_IODESC*) malloc(sizeof(CS_IODESC));
 
 		cmd->iodesc->iotype = CS_IODATA;
 		cmd->iodesc->datatype = iodesc->datatype;
@@ -3878,7 +3878,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 			memcpy(curcol->column_data, value, size);
 		else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
-			blob->textvalue = malloc(size);
+			blob->textvalue = (TDS_CHAR*) malloc(size);
 			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n",
 					size, blob->textvalue);
 			if (!blob->textvalue)
@@ -3891,7 +3891,7 @@ paramrowalloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *va
 		curcol->column_cur_size = -1;
 	}
 
-	return row;
+	return (const unsigned char*) row;
 }
 
 /**
@@ -4093,7 +4093,7 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 			if (param->name == NULL)
 				return CS_FAIL;
 		} else if (datafmt->namelen > 0) {
-			param->name = calloc(1, datafmt->namelen + 1);
+			param->name = (char*) calloc(1, datafmt->namelen + 1);
 			if (param->name == NULL)
 				return CS_FAIL;
 			strncpy(param->name, datafmt->name, datafmt->namelen);
@@ -4157,12 +4157,12 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 				if (*(param->datalen) == CS_NULLTERM) {
 					tdsdump_log(TDS_DBG_INFO1,
 						    " _ct_fill_param() about to strdup string %u bytes long\n",
-						    (unsigned int) strlen(data));
-					*(param->datalen) = strlen(data);
+						    (unsigned int) strlen((const char*) data));
+					*(param->datalen) = strlen((const char*) data);
 				} else if (*(param->datalen) < 0) {
 					return CS_FAIL;
 				}
-				param->value = malloc(*(param->datalen) ? *(param->datalen) : 1);
+				param->value = (CS_BYTE*) malloc(*(param->datalen) ? *(param->datalen) : 1);
 				if (param->value == NULL)
 					return CS_FAIL;
 				memcpy(param->value, data, *(param->datalen));
@@ -4176,7 +4176,7 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 	} else {		/* not by value, i.e. by reference */
 		param->datalen = datalen;
 		param->ind = indicator;
-		param->value = data;
+		param->value = (CS_BYTE*) data;
 	}
 	return CS_SUCCEED;
 }
@@ -4317,7 +4317,7 @@ ct_diag_storeclientmsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_CLIENTMSG 
 		return CS_FAIL;
 	} else {
 		(*curptr)->next = NULL;
-		(*curptr)->clientmsg = malloc(sizeof(CS_CLIENTMSG));
+		(*curptr)->clientmsg = (CS_CLIENTMSG*) malloc(sizeof(CS_CLIENTMSG));
 		if ((*curptr)->clientmsg == NULL) {
 			return CS_FAIL;
 		} else {
@@ -4373,7 +4373,7 @@ ct_diag_storeservermsg(CS_CONTEXT * context, CS_CONNECTION * conn, CS_SERVERMSG 
 		return CS_FAIL;
 	} else {
 		(*curptr)->next = NULL;
-		(*curptr)->servermsg = malloc(sizeof(CS_SERVERMSG));
+		(*curptr)->servermsg = (CS_SERVERMSG*) malloc(sizeof(CS_SERVERMSG));
 		if ((*curptr)->servermsg == NULL) {
 			return CS_FAIL;
 		} else {
@@ -4526,7 +4526,7 @@ _ct_allocate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 		id_len = idlen;
 
 	if (dyn != NULL) {
-		dyn->id = malloc(id_len + 1);
+		dyn->id = (char*) malloc(id_len + 1);
 		strncpy(dyn->id, id, id_len);
 		dyn->id[id_len] = '\0';
 

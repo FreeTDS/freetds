@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.17 2011-06-05 09:20:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.18 2011-06-05 09:21:49 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -144,7 +144,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		}
 	}
 
-	bindinfo->current_row = malloc(bindinfo->row_size);
+	bindinfo->current_row = (unsigned char*) malloc(bindinfo->row_size);
 	if (!bindinfo->current_row)
 		goto cleanup;
 	bindinfo->row_free = tds_bcp_row_free;
@@ -315,7 +315,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 	    + tds_quote_id(tds, NULL, bcpcol->column_name, bcpcol->column_namelen)
 	    + strlen(column_type)
 	    + ((first) ? 2u : 4u)) {
-		char *temp = malloc(2 * clause->cb);
+		char *temp = (char*) malloc(2 * clause->cb);
 
 		if (!temp) {
 			tdserror(tds_get_ctx(tds), tds, TDSEMEM, errno);
@@ -1000,7 +1000,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 		if (bcp_record_size > bcpinfo->bindinfo->row_size) {
 			/* FIXME remove memory leak */
-			bcpinfo->bindinfo->current_row = realloc(bcpinfo->bindinfo->current_row, bcp_record_size);
+			bcpinfo->bindinfo->current_row = (unsigned char*) realloc(bcpinfo->bindinfo->current_row, bcp_record_size);
 			bcpinfo->bindinfo->row_free = tds_bcp_row_free;
 			if (bcpinfo->bindinfo->current_row == NULL) {
 				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
@@ -1051,7 +1051,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
 
 		if (bcp_record_size > bcpinfo->bindinfo->row_size) {
-			bcpinfo->bindinfo->current_row = realloc(bcpinfo->bindinfo->current_row, bcp_record_size);
+			bcpinfo->bindinfo->current_row = (unsigned char*) realloc(bcpinfo->bindinfo->current_row, bcp_record_size);
 			bcpinfo->bindinfo->row_free = tds_bcp_row_free;
 			if (bcpinfo->bindinfo->current_row == NULL) {
 				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");

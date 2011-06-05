@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.118 2011-06-04 08:13:35 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.119 2011-06-05 09:21:49 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -184,7 +184,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	SOCKLEN_T optlen;
 	
 	int retval, len;
-	int tds_error = TDSECONN;
+	TDSERRNO tds_error = TDSECONN;
 	char ip[20];
 
 	*p_oserr = 0;
@@ -489,7 +489,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
 #ifdef HAVE_GNUTLS
 	if (tds_conn(tds)->tls_session)
-		return gnutls_record_recv(tds_conn(tds)->tls_session, buf, buflen);
+		return gnutls_record_recv((gnutls_session) tds_conn(tds)->tls_session, buf, buflen);
 #elif defined(HAVE_OPENSSL)
 	if (tds_conn(tds)->tls_session)
 		return SSL_read((SSL*) tds_conn(tds)->tls_session, buf, buflen);
@@ -1191,7 +1191,7 @@ tds_ssl_read(BIO *b, char* data, int len)
 
 	if (tds_conn(tds)->tls_session) {
 		/* read directly from socket */
-		return tds_goodread(tds, data, len, 1);
+		return tds_goodread(tds, (unsigned char*) data, len, 1);
 	}
 
 	for(;;) {
@@ -1229,7 +1229,7 @@ tds_ssl_write(BIO *b, const char* data, int len)
 	if (tds_conn(tds)->tls_session) {
 		/* write to socket directly */
 		/* TODO use cork if available here to flush only on last chunk of packet ?? */
-		return tds_goodwrite(tds, data, len, tds->out_buf[1]);
+		return tds_goodwrite(tds, (const unsigned char*) data, len, tds->out_buf[1]);
 	}
 	/* write crypted data inside normal TDS packets */
 	tds_put_n(tds, data, len);
@@ -1361,11 +1361,11 @@ void
 tds_ssl_deinit(TDSSOCKET *tds)
 {
 	if (tds_conn(tds)->tls_session) {
-		gnutls_deinit(tds_conn(tds)->tls_session);
+		gnutls_deinit((gnutls_session) tds_conn(tds)->tls_session);
 		tds_conn(tds)->tls_session = NULL;
 	}
 	if (tds_conn(tds)->tls_credentials) {
-		gnutls_certificate_free_credentials(tds_conn(tds)->tls_credentials);
+		gnutls_certificate_free_credentials((gnutls_certificate_credentials) tds_conn(tds)->tls_credentials);
 		tds_conn(tds)->tls_credentials = NULL;
 	}
 }

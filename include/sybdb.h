@@ -42,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.104 2011-05-23 19:27:09 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.105 2011-06-05 09:21:49 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -659,7 +659,7 @@ DBINT dbcurrow(DBPROCESS * dbproc);
 
 #define DBCURROW(x) dbcurrow((x))
 BYTE *dbdata(DBPROCESS * dbproc, int column);
-RETCODE dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2);
+int dbdatecmp(DBPROCESS * dbproc, DBDATETIME * d1, DBDATETIME * d2);
 RETCODE dbdatecrack(DBPROCESS * dbproc, DBDATEREC * di, DBDATETIME * dt);
 DBINT dbdatlen(DBPROCESS * dbproc, int column);
 DBBOOL dbdead(DBPROCESS * dbproc);
@@ -726,7 +726,7 @@ RETCODE dbmorecmds(DBPROCESS * dbproc);
 RETCODE dbmoretext(DBPROCESS * dbproc, DBINT size, const BYTE text[]);
 MHANDLEFUNC dbmsghandle(MHANDLEFUNC handler);
 char *dbname(DBPROCESS * dbproc);
-RETCODE dbnextrow(DBPROCESS * dbproc);
+STATUS dbnextrow(DBPROCESS * dbproc);
 RETCODE dbnullbind(DBPROCESS * dbproc, int column, DBINT * indicator);
 int dbnumalts(DBPROCESS * dbproc, int computeid);
 int dbnumcols(DBPROCESS * dbproc);
