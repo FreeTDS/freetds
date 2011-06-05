@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.16 2011-06-03 21:04:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.17 2011-06-05 09:20:27 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -74,9 +74,9 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	/* TODO quote tablename if needed */
 	if (bcpinfo->direction != TDS_BCP_QUERYOUT)
-	    fmt = "SET FMTONLY ON select * from %s SET FMTONLY OFF";
+		fmt = "SET FMTONLY ON select * from %s SET FMTONLY OFF";
 	else
-	    fmt = "SET FMTONLY ON %s SET FMTONLY OFF";
+		fmt = "SET FMTONLY ON %s SET FMTONLY OFF";
 
 	if (tds_submit_queryf(tds, fmt, bcpinfo->tablename) == TDS_FAIL)
 		/* TODO return an error ?? */
@@ -86,8 +86,8 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	/* TODO possibly stop at ROWFMT and copy before going to idle */
 	/* TODO check what happen if table is not present, cleanup on error */
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
-		   == TDS_SUCCESS) {
-	}
+		   == TDS_SUCCESS)
+		continue;
 	if (rc != TDS_NO_MORE_RESULTS)
 		return TDS_FAIL;
 

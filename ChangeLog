@@ -1,3 +1,6 @@
+Sun Jun  5 11:20:33 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/bulk.c: style updates
+
 Sat Jun  4 10:15:12 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: change the way autocommit is sent to server
 
@@ -355,4 +358,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3281 2011-06-04 08:15:09 freddy77 Exp $
+$Id: ChangeLog,v 1.3282 2011-06-05 09:20:27 freddy77 Exp $
