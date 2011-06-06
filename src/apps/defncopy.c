@@ -89,7 +89,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #endif
 #endif /* MicrosoftsDbLib */
 
-static char software_version[] = "$Id: defncopy.c,v 1.25 2011-05-16 08:51:40 freddy77 Exp $";
+static char software_version[] = "$Id: defncopy.c,v 1.26 2011-06-06 07:50:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifndef MicrosoftsDbLib
@@ -652,6 +652,7 @@ static LOGINREC *
 get_login(int argc, char *argv[], OPTIONS *options)
 {
 	LOGINREC *login;
+	char *password;
 	int ch;
 	int fdomain = TRUE;
 
@@ -682,8 +683,11 @@ get_login(int argc, char *argv[], OPTIONS *options)
 			fdomain = FALSE;
 			break;
 		case 'P':
-			DBSETLPWD(login, optarg);
-			memset(optarg, 0, strlen(optarg));
+			password = getpassarg(optarg);
+			DBSETLPWD(login, password);
+			memset(password, 0, strlen(password));
+			free(password);
+			password = NULL;
 			fdomain = FALSE;
 			break;
 		case 'S':
