@@ -42,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.100 2011-03-27 16:36:53 jklowden Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.100.2.1 2011-06-06 12:31:45 freddy77 Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -234,6 +234,7 @@ typedef unsigned char DBBIT;
 typedef unsigned char DBTINYINT;
 typedef tds_sysdep_int16_type DBSMALLINT;
 typedef tds_sysdep_int32_type DBINT;
+typedef tds_sysdep_int64_type DBBIGINT;
 typedef unsigned char DBBINARY;
 typedef tds_sysdep_real32_type DBREAL;
 typedef tds_sysdep_real64_type DBFLT8;
@@ -470,7 +471,8 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define BITBIND           16
 #define NUMERICBIND       17
 #define DECIMALBIND       18
-#define MAXBINDTYPES      19	/* keep last */
+#define BIGINTBIND        30
+#define MAXBINDTYPES      31	/* keep last */
 
 #define DBPRCOLSEP  21
 #define DBPRLINELEN 22

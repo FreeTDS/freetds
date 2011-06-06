@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.378.2.2 2011-04-11 13:33:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.378.2.3 2011-06-06 12:31:45 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -441,6 +441,7 @@ static const DBBIT		null_BIT = 0;
 static const DBTINYINT		null_TINYINT = 0;
 static const DBSMALLINT		null_SMALLINT = 0;
 static const DBINT		null_INT = 0;
+static const DBBIGINT		null_BIGINT = 0;
 static const DBFLT8		null_FLT8 = 0;
 static const DBREAL		null_REAL = 0;
 
@@ -474,7 +475,19 @@ static NULLREP default_null_representations[MAXBINDTYPES] = {
 	/* BITBIND	     16 */	, {         &null_BIT, sizeof(null_BIT) }
 	/* NUMERICBIND       17 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
 	/* DECIMALBIND       18 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
-	/* MAXBINDTYPES      19 */
+	/* 	             19 */	, {         NULL, 0 }
+	/* 	             20 */	, {         NULL, 0 }
+	/* 	             21 */	, {         NULL, 0 }
+	/* 	             22 */	, {         NULL, 0 }
+	/* 	             23 */	, {         NULL, 0 }
+	/* 	             24 */	, {         NULL, 0 }
+	/* 	             25 */	, {         NULL, 0 }
+	/* 	             26 */	, {         NULL, 0 }
+	/* 	             27 */	, {         NULL, 0 }
+	/* 	             28 */	, {         NULL, 0 }
+	/* 	             29 */	, {         NULL, 0 }
+	/* BIGINTBIND        30 */	, { (BYTE*) &null_BIGINT, sizeof(null_BIGINT) }
+	/* MAXBINDTYPES      31 */
 };
 
 static int
@@ -503,6 +516,7 @@ dbbindtype(int datatype)
 	case SYBINT1:		return TINYBIND;
 	case SYBINT2:		return SMALLBIND;
 	case SYBINT4:		return INTBIND;
+	case SYBINT8:		return BIGINTBIND;
 
 	case SYBMONEY:		return MONEYBIND;
 	case SYBMONEY4:		return SMALLMONEYBIND;
@@ -562,6 +576,7 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	case SMALLDATETIMEBIND:
 	case SMALLMONEYBIND:
 	case TINYBIND:
+	case BIGINTBIND:
 		memcpy(varaddr, pnullrep->bindval, pnullrep->len);
 		return SUCCEED;
 	default:
@@ -1906,6 +1921,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	case SMALLDATETIMEBIND:
 	case SMALLMONEYBIND:
 	case TINYBIND:
+	case BIGINTBIND:
 		bindlen = (int)default_null_representations[bindtype].len;
 		break;
 
@@ -2109,6 +2125,9 @@ _db_get_server_type(int bindtype)
 		break;
 	case TINYBIND:
 		return SYBINT1;
+		break;
+	case BIGINTBIND:
+		return SYBINT8;
 		break;
 	case DATETIMEBIND:
 		return SYBDATETIME;
