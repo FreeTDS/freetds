@@ -48,7 +48,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.78 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.79 2011-06-06 07:27:10 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -459,7 +459,7 @@ cs_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 			free(ctx->userdata);
 	
 			if (buflen == CS_NULLTERM) {
-				maxcp = strlen(buffer) + 1;
+				maxcp = strlen((char*) buffer) + 1;
 			} else {
 				maxcp = buflen;
 			}
@@ -1361,7 +1361,7 @@ cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message)
 		return CS_FAIL;
 	} else {
 		(*curptr)->next = NULL;
-		(*curptr)->msg  = malloc(sizeof(CS_CLIENTMSG));
+		(*curptr)->msg  = (CS_CLIENTMSG*) malloc(sizeof(CS_CLIENTMSG));
 		if ((*curptr)->msg == NULL) {
 			return CS_FAIL;
 		} else {

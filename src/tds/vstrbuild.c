@@ -33,7 +33,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vstrbuild.c,v 1.19 2011-05-20 20:53:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: vstrbuild.c,v 1.20 2011-06-06 07:27:10 freddy77 Exp $");
 
 struct string_linked_list
 {
@@ -79,7 +79,7 @@ norm_fmt(const char *fmt, int fmtlen)
 }
 
 int
-tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, const char *formats, int formatlen, va_list ap)
+tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen, va_list ap)
 {
 	char *newformat;
 	char *params;

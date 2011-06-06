@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.97 2011-06-03 21:13:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.98 2011-06-06 07:27:10 freddy77 Exp $");
 
 /**
  * Set state of TDS connection, with logging and checking.
@@ -228,7 +228,7 @@ typedef struct tds_error_message
 {
 	TDSERRNO msgno;
 	int severity;
-	char *msgtext;
+	const char *msgtext;
 } TDS_ERROR_MESSAGE;
 
 static const TDS_ERROR_MESSAGE tds_error_messages[] = 
@@ -339,7 +339,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		msg.state = -1;
 		msg.server = "OpenClient";
 		msg.line_number = -1;
-		msg.message = err->msgtext;
+		msg.message = (TDS_CHAR*) err->msgtext;
 		msg.sql_state = tds_alloc_client_sqlstate(msg.msgno);
 		
 		msg.oserr = errnum;

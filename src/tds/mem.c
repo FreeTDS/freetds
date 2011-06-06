@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.216 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.217 2011-06-06 07:27:10 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -1221,7 +1221,7 @@ tds_free_msg(TDSMESSAGE * message)
 char *
 tds_alloc_client_sqlstate(int msgno)
 {
-	char *p = NULL;
+	const char *p = NULL;
 
 	switch (msgno) {
 		SQLS_ENTRY(17000, "S1T00");	/* timeouts ??? */

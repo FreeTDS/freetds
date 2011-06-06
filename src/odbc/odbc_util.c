@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.126 2011-06-03 21:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.127 2011-06-06 07:27:10 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -528,7 +528,7 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 		if (axd->header.sql_desc_count < 1)
 			return;
 		drec = &axd->records[0];
-		data_ptr = drec->sql_desc_data_ptr;
+		data_ptr = (char*) drec->sql_desc_data_ptr;
 
 		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
 			len_offset = axd->header.sql_desc_bind_type * n_row;
@@ -542,7 +542,7 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 #define LEN(ptr) *((SQLLEN*)(((char*)(ptr)) + len_offset))
 
 		len = odbc_tds2sql(stmt, NULL, SYBINT4, (TDS_CHAR *) & tds->ret_status, sizeof(TDS_INT),
-				   drec->sql_desc_concise_type, (void *) data_ptr, drec->sql_desc_octet_length, NULL);
+				   drec->sql_desc_concise_type, (TDS_CHAR *) data_ptr, drec->sql_desc_octet_length, NULL);
 		if (len == SQL_NULL_DATA)
 			return /* SQL_ERROR */ ;
 		if (drec->sql_desc_indicator_ptr)
@@ -591,7 +591,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 				break;
 		}
 
-		data_ptr = drec_apd->sql_desc_data_ptr;
+		data_ptr = (char*) drec_apd->sql_desc_data_ptr;
 		if (axd->header.sql_desc_bind_type != SQL_BIND_BY_COLUMN) {
 			len_offset = axd->header.sql_desc_bind_type * n_row;
 			if (axd->header.sql_desc_bind_offset_ptr)
@@ -622,7 +622,7 @@ odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 		 * Or tests are wrong ??
 		 */
 		len = odbc_tds2sql(stmt, colinfo, tds_get_conversion_type(colinfo->on_server.column_type, colinfo->on_server.column_size), src, srclen,
-				   c_type, (void *) data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
+				   c_type, (TDS_CHAR*) data_ptr, drec_apd->sql_desc_octet_length, drec_ipd);
 		if (len == SQL_NULL_DATA)
 			return /* SQL_ERROR */ ;
 		if (drec_apd->sql_desc_indicator_ptr)

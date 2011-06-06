@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.18 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.19 2011-06-06 07:27:10 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -177,7 +177,7 @@ static int
 tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpcol, int first)
 {
 	char buffer[32];
-	char *column_type = buffer;
+	const char *column_type = buffer;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds7_build_bulk_insert_stmt(%p, %p, %p, %d)\n", tds, clause, bcpcol, first);
 
@@ -268,41 +268,41 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 		}
 		break;
 	case SYBDECIMAL:
-		sprintf(column_type, "decimal(%d,%d)", bcpcol->column_prec, bcpcol->column_scale);
+		sprintf(buffer, "decimal(%d,%d)", bcpcol->column_prec, bcpcol->column_scale);
 		break;
 	case SYBNUMERIC:
-		sprintf(column_type, "numeric(%d,%d)", bcpcol->column_prec, bcpcol->column_scale);
+		sprintf(buffer, "numeric(%d,%d)", bcpcol->column_prec, bcpcol->column_scale);
 		break;
 
 	case XSYBVARBINARY:
-		sprintf(column_type, "varbinary(%d)", bcpcol->column_size);
+		sprintf(buffer, "varbinary(%d)", bcpcol->column_size);
 		break;
 	case XSYBVARCHAR:
-		sprintf(column_type, "varchar(%d)", bcpcol->column_size);
+		sprintf(buffer, "varchar(%d)", bcpcol->column_size);
 		break;
 	case XSYBBINARY:
-		sprintf(column_type, "binary(%d)", bcpcol->column_size);
+		sprintf(buffer, "binary(%d)", bcpcol->column_size);
 		break;
 	case XSYBCHAR:
-		sprintf(column_type, "char(%d)", bcpcol->column_size);
+		sprintf(buffer, "char(%d)", bcpcol->column_size);
 		break;
 	case SYBTEXT:
-		sprintf(column_type, "text");
+		column_type = "text";
 		break;
 	case SYBIMAGE:
-		sprintf(column_type, "image");
+		column_type = "image";
 		break;
 	case XSYBNVARCHAR:
-		sprintf(column_type, "nvarchar(%d)", bcpcol->column_size);
+		sprintf(buffer, "nvarchar(%d)", bcpcol->column_size);
 		break;
 	case XSYBNCHAR:
-		sprintf(column_type, "nchar(%d)", bcpcol->column_size);
+		sprintf(buffer, "nchar(%d)", bcpcol->column_size);
 		break;
 	case SYBNTEXT:
-		sprintf(column_type, "ntext");
+		column_type = "ntext";
 		break;
 	case SYBUNIQUE:
-		sprintf(column_type, "uniqueidentifier  ");
+		column_type = "uniqueidentifier  ";
 		break;
 	default:
 		tdserror(tds_get_ctx(tds), tds, TDSEBPROBADTYP, errno);

@@ -1,3 +1,9 @@
+Mon Jun  6 09:27:10 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/cs.c src/dblib/dblib.c src/odbc/odbc.c:
+	* src/odbc/odbc_util.c src/tds/bulk.c src/tds/mem.c:
+	* src/tds/token.c src/tds/util.c src/tds/vstrbuild.c:
+	- more work on type safety
+
 Sun Jun  5 12:07:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* TODO.freddy: some notes on todo
 
@@ -369,4 +375,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3284 2011-06-05 10:07:17 freddy77 Exp $
+$Id: ChangeLog,v 1.3285 2011-06-06 07:27:09 freddy77 Exp $

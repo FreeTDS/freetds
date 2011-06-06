@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.406 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.407 2011-06-06 07:27:10 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -328,7 +328,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	do {
 		struct 	{ unsigned char major, minor, tiny[2]; 
 			  unsigned int reported; 
-			  char *name;
+			  const char *name;
 			} ver;
 		
 		marker = tds_get_byte(tds);

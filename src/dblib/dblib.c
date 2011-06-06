@@ -71,14 +71,14 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.390 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.391 2011-06-06 07:27:10 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
 static int _dbnullable(DBPROCESS * dbproc, int column);
-static char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
+static const char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
 static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBINT *);
 static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
@@ -672,7 +672,7 @@ dbinit(void)
 	 * DBLIBCONTEXT stores a list of current connections so they may be closed with dbexit() 
 	 */
 
-	g_dblib_ctx.connection_list = calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
+	g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
 	if (g_dblib_ctx.connection_list == NULL) {
 		tdsdump_log(TDS_DBG_FUNC, "dbinit: out of memory\n");
 		TDS_MUTEX_UNLOCK(&dblib_mutex);
@@ -707,7 +707,7 @@ dblogin(void)
 
 	tdsdump_log(TDS_DBG_FUNC, "dblogin(void)\n");
 
-	if ((loginrec = malloc(sizeof(LOGINREC))) == NULL) {
+	if ((loginrec = (LOGINREC*) malloc(sizeof(LOGINREC))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -971,12 +971,12 @@ dbstring_concat(DBSTRING ** dbstrp, const char *p)
 	while (*strp != NULL) {
 		strp = &((*strp)->strnext);
 	}
-	if ((*strp = malloc(sizeof(DBSTRING))) == NULL) {
+	if ((*strp = (DBSTRING*) malloc(sizeof(DBSTRING))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
 	}
 	(*strp)->strtotlen = (DBINT)strlen(p);
-	if (((*strp)->strtext = malloc((*strp)->strtotlen)) == NULL) {
+	if (((*strp)->strtext = (BYTE*) malloc((*strp)->strtotlen)) == NULL) {
 		TDS_ZERO_FREE(*strp);
 		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
@@ -1041,7 +1041,7 @@ dbstring_get(DBSTRING * dbstr)
 		return NULL;
 	}
 	len = dbstring_length(dbstr);
-	if ((ret = malloc(len + 1)) == NULL) {
+	if ((ret = (char*) malloc(len + 1)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1099,7 +1099,7 @@ init_dboptions(void)
 	DBOPTION *dbopts;
 	int i;
 
-	if ((dbopts = calloc(DBNUMOPTIONS, sizeof(DBOPTION))) == NULL) {
+	if ((dbopts = (DBOPTION*) calloc(DBNUMOPTIONS, sizeof(DBOPTION))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1152,7 +1152,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		tdsdump_log(TDS_DBG_FUNC, "servername set to %s", server);
 	}
 
-	if ((dbproc = calloc(1, sizeof(DBPROCESS))) == NULL) {
+	if ((dbproc = (DBPROCESS*) calloc(1, sizeof(DBPROCESS))) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
@@ -1320,7 +1320,7 @@ dbcmd(DBPROCESS * dbproc, const char cmdstring[])
 	}
 
 	if (dbproc->dbbufsz == 0) {
-		dbproc->dbbuf = malloc(strlen(cmdstring) + 1);
+		dbproc->dbbuf = (unsigned char*) malloc(strlen(cmdstring) + 1);
 		if (dbproc->dbbuf == NULL) {
 			dbperror(dbproc, SYBEMEM, errno);
 			return FAIL;
@@ -1399,7 +1399,7 @@ dbuse(DBPROCESS * dbproc, const char *name)
 		return FAIL;
 
 	/* quote name */
-	query = malloc(tds_quote_id(dbproc->tds_socket, NULL, name, -1) + 6);
+	query = (char*) malloc(tds_quote_id(dbproc->tds_socket, NULL, name, -1) + 6);
 	if (!query) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
@@ -1656,7 +1656,6 @@ dbresults(DBPROCESS * dbproc)
 static RETCODE
 _dbresults(DBPROCESS * dbproc)
 {
-	RETCODE retcode = FAIL;
 	TDSSOCKET *tds;
 	int result_type = 0, done_flags;
 
@@ -1685,7 +1684,7 @@ _dbresults(DBPROCESS * dbproc)
 	}
 
 	for (;;) {
-		retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
+		int retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
 
 		tdsdump_log(TDS_DBG_FUNC, "dbresults() tds_process_tokens returned %d (%s),\n\t\t\tresult_type %s\n", 
 						retcode, prretcode(retcode), prresult_type(result_type));
@@ -1943,7 +1942,7 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 		return FAIL;
 	}
 
-	if ((pval = malloc(bindlen)) == NULL) {
+	if ((pval = (BYTE*) malloc(bindlen)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
 	}
@@ -3370,7 +3369,7 @@ dbprrow(DBPROCESS * dbproc)
 			resinfo = tds->res_info;
 
 			if (col_printlens == NULL) {
-				if ((col_printlens = calloc(resinfo->num_cols, sizeof(TDS_SMALLINT))) == NULL) {
+				if ((col_printlens = (TDS_SMALLINT*) calloc(resinfo->num_cols, sizeof(TDS_SMALLINT))) == NULL) {
 					dbperror(dbproc, SYBEMEM, errno);
 					return FAIL;
 				}
@@ -3937,7 +3936,7 @@ dbsetmaxprocs(int maxprocs)
 		return SUCCEED;
 	}
 
-	g_dblib_ctx.connection_list = calloc(maxprocs, sizeof(TDSSOCKET *));
+	g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(maxprocs, sizeof(TDSSOCKET *));
 
 	if (g_dblib_ctx.connection_list == NULL) {
 		g_dblib_ctx.connection_list = old_list;
@@ -4844,7 +4843,7 @@ dbbylist(DBPROCESS * dbproc, int computeid, int *size)
 	 */
 	if (info->by_cols > 0 && info->bycolumns[0] != byte_flag) {
 		int n;
-		TDS_TINYINT *p = malloc(sizeof(info->bycolumns[0]) + info->by_cols);
+		TDS_TINYINT *p = (TDS_TINYINT*) malloc(sizeof(info->bycolumns[0]) + info->by_cols);
 		if (!p) {
 			dbperror(dbproc, SYBEMEM, errno);
 			return NULL;
@@ -7157,7 +7156,7 @@ _dbnullable(DBPROCESS * dbproc, int column)
 	return FALSE;
 }
 
-static char *
+static const char *
 tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 {
 	switch (datatype_token) {
@@ -7922,6 +7921,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	
 	int i, rc = INT_CANCEL;
 	char *os_msgtext = strerror(errnum), *rc_name = "logic error";
+	char rc_buf[16];
 
 	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
 
@@ -7950,8 +7950,8 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			 * i.e., a format string (for dbstrbuild) after a null "terminator" in the message. 
 			 * On error -- can't allocate, can't build the string -- give up and call the client handler anyway. 
 			 */
-			char * ptext = dblib_error_messages[i].msgtext;
-			char * pformats = ptext + strlen(ptext) + 1;
+			const char * ptext = dblib_error_messages[i].msgtext;
+			const char * pformats = ptext + strlen(ptext) + 1;
 			msg = &dblib_error_messages[i];
 			assert(*(pformats - 1) == '\0'); 
 			if(*pformats != '\0') {
@@ -8035,7 +8035,8 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		return rc;	/* normal case */
 		break;
 	default:
-		sprintf(rc_name, "%d", rc);
+		sprintf(rc_buf, "%d", rc);
+		rc_name = rc_buf;
 		tdsdump_log(TDS_DBG_SEVERE, int_invalid_text, "Invalid return code", rc, msgno);
 		/* fall through */
 	case INT_EXIT:

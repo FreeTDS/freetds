@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.371 2011-06-04 08:14:24 freddy77 Exp $ */
+/* $Id: tds.h,v 1.372 2011-06-06 07:27:10 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1238,7 +1238,7 @@ const char *tds_prwsaerror(int erc);
 
 
 /* vstrbuild.c */
-int tds_vstrbuild(char *buffer, int buflen, int *resultlen, char *text, int textlen, const char *formats, int formatlen,
+int tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen,
 		  va_list ap);
 
 /* numeric.c */

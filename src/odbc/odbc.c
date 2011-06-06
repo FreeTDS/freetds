@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.567 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.568 2011-06-06 07:27:10 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -152,7 +152,7 @@ static void odbc_ird_check(TDS_STMT * stmt);
  * Bah!
  */
 
-static char *
+static const char *
 odbc_prret(SQLRETURN ret, char *unknown)
 {
 	switch (ret) {
