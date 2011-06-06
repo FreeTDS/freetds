@@ -1,3 +1,8 @@
+Mon Jun  6 14:33:18 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/t0016.in src/dblib/unittests/t0016.sql:
+	* src/tds/query.c:
+	- fix quoting identifier if reserved words used
+
 Mon Jun  6 09:50:12 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/defncopy.c: christos patch for defncopy
 
@@ -378,4 +383,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3286 2011-06-06 07:50:13 freddy77 Exp $
+$Id: ChangeLog,v 1.3287 2011-06-06 12:33:16 freddy77 Exp $
