@@ -46,7 +46,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.247.2.1 2011-05-08 22:42:59 jklowden Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.247.2.2 2011-06-06 12:39:24 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -2217,6 +2217,10 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 	if (idlen < 0)
 		idlen = (int)strlen(id);
 
+	/* quote always for mssql */
+	if (TDS_IS_MSSQL(tds) || tds->product_version >= TDS_SYB_VER(12, 5, 1))
+		return tds_quote(tds, buffer, ']', id, idlen);
+
 	/* need quote ?? */
 	for (i = 0; i < idlen; ++i) {
 		char c = id[i];
@@ -2229,7 +2233,7 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 			continue;
 		if (c == '_')
 			continue;
-		return tds_quote(tds, buffer, TDS_IS_MSSQL(tds) ? ']' : '\"', id, idlen);
+		return tds_quote(tds, buffer, '\"', id, idlen);
 	}
 
 	if (buffer) {
