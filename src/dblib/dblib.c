@@ -75,7 +75,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.378.2.3 2011-06-06 12:31:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.378.2.4 2011-06-07 08:52:29 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7119,9 +7119,9 @@ dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *for
 	int resultlen;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbstrbuild(%p, %s, %d, %s, %s, ...)\n", dbproc, charbuf, bufsize, text, formats);
-	CHECK_NULP(charbuf, "dbstrbuild", 2, -1);
-	CHECK_NULP(text, "dbstrbuild", 4, -1);
-	CHECK_NULP(formats, "dbstrbuild", 5, -1);
+	CHECK_NULP(charbuf, "dbstrbuild", 2, FAIL);
+	CHECK_NULP(text, "dbstrbuild", 4, FAIL);
+	CHECK_NULP(formats, "dbstrbuild", 5, FAIL);
 
 	va_start(ap, formats);
 	rc = tds_vstrbuild(charbuf, bufsize, &resultlen, text, TDS_NULLTERM, formats, TDS_NULLTERM, ap);
