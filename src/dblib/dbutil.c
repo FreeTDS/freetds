@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.50 2011-06-03 21:05:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.51 2011-06-07 08:46:33 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -105,7 +105,7 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 		static const char message[] = "General SQL Server error: Check messages from the SQL Server";
 		(*_dblib_err_handler)(dbproc, msg->severity, msg->msgno, DBNOERR, (char *) message, NULL);
 	}
-	return SUCCEED;
+	return TDS_SUCCESS;
 }
 
 /** \internal

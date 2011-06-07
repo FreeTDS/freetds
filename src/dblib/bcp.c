@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.210 2011-06-07 08:34:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.211 2011-06-07 08:46:33 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1801,7 +1801,7 @@ RETCODE
 bcp_exec(DBPROCESS * dbproc, DBINT *rows_copied)
 {
 	DBINT dummy_copied;
-	RETCODE ret = 0;
+	RETCODE ret = FAIL;
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_exec(%p, %p)\n", dbproc, rows_copied);
 	CHECK_CONN(FAIL);
@@ -2204,10 +2204,10 @@ bcp_batch(DBPROCESS * dbproc)
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_batch(%p)\n", dbproc);
 	CHECK_CONN(-1);
-	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
+	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, -1);
 
 	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCESS)
-		return FAIL;
+		return -1;
 
 	tds_bcp_start(dbproc->tds_socket, dbproc->bcpinfo);
 
@@ -2382,7 +2382,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_get_col_data(%p, %p)\n", bcpinfo, bindcol);
 	CHECK_CONN(TDS_FAIL);
-	CHECK_NULP(bindcol, "_bcp_get_col_data", 2, FAIL);
+	CHECK_NULP(bindcol, "_bcp_get_col_data", 2, TDS_FAIL);
 
 	dataptr = (BYTE *) bindcol->column_varaddr;
 
