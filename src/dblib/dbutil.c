@@ -36,7 +36,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbutil.c,v 1.51 2011-06-07 08:46:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbutil.c,v 1.52 2011-06-07 09:58:49 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -55,7 +55,7 @@ TDS_RCSID(var, "$Id: dbutil.c,v 1.51 2011-06-07 08:46:33 freddy77 Exp $");
 /* TODO test SYBxxx consistency */
 
 #define TEST_ATTRIBUTE(t,sa,fa,sb,fb) \
-	COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && (TDS_INTPTR)(&((sa*)0)->fa) == (TDS_INTPTR)(&((sb*)0)->fb))
+	COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && TDS_OFFSET(sa,fa) == TDS_OFFSET(sb,fb))
 
 TEST_ATTRIBUTE(t21,TDS_MONEY4,mny4,DBMONEY4,mny4);
 TEST_ATTRIBUTE(t22,TDS_OLD_MONEY,mnyhigh,DBMONEY,mnyhigh);

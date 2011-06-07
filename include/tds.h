@@ -21,11 +21,15 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.372 2011-06-06 07:27:10 freddy77 Exp $ */
+/* $Id: tds.h,v 1.373 2011-06-07 09:58:49 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
+
+#ifdef HAVE_STDDEF_H
+#include <stddef.h>
+#endif
 
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -295,6 +299,11 @@ typedef enum tds_encryption_level {
 
 #define TDS_ZERO_FREE(x) do {free((x)); (x) = NULL;} while(0)
 #define TDS_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
+#ifdef offsetof
+#define TDS_OFFSET(str, field) offsetof(str, field)
+#else
+#define TDS_OFFSET(str, field) (((char*)&((str*)0)->field)-((char*)0))
+#endif
 
 #if defined(__GNUC__) && __GNUC__ >= 3
 # define TDS_LIKELY(x)	__builtin_expect(!!(x), 1)
