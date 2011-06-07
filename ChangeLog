@@ -1,3 +1,6 @@
+Tue Jun  7 16:07:04 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/t0016.c: compatibility update
+
 Tue Jun  7 11:58:54 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/ctutil.c src/dblib/dbutil.c:
 	- add TDS_OFFSET macro
@@ -402,4 +405,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3292 2011-06-07 09:58:49 freddy77 Exp $
+$Id: ChangeLog,v 1.3293 2011-06-07 14:07:44 freddy77 Exp $

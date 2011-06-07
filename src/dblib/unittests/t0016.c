@@ -4,9 +4,8 @@
  */
 
 #include "common.h"
-#include <sys/stat.h>
 
-static char software_version[] = "$Id: t0016.c,v 1.30 2009-02-27 15:52:48 freddy77 Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.31 2011-06-07 14:07:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -41,17 +40,16 @@ main(int argc, char *argv[])
 
 	FILE *input_file, *output_file;
 
-#if 1
-	struct stat sb;
-
-	if (0 != stat(in_file, &sb)) {
+	input_file = fopen(in_file, "rb");
+	if (!input_file) {
 		in_file = INFILE_NAME;
-		if (0 != stat(in_file, &sb)) {
-			perror("could not open " INFILE_NAME);
-			exit(1);
-		}
+		input_file = fopen(in_file, "rb");
 	}
-#endif
+	if (!input_file) {
+		perror("could not open " INFILE_NAME);
+		exit(1);
+	}
+	fclose(input_file);
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
