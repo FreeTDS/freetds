@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: t0016.c,v 1.31 2011-06-07 14:07:44 freddy77 Exp $";
+static char software_version[] = "$Id: t0016.c,v 1.32 2011-06-07 14:09:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -22,34 +22,18 @@ failure(const char *fmt, ...)
         va_end(ap);
 }
 
-#define INFILE_NAME "t0016.in"
+#define INFILE_NAME "t0016"
 #define TABLE_NAME "#dblib0016"
+
+static void test_file(const char *fn);
+static DBPROCESS *dbproc;
 
 int
 main(int argc, char *argv[])
 {
 	LOGINREC *login;
-	DBPROCESS *dbproc;
-	int i;
-	RETCODE ret;
-	const char *out_file = "t0016.out";
-	const char *in_file = FREETDS_SRCDIR "/" INFILE_NAME;
-	const char *err_file = "t0016.err";
-	DBINT rows_copied;
-	int num_cols = 0;
-
-	FILE *input_file, *output_file;
-
-	input_file = fopen(in_file, "rb");
-	if (!input_file) {
-		in_file = INFILE_NAME;
-		input_file = fopen(in_file, "rb");
-	}
-	if (!input_file) {
-		perror("could not open " INFILE_NAME);
-		exit(1);
-	}
-	fclose(input_file);
+	char in_file[30];
+	unsigned int n;
 
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
@@ -70,6 +54,7 @@ main(int argc, char *argv[])
 	DBSETLPWD(login, PASSWORD);
 	DBSETLUSER(login, USER);
 	DBSETLAPP(login, "t0016");
+	DBSETLCHARSET(login, "UTF-8");
 
 	dbproc = dbopen(login, SERVER);
 	if (strlen(DATABASE)) {
@@ -78,12 +63,78 @@ main(int argc, char *argv[])
 	dbloginfree(login);
 	printf("After logon\n");
 
+	strcpy(in_file, INFILE_NAME);
+	for (n = 1; n <= 100; ++n) {
+		test_file(in_file);
+		sprintf(in_file, "%s_%d", INFILE_NAME, n);
+		if (sql_reopen(in_file) != SUCCEED)
+			break;
+	}
+
+	dbclose(dbproc);
+	dbexit();
+
+	printf("dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
+	return failed ? 1 : 0;
+}
+
+static int got_error = 0;
+
+static int
+ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
+{
+	got_error = 1;
+	return 0;
+}
+
+static int
+ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
+{
+	got_error = 1;
+	return INT_CANCEL;
+}
+
+static void
+test_file(const char *fn)
+{
+	int i;
+	RETCODE ret;
+	int num_cols = 0;
+	const char *out_file = "t0016.out";
+	const char *err_file = "t0016.err";
+	DBINT rows_copied;
+
+	FILE *input_file, *output_file;
+
+	char in_file[256];
+	snprintf(in_file, sizeof(in_file), "%s/%s.in", FREETDS_SRCDIR, fn);
+
+	input_file = fopen(in_file, "rb");
+	if (!input_file) {
+		sprintf(in_file, "%s.in", fn);
+		input_file = fopen(in_file, "rb");
+	}
+	if (!input_file) {
+		fprintf(stderr, "could not open %s\n", in_file);
+		exit(1);
+	}
+	fclose(input_file);
+
+	dberrhandle(ignore_err_handler);
+	dbmsghandle(ignore_msg_handler);
+
 	printf("Creating table '%s'\n", TABLE_NAME);
+	got_error = 0;
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
-	while (dbresults(dbproc) != NO_MORE_RESULTS) {
-		/* nop */
-	}
+	while (dbresults(dbproc) != NO_MORE_RESULTS)
+		continue;
+
+	dberrhandle(syb_err_handler);
+	dbmsghandle(syb_msg_handler);
+
+	if (got_error)
+		return;
 
 	/* BCP in */
 
@@ -160,8 +211,12 @@ main(int argc, char *argv[])
 		failure("bcp_exec failed\n");
 
 	printf("%d rows copied out\n", rows_copied);
-	dbclose(dbproc);
-	dbexit();
+
+	printf("Dropping table '%s'\n", TABLE_NAME);
+	sql_cmd(dbproc);
+	dbsqlexec(dbproc);
+	while (dbresults(dbproc) != NO_MORE_RESULTS)
+		continue;
 
 	/* check input and output should be the same */
 	input_file = fopen(in_file, "r");
@@ -208,7 +263,4 @@ main(int argc, char *argv[])
 		fclose(input_file);
 	if (output_file)
 		fclose(output_file);
-
-	printf("dblib %s on %s\n", (failed ? "failed!" : "okay"), __FILE__);
-	return failed ? 1 : 0;
 }

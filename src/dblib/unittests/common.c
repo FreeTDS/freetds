@@ -22,7 +22,7 @@
 
 #include "replacements.h"
 
-static char software_version[] = "$Id: common.c,v 1.42 2010-12-30 18:11:07 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.43 2011-06-07 14:09:17 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 typedef struct _tag_memcheck_t
@@ -321,6 +321,23 @@ sql_rewind(void)
 	if (!input_file)
 		return FAIL;
 	rewind(input_file);
+	return SUCCEED;
+}
+
+RETCODE
+sql_reopen(const char *fn)
+{
+	size_t len = snprintf(sql_file, sizeof(sql_file), "%s/%s.sql", FREETDS_SRCDIR, fn);
+	assert(len <= sizeof(sql_file));
+
+	if (input_file)
+		fclose(input_file);
+	if ((input_file = fopen(sql_file, "r")) == NULL) {
+		fflush(stdout);
+		fprintf(stderr, "could not open SQL input file \"%s\"\n", sql_file);
+		sql_file[0] = 0;
+		return FAIL;
+	}
 	return SUCCEED;
 }
 

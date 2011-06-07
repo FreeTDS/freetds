@@ -2,7 +2,7 @@
 #ifndef COMMON_h
 #define COMMON_h
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.21 2011-05-16 08:51:40 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.22 2011-06-07 14:09:17 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #include <config.h>
@@ -91,6 +91,7 @@ int syb_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char
 
 RETCODE sql_cmd(DBPROCESS *dbproc);
 RETCODE sql_rewind(void);
+RETCODE sql_reopen(const char *fn);
 
 #define int2ptr(i) ((void*)(((char*)0)+(i)))
 #define ptr2int(p) ((int)(((char*)(p))-((char*)0)))

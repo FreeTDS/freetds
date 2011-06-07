@@ -1,3 +1,8 @@
+Tue Jun  7 16:09:05 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/unittests/common.c src/dblib/unittests/common.h:
+	* src/dblib/unittests/t0016.c src/dblib/unittests/t0016.sql:
+	- support more bcp tests
+
 Tue Jun  7 16:07:04 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/t0016.c: compatibility update
 
@@ -405,4 +410,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3293 2011-06-07 14:07:44 freddy77 Exp $
+$Id: ChangeLog,v 1.3294 2011-06-07 14:09:16 freddy77 Exp $
