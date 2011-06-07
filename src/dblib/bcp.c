@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.209 2011-06-07 08:16:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.210 2011-06-07 08:34:49 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -2234,8 +2234,6 @@ bcp_done(DBPROCESS * dbproc)
 	
 	if (!(dbproc->bcpinfo))
 		return -1;
-
-	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, FAIL);
 
 	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCESS)
 		return -1;
