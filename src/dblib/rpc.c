@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.71 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.72 2011-06-07 08:11:01 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -338,7 +338,7 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 			memcpy(curcol->column_data, value, size);
 		} else {
 			TDSBLOB *blob = (TDSBLOB *) curcol->column_data;
-			blob->textvalue = malloc(size);
+			blob->textvalue = (TDS_CHAR*) malloc(size);
 			tdsdump_log(TDS_DBG_FUNC, "blob parameter supported, size %d textvalue pointer is %p\n", 
 						  size, blob->textvalue);
 			if (!blob->textvalue)
@@ -351,7 +351,7 @@ param_row_alloc(TDSPARAMINFO * params, TDSCOLUMN * curcol, int param_num, void *
 		curcol->column_cur_size = -1;
 	}
 
-	return row;
+	return (const unsigned char*) row;
 }
 
 /** 

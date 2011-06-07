@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.207 2011-06-02 20:33:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.208 2011-06-07 08:11:01 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -204,7 +204,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 
 	/* Allocate storage */
 	
-	dbproc->bcpinfo = calloc(1, sizeof(TDSBCPINFO));
+	dbproc->bcpinfo = (TDSBCPINFO*) calloc(1, sizeof(TDSBCPINFO));
 	if (dbproc->bcpinfo == NULL)
 		goto memory_error;
 
@@ -231,7 +231,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return SUCCEED;
 	}
 
-	dbproc->hostfileinfo = calloc(1, sizeof(BCP_HOSTFILEINFO));
+	dbproc->hostfileinfo = (BCP_HOSTFILEINFO*) calloc(1, sizeof(BCP_HOSTFILEINFO));
 
 	if (dbproc->hostfileinfo == NULL)
 		goto memory_error;
@@ -321,7 +321,7 @@ bcp_columns(DBPROCESS * dbproc, int host_colcount)
 
 	_bcp_free_columns(dbproc);
 
-	dbproc->hostfileinfo->host_columns = calloc(host_colcount, sizeof(BCP_HOSTCOLINFO *));
+	dbproc->hostfileinfo->host_columns = (BCP_HOSTCOLINFO**) calloc(host_colcount, sizeof(BCP_HOSTCOLINFO *));
 	if (dbproc->hostfileinfo->host_columns == NULL) {
 		dbperror(dbproc, SYBEMEM, ENOMEM);
 		return FAIL;
@@ -330,7 +330,7 @@ bcp_columns(DBPROCESS * dbproc, int host_colcount)
 	dbproc->hostfileinfo->host_colcount = host_colcount;
 
 	for (i = 0; i < host_colcount; i++) {
-		dbproc->hostfileinfo->host_columns[i] = calloc(1, sizeof(BCP_HOSTCOLINFO));
+		dbproc->hostfileinfo->host_columns[i] = (BCP_HOSTCOLINFO*) calloc(1, sizeof(BCP_HOSTCOLINFO));
 		if (dbproc->hostfileinfo->host_columns[i] == NULL) {
 			dbproc->hostfileinfo->host_colcount = i;
 			_bcp_free_columns(dbproc);
@@ -457,7 +457,7 @@ bcp_colfmt(DBPROCESS * dbproc, int host_colnum, int host_type, int host_prefixle
 
 	/* TODO add precision scale and join with bcp_colfmt_ps */
 	if (host_term && host_termlen > 0) {
-		if ((terminator = malloc(host_termlen)) == NULL) {
+		if ((terminator = (BYTE*) malloc(host_termlen)) == NULL) {
 			dbperror(dbproc, SYBEMEM, errno);
 			return FAIL;
 		}
@@ -752,7 +752,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	int row_of_query;
 	int rows_written;
-	char *bcpdatefmt;
+	const char *bcpdatefmt;
 	int tdsret;
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_exec_out(%p, %p)\n", dbproc, rows_copied);
@@ -1259,7 +1259,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				cd = (iconv_t) - 1;
 			}
 
-			coldata = calloc(1, 1 + collen);
+			coldata = (char*) calloc(1, 1 + collen);
 			if (coldata == NULL) {
 				*row_error = TRUE;
 				tdsdump_log(TDS_DBG_FUNC, "calloc returned NULL pointer!\n");
@@ -1485,7 +1485,7 @@ _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len)
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_measure_terminated_field(%p, %p, %d)\n", hostfile, terminator, term_len);
 
-	if ((sample = malloc(term_len)) == NULL) {
+	if ((sample = (char*) malloc(term_len)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		return -1;
 	}
@@ -1717,7 +1717,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 					size_t chunk = error_row_size > chunk_size ? chunk_size : (size_t) error_row_size;
 
 					if (!row_in_error) {
-						if ((row_in_error = malloc(chunk)) == NULL) {
+						if ((row_in_error = (char*) malloc(chunk)) == NULL) {
 							dbperror(dbproc, SYBEMEM, errno);
 						}
 					}
@@ -1915,13 +1915,13 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 	while ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != NULL) {
 
 		if (topptr == NULL) {	/* first time */
-			if ((curptr = malloc(sizeof(struct fflist))) == NULL) {
+			if ((curptr = (struct fflist*) malloc(sizeof(struct fflist))) == NULL) {
 				dbperror(dbproc, SYBEMEM, errno);
 				return (FAIL);
 			}
 			topptr = curptr;
 		} else {
-			if ((curptr->nextptr = malloc(sizeof(struct fflist))) == NULL) {
+			if ((curptr->nextptr = (struct fflist*) malloc(sizeof(struct fflist))) == NULL) {
 				dbperror(dbproc, SYBEMEM, errno);
 				return (FAIL);
 			}
@@ -2107,7 +2107,7 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 			if (*tok != '\"')
 				return (FALSE);
 
-			if ((ci->terminator = malloc(i)) == NULL) {
+			if ((ci->terminator = (BYTE*) malloc(i)) == NULL) {
 				dbperror(dbproc, SYBEMEM, errno);
 				return FALSE;
 			}
@@ -2357,7 +2357,7 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 
 	TDS_ZERO_FREE(colinfo->bcp_terminator);
 	colinfo->bcp_term_len = 0;
-	if((colinfo->bcp_terminator =  malloc(termlen)) == NULL) {
+	if((colinfo->bcp_terminator =  (TDS_CHAR*) malloc(termlen)) == NULL) {
 		dbperror(dbproc, SYBEMEM, errno);
 		return FAIL;
 	}
