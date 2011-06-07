@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.72 2011-06-07 08:11:01 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.73 2011-06-07 08:16:05 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -80,8 +80,7 @@ dbrpcinit(DBPROCESS * dbproc, const char rpcname[], DBSMALLINT options)
 	int dbrpcrecompile = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcinit(%p, %s, %d)\n", dbproc, rpcname, options);
-	CHECK_DBPROC();
-	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
+	CHECK_CONN(FAIL);
 	CHECK_NULP(rpcname, "dbrpcinit", 2, FAIL);
 
 	/*
@@ -168,8 +167,7 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DB
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcparam(%p, %s, 0x%x, %d, %d, %d, %p)\n", 
 				   dbproc, paramname, status, type, maxlen, datalen, value);
-	CHECK_DBPROC();
-	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
+	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->rpc, SYBERPCS, FAIL);
 
 	/* validate datalen parameter */
@@ -278,8 +276,7 @@ dbrpcsend(DBPROCESS * dbproc)
 	DBREMOTE_PROC *rpc;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcsend(%p)\n", dbproc);
-	CHECK_DBPROC();
-	DBPERROR_RETURN(IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE);
+	CHECK_CONN(FAIL);
 	CHECK_PARAMETER(dbproc->rpc, SYBERPCS, FAIL);	/* dbrpcinit should allocate pointer */
 
 	/* sanity */

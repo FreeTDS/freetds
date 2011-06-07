@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.46 2010-01-25 23:05:58 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.47 2011-06-07 08:16:05 freddy77 Exp $ */
 
 typedef enum tag_DB_RESULT_STATE {
 	  _DB_RES_INIT
@@ -185,11 +185,12 @@ extern MHANDLEFUNC _dblib_msg_handler;
 extern EHANDLEFUNC _dblib_err_handler;
 
 #define CHECK_PARAMETER(x, msg, ret)	if (!(x)) { dbperror(dbproc, (msg), 0); return ret; }
-#define CHECK_DBPROC() CHECK_PARAMETER(dbproc, SYBENULL, FAIL)
 #define CHECK_NULP(x, func, param_num, ret)	if (!(x)) { dbperror(dbproc, SYBENULP, 0, func, (int) param_num); return ret; }
 #define CHECK_PARAMETER_NOPROC(x, msg)	if (!(x)) { dbperror(NULL, (msg), 0); return FAIL; }
 #define DBPERROR_RETURN(x, msg)	if (x) { dbperror(dbproc, (msg), 0); return FAIL; }
 #define DBPERROR_RETURN3(x, msg, a, b, c)	if (x) { dbperror(dbproc, (msg), 0, a, b, c); return FAIL; }
+#define CHECK_CONN(ret) do { CHECK_PARAMETER(dbproc, SYBENULL, (ret)); \
+	if (IS_TDSDEAD(dbproc->tds_socket)) { dbperror(NULL, SYBEDDNE, 0); return (ret); } } while(0)
 
 
 #ifdef __cplusplus
