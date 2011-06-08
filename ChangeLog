@@ -1,3 +1,6 @@
+Wed Jun  8 10:48:34 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: use TDS_OFFSET
+
 Tue Jun  7 16:14:23 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/unittests/t0016_1.in src/dblib/unittests/t0016_1.sql:
 	- add test for utf-8 encoding
@@ -414,4 +417,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3295 2011-06-07 14:14:27 freddy77 Exp $
+$Id: ChangeLog,v 1.3296 2011-06-08 08:48:38 freddy77 Exp $

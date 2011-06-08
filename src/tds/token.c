@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.407 2011-06-06 07:27:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.408 2011-06-08 08:48:38 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -1930,7 +1930,7 @@ tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 #if ENABLE_EXTRA_CHECKS
 COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSBLOB*)0)->textvalue));
-COMPILE_CHECK(tds_variant_offset,(TDS_INTPTR)(&((TDSVARIANT*)0)->data) == (TDS_INTPTR)(&((TDSBLOB*)0)->textvalue));
+COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(TDSBLOB, textvalue));
 #endif
 
 static int
