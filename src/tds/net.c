@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.119 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.120 2011-06-08 09:35:50 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -664,7 +664,10 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			tds_close_socket(tds);
 			return -1;
 
-		} else if (rc < 0) {
+		}
+
+		/* error */
+		if (rc < 0) {
 			int err = sock_errno;
 			if (TDSSOCK_WOULDBLOCK(err)) /* shouldn't happen, but OK, retry */
 				continue;
@@ -672,19 +675,18 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			tds_close_socket(tds);
 			return -1;
-		} else { /* timeout */
-			tdsdump_log(TDS_DBG_NETWORK, "tds_goodwrite(): timed out, asking client\n");
-			switch (rc = tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
-			case TDS_INT_CONTINUE:
-				continue;
-			default:
-			case TDS_INT_CANCEL:
-				tds_close_socket(tds);
-				return -1;
-			}
-			assert(0); /* not reached */
 		}
-		assert(0); /* not reached */
+
+		/* timeout */
+		tdsdump_log(TDS_DBG_NETWORK, "tds_goodwrite(): timed out, asking client\n");
+		switch (rc = tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
+		case TDS_INT_CONTINUE:
+			break;
+		default:
+		case TDS_INT_CANCEL:
+			tds_close_socket(tds);
+			return -1;
+		}
 	}
 
 #ifdef USE_CORK
