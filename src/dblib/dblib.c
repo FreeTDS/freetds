@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.393 2011-06-07 08:46:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.394 2011-06-08 09:02:00 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -7469,7 +7469,7 @@ typedef struct _dblib_error_message
 {
 	DBINT msgno;
 	int severity;
-	char *msgtext;
+	const char *msgtext;
 } DBLIB_ERROR_MESSAGE;
 
 /*
@@ -7864,7 +7864,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	const DBLIB_ERROR_MESSAGE *msg = &default_message;
 	
 	int i, rc = INT_CANCEL;
-	char *os_msgtext = strerror(errnum), *rc_name = "logic error";
+	const char *os_msgtext = strerror(errnum), *rc_name = "logic error";
 	char rc_buf[16];
 
 	tdsdump_log(TDS_DBG_FUNC, "dbperror(%p, %d, %ld)\n", dbproc, msgno, errnum);	/* dbproc can be NULL */
@@ -7914,6 +7914,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 					break;
 				}
 				constructed_message.msgtext = buffer;
+				constructed_message.severity = msg->severity;
 				msg = &constructed_message;
 			}
 			break;
@@ -7922,7 +7923,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	tdsdump_log(TDS_DBG_FUNC, "%d: \"%s\"\n", msgno, msg->msgtext);
 
 	/* call the error handler */
-	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, msg->msgtext, os_msgtext);
+	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, (char*) msg->msgtext, (char*) os_msgtext);
 	switch (rc) {
 	case INT_EXIT:
 		rc_name = "INT_EXIT";	
@@ -7943,9 +7944,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 	tdsdump_log(TDS_DBG_FUNC, "\"%s\", client returns %d (%s)\n", msg->msgtext, rc, rc_name);
 
 	/* we're done with the dynamic string now. */
-	if (msg == &constructed_message) {
-		TDS_ZERO_FREE(constructed_message.msgtext);
-	}
+	free((char*) constructed_message.msgtext);
 	
       	/* Timeout return codes are errors for non-timeout conditions. */
 	if (msgno != SYBETIME) {
