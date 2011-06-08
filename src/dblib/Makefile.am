@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.37 2010-01-21 08:34:04 freddy77 Exp $
+# $Id: Makefile.am,v 1.38 2011-06-08 09:25:53 freddy77 Exp $
 SUBDIRS		=	unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 
@@ -20,5 +20,5 @@ else
 SYMBOLS		=	-export-symbols-regex '^(db|bcp_|tdsdump_open|tdsdbopen|.*_xact|close_commit|open_commit|.?asprintf).*'
 endif
 libsybdb_la_LDFLAGS=	-version-info 5:0:0 $(SYMBOLS) $(FREETDS_SYMBOLIC)
-libsybdb_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
+libsybdb_la_LIBADD=	../tds/libtds.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC)
 

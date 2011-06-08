@@ -1,3 +1,11 @@
+Wed Jun  8 11:25:50 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/Makefile.am src/apps/fisql/Makefile.am:
+	* src/ctlib/Makefile.am src/ctlib/unittests/Makefile.am:
+	* src/dblib/Makefile.am src/dblib/unittests/Makefile.am:
+	* src/odbc/Makefile.am src/pool/Makefile.am src/server/Makefile.am:
+	* src/tds/unittests/Makefile.am:
+	- use LTLIBICONV instead of LIBICONV
+
 Wed Jun  8 11:01:59 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c: small dblib improve
 
@@ -420,4 +428,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3297 2011-06-08 09:02:00 freddy77 Exp $
+$Id: ChangeLog,v 1.3298 2011-06-08 09:25:51 freddy77 Exp $

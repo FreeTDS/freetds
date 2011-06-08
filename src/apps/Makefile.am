@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.30 2010-01-27 03:21:08 jklowden Exp $
+# $Id: Makefile.am,v 1.31 2011-06-08 09:25:51 freddy77 Exp $
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
@@ -16,28 +16,28 @@ endif
 
 dist_bin_SCRIPTS = osql
 
-freebcp_LDADD	= ../dblib/libsybdb.la ../replacements/libreplacements.la $(LIBICONV) $(NETWORK_LIBS)
+freebcp_LDADD	= ../dblib/libsybdb.la ../replacements/libreplacements.la $(LTLIBICONV) $(NETWORK_LIBS)
 freebcp_SOURCES = freebcp.c freebcp.h
 
 tsql_LDADD	= ../tds/libtds.la \
 		  ../replacements/libreplacements.la \
-		  $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC) $(READLINE_LIBS)
+		  $(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC) $(READLINE_LIBS)
 
 bsqldb_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
-		  $(NETWORK_LIBS) $(LIBICONV)
+		  $(NETWORK_LIBS) $(LTLIBICONV)
 
 if ODBC
 bsqlodbc_CPPFLAGS	= $(ODBC_INC) $(AM_CPPFLAGS)
 bsqlodbc_LDADD	= $(ODBCLIB) $(ODBCNODMLIBAPP) \
-		  ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV)
+		  ../replacements/libreplacements.la $(NETWORK_LIBS) $(LTLIBICONV)
 endif
 
 defncopy_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
-		  $(NETWORK_LIBS) $(LIBICONV)
+		  $(NETWORK_LIBS) $(LTLIBICONV)
 
 datacopy_SOURCES= datacopy.c
 datacopy_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
-		$(NETWORK_LIBS) $(LIBICONV)
+		$(NETWORK_LIBS) $(LTLIBICONV)

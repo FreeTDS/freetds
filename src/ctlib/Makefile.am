@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.28 2007-11-22 08:44:54 freddy77 Exp $
+# $Id: Makefile.am,v 1.29 2011-06-08 09:25:53 freddy77 Exp $
 SUBDIRS		=	unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 
@@ -18,5 +18,5 @@ SYMBOLS		=	-export-symbols-regex '^(cs_|ct_|blk_).*'
 endif
 libct_la_LDFLAGS=	-version-info 4:0:0 $(SYMBOLS) $(FREETDS_SYMBOLIC)
 
-libct_la_LIBADD	=	../tds/libtds.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LIBICONV) $(FREETDS_LIBGCC)
+libct_la_LIBADD	=	../tds/libtds.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC)
 

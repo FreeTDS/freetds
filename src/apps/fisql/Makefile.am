@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.4 2009-01-09 04:59:58 jklowden Exp $
+# $Id: Makefile.am,v 1.5 2011-06-08 09:25:52 freddy77 Exp $
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include 
 
@@ -15,5 +15,5 @@ fisql_SOURCES	= fisql.c  \
 
 fisql_LDADD	= ../../dblib/libsybdb.la \
 		  ../../replacements/libreplacements.la \
-		  $(NETWORK_LIBS) $(LIBICONV) $(READLINE_LIBS)
+		  $(NETWORK_LIBS) $(LTLIBICONV) $(READLINE_LIBS)
 endif

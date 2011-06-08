@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.50 2010-07-31 08:05:59 freddy77 Exp $
+# $Id: Makefile.am,v 1.51 2011-06-08 09:25:53 freddy77 Exp $
 TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0004$(EXEEXT) t0005$(EXEEXT) t0006$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) t0009$(EXEEXT)\
@@ -61,7 +61,7 @@ AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
-LIBS		=	../libsybdb.la ../../replacements/libreplacements.la $(LIBICONV) @NETWORK_LIBS@
+LIBS		=	../libsybdb.la ../../replacements/libreplacements.la $(LTLIBICONV) @NETWORK_LIBS@
 EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32) $(SQL_DIST)
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err t0017.out
