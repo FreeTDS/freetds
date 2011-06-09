@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.211 2011-06-07 08:46:33 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.212 2011-06-09 13:04:14 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -706,14 +706,14 @@ bcp_getl(LOGINREC * login)
 	return (tdsl->bulk_copy);
 }
 
-/** 
+/**
  * \ingroup dblib_bcp_internal
- * \brief 
+ * \brief
  *
- * 
+ *
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
- * \param rows_copied 
- * 
+ * \param rows_copied
+ *
  * \return SUCCEED or FAIL.
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
@@ -759,20 +759,18 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		bcpdatefmt = "%Y-%m-%d %H:%M:%S.%z";
 
 	if (dbproc->bcpinfo->direction == DB_QUERYOUT ) {
-		if (tds_submit_query(tds, dbproc->bcpinfo->tablename) == TDS_FAIL) {
+		if (tds_submit_query(tds, dbproc->bcpinfo->tablename) == TDS_FAIL)
 			return FAIL;
-		}
 	} else {
 		/* TODO quote if needed */
-		if (tds_submit_queryf(tds, "select * from %s", dbproc->bcpinfo->tablename) == TDS_FAIL) {
+		if (tds_submit_queryf(tds, "select * from %s", dbproc->bcpinfo->tablename) == TDS_FAIL)
 			return FAIL;
-		}
 	}
 
 	tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS);
-	if (tdsret == TDS_FAIL || tdsret == TDS_CANCELLED) {
+	if (tdsret == TDS_FAIL || tdsret == TDS_CANCELLED)
 		return FAIL;
-	}
+
 	if (!tds->res_info) {
 		/* TODO flush/cancel to keep consistent state */
 		return FAIL;
@@ -900,7 +898,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	}
 
 	/*
-	 * TODO above we allocate many buffer just to convert and store 
+	 * TODO above we allocate many buffer just to convert and store
 	 * to file.. avoid all that passages...
 	 */
 
@@ -911,7 +909,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	/* fetch a row of data from the server */
 
-	while (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE) 
+	while (tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE)
 		== TDS_SUCCESS) {
 
 		if (result_type != TDS_ROW_RESULT && result_type != TDS_COMPUTE_RESULT)
@@ -920,137 +918,135 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		row_of_query++;
 
 		/* skip rows outside of the firstrow/lastrow range, if specified */
-		if (dbproc->hostfileinfo->firstrow <= row_of_query && 
-						      row_of_query <= MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF)) {
+		if (dbproc->hostfileinfo->firstrow > row_of_query ||
+						      row_of_query > MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF))
+			continue;
 
-			/* Go through the hostfile columns, finding those that relate to database columns. */
-			for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
-				size_t written = 0;
-				hostcol = dbproc->hostfileinfo->host_columns[i];
-				if (hostcol->tab_colnum < 1 || hostcol->tab_colnum > resinfo->num_cols) {
-					continue;
-				}
-		
-				curcol = resinfo->columns[hostcol->tab_colnum - 1];
+		/* Go through the hostfile columns, finding those that relate to database columns. */
+		for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
+			size_t written = 0;
+			hostcol = dbproc->hostfileinfo->host_columns[i];
+			if (hostcol->tab_colnum < 1 || hostcol->tab_colnum > resinfo->num_cols)
+				continue;
 
-				src = curcol->column_data;
+			curcol = resinfo->columns[hostcol->tab_colnum - 1];
 
-				if (is_blob_col(curcol)) {
-					src = (BYTE *) ((TDSBLOB *) src)->textvalue;
-				}
+			src = curcol->column_data;
 
-				srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
+			if (is_blob_col(curcol))
+				src = (BYTE *) ((TDSBLOB *) src)->textvalue;
 
-				if (curcol->column_cur_size < 0) {
-					srclen = 0;
-					hostcol->bcp_column_data->is_null = 1;
+			srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
+
+			if (curcol->column_cur_size < 0) {
+				srclen = 0;
+				hostcol->bcp_column_data->is_null = 1;
+			} else {
+				if (is_numeric_type(curcol->column_type))
+					srclen = sizeof(TDS_NUMERIC);
+				else
+					srclen = curcol->column_cur_size;
+				hostcol->bcp_column_data->is_null = 0;
+			}
+
+			if (hostcol->bcp_column_data->is_null) {
+				buflen = 0;
+			} else {
+
+				/*
+				 * if we are converting datetime to string, need to override any
+				 * date time formats already established
+				 */
+				if ((srctype == SYBDATETIME || srctype == SYBDATETIME4)
+				    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
+					tds_datecrack(srctype, src, &when);
+					buflen = (int)tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
+								 bcpdatefmt, &when);
 				} else {
-					if (is_numeric_type(curcol->column_type))
-						srclen = sizeof(TDS_NUMERIC);
-					else
-						srclen = curcol->column_cur_size;
-					hostcol->bcp_column_data->is_null = 0;
-				}
-
-				if (hostcol->bcp_column_data->is_null) {
-					buflen = 0;
-				} else {
-
 					/*
-					 * if we are converting datetime to string, need to override any 
-					 * date time formats already established
+					 * For null columns, the above work to determine the output buffer size is moot,
+					 * because bcpcol->data_size is zero, so dbconvert() won't write anything,
+					 * and returns zero.
 					 */
-					if ((srctype == SYBDATETIME || srctype == SYBDATETIME4)
-					    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
-						tds_datecrack(srctype, src, &when);
-						buflen = (int)tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
-									 bcpdatefmt, &when);
-					} else {
-						/* 
-						 * For null columns, the above work to determine the output buffer size is moot, 
-						 * because bcpcol->data_size is zero, so dbconvert() won't write anything, 
-						 * and returns zero. 
-						 */
-						/* TODO check for text !!! */
-						buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype, 
-								    hostcol->bcp_column_data->data,
-								    hostcol->bcp_column_data->datalen);
-						/* 
-						 * Special case:  When outputting database varchar data 
-						 * (either varchar or nullable char) dbconvert may have
-						 * trimmed trailing blanks such that nothing is left.  
-						 * In this case we need to put a single blank to the output file.
-						 */
-						if (( curcol->column_type == SYBVARCHAR || 
-							 (curcol->column_type == SYBCHAR && curcol->column_nullable)
-						    ) && srclen > 0 && buflen == 0) {
-							strcpy ((char *)hostcol->bcp_column_data->data, " ");
-							buflen = 1;
-						}
+					/* TODO check for text !!! */
+					buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype,
+							    hostcol->bcp_column_data->data,
+							    hostcol->bcp_column_data->datalen);
+					/*
+					 * Special case:  When outputting database varchar data
+					 * (either varchar or nullable char) dbconvert may have
+					 * trimmed trailing blanks such that nothing is left.
+					 * In this case we need to put a single blank to the output file.
+					 */
+					if (( curcol->column_type == SYBVARCHAR ||
+						 (curcol->column_type == SYBCHAR && curcol->column_nullable)
+					    ) && srclen > 0 && buflen == 0) {
+						strcpy ((char *)hostcol->bcp_column_data->data, " ");
+						buflen = 1;
 					}
 				}
+			}
 
-				/* The prefix */
-				if ((plen = hostcol->prefix_len) == -1) {
-					if (is_blob_type(hostcol->datatype))
-						plen = 4;
-					else if (!(is_fixed_type(hostcol->datatype)))
-						plen = 2;
-					else if (curcol->column_nullable)
-						plen = 1;
-					else
-						plen = 0;
-					/* cache */
-					hostcol->prefix_len = plen;
-				}
-				switch (plen) {
-				case 0:
-					break;
-				case 1:
-					ti = buflen;
-					written = fwrite(&ti, sizeof(ti), 1, hostfile);
-					break;
-				case 2:
-					si = buflen;
-					written = fwrite(&si, sizeof(si), 1, hostfile);
-					break;
-				case 4:
-					li = buflen;
-					written = fwrite(&li, sizeof(li), 1, hostfile);
-					break;
-				}
-				if( plen != 0 && written != 1 ) {
+			/* The prefix */
+			if ((plen = hostcol->prefix_len) == -1) {
+				if (is_blob_type(hostcol->datatype))
+					plen = 4;
+				else if (!(is_fixed_type(hostcol->datatype)))
+					plen = 2;
+				else if (curcol->column_nullable)
+					plen = 1;
+				else
+					plen = 0;
+				/* cache */
+				hostcol->prefix_len = plen;
+			}
+			switch (plen) {
+			case 0:
+				break;
+			case 1:
+				ti = buflen;
+				written = fwrite(&ti, sizeof(ti), 1, hostfile);
+				break;
+			case 2:
+				si = buflen;
+				written = fwrite(&si, sizeof(si), 1, hostfile);
+				break;
+			case 4:
+				li = buflen;
+				written = fwrite(&li, sizeof(li), 1, hostfile);
+				break;
+			}
+			if( plen != 0 && written != 1 ) {
+				fclose(hostfile);
+				dbperror(dbproc, SYBEBCWE, errno);
+				return FAIL;
+			}
+
+			/* The data */
+			if (hostcol->column_len != -1) {
+				buflen = buflen > hostcol->column_len ? hostcol->column_len : buflen;
+			}
+
+			if (buflen > 0) {
+				written = fwrite(hostcol->bcp_column_data->data, buflen, 1, hostfile);
+				if (written < 1) {
 					fclose(hostfile);
 					dbperror(dbproc, SYBEBCWE, errno);
 					return FAIL;
 				}
+			}
 
-				/* The data */
-				if (hostcol->column_len != -1) {
-					buflen = buflen > hostcol->column_len ? hostcol->column_len : buflen;
-				}
-
-				if (buflen > 0) {
-					written = fwrite(hostcol->bcp_column_data->data, buflen, 1, hostfile);
-					if (written < 1) {
-						fclose(hostfile);
-						dbperror(dbproc, SYBEBCWE, errno);
-						return FAIL;
-					}
-				}
-						
-				/* The terminator */
-				if (hostcol->terminator && hostcol->term_len > 0) {
-					written = fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile);
-					if (written < 1) {
-						fclose(hostfile);
-						dbperror(dbproc, SYBEBCWE, errno);
-						return FAIL;
-					}
+			/* The terminator */
+			if (hostcol->terminator && hostcol->term_len > 0) {
+				written = fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile);
+				if (written < 1) {
+					fclose(hostfile);
+					dbperror(dbproc, SYBEBCWE, errno);
+					return FAIL;
 				}
 			}
-			rows_written++;
 		}
+		rows_written++;
 	}
 	if (fclose(hostfile) != 0) {
 		dbperror(dbproc, SYBEBCUC, errno);
@@ -1059,10 +1055,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	hostfile = NULL;
 
 	if (dbproc->hostfileinfo->firstrow > 0 && row_of_query < dbproc->hostfileinfo->firstrow) {
-		/* 
+		/*
 		 * The table which bulk-copy is attempting to
 		 * copy to a host-file is shorter than the
-		 * number of rows which bulk-copy was instructed to skip.  
+		 * number of rows which bulk-copy was instructed to skip.
 		 */
 		/* TODO reset TDSSOCKET state */
 		dbperror(dbproc, SYBETTS, 0);

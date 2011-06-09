@@ -1,3 +1,6 @@
+Thu Jun  9 15:04:09 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/bcp.c: bcp style update
+
 Wed Jun  8 11:35:17 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: net cleanup
 
@@ -431,4 +434,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3299 2011-06-08 09:35:50 freddy77 Exp $
+$Id: ChangeLog,v 1.3300 2011-06-09 13:04:14 freddy77 Exp $
