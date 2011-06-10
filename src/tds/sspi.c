@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sspi.c,v 1.11 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sspi.c,v 1.12 2011-06-10 17:51:44 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -196,10 +196,10 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	const char *p, *user_name, *server_name;
 
 	TDSSSPIAUTH *auth;
-	TDSCONNECTION *connection = tds->connection;
+	TDSLOGIN *login = tds->login;
 
-	/* check connection */
-	if (!connection)
+	/* check login */
+	if (!login)
 		return NULL;
 
 	if (!tds_init_secdll())
@@ -207,11 +207,11 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 
 	/* parse username/password informations */
 	memset(&identity, 0, sizeof(identity));
-	user_name = tds_dstr_cstr(&connection->user_name);
+	user_name = tds_dstr_cstr(&login->user_name);
 	if ((p = strchr(user_name, '\\')) != NULL) {
 		identity.Flags = SEC_WINNT_AUTH_IDENTITY_ANSI;
-		identity.Password = (void *) tds_dstr_cstr(&connection->password);
-		identity.PasswordLength = tds_dstr_len(&connection->password);
+		identity.Password = (void *) tds_dstr_cstr(&login->password);
+		identity.PasswordLength = tds_dstr_len(&login->password);
 		identity.Domain = (void *) user_name;
 		identity.DomainLength = p - user_name;
 		user_name = p + 1;
@@ -220,7 +220,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	}
 
 	auth = (TDSSSPIAUTH *) calloc(1, sizeof(TDSSSPIAUTH));
-	if (!auth || !tds->connection)
+	if (!auth || !tds->login)
 		return NULL;
 
 	auth->tds_auth.free = tds_sspi_free;
@@ -250,14 +250,14 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	buf.pvBuffer   = auth->tds_auth.packet;
 
 	/* build SPN */
-	server_name = tds_dstr_cstr(&connection->server_host_name);
+	server_name = tds_dstr_cstr(&login->server_host_name);
 	if (strchr(server_name, '.') == NULL) {
 		struct hostent *host = gethostbyname(server_name);
 		if (host && strchr(host->h_name, '.') != NULL)
 			server_name = host->h_name;
 	}
 	if (strchr(server_name, '.') != NULL) {
-		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, connection->port) < 0) {
+		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, login->port) < 0) {
 			free(auth->tds_auth.packet);
 			sec_fn->FreeCredentialsHandle(&auth->cred);
 			free(auth);

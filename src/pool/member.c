@@ -57,7 +57,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.49 2011-06-03 21:13:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.50 2011-06-10 17:51:44 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
@@ -72,7 +72,7 @@ pool_mbr_login(TDS_POOL * pool)
 	TDSCONTEXT *context;
 	TDSLOGIN *login;
 	TDSSOCKET *tds;
-	TDSCONNECTION *connection;
+	TDSLOGIN *connection;
 	int rc;
 	char *query;
 	char hostname[MAXHOSTNAMELEN];
@@ -96,12 +96,12 @@ pool_mbr_login(TDS_POOL * pool)
 	connection = tds_read_config_info(tds, login, context->locale);
 	if (!connection || tds_connect_and_login(tds, connection) != TDS_SUCCESS) {
 		tds_free_socket(tds);
-		tds_free_connection(connection);
+		tds_free_login(connection);
 		/* what to do? */
 		fprintf(stderr, "Could not open connection to server %s\n", pool->server);
 		return NULL;
 	}
-	tds_free_connection(connection);
+	tds_free_login(connection);
 	/*
 	 * FIXME -- tds_connect_and_login no longer preallocates the in_buf need to 
 	 * do something like what tds_read_packet does

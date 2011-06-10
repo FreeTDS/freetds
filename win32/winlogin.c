@@ -100,27 +100,27 @@ get_desktop_file(const char *file)
  * \param hDlg identifies the dialog
  * \param message what happened to the dialog
  * \param wParam varies with message
- * \param lParam pointer to TDSCONNECTION struct
+ * \param lParam pointer to TDSLOGIN struct
  */
 static BOOL CALLBACK
 LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 	     LPARAM lParam)
 {
-	TDSCONNECTION *connection;
+	TDSLOGIN *login;
 	char tmp[100];
 
 	switch (message) {
 
 	case WM_INITDIALOG:
-		/* lParam points to the TDSCONNECTION */
-		connection = (TDSCONNECTION *) lParam;
+		/* lParam points to the TDSLOGIN */
+		login = (TDSLOGIN *) lParam;
 		SetWindowUserData(hDlg, lParam);
 
-		/* copy info from TDSCONNECTION to the dialog */
-		SendDlgItemMessage(hDlg, IDC_LOGINSERVER, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&connection->server_name));
-		SendDlgItemMessage(hDlg, IDC_LOGINUID, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&connection->user_name));
-		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&connection->password));
-		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_SETCHECK, !tds_dstr_isempty(&connection->dump_file), 0L);
+		/* copy info from TDSLOGIN to the dialog */
+		SendDlgItemMessage(hDlg, IDC_LOGINSERVER, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&login->server_name));
+		SendDlgItemMessage(hDlg, IDC_LOGINUID, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&login->user_name));
+		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&login->password));
+		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_SETCHECK, !tds_dstr_isempty(&login->dump_file), 0L);
 
 		/* adjust label of logging checkbox */
 		SendDlgItemMessage(hDlg, IDC_LOGINDUMP, WM_SETTEXT, 0, (LPARAM) "\"FreeTDS.log\" on desktop");
@@ -128,8 +128,8 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 		return TRUE;
 
 	case WM_COMMAND:
-		/* Dialog's user data points to TDSCONNECTION */
-		connection = (TDSCONNECTION *) GetWindowUserData(hDlg);
+		/* Dialog's user data points to TDSLOGIN */
+		login = (TDSLOGIN *) GetWindowUserData(hDlg);
 
 		/* The wParam indicates which button was pressed */
 		if (LOWORD(wParam) == IDCANCEL) {
@@ -143,18 +143,18 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 
 		/* get values from dialog */
 		SendDlgItemMessage(hDlg, IDC_LOGINUID, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
-		tds_dstr_copy(&connection->user_name, tmp);
+		tds_dstr_copy(&login->user_name, tmp);
 		SendDlgItemMessage(hDlg, IDC_LOGINPWD, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
-		tds_dstr_copy(&connection->password, tmp);
+		tds_dstr_copy(&login->password, tmp);
 		if (SendDlgItemMessage(hDlg, IDC_LOGINDUMP, BM_GETCHECK, 0, 0)) {
 			char * filename = get_desktop_file("FreeTDS.log");
 
 			if (filename) {
-				tds_dstr_copy(&connection->dump_file, filename);
+				tds_dstr_copy(&login->dump_file, filename);
 				free(filename);
 			}
 		} else {
-			tds_dstr_copy(&connection->dump_file, "");
+			tds_dstr_copy(&login->dump_file, "");
 		}
 
 		/* And we're done */
@@ -167,13 +167,13 @@ LoginDlgProc(HWND hDlg, UINT message, WPARAM wParam,	/* */
 
 /**
  * Use a dialog window to prompt for user_name and password.  If the user hits
- * the [OK] button then store the entered values into the given TDSCONNECTION
+ * the [OK] button then store the entered values into the given TDSLOGIN
  * structure and return TRUE.  If the user hits [CANCEL] then return FALSE.
  * \param hwndParent parent for dialog
- * \param connection where to store login info
+ * \param login where to store login info
  */
 BOOL
-get_login_info(HWND hwndParent, TDSCONNECTION * connection)
+get_login_info(HWND hwndParent, TDSLOGIN * login)
 {
-	return DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_LOGIN), hwndParent, (DLGPROC) LoginDlgProc, (LPARAM) connection);
+	return DialogBoxParam(hinstFreeTDS, MAKEINTRESOURCE(IDD_LOGIN), hwndParent, (DLGPROC) LoginDlgProc, (LPARAM) login);
 }

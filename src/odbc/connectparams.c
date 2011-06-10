@@ -35,7 +35,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: connectparams.c,v 1.92 2011-05-20 20:56:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: connectparams.c,v 1.93 2011-06-10 17:51:44 freddy77 Exp $");
 
 #define ODBC_PARAM(p) static const char odbc_param_##p[] = #p;
 ODBC_PARAM_LIST
@@ -106,13 +106,13 @@ static int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR
 #endif
 
 static int
-parse_server(TDS_ERRS *errs, char *server, TDSCONNECTION * connection)
+parse_server(TDS_ERRS *errs, char *server, TDSLOGIN * login)
 {
 	char ip[64];
 	char *p = (char *) strchr(server, '\\');
 
 	if (p) {
-		if (!tds_dstr_copy(&connection->instance_name, p+1)) {
+		if (!tds_dstr_copy(&login->instance_name, p+1)) {
 			odbc_errs_add(errs, "HY001", NULL);
 			return 0;
 		}
@@ -120,15 +120,15 @@ parse_server(TDS_ERRS *errs, char *server, TDSCONNECTION * connection)
 	} else {
 		p = (char *) strchr(server, ',');
 		if (p && atoi(p+1) > 0) {
-			connection->port = atoi(p+1);
+			login->port = atoi(p+1);
 			*p = 0;
 		}
 	}
 
 	if (tds_lookup_host(server, ip) == TDS_SUCCESS)
-		tds_dstr_copy(&connection->server_host_name, server);
+		tds_dstr_copy(&login->server_host_name, server);
 
-	if (!tds_dstr_copy(&connection->ip_addr, ip)) {
+	if (!tds_dstr_copy(&login->ip_addr, ip)) {
 		odbc_errs_add(errs, "HY001", NULL);
 		return 0;
 	}
@@ -146,11 +146,11 @@ myGetPrivateProfileString(const char *DSN, const char *key, char *buf)
 /** 
  * Read connection information from given DSN
  * @param DSN           DSN name
- * @param connection    where to store connection info
+ * @param login    where to store connection info
  * @return 1 if success 0 otherwhise
  */
 int
-odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection)
+odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 {
 	char tmp[FILENAME_MAX];
 	int freetds_conf_less = 1;
@@ -158,8 +158,8 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection)
 	/* use old servername */
 	if (myGetPrivateProfileString(DSN, odbc_param_Servername, tmp) > 0) {
 		freetds_conf_less = 0;
-		tds_dstr_copy(&connection->server_name, tmp);
-		tds_read_conf_file(connection, tmp);
+		tds_dstr_copy(&login->server_name, tmp);
+		tds_read_conf_file(login, tmp);
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
 			odbc_errs_add(errs, "HY000", "You cannot specify both SERVERNAME and SERVER");
 			return 0;
@@ -178,75 +178,75 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection)
 			address_specified = 1;
 			/* TODO parse like MS */
 			tds_lookup_host(tmp, tmp);
-			tds_dstr_copy(&connection->ip_addr, tmp);
+			tds_dstr_copy(&login->ip_addr, tmp);
 		}
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
-			tds_dstr_copy(&connection->server_name, tmp);
+			tds_dstr_copy(&login->server_name, tmp);
 			if (!address_specified) {
-				if (!parse_server(errs, tmp, connection))
+				if (!parse_server(errs, tmp, login))
 					return 0;
 			}
 		}
 	}
 
 	if (myGetPrivateProfileString(DSN, odbc_param_Port, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_PORT, tmp, connection);
+		tds_parse_conf_section(TDS_STR_PORT, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_TDS_Version, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_VERSION, tmp, connection);
+		tds_parse_conf_section(TDS_STR_VERSION, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_Language, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_LANGUAGE, tmp, connection);
+		tds_parse_conf_section(TDS_STR_LANGUAGE, tmp, login);
 
-	if (tds_dstr_isempty(&connection->database)
+	if (tds_dstr_isempty(&login->database)
 	    && myGetPrivateProfileString(DSN, odbc_param_Database, tmp) > 0)
-		tds_dstr_copy(&connection->database, tmp);
+		tds_dstr_copy(&login->database, tmp);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_TextSize, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_TEXTSZ, tmp, connection);
+		tds_parse_conf_section(TDS_STR_TEXTSZ, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_PacketSize, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_BLKSZ, tmp, connection);
+		tds_parse_conf_section(TDS_STR_BLKSZ, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_ClientCharset, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_CLCHARSET, tmp, connection);
+		tds_parse_conf_section(TDS_STR_CLCHARSET, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_DumpFile, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_DUMPFILE, tmp, connection);
+		tds_parse_conf_section(TDS_STR_DUMPFILE, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_DumpFileAppend, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_APPENDMODE, tmp, connection);
+		tds_parse_conf_section(TDS_STR_APPENDMODE, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_DebugFlags, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_DEBUGFLAGS, tmp, connection);
+		tds_parse_conf_section(TDS_STR_DEBUGFLAGS, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_Encryption, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_ENCRYPTION, tmp, connection);
+		tds_parse_conf_section(TDS_STR_ENCRYPTION, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_UseNTLMv2, tmp) > 0)
-		tds_parse_conf_section(TDS_STR_USENTLMV2, tmp, connection);
+		tds_parse_conf_section(TDS_STR_USENTLMV2, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_Trusted_Connection, tmp) > 0 && tds_config_boolean(tmp)) {
-		tds_dstr_copy(&connection->user_name, "");
-		tds_dstr_copy(&connection->password, "");
+		tds_dstr_copy(&login->user_name, "");
+		tds_dstr_copy(&login->password, "");
 	}
 
 	if (myGetPrivateProfileString(DSN, odbc_param_MARS_Connection, tmp) > 0 && tds_config_boolean(tmp)) {
-		connection->mars = 1;
+		login->mars = 1;
 	}
 
 	return 1;
 }
 
 /** 
- * Parse connection string and fill connection according
+ * Parse connection string and fill login according
  * @param connect_string     connect string
  * @param connect_string_end connect string end (pointer to char past last)
- * @param connection         where to store connection info
+ * @param login         where to store connection info
  * @return 1 if success 0 otherwhise
  */
 int
-odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection,
+odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSLOGIN * login,
 			  TDS_PARSED_PARAM *parsed_params)
 {
 	const char *p, *end;
@@ -316,9 +316,9 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				return 0;
 			}
 			if (!cfgs) {
-				dest_s = &connection->server_name;
+				dest_s = &login->server_name;
 				/* not that safe cast but works -- freddy77 */
-				if (!parse_server(errs, (char *) tds_dstr_cstr(&value), connection)) {
+				if (!parse_server(errs, (char *) tds_dstr_cstr(&value), login)) {
 					tds_dstr_free(&value);
 					return 0;
 				}
@@ -331,8 +331,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				return 0;
 			}
 			if (!cfgs) {
-				tds_dstr_dup(&connection->server_name, &value);
-				tds_read_conf_file(connection, tds_dstr_cstr(&value));
+				tds_dstr_dup(&login->server_name, &value);
+				tds_read_conf_file(login, tds_dstr_cstr(&value));
 				cfgs = CFG_SERVERNAME;
 				p = connect_string;
 				continue;
@@ -344,7 +344,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				return 0;
 			}
 			if (!cfgs) {
-				if (!odbc_get_dsn_info(errs, tds_dstr_cstr(&value), connection)) {
+				if (!odbc_get_dsn_info(errs, tds_dstr_cstr(&value), login)) {
 					tds_dstr_free(&value);
 					return 0;
 				}
@@ -353,37 +353,37 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				continue;
 			}
 		} else if (CHK_PARAM(Database)) {
-			dest_s = &connection->database;
+			dest_s = &login->database;
 		} else if (CHK_PARAM(UID)) {
-			dest_s = &connection->user_name;
+			dest_s = &login->user_name;
 		} else if (CHK_PARAM(PWD)) {
-			dest_s = &connection->password;
+			dest_s = &login->password;
 		} else if (CHK_PARAM(APP)) {
-			dest_s = &connection->app_name;
+			dest_s = &login->app_name;
 		} else if (CHK_PARAM(WSID)) {
-			dest_s = &connection->client_host_name;
+			dest_s = &login->client_host_name;
 		} else if (CHK_PARAM(Language)) {
-			tds_parse_conf_section(TDS_STR_LANGUAGE, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_LANGUAGE, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(Port)) {
-			tds_parse_conf_section(TDS_STR_PORT, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_PORT, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(TDS_Version)) {
-			tds_parse_conf_section(TDS_STR_VERSION, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_VERSION, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(TextSize)) {
-			tds_parse_conf_section(TDS_STR_TEXTSZ, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_TEXTSZ, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(PacketSize)) {
-			tds_parse_conf_section(TDS_STR_BLKSZ, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_BLKSZ, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(ClientCharset)) {
-			tds_parse_conf_section(TDS_STR_CLCHARSET, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_CLCHARSET, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(DumpFile)) {
-			tds_parse_conf_section(TDS_STR_DUMPFILE, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_DUMPFILE, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(DumpFileAppend)) {
-			tds_parse_conf_section(TDS_STR_APPENDMODE, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_APPENDMODE, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(DebugFlags)) {
-			tds_parse_conf_section(TDS_STR_DEBUGFLAGS, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_DEBUGFLAGS, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(Encryption)) {
-			tds_parse_conf_section(TDS_STR_ENCRYPTION, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_ENCRYPTION, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(UseNTLMv2)) {
-			tds_parse_conf_section(TDS_STR_USENTLMV2, tds_dstr_cstr(&value), connection);
+			tds_parse_conf_section(TDS_STR_USENTLMV2, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(Trusted_Connection)) {
 			trusted = tds_config_boolean(tds_dstr_cstr(&value));
 			tdsdump_log(TDS_DBG_INFO1, "trusted %s -> %d\n", tds_dstr_cstr(&value), trusted);
@@ -391,7 +391,7 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			/* TODO odbc_param_Address field */
 		} else if (CHK_PARAM(MARS_Connection)) {
 			if (tds_config_boolean(tds_dstr_cstr(&value)))
-				connection->mars = 1;
+				login->mars = 1;
 		}
 
 		if (num_param >= 0 && parsed_params) {
@@ -422,8 +422,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			parsed_params[ODBC_PARAM_UID].p = NULL;
 			parsed_params[ODBC_PARAM_PWD].p = NULL;
 		}
-		tds_dstr_copy(&connection->user_name, "");
-		tds_dstr_copy(&connection->password, "");
+		tds_dstr_copy(&login->user_name, "");
+		tds_dstr_copy(&login->password, "");
 	}
 
 	tds_dstr_free(&value);

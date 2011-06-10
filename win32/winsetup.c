@@ -67,7 +67,7 @@ typedef struct
 {
 	DSTR origdsn;		/**< original name of the data source */
 	DSTR dsn;		/**< edited name of the data source */
-	TDSCONNECTION *connection;	/**< everything else */
+	TDSLOGIN *login;	/**< everything else */
 } DSNINFO;
 
 /* This is defined in ... */
@@ -84,7 +84,7 @@ alloc_dsninfo(void)
 	di = (DSNINFO *) malloc(sizeof(DSNINFO));
 	tds_dstr_init(&di->origdsn);
 	tds_dstr_init(&di->dsn);
-	di->connection = tds_alloc_connection(NULL);
+	di->login = tds_alloc_connection(NULL);
 
 	return di;
 }
@@ -94,7 +94,7 @@ alloc_dsninfo(void)
 static void
 free_dsninfo(DSNINFO * di)
 {				/* the DSNINFO struct to be freed */
-	tds_free_connection(di->connection);
+	tds_free_login(di->login);
 	tds_dstr_free(&di->origdsn);
 	tds_dstr_free(&di->dsn);
 	free(di);
@@ -134,7 +134,7 @@ parse_wacky_dsn_string(LPCSTR attribs, DSNINFO * di)
 	}
 
 	/* let odbc_parse_connect_string() parse the ;-delimited version */
-	odbc_parse_connect_string(NULL, build, build + strlen(build), di->connection, NULL);
+	odbc_parse_connect_string(NULL, build, build + strlen(build), di->login, NULL);
 }
 
 
@@ -143,7 +143,7 @@ parse_wacky_dsn_string(LPCSTR attribs, DSNINFO * di)
  * written here correspond to the names read by odbc_get_dsn_info().
  */
 #define WRITESTR(n,s) if (!SQLWritePrivateProfileString(section, (n), (s), odbcini)) return FALSE
-#define FIELD_STRING(f) tds_dstr_cstr(&di->connection->f)
+#define FIELD_STRING(f) tds_dstr_cstr(&di->login->f)
 static BOOL
 write_all_strings(DSNINFO * di)
 {
@@ -157,16 +157,16 @@ write_all_strings(DSNINFO * di)
 	WRITESTR("Language", FIELD_STRING(language));
 	WRITESTR("Database", FIELD_STRING(database));
 
-	sprintf(tmp, "%u", di->connection->port);
+	sprintf(tmp, "%u", di->login->port);
 	WRITESTR("Port", tmp);
 
-	sprintf(tmp, "%d.%d", TDS_MAJOR(di->connection), TDS_MINOR(di->connection));
+	sprintf(tmp, "%d.%d", TDS_MAJOR(di->login), TDS_MINOR(di->login));
 	WRITESTR("TDS_Version", tmp);
 
-	sprintf(tmp, "%u", di->connection->text_size);
+	sprintf(tmp, "%u", di->login->text_size);
 	WRITESTR("TextSize", tmp);
 
-	sprintf(tmp, "%u", di->connection->block_size);
+	sprintf(tmp, "%u", di->login->block_size);
 	WRITESTR("PacketSize", tmp);
 
 	return TRUE;
@@ -183,12 +183,12 @@ validate(DSNINFO * di)
 {
 	if (!SQLValidDSN(tds_dstr_cstr(&di->dsn)))
 		return "Invalid DSN";
-	if (!IS_TDS42(di->connection) && !IS_TDS46(di->connection)
-	    && !IS_TDS50(di->connection) && !IS_TDS7_PLUS(di->connection))
+	if (!IS_TDS42(di->login) && !IS_TDS46(di->login)
+	    && !IS_TDS50(di->login) && !IS_TDS7_PLUS(di->login))
 		return "Bad Protocol version";
-	if (tds_dstr_isempty(&di->connection->server_name))
+	if (tds_dstr_isempty(&di->login->server_name))
 		return "Address is required";
-	if (di->connection->port < 1 || di->connection->port > 65535)
+	if (di->login->port < 1 || di->login->port > 65535)
 		return "Bad port - Try 1433 or 4000";
 	return NULL;
 }
@@ -233,12 +233,12 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 		/* copy info from DSNINFO to the dialog */
 		SendDlgItemMessage(hDlg, IDC_DSNNAME, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->dsn));
-		sprintf(tmp, "TDS %d.%d", TDS_MAJOR(di->connection), TDS_MINOR(di->connection));
+		sprintf(tmp, "TDS %d.%d", TDS_MAJOR(di->login), TDS_MINOR(di->login));
 		SendDlgItemMessage(hDlg, IDC_PROTOCOL, CB_SELECTSTRING, -1, (LPARAM) tmp);
-		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->connection->server_name));
-		sprintf(tmp, "%u", di->connection->port);
+		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->login->server_name));
+		sprintf(tmp, "%u", di->login->port);
 		SendDlgItemMessage(hDlg, IDC_PORT, WM_SETTEXT, 0, (LPARAM) tmp);
-		SendDlgItemMessage(hDlg, IDC_DATABASE, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->connection->database));
+		SendDlgItemMessage(hDlg, IDC_DATABASE, WM_SETTEXT, 0, (LPARAM) tds_dstr_cstr(&di->login->database));
 
 		return TRUE;
 
@@ -266,14 +266,14 @@ DSNDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				major = 7;
 				minor = 1;
 			}
-			di->connection->tds_version = (major << 8) | minor;
+			di->login->tds_version = (major << 8) | minor;
 		}
 		SendDlgItemMessage(hDlg, IDC_ADDRESS, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
-		tds_dstr_copy(&di->connection->server_name, tmp);
+		tds_dstr_copy(&di->login->server_name, tmp);
 		SendDlgItemMessage(hDlg, IDC_PORT, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
-		di->connection->port = atoi(tmp);
+		di->login->port = atoi(tmp);
 		SendDlgItemMessage(hDlg, IDC_DATABASE, WM_GETTEXT, sizeof tmp, (LPARAM) tmp);
-		tds_dstr_copy(&di->connection->database, tmp);
+		tds_dstr_copy(&di->login->database, tmp);
 
 		/* validate */
 		SendDlgItemMessage(hDlg, IDC_HINT, WM_SETTEXT, 0, (LPARAM) "VALIDATING... please be patient");
@@ -313,7 +313,7 @@ ConfigDSN(HWND hwndParent, WORD fRequest, LPCSTR lpszDriver, LPCSTR lpszAttribut
 	 */
 	INITSOCKET();
 
-	/* Create a blank connection struct */
+	/* Create a blank login struct */
 	di = alloc_dsninfo();
 
 	/*

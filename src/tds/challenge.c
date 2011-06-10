@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.51 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.52 2011-06-10 17:51:44 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -95,7 +95,7 @@ typedef struct
 
 static int
 tds_answer_challenge(TDSSOCKET * tds,
-		     TDSCONNECTION * connection,
+		     TDSLOGIN * login,
 		     const unsigned char *challenge,
 		     TDS_UINT * flags,
 		     const unsigned char *names_blob, TDS_INT names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response);
@@ -201,7 +201,7 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	char buf_usc2le[512];
 	int res;
 
-	user_name = tds_dstr_cstr(&tds->connection->user_name);
+	user_name = tds_dstr_cstr(&tds->login->user_name);
 	user_name_len = strlen(user_name);
 
 	/* parse domain\username */
@@ -269,13 +269,13 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
 
 static int
 tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
-		     TDSCONNECTION * connection,
+		     TDSLOGIN * login,
 		     const unsigned char *challenge,
 		     TDS_UINT * flags,
 		     const unsigned char *names_blob, TDS_INT names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
 {
 	int res;
-	const char *passwd = tds_dstr_cstr(&connection->password);
+	const char *passwd = tds_dstr_cstr(&login->password);
 
 	/* NTLMv2 */
 	unsigned char *lm_v2_response;
@@ -317,21 +317,21 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
  */
 static int
 tds_answer_challenge(TDSSOCKET * tds,
-		     TDSCONNECTION * connection,
+		     TDSLOGIN * login,
 		     const unsigned char *challenge,
 		     TDS_UINT * flags,
 		     const unsigned char *names_blob, TDS_INT names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
 {
 #define MAX_PW_SZ 14
-	const char *passwd = tds_dstr_cstr(&connection->password);
+	const char *passwd = tds_dstr_cstr(&login->password);
 	DES_KEY ks;
 	unsigned char hash[24], ntlm2_challenge[16];
 	int res;
 
 	memset(answer, 0, sizeof(TDSANSWER));
 
-	if (connection->use_ntlmv2) {
-		return tds_answer_challenge_ntlmv2(tds, connection, challenge, flags,
+	if (login->use_ntlmv2) {
+		return tds_answer_challenge_ntlmv2(tds, login, challenge, flags,
 						   names_blob, names_blob_len, answer, ntlm_v2_response);
 	} else if ((*flags & 0x80000) != 0) {
 		/* NTLM2 */
@@ -459,17 +459,17 @@ tds7_send_auth(TDSSOCKET * tds,
 	unsigned int ntlm_response_len = 24;
 	const unsigned int lm_response_len = 24;
 
-	TDSCONNECTION *connection = tds->connection;
+	TDSLOGIN *login = tds->login;
 
 	/* check connection */
-	if (!connection)
+	if (!login)
 		return TDS_FAIL;
 
 	/* parse a bit of config */
-	user_name = tds_dstr_cstr(&connection->user_name);
+	user_name = tds_dstr_cstr(&login->user_name);
 	user_name_len = user_name ? strlen(user_name) : 0;
-	host_name_len = tds_dstr_len(&connection->client_host_name);
-	password_len = tds_dstr_len(&connection->password);
+	host_name_len = tds_dstr_len(&login->client_host_name);
+	password_len = tds_dstr_len(&login->password);
 
 	/* parse domain\username */
 	if ((p = strchr(user_name, '\\')) == NULL)
@@ -481,7 +481,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	user_name = p + 1;
 	user_name_len = strlen(user_name);
 
-	rc = tds_answer_challenge(tds, connection, challenge, &flags, names_blob, names_blob_len, &answer, &ntlm_v2_response);
+	rc = tds_answer_challenge(tds, login, challenge, &flags, names_blob, names_blob_len, &answer, &ntlm_v2_response);
 	if (rc != TDS_SUCCESS)
 		return rc;
 
@@ -533,7 +533,7 @@ tds7_send_auth(TDSSOCKET * tds,
 
 	/* flags */
 	/* "challenge" is 8 bytes long */
-	/* tds_answer_challenge(tds_dstr_cstr(&connection->password), challenge, &flags, &answer); */
+	/* tds_answer_challenge(tds_dstr_cstr(&login->password), challenge, &flags, &answer); */
 	tds_put_int(tds, flags);
 
 	/* OS Version Structure (Optional) */
@@ -541,7 +541,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	/* Data itself */
 	tds_put_string(tds, domain, (int)domain_len);
 	tds_put_string(tds, user_name, (int)user_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), (int)host_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&login->client_host_name), (int)host_name_len);
 
 	/* data block */
 	tds_put_n(tds, answer.lm_resp, lm_response_len);
@@ -742,11 +742,11 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	int auth_len;
 	struct tds_ntlm_auth *auth;
 
-	if (!tds->connection)
+	if (!tds->login)
 		return NULL;
 
-	user_name = tds_dstr_cstr(&tds->connection->user_name);
-	host_name_len = (int)tds_dstr_len(&tds->connection->client_host_name);
+	user_name = tds_dstr_cstr(&tds->login->user_name);
+	host_name_len = (int)tds_dstr_len(&tds->login->client_host_name);
 
 	/* check override of domain */
 	if ((p = strchr(user_name, '\\')) == NULL)
@@ -796,7 +796,7 @@ tds_ntlm_get_auth(TDSSOCKET * tds)
 	TDS_PUT_A4(packet + 36, TDS_HOST4LE(0x0f000000));
 
 	/* hostname and domain */
-	memcpy(packet + 40, tds_dstr_cstr(&tds->connection->client_host_name), host_name_len);
+	memcpy(packet + 40, tds_dstr_cstr(&tds->login->client_host_name), host_name_len);
 	memcpy(packet + 40 + host_name_len, domain, domain_len);
 
 	return (TDSAUTHENTICATION *) auth;

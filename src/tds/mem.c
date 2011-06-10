@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.217 2011-06-06 07:27:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.218 2011-06-10 17:51:44 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -799,10 +799,10 @@ tds_capability_test(void)
  * @param locale locale information (copied to configuration information)
  * @result allocated structure or NULL if out of memory
  */
-TDSCONNECTION *
+TDSLOGIN*
 tds_alloc_connection(TDSLOCALE * locale)
 {
-	TDSCONNECTION *connection;
+	TDSLOGIN *connection;
 	char hostname[128];
 #if HAVE_NL_LANGINFO && defined(CODESET)
 	const char *charset;
@@ -810,7 +810,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 	char *lc_all, *tok = NULL;
 #endif
 
-	TEST_MALLOC(connection, TDSCONNECTION);
+	TEST_MALLOC(connection, TDSLOGIN);
 	tds_dstr_init(&connection->server_name);
 	tds_dstr_init(&connection->language);
 	tds_dstr_init(&connection->server_charset);
@@ -896,7 +896,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 
 	return connection;
       Cleanup:
-	tds_free_connection(connection);
+	tds_free_login(connection);
 	return NULL;
 }
 
@@ -1060,20 +1060,26 @@ tds_alloc_login(void)
 void
 tds_free_login(TDSLOGIN * login)
 {
-	if (login) {
-		/* for security reason clear memory */
-		tds_dstr_zero(&login->password);
-		tds_dstr_free(&login->password);
-		tds_dstr_free(&login->server_name);
-		tds_dstr_free(&login->language);
-		tds_dstr_free(&login->server_charset);
-		tds_dstr_free(&login->client_host_name);
-		tds_dstr_free(&login->app_name);
-		tds_dstr_free(&login->user_name);
-		tds_dstr_free(&login->library);
-		tds_dstr_free(&login->client_charset);
-		free(login);
-	}
+	if (!login)
+		return;
+
+	/* for security reason clear memory */
+	tds_dstr_zero(&login->password);
+	tds_dstr_free(&login->password);
+	tds_dstr_free(&login->server_name);
+	tds_dstr_free(&login->language);
+	tds_dstr_free(&login->server_charset);
+	tds_dstr_free(&login->client_host_name);
+	tds_dstr_free(&login->app_name);
+	tds_dstr_free(&login->user_name);
+	tds_dstr_free(&login->library);
+	tds_dstr_free(&login->client_charset);
+	tds_dstr_free(&login->server_host_name);
+	tds_dstr_free(&login->ip_addr);
+	tds_dstr_free(&login->database);
+	tds_dstr_free(&login->dump_file);
+	tds_dstr_free(&login->instance_name);
+	free(login);
 }
 
 TDSSOCKET *
@@ -1158,31 +1164,6 @@ tds_free_locale(TDSLOCALE * locale)
 	free(locale->server_charset);
 	free(locale->date_fmt);
 	free(locale);
-}
-
-void
-tds_free_connection(TDSCONNECTION * connection)
-{
-	if (!connection)
-		return;
-
-	tds_dstr_free(&connection->server_name);
-	tds_dstr_free(&connection->client_host_name);
-	tds_dstr_free(&connection->server_host_name);
-	tds_dstr_free(&connection->language);
-	tds_dstr_free(&connection->server_charset);
-	tds_dstr_free(&connection->ip_addr);
-	tds_dstr_free(&connection->database);
-	tds_dstr_free(&connection->dump_file);
-	tds_dstr_free(&connection->client_charset);
-	tds_dstr_free(&connection->app_name);
-	tds_dstr_free(&connection->user_name);
-	/* cleared for security reason */
-	tds_dstr_zero(&connection->password);
-	tds_dstr_free(&connection->password);
-	tds_dstr_free(&connection->library);
-	tds_dstr_free(&connection->instance_name);
-	free(connection);
 }
 
 static void

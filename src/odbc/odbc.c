@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.568 2011-06-06 07:27:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.569 2011-06-10 17:51:44 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -351,7 +351,7 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 }
 
 static SQLRETURN
-odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
+odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 {
 	TDS_ENV *env = dbc->env;
 
@@ -369,18 +369,18 @@ odbc_connect(TDS_DBC * dbc, TDSCONNECTION * connection)
 	/* Set up our environment change hook */
 	dbc->tds_socket->env_chg_func = odbc_env_change;
 
-	tds_fix_connection(connection);
+	tds_fix_login(login);
 
-	connection->connect_timeout = dbc->attr.connection_timeout;
-	connection->mars = (dbc->attr.mars_enabled != SQL_MARS_ENABLED_NO);
+	login->connect_timeout = dbc->attr.connection_timeout;
+	login->mars = (dbc->attr.mars_enabled != SQL_MARS_ENABLED_NO);
 
 #ifdef ENABLE_ODBC_WIDE
 	/* force utf-8 in order to support wide characters */
-	tds_dstr_dup(&dbc->original_charset, &connection->client_charset);
-	tds_dstr_copy(&connection->client_charset, "UTF-8");
+	tds_dstr_dup(&dbc->original_charset, &login->client_charset);
+	tds_dstr_copy(&login->client_charset, "UTF-8");
 #endif
 
-	if (tds_connect_and_login(dbc->tds_socket, connection) != TDS_SUCCESS) {
+	if (tds_connect_and_login(dbc->tds_socket, login) != TDS_SUCCESS) {
 		tds_free_socket(dbc->tds_socket);
 		dbc->tds_socket = NULL;
 		odbc_errs_add(&dbc->errs, "08001", NULL);
@@ -510,7 +510,7 @@ odbc_prepare(TDS_STMT *stmt)
 	PCHAROUT(ConnStrOut,SQLSMALLINT), P(SQLUSMALLINT,fDriverCompletion) WIDE)
 #include "sqlwparams.h"
 {
-	TDSCONNECTION *connection;
+	TDSLOGIN *login;
 	TDS_PARSED_PARAM params[ODBC_PARAM_SIZE];
 	DSTR conn_str;
 
@@ -545,19 +545,19 @@ odbc_prepare(TDS_STMT *stmt)
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	connection = tds_alloc_connection(dbc->env->tds_ctx->locale);
-	if (!connection) {
+	login = tds_alloc_connection(dbc->env->tds_ctx->locale);
+	if (!login) {
 		tds_dstr_free(&conn_str);
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
-		tds_dstr_dup(&connection->database, &dbc->attr.current_catalog);
+		tds_dstr_dup(&login->database, &dbc->attr.current_catalog);
 
 	/* parse the DSN string */
 	if (!odbc_parse_connect_string(&dbc->errs, tds_dstr_buf(&conn_str), tds_dstr_buf(&conn_str) + tds_dstr_len(&conn_str),
-				       connection, params)) {
+				       login, params)) {
 		tds_dstr_free(&conn_str);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -568,26 +568,26 @@ odbc_prepare(TDS_STMT *stmt)
 	/* add login info */
 	if (hwnd && fDriverCompletion != SQL_DRIVER_NOPROMPT
 	    && (fDriverCompletion == SQL_DRIVER_PROMPT || (!params[ODBC_PARAM_UID].p && !params[ODBC_PARAM_Trusted_Connection].p)
-		|| tds_dstr_isempty(&connection->server_name))) {
+		|| tds_dstr_isempty(&login->server_name))) {
 #ifdef _WIN32
 		char *out = NULL;
 
 		/* prompt for login information */
-		if (!get_login_info(hwnd, connection)) {
-			tds_free_connection(connection);
+		if (!get_login_info(hwnd, login)) {
+			tds_free_login(login);
 			odbc_errs_add(&dbc->errs, "08001", "User canceled login");
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
-		if (tds_dstr_isempty(&connection->user_name)) {
+		if (tds_dstr_isempty(&login->user_name)) {
 			params[ODBC_PARAM_UID].p = NULL;
 			params[ODBC_PARAM_PWD].p = NULL;
 			params[ODBC_PARAM_Trusted_Connection].p = "Yes";
 			params[ODBC_PARAM_Trusted_Connection].len = 3;
 		} else {
-			params[ODBC_PARAM_UID].p   = tds_dstr_cstr(&connection->user_name);
-			params[ODBC_PARAM_UID].len = tds_dstr_len(&connection->user_name);
-			params[ODBC_PARAM_PWD].p   = tds_dstr_cstr(&connection->password);
-			params[ODBC_PARAM_PWD].len = tds_dstr_len(&connection->password);
+			params[ODBC_PARAM_UID].p   = tds_dstr_cstr(&login->user_name);
+			params[ODBC_PARAM_UID].len = tds_dstr_len(&login->user_name);
+			params[ODBC_PARAM_PWD].p   = tds_dstr_cstr(&login->password);
+			params[ODBC_PARAM_PWD].len = tds_dstr_len(&login->password);
 			params[ODBC_PARAM_Trusted_Connection].p = NULL;
 		}
 		if (!odbc_build_connect_string(&dbc->errs, params, &out))
@@ -602,18 +602,18 @@ odbc_prepare(TDS_STMT *stmt)
 #endif
 	}
 
-	if (tds_dstr_isempty(&connection->server_name)) {
-		tds_free_connection(connection);
+	if (tds_dstr_isempty(&login->server_name)) {
+		tds_free_login(login);
 		odbc_errs_add(&dbc->errs, "IM007", "Could not find Servername or server parameter");
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
-	if (odbc_connect(dbc, connection) != SQL_SUCCESS) {
-		tds_free_connection(connection);
+	if (odbc_connect(dbc, login) != SQL_SUCCESS) {
+		tds_free_login(login);
 		ODBC_RETURN_(dbc);
 	}
 
-	tds_free_connection(connection);
+	tds_free_login(login);
 	ODBC_RETURN_(dbc);
 }
 
@@ -1822,7 +1822,7 @@ SQLCancel(SQLHSTMT hstmt)
 #include "sqlwparams.h"
 {
 	SQLRETURN result;
-	TDSCONNECTION *connection;
+	TDSLOGIN *login;
 
 	INIT_HDBC;
 
@@ -1846,8 +1846,8 @@ SQLCancel(SQLHSTMT hstmt)
 	}
 #endif
 
-	connection = tds_alloc_connection(dbc->env->tds_ctx->locale);
-	if (!connection) {
+	login = tds_alloc_connection(dbc->env->tds_ctx->locale);
+	if (!login) {
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
@@ -1859,13 +1859,13 @@ SQLCancel(SQLHSTMT hstmt)
 		tds_dstr_copy(&dbc->dsn, "DEFAULT");
 
 
-	if (!odbc_get_dsn_info(&dbc->errs, tds_dstr_cstr(&dbc->dsn), connection)) {
-		tds_free_connection(connection);
+	if (!odbc_get_dsn_info(&dbc->errs, tds_dstr_cstr(&dbc->dsn), login)) {
+		tds_free_login(login);
 		ODBC_RETURN(dbc, SQL_ERROR);
 	}
 
 	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
-		tds_dstr_dup(&connection->database, &dbc->attr.current_catalog);
+		tds_dstr_dup(&login->database, &dbc->attr.current_catalog);
 
 	/*
 	 * username/password are never saved to ini file,
@@ -1873,29 +1873,29 @@ SQLCancel(SQLHSTMT hstmt)
 	 */
 	/* user id */
 	if (odbc_get_string_size(cbUID, szUID _wide)) {
-		if (!odbc_dstr_copy(dbc, &connection->user_name, cbUID, szUID)) {
-			tds_free_connection(connection);
+		if (!odbc_dstr_copy(dbc, &login->user_name, cbUID, szUID)) {
+			tds_free_login(login);
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 	}
 
 	/* password */
-	if (szAuthStr && !tds_dstr_isempty(&connection->user_name)) {
-		if (!odbc_dstr_copy(dbc, &connection->password, cbAuthStr, szAuthStr)) {
-			tds_free_connection(connection);
+	if (szAuthStr && !tds_dstr_isempty(&login->user_name)) {
+		if (!odbc_dstr_copy(dbc, &login->password, cbAuthStr, szAuthStr)) {
+			tds_free_login(login);
 			odbc_errs_add(&dbc->errs, "HY001", NULL);
 			ODBC_RETURN(dbc, SQL_ERROR);
 		}
 	}
 
 	/* DO IT */
-	if ((result = odbc_connect(dbc, connection)) != SQL_SUCCESS) {
-		tds_free_connection(connection);
+	if ((result = odbc_connect(dbc, login)) != SQL_SUCCESS) {
+		tds_free_login(login);
 		ODBC_RETURN_(dbc);
 	}
 
-	tds_free_connection(connection);
+	tds_free_login(login);
 	ODBC_RETURN_(dbc);
 }
 

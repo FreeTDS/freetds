@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.146 2011-06-03 21:04:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.147 2011-06-10 17:51:43 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -656,13 +656,13 @@ slurp_input_file(char *fname, char **mybuf, size_t *bufsz, size_t *buflen, int *
 }
 
 static void
-print_instance_data(TDSCONNECTION *connection) 
+print_instance_data(TDSLOGIN *login) 
 {
-	if (!connection)
+	if (!login)
 		return;
 	
-	if (!tds_dstr_isempty(&connection->instance_name))
-		printf("connecting to instance %s on port %d\n", tds_dstr_cstr(&connection->instance_name), connection->port);
+	if (!tds_dstr_isempty(&login->instance_name))
+		printf("connecting to instance %s on port %d\n", tds_dstr_cstr(&login->instance_name), login->port);
 }
 
 int
@@ -677,7 +677,7 @@ main(int argc, char **argv)
 	TDSSOCKET *tds;
 	TDSLOGIN *login;
 	TDSCONTEXT *context;
-	TDSCONNECTION *connection;
+	TDSLOGIN *connection;
 	int opt_flags = 0;
 #if HAVE_FORK
 	pid_t timer_pid = 0;
@@ -797,7 +797,7 @@ main(int argc, char **argv)
 	}
 	if (VERBOSE) 
 		print_instance_data(connection);
-	tds_free_connection(connection);
+	tds_free_login(connection);
 	/* give the buffer an initial size */
 	bufsz = 4096;
 	mybuf = malloc(bufsz);

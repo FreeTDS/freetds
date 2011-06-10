@@ -49,11 +49,11 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.215 2011-06-03 21:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.216 2011-06-10 17:51:44 freddy77 Exp $");
 
-static int tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
-static int tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection);
-static int tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection);
+static int tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
+static int tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
+static int tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 
 void
 tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver)
@@ -308,9 +308,9 @@ free_save_context(TDSSAVECONTEXT *ctx)
 /**
  * Do a connection to socket
  * @param tds connection structure. This should be a non-connected connection.
- * @param connection info for connection
  * @return TDS_FAIL or TDS_SUCCESS if a connection was made to the server's port.
  * @return TDSERROR enumerated type if no TCP/IP connection could be formed. 
+ * @param login info for login
  * @remark Possible error conditions:
  *		- TDSESOCK: socket(2) failed: insufficient local resources
  * 		- TDSECONN: connect(2) failed: invalid hostname or port (ETIMEDOUT, ECONNREFUSED, ENETUNREACH)
@@ -318,7 +318,7 @@ free_save_context(TDSSAVECONTEXT *ctx)
  *		- TDS_FAIL: connect(2) succeeded, login failed.  
  */
 static int
-tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
+tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 {
 	int erc = TDSEFCON;
 	int connect_timeout = 0;
@@ -337,12 +337,12 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		};
 
 	/* disable tds9 if iconv wanted, currently not supported */
-	if (IS_TDS72_PLUS(connection) && tds_conn(tds)->use_iconv) {
-		connection->tds_version = 0x701;
+	if (IS_TDS72_PLUS(login) && tds_conn(tds)->use_iconv) {
+		login->tds_version = 0x701;
 		tdserror(tds_get_ctx(tds), tds, TDSEVERDOWN, 0);
 	}
 
-	if (TDS_MAJOR(connection) == 0) {
+	if (TDS_MAJOR(login) == 0) {
 		unsigned int i;
 		TDSSAVECONTEXT save_ctx;
 		const TDSCONTEXT *old_ctx = tds_get_ctx(tds);
@@ -358,10 +358,10 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		mod_ctx->err_handler = NULL;
 
 		for (i = tds_conn(tds)->use_iconv? 1 : 0; i < TDS_VECTOR_SIZE(versions); ++i) {
-			connection->tds_version = versions[i];
+			login->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
-			if ((erc = tds_connect(tds, connection, p_oserr)) != TDS_SUCCESS) {
+			if ((erc = tds_connect(tds, login, p_oserr)) != TDS_SUCCESS) {
 				tds_close_socket(tds);
 			}
 			
@@ -385,16 +385,16 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 	/*
 	 * If a dump file has been specified, start logging
 	 */
-	if (!tds_dstr_isempty(&connection->dump_file) && !tdsdump_isopen()) {
-		if (connection->debug_flags)
-			tds_debug_flags = connection->debug_flags;
-		tdsdump_open(tds_dstr_cstr(&connection->dump_file));
+	if (!tds_dstr_isempty(&login->dump_file) && !tdsdump_isopen()) {
+		if (login->debug_flags)
+			tds_debug_flags = login->debug_flags;
+		tdsdump_open(tds_dstr_cstr(&login->dump_file));
 	}
 
-	tds->connection = connection;
+	tds->login = login;
 
-	tds->tds_version = connection->tds_version;
-	tds_conn(tds)->emul_little_endian = connection->emul_little_endian;
+	tds->tds_version = login->tds_version;
+	tds_conn(tds)->emul_little_endian = login->emul_little_endian;
 #ifdef WORDS_BIGENDIAN
 	if (IS_TDS7_PLUS(tds)) {
 		/* TDS 7/8 only supports little endian */
@@ -404,40 +404,40 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 
 	/* set up iconv if not already initialized*/
 	if (tds->char_convs[client2ucs2]->to_wire == (iconv_t) -1) {
-		if (!tds_dstr_isempty(&connection->client_charset)) {
-			tds_iconv_open(tds, tds_dstr_cstr(&connection->client_charset));
+		if (!tds_dstr_isempty(&login->client_charset)) {
+			tds_iconv_open(tds, tds_dstr_cstr(&login->client_charset));
 		}
 	}
 
-	connect_timeout = connection->connect_timeout;
+	connect_timeout = login->connect_timeout;
 
 	/* Jeff's hack - begin */
-	tds->query_timeout = connect_timeout ? connect_timeout : connection->query_timeout;
+	tds->query_timeout = connect_timeout ? connect_timeout : login->query_timeout;
 	/* end */
 
 	/* verify that ip_addr is not empty */
-	if (tds_dstr_isempty(&connection->ip_addr)) {
+	if (tds_dstr_isempty(&login->ip_addr)) {
 		tdserror(tds_get_ctx(tds), tds, TDSEUHST, 0 );
 		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is empty\n");
-		if (!tds_dstr_isempty(&connection->server_name)) {
-			tdsdump_log(TDS_DBG_ERROR, "Server %s not found!\n", tds_dstr_cstr(&connection->server_name));
+		if (!tds_dstr_isempty(&login->server_name)) {
+			tdsdump_log(TDS_DBG_ERROR, "Server %s not found!\n", tds_dstr_cstr(&login->server_name));
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "No server specified!\n");
 		}
 		return TDSECONN;
 	}
 
-	if (!IS_TDS50(tds) && !tds_dstr_isempty(&connection->instance_name) && !connection->port)
-		connection->port = tds7_get_instance_port(tds_dstr_cstr(&connection->ip_addr), tds_dstr_cstr(&connection->instance_name));
+	if (!IS_TDS50(tds) && !tds_dstr_isempty(&login->instance_name) && !login->port)
+		login->port = tds7_get_instance_port(tds_dstr_cstr(&login->ip_addr), tds_dstr_cstr(&login->instance_name));
 
-	if (connection->port < 1) {
+	if (login->port < 1) {
 		tdsdump_log(TDS_DBG_ERROR, "invalid port number\n");
 		return TDSECONN;
 	}
 
-	memcpy(tds_conn(tds)->capabilities, connection->capabilities, TDS_MAX_CAPABILITY);
+	memcpy(tds_conn(tds)->capabilities, login->capabilities, TDS_MAX_CAPABILITY);
 
-	if ((erc = tds_open_socket(tds, tds_dstr_cstr(&connection->ip_addr), connection->port, connect_timeout, p_oserr)) != TDSEOK) {
+	if ((erc = tds_open_socket(tds, tds_dstr_cstr(&login->ip_addr), login->port, connect_timeout, p_oserr)) != TDSEOK) {
 		tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
 		return erc;
 	}
@@ -451,14 +451,14 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 	tds_set_state(tds, TDS_IDLE);
 
 	if (IS_TDS71_PLUS(tds)) {
-		erc = tds71_do_login(tds, connection);
+		erc = tds71_do_login(tds, login);
 		db_selected = 1;
 	} else if (IS_TDS7_PLUS(tds)) {
-		erc = tds7_send_login(tds, connection);
+		erc = tds7_send_login(tds, login);
 		db_selected = 1;
 	} else {
 		tds->out_flag = TDS_LOGIN;
-		erc = tds_send_login(tds, connection);
+		erc = tds_send_login(tds, login);
 	}
 	if (erc == TDS_FAIL || tds_process_login_tokens(tds) == TDS_FAIL) {
 		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", erc==TDS_SUCCESS? "accepted":"rejected");
@@ -467,21 +467,21 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 		return TDSEFCON;
 	}
 
-	if (connection->text_size || (!db_selected && !tds_dstr_isempty(&connection->database))) {
+	if (login->text_size || (!db_selected && !tds_dstr_isempty(&login->database))) {
 		char *str;
 		int len;
 
-		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&connection->database),-1);
+		len = 64 + tds_quote_id(tds, NULL, tds_dstr_cstr(&login->database),-1);
 		if ((str = (char *) malloc(len)) == NULL)
 			return TDS_FAIL;
 
 		str[0] = 0;
-		if (connection->text_size) {
-			sprintf(str, "set textsize %d ", connection->text_size);
+		if (login->text_size) {
+			sprintf(str, "set textsize %d ", login->text_size);
 		}
-		if (!db_selected && !tds_dstr_isempty(&connection->database)) {
+		if (!db_selected && !tds_dstr_isempty(&login->database)) {
 			strcat(str, "use ");
-			tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&connection->database), -1);
+			tds_quote_id(tds, strchr(str, 0), tds_dstr_cstr(&login->database), -1);
 		}
 		erc = tds_submit_query(tds, str);
 		free(str);
@@ -492,16 +492,16 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 			return TDS_FAIL;
 	}
 
-	tds->query_timeout = connection->query_timeout;
-	tds->connection = NULL;
+	tds->query_timeout = login->query_timeout;
+	tds->login = NULL;
 	return TDS_SUCCESS;
 }
 
 int
-tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection)
+tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	int oserr = 0;
-	return tds_connect(tds, connection, &oserr);
+	return tds_connect(tds, login, &oserr);
 }
 
 static int
@@ -512,7 +512,7 @@ tds_put_login_string(TDSSOCKET * tds, const char *buf, int n)
 }
 
 static int
-tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
+tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 #ifdef WORDS_BIGENDIAN
 	static const unsigned char be1[] = { 0x02, 0x00, 0x06, 0x04, 0x08, 0x01 };
@@ -564,9 +564,9 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	char blockstr[16];
 
 	/* override lservname field for ASA servers */	
-	const char *lservname = getenv("ASA_DATABASE")? getenv("ASA_DATABASE") : tds_dstr_cstr(&connection->server_name);
+	const char *lservname = getenv("ASA_DATABASE")? getenv("ASA_DATABASE") : tds_dstr_cstr(&login->server_name);
 
-	if (strchr(tds_dstr_cstr(&connection->user_name), '\\') != NULL) {
+	if (strchr(tds_dstr_cstr(&login->user_name), '\\') != NULL) {
 		tdsdump_log(TDS_DBG_ERROR, "NT login not support using TDS 4.x or 5.0\n");
 		return TDS_FAIL;
 	}
@@ -590,9 +590,9 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	 * do this, (well...mine was a kludge actually) so here's mostly his
 	 */
 
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->client_host_name), TDS_MAX_LOGIN_STR_SZ);	/* client host name */
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->user_name), TDS_MAX_LOGIN_STR_SZ);	/* account name */
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->password), TDS_MAX_LOGIN_STR_SZ);	/* account password */
+	tds_put_login_string(tds, tds_dstr_cstr(&login->client_host_name), TDS_MAX_LOGIN_STR_SZ);	/* client host name */
+	tds_put_login_string(tds, tds_dstr_cstr(&login->user_name), TDS_MAX_LOGIN_STR_SZ);	/* account name */
+	tds_put_login_string(tds, tds_dstr_cstr(&login->password), TDS_MAX_LOGIN_STR_SZ);	/* account password */
 	sprintf(blockstr, "%d", (int) getpid());
 	tds_put_login_string(tds, blockstr, TDS_MAX_LOGIN_STR_SZ);	/* host process */
 #ifdef WORDS_BIGENDIAN
@@ -604,7 +604,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 #else
 	tds_put_n(tds, le1, 6);
 #endif
-	tds_put_byte(tds, connection->bulk_copy);
+	tds_put_byte(tds, login->bulk_copy);
 	tds_put_n(tds, magic2, 2);
 	if (IS_TDS42(tds)) {
 		tds_put_int(tds, 512);
@@ -612,23 +612,23 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_int(tds, 0);
 	}
 	tds_put_n(tds, magic3, 3);
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->app_name), TDS_MAX_LOGIN_STR_SZ);
+	tds_put_login_string(tds, tds_dstr_cstr(&login->app_name), TDS_MAX_LOGIN_STR_SZ);
 	tds_put_login_string(tds, lservname, TDS_MAX_LOGIN_STR_SZ);
 	if (IS_TDS42(tds)) {
-		tds_put_login_string(tds, tds_dstr_cstr(&connection->password), 255);
+		tds_put_login_string(tds, tds_dstr_cstr(&login->password), 255);
 	} else {
-		len = (int)tds_dstr_len(&connection->password);
+		len = (int)tds_dstr_len(&login->password);
 		if (len > 253)
 			len = 0;
 		tds_put_byte(tds, 0);
 		tds_put_byte(tds, len);
-		tds_put_n(tds, tds_dstr_cstr(&connection->password), len);
+		tds_put_n(tds, tds_dstr_cstr(&login->password), len);
 		tds_put_n(tds, NULL, 253 - len);
 		tds_put_byte(tds, len + 2);
 	}
 
 	tds_put_n(tds, protocol_version, 4);	/* TDS version; { 0x04,0x02,0x00,0x00 } */
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->library), 10);	/* client program name */
+	tds_put_login_string(tds, tds_dstr_cstr(&login->library), 10);	/* client program name */
 	if (IS_TDS42(tds)) {
 		tds_put_int(tds, 0);
 	} else {
@@ -643,18 +643,18 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 #else
 	tds_put_n(tds, le2, 3);
 #endif
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->language), TDS_MAX_LOGIN_STR_SZ);	/* language */
-	tds_put_byte(tds, connection->suppress_language);
+	tds_put_login_string(tds, tds_dstr_cstr(&login->language), TDS_MAX_LOGIN_STR_SZ);	/* language */
+	tds_put_byte(tds, login->suppress_language);
 	tds_put_n(tds, magic5, 2);
-	tds_put_byte(tds, connection->encryption_level ? 1 : 0);
+	tds_put_byte(tds, login->encryption_level ? 1 : 0);
 	tds_put_n(tds, magic6, 10);
 
 	/* use charset nearest to client or nothing */
 	server_charset = NULL;
-	if (!tds_dstr_isempty(&connection->server_charset))
-		server_charset = tds_dstr_cstr(&connection->server_charset);
+	if (!tds_dstr_isempty(&login->server_charset))
+		server_charset = tds_dstr_cstr(&login->server_charset);
 	else
-		server_charset = tds_sybase_charset_name(tds_dstr_cstr(&connection->client_charset));
+		server_charset = tds_sybase_charset_name(tds_dstr_cstr(&login->client_charset));
 	if (!server_charset)
 		server_charset = "";
 	tds_put_login_string(tds, server_charset, TDS_MAX_LOGIN_STR_SZ);	/* charset */
@@ -663,8 +663,8 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tds_put_byte(tds, 1);
 
 	/* network packet size */
-	if (connection->block_size < 65536 && connection->block_size > 0)
-		sprintf(blockstr, "%d", connection->block_size);
+	if (login->block_size < 65536 && login->block_size > 0)
+		sprintf(blockstr, "%d", login->block_size);
 	else
 		strcpy(blockstr, "512");
 	tds_put_login_string(tds, blockstr, 6);
@@ -689,7 +689,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
  * \returns the return value is ignored by the caller. :-/
  */
 static int
-tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
+tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	static const unsigned char 
 		client_progver[] = {   6, 0x83, 0xf2, 0xf8 }, 
@@ -714,24 +714,24 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	TDS_INT block_size = 4096;
 	
 	unsigned char option_flag1 = TDS_SET_LANG_ON | TDS_USE_DB_NOTIFY | TDS_INIT_DB_FATAL;
-	unsigned char option_flag2 = connection->option_flag2;
+	unsigned char option_flag2 = login->option_flag2;
 	unsigned char option_flag3 = TDS_UNKNOWN_COLLATION_HANDLING;
 
 	unsigned char hwaddr[6];
 	size_t unicode_left, packet_size, current_pos;
 	int rc;
 
-	const char *user_name = tds_dstr_cstr(&connection->user_name);
+	const char *user_name = tds_dstr_cstr(&login->user_name);
 
 	// FIXME: These are defined as size_t, but should be TDS_SMALLINT. 
 	size_t user_name_len = strlen(user_name);
-	size_t host_name_len = tds_dstr_len(&connection->client_host_name);
-	size_t app_name_len = tds_dstr_len(&connection->app_name);
-	size_t password_len = tds_dstr_len(&connection->password);
-	size_t server_name_len = tds_dstr_len(&connection->server_name);
-	size_t library_len = tds_dstr_len(&connection->library);
-	size_t language_len = tds_dstr_len(&connection->language);
-	size_t database_len = tds_dstr_len(&connection->database);
+	size_t host_name_len = tds_dstr_len(&login->client_host_name);
+	size_t app_name_len = tds_dstr_len(&login->app_name);
+	size_t password_len = tds_dstr_len(&login->password);
+	size_t server_name_len = tds_dstr_len(&login->server_name);
+	size_t library_len = tds_dstr_len(&login->library);
+	size_t language_len = tds_dstr_len(&login->language);
+	size_t database_len = tds_dstr_len(&login->database);
 	size_t auth_len = 0;
 
 	tds->out_flag = TDS7_LOGIN;
@@ -785,7 +785,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	tdsdump_off();
 #endif
 	TDS_PUT_INT(tds, packet_size);
-	switch (connection->tds_version) {
+	switch (login->tds_version) {
 	case 0x700:
 		ptds7version = tds70Version;
 		break;
@@ -799,13 +799,13 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		ptds7version = tds73Version;
 		break;
 	default:
-		assert(0 && 0x700 <= connection->tds_version && connection->tds_version <= 0x703);
+		assert(0 && 0x700 <= login->tds_version && login->tds_version <= 0x703);
 	}
 	
 	tds_put_n(tds, ptds7version, sizeof(tds70Version));
 
-	if (512 <= connection->block_size && connection->block_size < 1000000)
-		block_size = connection->block_size;
+	if (512 <= login->block_size && login->block_size < 1000000)
+		block_size = login->block_size;
 
 	tds_put_int(tds, block_size);	/* desired packet size being requested by client */
 
@@ -818,7 +818,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 
 	tds_put_n(tds, connection_id, sizeof(connection_id));
 
-	if (!connection->bulk_copy)
+	if (!login->bulk_copy)
 		option_flag1 |= TDS_DUMPLOAD_OFF;
 		
 	tds_put_byte(tds, option_flag1);
@@ -826,7 +826,7 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (tds_conn(tds)->authentication)
 		option_flag2 |= TDS_INTEGRATED_SECURITY_ON;
 
-	if (connection->tds_version >= 0x703)
+	if (login->tds_version >= 0x703)
 		tds_put_byte(tds, option_flag3);
 
 	tds_put_byte(tds, option_flag2);
@@ -903,14 +903,14 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	}
 
 	/* FIXME here we assume single byte, do not use *2 to compute bytes, convert before !!! */
-	tds_put_string(tds, tds_dstr_cstr(&connection->client_host_name), (int)host_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&login->client_host_name), (int)host_name_len);
 	if (!tds_conn(tds)->authentication) {
 		char unicode_string[256], *punicode = unicode_string;
 		const char *p;
 		TDSICONV *char_conv = tds->char_convs[client2ucs2];
 
-		tds_put_string(tds, tds_dstr_cstr(&connection->user_name), (int)user_name_len);
-		p = tds_dstr_cstr(&connection->password);
+		tds_put_string(tds, tds_dstr_cstr(&login->user_name), (int)user_name_len);
+		p = tds_dstr_cstr(&login->password);
 		unicode_left = sizeof(unicode_string);
 
 		memset(&char_conv->suppress, 0, sizeof(char_conv->suppress));
@@ -923,11 +923,11 @@ tds7_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds7_crypt_pass((unsigned char *) unicode_string, password_len, (unsigned char *) unicode_string);
 		tds_put_n(tds, unicode_string, password_len);
 	}
-	tds_put_string(tds, tds_dstr_cstr(&connection->app_name), (int)app_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->server_name), (int)server_name_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->library), (int)library_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->language), (int)language_len);
-	tds_put_string(tds, tds_dstr_cstr(&connection->database), (int)database_len);
+	tds_put_string(tds, tds_dstr_cstr(&login->app_name), (int)app_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&login->server_name), (int)server_name_len);
+	tds_put_string(tds, tds_dstr_cstr(&login->library), (int)library_len);
+	tds_put_string(tds, tds_dstr_cstr(&login->language), (int)language_len);
+	tds_put_string(tds, tds_dstr_cstr(&login->database), (int)database_len);
 
 	if (tds_conn(tds)->authentication)
 		tds_put_n(tds, tds_conn(tds)->authentication->packet, auth_len);
@@ -954,10 +954,10 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 }
 
 static int
-tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
+tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 {
 	int i, len;
-	const char *instance_name = tds_dstr_isempty(&connection->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&connection->instance_name);
+	const char *instance_name = tds_dstr_isempty(&login->instance_name) ? "MSSQLServer" : tds_dstr_cstr(&login->instance_name);
 	int instance_name_len = strlen(instance_name) + 1;
 	TDS_CHAR crypt_flag;
 	unsigned int start_pos = 21;
@@ -1023,7 +1023,7 @@ tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	/* not supported */
 	tds_put_byte(tds, 2);
 #else
-	tds_put_byte(tds, connection->encryption_level >= TDS_ENCRYPTION_REQUIRE ? 1 : 0);
+	tds_put_byte(tds, login->encryption_level >= TDS_ENCRYPTION_REQUIRE ? 1 : 0);
 #endif
 	/* instance */
 	tds_put_n(tds, instance_name, instance_name_len);
@@ -1074,10 +1074,10 @@ tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	/* if server do not has certificate do normal login */
 	if (crypt_flag == 2) {
 		/* unless we wanted encryption and got none, then fail */
-		if (connection->encryption_level >= TDS_ENCRYPTION_REQUIRE)
+		if (login->encryption_level >= TDS_ENCRYPTION_REQUIRE)
 			return TDS_FAIL;
 
-		return tds7_send_login(tds, connection);
+		return tds7_send_login(tds, login);
 	}
 #if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
 	tdsdump_log(TDS_DBG_ERROR, "server required encryption but support is not compiled in\n");
@@ -1093,7 +1093,7 @@ tds71_do_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	if (tds_ssl_init(tds) != TDS_SUCCESS)
 		return TDS_FAIL;
 
-	ret = tds7_send_login(tds, connection);
+	ret = tds7_send_login(tds, login);
 
 	/* if flag is 0 it means that after login server continue not encrypted */
 	if (crypt_flag == 0 || ret != TDS_SUCCESS)

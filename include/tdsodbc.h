@@ -82,7 +82,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.128 2011-05-20 20:56:34 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.129 2011-06-10 17:51:43 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -459,7 +459,7 @@ typedef struct _hchk TDS_CHK;
 #endif
 
 #ifdef _WIN32
-BOOL get_login_info(HWND hwndParent, TDSCONNECTION * connection);
+BOOL get_login_info(HWND hwndParent, TDSLOGIN * login);
 #endif
 
 #define ODBC_PARAM_LIST \
@@ -510,8 +510,8 @@ typedef struct {
  * \param connection          structure where to store informations
  * \return 0 if error, 1 otherwise
  */
-int odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSCONNECTION * connection, TDS_PARSED_PARAM *parsed_params);
-int odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSCONNECTION * connection);
+int odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char *connect_string_end, TDSLOGIN * login, TDS_PARSED_PARAM *parsed_params);
+int odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login);
 #ifdef _WIN32
 int odbc_build_connect_string(TDS_ERRS *errs, TDS_PARSED_PARAM *params, char **out);
 #endif

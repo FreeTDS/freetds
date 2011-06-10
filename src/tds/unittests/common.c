@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.31 2011-05-16 13:31:11 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.32 2011-06-10 17:51:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -54,7 +54,7 @@ TDSCONTEXT *test_context = NULL;
 int
 try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verbose)
 {
-	TDSCONNECTION *connection;
+	TDSLOGIN *connection;
 
 	if (verbose) {
 		fprintf(stdout, "Entered tds_try_login()\n");
@@ -101,12 +101,12 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 		if (connection) {
 			tds_free_socket(*tds);
 			*tds = NULL;
-			tds_free_connection(connection);
+			tds_free_login(connection);
 		}
 		fprintf(stderr, "tds_connect_and_login() failed\n");
 		return TDS_FAIL;
 	}
-	tds_free_connection(connection);
+	tds_free_login(connection);
 
 	return TDS_SUCCESS;
 }

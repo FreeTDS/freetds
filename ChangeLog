@@ -1,3 +1,12 @@
+Fri Jun 10 19:51:47 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h include/tdsodbc.h src/apps/tsql.c src/ctlib/ct.c:
+	* src/dblib/dblib.c src/odbc/connectparams.c src/odbc/odbc.c:
+	* src/pool/member.c src/tds/challenge.c src/tds/config.c:
+	* src/tds/gssapi.c src/tds/login.c src/tds/mem.c src/tds/net.c:
+	* src/tds/sspi.c src/tds/token.c src/tds/unittests/common.c:
+	* win32/winlogin.c win32/winsetup.c:
+	- unify TDSCONNECTION and TDSLOGIN
+
 Thu Jun  9 15:04:09 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/bcp.c: bcp style update
 
@@ -434,4 +443,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3300 2011-06-09 13:04:14 freddy77 Exp $
+$Id: ChangeLog,v 1.3301 2011-06-10 17:51:43 freddy77 Exp $

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.14 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.15 2011-06-10 17:51:44 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -180,7 +180,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
-	if (!auth || !tds->connection)
+	if (!auth || !tds->login)
 		return NULL;
 
 	auth->tds_auth.free = tds_gss_free;
@@ -188,7 +188,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	auth->gss_context = GSS_C_NO_CONTEXT;
 	auth->last_stat = GSS_S_COMPLETE;
 
-	server_name = tds_dstr_cstr(&tds->connection->server_host_name);
+	server_name = tds_dstr_cstr(&tds->login->server_host_name);
 	if (strchr(server_name, '.') == NULL) {
 		struct hostent result;
 		int h_errnop;
@@ -198,7 +198,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 			server_name = host->h_name;
 	}
 
-	if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->connection->port) < 0) {
+	if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port) < 0) {
 		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
@@ -253,7 +253,7 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	/* We may ask for delegation based on config in the tds.conf and other conf files */
 	/* We always want to ask for the mutual, replay, and integ flags */
 	gssapi_flags = GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG;
-	if (tds->connection->gssapi_use_delegation)
+	if (tds->login->gssapi_use_delegation)
 		gssapi_flags |= GSS_C_DELEG_FLAG;
 
 	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, 

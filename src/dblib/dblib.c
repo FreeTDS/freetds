@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.394 2011-06-08 09:02:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.395 2011-06-10 17:51:43 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1136,7 +1136,7 @@ DBPROCESS *
 tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 {
 	DBPROCESS *dbproc = NULL;
-	TDSCONNECTION *connection;
+	TDSLOGIN *connection;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbopen(%p, %s, [%s])\n", login, server? server : "0x0", msdblib? "microsoft" : "sybase");
 
@@ -1190,7 +1190,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		return NULL;
 	}
 	connection->option_flag2 &= ~0x02;	/* we're not an ODBC driver */
-	tds_fix_connection(connection);		/* initialize from Environment variables */
+	tds_fix_login(connection);		/* initialize from Environment variables */
 
 	dbproc->chkintr = NULL;
 	dbproc->hndlintr = NULL;
@@ -1210,11 +1210,11 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
 	if (tds_connect_and_login(dbproc->tds_socket, connection) != TDS_SUCCESS) {
-		tds_free_connection(connection);
+		tds_free_login(connection);
 		dbclose(dbproc);
 		return NULL;
 	}
-	tds_free_connection(connection);
+	tds_free_login(connection);
 
 	dbproc->dbbuf = NULL;
 	dbproc->dbbufsz = 0;

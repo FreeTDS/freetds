@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.215 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.216 2011-06-10 17:51:43 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -586,7 +586,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	char *server;
 	int needfree = 0;
 	CS_CONTEXT *ctx;
-	TDSCONNECTION *connection;
+	TDSLOGIN *login;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_connect(%p, %s, %d)\n", con, servername ? servername : "NULL", snamelen);
 
@@ -609,22 +609,22 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 	if (!(con->tds_socket = tds_alloc_socket(ctx->tds_ctx, 512)))
 		return CS_FAIL;
 	tds_set_parent(con->tds_socket, (void *) con);
-	if (!(connection = tds_read_config_info(con->tds_socket, con->tds_login, ctx->tds_ctx->locale))) {
+	if (!(login = tds_read_config_info(con->tds_socket, con->tds_login, ctx->tds_ctx->locale))) {
 		tds_free_socket(con->tds_socket);
 		con->tds_socket = NULL;
 		return CS_FAIL;
 	}
 	if (con->server_addr)
-		tds_dstr_copy(&connection->server_host_name, con->server_addr);
+		tds_dstr_copy(&login->server_host_name, con->server_addr);
 
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
 		if (con->locale->charset) {
-			if (!tds_dstr_copy(&connection->server_charset, con->locale->charset))
+			if (!tds_dstr_copy(&login->server_charset, con->locale->charset))
 				goto Cleanup;
 		}
 		if (con->locale->language) {
-			if (!tds_dstr_copy(&connection->language, con->locale->language))
+			if (!tds_dstr_copy(&login->language, con->locale->language))
 				goto Cleanup;
 		}
 		if (con->locale->time && tds_get_ctx(con->tds_socket)) {
@@ -641,10 +641,10 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		*/
 	}
 
-	if (tds_connect_and_login(con->tds_socket, connection) != TDS_SUCCESS)
+	if (tds_connect_and_login(con->tds_socket, login) != TDS_SUCCESS)
 		goto Cleanup;
 
-	tds_free_connection(connection);
+	tds_free_login(login);
 
 	tdsdump_log(TDS_DBG_FUNC, "leaving ct_connect() returning %d\n", CS_SUCCEED);
 	return CS_SUCCEED;
@@ -652,7 +652,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 Cleanup:
 	tds_free_socket(con->tds_socket);
 	con->tds_socket = NULL;
-	tds_free_connection(connection);
+	tds_free_login(login);
 	tdsdump_log(TDS_DBG_FUNC, "leaving ct_connect() returning %d\n", CS_FAIL);
 	return CS_FAIL;
 }

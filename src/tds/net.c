@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.120 2011-06-08 09:35:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.121 2011-06-10 17:51:44 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -724,7 +724,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	tds->out_buf[1] = final;
 	tds->out_buf[2] = (tds->out_pos) / 256u;
 	tds->out_buf[3] = (tds->out_pos) % 256u;
-	if (IS_TDS7_PLUS(tds) && !tds->connection)
+	if (IS_TDS7_PLUS(tds) && !tds->login)
 		tds->out_buf[6] = 0x01;
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);

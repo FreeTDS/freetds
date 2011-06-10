@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.408 2011-06-08 08:48:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.409 2011-06-10 17:51:44 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -2599,9 +2599,9 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	/* server name */
 	rc += tds_alloc_get_string(tds, &msg.server, tds_get_byte(tds));
 
-	if ((!msg.server || !msg.server[0]) && tds->connection) {
+	if ((!msg.server || !msg.server[0]) && tds->login) {
 		TDS_ZERO_FREE(msg.server);
-		if (-1 == asprintf(&msg.server, "[%s]", tds_dstr_cstr(&tds->connection->server_name))) {
+		if (-1 == asprintf(&msg.server, "[%s]", tds_dstr_cstr(&tds->login->server_name))) {
 			tdsdump_log(TDS_DBG_ERROR, "out of memory (%d), %s\n", errno, strerror(errno));
 			return TDS_FAIL;
 		}

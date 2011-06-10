@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.373 2011-06-07 09:58:49 freddy77 Exp $ */
+/* $Id: tds.h,v 1.374 2011-06-10 17:51:43 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -478,18 +478,19 @@ typedef union
 #define TDS_MAX_LOGIN_STR_SZ 30
 typedef struct tds_login
 {
-	DSTR server_name;
-	int port;
-	TDS_USMALLINT tds_version;	/* TDS version */
+	DSTR server_name;		/**< server name (in freetds.conf) */
+	int port;			/**< port of database service */
+	TDS_USMALLINT tds_version;	/**< TDS version */
 	int block_size;
 	DSTR language;			/* e.g. us-english */
-	DSTR server_charset;		/* e.g. iso_1 */
+	DSTR server_charset;		/**< charset of server e.g. iso_1 */
 	TDS_INT connect_timeout;
 	DSTR client_host_name;
+	DSTR server_host_name;
 	DSTR app_name;
-	DSTR user_name;
-	DSTR password;
-	
+	DSTR user_name;	    	/**< account for login */
+	DSTR password;	    	/**< password of account login */
+
 	DSTR library;	/* Ct-Library, DB-Library,  TDS-Library or ODBC */
 	TDS_TINYINT encryption_level;
 
@@ -497,47 +498,23 @@ typedef struct tds_login
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	DSTR client_charset;
 	DSTR database;
-	unsigned int bulk_copy:1;
-	unsigned int suppress_language:1;
-} TDSLOGIN;
-
-typedef struct tds_connection
-{
-	/* first part of structure is the same of login one */
-	DSTR server_name; /**< server name (in freetds.conf) */
-	int port;	   /**< port of database service */
-	TDS_USMALLINT tds_version;
-	int block_size;
-	DSTR language;
-	DSTR server_charset;	/**< charset of server */
-	TDS_INT connect_timeout;
-	DSTR client_host_name;
-	DSTR server_host_name;
-	DSTR app_name;
-	DSTR user_name;	    	/**< account for login */
-	DSTR password;	    	/**< password of account login */
-	DSTR library;
-	TDS_TINYINT encryption_level;
-
-	TDS_INT query_timeout;
-	unsigned char capabilities[TDS_MAX_CAPABILITY];
-	unsigned char option_flag2;
-	DSTR client_charset;
 
 	DSTR ip_addr;	  	/**< ip of server */
 	DSTR instance_name;
-	DSTR database;
 	DSTR dump_file;
 	int debug_flags;
 	int text_size;
-	unsigned int broken_dates:1;
-	unsigned int emul_little_endian:1;
+
+	unsigned char option_flag2;
+
 	unsigned int bulk_copy:1;
 	unsigned int suppress_language:1;
+	unsigned int broken_dates:1;
+	unsigned int emul_little_endian:1;
 	unsigned int gssapi_use_delegation:1;
 	unsigned int use_ntlmv2:1;
 	unsigned int mars:1;
-} TDSCONNECTION;
+} TDSLOGIN;
 
 typedef struct tds_locale
 {
@@ -993,7 +970,7 @@ struct tds_socket
 	int char_conv_count;
 	TDSICONV **char_convs;
 
-	TDSCONNECTION *connection;	/**< config for login stuff. After login this field is NULL */
+	TDSLOGIN *login;	/**< config for login stuff. After login this field is NULL */
 
 	int spid;
 	TDS_UCHAR collation[5];
@@ -1015,7 +992,6 @@ struct tds_socket
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);
 void tds_free_socket(TDSSOCKET * tds);
-void tds_free_connection(TDSCONNECTION * connection);
 void tds_free_all_results(TDSSOCKET * tds);
 void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
@@ -1044,11 +1020,11 @@ int tds_default_port(int major, int minor);
 const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
 typedef void (*TDSCONFPARSE) (const char *option, const char *value, void *param);
 int tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
-int tds_read_conf_file(TDSCONNECTION * connection, const char *server);
+int tds_read_conf_file(TDSLOGIN * login, const char *server);
 void tds_parse_conf_section(const char *option, const char *value, void *param);
-TDSCONNECTION *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
-void tds_fix_connection(TDSCONNECTION * connection);
-TDS_USMALLINT tds_config_verstr(const char *tdsver, TDSCONNECTION * connection);
+TDSLOGIN *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
+void tds_fix_login(TDSLOGIN* login);
+TDS_USMALLINT tds_config_verstr(const char *tdsver, TDSLOGIN* login);
 int tds_lookup_host(const char *servername, char *ip);
 int tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
@@ -1097,7 +1073,7 @@ char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
 TDSLOGIN *tds_alloc_login(void);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET * tds, const char *id);
 void tds_free_login(TDSLOGIN * login);
-TDSCONNECTION *tds_alloc_connection(TDSLOCALE * locale);
+TDSLOGIN *tds_alloc_connection(TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void *tds_alloc_param_data(TDSCOLUMN * curparam);
 void tds_free_locale(TDSLOCALE * locale);
@@ -1119,7 +1095,7 @@ void tds_set_language(TDSLOGIN * tds_login, const char *language);
 void tds_set_database_name(TDSLOGIN * tds_login, const char *dbname);
 void tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver);
 void tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size);
-int tds_connect_and_login(TDSSOCKET * tds, TDSCONNECTION * connection);
+int tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login);
 
 /* query.c */
 int tds_submit_query(TDSSOCKET * tds, const char *query);
