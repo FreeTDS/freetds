@@ -1,3 +1,7 @@
+Sat Jun 11 09:42:35 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c src/tds/numeric.c:
+	- do not mix conversion results with normal ones
+
 Sat Jun 11 08:35:17 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/bulk.c src/tds/query.c: fix some returns
 
@@ -446,4 +450,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3302 2011-06-11 06:35:09 freddy77 Exp $
+$Id: ChangeLog,v 1.3303 2011-06-11 07:42:26 freddy77 Exp $

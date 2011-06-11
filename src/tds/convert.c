@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.200 2011-06-05 09:21:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.201 2011-06-11 07:42:26 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -3015,7 +3015,7 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
 		++p;
 	if (p == pend) {
 		*res = 0;
-		return TDS_SUCCESS;
+		return sizeof(TDS_INT);
 	}
 
 	/* check for sign */
@@ -3068,7 +3068,7 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
 		*res = num;
 	}
 
-	return TDS_SUCCESS;
+	return sizeof(TDS_INT);
 }
 
 /**
@@ -3092,7 +3092,7 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 		++p;
 	if (p == pend) {
 		*res = 0;
-		return TDS_SUCCESS;
+		return sizeof(TDS_INT8);
 	}
 
 	/* check for sign */
@@ -3144,7 +3144,7 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 		*res = num;
 	}
 
-	return TDS_SUCCESS;
+	return sizeof(TDS_INT8);
 }
 
 
