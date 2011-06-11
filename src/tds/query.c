@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.256 2011-06-06 12:33:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.257 2011-06-11 06:35:09 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1523,7 +1523,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
  * \param tds    state information for the socket and the TDS protocol
  * \param curcol column where to store information
  * \param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
- * \return TDS_SUCCESS or TDS_FAIL
+ * \return data info length
  */
 static int
 tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)

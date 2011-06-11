@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.19 2011-06-06 07:27:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.20 2011-06-11 06:35:09 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -548,7 +548,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		 */
 		row_pos = 2;
 
-		if ((row_pos = tds_bcp_add_fixed_columns(bcpinfo, get_col_data, null_error, offset, record, row_pos)) == TDS_FAIL)
+		if ((row_pos = tds_bcp_add_fixed_columns(bcpinfo, get_col_data, null_error, offset, record, row_pos)) < 0)
 			return TDS_FAIL;
 
 		row_sz_pos = row_pos;
@@ -556,7 +556,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		/* potential variable columns to write */
 
 		if (bcpinfo->var_cols) {
-			if ((row_pos = tds_bcp_add_variable_columns(bcpinfo, get_col_data, null_error, offset, record, row_pos, &var_cols_written)) == TDS_FAIL)
+			if ((row_pos = tds_bcp_add_variable_columns(bcpinfo, get_col_data, null_error, offset, record, row_pos, &var_cols_written)) < 0)
 				return TDS_FAIL;
 		}
 
@@ -604,6 +604,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 
 /**
  * Add fixed size columns to the row
+ * @returns length or -1 on error.
  */
 static int
 tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, unsigned char * rowbuffer, int start)
@@ -629,13 +630,13 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 
 			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCESS) {
 				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
-		 		return TDS_FAIL;
+		 		return -1;
 			}
 
 			if (bcpcol->bcp_column_data->is_null) {
 				/* No value or default value available and NULL not allowed. */
 				null_error(bcpinfo, i, offset);
-				return TDS_FAIL;
+				return -1;
 			}
 
 			if (is_numeric_type(bcpcol->column_type)) {
@@ -669,7 +670,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
  * \param start Where to begin copying data into the rowbuffer. 
  * \param pncols Address of output variable holding the count of columns added to the rowbuffer.  
  * 
- * \return length of (potentially modified) rowbuffer, or TDS_FAIL.
+ * \return length of (potentially modified) rowbuffer, or -1.
  */
 static int
 tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, TDS_UCHAR* rowbuffer, int start, int *pncols)
@@ -715,13 +716,13 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 			tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
 
 			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCESS)
-		 		return TDS_FAIL;
+		 		return -1;
 
 			/* If it's a NOT NULL column, and we have no data, throw an error. */
 			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->is_null) {
 				/* No value or default value available and NULL not allowed. */
 				null_error(bcpinfo, i, offset);
-				return TDS_FAIL;
+				return -1;
 			}
 
 			/* move the column buffer into the rowbuffer */
