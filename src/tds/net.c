@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.121 2011-06-10 17:51:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.122 2011-06-16 06:56:40 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -741,7 +741,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		sent = gnutls_record_send(tds_conn(tds)->tls_session, tds->out_buf, tds->out_pos);
 	else
 #elif defined(HAVE_OPENSSL)
-	if (tds->tls_session)
+	if (tds_conn(tds)->tls_session)
 		sent = SSL_write((SSL*) tds_conn(tds)->tls_session, tds->out_buf, tds->out_pos);
 	else
 #endif

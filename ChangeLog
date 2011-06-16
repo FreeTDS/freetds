@@ -1,3 +1,6 @@
+Thu Jun 16 08:56:55 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: fix compile error (patch from Jason Yanowitz)
+
 Sat Jun 11 09:42:35 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c src/tds/numeric.c:
 	- do not mix conversion results with normal ones
@@ -450,4 +453,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3303 2011-06-11 07:42:26 freddy77 Exp $
+$Id: ChangeLog,v 1.3304 2011-06-16 06:56:40 freddy77 Exp $
