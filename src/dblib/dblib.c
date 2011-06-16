@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.395 2011-06-10 17:51:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.396 2011-06-16 19:17:19 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -538,22 +538,24 @@ dbbindtype(int datatype)
 static RETCODE
 dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 {
-	NULLREP *pnullrep;
+	NULLREP *pnullrep = default_null_representations;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbgetnull(%p, %d, %d, %p)\n", dbproc, bindtype, varlen, varaddr);
 
-	CHECK_PARAMETER(dbproc, SYBENULL, FAIL);
 	CHECK_PARAMETER(varaddr, SYBENULL, FAIL);
-	CHECK_PARAMETER(!IS_TDSDEAD(dbproc->tds_socket), SYBEDDNE, FAIL);
 	CHECK_PARAMETER(0 <= bindtype && bindtype < MAXBINDTYPES, SYBEBTYP, FAIL);
+
 	
 	if (!varaddr) {
 		dbperror(dbproc, SYBENULP, 0, "dbgetnull", "varaddr");
 		return FAIL;
 	}
 	
-	assert(dbproc->nullreps);
-	pnullrep = dbproc->nullreps + bindtype;
+	/* dbproc can be NULL */
+	if (NULL != dbproc) {
+		assert(dbproc->nullreps);
+		pnullrep = dbproc->nullreps + bindtype;
+	}
 	
 	/* 
 	 * Fixed types: ignore varlen
