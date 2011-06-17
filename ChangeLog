@@ -1,3 +1,7 @@
+Fri Jun 17 12:03:38 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/dblib.c:
+	- use proper default null representation for all bind types
+
 Thu Jun 16 15:16:23 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* src/dblib/dblib.c dbgetnull permits NULL dbproc
 
@@ -456,4 +460,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3305 2011-06-16 19:17:19 jklowden Exp $
+$Id: ChangeLog,v 1.3306 2011-06-17 10:03:44 freddy77 Exp $
