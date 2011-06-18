@@ -1,3 +1,15 @@
+Sat Jun 18 19:52:39 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/ctlib.h include/tds.h src/apps/tsql.c src/ctlib/blk.c:
+	* src/ctlib/cs.c src/ctlib/ct.c src/ctlib/ctutil.c src/dblib/bcp.c:
+	* src/dblib/dblib.c src/dblib/rpc.c src/odbc/convert_tds2sql.c:
+	* src/odbc/odbc.c src/odbc/sql2tds.c src/pool/member.c:
+	* src/tds/bulk.c src/tds/challenge.c src/tds/config.c:
+	* src/tds/convert.c src/tds/data.c src/tds/gssapi.c:
+	* src/tds/login.c src/tds/mem.c src/tds/net.c src/tds/query.c:
+	* src/tds/read.c src/tds/token.c src/tds/vstrbuild.c:
+	* src/tds/write.c:
+	- new TDSRET type
+
 Fri Jun 17 12:03:38 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c:
 	- use proper default null representation for all bind types
@@ -460,4 +472,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3306 2011-06-17 10:03:44 freddy77 Exp $
+$Id: ChangeLog,v 1.3307 2011-06-18 17:52:24 freddy77 Exp $

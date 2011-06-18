@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.374 2011-06-10 17:51:43 freddy77 Exp $ */
+/* $Id: tds.h,v 1.375 2011-06-18 17:52:24 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -145,10 +145,11 @@ typedef struct tdsdaterec
  */
 extern const int tds_numeric_bytes_per_prec[];
 
-#define TDS_SUCCESS          1
-#define TDS_FAIL             0
-#define TDS_NO_MORE_RESULTS  2
-#define TDS_CANCELLED        3
+typedef int TDSRET;
+#define TDS_SUCCESS          ((TDSRET)1)
+#define TDS_FAIL             ((TDSRET)0)
+#define TDS_NO_MORE_RESULTS  ((TDSRET)2)
+#define TDS_CANCELLED        ((TDSRET)3)
 
 #define TDS_INT_CONTINUE 1
 #define TDS_INT_CANCEL 2
@@ -896,8 +897,8 @@ typedef struct tds_authentication
 {
 	TDS_UCHAR *packet;
 	int packet_len;
-	int (*free)(TDSSOCKET * tds, struct tds_authentication * auth);
-	int (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
+	TDSRET (*free)(TDSSOCKET * tds, struct tds_authentication * auth);
+	TDSRET (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
 } TDSAUTHENTICATION;
 
 /* field related to connection */
@@ -1025,14 +1026,14 @@ void tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSLOGIN *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_login(TDSLOGIN* login);
 TDS_USMALLINT tds_config_verstr(const char *tdsver, TDSLOGIN* login);
-int tds_lookup_host(const char *servername, char *ip);
-int tds_set_interfaces_file_loc(const char *interfloc);
+TDSRET tds_lookup_host(const char *servername, char *ip);
+TDSRET tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
 int tds_config_boolean(const char *value);
 
 TDSLOCALE *tds_get_locale(void);
-int tds_alloc_row(TDSRESULTINFO * res_info);
-int tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
+TDSRET tds_alloc_row(TDSRESULTINFO * res_info);
+TDSRET tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *crypt_pass);
 TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, const char *id);
@@ -1098,68 +1099,68 @@ void tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int
 int tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login);
 
 /* query.c */
-int tds_submit_query(TDSSOCKET * tds, const char *query);
-int tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
-int tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);
-int tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
-int tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
-int tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
-int tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
-int tds_send_cancel(TDSSOCKET * tds);
+TDSRET tds_submit_query(TDSSOCKET * tds, const char *query);
+TDSRET tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
+TDSRET tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);
+TDSRET tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
+TDSRET tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
+TDSRET tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
+TDSRET tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
+TDSRET tds_send_cancel(TDSSOCKET * tds);
 const char *tds_next_placeholder(const char *start);
 int tds_count_placeholders(const char *query);
 int tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
-int tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
-int tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params);
-int tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);
-int tds_submit_begin_tran(TDSSOCKET *tds);
-int tds_submit_rollback(TDSSOCKET *tds, int cont);
-int tds_submit_commit(TDSSOCKET *tds, int cont);
+TDSRET tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
+TDSRET tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params);
+TDSRET tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);
+TDSRET tds_submit_begin_tran(TDSSOCKET *tds);
+TDSRET tds_submit_rollback(TDSSOCKET *tds, int cont);
+TDSRET tds_submit_commit(TDSSOCKET *tds, int cont);
 int tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
 const char *tds_skip_quoted(const char *s);
 
-int tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
-int tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
-int tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
-int tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row);
-int tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_number, TDS_UINT * row_count);
-int tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
-int tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
-int tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, TDSPARAMINFO * params);
-int tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor);
+TDSRET tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
+TDSRET tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);
+TDSRET tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
+TDSRET tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row);
+TDSRET tds_cursor_get_cursor_info(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_UINT * row_number, TDS_UINT * row_count);
+TDSRET tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor);
+TDSRET tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
+TDSRET tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, TDSPARAMINFO * params);
+TDSRET tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor);
 
-int tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type);
-int tds_multiple_done(TDSSOCKET *tds, TDSMULTIPLE *multiple);
-int tds_multiple_query(TDSSOCKET *tds, TDSMULTIPLE *multiple, const char *query, TDSPARAMINFO * params);
-int tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn);
+TDSRET tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type);
+TDSRET tds_multiple_done(TDSSOCKET *tds, TDSMULTIPLE *multiple);
+TDSRET tds_multiple_query(TDSSOCKET *tds, TDSMULTIPLE *multiple, const char *query, TDSPARAMINFO * params);
+TDSRET tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn);
 
 /* token.c */
-int tds_process_cancel(TDSSOCKET * tds);
+TDSRET tds_process_cancel(TDSSOCKET * tds);
 #ifdef WORDS_BIGENDIAN
 void tds_swap_datatype(int coltype, unsigned char *buf);
 #endif
 void tds_swap_numeric(TDS_NUMERIC *num);
 int tds_get_token_size(int marker);
-int tds_process_login_tokens(TDSSOCKET * tds);
-int tds_process_simple_query(TDSSOCKET * tds);
+TDSRET tds_process_login_tokens(TDSSOCKET * tds);
+TDSRET tds_process_simple_query(TDSSOCKET * tds);
 int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION tds_option, TDS_OPTION_ARG * tds_argument,
 			TDS_INT * tds_argsize);
-int tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@out@*/ int *done_flags, unsigned flag);
+TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@out@*/ int *done_flags, unsigned flag);
 
 /* data.c */
 void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 void tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type);
-TDS_INT tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col);
+TDSRET tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col);
 
 
 /* tds_convert.c */
-TDS_INT tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr);
+TDSRET tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr);
 int tds_get_conversion_type(int srctype, int colsize);
 extern const char tds_hex_digits[];
 
 /* write.c */
-int tds_flush_packet(TDSSOCKET * tds);
+TDSRET tds_flush_packet(TDSSOCKET * tds);
 int tds_put_buf(TDSSOCKET * tds, const unsigned char *buf, int dsize, int ssize);
 
 /* read.c */
@@ -1170,7 +1171,7 @@ TDS_SMALLINT tds_get_smallint(TDSSOCKET * tds);
 TDS_INT tds_get_int(TDSSOCKET * tds);
 TDS_INT8 tds_get_int8(TDSSOCKET * tds);
 int tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size);
-int tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
+TDSRET tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
 void *tds_get_n(TDSSOCKET * tds, /*@out@*/ /*@null@*/ void *dest, int n);
 int tds_get_size_by_type(int servertype);
 
@@ -1213,17 +1214,17 @@ int tds_lastpacket(TDSSOCKET * tds);
 TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout, int *p_oserr);
 int tds_close_socket(TDSSOCKET * tds);
 int tds_read_packet(TDSSOCKET * tds);
-int tds_write_packet(TDSSOCKET * tds, unsigned char final);
+TDSRET tds_write_packet(TDSSOCKET * tds, unsigned char final);
 int tds7_get_instance_ports(FILE *output, const char *ip_addr);
 int tds7_get_instance_port(const char *ip_addr, const char *instance);
-int tds_ssl_init(TDSSOCKET *tds);
+TDSRET tds_ssl_init(TDSSOCKET *tds);
 void tds_ssl_deinit(TDSSOCKET *tds);
 const char *tds_prwsaerror(int erc);
 
 
 
 /* vstrbuild.c */
-int tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen,
+TDSRET tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen,
 		  va_list ap);
 
 /* numeric.c */
@@ -1265,17 +1266,17 @@ typedef struct tds_bcpinfo
 	TDSRESULTINFO *bindinfo;
 } TDSBCPINFO;
 
-int tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
-typedef int  (*tds_bcp_get_col_data) (TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
+TDSRET tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+typedef TDSRET (*tds_bcp_get_col_data) (TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
 typedef void (*tds_bcp_null_error)   (TDSBCPINFO *bulk, int index, int offset);
-int tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset);
-int tds_bcp_done(TDSSOCKET *tds, int *rows_copied);
-int tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
-int tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+TDSRET tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset);
+TDSRET tds_bcp_done(TDSSOCKET *tds, int *rows_copied);
+TDSRET tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+TDSRET tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 
-int tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size);
-int tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size);
-int tds_writetext_end(TDSSOCKET *tds);
+TDSRET tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size);
+TDSRET tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size);
+TDSRET tds_writetext_end(TDSSOCKET *tds);
 
 
 #define IS_TDS42(x) (x->tds_version==0x402)

@@ -41,38 +41,38 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.409 2011-06-10 17:51:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.410 2011-06-18 17:52:24 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
-static int tds_process_msg(TDSSOCKET * tds, int marker);
-static int tds_process_compute_result(TDSSOCKET * tds);
-static int tds_process_compute_names(TDSSOCKET * tds);
-static int tds7_process_compute_result(TDSSOCKET * tds);
-static int tds_process_result(TDSSOCKET * tds);
-static int tds_process_col_name(TDSSOCKET * tds);
-static int tds_process_col_fmt(TDSSOCKET * tds);
-static int tds_process_tabname(TDSSOCKET *tds);
-static int tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names);
-static int tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid);
-static int tds_process_cursor_tokens(TDSSOCKET * tds);
-static int tds_process_row(TDSSOCKET * tds);
-static int tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
-static int tds7_process_result(TDSSOCKET * tds);
+static TDSRET tds_process_msg(TDSSOCKET * tds, int marker);
+static TDSRET tds_process_compute_result(TDSSOCKET * tds);
+static TDSRET tds_process_compute_names(TDSSOCKET * tds);
+static TDSRET tds7_process_compute_result(TDSSOCKET * tds);
+static TDSRET tds_process_result(TDSSOCKET * tds);
+static TDSRET tds_process_col_name(TDSSOCKET * tds);
+static TDSRET tds_process_col_fmt(TDSSOCKET * tds);
+static TDSRET tds_process_tabname(TDSSOCKET *tds);
+static TDSRET tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names);
+static TDSRET tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid);
+static TDSRET tds_process_cursor_tokens(TDSSOCKET * tds);
+static TDSRET tds_process_row(TDSSOCKET * tds);
+static TDSRET tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
+static TDSRET tds7_process_result(TDSSOCKET * tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET * tds);
-static int tds_process_auth(TDSSOCKET * tds);
-static int tds_process_env_chg(TDSSOCKET * tds);
-static int tds_process_param_result_tokens(TDSSOCKET * tds);
-static int tds_process_params_result_token(TDSSOCKET * tds);
-static int tds_process_dyn_result(TDSSOCKET * tds);
-static int tds5_process_result(TDSSOCKET * tds);
-static int tds5_process_dyn_result2(TDSSOCKET * tds);
-static int tds_process_default_tokens(TDSSOCKET * tds, int marker);
-static int tds5_process_optioncmd(TDSSOCKET * tds);
-static int tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_parm);
+static TDSRET tds_process_auth(TDSSOCKET * tds);
+static TDSRET tds_process_env_chg(TDSSOCKET * tds);
+static TDSRET tds_process_param_result_tokens(TDSSOCKET * tds);
+static TDSRET tds_process_params_result_token(TDSSOCKET * tds);
+static TDSRET tds_process_dyn_result(TDSSOCKET * tds);
+static TDSRET tds5_process_result(TDSSOCKET * tds);
+static TDSRET tds5_process_dyn_result2(TDSSOCKET * tds);
+static TDSRET tds_process_default_tokens(TDSSOCKET * tds, int marker);
+static TDSRET tds5_process_optioncmd(TDSSOCKET * tds);
+static TDSRET tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_parm);
 
-static int tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
-static int tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
+static TDSRET tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
+static TDSRET tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
 static /*@observer@*/ const char *tds_token_name(unsigned char marker);
 static void adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static int determine_adjusted_size(const TDSICONV * char_conv, int size);
@@ -108,7 +108,7 @@ static int tds_alloc_get_string(TDSSOCKET * tds, /*@special@*/ char **string, in
  * tds_process_default_tokens() is a catch all function that is called to
  * process tokens not known to other tds_process_* routines
  */
-static int
+static TDSRET
 tds_process_default_tokens(TDSSOCKET * tds, int marker)
 {
 	int tok_size;
@@ -257,12 +257,12 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	return TDS_SUCCESS;
 }
 
-static int
+static TDSRET
 tds_set_spid(TDSSOCKET * tds)
 {
 	TDS_INT result_type;
 	TDS_INT done_flags;
-	TDS_INT rc;
+	TDSRET rc;
 	TDSCOLUMN *curcol;
 
 	CHECK_TDS_EXTRA(tds);
@@ -311,10 +311,10 @@ tds_set_spid(TDSSOCKET * tds)
  * dependent on the protocol version. 4.2 sends an ACK token only when
  * successful, TDS 5.0 sends it always with a success byte within
  */
-int
+TDSRET
 tds_process_login_tokens(TDSSOCKET * tds)
 {
-	int succeed = TDS_FAIL;
+	TDSRET succeed = TDS_FAIL;
 	int marker;
 	int len;
 	int memrc = 0;
@@ -440,7 +440,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	return succeed;
 }
 
-static int
+static TDSRET
 tds_process_auth(TDSSOCKET * tds)
 {
 	int pdu_size;
@@ -513,13 +513,13 @@ tds_process_auth(TDSSOCKET * tds)
  * @retval TDS_NO_MORE_RESULTS if all results have been completely processed.
  * @retval anything returned by one of the many functions it calls.  :-(
  */
-int
+TDSRET
 tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsigned flag)
 {
 	int marker;
 	TDSPARAMINFO *pinfo = NULL;
 	TDSCOLUMN   *curcol;
-	int rc;
+	TDSRET rc;
 	TDS_INT8 saved_rows_affected = tds->rows_affected;
 	TDS_INT ret_status;
 	int cancel_seen = 0;
@@ -835,13 +835,13 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
  * statement failure).
  * @return see tds_process_tokens for results (TDS_NO_MORE_RESULTS is never returned)
  */
-int
+TDSRET
 tds_process_simple_query(TDSSOCKET * tds)
 {
 	TDS_INT res_type;
 	TDS_INT done_flags;
-	int     rc;
-	int     ret = TDS_SUCCESS;
+	TDSRET  rc;
+	TDSRET  ret = TDS_SUCCESS;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -942,7 +942,7 @@ tds_read_namelist(TDSSOCKET * tds, int remainder, struct namelist **p_head, int 
  * immediately follow this token with the datatype/size information
  * This is a 4.2 only function
  */
-static int
+static TDSRET
 tds_process_col_name(TDSSOCKET * tds)
 {
 	int hdrsize;
@@ -989,7 +989,7 @@ tds_process_col_name(TDSSOCKET * tds)
  * column type and size information.
  * This is a 4.2 only function
  */
-static int
+static TDSRET
 tds_process_col_fmt(TDSSOCKET * tds)
 {
 	int col, hdrsize;
@@ -1133,14 +1133,14 @@ tds71_read_table_names(TDSSOCKET *tds, int remainder, struct namelist **p_head)
 	return num_names;
 }
 
-static int
+static TDSRET
 tds_process_tabname(TDSSOCKET *tds)
 {
 	struct namelist *head, *cur;
 	int num_names, hdrsize, i;
 	char **names;
 	unsigned char marker;
-	int rc;
+	TDSRET rc;
 
 	hdrsize = tds_get_smallint(tds);
 
@@ -1175,7 +1175,7 @@ tds_process_tabname(TDSSOCKET *tds)
 	return rc;
 }
 
-static int
+static TDSRET
 tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 {
 	int hdrsize;
@@ -1236,13 +1236,13 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
  * procedure. This differs from regular row/compute results in that there
  * is no total number of parameters given, they just show up singly.
  */
-static int
+static TDSRET
 tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 {
 	int hdrsize;
 	TDSCOLUMN *curparam;
 	TDSPARAMINFO *info;
-	int token;
+	TDSRET token;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_process_param_result(%p, %p)\n", tds, pinfo);
 
@@ -1285,7 +1285,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	return token;
 }
 
-static int
+static TDSRET
 tds_process_param_result_tokens(TDSSOCKET * tds)
 {
 	int marker;
@@ -1314,7 +1314,7 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 /**
  * tds_process_params_result_token() processes params on TDS5.
  */
-static int
+static TDSRET
 tds_process_params_result_token(TDSSOCKET * tds)
 {
 	int i;
@@ -1341,7 +1341,7 @@ tds_process_params_result_token(TDSSOCKET * tds)
  * need work but since they get little use, nobody has complained!
  * It is very similar to normal result sets.
  */
-static int
+static TDSRET
 tds_process_compute_result(TDSSOCKET * tds)
 {
 	int hdrsize;
@@ -1446,7 +1446,7 @@ tds_process_compute_result(TDSSOCKET * tds)
  * \param tds state information for the socket and the TDS protocol
  * \param curcol column where to store information
  */
-static int
+static TDSRET
 tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	int colnamelen;
@@ -1505,10 +1505,11 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
  * is responsible for populating the tds->res_info structure.
  * This is a TDS 7.0 only function
  */
-static int
+static TDSRET
 tds7_process_result(TDSSOCKET * tds)
 {
-	int col, num_cols, result;
+	int col, num_cols;
+	TDSRET result;
 	TDSRESULTINFO *info;
 
 	CHECK_TDS_EXTRA(tds);
@@ -1582,7 +1583,7 @@ tds7_process_result(TDSSOCKET * tds)
  * \param tds state information for the socket and the TDS protocol
  * \param curcol column where to store information
  */
-static int
+static TDSRET
 tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -1670,7 +1671,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
  * is responsible for populating the tds->res_info structure.
  * This is a TDS 5.0 only function
  */
-static int
+static TDSRET
 tds_process_result(TDSSOCKET * tds)
 {
 	int hdrsize;
@@ -1724,7 +1725,7 @@ tds_process_result(TDSSOCKET * tds)
  * It is responsible for populating the tds->res_info structure.
  * This is a TDS 5.0 only function
  */
-static int
+static TDSRET
 tds5_process_result(TDSSOCKET * tds)
 {
 	int hdrsize;
@@ -1853,7 +1854,7 @@ tds5_process_result(TDSSOCKET * tds)
  * tds_process_compute() processes compute rows and places them in the row
  * buffer.  
  */
-static int
+static TDSRET
 tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 {
 	int i;
@@ -1890,7 +1891,7 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 	return TDS_SUCCESS;
 }
 
-static int
+static TDSRET
 tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	TDS_INT8 len = tds_get_int8(tds);
@@ -1933,7 +1934,7 @@ COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSB
 COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(TDSBLOB, textvalue));
 #endif
 
-static int
+static TDSRET
 tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	int colsize = tds_get_int(tds), varint;
@@ -2035,7 +2036,7 @@ error_type:
  * \param curcol column where store column information
  * \return TDS_FAIL on error or TDS_SUCCESS
  */
-static int
+static TDSRET
 tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	unsigned char *dest;
@@ -2289,7 +2290,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 /**
  * tds_process_row() processes rows and places them in the row buffer.
  */
-static int
+static TDSRET
 tds_process_row(TDSSOCKET * tds)
 {
 	int i;
@@ -2322,7 +2323,7 @@ tds_process_row(TDSSOCKET * tds)
  * \param flags_parm filled with bit flags (see TDS_DONE_ constants). 
  *        Is NULL nothing is returned
  */
-static int
+static TDSRET
 tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 {
 	int more_results, was_cancelled, error, done_count_valid;
@@ -2391,7 +2392,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
  * There is no action taken currently, but certain functions at the CLI level
  * that return the name of the current database will need to use this.
  */
-static int
+static TDSRET
 tds_process_env_chg(TDSSOCKET * tds)
 {
 	int size, type;
@@ -2522,7 +2523,7 @@ tds_process_env_chg(TDSSOCKET * tds)
  * for calling the CLI's message handling routine
  * returns TDS_SUCCESS if informational, TDS_FAIL if error.
  */
-static int
+static TDSRET
 tds_process_msg(TDSSOCKET * tds, int marker)
 {
 	int rc;
@@ -2717,7 +2718,7 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, int len)
  * an end token (DONE, DONEPROC, DONEINPROC) with the cancel flag set.
  * At that point the connection should be ready to handle a new query.
  */
-int
+TDSRET
 tds_process_cancel(TDSSOCKET * tds)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -2801,7 +2802,7 @@ tds_process_dynamic(TDSSOCKET * tds)
 	return tds_lookup_dynamic(tds, id);
 }
 
-static int
+static TDSRET
 tds_process_dyn_result(TDSSOCKET * tds)
 {
 	int hdrsize;
@@ -2845,7 +2846,7 @@ tds_process_dyn_result(TDSSOCKET * tds)
 /**
  *  New TDS 5.0 token for describing output parameters
  */
-static int
+static TDSRET
 tds5_process_dyn_result2(TDSSOCKET * tds)
 {
 	int hdrsize;
@@ -2985,7 +2986,7 @@ tds_swap_numeric(TDS_NUMERIC *num)
 /**
  * tds_process_compute_names() processes compute result sets.  
  */
-static int
+static TDSRET
 tds_process_compute_names(TDSSOCKET * tds)
 {
 	int hdrsize;
@@ -3046,7 +3047,7 @@ tds_process_compute_names(TDSSOCKET * tds)
  * tds7_process_compute_result() processes compute result sets for TDS 7/8.
  * They is are very  similar to normal result sets.
  */
-static int
+static TDSRET
 tds7_process_compute_result(TDSSOCKET * tds)
 {
 	int col, num_cols;
@@ -3130,7 +3131,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	return tds_alloc_compute_row(info);
 }
 
-static int 
+static TDSRET
 tds_process_cursor_tokens(TDSSOCKET * tds)
 {
 	TDS_SMALLINT hdrsize;
@@ -3170,7 +3171,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	return TDS_SUCCESS;
 }
 
-static int
+static TDSRET
 tds5_process_optioncmd(TDSSOCKET * tds)
 {
 	TDS_SMALLINT length;

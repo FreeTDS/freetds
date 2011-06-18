@@ -45,7 +45,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.116 2011-06-03 21:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: read.c,v 1.117 2011-06-18 17:52:24 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
@@ -219,7 +219,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
  * \return TDS_SUCCESS or TDS_FAIL (probably memory error on text data)
  * \todo put a TDSICONV structure in every TDSCOLUMN
  */
-int
+TDSRET
 tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN * curcol)
 {
 	size_t in_left;

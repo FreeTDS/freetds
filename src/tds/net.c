@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.122 2011-06-16 06:56:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.123 2011-06-18 17:52:24 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -703,7 +703,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 	return len;
 }
 
-int
+TDSRET
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
 	int sent;
@@ -1264,7 +1264,7 @@ GCRY_THREAD_OPTION_PTHREAD_IMPL;
 #define tds_gcry_init() do {} while(0)
 #endif
 
-int
+TDSRET
 tds_ssl_init(TDSSOCKET *tds)
 {
 	gnutls_session session;

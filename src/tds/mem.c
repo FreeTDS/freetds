@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.218 2011-06-10 17:51:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.219 2011-06-18 17:52:24 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -462,7 +462,7 @@ tds_row_free(TDSRESULTINFO *res_info, unsigned char *row)
  * Allocate space for row store
  * return NULL on out of memory
  */
-int
+TDSRET
 tds_alloc_row(TDSRESULTINFO * res_info)
 {
 	int i, num_cols = res_info->num_cols;
@@ -517,7 +517,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_alloc_compute_row(TDSCOMPUTEINFO * res_info)
 {
 	return tds_alloc_row(res_info);

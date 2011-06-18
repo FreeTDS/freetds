@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.87 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.88 2011-06-18 17:52:24 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
@@ -106,7 +106,7 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 		tm_ms = src_timestamp->fraction / 1000000lu;
 		break;
 	default:
-		return TDS_FAIL;
+		return TDS_CONVERT_FAIL;
 	}
 
 	/* TODO code copied from convert.c, function */

@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.52 2011-06-10 17:51:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.53 2011-06-18 17:52:24 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -93,7 +93,7 @@ typedef struct
 	TDS_UCHAR	target_info[4];
 } names_blob_prefix_t;
 
-static int
+static TDSRET
 tds_answer_challenge(TDSSOCKET * tds,
 		     TDSLOGIN * login,
 		     const unsigned char *challenge,
@@ -158,7 +158,7 @@ generate_random_buffer(unsigned char *out, int len)
 		out[i] = rand() / (RAND_MAX / 256);
 }
 
-static int
+static TDSRET
 make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
 {
 	MD4_CTX context;
@@ -189,7 +189,7 @@ make_ntlm_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_hash[16])
 }
 
 
-static int
+static TDSRET
 make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_hash[16])
 {
 	const char *user_name, *domain;
@@ -199,7 +199,7 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	unsigned char ntlm_hash[16];
 	char buf[128];
 	char buf_usc2le[512];
-	int res;
+	TDSRET res;
 
 	user_name = tds_dstr_cstr(&tds->login->user_name);
 	user_name_len = strlen(user_name);
@@ -267,14 +267,14 @@ make_lm_v2_response(const unsigned char ntlm_v2_hash[16],
 	return mac;
 }
 
-static int
+static TDSRET
 tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 		     TDSLOGIN * login,
 		     const unsigned char *challenge,
 		     TDS_UINT * flags,
 		     const unsigned char *names_blob, TDS_INT names_blob_len, TDSANSWER * answer, unsigned char **ntlm_v2_response)
 {
-	int res;
+	TDSRET res;
 	const char *passwd = tds_dstr_cstr(&login->password);
 
 	/* NTLMv2 */
@@ -315,7 +315,7 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
  * @param flags NTLM flags from server side
  * @param answer buffer where to store crypted password
  */
-static int
+static TDSRET
 tds_answer_challenge(TDSSOCKET * tds,
 		     TDSLOGIN * login,
 		     const unsigned char *challenge,
@@ -326,7 +326,7 @@ tds_answer_challenge(TDSSOCKET * tds,
 	const char *passwd = tds_dstr_cstr(&login->password);
 	DES_KEY ks;
 	unsigned char hash[24], ntlm2_challenge[16];
-	int res;
+	TDSRET res;
 
 	memset(answer, 0, sizeof(TDSANSWER));
 
@@ -441,7 +441,7 @@ tds_convert_key(const unsigned char *key_56, DES_KEY * ks)
 	memset(&key, 0, sizeof(key));
 }
 
-static int
+static TDSRET
 tds7_send_auth(TDSSOCKET * tds,
 	       const unsigned char *challenge, TDS_UINT flags, const unsigned char *names_blob, TDS_INT names_blob_len)
 {
@@ -453,7 +453,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	const char *user_name;
 	const char *p;
 	size_t user_name_len, host_name_len, password_len, domain_len;
-	int rc;
+	TDSRET rc;
 
 	unsigned char *ntlm_v2_response = NULL;
 	unsigned int ntlm_response_len = 24;
@@ -567,7 +567,7 @@ typedef struct tds_ntlm_auth
 	TDSAUTHENTICATION tds_auth;
 } TDSNTLMAUTH;
 
-static int
+static TDSRET
 tds_ntlm_free(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth)
 {
 	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
@@ -628,7 +628,7 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 	prefix->unknown = 0x00000000;
 }
 
-static int
+static TDSRET
 tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t len)
 {
 	const int length = (int)len;
@@ -645,7 +645,7 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 	int names_blob_len;
 	unsigned char *names_blob;
 
-	int rc;
+	TDSRET rc;
 
 	/* at least 32 bytes (till context) */
 	if (len < 32)

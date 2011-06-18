@@ -48,7 +48,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.79 2011-06-06 07:27:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.80 2011-06-18 17:52:24 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -1156,7 +1156,7 @@ cs_strbuild(CS_CONTEXT * ctx, CS_CHAR * buffer, CS_INT buflen, CS_INT * resultle
 	    CS_CHAR * formats, CS_INT formatlen, ...)
 {
 	va_list ap;
-	int rc;
+	TDSRET rc;
 
 	tdsdump_log(TDS_DBG_FUNC, "cs_strbuild(%p, %p, %d, %p, %p, %d, %p, %d)\n", 
 				ctx, buffer, buflen, resultlen, text, textlen, formats, formatlen);

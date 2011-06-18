@@ -33,7 +33,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.32 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.33 2011-06-18 17:52:24 freddy77 Exp $");
 
 /**
  * Set type of column initializing all dependency 
@@ -184,7 +184,7 @@ tds_get_cardinal_type(int datatype, int usertype)
 	return datatype;
 }
 
-TDS_INT
+TDSRET
 tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 {
 	switch (col->column_varint_size) {

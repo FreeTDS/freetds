@@ -44,19 +44,19 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.257 2011-06-11 06:35:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.258 2011-06-18 17:52:24 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
 static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t param_length);
-static int tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
-static int tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
+static TDSRET tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
+static TDSRET tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static char *tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, size_t converted_query_len, TDSPARAMINFO * params, size_t *out_len);
 static char *tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, size_t *out_len);
 static size_t tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
 
-static int tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n);
-static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
+static TDSRET tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n);
+static TDSRET tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 static const char *tds_skip_comment(const char *s);
 static int tds_count_placeholders_ucs2le(const char *query, const char *query_end);
 
@@ -165,7 +165,7 @@ tds_convert_string_free(const char *original, const char *converted)
 	do { if (original != converted) free((char*) converted); } while(0)
 #endif
 
-static int
+static TDSRET
 tds_query_flush_packet(TDSSOCKET *tds)
 {
 	/* TODO depend on result ?? */
@@ -182,7 +182,7 @@ tds_query_flush_packet(TDSSOCKET *tds)
  * \param query language query to submit
  * \return TDS_FAIL or TDS_SUCCESS
  */
-int
+TDSRET
 tds_submit_query(TDSSOCKET * tds, const char *query)
 {
 	return tds_submit_query_params(tds, query, NULL);
@@ -270,7 +270,7 @@ tds_start_query(TDSSOCKET *tds)
  * \param params parameters of query
  * \return TDS_FAIL or TDS_SUCCESS
  */
-int
+TDSRET
 tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	size_t query_len;
@@ -392,12 +392,12 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 }
 
 
-int
+TDSRET
 tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
 {
 	va_list ap;
 	char *query = NULL;
-	int rc = TDS_FAIL;
+	TDSRET rc = TDS_FAIL;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -603,7 +603,7 @@ tds_count_placeholders_ucs2le(const char *query, const char *query_end)
  * \param out    buffer to hold declaration
  * \return TDS_FAIL or TDS_SUCCESS
  */
-static int
+static TDSRET
 tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 {
 	const char *fmt = NULL;
@@ -1004,11 +1004,11 @@ tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t
  * \return TDS_FAIL or TDS_SUCCESS
  */
 /* TODO parse all results ?? */
-int
+TDSRET
 tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params)
 {
 	int id_len, query_len;
-	int rc;
+	TDSRET rc;
 	TDSDYNAMIC *dyn;
 
 	CHECK_TDS_EXTRA(tds);
@@ -1139,7 +1139,7 @@ failure_nostate:
  * \param params  parameters to send
  * \return TDS_FAIL or TDS_SUCCESS
  */
-int
+TDSRET
 tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	size_t query_len;
@@ -1221,7 +1221,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	 * so use language or prepare and then exec
 	 */
 	if (!IS_TDS50(tds) || params) {
-		int ret = TDS_SUCCESS;
+		TDSRET ret = TDS_SUCCESS;
 
 		dyn->emulated = 1;
 		dyn->params = params;
@@ -1279,11 +1279,11 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
  * \param params  parameters to use. It can be NULL even if parameters are present. Used only for TDS7+
  * \return TDS_FAIL or TDS_SUCCESS
  */
-int
+TDSRET
 tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params)
 {
 	int query_len;
-	int rc;
+	TDSRET rc;
 	TDSDYNAMIC *dyn;
 	size_t definition_len = 0;
 	char *param_definition = NULL;
@@ -1422,7 +1422,7 @@ tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
  * \param flags  bit flags on how to send data (use TDS_PUT_DATA_USE_NAME for use name information)
  * \return TDS_SUCCESS or TDS_FAIL
  */
-static int
+static TDSRET
 tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 {
 	int len;
@@ -1554,7 +1554,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
  * \param curcol  column where store column information
  * \return TDS_FAIL on error or TDS_SUCCESS
  */
-static int
+static TDSRET
 tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	unsigned char *src;
@@ -1804,7 +1804,7 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
  * \param tds state information for the socket and the TDS protocol
  * \param dyn dynamic proc to execute. Must build from same tds.
  */
-int
+TDSRET
 tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
 	int id_len;
@@ -1918,7 +1918,7 @@ tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
  * \param dyn dynamic query
  * \result TDS_SUCCESS or TDS_FAIL
  */
-int
+TDSRET
 tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 {
 	int id_len;
@@ -1988,7 +1988,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	return tds_query_flush_packet(tds);
 }
 
-static int
+static TDSRET
 tds_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 {
 	TDSCOLUMN *param;
@@ -2044,7 +2044,7 @@ tds_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * para
  * \param rpc_name name of RPC
  * \param params   parameters informations. NULL for no parameters
  */
-int
+TDSRET
 tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 {
 	TDSCOLUMN *param;
@@ -2145,7 +2145,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
  *	do is wait some more or give up and close the connection.  If he tells us
  *	to cancel again, we wait some more.  
  */
-int
+TDSRET
 tds_send_cancel(TDSSOCKET * tds)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -2265,7 +2265,7 @@ tds_set_cur_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 	tds->cur_cursor = cursor;
 }
 
-int
+TDSRET
 tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *something_to_send)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -2312,7 +2312,7 @@ tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, in
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *something_to_send)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -2458,7 +2458,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *something_to_send)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -2560,7 +2560,7 @@ tds7_put_cursor_fetch(TDSSOCKET * tds, TDS_INT cursor_id, TDS_TINYINT fetch_type
 	tds_put_int(tds, num_rows);
 }
 
-int
+TDSRET
 tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_type, TDS_INT i_row)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -2640,10 +2640,11 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_number, TDS_UINT *prow_count)
 {
-	int done_flags, retcode;
+	int done_flags;
+	TDSRET retcode;
 	TDS_INT result_type;
 
 	CHECK_TDS_EXTRA(tds);
@@ -2759,7 +2760,7 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -2821,7 +2822,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 }
 
-int
+TDSRET
 tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
 	int len;
@@ -2888,7 +2889,7 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 	return tds_query_flush_packet(tds);
 }
 
-int 
+TDSRET
 tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, TDSPARAMINFO *params)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -3012,10 +3013,10 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
  * libTDS care for all deallocation stuff (memory and server cursor)
  * Caller should not use cursor pointer anymore
  */
-int
+TDSRET
 tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
-	int res = TDS_SUCCESS;
+	TDSRET res = TDS_SUCCESS;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -3084,7 +3085,7 @@ tds_quote_and_put(TDSSOCKET * tds, const char *s, const char *end)
 	tds_put_string(tds, buf, i);
 }
 
-static int
+static TDSRET
 tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 {
 	TDSCOLUMN *curcol = params->columns[n];
@@ -3189,7 +3190,7 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 /**
  * Emulate prepared execute traslating to a normal language
  */
-static int
+static TDSRET
 tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	int num_placeholders, i;
@@ -3231,7 +3232,7 @@ tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * par
 
 enum { MUL_STARTED = 1 };
 
-int
+TDSRET
 tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type)
 {
 	multiple->type = type;
@@ -3255,7 +3256,7 @@ tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type)
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_multiple_done(TDSSOCKET *tds, TDSMULTIPLE *multiple)
 {
 	assert(tds && multiple);
@@ -3263,7 +3264,7 @@ tds_multiple_done(TDSSOCKET *tds, TDSMULTIPLE *multiple)
 	return tds_query_flush_packet(tds);
 }
 
-int
+TDSRET
 tds_multiple_query(TDSSOCKET *tds, TDSMULTIPLE *multiple, const char *query, TDSPARAMINFO * params)
 {
 	assert(multiple->type == TDS_MULTIPLE_QUERY);
@@ -3275,7 +3276,7 @@ tds_multiple_query(TDSSOCKET *tds, TDSMULTIPLE *multiple, const char *query, TDS
 	return tds_send_emulated_execute(tds, query, params);
 }
 
-int
+TDSRET
 tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn)
 {
 	assert(multiple->type == TDS_MULTIPLE_EXECUTE);
@@ -3299,7 +3300,7 @@ tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn)
 	return tds_send_emulated_execute(tds, dyn->query, dyn->params);
 }
 
-int
+TDSRET
 tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size)
 {
 	char cmd[128];
@@ -3568,7 +3569,7 @@ tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option,
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_submit_begin_tran(TDSSOCKET *tds)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -3591,7 +3592,7 @@ tds_submit_begin_tran(TDSSOCKET *tds)
 }
 
 
-int
+TDSRET
 tds_submit_rollback(TDSSOCKET *tds, int cont)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -3616,7 +3617,7 @@ tds_submit_rollback(TDSSOCKET *tds, int cont)
 	return tds_query_flush_packet(tds);
 }
 
-int
+TDSRET
 tds_submit_commit(TDSSOCKET *tds, int cont)
 {
 	CHECK_TDS_EXTRA(tds);

@@ -49,11 +49,11 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.216 2011-06-10 17:51:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.217 2011-06-18 17:52:24 freddy77 Exp $");
 
-static int tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
-static int tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
-static int tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login);
+static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
+static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
+static TDSRET tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 
 void
 tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver)
@@ -511,7 +511,7 @@ tds_put_login_string(TDSSOCKET * tds, const char *buf, int n)
 	return tds_put_buf(tds, (const unsigned char *) buf, n, buf_len);
 }
 
-static int
+static TDSRET
 tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 #ifdef WORDS_BIGENDIAN
@@ -688,7 +688,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
  * TDS 7.0 login packet is vastly different and so gets its own function
  * \returns the return value is ignored by the caller. :-/
  */
-static int
+static TDSRET
 tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 {
 	static const unsigned char 
@@ -719,7 +719,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	unsigned char hwaddr[6];
 	size_t unicode_left, packet_size, current_pos;
-	int rc;
+	TDSRET rc;
 
 	const char *user_name = tds_dstr_cstr(&login->user_name);
 
@@ -953,7 +953,7 @@ tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *cryp
 	return crypt_pass;
 }
 
-static int
+static TDSRET
 tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 {
 	int i, len;
@@ -962,7 +962,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	TDS_CHAR crypt_flag;
 	unsigned int start_pos = 21;
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
-	int ret;
+	TDSRET ret;
 #endif
 
 #define START_POS 21

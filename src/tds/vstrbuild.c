@@ -33,7 +33,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: vstrbuild.c,v 1.20 2011-06-06 07:27:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: vstrbuild.c,v 1.21 2011-06-18 17:52:24 freddy77 Exp $");
 
 struct string_linked_list
 {
@@ -78,7 +78,7 @@ norm_fmt(const char *fmt, int fmtlen)
 	return newfmt;
 }
 
-int
+TDSRET
 tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen, va_list ap)
 {
 	char *newformat;
@@ -96,7 +96,7 @@ tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int te
 	int pnum = 0;
 	int pdigit;
 	char *paramp = NULL;
-	int rc = TDS_FAIL;
+	TDSRET rc = TDS_FAIL;
 
 	*resultlen = 0;
 	if (textlen == TDS_NULLTERM) {

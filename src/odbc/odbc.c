@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.569 2011-06-10 17:51:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.570 2011-06-18 17:52:24 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -207,7 +207,7 @@ static SQLRETURN
 change_autocommit(TDS_DBC * dbc, int state)
 {
 	TDSSOCKET *tds = dbc->tds_socket;
-	int ret;
+	TDSRET ret;
 
 	if (dbc->attr.autocommit == state)
 		return SQL_SUCCESS;
@@ -776,7 +776,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 {
 	TDSSOCKET *tds;
 	TDS_INT result_type;
-	int tdsret;
+	TDSRET tdsret;
 	int in_row = 0;
 	SQLUSMALLINT param_status;
 	int token_flags;
@@ -1126,7 +1126,7 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 SQLRETURN ODBC_API
 SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT fLock)
 {
-	int ret;
+	TDSRET ret;
 	TDSSOCKET *tds;
 	TDS_CURSOR_OPERATION op;
 	TDSPARAMINFO *params = NULL;
@@ -3100,11 +3100,12 @@ odbc_populate_ird(TDS_STMT * stmt)
 	return (SQL_SUCCESS);
 }
 
-static int
+static TDSRET
 odbc_cursor_execute(TDS_STMT * stmt)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
-	int send = 0, i, ret;
+	int send = 0, i;
+	TDSRET ret;
 	TDSCURSOR *cursor;
 	TDSPARAMINFO *params = stmt->params;
 
@@ -3193,7 +3194,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 static SQLRETURN
 _SQLExecute(TDS_STMT * stmt)
 {
-	int ret;
+	TDSRET ret;
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	TDS_INT result_type;
 	TDS_INT done = 0;
@@ -3523,7 +3524,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 
 	flag |= TDS_RETURN_DONE | TDS_RETURN_PROC;
 	for (;;) {
-		int retcode = tds_process_tokens(tds, &result_type, &done_flags, flag);
+		TDSRET retcode = tds_process_tokens(tds, &result_type, &done_flags, flag);
 		tdsdump_log(TDS_DBG_FUNC, "odbc_process_tokens: tds_process_tokens returned %d\n", retcode);
 		tdsdump_log(TDS_DBG_FUNC, "    result_type=%d, TDS_DONE_COUNT=%x, TDS_DONE_ERROR=%x\n", 
 						result_type, (done_flags & TDS_DONE_COUNT), (done_flags & TDS_DONE_ERROR));
@@ -4565,7 +4566,8 @@ static SQLRETURN
 change_transaction(TDS_DBC * dbc, int state)
 {
 	TDSSOCKET *tds = dbc->tds_socket;
-	int cont, ret;
+	int cont;
+	TDSRET ret;
 
 	tdsdump_log(TDS_DBG_INFO1, "change_transaction(0x%p,%d)\n", dbc, state);
 

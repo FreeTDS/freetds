@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.212 2011-06-09 13:04:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.213 2011-06-18 17:52:24 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -84,8 +84,8 @@ typedef long offset_type;
 static void _bcp_free_storage(DBPROCESS * dbproc);
 static void _bcp_free_columns(DBPROCESS * dbproc);
 static void _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
-static int _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
-static int _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
+static TDSRET _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
+static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
 
 static int rtrim(char *, int);
 static offset_type _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
@@ -745,7 +745,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	int row_of_query;
 	int rows_written;
 	const char *bcpdatefmt;
-	int tdsret;
+	TDSRET tdsret;
 
 	tdsdump_log(TDS_DBG_FUNC, "_bcp_exec_out(%p, %p)\n", dbproc, rows_copied);
 	assert(dbproc);
@@ -1604,7 +1604,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 	}
 
 	dbproc->bcpinfo->parent = dbproc;
-	return tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_get_col_data, _bcp_null_error, 0);
+	return tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_get_col_data, _bcp_null_error, 0) == TDS_FAIL ? FAIL : SUCCEED;
 }
 
 
@@ -2362,7 +2362,7 @@ _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
  * \return TDS_SUCCESS or TDS_FAIL.
  * \sa 	_bcp_add_fixed_columns, _bcp_add_variable_columns, _bcp_send_bcp_record
  */
-static int
+static TDSRET
 _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 {
 	TDS_TINYINT ti;
@@ -2465,7 +2465,7 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 	return TDS_SUCCESS;
 }
 
-static int
+static TDSRET
 _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 {
 	return TDS_SUCCESS;

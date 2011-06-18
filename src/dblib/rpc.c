@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.73 2011-06-07 08:16:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.74 2011-06-18 17:52:24 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -288,7 +288,7 @@ dbrpcsend(DBPROCESS * dbproc)
 	dbproc->dbresults_state = _DB_RES_INIT;
 
 	for (rpc = dbproc->rpc; rpc != NULL; rpc = rpc->next) {
-		int erc;
+		TDSRET erc;
 		TDSPARAMINFO *pparam_info = NULL;
 
 		/*

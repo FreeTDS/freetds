@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.216 2011-06-10 17:51:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.217 2011-06-18 17:52:24 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -48,7 +48,7 @@ static const char * ct_describe_cmd_state(CS_INT state);
  */
 static int _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * rows_read);
 static int _ct_fetchable_results(CS_COMMAND * cmd);
-static int _ct_process_return_status(TDSSOCKET * tds);
+static TDSRET _ct_process_return_status(TDSSOCKET * tds);
 
 static int _ct_fill_param(CS_INT cmd_type, CS_PARAM * param, CS_DATAFMT * datafmt, CS_VOID * data,
 			  CS_INT * datalen, CS_SMALLINT * indicator, CS_BYTE byvalue);
@@ -856,7 +856,7 @@ CS_RETCODE
 ct_send(CS_COMMAND * cmd)
 {
 	TDSSOCKET *tds;
-	TDS_INT ret;
+	TDSRET ret;
 	CSREMOTE_PROC **rpc;
 	TDSPARAMINFO *pparam_info;
 	TDSCURSOR *cursor;
@@ -1114,7 +1114,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 {
 	TDSSOCKET *tds;
 	CS_CONTEXT *context;
-	int tdsret;
+	TDSRET tdsret;
 	CS_INT res_type;
 	CS_INT done_flags;
 
@@ -1508,7 +1508,7 @@ CS_RETCODE
 ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * prows_read)
 {
 	TDS_INT ret_type;
-	TDS_INT ret;
+	TDSRET ret;
 	TDS_INT marker;
 	TDS_INT temp_count;
 	TDSSOCKET *tds;
@@ -1625,7 +1625,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 	TDSSOCKET * tds;
 	TDSCURSOR *cursor;
 	TDS_INT restype;
-	TDS_INT ret;
+	TDSRET ret;
 	TDS_INT temp_count;
 	TDS_INT done_flags;
 	TDS_INT rows_this_fetch = 0;
@@ -3814,7 +3814,7 @@ _ct_fetchable_results(CS_COMMAND * cmd)
 	return 0;
 }
 
-static int
+static TDSRET
 _ct_process_return_status(TDSSOCKET * tds)
 {
 	TDSRESULTINFO *info;

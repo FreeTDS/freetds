@@ -36,10 +36,10 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.55 2011-05-16 13:31:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.56 2011-06-18 17:52:24 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
-static int _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
+static TDSRET _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
 static CS_RETCODE _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 static CS_RETCODE _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred);
 
@@ -505,7 +505,7 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 {
 	TDSSOCKET *tds;
 	TDS_INT result_type;
-	TDS_INT ret;
+	TDSRET ret;
 	TDS_INT temp_count;
 	TDS_INT row_of_query;
 	TDS_INT rows_written;
@@ -634,7 +634,7 @@ _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
 	_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 7, 1, 142, "%d, %d",  index + 1, offset + 1);
 }
 
-static int
+static TDSRET
 _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 {
 	int result = 0;
@@ -727,10 +727,9 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		bindcol->bcp_column_data->datalen = destlen;
 		bindcol->bcp_column_data->is_null = null_column;
 
-		return CS_SUCCEED;
-
+		return TDS_SUCCESS;
 	} else {
 		printf("error source field not addressable \n");
-		return CS_FAIL;
+		return TDS_FAIL;
 	}
 }

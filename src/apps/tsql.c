@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.147 2011-06-10 17:51:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.148 2011-06-18 17:52:24 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -178,7 +178,8 @@ static int
 do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 {
 	int rows = 0;
-	int rc, i;
+	TDSRET rc;
+	int i;
 	TDSCOLUMN *col;
 	int ctype;
 	CONV_RESULT dres;

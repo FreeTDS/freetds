@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.201 2011-06-11 07:42:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.202 2011-06-18 17:52:24 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2919,7 +2919,7 @@ day         weekday     week        date
  * @param dr       destination date
  * @return TDS_FAIL or TDS_SUCCESS
  */
-TDS_INT
+TDSRET
 tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 {
 

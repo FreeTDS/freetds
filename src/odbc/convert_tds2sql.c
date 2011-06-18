@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.73 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.74 2011-06-18 17:52:24 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -149,7 +149,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	     const struct _drecord *drec_ixd)
 {
 	TDS_INT nDestSybType;
-	TDS_INT nRetVal = TDS_FAIL;
+	TDS_INT nRetVal = TDS_CONVERT_FAIL;
 	TDSCONTEXT *context = stmt->dbc->env->tds_ctx;
 
 	CONV_RESULT ores;

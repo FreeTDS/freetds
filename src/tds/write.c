@@ -47,7 +47,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: write.c,v 1.83 2011-06-03 21:43:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: write.c,v 1.84 2011-06-18 17:52:24 freddy77 Exp $");
 
 /**
  * \addtogroup network
@@ -313,10 +313,10 @@ tds_init_write_buf(TDSSOCKET * tds)
  * Flush packet to server
  * @return TDS_FAIL or TDS_SUCCESS
  */
-int
+TDSRET
 tds_flush_packet(TDSSOCKET * tds)
 {
-	int result = TDS_FAIL;
+	TDSRET result = TDS_FAIL;
 
 	/* GW added check for tds->s */
 	if (!IS_TDSDEAD(tds))

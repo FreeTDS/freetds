@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.397 2011-06-17 10:03:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.398 2011-06-18 17:52:24 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1681,7 +1681,7 @@ _dbresults(DBPROCESS * dbproc)
 	}
 
 	for (;;) {
-		int retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
+		TDSRET retcode = tds_process_tokens(tds, &result_type, &done_flags, TDS_TOKEN_RESULTS);
 
 		tdsdump_log(TDS_DBG_FUNC, "dbresults() tds_process_tokens returned %d (%s),\n\t\t\tresult_type %s\n", 
 						retcode, prretcode(retcode), prresult_type(result_type));
@@ -4635,7 +4635,7 @@ dbsqlok(DBPROCESS * dbproc)
 	 * We're looking for a result token or a done token.
          */
 	for (;;) {
-		int tds_code;
+		TDSRET tds_code;
 		int done_flags = 0;
 
 		/* 
@@ -5802,7 +5802,7 @@ dbmnycopy(DBPROCESS * dbproc, DBMONEY * src, DBMONEY * dest)
 RETCODE
 dbcanquery(DBPROCESS * dbproc)
 {
-	int rc;
+	TDSRET rc;
 	TDS_INT result_type;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbcanquery(%p)\n", dbproc);
@@ -6376,7 +6376,7 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 	dbproc->dbresults_state = _DB_RES_INIT;
 
 	if (dbproc->tds_socket->state == TDS_PENDING) {
-		const int ret = tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_TOKEN_TRAILING);
+		const TDSRET ret = tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_TOKEN_TRAILING);
 		if (ret != TDS_NO_MORE_RESULTS) {
 			dbperror(dbproc, SYBERPND, 0);
 			dbproc->command_state = DBCMDSENT;
@@ -6800,7 +6800,7 @@ dbsqlsend(DBPROCESS * dbproc)
 {
 	TDSSOCKET *tds;
 	char *cmdstr;
-	int rc;
+	TDSRET rc;
 	TDS_INT result_type;
 	char timestr[256];
 
@@ -7057,7 +7057,7 @@ int
 dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *formats, ...)
 {
 	va_list ap;
-	int rc;
+	TDSRET rc;
 	int resultlen;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbstrbuild(%p, %s, %d, %s, %s, ...)\n", dbproc, charbuf, bufsize, text, formats);

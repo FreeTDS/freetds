@@ -31,7 +31,7 @@
 /* #include "fortify.h" */
 
 
-TDS_RCSID(var, "$Id: ctutil.c,v 1.37 2011-06-07 09:58:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ctutil.c,v 1.38 2011-06-18 17:52:24 freddy77 Exp $");
 
 /*
  * test include consistency 
@@ -139,7 +139,7 @@ _ct_handle_client_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAG
 }
 
 /* message handler */
-int
+TDSRET
 _ct_handle_server_message(const TDSCONTEXT * ctx_tds, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	CS_SERVERMSG errmsg;

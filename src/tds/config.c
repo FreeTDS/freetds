@@ -78,7 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.170 2011-06-10 17:51:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.171 2011-06-18 17:52:24 freddy77 Exp $");
 
 static void tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSLOGIN * login);
@@ -791,7 +791,7 @@ tds_config_verstr(const char *tdsver, TDSLOGIN * login)
  * Set the full name of interface file
  * @param interf file name
  */
-int
+TDSRET
 tds_set_interfaces_file_loc(const char *interf)
 {
 	/* Free it if already set */
@@ -817,7 +817,7 @@ tds_set_interfaces_file_loc(const char *interf)
  * string.
  */
 /* TODO callers seem to set always connection info... change it */
-int
+TDSRET
 tds_lookup_host(const char *servername,	/* (I) name of the server                  */
 		char *ip	/* (O) dotted-decimal ip address of server */
 	)

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.20 2011-06-11 06:35:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.21 2011-06-18 17:52:24 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -54,20 +54,21 @@ typedef struct tds_pbcb
 	unsigned int from_malloc;
 } TDSPBCB;
 
-static int tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
-static int tds_bcp_start_insert_stmt(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+static TDSRET tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
+static TDSRET tds_bcp_start_insert_stmt(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 static int tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, unsigned char * rowbuffer, int start);
 static int tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, TDS_UCHAR *rowbuffer, int start, int *pncols);
 static void tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
 
-int
+TDSRET
 tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
 	TDSRESULTINFO *resinfo;
 	TDSRESULTINFO *bindinfo = NULL;
 	TDSCOLUMN *curcol;
 	TDS_INT result_type;
-	int i, rc;
+	int i;
+	TDSRET rc;
 	const char *fmt;
 
 	/* FIXME don't leave state in processing state */
@@ -173,7 +174,7 @@ cleanup:
 /** 
  * \return TDS_SUCCESS or TDS_FAIL.
  */
-static int
+static TDSRET
 tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpcol, int first)
 {
 	char buffer[32];
@@ -339,7 +340,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 	return TDS_SUCCESS;
 }
 
-static int
+static TDSRET
 tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 {
 	char *query;
@@ -404,7 +405,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 /** 
  * \return TDS_SUCCESS or TDS_FAIL.
  */
-int
+TDSRET
 tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
 {
 	TDSCOLUMN  *bindcol;
@@ -795,7 +796,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 /** 
  * \return TDS_SUCCESS or TDS_FAIL.
  */
-static int
+static TDSRET
 tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
 	TDSCOLUMN *bcpcol;
@@ -879,7 +880,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 {
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_done(%p, %p)\n", tds, rows_copied);
@@ -898,7 +899,7 @@ tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start(%p, %p)\n", tds, bcpinfo);
@@ -929,7 +930,7 @@ tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row)
 	TDS_ZERO_FREE(result->current_row);
 }
 
-int
+TDSRET
 tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
 	TDSCOLUMN *bcpcol;
@@ -1065,7 +1066,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size)
 {
 	if (tds_submit_queryf(tds,
@@ -1088,7 +1089,7 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
 {
 	/* TODO check state */
@@ -1100,7 +1101,7 @@ tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
 	return TDS_SUCCESS;
 }
 
-int
+TDSRET
 tds_writetext_end(TDSSOCKET *tds)
 {
 	/* TODO check state */
