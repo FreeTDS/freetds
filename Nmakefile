@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.10 2011-02-17 22:12:22 jklowden Exp $
+# $Id: Nmakefile,v 1.10.2.1 2011-06-29 13:09:58 freddy77 Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -244,7 +244,7 @@ include\tdsver.h:
 	> $@.err 
 	move /Y $@.err $@
 
-src\tds\types.h:
+src\tds\tds_types.h:
 	perl src\tds\types.pl misc\types.txt > $@.err
 	move /Y $@.err $@
 
@@ -261,7 +261,7 @@ src\tds\num_limits.h: src\tds\num_limits.pl
 	$(MV) $@.tmp $@
 !ENDIF
 
-GENERATED_FILES = include\tdsver.h src\tds\types.h \
+GENERATED_FILES = include\tdsver.h src\tds\tds_types.h \
 	src\tds\tds_willconvert.h src\tds\encodings.h src\tds\num_limits.h
 
 $(DBLIB_OUT)\db-lib.lib: $(GENERATED_FILES) $(DBLIB_OUT) $(DBLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
