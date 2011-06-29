@@ -1,3 +1,6 @@
+Wed Jun 29 15:07:56 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* Nmakefile: updated to reflect file rename
+
 Wed Jun 29 09:06:46 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/net.c: disable ssl padding for compatibility
 
@@ -475,4 +478,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3308 2011-06-29 07:08:39 freddy77 Exp $
+$Id: ChangeLog,v 1.3309 2011-06-29 13:07:27 freddy77 Exp $
