@@ -18,7 +18,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: t0004.c,v 1.21 2011-05-16 13:31:11 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.22 2011-06-29 13:22:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char *varchar_as_string(TDSSOCKET * tds, int col_idx);
@@ -41,20 +41,21 @@ main(int argc, char **argv)
 	TDSLOGIN *login;
 	TDSSOCKET *tds;
 	int verbose = 0;
-	int rc;
+	int rc, i;
 
 	int result_type;
 	int rows_returned = 0;
 
 	const char *len200 =
 		"01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
-	char long_query[1000];
+	char *long_query = (char*) malloc(5000);
 
-	sprintf(long_query,
-		"SELECT name FROM #longquerytest WHERE (name = 'A%s' OR name = 'B%s' OR name = 'C%s' OR name = 'correct')", len200,
-		len200, len200);
+	strcpy(long_query, "SELECT name FROM #longquerytest WHERE (");
+	for (i = 0; i < 20; ++i)
+		sprintf(strchr(long_query, 0), "name = '%c%s' OR ", 'A'+i, len200);
+	strcat(long_query, "name = 'correct')");
 
-	fprintf(stdout, "%s: Test large (>512 bytes) queries\n", __FILE__);
+	fprintf(stdout, "%s: Test large (>4096 bytes) queries\n", __FILE__);
 	rc = try_tds_login(&login, &tds, __FILE__, verbose);
 	if (rc != TDS_SUCCESS) {
 		fprintf(stderr, "try_tds_login() failed\n");
@@ -117,5 +118,6 @@ main(int argc, char **argv)
 	rc = run_query(tds, "DROP TABLE #longquerytest");
 
 	try_tds_logout(login, tds, verbose);
+	free(long_query);
 	return 0;
 }

@@ -1,3 +1,6 @@
+Wed Jun 29 15:22:37 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/unittests/t0004.c: make query longer
+
 Wed Jun 29 15:07:56 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* Nmakefile: updated to reflect file rename
 
@@ -478,4 +481,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3309 2011-06-29 13:07:27 freddy77 Exp $
+$Id: ChangeLog,v 1.3310 2011-06-29 13:22:14 freddy77 Exp $
