@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.217 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.218 2011-07-01 20:49:16 jklowden Exp $");
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -749,6 +749,24 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	current_pos = IS_TDS72_PLUS(tds) ? 86 + 8 : 86;	/* ? */
 
 	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
+
+#if !defined(TDS_DEBUG_LOGIN)
+	if (1) {
+		const char *method = "TDS_FAIL: no method for";
+# ifdef HAVE_SSPI
+		if (strchr(user_name, '\\') != NULL || user_name_len == 0)
+			method = "tds_sspi_get_auth";
+# else
+		if (strchr(user_name, '\\') != NULL) 
+			method = "tds_ntlm_get_auth";
+#  ifdef ENABLE_KRB5
+		method = "tds_gss_get_auth";
+#  endif
+# endif
+		tdsdump_log(TDS_DBG_INFO2, "using %s authentication for %s account\n", 
+						method, user_name_len? user_name : "[no name]");
+	}
+#endif
 
 	/* check ntlm */
 #ifdef HAVE_SSPI

@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.16 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.17 2011-07-01 20:49:16 jklowden Exp $");
 
 /**
  * \ingroup libtds
@@ -177,6 +177,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	const char *server_name;
 	/* Storage for reentrant getaddrby* calls */
 	char buffer[4096];
+	int erc;
 
 	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
@@ -202,7 +203,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
-	tdsdump_log(TDS_DBG_NETWORK, "kerberos name %s\n", auth->sname);
+	tdsdump_log(TDS_DBG_NETWORK, "using kerberos name %s\n", auth->sname);
 
 	/*
 	 * Import the name into target_name.  Use send_tok to save
@@ -212,10 +213,31 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	send_tok.length = strlen(auth->sname);
 	maj_stat = gss_import_name(&min_stat, &send_tok, &nt_principal, &auth->target_name);
 
-	if (maj_stat != GSS_S_COMPLETE
-	    || tds_gss_continue(tds, auth, GSS_C_NO_BUFFER) == TDS_FAIL) {
-		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
-		return NULL;
+	switch (maj_stat) {
+	case GSS_S_COMPLETE: 
+		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_COMPLETE: gss_import_name completed successfully.\n");
+		if ((erc = tds_gss_continue(tds, auth, GSS_C_NO_BUFFER)) == TDS_FAIL) {
+			tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+			return NULL;
+		}
+		break;
+	case GSS_S_BAD_NAMETYPE: 
+		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_BAD_NAMETYPE: The input_name_type was unrecognized.\n");
+		break;
+	case GSS_S_BAD_NAME: 
+		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_BAD_NAME: The input_name parameter could not be interpreted as a name of the specified type.\n");
+		break;
+	case GSS_S_BAD_MECH:
+		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_BAD_MECH: The input name-type was GSS_C_NT_EXPORT_NAME, but the mechanism contained within the input-name is not supported.\n");
+		break;
+	default:
+		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: unexpected error %d.\n", maj_stat);
+		break;
+	}
+
+	if (GSS_ERROR(maj_stat)) {
+		gss_release_buffer(&min_stat, &send_tok);
+		return TDS_FAIL;
 	}
 
 	return (TDSAUTHENTICATION *) auth;
@@ -225,9 +247,11 @@ static TDSRET
 tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr)
 {
 	gss_buffer_desc send_tok;
-	OM_uint32 maj_stat, min_stat;
+	OM_uint32 maj_stat, min_stat = 0;
 	OM_uint32 ret_flags;
 	int gssapi_flags;
+	const char *msg = "???";
+	gss_OID pmech;
 
 	auth->last_stat = GSS_S_COMPLETE;
 
@@ -249,39 +273,87 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	 * and that gss_init_sec_context returns GSS_S_CONTINUE_NEEDED if
 	 * and only if the server has another token to send us.
 	 */
-
-	/* We may ask for delegation based on config in the tds.conf and other conf files */
-	/* We always want to ask for the mutual, replay, and integ flags */
+	
+	/* 
+	 * We always want to ask for the mutual, replay, and integ flags.  
+	 * We may ask for delegation based on config in the tds.conf and other conf files.  
+	 */
 	gssapi_flags = GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_INTEG_FLAG;
+	
 	if (tds->login->gssapi_use_delegation)
 		gssapi_flags |= GSS_C_DELEG_FLAG;
 
 	maj_stat = gss_init_sec_context(&min_stat, GSS_C_NO_CREDENTIAL, &auth->gss_context, auth->target_name, 
-					/* GSS_C_DELEG_FLAG GSS_C_MUTUAL_FLAG ?? */
 					GSS_C_NULL_OID,
 					gssapi_flags,
 					0, NULL,	/* no channel bindings */
-					token_ptr, NULL,	/* ignore mech type */
+					token_ptr, 
+					&pmech,	
 					&send_tok, &ret_flags, NULL);	/* ignore time_rec */
 
+	tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: actual mechanism at 0x%p\n", pmech);
+	if (pmech && pmech->elements) {
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "actual mechanism", pmech->elements, pmech->length);
+	}
+	
 	auth->last_stat = maj_stat;
-	if (maj_stat != GSS_S_COMPLETE && maj_stat != GSS_S_CONTINUE_NEEDED) {
+	
+	switch (maj_stat) {
+	case GSS_S_COMPLETE: 
+		msg = "GSS_S_COMPLETE: gss_init_sec_context completed successfully.";
+		break;
+	case GSS_S_CONTINUE_NEEDED: 
+		msg = "GSS_S_CONTINUE_NEEDED: gss_init_sec_context() routine must be called again.";
+		break;
+	case GSS_S_FAILURE: 
+		msg = "GSS_S_FAILURE: The routine failed for reasons that are not defined at the GSS level.";
+		tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: min_stat %ld \"%s\"\n", 
+						(long) min_stat, error_message(min_stat));
+		break;
+	case GSS_S_BAD_BINDINGS: 
+		msg = "GSS_S_BAD_BINDINGS: The channel bindings are not valid.";
+		break;
+	case GSS_S_BAD_MECH: 
+		msg = "GSS_S_BAD_MECH: The request security mechanism is not supported.";
+		break;
+	case GSS_S_BAD_NAME: 
+		msg = "GSS_S_BAD_NAME: The target_name parameter is not valid.";
+		break;
+	case GSS_S_BAD_SIG: 
+		msg = "GSS_S_BAD_SIG: The input token contains an incorrect integrity check value.";
+		break;
+	case GSS_S_CREDENTIALS_EXPIRED: 
+		msg = "GSS_S_CREDENTIALS_EXPIRED: The supplied credentials are no longer valid.";
+		break;
+	case GSS_S_DEFECTIVE_CREDENTIAL: 
+		msg = "GSS_S_DEFECTIVE_CREDENTIAL: Consistency checks performed on the credential failed.";
+		break;
+	case GSS_S_DEFECTIVE_TOKEN: 
+		msg = "GSS_S_DEFECTIVE_TOKEN: Consistency checks performed on the input token failed.";
+		break;
+	case GSS_S_DUPLICATE_TOKEN: 
+		msg = "GSS_S_DUPLICATE_TOKEN: The token is a duplicate of a token that has already been processed.";
+		break;
+	case GSS_S_NO_CONTEXT: 
+		msg = "GSS_S_NO_CONTEXT: The context handle provided by the caller does not refer to a valid security context.";
+		break;
+	case GSS_S_NO_CRED: 
+		msg = "GSS_S_NO_CRED: The supplied credential handle does not refer to a valid credential, the supplied credential is not";
+		break;
+	case GSS_S_OLD_TOKEN: 
+		msg = "GSS_S_OLD_TOKEN: The token is too old to be checked for duplication against previous tokens which have already been processed.";
+		break;
+	}
+	
+	if (GSS_ERROR(maj_stat)) {
 		gss_release_buffer(&min_stat, &send_tok);
+		tdsdump_log(TDS_DBG_NETWORK, "gss_init_sec_context: %s\n", msg);
 		return TDS_FAIL;
 	}
 
-/*
-	if (maj_stat == GSS_S_CONTINUE_NEEDED) {
-		if (recv_token(s, &token_flags, &recv_tok) < 0) {
-			(void) gss_release_name(&min_stat, &target_name);
-			return -1;
-		}
-		token_ptr = &recv_tok;
-	}
-*/
-
 	auth->tds_auth.packet = (TDS_UCHAR *) send_tok.value;
 	auth->tds_auth.packet_len = send_tok.length;
+
 	return TDS_SUCCESS;
 }
 
