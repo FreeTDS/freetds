@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.18 2011-07-02 07:37:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.19 2011-07-02 07:52:46 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -177,7 +177,6 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	const char *server_name;
 	/* Storage for reentrant getaddrby* calls */
 	char buffer[4096];
-	int erc;
 
 	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
@@ -216,7 +215,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	switch (maj_stat) {
 	case GSS_S_COMPLETE: 
 		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_COMPLETE: gss_import_name completed successfully.\n");
-		if ((erc = tds_gss_continue(tds, auth, GSS_C_NO_BUFFER)) == TDS_FAIL) {
+		if (tds_gss_continue(tds, auth, GSS_C_NO_BUFFER) == TDS_FAIL) {
 			tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
 			return NULL;
 		}
@@ -251,7 +250,7 @@ tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *to
 	OM_uint32 ret_flags;
 	int gssapi_flags;
 	const char *msg = "???";
-	gss_OID pmech;
+	gss_OID pmech = GSS_C_NULL_OID;
 
 	auth->last_stat = GSS_S_COMPLETE;
 

@@ -1,3 +1,6 @@
+Sat Jul  2 09:53:21 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/gssapi.c: minor changes
+
 Sat Jul  2 09:39:12 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/login.c: log authentication method always
 
@@ -491,4 +494,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3313 2011-07-02 07:38:37 freddy77 Exp $
+$Id: ChangeLog,v 1.3314 2011-07-02 07:52:46 freddy77 Exp $
