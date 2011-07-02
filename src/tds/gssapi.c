@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.17 2011-07-01 20:49:16 jklowden Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.18 2011-07-02 07:37:23 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -236,8 +236,8 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	}
 
 	if (GSS_ERROR(maj_stat)) {
-		gss_release_buffer(&min_stat, &send_tok);
-		return TDS_FAIL;
+		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+		return NULL;
 	}
 
 	return (TDSAUTHENTICATION *) auth;

@@ -1,3 +1,6 @@
+Sat Jul  2 09:37:57 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/gssapi.c: fix memory error on error
+
 Fri Jul  1 16:47:38 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* src/tds/gssapi.c src/tds/login.c 
 	- log kerberos error messages
@@ -485,4 +488,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3311 2011-07-01 20:49:16 jklowden Exp $
+$Id: ChangeLog,v 1.3312 2011-07-02 07:37:23 freddy77 Exp $
