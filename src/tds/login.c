@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.218 2011-07-01 20:49:16 jklowden Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.219 2011-07-02 07:38:37 freddy77 Exp $");
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -750,27 +750,10 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
 
-#if !defined(TDS_DEBUG_LOGIN)
-	if (1) {
-		const char *method = "TDS_FAIL: no method for";
-# ifdef HAVE_SSPI
-		if (strchr(user_name, '\\') != NULL || user_name_len == 0)
-			method = "tds_sspi_get_auth";
-# else
-		if (strchr(user_name, '\\') != NULL) 
-			method = "tds_ntlm_get_auth";
-#  ifdef ENABLE_KRB5
-		method = "tds_gss_get_auth";
-#  endif
-# endif
-		tdsdump_log(TDS_DBG_INFO2, "using %s authentication for %s account\n", 
-						method, user_name_len? user_name : "[no name]");
-	}
-#endif
-
 	/* check ntlm */
 #ifdef HAVE_SSPI
 	if (strchr(user_name, '\\') != NULL || user_name_len == 0) {
+		tdsdump_log(TDS_DBG_INFO2, "using SSPI authentication for '%s' account\n", user_name);
 		tds_conn(tds)->authentication = tds_sspi_get_auth(tds);
 		if (!tds_conn(tds)->authentication)
 			return TDS_FAIL;
@@ -778,6 +761,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		packet_size += auth_len;
 #else
 	if (strchr(user_name, '\\') != NULL) {
+		tdsdump_log(TDS_DBG_INFO2, "using NTLM authentication for '%s' account\n", user_name);
 		tds_conn(tds)->authentication = tds_ntlm_get_auth(tds);
 		if (!tds_conn(tds)->authentication)
 			return TDS_FAIL;
@@ -786,12 +770,14 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	} else if (user_name_len == 0) {
 # ifdef ENABLE_KRB5
 		/* try kerberos */
+		tdsdump_log(TDS_DBG_INFO2, "using GSS authentication\n");
 		tds_conn(tds)->authentication = tds_gss_get_auth(tds);
 		if (!tds_conn(tds)->authentication)
 			return TDS_FAIL;
 		auth_len = tds_conn(tds)->authentication->packet_len;
 		packet_size += auth_len;
 # else
+		tdsdump_log(TDS_DBG_ERROR, "requested GSS authentication but not compiled in\n");
 		return TDS_FAIL;
 # endif
 #endif
