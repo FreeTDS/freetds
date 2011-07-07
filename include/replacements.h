@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.29 2011-05-27 09:18:59 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.30 2011-07-07 07:24:22 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -59,8 +59,8 @@ extern "C"
 #define vsnprintf _vsnprintf
 #else
 int vsnprintf(char *ret, size_t max, const char *fmt, va_list ap);
-#endif /*  HAVE_VSNPRINTF */
 #endif /* !HAVE__VSNPRINTF */
+#endif /*  HAVE_VSNPRINTF */
 
 #if !HAVE_ASPRINTF
 int asprintf(char **ret, const char *fmt, ...);

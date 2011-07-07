@@ -1,4 +1,4 @@
-# $Id: Nmakefile,v 1.13 2011-06-29 13:07:28 freddy77 Exp $
+# $Id: Nmakefile,v 1.14 2011-07-07 07:24:22 freddy77 Exp $
 # Build FreeTDS and assorted utilities for Win32/Win64 without an IDE. 
 # Makefiles, unlike Visual Studio project files, are stable over time.  
 # Contributed to the public domain by James K. Lowden, February 2009
@@ -89,7 +89,6 @@ TDS_SRC =	$(TDS_DIR)\bulk.c \
 		$(TDS_DIR)\mem.c \
 		$(TDS_DIR)\net.c \
 		$(TDS_DIR)\numeric.c \
-		$(TDS_DIR)\ptw32_MCS_lock.c \
 		$(TDS_DIR)\query.c \
 		$(TDS_DIR)\read.c \
 		$(TDS_DIR)\sspi.c \
@@ -120,7 +119,6 @@ TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\mem.obj \
 		$(TDS_OUT)\net.obj \
 		$(TDS_OUT)\numeric.obj \
-		$(TDS_OUT)\ptw32_MCS_lock.obj \
 		$(TDS_OUT)\query.obj \
 		$(TDS_OUT)\read.obj \
 		$(TDS_OUT)\sspi.obj \
