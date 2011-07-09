@@ -3,23 +3,12 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.16 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.17 2011-07-09 20:41:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char *test_query = NULL;
 
-static void *
-xmalloc(size_t s)
-{
-	void *p = malloc(s);
-	if (!p) {
-		fprintf(stderr, "Out of memory\n");
-		exit(1);
-	}
-	return p;
-}
-
-#define XMALLOC_N(t, n) (t*) xmalloc(n*sizeof(t))
+#define XMALLOC_N(t, n) (t*) ODBC_GET(n*sizeof(t))
 
 static void
 query_test(int prepare, SQLRETURN expected, const char *expected_status)
@@ -27,6 +16,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 #define DESC_LEN 51
 #define ARRAY_SIZE 10
 
+	ODBC_BUF *odbc_buf = NULL;
 	SQLUINTEGER *ids = XMALLOC_N(SQLUINTEGER,ARRAY_SIZE);
 	typedef SQLCHAR desc_t[DESC_LEN];
 	desc_t *descs = XMALLOC_N(desc_t, ARRAY_SIZE);
@@ -114,11 +104,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 
 	odbc_reset_statement();
 
-	free(ids);
-	free(descs);
-	free(id_lens);
-	free(desc_lens);
-	free(statuses);
+	ODBC_FREE();
 	if (failure) {
 		odbc_disconnect();
 		exit(1);

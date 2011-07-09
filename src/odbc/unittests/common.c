@@ -13,7 +13,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.59 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.60 2011-07-09 20:41:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV odbc_env;
@@ -472,5 +472,39 @@ odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
 		dst[i] = src[i];
 	}
 	return n;
+}
+
+void *
+odbc_buf_get(ODBC_BUF** buf, size_t s)
+{
+	ODBC_BUF *p = (ODBC_BUF*) calloc(1, sizeof(ODBC_BUF));
+	assert(p);
+	p->buf = malloc(s);
+	assert(p->buf);
+	p->next = *buf;
+	*buf = p;
+	return p->buf;
+}
+
+void
+odbc_buf_free(ODBC_BUF** buf)
+{
+	ODBC_BUF *cur = *buf;
+	*buf = NULL;
+	while (cur) {
+		ODBC_BUF *next = cur->next;
+		free(cur->buf);
+		free(cur);
+		cur = next;
+	}
+}
+
+SQLWCHAR *
+odbc_get_sqlwchar(ODBC_BUF** buf, const char *s)
+{
+	size_t l = strlen(s) + 1;
+	SQLWCHAR *buffer = (SQLWCHAR*) odbc_buf_get(buf, l * sizeof(SQLWCHAR));
+	odbc_to_sqlwchar(buffer, s, l);
+	return buffer;
 }
 

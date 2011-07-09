@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.13 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.14 2011-07-09 20:41:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -54,6 +54,7 @@ init_proc(const char *name)
 static void
 Test(const char *name)
 {
+	ODBC_BUF *odbc_buf = NULL;
 	int iresults=0, data_errors=0;
 	int ipar=0;
 	HSTMT odbc_stmt = SQL_NULL_HSTMT;
@@ -90,7 +91,7 @@ Test(const char *name)
 	for( ipar=0; ipar < sizeof(args)/sizeof(args[0]); ipar++ ) {
 		printf("executing SQLBindParameter for parameter %d\n", 1+ipar);
 		if( args[ipar].BufferLength > 0 ) {
-			args[ipar].ParameterValuePtr = (SQLPOINTER) malloc(args[ipar].BufferLength);
+			args[ipar].ParameterValuePtr = (SQLPOINTER) ODBC_GET(args[ipar].BufferLength);
 			assert(args[ipar].ParameterValuePtr != NULL);
 			memset(args[ipar].ParameterValuePtr, 0, args[ipar].BufferLength);
 			memset(args[ipar].ParameterValuePtr, 'a', args[ipar].BufferLength - 1);
@@ -197,9 +198,7 @@ Test(const char *name)
 	CHKFreeStmt(SQL_DROP, "S");
 	odbc_stmt = SQL_NULL_HSTMT;
 
-	for (ipar = 0; ipar < sizeof(args)/sizeof(args[0]); ++ipar)
-		if (args[ipar].BufferLength > 0)
-			free(args[ipar].ParameterValuePtr);
+	ODBC_FREE();
 
 	if (data_errors) {
 		fprintf(stderr, "%d errors found in expected row count\n", data_errors);
