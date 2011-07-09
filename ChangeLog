@@ -1,3 +1,6 @@
+Sat Jul  9 13:26:00 CDT 2011     Craig A. Berry <craigberry@mac.com>
+	* vms/descrip_mms.template compile getpassarg.c on VMS.
+
 Thu Jul  7 09:24:05 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* Nmakefile include/replacements.h:
 	- fix Nmakefile (from Ramiro Morales)
@@ -498,4 +501,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3315 2011-07-07 07:24:22 freddy77 Exp $
+$Id: ChangeLog,v 1.3316 2011-07-09 18:34:56 berryc Exp $
