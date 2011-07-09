@@ -85,7 +85,7 @@ check cross compiled odbc driver, exports, resource version (test-dist)
 bcp
   tests colfmt after init
   test encodings loading data
-  extract to file and import again
+  extract to file and import again (t0016 test)
   table with id
 
 
