@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.19 2011-07-02 07:52:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.20 2011-07-09 19:50:17 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -173,7 +173,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	gss_buffer_desc send_tok;
 	OM_uint32 maj_stat, min_stat;
 	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
-	static gss_OID_desc nt_principal = { 10, "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
+	static gss_OID_desc nt_principal = { 10, (void*) "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
 	const char *server_name;
 	/* Storage for reentrant getaddrby* calls */
 	char buffer[4096];

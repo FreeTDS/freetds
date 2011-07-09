@@ -1,3 +1,8 @@
+Sat Jul  9 21:50:13 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/dblib.h src/dblib/bcp.c src/dblib/dblib.c:
+	* src/tds/gssapi.c:
+	- minor types improves
+
 Sat Jul  9 13:26:00 CDT 2011     Craig A. Berry <craigberry@mac.com>
 	* vms/descrip_mms.template compile getpassarg.c on VMS.
 
@@ -501,4 +506,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3316 2011-07-09 18:34:56 berryc Exp $
+$Id: ChangeLog,v 1.3317 2011-07-09 19:50:16 freddy77 Exp $

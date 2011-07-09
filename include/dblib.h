@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.47 2011-06-07 08:16:05 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.48 2011-07-09 19:50:16 freddy77 Exp $ */
 
 typedef enum tag_DB_RESULT_STATE {
 	  _DB_RES_INIT
@@ -129,7 +129,7 @@ struct tds_dblib_dbprocess
 {
 	TDSSOCKET *tds_socket;
 
-	TDS_INT row_type;
+	STATUS row_type;
 	DBPROC_ROWBUF row_buf;
 
 	int noautofree;

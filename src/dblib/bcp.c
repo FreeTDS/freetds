@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.213 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.214 2011-07-09 19:50:17 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -89,7 +89,7 @@ static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int 
 
 static int rtrim(char *, int);
 static offset_type _bcp_measure_terminated_field(FILE * hostfile, BYTE * terminator, int term_len);
-static RETCODE _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error);
+static STATUS _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error);
 static int _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci);
 static int _bcp_get_term_var(BYTE * pdata, BYTE * term, int term_len);
 
@@ -1069,7 +1069,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	return SUCCEED;
 }
 
-static RETCODE
+static STATUS
 _bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
 {
 	int errnum = errno;
@@ -1101,7 +1101,7 @@ _bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
  * \return MORE_ROWS, NO_MORE_ROWS, or FAIL.
  * \sa 	BCP_SETL(), bcp_batch(), bcp_bind(), bcp_colfmt(), bcp_colfmt_ps(), bcp_collen(), bcp_colptr(), bcp_columns(), bcp_control(), bcp_done(), bcp_exec(), bcp_getl(), bcp_init(), bcp_moretext(), bcp_options(), bcp_readfmt(), bcp_sendrow()
  */
-static RETCODE
+static STATUS
 _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 {
 	TDSCOLUMN *bcpcol = NULL;
@@ -1624,7 +1624,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 	FILE *hostfile, *errfile = NULL;
 	TDSSOCKET *tds = dbproc->tds_socket;
 	BCP_HOSTCOLINFO *hostcol;
-	RETCODE ret;
+	STATUS ret;
 
 	int i, row_of_hostfile, rows_written_so_far;
 	int row_error, row_error_count;

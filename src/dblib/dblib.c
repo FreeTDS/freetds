@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.398 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.399 2011-07-09 19:50:17 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1555,7 +1555,7 @@ prdbresults_state(int retcode)
 }
 
 static const char *
-prdbretcode(int retcode)
+prdbretcode(RETCODE retcode)
 {
 	static char unknown[24];
 	switch(retcode) {
@@ -1998,7 +1998,7 @@ dbnextrow(DBPROCESS * dbproc)
 {
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	RETCODE result = FAIL;
+	STATUS result = FAIL;
 	TDS_INT res_type;
 	TDS_INT computeid;
 	int idx; /* row buffer index.  Unless DBUFFER is on, idx will always be 0. */
@@ -3330,7 +3330,7 @@ dbprrow(DBPROCESS * dbproc)
 	char dest[8192];
 	int desttype, srctype;
 	TDSDATEREC when;
-	DBINT status;
+	STATUS status;
 	int padlen;
 	int c;
 	int selcol;
@@ -7053,7 +7053,7 @@ dbsetavail(DBPROCESS * dbproc)
  * \remarks Following \a formats are the arguments, the values to substitute for the placeholders.  
  * \sa dbconvert(), dbdatename(), dbdatepart().  
  */
-int
+RETCODE
 dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *formats, ...)
 {
 	va_list ap;
