@@ -22,7 +22,7 @@
 
 #include "./sybfront.h"
 
-static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.6 2010-12-10 20:46:19 jklowden Exp $";
+static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.6.2.1 2011-07-11 09:10:28 freddy77 Exp $";
 static const void *const no_unused_sqlfront_h_warn[] = { rcsid_sqlfront_h, no_unused_sqlfront_h_warn };
 
 typedef DBPROCESS * PDBPROCESS;
@@ -36,7 +36,10 @@ typedef       void *	LPVOID;
 typedef const char *	LPCSTR;
 
 typedef const LPINT          LPCINT;
+#ifndef _LPCBYTE_DEFINED
+#define _LPCBYTE_DEFINED
 typedef const LPBYTE         LPCBYTE ;
+#endif
 typedef       USHORT *       LPUSHORT;
 typedef const LPUSHORT       LPCUSHORT;
 typedef       DBINT *        LPDBINT;
