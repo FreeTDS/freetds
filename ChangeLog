@@ -1,3 +1,6 @@
+Mon Jul 11 11:04:34 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sqlfront.h: do not typedef LPCBYTE twice
+
 Sat Jul  9 22:41:03 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/array.c src/odbc/unittests/array_out.c:
 	* src/odbc/unittests/common.c src/odbc/unittests/common.h:
@@ -516,4 +519,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3319 2011-07-09 20:41:10 freddy77 Exp $
+$Id: ChangeLog,v 1.3320 2011-07-11 09:04:45 freddy77 Exp $
