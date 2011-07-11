@@ -22,7 +22,7 @@
 
 #include "./sybfront.h"
 
-static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.6.2.1 2011-07-11 09:10:28 freddy77 Exp $";
+static const char rcsid_sqlfront_h[] = "$Id: sqlfront.h,v 1.6.2.2 2011-07-11 09:12:09 freddy77 Exp $";
 static const void *const no_unused_sqlfront_h_warn[] = { rcsid_sqlfront_h, no_unused_sqlfront_h_warn };
 
 typedef DBPROCESS * PDBPROCESS;
@@ -31,7 +31,9 @@ typedef DBCURSOR  * PDBCURSOR;
 
 typedef       int  *	LPINT;
 typedef       char *	LPSTR;
+#if !defined(PHP_MSSQL_H) || !defined(PHP_MSSQL_API)
 typedef       BYTE *	LPBYTE;
+#endif
 typedef       void *	LPVOID;
 typedef const char *	LPCSTR;
 
