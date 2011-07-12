@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: cursor5.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLINTEGER v_int_3;
@@ -40,7 +40,7 @@ main(int argc, char **argv)
 /*	CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, (SQLPOINTER) SQL_CURSOR_STATIC, 0, "S");	*/
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_SCROLLABLE, SQL_IS_UINTEGER, "S");
 
-	CHKPrepare((SQLCHAR *) "select k, c from #mytab1 order by k", SQL_NTS, "SI");
+	CHKPrepare(T("select k, c from #mytab1 order by k"), SQL_NTS, "SI");
 
 	CHKBindCol(1, SQL_C_LONG, &v_int_3, 0, &v_ind_3_1, "S");
 	CHKBindCol(2, SQL_C_CHAR, v_char_3, sizeof(v_char_3), &v_ind_3_2, "S");

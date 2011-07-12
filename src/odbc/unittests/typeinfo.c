@@ -1,26 +1,27 @@
 #include "common.h"
 
-static char software_version[] = "$Id: typeinfo.c,v 1.16 2011-05-12 20:32:30 freddy77 Exp $";
+static char software_version[] = "$Id: typeinfo.c,v 1.17 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 TestName(int index, const char *expected_name)
 {
-	char name[128];
+	ODBC_BUF *odbc_buf = NULL;
+	SQLTCHAR name[128];
 	char buf[256];
 	SQLSMALLINT len, type;
 
 #define NAME_TEST \
 	do { \
-		if (strcmp(name, expected_name) != 0) \
+		if (strcmp(C(name), expected_name) != 0) \
 		{ \
-			sprintf(buf, "wrong name in column %d expected '%s' got '%s'", index, expected_name, name); \
+			sprintf(buf, "wrong name in column %d expected '%s' got '%s'", index, expected_name, C(name)); \
 			ODBC_REPORT_ERROR(buf); \
 		} \
 	} while(0)
 
 	/* retrieve with SQLDescribeCol */
-	CHKDescribeCol(index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL, "S");
+	CHKDescribeCol(index, name, ODBC_VECTOR_SIZE(name), &len, &type, NULL, NULL, NULL, "S");
 	NAME_TEST;
 
 	/* retrieve with SQLColAttribute */
@@ -29,6 +30,7 @@ TestName(int index, const char *expected_name)
 		NAME_TEST;
 	CHKColAttribute(index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL, "S");
 	NAME_TEST;
+	ODBC_FREE();
 }
 
 static void

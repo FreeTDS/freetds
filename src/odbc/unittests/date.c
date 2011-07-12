@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: date.c,v 1.13 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: date.c,v 1.14 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -19,7 +19,7 @@ DoTest(int n)
 	odbc_command("select convert(datetime, '2002-12-27 18:43:21')");
 
 	CHKFetch("SI");
-	CHKDescribeCol(1, output, sizeof(output), NULL, &colType, &colSize, &colScale, &colNullable, "S");
+	CHKDescribeCol(1, (SQLTCHAR*)output, sizeof(output)/sizeof(SQLWCHAR), NULL, &colType, &colSize, &colScale, &colNullable, "S");
 
 	if (n == 0) {
 		memset(&ts, 0, sizeof(ts));

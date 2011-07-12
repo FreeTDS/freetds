@@ -9,7 +9,7 @@
  * and declared in odbcss.h
  */
 
-static char software_version[] = "$Id: compute.c,v 1.13 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: compute.c,v 1.14 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char col1[256], col2[256];
@@ -20,29 +20,29 @@ static int main_line;
 static void
 TestName(SQLSMALLINT index, const char *expected_name)
 {
-	char name[128];
+	SQLTCHAR name[128];
 	char buf[256];
 	SQLSMALLINT len, type;
 
 #define NAME_TEST \
 	do { \
-		if (strcmp(name, expected_name) != 0) \
+		if (strcmp(C(name), expected_name) != 0) \
 		{ \
 			sprintf(buf, "line %d: wrong name in column %d expected '%s' got '%s'", \
-				main_line, index, expected_name, name); \
+				main_line, index, expected_name, C(name)); \
 			ODBC_REPORT_ERROR(buf); \
 		} \
 	} while(0)
 
 	/* retrieve with SQLDescribeCol */
-	CHKDescribeCol(index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL, "S");
+	CHKDescribeCol(index, name, ODBC_VECTOR_SIZE(name), &len, &type, NULL, NULL, NULL, "S");
 	NAME_TEST;
 
 	/* retrieve with SQLColAttribute */
-	CHKColAttribute(index, SQL_DESC_NAME, name, sizeof(name), &len, NULL, "S");
+	CHKColAttribute(index, SQL_DESC_NAME, name, ODBC_VECTOR_SIZE(name), &len, NULL, "S");
 	if (odbc_db_is_microsoft())
 		NAME_TEST;
-	CHKColAttribute(index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL, "S");
+	CHKColAttribute(index, SQL_DESC_LABEL, name, ODBC_VECTOR_SIZE(name), &len, NULL, "S");
 	NAME_TEST;
 }
 

@@ -14,7 +14,7 @@
  * Test from Ou Liu, cf "Query Time Out", 2006-08-08
  */
 
-static char software_version[] = "$Id: timeout2.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: timeout2.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if defined(__MINGW32__) || defined(_WIN32)
@@ -37,7 +37,7 @@ main(int argc, char *argv[])
 
 		CHKSetStmtAttr(SQL_ATTR_QUERY_TIMEOUT, (SQLPOINTER) 10, SQL_IS_UINTEGER, "S");
 
-		CHKPrepare((SQLCHAR*) "select * from #timeout", SQL_NTS, "S");
+		CHKPrepare(T("select * from #timeout"), SQL_NTS, "S");
 		CHKExecute("S");
 
 		do {
@@ -58,5 +58,6 @@ main(int argc, char *argv[])
 
 	odbc_disconnect();
 
+	ODBC_FREE();
 	return 0;
 }

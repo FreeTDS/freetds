@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?,123,'foo')} syntax and run */
 
-static char software_version[] = "$Id: const_params.c,v 1.18 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: const_params.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -30,7 +30,7 @@ main(int argc, char *argv[])
 	CHKBindParameter(2, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &out1, 0, &ind2, "S");
 
 	/* TODO use {ts ...} for date */
-	CHKPrepare((SQLCHAR *) "{call const_param(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS, "S");
+	CHKPrepare(T("{call const_param(?, 13579, '2004-10-15 12:09:08', 'foo', ?)}"), SQL_NTS, "S");
 
 	input = 13579;
 	ind = sizeof(input);
@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 		CHKBindParameter(3, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &out1,   0, &ind3, "S");
 
 		/* TODO use {ts ...} for date */
-		CHKPrepare((SQLCHAR *) "{?=call const_param(?, , '2004-10-15 12:09:08', 'foo', ?)}", SQL_NTS, "S");
+		CHKPrepare(T("{?=call const_param(?, , '2004-10-15 12:09:08', 'foo', ?)}"), SQL_NTS, "S");
 
 		input = 13579;
 		ind2 = sizeof(input);
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
 
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind, "S");
 
-	CHKPrepare((SQLCHAR *) "{?=call const_param(12.5, 0x0102030405060708)}", SQL_NTS, "S");
+	CHKPrepare(T("{?=call const_param(12.5, 0x0102030405060708)}"), SQL_NTS, "S");
 
 	output = 0xdeadbeef;
 	CHKExecute("S");

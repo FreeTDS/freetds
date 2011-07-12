@@ -2,7 +2,7 @@
 
 /* Test for executing SQLExecute and rebinding parameters */
 
-static char software_version[] = "$Id: rebindpar.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: rebindpar.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SWAP_STMT(b) do { SQLHSTMT xyz = odbc_stmt; odbc_stmt = b; b = xyz; } while(0)
@@ -34,6 +34,7 @@ TestInsert(char *buf)
 static void
 Test(int prebind)
 {
+	ODBC_BUF *odbc_buf = NULL;
 	SQLLEN ind;
 	int i;
 	char buf[100];
@@ -51,7 +52,7 @@ Test(int prebind)
 	if (prebind)
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 1, 0, buf, 1, &ind, "S");
 
-	CHKPrepare((SQLCHAR *) "INSERT INTO #tmp1(c) VALUES(?)", SQL_NTS, "S");
+	CHKPrepare(T("INSERT INTO #tmp1(c) VALUES(?)"), SQL_NTS, "S");
 
 	/* try to insert an empty string, should not fail */
 	/* NOTE this is currently the only test for insert a empty string using rpc */
@@ -64,6 +65,7 @@ Test(int prebind)
 	CHKFreeStmt(SQL_DROP, "S");
 	odbc_stmt = SQL_NULL_HSTMT;
 	SWAP_STMT(stmt);
+	ODBC_FREE();
 }
 
 int

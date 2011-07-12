@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: hidden.c,v 1.8 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: hidden.c,v 1.9 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -37,7 +37,7 @@ main(int argc, char **argv)
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_SCROLLABLE, (SQLPOINTER) SQL_NONSCROLLABLE, SQL_IS_UINTEGER, "S");
 	CHKSetStmtAttr(SQL_ATTR_CURSOR_SENSITIVITY, (SQLPOINTER) SQL_SENSITIVE, SQL_IS_UINTEGER, "S");
 
-	CHKPrepare((SQLCHAR *) "SELECT * FROM #t1", SQL_NTS, "S");
+	CHKPrepare(T("SELECT * FROM #t1"), SQL_NTS, "S");
 
 	CHKExecute("S");
 

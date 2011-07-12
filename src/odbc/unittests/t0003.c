@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0003.c,v 1.20 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: t0003.c,v 1.21 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -14,7 +14,7 @@ DoTest(int prepared)
 	if (!prepared) {
 		odbc_command("select * from #odbctestdata select * from #odbctestdata");
 	} else {
-		CHKPrepare((SQLCHAR *)"select * from #odbctestdata select * from #odbctestdata", SQL_NTS, "S");
+		CHKPrepare(T("select * from #odbctestdata select * from #odbctestdata"), SQL_NTS, "S");
 		CHKExecute("S");
 	}
 
@@ -32,7 +32,7 @@ DoTest(int prepared)
 	if (!prepared) {
 		odbc_command("select * from #odbctestdata select * from #odbctestdata");
 	} else {
-		CHKPrepare((SQLCHAR *)"select * from #odbctestdata select * from #odbctestdata", SQL_NTS, "S");
+		CHKPrepare(T("select * from #odbctestdata select * from #odbctestdata"), SQL_NTS, "S");
 		CHKExecute("S");
 	}
 
@@ -46,6 +46,8 @@ DoTest(int prepared)
 	CHKMoreResults("No");
 
 	odbc_command("drop table #odbctestdata");
+
+	ODBC_FREE();
 }
 
 int

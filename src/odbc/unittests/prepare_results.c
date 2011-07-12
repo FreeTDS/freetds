@@ -2,7 +2,7 @@
 
 /* Test for data format returned from SQLPrepare */
 
-static char software_version[] = "$Id: prepare_results.c,v 1.14 2011-04-24 18:24:34 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_results.c,v 1.15 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -12,10 +12,11 @@ Test(int use_ird)
 	SQLULEN size;
 	SQLHDESC desc;
 	SQLINTEGER ind;
-	char name[128];
+	SQLTCHAR name[128];
+	char *cname = NULL;
 
 	/* test query returns column information */
-	CHKPrepare((SQLCHAR *) "select * from #odbctestdata select * from #odbctestdata", SQL_NTS, "S");
+	CHKPrepare(T("select * from #odbctestdata select * from #odbctestdata"), SQL_NTS, "S");
 
 	SQLNumParams(odbc_stmt, &count);
 	if (count != 0) {
@@ -37,26 +38,30 @@ Test(int use_ird)
 		exit(1);
 	}
 
-	CHKDescribeCol(1, (SQLCHAR *) name, sizeof(name), &namelen, &type, &size, &digits, &nullable, "S");
+	CHKDescribeCol(1, name, ODBC_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
-	if (type != SQL_INTEGER || strcmp(name, "i") != 0) {
-		fprintf(stderr, "wrong column 1 informations (type %d name '%s' size %d)\n", (int) type, name, (int) size);
+	cname = (char*) C(name);
+	if (type != SQL_INTEGER || strcmp(cname, "i") != 0) {
+		fprintf(stderr, "wrong column 1 informations (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);
 	}
 
-	CHKDescribeCol(2, (SQLCHAR *) name, sizeof(name), &namelen, &type, &size, &digits, &nullable, "S");
+	CHKDescribeCol(2, name, ODBC_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
-	if (type != SQL_CHAR || strcmp(name, "c") != 0 || (size != 20 && (odbc_db_is_microsoft() || size != 40))) {
-		fprintf(stderr, "wrong column 2 informations (type %d name '%s' size %d)\n", (int) type, name, (int) size);
+	cname = (char*) C(name);
+	if (type != SQL_CHAR || strcmp(cname, "c") != 0 || (size != 20 && (odbc_db_is_microsoft() || size != 40))) {
+		fprintf(stderr, "wrong column 2 informations (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);
 	}
 
-	CHKDescribeCol(3, (SQLCHAR *) name, sizeof(name), &namelen, &type, &size, &digits, &nullable, "S");
+	CHKDescribeCol(3, name, ODBC_VECTOR_SIZE(name), &namelen, &type, &size, &digits, &nullable, "S");
 
-	if (type != SQL_NUMERIC || strcmp(name, "n") != 0 || size != 34 || digits != 12) {
-		fprintf(stderr, "wrong column 3 informations (type %d name '%s' size %d)\n", (int) type, name, (int) size);
+	cname = (char*) C(name);
+	if (type != SQL_NUMERIC || strcmp(cname, "n") != 0 || size != 34 || digits != 12) {
+		fprintf(stderr, "wrong column 3 informations (type %d name '%s' size %d)\n", (int) type, cname, (int) size);
 		exit(1);
 	}
+	ODBC_FREE();
 }
 
 int
@@ -75,7 +80,7 @@ main(int argc, char *argv[])
 
 	/* test query returns column information for select without param */
 	odbc_reset_statement();
-	CHKPrepare((SQLCHAR *) "select * from #odbctestdata", SQL_NTS, "S");
+	CHKPrepare(T("select * from #odbctestdata"), SQL_NTS, "S");
 
 	count = -1;
 	CHKNumResultCols(&count, "S");
@@ -87,7 +92,7 @@ main(int argc, char *argv[])
 
 	/* test query returns column information for select with param */
 	odbc_reset_statement();
-	CHKPrepare((SQLCHAR *) "select c,n from #odbctestdata where i=?", SQL_NTS, "S");
+	CHKPrepare(T("select c,n from #odbctestdata where i=?"), SQL_NTS, "S");
 
 	count = -1;
 	CHKNumResultCols(&count, "S");
@@ -99,7 +104,7 @@ main(int argc, char *argv[])
 
 	/* test query returns column information for update */
 	odbc_reset_statement();
-	CHKPrepare((SQLCHAR *) "update #odbctestdata set i = 20", SQL_NTS, "S");
+	CHKPrepare(T("update #odbctestdata set i = 20"), SQL_NTS, "S");
 
 	count = -1;
 	CHKNumResultCols(&count, "S");

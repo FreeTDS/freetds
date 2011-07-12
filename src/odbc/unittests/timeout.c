@@ -3,7 +3,7 @@
 
 /* Test timeout of query */
 
-static char software_version[] = "$Id: timeout.c,v 1.13 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: timeout.c,v 1.14 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 	i = 1;
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &i, 0, NULL, "S");
 
-	CHKPrepare((SQLCHAR *) "update test_timeout set t = 'bad' where n = ?", SQL_NTS, "S");
+	CHKPrepare(T("update test_timeout set t = 'bad' where n = ?"), SQL_NTS, "S");
 	CHKExecute("E");
 	EndTransaction(SQL_ROLLBACK);
 

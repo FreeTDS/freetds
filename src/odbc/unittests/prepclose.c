@@ -26,7 +26,7 @@
  * prepare or execute a query. This should fail and return an error message.
  */
 
-static char software_version[] = "$Id: prepclose.c,v 1.7 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: prepclose.c,v 1.8 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #if HAVE_FSTAT && defined(S_IFSOCK)
@@ -64,8 +64,8 @@ close_last_socket(void)
 static int
 Test(int direct)
 {
-	char buf[256];
-	unsigned char sqlstate[6];
+	SQLTCHAR buf[256];
+	SQLTCHAR sqlstate[6];
 
 	odbc_connect();
 
@@ -76,17 +76,17 @@ Test(int direct)
 
 	/* force disconnection closing socket */
 	if (direct) {
-		CHKExecDirect((SQLCHAR *) "SELECT 1", SQL_NTS, "E");
+		CHKExecDirect(T("SELECT 1"), SQL_NTS, "E");
 	} else {
 		SQLSMALLINT cols;
 		/* use prepare, force dialog with server */
-		if (CHKPrepare((SQLCHAR *) "SELECT 1", SQL_NTS, "SE") == SQL_SUCCESS)
+		if (CHKPrepare(T("SELECT 1"), SQL_NTS, "SE") == SQL_SUCCESS)
 			CHKNumResultCols(&cols, "E");
 	}
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, (SQLCHAR *) buf, sizeof(buf), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, ODBC_VECTOR_SIZE(buf), NULL, "SI");
 	sqlstate[5] = 0;
-	printf("state=%s err=%s\n", (char*) sqlstate, buf);
+	printf("state=%s err=%s\n", C(sqlstate), C(buf));
 	
 	odbc_disconnect();
 

@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test binding with UTF-8 encoding */
-static char software_version[] = "$Id: utf8.c,v 1.12 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: utf8.c,v 1.13 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -19,7 +19,7 @@ CheckNoRow(const char *query)
 {
 	SQLRETURN rc;
 
-	rc = CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
+	rc = CHKExecDirect(T(query), SQL_NTS, "SINo");
 	if (rc == SQL_NO_DATA)
 		return;
 
@@ -72,7 +72,7 @@ TestBinding(int minimun)
 
 	/* insert with SQLPrepare/SQLBindParameter/SQLExecute */
 	sprintf(tmp, "INSERT INTO %s VALUES(?,?,?)", table_name);
-	CHKPrepare((SQLCHAR *) tmp, SQL_NTS, "S");
+	CHKPrepare(T(tmp), SQL_NTS, "S");
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG,
 		SQL_INTEGER, 0, 0, &n, 0, &n_len, "S");
 	n_len = sizeof(n);
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 	/* connect string using DSN */
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;ClientCharset=UTF-8;", odbc_server, odbc_user, odbc_password, odbc_database);
-	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
+	CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
 	if (!odbc_driver_is_freetds()) {
 		odbc_disconnect();
 		printf("Driver is not FreeTDS, exiting\n");

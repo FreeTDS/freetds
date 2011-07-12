@@ -14,7 +14,7 @@
  * inside recordset
  * Sybase do not return warning but test works the same
  */
-static char software_version[] = "$Id: warning.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: warning.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char one_null_with_warning[] = "select max(a) as foo from (select convert(int, null) as a) as test";
@@ -28,7 +28,7 @@ static const int tds_no_dm = 0;
 static void
 Test(const char *query)
 {
-	CHKPrepare((SQLCHAR *) query, SQL_NTS, "S");
+	CHKPrepare(T(query), SQL_NTS, "S");
 
 	CHKExecute("S");
 
@@ -45,10 +45,10 @@ Test(const char *query)
 	 * errors on SQL_NO_DATA
 	 */
 	if (odbc_db_is_microsoft() && tds_no_dm) {
-		SQLCHAR output[256];
+		SQLTCHAR output[256];
 
-		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, NULL, NULL, output, sizeof(output), NULL, "SI");
-		printf("Message: %s\n", (char *) output);
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, NULL, NULL, output, ODBC_VECTOR_SIZE(output), NULL, "SI");
+		printf("Message: %s\n", C(output));
 	}
 
 	odbc_reset_statement();

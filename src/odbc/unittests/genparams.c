@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.47 2010-10-29 08:49:30 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.48 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -65,16 +65,16 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 			     sizeof(out_buf), &out_len, "S");
 
 		/* call store procedure */
-		CHKExecDirect((SQLCHAR *) "{call spTestProc(?)}", SQL_NTS, "S");
+		CHKExecDirect(T("{call spTestProc(?)}"), SQL_NTS, "S");
 	} else {
 		if (prepare_before)
-			CHKPrepare((SQLCHAR *) "{call spTestProc(?)}", SQL_NTS, "S");
+			CHKPrepare(T("{call spTestProc(?)}"), SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_OUTPUT, out_c_type, out_sql_type, precision, 0, out_buf,
 			     sizeof(out_buf), &out_len, "S");
 
 		if (!prepare_before)
-			CHKPrepare((SQLCHAR *) "{call spTestProc(?)}", SQL_NTS, "S");
+			CHKPrepare(T("{call spTestProc(?)}"), SQL_NTS, "S");
 
 		CHKExecute("S");
 	}
@@ -116,6 +116,7 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 		exit(1);
 	}
 	odbc_command("drop proc spTestProc");
+	ODBC_FREE();
 }
 
 static char check_truncation = 0;
@@ -169,17 +170,17 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 		CHKBindParameter(1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len, "S");
 
 		if (check_truncation)
-			CHKExecDirect((SQLCHAR *) sbuf, SQL_NTS, "E");
+			CHKExecDirect(T(sbuf), SQL_NTS, "E");
 		else
-			CHKExecDirect((SQLCHAR *) sbuf, SQL_NTS, "SNo");
+			CHKExecDirect(T(sbuf), SQL_NTS, "SNo");
 	} else {
 		if (prepare_before)
-			CHKPrepare((SQLCHAR *) sbuf, SQL_NTS, "S");
+			CHKPrepare(T(sbuf), SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, out_buf, sizeof(out_buf), &out_len, "S");
 
 		if (!prepare_before)
-			CHKPrepare((SQLCHAR *) sbuf, SQL_NTS, "S");
+			CHKPrepare(T(sbuf), SQL_NTS, "S");
 
 		if (check_truncation)
 			CHKExecute("E");
@@ -209,6 +210,7 @@ TestInput(SQLSMALLINT out_c_type, const char *type, SQLSMALLINT out_sql_type, co
 	}
 	check_truncation = 0;
 	odbc_command("DROP TABLE #tmp_insert");
+	ODBC_FREE();
 }
 
 /* stripped down version of TestInput for NULLs */
@@ -236,15 +238,15 @@ NullInput(SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *param_ty
 	if (exec_direct) {
 		CHKBindParameter(1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, NULL, 1, &out_len, "S");
 
-		CHKExecDirect((SQLCHAR *) sbuf, SQL_NTS, "SNo");
+		CHKExecDirect(T(sbuf), SQL_NTS, "SNo");
 	} else {
 		if (prepare_before)
-			CHKPrepare((SQLCHAR *) sbuf, SQL_NTS, "S");
+			CHKPrepare(T(sbuf), SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_INPUT, out_c_type, out_sql_type, 20, 0, NULL, 1, &out_len, "S");
 
 		if (!prepare_before)
-			CHKPrepare((SQLCHAR *) sbuf, SQL_NTS, "S");
+			CHKPrepare(T(sbuf), SQL_NTS, "S");
 
 		CHKExecute("SNo");
 	}
@@ -260,6 +262,7 @@ NullInput(SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *param_ty
 	CHKFetch("No");
 	CHKMoreResults("No");
 	odbc_command("DROP TABLE #tmp_insert");
+	ODBC_FREE();
 }
 
 

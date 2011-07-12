@@ -1,7 +1,7 @@
 #include "common.h"
 
 
-static char software_version[] = "$Id: connect.c,v 1.14 2010-07-19 11:52:15 freddy77 Exp $";
+static char software_version[] = "$Id: connect.c,v 1.15 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -78,7 +78,7 @@ main(int argc, char *argv[])
 	printf("connect string DSN connect..\n");
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_server, odbc_user, odbc_password, odbc_database);
-	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
+	CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
 	odbc_disconnect();
 	++succeeded;
 
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 	/* this is expected to work with unixODBC */
 	init_connect();
 	sprintf(tmp, "DRIVER=FreeTDS;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_server, odbc_user, odbc_password, odbc_database);
-	rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
+	rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
 	} else {
@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 	/* this is expected to work with iODBC */
 	init_connect();
 	sprintf(tmp, "DRIVER=%s;SERVERNAME=%s;UID=%s;PWD=%s;DATABASE=%s;", odbc_driver, odbc_server, odbc_user, odbc_password, odbc_database);
-	rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
+	rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SIE");
 	if (rc == SQL_ERROR) {
 		printf("Unable to open data source (ret=%d)\n", rc);
 	} else {
@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 		sprintf(tmp, "DRIVER=FreeTDS;SERVER=%s;UID=%s;PWD=%s;DATABASE=%s;", entry, odbc_user, odbc_password, odbc_database);
 		if (get_entry("TDS_Version"))
 			sprintf(strchr(tmp, 0), "TDS_Version=%s;", entry);
-		rc = CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SIE");
+		rc = CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SIE");
 		if (rc == SQL_ERROR) {
 			printf("Unable to open data source (ret=%d)\n", rc);
 		} else {

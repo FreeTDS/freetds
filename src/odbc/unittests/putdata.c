@@ -2,7 +2,7 @@
 
 /* Test for SQLPutData */
 
-static char software_version[] = "$Id: putdata.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: putdata.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char test_text[] =
@@ -15,7 +15,7 @@ CheckNoRow(const char *query)
 {
 	SQLRETURN rc;
 
-	rc = CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
+	rc = CHKExecDirect(T(query), SQL_NTS, "SINo");
 	if (rc == SQL_NO_DATA)
 		return;
 
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 		 * test for char 
 		 */
 
-		CHKPrepare((SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS, "S");
+		CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
 
 		CHKExecute("Ne");
 
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, 0, 0, (SQLPOINTER) 4567, 0, &ind, "S");
 	ind = SQL_LEN_DATA_AT_EXEC(254);
 
-	CHKPrepare((SQLCHAR *) "UPDATE #putdata SET b = ?", SQL_NTS, "S");
+	CHKPrepare(T("UPDATE #putdata SET b = ?"), SQL_NTS, "S");
 
 	CHKExecute("Ne");
 
@@ -175,7 +175,7 @@ main(int argc, char *argv[])
 	/* test len == 0 case from ML */
 	type = SQL_C_CHAR;
 	for (;;) {
-		CHKPrepare((SQLCHAR *) "INSERT INTO #putdata(c) VALUES(?)", SQL_NTS, "S");
+		CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_INPUT, type, SQL_LONGVARCHAR, 0, 0, (PTR) 2, 0, &ind, "S");
 

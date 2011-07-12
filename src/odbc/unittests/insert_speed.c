@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: insert_speed.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: insert_speed.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SQL_QUERY_LENGTH 80
@@ -22,7 +22,7 @@ insert_test_auto(void)
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
 
-	CHKPrepare((SQLCHAR *) "insert into test values (?, ?)", SQL_NTS, "SI");
+	CHKPrepare(T("insert into test values (?, ?)"), SQL_NTS, "SI");
 	for (id = 0; id < 20; id++) {
 		sprintf(string, "This is a test (%d)", (int) id);
 		CHKExecute("SI");
@@ -49,7 +49,7 @@ insert_test_man(void)
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
 
-	CHKPrepare((SQLCHAR *) "insert into test values (?, ?)", SQL_NTS, "SI");
+	CHKPrepare(T("insert into test values (?, ?)"), SQL_NTS, "SI");
 	for (id = 0; id < 20; id++) {
 		sprintf(string, "This is a test (%d)", (int) id);
 		CHKExecute("SI");

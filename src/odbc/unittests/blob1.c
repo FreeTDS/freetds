@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-static char software_version[] = "$Id: blob1.c,v 1.23 2010-07-05 14:22:19 freddy77 Exp $";
+static char software_version[] = "$Id: blob1.c,v 1.24 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define NBYTES 10000
@@ -284,7 +284,7 @@ main(int argc, char **argv)
 		for (t = test_infos; t < test_infos+num_tests; ++t)
 			strcat(sql, ",?");
 		strcat(sql, ",?)");
-		CHKPrepare((SQLCHAR *) sql, SQL_NTS, "S");
+		CHKPrepare(T(sql), SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &key, 0, &vind0, "S");
 		for (t = test_infos; t < test_infos+num_tests; ++t)
@@ -354,7 +354,7 @@ main(int argc, char **argv)
 		for (t = test_infos; t < test_infos+num_tests; ++t)
 			sprintf(strchr(sql, 0), "f%u,", t->num);
 		strcat(sql, "v FROM #tt WHERE k = ?");
-		CHKPrepare((SQLCHAR *) sql, SQL_NTS, "S");
+		CHKPrepare(T(sql), SQL_NTS, "S");
 
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &i, 0, &vind0, "S");
 

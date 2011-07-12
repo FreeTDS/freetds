@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: cursor4.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: cursor4.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -36,9 +36,9 @@ main(int argc, char **argv)
 
 	CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_LOCK, SQL_IS_UINTEGER, "S");
 
-	CHKSetCursorName((SQLCHAR *) "c112", SQL_NTS, "S");
+	CHKSetCursorName(T("c112"), SQL_NTS, "S");
 
-	CHKPrepare((SQLCHAR *) "SELECT * FROM #t1 FOR UPDATE", SQL_NTS, "S");
+	CHKPrepare(T("SELECT * FROM #t1 FOR UPDATE"), SQL_NTS, "S");
 
 	exec_direct("BEGIN TRANSACTION");
 
@@ -52,7 +52,7 @@ main(int argc, char **argv)
 
 	exec_direct("COMMIT TRANSACTION");
 
-	CHKExecDirect((SQLCHAR *) "SELECT c FROM #t1 WHERE k = 1", SQL_NTS, "S");
+	CHKExecDirect(T("SELECT c FROM #t1 WHERE k = 1"), SQL_NTS, "S");
 
 	CHKFetch("S");
 

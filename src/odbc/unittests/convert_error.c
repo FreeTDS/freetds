@@ -4,7 +4,7 @@
  */
 #include "common.h"
 
-static char software_version[] = "$Id: convert_error.c,v 1.11 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: convert_error.c,v 1.12 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int test_num = 0;
@@ -16,19 +16,21 @@ Test(const char *bind1, SQLSMALLINT type1, const char *bind2, SQLSMALLINT type2)
 	char *val = "test";
 	SQLLEN ind = 4;
 	int id = 1;
+	ODBC_BUF *odbc_buf = NULL;
 
 	SQLFreeStmt(odbc_stmt, SQL_RESET_PARAMS);
 
 	++test_num;
 	sprintf(sql, "insert into #test_output values (%s, %s)", bind1, bind2);
 
-	CHKPrepare((SQLCHAR *) sql, strlen(sql), "S");
+	CHKPrepare(T(sql), strlen(sql), "S");
 	if (bind1[0] == '?')
 		CHKBindParameter(id++, SQL_PARAM_INPUT, SQL_C_LONG, type1, 3, 0, &test_num, 0, &ind, "S");
 	if (bind2[0] == '?')
 		CHKBindParameter(id++, SQL_PARAM_INPUT, SQL_C_CHAR, type2, strlen(val) + 1, 0, (SQLCHAR *) val,
 					 0, &ind, "S");
 	CHKExecute("S");
+	ODBC_FREE();
 }
 
 int

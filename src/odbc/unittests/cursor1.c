@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: cursor1.c,v 1.20 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: cursor1.c,v 1.21 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SWAP_STMT(b) do { SQLHSTMT xyz = odbc_stmt; odbc_stmt = b; b = xyz; } while(0)
@@ -14,7 +14,7 @@ CheckNoRow(const char *query)
 {
 	SQLRETURN rc;
 
-	rc = CHKExecDirect((SQLCHAR *) query, SQL_NTS, "SINo");
+	rc = CHKExecDirect(T(query), SQL_NTS, "SINo");
 	if (rc == SQL_NO_DATA)
 		return;
 
@@ -63,10 +63,10 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 	CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, (SQLPOINTER) ROWS, 0, "S");
 	CHKSetStmtAttr(SQL_ATTR_ROW_STATUS_PTR, (SQLPOINTER) statuses, 0, "S");
 	CHKSetStmtAttr(SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0, "S");
-	CHKSetCursorName((SQLCHAR *) "C1", SQL_NTS, "S");
+	CHKSetCursorName(T("C1"), SQL_NTS, "S");
 
 	/* */
-	CHKExecDirect((SQLCHAR *) select_sql, SQL_NTS, "S");
+	CHKExecDirect(T(select_sql), SQL_NTS, "S");
 
 	/* bind some rows at a time */
 	CHKBindCol(1, SQL_C_ULONG, n, 0, n_len, "S");
@@ -90,7 +90,7 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 				CHKSetPos(i, use_sql ? SQL_POSITION : SQL_DELETE, SQL_LOCK_NO_CHANGE, "S");
 			if (use_sql) {
 				SWAP_STMT(stmt2);
-				CHKPrepare((SQLCHAR *) "DELETE FROM #test WHERE CURRENT OF C1", SQL_NTS, "S");
+				CHKPrepare(T("DELETE FROM #test WHERE CURRENT OF C1"), SQL_NTS, "S");
 				CHKExecute("S");
 				SWAP_STMT(stmt2);
 			}
@@ -104,21 +104,21 @@ Test0(int use_sql, const char *create_sql, const char *insert_sql, const char *s
 			if (strstr(select_sql, "#a") == NULL || use_sql) {
 				CHKSetPos(i, use_sql ? SQL_POSITION : SQL_UPDATE, SQL_LOCK_NO_CHANGE, "S");
 			} else {
-				unsigned char sqlstate[6];
-				unsigned char msg[256];
+				SQLTCHAR sqlstate[6];
+				SQLTCHAR msg[256];
 
 				n[i - 1] = 321;
 				CHKSetPos(i, use_sql ? SQL_POSITION : SQL_UPDATE, SQL_LOCK_NO_CHANGE, "E");
 
-				CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, sizeof(msg), NULL, "S");
-				if (strstr((char *) msg, "Invalid column name 'c'") == NULL) {
+				CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(msg), NULL, "S");
+				if (strstr(C(msg), "Invalid column name 'c'") == NULL) {
 					fprintf(stderr, "Expected message not found at line %d\n", __LINE__);
 					exit(1);
 				}
 			}
 			if (use_sql) {
 				SWAP_STMT(stmt2);
-				CHKPrepare((SQLCHAR *) "UPDATE #test SET c=? WHERE CURRENT OF C1", SQL_NTS, "S");
+				CHKPrepare(T("UPDATE #test SET c=? WHERE CURRENT OF C1"), SQL_NTS, "S");
 				CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_CHAR, C_LEN, 0, c[i - 1], 0, NULL, "S");
 				CHKExecute("S");
 				/* FIXME this is not necessary for mssql driver */

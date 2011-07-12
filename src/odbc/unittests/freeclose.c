@@ -52,7 +52,7 @@
 
 #include "tds.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.14 2010-09-01 08:39:38 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.15 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
@@ -366,7 +366,7 @@ main(int argc, char **argv)
 		CHKAllocConnect(&odbc_conn, "S");
 		sprintf(tmp, "DRIVER={SQL Server};SERVER=127.0.0.1,%d;UID=%s;PWD=%s;DATABASE=%s;Network=DBMSSOCN;", port, odbc_user, odbc_password, odbc_database);
 		printf("connection string: %s\n", tmp);
-		CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
+		CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
 		CHKAllocStmt(&odbc_stmt, "S");
 	}
 
@@ -384,7 +384,7 @@ main(int argc, char **argv)
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
 
-	CHKPrepare((SQLCHAR *) query, SQL_NTS, "SI");
+	CHKPrepare(T(query), SQL_NTS, "SI");
 	printf("%u round trips %u inserts\n", round_trips, inserts);
 
 	for (id = 0; id < num_inserts; id++) {

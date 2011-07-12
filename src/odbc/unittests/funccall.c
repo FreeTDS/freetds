@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &input, 0, &ind2, "S");
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind, "S");
 
-	CHKPrepare((SQLCHAR *) "{ \n?\t\r= call simpleresult(?)}", SQL_NTS, "S");
+	CHKPrepare(T("{ \n?\t\r= call simpleresult(?)}"), SQL_NTS, "S");
 
 	input = 123;
 	ind2 = sizeof(input);
@@ -47,7 +47,7 @@ main(int argc, char *argv[])
 	input = 567;
 	ind2 = sizeof(input);
 	output = 0xdeadbeef;
-	CHKExecDirect((SQLCHAR *) "{?=call simpleresult(?)}", SQL_NTS, "S");
+	CHKExecDirect(T("{?=call simpleresult(?)}"), SQL_NTS, "S");
 
 	if (output != 567) {
 		fprintf(stderr, "Invalid result\n");
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	CHKBindParameter(3, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0,  0, &out1,   0,            &ind3, "S");
 	CHKBindParameter(4, SQL_PARAM_OUTPUT, SQL_C_CHAR,  SQL_VARCHAR, 20, 0, out2,    sizeof(out2), &ind4, "S");
 
-	CHKPrepare((SQLCHAR *) "{ \n?\t\r= call simpleresult2(?,?,?)}", SQL_NTS, "S");
+	CHKPrepare(T("{ \n?\t\r= call simpleresult2(?,?,?)}"), SQL_NTS, "S");
 
 	input = 987;
 	ind2 = sizeof(input);
@@ -106,7 +106,7 @@ main(int argc, char *argv[])
 	odbc_command("create proc rpc_read @i int, @x timestamp as begin select 1 return 1234 end");
 	SQLCloseCursor(odbc_stmt);
 
-	CHKPrepare((SQLCHAR *) "{ ? = CALL rpc_read ( ?, ? ) }" , SQL_NTS, "S");
+	CHKPrepare(T("{ ? = CALL rpc_read ( ?, ? ) }"), SQL_NTS, "S");
 
 	ind = 0;
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &output, 0, &ind, "S");
@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 
 		odbc_reset_statement();
 
-		CHKPrepare((SQLCHAR *) "{ call sp_test(?)}", SQL_NTS, "S");
+		CHKPrepare(T("{ call sp_test(?)}"), SQL_NTS, "S");
 		CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &output, 0, &ind, "S");
 
 		output = 0xdeadbeef;

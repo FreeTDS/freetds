@@ -4,7 +4,7 @@
 
 /* TODO add support for Sybase */
 
-static char software_version[] = "$Id: raiserror.c,v 1.25 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: raiserror.c,v 1.26 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define SP_TEXT "{?=call #tmp1(?,?,?)}"
@@ -38,9 +38,10 @@ static const int tds_no_dm = 0;
 static void
 TestResult(SQLRETURN result0, int level, const char *func)
 {
-	SQLCHAR SqlState[6];
+	ODBC_BUF *odbc_buf = NULL;
+	SQLTCHAR SqlState[6];
 	SQLINTEGER NativeError;
-	char MessageText[1000];
+	SQLTCHAR MessageText[1000];
 	SQLSMALLINT TextLength;
 	SQLRETURN result = result0, rc;
 
@@ -61,14 +62,15 @@ TestResult(SQLRETURN result0, int level, const char *func)
 	SqlState[0] = 0;
 	MessageText[0] = 0;
 	NativeError = 0;
-	rc = CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, (SQLCHAR *) MessageText, sizeof(MessageText), &TextLength, "SI");
-	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) rc, SqlState, (int) NativeError, MessageText);
+	rc = CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, MessageText, ODBC_VECTOR_SIZE(MessageText), &TextLength, "SI");
+	printf("Func=%s Result=%d DIAG REC 1: State=%s Error=%d: %s\n", func, (int) rc, C(SqlState), (int) NativeError, C(MessageText));
 
-	if (strstr(MessageText, "An error occurred") == NULL) {
+	if (strstr(C(MessageText), "An error occurred") == NULL) {
 		fprintf(stderr, "Wrong error returned!\n");
-		fprintf(stderr, "Error returned: %s\n", MessageText);
+		fprintf(stderr, "Error returned: %s\n", C(MessageText));
 		exit(1);
 	}
+	ODBC_FREE();
 }
 
 #define MY_ERROR(msg) odbc_report_error(msg, line, __FILE__)
@@ -133,7 +135,7 @@ Test(int level)
 	TestResult(result, level, "SQLExecDirect");
 
 	/* test with SQLPrepare/SQLExecute */
-	if (!SQL_SUCCEEDED(SQLPrepare(odbc_stmt, (SQLCHAR *) SP_TEXT, strlen(SP_TEXT)))) {
+	if (!SQL_SUCCEEDED(SQLPrepare(odbc_stmt, T(SP_TEXT), strlen(SP_TEXT)))) {
 		fprintf(stderr, "SQLPrepare failure!\n");
 		exit(1);
 	}
@@ -153,16 +155,16 @@ Test(int level)
 
 	result = SQLFetch(odbc_stmt);
 	if (odbc_use_version3) {
-		SQLCHAR SqlState[6];
+		SQLTCHAR SqlState[6];
 		SQLINTEGER NativeError;
-		char MessageText[1000];
+		SQLTCHAR MessageText[1000];
 		SQLSMALLINT TextLength;
 		SQLRETURN expected;
 
 		if (result != SQL_NO_DATA)
 			ODBC_REPORT_ERROR("SQLFetch should return NO DATA");
-		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, (SQLCHAR *) MessageText,
-				       sizeof(MessageText), &TextLength, "No");
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, SqlState, &NativeError, MessageText,
+				       ODBC_VECTOR_SIZE(MessageText), &TextLength, "No");
 		result = SQLMoreResults(odbc_stmt);
 		expected = level > 10 ? SQL_ERROR : SQL_SUCCESS_WITH_INFO;
 		if (result != expected)
@@ -229,6 +231,7 @@ Test(int level)
 	CheckReturnCode(result, 0);
 
 	CheckData("");
+	ODBC_FREE();
 }
 
 static void

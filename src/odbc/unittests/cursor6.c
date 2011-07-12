@@ -2,7 +2,7 @@
 
 /* Test SQLFetchScroll with no binded columns */
 
-static char software_version[] = "$Id: cursor6.c,v 1.6 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: cursor6.c,v 1.7 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int bind_all = 0;
@@ -28,7 +28,7 @@ static void Test(void)
 		CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, int2ptr(SQL_CONCUR_READ_ONLY), 0, "S");
 		CHKSetStmtAttr(SQL_ATTR_CURSOR_TYPE, int2ptr(SQL_CURSOR_STATIC), 0, "S");
 	}
-	CHKPrepare((SQLCHAR *) "SELECT c, i FROM #cursor6_test", SQL_NTS, "S");
+	CHKPrepare(T("SELECT c, i FROM #cursor6_test"), SQL_NTS, "S");
 	CHKExecute("S");
 	CHKSetStmtAttr(SQL_ATTR_ROW_BIND_TYPE, int2ptr(sizeof(data[0])), 0, "S");
 	CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, int2ptr(ROWS), 0, "S");

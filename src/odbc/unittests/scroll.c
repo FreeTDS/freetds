@@ -2,7 +2,7 @@
 
 /* Test cursors */
 
-static char software_version[] = "$Id: scroll.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: scroll.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 	CHKSetStmtAttr(SQL_ATTR_ROWS_FETCHED_PTR, &num_row, 0, "S");
 
 	/* */
-	CHKExecDirect((SQLCHAR *) "SELECT i, c FROM #test", SQL_NTS, "S");
+	CHKExecDirect(T("SELECT i, c FROM #test"), SQL_NTS, "S");
 
 	/* bind some rows at a time */
 	CHKBindCol(1, SQL_C_ULONG, n, 0, n_len, "S");

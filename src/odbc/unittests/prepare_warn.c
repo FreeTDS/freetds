@@ -8,7 +8,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: prepare_warn.c,v 1.1 2011-05-10 12:53:07 freddy77 Exp $";
+static char software_version[] = "$Id: prepare_warn.c,v 1.2 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -37,7 +37,7 @@ main(int argc, char **argv)
 	CHKSetStmtAttr(SQL_ATTR_ROW_ARRAY_SIZE, (SQLPOINTER) ARRAY_SIZE, SQL_IS_UINTEGER, "S");
 	CHKSetStmtAttr(SQL_ATTR_ROWS_FETCHED_PTR, (SQLPOINTER) & (nrows), SQL_IS_UINTEGER, "S");
 
-	CHKPrepare((SQLCHAR*) "SELECT SUM(d) FROM mytab1", SQL_NTS, "S");
+	CHKPrepare(T("SELECT SUM(d) FROM mytab1"), SQL_NTS, "S");
 
 	CHKExecute("I");
 
@@ -57,6 +57,7 @@ main(int argc, char **argv)
 	odbc_command("drop table mytab1");
 
 	odbc_disconnect();
+
 	return 0;
 }
 

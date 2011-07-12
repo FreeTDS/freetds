@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.19 2010-08-04 06:55:45 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.20 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -148,14 +148,14 @@ check_attr_ird(ATTR_PARAMS)
 	SQLRETURN ret;
 
 	if (attr->type == type_CHARP) {
-		char buf[128];
+		char buf[256];
 		SQLSMALLINT len;
 
 		ret = SQLColAttribute(odbc_stmt, 1, attr->value, buf, sizeof(buf), &len, NULL);
 		if (!SQL_SUCCEEDED(ret))
 			fatal("Line %u: failure not expected\n", line_num);
 		buf[sizeof(buf)-1] = 0;
-		if (strcmp(buf, expected_value) != 0) {
+		if (strcmp(C((SQLTCHAR*) buf), expected_value) != 0) {
 			g_result = 1;
 			fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", line_num, attr->name, buf, expected_value);
 		}
@@ -188,7 +188,7 @@ check_attr_ard(ATTR_PARAMS)
 	SQLLEN li;
 	SQLRETURN ret;
 	SQLHDESC desc = SQL_NULL_HDESC;
-	char buf[128];
+	char buf[256];
 
 	/* get ARD */
 	SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
@@ -213,7 +213,7 @@ check_attr_ard(ATTR_PARAMS)
 		ret = SQLGetDescField(desc, 1, attr->value, buf, sizeof(buf), &ind);
 		if (!SQL_SUCCEEDED(ret))
 			fatal("Line %u: failure not expected\n", line_num);
-		if (strcmp(buf, expected_value) != 0) {
+		if (strcmp(C((SQLTCHAR*) buf), expected_value) != 0) {
 			g_result = 1;
 			fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", line_num, attr->name, buf, expected_value);
 		}
@@ -270,6 +270,8 @@ main(int argc, char *argv[])
 		/* skip comments */
 		if (!cmd || cmd[0] == '#' || cmd[0] == 0 || cmd[0] == '\n')
 			continue;
+
+		ODBC_FREE();
 
 		if (strcmp(cmd, "odbc") == 0) {
 			int odbc3 = get_int(strtok(NULL, SEP)) == 3 ? 1 : 0;

@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* test conversion of Hebrew characters (which have shift sequences) */
-static char software_version[] = "$Id: utf8_2.c,v 1.9 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: utf8_2.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -34,7 +34,7 @@ static const char * const strings_hex[] = {
 int
 main(int argc, char *argv[])
 {
-	char tmp[128];
+	char tmp[512];
 	char out[32];
 	SQLLEN n_len;
 	SQLSMALLINT len;
@@ -47,7 +47,7 @@ main(int argc, char *argv[])
 	/* connect string using DSN */
 	init_connect();
 	sprintf(tmp, "DSN=%s;UID=%s;PWD=%s;DATABASE=%s;ClientCharset=UTF-8;", odbc_server, odbc_user, odbc_password, odbc_database);
-	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
+	CHKDriverConnect(NULL, T(tmp), SQL_NTS, (SQLTCHAR *) tmp, sizeof(tmp)/sizeof(SQLTCHAR), &len, SQL_DRIVER_NOPROMPT, "SI");
 	if (!odbc_driver_is_freetds()) {
 		odbc_disconnect();
 		printf("Driver is not FreeTDS, exiting\n");

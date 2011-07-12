@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults */
 
-static char software_version[] = "$Id: t0004.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: t0004.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -17,7 +17,7 @@ Test(int use_indicator)
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 20, 0, buf, 128, pind, "S");
 
-	CHKPrepare((SQLCHAR *) "SELECT id, name FROM master..sysobjects WHERE name = ?", SQL_NTS, "S");
+	CHKPrepare(T("SELECT id, name FROM master..sysobjects WHERE name = ?"), SQL_NTS, "S");
 
 	CHKExecute("S");
 
@@ -36,6 +36,8 @@ Test(int use_indicator)
 	CHKFetch("No");
 
 	CHKMoreResults("No");
+
+	ODBC_FREE();
 }
 
 int

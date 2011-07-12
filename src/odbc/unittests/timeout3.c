@@ -40,7 +40,7 @@
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.12 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.13 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -119,8 +119,9 @@ fake_thread_proc(void * arg)
 int
 main(int argc, char *argv[])
 {
-	char tmp[2048];
-	char sqlstate[6];
+	SQLTCHAR tmp[2048];
+	char conn[128];
+	SQLTCHAR sqlstate[6];
 	SQLSMALLINT len;
 	int port;
 	time_t start_time, end_time;
@@ -162,20 +163,20 @@ main(int argc, char *argv[])
 
 	/* this is expected to work with unixODBC */
 	printf("try to connect to our port just to check connection timeout\n");
-	sprintf(tmp, "DRIVER=FreeTDS;SERVER=127.0.0.1;Port=%d;TDS_Version=7.0;UID=test;PWD=test;DATABASE=tempdb;", port);
+	sprintf(conn, "DRIVER=FreeTDS;SERVER=127.0.0.1;Port=%d;TDS_Version=7.0;UID=test;PWD=test;DATABASE=tempdb;", port);
 	start_time = time(NULL);
-	CHKDriverConnect(NULL, (SQLCHAR *) tmp, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "E");
+	CHKDriverConnect(NULL, T(conn), SQL_NTS, tmp, ODBC_VECTOR_SIZE(tmp), &len, SQL_DRIVER_NOPROMPT, "E");
 	end_time = time(NULL);
 
-	strcpy(sqlstate, "XXXXX");
+	memset(sqlstate, 'X', sizeof(sqlstate));
 	tmp[0] = 0;
-	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, (SQLCHAR *) sqlstate, NULL, (SQLCHAR *) tmp, sizeof(tmp), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, sqlstate, NULL, tmp, ODBC_VECTOR_SIZE(tmp), NULL, "SI");
 	odbc_disconnect();
 	CLOSESOCKET(fake_sock);
 	pthread_join(fake_thread, NULL);
 
-	printf("Message: %s - %s\n", sqlstate, tmp);
-	if (strcmp(sqlstate, "HYT00") || !strstr(tmp, "Timeout")) {
+	printf("Message: %s - %s\n", C(sqlstate), C(tmp));
+	if (strcmp(C(sqlstate), "HYT00") || !strstr(C(tmp), "Timeout")) {
 		fprintf(stderr, "Invalid timeout message\n");
 		return 1;
 	}
@@ -185,6 +186,7 @@ main(int argc, char *argv[])
 	}
 
 	printf("Done.\n");
+	ODBC_FREE();
 	return 0;
 }
 

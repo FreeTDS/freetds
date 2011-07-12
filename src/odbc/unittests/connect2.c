@@ -5,7 +5,7 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.8 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: connect2.c,v 1.9 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -22,29 +22,29 @@ init_connect(void)
 static void
 normal_connect(void)
 {
-	CHKR(SQLConnect, (odbc_conn, (SQLCHAR *) odbc_server, SQL_NTS, (SQLCHAR *) odbc_user, SQL_NTS, (SQLCHAR *) odbc_password, SQL_NTS), "SI");
+	CHKR(SQLConnect, (odbc_conn, T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS), "SI");
 }
 
 static void
 driver_connect(const char *conn_str)
 {
-	char tmp[1024];
+	SQLTCHAR tmp[1024];
 	SQLSMALLINT len;
 
-	CHKDriverConnect(NULL, (SQLCHAR *) conn_str, SQL_NTS, (SQLCHAR *) tmp, sizeof(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
+	CHKDriverConnect(NULL, T(conn_str), SQL_NTS, tmp, ODBC_VECTOR_SIZE(tmp), &len, SQL_DRIVER_NOPROMPT, "SI");
 }
 
 static void
 check_dbname(const char *dbname)
 {
 	SQLINTEGER len;
-	char out[512];
+	SQLTCHAR out[512];
 
 	len = sizeof(out);
 	CHKGetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) out, sizeof(out), &len, "SI");
 
-	if (strcmp(out, dbname) != 0) {
-		fprintf(stderr, "Current database (%s) is not %s\n", out, dbname);
+	if (strcmp(C(out), dbname) != 0) {
+		fprintf(stderr, "Current database (%s) is not %s\n", C(out), dbname);
 		failed = 1;
 	}
 }
@@ -52,7 +52,7 @@ check_dbname(const char *dbname)
 static void
 set_dbname(const char *dbname)
 {
-	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) dbname, strlen(dbname), "SI");
+	CHKSetConnectAttr(SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) T(dbname), strlen(dbname)*sizeof(SQLTCHAR), "SI");
 }
 
 int

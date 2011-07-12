@@ -2,7 +2,7 @@
 
 /* Test for SQLMoreResults and SQLRowCount on batch */
 
-static char software_version[] = "$Id: moreandcount.c,v 1.19 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: moreandcount.c,v 1.20 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -21,12 +21,12 @@ DoTest(int prepare)
 		"UPDATE #tmp1 SET i=i+1 WHERE i >= 2";
 
 	if (prepare) {
-		CHKPrepare((SQLCHAR *) query, SQL_NTS, "S");
+		CHKPrepare(T(query), SQL_NTS, "S");
 		CHKExecute("S");
 	} else {
 
 		/* execute a batch command select insert insert select and check rows */
-		CHKExecDirect((SQLCHAR *) query, SQL_NTS, "S");
+		CHKExecDirect(T(query), SQL_NTS, "S");
 	}
 	if (!prepare) {
 		printf("Result %d\n", ++n);
@@ -80,6 +80,7 @@ DoTest(int prepare)
 		ODBC_CHECK_COLS(-1);
 	ODBC_CHECK_ROWS(-2);
 #endif
+	ODBC_FREE();
 }
 
 int

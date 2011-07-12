@@ -13,7 +13,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.60 2011-07-09 20:41:10 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.61 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV odbc_env;
@@ -144,9 +144,9 @@ odbc_report_error(const char *errmsg, int line, const char *file)
 	SQLSMALLINT handletype;
 	SQLHANDLE handle;
 	SQLRETURN ret;
-	unsigned char sqlstate[6];
-	unsigned char msg[256];
-
+	SQLTCHAR sqlstate[6];
+	SQLTCHAR msg[256];
+	ODBC_BUF *odbc_buf = NULL;
 
 	if (odbc_stmt) {
 		handletype = SQL_HANDLE_STMT;
@@ -164,10 +164,11 @@ odbc_report_error(const char *errmsg, int line, const char *file)
 		else
 			fprintf(stderr, "%s\n", errmsg);
 	}
-	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
+	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
-		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
+		fprintf(stderr, "SQL error %s -- %s\n", C(sqlstate), C(msg));
 	odbc_disconnect();
+	ODBC_FREE();
 	exit(1);
 }
 
@@ -175,9 +176,9 @@ static void
 ReportODBCError(const char *errmsg, SQLSMALLINT handletype, SQLHANDLE handle, SQLRETURN rc, int line, const char *file)
 {
 	SQLRETURN ret;
-	unsigned char sqlstate[6];
-	unsigned char msg[256];
-
+	SQLTCHAR sqlstate[6];
+	SQLTCHAR msg[256];
+	ODBC_BUF *odbc_buf = NULL;
 
 	if (errmsg[0]) {
 		if (line)
@@ -185,16 +186,18 @@ ReportODBCError(const char *errmsg, SQLSMALLINT handletype, SQLHANDLE handle, SQ
 		else
 			fprintf(stderr, "rc=%d %s\n", (int) rc, errmsg);
 	}
-	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, sizeof(msg), NULL);
+	ret = SQLGetDiagRec(handletype, handle, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(msg), NULL);
 	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
-		fprintf(stderr, "SQL error %s -- %s\n", sqlstate, msg);
+		fprintf(stderr, "SQL error %s -- %s\n", C(sqlstate), C(msg));
 	odbc_disconnect();
+	ODBC_FREE();
 	exit(1);
 }
 
 int
 odbc_connect(void)
 {
+	ODBC_BUF *odbc_buf = NULL;
 	char command[512];
 
 	if (odbc_read_login_info())
@@ -216,19 +219,20 @@ odbc_connect(void)
 	if (odbc_set_conn_attr)
 		(*odbc_set_conn_attr)();
 
-	CHKR(SQLConnect, (odbc_conn, (SQLCHAR *) odbc_server, SQL_NTS, (SQLCHAR *) odbc_user, SQL_NTS, (SQLCHAR *) odbc_password, SQL_NTS), "SI");
+	CHKR(SQLConnect, (odbc_conn, T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS), "SI");
 
 	CHKAllocStmt(&odbc_stmt, "S");
 
 	sprintf(command, "use %s", odbc_database);
 	printf("%s\n", command);
 
-	CHKExecDirect((SQLCHAR *) command, SQL_NTS, "SI");
+	CHKExecDirect(T(command), SQL_NTS, "SI");
 
 #ifndef TDS_NO_DM
 	/* unixODBC seems to require it */
 	SQLMoreResults(odbc_stmt);
 #endif
+	ODBC_FREE();
 	return 0;
 }
 
@@ -250,21 +254,28 @@ odbc_disconnect(void)
 		SQLFreeEnv(odbc_env);
 		odbc_env = SQL_NULL_HENV;
 	}
+	ODBC_FREE();
 	return 0;
 }
 
 SQLRETURN
 odbc_command_with_result(HSTMT stmt, const char *command)
 {
+	SQLRETURN ret;
+	ODBC_BUF *odbc_buf = NULL;
+
 	printf("%s\n", command);
-	return SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS);
+	ret = SQLExecDirect(stmt, T(command), SQL_NTS);
+	ODBC_FREE();
+	return ret;
 }
 
 static int ms_db = -1;
 int
 odbc_db_is_microsoft(void)
 {
-	char buf[64];
+	ODBC_BUF *odbc_buf = NULL;
+	SQLTCHAR buf[64];
 	SQLSMALLINT len;
 	int i;
 
@@ -273,8 +284,9 @@ odbc_db_is_microsoft(void)
 		SQLGetInfo(odbc_conn, SQL_DBMS_NAME, buf, sizeof(buf), &len);
 		for (i = 0; buf[i]; ++i)
 			buf[i] = tolower(buf[i]);
-		ms_db = (strstr(buf, "microsoft") != NULL);
+		ms_db = (strstr(C(buf), "microsoft") != NULL);
 	}
+	ODBC_FREE();
 	return ms_db;
 }
 
@@ -282,7 +294,8 @@ static int freetds_driver = -1;
 int
 odbc_driver_is_freetds(void)
 {
-	char buf[64];
+	ODBC_BUF *odbc_buf = NULL;
+	SQLTCHAR buf[64];
 	SQLSMALLINT len;
 	int i;
 
@@ -291,8 +304,9 @@ odbc_driver_is_freetds(void)
 		SQLGetInfo(odbc_conn, SQL_DRIVER_NAME, buf, sizeof(buf), &len);
 		for (i = 0; buf[i]; ++i)
 			buf[i] = tolower(buf[i]);
-		freetds_driver = (strstr(buf, "tds") != NULL);
+		freetds_driver = (strstr(C(buf), "tds") != NULL);
 	}
+	ODBC_FREE();
 	return freetds_driver;
 }
 
@@ -300,10 +314,15 @@ static char db_str_version[32];
 
 const char *odbc_db_version(void)
 {
-	SQLSMALLINT version_len;
+	if (!db_str_version[0]) {
+		ODBC_BUF *odbc_buf = NULL;
+		SQLTCHAR buf[32];
+		SQLSMALLINT version_len;
 
-	if (!db_str_version[0])
-		CHKR(SQLGetInfo, (odbc_conn, SQL_DBMS_VER, db_str_version, sizeof(db_str_version), &version_len), "S");
+		CHKR(SQLGetInfo, (odbc_conn, SQL_DBMS_VER, buf, sizeof(buf), &version_len), "S");
+		strcpy(db_str_version, C(buf));
+		ODBC_FREE();
+	}
 
 	return db_str_version;
 }
@@ -367,15 +386,16 @@ void
 odbc_check_cursor(void)
 {
 	SQLRETURN retcode;
+	ODBC_BUF *odbc_buf = NULL;
 
 	retcode = SQLSetStmtAttr(odbc_stmt, SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_ROWVER, 0);
 	if (retcode != SQL_SUCCESS) {
-		char output[256];
-		unsigned char sqlstate[6];
+		SQLTCHAR output[256];
+		SQLTCHAR sqlstate[6];
 
-		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, (SQLCHAR *) output, sizeof(output), NULL, "S");
+		CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, output, ODBC_VECTOR_SIZE(output), NULL, "S");
 		sqlstate[5] = 0;
-		if (strcmp((const char*) sqlstate, "01S02") == 0) {
+		if (strcmp(C(sqlstate), "01S02") == 0) {
 			printf("Your connection seems to not support cursors, probably you are using wrong protocol version or Sybase\n");
 			odbc_disconnect();
 			exit(0);
@@ -383,6 +403,7 @@ odbc_check_cursor(void)
 		ReportODBCError("SQLSetStmtAttr", SQL_HANDLE_STMT, odbc_stmt, retcode, __LINE__, __FILE__);
 	}
 	odbc_reset_statement();
+	ODBC_FREE();
 }
 
 SQLRETURN
@@ -438,8 +459,13 @@ odbc_alloc_handle_err_type(SQLSMALLINT type)
 SQLRETURN
 odbc_command_proc(HSTMT stmt, const char *command, const char *file, int line, const char *res)
 {
+	SQLRETURN ret;
+	ODBC_BUF *odbc_buf = NULL;
+
 	printf("%s\n", command);
-	return odbc_check_res(file, line, SQLExecDirect(stmt, (SQLCHAR *) command, SQL_NTS), SQL_HANDLE_STMT, stmt, "odbc_command", res);
+	ret = odbc_check_res(file, line, SQLExecDirect(stmt, T(command), SQL_NTS), SQL_HANDLE_STMT, stmt, "odbc_command", res);
+	ODBC_FREE();
+	return ret;
 }
 
 char odbc_err[512];
@@ -448,9 +474,16 @@ char odbc_sqlstate[6];
 void
 odbc_read_error(void)
 {
+	ODBC_BUF *odbc_buf = NULL;
+	SQLTCHAR *err = ODBC_GET(sizeof(odbc_err)*sizeof(SQLTCHAR));
+	SQLTCHAR *state = ODBC_GET(sizeof(odbc_sqlstate)*sizeof(SQLTCHAR));
+
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, state, NULL, err, sizeof(odbc_err), NULL, "SI");
+	strcpy(odbc_err, C(err));
+	strcpy(odbc_sqlstate, C(state));
+	ODBC_FREE();
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 
@@ -467,12 +500,19 @@ int
 odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n)
 {
 	int i;
+	if (n < 0) {
+		const SQLWCHAR *p = src;
+		for (n=1; *p++ != 0; ++n)
+			continue;
+	}
 	for (i = 0; i < n; ++i) {
 		assert(src[i] < 256);
 		dst[i] = src[i];
 	}
 	return n;
 }
+
+ODBC_BUF *odbc_buf = NULL;
 
 void *
 odbc_buf_get(ODBC_BUF** buf, size_t s)
@@ -502,9 +542,28 @@ odbc_buf_free(ODBC_BUF** buf)
 SQLWCHAR *
 odbc_get_sqlwchar(ODBC_BUF** buf, const char *s)
 {
-	size_t l = strlen(s) + 1;
-	SQLWCHAR *buffer = (SQLWCHAR*) odbc_buf_get(buf, l * sizeof(SQLWCHAR));
+	size_t l;
+	SQLWCHAR *buffer;
+
+	if (!s) return NULL;
+	l = strlen(s) + 1;
+	buffer = (SQLWCHAR*) odbc_buf_get(buf, l * sizeof(SQLWCHAR));
 	odbc_to_sqlwchar(buffer, s, l);
 	return buffer;
 }
 
+#ifdef UNICODE
+char*
+odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s)
+{
+	int n;
+	const SQLWCHAR *p = s;
+	char *out;
+
+	for (n=1; *p++ != 0; ++n)
+		continue;
+	out = odbc_buf_get(buf, n);
+	odbc_from_sqlwchar(out, s, n);
+	return out;
+}
+#endif

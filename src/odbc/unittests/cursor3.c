@@ -1,7 +1,7 @@
 /* Tests 2 active statements */
 #include "common.h"
 
-static char software_version[] = "$Id: cursor3.c,v 1.10 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: cursor3.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -42,16 +42,16 @@ main(int argc, char **argv)
 /*	CHKSetStmtAttr(SQL_ATTR_CONCURRENCY, (SQLPOINTER) SQL_CONCUR_LOCK, SQL_IS_UINTEGER, "S"); */
 
 	odbc_stmt = stmt1;
-	CHKSetCursorName((SQLCHAR *) "c1", SQL_NTS, "S");
+	CHKSetCursorName(T("c1"), SQL_NTS, "S");
 
 	odbc_stmt = stmt2;
-	CHKSetCursorName((SQLCHAR *) "c2", SQL_NTS, "S");
+	CHKSetCursorName(T("c2"), SQL_NTS, "S");
 
 	odbc_stmt = stmt1;
-	CHKPrepare((SQLCHAR *) "SELECT * FROM #t1 ORDER BY k", SQL_NTS, "S");
+	CHKPrepare(T("SELECT * FROM #t1 ORDER BY k"), SQL_NTS, "S");
 
 	odbc_stmt = stmt2;
-	CHKPrepare((SQLCHAR *) "SELECT * FROM #t1 ORDER BY k DESC", SQL_NTS, "S");
+	CHKPrepare(T("SELECT * FROM #t1 ORDER BY k DESC"), SQL_NTS, "S");
 
 	odbc_stmt = stmt1;
 	CHKExecute("S");

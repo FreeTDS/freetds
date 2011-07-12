@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: stats.c,v 1.3 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: stats.c,v 1.4 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLLEN cnamesize;
@@ -33,7 +33,7 @@ TestProc(const char *type, const char *expected)
 	odbc_command(sql);
 
 	column = "@t";
-	CHKProcedureColumns((SQLCHAR *) catalog, LEN(catalog), (SQLCHAR *) schema, LEN(schema), (SQLCHAR *) proc, LEN(proc), (SQLCHAR *) column, LEN(column), "SI");
+	CHKProcedureColumns(T(catalog), LEN(catalog), T(schema), LEN(schema), T(proc), LEN(proc), T(column), LEN(column), "SI");
 
 	CHKFetch("SI");
 
@@ -45,6 +45,7 @@ TestProc(const char *type, const char *expected)
 	}
 
 	CHKCloseCursor("SI");
+	ODBC_FREE();
 }
 
 static void
@@ -59,7 +60,7 @@ TestTable(const char *type, const char *expected)
 
 	column = "t";
 	table = "stat_t";
-	CHKColumns((SQLCHAR *) catalog, LEN(catalog), (SQLCHAR *) schema, LEN(schema), (SQLCHAR *) table, LEN(table), (SQLCHAR *) column, LEN(column), "SI");
+	CHKColumns(T(catalog), LEN(catalog), T(schema), LEN(schema), T(table), LEN(table), T(column), LEN(column), "SI");
 
 	CHKFetch("SI");
 
@@ -71,6 +72,7 @@ TestTable(const char *type, const char *expected)
 	}
 
 	CHKCloseCursor("SI");
+	ODBC_FREE();
 }
 
 

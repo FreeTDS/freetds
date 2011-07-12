@@ -1,3 +1,36 @@
+Tue Jul 12 12:16:51 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/array.c src/odbc/unittests/array_out.c:
+	* src/odbc/unittests/binary_test.c src/odbc/unittests/blob1.c:
+	* src/odbc/unittests/cancel.c src/odbc/unittests/common.c:
+	* src/odbc/unittests/common.h src/odbc/unittests/compute.c:
+	* src/odbc/unittests/connect.c src/odbc/unittests/connect2.c:
+	* src/odbc/unittests/const_params.c:
+	* src/odbc/unittests/convert_error.c src/odbc/unittests/cursor1.c:
+	* src/odbc/unittests/cursor2.c src/odbc/unittests/cursor3.c:
+	* src/odbc/unittests/cursor4.c src/odbc/unittests/cursor5.c:
+	* src/odbc/unittests/cursor6.c src/odbc/unittests/cursor7.c:
+	* src/odbc/unittests/date.c src/odbc/unittests/descrec.c:
+	* src/odbc/unittests/describecol.c src/odbc/unittests/freeclose.c:
+	* src/odbc/unittests/funccall.c src/odbc/unittests/genparams.c:
+	* src/odbc/unittests/hidden.c src/odbc/unittests/insert_speed.c:
+	* src/odbc/unittests/moreandcount.c src/odbc/unittests/paramcore.c:
+	* src/odbc/unittests/params.c src/odbc/unittests/peter.c:
+	* src/odbc/unittests/prepare_results.c:
+	* src/odbc/unittests/prepare_warn.c src/odbc/unittests/prepclose.c:
+	* src/odbc/unittests/preperror.c src/odbc/unittests/putdata.c:
+	* src/odbc/unittests/raiserror.c src/odbc/unittests/rebindpar.c:
+	* src/odbc/unittests/rowset.c src/odbc/unittests/rpc.c:
+	* src/odbc/unittests/scroll.c src/odbc/unittests/stats.c:
+	* src/odbc/unittests/t0003.c src/odbc/unittests/t0004.c:
+	* src/odbc/unittests/tables.c src/odbc/unittests/testodbc.c:
+	* src/odbc/unittests/timeout.c src/odbc/unittests/timeout2.c:
+	* src/odbc/unittests/timeout3.c src/odbc/unittests/timeout4.c:
+	* src/odbc/unittests/transaction.c:
+	* src/odbc/unittests/transaction2.c src/odbc/unittests/typeinfo.c:
+	* src/odbc/unittests/utf8.c src/odbc/unittests/utf8_2.c:
+	* src/odbc/unittests/warning.c:
+	- new macros and wide tests
+
 Tue Jul 12 11:49:22 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: add SQLGetTypeInfoW
 
@@ -528,4 +561,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3323 2011-07-12 09:49:42 freddy77 Exp $
+$Id: ChangeLog,v 1.3324 2011-07-12 10:16:59 freddy77 Exp $

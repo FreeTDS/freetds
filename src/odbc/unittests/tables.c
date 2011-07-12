@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: tables.c,v 1.20 2011-04-28 07:56:05 freddy77 Exp $";
+static char software_version[] = "$Id: tables.c,v 1.21 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -21,28 +21,28 @@ ReadCol(int i)
 static void
 TestName(int index, const char *expected_name)
 {
-	char name[128];
+	SQLTCHAR name[128];
 	char buf[256];
 	SQLSMALLINT len, type;
 
 #define NAME_TEST \
 	do { \
-		if (strcmp(name, expected_name) != 0) \
+		if (strcmp(C(name), expected_name) != 0) \
 		{ \
-			sprintf(buf, "wrong name in column %d expected '%s' got '%s'", index, expected_name, name); \
+			sprintf(buf, "wrong name in column %d expected '%s' got '%s'", index, expected_name, C(name)); \
 			ODBC_REPORT_ERROR(buf); \
 		} \
 	} while(0)
 
 	/* retrieve with SQLDescribeCol */
-	CHKDescribeCol(index, (SQLCHAR *) name, sizeof(name), &len, &type, NULL, NULL, NULL, "S");
+	CHKDescribeCol(index, name, ODBC_VECTOR_SIZE(name), &len, &type, NULL, NULL, NULL, "S");
 	NAME_TEST;
 
 	/* retrieve with SQLColAttribute */
-	CHKColAttribute(index, SQL_DESC_NAME, name, sizeof(name), &len, NULL, "S");
+	CHKColAttribute(index, SQL_DESC_NAME, name, ODBC_VECTOR_SIZE(name), &len, NULL, "S");
 	if (odbc_db_is_microsoft())
 		NAME_TEST;
-	CHKColAttribute(index, SQL_DESC_LABEL, name, sizeof(name), &len, NULL, "S");
+	CHKColAttribute(index, SQL_DESC_LABEL, name, ODBC_VECTOR_SIZE(name), &len, NULL, "S");
 	NAME_TEST;
 }
 
@@ -69,7 +69,7 @@ DoTest(const char *type, int row_returned, int line)
 	}
 
 	printf("Test type '%s' %s row at line %d\n", type ? type : "", row_returned ? "with" : "without", line);
-	CHKTables((SQLCHAR *) catalog, LEN(catalog), (SQLCHAR *) schema, LEN(schema), (SQLCHAR *) table_buf, table_len, (SQLCHAR *) type, LEN(type), "SI");
+	CHKTables(T(catalog), LEN(catalog), T(schema), LEN(schema), T(table_buf), table_len, T(type), LEN(type), "SI");
 
 	/* test column name (for DBD::ODBC) */
 	TestName(1, odbc_use_version3 || !odbc_driver_is_freetds() ? "TABLE_CAT" : "TABLE_QUALIFIER");

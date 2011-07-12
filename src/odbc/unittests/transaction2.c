@@ -3,15 +3,22 @@
 
 /* Test transaction types */
 
-static char software_version[] = "$Id: transaction2.c,v 1.10 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: transaction2.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
 ReadErrorConn(void)
 {
+	ODBC_BUF *odbc_buf = NULL;
+	SQLTCHAR *err = ODBC_GET(sizeof(odbc_err)*sizeof(SQLTCHAR));
+	SQLTCHAR *state = ODBC_GET(sizeof(odbc_sqlstate)*sizeof(SQLTCHAR));
+
 	memset(odbc_err, 0, sizeof(odbc_err));
 	memset(odbc_sqlstate, 0, sizeof(odbc_sqlstate));
-	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, (SQLCHAR *) odbc_sqlstate, NULL, (SQLCHAR *) odbc_err, sizeof(odbc_err), NULL, "SI");
+	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, state, NULL, err, sizeof(odbc_err), NULL, "SI");
+	strcpy(odbc_err, C(err));
+	strcpy(odbc_sqlstate, C(state));
+	ODBC_FREE();
 	printf("Message: '%s' %s\n", odbc_sqlstate, odbc_err);
 }
 

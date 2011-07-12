@@ -5,14 +5,14 @@
  * 2) Test cursor returns results on language RPCs
  */
 
-static char software_version[] = "$Id: cursor2.c,v 1.11 2010-07-22 14:24:14 freddy77 Exp $";
+static char software_version[] = "$Id: cursor2.c,v 1.12 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
 main(int argc, char *argv[])
 {
-	unsigned char sqlstate[6];
-	unsigned char msg[256];
+	SQLTCHAR sqlstate[6];
+	SQLTCHAR msg[256];
 
 	odbc_connect();
 	odbc_check_cursor();
@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 	/* this should not fail or return warnings */
 	odbc_command("DROP TABLE #cursor2_test");
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, sizeof(msg), NULL, "No");
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, msg, ODBC_VECTOR_SIZE(msg), NULL, "No");
 
 
 	odbc_reset_statement();

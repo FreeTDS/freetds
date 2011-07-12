@@ -7,7 +7,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: binary_test.c,v 1.9 2010-07-05 09:20:32 freddy77 Exp $";
+static char software_version[] = "$Id: binary_test.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #define ERR_BUF_SIZE 256
@@ -53,7 +53,7 @@ test_insert(void *buf, SQLLEN buflen)
 	CHKAllocHandle(SQL_HANDLE_STMT, odbc_conn, &odbc_stmt, "SI");
 
 	/* execute query */
-	CHKPrepare((SQLCHAR *) qstr, SQL_NTS, "SI");
+	CHKPrepare(T(qstr), SQL_NTS, "SI");
 
 	strlen_or_ind = buflen;
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_LONGVARBINARY, (SQLUINTEGER) (-1), 0, buf, buflen,
@@ -83,7 +83,7 @@ test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 	CHKAllocHandle(SQL_HANDLE_STMT, odbc_conn, &odbc_stmt, "SI");
 
 	/* execute query */
-	CHKExecDirect((SQLCHAR *) qstr, SQL_NTS, "SINo");
+	CHKExecDirect(T(qstr), SQL_NTS, "SINo");
 
 	/* fetch first page of first result row of unbound column */
 	CHKFetch("S");
@@ -97,6 +97,7 @@ test_select(void *buf, SQLINTEGER buflen, SQLLEN * bytes_returned)
 	CHKFetch("No");
 
 	SQLFreeHandle(SQL_HANDLE_STMT, odbc_stmt);
+	ODBC_FREE();
 	return 0;
 }
 

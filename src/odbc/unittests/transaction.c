@@ -1,17 +1,18 @@
 #include "common.h"
 
-static char software_version[] = "$Id: transaction.c,v 1.17 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: transaction.c,v 1.18 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int
 Test(int discard_test)
 {
+	ODBC_BUF *odbc_buf = NULL;
 	SQLINTEGER out_buf;
 	SQLLEN out_len;
 	SQLLEN rows;
 	int retcode = 0;
-	char buf[512];
-	unsigned char sqlstate[6];
+	SQLTCHAR buf[512];
+	SQLTCHAR sqlstate[6];
 
 	const char *createErrorProcedure = "CREATE PROCEDURE testerror AS\n"
 		"SELECT value FROM TestTransaction\n" "SELECT value / (value-value) FROM TestTransaction\n";
@@ -75,8 +76,8 @@ Test(int discard_test)
 
 	CHKMoreResults("E");
 
-	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, (SQLCHAR *)buf, sizeof(buf), NULL, "SI");
-	printf("err=%s\n", buf);
+	CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, 1, sqlstate, NULL, buf, ODBC_VECTOR_SIZE(buf), NULL, "SI");
+	printf("err=%s\n", C(buf));
 
 	CHKMoreResults("No");
 
@@ -85,6 +86,7 @@ Test(int discard_test)
 	odbc_command_with_result(odbc_stmt, "DROP PROCEDURE testinsert");
 	odbc_command_with_result(odbc_stmt, "DROP PROCEDURE testerror");
 
+	ODBC_FREE();
 	return retcode;
 }
 

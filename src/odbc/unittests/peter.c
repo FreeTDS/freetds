@@ -7,7 +7,7 @@
 	This test on Sybase should not raise an error
 */
 
-static char software_version[] = "$Id: peter.c,v 1.1 2010-10-29 14:54:10 freddy77 Exp $";
+static char software_version[] = "$Id: peter.c,v 1.2 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 	odbc_command("insert into #tester(id, name) values(1, 'abc')");
 	odbc_command("insert into #tester(id, name) values(2, 'duck')");
 
-	CHKPrepare((SQLCHAR*) "SELECT * FROM #tester WHERE id = ?", SQL_NTS, "S");
+	CHKPrepare(T("SELECT * FROM #tester WHERE id = ?"), SQL_NTS, "S");
 
 	CHKR(SQLNumParams, (odbc_stmt, &num_params), "S");
 	assert(num_params == 1);

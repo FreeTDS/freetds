@@ -14,28 +14,28 @@
 
 #include <pthread.h>
 
-static char sqlstate[SQL_SQLSTATE_SIZE + 1];
+static SQLTCHAR sqlstate[SQL_SQLSTATE_SIZE + 1];
 
 static void
 getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
 {
 	SQLRETURN rcode = 0;
 	SQLINTEGER naterror = 0;
-	SQLCHAR msgtext[SQL_MAX_MESSAGE_LENGTH + 1];
+	SQLTCHAR msgtext[SQL_MAX_MESSAGE_LENGTH + 1];
 	SQLSMALLINT msgtextl = 0;
 
 	msgtext[0] = 0;
-	rcode = SQLGetDiagRec((SQLSMALLINT) sqlhdltype,
+	rcode = SQLGetDiagRec(sqlhdltype,
 			      (SQLHANDLE) sqlhandle,
-			      (SQLSMALLINT) 1,
-			      (SQLCHAR *) sqlstate,
-			      (SQLINTEGER *) & naterror,
-			      (SQLCHAR *) msgtext, (SQLSMALLINT) sizeof(msgtext), (SQLSMALLINT *) & msgtextl);
-	sqlstate[sizeof(sqlstate)-1] = 0;
+			      1,
+			      sqlstate,
+			      &naterror,
+			      msgtext, (SQLSMALLINT) ODBC_VECTOR_SIZE(msgtext), &msgtextl);
+	sqlstate[ODBC_VECTOR_SIZE(sqlstate)-1] = 0;
 	fprintf(stderr, "Diagnostic info:\n");
-	fprintf(stderr, "  SQL State: %s\n", sqlstate);
+	fprintf(stderr, "  SQL State: %s\n", C(sqlstate));
 	fprintf(stderr, "  SQL code : %d\n", (int) naterror);
-	fprintf(stderr, "  Message  : %s\n", (char *) msgtext);
+	fprintf(stderr, "  Message  : %s\n", C(msgtext));
 }
 
 static void
@@ -98,7 +98,7 @@ Test(int use_threads)
 			exit(1);
 		}
 	}
-	CHKExecDirect((SQLCHAR *) "WAITFOR DELAY '000:05:00'", SQL_NTS, "E");
+	CHKExecDirect(T("WAITFOR DELAY '000:05:00'"), SQL_NTS, "E");
 	exit_thread = 1;
 	if (!use_threads) {
 		alarm(0);
@@ -106,7 +106,7 @@ Test(int use_threads)
 		pthread_join(wait_thread, NULL);
 	}
 	getErrorInfo(SQL_HANDLE_STMT, odbc_stmt);
-	if (strcmp(sqlstate, "HY008") != 0) {
+	if (strcmp(C(sqlstate), "HY008") != 0) {
 		fprintf(stderr, "Unexpected sql state returned\n");
 		odbc_disconnect();
 		exit(1);

@@ -3,7 +3,7 @@
 /* Test for store procedure and params */
 /* Test from Tom Rogers */
 
-static char software_version[] = "$Id: params.c,v 1.12 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: params.c,v 1.13 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* SP definition */
@@ -39,7 +39,7 @@ Test(int bind_before)
 	odbc_command(sp_define);
 
 	if (!bind_before)
-		CHKPrepare((SQLCHAR *) SP_TEXT, strlen(SP_TEXT), "S");
+		CHKPrepare(T(SP_TEXT), strlen(SP_TEXT), "S");
 
 	CHKBindParameter(1, SQL_PARAM_OUTPUT, SQL_C_SSHORT, SQL_INTEGER, 0, 0, &ReturnCode, 0, &cbReturnCode, "S");
 	CHKBindParameter(2, SQL_PARAM_INPUT,  SQL_C_SSHORT, SQL_INTEGER, 0, 0, &InParam,    0, &cbInParam,    "S");
@@ -51,7 +51,7 @@ Test(int bind_before)
 	    OUTSTRING_LEN, &cbOutString, "S");
 
 	if (bind_before)
-		CHKPrepare((SQLCHAR *) SP_TEXT, strlen(SP_TEXT), "S");
+		CHKPrepare(T(SP_TEXT), strlen(SP_TEXT), "S");
 
 	CHKExecute("S");
 
@@ -74,6 +74,7 @@ Test(int bind_before)
 	}
 
 	odbc_disconnect();
+	ODBC_FREE();
 	return 0;
 }
 

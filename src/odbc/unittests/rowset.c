@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: rowset.c,v 1.7 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: rowset.c,v 1.8 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 
 	odbc_reset_statement();
 	CHKSetStmtOption(SQL_ATTR_CURSOR_TYPE, SQL_CURSOR_DYNAMIC, "S");
-	CHKExecDirect((SQLCHAR *) "SELECT * FROM #rowset ORDER BY n", SQL_NTS, "SI");
+	CHKExecDirect(T("SELECT * FROM #rowset ORDER BY n"), SQL_NTS, "SI");
 
 	CHKBindCol(2, SQL_C_CHAR, buf, sizeof(buf), &len, "S");
 

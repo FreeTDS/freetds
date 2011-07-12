@@ -3,10 +3,10 @@
 
 /* Test using array binding */
 
-static char software_version[] = "$Id: array.c,v 1.17 2011-07-09 20:41:10 freddy77 Exp $";
+static char software_version[] = "$Id: array.c,v 1.18 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
-static const char *test_query = NULL;
+static SQLTCHAR *test_query = NULL;
 
 #define XMALLOC_N(t, n) (t*) ODBC_GET(n*sizeof(t))
 
@@ -16,7 +16,6 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 #define DESC_LEN 51
 #define ARRAY_SIZE 10
 
-	ODBC_BUF *odbc_buf = NULL;
 	SQLUINTEGER *ids = XMALLOC_N(SQLUINTEGER,ARRAY_SIZE);
 	typedef SQLCHAR desc_t[DESC_LEN];
 	desc_t *descs = XMALLOC_N(desc_t, ARRAY_SIZE);
@@ -50,9 +49,9 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	}
 
 	if (!prepare) {
-		ret = SQLExecDirect(odbc_stmt, (SQLCHAR *) test_query, SQL_NTS);
+		ret = SQLExecDirect(odbc_stmt, test_query, SQL_NTS);
 	} else {
-		SQLPrepare(odbc_stmt, (SQLCHAR *) test_query, SQL_NTS);
+		SQLPrepare(odbc_stmt, test_query, SQL_NTS);
 		ret = SQLExecute(odbc_stmt);
 	}
 	if (ret != expected) {
@@ -104,7 +103,6 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 
 	odbc_reset_statement();
 
-	ODBC_FREE();
 	if (failure) {
 		odbc_disconnect();
 		exit(1);
@@ -118,18 +116,18 @@ main(int argc, char *argv[])
 	odbc_connect();
 
 	if (odbc_db_is_microsoft()) {
-		test_query = "INSERT INTO #tmp1 (id, value) VALUES (?, ?)";
+		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
 		query_test(0, SQL_ERROR, "VV!!!!!!!!");
 		/* FIXME test why is different and what should be correct result */
 		query_test(1, odbc_driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
-		test_query = "INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?";
+		test_query = T("INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?");
 		query_test(0, SQL_SUCCESS_WITH_INFO, "VVVV!V!V!V");
 		/* FIXME test why is different and what should be correct result */
 		query_test(1, odbc_driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
 		/* with result, see how SQLMoreResult work */
-		test_query = "INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?";
+		test_query = T("INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?");
 		/* IMHO our driver is better here -- freddy77 */
 		query_test(0, SQL_SUCCESS, odbc_driver_is_freetds() ? "VVVVV!V!V!" : "VVVVVV!VVV");
 #ifdef ENABLE_DEVELOPING
@@ -137,7 +135,7 @@ main(int argc, char *argv[])
 #endif
 	} else {
 		/* Sybase test for conversions before executing */
-		test_query = "INSERT INTO #tmp1 (id, value) VALUES (?/8, ?)";
+		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?/8, ?)");
 		query_test(0, SQL_SUCCESS, "VVVVVVVVVV");
 	}
 

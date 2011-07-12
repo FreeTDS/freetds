@@ -19,8 +19,9 @@
 
 #include <sql.h>
 #include <sqlext.h>
+#include <sqlucode.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.37 2011-07-09 20:41:10 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.38 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -162,6 +163,7 @@ const char *odbc_db_version(void);
 unsigned int odbc_db_version_int(void);
 int odbc_driver_is_freetds(void);
 
+#define ODBC_VECTOR_SIZE(x) (sizeof(x)/sizeof(x[0]))
 #define int2ptr(i) ((void*)(((char*)0)+(i)))
 #define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
 
@@ -178,10 +180,22 @@ typedef struct odbc_buf{
 	struct odbc_buf *next;
 	void *buf;
 } ODBC_BUF;
+extern ODBC_BUF *odbc_buf;
 void *odbc_buf_get(ODBC_BUF** buf, size_t s);
 void odbc_buf_free(ODBC_BUF** buf);
 #define ODBC_GET(s)  odbc_buf_get(&odbc_buf, s)
 #define ODBC_FREE(s) odbc_buf_free(&odbc_buf)
 
 SQLWCHAR *odbc_get_sqlwchar(ODBC_BUF** buf, const char *s);
-#define W(s) odbc_get_sqlwchar(&odbc_buf, s)
+#undef T
+#ifdef UNICODE
+/* char to TCHAR */
+#define T(s) odbc_get_sqlwchar(&odbc_buf, (s))
+/* TCHAR to char */
+char *odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s);
+#define C(s) odbc_get_sqlchar(&odbc_buf, (s))
+#else
+#define T(s) ((SQLCHAR*)(s))
+#define C(s) ((char*)(s))
+#endif
+

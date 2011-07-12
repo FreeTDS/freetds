@@ -6,7 +6,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: rpc.c,v 1.14 2011-07-09 20:41:10 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.15 2011-07-12 10:16:59 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static const char procedure_sql[] = 
@@ -41,20 +41,19 @@ init_proc(const char *name)
 		printf("Dropping procedure %s\n", name);
 		sprintf(cmd, "if exists (select 1 from sysobjects where name = '%s' and type = 'P') "
 				"DROP PROCEDURE %s", name, name);
-		CHKExecDirect((SQLCHAR *) cmd, SQL_NTS, "SI");
+		CHKExecDirect(T(cmd), SQL_NTS, "SI");
 	}
 
 	printf("Creating procedure %s\n", name);
 	sprintf(cmd, procedure_sql, name);
 
 	/* create procedure. Fails if wrong permission or not MSSQL */
-	CHKExecDirect((SQLCHAR *) cmd, SQL_NTS, "SI");
+	CHKExecDirect(T(cmd), SQL_NTS, "SI");
 }
 
 static void
 Test(const char *name)
 {
-	ODBC_BUF *odbc_buf = NULL;
 	int iresults=0, data_errors=0;
 	int ipar=0;
 	HSTMT odbc_stmt = SQL_NULL_HSTMT;
@@ -111,7 +110,7 @@ Test(const char *name)
 
 	sprintf(call_cmd, "{?=call %s(?,?,?,?,?)}", name );
 	printf("executing SQLPrepare: %s\n", call_cmd);
-	CHKPrepare((SQLCHAR *) call_cmd, SQL_NTS, "S");
+	CHKPrepare(T(call_cmd), SQL_NTS, "S");
 
 	printf("executing SQLExecute\n");
 	CHKExecute("SI");
@@ -120,7 +119,7 @@ Test(const char *name)
 		static const char dashes[] = "------------------------------";
 		int nrows;
 		SQLSMALLINT  icol, ncols;
-		SQLCHAR      name[256] = "";
+		SQLTCHAR     name[256] = {0};
 		SQLSMALLINT  namelen;
 		SQLSMALLINT  type;
 		SQLSMALLINT  scale;
@@ -135,13 +134,13 @@ Test(const char *name)
 		
 		for (icol=ncols; icol > 0; icol--) {
 			SQLULEN size;
-			CHKDescribeCol(icol, name, sizeof(name),
+			CHKDescribeCol(icol, name, ODBC_VECTOR_SIZE(name),
 				       &namelen, &type, &size, &scale, &nullable, "S");
-			printf("%-5d %-15s %5d %5ld %5d %8c\n", icol, name, type, (long int)size, scale, (nullable? 'Y' : 'N')); 
+			printf("%-5d %-15s %5d %5ld %5d %8c\n", icol, C(name), type, (long int)size, scale, (nullable? 'Y' : 'N')); 
 		}
 
 		printf("executing SQLFetch...\n");
-		printf("\t%-30s\n\t%s\n", name, dashes);
+		printf("\t%-30s\n\t%s\n", C(name), dashes);
 		for (nrows=0; CHKFetch("SNo") == SQL_SUCCESS; nrows++) {
 			const SQLINTEGER icol = 1;
 			char buf[60];
@@ -228,6 +227,7 @@ main(int argc, char *argv[])
 	odbc_disconnect();
 
 	printf("Done.\n");
+	ODBC_FREE();
 	return 0;
 }
 
