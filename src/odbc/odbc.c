@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.571 2011-07-12 07:17:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.572 2011-07-12 09:49:42 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -5928,7 +5928,7 @@ odbc_swap_datetime_sql_type(SQLSMALLINT sql_type)
 	return sql_type;
 }
 
-SQLRETURN ODBC_API
+SQLRETURN ODBC_PUBLIC ODBC_API
 SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 {
 	SQLRETURN res;
@@ -6028,6 +6028,14 @@ SQLGetTypeInfo(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
 	}
 	ODBC_RETURN(stmt, res);
 }
+
+#ifdef ENABLE_ODBC_WIDE
+SQLRETURN ODBC_PUBLIC ODBC_API
+SQLGetTypeInfoW(SQLHSTMT hstmt, SQLSMALLINT fSqlType)
+{
+	return SQLGetTypeInfo(hstmt, fSqlType);
+}
+#endif
 
 static SQLRETURN 
 _SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)

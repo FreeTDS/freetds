@@ -1,3 +1,6 @@
+Tue Jul 12 11:49:22 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: add SQLGetTypeInfoW
+
 Tue Jul 12 09:17:07 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: remove warning
 
@@ -525,4 +528,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3322 2011-07-12 07:17:09 freddy77 Exp $
+$Id: ChangeLog,v 1.3323 2011-07-12 09:49:42 freddy77 Exp $
