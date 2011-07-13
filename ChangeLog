@@ -1,3 +1,6 @@
+Wed Jul 13 13:03:09 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/sqlfront.h: more fix for php
+
 Tue Jul 12 12:16:51 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/array.c src/odbc/unittests/array_out.c:
 	* src/odbc/unittests/binary_test.c src/odbc/unittests/blob1.c:
@@ -561,4 +564,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3324 2011-07-12 10:16:59 freddy77 Exp $
+$Id: ChangeLog,v 1.3325 2011-07-13 11:06:31 freddy77 Exp $
