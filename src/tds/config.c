@@ -78,7 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.171 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.172 2011-07-27 16:28:47 freddy77 Exp $");
 
 static void tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSLOGIN * login);
@@ -110,19 +110,6 @@ static const char location[] = "(from $FREETDS)";
 static const char pid_logpath[] = "c:\\freetds.log.%d";
 static const char interfaces_path[] = "c:\\";
 #endif
-
-int
-tds_default_port(int major, int minor)
-{
-	switch(major) {
-	case 4:
-		if (minor == 6)
-			break;
-	case 5:
-		return 4000;
-	}
-	return 1433;
-}
 
 /**
  * \ingroup libtds

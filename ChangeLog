@@ -1,3 +1,6 @@
+Wed Jul 27 18:29:00 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/config.c: removed tds_default_port, unused
+
 Wed Jul 27 18:27:08 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/util.c:
 	- commented out tds_gettime_ms, not used
@@ -568,4 +571,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3326 2011-07-27 16:26:58 freddy77 Exp $
+$Id: ChangeLog,v 1.3327 2011-07-27 16:28:47 freddy77 Exp $

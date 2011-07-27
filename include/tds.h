@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.376 2011-07-27 16:26:58 freddy77 Exp $ */
+/* $Id: tds.h,v 1.377 2011-07-27 16:28:47 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1017,7 +1017,6 @@ void tds_free_context(TDSCONTEXT * locale);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, int bufsize);
 
 /* config.c */
-int tds_default_port(int major, int minor);
 const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
 typedef void (*TDSCONFPARSE) (const char *option, const char *value, void *param);
 int tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
