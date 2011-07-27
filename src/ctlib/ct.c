@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.217 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.218 2011-07-27 16:30:24 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -542,26 +542,26 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				*out_len = sizeof(intval);
 			break;
 		case CS_TDS_VERSION:
-			switch (tds_version(tds, NULL)) {
-			case 40:
+			switch (tds->tds_version) {
+			case 0x400:
 				(*(int *) buffer = CS_TDS_40);
 				break;
-			case 42:
+			case 0x402:
 				(*(int *) buffer = CS_TDS_42);
 				break;
-			case 46:
+			case 0x406:
 				(*(int *) buffer = CS_TDS_46);
 				break;
-			case 40 + 95:
+			case 0x400 + 95:
 				(*(int *) buffer = CS_TDS_495);
 				break;
-			case 50:
+			case 0x500:
 				(*(int *) buffer = CS_TDS_50);
 				break;
-			case 70:
+			case 0x700:
 				(*(int *) buffer = CS_TDS_70);
 				break;
-			case 80:
+			case 0x800:
 				(*(int *) buffer = CS_TDS_80);
 				break;
 			default:

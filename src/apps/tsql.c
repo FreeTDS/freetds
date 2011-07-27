@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.148 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.149 2011-07-27 16:30:24 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -172,6 +172,27 @@ tsql_add_history(const char *s)
 	if (istty)
 		add_history(s);
 #endif
+}
+
+/**
+ * Returns the version of the TDS protocol in effect for the link
+ * as a decimal integer.  
+ *	Typical returned values are 42, 50, 70, 80.
+ * Also fills pversion_string unless it is null.
+ * 	Typical pversion_string values are "4.2" and "7.0".
+ */
+static int
+tds_version(TDSSOCKET * tds_socket, char *pversion_string)
+{
+	int iversion = 0;
+
+	if (tds_socket) {
+		iversion = 10 * TDS_MAJOR(tds_socket) + TDS_MINOR(tds_socket);
+
+		sprintf(pversion_string, "%d.%d", TDS_MAJOR(tds_socket), TDS_MINOR(tds_socket));
+	}
+
+	return iversion;
 }
 
 static int

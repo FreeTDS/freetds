@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.99 2011-07-27 16:26:58 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.100 2011-07-27 16:30:24 freddy77 Exp $");
 
 /**
  * Set state of TDS connection, with logging and checking.
@@ -164,29 +164,6 @@ tds_swap_bytes(unsigned char *buf, int bytes)
 		buf[bytes - i - 1] = tmp;
 	}
 	return bytes;
-}
-
-/**
- * Returns the version of the TDS protocol in effect for the link
- * as a decimal integer.  
- *	Typical returned values are 42, 50, 70, 80.
- * Also fills pversion_string unless it is null.
- * 	Typical pversion_string values are "4.2" and "7.0".
- */
-int
-tds_version(TDSSOCKET * tds_socket, char *pversion_string)
-{
-	int iversion = 0;
-
-	if (tds_socket) {
-		iversion = 10 * TDS_MAJOR(tds_socket) + TDS_MINOR(tds_socket);
-
-		if (pversion_string) {
-			sprintf(pversion_string, "%d.%d", TDS_MAJOR(tds_socket), TDS_MINOR(tds_socket));
-		}
-	}
-
-	return iversion;
 }
 
 #if 0

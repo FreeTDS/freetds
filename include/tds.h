@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.377 2011-07-27 16:28:47 freddy77 Exp $ */
+/* $Id: tds.h,v 1.378 2011-07-27 16:30:24 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1179,7 +1179,6 @@ int tds_get_size_by_type(int servertype);
 int tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum);
 TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
 int tds_swap_bytes(unsigned char *buf, int bytes);
-int tds_version(TDSSOCKET * tds_socket, char *pversion_string);
 
 /* log.c */
 void tdsdump_off(void);
