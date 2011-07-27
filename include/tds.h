@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.378 2011-07-27 16:30:24 freddy77 Exp $ */
+/* $Id: tds.h,v 1.379 2011-07-27 16:32:42 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1207,7 +1207,6 @@ extern int tds_debug_flags;
 extern int tds_g_append_mode;
 
 /* net.c */
-int tds_lastpacket(TDSSOCKET * tds);
 TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout, int *p_oserr);
 int tds_close_socket(TDSSOCKET * tds);
 int tds_read_packet(TDSSOCKET * tds);

@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.124 2011-06-29 07:08:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.125 2011-07-27 16:32:42 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -602,15 +602,6 @@ tds_read_packet(TDSSOCKET * tds)
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", tds->in_buf, tds->in_len);
 
 	return (tds->in_len);
-}
-
-int
-tds_lastpacket(TDSSOCKET * tds) 
-{
-	if (!tds || !tds->in_buf || tds->in_buf_max < 2)
-		return 1;
-	
-	return tds->in_buf[1] != 0;
 }
 
 /**

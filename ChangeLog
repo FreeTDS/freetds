@@ -1,3 +1,7 @@
+Wed Jul 27 18:32:54 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/server/query.c src/tds/net.c:
+	- move tds_lastpacket to server code
+
 Wed Jul 27 18:30:35 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/apps/tsql.c src/ctlib/ct.c src/tds/util.c:
 	- move tds_version to tsql
@@ -575,4 +579,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3328 2011-07-27 16:30:24 freddy77 Exp $
+$Id: ChangeLog,v 1.3329 2011-07-27 16:32:42 freddy77 Exp $

@@ -27,7 +27,7 @@
 #include "tds.h"
 #include "tdssrv.h"
 
-static char software_version[] = "$Id: query.c,v 1.19 2011-05-16 08:51:40 freddy77 Exp $";
+static char software_version[] = "$Id: query.c,v 1.20 2011-07-27 16:32:42 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char *query;
@@ -57,6 +57,15 @@ tds_get_query(TDSSOCKET * tds)
 	tds_get_n(tds, query, len);
 	query[len] = 0;
 	return query;
+}
+
+static int
+tds_lastpacket(TDSSOCKET * tds) 
+{
+	if (!tds || !tds->in_buf || tds->in_buf_max < 2)
+		return 1;
+	
+	return tds->in_buf[1] != 0;
 }
 
 /**
