@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.410 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.411 2011-07-27 16:34:08 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -1892,7 +1892,7 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 }
 
 static TDSRET
-tds9_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
+tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	TDS_INT8 len = tds_get_int8(tds);
 	TDS_INT chunk_len;
@@ -2088,7 +2088,7 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			colsize = -1;
 		break;
 	case 8:
-		return tds9_get_varmax(tds, curcol);
+		return tds72_get_varmax(tds, curcol);
 	case 2:
 		colsize = tds_get_smallint(tds);
 		break;
@@ -2441,13 +2441,13 @@ tds_process_env_chg(TDSSOCKET * tds)
 
 	if (type == TDS_ENV_BEGINTRANS) {
 		size = tds_get_byte(tds);
-		tds_get_n(tds, tds->tds9_transaction, 8);
+		tds_get_n(tds, tds->tds72_transaction, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;
 	}
 
 	if (type == TDS_ENV_COMMITTRANS || type == TDS_ENV_ROLLBACKTRANS) {
-		memset(tds->tds9_transaction, 0, 8);
+		memset(tds->tds72_transaction, 0, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;

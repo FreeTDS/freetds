@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.258 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.259 2011-07-27 16:34:08 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -233,7 +233,7 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 	return out;
 }
 
-static const TDS_UCHAR tds9_query_start[] = {
+static const TDS_UCHAR tds72_query_start[] = {
 	/* total length */
 	0x16, 0, 0, 0,
 	/* length */
@@ -255,9 +255,9 @@ do { \
 static void
 tds_start_query(TDSSOCKET *tds)
 {
-	tds_put_n(tds, tds9_query_start, 10);
-	tds_put_n(tds, tds->tds9_transaction, 8);
-	tds_put_n(tds, tds9_query_start + 10 + 8, 4);
+	tds_put_n(tds, tds72_query_start, 10);
+	tds_put_n(tds, tds->tds72_transaction, 8);
+	tds_put_n(tds, tds72_query_start + 10 + 8, 4);
 }
 
 /**

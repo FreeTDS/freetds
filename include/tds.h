@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.379 2011-07-27 16:32:42 freddy77 Exp $ */
+/* $Id: tds.h,v 1.380 2011-07-27 16:34:08 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -975,7 +975,7 @@ struct tds_socket
 
 	int spid;
 	TDS_UCHAR collation[5];
-	TDS_UCHAR tds9_transaction[8];
+	TDS_UCHAR tds72_transaction[8];
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	int internal_sp_called;
 
