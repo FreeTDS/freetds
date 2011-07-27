@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.98 2011-06-06 07:27:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.99 2011-07-27 16:26:58 freddy77 Exp $");
 
 /**
  * Set state of TDS connection, with logging and checking.
@@ -189,6 +189,7 @@ tds_version(TDSSOCKET * tds_socket, char *pversion_string)
 	return iversion;
 }
 
+#if 0
 unsigned int
 tds_gettime_ms(void)
 {
@@ -208,6 +209,7 @@ tds_gettime_ms(void)
 #error How to implement tds_gettime_ms ??
 #endif
 }
+#endif
 
 /*
  * Call the client library's error handler
