@@ -1,3 +1,7 @@
+Thu Aug  4 06:38:32 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/tds_sysdep_public.h:
+	- change header inclusion order to avoid wrong redeclarations
+
 Thu Jul 14 14:17:48 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/sqlfront.h: more fix for php
 
@@ -3327,4 +3331,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205.2.39 2011-07-14 12:17:55 freddy77 Exp $
+$Id: ChangeLog,v 1.3205.2.40 2011-08-04 04:38:20 freddy77 Exp $
