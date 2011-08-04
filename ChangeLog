@@ -1,3 +1,7 @@
+Thu Aug  4 06:32:16 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* win32/tds_sysdep_public.h:
+	- change header inclusion order to avoid wrong redeclarations
+
 Wed Jul 27 18:34:18 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/query.c src/tds/token.c:
 	- do not use tds9_ prefix, use tds72_ instead
@@ -583,4 +587,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3330 2011-07-27 16:34:08 freddy77 Exp $
+$Id: ChangeLog,v 1.3331 2011-08-04 04:32:09 freddy77 Exp $
