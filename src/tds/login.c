@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.219 2011-07-02 07:38:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.220 2011-08-06 18:46:38 freddy77 Exp $");
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -830,13 +830,10 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	if (tds_conn(tds)->authentication)
 		option_flag2 |= TDS_INTEGRATED_SECURITY_ON;
 
-	if (login->tds_version >= 0x703)
-		tds_put_byte(tds, option_flag3);
-
 	tds_put_byte(tds, option_flag2);
 
 	tds_put_byte(tds, sql_type_flag);
-	tds_put_byte(tds, reserved_flag);
+	tds_put_byte(tds, IS_TDS73_PLUS(tds) ? option_flag3 : reserved_flag);
 
 	tds_put_n(tds, time_zone, sizeof(time_zone));
 	tds_put_n(tds, collation, sizeof(collation));

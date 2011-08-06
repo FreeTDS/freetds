@@ -1,3 +1,6 @@
+Sat Aug  6 20:46:47 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/login.c: fix tds 7.3 connection
+
 Thu Aug  4 06:32:16 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/tds_sysdep_public.h:
 	- change header inclusion order to avoid wrong redeclarations
@@ -587,4 +590,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3331 2011-08-04 04:32:09 freddy77 Exp $
+$Id: ChangeLog,v 1.3332 2011-08-06 18:46:37 freddy77 Exp $
