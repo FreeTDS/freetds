@@ -1,3 +1,6 @@
+Mon Aug  8 14:17:56 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: use nanosecond precision parsing for time
+
 Mon Aug  8 14:16:53 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsconvert.h src/tds/convert.c:
 	- move tds_time structure declaration directly into
@@ -637,4 +640,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3345 2011-08-08 12:16:46 freddy77 Exp $
+$Id: ChangeLog,v 1.3346 2011-08-08 12:17:49 freddy77 Exp $

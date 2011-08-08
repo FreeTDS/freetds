@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.207 2011-08-08 12:16:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.208 2011-08-08 12:17:49 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -75,7 +75,7 @@ struct tds_time
 	int tm_hour; /**< hours (0-23) */
 	int tm_min;  /**< minutes (0-59) */
 	int tm_sec;  /**< seconds (0-59) */
-	int tm_ms;   /**< milliseconds (0-999) */
+	int tm_ns;   /**< nanoseconds (0-999999999) */
 };
 
 static TDS_INT tds_convert_int1(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
@@ -1907,7 +1907,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 	if (desttype == SYBDATETIME) {
 		cr->dt.dtdays = dt_days;
 		dt_time = (t.tm_hour * 60 + t.tm_min) * 60 + t.tm_sec;
-		cr->dt.dttime = dt_time * 300 + (t.tm_ms * 300 + 150) / 1000;
+		cr->dt.dttime = dt_time * 300 + (t.tm_ns / 1000000u * 300 + 150) / 1000;
 		return sizeof(TDS_DATETIME);
 	} else {
 		/* SYBDATETIME4 */
@@ -2527,15 +2527,17 @@ store_time(const char *datestr, struct tds_time *t)
 	int state = TDS_HOURS;
 	char last_sep = '\0';
 	const char *s;
-	int hours = 0, minutes = 0, seconds = 0, millisecs = 0;
+	int hours = 0, minutes = 0, seconds = 0, nanosecs = 0;
 	int ret = 1;
-	int ms_len = 0;
+	unsigned ns_div = 1;
 
 	for (s = datestr; *s && strchr("apmAPM", (int) *s) == NULL; s++) {
 		if (*s == ':' || *s == '.') {
 			last_sep = *s;
 			state++;
-		} else
+		} else {
+			if (*s < '0' || *s > '9')
+				ret = 0;
 			switch (state) {
 			case TDS_HOURS:
 				hours = (hours * 10) + (*s - '0');
@@ -2547,10 +2549,13 @@ store_time(const char *datestr, struct tds_time *t)
 				seconds = (seconds * 10) + (*s - '0');
 				break;
 			case TDS_FRACTIONS:
-				millisecs = (millisecs * 10) + (*s - '0');
-				ms_len++;
+				if (ns_div < 1000000000u) {
+					nanosecs = (nanosecs * 10) + (*s - '0');
+					ns_div *= 10;
+				}
 				break;
 			}
+		}
 	}
 	if (*s) {
 		if (strcasecmp(s, "am") == 0) {
@@ -2581,23 +2586,15 @@ store_time(const char *datestr, struct tds_time *t)
 		t->tm_sec = seconds;
 	else
 		ret = 0;
-	tdsdump_log(TDS_DBG_FUNC, "store_time() millisecs = %d\n", millisecs);
-	if (millisecs) {
-		if (millisecs >= 0 && millisecs < 1000) {
-			if (last_sep == ':')
-				t->tm_ms = millisecs;
-			else {
-				if (ms_len == 1)
-					t->tm_ms = millisecs * 100;
-				else if (ms_len == 2)
-					t->tm_ms = millisecs * 10;
-				else
-					t->tm_ms = millisecs;
-			}
-		} else
+	tdsdump_log(TDS_DBG_FUNC, "store_time() nanosecs = %d\n", nanosecs);
+	if (nanosecs) {
+		if (nanosecs >= 0 && nanosecs < ns_div && last_sep == '.')
+			t->tm_ns = nanosecs * (1000000000u / ns_div);
+		else if (nanosecs >= 0 && nanosecs < 1000u)
+			t->tm_ns = nanosecs * 1000000u;
+		else
 			ret = 0;
 	}
-
 
 	return (ret);
 }
