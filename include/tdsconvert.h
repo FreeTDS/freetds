@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsconvert.h,v 1.26 2010-01-25 23:05:58 freddy77 Exp $ */
+/* $Id: tdsconvert.h,v 1.27 2011-08-08 12:16:46 freddy77 Exp $ */
 
 typedef union conv_result
 {
@@ -74,17 +74,6 @@ CONV_RESULT;
 /* sized types */
 #define TDS_CONVERT_CHAR	256
 #define TDS_CONVERT_BINARY	257
-
-struct tds_time
-{
-	int tm_year; /**< year (0=1900) */
-	int tm_mon;  /**< month (0-11) */
-	int tm_mday; /**< month day (1-31) */
-	int tm_hour; /**< hours (0-23) */
-	int tm_min;  /**< minutes (0-59) */
-	int tm_sec;  /**< seconds (0-59) */
-	int tm_ms;   /**< milliseconds (0-999) */
-};
 
 unsigned char tds_willconvert(int srctype, int desttype);
 

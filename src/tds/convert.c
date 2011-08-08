@@ -63,9 +63,20 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.206 2011-08-08 09:41:45 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.207 2011-08-08 12:16:46 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
+
+struct tds_time
+{
+	int tm_year; /**< year (0=1900) */
+	int tm_mon;  /**< month (0-11) */
+	int tm_mday; /**< month day (1-31) */
+	int tm_hour; /**< hours (0-23) */
+	int tm_min;  /**< minutes (0-59) */
+	int tm_sec;  /**< seconds (0-59) */
+	int tm_ms;   /**< milliseconds (0-999) */
+};
 
 static TDS_INT tds_convert_int1(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int2(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
