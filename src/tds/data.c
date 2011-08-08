@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.34 2011-08-08 09:58:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.35 2011-08-08 11:48:20 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -235,13 +235,6 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	case 0:
 		col->column_size = tds_get_size_by_type(col->column_type);
 		break;
-	}
-
-	/* numeric and decimal have extra info */
-	if (is_numeric_type(col->column_type)) {
-		col->column_prec = tds_get_byte(tds);        /* precision */
-		col->column_scale = tds_get_byte(tds);       /* scale */
-		/* FIXME check prec/scale, don't let server crash us */
 	}
 
 	if (IS_TDS71_PLUS(tds) && is_collate_type(col->on_server.column_type)) {
@@ -516,33 +509,7 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	 * curcol->column_cur_size == sizeof destination buffer, room to write
 	 */
 	dest = curcol->column_data;
-	if (is_numeric_type(curcol->column_type)) {
-		/* 
-		 * Handling NUMERIC datatypes: 
-		 * Since these can be passed around independent
-		 * of the original column they came from, we embed the TDS_NUMERIC datatype in the row buffer
-		 * instead of using the wire representation, even though it uses a few more bytes.  
-		 */
-		TDS_NUMERIC *num = (TDS_NUMERIC *) dest;
-		memset(num, '\0', sizeof(TDS_NUMERIC));
-		/* TODO perhaps it would be fine to change format ?? */
-		num->precision = curcol->column_prec;
-		num->scale = curcol->column_scale;
-
-		/* server is going to crash freetds ?? */
-		/* TODO close connection it server try to do so ?? */
-		if (colsize > sizeof(num->array))
-			return TDS_FAIL;
-		tds_get_n(tds, num->array, colsize);
-
-		/* corrected colsize for column_cur_size */
-		colsize = sizeof(TDS_NUMERIC);
-		if (IS_TDS7_PLUS(tds)) {
-			tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
-			tds_swap_numeric(num);
-		}
-		curcol->column_cur_size = colsize;
-	} else if (is_blob_col(curcol)) {
+	if (is_blob_col(curcol)) {
 		TDS_CHAR *p;
 		int new_blob_size;
 		assert(blob == (TDSBLOB *) dest); 	/* cf. column_varint_size case 4, above */
@@ -681,9 +648,74 @@ const TDSCOLUMNFUNCS default_funcs = {
 //	tds_data_put
 };
 
+static TDSRET
+tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
+{
+	col->column_size = tds_get_byte(tds);
+	col->column_prec = tds_get_byte(tds);        /* precision */
+	col->column_scale = tds_get_byte(tds);       /* scale */
+	/* FIXME check prec/scale, don't let server crash us */
+
+	return TDS_SUCCESS;
+}
+
+static TDSRET
+tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
+{
+	int colsize;
+	TDS_NUMERIC *num;
+
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
+
+	colsize = tds_get_byte(tds);
+
+	/* set NULL flag in the row buffer */
+	if (colsize <= 0) {
+		curcol->column_cur_size = -1;
+		return TDS_SUCCESS;
+	}
+
+	/* 
+	 * Since these can be passed around independent
+	 * of the original column they came from, we embed the TDS_NUMERIC datatype in the row buffer
+	 * instead of using the wire representation, even though it uses a few more bytes.  
+	 */
+	num = (TDS_NUMERIC *) curcol->column_data;
+	memset(num, '\0', sizeof(TDS_NUMERIC));
+	/* TODO perhaps it would be fine to change format ?? */
+	num->precision = curcol->column_prec;
+	num->scale = curcol->column_scale;
+
+	/* server is going to crash freetds ?? */
+	/* TODO close connection it server try to do so ?? */
+	if (colsize > sizeof(num->array))
+		return TDS_FAIL;
+	tds_get_n(tds, num->array, colsize);
+
+	if (IS_TDS7_PLUS(tds))
+		tds_swap_numeric(num);
+
+	/* corrected colsize for column_cur_size */
+	curcol->column_cur_size = sizeof(TDS_NUMERIC);
+
+	return TDS_SUCCESS;
+}
+
+
+const TDSCOLUMNFUNCS numeric_funcs = {
+	tds_numeric_get_info,
+	tds_numeric_get,
+//	tds_data_put_info,
+//	tds_data_put
+};
+
+
 static const TDSCOLUMNFUNCS *
 tds_get_column_funcs(int type)
 {
+	if (is_numeric_type(type))
+		return &numeric_funcs;
 	return &default_funcs;
 }
 #include "tds_types.h"
