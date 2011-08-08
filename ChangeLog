@@ -1,3 +1,7 @@
+Mon Aug  8 10:24:20 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c:
+	- use auto variable directly in string_to_datetime
+
 Mon Aug  8 09:27:50 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds_sysdep_public.h.in win32/tds_sysdep_public.h:
 	- sync tds_sysdep_public
@@ -603,4 +607,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3336 2011-08-08 07:27:57 freddy77 Exp $
+$Id: ChangeLog,v 1.3337 2011-08-08 08:24:11 freddy77 Exp $

@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.202 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.203 2011-08-08 08:24:11 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1695,8 +1695,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 	int yeardone = 0;
 	int mdaydone = 0;
 
-	struct tds_time mytime;
-	struct tds_time *t;
+	struct tds_time t;
 
 	unsigned int dt_time;
 	TDS_INT dt_days;
@@ -1704,9 +1703,8 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 
 	int current_state;
 
-	memset(&mytime, '\0', sizeof(struct tds_time));
-	mytime.tm_mday = 1;
-	t = &mytime;
+	memset(&t, '\0', sizeof(t));
+	t.tm_mday = 1;
 
 	in = (char *) malloc(strlen(instr) + 1);
 	test_alloc(in);
@@ -1727,7 +1725,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 
 			if (is_alphabetic(tok)) {
 				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: is_alphabetic\n");
-				if (store_monthname(tok, t) >= 0) {
+				if (store_monthname(tok, &t) >= 0) {
 					monthdone++;
 					current_state = DOING_ALPHABETIC_DATE;
 				} else {
@@ -1745,7 +1743,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 					/* ONLY be the year part of an alphabetic date */
 
 				case 4:
-					store_year(atoi(tok), t);
+					store_year(atoi(tok), &t);
 					yeardone++;
 					current_state = DOING_ALPHABETIC_DATE;
 					break;
@@ -1764,7 +1762,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 
 				case 6:
 				case 8:
-					if (store_yymmdd_date(tok, t))
+					if (store_yymmdd_date(tok, &t))
 						current_state = GOING_IN_BLIND;
 					else
 						current_state = STRING_GARBLED;
@@ -1782,15 +1780,15 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 
 			else if (is_numeric_dateformat(tok)) {
 				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: is_numeric_dateformat\n");
-				store_numeric_date(tok, t);
+				store_numeric_date(tok, &t);
 				current_state = GOING_IN_BLIND;
 			} else if (is_dd_mon_yyyy(tok)) {
 				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: is_dd_mon_yyyy\n");
-				store_dd_mon_yyy_date(tok, t);
+				store_dd_mon_yyy_date(tok, &t);
 				current_state = GOING_IN_BLIND;
 			} else if (is_timeformat(tok)) {
 				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: is_timeformat\n");
-				store_time(tok, t);
+				store_time(tok, &t);
 				current_state = GOING_IN_BLIND;
 			} else {
 				tdsdump_log(TDS_DBG_INFO1, "string_to_datetime: string_garbled\n");
@@ -1802,7 +1800,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 		case DOING_ALPHABETIC_DATE:
 
 			if (is_alphabetic(tok)) {
-				if (!monthdone && store_monthname(tok, t) >= 0) {
+				if (!monthdone && store_monthname(tok, &t) >= 0) {
 					monthdone++;
 					if (monthdone && yeardone && mdaydone)
 						current_state = GOING_IN_BLIND;
@@ -1817,7 +1815,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 				else
 					switch (strlen(tok)) {
 					case 4:
-						store_year(atoi(tok), t);
+						store_year(atoi(tok), &t);
 						yeardone++;
 						if (monthdone && yeardone && mdaydone)
 							current_state = GOING_IN_BLIND;
@@ -1828,7 +1826,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 					case 2:
 					case 1:
 						if (!mdaydone) {
-							store_mday(tok, t);
+							store_mday(tok, &t);
 
 							mdaydone++;
 							if (monthdone && yeardone && mdaydone)
@@ -1836,7 +1834,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 							else
 								current_state = DOING_ALPHABETIC_DATE;
 						} else {
-							store_year(atoi(tok), t);
+							store_year(atoi(tok), &t);
 							yeardone++;
 							if (monthdone && yeardone && mdaydone)
 								current_state = GOING_IN_BLIND;
@@ -1857,8 +1855,8 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 		case PUT_NUMERIC_IN_CONTEXT:
 
 			if (is_alphabetic(tok)) {
-				if (store_monthname(tok, t) >= 0) {
-					store_mday(last_token, t);
+				if (store_monthname(tok, &t) >= 0) {
+					store_mday(last_token, &t);
 					mdaydone++;
 					monthdone++;
 					if (monthdone && yeardone && mdaydone)
@@ -1866,7 +1864,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 					else
 						current_state = DOING_ALPHABETIC_DATE;
 				} else if (is_ampm(tok)) {
-					store_hour(last_token, tok, t);
+					store_hour(last_token, tok, &t);
 					current_state = GOING_IN_BLIND;
 				} else {
 					current_state = STRING_GARBLED;
@@ -1875,9 +1873,9 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 				switch (strlen(tok)) {
 				case 4:
 				case 2:
-					store_mday(last_token, t);
+					store_mday(last_token, &t);
 					mdaydone++;
-					store_year(atoi(tok), t);
+					store_year(atoi(tok), &t);
 					yeardone++;
 
 					if (monthdone && yeardone && mdaydone)
@@ -1906,22 +1904,22 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 		tok = strtok_r(NULL, " ,", &lasts);
 	}
 
-	i = (t->tm_mon - 13) / 12;
-	dt_days = 1461 * (t->tm_year + 1900 + i) / 4 +
-		(367 * (t->tm_mon - 1 - 12 * i)) / 12 - (3 * ((t->tm_year + 2000 + i) / 100)) / 4 + t->tm_mday - 693932;
+	i = (t.tm_mon - 13) / 12;
+	dt_days = 1461 * (t.tm_year + 1900 + i) / 4 +
+		(367 * (t.tm_mon - 1 - 12 * i)) / 12 - (3 * ((t.tm_year + 2000 + i) / 100)) / 4 + t.tm_mday - 693932;
 
 	free(in);
 
 	/* TODO check for overflow */
 	if (desttype == SYBDATETIME) {
 		cr->dt.dtdays = dt_days;
-		dt_time = (t->tm_hour * 60 + t->tm_min) * 60 + t->tm_sec;
-		cr->dt.dttime = dt_time * 300 + (t->tm_ms * 300 + 150) / 1000;
+		dt_time = (t.tm_hour * 60 + t.tm_min) * 60 + t.tm_sec;
+		cr->dt.dttime = dt_time * 300 + (t.tm_ms * 300 + 150) / 1000;
 		return sizeof(TDS_DATETIME);
 	} else {
 		/* SYBDATETIME4 */
 		cr->dt4.days = dt_days;
-		cr->dt4.minutes = t->tm_hour * 60 + t->tm_min;
+		cr->dt4.minutes = t.tm_hour * 60 + t.tm_min;
 		return sizeof(TDS_DATETIME4);
 	}
 
