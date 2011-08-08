@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.212 2011-08-08 12:32:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.213 2011-08-08 12:33:18 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -486,6 +486,10 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		break;
 	case SYBDATETIME:
 	case SYBDATETIME4:
+	case SYBMSTIME:
+	case SYBMSDATE:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
 		/* FIXME not null terminated */
 		return string_to_datetime(src, desttype, cr);
 		break;
@@ -1240,12 +1244,9 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 }
 
 static TDS_INT
-tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATETIMEALL * dta, int desttype, CONV_RESULT * cr)
 {
-
-	TDS_INT dt_days, dt_time;
-
-	char whole_date_string[30];
+	char whole_date_string[64];
 	TDSDATEREC when;
 
 	switch (desttype) {
@@ -1253,25 +1254,30 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * s
 	case CASE_ALL_CHAR:
 		memset(&when, 0, sizeof(when));
 
-		tds_datecrack(SYBDATETIME, src, &when);
-		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 3);
+		tds_datecrack(srctype, dta, &when);
+		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 
+		             dta->time_prec);
 
 		return string_to_result(whole_date_string, cr);
-		break;
 	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_DATETIME), cr);
+		/* TODO */
 		break;
 	case SYBDATETIME:
-		memcpy(&cr->dt, src, sizeof(TDS_DATETIME));
+		/* TODO check overflow */
+		cr->dt.dtdays = dta->date;
+		cr->dt.dttime = dta->time * 3u / 100000u;
 		return sizeof(TDS_DATETIME);
-		break;
 	case SYBDATETIME4:
-		memcpy(&dt_days, src, 4);
-		memcpy(&dt_time, src + 4, 4);
-		cr->dt4.days = dt_days;
-		cr->dt4.minutes = (dt_time / 300) / 60;
+		/* TODO check overflow */
+		cr->dt4.days = dta->date;
+		cr->dt4.minutes = dta->time / (60u * 10000000u);
 		return sizeof(TDS_DATETIME4);
-		break;
+	case SYBMSDATETIMEOFFSET:
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+		cr->dta = *dta;
+		return sizeof(TDS_DATETIMEALL);
 		/* conversions not allowed */
 	case SYBUNIQUE:
 	case SYBBIT:
@@ -1291,26 +1297,85 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * s
 }
 
 static TDS_INT
-tds_convert_datetime4(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATETIME * dt, int desttype, CONV_RESULT * cr)
+{
+	char whole_date_string[64];
+	TDSDATEREC when;
+
+	switch (desttype) {
+	case TDS_CONVERT_CHAR:
+	case CASE_ALL_CHAR:
+		memset(&when, 0, sizeof(when));
+
+		tds_datecrack(SYBDATETIME, dt, &when);
+		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 3);
+
+		return string_to_result(whole_date_string, cr);
+	case CASE_ALL_BINARY:
+		return binary_to_result(dt, sizeof(TDS_DATETIME), cr);
+	case SYBDATETIME:
+		cr->dt = *dt;
+		return sizeof(TDS_DATETIME);
+	case SYBDATETIME4:
+		cr->dt4.days = dt->dtdays;
+		cr->dt4.minutes = (dt->dttime / 300) / 60;
+		return sizeof(TDS_DATETIME4);
+	case SYBMSDATETIMEOFFSET:
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+		memset(&cr->dta, 0, sizeof(cr->dta));
+		/* FIXME must be 0 if came from DATETIME4 */
+		cr->dta.time_prec = 3;
+		if (desttype == SYBMSDATETIMEOFFSET)
+			cr->dta.has_offset = 1;
+		if (desttype != SYBMSDATE) {
+			cr->dta.has_time = 1;
+			cr->dta.time_prec = 3;
+			cr->dta.time = ((TDS_UINT8) dt->dttime) * 100000u / 3u;
+		}
+		if (desttype != SYBMSTIME) {
+			cr->dta.has_date = 1;
+			cr->dta.date = dt->dtdays;
+		}
+		return sizeof(TDS_DATETIMEALL);
+		/* conversions not allowed */
+	case SYBUNIQUE:
+	case SYBBIT:
+	case SYBBITN:
+	case SYBINT1:
+	case SYBINT2:
+	case SYBINT4:
+	case SYBINT8:
+	case SYBMONEY4:
+	case SYBMONEY:
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+	default:
+		break;
+	}
+	return TDS_CONVERT_NOAVAIL;
+}
+
+static TDS_INT
+tds_convert_datetime4(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATETIME4 * dt4, int desttype, CONV_RESULT * cr)
 {
 	TDS_DATETIME dt;
 
-#define DT4 ((TDS_DATETIME4*) src)
 	switch (desttype) {
 	case CASE_ALL_BINARY:
-		return binary_to_result(src, sizeof(TDS_DATETIME4), cr);
+		return binary_to_result(dt4, sizeof(TDS_DATETIME4), cr);
 	case SYBDATETIME4:
-		cr->dt4 = *DT4;
+		cr->dt4 = *dt4;
 		return sizeof(TDS_DATETIME4);
 	default:
 		break;
 	}
 
 	/* convert to DATETIME and use tds_convert_datetime */
-	dt.dtdays = DT4->days;
-	dt.dttime = DT4->minutes * (60u * 300u);
-#undef DT4
-	return tds_convert_datetime(tds_ctx, SYBDATETIME, (TDS_CHAR *) &dt, desttype, cr);
+	dt.dtdays = dt4->days;
+	dt.dttime = dt4->minutes * (60u * 300u);
+	return tds_convert_datetime(tds_ctx, SYBDATETIME, &dt, desttype, cr);
 }
 
 static TDS_INT
@@ -1567,7 +1632,6 @@ TDS_INT
 tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
 {
 	TDS_INT length = 0;
-	TDS_DATETIME dt;
 
 	assert(srclen >= 0 && srclen <= 2147483647u);
 
@@ -1618,20 +1682,13 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 	case SYBMSDATE:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
-#define dta ((TDS_DATETIMEALL *) (src))
-		memset(&dt, 0, sizeof(dt));
-		if (dta->has_time)
-			dt.dttime = (dta->time * 300u + 150u) / 10000000lu;
-		if (dta->has_date)
-			dt.dtdays = dta->date;
-		length = tds_convert_datetime(tds_ctx, SYBDATETIME, (const TDS_CHAR *) &dt, desttype, cr);
+		length = tds_convert_datetimeall(tds_ctx, srctype, (const TDS_DATETIMEALL *) src, desttype, cr);
 		break;
-#undef dta
 	case SYBDATETIME:
-		length = tds_convert_datetime(tds_ctx, srctype, src, desttype, cr);
+		length = tds_convert_datetime(tds_ctx, srctype, (const TDS_DATETIME* ) src, desttype, cr);
 		break;
 	case SYBDATETIME4:
-		length = tds_convert_datetime4(tds_ctx, srctype, src, desttype, cr);
+		length = tds_convert_datetime4(tds_ctx, srctype, (const TDS_DATETIME4* ) src, desttype, cr);
 		break;
 	case SYBLONGBINARY:
 	case CASE_ALL_BINARY:
@@ -1895,13 +1952,22 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 		dt_time = (t.tm_hour * 60 + t.tm_min) * 60 + t.tm_sec;
 		cr->dt.dttime = dt_time * 300 + (t.tm_ns / 1000000u * 300 + 150) / 1000;
 		return sizeof(TDS_DATETIME);
-	} else {
-		/* SYBDATETIME4 */
+	}
+	if (desttype == SYBDATETIME4) {
 		cr->dt4.days = dt_days;
 		cr->dt4.minutes = t.tm_hour * 60 + t.tm_min;
 		return sizeof(TDS_DATETIME4);
 	}
 
+	cr->dta.has_offset = 0;
+	cr->dta.offset = 0;
+	cr->dta.has_date = 1;
+	cr->dta.date = dt_days;
+	cr->dta.has_time = 1;
+	cr->dta.time_prec = 7; /* TODO correct value */
+	dt_time = (t.tm_hour * 60 + t.tm_min) * 60 + t.tm_sec;
+	cr->dta.time = dt_time * 10000000u + t.tm_ns / 100u;
+	return sizeof(TDS_DATETIMEALL);
 }
 
 static int
@@ -2896,28 +2962,39 @@ day         weekday     week        date
 TDSRET
 tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 {
-
-	const TDS_DATETIME *dt;
-	const TDS_DATETIME4 *dt4;
-
 	int dt_days;
 	unsigned int dt_time;
 
-	int years, months, days, ydays, wday, hours, mins, secs, ms;
+	int years, months, days, ydays, wday, hours, mins, secs, dms;
 	int l, n, i, j;
 
-	if (datetype == SYBDATETIME) {
-		dt = (const TDS_DATETIME *) di;
+	if (datetype == SYBMSDATE || datetype == SYBMSTIME 
+	    || datetype == SYBMSDATETIME2 || datetype == SYBMSDATETIMEOFFSET) {
+		const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) di;
+		dt_days = (datetype == SYBMSTIME) ? 0 : dta->date;
+		if (datetype == SYBMSTIME) {
+			dms = 0;
+			secs = 0;
+			dt_time = 0;
+		} else {
+			dms = dta->time % 10000000u;
+			dt_time = dta->time / 10000000u;
+			secs = dt_time % 60;
+			dt_time = dt_time / 60;
+			dt_days = dta->date;
+		}
+	} else if (datetype == SYBDATETIME) {
+		const TDS_DATETIME *dt = (const TDS_DATETIME *) di;
 		dt_time = dt->dttime;
-		ms = ((dt_time % 300) * 1000 + 150) / 300;
+		dms = ((dt_time % 300) * 1000 + 150) / 300 * 10000u;
 		dt_time = dt_time / 300;
 		secs = dt_time % 60;
 		dt_time = dt_time / 60;
 		dt_days = dt->dtdays;
 	} else if (datetype == SYBDATETIME4) {
-		dt4 = (const TDS_DATETIME4 *) di;
+		const TDS_DATETIME4 *dt4 = (const TDS_DATETIME4 *) di;
 		secs = 0;
-		ms = 0;
+		dms = 0;
 		dt_days = dt4->days;
 		dt_time = dt4->minutes;
 	} else
@@ -2956,7 +3033,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	dr->hour = hours;
 	dr->minute = mins;
 	dr->second = secs;
-	dr->decimicrosecond = ms * 10000u;
+	dr->decimicrosecond = dms;
 	return TDS_SUCCESS;
 }
 

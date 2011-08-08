@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsconvert.h,v 1.28 2011-08-08 12:32:07 freddy77 Exp $ */
+/* $Id: tdsconvert.h,v 1.29 2011-08-08 12:33:18 freddy77 Exp $ */
 
 typedef union conv_result
 {
@@ -47,6 +47,7 @@ typedef union conv_result
 	TDS_MONEY4 m4;
 	TDS_DATETIME dt;
 	TDS_DATETIME4 dt4;
+	TDS_DATETIMEALL dta;
 	TDS_NUMERIC n;
 	TDS_CHAR *ib;
 	TDS_UNIQUE u;
