@@ -1,3 +1,6 @@
+Mon Aug  8 11:41:57 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: return NOAVAIL converting money to datetime
+
 Mon Aug  8 11:39:23 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: collapse code
 
@@ -613,4 +616,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3339 2011-08-08 09:39:09 freddy77 Exp $
+$Id: ChangeLog,v 1.3340 2011-08-08 09:41:45 freddy77 Exp $

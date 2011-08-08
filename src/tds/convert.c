@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.205 2011-08-08 09:39:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.206 2011-08-08 09:41:45 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1118,12 +1118,6 @@ tds_convert_money4(int srctype, const TDS_CHAR * src, int srclen, int desttype, 
 		cr->m4 = mny;
 		return sizeof(TDS_MONEY4);
 		break;
-		/* conversions not allowed */
-	case SYBUNIQUE:
-	case SYBDATETIME4:
-	case SYBDATETIME:
-	case SYBDATETIMN:
-		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:
 		dollars = mny.mny4 / 10000;
@@ -1133,6 +1127,11 @@ tds_convert_money4(int srctype, const TDS_CHAR * src, int srclen, int desttype, 
 		}
 		sprintf(tmp_str, "%ld.%04lu", dollars, fraction);
 		return stringz_to_numeric(tmp_str, cr);
+		/* conversions not allowed */
+	case SYBUNIQUE:
+	case SYBDATETIME4:
+	case SYBDATETIME:
+	case SYBDATETIMN:
 	default:
 		return TDS_CONVERT_NOAVAIL;
 		break;
