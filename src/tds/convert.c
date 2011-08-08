@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.210 2011-08-08 12:27:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.211 2011-08-08 12:30:34 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1293,52 +1293,24 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * s
 static TDS_INT
 tds_convert_datetime4(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
+	TDS_DATETIME dt;
 
-	TDS_USMALLINT dt_days, dt_mins;
-
-	char whole_date_string[30];
-	TDSDATEREC when;
-
+#define DT4 ((TDS_DATETIME4*) src)
 	switch (desttype) {
-	case TDS_CONVERT_CHAR:
-	case CASE_ALL_CHAR:
-		memset(&when, 0, sizeof(when));
-
-		tds_datecrack(SYBDATETIME4, src, &when);
-		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when);
-
-		return string_to_result(whole_date_string, cr);
-		break;
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, sizeof(TDS_DATETIME4), cr);
-		break;
-	case SYBDATETIME:
-		memcpy(&dt_days, src, 2);
-		memcpy(&dt_mins, src + 2, 2);
-		cr->dt.dtdays = dt_days;
-		cr->dt.dttime = (dt_mins * 60) * 300;
-		return sizeof(TDS_DATETIME);
-		break;
 	case SYBDATETIME4:
-		memcpy(&cr->dt4, src, sizeof(TDS_DATETIME4));
+		cr->dt4 = *DT4;
 		return sizeof(TDS_DATETIME4);
-		break;
-		/* conversions not allowed */
-	case SYBUNIQUE:
-	case SYBBIT:
-	case SYBBITN:
-	case SYBINT1:
-	case SYBINT2:
-	case SYBINT4:
-	case SYBINT8:
-	case SYBMONEY4:
-	case SYBMONEY:
-	case SYBNUMERIC:
-	case SYBDECIMAL:
 	default:
 		break;
 	}
-	return TDS_CONVERT_NOAVAIL;
+
+	/* convert to DATETIME and use tds_convert_datetime */
+	dt.dtdays = DT4->days;
+	dt.dttime = DT4->minutes * (60u * 300u);
+#undef DT4
+	return tds_convert_datetime(tds_ctx, SYBDATETIME, (TDS_CHAR *) &dt, desttype, cr);
 }
 
 static TDS_INT
