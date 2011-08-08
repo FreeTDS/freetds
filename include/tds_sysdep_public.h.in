@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998-1999  Brian Bruns
+ * Copyright (C) 1998-2011  Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,7 +20,7 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-/* $Id: tds_sysdep_public.h.in,v 1.14 2010-09-01 08:39:38 freddy77 Exp $ */
+/* $Id: tds_sysdep_public.h.in,v 1.15 2011-08-08 07:27:57 freddy77 Exp $ */
 
 #ifdef __cplusplus
 extern "C"

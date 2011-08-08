@@ -1,5 +1,5 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
- * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
+ * Copyright (C) 1998-2011  Brian Bruns
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,14 +20,17 @@
 #ifndef _tds_sysdep_public_h_
 #define _tds_sysdep_public_h_
 
-static char rcsid_tds_sysdep_public_h[] = "$Id: tds_sysdep_public.h,v 1.9 2011-08-04 04:32:09 freddy77 Exp $";
-static void *no_unused_tds_sysdep_public_h_warn[] = { rcsid_tds_sysdep_public_h, no_unused_tds_sysdep_public_h_warn };
+/* $Id: tds_sysdep_public.h,v 1.10 2011-08-08 07:27:57 freddy77 Exp $ */
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+/*
+** This is where platform-specific changes need to be made.
+*/
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #include <winsock2.h>
 #include <windows.h>
 #define tds_sysdep_int16_type short	/* 16-bit int */
@@ -40,6 +43,7 @@ extern "C"
 #else
 #define tds_sysdep_intptr_type __int64	/* 64-bit int */
 #endif
+#endif				/* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 
 #if !defined(MSDBLIB) && !defined(SYBDBLIB)
 #define SYBDBLIB 1
