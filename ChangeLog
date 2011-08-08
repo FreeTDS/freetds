@@ -1,3 +1,6 @@
+Mon Aug  8 09:06:30 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/util.c: compile commented code is development enabled
+
 Mon Aug  8 09:03:58 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/bulk.c: fix typo
 
@@ -593,4 +596,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3333 2011-08-08 07:04:04 freddy77 Exp $
+$Id: ChangeLog,v 1.3334 2011-08-08 07:06:17 freddy77 Exp $

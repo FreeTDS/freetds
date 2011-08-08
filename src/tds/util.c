@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.100 2011-07-27 16:30:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.101 2011-08-08 07:06:17 freddy77 Exp $");
 
 /**
  * Set state of TDS connection, with logging and checking.
@@ -166,7 +166,8 @@ tds_swap_bytes(unsigned char *buf, int bytes)
 	return bytes;
 }
 
-#if 0
+/* not used by FreeTDS, uncomment if needed */
+#ifdef ENABLE_DEVELOPING
 unsigned int
 tds_gettime_ms(void)
 {
