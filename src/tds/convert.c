@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.203 2011-08-08 08:24:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.204 2011-08-08 09:16:30 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1282,20 +1282,6 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * s
 	}
 	return TDS_CONVERT_NOAVAIL;
 }
-
-
-/*
-static int days_this_year (int years)
-{
-int year;
-
-   year = 1900 + years;
-   if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
-      return 366;
-   else
-      return 365;
-}
-*/
 
 static TDS_INT
 tds_convert_datetime4(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT * cr)

@@ -1,3 +1,6 @@
+Mon Aug  8 11:16:39 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/convert.c: cleanup
+
 Mon Aug  8 10:24:20 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c:
 	- use auto variable directly in string_to_datetime
@@ -607,4 +610,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3337 2011-08-08 08:24:11 freddy77 Exp $
+$Id: ChangeLog,v 1.3338 2011-08-08 09:16:30 freddy77 Exp $
