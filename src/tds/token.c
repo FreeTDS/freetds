@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.411 2011-07-27 16:34:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.412 2011-08-08 09:58:38 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -71,25 +71,12 @@ static TDSRET tds_process_default_tokens(TDSSOCKET * tds, int marker);
 static TDSRET tds5_process_optioncmd(TDSSOCKET * tds);
 static TDSRET tds_process_end(TDSSOCKET * tds, int marker, /*@out@*/ int *flags_parm);
 
-static TDSRET tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static TDSRET tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param);
 static /*@observer@*/ const char *tds_token_name(unsigned char marker);
 static void adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
-static int determine_adjusted_size(const TDSICONV * char_conv, int size);
+int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static /*@observer@*/ const char *tds_pr_op(int op);
 static int tds_alloc_get_string(TDSSOCKET * tds, /*@special@*/ char **string, int len) /*allocates *string*/;
-
-#if ENABLE_EXTRA_CHECKS
-
-#if defined(__GNUC__) && __GNUC__ >= 2
-#define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1] __attribute__ ((unused))
-#else
-#define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1]
-#endif
-
-#endif
 
 /**
  * \ingroup libtds
@@ -1271,7 +1258,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	if (tds_alloc_param_data(curparam) == NULL)
 		return TDS_FAIL;
 
-	token = tds_get_data(tds, curparam);
+	token = curparam->funcs->get_data(tds, curparam);
 	tdsdump_col(curparam);
 
 	/*
@@ -1330,7 +1317,7 @@ tds_process_params_result_token(TDSSOCKET * tds)
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol) != TDS_SUCCESS)
+		if (curcol->funcs->get_data(tds, curcol) != TDS_SUCCESS)
 			return TDS_FAIL;
 	}
 	return TDS_SUCCESS;
@@ -1408,7 +1395,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
-		tds_data_get_info(tds, curcol);
+		curcol->funcs->get_info(tds, curcol);
 
 		tdsdump_log(TDS_DBG_INFO1, "processing result. column_size %d\n", curcol->column_size);
 
@@ -1467,7 +1454,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
 
-	tds_data_get_info(tds, curcol);
+	curcol->funcs->get_info(tds, curcol);
 
 	/* Adjust column size according to client's encoding */
 	curcol->on_server.column_size = curcol->column_size;
@@ -1655,7 +1642,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 
-	tds_data_get_info(tds, curcol);
+	curcol->funcs->get_info(tds, curcol);
 
 	tdsdump_log(TDS_DBG_INFO1, "processing result. column_size %d\n", curcol->column_size);
 
@@ -1822,7 +1809,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
-		tds_data_get_info(tds, curcol);
+		curcol->funcs->get_info(tds, curcol);
 
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
@@ -1881,409 +1868,13 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol) != TDS_SUCCESS) {
-			tdsdump_log(TDS_DBG_INFO1, "tds_process_compute() FAIL: tds_get_data() failed\n");
+		if (curcol->funcs->get_data(tds, curcol) != TDS_SUCCESS) {
+			tdsdump_log(TDS_DBG_INFO1, "tds_process_compute() FAIL: get_data() failed\n");
 			return TDS_FAIL;
 		}
 	}
 	if (pcomputeid)
 		*pcomputeid = id;
-	return TDS_SUCCESS;
-}
-
-static TDSRET
-tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
-{
-	TDS_INT8 len = tds_get_int8(tds);
-	TDS_INT chunk_len;
-	TDS_CHAR **p;
-	size_t offset;
-
-	/* NULL */
-	if (len == -1) {
-		curcol->column_cur_size = -1;
-		return TDS_SUCCESS;
-	}
-
-	curcol->column_cur_size = 0;
-	offset = 0;
-	p = &(((TDSBLOB*) curcol->column_data)->textvalue);
-	for (;;) {
-		TDS_CHAR *tmp;
-
-		chunk_len = tds_get_int(tds);
-		if (chunk_len <= 0) {
-			curcol->column_cur_size = offset;
-			return TDS_SUCCESS;
-		}
-		if (*p == NULL)
-			tmp = (TDS_CHAR*) malloc(chunk_len);
-		else
-			tmp = (TDS_CHAR*) realloc(*p, offset + chunk_len);
-		if (!tmp)
-			return TDS_FAIL;
-		*p = tmp;
-		tds_get_n(tds, *p + offset, chunk_len);
-		offset += chunk_len;
-	}
-	return TDS_SUCCESS;
-}
-
-#if ENABLE_EXTRA_CHECKS
-COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSBLOB*)0)->textvalue));
-COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(TDSBLOB, textvalue));
-#endif
-
-static TDSRET
-tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
-{
-	int colsize = tds_get_int(tds), varint;
-	TDS_UCHAR type, info_len;
-	TDSVARIANT *v;
-
-	/* NULL */
-	curcol->column_cur_size = -1;
-	if (colsize < 2) {
-		tds_get_n(tds, NULL, colsize);
-		return TDS_SUCCESS;
-	}
-
-	v = (TDSVARIANT*) curcol->column_data;
-	v->type = type = tds_get_byte(tds);
-	info_len = tds_get_byte(tds);
-	colsize -= 2;
-	if (info_len > colsize)
-		goto error_type;
-	if (is_collate_type(type)) {
-		if (sizeof(v->collation) > info_len)
-			goto error_type;
-		tds_get_n(tds, v->collation, sizeof(v->collation));
-		colsize -= sizeof(v->collation);
-		info_len -= sizeof(v->collation);
-		curcol->char_conv = is_unicode_type(type) ? 
-			tds->char_convs[client2ucs2] : tds_iconv_from_collate(tds, v->collation);
-	}
-	/* special case for numeric */
-	if (is_numeric_type(type)) {
-		TDS_NUMERIC *num;
-		if (info_len != 2)
-			goto error_type;
-		if (v->data)
-			TDS_ZERO_FREE(v->data);
-		v->data_len = sizeof(TDS_NUMERIC);
-		num = (TDS_NUMERIC*) calloc(1, sizeof(TDS_NUMERIC));
-		v->data = (TDS_CHAR *) num;
-		num->precision = tds_get_byte(tds);
-		num->scale     = tds_get_byte(tds);
-		colsize -= 2;
-		/* FIXME check prec/scale, don't let server crash us */
-		if (colsize > sizeof(num->array))
-			goto error_type;
-		curcol->column_cur_size = colsize;
-		tds_get_n(tds, num->array, colsize);
-		if (IS_TDS7_PLUS(tds))
-			tds_swap_numeric(num);
-		return TDS_SUCCESS;
-	}
-	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds, type);
-	if (varint != info_len)
-		goto error_type;
-	switch (varint) {
-	case 0:
-		v->size = tds_get_size_by_type(type);
-		break;
-	case 1:
-		v->size = tds_get_byte(tds);
-		break;
-	case 2:
-		v->size = tds_get_smallint(tds);
-		break;
-	default:
-		goto error_type;
-	}
-	colsize -= info_len;
-	curcol->column_cur_size = colsize;
-	if (v->data)
-		TDS_ZERO_FREE(v->data);
-	if (colsize) {
-		if (USE_ICONV && curcol->char_conv) {
-			curcol->column_cur_size = determine_adjusted_size(curcol->char_conv, colsize);
-			v->data = (TDS_CHAR*) malloc(curcol->column_cur_size);
-			if (!v->data)
-				return TDS_FAIL;
-			if (tds_get_char_data(tds, (char *) v, colsize, curcol) == TDS_FAIL)
-				return TDS_FAIL;
-			colsize = curcol->column_cur_size;
-			v->type = tds_get_cardinal_type(type, 0);
-		} else {
-			v->data = (TDS_CHAR*) malloc(colsize);
-			if (!v->data)
-				return TDS_FAIL;
-			tds_get_n(tds, v->data, colsize);
-		}
-	}
-	v->data_len = colsize;
-	return TDS_SUCCESS;
-
-error_type:
-	tds_get_n(tds, NULL, colsize);
-	return TDS_FAIL;
-}
-
-/**
- * Read a data from wire
- * \param tds state information for the socket and the TDS protocol
- * \param curcol column where store column information
- * \return TDS_FAIL on error or TDS_SUCCESS
- */
-static TDSRET
-tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
-{
-	unsigned char *dest;
-	int len, colsize;
-	int fillchar;
-	TDSBLOB *blob = NULL;
-
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(curcol);
-
-	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: type %d, varint size %d\n", curcol->column_type, curcol->column_varint_size);
-	switch (curcol->column_varint_size) {
-	case 4:
-		/*
-		 * TODO finish 
-		 * This strange type has following structure 
-		 * 0 len (int32) -- NULL 
-		 * len (int32), type (int8), data -- ints, date, etc
-		 * len (int32), type (int8), 7 (int8), collation, column size (int16) -- [n]char, [n]varchar, binary, varbinary 
-		 * BLOBS (text/image) not supported
-		 */
-		if (curcol->column_type == SYBVARIANT)
-			return tds7_get_variant(tds, curcol);
-		
-		/*
-		 * LONGBINARY
-		 * This type just stores a 4-byte length
-		 */
-		if (curcol->column_type == SYBLONGBINARY) {
-			colsize = tds_get_int(tds);
-			break;
-		}
-		
-		/* It's a BLOB... */
-		len = tds_get_byte(tds);
-		blob = (TDSBLOB *) curcol->column_data;
-		if (len == 16) {	/*  Jeff's hack */
-			tds_get_n(tds, blob->textptr, 16);
-			tds_get_n(tds, blob->timestamp, 8);
-			colsize = tds_get_int(tds);
-		} else {
-			colsize = -1;
-		}
-		break;
-	case 5:
-		blob = (TDSBLOB *) curcol->column_data;
-		colsize = tds_get_int(tds);
-		if (colsize == 0)
-			colsize = -1;
-		break;
-	case 8:
-		return tds72_get_varmax(tds, curcol);
-	case 2:
-		colsize = tds_get_smallint(tds);
-		break;
-	case 1:
-		colsize = tds_get_byte(tds);
-		if (colsize == 0)
-			colsize = -1;
-		break;
-	case 0:
-		/* TODO this should be column_size */
-		colsize = tds_get_size_by_type(curcol->column_type);
-		break;
-	default:
-		colsize = -1;
-		break;
-	}
-	if (IS_TDSDEAD(tds))
-		return TDS_FAIL;
-
-	tdsdump_log(TDS_DBG_INFO1, "tds_get_data(): wire column size is %d \n", colsize);
-	/* set NULL flag in the row buffer */
-	if (colsize < 0) {
-		curcol->column_cur_size = -1;
-		return TDS_SUCCESS;
-	}
-
-	/* 
-	 * We're now set to read the data from the wire.  For varying types (e.g. char/varchar)
-	 * make sure that curcol->column_cur_size reflects the size of the read data, 
-	 * after any charset conversion.  tds_get_char_data() does that for you, 
-	 * but of course tds_get_n() doesn't.  
-	 *
-	 * colsize == wire_size, bytes to read
-	 * curcol->column_cur_size == sizeof destination buffer, room to write
-	 */
-	dest = curcol->column_data;
-	if (is_numeric_type(curcol->column_type)) {
-		/* 
-		 * Handling NUMERIC datatypes: 
-		 * Since these can be passed around independent
-		 * of the original column they came from, we embed the TDS_NUMERIC datatype in the row buffer
-		 * instead of using the wire representation, even though it uses a few more bytes.  
-		 */
-		TDS_NUMERIC *num = (TDS_NUMERIC *) dest;
-		memset(num, '\0', sizeof(TDS_NUMERIC));
-		/* TODO perhaps it would be fine to change format ?? */
-		num->precision = curcol->column_prec;
-		num->scale = curcol->column_scale;
-
-		/* server is going to crash freetds ?? */
-		/* TODO close connection it server try to do so ?? */
-		if (colsize > sizeof(num->array))
-			return TDS_FAIL;
-		tds_get_n(tds, num->array, colsize);
-
-		/* corrected colsize for column_cur_size */
-		colsize = sizeof(TDS_NUMERIC);
-		if (IS_TDS7_PLUS(tds)) {
-			tdsdump_log(TDS_DBG_INFO1, "swapping numeric data...\n");
-			tds_swap_numeric(num);
-		}
-		curcol->column_cur_size = colsize;
-	} else if (is_blob_col(curcol)) {
-		TDS_CHAR *p;
-		int new_blob_size;
-		assert(blob == (TDSBLOB *) dest); 	/* cf. column_varint_size case 4, above */
-		
-		/* 
-		 * Blobs don't use a column's fixed buffer because the official maximum size is 2 GB.
-		 * Instead, they're reallocated as necessary, based on the data's size.  
-		 * Here we allocate memory, if need be.  
-		 */
-		/* TODO this can lead to a big waste of memory */
-		if (USE_ICONV)
-			new_blob_size = determine_adjusted_size(curcol->char_conv, colsize);
-		else
-			new_blob_size = colsize;
-		if (new_blob_size == 0) {
-			curcol->column_cur_size = 0;
-			if (blob->textvalue)
-				TDS_ZERO_FREE(blob->textvalue);
-			return TDS_SUCCESS;
-		}
-
-		p = blob->textvalue; /* save pointer in case realloc fails */
-		if (!p) {
-			p = (TDS_CHAR *) malloc(new_blob_size);
-		} else {
-			/* TODO perhaps we should store allocated bytes too ? */
-			if (new_blob_size > curcol->column_cur_size ||  (curcol->column_cur_size - new_blob_size) > 10240) {
-				p = (TDS_CHAR *) realloc(p, new_blob_size);
-			}
-		}
-		
-		if (!p)
-			return TDS_FAIL;
-		blob->textvalue = p;
-		curcol->column_cur_size = new_blob_size;
-		
-		/* read the data */
-		if (USE_ICONV && curcol->char_conv) {
-			if (tds_get_char_data(tds, (char *) blob, colsize, curcol) == TDS_FAIL)
-				return TDS_FAIL;
-		} else {
-			assert(colsize == new_blob_size);
-			tds_get_n(tds, blob->textvalue, colsize);
-		}
-	} else {		/* non-numeric and non-blob */
-		curcol->column_cur_size = colsize;
-
-		if (USE_ICONV && curcol->char_conv) {
-			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
-				return TDS_FAIL;
-		} else {	
-			/*
-			 * special case, some servers seem to return more data in some conditions 
-			 * (ASA 7 returning 4 byte nullable integer)
-			 */
-			int discard_len = 0;
-			if (colsize > curcol->column_size) {
-				discard_len = colsize - curcol->column_size;
-				colsize = curcol->column_size;
-			}
-			if (tds_get_n(tds, dest, colsize) == NULL)
-				return TDS_FAIL;
-			if (discard_len > 0)
-				tds_get_n(tds, NULL, discard_len);
-			curcol->column_cur_size = colsize;
-		}
-
-		/* pad (UNI)CHAR and BINARY types */
-		fillchar = 0;
-		switch (curcol->column_type) {
-		/* extra handling for SYBLONGBINARY */
-		case SYBLONGBINARY:
-			if (curcol->column_usertype != USER_UNICHAR_TYPE)
-				break;
-		case SYBCHAR:
-		case XSYBCHAR:
-			if (curcol->column_size != curcol->on_server.column_size)
-				break;
-			/* FIXME use client charset */
-			fillchar = ' ';
-		case SYBBINARY:
-		case XSYBBINARY:
-			if (colsize < curcol->column_size)
-				memset(dest + colsize, fillchar, curcol->column_size - colsize);
-			colsize = curcol->column_size;
-			break;
-		}
-
-		if (curcol->on_server.column_type == SYBMSDATE) {
-			dest[3] = 0;
-			curcol->column_cur_size = sizeof(TDS_INT);
-		}
-
-		if (curcol->column_type == SYBDATETIME4) {
-			tdsdump_log(TDS_DBG_INFO1, "datetime4 %d %d %d %d\n", dest[0], dest[1], dest[2], dest[3]);
-		}
-	}
-
-#ifdef WORDS_BIGENDIAN
-	/*
-	 * MS SQL Server 7.0 has broken date types from big endian
-	 * machines, this swaps the low and high halves of the
-	 * affected datatypes
-	 *
-	 * Thought - this might be because we don't have the
-	 * right flags set on login.  -mjs
-	 *
-	 * Nope its an actual MS SQL bug -bsb
-	 */
-	/* TODO test on login, remove configuration -- freddy77 */
-	if (tds_conn(tds)->broken_dates &&
-	    (curcol->column_type == SYBDATETIME ||
-	     curcol->column_type == SYBDATETIME4 ||
-	     curcol->column_type == SYBDATETIMN ||
-	     curcol->column_type == SYBMONEY ||
-	     curcol->column_type == SYBMONEY4 || (curcol->column_type == SYBMONEYN && curcol->column_size > 4)))
-		/*
-		 * above line changed -- don't want this for 4 byte SYBMONEYN
-		 * values (mlilback, 11/7/01)
-		 */
-	{
-		unsigned char temp_buf[8];
-
-		memcpy(temp_buf, dest, colsize / 2);
-		memcpy(dest, &dest[colsize / 2], colsize / 2);
-		memcpy(&dest[colsize / 2], temp_buf, colsize / 2);
-	}
-	if (tds_conn(tds)->emul_little_endian) {
-		tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n", tds_get_conversion_type(curcol->column_type, colsize));
-		tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), dest);
-	}
-#endif
 	return TDS_SUCCESS;
 }
 
@@ -2309,7 +1900,7 @@ tds_process_row(TDSSOCKET * tds)
 	for (i = 0; i < info->num_cols; i++) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d \n", i);
 		curcol = info->columns[i];
-		if (tds_get_data(tds, curcol) != TDS_SUCCESS)
+		if (curcol->funcs->get_data(tds, curcol) != TDS_SUCCESS)
 			return TDS_FAIL;
 	}
 	return TDS_SUCCESS;
@@ -2895,7 +2486,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		/* column type */
 		tds_set_column_type(tds, curcol, tds_get_byte(tds));
 
-		tds_data_get_info(tds, curcol);
+		curcol->funcs->get_info(tds, curcol);
 
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
@@ -3444,7 +3035,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
  * is Unicode or not; even Latin1 text need conversion if,
  * for example, the client is UTF-8.  
  */
-static int
+int
 determine_adjusted_size(const TDSICONV * char_conv, int size)
 {
 	if (!char_conv)

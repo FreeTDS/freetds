@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.33 2011-06-03 21:13:27 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.34 2011-08-08 09:58:38 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -172,9 +172,10 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	int size;
 	TDSSOCKET tds;
 	int varint_ok;
-	int column_varint_size = column->column_varint_size;
+	int column_varint_size;
 
 	assert(column);
+	column_varint_size = column->column_varint_size;
 
 	/* 8 is for varchar(max) or similar */
 	assert(column_varint_size == 8 || (column_varint_size <= 5 && column_varint_size != 3));
@@ -185,6 +186,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	/* I don't like this that much... freddy77 */
 	if (column->column_type == 0)
 		return;
+	assert(column->funcs);
 	assert(column->column_type > 0);
 
 	assert(strlen(column->table_name) < sizeof(column->table_name));

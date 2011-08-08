@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.380 2011-07-27 16:34:08 freddy77 Exp $ */
+/* $Id: tds.h,v 1.381 2011-08-08 09:58:38 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -41,6 +41,7 @@
 /* forward declaration */
 typedef struct tdsiconvinfo TDSICONV;
 typedef struct tds_socket TDSSOCKET;
+typedef struct tds_column TDSCOLUMN;
 
 #include "tdsver.h"
 #include "tds_sysdep_public.h"
@@ -571,11 +572,21 @@ typedef struct tds_bcpcoldata
 enum
 { TDS_SYSNAME_SIZE = 512 };
 
+typedef struct tds_column_funcs
+{
+	TDSRET (*get_info)(TDSSOCKET *tds, TDSCOLUMN *col);
+	TDSRET (*get_data)(TDSSOCKET *tds, TDSCOLUMN *col);
+//	TDSRET (*put_info)(TDSSOCKET *tds, TDSCOLUMN *col);
+//	TDSRET (*put_data)(TDSSOCKET *tds, TDSCOLUMN *col);
+//	TDSRET (*convert)(TDSSOCKET *tds, TDSCOLUMN *col);
+} TDSCOLUMNFUNCS;
+
 /** 
  * Metadata about columns in regular and compute rows 
  */
-typedef struct tds_column
+struct tds_column
 {
+	const TDSCOLUMNFUNCS *funcs;
 	TDS_INT column_usertype;
 	TDS_INT column_flags;
 
@@ -648,7 +659,7 @@ typedef struct tds_column
 	TDS_INT bcp_prefix_len;
 	TDS_INT bcp_term_len;
 	TDS_CHAR *bcp_terminator;
-} TDSCOLUMN;
+};
 
 
 /** Hold information for any results */
@@ -1150,7 +1161,6 @@ TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@o
 /* data.c */
 void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
 void tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type);
-TDSRET tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col);
 
 
 /* tds_convert.c */

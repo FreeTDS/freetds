@@ -1,3 +1,9 @@
+Mon Aug  8 11:58:41 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/data.c src/tds/tds_checks.c:
+	* src/tds/token.c:
+	- start moving some code to src/tds/data.c and use some callbacks
+	  for data
+
 Mon Aug  8 11:41:57 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: return NOAVAIL converting money to datetime
 
@@ -616,4 +622,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3340 2011-08-08 09:41:45 freddy77 Exp $
+$Id: ChangeLog,v 1.3341 2011-08-08 09:58:38 freddy77 Exp $
