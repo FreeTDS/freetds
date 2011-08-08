@@ -1,3 +1,7 @@
+Mon Aug  8 14:27:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/convert.c src/tds/data.c src/tds/token.c:
+	- conversion and data work on ms date/time
+
 Mon Aug  8 14:21:23 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/ctlib/cs.c src/dblib/dblib.c:
 	* src/odbc/convert_tds2sql.c src/tds/convert.c:
@@ -645,4 +649,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3347 2011-08-08 12:21:16 freddy77 Exp $
+$Id: ChangeLog,v 1.3348 2011-08-08 12:27:09 freddy77 Exp $

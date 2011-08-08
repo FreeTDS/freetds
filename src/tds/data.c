@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.37 2011-08-08 11:52:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.38 2011-08-08 12:27:09 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -123,9 +123,6 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 		break;
 	case SYBBITN:
 		curcol->on_server.column_size = curcol->column_size = sizeof(TDS_TINYINT);
-		break;
-	case SYBMSDATE:
-		curcol->on_server.column_size = curcol->column_size = 4;
 		break;
 	/* mssql 2005 don't like SYBINT4 as parameter closing connection  */
 	case SYBINT1:
@@ -227,10 +224,7 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		}
 		break;
 	case 1:
-		if (col->column_type == SYBMSDATE)
-			col->column_size = 4;
-		else
-			col->column_size = tds_get_byte(tds);
+		col->column_size = tds_get_byte(tds);
 		break;
 	case 0:
 		col->column_size = tds_get_size_by_type(col->column_type);
@@ -608,11 +602,6 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			colsize = curcol->column_size;
 			break;
 		}
-
-		if (curcol->on_server.column_type == SYBMSDATE) {
-			dest[3] = 0;
-			curcol->column_cur_size = sizeof(TDS_INT);
-		}
 	}
 
 #ifdef WORDS_BIGENDIAN
@@ -729,15 +718,112 @@ DEFINE_FUNCS(numeric, numeric);
 
 DEFINE_FUNCS(variant, variant);
 
+static TDSRET
+tds_msdatetime_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	if (col->column_type != SYBMSDATE) {
+		col->column_prec = tds_get_byte(tds);
+		if (col->column_prec > 7)
+			return TDS_FAIL;
+	}
+	col->on_server.column_size = col->column_size = sizeof(TDS_DATETIMEALL);
+	return TDS_SUCCESS;
+}
 
+static TDS_INT
+tds_msdatetime_row_len(TDSCOLUMN *col)
+{
+	return sizeof(TDS_DATETIMEALL);
+}
+
+static TDSRET
+tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	TDS_DATETIMEALL *dt = (TDS_DATETIMEALL*) col->column_data;
+	int size = tds_get_byte(tds);
+
+	if (size == 0) {
+		col->column_cur_size = -1;
+		return TDS_SUCCESS;
+	}
+
+	memset(dt, 0, sizeof(*dt));
+
+	if (col->column_type == SYBMSDATETIMEOFFSET)
+		size -= 2;
+	if (col->column_type != SYBMSTIME)
+		size -= 3;
+	if (size < 0)
+		return TDS_FAIL;
+
+	dt->time_prec = col->column_prec;
+
+	/* get time part */
+	if (col->column_type != SYBMSDATE) {
+		union {
+			TDS_UINT8 u8;
+			unsigned char b[8];
+		} data;
+		int i;
+
+		assert(size >= 3 && size <= 5);
+		if (size < 3 || size > 5)
+			return TDS_FAIL;
+		data.u8 = 0;
+		tds_get_n(tds, data.b, size);
+#ifdef WORDS_BIGENDIAN
+		tds_swap_bytes(data.b, 8);
+#endif
+		for (i = col->column_prec; i < 7; ++i)
+			data.u8 *= 10;
+		dt->time = data.u8;
+		dt->has_time = 1;
+	}
+
+	/* get date part */
+	if (col->column_type != SYBMSTIME) {
+		union {
+			TDS_UINT ui;
+			unsigned char b[4];
+		} data;
+
+		tds_get_n(tds, data.b, 3);
+		data.b[3] = 0;
+#ifdef WORDS_BIGENDIAN
+		tds_swap_bytes(data.b, 4);
+#endif
+		dt->has_date = 1;
+		dt->date = data.ui - 693595;
+	}
+
+	/* get time offset */
+	if (col->column_type == SYBMSDATETIMEOFFSET) {
+		dt->offset = tds_get_smallint(tds);
+		dt->has_offset = 1;
+	}
+	col->column_cur_size = sizeof(TDS_DATETIMEALL);
+	return TDS_SUCCESS;
+}
+
+DEFINE_FUNCS(msdatetime, msdatetime);
 
 static const TDSCOLUMNFUNCS *
 tds_get_column_funcs(TDSSOCKET *tds, int type)
 {
-	if (is_numeric_type(type))
+	switch (type) {
+	case SYBNUMERIC:
+	case SYBDECIMAL:
 		return &numeric_funcs;
-	else if (IS_TDS7_PLUS(tds) && type == SYBVARIANT)
-		return &variant_funcs;
+	case SYBVARIANT:
+		if (IS_TDS7_PLUS(tds))
+			return &variant_funcs;
+		break;
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		return &msdatetime_funcs;
+	}
 	return &default_funcs;
 }
 #include "tds_types.h"

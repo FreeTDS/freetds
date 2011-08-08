@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.209 2011-08-08 12:21:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.210 2011-08-08 12:27:09 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1595,6 +1595,7 @@ TDS_INT
 tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
 {
 	TDS_INT length = 0;
+	TDS_DATETIME dt;
 
 	assert(srclen >= 0 && srclen <= 2147483647u);
 
@@ -1641,6 +1642,19 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 	case SYBFLT8:
 		length = tds_convert_flt8(srctype, src, desttype, cr);
 		break;
+	case SYBMSTIME:
+	case SYBMSDATE:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+#define dta ((TDS_DATETIMEALL *) (src))
+		memset(&dt, 0, sizeof(dt));
+		if (dta->has_time)
+			dt.dttime = (dta->time * 300u + 150u) / 10000000lu;
+		if (dta->has_date)
+			dt.dtdays = dta->date;
+		length = tds_convert_datetime(tds_ctx, SYBDATETIME, (const TDS_CHAR *) &dt, desttype, cr);
+		break;
+#undef dta
 	case SYBDATETIME:
 		length = tds_convert_datetime(tds_ctx, srctype, src, desttype, cr);
 		break;

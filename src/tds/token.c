@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.412 2011-08-08 09:58:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.413 2011-08-08 12:27:09 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -2539,7 +2539,6 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 	case SYBINT4:
 	case SYBMONEY4:
 	case SYBREAL:
-	case SYBMSDATE:
 		tds_swap_bytes(buf, 4);
 		break;
 	case SYBINT8:

@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.383 2011-08-08 12:21:16 freddy77 Exp $ */
+/* $Id: tds.h,v 1.384 2011-08-08 12:27:09 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -121,6 +121,20 @@ typedef unsigned tds_sysdep_int64_type TDS_UINT8;	/* 64-bit unsigned */
 typedef tds_sysdep_intptr_type TDS_INTPTR;
 
 #include "tdsproto.h"
+
+/* this structure is not directed connected to a TDS protocol but
+ * keeps any DATE/TIME information
+ */
+typedef struct
+{
+	TDS_UINT8   time;	/* time, 7 digit precision */
+	TDS_INT      date;	/* date, 0 = 1900-01-01 */
+	TDS_SMALLINT offset;	/* time offset */
+	unsigned     time_prec:4;
+	unsigned     has_time:1;
+	unsigned     has_date:1;
+	unsigned     has_offset:1;
+} TDS_DATETIMEALL;
 
 /** Used by tds_datecrack */
 typedef struct tdsdaterec
