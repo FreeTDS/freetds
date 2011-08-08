@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.214 2011-07-09 19:50:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.215 2011-08-08 12:32:07 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -961,7 +961,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
 					tds_datecrack(srctype, src, &when);
 					buflen = (int)tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
-								 bcpdatefmt, &when);
+								 bcpdatefmt, &when, 3);
 				} else {
 					/*
 					 * For null columns, the above work to determine the output buffer size is moot,

@@ -1,3 +1,8 @@
+Mon Aug  8 14:32:12 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsconvert.h src/dblib/bcp.c src/dblib/dblib.c:
+	* src/odbc/convert_tds2sql.c src/tds/convert.c:
+	- allow to pass a precision to tds_strftime
+
 Mon Aug  8 14:30:40 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c:
 	- rewrote tds_convert_datetime4 using tds_convert_datetime
@@ -653,4 +658,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3349 2011-08-08 12:30:34 freddy77 Exp $
+$Id: ChangeLog,v 1.3350 2011-08-08 12:32:07 freddy77 Exp $

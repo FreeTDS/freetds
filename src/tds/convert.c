@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.211 2011-08-08 12:30:34 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.212 2011-08-08 12:32:07 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1254,7 +1254,7 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * s
 		memset(&when, 0, sizeof(when));
 
 		tds_datecrack(SYBDATETIME, src, &when);
-		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when);
+		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 3);
 
 		return string_to_result(whole_date_string, cr);
 		break;
@@ -2661,7 +2661,7 @@ tds_get_null_type(int srctype)
  * @return length of string returned, 0 for error
  */
 size_t
-tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * dr)
+tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * dr, int prec)
 {
 	struct tm tm;
 
@@ -2673,6 +2673,8 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	assert(format);
 	assert(dr);
 	assert(0 <= dr->decimicrosecond && dr->decimicrosecond < 10000000);
+	if (prec < 0 || prec > 7)
+		prec = 3;
 
 	tm.tm_sec = dr->second;
 	tm.tm_min = dr->minute;
@@ -2689,8 +2691,8 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	tm.__tm_zone = NULL;
 #endif
 
-	/* one more character is required because we replace %z with 3 digits */
-	our_format = (char*) malloc(strlen(format) + 2);
+	/* more characters are required because we replace %z with up to 7 digits */
+	our_format = (char*) malloc(strlen(format) + 1 + 5);
 	if (!our_format)
 		return 0;
 
@@ -2709,12 +2711,10 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	}
 
 	if (pz) {
-		sprintf(pz, "%03d", (dr->decimicrosecond / 10000u) % 1000);
-		strcat(our_format, format + (pz - our_format) + 2);
-#if 0
-		tdsdump_log(TDS_DBG_INFO1, "tds_strftime: our_format '%s', tail '%s'\n", 
-						our_format, format + (pz - our_format) + 2);
-#endif
+		char buf[12];
+		sprintf(buf, "%07d", dr->decimicrosecond);
+		memcpy(pz, buf, prec);
+		strcpy(pz + prec, format + (pz - our_format) + 2);
 	}
 
 	length = strftime(buf, maxsize, our_format, &tm);

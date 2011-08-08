@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.75 2011-08-08 12:21:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.76 2011-08-08 12:32:07 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -270,7 +270,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		memset(&when, 0, sizeof(when));
 
 		tds_datecrack(srctype, src, &when);
-		tds_strftime(buf, sizeof(buf), srctype == SYBDATETIME ? "%Y-%m-%d %H:%M:%S.%z" : "%Y-%m-%d %H:%M:%S", &when);
+		tds_strftime(buf, sizeof(buf), srctype == SYBDATETIME ? "%Y-%m-%d %H:%M:%S.%z" : "%Y-%m-%d %H:%M:%S", &when, 3);
 
 		nRetVal = strlen(buf);
 		memcpy(dest, buf, destlen < nRetVal ? destlen : nRetVal);
