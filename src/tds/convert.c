@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.204 2011-08-08 09:16:30 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.205 2011-08-08 09:39:09 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -474,12 +474,9 @@ tds_convert_char(int srctype, const TDS_CHAR * src, TDS_UINT srclen, int desttyp
 		}
 		break;
 	case SYBDATETIME:
-		/* FIXME not null terminated */
-		return string_to_datetime(src, SYBDATETIME, cr);
-		break;
 	case SYBDATETIME4:
 		/* FIXME not null terminated */
-		return string_to_datetime(src, SYBDATETIME4, cr);
+		return string_to_datetime(src, desttype, cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
