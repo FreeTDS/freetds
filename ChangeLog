@@ -1,3 +1,6 @@
+Mon Aug  8 13:51:14 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/data.c: separate variant type
+
 Mon Aug  8 13:48:29 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/data.c: separate numeric type
 
@@ -625,4 +628,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3342 2011-08-08 11:48:19 freddy77 Exp $
+$Id: ChangeLog,v 1.3343 2011-08-08 11:51:05 freddy77 Exp $

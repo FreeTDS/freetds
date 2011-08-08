@@ -37,12 +37,12 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.35 2011-08-08 11:48:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.36 2011-08-08 11:51:05 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
 int determine_adjusted_size(const TDSICONV * char_conv, int size);
-static const TDSCOLUMNFUNCS *tds_get_column_funcs(int type);
+static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSSOCKET *tds, int type);
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -66,7 +66,7 @@ tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type)
 {
 	/* set type */
 	curcol->on_server.column_type = type;
-	curcol->funcs = tds_get_column_funcs(type);
+	curcol->funcs = tds_get_column_funcs(tds, type);
 	curcol->column_type = tds_get_cardinal_type(type, curcol->column_usertype);
 
 	/* set size */
@@ -318,8 +318,15 @@ COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSB
 COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(TDSBLOB, textvalue));
 #endif
 
+/*
+ * This strange type has following structure 
+ * 0 len (int32) -- NULL 
+ * len (int32), type (int8), data -- ints, date, etc
+ * len (int32), type (int8), 7 (int8), collation, column size (int16) -- [n]char, [n]varchar, binary, varbinary 
+ * BLOBS (text/image) not supported
+ */
 static TDSRET
-tds7_get_variant(TDSSOCKET * tds, TDSCOLUMN * curcol)
+tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	int colsize = tds_get_int(tds), varint;
 	TDS_UCHAR type, info_len;
@@ -434,17 +441,6 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: type %d, varint size %d\n", curcol->column_type, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
 	case 4:
-		/*
-		 * TODO finish 
-		 * This strange type has following structure 
-		 * 0 len (int32) -- NULL 
-		 * len (int32), type (int8), data -- ints, date, etc
-		 * len (int32), type (int8), 7 (int8), collation, column size (int16) -- [n]char, [n]varchar, binary, varbinary 
-		 * BLOBS (text/image) not supported
-		 */
-		if (curcol->column_type == SYBVARIANT)
-			return tds7_get_variant(tds, curcol);
-		
 		/*
 		 * LONGBINARY
 		 * This type just stores a 4-byte length
@@ -710,12 +706,22 @@ const TDSCOLUMNFUNCS numeric_funcs = {
 //	tds_data_put
 };
 
+const TDSCOLUMNFUNCS variant_funcs = {
+	tds_data_get_info,
+	tds_variant_get,
+//	tds_data_put_info,
+//	tds_data_put
+};
+
+
 
 static const TDSCOLUMNFUNCS *
-tds_get_column_funcs(int type)
+tds_get_column_funcs(TDSSOCKET *tds, int type)
 {
 	if (is_numeric_type(type))
 		return &numeric_funcs;
+	else if (IS_TDS7_PLUS(tds) && type == SYBVARIANT)
+		return &variant_funcs;
 	return &default_funcs;
 }
 #include "tds_types.h"
