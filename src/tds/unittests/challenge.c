@@ -26,7 +26,7 @@
 #include "md5.h"
 #include "hmac_md5.h"
 
-static char software_version[] = "$Id: challenge.c,v 1.1 2011-08-08 14:11:44 freddy77 Exp $";
+static char software_version[] = "$Id: challenge.c,v 1.2 2011-08-08 16:56:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static char *
@@ -136,6 +136,6 @@ main(void)
 	md5tests();
 	hmac5tests();
 	printf("All tests passed\n");
-	return 1;
+	return 0;
 }
 
