@@ -980,9 +980,6 @@ tds_process_col_fmt(TDSSOCKET * tds)
 	int col, hdrsize;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
-	TDS_SMALLINT tabnamesize;
-	int bytes_read = 0;
-	int rest;
 	TDS_SMALLINT flags;
 
 	CHECK_TDS_EXTRA(tds);
@@ -1009,33 +1006,11 @@ tds_process_col_fmt(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 			    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 
-		switch (curcol->column_varint_size) {
-		case 4:
-			curcol->column_size = tds_get_int(tds);
-			/* junk the table name -- for now */
-			tabnamesize = tds_get_smallint(tds);
-			tds_get_n(tds, NULL, tabnamesize);
-			bytes_read += 5 + 4 + 2 + tabnamesize;
-			break;
-		case 1:
-			curcol->column_size = tds_get_byte(tds);
-			bytes_read += 5 + 1;
-			break;
-		case 0:
-			bytes_read += 5 + 0;
-			break;
-		}
+		curcol->funcs->get_info(tds, curcol);
 
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
 		adjust_character_column_size(tds, curcol);
-	}
-
-	/* get the rest of the bytes */
-	rest = hdrsize - bytes_read;
-	if (rest > 0) {
-		tdsdump_log(TDS_DBG_INFO1, "NOTE:tds_process_col_fmt: draining %d bytes\n", rest);
-		tds_get_n(tds, NULL, rest);
 	}
 
 	return tds_alloc_row(info);
