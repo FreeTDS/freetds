@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.21 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.22 2011-08-08 07:04:05 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -1081,7 +1081,7 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 	if (tds_process_simple_query(tds) != TDS_SUCCESS)
 		return TDS_FAIL;
 
-	/* FIXME better transiction state */
+	/* FIXME better transition state */
 	tds->out_flag = TDS_BULK;
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
