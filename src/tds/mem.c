@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.219 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.220 2011-08-08 11:52:10 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -321,14 +321,7 @@ tds_alloc_param_data(TDSCOLUMN * curparam)
 
 	CHECK_COLUMN_EXTRA(curparam);
 
-	if (is_numeric_type(curparam->column_type)) {
-		data_size = sizeof(TDS_NUMERIC);
-	} else if (is_blob_col(curparam)) {
-		data_size = sizeof(TDSBLOB);
-	} else {
-		data_size = curparam->column_size;
-	}
-
+	data_size = curparam->funcs->row_len(curparam);
 
 	/* allocate data */
 	if (curparam->column_data && curparam->column_data_free)
@@ -477,13 +470,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 
 		col->column_data_free = NULL;
 
-		if (is_numeric_type(col->column_type)) {
-			row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_col(col)) {
-			row_size += sizeof(TDSBLOB);
-		} else {
-			row_size += col->column_size;
-		}
+		row_size += col->funcs->row_len(col);
 		row_size += (TDS_ALIGN_SIZE - 1);
 		row_size -= row_size % TDS_ALIGN_SIZE;
 	}
@@ -502,13 +489,7 @@ tds_alloc_row(TDSRESULTINFO * res_info)
 
 		col->column_data = ptr + row_size;
 
-		if (is_numeric_type(col->column_type)) {
-			row_size += sizeof(TDS_NUMERIC);
-		} else if (is_blob_col(col)) {
-			row_size += sizeof(TDSBLOB);
-		} else {
-			row_size += col->column_size;
-		}
+		row_size += col->funcs->row_len(col);
 		row_size += (TDS_ALIGN_SIZE - 1);
 		row_size -= row_size % TDS_ALIGN_SIZE;
 	}

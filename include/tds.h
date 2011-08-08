@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.381 2011-08-08 09:58:38 freddy77 Exp $ */
+/* $Id: tds.h,v 1.382 2011-08-08 11:52:10 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -576,6 +576,7 @@ typedef struct tds_column_funcs
 {
 	TDSRET (*get_info)(TDSSOCKET *tds, TDSCOLUMN *col);
 	TDSRET (*get_data)(TDSSOCKET *tds, TDSCOLUMN *col);
+	TDS_INT (*row_len)(TDSCOLUMN *col);
 //	TDSRET (*put_info)(TDSSOCKET *tds, TDSCOLUMN *col);
 //	TDSRET (*put_data)(TDSSOCKET *tds, TDSCOLUMN *col);
 //	TDSRET (*convert)(TDSSOCKET *tds, TDSCOLUMN *col);

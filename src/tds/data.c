@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.36 2011-08-08 11:51:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.37 2011-08-08 11:52:10 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -273,6 +273,21 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		}
 	}
 	return TDS_SUCCESS;
+}
+
+#if ENABLE_EXTRA_CHECKS
+/* tds_data_row_len support also variant and return size to hold blob */
+COMPILE_CHECK(variant_size, sizeof(TDSBLOB) >= sizeof(TDSVARIANT));
+#endif
+
+static TDS_INT
+tds_data_row_len(TDSCOLUMN *col)
+{
+	CHECK_COLUMN_EXTRA(col);
+
+	if (is_blob_col(col))
+		return sizeof(TDSBLOB);
+	return col->column_size;
 }
 
 static TDSRET
@@ -637,12 +652,14 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCESS;
 }
 
-const TDSCOLUMNFUNCS default_funcs = {
-	tds_data_get_info,
-	tds_data_get,
-//	tds_data_put_info,
-//	tds_data_put
+#define DEFINE_FUNCS(prefix, name) \
+const TDSCOLUMNFUNCS prefix ## _funcs = { \
+	tds_ ## name ## _get_info, \
+	tds_ ## name ## _get, \
+	tds_ ## name ## _row_len, \
 };
+
+DEFINE_FUNCS(default, data);
 
 static TDSRET
 tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
@@ -653,6 +670,12 @@ tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	/* FIXME check prec/scale, don't let server crash us */
 
 	return TDS_SUCCESS;
+}
+
+static TDS_INT
+tds_numeric_row_len(TDSCOLUMN *col)
+{
+	return sizeof(TDS_NUMERIC);
 }
 
 static TDSRET
@@ -699,19 +722,12 @@ tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 }
 
 
-const TDSCOLUMNFUNCS numeric_funcs = {
-	tds_numeric_get_info,
-	tds_numeric_get,
-//	tds_data_put_info,
-//	tds_data_put
-};
+DEFINE_FUNCS(numeric, numeric);
 
-const TDSCOLUMNFUNCS variant_funcs = {
-	tds_data_get_info,
-	tds_variant_get,
-//	tds_data_put_info,
-//	tds_data_put
-};
+#define tds_variant_get_info tds_data_get_info
+#define tds_variant_row_len  tds_data_row_len
+
+DEFINE_FUNCS(variant, variant);
 
 
 

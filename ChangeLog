@@ -1,3 +1,7 @@
+Mon Aug  8 13:52:21 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/data.c src/tds/mem.c:
+	- add row_len function to TDSCOLUMNFUNCS
+
 Mon Aug  8 13:51:14 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/data.c: separate variant type
 
@@ -628,4 +632,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3343 2011-08-08 11:51:05 freddy77 Exp $
+$Id: ChangeLog,v 1.3344 2011-08-08 11:52:10 freddy77 Exp $
