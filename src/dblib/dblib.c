@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.399 2011-07-09 19:50:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.400 2011-08-08 12:21:16 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -5629,7 +5629,7 @@ dbdatecrack(DBPROCESS * dbproc, DBDATEREC * output, DBDATETIME * datetime)
 	di->datehour = dr.hour;
 	di->dateminute = dr.minute;
 	di->datesecond = dr.second;
-	di->datemsecond = dr.millisecond;
+	di->datemsecond = dr.decimicrosecond / 10000u;
 	/* Revert to compiled-in default if dbproc can't be used to find the runtime override. */
 	if (dbproc ? dbproc->msdblib : msdblib) {
 		++di->quarter;

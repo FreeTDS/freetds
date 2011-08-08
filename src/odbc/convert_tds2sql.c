@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.74 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.75 2011-08-08 12:21:16 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -392,7 +392,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			tssp->hour = dr.hour;
 			tssp->minute = dr.minute;
 			tssp->second = dr.second;
-			tssp->fraction = dr.millisecond * 1000000u;
+			tssp->fraction = dr.decimicrosecond * 100u;
 
 			ret = sizeof(TIMESTAMP_STRUCT);
 		}

@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.208 2011-08-08 12:17:49 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.209 2011-08-08 12:21:16 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2686,7 +2686,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	assert(buf);
 	assert(format);
 	assert(dr);
-	assert(0 <= dr->millisecond && dr->millisecond < 1000);
+	assert(0 <= dr->decimicrosecond && dr->decimicrosecond < 10000000);
 
 	tm.tm_sec = dr->second;
 	tm.tm_min = dr->minute;
@@ -2723,7 +2723,7 @@ tds_strftime(char *buf, size_t maxsize, const char *format, const TDSDATEREC * d
 	}
 
 	if (pz) {
-		sprintf(pz, "%03d", dr->millisecond % 1000);
+		sprintf(pz, "%03d", (dr->decimicrosecond / 10000u) % 1000);
 		strcat(our_format, format + (pz - our_format) + 2);
 #if 0
 		tdsdump_log(TDS_DBG_INFO1, "tds_strftime: our_format '%s', tail '%s'\n", 
@@ -2970,7 +2970,7 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 	dr->hour = hours;
 	dr->minute = mins;
 	dr->second = secs;
-	dr->millisecond = ms;
+	dr->decimicrosecond = ms * 10000u;
 	return TDS_SUCCESS;
 }
 

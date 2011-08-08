@@ -48,7 +48,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.80 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.81 2011-08-08 12:21:16 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -917,7 +917,7 @@ cs_dt_crack(CS_CONTEXT * ctx, CS_INT datetype, CS_VOID * dateval, CS_DATEREC * d
 	daterec->datehour = dr.hour;
 	daterec->dateminute = dr.minute;
 	daterec->datesecond = dr.second;
-	daterec->datemsecond = dr.millisecond;
+	daterec->datemsecond = dr.decimicrosecond / 10000u;
 	daterec->datetzone = 0;
 
 	return CS_SUCCEED;

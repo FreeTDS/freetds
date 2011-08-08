@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.382 2011-08-08 11:52:10 freddy77 Exp $ */
+/* $Id: tds.h,v 1.383 2011-08-08 12:21:16 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -135,7 +135,7 @@ typedef struct tdsdaterec
 	TDS_INT hour;	       /**< 0-23 */
 	TDS_INT minute;	       /**< 0-59 */
 	TDS_INT second;	       /**< 0-59 */
-	TDS_INT millisecond;   /**< 0-999 */
+	TDS_INT decimicrosecond;   /**< 0-9999999 */
 	TDS_INT tzone;
 } TDSDATEREC;
 
