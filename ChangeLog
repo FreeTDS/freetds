@@ -1,3 +1,7 @@
+Tue Aug  9 08:26:42 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild:
+	- update autobuild using different position for working directory
+
 Mon Aug  8 18:57:47 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/unittests/dynamic1.c: make dynamic1 test work again
 
@@ -673,4 +677,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3354 2011-08-08 16:57:42 freddy77 Exp $
+$Id: ChangeLog,v 1.3355 2011-08-09 06:26:39 freddy77 Exp $
