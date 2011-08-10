@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.38 2011-08-08 12:27:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.39 2011-08-10 07:40:09 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -799,6 +799,8 @@ tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 	/* get time offset */
 	if (col->column_type == SYBMSDATETIMEOFFSET) {
 		dt->offset = tds_get_smallint(tds);
+		if (dt->offset > 840 || dt->offset < -840)
+			return TDS_FAIL;
 		dt->has_offset = 1;
 	}
 	col->column_cur_size = sizeof(TDS_DATETIMEALL);
