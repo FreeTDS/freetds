@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.260 2011-08-10 07:42:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.261 2011-08-10 07:46:08 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -379,8 +379,8 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			/* FIXME handle error */
-			tds_put_data(tds, param);
+			if (tds_put_data(tds, param) != TDS_SUCCESS)
+				return TDS_FAIL;
 		}
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
 	}
@@ -1194,8 +1194,8 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			/* FIXME handle error */
-			tds_put_data(tds, param);
+			if (tds_put_data(tds, param) != TDS_SUCCESS)
+				return TDS_FAIL;
 		}
 
 		tds->internal_sp_called = TDS_SP_EXECUTESQL;
@@ -1349,8 +1349,8 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 			TDSCOLUMN *param = params->columns[i];
 			/* TODO check error */
 			tds_put_data_info(tds, param, 0);
-			/* FIXME handle error */
-			tds_put_data(tds, param);
+			if (tds_put_data(tds, param) != TDS_SUCCESS)
+				return TDS_FAIL;
 		}
 	}
 
@@ -1469,48 +1469,13 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	/* FIXME: column_type is wider than one byte.  Do something sensible, not just lop off the high byte. */
 	tds_put_byte(tds, curcol->on_server.column_type);
 
-	if (is_numeric_type(curcol->on_server.column_type)) {
-#if 1
-		tds_put_byte(tds, tds_numeric_bytes_per_prec[curcol->column_prec]);
-		tds_put_byte(tds, curcol->column_prec);
-		tds_put_byte(tds, curcol->column_scale);
-#else
-		TDS_NUMERIC *num = (TDS_NUMERIC *) curcol->column_data;
-		tds_put_byte(tds, tds_numeric_bytes_per_prec[num->precision]);
-		tds_put_byte(tds, num->precision);
-		tds_put_byte(tds, num->scale);
-#endif
-	} else {
-		size_t size = tds_fix_column_size(tds, curcol);
-		switch (curcol->column_varint_size) {
-		case 0:
-			break;
-		case 1:
-			tds_put_byte(tds, size);
-			break;
-		case 2:
-			tds_put_smallint(tds, size);
-			break;
-		case 5:
-		case 4:
-			tds_put_int(tds, size);
-			break;
-		case 8:
-			tds_put_smallint(tds, 0xffff);
-			break;
-		}
-	}
-
-	/* TDS7.1 output collate information */
-	if (IS_TDS71_PLUS(tds) && is_collate_type(curcol->on_server.column_type))
-		tds_put_n(tds, tds->collation, 5);
+	if (curcol->funcs->put_info(tds, curcol) != TDS_SUCCESS)
+		return TDS_FAIL;
 
 	/* TODO needed in TDS4.2 ?? now is called only is TDS >= 5 */
-	if (!IS_TDS7_PLUS(tds)) {
-
-		tdsdump_log(TDS_DBG_ERROR, "HERE! \n");
+	if (!IS_TDS7_PLUS(tds))
 		tds_put_byte(tds, 0x00);	/* locale info length */
-	}
+
 	return TDS_SUCCESS;
 }
 

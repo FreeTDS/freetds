@@ -38,7 +38,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.41 2011-08-10 07:42:15 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.42 2011-08-10 07:46:08 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -646,6 +646,46 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 }
 
 /**
+ * Put data information to wire
+ * \param tds   state information for the socket and the TDS protocol
+ * \param col   column where to store information
+ * \return TDS_SUCCESS or TDS_FAIL
+ */
+static TDSRET
+tds_data_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	size_t size;
+
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(col);
+
+	size = tds_fix_column_size(tds, col);
+	switch (col->column_varint_size) {
+	case 0:
+		break;
+	case 1:
+		tds_put_byte(tds, size);
+		break;
+	case 2:
+		tds_put_smallint(tds, size);
+		break;
+	case 5:
+	case 4:
+		tds_put_int(tds, size);
+		break;
+	case 8:
+		tds_put_smallint(tds, 0xffff);
+		break;
+	}
+
+	/* TDS7.1 output collate information */
+	if (IS_TDS71_PLUS(tds) && is_collate_type(col->on_server.column_type))
+		tds_put_n(tds, tds->collation, 5);
+
+	return TDS_SUCCESS;
+}
+
+/**
  * Write data to wire
  * \param tds state information for the socket and the TDS protocol
  * \param curcol column where store column information
@@ -852,6 +892,7 @@ const TDSCOLUMNFUNCS prefix ## _funcs = { \
 	tds_ ## name ## _get_info, \
 	tds_ ## name ## _get, \
 	tds_ ## name ## _row_len, \
+	tds_ ## name ## _put_info, \
 	tds_ ## name ## _put, \
 };
 
@@ -918,6 +959,26 @@ tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 }
 
 static TDSRET
+tds_numeric_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(col);
+
+#if 1
+	tds_put_byte(tds, tds_numeric_bytes_per_prec[col->column_prec]);
+	tds_put_byte(tds, col->column_prec);
+	tds_put_byte(tds, col->column_scale);
+#else
+	TDS_NUMERIC *num = (TDS_NUMERIC *) col->column_data;
+	tds_put_byte(tds, tds_numeric_bytes_per_prec[num->precision]);
+	tds_put_byte(tds, num->precision);
+	tds_put_byte(tds, num->scale);
+#endif
+
+	return TDS_SUCCESS;
+}
+
+static TDSRET
 tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col)
 {
 	TDS_NUMERIC *num = (TDS_NUMERIC *) col->column_data, buf;
@@ -941,6 +1002,13 @@ DEFINE_FUNCS(numeric, numeric);
 
 #define tds_variant_get_info tds_data_get_info
 #define tds_variant_row_len  tds_data_row_len
+
+static TDSRET
+tds_variant_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	/* TODO */
+	return TDS_FAIL;
+}
 
 static TDSRET
 tds_variant_put(TDSSOCKET *tds, TDSCOLUMN *col)
@@ -1031,6 +1099,15 @@ tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 		dt->has_offset = 1;
 	}
 	col->column_cur_size = sizeof(TDS_DATETIMEALL);
+	return TDS_SUCCESS;
+}
+
+static TDSRET
+tds_msdatetime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	/* TODO precision, offset */
+	if (col->on_server.column_type != SYBMSDATE)
+		tds_put_byte(tds, 7);
 	return TDS_SUCCESS;
 }
 
