@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.213 2011-08-08 12:33:18 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.214 2011-08-10 07:43:47 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1265,12 +1265,12 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 	case SYBDATETIME:
 		/* TODO check overflow */
 		cr->dt.dtdays = dta->date;
-		cr->dt.dttime = dta->time * 3u / 100000u;
+		cr->dt.dttime = (dta->time * 3u + 50000u) / 100000u;
 		return sizeof(TDS_DATETIME);
 	case SYBDATETIME4:
 		/* TODO check overflow */
 		cr->dt4.days = dta->date;
-		cr->dt4.minutes = dta->time / (60u * 10000000u);
+		cr->dt4.minutes = (dta->time + 30u * 10000000u) / (60u * 10000000u);
 		return sizeof(TDS_DATETIME4);
 	case SYBMSDATETIMEOFFSET:
 	case SYBMSDATE:
