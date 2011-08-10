@@ -1,3 +1,6 @@
+Wed Aug 10 10:03:11 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c: make tds_put_data inline
+
 Wed Aug 10 09:49:10 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/funccall.c: initialize variable
 
@@ -700,4 +703,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3362 2011-08-10 07:49:02 freddy77 Exp $
+$Id: ChangeLog,v 1.3363 2011-08-10 08:03:40 freddy77 Exp $

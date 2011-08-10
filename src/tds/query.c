@@ -44,13 +44,13 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.261 2011-08-10 07:46:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.262 2011-08-10 08:03:40 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
 static void tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t param_length);
 static TDSRET tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags);
-static TDSRET tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
+static inline TDSRET tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol);
 static char *tds7_build_param_def_from_query(TDSSOCKET * tds, const char* converted_query, size_t converted_query_len, TDSPARAMINFO * params, size_t *out_len);
 static char *tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t query_len, TDSPARAMINFO * params, size_t *out_len);
 
@@ -227,6 +227,18 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 	out[pos] = 0;
 	*query_len = pos;
 	return out;
+}
+
+/**
+ * Write data to wire
+ * \param tds     state information for the socket and the TDS protocol
+ * \param curcol  column where store column information
+ * \return TDS_FAIL on error or TDS_SUCCESS
+ */
+static inline TDSRET
+tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
+{
+	return curcol->funcs->put_data(tds, curcol);
 }
 
 static const TDS_UCHAR tds72_query_start[] = {
@@ -1507,18 +1519,6 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	if (curcol->column_varint_size == 5)
 		return len + 4;
 	return len + curcol->column_varint_size;
-}
-
-/**
- * Write data to wire
- * \param tds     state information for the socket and the TDS protocol
- * \param curcol  column where store column information
- * \return TDS_FAIL on error or TDS_SUCCESS
- */
-static TDSRET
-tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
-{
-	return curcol->funcs->put_data(tds, curcol);
 }
 
 static void
