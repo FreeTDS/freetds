@@ -1,3 +1,7 @@
+Wed Aug 10 09:42:16 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/data.c src/tds/query.c:
+	- use callback for put_data
+
 Wed Aug 10 09:41:23 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/data.c: avoid using union just to read some integer value
 
@@ -683,4 +687,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3357 2011-08-10 07:41:14 freddy77 Exp $
+$Id: ChangeLog,v 1.3358 2011-08-10 07:42:14 freddy77 Exp $

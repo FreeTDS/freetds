@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.384 2011-08-08 12:27:09 freddy77 Exp $ */
+/* $Id: tds.h,v 1.385 2011-08-10 07:42:14 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -592,7 +592,7 @@ typedef struct tds_column_funcs
 	TDSRET (*get_data)(TDSSOCKET *tds, TDSCOLUMN *col);
 	TDS_INT (*row_len)(TDSCOLUMN *col);
 //	TDSRET (*put_info)(TDSSOCKET *tds, TDSCOLUMN *col);
-//	TDSRET (*put_data)(TDSSOCKET *tds, TDSCOLUMN *col);
+	TDSRET (*put_data)(TDSSOCKET *tds, TDSCOLUMN *col);
 //	TDSRET (*convert)(TDSSOCKET *tds, TDSCOLUMN *col);
 } TDSCOLUMNFUNCS;
 
@@ -1144,6 +1144,13 @@ TDSRET tds_submit_commit(TDSSOCKET *tds, int cont);
 int tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 int tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
 const char *tds_skip_quoted(const char *s);
+size_t tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
+const char *tds_convert_string(TDSSOCKET * tds, const TDSICONV * char_conv, const char *s, int len, size_t *out_len);
+void tds_convert_string_free(const char *original, const char *converted);
+#if !ENABLE_EXTRA_CHECKS
+#define tds_convert_string_free(original, converted) \
+	do { if (original != converted) free((char*) converted); } while(0)
+#endif
 
 TDSRET tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
 TDSRET tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);

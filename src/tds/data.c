@@ -32,17 +32,21 @@
 #endif /* HAVE_STDLIB_H */
 
 #include "tds.h"
+#include "tdsiconv.h"
 #include "tds_checks.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.40 2011-08-10 07:41:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.41 2011-08-10 07:42:15 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
 int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSSOCKET *tds, int type);
+
+#undef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -641,11 +645,214 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Write data to wire
+ * \param tds state information for the socket and the TDS protocol
+ * \param curcol column where store column information
+ * \return TDS_FAIL on error or TDS_SUCCESS
+ */
+static TDSRET
+tds_data_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
+{
+	unsigned char *src;
+	TDSBLOB *blob = NULL;
+	size_t colsize, size;
+
+	const char *s;
+	int converted = 0;
+
+	CHECK_TDS_EXTRA(tds);
+	CHECK_COLUMN_EXTRA(curcol);
+
+	tdsdump_log(TDS_DBG_INFO1, "tds_data_put: colsize = %d\n", (int) curcol->column_cur_size);
+
+	if (curcol->column_cur_size < 0) {
+		tdsdump_log(TDS_DBG_INFO1, "tds_data_put: null param\n");
+		switch (curcol->column_varint_size) {
+		case 5:
+			tds_put_int(tds, 0);
+			break;
+		case 4:
+			tds_put_int(tds, -1);
+			break;
+		case 2:
+			tds_put_smallint(tds, -1);
+			break;
+		case 8:
+			tds_put_int8(tds, -1);
+			break;
+		default:
+			assert(curcol->column_varint_size);
+			/* FIXME not good for SYBLONGBINARY/SYBLONGCHAR (still not supported) */
+			tds_put_byte(tds, 0);
+			break;
+		}
+		return TDS_SUCCESS;
+	}
+	colsize = curcol->column_cur_size;
+
+	size = tds_fix_column_size(tds, curcol);
+
+	src = curcol->column_data;
+	if (is_blob_col(curcol)) {
+		blob = (TDSBLOB *) src;
+		src = (unsigned char *) blob->textvalue;
+	}
+
+	s = (char *) src;
+
+	/* convert string if needed */
+	if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY && colsize) {
+		size_t output_size;
+#if 0
+		/* TODO this case should be optimized */
+		/* we know converted bytes */
+		if (curcol->char_conv->client_charset.min_bytes_per_char == curcol->char_conv->client_charset.max_bytes_per_char 
+		    && curcol->char_conv->server_charset.min_bytes_per_char == curcol->char_conv->server_charset.max_bytes_per_char) {
+			converted_size = colsize * curcol->char_conv->server_charset.min_bytes_per_char / curcol->char_conv->client_charset.min_bytes_per_char;
+
+		} else {
+#endif
+		/* we need to convert data before */
+		/* TODO this can be a waste of memory... */
+		converted = 1;
+		s = tds_convert_string(tds, curcol->char_conv, s, colsize, &output_size);
+		colsize = (TDS_INT)output_size;
+		if (!s) {
+			/* on conversion error put a empty string */
+			/* TODO on memory failure we should compute converted size and use chunks */
+			colsize = 0;
+			converted = -1;
+		}
+	}
+
+	/*
+	 * TODO here we limit data sent with MIN, should mark somewhere
+	 * and inform client ??
+	 * Test proprietary behavior
+	 */
+	if (IS_TDS7_PLUS(tds)) {
+		tdsdump_log(TDS_DBG_INFO1, "tds_data_put: not null param varint_size = %d\n",
+			    curcol->column_varint_size);
+
+		switch (curcol->column_varint_size) {
+		case 8:
+			tds_put_int8(tds, colsize);
+			tds_put_int(tds, colsize);
+			break;
+		case 4:	/* It's a BLOB... */
+			colsize = MIN(colsize, size);
+			/* mssql require only size */
+			tds_put_int(tds, colsize);
+			break;
+		case 2:
+			colsize = MIN(colsize, size);
+			tds_put_smallint(tds, colsize);
+			break;
+		case 1:
+			colsize = MIN(colsize, size);
+			tds_put_byte(tds, colsize);
+			break;
+		case 0:
+			/* TODO should be column_size */
+			colsize = tds_get_size_by_type(curcol->on_server.column_type);
+			break;
+		}
+
+		/* conversion error, exit with an error */
+		if (converted < 0)
+			return TDS_FAIL;
+
+		/* put real data */
+		if (blob) {
+			tds_put_n(tds, s, colsize);
+		} else {
+#ifdef WORDS_BIGENDIAN
+			unsigned char buf[64];
+
+			if (tds_conn(tds)->emul_little_endian && !converted && colsize < 64) {
+				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
+					    tds_get_conversion_type(curcol->column_type, colsize));
+				memcpy(buf, s, colsize);
+				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
+				s = (char *) buf;
+			}
+#endif
+			tds_put_n(tds, s, colsize);
+		}
+		/* finish chunk for varchar/varbinary(max) */
+		if (curcol->column_varint_size == 8 && colsize)
+			tds_put_int(tds, 0);
+	} else {
+		/* TODO ICONV handle charset conversions for data */
+		/* put size of data */
+		switch (curcol->column_varint_size) {
+		case 5:	/* It's a LONGBINARY */
+			colsize = MIN(colsize, 0x7fffffff);
+			tds_put_int(tds, colsize);
+			break;
+		case 4:	/* It's a BLOB... */
+			tds_put_byte(tds, 16);
+			tds_put_n(tds, blob->textptr, 16);
+			tds_put_n(tds, blob->timestamp, 8);
+			colsize = MIN(colsize, 0x7fffffff);
+			tds_put_int(tds, colsize);
+			break;
+		case 2:
+			colsize = MIN(colsize, 8000);
+			tds_put_smallint(tds, colsize);
+			break;
+		case 1:
+			if (!colsize) {
+				tds_put_byte(tds, 1);
+				if (is_char_type(curcol->column_type))
+					tds_put_byte(tds, ' ');
+				else
+					tds_put_byte(tds, 0);
+				return TDS_SUCCESS;
+			}
+			colsize = MIN(colsize, 255);
+			tds_put_byte(tds, colsize);
+			break;
+		case 0:
+			/* TODO should be column_size */
+			colsize = tds_get_size_by_type(curcol->column_type);
+			break;
+		}
+
+		/* conversion error, exit with an error */
+		if (converted < 0)
+			return TDS_FAIL;
+
+		/* put real data */
+		if (blob) {
+			tds_put_n(tds, s, colsize);
+		} else {
+#ifdef WORDS_BIGENDIAN
+			unsigned char buf[64];
+
+			if (tds_conn(tds)->emul_little_endian && !converted && colsize < 64) {
+				tdsdump_log(TDS_DBG_INFO1, "swapping coltype %d\n",
+					    tds_get_conversion_type(curcol->column_type, colsize));
+				memcpy(buf, s, colsize);
+				tds_swap_datatype(tds_get_conversion_type(curcol->column_type, colsize), buf);
+				s = (char *) buf;
+			}
+#endif
+			tds_put_n(tds, s, colsize);
+		}
+	}
+	if (converted)
+		tds_convert_string_free((char*)src, s);
+	return TDS_SUCCESS;
+}
+
 #define DEFINE_FUNCS(prefix, name) \
 const TDSCOLUMNFUNCS prefix ## _funcs = { \
 	tds_ ## name ## _get_info, \
 	tds_ ## name ## _get, \
 	tds_ ## name ## _row_len, \
+	tds_ ## name ## _put, \
 };
 
 DEFINE_FUNCS(default, data);
@@ -710,11 +917,37 @@ tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCESS;
 }
 
+static TDSRET
+tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col)
+{
+	TDS_NUMERIC *num = (TDS_NUMERIC *) col->column_data, buf;
+	unsigned char colsize;
+
+	if (col->column_cur_size < 0) {
+		tds_put_byte(tds, 0);
+		return TDS_SUCCESS;
+	}
+	colsize = tds_numeric_bytes_per_prec[num->precision];
+	tds_put_byte(tds, colsize);
+
+	buf = *num;
+	if (IS_TDS7_PLUS(tds))
+		tds_swap_numeric(&buf);
+	tds_put_n(tds, buf.array, colsize);
+	return TDS_SUCCESS;
+}
 
 DEFINE_FUNCS(numeric, numeric);
 
 #define tds_variant_get_info tds_data_get_info
 #define tds_variant_row_len  tds_data_row_len
+
+static TDSRET
+tds_variant_put(TDSSOCKET *tds, TDSCOLUMN *col)
+{
+	/* TODO */
+	return TDS_FAIL;
+}
 
 DEFINE_FUNCS(variant, variant);
 
@@ -799,6 +1032,13 @@ tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 	}
 	col->column_cur_size = sizeof(TDS_DATETIMEALL);
 	return TDS_SUCCESS;
+}
+
+static TDSRET
+tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col)
+{
+	/* TODO */
+	return TDS_FAIL;
 }
 
 DEFINE_FUNCS(msdatetime, msdatetime);
