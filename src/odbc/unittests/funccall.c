@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.20 2011-08-10 07:49:02 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -80,6 +80,7 @@ main(int argc, char *argv[])
 	output = 0xdeadbeef;
 	ind3 = SQL_DATA_AT_EXEC;
 	ind4 = SQL_DEFAULT_PARAM;
+	strcpy(out2, "bad!");
 	CHKExecute("S");
 
 	if (output != 987 || ind3 <= 0 || ind4 <= 0 || out1 != 6789 || strcmp(out2, "test foo") != 0) {
