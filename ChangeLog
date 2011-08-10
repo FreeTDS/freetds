@@ -1,3 +1,6 @@
+Wed Aug 10 09:47:22 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/data.c: support putting ms time/date
+
 Wed Aug 10 09:45:01 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/data.c src/tds/query.c:
 	- implement put_info as callback
@@ -694,4 +697,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3360 2011-08-10 07:46:08 freddy77 Exp $
+$Id: ChangeLog,v 1.3361 2011-08-10 07:47:19 freddy77 Exp $

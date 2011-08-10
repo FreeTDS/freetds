@@ -32,13 +32,14 @@
 #endif /* HAVE_STDLIB_H */
 
 #include "tds.h"
+#include "tdsbytes.h"
 #include "tdsiconv.h"
 #include "tds_checks.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.42 2011-08-10 07:46:08 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.43 2011-08-10 07:47:19 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -1105,7 +1106,7 @@ tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 static TDSRET
 tds_msdatetime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
-	/* TODO precision, offset */
+	/* TODO precision */
 	if (col->on_server.column_type != SYBMSDATE)
 		tds_put_byte(tds, 7);
 	return TDS_SUCCESS;
@@ -1114,8 +1115,34 @@ tds_msdatetime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 static TDSRET
 tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col)
 {
-	/* TODO */
-	return TDS_FAIL;
+	const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) col->column_data;
+	unsigned char buf[12], *p;
+
+	if (col->column_cur_size < 0) {
+		tds_put_byte(tds, 0);
+		return TDS_SUCCESS;
+	}
+
+	/* TODO precision */
+	p = buf + 1;
+	if (col->on_server.column_type != SYBMSDATE) {
+		TDS_PUT_UA4LE(p, (TDS_UINT) dta->time);
+		p[4] = (unsigned char) (dta->time >> 32);
+		p += 5;
+	}
+	if (col->on_server.column_type != SYBMSTIME) {
+		TDS_UINT ui = dta->date + 693595;
+		TDS_PUT_UA4LE(p, ui);
+		p += 3;
+	}
+	if (col->on_server.column_type == SYBMSDATETIMEOFFSET) {
+		TDS_PUT_UA2LE(p, dta->offset);
+		p += 2;
+	}
+	buf[0] = p - buf - 1;
+	tds_put_n(tds, buf, p - buf);
+
+	return TDS_SUCCESS;
 }
 
 DEFINE_FUNCS(msdatetime, msdatetime);
