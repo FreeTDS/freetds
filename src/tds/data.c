@@ -37,7 +37,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.39 2011-08-10 07:40:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.40 2011-08-10 07:41:14 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -760,40 +760,34 @@ tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 
 	/* get time part */
 	if (col->column_type != SYBMSDATE) {
-		union {
-			TDS_UINT8 u8;
-			unsigned char b[8];
-		} data;
+		TDS_UINT8 u8;
 		int i;
 
 		assert(size >= 3 && size <= 5);
 		if (size < 3 || size > 5)
 			return TDS_FAIL;
-		data.u8 = 0;
-		tds_get_n(tds, data.b, size);
+		u8 = 0;
+		tds_get_n(tds, &u8, size);
 #ifdef WORDS_BIGENDIAN
-		tds_swap_bytes(data.b, 8);
+		tds_swap_bytes(&u8, 8);
 #endif
 		for (i = col->column_prec; i < 7; ++i)
-			data.u8 *= 10;
-		dt->time = data.u8;
+			u8 *= 10;
+		dt->time = u8;
 		dt->has_time = 1;
 	}
 
 	/* get date part */
 	if (col->column_type != SYBMSTIME) {
-		union {
-			TDS_UINT ui;
-			unsigned char b[4];
-		} data;
+		TDS_UINT ui;
 
-		tds_get_n(tds, data.b, 3);
-		data.b[3] = 0;
+		ui = 0;
+		tds_get_n(tds, &ui, 3);
 #ifdef WORDS_BIGENDIAN
-		tds_swap_bytes(data.b, 4);
+		tds_swap_bytes(&ui, 4);
 #endif
 		dt->has_date = 1;
-		dt->date = data.ui - 693595;
+		dt->date = ui - 693595;
 	}
 
 	/* get time offset */
