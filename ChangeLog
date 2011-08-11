@@ -1,3 +1,6 @@
+Thu Aug 11 09:07:19 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/data.c: improve test for ms date/time
+
 Thu Aug 11 09:05:49 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: consider time offset in tds_datecrack
 
@@ -712,4 +715,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3366 2011-08-11 07:05:41 freddy77 Exp $
+$Id: ChangeLog,v 1.3367 2011-08-11 07:07:08 freddy77 Exp $
