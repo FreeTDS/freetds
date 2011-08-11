@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.20 2011-08-11 07:51:04 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.21 2011-08-11 09:38:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -51,31 +51,51 @@ mycmp(const char *s1, const char *s2)
 static void
 test_split(const char *n_flag)
 {
+#define CheckLen(x) do { \
+	if (len != (x)) { \
+		fprintf(stderr, "Wrong len %ld at line %d expected %d\n", (long int) len, __LINE__, (x)); \
+		exit(1); \
+	} \
+	} while(0)
+
 	char sql[80];
 	char *buf = NULL;
+	SQLLEN len;
+
 	/* TODO test with VARCHAR too */
-	sprintf(sql, "SELECT CONVERT(%sTEXT,'Prova')", n_flag);
+	sprintf(sql, "SELECT CONVERT(%sTEXT,'Prova' + REPLICATE('x',500))", n_flag);
 	odbc_command(sql);
 
 	CHKFetch("S");
 
 	/* these 2 tests test an old severe BUG in FreeTDS */
 	buf = ODBC_GET(1);
-	CHKGetData(1, type, buf, 0, NULL, "I");
-	CHKGetData(1, type, buf, 0, NULL, "I");
+	CHKGetData(1, type, buf, 0, &len, "I");
+	CheckLen(505*lc);
+	CHKGetData(1, type, buf, 0, &len, "I");
+	CheckLen(505*lc);
 	buf = ODBC_GET(3*lc);
-	CHKGetData(1, type, buf, 3 * lc, NULL, "I");
+	CHKGetData(1, type, buf, 3 * lc, &len, "I");
+	CheckLen(505*lc);
 	if (mycmp(buf, "Pr") != 0) {
 		printf("Wrong data result 1\n");
 		exit(1);
 	}
 
-	buf = ODBC_GET(4*lc);
-	CHKGetData(1, type, buf, 16, NULL, "S");
-	if (mycmp(buf, "ova") != 0) {
+	buf = ODBC_GET(16*lc);
+	CHKGetData(1, type, buf, 16 * lc, &len, "I");
+	CheckLen(503*lc);
+	if (mycmp(buf, "ovaxxxxxxxxxxxx") != 0) {
 		printf("Wrong data result 2 res = '%s'\n", buf);
 		exit(1);
 	}
+
+	buf = ODBC_GET(256*lc);
+	CHKGetData(1, type, buf, 256 * lc, &len, "I");
+	CheckLen(488*lc);
+	CHKGetData(1, type, buf, 256 * lc, &len, "S");
+	CheckLen(233*lc);
+	CHKGetData(1, type, buf, 256 * lc, &len, "No");
 
 	odbc_reset_statement();
 

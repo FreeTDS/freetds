@@ -1,3 +1,6 @@
+Thu Aug 11 11:38:02 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/getdata.c: check len returned by SQLGetData
+
 Thu Aug 11 09:51:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/getdata.c: test splitting fields for "n" types
 
@@ -718,4 +721,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3368 2011-08-11 07:51:04 freddy77 Exp $
+$Id: ChangeLog,v 1.3369 2011-08-11 09:38:07 freddy77 Exp $
