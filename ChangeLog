@@ -1,3 +1,6 @@
+Thu Aug 11 12:07:56 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* doc/tsql.txt updated for clarity and -D
+
 Thu Aug 11 14:50:33 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/dblib/dblib.c src/tds/convert.c:
 	- clear output buffer in tds_datecrack
@@ -725,4 +728,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3370 2011-08-11 12:50:25 freddy77 Exp $
+$Id: ChangeLog,v 1.3371 2011-08-11 16:09:12 jklowden Exp $
