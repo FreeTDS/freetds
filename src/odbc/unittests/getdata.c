@@ -1,7 +1,7 @@
 #include "common.h"
 #include <assert.h>
 
-static char software_version[] = "$Id: getdata.c,v 1.19 2011-08-08 07:09:04 freddy77 Exp $";
+static char software_version[] = "$Id: getdata.c,v 1.20 2011-08-11 07:51:04 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void
@@ -48,6 +48,61 @@ mycmp(const char *s1, const char *s2)
 	return memcmp(s1, buf, l * lc + lc);
 }
 
+static void
+test_split(const char *n_flag)
+{
+	char sql[80];
+	char *buf = NULL;
+	/* TODO test with VARCHAR too */
+	sprintf(sql, "SELECT CONVERT(%sTEXT,'Prova')", n_flag);
+	odbc_command(sql);
+
+	CHKFetch("S");
+
+	/* these 2 tests test an old severe BUG in FreeTDS */
+	buf = ODBC_GET(1);
+	CHKGetData(1, type, buf, 0, NULL, "I");
+	CHKGetData(1, type, buf, 0, NULL, "I");
+	buf = ODBC_GET(3*lc);
+	CHKGetData(1, type, buf, 3 * lc, NULL, "I");
+	if (mycmp(buf, "Pr") != 0) {
+		printf("Wrong data result 1\n");
+		exit(1);
+	}
+
+	buf = ODBC_GET(4*lc);
+	CHKGetData(1, type, buf, 16, NULL, "S");
+	if (mycmp(buf, "ova") != 0) {
+		printf("Wrong data result 2 res = '%s'\n", buf);
+		exit(1);
+	}
+
+	odbc_reset_statement();
+
+	/* test with varchar, not blob but variable */
+	sprintf(sql, "SELECT CONVERT(%sVARCHAR(100), 'Other test')", n_flag);
+	odbc_command(sql);
+
+	CHKFetch("S");
+
+	buf = ODBC_GET(7*lc);
+	CHKGetData(1, type, buf, 7 * lc, NULL, "I");
+	if (mycmp(buf, "Other ") != 0) {
+		printf("Wrong data result 1\n");
+		exit(1);
+	}
+
+	buf = ODBC_GET(5*lc);
+	CHKGetData(1, type, buf, 20, NULL, "S");
+	if (mycmp(buf, "test") != 0) {
+		printf("Wrong data result 2 res = '%s'\n", buf);
+		exit(1);
+	}
+	ODBC_FREE();
+
+	odbc_reset_statement();
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -60,61 +115,20 @@ main(int argc, char *argv[])
 
 	lc = 1;
 	type = SQL_C_CHAR;
+	test_split("");
 
-	for (;;) {
-		char *buf = NULL;
-		/* TODO test with VARCHAR too */
-		odbc_command("SELECT CONVERT(TEXT,'Prova')");
+	lc = sizeof(SQLWCHAR);
+	type = SQL_C_WCHAR;
+	test_split("");
 
-		CHKFetch("S");
+	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x07000000u) {
+		lc = 1;
+		type = SQL_C_CHAR;
+		test_split("N");
 
-		/* these 2 tests test an old severe BUG in FreeTDS */
-		buf = ODBC_GET(1);
-		CHKGetData(1, type, buf, 0, NULL, "I");
-		CHKGetData(1, type, buf, 0, NULL, "I");
-		buf = ODBC_GET(3*lc);
-		CHKGetData(1, type, buf, 3 * lc, NULL, "I");
-		if (mycmp(buf, "Pr") != 0) {
-			printf("Wrong data result 1\n");
-			exit(1);
-		}
-
-		buf = ODBC_GET(4*lc);
-		CHKGetData(1, type, buf, 16, NULL, "S");
-		if (mycmp(buf, "ova") != 0) {
-			printf("Wrong data result 2 res = '%s'\n", buf);
-			exit(1);
-		}
-
-		odbc_reset_statement();
-
-		/* test with varchar, not blob but variable */
-		odbc_command("SELECT CONVERT(VARCHAR(100), 'Other test')");
-
-		CHKFetch("S");
-
-		buf = ODBC_GET(7*lc);
-		CHKGetData(1, type, buf, 7 * lc, NULL, "I");
-		if (mycmp(buf, "Other ") != 0) {
-			printf("Wrong data result 1\n");
-			exit(1);
-		}
-
-		buf = ODBC_GET(5*lc);
-		CHKGetData(1, type, buf, 20, NULL, "S");
-		if (mycmp(buf, "test") != 0) {
-			printf("Wrong data result 2 res = '%s'\n", buf);
-			exit(1);
-		}
-		ODBC_FREE();
-
-		odbc_reset_statement();
-
-		if (type != SQL_C_CHAR)
-			break;
-
-		type = SQL_C_WCHAR;
 		lc = sizeof(SQLWCHAR);
+		type = SQL_C_WCHAR;
+		test_split("N");
 	}
 
 	/* test with fixed length */
