@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.216 2011-08-11 07:05:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.217 2011-08-11 12:50:26 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -1252,8 +1252,6 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		memset(&when, 0, sizeof(when));
-
 		tds_datecrack(srctype, dta, &when);
 		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 
 		             dta->time_prec);
@@ -1305,8 +1303,6 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATETIME
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		memset(&when, 0, sizeof(when));
-
 		tds_datecrack(SYBDATETIME, dt, &when);
 		tds_strftime(whole_date_string, sizeof(whole_date_string), tds_ctx->locale->date_fmt, &when, 3);
 
@@ -2967,6 +2963,8 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 
 	int years, months, days, ydays, wday, hours, mins, secs, dms;
 	int l, n, i, j;
+
+	memset(dr, 0, sizeof(*dr));
 
 	if (datetype == SYBMSDATE || datetype == SYBMSTIME 
 	    || datetype == SYBMSDATETIME2 || datetype == SYBMSDATETIMEOFFSET) {

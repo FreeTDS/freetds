@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.401 2011-08-08 12:32:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.402 2011-08-11 12:50:26 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -3268,7 +3268,6 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			desttype = _db_get_server_type(STRINGBIND);
 			srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 			if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
-				memset(&when, 0, sizeof(when));
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 				len = (int)tds_strftime(buffer, buf_len, "%b %d %Y %I:%M%p", &when, 3);
 			} else {
@@ -3373,7 +3372,6 @@ dbprrow(DBPROCESS * dbproc)
 					desttype = _db_get_server_type(STRINGBIND);
 					srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 					if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
-						memset(&when, 0, sizeof(when));
 						tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
 						len = (int)tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when, 3);
 					} else {
@@ -3504,7 +3502,6 @@ dbprrow(DBPROCESS * dbproc)
 				srctype = dbalttype(dbproc, computeid, col);
 
 				if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
-					memset(&when, 0, sizeof(when));
 					tds_datecrack(srctype, dbadata(dbproc, computeid, col), &when);
 					len = (int)tds_strftime(dest, sizeof(dest), STD_DATETIME_FMT, &when, 3);
 				} else {
