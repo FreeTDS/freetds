@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert.c,v 1.215 2011-08-11 07:01:29 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert.c,v 1.216 2011-08-11 07:05:41 freddy77 Exp $");
 
 typedef unsigned short utf16_t;
 
@@ -2981,6 +2981,12 @@ tds_datecrack(TDS_INT datetype, const void *di, TDSDATEREC * dr)
 			dt_time = dta->time / 10000000u;
 			secs = dt_time % 60;
 			dt_time = dt_time / 60;
+		}
+		if (datetype == SYBMSDATETIMEOFFSET) {
+			--dt_days;
+			dt_time = dt_time + 86400 + dta->offset;
+			dt_days += dt_time / 86400;
+			dt_time %= 86400;
 		}
 	} else if (datetype == SYBDATETIME) {
 		const TDS_DATETIME *dt = (const TDS_DATETIME *) di;
