@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.262 2011-08-10 08:03:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.263 2011-08-11 07:02:54 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1659,7 +1659,7 @@ tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_DYNAMIC_EXTRA(dyn);
 
-	// check if statement is prepared
+	/* check if statement is prepared */
 	if (IS_TDS7_PLUS(tds) && !dyn->num_id)
 		return 0;
 

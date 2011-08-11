@@ -1,3 +1,6 @@
+Thu Aug 11 09:02:43 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/query.c: avoid c++ comments
+
 Thu Aug 11 09:01:33 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/convert.c: small tds_datecrack fix
 
@@ -706,4 +709,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3364 2011-08-11 07:01:29 freddy77 Exp $
+$Id: ChangeLog,v 1.3365 2011-08-11 07:02:54 freddy77 Exp $
