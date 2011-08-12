@@ -6,7 +6,7 @@
  * test what say SQLDescribeCol about precision using some type
  */
 
-static char software_version[] = "$Id: describecol.c,v 1.20 2011-07-12 10:16:59 freddy77 Exp $";
+static char software_version[] = "$Id: describecol.c,v 1.21 2011-08-12 13:49:54 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int g_result = 0;
@@ -84,6 +84,7 @@ static struct lookup_int sql_types[] = {
 	TYPE(SQL_TYPE_DATE),
 	TYPE(SQL_TYPE_TIME),
 	TYPE(SQL_TYPE_TIMESTAMP),
+	TYPE(SQL_DATETIME),
 #undef TYPE
 	{ NULL, 0 }
 };
