@@ -53,7 +53,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.208 2010-09-28 08:20:11 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.208.2.1 2011-08-12 16:29:36 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -827,6 +827,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 	tds_dstr_init(&connection->dump_file);
 	tds_dstr_init(&connection->client_charset);
 	tds_dstr_init(&connection->instance_name);
+	tds_dstr_init(&connection->server_realm_name);
 
 	/* fill in all hardcoded defaults */
 	if (!tds_dstr_copy(&connection->server_name, TDS_DEF_SERVER))
@@ -1188,6 +1189,7 @@ tds_free_connection(TDSCONNECTION * connection)
 	tds_dstr_free(&connection->password);
 	tds_dstr_free(&connection->library);
 	tds_dstr_free(&connection->instance_name);
+	tds_dstr_init(&connection->server_realm_name);
 	free(connection);
 }
 

@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.352.2.3 2011-06-02 19:19:30 freddy77 Exp $ */
+/* $Id: tds.h,v 1.352.2.4 2011-08-12 16:29:36 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -815,6 +815,8 @@ typedef enum tds_encryption_level {
 #define TDS_STR_ENCRYPTION_REQUIRE "require"
 /* Defines to enable optional GSSAPI delegation */
 #define TDS_GSSAPI_DELEGATION "enable gssapi delegation"
+/* Kerberos realm name */
+#define TDS_STR_REALM	"realm"
 
 
 /* TODO do a better check for alignment than this */
@@ -864,6 +866,7 @@ typedef struct tds_connection
 	TDS_INT connect_timeout;
 	DSTR client_host_name;
 	DSTR server_host_name;
+	DSTR server_realm_name;		/**< server realm name (in freetds.conf) */
 	DSTR app_name;
 	DSTR user_name;	    	/**< account for login */
 	DSTR password;	    	/**< password of account login */
