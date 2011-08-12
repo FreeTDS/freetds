@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.41 2011-08-11 07:07:08 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.42 2011-08-12 13:33:44 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -105,6 +105,7 @@ int
 main(int argc, char *argv[])
 {
 	int big_endian = 1;
+	int test_2008_date_to_binary = 0;
 
 	odbc_connect();
 
@@ -225,29 +226,44 @@ main(int argc, char *argv[])
 
 	/* MSSQL 2008*/
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0A000000u) {
-		Test("DATE", "1923-12-02", SQL_C_CHAR, "10 1923-12-02");
+		int save_result = result;
+
+		/* check right protocol */
+		result = 0;
+		test_2008_date_to_binary = 1;
 		Test("DATE", "1923-12-02", SQL_C_BINARY, big_endian ? "0783000C0002" : "83070C000200");
+		if (result) {
+			result = 0;
+			Test("DATE", "1923-12-02", SQL_C_BINARY, "31003900320033002D00310032002D0030003200");
+			if (!result) {
+				printf("previous error expected: wrong protocol used\n");
+				test_2008_date_to_binary = 0;
+			}
+		}
+		if (save_result)
+			result = 1;
+
+		Test("DATE", "1923-12-02", SQL_C_CHAR, "10 1923-12-02");
 
 		Test("TIME", "12:23:45", SQL_C_CHAR, "16 12:23:45.0000000");
-		Test("TIME", "12:23:45", SQL_C_BINARY, big_endian ? "000C0017002D000000000000" : "0C0017002D00000000000000");
-
 		Test("TIME(4)", "12:23:45.765", SQL_C_CHAR, "13 12:23:45.7650");
-		Test("TIME(4)", "12:23:45.765", SQL_C_BINARY, big_endian ? "000C0017002D00002D98F940" : "0C0017002D00000040F9982D");
-
 		Test("TIME(0)", "12:23:45.765", SQL_C_CHAR, "8 12:23:46");
 
 		Test("DATETIME2", "2011-08-10 12:23:45", SQL_C_CHAR, "27 2011-08-10 12:23:45.0000000");
-		Test("DATETIME2", "2011-08-10 12:23:45", SQL_C_BINARY, big_endian ? "07DB0008000A000C0017002D00000000" : "DB0708000A000C0017002D0000000000");
-
 		Test("DATETIME2(4)", "12:23:45.345888", SQL_C_CHAR, "24 1900-01-01 12:23:45.3459");
-		Test("DATETIME2(4)", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D00000000" : "6C07010001000C0017002D0000000000");
-
 		Test("DATETIME2(0)", "2011-08-10 12:23:45.93", SQL_C_CHAR, "19 2011-08-10 12:23:46");
 
 		Test("DATETIMEOFFSET", "12:23:45 -02:30", SQL_C_CHAR, "34 1900-01-01 12:23:45.0000000 -02:30");
-		Test("DATETIMEOFFSET", "12:23:45 -08:30", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D00000000FFF8FFE2" : "6C07010001000C0017002D0000000000F8FFE2FF");
-
 		Test("DATETIMEOFFSET(4)", "12:23:45", SQL_C_CHAR, "31 1900-01-01 12:23:45.0000 +00:00");
+	}
+
+	if (test_2008_date_to_binary) {
+		Test("DATE", "1923-12-02", SQL_C_BINARY, big_endian ? "0783000C0002" : "83070C000200");
+		Test("TIME", "12:23:45", SQL_C_BINARY, big_endian ? "000C0017002D000000000000" : "0C0017002D00000000000000");
+		Test("TIME(4)", "12:23:45.765", SQL_C_BINARY, big_endian ? "000C0017002D00002D98F940" : "0C0017002D00000040F9982D");
+		Test("DATETIME2", "2011-08-10 12:23:45", SQL_C_BINARY, big_endian ? "07DB0008000A000C0017002D00000000" : "DB0708000A000C0017002D0000000000");
+		Test("DATETIME2(4)", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D00000000" : "6C07010001000C0017002D0000000000");
+		Test("DATETIMEOFFSET", "12:23:45 -08:30", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D00000000FFF8FFE2" : "6C07010001000C0017002D0000000000F8FFE2FF");
 		Test("DATETIMEOFFSET(4)", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D0000000000000000" : "6C07010001000C0017002D000000000000000000");
 	}
 
