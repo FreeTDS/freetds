@@ -1,3 +1,7 @@
+Fri Aug 12 13:51:49 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/tds/net.c:
+	- check for gnutls_record_disable_padding function
+
 Fri Aug 12 11:17:16 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* configure.ac: test for pthread_cond_timedwait
 
@@ -731,4 +735,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3372 2011-08-12 09:17:04 freddy77 Exp $
+$Id: ChangeLog,v 1.3373 2011-08-12 11:51:36 freddy77 Exp $

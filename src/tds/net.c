@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.125 2011-07-27 16:32:42 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.126 2011-08-12 11:51:36 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -1323,7 +1323,9 @@ tds_ssl_init(TDSSOCKET *tds)
 		gnutls_kx_set_priority(session, kx_priority);
 		gnutls_mac_set_priority(session, mac_priority);
 		/* mssql does not like padding too much */
+#ifdef HAVE_GNUTLS_RECORD_DISABLE_PADDING
 		gnutls_record_disable_padding(session);
+#endif
 
 		/* put the anonymous credentials to the current session */
 		tls_msg = "setting credential";

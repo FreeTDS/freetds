@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.65 2011-08-12 09:17:04 freddy77 Exp $
+dnl $Id: configure.ac,v 1.66 2011-08-12 11:51:36 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.92.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.65 $)
+AC_REVISION($Revision: 1.66 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_HEADERS(include/config.h)
@@ -696,6 +696,10 @@ if test "$with_gnutls" = "yes"; then
 		CPPFLAGS="$CPPFLAGS `libgnutls-config --cflags`"
 		NETWORK_LIBS="$NETWORK_LIBS `libgnutls-config --libs`"
 	fi
+	OLDLIBS="$LIBS"
+	LIBS="$LIBS $NETWORK_LIBS"
+	AC_CHECK_FUNCS([gnutls_record_disable_padding])
+	LIBS="$OLDLIBS"
 else
 	CHECK_OPENSSL
 fi
