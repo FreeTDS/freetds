@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.76 2011-08-08 12:32:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.77 2011-08-12 12:26:59 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -144,6 +144,80 @@ odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS
 	return p - buf;
 }
 
+static SQLLEN
+odbc_convert_msdatetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL * dta, TDS_CHAR * dest, SQLULEN destlen)
+{
+	size_t len, cplen;
+	TDS_USMALLINT buf[10];
+	TDSDATEREC when;
+
+	tds_datecrack(srctype, dta, &when);
+
+	len = 0;
+	if (srctype != SYBMSTIME) {
+		buf[0] = when.year;
+		buf[1] = when.month + 1;
+		buf[2] = when.day;
+		len = 3;
+	}
+	if (srctype != SYBMSDATE) {
+		buf[len++] = when.hour;
+		buf[len++] = when.minute;
+		buf[len++] = when.second;
+		if ((len % 2) != 0)
+			buf[len++] = 0;
+		*((TDS_UINT*) (buf+len)) = when.decimicrosecond * 100u;
+		len += 2;
+	}
+	if (srctype == SYBMSDATETIMEOFFSET) {
+		/* TODO check for negative hour/minutes */
+		buf[8] = dta->offset / 60;
+		buf[9] = dta->offset % 60;
+		len = 10;
+	}
+	len *= 2;
+
+	/* just return length */
+	if (destlen == 0)
+		return len;
+
+	cplen = (destlen > len) ? len : destlen;
+	memcpy(dest, buf, cplen);
+	if (curcol)
+		curcol->column_text_sqlgetdatapos += cplen;
+	return len;
+}
+
+static SQLLEN
+odbc_convert_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, TDS_CHAR * dest, SQLULEN destlen)
+{
+	SQLLEN ret = srclen;
+
+	/* special case for MS date/time */
+	switch (srctype) {
+	case SYBMSTIME:
+	case SYBMSDATE:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		return odbc_convert_msdatetime_to_binary(stmt, curcol, srctype, (TDS_DATETIMEALL *) src, dest, destlen);
+	}
+
+	if (destlen > 0) {
+		size_t cplen = (destlen > srclen) ? srclen : destlen;
+		/* do not NULL terminate binary buffer */
+		memcpy(dest, src, cplen);
+		if (curcol)
+			curcol->column_text_sqlgetdatapos += cplen;
+	} else {
+		/* if destlen == 0 we return only length */
+		if (destlen != 0) {
+			odbc_errs_add(&stmt->errs, "07006", NULL);
+			return SQL_NULL_DATA;
+		}
+	}
+	return ret;
+}
+
 SQLLEN
 odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TDS_UINT srclen, int desttype, TDS_CHAR * dest, SQLULEN destlen,
 	     const struct _drecord *drec_ixd)
@@ -200,22 +274,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			ores.n.precision = ((TDS_NUMERIC *) src)->precision;
 			ores.n.scale = ((TDS_NUMERIC *) src)->scale;
 		} else {
-			ret = srclen;
-			if (destlen > 0) {
-				cplen = (destlen > srclen) ? srclen : destlen;
-				assert(cplen >= 0);
-				/* do not NULL terminate binary buffer */
-				memcpy(dest, src, cplen);
-				if (curcol)
-					curcol->column_text_sqlgetdatapos += cplen;
-			} else {
-				/* if destlen == 0 we return only length */
-				if (destlen != 0) {
-					odbc_errs_add(&stmt->errs, "07006", NULL);
-					return SQL_NULL_DATA;
-				}
-			}
-			return ret;
+			return odbc_convert_to_binary(stmt, curcol, srctype, src, srclen, dest, destlen);
 		}
 	} else if (is_numeric_type(nDestSybType)) {
 		/* TODO use descriptor information (APD) ?? However APD can contain SQL_C_DEFAULT... */
