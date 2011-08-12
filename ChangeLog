@@ -1,3 +1,7 @@
+Fri Aug 12 13:50:27 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/tds/net.c:
+	- check for gnutls_record_disable_padding function
+
 Thu Aug  4 06:38:32 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* win32/tds_sysdep_public.h:
 	- change header inclusion order to avoid wrong redeclarations
@@ -3331,4 +3335,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205.2.40 2011-08-04 04:38:20 freddy77 Exp $
+$Id: ChangeLog,v 1.3205.2.41 2011-08-12 11:50:17 freddy77 Exp $
