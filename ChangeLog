@@ -1,3 +1,6 @@
+Fri Aug 12 14:30:56 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/sql2tds.c: support ms date/time putting data in odbc
+
 Fri Aug 12 14:25:38 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/convert_tds2sql.c:
 	- support conversions from new ms date/time to binary
@@ -739,4 +742,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3374 2011-08-12 12:26:59 freddy77 Exp $
+$Id: ChangeLog,v 1.3375 2011-08-12 12:30:46 freddy77 Exp $
