@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.220 2011-08-08 11:52:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.221 2011-08-12 16:38:32 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -806,6 +806,7 @@ tds_alloc_connection(TDSLOCALE * locale)
 	tds_dstr_init(&connection->dump_file);
 	tds_dstr_init(&connection->client_charset);
 	tds_dstr_init(&connection->instance_name);
+	tds_dstr_init(&connection->server_realm_name);
 
 	/* fill in all hardcoded defaults */
 	if (!tds_dstr_copy(&connection->server_name, TDS_DEF_SERVER))
@@ -1020,6 +1021,7 @@ tds_alloc_login(void)
 	tds_dstr_init(&tds_login->password);
 	tds_dstr_init(&tds_login->library);
 	tds_dstr_init(&tds_login->client_charset);
+	tds_dstr_init(&tds_login->server_realm_name);
 
 	if ((s=getenv("DSQUERY")) != NULL)
 		server_name = s;
@@ -1060,6 +1062,7 @@ tds_free_login(TDSLOGIN * login)
 	tds_dstr_free(&login->database);
 	tds_dstr_free(&login->dump_file);
 	tds_dstr_free(&login->instance_name);
+	tds_dstr_init(&login->server_realm_name);
 	free(login);
 }
 

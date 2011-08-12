@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.20 2011-07-09 19:50:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.21 2011-08-12 16:38:32 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -198,9 +198,17 @@ tds_gss_get_auth(TDSSOCKET * tds)
 			server_name = host->h_name;
 	}
 
-	if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port) < 0) {
-		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
-		return NULL;
+	if (tds_dstr_isempty(&tds->login->server_realm_name)) {
+		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port) < 0) {
+			tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+			return NULL;
+		}
+	} else {
+		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d@%s", server_name, tds->login->port,
+		             tds_dstr_cstr(&tds->login->server_realm_name)) < 0) {
+			tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+			return NULL;
+		}
 	}
 	tdsdump_log(TDS_DBG_NETWORK, "using kerberos name %s\n", auth->sname);
 
