@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.66 2011-08-12 11:51:36 freddy77 Exp $
+dnl $Id: configure.ac,v 1.67 2011-08-12 16:40:06 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.92.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.66 $)
+AC_REVISION($Revision: 1.67 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_HEADERS(include/config.h)
@@ -245,14 +245,14 @@ fi
 
 # check for SSPI
 AC_ARG_ENABLE(sspi,
-  AS_HELP_STRING([--enable-sspi], [enable SSPI support]))
+  AS_HELP_STRING([--disable-sspi], [disable SSPI support]))
 # disable by default
-enable_sspi=${enable_sspi-no}
+enable_sspi=${enable_sspi-yes}
 # only if MingW (TODO other compilers)
 test $tds_mingw != yes && enable_sspi=no
 AM_CONDITIONAL(HAVE_SSPI, test "$enable_sspi" = "yes")
 if test "$enable_sspi" = "yes"; then
-	AC_DEFINE(HAVE_SSPI, 1, [Defined if --enable-sspi and SSPI detected])
+	AC_DEFINE(HAVE_SSPI, 1, [Defined if not --disable-sspi and SSPI detected])
 fi
 
 # ------------------------------------------------------------

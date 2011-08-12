@@ -1,3 +1,6 @@
+Fri Aug 12 18:40:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac: enable SSPI by default on Windows
+
 Fri Aug 12 18:38:45 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/config.c src/tds/gssapi.c src/tds/mem.c:
 	- add Kerberos realm parameter to connection
@@ -755,4 +758,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3378 2011-08-12 16:38:32 freddy77 Exp $
+$Id: ChangeLog,v 1.3379 2011-08-12 16:40:06 freddy77 Exp $
