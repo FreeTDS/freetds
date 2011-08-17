@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.127 2011-06-06 07:27:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.128 2011-08-17 09:11:39 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -811,7 +811,7 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_TYPE_DATE:
 	case SQL_C_TYPE_TIME:
 	case SQL_C_TYPE_TIMESTAMP:
-		return SYBDATETIME;
+		return SYBMSDATETIME2;
 		/* ODBC numeric/decimal formats are completely differect from tds one */
 	case SQL_C_NUMERIC:
 		return SYBNUMERIC;

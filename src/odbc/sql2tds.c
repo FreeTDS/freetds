@@ -52,13 +52,13 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.89 2011-08-12 12:30:46 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.90 2011-08-17 09:11:39 freddy77 Exp $");
 
 static TDS_INT
-convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
+convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta)
 {
 	struct tm src_tm;
-	int tm_ms;
+	int tm_dms;
 	unsigned int dt_time;
 	int i;
 	time_t curr_time;
@@ -66,6 +66,8 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 	const DATE_STRUCT *src_date = (const DATE_STRUCT *) src;
 	const TIME_STRUCT *src_time = (const TIME_STRUCT *) src;
 	const TIMESTAMP_STRUCT *src_timestamp = (const TIMESTAMP_STRUCT *) src;
+
+	memset(dta, 0, sizeof(*dta));
 
 	switch (bindtype) {
 	case SQL_C_DATE:
@@ -76,7 +78,8 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 		src_tm.tm_hour = 0;
 		src_tm.tm_min = 0;
 		src_tm.tm_sec = 0;
-		tm_ms = 0;
+		tm_dms = 0;
+		dta->has_date = 1;
 		break;
 	case SQL_C_TIME:
 	case SQL_C_TYPE_TIME:
@@ -93,7 +96,8 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 		src_tm.tm_hour = src_time->hour;
 		src_tm.tm_min = src_time->minute;
 		src_tm.tm_sec = src_time->second;
-		tm_ms = 0;
+		tm_dms = 0;
+		dta->has_time = 1;
 		break;
 	case SQL_C_TIMESTAMP:
 	case SQL_C_TYPE_TIMESTAMP:
@@ -103,7 +107,9 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 		src_tm.tm_hour = src_timestamp->hour;
 		src_tm.tm_min = src_timestamp->minute;
 		src_tm.tm_sec = src_timestamp->second;
-		tm_ms = src_timestamp->fraction / 1000000lu;
+		tm_dms = src_timestamp->fraction / 100lu;
+		dta->has_date = 1;
+		dta->has_time = 1;
 		break;
 	default:
 		return TDS_CONVERT_FAIL;
@@ -111,13 +117,15 @@ convert_datetime2server(int bindtype, const void *src, TDS_DATETIME * dt)
 
 	/* TODO code copied from convert.c, function */
 	i = (src_tm.tm_mon - 13) / 12;
-	dt->dtdays = 1461 * (src_tm.tm_year + 300 + i) / 4 +
+	dta->has_date = 1;
+	dta->date = 1461 * (src_tm.tm_year + 300 + i) / 4 +
 		(367 * (src_tm.tm_mon - 1 - 12 * i)) / 12 - (3 * ((src_tm.tm_year + 400 + i) / 100)) / 4 +
 		src_tm.tm_mday - 109544;
 
+	dta->has_time = 1;
 	dt_time = (src_tm.tm_hour * 60 + src_tm.tm_min) * 60 + src_tm.tm_sec;
-	dt->dttime = dt_time * 300 + (tm_ms * 3 + 5) / 10;
-	return sizeof(TDS_DATETIME);
+	dta->time = dt_time * ((TDS_UINT8) 10000000u) + tm_dms;
+	return sizeof(TDS_DATETIMEALL);
 }
 
 static char*
@@ -173,7 +181,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	char *src, *converted_src;
 	unsigned char *dest;
 	int len;
-	TDS_DATETIME dt;
+	TDS_DATETIMEALL dta;
 	TDS_NUMERIC num;
 	SQL_NUMERIC_STRUCT *sql_num;
 	SQLINTEGER sql_len;
@@ -407,9 +415,9 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 
 	/* convert special parameters (not libTDS compatible) */
 	switch (src_type) {
-	case SYBDATETIME:
-		convert_datetime2server(drec_apd->sql_desc_concise_type, src, &dt);
-		src = (char *) &dt;
+	case SYBMSDATETIME2:
+		convert_datetime2server(drec_apd->sql_desc_concise_type, src, &dta);
+		src = (char *) &dta;
 		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:

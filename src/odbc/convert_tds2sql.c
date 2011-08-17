@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.77 2011-08-12 12:26:59 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.78 2011-08-17 09:11:38 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -400,10 +400,10 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			DATE_STRUCT *dsp = (DATE_STRUCT *) dest;
 
 			/*
-			 * we've already converted the returned value to a SYBDATETIME
+			 * we've already converted the returned value to a SYBMSDATETIME2
 			 * now decompose date into constituent parts...
 			 */
-			tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+			tds_datecrack(SYBMSDATETIME2, &(ores.dt), &dr);
 
 			dsp->year = dr.year;
 			dsp->month = dr.month + 1;
@@ -420,10 +420,10 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			TIME_STRUCT *tsp = (TIME_STRUCT *) dest;
 
 			/*
-			 * we've already converted the returned value to a SYBDATETIME
+			 * we've already converted the returned value to a SYBMSDATETIME2
 			 * now decompose date into constituent parts...
 			 */
-			tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+			tds_datecrack(SYBMSDATETIME2, &(ores.dt), &dr);
 
 			tsp->hour = dr.hour;
 			tsp->minute = dr.minute;
@@ -440,10 +440,10 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 			TIMESTAMP_STRUCT *tssp = (TIMESTAMP_STRUCT *) dest;
 
 			/*
-			 * we've already converted the returned value to a SYBDATETIME
+			 * we've already converted the returned value to a SYBMSDATETIME2
 			 * now decompose date into constituent parts...
 			 */
-			tds_datecrack(SYBDATETIME, &(ores.dt), &dr);
+			tds_datecrack(SYBMSDATETIME2, &(ores.dt), &dr);
 
 			tssp->year = dr.year;
 			tssp->month = dr.month + 1;

@@ -1,3 +1,9 @@
+Wed Aug 17 11:11:38 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/convert_tds2sql.c src/odbc/odbc_util.c:
+	* src/odbc/sql2tds.c:
+	- use DATETIMEALL to avoid precision lose converting to/from ODBC
+	  date/time
+
 Tue Aug 16 09:04:38 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/error.c src/odbc/odbc.c:
 	- mark last error on odbc_errs_add
@@ -762,4 +768,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3380 2011-08-16 07:04:21 freddy77 Exp $
+$Id: ChangeLog,v 1.3381 2011-08-17 09:11:38 freddy77 Exp $
