@@ -18,7 +18,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: genparams.c,v 1.48 2011-07-12 10:16:59 freddy77 Exp $";
+static char software_version[] = "$Id: genparams.c,v 1.49 2011-08-17 13:21:10 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef TDS_NO_DM
@@ -31,8 +31,9 @@ static char precision = 18;
 static char exec_direct = 0;
 static char prepare_before = 0;
 static char use_cursors = 0;
+static int only_test = 0;
 
-static void
+static int
 TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *expected)
 {
 	char sbuf[1024];
@@ -112,11 +113,18 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 	}
 
 	if (strcmp(sbuf, expected) != 0) {
+		if (only_test) {
+			odbc_command("drop proc spTestProc");
+			ODBC_FREE();
+			return 1;
+		}
 		fprintf(stderr, "Wrong result\n  Got: %s\n  Expected: %s\n", sbuf, expected);
 		exit(1);
 	}
+	only_test = 0;
 	odbc_command("drop proc spTestProc");
 	ODBC_FREE();
+	return 0;
 }
 
 static char check_truncation = 0;
@@ -268,6 +276,37 @@ NullInput(SQLSMALLINT out_c_type, SQLSMALLINT out_sql_type, const char *param_ty
 
 static int big_endian = 1;
 
+static const char*
+pack(const char *fmt, ...)
+{
+	static char out[80];
+	char *p = out;
+
+	va_list v;
+	va_start(v, fmt);
+	for (; *fmt; ++fmt) {
+		unsigned n = va_arg(v, unsigned);
+		int i, l = 2;
+
+		assert(p - out + 8 < sizeof(out));
+		switch (*fmt) {
+		case 'l':
+			l += 2;
+		case 's':
+			for (i = 0; i < l; ++i) {
+				sprintf(p, "%02X", (n >> (8*(big_endian ? l-1-i : i))) & 0xffu);
+				p += 2;
+			}
+			break;
+		default:
+			assert(0);
+		}
+	}
+	*p = 0;
+	va_end(v);
+	return out;
+}
+
 static void
 AllTests(void)
 {
@@ -306,13 +345,20 @@ AllTests(void)
 	 */
 	if (odbc_driver_is_freetds())
 		TestOutput("VARCHAR(20)", "313233", SQL_C_BINARY, SQL_VARCHAR, "333133323333");
-	/* FIXME our driver ignore precision for date */
+
+	only_test = 1;
 	precision = 3;
-	/* Some MS driver incorrectly prepare with smalldatetime*/
-	if (!use_cursors || odbc_driver_is_freetds())
-		TestOutput("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
-	TestOutput("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP,
-	     big_endian ? "0000949700FB9640" : "979400004096FB00");
+	if (TestOutput("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, pack("ssssssl", 2004, 2, 24, 15, 16, 17, 0))) {
+		/* FIXME our driver ignore precision for date */
+		precision = 3;
+		/* Some MS driver incorrectly prepare with smalldatetime*/
+		if (!use_cursors || odbc_driver_is_freetds()) {
+				TestOutput("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, pack("ll", 0x9497, 0xFBAA2C));
+		}
+		TestOutput("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, pack("ll", 0x9497, 0xFB9640));
+	} else {
+		TestOutput("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, SQL_TIMESTAMP, pack("ssssssl", 2004, 2, 24, 15, 16, 0, 0));
+	}
 	TestInput(SQL_C_TYPE_TIMESTAMP, "DATETIME", SQL_TYPE_TIMESTAMP, "DATETIME", "2005-07-22 09:51:34");
 
 	/* test timestamp millisecond round off */
