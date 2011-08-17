@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.263 2011-08-11 07:02:54 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.264 2011-08-17 13:23:26 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -725,6 +725,19 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBVARIANT:
 		if (IS_TDS7_PLUS(tds))
 			fmt = "SQL_VARIANT";
+		break;
+		/* TODO support scale !! */
+	case SYBMSTIME:
+		fmt = "TIME";
+		break;
+	case SYBMSDATE:
+		fmt = "DATE";
+		break;
+	case SYBMSDATETIME2:
+		fmt = "DATETIME2";
+		break;
+	case SYBMSDATETIMEOFFSET:
+		fmt = "DATETIMEOFFSET";
 		break;
 		/* nullable types should not occur here... */
 	case SYBFLTN:
@@ -2925,6 +2938,10 @@ tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n)
 	case SYBDATETIME:
 	case SYBDATETIME4:
 	case SYBDATETIMN:
+	case SYBMSTIME:
+	case SYBMSDATE:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
 		/* TODO use an ISO context */
 	case SYBUNIQUE:
 		quote = 1;

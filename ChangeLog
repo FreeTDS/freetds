@@ -1,3 +1,7 @@
+Wed Aug 17 15:23:28 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tdsodbc.h src/odbc/odbc_util.c src/tds/query.c:
+	- support new data types for tds 7.3
+
 Wed Aug 17 15:21:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/genparams.c: improve test for binary
 
@@ -771,4 +775,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3382 2011-08-17 13:21:09 freddy77 Exp $
+$Id: ChangeLog,v 1.3383 2011-08-17 13:23:26 freddy77 Exp $

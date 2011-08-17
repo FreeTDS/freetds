@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.128 2011-08-17 09:11:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.129 2011-08-17 13:23:26 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -702,6 +702,14 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBMONEY4:
 	case SYBMONEYN:
 		return SQL_DECIMAL;
+	case SYBMSTIME:
+		return SQL_SS_TIME2;
+	case SYBMSDATE:
+		return SQL_TYPE_DATE;
+	case SYBMSDATETIMEOFFSET:
+		return SQL_TIMESTAMPOFFSET;
+	case SYBMSDATETIME2:
+		return SQL_TYPE_TIMESTAMP;
 	case SYBDATETIME:
 	case SYBDATETIME4:
 	case SYBDATETIMN:
@@ -1137,8 +1145,22 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 	case SQL_TIMESTAMP:
 		/* ODBC version 3 */
 	case SQL_TYPE_DATE:
+		if (IS_TDS73_PLUS(tds))
+			return SYBMSDATE;
 	case SQL_TYPE_TIME:
+		if (IS_TDS73_PLUS(tds))
+			return SYBMSTIME;
 	case SQL_TYPE_TIMESTAMP:
+		if (IS_TDS73_PLUS(tds))
+			return SYBMSDATETIME2;
+		return SYBDATETIME;
+	case SQL_SS_TIME2:
+		if (IS_TDS73_PLUS(tds))
+			return SYBMSTIME;
+		return SYBDATETIME;
+	case SQL_TIMESTAMPOFFSET:
+		if (IS_TDS73_PLUS(tds))
+			return SYBMSDATETIMEOFFSET;
 		return SYBDATETIME;
 	case SQL_BINARY:
 		return SYBBINARY;
@@ -1237,6 +1259,10 @@ odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_
 	TYPE_NORMAL(SQL_FLOAT) \
 	TYPE_NORMAL(SQL_REAL) \
 	TYPE_NORMAL(SQL_DOUBLE)\
+\
+	TYPE_NORMAL(SQL_TIMESTAMPOFFSET) \
+	TYPE_NORMAL(SQL_SS_TIME2) \
+	TYPE_NORMAL(SQL_TYPE_DATE) \
 \
 	TYPE_VERBOSE_START(SQL_DATETIME) \
 	TYPE_VERBOSE_DATE(SQL_DATETIME, SQL_CODE_TIMESTAMP, SQL_TYPE_TIMESTAMP, SQL_TIMESTAMP) \

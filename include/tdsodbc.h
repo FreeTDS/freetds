@@ -74,6 +74,14 @@
 #define SQL_MARS_ENABLED_YES	1
 #endif
 
+#ifndef SQL_SS_TIME2
+#define SQL_SS_TIME2	(-154)
+#endif
+
+#ifndef SQL_TIMESTAMPOFFSET
+#define SQL_TIMESTAMPOFFSET	(-155)
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -82,7 +90,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.129 2011-06-10 17:51:43 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.130 2011-08-17 13:23:26 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
