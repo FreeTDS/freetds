@@ -1,3 +1,6 @@
+Thu Aug 18 13:42:04 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: silly optimization
+
 Wed Aug 17 15:23:28 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/odbc_util.c src/tds/query.c:
 	- support new data types for tds 7.3
@@ -775,4 +778,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3383 2011-08-17 13:23:26 freddy77 Exp $
+$Id: ChangeLog,v 1.3384 2011-08-18 11:42:05 freddy77 Exp $

@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.126 2011-08-12 11:51:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.127 2011-08-18 11:42:05 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -185,7 +185,6 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	
 	int retval, len;
 	TDSERRNO tds_error = TDSECONN;
-	char ip[20];
 
 	*p_oserr = 0;
 
@@ -201,7 +200,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	sin.sin_port = htons(port);
 
 	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d (TDS version %d.%d)\n", 
-			tds_inet_ntoa_r(sin.sin_addr, ip, sizeof(ip)), ntohs(sin.sin_port), 
+			ip_addr, port, 
 			TDS_MAJOR(tds), TDS_MINOR(tds));
 
 	tds_set_s(tds, socket(AF_INET, SOCK_STREAM, 0));
@@ -240,7 +239,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		char *message;
 
 		*p_oserr = sock_errno;
-		if (asprintf(&message, "tds_open_socket(): %s:%d", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port)) >= 0) {
+		if (asprintf(&message, "tds_open_socket(): %s:%d", ip_addr, port) >= 0) {
 			perror(message);
 			free(message);
 		}
