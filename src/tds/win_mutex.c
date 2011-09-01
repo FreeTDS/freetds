@@ -32,7 +32,7 @@
 #include "tds.h"
 #include "tdsthread.h"
 
-TDS_RCSID(var, "$Id: win_mutex.c,v 1.3 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: win_mutex.c,v 1.4 2011-09-01 07:55:57 freddy77 Exp $");
 
 #include "ptw32_MCS_lock.c"
 
@@ -50,6 +50,24 @@ tds_win_mutex_lock(tds_win_mutex_t * mutex)
 		ptw32_mcs_lock_release(&node);
 	}
 	EnterCriticalSection(&mutex->crit);
+}
+
+int
+tds_win_mutex_trylock(tds_win_mutex_t * mutex)
+{
+	if (!mutex->done && !InterlockedExchangeAdd(&mutex->done, 0)) {	/* MBR fence */
+		ptw32_mcs_local_node_t node;
+
+		ptw32_mcs_lock_acquire(&mutex->lock, &node);
+		if (!mutex->done) {
+			InitializeCriticalSection(&mutex->crit);
+			mutex->done = 1;
+		}
+		ptw32_mcs_lock_release(&node);
+	}
+	if (TryEnterCriticalSection(&mutex->crit))
+		return 0;
+	return -1;
 }
 
 #endif

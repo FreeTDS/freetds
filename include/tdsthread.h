@@ -22,7 +22,7 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.9 2010-09-16 11:12:08 freddy77 Exp $ */
+/* $Id: tdsthread.h,v 1.10 2011-09-01 07:55:57 freddy77 Exp $ */
 
 #undef TDS_HAVE_MUTEX
 
@@ -32,6 +32,7 @@
 
 #define TDS_MUTEX_DEFINE(name) pthread_mutex_t name = PTHREAD_MUTEX_INITIALIZER
 #define TDS_MUTEX_LOCK(mtx) pthread_mutex_lock(mtx)
+#define TDS_MUTEX_TRYLOCK(mtx) pthread_mutex_trylock(mtx)
 #define TDS_MUTEX_UNLOCK(mtx) pthread_mutex_unlock(mtx)
 #define TDS_MUTEX_DECLARE(name) pthread_mutex_t name
 #define TDS_MUTEX_INIT(mtx) pthread_mutex_init(mtx, NULL)
@@ -50,6 +51,7 @@ typedef struct tds_win_mutex_t_ {
 } tds_win_mutex_t;
 
 void tds_win_mutex_lock(tds_win_mutex_t *mutex);
+int tds_win_mutex_trylock(tds_win_mutex_t *mutex);
 static inline int tds_win_mutex_init(tds_win_mutex_t *mtx)
 {
 	mtx->lock = NULL;
@@ -61,6 +63,7 @@ static inline int tds_win_mutex_init(tds_win_mutex_t *mtx)
 #define TDS_MUTEX_DEFINE(name) tds_win_mutex_t name = { NULL, 0 }
 #define TDS_MUTEX_LOCK(mtx) \
 	do { if ((mtx)->done) EnterCriticalSection(&(mtx)->crit); else tds_win_mutex_lock(mtx); } while(0)
+#define TDS_MUTEX_TRYLOCK(mtx) tds_win_mutex_trylock(mtx)
 #define TDS_MUTEX_UNLOCK(mtx) LeaveCriticalSection(&(mtx)->crit)
 #define TDS_MUTEX_DECLARE(name) tds_win_mutex_t name
 #define TDS_MUTEX_INIT(mtx) tds_win_mutex_init(mtx)
