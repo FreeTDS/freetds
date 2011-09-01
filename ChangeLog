@@ -1,3 +1,7 @@
+Thu Sep  1 15:34:28 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/mem.c src/tds/net.c src/tds/query.c:
+	- partial signal cancel
+
 Thu Sep  1 14:26:41 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h include/tdsthread.h src/tds/mem.c src/tds/util.c:
 	- add wire_mtx to TDSSOCKET
@@ -796,4 +800,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3389 2011-09-01 12:26:51 freddy77 Exp $
+$Id: ChangeLog,v 1.3390 2011-09-01 13:34:23 freddy77 Exp $

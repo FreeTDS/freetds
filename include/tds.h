@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.389 2011-09-01 12:26:51 freddy77 Exp $ */
+/* $Id: tds.h,v 1.390 2011-09-01 13:34:23 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -935,6 +935,7 @@ typedef struct tds_authentication
 struct tds_socket_conn
 {
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
+	TDS_SYS_SOCKET s_signal, s_signaled;
 	void *parent;
 	const TDSCONTEXT *tds_ctx;
 

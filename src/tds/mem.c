@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.222 2011-09-01 12:26:51 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.223 2011-09-01 13:34:23 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -1069,11 +1069,13 @@ tds_free_login(TDSLOGIN * login)
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {
+	int sv[2];
 	TDSSOCKET *tds_socket;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
 	tds_set_ctx(tds_socket, context);
 	tds_socket->in_buf_max = 0;
+	tds_conn(tds_socket)->s_signal = tds_conn(tds_socket)->s_signaled = INVALID_SOCKET;
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
 	tds_set_parent(tds_socket, NULL);
@@ -1087,6 +1089,10 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_socket->query_timeout = 0;
 	tds_init_write_buf(tds_socket);
 	tds_set_s(tds_socket, INVALID_SOCKET);
+	if (tds_socketpair(AF_UNIX, SOCK_DGRAM, 0, sv))
+		goto Cleanup;
+	tds_conn(tds_socket)->s_signal   = sv[0];
+	tds_conn(tds_socket)->s_signaled = sv[1];
 	tds_socket->state = TDS_DEAD;
 	tds_socket->env_chg_func = NULL;
 	if (TDS_MUTEX_INIT(&tds_socket->wire_mtx))
@@ -1135,6 +1141,8 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_ssl_deinit(tds);
 #endif
 		tds_close_socket(tds);
+		CLOSESOCKET(tds_conn(tds)->s_signal);
+		CLOSESOCKET(tds_conn(tds)->s_signaled);
 		tds_iconv_free(tds);
 		free(tds_conn(tds)->product_name);
 		free(tds);

@@ -105,12 +105,13 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.128 2011-09-01 10:05:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.129 2011-09-01 13:34:23 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
 /* error is always returned */
 #define TDSSELERR   0
+#define TDSPOLLURG 0x8000u
 
 static int      tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
 
@@ -342,11 +343,9 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 {
 	int rc, seconds;
 	unsigned int poll_seconds;
-	static const char method[] = "poll(2)";
 
 	assert(tds != NULL);
 	assert(timeout_seconds >= 0);
-
 
 	/* 
 	 * The select loop.  
@@ -365,15 +364,26 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 	 */
 	poll_seconds = (tds_get_ctx(tds) && tds_get_ctx(tds)->int_handler)? 1 : timeout_seconds;
 	for (seconds = timeout_seconds; timeout_seconds == 0 || seconds > 0; seconds -= poll_seconds) {
-		struct pollfd fd;
+		struct pollfd fds[2];
 		int timeout = poll_seconds ? poll_seconds * 1000 : -1;
 
-		fd.fd = tds_get_s(tds);
-		fd.events = tds_sel;
-		fd.revents = 0;
-		rc = poll(&fd, 1, timeout);
+		if (TDS_IS_SOCKET_INVALID(tds_get_s(tds)))
+			return -1;
+
+		fds[0].fd = tds_get_s(tds);
+		fds[0].events = tds_sel;
+		fds[0].revents = 0;
+		fds[1].fd = tds_conn(tds)->s_signaled;
+		fds[1].events = POLLIN;
+		fds[1].revents = 0;
+		rc = poll(fds, 2, timeout);
 
 		if (rc > 0 ) {
+			if (fds[0].revents & POLLERR)
+				return -1;
+			rc = fds[0].revents;
+			if (fds[1].revents)
+				rc |= TDSPOLLURG;
 			return rc;
 		}
 
@@ -382,8 +392,8 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			case TDSSOCK_EINTR:
 				break;	/* let interrupt handler be called */
 			default: /* documented: EFAULT, EBADF, EINVAL */
-				tdsdump_log(TDS_DBG_ERROR, "error: %s returned %d, \"%s\"\n", 
-						method, sock_errno, sock_strerror(sock_errno));
+				tdsdump_log(TDS_DBG_ERROR, "error: poll(2) returned %d, \"%s\"\n",
+						sock_errno, sock_strerror(sock_errno));
 				return rc;
 			}
 		}
@@ -441,7 +451,17 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 		if (IS_TDSDEAD(tds))
 			return -1;
 
-		if ((len = tds_select(tds, TDSSELREAD, tds->query_timeout)) > 0) {
+		len = tds_select(tds, TDSSELREAD, tds->query_timeout);
+		if (len > 0 && (len & TDSPOLLURG)) {
+			char buf[32];
+			READSOCKET(tds_conn(tds)->s_signaled, buf, sizeof(buf));
+			/* send cancel */
+			if (!tds->in_cancel) {
+				tds_put_cancel(tds);
+				tds->in_cancel = 1;
+			}
+			continue;
+		} else if (len > 0) {
 
 			len = READSOCKET(tds_get_s(tds), buf + got, buflen);
 

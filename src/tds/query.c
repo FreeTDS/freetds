@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.264 2011-08-17 13:23:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.265 2011-09-01 13:34:23 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1918,19 +1918,31 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 TDSRET
 tds_send_cancel(TDSSOCKET * tds)
 {
+	TDSRET rc;
+	
+	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx)) {
+		// TODO check
+		// signal other socket
+		send(tds_conn(tds)->s_signal, &tds, sizeof(tds), 0);
+		return TDS_SUCCESS;
+	}
+
 	CHECK_TDS_EXTRA(tds);
 
- 	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: %sin_cancel and %sidle\n", 
+	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: %sin_cancel and %sidle\n", 
 				(tds->in_cancel? "":"not "), (tds->state == TDS_IDLE? "":"not "));
-	
-	/* one cancel is sufficient */
-	if (tds->in_cancel || tds->state == TDS_IDLE)
-		return TDS_SUCCESS;
 
-	tds->out_flag = TDS_CANCEL;
+	/* one cancel is sufficient */
+	if (tds->in_cancel || tds->state == TDS_IDLE) {
+		TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+		return TDS_SUCCESS;
+	}
+
+	rc = tds_put_cancel(tds);
 	tds->in_cancel = 1;
- 	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: sending cancel packet\n");
-	return tds_flush_packet(tds);
+	TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+
+	return rc;
 }
 
 static int
