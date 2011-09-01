@@ -90,7 +90,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.130 2011-08-17 13:23:26 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.131 2011-09-01 13:58:13 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -418,7 +418,6 @@ struct _hstmt
 	TDS_ODBC_SPECIAL_ROWS special_row;
 	/* do NOT free cursor, free from socket or attach to connection */
 	TDSCURSOR *cursor;
-	unsigned char cancel_sent;
 };
 
 typedef struct _henv TDS_ENV;

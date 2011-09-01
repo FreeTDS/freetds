@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.573 2011-08-16 07:04:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.574 2011-09-01 13:58:13 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -761,10 +761,11 @@ odbc_lock_statement(TDS_STMT* stmt)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
-	/* FIXME quite bad... two thread can lock the same TDSSOCKET */
+	TDS_MUTEX_LOCK(&tds->wire_mtx);
 	if (stmt->dbc->current_statement != NULL
 	    && stmt->dbc->current_statement != stmt) {
 		if (!tds || tds->state != TDS_IDLE) {
+			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 			odbc_errs_add(&stmt->errs, "24000", NULL);
 			return 0;
 		}
@@ -773,7 +774,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
 			stmt->attr.query_timeout : stmt->dbc->default_query_timeout;
 	stmt->dbc->current_statement = stmt;
-	stmt->cancel_sent = 0;
+	TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 	return 1;
 }
 
@@ -1789,34 +1790,43 @@ SQLCancel(SQLHSTMT hstmt)
 	 * If function is called from another thread errors are not touched
 	 */
 	/* TODO some tests required */
-	INIT_HSTMT;
+	TDS_STMT *stmt = (TDS_STMT*)hstmt;
+	CHECK_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLCancel(%p)\n", hstmt);
 
 	tds = stmt->dbc->tds_socket;
-	if (!tds) {
-		odbc_errs_add(&stmt->errs, "HY010", NULL);
+	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx) == 0) {
+		CHECK_STMT_EXTRA(stmt);
+		odbc_errs_reset(&stmt->errs);
+
+		TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+
+		/* FIXME test current statement */
+		/* FIXME here we are unlocked */
+
+		if (tds_send_cancel(tds) == TDS_FAIL) {
+			ODBC_SAFE_ERROR(stmt);
+			ODBC_RETURN_(stmt);
+		}
+
+		if (tds_process_cancel(tds) == TDS_FAIL) {
+			ODBC_SAFE_ERROR(stmt);
+			ODBC_RETURN_(stmt);
+		}
+
+		/* only if we processed cancel reset statement */
+		if (stmt->dbc->current_statement && stmt->dbc->current_statement == stmt && tds->state == TDS_IDLE)
+			stmt->dbc->current_statement = NULL;
+
 		ODBC_RETURN_(stmt);
 	}
 
-	/* FIXME test current statement */
-
-	stmt->cancel_sent = 1;
 	if (tds_send_cancel(tds) == TDS_FAIL) {
 		ODBC_SAFE_ERROR(stmt);
 		ODBC_RETURN_(stmt);
 	}
-
-	if (tds_process_cancel(tds) == TDS_FAIL) {
-		ODBC_SAFE_ERROR(stmt);
-		ODBC_RETURN_(stmt);
-	}
-
-	/* only if we processed cancel reset statement */
-	if (stmt->dbc->current_statement && stmt->dbc->current_statement == stmt && tds->state == TDS_IDLE)
-		stmt->dbc->current_statement = NULL;
-
-	ODBC_RETURN_(stmt);
+	return SQL_SUCCESS;
 }
 
 #define FUNC NAME(SQLConnect) (P(SQLHDBC,hdbc), PCHARIN(DSN,SQLSMALLINT), PCHARIN(UID,SQLSMALLINT), \
@@ -2266,31 +2276,19 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		tdsdump_log(TDS_DBG_INFO1, "in timeout\n");
 		if (tds && (dbc = (TDS_DBC *) tds_get_parent(tds)) && dbc->current_statement) {
 			TDS_STMT *stmt = dbc->current_statement;
-			/* cancel sent, handling interrupt */
-			if (tds->in_cancel && stmt->cancel_sent) {
-				stmt->cancel_sent = 0;
+			/* first time, try to send a cancel */
+			if (!tds->in_cancel) {
+				odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
 				tdsdump_log(TDS_DBG_INFO1, "returning from timeout\n");
 				return TDS_INT_TIMEOUT;
 			}
-			if (!tds->in_cancel)
-				odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
-			stmt->errs.lastrc = SQL_ERROR;
-			/* attent indefinitely cancel */
-			/* stmt->dbc->tds_socket->query_timeout = 0; */
 		} else if (dbc) {
 			odbc_errs_add(&dbc->errs, "HYT00", "Timeout expired");
-			dbc->errs.lastrc = SQL_ERROR;
-			tds_close_socket(tds);
-			tdsdump_log(TDS_DBG_INFO1, "returning cancel from timeout\n");
-			return TDS_INT_CANCEL;
 		}
-		if (tds->in_cancel) {
-			tds_close_socket(tds);
-			tdsdump_log(TDS_DBG_INFO1, "returning cancel from timeout\n");
-			return TDS_INT_CANCEL;
-		}
-		tdsdump_log(TDS_DBG_INFO1, "returning from timeout\n");
-		return TDS_INT_TIMEOUT;
+
+		tds_close_socket(tds);
+		tdsdump_log(TDS_DBG_INFO1, "returning cancel from timeout\n");
+		return TDS_INT_CANCEL;
 	}
 
 	if (tds && tds_get_parent(tds)) {

@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.129 2011-09-01 13:34:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.130 2011-09-01 13:58:13 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -390,6 +390,8 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 		if (rc < 0) {
 			switch (sock_errno) {
 			case TDSSOCK_EINTR:
+				/* FIXME this should be global maximun, not loop one */
+				seconds += poll_seconds;
 				break;	/* let interrupt handler be called */
 			default: /* documented: EFAULT, EBADF, EINVAL */
 				tdsdump_log(TDS_DBG_ERROR, "error: poll(2) returned %d, \"%s\"\n",
