@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.388 2011-09-01 10:05:22 freddy77 Exp $ */
+/* $Id: tds.h,v 1.389 2011-09-01 12:26:51 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -46,6 +46,7 @@ typedef struct tds_column TDSCOLUMN;
 #include "tdsver.h"
 #include "tds_sysdep_public.h"
 #include "tds_sysdep_private.h"
+#include "tdsthread.h"
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -1009,6 +1010,7 @@ struct tds_socket
 	int internal_sp_called;
 
 	int option_value;
+	TDS_MUTEX_DECLARE(wire_mtx);
 };
 
 #define tds_conn(tds) (&(tds)->conn)

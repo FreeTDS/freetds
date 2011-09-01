@@ -63,7 +63,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: util.c,v 1.101 2011-08-08 07:06:17 freddy77 Exp $");
+TDS_RCSID(var, "$Id: util.c,v 1.102 2011-09-01 12:26:51 freddy77 Exp $");
 
 /**
  * Set state of TDS connection, with logging and checking.
@@ -74,7 +74,7 @@ TDS_RCSID(var, "$Id: util.c,v 1.101 2011-08-08 07:06:17 freddy77 Exp $");
 TDS_STATE
 tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 {
-	const TDS_STATE prior_state = tds->state;
+	TDS_STATE prior_state;
 	static const char state_names[][10] = {
 		"IDLE",
 	        "QUERYING",
@@ -84,46 +84,58 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 	};
 	assert(state < TDS_VECTOR_SIZE(state_names));
 	assert(tds->state < TDS_VECTOR_SIZE(state_names));
-	
-	if (state == tds->state)
+
+	prior_state = tds->state;
+	if (state == prior_state)
 		return state;
-	
+
 	switch(state) {
-		/* transition to READING are valid only from PENDING */
 	case TDS_PENDING:
-		if (tds->state != TDS_READING && tds->state != TDS_QUERYING) {
-			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
-							state_names[prior_state], state_names[state]);
-			return tds->state;
+		if (prior_state == TDS_READING || prior_state == TDS_QUERYING) {
+			tds->state = TDS_PENDING;
+			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+			break;
 		}
-		tds->state = state;
+		tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n",
+						state_names[prior_state], state_names[state]);
 		break;
 	case TDS_READING:
+		/* transition to READING are valid only from PENDING */
+		if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx))
+			return tds->state;
 		if (tds->state != TDS_PENDING) {
+			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
 							state_names[prior_state], state_names[state]);
-			return tds->state;
+			break;
 		}
 		tds->state = state;
 		break;
 	case TDS_IDLE:
-		if (tds->state == TDS_DEAD && TDS_IS_SOCKET_INVALID(tds_get_s(tds))) {
+		if (prior_state == TDS_DEAD && TDS_IS_SOCKET_INVALID(tds_get_s(tds))) {
 			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n",
 				state_names[prior_state], state_names[state]);
-			return tds->state;
+			break;
 		}
 	case TDS_DEAD:
+		if (prior_state == TDS_READING || prior_state == TDS_QUERYING)
+			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 		tds->state = state;
 		break;
 	case TDS_QUERYING:
 		CHECK_TDS_EXTRA(tds);
 
+		if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx))
+			return tds->state;
+
 		if (tds->state == TDS_DEAD) {
+			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
 							state_names[prior_state], state_names[state]);
 			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, 0);
 			break;
 		} else if (tds->state != TDS_IDLE) {
+			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
 							state_names[prior_state], state_names[state]);
 			tdserror(tds_get_ctx(tds), tds, TDSERPND, 0);
@@ -143,11 +155,12 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		assert(0);
 		break;
 	}
-	
+
 	tdsdump_log(TDS_DBG_ERROR, "Changed query state from %s to %s\n", state_names[prior_state], state_names[state]);
 	CHECK_TDS_EXTRA(tds);
-	
-	return tds->state; 
+
+	state = tds->state;
+	return state;
 }
 
 

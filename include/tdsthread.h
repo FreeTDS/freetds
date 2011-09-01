@@ -22,7 +22,7 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.10 2011-09-01 07:55:57 freddy77 Exp $ */
+/* $Id: tdsthread.h,v 1.11 2011-09-01 12:26:51 freddy77 Exp $ */
 
 #undef TDS_HAVE_MUTEX
 
@@ -33,7 +33,7 @@
 #define TDS_MUTEX_DEFINE(name) pthread_mutex_t name = PTHREAD_MUTEX_INITIALIZER
 #define TDS_MUTEX_LOCK(mtx) pthread_mutex_lock(mtx)
 #define TDS_MUTEX_TRYLOCK(mtx) pthread_mutex_trylock(mtx)
-#define TDS_MUTEX_UNLOCK(mtx) pthread_mutex_unlock(mtx)
+#define TDS_MUTEX_UNLOCK(mtx) do { pthread_mutex_unlock(mtx); } while(0)
 #define TDS_MUTEX_DECLARE(name) pthread_mutex_t name
 #define TDS_MUTEX_INIT(mtx) pthread_mutex_init(mtx, NULL)
 #define TDS_MUTEX_FREE(mtx) pthread_mutex_destroy(mtx)
