@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.413 2011-08-08 12:27:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.414 2011-09-01 07:57:09 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -1948,6 +1948,9 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	if (flags_parm)
 		*flags_parm = tmp;
 
+	rows_affected = IS_TDS72_PLUS(tds) ? tds_get_int8(tds) : tds_get_int(tds);
+	tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %" PRId64 "\n", rows_affected);
+
 	if (was_cancelled || (!more_results && !tds->in_cancel)) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_end() state set to TDS_IDLE\n");
 		/* reset of in_cancel should must done before setting IDLE */
@@ -1963,8 +1966,6 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	 * have no result set.
 	 */
 
-	rows_affected = IS_TDS72_PLUS(tds) ? tds_get_int8(tds) : tds_get_int(tds);
-	tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %" PRId64 "\n", rows_affected);
 	if (done_count_valid)
 		tds->rows_affected = rows_affected;
 	else

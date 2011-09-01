@@ -1,3 +1,6 @@
+Thu Sep  1 09:57:34 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/token.c: read data before handling it
+
 Thu Sep  1 09:56:18 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsthread.h src/tds/win_mutex.c: add TDS_MUTEX_TRYLOCK
 
@@ -786,4 +789,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3386 2011-09-01 07:55:57 freddy77 Exp $
+$Id: ChangeLog,v 1.3387 2011-09-01 07:57:09 freddy77 Exp $
