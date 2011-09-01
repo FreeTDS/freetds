@@ -20,7 +20,7 @@
 #ifndef _replacements_h_
 #define _replacements_h_
 
-/* $Id: replacements.h,v 1.30 2011-07-07 07:24:22 freddy77 Exp $ */
+/* $Id: replacements.h,v 1.31 2011-09-01 07:52:44 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include "tds_sysdep_public.h"
@@ -122,6 +122,12 @@ int gettimeofday (struct timeval *tv, void *tz);
 int getopt(int argc, char * const argv[], const char *optstring);
 extern char *optarg;
 extern int optind, offset, opterr, optreset;
+#endif
+
+#if HAVE_SOCKETPAIR
+#define tds_socketpair(d,t,p,s) socketpair(d,t,p,s)
+#else
+int tds_socketpair(int domain, int type, int protocol, int sv[2]);
 #endif
 
 #ifdef __cplusplus
