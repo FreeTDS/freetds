@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.127 2011-08-18 11:42:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.128 2011-09-01 10:05:22 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -751,6 +751,58 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	return sent <= 0 ? TDS_FAIL : TDS_SUCCESS;
 }
+
+int
+tds_put_cancel(TDSSOCKET * tds)
+{
+	unsigned char out_buf[8];
+	int sent;
+
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+	void (*oldsig) (int);
+#endif
+
+	memset(out_buf, 0, sizeof(out_buf));
+	out_buf[0] = TDS_CANCEL;	/* out_flag */
+	out_buf[1] = 1;	/* final */
+	out_buf[2] = 0;
+	out_buf[3] = 8;
+	if (IS_TDS7_PLUS(tds) && !tds->login)
+		out_buf[6] = 0x01;
+
+	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", out_buf, 8);
+
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+	oldsig = signal(SIGPIPE, SIG_IGN);
+	if (oldsig == SIG_ERR) {
+		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
+	}
+#endif
+
+#ifdef HAVE_GNUTLS
+	if (tds_conn(tds)->tls_session)
+		sent = gnutls_record_send(tds_conn(tds)->tls_session, out_buf, 8);
+	else
+#elif defined(HAVE_OPENSSL)
+	if (tds_conn(tds)->tls_session)
+		sent = SSL_write((SSL*) tds_conn(tds)->tls_session, out_buf, 8);
+	else
+#endif
+		sent = tds_goodwrite(tds, out_buf, 8, 1);
+
+#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
+	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
+	}
+#endif
+
+	if (sent > 0)
+		tds->in_cancel = 1;
+
+	/* GW added in check for write() returning <0 and SIGPIPE checking */
+	return sent <= 0 ? TDS_FAIL : TDS_SUCCESS;
+}
+
 
 /**
  * Get port of all instances
