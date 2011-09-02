@@ -35,12 +35,13 @@
 #include <pthread.h>
 
 #include "tds.h"
+#include "tdsthread.h"
 
 /*
 	test connection timeout
 */
 
-static char software_version[] = "$Id: timeout3.c,v 1.13 2011-07-12 10:16:59 freddy77 Exp $";
+static char software_version[] = "$Id: timeout3.c,v 1.14 2011-09-02 16:33:48 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static void init_connect(void);
@@ -54,6 +55,7 @@ init_connect(void)
 }
 
 static pthread_t      fake_thread;
+static TDS_MUTEX_DECLARE(mtx);
 static TDS_SYS_SOCKET fake_sock;
 
 static void *fake_thread_proc(void * arg);
@@ -91,7 +93,7 @@ init_fake_server(int ip_port)
 static void *
 fake_thread_proc(void * arg)
 {
-	TDS_SYS_SOCKET s = ptr2int(arg);
+	TDS_SYS_SOCKET s = ptr2int(arg), sock;
 	socklen_t len;
 	char buf[128];
 	struct sockaddr_in sin;
@@ -99,15 +101,18 @@ fake_thread_proc(void * arg)
 	memset(&sin, 0, sizeof(sin));
 	len = sizeof(sin);
 	alarm(30);
-	if (TDS_IS_SOCKET_INVALID(fake_sock = tds_accept(s, (struct sockaddr *) &sin, &len))) {
+	if (TDS_IS_SOCKET_INVALID(sock = tds_accept(s, (struct sockaddr *) &sin, &len))) {
 		perror("accept");
 		exit(1);
 	}
+	TDS_MUTEX_LOCK(&mtx);
+	fake_sock = sock;
+	TDS_MUTEX_UNLOCK(&mtx);
 	CLOSESOCKET(s);
 
 	for (;;) {
 		/* just read and discard */
-		len = READSOCKET(fake_sock, buf, sizeof(buf));
+		len = READSOCKET(sock, buf, sizeof(buf));
 		if (len == 0)
 			break;
 		if (len < 0 && sock_errno != TDSSOCK_EINPROGRESS)
@@ -125,6 +130,9 @@ main(int argc, char *argv[])
 	SQLSMALLINT len;
 	int port;
 	time_t start_time, end_time;
+	
+	if (TDS_MUTEX_INIT(&mtx))
+		return 1;
 
 	if (odbc_read_login_info())
 		exit(1);
@@ -172,7 +180,9 @@ main(int argc, char *argv[])
 	tmp[0] = 0;
 	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, sqlstate, NULL, tmp, ODBC_VECTOR_SIZE(tmp), NULL, "SI");
 	odbc_disconnect();
+	TDS_MUTEX_LOCK(&mtx);
 	CLOSESOCKET(fake_sock);
+	TDS_MUTEX_UNLOCK(&mtx);
 	pthread_join(fake_thread, NULL);
 
 	printf("Message: %s - %s\n", C(sqlstate), C(tmp));

@@ -13,8 +13,10 @@
 #if defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM
 
 #include <pthread.h>
+#include "tdsthread.h"
 
 static SQLTCHAR sqlstate[SQL_SQLSTATE_SIZE + 1];
+static TDS_MUTEX_DECLARE(mtx);
 
 static void
 getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
@@ -70,8 +72,12 @@ wait_thread_proc(void * arg)
 	
 	for (n = 0; n < 4; ++n) {
 		sleep(1);
-		if (exit_thread)
+		TDS_MUTEX_LOCK(&mtx);
+		if (exit_thread) {
+			TDS_MUTEX_UNLOCK(&mtx);
 			return NULL;
+		}
+		TDS_MUTEX_UNLOCK(&mtx);
 	}
 
 	exit_forced(0);
@@ -99,7 +105,9 @@ Test(int use_threads)
 		}
 	}
 	CHKExecDirect(T("WAITFOR DELAY '000:05:00'"), SQL_NTS, "E");
+	TDS_MUTEX_LOCK(&mtx);
 	exit_thread = 1;
+	TDS_MUTEX_UNLOCK(&mtx);
 	if (!use_threads) {
 		alarm(0);
 	} else {
@@ -120,6 +128,9 @@ Test(int use_threads)
 int
 main(int argc, char **argv)
 {
+	if (TDS_MUTEX_INIT(&mtx))
+		return 1;
+
 	if (odbc_read_login_info())
 		exit(1);
 

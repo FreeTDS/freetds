@@ -1,3 +1,8 @@
+Fri Sep  2 18:34:17 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/cancel.c src/odbc/unittests/freeclose.c:
+	* src/odbc/unittests/timeout3.c:
+	- use mutex to prevent memory problems
+
 Fri Sep  2 13:46:39 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: do not access error on alternate threads
 
@@ -807,4 +812,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3392 2011-09-02 11:46:41 freddy77 Exp $
+$Id: ChangeLog,v 1.3393 2011-09-02 16:33:48 freddy77 Exp $
