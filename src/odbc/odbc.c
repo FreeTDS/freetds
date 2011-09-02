@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.574 2011-09-01 13:58:13 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.575 2011-09-02 11:46:41 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -1822,10 +1822,9 @@ SQLCancel(SQLHSTMT hstmt)
 		ODBC_RETURN_(stmt);
 	}
 
-	if (tds_send_cancel(tds) == TDS_FAIL) {
-		ODBC_SAFE_ERROR(stmt);
-		ODBC_RETURN_(stmt);
-	}
+	/* don't access error here, just return error */
+	if (tds_send_cancel(tds) == TDS_FAIL)
+		return SQL_ERROR;
 	return SQL_SUCCESS;
 }
 
