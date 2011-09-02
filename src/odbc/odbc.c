@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.576 2011-09-02 18:19:37 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.577 2011-09-02 18:21:23 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -2864,28 +2864,28 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 }
 
 SQLRETURN ODBC_API
-SQLCopyDesc(SQLHDESC hdesc, SQLHDESC htarget)
+SQLCopyDesc(SQLHDESC hsrc, SQLHDESC hdesc)
 {
-	TDS_DESC *target;
+	TDS_DESC *src;
 
 	INIT_HDESC;
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLCopyDesc(%p, %p)\n", 
-			hdesc, htarget);
+			hsrc, hdesc);
 
-	if (SQL_NULL_HDESC == htarget || !IS_HDESC(htarget))
+	if (SQL_NULL_HDESC == hsrc || !IS_HDESC(hsrc))
 		return SQL_INVALID_HANDLE;
-	target = (TDS_DESC *) htarget;
-	CHECK_DESC_EXTRA(target);
+	src = (TDS_DESC *) hsrc;
+	CHECK_DESC_EXTRA(src);
 
 	/* do not write on IRD */
-	if (target->type == DESC_IRD) {
-		odbc_errs_add(&target->errs, "HY016", NULL);
-		ODBC_RETURN_(target);
+	if (desc->type == DESC_IRD) {
+		odbc_errs_add(&desc->errs, "HY016", NULL);
+		ODBC_RETURN_(desc);
 	}
-	IRD_UPDATE(desc, &desc->errs, ODBC_RETURN(target, SQL_ERROR));
+	IRD_UPDATE(src, &src->errs, ODBC_RETURN(desc, SQL_ERROR));
 
-	ODBC_RETURN(target, desc_copy(target, desc));
+	ODBC_RETURN(desc, desc_copy(desc, src));
 }
 
 #if ENABLE_EXTRA_CHECKS

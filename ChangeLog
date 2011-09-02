@@ -1,3 +1,6 @@
+Fri Sep  2 20:21:52 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/descriptor.c src/odbc/odbc.c: fix SQLCopyDesc
+
 Fri Sep  2 20:20:05 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsodbc.h src/odbc/odbc.c: improve odbc thread support
 
@@ -818,4 +821,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3395 2011-09-02 18:19:36 freddy77 Exp $
+$Id: ChangeLog,v 1.3396 2011-09-02 18:21:23 freddy77 Exp $
