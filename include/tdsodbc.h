@@ -22,6 +22,7 @@
 #define _sql_h_
 
 #include "tds.h"
+#include "tdsthread.h"
 
 #if defined(UNIXODBC) || defined(TDS_NO_DM)
 #include <sql.h>
@@ -90,7 +91,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.131 2011-09-01 13:58:13 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.132 2011-09-02 18:19:37 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -131,17 +132,20 @@ typedef struct _sql_errors TDS_ERRS;
 
 #if ENABLE_EXTRA_CHECKS
 void odbc_check_struct_extra(void *p);
+#else
+static inline void odbc_check_struct_extra(void *p) {}
+#endif
 
 #define ODBC_RETURN(handle, rc) \
-	do { odbc_check_struct_extra(handle); return (handle->errs.lastrc = (rc)); } while(0)
+	do { SQLRETURN _odbc_rc = handle->errs.lastrc = (rc); \
+	odbc_check_struct_extra(handle); \
+	TDS_MUTEX_UNLOCK(&handle->mtx); \
+	return _odbc_rc; } while(0)
 #define ODBC_RETURN_(handle) \
-	do { odbc_check_struct_extra(handle); return handle->errs.lastrc; } while(0)
-#else
-#define ODBC_RETURN(handle, rc) \
-	do { return (handle->errs.lastrc = (rc)); } while(0)
-#define ODBC_RETURN_(handle) \
-	do { return handle->errs.lastrc; } while(0)
-#endif
+	do { SQLRETURN _odbc_rc = handle->errs.lastrc; \
+	odbc_check_struct_extra(handle); \
+	TDS_MUTEX_UNLOCK(&handle->mtx); \
+	return _odbc_rc; } while(0)
 
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);
@@ -210,6 +214,7 @@ struct _hdesc
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
+	TDS_MUTEX_DECLARE(mtx);
 	int type;
 	SQLHANDLE parent;
 	struct _dheader header;
@@ -235,12 +240,14 @@ struct _hchk
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
+	TDS_MUTEX_DECLARE(mtx);
 };
 
 struct _henv
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
+	TDS_MUTEX_DECLARE(mtx);
 	TDSCONTEXT *tds_ctx;
 	struct _heattr attr;
 };
@@ -277,6 +284,7 @@ struct _hdbc
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
+	TDS_MUTEX_DECLARE(mtx);
 	struct _henv *env;
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
@@ -375,6 +383,7 @@ struct _hstmt
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
+	TDS_MUTEX_DECLARE(mtx);
 	struct _hdbc *dbc;
 	/** query to execute */
 	char *query;

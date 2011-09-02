@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.575 2011-09-02 11:46:41 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.576 2011-09-02 18:19:37 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -113,24 +113,28 @@ static void odbc_ird_check(TDS_STMT * stmt);
 #define INIT_HSTMT \
 	TDS_STMT *stmt = (TDS_STMT*)hstmt; \
 	CHECK_HSTMT; \
+	TDS_MUTEX_LOCK(&stmt->mtx); \
 	CHECK_STMT_EXTRA(stmt); \
 	odbc_errs_reset(&stmt->errs); \
 
 #define INIT_HDBC \
 	TDS_DBC *dbc = (TDS_DBC*)hdbc; \
 	CHECK_HDBC; \
+	TDS_MUTEX_LOCK(&dbc->mtx); \
 	CHECK_DBC_EXTRA(dbc); \
 	odbc_errs_reset(&dbc->errs); \
 
 #define INIT_HENV \
 	TDS_ENV *env = (TDS_ENV*)henv; \
 	CHECK_HENV; \
+	TDS_MUTEX_LOCK(&env->mtx); \
 	CHECK_ENV_EXTRA(env); \
 	odbc_errs_reset(&env->errs); \
 
 #define INIT_HDESC \
 	TDS_DESC *desc = (TDS_DESC*)hdesc; \
 	CHECK_HDESC; \
+	TDS_MUTEX_LOCK(&desc->mtx); \
 	CHECK_DESC_EXTRA(desc); \
 	odbc_errs_reset(&desc->errs); \
 
@@ -399,14 +403,15 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	if (IS_TDS7_PLUS(dbc->tds_socket))
 		dbc->cursor_support = 1;
 
-	if (dbc->attr.txn_isolation != SQL_TXN_READ_COMMITTED)
-		if (change_txn(dbc, dbc->attr.txn_isolation) != SQL_SUCCESS)
-			return dbc->errs.lastrc;
+	if (dbc->attr.txn_isolation != SQL_TXN_READ_COMMITTED) {
+		change_txn(dbc, dbc->attr.txn_isolation);
+		ODBC_RETURN_(dbc);
+	}
 
 	if (dbc->attr.autocommit != SQL_AUTOCOMMIT_ON) {
 		dbc->attr.autocommit = SQL_AUTOCOMMIT_ON;
 		if (!SQL_SUCCEEDED(change_autocommit(dbc, SQL_AUTOCOMMIT_OFF)))
-			return dbc->errs.lastrc;
+			ODBC_RETURN_(dbc);
 	}
 
 	/* this overwrite any error arrived (wanted behavior, Sybase return error for conversion errors) */
@@ -614,10 +619,7 @@ odbc_prepare(TDS_STMT *stmt)
 		ODBC_RETURN_(dbc);
 	}
 
-	if (odbc_connect(dbc, login) != SQL_SUCCESS) {
-		tds_free_login(login);
-		ODBC_RETURN_(dbc);
-	}
+	odbc_connect(dbc, login);
 
 	tds_free_login(login);
 	ODBC_RETURN_(dbc);
@@ -761,11 +763,11 @@ odbc_lock_statement(TDS_STMT* stmt)
 {
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
-	TDS_MUTEX_LOCK(&tds->wire_mtx);
+	TDS_MUTEX_LOCK(&stmt->dbc->mtx);
 	if (stmt->dbc->current_statement != NULL
 	    && stmt->dbc->current_statement != stmt) {
 		if (!tds || tds->state != TDS_IDLE) {
-			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+			TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
 			odbc_errs_add(&stmt->errs, "24000", NULL);
 			return 0;
 		}
@@ -774,7 +776,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
 			stmt->attr.query_timeout : stmt->dbc->default_query_timeout;
 	stmt->dbc->current_statement = stmt;
-	TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
 	return 1;
 }
 
@@ -986,6 +988,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 	/* TODO support not null terminated in native_sql */
 	native_sql(dbc, tds_dstr_buf(&query));
 
+	/* FIXME if error set some kind of error */
 	ret = odbc_set_string(dbc, szSqlStr, cbSqlStrMax, pcbSqlStr, tds_dstr_cstr(&query), -1);
 
 	tds_dstr_free(&query);
@@ -1520,6 +1523,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->attr.txn_isolation = SQL_TXN_READ_COMMITTED;
 	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
 
+	TDS_MUTEX_INIT(&dbc->mtx);
 	*phdbc = (SQLHDBC) dbc;
 
 	ODBC_RETURN_(env);
@@ -1564,6 +1568,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 	free(ctx->locale->date_fmt);
 	ctx->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 
+	TDS_MUTEX_INIT(&env->mtx);
 	*phenv = (SQLHENV) env;
 
 	return SQL_SUCCESS;
@@ -1703,6 +1708,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 		dbc->stmt_list->prev = stmt;
 	dbc->stmt_list = stmt;
 
+	TDS_MUTEX_INIT(&stmt->mtx);
 	*phstmt = (SQLHSTMT) stmt;
 
 	if (dbc->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY)
@@ -1796,11 +1802,9 @@ SQLCancel(SQLHSTMT hstmt)
 	tdsdump_log(TDS_DBG_FUNC, "SQLCancel(%p)\n", hstmt);
 
 	tds = stmt->dbc->tds_socket;
-	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx) == 0) {
+	if (TDS_MUTEX_TRYLOCK(&stmt->mtx) == 0) {
 		CHECK_STMT_EXTRA(stmt);
 		odbc_errs_reset(&stmt->errs);
-
-		TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 
 		/* FIXME test current statement */
 		/* FIXME here we are unlocked */
@@ -1832,7 +1836,6 @@ SQLCancel(SQLHSTMT hstmt)
 	PCHARIN(AuthStr,SQLSMALLINT) WIDE)
 #include "sqlwparams.h"
 {
-	SQLRETURN result;
 	TDSLOGIN *login;
 
 	INIT_HDBC;
@@ -1901,10 +1904,7 @@ SQLCancel(SQLHSTMT hstmt)
 	}
 
 	/* DO IT */
-	if ((result = odbc_connect(dbc, login)) != SQL_SUCCESS) {
-		tds_free_login(login);
-		ODBC_RETURN_(dbc);
-	}
+	odbc_connect(dbc, login);
 
 	tds_free_login(login);
 	ODBC_RETURN_(dbc);
@@ -2242,8 +2242,11 @@ SQLDisconnect(SQLHDBC hdbc)
 	tdsdump_log(TDS_DBG_FUNC, "SQLDisconnect(%p)\n", hdbc);
 
 	/* free all associated statements */
-	while (dbc->stmt_list)
+	while (dbc->stmt_list) {
+		TDS_MUTEX_UNLOCK(&dbc->mtx);
 		_SQLFreeStmt(dbc->stmt_list, SQL_DROP, 1);
+		TDS_MUTEX_LOCK(&dbc->mtx);
+	}
 
 	/* free all associated descriptors */
 	for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
@@ -3480,7 +3483,7 @@ _SQLExecute(TDS_STMT * stmt)
 	if (SQL_SUCCESS != res)
 		ODBC_RETURN(stmt, res);
 
-	return _SQLExecute(stmt);
+	ODBC_RETURN(stmt, _SQLExecute(stmt));
 }
 
 SQLRETURN ODBC_API
@@ -3516,7 +3519,7 @@ SQLExecute(SQLHSTMT hstmt)
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLExecute returns %s\n", odbc_prret(res));
 
-	return res;
+	ODBC_RETURN(stmt, res);
 }
 
 static int
@@ -4027,6 +4030,8 @@ _SQLFreeConnect(SQLHDBC hdbc)
 		}
 	}
 	odbc_errs_reset(&dbc->errs);
+	TDS_MUTEX_UNLOCK(&dbc->mtx);
+	TDS_MUTEX_FREE(&dbc->mtx);
 
 	free(dbc);
 
@@ -4051,6 +4056,8 @@ _SQLFreeEnv(SQLHENV henv)
 
 	odbc_errs_reset(&env->errs);
 	tds_free_context(env->tds_ctx);
+	TDS_MUTEX_UNLOCK(&env->mtx);
+	TDS_MUTEX_FREE(&env->mtx);
 	free(env);
 
 	return SQL_SUCCESS;
@@ -4108,7 +4115,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		/* free cursor */
 		retcode = odbc_free_cursor(stmt);
 		if (!force && retcode != SQL_SUCCESS)
-			return retcode;
+			ODBC_RETURN(stmt, retcode);
 	}
 
 	/* free it */
@@ -4118,7 +4125,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		/* close prepared statement or add to connection */
 		retcode = odbc_free_dynamic(stmt);
 		if (!force && retcode != SQL_SUCCESS)
-			return retcode;
+			ODBC_RETURN(stmt, retcode);
 
 		/* detatch from list */
 		if (stmt->next)
@@ -4139,6 +4146,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		desc_free(stmt->ipd);
 		desc_free(stmt->orig_ard);
 		desc_free(stmt->orig_apd);
+		TDS_MUTEX_UNLOCK(&stmt->mtx);
+		TDS_MUTEX_FREE(&stmt->mtx);
 		free(stmt);
 
 		/* NOTE we freed stmt, do not use ODBC_RETURN */
@@ -4207,6 +4216,8 @@ _SQLFreeDesc(SQLHDESC hdesc)
 			}
 		}
 	}
+	TDS_MUTEX_UNLOCK(&desc->mtx);
+	TDS_MUTEX_FREE(&desc->mtx);
 
 	return SQL_SUCCESS;
 }
@@ -4446,7 +4457,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	/* try to free dynamic associated */
 	retcode = odbc_free_dynamic(stmt);
 	if (retcode != SQL_SUCCESS)
-		return retcode;
+		ODBC_RETURN(stmt, retcode);
 
 	if (SQL_SUCCESS != odbc_set_stmt_prepared_query(stmt, szSqlStr, cbSqlStr _wide))
 		ODBC_RETURN(stmt, SQL_ERROR);
@@ -4487,9 +4498,8 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 		}
 
 		tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
-		if (!odbc_lock_statement(stmt))
-			ODBC_RETURN_(stmt);
-		return odbc_prepare(stmt);
+		if (odbc_lock_statement(stmt))
+			odbc_prepare(stmt);
 	}
 
 	ODBC_RETURN_(stmt);
@@ -6061,7 +6071,7 @@ _SQLParamData(SQLHSTMT hstmt, SQLPOINTER FAR * prgbValue)
 			*prgbValue = stmt->apd->records[stmt->param_num - 1].sql_desc_data_ptr;
 			ODBC_RETURN(stmt, SQL_NEED_DATA);
 		case SQL_SUCCESS:
-			return _SQLExecute(stmt);
+			ODBC_RETURN(stmt, _SQLExecute(stmt));
 		}
 		ODBC_RETURN(stmt, res);
 	}
@@ -6117,7 +6127,7 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 	switch (Attribute) {
 	case SQL_ATTR_AUTOCOMMIT:
 		/* spinellia@acm.org */
-		ODBC_RETURN(dbc, change_autocommit(dbc, u_value));
+		change_autocommit(dbc, u_value);
 		break;
 	case SQL_ATTR_CONNECTION_TIMEOUT:
 		dbc->attr.connection_timeout = u_value;
@@ -6132,16 +6142,14 @@ SQLPutData(SQLHSTMT hstmt, SQLPOINTER rgbValue, SQLLEN cbValue)
 		}
 		{
 			DSTR s;
-			SQLRETURN ret;
 
 			tds_dstr_init(&s);
 			if (!odbc_dstr_copy_oct(dbc, &s, StringLength, (ODBC_CHAR*) ValuePtr)) {
 				odbc_errs_add(&dbc->errs, "HY001", NULL);
 				break;
 			}
-			ret = change_database(dbc, tds_dstr_cstr(&s), tds_dstr_len(&s));
+			change_database(dbc, tds_dstr_cstr(&s), tds_dstr_len(&s));
 			tds_dstr_free(&s);
-			ODBC_RETURN(dbc, ret);
 		}
 		break;
 	case SQL_ATTR_CURSOR_TYPE:
@@ -7136,8 +7144,10 @@ odbc_free_cursor(TDS_STMT * stmt)
 			tds_cursor_dealloc(tds, cursor);
 			stmt->cursor = NULL;
 		}
-		if (error)
-			ODBC_RETURN(stmt, SQL_ERROR);
+		if (error) {
+			ODBC_SAFE_ERROR(stmt);
+			return SQL_ERROR;
+		}
 	}
 	return SQL_SUCCESS;
 }
