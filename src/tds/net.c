@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.130 2011-09-01 13:58:13 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.131 2011-09-02 16:38:23 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -458,10 +458,8 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 			char buf[32];
 			READSOCKET(tds_conn(tds)->s_signaled, buf, sizeof(buf));
 			/* send cancel */
-			if (!tds->in_cancel) {
+			if (!tds->in_cancel)
 				tds_put_cancel(tds);
-				tds->in_cancel = 1;
-			}
 			continue;
 		} else if (len > 0) {
 

@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.265 2011-09-01 13:34:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.266 2011-09-02 16:38:23 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1939,7 +1939,6 @@ tds_send_cancel(TDSSOCKET * tds)
 	}
 
 	rc = tds_put_cancel(tds);
-	tds->in_cancel = 1;
 	TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 
 	return rc;
