@@ -91,7 +91,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.132 2011-09-02 18:19:37 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.133 2011-09-02 18:22:22 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -137,15 +137,23 @@ static inline void odbc_check_struct_extra(void *p) {}
 #endif
 
 #define ODBC_RETURN(handle, rc) \
+	do { odbc_check_struct_extra(handle); \
+	return handle->errs.lastrc = (rc); } while(0)
+#define ODBC_RETURN_(handle) \
+	do { odbc_check_struct_extra(handle); \
+	return handle->errs.lastrc; } while(0)
+
+#define ODBC_EXIT(handle, rc) \
 	do { SQLRETURN _odbc_rc = handle->errs.lastrc = (rc); \
 	odbc_check_struct_extra(handle); \
 	TDS_MUTEX_UNLOCK(&handle->mtx); \
 	return _odbc_rc; } while(0)
-#define ODBC_RETURN_(handle) \
+#define ODBC_EXIT_(handle) \
 	do { SQLRETURN _odbc_rc = handle->errs.lastrc; \
 	odbc_check_struct_extra(handle); \
 	TDS_MUTEX_UNLOCK(&handle->mtx); \
 	return _odbc_rc; } while(0)
+
 
 /** reset errors */
 void odbc_errs_reset(struct _sql_errors *errs);
