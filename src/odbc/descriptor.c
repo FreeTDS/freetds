@@ -207,6 +207,8 @@ desc_free(TDS_DESC * desc)
 	if (desc) {
 		desc_free_records(desc);
 		odbc_errs_reset(&desc->errs);
+		TDS_MUTEX_UNLOCK(&desc->mtx);
+		TDS_MUTEX_FREE(&desc->mtx);
 		free(desc);
 	}
 	return SQL_SUCCESS;

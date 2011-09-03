@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.578 2011-09-02 18:22:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.579 2011-09-03 17:17:10 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -4196,9 +4196,6 @@ _SQLFreeDesc(SQLHDESC hdesc)
 			}
 		}
 	}
-	TDS_MUTEX_UNLOCK(&desc->mtx);
-	TDS_MUTEX_FREE(&desc->mtx);
-
 	return SQL_SUCCESS;
 }
 
