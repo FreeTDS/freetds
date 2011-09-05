@@ -1,3 +1,6 @@
+Mon Sep  5 21:24:54 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/cancel.c: improve cancel test
+
 Mon Sep  5 20:53:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/data.c src/tds/bulk.c: just some comments
 
@@ -831,4 +834,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3399 2011-09-05 18:52:43 freddy77 Exp $
+$Id: ChangeLog,v 1.3400 2011-09-05 19:24:20 freddy77 Exp $

@@ -85,7 +85,7 @@ wait_thread_proc(void * arg)
 }
 
 static void
-Test(int use_threads)
+Test(int use_threads, int return_data)
 {
 	pthread_t wait_thread;
 
@@ -104,7 +104,11 @@ Test(int use_threads)
 			exit(1);
 		}
 	}
-	CHKExecDirect(T("WAITFOR DELAY '000:05:00'"), SQL_NTS, "E");
+	if (!return_data)
+		CHKExecDirect(T("WAITFOR DELAY '000:05:00'"), SQL_NTS, "E");
+	else
+		odbc_command2("SELECT MAX(p1.k) FROM tab1 p1, tab1 p2, tab1 p3, tab1 p4", "E");
+
 	TDS_MUTEX_LOCK(&mtx);
 	exit_thread = 1;
 	TDS_MUTEX_UNLOCK(&mtx);
@@ -128,6 +132,8 @@ Test(int use_threads)
 int
 main(int argc, char **argv)
 {
+	int i;
+
 	if (TDS_MUTEX_INIT(&mtx))
 		return 1;
 
@@ -156,8 +162,26 @@ main(int argc, char **argv)
 	odbc_use_version3 = 1;
 	odbc_connect();
 
-	Test(0);
-	Test(1);
+	odbc_command("IF OBJECT_ID('tab1') IS NOT NULL DROP TABLE tab1");
+	odbc_command("CREATE TABLE tab1 ( k INT, vc VARCHAR(200) )");
+
+	printf(">> Creating tab1...\n");
+	for (i=1; i<=2000; ++i) {
+		char sql[100];
+		sprintf(sql, "INSERT INTO tab1 VALUES ( %d, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' )", i);
+
+		odbc_command(sql);
+	}
+	printf(">> ...done.\n");
+
+	odbc_reset_statement();
+
+	Test(0, 0);
+	Test(1, 0);
+	Test(0, 1);
+	Test(1, 1);
+
+	odbc_command("DROP TABLE tab1");
 
 	odbc_disconnect();
 	return 0;
