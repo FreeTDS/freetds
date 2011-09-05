@@ -13,7 +13,7 @@
  * Also we have to check normal char and wide char
  */
 
-static char software_version[] = "$Id: data.c,v 1.42 2011-08-12 13:33:44 freddy77 Exp $";
+static char software_version[] = "$Id: data.c,v 1.43 2011-09-05 18:52:43 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
@@ -226,6 +226,7 @@ main(int argc, char *argv[])
 
 	/* MSSQL 2008*/
 	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0A000000u) {
+		/* TODO test for SQL_C_DEFAULT */
 		int save_result = result;
 
 		/* check right protocol */

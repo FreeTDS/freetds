@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.22 2011-08-08 07:04:05 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.23 2011-09-05 18:52:43 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -1069,6 +1069,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 TDSRET
 tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size)
 {
+	/* TODO mssql does not like timestamp */
 	if (tds_submit_queryf(tds,
 			      "writetext bulk %s 0x%s timestamp = 0x%s%s",
 			      objname, textptr, timestamp, with_log ? " with log" : "")
