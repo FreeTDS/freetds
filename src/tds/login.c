@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.220 2011-08-06 18:46:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.221 2011-09-07 09:38:36 freddy77 Exp $");
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -460,7 +460,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		tds->out_flag = TDS_LOGIN;
 		erc = tds_send_login(tds, login);
 	}
-	if (erc == TDS_FAIL || tds_process_login_tokens(tds) == TDS_FAIL) {
+	if (erc == TDS_FAIL || TDS_FAILED(tds_process_login_tokens(tds))) {
 		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", erc==TDS_SUCCESS? "accepted":"rejected");
 		tds_close_socket(tds);
 		tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */

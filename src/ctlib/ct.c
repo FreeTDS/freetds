@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.218 2011-07-27 16:30:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.219 2011-09-07 09:38:36 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -891,7 +891,7 @@ ct_send(CS_COMMAND * cmd)
 
 		switch (cmd->dynamic_cmd) {
 		case CS_PREPARE:
-			if (tds_submit_prepare(tds, cmd->dyn->stmt, cmd->dyn->id, NULL, NULL) == TDS_FAIL)
+			if (TDS_FAILED(tds_submit_prepare(tds, cmd->dyn->stmt, cmd->dyn->id, NULL, NULL)))
 				return CS_FAIL;
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
 			return CS_SUCCEED;
@@ -905,7 +905,7 @@ ct_send(CS_COMMAND * cmd)
 			}
 			tds_free_input_params(tdsdyn);
 			tdsdyn->params = pparam_info;
-			if (tds_submit_execute(tds, tdsdyn) == TDS_FAIL)
+			if (TDS_FAILED(tds_submit_execute(tds, tdsdyn)))
 				return CS_FAIL;
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
 			return CS_SUCCEED;
@@ -933,7 +933,7 @@ ct_send(CS_COMMAND * cmd)
 				tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_DEALLOC) no tdsdyn!\n");
 				return CS_FAIL;
 			}
-			if (tds_submit_unprepare(tds, tdsdyn) == TDS_FAIL)
+			if (TDS_FAILED(tds_submit_unprepare(tds, tdsdyn)))
 				return CS_FAIL;
 
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
@@ -960,9 +960,8 @@ ct_send(CS_COMMAND * cmd)
 
 		ct_set_command_state(cmd, _CS_COMMAND_SENT);
 
-		if (ret == TDS_FAIL) {
+		if (TDS_FAILED(ret))
 			return CS_FAIL;
-		}
 
 		return CS_SUCCEED;
 	}
@@ -981,7 +980,7 @@ ct_send(CS_COMMAND * cmd)
 
 		ct_set_command_state(cmd, _CS_COMMAND_SENT);
 
-		if (ret == TDS_FAIL) {
+		if (TDS_FAILED(ret)) {
 			tdsdump_log(TDS_DBG_WARN, "ct_send() failed\n");
 			return CS_FAIL;
 		}
@@ -1024,7 +1023,7 @@ ct_send(CS_COMMAND * cmd)
 
 		if (cursor->status.declare == _CS_CURS_TYPE_REQUESTED) {
 			ret =  tds_cursor_declare(tds, cursor, NULL, &something_to_send);
-			if (ret == TDS_SUCCESS){
+			if (!TDS_FAILED(ret)){
 				cursor->status.declare = _CS_CURS_TYPE_SENT; /* Cursor is declared */
 				if (something_to_send == 0) {
 					cmd->results_state = _CS_RES_END_RESULTS;
@@ -1040,7 +1039,7 @@ ct_send(CS_COMMAND * cmd)
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
  			ret = tds_cursor_setrows(tds, cursor, &something_to_send);
-			if (ret == TDS_SUCCESS){
+			if (!TDS_FAILED(ret)){
 				cursor->status.cursor_row = _CS_CURS_TYPE_SENT; /* Cursor rows set */
 				if (something_to_send == 0) {
 					cmd->results_state = _CS_RES_END_RESULTS;
@@ -1056,7 +1055,7 @@ ct_send(CS_COMMAND * cmd)
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
 			ret = tds_cursor_open(tds, cursor, NULL, &something_to_send);
- 			if (ret == TDS_SUCCESS){
+ 			if (!TDS_FAILED(ret)){
 				cursor->status.open = _CS_CURS_TYPE_SENT;
 				cmd->results_state = _CS_RES_INIT;
 			}
@@ -1661,7 +1660,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 		return CS_FAIL;
 	}
 
-	if (tds_cursor_fetch(tds, cursor, TDS_CURSOR_FETCH_NEXT, 0) != TDS_SUCCESS) {
+	if (TDS_FAILED(tds_cursor_fetch(tds, cursor, TDS_CURSOR_FETCH_NEXT, 0))) {
 		tdsdump_log(TDS_DBG_WARN, "ct_fetch(): cursor fetch failed\n");
 		return CS_FAIL;
 	}
@@ -1691,7 +1690,7 @@ _ct_fetch_cursor(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS
 							rows_this_fetch++;
 						}
 					} else {
-						if (ret == TDS_FAIL)
+						if (TDS_FAILED(ret))
 							return CS_FAIL;
 						break;
 					}
