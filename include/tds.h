@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.390 2011-09-01 13:34:23 freddy77 Exp $ */
+/* $Id: tds.h,v 1.391 2011-09-07 09:36:01 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -162,10 +162,11 @@ typedef struct tdsdaterec
 extern const int tds_numeric_bytes_per_prec[];
 
 typedef int TDSRET;
-#define TDS_SUCCESS          ((TDSRET)1)
-#define TDS_FAIL             ((TDSRET)0)
-#define TDS_NO_MORE_RESULTS  ((TDSRET)2)
-#define TDS_CANCELLED        ((TDSRET)3)
+#define TDS_NO_MORE_RESULTS  ((TDSRET)1)
+#define TDS_SUCCESS          ((TDSRET)0)
+#define TDS_FAIL             ((TDSRET)-1)
+#define TDS_CANCELLED        ((TDSRET)-2)
+#define TDS_FAILED(rc) ((rc)<0)
 
 #define TDS_INT_CONTINUE 1
 #define TDS_INT_CANCEL 2
