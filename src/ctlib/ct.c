@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.219 2011-09-07 09:38:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.220 2011-09-07 09:40:47 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -1023,7 +1023,7 @@ ct_send(CS_COMMAND * cmd)
 
 		if (cursor->status.declare == _CS_CURS_TYPE_REQUESTED) {
 			ret =  tds_cursor_declare(tds, cursor, NULL, &something_to_send);
-			if (!TDS_FAILED(ret)){
+			if (TDS_SUCCEED(ret)){
 				cursor->status.declare = _CS_CURS_TYPE_SENT; /* Cursor is declared */
 				if (something_to_send == 0) {
 					cmd->results_state = _CS_RES_END_RESULTS;
@@ -1039,7 +1039,7 @@ ct_send(CS_COMMAND * cmd)
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
  			ret = tds_cursor_setrows(tds, cursor, &something_to_send);
-			if (!TDS_FAILED(ret)){
+			if (TDS_SUCCEED(ret)){
 				cursor->status.cursor_row = _CS_CURS_TYPE_SENT; /* Cursor rows set */
 				if (something_to_send == 0) {
 					cmd->results_state = _CS_RES_END_RESULTS;
@@ -1055,7 +1055,7 @@ ct_send(CS_COMMAND * cmd)
 			cursor->status.declare == _CS_CURS_TYPE_SENT) {
 
 			ret = tds_cursor_open(tds, cursor, NULL, &something_to_send);
- 			if (!TDS_FAILED(ret)){
+ 			if (TDS_SUCCEED(ret)){
 				cursor->status.open = _CS_CURS_TYPE_SENT;
 				cmd->results_state = _CS_RES_INIT;
 			}

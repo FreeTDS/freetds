@@ -1,3 +1,10 @@
+Wed Sep  7 11:40:59 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/ctlib/ct.c src/odbc/convert_tds2sql.c:
+	* src/odbc/odbc.c src/odbc/odbc_util.c src/odbc/sql2tds.c:
+	* src/tds/bulk.c src/tds/data.c src/tds/gssapi.c src/tds/query.c:
+	* src/tds/token.c:
+	- start using new TDS_FAILED/TDS_SUCCEED macros
+
 Wed Sep  7 11:38:18 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/ct.c src/tds/login.c: test correctly tds results
 
@@ -840,4 +847,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3402 2011-09-07 09:38:36 freddy77 Exp $
+$Id: ChangeLog,v 1.3403 2011-09-07 09:40:47 freddy77 Exp $

@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: sql2tds.c,v 1.90 2011-08-17 09:11:39 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sql2tds.c,v 1.91 2011-09-07 09:40:47 freddy77 Exp $");
 
 static TDS_INT
 convert_datetime2server(int bindtype, const void *src, TDS_DATETIMEALL * dta)
@@ -192,7 +192,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 
 	/* what type to convert ? */
 	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
-	if (dest_type == TDS_FAIL) {
+	if (!dest_type) {
 		odbc_errs_add(&stmt->errs, "07006", NULL);	/* Restricted data type attribute violation */
 		return SQL_ERROR;
 	}
@@ -266,7 +266,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	/* test source type */
 	/* TODO test intervals */
 	src_type = odbc_c_to_server_type(sql_src_type);
-	if (src_type == TDS_FAIL) {
+	if (!src_type) {
 		odbc_errs_add(&stmt->errs, "07006", NULL);	/* Restricted data type attribute violation */
 		return SQL_ERROR;
 	}

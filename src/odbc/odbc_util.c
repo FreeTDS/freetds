@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc_util.c,v 1.129 2011-08-17 13:23:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc_util.c,v 1.130 2011-09-07 09:40:47 freddy77 Exp $");
 
 /**
  * \ingroup odbc_api
@@ -839,7 +839,7 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_INTERVAL_MINUTE_TO_SECOND:
 		break;
 	}
-	return TDS_FAIL;
+	return 0;
 }
 
 void

@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.414 2011-09-01 07:57:09 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.415 2011-09-07 09:40:47 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -254,9 +254,8 @@ tds_set_spid(TDSSOCKET * tds)
 
 	CHECK_TDS_EXTRA(tds);
 
-	if (tds_submit_query(tds, "select @@spid") != TDS_SUCCESS) {
-		return TDS_FAIL;
-	}
+	if (TDS_FAILED(rc=tds_submit_query(tds, "select @@spid")))
+		return rc;
 
 	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROWFMT|TDS_RETURN_ROW|TDS_RETURN_DONE)) == TDS_SUCCESS) {
 
@@ -405,7 +404,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 			}
 			break;
 		default:
-			if (tds_process_default_tokens(tds, marker) == TDS_FAIL)
+			if (TDS_FAILED(tds_process_default_tokens(tds, marker)))
 				return TDS_FAIL;
 			break;
 		}
@@ -413,7 +412,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	/* TODO why ?? */
 	tds->spid = tds->rows_affected;
 	if (tds->spid == 0) {
-		if (tds_set_spid(tds) != TDS_SUCCESS) {
+		if (TDS_FAILED(tds_set_spid(tds))) {
 			tdsdump_log(TDS_DBG_ERROR, "tds_set_spid() failed\n");
 			succeed = TDS_FAIL;
 		}
@@ -786,7 +785,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			break;
 		}
 
-		if (rc == TDS_FAIL) {
+		if (TDS_FAILED(rc)) {
 			tds_set_state(tds, TDS_PENDING);
 			return rc;
 		}
@@ -846,9 +845,8 @@ tds_process_simple_query(TDSSOCKET * tds)
 				break;
 		}
 	}
-	if (rc != TDS_NO_MORE_RESULTS) {
-		ret = TDS_FAIL;
-	}
+	if (TDS_FAILED(rc))
+		ret = rc;
 
 	return ret;
 }
@@ -1317,7 +1315,7 @@ tds_process_params_result_token(TDSSOCKET * tds)
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (curcol->funcs->get_data(tds, curcol) != TDS_SUCCESS)
+		if (TDS_FAILED(curcol->funcs->get_data(tds, curcol)))
 			return TDS_FAIL;
 	}
 	return TDS_SUCCESS;
@@ -1868,7 +1866,7 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
-		if (curcol->funcs->get_data(tds, curcol) != TDS_SUCCESS) {
+		if (TDS_FAILED(curcol->funcs->get_data(tds, curcol))) {
 			tdsdump_log(TDS_DBG_INFO1, "tds_process_compute() FAIL: get_data() failed\n");
 			return TDS_FAIL;
 		}
@@ -1900,7 +1898,7 @@ tds_process_row(TDSSOCKET * tds)
 	for (i = 0; i < info->num_cols; i++) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d \n", i);
 		curcol = info->columns[i];
-		if (curcol->funcs->get_data(tds, curcol) != TDS_SUCCESS)
+		if (TDS_FAILED(curcol->funcs->get_data(tds, curcol)))
 			return TDS_FAIL;
 	}
 	return TDS_SUCCESS;
@@ -2133,8 +2131,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	len = tds_get_smallint(tds);
 
 	/* message number */
-	rc = tds_get_int(tds);
-	msg.msgno = rc;
+	msg.msgno = tds_get_int(tds);
 
 	/* msg state */
 	msg.state = tds_get_byte(tds);
@@ -2224,7 +2221,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 			case TDS5_PARAMFMT_TOKEN:
 			case TDS5_PARAMFMT2_TOKEN:
 			case TDS5_PARAMS_TOKEN:
-				if (tds_process_default_tokens(tds, next_marker) != TDS_SUCCESS)
+				if (TDS_FAILED(tds_process_default_tokens(tds, next_marker)))
 					--rc;
 				continue;
 			}

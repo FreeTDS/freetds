@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.78 2011-08-17 09:11:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.79 2011-09-07 09:40:47 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -254,7 +254,7 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 	}
 
 	nDestSybType = odbc_c_to_server_type(desttype);
-	if (nDestSybType == TDS_FAIL) {
+	if (!nDestSybType) {
 		odbc_errs_add(&stmt->errs, "HY003", NULL);
 		return SQL_NULL_DATA;
 	}

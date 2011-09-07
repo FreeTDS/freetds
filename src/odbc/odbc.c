@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.579 2011-09-03 17:17:10 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.580 2011-09-07 09:40:47 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -437,7 +437,7 @@ odbc_prepare(TDS_STMT *stmt)
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 	int in_row = 0;
 
-	if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params) == TDS_FAIL) {
+	if (TDS_FAILED(tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params))) {
 		ODBC_SAFE_ERROR(stmt);
 		return SQL_ERROR;
 	}
@@ -1789,12 +1789,12 @@ SQLCancel(SQLHSTMT hstmt)
 		/* FIXME test current statement */
 		/* FIXME here we are unlocked */
 
-		if (tds_send_cancel(tds) == TDS_FAIL) {
+		if (TDS_FAILED(tds_send_cancel(tds))) {
 			ODBC_SAFE_ERROR(stmt);
 			ODBC_EXIT_(stmt);
 		}
 
-		if (tds_process_cancel(tds) == TDS_FAIL) {
+		if (TDS_FAILED(tds_process_cancel(tds))) {
 			ODBC_SAFE_ERROR(stmt);
 			ODBC_EXIT_(stmt);
 		}
@@ -1807,7 +1807,7 @@ SQLCancel(SQLHSTMT hstmt)
 	}
 
 	/* don't access error here, just return error */
-	if (tds_send_cancel(tds) == TDS_FAIL)
+	if (TDS_FAILED(tds_send_cancel(tds)))
 		return SQL_ERROR;
 	return SQL_SUCCESS;
 }
@@ -3147,7 +3147,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	if (ret != TDS_SUCCESS)
 		return ret;
 	ret = tds_cursor_open(tds, cursor, params, &send);
-	if (ret != TDS_SUCCESS)
+	if (TDS_FAILED(ret))
 		return ret;
 	/* TODO read results, set row count, check type and scroll returned */
 	ret = tds_flush_packet(tds);
@@ -3288,7 +3288,7 @@ _SQLExecute(TDS_STMT * stmt)
 
 			tdsdump_log(TDS_DBG_INFO1, "Creating prepared statement\n");
 			/* TODO use tds_submit_prepexec (mssql2k, tds71) */
-			if (tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params) == TDS_FAIL) {
+			if (TDS_FAILED(tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params))) {
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_SAFE_ERROR(stmt);
 				return SQL_ERROR;
@@ -4571,7 +4571,7 @@ change_transaction(TDS_DBC * dbc, int state)
 	/* if pending drop all recordset, don't issue cancel */
 	if (tds->state == TDS_PENDING && dbc->current_statement != NULL) {
 		/* TODO what happen on multiple errors ?? discard all ?? */
-		if (tds_process_simple_query(tds) == TDS_FAIL)
+		if (TDS_FAILED(tds_process_simple_query(tds)))
 			return SQL_ERROR;
 	}
 

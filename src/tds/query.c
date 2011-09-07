@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.266 2011-09-02 16:38:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.267 2011-09-07 09:40:47 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1249,12 +1249,12 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		dyn->query = strdup(query);
 		if (!dyn->query)
 			ret = TDS_FAIL;
-		if (ret != TDS_FAIL)
+		if (TDS_SUCCEED(ret))
 			if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 				ret = TDS_FAIL;
-		if (ret != TDS_FAIL) {
+		if (TDS_SUCCEED(ret)) {
 			ret = tds_send_emulated_execute(tds, dyn->query, dyn->params);
-			if (ret == TDS_SUCCESS)
+			if (TDS_SUCCEED(ret))
 				ret = tds_query_flush_packet(tds);
 		}
 		/* do not free our parameters */
@@ -1607,7 +1607,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	}
 
 	if (dyn->emulated) {
-		if (tds_send_emulated_execute(tds, dyn->query, dyn->params) != TDS_SUCCESS)
+		if (TDS_FAILED(tds_send_emulated_execute(tds, dyn->query, dyn->params)))
 			return TDS_FAIL;
 		return tds_query_flush_packet(tds);
 	}
@@ -2498,7 +2498,7 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 
 		/* Adjust current state */
 		tds->internal_sp_called = 0;
-		if ( (retcode=tds_query_flush_packet(tds)) != TDS_SUCCESS )
+		if (TDS_FAILED(retcode=tds_query_flush_packet(tds)))
 			return retcode;
 
 		/* Process answer from server */

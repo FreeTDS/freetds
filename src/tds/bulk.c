@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.23 2011-09-05 18:52:43 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.24 2011-09-07 09:40:47 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -79,18 +79,18 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	else
 		fmt = "SET FMTONLY ON %s SET FMTONLY OFF";
 
-	if (tds_submit_queryf(tds, fmt, bcpinfo->tablename) == TDS_FAIL)
+	if (TDS_FAILED(rc=tds_submit_queryf(tds, fmt, bcpinfo->tablename)))
 		/* TODO return an error ?? */
 		/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
-		return TDS_FAIL;
+		return rc;
 
 	/* TODO possibly stop at ROWFMT and copy before going to idle */
 	/* TODO check what happen if table is not present, cleanup on error */
 	while ((rc = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS))
 		   == TDS_SUCCESS)
 		continue;
-	if (rc != TDS_NO_MORE_RESULTS)
-		return TDS_FAIL;
+	if (TDS_FAILED(rc))
+		return rc;
 
 	/* copy the results info from the TDS socket */
 	if (!tds->res_info)
@@ -152,7 +152,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	if (bcpinfo->identity_insert_on) {
 
-		if (tds_submit_queryf(tds, "set identity_insert %s on", bcpinfo->tablename) == TDS_FAIL)
+		if (TDS_FAILED(tds_submit_queryf(tds, "set identity_insert %s on", bcpinfo->tablename)))
 			goto cleanup;
 
 		/* TODO use tds_process_simple_query */

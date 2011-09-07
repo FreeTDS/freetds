@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.391 2011-09-07 09:36:01 freddy77 Exp $ */
+/* $Id: tds.h,v 1.392 2011-09-07 09:40:47 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -167,6 +167,7 @@ typedef int TDSRET;
 #define TDS_FAIL             ((TDSRET)-1)
 #define TDS_CANCELLED        ((TDSRET)-2)
 #define TDS_FAILED(rc) ((rc)<0)
+#define TDS_SUCCEED(rc) ((rc)>=0)
 
 #define TDS_INT_CONTINUE 1
 #define TDS_INT_CANCEL 2

@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.43 2011-08-10 07:47:19 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.44 2011-09-07 09:40:47 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -416,7 +416,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			v->data = (TDS_CHAR*) malloc(curcol->column_cur_size);
 			if (!v->data)
 				return TDS_FAIL;
-			if (tds_get_char_data(tds, (char *) v, colsize, curcol) == TDS_FAIL)
+			if (TDS_FAILED(tds_get_char_data(tds, (char *) v, colsize, curcol)))
 				return TDS_FAIL;
 			colsize = curcol->column_cur_size;
 			v->type = tds_get_cardinal_type(type, 0);
@@ -558,7 +558,7 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		
 		/* read the data */
 		if (USE_ICONV && curcol->char_conv) {
-			if (tds_get_char_data(tds, (char *) blob, colsize, curcol) == TDS_FAIL)
+			if (TDS_FAILED(tds_get_char_data(tds, (char *) blob, colsize, curcol)))
 				return TDS_FAIL;
 		} else {
 			assert(colsize == new_blob_size);
@@ -568,7 +568,7 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->column_cur_size = colsize;
 
 		if (USE_ICONV && curcol->char_conv) {
-			if (tds_get_char_data(tds, (char *) dest, colsize, curcol) == TDS_FAIL)
+			if (TDS_FAILED(tds_get_char_data(tds, (char *) dest, colsize, curcol)))
 				return TDS_FAIL;
 		} else {	
 			/*
