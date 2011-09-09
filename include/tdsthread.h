@@ -22,7 +22,7 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.12 2011-09-09 02:06:20 jklowden Exp $ */
+/* $Id: tdsthread.h,v 1.13 2011-09-09 08:50:47 freddy77 Exp $ */
 
 #undef TDS_HAVE_MUTEX
 
@@ -31,12 +31,12 @@
 #include <pthread.h>
 
 #define TDS_MUTEX_DEFINE(name) pthread_mutex_t name = PTHREAD_MUTEX_INITIALIZER
-#define TDS_MUTEX_LOCK(mtx) pthread_mutex_lock(mtx)
+#define TDS_MUTEX_LOCK(mtx) do { pthread_mutex_lock(mtx); } while(0)
 #define TDS_MUTEX_TRYLOCK(mtx) pthread_mutex_trylock(mtx)
 #define TDS_MUTEX_UNLOCK(mtx) do { pthread_mutex_unlock(mtx); } while(0)
 #define TDS_MUTEX_DECLARE(name) pthread_mutex_t name
 #define TDS_MUTEX_INIT(mtx) pthread_mutex_init(mtx, NULL)
-#define TDS_MUTEX_FREE(mtx) pthread_mutex_destroy(mtx)
+#define TDS_MUTEX_FREE(mtx) do { pthread_mutex_destroy(mtx); } while(0)
 
 #define TDS_HAVE_MUTEX 1
 
@@ -75,12 +75,12 @@ static inline int tds_win_mutex_init(tds_win_mutex_t *mtx)
 
 /* define noops as "successful" */
 #define TDS_MUTEX_DEFINE(name) int name
-#define TDS_MUTEX_LOCK(mtx) 0
+#define TDS_MUTEX_LOCK(mtx) do { ; } while(0)
 #define TDS_MUTEX_TRYLOCK(mtx) 0
-#define TDS_MUTEX_UNLOCK(mtx) 0
+#define TDS_MUTEX_UNLOCK(mtx) do { ; } while(0)
 #define TDS_MUTEX_DECLARE(name) int name
 #define TDS_MUTEX_INIT(mtx) 0
-#define TDS_MUTEX_FREE(mtx) 0
+#define TDS_MUTEX_FREE(mtx) do { ; } while(0)
 
 #endif
 
