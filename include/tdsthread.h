@@ -22,7 +22,7 @@
 #ifndef TDSTHREAD_H
 #define TDSTHREAD_H 1
 
-/* $Id: tdsthread.h,v 1.11 2011-09-01 12:26:51 freddy77 Exp $ */
+/* $Id: tdsthread.h,v 1.12 2011-09-09 02:06:20 jklowden Exp $ */
 
 #undef TDS_HAVE_MUTEX
 
@@ -73,12 +73,14 @@ static inline int tds_win_mutex_init(tds_win_mutex_t *mtx)
 
 #else
 
+/* define noops as "successful" */
 #define TDS_MUTEX_DEFINE(name) int name
-#define TDS_MUTEX_LOCK(mtx)
-#define TDS_MUTEX_UNLOCK(mtx)
+#define TDS_MUTEX_LOCK(mtx) 0
+#define TDS_MUTEX_TRYLOCK(mtx) 0
+#define TDS_MUTEX_UNLOCK(mtx) 0
 #define TDS_MUTEX_DECLARE(name) int name
-#define TDS_MUTEX_INIT(mtx)
-#define TDS_MUTEX_FREE(mtx)
+#define TDS_MUTEX_INIT(mtx) 0
+#define TDS_MUTEX_FREE(mtx) 0
 
 #endif
 
