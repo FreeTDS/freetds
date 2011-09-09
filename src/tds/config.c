@@ -78,7 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.173 2011-08-12 16:38:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.174 2011-09-09 02:06:17 jklowden Exp $");
 
 static void tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSLOGIN * login);
@@ -717,8 +717,8 @@ tds_config_env_tdsver(TDSLOGIN * login)
 	char *tdsver;
 
 	if ((tdsver = getenv("TDSVER"))) {
-		tds_config_verstr(tdsver, login);
-		tdsdump_log(TDS_DBG_INFO1, "TDS version set to %s from $TDSVER.\n", tdsver);
+		TDS_USMALLINT *pver = tds_config_verstr(tdsver, login);
+		tdsdump_log(TDS_DBG_INFO1, "TDS version %sset to %s from $TDSVER.\n", (pver? "":"not "), tdsver);
 
 	}
 	return;
@@ -738,6 +738,34 @@ tds_config_env_tdshost(TDSLOGIN * login)
 		tdsdump_log(TDS_DBG_INFO1, "Setting 'ip_addr' to %s (%s) from $TDSHOST.\n", tmp, tdshost);
 	}
 }
+#define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
+
+
+void * 
+tds_find(const void *key, const void *base, size_t nelem, size_t width,
+         int (*compar)(const void *, const void *))
+{
+	size_t i;
+	for (i=0; i < nelem; i++) {
+		char *p = (char*)base + width * i;
+		if (0 == compar(key, p)) {
+			return p;
+		}
+	}
+	return NULL;
+}
+
+struct tdsvername_t 
+{
+	char *name;
+	TDS_USMALLINT version;
+};
+
+int
+tds_vernanme_cmp(const void *key, const void *pelem)
+{
+	return strcmp((const char *)key, ((const struct tdsvername_t *)pelem)->name);
+}	
 
 /**
  * Set TDS version from given string
@@ -745,36 +773,41 @@ tds_config_env_tdshost(TDSLOGIN * login)
  * @param login where to store information
  * @return as encoded hex value: high nybble major, low nybble minor.
  */
-TDS_USMALLINT
+TDS_USMALLINT *
 tds_config_verstr(const char *tdsver, TDSLOGIN * login)
 {
-	TDS_USMALLINT version;
+	static const struct tdsvername_t tds_versions[] = 
+		{ {   "0", 0x000 }
+		, {"auto", 0x000 }
+		, { "4.2", 0x402 }
+		, { "4.2", 0x402 }
+		, {  "46", 0x406 }
+		, { "4.6", 0x406 }
+		, {  "50", 0x500 }
+		, { "5.0", 0x500 }
+		, {  "70", 0x700 }
+		, { "7.0", 0x700 }
+		, {  "80", 0x701 }
+		, { "8.0", 0x701 }
+		, { "7.1", 0x701 }
+		, { "7.2", 0x702 }
+		, { "7.3", 0x703 }
+		}, *pver;
 
-	if (!strcmp(tdsver, "42") || !strcmp(tdsver, "4.2"))
-		version = 0x402;
-	else if (!strcmp(tdsver, "46") || !strcmp(tdsver, "4.6"))
-		version = 0x406;
-	else if (!strcmp(tdsver, "50") || !strcmp(tdsver, "5.0"))
-		version = 0x500;
-	else if (!strcmp(tdsver, "70") || !strcmp(tdsver, "7.0"))
-		version = 0x700;
-	else if (!strcmp(tdsver, "80") || !strcmp(tdsver, "8.0") || !strcmp(tdsver, "7.1"))
-		version = 0x701;
-	else if (!strcmp(tdsver, "7.2"))
-		version = 0x702;
-	else if (!strcmp(tdsver, "7.3"))
-		version = 0x703;
-	else if (!strcmp(tdsver, "0.0"))
-		version = 0;
-	else 
-		return 0;
+	if (!login) {
+		assert(login);
+		return NULL;
+	}
 
-	if (login)
-		login->tds_version = version;
+	if ((pver = TDS_FIND(tdsver, tds_versions, tds_vernanme_cmp)) == NULL) {
+		tdsdump_log(TDS_DBG_INFO1, "error: no such version: %s\n", tdsver);
+		return NULL;
+	}
+	
+	login->tds_version = pver->version;
+	tdsdump_log(TDS_DBG_INFO1, "Setting tds version to %s (0x%0x).\n", tdsver, pver->version);
 
-	tdsdump_log(TDS_DBG_INFO1, "Setting tds version to %s (0x%0x).\n", tdsver, version);
-
-	return version;
+	return &login->tds_version;
 }
 
 /**
