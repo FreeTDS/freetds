@@ -78,7 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.174 2011-09-09 02:06:17 jklowden Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.175 2011-09-09 08:51:48 freddy77 Exp $");
 
 static void tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSLOGIN * login);
@@ -741,7 +741,7 @@ tds_config_env_tdshost(TDSLOGIN * login)
 #define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
 
 
-void * 
+static void *
 tds_find(const void *key, const void *base, size_t nelem, size_t width,
          int (*compar)(const void *, const void *))
 {
@@ -757,11 +757,11 @@ tds_find(const void *key, const void *base, size_t nelem, size_t width,
 
 struct tdsvername_t 
 {
-	char *name;
+	const char *name;
 	TDS_USMALLINT version;
 };
 
-int
+static int
 tds_vernanme_cmp(const void *key, const void *pelem)
 {
 	return strcmp((const char *)key, ((const struct tdsvername_t *)pelem)->name);

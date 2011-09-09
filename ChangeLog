@@ -1,3 +1,6 @@
+Fri Sep  9 10:52:20 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/config.c: make compiler happy
+
 Fri Sep  9 10:51:15 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tdsthread.h: be consistent with thread macros
 
@@ -854,4 +857,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3405 2011-09-09 08:50:47 freddy77 Exp $
+$Id: ChangeLog,v 1.3406 2011-09-09 08:51:48 freddy77 Exp $
