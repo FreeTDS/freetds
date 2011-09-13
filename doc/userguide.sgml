@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-05-21 18:27:22 $</date>
-	<releaseinfo>$Revision: 1.142 $</releaseinfo>
+	<date>$Date: 2011-09-13 14:05:07 $</date>
+	<releaseinfo>$Revision: 1.143 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.142 $</>
-				<member>$Date: 2011-05-21 18:27:22 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.142 2011-05-21 18:27:22 jklowden Exp $.</>
+				<member>$Revision: 1.143 $</>
+				<member>$Date: 2011-09-13 14:05:07 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.143 2011-09-13 14:05:07 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -626,7 +626,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-05-21 18:27:22 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing ($Date: 2011-09-13 14:05:07 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
@@ -2000,7 +2000,7 @@ You can even establish a connection without reference to either <filename>odbc.i
 
 <para>Because most Unix tools and environments do not support <acronym>UCS-2</>, &freetds; provides for conversion by the client to other character sets.  The mechanism used is determined by the <filename>configure</> script, which looks for a <function>iconv(3)</> function, an implementation of the <ulink url="http://www.opengroup.org/onlinepubs/7908799/xsh/iconv.html">iconv</ulink> standard.    If no <function>iconv</> library is found, or if it is explicitly disabled, &freetds; will use its built-in <function>iconv</> substitute, and will be capable of converting among only <acronym>ISO 8859-1</>, <acronym>UTF-8</>, and <acronym>UCS-2</>.</para>
 
-<para>To learn what character set the client wants, &freetds; prefers the applicable <link linkend="clientcharset">&freetdsconf;</link> <literal>client charset</> property.  If that is not set, it parses the <envar>LANG</> environment variable.  In either case, the found string is passed to <function>iconv</>(3) (or its built-in replacment).  <footnote><para>The built-in replacement expects GNU iconv names: <literal>ISO-8859-1</>, <literal>US-ASCII</>, or <literal>UTF-8</>.</para></footnote>.  If neither is found, <acronym>UCS-2</> data are converted to <acronym>ISO 8859-1</>.</para>
+<para>To learn what character set the client wants, &freetds; prefers the applicable <link linkend="clientcharset">&freetdsconf;</link> <literal>client charset</> property.  If that is not set, it parses the <envar>LANG</> environment variable.  In either case, the found string is passed to <function>iconv</>(3) (or its built-in replacement).  <footnote><para>The built-in replacement expects GNU iconv names: <literal>ISO-8859-1</>, <literal>US-ASCII</>, or <literal>UTF-8</>.</para></footnote>.  If neither is found, <acronym>UCS-2</> data are converted to <acronym>ISO 8859-1</>.</para>
 		
 
 <para>To list all supported iconv character sets try <command>iconv</>(1).  GNU's does:</para>
