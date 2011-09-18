@@ -1,3 +1,6 @@
+Sun Sep 18 19:24:05 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/dblib/rpc.c: fix typo
+
 Sun Sep 18 19:23:11 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/convert_tds2sql.c:
 	- support conversion from ms date/time to text in odbc
@@ -868,4 +871,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3409 2011-09-18 17:22:29 freddy77 Exp $
+$Id: ChangeLog,v 1.3410 2011-09-18 17:23:24 freddy77 Exp $

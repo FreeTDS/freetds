@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.75 2011-09-18 17:12:36 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.76 2011-09-18 17:23:24 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -171,7 +171,7 @@ dbrpcparam(DBPROCESS * dbproc, const char paramname[], BYTE status, int type, DB
 	CHECK_PARAMETER(dbproc->rpc, SYBERPCS, FAIL);
 
 	if (type == SYBVARCHAR && IS_TDS7_PLUS(dbproc->tds_socket))
-		type == XSYBNVARCHAR;
+		type = XSYBNVARCHAR;
 
 	/* validate datalen parameter */
 
