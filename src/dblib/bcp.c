@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.215 2011-08-08 12:32:07 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.216 2011-09-18 16:27:23 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -183,22 +183,22 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	 */
 	if (dbproc->tds_socket->tds_version < 0x500) {
 		dbperror(dbproc, SYBETDSVER, 0);
-		return (FAIL);
+		return FAIL;
 	}
 
 	if (tblname == NULL) {
 		dbperror(dbproc, SYBEBCITBNM, 0);
-		return (FAIL);
+		return FAIL;
 	}
 
 	if (strlen(tblname) > 92 && !IS_TDS7_PLUS(dbproc->tds_socket)) {	/* 30.30.30 */
 		dbperror(dbproc, SYBEBCITBLEN, 0);
-		return (FAIL);
+		return FAIL;
 	}
 
 	if (direction != DB_IN && direction != DB_OUT && direction != DB_QUERYOUT) {
 		dbperror(dbproc, SYBEBDIO, 0);
-		return (FAIL);
+		return FAIL;
 	}
 
 	/* Allocate storage */
@@ -1050,7 +1050,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	}
 	if (fclose(hostfile) != 0) {
 		dbperror(dbproc, SYBEBCUC, errno);
-		return (FAIL);
+		return FAIL;
 	}
 	hostfile = NULL;
 
@@ -1062,7 +1062,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		 */
 		/* TODO reset TDSSOCKET state */
 		dbperror(dbproc, SYBETTS, 0);
-		return (FAIL);
+		return FAIL;
 	}
 
 	*rows_copied = rows_written;
@@ -1081,13 +1081,13 @@ _bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
 	if (feof(file)) {
 		if (icol == 0) {
 			tdsdump_log(TDS_DBG_FUNC, "Normal end-of-file reached while loading bcp data file.\n");
-			return (NO_MORE_ROWS);
+			return NO_MORE_ROWS;
 		}
 		dbperror(dbproc, SYBEBEOF, errnum);
-		return (FAIL);
+		return FAIL;
 	} 
 	dbperror(dbproc, SYBEBCRE, errnum);
-	return (FAIL);
+	return FAIL;
 }
 
 /** 
@@ -1224,7 +1224,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				*row_error = TRUE;
 				tdsdump_log(TDS_DBG_FUNC, "_bcp_measure_terminated_field returned -1!\n");
 				dbperror(dbproc, SYBEBCOR, 0);
-				return (FAIL);
+				return FAIL;
 			}
 			collen = (int)len;
 			if (collen == 0)
@@ -1252,7 +1252,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				*row_error = TRUE;
 				tdsdump_log(TDS_DBG_FUNC, "calloc returned NULL pointer!\n");
 				dbperror(dbproc, SYBEMEM, errno);
-				return (FAIL);
+				return FAIL;
 			}
 
 			/* 
@@ -1293,7 +1293,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 					if (fread(&len, sizeof(len), 1, hostfile) != 1) {
 						if (i != 0)
 							dbperror(dbproc, SYBEBCRE, errno);
-						return (FAIL);
+						return FAIL;
 					}
 					if (len < 0)
 						dbperror(dbproc, SYBEBCNL, errno);
@@ -1306,7 +1306,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 					if (fread(&len, sizeof(len), 1, hostfile) != 1) {
 						if (i != 0)
 							dbperror(dbproc, SYBEBCRE, errno);
-						return (FAIL);
+						return FAIL;
 					}
 					if (len < 0)
 						dbperror(dbproc, SYBEBCNL, errno);
@@ -1327,7 +1327,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			if (coldata == NULL) {
 				*row_error = TRUE;
 				dbperror(dbproc, SYBEMEM, errno);
-				return (FAIL);
+				return FAIL;
 			}
 
 			if (collen) {
@@ -1879,7 +1879,7 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 
 	if ((ffile = fopen(filename, "r")) == NULL) {
 		dbperror(dbproc, SYBEBUOF, 0);
-		return (FAIL);
+		return FAIL;
 	}
 
 	if ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != NULL) {
@@ -1902,13 +1902,13 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 		if (topptr == NULL) {	/* first time */
 			if ((curptr = (struct fflist*) malloc(sizeof(struct fflist))) == NULL) {
 				dbperror(dbproc, SYBEMEM, errno);
-				return (FAIL);
+				return FAIL;
 			}
 			topptr = curptr;
 		} else {
 			if ((curptr->nextptr = (struct fflist*) malloc(sizeof(struct fflist))) == NULL) {
 				dbperror(dbproc, SYBEMEM, errno);
-				return (FAIL);
+				return FAIL;
 			}
 			curptr = curptr->nextptr;
 		}
@@ -1916,7 +1916,7 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 		if (_bcp_readfmt_colinfo(dbproc, buffer, &(curptr->colinfo)))
 			colinfo_count++;
 		else
-			return (FAIL);
+			return FAIL;
 
 	}
 	if (ferror(ffile)) {
@@ -1926,14 +1926,14 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 	
 	if (fclose(ffile) != 0) {
 		dbperror(dbproc, SYBEBUCF, 0);
-		return (FAIL);
+		return FAIL;
 	}
 
 	if (colinfo_count != li_numcols)
-		return (FAIL);
+		return FAIL;
 
 	if (bcp_columns(dbproc, li_numcols) == FAIL) {
-		return (FAIL);
+		return FAIL;
 	}
 
 	for (curptr = topptr; curptr->nextptr != NULL; curptr = curptr->nextptr) {
@@ -1941,17 +1941,17 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 		if (bcp_colfmt(dbproc, hostcol->host_column, hostcol->datatype,
 			       hostcol->prefix_len, hostcol->column_len,
 			       hostcol->terminator, hostcol->term_len, hostcol->tab_colnum) == FAIL) {
-			return (FAIL);
+			return FAIL;
 		}
 	}
 	hostcol = &(curptr->colinfo);
 	if (bcp_colfmt(dbproc, hostcol->host_column, hostcol->datatype,
 		       hostcol->prefix_len, hostcol->column_len,
 		       hostcol->terminator, hostcol->term_len, hostcol->tab_colnum) == FAIL) {
-		return (FAIL);
+		return FAIL;
 	}
 
-	return (SUCCEED);
+	return SUCCEED;
 }
 
 /** 
