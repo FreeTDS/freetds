@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.79 2011-09-07 09:40:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: convert_tds2sql.c,v 1.80 2011-09-18 17:22:29 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -322,18 +322,43 @@ odbc_tds2sql(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_CHAR * src, TD
 		ores.cc.c = dest;
 	}
 
-	if ((desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR) && (srctype == SYBDATETIME || srctype == SYBDATETIME4)) {
-		char buf[40];
+	if (desttype == SQL_C_CHAR || desttype == SQL_C_WCHAR) {
+		char buf[48];
 		TDSDATEREC when;
+		int prec = 3;
+		const char *fmt = NULL;
+		const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) src;
 
-		memset(&when, 0, sizeof(when));
+		switch (srctype) {
+		case SYBMSDATETIMEOFFSET:
+		case SYBMSDATETIME2: prec = dta->time_prec;
+		case SYBDATETIME:  fmt = "%Y-%m-%d %H:%M:%S.%z"; if (prec) break;
+		case SYBDATETIME4: fmt = "%Y-%m-%d %H:%M:%S"; break;
+		case SYBMSTIME:
+			prec = dta->time_prec;
+			fmt = prec ? "%H:%M:%S.%z" : "%H:%M:%S";
+			break;
+		case SYBMSDATE:    fmt = "%Y-%m-%d"; break;
+		}
+		if (!fmt) goto normal_conversion;
 
 		tds_datecrack(srctype, src, &when);
-		tds_strftime(buf, sizeof(buf), srctype == SYBDATETIME ? "%Y-%m-%d %H:%M:%S.%z" : "%Y-%m-%d %H:%M:%S", &when, 3);
+		tds_strftime(buf, sizeof(buf), fmt, &when, prec);
+
+		if (srctype == SYBMSDATETIMEOFFSET) {
+			char sign = '+';
+			int off = dta->offset;
+			if (off < 0) {
+				sign = '-';
+				off = -off;
+			}
+			sprintf(buf + strlen(buf), " %c%02d:%02d", sign, off / 60, off % 60);
+		}
 
 		nRetVal = strlen(buf);
 		memcpy(dest, buf, destlen < nRetVal ? destlen : nRetVal);
 	} else {
+normal_conversion:
 		nRetVal = tds_convert(context, srctype, src, srclen, nDestSybType, &ores);
 	}
 	if (nRetVal < 0) {
