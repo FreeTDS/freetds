@@ -48,7 +48,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: cs.c,v 1.81 2011-08-08 12:21:16 freddy77 Exp $");
+TDS_RCSID(var, "$Id: cs.c,v 1.82 2011-09-25 11:36:24 freddy77 Exp $");
 
 static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
@@ -1165,7 +1165,7 @@ cs_strbuild(CS_CONTEXT * ctx, CS_CHAR * buffer, CS_INT buflen, CS_INT * resultle
 	rc = tds_vstrbuild(buffer, buflen, resultlen, text, textlen, formats, formatlen, ap);
 	va_end(ap);
 
-	return rc == TDS_SUCCESS ? CS_SUCCEED : CS_FAIL;
+	return TDS_SUCCEED(rc) ? CS_SUCCEED : CS_FAIL;
 }
 
 CS_RETCODE

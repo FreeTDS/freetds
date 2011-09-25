@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.222 2011-09-25 11:33:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.223 2011-09-25 11:36:24 freddy77 Exp $");
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -361,7 +361,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 			login->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
-			if ((erc = tds_connect(tds, login, p_oserr)) != TDS_SUCCESS) {
+			if (TDS_FAILED(erc = tds_connect(tds, login, p_oserr))) {
 				tds_close_socket(tds);
 			}
 			
@@ -375,7 +375,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		replay_save_context(tds, &save_ctx);
 		free_save_context(&save_ctx);
 		
-		if (erc != TDS_SUCCESS)
+		if (TDS_FAILED(erc))
 			tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
 
 		return erc;
@@ -461,7 +461,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		erc = tds_send_login(tds, login);
 	}
 	if (TDS_FAILED(erc) || TDS_FAILED(tds_process_login_tokens(tds))) {
-		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", erc==TDS_SUCCESS? "accepted":"rejected");
+		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", TDS_SUCCEED(erc)? "accepted":"rejected");
 		tds_close_socket(tds);
 		tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
 		return TDSEFCON;
@@ -485,11 +485,12 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		}
 		erc = tds_submit_query(tds, str);
 		free(str);
-		if (erc != TDS_SUCCESS)
-			return TDS_FAIL;
+		if (TDS_FAILED(erc))
+			return erc;
 
-		if (tds_process_simple_query(tds) != TDS_SUCCESS)
-			return TDS_FAIL;
+		erc = tds_process_simple_query(tds);
+		if (TDS_FAILED(erc))
+			return erc;
 	}
 
 	tds->query_timeout = login->query_timeout;
@@ -1090,13 +1091,14 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	/* here we have to do encryption ... */
 
-	if (tds_ssl_init(tds) != TDS_SUCCESS)
-		return TDS_FAIL;
+	ret = tds_ssl_init(tds);
+	if (TDS_FAILED(ret))
+		return ret;
 
 	ret = tds7_send_login(tds, login);
 
 	/* if flag is 0 it means that after login server continue not encrypted */
-	if (crypt_flag == 0 || ret != TDS_SUCCESS)
+	if (crypt_flag == 0 || TDS_FAILED(ret))
 		tds_ssl_deinit(tds);
 
 	return ret;

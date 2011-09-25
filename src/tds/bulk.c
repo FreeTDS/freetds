@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.25 2011-09-25 11:33:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.26 2011-09-25 11:36:24 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -97,8 +97,10 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		return TDS_FAIL;
 
 	resinfo = tds->res_info;
-	if ((bindinfo = tds_alloc_results(resinfo->num_cols)) == NULL)
+	if ((bindinfo = tds_alloc_results(resinfo->num_cols)) == NULL) {
+		rc = TDS_FAIL;
 		goto cleanup;
+	}
 
 	bindinfo->row_size = resinfo->row_size;
 
@@ -152,7 +154,8 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 	if (bcpinfo->identity_insert_on) {
 
-		if (TDS_FAILED(tds_submit_queryf(tds, "set identity_insert %s on", bcpinfo->tablename)))
+		rc = tds_submit_queryf(tds, "set identity_insert %s on", bcpinfo->tablename);
+		if (TDS_FAILED(rc))
 			goto cleanup;
 
 		/* TODO use tds_process_simple_query */
@@ -169,7 +172,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 cleanup:
 	tds_free_results(bindinfo);
-	return TDS_FAIL;
+	return rc;
 }
 /** 
  * \return TDS_SUCCESS or TDS_FAIL.
@@ -421,6 +424,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 	unsigned char *record;
 	TDS_INT	 old_record_size;
 	int i;
+	TDSRET rc;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, %p, %d)\n", tds, bcpinfo, get_col_data, null_error, offset);
 
@@ -444,9 +448,10 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 				continue;
 			}
 
-			if ((get_col_data(bcpinfo, bindcol, offset)) != TDS_SUCCESS) {
+			rc = get_col_data(bcpinfo, bindcol, offset);
+			if (TDS_FAILED(rc)) {
 				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
-	 			return TDS_FAIL;
+	 			return rc;
 			}
 			tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
 					i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null);
@@ -580,9 +585,9 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 			bindcol = bcpinfo->bindinfo->columns[i];
 			if (is_blob_type(bindcol->column_type)) {
-				if ((get_col_data(bcpinfo, bindcol, offset)) != TDS_SUCCESS) {
-					return TDS_FAIL;
-				}
+				rc = get_col_data(bcpinfo, bindcol, offset);
+				if (TDS_FAILED(rc))
+					return rc;
 				/* unknown but zero */
 				tds_put_smallint(tds, 0);
 				tds_put_byte(tds, bindcol->column_type);
@@ -629,7 +634,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 
 			tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
 
-			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCESS) {
+			if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset))) {
 				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
 		 		return -1;
 			}
@@ -716,7 +721,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 
 			tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
 
-			if ((get_col_data(bcpinfo, bcpcol, offset)) != TDS_SUCCESS)
+			if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset)))
 		 		return -1;
 
 			/* If it's a NOT NULL column, and we have no data, throw an error. */
@@ -883,6 +888,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 TDSRET
 tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 {
+	TDSRET rc;
+
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_done(%p, %p)\n", tds, rows_copied);
 
 	/* TODO check proper tds state */
@@ -890,8 +897,9 @@ tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 
 	tds_set_state(tds, TDS_PENDING);
 
-	if (tds_process_simple_query(tds) != TDS_SUCCESS)
-		return TDS_FAIL;
+	rc = tds_process_simple_query(tds);
+	if (TDS_FAILED(rc))
+		return rc;
 
 	if (rows_copied)
 		*rows_copied = tds->rows_affected;
@@ -902,6 +910,8 @@ tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 TDSRET
 tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
+	TDSRET rc;
+
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start(%p, %p)\n", tds, bcpinfo);
 
 	tds_submit_query(tds, bcpinfo->insert_stmt);
@@ -910,8 +920,9 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	 * In TDS 5 we get the column information as a result set from the "insert bulk" command.
 	 * We're going to ignore it.  
 	 */
-	if (tds_process_simple_query(tds) != TDS_SUCCESS)
-		return TDS_FAIL;
+	rc = tds_process_simple_query(tds);
+	if (TDS_FAILED(rc))
+		return rc;
 
 	/* TODO problem with thread safety */
 	tds->out_flag = TDS_BULK;
@@ -939,15 +950,18 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	int variable_col_len_tot  = 0;
 	int column_bcp_data_size  = 0;
 	int bcp_record_size       = 0;
+	TDSRET rc;
 	
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start_copy_in(%p, %p)\n", tds, bcpinfo);
 
-	if (TDS_FAILED(tds_bcp_start_insert_stmt(tds, bcpinfo)))
-		return TDS_FAIL;
+	rc = tds_bcp_start_insert_stmt(tds, bcpinfo);
+	if (TDS_FAILED(rc))
+		return rc;
 
-	if (tds_bcp_start(tds, bcpinfo) != TDS_SUCCESS) {
+	rc = tds_bcp_start(tds, bcpinfo);
+	if (TDS_FAILED(rc)) {
 		/* TODO, in CTLib was _ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, ""); */
-		return TDS_FAIL;
+		return rc;
 	}
 
 	/* 
@@ -1069,18 +1083,20 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 TDSRET
 tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size)
 {
+	TDSRET rc;
+
 	/* TODO mssql does not like timestamp */
-	if (tds_submit_queryf(tds,
+	rc = tds_submit_queryf(tds,
 			      "writetext bulk %s 0x%s timestamp = 0x%s%s",
-			      objname, textptr, timestamp, with_log ? " with log" : "")
-	    != TDS_SUCCESS) {
-		return TDS_FAIL;
-	}
+			      objname, textptr, timestamp, with_log ? " with log" : "");
+	if (TDS_FAILED(rc))
+		return rc;
 
 	/* FIXME in this case processing all results can bring state to IDLE... not threading safe */
 	/* read the end token */
-	if (tds_process_simple_query(tds) != TDS_SUCCESS)
-		return TDS_FAIL;
+	rc = tds_process_simple_query(tds);
+	if (TDS_FAILED(rc))
+		return rc;
 
 	/* FIXME better transition state */
 	tds->out_flag = TDS_BULK;

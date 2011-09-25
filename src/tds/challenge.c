@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.53 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.54 2011-09-25 11:36:24 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -283,7 +283,7 @@ tds_answer_challenge_ntlmv2(TDSSOCKET * tds,
 	const names_blob_prefix_t *names_blob_prefix;
 
 	res = make_ntlm_v2_hash(tds, passwd, ntlm_v2_hash);
-	if (res != TDS_SUCCESS)
+	if (TDS_FAILED(res))
 		return res;
 
 	/* LMv2 response */
@@ -482,7 +482,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	user_name_len = strlen(user_name);
 
 	rc = tds_answer_challenge(tds, login, challenge, &flags, names_blob, names_blob_len, &answer, &ntlm_v2_response);
-	if (rc != TDS_SUCCESS)
+	if (TDS_FAILED(rc))
 		return rc;
 
 	ntlm_response_len = ntlm_v2_response ? 16 + names_blob_len : 24;

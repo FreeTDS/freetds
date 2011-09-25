@@ -78,7 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.175 2011-09-09 08:51:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.176 2011-09-25 11:36:24 freddy77 Exp $");
 
 static void tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSLOGIN * login);
@@ -181,7 +181,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 			/* do it again to really override what found in freetds.conf */
 			if (found) {
 				parse_server_name_for_port(connection, login);
-			} else if (tds_lookup_host(tds_dstr_cstr(&connection->server_name), ip_addr) == TDS_SUCCESS) {
+			} else if (TDS_SUCCEED(tds_lookup_host(tds_dstr_cstr(&connection->server_name), ip_addr))) {
 				tds_dstr_dup(&connection->server_host_name, &connection->server_name);
 				tds_dstr_copy(&connection->ip_addr, ip_addr);
 				found = 1;

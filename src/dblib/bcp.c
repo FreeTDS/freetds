@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.217 2011-09-25 11:33:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.218 2011-09-25 11:36:24 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -1733,12 +1733,12 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			if (dbproc->hostfileinfo->firstrow <= row_of_hostfile && 
 							      row_of_hostfile <= MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF)) {
 
-				if (tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, _bcp_null_error, 0) == TDS_SUCCESS) {
+				if (TDS_SUCCEED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, _bcp_null_error, 0))) {
 			
 					rows_written_so_far++;
 	
 					if (dbproc->hostfileinfo->batch > 0 && rows_written_so_far == dbproc->hostfileinfo->batch) {
-						if (tds_bcp_done(tds, &rows_written_so_far) != TDS_SUCCESS) {
+						if (TDS_FAILED(tds_bcp_done(tds, &rows_written_so_far))) {
 							if (errfile)
 								fclose(errfile);
 							fclose(hostfile);
@@ -2202,7 +2202,7 @@ bcp_batch(DBPROCESS * dbproc)
 	CHECK_CONN(-1);
 	CHECK_PARAMETER(dbproc->bcpinfo, SYBEBCPI, -1);
 
-	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCESS)
+	if (TDS_FAILED(tds_bcp_done(dbproc->tds_socket, &rows_copied)))
 		return -1;
 
 	tds_bcp_start(dbproc->tds_socket, dbproc->bcpinfo);
@@ -2231,7 +2231,7 @@ bcp_done(DBPROCESS * dbproc)
 	if (!(dbproc->bcpinfo))
 		return -1;
 
-	if (tds_bcp_done(dbproc->tds_socket, &rows_copied) != TDS_SUCCESS)
+	if (TDS_FAILED(tds_bcp_done(dbproc->tds_socket, &rows_copied)))
 		return -1;
 
 	_bcp_free_storage(dbproc);

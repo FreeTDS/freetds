@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.403 2011-09-25 11:33:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.404 2011-09-25 11:36:24 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1211,7 +1211,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	TDS_MUTEX_UNLOCK(&dblib_mutex);
 
-	if (tds_connect_and_login(dbproc->tds_socket, connection) != TDS_SUCCESS) {
+	if (TDS_FAILED(tds_connect_and_login(dbproc->tds_socket, connection))) {
 		tds_free_login(connection);
 		dbclose(dbproc);
 		return NULL;
@@ -6375,8 +6375,8 @@ dbwritetext(DBPROCESS * dbproc, char *objname, DBBINARY * textptr, DBTINYINT tex
 		}
 	}
 	
-	if (tds_writetext_start(dbproc->tds_socket, objname, 
-		textptr_string, timestamp_string, (log == TRUE), size) != TDS_SUCCESS)
+	if (TDS_FAILED(tds_writetext_start(dbproc->tds_socket, objname, 
+		textptr_string, timestamp_string, (log == TRUE), size)))
 		return FAIL;
 
 	if (!text) {
@@ -6491,7 +6491,7 @@ dbmoretext(DBPROCESS * dbproc, DBINT size, const BYTE text[])
 		return FAIL;
 
 	if (size) {
-		if (tds_writetext_continue(dbproc->tds_socket, text, size) != TDS_SUCCESS)
+		if (TDS_FAILED(tds_writetext_continue(dbproc->tds_socket, text, size)))
 			return FAIL;
 		dbproc->text_sent += size;
 
@@ -6817,7 +6817,7 @@ dbsqlsend(DBPROCESS * dbproc)
 		rc = tds_submit_query(dbproc->tds_socket, cmdstr);
 		free(cmdstr);
 		dbstring_free(&(dbproc->dboptcmd));
-		if (rc != TDS_SUCCESS) {
+		if (TDS_FAILED(rc)) {
 			return FAIL;
 		}
 		dbproc->avail_flag = FALSE;
@@ -6837,7 +6837,7 @@ dbsqlsend(DBPROCESS * dbproc)
 		fflush(dbproc->ftos);
 	}
 
-	if (tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf) != TDS_SUCCESS) {
+	if (TDS_FAILED(tds_submit_query(dbproc->tds_socket, (char *) dbproc->dbbuf))) {
 		return FAIL;
 	}
 	dbproc->avail_flag = FALSE;
@@ -7060,7 +7060,7 @@ dbstrbuild(DBPROCESS * dbproc, char *charbuf, int bufsize, char *text, char *for
 	rc = tds_vstrbuild(charbuf, bufsize, &resultlen, text, TDS_NULLTERM, formats, TDS_NULLTERM, ap);
 	charbuf[resultlen] = '\0';
 	va_end(ap);
-	return rc == TDS_SUCCESS ? SUCCEED : FAIL;
+	return TDS_SUCCEED(rc) ? SUCCEED : FAIL;
 }
 
 static char *

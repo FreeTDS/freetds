@@ -36,7 +36,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.57 2011-09-25 11:33:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.58 2011-09-25 11:36:24 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static TDSRET _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
@@ -228,7 +228,7 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 
 	switch (type) {
 	case CS_BLK_BATCH:
-		if (tds_bcp_done(tds, &rows_copied) != TDS_SUCCESS) {
+		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
@@ -236,14 +236,14 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		if (outrow) 
 			*outrow = rows_copied;
 		
-		if (tds_bcp_start(tds, &blkdesc->bcpinfo) != TDS_SUCCESS) {
+		if (TDS_FAILED(tds_bcp_start(tds, &blkdesc->bcpinfo))) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
 		break;
 		
 	case CS_BLK_ALL:
-		if (tds_bcp_done(tds, &rows_copied) != TDS_SUCCESS) {
+		if (TDS_FAILED(tds_bcp_done(tds, &rows_copied))) {
 			_ctclient_msg(blkdesc->con, "blk_done", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
@@ -616,7 +616,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 	for (each_row = 0; each_row < rows_to_xfer; each_row++ ) {
 
 		if (tds_bcp_send_record(tds, &blkdesc->bcpinfo, _blk_get_col_data, _blk_null_error, each_row) == TDS_SUCCESS) {
-	
+			/* FIXME */
 		}
 	}
 

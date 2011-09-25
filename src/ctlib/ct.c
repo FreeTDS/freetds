@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.221 2011-09-25 11:33:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.222 2011-09-25 11:36:24 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -641,7 +641,7 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		*/
 	}
 
-	if (tds_connect_and_login(con->tds_socket, login) != TDS_SUCCESS)
+	if (TDS_FAILED(tds_connect_and_login(con->tds_socket, login)))
 		goto Cleanup;
 
 	tds_free_login(login);
@@ -2808,14 +2808,14 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 		*c = '\0';
 
 		/* submit the writetext command */
-		if (tds_writetext_start(tds, cmd->iodesc->name,
-			textptr_string, timestamp_string, (cmd->iodesc->log_on_update == CS_TRUE), cmd->iodesc->total_txtlen) != TDS_SUCCESS)
+		if (TDS_FAILED(tds_writetext_start(tds, cmd->iodesc->name,
+			textptr_string, timestamp_string, (cmd->iodesc->log_on_update == CS_TRUE), cmd->iodesc->total_txtlen)))
 			return CS_FAIL;
 
 		cmd->send_data_started = 1;
 	}
 
-	if (tds_writetext_continue(tds, (const TDS_UCHAR*) buffer, buflen) != TDS_SUCCESS)
+	if (TDS_FAILED(tds_writetext_continue(tds, (const TDS_UCHAR*) buffer, buflen)))
 		return CS_FAIL;
 
 	return CS_SUCCEED;
@@ -3818,6 +3818,7 @@ _ct_process_return_status(TDSSOCKET * tds)
 	TDSRESULTINFO *info;
 	TDSCOLUMN *curcol;
 	TDS_INT saved_status;
+	TDSRET rc;
 
 	enum { num_cols = 1 };
 
@@ -3842,8 +3843,9 @@ _ct_process_return_status(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "generating return status row. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
 
-	if (tds_alloc_row(info) != TDS_SUCCESS)
-		return TDS_FAIL;
+	rc = tds_alloc_row(info);
+	if (TDS_FAILED(rc))
+		return rc;
 
 	assert(curcol->column_data != NULL);
 

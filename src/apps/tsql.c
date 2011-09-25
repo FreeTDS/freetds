@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.149 2011-07-27 16:30:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.150 2011-09-25 11:36:24 freddy77 Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -212,7 +212,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 	char message[128];
 
 	rc = tds_submit_query(tds, buf);
-	if (rc != TDS_SUCCESS) {
+	if (TDS_FAILED(rc)) {
 		fprintf(stderr, "tds_submit_query() failed\n");
 		return 1;
 	}
@@ -808,8 +808,8 @@ main(int argc, char **argv)
 		close(pipes[0]);
 	}
 #endif
-	if (!connection || tds_connect_and_login(tds, connection) != TDS_SUCCESS) {
-		if( VERBOSE ) 
+	if (!connection || TDS_FAILED(tds_connect_and_login(tds, connection))) {
+		if (VERBOSE)
 			print_instance_data(connection);
 		tds_free_socket(tds);
 		tds_free_login(login);
