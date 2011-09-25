@@ -52,7 +52,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: rpc.c,v 1.76 2011-09-18 17:23:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: rpc.c,v 1.77 2011-09-25 11:31:41 freddy77 Exp $");
 
 static void rpc_clear(DBREMOTE_PROC * rpc);
 static void param_clear(DBREMOTE_PROC_PARAM * pparam);
@@ -436,6 +436,8 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 				pcol->column_size = p->datalen;
 			}
 		}
+		if (p->type == XSYBNVARCHAR)
+			pcol->column_size *= 2;
 		pcol->on_server.column_size = pcol->column_size;
 
 		pcol->column_output = p->status;
