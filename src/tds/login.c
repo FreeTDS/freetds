@@ -49,7 +49,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: login.c,v 1.223 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: login.c,v 1.224 2011-09-25 11:40:45 freddy77 Exp $");
 
 static TDSRET tds_send_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
@@ -320,7 +320,7 @@ free_save_context(TDSSAVECONTEXT *ctx)
 static int
 tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 {
-	int erc = TDSEFCON;
+	int erc = -TDSEFCON;
 	int connect_timeout = 0;
 	int db_selected = 0;
 
@@ -361,11 +361,12 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 			login->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
-			if (TDS_FAILED(erc = tds_connect(tds, login, p_oserr))) {
+			erc = tds_connect(tds, login, p_oserr);
+			if (TDS_FAILED(erc)) {
 				tds_close_socket(tds);
 			}
 			
-			if (erc != TDSEFCON)	/* TDSEFCON indicates wrong TDS version */
+			if (erc != -TDSEFCON)	/* TDSEFCON indicates wrong TDS version */
 				break;
 		}
 		
@@ -376,7 +377,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		free_save_context(&save_ctx);
 		
 		if (TDS_FAILED(erc))
-			tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
+			tdserror(tds_get_ctx(tds), tds, -erc, *p_oserr);
 
 		return erc;
 	}
@@ -424,7 +425,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		} else {
 			tdsdump_log(TDS_DBG_ERROR, "No server specified!\n");
 		}
-		return TDSECONN;
+		return -TDSECONN;
 	}
 
 	if (!IS_TDS50(tds) && !tds_dstr_isempty(&login->instance_name) && !login->port)
@@ -432,14 +433,14 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 
 	if (login->port < 1) {
 		tdsdump_log(TDS_DBG_ERROR, "invalid port number\n");
-		return TDSECONN;
+		return -TDSECONN;
 	}
 
 	memcpy(tds_conn(tds)->capabilities, login->capabilities, TDS_MAX_CAPABILITY);
 
 	if ((erc = tds_open_socket(tds, tds_dstr_cstr(&login->ip_addr), login->port, connect_timeout, p_oserr)) != TDSEOK) {
 		tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
-		return erc;
+		return -erc;
 	}
 		
 	/*
@@ -464,7 +465,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		tdsdump_log(TDS_DBG_ERROR, "login packet %s\n", TDS_SUCCEED(erc)? "accepted":"rejected");
 		tds_close_socket(tds);
 		tdserror(tds_get_ctx(tds), tds, TDSEFCON, 0); 	/* "Adaptive Server connection failed" */
-		return TDSEFCON;
+		return -TDSEFCON;
 	}
 
 	if (login->text_size || (!db_selected && !tds_dstr_isempty(&login->database))) {
