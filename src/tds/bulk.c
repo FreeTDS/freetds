@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.24 2011-09-07 09:40:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.25 2011-09-25 11:33:22 freddy77 Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -942,7 +942,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start_copy_in(%p, %p)\n", tds, bcpinfo);
 
-	if (tds_bcp_start_insert_stmt(tds, bcpinfo) == TDS_FAIL)
+	if (TDS_FAILED(tds_bcp_start_insert_stmt(tds, bcpinfo)))
 		return TDS_FAIL;
 
 	if (tds_bcp_start(tds, bcpinfo) != TDS_SUCCESS) {

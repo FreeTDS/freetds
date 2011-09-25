@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.216 2011-09-18 16:27:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.217 2011-09-25 11:33:21 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -216,7 +216,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	dbproc->bcpinfo->var_cols   = 0;
 	dbproc->bcpinfo->bind_count = 0;
 
-	if (tds_bcp_init(dbproc->tds_socket, dbproc->bcpinfo) == TDS_FAIL) {
+	if (TDS_FAILED(tds_bcp_init(dbproc->tds_socket, dbproc->bcpinfo))) {
 		/* TODO return proper error */
 		/* Attempt to use Bulk Copy with a non-existent Server table (might be why ...) */
 		dbperror(dbproc, SYBEBCNT, 0);
@@ -759,16 +759,16 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		bcpdatefmt = "%Y-%m-%d %H:%M:%S.%z";
 
 	if (dbproc->bcpinfo->direction == DB_QUERYOUT ) {
-		if (tds_submit_query(tds, dbproc->bcpinfo->tablename) == TDS_FAIL)
+		if (TDS_FAILED(tds_submit_query(tds, dbproc->bcpinfo->tablename)))
 			return FAIL;
 	} else {
 		/* TODO quote if needed */
-		if (tds_submit_queryf(tds, "select * from %s", dbproc->bcpinfo->tablename) == TDS_FAIL)
+		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", dbproc->bcpinfo->tablename)))
 			return FAIL;
 	}
 
 	tdsret = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS);
-	if (tdsret == TDS_FAIL || tdsret == TDS_CANCELLED)
+	if (TDS_FAILED(tdsret))
 		return FAIL;
 
 	if (!tds->res_info) {
@@ -1594,7 +1594,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 	if (dbproc->bcpinfo->xfer_init == 0) {
 
 		/* The start_copy function retrieves details of the table's columns */
-		if (tds_bcp_start_copy_in(tds, dbproc->bcpinfo) == TDS_FAIL) {
+		if (TDS_FAILED(tds_bcp_start_copy_in(tds, dbproc->bcpinfo))) {
 			dbperror(dbproc, SYBEBULKINSERT, 0);
 			return FAIL;
 		}
@@ -1604,7 +1604,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 	}
 
 	dbproc->bcpinfo->parent = dbproc;
-	return tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_get_col_data, _bcp_null_error, 0) == TDS_FAIL ? FAIL : SUCCEED;
+	return TDS_FAILED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_get_col_data, _bcp_null_error, 0)) ? FAIL : SUCCEED;
 }
 
 
@@ -1643,7 +1643,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 		return FAIL;
 	}
 
-	if (tds_bcp_start_copy_in(tds, dbproc->bcpinfo) == TDS_FAIL) {
+	if (TDS_FAILED(tds_bcp_start_copy_in(tds, dbproc->bcpinfo))) {
 		fclose(hostfile);
 		return FAIL;
 	}

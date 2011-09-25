@@ -36,7 +36,7 @@
 #include "ctlib.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: blk.c,v 1.56 2011-06-18 17:52:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: blk.c,v 1.57 2011-09-25 11:33:21 freddy77 Exp $");
 
 static void _blk_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static TDSRET _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bcpcol, int offset);
@@ -361,7 +361,7 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	blkdesc->bcpinfo.xfer_init = 0;
 	blkdesc->bcpinfo.var_cols = 0;
 
-	if (tds_bcp_init(blkdesc->con->tds_socket, &blkdesc->bcpinfo) == TDS_FAIL) {
+	if (TDS_FAILED(tds_bcp_init(blkdesc->con->tds_socket, &blkdesc->bcpinfo))) {
 		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
 		return CS_FAIL;
 	}
@@ -524,12 +524,11 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 	if (blkdesc->bcpinfo.xfer_init == 0) {
 
-		if (tds_submit_queryf(tds, "select * from %s", blkdesc->bcpinfo.tablename)
-			== TDS_FAIL) {
+		if (TDS_FAILED(tds_submit_queryf(tds, "select * from %s", blkdesc->bcpinfo.tablename))) {
 			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}
-	
+
 		while ((ret = tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
 			if (result_type == TDS_ROW_RESULT)
 				break;
@@ -605,7 +604,7 @@ _blk_rowxfer_in(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferred
 		 * retrieve details of the database table columns
 		 */
 
-		if (tds_bcp_start_copy_in(tds, &blkdesc->bcpinfo) == TDS_FAIL) {
+		if (TDS_FAILED(tds_bcp_start_copy_in(tds, &blkdesc->bcpinfo))) {
 			_ctclient_msg(blkdesc->con, "blk_rowxfer", 2, 5, 1, 140, "");
 			return CS_FAIL;
 		}

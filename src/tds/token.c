@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.415 2011-09-07 09:40:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.416 2011-09-25 11:33:22 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -285,10 +285,10 @@ tds_set_spid(TDSSOCKET * tds)
 				break;
 		}
 	}
-	if (rc != TDS_NO_MORE_RESULTS) 
-		return TDS_FAIL;
+	if (rc == TDS_NO_MORE_RESULTS)
+		rc = TDS_SUCCESS;
 
-	return TDS_SUCCESS;
+	return rc;
 }
 
 /**
@@ -1303,7 +1303,6 @@ static TDSRET
 tds_process_params_result_token(TDSSOCKET * tds)
 {
 	int i;
-	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
 
 	CHECK_TDS_EXTRA(tds);
@@ -1314,9 +1313,10 @@ tds_process_params_result_token(TDSSOCKET * tds)
 		return TDS_FAIL;
 
 	for (i = 0; i < info->num_cols; i++) {
-		curcol = info->columns[i];
-		if (TDS_FAILED(curcol->funcs->get_data(tds, curcol)))
-			return TDS_FAIL;
+		TDSCOLUMN *curcol = info->columns[i];
+		TDSRET rc = curcol->funcs->get_data(tds, curcol);
+		if (TDS_FAILED(rc))
+			return rc;
 	}
 	return TDS_SUCCESS;
 }

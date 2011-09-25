@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.22 2011-09-07 09:40:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.23 2011-09-25 11:33:22 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -223,7 +223,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	switch (maj_stat) {
 	case GSS_S_COMPLETE: 
 		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_COMPLETE: gss_import_name completed successfully.\n");
-		if (tds_gss_continue(tds, auth, GSS_C_NO_BUFFER) == TDS_FAIL) {
+		if (TDS_FAILED(tds_gss_continue(tds, auth, GSS_C_NO_BUFFER))) {
 			tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
 			return NULL;
 		}

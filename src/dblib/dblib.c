@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.402 2011-08-11 12:50:26 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.403 2011-09-25 11:33:21 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -1775,15 +1775,9 @@ _dbresults(DBPROCESS * dbproc)
 			return NO_MORE_RESULTS;
 			break;
 
-		case TDS_CANCELLED:
-		case TDS_FAIL:
-			dbproc->dbresults_state = _DB_RES_INIT;
-			return FAIL;
-			break;
-			
 		default:
-			tdsdump_log(TDS_DBG_FUNC, "dbresults() does not recognize return code from process_result_tokens\n");
-			assert(0);
+			assert(TDS_FAILED(retcode));
+			dbproc->dbresults_state = _DB_RES_INIT;
 			return FAIL;
 			break;
 		}
@@ -4657,11 +4651,6 @@ dbsqlok(DBPROCESS * dbproc)
 			return SUCCEED;
 			break;
 
-		case TDS_CANCELLED:
-		case TDS_FAIL:
-			return FAIL;
-			break;
-
 		case TDS_SUCCESS:
 			switch (result_type) {
 			case TDS_ROWFMT_RESULT:
@@ -4714,6 +4703,11 @@ dbsqlok(DBPROCESS * dbproc)
 						__FILE__, __LINE__, result_type);
 				break;
 			}
+			break;
+
+		default:
+			assert(TDS_FAILED(tds_code));
+			return FAIL;
 			break;
 		}
 	}
@@ -5812,7 +5806,7 @@ dbcanquery(DBPROCESS * dbproc)
 
 	rc = tds_process_tokens(dbproc->tds_socket, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE);
 
-	if (rc == TDS_FAIL)
+	if (TDS_FAILED(rc))
 		return FAIL;
 
 	return SUCCEED;
@@ -6454,13 +6448,13 @@ dbreadtext(DBPROCESS * dbproc, void *buf, DBINT bufsize)
 		const int mask = TDS_STOPAT_ROWFMT|TDS_STOPAT_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE;
 		buffer_save_row(dbproc);
 		switch (tds_process_tokens(dbproc->tds_socket, &result_type, NULL, mask)) {
-		case TDS_FAIL:
-			return -1;
 		case TDS_SUCCESS:
 			if (result_type == TDS_ROW_RESULT || result_type == TDS_COMPUTE_RESULT)
 				break;
 		case TDS_NO_MORE_RESULTS:
 			return NO_MORE_ROWS;
+		default:
+			return -1;
 		}
 	}
 
@@ -7908,7 +7902,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 				rc = tds_vstrbuild(buffer, len, &result_len, ptext, TDS_NULLTERM, pformats, TDS_NULLTERM, ap);
 				buffer[result_len] = '\0';
 				va_end(ap);
-				if (TDS_FAIL == rc) {
+				if (TDS_FAILED(rc)) {
 					free(buffer);
 					break;
 				}

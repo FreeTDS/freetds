@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.220 2011-09-07 09:40:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.221 2011-09-25 11:33:21 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -1433,7 +1433,6 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 			return CS_CANCELED;
 			break;
 
-		case TDS_FAIL:
 		default:
 			return CS_FAIL;
 			break;
@@ -3605,7 +3604,7 @@ SEND_OPTION:
 				action_string, tds_option,
 				tds_argsize == 1 ? tds_argument.ti : (tds_argsize == 4 ? tds_argument.i : 0), tds_argsize);
 
-	if (tds_submit_optioncmd(tds, tds_command, tds_option, &tds_argument, tds_argsize) == TDS_FAIL) {
+	if (TDS_FAILED(tds_submit_optioncmd(tds, tds_command, tds_option, &tds_argument, tds_argsize))) {
 		return CS_FAIL;
 	}
 

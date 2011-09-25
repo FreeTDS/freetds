@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.580 2011-09-07 09:40:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.581 2011-09-25 11:33:22 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -857,10 +857,11 @@ SQLMoreResults(SQLHSTMT hstmt)
 			switch (tdsret) {
 			case TDS_CANCELLED:
 				odbc_errs_add(&stmt->errs, "HY008", NULL);
-				ODBC_EXIT_(stmt);
-			case TDS_FAIL:
-				ODBC_SAFE_ERROR(stmt);
-				ODBC_EXIT_(stmt);
+			default:
+				if (TDS_FAILED(tdsret)) {
+					ODBC_SAFE_ERROR(stmt);
+					ODBC_EXIT_(stmt);
+				}
 			}
 			break;
 
@@ -3516,11 +3517,13 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 		tdsdump_log(TDS_DBG_FUNC, "    result_type=%d, TDS_DONE_COUNT=%x, TDS_DONE_ERROR=%x\n", 
 						result_type, (done_flags & TDS_DONE_COUNT), (done_flags & TDS_DONE_ERROR));
 		switch (retcode) {
+		case TDS_SUCCESS:
+			break;
 		case TDS_NO_MORE_RESULTS:
 			return TDS_CMD_DONE;
 		case TDS_CANCELLED:
 			odbc_errs_add(&stmt->errs, "HY008", NULL);
-		case TDS_FAIL:
+		default:
 			return TDS_CMD_FAIL;
 		}
 
