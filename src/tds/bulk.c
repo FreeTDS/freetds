@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.26 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bulk.c,v 1.27 2011-09-29 19:05:46 jklowden Exp $");
 
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -409,7 +409,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
  * \return TDS_SUCCESS or TDS_FAIL.
  */
 TDSRET
-tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset)
+tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error ignored, int offset)
 {
 	TDSCOLUMN  *bindcol;
 
@@ -426,7 +426,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 	int i;
 	TDSRET rc;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, %p, %d)\n", tds, bcpinfo, get_col_data, null_error, offset);
+	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, ignored, %d)\n", tds, bcpinfo, get_col_data, offset);
 
 	record = bcpinfo->bindinfo->current_row;
 	old_record_size = bcpinfo->bindinfo->row_size;
@@ -457,26 +457,21 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 					i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null);
 	
 			if (bindcol->bcp_column_data->is_null) {
-				if (bindcol->column_nullable) {
-					switch (bindcol->on_server.column_type) {
-					case XSYBCHAR:
-					case XSYBVARCHAR:
-					case XSYBBINARY:
-					case XSYBVARBINARY:
-					case XSYBNCHAR:
-					case XSYBNVARCHAR:
-						memcpy(record, CHARBIN_NULL, 2);
-						record +=2;
-						break;
-					default:
-						*record = GEN_NULL;
-						record++;
-						break;
-					}
-				} else {
-					/* No value or default value available and NULL not allowed. */
-					null_error(bcpinfo, i, offset);
-					return TDS_FAIL;
+				/* A default may be defined for the column; let server reject if not. */
+				switch (bindcol->on_server.column_type) {
+				case XSYBCHAR:
+				case XSYBVARCHAR:
+				case XSYBBINARY:
+				case XSYBVARBINARY:
+				case XSYBNCHAR:
+				case XSYBNVARCHAR:
+					memcpy(record, CHARBIN_NULL, 2);
+					record +=2;
+					break;
+				default:
+					*record = GEN_NULL;
+					record++;
+					break;
 				}
 			} else {
 
@@ -554,7 +549,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		 */
 		row_pos = 2;
 
-		if ((row_pos = tds_bcp_add_fixed_columns(bcpinfo, get_col_data, null_error, offset, record, row_pos)) < 0)
+		if ((row_pos = tds_bcp_add_fixed_columns(bcpinfo, get_col_data, NULL, offset, record, row_pos)) < 0)
 			return TDS_FAIL;
 
 		row_sz_pos = row_pos;
@@ -562,7 +557,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		/* potential variable columns to write */
 
 		if (bcpinfo->var_cols) {
-			if ((row_pos = tds_bcp_add_variable_columns(bcpinfo, get_col_data, null_error, offset, record, row_pos, &var_cols_written)) < 0)
+			if ((row_pos = tds_bcp_add_variable_columns(bcpinfo, get_col_data, NULL, offset, record, row_pos, &var_cols_written)) < 0)
 				return TDS_FAIL;
 		}
 
@@ -613,7 +608,8 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
  * @returns length or -1 on error.
  */
 static int
-tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, unsigned char * rowbuffer, int start)
+tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error ignored, 
+				int offset, unsigned char * rowbuffer, int start)
 {
 	TDS_NUMERIC *num;
 	int row_pos = start;
@@ -624,7 +620,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 	assert(bcpinfo);
 	assert(rowbuffer);
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns(%p, %p, %p, %d, %p, %d)\n", bcpinfo, get_col_data, null_error, offset, rowbuffer, start);
+	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns(%p, %p, ignored, %d, %p, %d)\n", bcpinfo, get_col_data, offset, rowbuffer, start);
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 
@@ -639,11 +635,14 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 		 		return -1;
 			}
 
+#if USING_SYBEBCNN
+			Let the server reject if no default is defined for the column.
 			if (bcpcol->bcp_column_data->is_null) {
 				/* No value or default value available and NULL not allowed. */
 				null_error(bcpinfo, i, offset);
 				return -1;
 			}
+#endif
 
 			if (is_numeric_type(bcpcol->column_type)) {
 				num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
@@ -724,12 +723,15 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 			if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset)))
 		 		return -1;
 
+#if USING_SYBEBCNN
 			/* If it's a NOT NULL column, and we have no data, throw an error. */
+			No, the column could have a default defined. 
 			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->is_null) {
 				/* No value or default value available and NULL not allowed. */
 				null_error(bcpinfo, i, offset);
 				return -1;
 			}
+#endif
 
 			/* move the column buffer into the rowbuffer */
 			if (!bcpcol->bcp_column_data->is_null) {

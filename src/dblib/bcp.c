@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.218 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.219 2011-09-29 19:05:46 jklowden Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -283,8 +283,9 @@ bcp_collen(DBPROCESS * dbproc, DBINT varlen, int table_column)
 	
 	bcpcol = dbproc->bcpinfo->bindinfo->columns[table_column - 1];
 
+#if USING_SYBEBCNN
 	DBPERROR_RETURN(varlen == 0  && !bcpcol->column_nullable, SYBEBCNN); /* non-nullable column cannot receive a NULL */
-
+#endif
 	bcpcol->column_bindlen = varlen;
 
 	return SUCCEED;
@@ -1427,6 +1428,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 											  bcpcol->bcp_column_data->datalen);
 				}
 			}
+#if USING_SYBEBCNN
 			if (!hostcol->column_error) {
 				if (bcpcol->bcp_column_data->datalen <= 0) {	/* Are we trying to insert a NULL ? */
 					if (!bcpcol->column_nullable) {
@@ -1437,6 +1439,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 					}
 				}
 			}
+#endif
 		}
 		free(coldata);
 	}
@@ -1604,7 +1607,7 @@ bcp_sendrow(DBPROCESS * dbproc)
 	}
 
 	dbproc->bcpinfo->parent = dbproc;
-	return TDS_FAILED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_get_col_data, _bcp_null_error, 0)) ? FAIL : SUCCEED;
+	return TDS_FAILED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_get_col_data, NULL, 0)) ? FAIL : SUCCEED;
 }
 
 
@@ -1733,7 +1736,7 @@ _bcp_exec_in(DBPROCESS * dbproc, DBINT * rows_copied)
 			if (dbproc->hostfileinfo->firstrow <= row_of_hostfile && 
 							      row_of_hostfile <= MAX(dbproc->hostfileinfo->lastrow, 0x7FFFFFFF)) {
 
-				if (TDS_SUCCEED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, _bcp_null_error, 0))) {
+				if (TDS_SUCCEED(tds_bcp_send_record(dbproc->tds_socket, dbproc->bcpinfo, _bcp_no_get_col_data, NULL, 0))) {
 			
 					rows_written_so_far++;
 	
@@ -2345,13 +2348,26 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	return SUCCEED;
 }
 
-static void
-_bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
-{
-	DBPROCESS *dbproc = (DBPROCESS *) bcpinfo->parent;
-	dbperror(dbproc, SYBEBCNN, 0);
-}
-
+#if USING_SYBEBCNN && 0
+	/* 
+	 * This function can be removed subject to testing with TDS 5.0.  It is currently unused. 
+	 * The bcp library was raising an error if data were missing for a non-null target column.  
+	 * However, the server can have a default defined for the column, making the check both unnecessary
+	 * and unhelpful (because the file actually could be loaded if e.g. freebcp would at least *try*.  
+	 * 
+	 * If Sybase works the same way, remove tds_bcp_null_error parameter from 
+	 *  	tds_bcp_add_fixed_columns, tds_bcp_add_variable_columns, tds.h, tds_bcp_send_record
+	 * at the same time.  Also remove any code marked by USING_SYBEBCNN.  
+	 */
+	static void
+	_bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
+	{
+	 /* do not use */
+	 assert(0);
+	 DBPROCESS *dbproc = (DBPROCESS *) bcpinfo->parent;
+	 dbperror(dbproc, SYBEBCNN, 0);
+	}
+#endif
 /** 
  * \ingroup dblib_bcp_internal
  * \brief For a bcp in from program variables, get the data from the host variable
