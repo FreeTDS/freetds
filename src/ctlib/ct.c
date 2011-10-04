@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.222 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.223 2011-10-04 02:00:53 jklowden Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -703,9 +703,10 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_command(%p, %d, %p, %d, %d)\n", cmd, type, buffer, buflen, option);
 
-	/* Unless we are in the process of building a CS_LANG_CMD   */
-	/* type command, then clear everything, ready to start anew */
-
+	/* 
+	 * Unless we are in the process of building a CS_LANG_CMD command, 
+	 * clear everything, ready to start anew 
+	 */
 	if (cmd->command_state != _CS_COMMAND_BUILDING) {
 		_ct_initialise_cmd(cmd);
 		ct_set_command_state(cmd, _CS_COMMAND_IDLE);
@@ -727,8 +728,9 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 				cmd->query = NULL;
 				return CS_FAIL;
 			}
-			if (cmd->command_state == _CS_COMMAND_IDLE) {
-				cmd->query = (char *) malloc(query_len + 1);
+			switch (cmd->command_state) {
+			case _CS_COMMAND_IDLE:
+				cmd->query = malloc(query_len + 1);
 				strncpy(cmd->query, (const char *) buffer, query_len);
 				cmd->query[query_len] = '\0';
 				if (option == CS_MORE) {
@@ -736,10 +738,10 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 				} else {
 					ct_set_command_state(cmd, _CS_COMMAND_READY);
 				}
-			}
-			if (cmd->command_state == _CS_COMMAND_BUILDING) {
+				break;
+			case _CS_COMMAND_BUILDING:
 				current_query_len = strlen(cmd->query);
-				cmd->query = (char *) realloc(cmd->query, current_query_len + query_len + 1);
+				cmd->query = realloc(cmd->query, current_query_len + query_len + 1);
 				strncat(cmd->query, (const char *) buffer, query_len);
 				cmd->query[current_query_len + query_len] = '\0';
 				if (option == CS_MORE) {
@@ -747,8 +749,8 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 				} else {
 					ct_set_command_state(cmd, _CS_COMMAND_READY);
 				}
+				break;
 			}
-
 			break;
 		default:
 			return CS_FAIL;
@@ -756,10 +758,8 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 		break;
 
 	case CS_RPC_CMD:
-
 		/* Code changed for RPC functionality -SUHA */
 		/* RPC code changes starts here */
-
 		if (cmd == NULL)
 			return CS_FAIL;
 
@@ -772,7 +772,7 @@ ct_command(CS_COMMAND * cmd, CS_INT type, const CS_VOID * buffer, CS_INT buflen,
 			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
 		} else if (buflen > 0) {
-			cmd->rpc->name = (char *) calloc(1, buflen + 1);
+			cmd->rpc->name = calloc(1, buflen + 1);
 			if (cmd->rpc->name == NULL)
 				return CS_FAIL;
 			strncpy(cmd->rpc->name, (const char *) buffer, buflen);
