@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.404 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.405 2011-10-04 02:01:03 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _db_get_server_type(int bindtype);
@@ -793,7 +793,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		return SUCCEED;
 		break;
 	case DBSETDBNAME:
-	  tds_set_database_name(login->tds_login, value ? value : "");
+		tds_set_database_name(login->tds_login, value ? value : "");
 		return SUCCEED;
 		break;
 	default:
