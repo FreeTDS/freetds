@@ -41,7 +41,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.416 2011-09-25 11:33:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: token.c,v 1.417 2011-10-08 01:13:30 jklowden Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -1335,7 +1335,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 	TDS_SMALLINT *cur_by_col;
 	TDS_SMALLINT compute_id = 0;
 	TDSCOLUMN *curcol;
-	TDSCOMPUTEINFO *info;
+	TDSCOMPUTEINFO *info = NULL;
 	int i;
 
 	CHECK_TDS_EXTRA(tds);
@@ -1343,46 +1343,43 @@ tds_process_compute_result(TDSSOCKET * tds)
 	hdrsize = tds_get_smallint(tds);
 
 	/*
-	 * compute statement id which this relates
-	 * to. You can have more than one compute
-	 * statement in a SQL statement
+	 * Compute statement id which this relates to. 
+	 * You can have more than one compute clause in a SQL statement
 	 */
 
 	compute_id = tds_get_smallint(tds);
+	num_cols = tds_get_byte(tds);	
 
-	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. compute_id = %d\n", compute_id);
+	tdsdump_log(TDS_DBG_INFO1, "tds_process_compute_result(): compute_id %d for %d columns\n", compute_id, num_cols);
 
-	/*
-	 * number of compute columns returned - so
-	 * COMPUTE SUM(x), AVG(x)... would return
-	 * num_cols = 2
-	 */
-
-	num_cols = tds_get_byte(tds);
-
-	for (i = 0;; ++i) {
-		if (i >= tds->num_comp_info)
-			return TDS_FAIL;
-		info = tds->comp_info[i];
-		tdsdump_log(TDS_DBG_FUNC, "in dbaltcolid() found computeid = %d\n", info->computeid);
-		if (info->computeid == compute_id)
+	for (i=0; i < tds->num_comp_info; ++i) {
+		if (tds->comp_info[i]->computeid == compute_id) {
+			info = tds->comp_info[i];
 			break;
+		}
 	}
+	if (NULL == info) {
+		tdsdump_log(TDS_DBG_FUNC, "logic error: compute_id (%d) from server not found in tds->comp_info\n", compute_id);
+		return TDS_FAIL;
+	}
+	
+	tdsdump_log(TDS_DBG_FUNC, "found computeid %d in tds->comp_info\n", info->computeid);
+	tds->current_results = info;
 
-	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. num_cols = %d\n", num_cols);
+	tdsdump_log(TDS_DBG_INFO1, "processing compute result. num_cols = %d\n", num_cols);
 
-	for (col = 0; col < num_cols; col++) {
-		tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 2\n");
+	/* 
+	 * Iterate over compute columns returned, 
+	 * 	e.g. COMPUTE SUM(x), AVG(x) would return num_cols = 2. 
+	 */
+	 for (col = 0; col < num_cols; col++) {
+		tdsdump_log(TDS_DBG_INFO1, "processing compute column %d\n", col);
 		curcol = info->columns[col];
 
 		curcol->column_operator = tds_get_byte(tds);
 		curcol->column_operand = tds_get_byte(tds);
 
-		/*
-		 * if no name has been defined for the compute column,
-		 * put in "max", "avg" etc.
-		 */
-
+		/* If no name has been defined for the compute column, use "max", "avg" etc. */
 		if (curcol->column_namelen == 0) {
 			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
 			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
@@ -1395,7 +1392,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 		curcol->funcs->get_info(tds, curcol);
 
-		tdsdump_log(TDS_DBG_INFO1, "processing result. column_size %d\n", curcol->column_size);
+		tdsdump_log(TDS_DBG_INFO1, "compute column_size is %d\n", curcol->column_size);
 
 		/* Adjust column size according to client's encoding */
 		curcol->on_server.column_size = curcol->column_size;
@@ -1409,10 +1406,10 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 	by_cols = tds_get_byte(tds);
 
-	tdsdump_log(TDS_DBG_INFO1, "processing tds compute result. by_cols = %d\n", by_cols);
+	tdsdump_log(TDS_DBG_INFO1, "processing tds compute result, by_cols = %d\n", by_cols);
 
 	if (by_cols) {
-		if ((info->bycolumns = (TDS_SMALLINT *) calloc(by_cols, sizeof(TDS_SMALLINT))) == NULL)
+		if ((info->bycolumns = calloc(by_cols, sizeof(TDS_SMALLINT))) == NULL)
 			return TDS_FAIL;
 	}
 	info->by_cols = by_cols;

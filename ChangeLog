@@ -1,3 +1,6 @@
+Fri Oct  7 21:12:05 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* src/tds/token.c compute bugfix from Fredy Paquet
+
 Mon Oct  3 21:56:56 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* src/ctlib/ct.c fix but with ct_command & CS_MORE
 	* src/dblib/dblib.c indentation of one line
@@ -898,4 +901,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3416 2011-10-04 02:00:52 jklowden Exp $
+$Id: ChangeLog,v 1.3417 2011-10-08 01:13:29 jklowden Exp $
