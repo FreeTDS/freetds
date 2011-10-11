@@ -42,7 +42,7 @@ err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrs
 int
 msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 {
-	if (severity > 0) {
+	if (severity > 10) {
 		if ((global_errorlevel == -1) || (severity >= global_errorlevel)) {
 			fprintf(stdout, "Msg %ld, Level %d, State %d:\n", (long) msgno, severity, msgstate);
 		}
@@ -59,9 +59,7 @@ msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *m
 		}
 	}
 	if (global_errorlevel == -1) {
-		if ((severity > 0) || (msgno == 0)) {
-			fprintf(stdout, "%s\n", msgtext);
-		}
+		fprintf(stdout, "%s\n", msgtext);
 	}
 	return (0);
 }

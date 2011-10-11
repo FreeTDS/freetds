@@ -1,3 +1,9 @@
+Mon Oct 10 22:20:00 CDT 2011	Craig A. Berry <craigberry@mac.com>
+	* src/apps/fisql/handlers.c
+	- Make fisql's message handler mimic vendor behavior, which
+	  means always printing a message regardless of severity,
+	  but only printing context with severity greater than 10.
+
 Fri Oct  7 21:12:05 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* src/tds/token.c compute bugfix from Fredy Paquet
 
@@ -901,4 +907,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3417 2011-10-08 01:13:29 jklowden Exp $
+$Id: ChangeLog,v 1.3418 2011-10-11 03:24:54 berryc Exp $
