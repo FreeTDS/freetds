@@ -1,3 +1,7 @@
+Fri Oct 14 17:4700 CDT 2011	Craig A. Berry <craigberry@mac.com>
+	* src/apps/freebcp.c
+	- Make exit codes in freebcp portable and self-documenting.
+
 Mon Oct 10 22:20:00 CDT 2011	Craig A. Berry <craigberry@mac.com>
 	* src/apps/fisql/handlers.c
 	- Make fisql's message handler mimic vendor behavior, which
@@ -907,4 +911,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3418 2011-10-11 03:24:54 berryc Exp $
+$Id: ChangeLog,v 1.3419 2011-10-14 22:49:34 berryc Exp $

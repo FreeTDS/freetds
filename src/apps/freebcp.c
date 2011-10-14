@@ -31,6 +31,14 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+/* These should be in stdlib */
+#ifndef EXIT_SUCCESS
+#define EXIT_SUCCESS 0
+#endif
+#ifndef EXIT_FAILURE
+#define EXIT_FAILURE 1
+#endif
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
@@ -53,7 +61,7 @@
 #include <sybdb.h>
 #include "freebcp.h"
 
-static char software_version[] = "$Id: freebcp.c,v 1.63 2011-06-02 14:39:50 freddy77 Exp $";
+static char software_version[] = "$Id: freebcp.c,v 1.64 2011-10-14 22:49:34 berryc Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 void pusage(void);
@@ -90,7 +98,7 @@ main(int argc, char **argv)
 	params.textsize = 4096;	/* our default text size is 4K */
 
 	if (process_parameters(argc, argv, &params) == FALSE) {
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	if (getenv("FREEBCP")) {
 		fprintf(stderr, "User name: \"%s\"\n", params.user);
@@ -98,7 +106,7 @@ main(int argc, char **argv)
 
 
 	if (login_to_database(&params, &dbproc) == FALSE) {
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (!setoptions(dbproc, &params)) 
@@ -114,7 +122,7 @@ main(int argc, char **argv)
 		ok = FALSE;
 	}
 
-	exit((ok == TRUE) ? 0 : 1);
+	exit((ok == TRUE) ? EXIT_SUCCESS : EXIT_FAILURE);
 
 	return 0;
 }
@@ -356,14 +364,14 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	if (pdata->inputfile) {
 		if (freopen(pdata->inputfile, "rb", stdin) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", "freebcp", pdata->inputfile, strerror(errno));
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
 	if (pdata->outputfile) {
 		if (freopen(pdata->outputfile, "wb", stdout) == NULL) {
 			fprintf(stderr, "%s: unable to open %s: %s\n", "freebcp", pdata->outputfile, strerror(errno));
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
