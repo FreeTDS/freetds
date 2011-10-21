@@ -53,6 +53,10 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
+#if HAVE_COM_ERR_H
+#include <com_err.h>
+#endif /* HAVE_COM_ERR_H */
+
 #ifdef ENABLE_KRB5
 
 #include <gssapi/gssapi_krb5.h>
@@ -65,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.23 2011-09-25 11:33:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.24 2011-10-21 10:01:00 freddy77 Exp $");
 
 /**
  * \ingroup libtds

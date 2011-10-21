@@ -72,6 +72,10 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
+#if HAVE_ROKEN_H
+#include <roken.h>
+#endif /* HAVE_ROKEN_H */
+
 #if defined(_WIN32) || defined(_WIN64)
 #include <winsock2.h>
 #include <shlobj.h>
@@ -83,7 +87,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: threadsafe.c,v 1.51 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: threadsafe.c,v 1.52 2011-10-21 10:01:00 freddy77 Exp $");
 
 struct tm *
 tds_localtime_r(const time_t *timep, struct tm *result)

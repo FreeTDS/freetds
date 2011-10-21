@@ -1,3 +1,7 @@
+Fri Oct 21 12:01:56 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* configure.ac src/tds/gssapi.c src/tds/threadsafe.c:
+	- include additional header for Heimdal (Christos Zoulas)
+
 Fri Oct 14 17:4700 CDT 2011	Craig A. Berry <craigberry@mac.com>
 	* src/apps/freebcp.c
 	- Make exit codes in freebcp portable and self-documenting.
@@ -911,4 +915,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3419 2011-10-14 22:49:34 berryc Exp $
+$Id: ChangeLog,v 1.3420 2011-10-21 10:01:00 freddy77 Exp $
