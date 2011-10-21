@@ -133,9 +133,9 @@ foreach $i (@files) {
 
 	$title = $name;
 	$title = 'make tests' if ($name eq 'maketest');
-	if ($name =~ /^\.\// && $i->{test} && $fn =~ m!/freetds.*/src/!) {
+	if ($name =~ /^\.\// && $i->{test} && $fn =~ m!/ftds_comp.*/src/!) {
 		$title = $fn;
-		$title =~ s!.*/freetds.*/src/!src/!;
+		$title =~ s!.*/ftds_comp.*/src/!src/!;
 	}
 	$i->{title} = $title;
 	

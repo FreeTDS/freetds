@@ -1,3 +1,6 @@
+Fri Oct 21 12:05:20 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/online.pl: fix title
+
 Fri Oct 21 12:03:41 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h:
 	- add missing prototype for tds_gettime_ms (Christos Zoulas)
@@ -919,4 +922,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3421 2011-10-21 10:02:56 freddy77 Exp $
+$Id: ChangeLog,v 1.3422 2011-10-21 10:04:16 freddy77 Exp $
