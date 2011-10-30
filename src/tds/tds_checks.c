@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: tds_checks.c,v 1.34 2011-08-08 09:58:38 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tds_checks.c,v 1.35 2011-10-30 17:00:35 freddy77 Exp $");
 
 #if ENABLE_EXTRA_CHECKS
 
@@ -235,7 +235,8 @@ tds_check_column_extra(const TDSCOLUMN * column)
 		/* check macro */
 		assert(is_fixed_type(column->column_type));
 		/* check current size */
-		assert(size == column->column_size);
+		if (column->column_type != SYBMSDATE)
+			assert(size == column->column_size);
 		/* check cases where server need nullable types */
 		if (column->column_type != column->on_server.column_type && (column->column_type != SYBINT8 || column->on_server.column_type != SYB5INT8)) {
 			assert(!is_fixed_type(column->on_server.column_type));

@@ -1,3 +1,6 @@
+Sun Oct 30 19:02:02 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/tds_checks.c: fix internal check
+
 Sun Oct 30 18:50:08 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* misc/freetds_autobuild: add test for mssql 2008
 
@@ -928,4 +931,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3424 2011-10-30 16:48:36 freddy77 Exp $
+$Id: ChangeLog,v 1.3425 2011-10-30 17:00:35 freddy77 Exp $
