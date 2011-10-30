@@ -257,6 +257,16 @@ cd logs
 upload "$OUTDIR/test3" '*.html'
 cd ..
 
+# do tests with mssql 2008
+cp -f $ROOT/PWD.mssql2008 PWD
+read_pwd_fields
+init_log
+./misc/test-auto.sh --no-build >> logs/log.txt
+cd logs
+../misc/online.pl < log.txt
+upload "$OUTDIR/test4" '*.html'
+cd ..
+
 # test autodiscovery
 save_coverage
 # using tsql directly with grep do not update coverage informations
