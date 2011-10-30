@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.582 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.583 2011-10-30 16:47:18 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -2112,7 +2112,9 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 	case SQL_DESC_PRECISION:	/* this section may be wrong */
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
 		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP
-		    || drec->sql_desc_concise_type == SQL_TIMESTAMP)
+		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
+		    || drec->sql_desc_concise_type == SQL_SS_TIME2
+		    || drec->sql_desc_concise_type == SQL_TIMESTAMPOFFSET)
 			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			*pfDesc = drec->sql_desc_length;
@@ -2123,7 +2125,9 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		if (drec->sql_desc_concise_type == SQL_NUMERIC || drec->sql_desc_concise_type == SQL_DECIMAL
 		    || drec->sql_desc_concise_type == SQL_TYPE_TIMESTAMP
 		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
-		    || drec->sql_desc_concise_type == SQL_FLOAT)
+		    || drec->sql_desc_concise_type == SQL_FLOAT
+		    || drec->sql_desc_concise_type == SQL_SS_TIME2
+		    || drec->sql_desc_concise_type == SQL_TIMESTAMPOFFSET)
 			IOUT(SQLSMALLINT, drec->sql_desc_scale);
 		else
 			*pfDesc = 0;

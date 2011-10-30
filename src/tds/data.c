@@ -39,7 +39,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: data.c,v 1.44 2011-09-07 09:40:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: data.c,v 1.45 2011-10-30 16:47:18 freddy77 Exp $");
 
 #define USE_ICONV tds_conn(tds)->use_iconv
 
@@ -1023,8 +1023,9 @@ DEFINE_FUNCS(variant, variant);
 static TDSRET
 tds_msdatetime_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
+	col->column_scale = col->column_prec = 0;
 	if (col->column_type != SYBMSDATE) {
-		col->column_prec = tds_get_byte(tds);
+		col->column_scale = col->column_prec = tds_get_byte(tds);
 		if (col->column_prec > 7)
 			return TDS_FAIL;
 	}
