@@ -1,3 +1,7 @@
+Mon Oct 31 14:58:29 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/unittests/Makefile.am:
+	- fix compile for machine with SSPI (currently Windows)
+
 Mon Oct 31 12:02:28 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: fix precision for date
 
@@ -934,4 +938,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3426 2011-10-31 11:06:47 freddy77 Exp $
+$Id: ChangeLog,v 1.3427 2011-10-31 13:58:41 freddy77 Exp $
