@@ -1,3 +1,6 @@
+Mon Oct 31 12:02:28 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c: fix precision for date
+
 Sun Oct 30 19:02:02 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/tds_checks.c: fix internal check
 
@@ -931,4 +934,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3425 2011-10-30 17:00:35 freddy77 Exp $
+$Id: ChangeLog,v 1.3426 2011-10-31 11:06:47 freddy77 Exp $
