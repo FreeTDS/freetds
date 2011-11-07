@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.54 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: challenge.c,v 1.55 2011-11-07 13:02:09 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -639,11 +639,8 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 	int domain_len;
 	int data_block_offset;
 
-	int target_info_len = 0;
-	int target_info_offset;
-
-	int names_blob_len;
-	unsigned char *names_blob;
+	int names_blob_len = 0;
+	unsigned char *names_blob = NULL;
 
 	TDSRET rc;
 
@@ -668,6 +665,8 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 	/* Version 1 -- The Context, Target Information, and OS Version structure are all omitted */
 
 	if (data_block_offset >= 48 && where + 16 <= length) {
+		int target_info_len, target_info_offset;
+
 		/* Version 2 -- The Context and Target Information fields are present, but the OS Version structure is not. */
 		tds_get_n(tds, NULL, 8);	/* Context (two consecutive longs) */
 
@@ -687,32 +686,29 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 #endif
 			where += 8;
 		}
-	}
 
-	/* read Target Info if possible */
-	if (target_info_len > 0 && target_info_offset >= where && target_info_offset + target_info_len <= length) {
-		tds_get_n(tds, NULL, target_info_offset - where);
-		where = target_info_offset;
+		/* read Target Info if possible */
+		if (target_info_len > 0 && target_info_offset >= where && target_info_offset + target_info_len <= length) {
+			tds_get_n(tds, NULL, target_info_offset - where);
+			where = target_info_offset;
 
-		/*
-		 * the + 4 came from blob structure, after Target Info 4
-		 * additional reserved bytes must be present
-		 * Search "davenport port"
-		 * (currently http://davenport.sourceforge.net/ntlm.html)
-		 */
-		names_blob_len = offsetof(names_blob_prefix_t, target_info) + target_info_len + 4;
+			/*
+			 * the + 4 came from blob structure, after Target Info 4
+			 * additional reserved bytes must be present
+			 * Search "davenport port"
+			 * (currently http://davenport.sourceforge.net/ntlm.html)
+			 */
+			names_blob_len = offsetof(names_blob_prefix_t, target_info) + target_info_len + 4;
 
-		/* read Target Info */
-		names_blob = (unsigned char *) calloc(names_blob_len, 1);
-		if (!names_blob)
-			return TDS_FAIL;
+			/* read Target Info */
+			names_blob = (unsigned char *) calloc(names_blob_len, 1);
+			if (!names_blob)
+				return TDS_FAIL;
 
-		fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
-		tds_get_n(tds, names_blob + offsetof(names_blob_prefix_t, target_info), target_info_len);
-		where += target_info_len;
-	} else {
-		names_blob = NULL;
-		names_blob_len = 0;
+			fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
+			tds_get_n(tds, names_blob + offsetof(names_blob_prefix_t, target_info), target_info_len);
+			where += target_info_len;
+		}
 	}
 	/* discard anything left */
 	tds_get_n(tds, NULL, length - where);
