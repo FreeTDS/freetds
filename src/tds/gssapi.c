@@ -69,7 +69,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: gssapi.c,v 1.24 2011-10-21 10:01:00 freddy77 Exp $");
+TDS_RCSID(var, "$Id: gssapi.c,v 1.25 2011-11-07 09:56:24 freddy77 Exp $");
 
 /**
  * \ingroup libtds
@@ -253,6 +253,17 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 	return (TDSAUTHENTICATION *) auth;
 }
+
+#ifndef HAVE_ERROR_MESSAGE
+static const char *
+error_message(OM_uint32 e)
+{
+	const char *m = strerror(e);
+	if (m == NULL)
+		return "";
+	return m;
+}
+#endif
 
 static TDSRET
 tds_gss_continue(TDSSOCKET * tds, struct tds_gss_auth *auth, gss_buffer_desc *token_ptr)

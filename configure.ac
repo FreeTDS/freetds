@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.69 2011-10-21 10:01:00 freddy77 Exp $
+dnl $Id: configure.ac,v 1.70 2011-11-07 09:56:24 freddy77 Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.92.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.69 $)
+AC_REVISION($Revision: 1.70 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_HEADERS(include/config.h)
@@ -198,6 +198,15 @@ case "$krb5_libs" in
 	LIBS="$LIBS $krb5_libs"
 	;;
 esac
+
+if test -n "$krb5_libs"; then
+	for d in /usr/include/heimdal /usr/include/krb5 /usr/include/et; do
+		if test -d "$d"; then
+			CPPFLAGS="$CPPFLAGS -I$d"
+		fi
+	done
+	AC_CHECK_FUNCS([error_message])
+fi
 
 NETWORK_LIBS="$LIBS"
 LIBS="$OLDLIBS"
