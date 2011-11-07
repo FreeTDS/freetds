@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.584 2011-10-31 11:06:47 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.585 2011-11-07 09:54:06 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -2769,7 +2769,7 @@ SQLSetDescRec(SQLHDESC hdesc, SQLSMALLINT nRecordNumber, SQLSMALLINT nType, SQLS
 		result = SQL_ERROR;
 		break;
 	case SQL_DESC_NAME:
-		if (!odbc_dstr_copy_oct(desc_get_dbc(desc), &drec->sql_desc_name, BufferLength, (SQLCHAR*) Value)) {
+		if (!odbc_dstr_copy_oct(desc_get_dbc(desc), &drec->sql_desc_name, BufferLength, (ODBC_CHAR*) Value)) {
 			odbc_errs_add(&desc->errs, "HY001", NULL);
 			result = SQL_ERROR;
 		}

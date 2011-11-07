@@ -1,3 +1,7 @@
+Mon Nov  7 10:53:27 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc.c:
+	- remove a warning compiling with wide char (Christos Zoulas)
+
 Mon Oct 31 14:58:29 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/tds/unittests/Makefile.am:
 	- fix compile for machine with SSPI (currently Windows)
@@ -938,4 +942,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3427 2011-10-31 13:58:41 freddy77 Exp $
+$Id: ChangeLog,v 1.3428 2011-11-07 09:54:06 freddy77 Exp $
