@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.585 2011-11-07 09:54:06 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.586 2011-11-07 10:18:48 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -6191,7 +6191,8 @@ SQLRETURN ODBC_API
 SQLSetConnectOption(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectOption(%p, %d, %u)\n", hdbc, fOption, (unsigned)vParam);
-	return _SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS _wide0);
+	/* XXX: Lost precision */
+	return _SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) (TDS_INTPTR) vParam, SQL_NTS _wide0);
 }
 
 #ifdef ENABLE_ODBC_WIDE
@@ -6199,7 +6200,8 @@ SQLRETURN ODBC_PUBLIC ODBC_API
 SQLSetConnectOptionW(SQLHDBC hdbc, SQLUSMALLINT fOption, SQLULEN vParam)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetConnectOptionW(%p, %d, %u)\n", hdbc, fOption, (unsigned)vParam);
-	return _SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS, 1);
+	/* XXX: Lost precision */
+	return _SQLSetConnectAttr(hdbc, (SQLINTEGER) fOption, (SQLPOINTER) (TDS_INTPTR) vParam, SQL_NTS, 1);
 }
 #endif
 
@@ -6510,7 +6512,8 @@ SQLSetStmtOption(SQLHSTMT hstmt, SQLUSMALLINT fOption, SQLULEN vParam)
 {
 	tdsdump_log(TDS_DBG_FUNC, "SQLSetStmtOption(%p, %u, %u)\n", hstmt, fOption, (unsigned)vParam);
 
-	return _SQLSetStmtAttr(hstmt, (SQLINTEGER) fOption, (SQLPOINTER) vParam, SQL_NTS);
+	/* XXX: Lost precision */
+	return _SQLSetStmtAttr(hstmt, (SQLINTEGER) fOption, (SQLPOINTER) (TDS_INTPTR) vParam, SQL_NTS);
 }
 
 #define FUNC NAME(SQLSpecialColumns) (P(SQLHSTMT,hstmt), P(SQLUSMALLINT,fColType), PCHARIN(CatalogName,SQLSMALLINT), \
