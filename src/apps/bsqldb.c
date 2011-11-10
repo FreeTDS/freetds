@@ -51,7 +51,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.51 2011-05-27 09:18:59 freddy77 Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.52 2011-11-10 01:09:45 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -906,14 +906,17 @@ int
 err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
 {
 	if (dberr) {
-		fprintf(stderr, "%s: Msg %d, Level %d\n", options.appname, dberr, severity);
-		fprintf(stderr, "%s\n\n", dberrstr);
+		fprintf(stderr, "%s: Msg %d, Level %d", options.appname, dberr, severity);
+	} else {
+		fprintf(stderr, "%s: DB-LIBRARY error", options.appname);
 	}
 
-	else {
-		fprintf(stderr, "%s: DB-LIBRARY error:\n\t", options.appname);
-		fprintf(stderr, "%s\n", dberrstr);
-	}
+	if (oserr && oserrstr)
+		fprintf(stderr, " (OS error %d: %s)", oserr, oserrstr);
+	
+	printf("\n");
+		
+	fprintf(stderr, "%s\n\n", dberrstr);
 
 	return INT_CANCEL;
 }
