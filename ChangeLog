@@ -1,3 +1,7 @@
+Wed Aug 17 22:20:36 EDT 2011	JK Lowden <jklowden@freetds.org>
+	* README configure.ac
+	- 0.91 release
+
 Fri Aug 12 18:29:44 CEST 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* include/tds.h src/tds/config.c src/tds/gssapi.c src/tds/mem.c:
 	- add Kerberos realm parameter to connection
@@ -3339,4 +3343,4 @@ Wed Jan  9 19:54:43 EST 2008	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.82 added because of release
 	
 $FreeTDS$
-$Id: ChangeLog,v 1.3205.2.42 2011-08-12 16:29:36 freddy77 Exp $
+$Id: ChangeLog,v 1.3205.2.43 2011-11-16 01:47:15 jklowden Exp $

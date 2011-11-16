@@ -1,16 +1,16 @@
-README for FreeTDS 0.82
-Thusday 10 January 2008
+README for FreeTDS 0.91
+Wednesday 17 August 2011
 
 * to build FreeTDS read the file INSTALL or
   the FreeTDS Users Guide (doc/userguide.tgz) and 
   http://www.freetds.org/userguide/
 
-FreeTDS is a free implementation of Sybase's db-lib,
-ct-lib, and ODBC libraries. FreeTDS builds and runs on every flavor of
-unix-like systems we've heard of, as well as Win32 (with or without
-Cygwin), VMS, and Mac OS X.  Failure to build on your system is probably
-considered a bug.  It has C language bindings, and works also with Perl
-and PHP, among others.  
+FreeTDS is a free implementation of Sybase's DB-Library, CT-Library,
+and ODBC libraries. FreeTDS builds and runs on every flavor of
+unix-like systems we've heard of (and some we haven't) as well as
+Win32 (with or without Cygwin), VMS, and Mac OS X.  Failure to build
+on your system is probably considered a bug.  It has C language
+bindings, and works also with Perl and PHP, among others.  
 
 FreeTDS is licensed under the GNU LGPL license. See COPYING.LIB for
 details.  
@@ -27,7 +27,7 @@ TODO		The roadmap, such as it is
 Also, doc/api_status.txt shows which functions are implemented.  
 
 For details on what's new in this version, see NEWS.  For unbearable 
-detail, see ChangeLog-0.82.
+detail, see ChangeLog.
 
 Documentation
 =============
@@ -87,5 +87,5 @@ from all over. So if you live someplace neat (read: not Michigan) and
 want to send one, email him (brian@bruns.org) for his current snail mail
 address.
 
-$Id: README,v 1.12 2008-01-11 08:30:10 freddy77 Exp $
+$Id: README,v 1.12.4.1 2011-11-16 01:47:16 jklowden Exp $
 
