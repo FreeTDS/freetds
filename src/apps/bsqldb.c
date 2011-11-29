@@ -51,7 +51,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.52 2011-11-10 01:09:45 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.53 2011-11-29 23:40:15 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -539,11 +539,24 @@ print_results(DBPROCESS *dbproc)
 						size_t len = dbdatlen(dbproc, c+1);
 						if (len == 0) {
 							fputs("NULL", stdout);
-						} else if (fwrite(p, len, 1, stdout) != 1) {
-							perror("could not write to output file");
-							exit(EXIT_FAILURE);
+						} else {
+							BYTE *pend = p + len;
+							switch(dbcoltype(dbproc, c+1)) {
+							case SYBTEXT:
+								if (fwrite(p, len, 1, stdout) != 1) {
+									perror("could not write to output file");
+									exit(EXIT_FAILURE);
+								}
+								break;
+							default:	/* image, binary */
+								fprintf(stdout, "0x");
+								for (; p < pend; p++) {
+									printf("%02hx", (unsigned short int)*p);
+								}
+								break;
+							}
 						}
-						fprintf(stdout, metadata[c].format_string); /* col/row separator */
+						fprintf(stdout, metadata[c].format_string, ""); /* col/row separator */
 						continue;
 					}
 					switch (data[c].status) { /* handle nulls */

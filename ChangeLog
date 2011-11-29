@@ -1,3 +1,6 @@
+Tue Nov 29 18:38:33 EST 2011	JK Lowden <jklowden@freetds.org>
+	* src/apps/bsqldb.c	convert binary/image to hex characters
+
 Wed Nov  9 19:55:07 EST 2011	JK Lowden <jklowden@freetds.org>
 	* src/apps/bsqldb.c added OS error to error handler
 
@@ -958,4 +961,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3432 2011-11-10 01:09:45 jklowden Exp $
+$Id: ChangeLog,v 1.3433 2011-11-29 23:40:15 jklowden Exp $
