@@ -1,3 +1,6 @@
+Sun Dec  4 22:12:13 EST 2011	JK Lowden <jklowden@freetds.org>
+	* src/dblib/dbpivot.c  Add dbpivot() module
+
 Sun Dec  4 21:27:08 EST 2011	JK Lowden <jklowden@freetds.org>
 	* src/apps/bsqldb.1 added mdoc manpage
 
@@ -970,4 +973,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3435 2011-12-05 02:28:43 jklowden Exp $
+$Id: ChangeLog,v 1.3436 2011-12-05 03:14:04 jklowden Exp $
