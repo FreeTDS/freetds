@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.38 2011-06-08 09:25:53 freddy77 Exp $
+# $Id: Makefile.am,v 1.39 2011-12-05 02:26:31 jklowden Exp $
 SUBDIRS		=	unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include
 
@@ -12,8 +12,7 @@ else
 MINGW_SOURCES   =
 endif
 EXTRA_DIST	=	dbopen.c buffering.h db-lib.vcproj
-libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c $(DBOPEN) $(MINGW_SOURCES)
-# version bumped for 0.63, I hope we'll bump it less in the future -- freddy77
+libsybdb_la_SOURCES=	dblib.c dbutil.c rpc.c bcp.c xact.c dbpivot.c $(DBOPEN) $(MINGW_SOURCES)
 if MACOSX
 SYMBOLS		=
 else

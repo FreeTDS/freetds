@@ -51,7 +51,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.53 2011-11-29 23:40:15 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.54 2011-12-05 02:26:31 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -72,6 +72,8 @@ static void usage(const char invoked_as[]);
 struct METADATA { char *name, *format_string; const char *source; int type, size, width; };
 static int set_format_string(struct METADATA * meta, const char separator[]);
 
+
+struct key_t { size_t nkeys; int *keys; };
 typedef struct _options 
 { 
 	int 	fverbose, 
@@ -86,7 +88,14 @@ typedef struct _options
 	char	*input_filename, 
 		*output_filename, 
 		*error_filename; 
+	struct pivot_t {
+		struct key_t row_key, col_key;
+		int val_col;
+		DBPIVOT_FUNC func;
+	} pivot;
 } OPTIONS;
+
+static void parse_pivot_description(OPTIONS *options, const char *optarg);
 
 LOGINREC* get_login(int argc, char *argv[], OPTIONS *poptions);
 
@@ -285,6 +294,7 @@ print_results(DBPROCESS *dbproc)
 	int i, c, ret;
 	int iresultset;
 	int ncomputeids = 0, ncols = 0;
+	
 
 	/* 
 	 * If using default column separator, we want columns to line up vertically, 
@@ -304,9 +314,14 @@ print_results(DBPROCESS *dbproc)
 			return;
 		}
 		
+		if (options.pivot.func) {
+			const struct key_t *rk = &options.pivot.row_key, *ck = &options.pivot.col_key;
+			erc = dbpivot(dbproc, rk->nkeys, rk->keys, ck->nkeys, ck->keys, 
+					options.pivot.func, options.pivot.val_col);
+		}
+		
 		fprintf(options.verbose, "Result set %d\n", iresultset);
 		/* Free prior allocations, if any. */
-		fprintf(options.verbose, "Freeing prior allocations\n");
 		for (c=0; c < ncols; c++) {
 			free(metadata[c].format_string);
 			free(data[c].buffer);
@@ -810,6 +825,84 @@ static void unescape(char arg[])
 	}
 }
 
+/* pivot syntax: down cols, across cols, function, value */
+
+static void
+parse_pivot_description(OPTIONS *options, const char *optarg)
+{
+/**
+	struct key_t { size_t nkeys; int *keys; };
+	struct pivot_t {
+		struct key_t row_key, col_key;
+		int val_col;
+		DBPIVOT_FUNC func;
+**/
+	char *p, *pend;
+	struct key_t *keys[2] = { &options->pivot.row_key, &options->pivot.col_key},**pk;
+	int nchars;
+	char ch, *input = strdup(optarg);
+	assert(input);
+	
+	keys[0]->keys = NULL;
+	keys[1]->keys = NULL;
+	keys[0]->nkeys = 0;
+	keys[1]->nkeys = 0;
+	
+	for (p=input, pk=keys; pk < keys + 2; p++, pk++) {
+		if ((pend = strchr(p, ' ')) != NULL) {
+			size_t col;
+			int ncols;
+
+			*pend = '\0';
+			while((ncols = sscanf(p, "%zu%c%n", &col, &ch, &nchars)) > 0) {
+				int *pi;
+				assert(ncols <= 2);
+				if ((pi = realloc((*pk)->keys, sizeof((*pk)->keys[0]) * ++((*pk)->nkeys))) == NULL) {
+					assert(pi);
+					return;
+				}
+				(*pk)->keys = pi;
+				(*pk)->keys[(*pk)->nkeys - 1] = col;
+				if (ncols == 2) {
+					assert(nchars <= pend - p);
+					if (ch != ',')
+						fprintf(stderr, "surprised by %c\n", ch);
+					p += nchars;
+				} else {
+					p = pend;
+					break;
+				}
+			}
+		}
+	}
+	if (options->fverbose)
+		printf("found %td row and %td col keys\n", options->pivot.row_key.nkeys, options->pivot.col_key.nkeys);
+
+	if ((pend = strchr(p, ' ')) == NULL) {
+		fprintf(stderr, "bsqldb(): no name in %s\n", p);
+		free(input);
+		return;
+	}
+	*pend = '\0';
+	
+	if ((options->pivot.func = dbpivot_lookup_name(p)) == NULL) {
+		fprintf(stderr, "bsqldb(): invalid name in %s\n", p);
+		free(input);
+		return;
+	}
+	
+	p = ++pend;
+	if( sscanf(p, "%d%c%n", &options->pivot.val_col, &ch, &nchars) != 1) {
+		fprintf(stderr, "bsqldb(): could not parse value column %s\n", p);
+		free(input);
+		return;
+	}
+
+
+	free(input);
+}
+
+
 LOGINREC *
 get_login(int argc, char *argv[], OPTIONS *options)
 {
@@ -835,11 +928,14 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	
 	options->servername = getenv("DSQUERY");
 	
-	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:H:hqv")) != -1) {
+	while ((ch = getopt(argc, argv, "U:P:R:S:dD:i:o:e:t:H:hqv")) != -1) {
 		switch (ch) {
 		case 'U':
 			username = strdup(optarg);
 			break;
+		case 'R': 
+			  parse_pivot_description(options, optarg);
+			  break;
 		case 'P':
 			password = getpassarg(optarg);
 			break;

@@ -32,7 +32,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: dblib.h,v 1.48 2011-07-09 19:50:16 freddy77 Exp $ */
+/* $Id: dblib.h,v 1.49 2011-12-05 02:26:31 jklowden Exp $ */
 
 typedef enum tag_DB_RESULT_STATE {
 	  _DB_RES_INIT
@@ -168,6 +168,12 @@ struct tds_dblib_dbprocess
 /*
  * internal prototypes
  */
+int dblib_bound_type(int bindtype);
+RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
+void copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, 
+				int desttype, BYTE * dest, DBINT destlen,
+				int bindtype, DBINT *indicator);
+				
 int dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...);
 int _dblib_handle_info_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);
 int _dblib_handle_err_message(const TDSCONTEXT * ctxptr, TDSSOCKET * tdsptr, TDSMESSAGE* msgptr);

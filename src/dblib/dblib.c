@@ -71,19 +71,18 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.405 2011-10-04 02:01:03 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.406 2011-12-05 02:26:31 jklowden Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
-static int _db_get_server_type(int bindtype);
 static int _get_printable_size(TDSCOLUMN * colinfo);
 static char *_dbprdate(char *timestr);
 static int _dbnullable(DBPROCESS * dbproc, int column);
 static const char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
-static void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBINT *);
 static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
-static RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
+void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBINT *);
+RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
 
 /**
  * \file dblib.c
@@ -535,7 +534,7 @@ dbbindtype(int datatype)
  * BOUNDARYBIND         DBCHAR          none            \0
  * SENSITIVITYBIND      DBCHAR          none            \0
  */
-static RETCODE
+RETCODE
 dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 {
 	NULLREP *pnullrep = default_null_representations + bindtype;
@@ -932,6 +931,9 @@ dbsetlversion (LOGINREC * login, BYTE version)
 		return SUCCEED;
 	case DBVER60:
 		login->tds_login->tds_version = 0x700;
+		return SUCCEED;
+	case DBVERSION_100:
+		tds_set_version(login->tds_login, 5, 0);
 		return SUCCEED;
 	case DBVERSION_71:
 		tds_set_version(login->tds_login, 7, 1);
@@ -1987,6 +1989,7 @@ dbsetrow(DBPROCESS * dbproc, DBINT row)
  * No row was read from the server
  * \sa dbaltbind(), dbbind(), dbcanquery(), dbclrbuf(), dbgetrow(), dbprrow(), dbsetrow().
  */
+struct pivot_t;
 STATUS
 dbnextrow(DBPROCESS * dbproc)
 {
@@ -1996,6 +1999,7 @@ dbnextrow(DBPROCESS * dbproc)
 	TDS_INT res_type;
 	TDS_INT computeid;
 	int idx; /* row buffer index.  Unless DBUFFER is on, idx will always be 0. */
+	struct pivot_t *pivot;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbnextrow(%p)\n", dbproc);
 	CHECK_CONN(FAIL);
@@ -2036,6 +2040,11 @@ dbnextrow(DBPROCESS * dbproc)
 		
 		result = BUF_FULL;
 		res_type = TDS_ROWFMT_RESULT;
+	
+	} else if ((pivot = dbrows_pivoted(dbproc)) != NULL) {
+	
+		tdsdump_log(TDS_DBG_FUNC, "returning pivoted row\n");
+		return dbnextrow_pivoted(dbproc, pivot);
 
 	} else {
 		const int mask = TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE;
@@ -2083,8 +2092,8 @@ dbnextrow(DBPROCESS * dbproc)
 	return result;
 } /* dbnextrow()  */
 
-static int
-_db_get_server_type(int bindtype)
+int
+dblib_bound_type(int bindtype)
 {
 	switch (bindtype) {
 	case CHARBIND:
@@ -2597,7 +2606,7 @@ dbbind(DBPROCESS * dbproc, int column, int vartype, DBINT varlen, BYTE * varaddr
 
 	colinfo = dbproc->tds_socket->res_info->columns[column - 1];
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-	if (-1 == (desttype = _db_get_server_type(vartype))) {
+	if (-1 == (desttype = dblib_bound_type(vartype))) {
 		dbperror(dbproc, SYBEBTYP, 0);
 		return FAIL;
 	}
@@ -3259,7 +3268,7 @@ dbspr1row(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 			}
 			strcpy(buffer, "NULL");
 		} else {
-			desttype = _db_get_server_type(STRINGBIND);
+			desttype = dblib_bound_type(STRINGBIND);
 			srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 			if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 				tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
@@ -3363,7 +3372,7 @@ dbprrow(DBPROCESS * dbproc)
 					len = 4;
 					strcpy(dest, "NULL");
 				} else {
-					desttype = _db_get_server_type(STRINGBIND);
+					desttype = dblib_bound_type(STRINGBIND);
 					srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 					if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
 						tds_datecrack(srctype, dbdata(dbproc, col + 1), &when);
@@ -3492,7 +3501,7 @@ dbprrow(DBPROCESS * dbproc)
 			for (selcol = col = 1; col <= num_cols; col++) {
 				colinfo = resinfo->columns[col - 1];
 
-				desttype = _db_get_server_type(STRINGBIND);
+				desttype = dblib_bound_type(STRINGBIND);
 				srctype = dbalttype(dbproc, computeid, col);
 
 				if (srctype == SYBDATETIME || srctype == SYBDATETIME4) {
@@ -4192,11 +4201,11 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 	dbproc->avail_flag = FALSE;
 
 	srctype = tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
-	desttype = _db_get_server_type(vartype);
+	desttype = dblib_bound_type(vartype);
 
 	tdsdump_log(TDS_DBG_INFO1, "dbaltbind() srctype = %d desttype = %d \n", srctype, desttype);
 
-	if (!dbwillconvert(srctype, _db_get_server_type(vartype))) {
+	if (!dbwillconvert(srctype, dblib_bound_type(vartype))) {
 		dbperror(dbproc, SYBEAAMT, 0);
 		return FAIL;
 	}
@@ -7142,7 +7151,7 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 	return "(unknown)";
 }
 #if 1
-static void
+void
 copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, 
 				int desttype, BYTE * dest, DBINT destlen,
 				int bindtype, DBINT *indicator)

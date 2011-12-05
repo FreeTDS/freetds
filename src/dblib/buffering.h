@@ -334,7 +334,7 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 		srclen = curcol->column_cur_size;
 		if (is_blob_col(curcol))
 			src = (BYTE *) ((TDSBLOB *) src)->textvalue;
-		desttype = _db_get_server_type(curcol->column_bindtype);
+		desttype = dblib_bound_type(curcol->column_bindtype);
 		srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
 		if (srclen <= 0) {

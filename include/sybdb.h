@@ -42,7 +42,7 @@ extern "C"
 #define TDS_STATIC_CAST(type, a) ((type)(a))
 #endif
 
-static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.105 2011-06-05 09:21:49 freddy77 Exp $";
+static const char rcsid_sybdb_h[] = "$Id: sybdb.h,v 1.106 2011-12-05 02:26:31 jklowden Exp $";
 static const void *const no_unused_sybdb_h_warn[] = { rcsid_sybdb_h, no_unused_sybdb_h_warn };
 
 #ifdef FALSE
@@ -734,6 +734,21 @@ int dbnumcompute(DBPROCESS * dbprocess);
 int dbnumrets(DBPROCESS * dbproc);
 DBPROCESS *tdsdbopen(LOGINREC * login, const char *server, int msdblib);
 DBPROCESS *dbopen(LOGINREC * login, const char *server);
+
+/* pivot functions */
+struct col_t;
+void dbpivot_count (struct col_t *output, const struct col_t *input);
+void dbpivot_sum (struct col_t *output, const struct col_t *input);
+void dbpivot_min (struct col_t *output, const struct col_t *input);
+void dbpivot_max (struct col_t *output, const struct col_t *input);
+
+struct pivot_t;
+typedef void (*DBPIVOT_FUNC)(struct col_t *output, const struct col_t *input);
+struct pivot_t * dbrows_pivoted(DBPROCESS *dbproc);
+STATUS dbnextrow_pivoted(DBPROCESS *dbproc, struct pivot_t *pp);
+RETCODE dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_FUNC func, int val);
+
+DBPIVOT_FUNC dbpivot_lookup_name( const char name[] );
 
 #ifdef MSDBLIB
 #define   dbopen(x,y) tdsdbopen((x),(y), 1)
