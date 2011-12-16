@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.395 2011-12-16 02:23:13 jklowden Exp $ */
+/* $Id: tds.h,v 1.396 2011-12-16 09:53:52 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -951,7 +951,13 @@ struct tds_socket_conn
 	unsigned int tds71rev1:1;
 
 	void *tls_session;
+#if defined(HAVE_GNUTLS)
 	void *tls_credentials;
+#elif defined(HAVE_OPENSSL)
+	void *tls_ctx;
+#else
+	void *tls_dummy;
+#endif
 	TDSAUTHENTICATION *authentication;
 };
 typedef struct tds_socket_conn TDSSOCKETCONN;
@@ -1013,7 +1019,6 @@ struct tds_socket
 	int internal_sp_called;
 
 	int option_value;
-	void *ssl_ctx;
 	TDS_MUTEX_DECLARE(wire_mtx);
 };
 

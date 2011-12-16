@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.132 2011-12-16 02:23:13 jklowden Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.133 2011-12-16 09:53:52 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -1300,6 +1300,9 @@ tds_ssl_write(BIO *b, const char* data, int len)
 	return len;
 }
 
+static int tls_initialized = 0;
+static TDS_MUTEX_DEFINE(tls_mutex);
+
 #ifdef HAVE_GNUTLS
 
 static void
@@ -1312,10 +1315,8 @@ tds_tls_log( int level, const char* s)
 static void __attribute__((destructor))
 tds_tls_deinit(void)
 {
-#ifdef notyet
 	if (tls_initialized)
 		gnutls_global_deinit();
-#endif
 }
 #endif
 
@@ -1359,15 +1360,20 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	/* FIXME place somewhere else, deinit at end */
 	ret = 0;
-	if (tds->ssl_ctx == NULL) {
-		tds_gcry_init();
-		ret = gnutls_global_init();
+	if (!tls_initialized) {
+		TDS_MUTEX_LOCK(&tls_mutex);
+		if (!tls_initialized) {
+			tds_gcry_init();
+			ret = gnutls_global_init();
+			if (ret == 0) {
+				gnutls_global_set_log_level(11);
+				gnutls_global_set_log_function(tds_tls_log);
+				tls_initialized = 1;
+			}
+		}
+		TDS_MUTEX_UNLOCK(&tls_mutex);
 	}
 	if (ret == 0) {
-		tds->ssl_ctx = (void *)1;
-
-		gnutls_global_set_log_level(11);
-		gnutls_global_set_log_function(tds_tls_log);
 		tls_msg = "allocating credentials";
 		ret = gnutls_certificate_allocate_credentials(&xcred);
 	}
@@ -1478,29 +1484,21 @@ static BIO_METHOD tds_method =
 static SSL_CTX *
 tds_init_openssl(void)
 {
-	SSL_CTX *ssl_ctx;
 	SSL_METHOD *meth;
 
-	SSL_library_init ();
+	if (!tls_initialized) {
+		TDS_MUTEX_LOCK(&tls_mutex);
+		if (!tls_initialized) {
+			SSL_library_init();
+			tls_initialized = 1;
+		}
+		TDS_MUTEX_UNLOCK(&tls_mutex);
+	}
 	meth = TLSv1_client_method ();
 	if (meth == NULL)
 		return NULL;
-	ssl_ctx = SSL_CTX_new (meth);
-	if (ssl_ctx == NULL)
-		return NULL;
-	return ssl_ctx;
+	return SSL_CTX_new (meth);
 }
-
-#ifdef TDS_ATTRIBUTE_DESTRUCTOR
-static void __attribute__((destructor))
-tds_tls_deinit(void)
-{
-#ifdef notyet
-	if (ssl_ctx)
-		SSL_CTX_free (ssl_ctx);
-#endif
-}
-#endif
 
 int
 tds_ssl_init(TDSSOCKET *tds)
@@ -1522,15 +1520,13 @@ tds_ssl_init(TDSSOCKET *tds)
 	b = NULL;
 	tls_msg = "initializing tls";
 
-	/* FIXME place somewhere else, deinit at end */
-	ret = 0;
-	if (tds->ssl_ctx == NULL)
-		tds->ssl_ctx = tds_init_openssl();
+	if (tds_conn(tds)->tls_ctx == NULL)
+		tds_conn(tds)->tls_ctx = tds_init_openssl();
 
-	if (tds->ssl_ctx) {
+	if (tds_conn(tds)->tls_ctx) {
 		/* Initialize TLS session */
 		tls_msg = "initializing session";
-		con = SSL_new(tds->ssl_ctx);
+		con = SSL_new(tds_conn(tds)->tls_ctx);
 	}
 	
 	if (con) {
@@ -1571,7 +1567,6 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
 	tds_conn(tds)->tls_session = con;
-	tds_conn(tds)->tls_credentials = NULL;
 
 	return TDS_SUCCESS;
 }
@@ -1583,6 +1578,10 @@ tds_ssl_deinit(TDSSOCKET *tds)
 		/* NOTE do not call SSL_shutdown here */
 		SSL_free(tds_conn(tds)->tls_session);
 		tds_conn(tds)->tls_session = NULL;
+	}
+	if (tds_conn(tds)->tls_ctx) {
+		SSL_CTX_free(tds_conn(tds)->tls_ctx);
+		tds_conn(tds)->tls_ctx = NULL;
 	}
 }
 #endif

@@ -1,3 +1,7 @@
+Fri Dec 16 10:53:26 CET 2011    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/tds/net.c:
+	- improve thread-safe on ssl code, fix small leaks
+
 Thu Dec 15 20:59:53 EST 2011	JK Lowden <jklowden@freetds.org>
 	* include/tds.h src/apps/bsqldb.1 src/apps/fisql/fisql.c
 	* src/ctlib/ct.c src/odbc/odbc.c src/tds/net.c
@@ -979,4 +983,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3437 2011-12-16 02:23:12 jklowden Exp $
+$Id: ChangeLog,v 1.3438 2011-12-16 09:53:52 freddy77 Exp $
