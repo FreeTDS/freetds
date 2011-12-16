@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.394 2011-10-21 10:02:56 freddy77 Exp $ */
+/* $Id: tds.h,v 1.395 2011-12-16 02:23:13 jklowden Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1013,6 +1013,7 @@ struct tds_socket
 	int internal_sp_called;
 
 	int option_value;
+	void *ssl_ctx;
 	TDS_MUTEX_DECLARE(wire_mtx);
 };
 
@@ -1337,9 +1338,9 @@ TDSRET tds_writetext_end(TDSSOCKET *tds);
 
 #define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID(tds_conn(x)->s))
 
-/** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDS_SOCKET*. */
+/** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDSSOCKET*. */
 #define TDS_IS_SYBASE(x) (!(tds_conn(x)->product_version & 0x80000000u))
-/** Check if product is Microsft SQL Server. x should be a TDS_SOCKET*. */
+/** Check if product is Microsft SQL Server. x should be a TDSSOCKET*. */
 #define TDS_IS_MSSQL(x) ((tds_conn(x)->product_version & 0x80000000u)!=0)
 
 /** Calc a version number for mssql. Use with TDS_MS_VER(7,0,842).

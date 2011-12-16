@@ -542,9 +542,20 @@ main(int argc, char *argv[])
 				add_history(line);
 			}
 			if (!(strncasecmp(line, "!!", 2))) {
+				int rv;
 				cp = line + 2;
-				system(cp);
-				continue;
+				switch (rv = system(cp)) {
+				case 0:
+					continue;
+				case -1:
+					fprintf(stderr,
+					    "Failed to execute `%s'\n", cp);
+					continue;
+				default:
+					fprintf(stderr, "Command `%s' exited "
+					    "with code %d\n", cp, rv);
+					continue;
+				}
 			}
 			/* XXX: isql off-by-one line count error for :r not duplicated */
 			if (!(strncasecmp(line, ":r", 2))) {
@@ -553,7 +564,7 @@ main(int argc, char *argv[])
 				for (; *cp && !(isspace((unsigned char) *cp)); cp++);
 				*cp = '\0';
 				if ((fp = fopen(tfn, "r")) == NULL) {
-					printf("Operating system error: Failed to open %s.\n", tfn);
+					fprintf(stderr, "Operating system error: Failed to open %s.\n", tfn);
 					continue;
 				}
 				tmpfp = rl_instream;

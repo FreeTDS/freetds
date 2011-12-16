@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.223 2011-10-04 02:00:53 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.224 2011-12-16 02:23:13 jklowden Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -396,7 +396,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		case CS_SERVERADDR: {
 			/* Format of this property: "[hostname] [port]" */
-			char *host, *port, *lasts;
+			char *host, *port, *lasts = NULL;
 			int portno;
 			host= strtok_r(set_buffer, " ", &lasts);
 			port= strtok_r(NULL, " ", &lasts);

@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.586 2011-11-07 10:18:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.587 2011-12-16 02:23:13 jklowden Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -1448,7 +1448,15 @@ SQLAllocHandle(SQLSMALLINT HandleType, SQLHANDLE InputHandle, SQLHANDLE * Output
 		return _SQLAllocDesc(InputHandle, OutputHandle);
 		break;
 	}
-	/* TODO HY092 error */
+	
+	/*
+	 * As the documentation puts it, 
+	 *	"There is no handle with which to associate additional diagnostic information."
+	 *
+	 * The DM must catch HY092 because the driver has no valid handle at this early stage in which 
+	 * to store the error for later retrieval by the application.  
+	 */
+	tdsdump_log(TDS_DBG_FUNC, "SQLAllocHandle(): invalid HandleType, error HY092: should be caught by DM\n");
 	return SQL_ERROR;
 }
 #endif

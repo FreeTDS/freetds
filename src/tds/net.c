@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.131 2011-09-02 16:38:23 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.132 2011-12-16 02:23:13 jklowden Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -1308,14 +1308,14 @@ tds_tls_log( int level, const char* s)
 	tdsdump_log(TDS_DBG_INFO1, "GNUTLS: level %d:\n  %s", level, s);
 }
 
-static int tls_initialized = 0;
-
 #ifdef TDS_ATTRIBUTE_DESTRUCTOR
 static void __attribute__((destructor))
 tds_tls_deinit(void)
 {
+#ifdef notyet
 	if (tls_initialized)
 		gnutls_global_deinit();
+#endif
 }
 #endif
 
@@ -1359,12 +1359,12 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	/* FIXME place somewhere else, deinit at end */
 	ret = 0;
-	if (!tls_initialized) {
+	if (tds->ssl_ctx == NULL) {
 		tds_gcry_init();
 		ret = gnutls_global_init();
 	}
 	if (ret == 0) {
-		tls_initialized = 1;
+		tds->ssl_ctx = (void *)1;
 
 		gnutls_global_set_log_level(11);
 		gnutls_global_set_log_function(tds_tls_log);
@@ -1474,29 +1474,31 @@ static BIO_METHOD tds_method =
 	NULL,
 };
 
-static SSL_CTX *ssl_ctx;
 
-static int
+static SSL_CTX *
 tds_init_openssl(void)
 {
+	SSL_CTX *ssl_ctx;
 	SSL_METHOD *meth;
 
 	SSL_library_init ();
 	meth = TLSv1_client_method ();
 	if (meth == NULL)
-		return 1;
+		return NULL;
 	ssl_ctx = SSL_CTX_new (meth);
 	if (ssl_ctx == NULL)
-		return 1;
-	return 0;
+		return NULL;
+	return ssl_ctx;
 }
 
 #ifdef TDS_ATTRIBUTE_DESTRUCTOR
 static void __attribute__((destructor))
 tds_tls_deinit(void)
 {
+#ifdef notyet
 	if (ssl_ctx)
 		SSL_CTX_free (ssl_ctx);
+#endif
 }
 #endif
 
@@ -1522,13 +1524,13 @@ tds_ssl_init(TDSSOCKET *tds)
 
 	/* FIXME place somewhere else, deinit at end */
 	ret = 0;
-	if (!ssl_ctx)
-		ret = tds_init_openssl();
+	if (tds->ssl_ctx == NULL)
+		tds->ssl_ctx = tds_init_openssl();
 
-	if (ret == 0) {
+	if (tds->ssl_ctx) {
 		/* Initialize TLS session */
 		tls_msg = "initializing session";
-		con = SSL_new(ssl_ctx);
+		con = SSL_new(tds->ssl_ctx);
 	}
 	
 	if (con) {
