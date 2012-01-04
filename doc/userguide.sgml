@@ -13,8 +13,8 @@
 ]>
 <book>
 <bookinfo>
-	<date>$Date: 2011-09-13 14:05:07 $</date>
-	<releaseinfo>$Revision: 1.143 $</releaseinfo>
+	<date>$Date: 2012-01-04 22:10:44 $</date>
+	<releaseinfo>$Revision: 1.144 $</releaseinfo>
 	<title>&freetds; User Guide</title>
 	<subtitle>A Guide to Installing, Configuring, and Running &freetds;</subtitle>
 	<author>
@@ -63,9 +63,9 @@
 
 <para>The version you're reading is:</para>
 			<simplelist type='vert'>
-				<member>$Revision: 1.143 $</>
-				<member>$Date: 2011-09-13 14:05:07 $</>
-				<member>CVS control number $Id: userguide.sgml,v 1.143 2011-09-13 14:05:07 jklowden Exp $.</>
+				<member>$Revision: 1.144 $</>
+				<member>$Date: 2012-01-04 22:10:44 $</>
+				<member>CVS control number $Id: userguide.sgml,v 1.144 2012-01-04 22:10:44 jklowden Exp $.</>
 				</simplelist>
 			</footnote>
 		can be found on the &freetds;
@@ -626,7 +626,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 			</sect2>
 		<sect2 id="osx"><title>OS X&reg;</title>
 
-<para>As of this writing ($Date: 2011-09-13 14:05:07 $), the regular distribution compiles on OS X.  </para>
+<para>As of this writing ($Date: 2012-01-04 22:10:44 $), the regular distribution compiles on OS X.  </para>
 			
 <![ %comment [
 	<!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
@@ -896,20 +896,20 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 						</thead>
 					<tbody>
 						<row>
-							<entry>tds version</entry>
+							<entry><literal>tds version</></entry>
 							<entry>4.2, 5.0, 7.0, 7.1, 7.2, <literal>auto</></entry>
 							<entry><parameter>--with-tdsver</> value (<literal>5.0</> if unspecified)
 								Overridden by <link  linkend="TDSVER">TDSVER</link>.</entry>
 							<entry>The <acronym>TDS</> protocol version to use when connecting.  <quote><literal>auto</></quote> tells &freetds; to use an autodetection (trial-and-error) algorithm to choose the protocol version. </entry>
 							</row>
 						<row>
-							<entry>host</entry>
+							<entry><literal>host</></entry>
 							<entry>host name or IP address</entry>
 							<entry>none</entry>
 							<entry>The host that the servername is running on.</entry>
 							</row>
 						<row>
-							<entry>port</entry>
+							<entry><literal>port</></entry>
 							<entry>any valid port</entry>
 							<entrytbl cols="3">
 								<thead>
@@ -953,28 +953,28 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							</row>
 						
 						<row>
-							<entry>instance</entry>
+							<entry><literal>instance</></entry>
 							<entry>instance name</entry>
 							<entry>none</entry>
 							<entry><para>Name of Microsoft SQL Server <emphasis>instance</> to connect to. The port will be detected automatically.  Mutually exclusive with <emphasis>port</>, above.  Requires UDP connection to port 1434 on the server.</para></entry>
 							</row>
 						
 						<row>
-							<entry id="asa.database">ASA database</entry>
+							<entry id="asa.database"><literal>ASA database</></entry>
 							<entry>valid database name</entry>
 							<entry>servername [<replaceable>section</>] name</entry>
 							<entry>Specifies the name of the default database when connecting to an ASA server.  A TDS 5.0 login packet has a field called <literal>lservname</>.   For most TDS servers, <literal>lservname</> is a user-defined string with no inherent meaning.  ASA servers, however, requires that <literal>lservname</>  contain a valid database name, and sets that as the default database for the connection.  FreeTDS normally fills <literal>lservname</>  with the [<replaceable>section</>] text..   This entry instead sets the database name independently of the [<replaceable>section</>] name.   </entry>
 							</row>
 						
 						<row>
-							<entry>initial block size</entry>
+							<entry><literal>initial block size</></entry>
 							<entry>multiple of 512</entry>
 							<entry>512</entry>
 							<entry>Specifies the maximum size of a protocol block.  Don't mess with unless you know what you are doing.</entry>
 							</row>
 						
 						<row>
-							<entry>dump file</entry>
+							<entry><literal>dump file</></entry>
 							<entry>any valid file name</entry>
 							<entry>none
 								Overridden by <link  linkend="TDSDUMP">TDSDUMP</link>.
@@ -982,59 +982,65 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>Specifies the location of a tds dump file and turns on logging</entry>
 							</row>
 						<row>
-							<entry>dump file append</entry>
+							<entry><literal>dump file append</></entry>
 							<entry>yes/no</entry>
 							<entry>no</entry>
 							<entry>Appends dump file instead of overwriting it.  Useful for debugging when many processes are active.</entry>
 							</row>
 						<row>
-							<entry>timeout</entry>
+							<entry><literal>timeout</></entry>
 							<entry>0-</entry>
 							<entry>none</entry>
 							<entry>Sets period to wait for response of query before timing out.</entry>
 							</row>
 						<row>
-							<entry>connect timeout</entry>
+							<entry><literal>connect timeout</></entry>
 							<entry>0-</entry>
 							<entry>none</entry>
 							<entry>Sets period to wait for response from connect before timing out.</entry>
 							</row>
 						<row>
-							<entry>emulate little endian</entry>
+							<entry><literal>emulate little endian</></entry>
 							<entry>yes/no</entry>
 							<entry>no</entry>
 							<entry>Forces big endian machines (Sparc, PPC, PARISC) to act as little endian to communicate with MS Servers. Set automatically for <acronym>TDS</> 7.0 or above on big endian hosts</entry>
 							</row>
 						<row>
-							<entry id="clientcharset">client charset</entry>
+							<entry id="clientcharset"><literal>client charset</></entry>
 							<entry>any valid iconv character set</entry>
 							<entry>ISO-8859-1<footnote><para>Valid for ISO 8859-1 character set.  See <link linkend="Localization">Localization and <acronym>TDS</> 7.0</link> for more information.</para></footnote></entry>
 							<entry>Makes &freetds; use iconv to convert to and from the specified character set from UCS-2 in <acronym>TDS</> 7.0 or above.
 								&freetds; uses iconv to convert all character data, so there's no need to match the server's charset to insert any characters the server supports.</entry>
 							</row>
 						<row>
-							<entry>text size</entry>
+							<entry><literal>text size</></entry>
 							<entry>0 to 4,294,967,295</entry>
 							<entry>4,294,967,295</entry>
 							<entry>default value of TEXTSIZE, in bytes.  For <type>text</type> and <type>image</type> datatypes, sets the maximum width of any returned column. Cf. <command>set TEXTSIZE</> in the <acronym>T-SQL</> documentation for your server.  </entry>
 							</row>
 						<row>
-							<entry>debug flags</entry>
+							<entry><literal>debug flags</></entry>
 							<entry>Any number even in hex or octal notation</entry>
 							<entry>0x4fff</entry>
 							<entry>Sets granularity of logging. A bitmask. See table below for specification.</entry>
 							</row>
 						<row>
-							<entry>encryption</entry>
+							<entry><literal>encryption</></entry>
 							<entry>off/request/required</entry>
 							<entry>off</entry>
 							<entry>Specify if encryption is desidered. Supported for Microsoft servers. <symbol>off</> disables encryption (only if needed); <symbol>request</> means use if available; <symbol>required</> means create and allow encrypted connections only.</entry>
 							</row>
 						<row>
-							<entry>enable gssapi delegation</entry>
+							<entry><literal>enable gssapi delegation</></entry>
 							<entry>on/off</entry>
 							<entry>off</entry>
 							<entry>Enable delegation flag using Kerberos.</entry>
+							</row>
+						<row>
+							<entry><literal>use ntlmv2</></entry>
+							<entry>yes/no</entry>
+							<entry>no</entry>
+							<entry>Use NTLMv2.  An alternative to the <literal>UseNTLMv2</> option in <filename>odbc.ini</>.  </entry>
 							</row>
 						</tbody>
 					</tgroup>
