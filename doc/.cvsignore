@@ -19,3 +19,4 @@ doxy.log
 odbc.api.sgml
 bsqlodbc.1
 t
+.gitignore

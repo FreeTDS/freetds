@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-static char software_version[] = "$Id: rpc.c,v 1.40 2011-06-02 20:42:34 freddy77 Exp $";
+static char software_version[] = "$Id: rpc.c,v 1.41 2012-01-14 19:46:32 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static RETCODE init_proc(DBPROCESS * dbproc, const char *name);
@@ -25,7 +25,7 @@ static const char procedure_sql[] =
 			", @first_type varchar(30) OUTPUT \n"
 			", @nullout int OUTPUT\n"
 			", @nrows int OUTPUT \n"
-			", @c varchar(20)\n"
+			", @c_this_name_is_way_more_than_thirty_characters_charlie varchar(20)\n"
 			", @nv nvarchar(20) = N'hello'\n"
 		"AS \n"
 		"BEGIN \n"
@@ -143,7 +143,8 @@ struct parameters_t {
 	, { "@first_type", DBRPCRETURN, SYBCHAR,  sizeof(param_data1), 0, (BYTE *) &param_data1 }
 	, { "@nullout",    DBRPCRETURN, SYBINT4,  -1,   0, (BYTE *) &param_data2 }
 	, { "@nrows",      DBRPCRETURN, SYBINT4,  -1,  -1, (BYTE *) &param_data3 }
-	, { "@c",          0,        SYBVARCHAR,   0,   0, NULL }
+	, { "@c_this_name_is_way_more_than_thirty_characters_charlie",
+		           0,        SYBVARCHAR,   0,   0, NULL }
 	, { "@nv",         0,        SYBVARCHAR,  -1,   2, (BYTE *) "OK:" }
 	}, *pb = bindings;
 

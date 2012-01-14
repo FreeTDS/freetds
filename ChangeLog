@@ -1,3 +1,14 @@
+Sat Jan 14 14:44:10 EST 2012	JK Lowden <jklowden@freetds.org>
+	* .cvsignore doc/.cvsignore include/.cvsignore
+	* m4/.cvsignore samples/.cvsignore
+	* src/apps/.cvsignore src/apps/fisql/.cvsignore
+	* src/ctlib/unittests/.cvsignore src/dblib/unittests/.cvsignore
+	* src/dblib/unittests/rpc.c src/dblib/unittests/rpc.sql
+	* src/odbc/unittests/.cvsignore src/pool/.cvsignore
+	* src/server/.cvsignore src/tds/.cvsignore
+	* src/tds/unittests/.cvsignore win32/.cvsignore
+	- add .gitignore
+
 Wed Jan  4 17:09:08 EST 2012	JK Lowden <jklowden@freetds.org>
 	* doc/userguide.sgml add 'use ntlmv2' to freetds.conf
 
@@ -986,4 +997,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3439 2012-01-04 22:10:44 jklowden Exp $
+$Id: ChangeLog,v 1.3440 2012-01-14 19:46:31 jklowden Exp $
