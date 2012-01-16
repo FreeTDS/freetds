@@ -1,4 +1,4 @@
-# version $Id: Makefile.am,v 1.49 2010-06-27 05:58:09 freddy77 Exp $
+# version $Id: Makefile.am,v 1.50 2012-01-16 00:27:04 jklowden Exp $
 
 ## SUBDIRS determines in which directories automake will generate a Makefile
 ## See also AC_OUTPUT in configure.ac
@@ -19,10 +19,10 @@ DOCDIR	=	doc/doc/freetds-$(VERSION)
 install-data-local:
 	$(mkinstalldirs) $(ETC)
 	if test ! -f $(ETC)/freetds.conf; then \
-		$(INSTALL_DATA) $(srcdir)/freetds.conf $(ETC)/freetds.conf; \
+		$(INSTALL) $(srcdir)/freetds.conf $(ETC)/freetds.conf; \
 	fi
 	if test ! -f $(ETC)/locales.conf; then \
-		$(INSTALL_DATA) $(srcdir)/locales.conf $(ETC)/locales.conf; \
+		$(INSTALL) $(srcdir)/locales.conf $(ETC)/locales.conf; \
 	fi
 
 clean-local:
@@ -55,7 +55,7 @@ snapshot:
 ## The doxygen configuration file understands environment variables.  
 doxy: $(SUBDIRS)
 if HAVE_DOXYGEN
-	$(mkinstalldirs) $(DOCDIR)/reference
+	$(MKDIR_P) $(DOCDIR)/reference
 	rm -rf $(DOCDIR)/reference/*
 	SRCDIR=$(top_srcdir) VERSION=$(VERSION) $(DOXYGEN) $(top_srcdir)/tds.dox
 	if test -d $(DOCDIR)/reference/html ; then mv $(DOCDIR)/reference/html/* $(DOCDIR)/reference; rmdir $(DOCDIR)/reference/html; fi

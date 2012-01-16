@@ -1,3 +1,7 @@
+Sun Jan 15 19:24:02 EST 2012	JK Lowden <jklowden@freetds.org>
+	* Makefile.am doc/Makefile.am src/pool/Makefile.am
+	- use MKDIR_P and INSTALL from autoconf
+
 Sat Jan 14 14:44:10 EST 2012	JK Lowden <jklowden@freetds.org>
 	* .cvsignore doc/.cvsignore include/.cvsignore
 	* m4/.cvsignore samples/.cvsignore
@@ -997,4 +1001,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3440 2012-01-14 19:46:31 jklowden Exp $
+$Id: ChangeLog,v 1.3441 2012-01-16 00:27:03 jklowden Exp $
