@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.587 2011-12-16 02:23:13 jklowden Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.588 2012-01-17 03:43:56 jklowden Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -4498,25 +4498,21 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	ODBC_EXIT_(stmt);
 }
 
+/* TDS_NO_COUNT must be -1 for SQLRowCount to return -1 when there is no rowcount */
+#if TDS_NO_COUNT != -1
+# error TDS_NO_COUNT != -1
+#endif
+	
 SQLRETURN
 _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 {
-	TDSSOCKET *tds;
-
+	TDSSOCKET *xxxtds;
 	ODBC_ENTER_HSTMT;
 
-	tdsdump_log(TDS_DBG_FUNC, "_SQLRowCount(%p, %p)\n", 
-			hstmt, pcrow);
+	tdsdump_log(TDS_DBG_FUNC, "_SQLRowCount(%p, %p),  %ld rows \n", hstmt, pcrow, (long)stmt->row_count);
 
-	tds = stmt->dbc->tds_socket;
-	if (stmt->row_status == NOT_IN_ROW) {
-		odbc_errs_add(&stmt->errs, "24000", NULL);
-		ODBC_EXIT_(stmt);
-	}
+	*pcrow = stmt->row_count;
 
-	*pcrow = -1;
-	if (stmt->row_count != TDS_NO_COUNT)
-		*pcrow = stmt->row_count;
 	ODBC_EXIT_(stmt);
 }
 
