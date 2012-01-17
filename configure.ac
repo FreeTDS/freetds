@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl ------------------------------------------------------------
-dnl $Id: configure.ac,v 1.70 2011-11-07 09:56:24 freddy77 Exp $
+dnl $Id: configure.ac,v 1.71 2012-01-17 03:46:35 jklowden Exp $
 dnl If you're trying to create a new configure test, try
 dnl
 dnl 	http://autogen.sourceforge.net/conftest.html
@@ -15,7 +15,7 @@ dnl ------------------------------------------------------------
 AC_INIT(FreeTDS, 0.92.dev.esyscmd(printf $(date +"%Y%m%d")))
 AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
-AC_REVISION($Revision: 1.70 $)
+AC_REVISION($Revision: 1.71 $)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
 AC_CONFIG_HEADERS(include/config.h)
@@ -36,6 +36,17 @@ AC_SUBST(MAJOR)
 AC_SUBST(MINOR)
 AC_SUBST(SUBVERSION)
 AC_SUBST(BUILD_NUMBER)
+
+# ------------------------------------------------------------
+# Commands and Utilities
+# ------------------------------------------------------------
+AC_PROG_AWK
+AC_PROG_GREP
+AC_PROG_INSTALL
+AC_PROG_MKDIR_P
+AC_PROG_LN_S
+AC_PROG_RANLIB
+AC_PROG_SED
 
 # ------------------------------------------------------------
 # Host-specific configuration

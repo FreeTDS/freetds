@@ -1,3 +1,7 @@
+Mon Jan 16 22:45:41 EST 2012	JK Lowden <jklowden@freetds.org>
+	* configure.ac doc/Makefile.am
+	- use MKDIR_P and INSTALL from autoconf
+
 Sun Jan 15 19:27:20 EST 2012	JK Lowden <jklowden@freetds.org>
 	* src/odbc/odbc.c 
 	- removed bogus test from _SQLRowCount, cf. ML.
@@ -1005,4 +1009,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3442 2012-01-17 03:43:56 jklowden Exp $
+$Id: ChangeLog,v 1.3443 2012-01-17 03:46:35 jklowden Exp $

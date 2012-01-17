@@ -2,7 +2,7 @@
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
-# $Id: Makefile.am,v 1.67 2012-01-16 00:27:04 jklowden Exp $
+# $Id: Makefile.am,v 1.68 2012-01-17 03:46:35 jklowden Exp $
 
 SHELL = /bin/sh
 TXT2MAN = $(srcdir)/txt2man
@@ -120,13 +120,13 @@ datacopy.1: datacopy.txt
 install-data-local: $(INSTALLDIRS) $(noinst_DATA)
 	$(MKDIR_P) $(DOCDIR) 2>&1
 	if test -r $(DOCDIR)/userguide ; then d=.; else d="$(srcdir)"; fi; \
-	find $$d/$(DOCDIR)/userguide \( -type f -o -type l \) -exec \
-		$(INSTALL) {} $(TARGET_DOCDIR)/userguide ';'
+	find $$d/$(DOCDIR)/userguide \( -type f -o -type l \) \
+		-exec $(INSTALL) {} $(TARGET_DOCDIR)/userguide ';'
 	if test -r $(DOCDIR)/reference ; then d=.; else d="$(srcdir)"; fi; \
-	find $$d/$(DOCDIR)/reference \( -type f -o -type l \) -exec \
-		$(INSTALL) {} $(TARGET_DOCDIR)/reference ';'
-	cd $(srcdir) && find images -name \*.gif -exec \
-		$(INSTALL) {} $(TARGET_DOCDIR)/{} ';'
+	find $$d/$(DOCDIR)/reference \( -type f -o -type l \) \
+		-exec $(INSTALL) {} $(TARGET_DOCDIR)/reference ';'
+	find $(srcdir)/images -name \*.gif \
+		-exec  $(INSTALL) {} $(TARGET_DOCDIR)/images/ ';'
 
 uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
@@ -171,7 +171,7 @@ $(DOCDIR)/userguide/index.htm: $(DOCDIR) userguide.sgml  userguide.dsl.in api_st
 		fi; \
 	fi
 # try jade ...
-	cd $(DOCDIR)/userguide && \
+	(cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
 ##		The crazy path is due to the above 'cd' command
 		SRCDOC=../../../$(srcdir); \
@@ -181,7 +181,7 @@ $(DOCDIR)/userguide/index.htm: $(DOCDIR) userguide.sgml  userguide.dsl.in api_st
 		if test -h userguide.sgml; then rm userguide.sgml; fi; \
 ## 		and copy the stylesheet
 		cp $${SRCDOC}/userguide.css .; \
-	fi
+	fi)
 # if still no joy, create a stub
 	@echo pwd is $$(pwd)
 	-ls -ld $$(dirname $@) $@
@@ -191,7 +191,7 @@ $(DOCDIR)/userguide/index.htm: $(DOCDIR) userguide.sgml  userguide.dsl.in api_st
 		mv .index.htm $@; \
 	fi
 	test -f $(DOCDIR)/userguide/index.htm
-	cd $(DOCDIR)/userguide && if test ! -h index.html ; then ln -s index.htm index.html; fi
+	(cd $(DOCDIR)/userguide && if test ! -h index.html ; then ln -s index.htm index.html; fi)
 # for convenience, create a link in the build directory
 	if test -h userguide; then rm userguide; fi
 	ln -sf $(DOCDIR)/userguide userguide
@@ -202,20 +202,18 @@ reference: $(DOCDIR)/reference/index.html
 DISTRIBUTED_REF_DIR = $(srcdir)/$(DOCDIR)/reference
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
-###	$(mkinstalldirs) $(DOCDIR) 2>&1
 	$(MKDIR_P) $(DOCDIR)/reference 2>&1
-	cd .. && $(MAKE) doxy 2> doc/doxy.log
+	(cd .. && $(MAKE) doxy 2> doc/doxy.log)
 # if "make doxy" doesn't create anything, try to copy the distributed manual's HTML
 	if test -r $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
 		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \
 	fi
 # if we don't find the source, generate a stub
-###	$(mkinstalldirs) $(DOCDIR)/reference 2>&1
 	if test ! -r $@ ; then \
-		cd $(DOCDIR)/reference && \
+		(cd $(DOCDIR)/reference && \
 		echo '<html><P>at <a HREF="http://www.freetds.org/reference/">www.freetds.org</a></html>' 	\
 			> .index.html &&  \
-		mv .index.html index.html; \
+		mv .index.html index.html); \
 	fi
 # for convenience, create a link in the build directory
 	if test -h reference; then rm reference; fi
