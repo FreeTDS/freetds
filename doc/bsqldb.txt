@@ -43,7 +43,7 @@ OPTIONS
   
   -q  Do not print column metadata, return status, or rowcount. Overrides -h. 
 
-  -v  Verbose mode, for more information about the DB-Libraryrary interaction.
+  -v  Verbose mode, for more information about the DB-Library interaction.
   This also reports the result set metadata, including and return code. All
   verbose data are written to standard error (or -e), so as not to interfere 
   with the data stream.
