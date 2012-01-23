@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.150 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.151 2012-01-23 16:08:12 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -625,8 +625,14 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 		return 0;
 	}
 
-	if (msg->msgno != 5701 && msg->msgno != 5703
-	    && msg->msgno != 20018) {
+	switch (msg->msgno) {
+	case 5701: 	/* changed_database */
+	case 5703: 	/* changed_language */
+	case 20018:	/* The @optional_command_line is too long */
+		if (VERBOSE && msg)
+			fprintf(stderr, "%s\n", msg);
+		break;
+	default:
 		fprintf(stderr, "Msg %d (severity %d, state %d) from %s", 
 			msg->msgno, msg->severity, msg->state, msg->server);
 		if (msg->proc_name && strlen(msg->proc_name))
@@ -634,6 +640,7 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 		if (msg->line_number > 0)
 			fprintf(stderr, " Line %d", msg->line_number);
 		fprintf(stderr, ":\n\t\"%s\"\n", msg->message);
+		break;
 	}
 
 	return 0;
@@ -765,7 +772,7 @@ main(int argc, char **argv)
 
 	if (opt_default_db) {
 		tds_dstr_copy(&connection->database, opt_default_db);
-		if (!QUIET) fprintf(stderr, "Default database being set to %s\n", opt_default_db);
+		if (!QUIET) fprintf(stderr, "Setting %s as default database in login packet\n", opt_default_db);
 	}
 
 	/* 
