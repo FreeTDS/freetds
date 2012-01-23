@@ -85,7 +85,7 @@
 #include "tdsconvert.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: tsql.c,v 1.151 2012-01-23 16:08:12 jklowden Exp $");
+TDS_RCSID(var, "$Id: tsql.c,v 1.152 2012-01-23 18:25:04 jklowden Exp $");
 
 #define TDS_ISSPACE(c) isspace((unsigned char) (c))
 
@@ -630,7 +630,7 @@ tsql_handle_message(const TDSCONTEXT * context, TDSSOCKET * tds, TDSMESSAGE * ms
 	case 5703: 	/* changed_language */
 	case 20018:	/* The @optional_command_line is too long */
 		if (VERBOSE && msg)
-			fprintf(stderr, "%s\n", msg);
+			fprintf(stderr, "%s\n", msg->message);
 		break;
 	default:
 		fprintf(stderr, "Msg %d (severity %d, state %d) from %s", 
