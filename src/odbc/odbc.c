@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.589 2012-02-26 22:09:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.590 2012-02-26 22:18:50 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -4506,7 +4506,6 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 SQLRETURN
 _SQLRowCount(SQLHSTMT hstmt, SQLLEN FAR * pcrow)
 {
-	TDSSOCKET *xxxtds;
 	ODBC_ENTER_HSTMT;
 
 	tdsdump_log(TDS_DBG_FUNC, "_SQLRowCount(%p, %p),  %ld rows \n", hstmt, pcrow, (long)stmt->row_count);
