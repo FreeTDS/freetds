@@ -1,3 +1,6 @@
+Sun Feb 26 23:22:25 CET 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/tds/net.c: free context if ssl handshake fails
+
 Sun Feb 26 23:18:45 CET 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/odbc.c: removed unused declaration
 
@@ -1026,4 +1029,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3447 2012-02-26 22:18:50 freddy77 Exp $
+$Id: ChangeLog,v 1.3448 2012-02-26 22:22:32 freddy77 Exp $

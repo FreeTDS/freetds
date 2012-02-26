@@ -105,7 +105,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: net.c,v 1.133 2011-12-16 09:53:52 freddy77 Exp $");
+TDS_RCSID(var, "$Id: net.c,v 1.134 2012-02-26 22:22:32 freddy77 Exp $");
 
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
@@ -1561,6 +1561,8 @@ tds_ssl_init(TDSSOCKET *tds)
 			SSL_shutdown(con);
 			SSL_free(con);
 		}
+		SSL_CTX_free(tds_conn(tds)->tls_ctx);
+		tds_conn(tds)->tls_ctx = NULL;
 		tdsdump_log(TDS_DBG_ERROR, "%s failed\n", tls_msg);
 		return TDS_FAIL;
 	}
