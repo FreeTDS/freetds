@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.51 2011-06-08 09:25:53 freddy77 Exp $
+# $Id: Makefile.am,v 1.52 2012-02-26 22:09:20 freddy77 Exp $
 SUBDIRS		= unittests
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC)
 
@@ -11,7 +11,8 @@ MINGW_SOURCES	=
 endif
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c \
-	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h $(MINGW_SOURCES)
+	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h \
+	odbc_export.h error_export.h $(MINGW_SOURCES)
 if MINGW32
 libtdsodbc_la_LIBADD=	../../win32/setup.res ../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) \
 	$(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC)
@@ -34,3 +35,18 @@ endif
 odbc: $(EXTRA_LTLIBRARIES)
 	@echo ''
 
+if HAVE_PERL_SOURCES
+BUILT_SOURCES = odbc_export.h error_export.h
+
+clean-local:
+	cd $(srcdir) && rm -f $(BUILT_SOURCES)
+	
+odbc_export.h: odbc_export.pl Makefile odbc.c
+	perl $(srcdir)/odbc_export.pl $(srcdir)/odbc.c > $@.tmp
+	mv $@.tmp $@
+
+error_export.h: odbc_export.pl Makefile error.c
+	perl $(srcdir)/odbc_export.pl $(srcdir)/error.c > $@.tmp
+	mv $@.tmp $@
+
+endif

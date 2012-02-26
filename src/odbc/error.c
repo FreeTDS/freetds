@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998-1999  Brian Bruns
- * Copyright (C) 2003-2010  Frediano Ziglio
+ * Copyright (C) 2003-2012  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.68 2011-08-16 07:04:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.69 2012-02-26 22:09:20 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -793,4 +793,6 @@ sqlstate2to3(char *state)
 	}
 	return result;
 }
+
+#include "error_export.h"
 

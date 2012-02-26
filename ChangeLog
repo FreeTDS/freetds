@@ -1,3 +1,8 @@
+Sun Feb 26 23:09:04 CET 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/Makefile.am src/odbc/error.c src/odbc/odbc.c:
+	* src/odbc/odbc_export.pl src/odbc/sqlwparams.h:
+	- start different way to produce export functions
+
 Mon Jan 23 13:23:51 EST 2012	JK Lowden <jklowden@freetds.org>
 	* src/apps/tsql.c
 
@@ -1018,4 +1023,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3445 2012-01-23 18:25:04 jklowden Exp $
+$Id: ChangeLog,v 1.3446 2012-02-26 22:09:20 freddy77 Exp $
