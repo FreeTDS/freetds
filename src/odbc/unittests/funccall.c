@@ -2,7 +2,7 @@
 
 /* Test for {?=call store(?)} syntax and run */
 
-static char software_version[] = "$Id: funccall.c,v 1.18 2010-07-05 09:20:33 freddy77 Exp $";
+static char software_version[] = "$Id: funccall.c,v 1.18.2.1 2012-03-03 22:32:47 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int
@@ -39,6 +39,7 @@ main(int argc, char *argv[])
 		printf("Data not expected\n");
 		exit(1);
 	}
+	ODBC_CHECK_COLS(0);
 
 	/* just to reset some possible buffers */
 	odbc_command("DECLARE @i INT");
@@ -91,6 +92,8 @@ main(int argc, char *argv[])
 
 	/* should return "Invalid cursor state" */
 	CHKFetch("E");
+
+	ODBC_CHECK_COLS(0);
 
 	odbc_command("drop proc simpleresult2");
 
@@ -154,6 +157,36 @@ main(int argc, char *argv[])
 		}
 		odbc_command("drop proc sp_test");
 	}
+	odbc_disconnect();
+
+	/*
+	 * test from Bower, Wayne
+	 * Cfr ML 2012-03-02 "[freetds] [unixODBC][Driver Manager]Function sequence error (SQL-HY010)"
+	 */
+	odbc_use_version3 = 1;
+	odbc_connect();
+
+	odbc_command("IF OBJECT_ID('TMP_SP_Test_ODBC') IS NOT NULL DROP PROC TMP_SP_Test_ODBC");
+	odbc_command("create proc TMP_SP_Test_ODBC @i int,\n@o int output\nas\nset nocount on\nselect @o = 55\nreturn 9\n");
+	odbc_reset_statement();
+
+	CHKPrepare("{ ? = call TMP_SP_Test_ODBC (?, ?) }", SQL_NTS, "S");
+
+	ind2 = 2;
+	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 80, 0, "10", 2, &ind2, "S");
+	ind3 = SQL_NULL_DATA;
+	strcpy(out2, " ");
+	CHKBindParameter(3, SQL_PARAM_INPUT_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 1, out2, 29, &ind3, "S");
+	ind = 1;
+	CHKBindParameter(1, SQL_PARAM_INPUT_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 1, out2, 29, &ind, "S");
+
+	CHKExecute("No");
+
+	ODBC_CHECK_COLS(0);
+
+	odbc_reset_statement();
+	odbc_command("drop proc TMP_SP_Test_ODBC");
+
 
 	odbc_disconnect();
 
