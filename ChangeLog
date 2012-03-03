@@ -1,3 +1,6 @@
+Sat Mar  3 22:36:49 CET 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/odbc_export.pl: simplify export script
+
 Sat Mar  3 10:19:58 CET 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/ctlib/unittests/common.c:
 	- clean connection on connection failure
@@ -1036,4 +1039,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3450 2012-03-03 09:20:12 freddy77 Exp $
+$Id: ChangeLog,v 1.3451 2012-03-03 21:36:57 freddy77 Exp $

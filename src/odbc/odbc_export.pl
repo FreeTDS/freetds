@@ -20,9 +20,6 @@ while(<IN>) {
 		my $args = $2;
 		my $wide = 0;
 		my $params_all = '';
-		my $params_w = '';
-		my $params_a = '';
-		my $pass_all = '';
 		my $pass_aw = '';
 		my $sep = '';
 		$wide = 1 if $args =~ / WIDE ?$/;
@@ -35,36 +32,31 @@ while(<IN>) {
 				$a =~ s/ FAR \*$/ */;
 				die $a if !grep { $_ eq $a } @types;
 				$params_all .= "$sep$a $b";
-				$params_a   .= "$sep$a $b";
-				$params_w   .= "$sep$a $b";
-				$pass_all   .= "$sep$b";
 				$pass_aw    .= "$sep$b";
 			} elsif ($type eq 'PCHARIN' || $type eq 'PCHAROUT') {
 				die $b if $b ne 'SQLSMALLINT' && $b ne 'SQLINTEGER';
 				if ($type eq 'PCHARIN') {
 					$params_all .= "${sep}ODBC_CHAR * sz$a, $b cb$a";
-					$params_a   .= "${sep}SQLCHAR * sz$a, $b cb$a";
-					$params_w   .= "${sep}SQLWCHAR * sz$a, $b cb$a";
-					$pass_all   .= "${sep}sz$a, cb$a";
 					$pass_aw    .= "$sep(ODBC_CHAR*) sz$a, cb$a";
 				} else {
 					$params_all .= "${sep}ODBC_CHAR * sz$a, $b cb${a}Max, $b FAR* pcb$a";
-					$params_a   .= "${sep}SQLCHAR * sz$a, $b cb${a}Max, $b FAR* pcb$a";
-					$params_w   .= "${sep}SQLWCHAR * sz$a, $b cb${a}Max, $b FAR* pcb$a";
-					$pass_all   .= "${sep}sz$a, cb${a}Max, pcb$a";
 					$pass_aw    .= "${sep}(ODBC_CHAR*) sz$a, cb${a}Max, pcb$a";
 				}
 			} elsif ($type eq 'PCHAR') {
 				$params_all .= "${sep}ODBC_CHAR * $a";
-				$params_a   .= "${sep}SQLCHAR * $a";
-				$params_w   .= "${sep}SQLWCHAR * $a";
-				$pass_all   .= "${sep}$a";
 				$pass_aw    .= "$sep(ODBC_CHAR*) $a";
 			} else {
 				die $type;
 			}
 			$sep = ', ';
 		}
+		my $params_a = $params_all;
+		$params_a =~ s/ODBC_CHAR \*/SQLCHAR */g;
+		my $params_w = $params_all;
+		$params_w =~ s/ODBC_CHAR \*/SQLWCHAR */g;
+		my $pass_all = $pass_aw;
+		$pass_all =~ s/\(ODBC_CHAR\*\) ?//g;
+
 		print "#ifdef ENABLE_ODBC_WIDE
 static SQLRETURN _$func($params_all, int wide);
 SQLRETURN ODBC_API $func($params_a) {
