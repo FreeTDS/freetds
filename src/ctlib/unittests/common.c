@@ -24,7 +24,7 @@
 #include "ctlib.h"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.24 2011-05-16 08:51:40 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.25 2012-03-03 09:20:12 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -276,6 +276,10 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		if (verbose) {
 			fprintf(stderr, "Connection failed!\n");
 		}
+		ct_con_drop(*conn);
+		*conn = NULL;
+		cs_ctx_drop(*ctx);
+		*ctx = NULL;
 		return ret;
 	}
 	ret = ct_cmd_alloc(*conn, cmd);
@@ -283,6 +287,10 @@ continue_logging_in(CS_CONTEXT ** ctx, CS_CONNECTION ** conn, CS_COMMAND ** cmd,
 		if (verbose) {
 			fprintf(stderr, "Command Alloc failed!\n");
 		}
+		ct_con_drop(*conn);
+		*conn = NULL;
+		cs_ctx_drop(*ctx);
+		*ctx = NULL;
 		return ret;
 	}
 
