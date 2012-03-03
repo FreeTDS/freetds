@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.590 2012-02-26 22:18:50 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.591 2012-03-03 22:14:00 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -2962,6 +2962,8 @@ odbc_populate_ird(TDS_STMT * stmt)
 
 	desc_free_records(ird);
 	if (!stmt->dbc->tds_socket || !(res_info = stmt->dbc->tds_socket->current_results))
+		return SQL_SUCCESS;
+	if (res_info == stmt->dbc->tds_socket->param_info)
 		return SQL_SUCCESS;
 	num_cols = res_info->num_cols;
 
