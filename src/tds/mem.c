@@ -1068,8 +1068,13 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_socket->query_timeout = 0;
 	tds_init_write_buf(tds_socket);
 	tds_set_s(tds_socket, INVALID_SOCKET);
+#ifndef _WIN32
 	if (tds_socketpair(AF_UNIX, SOCK_DGRAM, 0, sv))
 		goto Cleanup;
+#else
+	if (tds_socketpair(AF_INET, SOCK_STREAM, 0, sv))
+		goto Cleanup;
+#endif
 	tds_conn(tds_socket)->s_signal   = sv[0];
 	tds_conn(tds_socket)->s_signaled = sv[1];
 	tds_socket->state = TDS_DEAD;
