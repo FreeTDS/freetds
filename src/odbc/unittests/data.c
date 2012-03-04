@@ -156,6 +156,7 @@ main(int argc, char *argv[])
 	Test("INT", "-123", SQL_C_CHAR, "4 -123");
 	Test("INT", "78654", SQL_C_WCHAR, "5 78654");
 	Test("VARCHAR(10)", "  51245  ", SQL_C_LONG, "51245");
+	/* mssql 2008 give a warning for truncation (01004) */
 	Test("VARCHAR(20)", "  15.1245  ", SQL_C_NUMERIC, "38 0 1 0F");
 	Test("VARCHAR(20)", "  15  ", SQL_C_NUMERIC, "38 0 1 0F");
 	if (odbc_db_is_microsoft() && (strncmp(odbc_db_version(), "08.00.", 6) == 0 || strncmp(odbc_db_version(), "09.00.", 6) == 0)) {

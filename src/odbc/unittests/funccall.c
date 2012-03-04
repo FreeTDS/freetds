@@ -181,6 +181,7 @@ main(int argc, char *argv[])
 	ind = 1;
 	CHKBindParameter(1, SQL_PARAM_INPUT_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 1, out2, 29, &ind, "S");
 
+	/* mssql returns SUCCESS */
 	CHKExecute("No");
 
 	ODBC_CHECK_COLS(0);

@@ -201,6 +201,7 @@ Test(int level)
 	}
 
 	if (!odbc_use_version3 || !g_nocount) {
+		/* mssql 2008 return SUCCESS_WITH_INFO with previous error */
 		CHKMoreResults("S");
 		result = SQL_SUCCESS;
 	}

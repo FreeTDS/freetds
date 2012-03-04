@@ -323,6 +323,10 @@ main(int argc, char **argv)
 
 	odbc_connect();
 
+	/*
+	 * this does not work if server is not connected with socket
+	 * (ie ms driver connected locally)
+	 */
 	last_socket = odbc_find_last_socket();
 	if (TDS_IS_SOCKET_INVALID(last_socket)) {
 		fprintf(stderr, "Error finding last socket opened\n");
