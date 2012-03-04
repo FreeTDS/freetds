@@ -33,7 +33,7 @@
 #include "tds.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: socketpair.c,v 1.1 2011-09-01 07:52:44 freddy77 Exp $");
+TDS_RCSID(var, "$Id: socketpair.c,v 1.2 2012-03-04 11:34:22 freddy77 Exp $");
 
 int
 tds_socketpair(int domain, int type, int protocol, int sv[2])
@@ -78,7 +78,10 @@ tds_socketpair(int domain, int type, int protocol, int sv[2])
 
 	/* check proper connection */
 	addrlen = sizeof(sa);
-	if (tds_getsockname(s, (struct sockaddr*) &sa, &addrlen) < 0)
+	if (tds_getsockname(sv[0], (struct sockaddr*) &sa, &addrlen) < 0)
+		goto Cleanup;
+	addrlen = sizeof(sa2);
+	if (tds_getpeername(sv[1], (struct sockaddr*) &sa2, &addrlen) < 0)
 		goto Cleanup;
 	if (sa.sin_family != sa2.sin_family || sa.sin_port != sa2.sin_port
 	    || sa.sin_addr.s_addr != sa2.sin_addr.s_addr)
