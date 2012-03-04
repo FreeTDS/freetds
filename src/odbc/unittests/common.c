@@ -13,7 +13,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.61 2011-07-12 10:16:59 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.62 2012-03-04 11:33:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV odbc_env;
@@ -219,7 +219,7 @@ odbc_connect(void)
 	if (odbc_set_conn_attr)
 		(*odbc_set_conn_attr)();
 
-	CHKR(SQLConnect, (odbc_conn, T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS), "SI");
+	CHKConnect(T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS, "SI");
 
 	CHKAllocStmt(&odbc_stmt, "S");
 

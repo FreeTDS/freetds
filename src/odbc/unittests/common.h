@@ -21,7 +21,7 @@
 #include <sqlext.h>
 #include <sqlucode.h>
 
-static char rcsid_common_h[] = "$Id: common.h,v 1.38 2011-07-12 10:16:59 freddy77 Exp $";
+static char rcsid_common_h[] = "$Id: common.h,v 1.39 2012-03-04 11:33:07 freddy77 Exp $";
 static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_warn };
 
 #ifndef HAVE_SQLLEN
@@ -91,6 +91,8 @@ SQLSMALLINT odbc_alloc_handle_err_type(SQLSMALLINT type);
 	CHKR2(SQLColAttribute, (odbc_stmt,a,b,c,d,e,f), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKDescribeCol(a,b,c,d,e,f,g,h,res) \
 	CHKR2(SQLDescribeCol, (odbc_stmt,a,b,c,d,e,f,g,h), SQL_HANDLE_STMT, odbc_stmt, res)
+#define CHKConnect(a,b,c,d,e,f,res) \
+	CHKR2(SQLConnect, (odbc_conn,a,b,c,d,e,f), SQL_HANDLE_DBC, odbc_conn, res)
 #define CHKDriverConnect(a,b,c,d,e,f,g,res) \
 	CHKR2(SQLDriverConnect, (odbc_conn,a,b,c,d,e,f,g), SQL_HANDLE_DBC, odbc_conn, res)
 #define CHKEndTran(a,b,c,res) \

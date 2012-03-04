@@ -5,7 +5,7 @@
  * either SQLConnect and SQLDriverConnect
  */
 
-static char software_version[] = "$Id: connect2.c,v 1.9 2011-07-12 10:16:59 freddy77 Exp $";
+static char software_version[] = "$Id: connect2.c,v 1.10 2012-03-04 11:33:07 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int failed = 0;
@@ -22,7 +22,7 @@ init_connect(void)
 static void
 normal_connect(void)
 {
-	CHKR(SQLConnect, (odbc_conn, T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS), "SI");
+	CHKConnect(T(odbc_server), SQL_NTS, T(odbc_user), SQL_NTS, T(odbc_password), SQL_NTS, "SI");
 }
 
 static void
