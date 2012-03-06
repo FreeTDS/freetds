@@ -1,3 +1,8 @@
+Tue Mar  6 20:39:59 GMT 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/odbc/unittests/Makefile.am src/replacements/Makefile.am:
+	* src/tds/Makefile.am:
+	- move win_mutex to replacements
+
 Tue Mar  6 20:33:07 GMT 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/apps/bsqldb.c src/dblib/dbpivot.c src/tds/query.c:
 	- remove some warnings and compatibility issues
@@ -1056,4 +1061,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3455 2012-03-06 20:33:14 freddy77 Exp $
+$Id: ChangeLog,v 1.3456 2012-03-06 20:40:12 freddy77 Exp $
