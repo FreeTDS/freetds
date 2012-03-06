@@ -44,7 +44,7 @@
 
 #include <assert.h>
 
-TDS_RCSID(var, "$Id: query.c,v 1.268 2011-09-25 11:33:22 freddy77 Exp $");
+TDS_RCSID(var, "$Id: query.c,v 1.269 2012-03-06 20:33:14 freddy77 Exp $");
 
 static void tds_put_params(TDSSOCKET * tds, TDSPARAMINFO * info, int flags);
 static void tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len);
@@ -1928,7 +1928,7 @@ tds_send_cancel(TDSSOCKET * tds)
 	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx)) {
 		// TODO check
 		// signal other socket
-		send(tds_conn(tds)->s_signal, &tds, sizeof(tds), 0);
+		send(tds_conn(tds)->s_signal, (void*) &tds, sizeof(tds), 0);
 		return TDS_SUCCESS;
 	}
 

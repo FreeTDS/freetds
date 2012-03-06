@@ -51,7 +51,7 @@
 #include <sybdb.h>
 #include "replacements.h"
 
-static char software_version[] = "$Id: bsqldb.c,v 1.54 2011-12-05 02:26:31 jklowden Exp $";
+static char software_version[] = "$Id: bsqldb.c,v 1.55 2012-03-06 20:33:14 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 #ifdef _WIN32
@@ -850,11 +850,11 @@ parse_pivot_description(OPTIONS *options, const char *optarg)
 	
 	for (p=input, pk=keys; pk < keys + 2; p++, pk++) {
 		if ((pend = strchr(p, ' ')) != NULL) {
-			size_t col;
+			unsigned col;
 			int ncols;
 
 			*pend = '\0';
-			while((ncols = sscanf(p, "%zu%c%n", &col, &ch, &nchars)) > 0) {
+			while((ncols = sscanf(p, "%u%c%n", &col, &ch, &nchars)) > 0) {
 				int *pi;
 				assert(ncols <= 2);
 				if ((pi = realloc((*pk)->keys, sizeof((*pk)->keys[0]) * ++((*pk)->nkeys))) == NULL) {

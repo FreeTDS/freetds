@@ -1,3 +1,7 @@
+Tue Mar  6 20:33:07 GMT 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* src/apps/bsqldb.c src/dblib/dbpivot.c src/tds/query.c:
+	- remove some warnings and compatibility issues
+
 Sun Mar  4 12:34:17 CET 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/replacements/socketpair.c:
 	- fix socket pair emulation for Windows
@@ -1052,4 +1056,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3454 2012-03-04 11:34:22 freddy77 Exp $
+$Id: ChangeLog,v 1.3455 2012-03-06 20:33:14 freddy77 Exp $

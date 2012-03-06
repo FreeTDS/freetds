@@ -65,10 +65,12 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbpivot.c,v 1.1 2011-12-05 03:14:04 jklowden Exp $");
+TDS_RCSID(var, "$Id: dbpivot.c,v 1.2 2012-03-06 20:33:14 freddy77 Exp $");
 
 #define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
 
+/* avoid conflicts */
+#define boolean TDS_boolean
 typedef enum { false, true } boolean;
 
 static void *
@@ -748,10 +750,10 @@ reinit_results(TDSSOCKET * tds, size_t num_cols, const struct metadata_t meta[])
 		tdsdump_log(TDS_DBG_INFO1, "set current_results to cursor->res_info\n");
 	} else {
 		tds->res_info = info;
-		tdsdump_log(TDS_DBG_INFO1, "set current_results (%td column%s) to tds->res_info\n", num_cols, (num_cols==1? "":"s"));
+		tdsdump_log(TDS_DBG_INFO1, "set current_results (%u column%s) to tds->res_info\n", (unsigned) num_cols, (num_cols==1? "":"s"));
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "setting up %td columns\n", num_cols);
+	tdsdump_log(TDS_DBG_INFO1, "setting up %u columns\n", (unsigned) num_cols);
 	
 	for (i = 0; i < num_cols; i++) {
 		set_result_column(tds, info->columns[i], meta[i].name, &meta[i].col);
@@ -1298,7 +1300,7 @@ static const struct name_t {
 	, { "max",	dbpivot_max }
 	};
 
-static int
+static boolean
 name_equal( const struct name_t *n1, const struct name_t *n2 ) 
 {
 	assert(n1 && n2);
@@ -1310,5 +1312,5 @@ dbpivot_lookup_name( const char name[] )
 {
 	struct name_t *n = TDS_FIND(name, names, name_equal);
 	
-	return n? n->func : n;
+	return n ? n->func : NULL;
 }
