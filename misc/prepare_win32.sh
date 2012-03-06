@@ -17,6 +17,7 @@ TYPE=win32
 HOSTS='i386-mingw32 i586-mingw32msvc'
 ARCHIVE='tar jcvf "freetds-$PACKAGE_VERSION.$TYPE.tar.bz2" "freetds-$PACKAGE_VERSION"'
 PACK=yes
+ONLINE=no
 
 for param
 do
@@ -37,6 +38,10 @@ do
 	--no-pack)
 		PACK=no
 		;;
+	--online)
+		PACK=no
+		ONLINE=yes
+		;;
 	--help)
 		echo "Usage: $0 [OPTION]..."
 		echo '  --help          this help'
@@ -45,6 +50,7 @@ do
 		echo '  --gzip          compress with gzip'
 		echo '  --ntwdblib      use ntwdblib instead of our'
 		echo "  --no-pack       don't clean and pack files"
+		echo "  --online        build on same directory"
 		exit 0
 		;;
 	*)
@@ -75,16 +81,19 @@ if test "$PACKAGE_VERSION" = ""; then
 	PACKAGE_VERSION="$VERSION"
 fi
 test "$PACKAGE_VERSION" != "" || errore "PACKAGE_VERSION not found"
-test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || make dist
-test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || errore "package not found"
-rm -rf "freetds-$PACKAGE_VERSION"
-if test -r "freetds-$PACKAGE_VERSION.tar.gz"; then
-	gunzip -dc "freetds-$PACKAGE_VERSION.tar.gz" | tar xvf -
+if test $ONLINE = no; then
+	test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || make dist
+	test -r "freetds-$PACKAGE_VERSION.tar.gz" -o -r "freetds-$PACKAGE_VERSION.tar.bz2" || errore "package not found"
+	rm -rf "freetds-$PACKAGE_VERSION"
+	if test -r "freetds-$PACKAGE_VERSION.tar.gz"; then
+		gunzip -dc "freetds-$PACKAGE_VERSION.tar.gz" | tar xvf -
+	else
+		bunzip2 -dc "freetds-$PACKAGE_VERSION.tar.bz2" | tar xvf -
+	fi
+	cd "freetds-$PACKAGE_VERSION" || errore "Directory not found"
 else
-	bunzip2 -dc "freetds-$PACKAGE_VERSION.tar.bz2" | tar xvf -
+	make clean
 fi
-cd "freetds-$PACKAGE_VERSION" || errore "Directory not found"
-
 if ! $HOST-gcc --help > /dev/null 2> /dev/null; then
 	echo $HOST-gcc not found >&2
 	exit 1
@@ -280,7 +289,9 @@ _EOF
 
 	# replace includes
 	cd include
-	rm -f dblib.h sqldb.h sqlfront.h sybdb.h syberror.h sybfront.h
+	rm -rf OLD
+	mkdir OLD
+	mv dblib.h sqldb.h sqlfront.h sybdb.h syberror.h sybfront.h OLD
 	cp $HOME/cpp/freetds/dblib/sqldb.h sqldb.h
 	cp $HOME/cpp/freetds/dblib/sqlfront.h sqlfront.h
 	cd ..
@@ -291,7 +302,11 @@ _EOF
 	make clean
 	perl -pi.orig -e '$_ =~ s/$/ -DDBNTWIN32/ if (/^CPPFLAGS\s*=/)' Makefile
 	TESTS_ENVIRONMENT=true make -j4 check 2>> ../../../errors.txt
-	cd ../../..
+	cd ../../../include
+	rm -f sqldb.h sqlfront.h
+	mv OLD/* .
+	rmdir OLD
+	cd ..
 fi
 cat errors.txt | grep -v '^.libs/lt-\|^mkdir: cannot create directory ..libs.: File exists$' | perl -ne 'if (/visibility attribute not supported in this configuration/) {$ignore=1;$_=""} else {$ignore=0} ; print $old if !$ignore; $old=$_; END { print $old }' > ../${TYPE}_errors.txt
 rm errors.txt

@@ -1,3 +1,7 @@
+Tue Mar  6 21:49:23 GMT 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* misc/freetds_autobuild misc/prepare_win32.sh:
+	- improve various scripts
+
 Tue Mar  6 20:45:46 GMT 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/freeclose.c: removed already done TODO
 
@@ -1064,4 +1068,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3457 2012-03-06 20:45:52 freddy77 Exp $
+$Id: ChangeLog,v 1.3458 2012-03-06 21:49:29 freddy77 Exp $

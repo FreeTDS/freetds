@@ -146,7 +146,7 @@ cp $ROOT/freetds91/config.rpath .
 LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --with-gnutls $FLAGS_ADD
 
 # compile, test with mssql server
-cp -f $ROOT/PWD PWD
+cp -f $ROOT/PWD.mssql2005 PWD
 read_pwd_fields
 make clean
 export LD_LIBRARY_PATH=$PWD/src/odbc/.libs/
