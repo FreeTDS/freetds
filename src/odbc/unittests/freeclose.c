@@ -1,7 +1,5 @@
 #include "common.h"
 
-/* TODO port to windows, use thread */
-
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
@@ -53,7 +51,7 @@
 #include "tds.h"
 #include "tdsthread.h"
 
-static char software_version[] = "$Id: freeclose.c,v 1.16 2011-09-02 16:33:48 freddy77 Exp $";
+static char software_version[] = "$Id: freeclose.c,v 1.17 2012-03-06 20:45:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
