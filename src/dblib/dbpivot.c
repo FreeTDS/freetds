@@ -65,7 +65,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dbpivot.c,v 1.2 2012-03-06 20:33:14 freddy77 Exp $");
+TDS_RCSID(var, "$Id: dbpivot.c,v 1.3 2012-03-09 19:20:30 freddy77 Exp $");
 
 #define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
 
@@ -549,6 +549,7 @@ make_col_name(const struct key_t *k)
 
 struct agg_t { struct key_t row_key, col_key; struct col_t value; }; 
 
+#if 0
 static boolean
 agg_key_equal(const void *a, const void *b)
 {
@@ -566,6 +567,7 @@ agg_key_equal(const void *a, const void *b)
 
 	return true;
 }
+#endif
 
 static boolean
 agg_next(const void *a, const void *b)

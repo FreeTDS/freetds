@@ -60,7 +60,7 @@
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
 
-TDS_RCSID(var, "$Id: bcp.c,v 1.219 2011-09-29 19:05:46 jklowden Exp $");
+TDS_RCSID(var, "$Id: bcp.c,v 1.220 2012-03-09 19:20:30 freddy77 Exp $");
 
 #ifdef HAVE_FSEEKO
 typedef off_t offset_type;
@@ -83,7 +83,6 @@ typedef long offset_type;
 
 static void _bcp_free_storage(DBPROCESS * dbproc);
 static void _bcp_free_columns(DBPROCESS * dbproc);
-static void _bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset);
 static TDSRET _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
 static TDSRET _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset);
 
@@ -2348,26 +2347,6 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 	return SUCCEED;
 }
 
-#if USING_SYBEBCNN && 0
-	/* 
-	 * This function can be removed subject to testing with TDS 5.0.  It is currently unused. 
-	 * The bcp library was raising an error if data were missing for a non-null target column.  
-	 * However, the server can have a default defined for the column, making the check both unnecessary
-	 * and unhelpful (because the file actually could be loaded if e.g. freebcp would at least *try*.  
-	 * 
-	 * If Sybase works the same way, remove tds_bcp_null_error parameter from 
-	 *  	tds_bcp_add_fixed_columns, tds_bcp_add_variable_columns, tds.h, tds_bcp_send_record
-	 * at the same time.  Also remove any code marked by USING_SYBEBCNN.  
-	 */
-	static void
-	_bcp_null_error(TDSBCPINFO *bcpinfo, int index, int offset)
-	{
-	 /* do not use */
-	 assert(0);
-	 DBPROCESS *dbproc = (DBPROCESS *) bcpinfo->parent;
-	 dbperror(dbproc, SYBEBCNN, 0);
-	}
-#endif
 /** 
  * \ingroup dblib_bcp_internal
  * \brief For a bcp in from program variables, get the data from the host variable
