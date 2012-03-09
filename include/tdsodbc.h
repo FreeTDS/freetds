@@ -91,7 +91,7 @@ extern "C"
 #endif
 #endif
 
-/* $Id: tdsodbc.h,v 1.133 2011-09-02 18:22:22 freddy77 Exp $ */
+/* $Id: tdsodbc.h,v 1.134 2012-03-09 21:51:21 freddy77 Exp $ */
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -672,8 +672,10 @@ SQLRETURN odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ixd, const s
  */
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s);
+const wchar_t *sqlwstr(const SQLWCHAR * s);
 #else
-#define sqlwcslen wcslen
+#define sqlwcslen(s) wcslen(s)
+#define sqlwstr(s) ((const wchar_t*)(s))
 #endif
 
 #if SIZEOF_SQLWCHAR == 2

@@ -42,7 +42,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: error.c,v 1.69 2012-02-26 22:09:20 freddy77 Exp $");
+TDS_RCSID(var, "$Id: error.c,v 1.70 2012-03-09 21:51:21 freddy77 Exp $");
 
 static void odbc_errs_pop(struct _sql_errors *errs);
 static const char *odbc_get_msg(const char *sqlstate);
@@ -520,9 +520,6 @@ sqlstate2to3(char *state)
 
 	SQLINTEGER odbc_ver = SQL_OV_ODBC2;
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagRec(%d, %p, %d, %p, %p, %p, %d, %p)\n",
-			handleType, handle, numRecord, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
-
 	if (numRecord <= 0 || cbErrorMsgMax < 0)
 		return SQL_ERROR;
 
@@ -588,9 +585,6 @@ sqlstate2to3(char *state)
 	SQLSMALLINT type;
 	SQLHANDLE handle;
 
-	tdsdump_log(TDS_DBG_FUNC, "SQLError(%p, %p, %p, %p, %p, %p, %d, %p)\n", 
-			henv, hdbc, hstmt, szSqlState, pfNativeError, szErrorMsg, cbErrorMsgMax, pcbErrorMsg);
-
 	if (hstmt) {
 		handle = hstmt;
 		type = SQL_HANDLE_STMT;
@@ -627,9 +621,6 @@ sqlstate2to3(char *state)
 	TDS_DBC *dbc = NULL;
 	TDS_ENV *env = NULL;
 	char tmp[16];
-
-	tdsdump_log(TDS_DBG_FUNC, "SQLGetDiagField(%d, %p, %d, %d, %p, %d, %p)\n", 
-			handleType, handle, numRecord, diagIdentifier, buffer, cbBuffer, pcbBuffer);
 
 	if (cbBuffer < 0)
 		return SQL_ERROR;

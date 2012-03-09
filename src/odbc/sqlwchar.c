@@ -24,7 +24,7 @@
 
 #include "tdsodbc.h"
 
-TDS_RCSID(var, "$Id: sqlwchar.c,v 1.3 2011-05-16 08:51:40 freddy77 Exp $");
+TDS_RCSID(var, "$Id: sqlwchar.c,v 1.4 2012-03-09 21:51:21 freddy77 Exp $");
 
 #if SIZEOF_SQLWCHAR != SIZEOF_WCHAR_T
 size_t sqlwcslen(const SQLWCHAR * s)
@@ -35,5 +35,31 @@ size_t sqlwcslen(const SQLWCHAR * s)
 		++p;
 	return p - s;
 }
+
+#ifdef ENABLE_ODBC_WIDE
+const wchar_t *sqlwstr(const SQLWCHAR *str)
+{
+	/*
+	 * TODO not thread safe but at least does not use same static buffer
+	 * used only for debugging purpose
+	 */
+	static wchar_t buf[16][256];
+	static unsigned next = 0;
+
+	wchar_t *dst_start, *dst, *dst_end;
+	const SQLWCHAR *src = str;
+
+	dst = dst_start = buf[next];
+	next = (next+1) % TDS_VECTOR_SIZE(buf);
+	dst_end = dst + (TDS_VECTOR_SIZE(buf[0]) - 1);
+	*dst_end = L'\0';
+
+	for (; *src && dst < dst_end; *dst++ = *src++)
+		continue;
+	*dst = L'\0';
+
+	return dst_start;
+}
+#endif
 #endif
 
