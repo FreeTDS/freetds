@@ -13,7 +13,7 @@
 #define TDS_SDIR_SEPARATOR "\\"
 #endif
 
-static char software_version[] = "$Id: common.c,v 1.62 2012-03-04 11:33:07 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.63 2012-03-11 13:10:58 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 HENV odbc_env;
@@ -199,6 +199,7 @@ odbc_connect(void)
 {
 	ODBC_BUF *odbc_buf = NULL;
 	char command[512];
+	const char *p;
 
 	if (odbc_read_login_info())
 		exit(1);
@@ -216,6 +217,9 @@ odbc_connect(void)
 	printf("connection parameters:\nserver:   '%s'\nuser:     '%s'\npassword: '%s'\ndatabase: '%s'\n",
 	       odbc_server, odbc_user, "????" /* odbc_password */ , odbc_database);
 
+	p = getenv("ODBC_MARS");
+	if (p && atoi(p) != 0)
+		SQLSetConnectAttr(odbc_conn, 1224 /*SQL_COPT_SS_MARS_ENABLED*/, (SQLPOINTER) 1 /*SQL_MARS_ENABLED_YES*/, SQL_IS_UINTEGER);
 	if (odbc_set_conn_attr)
 		(*odbc_set_conn_attr)();
 
