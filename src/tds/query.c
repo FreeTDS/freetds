@@ -1924,7 +1924,13 @@ TDSRET
 tds_send_cancel(TDSSOCKET * tds)
 {
 	TDSRET rc;
-	
+
+	/*
+	 * if we are not able to get the lock signal other thread
+	 * this means that either:
+	 * - another thread is processing data
+	 * - we got called from a signal inside processing thread
+	 */
 	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx)) {
 		// TODO check
 		// signal other socket
