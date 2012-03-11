@@ -38,7 +38,7 @@
 #include "tdsstring.h"
 #include "replacements.h"
 
-TDS_RCSID(var, "$Id: ct.c,v 1.224 2011-12-16 02:23:13 jklowden Exp $");
+TDS_RCSID(var, "$Id: ct.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");
 
 
 static const char * ct_describe_cmd_state(CS_INT state);
@@ -276,7 +276,7 @@ ct_con_alloc(CS_CONTEXT * ctx, CS_CONNECTION ** con)
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_con_alloc(%p, %p)\n", ctx, con);
 
-	login = tds_alloc_login();
+	login = tds_alloc_login(1);
 	if (!login)
 		return CS_FAIL;
 	*con = (CS_CONNECTION *) calloc(1, sizeof(CS_CONNECTION));

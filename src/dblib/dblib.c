@@ -71,7 +71,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: dblib.c,v 1.406 2011-12-05 02:26:31 jklowden Exp $");
+TDS_RCSID(var, "$Id: dblib.c,v 1.407 2012-03-11 15:52:22 freddy77 Exp $");
 
 static RETCODE _dbresults(DBPROCESS * dbproc);
 static int _get_printable_size(TDSCOLUMN * colinfo);
@@ -712,7 +712,7 @@ dblogin(void)
 		dbperror(NULL, SYBEMEM, errno);
 		return NULL;
 	}
-	if ((loginrec->tds_login = tds_alloc_login()) == NULL) {
+	if ((loginrec->tds_login = tds_alloc_login(1)) == NULL) {
 		dbperror(NULL, SYBEMEM, errno);
 		free(loginrec);
 		return NULL;

@@ -1,3 +1,10 @@
+Sun Mar 11 15:52:14 GMT 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
+	* include/tds.h src/apps/tsql.c src/ctlib/ct.c src/dblib/dblib.c:
+	* src/odbc/odbc.c src/pool/member.c src/pool/user.c:
+	* src/server/login.c src/tds/config.c src/tds/mem.c:
+	* src/tds/unittests/common.c win32/winsetup.c:
+	- get rid of old tds_alloc_connection
+
 Sun Mar 11 13:10:50 GMT 2012    Frediano Ziglio <freddy77_A_gmail_D_com>
 	* src/odbc/unittests/common.c: allow to enable mars for odbc tests
 
@@ -1085,4 +1092,4 @@ Sat Apr  9 16:15:00 EDT 2011	JK Lowden <jklowden@freetds.org>
 	* ChangeLog-0.91 added because of release
 
 $FreeTDS$
-$Id: ChangeLog,v 1.3462 2012-03-11 13:10:58 freddy77 Exp $
+$Id: ChangeLog,v 1.3463 2012-03-11 15:52:21 freddy77 Exp $

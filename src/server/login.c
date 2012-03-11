@@ -56,7 +56,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-static char software_version[] = "$Id: login.c,v 1.58 2011-06-03 21:13:27 freddy77 Exp $";
+static char software_version[] = "$Id: login.c,v 1.59 2012-03-11 15:52:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 unsigned char *
@@ -288,7 +288,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 	}
 
 	/* Allocate the login packet */
-	login = tds_alloc_login();
+	login = tds_alloc_login(1);
 	if (!login)
 		return NULL;
 

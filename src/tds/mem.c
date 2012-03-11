@@ -51,7 +51,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: mem.c,v 1.224 2012-03-11 09:24:32 freddy77 Exp $");
+TDS_RCSID(var, "$Id: mem.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");
 
 static void tds_free_env(TDSSOCKET * tds);
 static void tds_free_compute_results(TDSSOCKET * tds);
@@ -776,14 +776,13 @@ tds_capability_test(void)
 #endif
 
 /**
- * Allocate space for configure structure and initialize with default values
+ * Initialize login structure with locale information and other stuff for connection
  * @param locale locale information (copied to configuration information)
- * @result allocated structure or NULL if out of memory
+ * @result login structure or NULL if initialization error
  */
 TDSLOGIN*
-tds_alloc_connection(TDSLOCALE * locale)
+tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 {
-	TDSLOGIN *connection;
 	char hostname[128];
 #if HAVE_NL_LANGINFO && defined(CODESET)
 	const char *charset;
@@ -791,47 +790,27 @@ tds_alloc_connection(TDSLOCALE * locale)
 	char *lc_all, *tok = NULL;
 #endif
 
-	TEST_MALLOC(connection, TDSLOGIN);
-	tds_dstr_init(&connection->server_name);
-	tds_dstr_init(&connection->language);
-	tds_dstr_init(&connection->server_charset);
-	tds_dstr_init(&connection->client_host_name);
-	tds_dstr_init(&connection->server_host_name);
-	tds_dstr_init(&connection->app_name);
-	tds_dstr_init(&connection->user_name);
-	tds_dstr_init(&connection->password);
-	tds_dstr_init(&connection->library);
-	tds_dstr_init(&connection->ip_addr);
-	tds_dstr_init(&connection->database);
-	tds_dstr_init(&connection->dump_file);
-	tds_dstr_init(&connection->client_charset);
-	tds_dstr_init(&connection->instance_name);
-	tds_dstr_init(&connection->server_realm_name);
-
-	/* fill in all hardcoded defaults */
-	if (!tds_dstr_copy(&connection->server_name, TDS_DEF_SERVER))
-		goto Cleanup;
 	/*
 	 * TDS 7.0:
 	 * 0x02 indicates ODBC driver
 	 * 0x01 means change to initial language must succeed
 	 */
-	connection->option_flag2 = 0x03;
-	connection->tds_version = TDS_DEFAULT_VERSION;
-	connection->block_size = 0;
+	login->option_flag2 = 0x03;
+	login->tds_version = TDS_DEFAULT_VERSION;
+	login->block_size = 0;
 
 #if HAVE_NL_LANGINFO && defined(CODESET)
 	charset = nl_langinfo(CODESET);
 	if (strcmp(tds_canonical_charset_name(charset), "US-ASCII") == 0)
 		charset = "ISO-8859-1";
-	if (!tds_dstr_copy(&connection->client_charset, charset))
-		goto Cleanup;;
+	if (!tds_dstr_copy(&login->client_charset, charset))
+		return NULL;
 #else
-	if (!tds_dstr_copy(&connection->client_charset, "ISO-8859-1"))
-		goto Cleanup;
+	if (!tds_dstr_copy(&login->client_charset, "ISO-8859-1"))
+		return NULL;
 
 	if ((lc_all = strdup(setlocale(LC_ALL, NULL))) == NULL)
-		goto Cleanup;
+		return NULL;
 
 	if (strtok_r(lc_all, ".", &tok)) {
 		char *encoding = strtok_r(NULL, "@", &tok);
@@ -846,8 +825,8 @@ tds_alloc_connection(TDSLOCALE * locale)
 		}
 #endif
 		if (encoding) {
-			if (!tds_dstr_copy(&connection->client_charset, encoding))
-				goto Cleanup;
+			if (!tds_dstr_copy(&login->client_charset, encoding))
+				return NULL;
 		}
 	}
 	free(lc_all);
@@ -855,31 +834,23 @@ tds_alloc_connection(TDSLOCALE * locale)
 
 	if (locale) {
 		if (locale->language)
-			if (!tds_dstr_copy(&connection->language, locale->language))
-				goto Cleanup;
+			if (!tds_dstr_copy(&login->language, locale->language))
+				return NULL;
 		if (locale->server_charset)
-			if (!tds_dstr_copy(&connection->server_charset, locale->server_charset))
-				goto Cleanup;
+			if (!tds_dstr_copy(&login->server_charset, locale->server_charset))
+				return NULL;
 	}
-	if (tds_dstr_isempty(&connection->language)) {
-		if (!tds_dstr_copy(&connection->language, TDS_DEF_LANG))
-			goto Cleanup;
+	if (tds_dstr_isempty(&login->language)) {
+		if (!tds_dstr_copy(&login->language, TDS_DEF_LANG))
+			return NULL;
 	}
 	memset(hostname, '\0', sizeof(hostname));
 	gethostname(hostname, sizeof(hostname));
 	hostname[sizeof(hostname) - 1] = '\0';	/* make sure it's truncated */
-	if (!tds_dstr_copy(&connection->client_host_name, hostname))
-		goto Cleanup;
+	if (!tds_dstr_copy(&login->client_host_name, hostname))
+		return NULL;
 
-#if ENABLE_EXTRA_CHECKS
-	tds_capability_test();
-#endif
-	memcpy(connection->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
-
-	return connection;
-      Cleanup:
-	tds_free_login(connection);
-	return NULL;
+	return login;
 }
 
 TDSCURSOR *
@@ -1005,39 +976,46 @@ tds_release_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 }
 
 TDSLOGIN *
-tds_alloc_login(void)
+tds_alloc_login(int use_environment)
 {
-	TDSLOGIN *tds_login = NULL;
-	const char *server_name = "SYBASE";
-	char *s;
-	
-	TEST_MALLOC(tds_login, TDSLOGIN);
-	tds_dstr_init(&tds_login->server_name);
-	tds_dstr_init(&tds_login->language);
-	tds_dstr_init(&tds_login->server_charset);
-	tds_dstr_init(&tds_login->client_host_name);
-	tds_dstr_init(&tds_login->app_name);
-	tds_dstr_init(&tds_login->user_name);
-	tds_dstr_init(&tds_login->password);
-	tds_dstr_init(&tds_login->library);
-	tds_dstr_init(&tds_login->client_charset);
-	tds_dstr_init(&tds_login->server_realm_name);
+	TDSLOGIN *login = NULL;
+	const char *server_name = TDS_DEF_SERVER;
 
-	if ((s=getenv("DSQUERY")) != NULL)
-		server_name = s;
+	TEST_MALLOC(login, TDSLOGIN);
+	tds_dstr_init(&login->server_name);
+	tds_dstr_init(&login->language);
+	tds_dstr_init(&login->server_charset);
+	tds_dstr_init(&login->client_host_name);
+	tds_dstr_init(&login->server_host_name);
+	tds_dstr_init(&login->app_name);
+	tds_dstr_init(&login->user_name);
+	tds_dstr_init(&login->password);
+	tds_dstr_init(&login->library);
+	tds_dstr_init(&login->ip_addr);
+	tds_dstr_init(&login->database);
+	tds_dstr_init(&login->dump_file);
+	tds_dstr_init(&login->client_charset);
+	tds_dstr_init(&login->instance_name);
+	tds_dstr_init(&login->server_realm_name);
 
-	if ((s=getenv("TDSQUERY")) != NULL)
-		server_name = s;
+	if (use_environment) {
+		const char *s;
+		if ((s=getenv("DSQUERY")) != NULL)
+			server_name = s;
 
-	if (!tds_dstr_copy(&tds_login->server_name, server_name)) {
-		free(tds_login);
+		if ((s=getenv("TDSQUERY")) != NULL)
+			server_name = s;
+	}
+
+	if (!tds_dstr_copy(&login->server_name, server_name)) {
+		free(login);
 		return NULL;
 	}
 
-	memcpy(tds_login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
+	memcpy(login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 
 	Cleanup:
-	return tds_login;
+	return login;
 }
 
 void

@@ -78,7 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.176 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: config.c,v 1.177 2012-03-11 15:52:22 freddy77 Exp $");
 
 static void tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSLOGIN * login);
@@ -148,9 +148,11 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	int opened = 0, found;
 
 	/* allocate a new structure with hard coded and build-time defaults */
-	connection = tds_alloc_connection(locale);
-	if (!connection)
+	connection = tds_alloc_login(0);
+	if (!connection || !tds_init_login(connection, locale)) {
+		tds_free_login(connection);
 		return NULL;
+	}
 
 	s = getenv("TDSDUMPCONFIG");
 	if (s) {

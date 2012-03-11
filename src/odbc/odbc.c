@@ -59,7 +59,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: odbc.c,v 1.592 2012-03-09 21:51:21 freddy77 Exp $");
+TDS_RCSID(var, "$Id: odbc.c,v 1.593 2012-03-11 15:52:22 freddy77 Exp $");
 
 static SQLRETURN _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc);
 static SQLRETURN _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version);
@@ -532,8 +532,9 @@ odbc_prepare(TDS_STMT *stmt)
 		ODBC_EXIT_(dbc);
 	}
 
-	login = tds_alloc_connection(dbc->env->tds_ctx->locale);
-	if (!login) {
+	login = tds_alloc_login(0);
+	if (!login || !tds_init_login(login, dbc->env->tds_ctx->locale)) {
+		tds_free_login(login);
 		tds_dstr_free(&conn_str);
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_EXIT_(dbc);
@@ -1822,8 +1823,9 @@ SQLCancel(SQLHSTMT hstmt)
 	}
 #endif
 
-	login = tds_alloc_connection(dbc->env->tds_ctx->locale);
-	if (!login) {
+	login = tds_alloc_login(0);
+	if (!login || !tds_init_login(login, dbc->env->tds_ctx->locale)) {
+		tds_free_login(login);
 		odbc_errs_add(&dbc->errs, "HY001", NULL);
 		ODBC_EXIT_(dbc);
 	}

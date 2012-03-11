@@ -46,7 +46,7 @@
 #include "tdssrv.h"
 #include "tdsstring.h"
 
-TDS_RCSID(var, "$Id: user.c,v 1.37 2011-06-03 21:14:48 freddy77 Exp $");
+TDS_RCSID(var, "$Id: user.c,v 1.38 2012-03-11 15:52:22 freddy77 Exp $");
 
 static TDS_POOL_USER *pool_user_find_new(TDS_POOL * pool);
 static int pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser);
@@ -199,7 +199,7 @@ static int
 pool_user_login(TDS_POOL * pool, TDS_POOL_USER * puser)
 {
 	TDSSOCKET *tds;
-	TDSLOGIN *login = tds_alloc_login();
+	TDSLOGIN *login = tds_alloc_login(1);
 
 	/* FIXME */
 	char msg[256];

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char software_version[] = "$Id: common.c,v 1.32 2011-06-10 17:51:44 freddy77 Exp $";
+static char software_version[] = "$Id: common.c,v 1.33 2012-03-11 15:52:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 char USER[512];
@@ -76,7 +76,7 @@ try_tds_login(TDSLOGIN ** login, TDSSOCKET ** tds, const char *appname, int verb
 	if (verbose) {
 		fprintf(stdout, "Setting login parameters\n");
 	}
-	*login = tds_alloc_login();
+	*login = tds_alloc_login(1);
 	if (!*login) {
 		fprintf(stderr, "tds_alloc_login() failed.\n");
 		return TDS_FAIL;

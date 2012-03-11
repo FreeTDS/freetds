@@ -57,7 +57,7 @@
 #define MAXHOSTNAMELEN 256
 #endif /* MAXHOSTNAMELEN */
 
-TDS_RCSID(var, "$Id: member.c,v 1.52 2011-09-25 11:36:24 freddy77 Exp $");
+TDS_RCSID(var, "$Id: member.c,v 1.53 2012-03-11 15:52:22 freddy77 Exp $");
 
 static int pool_packet_read(TDS_POOL_MEMBER * pmbr);
 static TDSSOCKET *pool_mbr_login(TDS_POOL * pool);
@@ -77,7 +77,7 @@ pool_mbr_login(TDS_POOL * pool)
 	char *query;
 	char hostname[MAXHOSTNAMELEN];
 
-	login = tds_alloc_login();
+	login = tds_alloc_login(1);
 	tds_set_passwd(login, pool->password);
 	tds_set_user(login, pool->user);
 	tds_set_app(login, "tdspool");

@@ -21,7 +21,7 @@
 #ifndef _tds_h_
 #define _tds_h_
 
-/* $Id: tds.h,v 1.396 2011-12-16 09:53:52 freddy77 Exp $ */
+/* $Id: tds.h,v 1.397 2012-03-11 15:52:22 freddy77 Exp $ */
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -1110,10 +1110,10 @@ void tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
-TDSLOGIN *tds_alloc_login(void);
+TDSLOGIN *tds_alloc_login(int use_environment);
 TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET * tds, const char *id);
 void tds_free_login(TDSLOGIN * login);
-TDSLOGIN *tds_alloc_connection(TDSLOCALE * locale);
+TDSLOGIN *tds_init_login(TDSLOGIN * login, TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);
 void *tds_alloc_param_data(TDSCOLUMN * curparam);
 void tds_free_locale(TDSLOCALE * locale);
