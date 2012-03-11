@@ -485,6 +485,8 @@ typedef enum tds_encryption_level {
 #define TDS_GSSAPI_DELEGATION "enable gssapi delegation"
 /* Kerberos realm name */
 #define TDS_STR_REALM	"realm"
+/* Kerberos SPN */
+#define TDS_STR_SPN	"spn"
 
 
 /* TODO do a better check for alignment than this */
@@ -509,6 +511,7 @@ typedef struct tds_login
 	DSTR client_host_name;
 	DSTR server_host_name;
 	DSTR server_realm_name;		/**< server realm name (in freetds.conf) */
+	DSTR server_spn;		/**< server SPN (in freetds.conf) */
 	DSTR app_name;
 	DSTR user_name;	    	/**< account for login */
 	DSTR password;	    	/**< password of account login */

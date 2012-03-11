@@ -202,17 +202,19 @@ tds_gss_get_auth(TDSSOCKET * tds)
 			server_name = host->h_name;
 	}
 
-	if (tds_dstr_isempty(&tds->login->server_realm_name)) {
-		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port) < 0) {
-			tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
-			return NULL;
-		}
+	if (!tds_dstr_isempty(&tds->login->server_spn)) {
+		auth->sname = strdup(tds_dstr_cstr(&tds->login->server_spn));
+	} else if (tds_dstr_isempty(&tds->login->server_realm_name)) {
+		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, tds->login->port) < 0)
+			auth->sname = NULL;
 	} else {
 		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d@%s", server_name, tds->login->port,
-		             tds_dstr_cstr(&tds->login->server_realm_name)) < 0) {
-			tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
-			return NULL;
-		}
+		             tds_dstr_cstr(&tds->login->server_realm_name)) < 0)
+			auth->sname = NULL;
+	}
+	if (auth->sname == NULL) {
+		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+		return NULL;
 	}
 	tdsdump_log(TDS_DBG_NETWORK, "using kerberos name %s\n", auth->sname);
 

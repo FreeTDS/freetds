@@ -997,6 +997,7 @@ tds_alloc_login(int use_environment)
 	tds_dstr_init(&login->client_charset);
 	tds_dstr_init(&login->instance_name);
 	tds_dstr_init(&login->server_realm_name);
+	tds_dstr_init(&login->server_spn);
 
 	if (use_environment) {
 		const char *s;
@@ -1044,6 +1045,7 @@ tds_free_login(TDSLOGIN * login)
 	tds_dstr_free(&login->dump_file);
 	tds_dstr_free(&login->instance_name);
 	tds_dstr_free(&login->server_realm_name);
+	tds_dstr_free(&login->server_spn);
 	free(login);
 }
 
