@@ -61,8 +61,9 @@ handle_exit()
 	rm -rf $WORKDIR
 }
 
-read_pwd_fields()
+set_pwd_file()
 {
+	cp -f "$1" PWD
 	tUID=`grep '^UID=' < PWD | sed 's,^....,,'`
 	tPWD=`grep '^PWD=' < PWD | sed 's,^....,,'`
 	tSRV=`grep '^SRV=' < PWD | sed 's,^....,,'`
@@ -81,26 +82,22 @@ init_log()
 
 rm -f ~/freetds.log /tmp/sql.log
 
-ignore=
-for param
-do
+while test $# -gt 0; do
+	param="$1"
 	shift
 	case "$param" in
-	$ignore)
-		ignore=
-		;;
 	--version)
-		ignore=$1
 		OUTDIR=out$1
 		FTDSDIR=freetds$1
 		WORKDIR=ftds_comp$1
+		shift
 		;;
 	--help)
-		echo "Syntax: freetds_autobuild [--version VERSION]"
+		echo "Syntax: freetds_autobuild [--version VERSION] [--help]"
 		exit 1
 		;;
 	*)
-		echo 'Option not supported!' 1>&2
+		echo "Option $param not supported!" 1>&2
 		exit 1
 		;;
 	esac
@@ -120,7 +117,6 @@ if test -r "$HOME/freetds_autobuild.sh"; then
 fi
 
 cd $HOME/cpp/freetds/$FTDSDIR
-# cvs up || { sleep 5; cvs up; } || { sleep 5; cvs up; }
 cd ..
 ROOT=$PWD
 rm -rf $WORKDIR
@@ -128,13 +124,11 @@ trap handle_exit EXIT
 test -h freetds
 rm -f freetds
 test -d $FTDSDIR
-cp -rp $FTDSDIR $WORKDIR
+mkdir $WORKDIR
 ln -s $WORKDIR freetds
+cd $FTDSDIR
+git archive HEAD | tar -C $WORKDIR -xvf -
 cd $WORKDIR
-find . \( -name \*.bb -o -name \*.bbg -o -name \*.da -o -name \*.gc\* \) -exec rm -f {} \;
-rm -rf autom4te.cache doc/doc covtmp coverage DBD-*
-#cvsclean || true
-git clean -fd 
 if test "$(uname -m)" = "x86_64"; then
 	cp $ROOT/DBD-ODBC-1.22.tar.gz .
 else
@@ -142,13 +136,10 @@ else
 fi
 cp $ROOT/php5.2-latest.tar.bz2 .
 
-cp $ROOT/freetds91/config.rpath .
 LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen.sh --enable-extra-checks --prefix=$HOME/install --with-odbc-nodm=/usr --with-gnutls $FLAGS_ADD
 
 # compile, test with mssql server
-cp -f $ROOT/PWD.mssql2005 PWD
-read_pwd_fields
-make clean
+set_pwd_file $ROOT/PWD.mssql2005
 export LD_LIBRARY_PATH=$PWD/src/odbc/.libs/
 init_log
 ./misc/test-auto.sh >> logs/log.txt
@@ -179,7 +170,7 @@ fi
 
 # upload our test results
 cd logs
-perl -pe "\$_ = '' if \$_ =~ /^2:bcp.c: In function 'bcp_colfmt'|^2:bcp.c:\\d+: warning: suggest parentheses around && within \\|\\||^2:.*content model is mixed but does not allow #PCDATA everywhere/" < log.txt | ../misc/online.pl
+perl -pe "\$_ = '' if \$_ =~ /^2:.*content model is mixed but does not allow #PCDATA everywhere/" < log.txt | ../misc/online.pl
 upload "$OUTDIR/test" '*.html'
 cd ..
 
@@ -238,8 +229,7 @@ if test "$MSSQL_INSTANCE" != ""; then
 fi
 
 # do tests with sybase server
-cp -f $ROOT/PWD.sybase PWD
-read_pwd_fields
+set_pwd_file $ROOT/PWD.sybase
 init_log
 ./misc/test-auto.sh --no-build >> logs/log.txt
 cd logs
@@ -248,8 +238,7 @@ upload "$OUTDIR/test2" '*.html'
 cd ..
 
 # do tests with sybase 15 server
-cp -f $ROOT/PWD.sybase15 PWD
-read_pwd_fields
+set_pwd_file $ROOT/PWD.sybase15
 init_log
 ./misc/test-auto.sh --no-build >> logs/log.txt
 cd logs
@@ -258,8 +247,7 @@ upload "$OUTDIR/test3" '*.html'
 cd ..
 
 # do tests with mssql 2008
-cp -f $ROOT/PWD.mssql2008 PWD
-read_pwd_fields
+set_pwd_file $ROOT/PWD.mssql2008
 init_log
 ./misc/test-auto.sh --no-build >> logs/log.txt
 cd logs
@@ -278,9 +266,6 @@ else
 	restore_coverage
 fi
 rm -f out.txt
-
-# restore PWD file
-cp -f $ROOT/PWD PWD
 
 # build coverage and upload it
 rm -rf coverage
