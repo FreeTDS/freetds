@@ -934,7 +934,7 @@ typedef struct tds_authentication
 } TDSAUTHENTICATION;
 
 /* field related to connection */
-struct tds_socket_conn
+typedef struct tds_connection
 {
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
 	TDS_SYS_SOCKET s_signal, s_signaled;
@@ -959,15 +959,14 @@ struct tds_socket_conn
 	void *tls_dummy;
 #endif
 	TDSAUTHENTICATION *authentication;
-};
-typedef struct tds_socket_conn TDSSOCKETCONN;
+} TDSCONNECTION;
 
 /**
  * Information for a server connection
  */
 struct tds_socket
 {
-	TDSSOCKETCONN conn;
+	TDSCONNECTION conn;
 
 	TDS_USMALLINT tds_version;
 
@@ -1023,12 +1022,12 @@ struct tds_socket
 };
 
 #define tds_conn(tds) (&(tds)->conn)
-#define tds_get_ctx(tds) ((tds)->conn.tds_ctx)
-#define tds_set_ctx(tds, val) do { ((tds)->conn.tds_ctx) = (val); } while(0)
-#define tds_get_parent(tds) ((tds)->conn.parent)
-#define tds_set_parent(tds, val) do { ((tds)->conn.parent) = (val); } while(0)
-#define tds_get_s(tds) ((tds)->conn.s)
-#define tds_set_s(tds, val) do { ((tds)->conn.s) = (val); } while(0)
+#define tds_get_ctx(tds) (tds_conn(tds)->tds_ctx)
+#define tds_set_ctx(tds, val) do { (tds_conn(tds)->tds_ctx) = (val); } while(0)
+#define tds_get_parent(tds) (tds_conn(tds)->parent)
+#define tds_set_parent(tds, val) do { (tds_conn(tds)->parent) = (val); } while(0)
+#define tds_get_s(tds) (tds_conn(tds)->s)
+#define tds_set_s(tds, val) do { (tds_conn(tds)->s) = (val); } while(0)
 
 int tds_init_write_buf(TDSSOCKET * tds);
 void tds_free_result_info(TDSRESULTINFO * info);

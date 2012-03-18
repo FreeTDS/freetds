@@ -183,6 +183,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	struct sockaddr_in sin;
 	ioctl_nonblocking_t ioctl_nonblocking;
 	SOCKLEN_T optlen;
+	TDSCONNECTION *conn = tds_conn(tds);
 	
 	int retval, len;
 	TDSERRNO tds_error = TDSECONN;
@@ -204,8 +205,8 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			ip_addr, port, 
 			TDS_MAJOR(tds), TDS_MINOR(tds));
 
-	tds_set_s(tds, socket(AF_INET, SOCK_STREAM, 0));
-	if (TDS_IS_SOCKET_INVALID(tds_get_s(tds))) {
+	conn->s = socket(AF_INET, SOCK_STREAM, 0);
+	if (TDS_IS_SOCKET_INVALID(conn->s)) {
 		*p_oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return TDSESOCK;
@@ -213,12 +214,12 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 #ifdef SO_KEEPALIVE
 	len = 1;
-	setsockopt(tds_get_s(tds), SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
+	setsockopt(conn->s, SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
 #endif
 
 #if defined(__APPLE__) && defined(SO_NOSIGPIPE)
 	len = 1;
-	if (setsockopt(tds_get_s(tds), SOL_SOCKET, SO_NOSIGPIPE, (const void *) &len, sizeof(len))) {
+	if (setsockopt(conn->s, SOL_SOCKET, SO_NOSIGPIPE, (const void *) &len, sizeof(len))) {
 		*p_oserr = sock_errno;
 		tds_close_socket(tds);
 		return TDSESOCK;
@@ -227,16 +228,16 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 	len = 1;
 #if defined(USE_NODELAY) || defined(USE_MSGMORE)
-	setsockopt(tds_get_s(tds), SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+	setsockopt(conn->s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
 #elif defined(USE_CORK)
-	if (setsockopt(tds_get_s(tds), SOL_TCP, TCP_CORK, (const void *) &len, sizeof(len)) < 0)
-		setsockopt(tds_get_s(tds), SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
+	if (setsockopt(conn->s, SOL_TCP, TCP_CORK, (const void *) &len, sizeof(len)) < 0)
+		setsockopt(conn->s, SOL_TCP, TCP_NODELAY, (const void *) &len, sizeof(len));
 #else
 #error One should be defined
 #endif
 
 #ifdef  DOS32X			/* the other connection doesn't work  on WATTCP32 */
-	if (connect(tds_get_s(tds), (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+	if (connect(conn->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
 		char *message;
 
 		*p_oserr = sock_errno;
@@ -255,13 +256,13 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 	/* enable non-blocking mode */
 	ioctl_nonblocking = 1;
-	if (IOCTLSOCKET(tds_get_s(tds), FIONBIO, &ioctl_nonblocking) < 0) {
+	if (IOCTLSOCKET(conn->s, FIONBIO, &ioctl_nonblocking) < 0) {
 		*p_oserr = sock_errno;
 		tds_close_socket(tds);
 		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
 	}
 
-	retval = connect(tds_get_s(tds), (struct sockaddr *) &sin, sizeof(sin));
+	retval = connect(conn->s, (struct sockaddr *) &sin, sizeof(sin));
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
@@ -295,7 +296,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	/* check socket error */
 	optlen = sizeof(len);
 	len = 0;
-	if (tds_getsockopt(tds_get_s(tds), SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
+	if (tds_getsockopt(conn->s, SOL_SOCKET, SO_ERROR, (char *) &len, &optlen) != 0) {
 		*p_oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "getsockopt(2) failed: %s\n", sock_strerror(sock_errno));
 		goto not_available;
