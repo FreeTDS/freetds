@@ -95,12 +95,11 @@ tds_put_n(TDSSOCKET * tds, const void *buf, size_t n)
 int
 tds_put_string(TDSSOCKET * tds, const char *s, int len)
 {
-	TDS_ENCODING *client, *server;
+	TDS_ENCODING *client;
 	char outbuf[256], *poutbuf;
 	size_t inbytesleft, outbytesleft, bytes_out = 0;
 
 	client = &tds->char_convs[client2ucs2]->client_charset;
-	server = &tds->char_convs[client2ucs2]->server_charset;
 
 	if (len < 0) {
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */

@@ -452,7 +452,7 @@ tds7_send_auth(TDSSOCKET * tds,
 	const char *domain;
 	const char *user_name;
 	const char *p;
-	size_t user_name_len, host_name_len, password_len, domain_len;
+	size_t user_name_len, host_name_len, domain_len;
 	TDSRET rc;
 
 	unsigned char *ntlm_v2_response = NULL;
@@ -469,7 +469,6 @@ tds7_send_auth(TDSSOCKET * tds,
 	user_name = tds_dstr_cstr(&login->user_name);
 	user_name_len = user_name ? strlen(user_name) : 0;
 	host_name_len = tds_dstr_len(&login->client_host_name);
-	password_len = tds_dstr_len(&login->password);
 
 	/* parse domain\username */
 	if ((p = strchr(user_name, '\\')) == NULL)
@@ -636,7 +635,6 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 	TDS_UINT flags;
 	int where;
 
-	int domain_len;
 	int data_block_offset;
 
 	int names_blob_len = 0;
@@ -653,8 +651,8 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 		return TDS_FAIL;
 	if (tds_get_int(tds) != 2)	/* sequence -> 2 */
 		return TDS_FAIL;
-	domain_len = tds_get_smallint(tds);	/* domain len */
-	domain_len = tds_get_smallint(tds);	/* domain len */
+	tds_get_smallint(tds);	/* domain len */
+	tds_get_smallint(tds);	/* domain len */
 	data_block_offset = tds_get_int(tds);	/* domain offset */
 	flags = tds_get_int(tds);	/* flags */
 	tds_get_n(tds, nonce, 8);

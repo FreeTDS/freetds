@@ -1224,7 +1224,6 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 static TDSRET
 tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 {
-	int hdrsize;
 	TDSCOLUMN *curparam;
 	TDSPARAMINFO *info;
 	TDSRET token;
@@ -1238,7 +1237,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	/* TODO check if current_results is a param result */
 
 	/* limited to 64K but possible types are always smaller (not TEXT/IMAGE) */
-	hdrsize = tds_get_smallint(tds);
+	tds_get_smallint(tds);	/* header size */
 	if ((info = tds_alloc_param_result(*pinfo)) == NULL)
 		return TDS_FAIL;
 
@@ -1329,7 +1328,6 @@ tds_process_params_result_token(TDSSOCKET * tds)
 static TDSRET
 tds_process_compute_result(TDSSOCKET * tds)
 {
-	int hdrsize;
 	int col, num_cols;
 	TDS_TINYINT by_cols = 0;
 	TDS_SMALLINT *cur_by_col;
@@ -1340,7 +1338,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 	CHECK_TDS_EXTRA(tds);
 
-	hdrsize = tds_get_smallint(tds);
+	tds_get_smallint(tds);	/* header size*/
 
 	/*
 	 * Compute statement id which this relates to. 
@@ -1656,7 +1654,6 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 static TDSRET
 tds_process_result(TDSSOCKET * tds)
 {
-	int hdrsize;
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
@@ -1667,7 +1664,7 @@ tds_process_result(TDSSOCKET * tds)
 	tds_free_all_results(tds);
 	tds->rows_affected = TDS_NO_COUNT;
 
-	hdrsize = tds_get_smallint(tds);
+	tds_get_smallint(tds);	/* header size */
 
 	/* read number of columns and allocate the columns structure */
 	num_cols = tds_get_smallint(tds);
@@ -1710,8 +1707,6 @@ tds_process_result(TDSSOCKET * tds)
 static TDSRET
 tds5_process_result(TDSSOCKET * tds)
 {
-	int hdrsize;
-
 	int colnamelen;
 	int col, num_cols;
 	TDSCOLUMN *curcol;
@@ -1730,7 +1725,7 @@ tds5_process_result(TDSSOCKET * tds)
 	/*
 	 * read length of packet (4 bytes)
 	 */
-	hdrsize = tds_get_int(tds);
+	tds_get_int(tds);
 
 	/* read number of columns and allocate the columns structure */
 	num_cols = tds_get_smallint(tds);
@@ -1913,14 +1908,14 @@ static TDSRET
 tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 {
 	int more_results, was_cancelled, error, done_count_valid;
-	int tmp, state;
+	int tmp;
 	TDS_INT8 rows_affected;
 
 	CHECK_TDS_EXTRA(tds);
 
 	tmp = tds_get_smallint(tds);
 
-	state = tds_get_smallint(tds);
+	tds_get_smallint(tds);	/* state */
 
 	more_results = (tmp & TDS_DONE_MORE_RESULTS) != 0;
 	was_cancelled = (tmp & TDS_DONE_CANCELLED) != 0;
@@ -2114,7 +2109,6 @@ static TDSRET
 tds_process_msg(TDSSOCKET * tds, int marker)
 {
 	int rc;
-	int len;
 	int len_sqlstate;
 	int has_eed = 0;
 	TDSMESSAGE msg;
@@ -2125,7 +2119,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	memset(&msg, 0, sizeof(TDSMESSAGE));
 
 	/* packet length */
-	len = tds_get_smallint(tds);
+	tds_get_smallint(tds);
 
 	/* message number */
 	msg.msgno = tds_get_int(tds);
@@ -2359,7 +2353,7 @@ static TDSDYNAMIC *
 tds_process_dynamic(TDSSOCKET * tds)
 {
 	int token_sz;
-	unsigned char type, status;
+	unsigned char type;
 	int id_len;
 	char id[TDS_MAX_DYNID_LEN + 1];
 	int drain = 0;
@@ -2368,7 +2362,7 @@ tds_process_dynamic(TDSSOCKET * tds)
 
 	token_sz = tds_get_smallint(tds);
 	type = tds_get_byte(tds);
-	status = tds_get_byte(tds);
+	tds_get_byte(tds);	/* status */
 	/* handle only acknowledge */
 	if (type != 0x20) {
 		tdsdump_log(TDS_DBG_ERROR, "Unrecognized TDS5_DYN type %x\n", type);
@@ -2391,7 +2385,6 @@ tds_process_dynamic(TDSSOCKET * tds)
 static TDSRET
 tds_process_dyn_result(TDSSOCKET * tds)
 {
-	int hdrsize;
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
@@ -2399,7 +2392,7 @@ tds_process_dyn_result(TDSSOCKET * tds)
 
 	CHECK_TDS_EXTRA(tds);
 
-	hdrsize = tds_get_smallint(tds);
+	tds_get_smallint(tds);	/* header size */
 	num_cols = tds_get_smallint(tds);
 
 	if (tds->cur_dyn) {
@@ -2435,7 +2428,6 @@ tds_process_dyn_result(TDSSOCKET * tds)
 static TDSRET
 tds5_process_dyn_result2(TDSSOCKET * tds)
 {
-	int hdrsize;
 	int col, num_cols;
 	TDSCOLUMN *curcol;
 	TDSPARAMINFO *info;
@@ -2443,7 +2435,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 
 	CHECK_TDS_EXTRA(tds);
 
-	hdrsize = tds_get_int(tds);
+	tds_get_int(tds);	/* header size */
 	num_cols = tds_get_smallint(tds);
 
 	if (tds->cur_dyn) {
@@ -2720,10 +2712,8 @@ static TDSRET
 tds_process_cursor_tokens(TDSSOCKET * tds)
 {
 	TDS_SMALLINT hdrsize;
-	TDS_INT rowcount;
 	TDS_INT cursor_id;
 	TDS_TINYINT namelen;
-	unsigned char cursor_cmd;
 	TDS_SMALLINT cursor_status;
 	TDSCURSOR *cursor;
 
@@ -2739,12 +2729,12 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 		tds_get_n(tds, NULL, namelen);
 		hdrsize -= namelen;
 	}
-	cursor_cmd    = tds_get_byte(tds);
+	tds_get_byte(tds);	/* cursor command */
 	cursor_status = tds_get_smallint(tds);
 	hdrsize -= 3;
 
 	if (hdrsize == sizeof(TDS_INT))
-		rowcount = tds_get_int(tds); 
+		tds_get_int(tds); /* row count TODO useless ?? */
 
 	if (tds->cur_cursor) {
 		cursor = tds->cur_cursor; 
@@ -2759,7 +2749,6 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 static TDSRET
 tds5_process_optioncmd(TDSSOCKET * tds)
 {
-	TDS_SMALLINT length;
 	TDS_INT command;
 	TDS_INT option;
 	TDS_INT argsize;
@@ -2771,7 +2760,7 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 
 	assert(IS_TDS50(tds));
 
-	length = tds_get_smallint(tds);
+	tds_get_smallint(tds);	/* length */
 	command = tds_get_byte(tds);
 	option = tds_get_byte(tds);
 	argsize = tds_get_byte(tds);
