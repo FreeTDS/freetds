@@ -437,14 +437,12 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 }
 
 /**
- * Loops until we have received buflen characters
+ * Loops until we have received some characters
  * return -1 on failure
  */
 static int
-tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfinished)
+tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
-	int rc, got = 0;
-
 	if (tds == NULL || buf == NULL || buflen < 1)
 		return -1;
 
@@ -464,7 +462,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 			continue;
 		} else if (len > 0) {
 
-			len = READSOCKET(tds_get_s(tds), buf + got, buflen);
+			len = READSOCKET(tds_get_s(tds), buf, buflen);
 
 			if (len < 0 && TDSSOCK_WOULDBLOCK(sock_errno))
 				continue;
@@ -474,34 +472,28 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen, unsigned char unfi
 				tds_close_socket(tds);
 				return -1;
 			}
-		} else if (len < 0) {
+			return len;
+		}
+
+		/* error */
+		if (len < 0) {
 			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK */
 				continue;
 			tdserror(tds_get_ctx(tds), tds, TDSEREAD, sock_errno);
 			tds_close_socket(tds);
 			return -1;
-		} else { /* timeout */
-			switch (rc = tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
-			case TDS_INT_CONTINUE:
-				continue;
-			default:
-			case TDS_INT_CANCEL:
-				tds_close_socket(tds);
-				return -1;
-			}
-			assert(0); /* not reached */
 		}
 
-		got += len;
-		buflen -= len;
-		/* doing test here reduce number of syscalls required */
-		if (buflen <= 0)
+		/* timeout */
+		switch (tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
+		case TDS_INT_CONTINUE:
 			break;
-
-		if (unfinished && got)
-			break;
+		default:
+		case TDS_INT_CANCEL:
+			tds_close_socket(tds);
+			return -1;
+		}
 	}
-	return got;
 }
 
 static int
@@ -514,7 +506,7 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	if (tds_conn(tds)->tls_session)
 		return SSL_read((SSL*) tds_conn(tds)->tls_session, buf, buflen);
 #endif
-	return tds_goodread(tds, buf, buflen, 0);
+	return tds_goodread(tds, buf, buflen);
 }
 
 /**
@@ -527,112 +519,65 @@ goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 int
 tds_read_packet(TDSSOCKET * tds)
 {
-	unsigned char header[8];
-	int len, have;
+	unsigned char *pkt = tds->in_buf, *p, *end;
 
 	if (IS_TDSDEAD(tds)) {
 		tdsdump_log(TDS_DBG_NETWORK, "Read attempt when state is TDS_DEAD");
 		return -1;
 	}
 
-	/*
-	 * Read in the packet header.  We use this to figure out our packet length. 
-	 * Cast to int are needed because some compiler seem to convert
-	 * len to unsigned (as FreeBSD 4.5 one)
-	 */
-	if ((len = goodread(tds, header, sizeof(header))) < (int) sizeof(header)) {
-		/* GW ADDED */
-		if (len < 0) {
-			/* not needed because goodread() already called:  tdserror(tds_get_ctx(tds), tds, TDSEREAD, 0); */
-			tds_close_socket(tds);
-			tds->in_len = 0;
-			tds->in_pos = 0;
-			return -1;
-		}
-		
-		/* GW ADDED */
-		/*
-		 * Not sure if this is the best way to do the error
-		 * handling here but this is the way it is currently
-		 * being done.
-		 */
-
-		tds->in_len = 0;
-		tds->in_pos = 0;
-		if (tds->state != TDS_IDLE && len == 0) {
-			tds_close_socket(tds);
-		}
-		return -1;
-	}
-
-	tdsdump_dump_buf(TDS_DBG_HEADER, "Received header", header, sizeof(header));	
-
-	/* Convert our packet length from network to host byte order */
-	len = (((unsigned int) header[2]) << 8) | header[3];
-
-	/*
-	 * If this packet size is the largest we have gotten allocate space for it
-	 */
-	if ((unsigned int)len > tds->in_buf_max) {
-		unsigned char *p;
-
-		if (!tds->in_buf) {
-			p = (unsigned char *) malloc(len);
-		} else {
-			p = (unsigned char *) realloc(tds->in_buf, len);
-		}
-		if (!p) {
+	tds->in_len = 0;
+	tds->in_pos = 0;
+	for (p = pkt, end = p+8; p < end;) {
+		int len = goodread(tds, p, end - p);
+		if (len <= 0) {
 			tds_close_socket(tds);
 			return -1;
 		}
-		tds->in_buf = p;
-		/* Set the new maximum packet size */
-		tds->in_buf_max = len;
-	}
 
-	/* Clean out the in_buf so we don't use old stuff by mistake */
-	memset(tds->in_buf, 0, tds->in_buf_max);
-	memcpy(tds->in_buf, header, 8);
-
-	/* Now get exactly how many bytes the server told us to get */
-	have = 8;
-	while (have < len) {
-		int nbytes = goodread(tds, tds->in_buf + have, len - have);
-		if (nbytes < 1) {
-			/*
-			 * Not sure if this is the best way to do the error
-			 * handling here but this is the way it is currently
-			 * being done.
-			 */
-			/* no need to call tdserror(), because goodread() already did */
-			tds->in_len = 0;
-			tds->in_pos = 0;
-			tds_close_socket(tds);
-			return -1;
+		p += len;
+		if (p - pkt >= 4) {
+			unsigned pktlen = pkt[2] * 256u + pkt[3];
+			/* packet must at least contains header */
+			if (pktlen < 8) {
+				tds_close_socket(tds);
+				return -1;
+			}
+			if (pktlen > tds->in_buf_max) {
+				pkt = (unsigned char *) realloc(tds->in_buf, pktlen);
+				if (!pkt) {
+					tds_close_socket(tds);
+					return -1;
+				}
+				p = pkt + (p-tds->in_buf);
+				tds->in_buf = pkt;
+				/* Set the new maximum packet size */
+				tds->in_buf_max = pktlen;
+			}
+			end = pkt + pktlen;
 		}
-		have += nbytes;
 	}
 
 	/* set the received packet type flag */
-	tds->in_flag = header[0];
+	tds->in_flag = pkt[0];
 
 	/* Set the length and pos (not sure what pos is used for now */
-	tds->in_len = have;
+	tds->in_len = p - pkt;
 	tds->in_pos = 8;
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", tds->in_buf, tds->in_len);
 
-	return (tds->in_len);
+	return tds->in_len;
 }
 
 /**
  * \param tds the famous socket
  * \param buffer data to send
- * \param len bytes in buffer
+ * \param buflen bytes in buffer
  * \param last 1 if this is the last packet, else 0
- * \return len on success, <0 on failure
+ * \return buflen on success, <0 on failure
  */
 static int
-tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned char last)
+tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsigned char last)
 {
 	const unsigned char *p = buffer;
 	int rc;
@@ -645,10 +590,10 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 	if (TDS_IS_SOCKET_INVALID(sock))
 		return -1;
 
-	while (p - buffer < len) {
+	while (p - buffer < buflen) {
 		if ((rc = tds_select(tds, TDSSELWRITE, tds->query_timeout)) > 0) {
 			int err;
-			size_t remaining = len - (p - buffer);
+			size_t remaining = buflen - (p - buffer);
 #ifdef USE_MSGMORE
 			ssize_t nput = send(sock, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 			/* In case the kernel does not support MSG_MORE, try again without it */
@@ -690,7 +635,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 
 		/* timeout */
 		tdsdump_log(TDS_DBG_NETWORK, "tds_goodwrite(): timed out, asking client\n");
-		switch (rc = tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
+		switch (tdserror(tds_get_ctx(tds), tds, TDSETIME, sock_errno)) {
 		case TDS_INT_CONTINUE:
 			break;
 		default:
@@ -711,7 +656,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t len, unsigned
 	}
 #endif
 
-	return len;
+	return buflen;
 }
 
 TDSRET
@@ -1256,7 +1201,7 @@ tds_ssl_read(BIO *b, char* data, int len)
 
 	if (tds_conn(tds)->tls_session) {
 		/* read directly from socket */
-		return tds_goodread(tds, (unsigned char*) data, len, 1);
+		return tds_goodread(tds, (unsigned char*) data, len);
 	}
 
 	for(;;) {

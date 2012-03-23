@@ -1052,7 +1052,8 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
 	tds_set_ctx(tds_socket, context);
-	tds_socket->in_buf_max = 0;
+	TEST_CALLOC(tds_socket->in_buf, unsigned char, bufsize);
+	tds_socket->in_buf_max = bufsize;
 	tds_conn(tds_socket)->s_signal = tds_conn(tds_socket)->s_signaled = INVALID_SOCKET;
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
