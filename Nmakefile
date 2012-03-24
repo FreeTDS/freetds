@@ -57,7 +57,8 @@ REPLACEMENTS_SRC =	$(REPLACEMENTS_DIR)\asprintf.c \
 			$(REPLACEMENTS_DIR)\strlcat.c \
 			$(REPLACEMENTS_DIR)\strlcpy.c \
 			$(REPLACEMENTS_DIR)\strtok_r.c \
-			$(REPLACEMENTS_DIR)\vasprintf.c 
+			$(REPLACEMENTS_DIR)\vasprintf.c \
+			$(REPLACEMENTS_DIR)\win_mutex.c
 
 REPLACEMENTS_OBJ =	$(REPLACEMENTS_OUT)\asprintf.obj \
 			$(REPLACEMENTS_OUT)\basename.obj \
@@ -69,7 +70,8 @@ REPLACEMENTS_OBJ =	$(REPLACEMENTS_OUT)\asprintf.obj \
 			$(REPLACEMENTS_OUT)\strlcat.obj \
 			$(REPLACEMENTS_OUT)\strlcpy.obj \
 			$(REPLACEMENTS_OUT)\strtok_r.obj \
-			$(REPLACEMENTS_OUT)\vasprintf.obj 
+			$(REPLACEMENTS_OUT)\vasprintf.obj \
+			$(REPLACEMENTS_OUT)\win_mutex.obj
 
 TDS_SRC =	$(TDS_DIR)\bulk.c \
 		$(TDS_DIR)\challenge.c \
@@ -98,7 +100,6 @@ TDS_SRC =	$(TDS_DIR)\bulk.c \
 		$(TDS_DIR)\token.c \
 		$(TDS_DIR)\util.c \
 		$(TDS_DIR)\vstrbuild.c \
-		$(TDS_DIR)\win_mutex.c \
 		$(TDS_DIR)\write.c 
 
 TDS_OBJ =	$(TDS_OUT)\bulk.obj \
@@ -128,7 +129,6 @@ TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\token.obj \
 		$(TDS_OUT)\util.obj \
 		$(TDS_OUT)\vstrbuild.obj \
-		$(TDS_OUT)\win_mutex.obj \
 		$(TDS_OUT)\write.obj 
 
 # not yet:	$(APPS_DIR)\bsqlodbc.c 
