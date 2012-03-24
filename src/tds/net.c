@@ -468,7 +468,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 				continue;
 			/* detect connection close */
 			if (len <= 0) {
-				tdserror(tds_get_ctx(tds), tds, len == 0 ? TDSESEOF : TDSEREAD, sock_errno);
+				tdserror(tds_get_ctx(tds), tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : sock_errno);
 				tds_close_socket(tds);
 				return -1;
 			}
@@ -574,13 +574,12 @@ tds_read_packet(TDSSOCKET * tds)
  * \param buffer data to send
  * \param buflen bytes in buffer
  * \param last 1 if this is the last packet, else 0
- * \return buflen on success, <0 on failure
+ * \return length written (>0), <0 on failure
  */
 static int
 tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsigned char last)
 {
-	const unsigned char *p = buffer;
-	int rc;
+	int len;
 	TDS_SYS_SOCKET sock;
 
 	assert(tds && buffer);
@@ -590,40 +589,42 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 	if (TDS_IS_SOCKET_INVALID(sock))
 		return -1;
 
-	while (p - buffer < buflen) {
-		if ((rc = tds_select(tds, TDSSELWRITE, tds->query_timeout)) > 0) {
+	for (;;) {
+		/* TODO if send buffer is full we block receive !!! */
+		len = tds_select(tds, TDSSELWRITE, tds->query_timeout);
+
+		if (len > 0) {
 			int err;
-			size_t remaining = buflen - (p - buffer);
+
 #ifdef USE_MSGMORE
-			ssize_t nput = send(sock, p, remaining, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+			len = send(sock, buffer, buflen, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 			/* In case the kernel does not support MSG_MORE, try again without it */
-			if (nput < 0 && errno == EINVAL && !last)
-				nput = send(sock, p, remaining, MSG_NOSIGNAL);
+			if (len < 0 && errno == EINVAL && !last)
+				len = send(sock, buffer, buflen, MSG_NOSIGNAL);
 #elif defined(__APPLE__) && defined(SO_NOSIGPIPE)
-			ssize_t nput = send(sock, p, remaining, 0);
+			len = send(sock, buffer, buflen, 0);
 #else
-			ssize_t nput = WRITESOCKET(sock, p, remaining);
+			len = WRITESOCKET(sock, buffer, buflen);
 #endif
-			if (nput > 0) {
-				p += nput;
-				continue;
+			if (len > 0) {
+				if (len < buflen) last = 0;
+				break;
 			}
 
 			err = sock_errno;
-			if (0 == nput || TDSSOCK_WOULDBLOCK(err))
+			if (0 == len || TDSSOCK_WOULDBLOCK(err))
 				continue;
 
-			assert(nput < 0);
+			assert(len < 0);
 
 			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
 			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			tds_close_socket(tds);
 			return -1;
-
 		}
 
 		/* error */
-		if (rc < 0) {
+		if (len < 0) {
 			int err = sock_errno;
 			if (TDSSOCK_WOULDBLOCK(err)) /* shouldn't happen, but OK, retry */
 				continue;
@@ -656,7 +657,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 	}
 #endif
 
-	return buflen;
+	return len;
 }
 
 TDSRET
