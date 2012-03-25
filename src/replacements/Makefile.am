@@ -14,5 +14,6 @@ EXTRA_DIST=	asprintf.c \
 		strtok_r.c \
 		vasprintf.c \
 		socketpair.c \
-		replacements.vcproj
+		replacements.vcproj \
+		ptw32_MCS_lock.c
 

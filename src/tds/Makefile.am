@@ -23,7 +23,7 @@ libtds_la_LIBADD=
 
 noinst_HEADERS		= tds_willconvert.h encodings.h num_limits.h tds_types.h
 EXTRA_DIST		= tds_willconvert.h encodings.h num_limits.h tds_types.h \
-	TDS.vcproj ptw32_MCS_lock.c $(AUTH_FILES_DIST)
+	TDS.vcproj $(AUTH_FILES_DIST)
 
 if HAVE_DOXYGEN
 doxyfile: $(srcdir)/tds.dox
