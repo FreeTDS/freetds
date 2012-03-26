@@ -45,11 +45,11 @@ ac_cv_func_which_getpwuid_r=no)],
 ac_cv_func_which_getpwuid_r=no
 num_params=four
 for params in "int" "size_t, struct passwd **"; do
-  AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #include <unistd.h>
 #include <pwd.h>
 extern int getpwuid_r(uid_t, struct passwd *, char *, $params);
-          ],[]),[
+          ],[])],[
 	if test $ac_cv_func_which_getpwuid_r != no; then
 		AC_ERROR([Two types of getpwuid_r detected])
 	fi

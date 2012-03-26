@@ -13,7 +13,7 @@ AC_DEFUN([TYPE_SOCKLEN_T],
       xml_cv_socklen_t_equiv=
       for arg2 in "struct sockaddr" void; do
         for t in int size_t unsigned long "unsigned long"; do
-          AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
+          AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
@@ -28,7 +28,7 @@ int getpeername (int, $arg2 *, $t *);
           ],[
             $t len;
             getpeername(0,0,&len);
-          ]),[
+          ])],[
             xml_cv_socklen_t_equiv="$t"
             break
           ])

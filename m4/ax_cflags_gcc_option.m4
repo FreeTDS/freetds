@@ -126,7 +126,7 @@ for ac_arg dnl
 in "-pedantic  % m4_ifval($1,$1,-option)"  dnl   GCC
    #
 do FLAGS="$ac_save_[]FLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
-   AC_COMPILE_IFELSE(AC_LANG_PROGRAM([],[return 0;]),
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[return 0;])],
    [VAR=`echo $ac_arg | sed -e 's,.*% *,,'` ; break])
 done
  FLAGS="$ac_save_[]FLAGS"
@@ -161,7 +161,7 @@ for ac_arg dnl
 in "-pedantic  % m4_ifval($1,$1,-option)"  dnl   GCC
    #
 do FLAGS="$ac_save_[]FLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
-   AC_COMPILE_IFELSE(AC_LANG_PROGRAM([],[return 0;]),
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[return 0;])],
    [VAR=`echo $ac_arg | sed -e 's,.*% *,,'` ; break])
 done
  FLAGS="$ac_save_[]FLAGS"

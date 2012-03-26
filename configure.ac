@@ -476,7 +476,7 @@ if test "$GCC" = yes; then
 			break;
 		fi
 	done
-	AC_COMPILE_IFELSE(AC_LANG_SOURCE([static void __attribute__((destructor)) my_uninit(void) {}], []), 
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([static void __attribute__((destructor)) my_uninit(void) {}], [])],
 			  AC_DEFINE(TDS_ATTRIBUTE_DESTRUCTOR, 1, 
 				    [Define to 1 if your compiler supports __attribute__((destructor)).]))
 fi

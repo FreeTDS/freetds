@@ -10,11 +10,11 @@ AC_DEFUN([SPRINTF_I64_FORMAT],
 [tds_i64_format=
 
 # Win32 case
-AC_COMPILE_IFELSE(AC_LANG_PROGRAM([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #if !defined(__MINGW32__) || !defined(__MSVCRT__)
 this should produce an error!
 #endif
-],[return 0;]),[tds_i64_format="I64d"])
+],[return 0;])],[tds_i64_format="I64d"])
 
 # long is 64 bit
 if test "x$ac_cv_sizeof_long" = "x8"; then
