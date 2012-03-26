@@ -814,8 +814,8 @@ if test "$enable_developing" = "yes" ; then
 fi
 
 AC_ARG_ENABLE(odbc-wide,
-  AS_HELP_STRING([--enable-odbc-wide], [enable wide string support in odbc [experimental]]))
-if test "$enable_odbc_wide" = "yes" ; then
+  AS_HELP_STRING([--disable-odbc-wide], [disable wide string support in odbc]))
+if test "$enable_odbc_wide" != "no" ; then
 	AC_DEFINE_UNQUOTED(ENABLE_ODBC_WIDE, 1, [Define to enable ODBC wide string support])
 fi
 
