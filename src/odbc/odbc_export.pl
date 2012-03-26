@@ -84,16 +84,16 @@ while(<IN>) {
 
 		print "#ifdef ENABLE_ODBC_WIDE
 static SQLRETURN _$func($params_all, int wide);
-SQLRETURN ODBC_API $func($params_a) {
+SQLRETURN ODBC_PUBLIC ODBC_API $func($params_a) {
 	$log
 	return _$func($pass_aw, 0);
 }
-SQLRETURN ODBC_API ${func}W($params_w) {
+SQLRETURN ODBC_PUBLIC ODBC_API ${func}W($params_w) {
 	$log_w
 	return _$func($pass_aw, 1);
 }
 #else
-SQLRETURN ODBC_API $func($params_a) {
+SQLRETURN ODBC_PUBLIC ODBC_API $func($params_a) {
 	$log
 	return _$func($pass_all);
 }
