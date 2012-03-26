@@ -241,7 +241,7 @@ fake_thread_proc(void * arg)
 	}
 
 	if (connect(server_sock, &remote_addr, remote_addr_len)) {
-		perror("socket");
+		perror("connect");
 		exit(1);
 	}
 	alarm(0);
