@@ -447,7 +447,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		return -1;
 
 	for (;;) {
-		int len;
+		int len, err;
 
 		if (IS_TDSDEAD(tds))
 			return -1;
@@ -468,8 +468,9 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 				continue;
 			/* detect connection close */
 			if (len <= 0) {
-				tdserror(tds_get_ctx(tds), tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : sock_errno);
+				err = sock_errno;
 				tds_close_socket(tds);
+				tdserror(tds_get_ctx(tds), tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
 				return -1;
 			}
 			return len;
@@ -479,8 +480,9 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		if (len < 0) {
 			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK */
 				continue;
-			tdserror(tds_get_ctx(tds), tds, TDSEREAD, sock_errno);
+			err = sock_errno;
 			tds_close_socket(tds);
+			tdserror(tds_get_ctx(tds), tds, TDSEREAD, err);
 			return -1;
 		}
 
@@ -618,8 +620,8 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 			assert(len < 0);
 
 			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
-			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			tds_close_socket(tds);
+			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			return -1;
 		}
 
@@ -629,8 +631,8 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 			if (TDSSOCK_WOULDBLOCK(err)) /* shouldn't happen, but OK, retry */
 				continue;
 			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", err, sock_strerror(err));
-			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			tds_close_socket(tds);
+			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			return -1;
 		}
 
