@@ -1012,6 +1012,9 @@ tds_alloc_login(int use_environment)
 		return NULL;
 	}
 
+#if ENABLE_EXTRA_CHECKS
+	tds_capability_test();
+#endif
 	memcpy(login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
 
 	Cleanup:
