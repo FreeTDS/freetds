@@ -284,7 +284,7 @@ main(int argc, char *argv[])
 
 	f = fopen(in_file, "r");
 	if (!f)
-		fopen(TEST_FILE, "r");
+		f = fopen(TEST_FILE, "r");
 	if (!f) {
 		fprintf(stderr, "error opening test file\n");
 		exit(1);
