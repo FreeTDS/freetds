@@ -24,7 +24,13 @@ static int ignore_select_error = 0;
 static void
 Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, const char *expected)
 {
-	unsigned char out_buf[256];
+	union {
+		unsigned char bin[256];
+		char s[256];
+		SQLWCHAR ws[256/sizeof(SQLWCHAR)];
+		SQLINTEGER i;
+		SQL_NUMERIC_STRUCT num;
+	} out_buf;
 	SQLLEN out_len = 0;
 	SQL_NUMERIC_STRUCT *num;
 	SQLWCHAR *wp;
@@ -50,7 +56,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 		odbc_command(sbuf);
 	}
 	ignore_select_error = 0;
-	SQLBindCol(odbc_stmt, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
+	SQLBindCol(odbc_stmt, 1, out_c_type, &out_buf, sizeof(out_buf), &out_len);
 	CHKFetch("S");
 	CHKFetch("No");
 	CHKMoreResults("No");
@@ -59,7 +65,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	sbuf[0] = 0;
 	switch (out_c_type) {
 	case SQL_C_NUMERIC:
-		num = (SQL_NUMERIC_STRUCT *) out_buf;
+		num = &out_buf.num;
 		sprintf(sbuf, "%d %d %d ", num->precision, num->scale, num->sign);
 		i = SQL_MAX_NUMERIC_LEN;
 		for (; i > 0 && !num->val[--i];);
@@ -69,16 +75,16 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	case SQL_C_BINARY:
 		assert(out_len >= 0);
 		for (i = 0; i < out_len; ++i)
-			sprintf(strchr(sbuf, 0), "%02X", (int) out_buf[i]);
+			sprintf(strchr(sbuf, 0), "%02X", out_buf.bin[i]);
 		break;
 	case SQL_C_CHAR:
-		out_buf[sizeof(out_buf) - 1] = 0;
-		sprintf(sbuf,"%u %s", (unsigned int) strlen((char *) out_buf), out_buf);
+		out_buf.s[sizeof(out_buf.s) - 1] = 0;
+		sprintf(sbuf,"%u %s", (unsigned int) strlen(out_buf.s), out_buf.s);
 		break;
 	case SQL_C_WCHAR:
 		assert(out_len >=0 && (out_len % sizeof(SQLWCHAR)) == 0);
 		sprintf(sbuf, "%u ", (unsigned int) (out_len / sizeof(SQLWCHAR)));
-		wp = (SQLWCHAR*) out_buf;
+		wp = out_buf.ws;
 		for (i = 0; i < out_len / sizeof(SQLWCHAR); ++i)
 			if ((unsigned int) wp[i] < 256)
 				sprintf(strchr(sbuf, 0), "%c", (char) wp[i]);
@@ -87,7 +93,7 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 		break;
 	case SQL_C_LONG:
 		assert(out_len == sizeof(SQLINTEGER));
-		sprintf(sbuf, "%ld", (long int) *((SQLINTEGER *) out_buf));
+		sprintf(sbuf, "%ld", (long int) out_buf.i);
 		break;
 	default:
 		/* not supported */
