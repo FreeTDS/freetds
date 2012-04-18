@@ -93,6 +93,10 @@ SOURCE=..\..\src\dblib\dbopen.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\dblib\dbpivot.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\dblib\dbutil.c
 # End Source File
 # Begin Source File
