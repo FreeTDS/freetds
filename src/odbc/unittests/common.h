@@ -189,12 +189,13 @@ void odbc_buf_free(ODBC_BUF** buf);
 #define ODBC_FREE(s) odbc_buf_free(&odbc_buf)
 
 SQLWCHAR *odbc_get_sqlwchar(ODBC_BUF** buf, const char *s);
+char *odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s);
+
 #undef T
 #ifdef UNICODE
 /* char to TCHAR */
 #define T(s) odbc_get_sqlwchar(&odbc_buf, (s))
 /* TCHAR to char */
-char *odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s);
 #define C(s) odbc_get_sqlchar(&odbc_buf, (s))
 #else
 #define T(s) ((SQLCHAR*)(s))

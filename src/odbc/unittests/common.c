@@ -556,7 +556,6 @@ odbc_get_sqlwchar(ODBC_BUF** buf, const char *s)
 	return buffer;
 }
 
-#ifdef UNICODE
 char*
 odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s)
 {
@@ -570,4 +569,3 @@ odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s)
 	odbc_from_sqlwchar(out, s, n);
 	return out;
 }
-#endif
