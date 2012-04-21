@@ -1932,9 +1932,10 @@ tds_send_cancel(TDSSOCKET * tds)
 	 * - we got called from a signal inside processing thread
 	 */
 	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx)) {
+		static const char one = '1';
 		// TODO check
 		// signal other socket
-		send(tds_conn(tds)->s_signal, (void*) &tds, sizeof(tds), 0);
+		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
 		return TDS_SUCCESS;
 	}
 
