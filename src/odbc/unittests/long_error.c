@@ -27,19 +27,22 @@ main(void)
 	odbc_use_version3 = 1;
 	odbc_connect();
 
-	odbc_command_with_result(odbc_stmt, "if object_id('proc_longerror') is not null drop proc proc_longerror");
+	/* this test do not work with Sybase */
+	if (!odbc_db_is_microsoft()) {
+		odbc_disconnect();
+		return 0;
+	}
 
-	strcpy(cmd, "create procedure proc_longerror as\nbegin\nraiserror('");
+	strcpy(cmd, "create procedure #proc_longerror as\nbegin\nraiserror('");
 	for (i = 0; i < 110; ++i)
 		strcat(cmd, "reallylong");
 	strcat(cmd, " error', 16, 1)\nend\n");
 	odbc_command(cmd);
 
-	CHKExecDirect(T("{CALL proc_longerror}"), SQL_NTS, "E");
+	CHKExecDirect(T("{CALL #proc_longerror}"), SQL_NTS, "E");
 
 	extract_error(odbc_stmt, SQL_HANDLE_STMT);
 
-	odbc_command_with_result(odbc_stmt, "if object_id('proc_longerror') is not null drop proc proc_longerror");
 	odbc_disconnect();
 	return 0;
 }
