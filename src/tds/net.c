@@ -436,6 +436,67 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 	return 0;
 }
 
+// TODO remove tds, save error somewhere, report error in another way
+/**
+ * Read from an OS socket
+ * @returns 0 if blocking, <0 error >0 bytes readed
+ */
+static int
+tds_socket_read(TDSCONNECTION * connection, TDSSOCKET *tds, unsigned char *buf, int buflen)
+{
+	int len, err;
+
+	/* read directly from socket*/
+	len = READSOCKET(connection->s, buf, buflen);
+	if (len > 0)
+		return len;
+
+	err = sock_errno;
+	if (len < 0 && TDSSOCK_WOULDBLOCK(err))
+		return 0;
+
+	/* detect connection close */
+	tds_close_socket(tds);
+	tdserror(connection->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
+	return -1;
+}
+
+/**
+ * Write to an OS socket
+ * @returns 0 if blocking, <0 error >0 bytes readed
+ */
+static int
+tds_socket_write(TDSCONNECTION *connection, TDSSOCKET *tds, const unsigned char *buf, int buflen, int last)
+{
+	int err, len;
+
+#ifdef USE_MSGMORE
+	len = send(connection->s, buf, buflen, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+	/* In case the kernel does not support MSG_MORE, try again without it */
+	if (len < 0 && errno == EINVAL && !last)
+		len = send(connection->s, buf, buflen, MSG_NOSIGNAL);
+#elif defined(__APPLE__) && defined(SO_NOSIGPIPE)
+	len = send(connection->s, buf, buflen, 0);
+#else
+	len = WRITESOCKET(connection->s, buf, buflen);
+#endif
+	if (len > 0)
+		return len;
+
+	err = sock_errno;
+	if (0 == len || TDSSOCK_WOULDBLOCK(err))
+		return 0;
+
+	assert(len < 0);
+
+	/* detect connection close */
+	tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
+	tds_close_socket(tds);
+	tdserror(connection->tds_ctx, tds, TDSEWRIT, err);
+	return -1;
+}
+
+
 /**
  * Loops until we have received some characters
  * return -1 on failure
@@ -461,18 +522,9 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 				tds_put_cancel(tds);
 			continue;
 		} else if (len > 0) {
-
-			len = READSOCKET(tds_get_s(tds), buf, buflen);
-
-			if (len < 0 && TDSSOCK_WOULDBLOCK(sock_errno))
+			len = tds_socket_read(tds_conn(tds), tds, buf, buflen);
+			if (len == 0)
 				continue;
-			/* detect connection close */
-			if (len <= 0) {
-				err = sock_errno;
-				tds_close_socket(tds);
-				tdserror(tds_get_ctx(tds), tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
-				return -1;
-			}
 			return len;
 		}
 
@@ -596,33 +648,14 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 		len = tds_select(tds, TDSSELWRITE, tds->query_timeout);
 
 		if (len > 0) {
-			int err;
-
-#ifdef USE_MSGMORE
-			len = send(sock, buffer, buflen, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
-			/* In case the kernel does not support MSG_MORE, try again without it */
-			if (len < 0 && errno == EINVAL && !last)
-				len = send(sock, buffer, buflen, MSG_NOSIGNAL);
-#elif defined(__APPLE__) && defined(SO_NOSIGPIPE)
-			len = send(sock, buffer, buflen, 0);
-#else
-			len = WRITESOCKET(sock, buffer, buflen);
-#endif
+			len = tds_socket_write(tds_conn(tds), tds, buffer, buflen, last);
+			if (len == 0)
+				continue;
 			if (len > 0) {
 				if (len < buflen) last = 0;
 				break;
 			}
-
-			err = sock_errno;
-			if (0 == len || TDSSOCK_WOULDBLOCK(err))
-				continue;
-
-			assert(len < 0);
-
-			tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
-			tds_close_socket(tds);
-			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
-			return -1;
+			return len;
 		}
 
 		/* error */
