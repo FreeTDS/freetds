@@ -132,8 +132,6 @@ Test(int use_threads, int return_data)
 int
 main(int argc, char **argv)
 {
-	int i;
-
 	if (TDS_MUTEX_INIT(&mtx))
 		return 1;
 
@@ -166,12 +164,12 @@ main(int argc, char **argv)
 	odbc_command("CREATE TABLE tab1 ( k INT, vc VARCHAR(200) )");
 
 	printf(">> Creating tab1...\n");
-	for (i=1; i<=2000; ++i) {
-		char sql[100];
-		sprintf(sql, "INSERT INTO tab1 VALUES ( %d, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' )", i);
-
-		odbc_command(sql);
-	}
+	odbc_command("DECLARE @i INT\n"
+		"SET @i = 1\n"
+		"WHILE @i <= 2000 BEGIN\n"
+		"INSERT INTO tab1 VALUES ( @i, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' )\n"
+		"SET @i = @i + 1\n"
+		"END");
 	printf(">> ...done.\n");
 
 	odbc_reset_statement();
