@@ -436,7 +436,8 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 			}
 			result = SQL_SUCCESS_WITH_INFO;
 		}
-		assert(dest == NULL || dest-(unsigned char*) buffer == out_len);
+		assert(dest == NULL || dest-(unsigned char*) buffer == out_len
+		       || (dest-(unsigned char*) buffer <= out_len && cbBuffer <= 1));
 		/* terminate buffer */
 		if (dest && cbBuffer) {
 			*dest++ = 0;
