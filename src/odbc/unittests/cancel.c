@@ -170,6 +170,8 @@ main(int argc, char **argv)
 		"INSERT INTO tab1 VALUES ( @i, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' )\n"
 		"SET @i = @i + 1\n"
 		"END");
+	while (CHKMoreResults("SNo") == SQL_SUCCESS)
+		continue;
 	printf(">> ...done.\n");
 
 	odbc_reset_statement();
