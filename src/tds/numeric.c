@@ -293,7 +293,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 					*s++ = '0';
 				} while (--i);
 			}
-			*s++ = 0;
+			*s = 0;
 			return 1;
 		}
 	}
@@ -342,7 +342,7 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 		if (i == numeric->scale)
 			*s++ = '.';
 	}
-	*s++ = 0;
+	*s = 0;
 
 	return 1;
 }

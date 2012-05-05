@@ -21,7 +21,7 @@ static TDS_MUTEX_DECLARE(mtx);
 static void
 getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
 {
-	SQLRETURN rcode = 0;
+	SQLRETURN rcode;
 	SQLINTEGER naterror = 0;
 	SQLTCHAR msgtext[SQL_MAX_MESSAGE_LENGTH + 1];
 	SQLSMALLINT msgtextl = 0;

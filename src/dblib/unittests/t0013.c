@@ -50,7 +50,6 @@ test(int argc, char **argv, int over4k)
 	char objname[256];
 	char rbuf[BLOB_BLOCK_SIZE];
 	long numread;
-	BOOL readFirstImage;
 	int data_ok;
 	int numtowrite, numwritten;
 	set_malloc_options();
@@ -236,11 +235,8 @@ test(int argc, char **argv, int over4k)
 
 	numread = 0;
 	rblob = NULL;
-	readFirstImage = FALSE;
 	while ((result = dbreadtext(dbproc, rbuf, BLOB_BLOCK_SIZE)) != NO_MORE_ROWS) {
-		if (result == 0) {	/* this indicates end of row */
-			readFirstImage = TRUE;
-		} else {
+		if (result != 0) {	/* this indicates not end of row */
 			rblob = (char*) realloc(rblob, result + numread);
 			memcpy((void *) (rblob + numread), (void *) rbuf, result);
 			numread += result;

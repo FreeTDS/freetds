@@ -84,6 +84,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 		ol = destlen - char_size;
 		memset(&conv->suppress, 0, sizeof(conv->suppress));
 		conv->suppress.e2big = 1;
+		/* TODO check err value */
 		err = tds_iconv(tds, conv, to_client, &ib, &il, &ob, &ol);
 		ol = ob - dest; /* bytes written */
 		if (curcol)

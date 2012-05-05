@@ -36,7 +36,6 @@ main(int argc, char **argv)
 	CS_INT datalength;
 	CS_CHAR text[128];
 	CS_INT num_cols, i;
-	int is_return_status = 0;
 
 	fprintf(stdout, "%s: use multiple cursors on the same connection\n", __FILE__);
 
@@ -164,7 +163,6 @@ main(int argc, char **argv)
 
 				if (datafmt.status & CS_RETURN) {
 					fprintf(stdout, "ct_describe() column %d \n", i);
-					is_return_status = i + 1;
 				}
 
 				datafmt.datatype = CS_CHAR_TYPE;
@@ -257,7 +255,6 @@ main(int argc, char **argv)
 
 				if (datafmt2.status & CS_RETURN) {
 					fprintf(stdout, "ct_describe() column %d \n", i);
-					is_return_status = i + 1;
 				}
 
 				datafmt2.datatype = CS_CHAR_TYPE;

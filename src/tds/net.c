@@ -652,7 +652,9 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 			if (len == 0)
 				continue;
 			if (len > 0) {
+#ifdef USE_CORK
 				if (len < buflen) last = 0;
+#endif
 				break;
 			}
 			return len;

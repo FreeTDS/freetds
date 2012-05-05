@@ -116,7 +116,7 @@ tds_get_dynid(TDSSOCKET * tds, char *id)
 		if (i == 4)
 			n += 3u * inc_num;
 	}
-	*p++ = 0;
+	*p = 0;
 	return id;
 }
 

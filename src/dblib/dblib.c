@@ -3664,7 +3664,7 @@ dbsprline(DBPROCESS * dbproc, char *buffer, DBINT buf_len, DBCHAR line_char)
 	if (buf_len < 1) {
 		return FAIL;
 	}
-	*buffer++ = '\0';
+	*buffer = '\0';
 	return SUCCEED;
 }
 
@@ -3731,7 +3731,7 @@ dbsprhead(DBPROCESS * dbproc, char *buffer, DBINT buf_len)
 	if (buf_len < 1) {
 		return FAIL;
 	}
-	*buffer++ = '\0';
+	*buffer = '\0';
 	return SUCCEED;
 }
 

@@ -186,7 +186,7 @@ main(int argc, char **argv)
 	/* retrieve outputs per usual */
 	r = 0;
 	for (i=0; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; i++) {
-		int nrows, ncols, empty_resultset;
+		int nrows, ncols;
 		switch (erc) {
 		case SUCCEED:
 			if (DBROWS(dbproc) == FAIL){
@@ -197,14 +197,12 @@ main(int argc, char **argv)
 			printf("dbrows() returned SUCCEED, processing rows\n");
 
 			ncols = dbnumcols(dbproc);
-			empty_resultset = 1;
 			++num_resultset;
 			printf("bound 1 of %d columns ('%s') in result %d.\n", ncols, dbcolname(dbproc, 1), ++r);
 			dbbind(dbproc, 1, STRINGBIND, 0, (BYTE *) teststr);
 
 			printf("\t%s\n\t-----------\n", dbcolname(dbproc, 1));
 			while ((row_code = dbnextrow(dbproc)) != NO_MORE_ROWS) {
-				empty_resultset = 0;
 				if (row_code == REG_ROW) {
 					printf("\t%s\n", teststr);
 				} else {

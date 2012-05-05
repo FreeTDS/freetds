@@ -225,7 +225,7 @@ tds_convert_binary(int srctype, const TDS_UCHAR * src, TDS_INT srclen, int destt
 			*c++ = tds_hex_digits[src[s]&0xF];
 		}
 		if (cplen)
-			*c++ = tds_hex_digits[src[s]>>4];
+			*c = tds_hex_digits[src[s]>>4];
 		return srclen * 2;
 
 	case CASE_ALL_CHAR:

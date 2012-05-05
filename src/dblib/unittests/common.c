@@ -402,9 +402,6 @@ free_bread_crumb(void)
 int
 syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line)
 {
-	char var_value[31];
-	int i;
-	char *c;
 	int *pexpected_msgno;
 	
 	/*
@@ -418,13 +415,6 @@ syb_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate, int severity, cha
 	    msgno == 5704) {	/* charset changed */
 
 		/* fprintf( stderr, "msgno = %d: %s\n", msgno, msgtext ) ; */
-
-		if (msgtext != NULL && (c = strchr(msgtext, '\'')) != NULL) {
-			i = 0;
-			for (++c; i <= 30 && *c != '\0' && *c != '\''; ++c)
-				var_value[i++] = *c;
-			var_value[i] = '\0';
-		}
 		return 0;
 	}
 

@@ -152,7 +152,7 @@ sp_who(CS_COMMAND *cmd)
 	CS_INT result_type;
 	CS_RETCODE ret;
 	CS_RETCODE results_ret;
-	int i, is_return_status=0;
+	int i;
 	int is_status_result=0;
 
 	ret = ct_command(cmd, CS_LANG_CMD, "exec sp_who", CS_NULLTERM, CS_UNUSED);
@@ -208,7 +208,6 @@ sp_who(CS_COMMAND *cmd)
 
 				if (col[i].datafmt.status & CS_RETURN) {
 					fprintf(stdout, "ct_describe() indicates a return code in column %d for sp_who\n", i);
-					is_return_status = i+1;
 					
 					/*
 					 * other possible values:

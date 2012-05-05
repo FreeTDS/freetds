@@ -550,6 +550,8 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 
 			if (tds->internal_sp_called == TDS_SP_CURSORFETCH) {
 				rc = tds7_process_result(tds);
+				if (TDS_FAILED(rc))
+					break;
 				marker = tds_get_byte(tds);
 				if (marker != TDS_TABNAME_TOKEN)
 					tds_unget_byte(tds);
@@ -559,6 +561,8 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				SET_RETURN(TDS_ROWFMT_RESULT, ROWFMT);
 
 				rc = tds7_process_result(tds);
+				if (TDS_FAILED(rc))
+					break;
 				/* handle browse information (if presents) */
 				marker = tds_get_byte(tds);
 				if (marker != TDS_TABNAME_TOKEN) {
@@ -1997,6 +2001,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	}
 
 	if (type == TDS_ENV_BEGINTRANS) {
+		/* TODO check size */
 		size = tds_get_byte(tds);
 		tds_get_n(tds, tds->tds72_transaction, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));

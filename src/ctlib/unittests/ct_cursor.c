@@ -33,7 +33,6 @@ main(int argc, char **argv)
 	CS_INT datalength;
 	CS_CHAR text[128];
 	CS_INT num_cols, i, j;
-	int is_return_status = 0;
 	CS_INT props_value;
 
 	fprintf(stdout, "%s: Testing ct_cursor()\n", __FILE__);
@@ -163,7 +162,6 @@ main(int argc, char **argv)
 
 				if (datafmt.status & CS_RETURN) {
 					fprintf(stdout, "ct_describe() column %d \n", i);
-					is_return_status = i + 1;
 				}
 
 				datafmt.datatype = CS_CHAR_TYPE;
@@ -362,7 +360,6 @@ main(int argc, char **argv)
 
 				if (datafmt.status & CS_RETURN) {
 					fprintf(stdout, "ct_describe() column %d \n", i);
-					is_return_status = i + 1;
 				}
 
 				datafmt.datatype = CS_CHAR_TYPE;

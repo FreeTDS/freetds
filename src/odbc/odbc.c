@@ -6880,7 +6880,7 @@ odbc_quote_metadata(TDS_DBC * dbc, char type, char *dest, DSTR * dstr)
 	 */
 	prev = 0;
 	*dst++ = '\'';
-	for (; --len >= 0; prev = *s++) {
+	for (; --len >= 0; ++s) {
 		switch (*s) {
 		case '\'':
 			*dst++ = '\'';
@@ -6909,7 +6909,7 @@ odbc_quote_metadata(TDS_DBC * dbc, char type, char *dest, DSTR * dstr)
 			prev = 0;
 			continue;
 		}
-		*dst++ = *s;
+		*dst++ = prev = *s;
 	}
 	*dst++ = '\'';
 	return dst - dest;
