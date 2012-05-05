@@ -937,7 +937,7 @@ RETCODE
 dbpivot(DBPROCESS *dbproc, int nkeys, int *keys, int ncols, int *cols, DBPIVOT_FUNC func, int val)
 {
 	enum { logalot = 1 };
-	struct pivot_t P, *pp = &P;
+	struct pivot_t P, *pp;
 	struct agg_t input, *pout = NULL;
 	struct key_t *pacross;
 	struct metadata_t *metadata, *pmeta;

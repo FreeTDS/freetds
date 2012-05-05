@@ -1230,7 +1230,7 @@ tds_convert_money(int srctype, const TDS_CHAR * src, int desttype, CONV_RESULT *
 	case SYBDECIMAL:
 	case SYBNUMERIC:
 		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr);
-		return stringz_to_numeric(tmpstr, cr);
+		return stringz_to_numeric(s, cr);
 		break;
 		/* conversions not allowed */
 	case SYBUNIQUE:
