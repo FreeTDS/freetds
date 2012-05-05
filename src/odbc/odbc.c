@@ -3619,7 +3619,6 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	int srclen;
 	struct _drecord *drec_ard;
 	TDS_DESC *ard;
-	TDSCONTEXT *context;
 	SQLULEN dummy, *fetched_ptr;
 	SQLUSMALLINT *status_ptr, row_status;
 	TDS_INT result_type;
@@ -3706,8 +3705,6 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 		odbc_errs_add(&stmt->errs, "24000", NULL);
 		return SQL_ERROR;
 	}
-
-	context = stmt->dbc->env->tds_ctx;
 
 	stmt->row++;
 
@@ -4758,7 +4755,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
 	TDSSOCKET *tds;
-	TDSCONTEXT *context;
 	SQLLEN dummy_cb;
 
 	ODBC_ENTER_HSTMT;
@@ -4786,7 +4782,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 		pcbValue = &dummy_cb;
 
 	tds = stmt->dbc->tds_socket;
-	context = stmt->dbc->env->tds_ctx;
 
 	resinfo = stmt->cursor ? stmt->cursor->res_info : tds->current_results;
 	if (!resinfo) {

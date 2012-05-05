@@ -202,7 +202,6 @@ make_ntlm_v2_hash(TDSSOCKET * tds, const char *passwd, unsigned char ntlm_v2_has
 	TDSRET res;
 
 	user_name = tds_dstr_cstr(&tds->login->user_name);
-	user_name_len = strlen(user_name);
 
 	/* parse domain\username */
 	p = strchr(user_name, '\\');
@@ -467,7 +466,6 @@ tds7_send_auth(TDSSOCKET * tds,
 
 	/* parse a bit of config */
 	user_name = tds_dstr_cstr(&login->user_name);
-	user_name_len = user_name ? strlen(user_name) : 0;
 	host_name_len = tds_dstr_len(&login->client_host_name);
 
 	/* parse domain\username */

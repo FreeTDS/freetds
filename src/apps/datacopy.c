@@ -742,9 +742,6 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	struct timeval start_time;
 	struct timeval end_time;
 	double elapsed_time;
-	struct timeval batch_start;
-	struct timeval batch_end;
-	double elapsed_batch = 0.0;
 
 	if (params.vflag) {
 		printf("\nStarting copy...\n");
@@ -1059,13 +1056,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 		} else {
 			rows_sent++;
 			if (rows_sent == params.batchsize) {
-				gettimeofday(&batch_start, 0);
 				ret = bcp_batch(dbdest);
-				gettimeofday(&batch_end, 0);
-				elapsed_batch = elapsed_batch +
-					((double) (batch_end.tv_sec - batch_start.tv_sec) +
-					 ((double) (batch_end.tv_usec - batch_start.tv_usec) / 1000000.00)
-					);
 				if (ret == -1) {
 					printf("bcp_batch error\n");
 					return FALSE;
@@ -1079,13 +1070,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	}
 
 	if (rows_read) {
-		gettimeofday(&batch_start, 0);
 		ret = bcp_done(dbdest);
-		gettimeofday(&batch_end, 0);
-		elapsed_batch = elapsed_batch +
-			((double) (batch_end.tv_sec - batch_start.tv_sec) +
-			 ((double) (batch_end.tv_usec - batch_start.tv_usec) / 1000000.00)
-			);
 		if (ret == -1) {
 			fprintf(stderr, "bcp_done failed.  \n");
 			return FALSE;

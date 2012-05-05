@@ -977,14 +977,14 @@ tds_process_col_name(TDSSOCKET * tds)
 static TDSRET
 tds_process_col_fmt(TDSSOCKET * tds)
 {
-	int col, hdrsize;
+	int col;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 	TDS_SMALLINT flags;
 
 	CHECK_TDS_EXTRA(tds);
 
-	hdrsize = tds_get_smallint(tds);
+	tds_get_smallint(tds);	/* hdrsize */
 
 	/* TODO use current_results instead of res_info ?? */
 	info = tds->res_info;
