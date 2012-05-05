@@ -1,7 +1,7 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001  Brian Bruns
  * Copyright (C) 2002, 2003, 2004, 2005  James K. Lowden
- * Copyright (C) 2011  Frediano Ziglio
+ * Copyright (C) 2011, 2012  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -361,9 +361,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		if (property == CS_USERNAME || property == CS_PASSWORD || property == CS_APPNAME ||
 			property == CS_HOSTNAME || property == CS_SERVERADDR) {
 			if (buflen == CS_NULLTERM) {
-				maxcp = strlen((char *) buffer);
-				set_buffer = (char *) malloc(maxcp + 1);
-				strcpy(set_buffer, (char *) buffer);
+				set_buffer = strdup((char *) buffer);
 			} else if (buflen == CS_UNUSED) {
 				return CS_SUCCEED;
 			} else {
@@ -400,12 +398,16 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			int portno;
 			host= strtok_r(set_buffer, " ", &lasts);
 			port= strtok_r(NULL, " ", &lasts);
-			if (!host || !port)
+			if (!host || !port) {
+				free(set_buffer);
 				return CS_FAIL;
+			}
 
 			portno = (int)strtol(port, NULL, 10);
-			if (portno < 1 || portno >= 65536)
+			if (portno < 1 || portno >= 65536) {
+				free(set_buffer);
 				return CS_FAIL;
+			}
 			con->server_addr = strdup(host);
 			tds_set_port(tds_login, portno);
 			break;

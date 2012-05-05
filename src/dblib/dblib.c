@@ -1176,6 +1176,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	if ((dbproc->tds_socket = tds_alloc_socket(dblib_get_tds_ctx(), 512)) == NULL ){
 		dbperror(NULL, SYBEMEM, 0);
+		free(dbproc);
 		return NULL;
 	}
 	
@@ -3352,6 +3353,7 @@ dbprrow(DBPROCESS * dbproc)
 	while ((status = dbnextrow(dbproc)) != NO_MORE_ROWS) {
 
 		if (status == FAIL) {
+			free(col_printlens);
 			return FAIL;
 		}
 
