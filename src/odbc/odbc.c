@@ -3037,7 +3037,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 			int i;
 
 			p = col->table_name;
-			for (i = 0; i < 4; ++i) {
+			for (i = 0; ; ++i) {
 				const char *pend;
 
 				if (*p == '[' || *p == '\"') {
@@ -3050,11 +3050,12 @@ odbc_populate_ird(TDS_STMT * stmt)
 				partials[i].start = p;
 				partials[i].end = pend;
 				p = pend;
-				if (*p != '.')
+				if (i == 3 || *p != '.')
 					break;
 				++p;
 			}
 
+			/* here i points to last element */
 			odbc_unquote(buf, sizeof(buf), partials[i].start, partials[i].end);
 			tds_dstr_copy(&drec->sql_desc_base_table_name, buf);
 
