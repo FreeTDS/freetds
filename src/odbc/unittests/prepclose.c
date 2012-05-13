@@ -34,16 +34,9 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int
 close_last_socket(void)
 {
-	int max_socket = -1, i;
+	int max_socket = odbc_find_last_socket();
 	int sockets[2];
 
-	for (i = 3; i < 1024; ++i) {
-		struct stat file_stat;
-		if (fstat(i, &file_stat))
-			continue;
-		if ((file_stat.st_mode & S_IFSOCK) == S_IFSOCK)
-			max_socket = i;
-	}
 	if (max_socket < 0)
 		return 0;
 

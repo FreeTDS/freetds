@@ -7,6 +7,18 @@
 #include <assert.h>
 #include <ctype.h>
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif /* HAVE_SYS_SOCKET_H */
+
+#if HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
+
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NETINET_IN_H */
+
 #ifndef _WIN32
 #include "tds_sysdep_private.h"
 #else
@@ -569,3 +581,33 @@ odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s)
 	odbc_from_sqlwchar(out, s, n);
 	return out;
 }
+
+#ifndef _WIN32
+int
+odbc_find_last_socket(void)
+{
+	int max_socket = -1, i;
+
+	for (i = 3; i < 1024; ++i) {
+		struct stat file_stat;
+		union {
+			struct sockaddr sa;
+			char data[256];
+		} u;
+		SOCKLEN_T addrlen;
+
+		if (fstat(i, &file_stat))
+			continue;
+		if ((file_stat.st_mode & S_IFSOCK) != S_IFSOCK)
+			continue;
+		addrlen = sizeof(u);
+		if (tds_getsockname(i, &u.sa, &addrlen) < 0)
+			continue;
+		if (u.sa.sa_family != AF_INET && u.sa.sa_family != AF_INET6)
+			continue;
+		max_socket = i;
+	}
+	return max_socket;
+}
+#endif
+

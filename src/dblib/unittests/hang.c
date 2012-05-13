@@ -37,6 +37,12 @@
 #include <sys/wait.h>
 #endif /* HAVE_SYS_WAIT_H */
 
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif /* HAVE_NET_INET_IN_H */
+
+#include "tds_sysdep_private.h"
+
 static char software_version[] = "$Id: hang.c,v 1.3 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
@@ -56,8 +62,17 @@ shutdown_last_socket(void)
 		struct stat file_stat;
 		if (fstat(i, &file_stat))
 			continue;
-		if ((file_stat.st_mode & S_IFSOCK) == S_IFSOCK)
-			max_socket = i;
+		if ((file_stat.st_mode & S_IFSOCK) == S_IFSOCK) {
+			union {
+				struct sockaddr sa;
+				char data[256];
+			} u;
+			SOCKLEN_T addrlen;
+
+			addrlen = sizeof(u);
+			if (tds_getsockname(i, &u.sa, &addrlen) >= 0 && (u.sa.sa_family == AF_INET || u.sa.sa_family == AF_INET6))
+				max_socket = i;
+		}
 	}
 	if (max_socket < 0)
 		return 0;

@@ -175,6 +175,10 @@ void odbc_setenv(const char *name, const char *value, int overwrite);
 #define setenv odbc_setenv
 #endif
 
+#ifndef _WIN32
+int odbc_find_last_socket(void);
+#endif
+
 int odbc_to_sqlwchar(SQLWCHAR *dst, const char *src, int n);
 int odbc_from_sqlwchar(char *dst, const SQLWCHAR *src, int n);
 

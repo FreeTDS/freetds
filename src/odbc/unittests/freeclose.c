@@ -58,24 +58,9 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static TDS_MUTEX_DECLARE(mtx);
 
-#ifndef _WIN32
-static int
-find_last_socket(void)
-{
-	int max_socket = -1, i;
-
-	for (i = 3; i < 1024; ++i) {
-		struct stat file_stat;
-		if (fstat(i, &file_stat))
-			continue;
-		if ((file_stat.st_mode & S_IFSOCK) == S_IFSOCK)
-			max_socket = i;
-	}
-	return max_socket;
-}
-#else
+#ifdef _WIN32
 static TDS_SYS_SOCKET
-find_last_socket(void)
+odbc_find_last_socket(void)
 {
 	TDS_SYS_SOCKET max_socket = INVALID_SOCKET;
 	int i;
@@ -338,7 +323,7 @@ main(int argc, char **argv)
 
 	odbc_connect();
 
-	last_socket = find_last_socket();
+	last_socket = odbc_find_last_socket();
 	if (TDS_IS_SOCKET_INVALID(last_socket)) {
 		fprintf(stderr, "Error finding last socket opened\n");
 		return 1;
