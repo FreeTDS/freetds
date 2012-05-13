@@ -14,7 +14,7 @@ errore() {
 
 NTWDBLIB=no
 TYPE=win32
-HOSTS='i386-mingw32 i586-mingw32msvc'
+HOSTS='i386-mingw32 i586-mingw32msvc i686-w64-mingw32'
 ARCHIVE='tar jcvf "freetds-$PACKAGE_VERSION.$TYPE.tar.bz2" "freetds-$PACKAGE_VERSION"'
 PACK=yes
 ONLINE=no
