@@ -42,19 +42,25 @@ while(<IN>) {
 				$params_all .= "$sep$a $b";
 				$pass_aw    .= "$sep$b";
 				$log   .= "$sep%$fmt{$a}";
-				$log_p .= "$sep$b";
+				if ($fmt{$a} eq 'u') {
+					$log_p .= "$sep(unsigned int) $b";
+				} elsif ($fmt{$a} eq 'd') {
+					$log_p .= "$sep(int) $b";
+				} else {
+					$log_p .= "$sep$b";
+				}
 			} elsif ($type eq 'PCHARIN' || $type eq 'PCHAROUT') {
 				die $b if $b ne 'SQLSMALLINT' && $b ne 'SQLINTEGER';
 				if ($type eq 'PCHARIN') {
 					$params_all .= "${sep}ODBC_CHAR * sz$a, $b cb$a";
 					$pass_aw    .= "$sep(ODBC_CHAR*) sz$a, cb$a";
 					$log   .= "$sep%ls, %d";
-					$log_p .= "${sep}STRING(sz$a,cb$a), cb$a";
+					$log_p .= "${sep}STRING(sz$a,cb$a), (int) cb$a";
 				} else {
 					$params_all .= "${sep}ODBC_CHAR * sz$a, $b cb${a}Max, $b FAR* pcb$a";
 					$pass_aw    .= "${sep}(ODBC_CHAR*) sz$a, cb${a}Max, pcb$a";
 					$log   .= "$sep%p, %d, %p";
-					$log_p .= "${sep}sz$a, cb${a}Max, pcb$a";
+					$log_p .= "${sep}sz$a, (int) cb${a}Max, pcb$a";
 				}
 			} elsif ($type eq 'PCHAR') {
 				$params_all .= "${sep}ODBC_CHAR * $a";
