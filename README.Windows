@@ -8,14 +8,14 @@ FROM SCRATCH
 
 FreeTDS compile with ANSI strings.
 
-All libraries have them directory where you can include every C file you find
+Every library have a proper directory where you can include every C file you find
 inside (not recursively)
-- replacements
-- tds here there is an exception, do not include ptw32_MCS_lock.c file
+- replacements here there is an exception, do not include ptw32_MCS_lock.c file
+- tds
 - dblib
 - ctlib
 - odbc
-All libraries depends in replacements one (except replacements obviously),
+All libraries depends on replacements one (except replacements obviously),
 dblib, ctlib and odbc depends on tds.
 You should add ws2_32.lib do dependencies.
 
