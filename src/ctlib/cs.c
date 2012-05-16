@@ -682,6 +682,7 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		case SYBDECIMAL:
 			src_len = tds_numeric_bytes_per_prec[((TDS_NUMERIC *) srcdata)->precision] + 2;
 		case SYBBITN:
+		case SYBUNIQUE:
 			memcpy(dest, srcdata, minlen);
 			*resultlen = minlen;
 
@@ -821,6 +822,11 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	case SYBDATETIME4:
 		memcpy(dest, &(cres.dt4), sizeof(TDS_DATETIME4));
 		*resultlen = sizeof(TDS_DATETIME4);
+		ret = CS_SUCCEED;
+		break;
+	case SYBUNIQUE:
+		memcpy(dest, &(cres.u), sizeof(cres.u));
+		*resultlen = sizeof(cres.u);
 		ret = CS_SUCCEED;
 		break;
 	case SYBNUMERIC:
