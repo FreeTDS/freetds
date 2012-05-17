@@ -9,7 +9,7 @@ CppCompiler=-D__GNUWIN32__ -W -DUNIXODBC -DWIN32 -DNDEBUG -D_WINDOWS -D_MBCS -D_
 Includes=..;../../include
 Linker=-lws2_32 -lkernel32 -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32 -lole32 -loleaut32 -luuid -lodbc32 -lodbccp32_@@_-s --def ../FreeTds.def_@@_-Wl,--enable-stdcall-fixup_@@_
 Libs=
-UnitCount=60
+UnitCount=61
 Folders="Header Files",LibTDS,Replacements,"Resource Files","Source Files"
 ObjFiles=
 PrivateResource=FreeTDS_private.rc
@@ -645,4 +645,15 @@ Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
+
+[Unit61]
+FileName=..\..\src\tds\packet.c
+CompileCpp=0
+Folder=LibTDS
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=$(CC) -c packet.c -o packet.o $(CFLAGS)
+
 

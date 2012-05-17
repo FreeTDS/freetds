@@ -145,6 +145,10 @@ SOURCE=..\..\src\tds\net.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\tds\packet.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\tds\numeric.c
 # End Source File
 # Begin Source File

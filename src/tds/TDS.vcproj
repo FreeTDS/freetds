@@ -397,6 +397,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\packet.c"
+				>
+			</File>
+			<File
 				RelativePath=".\numeric.c"
 				>
 			</File>
