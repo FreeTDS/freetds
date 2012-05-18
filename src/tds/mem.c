@@ -35,6 +35,10 @@
 #include "replacements.h"
 #include "enum_cap.h"
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
 #ifdef STRING_H
 #include <string.h>
 #endif

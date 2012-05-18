@@ -436,10 +436,10 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 	return 0;
 }
 
-// TODO remove tds, save error somewhere, report error in another way
 /**
  * Read from an OS socket
- * @returns 0 if blocking, <0 error >0 bytes readed
+ * @TODO remove tds, save error somewhere, report error in another way
+ * @returns 0 if blocking, <0 error >0 bytes read
  */
 static int
 tds_socket_read(TDSCONNECTION * connection, TDSSOCKET *tds, unsigned char *buf, int buflen)

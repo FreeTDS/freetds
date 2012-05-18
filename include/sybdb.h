@@ -282,8 +282,8 @@ typedef struct
 
 typedef struct
 {
-	DBUSMALLINT days;	// days since Jan-1-1900
-	DBUSMALLINT minutes;	// minutes since midnight
+	DBUSMALLINT days;	/* days since Jan-1-1900 */
+	DBUSMALLINT minutes;	/* minutes since midnight */
 } DBDATETIME4;
 
 #ifdef MSDBLIB

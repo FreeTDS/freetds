@@ -725,7 +725,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	const char *user_name = tds_dstr_cstr(&login->user_name);
 
-	// FIXME: These are defined as size_t, but should be TDS_SMALLINT. 
+	/* FIXME: These are defined as size_t, but should be TDS_SMALLINT. */
 	size_t user_name_len = strlen(user_name);
 	size_t host_name_len = tds_dstr_len(&login->client_host_name);
 	size_t app_name_len = tds_dstr_len(&login->app_name);

@@ -32,7 +32,7 @@
 #ifndef _READPASSPHRASE_H_
 #define _READPASSPHRASE_H_
 
-#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
+#if HAVE_PRAGMA_VISIBILITY
 #pragma GCC visibility push(hidden)
 #endif
 

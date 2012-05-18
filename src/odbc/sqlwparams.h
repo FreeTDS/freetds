@@ -1,4 +1,6 @@
-//#define FUNC NAME(SQLTest) (P(SQLSMALLINT, x), PCHAR(y) WIDE)
+#if 0
+# define FUNC NAME(SQLTest) (P(SQLSMALLINT, x), PCHAR(y) WIDE) 
+#endif
 
 #undef NAME
 #undef WIDE

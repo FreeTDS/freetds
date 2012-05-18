@@ -1933,8 +1933,8 @@ tds_send_cancel(TDSSOCKET * tds)
 	 */
 	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx)) {
 		static const char one = '1';
-		// TODO check
-		// signal other socket
+		/* TODO check */
+		/* signal other socket */
 		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
 		return TDS_SUCCESS;
 	}
