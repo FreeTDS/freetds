@@ -1262,15 +1262,18 @@ extern int tds_g_append_mode;
 /* net.c */
 TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout, int *p_oserr);
 int tds_close_socket(TDSSOCKET * tds);
-int tds_read_packet(TDSSOCKET * tds);
-TDSRET tds_write_packet(TDSSOCKET * tds, unsigned char final);
 int tds7_get_instance_ports(FILE *output, const char *ip_addr);
 int tds7_get_instance_port(const char *ip_addr, const char *instance);
 TDSRET tds_ssl_init(TDSSOCKET *tds);
 void tds_ssl_deinit(TDSSOCKET *tds);
 const char *tds_prwsaerror(int erc);
-int tds_put_cancel(TDSSOCKET * tds);
+int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
+int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final);
 
+/* packet.c */
+int tds_read_packet(TDSSOCKET * tds);
+TDSRET tds_write_packet(TDSSOCKET * tds, unsigned char final);
+int tds_put_cancel(TDSSOCKET * tds);
 
 
 /* vstrbuild.c */
