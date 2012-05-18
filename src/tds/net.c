@@ -595,13 +595,13 @@ tds_read_packet(TDSSOCKET * tds)
 		if (p - pkt >= 4) {
 			unsigned pktlen = pkt[2] * 256u + pkt[3];
 			/* packet must at least contains header */
-			if (pktlen < 8) {
+			if (TDS_UNLIKELY(pktlen < 8)) {
 				tds_close_socket(tds);
 				return -1;
 			}
-			if (pktlen > tds->in_buf_max) {
+			if (TDS_UNLIKELY(pktlen > tds->in_buf_max)) {
 				pkt = (unsigned char *) realloc(tds->in_buf, pktlen);
-				if (!pkt) {
+				if (TDS_UNLIKELY(!pkt)) {
 					tds_close_socket(tds);
 					return -1;
 				}
