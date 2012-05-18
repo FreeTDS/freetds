@@ -1,11 +1,9 @@
-
 # Converting DocBook to HTML (several small files)
 # http://www.freebsd.org/tutorials/docproj-primer/x3132.html#AEN3140
 
 # $Id: Makefile.am,v 1.68 2012-01-17 03:46:35 jklowden Exp $
 
 SHELL = /bin/sh
-TXT2MAN = $(srcdir)/txt2man
 DOCDIR = doc/freetds-$(VERSION)
 PRODUCT = FreeTDS
 TARGET_DOCDIR = $(DESTDIR)$(datadir)/$(DOCDIR)
@@ -31,8 +29,7 @@ CALLOUTS =	images/callouts/1.gif \
 EXTRA_DIST =	api_status.txt bcp.txt cap.txt getting_started.txt \
 		policy.txt CodingStyle tds.html  \
 		userguide.dsl.in userguide.sgml userguide.css \
-		$(man_MANS) freebcp.txt tsql.txt osql.txt fisql.txt \
-		bsqldb.txt bsqlodbc.txt defncopy.txt datacopy.txt \
+		$(man_MANS) \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
 		images grep_sample_code \
 		tds_ssl.html
@@ -40,9 +37,16 @@ EXTRA_DIST =	api_status.txt bcp.txt cap.txt getting_started.txt \
 dist-hook:
 	find $(distdir)/doc -name CVS -exec rm -rf {} ';'
 
-man_MANS	= freebcp.1 tsql.1 osql.1 bsqldb.1 bsqlodbc.1 defncopy.1 datacopy.1 fisql.1 \
-		  freetds.conf.5
- 
+man_MANS = 	freebcp.1 \
+		tsql.1 \
+		osql.1 \
+		bsqldb.1 \
+		bsqlodbc.1 \
+		defncopy.1 \
+		datacopy.1 \
+		fisql.1 \
+		freetds.conf.5
+
 noinst_DATA	= $(DOCDIR)/reference/index.html $(DOCDIR)/userguide/index.htm
 
 $(DOCDIR)/userguide: $(DOCDIR)/userguide/index.htm
@@ -60,60 +64,24 @@ INSTALLDIRS = 	$(TARGET_DOCDIR)/userguide    \
 		$(TARGET_DOCDIR)/images       \
 		$(TARGET_DOCDIR)/images/callouts
 
-
 $(INSTALLDIRS) $(DOCDIR):
 	$(MKDIR_P) $@  2>&1
 
+bsqldb.1: $(srcdir)/bsqldb.1.in
+bsqlodbc.1: $(srcdir)/bsqlodbc.1.in
+datacopy.1: $(srcdir)/datacopy.1.in
+defncopy.1: $(srcdir)/defncopy.1.in
+fisql.1: $(srcdir)/fisql.txt
+freebcp.1: $(srcdir)/freebcp.1.in
+osql.1: $(srcdir)/osql.1.in
+tsql.1: $(srcdir)/tsql.1.in
+freetds.conf.5: $(srcdir)/freetds.conf.5.in
 
-MANOPTS = -I 'FreeTDS User Guide'  -v 'FreeTDS Utilities' -t $(PRODUCT) -r $(VERSION)
-
-freebcp.1: freebcp.txt
-	$(TXT2MAN) $(MANOPTS) $(srcdir)/freebcp.txt >.$@
-	if test ! -s .$@; then echo 'unable to generate $@'; fi
-	test -s .$@
-	mv .$@ $@
-
-tsql.1: tsql.txt
-	$(TXT2MAN) $(MANOPTS) $(srcdir)/tsql.txt >.$@
-	if test ! -s .$@; then echo 'unable to generate $@'; fi
-	test -s .$@
-	mv .$@ $@
-
-osql.1: osql.txt
-	$(TXT2MAN) $(MANOPTS) $(srcdir)/osql.txt >.$@
-	if test ! -s .$@; then echo 'unable to generate $@'; fi
-	test -s .$@
-	mv .$@ $@
-
-fisql.1: fisql.txt
-	$(TXT2MAN) $(MANOPTS) $(srcdir)/fisql.txt >.$@
-	if test ! -s .$@; then echo 'unable to generate $@'; fi
-	test -s .$@
-	mv .$@ $@
-
-bsqldb.1: bsqldb.txt
-	$(TXT2MAN) $(MANOPTS) $(srcdir)/bsqldb.txt >.$@
-	if test ! -s .$@; then echo 'unable to generate $@'; fi
-	test -s .$@
-	mv .$@ $@
-
-bsqlodbc.1: bsqlodbc.txt
-	$(TXT2MAN) $(MANOPTS) $(srcdir)/bsqlodbc.txt >.$@
-	if test ! -s .$@; then echo 'unable to generate $@'; fi
-	test -s .$@
-	mv .$@ $@
-
-defncopy.1: defncopy.txt
-	$(TXT2MAN) $(MANOPTS) $(srcdir)/defncopy.txt >.$@
-	if test ! -s .$@; then echo 'unable to generate $@'; fi
-	test -s .$@
-	mv .$@ $@
-
-datacopy.1: datacopy.txt
-	$(TXT2MAN) $(MANOPTS) $(srcdir)/datacopy.txt >.$@
-	if test ! -s .$@; then echo 'unable to generate $@'; fi
-	test -s .$@
-	mv .$@ $@
+$(man_MANS):
+	@echo making $@
+	sed -e 's/\$$ver\$$/$(VERSION)/' $(srcdir)/$@.in > $@~
+	@test -s $@~
+	mv $@~ $@
 
 # If we built the documentation ourselves, install that, 
 # else if we have access to distributed documentation, install that.  
@@ -137,26 +105,37 @@ clean-local:
 		ctlib.api.sgml	\
 		 odbc.api.sgml   
 
-## In building the UG and reference manual, we confront several possible situations:
+## In building the UG and reference manual, we confront several
+## possible situations:
 ## 1.  CVS user (or developer) with or without jade/doxygen installed.
-## 2.  Distribution user.  The distribution includes pre-built documentation, ready to install.
-## Either of these users may choose to build out-of-tree (e.g., in a build/ directory).  
-## We want to build the docs if we can, link to distributed ones if they exist, else create 
-## stub files pointing to the website.  
+## 2.  Distribution user.  The distribution includes pre-built
+##     documentation, ready to install.
+## Either of these users may choose to build out-of-tree (e.g., in a
+## build/ directory).  We want to build the docs if we can, link to
+## distributed ones if they exist, else create stub files pointing to
+## the website.  
 ##
-## In the case of jade, we build the documentation only if the environment variable DOCBOOK_DSL 
-## is set.  A user would define DOCBOOK_DSL only if he intends to build the UG.  If the user
-## builds FreeTDS out of tree, "make install" will put a symlink to the distributed UG HTML
-## in the build directory, and install per usual.  
+## In the case of jade, we build the documentation only if the
+## environment variable DOCBOOK_DSL is set.  A user would define
+## DOCBOOK_DSL only if he intends to build the UG.  If the user builds
+## FreeTDS out of tree, "make install" will put a symlink to the
+## distributed UG HTML in the build directory, and install per usual.
 ##
-## In the case of Doxygen, we detect its presence in the configure script, and invoke it if 
-## found.  If it is not found, we try to link the build tree's reference manual HTML to the
-## distribution.  If that fails, we install a stub.  
+## In the case of Doxygen, we detect its presence in the configure
+## script, and invoke it if found.  If it is not found, we try to link
+## the build tree's reference manual HTML to the distribution.  If
+## that fails, we install a stub.
 
 DISTRIBUTED_UG_DIR = $(srcdir)/$(DOCDIR)/userguide
 
+UG_STUB = <html> \
+	<P>at <a HREF="http://www.freetds.org/userguide/">www.freetds.org</a> \
+	</html>
+
 # To make the userguide, export DOCBOOK_DSL to point to docbook.dsl.
-$(DOCDIR)/userguide/index.htm: $(DOCDIR) userguide.sgml  userguide.dsl.in api_status.txt
+$(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml \
+				dblib.api.sgml ctlib.api.sgml odbc.api.sgml \
+				userguide.dsl.in api_status.txt
 	sed -ne's!SYSTEM "docbook.dsl" CDATA!SYSTEM "${DOCBOOK_DSL}" CDATA!; p' \
 		$(srcdir)/userguide.dsl.in > .userguide.dsl
 	mv .userguide.dsl userguide.dsl
@@ -166,7 +145,8 @@ $(DOCDIR)/userguide/index.htm: $(DOCDIR) userguide.sgml  userguide.dsl.in api_st
 	$(MAKE) dblib.api.sgml ctlib.api.sgml odbc.api.sgml
 # if we're not using jade, copy the distribution's userguide
 	if test -z "${DOCBOOK_DSL}" ; then \
-		if test -r $(DISTRIBUTED_UG_DIR) -a ! -r $(DOCDIR)/userguide ; then \
+		if test -r $(DISTRIBUTED_UG_DIR) \
+		   -a ! -r $(DOCDIR)/userguide ; then \
 			cp -R $(DISTRIBUTED_UG_DIR) $(DOCDIR); \
 		fi; \
 	fi
@@ -175,7 +155,9 @@ $(DOCDIR)/userguide/index.htm: $(DOCDIR) userguide.sgml  userguide.dsl.in api_st
 	if test -n "${DOCBOOK_DSL}" ; then \
 ##		The crazy path is due to the above 'cd' command
 		SRCDOC=../../../$(srcdir); \
-		if test ! -r userguide.sgml; then ln -s $${SRCDOC}/userguide.sgml userguide.sgml; fi; \
+		if test ! -r userguide.sgml; then \
+			ln -s $${SRCDOC}/userguide.sgml userguide.sgml; \
+		fi; \
 		openjade -b utf-8 -w all -w no-empty -w no-unused-param \
 			 -d ../../../userguide.dsl -t sgml userguide.sgml; \
 		if test -h userguide.sgml; then rm userguide.sgml; fi; \
@@ -186,12 +168,11 @@ $(DOCDIR)/userguide/index.htm: $(DOCDIR) userguide.sgml  userguide.dsl.in api_st
 	@echo pwd is $$(pwd)
 	-ls -ld $$(dirname $@) $@
 	if test ! -r $@ ; then \
-		echo '<html><P>at <a HREF="http://www.freetds.org/userguide/">www.freetds.org</a></html>' 	\
-		> .index.htm && \
-		mv .index.htm $@; \
+		echo '$(UG_STUB)' > .index.htm && mv .index.htm $@; \
 	fi
 	test -f $(DOCDIR)/userguide/index.htm
-	(cd $(DOCDIR)/userguide && if test ! -h index.html ; then ln -s index.htm index.html; fi)
+	(cd $(DOCDIR)/userguide && \
+	if test ! -h index.html ; then ln -s index.htm index.html; fi)
 # for convenience, create a link in the build directory
 	if test -h userguide; then rm userguide; fi
 	ln -sf $(DOCDIR)/userguide userguide
@@ -201,26 +182,32 @@ reference: $(DOCDIR)/reference/index.html
 
 DISTRIBUTED_REF_DIR = $(srcdir)/$(DOCDIR)/reference
 
+REF_STUB = <html> \
+	<P>at <a HREF="http://www.freetds.org/reference/">www.freetds.org</a> \
+	</html>
+
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 	$(MKDIR_P) $(DOCDIR)/reference 2>&1
 	(cd .. && $(MAKE) doxy 2> doc/doxy.log)
-# if "make doxy" doesn't create anything, try to copy the distributed manual's HTML
+# If "make doxy" doesn't create anything, 
+# try to copy the distributed manual's HTML
 	if test -r $(DISTRIBUTED_REF_DIR)/index.html -a ! $@ ; then \
 		cp -R $(DISTRIBUTED_REF_DIR) $(DOCDIR); \
 	fi
-# if we don't find the source, generate a stub
+# If we don't find the source, generate a stub.
 	if test ! -r $@ ; then \
 		(cd $(DOCDIR)/reference && \
-		echo '<html><P>at <a HREF="http://www.freetds.org/reference/">www.freetds.org</a></html>' 	\
+		echo '$(REF_STUB)' 	\
 			> .index.html &&  \
 		mv .index.html index.html); \
 	fi
-# for convenience, create a link in the build directory
+# For convenience, create a link in the build directory.
 	if test -h reference; then rm reference; fi
 	ln -sf $(DOCDIR)/reference reference
 
 #
-# The following sections generate API implementation reference tables as SGML "entities".
+# The following sections generate API implementation reference tables
+# as SGML "entities".
 # The entities are used a little bit like include files in the UG, e.g.:  
 #	<!ENTITY dblibapisgml SYSTEM "../../../dblib.api.sgml">
 #
@@ -233,65 +220,48 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 #
 # This lets us use the api_status.txt document in our SGML.
 #
-dblib.api.sgml:
-	echo '<table id="dblib.api"><title>db-lib API Implementation Summary</title>' > .dblib.api
-	echo '<tgroup cols=5><thead><row>' \
-  		'<entry>Category</>' \
-  		'<entry>Microsoft name</>' \
-  		'<entry>Sybase name</>' \
-  		'<entry>Status</>' \
-  		'<entry>Comments</>' \
-		'</row></thead>' \
-		'<tbody>' \
-		>> .dblib.api
-	grep '^dblib' $(srcdir)/api_status.txt | \
-		sed -e 's!^dblib[	]!<row><entry>!; s![	][	]*!</> <entry>!g; s!$$!</></row>!; ' \
-		>> .dblib.api
-	echo '</tbody></tgroup></table>' >> .dblib.api
-	mv .dblib.api $@
+API_TABLE_HEADING = \
+	<tgroup cols=4><thead><row> \
+		<entry>Category</> \
+		<entry>Function</> \
+		<entry>Status</> \
+		<entry>Comments</> \
+		</row></thead> 
 
-ctlib.api.sgml:
-	echo '<table id="ctlib.api" colsep=0>' \
-		'<title>ct-lib API Implementation Summary</title>' \
-		> .ctlib.api
-	echo '<tgroup cols=4><thead><row>' \
-		'<entry>Category</>' \
-		'<entry>Function</>' \
-  		'<entry>Status</>' \
-  		'<entry>Comments</>' \
-		'</row></thead>' \
-		'<tbody>' \
-			>> .ctlib.api
-	grep '^ctlib' $(srcdir)/api_status.txt | \
-		sed -e 's!^ctlib[	]!<row><entry>!; s![	]!</> <entry>!g; s!$$!</></row>!; ' \
-		>> .ctlib.api
-	echo '</tbody></tgroup></table>' \
-		>> .ctlib.api
-	mv .ctlib.api $@
+API_FUNC_COL = <entry>Function</> 
+API_DBLIB_FUNC_COLS = <entry>Microsoft name</><entry>Sybase name</>
 
-MSDN_ODBC = http://msdn.microsoft.com/library/en-us/odbc/htm/odbc
+API_PAGE_FMT = \
+	<table id="%s.api"> \
+	<title>&%s; API Implementation Summary</title>\n \
+	<!-- table heading -->\n \
+		%s\n \
+	<tbody>\n \
+		%s\n \
+	</tbody></tgroup></table>\n
 
-odbc.api.sgml:
-	echo '<table id="odbc.api"><title>ODBC API Implementation Summary</title>' \
-			> .odbc.api
-	echo '<tgroup cols=4><thead><row>' \
-		'<entry>Category</>' \
-		'<entry>Function</>' \
-		'<entry>Status</>' \
-		'<entry>Comments</>' \
-		'</row></thead>' \
-		'<tbody>' \
-			>> .odbc.api
-# The mean RE below (with "ulink" in it) forms a URL to Microsoft's reference page
-# for the function.  It assumes a word starting with "SQL" is an ODBC function. 
-# Let's hope they don't change their site too often.  
-	grep '^odbc' $(srcdir)/api_status.txt | \
-		sed -e' s!^odbc[	]!<row><entry>!; s![	][	]*!</> <entry>!g; s!\(SQL[[:alpha:]]*\)!<ulink url="$(MSDN_ODBC)\1.asp">\1</ulink>!g; s!$$!</></row>!; ' \
-		>> .odbc.api
-	echo '</tbody></tgroup></table>' \
-		>> .odbc.api
-	mv .odbc.api $@
+dblib.api.body ctlib.api.body odbc.api.body: $(srcdir)/api_status.txt
+	NAME=$$(echo $@ | sed 's/\..*$$//') && \
+	sed -ne "/^$${NAME}[	]/ s!!<row><entry>!p" \
+			$(srcdir)/api_status.txt \
+		| sed 	-e's![	][	]*!</> <entry>!g' \
+			-e's!$$!</></row>!'  > $@~
+	mv $@~ $@
 
+dblib.api.sgml: dblib.api.body
+ctlib.api.sgml: ctlib.api.body
+odbc.api.sgml: odbc.api.body
+
+dblib.api.sgml ctlib.api.sgml odbc.api.sgml: 
+	NAME=$$(echo $@ | sed 's/\..*$$//') && \
+	HEAD='$(API_TABLE_HEADING)' && \
+	if [ $${NAME} = dblib ]; then \
+		HEAD=$$(echo '$(API_TABLE_HEADING)' \
+			| sed 's!$(API_FUNC_COL)!$(API_DBLIB_FUNC_COLS)!'); \
+	fi && \
+	BODY=$$(cat $(@:.sgml=.body)) && \
+	printf '$(API_PAGE_FMT)' $${NAME} $${NAME} "$${HEAD}" "$${BODY}"  > $@~
+	mv $@~ $@
 
 
 DISTCLEANFILES = $(DOCDIR)/userguide $(DOCDIR)/reference

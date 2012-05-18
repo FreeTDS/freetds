@@ -437,6 +437,7 @@ AC_DEFINE(HAVE_GETOPT_OPTRESET, 1, [Define if your getopt(3) defines and uses op
 # ------------------------------------------------------------
 # Checks for compiler characteristics.
 # ------------------------------------------------------------
+AC_HAVE_PRAGMA_VISIBILITY
 AC_C_BIGENDIAN
 AC_C_CONST
 
