@@ -551,14 +551,16 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 }
 
 static int
-goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
+tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
+	TDSCONNECTION *connection = tds_conn(tds);
+
 #ifdef HAVE_GNUTLS
-	if (tds_conn(tds)->tls_session)
-		return gnutls_record_recv((gnutls_session) tds_conn(tds)->tls_session, buf, buflen);
+	if (connection->tls_session)
+		return gnutls_record_recv((gnutls_session) connection->tls_session, buf, buflen);
 #elif defined(HAVE_OPENSSL)
-	if (tds_conn(tds)->tls_session)
-		return SSL_read((SSL*) tds_conn(tds)->tls_session, buf, buflen);
+	if (connection->tls_session)
+		return SSL_read((SSL*) connection->tls_session, buf, buflen);
 #endif
 	return tds_goodread(tds, buf, buflen);
 }
@@ -583,7 +585,7 @@ tds_read_packet(TDSSOCKET * tds)
 	tds->in_len = 0;
 	tds->in_pos = 0;
 	for (p = pkt, end = p+8; p < end;) {
-		int len = goodread(tds, p, end - p);
+		int len = tds_connection_read(tds, p, end - p);
 		if (len <= 0) {
 			tds_close_socket(tds);
 			return -1;
@@ -697,15 +699,46 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 	return len;
 }
 
+static int
+tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
+{
+	int sent;
+	TDSCONNECTION *connection = tds_conn(tds);
+
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
+	void (*oldsig) (int);
+
+	oldsig = signal(SIGPIPE, SIG_IGN);
+	if (oldsig == SIG_ERR) {
+		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
+	}
+#endif
+
+#ifdef HAVE_GNUTLS
+	if (connection->tls_session)
+		sent = gnutls_record_send((gnutls_session) connection->tls_session, buf, buflen);
+	else
+#elif defined(HAVE_OPENSSL)
+	if (connection->tls_session)
+		sent = SSL_write((SSL*) connection->tls_session, buf, buflen);
+	else
+#endif
+		sent = tds_goodwrite(tds, buf, buflen, final);
+
+#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
+	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
+		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
+	}
+#endif
+	return sent;
+}
+
+
 TDSRET
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
 	int sent;
 	unsigned int left = 0;
-
-#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
-	void (*oldsig) (int);
-#endif
 
 #if TDS_ADDITIONAL_SPACE != 0
 	if (tds->out_pos > tds->env.block_size) {
@@ -723,29 +756,8 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
-#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
-	oldsig = signal(SIGPIPE, SIG_IGN);
-	if (oldsig == SIG_ERR) {
-		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
-	}
-#endif
+	sent = tds_connection_write(tds, tds->out_buf, tds->out_pos, final);
 
-#ifdef HAVE_GNUTLS
-	if (tds_conn(tds)->tls_session)
-		sent = gnutls_record_send(tds_conn(tds)->tls_session, tds->out_buf, tds->out_pos);
-	else
-#elif defined(HAVE_OPENSSL)
-	if (tds_conn(tds)->tls_session)
-		sent = SSL_write((SSL*) tds_conn(tds)->tls_session, tds->out_buf, tds->out_pos);
-	else
-#endif
-		sent = tds_goodwrite(tds, tds->out_buf, tds->out_pos, final);
-
-#if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
-	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
-		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
-	}
-#endif
 
 #if TDS_ADDITIONAL_SPACE != 0
 	memcpy(tds->out_buf + 8, tds->out_buf + tds->env.block_size, left);
@@ -762,10 +774,6 @@ tds_put_cancel(TDSSOCKET * tds)
 	unsigned char out_buf[8];
 	int sent;
 
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
-	void (*oldsig) (int);
-#endif
-
 	memset(out_buf, 0, sizeof(out_buf));
 	out_buf[0] = TDS_CANCEL;	/* out_flag */
 	out_buf[1] = 1;	/* final */
@@ -776,29 +784,7 @@ tds_put_cancel(TDSSOCKET * tds)
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", out_buf, 8);
 
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
-	oldsig = signal(SIGPIPE, SIG_IGN);
-	if (oldsig == SIG_ERR) {
-		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't set SIGPIPE signal to be ignored\n");
-	}
-#endif
-
-#ifdef HAVE_GNUTLS
-	if (tds_conn(tds)->tls_session)
-		sent = gnutls_record_send(tds_conn(tds)->tls_session, out_buf, 8);
-	else
-#elif defined(HAVE_OPENSSL)
-	if (tds_conn(tds)->tls_session)
-		sent = SSL_write((SSL*) tds_conn(tds)->tls_session, out_buf, 8);
-	else
-#endif
-		sent = tds_goodwrite(tds, out_buf, 8, 1);
-
-#if !defined(WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X)
-	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
-		tdsdump_log(TDS_DBG_WARN, "TDS: Warning: Couldn't reset SIGPIPE signal to previous value\n");
-	}
-#endif
+	sent = tds_connection_write(tds, out_buf, 8, 1);
 
 	if (sent > 0)
 		tds->in_cancel = 1;
