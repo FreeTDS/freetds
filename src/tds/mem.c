@@ -1060,42 +1060,166 @@ tds_free_login(TDSLOGIN * login)
 	free(login);
 }
 
-TDSSOCKET *
-tds_alloc_socket(TDSCONTEXT * context, int bufsize)
+TDSPACKET *
+tds_alloc_packet(void *buf, unsigned len)
+{
+	TDSPACKET *packet = (TDSPACKET *) malloc(len + TDS_OFFSET(TDSPACKET, buf));
+	if (TDS_LIKELY(packet)) {
+		packet->pos = 0;
+		packet->len = len;
+		packet->tds = NULL;
+		packet->next = NULL;
+		if (buf)
+			memcpy(packet->buf, buf, len);
+	}
+	return packet;
+}
+
+TDSPACKET *
+tds_realloc_packet(TDSPACKET *packet, unsigned len)
+{
+	packet = (TDSPACKET *) realloc(packet, len + TDS_OFFSET(TDSPACKET, buf));
+	if (TDS_LIKELY(packet))
+		packet->len = len;
+	return packet;
+}
+
+void
+tds_free_packets(TDSPACKET *packet)
+{
+	TDSPACKET *next;
+	for (; packet; packet = next) {
+		next = packet->next;
+		free(packet);
+	}
+}
+
+static void
+tds_free_connection(TDSCONNECTION *conn)
+{
+	if (!conn) return;
+	assert(conn->list == NULL);
+	assert(conn->in_net_tds == NULL);
+	if (conn->authentication)
+		conn->authentication->free(conn, conn->authentication);
+	conn->authentication = NULL;
+	while (conn->dyns)
+		tds_dynamic_deallocated(conn, conn->dyns);
+	while (conn->cursors)
+		tds_cursor_deallocated(conn, conn->cursors);
+#if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
+	tds_ssl_deinit(conn);
+#endif
+	/* close connection and free inactive sockets */
+	tds_connection_close(conn);
+	free(conn->product_name);
+	TDS_MUTEX_FREE(&conn->list_mtx);
+	CLOSESOCKET(conn->s_signal);
+	CLOSESOCKET(conn->s_signaled);
+	tds_free_packets(conn->packets);
+	tds_free_packets(conn->recv_packet);
+	tds_free_packets(conn->send_packets);
+	tds_free_env(conn);
+	free(conn);
+}
+
+static TDSCONNECTION *
+tds_alloc_connection(TDSCONTEXT *context)
 {
 	int sv[2];
+	TDSCONNECTION *conn;
+
+	TEST_MALLOC(conn, TDSCONNECTION);
+	conn->s_signal = conn->s_signaled = conn->s = INVALID_SOCKET;
+	conn->use_iconv = 1;
+	conn->parent = NULL;
+	conn->tds_ctx = context;
+	if (TDS_MUTEX_INIT(&conn->list_mtx))
+		goto Cleanup;
+	if (tds_socketpair(AF_UNIX, SOCK_STREAM, 0, sv))
+		goto Cleanup;
+	conn->s_signal   = sv[0];
+	conn->s_signaled = sv[1];
+	return conn;
+
+Cleanup:
+	tds_free_connection(conn);
+	return NULL;
+}
+
+static TDSSOCKET *
+tds_alloc_socket_base(int bufsize)
+{
 	TDSSOCKET *tds_socket;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
-	tds_set_ctx(tds_socket, context);
+
 	TEST_CALLOC(tds_socket->in_buf, unsigned char, bufsize);
 	tds_socket->in_buf_max = bufsize;
-	tds_conn(tds_socket)->s_signal = tds_conn(tds_socket)->s_signaled = INVALID_SOCKET;
+	tds_socket->sid = -2;
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
-	tds_set_parent(tds_socket, NULL);
-	tds_conn(tds_socket)->env.block_size = tds_socket->out_buf_max = bufsize;
+	tds_socket->out_buf_max = bufsize;
 
-	tds_conn(tds_socket)->use_iconv = 1;
 	if (tds_iconv_alloc(tds_socket))
 		goto Cleanup;
 
 	/* Jeff's hack, init to no timeout */
 	tds_socket->query_timeout = 0;
 	tds_init_write_buf(tds_socket);
-	tds_set_s(tds_socket, INVALID_SOCKET);
-	if (tds_socketpair(AF_UNIX, SOCK_STREAM, 0, sv))
-		goto Cleanup;
-	tds_conn(tds_socket)->s_signal   = sv[0];
-	tds_conn(tds_socket)->s_signaled = sv[1];
 	tds_socket->state = TDS_DEAD;
 	tds_socket->env_chg_func = NULL;
 	if (TDS_MUTEX_INIT(&tds_socket->wire_mtx))
+		goto Cleanup;
+	if (tds_cond_init(&tds_socket->packet_cond))
 		goto Cleanup;
 	return tds_socket;
       Cleanup:
 	tds_free_socket(tds_socket);
 	return NULL;
+}
+
+TDSSOCKET *
+tds_alloc_socket(TDSCONTEXT * context, int bufsize)
+{
+	TDSCONNECTION *conn = tds_alloc_connection(context);
+	TDSSOCKET *tds;
+
+	if (!conn)
+		return NULL;
+
+	conn->env.block_size = bufsize;
+	tds = tds_alloc_socket_base(bufsize);
+	if (tds) {
+		conn->list = tds;
+		tds->conn = conn;
+		return tds;
+	}
+	tds_free_connection(conn);
+	return NULL;
+}
+
+TDSSOCKET *
+tds_alloc_additional_socket(TDSCONNECTION *conn)
+{
+	TDSSOCKET *tds;
+	if (!IS_TDS72_PLUS(conn) || !conn->mars)
+		return NULL;
+
+	tds = tds_alloc_socket_base(conn->env.block_size);
+	if (!tds)
+		return NULL;
+
+	tds->sid = -1;
+	tds->conn = conn;
+	tds->state = TDS_IDLE;
+	/* FIXME use proper encoding */
+	tds_iconv_open(tds, "UTF-8");
+	TDS_MUTEX_LOCK(&conn->list_mtx);
+	tds->next = conn->list;
+	conn->list = tds;
+	TDS_MUTEX_UNLOCK(&conn->list_mtx);
+	return tds;
 }
 
 TDSSOCKET *
@@ -1117,34 +1241,53 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 	return NULL;
 }
 
+static void
+tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
+{
+	int must_free = 0;
+	TDSSOCKET **s;
+	TDS_MUTEX_LOCK(&conn->list_mtx);
+	for (s = &conn->list; *s; s = &(*s)->next)
+		if (*s == tds) {
+			*s = tds->next;
+			break;
+		}
+	if (!conn->list) {
+		must_free = 1;
+	} else if (tds->sid >= 0) {
+		/* FIXME check limit */
+		conn->zombie_sids[conn->num_zombie_sid++] = tds->sid;
+		/* tds use connection member so must be valid */
+		tds_append_fin(tds);
+	}
+	TDS_MUTEX_UNLOCK(&conn->list_mtx);
+
+	/* detach entirely */
+	tds->sid = -2;
+	tds->conn = NULL;
+
+	if (must_free)
+		tds_free_connection(conn);
+}
+
 void
 tds_free_socket(TDSSOCKET * tds)
 {
 	if (!tds)
 		return;
 
-	if (tds_conn(tds)->authentication)
-		tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
-	tds_conn(tds)->authentication = NULL;
+	/* detach this socket */
 	tds_release_cur_dyn(tds);
 	tds_release_cursor(&tds->cur_cursor);
+	if (tds->conn)
+		tds_connection_remove_socket(tds->conn, tds);
+
 	tds_detach_results(tds->current_results);
 	tds_free_all_results(tds);
-	tds_free_env(tds_conn(tds));
-	while (tds->conn->dyns)
-		tds_dynamic_deallocated(tds->conn, tds->conn->dyns);
-	while (tds->conn->cursors)
-		tds_cursor_deallocated(tds->conn, tds->conn->cursors);
 	free(tds->in_buf);
 	free(tds->out_buf);
-#if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
-	tds_ssl_deinit(tds_conn(tds));
-#endif
-	tds_close_socket(tds);
-	CLOSESOCKET(tds_conn(tds)->s_signal);
-	CLOSESOCKET(tds_conn(tds)->s_signaled);
 	tds_iconv_free(tds);
-	free(tds_conn(tds)->product_name);
+	tds_cond_destroy(&tds->packet_cond);
 	free(tds);
 }
 

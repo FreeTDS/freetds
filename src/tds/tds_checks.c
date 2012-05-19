@@ -68,14 +68,17 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 		assert(invalid_state);
 	}
 
-	assert(tds->state == TDS_DEAD || !TDS_IS_SOCKET_INVALID(tds_get_s(tds)));
-	assert(tds->state != TDS_DEAD || TDS_IS_SOCKET_INVALID(tds_get_s(tds)));
+	assert(tds->conn);
+
+	if (tds->state != TDS_DEAD)
+		assert(!TDS_IS_SOCKET_INVALID(tds_get_s(tds)));
 
 	/* test env */
 	tds_check_env_extra(&tds_conn(tds)->env);
 
 	/* test buffers and positions */
-	assert(tds->in_pos <= tds->in_len && tds->in_len <= tds->in_buf_max);
+	assert(tds->in_pos <= tds->in_len);
+//	assert(tds->in_len <= tds->in_buf_max);
 	/* TODO remove blocksize from env and use out_len ?? */
 /*	assert(tds->out_pos <= tds->out_len); */
 /* 	assert(tds->out_len == 0 || tds->out_buf != NULL); */
@@ -138,8 +141,11 @@ tds_check_column_extra(const TDSCOLUMN * column)
 {
 	int size;
 	TDSSOCKET tds;
+	TDSCONNECTION conn;
 	int varint_ok;
 	int column_varint_size;
+
+	tds.conn = &conn;
 
 	assert(column);
 	column_varint_size = column->column_varint_size;

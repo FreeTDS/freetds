@@ -978,6 +978,14 @@ typedef struct tds_authentication
 	TDSRET (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
 } TDSAUTHENTICATION;
 
+typedef struct tds_packet
+{
+	struct tds_packet *next;
+	struct tds_socket *tds;
+	unsigned pos, len;
+	unsigned char buf[1];
+} TDSPACKET;
+
 /* field related to connection */
 struct tds_connection
 {
@@ -1009,6 +1017,17 @@ struct tds_connection
 	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;
 	unsigned int tds71rev1:1;
+	unsigned int mars:1;
+
+	struct tds_socket *list;
+	TDS_MUTEX_DECLARE(list_mtx);
+	TDSSOCKET *in_net_tds;
+	TDSPACKET *packets;
+	TDSPACKET *recv_packet;
+	TDSPACKET *send_packets;
+
+	short zombie_sids[8];
+	unsigned char num_zombie_sid;
 
 	void *tls_session;
 #if defined(HAVE_GNUTLS)
@@ -1026,7 +1045,9 @@ struct tds_connection
  */
 struct tds_socket
 {
-	TDSCONNECTION conn[1];
+	TDSCONNECTION *conn;
+	struct tds_socket *next;
+	tds_condition packet_cond;
 
 	unsigned char *in_buf;		/**< input buffer */
 	unsigned char *out_buf;		/**< output buffer */
@@ -1035,6 +1056,11 @@ struct tds_socket
 	unsigned in_pos;		/**< current position in in_buf */
 	unsigned out_pos;		/**< current position in out_buf */
 	unsigned in_len;		/**< input buffer length */
+	short sid;
+	TDS_UINT recv_seq;
+	TDS_UINT send_seq;
+	TDS_UINT recv_wnd;
+	TDS_UINT send_wnd;
 
 	unsigned char in_flag;		/**< input buffer type */
 	unsigned char out_flag;		/**< output buffer type */
@@ -1053,9 +1079,9 @@ struct tds_socket
 	TDS_TINYINT has_status; 	/**< true is ret_status is valid */
 	TDS_INT ret_status;     	/**< return status from store procedure */
 	TDS_STATE state;
-
 	volatile 
-	unsigned char in_cancel; 	/**< indicate we are waiting a cancel reply; discard tokens till acknowledge */
+	unsigned char in_cancel; 	/**< indicate we are waiting a cancel reply; discard tokens till acknowledge; 
+	1 mean we have to send cancel packet, 2 already sent. */
 
 	TDS_INT8 rows_affected;		/**< rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
 	TDS_INT query_timeout;
@@ -1185,6 +1211,10 @@ TDSSOCKET *tds_alloc_additional_socket(TDSCONNECTION *conn);
 void tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info);
 void tds_detach_results(TDSRESULTINFO *info);
 
+
+TDSPACKET *tds_alloc_packet(void *buf, unsigned len);
+TDSPACKET *tds_realloc_packet(TDSPACKET *packet, unsigned len);
+void tds_free_packets(TDSPACKET *packet);
 
 /* login.c */
 void tds_set_packet(TDSLOGIN * tds_login, int packet_size);
@@ -1330,17 +1360,16 @@ void tds_ssl_deinit(TDSCONNECTION *conn);
 const char *tds_prwsaerror(int erc);
 int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final);
+#define TDSSELREAD  POLLIN
+#define TDSSELWRITE POLLOUT
+int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
+void tds_connection_close(TDSCONNECTION *conn);
 
 /* packet.c */
 int tds_read_packet(TDSSOCKET * tds);
 TDSRET tds_write_packet(TDSSOCKET * tds, unsigned char final);
-int tds_put_cancel(TDSSOCKET * tds);
-static inline
-void tds_connection_close(TDSCONNECTION *connection)
-{
-	tds_close_socket((TDSSOCKET* ) connection);
-}
-
+int tds_append_cancel(TDSSOCKET *tds);
+TDSRET tds_append_fin(TDSSOCKET *tds);
 
 /* vstrbuild.c */
 TDSRET tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen,
@@ -1419,7 +1448,7 @@ int tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 #define TDS_MAJOR(x) ((x)->tds_version >> 8)
 #define TDS_MINOR(x) ((x)->tds_version & 0xff)
 
-#define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID(tds_conn(x)->s))
+#define IS_TDSDEAD(x) (((x) == NULL) || (x)->state == TDS_DEAD)
 
 /** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDSSOCKET*. */
 #define TDS_IS_SYBASE(x) (!(tds_conn(x)->product_version & 0x80000000u))

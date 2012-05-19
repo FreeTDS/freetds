@@ -1938,22 +1938,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 TDSRET
 tds_send_cancel(TDSSOCKET * tds)
 {
-	TDSRET rc;
-
-	/*
-	 * if we are not able to get the lock signal other thread
-	 * this means that either:
-	 * - another thread is processing data
-	 * - we got called from a signal inside processing thread
-	 */
-	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx)) {
-		static const char one = '1';
-		/* TODO check */
-		/* signal other socket */
-		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
-		return TDS_SUCCESS;
-	}
-
+	static const char one = 1;
 	CHECK_TDS_EXTRA(tds);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: %sin_cancel and %sidle\n", 
@@ -1961,14 +1946,49 @@ tds_send_cancel(TDSSOCKET * tds)
 
 	/* one cancel is sufficient */
 	if (tds->in_cancel || tds->state == TDS_IDLE) {
-		TDS_MUTEX_UNLOCK(&tds->wire_mtx);
 		return TDS_SUCCESS;
 	}
 
-	rc = tds_put_cancel(tds);
-	TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+	tds->in_cancel = 1;
 
-	return rc;
+	if (TDS_MUTEX_TRYLOCK(&tds->conn->list_mtx)) {
+		/* TODO check */
+		/* signal other socket */
+		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
+		return TDS_SUCCESS;
+	}
+	if (tds->conn->in_net_tds) {
+		TDS_MUTEX_UNLOCK(&tds->conn->list_mtx);
+		/* TODO check */
+		/* signal other socket */
+		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
+		return TDS_SUCCESS;
+	}
+	TDS_MUTEX_UNLOCK(&tds->conn->list_mtx);
+
+	/*
+	problem: if we are in in_net and we got a signal ??
+	on timeout we and a cancel, directly in in_net
+	if we hold the lock and we get a signal lock create a death lock
+
+	if we use a recursive mutex and we can get the lock there are 2 cases
+	- same thread, we could add a packet and signal, no try ok
+	- first thread locking, we could add a packet but are we sure it get processed ??, no try ok
+	if recursive mutex and we can't get another thread, wait
+
+	if mutex is not recursive and we get the lock (try)
+	- nobody locked, if in_net it could be same or another
+	if mutex is not recursive and we can't get the lock
+	- another thread is locking, sending signal require not exiting and global list (not protected by list_mtx)
+	- same thread have lock, we can't wait nothing without deathlock, setting a flag in tds and signaling could help
+
+	if a tds is waiting for data or is waiting for a condition or for a signal in poll
+	pass cancel request on socket ??
+	 */
+
+	tds->out_flag = TDS_CANCEL;
+ 	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: sending cancel packet\n");
+	return tds_flush_packet(tds);
 }
 
 static int

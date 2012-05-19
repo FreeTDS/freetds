@@ -107,13 +107,11 @@
 
 TDS_RCSID(var, "$Id: net.c,v 1.134 2012-02-26 22:22:32 freddy77 Exp $");
 
-#define TDSSELREAD  POLLIN
-#define TDSSELWRITE POLLOUT
 /* error is always returned */
 #define TDSSELERR   0
 #define TDSPOLLURG 0x8000u
 
-static int      tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
+static void tds_check_cancel(TDSCONNECTION *conn);
 
 
 /**
@@ -317,15 +315,44 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	return tds_error;
 }
 
+/**
+ * Close current socket
+ * for last socket close entire connection
+ * for MARS send FIN request
+ */
 void
 tds_close_socket(TDSSOCKET * tds)
 {
 	if (!IS_TDSDEAD(tds)) {
-		if (CLOSESOCKET(tds_get_s(tds)) == -1) 
-			tdserror(tds_get_ctx(tds), tds,  TDSECLOS, sock_errno);
-		tds_set_s(tds, INVALID_SOCKET);
+		TDSCONNECTION *conn = tds->conn;
+		int last = 0;
+		TDS_MUTEX_LOCK(&conn->list_mtx);
+		if (conn->list == tds && tds->next == NULL)
+			last = 1;
+		if (!last)
+			tds_append_fin(tds);
+		TDS_MUTEX_UNLOCK(&conn->list_mtx);
 		tds_set_state(tds, TDS_DEAD);
+		if (last)
+			tds_connection_close(conn);
 	}
+}
+
+void
+tds_connection_close(TDSCONNECTION *conn)
+{
+	TDSSOCKET *tds;
+
+	if (!TDS_IS_SOCKET_INVALID(conn->s)) {
+		/* TODO check error ?? how to return it ?? */
+		CLOSESOCKET(conn->s);
+		conn->s = INVALID_SOCKET;
+	}
+
+	TDS_MUTEX_LOCK(&conn->list_mtx);
+	for (tds = conn->list; tds; tds = tds->next)
+		tds_set_state(tds, TDS_DEAD);
+	TDS_MUTEX_UNLOCK(&conn->list_mtx);
 }
 
 /**
@@ -336,7 +363,7 @@ tds_close_socket(TDSSOCKET * tds)
  * 		<0 error (cf. errno).  Caller should  close socket and return failure. 
  * This function does not call tdserror or close the socket because it can't know the context in which it's being called.   
  */
-static int
+int
 tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 {
 	int rc, seconds;
@@ -380,8 +407,10 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 			if (fds[0].revents & POLLERR)
 				return -1;
 			rc = fds[0].revents;
-			if (fds[1].revents)
+			if (fds[1].revents) {
+				tds_check_cancel(tds_conn(tds));
 				rc |= TDSPOLLURG;
+			}
 			return rc;
 		}
 
@@ -494,6 +523,42 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 }
 
 
+static void
+tds_check_cancel(TDSCONNECTION *conn)
+{
+	TDSSOCKET *tds;
+	int rc, len;
+	char to_cancel[16];
+
+	len = READSOCKET(conn->s_signaled, to_cancel, sizeof(to_cancel));
+	do {
+		/* no cancel found */
+		if (len <= 0) return;
+	} while(!to_cancel[--len]);
+
+	do {
+		rc = TDS_SUCCESS;
+		TDS_MUTEX_LOCK(&conn->list_mtx);
+		/* Here we scan all list searching for sessions that should send cancel packets */
+		for (tds = conn->list; tds; tds = tds->next)
+			/* cancel requested but not sent */
+			if (tds->in_cancel == 1) {
+				/* send cancel */
+				tds->in_cancel = 2;
+				rc = tds_append_cancel(tds);
+				if (rc != TDS_SUCCESS)
+					break;
+			}
+		TDS_MUTEX_UNLOCK(&conn->list_mtx);
+		/* for all failed */
+		/* this must be done outside loop cause it can alter list */
+		/* this must be done unlocked cause it can lock again */
+		if (rc != TDS_SUCCESS)
+			tds_close_socket(tds);
+	} while(rc != TDS_SUCCESS);
+}
+
+
 /**
  * Loops until we have received some characters
  * return -1 on failure
@@ -507,18 +572,9 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	for (;;) {
 		int len, err;
 
-		if (IS_TDSDEAD(tds))
-			return -1;
-
+		/* FIXME this block writing from other sessions */
 		len = tds_select(tds, TDSSELREAD, tds->query_timeout);
-		if (len > 0 && (len & TDSPOLLURG)) {
-			char buf[32];
-			READSOCKET(tds_conn(tds)->s_signaled, buf, sizeof(buf));
-			/* send cancel */
-			if (!tds->in_cancel)
-				tds_put_cancel(tds);
-			continue;
-		} else if (len > 0) {
+		if (len > 0) {
 			len = tds_socket_read(tds_conn(tds), tds, buf, buflen);
 			if (len == 0)
 				continue;
@@ -559,7 +615,8 @@ tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
 	if (conn->tls_session)
 		return SSL_read((SSL*) conn->tls_session, buf, buflen);
 #endif
-	return tds_goodread(tds, buf, buflen);
+
+	return tds_socket_read(conn, tds, buf, buflen);
 }
 
 /**
@@ -573,14 +630,8 @@ static int
 tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsigned char last)
 {
 	int len;
-	TDS_SYS_SOCKET sock;
 
 	assert(tds && buffer);
-	sock = tds_get_s(tds);
-
-	/* Fix of SIGSEGV when FD_SET() called with negative fd (Sergey A. Cherukhin, 23/09/2005) */
-	if (TDS_IS_SOCKET_INVALID(sock))
-		return -1;
 
 	for (;;) {
 		/* TODO if send buffer is full we block receive !!! */
@@ -626,6 +677,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 	/* force packet flush */
 	if (last) {
 		int opt;
+		TDS_SYS_SOCKET sock = tds_get_s(tds);
 		opt = 0;
 		setsockopt(sock, SOL_TCP, TCP_CORK, (const void *) &opt, sizeof(opt));
 		opt = 1;
@@ -660,7 +712,7 @@ tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
 		sent = SSL_write((SSL*) conn->tls_session, buf, buflen);
 	else
 #endif
-		sent = tds_goodwrite(tds, buf, buflen, final);
+		sent = tds_socket_write(conn, tds, buf, buflen, final);
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
@@ -1083,26 +1135,35 @@ tds_prwsaerror( int erc )
 static ssize_t 
 tds_pull_func(gnutls_transport_ptr ptr, void* data, size_t len)
 {
-	TDSSOCKET *tds = (TDSSOCKET *) ptr;
+	TDSCONNECTION *conn = (TDSCONNECTION *) ptr;
 #else
 static int
 tds_ssl_read(BIO *b, char* data, int len)
 {
-	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
+	TDSCONNECTION *conn = (TDSCONNECTION *) b->ptr;
 #endif
-
 	int have;
+	TDSSOCKET *tds;
 
 	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func\n");
 	
+	/* test if we already initialized (crypted TDS packets) */
+	if (conn->tls_session) {
+		assert(conn->in_net_tds);
+		/* read directly from socket */
+		/* TODO we block write on other sessions */
+		/* also we should already have tested for data on socket */
+		return tds_goodread(conn->in_net_tds, (unsigned char*) data, len);
+	}
+
+	/* here we are initializing (crypted inside TDS packets) */
+	tds = conn->list;
+
 	/* if we have some data send it */
+	/* here MARS is not already initialized so test is correct */
+	/* TODO test even after initializing ?? */
 	if (tds->out_pos > 8)
 		tds_flush_packet(tds);
-
-	if (tds_conn(tds)->tls_session) {
-		/* read directly from socket */
-		return tds_goodread(tds, (unsigned char*) data, len);
-	}
 
 	for(;;) {
 		have = tds->in_len - tds->in_pos;
@@ -1127,22 +1188,25 @@ tds_ssl_read(BIO *b, char* data, int len)
 static ssize_t 
 tds_push_func(gnutls_transport_ptr ptr, const void* data, size_t len)
 {
-	TDSSOCKET *tds = (TDSSOCKET *) ptr;
+	TDSCONNECTION *conn = (TDSCONNECTION *) ptr;
 #else
 static int
 tds_ssl_write(BIO *b, const char* data, int len)
 {
-	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
+	TDSCONNECTION *conn = (TDSCONNECTION *) b->ptr;
 #endif
 	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
 
-	if (tds_conn(tds)->tls_session) {
+	if (conn->tls_session) {
+		TDSPACKET *packet = conn->send_packets;
 		/* write to socket directly */
 		/* TODO use cork if available here to flush only on last chunk of packet ?? */
-		return tds_goodwrite(tds, (const unsigned char*) data, len, tds->out_buf[1]);
+		/* FIXME with SMP trick to detect final is not ok */
+/*		return tds_goodwrite(packet->tds, data, len, tds->out_buf[1]); */
+		return tds_goodwrite(packet->tds, (const unsigned char*) data, len, packet->next == NULL);
 	}
-	/* write crypted data inside normal TDS packets */
-	tds_put_n(tds, data, len);
+	/* initializing SSL, write crypted data inside normal TDS packets */
+	tds_put_n(conn->list, data, len);
 	return len;
 }
 
@@ -1231,7 +1295,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 	
 	if (ret == 0) {
-		gnutls_transport_set_ptr(session, tds);
+		gnutls_transport_set_ptr(session, tds_conn(tds));
 		gnutls_transport_set_pull_function(session, tds_pull_func);
 		gnutls_transport_set_push_function(session, tds_push_func);
 
@@ -1298,6 +1362,7 @@ tds_ssl_ctrl(BIO *b, int cmd, long num, void *ptr)
 
 	switch (cmd) {
 	case BIO_CTRL_FLUSH:
+		/* FIXME MARS */
 		if (tds->out_pos > 8)
 			tds_flush_packet(tds);
 		return 1;
@@ -1385,7 +1450,7 @@ tds_ssl_init(TDSSOCKET *tds)
 		b->shutdown=1;
 		b->init=1;
 		b->num= -1;
-		b->ptr = tds;
+		b->ptr = tds_conn(tds);
 		SSL_set_bio(con, b, b);
 
 		/* use priorities... */
