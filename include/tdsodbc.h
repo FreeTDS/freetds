@@ -395,6 +395,8 @@ struct _hstmt
 	struct _hdbc *dbc;
 	/** query to execute */
 	char *query;
+	/** socket (only if active) */
+	TDSSOCKET *tds;
 
 	/** next in list */
 	struct _hstmt *next;

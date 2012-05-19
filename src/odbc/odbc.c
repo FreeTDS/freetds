@@ -89,6 +89,7 @@ static SQLRETURN odbc_prepare(TDS_STMT *stmt);
 static SQLSMALLINT odbc_swap_datetime_sql_type(SQLSMALLINT sql_type);
 static int odbc_process_tokens(TDS_STMT * stmt, unsigned flag);
 static int odbc_lock_statement(TDS_STMT* stmt);
+static void odbc_unlock_statement(TDS_STMT* stmt);
 
 #if ENABLE_EXTRA_CHECKS
 static void odbc_ird_check(TDS_STMT * stmt);
@@ -167,7 +168,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 	IRD_CHECK;
 
 #if ENABLE_EXTRA_CHECKS
-	if (colpos > 0 && stmt->dbc->tds_socket != NULL && (resinfo = stmt->dbc->tds_socket->current_results) != NULL) {
+	if (colpos > 0 && stmt->tds != NULL && (resinfo = stmt->tds->current_results) != NULL) {
 		if (colpos <= resinfo->num_cols) {
 			/* no overflow possible, name is always shorter */
 			strcpy(resinfo->columns[colpos - 1]->column_name, name);
@@ -315,6 +316,26 @@ change_txn(TDS_DBC * dbc, SQLUINTEGER txn_isolation)
 	return SQL_SUCCESS;
 }
 
+static TDS_DBC*
+odbc_get_dbc(TDSSOCKET *tds) {
+	TDS_CHK *chk = (TDS_CHK *) tds_get_parent(tds);
+	if (!chk)
+		return NULL;
+	if (chk->htype == SQL_HANDLE_DBC)
+		return (TDS_DBC *) chk;
+	assert(chk->htype == SQL_HANDLE_STMT);
+	return ((TDS_STMT *) chk)->dbc;
+}
+
+static TDS_STMT*
+odbc_get_stmt(TDSSOCKET *tds) {
+	TDS_CHK *chk = (TDS_CHK *) tds_get_parent(tds);
+	if (!chk || chk->htype != SQL_HANDLE_STMT)
+		return NULL;
+	return (TDS_STMT *) chk;
+}
+
+
 static void
 odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 {
@@ -323,7 +344,7 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 	if (tds == NULL) {
 		return;
 	}
-	dbc = (TDS_DBC *) tds_get_parent(tds);
+	dbc = odbc_get_dbc(tds);
 	if (!dbc)
 		return;
 
@@ -434,7 +455,7 @@ odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 static SQLRETURN
 odbc_prepare(TDS_STMT *stmt)
 {
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds = stmt->tds;
 	int in_row = 0;
 
 	if (TDS_FAILED(tds_submit_prepare(tds, stmt->prepared_query, NULL, &stmt->dyn, stmt->params))) {
@@ -485,8 +506,7 @@ odbc_prepare(TDS_STMT *stmt)
 		break;
 	}
 
-	if (stmt->dbc->current_statement == stmt)
-		stmt->dbc->current_statement = NULL;
+	odbc_unlock_statement(stmt);
 	if (stmt->errs.lastrc == SQL_ERROR && !stmt->dyn->emulated) {
 		TDSDYNAMIC *dyn = stmt->dyn;
 		stmt->dyn = NULL;
@@ -742,13 +762,30 @@ odbc_lock_statement(TDS_STMT* stmt)
 			odbc_errs_add(&stmt->errs, "24000", NULL);
 			return 0;
 		}
+		stmt->dbc->current_statement->tds = NULL;
 	}
-	if (tds)
+	stmt->dbc->current_statement = stmt;
+	if (tds) {
 		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
 			stmt->attr.query_timeout : stmt->dbc->default_query_timeout;
-	stmt->dbc->current_statement = stmt;
+		tds_set_parent(tds, stmt);
+		stmt->tds = tds;
+	}
 	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
 	return 1;
+}
+
+static void
+odbc_unlock_statement(TDS_STMT* stmt)
+{
+	TDS_MUTEX_LOCK(&stmt->dbc->mtx);
+	if (stmt->dbc->current_statement == stmt) {
+		assert(stmt->tds);
+		stmt->dbc->current_statement = NULL;
+		tds_set_parent(stmt->tds, stmt->dbc);
+		stmt->tds = NULL;
+	}
+	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
 }
 
 SQLRETURN ODBC_API
@@ -765,11 +802,10 @@ SQLMoreResults(SQLHSTMT hstmt)
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLMoreResults(%p)\n", hstmt);
 
-	tds = stmt->dbc->tds_socket;
+	tds = stmt->tds;
 
 	/* We already read all results... */
-	/* TODO cursor */
-	if (stmt->dbc->current_statement != stmt)
+	if (!tds)
 		ODBC_EXIT(stmt, SQL_NO_DATA);
 
 	stmt->row_count = TDS_NO_COUNT;
@@ -794,8 +830,7 @@ SQLMoreResults(SQLHSTMT hstmt)
 						result_type, stmt->row_count, stmt->errs.lastrc);
 		switch (result_type) {
 		case TDS_CMD_DONE:
-			if (stmt->dbc->current_statement == stmt)
-				stmt->dbc->current_statement = NULL;
+			odbc_unlock_statement(stmt);
 #if 1 /* !UNIXODBC */
 			tds_free_all_results(tds);
 #endif
@@ -1145,12 +1180,12 @@ SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT
 		break;
 	}
 
-	tds = stmt->dbc->tds_socket;
-
 	if (!odbc_lock_statement(stmt)) {
 		tds_free_param_results(params);
 		ODBC_EXIT_(stmt);
 	}
+
+	tds = stmt->tds;
 
 	if (TDS_FAILED(tds_cursor_update(tds, stmt->cursor, op, irow, params))) {
 		tds_free_param_results(params);
@@ -1161,7 +1196,7 @@ SQLSetPos(SQLHSTMT hstmt, SQLSETPOSIROW irow, SQLUSMALLINT fOption, SQLUSMALLINT
 	params = NULL;
 
 	ret = tds_process_simple_query(tds);
-	stmt->dbc->current_statement = NULL;
+	odbc_unlock_statement(stmt);
 	if (TDS_FAILED(ret)) {
 		ODBC_SAFE_ERROR(stmt);
 		ODBC_EXIT_(stmt);
@@ -1767,7 +1802,13 @@ SQLCancel(SQLHSTMT hstmt)
 
 	tdsdump_log(TDS_DBG_FUNC, "SQLCancel(%p)\n", hstmt);
 
-	tds = stmt->dbc->tds_socket;
+	tds = stmt->tds;
+
+	/* cancelling an inactive statement ?? */
+	if (!tds) {
+		ODBC_SAFE_ERROR(stmt);
+		ODBC_EXIT_(stmt);
+	}
 	if (TDS_MUTEX_TRYLOCK(&stmt->mtx) == 0) {
 		CHECK_STMT_EXTRA(stmt);
 		odbc_errs_reset(&stmt->errs);
@@ -1786,8 +1827,8 @@ SQLCancel(SQLHSTMT hstmt)
 		}
 
 		/* only if we processed cancel reset statement */
-		if (stmt->dbc->current_statement && stmt->dbc->current_statement == stmt && tds->state == TDS_IDLE)
-			stmt->dbc->current_statement = NULL;
+		if (tds->state == TDS_IDLE)
+			odbc_unlock_statement(stmt);
 
 		ODBC_EXIT_(stmt);
 	}
@@ -2237,20 +2278,24 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc = NULL;
+	TDS_STMT *stmt;
 
 	tdsdump_log(TDS_DBG_INFO1, "msgno %d %d\n", (int) msg->msgno, TDSETIME);
 
 	if (msg->msgno == TDSETIME) {
+
 		tdsdump_log(TDS_DBG_INFO1, "in timeout\n");
-		if (tds && (dbc = (TDS_DBC *) tds_get_parent(tds)) && dbc->current_statement) {
-			TDS_STMT *stmt = dbc->current_statement;
+		if (!tds)
+			return TDS_INT_CANCEL;
+
+		if (stmt = odbc_get_stmt(tds)) {
 			/* first time, try to send a cancel */
 			if (!tds->in_cancel) {
 				odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
 				tdsdump_log(TDS_DBG_INFO1, "returning from timeout\n");
 				return TDS_INT_TIMEOUT;
 			}
-		} else if (dbc) {
+		} else if (dbc = odbc_get_dbc(tds)) {
 			odbc_errs_add(&dbc->errs, "HYT00", "Timeout expired");
 		}
 
@@ -2259,11 +2304,10 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		return TDS_INT_CANCEL;
 	}
 
-	if (tds && tds_get_parent(tds)) {
-		dbc = (TDS_DBC *) tds_get_parent(tds);
+	if (tds && (dbc = odbc_get_dbc(tds))) {
 		errs = &dbc->errs;
-		if (dbc->current_statement)
-			errs = &dbc->current_statement->errs;
+		if (stmt = odbc_get_stmt(tds))
+			errs = &stmt->errs;
 		/* set server info if not setted in dbc */
 		if (msg->server && tds_dstr_isempty(&dbc->server))
 			tds_dstr_copy(&dbc->server, msg->server);
@@ -2853,13 +2897,13 @@ odbc_ird_check(TDS_STMT * stmt)
 	TDSRESULTINFO *res_info = NULL;
 	int cols = 0, i;
 
-	if (!stmt->dbc->tds_socket)
+	if (!stmt->tds)
 		return;
-	if (stmt->dbc->tds_socket->current_results) {
-		res_info = stmt->dbc->tds_socket->current_results;
+	if (stmt->tds->current_results) {
+		res_info = stmt->tds->current_results;
 		cols = res_info->num_cols;
 	}
-	if (stmt->cursor != NULL || stmt->dbc->current_statement != stmt)
+	if (stmt->cursor != NULL)
 		return;
 
 	/* check columns number */
@@ -2924,9 +2968,9 @@ odbc_populate_ird(TDS_STMT * stmt)
 	int i;
 
 	desc_free_records(ird);
-	if (!stmt->dbc->tds_socket || !(res_info = stmt->dbc->tds_socket->current_results))
+	if (!stmt->tds || !(res_info = stmt->tds->current_results))
 		return SQL_SUCCESS;
-	if (res_info == stmt->dbc->tds_socket->param_info)
+	if (res_info == stmt->tds->param_info)
 		return SQL_SUCCESS;
 	num_cols = res_info->num_cols;
 
@@ -3063,7 +3107,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 static TDSRET
 odbc_cursor_execute(TDS_STMT * stmt)
 {
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds = stmt->tds;
 	int send = 0, i;
 	TDSRET ret;
 	TDSCURSOR *cursor;
@@ -3081,7 +3125,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	else
 		cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->prepared_query, strlen(stmt->prepared_query));
 	if (!cursor) {
-		stmt->dbc->current_statement = NULL;
+		odbc_unlock_statement(stmt);
 
 		odbc_errs_add(&stmt->errs, "HY001", NULL);
 		return TDS_FAIL;
@@ -3136,7 +3180,6 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	if (TDS_SUCCEED(ret) && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
 		ret = odbc_process_tokens(stmt, TDS_RETURN_MSG|TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE);
 		stmt->row_count = tds->rows_affected;
-		stmt->dbc->current_statement = NULL;
 		if (ret == TDS_CMD_DONE && cursor->cursor_id != 0) {
 			ret = tds_cursor_setname(tds, cursor);
 			tds_set_state(tds, TDS_PENDING);
@@ -3148,6 +3191,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 			tds_cursor_dealloc(tds, cursor);
 		}
 	}
+	odbc_unlock_statement(stmt);
 	return ret;
 }
 
@@ -3155,7 +3199,7 @@ static SQLRETURN
 _SQLExecute(TDS_STMT * stmt)
 {
 	TDSRET ret;
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds;
 	TDS_INT result_type;
 	TDS_INT done = 0;
 	int in_row = 0;
@@ -3167,7 +3211,6 @@ _SQLExecute(TDS_STMT * stmt)
 
 	stmt->row = 0;
 		
-	tdsdump_log(TDS_DBG_FUNC, "_SQLExecute() starting with state %d\n", tds->state);
 
 	/* check parameters are all OK */
 	if (stmt->params && stmt->param_num <= stmt->param_count) {
@@ -3175,6 +3218,12 @@ _SQLExecute(TDS_STMT * stmt)
 		ODBC_SAFE_ERROR(stmt);
 		return SQL_ERROR;
 	}
+
+	if (!odbc_lock_statement(stmt))
+		return SQL_ERROR;
+
+	tds = stmt->tds;
+	tdsdump_log(TDS_DBG_FUNC, "_SQLExecute() starting with state %d\n", tds->state);
 
 	if (tds->state != TDS_IDLE) {
 		if (tds->state == TDS_DEAD) {
@@ -3184,9 +3233,6 @@ _SQLExecute(TDS_STMT * stmt)
 		}
 		return SQL_ERROR;
 	}
-
-	if (!odbc_lock_statement(stmt))
-		return SQL_ERROR;
 
 	stmt->curr_param_row = 0;
 	stmt->num_param_rows = ODBC_MAX(1, stmt->apd->header.sql_desc_array_size);
@@ -3398,8 +3444,7 @@ _SQLExecute(TDS_STMT * stmt)
 	odbc_populate_ird(stmt);
 	switch (result_type) {
 	case TDS_CMD_DONE:
-		if (stmt->dbc->current_statement == stmt)
-			stmt->dbc->current_statement = NULL;
+		odbc_unlock_statement(stmt);
 		if (stmt->errs.lastrc == SQL_SUCCESS && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3
 		    && stmt->row_count == TDS_NO_COUNT && !stmt->cursor)
 			ODBC_RETURN(stmt, SQL_NO_DATA);
@@ -3485,7 +3530,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 {
 	TDS_INT result_type;
 	int done_flags;
-	TDSSOCKET * tds = stmt->dbc->tds_socket;
+	TDSSOCKET * tds = stmt->tds;
 
 	flag |= TDS_RETURN_DONE | TDS_RETURN_PROC;
 	for (;;) {
@@ -3572,7 +3617,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 static void
 odbc_fix_data_type_col(TDS_STMT *stmt, int idx)
 {
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds = stmt->tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *colinfo;
 
@@ -3635,7 +3680,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 
 	ard = stmt->ard;
 
-	tds = stmt->dbc->tds_socket;
+	tds = stmt->tds;
 	num_rows = ard->header.sql_desc_array_size;
 
 	/* TODO cursor check also type of cursor (scrollable, not forward) */
@@ -3648,6 +3693,8 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 	if (stmt->cursor && odbc_lock_statement(stmt)) {
 		TDSCURSOR *cursor = stmt->cursor;
 		TDS_CURSOR_FETCH fetch_type = TDS_CURSOR_FETCH_NEXT;
+
+		tds = stmt->tds;
 
 		switch (FetchOrientation) {
 		case SQL_FETCH_NEXT:
@@ -3696,7 +3743,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 		stmt->row_status = PRE_NORMAL_ROW;
 	}
 
-	if (stmt->dbc->current_statement != stmt || stmt->row_status == NOT_IN_ROW) {
+	if (!tds || stmt->row_status == NOT_IN_ROW) {
 		odbc_errs_add(&stmt->errs, "24000", NULL);
 		return SQL_ERROR;
 	}
@@ -3730,7 +3777,7 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
 		case AFTER_COMPUTE_ROW:
 			/* handle done if needed */
 			/* FIXME doesn't seem so fine ... - freddy77 */
-			tds_process_tokens(stmt->dbc->tds_socket, &result_type, NULL, TDS_TOKEN_TRAILING);
+			tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_TRAILING);
 			goto all_done;
 
 		case IN_COMPUTE_ROW:
@@ -3869,8 +3916,8 @@ _SQLFetch(TDS_STMT * stmt, SQLSMALLINT FetchOrientation, SQLLEN FetchOffset)
       all_done:
 	/* TODO cursor correct ?? */
 	if (stmt->cursor) {
-		tds_process_tokens(stmt->dbc->tds_socket, &result_type, NULL, TDS_TOKEN_TRAILING);
-		stmt->dbc->current_statement = NULL;
+		tds_process_tokens(tds, &result_type, NULL, TDS_TOKEN_TRAILING);
+		odbc_unlock_statement(stmt);
 	}
 	if (*fetched_ptr == 0 && (stmt->errs.lastrc == SQL_SUCCESS || stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO))
 		ODBC_RETURN(stmt, SQL_NO_DATA);
@@ -4059,12 +4106,12 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 	if (fOption == SQL_DROP || fOption == SQL_CLOSE) {
 		SQLRETURN retcode;
 
-		tds = stmt->dbc->tds_socket;
+		tds = stmt->tds;
 		/*
 		 * FIXME -- otherwise make sure the current statement is complete
 		 */
 		/* do not close other running query ! */
-		if (tds && tds->state != TDS_IDLE && tds->state != TDS_DEAD && stmt->dbc->current_statement == stmt) {
+		if (tds && tds->state != TDS_IDLE && tds->state != TDS_DEAD) {
 			if (TDS_SUCCEED(tds_send_cancel(tds)))
 				tds_process_cancel(tds);
 		}
@@ -4096,8 +4143,7 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		free(stmt->prepared_query);
 		tds_free_param_results(stmt->params);
 		odbc_errs_reset(&stmt->errs);
-		if (stmt->dbc->current_statement == stmt)
-			stmt->dbc->current_statement = NULL;
+		odbc_unlock_statement(stmt);
 		tds_dstr_free(&stmt->cursor_name);
 		desc_free(stmt->ird);
 		desc_free(stmt->ipd);
@@ -4282,7 +4328,7 @@ _SQLGetStmtAttr(SQLHSTMT hstmt, SQLINTEGER Attribute, SQLPOINTER Value, SQLINTEG
 		if (stmt->cursor && odbc_lock_statement(stmt)) {
 			TDS_UINT row_number, row_count;
 
-			tds_cursor_get_cursor_info(stmt->dbc->tds_socket, stmt->cursor, &row_number, &row_count);
+			tds_cursor_get_cursor_info(stmt->tds, stmt->cursor, &row_number, &row_count);
 			stmt->attr.row_number = row_number;
 		}
 		size = sizeof(stmt->attr.row_number);
@@ -4753,7 +4799,6 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	/* TODO cursors fetch row if needed ?? */
 	TDSCOLUMN *colinfo;
 	TDSRESULTINFO *resinfo;
-	TDSSOCKET *tds;
 	SQLLEN dummy_cb;
 
 	ODBC_ENTER_HSTMT;
@@ -4767,7 +4812,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	}
 
 	/* read data from TDS only if current statement */
-	if ((stmt->cursor == NULL && stmt->dbc->current_statement != stmt) 
+	if ((stmt->cursor == NULL && !stmt->tds)
 		|| stmt->row_status == PRE_NORMAL_ROW 
 		|| stmt->row_status == NOT_IN_ROW) 
 	{
@@ -4780,9 +4825,7 @@ SQLGetData(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLSMALLINT fCType, SQLPOINTER rgb
 	if (!pcbValue)
 		pcbValue = &dummy_cb;
 
-	tds = stmt->dbc->tds_socket;
-
-	resinfo = stmt->cursor ? stmt->cursor->res_info : tds->current_results;
+	resinfo = stmt->cursor ? stmt->cursor->res_info : stmt->tds->current_results;
 	if (!resinfo) {
 		odbc_errs_add(&stmt->errs, "HY010", NULL);
 		ODBC_EXIT_(stmt);
