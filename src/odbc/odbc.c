@@ -383,8 +383,8 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 		dbc->cursor_support = 1;
 
 	if (dbc->attr.txn_isolation != SQL_TXN_READ_COMMITTED) {
-		change_txn(dbc, dbc->attr.txn_isolation);
-		ODBC_RETURN_(dbc);
+		if (!SQL_SUCCEEDED(change_txn(dbc, dbc->attr.txn_isolation)))
+			ODBC_RETURN_(dbc);
 	}
 
 	if (dbc->attr.autocommit != SQL_AUTOCOMMIT_ON) {
