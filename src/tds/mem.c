@@ -1115,7 +1115,7 @@ tds_free_socket(TDSSOCKET * tds)
 {
 	if (tds) {
 		if (tds_conn(tds)->authentication)
-			tds_conn(tds)->authentication->free(tds, tds_conn(tds)->authentication);
+			tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
 		tds_conn(tds)->authentication = NULL;
 		tds_free_all_results(tds);
 		tds_free_env(tds);
@@ -1126,7 +1126,7 @@ tds_free_socket(TDSSOCKET * tds)
 		free(tds->in_buf);
 		free(tds->out_buf);
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
-		tds_ssl_deinit(tds);
+		tds_ssl_deinit(tds_conn(tds));
 #endif
 		tds_close_socket(tds);
 		CLOSESOCKET(tds_conn(tds)->s_signal);

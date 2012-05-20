@@ -92,7 +92,7 @@ typedef struct tds_gss_auth
 } TDSGSSAUTH;
 
 static TDSRET
-tds_gss_free(TDSSOCKET * tds, struct tds_authentication * tds_auth)
+tds_gss_free(TDSCONNECTION * conn, struct tds_authentication * tds_auth)
 {
 	TDSGSSAUTH *auth = (TDSGSSAUTH *) tds_auth;
 	OM_uint32 min_stat;

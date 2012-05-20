@@ -1281,15 +1281,15 @@ tds_ssl_init(TDSSOCKET *tds)
 }
 
 void
-tds_ssl_deinit(TDSSOCKET *tds)
+tds_ssl_deinit(TDSCONNECTION *conn)
 {
-	if (tds_conn(tds)->tls_session) {
-		gnutls_deinit((gnutls_session) tds_conn(tds)->tls_session);
-		tds_conn(tds)->tls_session = NULL;
+	if (conn->tls_session) {
+		gnutls_deinit((gnutls_session) conn->tls_session);
+		conn->tls_session = NULL;
 	}
-	if (tds_conn(tds)->tls_credentials) {
-		gnutls_certificate_free_credentials((gnutls_certificate_credentials) tds_conn(tds)->tls_credentials);
-		tds_conn(tds)->tls_credentials = NULL;
+	if (conn->tls_credentials) {
+		gnutls_certificate_free_credentials((gnutls_certificate_credentials) conn->tls_credentials);
+		conn->tls_credentials = NULL;
 	}
 }
 
@@ -1423,16 +1423,16 @@ tds_ssl_init(TDSSOCKET *tds)
 }
 
 void
-tds_ssl_deinit(TDSSOCKET *tds)
+tds_ssl_deinit(TDSCONNECTION *conn)
 {
-	if (tds_conn(tds)->tls_session) {
+	if (conn->tls_session) {
 		/* NOTE do not call SSL_shutdown here */
-		SSL_free(tds_conn(tds)->tls_session);
-		tds_conn(tds)->tls_session = NULL;
+		SSL_free(conn->tls_session);
+		conn->tls_session = NULL;
 	}
-	if (tds_conn(tds)->tls_ctx) {
-		SSL_CTX_free(tds_conn(tds)->tls_ctx);
-		tds_conn(tds)->tls_ctx = NULL;
+	if (conn->tls_ctx) {
+		SSL_CTX_free(conn->tls_ctx);
+		conn->tls_ctx = NULL;
 	}
 }
 #endif

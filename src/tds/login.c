@@ -740,7 +740,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	/* discard possible previous authentication */
 	if (tds_conn(tds)->authentication) {
-		tds_conn(tds)->authentication->free(tds, tds_conn(tds)->authentication);
+		tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
 		tds_conn(tds)->authentication = NULL;
 	}
 
@@ -1100,7 +1100,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	/* if flag is 0 it means that after login server continue not encrypted */
 	if (crypt_flag == 0 || TDS_FAILED(ret))
-		tds_ssl_deinit(tds);
+		tds_ssl_deinit(tds_conn(tds));
 
 	return ret;
 #endif

@@ -116,7 +116,7 @@ tds_init_secdll(void)
 }
 
 static int
-tds_sspi_free(TDSSOCKET * tds, struct tds_authentication * tds_auth)
+tds_sspi_free(TDSCONNECTION * conn, struct tds_authentication * tds_auth)
 {
 	TDSSSPIAUTH *auth = (TDSSSPIAUTH *) tds_auth;
 

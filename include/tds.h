@@ -40,6 +40,7 @@
 
 /* forward declaration */
 typedef struct tdsiconvinfo TDSICONV;
+typedef struct tds_connection TDSCONNECTION;
 typedef struct tds_socket TDSSOCKET;
 typedef struct tds_column TDSCOLUMN;
 
@@ -934,12 +935,12 @@ typedef struct tds_authentication
 {
 	TDS_UCHAR *packet;
 	int packet_len;
-	TDSRET (*free)(TDSSOCKET * tds, struct tds_authentication * auth);
+	TDSRET (*free)(TDSCONNECTION* conn, struct tds_authentication * auth);
 	TDSRET (*handle_next)(TDSSOCKET * tds, struct tds_authentication * auth, size_t len);
 } TDSAUTHENTICATION;
 
 /* field related to connection */
-typedef struct tds_connection
+struct tds_connection
 {
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
 	TDS_SYS_SOCKET s_signal, s_signaled;
@@ -964,7 +965,7 @@ typedef struct tds_connection
 	void *tls_dummy;
 #endif
 	TDSAUTHENTICATION *authentication;
-} TDSCONNECTION;
+};
 
 /**
  * Information for a server connection
@@ -1058,7 +1059,6 @@ TDSRESULTINFO *tds_alloc_results(int num_cols);
 TDSCOMPUTEINFO **tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols);
 TDSCONTEXT *tds_alloc_context(void * parent);
 void tds_free_context(TDSCONTEXT * locale);
-TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, int bufsize);
 
 /* config.c */
 const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
@@ -1123,6 +1123,8 @@ void *tds_alloc_param_data(TDSCOLUMN * curparam);
 void tds_free_locale(TDSLOCALE * locale);
 TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen, const char *query, TDS_INT querylen);
 void tds_free_row(TDSRESULTINFO * res_info, unsigned char *row);
+TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, int bufsize);
+TDSSOCKET *tds_alloc_additional_socket(TDSCONNECTION *conn);
 
 /* login.c */
 void tds_set_packet(TDSLOGIN * tds_login, int packet_size);
@@ -1265,7 +1267,7 @@ int tds_close_socket(TDSSOCKET * tds);
 int tds7_get_instance_ports(FILE *output, const char *ip_addr);
 int tds7_get_instance_port(const char *ip_addr, const char *instance);
 TDSRET tds_ssl_init(TDSSOCKET *tds);
-void tds_ssl_deinit(TDSSOCKET *tds);
+void tds_ssl_deinit(TDSCONNECTION *conn);
 const char *tds_prwsaerror(int erc);
 int tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen);
 int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final);

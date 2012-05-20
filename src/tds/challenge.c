@@ -565,7 +565,7 @@ typedef struct tds_ntlm_auth
 } TDSNTLMAUTH;
 
 static TDSRET
-tds_ntlm_free(TDSSOCKET * tds, TDSAUTHENTICATION * tds_auth)
+tds_ntlm_free(TDSCONNECTION * conn, TDSAUTHENTICATION * tds_auth)
 {
 	TDSNTLMAUTH *auth = (TDSNTLMAUTH *) tds_auth;
 

@@ -399,7 +399,7 @@ tds_process_login_tokens(TDSSOCKET * tds)
 				succeed = TDS_SUCCESS;
 			/* authentication is now useless */
 			if (tds_conn(tds)->authentication) {
-				tds_conn(tds)->authentication->free(tds, tds_conn(tds)->authentication);
+				tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
 				tds_conn(tds)->authentication = NULL;
 			}
 			break;
