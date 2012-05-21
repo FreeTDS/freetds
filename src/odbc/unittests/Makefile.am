@@ -24,7 +24,7 @@ TESTS		=	\
 			cancel$(EXEEXT) wchar$(EXEEXT) rowset$(EXEEXT) transaction2$(EXEEXT) \
 			cursor6$(EXEEXT) cursor7$(EXEEXT) utf8$(EXEEXT) utf8_2$(EXEEXT) \
 			stats$(EXEEXT) descrec$(EXEEXT) peter$(EXEEXT) test64$(EXEEXT) \
-			prepare_warn$(EXEEXT) long_error$(EXEEXT)
+			prepare_warn$(EXEEXT) long_error$(EXEEXT) mars1$(EXEEXT)
 
 check_PROGRAMS	=	$(TESTS)
 
@@ -98,6 +98,7 @@ peter_SOURCES	= peter.c common.c common.h
 test64_SOURCES = test64.c common.c common.h
 prepare_warn_SOURCES = prepare_warn.c common.c common.h
 long_error_SOURCES = long_error.c common.c common.h
+mars1_SOURCES = mars1.c common.c common.h
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_SRCDIR=\"$(srcdir)\"
 if MINGW32
