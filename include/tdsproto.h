@@ -326,7 +326,7 @@ typedef enum tds_packet_type
 	TDS7_LOGIN = 16,
 	TDS7_AUTH = 17,
 	TDS71_PRELOGIN = 18,
-	TDS71_SMP = 0x53
+	TDS72_SMP = 0x53
 } TDS_PACKET_TYPE;
 
 /** 
@@ -338,6 +338,26 @@ typedef struct
 	TDS_USMALLINT flags;
 	TDS_UCHAR charset_id;		/* or zero */
 } TDS71_COLLATION;
+
+/**
+ * TDS 7.2 SMP packet header
+ */
+typedef struct
+{
+	TDS_UCHAR signature;	/* TDS72_SMP */
+	TDS_UCHAR type;
+	TDS_USMALLINT sid;
+	TDS_UINT size;
+	TDS_UINT seq;
+	TDS_UINT wnd;
+} TDS72_SMP_HEADER;
+
+enum {
+	TDS_SMP_SYN = 1,
+	TDS_SMP_ACK = 2,
+	TDS_SMP_FIN = 4,
+	TDS_SMP_DATA = 8,
+};
 
 /* SF stands for "sort flag" */
 #define TDS_SF_BIN                   (TDS_USMALLINT) 0x100
