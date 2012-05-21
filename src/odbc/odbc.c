@@ -4432,8 +4432,6 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 	if (!stmt->prepared_query_is_rpc
 		 && (stmt->attr.cursor_type == SQL_CURSOR_FORWARD_ONLY && stmt->attr.concurrency == SQL_CONCUR_READ_ONLY)) {
 
-		TDSSOCKET *tds = stmt->dbc->tds_socket;
-
 		tds_free_param_results(stmt->params);
 		stmt->params = NULL;
 		stmt->param_num = 0;
@@ -4444,7 +4442,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 		 * TDS5 do not need parameters type and we have always to
 		 * prepare sepatarely so this is not an issue
 		 */
-		if (IS_TDS7_PLUS(tds)) {
+		if (IS_TDS7_PLUS(stmt->dbc->tds_socket)) {
 			stmt->need_reprepare = 1;
 			ODBC_EXIT_(stmt);
 		}
