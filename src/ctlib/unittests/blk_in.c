@@ -209,7 +209,7 @@ main(int argc, char **argv)
 	CS_BLKDESC *blkdesc;
 	int verbose = 0;
 	int count = 0;
-	int ret = 0;
+	int ret;
 	int i;
 
 	const char *table_name = "all_types_bcp_unittest";

@@ -9,7 +9,7 @@ int
 main(int argc, char *argv[])
 {
 	SQLRETURN RetCode;
-	HSTMT stmt, tmp_stmt;
+	HSTMT stmt;
 
 	odbc_connect();
 
@@ -48,7 +48,6 @@ main(int argc, char *argv[])
 
 	odbc_command("SELECT * FROM sysobjects");
 
-	tmp_stmt = odbc_stmt;
 	odbc_stmt = stmt;
 
 	/* a statement is already active so you get error */
