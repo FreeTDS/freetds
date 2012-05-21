@@ -319,7 +319,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	static const char UCS_2LE[] = "UCS-2LE";
 	int canonic;
 	int canonic_charset = tds_canonical_charset(charset);
-	int canonic_env_charset = tds->env.charset ? tds_canonical_charset(tds->env.charset) : -1;
+	int canonic_env_charset = tds_conn(tds)->env.charset ? tds_canonical_charset(tds_conn(tds)->env.charset) : -1;
 	int fOK, ret;
 
 	TDS_ENCODING *client = &tds->char_convs[client2ucs2]->client_charset;
@@ -368,7 +368,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	 */
 	tds->char_convs[client2server_chardata]->flags = TDS_ENCODING_MEMCPY;
 	if (canonic_env_charset >= 0) {
-		tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, tds->env.charset);
+		tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, tds_conn(tds)->env.charset);
 		fOK = tds_iconv_info_init(tds->char_convs[client2server_chardata], canonic_charset, canonic_env_charset);
 		if (!fOK)
 			return;

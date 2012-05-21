@@ -949,6 +949,8 @@ struct tds_connection
 
 	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
 	char *product_name;
+	/** environment is shared between all sessions */
+	TDSENV env;
 
 	unsigned char capabilities[TDS_MAX_CAPABILITY];
 	unsigned int broken_dates:1;
@@ -1007,7 +1009,6 @@ struct tds_socket
 
 	TDS_INT8 rows_affected;		/**< rows updated/deleted/inserted/selected, TDS_NO_COUNT if not valid */
 	TDS_INT query_timeout;
-	TDSENV env;
 
 	TDSDYNAMIC *cur_dyn;		/**< dynamic structure in use */
 	TDSDYNAMIC *dyns;		/**< list of dynamic allocate for this connection */

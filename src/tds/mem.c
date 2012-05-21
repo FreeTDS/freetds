@@ -57,7 +57,7 @@
 
 TDS_RCSID(var, "$Id: mem.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");
 
-static void tds_free_env(TDSSOCKET * tds);
+static void tds_free_env(TDSCONNECTION * conn);
 static void tds_free_compute_results(TDSSOCKET * tds);
 static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 
@@ -1067,7 +1067,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
 	tds_set_parent(tds_socket, NULL);
-	tds_socket->env.block_size = bufsize;
+	tds_conn(tds_socket)->env.block_size = bufsize;
 
 	tds_conn(tds_socket)->use_iconv = 1;
 	if (tds_iconv_alloc(tds_socket))
@@ -1098,13 +1098,13 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 
 	assert(tds && tds->out_buf);
 
-	if (tds->env.block_size == bufsize)
+	if (tds_conn(tds)->env.block_size == bufsize)
 		return tds;
 
 	if (tds->out_pos <= bufsize && bufsize > 0 && 
 	    (new_out_buf = (unsigned char *) realloc(tds->out_buf, bufsize + TDS_ADDITIONAL_SPACE)) != NULL) {
 		tds->out_buf = new_out_buf;
-		tds->env.block_size = (int)bufsize;
+		tds_conn(tds)->env.block_size = (int)bufsize;
 		return tds;
 	}
 	return NULL;
@@ -1118,7 +1118,7 @@ tds_free_socket(TDSSOCKET * tds)
 			tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
 		tds_conn(tds)->authentication = NULL;
 		tds_free_all_results(tds);
-		tds_free_env(tds);
+		tds_free_env(tds_conn(tds));
 		while (tds->dyns)
 			tds_free_dynamic(tds, tds->dyns);
 		while (tds->cursors)
@@ -1149,14 +1149,14 @@ tds_free_locale(TDSLOCALE * locale)
 }
 
 static void
-tds_free_env(TDSSOCKET * tds)
+tds_free_env(TDSCONNECTION* conn)
 {
-	if (tds->env.language)
-		TDS_ZERO_FREE(tds->env.language);
-	if (tds->env.charset)
-		TDS_ZERO_FREE(tds->env.charset);
-	if (tds->env.database)
-		TDS_ZERO_FREE(tds->env.database);
+	if (conn->env.language)
+		TDS_ZERO_FREE(conn->env.language);
+	if (conn->env.charset)
+		TDS_ZERO_FREE(conn->env.charset);
+	if (conn->env.database)
+		TDS_ZERO_FREE(conn->env.database);
 }
 
 void

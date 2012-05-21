@@ -73,15 +73,15 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	assert(tds->state != TDS_DEAD || TDS_IS_SOCKET_INVALID(tds_get_s(tds)));
 
 	/* test env */
-	tds_check_env_extra(&tds->env);
+	tds_check_env_extra(&tds_conn(tds)->env);
 
 	/* test buffers and positions */
 	assert(tds->in_pos <= tds->in_len && tds->in_len <= tds->in_buf_max);
 	/* TODO remove blocksize from env and use out_len ?? */
 /*	assert(tds->out_pos <= tds->out_len); */
 /* 	assert(tds->out_len == 0 || tds->out_buf != NULL); */
-	assert(tds->out_pos <= tds->env.block_size);
-	assert(tds->env.block_size == 0 || tds->out_buf != NULL);
+	assert(tds->out_pos <= tds_conn(tds)->env.block_size);
+	assert(tds_conn(tds)->env.block_size == 0 || tds->out_buf != NULL);
 	assert(tds->in_buf_max == 0 || tds->in_buf != NULL);
 
 	/* test res_info */

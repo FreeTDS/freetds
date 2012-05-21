@@ -2052,14 +2052,14 @@ tds_process_env_chg(TDSSOCKET * tds)
 		}
 		break;
 	case TDS_ENV_DATABASE:
-		dest = &tds->env.database;
+		dest = &tds_conn(tds)->env.database;
 		break;
 	case TDS_ENV_LANG:
-		dest = &tds->env.language;
+		dest = &tds_conn(tds)->env.language;
 		break;
 	case TDS_ENV_CHARSET:
 		tdsdump_log(TDS_DBG_FUNC, "server indicated charset change to \"%s\"\n", newval);
-		dest = &tds->env.charset;
+		dest = &tds_conn(tds)->env.charset;
 		tds_srv_charset_changed(tds, newval);
 		break;
 	}

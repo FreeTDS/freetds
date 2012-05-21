@@ -536,7 +536,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			break;
 		case CS_PACKETSIZE:
 			if (tds)
-				intval = tds->env.block_size;
+				intval = tds_conn(tds)->env.block_size;
 			else
 				intval = tds_login->block_size;
 			memcpy(buffer, &intval, sizeof(intval));

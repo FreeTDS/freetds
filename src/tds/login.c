@@ -815,7 +815,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	tds_put_int(tds, block_size);	/* desired packet size being requested by client */
 
-	if (block_size > tds->env.block_size)
+	if (block_size > tds_conn(tds)->env.block_size)
 		tds_realloc_socket(tds, block_size);
 
 	tds_put_n(tds, client_progver, sizeof(client_progver));	/* client program version ? */
@@ -1010,7 +1010,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	 * fix a problem with mssql2k which doesn't like
 	 * packet splitted during SSL handshake
 	 */
-	if (tds->env.block_size < 4096)
+	if (tds_conn(tds)->env.block_size < 4096)
 		tds_realloc_socket(tds, 4096);
 
 	/* do prelogin */

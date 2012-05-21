@@ -65,7 +65,7 @@ tds_put_n(TDSSOCKET * tds, const void *buf, size_t n)
 	const unsigned char *bufp = (const unsigned char *) buf;
 
 	for (; n;) {
-		left = tds->env.block_size - tds->out_pos;
+		left = tds_conn(tds)->env.block_size - tds->out_pos;
 		if (left <= 0) {
 			tds_write_packet(tds, 0x0);
 			continue;
@@ -203,7 +203,7 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 #else
 	TDS_UCHAR *p;
 
-	if (tds->out_pos >= tds->env.block_size)
+	if (tds->out_pos >= tds_conn(tds)->env.block_size)
 		tds_write_packet(tds, 0x0);
 
 	p = &tds->out_buf[tds->out_pos];
@@ -241,7 +241,7 @@ tds_put_int(TDSSOCKET * tds, TDS_INT i)
 #else
 	TDS_UCHAR *p;
 
-	if (tds->out_pos >= tds->env.block_size)
+	if (tds->out_pos >= tds_conn(tds)->env.block_size)
 		tds_write_packet(tds, 0x0);
 
 	p = &tds->out_buf[tds->out_pos];
@@ -273,7 +273,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 #else
 	TDS_UCHAR *p;
 
-	if (tds->out_pos >= tds->env.block_size)
+	if (tds->out_pos >= tds_conn(tds)->env.block_size)
 		tds_write_packet(tds, 0x0);
 
 	p = &tds->out_buf[tds->out_pos];
@@ -293,7 +293,7 @@ tds_put_smallint(TDSSOCKET * tds, TDS_SMALLINT si)
 int
 tds_put_byte(TDSSOCKET * tds, unsigned char c)
 {
-	if (tds->out_pos >= (unsigned int)tds->env.block_size)
+	if (tds->out_pos >= (unsigned int)tds_conn(tds)->env.block_size)
 		tds_write_packet(tds, 0x0);
 	tds->out_buf[tds->out_pos++] = c;
 	return 0;
@@ -303,7 +303,7 @@ int
 tds_init_write_buf(TDSSOCKET * tds)
 {
 	/* TODO needed ?? */
-	memset(tds->out_buf, '\0', tds->env.block_size);
+	memset(tds->out_buf, '\0', tds_conn(tds)->env.block_size);
 	tds->out_pos = 8;
 	return 0;
 }

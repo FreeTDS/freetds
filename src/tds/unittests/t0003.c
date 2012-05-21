@@ -49,17 +49,17 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (!tds || !tds->env.database) {
+	if (!tds || !tds_conn(tds)->env.database) {
 		fprintf(stderr, "No database ??\n");
 		return 1;
 	}
 
 	/* Test currently disabled during TDSENV changes */
 	if (verbose) {
-		fprintf(stdout, "database changed to %s\n", tds->env.database);
+		fprintf(stdout, "database changed to %s\n", tds_conn(tds)->env.database);
 	}
-	if (strcmp(tds->env.database, "tempdb")) {
-		fprintf(stderr, "Wrong database, %s != tempdb\n", tds->env.database);
+	if (strcmp(tds_conn(tds)->env.database, "tempdb")) {
+		fprintf(stderr, "Wrong database, %s != tempdb\n", tds_conn(tds)->env.database);
 		return 1;
 	}
 
