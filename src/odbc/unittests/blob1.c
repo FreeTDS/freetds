@@ -152,7 +152,6 @@ readBlobAsChar(test_info *t, int step, int wide)
 		if (rc == SQL_NO_DATA || len <= 0)
 			break;
 		rc = CHKGetData(t->num, type, (SQLPOINTER) buf, 0, &len2, "SINo");
-//		printf("out_len %u bufsize %u len2 %u\n", (unsigned) len, (unsigned) bufsize, (unsigned) len2);
 		if (rc == SQL_SUCCESS_WITH_INFO && len2 != SQL_NO_TOTAL)
 			len = len - len2;
 #if 0

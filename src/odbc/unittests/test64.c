@@ -207,8 +207,10 @@ test_rows(void)
 			(*p)(&len);
 		check_ird_params();
 
-//		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
-//		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
+#if 0
+		CHKSetStmtAttr(SQL_ATTR_PARAMSET_SIZE, (void *) int2ptr(ARRAY_SIZE), 0, "S");
+		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_ULONG, SQL_INTEGER, 5, 0, ids, 0, id_lens, "S");
+#endif
 
 		CHKBindCol(1, SQL_C_ULONG, ids, 0, id_lens, "S");
 		if (*p) {

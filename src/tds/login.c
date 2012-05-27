@@ -120,7 +120,7 @@ void
 tds_set_server(TDSLOGIN * tds_login, const char *server)
 {
 #if 0
-	// Doing this in tds_alloc_login instead
+	/* Doing this in tds_alloc_login instead */
 	static const char *names[] = { "TDSQUERY", "DSQUERY", "SYBASE" };
 	int i;
 	

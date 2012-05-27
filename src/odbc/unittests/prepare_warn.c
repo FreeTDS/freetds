@@ -41,7 +41,9 @@ main(int argc, char **argv)
 
 	CHKExecute("I");
 
-//	CHKMoreResults("S");	/* skip warning*/
+#if 0
+	CHKMoreResults("S");	/* skip warning*/
+#endif
 
 	CHKBindCol(1, SQL_C_CHAR, v_dec, 21, v_ind, "S");
 

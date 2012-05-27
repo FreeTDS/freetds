@@ -27,9 +27,11 @@ int getopt(int argc, const char *argv[], char *optstring);
 # ifndef DBNTWIN32
 #  define DBNTWIN32
 
-// As of Visual Studio .NET 2003, define WIN32_LEAN_AND_MEAN to avoid redefining LPCBYTE in sqlfront.h
-// Unless it was already defined, undefine it after windows.h has been included.  
-// (windows.h includes a bunch of stuff needed by sqlfront.h.  Bleh.)
+/*
+ * As of Visual Studio .NET 2003, define WIN32_LEAN_AND_MEAN to avoid redefining LPCBYTE in sqlfront.h
+ * Unless it was already defined, undefine it after windows.h has been included.
+ * (windows.h includes a bunch of stuff needed by sqlfront.h.  Bleh.)
+ */
 #  ifndef WIN32_LEAN_AND_MEAN
 #   define WIN32_LEAN_AND_MEAN
 #   define WIN32_LEAN_AND_MEAN_DEFINED_HERE
@@ -44,7 +46,7 @@ int getopt(int argc, const char *argv[], char *optstring);
 #  include <sqlfront.h>
 #  include <sqldb.h>
 
-#endif // DBNTWIN32
+#endif /* DBNTWIN32 */
 # include "win32.microsoft/syb2ms.h"
 #endif
 #endif /* MicrosoftsDbLib */

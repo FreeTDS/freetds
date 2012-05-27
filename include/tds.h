@@ -604,7 +604,7 @@ typedef struct tds_column_funcs
 	TDSRET (*put_info)(TDSSOCKET *tds, TDSCOLUMN *col);
 	TDSRET (*put_data)(TDSSOCKET *tds, TDSCOLUMN *col);
 #if 0
-//	TDSRET (*convert)(TDSSOCKET *tds, TDSCOLUMN *col);
+	TDSRET (*convert)(TDSSOCKET *tds, TDSCOLUMN *col);
 #endif
 } TDSCOLUMNFUNCS;
 

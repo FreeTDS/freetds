@@ -1,13 +1,13 @@
 #ifdef _WIN32
 	#ifndef _CRT_SECURE_NO_WARNINGS
-	//	define _CRT_SECURE_NO_WARNINGS
+	/*	define _CRT_SECURE_NO_WARNINGS */
 	#endif
 	#ifndef _WIN32_WINNT
 	#define _WIN32_WINNT 0x0400
 	#endif
 
 	#include <windows.h>
-#endif // _WIN32
+#endif /* _WIN32 */
 
 #include <sqlfront.h>
 #include <sqldb.h>
@@ -29,7 +29,7 @@ using namespace std;
 #define MSGNO_LINE int
 #define LPCSTR char*
 #define LPCBYTE unsigned char*
-#endif	// _INC_SQLFRONT
+#endif	/* _INC_SQLFRONT */
 
 /*
  * Classes for reading the native bcp data file
@@ -151,7 +151,7 @@ MessageHandler(	  PDBPROCESS	dbproc
 				<< "from "		<< srvname;
 	}
 
-	if( procname )	// potentially empty, std::string()
+	if( procname )	/* potentially empty, std::string() */
 		cerr << ".." << procname << "(line " << line << ")";
 	cerr << '\n';
 
@@ -283,7 +283,7 @@ int main( int argc, char *argv[] )
 
 	LPCBYTE null_term = (BYTE*)"";
 
-	//                      addr              pre vlen term      tlen  type       col
+	/*                      addr              pre vlen term      tlen  type       col */
 	erc = bcp_bind( dbproc, (LPCBYTE) buf.name,  0, -1, null_term,  1, SQLVARCHAR, 1 );
 	assert( erc == SUCCEED );
 	erc = bcp_bind( dbproc, (LPCBYTE)&buf.type,  0, -1,  0,         0, SQLINT2, 2 );
