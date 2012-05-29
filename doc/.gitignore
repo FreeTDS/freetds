@@ -18,3 +18,7 @@ doxy.log
 odbc.api.sgml
 bsqlodbc.1
 t
+ctlib.api.body
+dblib.api.body
+odbc.api.body
+freetds.conf.5
