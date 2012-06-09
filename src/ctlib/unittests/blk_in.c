@@ -21,7 +21,7 @@
 #include "common.h"
 #include "blk_in.h"
 
-static int
+static CS_RETCODE
 do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen, 
 	void        *var_addr,
 	CS_INT      *var_len_addr,
@@ -134,45 +134,43 @@ do_binds(CS_BLKDESC * blkdesc)
 	enum { termlen = 0 };
 	enum NullValue { IsNull, IsNotNull };
 
-	CS_RETCODE ret;
-
 	/* non nulls */
 
-	ret = do_bind(blkdesc, 1, CS_FMT_UNUSED,   CS_INT_TYPE,   4,  &not_null_bit, &l_not_null_bit, &i_not_null_bit); 
-	ret = do_bind(blkdesc, 2, CS_FMT_NULLTERM, CS_CHAR_TYPE,  7,  not_null_char, &l_not_null_char, &i_not_null_char); 
-	ret = do_bind(blkdesc, 3, CS_FMT_NULLTERM, CS_CHAR_TYPE,  10, not_null_varchar, &l_not_null_varchar, &i_not_null_varchar); 
-	ret = do_bind(blkdesc, 4, CS_FMT_NULLTERM, CS_CHAR_TYPE,  20, not_null_datetime, &l_not_null_datetime, &i_not_null_datetime); 
-	ret = do_bind(blkdesc, 5, CS_FMT_NULLTERM, CS_CHAR_TYPE,  20, not_null_smalldatetime, &l_not_null_smalldatetime, &i_not_null_smalldatetime); 
-	ret = do_bind(blkdesc, 6, CS_FMT_NULLTERM, CS_CHAR_TYPE,  6,  not_null_money, &l_not_null_money, &i_not_null_money); 
-	ret = do_bind(blkdesc, 7, CS_FMT_NULLTERM, CS_CHAR_TYPE,  6,  not_null_smallmoney, &l_not_null_smallmoney, &i_not_null_smallmoney); 
-	ret = do_bind(blkdesc, 8, CS_FMT_NULLTERM, CS_CHAR_TYPE,  6,  not_null_float, &l_not_null_float, &i_not_null_float); 
-	ret = do_bind(blkdesc, 9, CS_FMT_NULLTERM, CS_CHAR_TYPE,  6,  not_null_real, &l_not_null_real, &i_not_null_real); 
-	ret = do_bind(blkdesc, 10, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6,  not_null_decimal, &l_not_null_decimal, &i_not_null_decimal); 
-	ret = do_bind(blkdesc, 11, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6,  not_null_numeric, &l_not_null_numeric, &i_not_null_numeric); 
-	ret = do_bind(blkdesc, 12, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_int, &l_not_null_int, &i_not_null_int); 
-	ret = do_bind(blkdesc, 13, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_smallint, &l_not_null_smallint, &i_not_null_smallint); 
-	ret = do_bind(blkdesc, 14, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_tinyint, &l_not_null_tinyint, &i_not_null_tinyint); 
+	do_bind(blkdesc, 1, CS_FMT_UNUSED,   CS_INT_TYPE,   4,  &not_null_bit, &l_not_null_bit, &i_not_null_bit);
+	do_bind(blkdesc, 2, CS_FMT_NULLTERM, CS_CHAR_TYPE,  7,  not_null_char, &l_not_null_char, &i_not_null_char);
+	do_bind(blkdesc, 3, CS_FMT_NULLTERM, CS_CHAR_TYPE,  10, not_null_varchar, &l_not_null_varchar, &i_not_null_varchar);
+	do_bind(blkdesc, 4, CS_FMT_NULLTERM, CS_CHAR_TYPE,  20, not_null_datetime, &l_not_null_datetime, &i_not_null_datetime);
+	do_bind(blkdesc, 5, CS_FMT_NULLTERM, CS_CHAR_TYPE,  20, not_null_smalldatetime, &l_not_null_smalldatetime, &i_not_null_smalldatetime);
+	do_bind(blkdesc, 6, CS_FMT_NULLTERM, CS_CHAR_TYPE,  6,  not_null_money, &l_not_null_money, &i_not_null_money);
+	do_bind(blkdesc, 7, CS_FMT_NULLTERM, CS_CHAR_TYPE,  6,  not_null_smallmoney, &l_not_null_smallmoney, &i_not_null_smallmoney);
+	do_bind(blkdesc, 8, CS_FMT_NULLTERM, CS_CHAR_TYPE,  6,  not_null_float, &l_not_null_float, &i_not_null_float);
+	do_bind(blkdesc, 9, CS_FMT_NULLTERM, CS_CHAR_TYPE,  6,  not_null_real, &l_not_null_real, &i_not_null_real);
+	do_bind(blkdesc, 10, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6,  not_null_decimal, &l_not_null_decimal, &i_not_null_decimal);
+	do_bind(blkdesc, 11, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6,  not_null_numeric, &l_not_null_numeric, &i_not_null_numeric);
+	do_bind(blkdesc, 12, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_int, &l_not_null_int, &i_not_null_int);
+	do_bind(blkdesc, 13, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_smallint, &l_not_null_smallint, &i_not_null_smallint);
+	do_bind(blkdesc, 14, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_tinyint, &l_not_null_tinyint, &i_not_null_tinyint);
 
 	/* nulls */
 
-	ret = do_bind(blkdesc, 15, CS_FMT_NULLTERM, CS_CHAR_TYPE, 7,  not_null_char, &l_null_char, &i_null_char); 
-	ret = do_bind(blkdesc, 16, CS_FMT_NULLTERM, CS_CHAR_TYPE, 10, not_null_varchar, &l_null_varchar, &i_null_varchar); 
-	ret = do_bind(blkdesc, 17, CS_FMT_NULLTERM, CS_CHAR_TYPE, 20, not_null_datetime, &l_null_datetime, &i_null_datetime); 
-	ret = do_bind(blkdesc, 18, CS_FMT_NULLTERM, CS_CHAR_TYPE, 20, not_null_smalldatetime, &l_null_smalldatetime, &i_null_smalldatetime); 
-	ret = do_bind(blkdesc, 19, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_money, &l_null_money, &i_null_money); 
-	ret = do_bind(blkdesc, 20, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_smallmoney, &l_null_smallmoney, &i_null_smallmoney); 
-	ret = do_bind(blkdesc, 21, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_float, &l_null_float, &i_null_float); 
-	ret = do_bind(blkdesc, 22, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_real, &l_null_real, &i_null_real); 
-	ret = do_bind(blkdesc, 23, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_decimal, &l_null_decimal, &i_null_decimal); 
-	ret = do_bind(blkdesc, 24, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_numeric, &l_null_numeric, &i_null_numeric); 
-	ret = do_bind(blkdesc, 25, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_int, &l_null_int, &i_null_int); 
-	ret = do_bind(blkdesc, 26, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_smallint, &l_null_smallint, &i_null_smallint); 
-	ret = do_bind(blkdesc, 27, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_tinyint, &l_null_tinyint, &i_null_tinyint); 
+	do_bind(blkdesc, 15, CS_FMT_NULLTERM, CS_CHAR_TYPE, 7,  not_null_char, &l_null_char, &i_null_char);
+	do_bind(blkdesc, 16, CS_FMT_NULLTERM, CS_CHAR_TYPE, 10, not_null_varchar, &l_null_varchar, &i_null_varchar);
+	do_bind(blkdesc, 17, CS_FMT_NULLTERM, CS_CHAR_TYPE, 20, not_null_datetime, &l_null_datetime, &i_null_datetime);
+	do_bind(blkdesc, 18, CS_FMT_NULLTERM, CS_CHAR_TYPE, 20, not_null_smalldatetime, &l_null_smalldatetime, &i_null_smalldatetime);
+	do_bind(blkdesc, 19, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_money, &l_null_money, &i_null_money);
+	do_bind(blkdesc, 20, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_smallmoney, &l_null_smallmoney, &i_null_smallmoney);
+	do_bind(blkdesc, 21, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_float, &l_null_float, &i_null_float);
+	do_bind(blkdesc, 22, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_real, &l_null_real, &i_null_real);
+	do_bind(blkdesc, 23, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_decimal, &l_null_decimal, &i_null_decimal);
+	do_bind(blkdesc, 24, CS_FMT_NULLTERM, CS_CHAR_TYPE, 6, not_null_numeric, &l_null_numeric, &i_null_numeric);
+	do_bind(blkdesc, 25, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_int, &l_null_int, &i_null_int);
+	do_bind(blkdesc, 26, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_smallint, &l_null_smallint, &i_null_smallint);
+	do_bind(blkdesc, 27, CS_FMT_UNUSED,   CS_INT_TYPE,  4,  &not_null_tinyint, &l_null_tinyint, &i_null_tinyint);
 
 }
 
-static int
-do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen, 
+static CS_RETCODE
+do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, CS_INT host_maxlen,
 	void        *var_addr,
 	CS_INT      *var_len_addr,
 	CS_SMALLINT *var_ind_addr )
@@ -183,7 +181,7 @@ do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, 
 	ret = blk_describe(blkdesc, colnum, &datafmt);
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "blk_describe(%d) failed", colnum);
-		return CS_FAIL;
+		return ret;
 	}
 
 	datafmt.format = host_format;
@@ -194,9 +192,9 @@ do_bind(CS_BLKDESC * blkdesc, int colnum, CS_INT host_format, CS_INT host_type, 
 	ret = blk_bind(blkdesc, colnum, &datafmt, var_addr, var_len_addr, var_ind_addr );
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "blk_bind() failed\n");
-		return CS_FAIL;
+		return ret;
 	}
-	return CS_SUCCEED;
+	return ret;
 }
 
 
