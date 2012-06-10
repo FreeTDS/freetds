@@ -130,9 +130,9 @@ cd $FTDSDIR
 git archive HEAD | tar -C $WORKDIR -xvf -
 cd $WORKDIR
 if test "$(uname -m)" = "x86_64"; then
-	cp $ROOT/DBD-ODBC-1.22.tar.gz .
+	cp $ROOT/DBD-ODBC-1.37.tar.gz .
 else
-	cp $ROOT/DBD-ODBC-1.13.tar.gz .
+	cp $ROOT/DBD-ODBC-1.37.tar.gz .
 fi
 cp $ROOT/php5.2-latest.tar.bz2 .
 
