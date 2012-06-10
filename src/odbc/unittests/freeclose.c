@@ -52,6 +52,10 @@
 
 #include "tds.h"
 
+#ifndef _WIN32
+#include "tds_sysdep_private.h"
+#endif
+
 static char software_version[] = "$Id: freeclose.c,v 1.14 2010-09-01 08:39:38 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
@@ -65,10 +69,22 @@ find_last_socket(void)
 
 	for (i = 3; i < 1024; ++i) {
 		struct stat file_stat;
+		union {
+			struct sockaddr sa;
+			char data[256];
+		} u;
+		SOCKLEN_T addrlen;
+
 		if (fstat(i, &file_stat))
 			continue;
-		if ((file_stat.st_mode & S_IFSOCK) == S_IFSOCK)
-			max_socket = i;
+		if ((file_stat.st_mode & S_IFSOCK) != S_IFSOCK)
+			continue;
+		addrlen = sizeof(u);
+		if (tds_getsockname(i, &u.sa, &addrlen) < 0)
+			continue;
+		if (u.sa.sa_family != AF_INET && u.sa.sa_family != AF_INET6)
+			continue;
+		max_socket = i;
 	}
 	return max_socket;
 }

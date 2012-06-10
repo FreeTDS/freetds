@@ -20,6 +20,10 @@
 #include <sys/wait.h>
 #endif /* HAVE_SYS_WAIT_H */
 
+#ifndef _WIN32
+#include "tds_sysdep_private.h"
+#endif
+
 /*
  * test error on connection close 
  * With a trick we simulate a connection close then we try to 
@@ -39,10 +43,22 @@ close_last_socket(void)
 
 	for (i = 3; i < 1024; ++i) {
 		struct stat file_stat;
+		union {
+			struct sockaddr sa;
+			char data[256];
+		} u;
+		SOCKLEN_T addrlen;
+
 		if (fstat(i, &file_stat))
 			continue;
-		if ((file_stat.st_mode & S_IFSOCK) == S_IFSOCK)
-			max_socket = i;
+		if ((file_stat.st_mode & S_IFSOCK) != S_IFSOCK)
+			continue;
+		addrlen = sizeof(u);
+		if (tds_getsockname(i, &u.sa, &addrlen) < 0)
+			continue;
+		if (u.sa.sa_family != AF_INET && u.sa.sa_family != AF_INET6)
+			continue;
+		max_socket = i;
 	}
 	if (max_socket < 0)
 		return 0;
