@@ -30,7 +30,7 @@ main(int argc, char *argv[])
 	CS_INT num_cols;
 
 	CS_DATAFMT datafmt;
-	CS_INT datalength;
+	CS_INT datalength[2];
 	CS_SMALLINT ind[2];
 	CS_INT count, row_count = 0;
 	CS_INT cv;
@@ -126,7 +126,7 @@ main(int argc, char *argv[])
 
 			datafmt.count = 2;
 
-			ret = ct_bind(cmd, 1, &datafmt, &col1[0], &datalength, ind);
+			ret = ct_bind(cmd, 1, &datafmt, &col1[0], datalength, ind);
 			if (ret != CS_SUCCEED) {
 				fprintf(stderr, "ct_bind() failed\n");
 				return 1;
@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 			datafmt.maxlength = 5;
 			datafmt.count = 4;
 
-			ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, ind);
+			ret = ct_bind(cmd, 2, &datafmt, &col2[0], datalength, ind);
 
 			if (ret != CS_SUCCEED) {
 
@@ -150,7 +150,7 @@ main(int argc, char *argv[])
 				datafmt.maxlength = 5;
 				datafmt.count = 2;
 
-				ret = ct_bind(cmd, 2, &datafmt, col2[0], &datalength, ind);
+				ret = ct_bind(cmd, 2, &datafmt, &col2[0], datalength, ind);
 
 			}
 
