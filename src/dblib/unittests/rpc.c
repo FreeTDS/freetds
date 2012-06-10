@@ -90,9 +90,13 @@ save_retparam(RETPARAM *param, char *name, char *value, int type, int len)
 int
 ignore_msg_handler(DBPROCESS * dbproc, DBINT msgno, int state, int severity, char *text, char *server, char *proc, int line)
 {
+	int ret;
+
 	dbsetuserdata(dbproc, (BYTE*) &msgno);
 	/* printf("(ignoring message %d)\n", msgno); */
-	return syb_msg_handler(dbproc, msgno, state, severity, text, server, proc, line);
+	ret = syb_msg_handler(dbproc, msgno, state, severity, text, server, proc, line);
+	dbsetuserdata(dbproc, NULL);
+	return ret;
 }
 /*
  * The bad procedure name message has severity 15, causing db-lib to call the error handler after calling the message handler.
@@ -117,6 +121,7 @@ ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char 
 	dbsetuserdata(dbproc, (BYTE*) &dberr);
 	/* printf("(ignoring error %d)\n", dberr); */
 	erc = syb_err_handler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
+	dbsetuserdata(dbproc, NULL);
 	recursion_depth--;
 	return erc;
 }
