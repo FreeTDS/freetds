@@ -263,6 +263,6 @@ dblib.api.sgml ctlib.api.sgml odbc.api.sgml:
 	printf '$(API_PAGE_FMT)' $${NAME} $${NAME} "$${HEAD}" "$${BODY}"  > $@~
 	mv $@~ $@
 
-
+CLEANFILES = dblib.api.body ctlib.api.body odbc.api.body $(man_MANS)
 DISTCLEANFILES = $(DOCDIR)/userguide $(DOCDIR)/reference
 
