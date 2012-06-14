@@ -71,7 +71,7 @@ bsqldb.1: $(srcdir)/bsqldb.1.in
 bsqlodbc.1: $(srcdir)/bsqlodbc.1.in
 datacopy.1: $(srcdir)/datacopy.1.in
 defncopy.1: $(srcdir)/defncopy.1.in
-fisql.1: $(srcdir)/fisql.txt
+fisql.1: $(srcdir)/fisql.1.in
 freebcp.1: $(srcdir)/freebcp.1.in
 osql.1: $(srcdir)/osql.1.in
 tsql.1: $(srcdir)/tsql.1.in
