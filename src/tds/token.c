@@ -2220,8 +2220,6 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		   && tds->internal_sp_called == TDS_SP_CURSOROPEN && tds->cur_cursor) {
 		/* here mssql say "Executing SQL directly; no cursor." opening cursor */
 	} else {
-		/* EED can be followed to PARAMFMT/PARAMS, do not store it in dynamic */
-		tds->cur_dyn = NULL;
 
 		if (tds_get_ctx(tds)->msg_handler) {
 			tdsdump_log(TDS_DBG_ERROR, "tds_process_msg() calling client msg handler\n");
