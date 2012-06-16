@@ -444,6 +444,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 		assert(dest == NULL || dest-(unsigned char*) buffer <= initial_size);
 	} else if (dbc->mb_conv->flags == TDS_ENCODING_MEMCPY) {
 		/* to UTF-8 */
+		out_len = len;
 		if (len >= cbBuffer) {
 			len = cbBuffer - 1;
 			result = SQL_SUCCESS_WITH_INFO;
