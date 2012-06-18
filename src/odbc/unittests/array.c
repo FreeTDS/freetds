@@ -57,7 +57,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	if (ret != expected) {
 		char buf[256];
 
-		sprintf(buf, "Invalid result: got %d exptected %d processed %d", ret, expected, (int) processed);
+		sprintf(buf, "Invalid result: got %d expected %d processed %d", ret, expected, (int) processed);
 		ODBC_REPORT_ERROR(buf);
 	}
 
