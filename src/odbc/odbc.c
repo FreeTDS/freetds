@@ -3404,11 +3404,10 @@ _SQLExecute(TDS_STMT * stmt)
 			stmt->errs.lastrc = SQL_SUCCESS;
 			param_status = SQL_PARAM_SUCCESS;
 			++stmt->curr_param_row;
-			if (stmt->row_count != TDS_NO_COUNT) {
-				if (total_rows == TDS_NO_COUNT)
-					total_rows = 0;
+			if (total_rows == TDS_NO_COUNT)
+				total_rows = stmt->row_count;
+			else if (stmt->row_count != TDS_NO_COUNT)
 				total_rows += stmt->row_count;
-			}
 			stmt->row_count = TDS_NO_COUNT;
 			if (stmt->curr_param_row >= stmt->num_param_rows) {
 				done = 1;
@@ -3444,11 +3443,10 @@ _SQLExecute(TDS_STMT * stmt)
 		if (stmt->ipd->header.sql_desc_array_status_ptr)
 			stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
 		++stmt->curr_param_row;
-		if (stmt->row_count != TDS_NO_COUNT) {
-			if (total_rows == TDS_NO_COUNT)
-				total_rows = 0;
+		if (total_rows == TDS_NO_COUNT)
+			total_rows = stmt->row_count;
+		else if (stmt->row_count != TDS_NO_COUNT)
 			total_rows += stmt->row_count;
-		}
 		stmt->row_count = TDS_NO_COUNT;
 	}
 	if (stmt->ipd->header.sql_desc_rows_processed_ptr)
