@@ -118,6 +118,7 @@ struct _sql_error
 	char *server;
 	int linenum;
 	int msgstate;
+	int row;
 };
 
 struct _sql_errors
@@ -163,7 +164,7 @@ void odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *m
 
 /** Add an error to list. This functions is for error that came from server */
 void odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum,
-			 int msgstate, const char *server);
+			 int msgstate, const char *server, int row);
 
 struct _dheader
 {

@@ -2331,7 +2331,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		/* add error, do not overwrite connection timeout error */
 		if (msg->msgno != TDSEFCON || errs->lastrc != SQL_ERROR || errs->num_errors < 1)
 			odbc_errs_add_rdbms(errs, msg->msgno, state, msg->message, msg->line_number, msg->severity,
-					    msg->server);
+					    msg->server, stmt ? stmt->curr_param_row + 1 : 0);
 
 		/* set lastc according */
 		if (severity <= 10) {
