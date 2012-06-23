@@ -2266,6 +2266,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc = NULL;
+	TDS_STMT *stmt = NULL;
 
 	tdsdump_log(TDS_DBG_INFO1, "msgno %d %d\n", (int) msg->msgno, TDSETIME);
 
@@ -2303,8 +2304,10 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 	if (tds && tds->parent) {
 		dbc = (TDS_DBC *) tds->parent;
 		errs = &dbc->errs;
-		if (dbc->current_statement)
+		if (dbc->current_statement) {
+			stmt = dbc->current_statement;
 			errs = &dbc->current_statement->errs;
+		}
 		/* set server info if not setted in dbc */
 		if (msg->server && tds_dstr_isempty(&dbc->server))
 			tds_dstr_copy(&dbc->server, msg->server);
@@ -2328,7 +2331,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		/* add error, do not overwrite connection timeout error */
 		if (msg->msgno != TDSEFCON || errs->lastrc != SQL_ERROR || errs->num_errors < 1)
 			odbc_errs_add_rdbms(errs, msg->msgno, state, msg->message, msg->line_number, msg->severity,
-					    msg->server);
+					    msg->server, stmt ? stmt->curr_param_row + 1 : 0);
 
 		/* set lastc according */
 		if (severity <= 10) {

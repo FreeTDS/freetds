@@ -415,7 +415,7 @@ odbc_errs_add(struct _sql_errors *errs, const char *sqlstate, const char *msg)
 /* TODO check if TDS_UINT is correct for native error */
 void
 odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlstate, const char *msg, int linenum, int msgstate,
-		    const char *server)
+		    const char *server, int row)
 {
 	struct _sql_error *p;
 	int n = errs->num_errors;
@@ -429,6 +429,7 @@ odbc_errs_add_rdbms(struct _sql_errors *errs, TDS_UINT native, const char *sqlst
 	errs->errs = p;
 
 	memset(&errs->errs[n], 0, sizeof(struct _sql_error));
+	errs->errs[n].row = row;
 	errs->errs[n].native = native;
 	if (sqlstate)
 		tds_strlcpy(errs->errs[n].state2, sqlstate, 6);
@@ -703,7 +704,8 @@ sqlstate2to3(char *state)
 
 	switch (diagIdentifier) {
 	case SQL_DIAG_ROW_NUMBER:
-		*(SQLINTEGER *) buffer = SQL_ROW_NUMBER_UNKNOWN;
+		*(SQLINTEGER *) buffer =
+			errs->errs[numRecord].row > 0 ? errs->errs[numRecord].row : SQL_ROW_NUMBER_UNKNOWN;
 		break;
 
 	case SQL_DIAG_CLASS_ORIGIN:
