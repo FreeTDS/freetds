@@ -3210,7 +3210,6 @@ _SQLExecute(TDS_STMT * stmt)
 	int in_row = 0;
 	SQLUSMALLINT param_status;
 	int found_info = 0, found_error = 0;
-	SQLLEN total_rows = TDS_NO_COUNT;
 
 	tdsdump_log(TDS_DBG_FUNC, "_SQLExecute(%p)\n", 
 			stmt);
@@ -3388,28 +3387,25 @@ _SQLExecute(TDS_STMT * stmt)
 		case TDS_DONEPROC_RESULT:
 			switch (stmt->errs.lastrc) {
 			case SQL_ERROR:
-				found_error = 1;
 				param_status = SQL_PARAM_ERROR;
 				break;
 			case SQL_SUCCESS_WITH_INFO:
-				found_info = 1;
 				param_status = SQL_PARAM_SUCCESS_WITH_INFO;
 				break;
 			}
 			if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
 				stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
-			stmt->errs.lastrc = SQL_SUCCESS;
-			param_status = SQL_PARAM_SUCCESS;
-			++stmt->curr_param_row;
-			if (total_rows == TDS_NO_COUNT)
-				total_rows = stmt->row_count;
-			else if (stmt->row_count != TDS_NO_COUNT)
-				total_rows += stmt->row_count;
-			stmt->row_count = TDS_NO_COUNT;
-			if (stmt->curr_param_row >= stmt->num_param_rows) {
+			if (stmt->curr_param_row + 1 >= stmt->num_param_rows) {
 				done = 1;
 				break;
 			}
+			if (stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO)
+				found_info = 1;
+			if (stmt->errs.lastrc == SQL_ERROR)
+				found_error = 1;
+			stmt->errs.lastrc = SQL_SUCCESS;
+			param_status = SQL_PARAM_SUCCESS;
+			++stmt->curr_param_row;
 			break;
 
 		case TDS_DONEINPROC_RESULT:
@@ -3434,23 +3430,13 @@ _SQLExecute(TDS_STMT * stmt)
 	}
 	if ((found_info || found_error) && stmt->errs.lastrc != SQL_ERROR)
 		stmt->errs.lastrc = SQL_SUCCESS_WITH_INFO;
-	if (found_error && stmt->num_param_rows <= 1)
-		stmt->errs.lastrc = SQL_ERROR;
 	if (stmt->curr_param_row < stmt->num_param_rows) {
 		if (stmt->ipd->header.sql_desc_array_status_ptr)
 			stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
 		++stmt->curr_param_row;
-		if (total_rows == TDS_NO_COUNT)
-			total_rows = stmt->row_count;
-		else if (stmt->row_count != TDS_NO_COUNT)
-			total_rows += stmt->row_count;
-		stmt->row_count = TDS_NO_COUNT;
+		if (stmt->ipd->header.sql_desc_rows_processed_ptr)
+			*stmt->ipd->header.sql_desc_rows_processed_ptr = stmt->curr_param_row;
 	}
-	if (stmt->ipd->header.sql_desc_rows_processed_ptr)
-		*stmt->ipd->header.sql_desc_rows_processed_ptr = ODBC_MIN(stmt->curr_param_row, stmt->num_param_rows);
-
-	if (total_rows != TDS_NO_COUNT)
-		stmt->row_count = total_rows;
 
 	odbc_populate_ird(stmt);
 	switch (result_type) {
