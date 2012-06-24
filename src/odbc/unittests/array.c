@@ -23,9 +23,12 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	desc_t *descs = XMALLOC_N(desc_t, ARRAY_SIZE);
 	SQLLEN *id_lens = XMALLOC_N(SQLLEN,ARRAY_SIZE), *desc_lens = XMALLOC_N(SQLLEN,ARRAY_SIZE);
 	SQLUSMALLINT i, *statuses = XMALLOC_N(SQLUSMALLINT,ARRAY_SIZE);
+	unsigned *num_errors = XMALLOC_N(unsigned, ARRAY_SIZE);
 	SQLULEN processed;
 	RETCODE ret;
 	char status[20];
+	SQLTCHAR *err = ODBC_GET(sizeof(odbc_err)*sizeof(SQLTCHAR));
+	SQLTCHAR *state = ODBC_GET(sizeof(odbc_sqlstate)*sizeof(SQLTCHAR));
 
 	assert(odbc_stmt != SQL_NULL_HSTMT);
 	odbc_reset_statement();
@@ -47,6 +50,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 		sprintf((char *) descs[i], "data %d", i * 7);
 		id_lens[i] = 0;
 		desc_lens[i] = SQL_NTS;
+		num_errors[i] = 0;
 	}
 	multiply = 90;
 
@@ -64,14 +68,34 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 		ODBC_REPORT_ERROR(buf);
 	}
 
+	for (i = 1; CHKGetDiagRec(SQL_HANDLE_STMT, odbc_stmt, i, state, NULL, err, sizeof(odbc_err), NULL, "SINo") != SQL_NO_DATA; ++i) {
+		SQLINTEGER row;
+
+		strcpy(odbc_err, C(err));
+		strcpy(odbc_sqlstate, C(state));
+		CHKGetDiagField(SQL_HANDLE_STMT, odbc_stmt, i, SQL_DIAG_ROW_NUMBER, &row, sizeof(row), NULL, "S");
+
+		if (row == SQL_ROW_NUMBER_UNKNOWN) continue;
+		if (row < 1 || row > ARRAY_SIZE) {
+			fprintf(stderr, "invalid row %d returned reading error number %d\n", (int) row, i);
+			exit(1);
+		}
+		++num_errors[row-1];
+		printf("for row %2d returned '%s' %s\n", row, odbc_sqlstate, odbc_err);
+	}
+
 	for (i = 0; i < processed; ++i) {
+		int has_diag = 0;
+
 		switch (statuses[i]) {
-		case SQL_PARAM_SUCCESS:
 		case SQL_PARAM_SUCCESS_WITH_INFO:
+			has_diag = 1;
+		case SQL_PARAM_SUCCESS:
 			status[i] = 'V';
 			break;
 
 		case SQL_PARAM_ERROR:
+			has_diag = 1;
 			status[i] = '!';
 			break;
 
@@ -85,6 +109,18 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 		default:
 			fprintf(stderr, "Invalid status returned %d\n", statuses[i]);
 			exit(1);
+		}
+
+		if (has_diag) {
+			if (!num_errors[i]) {
+				fprintf(stderr, "Diagnostics not returned for status %d\n", i);
+				failure = 1;
+			}
+		} else {
+			if (num_errors[i]) {
+				fprintf(stderr, "Diagnostics returned for status %d\n", i);
+				failure = 1;
+			}
 		}
 	}
 	status[i] = 0;
@@ -100,7 +136,6 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	}
 
 	odbc_reset_statement();
-	ODBC_FREE();
 }
 
 int
@@ -126,12 +161,14 @@ main(int argc, char *argv[])
 
 		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
 		query_test(0, SQL_ERROR, "VV!!!!!!!!");
-		/* FIXME test why is different and what should be correct result */
 		query_test(1, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+
+		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (900-?, ?)");
+		query_test(0, SQL_SUCCESS_WITH_INFO, "!!!!!!!VVV");
+		query_test(1, SQL_SUCCESS_WITH_INFO, "!!!!!!!VVV");
 
 		test_query = T("INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?");
 		query_test(0, SQL_SUCCESS_WITH_INFO, "VVVV!V!V!V");
-		/* FIXME test why is different and what should be correct result */
 		query_test(1, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
 #ifdef ENABLE_DEVELOPING
@@ -151,7 +188,7 @@ main(int argc, char *argv[])
 
 	odbc_disconnect();
 
-	printf("Success!.\n");
-	return 0;
+	printf(failure ? "Failed :(\n" : "Success!\n");
+	return failure;
 }
 

@@ -115,6 +115,8 @@ SQLSMALLINT odbc_alloc_handle_err_type(SQLSMALLINT type);
 	CHKR2(SQLGetConnectAttr, (odbc_conn,a,b,c,d), SQL_HANDLE_DBC, odbc_conn, res)
 #define CHKGetDiagRec(a,b,c,d,e,f,g,h,res) \
 	CHKR2(SQLGetDiagRec, (a,b,c,d,e,f,g,h), a, b, res)
+#define CHKGetDiagField(a,b,c,d,e,f,g,res) \
+	CHKR2(SQLGetDiagField, (a,b,c,d,e,f,g), a, b, res)
 #define CHKGetStmtAttr(a,b,c,d,res) \
 	CHKR2(SQLGetStmtAttr, (odbc_stmt,a,b,c,d), SQL_HANDLE_STMT, odbc_stmt, res)
 #define CHKGetTypeInfo(a,res) \
