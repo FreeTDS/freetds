@@ -3401,9 +3401,13 @@ _SQLExecute(TDS_STMT * stmt)
 			}
 			if (stmt->curr_param_row < stmt->num_param_rows && stmt->ipd->header.sql_desc_array_status_ptr)
 				stmt->ipd->header.sql_desc_array_status_ptr[stmt->curr_param_row] = param_status;
-			stmt->errs.lastrc = SQL_SUCCESS;
 			param_status = SQL_PARAM_SUCCESS;
 			++stmt->curr_param_row;
+			/* actually is quite strange, if prepared always success with info or success
+			 * if not prepared return last one
+			 */
+			if (stmt->curr_param_row < stmt->num_param_rows || result_type == TDS_DONEPROC_RESULT)
+				stmt->errs.lastrc = SQL_SUCCESS;
 			if (total_rows == TDS_NO_COUNT)
 				total_rows = stmt->row_count;
 			else if (stmt->row_count != TDS_NO_COUNT)
