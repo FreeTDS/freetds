@@ -7,6 +7,8 @@ static char software_version[] = "$Id: array.c,v 1.18 2011-07-12 10:16:59 freddy
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static SQLTCHAR *test_query = NULL;
+static int multiply = 90;
+static int failure = 0;
 
 #define XMALLOC_N(t, n) (t*) ODBC_GET(n*sizeof(t))
 
@@ -24,7 +26,6 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	SQLULEN processed;
 	RETCODE ret;
 	char status[20];
-	int failure = 0;
 
 	assert(odbc_stmt != SQL_NULL_HSTMT);
 	odbc_reset_statement();
@@ -42,11 +43,12 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 	processed = ARRAY_SIZE + 1;
 	for (i = 0; i < ARRAY_SIZE; i++) {
 		statuses[i] = SQL_PARAM_DIAG_UNAVAILABLE;
-		ids[i] = i * 132;
+		ids[i] = (i + 1) * multiply;
 		sprintf((char *) descs[i], "data %d", i * 7);
 		id_lens[i] = 0;
 		desc_lens[i] = SQL_NTS;
 	}
+	multiply = 90;
 
 	if (!prepare) {
 		ret = SQLExecDirect(odbc_stmt, test_query, SQL_NTS);
@@ -54,15 +56,6 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 		SQLPrepare(odbc_stmt, test_query, SQL_NTS);
 		ret = SQLExecute(odbc_stmt);
 	}
-	if (ret != expected) {
-		char buf[256];
-
-		sprintf(buf, "Invalid result: got %d expected %d processed %d", ret, expected, (int) processed);
-		ODBC_REPORT_ERROR(buf);
-	}
-
-	for (i = 0; i < ARRAY_SIZE; i++)
-		SQLMoreResults(odbc_stmt);
 
 	if (processed > ARRAY_SIZE) {
 		char buf[256];
@@ -90,23 +83,24 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 			status[i] = '?';
 			break;
 		default:
-			fprintf(stderr, "Invalid status returned\n");
+			fprintf(stderr, "Invalid status returned %d\n", statuses[i]);
 			exit(1);
 		}
 	}
 	status[i] = 0;
 
-	if (expected_status && strcmp(expected_status, status) != 0) {
-		fprintf(stderr, "Invalid status\n\tgot      '%s'\n\texpected '%s'\n", status, expected_status);
+	if (ret != expected || strcmp(expected_status, status) != 0) {
+		fprintf(stderr, "Invalid result: got %d \"%s\" expected %d \"%s\" processed %d\n",
+			ret, status, expected, expected_status, (int) processed);
+		if (ret != SQL_SUCCESS)
+			odbc_read_error();
 		failure = 1;
+		odbc_reset_statement();
+		return;
 	}
 
 	odbc_reset_statement();
-
-	if (failure) {
-		odbc_disconnect();
-		exit(1);
-	}
+	ODBC_FREE();
 }
 
 int
@@ -116,21 +110,35 @@ main(int argc, char *argv[])
 	odbc_connect();
 
 	if (odbc_db_is_microsoft()) {
+		/* all successes */
+		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
+		multiply = 1;
+		query_test(0, SQL_SUCCESS, "VVVVVVVVVV");
+		multiply = 1;
+		query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
+
+		/* all errors */
+		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
+		multiply = 257;
+		query_test(0, SQL_ERROR, "!!!!!!!!!!");
+		multiply = 257;
+		query_test(1, SQL_SUCCESS_WITH_INFO, "!!!!!!!!!!");
+
 		test_query = T("INSERT INTO #tmp1 (id, value) VALUES (?, ?)");
 		query_test(0, SQL_ERROR, "VV!!!!!!!!");
 		/* FIXME test why is different and what should be correct result */
-		query_test(1, odbc_driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+		query_test(1, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
 		test_query = T("INSERT INTO #tmp1 (id) VALUES (?) UPDATE #tmp1 SET value = ?");
 		query_test(0, SQL_SUCCESS_WITH_INFO, "VVVV!V!V!V");
 		/* FIXME test why is different and what should be correct result */
-		query_test(1, odbc_driver_is_freetds() ? SQL_ERROR : SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
+		query_test(1, SQL_SUCCESS_WITH_INFO, "VV!!!!!!!!");
 
+#ifdef ENABLE_DEVELOPING
 		/* with result, see how SQLMoreResult work */
 		test_query = T("INSERT INTO #tmp1 (id) VALUES (?) SELECT * FROM #tmp1 UPDATE #tmp1 SET value = ?");
 		/* IMHO our driver is better here -- freddy77 */
 		query_test(0, SQL_SUCCESS, odbc_driver_is_freetds() ? "VVVVV!V!V!" : "VVVVVV!VVV");
-#ifdef ENABLE_DEVELOPING
 		query_test(1, SQL_SUCCESS, "VVVVVVVVVV");
 #endif
 	} else {
