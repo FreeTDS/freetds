@@ -31,8 +31,9 @@ EXTRA_DIST =	api_status.txt bcp.txt cap.txt getting_started.txt \
 		userguide.dsl.in userguide.sgml userguide.css \
 		$(man_MANS) \
 		$(DOCDIR)/userguide $(DOCDIR)/reference \
-		images grep_sample_code \
-		tds_ssl.html
+		images grep_sample_code tds_ssl.html \
+		freebcp.1.in tsql.1.in osql.1.in bsqldb.1.in bsqlodbc.1.in \
+		defncopy.1.in datacopy.1.in fisql.1.in freetds.conf.5.in
 
 dist-hook:
 	find $(distdir)/doc -name CVS -exec rm -rf {} ';'
