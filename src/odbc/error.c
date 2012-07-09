@@ -255,8 +255,16 @@ rank_errors(struct _sql_errors *errs)
 
 	/* Find the highest of all unranked errors until there are none left */
 	for (settled = 0; settled < errs->num_errors; settled++) {
-		best = -1;
+		best = settled;
 		for (current = settled; current < errs->num_errors; current++) {
+			/* always sort by rows */
+			if (errs->errs[best].row < errs->errs[current].row)
+				continue;
+			if (errs->errs[best].row > errs->errs[current].row) {
+				best = current;
+				continue;
+			}
+
 			istrans = 0;
 			switch (errs->errs[current].native) {
 			case 1205:
@@ -291,9 +299,6 @@ rank_errors(struct _sql_errors *errs)
 				best = current;
 				break;
 			}
-
-			if (best == -1)
-				best = current;
 
 			/* Non-terminating comparisons only below this point */
 			if (errs->errs[current].msgstate > errs->errs[best].msgstate)
