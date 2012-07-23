@@ -1,3 +1,15 @@
+.build_options
+.gitignore
+*.orig
+push
+update
+commit
+t
+cscope.files
+cscope.out
+*Makefile.in
+build/
+doc/mdoc.gen
 config.log
 config.cache
 config.status
