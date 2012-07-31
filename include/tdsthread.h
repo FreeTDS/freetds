@@ -38,6 +38,28 @@
 #define TDS_MUTEX_INIT(mtx) pthread_mutex_init(mtx, NULL)
 #define TDS_MUTEX_FREE(mtx) do { pthread_mutex_destroy(mtx); } while(0)
 
+typedef pthread_cond_t tds_condition;
+
+static inline int tds_cond_init(tds_condition *cond)
+{
+	return pthread_cond_init(cond, NULL);
+}
+static inline int tds_cond_destroy(tds_condition *cond)
+{
+	return pthread_cond_destroy(cond);
+}
+static inline int tds_cond_signal(tds_condition *cond)
+{
+	return pthread_cond_signal(cond);
+}
+static inline int tds_cond_wait(tds_condition *cond, pthread_mutex_t *mtx)
+{
+	return pthread_cond_wait(cond, mtx);
+}
+#if 0
+int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int milli);
+#endif
+
 #define TDS_HAVE_MUTEX 1
 
 #elif defined(_WIN32)
@@ -71,6 +93,18 @@ static inline int tds_win_mutex_init(tds_win_mutex_t *mtx)
 
 #define TDS_HAVE_MUTEX 1
 
+/* easy way, only single signal supported */
+typedef void *TDS_CONDITION_VARIABLE;
+typedef union {
+	HANDLE ev;
+	TDS_CONDITION_VARIABLE cv;
+} tds_condition;
+
+extern int (*tds_cond_init)(tds_condition *cond);
+extern int (*tds_cond_destroy)(tds_condition *cond);
+extern int (*tds_cond_signal)(tds_condition *cond);
+extern int (*tds_cond_wait)(tds_condition *cond, tds_win_mutex_t *mtx);
+
 #else
 
 /* define noops as "successful" */
@@ -81,6 +115,8 @@ static inline int tds_win_mutex_init(tds_win_mutex_t *mtx)
 #define TDS_MUTEX_DECLARE(name) int name
 #define TDS_MUTEX_INIT(mtx) 0
 #define TDS_MUTEX_FREE(mtx) do { ; } while(0)
+
+#error Condition not supported!
 
 #endif
 
