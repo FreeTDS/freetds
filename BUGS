@@ -15,4 +15,5 @@ Needs Fixing
    because the library has to determine the SQL datatype 
    of the placeholder variable.  
 5. ML Mar 21 2009: "freebcp error HINT -b doesnt work", freebcp -n broken. 
-
+6. ML 2 Aug 2012 "SQL Anywhere SQLColumns".  Rewrite SQLColumns query 
+   in terms of INFORMATION_SCHEMA to get consistent results. 
