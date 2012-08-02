@@ -7071,7 +7071,7 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 									    &params[i].value) + 3;
 			if (begin[0] == '.' && strstr(params[i].name, "qualifier")) {
 				len += tds_quote_id(stmt->dbc->tds_socket, NULL,
-						    tds_dstr_cstr(&params[param_qualifier].value), tds_dstr_len(&params[param_qualifier].value));
+						    tds_dstr_cstr(&params[i].value), tds_dstr_len(&params[i].value));
 				param_qualifier = i;
 			}
 		}
