@@ -993,6 +993,7 @@ struct tds_socket
 	unsigned char *in_buf;		/**< input buffer */
 	unsigned char *out_buf;		/**< output buffer */
 	unsigned int in_buf_max;	/**< allocated input buffer */
+	unsigned int out_buf_max;	/**< allocated output buffer */
 	unsigned in_pos;		/**< current position in in_buf */
 	unsigned out_pos;		/**< current position in out_buf */
 	unsigned in_len;		/**< input buffer length */

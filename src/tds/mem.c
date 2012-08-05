@@ -1067,7 +1067,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
 	tds_set_parent(tds_socket, NULL);
-	tds_conn(tds_socket)->env.block_size = bufsize;
+	tds_conn(tds_socket)->env.block_size = tds_socket->out_buf_max = bufsize;
 
 	tds_conn(tds_socket)->use_iconv = 1;
 	if (tds_iconv_alloc(tds_socket))
@@ -1098,13 +1098,13 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 
 	assert(tds && tds->out_buf);
 
-	if (tds_conn(tds)->env.block_size == bufsize)
+	if (tds->out_buf_max == bufsize)
 		return tds;
 
 	if (tds->out_pos <= bufsize && bufsize > 0 && 
 	    (new_out_buf = (unsigned char *) realloc(tds->out_buf, bufsize + TDS_ADDITIONAL_SPACE)) != NULL) {
 		tds->out_buf = new_out_buf;
-		tds_conn(tds)->env.block_size = (int)bufsize;
+		tds->out_buf_max = (int)bufsize;
 		return tds;
 	}
 	return NULL;
