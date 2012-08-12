@@ -62,6 +62,21 @@ int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int milli);
 
 #define TDS_HAVE_MUTEX 1
 
+typedef pthread_t tds_thread;
+typedef void *(*tds_thread_proc)(void *arg);
+#define TDS_THREAD_PROC_DECLARE(name, arg) \
+	void *name(void *arg)
+
+static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void *arg)
+{
+	return pthread_create(ret, NULL, proc, arg);
+}
+
+static inline int tds_thread_join(tds_thread th, void **ret)
+{
+	return pthread_join(th, ret);
+}
+
 #elif defined(_WIN32)
 
 struct ptw32_mcs_node_t_;
@@ -104,6 +119,31 @@ extern int (*tds_cond_init)(tds_condition *cond);
 extern int (*tds_cond_destroy)(tds_condition *cond);
 extern int (*tds_cond_signal)(tds_condition *cond);
 extern int (*tds_cond_wait)(tds_condition *cond, tds_win_mutex_t *mtx);
+
+typedef HANDLE tds_thread;
+typedef void *(WINAPI *tds_thread_proc)(void *arg);
+#define TDS_THREAD_PROC_DECLARE(name, arg) \
+	void *WINAPI name(void *arg)
+
+static inline int tds_thread_create(tds_thread *ret, tds_thread_proc proc, void *arg)
+{
+	*ret = CreateThread(NULL, 0, (DWORD_PTR (WINAPI *)(void*)) proc, arg, 0, NULL);
+	return *ret != NULL ? 0 : 11 /* EAGAIN */;
+}
+
+static inline int tds_thread_join(tds_thread th, void **ret)
+{
+	if (WaitForSingleObject(th, INFINITE) == WAIT_OBJECT_0) {
+		DWORD_PTR r;
+		if (GetExitCodeThread(th, &r)) {
+			*ret = (void*) r;
+			CloseHandle(th);
+			return 0;
+		}
+	}
+	CloseHandle(th);
+	return 22 /* EINVAL */;
+}
 
 #else
 

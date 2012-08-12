@@ -25,21 +25,58 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#include "tds_sysdep_public.h"
 #include "tdsthread.h"
+
+#define int2ptr(i) ((void*)(((char*)0)+(i)))
+#define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
 
 static TDS_MUTEX_DEFINE(mtx);
 typedef TDS_MUTEX_DECLARE(tds_mutex_t);
 
-static void test(tds_mutex_t *mtx)
+static TDS_THREAD_PROC_DECLARE(trylock_proc, arg)
 {
+	tds_mutex_t *mtx = (tds_mutex_t *) arg;
+
+	if (!TDS_MUTEX_TRYLOCK(mtx)) {
+		return int2ptr(1);
+	}
+	return int2ptr(0);
+}
+
+static void
+test(tds_mutex_t *mtx)
+{
+	tds_thread th;
+	void *res;
+
 	if (TDS_MUTEX_TRYLOCK(mtx)) {
 		fprintf(stderr, "mutex should be unlocked\n");
 		exit(1);
 	}
+	/* this success on Windows cause mutex are recursive */
+#ifndef _WIN32
 	if (!TDS_MUTEX_TRYLOCK(mtx)) {
 		fprintf(stderr, "mutex should be locked\n");
 		exit(1);
 	}
+#endif
+
+	if (tds_thread_create(&th, trylock_proc, mtx) != 0) {
+		fprintf(stderr, "error creating thread\n");
+		exit(1);
+	}
+
+	if (tds_thread_join(th, &res) != 0) {
+		fprintf(stderr, "error waiting thread\n");
+		exit(1);
+	}
+
+	if (ptr2int(res) != 0) {
+		fprintf(stderr, "mutex should be locked inside thread\n");
+		exit(1);
+	}
+
 	TDS_MUTEX_UNLOCK(mtx);
 }
 
