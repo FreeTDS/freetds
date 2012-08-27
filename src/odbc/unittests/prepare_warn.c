@@ -21,6 +21,7 @@ main(int argc, char **argv)
 
 	odbc_use_version3 = 1;
 	odbc_connect();
+	odbc_check_cursor();
 
 	odbc_command("IF OBJECT_ID('mytab1') IS NOT NULL DROP TABLE mytab1");
 	odbc_command("CREATE TABLE mytab1 ( k INT, d DECIMAL(10,2))");
