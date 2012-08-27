@@ -48,7 +48,7 @@ static TDS_THREAD_PROC_DECLARE(signal_proc, arg)
 static void check(int cond, const char *msg)
 {
 	if (cond) {
-		fprintf(stderr, msg);
+		fprintf(stderr, "%s\n", msg);
 		exit(1);
 	}
 }
@@ -59,21 +59,21 @@ int main()
 	tds_thread th;
 	void *res;
 
-	check(tds_cond_init(&cond), "failed initializing condition\n");
+	check(tds_cond_init(&cond), "failed initializing condition");
 
 	TDS_MUTEX_LOCK(&mtx);
 
-	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread\n");
+	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
 
-	check(tds_cond_wait(&cond, &mtx), "failed waiting condition\n");
+	check(tds_cond_wait(&cond, &mtx), "failed waiting condition");
 
-	check(tds_thread_join(th, &res) != 0, "error waiting thread\n");
+	check(tds_thread_join(th, &res) != 0, "error waiting thread");
 
-	check(ptr2int(res) != 0, "error signaling condition\n");
+	check(ptr2int(res) != 0, "error signaling condition");
 
 	TDS_MUTEX_UNLOCK(&mtx);
 
-	check(tds_cond_destroy(&cond), "failed destroying condition\n");
+	check(tds_cond_destroy(&cond), "failed destroying condition");
 	return 0;
 }
 
