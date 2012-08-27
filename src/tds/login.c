@@ -560,7 +560,6 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	unsigned char protocol_version[4];
 	unsigned char program_version[4];
-	const char *server_charset;
 
 	int len;
 	char blockstr[16];
@@ -651,15 +650,8 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_byte(tds, login->encryption_level ? 1 : 0);
 	tds_put_n(tds, magic6, 10);
 
-	/* use charset nearest to client or nothing */
-	server_charset = NULL;
-	if (!tds_dstr_isempty(&login->server_charset))
-		server_charset = tds_dstr_cstr(&login->server_charset);
-	else
-		server_charset = tds_sybase_charset_name(tds_dstr_cstr(&login->client_charset));
-	if (!server_charset)
-		server_charset = "";
-	tds_put_login_string(tds, server_charset, TDS_MAX_LOGIN_STR_SZ);	/* charset */
+	/* use empty charset to handle conversions on client */
+	tds_put_login_string(tds, "", TDS_MAX_LOGIN_STR_SZ);	/* charset */
 	/* this is a flag, mean that server should use character set provided by client */
 	/* TODO notify charset change ?? what's correct meaning ?? -- freddy77 */
 	tds_put_byte(tds, 1);

@@ -121,7 +121,6 @@ size_t tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_
 size_t tds_iconv(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 		 const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
 const char *tds_canonical_charset_name(const char *charset_name);
-const char *tds_sybase_charset_name(const char *charset_name);
 TDSICONV *tds_iconv_get(TDSSOCKET * tds, const char *client_charset, const char *server_charset);
 
 #ifdef __cplusplus

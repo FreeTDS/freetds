@@ -1174,32 +1174,6 @@ tds_canonical_charset_name(const char *charset_name)
 	return charset_name;	/* hope for the best */
 }
 
-/**
- * Determine the name Sybase uses for a character set, given a canonical iconv name.  
- * \returns Sybase name, or NULL if lookup failed.
- * \remarks Returned name can be sent to Sybase a server.
- */
-const char *
-tds_sybase_charset_name(const char *charset_name)
-{
-	int res, i;
-
-	/* search in sybase */
-	res = lookup_canonic(iconv_aliases, charset_name);
-	if (res < 0)
-		return NULL;
-
-	/* special case, ignore ascii_8, take iso_1 instead, note index start from 1 */
-	assert(strcmp(sybase_aliases[0].alias, "ascii_8") == 0);
-
-	for (i = 1; sybase_aliases[i].alias; ++i) {
-		if (sybase_aliases[i].canonic == res)
-			return sybase_aliases[i].alias;
-	}
-
-	return NULL;
-}
-
 static int
 collate2charset(int sql_collate, int lcid)
 {
