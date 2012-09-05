@@ -25,11 +25,19 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "tds_sysdep_public.h"
 #include "tdsthread.h"
 
 #define int2ptr(i) ((void*)(((char*)0)+(i)))
 #define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
+
+#if defined(__MINGW32__) || defined(_WIN32)
+#define sleep(s) Sleep((s)*1000)
+#endif
 
 static TDS_MUTEX_DEFINE(mtx);
 
@@ -37,10 +45,13 @@ static TDS_THREAD_PROC_DECLARE(signal_proc, arg)
 {
 	tds_condition *cond = (tds_condition *) arg;
 
+	TDS_MUTEX_LOCK(&mtx);
 	if (tds_cond_signal(cond)) {
+		TDS_MUTEX_UNLOCK(&mtx);
 		/* failure */
 		return int2ptr(1);
 	}
+	TDS_MUTEX_UNLOCK(&mtx);
 	/* success */
 	return int2ptr(0);
 }
@@ -64,6 +75,8 @@ int main()
 	TDS_MUTEX_LOCK(&mtx);
 
 	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
+
+	sleep(1);
 
 	check(tds_cond_wait(&cond, &mtx), "failed waiting condition");
 
