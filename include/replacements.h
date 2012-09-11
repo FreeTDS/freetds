@@ -78,6 +78,10 @@ tds_sysdep_int64_type atoll(const char *nptr);
 char *strtok_r(char *str, const char *sep, char **lasts);
 #endif /* !HAVE_STRTOK_R */
 
+#if !HAVE_STRSEP
+char *strsep(char **stringp, const char *delim);
+#endif /* !HAVE_STRSEP */
+
 #if HAVE_STRLCPY
 #define tds_strlcpy(d,s,l) strlcpy(d,s,l)
 #else

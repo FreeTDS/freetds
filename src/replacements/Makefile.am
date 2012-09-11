@@ -13,6 +13,7 @@ EXTRA_DIST=	asprintf.c \
 		strlcat.c \
 		strlcpy.c \
 		strtok_r.c \
+		strsep.c \
 		vasprintf.c \
 		socketpair.c \
 		replacements.vcproj \

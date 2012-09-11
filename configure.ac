@@ -498,7 +498,7 @@ AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
 getaddrinfo getnameinfo inet_ntop gethostname poll socketpair])
 LIBS="$OLD_LIBS"
 AC_REPLACE_FUNCS([asprintf vasprintf atoll strtok_r readpassphrase \
-strlcpy strlcat basename getopt])
+strlcpy strlcat basename getopt strsep])
 AC_FUNC_FSEEKO
 TDS_GETTIMEMILLI
 
