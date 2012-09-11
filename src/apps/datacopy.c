@@ -232,27 +232,28 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			case 'S':
 				pdata->Sflag++;
 				if (strlen(arg) > 2) {
-					tok = strtok(arg + 2, "/");
+					arg += 2;
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->sserver = strdup(tok);
 
-					tok = strtok(NULL, "/");
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->suser = strdup(tok);
 
-					tok = strtok(NULL, "/");
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->spass = strdup(tok);
 
-					tok = strtok(NULL, "/");
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->sdb = strdup(tok);
 
-					tok = strtok(NULL, "/");
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->sdbobject = strdup(tok);
@@ -263,27 +264,28 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			case 'D':
 				pdata->Dflag++;
 				if (strlen(arg) > 2) {
-					tok = strtok(arg + 2, "/");
+					arg += 2;
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->dserver = strdup(tok);
 
-					tok = strtok(NULL, "/");
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->duser = strdup(tok);
 
-					tok = strtok(NULL, "/");
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->dpass = strdup(tok);
 
-					tok = strtok(NULL, "/");
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->ddb = strdup(tok);
 
-					tok = strtok(NULL, "/");
+					tok = strsep(&arg, "/");
 					if (!tok)
 						return FALSE;
 					pdata->ddbobject = strdup(tok);
@@ -316,27 +318,27 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			state = GET_NEXTARG;
 			break;
 		case GET_SOURCE:
-			tok = strtok(arg, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->sserver = strdup(tok);
 
-			tok = strtok(NULL, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->suser = strdup(tok);
 
-			tok = strtok(NULL, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->spass = strdup(tok);
 
-			tok = strtok(NULL, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->sdb = strdup(tok);
 
-			tok = strtok(NULL, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->sdbobject = strdup(tok);
@@ -345,27 +347,27 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			break;
 
 		case GET_DEST:
-			tok = strtok(arg, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->dserver = strdup(tok);
 
-			tok = strtok(NULL, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->duser = strdup(tok);
 
-			tok = strtok(NULL, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->dpass = strdup(tok);
 
-			tok = strtok(NULL, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->ddb = strdup(tok);
 
-			tok = strtok(NULL, "/");
+			tok = strsep(&arg, "/");
 			if (!tok)
 				return FALSE;
 			pdata->ddbobject = strdup(tok);
