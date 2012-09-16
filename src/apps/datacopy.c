@@ -170,7 +170,7 @@ gets_alloc(void)
 }
 
 static int
-process_objectinfo(OBJECTINFO *oi, char *arg)
+process_objectinfo(OBJECTINFO *oi, char *arg, const char *prompt)
 {
 	char *tok;
 
@@ -187,7 +187,12 @@ process_objectinfo(OBJECTINFO *oi, char *arg)
 	tok = strsep(&arg, "/");
 	if (!tok)
 		return FALSE;
-	oi->pass = strdup(tok);
+	if (strcmp(tok,"-") == 0) {
+		printf("%s", prompt);
+		oi->pass = gets_alloc();
+	} else {
+		oi->pass = strdup(tok);
+	}
 
 	tok = strsep(&arg, "/");
 	if (!tok)
@@ -265,7 +270,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 				pdata->Sflag++;
 				if (strlen(arg) > 2) {
 					arg += 2;
-					if (process_objectinfo(&pdata->src, arg) == FALSE)
+					if (process_objectinfo(&pdata->src, arg, "Enter Source Password: ") == FALSE)
 						return FALSE;
 				} else
 					state = GET_SOURCE;
@@ -274,7 +279,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 				pdata->Dflag++;
 				if (strlen(arg) > 2) {
 					arg += 2;
-					if (process_objectinfo(&pdata->dest, arg) == FALSE)
+					if (process_objectinfo(&pdata->dest, arg, "Enter Destination Password: ") == FALSE)
 						return FALSE;
 				} else
 					state = GET_DEST;
@@ -304,14 +309,14 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			state = GET_NEXTARG;
 			break;
 		case GET_SOURCE:
-			if (process_objectinfo(&pdata->src, arg) == FALSE)
+			if (process_objectinfo(&pdata->src, arg, "Enter Source Password: ") == FALSE)
 				return FALSE;
 
 			state = GET_NEXTARG;
 			break;
 
 		case GET_DEST:
-			if (process_objectinfo(&pdata->dest, arg) == FALSE)
+			if (process_objectinfo(&pdata->dest, arg, "Enter Destination Password: ") == FALSE)
 				return FALSE;
 
 			state = GET_NEXTARG;
