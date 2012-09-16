@@ -57,16 +57,6 @@
 
 #include "replacements.h"
 
-enum states
-{
-	GET_NEXTARG,
-	GET_BATCHSIZE,
-	GET_PACKETSIZE,
-	GET_OWNER,
-	GET_SOURCE,
-	GET_DEST
-};
-
 typedef struct
 {
 	char *user;
@@ -210,11 +200,7 @@ process_objectinfo(OBJECTINFO *oi, char *arg, const char *prompt)
 static int
 process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 {
-	int state;
-	int i;
-
-	char *arg;
-
+	int opt;
 
 	/* set some defaults */
 
@@ -222,109 +208,48 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 
 	/* get the rest of the arguments */
 
-	state = GET_NEXTARG;
-
-	for (i = 1; i < argc; i++) {
-		arg = argv[i];
-
-		switch (state) {
-
-		case GET_NEXTARG:
-
-			if (arg[0] != '-')
-				return FALSE;
-
-			switch (arg[1]) {
-
-			case 'b':
-				pdata->bflag++;
-				if (strlen(arg) > 2)
-					pdata->batchsize = atoi(&arg[2]);
-				else
-					state = GET_BATCHSIZE;
-				break;
-			case 'p':
-				pdata->pflag++;
-				if (strlen(arg) > 2)
-					pdata->packetsize = atoi(&arg[2]);
-				else
-					state = GET_PACKETSIZE;
-				break;
-			case 't':
-				pdata->tflag++;
-				break;
-			case 'a':
-				pdata->aflag++;
-				break;
-			case 'c':
-				pdata->cflag++;
-				if (strlen(arg) > 2)
-					pdata->owner = strdup(&arg[2]);
-				else
-					state = GET_OWNER;
-				break;
-			case 'd':
-				tdsdump_open(NULL);
-				break;
-			case 'S':
-				pdata->Sflag++;
-				if (strlen(arg) > 2) {
-					arg += 2;
-					if (process_objectinfo(&pdata->src, arg, "Enter Source Password: ") == FALSE)
-						return FALSE;
-				} else
-					state = GET_SOURCE;
-				break;
-			case 'D':
-				pdata->Dflag++;
-				if (strlen(arg) > 2) {
-					arg += 2;
-					if (process_objectinfo(&pdata->dest, arg, "Enter Destination Password: ") == FALSE)
-						return FALSE;
-				} else
-					state = GET_DEST;
-				break;
-			case 'v':
-				pdata->vflag++;
-				break;
-			default:
-				return FALSE;
-
-			}
+	while ((opt = getopt(argc, argv, "b:p:tacdS:D:v")) != -1) {
+		switch (opt) {
+		case 'b':
+			pdata->bflag++;
+			pdata->batchsize = atoi(optarg);
 			break;
-		case GET_BATCHSIZE:
-			pdata->batchsize = atoi(arg);
-			state = GET_NEXTARG;
+		case 'p':
+			pdata->pflag++;
+			pdata->packetsize = atoi(optarg);
 			break;
-		case GET_PACKETSIZE:
-			pdata->packetsize = atoi(arg);
-			state = GET_NEXTARG;
+		case 't':
+			pdata->tflag++;
 			break;
-		case GET_OWNER:
-			if (arg[0] == '-') {
-				fprintf(stderr, "If -c is specified an owner for the table must be provided.\n");
+		case 'a':
+			pdata->aflag++;
+			break;
+		case 'c':
+			pdata->cflag++;
+			if (optarg[0] == '-') {
+				fprintf(stderr, "Invalid owner specified.\n");
 				return FALSE;
 			}
-			pdata->owner = strdup(arg);
-			state = GET_NEXTARG;
+			pdata->owner = strdup(optarg);
 			break;
-		case GET_SOURCE:
-			if (process_objectinfo(&pdata->src, arg, "Enter Source Password: ") == FALSE)
+		case 'd':
+			tdsdump_open(NULL);
+			break;
+		case 'S':
+			pdata->Sflag++;
+			if (process_objectinfo(&pdata->src, optarg, "Enter Source Password: ") == FALSE)
 				return FALSE;
-
-			state = GET_NEXTARG;
 			break;
-
-		case GET_DEST:
-			if (process_objectinfo(&pdata->dest, arg, "Enter Destination Password: ") == FALSE)
+		case 'D':
+			pdata->Dflag++;
+			if (process_objectinfo(&pdata->dest, optarg, "Enter Destination Password: ") == FALSE)
 				return FALSE;
-
-			state = GET_NEXTARG;
 			break;
-
+		case 'v':
+			pdata->vflag++;
+			break;
 		default:
-			break;
-
+			return FALSE;
 		}
 	}
 	/* one of these must be specified */
