@@ -67,20 +67,20 @@ enum states
 	GET_DEST
 };
 
+typedef struct
+{
+	char *user;
+	char *pass;
+	char *server;
+	char *db;
+	char *dbobject;
+} OBJECTINFO;
+
 typedef struct pd
 {
 	int batchsize;
 	int packetsize;
-	char *suser;
-	char *spass;
-	char *sserver;
-	char *sdb;
-	char *sdbobject;
-	char *duser;
-	char *dpass;
-	char *dserver;
-	char *ddb;
-	char *ddbobject;
+	OBJECTINFO src, dest;
 	char *owner;
 	int tflag;
 	int aflag;
@@ -125,15 +125,15 @@ main(int argc, char **argv)
 		return 1;
 
 	if (params.cflag) {
-		if (create_target_table(params.sdbobject, params.owner, params.ddbobject, dbsrc, dbtarget) == FALSE) {
-			printf("datacopy: could not create target table %s.%s . terminating\n", params.owner, params.ddbobject);
+		if (create_target_table(params.src.dbobject, params.owner, params.dest.dbobject, dbsrc, dbtarget) == FALSE) {
+			printf("datacopy: could not create target table %s.%s . terminating\n", params.owner, params.dest.dbobject);
 			dbclose(dbsrc);
 			dbclose(dbtarget);
 			return 1;
 		}
 	}
 
-	if (check_table_structures(params.sdbobject, params.ddbobject, dbsrc, dbtarget) == FALSE) {
+	if (check_table_structures(params.src.dbobject, params.dest.dbobject, dbsrc, dbtarget) == FALSE) {
 		printf("datacopy: table structures do not match. terminating\n");
 		dbclose(dbsrc);
 		dbclose(dbtarget);
@@ -170,13 +170,45 @@ gets_alloc(void)
 }
 
 static int
+process_objectinfo(OBJECTINFO *oi, char *arg)
+{
+	char *tok;
+
+	tok = strsep(&arg, "/");
+	if (!tok)
+		return FALSE;
+	oi->server = strdup(tok);
+
+	tok = strsep(&arg, "/");
+	if (!tok)
+		return FALSE;
+	oi->user = strdup(tok);
+
+	tok = strsep(&arg, "/");
+	if (!tok)
+		return FALSE;
+	oi->pass = strdup(tok);
+
+	tok = strsep(&arg, "/");
+	if (!tok)
+		return FALSE;
+	oi->db = strdup(tok);
+
+	tok = strsep(&arg, "/");
+	if (!tok)
+		return FALSE;
+	oi->dbobject = strdup(tok);
+
+	return TRUE;
+}
+
+static int
 process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 {
 	int state;
 	int i;
 
 	char *arg;
-	char *tok;
 
 
 	/* set some defaults */
@@ -233,31 +265,8 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 				pdata->Sflag++;
 				if (strlen(arg) > 2) {
 					arg += 2;
-					tok = strsep(&arg, "/");
-					if (!tok)
+					if (process_objectinfo(&pdata->src, arg) == FALSE)
 						return FALSE;
-					pdata->sserver = strdup(tok);
-
-					tok = strsep(&arg, "/");
-					if (!tok)
-						return FALSE;
-					pdata->suser = strdup(tok);
-
-					tok = strsep(&arg, "/");
-					if (!tok)
-						return FALSE;
-					pdata->spass = strdup(tok);
-
-					tok = strsep(&arg, "/");
-					if (!tok)
-						return FALSE;
-					pdata->sdb = strdup(tok);
-
-					tok = strsep(&arg, "/");
-					if (!tok)
-						return FALSE;
-					pdata->sdbobject = strdup(tok);
-
 				} else
 					state = GET_SOURCE;
 				break;
@@ -265,31 +274,8 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 				pdata->Dflag++;
 				if (strlen(arg) > 2) {
 					arg += 2;
-					tok = strsep(&arg, "/");
-					if (!tok)
+					if (process_objectinfo(&pdata->dest, arg) == FALSE)
 						return FALSE;
-					pdata->dserver = strdup(tok);
-
-					tok = strsep(&arg, "/");
-					if (!tok)
-						return FALSE;
-					pdata->duser = strdup(tok);
-
-					tok = strsep(&arg, "/");
-					if (!tok)
-						return FALSE;
-					pdata->dpass = strdup(tok);
-
-					tok = strsep(&arg, "/");
-					if (!tok)
-						return FALSE;
-					pdata->ddb = strdup(tok);
-
-					tok = strsep(&arg, "/");
-					if (!tok)
-						return FALSE;
-					pdata->ddbobject = strdup(tok);
-
 				} else
 					state = GET_DEST;
 				break;
@@ -318,59 +304,15 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 			state = GET_NEXTARG;
 			break;
 		case GET_SOURCE:
-			tok = strsep(&arg, "/");
-			if (!tok)
+			if (process_objectinfo(&pdata->src, arg) == FALSE)
 				return FALSE;
-			pdata->sserver = strdup(tok);
-
-			tok = strsep(&arg, "/");
-			if (!tok)
-				return FALSE;
-			pdata->suser = strdup(tok);
-
-			tok = strsep(&arg, "/");
-			if (!tok)
-				return FALSE;
-			pdata->spass = strdup(tok);
-
-			tok = strsep(&arg, "/");
-			if (!tok)
-				return FALSE;
-			pdata->sdb = strdup(tok);
-
-			tok = strsep(&arg, "/");
-			if (!tok)
-				return FALSE;
-			pdata->sdbobject = strdup(tok);
 
 			state = GET_NEXTARG;
 			break;
 
 		case GET_DEST:
-			tok = strsep(&arg, "/");
-			if (!tok)
+			if (process_objectinfo(&pdata->dest, arg) == FALSE)
 				return FALSE;
-			pdata->dserver = strdup(tok);
-
-			tok = strsep(&arg, "/");
-			if (!tok)
-				return FALSE;
-			pdata->duser = strdup(tok);
-
-			tok = strsep(&arg, "/");
-			if (!tok)
-				return FALSE;
-			pdata->dpass = strdup(tok);
-
-			tok = strsep(&arg, "/");
-			if (!tok)
-				return FALSE;
-			pdata->ddb = strdup(tok);
-
-			tok = strsep(&arg, "/");
-			if (!tok)
-				return FALSE;
-			pdata->ddbobject = strdup(tok);
 
 			state = GET_NEXTARG;
 			break;
@@ -391,38 +333,38 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 
 		printf("\nNo [-S]ource information supplied.\n\n");
 		printf("Enter Server   : ");
-		pdata->sserver = gets_alloc();
+		pdata->src.server = gets_alloc();
 
 		printf("Enter Login    : ");
-		pdata->suser = gets_alloc();
+		pdata->src.user = gets_alloc();
 
 		printf("Enter Password : ");
-		pdata->spass = gets_alloc();
+		pdata->src.pass = gets_alloc();
 
 		printf("Enter Database : ");
-		pdata->sdb = gets_alloc();
+		pdata->src.db = gets_alloc();
 
 		printf("Enter Table    : ");
-		pdata->sdbobject = gets_alloc();
+		pdata->src.dbobject = gets_alloc();
 	}
 
 	if (!pdata->Dflag) {
 
 		printf("\nNo [-D]estination information supplied.\n\n");
 		printf("Enter Server   : ");
-		pdata->dserver = gets_alloc();
+		pdata->dest.server = gets_alloc();
 
 		printf("Enter Login    : ");
-		pdata->duser = gets_alloc();
+		pdata->dest.user = gets_alloc();
 
 		printf("Enter Password : ");
-		pdata->dpass = gets_alloc();
+		pdata->dest.pass = gets_alloc();
 
 		printf("Enter Database : ");
-		pdata->ddb = gets_alloc();
+		pdata->dest.db = gets_alloc();
 
 		printf("Enter Table    : ");
-		pdata->ddbobject = gets_alloc();
+		pdata->dest.dbobject = gets_alloc();
 	}
 
 	return TRUE;
@@ -455,8 +397,8 @@ login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest
 
 	slogin = dblogin();
 
-	DBSETLUSER(slogin, pdata->suser);
-	DBSETLPWD(slogin, pdata->spass);
+	DBSETLUSER(slogin, pdata->src.user);
+	DBSETLPWD(slogin, pdata->src.pass);
 	DBSETLAPP(slogin, "Migrate Data");
 
 	/* if packet size specified, set in login record */
@@ -469,20 +411,20 @@ login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest
 	 * Get a connection to the database.
 	 */
 
-	if ((*dbsrc = dbopen(slogin, pdata->sserver)) == (DBPROCESS *) NULL) {
+	if ((*dbsrc = dbopen(slogin, pdata->src.server)) == (DBPROCESS *) NULL) {
 		fprintf(stderr, "Can't connect to source server.\n");
 		return FALSE;
 	}
 
-	if (dbuse(*dbsrc, pdata->sdb) == FAIL) {
-		fprintf(stderr, "Can't change database to %s .\n", pdata->sdb);
+	if (dbuse(*dbsrc, pdata->src.db) == FAIL) {
+		fprintf(stderr, "Can't change database to %s .\n", pdata->src.db);
 		return FALSE;
 	}
 
 	dlogin = dblogin();
 
-	DBSETLUSER(dlogin, pdata->duser);
-	DBSETLPWD(dlogin, pdata->dpass);
+	DBSETLUSER(dlogin, pdata->dest.user);
+	DBSETLPWD(dlogin, pdata->dest.pass);
 	DBSETLAPP(dlogin, "Migrate Data");
 
 	/* Enable bulk copy for this connection. */
@@ -499,13 +441,13 @@ login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest
 	 * Get a connection to the database.
 	 */
 
-	if ((*dbdest = dbopen(dlogin, pdata->dserver)) == (DBPROCESS *) NULL) {
+	if ((*dbdest = dbopen(dlogin, pdata->dest.server)) == (DBPROCESS *) NULL) {
 		fprintf(stderr, "Can't connect to destination server.\n");
 		return FALSE;
 	}
 
-	if (dbuse(*dbdest, pdata->ddb) == FAIL) {
-		fprintf(stderr, "Can't change database to %s .\n", pdata->sdb);
+	if (dbuse(*dbdest, pdata->dest.db) == FAIL) {
+		fprintf(stderr, "Can't change database to %s .\n", pdata->dest.db);
 		return FALSE;
 	}
 
@@ -751,7 +693,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 
 	if (params.tflag) {
 
-		sprintf(ls_command, "truncate table %s", params.ddbobject);
+		sprintf(ls_command, "truncate table %s", params.dest.dbobject);
 
 		if (dbcmd(dbdest, ls_command) == FAIL) {
 			printf("dbcmd failed\n");
@@ -770,7 +712,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 	}
 
 
-	sprintf(ls_command, "select * from %s", params.sdbobject);
+	sprintf(ls_command, "select * from %s", params.src.dbobject);
 
 	if (dbcmd(dbsrc, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
@@ -792,7 +734,7 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 
 
 
-	if (bcp_init(dbdest, params.ddbobject, (char *) NULL, (char *) NULL, DB_IN) == FAIL) {
+	if (bcp_init(dbdest, params.dest.dbobject, (char *) NULL, (char *) NULL, DB_IN) == FAIL) {
 		printf("Error in bcp_init\n");
 		return FALSE;
 	}
