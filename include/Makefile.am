@@ -23,7 +23,8 @@ noinst_HEADERS	=	ctlib.h \
 			tdsstring.h \
 			tdsthread.h \
 			tds_configs.h \
-			tdsproto.h
+			tdsproto.h \
+			tds_enum_cap.h
 
 
 DISTCLEANFILES	=	tds_sysdep_public.h freetds_sysconfdir.h
