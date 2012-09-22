@@ -1346,6 +1346,11 @@ TDSRET tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *text
 TDSRET tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size);
 TDSRET tds_writetext_end(TDSSOCKET *tds);
 
+static inline
+int tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
+{
+	return cap->values[sizeof(cap->values)-1-(cap_num>>3)] & (1 << (cap_num&7));
+}
 
 #define IS_TDS42(x) (x->tds_version==0x402)
 #define IS_TDS46(x) (x->tds_version==0x406)

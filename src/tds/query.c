@@ -34,6 +34,7 @@
 #include <ctype.h>
 
 #include "tds.h"
+#include "tds_enum_cap.h"
 #include "tdsiconv.h"
 #include "tdsconvert.h"
 #include "tds_checks.h"
@@ -1118,22 +1119,31 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 
 		tds->internal_sp_called = TDS_SP_PREPARE;
 	} else {
+		int dynproc_capability =
+			tds_capability_enabled(&tds_conn(tds)->capabilities.types[0], TDS_REQ_PROTO_DYNPROC);
+		unsigned toklen;
 
 		tds->out_flag = TDS_NORMAL;
 
 		id_len = (int)strlen(dyn->id);
 		tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
-		tds_put_smallint(tds, query_len + id_len * 2 + 21);
+		toklen = 5 + id_len + query_len;
+		if (dynproc_capability) toklen += id_len + 16;
+		tds_put_smallint(tds, toklen);
 		tds_put_byte(tds, 0x01);
 		tds_put_byte(tds, 0x00);
 		tds_put_byte(tds, id_len);
 		tds_put_n(tds, dyn->id, id_len);
 		/* TODO ICONV convert string, do not put with tds_put_n */
 		/* TODO how to pass parameters type? like store procedures ? */
-		tds_put_smallint(tds, query_len + id_len + 16);
-		tds_put_n(tds, "create proc ", 12);
-		tds_put_n(tds, dyn->id, id_len);
-		tds_put_n(tds, " as ", 4);
+		if (dynproc_capability) {
+			tds_put_smallint(tds, query_len + id_len + 16);
+			tds_put_n(tds, "create proc ", 12);
+			tds_put_n(tds, dyn->id, id_len);
+			tds_put_n(tds, " as ", 4);
+		} else {
+			tds_put_smallint(tds, query_len);
+		}
 		tds_put_n(tds, query, query_len);
 	}
 
