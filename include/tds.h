@@ -499,6 +499,18 @@ typedef union
 
 #define TDS_ALIGN_SIZE sizeof(tds_align_struct)
 
+typedef struct tds_capability_type
+{
+	unsigned char type;
+	unsigned char len; /* always sizeof(values) */
+	unsigned char values[TDS_MAX_CAPABILITY/2-2];
+} TDS_CAPABILITY_TYPE;
+
+typedef struct tds_capabilities
+{
+	TDS_CAPABILITY_TYPE types[2];
+} TDS_CAPABILITIES;
+
 #define TDS_MAX_LOGIN_STR_SZ 30
 typedef struct tds_login
 {
@@ -521,7 +533,7 @@ typedef struct tds_login
 	TDS_TINYINT encryption_level;
 
 	TDS_INT query_timeout;
-	unsigned char capabilities[TDS_MAX_CAPABILITY];
+	TDS_CAPABILITIES capabilities;
 	DSTR client_charset;
 	DSTR database;
 
@@ -952,7 +964,7 @@ struct tds_connection
 	/** environment is shared between all sessions */
 	TDSENV env;
 
-	unsigned char capabilities[TDS_MAX_CAPABILITY];
+	TDS_CAPABILITIES capabilities;
 	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;

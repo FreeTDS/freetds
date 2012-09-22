@@ -683,7 +683,7 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 		connection->query_timeout = login->query_timeout;
 
 	/* copy other info not present in configuration file */
-	memcpy(connection->capabilities, login->capabilities, TDS_MAX_CAPABILITY);
+	connection->capabilities = login->capabilities;
 }
 
 static void

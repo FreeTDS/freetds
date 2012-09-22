@@ -24,7 +24,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 #define TESTING_CAPABILITY 0
 #if TESTING_CAPABILITY
 #include <assert.h>
-#include "enum_cap.h"
+#include "tds_enum_cap.h"
 static const unsigned char defaultcaps[] = { 
      /* type,  len, data, data, data, data, data, data, data, data, data (9 bytes) */
 	0x01, 0x09, 0x00, 0x08, 0x06, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,

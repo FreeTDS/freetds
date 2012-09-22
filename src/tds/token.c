@@ -101,6 +101,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	int tok_size;
 	int done_flags;
 	TDS_INT ret_status;
+	TDS_CAPABILITY_TYPE *cap;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -142,35 +143,36 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		return tds_process_msg(tds, marker);
 		break;
 	case TDS_CAPABILITY_TOKEN:
-		/* TODO split two part of capability and use it */
 		tok_size = tds_get_smallint(tds);
-		/* vicm */
-		/*
-		 * Sybase 11.0 servers return the wrong length in the capability packet, causing use to read
-		 * past the done packet.
-		 */
-		if (!TDS_IS_MSSQL(tds) && tds_conn(tds)->product_version < TDS_SYB_VER(12, 0, 0)) {
-			unsigned char type, size, *p, *pend;
+		cap = &tds_conn(tds)->capabilities.types;
+		memset(cap, 0, 2*sizeof(*cap));
+		cap[0].type = 1;
+		cap[0].len = sizeof(cap[0].values);
+		cap[1].type = 2;
+		cap[1].len = sizeof(cap[1].values);
+		while (tok_size > 1) {
+			unsigned char type, size, *p;
 
-			p = tds_conn(tds)->capabilities;
-			pend = tds_conn(tds)->capabilities + TDS_MAX_CAPABILITY;
-
-			do {
-				type = tds_get_byte(tds);
-				size = tds_get_byte(tds);
-				if ((p + 2) > pend)
-					break;
-				*p++ = type;
-				*p++ = size;
-				if ((p + size) > pend)
-					break;
-				if (tds_get_n(tds, p, size) == NULL)
-					return TDS_FAIL;
-			} while (type != 2);
-		} else {
-			const int len = tok_size < TDS_MAX_CAPABILITY? tok_size : TDS_MAX_CAPABILITY;
-			if (tds_get_n(tds, tds_conn(tds)->capabilities, len) == NULL)
+			type = tds_get_byte(tds);
+			size = tds_get_byte(tds);
+			tok_size -= 2 + size;
+			if (type != 1 && type != 2) {
+				tds_get_n(tds, NULL, size);
+				continue;
+			}
+			if (size > sizeof(cap->values)) {
+				tds_get_n(tds, NULL, size - sizeof(cap->values));
+				size = sizeof(cap->values);
+			}
+			p = (unsigned char *) &cap[type];
+			if (tds_get_n(tds, p-size, size) == NULL)
 				return TDS_FAIL;
+			/*
+			 * Sybase 11.0 servers return the wrong length in the capability packet,
+			 * causing us to read past the done packet.
+			 */
+			if (tds_conn(tds)->product_version < TDS_SYB_VER(12, 0, 0) && type == 2)
+				break;
 		}
 		break;
 		/* PARAM_TOKEN can be returned inserting text in db, to return new timestamp */

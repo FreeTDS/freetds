@@ -166,12 +166,6 @@ tds_set_database_name(TDSLOGIN * tds_login, const char *dbname)
 	tds_dstr_copy(&tds_login->database, dbname);
 }
 
-void
-tds_set_capabilities(TDSLOGIN * tds_login, unsigned char *capabilities, int size)
-{
-	memcpy(tds_login->capabilities, capabilities, size > TDS_MAX_CAPABILITY ? TDS_MAX_CAPABILITY : size);
-}
-
 struct tds_save_msg
 {
 	TDSMESSAGE msg;
@@ -436,7 +430,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		return -TDSECONN;
 	}
 
-	memcpy(tds_conn(tds)->capabilities, login->capabilities, TDS_MAX_CAPABILITY);
+	tds_conn(tds)->capabilities = login->capabilities;
 
 	if ((erc = tds_open_socket(tds, tds_dstr_cstr(&login->ip_addr), login->port, connect_timeout, p_oserr)) != TDSEOK) {
 		tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
@@ -670,8 +664,8 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	} else if (IS_TDS50(tds)) {
 		tds_put_n(tds, magic50, 4);
 		tds_put_byte(tds, TDS_CAPABILITY_TOKEN);
-		tds_put_smallint(tds, TDS_MAX_CAPABILITY);
-		tds_put_n(tds, tds_conn(tds)->capabilities, TDS_MAX_CAPABILITY);
+		tds_put_smallint(tds, sizeof(tds_conn(tds)->capabilities));
+		tds_put_n(tds, &tds_conn(tds)->capabilities, sizeof(tds_conn(tds)->capabilities));
 	}
 
 	return tds_flush_packet(tds);

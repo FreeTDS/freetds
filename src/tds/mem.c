@@ -33,7 +33,7 @@
 #include "tds_checks.h"
 #include "tdsstring.h"
 #include "replacements.h"
-#include "enum_cap.h"
+#include "tds_enum_cap.h"
 
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -682,11 +682,12 @@ tds_alloc_locale(void)
 	tds_free_locale(locale);
 	return NULL;
 }
-static const unsigned char defaultcaps[] = { 
+
+static const TDS_CAPABILITIES defaultcaps = { {
      /* type,  len, data, data, data, data, data, data, data, data, data (9 bytes) */
-	0x01, 0x09, 0x00, 0x08, 0x0E, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
-	0x02, 0x09, 0x00, 0x00, 0x00, 0x00, 0x02, 0x68, 0x00, 0x00, 0x00
-};
+	{ 0x01, 0x09, { 0x00, 0x08, 0x0E, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE } },
+	{ 0x02, 0x09, { 0x00, 0x00, 0x00, 0x00, 0x02, 0x68, 0x00, 0x00, 0x00 } }
+} };
 
 #if ENABLE_EXTRA_CHECKS
 /*
@@ -748,34 +749,33 @@ tds_capability_set(unsigned char capabilities[], unsigned int cap, size_t len)
 static void
 tds_capability_test(void)
 {
-	unsigned char buf_capabilities[TDS_MAX_CAPABILITY];
-	unsigned char *capabilities[2];
+	TDS_CAPABILITIES capabilities;
+	TDS_CAPABILITY_TYPE *cap;
 	int i, c, ncap;
 	const TDS_TINYINT* pcap;
 
 	/*
 	 * Set the capabilities using the enumerated types, one at a time.  
 	 */
-	memset(buf_capabilities, 0, TDS_MAX_CAPABILITY);
-	capabilities[0] = buf_capabilities;
-	capabilities[1] = buf_capabilities + TDS_MAX_CAPABILITY / 2;
+	memset(&capabilities, 0, sizeof(capabilities));
+	cap = capabilities.types;
 	pcap = request_capabilities;
 	ncap = TDS_VECTOR_SIZE(request_capabilities);
 	for (c=0; c < 2; c++) {
-		const int bufsize = TDS_MAX_CAPABILITY / 2 - 2;
-		capabilities[c][0] = 1 + c; /* request/response */
-		capabilities[c][1] = bufsize;
+		cap->type = 1 + c; /* request/response */
+		cap->len = sizeof(cap->values);
 		for (i=0; i < ncap; i++) {
-			tds_capability_set(capabilities[c]+2, pcap[i], bufsize);
+			tds_capability_set(cap->values, pcap[i], sizeof(cap->values));
 		}
 		pcap = response_capabilities;
 		ncap = TDS_VECTOR_SIZE(response_capabilities);
+		++cap;
 	}
 	/* 
 	 * For now, we test to make sure the enumerated set yields the same bit pattern 
 	 * that we used to create with magic numbers.  Eventually we can delete defaultcaps and the below assertion.
 	 */
-	assert(0 == memcmp(buf_capabilities, defaultcaps, TDS_MAX_CAPABILITY));
+	assert(0 == memcmp(&capabilities, &defaultcaps, sizeof(capabilities)));
 }
 #endif
 
@@ -1020,7 +1020,7 @@ tds_alloc_login(int use_environment)
 #if ENABLE_EXTRA_CHECKS
 	tds_capability_test();
 #endif
-	memcpy(login->capabilities, defaultcaps, TDS_MAX_CAPABILITY);
+	login->capabilities = defaultcaps;
 
 	Cleanup:
 	return login;

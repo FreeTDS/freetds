@@ -36,6 +36,7 @@
 #include "ctpublic.h"
 #include "ctlib.h"
 #include "tdsstring.h"
+#include "tds_enum_cap.h"
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: ct.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");
@@ -2893,170 +2894,170 @@ ct_capability(CS_CONNECTION * con, CS_INT action, CS_INT type, CS_INT capability
 	TDSLOGIN *login;
 	int idx = 0;
 	unsigned char bitmask = 0;
-	unsigned char *mask;
+	TDS_CAPABILITY_TYPE *cap = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_capability(%p, %d, %d, %d, %p)\n", con, action, type, capability, value);
 
 	login = (TDSLOGIN *) con->tds_login;
-	mask = login->capabilities;
 
+#define CONV_CAP(ct,tds) case ct: idx=tds; break;
 	if (type == CS_CAP_RESPONSE) {
+		cap = &login->capabilities.types[1];
 		switch (capability) {
-		case CS_DATA_NOBOUNDARY:	idx = 13; bitmask = 0x01;	break;
-		case CS_RES_NOTDSDEBUG:		idx = 13; bitmask = 0x02;	break;
-		case CS_RES_NOSTRIPBLANKS:	idx = 13; bitmask = 0x04;	break;
-		case CS_DATA_NOINT8:		idx = 13; bitmask = 0x08;	break;
+		CONV_CAP(CS_DATA_NOBOUNDARY,	TDS_RES_DATA_NOBOUNDARY);
+		CONV_CAP(CS_RES_NOTDSDEBUG,	TDS_RES_NOTDSDEBUG);
+		CONV_CAP(CS_RES_NOSTRIPBLANKS,	TDS_RES_NOSTRIPBLANKS);
+		CONV_CAP(CS_DATA_NOINT8,	TDS_RES_DATA_NOINT8);
 
-		case CS_DATA_NOINTN:		idx = 14; bitmask = 0x01;	break;
-		case CS_DATA_NODATETIMEN:	idx = 14; bitmask = 0x02;	break;
-		case CS_DATA_NOMONEYN:		idx = 14; bitmask = 0x04;	break;
-		case CS_CON_NOOOB:		idx = 14; bitmask = 0x08;	break;
-		case CS_CON_NOINBAND:		idx = 14; bitmask = 0x10;	break;
-		case CS_PROTO_NOTEXT:		idx = 14; bitmask = 0x20;	break;
-		case CS_PROTO_NOBULK:		idx = 14; bitmask = 0x40;	break;
-		case CS_DATA_NOSENSITIVITY:	idx = 14; bitmask = 0x80;	break;
+		CONV_CAP(CS_DATA_NOINTN,	TDS_RES_DATA_INTN);
+		CONV_CAP(CS_DATA_NODATETIMEN,	TDS_RES_DATA_NODATETIMEN);
+		CONV_CAP(CS_DATA_NOMONEYN,	TDS_RES_DATA_NOMONEYN);
+		CONV_CAP(CS_CON_NOOOB,		TDS_RES_CON_NOOOB);
+		CONV_CAP(CS_CON_NOINBAND,	TDS_RES_CON_NOINBAND);
+		CONV_CAP(CS_PROTO_NOTEXT,	TDS_RES_PROTO_NOTEXT);
+		CONV_CAP(CS_PROTO_NOBULK,	TDS_RES_PROTO_NOBULK);
+		CONV_CAP(CS_DATA_NOSENSITIVITY,	TDS_RES_DATA_NOSENSITIVITY);
 
-		case CS_DATA_NOFLT4:		idx = 15; bitmask = 0x01;	break;
-		case CS_DATA_NOFLT8:		idx = 15; bitmask = 0x02;	break;
-		case CS_DATA_NONUM:		idx = 15; bitmask = 0x04;	break;
-		case CS_DATA_NOTEXT:		idx = 15; bitmask = 0x08;	break;
-		case CS_DATA_NOIMAGE:		idx = 15; bitmask = 0x10;	break;
-		case CS_DATA_NODEC:		idx = 15; bitmask = 0x20;	break;
-		case CS_DATA_NOLCHAR:		idx = 15; bitmask = 0x40;	break;
-		case CS_DATA_NOLBIN:		idx = 15; bitmask = 0x80;	break;
+		CONV_CAP(CS_DATA_NOFLT4,	TDS_RES_DATA_NOFLT4);
+		CONV_CAP(CS_DATA_NOFLT8,	TDS_RES_DATA_NOFLT8);
+		CONV_CAP(CS_DATA_NONUM,		TDS_RES_DATA_NONUM);
+		CONV_CAP(CS_DATA_NOTEXT,	TDS_RES_DATA_NOTEXT);
+		CONV_CAP(CS_DATA_NOIMAGE,	TDS_RES_DATA_NOIMAGE);
+		CONV_CAP(CS_DATA_NODEC,		TDS_RES_DATA_NODEC);
+		CONV_CAP(CS_DATA_NOLCHAR,	TDS_RES_DATA_NOLCHAR);
+		CONV_CAP(CS_DATA_NOLBIN,	TDS_RES_DATA_NOLBIN);
 
-		case CS_DATA_NOCHAR:		idx = 16; bitmask = 0x01;	break;
-		case CS_DATA_NOVCHAR:		idx = 16; bitmask = 0x02;	break;
-		case CS_DATA_NOBIN:		idx = 16; bitmask = 0x04;	break;
-		case CS_DATA_NOVBIN:		idx = 16; bitmask = 0x08;	break;
-		case CS_DATA_NOMNY8:		idx = 16; bitmask = 0x10;	break;
-		case CS_DATA_NOMNY4:		idx = 16; bitmask = 0x20;	break;
-		case CS_DATA_NODATE8:		idx = 16; bitmask = 0x40;	break;
-		case CS_DATA_NODATE4:		idx = 16; bitmask = 0x80;	break;
+		CONV_CAP(CS_DATA_NOCHAR,	TDS_RES_DATA_NOCHAR);
+		CONV_CAP(CS_DATA_NOVCHAR,	TDS_RES_DATA_NOVCHAR);
+		CONV_CAP(CS_DATA_NOBIN,		TDS_RES_DATA_NOBIN);
+		CONV_CAP(CS_DATA_NOVBIN,	TDS_RES_DATA_NOVBIN);
+		CONV_CAP(CS_DATA_NOMNY8,	TDS_RES_DATA_NOMNY8);
+		CONV_CAP(CS_DATA_NOMNY4,	TDS_RES_DATA_NOMNY4);
+		CONV_CAP(CS_DATA_NODATE8,	TDS_RES_DATA_NODATE8);
+		CONV_CAP(CS_DATA_NODATE4,	TDS_RES_DATA_NODATE4);
 
-		case CS_RES_NOMSG:		idx = 17; bitmask = 0x02;	break;
-		case CS_RES_NOEED:		idx = 17; bitmask = 0x04;	break;
-		case CS_RES_NOPARAM:		idx = 17; bitmask = 0x08;	break;
-		case CS_DATA_NOINT1:		idx = 17; bitmask = 0x10;	break;
-		case CS_DATA_NOINT2:		idx = 17; bitmask = 0x20;	break;
-		case CS_DATA_NOINT4:		idx = 17; bitmask = 0x40;	break;
-		case CS_DATA_NOBIT:		idx = 17; bitmask = 0x80;	break;
-
-		default:
-			tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- attempt to set/get a non-existant capability\n");
-			return CS_FAIL;
+		CONV_CAP(CS_RES_NOMSG,		TDS_RES_NOMSG);
+		CONV_CAP(CS_RES_NOEED,		TDS_RES_NOEED);
+		CONV_CAP(CS_RES_NOPARAM,	TDS_RES_NOPARAM);
+		CONV_CAP(CS_DATA_NOINT1,	TDS_RES_DATA_NOINT1);
+		CONV_CAP(CS_DATA_NOINT2,	TDS_RES_DATA_NOINT2);
+		CONV_CAP(CS_DATA_NOINT4,	TDS_RES_DATA_NOINT4);
+		CONV_CAP(CS_DATA_NOBIT,		TDS_RES_DATA_NOBIT);
 		} /* end capability */
-
-		assert(13 <= idx && idx <= 17);
-		assert(bitmask);
-
-		switch (action) {
-		case CS_SET:
-			/* Having established the offset and the bitmask, we can now turn the capability on or off */
-			switch (*(CS_BOOL *) value) {
-			case CS_TRUE:
-				mask[idx] |= bitmask;
-				break;
-			case CS_FALSE:
-				mask[idx] &= ~bitmask;
-				break;
-			default:
-				tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- unknown value\n");
-				return CS_FAIL;
-			}
-			break;
-		case CS_GET:
-			*(CS_BOOL *) value = (mask[idx] & bitmask) ? CS_TRUE : CS_FALSE;
-			break;
-		default:
-			tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- unknown action\n");
-			return CS_FAIL;
-		}
-		return CS_SUCCEED;
 	} /* End handling CS_CAP_RESPONSE (returned) */
 
 	/*
 	 * Begin handling CS_CAP_REQUEST
 	 * These capabilities describe the types of requests that a server can support.
 	 */
-	switch (capability) {
-	case CS_PROTO_DYNPROC:		*(CS_BOOL *) value = mask[2] & 0x01 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_FLTN:		*(CS_BOOL *) value = mask[2] & 0x02 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_BITN:		*(CS_BOOL *) value = mask[2] & 0x04 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_INT8:		*(CS_BOOL *) value = mask[2] & 0x08 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_VOID:		*(CS_BOOL *) value = mask[2] & 0x10 ? CS_TRUE : CS_FALSE;	break;
+	if (type == CS_CAP_REQUEST) {
+		if (action == CS_SET) {
+			tdsdump_log(TDS_DBG_SEVERE,
+				    "ct_capability -- attempt to set a read-only capability (type %d, action %d)\n",
+				    type, action);
+			return CS_FAIL;
+		}
 
-	case CS_CON_INBAND:		*(CS_BOOL *) value = mask[3] & 0x01 ? CS_TRUE : CS_FALSE;	break;
-	case CS_CON_LOGICAL:		*(CS_BOOL *) value = mask[3] & 0x02 ? CS_TRUE : CS_FALSE;	break;
-	case CS_PROTO_TEXT:		*(CS_BOOL *) value = mask[3] & 0x04 ? CS_TRUE : CS_FALSE;	break;
-	case CS_PROTO_BULK:		*(CS_BOOL *) value = mask[3] & 0x08 ? CS_TRUE : CS_FALSE;	break;
-	case CS_REQ_URGNOTIF:		*(CS_BOOL *) value = mask[3] & 0x10 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_SENSITIVITY:	*(CS_BOOL *) value = mask[3] & 0x20 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_BOUNDARY:		*(CS_BOOL *) value = mask[3] & 0x40 ? CS_TRUE : CS_FALSE;	break;
-	case CS_PROTO_DYNAMIC:		*(CS_BOOL *) value = mask[3] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+		cap = &login->capabilities.types[0];
+		switch (capability) {
+		CONV_CAP(CS_PROTO_DYNPROC,	TDS_REQ_PROTO_DYNPROC);
+		CONV_CAP(CS_DATA_FLTN,		TDS_REQ_DATA_FLTN);
+		CONV_CAP(CS_DATA_BITN,		TDS_REQ_DATA_BITN);
+		CONV_CAP(CS_DATA_INT8,		TDS_REQ_DATA_INT8);
+		CONV_CAP(CS_DATA_VOID,		TDS_REQ_DATA_VOID);
 
-	case CS_DATA_MONEYN:		*(CS_BOOL *) value = mask[4] & 0x01 ? CS_TRUE : CS_FALSE;	break;
-	case CS_CSR_PREV:		*(CS_BOOL *) value = mask[4] & 0x02 ? CS_TRUE : CS_FALSE;	break;
-	case CS_CSR_FIRST:		*(CS_BOOL *) value = mask[4] & 0x04 ? CS_TRUE : CS_FALSE;	break;
-	case CS_CSR_LAST:		*(CS_BOOL *) value = mask[4] & 0x08 ? CS_TRUE : CS_FALSE;	break;
-	case CS_CSR_ABS:		*(CS_BOOL *) value = mask[4] & 0x10 ? CS_TRUE : CS_FALSE;	break;
-	case CS_CSR_REL:		*(CS_BOOL *) value = mask[4] & 0x20 ? CS_TRUE : CS_FALSE;	break;
-	case CS_CSR_MULTI:		*(CS_BOOL *) value = mask[4] & 0x40 ? CS_TRUE : CS_FALSE;	break;
-	case CS_CON_OOB:		*(CS_BOOL *) value = mask[4] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+		CONV_CAP(CS_CON_INBAND,		TDS_REQ_CON_INBAND);
+		CONV_CAP(CS_CON_LOGICAL,	TDS_REQ_CON_LOGICAL);
+		CONV_CAP(CS_PROTO_TEXT,		TDS_REQ_PROTO_TEXT);
+		CONV_CAP(CS_PROTO_BULK,		TDS_REQ_PROTO_BULK);
+		CONV_CAP(CS_REQ_URGNOTIF,	TDS_REQ_URGEVT);
+		CONV_CAP(CS_DATA_SENSITIVITY,	TDS_REQ_DATA_SENSITIVITY);
+		CONV_CAP(CS_DATA_BOUNDARY,	TDS_REQ_DATA_BOUNDARY);
+		CONV_CAP(CS_PROTO_DYNAMIC,	TDS_REQ_PROTO_DYNAMIC);
 
-	case CS_DATA_NUM:		*(CS_BOOL *) value = mask[5] & 0x01 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_TEXT:		*(CS_BOOL *) value = mask[5] & 0x02 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_IMAGE:		*(CS_BOOL *) value = mask[5] & 0x04 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_DEC:		*(CS_BOOL *) value = mask[5] & 0x08 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_LCHAR:		*(CS_BOOL *) value = mask[5] & 0x10 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_LBIN:		*(CS_BOOL *) value = mask[5] & 0x20 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_INTN:		*(CS_BOOL *) value = mask[5] & 0x40 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_DATETIMEN:		*(CS_BOOL *) value = mask[5] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+		CONV_CAP(CS_DATA_MONEYN,	TDS_REQ_DATA_MONEYN);
+		CONV_CAP(CS_CSR_PREV,		TDS_REQ_CSR_PREV);
+		CONV_CAP(CS_CSR_FIRST,		TDS_REQ_CSR_FIRST);
+		CONV_CAP(CS_CSR_LAST,		TDS_REQ_CSR_LAST);
+		CONV_CAP(CS_CSR_ABS,		TDS_REQ_CSR_ABS);
+		CONV_CAP(CS_CSR_REL,		TDS_REQ_CSR_REL);
+		CONV_CAP(CS_CSR_MULTI,		TDS_REQ_CSR_MULTI);
+		CONV_CAP(CS_CON_OOB,		TDS_REQ_CON_OOB);
 
-	case CS_DATA_BIN:		*(CS_BOOL *) value = mask[6] & 0x01 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_VBIN:		*(CS_BOOL *) value = mask[6] & 0x02 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_MNY8:		*(CS_BOOL *) value = mask[6] & 0x04 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_MNY4:		*(CS_BOOL *) value = mask[6] & 0x08 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_DATE8:		*(CS_BOOL *) value = mask[6] & 0x10 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_DATE4:		*(CS_BOOL *) value = mask[6] & 0x20 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_FLT4:		*(CS_BOOL *) value = mask[6] & 0x40 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_FLT8:		*(CS_BOOL *) value = mask[6] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+		CONV_CAP(CS_DATA_NUM,		TDS_REQ_DATA_NUM);
+		CONV_CAP(CS_DATA_TEXT,		TDS_REQ_DATA_TEXT);
+		CONV_CAP(CS_DATA_IMAGE,		TDS_REQ_DATA_IMAGE);
+		CONV_CAP(CS_DATA_DEC,		TDS_REQ_DATA_DEC);
+		CONV_CAP(CS_DATA_LCHAR,		TDS_REQ_DATA_LCHAR);
+		CONV_CAP(CS_DATA_LBIN,		TDS_REQ_DATA_LBIN);
+		CONV_CAP(CS_DATA_INTN,		TDS_REQ_DATA_INTN);
+		CONV_CAP(CS_DATA_DATETIMEN,	TDS_REQ_DATA_DATETIMEN);
 
-	case CS_REQ_MSG:		*(CS_BOOL *) value = mask[7] & 0x01 ? CS_TRUE : CS_FALSE;	break;
-	case CS_REQ_PARAM:		*(CS_BOOL *) value = mask[7] & 0x02 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_INT1:		*(CS_BOOL *) value = mask[7] & 0x04 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_INT2:		*(CS_BOOL *) value = mask[7] & 0x08 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_INT4:		*(CS_BOOL *) value = mask[7] & 0x10 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_BIT:		*(CS_BOOL *) value = mask[7] & 0x20 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_CHAR:		*(CS_BOOL *) value = mask[7] & 0x40 ? CS_TRUE : CS_FALSE;	break;
-	case CS_DATA_VCHAR:		*(CS_BOOL *) value = mask[7] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+		CONV_CAP(CS_DATA_BIN,		TDS_REQ_DATA_BIN);
+		CONV_CAP(CS_DATA_VBIN,		TDS_REQ_DATA_VBIN);
+		CONV_CAP(CS_DATA_MNY8,		TDS_REQ_DATA_MNY8);
+		CONV_CAP(CS_DATA_MNY4,		TDS_REQ_DATA_MNY4);
+		CONV_CAP(CS_DATA_DATE8,		TDS_REQ_DATA_DATE8);
+		CONV_CAP(CS_DATA_DATE4,		TDS_REQ_DATA_DATE4);
+		CONV_CAP(CS_DATA_FLT4,		TDS_REQ_DATA_FLT4);
+		CONV_CAP(CS_DATA_FLT8,		TDS_REQ_DATA_FLT8);
 
-	case CS_REQ_LANG:		*(CS_BOOL *) value = mask[8] & 0x02 ? CS_TRUE : CS_FALSE;	break;
-	case CS_REQ_RPC:		*(CS_BOOL *) value = mask[8] & 0x04 ? CS_TRUE : CS_FALSE;	break;
-	case CS_REQ_NOTIF:		*(CS_BOOL *) value = mask[8] & 0x08 ? CS_TRUE : CS_FALSE;	break;
-	case CS_REQ_MSTMT:		*(CS_BOOL *) value = mask[8] & 0x10 ? CS_TRUE : CS_FALSE;	break;
-	case CS_REQ_BCP:		*(CS_BOOL *) value = mask[8] & 0x20 ? CS_TRUE : CS_FALSE;	break;
-	case CS_REQ_CURSOR:		*(CS_BOOL *) value = mask[8] & 0x40 ? CS_TRUE : CS_FALSE;	break;
-	case CS_REQ_DYN:		*(CS_BOOL *) value = mask[8] & 0x80 ? CS_TRUE : CS_FALSE;	break;
+		CONV_CAP(CS_REQ_MSG,		TDS_REQ_MSG);
+		CONV_CAP(CS_REQ_PARAM,		TDS_REQ_PARAM);
+		CONV_CAP(CS_DATA_INT1,		TDS_REQ_DATA_INT1);
+		CONV_CAP(CS_DATA_INT2,		TDS_REQ_DATA_INT2);
+		CONV_CAP(CS_DATA_INT4,		TDS_REQ_DATA_INT4);
+		CONV_CAP(CS_DATA_BIT,		TDS_REQ_DATA_BIT);
+		CONV_CAP(CS_DATA_CHAR,		TDS_REQ_DATA_CHAR);
+		CONV_CAP(CS_DATA_VCHAR,		TDS_REQ_DATA_VCHAR);
 
-	default:
-		tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- attempt to get a non-existant capability\n");
+		CONV_CAP(CS_REQ_LANG,		TDS_REQ_LANG);
+		CONV_CAP(CS_REQ_RPC,		TDS_REQ_RPC);
+		CONV_CAP(CS_REQ_NOTIF,		TDS_REQ_EVT);
+		CONV_CAP(CS_REQ_MSTMT,		TDS_REQ_MSTMT);
+		CONV_CAP(CS_REQ_BCP,		TDS_REQ_BCP);
+		CONV_CAP(CS_REQ_CURSOR,		TDS_REQ_CURSOR);
+		CONV_CAP(CS_REQ_DYN,		TDS_REQ_DYNF);
+		} /* end capability */
+	} /* End handling CS_CAP_REQUEST */
+#undef CONV_CAP
+
+	if (cap == NULL) {
+		tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- unknown capability type\n");
 		return CS_FAIL;
-		break;
-	}			/* end capability */
-
-	assert(*(CS_BOOL *) value);
-
-	/* CS_CAP_RESPONSE is read-only */
-	if (type == CS_CAP_REQUEST && action == CS_GET) {
-		tdsdump_log(TDS_DBG_INFO1, "ct_capability returns success, value %s\n",
-			*(CS_BOOL *)value == CS_TRUE ? "TRUE" : "FALSE");
-		return CS_SUCCEED;
+	}
+	if (idx == 0) {
+		tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- attempt to set/get a non-existant capability\n");
+		return CS_FAIL;
 	}
 
-	tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- attempt to set a read-only capability (type %d, action %d)\n",
-		type, action);
-	return CS_FAIL;
+	bitmask = 1 << (idx&7);
+	idx = sizeof(cap->values) - 1 - (idx>>3);
+	assert(0 <= idx && idx <= sizeof(cap->values));
+
+	switch (action) {
+	case CS_SET:
+		/* Having established the offset and the bitmask, we can now turn the capability on or off */
+		switch (*(CS_BOOL *) value) {
+		case CS_TRUE:
+			cap->values[idx] |= bitmask;
+			break;
+		case CS_FALSE:
+			cap->values[idx] &= ~bitmask;
+			break;
+		default:
+			tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- unknown value\n");
+			return CS_FAIL;
+		}
+		break;
+	case CS_GET:
+		*(CS_BOOL *) value = (cap->values[idx] & bitmask) ? CS_TRUE : CS_FALSE;
+		break;
+	default:
+		tdsdump_log(TDS_DBG_SEVERE, "ct_capability -- unknown action\n");
+		return CS_FAIL;
+	}
+	return CS_SUCCEED;
 } /* end ct_capability */
 
 
