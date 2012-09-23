@@ -2278,7 +2278,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 {
 	struct _sql_errors *errs = NULL;
 	TDS_DBC *dbc = NULL;
-	TDS_STMT *stmt;
+	TDS_STMT *stmt = NULL;
 
 	tdsdump_log(TDS_DBG_INFO1, "msgno %d %d\n", (int) msg->msgno, TDSETIME);
 
@@ -2288,14 +2288,14 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		if (!tds)
 			return TDS_INT_CANCEL;
 
-		if (stmt = odbc_get_stmt(tds)) {
+		if ((stmt = odbc_get_stmt(tds)) != NULL) {
 			/* first time, try to send a cancel */
 			if (!tds->in_cancel) {
 				odbc_errs_add(&stmt->errs, "HYT00", "Timeout expired");
 				tdsdump_log(TDS_DBG_INFO1, "returning from timeout\n");
 				return TDS_INT_TIMEOUT;
 			}
-		} else if (dbc = odbc_get_dbc(tds)) {
+		} else if ((dbc = odbc_get_dbc(tds)) != NULL) {
 			odbc_errs_add(&dbc->errs, "HYT00", "Timeout expired");
 		}
 
@@ -2304,7 +2304,7 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 		return TDS_INT_CANCEL;
 	}
 
-	if (tds && (dbc = odbc_get_dbc(tds))) {
+	if (tds && (dbc = odbc_get_dbc(tds)) != NULL) {
 		errs = &dbc->errs;
 		if (stmt = odbc_get_stmt(tds))
 			errs = &stmt->errs;

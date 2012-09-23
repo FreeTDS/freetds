@@ -308,7 +308,7 @@ col_null( const struct col_t *pcol )
 static char *
 string_value(const struct col_t *pcol)
 {
-	char *output;
+	char *output = NULL;
 	int len = -1;
 
 	switch(pcol->type) {
@@ -335,6 +335,7 @@ string_value(const struct col_t *pcol)
 		len = asprintf(&output, "%f", (double)pcol->r);
 		break;
 
+	default:
 	case SYBINTN:
 	case SYBDATETIME:
 	case SYBBIT:
@@ -357,9 +358,6 @@ string_value(const struct col_t *pcol)
 		return NULL;
 		break;
 	}
-
-	assert(output);
-	assert(len >= 0);
 
 	return len >= 0? output : NULL;
 }
