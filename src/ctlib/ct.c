@@ -345,7 +345,7 @@ ct_callback(CS_CONTEXT * ctx, CS_CONNECTION * con, CS_INT action, CS_INT type, C
 CS_RETCODE
 ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * out_len)
 {
-	CS_INT intval = 0, maxcp;
+	CS_INT intval, maxcp;
 	TDSSOCKET *tds;
 	TDSLOGIN *tds_login;
 
@@ -518,14 +518,11 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			memcpy(buffer, con->userdata, maxcp);
 			break;
 		case CS_CON_STATUS:
+			intval = 0;
 			if (!(IS_TDSDEAD(tds)))
 				intval |= CS_CONSTAT_CONNECTED;
-			else
-				intval &= ~CS_CONSTAT_CONNECTED;
 			if (tds && tds->state == TDS_DEAD)
 				intval |= CS_CONSTAT_DEAD;
-			else
-				intval &= ~CS_CONSTAT_DEAD;
 			memcpy(buffer, &intval, sizeof(intval));
 			break;
 		case CS_BULK_LOGIN:
