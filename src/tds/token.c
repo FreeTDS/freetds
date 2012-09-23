@@ -2081,7 +2081,6 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		}
 		break;
 	case 5:
-		blob = (TDSBLOB *) curcol->column_data;
 		colsize = tds_get_int(tds);
 		if (colsize == 0)
 			colsize = -1;
@@ -2153,8 +2152,9 @@ tds_get_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	} else if (is_blob_col(curcol)) {
 		TDS_CHAR *p;
 		int new_blob_size;
-		assert(blob == (TDSBLOB *) dest); 	/* cf. column_varint_size case 4, above */
-		
+
+		blob = (TDSBLOB *) dest; 	/* cf. column_varint_size case 4, above */
+
 		/* 
 		 * Blobs don't use a column's fixed buffer because the official maximum size is 2 GB.
 		 * Instead, they're reallocated as necessary, based on the data's size.  
