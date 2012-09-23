@@ -4083,7 +4083,7 @@ static int
 _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *data, CS_INT *datalen,
 	       CS_SMALLINT *indicator, CS_BYTE byvalue)
 {
-	int param_is_null = 0, desttype;
+	int desttype;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_fill_param(%d, %p, %p, %p, %p, %p, %x)\n",
 				cmd_type, param, datafmt, data, datalen, indicator, byvalue);
@@ -4146,7 +4146,6 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 		if (*indicator == -1 || (data == NULL && (*datalen == 0 || *datalen == CS_UNUSED))) {
 			param->value = NULL;
 			*(param->datalen) = 0;
-			param_is_null = 1;
 		} else {
 			/* datafmt.datalen is ignored for fixed length types */
 
@@ -4173,7 +4172,6 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 			} else {
 				param->value = NULL;
 				*(param->datalen) = 0;
-				param_is_null = 1;
 			}
 		}
 	} else {		/* not by value, i.e. by reference */
