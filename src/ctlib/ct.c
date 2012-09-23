@@ -3906,8 +3906,6 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 	TDSPARAMINFO *params = NULL;
 
 	int temp_type, tds_type;
-	CS_BYTE *temp_value;
-	CS_INT temp_datalen;
 
 	tdsdump_log(TDS_DBG_FUNC, "paraminfoalloc(%p, %p)\n", tds, first_param);
 
@@ -3917,6 +3915,8 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 
 	for (i = 0, p = first_param; p != NULL; p = p->next, i++) {
 		const unsigned char *prow;
+		CS_BYTE *temp_value = NULL;
+		CS_INT temp_datalen = 0;
 
 		if (!(params = tds_alloc_param_result(params))) {
 			fprintf(stderr, "out of rpc memory!");
@@ -3931,37 +3931,22 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		tds_type = _ct_get_server_type(p->datatype);
 		if (p->param_by_value == 0) {
 
-			temp_datalen = 0;
-			temp_value = NULL;
-
-			/* here's one way of passing a null parameter */
-
-			if (*(p->ind) == -1) {
-				temp_value = NULL;
-				temp_datalen = 0;
-			} else {
-
-				/* and here's another... */
-				if ((*(p->datalen) == 0 || *(p->datalen) == CS_UNUSED) && p->value == NULL) {
-					temp_value = NULL;
-					temp_datalen = 0;
+			/*
+			 * there are three ways to indicate null parameters
+			 * 1) *ind == -1
+			 * 2) *datalen == 0
+			 * 3) value, datalen and ind as NULL. Here value == NULL is
+			 *    sufficient
+			 */
+			if (*(p->ind) != -1 && p->value != NULL && *(p->datalen) != 0) {
+				/* datafmt.datalen is ignored for fixed length types */
+				if (is_fixed_type(tds_type)) {
+					temp_datalen = tds_get_size_by_type(tds_type);
 				} else {
-
-					/* datafmt.datalen is ignored for fixed length types */
-
-					if (is_fixed_type(tds_type)) {
-						temp_datalen = tds_get_size_by_type(tds_type);
-					} else {
-						temp_datalen = (*(p->datalen) == CS_UNUSED) ? 0 : *(p->datalen);
-					}
-
-					if (p->value) {
-						temp_value = p->value;
-					} else {
-						temp_value = NULL;
-						temp_datalen = 0;
-					}
+					temp_datalen = (*(p->datalen) == CS_UNUSED) ? 0 : *(p->datalen);
 				}
+
+				temp_value = p->value;
 			}
 		} else {
 			temp_value = p->value;
