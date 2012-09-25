@@ -386,6 +386,18 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 	return rc;
 }
 
+int
+tds_get_req_capability(TDSSOCKET * tds, int cap)
+{
+	unsigned char *caps = tds->capabilities;
+	int idx = cap / 8u;
+	if (caps[0] == 1 && cap > 0 && caps[1] > idx) {
+		idx = 1 + caps[1] - idx;
+		if (idx < sizeof(tds->capabilities))
+			return caps[idx] & (1<<(cap&7));
+	}
+	return 0;
+}
 
 
 

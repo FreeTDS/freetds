@@ -1563,6 +1563,7 @@ void tds_set_parent(TDSSOCKET * tds, void *the_parent);
 int tds_swap_bytes(unsigned char *buf, int bytes);
 int tds_version(TDSSOCKET * tds_socket, char *pversion_string);
 unsigned int tds_gettime_ms(void);
+int tds_get_req_capability(TDSSOCKET * tds, int cap);
 
 /* log.c */
 void tdsdump_off(void);

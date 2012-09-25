@@ -701,7 +701,7 @@ tds_alloc_locale(void)
 }
 static const unsigned char defaultcaps[] = { 
      /* type,  len, data, data, data, data, data, data, data, data, data (9 bytes) */
-	0x01, 0x09, 0x00, 0x08, 0x0E, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
+	0x01, 0x09, 0x00, 0x08, 0x0F, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE,
 	0x02, 0x09, 0x00, 0x00, 0x00, 0x00, 0x02, 0x68, 0x00, 0x00, 0x00
 };
 
@@ -723,7 +723,7 @@ static const TDS_TINYINT request_capabilities[] =
 	  TDS_REQ_CSR_ABS, TDS_REQ_CSR_REL, TDS_REQ_CSR_MULTI					/* capability.data[4] */
 	, TDS_REQ_CON_INBAND,                   TDS_REQ_PROTO_TEXT, TDS_REQ_PROTO_BULK, 
 	  TDS_REQ_DATA_SENSITIVITY, TDS_REQ_DATA_BOUNDARY					/* capability.data[3] */
-	,                           TDS_REQ_DATA_FLTN, TDS_REQ_DATA_BITN, TDS_REQ_DATA_INT8	/* capability.data[2] */
+	, TDS_REQ_PROTO_DYNPROC,    TDS_REQ_DATA_FLTN, TDS_REQ_DATA_BITN, TDS_REQ_DATA_INT8	/* capability.data[2] */
 	, TDS_REQ_WIDETABLE									/* capability.data[1] */
 	};
 
