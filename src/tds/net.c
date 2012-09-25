@@ -317,18 +317,15 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	return tds_error;
 }
 
-int
+void
 tds_close_socket(TDSSOCKET * tds)
 {
-	int rc = -1;
-
 	if (!IS_TDSDEAD(tds)) {
-		if ((rc = CLOSESOCKET(tds_get_s(tds))) == -1) 
+		if (CLOSESOCKET(tds_get_s(tds)) == -1) 
 			tdserror(tds_get_ctx(tds), tds,  TDSECLOS, sock_errno);
 		tds_set_s(tds, INVALID_SOCKET);
 		tds_set_state(tds, TDS_DEAD);
 	}
-	return rc;
 }
 
 /**

@@ -1276,7 +1276,7 @@ extern int tds_g_append_mode;
 
 /* net.c */
 TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout, int *p_oserr);
-int tds_close_socket(TDSSOCKET * tds);
+void tds_close_socket(TDSSOCKET * tds);
 int tds7_get_instance_ports(FILE *output, const char *ip_addr);
 int tds7_get_instance_port(const char *ip_addr, const char *instance);
 TDSRET tds_ssl_init(TDSSOCKET *tds);
