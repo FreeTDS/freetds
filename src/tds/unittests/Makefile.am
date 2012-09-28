@@ -4,7 +4,7 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			t0007$(EXEEXT) t0008$(EXEEXT) dynamic1$(EXEEXT)\
 			convert$(EXEEXT) dataread$(EXEEXT) utf8_1$(EXEEXT)\
 			utf8_2$(EXEEXT) utf8_3$(EXEEXT) numeric$(EXEEXT) \
-			iconv_fread$(EXEEXT) toodynamic$(EXEEXT)
+			iconv_fread$(EXEEXT) toodynamic$(EXEEXT) readconf$(EXEEXT)
 
 # flags test commented, not necessary for 0.62
 # TODO add flags test again when needed
@@ -29,8 +29,9 @@ utf8_3_SOURCES	=	utf8_3.c common.c common.h utf8.c
 numeric_SOURCES =       numeric.c
 iconv_fread_SOURCES	= iconv_fread.c
 toodynamic_SOURCES	= toodynamic.c common.c common.h
+readconf_SOURCES	= readconf.c
 
-AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
+AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../ -DFREETDS_SRCDIR=\"$(srcdir)\"
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
