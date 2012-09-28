@@ -504,7 +504,6 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 			p = *s;
 			s++;
 		}
-		option[i] = '\0';
 
 		/* skip if empty option */
 		if (!i)
@@ -513,6 +512,9 @@ tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_pars
 		/* skip the = */
 		if (*s)
 			s++;
+
+		/* terminate the option, must be done after skipping = */
+		option[i] = '\0';
 
 		/* skip leading whitespace */
 		while (*s && TDS_ISSPACE(*s))
