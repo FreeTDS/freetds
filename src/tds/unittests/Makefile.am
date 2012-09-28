@@ -5,7 +5,7 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			convert$(EXEEXT) dataread$(EXEEXT) utf8_1$(EXEEXT)\
 			utf8_2$(EXEEXT) utf8_3$(EXEEXT) numeric$(EXEEXT) \
 			iconv_fread$(EXEEXT) toodynamic$(EXEEXT) \
-			$(CHALLENGE_TEST)
+			$(CHALLENGE_TEST) readconf$(EXEEXT)
 
 # flags test commented, not necessary for 0.62
 # TODO add flags test again when needed
@@ -36,8 +36,9 @@ else
 CHALLENGE_TEST = challenge$(EXEEXT)
 challenge_SOURCES	= challenge.c
 endif
+readconf_SOURCES	= readconf.c
 
-AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
+AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../ -DFREETDS_SRCDIR=\"$(srcdir)\"
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
