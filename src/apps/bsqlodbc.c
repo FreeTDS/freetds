@@ -553,11 +553,11 @@ print_results(SQLHSTMT hStmt)
 			if (is_character_data(metadata[c].type)) {
 				SQLHDESC hDesc;
 				SQLINTEGER buflen;
-				
+
 				metadata[c].nchars = metadata[c].size;
-				
-				if ((erc = SQLAllocHandle(SQL_HANDLE_DESC, hStmt, &hDesc)) != SQL_SUCCESS) {
-					odbc_perror(hStmt, erc, "SQLAllocHandle", "failed");
+
+				if ((erc = SQLGetStmtAttr(hStmt, SQL_ATTR_IMP_ROW_DESC, &hDesc, sizeof(hDesc), NULL)) != SQL_SUCCESS) {
+					odbc_perror(hStmt, erc, "SQLGetStmtAttr", "failed");
 					exit(EXIT_FAILURE);
 				} 
 				if ((erc = SQLGetDescField(hDesc, c+1, SQL_DESC_OCTET_LENGTH, 
@@ -565,12 +565,8 @@ print_results(SQLHSTMT hStmt)
 								&buflen)) != SQL_SUCCESS) {
 					odbc_perror(hStmt, erc, "SQLGetDescField", "failed");
 					exit(EXIT_FAILURE);
-				} 
-				
-				if ((erc = SQLFreeHandle(SQL_HANDLE_DESC, hStmt)) != SQL_SUCCESS) {
-					odbc_perror(hStmt, erc, "SQLFreeHandle", "failed");
-					exit(EXIT_FAILURE);
-				} 
+				}
+				metadata[c].size = metadata[c].size * 2 + 1;
 			}
 
 			fprintf(options.verbose, "%6d  %30s  %10d  %18s  %6lu  %6d  \n", 
