@@ -551,11 +551,11 @@ print_results(SQLHSTMT hStmt)
 			if (is_character_data(metadata[c].type)) {
 				SQLHDESC hDesc;
 				SQLINTEGER buflen;
-				
+
 				metadata[c].nchars = metadata[c].size;
-				
-				if ((erc = SQLAllocHandle(SQL_HANDLE_DESC, hStmt, &hDesc)) != SQL_SUCCESS) {
-					odbc_perror(hStmt, erc, "SQLAllocHandle", "failed");
+
+				if ((erc = SQLGetStmtAttr(hStmt, SQL_ATTR_IMP_ROW_DESC, &hDesc, sizeof(hDesc), NULL)) != SQL_SUCCESS) {
+					odbc_perror(hStmt, erc, "SQLGetStmtAttr", "failed");
 					exit(EXIT_FAILURE);
 				} 
 				if ((erc = SQLGetDescField(hDesc, c+1, SQL_DESC_OCTET_LENGTH, 
@@ -563,12 +563,8 @@ print_results(SQLHSTMT hStmt)
 								&buflen)) != SQL_SUCCESS) {
 					odbc_perror(hStmt, erc, "SQLGetDescField", "failed");
 					exit(EXIT_FAILURE);
-				} 
-				
-				if ((erc = SQLFreeHandle(SQL_HANDLE_DESC, hStmt)) != SQL_SUCCESS) {
-					odbc_perror(hStmt, erc, "SQLFreeHandle", "failed");
-					exit(EXIT_FAILURE);
-				} 
+				}
+				metadata[c].size = metadata[c].size * 2 + 1;
 			}
 
 			fprintf(options.verbose, "%6d  %30s  %10d  %18s  %6lu  %6d  \n", 
@@ -641,18 +637,14 @@ print_results(SQLHSTMT hStmt)
 				exit(EXIT_FAILURE);
 			}
 			for (c=0; c < ncols; c++) {
-				char *s;
 				switch (data[c].len) { /* handle nulls */
 				case SQL_NULL_DATA: /* is null */
 					fprintf(stdout, metadata[c].format_string, "NULL");
 					break;
 				default:
-					assert(data[c].len > 0);
-					s = calloc(1, 1 + data[c].len);
-					assert(s);
-					memcpy(s, data[c].buffer, data[c].len);
-					fprintf(stdout, metadata[c].format_string, s);
-					free(s);
+					assert(data[c].len >= 0);
+				case SQL_NO_TOTAL:
+					fprintf(stdout, metadata[c].format_string, data[c].buffer);
 					break;
 				}
 			}
