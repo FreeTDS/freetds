@@ -19,7 +19,7 @@
 #include "common.h"
 
 static FILE *f = NULL;
-static const char *return_value = NULL;
+static char *return_value = NULL;
 
 static void
 conf_parse(const char *option, const char *value, void *param)
@@ -36,7 +36,7 @@ test(const char *section, const char *entry, const char *expected)
 
 	rewind(f);
 
-	tds_read_conf_section(f, section, conf_parse, entry);
+	tds_read_conf_section(f, section, conf_parse, (void *) entry);
 	if (!expected && return_value) {
 		fprintf(stderr, "return value %s NOT expected\n", return_value);
 		fail = 1;
@@ -76,6 +76,8 @@ main(int argc, char **argv)
 	test("section2", "opt two", "value2");
 
 	test("section 3", "opt three", "value three");
+
+	fclose(f);
 	return 0;
 }
 
