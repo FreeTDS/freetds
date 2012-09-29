@@ -639,18 +639,14 @@ print_results(SQLHSTMT hStmt)
 				exit(EXIT_FAILURE);
 			}
 			for (c=0; c < ncols; c++) {
-				char *s;
 				switch (data[c].len) { /* handle nulls */
 				case SQL_NULL_DATA: /* is null */
 					fprintf(stdout, metadata[c].format_string, "NULL");
 					break;
 				default:
-					assert(data[c].len > 0);
-					s = calloc(1, 1 + data[c].len);
-					assert(s);
-					memcpy(s, data[c].buffer, data[c].len);
-					fprintf(stdout, metadata[c].format_string, s);
-					free(s);
+					assert(data[c].len >= 0);
+				case SQL_NO_TOTAL:
+					fprintf(stdout, metadata[c].format_string, data[c].buffer);
 					break;
 				}
 			}
