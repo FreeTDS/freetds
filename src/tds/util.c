@@ -333,7 +333,7 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		msg.server = "OpenClient";
 		msg.line_number = -1;
 		msg.message = (TDS_CHAR*) err->msgtext;
-		msg.sql_state = tds_alloc_client_sqlstate(msg.msgno);
+		msg.sql_state = tds_alloc_client_sqlstate(msgno);
 		
 		msg.oserr = errnum;
 

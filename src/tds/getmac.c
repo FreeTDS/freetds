@@ -59,7 +59,7 @@ tds_getmac(TDS_SYS_SOCKET s, unsigned char mac[6])
 	ioctl(s, SIOCGIFCONF, &ifc);
 
 	IFR = ifc.ifc_req;
-	for (i = ifc.ifc_len / sizeof(struct ifreq); --i >= 0; ++IFR) {
+	for (i = ifc.ifc_len / (int)sizeof(struct ifreq); --i >= 0; ++IFR) {
 
 		strcpy(ifr.ifr_name, IFR->ifr_name);
 		if (ioctl(s, SIOCGIFFLAGS, &ifr) == 0) {

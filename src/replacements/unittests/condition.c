@@ -64,7 +64,7 @@ static void check(int cond, const char *msg)
 	}
 }
 
-int main()
+int main(void)
 {
 	tds_condition cond;
 	tds_thread th;

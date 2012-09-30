@@ -82,7 +82,7 @@ test(tds_mutex_t *mtx)
 	TDS_MUTEX_UNLOCK(mtx);
 }
 
-int main()
+int main(void)
 {
 	TDS_MUTEX_DECLARE(local);
 
