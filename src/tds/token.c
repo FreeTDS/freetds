@@ -144,7 +144,7 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS_CAPABILITY_TOKEN:
 		tok_size = tds_get_smallint(tds);
-		cap = &tds_conn(tds)->capabilities.types;
+		cap = tds_conn(tds)->capabilities.types;
 		memset(cap, 0, 2*sizeof(*cap));
 		cap[0].type = 1;
 		cap[0].len = sizeof(cap[0].values);
