@@ -1199,11 +1199,12 @@ tds_ssl_write(BIO *b, const char* data, int len)
 
 	if (conn->tls_session) {
 		TDSPACKET *packet = conn->send_packets;
+		assert(conn->in_net_tds);
 		/* write to socket directly */
 		/* TODO use cork if available here to flush only on last chunk of packet ?? */
 		/* FIXME with SMP trick to detect final is not ok */
 /*		return tds_goodwrite(packet->tds, data, len, tds->out_buf[1]); */
-		return tds_goodwrite(packet->tds, (const unsigned char*) data, len, packet->next == NULL);
+		return tds_goodwrite(conn->in_net_tds, (const unsigned char*) data, len, packet->next == NULL);
 	}
 	/* initializing SSL, write crypted data inside normal TDS packets */
 	tds_put_n(conn->list, data, len);

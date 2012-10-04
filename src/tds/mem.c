@@ -1067,7 +1067,7 @@ tds_alloc_packet(void *buf, unsigned len)
 	if (TDS_LIKELY(packet)) {
 		packet->pos = 0;
 		packet->len = len;
-		packet->tds = NULL;
+		packet->sid = -2;
 		packet->next = NULL;
 		if (buf)
 			memcpy(packet->buf, buf, len);

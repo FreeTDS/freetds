@@ -981,7 +981,7 @@ typedef struct tds_authentication
 typedef struct tds_packet
 {
 	struct tds_packet *next;
-	struct tds_socket *tds;
+	short sid;
 	unsigned pos, len;
 	unsigned char buf[1];
 } TDSPACKET;
