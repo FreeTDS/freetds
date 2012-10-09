@@ -221,7 +221,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	len = 1;
 	if (setsockopt(conn->s, SOL_SOCKET, SO_NOSIGPIPE, (const void *) &len, sizeof(len))) {
 		*p_oserr = sock_errno;
-		tds_close_socket(tds);
+		tds_connection_close(conn);
 		return TDSESOCK;
 	}
 #endif
@@ -245,7 +245,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 			perror(message);
 			free(message);
 		}
-		tds_close_socket(tds);
+		tds_connection_close(conn);
 		return TDSECONN;
 	}
 #else
@@ -258,7 +258,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	ioctl_nonblocking = 1;
 	if (IOCTLSOCKET(conn->s, FIONBIO, &ioctl_nonblocking) < 0) {
 		*p_oserr = sock_errno;
-		tds_close_socket(tds);
+		tds_connection_close(conn);
 		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
 	}
 
@@ -312,7 +312,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	
     not_available:
 	
-	tds_close_socket(tds);
+	tds_connection_close(conn);
 	tdsdump_log(TDS_DBG_ERROR, "tds_open_socket() failed\n");
 	return tds_error;
 }
@@ -453,7 +453,7 @@ tds_socket_read(TDSCONNECTION * connection, TDSSOCKET *tds, unsigned char *buf, 
 		return 0;
 
 	/* detect connection close */
-	tds_close_socket(tds);
+	tds_connection_close(connection);
 	tdserror(connection->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
 	return -1;
 }
@@ -488,7 +488,7 @@ tds_socket_write(TDSCONNECTION *connection, TDSSOCKET *tds, const unsigned char 
 
 	/* detect connection close */
 	tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
-	tds_close_socket(tds);
+	tds_connection_close(connection);
 	tdserror(connection->tds_ctx, tds, TDSEWRIT, err);
 	return -1;
 }
@@ -530,7 +530,7 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 			if (TDSSOCK_WOULDBLOCK(sock_errno)) /* shouldn't happen, but OK */
 				continue;
 			err = sock_errno;
-			tds_close_socket(tds);
+			tds_connection_close(tds_conn(tds));
 			tdserror(tds_get_ctx(tds), tds, TDSEREAD, err);
 			return -1;
 		}
@@ -605,7 +605,7 @@ tds_goodwrite(TDSSOCKET * tds, const unsigned char *buffer, size_t buflen, unsig
 			if (TDSSOCK_WOULDBLOCK(err)) /* shouldn't happen, but OK, retry */
 				continue;
 			tdsdump_log(TDS_DBG_NETWORK, "select(2) failed: %d (%s)\n", err, sock_strerror(err));
-			tds_close_socket(tds);
+			tds_connection_close(tds_conn(tds));
 			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, err);
 			return -1;
 		}

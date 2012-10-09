@@ -1289,6 +1289,11 @@ int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int fin
 int tds_read_packet(TDSSOCKET * tds);
 TDSRET tds_write_packet(TDSSOCKET * tds, unsigned char final);
 int tds_put_cancel(TDSSOCKET * tds);
+static inline
+void tds_connection_close(TDSCONNECTION *connection)
+{
+	tds_close_socket((TDSSOCKET* ) connection);
+}
 
 
 /* vstrbuild.c */

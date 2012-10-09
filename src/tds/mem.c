@@ -1136,6 +1136,7 @@ tds_free_socket(TDSSOCKET * tds)
 		free(tds);
 	}
 }
+
 void
 tds_free_locale(TDSLOCALE * locale)
 {
