@@ -93,22 +93,22 @@ static volatile int inc_num = 1;
 
 /**
  * Get an id for dynamic query based on TDS information
- * \param tds state information for the socket and the TDS protocol
+ * \param conn state information for the connection and the TDS protocol
  * \return TDS_FAIL or TDS_SUCCESS
  */
 static char *
-tds_get_dynid(TDSSOCKET * tds, char *id)
+tds_get_dynid(TDSCONNECTION * conn, char *id)
 {
 	unsigned long n;
 	int i;
 	char *p;
 	char c;
 
-	CHECK_TDS_EXTRA(tds);
+	CHECK_CONN_EXTRA(conn);
 
 	inc_num = (inc_num + 1) & 0xffff;
 	/* some version of Sybase require length <= 10, so we code id */
-	n = (unsigned long) (TDS_INTPTR) tds;
+	n = (unsigned long) (TDS_INTPTR) conn;
 	p = id;
 	*p++ = (char) ('a' + (n % 26u));
 	n /= 26u;
@@ -126,30 +126,30 @@ tds_get_dynid(TDSSOCKET * tds, char *id)
 
 
 /**
- * \fn TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET *tds, const char *id)
+ * \fn TDSDYNAMIC *tds_alloc_dynamic(TDSCONNECTION *conn, const char *id)
  * \brief Allocate a dynamic statement.
- * \param tds the connection within which to allocate the statement.
+ * \param conn the connection within which to allocate the statement.
  * \param id a character label identifying the statement.
  * \return a pointer to the allocated structure (NULL on failure).
  *
  * tds_alloc_dynamic is used to implement placeholder code under TDS 5.0
  */
 TDSDYNAMIC *
-tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
+tds_alloc_dynamic(TDSCONNECTION * conn, const char *id)
 {
 	TDSDYNAMIC *dyn;
 	char tmp_id[30];
 
 	if (id) {
 		/* check to see if id already exists (shouldn't) */
-		if (tds_lookup_dynamic(tds, id))
+		if (tds_lookup_dynamic(conn, id))
 			return NULL;
 	} else {
 		unsigned int n;
 		id = tmp_id;
 
 		for (n = 0;;) {
-			if (!tds_lookup_dynamic(tds, tds_get_dynid(tds, tmp_id)))
+			if (!tds_lookup_dynamic(conn, tds_get_dynid(conn, tmp_id)))
 				break;
 			if (++n == 256)
 				return NULL;
@@ -161,8 +161,8 @@ tds_alloc_dynamic(TDSSOCKET * tds, const char *id)
 		return NULL;
 
 	/* insert into list */
-	dyn->next = tds->dyns;
-	tds->dyns = dyn;
+	dyn->next = conn->dyns;
+	conn->dyns = dyn;
 
 	tds_strlcpy(dyn->id, id, TDS_MAX_DYNID_LEN);
 
@@ -207,7 +207,7 @@ tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds->current_results = NULL;
 
 	/* free from tds */
-	for (pcurr = &tds->dyns; *pcurr != NULL; pcurr = &(*pcurr)->next)
+	for (pcurr = &tds->conn->dyns; *pcurr != NULL; pcurr = &(*pcurr)->next)
 		if (dyn == *pcurr) {
 			*pcurr = dyn->next;
 			break;
@@ -1092,8 +1092,8 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_conn(tds)->authentication = NULL;
 		tds_free_all_results(tds);
 		tds_free_env(tds_conn(tds));
-		while (tds->dyns)
-			tds_free_dynamic(tds, tds->dyns);
+		while (tds->conn->dyns)
+			tds_free_dynamic(tds, tds->conn->dyns);
 		while (tds->conn->cursors)
 			tds_cursor_deallocated(tds, tds->conn->cursors);
 		free(tds->in_buf);

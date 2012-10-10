@@ -987,6 +987,7 @@ struct tds_connection
 	TDSENV env;
 
 	TDSCURSOR *cursors;		/**< linked list of cursors allocated for this connection */
+	TDSDYNAMIC *dyns;		/**< list of dynamic allocated for this connection */
 
 	TDS_CAPABILITIES capabilities;
 	unsigned int broken_dates:1;
@@ -1047,7 +1048,6 @@ struct tds_socket
 	TDS_INT query_timeout;
 
 	TDSDYNAMIC *cur_dyn;		/**< dynamic structure in use */
-	TDSDYNAMIC *dyns;		/**< list of dynamic allocate for this connection */
 
 	int char_conv_count;
 	TDSICONV **char_convs;
@@ -1116,7 +1116,7 @@ TDSRET tds_alloc_row(TDSRESULTINFO * res_info);
 TDSRET tds_alloc_compute_row(TDSCOMPUTEINFO * res_info);
 BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *crypt_pass);
-TDSDYNAMIC *tds_lookup_dynamic(TDSSOCKET * tds, const char *id);
+TDSDYNAMIC *tds_lookup_dynamic(TDSCONNECTION * conn, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
 int tds_get_varint_size(TDSSOCKET * tds, int datatype);
 int tds_get_cardinal_type(int datatype, int usertype);
@@ -1152,7 +1152,7 @@ TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);
 TDSLOGIN *tds_alloc_login(int use_environment);
-TDSDYNAMIC *tds_alloc_dynamic(TDSSOCKET * tds, const char *id);
+TDSDYNAMIC *tds_alloc_dynamic(TDSCONNECTION * conn, const char *id);
 void tds_free_login(TDSLOGIN * login);
 TDSLOGIN *tds_init_login(TDSLOGIN * login, TDSLOCALE * locale);
 TDSLOCALE *tds_alloc_locale(void);

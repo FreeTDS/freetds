@@ -896,7 +896,7 @@ ct_send(CS_COMMAND * cmd)
 			break;
 		case CS_EXECUTE:
 			pparam_info = paraminfoalloc(tds, cmd->dyn->param_list);
-			tdsdyn = tds_lookup_dynamic(tds, cmd->dyn->id);
+			tdsdyn = tds_lookup_dynamic(tds->conn, cmd->dyn->id);
 			if (!tdsdyn) {
 				tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_EXECUTE) no tdsdyn!\n");
 				return CS_FAIL;
@@ -926,7 +926,7 @@ ct_send(CS_COMMAND * cmd)
 			break;
 
 		case CS_DEALLOC:
-			tdsdyn = tds_lookup_dynamic(tds, cmd->dyn->id);
+			tdsdyn = tds_lookup_dynamic(tds->conn, cmd->dyn->id);
 			if (!tdsdyn) {
 				tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_DEALLOC) no tdsdyn!\n");
 				return CS_FAIL;
@@ -4576,7 +4576,7 @@ _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 	/* free dynamic */
 	if (dyn->id) {
 		if (strlen(dyn->id) > 0) {
-			tdsdyn = tds_lookup_dynamic(con->tds_socket, dyn->id);
+			tdsdyn = tds_lookup_dynamic(con->tds_socket->conn, dyn->id);
 			if (tdsdyn) {
 				tds_free_dynamic(con->tds_socket, tdsdyn);
 			}

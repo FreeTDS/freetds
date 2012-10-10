@@ -2315,13 +2315,13 @@ tds_process_cancel(TDSSOCKET * tds)
  * \param id   dynamic id to search
  */
 TDSDYNAMIC *
-tds_lookup_dynamic(TDSSOCKET * tds, const char *id)
+tds_lookup_dynamic(TDSCONNECTION * conn, const char *id)
 {
 	TDSDYNAMIC *curr;
 
-	CHECK_TDS_EXTRA(tds);
+	CHECK_CONN_EXTRA(conn);
 	
-	for (curr = tds->dyns; curr != NULL; curr = curr->next) {
+	for (curr = conn->dyns; curr != NULL; curr = curr->next) {
 		if (!strcmp(curr->id, id))
 			return curr;
 	}
@@ -2362,7 +2362,7 @@ tds_process_dynamic(TDSSOCKET * tds)
 	if (drain) {
 		tds_get_string(tds, drain, NULL, drain);
 	}
-	return tds_lookup_dynamic(tds, id);
+	return tds_lookup_dynamic(tds_conn(tds), id);
 }
 
 static TDSRET

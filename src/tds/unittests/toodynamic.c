@@ -67,7 +67,7 @@ main(int argc, char **argv)
 	for (n = 0; n < 65525; ++n) {
 		TDSDYNAMIC *dyn;
 
-		dyn = tds_alloc_dynamic(tds, NULL);
+		dyn = tds_alloc_dynamic(tds->conn, NULL);
 		if (!dyn)
 			fatal_error("create dynamic");
 

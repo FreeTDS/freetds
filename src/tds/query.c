@@ -1041,7 +1041,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		return TDS_FAIL;
 
 	/* allocate a structure for this thing */
-	dyn = tds_alloc_dynamic(tds, id);
+	dyn = tds_alloc_dynamic(tds->conn, id);
 	if (!dyn)
 		return TDS_FAIL;
 	
@@ -1241,7 +1241,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	}
 
 	/* allocate a structure for this thing */
-	dyn = tds_alloc_dynamic(tds, NULL);
+	dyn = tds_alloc_dynamic(tds->conn, NULL);
 
 	if (!dyn)
 		return TDS_FAIL;
@@ -1332,7 +1332,7 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 		return TDS_FAIL;
 
 	/* allocate a structure for this thing */
-	dyn = tds_alloc_dynamic(tds, id);
+	dyn = tds_alloc_dynamic(tds->conn, id);
 	if (!dyn)
 		return TDS_FAIL;
 

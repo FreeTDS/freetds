@@ -120,7 +120,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 
 	/* test num_dyms, cur_dyn, dyns */
 	found = 0;
-	for (cur_dyn = tds->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next) {
+	for (cur_dyn = tds->conn->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next) {
 		if (cur_dyn == tds->cur_dyn)
 			found = 1;
 		tds_check_dynamic_extra(cur_dyn);
