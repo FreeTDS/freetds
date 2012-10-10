@@ -751,27 +751,42 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 static int
 odbc_lock_statement(TDS_STMT* stmt)
 {
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds = stmt->tds;
 
-	TDS_MUTEX_LOCK(&stmt->dbc->mtx);
-	if (stmt->dbc->current_statement != NULL
-	    && stmt->dbc->current_statement != stmt) {
-		if (!tds || tds->state != TDS_IDLE) {
-			TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
-			odbc_errs_add(&stmt->errs, "24000", NULL);
-			return 0;
+
+	/* we already own a socket, just use it */
+	if (!tds) {
+		/* try with one saved into DBC */
+		TDSSOCKET *dbc_tds = stmt->dbc->tds_socket;
+		TDS_MUTEX_LOCK(&stmt->dbc->mtx);
+
+		if (stmt->dbc->current_statement == NULL
+		    || stmt->dbc->current_statement == stmt) {
+			tds = dbc_tds;
+			stmt->dbc->current_statement = stmt;
 		}
-		stmt->dbc->current_statement->tds = NULL;
+
+		/* try to grab current locked one */
+		if (!tds && dbc_tds->state == TDS_IDLE) {
+			stmt->dbc->current_statement->tds = NULL;
+			tds = dbc_tds;
+			stmt->dbc->current_statement = stmt;
+		}
+		TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
+
+		/* try with MARS */
+		if (!tds)
+			tds = tds_alloc_additional_socket(dbc_tds->conn);
 	}
-	stmt->dbc->current_statement = stmt;
 	if (tds) {
 		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
 			stmt->attr.query_timeout : stmt->dbc->default_query_timeout;
 		tds_set_parent(tds, stmt);
 		stmt->tds = tds;
+		return 1;
 	}
-	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
-	return 1;
+	odbc_errs_add(&stmt->errs, "24000", NULL);
+	return 0;
 }
 
 static void
@@ -782,6 +797,9 @@ odbc_unlock_statement(TDS_STMT* stmt)
 		assert(stmt->tds);
 		stmt->dbc->current_statement = NULL;
 		tds_set_parent(stmt->tds, stmt->dbc);
+		stmt->tds = NULL;
+	} else if (stmt->tds) {
+		tds_free_socket(stmt->tds);
 		stmt->tds = NULL;
 	}
 	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
