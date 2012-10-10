@@ -380,7 +380,8 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	tds_fix_login(login);
 
 	login->connect_timeout = dbc->attr.connection_timeout;
-	login->mars = (dbc->attr.mars_enabled != SQL_MARS_ENABLED_NO);
+	if (dbc->attr.mars_enabled != SQL_MARS_ENABLED_NO)
+		login->mars = 1;
 
 #ifdef ENABLE_ODBC_WIDE
 	/* force utf-8 in order to support wide characters */
