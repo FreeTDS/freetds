@@ -1,16 +1,15 @@
 #include "common.h"
 
-static char software_version[] = "$Id: cursor5.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static SQLINTEGER v_int_3;
 static SQLLEN v_ind_3_1;
 
 static char v_char_3[21];
 static SQLLEN v_ind_3_2;
 
+static int result = 0;
+
 static void
-doFetch(int dir, int pos)
+doFetch(int dir, int pos, int expected)
 {
 	SQLRETURN RetCode;
 
@@ -20,6 +19,9 @@ doFetch(int dir, int pos)
 		printf(">> fetch %2d %10d : %d [%s]\n", dir, pos, v_ind_3_1 ? (int) v_int_3 : -1, v_ind_3_2 ? v_char_3 : "null");
 	else
 		printf(">> fetch %2d %10d : no data found\n", dir, pos);
+
+	if (expected != (RetCode == SQL_NO_DATA ? -1 : v_int_3))
+		result = 1;
 }
 
 int
@@ -47,24 +49,24 @@ main(int argc, char **argv)
 
 	CHKExecute("SI");
 
-	doFetch(SQL_FETCH_LAST, 0);
-	doFetch(SQL_FETCH_PRIOR, 0);
-	doFetch(SQL_FETCH_PRIOR, 0);
-	doFetch(SQL_FETCH_PRIOR, 0);
-	doFetch(SQL_FETCH_NEXT, 0);
-	doFetch(SQL_FETCH_NEXT, 0);
-	doFetch(SQL_FETCH_NEXT, 0);
-	doFetch(SQL_FETCH_NEXT, 0);
-	doFetch(SQL_FETCH_FIRST, 0);
-	doFetch(SQL_FETCH_NEXT, 0);
-	doFetch(SQL_FETCH_NEXT, 0);
-	doFetch(SQL_FETCH_ABSOLUTE, 3);
-	doFetch(SQL_FETCH_RELATIVE, -2);
-	doFetch(SQL_FETCH_RELATIVE, -2);
-	doFetch(SQL_FETCH_RELATIVE, 5);
+	doFetch(SQL_FETCH_LAST, 0, 3);
+	doFetch(SQL_FETCH_PRIOR, 0, 2);
+	doFetch(SQL_FETCH_PRIOR, 0, 1);
+	doFetch(SQL_FETCH_PRIOR, 0, -1);
+	doFetch(SQL_FETCH_NEXT, 0, 1);
+	doFetch(SQL_FETCH_NEXT, 0, 2);
+	doFetch(SQL_FETCH_NEXT, 0, 3);
+	doFetch(SQL_FETCH_NEXT, 0, -1);
+	doFetch(SQL_FETCH_FIRST, 0, 1);
+	doFetch(SQL_FETCH_NEXT, 0, 2);
+	doFetch(SQL_FETCH_NEXT, 0, 3);
+	doFetch(SQL_FETCH_ABSOLUTE, 3, 3);
+	doFetch(SQL_FETCH_RELATIVE, -2, 1);
+	doFetch(SQL_FETCH_RELATIVE, -2, -1);
+	doFetch(SQL_FETCH_RELATIVE, 5, -1);
 
 	CHKCloseCursor("SI");
 
 	odbc_disconnect();
-	return 0;
+	return result;
 }
