@@ -3589,7 +3589,7 @@ odbc_process_tokens(TDS_STMT * stmt, unsigned flag)
 			/* test for internal_sp not very fine, used for param set  -- freddy77 */
 			if ((done_flags & (TDS_DONE_COUNT|TDS_DONE_ERROR)) != 0
 			    || (stmt->errs.lastrc == SQL_SUCCESS_WITH_INFO && stmt->dbc->env->attr.odbc_version == SQL_OV_ODBC3)
-			    || (result_type == TDS_DONEPROC_RESULT && tds->internal_sp_called == TDS_SP_EXECUTE)) {
+			    || (result_type == TDS_DONEPROC_RESULT && tds->current_op == TDS_OP_EXECUTE)) {
 				/* FIXME this row is used only as a flag for update binding, should be cleared if binding/result changed */
 				stmt->row = 0;
 #if 0

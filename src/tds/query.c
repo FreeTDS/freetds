@@ -395,7 +395,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			if (tds_put_data(tds, param) != TDS_SUCCESS)
 				return TDS_FAIL;
 		}
-		tds->internal_sp_called = TDS_SP_EXECUTESQL;
+		tds->current_op = TDS_OP_EXECUTESQL;
 	}
 	return tds_query_flush_packet(tds);
 }
@@ -1117,7 +1117,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds_put_byte(tds, 4);
 		tds_put_int(tds, 1);
 
-		tds->internal_sp_called = TDS_SP_PREPARE;
+		tds->current_op = TDS_OP_PREPARE;
 	} else {
 		int dynproc_capability =
 			tds_capability_enabled(&tds_conn(tds)->capabilities.types[0], TDS_REQ_PROTO_DYNPROC);
@@ -1236,7 +1236,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 				return ret;
 		}
 
-		tds->internal_sp_called = TDS_SP_EXECUTESQL;
+		tds->current_op = TDS_OP_EXECUTESQL;
 		return tds_query_flush_packet(tds);
 	}
 
@@ -1393,7 +1393,7 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 		}
 	}
 
-	tds->internal_sp_called = TDS_SP_PREPEXEC;
+	tds->current_op = TDS_OP_PREPEXEC;
 
 	rc = tds_query_flush_packet(tds);
 	if (TDS_SUCCEED(rc))
@@ -1579,7 +1579,7 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			tds_put_data(tds, param);
 		}
 
-	tds->internal_sp_called = TDS_SP_EXECUTE;
+	tds->current_op = TDS_OP_EXECUTE;
 }
 
 /**
@@ -1745,7 +1745,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		tds_put_byte(tds, 4);
 		tds_put_int(tds, dyn->num_id);
 
-		tds->internal_sp_called = TDS_SP_UNPREPARE;
+		tds->current_op = TDS_OP_UNPREPARE;
 		return tds_query_flush_packet(tds);
 	}
 
@@ -2252,7 +2252,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 		free(param_definition);
 
 		*something_to_send = 1;
-		tds->internal_sp_called = TDS_SP_CURSOROPEN;
+		tds->current_op = TDS_OP_CURSOROPEN;
 		tdsdump_log(TDS_DBG_ERROR, "tds_cursor_open (): RPC call set up \n");
 	}
 
@@ -2435,7 +2435,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 			tds7_put_cursor_fetch(tds, cursor->cursor_id, mssql_fetch[fetch_type], i_row, cursor->cursor_rows);
 		}
 
-		tds->internal_sp_called = TDS_SP_CURSORFETCH;
+		tds->current_op = TDS_OP_CURSORFETCH;
 		return tds_query_flush_packet(tds);
 	}
 
@@ -2519,7 +2519,7 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 		tds_put_byte(tds, 0);
 
 		/* Adjust current state */
-		tds->internal_sp_called = 0;
+		tds->current_op = TDS_OP_NONE;
 		if (TDS_FAILED(retcode=tds_query_flush_packet(tds)))
 			return retcode;
 
@@ -2618,7 +2618,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 		tds_put_byte(tds, 4);
 		tds_put_byte(tds, 4);
 		tds_put_int(tds, cursor->cursor_id);
-		tds->internal_sp_called = TDS_SP_CURSORCLOSE;
+		tds->current_op = TDS_OP_CURSORCLOSE;
 	}
 	return tds_query_flush_packet(tds);
 
@@ -2686,7 +2686,7 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 	tds_put_smallint(tds, len);
 	tds_put_n(tds, cursor->cursor_name, len);
 
-	tds->internal_sp_called = TDS_SP_CURSOROPTION;
+	tds->current_op = TDS_OP_CURSOROPTION;
 
 	return tds_query_flush_packet(tds);
 }
@@ -2805,7 +2805,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 			}
 		}
 
-		tds->internal_sp_called = TDS_SP_CURSOR;
+		tds->current_op = TDS_OP_CURSOR;
 	}
 	return tds_query_flush_packet(tds);
 }

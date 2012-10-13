@@ -732,6 +732,28 @@ typedef enum tds_states
 	TDS_DEAD	/**< no connection */
 } TDS_STATE;
 
+typedef enum tds_operations
+{
+	TDS_OP_NONE		= 0,
+
+	/* mssql operations */
+	TDS_OP_CURSOR		= TDS_SP_CURSOR,
+	TDS_OP_CURSOROPEN	= TDS_SP_CURSOROPEN,
+	TDS_OP_CURSORPREPARE	= TDS_SP_CURSORPREPARE,
+	TDS_OP_CURSOREXECUTE	= TDS_SP_CURSOREXECUTE,
+	TDS_OP_CURSORPREPEXEC	= TDS_SP_CURSORPREPEXEC,
+	TDS_OP_CURSORUNPREPARE	= TDS_SP_CURSORUNPREPARE,
+	TDS_OP_CURSORFETCH	= TDS_SP_CURSORFETCH,
+	TDS_OP_CURSOROPTION	= TDS_SP_CURSOROPTION,
+	TDS_OP_CURSORCLOSE	= TDS_SP_CURSORCLOSE,
+	TDS_OP_EXECUTESQL	= TDS_SP_EXECUTESQL,
+	TDS_OP_PREPARE		= TDS_SP_PREPARE,
+	TDS_OP_EXECUTE		= TDS_SP_EXECUTE,
+	TDS_OP_PREPEXEC		= TDS_SP_PREPEXEC,
+	TDS_OP_PREPEXECRPC	= TDS_SP_PREPEXECRPC,
+	TDS_OP_UNPREPARE	= TDS_SP_UNPREPARE,
+} TDS_OPERATION;
+
 #define TDS_DBG_LOGIN   __FILE__, ((__LINE__ << 4) | 11)
 #define TDS_DBG_HEADER  __FILE__, ((__LINE__ << 4) | 10)
 #define TDS_DBG_FUNC    __FILE__, ((__LINE__ << 4) |  7)
@@ -1035,7 +1057,7 @@ struct tds_socket
 	TDS_UCHAR collation[5];
 	TDS_UCHAR tds72_transaction[8];
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
-	int internal_sp_called;
+	TDS_OPERATION current_op;
 
 	int option_value;
 	TDS_MUTEX_DECLARE(wire_mtx);

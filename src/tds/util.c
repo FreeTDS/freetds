@@ -147,7 +147,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		tds->rows_affected = TDS_NO_COUNT;
 		tds_release_cursor(tds, tds->cur_cursor);
 		tds->cur_cursor = NULL;
-		tds->internal_sp_called = 0;
+		tds->current_op = TDS_OP_NONE;
 
 		tds->state = state;
 		break;

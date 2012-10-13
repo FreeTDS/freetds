@@ -550,7 +550,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			 * TDS_ROWFMT_RESULT to the calling API
 			 */
 
-			if (tds->internal_sp_called == TDS_SP_CURSORFETCH) {
+			if (tds->current_op == TDS_OP_CURSORFETCH) {
 				rc = tds7_process_result(tds);
 				if (TDS_FAILED(rc))
 					break;
@@ -599,8 +599,8 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			break;
 		case TDS_PARAM_TOKEN:
 			tds_unget_byte(tds);
-			if (tds->internal_sp_called) {
-				tdsdump_log(TDS_DBG_FUNC, "processing parameters for sp %d\n", tds->internal_sp_called);
+			if (tds->current_op) {
+				tdsdump_log(TDS_DBG_FUNC, "processing parameters for op %d\n", tds->current_op);
 				while ((marker = tds_get_byte(tds)) == TDS_PARAM_TOKEN) {
 					tdsdump_log(TDS_DBG_INFO1, "calling tds_process_param_result\n");
 					tds_process_param_result(tds, &pinfo);
@@ -609,7 +609,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				tdsdump_log(TDS_DBG_FUNC, "%d hidden return parameters\n", pinfo ? pinfo->num_cols : -1);
 				if (pinfo && pinfo->num_cols > 0) {
 					curcol = pinfo->columns[0];
-					if (tds->internal_sp_called == TDS_SP_CURSOROPEN && tds->cur_cursor) {
+					if (tds->current_op == TDS_OP_CURSOROPEN && tds->cur_cursor) {
 						TDSCURSOR  *cursor = tds->cur_cursor; 
 
 						cursor->cursor_id = *(TDS_INT *) curcol->column_data;
@@ -617,7 +617,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 						cursor->srv_status &= ~(TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_OPEN|TDS_CUR_ISTAT_DEALLOC);
 						cursor->srv_status |= cursor->cursor_id ? TDS_CUR_ISTAT_OPEN : TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_DEALLOC;
 					}
-					if ((tds->internal_sp_called == TDS_SP_PREPARE || tds->internal_sp_called == TDS_SP_PREPEXEC)
+					if ((tds->current_op == TDS_OP_PREPARE || tds->current_op == TDS_OP_PREPEXEC)
 					    && tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
 						tds->cur_dyn->num_id = *(TDS_INT *) curcol->column_data;
 					}
@@ -670,7 +670,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			marker = tds_peek(tds);
 			if (marker != TDS_PARAM_TOKEN && marker != TDS_DONEPROC_TOKEN && marker != TDS_DONE_TOKEN && marker != TDS5_PARAMFMT_TOKEN && marker != TDS5_PARAMFMT2_TOKEN)
 				break;
-			if (tds->internal_sp_called) {
+			if (tds->current_op) {
 				/* TODO perhaps we should use ret_status ?? */
 			} else {
 				/* TODO optimize */
@@ -729,20 +729,15 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 		case TDS_DONEPROC_TOKEN:
 			SET_RETURN(TDS_DONEPROC_RESULT, DONE);
 			rc = tds_process_end(tds, marker, done_flags);
-			switch (tds->internal_sp_called) {
-			case 0: 
-			case TDS_SP_PREPARE: 
-			case TDS_SP_PREPEXEC:
-			case TDS_SP_EXECUTE: 
-			case TDS_SP_UNPREPARE: 
-			case TDS_SP_EXECUTESQL:
+			switch (tds->current_op) {
+			default:
 				break;
-			case TDS_SP_CURSOROPEN: 
+			case TDS_OP_CURSOROPEN: 
 				*result_type       = TDS_DONE_RESULT;
 				tds->rows_affected = saved_rows_affected;
 				break;
-			case TDS_SP_CURSORCLOSE:
-				tdsdump_log(TDS_DBG_FUNC, "TDS_SP_CURSORCLOSE\n");
+			case TDS_OP_CURSORCLOSE:
+				tdsdump_log(TDS_DBG_FUNC, "TDS_OP_CURSORCLOSE\n");
 				if (tds->cur_cursor) {
  
 					TDSCURSOR  *cursor = tds->cur_cursor;
@@ -756,18 +751,26 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				*result_type = TDS_NO_MORE_RESULTS;
 				rc = TDS_NO_MORE_RESULTS;
 				break;
-			default:
+			case TDS_OP_CURSOR:
+			case TDS_OP_CURSORPREPARE:
+			case TDS_OP_CURSOREXECUTE:
+			case TDS_OP_CURSORPREPEXEC:
+			case TDS_OP_CURSORUNPREPARE:
+			case TDS_OP_CURSORFETCH:
+			case TDS_OP_CURSOROPTION:
+			case TDS_OP_PREPEXECRPC:
+			case TDS_OP_UNPREPARE:
 				*result_type = TDS_NO_MORE_RESULTS;
 				rc = TDS_NO_MORE_RESULTS;
 				break;
 			}
 			break;
 		case TDS_DONEINPROC_TOKEN:
-			switch(tds->internal_sp_called) {
-			case TDS_SP_CURSOROPEN:
-			case TDS_SP_CURSORFETCH:
-			case TDS_SP_PREPARE:
-			case TDS_SP_CURSORCLOSE:
+			switch(tds->current_op) {
+			case TDS_OP_CURSOROPEN:
+			case TDS_OP_CURSORFETCH:
+			case TDS_OP_PREPARE:
+			case TDS_OP_CURSORCLOSE:
 				rc = tds_process_end(tds, marker, done_flags);
 				if (tds->rows_affected != TDS_NO_COUNT) {
 					saved_rows_affected = tds->rows_affected;
@@ -2219,7 +2222,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		/* we must emulate prepare */
 		tds->cur_dyn->emulated = 1;
 	} else if (marker == TDS_INFO_TOKEN && msg.msgno == 16954 && TDS_IS_MSSQL(tds)
-		   && tds->internal_sp_called == TDS_SP_CURSOROPEN && tds->cur_cursor) {
+		   && tds->current_op == TDS_OP_CURSOROPEN && tds->cur_cursor) {
 		/* here mssql say "Executing SQL directly; no cursor." opening cursor */
 	} else {
 
