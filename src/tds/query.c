@@ -1130,7 +1130,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		toklen = 5 + id_len + query_len;
 		if (dynproc_capability) toklen += id_len + 16;
 		tds_put_smallint(tds, toklen);
-		tds_put_byte(tds, 0x01);
+		tds_put_byte(tds, TDS_DYN_PREPARE);
 		tds_put_byte(tds, 0x00);
 		tds_put_byte(tds, id_len);
 		tds_put_n(tds, dyn->id, id_len);
@@ -1286,7 +1286,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 	id_len = strlen(dyn->id);
 	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
 	TDS_PUT_SMALLINT(tds, query_len + id_len * 2 + 21);
-	tds_put_byte(tds, 0x08);
+	tds_put_byte(tds, TDS_DYN_EXEC_IMMED);
 	tds_put_byte(tds, params ? 0x01 : 0);
 	TDS_PUT_BYTE(tds, id_len);
 	tds_put_n(tds, dyn->id, id_len);
@@ -1763,7 +1763,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	tds_put_byte(tds, TDS5_DYNAMIC_TOKEN);
 	tds_put_smallint(tds, id_len + 5);
-	tds_put_byte(tds, 0x04);
+	tds_put_byte(tds, TDS_DYN_DEALLOC);
 	tds_put_byte(tds, 0x00);
 	tds_put_byte(tds, id_len);
 	tds_put_n(tds, dyn->id, id_len);

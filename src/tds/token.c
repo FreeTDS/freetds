@@ -2347,7 +2347,7 @@ tds_process_dynamic(TDSSOCKET * tds)
 	type = tds_get_byte(tds);
 	tds_get_byte(tds);	/* status */
 	/* handle only acknowledge */
-	if (type != 0x20) {
+	if (type != TDS_DYN_ACK) {
 		tdsdump_log(TDS_DBG_ERROR, "Unrecognized TDS5_DYN type %x\n", type);
 		tds_get_n(tds, NULL, token_sz - 2);
 		return NULL;

@@ -413,3 +413,15 @@ enum option_flag3_values {	/* TDS 7.3+ */
 	TDS_ANY_COLLATION		= 0x10
 };
 
+/* Sybase dynamic types */
+enum dynamic_types {
+	TDS_DYN_PREPARE		= 0x01,
+	TDS_DYN_EXEC		= 0x02,
+	TDS_DYN_DEALLOC		= 0x04,
+	TDS_DYN_EXEC_IMMED	= 0x08,
+	TDS_DYN_PROCNAME	= 0x10,
+	TDS_DYN_ACK		= 0x20,
+	TDS_DYN_DESCIN		= 0x40,
+	TDS_DYN_DESCOUT		= 0x80,
+};
+
