@@ -857,9 +857,7 @@ ct_send(CS_COMMAND * cmd)
 {
 	TDSSOCKET *tds;
 	TDSRET ret;
-	CSREMOTE_PROC **rpc;
 	TDSPARAMINFO *pparam_info;
-	TDSCURSOR *cursor;
 	TDSDYNAMIC *tdsdyn;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_send(%p)\n", cmd);
@@ -946,15 +944,16 @@ ct_send(CS_COMMAND * cmd)
 	}
 
 	if (cmd->command_type == CS_RPC_CMD) {
+		CSREMOTE_PROC *rpc;
+
 		/* sanity */
-		if (cmd == NULL || cmd->rpc == NULL	/* ct_command should allocate pointer */
-		    || cmd->rpc->name == NULL) {	/* can't be ready without a name      */
+		if (cmd == NULL || (rpc=cmd->rpc) == NULL	/* ct_command should allocate pointer */
+		    || rpc->name == NULL) {	/* can't be ready without a name      */
 			return CS_FAIL;
 		}
 
-		rpc = &(cmd->rpc);
-		pparam_info = paraminfoalloc(tds, cmd->rpc->param_list);
-		ret = tds_submit_rpc(tds, cmd->rpc->name, pparam_info);
+		pparam_info = paraminfoalloc(tds, rpc->param_list);
+		ret = tds_submit_rpc(tds, rpc->name, pparam_info);
 
 		tds_free_param_results(pparam_info);
 
@@ -991,6 +990,8 @@ ct_send(CS_COMMAND * cmd)
 	/* Code added for CURSOR support */
 
 	if (cmd->command_type == CS_CUR_CMD) {
+		TDSCURSOR *cursor;
+
 		/* sanity */
 		/*
 		 * ct_cursor declare should allocate cursor pointer
@@ -2461,7 +2462,6 @@ ct_config(CS_CONTEXT * ctx, CS_INT action, CS_INT property, CS_VOID * buffer, CS
 CS_RETCODE
 ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer, CS_INT buflen, CS_INT * outlen)
 {
-	TDSSOCKET *tds;
 	TDSCURSOR *cursor;
 	int maxcp;
 
@@ -2469,8 +2469,6 @@ ct_cmd_props(CS_COMMAND * cmd, CS_INT action, CS_INT property, CS_VOID * buffer,
 
 	if (!cmd->con || !cmd->con->tds_socket)
 		return CS_FAIL;
-
-	tds = cmd->con->tds_socket;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_props() action = %s property = %d\n", CS_GET ? "CS_GET" : "CS_SET", property);
 	if (action == CS_SET) {
