@@ -986,7 +986,7 @@ struct tds_connection
  */
 struct tds_socket
 {
-	TDSCONNECTION conn;
+	TDSCONNECTION conn[1];
 
 	TDS_USMALLINT tds_version;
 
@@ -1041,7 +1041,7 @@ struct tds_socket
 	TDS_MUTEX_DECLARE(wire_mtx);
 };
 
-#define tds_conn(tds) (&(tds)->conn)
+#define tds_conn(tds) ((tds)->conn)
 #define tds_get_ctx(tds) (tds_conn(tds)->tds_ctx)
 #define tds_set_ctx(tds, val) do { (tds_conn(tds)->tds_ctx) = (val); } while(0)
 #define tds_get_parent(tds) (tds_conn(tds)->parent)
