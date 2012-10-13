@@ -4555,58 +4555,41 @@ _ct_locate_dynamic(CS_CONNECTION * con, char *id, int idlen)
 static CS_INT
 _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 {
-	CS_DYNAMIC_LIST *victim = NULL;
-	CS_DYNAMIC_LIST *prev = NULL;
-	CS_DYNAMIC_LIST *next = NULL;
+	CS_DYNAMIC_LIST **pvictim;
 	TDSDYNAMIC *tdsdyn;
-	char myid[256];
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_deallocate_dynamic(%p, %p)\n", con, dyn);
 
-	strcpy(myid,"");
-
-	victim = con->dynlist;
-
-	for (;;) {
-		if (victim == dyn)
-			break;
-		prev = victim;
-		victim = victim->next;
-		if (victim == NULL) {
+	pvictim = &con->dynlist;
+	for (; *pvictim != dyn;) {
+		if (*pvictim == NULL) {
 			tdsdump_log(TDS_DBG_FUNC, "ct_deallocate_dynamic() : cannot find entry in list\n");
 			return CS_FAIL;
 		}
+		pvictim = &(*pvictim)->next;
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "ct_deallocate_dynamic() : command entry found in list\n");
-
-	next = victim->next;
-
-	if (victim->id) {
-		strcpy(myid, victim->id);
-		free(victim->id);
-	}
-	free(victim->stmt);
-	param_clear(victim->param_list);
-
-	free(victim);
-
+	/* detach node */
 	tdsdump_log(TDS_DBG_FUNC, "ct_deallocate_dynamic() : relinking list\n");
-
-	if (prev)
-		prev->next = next;
-	else
-		con->dynlist = next;
-
+	*pvictim = dyn->next;
+	dyn->next = NULL;
 	tdsdump_log(TDS_DBG_FUNC, "ct_deallocate_dynamic() : relinked list\n");
 
-	if (strlen(myid) > 0) {
-		tdsdyn = tds_lookup_dynamic(con->tds_socket, myid);
-		if (tdsdyn) {
-			tds_free_dynamic(con->tds_socket, tdsdyn);
+	/* free dynamic */
+	if (dyn->id) {
+		if (strlen(dyn->id) > 0) {
+			tdsdyn = tds_lookup_dynamic(con->tds_socket, dyn->id);
+			if (tdsdyn) {
+				tds_free_dynamic(con->tds_socket, tdsdyn);
+			}
 		}
+		free(dyn->id);
 	}
+	free(dyn->stmt);
+	param_clear(dyn->param_list);
+
+	free(dyn);
 
 	return CS_SUCCEED;
-
 }
+
