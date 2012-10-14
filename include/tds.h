@@ -991,8 +991,16 @@ struct tds_connection
 	/** environment is shared between all sessions */
 	TDSENV env;
 
-	TDSCURSOR *cursors;		/**< linked list of cursors allocated for this connection */
-	TDSDYNAMIC *dyns;		/**< list of dynamic allocated for this connection */
+	/**
+	 * linked list of cursors allocated for this connection
+	 * contains only cursors allocated on the server
+	 */
+	TDSCURSOR *cursors;
+	/**
+	 * list of dynamic allocated for this connection
+	 * contains only dynamic allocated on the server
+	 */
+	TDSDYNAMIC *dyns;
 
 	TDS_CAPABILITIES capabilities;
 	unsigned int broken_dates:1;
