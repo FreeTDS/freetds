@@ -439,12 +439,12 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
  * @returns 0 if blocking, <0 error >0 bytes read
  */
 static int
-tds_socket_read(TDSCONNECTION * connection, TDSSOCKET *tds, unsigned char *buf, int buflen)
+tds_socket_read(TDSCONNECTION * conn, TDSSOCKET *tds, unsigned char *buf, int buflen)
 {
 	int len, err;
 
 	/* read directly from socket*/
-	len = READSOCKET(connection->s, buf, buflen);
+	len = READSOCKET(conn->s, buf, buflen);
 	if (len > 0)
 		return len;
 
@@ -453,8 +453,8 @@ tds_socket_read(TDSCONNECTION * connection, TDSSOCKET *tds, unsigned char *buf, 
 		return 0;
 
 	/* detect connection close */
-	tds_connection_close(connection);
-	tdserror(connection->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
+	tds_connection_close(conn);
+	tdserror(conn->tds_ctx, tds, len == 0 ? TDSESEOF : TDSEREAD, len == 0 ? 0 : err);
 	return -1;
 }
 
@@ -463,19 +463,19 @@ tds_socket_read(TDSCONNECTION * connection, TDSSOCKET *tds, unsigned char *buf, 
  * @returns 0 if blocking, <0 error >0 bytes readed
  */
 static int
-tds_socket_write(TDSCONNECTION *connection, TDSSOCKET *tds, const unsigned char *buf, int buflen, int last)
+tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, int buflen, int last)
 {
 	int err, len;
 
 #ifdef USE_MSGMORE
-	len = send(connection->s, buf, buflen, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
+	len = send(conn->s, buf, buflen, last ? MSG_NOSIGNAL : MSG_NOSIGNAL|MSG_MORE);
 	/* In case the kernel does not support MSG_MORE, try again without it */
 	if (len < 0 && errno == EINVAL && !last)
-		len = send(connection->s, buf, buflen, MSG_NOSIGNAL);
+		len = send(conn->s, buf, buflen, MSG_NOSIGNAL);
 #elif defined(__APPLE__) && defined(SO_NOSIGPIPE)
-	len = send(connection->s, buf, buflen, 0);
+	len = send(conn->s, buf, buflen, 0);
 #else
-	len = WRITESOCKET(connection->s, buf, buflen);
+	len = WRITESOCKET(conn->s, buf, buflen);
 #endif
 	if (len > 0)
 		return len;
@@ -488,8 +488,8 @@ tds_socket_write(TDSCONNECTION *connection, TDSSOCKET *tds, const unsigned char 
 
 	/* detect connection close */
 	tdsdump_log(TDS_DBG_NETWORK, "send(2) failed: %d (%s)\n", err, sock_strerror(err));
-	tds_connection_close(connection);
-	tdserror(connection->tds_ctx, tds, TDSEWRIT, err);
+	tds_connection_close(conn);
+	tdserror(conn->tds_ctx, tds, TDSEWRIT, err);
 	return -1;
 }
 
@@ -550,14 +550,14 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 int
 tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
 {
-	TDSCONNECTION *connection = tds_conn(tds);
+	TDSCONNECTION *conn = tds_conn(tds);
 
 #ifdef HAVE_GNUTLS
-	if (connection->tls_session)
-		return gnutls_record_recv((gnutls_session) connection->tls_session, buf, buflen);
+	if (conn->tls_session)
+		return gnutls_record_recv((gnutls_session) conn->tls_session, buf, buflen);
 #elif defined(HAVE_OPENSSL)
-	if (connection->tls_session)
-		return SSL_read((SSL*) connection->tls_session, buf, buflen);
+	if (conn->tls_session)
+		return SSL_read((SSL*) conn->tls_session, buf, buflen);
 #endif
 	return tds_goodread(tds, buf, buflen);
 }
@@ -640,7 +640,7 @@ int
 tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
 {
 	int sent;
-	TDSCONNECTION *connection = tds_conn(tds);
+	TDSCONNECTION *conn = tds_conn(tds);
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
 	void (*oldsig) (int);
@@ -652,12 +652,12 @@ tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
 #endif
 
 #ifdef HAVE_GNUTLS
-	if (connection->tls_session)
-		sent = gnutls_record_send((gnutls_session) connection->tls_session, buf, buflen);
+	if (conn->tls_session)
+		sent = gnutls_record_send((gnutls_session) conn->tls_session, buf, buflen);
 	else
 #elif defined(HAVE_OPENSSL)
-	if (connection->tls_session)
-		sent = SSL_write((SSL*) connection->tls_session, buf, buflen);
+	if (conn->tls_session)
+		sent = SSL_write((SSL*) conn->tls_session, buf, buflen);
 	else
 #endif
 		sent = tds_goodwrite(tds, buf, buflen, final);
