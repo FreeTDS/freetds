@@ -203,11 +203,11 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		break;
 	case TDS5_PARAMFMT_TOKEN:
 		/* store discarded parameters in param_info, not in old dynamic */
-		tds->cur_dyn = NULL;
+		tds_release_cur_dyn(tds);
 		return tds_process_dyn_result(tds);
 		break;
 	case TDS5_PARAMFMT2_TOKEN:
-		tds->cur_dyn = NULL;
+		tds_release_cur_dyn(tds);
 		return tds5_process_dyn_result2(tds);
 		break;
 	case TDS5_PARAMS_TOKEN:
@@ -621,6 +621,8 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 					    && tds->cur_dyn && tds->cur_dyn->num_id == 0 && curcol->column_cur_size > 0) {
 						tds->cur_dyn->num_id = *(TDS_INT *) curcol->column_data;
 					}
+					if (tds->current_op == TDS_OP_UNPREPARE)
+						tds_dynamic_deallocated(tds, tds->cur_dyn);
 				}
 				tds_free_param_results(pinfo);
 			} else {
@@ -684,7 +686,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			break;
 		case TDS5_DYNAMIC_TOKEN:
 			/* process acknowledge dynamic */
-			tds->cur_dyn = tds_process_dynamic(tds);
+			tds_set_cur_dyn(tds, tds_process_dynamic(tds));
 			/* special case, prepared statement cannot be prepared */
 			if (!tds->cur_dyn || tds->cur_dyn->emulated)
 				break;
@@ -725,6 +727,14 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 		case TDS_DONE_TOKEN:
 			SET_RETURN(TDS_DONE_RESULT, DONE);
 			rc = tds_process_end(tds, marker, done_flags);
+			switch (tds->current_op) {
+			case TDS_OP_DYN_DEALLOC:
+				if (done_flags && (*done_flags & TDS_DONE_ERROR) == 0)
+					tds_dynamic_deallocated(tds, tds->cur_dyn);
+				break;
+			default:
+				break;
+			}
 			break;
 		case TDS_DONEPROC_TOKEN:
 			SET_RETURN(TDS_DONEPROC_RESULT, DONE);
@@ -2216,11 +2226,12 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 		tds_free_msg(&msg);
 		return TDS_FAIL;
 	}
-	
+
 	/* special case, */
 	if (marker == TDS_EED_TOKEN && tds->cur_dyn && !TDS_IS_MSSQL(tds) && msg.msgno == 2782) {
 		/* we must emulate prepare */
 		tds->cur_dyn->emulated = 1;
+		tds_dynamic_deallocated(tds, tds->cur_dyn);
 	} else if (marker == TDS_INFO_TOKEN && msg.msgno == 16954 && TDS_IS_MSSQL(tds)
 		   && tds->current_op == TDS_OP_CURSOROPEN && tds->cur_cursor) {
 		/* here mssql say "Executing SQL directly; no cursor." opening cursor */

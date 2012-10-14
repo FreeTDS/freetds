@@ -156,9 +156,10 @@ tds_alloc_dynamic(TDSCONNECTION * conn, const char *id)
 		}
 	}
 
-	dyn = (TDSDYNAMIC *) calloc(1, sizeof(TDSDYNAMIC));
-	if (!dyn)
-		return NULL;
+	TEST_MALLOC(dyn, TDSDYNAMIC);
+
+	/* take into account pointer in list */
+	dyn->ref_count = 2;
 
 	/* insert into list */
 	dyn->next = conn->dyns;
@@ -167,6 +168,9 @@ tds_alloc_dynamic(TDSCONNECTION * conn, const char *id)
 	tds_strlcpy(dyn->id, id, TDS_MAX_DYNID_LEN);
 
 	return dyn;
+
+      Cleanup:
+	return NULL;
 }
 
 /**
@@ -188,30 +192,53 @@ tds_free_input_params(TDSDYNAMIC * dyn)
 	}
 }
 
-/**
- * \fn void tds_free_dynamic(TDSSOCKET *tds, TDSDYNAMIC *dyn)
- * \brief Frees dynamic statement and remove from TDS
- * \param tds state information for the socket and the TDS protocol
- * \param dyn dynamic statement to be freed.
+/*
+ * Called when dynamic got deallocated from server
  */
 void
-tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn)
+tds_dynamic_deallocated(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 {
-	TDSDYNAMIC **pcurr;
+	TDSDYNAMIC **victim;
 
-	/* avoid pointer to garbage */
-	if (tds->cur_dyn == dyn)
-		tds->cur_dyn = NULL;
+	tdsdump_log(TDS_DBG_FUNC, "tds_dynamic_deallocated() : freeing dynamic_id %s\n", dyn->id);
+
+	tds_release_cur_dyn(tds);
+
+	victim = &tds_conn(tds)->dyns;
+	while (*victim != dyn) {
+		if (*victim == NULL) {
+			tdsdump_log(TDS_DBG_FUNC, "tds_dynamic_deallocated() : cannot find id %s\n", dyn->id);
+			return;
+		}
+		victim = &(*victim)->next;
+	}
+
+	/* remove from list */
+	*victim = dyn->next;
+	dyn->next = NULL;
+
+	tds_release_dynamic(tds, &dyn);
+}
+
+
+/**
+ * \fn void tds_release_dynamic(TDSSOCKET *tds, TDSDYNAMIC **pdyn)
+ * \brief Frees dynamic statement and remove from TDS
+ * \param tds state information for the socket and the TDS protocol
+ * \param pdyn pointer to dynamic statement to be freed.
+ */
+void
+tds_release_dynamic(TDSSOCKET * tds, TDSDYNAMIC ** pdyn)
+{
+	TDSDYNAMIC *dyn;
+
+	dyn = *pdyn;
+	*pdyn = NULL;
+	if (!dyn || --dyn->ref_count > 0)
+		return;
 
 	if (tds->current_results == dyn->res_info)
 		tds->current_results = NULL;
-
-	/* free from tds */
-	for (pcurr = &tds->conn->dyns; *pcurr != NULL; pcurr = &(*pcurr)->next)
-		if (dyn == *pcurr) {
-			*pcurr = dyn->next;
-			break;
-		}
 
 	tds_free_results(dyn->res_info);
 	tds_free_input_params(dyn);
@@ -1092,8 +1119,9 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_conn(tds)->authentication = NULL;
 		tds_free_all_results(tds);
 		tds_free_env(tds_conn(tds));
+		tds_release_cur_dyn(tds);
 		while (tds->conn->dyns)
-			tds_free_dynamic(tds, tds->conn->dyns);
+			tds_dynamic_deallocated(tds, tds->conn->dyns);
 		while (tds->conn->cursors)
 			tds_cursor_deallocated(tds, tds->conn->cursors);
 		free(tds->in_buf);

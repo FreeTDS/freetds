@@ -858,7 +858,6 @@ ct_send(CS_COMMAND * cmd)
 	TDSSOCKET *tds;
 	TDSRET ret;
 	TDSPARAMINFO *pparam_info;
-	TDSDYNAMIC *tdsdyn;
 
 	tdsdump_log(TDS_DBG_FUNC, "ct_send(%p)\n", cmd);
 
@@ -883,20 +882,22 @@ ct_send(CS_COMMAND * cmd)
 	cmd->results_state = _CS_RES_NONE;
 
 	if (cmd->command_type == CS_DYNAMIC_CMD) {
+		CS_DYNAMIC *dyn = cmd->dyn;
+		TDSDYNAMIC *tdsdyn;
 
-		if (cmd->dyn == NULL)
+		if (dyn == NULL)
 			return CS_FAIL;
 
 		switch (cmd->dynamic_cmd) {
 		case CS_PREPARE:
-			if (TDS_FAILED(tds_submit_prepare(tds, cmd->dyn->stmt, cmd->dyn->id, NULL, NULL)))
+			if (TDS_FAILED(tds_submit_prepare(tds, dyn->stmt, dyn->id, &dyn->tdsdyn, NULL)))
 				return CS_FAIL;
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
 			return CS_SUCCEED;
 			break;
 		case CS_EXECUTE:
-			pparam_info = paraminfoalloc(tds, cmd->dyn->param_list);
-			tdsdyn = tds_lookup_dynamic(tds->conn, cmd->dyn->id);
+			pparam_info = paraminfoalloc(tds, dyn->param_list);
+			tdsdyn = dyn->tdsdyn;
 			if (!tdsdyn) {
 				tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_EXECUTE) no tdsdyn!\n");
 				return CS_FAIL;
@@ -926,7 +927,7 @@ ct_send(CS_COMMAND * cmd)
 			break;
 
 		case CS_DEALLOC:
-			tdsdyn = tds_lookup_dynamic(tds->conn, cmd->dyn->id);
+			tdsdyn = dyn->tdsdyn;
 			if (!tdsdyn) {
 				tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_DEALLOC) no tdsdyn!\n");
 				return CS_FAIL;
@@ -4554,7 +4555,6 @@ static CS_INT
 _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 {
 	CS_DYNAMIC_LIST **pvictim;
-	TDSDYNAMIC *tdsdyn;
 
 	tdsdump_log(TDS_DBG_FUNC, "_ct_deallocate_dynamic(%p, %p)\n", con, dyn);
 
@@ -4574,15 +4574,8 @@ _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 	tdsdump_log(TDS_DBG_FUNC, "ct_deallocate_dynamic() : relinked list\n");
 
 	/* free dynamic */
-	if (dyn->id) {
-		if (strlen(dyn->id) > 0) {
-			tdsdyn = tds_lookup_dynamic(con->tds_socket->conn, dyn->id);
-			if (tdsdyn) {
-				tds_free_dynamic(con->tds_socket, tdsdyn);
-			}
-		}
-		free(dyn->id);
-	}
+	tds_release_dynamic(con->tds_socket, &dyn->tdsdyn);
+	free(dyn->id);
 	free(dyn->stmt);
 	param_clear(dyn->param_list);
 

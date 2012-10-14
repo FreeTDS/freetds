@@ -127,7 +127,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 		if (tds->current_results == cur_dyn->res_info)
 			result_found = 1;
 	}
-	assert(found || tds->cur_dyn == NULL);
+	assert(found || tds->cur_dyn == NULL || tds->cur_dyn->emulated);
 
 	/* test tds_ctx */
 	tds_check_context_extra(tds_get_ctx(tds));

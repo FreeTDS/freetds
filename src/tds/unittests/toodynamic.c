@@ -71,12 +71,13 @@ main(int argc, char **argv)
 		if (!dyn)
 			fatal_error("create dynamic");
 
-		tds_free_dynamic(tds, dyn);
+		tds_dynamic_deallocated(tds, dyn);
+		tds_release_dynamic(tds, &dyn);
 	}
 
 	/* this should not cause duplicate IDs or erros*/
 	for (n = 0; n < 20; ++n) {
-		TDSDYNAMIC *dyn2;
+		TDSDYNAMIC *dyn2 = NULL;
 
 		if (tds_submit_prepare(tds, "INSERT INTO #test(i,c) VALUES(?,?)", NULL, &dyn2, NULL) != TDS_SUCCESS)
 			fatal_error("tds_submit_prepare() error");
@@ -88,9 +89,12 @@ main(int argc, char **argv)
 			fatal_error("dynamic not present??");
 		if (tds_submit_unprepare(tds, dyn2) != TDS_SUCCESS || tds_process_simple_query(tds) != TDS_SUCCESS)
 			fatal_error("unprepare error");
-		tds_free_dynamic(tds, dyn2);
+		tds_dynamic_deallocated(tds, dyn2);
+		tds_release_dynamic(tds, &dyn2);
 	}
 
+	tds_dynamic_deallocated(tds, dyn);
+	tds_release_dynamic(tds, &dyn);
 
 	try_tds_logout(login, tds, verbose);
 	return 0;

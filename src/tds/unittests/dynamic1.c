@@ -130,6 +130,8 @@ main(int argc, char **argv)
 	if (run_query(tds, "DROP TABLE #dynamic1") != TDS_SUCCESS)
 		fatal_error("dropping table error");
 
+	tds_release_dynamic(tds, &dyn);
+
 	try_tds_logout(login, tds, verbose);
 	return 0;
 }

@@ -752,6 +752,9 @@ typedef enum tds_operations
 	TDS_OP_PREPEXEC		= TDS_SP_PREPEXEC,
 	TDS_OP_PREPEXECRPC	= TDS_SP_PREPEXECRPC,
 	TDS_OP_UNPREPARE	= TDS_SP_UNPREPARE,
+
+	/* sybase operations */
+	TDS_OP_DYN_DEALLOC	= 100,
 } TDS_OPERATION;
 
 #define TDS_DBG_LOGIN   __FILE__, ((__LINE__ << 4) | 11)
@@ -903,6 +906,7 @@ typedef struct tds_env
 typedef struct tds_dynamic
 {
 	struct tds_dynamic *next;	/**< next in linked list, keep first */
+	TDS_INT ref_count;		/**< reference counter so client can retain safely a pointer */
 	/** 
 	 * id of dynamic.
 	 * Usually this id correspond to server one but if not specified
@@ -1147,7 +1151,14 @@ char *tds_get_homedir(void);
 /* mem.c */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO * old_param);
 void tds_free_input_params(TDSDYNAMIC * dyn);
-void tds_free_dynamic(TDSSOCKET * tds, TDSDYNAMIC * dyn);
+void tds_release_dynamic(TDSSOCKET * tds, TDSDYNAMIC ** dyn);
+static inline
+void tds_release_cur_dyn(TDSSOCKET * tds)
+{
+	tds_release_dynamic(tds, &tds->cur_dyn);
+}
+void tds_dynamic_deallocated(TDSSOCKET *tds, TDSDYNAMIC *dyn);
+void tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
 char *tds_alloc_lookup_sqlstate(TDSSOCKET * tds, int msgno);

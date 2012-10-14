@@ -175,10 +175,11 @@ typedef CS_PARAM CS_DYNAMIC_PARAM;
 
 struct _cs_dynamic
 {
+	struct _cs_dynamic *next;
 	char *id;
 	char *stmt;
 	CS_DYNAMIC_PARAM *param_list;
-	struct _cs_dynamic *next;
+	TDSDYNAMIC *tdsdyn;
 }; 
 
 /* specific FreeTDS commands */

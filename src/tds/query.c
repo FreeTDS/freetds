@@ -170,6 +170,15 @@ tds_query_flush_packet(TDSSOCKET *tds)
 	return tds_flush_packet(tds);
 }
 
+void
+tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn)
+{
+	if (dyn)
+		++dyn->ref_count;
+	tds_release_cur_dyn(tds);
+	tds->cur_dyn = dyn;
+}
+
 /**
  * tds_submit_query() sends a language string to the database server for
  * processing.  TDS 4.2 is a plain text message with a packet type of 0x01,
@@ -1037,37 +1046,37 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	if (params)
 		CHECK_PARAMINFO_EXTRA(params);
 
-	if (!query)
+	if (!query || !dyn_out)
+		return TDS_FAIL;
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
 	/* allocate a structure for this thing */
 	dyn = tds_alloc_dynamic(tds->conn, id);
 	if (!dyn)
 		return TDS_FAIL;
-	
+	tds_release_dynamic(tds, dyn_out);
+	*dyn_out = dyn;
+	tds_release_cur_dyn(tds);
+
 	/* TDS5 sometimes cannot accept prepare so we need to store query */
 	if (!IS_TDS7_PLUS(tds)) {
 		dyn->query = strdup(query);
-		if (!dyn->query) {
-			tds_free_dynamic(tds, dyn);
-			return TDS_FAIL;
-		}
+		if (!dyn->query)
+			goto failure;
 	}
-
-	tds->cur_dyn = dyn;
-
-	if (dyn_out)
-		*dyn_out = dyn;
 
 	if (!IS_TDS50(tds) && !IS_TDS7_PLUS(tds)) {
 		dyn->emulated = 1;
+		tds_dynamic_deallocated(tds, dyn);
+		tds_set_state(tds, TDS_IDLE);
 		return TDS_SUCCESS;
 	}
 
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
-		goto failure_nostate;
-
 	query_len = (int)strlen(query);
+
+	tds_set_cur_dyn(tds, dyn);
 
 	if (IS_TDS7_PLUS(tds)) {
 		size_t definition_len = 0;
@@ -1155,11 +1164,8 @@ failure:
 	/* TODO correct if writing fail ?? */
 	tds_set_state(tds, TDS_IDLE);
 
-failure_nostate:
-	tds->cur_dyn = NULL;
-	tds_free_dynamic(tds, dyn);
-	if (dyn_out)
-		*dyn_out = NULL;
+	tds_release_dynamic(tds, dyn_out);
+	tds_dynamic_deallocated(tds, dyn);
 	return rc;
 }
 
@@ -1272,10 +1278,12 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		}
 		/* do not free our parameters */
 		dyn->params = NULL;
-		tds_free_dynamic(tds, dyn);
+		tds_dynamic_deallocated(tds, dyn);
+		tds_release_dynamic(tds, &dyn);
 		return ret;
 	}
 
+	tds_release_cur_dyn(tds);
 	tds->cur_dyn = dyn;
 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
@@ -1328,21 +1336,20 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 	if (params)
 		CHECK_PARAMINFO_EXTRA(params);
 
-	if (!query || !IS_TDS7_PLUS(tds))
+	if (!query || !dyn_out || !IS_TDS7_PLUS(tds))
+		return TDS_FAIL;
+
+	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
 	/* allocate a structure for this thing */
 	dyn = tds_alloc_dynamic(tds->conn, id);
 	if (!dyn)
 		return TDS_FAIL;
+	tds_release_dynamic(tds, dyn_out);
+	*dyn_out = dyn;
 
-	tds->cur_dyn = dyn;
-
-	if (dyn_out)
-		*dyn_out = dyn;
-
-	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
-		goto failure_nostate;
+	tds_set_cur_dyn(tds, dyn);
 
 	query_len = (int)strlen(query);
 
@@ -1403,11 +1410,8 @@ failure:
 	/* TODO correct if writing fail ?? */
 	tds_set_state(tds, TDS_IDLE);
 
-failure_nostate:
-	tds->cur_dyn = NULL;
-	tds_free_dynamic(tds, dyn);
-	if (dyn_out)
-		*dyn_out = NULL;
+	tds_release_dynamic(tds, dyn_out);
+	tds_dynamic_deallocated(tds, dyn);
 	return rc;
 }
 
@@ -1602,7 +1606,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->cur_dyn = dyn;
+	tds_set_cur_dyn(tds, dyn);
 
 	if (IS_TDS7_PLUS(tds)) {
 		/* check proper id */
@@ -1691,7 +1695,7 @@ tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (IS_TDS7_PLUS(tds) && !dyn->num_id)
 		return 0;
 
-	if (dyn->emulated)
+	if (dyn->emulated || !dyn->id[0])
 		return 0;
 
 	return 1;
@@ -1720,7 +1724,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->cur_dyn = dyn;
+	tds_set_cur_dyn(tds, dyn);
 
 	if (IS_TDS7_PLUS(tds)) {
 		/* RPC on sp_execute */
@@ -1770,6 +1774,7 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	tds_put_smallint(tds, 0);
 
 	/* send it */
+	tds->current_op = TDS_OP_DYN_DEALLOC;
 	return tds_query_flush_packet(tds);
 }
 
@@ -1847,7 +1852,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 		return TDS_FAIL;
 
 	/* distinguish from dynamic query  */
-	tds->cur_dyn = NULL;
+	tds_release_cur_dyn(tds);
 
 	rpc_name_len = (int)strlen(rpc_name);
 	if (IS_TDS7_PLUS(tds)) {
