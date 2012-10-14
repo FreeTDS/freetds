@@ -508,6 +508,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
 				}
 			}
 		}
+		assert(ret >= 0);
 
 		if (colmap == sybase_colmap) 
 			is_null = *(int*)ddl[i].nullable == 1;

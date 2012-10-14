@@ -2306,7 +2306,8 @@ odbc_errmsg_handler(const TDSCONTEXT * ctx, TDSSOCKET * tds, TDSMESSAGE * msg)
 
 	if (tds && (dbc = odbc_get_dbc(tds)) != NULL) {
 		errs = &dbc->errs;
-		if (stmt = odbc_get_stmt(tds))
+		stmt = odbc_get_stmt(tds);
+		if (stmt)
 			errs = &stmt->errs;
 		/* set server info if not setted in dbc */
 		if (msg->server && tds_dstr_isempty(&dbc->server))

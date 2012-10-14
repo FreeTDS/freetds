@@ -217,7 +217,6 @@ main(int argc, char *argv[])
 	int no_prompt = 0;
 	int use_encryption = 0;
 	int chained_transactions = 0;
-	const char *display_charset = "";
 	const char *cmdend = "go";
 	int headers = 0;
 	char *columnwidth = NULL;
@@ -267,8 +266,6 @@ main(int argc, char *argv[])
 	char adbuf[512];
 	DBINT convlen;
 	int printedcompute = 0;
-	BYTE *bylist;
-	int nby;
 	char adash;
 	const char *database_name = NULL;
 
@@ -320,10 +317,6 @@ main(int argc, char *argv[])
 			break;
 		case 'Y':
 			chained_transactions = 1;
-			break;
-		case 'a':
-			display_charset = optarg;
-			errflg++;
 			break;
 		case 'c':
 			cmdend = optarg;
@@ -399,7 +392,7 @@ main(int argc, char *argv[])
 
 	if (errflg) {
 		fprintf(stderr, "usage: fisql [-e] [-F] [-g] [-p] [-n] [-v] [-X] [-Y]\n");
-		fprintf(stderr, "\t[-a display_charset] [-c cmdend] [-D database_name] [-E editor]\n");
+		fprintf(stderr, "\t[-c cmdend] [-D database_name] [-E editor]\n");
 		fprintf(stderr, "\t[-h headers] [-H hostname] [-i inputfile]\n");
 		fprintf(stderr, "\t[-I interfaces_file] [-J client character set]\n");
 		fprintf(stderr, "\t[-l login_timeout] [-m errorlevel]\n");
@@ -732,10 +725,6 @@ main(int argc, char *argv[])
 								}
 								collen = get_printable_column_size(dbproc, colid);
 								adash = '-';
-								bylist = dbbylist(dbproc, dbrc, &nby);
-								if (nby == 0) {
-									adash = '=';
-								}
 								for (i = 0; i < collen; i++) {
 									putchar(adash);
 								}

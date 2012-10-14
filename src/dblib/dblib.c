@@ -3188,8 +3188,8 @@ dbcancel(DBPROCESS * dbproc)
 
 	tds = dbproc->tds_socket;
 
-	tds_send_cancel(dbproc->tds_socket);
-	tds_process_cancel(dbproc->tds_socket);
+	tds_send_cancel(tds);
+	tds_process_cancel(tds);
 
 	return SUCCEED;
 }

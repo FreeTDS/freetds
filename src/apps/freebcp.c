@@ -548,7 +548,6 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 	int i;
 	int li_numcols = 0;
 	int li_coltype;
-	int li_collen;
 	RETCODE ret_code = 0;
 
 	if (dir == DB_QUERYOUT) {
@@ -613,7 +612,6 @@ file_native(BCPPARAMDATA * pdata, DBPROCESS * dbproc, DBINT dir)
 
 	for (i = 1; i <= li_numcols; i++) {
 		li_coltype = dbcoltype(dbproc, i);
-		li_collen = dbcollen(dbproc, i);
 
 		if (bcp_colfmt(dbproc, i, li_coltype, -1, -1, NULL, -1, i) == FAIL) {
 			printf("Error in bcp_colfmt col %d\n", i);

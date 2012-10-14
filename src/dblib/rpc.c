@@ -77,7 +77,6 @@ RETCODE
 dbrpcinit(DBPROCESS * dbproc, const char rpcname[], DBSMALLINT options)
 {
 	DBREMOTE_PROC **rpc;
-	int dbrpcrecompile = 0;
 
 	tdsdump_log(TDS_DBG_FUNC, "dbrpcinit(%p, %s, %d)\n", dbproc, rpcname, options);
 	CHECK_CONN(FAIL);
@@ -95,7 +94,7 @@ dbrpcinit(DBPROCESS * dbproc, const char rpcname[], DBSMALLINT options)
 	}
 
 	/* any bits we want from the options argument */
-	dbrpcrecompile = options & DBRPCRECOMPILE;
+	/* dbrpcrecompile = options & DBRPCRECOMPILE; */
 	options &= ~DBRPCRECOMPILE;	/* turn that one off, now that we've extracted it */
 
 	/* all other options except DBRPCRECOMPILE are invalid */

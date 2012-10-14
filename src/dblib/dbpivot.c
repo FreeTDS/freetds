@@ -73,9 +73,11 @@ TDS_RCSID(var, "$Id: dbpivot.c,v 1.3 2012-03-09 19:20:30 freddy77 Exp $");
 #define boolean TDS_boolean
 typedef enum { false, true } boolean;
 
+typedef boolean (*compare_func)(const void *, const void *);
+
 static void *
 tds_find(const void *key, const void *base, size_t nelem, size_t width,
-         boolean (*compar)(const void *, const void *))
+         compare_func compar)
 {
 	size_t i;
 	for (i=0; i < nelem; i++) {
@@ -729,7 +731,6 @@ struct metadata_t { struct key_t *pacross; char *name; struct col_t col; };
 static boolean
 reinit_results(TDSSOCKET * tds, size_t num_cols, const struct metadata_t meta[])
 {
-	TDSRET result;
 	TDSRESULTINFO *info;
 	int i;
 
@@ -782,7 +783,7 @@ reinit_results(TDSSOCKET * tds, size_t num_cols, const struct metadata_t meta[])
 
 #if 1
 	/* all done now allocate a row for tds_process_row to use */
-	result = tds_alloc_row(info);
+	if (TDS_FAILED(tds_alloc_row(info))) return false;
 #endif
 	return true;
 }
@@ -1310,7 +1311,7 @@ name_equal( const struct name_t *n1, const struct name_t *n2 )
 DBPIVOT_FUNC 
 dbpivot_lookup_name( const char name[] )
 {
-	struct name_t *n = TDS_FIND(name, names, name_equal);
+	struct name_t *n = TDS_FIND(name, names, (compare_func) name_equal);
 	
 	return n ? n->func : NULL;
 }

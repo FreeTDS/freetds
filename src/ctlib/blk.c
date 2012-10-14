@@ -507,8 +507,6 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 	TDS_INT result_type;
 	TDSRET ret;
 	TDS_INT temp_count;
-	TDS_INT row_of_query;
-	TDS_INT rows_written;
 
 	tdsdump_log(TDS_DBG_FUNC, "_blk_rowxfer_out(%p, %d, %p)\n", blkdesc, rows_to_xfer, rows_xferred);
 
@@ -541,9 +539,6 @@ _blk_rowxfer_out(CS_BLKDESC * blkdesc, CS_INT rows_to_xfer, CS_INT * rows_xferre
 
 		blkdesc->bcpinfo.xfer_init = 1;
 	}
-
-	row_of_query = 0;
-	rows_written = 0;
 
 	if (rows_xferred)
 		*rows_xferred = 0;

@@ -144,7 +144,6 @@ pool_main_loop(TDS_POOL * pool)
 	TDS_POOL_MEMBER *pmbr;
 	struct sockaddr_in sin;
 	int s, maxfd, i;
-	int retval;
 	fd_set rfds;
 	int socktrue = 1;
 
@@ -173,7 +172,8 @@ pool_main_loop(TDS_POOL * pool)
 
 	while (!term) {
 		/* fprintf(stderr, "waiting for a connect\n"); */
-		retval = select(maxfd + 1, &rfds, NULL, NULL, NULL);
+		/* FIXME check return value */
+		select(maxfd + 1, &rfds, NULL, NULL, NULL);
 		if (term)
 			break;
 
