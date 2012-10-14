@@ -56,7 +56,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 
 	assert(tds);
 
-	/* teset state and connection */
+	/* test state and connection */
 	switch (tds->state) {
 	case TDS_DEAD:
 	case TDS_QUERYING:
@@ -102,7 +102,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	for (cur_cursor = tds->conn->cursors; cur_cursor != NULL; cur_cursor = cur_cursor->next)
 		tds_check_cursor_extra(cur_cursor);
 
-	/* test num_dyms, cur_dyn, dyns */
+	/* test dynamics */
 	for (cur_dyn = tds->conn->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next)
 		tds_check_dynamic_extra(cur_dyn);
 
