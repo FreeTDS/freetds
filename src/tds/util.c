@@ -145,8 +145,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		/* TODO check this code, copied from tds_submit_prepare */
 		tds_free_all_results(tds);
 		tds->rows_affected = TDS_NO_COUNT;
-		tds_release_cursor(tds, tds->cur_cursor);
-		tds->cur_cursor = NULL;
+		tds_release_cursor(&tds->cur_cursor);
 		tds->current_op = TDS_OP_NONE;
 
 		tds->state = state;

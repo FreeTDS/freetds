@@ -743,8 +743,8 @@ reinit_results(TDSSOCKET * tds, size_t num_cols, const struct metadata_t meta[])
 
 	if ((info = alloc_results(num_cols)) == NULL)
 		return false;
-	
-	tds->current_results = info;
+
+	tds_set_current_results(tds, info);
 	if (tds->cur_cursor) {
 		tds_free_results(tds->cur_cursor->res_info);
 		tds->cur_cursor->res_info = info;

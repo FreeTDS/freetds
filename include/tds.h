@@ -709,6 +709,7 @@ typedef struct tds_result_info
 	TDSCOLUMN **columns;
 	TDS_INT row_size;
 	TDS_INT ref_count;
+	TDSSOCKET *attached_to;
 	unsigned char *current_row;
 	void (*row_free)(struct tds_result_info* result, unsigned char *row);
 
@@ -1085,7 +1086,7 @@ void tds_free_param_results(TDSPARAMINFO * param_info);
 void tds_free_param_result(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMESSAGE * message);
 void tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor);
-void tds_release_cursor(TDSSOCKET *tds, TDSCURSOR *cursor);
+void tds_release_cursor(TDSCURSOR **pcursor);
 void tds_free_bcp_column_data(BCPCOLDATA * coldata);
 
 int tds_put_n(TDSSOCKET * tds, const void *buf, size_t n);
@@ -1151,11 +1152,11 @@ char *tds_get_homedir(void);
 /* mem.c */
 TDSPARAMINFO *tds_alloc_param_result(TDSPARAMINFO * old_param);
 void tds_free_input_params(TDSDYNAMIC * dyn);
-void tds_release_dynamic(TDSSOCKET * tds, TDSDYNAMIC ** dyn);
+void tds_release_dynamic(TDSDYNAMIC ** dyn);
 static inline
 void tds_release_cur_dyn(TDSSOCKET * tds)
 {
-	tds_release_dynamic(tds, &tds->cur_dyn);
+	tds_release_dynamic(&tds->cur_dyn);
 }
 void tds_dynamic_deallocated(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 void tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn);
@@ -1173,6 +1174,9 @@ TDSCURSOR * tds_alloc_cursor(TDSSOCKET * tds, const char *name, TDS_INT namelen,
 void tds_free_row(TDSRESULTINFO * res_info, unsigned char *row);
 TDSSOCKET *tds_alloc_socket(TDSCONTEXT * context, int bufsize);
 TDSSOCKET *tds_alloc_additional_socket(TDSCONNECTION *conn);
+void tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info);
+void tds_detach_results(TDSRESULTINFO *info);
+
 
 /* login.c */
 void tds_set_packet(TDSLOGIN * tds_login, int packet_size);

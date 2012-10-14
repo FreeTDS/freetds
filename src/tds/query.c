@@ -1056,7 +1056,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 	dyn = tds_alloc_dynamic(tds->conn, id);
 	if (!dyn)
 		return TDS_FAIL;
-	tds_release_dynamic(tds, dyn_out);
+	tds_release_dynamic(dyn_out);
 	*dyn_out = dyn;
 	tds_release_cur_dyn(tds);
 
@@ -1164,7 +1164,7 @@ failure:
 	/* TODO correct if writing fail ?? */
 	tds_set_state(tds, TDS_IDLE);
 
-	tds_release_dynamic(tds, dyn_out);
+	tds_release_dynamic(dyn_out);
 	tds_dynamic_deallocated(tds, dyn);
 	return rc;
 }
@@ -1279,7 +1279,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		/* do not free our parameters */
 		dyn->params = NULL;
 		tds_dynamic_deallocated(tds, dyn);
-		tds_release_dynamic(tds, &dyn);
+		tds_release_dynamic(&dyn);
 		return ret;
 	}
 
@@ -1346,7 +1346,7 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 	dyn = tds_alloc_dynamic(tds->conn, id);
 	if (!dyn)
 		return TDS_FAIL;
-	tds_release_dynamic(tds, dyn_out);
+	tds_release_dynamic(dyn_out);
 	*dyn_out = dyn;
 
 	tds_set_cur_dyn(tds, dyn);
@@ -1410,7 +1410,7 @@ failure:
 	/* TODO correct if writing fail ?? */
 	tds_set_state(tds, TDS_IDLE);
 
-	tds_release_dynamic(tds, dyn_out);
+	tds_release_dynamic(dyn_out);
 	tds_dynamic_deallocated(tds, dyn);
 	return rc;
 }
@@ -2069,7 +2069,7 @@ tds_set_cur_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 {
 	++cursor->ref_count;
 	if (tds->cur_cursor)
-		tds_release_cursor(tds, tds->cur_cursor);
+		tds_release_cursor(&tds->cur_cursor);
 	tds->cur_cursor = cursor;
 }
 
@@ -2833,7 +2833,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0 
 	    || (IS_TDS7_PLUS(tds) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
 		tds_cursor_deallocated(tds, cursor);
-		tds_release_cursor(tds, cursor);
+		tds_release_cursor(&cursor);
 		return TDS_SUCCESS;
 	}
 
@@ -2867,7 +2867,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	}
 
 	/* client will not use cursor anymore */
-	tds_release_cursor(tds, cursor);
+	tds_release_cursor(&cursor);
 
 	return res;
 }

@@ -72,7 +72,7 @@ main(int argc, char **argv)
 			fatal_error("create dynamic");
 
 		tds_dynamic_deallocated(tds, dyn);
-		tds_release_dynamic(tds, &dyn);
+		tds_release_dynamic(&dyn);
 	}
 
 	/* this should not cause duplicate IDs or erros*/
@@ -90,11 +90,11 @@ main(int argc, char **argv)
 		if (tds_submit_unprepare(tds, dyn2) != TDS_SUCCESS || tds_process_simple_query(tds) != TDS_SUCCESS)
 			fatal_error("unprepare error");
 		tds_dynamic_deallocated(tds, dyn2);
-		tds_release_dynamic(tds, &dyn2);
+		tds_release_dynamic(&dyn2);
 	}
 
 	tds_dynamic_deallocated(tds, dyn);
-	tds_release_dynamic(tds, &dyn);
+	tds_release_dynamic(&dyn);
 
 	try_tds_logout(login, tds, verbose);
 	return 0;

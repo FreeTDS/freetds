@@ -217,18 +217,17 @@ tds_dynamic_deallocated(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 	*victim = dyn->next;
 	dyn->next = NULL;
 
-	tds_release_dynamic(tds, &dyn);
+	tds_release_dynamic(&dyn);
 }
 
 
 /**
- * \fn void tds_release_dynamic(TDSSOCKET *tds, TDSDYNAMIC **pdyn)
- * \brief Frees dynamic statement and remove from TDS
- * \param tds state information for the socket and the TDS protocol
+ * \fn void tds_release_dynamic(TDSDYNAMIC **pdyn)
+ * \brief Frees dynamic statement
  * \param pdyn pointer to dynamic statement to be freed.
  */
 void
-tds_release_dynamic(TDSSOCKET * tds, TDSDYNAMIC ** pdyn)
+tds_release_dynamic(TDSDYNAMIC ** pdyn)
 {
 	TDSDYNAMIC *dyn;
 
@@ -237,8 +236,7 @@ tds_release_dynamic(TDSSOCKET * tds, TDSDYNAMIC ** pdyn)
 	if (!dyn || --dyn->ref_count > 0)
 		return;
 
-	if (tds->current_results == dyn->res_info)
-		tds->current_results = NULL;
+	tds_detach_results(dyn->res_info);
 
 	tds_free_results(dyn->res_info);
 	tds_free_input_params(dyn);
@@ -460,6 +458,24 @@ tds_alloc_results(int num_cols)
 	return NULL;
 }
 
+void
+tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info)
+{
+	tds_detach_results(info);
+	if (info)
+		info->attached_to = tds;
+	tds->current_results = info;
+}
+
+void
+tds_detach_results(TDSRESULTINFO *info)
+{
+	if (info && info->attached_to) {
+		info->attached_to->current_results = NULL;
+		info->attached_to = NULL;
+	}
+}
+
 static void
 tds_row_free(TDSRESULTINFO *res_info, unsigned char *row)
 {
@@ -559,8 +575,7 @@ tds_free_compute_results(TDSSOCKET * tds)
 
 	for (i = 0; i < num_comp; i++) {
 		if (comp_info && comp_info[i]) {
-			if (tds->current_results == comp_info[i])
-				tds->current_results = NULL;
+			tds_detach_results(comp_info[i]);
 			tds_free_compute_result(comp_info[i]);
 		}
 	}
@@ -623,12 +638,10 @@ void
 tds_free_all_results(TDSSOCKET * tds)
 {
 	tdsdump_log(TDS_DBG_FUNC, "tds_free_all_results()\n");
-	if (tds->current_results == tds->res_info)
-		tds->current_results = NULL;
+	tds_detach_results(tds->res_info);
 	tds_free_results(tds->res_info);
 	tds->res_info = NULL;
-	if (tds->current_results == tds->param_info)
-		tds->current_results = NULL;
+	tds_detach_results(tds->param_info);
 	tds_free_param_results(tds->param_info);
 	tds->param_info = NULL;
 	tds_free_compute_results(tds);
@@ -912,7 +925,7 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	return cursor;
 
       Cleanup:
-	tds_release_cursor(tds, cursor);
+	tds_release_cursor(&cursor);
 	return NULL;
 }
 
@@ -926,10 +939,8 @@ tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor)
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : freeing cursor_id %d\n", cursor->cursor_id);
 
-	if (tds->cur_cursor == cursor) {
-		tds_release_cursor(tds, cursor);
-		tds->cur_cursor = NULL;
-	}
+	if (tds->cur_cursor == cursor)
+		tds_release_cursor(&tds->cur_cursor);
 
 	victim = &tds->conn->cursors;
 	while (*victim != cursor) {
@@ -944,7 +955,7 @@ tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor)
 	*victim = cursor->next;
 	cursor->next = NULL;
 
-	tds_release_cursor(tds, cursor);
+	tds_release_cursor(&cursor);
 }
 
 /*
@@ -953,16 +964,17 @@ tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor)
  * cursor reference anymore
  */
 void
-tds_release_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
+tds_release_cursor(TDSCURSOR **pcursor)
 {
+	TDSCURSOR *cursor = *pcursor;
+	*pcursor = NULL;
 	if (!cursor || --cursor->ref_count > 0)
 		return;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_release_cursor() : freeing cursor_id %d\n", cursor->cursor_id);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_release_cursor() : freeing cursor results\n");
-	if (tds->current_results == cursor->res_info)
-		tds->current_results = NULL;
+	tds_detach_results(cursor->res_info);
 	tds_free_results(cursor->res_info);
 
 	if (cursor->cursor_name) {
@@ -1117,6 +1129,7 @@ tds_free_socket(TDSSOCKET * tds)
 		if (tds_conn(tds)->authentication)
 			tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
 		tds_conn(tds)->authentication = NULL;
+		tds_detach_results(tds->current_results);
 		tds_free_all_results(tds);
 		tds_free_env(tds_conn(tds));
 		tds_release_cur_dyn(tds);

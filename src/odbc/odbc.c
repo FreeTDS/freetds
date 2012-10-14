@@ -509,7 +509,7 @@ odbc_prepare(TDS_STMT *stmt)
 
 	odbc_unlock_statement(stmt);
 	if (stmt->errs.lastrc == SQL_ERROR && !stmt->dyn->emulated) {
-		tds_release_dynamic(tds, &stmt->dyn);
+		tds_release_dynamic(&stmt->dyn);
 	}
 	stmt->need_reprepare = 0;
 	ODBC_RETURN_(stmt);
@@ -3116,10 +3116,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	assert(tds);
 	assert(stmt->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY || stmt->attr.concurrency != SQL_CONCUR_READ_ONLY);
 
-	if (stmt->cursor) {
-		tds_release_cursor(tds, stmt->cursor);
-		stmt->cursor = NULL;
-	}
+	tds_release_cursor(&stmt->cursor);
 	if (stmt->query)
 		cursor = tds_alloc_cursor(tds, tds_dstr_cstr(&stmt->cursor_name), tds_dstr_len(&stmt->cursor_name), stmt->query, strlen(stmt->query));
 	else
@@ -3321,7 +3318,7 @@ _SQLExecute(TDS_STMT * stmt)
 				return SQL_ERROR;
 			}
 			if (TDS_FAILED(tds_process_simple_query(tds))) {
-				tds_release_dynamic(tds, &stmt->dyn);
+				tds_release_dynamic(&stmt->dyn);
 				/* TODO ?? tds_free_param_results(params); */
 				ODBC_SAFE_ERROR(stmt);
 				return SQL_ERROR;
@@ -4484,7 +4481,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 		ODBC_EXIT(stmt, SQL_ERROR);
 
 	/* TODO needed ?? */
-	tds_release_dynamic(stmt->dbc->tds_socket, &stmt->dyn);
+	tds_release_dynamic(&stmt->dyn);
 
 	/* try to prepare query */
 	/* TODO support getting info for RPC */
@@ -7102,13 +7099,13 @@ odbc_free_dynamic(TDS_STMT * stmt)
 
 	if (stmt->dyn) {
 		if (!tds_needs_unprepare(tds, stmt->dyn)) {
-			tds_release_dynamic(tds, &stmt->dyn);
+			tds_release_dynamic(&stmt->dyn);
 		} else if (TDS_SUCCEED(tds_submit_unprepare(tds, stmt->dyn))) {
 			if (TDS_FAILED(tds_process_simple_query(tds))) {
 				ODBC_SAFE_ERROR(stmt);
 				return SQL_ERROR;
 			}
-			tds_release_dynamic(tds, &stmt->dyn);
+			tds_release_dynamic(&stmt->dyn);
 		} else {
 			/* TODO if fail add to odbc to free later, when we are in idle */
 			ODBC_SAFE_ERROR(stmt);

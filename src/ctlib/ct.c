@@ -914,16 +914,16 @@ ct_send(CS_COMMAND * cmd)
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
 			cmd->results_state = _CS_RES_DESCRIBE_RESULT;
 			if (tds->cur_dyn)
-				tds->current_results = tds->cur_dyn->res_info;
+				tds_set_current_results(tds, tds->cur_dyn->res_info);
 			else
-				tds->current_results = tds->param_info;
+				tds_set_current_results(tds, tds->param_info);
 			break;
 
 		case CS_DESCRIBE_OUTPUT:
 			tdsdump_log(TDS_DBG_INFO1, "ct_send(CS_DESCRIBE_OUTPUT)\n");
 			ct_set_command_state(cmd, _CS_COMMAND_SENT);
 			cmd->results_state = _CS_RES_DESCRIBE_RESULT;
-			tds->current_results = tds->res_info;
+			tds_set_current_results(tds, tds->res_info);
 			break;
 
 		case CS_DEALLOC:
@@ -1082,8 +1082,8 @@ ct_send(CS_COMMAND * cmd)
 			if (cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED) {
 				/* FIXME what happen if tds_cursor_dealloc return TDS_FAIL ?? */
 				ret = tds_cursor_close(tds, cursor);
-				tds_release_cursor(tds, cursor);
-				cmd->cursor = cursor = NULL;
+				tds_release_cursor(&cursor);
+				cmd->cursor = NULL;
 			} else {
 				ret = tds_cursor_close(tds, cursor);
 				cursor->status.close = _CS_CURS_TYPE_SENT;
@@ -1239,7 +1239,7 @@ ct_results(CS_COMMAND * cmd, CS_INT * result_type)
 
 				if (cmd->results_state == _CS_RES_RESULTSET_EMPTY) {
 					*result_type = CS_ROW_RESULT;
-					tds->current_results = tds->res_info;
+					tds_set_current_results(tds, tds->res_info);
 					cmd->results_state = _CS_RES_RESULTSET_ROWS;
 					return CS_SUCCEED;
 				}
@@ -3828,7 +3828,8 @@ _ct_process_return_status(TDSSOCKET * tds)
 	tds_free_all_results(tds);
 
 	/* allocate the columns structure */
-	tds->current_results = tds->res_info = tds_alloc_results(num_cols);
+	tds->res_info = tds_alloc_results(num_cols);
+	tds_set_current_results(tds, tds->res_info);
 
 	if (!tds->res_info)
 		return TDS_FAIL;
@@ -4574,7 +4575,7 @@ _ct_deallocate_dynamic(CS_CONNECTION * con, CS_DYNAMIC *dyn)
 	tdsdump_log(TDS_DBG_FUNC, "ct_deallocate_dynamic() : relinked list\n");
 
 	/* free dynamic */
-	tds_release_dynamic(con->tds_socket, &dyn->tdsdyn);
+	tds_release_dynamic(&dyn->tdsdyn);
 	free(dyn->id);
 	free(dyn->stmt);
 	param_clear(dyn->param_list);

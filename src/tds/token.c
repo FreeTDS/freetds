@@ -644,14 +644,12 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 		case TDS_ROW_TOKEN:
 			/* overstepped the mark... */
 			if (tds->cur_cursor) {
-				TDSCURSOR  *cursor = tds->cur_cursor; 
-
-				tds->current_results = cursor->res_info;
+				tds_set_current_results(tds, tds->cur_cursor->res_info);
 				tdsdump_log(TDS_DBG_INFO1, "tds_process_tokens(). set current_results to cursor->res_info\n");
 			} else {
 				/* assure that we point to row, not to compute */
 				if (tds->res_info)
-					tds->current_results = tds->res_info;
+					tds_set_current_results(tds, tds->res_info);
 			}
 			/* I don't know when this it's false but it happened, also server can send garbage... */
 			if (tds->current_results)
@@ -968,7 +966,8 @@ tds_process_col_name(TDSSOCKET * tds)
 
 	if ((info = tds_alloc_results(num_names)) != NULL) {
 
-		tds->current_results = tds->res_info = info;
+		tds->res_info = info;
+		tds_set_current_results(tds, info);
 
 		cur = head;
 		for (col = 0; col < num_names; ++col) {
@@ -1284,7 +1283,7 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 		return TDS_FAIL;
 	}
 
-	tds->current_results = *pinfo;
+	tds_set_current_results(tds, *pinfo);
 	tds_unget_byte(tds);
 	return TDS_SUCCESS;
 }
@@ -1356,7 +1355,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 	}
 	
 	tdsdump_log(TDS_DBG_FUNC, "found computeid %d in tds->comp_info\n", info->computeid);
-	tds->current_results = info;
+	tds_set_current_results(tds, info);
 
 	tdsdump_log(TDS_DBG_INFO1, "processing compute result. num_cols = %d\n", num_cols);
 
@@ -1505,7 +1504,7 @@ tds7_process_result(TDSSOCKET * tds)
 
 	if ((info = tds_alloc_results(num_cols)) == NULL)
 		return TDS_FAIL;
-	tds->current_results = info;
+	tds_set_current_results(tds, info);
 	if (tds->cur_cursor) {
 		tds_free_results(tds->cur_cursor->res_info);
 		tds->cur_cursor->res_info = info;
@@ -1668,13 +1667,13 @@ tds_process_result(TDSSOCKET * tds)
 		if ((cursor->res_info = tds_alloc_results(num_cols)) == NULL)
 			return TDS_FAIL;
 		info = cursor->res_info;
-		tds->current_results = cursor->res_info;
+		tds_set_current_results(tds, cursor->res_info);
 	} else {
 		if ((tds->res_info = tds_alloc_results(num_cols)) == NULL)
 			return TDS_FAIL;
 	
 		info = tds->res_info;
-		tds->current_results = tds->res_info;
+		tds_set_current_results(tds, tds->res_info);
 	}
 
 	/*
@@ -1726,7 +1725,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 	if ((info = tds_alloc_results(num_cols)) == NULL)
 		return TDS_FAIL;
-	tds->current_results = info;
+	tds_set_current_results(tds, info);
 	if (tds->cur_cursor)
 		tds->cur_cursor->res_info = info;
 	else
@@ -1848,7 +1847,7 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 		if (info->computeid == id)
 			break;
 	}
-	tds->current_results = info;
+	tds_set_current_results(tds, info);
 
 	for (i = 0; i < info->num_cols; i++) {
 		curcol = info->columns[i];
@@ -1924,8 +1923,9 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 
 	if (tds->res_info) {
 		tds->res_info->more_results = more_results;
+		/* FIXME this should not happen !!! */
 		if (tds->current_results == NULL)
-			tds->current_results = tds->res_info;
+			tds_set_current_results(tds, tds->res_info);
 
 	}
 
@@ -2402,7 +2402,7 @@ tds_process_dyn_result(TDSSOCKET * tds)
 			return TDS_FAIL;
 		info = tds->param_info;
 	}
-	tds->current_results = info;
+	tds_set_current_results(tds, info);
 
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
@@ -2445,7 +2445,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 			return TDS_FAIL;
 		info = tds->param_info;
 	}
-	tds->current_results = info;
+	tds_set_current_results(tds, info);
 
 	for (col = 0; col < info->num_cols; col++) {
 		curcol = info->columns[col];
@@ -2590,7 +2590,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_comp_info = %d\n", tds->num_comp_info);
 
 		info = tds->comp_info[tds->num_comp_info - 1];
-		tds->current_results = info;
+		tds_set_current_results(tds, info);
 
 		info->computeid = compute_id;
 
@@ -2664,7 +2664,7 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. num_comp_info = %d\n", tds->num_comp_info);
 
 	info = tds->comp_info[tds->num_comp_info - 1];
-	tds->current_results = info;
+	tds_set_current_results(tds, info);
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds7 compute result. point 0\n");
 
