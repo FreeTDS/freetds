@@ -63,6 +63,7 @@ handle_exit()
 
 set_pwd_file()
 {
+	rm -f PWD
 	cp -f "$1" PWD
 	tUID=`grep '^UID=' < PWD | sed 's,^....,,'`
 	tPWD=`grep '^PWD=' < PWD | sed 's,^....,,'`
@@ -142,7 +143,23 @@ LDFLAGS='-lgcov' CFLAGS='-O0 -pipe -g -fprofile-arcs -ftest-coverage' sh autogen
 set_pwd_file $ROOT/PWD.mssql2005
 export LD_LIBRARY_PATH=$PWD/src/odbc/.libs/
 init_log
-./misc/test-auto.sh >> logs/log.txt
+./misc/test-auto.sh --no-test  >> logs/log.txt
+
+# replicate
+cd ..
+BASE="$(basename $WORKDIR)"
+cp -rl $BASE $BASE.tmp
+mv $BASE.tmp $BASE
+cd $BASE
+mv $BASE.tmp test1
+cp -rl test1 test2
+cp -rl test1 test3
+cp -rl test1 test4
+
+test1() {
+cd test1
+WORKDIR=$PWD
+./misc/test-auto.sh --no-build >> logs/log.txt
 
 if test \( "$OUTDIR" = "out" -o "$OUTDIR" = "out82" \) -a -r doc/doxy.log; then
 	fixdoxyres < doc/doxy.log > doc/doxy.html
@@ -227,7 +244,11 @@ if test "$MSSQL_INSTANCE" != ""; then
 	fi
 	rm -f out.txt
 fi
+}
 
+test2() {
+cd test2
+WORKDIR=$PWD
 # do tests with sybase server
 set_pwd_file $ROOT/PWD.sybase
 init_log
@@ -236,7 +257,11 @@ cd logs
 ../misc/online.pl < log.txt
 upload "$OUTDIR/test2" '*.html'
 cd ..
+}
 
+test3() {
+cd test3
+WORKDIR=$PWD
 # do tests with sybase 15 server
 set_pwd_file $ROOT/PWD.sybase15
 init_log
@@ -245,7 +270,11 @@ cd logs
 ../misc/online.pl < log.txt
 upload "$OUTDIR/test3" '*.html'
 cd ..
+}
 
+test4() {
+cd test4
+WORKDIR=$PWD
 # do tests with mssql 2008
 set_pwd_file $ROOT/PWD.mssql2008
 init_log
@@ -254,6 +283,21 @@ cd logs
 ../misc/online.pl < log.txt
 upload "$OUTDIR/test4" '*.html'
 cd ..
+}
+
+pids=
+test1 &
+pids="$pids $!"
+test2 &
+pids="$pids $!"
+test3 &
+pids="$pids $!"
+test4 &
+pids="$pids $!"
+
+for pid in $pids; do
+	wait $pid
+done
 
 # test autodiscovery
 save_coverage

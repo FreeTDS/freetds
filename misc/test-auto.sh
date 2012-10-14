@@ -6,15 +6,19 @@
 
 BUILD=yes
 CONFIGURE=no
+TEST=yes
 for param
 do
 	case $param in
 	--help)
-		echo $0 [--help] [--no-build] [--configure]
+		echo $0 [--help] [--no-build] [--no-test] [--configure]
 		exit 0
 		;;
 	--no-build)
 		BUILD=no
+		;;
+	--no-test)
+		TEST=no
 		;;
 	--configure)
 		CONFIGURE=yes
@@ -91,13 +95,15 @@ if test $BUILD = yes; then
 	fi
 fi
 
-echo Testing ...
-TESTS_ENVIRONMENT="$DIR/full-test.sh"
-export TESTS_ENVIRONMENT
-$MAKE check 2> /dev/null
-if  test $? != 0; then
-	echo "error during make check"
-	exit 1;
+if test $TEST = yes; then
+	echo Testing ...
+	TESTS_ENVIRONMENT="$DIR/full-test.sh"
+	export TESTS_ENVIRONMENT
+	$MAKE check 2> /dev/null
+	if  test $? != 0; then
+		echo "error during make check"
+		exit 1;
+	fi
 fi
 
 exit 0
