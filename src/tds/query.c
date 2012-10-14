@@ -2817,8 +2817,6 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 
 /**
  * Send a deallocation request to server
- * libTDS care for all deallocation stuff (memory and server cursor)
- * Caller should not use cursor pointer anymore
  */
 TDSRET
 tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
@@ -2833,7 +2831,6 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0 
 	    || (IS_TDS7_PLUS(tds) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
 		tds_cursor_deallocated(tds->conn, cursor);
-		tds_release_cursor(&cursor);
 		return TDS_SUCCESS;
 	}
 
@@ -2865,9 +2862,6 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 			tdsdump_log(TDS_DBG_ERROR, "tds_cursor_dealloc(): freeing cursor \n");
 		}
 	}
-
-	/* client will not use cursor anymore */
-	tds_release_cursor(&cursor);
 
 	return res;
 }

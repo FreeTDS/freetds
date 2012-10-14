@@ -1092,7 +1092,7 @@ ct_send(CS_COMMAND * cmd)
 		if (cursor && cursor->status.dealloc == _CS_CURS_TYPE_REQUESTED) {
 			/* FIXME what happen if tds_cursor_dealloc return TDS_FAIL ?? */
 			ret = tds_cursor_dealloc(tds, cursor);
-			cmd->cursor = NULL;
+			tds_release_cursor(&cmd->cursor);
 			tds_free_all_results(tds);
 		}
 
@@ -3682,6 +3682,7 @@ ct_cursor(CS_COMMAND * cmd, CS_INT type, CS_CHAR * name, CS_INT namelen, CS_CHAR
 		cursor->status.close      = _CS_CURS_TYPE_UNACTIONED;
 		cursor->status.dealloc    = _CS_CURS_TYPE_UNACTIONED;
 
+		tds_release_cursor(&cmd->cursor);
 		cmd->cursor = cursor;
 		ct_set_command_state(cmd, _CS_COMMAND_READY);
 		return CS_SUCCEED;

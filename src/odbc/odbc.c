@@ -3184,8 +3184,8 @@ odbc_cursor_execute(TDS_STMT * stmt)
 			ret = (ret == TDS_CMD_FAIL) ? TDS_FAIL : TDS_SUCCESS;
 		}
 		if (!cursor->cursor_id) {
-			stmt->cursor = NULL;
 			tds_cursor_dealloc(tds, cursor);
+			tds_release_cursor(&stmt->cursor);
 		}
 	}
 	odbc_unlock_statement(stmt);
@@ -7130,13 +7130,13 @@ odbc_free_cursor(TDS_STMT * stmt)
 				error = 0;
 			/* TODO check error */
 			tds_cursor_dealloc(tds, cursor);
-			stmt->cursor = NULL;
 		}
 		if (error) {
 			ODBC_SAFE_ERROR(stmt);
 			return SQL_ERROR;
 		}
 	}
+	tds_release_cursor(&stmt->cursor);
 	return SQL_SUCCESS;
 }
 
