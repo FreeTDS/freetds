@@ -866,32 +866,25 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	TEST_MALLOC(cursor, TDSCURSOR);
 	cursor->ref_count = 1;
 
-	if ( tds->cursors == NULL ) {
-		tds->cursors = cursor;
-	} else {
-		pcursor = tds->cursors;
-		for (;;) {
-			tdsdump_log(TDS_DBG_FUNC, "tds_alloc_cursor() : stepping thru existing cursors\n");
-			if (pcursor->next == NULL)
-				break;
-			pcursor = pcursor->next;
-		}
-		pcursor->next = cursor;
-	}
-	/* take into account reference in tds list */
-	++cursor->ref_count;
-
 	TEST_CALLOC(cursor->cursor_name, char, namelen + 1);
 	memcpy(cursor->cursor_name, name, namelen);
 
 	TEST_CALLOC(cursor->query, char, querylen + 1);
 	memcpy(cursor->query, query, querylen);
 
+	if (tds->conn->cursors == NULL) {
+		tds->conn->cursors = cursor;
+	} else {
+		for (pcursor = tds->conn->cursors; pcursor->next; pcursor = pcursor->next)
+			continue;
+		pcursor->next = cursor;
+	}
+	/* take into account reference in connection list */
+	++cursor->ref_count;
+
 	return cursor;
 
       Cleanup:
-	if (cursor)
-		tds_cursor_deallocated(tds, cursor);
 	tds_release_cursor(tds, cursor);
 	return NULL;
 }
@@ -902,9 +895,7 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 void
 tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor)
 {
-	TDSCURSOR *victim = NULL;
-	TDSCURSOR *prev = NULL;
-	TDSCURSOR *next = NULL;
+	TDSCURSOR **victim;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : freeing cursor_id %d\n", cursor->cursor_id);
 
@@ -913,36 +904,18 @@ tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor)
 		tds->cur_cursor = NULL;
 	}
 
-	victim = tds->cursors;
-
-	if (victim == NULL) {
-		tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : no allocated cursors %d\n", cursor->cursor_id);
-		return;
-	}
-
-	for (;;) {
-		if (victim == cursor)
-			break;
-		prev = victim;
-		victim = victim->next;
-		if (victim == NULL) {
+	victim = &tds->conn->cursors;
+	while (*victim != cursor) {
+		if (*victim == NULL) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : cannot find cursor_id %d\n", cursor->cursor_id);
 			return;
 		}
+		victim = &(*victim)->next;
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : cursor_id %d found\n", cursor->cursor_id);
-
-	next = victim->next;
-
-	tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : relinking list\n");
-
-	if (prev)
-		prev->next = next;
-	else
-		tds->cursors = next;
-
-	tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : relinked list\n");
+	/* remove from list */
+	*victim = cursor->next;
+	cursor->next = NULL;
 
 	tds_release_cursor(tds, cursor);
 }
@@ -1121,8 +1094,8 @@ tds_free_socket(TDSSOCKET * tds)
 		tds_free_env(tds_conn(tds));
 		while (tds->dyns)
 			tds_free_dynamic(tds, tds->dyns);
-		while (tds->cursors)
-			tds_cursor_deallocated(tds, tds->cursors);
+		while (tds->conn->cursors)
+			tds_cursor_deallocated(tds, tds->conn->cursors);
 		free(tds->in_buf);
 		free(tds->out_buf);
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)

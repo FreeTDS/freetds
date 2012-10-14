@@ -986,6 +986,8 @@ struct tds_connection
 	/** environment is shared between all sessions */
 	TDSENV env;
 
+	TDSCURSOR *cursors;		/**< linked list of cursors allocated for this connection */
+
 	TDS_CAPABILITIES capabilities;
 	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
@@ -1034,7 +1036,6 @@ struct tds_socket
 	TDSCOMPUTEINFO **comp_info;
 	TDSPARAMINFO *param_info;
 	TDSCURSOR *cur_cursor;		/**< cursor in use */
-	TDSCURSOR *cursors;		/**< linked list of cursors allocated for this connection */
 	TDS_TINYINT has_status; 	/**< true is ret_status is valid */
 	TDS_INT ret_status;     	/**< return status from store procedure */
 	TDS_STATE state;

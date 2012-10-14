@@ -109,7 +109,7 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 
 	/* test cursors */
 	found = 0;
-	for (cur_cursor = tds->cursors; cur_cursor != NULL; cur_cursor = cur_cursor->next) {
+	for (cur_cursor = tds->conn->cursors; cur_cursor != NULL; cur_cursor = cur_cursor->next) {
 		tds_check_cursor_extra(cur_cursor);
 		if (tds->current_results == cur_cursor->res_info)
 			result_found = 1;
