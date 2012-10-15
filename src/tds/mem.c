@@ -1067,7 +1067,7 @@ tds_alloc_packet(void *buf, unsigned len)
 	if (TDS_LIKELY(packet)) {
 		packet->pos = 0;
 		packet->len = len;
-		packet->sid = -2;
+		packet->sid = 0;
 		packet->next = NULL;
 		if (buf)
 			memcpy(packet->buf, buf, len);
@@ -1098,7 +1098,6 @@ static void
 tds_free_connection(TDSCONNECTION *conn)
 {
 	if (!conn) return;
-	assert(conn->list == NULL);
 	assert(conn->in_net_tds == NULL);
 	if (conn->authentication)
 		conn->authentication->free(conn, conn->authentication);
@@ -1120,6 +1119,7 @@ tds_free_connection(TDSCONNECTION *conn)
 	tds_free_packets(conn->recv_packet);
 	tds_free_packets(conn->send_packets);
 	tds_free_env(conn);
+	free(conn->sessions);
 	free(conn);
 }
 
@@ -1130,6 +1130,8 @@ tds_alloc_connection(TDSCONTEXT *context)
 	TDSCONNECTION *conn;
 
 	TEST_MALLOC(conn, TDSCONNECTION);
+	TEST_CALLOC(conn->sessions, TDSSOCKET*, 64);
+	conn->num_sessions = 64;
 	conn->s_signal = conn->s_signaled = conn->s = INVALID_SOCKET;
 	conn->use_iconv = 1;
 	conn->parent = NULL;
@@ -1156,7 +1158,7 @@ tds_alloc_socket_base(int bufsize)
 
 	TEST_CALLOC(tds_socket->in_buf, unsigned char, bufsize);
 	tds_socket->in_buf_max = bufsize;
-	tds_socket->sid = -2;
+	tds_socket->sid = 0;
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
 	tds_socket->out_buf_max = bufsize;
@@ -1191,7 +1193,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	conn->env.block_size = bufsize;
 	tds = tds_alloc_socket_base(bufsize);
 	if (tds) {
-		conn->list = tds;
+		conn->sessions[0] = tds;
 		tds->conn = conn;
 		return tds;
 	}
@@ -1215,10 +1217,6 @@ tds_alloc_additional_socket(TDSCONNECTION *conn)
 	tds->state = TDS_IDLE;
 	/* FIXME use proper encoding */
 	tds_iconv_open(tds, "UTF-8");
-	TDS_MUTEX_LOCK(&conn->list_mtx);
-	tds->next = conn->list;
-	conn->list = tds;
-	TDS_MUTEX_UNLOCK(&conn->list_mtx);
 	return tds;
 }
 
@@ -1244,19 +1242,17 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 static void
 tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 {
-	int must_free = 0;
-	TDSSOCKET **s;
+	unsigned n;
+	int must_free = 1;
 	TDS_MUTEX_LOCK(&conn->list_mtx);
-	for (s = &conn->list; *s; s = &(*s)->next)
-		if (*s == tds) {
-			*s = tds->next;
+	if (tds->sid >= 0 && tds->sid < conn->num_sessions)
+		conn->sessions[tds->sid] = NULL;
+	for (n = 0; n < conn->num_sessions; ++n)
+		if (TDSSOCKET_VALID(conn->sessions[n])) {
+			must_free = 0;
 			break;
 		}
-	if (!conn->list) {
-		must_free = 1;
-	} else if (tds->sid >= 0) {
-		/* FIXME check limit */
-		conn->zombie_sids[conn->num_zombie_sid++] = tds->sid;
+	if (!must_free) {
 		/* tds use connection member so must be valid */
 		tds_append_fin(tds);
 	}

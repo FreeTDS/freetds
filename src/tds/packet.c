@@ -101,31 +101,30 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		sid = TDS_GET_A2LE(&mars_header.sid);
 
 		/* FIXME this is done even by caller !! */
+		tds = NULL;
 		TDS_MUTEX_LOCK(&conn->list_mtx);
-		for (tds = conn->list; tds; tds = tds->next)
-			if (sid == tds->sid)
-				break;
+		if (sid >= 0 && sid < conn->num_sessions)
+			tds = conn->sessions[sid];
 		TDS_MUTEX_UNLOCK(&conn->list_mtx);
 		packet->sid = sid;
 
-		if (!tds) {
-			unsigned n;
-
-			/* check if was just a "zombie" socket */
+		if (tds == BUSY_SOCKET) {
 			if (mars_header.type != TDS_SMP_FIN) {
 				tdsdump_log(TDS_DBG_ERROR, "Received MARS with no session (%d)\n", sid);
 				goto Severe_Error;
 			}
 
-			for (n = 0; n < conn->num_zombie_sid; ++n)
-				if (conn->zombie_sids[n] == sid) {
-					/* remove socket from list */
-					conn->zombie_sids[n] = conn->zombie_sids[--conn->num_zombie_sid];
-					tds_free_packets(packet);
-					conn->recv_packet = NULL;
-					return;
-				}
+			/* check if was just a "zombie" socket */
+			TDS_MUTEX_LOCK(&conn->list_mtx);
+			conn->sessions[sid] = NULL;
+			TDS_MUTEX_UNLOCK(&conn->list_mtx);
 
+			tds_free_packets(packet);
+			conn->recv_packet = NULL;
+			return;
+		}
+
+		if (!tds) {
 			/* server sent a unknown packet, close connection */
 			goto Severe_Error;
 		}
@@ -153,8 +152,8 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			if (size != sizeof(mars_header))
 				goto Severe_Error;
 			/* this socket shold now not start another session */
-			tds_set_state(tds, TDS_DEAD);
-			tds->sid = -1;
+//			tds_set_state(tds, TDS_DEAD);
+//			tds->sid = -1;
 		} else
 			goto Severe_Error;
 
@@ -196,23 +195,25 @@ static void
 tds_alloc_new_sid(TDSSOCKET *tds)
 {
 	int sid = -1;
-	unsigned n;
 	TDSCONNECTION *conn = tds_conn(tds);
-	TDSSOCKET *s;
+	TDSSOCKET **s;
 
 	TDS_MUTEX_LOCK(&conn->list_mtx);
 	tds->sid = -1;
-again:
-	++sid;
-	for (s = conn->list; s; ) {
-		if (sid == s->sid)
-			goto again;
-		s = s->next;
+	for (sid = 0; sid < conn->num_sessions; ++sid)
+		if (!conn->sessions[sid])
+			break;
+	if (sid == conn->num_sessions) {
+		/* extend array */
+		s = (TDSSOCKET **) realloc(conn->sessions, sizeof(*s) * (sid+64));
+		if (!s) goto error;
+		conn->sessions = s;
+		memset(s + conn->num_sessions, 0, sizeof(*s) * 64);
+		conn->num_sessions += 64;
 	}
-	for (n = 0; n < conn->num_zombie_sid; ++n)
-		if (conn->zombie_sids[n] == sid)
-			goto again;
+	conn->sessions[sid] = tds;
 	tds->sid = sid;
+error:
 	TDS_MUTEX_UNLOCK(&conn->list_mtx);
 }
 
@@ -224,10 +225,11 @@ tds_build_packet(TDSSOCKET *tds, unsigned char *buf, unsigned len)
 	TDSPACKET *packet;
 
 	p = mars;
-	if (buf[0] != TDS72_SMP) {
+	if (buf[0] != TDS72_SMP && tds->conn->mars) {
 		if (tds->sid == -1) {
 			p->signature = TDS72_SMP;
 			p->type = TDS_SMP_SYN; /* start session */
+			/* FIXME check !!! */
 			tds_alloc_new_sid(tds);
 			tds->recv_seq = 0;
 			tds->send_seq = 0;
@@ -340,14 +342,18 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", packet->buf, packet->len);
 
 			TDS_MUTEX_LOCK(&conn->list_mtx);
-			for (s = conn->list; s; s = s->next)
-				if (packet->sid == s->sid)
-					break;
-			if (!s) s = conn->list;
-			/* append to correct session */
-			tds_append_packet(&conn->packets, packet);
-			/* notify */
-			tds_cond_signal(&s->packet_cond);
+			assert(packet->sid >= 0);
+			if (packet->sid >= 0 && packet->sid < conn->num_sessions) {
+				s = conn->sessions[packet->sid];
+				if (TDSSOCKET_VALID(s)) {
+					/* append to correct session */
+					tds_append_packet(&conn->packets, packet);
+					packet = NULL;
+					/* notify */
+					tds_cond_signal(&s->packet_cond);
+				}
+			}
+			tds_free_packets(packet);
 			TDS_MUTEX_UNLOCK(&conn->list_mtx);
 			/* if we are receiving return the packet */
 			if (!send) break;
@@ -363,11 +369,11 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			if (sid == tds->sid) break;	/* return to caller */
 
 			TDS_MUTEX_LOCK(&conn->list_mtx);
-			for (s = conn->list; s; s = s->next)
-				if (sid == s->sid)
-					break;
-			if (s)
-				tds_cond_signal(&s->packet_cond);
+			if (sid >= 0 && sid < conn->num_sessions) {
+				s = conn->sessions[sid];
+				if (TDSSOCKET_VALID(s))
+					tds_cond_signal(&s->packet_cond);
+			}
 			TDS_MUTEX_UNLOCK(&conn->list_mtx);
 		}
 	}
@@ -562,6 +568,7 @@ tds_append_fin(TDSSOCKET *tds)
 	tds_append_packet(&tds->conn->send_packets, packet);
 
 	/* now is no more an active session */
+	tds->conn->sessions[tds->sid] = BUSY_SOCKET;
 	tds_set_state(tds, TDS_DEAD);
 	tds->sid = -1;
 

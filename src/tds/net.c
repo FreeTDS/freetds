@@ -325,15 +325,16 @@ tds_close_socket(TDSSOCKET * tds)
 {
 	if (!IS_TDSDEAD(tds)) {
 		TDSCONNECTION *conn = tds->conn;
-		int last = 0;
+		unsigned n = 0, count = 0;
 		TDS_MUTEX_LOCK(&conn->list_mtx);
-		if (conn->list == tds && tds->next == NULL)
-			last = 1;
-		if (!last)
+		for (; n < conn->num_sessions; ++n)
+			if (TDSSOCKET_VALID(conn->sessions[n]))
+				++count;
+		if (count > 1)
 			tds_append_fin(tds);
 		TDS_MUTEX_UNLOCK(&conn->list_mtx);
 		tds_set_state(tds, TDS_DEAD);
-		if (last)
+		if (count <= 1)
 			tds_connection_close(conn);
 	}
 }
@@ -341,7 +342,7 @@ tds_close_socket(TDSSOCKET * tds)
 void
 tds_connection_close(TDSCONNECTION *conn)
 {
-	TDSSOCKET *tds;
+	unsigned n = 0;
 
 	if (!TDS_IS_SOCKET_INVALID(conn->s)) {
 		/* TODO check error ?? how to return it ?? */
@@ -350,8 +351,9 @@ tds_connection_close(TDSCONNECTION *conn)
 	}
 
 	TDS_MUTEX_LOCK(&conn->list_mtx);
-	for (tds = conn->list; tds; tds = tds->next)
-		tds_set_state(tds, TDS_DEAD);
+	for (; n < conn->num_sessions; ++n)
+		if (TDSSOCKET_VALID(conn->sessions[n]))
+			tds_set_state(conn->sessions[n], TDS_DEAD);
 	TDS_MUTEX_UNLOCK(&conn->list_mtx);
 }
 
@@ -537,12 +539,13 @@ tds_check_cancel(TDSCONNECTION *conn)
 	} while(!to_cancel[--len]);
 
 	do {
+		unsigned n = 0;
+
 		rc = TDS_SUCCESS;
 		TDS_MUTEX_LOCK(&conn->list_mtx);
 		/* Here we scan all list searching for sessions that should send cancel packets */
-		for (tds = conn->list; tds; tds = tds->next)
-			/* cancel requested but not sent */
-			if (tds->in_cancel == 1) {
+		for (; n < conn->num_sessions; ++n)
+			if (TDSSOCKET_VALID(tds=conn->sessions[n]) && tds->in_cancel == 1) {
 				/* send cancel */
 				tds->in_cancel = 2;
 				rc = tds_append_cancel(tds);
@@ -1157,7 +1160,7 @@ tds_ssl_read(BIO *b, char* data, int len)
 	}
 
 	/* here we are initializing (crypted inside TDS packets) */
-	tds = conn->list;
+	tds = conn->sessions[0];
 
 	/* if we have some data send it */
 	/* here MARS is not already initialized so test is correct */
@@ -1207,7 +1210,7 @@ tds_ssl_write(BIO *b, const char* data, int len)
 		return tds_goodwrite(conn->in_net_tds, (const unsigned char*) data, len, packet->next == NULL);
 	}
 	/* initializing SSL, write crypted data inside normal TDS packets */
-	tds_put_n(conn->list, data, len);
+	tds_put_n(conn->sessions[0], data, len);
 	return len;
 }
 

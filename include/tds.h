@@ -121,6 +121,7 @@ typedef tds_sysdep_real64_type TDS_FLOAT;		/* 64-bit real     */
 typedef tds_sysdep_int64_type TDS_INT8;			/* 64-bit integer  */
 typedef unsigned tds_sysdep_int64_type TDS_UINT8;	/* 64-bit unsigned */
 typedef tds_sysdep_intptr_type TDS_INTPTR;
+typedef unsigned tds_sysdep_intptr_type TDS_UINTPTR;
 
 #include "tdsproto.h"
 
@@ -1019,15 +1020,16 @@ struct tds_connection
 	unsigned int tds71rev1:1;
 	unsigned int mars:1;
 
-	struct tds_socket *list;
-	TDS_MUTEX_DECLARE(list_mtx);
 	TDSSOCKET *in_net_tds;
 	TDSPACKET *packets;
 	TDSPACKET *recv_packet;
 	TDSPACKET *send_packets;
 
-	short zombie_sids[8];
-	unsigned char num_zombie_sid;
+	TDS_MUTEX_DECLARE(list_mtx);
+#define BUSY_SOCKET ((TDSSOCKET*)(TDS_UINTPTR)1)
+#define TDSSOCKET_VALID(tds) (((TDS_UINTPTR)(tds)) > 1)
+	struct tds_socket **sessions;
+	unsigned num_sessions;
 
 	void *tls_session;
 #if defined(HAVE_GNUTLS)
@@ -1046,7 +1048,6 @@ struct tds_connection
 struct tds_socket
 {
 	TDSCONNECTION *conn;
-	struct tds_socket *next;
 	tds_condition packet_cond;
 
 	unsigned char *in_buf;		/**< input buffer */
