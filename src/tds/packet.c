@@ -195,20 +195,23 @@ Severe_Error:
 static void
 tds_alloc_new_sid(TDSSOCKET *tds)
 {
-	int sid = 0;
+	int sid = -1;
+	unsigned n;
 	TDSCONNECTION *conn = tds_conn(tds);
 	TDSSOCKET *s;
 
 	TDS_MUTEX_LOCK(&conn->list_mtx);
 	tds->sid = -1;
+again:
+	++sid;
 	for (s = conn->list; s; ) {
-		if (sid == s->sid) {
-			++sid;
-			s = conn->list;
-			continue;
-		}
+		if (sid == s->sid)
+			goto again;
 		s = s->next;
 	}
+	for (n = 0; n < conn->num_zombie_sid; ++n)
+		if (conn->zombie_sids[n] == sid)
+			goto again;
 	tds->sid = sid;
 	TDS_MUTEX_UNLOCK(&conn->list_mtx);
 }
