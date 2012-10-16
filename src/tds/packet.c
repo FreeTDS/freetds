@@ -226,6 +226,7 @@ tds_build_packet(TDSSOCKET *tds, unsigned char *buf, unsigned len)
 
 	p = mars;
 	if (buf[0] != TDS72_SMP && tds->conn->mars) {
+		/* allocate a new sid */
 		if (tds->sid == -1) {
 			p->signature = TDS72_SMP;
 			p->type = TDS_SMP_SYN; /* start session */

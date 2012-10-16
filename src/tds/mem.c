@@ -1259,7 +1259,7 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 	TDS_MUTEX_UNLOCK(&conn->list_mtx);
 
 	/* detach entirely */
-	tds->sid = -2;
+	tds->sid = -1;
 	tds->conn = NULL;
 
 	if (must_free)

@@ -463,7 +463,9 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	}
 
 	/* initialize SID */
-	if (tds->conn->mars) {
+	if (IS_TDS72_PLUS(tds->conn) && login->mars) {
+		tds->conn->sessions[0] = NULL;
+		tds->conn->mars = 1;
 		tds->sid = -1;
 		tds_init_write_buf(tds);
 	}
@@ -1023,10 +1025,8 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	/* pid */
 	tds_put_int(tds, getpid());
 	/* MARS (1 enabled) */
-	if (IS_TDS72_PLUS(tds->conn)) {
-		tds->conn->mars = login->mars;
-		tds_put_byte(tds, tds->conn->mars);
-	}
+	if (IS_TDS72_PLUS(tds->conn))
+		tds_put_byte(tds, login->mars);
 	ret = tds_flush_packet(tds);
 	if (TDS_FAILED(ret))
 		return ret;
