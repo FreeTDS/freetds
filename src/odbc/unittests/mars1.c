@@ -64,6 +64,28 @@ main(int argc, char *argv[])
 
 	CHKFetch("S");
 
+	/* reset statements */
+	odbc_reset_statement();
+	SWAP_STMT(stmt2);
+	odbc_reset_statement();
+
+	/* now to 2 select with prepare/execute */
+	CHKPrepare(T("select a.n, b.n, a.v from #mars1 a, #mars1 b order by a.n, b.n"), SQL_NTS, "S");
+	SWAP_STMT(stmt2);
+	CHKPrepare(T("select a.n, b.n, a.v from #mars1 a, #mars1 b order by a.n desc, b.n"), SQL_NTS, "S");
+	SWAP_STMT(stmt2);
+	CHKExecute("S");
+	SWAP_STMT(stmt2);
+	CHKExecute("S");
+	SWAP_STMT(stmt2);
+	CHKFetch("S");
+	SWAP_STMT(stmt2);
+	CHKFetch("S");
+	SWAP_STMT(stmt2);
+	CHKFetch("S");
+	SWAP_STMT(stmt2);
+	CHKFetch("S");
+
 	/* TODO test receiving large data should not take much memory */
 
 	odbc_disconnect();
