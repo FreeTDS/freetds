@@ -50,8 +50,7 @@ void
 tds_check_tds_extra(const TDSSOCKET * tds)
 {
 	const int invalid_state = 0;
-	int found, i;
-	int result_found = 0;
+	int i;
 	TDSDYNAMIC *cur_dyn = NULL;
 	TDSCURSOR *cur_cursor = NULL;
 
@@ -85,64 +84,32 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 	assert(tds->in_buf_max == 0 || tds->in_buf != NULL);
 
 	/* test res_info */
-	if (tds->res_info) {
+	if (tds->res_info)
 		tds_check_resultinfo_extra(tds->res_info);
-		if (tds->current_results == tds->res_info)
-			result_found = 1;
-	}
 
 	/* test num_comp_info, comp_info */
 	assert(tds->num_comp_info >= 0);
 	for (i = 0; i < tds->num_comp_info; ++i) {
 		assert(tds->comp_info);
 		tds_check_resultinfo_extra(tds->comp_info[i]);
-		if (tds->current_results == tds->comp_info[i])
-			result_found = 1;
 	}
 
 	/* param_info */
-	if (tds->param_info) {
+	if (tds->param_info)
 		tds_check_resultinfo_extra(tds->param_info);
-		if (tds->current_results == tds->param_info)
-			result_found = 1;
-	}
 
 	/* test cursors */
-	found = 0;
-	for (cur_cursor = tds->conn->cursors; cur_cursor != NULL; cur_cursor = cur_cursor->next) {
+	for (cur_cursor = tds->conn->cursors; cur_cursor != NULL; cur_cursor = cur_cursor->next)
 		tds_check_cursor_extra(cur_cursor);
-		if (tds->current_results == cur_cursor->res_info)
-			result_found = 1;
-		if (cur_cursor == tds->cur_cursor)
-			found = 1;
-	}
-	assert(found || tds->cur_cursor == NULL);
 
 	/* test num_dyms, cur_dyn, dyns */
-	found = 0;
-	for (cur_dyn = tds->conn->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next) {
-		if (cur_dyn == tds->cur_dyn)
-			found = 1;
+	for (cur_dyn = tds->conn->dyns; cur_dyn != NULL; cur_dyn = cur_dyn->next)
 		tds_check_dynamic_extra(cur_dyn);
-		if (tds->current_results == cur_dyn->res_info)
-			result_found = 1;
-	}
-	assert(found || tds->cur_dyn == NULL || tds->cur_dyn->emulated);
 
 	/* test tds_ctx */
 	tds_check_context_extra(tds_get_ctx(tds));
 
 	/* TODO test char_conv_count, char_convs */
-
-	/* current_results should be one of res_info, comp_info, param_info or dynamic */
-	/*
-	 * TODO this test was here to check that current_results was an alias
-	 * but with cursor and reference counting current_results can point
-	 * to a cursor result available on upper layer
-	 * Perhaps we should free results on deallocate and enable
-	 * assert again?
-	 */
-	/* assert(result_found || tds->current_results == NULL); */
 
 	/* we can't have compute and no results */
 	assert(tds->num_comp_info == 0 || tds->res_info != NULL);
