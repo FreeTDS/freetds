@@ -507,10 +507,10 @@ odbc_prepare(TDS_STMT *stmt)
 		break;
 	}
 
-	odbc_unlock_statement(stmt);
 	if (stmt->errs.lastrc == SQL_ERROR && !stmt->dyn->emulated) {
 		tds_release_dynamic(&stmt->dyn);
 	}
+	odbc_unlock_statement(stmt);
 	stmt->need_reprepare = 0;
 	ODBC_RETURN_(stmt);
 }
@@ -829,11 +829,11 @@ SQLMoreResults(SQLHSTMT hstmt)
 						result_type, stmt->row_count, stmt->errs.lastrc);
 		switch (result_type) {
 		case TDS_CMD_DONE:
-			odbc_unlock_statement(stmt);
 #if 1 /* !UNIXODBC */
 			tds_free_all_results(tds);
 #endif
 			odbc_populate_ird(stmt);
+			odbc_unlock_statement(stmt);
 			if (stmt->row_count == TDS_NO_COUNT && !in_row) {
 				stmt->row_status = NOT_IN_ROW;
 				tdsdump_log(TDS_DBG_INFO1, "SQLMoreResults: row_status=%d\n", stmt->row_status);
