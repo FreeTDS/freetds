@@ -1082,8 +1082,8 @@ ct_send(CS_COMMAND * cmd)
 			if (cursor->status.dealloc == TDS_CURSOR_STATE_REQUESTED) {
 				/* FIXME what happen if tds_cursor_dealloc return TDS_FAIL ?? */
 				ret = tds_cursor_close(tds, cursor);
-				tds_release_cursor(&cursor);
-				cmd->cursor = NULL;
+				tds_release_cursor(&cmd->cursor);
+				cursor = NULL;
 			} else {
 				ret = tds_cursor_close(tds, cursor);
 				cursor->status.close = _CS_CURS_TYPE_SENT;
