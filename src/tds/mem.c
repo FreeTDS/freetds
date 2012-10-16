@@ -196,15 +196,13 @@ tds_free_input_params(TDSDYNAMIC * dyn)
  * Called when dynamic got deallocated from server
  */
 void
-tds_dynamic_deallocated(TDSSOCKET *tds, TDSDYNAMIC *dyn)
+tds_dynamic_deallocated(TDSCONNECTION *conn, TDSDYNAMIC *dyn)
 {
 	TDSDYNAMIC **victim;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_dynamic_deallocated() : freeing dynamic_id %s\n", dyn->id);
 
-	tds_release_cur_dyn(tds);
-
-	victim = &tds_conn(tds)->dyns;
+	victim = &conn->dyns;
 	while (*victim != dyn) {
 		if (*victim == NULL) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_dynamic_deallocated() : cannot find id %s\n", dyn->id);
@@ -933,16 +931,13 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
  * Called when cursor got deallocated from server
  */
 void
-tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor)
+tds_cursor_deallocated(TDSCONNECTION *conn, TDSCURSOR *cursor)
 {
 	TDSCURSOR **victim;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : freeing cursor_id %d\n", cursor->cursor_id);
 
-	if (tds->cur_cursor == cursor)
-		tds_release_cursor(&tds->cur_cursor);
-
-	victim = &tds->conn->cursors;
+	victim = &conn->cursors;
 	while (*victim != cursor) {
 		if (*victim == NULL) {
 			tdsdump_log(TDS_DBG_FUNC, "tds_cursor_deallocated() : cannot find cursor_id %d\n", cursor->cursor_id);

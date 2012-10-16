@@ -71,7 +71,7 @@ main(int argc, char **argv)
 		if (!dyn)
 			fatal_error("create dynamic");
 
-		tds_dynamic_deallocated(tds, dyn);
+		tds_dynamic_deallocated(tds->conn, dyn);
 		tds_release_dynamic(&dyn);
 	}
 
@@ -89,11 +89,11 @@ main(int argc, char **argv)
 			fatal_error("dynamic not present??");
 		if (tds_submit_unprepare(tds, dyn2) != TDS_SUCCESS || tds_process_simple_query(tds) != TDS_SUCCESS)
 			fatal_error("unprepare error");
-		tds_dynamic_deallocated(tds, dyn2);
+		tds_dynamic_deallocated(tds->conn, dyn2);
 		tds_release_dynamic(&dyn2);
 	}
 
-	tds_dynamic_deallocated(tds, dyn);
+	tds_dynamic_deallocated(tds->conn, dyn);
 	tds_release_dynamic(&dyn);
 
 	try_tds_logout(login, tds, verbose);

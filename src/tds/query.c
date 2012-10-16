@@ -1069,7 +1069,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 
 	if (!IS_TDS50(tds) && !IS_TDS7_PLUS(tds)) {
 		dyn->emulated = 1;
-		tds_dynamic_deallocated(tds, dyn);
+		tds_dynamic_deallocated(tds->conn, dyn);
 		tds_set_state(tds, TDS_IDLE);
 		return TDS_SUCCESS;
 	}
@@ -1165,7 +1165,7 @@ failure:
 	tds_set_state(tds, TDS_IDLE);
 
 	tds_release_dynamic(dyn_out);
-	tds_dynamic_deallocated(tds, dyn);
+	tds_dynamic_deallocated(tds->conn, dyn);
 	return rc;
 }
 
@@ -1278,7 +1278,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		}
 		/* do not free our parameters */
 		dyn->params = NULL;
-		tds_dynamic_deallocated(tds, dyn);
+		tds_dynamic_deallocated(tds->conn, dyn);
 		tds_release_dynamic(&dyn);
 		return ret;
 	}
@@ -1411,7 +1411,7 @@ failure:
 	tds_set_state(tds, TDS_IDLE);
 
 	tds_release_dynamic(dyn_out);
-	tds_dynamic_deallocated(tds, dyn);
+	tds_dynamic_deallocated(tds->conn, dyn);
 	return rc;
 }
 
@@ -2832,7 +2832,7 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 
 	if (cursor->srv_status == TDS_CUR_ISTAT_UNUSED || (cursor->srv_status & TDS_CUR_ISTAT_DEALLOC) != 0 
 	    || (IS_TDS7_PLUS(tds) && (cursor->srv_status & TDS_CUR_ISTAT_CLOSED) != 0)) {
-		tds_cursor_deallocated(tds, cursor);
+		tds_cursor_deallocated(tds->conn, cursor);
 		tds_release_cursor(&cursor);
 		return TDS_SUCCESS;
 	}

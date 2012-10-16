@@ -622,7 +622,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 						tds->cur_dyn->num_id = *(TDS_INT *) curcol->column_data;
 					}
 					if (tds->current_op == TDS_OP_UNPREPARE)
-						tds_dynamic_deallocated(tds, tds->cur_dyn);
+						tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
 				}
 				tds_free_param_results(pinfo);
 			} else {
@@ -728,7 +728,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			switch (tds->current_op) {
 			case TDS_OP_DYN_DEALLOC:
 				if (done_flags && (*done_flags & TDS_DONE_ERROR) == 0)
-					tds_dynamic_deallocated(tds, tds->cur_dyn);
+					tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
 				break;
 			default:
 				break;
@@ -753,7 +753,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 					cursor->srv_status &= ~TDS_CUR_ISTAT_OPEN;
 					cursor->srv_status |= TDS_CUR_ISTAT_CLOSED|TDS_CUR_ISTAT_DECLARED;
 					if (cursor->status.dealloc == TDS_CURSOR_STATE_SENT) {
-						tds_cursor_deallocated(tds, cursor);
+						tds_cursor_deallocated(tds->conn, cursor);
 					}
 				}
 				*result_type = TDS_NO_MORE_RESULTS;
@@ -2231,7 +2231,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	if (marker == TDS_EED_TOKEN && tds->cur_dyn && !TDS_IS_MSSQL(tds) && msg.msgno == 2782) {
 		/* we must emulate prepare */
 		tds->cur_dyn->emulated = 1;
-		tds_dynamic_deallocated(tds, tds->cur_dyn);
+		tds_dynamic_deallocated(tds->conn, tds->cur_dyn);
 	} else if (marker == TDS_INFO_TOKEN && msg.msgno == 16954 && TDS_IS_MSSQL(tds)
 		   && tds->current_op == TDS_OP_CURSOROPEN && tds->cur_cursor) {
 		/* here mssql say "Executing SQL directly; no cursor." opening cursor */
@@ -2735,7 +2735,7 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 		cursor->cursor_id = cursor_id;
 		cursor->srv_status = cursor_status;
 		if ((cursor_status & TDS_CUR_ISTAT_DEALLOC) != 0)
-			tds_cursor_deallocated(tds, cursor);
+			tds_cursor_deallocated(tds->conn, cursor);
 	} 
 	return TDS_SUCCESS;
 }

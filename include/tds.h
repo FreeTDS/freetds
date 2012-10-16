@@ -1093,7 +1093,7 @@ void tds_free_results(TDSRESULTINFO * res_info);
 void tds_free_param_results(TDSPARAMINFO * param_info);
 void tds_free_param_result(TDSPARAMINFO * param_info);
 void tds_free_msg(TDSMESSAGE * message);
-void tds_cursor_deallocated(TDSSOCKET *tds, TDSCURSOR *cursor);
+void tds_cursor_deallocated(TDSCONNECTION *conn, TDSCURSOR *cursor);
 void tds_release_cursor(TDSCURSOR **pcursor);
 void tds_free_bcp_column_data(BCPCOLDATA * coldata);
 
@@ -1166,7 +1166,7 @@ void tds_release_cur_dyn(TDSSOCKET * tds)
 {
 	tds_release_dynamic(&tds->cur_dyn);
 }
-void tds_dynamic_deallocated(TDSSOCKET *tds, TDSDYNAMIC *dyn);
+void tds_dynamic_deallocated(TDSCONNECTION *conn, TDSDYNAMIC *dyn);
 void tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn);
 TDSSOCKET *tds_realloc_socket(TDSSOCKET * tds, size_t bufsize);
 char *tds_alloc_client_sqlstate(int msgno);
