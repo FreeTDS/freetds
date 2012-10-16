@@ -1120,30 +1120,32 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 void
 tds_free_socket(TDSSOCKET * tds)
 {
-	if (tds) {
-		if (tds_conn(tds)->authentication)
-			tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
-		tds_conn(tds)->authentication = NULL;
-		tds_detach_results(tds->current_results);
-		tds_free_all_results(tds);
-		tds_free_env(tds_conn(tds));
-		tds_release_cur_dyn(tds);
-		while (tds->conn->dyns)
-			tds_dynamic_deallocated(tds, tds->conn->dyns);
-		while (tds->conn->cursors)
-			tds_cursor_deallocated(tds, tds->conn->cursors);
-		free(tds->in_buf);
-		free(tds->out_buf);
+	if (!tds)
+		return;
+
+	if (tds_conn(tds)->authentication)
+		tds_conn(tds)->authentication->free(tds_conn(tds), tds_conn(tds)->authentication);
+	tds_conn(tds)->authentication = NULL;
+	tds_release_cur_dyn(tds);
+	tds_release_cursor(&tds->cur_cursor);
+	tds_detach_results(tds->current_results);
+	tds_free_all_results(tds);
+	tds_free_env(tds_conn(tds));
+	while (tds->conn->dyns)
+		tds_dynamic_deallocated(tds->conn, tds->conn->dyns);
+	while (tds->conn->cursors)
+		tds_cursor_deallocated(tds->conn, tds->conn->cursors);
+	free(tds->in_buf);
+	free(tds->out_buf);
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
-		tds_ssl_deinit(tds_conn(tds));
+	tds_ssl_deinit(tds_conn(tds));
 #endif
-		tds_close_socket(tds);
-		CLOSESOCKET(tds_conn(tds)->s_signal);
-		CLOSESOCKET(tds_conn(tds)->s_signaled);
-		tds_iconv_free(tds);
-		free(tds_conn(tds)->product_name);
-		free(tds);
-	}
+	tds_close_socket(tds);
+	CLOSESOCKET(tds_conn(tds)->s_signal);
+	CLOSESOCKET(tds_conn(tds)->s_signaled);
+	tds_iconv_free(tds);
+	free(tds_conn(tds)->product_name);
+	free(tds);
 }
 
 void
