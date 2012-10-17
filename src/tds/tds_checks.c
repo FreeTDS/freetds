@@ -178,9 +178,9 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	} else if (column->column_type == SYBVARIANT) {
 		assert(column_varint_size == 4);
 	}
-	tds.tds_version = 0x500;
+	tds.conn->tds_version = 0x500;
 	varint_ok = varint_ok || tds_get_varint_size(&tds, column->on_server.column_type) == column_varint_size;
-	tds.tds_version = 0x700;
+	tds.conn->tds_version = 0x700;
 	varint_ok = varint_ok || tds_get_varint_size(&tds, column->on_server.column_type) == column_varint_size;
 	assert(varint_ok);
 

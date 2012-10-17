@@ -348,7 +348,7 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 {
 	char *query;
 
-	if (IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds->conn)) {
 		int i, firstcol, erc;
 		char *hint;
 		TDSCOLUMN *bcpcol;
@@ -431,7 +431,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 	record = bcpinfo->bindinfo->current_row;
 	old_record_size = bcpinfo->bindinfo->row_size;
 
-	if (IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds->conn)) {
 		TDS_TINYINT  varint_1;
 
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
@@ -516,7 +516,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 					TDS_NUMERIC *num = (TDS_NUMERIC *) bindcol->bcp_column_data->data;
 					int size;
 					tdsdump_log(TDS_DBG_INFO1, "numeric type prec = %d\n", num->precision);
-					if (IS_TDS7_PLUS(tds))
+					if (IS_TDS7_PLUS(tds->conn))
 						tds_swap_numeric(num);
 					size = tds_numeric_bytes_per_prec[num->precision];
 					memcpy(record, num->array, size);
@@ -842,7 +842,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			continue;
 		}
 
-		if (IS_TDS72_PLUS(tds))
+		if (IS_TDS72_PLUS(tds->conn))
 			tds_put_int(tds, bcpcol->column_usertype);
 		else
 			tds_put_smallint(tds, bcpcol->column_usertype);
@@ -869,7 +869,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			tds_put_byte(tds, bcpcol->column_prec);
 			tds_put_byte(tds, bcpcol->column_scale);
 		}
-		if (IS_TDS71_PLUS(tds)
+		if (IS_TDS71_PLUS(tds->conn)
 			&& is_collate_type(bcpcol->on_server.column_type)) {
 			tds_put_n(tds, bcpcol->column_collation, 5);
 		}
@@ -930,7 +930,7 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	tds->out_flag = TDS_BULK;
 	tds_set_state(tds, TDS_QUERYING);
 
-	if (IS_TDS7_PLUS(tds))
+	if (IS_TDS7_PLUS(tds->conn))
 		tds7_bcp_send_colmetadata(tds, bcpinfo);
 	
 	return TDS_SUCCESS;
@@ -972,7 +972,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	 */
 	bcpinfo->var_cols = 0;
 
-	if (IS_TDS50(tds)) {
+	if (IS_TDS50(tds->conn)) {
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 	
 			bcpcol = bcpinfo->bindinfo->columns[i];
@@ -1027,7 +1027,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			bcpinfo->bindinfo->row_size = bcp_record_size;
 		}
 	}
-	if (IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds->conn)) {
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 	
 			bcpcol = bcpinfo->bindinfo->columns[i];

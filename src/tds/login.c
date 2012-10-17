@@ -388,10 +388,10 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 
 	tds->login = login;
 
-	tds->tds_version = login->tds_version;
+	tds->conn->tds_version = login->tds_version;
 	tds_conn(tds)->emul_little_endian = login->emul_little_endian;
 #ifdef WORDS_BIGENDIAN
-	if (IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds->conn)) {
 		/* TDS 7/8 only supports little endian */
 		tds_conn(tds)->emul_little_endian = 1;
 	}
@@ -422,7 +422,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		return -TDSECONN;
 	}
 
-	if (!IS_TDS50(tds) && !tds_dstr_isempty(&login->instance_name) && !login->port)
+	if (!IS_TDS50(tds->conn) && !tds_dstr_isempty(&login->instance_name) && !login->port)
 		login->port = tds7_get_instance_port(tds_dstr_cstr(&login->ip_addr), tds_dstr_cstr(&login->instance_name));
 
 	if (login->port < 1) {
@@ -445,10 +445,10 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		
 	tds_set_state(tds, TDS_IDLE);
 
-	if (IS_TDS71_PLUS(tds)) {
+	if (IS_TDS71_PLUS(tds->conn)) {
 		erc = tds71_do_login(tds, login);
 		db_selected = 1;
-	} else if (IS_TDS7_PLUS(tds)) {
+	} else if (IS_TDS7_PLUS(tds->conn)) {
 		erc = tds7_send_login(tds, login);
 		db_selected = 1;
 	} else {
@@ -566,13 +566,13 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		return TDS_FAIL;
 	}
 
-	if (IS_TDS42(tds)) {
+	if (IS_TDS42(tds->conn)) {
 		memcpy(protocol_version, "\004\002\000\000", 4);
 		memcpy(program_version, "\004\002\000\000", 4);
-	} else if (IS_TDS46(tds)) {
+	} else if (IS_TDS46(tds->conn)) {
 		memcpy(protocol_version, "\004\006\000\000", 4);
 		memcpy(program_version, "\004\002\000\000", 4);
-	} else if (IS_TDS50(tds)) {
+	} else if (IS_TDS50(tds->conn)) {
 		memcpy(protocol_version, "\005\000\000\000", 4);
 		memcpy(program_version, "\005\000\000\000", 4);
 	} else {
@@ -601,7 +601,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 #endif
 	tds_put_byte(tds, login->bulk_copy);
 	tds_put_n(tds, magic2, 2);
-	if (IS_TDS42(tds)) {
+	if (IS_TDS42(tds->conn)) {
 		tds_put_int(tds, 512);
 	} else {
 		tds_put_int(tds, 0);
@@ -609,7 +609,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_n(tds, magic3, 3);
 	tds_put_login_string(tds, tds_dstr_cstr(&login->app_name), TDS_MAX_LOGIN_STR_SZ);
 	tds_put_login_string(tds, lservname, TDS_MAX_LOGIN_STR_SZ);
-	if (IS_TDS42(tds)) {
+	if (IS_TDS42(tds->conn)) {
 		tds_put_login_string(tds, tds_dstr_cstr(&login->password), 255);
 	} else {
 		len = (int)tds_dstr_len(&login->password);
@@ -624,7 +624,7 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	tds_put_n(tds, protocol_version, 4);	/* TDS version; { 0x04,0x02,0x00,0x00 } */
 	tds_put_login_string(tds, tds_dstr_cstr(&login->library), 10);	/* client program name */
-	if (IS_TDS42(tds)) {
+	if (IS_TDS42(tds->conn)) {
 		tds_put_int(tds, 0);
 	} else {
 		tds_put_n(tds, program_version, 4);	/* program version ? */
@@ -657,11 +657,11 @@ tds_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 		strcpy(blockstr, "512");
 	tds_put_login_string(tds, blockstr, 6);
 
-	if (IS_TDS42(tds)) {
+	if (IS_TDS42(tds->conn)) {
 		tds_put_n(tds, magic42, 8);
-	} else if (IS_TDS46(tds)) {
+	} else if (IS_TDS46(tds->conn)) {
 		tds_put_n(tds, magic42, 4);
-	} else if (IS_TDS50(tds)) {
+	} else if (IS_TDS50(tds->conn)) {
 		tds_put_n(tds, magic50, 4);
 		tds_put_byte(tds, TDS_CAPABILITY_TOKEN);
 		tds_put_smallint(tds, sizeof(tds_conn(tds)->capabilities));
@@ -734,7 +734,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	if (password_len > 128)
 		password_len = 128;
 
-	current_pos = IS_TDS72_PLUS(tds) ? 86 + 8 : 86;	/* ? */
+	current_pos = IS_TDS72_PLUS(tds->conn) ? 86 + 8 : 86;	/* ? */
 
 	packet_size = current_pos + (host_name_len + app_name_len + server_name_len + library_len + language_len + database_len) * 2;
 
@@ -821,7 +821,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds_put_byte(tds, option_flag2);
 
 	tds_put_byte(tds, sql_type_flag);
-	tds_put_byte(tds, IS_TDS73_PLUS(tds) ? option_flag3 : reserved_flag);
+	tds_put_byte(tds, IS_TDS73_PLUS(tds->conn) ? option_flag3 : reserved_flag);
 
 	tds_put_n(tds, time_zone, sizeof(time_zone));
 	tds_put_n(tds, collation, sizeof(collation));
@@ -882,7 +882,7 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	TDS_PUT_SMALLINT(tds, current_pos);
 	tds_put_smallint(tds, 0);
 
-	if (IS_TDS72_PLUS(tds)) {
+	if (IS_TDS72_PLUS(tds->conn)) {
 		/* new password */
 		TDS_PUT_SMALLINT(tds, current_pos);
 		tds_put_smallint(tds, 0);
@@ -975,7 +975,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	TDS_UCHAR *p;
 
 	SET_UI16BE(13, instance_name_len);
-	if (!IS_TDS72_PLUS(tds)) {
+	if (!IS_TDS72_PLUS(tds->conn)) {
 		SET_UI16BE(16, START_POS + 6 + 1 + instance_name_len);
 		buf[20] = 0xff;
 	} else {
@@ -1004,7 +1004,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 
 	tds_put_n(tds, buf, start_pos);
 	/* netlib version */
-	tds_put_n(tds, IS_TDS72_PLUS(tds) ? netlib9 : netlib8, 6);
+	tds_put_n(tds, IS_TDS72_PLUS(tds->conn) ? netlib9 : netlib8, 6);
 	/* encryption */
 #if !defined(HAVE_GNUTLS) && !defined(HAVE_OPENSSL)
 	/* not supported */
@@ -1017,7 +1017,7 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	/* pid */
 	tds_put_int(tds, getpid());
 	/* MARS (1 enabled) */
-	if (IS_TDS72_PLUS(tds))
+	if (IS_TDS72_PLUS(tds->conn))
 		tds_put_byte(tds, 0);
 	ret = tds_flush_packet(tds);
 	if (TDS_FAILED(ret))

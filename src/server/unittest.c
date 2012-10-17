@@ -82,7 +82,7 @@ main(int argc, char **argv)
 		tds_env_change(tds, TDS_ENV_PACKSIZE, NULL, "512");
 		/* TODO set mssql if tds7+ */
 		tds_send_login_ack(tds, "sql server");
-		if (IS_TDS50(tds))
+		if (IS_TDS50(tds->conn))
 			tds_send_capabilities_token(tds);
 		tds_send_done_token(tds, 0, 1);
 	} else {

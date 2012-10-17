@@ -191,9 +191,9 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 
 	assert(string_len >= 0 && dest_size >= 0);
 
-	wire_bytes = IS_TDS7_PLUS(tds) ? string_len * 2 : string_len;
+	wire_bytes = IS_TDS7_PLUS(tds->conn) ? string_len * 2 : string_len;
 
-	if (IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds->conn)) {
 		if (dest == NULL) {
 			tds_get_n(tds, NULL, (int)wire_bytes);
 			return string_len;

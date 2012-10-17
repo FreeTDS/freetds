@@ -381,7 +381,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	 * ISO8859-1 <-> server meta data
 	 */
 	canonic = TDS_CHARSET_UCS_2LE;
-	if (!IS_TDS7_PLUS(tds)) {
+	if (!IS_TDS7_PLUS(tds->conn)) {
 		canonic = TDS_CHARSET_ISO_8859_1;
 		if (canonic_env_charset >= 0)
 			canonic = canonic_env_charset;
@@ -980,7 +980,7 @@ tds_srv_charset_changed_num(TDSSOCKET * tds, int canonic_charset_num)
 {
 	TDSICONV *char_conv = tds->char_convs[client2server_chardata];
 
-	if (IS_TDS7_PLUS(tds) && canonic_charset_num == TDS_CHARSET_ISO_8859_1)
+	if (IS_TDS7_PLUS(tds->conn) && canonic_charset_num == TDS_CHARSET_ISO_8859_1)
 		canonic_charset_num = TDS_CHARSET_CP1252;
 
 	tdsdump_log(TDS_DBG_FUNC, "setting server single-byte charset to \"%s\"\n", canonic_charsets[canonic_charset_num].name);
@@ -994,7 +994,7 @@ tds_srv_charset_changed_num(TDSSOCKET * tds, int canonic_charset_num)
 		tds->char_convs[client2server_chardata] = char_conv;
 
 	/* if sybase change also server conversions */
-	if (IS_TDS7_PLUS(tds))
+	if (IS_TDS7_PLUS(tds->conn))
 		return;
 
 	char_conv = tds->char_convs[iso2server_metadata];

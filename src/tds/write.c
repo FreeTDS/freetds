@@ -125,7 +125,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	assert(len >= 0);
 
 	/* valid test only if client and server share a character set. TODO conversions for Sybase */
-	if (!IS_TDS7_PLUS(tds))	{
+	if (!IS_TDS7_PLUS(tds->conn))	{
 		tds_put_n(tds, s, len);
 		return len;
 	}

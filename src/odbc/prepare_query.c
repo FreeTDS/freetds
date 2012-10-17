@@ -71,7 +71,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 
 		switch (*p) {
 		case ',':
-			if (IS_TDS7_PLUS(stmt->dbc->tds_socket)) {
+			if (IS_TDS7_PLUS(stmt->dbc->tds_socket->conn)) {
 				tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBVOID);
 				curcol->column_size = curcol->column_cur_size = 0;
 			} else {

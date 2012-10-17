@@ -541,7 +541,7 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				*out_len = sizeof(intval);
 			break;
 		case CS_TDS_VERSION:
-			switch (tds->tds_version) {
+			switch (tds->conn->tds_version) {
 			case 0x400:
 				(*(int *) buffer = CS_TDS_40);
 				break;

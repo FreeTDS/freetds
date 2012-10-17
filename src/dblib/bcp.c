@@ -180,7 +180,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	/* 
 	 * Validate other parameters 
 	 */
-	if (dbproc->tds_socket->tds_version < 0x500) {
+	if (dbproc->tds_socket->conn->tds_version < 0x500) {
 		dbperror(dbproc, SYBETDSVER, 0);
 		return FAIL;
 	}
@@ -190,7 +190,7 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 		return FAIL;
 	}
 
-	if (strlen(tblname) > 92 && !IS_TDS7_PLUS(dbproc->tds_socket)) {	/* 30.30.30 */
+	if (strlen(tblname) > 92 && !IS_TDS7_PLUS(dbproc->tds_socket->conn)) {	/* 30.30.30 */
 		dbperror(dbproc, SYBEBCITBLEN, 0);
 		return FAIL;
 	}

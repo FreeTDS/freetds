@@ -203,7 +203,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 
 	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d (TDS version %d.%d)\n", 
 			ip_addr, port, 
-			TDS_MAJOR(tds), TDS_MINOR(tds));
+			TDS_MAJOR(conn), TDS_MINOR(conn));
 
 	conn->s = socket(AF_INET, SOCK_STREAM, 0);
 	if (TDS_IS_SOCKET_INVALID(conn->s)) {

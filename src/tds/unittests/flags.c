@@ -126,7 +126,7 @@ main(int argc, char **argv)
 		fatal_error("creating table error");
 
 	/* TDS 4.2 without FOR BROWSE clause seem to forget flags... */
-	if (!IS_TDS42(tds)) {
+	if (!IS_TDS42(tds->conn)) {
 		/* check select of all fields */
 		test_begin("select * from #tmp1");
 		info = tds->current_results;
@@ -153,7 +153,7 @@ main(int argc, char **argv)
 
 	check_flags(info->columns[0], 0, "writable");
 
-	if (!IS_TDS42(tds)) {
+	if (!IS_TDS42(tds->conn)) {
 		check_flags(info->columns[1], 1, "nullable writable");
 	} else {
 		check_flags(info->columns[1], 1, "writable-nullable writable");

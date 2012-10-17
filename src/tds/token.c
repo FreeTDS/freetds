@@ -436,7 +436,7 @@ tds_process_auth(TDSSOCKET * tds)
 	CHECK_TDS_EXTRA(tds);
 
 #if ENABLE_EXTRA_CHECKS
-	if (!IS_TDS7_PLUS(tds))
+	if (!IS_TDS7_PLUS(tds->conn))
 		tdsdump_log(TDS_DBG_ERROR, "Called auth on TDS version < 7\n");
 #endif
 
@@ -929,7 +929,7 @@ tds_read_namelist(TDSSOCKET * tds, int remainder, struct namelist **p_head, int 
 		}
 
 		remainder -= namelen;
-		if (IS_TDS7_PLUS(tds))
+		if (IS_TDS7_PLUS(tds->conn))
 			remainder -= namelen;
 		num_names++;
 	}
@@ -1125,7 +1125,7 @@ tds_process_tabname(TDSSOCKET *tds)
 	/* different structure for tds7.1 */
 	/* hdrsize check is required for tds7.1 revision 1 (mssql without SPs) */
 	/* TODO change tds_version ?? */
-	if (IS_TDS71_PLUS(tds) && (!IS_TDS71(tds) || !tds_conn(tds)->tds71rev1))
+	if (IS_TDS71_PLUS(tds->conn) && (!IS_TDS71(tds->conn) || !tds_conn(tds)->tds71rev1))
 		num_names = tds71_read_table_names(tds, hdrsize, &head);
 	else
 		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
@@ -1194,10 +1194,10 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 				if (curcol->table_column_name)
 					TDS_ZERO_FREE(curcol->table_column_name);
 				tds_alloc_get_string(tds, &curcol->table_column_name, l);
-				if (IS_TDS7_PLUS(tds))
+				if (IS_TDS7_PLUS(tds->conn))
 					l *= 2;
 			} else {
-				if (IS_TDS7_PLUS(tds))
+				if (IS_TDS7_PLUS(tds->conn))
 					l *= 2;
 				/* discard silently */
 				tds_get_n(tds, NULL, l);
@@ -1391,7 +1391,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 		adjust_character_column_size(tds, curcol);
 
 		/* skip locale */
-		if (!IS_TDS42(tds))
+		if (!IS_TDS42(tds->conn))
 			tds_get_n(tds, NULL, tds_get_byte(tds));
 	}
 
@@ -1428,7 +1428,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_COLUMN_EXTRA(curcol);
 
 	/*  User defined data type of the column */
-	curcol->column_usertype = IS_TDS72_PLUS(tds) ? tds_get_int(tds) : tds_get_smallint(tds);
+	curcol->column_usertype = IS_TDS72_PLUS(tds->conn) ? tds_get_int(tds) : tds_get_smallint(tds);
 
 	curcol->column_flags = tds_get_smallint(tds);	/*  Flags */
 
@@ -1570,7 +1570,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
 	if (!is_param) {
 		/* TODO check if all flags are the same for all TDS versions */
-		if (IS_TDS50(tds))
+		if (IS_TDS50(tds->conn))
 			curcol->column_hidden = curcol->column_flags & 0x1;
 		curcol->column_key = (curcol->column_flags & 0x2) > 1;
 		curcol->column_writeable = (curcol->column_flags & 0x10) > 1;
@@ -1599,7 +1599,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 			, might_be_nullable	= 0x0800 
 		};
 		/* TODO: implement members in TDSCOLUMN */
-		if (IS_TDS72_PLUS(tds)) {
+		if (IS_TDS72_PLUS(tds->conn)) {
 			curcol->is_computed = 		(curcol->column_flags & (1 << 4)) > 1;
 			curcol->us_reserved_odbc1 = 	(curcol->column_flags & (1 << 5)) > 1;
 			curcol->us_reserved_odbc2 = 	(curcol->column_flags & (1 << 6)) > 1;
@@ -1608,7 +1608,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 #endif 
 	} 
 
-	if (IS_TDS72_PLUS(tds)) {
+	if (IS_TDS72_PLUS(tds->conn)) {
 		tds_get_n(tds, NULL, 2);
 #if 0
 		/* TODO: implement members in TDSCOLUMN, values untested */
@@ -1932,7 +1932,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
 	if (flags_parm)
 		*flags_parm = tmp;
 
-	rows_affected = IS_TDS72_PLUS(tds) ? tds_get_int8(tds) : tds_get_int(tds);
+	rows_affected = IS_TDS72_PLUS(tds->conn) ? tds_get_int8(tds) : tds_get_int(tds);
 	tdsdump_log(TDS_DBG_FUNC, "                rows_affected = %" PRId64 "\n", rows_affected);
 
 	if (was_cancelled || (!more_results && !tds->in_cancel)) {
@@ -2032,7 +2032,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 
 	/* discard byte values, not still supported */
 	/* TODO support them */
-	if (IS_TDS71_PLUS(tds) && type > TDS_ENV_PACKSIZE) {
+	if (IS_TDS71_PLUS(tds->conn) && type > TDS_ENV_PACKSIZE) {
 		/* discard new one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		/* discard old one */
@@ -2187,7 +2187,7 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 	rc += tds_alloc_get_string(tds, &msg.proc_name, tds_get_byte(tds));
 
 	/* line number in the sql statement where the problem occured */
-	msg.line_number = IS_TDS72_PLUS(tds) ? tds_get_int(tds) : tds_get_smallint(tds);
+	msg.line_number = IS_TDS72_PLUS(tds->conn) ? tds_get_int(tds) : tds_get_smallint(tds);
 
 	/*
 	 * If the server doesen't provide an sqlstate, map one via server native errors
@@ -2752,7 +2752,7 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds5_process_optioncmd()\n");
 
-	assert(IS_TDS50(tds));
+	assert(IS_TDS50(tds->conn));
 
 	tds_get_smallint(tds);	/* length */
 	command = tds_get_byte(tds);
@@ -2985,7 +2985,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	}
 
 	/* FIXME: and sybase ?? */
-	if (!curcol->char_conv && IS_TDS7_PLUS(tds) && is_ascii_type(curcol->on_server.column_type))
+	if (!curcol->char_conv && IS_TDS7_PLUS(tds->conn) && is_ascii_type(curcol->on_server.column_type))
 		curcol->char_conv = tds->char_convs[client2server_chardata];
 
 	if (!USE_ICONV || !curcol->char_conv)

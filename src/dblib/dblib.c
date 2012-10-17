@@ -6564,7 +6564,7 @@ dbtds(DBPROCESS * dbproc)
 	CHECK_PARAMETER(dbproc, SYBENULL, -1);
 
 	if (dbproc->tds_socket) {
-		switch (dbproc->tds_socket->tds_version) {
+		switch (dbproc->tds_socket->conn->tds_version) {
 		case 0x402:
 			return DBTDS_4_2;
 		case 0x406:

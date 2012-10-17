@@ -401,7 +401,7 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 
 	dbc->default_query_timeout = dbc->tds_socket->query_timeout;
 
-	if (IS_TDS7_PLUS(dbc->tds_socket))
+	if (IS_TDS7_PLUS(dbc->tds_socket->conn))
 		dbc->cursor_support = 1;
 
 	if (dbc->attr.txn_isolation != SQL_TXN_READ_COMMITTED) {
@@ -425,7 +425,7 @@ odbc_update_ird(TDS_STMT *stmt, TDS_ERRS *errs)
 	SQLRETURN res;
 
 	if (!stmt->need_reprepare || stmt->prepared_query_is_rpc
-	    || !stmt->dbc || !IS_TDS7_PLUS(stmt->dbc->tds_socket)) {
+	    || !stmt->dbc || !IS_TDS7_PLUS(stmt->dbc->tds_socket->conn)) {
 		stmt->need_reprepare = 0;
 		return SQL_SUCCESS;
 	}
@@ -3174,7 +3174,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	ret = tds_flush_packet(tds);
 	tds_set_state(tds, TDS_PENDING);
 	/* set cursor name for TDS7+ */
-	if (TDS_SUCCEED(ret) && IS_TDS7_PLUS(tds) && !tds_dstr_isempty(&stmt->cursor_name)) {
+	if (TDS_SUCCEED(ret) && IS_TDS7_PLUS(tds->conn) && !tds_dstr_isempty(&stmt->cursor_name)) {
 		ret = odbc_process_tokens(stmt, TDS_RETURN_MSG|TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE);
 		stmt->row_count = tds->rows_affected;
 		if (ret == TDS_CMD_DONE && cursor->cursor_id != 0) {
@@ -3288,7 +3288,7 @@ _SQLExecute(TDS_STMT * stmt)
 			if (TDS_SUCCEED(ret))
 				ret = tds_multiple_done(tds, &multiple);
 		}
-	} else if (stmt->num_param_rows <= 1 && IS_TDS71_PLUS(tds) && (!stmt->dyn || stmt->need_reprepare)) {
+	} else if (stmt->num_param_rows <= 1 && IS_TDS71_PLUS(tds->conn) && (!stmt->dyn || stmt->need_reprepare)) {
 			if (stmt->dyn) {
 				if (odbc_free_dynamic(stmt) != SQL_SUCCESS)
 					ODBC_RETURN(stmt, SQL_ERROR);
@@ -3301,7 +3301,7 @@ _SQLExecute(TDS_STMT * stmt)
 		TDSDYNAMIC *dyn;
 
 		/* prepare dynamic query (only for first SQLExecute call) */
-		if (!stmt->dyn || (stmt->need_reprepare && !stmt->dyn->emulated && IS_TDS7_PLUS(tds))) {
+		if (!stmt->dyn || (stmt->need_reprepare && !stmt->dyn->emulated && IS_TDS7_PLUS(tds->conn))) {
 
 			/* free previous prepared statement */
 			if (stmt->dyn) {
@@ -4498,7 +4498,7 @@ SQLNumResultCols(SQLHSTMT hstmt, SQLSMALLINT FAR * pccol)
 		 * TDS5 do not need parameters type and we have always to
 		 * prepare sepatarely so this is not an issue
 		 */
-		if (IS_TDS7_PLUS(stmt->dbc->tds_socket)) {
+		if (IS_TDS7_PLUS(stmt->dbc->tds_socket->conn)) {
 			stmt->need_reprepare = 1;
 			ODBC_EXIT_(stmt);
 		}

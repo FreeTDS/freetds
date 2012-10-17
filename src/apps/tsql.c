@@ -182,15 +182,13 @@ tsql_add_history(const char *s)
  * 	Typical pversion_string values are "4.2" and "7.0".
  */
 static int
-tds_version(TDSSOCKET * tds_socket, char *pversion_string)
+tds_version(TDSCONNECTION * conn, char *pversion_string)
 {
 	int iversion = 0;
 
-	if (tds_socket) {
-		iversion = 10 * TDS_MAJOR(tds_socket) + TDS_MINOR(tds_socket);
+	iversion = 10 * TDS_MAJOR(conn) + TDS_MINOR(conn);
 
-		sprintf(pversion_string, "%d.%d", TDS_MAJOR(tds_socket), TDS_MINOR(tds_socket));
-	}
+	sprintf(pversion_string, "%d.%d", TDS_MAJOR(conn), TDS_MINOR(conn));
 
 	return iversion;
 }
@@ -288,7 +286,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 			char version[64];
 			int line = 0;
 
-			line = tds_version(tds, version);
+			line = tds_version(tds->conn, version);
 			if (line) {
 				TDSMESSAGE msg;
 				memset(&msg, 0, sizeof(TDSMESSAGE));
@@ -886,7 +884,7 @@ main(int argc, char **argv)
 		if (!strcasecmp(cmd, "exit") || !strcasecmp(cmd, "quit") || !strcasecmp(cmd, "bye"))
 			break;
 		if (!strcasecmp(cmd, "version")) {
-			tds_version(tds, mybuf);
+			tds_version(tds->conn, mybuf);
 			printf("using TDS version %s\n", mybuf);
 			line = 0;
 			mybuf[0] = '\0';

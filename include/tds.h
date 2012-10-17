@@ -981,13 +981,15 @@ typedef struct tds_authentication
 /* field related to connection */
 struct tds_connection
 {
+	TDS_USMALLINT tds_version;
+	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
+	char *product_name;
+
 	TDS_SYS_SOCKET s;		/**< tcp socket, INVALID_SOCKET if not connected */
 	TDS_SYS_SOCKET s_signal, s_signaled;
 	void *parent;
 	const TDSCONTEXT *tds_ctx;
 
-	TDS_UINT product_version;	/**< version of product (Sybase/MS and full version) */
-	char *product_name;
 	/** environment is shared between all sessions */
 	TDSENV env;
 
@@ -1025,8 +1027,6 @@ struct tds_connection
 struct tds_socket
 {
 	TDSCONNECTION conn[1];
-
-	TDS_USMALLINT tds_version;
 
 	unsigned char *in_buf;		/**< input buffer */
 	unsigned char *out_buf;		/**< output buffer */

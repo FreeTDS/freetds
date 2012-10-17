@@ -131,7 +131,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	if (IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds->conn)) {
 		char buf[129 * 8];
 		int i;
 

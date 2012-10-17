@@ -87,13 +87,13 @@ tds_get_varint_size(TDSSOCKET * tds, int datatype)
 &switchValues("\t", 'varint', @list);
 print q|	}
 
-	if (IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds->conn)) {
 		switch (datatype) {
 |;
 @list = grep { $_->{'varint'} != 1 && $_->{'varint'} ne '??' && uc($_->{'vendor'}) eq 'MS' } values %types;
 &switchValues("\t\t", 'varint', @list);
 print q|		}
-	} else if (IS_TDS50(tds)) {
+	} else if (IS_TDS50(tds->conn)) {
 		switch (datatype) {
 |;
 @list = grep { $_->{'varint'} != 1 && $_->{'varint'} ne '??' && uc($_->{'vendor'}) eq 'SYB' } values %types;

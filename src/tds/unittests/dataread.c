@@ -222,7 +222,7 @@ main(int argc, char **argv)
 	test("DATETIME", "2003-04-21 17:50:03", NULL);
 	test("SMALLDATETIME", "2003-04-21 17:50:03", "2003-04-21 17:50:00");
 
-	if (IS_TDS7_PLUS(tds)) {
+	if (IS_TDS7_PLUS(tds->conn)) {
 		test("UNIQUEIDENTIFIER", "12345678-1234-A234-9876-543298765432", NULL);
 		test("NVARCHAR(20)", "Excellent test", NULL);
 		test("NCHAR(20)", "Excellent test", "Excellent test      ");

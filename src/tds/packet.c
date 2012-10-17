@@ -127,7 +127,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	tds->out_buf[1] = final;
 	tds->out_buf[2] = (tds->out_pos) / 256u;
 	tds->out_buf[3] = (tds->out_pos) % 256u;
-	if (IS_TDS7_PLUS(tds) && !tds->login)
+	if (IS_TDS7_PLUS(tds->conn) && !tds->login)
 		tds->out_buf[6] = 0x01;
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
@@ -155,7 +155,7 @@ tds_put_cancel(TDSSOCKET * tds)
 	out_buf[1] = 1;	/* final */
 	out_buf[2] = 0;
 	out_buf[3] = 8;
-	if (IS_TDS7_PLUS(tds) && !tds->login)
+	if (IS_TDS7_PLUS(tds->conn) && !tds->login)
 		out_buf[6] = 0x01;
 
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", out_buf, 8);
