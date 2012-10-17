@@ -159,7 +159,7 @@ cp -rl test1 test4
 test1() {
 cd test1
 WORKDIR=$PWD
-./misc/test-auto.sh --no-build >> logs/log.txt
+./misc/test-auto.sh --no-build --no-header >> logs/log.txt
 
 if test \( "$OUTDIR" = "out" -o "$OUTDIR" = "out82" \) -a -r doc/doxy.log; then
 	fixdoxyres < doc/doxy.log > doc/doxy.html

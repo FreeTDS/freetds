@@ -7,6 +7,7 @@
 BUILD=yes
 CONFIGURE=no
 TEST=yes
+HEADER=yes
 for param
 do
 	case $param in
@@ -19,6 +20,9 @@ do
 		;;
 	--no-test)
 		TEST=no
+		;;
+	--no-header)
+		HEADER=no
 		;;
 	--configure)
 		CONFIGURE=yes
@@ -52,13 +56,13 @@ output_save () {
 }
 
 # output informations
-XXX=`hostname`
-log "INFO HOSTNAME `echo $XXX`"
-VER=`gcc --version 2> /dev/null | grep 'GCC'`
-log "INFO GCC $VER"
-XXX=`uname -a`
-log "INFO UNAME `echo $XXX`"
-log "INFO DATE `date '+%Y-%m-%d'`"
+if test $HEADER = yes; then
+	log "INFO HOSTNAME `hostname`"
+	VER=`gcc --version 2> /dev/null | grep 'GCC'`
+	log "INFO GCC $VER"
+	log "INFO UNAME `uname -a`"
+	log "INFO DATE `date '+%Y-%m-%d'`"
+fi
 
 MAKE=make
 if gmake --help 2> /dev/null > /dev/null; then
