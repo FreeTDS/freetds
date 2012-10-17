@@ -58,7 +58,6 @@ void _ctclient_msg(CS_CONNECTION * con, const char *funcname, int layer, int ori
 int _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo, CS_INT offset);
 static void _ct_initialise_cmd(CS_COMMAND *cmd);
 static CS_RETCODE _ct_cancel_cleanup(CS_COMMAND * cmd);
-static CS_RETCODE _ct_cmd_drop(CS_COMMAND * cmd, CS_INT free_conn_ref);
 
 /* Added for CT_DIAG */
 /* Code changes starts here - CT_DIAG - 01 */
@@ -1787,23 +1786,12 @@ _ct_bind_data(CS_CONTEXT *ctx, TDSRESULTINFO * resinfo, TDSRESULTINFO *bindinfo,
 CS_RETCODE
 ct_cmd_drop(CS_COMMAND * cmd)
 {
-	CS_RETCODE ret;
-
-	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop(%p)\n", cmd);
-
-	ret = _ct_cmd_drop(cmd, 1);
-	return ret;
-}
-
-static CS_RETCODE
-_ct_cmd_drop(CS_COMMAND * cmd, CS_INT free_conn_ref)
-{
 	CS_COMMAND_LIST *victim = NULL;
 	CS_COMMAND_LIST *prev = NULL;
 	CS_COMMAND_LIST *next = NULL;
 	CS_CONNECTION *con;
 
-	tdsdump_log(TDS_DBG_FUNC, "_ct_cmd_drop(%p, %d)\n", cmd, free_conn_ref);
+	tdsdump_log(TDS_DBG_FUNC, "ct_cmd_drop(%p)\n", cmd);
 
 	if (cmd) {
 		free(cmd->query);
@@ -1819,8 +1807,7 @@ _ct_cmd_drop(CS_COMMAND * cmd, CS_INT free_conn_ref)
 		free(cmd->iodesc);
 
 		/* now remove this command from the list of commands in the connection */
-
-		if (free_conn_ref && cmd->con) {
+		if (cmd->con) {
 			con = cmd->con;
 			victim = con->cmds;
 
