@@ -22,6 +22,7 @@ ODBC cursor check (cfr "Progress on CVS")
 http://support.microsoft.com/kb/246265/en-us
 http://support.microsoft.com/kb/290413/en-us
 http://support.microsoft.com/kb/238336/en-us
+ODBC: fix prepare_warn test (similar DBD::ODBC test ??)
 
 Row handling
 ------------
@@ -42,6 +43,7 @@ Done handling
 -------------
 Callback when state goes to IDLE
 Free unused cursors and dynamic and/or reuse them
+ check if ref_count == 1 and in connection list
 
 ODBC SQL_C_CHAR with wide
 -------------------------
@@ -87,10 +89,26 @@ bcp
   test encodings loading data
   extract to file and import again (t0016 test)
   table with id
+ct_cursors
+- check properly, currently does not work using mssql
+  cause it do not initialize type/concurrency (todo in libTDS)
+  but also it does not check properly results !!
 
 
 Full thread
+- odbc done in 0.92
+
 MARS
+- handle timeout
+- see error result from write turned into EOF (see network loop)
+  hang test should success
+- reduce packet copy (just an optimization)
+- support MARS under CTlib ??
+  
 reprepare in libTDS so to fix ctlib (see ML)
 sql parser to support SQLDescribeParam using mssql (100% DBD::ODBC)
 new date types
+
+see problems using DBD::ODBC
+- SQLFreeStmt return error if pending queries return so ??
+  check 
