@@ -462,6 +462,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		return -TDSEFCON;
 	}
 
+#if ENABLE_ODBC_MARS
 	/* initialize SID */
 	if (IS_TDS72_PLUS(tds->conn) && login->mars) {
 		tds->conn->sessions[0] = NULL;
@@ -469,6 +470,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		tds->sid = -1;
 		tds_init_write_buf(tds);
 	}
+#endif
 
 	if (login->text_size || (!db_selected && !tds_dstr_isempty(&login->database))) {
 		char *str;
@@ -1026,7 +1028,11 @@ tds71_do_login(TDSSOCKET * tds, TDSLOGIN* login)
 	tds_put_int(tds, getpid());
 	/* MARS (1 enabled) */
 	if (IS_TDS72_PLUS(tds->conn))
+#if ENABLE_ODBC_MARS
 		tds_put_byte(tds, login->mars);
+#else
+		tds_put_byte(tds, 0);
+#endif
 	ret = tds_flush_packet(tds);
 	if (TDS_FAILED(ret))
 		return ret;

@@ -1018,6 +1018,7 @@ struct tds_connection
 	unsigned int emul_little_endian:1;
 	unsigned int use_iconv:1;
 	unsigned int tds71rev1:1;
+#if ENABLE_ODBC_MARS
 	unsigned int mars:1;
 
 	TDSSOCKET *in_net_tds;
@@ -1030,6 +1031,7 @@ struct tds_connection
 #define TDSSOCKET_VALID(tds) (((TDS_UINTPTR)(tds)) > 1)
 	struct tds_socket **sessions;
 	unsigned num_sessions;
+#endif
 
 	void *tls_session;
 #if defined(HAVE_GNUTLS)
@@ -1047,8 +1049,11 @@ struct tds_connection
  */
 struct tds_socket
 {
+#if ENABLE_ODBC_MARS
 	TDSCONNECTION *conn;
-	tds_condition packet_cond;
+#else
+	TDSCONNECTION conn[1];
+#endif
 
 	unsigned char *in_buf;		/**< input buffer */
 	unsigned char *out_buf;		/**< output buffer */
@@ -1057,11 +1062,15 @@ struct tds_socket
 	unsigned in_pos;		/**< current position in in_buf */
 	unsigned out_pos;		/**< current position in out_buf */
 	unsigned in_len;		/**< input buffer length */
+
+#if ENABLE_ODBC_MARS
+	tds_condition packet_cond;
 	short sid;
 	TDS_UINT recv_seq;
 	TDS_UINT send_seq;
 	TDS_UINT recv_wnd;
 	TDS_UINT send_wnd;
+#endif
 
 	unsigned char in_flag;		/**< input buffer type */
 	unsigned char out_flag;		/**< output buffer type */
@@ -1213,9 +1222,11 @@ void tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info);
 void tds_detach_results(TDSRESULTINFO *info);
 
 
+#if ENABLE_ODBC_MARS
 TDSPACKET *tds_alloc_packet(void *buf, unsigned len);
 TDSPACKET *tds_realloc_packet(TDSPACKET *packet, unsigned len);
 void tds_free_packets(TDSPACKET *packet);
+#endif
 
 /* login.c */
 void tds_set_packet(TDSLOGIN * tds_login, int packet_size);
@@ -1364,13 +1375,24 @@ int tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int fin
 #define TDSSELREAD  POLLIN
 #define TDSSELWRITE POLLOUT
 int tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds);
+#if ENABLE_ODBC_MARS
 void tds_connection_close(TDSCONNECTION *conn);
+#endif
 
 /* packet.c */
 int tds_read_packet(TDSSOCKET * tds);
 TDSRET tds_write_packet(TDSSOCKET * tds, unsigned char final);
+#if ENABLE_ODBC_MARS
 int tds_append_cancel(TDSSOCKET *tds);
 TDSRET tds_append_fin(TDSSOCKET *tds);
+#else
+int tds_put_cancel(TDSSOCKET * tds);
+static inline
+void tds_connection_close(TDSCONNECTION *connection)
+{
+	tds_close_socket((TDSSOCKET* ) connection);
+}
+#endif
 
 /* vstrbuild.c */
 TDSRET tds_vstrbuild(char *buffer, int buflen, int *resultlen, const char *text, int textlen, const char *formats, int formatlen,
@@ -1449,7 +1471,11 @@ int tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 #define TDS_MAJOR(x) ((x)->tds_version >> 8)
 #define TDS_MINOR(x) ((x)->tds_version & 0xff)
 
+#if ENABLE_ODBC_MARS
 #define IS_TDSDEAD(x) (((x) == NULL) || (x)->state == TDS_DEAD)
+#else
+#define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID(tds_conn(x)->s))
+#endif
 
 /** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDSSOCKET*. */
 #define TDS_IS_SYBASE(x) (!(tds_conn(x)->product_version & 0x80000000u))

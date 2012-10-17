@@ -111,7 +111,9 @@ TDS_RCSID(var, "$Id: net.c,v 1.134 2012-02-26 22:22:32 freddy77 Exp $");
 #define TDSSELERR   0
 #define TDSPOLLURG 0x8000u
 
+#if ENABLE_ODBC_MARS
 static void tds_check_cancel(TDSCONNECTION *conn);
+#endif
 
 
 /**
@@ -324,6 +326,7 @@ void
 tds_close_socket(TDSSOCKET * tds)
 {
 	if (!IS_TDSDEAD(tds)) {
+#if ENABLE_ODBC_MARS
 		TDSCONNECTION *conn = tds->conn;
 		unsigned n = 0, count = 0;
 		TDS_MUTEX_LOCK(&conn->list_mtx);
@@ -336,9 +339,16 @@ tds_close_socket(TDSSOCKET * tds)
 		tds_set_state(tds, TDS_DEAD);
 		if (count <= 1)
 			tds_connection_close(conn);
+#else
+		if (CLOSESOCKET(tds_get_s(tds)) == -1)
+			tdserror(tds_get_ctx(tds), tds,  TDSECLOS, sock_errno);
+		tds_set_s(tds, INVALID_SOCKET);
+		tds_set_state(tds, TDS_DEAD);
+#endif
 	}
 }
 
+#if ENABLE_ODBC_MARS
 void
 tds_connection_close(TDSCONNECTION *conn)
 {
@@ -356,6 +366,7 @@ tds_connection_close(TDSCONNECTION *conn)
 			tds_set_state(conn->sessions[n], TDS_DEAD);
 	TDS_MUTEX_UNLOCK(&conn->list_mtx);
 }
+#endif
 
 /**
  * Select on a socket until it's available or the timeout expires. 
@@ -410,7 +421,9 @@ tds_select(TDSSOCKET * tds, unsigned tds_sel, int timeout_seconds)
 				return -1;
 			rc = fds[0].revents;
 			if (fds[1].revents) {
+#if ENABLE_ODBC_MARS
 				tds_check_cancel(tds_conn(tds));
+#endif
 				rc |= TDSPOLLURG;
 			}
 			return rc;
@@ -524,7 +537,7 @@ tds_socket_write(TDSCONNECTION *conn, TDSSOCKET *tds, const unsigned char *buf, 
 	return -1;
 }
 
-
+#if ENABLE_ODBC_MARS
 static void
 tds_check_cancel(TDSCONNECTION *conn)
 {
@@ -560,7 +573,7 @@ tds_check_cancel(TDSCONNECTION *conn)
 			tds_close_socket(tds);
 	} while(rc != TDS_SUCCESS);
 }
-
+#endif
 
 /**
  * Loops until we have received some characters
@@ -577,6 +590,16 @@ tds_goodread(TDSSOCKET * tds, unsigned char *buf, int buflen)
 
 		/* FIXME this block writing from other sessions */
 		len = tds_select(tds, TDSSELREAD, tds->query_timeout);
+#if !ENABLE_ODBC_MARS
+		if (len > 0 && (len & TDSPOLLURG)) {
+			char buf[32];
+			READSOCKET(tds_conn(tds)->s_signaled, buf, sizeof(buf));
+			/* send cancel */
+			if (!tds->in_cancel)
+				tds_put_cancel(tds);
+			continue;
+		}
+#endif
 		if (len > 0) {
 			len = tds_socket_read(tds_conn(tds), tds, buf, buflen);
 			if (len == 0)
@@ -619,7 +642,11 @@ tds_connection_read(TDSSOCKET * tds, unsigned char *buf, int buflen)
 		return SSL_read((SSL*) conn->tls_session, buf, buflen);
 #endif
 
+#if ENABLE_ODBC_MARS
 	return tds_socket_read(conn, tds, buf, buflen);
+#else
+	return tds_goodread(tds, buf, buflen);
+#endif
 }
 
 /**
@@ -715,7 +742,11 @@ tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
 		sent = SSL_write((SSL*) conn->tls_session, buf, buflen);
 	else
 #endif
+#if ENABLE_ODBC_MARS
 		sent = tds_socket_write(conn, tds, buf, buflen, final);
+#else
+		sent = tds_goodwrite(tds, buf, buflen, final);
+#endif
 
 #if !defined(_WIN32) && !defined(MSG_NOSIGNAL) && !defined(DOS32X) && (!defined(__APPLE__) || !defined(SO_NOSIGPIPE))
 	if (signal(SIGPIPE, oldsig) == SIG_ERR) {
@@ -1146,21 +1177,24 @@ tds_ssl_read(BIO *b, char* data, int len)
 	TDSCONNECTION *conn = (TDSCONNECTION *) b->ptr;
 #endif
 	int have;
-	TDSSOCKET *tds;
+#if ENABLE_ODBC_MARS
+	TDSSOCKET *tds = conn->tls_session ? conn->in_net_tds : conn->sessions[0];
+	assert(tds);
+#else
+	TDSSOCKET *tds = (TDSSOCKET *) conn;
+#endif
 
 	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func\n");
 	
 	/* test if we already initialized (crypted TDS packets) */
 	if (conn->tls_session) {
-		assert(conn->in_net_tds);
 		/* read directly from socket */
 		/* TODO we block write on other sessions */
 		/* also we should already have tested for data on socket */
-		return tds_goodread(conn->in_net_tds, (unsigned char*) data, len);
+		return tds_goodread(tds, (unsigned char*) data, len);
 	}
 
 	/* here we are initializing (crypted inside TDS packets) */
-	tds = conn->sessions[0];
 
 	/* if we have some data send it */
 	/* here MARS is not already initialized so test is correct */
@@ -1198,19 +1232,28 @@ tds_ssl_write(BIO *b, const char* data, int len)
 {
 	TDSCONNECTION *conn = (TDSCONNECTION *) b->ptr;
 #endif
+#if ENABLE_ODBC_MARS
+	TDSSOCKET *tds = conn->tls_session ? conn->in_net_tds : conn->sessions[0];
+	assert(tds);
+#else
+	TDSSOCKET *tds = (TDSSOCKET *) conn;
+#endif
 	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
 
 	if (conn->tls_session) {
-		TDSPACKET *packet = conn->send_packets;
-		assert(conn->in_net_tds);
 		/* write to socket directly */
 		/* TODO use cork if available here to flush only on last chunk of packet ?? */
+#if ENABLE_ODBC_MARS
+		TDSPACKET *packet = conn->send_packets;
+		assert(conn->in_net_tds);
 		/* FIXME with SMP trick to detect final is not ok */
-/*		return tds_goodwrite(packet->tds, data, len, tds->out_buf[1]); */
-		return tds_goodwrite(conn->in_net_tds, (const unsigned char*) data, len, packet->next == NULL);
+		return tds_goodwrite(tds, (const unsigned char*) data, len, packet->next == NULL);
+#else
+		return tds_goodwrite(tds, (const unsigned char*) data, len, tds->out_buf[1]);
+#endif
 	}
 	/* initializing SSL, write crypted data inside normal TDS packets */
-	tds_put_n(conn->sessions[0], data, len);
+	tds_put_n(tds, data, len);
 	return len;
 }
 
@@ -1366,7 +1409,6 @@ tds_ssl_ctrl(BIO *b, int cmd, long num, void *ptr)
 
 	switch (cmd) {
 	case BIO_CTRL_FLUSH:
-		/* FIXME MARS */
 		if (tds->out_pos > 8)
 			tds_flush_packet(tds);
 		return 1;

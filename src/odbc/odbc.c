@@ -751,6 +751,7 @@ SQLExtendedFetch(SQLHSTMT hstmt, SQLUSMALLINT fFetchType, SQLROWOFFSET irow, SQL
 static int
 odbc_lock_statement(TDS_STMT* stmt)
 {
+#if ENABLE_ODBC_MARS
 	TDSSOCKET *tds = stmt->tds;
 
 
@@ -787,6 +788,29 @@ odbc_lock_statement(TDS_STMT* stmt)
 	}
 	odbc_errs_add(&stmt->errs, "24000", NULL);
 	return 0;
+#else
+	TDSSOCKET *tds = stmt->dbc->tds_socket;
+
+	TDS_MUTEX_LOCK(&stmt->dbc->mtx);
+	if (stmt->dbc->current_statement != NULL
+	    && stmt->dbc->current_statement != stmt) {
+		if (!tds || tds->state != TDS_IDLE) {
+			TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
+			odbc_errs_add(&stmt->errs, "24000", NULL);
+			return 0;
+		}
+		stmt->dbc->current_statement->tds = NULL;
+	}
+	stmt->dbc->current_statement = stmt;
+	if (tds) {
+		tds->query_timeout = (stmt->attr.query_timeout != DEFAULT_QUERY_TIMEOUT) ?
+			stmt->attr.query_timeout : stmt->dbc->default_query_timeout;
+		tds_set_parent(tds, stmt);
+		stmt->tds = tds;
+	}
+	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
+	return 1;
+#endif
 }
 
 static void
@@ -798,9 +822,11 @@ odbc_unlock_statement(TDS_STMT* stmt)
 		stmt->dbc->current_statement = NULL;
 		tds_set_parent(stmt->tds, stmt->dbc);
 		stmt->tds = NULL;
+#if ENABLE_ODBC_MARS
 	} else if (stmt->tds) {
 		tds_free_socket(stmt->tds);
 		stmt->tds = NULL;
+#endif
 	}
 	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
 }

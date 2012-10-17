@@ -1938,6 +1938,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 TDSRET
 tds_send_cancel(TDSSOCKET * tds)
 {
+#if ENABLE_ODBC_MARS
 	static const char one = 1;
 	CHECK_TDS_EXTRA(tds);
 
@@ -1989,6 +1990,39 @@ tds_send_cancel(TDSSOCKET * tds)
 	tds->out_flag = TDS_CANCEL;
  	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: sending cancel packet\n");
 	return tds_flush_packet(tds);
+#else
+	TDSRET rc;
+
+	/*
+	 * if we are not able to get the lock signal other thread
+	 * this means that either:
+	 * - another thread is processing data
+	 * - we got called from a signal inside processing thread
+	 */
+	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx)) {
+		static const char one = '1';
+		/* TODO check */
+		/* signal other socket */
+		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
+		return TDS_SUCCESS;
+	}
+
+	CHECK_TDS_EXTRA(tds);
+
+	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: %sin_cancel and %sidle\n", 
+				(tds->in_cancel? "":"not "), (tds->state == TDS_IDLE? "":"not "));
+
+	/* one cancel is sufficient */
+	if (tds->in_cancel || tds->state == TDS_IDLE) {
+		TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+		return TDS_SUCCESS;
+	}
+
+	rc = tds_put_cancel(tds);
+	TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+
+	return rc;
+#endif
 }
 
 static int
