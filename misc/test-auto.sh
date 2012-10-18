@@ -4,15 +4,15 @@
 
 # set -e
 
-BUILD=yes
-CONFIGURE=no
-TEST=yes
 HEADER=yes
+CONFIGURE=no
+BUILD=yes
+TEST=yes
 for param
 do
 	case $param in
 	--help)
-		echo $0 [--help] [--no-build] [--no-test] [--configure]
+		echo $0 [--help] [--no-header] [--configure] [--no-build] [--no-test]
 		exit 0
 		;;
 	--no-build)

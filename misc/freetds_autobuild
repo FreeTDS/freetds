@@ -21,7 +21,7 @@ FTDSDIR=freetds91
 OUTDIR=out
 # additional flags for Autogen (current version)
 #FLAGS_ADD=--enable-developing
-FLAGS_ADD=
+FLAGS_ADD="$TDS_AUTO_CONFIG"
 WORKDIR=ftds_comp
 
 upload()
