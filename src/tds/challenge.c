@@ -51,8 +51,6 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: challenge.c,v 1.55 2011-11-07 13:02:09 freddy77 Exp $");
-
 /**
  * \ingroup libtds
  * \defgroup auth Authentication
@@ -67,11 +65,6 @@ TDS_RCSID(var, "$Id: challenge.c,v 1.55 2011-11-07 13:02:09 freddy77 Exp $");
 /*
  * The following code is based on some psuedo-C code from ronald@innovation.ch
  */
-
-#ifndef offsetof
-# define offsetof(st, m) \
-     ((size_t) ( (char *)&((st *)(0))->m - (char *)0 ))
-#endif
 
 typedef struct tds_answer
 {
@@ -694,7 +687,7 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 			 * Search "davenport port"
 			 * (currently http://davenport.sourceforge.net/ntlm.html)
 			 */
-			names_blob_len = offsetof(names_blob_prefix_t, target_info) + target_info_len + 4;
+			names_blob_len = TDS_OFFSET(names_blob_prefix_t, target_info) + target_info_len + 4;
 
 			/* read Target Info */
 			names_blob = (unsigned char *) calloc(names_blob_len, 1);
@@ -702,7 +695,7 @@ tds_ntlm_handle_next(TDSSOCKET * tds, struct tds_authentication * auth, size_t l
 				return TDS_FAIL;
 
 			fill_names_blob_prefix((names_blob_prefix_t *) names_blob);
-			tds_get_n(tds, names_blob + offsetof(names_blob_prefix_t, target_info), target_info_len);
+			tds_get_n(tds, names_blob + TDS_OFFSET(names_blob_prefix_t, target_info), target_info_len);
 			where += target_info_len;
 		}
 	}
