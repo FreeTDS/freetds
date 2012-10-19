@@ -51,13 +51,18 @@ static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSSOCKET *tds, int type);
 
 #if ENABLE_EXTRA_CHECKS
 
-#if defined(__GNUC__) && __GNUC__ >= 2
-#define COMPILE_CHECK(name,check) \
+# if defined(__GNUC__) && __GNUC__ >= 2
+# define COMPILE_CHECK(name,check) \
     extern int name[(check)?1:-1] __attribute__ ((unused))
-#else
-#define COMPILE_CHECK(name,check) \
+# else
+# define COMPILE_CHECK(name,check) \
     extern int name[(check)?1:-1]
-#endif
+# endif
+
+#else
+
+# define COMPILE_CHECK(name,check) \
+    extern int disabled_check_##name
 
 #endif
 
@@ -274,10 +279,8 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	return TDS_SUCCESS;
 }
 
-#if ENABLE_EXTRA_CHECKS
 /* tds_data_row_len support also variant and return size to hold blob */
 COMPILE_CHECK(variant_size, sizeof(TDSBLOB) >= sizeof(TDSVARIANT));
-#endif
 
 static TDS_INT
 tds_data_row_len(TDSCOLUMN *col)
@@ -327,10 +330,8 @@ tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCESS;
 }
 
-#if ENABLE_EXTRA_CHECKS
 COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSBLOB*)0)->textvalue));
 COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(TDSBLOB, textvalue));
-#endif
 
 /*
  * This strange type has following structure 
