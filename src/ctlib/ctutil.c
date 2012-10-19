@@ -39,15 +39,7 @@ TDS_RCSID(var, "$Id: ctutil.c,v 1.38 2011-06-18 17:52:24 freddy77 Exp $");
  */
 #if ENABLE_EXTRA_CHECKS
 
-#if defined(__GNUC__) && __GNUC__ >= 2
-#define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1] __attribute__ ((unused))
-#else
-#define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1]
-#endif
-
-#define TEST_EQUAL(t,a,b) COMPILE_CHECK(t,a==b)
+#define TEST_EQUAL(t,a,b) TDS_COMPILE_CHECK(t,a==b)
 
 TEST_EQUAL(t03,CS_NULLTERM,TDS_NULLTERM);
 TEST_EQUAL(t04,CS_CMD_SUCCEED,TDS_CMD_SUCCEED);
@@ -64,7 +56,7 @@ TEST_EQUAL(t14,CS_MSG_RESULT,TDS_MSG_RESULT);
 TEST_EQUAL(t15,CS_DESCRIBE_RESULT,TDS_DESCRIBE_RESULT);
 
 #define TEST_ATTRIBUTE(t,sa,fa,sb,fb) \
-	COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && TDS_OFFSET(sa,fa) == TDS_OFFSET(sb,fb))
+	TDS_COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && TDS_OFFSET(sa,fa) == TDS_OFFSET(sb,fb))
 
 TEST_ATTRIBUTE(t21,TDS_MONEY4,mny4,CS_MONEY4,mny4);
 TEST_ATTRIBUTE(t22,TDS_OLD_MONEY,mnyhigh,CS_MONEY,mnyhigh);

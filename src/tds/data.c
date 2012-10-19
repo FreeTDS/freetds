@@ -49,23 +49,6 @@ static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSSOCKET *tds, int type);
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
-#if ENABLE_EXTRA_CHECKS
-
-# if defined(__GNUC__) && __GNUC__ >= 2
-# define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1] __attribute__ ((unused))
-# else
-# define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1]
-# endif
-
-#else
-
-# define COMPILE_CHECK(name,check) \
-    extern int disabled_check_##name
-
-#endif
-
 /**
  * Set type of column initializing all dependency 
  * @param curcol column to set
@@ -280,7 +263,7 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 }
 
 /* tds_data_row_len support also variant and return size to hold blob */
-COMPILE_CHECK(variant_size, sizeof(TDSBLOB) >= sizeof(TDSVARIANT));
+TDS_COMPILE_CHECK(variant_size, sizeof(TDSBLOB) >= sizeof(TDSVARIANT));
 
 static TDS_INT
 tds_data_row_len(TDSCOLUMN *col)
@@ -330,8 +313,8 @@ tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCESS;
 }
 
-COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSBLOB*)0)->textvalue));
-COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(TDSBLOB, textvalue));
+TDS_COMPILE_CHECK(tds_variant_size,  sizeof(((TDSVARIANT*)0)->data) == sizeof(((TDSBLOB*)0)->textvalue));
+TDS_COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(TDSBLOB, textvalue));
 
 /*
  * This strange type has following structure 

@@ -334,6 +334,19 @@ typedef enum tds_encryption_level {
 # define TDS_UNLIKELY(x)	(x)
 #endif
 
+#if ENABLE_EXTRA_CHECKS
+# if defined(__GNUC__) && __GNUC__ >= 2
+# define TDS_COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1] __attribute__ ((unused))
+# else
+# define TDS_COMPILE_CHECK(name,check) \
+    extern int name[(check)?1:-1]
+# endif
+#else
+# define TDS_COMPILE_CHECK(name,check) \
+    extern int disabled_check_##name
+#endif
+
 /*
  * TODO use system macros for optimization
  * See mcrypt for reference and linux kernel source for optimization

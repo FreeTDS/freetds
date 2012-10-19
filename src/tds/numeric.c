@@ -71,20 +71,8 @@ const int tds_numeric_bytes_per_prec[] = {
 	31, 31, 31, 32, 32, 33, 33, 33
 };
 
-#if ENABLE_EXTRA_CHECKS
-
-#if defined(__GNUC__) && __GNUC__ >= 2
-#define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1] __attribute__ ((unused))
-#else
-#define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1]
-#endif
-
-COMPILE_CHECK(maxprecision, 
+TDS_COMPILE_CHECK(maxprecision,
 	MAXPRECISION < TDS_VECTOR_SIZE(tds_numeric_bytes_per_prec) );
-
-#endif
 
 /*
  * money is a special case of numeric really...that why its here

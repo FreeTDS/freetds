@@ -44,18 +44,10 @@ TDS_RCSID(var, "$Id: dbutil.c,v 1.52 2011-06-07 09:58:49 freddy77 Exp $");
  */
 #if ENABLE_EXTRA_CHECKS
 
-#if defined(__GNUC__) && __GNUC__ >= 2
-#define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1] __attribute__ ((unused))
-#else
-#define COMPILE_CHECK(name,check) \
-    extern int name[(check)?1:-1]
-#endif
-
 /* TODO test SYBxxx consistency */
 
 #define TEST_ATTRIBUTE(t,sa,fa,sb,fb) \
-	COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && TDS_OFFSET(sa,fa) == TDS_OFFSET(sb,fb))
+	TDS_COMPILE_CHECK(t,sizeof(((sa*)0)->fa) == sizeof(((sb*)0)->fb) && TDS_OFFSET(sa,fa) == TDS_OFFSET(sb,fb))
 
 TEST_ATTRIBUTE(t21,TDS_MONEY4,mny4,DBMONEY4,mny4);
 TEST_ATTRIBUTE(t22,TDS_OLD_MONEY,mnyhigh,DBMONEY,mnyhigh);
