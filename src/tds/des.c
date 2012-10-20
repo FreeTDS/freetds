@@ -236,7 +236,7 @@ des_init(DES_KEY * key)
 
 /* Set key (initialize key schedule array) */
 int
-tds_des_set_key(DES_KEY * dkey, des_cblock user_key, int len)
+tds_des_set_key(DES_KEY * dkey, const des_cblock user_key, int len)
 {
 	char pc1m[56];		/* place to modify pc1 into */
 	char pcr[56];		/* place to rotate pc1 into */
@@ -450,7 +450,7 @@ permute_fp(des_cblock inblock, DES_KEY * key, des_cblock outblock)
 static TDS_UINT
 f(DES_KEY * key, register TDS_UINT r, register unsigned char *subkey)
 {
-	register TDS_UINT *spp;
+	register const TDS_UINT *spp;
 	register TDS_UINT rval, rt;
 	register int er;
 
