@@ -194,6 +194,7 @@ static const char si[8][64] = {
 
 };
 
+#ifdef notdef
 /* 32-bit permutation function P used on the output of the S-boxes */
 static const char p32i[] = {
 	16, 7, 20, 21,
@@ -204,6 +205,54 @@ static const char p32i[] = {
 	32, 27, 3, 9,
 	19, 13, 30, 6,
 	22, 11, 4, 25
+};
+#endif
+
+#define P32I_INDEX_ROW(n,i,a,b,c,d) \
+	n==a ? 0+i : n==b ? 1+i : n==c ? 2+i : n==d ? 3+i
+#define P32I_INDEX(n) \
+	(P32I_INDEX_ROW(n, 0, 16, 7, 20, 21) :\
+	 P32I_INDEX_ROW(n, 4, 29, 12, 28, 17) :\
+	 P32I_INDEX_ROW(n, 8, 1, 15, 23, 26) :\
+	 P32I_INDEX_ROW(n,12, 5, 18, 31, 10) :\
+	 P32I_INDEX_ROW(n,16, 2, 8, 24, 14) :\
+	 P32I_INDEX_ROW(n,20, 32, 27, 3, 9) :\
+	 P32I_INDEX_ROW(n,24, 19, 13, 30, 6) :\
+	 P32I_INDEX_ROW(n,28, 22, 11, 4, 25) : 0xbeef)
+
+static const char pbox[32] = {
+	P32I_INDEX( 1),
+	P32I_INDEX( 2),
+	P32I_INDEX( 3),
+	P32I_INDEX( 4),
+	P32I_INDEX( 5),
+	P32I_INDEX( 6),
+	P32I_INDEX( 7),
+	P32I_INDEX( 8),
+	P32I_INDEX( 9),
+	P32I_INDEX(10),
+	P32I_INDEX(11),
+	P32I_INDEX(12),
+	P32I_INDEX(13),
+	P32I_INDEX(14),
+	P32I_INDEX(15),
+	P32I_INDEX(16),
+	P32I_INDEX(17),
+	P32I_INDEX(18),
+	P32I_INDEX(19),
+	P32I_INDEX(20),
+	P32I_INDEX(21),
+	P32I_INDEX(22),
+	P32I_INDEX(23),
+	P32I_INDEX(24),
+	P32I_INDEX(25),
+	P32I_INDEX(26),
+	P32I_INDEX(27),
+	P32I_INDEX(28),
+	P32I_INDEX(29),
+	P32I_INDEX(30),
+	P32I_INDEX(31),
+	P32I_INDEX(32),
 };
 
 /* End of DES-defined tables */
@@ -546,21 +595,9 @@ perminit_fp(DES_KEY * key)
 static void
 spinit(DES_KEY * key)
 {
-	char pbox[32];
-	int p, i, s, j, rowcol;
+	int i, s, j, rowcol;
 	TDS_UINT val;
 
-	/* Compute pbox, the inverse of p32i.
-	 * This is easier to work with
-	 */
-	for (p = 0; p < 32; p++) {
-		for (i = 0; i < 32; i++) {
-			if (p32i[i] - 1 == p) {
-				pbox[p] = i;
-				break;
-			}
-		}
-	}
 	for (s = 0; s < 8; s++) {	/* For each S-box */
 		for (i = 0; i < 64; i++) {	/* For each possible input */
 			val = 0;
