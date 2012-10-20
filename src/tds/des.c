@@ -39,6 +39,7 @@
 #endif /* HAVE_STRING_H */
 
 #include "tds.h"
+#include "tdsbytes.h"
 #include "des.h"
 
 TDS_RCSID(var, "$Id: des.c,v 1.16 2011-05-16 08:51:40 freddy77 Exp $");
@@ -67,11 +68,6 @@ tds_des_set_odd_parity(des_cblock key)
 		key[i] = (key[i] & 0xfe) | (parity & 1);
 	}
 }
-
-#define byteswap32(x) (TDS_UINT) (((x) & 0xff000000) >> 24 | \
-				  ((x) & 0x00ff0000) >> 8 | \
-				  ((x) & 0x0000ff00) << 8 | \
-				  ((x) & 0x000000ff) << 24)
 
 /* Tables defined in the Data Encryption Standard documents */
 
@@ -286,13 +282,8 @@ tds_des_encrypt(DES_KEY * key, des_cblock block)
 	TDS_UINT work[2];	/* Working data storage */
 
 	permute_ip(block, key, (unsigned char *) work);	/* Initial Permutation */
-#ifndef	WORDS_BIGENDIAN
-	left = byteswap32(work[0]);
-	right = byteswap32(work[1]);
-#else
-	left = work[0];
-	right = work[1];
-#endif
+	left = TDS_GET_A4BE(&work[0]);
+	right = TDS_GET_A4BE(&work[1]);
 
 	/* Do the 16 rounds.
 	 * The rounds are numbered from 0 to 15. On even rounds
@@ -333,13 +324,8 @@ tds_des_encrypt(DES_KEY * key, des_cblock block)
 	right ^= f(key, left, knp);
 
 	/* Left/right half swap, plus byte swap if little-endian */
-#ifndef	WORDS_BIGENDIAN
-	work[1] = byteswap32(left);
-	work[0] = byteswap32(right);
-#else
-	work[0] = right;
-	work[1] = left;
-#endif
+	TDS_PUT_A4BE(&work[0], right);
+	TDS_PUT_A4BE(&work[1], left);
 	permute_fp((unsigned char *) work, key, block);	/* Inverse initial permutation */
 }
 
@@ -358,13 +344,8 @@ _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 	permute_ip(block, key, (unsigned char *) work);	/* Initial permutation */
 
 	/* Left/right half swap, plus byte swap if little-endian */
-#ifndef	WORDS_BIGENDIAN
-	right = byteswap32(work[0]);
-	left = byteswap32(work[1]);
-#else
-	right = work[0];
-	left = work[1];
-#endif
+	right = TDS_GET_A4BE(&work[0]);
+	left  = TDS_GET_A4BE(&work[1]);
 	/* Do the 16 rounds in reverse order.
 	 * The rounds are numbered from 15 to 0. On even rounds
 	 * the right half is fed to f() and the result exclusive-ORs
@@ -403,13 +384,8 @@ _mcrypt_decrypt(DES_KEY * key, unsigned char *block)
 	knp -= 8;
 	left ^= f(key, right, knp);
 
-#ifndef	WORDS_BIGENDIAN
-	work[0] = byteswap32(left);
-	work[1] = byteswap32(right);
-#else
-	work[0] = left;
-	work[1] = right;
-#endif
+	TDS_PUT_A4BE(&work[0], left);
+	TDS_PUT_A4BE(&work[1], right);
 	permute_fp((unsigned char *) work, key, block);	/* Inverse initial permutation */
 }
 #endif
