@@ -635,11 +635,8 @@ tds_append_fin(TDSSOCKET *tds)
 TDSRET
 tds_write_packet(TDSSOCKET * tds, unsigned char final)
 {
-#if ENABLE_ODBC_MARS
 	int res;
 	unsigned int left = 0;
-	unsigned char *p = tds->out_buf;
-	unsigned pos_start = 8;
 
 #if TDS_ADDITIONAL_SPACE != 0
 	if (tds->out_pos > tds->env.block_size) {
@@ -651,52 +648,29 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	/* we must assure server can accept our packet looking at
 	 * send_wnd and waiting for proper send_wnd if send_seq > send_wnd
 	 */
-	p[0] = tds->out_flag;
-	p[1] = final;
-	TDS_PUT_A2BE(p+2, tds->out_pos - (p-tds->out_buf));
-	TDS_PUT_A4(p+4, 0);
-	if (IS_TDS7_PLUS(tds->conn) && !tds->login)
-		p[6] = 0x01;
-
-	res = tds_connection_put_packet(tds, tds_build_packet(tds, tds->out_buf, tds->out_pos));
-
-#if TDS_ADDITIONAL_SPACE != 0
-	memcpy(tds->out_buf + pos_start, tds->out_buf + tds->env.block_size, left);
-#endif
-	tds->out_pos = left + pos_start;
-
-	return res;
-#else
-	int sent;
-	unsigned int left = 0;
-
-#if TDS_ADDITIONAL_SPACE != 0
-	if (tds->out_pos > tds->env.block_size) {
-		left = tds->out_pos - tds->env.block_size;
-		tds->out_pos = tds->env.block_size;
-	}
-#endif
-
 	tds->out_buf[0] = tds->out_flag;
 	tds->out_buf[1] = final;
-	tds->out_buf[2] = (tds->out_pos) / 256u;
-	tds->out_buf[3] = (tds->out_pos) % 256u;
+	TDS_PUT_A2BE(tds->out_buf+2, tds->out_pos);
+	TDS_PUT_A4(tds->out_buf+4, 0);
 	if (IS_TDS7_PLUS(tds->conn) && !tds->login)
 		tds->out_buf[6] = 0x01;
 
+#if ENABLE_ODBC_MARS
+	res = tds_connection_put_packet(tds, tds_build_packet(tds, tds->out_buf, tds->out_pos));
+#else
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
-	sent = tds_connection_write(tds, tds->out_buf, tds->out_pos, final);
-
+	/* GW added in check for write() returning <0 and SIGPIPE checking */
+	res = tds_connection_write(tds, tds->out_buf, tds->out_pos, final) <= 0 ?
+		TDS_FAIL : TDS_SUCCESS;
+#endif
 
 #if TDS_ADDITIONAL_SPACE != 0
 	memcpy(tds->out_buf + 8, tds->out_buf + tds->env.block_size, left);
 #endif
 	tds->out_pos = left + 8;
 
-	/* GW added in check for write() returning <0 and SIGPIPE checking */
-	return sent <= 0 ? TDS_FAIL : TDS_SUCCESS;
-#endif
+	return res;
 }
 
 #if !ENABLE_ODBC_MARS
