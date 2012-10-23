@@ -1165,7 +1165,7 @@ tds_alloc_additional_socket(TDSCONNECTION *conn)
 	tds_iconv_open(tds, "UTF-8");
 	return tds;
 }
-#else
+#else /* !ENABLE_ODBC_MARS */
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 {
@@ -1203,7 +1203,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_free_socket(tds_socket);
 	return NULL;
 }
-#endif
+#endif /* !ENABLE_ODBC_MARS */
 
 TDSSOCKET *
 tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)

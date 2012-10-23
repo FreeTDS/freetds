@@ -446,7 +446,7 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 		return TDS_FAIL;
 	return TDS_SUCCESS;
 }
-#endif
+#endif /* ENABLE_ODBC_MARS */
 
 /**
  * Read in one 'packet' from the server.  This is a wrapped outer packet of
@@ -532,7 +532,7 @@ tds_read_packet(TDSSOCKET * tds)
 
 	tds_mutex_unlock(&conn->list_mtx);
 	return -1;
-#else
+#else /* !ENABLE_ODBC_MARS */
 	unsigned char *pkt = tds->in_buf, *p, *end;
 
 	if (IS_TDSDEAD(tds)) {
@@ -581,7 +581,7 @@ tds_read_packet(TDSSOCKET * tds)
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", tds->in_buf, tds->in_len);
 
 	return tds->in_len;
-#endif
+#endif /* !ENABLE_ODBC_MARS */
 }
 
 #if ENABLE_ODBC_MARS
@@ -646,7 +646,7 @@ tds_append_fin(TDSSOCKET *tds)
 
 	return TDS_SUCCESS;
 }
-#endif
+#endif /* ENABLE_ODBC_MARS */
 
 
 TDSRET
@@ -674,13 +674,13 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 
 #if ENABLE_ODBC_MARS
 	res = tds_connection_put_packet(tds, tds_build_packet(tds, tds->out_buf, tds->out_pos));
-#else
+#else /* !ENABLE_ODBC_MARS */
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	res = tds_connection_write(tds, tds->out_buf, tds->out_pos, final) <= 0 ?
 		TDS_FAIL : TDS_SUCCESS;
-#endif
+#endif /* !ENABLE_ODBC_MARS */
 
 #if TDS_ADDITIONAL_SPACE != 0
 	memcpy(tds->out_buf + 8, tds->out_buf + tds->env.block_size, left);
@@ -697,11 +697,11 @@ tds_put_cancel(TDSSOCKET * tds)
 	unsigned char out_buf[8];
 	int sent;
 
-	memset(out_buf, 0, sizeof(out_buf));
 	out_buf[0] = TDS_CANCEL;	/* out_flag */
 	out_buf[1] = 1;	/* final */
 	out_buf[2] = 0;
 	out_buf[3] = 8;
+	TDS_PUT_A4(tds->out_buf+4, 0);
 	if (IS_TDS7_PLUS(tds->conn) && !tds->login)
 		out_buf[6] = 0x01;
 
@@ -715,7 +715,7 @@ tds_put_cancel(TDSSOCKET * tds)
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
 	return sent <= 0 ? TDS_FAIL : TDS_SUCCESS;
 }
-#endif
+#endif /* !ENABLE_ODBC_MARS */
 
 
 #if ENABLE_ODBC_MARS
@@ -755,6 +755,6 @@ tds_packet_write(TDSCONNECTION *conn)
 
 	return -1;
 }
-#endif
+#endif /* ENABLE_ODBC_MARS */
 
 /** @} */
