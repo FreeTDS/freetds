@@ -25,6 +25,7 @@
 #include "md4.h"
 #include "md5.h"
 #include "hmac_md5.h"
+#include "des.h"
 
 static char software_version[] = "$Id: challenge.c,v 1.2 2011-08-08 16:56:13 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
@@ -129,12 +130,44 @@ hmac5tests(void)
 	hmac5("abcdefghijklmnopqrstuvwxyz", "2c4eac474ec340df63ae93b8ffc33571");
 }
 
+static void
+des(const char *src, const char *out)
+{
+	static const des_cblock key = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
+	DES_KEY ks;
+	unsigned char digest[128];
+	char s_digest[256];
+	size_t out_len;
+
+	memset(digest, 0, sizeof(digest));
+	tds_des_set_key(&ks, key, sizeof(key));
+	tds_des_ecb_encrypt(src, strlen(src), &ks, digest);
+
+	out_len = strlen(src) & ~7u;
+	if (strcasecmp(bin2ascii(s_digest, digest, out_len), out) != 0) {
+		fprintf(stderr, "Wrong des(%s) -> %s expected %s\n", src, s_digest, out);
+		exit(1);
+	}
+}
+
+static void
+destests(void)
+{
+	des("", "");
+	des("The quick brown fox jumps over the lazy dog",
+	    "51551eab3ebab959553caaed64a3dd9c49f595a630c45cb7317332f8ade70308c4e97aeabbdc7f19");
+	des("test des encryption",
+	    "7ced9849bed3f7efc1686c89759bafa8");
+}
+
+
 int
 main(void)
 {
 	md4tests();
 	md5tests();
 	hmac5tests();
+	destests();
 	printf("All tests passed\n");
 	return 0;
 }
