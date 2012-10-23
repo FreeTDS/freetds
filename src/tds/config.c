@@ -613,6 +613,8 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		tds_dstr_copy(&login->server_name, value);
 	} else if (!strcmp(option, TDS_STR_USENTLMV2)) {
 		login->use_ntlmv2 = tds_config_boolean(value);
+	} else if (!strcmp(option, TDS_STR_USELANMAN)) {
+		login->use_lanman = tds_config_boolean(value);
 	} else if (!strcmp(option, TDS_STR_REALM)) {
 		tds_dstr_copy(&login->server_realm_name, value);
 	} else if (!strcmp(option, TDS_STR_SPN)) {

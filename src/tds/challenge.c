@@ -339,9 +339,8 @@ tds_answer_challenge(TDSSOCKET * tds,
 		MD5Final(&md5_ctx, ntlm2_challenge);
 		challenge = ntlm2_challenge;
 		memset(&md5_ctx, 0, sizeof(md5_ctx));
-	} else {
+	} else if (login->use_lanman) {
 		/* LM */
-#if TDS_USE_LM
 		size_t len, i;
 		unsigned char passwd_buf[MAX_PW_SZ];
 		static const des_cblock magic = { 0x4B, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25 };
@@ -366,9 +365,8 @@ tds_answer_challenge(TDSSOCKET * tds,
 
 		tds_encrypt_answer(hash, challenge, answer->lm_resp);
 		memset(passwd_buf, 0, sizeof(passwd_buf));
-#else
+	} else {
 		memset(answer->lm_resp, 0, sizeof(answer->lm_resp));
-#endif
 	}
 	*flags = 0x8201;
 

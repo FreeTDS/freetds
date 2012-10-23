@@ -492,6 +492,7 @@ typedef enum tds_encryption_level {
 #define TDS_STR_ASA_DATABASE	"asa database"
 #define TDS_STR_ENCRYPTION	 "encryption"
 #define TDS_STR_USENTLMV2	"use ntlmv2"
+#define TDS_STR_USELANMAN	"use lanman"
 /* conf values */
 #define TDS_STR_ENCRYPTION_OFF	 "off"
 #define TDS_STR_ENCRYPTION_REQUEST "request"
@@ -565,6 +566,7 @@ typedef struct tds_login
 	unsigned int emul_little_endian:1;
 	unsigned int gssapi_use_delegation:1;
 	unsigned int use_ntlmv2:1;
+	unsigned int use_lanman:1;
 	unsigned int mars:1;
 } TDSLOGIN;
 
