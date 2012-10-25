@@ -119,7 +119,7 @@ odbc.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
 
 vc6: odbc.dsw
 
-clean-local:
+distclean-local:
 	rm -rf vc6
 
 EXTRA_DIST_WIN32 = vc6 odbc.dsw odbc.mak

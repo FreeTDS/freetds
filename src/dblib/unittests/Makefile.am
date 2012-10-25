@@ -73,7 +73,7 @@ dblib.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
 
 vc6: dblib.dsw
 
-clean-local:
+distclean-local:
 	rm -rf vc6
 
 EXTRA_DIST_WIN32 = vc6 dblib.dsw dblib.mak
