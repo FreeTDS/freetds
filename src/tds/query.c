@@ -1952,20 +1952,20 @@ tds_send_cancel(TDSSOCKET * tds)
 
 	tds->in_cancel = 1;
 
-	if (TDS_MUTEX_TRYLOCK(&tds->conn->list_mtx)) {
+	if (tds_mutex_trylock(&tds->conn->list_mtx)) {
 		/* TODO check */
 		/* signal other socket */
 		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
 		return TDS_SUCCESS;
 	}
 	if (tds->conn->in_net_tds) {
-		TDS_MUTEX_UNLOCK(&tds->conn->list_mtx);
+		tds_mutex_unlock(&tds->conn->list_mtx);
 		/* TODO check */
 		/* signal other socket */
 		send(tds_conn(tds)->s_signal, (const void*) &one, sizeof(one), 0);
 		return TDS_SUCCESS;
 	}
-	TDS_MUTEX_UNLOCK(&tds->conn->list_mtx);
+	tds_mutex_unlock(&tds->conn->list_mtx);
 
 	/*
 	problem: if we are in in_net and we got a signal ??
@@ -1999,7 +1999,7 @@ tds_send_cancel(TDSSOCKET * tds)
 	 * - another thread is processing data
 	 * - we got called from a signal inside processing thread
 	 */
-	if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx)) {
+	if (tds_mutex_trylock(&tds->wire_mtx)) {
 		static const char one = '1';
 		/* TODO check */
 		/* signal other socket */
@@ -2014,12 +2014,12 @@ tds_send_cancel(TDSSOCKET * tds)
 
 	/* one cancel is sufficient */
 	if (tds->in_cancel || tds->state == TDS_IDLE) {
-		TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+		tds_mutex_unlock(&tds->wire_mtx);
 		return TDS_SUCCESS;
 	}
 
 	rc = tds_put_cancel(tds);
-	TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+	tds_mutex_unlock(&tds->wire_mtx);
 
 	return rc;
 #endif

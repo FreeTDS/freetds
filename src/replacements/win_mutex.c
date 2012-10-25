@@ -37,7 +37,7 @@ TDS_RCSID(var, "$Id: win_mutex.c,v 1.4 2011-09-01 07:55:57 freddy77 Exp $");
 #include "ptw32_MCS_lock.c"
 
 void
-tds_win_mutex_lock(tds_win_mutex_t * mutex)
+tds_win_mutex_lock(tds_mutex * mutex)
 {
 	if (!InterlockedExchangeAdd(&mutex->done, 0)) {	/* MBR fence */
 		ptw32_mcs_local_node_t node;
@@ -53,7 +53,7 @@ tds_win_mutex_lock(tds_win_mutex_t * mutex)
 }
 
 int
-tds_win_mutex_trylock(tds_win_mutex_t * mutex)
+tds_mutex_trylock(tds_mutex * mutex)
 {
 	if (!mutex->done && !InterlockedExchangeAdd(&mutex->done, 0)) {	/* MBR fence */
 		ptw32_mcs_local_node_t node;

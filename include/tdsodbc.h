@@ -147,12 +147,12 @@ static inline void odbc_check_struct_extra(void *p) {}
 #define ODBC_EXIT(handle, rc) \
 	do { SQLRETURN _odbc_rc = handle->errs.lastrc = (rc); \
 	odbc_check_struct_extra(handle); \
-	TDS_MUTEX_UNLOCK(&handle->mtx); \
+	tds_mutex_unlock(&handle->mtx); \
 	return _odbc_rc; } while(0)
 #define ODBC_EXIT_(handle) \
 	do { SQLRETURN _odbc_rc = handle->errs.lastrc; \
 	odbc_check_struct_extra(handle); \
-	TDS_MUTEX_UNLOCK(&handle->mtx); \
+	tds_mutex_unlock(&handle->mtx); \
 	return _odbc_rc; } while(0)
 
 
@@ -223,7 +223,7 @@ struct _hdesc
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
-	TDS_MUTEX_DECLARE(mtx);
+	tds_mutex mtx;
 	int type;
 	SQLHANDLE parent;
 	struct _dheader header;
@@ -249,14 +249,14 @@ struct _hchk
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
-	TDS_MUTEX_DECLARE(mtx);
+	tds_mutex mtx;
 };
 
 struct _henv
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
-	TDS_MUTEX_DECLARE(mtx);
+	tds_mutex mtx;
 	TDSCONTEXT *tds_ctx;
 	struct _heattr attr;
 };
@@ -293,7 +293,7 @@ struct _hdbc
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
-	TDS_MUTEX_DECLARE(mtx);
+	tds_mutex mtx;
 	struct _henv *env;
 	TDSSOCKET *tds_socket;
 	DSTR dsn;
@@ -392,7 +392,7 @@ struct _hstmt
 {
 	SQLSMALLINT htype;	/* do not reorder this field */
 	struct _sql_errors errs;	/* do not reorder this field */
-	TDS_MUTEX_DECLARE(mtx);
+	tds_mutex mtx;
 	struct _hdbc *dbc;
 	/** query to execute */
 	char *query;

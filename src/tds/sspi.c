@@ -71,7 +71,7 @@ typedef struct tds_sspi_auth
 
 static HMODULE secdll = NULL;
 static PSecurityFunctionTableA sec_fn = NULL;
-static TDS_MUTEX_DEFINE(sec_mutex);
+static tds_mutex sec_mutex = TDS_MUTEX_INITIALIZER;
 
 static int
 tds_init_secdll(void)
@@ -81,7 +81,7 @@ tds_init_secdll(void)
 	if (sec_fn)
 		return 1;
 
-	TDS_MUTEX_LOCK(&sec_mutex);
+	tds_mutex_lock(&sec_mutex);
 	for (;;) {
 		if (!secdll) {
 			OSVERSIONINFO osver;
@@ -111,7 +111,7 @@ tds_init_secdll(void)
 		res = 1;
 		break;
 	}
-	TDS_MUTEX_UNLOCK(&sec_mutex);
+	tds_mutex_unlock(&sec_mutex);
 	return res;
 }
 

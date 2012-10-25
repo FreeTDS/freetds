@@ -109,7 +109,7 @@ static void odbc_ird_check(TDS_STMT * stmt);
 #define INIT_HANDLE(t, n) \
 	TDS_##t *n = (TDS_##t*)h##n; \
 	if (SQL_NULL_H##t  == h##n || !IS_H##t(h##n)) return SQL_INVALID_HANDLE; \
-	TDS_MUTEX_LOCK(&n->mtx); \
+	tds_mutex_lock(&n->mtx); \
 	CHECK_##t##_EXTRA(n); \
 	odbc_errs_reset(&n->errs);
 
@@ -759,7 +759,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 	if (!tds) {
 		/* try with one saved into DBC */
 		TDSSOCKET *dbc_tds = stmt->dbc->tds_socket;
-		TDS_MUTEX_LOCK(&stmt->dbc->mtx);
+		tds_mutex_lock(&stmt->dbc->mtx);
 
 		if (stmt->dbc->current_statement == NULL
 		    || stmt->dbc->current_statement == stmt) {
@@ -773,7 +773,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 			tds = dbc_tds;
 			stmt->dbc->current_statement = stmt;
 		}
-		TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
+		tds_mutex_unlock(&stmt->dbc->mtx);
 
 		/* try with MARS */
 		if (!tds)
@@ -791,11 +791,11 @@ odbc_lock_statement(TDS_STMT* stmt)
 #else
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
-	TDS_MUTEX_LOCK(&stmt->dbc->mtx);
+	tds_mutex_lock(&stmt->dbc->mtx);
 	if (stmt->dbc->current_statement != NULL
 	    && stmt->dbc->current_statement != stmt) {
 		if (!tds || tds->state != TDS_IDLE) {
-			TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
+			tds_mutex_unlock(&stmt->dbc->mtx);
 			odbc_errs_add(&stmt->errs, "24000", NULL);
 			return 0;
 		}
@@ -808,7 +808,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 		tds_set_parent(tds, stmt);
 		stmt->tds = tds;
 	}
-	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
+	tds_mutex_unlock(&stmt->dbc->mtx);
 	return 1;
 #endif
 }
@@ -816,7 +816,7 @@ odbc_lock_statement(TDS_STMT* stmt)
 static void
 odbc_unlock_statement(TDS_STMT* stmt)
 {
-	TDS_MUTEX_LOCK(&stmt->dbc->mtx);
+	tds_mutex_lock(&stmt->dbc->mtx);
 	if (stmt->dbc->current_statement == stmt) {
 		assert(stmt->tds);
 		stmt->dbc->current_statement = NULL;
@@ -828,7 +828,7 @@ odbc_unlock_statement(TDS_STMT* stmt)
 		stmt->tds = NULL;
 #endif
 	}
-	TDS_MUTEX_UNLOCK(&stmt->dbc->mtx);
+	tds_mutex_unlock(&stmt->dbc->mtx);
 }
 
 SQLRETURN ODBC_API
@@ -1566,7 +1566,7 @@ _SQLAllocConnect(SQLHENV henv, SQLHDBC FAR * phdbc)
 	dbc->attr.txn_isolation = SQL_TXN_READ_COMMITTED;
 	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
 
-	TDS_MUTEX_INIT(&dbc->mtx);
+	tds_mutex_init(&dbc->mtx);
 	*phdbc = (SQLHDBC) dbc;
 
 	ODBC_EXIT_(env);
@@ -1611,7 +1611,7 @@ _SQLAllocEnv(SQLHENV FAR * phenv, SQLINTEGER odbc_version)
 	free(ctx->locale->date_fmt);
 	ctx->locale->date_fmt = strdup("%Y-%m-%d %H:%M:%S.%z");
 
-	TDS_MUTEX_INIT(&env->mtx);
+	tds_mutex_init(&env->mtx);
 	*phenv = (SQLHENV) env;
 
 	return SQL_SUCCESS;
@@ -1751,7 +1751,7 @@ _SQLAllocStmt(SQLHDBC hdbc, SQLHSTMT FAR * phstmt)
 		dbc->stmt_list->prev = stmt;
 	dbc->stmt_list = stmt;
 
-	TDS_MUTEX_INIT(&stmt->mtx);
+	tds_mutex_init(&stmt->mtx);
 	*phstmt = (SQLHSTMT) stmt;
 
 	if (dbc->attr.cursor_type != SQL_CURSOR_FORWARD_ONLY)
@@ -1852,7 +1852,7 @@ SQLCancel(SQLHSTMT hstmt)
 		ODBC_SAFE_ERROR(stmt);
 		ODBC_EXIT_(stmt);
 	}
-	if (TDS_MUTEX_TRYLOCK(&stmt->mtx) == 0) {
+	if (tds_mutex_trylock(&stmt->mtx) == 0) {
 		CHECK_STMT_EXTRA(stmt);
 		odbc_errs_reset(&stmt->errs);
 
@@ -2293,9 +2293,9 @@ SQLDisconnect(SQLHDBC hdbc)
 
 	/* free all associated statements */
 	while (dbc->stmt_list) {
-		TDS_MUTEX_UNLOCK(&dbc->mtx);
+		tds_mutex_unlock(&dbc->mtx);
 		_SQLFreeStmt(dbc->stmt_list, SQL_DROP, 1);
-		TDS_MUTEX_LOCK(&dbc->mtx);
+		tds_mutex_lock(&dbc->mtx);
 	}
 
 	/* free all associated descriptors */
@@ -4091,8 +4091,8 @@ _SQLFreeConnect(SQLHDBC hdbc)
 		}
 	}
 	odbc_errs_reset(&dbc->errs);
-	TDS_MUTEX_UNLOCK(&dbc->mtx);
-	TDS_MUTEX_FREE(&dbc->mtx);
+	tds_mutex_unlock(&dbc->mtx);
+	tds_mutex_free(&dbc->mtx);
 
 	free(dbc);
 
@@ -4117,8 +4117,8 @@ _SQLFreeEnv(SQLHENV henv)
 
 	odbc_errs_reset(&env->errs);
 	tds_free_context(env->tds_ctx);
-	TDS_MUTEX_UNLOCK(&env->mtx);
-	TDS_MUTEX_FREE(&env->mtx);
+	tds_mutex_unlock(&env->mtx);
+	tds_mutex_free(&env->mtx);
 	free(env);
 
 	return SQL_SUCCESS;
@@ -4206,8 +4206,8 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 		desc_free(stmt->ipd);
 		desc_free(stmt->orig_ard);
 		desc_free(stmt->orig_apd);
-		TDS_MUTEX_UNLOCK(&stmt->mtx);
-		TDS_MUTEX_FREE(&stmt->mtx);
+		tds_mutex_unlock(&stmt->mtx);
+		tds_mutex_free(&stmt->mtx);
 		free(stmt);
 
 		/* NOTE we freed stmt, do not use ODBC_EXIT */

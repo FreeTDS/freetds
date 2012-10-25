@@ -16,7 +16,7 @@
 #include "tdsthread.h"
 
 static SQLTCHAR sqlstate[SQL_SQLSTATE_SIZE + 1];
-static TDS_MUTEX_DECLARE(mtx);
+static tds_mutex mtx;
 
 static void
 getErrorInfo(SQLSMALLINT sqlhdltype, SQLHANDLE sqlhandle)
@@ -71,12 +71,12 @@ wait_thread_proc(void * arg)
 	
 	for (n = 0; n < 4; ++n) {
 		sleep(1);
-		TDS_MUTEX_LOCK(&mtx);
+		tds_mutex_lock(&mtx);
 		if (exit_thread) {
-			TDS_MUTEX_UNLOCK(&mtx);
+			tds_mutex_unlock(&mtx);
 			return NULL;
 		}
-		TDS_MUTEX_UNLOCK(&mtx);
+		tds_mutex_unlock(&mtx);
 	}
 
 	exit_forced(0);
@@ -108,9 +108,9 @@ Test(int use_threads, int return_data)
 	else
 		odbc_command2("SELECT MAX(p1.k) FROM tab1 p1, tab1 p2, tab1 p3, tab1 p4", "E");
 
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	exit_thread = 1;
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 	if (!use_threads) {
 		alarm(0);
 	} else {
@@ -131,7 +131,7 @@ Test(int use_threads, int return_data)
 int
 main(int argc, char **argv)
 {
-	if (TDS_MUTEX_INIT(&mtx))
+	if (tds_mutex_init(&mtx))
 		return 1;
 
 	if (odbc_read_login_info())

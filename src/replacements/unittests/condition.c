@@ -39,19 +39,19 @@
 #define sleep(s) Sleep((s)*1000)
 #endif
 
-static TDS_MUTEX_DEFINE(mtx);
+static tds_mutex mtx = TDS_MUTEX_INITIALIZER;
 
 static TDS_THREAD_PROC_DECLARE(signal_proc, arg)
 {
 	tds_condition *cond = (tds_condition *) arg;
 
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	if (tds_cond_signal(cond)) {
-		TDS_MUTEX_UNLOCK(&mtx);
+		tds_mutex_unlock(&mtx);
 		/* failure */
 		return int2ptr(1);
 	}
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 	/* success */
 	return int2ptr(0);
 }
@@ -72,7 +72,7 @@ int main(void)
 
 	check(tds_cond_init(&cond), "failed initializing condition");
 
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 
 	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
 
@@ -84,7 +84,7 @@ int main(void)
 
 	check(ptr2int(res) != 0, "error signaling condition");
 
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 
 	check(tds_cond_destroy(&cond), "failed destroying condition");
 	return 0;

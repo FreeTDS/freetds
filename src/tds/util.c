@@ -93,7 +93,7 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 	case TDS_PENDING:
 		if (prior_state == TDS_READING || prior_state == TDS_QUERYING) {
 			tds->state = TDS_PENDING;
-			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+			tds_mutex_unlock(&tds->wire_mtx);
 			break;
 		}
 		tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n",
@@ -101,10 +101,10 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		break;
 	case TDS_READING:
 		/* transition to READING are valid only from PENDING */
-		if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx))
+		if (tds_mutex_trylock(&tds->wire_mtx))
 			return tds->state;
 		if (tds->state != TDS_PENDING) {
-			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+			tds_mutex_unlock(&tds->wire_mtx);
 			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
 							state_names[prior_state], state_names[state]);
 			break;
@@ -119,23 +119,23 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		}
 	case TDS_DEAD:
 		if (prior_state == TDS_READING || prior_state == TDS_QUERYING)
-			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+			tds_mutex_unlock(&tds->wire_mtx);
 		tds->state = state;
 		break;
 	case TDS_QUERYING:
 		CHECK_TDS_EXTRA(tds);
 
-		if (TDS_MUTEX_TRYLOCK(&tds->wire_mtx))
+		if (tds_mutex_trylock(&tds->wire_mtx))
 			return tds->state;
 
 		if (tds->state == TDS_DEAD) {
-			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+			tds_mutex_unlock(&tds->wire_mtx);
 			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
 							state_names[prior_state], state_names[state]);
 			tdserror(tds_get_ctx(tds), tds, TDSEWRIT, 0);
 			break;
 		} else if (tds->state != TDS_IDLE) {
-			TDS_MUTEX_UNLOCK(&tds->wire_mtx);
+			tds_mutex_unlock(&tds->wire_mtx);
 			tdsdump_log(TDS_DBG_ERROR, "logic error: cannot change query state from %s to %s\n", 
 							state_names[prior_state], state_names[state]);
 			tdserror(tds_get_ctx(tds), tds, TDSERPND, 0);

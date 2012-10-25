@@ -68,7 +68,7 @@ new_cond_signal(tds_condition * cond)
 }
 
 static int
-new_cond_wait(tds_condition * cond, tds_win_mutex_t * mtx)
+new_cond_wait(tds_condition * cond, tds_mutex * mtx)
 {
 	if (sleep_cv(&cond->cv, &mtx->crit, INFINITE))
 		return 0;
@@ -101,7 +101,7 @@ old_cond_signal(tds_condition * cond)
 }
 
 static int
-old_cond_wait(tds_condition * cond, tds_win_mutex_t * mtx)
+old_cond_wait(tds_condition * cond, tds_mutex * mtx)
 {
 	int res;
 
@@ -158,7 +158,7 @@ detect_cond_signal(tds_condition * cond)
 }
 
 static int
-detect_cond_wait(tds_condition * cond, tds_win_mutex_t * mtx)
+detect_cond_wait(tds_condition * cond, tds_mutex * mtx)
 {
 	detect_cond();
 	return tds_cond_wait(cond, mtx);
@@ -167,5 +167,5 @@ detect_cond_wait(tds_condition * cond, tds_win_mutex_t * mtx)
 int (*tds_cond_init) (tds_condition * cond) = detect_cond_init;
 int (*tds_cond_destroy) (tds_condition * cond) = detect_cond_destroy;
 int (*tds_cond_signal) (tds_condition * cond) = detect_cond_signal;
-int (*tds_cond_wait) (tds_condition * cond, tds_win_mutex_t * mtx) = detect_cond_wait;
+int (*tds_cond_wait) (tds_condition * cond, tds_mutex * mtx) = detect_cond_wait;
 #endif

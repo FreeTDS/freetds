@@ -202,7 +202,7 @@ typedef struct dblib_context
 DBLIBCONTEXT;
 
 static DBLIBCONTEXT g_dblib_ctx;
-static TDS_MUTEX_DEFINE(dblib_mutex);
+static tds_mutex dblib_mutex = TDS_MUTEX_INITIALIZER;
 
 static int g_dblib_version =
 #ifdef TDS42
@@ -267,7 +267,7 @@ dblib_get_tds_ctx(void)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dblib_get_tds_ctx(void)\n");
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 	++g_dblib_ctx.tds_ctx_ref_count;
 	if (g_dblib_ctx.tds_ctx == NULL) {
 		g_dblib_ctx.tds_ctx = tds_alloc_context(&g_dblib_ctx);
@@ -290,7 +290,7 @@ dblib_get_tds_ctx(void)
 			g_dblib_ctx.tds_ctx->locale->date_fmt = strdup(date_format);
 		}
 	}
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 	return g_dblib_ctx.tds_ctx;
 }
 
@@ -299,13 +299,13 @@ dblib_release_tds_ctx(int count)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dblib_release_tds_ctx(%d)\n", count);
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 	g_dblib_ctx.tds_ctx_ref_count -= count;
 	if (g_dblib_ctx.tds_ctx_ref_count <= 0) {
 		tds_free_context(g_dblib_ctx.tds_ctx);
 		g_dblib_ctx.tds_ctx = NULL;
 	}
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 }
 
 #include "buffering.h"
@@ -661,12 +661,12 @@ dbinit(void)
 {
 	_dblib_err_handler = default_err_handler;
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 
 	tdsdump_log(TDS_DBG_FUNC, "dbinit(void)\n");
 
 	if (++g_dblib_ctx.ref_count != 1) {
-		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		tds_mutex_unlock(&dblib_mutex);
 		return SUCCEED;
 	}
 	/* 
@@ -676,7 +676,7 @@ dbinit(void)
 	g_dblib_ctx.connection_list = (TDSSOCKET**) calloc(TDS_MAX_CONN, sizeof(TDSSOCKET *));
 	if (g_dblib_ctx.connection_list == NULL) {
 		tdsdump_log(TDS_DBG_FUNC, "dbinit: out of memory\n");
-		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		tds_mutex_unlock(&dblib_mutex);
 		return FAIL;
 	}
 	g_dblib_ctx.connection_list_size = TDS_MAX_CONN;
@@ -685,7 +685,7 @@ dbinit(void)
 	g_dblib_ctx.login_timeout = -1;
 	g_dblib_ctx.query_timeout = -1;
 
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 
 	dblib_get_tds_ctx();
 
@@ -1200,7 +1200,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	dbproc->chkintr = NULL;
 	dbproc->hndlintr = NULL;
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 
 	/* override connection timeout if dbsetlogintime() was called */
 	if (g_dblib_ctx.login_timeout > 0) {
@@ -1212,7 +1212,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		connection->query_timeout = g_dblib_ctx.query_timeout;
 	}
 
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 
 	if (TDS_FAILED(tds_connect_and_login(dbproc->tds_socket, connection))) {
 		tds_free_login(connection);
@@ -1224,14 +1224,14 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	dbproc->dbbuf = NULL;
 	dbproc->dbbufsz = 0;
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 	dblib_add_connection(&g_dblib_ctx, dbproc->tds_socket);
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 
 	/* set the DBBUFFER capacity to nil */
 	buffer_set_capacity(dbproc, 0);
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 
 	if (g_dblib_ctx.recftos_filename != NULL) {
 		char *temp_filename = NULL;
@@ -1250,7 +1250,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	
 	memcpy(dbproc->nullreps, default_null_representations, sizeof(default_null_representations));
 
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 
 	return dbproc;
 }
@@ -1445,9 +1445,9 @@ dbclose(DBPROCESS * dbproc)
 		 * this MUST be done before socket destruction
 		 * it is possible that a TDSSOCKET is allocated on same position
 		 */
-		TDS_MUTEX_LOCK(&dblib_mutex);
+		tds_mutex_lock(&dblib_mutex);
 		dblib_del_connection(&g_dblib_ctx, dbproc->tds_socket);
-		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		tds_mutex_unlock(&dblib_mutex);
 
 		tds_free_socket(tds);
 		dblib_release_tds_ctx(1);
@@ -1507,10 +1507,10 @@ dbexit()
 
 	tdsdump_log(TDS_DBG_FUNC, "dbexit(void)\n");
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 
 	if (--g_dblib_ctx.ref_count != 0) {
-		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		tds_mutex_unlock(&dblib_mutex);
 		return;
 	}
 
@@ -1535,7 +1535,7 @@ dbexit()
 		g_dblib_ctx.connection_list_size = 0;
 	}
 
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 
 	dblib_release_tds_ctx(count);
 }
@@ -3890,7 +3890,7 @@ dbsetmaxprocs(int maxprocs)
 
 	tdsdump_log(TDS_DBG_FUNC, "UNTESTED dbsetmaxprocs(%d)\n", maxprocs);
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 
 	old_list = g_dblib_ctx.connection_list;
 
@@ -3920,7 +3920,7 @@ dbsetmaxprocs(int maxprocs)
 	 */
 	if (maxprocs <= g_dblib_ctx.connection_list_size) {
 		g_dblib_ctx.connection_list_size_represented = maxprocs;
-		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		tds_mutex_unlock(&dblib_mutex);
 		return SUCCEED;
 	}
 
@@ -3928,7 +3928,7 @@ dbsetmaxprocs(int maxprocs)
 
 	if (g_dblib_ctx.connection_list == NULL) {
 		g_dblib_ctx.connection_list = old_list;
-		TDS_MUTEX_UNLOCK(&dblib_mutex);
+		tds_mutex_unlock(&dblib_mutex);
 		dbperror(NULL, SYBEMEM, errno);
 		return FAIL;
 	}
@@ -3940,7 +3940,7 @@ dbsetmaxprocs(int maxprocs)
 	g_dblib_ctx.connection_list_size = maxprocs;
 	g_dblib_ctx.connection_list_size_represented = maxprocs;
 
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 
 	return SUCCEED;
 }
@@ -3959,9 +3959,9 @@ dbgetmaxprocs(void)
 
 	tdsdump_log(TDS_DBG_FUNC, "dbgetmaxprocs(void)\n");
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 	r = g_dblib_ctx.connection_list_size_represented;
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 	return r;
 }
 
@@ -3980,7 +3980,7 @@ dbsettime(int seconds)
 	int i;
 	tdsdump_log(TDS_DBG_FUNC, "dbsettime(%d)\n", seconds);
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 	g_dblib_ctx.query_timeout = seconds;
 	
 	tds = g_dblib_ctx.connection_list;
@@ -3989,7 +3989,7 @@ dbsettime(int seconds)
 			tds[i]->query_timeout = seconds;
 	}
 	
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 	return SUCCEED;
 }
 
@@ -4021,9 +4021,9 @@ dbsetlogintime(int seconds)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbsetlogintime(%d)\n", seconds);
 
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 	g_dblib_ctx.login_timeout = seconds;
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 	return SUCCEED;
 }
 
@@ -6540,11 +6540,11 @@ dbrecftos(const char filename[])
 		return;
 	}
 	
-	TDS_MUTEX_LOCK(&dblib_mutex);
+	tds_mutex_lock(&dblib_mutex);
 	free(g_dblib_ctx.recftos_filename);
 	g_dblib_ctx.recftos_filename = f;
 	g_dblib_ctx.recftos_filenum = 0;
-	TDS_MUTEX_UNLOCK(&dblib_mutex);
+	tds_mutex_unlock(&dblib_mutex);
 }
 
 /** \internal

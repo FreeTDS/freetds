@@ -329,13 +329,13 @@ tds_close_socket(TDSSOCKET * tds)
 #if ENABLE_ODBC_MARS
 		TDSCONNECTION *conn = tds->conn;
 		unsigned n = 0, count = 0;
-		TDS_MUTEX_LOCK(&conn->list_mtx);
+		tds_mutex_lock(&conn->list_mtx);
 		for (; n < conn->num_sessions; ++n)
 			if (TDSSOCKET_VALID(conn->sessions[n]))
 				++count;
 		if (count > 1)
 			tds_append_fin(tds);
-		TDS_MUTEX_UNLOCK(&conn->list_mtx);
+		tds_mutex_unlock(&conn->list_mtx);
 		tds_set_state(tds, TDS_DEAD);
 		if (count <= 1)
 			tds_connection_close(conn);
@@ -360,11 +360,11 @@ tds_connection_close(TDSCONNECTION *conn)
 		conn->s = INVALID_SOCKET;
 	}
 
-	TDS_MUTEX_LOCK(&conn->list_mtx);
+	tds_mutex_lock(&conn->list_mtx);
 	for (; n < conn->num_sessions; ++n)
 		if (TDSSOCKET_VALID(conn->sessions[n]))
 			tds_set_state(conn->sessions[n], TDS_DEAD);
-	TDS_MUTEX_UNLOCK(&conn->list_mtx);
+	tds_mutex_unlock(&conn->list_mtx);
 }
 #endif
 
@@ -555,7 +555,7 @@ tds_check_cancel(TDSCONNECTION *conn)
 		unsigned n = 0;
 
 		rc = TDS_SUCCESS;
-		TDS_MUTEX_LOCK(&conn->list_mtx);
+		tds_mutex_lock(&conn->list_mtx);
 		/* Here we scan all list searching for sessions that should send cancel packets */
 		for (; n < conn->num_sessions; ++n)
 			if (TDSSOCKET_VALID(tds=conn->sessions[n]) && tds->in_cancel == 1) {
@@ -565,7 +565,7 @@ tds_check_cancel(TDSCONNECTION *conn)
 				if (rc != TDS_SUCCESS)
 					break;
 			}
-		TDS_MUTEX_UNLOCK(&conn->list_mtx);
+		tds_mutex_unlock(&conn->list_mtx);
 		/* for all failed */
 		/* this must be done outside loop cause it can alter list */
 		/* this must be done unlocked cause it can lock again */
@@ -1258,7 +1258,7 @@ tds_ssl_write(BIO *b, const char* data, int len)
 }
 
 static int tls_initialized = 0;
-static TDS_MUTEX_DEFINE(tls_mutex);
+static tds_mutex tls_mutex = TDS_MUTEX_INITIALIZER;
 
 #ifdef HAVE_GNUTLS
 
@@ -1318,7 +1318,7 @@ tds_ssl_init(TDSSOCKET *tds)
 	/* FIXME place somewhere else, deinit at end */
 	ret = 0;
 	if (!tls_initialized) {
-		TDS_MUTEX_LOCK(&tls_mutex);
+		tds_mutex_lock(&tls_mutex);
 		if (!tls_initialized) {
 			tds_gcry_init();
 			ret = gnutls_global_init();
@@ -1328,7 +1328,7 @@ tds_ssl_init(TDSSOCKET *tds)
 				tls_initialized = 1;
 			}
 		}
-		TDS_MUTEX_UNLOCK(&tls_mutex);
+		tds_mutex_unlock(&tls_mutex);
 	}
 	if (ret == 0) {
 		tls_msg = "allocating credentials";
@@ -1444,12 +1444,12 @@ tds_init_openssl(void)
 	SSL_METHOD *meth;
 
 	if (!tls_initialized) {
-		TDS_MUTEX_LOCK(&tls_mutex);
+		tds_mutex_lock(&tls_mutex);
 		if (!tls_initialized) {
 			SSL_library_init();
 			tls_initialized = 1;
 		}
-		TDS_MUTEX_UNLOCK(&tls_mutex);
+		tds_mutex_unlock(&tls_mutex);
 	}
 	meth = TLSv1_client_method ();
 	if (meth == NULL)

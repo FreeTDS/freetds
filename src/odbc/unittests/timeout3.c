@@ -55,7 +55,7 @@ init_connect(void)
 }
 
 static pthread_t      fake_thread;
-static TDS_MUTEX_DECLARE(mtx);
+static tds_mutex mtx;
 static TDS_SYS_SOCKET fake_sock;
 
 static void *fake_thread_proc(void * arg);
@@ -105,9 +105,9 @@ fake_thread_proc(void * arg)
 		perror("accept");
 		exit(1);
 	}
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	fake_sock = sock;
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 	CLOSESOCKET(s);
 
 	for (;;) {
@@ -131,7 +131,7 @@ main(int argc, char *argv[])
 	int port;
 	time_t start_time, end_time;
 	
-	if (TDS_MUTEX_INIT(&mtx))
+	if (tds_mutex_init(&mtx))
 		return 1;
 
 	if (odbc_read_login_info())
@@ -180,9 +180,9 @@ main(int argc, char *argv[])
 	tmp[0] = 0;
 	CHKGetDiagRec(SQL_HANDLE_DBC, odbc_conn, 1, sqlstate, NULL, tmp, ODBC_VECTOR_SIZE(tmp), NULL, "SI");
 	odbc_disconnect();
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	CLOSESOCKET(fake_sock);
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 	pthread_join(fake_thread, NULL);
 
 	printf("Message: %s - %s\n", C(sqlstate), C(tmp));

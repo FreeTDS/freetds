@@ -1127,7 +1127,7 @@ tds_deinit_connection(TDSCONNECTION *conn)
 	free(conn->product_name);
 	tds_free_env(conn);
 #if ENABLE_ODBC_MARS
-	TDS_MUTEX_FREE(&conn->list_mtx);
+	tds_mutex_free(&conn->list_mtx);
 	tds_free_packets(conn->packets);
 	tds_free_packets(conn->recv_packet);
 	tds_free_packets(conn->send_packets);
@@ -1150,7 +1150,7 @@ tds_alloc_connection(TDSCONTEXT *context)
 	conn->use_iconv = 1;
 	conn->parent = NULL;
 	conn->tds_ctx = context;
-	if (TDS_MUTEX_INIT(&conn->list_mtx))
+	if (tds_mutex_init(&conn->list_mtx))
 		goto Cleanup;
 	if (tds_socketpair(AF_UNIX, SOCK_STREAM, 0, sv))
 		goto Cleanup;
@@ -1185,7 +1185,7 @@ tds_alloc_socket_base(int bufsize)
 	tds_init_write_buf(tds_socket);
 	tds_socket->state = TDS_DEAD;
 	tds_socket->env_chg_func = NULL;
-	if (TDS_MUTEX_INIT(&tds_socket->wire_mtx))
+	if (tds_mutex_init(&tds_socket->wire_mtx))
 		goto Cleanup;
 	if (tds_cond_init(&tds_socket->packet_cond))
 		goto Cleanup;
@@ -1264,7 +1264,7 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_conn(tds_socket)->s_signaled = sv[1];
 	tds_socket->state = TDS_DEAD;
 	tds_socket->env_chg_func = NULL;
-	if (TDS_MUTEX_INIT(&tds_socket->wire_mtx))
+	if (tds_mutex_init(&tds_socket->wire_mtx))
 		goto Cleanup;
 	return tds_socket;
       Cleanup:
@@ -1298,7 +1298,7 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 {
 	unsigned n;
 	int must_free = 1;
-	TDS_MUTEX_LOCK(&conn->list_mtx);
+	tds_mutex_lock(&conn->list_mtx);
 	if (tds->sid >= 0 && tds->sid < conn->num_sessions)
 		conn->sessions[tds->sid] = NULL;
 	for (n = 0; n < conn->num_sessions; ++n)
@@ -1310,7 +1310,7 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 		/* tds use connection member so must be valid */
 		tds_append_fin(tds);
 	}
-	TDS_MUTEX_UNLOCK(&conn->list_mtx);
+	tds_mutex_unlock(&conn->list_mtx);
 
 	/* detach entirely */
 	tds->sid = -1;

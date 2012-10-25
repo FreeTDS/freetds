@@ -1041,7 +1041,7 @@ struct tds_connection
 	TDSPACKET *recv_packet;
 	TDSPACKET *send_packets;
 
-	TDS_MUTEX_DECLARE(list_mtx);
+	tds_mutex list_mtx;
 #define BUSY_SOCKET ((TDSSOCKET*)(TDS_UINTPTR)1)
 #define TDSSOCKET_VALID(tds) (((TDS_UINTPTR)(tds)) > 1)
 	struct tds_socket **sessions;
@@ -1125,7 +1125,7 @@ struct tds_socket
 	TDS_OPERATION current_op;
 
 	int option_value;
-	TDS_MUTEX_DECLARE(wire_mtx);
+	tds_mutex wire_mtx;
 };
 
 #define tds_conn(tds) ((tds)->conn)

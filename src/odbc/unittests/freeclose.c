@@ -56,7 +56,7 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 /* this crazy test test that we do not send too much prepare ... */
 
-static TDS_MUTEX_DECLARE(mtx);
+static tds_mutex mtx;
 
 #ifdef _WIN32
 static TDS_SYS_SOCKET
@@ -183,9 +183,9 @@ count_insert(const char* buf, size_t len)
 
 	/* check it */
 	while ((p=strstr(insert_buf, search)) != NULL) {
-		TDS_MUTEX_LOCK(&mtx);
+		tds_mutex_lock(&mtx);
 		++inserts;
-		TDS_MUTEX_UNLOCK(&mtx);
+		tds_mutex_unlock(&mtx);
 		/* do not find again */
 		p[0] = '_';
 	}
@@ -265,9 +265,9 @@ fake_thread_proc(void * arg)
 		/* just read and forward */
 		if (FD_ISSET(fake_sock, &fds_read)) {
 			if (flow != sending) {
-				TDS_MUTEX_LOCK(&mtx);
+				tds_mutex_lock(&mtx);
 				++round_trips;
-				TDS_MUTEX_UNLOCK(&mtx);
+				tds_mutex_unlock(&mtx);
 			}
 			flow = sending;
 
@@ -282,9 +282,9 @@ fake_thread_proc(void * arg)
 
 		if (FD_ISSET(server_sock, &fds_read)) {
 			if (flow != receiving) {
-				TDS_MUTEX_LOCK(&mtx);
+				tds_mutex_lock(&mtx);
 				++round_trips;
-				TDS_MUTEX_UNLOCK(&mtx);
+				tds_mutex_unlock(&mtx);
 			}
 			flow = receiving;
 
@@ -318,7 +318,7 @@ main(int argc, char **argv)
 	WSAStartup(MAKEWORD(1, 1), &wsaData);
 #endif
 
-	if (TDS_MUTEX_INIT(&mtx))
+	if (tds_mutex_init(&mtx))
 		return 1;
 
 	odbc_connect();
@@ -377,10 +377,10 @@ main(int argc, char **argv)
 	odbc_reset_statement();
 
 	/* do not take into account connection statistics */
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	round_trips = 0;
 	inserts = 0;
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 
 	query = "insert into #test values (?, ?)";
 
@@ -388,9 +388,9 @@ main(int argc, char **argv)
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
 
 	CHKPrepare(T(query), SQL_NTS, "SI");
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	printf("%u round trips %u inserts\n", round_trips, inserts);
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 
 	for (id = 0; id < num_inserts; id++) {
 		sprintf(string, "This is a test (%d)", (int) id);
@@ -398,34 +398,34 @@ main(int argc, char **argv)
 		CHKFreeStmt(SQL_CLOSE, "S");
 	}
 
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	printf("%u round trips %u inserts\n", round_trips, inserts);
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 	odbc_reset_statement();
 
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	if (inserts > 1 || round_trips > num_inserts * 2 + 6) {
 		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
-		TDS_MUTEX_UNLOCK(&mtx);
+		tds_mutex_unlock(&mtx);
 		return 1;
 	}
 	printf("%u round trips %u inserts\n", round_trips, inserts);
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 
 #ifdef ENABLE_DEVELOPING
 	/* check for SQL_RESET_PARAMS */
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	round_trips = 0;
 	inserts = 0;
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 
 	CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
 	CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, sizeof(string), 0, string, 0, &sql_nts, "SI");
 
 	CHKPrepare((SQLCHAR *) query, SQL_NTS, "SI");
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	printf("%u round trips %u inserts\n", round_trips, inserts);
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 
 	for (id = 0; id < num_inserts; id++) {
 		CHKBindParameter(1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, sizeof(id), 0, &id, 0, &sql_nts, "SI");
@@ -436,19 +436,19 @@ main(int argc, char **argv)
 		CHKFreeStmt(SQL_RESET_PARAMS, "S");
 	}
 
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	printf("%u round trips %u inserts\n", round_trips, inserts);
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 	odbc_reset_statement();
 
-	TDS_MUTEX_LOCK(&mtx);
+	tds_mutex_lock(&mtx);
 	if (inserts > 1 || round_trips > num_inserts * 2 + 6) {
 		fprintf(stderr, "Too much round trips (%u) or insert (%u) !!!\n", round_trips, inserts);
-		TDS_MUTEX_UNLOCK(&mtx);
+		tds_mutex_unlock(&mtx);
 		return 1;
 	}
 	printf("%u round trips %u inserts\n", round_trips, inserts);
-	TDS_MUTEX_UNLOCK(&mtx);
+	tds_mutex_unlock(&mtx);
 #endif
 
 	odbc_disconnect();

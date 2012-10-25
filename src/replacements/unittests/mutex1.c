@@ -31,14 +31,13 @@
 #define int2ptr(i) ((void*)(((char*)0)+(i)))
 #define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
 
-static TDS_MUTEX_DEFINE(mtx);
-typedef TDS_MUTEX_DECLARE(tds_mutex_t);
+static tds_mutex mtx = TDS_MUTEX_INITIALIZER;
 
 static TDS_THREAD_PROC_DECLARE(trylock_proc, arg)
 {
-	tds_mutex_t *mtx = (tds_mutex_t *) arg;
+	tds_mutex *mtx = (tds_mutex *) arg;
 
-	if (!TDS_MUTEX_TRYLOCK(mtx)) {
+	if (!tds_mutex_trylock(mtx)) {
 		/* got mutex, failure as should be locked */
 		return int2ptr(1);
 	}
@@ -47,18 +46,18 @@ static TDS_THREAD_PROC_DECLARE(trylock_proc, arg)
 }
 
 static void
-test(tds_mutex_t *mtx)
+test(tds_mutex *mtx)
 {
 	tds_thread th;
 	void *res;
 
-	if (TDS_MUTEX_TRYLOCK(mtx)) {
+	if (tds_mutex_trylock(mtx)) {
 		fprintf(stderr, "mutex should be unlocked\n");
 		exit(1);
 	}
 	/* this success on Windows cause mutex are recursive */
 #ifndef _WIN32
-	if (!TDS_MUTEX_TRYLOCK(mtx)) {
+	if (!tds_mutex_trylock(mtx)) {
 		fprintf(stderr, "mutex should be locked\n");
 		exit(1);
 	}
@@ -79,30 +78,30 @@ test(tds_mutex_t *mtx)
 		exit(1);
 	}
 
-	TDS_MUTEX_UNLOCK(mtx);
+	tds_mutex_unlock(mtx);
 }
 
 int main(void)
 {
-	TDS_MUTEX_DECLARE(local);
+	tds_mutex local;
 
 	test(&mtx);
 
 	/* try allocating it */
-	if (TDS_MUTEX_INIT(&local)) {
+	if (tds_mutex_init(&local)) {
 		fprintf(stderr, "error creating mutex\n");
 		exit(1);
 	}
 	test(&local);
-	TDS_MUTEX_FREE(&local);
+	tds_mutex_free(&local);
 
 	/* try again */
-	if (TDS_MUTEX_INIT(&local)) {
+	if (tds_mutex_init(&local)) {
 		fprintf(stderr, "error creating mutex\n");
 		exit(1);
 	}
 	test(&local);
-	TDS_MUTEX_FREE(&local);
+	tds_mutex_free(&local);
 
 	return 0;
 }
