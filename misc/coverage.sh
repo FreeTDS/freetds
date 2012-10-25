@@ -26,6 +26,11 @@ cd covtmp
 find -name \*.bb\* | grep .libs | xargs rm -f || true
 find -name \*.da -o -name \*.gc\* | grep '/.libs/' | xargs -imao -n1 sh -c 'mv mao $(echo mao | sed s,/.libs/,/,g)'
 
+# save
+cd ..
+tar zcvf $HOME/coverage-$(date +%Y%m%d%H%M).tgz covtmp
+cd covtmp
+
 # generate coverage
 geninfo . -o out0.info -t 'Test'
 perl -ne '$skip = 1 if (m(^SF:/usr/include/)); print if(!$skip); $skip = 0 if (/^end_of_record$/);' < out0.info > out.info
