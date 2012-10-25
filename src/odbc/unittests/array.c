@@ -81,7 +81,7 @@ query_test(int prepare, SQLRETURN expected, const char *expected_status)
 			exit(1);
 		}
 		++num_errors[row-1];
-		printf("for row %2d returned '%s' %s\n", row, odbc_sqlstate, odbc_err);
+		printf("for row %2d returned '%s' %s\n", (int) row, odbc_sqlstate, odbc_err);
 	}
 
 	for (i = 0; i < processed; ++i) {
