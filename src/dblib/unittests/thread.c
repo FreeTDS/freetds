@@ -3,15 +3,19 @@
  */
 
 #include "common.h"
+#include "tdsthread.h"
 
-#ifdef TDS_HAVE_PTHREAD_MUTEX
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#include <pthread.h>
+#endif
 
-static char software_version[] = "$Id: thread.c,v 1.13 2008-11-25 22:58:29 jklowden Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+#ifdef TDS_HAVE_MUTEX
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+#if defined(__MINGW32__) || defined(_WIN32)
+#define sleep(s) Sleep((s)*1000)
+#endif
+
+static tds_mutex mutex = TDS_MUTEX_INITIALIZER;
 
 static int result = 0;
 static int thread_count = 0;
@@ -23,9 +27,9 @@ static int thread_count = 0;
 static void
 set_failed(void)
 {
-	pthread_mutex_lock(&mutex);
+	tds_mutex_lock(&mutex);
 	result = 1;
-	pthread_mutex_unlock(&mutex);
+	tds_mutex_unlock(&mutex);
 }
 
 static int
@@ -91,8 +95,7 @@ test(DBPROCESS *dbproc)
 	return 0;
 }
 
-static void *
-thread_test(void * arg)
+static TDS_THREAD_PROC_DECLARE(thread_test, arg)
 {
 	int i;
 	int num = ptr2int(arg);
@@ -116,18 +119,18 @@ thread_test(void * arg)
 	if (strlen(DATABASE))
 		dbuse(dbproc, DATABASE);
 
-	pthread_mutex_lock(&mutex);
+	tds_mutex_lock(&mutex);
 	++thread_count;
-	pthread_mutex_unlock(&mutex);
+	tds_mutex_unlock(&mutex);
 
 	printf("thread %2d waiting for all threads to start\n", num+1);
-	pthread_mutex_lock(&mutex);
+	tds_mutex_lock(&mutex);
 	while (thread_count < NUM_THREAD) {
-		pthread_mutex_unlock(&mutex);
+		tds_mutex_unlock(&mutex);
 		sleep(1);
-		pthread_mutex_lock(&mutex);
+		tds_mutex_lock(&mutex);
 	}
-	pthread_mutex_unlock(&mutex);
+	tds_mutex_unlock(&mutex);
 
 	for (i = 1; i <= NUM_LOOP; ++i) {
 		printf("thread %2d of %2d loop %d\n", num+1, NUM_THREAD, i);
@@ -143,7 +146,7 @@ int
 main(int argc, char **argv)
 {
 	int i;
-	pthread_t th[NUM_THREAD];
+	tds_thread th[NUM_THREAD];
 	DBPROCESS *dbproc;
 	LOGINREC *login;
 
@@ -203,7 +206,7 @@ main(int argc, char **argv)
 	}
 
 	for (i = 0; i < NUM_THREAD; ++i) {
-		int err = pthread_create(&th[i], NULL, thread_test, int2ptr(i));
+		int err = tds_thread_create(&th[i], thread_test, int2ptr(i));
 		if (err != 0)
 		{
 			fprintf(stderr, "Error %d (%s) creating thread\n", err, strerror(err));
@@ -214,7 +217,7 @@ main(int argc, char **argv)
 	}
 
 	for (i = 0; i < NUM_THREAD; ++i) {
-		pthread_join(th[i], NULL);
+		tds_thread_join(th[i], NULL);
 		fprintf(stdout, "thread: %d exited\n", i + 1);
 	}
 

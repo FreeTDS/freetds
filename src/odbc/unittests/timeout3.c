@@ -1,7 +1,8 @@
-#include "common.h"
+/*
+ * Test connection timeout
+ */
 
-/* TODO port to windows, use thread */
-#if defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM
+#include "common.h"
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -32,17 +33,15 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
-#include <pthread.h>
+#if HAVE_POLL_H
+#include <poll.h>
+#endif /* HAVE_POLL_H */
 
 #include "tds.h"
 #include "tdsthread.h"
+#include "replacements.h"
 
-/*
-	test connection timeout
-*/
-
-static char software_version[] = "$Id: timeout3.c,v 1.14 2011-09-02 16:33:48 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+#if TDS_HAVE_MUTEX
 
 static void init_connect(void);
 
@@ -54,12 +53,13 @@ init_connect(void)
 	CHKAllocConnect(&odbc_conn, "S");
 }
 
-static pthread_t      fake_thread;
+static tds_thread fake_thread;
 static tds_mutex mtx;
 static TDS_SYS_SOCKET fake_sock;
 
-static void *fake_thread_proc(void * arg);
+static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg);
 
+/* build a listening socket to connect to */
 static int
 init_fake_server(int ip_port)
 {
@@ -82,25 +82,34 @@ init_fake_server(int ip_port)
 		return 1;
 	}
 	listen(s, 5);
-	err = pthread_create(&fake_thread, NULL, fake_thread_proc, int2ptr(s));
+	err = tds_thread_create(&fake_thread, fake_thread_proc, int2ptr(s));
 	if (err != 0) {
-		perror("pthread_create");
+		perror("tds_thread_create");
 		exit(1);
 	}
 	return 0;
 }
 
-static void *
-fake_thread_proc(void * arg)
+/* accept a socket and read data as much as you can */
+static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 {
 	TDS_SYS_SOCKET s = ptr2int(arg), sock;
 	socklen_t len;
 	char buf[128];
 	struct sockaddr_in sin;
+	struct pollfd fd;
 
 	memset(&sin, 0, sizeof(sin));
 	len = sizeof(sin);
-	alarm(30);
+
+	fd.fd = s;
+	fd.events = POLLIN;
+	fd.revents = 0;
+	if (poll(&fd, 1, 30000) <= 0) {
+		perror("poll");
+		exit(1);
+	}
+
 	if (TDS_IS_SOCKET_INVALID(sock = tds_accept(s, (struct sockaddr *) &sin, &len))) {
 		perror("accept");
 		exit(1);
@@ -111,6 +120,16 @@ fake_thread_proc(void * arg)
 	CLOSESOCKET(s);
 
 	for (;;) {
+		int len;
+
+		fd.fd = sock;
+		fd.events = POLLIN;
+		fd.revents = 0;
+		if (poll(&fd, 1, 30000) <= 0) {
+			perror("poll");
+			exit(1);
+		}
+
 		/* just read and discard */
 		len = READSOCKET(sock, buf, sizeof(buf));
 		if (len == 0)
@@ -183,7 +202,7 @@ main(int argc, char *argv[])
 	tds_mutex_lock(&mtx);
 	CLOSESOCKET(fake_sock);
 	tds_mutex_unlock(&mtx);
-	pthread_join(fake_thread, NULL);
+	tds_thread_join(fake_thread, NULL);
 
 	printf("Message: %s - %s\n", C(sqlstate), C(tmp));
 	if (strcmp(C(sqlstate), "HYT00") || !strstr(C(tmp), "Timeout")) {
@@ -200,7 +219,7 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-#else	/* !TDS_HAVE_PTHREAD_MUTEX */
+#else	/* !TDS_HAVE_MUTEX */
 int
 main(void)
 {

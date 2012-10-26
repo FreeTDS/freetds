@@ -44,9 +44,6 @@
 #if (defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM && HAVE_FSTAT && defined(S_IFSOCK)) || defined(_WIN32)
 
 #include <ctype.h>
-#if HAVE_PTHREAD
-#include <pthread.h>
-#endif
 
 #include "tds.h"
 #include "tdsthread.h"
@@ -83,18 +80,11 @@ static socklen_t remote_addr_len;
 
 static TDS_SYS_SOCKET fake_sock;
 
-#ifndef _WIN32
-static pthread_t      fake_thread;
-#define THREADAPI
-#define THREADRET void*
-#else
-static HANDLE fake_thread;
-#define THREADAPI WINAPI
-#define THREADRET DWORD
-#define pthread_join(th,fl) WaitForSingleObject(th,INFINITE)
+static tds_thread fake_thread;
+#ifdef _WIN32
 #define alarm(n) do { ; } while(0)
 #endif
-static THREADRET THREADAPI fake_thread_proc(void *arg);
+static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg);
 
 static int
 init_fake_server(int ip_port)
@@ -117,18 +107,10 @@ init_fake_server(int ip_port)
 		return 1;
 	}
 	listen(s, 5);
-#ifndef _WIN32
-	if (pthread_create(&fake_thread, NULL, fake_thread_proc, int2ptr(s)) != 0) {
-		perror("pthread_create");
+	if (tds_thread_create(&fake_thread, fake_thread_proc, int2ptr(s)) != 0) {
+		perror("tds_thread_create");
 		exit(1);
 	}
-#else
-	fake_thread = CreateThread(NULL, 0, fake_thread_proc, int2ptr(s), 0, NULL);
-	if (!fake_thread) {
-		fprintf(stderr, "CreateThread error %u\n", (unsigned) GetLastError());
-		exit(1);
-	}
-#endif
 	return 0;
 }
 
@@ -201,8 +183,7 @@ count_insert(const char* buf, size_t len)
 static unsigned int round_trips = 0;
 static enum { sending, receiving } flow = sending;
 
-static THREADRET THREADAPI
-fake_thread_proc(void * arg)
+static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 {
 	TDS_SYS_SOCKET s = ptr2int(arg), server_sock;
 	socklen_t len;
@@ -298,7 +279,7 @@ fake_thread_proc(void * arg)
 	}
 	CLOSESOCKET(fake_sock);
 	CLOSESOCKET(server_sock);
-	return (THREADRET) 0;
+	return NULL;
 }
 
 int
@@ -454,7 +435,7 @@ main(int argc, char **argv)
 	odbc_disconnect();
 
 	alarm(10);
-	pthread_join(fake_thread, NULL);
+	tds_thread_join(fake_thread, NULL);
 
 	return 0;
 }

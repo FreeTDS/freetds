@@ -10,10 +10,14 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#if defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM
-
-#include <pthread.h>
 #include "tdsthread.h"
+
+#if TDS_HAVE_MUTEX
+
+#ifdef _WIN32
+#undef HAVE_ALARM
+#define sleep(s) Sleep((s)*1000)
+#endif
 
 static SQLTCHAR sqlstate[SQL_SQLSTATE_SIZE + 1];
 static tds_mutex mtx;
@@ -45,6 +49,7 @@ exit_forced(int s)
 	exit(1);
 }
 
+#if HAVE_ALARM
 static void
 sigalrm_handler(int s)
 {
@@ -55,11 +60,14 @@ sigalrm_handler(int s)
 	alarm(4);
 	signal(SIGALRM, exit_forced);
 }
+#else
+#define alarm(x) return;
+#define signal(sig,h)
+#endif
 
 volatile int exit_thread;
 
-static void *
-wait_thread_proc(void * arg)
+static TDS_THREAD_PROC_DECLARE(wait_thread_proc, arg)
 {
 	int n;
 
@@ -86,7 +94,11 @@ wait_thread_proc(void * arg)
 static void
 Test(int use_threads, int return_data)
 {
-	pthread_t wait_thread;
+	tds_thread wait_thread;
+
+#if !HAVE_ALARM
+	if (!use_threads) return;
+#endif
 
 	printf("testing with %s\n", use_threads ? "threads" : "signals");
 	printf(">> Wait 5 minutes...\n");
@@ -97,9 +109,9 @@ Test(int use_threads, int return_data)
 		int err;
 
 		exit_thread = 0;
-		err = pthread_create(&wait_thread, NULL, wait_thread_proc, NULL);
+		err = tds_thread_create(&wait_thread, wait_thread_proc, NULL);
 		if (err != 0) {
-			perror("pthread_create");
+			perror("tds_thread_create");
 			exit(1);
 		}
 	}
@@ -114,7 +126,7 @@ Test(int use_threads, int return_data)
 	if (!use_threads) {
 		alarm(0);
 	} else {
-		pthread_join(wait_thread, NULL);
+		tds_thread_join(wait_thread, NULL);
 	}
 	getErrorInfo(SQL_HANDLE_STMT, odbc_stmt);
 	if (strcmp(C(sqlstate), "HY008") != 0) {
