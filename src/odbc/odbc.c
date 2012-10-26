@@ -3177,16 +3177,16 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	switch (stmt->attr.cursor_type) {
 	default:
 	case SQL_CURSOR_FORWARD_ONLY:
-		i = 4;
+		i = TDS_CUR_TYPE_FORWARD;
 		break;
 	case SQL_CURSOR_STATIC:
-		i = 8;
+		i = TDS_CUR_TYPE_STATIC;
 		break;
 	case SQL_CURSOR_KEYSET_DRIVEN:
-		i = 1;
+		i = TDS_CUR_TYPE_KEYSET;
 		break;
 	case SQL_CURSOR_DYNAMIC:
-		i = 2;
+		i = TDS_CUR_TYPE_DYNAMIC;
 		break;
 	}
 	cursor->type = i;
@@ -3194,16 +3194,16 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	switch (stmt->attr.concurrency) {
 	default:
 	case SQL_CONCUR_READ_ONLY:
-		i = 1;
+		i = TDS_CUR_CONCUR_READ_ONLY;
 		break;
 	case SQL_CONCUR_LOCK:
-		i = 2;
+		i = TDS_CUR_CONCUR_SCROLL_LOCKS;
 		break;
 	case SQL_CONCUR_ROWVER:
-		i = 4;
+		i = TDS_CUR_CONCUR_OPTIMISTIC;
 		break;
 	case SQL_CONCUR_VALUES:
-		i = 8;
+		i = TDS_CUR_CONCUR_OPTIMISTIC_VALUES;
 		break;
 	}
 	cursor->concurrency = 0x2000 | i;
