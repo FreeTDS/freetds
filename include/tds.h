@@ -378,6 +378,25 @@ enum {
 	TDS_CUR_ISTAT_DEALLOC   = 0x40
 };
 
+/* http://jtds.sourceforge.net/apiCursors.html */
+/* Cursor scroll option, must be one of 0x01 - 0x10, OR'd with other bits */
+enum {
+	TDS_CUR_TYPE_KEYSET          = 0x0001, /* default */
+	TDS_CUR_TYPE_DYNAMIC         = 0x0002,
+	TDS_CUR_TYPE_FORWARD         = 0x0004,
+	TDS_CUR_TYPE_STATIC          = 0x0008,
+	TDS_CUR_TYPE_FASTFORWARDONLY = 0x0010,
+	TDS_CUR_TYPE_PARAMETERIZED   = 0x1000,
+	TDS_CUR_TYPE_AUTO_FETCH      = 0x2000
+};
+
+enum {
+	TDS_CUR_CONCUR_READ_ONLY         = 1,
+	TDS_CUR_CONCUR_SCROLL_LOCKS      = 2,
+	TDS_CUR_CONCUR_OPTIMISTIC        = 4, /* default */
+	TDS_CUR_CONCUR_OPTIMISTIC_VALUES = 8
+};
+
 /* environment type field */
 #define TDS_ENV_DATABASE  	1
 #define TDS_ENV_LANG      	2

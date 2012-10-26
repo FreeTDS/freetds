@@ -912,6 +912,9 @@ tds_alloc_cursor(TDSSOCKET *tds, const char *name, TDS_INT namelen, const char *
 	TEST_MALLOC(cursor, TDSCURSOR);
 	cursor->ref_count = 1;
 
+	cursor->type = TDS_CUR_TYPE_KEYSET;
+	cursor->concurrency = TDS_CUR_CONCUR_OPTIMISTIC;
+
 	if ( tds->cursors == NULL ) {
 		tds->cursors = cursor;
 	} else {
