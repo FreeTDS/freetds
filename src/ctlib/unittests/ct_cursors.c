@@ -127,14 +127,17 @@ main(int argc, char **argv)
 
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "ct_send failed\n");
+		return 1;
 	}
 
 	while ((results_ret = ct_results(cmd, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
 
+		case CS_CMD_FAIL:
+			fprintf(stderr, "ct_results failed\n");
+			return 1;
 		case CS_CMD_SUCCEED:
 		case CS_CMD_DONE:
-		case CS_CMD_FAIL:
 		case CS_STATUS_RESULT:
 			break;
 
@@ -224,9 +227,11 @@ main(int argc, char **argv)
 	while ((results_ret = ct_results(cmd2, &result_type)) == CS_SUCCEED) {
 		switch ((int) result_type) {
 
+		case CS_CMD_FAIL:
+			fprintf(stderr, "ct_results failed\n");
+			return 1;
 		case CS_CMD_SUCCEED:
 		case CS_CMD_DONE:
-		case CS_CMD_FAIL:
 		case CS_STATUS_RESULT:
 			break;
 
