@@ -89,10 +89,6 @@ bcp
   test encodings loading data
   extract to file and import again (t0016 test)
   table with id
-ct_cursors
-- check properly, currently does not work using mssql
-  cause it do not initialize type/concurrency (todo in libTDS)
-  but also it does not check properly results !!
 
 
 Full thread
