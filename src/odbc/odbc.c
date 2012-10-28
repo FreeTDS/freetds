@@ -2179,7 +2179,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		    || drec->sql_desc_concise_type == SQL_TYPE_DATE
 		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
 		    || drec->sql_desc_concise_type == SQL_SS_TIME2
-		    || drec->sql_desc_concise_type == SQL_TIMESTAMPOFFSET)
+		    || drec->sql_desc_concise_type == SQL_SS_TIMESTAMPOFFSET)
 			IOUT(SQLSMALLINT, drec->sql_desc_precision);
 		else
 			*pfDesc = drec->sql_desc_length;
@@ -2192,7 +2192,7 @@ _SQLColAttribute(SQLHSTMT hstmt, SQLUSMALLINT icol, SQLUSMALLINT fDescType, SQLP
 		    || drec->sql_desc_concise_type == SQL_TIMESTAMP
 		    || drec->sql_desc_concise_type == SQL_FLOAT
 		    || drec->sql_desc_concise_type == SQL_SS_TIME2
-		    || drec->sql_desc_concise_type == SQL_TIMESTAMPOFFSET)
+		    || drec->sql_desc_concise_type == SQL_SS_TIMESTAMPOFFSET)
 			IOUT(SQLSMALLINT, drec->sql_desc_scale);
 		else
 			*pfDesc = 0;

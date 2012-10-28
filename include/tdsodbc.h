@@ -79,8 +79,8 @@
 #define SQL_SS_TIME2	(-154)
 #endif
 
-#ifndef SQL_TIMESTAMPOFFSET
-#define SQL_TIMESTAMPOFFSET	(-155)
+#ifndef SQL_SS_TIMESTAMPOFFSET
+#define SQL_SS_TIMESTAMPOFFSET	(-155)
 #endif
 
 #ifdef __cplusplus

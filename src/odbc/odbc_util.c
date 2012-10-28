@@ -710,7 +710,7 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBMSDATE:
 		return SQL_TYPE_DATE;
 	case SYBMSDATETIMEOFFSET:
-		return SQL_TIMESTAMPOFFSET;
+		return SQL_SS_TIMESTAMPOFFSET;
 	case SYBMSDATETIME2:
 		return SQL_TYPE_TIMESTAMP;
 	case SYBDATETIME:
@@ -1161,7 +1161,7 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 		if (IS_TDS73_PLUS(tds->conn))
 			return SYBMSTIME;
 		return SYBDATETIME;
-	case SQL_TIMESTAMPOFFSET:
+	case SQL_SS_TIMESTAMPOFFSET:
 		if (IS_TDS73_PLUS(tds->conn))
 			return SYBMSDATETIMEOFFSET;
 		return SYBDATETIME;
@@ -1263,7 +1263,7 @@ odbc_get_param_len(const struct _drecord *drec_axd, const struct _drecord *drec_
 	TYPE_NORMAL(SQL_REAL) \
 	TYPE_NORMAL(SQL_DOUBLE)\
 \
-	TYPE_NORMAL(SQL_TIMESTAMPOFFSET) \
+	TYPE_NORMAL(SQL_SS_TIMESTAMPOFFSET) \
 	TYPE_NORMAL(SQL_SS_TIME2) \
 	TYPE_NORMAL(SQL_TYPE_DATE) \
 \
