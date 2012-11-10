@@ -621,7 +621,7 @@ tds_count_placeholders_ucs2le(const char *query, const char *query_end)
  * \param out    buffer to hold declaration
  * \return TDS_FAIL or TDS_SUCCESS
  */
-static TDSRET
+TDSRET
 tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 {
 	const char *fmt = NULL;
@@ -1430,13 +1430,11 @@ tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	}
 
 	switch (curcol->column_varint_size) {
-	default:
-	case 0:
-		return size;
 	case 1:
 		size = MAX(MIN(size, 255), 1);
 		break;
 	case 2:
+		/* note that varchar(max)/varbinary(max) have a varint of 8 */
 		if (curcol->on_server.column_type == XSYBNVARCHAR || curcol->on_server.column_type == XSYBNCHAR)
 			min = 2;
 		else
@@ -1449,8 +1447,9 @@ tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		else
 			size = MAX(MIN(size, 0x7fffffffu), 1u);
 		break;
+	default:
+		break;
 	}
-/*	return curcol->on_server.column_size = size; */
 	return size;
 }
 

@@ -1287,6 +1287,7 @@ void tds_convert_string_free(const char *original, const char *converted);
 #define tds_convert_string_free(original, converted) \
 	do { if (original != converted) free((char*) converted); } while(0)
 #endif
+TDSRET tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out);
 
 TDSRET tds_cursor_declare(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *send);
 TDSRET tds_cursor_setrows(TDSSOCKET * tds, TDSCURSOR * cursor, int *send);

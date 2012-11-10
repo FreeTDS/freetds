@@ -116,9 +116,14 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		 * isn't being used.  Perhaps this "upper" part of TDSCOLUMN should be a substructure.
 		 * Or, see if the "lower" part is unused (and zeroed out) at this point, and just do one assignment.
 		 */
+		curcol->funcs = resinfo->columns[i]->funcs;
 		curcol->column_type = resinfo->columns[i]->column_type;
 		curcol->column_usertype = resinfo->columns[i]->column_usertype;
 		curcol->column_flags = resinfo->columns[i]->column_flags;
+		if (curcol->column_varint_size == 0)
+			curcol->column_cur_size = resinfo->columns[i]->column_cur_size;
+		else
+			curcol->column_cur_size = -1;
 		curcol->column_size = resinfo->columns[i]->column_size;
 		curcol->column_varint_size = resinfo->columns[i]->column_varint_size;
 		curcol->column_prec = resinfo->columns[i]->column_prec;
@@ -180,135 +185,11 @@ cleanup:
 static TDSRET
 tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpcol, int first)
 {
-	char buffer[32];
-	const char *column_type = buffer;
+	char column_type[40];
 
 	tdsdump_log(TDS_DBG_FUNC, "tds7_build_bulk_insert_stmt(%p, %p, %p, %d)\n", tds, clause, bcpcol, first);
 
-	/* TODO reuse function in tds/query.c */
-	switch (bcpcol->on_server.column_type) {
-	case SYBINT1:
-		column_type = "tinyint";
-		break;
-	case SYBBIT:
-		column_type = "bit";
-		break;
-	case SYBINT2:
-		column_type = "smallint";
-		break;
-	case SYBINT4:
-		column_type = "int";
-		break;
-	case SYBINT8:
-		column_type = "bigint";
-		break;
-	case SYBDATETIME:
-		column_type = "datetime";
-		break;
-	case SYBDATETIME4:
-		column_type = "smalldatetime";
-		break;
-	case SYBREAL:
-		column_type = "real";
-		break;
-	case SYBMONEY:
-		column_type = "money";
-		break;
-	case SYBMONEY4:
-		column_type = "smallmoney";
-		break;
-	case SYBFLT8:
-		column_type = "float";
-		break;
-
-	case SYBINTN:
-		switch (bcpcol->column_size) {
-		case 1:
-			column_type = "tinyint";
-			break;
-		case 2:
-			column_type = "smallint";
-			break;
-		case 4:
-			column_type = "int";
-			break;
-		case 8:
-			column_type = "bigint";
-			break;
-		}
-		break;
-
-	case SYBBITN:
-		column_type = "bit";
-		break;
-	case SYBFLTN:
-		switch (bcpcol->column_size) {
-		case 4:
-			column_type = "real";
-			break;
-		case 8:
-			column_type = "float";
-			break;
-		}
-		break;
-	case SYBMONEYN:
-		switch (bcpcol->column_size) {
-		case 4:
-			column_type = "smallmoney";
-			break;
-		case 8:
-			column_type = "money";
-			break;
-		}
-		break;
-	case SYBDATETIMN:
-		switch (bcpcol->column_size) {
-		case 4:
-			column_type = "smalldatetime";
-			break;
-		case 8:
-			column_type = "datetime";
-			break;
-		}
-		break;
-	case SYBDECIMAL:
-		sprintf(buffer, "decimal(%d,%d)", bcpcol->column_prec, bcpcol->column_scale);
-		break;
-	case SYBNUMERIC:
-		sprintf(buffer, "numeric(%d,%d)", bcpcol->column_prec, bcpcol->column_scale);
-		break;
-
-	case XSYBVARBINARY:
-		sprintf(buffer, "varbinary(%d)", bcpcol->column_size);
-		break;
-	case XSYBVARCHAR:
-		sprintf(buffer, "varchar(%d)", bcpcol->column_size);
-		break;
-	case XSYBBINARY:
-		sprintf(buffer, "binary(%d)", bcpcol->column_size);
-		break;
-	case XSYBCHAR:
-		sprintf(buffer, "char(%d)", bcpcol->column_size);
-		break;
-	case SYBTEXT:
-		column_type = "text";
-		break;
-	case SYBIMAGE:
-		column_type = "image";
-		break;
-	case XSYBNVARCHAR:
-		sprintf(buffer, "nvarchar(%d)", bcpcol->column_size);
-		break;
-	case XSYBNCHAR:
-		sprintf(buffer, "nchar(%d)", bcpcol->column_size);
-		break;
-	case SYBNTEXT:
-		column_type = "ntext";
-		break;
-	case SYBUNIQUE:
-		column_type = "uniqueidentifier  ";
-		break;
-	default:
+	if (TDS_FAILED(tds_get_column_declaration(tds, bcpcol, column_type))) {
 		tdserror(tds_get_ctx(tds), tds, TDSEBPROBADTYP, errno);
 		tdsdump_log(TDS_DBG_FUNC, "error: cannot build bulk insert statement. unrecognized server datatype %d\n",
 			    bcpcol->on_server.column_type);
