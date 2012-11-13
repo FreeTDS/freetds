@@ -734,60 +734,18 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	case SYBBITN:
 		/* fall trough, act same way of TINYINT */
 	case SYBINT1:
-		memcpy(dest, &(cres.ti), 1);
-		*resultlen = 1;
-		ret = CS_SUCCEED;
-		break;
 	case SYBINT2:
-		memcpy(dest, &(cres.si), 2);
-		*resultlen = 2;
-		ret = CS_SUCCEED;
-		break;
 	case SYBINT4:
-		memcpy(dest, &(cres.i), 4);
-		*resultlen = 4;
-		ret = CS_SUCCEED;
-		break;
 	case SYBINT8:
-		memcpy(dest, &(cres.bi), 8);
-		*resultlen = 8;
-		ret = CS_SUCCEED;
-		break;
 	case SYBFLT8:
-		memcpy(dest, &(cres.f), 8);
-		*resultlen = 8;
-		ret = CS_SUCCEED;
-		break;
 	case SYBREAL:
-		memcpy(dest, &(cres.r), 4);
-		*resultlen = 4;
-		ret = CS_SUCCEED;
-		break;
 	case SYBMONEY:
-
-		tdsdump_log(TDS_DBG_FUNC, "cs_convert() copying %d bytes to src\n", (int) sizeof(TDS_MONEY));
-		memcpy(dest, &(cres.m), sizeof(TDS_MONEY));
-		*resultlen = sizeof(TDS_MONEY);
-		ret = CS_SUCCEED;
-		break;
 	case SYBMONEY4:
-		memcpy(dest, &(cres.m4), sizeof(TDS_MONEY4));
-		*resultlen = sizeof(TDS_MONEY4);
-		ret = CS_SUCCEED;
-		break;
 	case SYBDATETIME:
-		memcpy(dest, &(cres.dt), sizeof(TDS_DATETIME));
-		*resultlen = sizeof(TDS_DATETIME);
-		ret = CS_SUCCEED;
-		break;
 	case SYBDATETIME4:
-		memcpy(dest, &(cres.dt4), sizeof(TDS_DATETIME4));
-		*resultlen = sizeof(TDS_DATETIME4);
-		ret = CS_SUCCEED;
-		break;
 	case SYBUNIQUE:
-		memcpy(dest, &(cres.u), sizeof(cres.u));
-		*resultlen = sizeof(cres.u);
+		*resultlen = tds_get_size_by_type(desttype);
+		memcpy(dest, &(cres.ti), *resultlen);
 		ret = CS_SUCCEED;
 		break;
 	case SYBNUMERIC:
