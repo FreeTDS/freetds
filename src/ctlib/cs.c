@@ -50,7 +50,6 @@
 
 TDS_RCSID(var, "$Id: cs.c,v 1.82 2011-09-25 11:36:24 freddy77 Exp $");
 
-static int _cs_datatype_length(int dtype);
 static CS_INT cs_diag_storemsg(CS_CONTEXT *context, CS_CLIENTMSG *message);
 static CS_INT cs_diag_clearmsg(CS_CONTEXT *context, CS_INT type);
 static CS_INT cs_diag_getmsg(CS_CONTEXT *context, CS_INT idx, CS_CLIENTMSG *message);
@@ -89,43 +88,6 @@ cs_prretcode(int retcode)
 		sprintf(unknown, "oops: %u ??", retcode);
 	}
 	return unknown;
-}
-
-/**
- * returns the fixed length of the specified data type, or 0 if not a 
- * fixed length data type
- */
-static int 
-_cs_datatype_length(int dtype)
-{
-	tdsdump_log(TDS_DBG_FUNC, "_cs_datatype_length(%d)\n", dtype);
-
-	switch (dtype) {
-		case SYBINT1:
-			return 1;
-		case SYBINT2:
-			return 2;
-		case SYBINT4:
-			return 4;
-		case SYBINT8:
-			return 8;
-		case SYBFLT8:
-			return 8;
-		case SYBREAL:
-			return 4;
-		case SYBBIT:
-			return 1;
-		case SYBMONEY:
-			return 8;
-		case SYBMONEY4:
-			return 4;
-		case SYBDATETIME:
-			return 8;
-		case SYBDATETIME4:
-			return 4;
-		default:
-			return 0;
-	}
 }
 
 static const char *
@@ -671,8 +633,9 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		case SYBMONEY4:
 		case SYBDATETIME:
 		case SYBDATETIME4:
-			*resultlen = _cs_datatype_length(src_type);
-			memcpy(dest, srcdata, *resultlen);
+			*resultlen = tds_get_size_by_type(src_type);
+			if (*resultlen > 0)
+				memcpy(dest, srcdata, *resultlen);
 			ret = CS_SUCCEED;
 			break;
 
