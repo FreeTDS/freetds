@@ -721,101 +721,36 @@ tds_alloc_locale(void)
 	return NULL;
 }
 
-static const TDS_CAPABILITIES defaultcaps = { {
-     /* type,  len, data, data, data, data, data, data, data, data, data (9 bytes) */
-	{ 0x01, 0x09, { 0x00, 0x08, 0x0F, 0x6D, 0x7F, 0xFF, 0xFF, 0xFF, 0xFE } },
-	{ 0x02, 0x09, { 0x00, 0x00, 0x00, 0x00, 0x02, 0x68, 0x00, 0x00, 0x00 } }
-} };
-
-#if ENABLE_EXTRA_CHECKS
 /*
  * Default capabilities as of December 2006.  
  */
+#undef REQ
+#define SUPPORTED_REQ_CAP(i) \
+	REQ(i,LANG) REQ(i,RPC) REQ(i,EVT) REQ(i,MSTMT) REQ(i,BCP) REQ(i,CURSOR) REQ(i,DYNF) \
+	REQ(i,MSG) REQ(i,PARAM) REQ(i,DATA_INT1) REQ(i,DATA_INT2) REQ(i,DATA_INT4) REQ(i,DATA_BIT) \
+	REQ(i,DATA_CHAR) REQ(i,DATA_VCHAR) REQ(i,DATA_BIN) REQ(i,DATA_VBIN) REQ(i,DATA_MNY8) \
+	REQ(i,DATA_MNY4) REQ(i,DATA_DATE8) REQ(i,DATA_DATE4) REQ(i,DATA_FLT4) REQ(i,DATA_FLT8) \
+	REQ(i,DATA_NUM) REQ(i,DATA_TEXT) REQ(i,DATA_IMAGE) REQ(i,DATA_DEC) REQ(i,DATA_LCHAR) \
+	REQ(i,DATA_LBIN) REQ(i,DATA_INTN) REQ(i,DATA_DATETIMEN) REQ(i,DATA_MONEYN) \
+	REQ(i,CSR_PREV) REQ(i,CSR_FIRST) REQ(i,CSR_LAST) REQ(i,CSR_ABS) REQ(i,CSR_REL) \
+	REQ(i,CSR_MULTI) REQ(i,CON_INBAND) REQ(i,PROTO_TEXT) REQ(i,PROTO_BULK) \
+	REQ(i,DATA_SENSITIVITY) REQ(i,DATA_BOUNDARY) REQ(i,PROTO_DYNPROC) REQ(i,DATA_FLTN) \
+	REQ(i,DATA_BITN) REQ(i,DATA_INT8) REQ(i,WIDETABLE)
+#define REQ(i,n) |(((TDS_REQ_ ## n / 8) == i)?(1<<(TDS_REQ_ ## n & 7)):0)
+#define REQB(i) 0 SUPPORTED_REQ_CAP(i)
 
-static const TDS_TINYINT request_capabilities[] = 
-	{  /* no zero */ TDS_REQ_LANG, TDS_REQ_RPC, TDS_REQ_EVT,
-	  TDS_REQ_MSTMT, TDS_REQ_BCP, TDS_REQ_CURSOR, TDS_REQ_DYNF				/* capability.data[8] */
-	, TDS_REQ_MSG, TDS_REQ_PARAM, TDS_REQ_DATA_INT1, TDS_REQ_DATA_INT2, 
-	  TDS_REQ_DATA_INT4, TDS_REQ_DATA_BIT, TDS_REQ_DATA_CHAR, TDS_REQ_DATA_VCHAR 		/* capability.data[7] */
-	, TDS_REQ_DATA_BIN, TDS_REQ_DATA_VBIN, TDS_REQ_DATA_MNY8, TDS_REQ_DATA_MNY4, 
-	  TDS_REQ_DATA_DATE8, TDS_REQ_DATA_DATE4, TDS_REQ_DATA_FLT4, TDS_REQ_DATA_FLT8		/* capability.data[6] */
-	, TDS_REQ_DATA_NUM, TDS_REQ_DATA_TEXT, TDS_REQ_DATA_IMAGE, TDS_REQ_DATA_DEC, 
-	  TDS_REQ_DATA_LCHAR, TDS_REQ_DATA_LBIN, TDS_REQ_DATA_INTN, TDS_REQ_DATA_DATETIMEN	/* capability.data[5] */
-	, TDS_REQ_DATA_MONEYN, TDS_REQ_CSR_PREV, TDS_REQ_CSR_FIRST, TDS_REQ_CSR_LAST, 
-	  TDS_REQ_CSR_ABS, TDS_REQ_CSR_REL, TDS_REQ_CSR_MULTI					/* capability.data[4] */
-	, TDS_REQ_CON_INBAND,                   TDS_REQ_PROTO_TEXT, TDS_REQ_PROTO_BULK, 
-	  TDS_REQ_DATA_SENSITIVITY, TDS_REQ_DATA_BOUNDARY					/* capability.data[3] */
-	, TDS_REQ_PROTO_DYNPROC,   TDS_REQ_DATA_FLTN, TDS_REQ_DATA_BITN, TDS_REQ_DATA_INT8	/* capability.data[2] */
-	, TDS_REQ_WIDETABLE									/* capability.data[1] */
-	};
+#undef RES
+#define SUPPORTED_RES_CAP(i) \
+	RES(i,CON_NOOOB) RES(i,PROTO_NOTEXT) RES(i,PROTO_NOBULK) RES(i,NOTDSDEBUG)
+#define RES(i,n) |(((TDS_RES_ ## n / 8) == i)?(1<<(TDS_RES_ ## n & 7)):0)
+#define RESB(i) 0 SUPPORTED_RES_CAP(i)
 
-static const TDS_TINYINT response_capabilities[] = 
-	{ TDS_RES_CON_NOOOB
-	, TDS_RES_PROTO_NOTEXT
-	, TDS_RES_PROTO_NOBULK
-	, TDS_RES_NOTDSDEBUG
-	};
 
-/*
- * The TDSLOGIN::capabilities member is a little wrong because it includes the type and typelen members.
- * The 22 bytes are structured as:
- *	offset	name	value	meaning
- *	------	----	-----	--------------------------
- *	  0	type	  1	request
- *	  1	len	  9	9 capability bytes follow
- *	 2-10	data	  
- *	 11	type	  2	response
- *	 12	len	  9	9 capability bytes follow
- *	13-21	data	  
- *
- * This function manipulates the data portion without altering the length.
- * 
- * \param capabilities 	address of the data portion in the TDSLOGIN member to be affected.
- * \param capability 	capability to set or reset.  Pass as negative to reset.  
- */
-static unsigned char *
-tds_capability_set(unsigned char capabilities[], unsigned int cap, size_t len)
-{
-	int index = (len - cap/8u) - 1;
-	unsigned char mask = 1 << ((8u+cap) % 8u);
-	assert(0 < index && (unsigned) index < len);
-
-	capabilities[index] |= mask;
-	return capabilities;
-}
-
-static void
-tds_capability_test(void)
-{
-	TDS_CAPABILITIES capabilities;
-	TDS_CAPABILITY_TYPE *cap;
-	int i, c, ncap;
-	const TDS_TINYINT* pcap;
-
-	/*
-	 * Set the capabilities using the enumerated types, one at a time.  
-	 */
-	memset(&capabilities, 0, sizeof(capabilities));
-	cap = capabilities.types;
-	pcap = request_capabilities;
-	ncap = TDS_VECTOR_SIZE(request_capabilities);
-	for (c=0; c < 2; c++) {
-		cap->type = 1 + c; /* request/response */
-		cap->len = sizeof(cap->values);
-		for (i=0; i < ncap; i++) {
-			tds_capability_set(cap->values, pcap[i], sizeof(cap->values));
-		}
-		pcap = response_capabilities;
-		ncap = TDS_VECTOR_SIZE(response_capabilities);
-		++cap;
-	}
-	/* 
-	 * For now, we test to make sure the enumerated set yields the same bit pattern 
-	 * that we used to create with magic numbers.  Eventually we can delete defaultcaps and the below assertion.
-	 */
-	assert(0 == memcmp(&capabilities, &defaultcaps, sizeof(capabilities)));
-}
-#endif
+static const TDS_CAPABILITIES defaultcaps = { {
+     /* type,  len, data, data, data, data, data, data, data, data, data (9 bytes) */
+	{ 0x01, 0x09, { REQB(8), REQB(7), REQB(6), REQB(5), REQB(4), REQB(3), REQB(2), REQB(1), REQB(0) } },
+	{ 0x02, 0x09, { RESB(8), RESB(7), RESB(6), RESB(5), RESB(4), RESB(3), RESB(2), RESB(1), RESB(0) } }
+} };
 
 /**
  * Initialize login structure with locale information and other stuff for connection
@@ -1027,9 +962,6 @@ tds_alloc_login(int use_environment)
 		return NULL;
 	}
 
-#if ENABLE_EXTRA_CHECKS
-	tds_capability_test();
-#endif
 	login->capabilities = defaultcaps;
 
 	Cleanup:
