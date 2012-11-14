@@ -34,6 +34,7 @@
 #include "tdsiconv.h"
 #include "tdsstring.h"
 #include "tdsconvert.h"
+#include "tds_enum_cap.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -643,7 +644,7 @@ SQLSMALLINT
 odbc_server_to_sql_type(int col_type, int col_size)
 {
 	/* FIXME finish */
-	switch ((TDS_SERVER_TYPE) col_type) {
+	switch ((TDS_SERVER_TYPE) tds_get_conversion_type(col_type, col_size)) {
 	case XSYBCHAR:
 	case SYBCHAR:
 		return SQL_CHAR;
@@ -661,49 +662,30 @@ odbc_server_to_sql_type(int col_type, int col_size)
 	case SYBNTEXT:
 		return SQL_WLONGVARCHAR;
 	case SYBBIT:
-	case SYBBITN:
 		return SQL_BIT;
 #if (ODBCVER >= 0x0300)
+	case SYBUINT8:
 	case SYB5INT8:
 	case SYBINT8:
 		/* TODO return numeric for odbc2 and convert bigint to numeric */
 		return SQL_BIGINT;
 #endif
 	case SYBINT4:
+	case SYBUINT4:
 		return SQL_INTEGER;
+	case SYBUINT2:
 	case SYBINT2:
 		return SQL_SMALLINT;
+	case SYBUINT1:
+	case SYBSINT1:
 	case SYBINT1:
 		return SQL_TINYINT;
-	case SYBINTN:
-		switch (col_size) {
-		case 1:
-			return SQL_TINYINT;
-		case 2:
-			return SQL_SMALLINT;
-		case 4:
-			return SQL_INTEGER;
-#if (ODBCVER >= 0x0300)
-		case 8:
-			return SQL_BIGINT;
-#endif
-		}
-		break;
 	case SYBREAL:
 		return SQL_REAL;
 	case SYBFLT8:
 		return SQL_DOUBLE;
-	case SYBFLTN:
-		switch (col_size) {
-		case 4:
-			return SQL_REAL;
-		case 8:
-			return SQL_DOUBLE;
-		}
-		break;
 	case SYBMONEY:
 	case SYBMONEY4:
-	case SYBMONEYN:
 		return SQL_DECIMAL;
 	case SYBMSTIME:
 		return SQL_SS_TIME2;
@@ -715,7 +697,6 @@ odbc_server_to_sql_type(int col_type, int col_size)
 		return SQL_TYPE_TIMESTAMP;
 	case SYBDATETIME:
 	case SYBDATETIME4:
-	case SYBDATETIMN:
 #if (ODBCVER >= 0x0300)
 		return SQL_TYPE_TIMESTAMP;
 #else
@@ -750,20 +731,21 @@ odbc_server_to_sql_type(int col_type, int col_size)
 		 * return other types can cause additional problems
 		 */
 	case SYBVOID:
-	case SYBSINT1:
-	case SYBUINT2:
-	case SYBUINT4:
-	case SYBUINT8:
-	case SYBUINT1:
 	case SYBDATE:
 	case SYBDATEN:
 	case SYBINTERVAL:
 	case SYBTIME:
 	case SYBTIMEN:
-	case SYBUINTN:
 	case SYBUNITEXT:
 	case SYBXML:
 	case SYBMSUDT:
+		/* these types are handled by tds_get_conversion_type */
+	case SYBINTN:
+	case SYBBITN:
+	case SYBFLTN:
+	case SYBMONEYN:
+	case SYBDATETIMN:
+	case SYBUINTN:
 		break;
 	}
 	return SQL_UNKNOWN_TYPE;
@@ -772,7 +754,7 @@ odbc_server_to_sql_type(int col_type, int col_size)
 /**
  * Pass this an SQL_C_* type and get a SYB* type which most closely corresponds
  * to the SQL_C_* type.
- * This function can return XSYBNVARCHAR even if server do not support it
+ * This function can return XSYBNVARCHAR or SYBUINTx even if server do not support it
  */
 int
 odbc_c_to_server_type(int c_type)
@@ -795,24 +777,27 @@ odbc_c_to_server_type(int c_type)
 	case SQL_C_BIT:
 		return SYBBIT;
 #if (ODBCVER >= 0x0300)
-	case SQL_C_SBIGINT:
 	case SQL_C_UBIGINT:
+		return SYBUINT8;
+	case SQL_C_SBIGINT:
 		return SYBINT8;
 #ifdef SQL_C_GUID
 	case SQL_C_GUID:
 		return SYBUNIQUE;
 #endif
 #endif
+	case SQL_C_ULONG:
+		return SYBUINT4;
 	case SQL_C_LONG:
 	case SQL_C_SLONG:
-	case SQL_C_ULONG:
 		return SYBINT4;
+	case SQL_C_USHORT:
+		return SYBUINT2;
 	case SQL_C_SHORT:
 	case SQL_C_SSHORT:
-	case SQL_C_USHORT:
 		return SYBINT2;
-	case SQL_C_TINYINT:
 	case SQL_C_STINYINT:
+	case SQL_C_TINYINT:
 	case SQL_C_UTINYINT:
 		return SYBINT1;
 		/* ODBC date formats are completely differect from SQL one */
@@ -888,8 +873,18 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 		SET_INFO2("int", "", "", 10);
 	case SYBINT2:
 		SET_INFO2("smallint", "", "", 5);
+	case SYBUINT1:
 	case SYBINT1:
 		SET_INFO2("tinyint", "", "", 3);
+#if (ODBCVER >= 0x0300)
+	case SYBUINT8:
+		/* TODO return numeric for odbc2 and convert bigint to numeric */
+		SET_INFO2("unsigned bigint", "", "", 19);
+#endif
+	case SYBUINT4:
+		SET_INFO2("unsigned int", "", "", 10);
+	case SYBUINT2:
+		SET_INFO2("unsigned smallint", "", "", 5);
 	case SYBREAL:
 		SET_INFO2("real", "", "", odbc_ver == SQL_OV_ODBC3 ? 24 : 7);
 	case SYBFLT8:
@@ -1096,7 +1091,7 @@ odbc_sql_to_c_type_default(int sql_type)
 }
 
 int
-odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
+odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type, int sql_unsigned)
 {
 
 	switch (sql_type) {
@@ -1132,10 +1127,16 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type)
 	case SQL_TINYINT:
 		return SYBINT1;
 	case SQL_SMALLINT:
+		if (sql_unsigned && tds_capability_has_req(tds, TDS_REQ_DATA_UINT2))
+			return SYBUINT2;
 		return SYBINT2;
 	case SQL_INTEGER:
+		if (sql_unsigned && tds_capability_has_req(tds, TDS_REQ_DATA_UINT4))
+			return SYBUINT4;
 		return SYBINT4;
 	case SQL_BIGINT:
+		if (sql_unsigned && tds_capability_has_req(tds, TDS_REQ_DATA_UINT8))
+			return SYBUINT8;
 		return SYBINT8;
 	case SQL_REAL:
 		return SYBREAL;

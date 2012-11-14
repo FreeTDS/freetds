@@ -191,7 +191,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	tdsdump_log(TDS_DBG_INFO2, "type=%d\n", drec_ipd->sql_desc_concise_type);
 
 	/* what type to convert ? */
-	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type);
+	dest_type = odbc_sql_to_server_type(dbc->tds_socket, drec_ipd->sql_desc_concise_type, drec_ipd->sql_desc_unsigned);
 	if (!dest_type) {
 		odbc_errs_add(&stmt->errs, "07006", NULL);	/* Restricted data type attribute violation */
 		return SQL_ERROR;

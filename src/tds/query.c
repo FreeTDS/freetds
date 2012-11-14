@@ -749,6 +749,15 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	case SYBMSDATETIMEOFFSET:
 		fmt = "DATETIMEOFFSET";
 		break;
+	case SYBUINT2:
+		fmt = "UNSIGNED SMALLINT";
+		break;
+	case SYBUINT4:
+		fmt = "UNSIGNED INT";
+		break;
+	case SYBUINT8:
+		fmt = "UNSIGNED BIGINT";
+		break;
 		/* nullable types should not occur here... */
 	case SYBFLTN:
 	case SYBMONEYN:
@@ -759,9 +768,6 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 		/* TODO... */
 	case SYBVOID:
 	case SYBSINT1:
-	case SYBUINT2:
-	case SYBUINT4:
-	case SYBUINT8:
 	default:
 		tdsdump_log(TDS_DBG_ERROR, "Unknown type %d\n", tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size));
 		break;
@@ -1129,7 +1135,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds->current_op = TDS_OP_PREPARE;
 	} else {
 		int dynproc_capability =
-			tds_capability_enabled(&tds_conn(tds)->capabilities.types[0], TDS_REQ_PROTO_DYNPROC);
+			tds_capability_has_req(tds, TDS_REQ_PROTO_DYNPROC);
 		unsigned toklen;
 
 		tds->out_flag = TDS_NORMAL;

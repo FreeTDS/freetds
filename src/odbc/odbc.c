@@ -3037,6 +3037,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* TODO SQL_FALSE ?? */
 		drec->sql_desc_case_sensitive = SQL_TRUE;
 		/* TODO test error ?? */
+		/* TODO handle unsigned flags ! */
 		odbc_set_concise_sql_type(odbc_server_to_sql_type(col->on_server.column_type, col->on_server.column_size), drec, 0);
 		/*
 		 * TODO how to handle when in datetime we change precision ?? 

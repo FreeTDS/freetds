@@ -12,6 +12,8 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 static int g_result = 0;
 static unsigned int line_num;
 
+#define SEP " \t\n"
+
 static void
 fatal(const char *msg, ...)
 {
@@ -38,6 +40,15 @@ get_int(const char *s)
 	if (end[0])
 		fatal(": Invalid int\n");
 	return (int) l;
+}
+
+static const char*
+get_type(void)
+{
+	char *s = strtok(NULL, "");
+	if (*s == '\"')
+		return strtok(s+1, "\"");
+	return strtok(s, SEP);
 }
 
 struct lookup_int
@@ -138,8 +149,6 @@ lookup_attr(const char *name)
 	fatal(": attribute %s not found\n", name);
 	return NULL;
 }
-
-#define SEP " \t\n"
 
 #define ATTR_PARAMS const struct attribute *attr, const char *expected_value
 typedef void (*check_attr_t) (ATTR_PARAMS);
@@ -290,7 +299,7 @@ main(int argc, char *argv[])
 
 		/* select type */
 		if (strcmp(cmd, "select") == 0) {
-			const char *type = strtok(NULL, SEP);
+			const char *type = get_type();
 			const char *value = strtok(NULL, SEP);
 			char sql[sizeof(buf) + 40];
 
