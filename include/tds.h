@@ -721,22 +721,22 @@ struct tds_column
 typedef struct tds_result_info
 {
 	/* TODO those fields can became a struct */
-	TDS_SMALLINT num_cols;
 	TDSCOLUMN **columns;
-	TDS_INT row_size;
+	TDS_SMALLINT num_cols;
+	TDS_SMALLINT computeid;
 	TDS_INT ref_count;
 	TDSSOCKET *attached_to;
 	unsigned char *current_row;
 	void (*row_free)(struct tds_result_info* result, unsigned char *row);
+	TDS_INT row_size;
 
-	TDS_SMALLINT rows_exist;
 	/* TODO remove ?? used only in dblib */
 	TDS_INT row_count;
-	/* TODO remove ?? used only in dblib */
-	TDS_TINYINT more_results;
-	TDS_SMALLINT computeid;
 	TDS_SMALLINT *bycolumns;
 	TDS_SMALLINT by_cols;
+	TDS_TINYINT rows_exist;
+	/* TODO remove ?? used only in dblib */
+	TDS_TINYINT more_results;
 } TDSRESULTINFO;
 
 /** values for tds->state */
@@ -924,15 +924,21 @@ typedef struct tds_dynamic
 {
 	struct tds_dynamic *next;	/**< next in linked list, keep first */
 	TDS_INT ref_count;		/**< reference counter so client can retain safely a pointer */
+	/** numeric id for mssql7+*/
+	TDS_INT num_id;
 	/** 
 	 * id of dynamic.
 	 * Usually this id correspond to server one but if not specified
 	 * is generated automatically by libTDS
 	 */
 	char id[30];
+	/**
+	 * this dynamic query cannot be prepared so libTDS have to construct a simple query.
+	 * This can happen for instance is tds protocol doesn't support dynamics or trying
+	 * to prepare query under Sybase that have BLOBs as parameters.
+	 */
+	TDS_TINYINT emulated;
 	/* int dyn_state; */ /* TODO use it */
-	/** numeric id for mssql7+*/
-	TDS_INT num_id;
 	TDSPARAMINFO *res_info;	/**< query results */
 	/**
 	 * query parameters.
@@ -942,12 +948,6 @@ typedef struct tds_dynamic
 	 * parameter types earlier.
 	 */
 	TDSPARAMINFO *params;
-	/**
-	 * this dynamic query cannot be prepared so libTDS have to construct a simple query.
-	 * This can happen for instance is tds protocol doesn't support dynamics or trying
-	 * to prepare query under Sybase that have BLOBs as parameters.
-	 */
-	int emulated;
 	/** saved query, we need to know original query if prepare is impossible */
 	char *query;
 } TDSDYNAMIC;
@@ -1077,18 +1077,17 @@ struct tds_socket
 	unsigned in_pos;		/**< current position in in_buf */
 	unsigned out_pos;		/**< current position in out_buf */
 	unsigned in_len;		/**< input buffer length */
+	unsigned char in_flag;		/**< input buffer type */
+	unsigned char out_flag;		/**< output buffer type */
 
 #if ENABLE_ODBC_MARS
-	tds_condition packet_cond;
 	short sid;
+	tds_condition packet_cond;
 	TDS_UINT recv_seq;
 	TDS_UINT send_seq;
 	TDS_UINT recv_wnd;
 	TDS_UINT send_wnd;
 #endif
-
-	unsigned char in_flag;		/**< input buffer type */
-	unsigned char out_flag;		/**< output buffer type */
 
 	/**
 	 * Current query information. 
