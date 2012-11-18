@@ -20,23 +20,19 @@ sub readLine()
 # read header
 my $hdr = lc(readLine());
 $hdr =~ s/ /_/g;
-my @fields = split("\t", $hdr);
+my @fields = map { $_ eq 'null' ? 'nullable' : $_ eq 'var' ? 'variable' : $_ } split(/\t+/, $hdr);
 
 # read all files
 my %types;
 my $line;
 while ($line = readLine()) {
 	my %type;
-	@type{@fields} = split("\t", $line);
+	@type{@fields} = split(/\t+/, $line);
 	$types{$type{'name'}} = \%type;
 }
 
-my $id = '$Id: types.pl,v 1.3 2010-10-29 08:49:30 freddy77 Exp $';
-$id =~ s/\$Id/CVS Id/;
-$id =~ s/\$\s*$//;
 print qq|/*
  * This file produced from $0
- * $id
  */
 
 |;
