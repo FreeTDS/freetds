@@ -49,6 +49,7 @@ typedef struct pd
 	char *user;
 	char *pass;
 	char *server;
+	char *dbname;
 	char *hint;
 	char *options;
 	char *charset;
