@@ -207,7 +207,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 	 * Get the rest of the arguments 
 	 */
 	optind = 4; /* start processing options after table, direction, & filename */
-	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:i:I:S:h:T:A:o:O:0:C:ncEdvV")) != -1) {
+	while ((ch = getopt(argc, argv, "m:f:e:F:L:b:t:r:U:P:i:I:S:h:T:A:o:O:0:C:ncEdvVD:")) != -1) {
 		switch (ch) {
 		case 'v':
 		case 'V':
@@ -292,6 +292,9 @@ process_parameters(int argc, char **argv, BCPPARAMDATA *pdata)
 		case 'S':
 			pdata->Sflag++;
 			pdata->server = strdup(optarg);
+			break;
+		case 'D':
+			pdata->dbname = strdup(optarg);
 			break;
 		case 'h':
 			pdata->hint = strdup(optarg);
@@ -427,6 +430,9 @@ login_to_database(BCPPARAMDATA * pdata, DBPROCESS ** pdbproc)
 	if (pdata->Aflag && pdata->packetsize > 0) {
 		DBSETLPACKET(login, pdata->packetsize);
 	}
+
+	if (pdata->dbname)
+		DBSETLDBNAME(login, pdata->dbname);
 
 	/* Enable bulk copy for this connection. */
 
@@ -752,7 +758,7 @@ pusage(void)
 	fprintf(stderr, "        [-m maxerrors] [-f formatfile] [-e errfile]\n");
 	fprintf(stderr, "        [-F firstrow] [-L lastrow] [-b batchsize]\n");
 	fprintf(stderr, "        [-n] [-c] [-t field_terminator] [-r row_terminator]\n");
-	fprintf(stderr, "        [-U username] [-P password] [-I interfaces_file] [-S server]\n");
+	fprintf(stderr, "        [-U username] [-P password] [-I interfaces_file] [-S server] [-D database]\n");
 	fprintf(stderr, "        [-v] [-d] [-h \"hint [,...]\" [-O \"set connection_option on|off, ...]\"\n");
 	fprintf(stderr, "        [-A packet size] [-T text or image size] [-E]\n");
 	fprintf(stderr, "        [-i input_file] [-o output_file]\n");
