@@ -217,6 +217,13 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 	setsockopt(conn->s, SOL_SOCKET, SO_KEEPALIVE, (const void *) &len, sizeof(len));
 #endif
 
+#if defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL)
+	len = 40;
+	setsockopt(conn->s, SOL_TCP, TCP_KEEPIDLE, (const void *) &len, sizeof(len));
+	len = 2;
+	setsockopt(conn->s, SOL_TCP, TCP_KEEPINTVL, (const void *) &len, sizeof(len));
+#endif
+
 #if defined(__APPLE__) && defined(SO_NOSIGPIPE)
 	len = 1;
 	if (setsockopt(conn->s, SOL_SOCKET, SO_NOSIGPIPE, (const void *) &len, sizeof(len))) {
