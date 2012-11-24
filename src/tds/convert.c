@@ -78,6 +78,7 @@ struct tds_time
 	int tm_ns;   /**< nanoseconds (0-999999999) */
 };
 
+static TDS_INT tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int1(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
@@ -579,278 +580,106 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 static TDS_INT
 tds_convert_bit(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
-	int canonic = src[0] ? 1 : 0;
-
 	switch (desttype) {
-	case TDS_CONVERT_CHAR:
-		if (cr->cc.len)
-			cr->cc.c[0] = '0' + canonic;
-		return 1;
-
-	case CASE_ALL_CHAR:
-		cr->c = (TDS_CHAR *) malloc(2);
-		test_alloc(cr->c);
-		cr->c[0] = '0' + canonic;
-		cr->c[1] = 0;
-		return 1;
-		break;
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, 1, cr);
-		break;
-	case SYBINT1:
-		cr->ti = canonic;
-		return sizeof(TDS_TINYINT);
-		break;
-	case SYBINT2:
-		cr->si = canonic;
-		return sizeof(TDS_SMALLINT);
-		break;
-	case SYBINT4:
-		cr->i = canonic;
-		return sizeof(TDS_INT);
-		break;
-	case SYBINT8:
-		cr->bi = canonic;
-		return sizeof(TDS_INT8);
-		break;
-	case SYBFLT8:
-		cr->f = canonic;
-		return sizeof(TDS_FLOAT);
-		break;
-	case SYBREAL:
-		cr->r = (TDS_REAL) canonic;
-		return sizeof(TDS_REAL);
-		break;
-	case SYBBIT:
-	case SYBBITN:
-		cr->ti = src[0];
-		return sizeof(TDS_TINYINT);
-		break;
-	case SYBMONEY:
-	case SYBMONEY4:
-		return tds_convert_int1((src[0]) ? "\1" : "\0", desttype, cr);
-		break;
-	case SYBNUMERIC:
-	case SYBDECIMAL:
-		return stringz_to_numeric(canonic ? "1" : "0", cr);
-		break;
-
-		/* conversions not allowed */
-	case SYBUNIQUE:
-	case SYBDATETIME4:
-	case SYBDATETIME:
-	case SYBDATETIMN:
-	default:
-		break;
 	}
-	return TDS_CONVERT_NOAVAIL;
+	return tds_convert_int(src[0] ? 1 : 0, desttype, cr);
 }
 
 static TDS_INT
 tds_convert_int1(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
-	TDS_TINYINT buf;
-	TDS_CHAR tmp_str[5];
-
-	buf = *((TDS_TINYINT *) src);
 	switch (desttype) {
-	case TDS_CONVERT_CHAR:
-	case CASE_ALL_CHAR:
-		sprintf(tmp_str, "%d", buf);
-		return string_to_result(tmp_str, cr);
-		break;
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, 1, cr);
-		break;
-	case SYBINT1:
-		cr->ti = buf;
-		return sizeof(TDS_TINYINT);
-		break;
-	case SYBINT2:
-		cr->si = buf;
-		return sizeof(TDS_SMALLINT);
-		break;
-	case SYBINT4:
-		cr->i = buf;
-		return sizeof(TDS_INT);
-		break;
-	case SYBINT8:
-		cr->bi = buf;
-		return sizeof(TDS_INT8);
-		break;
-	case SYBBIT:
-	case SYBBITN:
-		cr->ti = buf ? 1 : 0;
-		return sizeof(TDS_TINYINT);
-		break;
-	case SYBFLT8:
-		cr->f = buf;
-		return sizeof(TDS_FLOAT);
-		break;
-	case SYBREAL:
-		cr->r = buf;
-		return sizeof(TDS_REAL);
-		break;
-	case SYBMONEY4:
-		cr->m4.mny4 = buf * 10000;
-		return sizeof(TDS_MONEY4);
-		break;
-	case SYBMONEY:
-		cr->m.mny = buf * 10000;
-		return sizeof(TDS_MONEY);
-		break;
-	case SYBNUMERIC:
-	case SYBDECIMAL:
-		sprintf(tmp_str, "%d", buf);
-		return stringz_to_numeric(tmp_str, cr);
-		break;
-		/* conversions not allowed */
-	case SYBUNIQUE:
-	case SYBDATETIME4:
-	case SYBDATETIME:
-	case SYBDATETIMN:
-	default:
-		break;
 	}
-	return TDS_CONVERT_NOAVAIL;
+	return tds_convert_int(*((TDS_TINYINT *) src), desttype, cr);
 }
 
 static TDS_INT
 tds_convert_int2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
-	TDS_SMALLINT buf;
-	TDS_CHAR tmp_str[16];
-
-	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
-	case TDS_CONVERT_CHAR:
-	case CASE_ALL_CHAR:
-		sprintf(tmp_str, "%d", buf);
-		return string_to_result(tmp_str, cr);
-		break;
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, 2, cr);
-		break;
-	case SYBINT1:
-		if (!IS_TINYINT(buf))
-			return TDS_CONVERT_OVERFLOW;
-		cr->ti = (TDS_TINYINT) buf;
-		return sizeof(TDS_TINYINT);
-		break;
-	case SYBINT2:
-		cr->si = buf;
-		return sizeof(TDS_SMALLINT);
-		break;
-	case SYBINT4:
-		cr->i = buf;
-		return sizeof(TDS_INT);
-		break;
-	case SYBINT8:
-		cr->bi = buf;
-		return sizeof(TDS_INT8);
-		break;
-	case SYBBIT:
-	case SYBBITN:
-		cr->ti = buf ? 1 : 0;
-		return sizeof(TDS_TINYINT);
-		break;
-	case SYBFLT8:
-		cr->f = buf;
-		return sizeof(TDS_FLOAT);
-		break;
-	case SYBREAL:
-		cr->r = buf;
-		return sizeof(TDS_REAL);
-		break;
-	case SYBMONEY4:
-		cr->m4.mny4 = buf * 10000;
-		return sizeof(TDS_MONEY4);
-		break;
-	case SYBMONEY:
-		cr->m.mny = buf * 10000;
-		return sizeof(TDS_MONEY);
-		break;
-	case SYBNUMERIC:
-	case SYBDECIMAL:
-		sprintf(tmp_str, "%d", buf);
-		return stringz_to_numeric(tmp_str, cr);
-		break;
-		/* conversions not allowed */
-	case SYBUNIQUE:
-	case SYBDATETIME4:
-	case SYBDATETIME:
-	case SYBDATETIMN:
-	default:
-		break;
 	}
-	return TDS_CONVERT_NOAVAIL;
+	return tds_convert_int(*((TDS_SMALLINT *) src), desttype, cr);
 }
 
 static TDS_INT
 tds_convert_int4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
-	TDS_INT buf;
+	switch (desttype) {
+	case CASE_ALL_BINARY:
+		return binary_to_result(src, 4, cr);
+	}
+	return tds_convert_int(*((TDS_INT *) src), desttype, cr);
+}
+
+
+static TDS_INT
+tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
+{
 	TDS_CHAR tmp_str[16];
 
-	memcpy(&buf, src, sizeof(buf));
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		sprintf(tmp_str, "%d", buf);
+		sprintf(tmp_str, "%d", num);
 		return string_to_result(tmp_str, cr);
 		break;
-	case CASE_ALL_BINARY:
-		return binary_to_result(src, 4, cr);
-		break;
 	case SYBINT1:
-		if (!IS_TINYINT(buf))
+		if (!IS_TINYINT(num))
 			return TDS_CONVERT_OVERFLOW;
-		cr->ti = buf;
+		cr->ti = num;
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT2:
-		if (!IS_SMALLINT(buf))
+		if (!IS_SMALLINT(num))
 			return TDS_CONVERT_OVERFLOW;
-		cr->si = buf;
+		cr->si = num;
 		return sizeof(TDS_SMALLINT);
 		break;
 	case SYBINT4:
-		cr->i = buf;
+		cr->i = num;
 		return sizeof(TDS_INT);
 		break;
 	case SYBINT8:
-		cr->bi = buf;
+		cr->bi = num;
 		return sizeof(TDS_INT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
-		cr->ti = buf ? 1 : 0;
+		cr->ti = num ? 1 : 0;
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBFLT8:
-		cr->f = buf;
+		cr->f = num;
 		return sizeof(TDS_FLOAT);
 		break;
 	case SYBREAL:
-		cr->r = (TDS_REAL) buf;
+		cr->r = (TDS_REAL) num;
 		return sizeof(TDS_REAL);
 		break;
 	case SYBMONEY4:
-		if (buf > 214748 || buf < -214748)
+		if (num > 214748 || num < -214748)
 			return TDS_CONVERT_OVERFLOW;
-		cr->m4.mny4 = buf * 10000;
+		cr->m4.mny4 = num * 10000;
 		return sizeof(TDS_MONEY4);
 		break;
 	case SYBMONEY:
-		cr->m.mny = (TDS_INT8) buf *10000;
+		cr->m.mny = (TDS_INT8) num *10000;
 
 		return sizeof(TDS_MONEY);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		sprintf(tmp_str, "%d", buf);
+		sprintf(tmp_str, "%d", num);
 		return stringz_to_numeric(tmp_str, cr);
 		break;
+		/* handled by upper layer */
+	case CASE_ALL_BINARY:
 		/* conversions not allowed */
 	case SYBUNIQUE:
 	case SYBDATETIME4:
