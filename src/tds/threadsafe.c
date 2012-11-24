@@ -82,6 +82,7 @@
 #endif
 
 #include "tds.h"
+#include "tdsthread.h"
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -587,3 +588,29 @@ tds_get_homedir(void)
 	return res;
 #endif
 }
+
+#if defined(TDS_HAVE_PTHREAD_MUTEX)
+int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int timeout_sec)
+{
+	struct timespec ts;
+#if !defined(HAVE_CLOCK_GETTIME) || !defined(CLOCK_REALTIME)
+	struct timeval tv;
+#endif
+
+	if (timeout_sec < 0)
+		return tds_cond_wait(cond, mtx);
+
+#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_REALTIME)
+	clock_gettime(CLOCK_REALTIME, &ts);
+#elif defined(HAVE_GETTIMEOFDAY)
+	gettimeofday(&tv, NULL);
+	ts.tv_sec = tv.tv_sec;
+	ts.tv_nsec = tv.tv_usec * 1000u;
+#else
+#error No way to get a proper time!
+#endif
+
+	ts.tv_sec += timeout_sec;
+	return pthread_cond_timedwait(cond, mtx, &ts);
+}
+#endif

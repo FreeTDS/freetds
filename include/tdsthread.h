@@ -76,9 +76,7 @@ static inline int tds_cond_wait(tds_condition *cond, pthread_mutex_t *mtx)
 {
 	return pthread_cond_wait(cond, mtx);
 }
-#if 0
-int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int milli);
-#endif
+int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int timeout_sec);
 
 #define TDS_HAVE_MUTEX 1
 
@@ -154,7 +152,11 @@ typedef union {
 extern int (*tds_cond_init)(tds_condition *cond);
 extern int (*tds_cond_destroy)(tds_condition *cond);
 extern int (*tds_cond_signal)(tds_condition *cond);
-extern int (*tds_cond_wait)(tds_condition *cond, tds_mutex *mtx);
+extern int (*tds_cond_timedwait)(tds_condition *cond, pthread_mutex_t *mtx, int timeout_sec);
+static inline int tds_cond_wait(tds_condition *cond, tds_mutex *mtx)
+{
+	return tds_cond_timedwait(cond, mtx, -1);
+}
 
 typedef HANDLE tds_thread;
 typedef void *(WINAPI *tds_thread_proc)(void *arg);

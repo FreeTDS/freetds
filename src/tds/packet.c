@@ -398,6 +398,8 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 
 	tds_mutex_lock(&conn->list_mtx);
 	for (;;) {
+		int wait_res;
+
 		if (IS_TDSDEAD(tds)) {
 			tdsdump_log(TDS_DBG_NETWORK, "Write attempt when state is TDS_DEAD");
 			break;
@@ -423,8 +425,14 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 		send(conn->s_signal, &zero, sizeof(zero), 0);
 
 		/* wait local condition */
-		/* TODO timeout */
-		tds_cond_wait(&tds->packet_cond, &conn->list_mtx);
+		wait_res = tds_cond_timedwait(&tds->packet_cond, &conn->list_mtx, tds->query_timeout);
+		if (wait_res == ETIMEDOUT
+		    && tdserror(tds_get_ctx(tds), tds, TDSETIME, ETIMEDOUT) != TDS_INT_CONTINUE) {
+			tds_mutex_unlock(&conn->list_mtx);
+			tds_close_socket(tds);
+			tds_free_packets(packet);
+			return TDS_FAIL;
+		}
 	}
 	tds_mutex_unlock(&conn->list_mtx);
 	if (TDS_UNLIKELY(packet)) {
@@ -453,6 +461,7 @@ tds_read_packet(TDSSOCKET * tds)
 	tds_mutex_lock(&conn->list_mtx);
 
 	for (;;) {
+		int wait_res;
 		TDSPACKET **p_packet;
 
 		if (IS_TDSDEAD(tds)) {
@@ -509,8 +518,13 @@ tds_read_packet(TDSSOCKET * tds)
 		}
 
 		/* wait local condition */
-		/* TODO timeout */
-		tds_cond_wait(&tds->packet_cond, &conn->list_mtx);
+		wait_res = tds_cond_timedwait(&tds->packet_cond, &conn->list_mtx, tds->query_timeout);
+		if (wait_res == ETIMEDOUT
+		    && tdserror(tds_get_ctx(tds), tds, TDSETIME, ETIMEDOUT) != TDS_INT_CONTINUE) {
+			tds_mutex_unlock(&conn->list_mtx);
+			tds_close_socket(tds);
+			return -1;
+		}
 	}
 
 	tds_mutex_unlock(&conn->list_mtx);

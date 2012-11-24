@@ -68,9 +68,9 @@ new_cond_signal(tds_condition * cond)
 }
 
 static int
-new_cond_wait(tds_condition * cond, tds_mutex * mtx)
+new_cond_timedwait(tds_condition * cond, tds_mutex * mtx, int timeout_sec)
 {
-	if (sleep_cv(&cond->cv, &mtx->crit, INFINITE))
+	if (sleep_cv(&cond->cv, &mtx->crit, timeout_sec < 0 ? INFINITE : timeout_sec * 1000))
 		return 0;
 	return ETIMEDOUT;
 }
@@ -101,12 +101,12 @@ old_cond_signal(tds_condition * cond)
 }
 
 static int
-old_cond_wait(tds_condition * cond, tds_mutex * mtx)
+old_cond_timedwait(tds_condition * cond, tds_mutex * mtx, int timeout_sec)
 {
 	int res;
 
 	LeaveCriticalSection(&mtx->crit);
-	res = WaitForSingleObject(cond->ev, INFINITE);
+	res = WaitForSingleObject(cond->ev, timeout_sec < 0 ? INFINITE : timeout_sec * 1000);
 	EnterCriticalSection(&mtx->crit);
 	return res == WAIT_TIMEOUT ? ETIMEDOUT : 0;
 }
@@ -124,15 +124,15 @@ detect_cond(void)
 	wake_cv  = (wake_cv_t)  GetProcAddress(mod, "WakeConditionVariable");
 
 	if (init_cv && sleep_cv && wake_cv) {
-		tds_cond_init    = new_cond_init;
-		tds_cond_destroy = new_cond_destroy;
-		tds_cond_signal  = new_cond_signal;
-		tds_cond_wait    = new_cond_wait;
+		tds_cond_init      = new_cond_init;
+		tds_cond_destroy   = new_cond_destroy;
+		tds_cond_signal    = new_cond_signal;
+		tds_cond_timedwait = new_cond_timedwait;
 	} else {
-		tds_cond_init    = old_cond_init;
-		tds_cond_destroy = old_cond_destroy;
-		tds_cond_signal  = old_cond_signal;
-		tds_cond_wait    = old_cond_wait;
+		tds_cond_init      = old_cond_init;
+		tds_cond_destroy   = old_cond_destroy;
+		tds_cond_signal    = old_cond_signal;
+		tds_cond_timedwait = old_cond_timedwait;
 	}
 }
 
@@ -158,14 +158,14 @@ detect_cond_signal(tds_condition * cond)
 }
 
 static int
-detect_cond_wait(tds_condition * cond, tds_mutex * mtx)
+detect_cond_timedwait(tds_condition * cond, tds_mutex * mtx)
 {
 	detect_cond();
-	return tds_cond_wait(cond, mtx);
+	return tds_cond_timedwait(cond, mtx);
 }
 
 int (*tds_cond_init) (tds_condition * cond) = detect_cond_init;
 int (*tds_cond_destroy) (tds_condition * cond) = detect_cond_destroy;
 int (*tds_cond_signal) (tds_condition * cond) = detect_cond_signal;
-int (*tds_cond_wait) (tds_condition * cond, tds_mutex * mtx) = detect_cond_wait;
+int (*tds_cond_timedwait) (tds_condition * cond, tds_mutex * mtx, int timeout_sec) = detect_cond_timedwait;
 #endif
