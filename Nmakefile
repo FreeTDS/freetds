@@ -243,7 +243,7 @@ include\tdsver.h:
 	move /Y $@.err $@
 
 src\tds\tds_types.h:
-	perl src\tds\types.pl misc\types.txt > $@.err
+	perl src\tds\types.pl misc\types.csv > $@.err
 	move /Y $@.err $@
 
 src\tds\tds_willconvert.h: src\tds\tds_willconvert.pl

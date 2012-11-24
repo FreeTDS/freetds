@@ -17,17 +17,33 @@ sub readLine()
 	return $line;
 }
 
+sub fixField($)
+{
+	shift;
+	return $_ if substr($_,0,1) ne '"';
+	$_ = substr($_, 1, length($_) - 2);
+	$_ =~ s/""/"/g;
+	return $_;
+}
+
+sub splitRow($)
+{
+	my $row = "$_[0];";
+	return map { fixField($_) } ($row =~ /\G("(?:[^"]|"")*"|[^";]*);/sg);
+}
+
 # read header
 my $hdr = lc(readLine());
 $hdr =~ s/ /_/g;
-my @fields = map { $_ eq 'null' ? 'nullable' : $_ eq 'var' ? 'variable' : $_ } split(/\t+/, $hdr);
+my @fields = splitRow($hdr);
 
 # read all files
 my %types;
 my $line;
 while ($line = readLine()) {
 	my %type;
-	@type{@fields} = split(/\t+/, $line);
+	@type{@fields} = splitRow($line);
+	next if !$type{'name'};
 	$types{$type{'name'}} = \%type;
 }
 

@@ -64,7 +64,7 @@ num_limits.h: num_limits.pl Makefile
 	perl $(srcdir)/num_limits.pl > $@.tmp
 	mv $@.tmp $@
 
-tds_types.h: types.pl Makefile ../../misc/types.txt
-	perl $(srcdir)/types.pl < $(srcdir)/../../misc/types.txt > $@.tmp
+tds_types.h: types.pl Makefile ../../misc/types.csv
+	perl $(srcdir)/types.pl < $(srcdir)/../../misc/types.csv > $@.tmp
 	mv $@.tmp $@
 endif
