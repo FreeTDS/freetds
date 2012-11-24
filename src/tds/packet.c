@@ -329,6 +329,27 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			break;
 		}
 
+		/*
+		 * we must write first to catch write errors as
+		 * write errors, not as read
+		 */
+		/* something to send */
+		if (conn->send_packets && (rc & POLLOUT) != 0) {
+			TDSSOCKET *s;
+
+			short sid = tds_packet_write(conn);
+			if (sid == tds->sid) break;	/* return to caller */
+
+			tds_mutex_lock(&conn->list_mtx);
+			if (sid >= 0 && sid < conn->num_sessions) {
+				s = conn->sessions[sid];
+				if (TDSSOCKET_VALID(s))
+					tds_cond_signal(&s->packet_cond);
+			}
+			tds_mutex_unlock(&conn->list_mtx);
+			/* avoid using a possible closed connection */
+			continue;
+		}
 
 		/* received */
 		if (rc & POLLIN) {
@@ -359,24 +380,6 @@ tds_connection_network(TDSCONNECTION *conn, TDSSOCKET *tds, int send)
 			tds_mutex_unlock(&conn->list_mtx);
 			/* if we are receiving return the packet */
 			if (!send) break;
-			/* avoid using a possible closed connection */
-			continue;
-		}
-
-		/* something to send */
-		if (conn->send_packets && (rc & POLLOUT) != 0) {
-			TDSSOCKET *s;
-
-			short sid = tds_packet_write(conn);
-			if (sid == tds->sid) break;	/* return to caller */
-
-			tds_mutex_lock(&conn->list_mtx);
-			if (sid >= 0 && sid < conn->num_sessions) {
-				s = conn->sessions[sid];
-				if (TDSSOCKET_VALID(s))
-					tds_cond_signal(&s->packet_cond);
-			}
-			tds_mutex_unlock(&conn->list_mtx);
 		}
 	}
 
