@@ -701,7 +701,7 @@ tds_put_cancel(TDSSOCKET * tds)
 	out_buf[1] = 1;	/* final */
 	out_buf[2] = 0;
 	out_buf[3] = 8;
-	TDS_PUT_A4(tds->out_buf+4, 0);
+	TDS_PUT_A4(out_buf+4, 0);
 	if (IS_TDS7_PLUS(tds->conn) && !tds->login)
 		out_buf[6] = 0x01;
 
