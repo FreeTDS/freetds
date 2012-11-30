@@ -39,8 +39,6 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 	char sbuf[1024];
 	unsigned char out_buf[256];
 	SQLLEN out_len = 0;
-	SQL_NUMERIC_STRUCT *num;
-	int i;
 	const char *sep;
 
 	odbc_reset_statement();
@@ -88,29 +86,7 @@ TestOutput(const char *type, const char *value_to_convert, SQLSMALLINT out_c_typ
 		SQLMoreResults(odbc_stmt);
 
 	/* test results */
-	sbuf[0] = 0;
-	switch (out_c_type) {
-	case SQL_C_NUMERIC:
-		num = (SQL_NUMERIC_STRUCT *) out_buf;
-		sprintf(sbuf, "%d %d %d ", num->precision, num->scale, num->sign);
-		i = SQL_MAX_NUMERIC_LEN;
-		for (; i > 0 && !num->val[--i];);
-		for (; i >= 0; --i)
-			sprintf(strchr(sbuf, 0), "%02X", num->val[i]);
-		break;
-	case SQL_C_BINARY:
-		assert(out_len >= 0);
-		for (i = 0; i < out_len; ++i)
-			sprintf(strchr(sbuf, 0), "%02X", (int) out_buf[i]);
-		break;
-	case SQL_C_CHAR:
-		sprintf(sbuf, "%d %s", (int) out_len, out_buf);
-		break;
-	default:
-		/* not supported */
-		assert(0);
-		break;
-	}
+	odbc_c2string(sbuf, out_c_type, out_buf, out_len);
 
 	if (strcmp(sbuf, expected) != 0) {
 		if (only_test) {
