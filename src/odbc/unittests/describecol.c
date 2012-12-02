@@ -18,6 +18,8 @@ fatal(const char *msg, ...)
 	va_list ap;
 
 	va_start(ap, msg);
+	if (msg[0] == ':')
+		fprintf(stderr, "Line %u", line_num);
 	vfprintf(stderr, msg, ap);
 	va_end(ap);
 
@@ -31,10 +33,10 @@ get_int(const char *s)
 	long l;
 
 	if (!s)
-		fatal("Line %u: NULL int\n", line_num);
+		fatal(": NULL int\n");
 	l = strtol(s, &end, 0);
 	if (end[0])
-		fatal("Line %u: Invalid int\n", line_num);
+		fatal(": Invalid int\n");
 	return (int) l;
 }
 
@@ -129,11 +131,11 @@ lookup_attr(const char *name)
 	unsigned int i;
 
 	if (!name)
-		fatal("Line %u: NULL attribute\n", line_num);
+		fatal(": NULL attribute\n");
 	for (i = 0; i < sizeof(attributes) / sizeof(attributes[0]); ++i)
 		if (strcmp(attributes[i].name, name) == 0 || strcmp(attributes[i].name + 4, name) == 0)
 			return &attributes[i];
-	fatal("Line %u: attribute %s not found\n", line_num, name);
+	fatal(": attribute %s not found\n", name);
 	return NULL;
 }
 
@@ -154,7 +156,7 @@ check_attr_ird(ATTR_PARAMS)
 
 		ret = SQLColAttribute(odbc_stmt, 1, attr->value, buf, sizeof(buf), &len, NULL);
 		if (!SQL_SUCCEEDED(ret))
-			fatal("Line %u: failure not expected\n", line_num);
+			fatal(": failure not expected\n");
 		buf[sizeof(buf)-1] = 0;
 		if (strcmp(C((SQLTCHAR*) buf), expected_value) != 0) {
 			g_result = 1;
@@ -166,14 +168,14 @@ check_attr_ird(ATTR_PARAMS)
 	i = 0xdeadbeef;
 	ret = SQLColAttribute(odbc_stmt, 1, attr->value, NULL, SQL_IS_INTEGER, NULL, &i);
 	if (!SQL_SUCCEEDED(ret))
-		fatal("Line %u: failure not expected\n", line_num);
+		fatal(": failure not expected\n");
 	/* SQL_DESC_LENGTH is the same of SQLDescribeCol len */
 	if (attr->value == SQL_DESC_LENGTH) {
 		SQLSMALLINT si;
 		SQLULEN li;
 		CHKDescribeCol(1, NULL, 0, NULL, &si, &li, &si, &si, "S");
 		if (i != li)
-			fatal("Line %u: attr %s SQLDescribeCol len %ld != SQLColAttribute len %ld\n", line_num, attr->name, (long) li, (long) i);
+			fatal(": attr %s SQLDescribeCol len %ld != SQLColAttribute len %ld\n", attr->name, (long) li, (long) i);
 	}
 	if (i != lookup(expected_value, attr->lookup)) {
 		g_result = 1;
@@ -213,7 +215,7 @@ check_attr_ard(ATTR_PARAMS)
 	case type_CHARP:
 		ret = SQLGetDescField(desc, 1, attr->value, buf, sizeof(buf), &ind);
 		if (!SQL_SUCCEEDED(ret))
-			fatal("Line %u: failure not expected\n", line_num);
+			fatal(": failure not expected\n");
 		if (strcmp(C((SQLTCHAR*) buf), expected_value) != 0) {
 			g_result = 1;
 			fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", line_num, attr->name, buf, expected_value);
@@ -221,7 +223,7 @@ check_attr_ard(ATTR_PARAMS)
 		return;
 	}
 	if (!SQL_SUCCEEDED(ret))
-		fatal("Line %u: failure not expected\n", line_num);
+		fatal(": failure not expected\n");
 	if (i != lookup(expected_value, attr->lookup)) {
 		g_result = 1;
 		fprintf(stderr, "Line %u: invalid %s got %ld expected %s\n", line_num, attr->name, (long int) i, expected_value);
@@ -319,7 +321,7 @@ main(int argc, char *argv[])
 			SQLINTEGER ind;
 
 			if (!value)
-				fatal("Line %u: value not defined\n", line_num);
+				fatal(": value not defined\n");
 
 			/* get ARD */
 			SQLGetStmtAttr(odbc_stmt, SQL_ATTR_APP_ROW_DESC, &desc, sizeof(desc), &ind);
@@ -343,7 +345,7 @@ main(int argc, char *argv[])
 				break;
 			}
 			if (!SQL_SUCCEEDED(ret))
-				fatal("Line %u: failure not expected setting ARD attribute\n", line_num);
+				fatal(": failure not expected setting ARD attribute\n");
 			check_attr_p = check_attr_ard;
 		}
 
@@ -353,7 +355,7 @@ main(int argc, char *argv[])
 			char *expected = strtok(NULL, SEP);
 
 			if (!expected)
-				fatal("Line %u: value not defined\n", line_num);
+				fatal(": value not defined\n");
 
 			check_attr_p(attr, expected);
 		}

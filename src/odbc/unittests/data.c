@@ -1,5 +1,6 @@
 #include "common.h"
 #include <assert.h>
+#include <ctype.h>
 
 /* Test various bind type */
 
@@ -17,13 +18,14 @@ static char software_version[] = "$Id: data.c,v 1.43 2011-09-05 18:52:43 freddy7
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 static int result = 0;
-static char sbuf[1024];
+static unsigned int line_num;
 
 static int ignore_select_error = 0;
 
 static void
 Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, const char *expected)
 {
+	char sbuf[1024];
 	unsigned char out_buf[256];
 	SQLLEN out_len = 0;
 
@@ -61,183 +63,360 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	}
 }
 
+static void
+fatal(const char *msg, ...)
+{
+	va_list ap;
+
+	va_start(ap, msg);
+	if (msg[0] == ':')
+		fprintf(stderr, "Line %u", line_num);
+	vfprintf(stderr, msg, ap);
+	va_end(ap);
+
+	exit(1);
+}
+
+static int
+get_int(const char *s)
+{
+	char *end;
+	long l;
+
+	if (!s)
+		fatal(": NULL int\n");
+	l = strtol(s, &end, 0);
+	if (end[0])
+		fatal(": Invalid int\n");
+	return (int) l;
+}
+
+struct lookup_int
+{
+	const char *name;
+	int value;
+};
+
+static int
+lookup(const char *name, const struct lookup_int *table)
+{
+	if (!table)
+		return get_int(name);
+
+	for (; table->name; ++table)
+		if (strcmp(table->name, name) == 0)
+			return table->value;
+
+	return get_int(name);
+}
+
+static struct lookup_int sql_c_types[] = {
+#define TYPE(s) { #s, s }
+	TYPE(SQL_C_NUMERIC),
+	TYPE(SQL_C_BINARY),
+	TYPE(SQL_C_CHAR),
+	TYPE(SQL_C_WCHAR),
+	TYPE(SQL_C_LONG),
+	TYPE(SQL_C_SHORT),
+#undef TYPE
+	{ NULL, 0 }
+};
+
+#define SEP " \t\n"
+
+static const char *
+get_tok(char **p)
+{
+	char *s = *p, *end;
+	s += strspn(s, SEP);
+	if (!*s) return NULL;
+	end = s + strcspn(s, SEP);
+	*end = 0;
+	*p = end+1;
+	return s;
+}
+
+static void
+parse_cstr(char *s)
+{
+	char hexbuf[4];
+	char *d = s;
+
+	while (*s) {
+		if (*s != '\\') {
+			*d++ = *s++;
+			continue;
+		}
+
+		switch (*++s) {
+		case '\"':
+			*d++ = *s++;
+			break;
+		case '\\':
+			*d++ = *s++;
+			break;
+		case 'x':
+			if (strlen(s) < 3)
+				fatal(": wrong string format\n");
+			memcpy(hexbuf, ++s, 2);
+			hexbuf[2] = 0;
+			*d++ = strtoul(hexbuf, NULL, 16);
+			s += 2;
+			break;
+		default:
+			fatal(": wrong string format\n");
+		}
+	}
+	*d = 0;
+}
+
+static const char *
+get_str(char **p)
+{
+	char *s = *p, *end;
+	s += strspn(s, SEP);
+	if (!*s) fatal(": unable to get string\n");
+
+	if (strncmp(s, "\"\"\"", 3) == 0) {
+		s += 3;
+		end = strstr(s, "\"\"\"");
+		if (!end) fatal(": string not terminated\n");
+		*end = 0;
+		*p = end+3;
+	} else if (s[0] == '\"') {
+		++s;
+		end = strchr(s, '\"');
+		if (!end) fatal(": string not terminated\n");
+		*end = 0;
+		parse_cstr(s);
+		*p = end+1;
+	} else {
+		return get_tok(p);
+	}
+	return s;
+}
+
+enum { MAX_BOOLS = 64 };
+typedef struct {
+	char *name;
+	int value;
+} bool_t;
+static bool_t bools[MAX_BOOLS];
+
+static void
+set_bool(const char *name, int value)
+{
+	unsigned n;
+	value = !!value;
+	for (n = 0; n < MAX_BOOLS && bools[n].name; ++n)
+		if (!strcmp(bools[n].name, name)) {
+			bools[n]. value = value;
+			return;
+		}
+
+	if (n == MAX_BOOLS)
+		fatal(": no more boolean variable free\n");
+	bools[n].name = strdup(name);
+	if (!bools[n].name) fatal(": out of memory\n");
+	bools[n].value = value;
+}
+
+static int
+get_bool(const char *name)
+{
+	unsigned n;
+	if (!name) fatal(": boolean variable not provided\n");
+	for (n = 0; n < MAX_BOOLS && bools[n].name; ++n)
+		if (!strcmp(bools[n].name, name))
+			return bools[n]. value;
+
+	fatal(": boolean variable %s not found\n", name);
+	return 0;
+}
+
+static void
+clear_bools(void)
+{
+	unsigned n;
+	for (n = 0; n < MAX_BOOLS && bools[n].name; ++n) {
+		free(bools[n].name);
+		bools[n].name = NULL;
+	}
+}
+
+enum { MAX_CONDITIONS = 32 };
+static char conds[MAX_CONDITIONS];
+static unsigned cond_level = 0;
+
+static int
+pop_condition(void)
+{
+	if (cond_level == 0) fatal(": no related if\n");
+	return conds[--cond_level];
+}
+
+static void
+push_condition(int cond)
+{
+	if (cond != 0 && cond != 1) fatal(": invalid cond value %d\n", cond);
+	if (cond_level >= MAX_CONDITIONS) fatal(": too much nested conditions\n");
+	conds[cond_level++] = cond;
+}
+
+static int
+get_not_cond(char **p)
+{
+	int cond;
+	const char *tok = get_tok(p);
+	if (!tok) fatal(": wrong condition syntax\n");
+
+	if (!strcmp(tok, "not"))
+		cond = !get_bool(get_tok(p));
+	else
+		cond = get_bool(tok);
+
+	return cond;
+}
+
+static int
+get_condition(char **p)
+{
+	int cond1 = get_not_cond(p), cond2;
+	const char *tok;
+
+	while ((tok=get_tok(p)) != NULL) {
+
+		cond2 = get_not_cond(p);
+
+		if (!strcmp(tok, "or"))
+			cond1 = cond1 || cond2;
+		else if (!strcmp(tok, "and"))
+			cond1 = cond1 && cond2;
+		else fatal(": wrong condition syntax\n");
+	}
+	return cond1;
+}
+
 int
 main(int argc, char *argv[])
 {
 	int big_endian = 1;
-	int test_2008_date_to_binary = 0;
+	int cond = 1;
 
-	odbc_connect();
+#define TEST_FILE "data.in"
+	const char *in_file = FREETDS_SRCDIR "/" TEST_FILE;
+	FILE *f;
+	char line_buf[512];
 
 	if (((char *) &big_endian)[0] == 1)
 		big_endian = 0;
+	set_bool("bigendian", big_endian);
 
-	Test("NUMERIC(18,2)", "123", SQL_C_NUMERIC, "38 0 1 7B");
+	odbc_connect();
 
-	/* all binary results */
-	/* cases (2) */
-	Test("CHAR(7)", "pippo", SQL_C_BINARY, "706970706F2020");
-	Test("TEXT", "mickey", SQL_C_BINARY, "6D69636B6579");
-	Test("VARCHAR(20)", "foo", SQL_C_BINARY, "666F6F");
+	set_bool("msdb", odbc_db_is_microsoft());
+	set_bool("freetds", odbc_driver_is_freetds());
 
-	Test("BINARY(5)", "qwer", SQL_C_BINARY, "7177657200");
-	Test("IMAGE", "cricetone", SQL_C_BINARY, "6372696365746F6E65");
-	Test("VARBINARY(20)", "teo", SQL_C_BINARY, "74656F");
-	/* TODO only MS ?? */
-	if (odbc_db_is_microsoft())
-		Test("TIMESTAMP", "abcdefghi", SQL_C_BINARY, "6162636465666768");
-
-	Test("DATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, big_endian ? "0000949700FBAA2C" : "979400002CAAFB00");
-	Test("SMALLDATETIME", "2004-02-24 15:16:17", SQL_C_BINARY, big_endian ? "94970394" : "97949403");
-
-	Test("BIT", "1", SQL_C_BINARY, "01");
-	Test("BIT", "0", SQL_C_BINARY, "00");
-	Test("TINYINT", "231", SQL_C_BINARY, "E7");
-	Test("SMALLINT", "4321", SQL_C_BINARY, big_endian ? "10E1" : "E110");
-	Test("INT", "1234567", SQL_C_BINARY, big_endian ? "0012D687" : "87D61200");
-	if ((odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u)
-	    || (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0)) {
-		int old_result = result;
-
-		Test("BIGINT", "123456789012345", SQL_C_BINARY, big_endian ? "00007048860DDF79" : "79DF0D8648700000");
-		if (result && strcmp(sbuf, "13000179DF0D86487000000000000000000000") == 0) {
-			fprintf(stderr, "Ignore previous error. You should configure TDS 7.1 for this!!!\n");
-			if (!old_result)
-				result = 0;
-		}
+	f = fopen(in_file, "r");
+	if (!f)
+		f = fopen(TEST_FILE, "r");
+	if (!f) {
+		fprintf(stderr, "error opening test file\n");
+		exit(1);
 	}
 
-	Test("INT", "-123", SQL_C_CHAR, "4 -123");
-	Test("INT", "78654", SQL_C_WCHAR, "5 78654");
-	Test("VARCHAR(10)", "  51245  ", SQL_C_LONG, "51245");
+	line_num = 0;
+	while (fgets(line_buf, sizeof(line_buf), f)) {
+		char *p = line_buf;
+		const char *cmd;
+
+		++line_num;
+
+		cmd = get_tok(&p);
+
+		/* skip comments */
+		if (!cmd || cmd[0] == '#' || cmd[0] == 0 || cmd[0] == '\n')
+			continue;
+
+		ODBC_FREE();
+
+		/* conditional statement */
+		if (!strcmp(cmd, "else")) {
+			int c = pop_condition();
+			push_condition(c);
+			cond = c && !cond;
+			continue;
+		}
+		if (!strcmp(cmd, "endif")) {
+			cond = pop_condition();
+			continue;
+		}
+		if (!strcmp(cmd, "if")) {
+			push_condition(cond);
+			if (cond)
+				cond = get_condition(&p);
+			continue;
+		}
+
+		/* select type */
+		if (!strcmp(cmd, "select")) {
+			const char *type = get_tok(&p);
+			const char *value = get_str(&p);
+			int c_type = lookup(get_tok(&p), sql_c_types);
+			const char *expected = get_str(&p);
+
+			if (!cond) continue;
+
+			ignore_select_error = 1;
+			Test(type, value, c_type, expected);
+			continue;
+		}
+		/* select type setting condition */
+		if (!strcmp(cmd, "select_cond")) {
+			const char *bool_name = get_tok(&p);
+			const char *type = get_tok(&p);
+			const char *value = get_str(&p);
+			int c_type = lookup(get_tok(&p), sql_c_types);
+			const char *expected = get_str(&p);
+			int save_result = result;
+
+			if (!bool_name) fatal(": no condition name\n");
+			if (!cond) continue;
+
+			ignore_select_error = 1;
+			result = 0;
+			Test(type, value, c_type, expected);
+			set_bool(bool_name, result == 0);
+			result = save_result;
+			continue;
+		}
+		/* execute a sql command */
+		if (!strcmp(cmd, "sql")) {
+			const char *sql = get_str(&p);
+
+			if (!cond) continue;
+
+			odbc_command(sql);
+			continue;
+		}
+		if (!strcmp(cmd, "sql_cond")) {
+			const char *bool_name = get_tok(&p);
+			const char *sql = get_str(&p);
+
+			if (!cond) continue;
+
+			set_bool(bool_name, odbc_command2(sql, "SENo") != SQL_ERROR);
+			continue;
+		}
+		fatal(": unknown command\n");
+	}
+	clear_bools();
+	fclose(f);
+
+	printf("\n");
+
 	/* mssql 2008 give a warning for truncation (01004) */
 	Test("VARCHAR(20)", "  15.1245  ", SQL_C_NUMERIC, "38 0 1 0F");
-	Test("VARCHAR(20)", "  15  ", SQL_C_NUMERIC, "38 0 1 0F");
-	if (odbc_db_is_microsoft() && (strncmp(odbc_db_version(), "08.00.", 6) == 0 || strncmp(odbc_db_version(), "09.00.", 6) == 0)) {
-		/* nvarchar without extended characters */
-		Test("NVARCHAR(20)", "test", SQL_C_CHAR, "4 test");
-		/* nvarchar with extended characters */
-		/* don't test with MS which usually have a not compatible encoding */
-		if (odbc_driver_is_freetds())
-			Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_CHAR, "4 \x83hi\xf2");
-
-		Test("VARCHAR(20)", "test", SQL_C_WCHAR, "4 test");
-		/* nvarchar with extended characters */
-		Test("NVARCHAR(20)", "0x830068006900f200", SQL_C_WCHAR, "4 \x83hi\xf2");
-		Test("NVARCHAR(20)", "0xA406A5FB", SQL_C_WCHAR, "2 \\u06a4\\ufba5");
-		/* NVARCHAR -> SQL_C_LONG */
-		Test("NVARCHAR(20)", "-24785  ", SQL_C_LONG, "-24785");
-	}
-
-	ignore_select_error = 1;
-	Test("UNIVARCHAR(10)", "u&'\\06A4\\FBA5'", SQL_C_WCHAR, "2 \\u06a4\\ufba5");
-
-	/* case (1) */
-	Test("DECIMAL", "1234.5678", SQL_C_BINARY, "120001D3040000000000000000000000000000");
-	Test("NUMERIC", "8765.4321", SQL_C_BINARY, "1200013D220000000000000000000000000000");
-
-	Test("FLOAT", "1234.5678", SQL_C_BINARY, big_endian ? "40934A456D5CFAAD" : "ADFA5C6D454A9340");
-	Test("REAL", "8765.4321", SQL_C_BINARY, big_endian ? "4608F5BA" : "BAF50846");
-
-	Test("SMALLMONEY", "765.4321", SQL_C_BINARY, big_endian ? "0074CBB1" : "B1CB7400");
-	Test("MONEY", "4321234.5678", SQL_C_BINARY, big_endian ? "0000000A0FA8114E" : "0A0000004E11A80F");
-
-	/* behavior is different from MS ODBC */
-	if (odbc_db_is_microsoft()) {
-		Test("NCHAR(7)", "donald", SQL_C_BINARY, "64006F006E0061006C0064002000");
-		Test("NTEXT", "duck", SQL_C_BINARY, "6400750063006B00");
-		Test("NVARCHAR(20)", "daffy", SQL_C_BINARY, "64006100660066007900");
-	}
-
-	if (odbc_db_is_microsoft())
-		Test("UNIQUEIDENTIFIER", "0DDF3B64-E692-11D1-AB06-00AA00BDD685", SQL_C_BINARY,
-		     big_endian ? "0DDF3B64E69211D1AB0600AA00BDD685" : "643BDF0D92E6D111AB0600AA00BDD685");
-
-	/* case (4) */
-	Test("DATETIME", "2006-06-09 11:22:44", SQL_C_CHAR, "23 2006-06-09 11:22:44.000");
-	Test("DATETIME", "2106-06-09 11:22:44", SQL_C_CHAR, "23 2106-06-09 11:22:44.000");
-	Test("DATETIME", "2206-06-09 11:22:44", SQL_C_CHAR, "23 2206-06-09 11:22:44.000");
-	Test("DATETIME", "2306-06-09 11:22:44", SQL_C_CHAR, "23 2306-06-09 11:22:44.000");
-	Test("DATETIME", "3806-06-09 11:22:44", SQL_C_CHAR, "23 3806-06-09 11:22:44.000");
-	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_CHAR, "19 2006-06-12 22:37:00");
-	Test("DATETIME", "2006-06-09 11:22:44", SQL_C_WCHAR, "23 2006-06-09 11:22:44.000");
-	Test("SMALLDATETIME", "2006-06-12 22:37:21", SQL_C_WCHAR, "19 2006-06-12 22:37:00");
-
-	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x08000000u) {
-		Test("SQL_VARIANT", "CAST('123' AS INT)", SQL_C_CHAR, "3 123");
-		Test("SQL_VARIANT", "CAST('hello' AS CHAR(6))", SQL_C_CHAR, "6 hello ");
-		Test("SQL_VARIANT", "CAST('ciao' AS VARCHAR(10))", SQL_C_CHAR, "4 ciao");
-		Test("SQL_VARIANT", "CAST('foo' AS NVARCHAR(10))", SQL_C_CHAR, "3 foo");
-		Test("SQL_VARIANT", "CAST('Super' AS NCHAR(8))", SQL_C_CHAR, "8 Super   ");
-		Test("SQL_VARIANT", "CAST('321' AS VARBINARY(10))", SQL_C_CHAR, "6 333231");
-		/* for some reasons MS ODBC seems to convert -123.4 to -123.40000000000001 */
-		Test("SQL_VARIANT", "CAST('-123.5' AS FLOAT)", SQL_C_CHAR, "6 -123.5");
-		Test("SQL_VARIANT", "CAST('-123.4' AS NUMERIC(10,2))", SQL_C_CHAR, "7 -123.40");
-		Test("SQL_VARIANT", "CAST('0DDF3B64-E692-11D1-AB06-00AA00BDD685' AS UNIQUEIDENTIFIER)", SQL_C_CHAR, "36 0DDF3B64-E692-11D1-AB06-00AA00BDD685");
-	}
-
-	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x09000000u) {
-		Test("VARCHAR(MAX)", "goodbye!", SQL_C_CHAR, "8 goodbye!");
-		Test("NVARCHAR(MAX)", "Micio mao", SQL_C_CHAR, "9 Micio mao");
-		Test("VARBINARY(MAX)", "ciao", SQL_C_BINARY, "6369616F");
-		Test("XML", "<a b=\"aaa\"><b>ciao</b>hi</a>", SQL_C_CHAR, "28 <a b=\"aaa\"><b>ciao</b>hi</a>");
-
-		/* XML with schema */
-		odbc_command("IF EXISTS(SELECT * FROM sys.xml_schema_collections WHERE [name] = 'test_schema') DROP XML SCHEMA COLLECTION test_schema");
-		odbc_command("CREATE XML SCHEMA COLLECTION test_schema AS '<schema xmlns=\"http://www.w3.org/2001/XMLSchema\"><element name=\"test\" type=\"string\"/></schema>'");
-		Test("XML(test_schema)", "<test>ciao</test>", SQL_C_CHAR, "17 <test>ciao</test>");
-		odbc_command("DROP XML SCHEMA COLLECTION test_schema");
-	}
-
-	/* MSSQL 2008*/
-	if (odbc_db_is_microsoft() && odbc_db_version_int() >= 0x0A000000u) {
-		/* TODO test for SQL_C_DEFAULT */
-		int save_result = result;
-
-		/* check right protocol */
-		result = 0;
-		test_2008_date_to_binary = 1;
-		Test("DATE", "1923-12-02", SQL_C_BINARY, big_endian ? "0783000C0002" : "83070C000200");
-		if (result) {
-			result = 0;
-			Test("DATE", "1923-12-02", SQL_C_BINARY, "31003900320033002D00310032002D0030003200");
-			if (!result) {
-				printf("previous error expected: wrong protocol used\n");
-				test_2008_date_to_binary = 0;
-			}
-		}
-		if (save_result)
-			result = 1;
-
-		Test("DATE", "1923-12-02", SQL_C_CHAR, "10 1923-12-02");
-
-		Test("TIME", "12:23:45", SQL_C_CHAR, "16 12:23:45.0000000");
-		Test("TIME(4)", "12:23:45.765", SQL_C_CHAR, "13 12:23:45.7650");
-		Test("TIME(0)", "12:23:45.765", SQL_C_CHAR, "8 12:23:46");
-
-		Test("DATETIME2", "2011-08-10 12:23:45", SQL_C_CHAR, "27 2011-08-10 12:23:45.0000000");
-		Test("DATETIME2(4)", "12:23:45.345888", SQL_C_CHAR, "24 1900-01-01 12:23:45.3459");
-		Test("DATETIME2(0)", "2011-08-10 12:23:45.93", SQL_C_CHAR, "19 2011-08-10 12:23:46");
-
-		Test("DATETIMEOFFSET", "12:23:45 -02:30", SQL_C_CHAR, "34 1900-01-01 12:23:45.0000000 -02:30");
-		Test("DATETIMEOFFSET(4)", "12:23:45", SQL_C_CHAR, "31 1900-01-01 12:23:45.0000 +00:00");
-	}
-
-	if (test_2008_date_to_binary) {
-		Test("DATE", "1923-12-02", SQL_C_BINARY, big_endian ? "0783000C0002" : "83070C000200");
-		Test("TIME", "12:23:45", SQL_C_BINARY, big_endian ? "000C0017002D000000000000" : "0C0017002D00000000000000");
-		Test("TIME(4)", "12:23:45.765", SQL_C_BINARY, big_endian ? "000C0017002D00002D98F940" : "0C0017002D00000040F9982D");
-		Test("DATETIME2", "2011-08-10 12:23:45", SQL_C_BINARY, big_endian ? "07DB0008000A000C0017002D00000000" : "DB0708000A000C0017002D0000000000");
-		Test("DATETIME2(4)", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D00000000" : "6C07010001000C0017002D0000000000");
-		Test("DATETIMEOFFSET", "12:23:45 -08:30", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D00000000FFF8FFE2" : "6C07010001000C0017002D0000000000F8FFE2FF");
-		Test("DATETIMEOFFSET(4)", "12:23:45", SQL_C_BINARY, big_endian ? "076C00010001000C0017002D0000000000000000" : "6C07010001000C0017002D000000000000000000");
-	}
-
-	if (!odbc_db_is_microsoft() && strncmp(odbc_db_version(), "15.00.", 6) >= 0) {
-		/* FIXME sure ?? with date and time always ?? */
-		Test("DATE", "1923-12-02", SQL_C_CHAR, "23 1923-12-02 00:00:00.000");
-		Test("TIME", "12:23:45", SQL_C_CHAR, "23 1900-01-01 12:23:45.000");
-	}
 
 	odbc_disconnect();
 

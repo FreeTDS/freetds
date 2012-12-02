@@ -110,7 +110,7 @@ AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) ../../replacements/libreplacements.la @NETWORK_LIBS@
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
-EXTRA_DIST	=	describecol.in attributes.in $(EXTRA_DIST_WIN32)
+EXTRA_DIST	=	data.in describecol.in attributes.in $(EXTRA_DIST_WIN32)
 
 if HAVE_PERL_SOURCES
 odbc.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
