@@ -158,10 +158,10 @@ detect_cond_signal(tds_condition * cond)
 }
 
 static int
-detect_cond_timedwait(tds_condition * cond, tds_mutex * mtx)
+detect_cond_timedwait(tds_condition * cond, tds_mutex * mtx, int timeout_sec)
 {
 	detect_cond();
-	return tds_cond_timedwait(cond, mtx);
+	return tds_cond_timedwait(cond, mtx, timeout_sec);
 }
 
 int (*tds_cond_init) (tds_condition * cond) = detect_cond_init;

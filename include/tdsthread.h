@@ -152,7 +152,7 @@ typedef union {
 extern int (*tds_cond_init)(tds_condition *cond);
 extern int (*tds_cond_destroy)(tds_condition *cond);
 extern int (*tds_cond_signal)(tds_condition *cond);
-extern int (*tds_cond_timedwait)(tds_condition *cond, pthread_mutex_t *mtx, int timeout_sec);
+extern int (*tds_cond_timedwait)(tds_condition *cond, tds_mutex *mtx, int timeout_sec);
 static inline int tds_cond_wait(tds_condition *cond, tds_mutex *mtx)
 {
 	return tds_cond_timedwait(cond, mtx, -1);
