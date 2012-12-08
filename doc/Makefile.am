@@ -68,22 +68,6 @@ INSTALLDIRS = 	$(TARGET_DOCDIR)/userguide    \
 $(INSTALLDIRS) $(DOCDIR):
 	$(MKDIR_P) $@  2>&1
 
-bsqldb.1: $(srcdir)/bsqldb.1.in
-bsqlodbc.1: $(srcdir)/bsqlodbc.1.in
-datacopy.1: $(srcdir)/datacopy.1.in
-defncopy.1: $(srcdir)/defncopy.1.in
-fisql.1: $(srcdir)/fisql.1.in
-freebcp.1: $(srcdir)/freebcp.1.in
-osql.1: $(srcdir)/osql.1.in
-tsql.1: $(srcdir)/tsql.1.in
-freetds.conf.5: $(srcdir)/freetds.conf.5.in
-
-$(man_MANS):
-	@echo making $@
-	sed -e 's/\$$ver\$$/$(VERSION)/' $(srcdir)/$@.in > $@~
-	@test -s $@~
-	mv $@~ $@
-
 # If we built the documentation ourselves, install that, 
 # else if we have access to distributed documentation, install that.  
 install-data-local: $(INSTALLDIRS) $(noinst_DATA)

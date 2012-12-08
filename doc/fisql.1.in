@@ -1,6 +1,6 @@
 .\" cf. groff_mdoc
 .Dd April 26, 2012
-.Os FreeTDS $ver$
+.Os FreeTDS @VERSION@
 .Dt FISQL FreeTDS "FreeTDS Reference Manual"
 .\"
 .Sh NAME
