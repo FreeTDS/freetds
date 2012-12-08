@@ -22,6 +22,7 @@
 .Fl f Ar formatfile
 .Brc
 .Op Fl S Ar servername
+.Op Fl D Ar dbname
 .Op Fl U Ar username
 .Op Fl P Ar password
 .Op Fl b Ar batchsize
@@ -29,7 +30,7 @@
 .Op Fl L Ar lastrow
 .Op Fl e Ar errfile
 .Op Fl I Ar interfaces
-.Op Fl m Ar maxerrors
+.Op Fl m Ar maxerror
 .Op Fl t Ar field_term
 .Op Fl r Ar row_term
 .Op Fl h Ar hints
@@ -43,19 +44,20 @@
 is a utility program distributed with FreeTDS.
 .Nm
 replicates (in part at least) the functionality
-of the "bcp" utility programs distributed by Sybase and Microsoft.
+of the bcp utility programs distributed by Sybase and Microsoft.
 .Nm
-makes use of the db-lib bcp API provided by FreeTDS. This
+makes use of the DB-Library bcp API provided by FreeTDS. This
 API is also available to application developers.
 .Pp
 The manual pages or online help for Sybase or SQL Server can be
-referenced for more detailed information on "bcp" functionality.
+referenced for more detailed information on bcp functionality.
 .\"
 .Sh TABLES\ AND\ FILES
 .Bl -tag -width indent
 .It Ar database
 The name of the database containing object to be copied.  Optional if
-the table/view is in the default database for username.
+the table/view is in the default database for 
+.Ar username .
 .It Ar schema
 The schema of the object being copied. If not provided, the default schema
 for 
@@ -87,6 +89,12 @@ The name of an operating system file.
 .It Fl A Ar packet_size
 Set the size of a TDS packet to packet_size.  Not sure why you would
 want to do this, except as an experiment.
+.It Fl D Ar dbname
+The name of the default database to use.  Overrides default database associated with the login account.  Causes 
+.Nm
+to issue a 
+.Ic USE Ar dbname 
+command immediately after logging in, before commencing BCP operations. 
 .It Fl E
 Write the data in datafile to the table's IDENTITY column. Without
 this flag, the identity data present in the datafile will be ignored,
@@ -95,52 +103,75 @@ and new IDENTITY values will be generated for the imported rows.
 The first row to copy from the input file or database table. The
 default is the first row, row 1.
 .It Fl I Ar interfaces
-The name and location of the interfaces file to search when connecting
-to servername. Overrides freetds.conf.
+The name and location of the
+.Pa interfaces
+file to search when connecting to servername. Overrides
+.Pa freetds.conf.
 .It Fl L Ar lastrow
 The last row to copy from an input file  or
 database table. The default is the last row.
 .It Fl O Ar options
 SQL text to set connection options prior to the bcp operation.  If
-options is a valid filename, the SQL is read from the file
-instead. Sometimes needed for queryout.  Example: 
+.Ar options
+is a valid filename, the SQL is read from the file
+instead. Sometimes needed for
+.Ar queryout .
+Example: 
 .Li -O `SET QUOTED_IDENTIFIER ON' Ns .
 .It Fl P Ar password
-A database password.
+The password associated with 
+.Ar username .
 .It Fl S Ar servername
 The name of the Database Server to which to connect.
 .It Fl T Ar textsize
 For text or image columns, set the maximum number of characters to
-request from the server. Defaults to the setting in freetds.conf. If
+request from the server. Defaults to the setting in
+.Pa freetds.conf .
+If
 not specified anywhere, defaults to the full size of the data.
 .It Fl U Ar username
-A database login name. If username is not provided, a domain login is
-attempted for TDS 7+ connections.
+A database login name.  For TDS\ 7+ connections, a domain login is attempted
+if 
+.Ar username
+is not provided. 
 .It Fl b Ar batchsize
 The number of rows per batch of data copied. Batching applies only
 when you are bulk copying into the database. Each batch of data is
-effectively 'committed' into the database. The default value for
-batchsize is 1000.
+effectively 
+.Dq committed
+into the database. The default value for
+.Ar batchsize
+is 1000.
 .It Fl c
 The host data file is (or will be) in "character" format, i.e., a text
 file. Encoding is determined by the client charset attribute in
-freetds.conf.
+.Pa freetds.conf .
 .It Fl d
 Turn off any logging. (Unintuitive, perhaps.)
 .It Fl e Ar  errfile
-Write errors to error_file. For uploads.  Includes line and column
+Write errors to 
+.Ar errfile . 
+For uploads.  Includes line and column
 information, and the row data.
 .It Fl f Ar formatfile
-The format of the host data file is described by formatfile. The
-layout of formatfile is identical to that understood by the Sybase and
+The format of the host data file is described by
+.Ar formatfile . 
+The layout of 
+.Ar formatfile
+is identical to that understood by the Sybase and
 Microsoft bcp utilities, but is too complicated to describe here.
 .It Fl h Ar hints
-Set bcp hints. For valid values, cf. bcp_options() in the FreeTDS
-Reference Manual.
-.It Fl m Ar maxerrors
-Stop after encountering maxerror errors. Default 10.
+Set bcp hints. For valid values, cf. 
+.Fn bcp_options
+in the FreeTDS Reference Manual.
+.It Fl m Ar maxerror
+Stop after encountering
+.Ar maxerror
+errors. Default 10.
 .It Fl n
-The host data file is in "native" format.  This is a format that
+The host data file is in 
+.Dq native
+format.  This is a format that
 .Nm
 will be able to process, but is not portable or readable.
 .It Fl r Ar row_term
@@ -166,7 +197,7 @@ default
 .Sh NOTES
 When connecting to a Sybase database server, it is required that the
 TDS 5.0 protocol be used. When connecting to a Microsoft SQL Server
-2000 database server, the TDS 7.1 protocol is required.
+2000 database server, the TDS\ 7 (or later) protocol is required.
 .Pp
 Sybase and Microsoft define different versions of the bcp portion of TDS 4.2.
 Because FreeTDS has no way of knowing which type of server it's connected to,
