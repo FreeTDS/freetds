@@ -623,9 +623,13 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 			}
 			break;
 		case SYBINT1:
+		case SYBUINT1:
 		case SYBINT2:
+		case SYBUINT2:
 		case SYBINT4:
+		case SYBUINT4:
 		case SYBINT8:
+		case SYBUINT8:
 		case SYBFLT8:
 		case SYBREAL:
 		case SYBBIT:
@@ -734,9 +738,13 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 	case SYBBITN:
 		/* fall trough, act same way of TINYINT */
 	case SYBINT1:
+	case SYBUINT1:
 	case SYBINT2:
+	case SYBUINT2:
 	case SYBINT4:
+	case SYBUINT4:
 	case SYBINT8:
+	case SYBUINT8:
 	case SYBFLT8:
 	case SYBREAL:
 	case SYBMONEY:

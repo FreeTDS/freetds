@@ -91,6 +91,7 @@ static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
 
 #define IS_TINYINT(x) ( 0 <= (x) && (x) <= 0xff )
 #define IS_SMALLINT(x) ( -32768 <= (x) && (x) <= 32767 )
+#define IS_USMALLINT(x) ( 0 <= (x) && (x) <= 65535 )
 /*
  * f77: I don't write -2147483648, some compiler seem to have some problem 
  * with this constant although is a valid 32bit value
@@ -99,9 +100,15 @@ static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
 #define TDS_INT_MAX 2147483647l
 #define IS_INT(x) (TDS_INT_MIN <= (x) && (x) <= TDS_INT_MAX)
 
+#define TDS_UINT_MAX 4294967295lu
+#define IS_UINT(x) (0 <= (x) && (x) <= TDS_UINT_MAX)
+
 #define TDS_INT8_MAX ((((TDS_INT8) 0x7fffffffl) << 32) + 0xfffffffflu)
 #define TDS_INT8_MIN  (((TDS_INT8) (-0x7fffffffl-1)) << 32)
 #define IS_INT8(x) (TDS_INT8_MIN <= (x) && (x) <= TDS_INT8_MAX)
+
+#define TDS_UINT8_MAX ((((TDS_UINT8) 0xfffffffflu) << 32) + 0xfffffffflu)
+#define IS_UINT8(x) (0 <= (x) && (x) <= TDS_UINT8_MAX)
 
 /**
  * \ingroup libtds
@@ -128,6 +135,7 @@ static int stringz_to_numeric(const char *instr, CONV_RESULT * cr);
 
 static TDS_INT string_to_int(const char *buf, const char *pend, TDS_INT * res);
 static TDS_INT string_to_int8(const char *buf, const char *pend, TDS_INT8 * res);
+static TDS_INT string_to_uint8(const char *buf, const char *pend, TDS_UINT8 * res);
 
 static int store_hour(const char *, const char *, struct tds_time *);
 static int store_time(const char *, struct tds_time *);
@@ -256,9 +264,13 @@ tds_convert_binary(const TDS_UCHAR * src, TDS_INT srclen, int desttype, CONV_RES
 		return binary_to_result(src, srclen, cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 	case SYBINT2:
+	case SYBUINT2:
 	case SYBINT4:
+	case SYBUINT4:
 	case SYBINT8:
+	case SYBUINT8:
 	case SYBMONEY4:
 	case SYBMONEY:
 	case SYBREAL:
@@ -342,6 +354,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	unsigned int places;
 	TDS_INT tds_i;
 	TDS_INT8 tds_i8;
+	TDS_UINT8 tds_ui8;
 	TDS_INT rc;
 	TDS_CHAR *ib;
 
@@ -384,6 +397,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		return tds_char2hex(ib, desttype == TDS_CONVERT_BINARY ? cr->cb.len : 0xffffffffu, src, srclen);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
 			return rc;
 		if (!IS_TINYINT(tds_i))
@@ -399,17 +413,37 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		cr->si = tds_i;
 		return sizeof(TDS_SMALLINT);
 		break;
+	case SYBUINT2:
+		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
+			return rc;
+		if (!IS_USMALLINT(tds_i))
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = tds_i;
+		return sizeof(TDS_USMALLINT);
+		break;
 	case SYBINT4:
 		if ((rc = string_to_int(src, src + srclen, &tds_i)) < 0)
 			return rc;
 		cr->i = tds_i;
 		return sizeof(TDS_INT);
 		break;
+	case SYBUINT4:
+		if ((rc = string_to_int8(src, src + srclen, &tds_i8)) < 0)
+			return rc;
+		cr->ui = tds_i8;
+		return sizeof(TDS_UINT);
+		break;
 	case SYBINT8:
 		if ((rc = string_to_int8(src, src + srclen, &tds_i8)) < 0)
 			return rc;
 		cr->bi = tds_i8;
 		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		if ((rc = string_to_uint8(src, src + srclen, &tds_ui8)) < 0)
+			return rc;
+		cr->ubi = tds_ui8;
+		return sizeof(TDS_UINT8);
 		break;
 	case SYBFLT8:
 		/* FIXME not null terminated */
@@ -630,6 +664,7 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 		return string_to_result(tmp_str, cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		if (!IS_TINYINT(num))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ti = num;
@@ -641,13 +676,31 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 		cr->si = num;
 		return sizeof(TDS_SMALLINT);
 		break;
+	case SYBUINT2:
+		if (!IS_USMALLINT(num))
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = num;
+		return sizeof(TDS_USMALLINT);
+		break;
 	case SYBINT4:
 		cr->i = num;
 		return sizeof(TDS_INT);
 		break;
+	case SYBUINT4:
+		if (!IS_UINT(num))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ui = num;
+		return sizeof(TDS_UINT);
+		break;
 	case SYBINT8:
 		cr->bi = num;
 		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		if (!IS_UINT8(num))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ubi = num;
+		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -708,6 +761,7 @@ tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		return binary_to_result(src, sizeof(TDS_INT8), cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		if (!IS_TINYINT(buf))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ti = (TDS_TINYINT) buf;
@@ -719,15 +773,33 @@ tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		cr->si = (TDS_SMALLINT) buf;
 		return sizeof(TDS_SMALLINT);
 		break;
+	case SYBUINT2:
+		if (!IS_USMALLINT(buf))
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = (TDS_USMALLINT) buf;
+		return sizeof(TDS_USMALLINT);
+		break;
 	case SYBINT4:
 		if (!IS_INT(buf))
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = (TDS_INT) buf;
 		return sizeof(TDS_INT);
 		break;
+	case SYBUINT4:
+		if (!IS_UINT(buf))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ui = (TDS_UINT) buf;
+		return sizeof(TDS_UINT);
+		break;
 	case SYBINT8:
 		cr->bi = buf;
 		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		if (buf < 0)
+			return TDS_CONVERT_OVERFLOW;
+		cr->ubi = buf;
+		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -788,6 +860,7 @@ tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_
 		return binary_to_result(src, sizeof(TDS_NUMERIC), cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		cr->n = *src;
 		ret = tds_numeric_change_prec_scale(&(cr->n), 3, 0);
 		if (ret < 0)
@@ -812,6 +885,21 @@ tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_
 		cr->si = (TDS_SMALLINT) i;
 		return sizeof(TDS_SMALLINT);
 		break;
+	case SYBUINT2:
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 5, 0);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		i = TDS_GET_UA2BE(&(cr->n.array[2]));
+		if (cr->n.array[0])
+			return TDS_CONVERT_OVERFLOW;
+		if (i > 65535)
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = (TDS_USMALLINT) i;
+		return sizeof(TDS_USMALLINT);
+		break;
 	case SYBINT4:
 		cr->n = *src;
 		ret = tds_numeric_change_prec_scale(&(cr->n), 10, 0);
@@ -826,6 +914,17 @@ tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = i;
 		return sizeof(TDS_INT);
+		break;
+	case SYBUINT4:
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 10, 0);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[0] || cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		i = TDS_GET_UA4BE(&(cr->n.array[2]));
+		cr->ui = i;
+		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:
 		cr->n = *src;
@@ -842,6 +941,18 @@ tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_
 			return TDS_CONVERT_OVERFLOW;
 		cr->bi = bi;
 		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 20, 0);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[0] || cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		bi = TDS_GET_UA4BE(&(cr->n.array[2]));
+		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
+		cr->ubi = bi;
+		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -920,6 +1031,7 @@ tds_convert_money4(const TDS_CHAR * src, int srclen, int desttype, CONV_RESULT *
 		return binary_to_result(src, sizeof(TDS_MONEY4), cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		dollars = mny.mny4 / 10000;
 		if (!IS_TINYINT(dollars))
 			return TDS_CONVERT_OVERFLOW;
@@ -933,13 +1045,28 @@ tds_convert_money4(const TDS_CHAR * src, int srclen, int desttype, CONV_RESULT *
 		cr->si = (TDS_SMALLINT) dollars;
 		return sizeof(TDS_SMALLINT);
 		break;
+	case SYBUINT2:
+		dollars = mny.mny4 / 10000;
+		if (!IS_USMALLINT(dollars))
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = (TDS_USMALLINT) dollars;
+		return sizeof(TDS_USMALLINT);
+		break;
 	case SYBINT4:
 		cr->i = mny.mny4 / 10000;
 		return sizeof(TDS_INT);
 		break;
+	case SYBUINT4:
+		cr->ui = mny.mny4 / 10000;
+		return sizeof(TDS_UINT);
+		break;
 	case SYBINT8:
 		cr->bi = mny.mny4 / 10000;
 		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		cr->ubi = mny.mny4 / 10000;
+		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -1010,6 +1137,7 @@ tds_convert_money(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		return binary_to_result(src, sizeof(TDS_MONEY), cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		if (mymoney <= -10000 || mymoney >= 256 * 10000)
 			return TDS_CONVERT_OVERFLOW;
 		/* TODO: round ?? */
@@ -1022,6 +1150,12 @@ tds_convert_money(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		cr->si = (TDS_SMALLINT) (((TDS_INT) mymoney) / 10000);
 		return sizeof(TDS_SMALLINT);
 		break;
+	case SYBUINT2:
+		if (mymoney <= -1 * 10000 || mymoney >= 65536 * 10000)
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = (TDS_USMALLINT) (((TDS_INT) mymoney) / 10000);
+		return sizeof(TDS_USMALLINT);
+		break;
 	case SYBINT4:
 		dollars = mymoney / 10000;
 		if (!IS_INT(dollars))
@@ -1029,9 +1163,20 @@ tds_convert_money(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		cr->i = (TDS_INT) dollars;
 		return sizeof(TDS_INT);
 		break;
+	case SYBUINT4:
+		dollars = mymoney / 10000;
+		if (!IS_UINT(dollars))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ui = (TDS_UINT) dollars;
+		return sizeof(TDS_UINT);
+		break;
 	case SYBINT8:
 		cr->bi = mymoney / 10000;
 		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		cr->ubi = mymoney / 10000;
+		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -1110,9 +1255,13 @@ tds_convert_datetimeall(const TDSCONTEXT * tds_ctx, int srctype, const TDS_DATET
 	case SYBBIT:
 	case SYBBITN:
 	case SYBINT1:
+	case SYBUINT1:
 	case SYBINT2:
+	case SYBUINT2:
 	case SYBINT4:
+	case SYBUINT4:
 	case SYBINT8:
+	case SYBUINT8:
 	case SYBMONEY4:
 	case SYBMONEY:
 	case SYBNUMERIC:
@@ -1169,9 +1318,13 @@ tds_convert_datetime(const TDSCONTEXT * tds_ctx, const TDS_DATETIME * dt, int de
 	case SYBBIT:
 	case SYBBITN:
 	case SYBINT1:
+	case SYBUINT1:
 	case SYBINT2:
+	case SYBUINT2:
 	case SYBINT4:
+	case SYBUINT4:
 	case SYBINT8:
+	case SYBUINT8:
 	case SYBMONEY4:
 	case SYBMONEY:
 	case SYBNUMERIC:
@@ -1226,6 +1379,7 @@ tds_convert_real(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		return binary_to_result(src, sizeof(TDS_REAL), cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		if (!IS_TINYINT(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ti = (TDS_TINYINT) the_value;
@@ -1237,17 +1391,35 @@ tds_convert_real(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		cr->si = (TDS_SMALLINT) the_value;
 		return sizeof(TDS_SMALLINT);
 		break;
+	case SYBUINT2:
+		if (!IS_USMALLINT(the_value))
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = (TDS_USMALLINT) the_value;
+		return sizeof(TDS_USMALLINT);
+		break;
 	case SYBINT4:
 		if (!IS_INT(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = (TDS_INT) the_value;
 		return sizeof(TDS_INT);
 		break;
+	case SYBUINT4:
+		if (!IS_UINT(the_value))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ui = (TDS_UINT) the_value;
+		return sizeof(TDS_UINT);
+		break;
 	case SYBINT8:
 		if (the_value > (TDS_REAL) TDS_INT8_MAX || the_value < (TDS_REAL) TDS_INT8_MIN)
 			return TDS_CONVERT_OVERFLOW;
 		cr->bi = (TDS_INT8) the_value;
 		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		if (the_value > (TDS_REAL) TDS_UINT8_MAX || the_value < 0)
+			return TDS_CONVERT_OVERFLOW;
+		cr->ubi = (TDS_UINT8) the_value;
+		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -1320,6 +1492,7 @@ tds_convert_flt8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		return binary_to_result(src, sizeof(TDS_FLOAT), cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		if (!IS_TINYINT(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->ti = (TDS_TINYINT) the_value;
@@ -1331,17 +1504,35 @@ tds_convert_flt8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		cr->si = (TDS_SMALLINT) the_value;
 		return sizeof(TDS_SMALLINT);
 		break;
+	case SYBUINT2:
+		if (!IS_USMALLINT(the_value))
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = (TDS_USMALLINT) the_value;
+		return sizeof(TDS_USMALLINT);
+		break;
 	case SYBINT4:
 		if (!IS_INT(the_value))
 			return TDS_CONVERT_OVERFLOW;
 		cr->i = (TDS_INT) the_value;
 		return sizeof(TDS_INT);
 		break;
+	case SYBUINT4:
+		if (!IS_UINT(the_value))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ui = (TDS_UINT) the_value;
+		return sizeof(TDS_UINT);
+		break;
 	case SYBINT8:
 		if (the_value > (TDS_FLOAT) TDS_INT8_MAX || the_value < (TDS_FLOAT) TDS_INT8_MIN)
 			return TDS_CONVERT_OVERFLOW;
 		cr->bi = (TDS_INT8) the_value;
 		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		if (the_value > (TDS_FLOAT) TDS_UINT8_MAX || the_value < 0)
+			return TDS_CONVERT_OVERFLOW;
+		cr->ubi = (TDS_UINT8) the_value;
+		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
 	case SYBBITN:
@@ -1420,9 +1611,13 @@ tds_convert_unique(const TDS_CHAR * src, TDS_INT srclen, int desttype, CONV_RESU
 	case SYBBIT:
 	case SYBBITN:
 	case SYBINT1:
+	case SYBUINT1:
 	case SYBINT2:
+	case SYBUINT2:
 	case SYBINT4:
+	case SYBUINT4:
 	case SYBINT8:
+	case SYBUINT8:
 	case SYBMONEY4:
 	case SYBMONEY:
 	case SYBDATETIME4:
@@ -1486,15 +1681,19 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		length = tds_convert_bit(src, desttype, cr);
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 		length = tds_convert_int1(src, desttype, cr);
 		break;
 	case SYBINT2:
+	case SYBUINT2:
 		length = tds_convert_int2(src, desttype, cr);
 		break;
 	case SYBINT4:
+	case SYBUINT4:
 		length = tds_convert_int4(src, desttype, cr);
 		break;
 	case SYBINT8:
+	case SYBUINT8:
 		length = tds_convert_int8(src, desttype, cr);
 		break;
 	case SYBREAL:
@@ -2517,9 +2716,13 @@ tds_get_null_type(int srctype)
 		return SYBVARCHAR;
 		break;
 	case SYBINT1:
+	case SYBUINT1:
 	case SYBINT2:
+	case SYBUINT2:
 	case SYBINT4:
+	case SYBUINT4:
 	case SYBINT8:
+	case SYBUINT8:
 		return SYBINTN;
 		break;
 	case SYBREAL:
@@ -3028,6 +3231,57 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 	}
 
 	return sizeof(TDS_INT8);
+}
+
+/**
+ * \brief convert a number in string to TDS_UINT8
+ *
+ * \return TDS_CONVERT_* or failure code on error
+ */
+static TDS_INT	/* copied from string_to_int8 and modified */
+string_to_uint8(const char *buf, const char *pend, TDS_UINT8 * res)
+{
+	enum
+	{ blank = ' ' };
+	const char *p;
+	TDS_UINT8 num;
+
+	p = buf;
+
+	/* ignore leading spaces */
+	while (p != pend && *p == blank)
+		++p;
+	if (p == pend) {
+		*res = 0;
+		return sizeof(TDS_UINT8);
+	}
+
+	num = 0;
+	for (; p != pend; ++p) {
+		/* check for trailing spaces */
+		if (*p == blank) {
+			while (p != pend && *++p == blank);
+			if (p != pend)
+				return TDS_CONVERT_SYNTAX;
+			break;
+		}
+
+		/* must be a digit */
+		if (!isdigit((unsigned char) *p))
+			return TDS_CONVERT_SYNTAX;
+
+		/* add a digit to number and check for overflow */
+		if (num > ((((TDS_UINT8) 1) << 63) / ((TDS_UINT8) 10)))
+			return TDS_CONVERT_OVERFLOW;
+		num = num * 10u + (*p - '0');
+	}
+
+	/* check for overflow and convert unsigned to signed */
+	if (num >= (((TDS_UINT8) 1) << 63))
+		return TDS_CONVERT_OVERFLOW;
+	*res = num;
+
+	return sizeof(TDS_UINT8);
 }
 
 

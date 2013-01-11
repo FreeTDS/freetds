@@ -16,7 +16,7 @@ $indent = "\t ";
 
 sub category($) {
 	$_ = shift;
-	return qw(INT1 INT2 INT4 INT8) if $_ eq 'INTx';
+	return qw(INT1 UINT1 INT2 UINT2 INT4 UINT4 INT8 UINT8) if $_ eq 'INTx';
 	return qw(MONEY MONEY4) if $_ eq 'MONEYx';
 	return qw(FLT8 REAL) if $_ eq 'FLTx';
 	return qw(DATETIME DATETIME4) if $_ eq 'DATETIMEx';
