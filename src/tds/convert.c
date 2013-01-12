@@ -430,6 +430,8 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 	case SYBUINT4:
 		if ((rc = string_to_int8(src, src + srclen, &tds_i8)) < 0)
 			return rc;
+		if (!IS_UINT(tds_i8))
+			return TDS_CONVERT_OVERFLOW;
 		cr->ui = tds_i8;
 		return sizeof(TDS_UINT);
 		break;
@@ -667,7 +669,7 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 	case SYBUINT1:
 		if (!IS_TINYINT(num))
 			return TDS_CONVERT_OVERFLOW;
-		cr->ti = num;
+		cr->ti = (TDS_TINYINT) num;
 		return sizeof(TDS_TINYINT);
 		break;
 	case SYBINT2:
@@ -679,7 +681,7 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 	case SYBUINT2:
 		if (!IS_USMALLINT(num))
 			return TDS_CONVERT_OVERFLOW;
-		cr->usi = num;
+		cr->usi = (TDS_USMALLINT) num;
 		return sizeof(TDS_USMALLINT);
 		break;
 	case SYBINT4:
@@ -687,9 +689,9 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_INT);
 		break;
 	case SYBUINT4:
-		if (!IS_UINT(num))
+		if (num < 0)
 			return TDS_CONVERT_OVERFLOW;
-		cr->ui = num;
+		cr->ui = (TDS_UINT) num;
 		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:
@@ -697,9 +699,9 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_INT8);
 		break;
 	case SYBUINT8:
-		if (!IS_UINT8(num))
+		if (num < 0)
 			return TDS_CONVERT_OVERFLOW;
-		cr->ubi = num;
+		cr->ubi = (TDS_UINT8) num;
 		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
@@ -798,7 +800,7 @@ tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 	case SYBUINT8:
 		if (buf < 0)
 			return TDS_CONVERT_OVERFLOW;
-		cr->ubi = buf;
+		cr->ubi = (TDS_UINT8) buf;
 		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
@@ -890,13 +892,9 @@ tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_
 		ret = tds_numeric_change_prec_scale(&(cr->n), 5, 0);
 		if (ret < 0)
 			return ret;
-		if (cr->n.array[1])
+		if (cr->n.array[0] || cr->n.array[1])
 			return TDS_CONVERT_OVERFLOW;
 		i = TDS_GET_UA2BE(&(cr->n.array[2]));
-		if (cr->n.array[0])
-			return TDS_CONVERT_OVERFLOW;
-		if (i > 65535)
-			return TDS_CONVERT_OVERFLOW;
 		cr->usi = (TDS_USMALLINT) i;
 		return sizeof(TDS_USMALLINT);
 		break;
@@ -1057,7 +1055,10 @@ tds_convert_money4(const TDS_CHAR * src, int srclen, int desttype, CONV_RESULT *
 		return sizeof(TDS_INT);
 		break;
 	case SYBUINT4:
-		cr->ui = mny.mny4 / 10000;
+		dollars = mny.mny4 / 10000;
+		if (!IS_UINT(dollars))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ui = dollars;
 		return sizeof(TDS_UINT);
 		break;
 	case SYBINT8:
@@ -1065,7 +1066,10 @@ tds_convert_money4(const TDS_CHAR * src, int srclen, int desttype, CONV_RESULT *
 		return sizeof(TDS_INT8);
 		break;
 	case SYBUINT8:
-		cr->ubi = mny.mny4 / 10000;
+		dollars = mny.mny4 / 10000;
+		if (!IS_UINT8(dollars))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ubi = dollars;
 		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
@@ -1175,7 +1179,10 @@ tds_convert_money(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		return sizeof(TDS_INT8);
 		break;
 	case SYBUINT8:
-		cr->ubi = mymoney / 10000;
+		dollars = mymoney / 10000;
+		if (dollars < 0)
+			return TDS_CONVERT_OVERFLOW;
+		cr->ubi = (TDS_UINT8) dollars;
 		return sizeof(TDS_UINT8);
 		break;
 	case SYBBIT:
@@ -2718,10 +2725,11 @@ tds_get_null_type(int srctype)
 	case SYBINT1:
 	case SYBUINT1:
 	case SYBINT2:
-	case SYBUINT2:
 	case SYBINT4:
-	case SYBUINT4:
 	case SYBINT8:
+	/* TODO sure ?? */
+	case SYBUINT2:
+	case SYBUINT4:
 	case SYBUINT8:
 		return SYBINTN;
 		break;
@@ -2883,16 +2891,19 @@ tds_willconvert(int srctype, int desttype)
 	case SYBUINT1:
 	case SYBINT1:
 			return  3;
-	case SYBUINT2:
 	case SYBINT2:
 			return  6;
-	case SYBUINT4:
+	case SYBUINT2:
+			return  5;
 	case SYBINT4:
 			return 11;
+	case SYBUINT4:
+			return 10;
 	case SYB5INT8:
-	case SYBUINT8:
 	case SYBINT8:
 			return 21;
+	case SYBUINT8:
+			return 20;
 	case SYBREAL:
 	case SYBFLT8:
 			return 11;
@@ -3163,13 +3174,12 @@ string_to_int(const char *buf, const char *pend, TDS_INT * res)
  * \return TDS_CONVERT_* or failure code on error
  */
 static TDS_INT	/* copied from string_ti_int and modified */
-string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
+parse_int8(const char *buf, const char *pend, TDS_UINT8 * res, int * p_sign)
 {
 	enum
 	{ blank = ' ' };
 	const char *p;
-	int sign;
-	TDS_UINT8 num;		/* we use unsigned here for best overflow check */
+	TDS_UINT8 num, prev;
 
 	p = buf;
 
@@ -3182,10 +3192,9 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 	}
 
 	/* check for sign */
-	sign = 0;
 	switch (*p) {
 	case '-':
-		sign = 1;
+		*p_sign = 1;
 		/* fall thru */
 	case '+':
 		/* skip spaces between sign and number */
@@ -3214,10 +3223,33 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 			return TDS_CONVERT_SYNTAX;
 
 		/* add a digit to number and check for overflow */
-		if (num > ((((TDS_UINT8) 1) << 63) / ((TDS_UINT8) 10)))
+		if (num > ((((TDS_UINT8) 1) << 63) / ((TDS_UINT8) 5)))
 			return TDS_CONVERT_OVERFLOW;
+		prev = num;
 		num = num * 10u + (*p - '0');
+		if (num < prev)
+			return TDS_CONVERT_OVERFLOW;
 	}
+
+	*res = num;
+	return sizeof(TDS_INT8);
+}
+
+/**
+ * \brief convert a number in string to TDS_INT8
+ *
+ * \return TDS_CONVERT_* or failure code on error
+ */
+static TDS_INT	/* copied from string_ti_int and modified */
+string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
+{
+	TDS_UINT8 num;
+	TDS_INT parse_res;
+	int sign = 0;
+
+	parse_res = parse_int8(buf, pend, &num, &sign);
+	if (parse_res < 0)
+		return parse_res;
 
 	/* check for overflow and convert unsigned to signed */
 	if (sign) {
@@ -3229,7 +3261,6 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 			return TDS_CONVERT_OVERFLOW;
 		*res = num;
 	}
-
 	return sizeof(TDS_INT8);
 }
 
@@ -3241,48 +3272,20 @@ string_to_int8(const char *buf, const char *pend, TDS_INT8 * res)
 static TDS_INT	/* copied from string_to_int8 and modified */
 string_to_uint8(const char *buf, const char *pend, TDS_UINT8 * res)
 {
-	enum
-	{ blank = ' ' };
-	const char *p;
 	TDS_UINT8 num;
+	TDS_INT parse_res;
+	int sign = 0;
 
-	p = buf;
+	parse_res = parse_int8(buf, pend, &num, &sign);
+	if (parse_res < 0)
+		return parse_res;
 
-	/* ignore leading spaces */
-	while (p != pend && *p == blank)
-		++p;
-	if (p == pend) {
-		*res = 0;
-		return sizeof(TDS_UINT8);
-	}
-
-	num = 0;
-	for (; p != pend; ++p) {
-		/* check for trailing spaces */
-		if (*p == blank) {
-			while (p != pend && *++p == blank);
-			if (p != pend)
-				return TDS_CONVERT_SYNTAX;
-			break;
-		}
-
-		/* must be a digit */
-		if (!isdigit((unsigned char) *p))
-			return TDS_CONVERT_SYNTAX;
-
-		/* add a digit to number and check for overflow */
-		if (num > ((((TDS_UINT8) 1) << 63) / ((TDS_UINT8) 10)))
-			return TDS_CONVERT_OVERFLOW;
-		num = num * 10u + (*p - '0');
-	}
-
-	/* check for overflow and convert unsigned to signed */
-	if (num >= (((TDS_UINT8) 1) << 63))
+	/* check for overflow */
+	if (sign && num)
 		return TDS_CONVERT_OVERFLOW;
-	*res = num;
 
+	*res = num;
 	return sizeof(TDS_UINT8);
 }
-
 
 /** @} */
