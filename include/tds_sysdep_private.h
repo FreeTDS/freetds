@@ -242,6 +242,9 @@ typedef SOCKET TDS_SYS_SOCKET;
 #ifndef PRId64
 #define PRId64 TDS_I64_FORMAT
 #endif
+#ifndef PRIu64
+#define PRIu64 TDS_I64_PREFIX "u"
+#endif
 
 #ifdef __cplusplus
 #if 0

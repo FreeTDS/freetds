@@ -14,11 +14,11 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
 #if !defined(__MINGW32__) || !defined(__MSVCRT__)
 this should produce an error!
 #endif
-],[return 0;])],[tds_i64_format="I64d"])
+],[return 0;])],[tds_i64_format="I64"])
 
 # long is 64 bit
 if test "x$ac_cv_sizeof_long" = "x8"; then
-	tds_i64_format=ld
+	tds_i64_format=l
 fi
 
 # long long support
@@ -38,7 +38,7 @@ char buf[64];
 long long ll = atoll(buf);
 return 0;
 }
-]])],[tds_i64_format="lld"])
+]])],[tds_i64_format="ll"])
 fi
 
 # extract from inttypes.h
@@ -67,10 +67,11 @@ $tds_sysdep_int64_type ll = ((($tds_sysdep_int64_type) 0x12345) << 32) + 0x6789a
 sprintf(buf, "%${arg}d", ll);
 return strcmp(buf, "320255973501901") != 0;
 }
-]])],[tds_i64_format="${arg}d"; break])
+]])],[tds_i64_format="$arg"; break])
 	done
 fi
 if test "x$tds_i64_format" != "x"; then
-	AC_DEFINE_UNQUOTED(TDS_I64_FORMAT, ["$tds_i64_format"], [define to format string used for 64bit integers])
+	AC_DEFINE_UNQUOTED(TDS_I64_FORMAT, ["${tds_i64_format}d"], [define to format string used for 64bit integers])
+	AC_DEFINE_UNQUOTED(TDS_I64_PREFIX, ["$tds_i64_format"],  [define to prefix format string used for 64bit integers])
 fi
 ])
