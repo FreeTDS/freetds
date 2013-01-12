@@ -88,6 +88,9 @@ main(int argc, char **argv)
 	TDS_SMALLINT tds_smallint;
 	TDS_INT tds_int;
 	TDS_INT8 tds_int8;
+	TDS_USMALLINT tds_usmallint;
+	TDS_UINT tds_uint;
+	TDS_UINT8 tds_uint8;
 
 	TDS_REAL tds_real;
 	TDS_FLOAT tds_float;
@@ -143,6 +146,10 @@ main(int argc, char **argv)
 			case SYBINT2:
 			case SYBINT4:
 			case SYBINT8:
+			case SYBUINT1:
+			case SYBUINT2:
+			case SYBUINT4:
+			case SYBUINT8:
 				src = "255";
 				break;
 			case SYBFLT8:
@@ -167,6 +174,7 @@ main(int argc, char **argv)
 			srclen = strlen(src);
 			break;
 		case SYBINT1:
+		case SYBUINT1:
 			src = (char *) &tds_tinyint;
 			srclen = sizeof(tds_tinyint);
 			break;
@@ -181,6 +189,18 @@ main(int argc, char **argv)
 		case SYBINT8:
 			src = (char *) &tds_int8;
 			srclen = sizeof(tds_int8);
+			break;
+		case SYBUINT2:
+			src = (char *) &tds_usmallint;
+			srclen = sizeof(tds_usmallint);
+			break;
+		case SYBUINT4:
+			src = (char *) &tds_uint;
+			srclen = sizeof(tds_uint);
+			break;
+		case SYBUINT8:
+			src = (char *) &tds_uint8;
+			srclen = sizeof(tds_uint8);
 			break;
 		case SYBFLT8:
 			tds_float = 3.14159;
@@ -239,7 +259,8 @@ main(int argc, char **argv)
 		 */
 
 		result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
-		free_convert(answers[i].desttype, &cr);
+		if (result >= 0)
+			free_convert(answers[i].desttype, &cr);
 
 		if (result < 0) {
 			if (result == TDS_CONVERT_NOAVAIL)	/* tds_willconvert returned true, but it lied. */
@@ -281,6 +302,7 @@ main(int argc, char **argv)
 			datetime4 = cr.dt4;
 			break;
 		case SYBINT1:
+		case SYBUINT1:
 			tds_tinyint = cr.ti;
 			break;
 		case SYBINT2:
@@ -291,6 +313,15 @@ main(int argc, char **argv)
 			break;
 		case SYBINT8:
 			tds_int8 = cr.bi;
+			break;
+		case SYBUINT2:
+			tds_usmallint = cr.usi;
+			break;
+		case SYBUINT4:
+			tds_uint = cr.ui;
+			break;
+		case SYBUINT8:
+			tds_uint8 = cr.ubi;
 			break;
 		case SYBUNIQUE:
 			tds_unique = cr.u;
@@ -308,7 +339,8 @@ main(int argc, char **argv)
 
 		for (j = 0; result >= 0 && j < iterations; j++) {
 			result = tds_convert(ctx, answers[i].srctype, src, srclen, answers[i].desttype, &cr);
-			free_convert(answers[i].desttype, &cr);
+			if (result >= 0)
+				free_convert(answers[i].desttype, &cr);
 		}
 		if (result < 0)
 			continue;
