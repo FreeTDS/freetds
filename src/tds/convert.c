@@ -81,8 +81,11 @@ struct tds_time
 static TDS_INT tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int1(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_uint2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_uint4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
 static TDS_INT tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_uint8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
 static int string_to_datetime(const char *datestr, int desttype, CONV_RESULT * cr);
 static int is_dd_mon_yyyy(char *t);
 static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
@@ -644,6 +647,16 @@ tds_convert_int2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
+tds_convert_uint2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+{
+	switch (desttype) {
+	case CASE_ALL_BINARY:
+		return binary_to_result(src, 2, cr);
+	}
+	return tds_convert_int(*((TDS_USMALLINT *) src), desttype, cr);
+}
+
+static TDS_INT
 tds_convert_int4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 {
 	switch (desttype) {
@@ -653,6 +666,15 @@ tds_convert_int4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 	return tds_convert_int(*((TDS_INT *) src), desttype, cr);
 }
 
+static TDS_INT
+tds_convert_uint4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+{
+	switch (desttype) {
+	case CASE_ALL_BINARY:
+		return binary_to_result(src, 4, cr);
+	}
+	return tds_convert_int8(*((TDS_UINT *) src), desttype, cr);
+}
 
 static TDS_INT
 tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
@@ -831,6 +853,104 @@ tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		sprintf(tmp_str, "%" PRId64, buf);
+		return stringz_to_numeric(tmp_str, cr);
+		break;
+		/* conversions not allowed */
+	case SYBUNIQUE:
+	case SYBDATETIME4:
+	case SYBDATETIME:
+	case SYBDATETIMN:
+	default:
+		break;
+	}
+	return TDS_CONVERT_NOAVAIL;
+}
+
+static TDS_INT
+tds_convert_uint8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+{
+	TDS_UINT8 buf;
+	TDS_CHAR tmp_str[24];
+
+	memcpy(&buf, src, sizeof(buf));
+	switch (desttype) {
+	case TDS_CONVERT_CHAR:
+	case CASE_ALL_CHAR:
+		sprintf(tmp_str, "%" PRIu64, buf);
+		return string_to_result(tmp_str, cr);
+		break;
+	case CASE_ALL_BINARY:
+		return binary_to_result(src, sizeof(TDS_INT8), cr);
+		break;
+	case SYBINT1:
+	case SYBUINT1:
+		if (!IS_TINYINT(buf))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ti = (TDS_TINYINT) buf;
+		return sizeof(TDS_TINYINT);
+		break;
+	case SYBINT2:
+		if (!IS_SMALLINT(buf))
+			return TDS_CONVERT_OVERFLOW;
+		cr->si = (TDS_SMALLINT) buf;
+		return sizeof(TDS_SMALLINT);
+		break;
+	case SYBUINT2:
+		if (!IS_USMALLINT(buf))
+			return TDS_CONVERT_OVERFLOW;
+		cr->usi = (TDS_USMALLINT) buf;
+		return sizeof(TDS_USMALLINT);
+		break;
+	case SYBINT4:
+		if (!IS_INT(buf))
+			return TDS_CONVERT_OVERFLOW;
+		cr->i = (TDS_INT) buf;
+		return sizeof(TDS_INT);
+		break;
+	case SYBUINT4:
+		if (!IS_UINT(buf))
+			return TDS_CONVERT_OVERFLOW;
+		cr->ui = (TDS_UINT) buf;
+		return sizeof(TDS_UINT);
+		break;
+	case SYBINT8:
+		if (!IS_INT8(buf))
+			return TDS_CONVERT_OVERFLOW;
+		cr->bi = buf;
+		return sizeof(TDS_INT8);
+		break;
+	case SYBUINT8:
+		cr->ubi = buf;
+		return sizeof(TDS_UINT8);
+		break;
+	case SYBBIT:
+	case SYBBITN:
+		cr->ti = buf ? 1 : 0;
+		return sizeof(TDS_TINYINT);
+		break;
+	case SYBFLT8:
+		cr->f = (TDS_FLOAT) buf;
+		return sizeof(TDS_FLOAT);
+		break;
+	case SYBREAL:
+		cr->r = (TDS_REAL) buf;
+		return sizeof(TDS_REAL);
+		break;
+	case SYBMONEY4:
+		if (buf > 214748)
+			return TDS_CONVERT_OVERFLOW;
+		cr->m4.mny4 = (TDS_INT) (buf * 10000);
+		return sizeof(TDS_MONEY4);
+		break;
+	case SYBMONEY:
+		if (buf > (TDS_INT8_MAX / 10000))
+			return TDS_CONVERT_OVERFLOW;
+		cr->m.mny = buf * 10000;
+		return sizeof(TDS_MONEY);
+		break;
+	case SYBNUMERIC:
+	case SYBDECIMAL:
+		sprintf(tmp_str, "%" PRIu64, buf);
 		return stringz_to_numeric(tmp_str, cr);
 		break;
 		/* conversions not allowed */
@@ -1692,16 +1812,22 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		length = tds_convert_int1(src, desttype, cr);
 		break;
 	case SYBINT2:
-	case SYBUINT2:
 		length = tds_convert_int2(src, desttype, cr);
 		break;
+	case SYBUINT2:
+		length = tds_convert_uint2(src, desttype, cr);
+		break;
 	case SYBINT4:
-	case SYBUINT4:
 		length = tds_convert_int4(src, desttype, cr);
 		break;
+	case SYBUINT4:
+		length = tds_convert_uint4(src, desttype, cr);
+		break;
 	case SYBINT8:
-	case SYBUINT8:
 		length = tds_convert_int8(src, desttype, cr);
+		break;
+	case SYBUINT8:
+		length = tds_convert_uint8(src, desttype, cr);
 		break;
 	case SYBREAL:
 		length = tds_convert_real(src, desttype, cr);
