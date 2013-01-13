@@ -179,7 +179,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	SPECIAL(SYBTEXT, XSYBNVARCHAR, 8)
 	SPECIAL(SYBIMAGE, XSYBVARBINARY, 8)
 	assert(tds_get_cardinal_type(column->on_server.column_type, column->column_usertype) == column->column_type
-		|| (tds_get_null_type(column->column_type) == column->on_server.column_type
+		|| (tds_get_conversion_type(column->on_server.column_type, column->column_size) == column->column_type
 		&& column_varint_size == 1 && is_fixed_type(column->column_type)));
 
 	varint_ok = 0;
