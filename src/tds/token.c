@@ -2838,6 +2838,10 @@ tds_prtype(int token)
 		TYPE(SYBINT2, "smallint");
 		TYPE(SYBINT4, "int");
 		TYPE(SYBINT8, "bigint");
+		TYPE(SYBUINT1, "unsigned tinyint");
+		TYPE(SYBUINT2, "unsigned smallint");
+		TYPE(SYBUINT4, "unsigned int");
+		TYPE(SYBUINT8, "unsigned bigint");
 		TYPE(SYBINTN, "integer-null");
 		TYPE(SYBMONEY4, "smallmoney");
 		TYPE(SYBMONEY, "money");
