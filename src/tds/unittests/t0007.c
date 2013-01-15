@@ -20,16 +20,13 @@
 #include "common.h"
 #include <tdsconvert.h>
 
-static char software_version[] = "$Id: t0007.c,v 1.16 2008-02-07 22:05:36 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 static TDSCONTEXT ctx;
 
-void test0(const char *src, int len, int dsttype, const char *result);
-void test(const char *src, int dsttype, const char *result);
+void test0(const char *src, int len, int dsttype, const char *result, int line);
+void test(const char *src, int dsttype, const char *result, int line);
 
 void
-test0(const char *src, int len, int dsttype, const char *result)
+test0(const char *src, int len, int dsttype, const char *result, int line)
 {
 	int i, res;
 	char buf[256];
@@ -42,16 +39,26 @@ test0(const char *src, int len, int dsttype, const char *result)
 		buf[0] = 0;
 		switch (dsttype) {
 		case SYBINT1:
+		case SYBUINT1:
 			sprintf(buf, "%d", cr.ti);
 			break;
 		case SYBINT2:
 			sprintf(buf, "%d", cr.si);
 			break;
+		case SYBUINT2:
+			sprintf(buf, "%u", cr.usi);
+			break;
 		case SYBINT4:
 			sprintf(buf, "%d", cr.i);
 			break;
+		case SYBUINT4:
+			sprintf(buf, "%u", cr.ui);
+			break;
 		case SYBINT8:
 			sprintf(buf, "0x%08x%08x", (unsigned int) ((cr.bi >> 32) & 0xfffffffflu), (unsigned int) (cr.bi & 0xfffffffflu));
+			break;
+		case SYBUINT8:
+			sprintf(buf, "0x%08x%08x", (unsigned int) ((cr.ubi >> 32) & 0xfffffffflu), (unsigned int) (cr.ubi & 0xfffffffflu));
 			break;
 		case SYBUNIQUE:
 			sprintf(buf, "%08X-%04X-%04X-%02X%02X%02X%02X"
@@ -74,26 +81,55 @@ test0(const char *src, int len, int dsttype, const char *result)
 	}
 	printf("%s\n", buf);
 	if (strcmp(buf, result) != 0) {
-		fprintf(stderr, "Expected %s\n", result);
+		fprintf(stderr, "Expected '%s' got '%s' at line %d\n", result, buf, line);
 		exit(1);
 	}
 }
 
 void
-test(const char *src, int dsttype, const char *result)
+test(const char *src, int dsttype, const char *result, int line)
 {
-	test0(src, strlen(src), dsttype, result);
+	test0(src, strlen(src), dsttype, result, line);
 }
+
+#define test0(s,l,d,r) test0(s,l,d,r,__LINE__)
+#define test(s,d,r) test(s,d,r,__LINE__)
+
+static int
+int_types[] = {
+	SYBINT1, SYBUINT1, SYBINT2, SYBUINT2,
+	SYBINT4, SYBUINT4, SYBINT8, SYBUINT8,
+	-1
+};
+
+static const char *
+int_values[] = {
+	"0",
+	"127", "255",
+	"32767", "65535",
+	"2147483647", "4294967295",
+	"9223372036854775807", "18446744073709551615",
+	"-128",
+	"-32768",
+	"-2147483648",
+	"-9223372036854775808",
+	NULL
+};
 
 int
 main(int argc, char **argv)
 {
+	int *type1, *type2;
+	const char **value;
+
 	memset(&ctx, 0, sizeof(ctx));
 
 	/* test some conversion */
 	printf("some checks...\n");
 	test("1234", SYBINT4, "1234");
+	test("1234", SYBUINT4, "1234");
 	test("123", SYBINT1, "123");
+	test("123", SYBUINT1, "123");
 	test("  -    1234   ", SYBINT2, "-1234");
 	test("  -    1234   a", SYBINT2, "error");
 	test("", SYBINT4, "0");
@@ -101,6 +137,9 @@ main(int argc, char **argv)
 	test("    123", SYBINT4, "123");
 	test("    123    ", SYBINT4, "123");
 	test("  +  123  ", SYBINT4, "123");
+	test("  +  123  ", SYBUINT4, "123");
+	test("  - 0  ", SYBINT4, "0");
+	test("  -  0  ", SYBUINT4, "0");
 	test("+", SYBINT4, "error");
 	test("   +", SYBINT4, "error");
 	test("+   ", SYBINT4, "error");
@@ -118,6 +157,9 @@ main(int argc, char **argv)
 	test("    123", SYBINT8, "0x000000000000007b");
 	test("    123    ", SYBINT8, "0x000000000000007b");
 	test("  +  123  ", SYBINT8, "0x000000000000007b");
+	test("    123", SYBUINT8, "0x000000000000007b");
+	test("    123    ", SYBUINT8, "0x000000000000007b");
+	test("  +  123  ", SYBUINT8, "0x000000000000007b");
 	test("+", SYBINT8, "error");
 	test("   +", SYBINT8, "error");
 	test("+   ", SYBINT8, "error");
@@ -128,23 +170,49 @@ main(int argc, char **argv)
 	test("   -   ", SYBINT8, "error");
 
 	/* test for overflow */
+	/* for SYBUINT8 a test with all different digit near limit is required */
 	printf("overflow checks...\n");
 	test("9223372036854775807", SYBINT8, "0x7fffffffffffffff");
+	test("9223372036854775807", SYBUINT8, "0x7fffffffffffffff");
 	test("9223372036854775808", SYBINT8, "error");
 	test("-9223372036854775808", SYBINT8, "0x8000000000000000");
+	test("9223372036854775808", SYBUINT8, "0x8000000000000000");
+	test("18446744073709551610", SYBUINT8, "0xfffffffffffffffa");
+	test("18446744073709551611", SYBUINT8, "0xfffffffffffffffb");
+	test("18446744073709551612", SYBUINT8, "0xfffffffffffffffc");
+	test("18446744073709551613", SYBUINT8, "0xfffffffffffffffd");
+	test("18446744073709551614", SYBUINT8, "0xfffffffffffffffe");
+	test("18446744073709551615", SYBUINT8, "0xffffffffffffffff");
+	test("18446744073709551616", SYBUINT8, "error");
+	test("18446744073709551617", SYBUINT8, "error");
+	test("18446744073709551618", SYBUINT8, "error");
+	test("18446744073709551619", SYBUINT8, "error");
+	test("18446744073709551620", SYBUINT8, "error");
+	test("-1", SYBUINT8, "error");
 	test("-9223372036854775809", SYBINT8, "error");
 	test("2147483647", SYBINT4, "2147483647");
 	test("2147483648", SYBINT4, "error");
+	test("2147483647", SYBUINT4, "2147483647");
+	test("4294967295", SYBUINT4, "4294967295");
+	test("4294967296", SYBUINT4, "error");
 	test("-2147483648", SYBINT4, "-2147483648");
+	test("-2147483648", SYBUINT4, "error");
 	test("-2147483649", SYBINT4, "error");
 	test("32767", SYBINT2, "32767");
+	test("32767", SYBUINT2, "32767");
+	test("65535", SYBUINT2, "65535");
+	test("65536", SYBUINT2, "error");
 	test("32768", SYBINT2, "error");
 	test("-32768", SYBINT2, "-32768");
 	test("-32769", SYBINT2, "error");
 	test("255", SYBINT1, "255");
 	test("256", SYBINT1, "error");
+	test("255", SYBUINT1, "255");
+	test("256", SYBUINT1, "error");
 	test("0", SYBINT1, "0");
 	test("-1", SYBINT1, "error");
+	test("0", SYBUINT1, "0");
+	test("-1", SYBUINT1, "error");
 
 	/*
 	 * test overflow on very big numbers 
@@ -195,6 +263,41 @@ main(int argc, char **argv)
 	test("02Jan2006", SYBDATETIME, "38717 0");
 	test("20060102", SYBDATETIME, "38717 0");
 	test("060102", SYBDATETIME, "38717 0");
+
+	/* now try many int conversion operations */
+	for (value = int_values; *value; ++value)
+	for (type1 = int_types; *type1 >= 0; ++type1)
+	for (type2 = int_types; *type2 >= 0; ++type2) {
+		char buf[64];
+		CONV_RESULT cr_src, cr_dst;
+		TDS_INT len_src, len_dst;
+
+		/* try conversion from char (already tested above) */
+		len_src = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type1, &cr_src);
+		len_dst = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type2, &cr_dst);
+		if (len_src <= 0 || len_dst <= 0)
+			continue;
+		if (tds_convert(&ctx, *type1, &cr_src.i, len_src, *type2, &cr_dst) <= 0) {
+			fprintf(stderr, "conversion from %s to %s of %s should succeed\n",
+				tds_prtype(*type1), tds_prtype(*type2), *value);
+			return 1;
+		}
+		memcpy(&cr_src, &cr_dst, sizeof(cr_dst));
+		cr_dst.cc.c = buf;
+		cr_dst.cc.len = sizeof(buf);
+		len_dst = tds_convert(&ctx, *type2, &cr_src.i, len_dst, TDS_CONVERT_CHAR, &cr_dst);
+		if (len_dst <= 0) {
+			fprintf(stderr, "conversion from %s to string should succeed\n",
+				tds_prtype(*type1));
+			return 1;
+		}
+		buf[len_dst] = 0;
+		if (strcmp(buf, *value) != 0) {
+			fprintf(stderr, "conversion from %s to %s of %s got wrong value '%s'\n",
+				tds_prtype(*type1), tds_prtype(*type2), *value, buf);
+			return 1;
+		}
+	}
 
 	return 0;
 }

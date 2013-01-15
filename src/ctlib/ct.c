@@ -2004,6 +2004,11 @@ _ct_get_server_type(int datatype)
 	case CS_CHAR_TYPE:		return SYBCHAR;
 	case CS_VARCHAR_TYPE:		return SYBVARCHAR;
 	case CS_LONG_TYPE:
+#ifdef ENABLE_DEVELOPING
+	case CS_UBIGINT_TYPE:		return SYBUINT8;
+	case CS_UINT_TYPE:		return SYBUINT4;
+	case CS_USMALLINT_TYPE:		return SYBUINT2;
+#endif
 	case CS_BIGINT_TYPE:		return SYBINT8;
 	case CS_INT_TYPE:		return SYBINT4;
 	case CS_SMALLINT_TYPE:		return SYBINT2;

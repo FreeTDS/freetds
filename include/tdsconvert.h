@@ -38,8 +38,11 @@ typedef union conv_result
 {
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;
+	TDS_USMALLINT usi;
 	TDS_INT i;
+	TDS_UINT ui;
 	TDS_INT8 bi;
+	TDS_UINT8 ubi;
 	TDS_FLOAT f;
 	TDS_REAL r;
 	TDS_CHAR *c;

@@ -876,6 +876,9 @@ AC_CONFIG_FILES(include/tdsver.h \
 	freetds.spec \
 	win32/Makefile win32/msvc6/Makefile \
 	win32/version.rc win32/freetds.nsh \
-	vms/Makefile
+	vms/Makefile \
+	doc/freebcp.1 doc/tsql.1 doc/osql.1 \
+	doc/bsqldb.1 doc/bsqlodbc.1 doc/defncopy.1 \
+	doc/datacopy.1 doc/fisql.1 doc/freetds.conf.5
 )
 AC_OUTPUT

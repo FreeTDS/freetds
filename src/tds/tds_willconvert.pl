@@ -14,6 +14,15 @@ printf qq(/*** %67s ***/\n\n), "Thank you.";
 
 $indent = "\t ";
 
+sub category($) {
+	$_ = shift;
+	return qw(INT1 UINT1 INT2 UINT2 INT4 UINT4 INT8 UINT8) if $_ eq 'INTx';
+	return qw(MONEY MONEY4) if $_ eq 'MONEYx';
+	return qw(FLT8 REAL) if $_ eq 'FLTx';
+	return qw(DATETIME DATETIME4) if $_ eq 'DATETIMEx';
+	return $_;
+}
+
 while(<DATA>) {
 	next if /^\s+To\s*$/;
 	next if /^From/;
@@ -25,36 +34,35 @@ while(<DATA>) {
 
 	@yn = split;
 	$from = shift @yn;
-	$i = 0;
-	foreach $to (@to) {
-		printf "$indent %-35s, %s }\n", "{ SYB${from}, SYB${to}", $yn{$yn[$i++]}; 
-		$indent = "\t,";
+	foreach $from (category($from)) {
+		$i = 0;
+		foreach $to (@to) {
+			foreach $to (category($to)) {
+				printf "$indent %-35s, %s }\n", "{ SYB${from}, SYB${to}", $yn{$yn[$i]};
+			}
+			++$i;
+			$indent = "\t,";
+		}
 	}
 }
 
 __DATA__
           To
 From
-          VARCHAR CHAR TEXT BINARY VARBINARY IMAGE INT1 INT2 INT4 INT8 FLT8 REAL NUMERIC DECIMAL BIT MONEY MONEY4 DATETIME DATETIME4 BOUNDARY UNIQUE SENSITIVITY
-VARCHAR     T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  T	   T	     T        T        t
-CHAR        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  T	   T	     T        T        t
-TEXT        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  T	   T	     T        T        t
-BINARY      T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-VARBINARY   T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-IMAGE       T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-INT1        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-INT2        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-INT4        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-INT8        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-FLT8        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-REAL        T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-NUMERIC     T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-DECIMAL     T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-BIT         T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-MONEY       T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-MONEY4      T      T   T    T	   T         T     T	T    T    T    T    T	 T	 T	 T   T     T	  F	   F	     F        F        F
-DATETIME    T      T   T    T	   T         T     F	F    F    F    F    F	 F	 F	 F   F     F	  T	   T	     F        F        F
-DATETIME4   T      T   T    T	   T         T     F	F    F    F    F    F	 F	 F	 F   F     F	  T	   T	     F        F        F
-BOUNDARY    T      T   T    F	   F         F     F	F    F    F    F    F	 F	 F	 F   F     F	  F	   F	     T        F        F
-UNIQUE      T      T   T    F	   F         F     F	F    F    F    F    F	 F	 F	 F   F     F	  F	   F	     F        T        F
-SENSITIVITY t      t   t    F	   F         F     F	F    F    F    F    F	 F	 F	 F   F     F	  F	   F	     F        F        t
+          VARCHAR CHAR TEXT BINARY VARBINARY IMAGE INTx FLTx NUMERIC DECIMAL BIT MONEYx DATETIMEx BOUNDARY UNIQUE SENSITIVITY
+VARCHAR     T      T   T    T      T         T     T    T    T       T       T   T      T         T        T      t
+CHAR        T      T   T    T      T         T     T    T    T       T       T   T      T         T        T      t
+TEXT        T      T   T    T      T         T     T    T    T       T       T   T      T         T        T      t
+BINARY      T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+VARBINARY   T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+IMAGE       T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+INTx        T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+FLTx        T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+NUMERIC     T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+DECIMAL     T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+BIT         T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+MONEYx      T      T   T    T      T         T     T    T    T       T       T   T      F         F        F      F
+DATETIMEx   T      T   T    T      T         T     F    F    F       F       F   F      T         F        F      F
+BOUNDARY    T      T   T    F      F         F     F    F    F       F       F   F      F         T        F      F
+UNIQUE      T      T   T    F      F         F     F    F    F       F       F   F      F         F        T      F
+SENSITIVITY t      t   t    F      F         F     F    F    F       F       F   F      F         F        F      t
