@@ -164,7 +164,9 @@ do
 		fi
 
 		echo "  found driver line: \"${DRIVER_LINE}\""
-		DRIVER=$(echo ${DRIVER_LINE} | awk -F '=' '{print $2}' | sed 's/[[:space:]][[:space:]]*//g')
+		DRIVER=$(echo ${DRIVER_LINE} \
+		    | awk -F ' *= *' '{print $2}' \
+		    | sed 's/[[:space:]][[:space:]]*//g')
 		if [ "${DRIVER}" ]
 		then
 			echo "  driver \"${DRIVER}\" found for [$D] in $(basename ${ODBC_INI})"
@@ -212,7 +214,7 @@ then
 	fi
 
 	echo "  found driver line: \"${DRIVER_LINE}\""
-	DRIVER=$(echo ${DRIVER_LINE} | awk '{print $3}')
+	DRIVER=$(echo ${DRIVER_LINE} | awk -F ' *= *' '{print $2}')
 	if [ -z "${DRIVER}" ]
 	then
 		echo "$(basename $0): driver line incomplete for [${DRIVERNAME}] in $(basename ${ODBC_INST})"
@@ -241,7 +243,7 @@ fi
 SERVER_LINE=$(sed -ne "${SED_CMD}" ${ODBC_INI} \
 		| grep -Ei '^[[:space:]]*server(name)*[[:space:]]*=')
 
-ATTRIBUTE=$(echo ${SERVER_LINE} | awk '{print $1}')
+ATTRIBUTE=$(echo ${SERVER_LINE} | awk -F' *= *' '{print $1}')
 
 if [ -z "${ATTRIBUTE}" ]
 then
@@ -256,7 +258,7 @@ echo ${SERVER_LINE} | grep -i servername >/dev/null
 #
 if [ $? -eq 0 ] # ODBC-Combined
 then
-	TDS_SERVER=$(echo ${SERVER_LINE} | awk -F '=[[:space:]]*' '{print $2}')
+	TDS_SERVER=$(echo ${SERVER_LINE} | awk -F ' *= *' '{print $2}')
 	echo 'Using ODBC-Combined strategy'
 	echo "DSN [${DSN}] has servername \"${TDS_SERVER}\" (from ${ODBC_INI})"
 	if [ -z "${TDS_SERVER}" ]
@@ -310,7 +312,10 @@ then
 	SERVER_LINE=$(sed -ne "${SED_CMD}" ${FREETDS_CONF} \
 			| grep -Ei '^[[:space:]]*host[[:space:]]*=')
 
-	HOST=$(echo ${SERVER_LINE} | awk '{print $3}')
+	# No character class support in mawk, 
+	# cf. "Mawk does not support Posix character classes in expressions"
+	# https://bugs.launchpad.net/ubuntu/+source/mawk/+bug/69724
+	HOST=$(echo ${SERVER_LINE} | awk -F' *= *' '{print $2}')
 
 	if [ -z "${HOST}" ]
 	then
@@ -319,7 +324,7 @@ then
 	fi
 	
 else # odbc.ini contains a "server", a DNS host
-	HOST=$(echo ${SERVER_LINE} | awk '{print $3}')
+	HOST=$(echo ${SERVER_LINE} | awk -F ' *= *' '{print $2}')
 	echo "\"${ATTRIBUTE}\" found, not using freetds.conf"
 	echo "${ATTRIBUTE} is \"${HOST}\""
 	if [ -z "${HOST}" ]
