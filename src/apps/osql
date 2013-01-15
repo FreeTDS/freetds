@@ -340,12 +340,15 @@ then
 	if [ -z "${HOST}" ]
 	then
 		echo "$(basename $0): warning: no DNS hostname found for \"${ADDRESS}\""
+		HOST=${ADDRESS}	# restore host address string
 	fi
 fi
 
 # Now we have a DNS hostname for the server in HOST
-
-ADDRESS=$(host ${HOST} | awk '/has address/ {print $4}' | head -1)
+if [ "${HOST}" != "${ADDRESS}" ]
+then
+    ADDRESS=$(host ${HOST} | awk '/has address/ {print $4}' | head -1)
+fi
 if [ -z "${ADDRESS}" ]
 then
 	echo "$(basename $0): no IP address found for \"${HOST}\""
