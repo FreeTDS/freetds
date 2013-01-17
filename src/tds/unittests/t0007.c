@@ -277,7 +277,7 @@ main(int argc, char **argv)
 		len_dst = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type2, &cr_dst);
 		if (len_src <= 0 || len_dst <= 0)
 			continue;
-		if (tds_convert(&ctx, *type1, &cr_src.i, len_src, *type2, &cr_dst) <= 0) {
+		if (tds_convert(&ctx, *type1, (const TDS_CHAR *) &cr_src.i, len_src, *type2, &cr_dst) <= 0) {
 			fprintf(stderr, "conversion from %s to %s of %s should succeed\n",
 				tds_prtype(*type1), tds_prtype(*type2), *value);
 			return 1;
@@ -285,7 +285,7 @@ main(int argc, char **argv)
 		memcpy(&cr_src, &cr_dst, sizeof(cr_dst));
 		cr_dst.cc.c = buf;
 		cr_dst.cc.len = sizeof(buf);
-		len_dst = tds_convert(&ctx, *type2, &cr_src.i, len_dst, TDS_CONVERT_CHAR, &cr_dst);
+		len_dst = tds_convert(&ctx, *type2, (const TDS_CHAR *) &cr_src.i, len_dst, TDS_CONVERT_CHAR, &cr_dst);
 		if (len_dst <= 0) {
 			fprintf(stderr, "conversion from %s to string should succeed\n",
 				tds_prtype(*type1));
