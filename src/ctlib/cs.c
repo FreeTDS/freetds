@@ -511,14 +511,14 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 
 	}
 
-	src_type = _ct_get_server_type(srcfmt->datatype);
+	src_type = _ct_get_server_type(NULL, srcfmt->datatype);
 	src_len = srcfmt->maxlength;
 	if (srcfmt->datatype == CS_VARCHAR_TYPE || srcfmt->datatype == CS_VARBINARY_TYPE) {
 		CS_VARCHAR *vc = (CS_VARCHAR *) srcdata;
 		src_len = vc->len;
 		srcdata = vc->str;
 	}
-	desttype = _ct_get_server_type(destfmt->datatype);
+	desttype = _ct_get_server_type(NULL, destfmt->datatype);
 	destlen = destfmt->maxlength;
 	if (destfmt->datatype == CS_VARCHAR_TYPE || destfmt->datatype == CS_VARBINARY_TYPE) {
 		destvc = (CS_VARCHAR *) destdata;

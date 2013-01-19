@@ -1993,7 +1993,7 @@ _ct_get_client_type(TDSCOLUMN *col)
 }
 
 int
-_ct_get_server_type(int datatype)
+_ct_get_server_type(TDSSOCKET *tds, int datatype)
 {
 	tdsdump_log(TDS_DBG_FUNC, "_ct_get_server_type(%d)\n", datatype);
 
@@ -2004,11 +2004,18 @@ _ct_get_server_type(int datatype)
 	case CS_CHAR_TYPE:		return SYBCHAR;
 	case CS_VARCHAR_TYPE:		return SYBVARCHAR;
 	case CS_LONG_TYPE:
-#ifdef ENABLE_DEVELOPING
-	case CS_UBIGINT_TYPE:		return SYBUINT8;
-	case CS_UINT_TYPE:		return SYBUINT4;
-	case CS_USMALLINT_TYPE:		return SYBUINT2;
-#endif
+	case CS_UBIGINT_TYPE:
+		if (!tds || tds_capability_has_req(tds, TDS_REQ_DATA_UINT8))
+			return SYBUINT8;
+		return SYBINT8;
+	case CS_UINT_TYPE:
+		if (!tds || tds_capability_has_req(tds, TDS_REQ_DATA_UINT4))
+			return SYBUINT4;
+		return SYBINT4;
+	case CS_USMALLINT_TYPE:
+		if (!tds || tds_capability_has_req(tds, TDS_REQ_DATA_UINT2))
+			return SYBUINT2;
+		return SYBINT2;
 	case CS_BIGINT_TYPE:		return SYBINT8;
 	case CS_INT_TYPE:		return SYBINT4;
 	case CS_SMALLINT_TYPE:		return SYBINT2;
@@ -3921,7 +3928,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		 * i.e. using ct_setparam rather than ct_param
 		 */
 		temp_type = p->datatype;
-		tds_type = _ct_get_server_type(p->datatype);
+		tds_type = _ct_get_server_type(tds, p->datatype);
 		if (p->param_by_value == 0) {
 
 			/*
@@ -4087,7 +4094,7 @@ _ct_fill_param(CS_INT cmd_type, CS_PARAM *param, CS_DATAFMT *datafmt, CS_VOID *d
 	 * translate datafmt.datatype, e.g. CS_SMALLINT_TYPE
 	 * to Server type, e.g. SYBINT2
 	 */
-	desttype = _ct_get_server_type(datafmt->datatype);
+	desttype = _ct_get_server_type(NULL, datafmt->datatype);
 	param->datatype = datafmt->datatype;
 
 	if (is_numeric_type(desttype)) {
