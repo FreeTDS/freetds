@@ -54,18 +54,8 @@ For future versions (in priority order within library):
   nothing.
   Also cache detection somewhere
 . move error message macro/prototype to tds.h.in; use in dblib.c.
-. Add missing constants needed for python and verify working
-. Add missing constants needed for Gnome-DB and verify working 
 . conversion from ucs2 to utf8, provide for 2+ bytes/character
-. Finish off the TDS dissector for ethereal
-. more solid. handle out of memory conditions (started, we must test all 
-  allocation and all function that return allocated data and be able to 
-  rollback to a safe state)
-. optimize numeric conversions (partial, handle numeric->int and similar directly)
-  change precision (multiply/divide by 10^n) and extract number
-  checking overflow/underflow
-  change precision done (numeric.c)
-  numeric done, change numeric format to improve performance
+. change numeric format to improve performance ??
   . little/big endian based on platform
   . already packet at word
   . correctly aligned to read directly packetized
