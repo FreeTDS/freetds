@@ -26,10 +26,10 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int g_result = 0;
 static TDSCONTEXT ctx;
 
-void test(const char *src, const char *intro, const char *cont, int prec, int scale, int n2s);
+void test(const char *src, const char *intro, const char *cont, int prec, int scale, int n2s, int line);
 
 void
-test(const char *src, const char *intro, const char *cont, int prec, int scale, int n2s)
+test(const char *src, const char *intro, const char *cont, int prec, int scale, int n2s, int line)
 {
 	int i;
 	char buf[256];
@@ -56,7 +56,7 @@ test(const char *src, const char *intro, const char *cont, int prec, int scale, 
 	}
 	printf("%s\n", buf);
 	if (strcmp(buf, result) != 0) {
-		fprintf(stderr, "Failed! Should be\n%s\n", result);
+		fprintf(stderr, "line %d: Failed! Should be\n\t%s\n", line, result);
 		g_result = 1;
 	}
 
@@ -65,10 +65,12 @@ test(const char *src, const char *intro, const char *cont, int prec, int scale, 
 	tds_numeric_to_string(&cr.n, buf);
 	printf("%s\n", buf);
 	if (strcmp(buf, src) != 0) {
-		fprintf(stderr, "Failed! Should be\n%s\n", src);
+		fprintf(stderr, "line %d: Failed! Should be\n\t%s\n", line, src);
 		g_result = 1;
 	}
 }
+
+#define test(a,b,c,d,e,f) test(a,b,c,d,e,f,__LINE__)
 
 int
 main(int argc, char **argv)

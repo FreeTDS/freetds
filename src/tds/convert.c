@@ -681,6 +681,33 @@ tds_convert_uint4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
+tds_convert_int_numeric(unsigned char scale,
+	unsigned char sign, TDS_UINT num, CONV_RESULT * cr)
+{
+	unsigned char orig_prec = cr->n.precision, orig_scale = cr->n.scale;
+	cr->n.precision = 10;
+	cr->n.scale = scale;
+	cr->n.array[0] = sign;
+	cr->n.array[1] = 0;
+	TDS_PUT_UA4BE(&(cr->n.array[2]), num);
+	return tds_numeric_change_prec_scale(&(cr->n), orig_prec, orig_scale);
+}
+
+static TDS_INT
+tds_convert_int8_numeric(unsigned char scale,
+	unsigned char sign, TDS_UINT8 num, CONV_RESULT * cr)
+{
+	unsigned char orig_prec = cr->n.precision, orig_scale = cr->n.scale;
+	cr->n.precision = 20;
+	cr->n.scale = scale;
+	cr->n.array[0] = sign;
+	cr->n.array[1] = 0;
+	TDS_PUT_UA4BE(&(cr->n.array[2]), (TDS_UINT) (num >> 32));
+	TDS_PUT_UA4BE(&(cr->n.array[6]), (TDS_UINT) num);
+	return tds_numeric_change_prec_scale(&(cr->n), orig_prec, orig_scale);
+}
+
+static TDS_INT
 tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 {
 	TDS_CHAR tmp_str[16];
@@ -756,8 +783,9 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		sprintf(tmp_str, "%d", num);
-		return stringz_to_numeric(tmp_str, cr);
+		if (num < 0)
+			return tds_convert_int_numeric(0, 1, (TDS_UINT) -num, cr);
+		return tds_convert_int_numeric(0, 0, (TDS_UINT) num, cr);
 		break;
 		/* handled by upper layer */
 	case CASE_ALL_BINARY:
@@ -836,8 +864,9 @@ tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		sprintf(tmp_str, "%" PRId64, buf);
-		return stringz_to_numeric(tmp_str, cr);
+		if (buf < 0)
+			return tds_convert_int8_numeric(0, 1, -buf, cr);
+		return tds_convert_int8_numeric(0, 0, buf, cr);
 		break;
 		/* conversions not allowed */
 	case SYBUNIQUE:
@@ -915,8 +944,7 @@ tds_convert_uint8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		sprintf(tmp_str, "%" PRIu64, buf);
-		return stringz_to_numeric(tmp_str, cr);
+		return tds_convert_int8_numeric(0, 0, buf, cr);
 		break;
 		/* conversions not allowed */
 	case SYBUNIQUE:
@@ -1083,7 +1111,7 @@ static TDS_INT
 tds_convert_money4(const TDS_CHAR * src, int srclen, int desttype, CONV_RESULT * cr)
 {
 	TDS_MONEY4 mny;
-	long dollars, fraction;
+	long dollars;
 	char tmp_str[33];
 	char *p;
 
@@ -1180,13 +1208,9 @@ tds_convert_money4(const TDS_CHAR * src, int srclen, int desttype, CONV_RESULT *
 		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:
-		dollars = mny.mny4 / 10000;
-		fraction = mny.mny4 % 10000;
-		if (fraction < 0) {
-			fraction = -fraction;
-		}
-		sprintf(tmp_str, "%ld.%04lu", dollars, fraction);
-		return stringz_to_numeric(tmp_str, cr);
+		if (mny.mny4 < 0)
+			return tds_convert_int_numeric(4, 1, (TDS_UINT) -mny.mny4, cr);
+		return tds_convert_int_numeric(4, 0, (TDS_UINT) mny.mny4, cr);
 		/* conversions not allowed */
 	case SYBUNIQUE:
 	case SYBDATETIME4:
@@ -1295,8 +1319,9 @@ tds_convert_money(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		break;
 	case SYBDECIMAL:
 	case SYBNUMERIC:
-		s = tds_money_to_string((const TDS_MONEY *) src, tmpstr);
-		return stringz_to_numeric(s, cr);
+		if (mymoney < 0)
+			return tds_convert_int8_numeric(4, 1, -mymoney, cr);
+		return tds_convert_int8_numeric(4, 0, mymoney, cr);
 		break;
 		/* conversions not allowed */
 	case SYBUNIQUE:
