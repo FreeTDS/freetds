@@ -106,12 +106,14 @@ static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
 #define TDS_UINT_MAX 4294967295lu
 #define IS_UINT(x) (0 <= (x) && (x) <= TDS_UINT_MAX)
 
-#define TDS_INT8_MAX ((((TDS_INT8) 0x7fffffffl) << 32) + 0xfffffffflu)
+#define TDS_INT8_MAX ((((TDS_INT8) 0x7fffffffl) << 32) + (TDS_INT8) 0xfffffffflu)
 #define TDS_INT8_MIN  (((TDS_INT8) (-0x7fffffffl-1)) << 32)
 #define IS_INT8(x) (TDS_INT8_MIN <= (x) && (x) <= TDS_INT8_MAX)
 
 #define TDS_UINT8_MAX ((((TDS_UINT8) 0xfffffffflu) << 32) + 0xfffffffflu)
 #define IS_UINT8(x) (0 <= (x) && (x) <= TDS_UINT8_MAX)
+
+#define TDS_ISDIGIT(c) ((c) >= '0' && (c) <= '9')
 
 /**
  * \ingroup libtds
@@ -347,10 +349,10 @@ tds_char2hex(TDS_CHAR *dest, TDS_UINT destlen, const TDS_CHAR * src, TDS_UINT sr
 static TDS_INT
 tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESULT * cr)
 {
-	unsigned int i, j;
+	unsigned int i;
 
 	TDS_INT8 mymoney;
-	char mynumber[39];
+	char mynumber[28];
 
 	const char *ptr, *pend;
 	int point_found;
@@ -479,25 +481,31 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 		pend = src + srclen;
 
 		/* skip leading blanks */
-		for (ptr = src; ptr != pend && *ptr == ' '; ++ptr);
+		for (ptr = src; ptr != pend && *ptr == ' '; ++ptr)
+			continue;
 
+		/* handle sign */
 		switch (ptr != pend ? *ptr : 0) {
 		case '-':
 			mynumber[i++] = '-';
 			/* fall through */
 		case '+':
-			ptr++;
-			for (; ptr != pend && *ptr == ' '; ++ptr);
+			while (++ptr != pend && *ptr == ' ')
+				continue;
 			break;
 		}
 
+		/* handle numbers which start with a lot of '0' */
+		while (ptr != pend && *ptr == '0')
+			++ptr;
+
 		for (; ptr != pend; ptr++) {	/* deal with the rest */
-			if (isdigit((unsigned char) *ptr)) {	/* it's a number */
+			if (TDS_ISDIGIT(*ptr)) {	/* it's a number */
 				/* no more than 4 decimal digits */
 				if (places < 4)
 					mynumber[i++] = *ptr;
 				/* assure not buffer overflow */
-				if (i == 30)
+				if (i > 22)
 					return TDS_CONVERT_OVERFLOW;
 				if (point_found) {	/* if we passed a decimal point */
 					/* count digits after that point  */
@@ -510,17 +518,20 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 			} else	/* first invalid character */
 				return TDS_CONVERT_SYNTAX;	/* lose the rest.          */
 		}
-		for (j = places; j < 4; j++)
+		for (; places < 4; ++places)
 			mynumber[i++] = '0';
-		mynumber[i] = 0;
 
-		/* FIXME overflow not handled */
+		/* convert number and check for overflow */
+		if (string_to_int8(mynumber, mynumber + i, &mymoney) < 0)
+			return TDS_CONVERT_OVERFLOW;
+
 		if (desttype == SYBMONEY) {
-			mymoney = atoll(mynumber);
 			cr->m.mny = mymoney;
 			return sizeof(TDS_MONEY);
 		} else {
-			cr->m4.mny4 = atol(mynumber);
+			if (!IS_INT(mymoney))
+				return TDS_CONVERT_OVERFLOW;
+			cr->m4.mny4 = (TDS_INT) mymoney;
 			return sizeof(TDS_MONEY4);
 		}
 		break;
@@ -1074,6 +1085,37 @@ tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_
 				break;
 			}
 		return sizeof(TDS_TINYINT);
+		break;
+	case SYBMONEY4:
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 10, 4);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		i = TDS_GET_UA4BE(&(cr->n.array[2]));
+		if (cr->n.array[0])
+			i = -i;
+		if (((i >> 31) ^ cr->n.array[0]) & 1)
+			return TDS_CONVERT_OVERFLOW;
+		cr->m4.mny4 = i;
+		return sizeof(TDS_MONEY4);
+		break;
+	case SYBMONEY:
+		cr->n = *src;
+		ret = tds_numeric_change_prec_scale(&(cr->n), 20, 4);
+		if (ret < 0)
+			return ret;
+		if (cr->n.array[1])
+			return TDS_CONVERT_OVERFLOW;
+		bi = TDS_GET_UA4BE(&(cr->n.array[2]));
+		bi = (bi << 32) + TDS_GET_UA4BE(&(cr->n.array[6]));
+		if (cr->n.array[0])
+			bi = -bi;
+		if (((bi >> 63) ^ cr->n.array[0]) & 1)
+			return TDS_CONVERT_OVERFLOW;
+		cr->m.mny = bi;
+		return sizeof(TDS_MONEY);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:

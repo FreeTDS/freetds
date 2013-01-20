@@ -99,6 +99,8 @@ static int
 int_types[] = {
 	SYBINT1, SYBUINT1, SYBINT2, SYBUINT2,
 	SYBINT4, SYBUINT4, SYBINT8, SYBUINT8,
+	SYBMONEY4, SYBMONEY,
+	SYBNUMERIC,
 	-1
 };
 
@@ -106,13 +108,29 @@ static const char *
 int_values[] = {
 	"0",
 	"127", "255",
+	"128", "256",
 	"32767", "65535",
+	"32768", "65536",
+	"214748",
+	"214749",
 	"2147483647", "4294967295",
+	"2147483648", "4294967296",
+	"922337203685477",
+	"922337203685478",
 	"9223372036854775807", "18446744073709551615",
+	"9223372036854775808", "18446744073709551616",
 	"-128",
+	"-129",
 	"-32768",
+	"-32769",
+	"-214748",
+	"-214749",
 	"-2147483648",
+	"-2147483649",
+	"-922337203685477",
+	"-922337203685478",
 	"-9223372036854775808",
+	"-9223372036854775809",
 	NULL
 };
 
@@ -268,15 +286,18 @@ main(int argc, char **argv)
 	for (value = int_values; *value; ++value)
 	for (type1 = int_types; *type1 >= 0; ++type1)
 	for (type2 = int_types; *type2 >= 0; ++type2) {
-		char buf[64];
+		char buf[64], expected[64];
 		CONV_RESULT cr_src, cr_dst;
 		TDS_INT len_src, len_dst;
 
 		/* try conversion from char (already tested above) */
+		cr_src.n.precision = 20; cr_src.n.scale = 0;
 		len_src = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type1, &cr_src);
+		cr_dst.n.precision = 20; cr_dst.n.scale = 0;
 		len_dst = tds_convert(&ctx, SYBVARCHAR, *value, strlen(*value), *type2, &cr_dst);
 		if (len_src <= 0 || len_dst <= 0)
 			continue;
+		cr_dst.n.precision = 20; cr_dst.n.scale = 0;
 		if (tds_convert(&ctx, *type1, (const TDS_CHAR *) &cr_src.i, len_src, *type2, &cr_dst) <= 0) {
 			fprintf(stderr, "conversion from %s to %s of %s should succeed\n",
 				tds_prtype(*type1), tds_prtype(*type2), *value);
@@ -284,7 +305,7 @@ main(int argc, char **argv)
 		}
 		memcpy(&cr_src, &cr_dst, sizeof(cr_dst));
 		cr_dst.cc.c = buf;
-		cr_dst.cc.len = sizeof(buf);
+		cr_dst.cc.len = sizeof(buf)-4;
 		len_dst = tds_convert(&ctx, *type2, (const TDS_CHAR *) &cr_src.i, len_dst, TDS_CONVERT_CHAR, &cr_dst);
 		if (len_dst <= 0) {
 			fprintf(stderr, "conversion from %s to string should succeed\n",
@@ -292,7 +313,11 @@ main(int argc, char **argv)
 			return 1;
 		}
 		buf[len_dst] = 0;
-		if (strcmp(buf, *value) != 0) {
+		if (*type2 == SYBMONEY4 || *type2 == SYBMONEY)
+			sprintf(expected, "%s.00", *value);
+		else
+			strcpy(expected, *value);
+		if (strcmp(buf, expected) != 0) {
 			fprintf(stderr, "conversion from %s to %s of %s got wrong value '%s'\n",
 				tds_prtype(*type1), tds_prtype(*type2), *value, buf);
 			return 1;
