@@ -373,14 +373,9 @@ case 8 in
 $ac_cv_sizeof_long)      tds_sysdep_int64_type=long;;
 $ac_cv_sizeof_long_long) tds_sysdep_int64_type="long long";;
 $ac_cv_sizeof___int64)   tds_sysdep_int64_type=__int64;;
+*)                     AC_MSG_ERROR([No 64-bit integer found.])
 esac
-if test "$tds_sysdep_int64_type"; then
-    AC_DEFINE(HAVE_INT64, 1, [Define to 1 if you have a 64-bit integral type.])
-    SPRINTF_I64_FORMAT
-else
-    tds_sysdep_int64_type=long
-    AC_MSG_WARN([SQL Server 2000 "bigint" 8-byte integer will not work])
-fi
+SPRINTF_I64_FORMAT
 
 case $ac_cv_sizeof_void_p in
 $ac_cv_sizeof_short)     tds_sysdep_intptr_type=short;;

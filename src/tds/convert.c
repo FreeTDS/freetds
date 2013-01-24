@@ -1894,7 +1894,7 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 	}
 
 /* fix MONEY case */
-#if !defined(WORDS_BIGENDIAN) && defined(HAVE_INT64)
+#if !defined(WORDS_BIGENDIAN)
 	if (length > 0 && desttype == SYBMONEY) {
 		cr->m.mny = ((TDS_UINT8) cr->m.mny) >> 32 | (cr->m.mny << 32);
 	}

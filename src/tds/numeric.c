@@ -37,18 +37,6 @@
 
 TDS_RCSID(var, "$Id: numeric.c,v 1.50 2011-06-11 07:42:26 freddy77 Exp $");
 
-/* 
- * these routines use arrays of unsigned char to handle arbitrary
- * precision numbers.  All-in-all it's probably pretty slow, but it
- * does work. I just heard of a GNU lib for arb. precision math, so
- * that might be an option in the future.
- */
-#ifndef HAVE_INT64
-static int multiply_byte(unsigned char *product, int num, unsigned char *multiplier);
-static int do_carry(unsigned char *product);
-static char *array_to_string(unsigned char *array, int scale, char *s);
-#endif
-
 /**
  * tds_numeric_bytes_per_prec is indexed by precision and will
  * tell us the number of bytes required to store the specified
@@ -80,7 +68,6 @@ TDS_COMPILE_CHECK(maxprecision,
 char *
 tds_money_to_string(const TDS_MONEY * money, char *s)
 {
-#ifdef HAVE_INT64
 	int frac;
 	TDS_INT8 mymoney;
 	TDS_UINT8 n;
@@ -104,130 +91,7 @@ tds_money_to_string(const TDS_MONEY * money, char *s)
 	/* if machine is 64 bit you do not need to split n */
 	sprintf(p, "%" PRId64 ".%02d", n, frac);
 	return s;
-#else
-	unsigned char multiplier[MAXPRECISION], temp[MAXPRECISION];
-	unsigned char product[MAXPRECISION];
-	const unsigned char *number;
-	unsigned char tmpnumber[8];
-	int i, num_bytes = 8;
-	int pos, neg = 0;
-
-	memset(multiplier, 0, MAXPRECISION);
-	memset(product, 0, MAXPRECISION);
-	multiplier[0] = 1;
-
-	number = (const unsigned char *) money;
-
-#ifdef WORDS_BIGENDIAN
-	/* big endian makes things easy */
-	memcpy(tmpnumber, number, 8);
-#else
-	/*
-	 * money is two 32 bit ints and thus is out of order on 
-	 * little endian machines. Proof of the superiority of 
-	 * big endian design. ;)
-	 */
-	for (i = 0; i < 4; i++)
-		tmpnumber[3 - i] = number[i];
-	for (i = 4; i < 8; i++)
-		tmpnumber[7 - i + 4] = number[i];
-#endif
-
-	if (tmpnumber[0] & 0x80) {
-		/* negative number -- preform two's complement */
-		neg = 1;
-		for (i = 0; i < 8; i++) {
-			tmpnumber[i] = ~tmpnumber[i];
-		}
-		for (i = 7; i >= 0; i--) {
-			tmpnumber[i] += 1;
-			if (tmpnumber[i] != 0)
-				break;
-		}
-	}
-	for (pos = num_bytes - 1; pos >= 0; pos--) {
-		multiply_byte(product, tmpnumber[pos], multiplier);
-
-		memcpy(temp, multiplier, MAXPRECISION);
-		memset(multiplier, 0, MAXPRECISION);
-		multiply_byte(multiplier, 256, temp);
-	}
-	if (neg) {
-		s[0] = '-';
-		array_to_string(product, 4, &s[1]);
-	} else {
-		array_to_string(product, 4, s);
-	}
-
-	/* round to two decimal places */
-	if (s) {
-		sprintf(s, "%.02f", atof(s));
-	}
-
-	return s;
-#endif
 }
-
-#ifndef HAVE_INT64
-static int
-multiply_byte(unsigned char *product, int num, unsigned char *multiplier)
-{
-	unsigned char number[3];
-	int i, top, j, start;
-
-	number[0] = num % 10;
-	number[1] = (num / 10) % 10;
-	number[2] = (num / 100) % 10;
-
-	for (top = MAXPRECISION - 1; top >= 0 && !multiplier[top]; top--);
-	start = 0;
-	for (i = 0; i <= top; i++) {
-		for (j = 0; j < 3; j++) {
-			product[j + start] += multiplier[i] * number[j];
-		}
-		do_carry(product);
-		start++;
-	}
-	return 0;
-}
-
-static int
-do_carry(unsigned char *product)
-{
-	int j;
-
-	for (j = 0; j < MAXPRECISION; j++) {
-		if (product[j] > 9) {
-			product[j + 1] += product[j] / 10;
-			product[j] = product[j] % 10;
-		}
-	}
-	return 0;
-}
-
-static char *
-array_to_string(unsigned char *array, int scale, char *s)
-{
-	int top, i, j;
-
-	for (top = MAXPRECISION - 1; top >= 0 && top > scale && !array[top]; top--);
-
-	if (top == -1) {
-		s[0] = '0';
-		s[1] = '\0';
-		return s;
-	}
-
-	j = 0;
-	for (i = top; i >= 0; i--) {
-		if (top + 1 - j == scale)
-			s[j++] = '.';
-		s[j++] = array[i] + '0';
-	}
-	s[j] = '\0';
-	return s;
-}
-#endif
 
 /**
  * @return <0 if error
@@ -335,15 +199,9 @@ tds_numeric_to_string(const TDS_NUMERIC * numeric, char *s)
 	return 1;
 }
 
-#ifndef HAVE_INT64
-#define TDS_WORD  TDS_USMALLINT
-#define TDS_DWORD TDS_UINT
-#define TDS_WORD_DDIGIT 4
-#else
 #define TDS_WORD  TDS_UINT
 #define TDS_DWORD TDS_UINT8
 #define TDS_WORD_DDIGIT 9
-#endif
 
 /* include to check limits */
 
@@ -390,9 +248,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 {
 	static const TDS_WORD factors[] = {
 		1, 10, 100, 1000, 10000,
-#ifdef HAVE_INT64
 		100000, 1000000, 10000000, 100000000, 1000000000
-#endif
 	};
 
 	TDS_WORD packet[(sizeof(numeric->array) - 1) / sizeof(TDS_WORD)];
@@ -426,11 +282,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 		 * overflow in numeric->array however is not a problem
 		 * cause overflow occurs in numeric and number is fixed below
 		 */
-#ifndef HAVE_INT64
-		packet[i] = TDS_GET_UA2BE(&numeric->array[bytes-1]);
-#else
 		packet[i] = TDS_GET_UA4BE(&numeric->array[bytes-3]);
-#endif
 		++i;
 	} while ( (bytes -= sizeof(TDS_WORD)) > 0);
 	/* fix last packet */
@@ -483,7 +335,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 			TDS_WORD borrow = 0;
 			scale_diff -= n;
 			for (i = packet_len; i > 0; ) {
-#if defined(__GNUC__) && __GNUC__ >= 3 && defined(__i386__) && defined(HAVE_INT64)
+#if defined(__GNUC__) && __GNUC__ >= 3 && defined(__i386__)
 				--i;
 				__asm__ __volatile__ ("divl %4": "=a"(packet[i]), "=d"(borrow): "0"(packet[i]), "1"(borrow), "r"(factor));
 #elif defined(__WATCOMC__) && defined(DOS32X)
@@ -509,11 +361,7 @@ tds_numeric_change_prec_scale(TDS_NUMERIC * numeric, unsigned char new_prec, uns
 	for (i = bytes / sizeof(TDS_WORD); i >= packet_len; --i)
 		packet[i] = 0;
 	for (i = 0; bytes >= sizeof(TDS_WORD); bytes -= sizeof(TDS_WORD), ++i) {
-#ifndef HAVE_INT64
-		TDS_PUT_UA2BE(&numeric->array[bytes-1], packet[i]);
-#else
 		TDS_PUT_UA4BE(&numeric->array[bytes-3], packet[i]);
-#endif
 	}
 
 	if (bytes) {

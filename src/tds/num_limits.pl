@@ -87,9 +87,5 @@ sub print_all()
 	print "};\n";
 }
 
-print "#ifndef HAVE_INT64\n";
-&print_all(16);
-print "#else\n";
 &print_all(32);
-print "#endif\n";
 
