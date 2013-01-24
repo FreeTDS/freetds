@@ -79,13 +79,13 @@ struct tds_time
 };
 
 static TDS_INT tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int1(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_uint2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_uint4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
-static TDS_INT tds_convert_uint8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_int1(const TDS_TINYINT * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_int2(const TDS_SMALLINT * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_uint2(const TDS_USMALLINT * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_int4(const TDS_INT* src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_uint4(const TDS_UINT * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_int8(const TDS_INT8 * src, int desttype, CONV_RESULT * cr);
+static TDS_INT tds_convert_uint8(const TDS_UINT8 * src, int desttype, CONV_RESULT * cr);
 static int string_to_datetime(const char *datestr, int desttype, CONV_RESULT * cr);
 static int is_dd_mon_yyyy(char *t);
 static int store_dd_mon_yyy_date(char *datestr, struct tds_time *t);
@@ -638,47 +638,47 @@ tds_convert_bit(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_int1(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_int1(const TDS_TINYINT * src, int desttype, CONV_RESULT * cr)
 {
 	switch (desttype) {
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, 1, cr);
 	}
-	return tds_convert_int(*((TDS_TINYINT *) src), desttype, cr);
+	return tds_convert_int(*src, desttype, cr);
 }
 
 static TDS_INT
-tds_convert_int2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_int2(const TDS_SMALLINT * src, int desttype, CONV_RESULT * cr)
 {
 	switch (desttype) {
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, 2, cr);
 	}
-	return tds_convert_int(*((TDS_SMALLINT *) src), desttype, cr);
+	return tds_convert_int(*src, desttype, cr);
 }
 
 static TDS_INT
-tds_convert_uint2(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_uint2(const TDS_USMALLINT * src, int desttype, CONV_RESULT * cr)
 {
 	switch (desttype) {
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, 2, cr);
 	}
-	return tds_convert_int(*((TDS_USMALLINT *) src), desttype, cr);
+	return tds_convert_int(*src, desttype, cr);
 }
 
 static TDS_INT
-tds_convert_int4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_int4(const TDS_INT * src, int desttype, CONV_RESULT * cr)
 {
 	switch (desttype) {
 	case CASE_ALL_BINARY:
 		return binary_to_result(src, 4, cr);
 	}
-	return tds_convert_int(*((TDS_INT *) src), desttype, cr);
+	return tds_convert_int(*src, desttype, cr);
 }
 
 static TDS_INT
-tds_convert_uint4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_uint4(const TDS_UINT * src, int desttype, CONV_RESULT * cr)
 {
 	TDS_UINT8 num;
 
@@ -687,8 +687,8 @@ tds_convert_uint4(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 		return binary_to_result(src, 4, cr);
 	}
 
-	num = *((TDS_UINT *) src);
-	return tds_convert_uint8((const TDS_CHAR *) &num, desttype, cr);
+	num = *src;
+	return tds_convert_uint8(&num, desttype, cr);
 }
 
 static TDS_INT
@@ -812,7 +812,7 @@ tds_convert_int(TDS_INT num, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_int8(const TDS_INT8 *src, int desttype, CONV_RESULT * cr)
 {
 	TDS_INT8 buf;
 	TDS_CHAR tmp_str[24];
@@ -891,7 +891,7 @@ tds_convert_int8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 }
 
 static TDS_INT
-tds_convert_uint8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_uint8(const TDS_UINT8 *src, int desttype, CONV_RESULT * cr)
 {
 	TDS_UINT8 buf;
 	TDS_CHAR tmp_str[24];
@@ -1150,14 +1150,14 @@ tds_convert_numeric(const TDS_NUMERIC * src, TDS_INT srclen, int desttype, CONV_
 }
 
 static TDS_INT
-tds_convert_money4(const TDS_CHAR * src, int srclen, int desttype, CONV_RESULT * cr)
+tds_convert_money4(const TDS_MONEY4 * src, int srclen, int desttype, CONV_RESULT * cr)
 {
 	TDS_MONEY4 mny;
 	long dollars;
 	char tmp_str[33];
 	char *p;
 
-	memcpy(&mny, src, sizeof(mny));
+	mny = *src;
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
@@ -1266,7 +1266,7 @@ tds_convert_money4(const TDS_CHAR * src, int srclen, int desttype, CONV_RESULT *
 }
 
 static TDS_INT
-tds_convert_money(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_money(const TDS_MONEY * src, int desttype, CONV_RESULT * cr)
 {
 	char *s;
 
@@ -1274,12 +1274,7 @@ tds_convert_money(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 	char tmpstr[64];
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_convert_money()\n");
-#if defined(WORDS_BIGENDIAN) || !defined(HAVE_INT64)
-	memcpy(&mymoney, src, sizeof(TDS_INT8));
-#else
-	memcpy(((char *) &mymoney) + 4, src, 4);
-	memcpy(&mymoney, src + 4, 4);
-#endif
+	mymoney = ((TDS_INT8) src->tdsoldmoney.mnyhigh << 32) | src->tdsoldmoney.mnylow;
 
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
@@ -1516,7 +1511,7 @@ tds_convert_datetime4(const TDSCONTEXT * tds_ctx, const TDS_DATETIME4 * dt4, int
 }
 
 static TDS_INT
-tds_convert_real(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 {
 	TDS_REAL the_value;
 
@@ -1525,7 +1520,7 @@ tds_convert_real(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
 	TDS_INT mymoney4;
 	TDS_INT8 mymoney;
 
-	memcpy(&the_value, src, 4);
+	the_value = *src;
 
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
@@ -1634,7 +1629,7 @@ tds_convert_real(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
  * API-independent alternative to tds_client_msg().  Postponed until then.  
  */
 static TDS_INT
-tds_convert_flt8(const TDS_CHAR * src, int desttype, CONV_RESULT * cr)
+tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 {
 	TDS_FLOAT the_value;
 	char tmp_str[25];
@@ -1826,10 +1821,10 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		length = tds_convert_char(src, srclen, desttype, cr);
 		break;
 	case SYBMONEY4:
-		length = tds_convert_money4(src, srclen, desttype, cr);
+		length = tds_convert_money4((const TDS_MONEY4 *) src, srclen, desttype, cr);
 		break;
 	case SYBMONEY:
-		length = tds_convert_money(src, desttype, cr);
+		length = tds_convert_money((const TDS_MONEY *) src, desttype, cr);
 		break;
 	case SYBNUMERIC:
 	case SYBDECIMAL:
@@ -1841,31 +1836,31 @@ tds_convert(const TDSCONTEXT * tds_ctx, int srctype, const TDS_CHAR * src, TDS_U
 		break;
 	case SYBINT1:
 	case SYBUINT1:
-		length = tds_convert_int1(src, desttype, cr);
+		length = tds_convert_int1((const TDS_TINYINT *) src, desttype, cr);
 		break;
 	case SYBINT2:
-		length = tds_convert_int2(src, desttype, cr);
+		length = tds_convert_int2((const TDS_SMALLINT *) src, desttype, cr);
 		break;
 	case SYBUINT2:
-		length = tds_convert_uint2(src, desttype, cr);
+		length = tds_convert_uint2((const TDS_USMALLINT *) src, desttype, cr);
 		break;
 	case SYBINT4:
-		length = tds_convert_int4(src, desttype, cr);
+		length = tds_convert_int4((const TDS_INT *) src, desttype, cr);
 		break;
 	case SYBUINT4:
-		length = tds_convert_uint4(src, desttype, cr);
+		length = tds_convert_uint4((const TDS_UINT *) src, desttype, cr);
 		break;
 	case SYBINT8:
-		length = tds_convert_int8(src, desttype, cr);
+		length = tds_convert_int8((const TDS_INT8 *) src, desttype, cr);
 		break;
 	case SYBUINT8:
-		length = tds_convert_uint8(src, desttype, cr);
+		length = tds_convert_uint8((const TDS_UINT8 *) src, desttype, cr);
 		break;
 	case SYBREAL:
-		length = tds_convert_real(src, desttype, cr);
+		length = tds_convert_real((const TDS_REAL *) src, desttype, cr);
 		break;
 	case SYBFLT8:
-		length = tds_convert_flt8(src, desttype, cr);
+		length = tds_convert_flt8((const TDS_FLOAT *) src, desttype, cr);
 		break;
 	case SYBMSTIME:
 	case SYBMSDATE:
