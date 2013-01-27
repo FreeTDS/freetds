@@ -1215,6 +1215,7 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 
 	if (tds->out_buf_max == bufsize)
 		return tds;
+	tds->conn->env.block_size = bufsize;
 
 	if (tds->out_pos <= bufsize && bufsize > 0 && 
 	    (new_out_buf = (unsigned char *) realloc(tds->out_buf, bufsize + TDS_ADDITIONAL_SPACE)) != NULL) {
