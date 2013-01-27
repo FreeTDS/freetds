@@ -7152,24 +7152,30 @@ odbc_stat_execute(TDS_STMT * stmt _WIDE, const char *begin, int nparams, ...)
 static SQLRETURN
 odbc_free_dynamic(TDS_STMT * stmt)
 {
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds;
 
-	if (stmt->dyn) {
-		if (!tds_needs_unprepare(tds, stmt->dyn)) {
-			tds_release_dynamic(&stmt->dyn);
-		} else if (TDS_SUCCEED(tds_submit_unprepare(tds, stmt->dyn))) {
-			if (TDS_FAILED(tds_process_simple_query(tds))) {
-				ODBC_SAFE_ERROR(stmt);
-				return SQL_ERROR;
-			}
-			tds_release_dynamic(&stmt->dyn);
-		} else {
-			/* TODO if fail add to odbc to free later, when we are in idle */
-			ODBC_SAFE_ERROR(stmt);
-			return SQL_ERROR;
-		}
+	if (!stmt->dyn)
+		return TDS_SUCCESS;
+
+	tds = stmt->dbc->tds_socket;
+	if (!tds_needs_unprepare(tds, stmt->dyn)) {
+		tds_release_dynamic(&stmt->dyn);
+		return SQL_SUCCESS;
 	}
-	return SQL_SUCCESS;
+
+	if (!odbc_lock_statement(stmt))
+		return SQL_ERROR;
+
+	tds = stmt->tds;
+	if (TDS_SUCCEED(tds_submit_unprepare(tds, stmt->dyn))
+	    && TDS_SUCCEED(tds_process_simple_query(tds))) {
+		tds_release_dynamic(&stmt->dyn);
+		return SQL_SUCCESS;
+	}
+
+	/* TODO if fail add to odbc to free later, when we are in idle */
+	ODBC_SAFE_ERROR(stmt);
+	return SQL_ERROR;
 }
 
 static SQLRETURN
