@@ -404,6 +404,14 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 	if (IS_TDS7_PLUS(dbc->tds_socket->conn))
 		dbc->cursor_support = 1;
 
+#if ENABLE_ODBC_MARS
+	/* check if mars is enabled */
+	if (!IS_TDS72_PLUS(dbc->tds_socket->conn) || !dbc->tds_socket->conn->mars)
+		dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
+#else
+	dbc->attr.mars_enabled = SQL_MARS_ENABLED_NO;
+#endif
+
 	if (dbc->attr.txn_isolation != SQL_TXN_READ_COMMITTED) {
 		if (!SQL_SUCCEEDED(change_txn(dbc, dbc->attr.txn_isolation)))
 			ODBC_RETURN_(dbc);
