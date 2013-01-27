@@ -824,16 +824,22 @@ odbc_lock_statement(TDS_STMT* stmt)
 static void
 odbc_unlock_statement(TDS_STMT* stmt)
 {
+	TDSSOCKET * tds = stmt->tds;
+
 	tds_mutex_lock(&stmt->dbc->mtx);
 	if (stmt->dbc->current_statement == stmt) {
 		assert(stmt->tds);
-		stmt->dbc->current_statement = NULL;
-		tds_set_parent(stmt->tds, stmt->dbc);
-		stmt->tds = NULL;
+		if (stmt->tds->state == TDS_IDLE) {
+			stmt->dbc->current_statement = NULL;
+			tds_set_parent(stmt->tds, stmt->dbc);
+			stmt->tds = NULL;
+		}
 #if ENABLE_ODBC_MARS
-	} else if (stmt->tds) {
-		tds_free_socket(stmt->tds);
-		stmt->tds = NULL;
+	} else if (tds) {
+		if (tds->state == TDS_IDLE || tds->state == TDS_DEAD) {
+			tds_free_socket(tds);
+			stmt->tds = NULL;
+		}
 #endif
 	}
 	tds_mutex_unlock(&stmt->dbc->mtx);
