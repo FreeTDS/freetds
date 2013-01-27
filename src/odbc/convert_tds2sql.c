@@ -62,16 +62,16 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 		conv = tds->conn->char_convs[client2server_chardata];
 	if (desttype == SQL_C_WCHAR) {
 		/* SQL_C_WCHAR, convert to wide encode */
-		conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->server_charset.name);
+		conv = tds_iconv_get(tds->conn, ODBC_WIDE_NAME, conv->server_charset.name);
 		if (!conv)
-			conv = tds_iconv_get(tds, ODBC_WIDE_NAME, "ISO-8859-1");
+			conv = tds_iconv_get(tds->conn, ODBC_WIDE_NAME, "ISO-8859-1");
 #ifdef ENABLE_ODBC_WIDE
 	} else {
-		conv = tds_iconv_get(tds, tds_dstr_cstr(&stmt->dbc->original_charset), conv->server_charset.name);
+		conv = tds_iconv_get(tds->conn, tds_dstr_cstr(&stmt->dbc->original_charset), conv->server_charset.name);
 		if (!conv)
-			conv = tds_iconv_get(tds, tds_dstr_cstr(&stmt->dbc->original_charset), "ISO-8859-1");
+			conv = tds_iconv_get(tds->conn, tds_dstr_cstr(&stmt->dbc->original_charset), "ISO-8859-1");
 		if (!conv)
-			conv = tds_iconv_get(tds, "ISO-8859-1", "ISO-8859-1");
+			conv = tds_iconv_get(tds->conn, "ISO-8859-1", "ISO-8859-1");
 #endif
 	}
 

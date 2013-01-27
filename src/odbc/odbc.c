@@ -396,7 +396,7 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 		return SQL_ERROR;
 	}
 #ifdef ENABLE_ODBC_WIDE
-	dbc->mb_conv = tds_iconv_get(dbc->tds_socket, tds_dstr_cstr(&dbc->original_charset), "UTF-8");
+	dbc->mb_conv = tds_iconv_get(dbc->tds_socket->conn, tds_dstr_cstr(&dbc->original_charset), "UTF-8");
 #endif
 
 	dbc->default_query_timeout = dbc->tds_socket->query_timeout;

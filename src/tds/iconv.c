@@ -956,7 +956,7 @@ tds_iconv_get_info(TDSCONNECTION * conn, int canonic_client, int canonic_server)
 }
 
 TDSICONV *
-tds_iconv_get(TDSSOCKET * tds, const char *client_charset, const char *server_charset)
+tds_iconv_get(TDSCONNECTION * conn, const char *client_charset, const char *server_charset)
 {
 	int canonic_client_charset_num = tds_canonical_charset(client_charset);
 	int canonic_server_charset_num = tds_canonical_charset(server_charset);
@@ -970,7 +970,7 @@ tds_iconv_get(TDSSOCKET * tds, const char *client_charset, const char *server_ch
 		return NULL;
 	}
 
-	return tds_iconv_get_info(tds->conn, canonic_client_charset_num, canonic_server_charset_num);
+	return tds_iconv_get_info(conn, canonic_client_charset_num, canonic_server_charset_num);
 }
 
 /* change singlebyte conversions according to server */

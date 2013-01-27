@@ -2980,7 +2980,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		static const char sybase_utf[] = "UTF-16LE";
 #endif
 
-		curcol->char_conv = tds_iconv_get(tds, tds->conn->char_convs[client2ucs2]->client_charset.name, sybase_utf);
+		curcol->char_conv = tds_iconv_get(tds->conn, tds->conn->char_convs[client2ucs2]->client_charset.name, sybase_utf);
 
 		/* fallback to UCS-2LE */
 		/* FIXME should be useless. Does not works always */
