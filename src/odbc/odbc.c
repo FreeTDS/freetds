@@ -7176,22 +7176,27 @@ static SQLRETURN
 odbc_free_cursor(TDS_STMT * stmt)
 {
 	TDSCURSOR *cursor = stmt->cursor;
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds;
+	int error = 1;
 
-	if (cursor && tds) {
-		int error = 1;
-		cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
-		/* TODO if fail add to odbc to free later, when we are in idle */
-		if (TDS_SUCCEED(tds_cursor_close(tds, cursor))) {
-			if (TDS_SUCCEED(tds_process_simple_query(tds)))
-				error = 0;
-			/* TODO check error */
-			tds_cursor_dealloc(tds, cursor);
-		}
-		if (error) {
-			ODBC_SAFE_ERROR(stmt);
-			return SQL_ERROR;
-		}
+	if (!cursor)
+		return SQL_SUCCESS;
+
+	if (!odbc_lock_statement(stmt))
+		return SQL_ERROR;
+
+	tds = stmt->tds;
+	cursor->status.dealloc   = TDS_CURSOR_STATE_REQUESTED;
+	/* TODO if fail add to odbc to free later, when we are in idle */
+	if (TDS_SUCCEED(tds_cursor_close(tds, cursor))) {
+		if (TDS_SUCCEED(tds_process_simple_query(tds)))
+			error = 0;
+		/* TODO check error */
+		tds_cursor_dealloc(tds, cursor);
+	}
+	if (error) {
+		ODBC_SAFE_ERROR(stmt);
+		return SQL_ERROR;
 	}
 	tds_release_cursor(&stmt->cursor);
 	return SQL_SUCCESS;
