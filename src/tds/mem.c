@@ -1184,6 +1184,8 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_conn(tds_socket)->env.block_size = tds_socket->out_buf_max = bufsize;
 
 	tds_conn(tds_socket)->use_iconv = 1;
+	if (tds_iconv_alloc(tds_socket->conn))
+		goto Cleanup;
 
 	/* Jeff's hack, init to no timeout */
 	tds_socket->query_timeout = 0;
