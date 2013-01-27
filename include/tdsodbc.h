@@ -615,7 +615,7 @@ void odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row);
 
 SQLSMALLINT odbc_server_to_sql_type(int col_type, int col_size);
 int odbc_sql_to_c_type_default(int sql_type);
-int odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type, int sql_unsigned);
+int odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned);
 int odbc_c_to_server_type(int c_type);
 
 void odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver);

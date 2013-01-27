@@ -145,14 +145,9 @@ void
 tds_check_column_extra(const TDSCOLUMN * column)
 {
 	int size;
-	TDSSOCKET tds;
+	TDSCONNECTION conn;
 	int varint_ok;
 	int column_varint_size;
-
-#if ENABLE_ODBC_MARS
-	TDSCONNECTION conn;
-	tds.conn = &conn;
-#endif
 
 	assert(column);
 	column_varint_size = column->column_varint_size;
@@ -191,10 +186,10 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	} else if (column->column_type == SYBVARIANT) {
 		assert(column_varint_size == 4);
 	}
-	tds.conn->tds_version = 0x500;
-	varint_ok = varint_ok || tds_get_varint_size(&tds, column->on_server.column_type) == column_varint_size;
-	tds.conn->tds_version = 0x700;
-	varint_ok = varint_ok || tds_get_varint_size(&tds, column->on_server.column_type) == column_varint_size;
+	conn.tds_version = 0x500;
+	varint_ok = varint_ok || tds_get_varint_size(&conn, column->on_server.column_type) == column_varint_size;
+	conn.tds_version = 0x700;
+	varint_ok = varint_ok || tds_get_varint_size(&conn, column->on_server.column_type) == column_varint_size;
 	assert(varint_ok);
 
 	/* check current size <= size */

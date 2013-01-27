@@ -44,7 +44,7 @@ TDS_RCSID(var, "$Id: data.c,v 1.45 2011-10-30 16:47:18 freddy77 Exp $");
 #define USE_ICONV tds_conn(tds)->use_iconv
 
 int determine_adjusted_size(const TDSICONV * char_conv, int size);
-static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSSOCKET *tds, int type);
+static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
 
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -55,16 +55,16 @@ static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSSOCKET *tds, int type);
  * @param type   type to set
  */
 void
-tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type)
+tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, int type)
 {
 	/* set type */
 	curcol->on_server.column_type = type;
-	curcol->funcs = tds_get_column_funcs(tds, type);
+	curcol->funcs = tds_get_column_funcs(conn, type);
 	curcol->column_type = tds_get_cardinal_type(type, curcol->column_usertype);
 
 	/* set size */
 	curcol->column_cur_size = -1;
-	curcol->column_varint_size = tds_get_varint_size(tds, type);
+	curcol->column_varint_size = tds_get_varint_size(conn, type);
 	if (curcol->column_varint_size == 0)
 		curcol->column_cur_size = curcol->on_server.column_size = curcol->column_size = tds_get_size_by_type(type);
 
@@ -77,9 +77,9 @@ tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type)
  * \param type   type to set
  */
 void
-tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
+tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 {
-	if (IS_TDS7_PLUS(tds->conn)) {
+	if (IS_TDS7_PLUS(conn)) {
 		switch (type) {
 		case SYBVARCHAR:
 			type = XSYBVARCHAR;
@@ -97,15 +97,15 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 		default:
 			break;
 		}
-	} else if (IS_TDS50(tds->conn)) {
+	} else if (IS_TDS50(conn)) {
 		if (type == SYBINT8)
 			type = SYB5INT8;
 	}
-	tds_set_column_type(tds, curcol, type);
+	tds_set_column_type(conn, curcol, type);
 
 	if (is_collate_type(type)) {
-		curcol->char_conv = tds->conn->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
-		memcpy(curcol->column_collation, tds->collation, sizeof(tds->collation));
+		curcol->char_conv = conn->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
+		memcpy(curcol->column_collation, conn->collation, sizeof(conn->collation));
 	}
 
 	/* special case, GUID, varint != 0 but only a size */
@@ -145,19 +145,19 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 		curcol->column_cur_size = -1;
 		break;
 	case SYBNTEXT:
-		if (IS_TDS72_PLUS(tds->conn)) {
+		if (IS_TDS72_PLUS(conn)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBNVARCHAR;
 		}
 		break;
 	case SYBTEXT:
-		if (IS_TDS72_PLUS(tds->conn)) {
+		if (IS_TDS72_PLUS(conn)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBVARCHAR;
 		}
 		break;
 	case SYBIMAGE:
-		if (IS_TDS72_PLUS(tds->conn)) {
+		if (IS_TDS72_PLUS(conn)) {
 			curcol->column_varint_size = 8;
 			curcol->on_server.column_type = XSYBVARBINARY;
 		}
@@ -233,7 +233,7 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 		 */
 		tds_get_n(tds, col->column_collation, 5);
 		col->char_conv =
-			tds_iconv_from_collate(tds, col->column_collation);
+			tds_iconv_from_collate(tds->conn, col->column_collation);
 	}
 
 	/* Only read table_name for blob columns (eg. not for SYBLONGBINARY) */
@@ -350,7 +350,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		colsize -= sizeof(v->collation);
 		info_len -= sizeof(v->collation);
 		curcol->char_conv = is_unicode_type(type) ? 
-			tds->conn->char_convs[client2ucs2] : tds_iconv_from_collate(tds, v->collation);
+			tds->conn->char_convs[client2ucs2] : tds_iconv_from_collate(tds->conn, v->collation);
 	}
 	/* special case for numeric */
 	if (is_numeric_type(type)) {
@@ -374,7 +374,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_swap_numeric(num);
 		return TDS_SUCCESS;
 	}
-	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds, type);
+	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds->conn, type);
 	if (varint != info_len)
 		goto error_type;
 	switch (varint) {
@@ -665,7 +665,7 @@ tds_data_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 
 	/* TDS7.1 output collate information */
 	if (IS_TDS71_PLUS(tds->conn) && is_collate_type(col->on_server.column_type))
-		tds_put_n(tds, tds->collation, 5);
+		tds_put_n(tds, tds->conn->collation, 5);
 
 	return TDS_SUCCESS;
 }
@@ -1133,14 +1133,14 @@ tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col)
 DEFINE_FUNCS(msdatetime, msdatetime);
 
 static const TDSCOLUMNFUNCS *
-tds_get_column_funcs(TDSSOCKET *tds, int type)
+tds_get_column_funcs(TDSCONNECTION *conn, int type)
 {
 	switch (type) {
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		return &numeric_funcs;
 	case SYBVARIANT:
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(conn))
 			return &variant_funcs;
 		break;
 	case SYBMSDATE:

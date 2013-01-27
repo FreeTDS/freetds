@@ -1035,6 +1035,8 @@ struct tds_connection
 	int char_conv_count;
 	TDSICONV **char_convs;
 
+	TDS_UCHAR collation[5];
+
 	TDS_CAPABILITIES capabilities;
 	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
@@ -1122,7 +1124,6 @@ struct tds_socket
 	TDSLOGIN *login;	/**< config for login stuff. After login this field is NULL */
 
 	int spid;
-	TDS_UCHAR collation[5];
 	TDS_UCHAR tds72_transaction[8];
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	TDS_OPERATION current_op;
@@ -1185,7 +1186,7 @@ BCPCOLDATA * tds_alloc_bcp_column_data(int column_size);
 unsigned char *tds7_crypt_pass(const unsigned char *clear_pass, size_t len, unsigned char *crypt_pass);
 TDSDYNAMIC *tds_lookup_dynamic(TDSCONNECTION * conn, const char *id);
 /*@observer@*/ const char *tds_prtype(int token);
-int tds_get_varint_size(TDSSOCKET * tds, int datatype);
+int tds_get_varint_size(TDSCONNECTION * conn, int datatype);
 int tds_get_cardinal_type(int datatype, int usertype);
 
 
@@ -1193,11 +1194,11 @@ int tds_get_cardinal_type(int datatype, int usertype);
 /* iconv.c */
 void tds_iconv_open(TDSCONNECTION * conn, const char *charset);
 void tds_iconv_close(TDSCONNECTION * conn);
-void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);
-void tds7_srv_charset_changed(TDSSOCKET * tds, int sql_collate, int lcid);
+void tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset);
+void tds7_srv_charset_changed(TDSCONNECTION * conn, int sql_collate, int lcid);
 int tds_iconv_alloc(TDSCONNECTION * conn);
 void tds_iconv_free(TDSCONNECTION * conn);
-TDSICONV *tds_iconv_from_collate(TDSSOCKET * tds, TDS_UCHAR collate[5]);
+TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 
 /* threadsafe.c */
 char *tds_timestamp_str(char *str, int maxlen);
@@ -1321,8 +1322,8 @@ int tds5_send_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD tds_command, TDS_OPTION 
 TDSRET tds_process_tokens(TDSSOCKET * tds, /*@out@*/ TDS_INT * result_type, /*@out@*/ int *done_flags, unsigned flag);
 
 /* data.c */
-void tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
-void tds_set_column_type(TDSSOCKET * tds, TDSCOLUMN * curcol, int type);
+void tds_set_param_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, TDS_SERVER_TYPE type);
+void tds_set_column_type(TDSCONNECTION * conn, TDSCOLUMN * curcol, int type);
 
 
 /* tds_convert.c */
@@ -1473,8 +1474,8 @@ int tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 {
 	return cap->values[sizeof(cap->values)-1-(cap_num>>3)] & (1 << (cap_num&7));
 }
-#define tds_capability_has_req(tds, cap) \
-	tds_capability_enabled(&tds_conn(tds)->capabilities.types[0], cap)
+#define tds_capability_has_req(conn, cap) \
+	tds_capability_enabled(&conn->capabilities.types[0], cap)
 
 #define IS_TDS42(x) (x->tds_version==0x402)
 #define IS_TDS46(x) (x->tds_version==0x406)

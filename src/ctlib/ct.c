@@ -2005,15 +2005,15 @@ _ct_get_server_type(TDSSOCKET *tds, int datatype)
 	case CS_VARCHAR_TYPE:		return SYBVARCHAR;
 	case CS_LONG_TYPE:
 	case CS_UBIGINT_TYPE:
-		if (!tds || tds_capability_has_req(tds, TDS_REQ_DATA_UINT8))
+		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_UINT8))
 			return SYBUINT8;
 		return SYBINT8;
 	case CS_UINT_TYPE:
-		if (!tds || tds_capability_has_req(tds, TDS_REQ_DATA_UINT4))
+		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_UINT4))
 			return SYBUINT4;
 		return SYBINT4;
 	case CS_USMALLINT_TYPE:
-		if (!tds || tds_capability_has_req(tds, TDS_REQ_DATA_UINT2))
+		if (!tds || tds_capability_has_req(tds->conn, TDS_REQ_DATA_UINT2))
 			return SYBUINT2;
 		return SYBINT2;
 	case CS_BIGINT_TYPE:		return SYBINT8;
@@ -3838,7 +3838,7 @@ _ct_process_return_status(TDSSOCKET * tds)
 
 	curcol = info->columns[0];
 
-	tds_set_column_type(tds, curcol, SYBINT4);
+	tds_set_column_type(tds->conn, curcol, SYBINT4);
 
 	tdsdump_log(TDS_DBG_INFO1, "generating return status row. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
@@ -3971,7 +3971,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			pcol->column_namelen = strlen(pcol->column_name);
 		}
 
-		tds_set_param_type(tds, pcol, tds_type);
+		tds_set_param_type(tds->conn, pcol, tds_type);
 
 		if (temp_datalen == CS_NULLTERM && temp_value)
 			temp_datalen = strlen((const char*) temp_value);

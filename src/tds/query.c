@@ -386,7 +386,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 			TDS_PUT_INT(tds, converted_query_len);
 			if (IS_TDS71_PLUS(tds->conn))
-				tds_put_n(tds, tds->collation, 5);
+				tds_put_n(tds, tds->conn->collation, 5);
 			TDS_PUT_INT(tds, converted_query_len);
 			tds_put_n(tds, converted_query, converted_query_len);
 		} else {
@@ -996,7 +996,7 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len)
 	len = 2u * len + query_len;
 	TDS_PUT_INT(tds, len);
 	if (IS_TDS71_PLUS(tds->conn))
-		tds_put_n(tds, tds->collation, 5);
+		tds_put_n(tds, tds->conn->collation, 5);
 	TDS_PUT_INT(tds, len);
 	s = query;
 	/* TODO do a test with "...?" and "...?)" */
@@ -1025,7 +1025,7 @@ tds7_put_params_definition(TDSSOCKET * tds, const char *param_definition, size_t
 	/* put parameters definitions */
 	TDS_PUT_INT(tds, param_length);
 	if (IS_TDS71_PLUS(tds->conn))
-		tds_put_n(tds, tds->collation, 5);
+		tds_put_n(tds, tds->conn->collation, 5);
 	TDS_PUT_INT(tds, param_length ? param_length : -1);
 	tds_put_n(tds, param_definition, param_length);
 }
@@ -1135,7 +1135,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		tds->current_op = TDS_OP_PREPARE;
 	} else {
 		int dynproc_capability =
-			tds_capability_has_req(tds, TDS_REQ_PROTO_DYNPROC);
+			tds_capability_has_req(tds->conn, TDS_REQ_PROTO_DYNPROC);
 		unsigned toklen;
 
 		tds->out_flag = TDS_NORMAL;
@@ -2270,7 +2270,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 			tds_put_byte(tds, SYBNTEXT);	/* must be Ntype */
 			TDS_PUT_INT(tds, converted_query_len);
 			if (IS_TDS71_PLUS(tds->conn))
-				tds_put_n(tds, tds->collation, 5);
+				tds_put_n(tds, tds->conn->collation, 5);
 			TDS_PUT_INT(tds, converted_query_len);
 			tds_put_n(tds, converted_query, (int)converted_query_len);
 		}
@@ -2746,7 +2746,7 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 	len = (int)strlen(cursor->cursor_name);
 	tds_put_smallint(tds, len);
 	if (IS_TDS71_PLUS(tds->conn))
-		tds_put_n(tds, tds->collation, 5);
+		tds_put_n(tds, tds->conn->collation, 5);
 	tds_put_smallint(tds, len);
 	tds_put_n(tds, cursor->cursor_name, len);
 
@@ -2854,7 +2854,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 			}
 			TDS_PUT_SMALLINT(tds, converted_table_len);
 			if (IS_TDS71_PLUS(tds->conn))
-				tds_put_n(tds, tds->collation, 5);
+				tds_put_n(tds, tds->conn->collation, 5);
 			TDS_PUT_SMALLINT(tds, converted_table_len);
 			tds_put_n(tds, converted_table, converted_table_len);
 			tds_convert_string_free(table_name, converted_table);

@@ -354,7 +354,7 @@ read_result(TDS_POOL_MEMBER * pmbr, const unsigned char *buf, int maxlen, int *b
 		pos++;     /* flags */
 		pos += 4;  /* user type */
 
-		tds_set_column_type(tds, curcol, (int)buf[pos]);
+		tds_set_column_type(tds->conn, curcol, (int)buf[pos]);
 		switch(curcol->column_varint_size) {
 			/* FIX ME - endian */
 			case 2: curcol->column_size = buf[pos] + buf[pos+1]*256; break;

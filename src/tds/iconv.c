@@ -975,11 +975,11 @@ tds_iconv_get(TDSCONNECTION * conn, const char *client_charset, const char *serv
 
 /* change singlebyte conversions according to server */
 static void
-tds_srv_charset_changed_num(TDSSOCKET * tds, int canonic_charset_num)
+tds_srv_charset_changed_num(TDSCONNECTION * conn, int canonic_charset_num)
 {
-	TDSICONV *char_conv = tds->conn->char_convs[client2server_chardata];
+	TDSICONV *char_conv = conn->char_convs[client2server_chardata];
 
-	if (IS_TDS7_PLUS(tds->conn) && canonic_charset_num == TDS_CHARSET_ISO_8859_1)
+	if (IS_TDS7_PLUS(conn) && canonic_charset_num == TDS_CHARSET_ISO_8859_1)
 		canonic_charset_num = TDS_CHARSET_CP1252;
 
 	tdsdump_log(TDS_DBG_FUNC, "setting server single-byte charset to \"%s\"\n", canonic_charsets[canonic_charset_num].name);
@@ -988,15 +988,15 @@ tds_srv_charset_changed_num(TDSSOCKET * tds, int canonic_charset_num)
 		return;
 
 	/* find and set conversion */
-	char_conv = tds_iconv_get_info(tds->conn, tds->conn->char_convs[client2ucs2]->client_charset.canonic, canonic_charset_num);
+	char_conv = tds_iconv_get_info(conn, conn->char_convs[client2ucs2]->client_charset.canonic, canonic_charset_num);
 	if (char_conv)
-		tds->conn->char_convs[client2server_chardata] = char_conv;
+		conn->char_convs[client2server_chardata] = char_conv;
 
 	/* if sybase change also server conversions */
-	if (IS_TDS7_PLUS(tds->conn))
+	if (IS_TDS7_PLUS(conn))
 		return;
 
-	char_conv = tds->conn->char_convs[iso2server_metadata];
+	char_conv = conn->char_convs[iso2server_metadata];
 
 	tds_iconv_info_close(char_conv);
 
@@ -1004,7 +1004,7 @@ tds_srv_charset_changed_num(TDSSOCKET * tds, int canonic_charset_num)
 }
 
 void
-tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
+tds_srv_charset_changed(TDSCONNECTION * conn, const char *charset)
 {
 	int n = tds_canonical_charset(charset);
 
@@ -1014,14 +1014,14 @@ tds_srv_charset_changed(TDSSOCKET * tds, const char *charset)
 		return;
 	}
 
-	tds_srv_charset_changed_num(tds, n);
+	tds_srv_charset_changed_num(conn, n);
 }
 
 /* change singlebyte conversions according to server */
 void
-tds7_srv_charset_changed(TDSSOCKET * tds, int sql_collate, int lcid)
+tds7_srv_charset_changed(TDSCONNECTION * conn, int sql_collate, int lcid)
 {
-	tds_srv_charset_changed_num(tds, collate2charset(sql_collate, lcid));
+	tds_srv_charset_changed_num(conn, collate2charset(sql_collate, lcid));
 }
 
 /**
@@ -1396,17 +1396,17 @@ collate2charset(int sql_collate, int lcid)
  * Get iconv information from a LCID (to support different column encoding under MSSQL2K)
  */
 TDSICONV *
-tds_iconv_from_collate(TDSSOCKET * tds, TDS_UCHAR collate[5])
+tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5])
 {
 	const int sql_collate = collate[4];
 	const int lcid = collate[1] * 256 + collate[0];
 	int canonic_charset = collate2charset(sql_collate, lcid);
 
 	/* same as client (usually this is true, so this improve performance) ? */
-	if (tds->conn->char_convs[client2server_chardata]->server_charset.canonic == canonic_charset)
-		return tds->conn->char_convs[client2server_chardata];
+	if (conn->char_convs[client2server_chardata]->server_charset.canonic == canonic_charset)
+		return conn->char_convs[client2server_chardata];
 
-	return tds_iconv_get_info(tds->conn, tds->conn->char_convs[client2ucs2]->client_charset.canonic, canonic_charset);
+	return tds_iconv_get_info(conn, conn->char_convs[client2ucs2]->client_charset.canonic, canonic_charset);
 }
 
 /** @} */

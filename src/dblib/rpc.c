@@ -424,7 +424,7 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 			pcol->column_namelen = (int)strlen(pcol->column_name);
 		}
 
-		tds_set_param_type(tds, pcol, temp_type);
+		tds_set_param_type(tds->conn, pcol, temp_type);
 
 		if (p->maxlen > 0)
 			pcol->column_size = p->maxlen;

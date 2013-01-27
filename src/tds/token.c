@@ -1019,7 +1019,7 @@ tds_process_col_fmt(TDSSOCKET * tds)
 			curcol->column_usertype = tds_get_int(tds);
 		}
 		/* on with our regularly scheduled code (mlilback, 11/7/01) */
-		tds_set_column_type(tds, curcol, tds_get_byte(tds));
+		tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
 
 		tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 			    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
@@ -1379,7 +1379,7 @@ tds_process_compute_result(TDSSOCKET * tds)
 		/*  User defined data type of the column */
 		curcol->column_usertype = tds_get_int(tds);
 
-		tds_set_column_type(tds, curcol, tds_get_byte(tds));
+		tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
 
 		curcol->funcs->get_info(tds, curcol);
 
@@ -1436,7 +1436,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	curcol->column_writeable = (curcol->column_flags & 0x08) > 0;
 	curcol->column_identity = (curcol->column_flags & 0x10) > 0;
 
-	tds_set_column_type(tds, curcol, tds_get_byte(tds));	/* sets "cardinal" type */
+	tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));	/* sets "cardinal" type */
 
 	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
 
@@ -1623,7 +1623,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 	}
 	
 	curcol->column_usertype = tds_get_int(tds);
-	tds_set_column_type(tds, curcol, tds_get_byte(tds));
+	tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
 
 	tdsdump_log(TDS_DBG_INFO1, "processing result. type = %d(%s), varint_size %d\n",
 		    curcol->column_type, tds_prtype(curcol->column_type), curcol->column_varint_size);
@@ -1790,7 +1790,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 		curcol->column_usertype = tds_get_int(tds);
 
-		tds_set_column_type(tds, curcol, tds_get_byte(tds));
+		tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
 
 		curcol->funcs->get_info(tds, curcol);
 
@@ -1999,17 +1999,17 @@ tds_process_env_chg(TDSSOCKET * tds)
 		/* save new collation */
 		size = tds_get_byte(tds);
 		tdsdump_log(TDS_DBG_ERROR, "tds_process_env_chg(): %d bytes of collation data received\n", size);
-		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->collation was", tds->collation, 5);
-		memset(tds->collation, 0, 5);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->conn->collation was", tds->conn->collation, 5);
+		memset(tds->conn->collation, 0, 5);
 		if (size < 5) {
-			tds_get_n(tds, tds->collation, size);
+			tds_get_n(tds, tds->conn->collation, size);
 		} else {
-			tds_get_n(tds, tds->collation, 5);
+			tds_get_n(tds, tds->conn->collation, 5);
 			tds_get_n(tds, NULL, size - 5);
-			lcid = (tds->collation[0] + ((int) tds->collation[1] << 8) + ((int) tds->collation[2] << 16)) & 0xffffflu;
-			tds7_srv_charset_changed(tds, tds->collation[4], lcid);
+			lcid = (tds->conn->collation[0] + ((int) tds->conn->collation[1] << 8) + ((int) tds->conn->collation[2] << 16)) & 0xffffflu;
+			tds7_srv_charset_changed(tds->conn, tds->conn->collation[4], lcid);
 		}
-		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->collation now", tds->collation, 5);
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "tds->conn->collation now", tds->conn->collation, 5);
 		/* discard old one */
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;
@@ -2075,7 +2075,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 	case TDS_ENV_CHARSET:
 		tdsdump_log(TDS_DBG_FUNC, "server indicated charset change to \"%s\"\n", newval);
 		dest = &tds_conn(tds)->env.charset;
-		tds_srv_charset_changed(tds, newval);
+		tds_srv_charset_changed(tds->conn, newval);
 		break;
 	}
 	if (tds->env_chg_func) {
@@ -2465,7 +2465,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		curcol->column_usertype = tds_get_int(tds);
 
 		/* column type */
-		tds_set_column_type(tds, curcol, tds_get_byte(tds));
+		tds_set_column_type(tds->conn, curcol, tds_get_byte(tds));
 
 		curcol->funcs->get_info(tds, curcol);
 

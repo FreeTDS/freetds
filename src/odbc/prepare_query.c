@@ -50,6 +50,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 {
 	int nparam = stmt->params ? stmt->params->num_cols : 0;
 	const char *p = stmt->prepared_pos - 1;
+	TDSCONNECTION *conn = stmt->dbc->tds_socket->conn;
 
 	for (;;) {
 		TDSPARAMINFO *temp_params;
@@ -71,12 +72,12 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 
 		switch (*p) {
 		case ',':
-			if (IS_TDS7_PLUS(stmt->dbc->tds_socket->conn)) {
-				tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBVOID);
+			if (IS_TDS7_PLUS(conn)) {
+				tds_set_param_type(conn, curcol, SYBVOID);
 				curcol->column_size = curcol->column_cur_size = 0;
 			} else {
 				/* TODO is there a better type ? */
-				tds_set_param_type(stmt->dbc->tds_socket, curcol, SYBINTN);
+				tds_set_param_type(conn, curcol, SYBINTN);
 				curcol->column_size = curcol->on_server.column_size = 4;
 				curcol->column_cur_size = -1;
 			}
@@ -95,7 +96,7 @@ prepared_rpc(struct _hstmt *stmt, int compute_row)
 				tds_free_param_result(temp_params);
 				return SQL_ERROR;
 			}
-			tds_set_param_type(stmt->dbc->tds_socket, curcol, type);
+			tds_set_param_type(conn, curcol, type);
 			switch (type) {
 			case SYBVARCHAR:
 				curcol->column_size = p - start;

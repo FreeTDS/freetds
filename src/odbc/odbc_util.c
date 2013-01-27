@@ -1091,22 +1091,22 @@ odbc_sql_to_c_type_default(int sql_type)
 }
 
 int
-odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type, int sql_unsigned)
+odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned)
 {
 
 	switch (sql_type) {
 	case SQL_WCHAR:
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(conn))
 			return XSYBNCHAR;
 	case SQL_CHAR:
 		return SYBCHAR;
 	case SQL_WVARCHAR:
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(conn))
 			return XSYBNVARCHAR;
 	case SQL_VARCHAR:
 		return SYBVARCHAR;
 	case SQL_WLONGVARCHAR:
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(conn))
 			return SYBNTEXT;
 	case SQL_LONGVARCHAR:
 		return SYBTEXT;
@@ -1116,26 +1116,26 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type, int sql_unsigned)
 		return SYBNUMERIC;
 #ifdef SQL_GUID
 	case SQL_GUID:
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(conn))
 			return SYBUNIQUE;
 		return 0;
 #endif
 	case SQL_BIT:
-		if (IS_TDS7_PLUS(tds->conn))
+		if (IS_TDS7_PLUS(conn))
 			return SYBBITN;
 		return SYBBIT;
 	case SQL_TINYINT:
 		return SYBINT1;
 	case SQL_SMALLINT:
-		if (sql_unsigned && tds_capability_has_req(tds, TDS_REQ_DATA_UINT2))
+		if (sql_unsigned && tds_capability_has_req(conn, TDS_REQ_DATA_UINT2))
 			return SYBUINT2;
 		return SYBINT2;
 	case SQL_INTEGER:
-		if (sql_unsigned && tds_capability_has_req(tds, TDS_REQ_DATA_UINT4))
+		if (sql_unsigned && tds_capability_has_req(conn, TDS_REQ_DATA_UINT4))
 			return SYBUINT4;
 		return SYBINT4;
 	case SQL_BIGINT:
-		if (sql_unsigned && tds_capability_has_req(tds, TDS_REQ_DATA_UINT8))
+		if (sql_unsigned && tds_capability_has_req(conn, TDS_REQ_DATA_UINT8))
 			return SYBUINT8;
 		return SYBINT8;
 	case SQL_REAL:
@@ -1149,21 +1149,21 @@ odbc_sql_to_server_type(TDSSOCKET * tds, int sql_type, int sql_unsigned)
 	case SQL_TIMESTAMP:
 		/* ODBC version 3 */
 	case SQL_TYPE_DATE:
-		if (IS_TDS73_PLUS(tds->conn))
+		if (IS_TDS73_PLUS(conn))
 			return SYBMSDATE;
 	case SQL_TYPE_TIME:
-		if (IS_TDS73_PLUS(tds->conn))
+		if (IS_TDS73_PLUS(conn))
 			return SYBMSTIME;
 	case SQL_TYPE_TIMESTAMP:
-		if (IS_TDS73_PLUS(tds->conn))
+		if (IS_TDS73_PLUS(conn))
 			return SYBMSDATETIME2;
 		return SYBDATETIME;
 	case SQL_SS_TIME2:
-		if (IS_TDS73_PLUS(tds->conn))
+		if (IS_TDS73_PLUS(conn))
 			return SYBMSTIME;
 		return SYBDATETIME;
 	case SQL_SS_TIMESTAMPOFFSET:
-		if (IS_TDS73_PLUS(tds->conn))
+		if (IS_TDS73_PLUS(conn))
 			return SYBMSDATETIMEOFFSET;
 		return SYBDATETIME;
 	case SQL_BINARY:
