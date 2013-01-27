@@ -55,6 +55,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 	char *ob;
 	size_t il, ol, char_size;
 
+	/* FIXME MARS not correct cause is the global tds but stmt->tds can be NULL on SQLGetData */
 	TDSSOCKET *tds = stmt->dbc->tds_socket;
 
 	TDSICONV *conv = curcol->char_conv;

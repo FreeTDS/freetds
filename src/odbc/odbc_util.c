@@ -519,7 +519,7 @@ odbc_set_string_flag(TDS_DBC *dbc, SQLPOINTER buffer, SQLINTEGER cbBuffer, void 
 void
 odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 {
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds = stmt->tds;
 
 	/* TODO handle different type results (functions) on mssql2k */
 	if (stmt->prepared_query_is_func && tds->has_status) {
@@ -560,7 +560,7 @@ odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row)
 void
 odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row)
 {
-	TDSSOCKET *tds = stmt->dbc->tds_socket;
+	TDSSOCKET *tds = stmt->tds;
 	TDSPARAMINFO *info = tds->current_results;
 
 	int i_begin = stmt->prepared_query_is_func ? 1 : 0;
