@@ -104,7 +104,7 @@ tds_set_param_type(TDSSOCKET * tds, TDSCOLUMN * curcol, TDS_SERVER_TYPE type)
 	tds_set_column_type(tds, curcol, type);
 
 	if (is_collate_type(type)) {
-		curcol->char_conv = tds->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
+		curcol->char_conv = tds->conn->char_convs[is_unicode_type(type) ? client2ucs2 : client2server_chardata];
 		memcpy(curcol->column_collation, tds->collation, sizeof(tds->collation));
 	}
 
@@ -350,7 +350,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		colsize -= sizeof(v->collation);
 		info_len -= sizeof(v->collation);
 		curcol->char_conv = is_unicode_type(type) ? 
-			tds->char_convs[client2ucs2] : tds_iconv_from_collate(tds, v->collation);
+			tds->conn->char_convs[client2ucs2] : tds_iconv_from_collate(tds, v->collation);
 	}
 	/* special case for numeric */
 	if (is_numeric_type(type)) {

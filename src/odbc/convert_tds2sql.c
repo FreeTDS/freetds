@@ -59,7 +59,7 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 
 	TDSICONV *conv = curcol->char_conv;
 	if (!conv)
-		conv = tds->char_convs[client2server_chardata];
+		conv = tds->conn->char_convs[client2server_chardata];
 	if (desttype == SQL_C_WCHAR) {
 		/* SQL_C_WCHAR, convert to wide encode */
 		conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->server_charset.name);

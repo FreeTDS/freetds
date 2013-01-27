@@ -206,7 +206,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	/* TODO what happen for unicode types ?? */
 	if (is_char_type(dest_type) && sql_src_type == SQL_C_WCHAR) {
 		TDSSOCKET *tds = dbc->tds_socket;
-		TDSICONV *conv = tds->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
+		TDSICONV *conv = tds->conn->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
 
 		tds_set_param_type(tds, curcol, dest_type);
 
@@ -215,7 +215,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 	} else {
 #ifdef ENABLE_ODBC_WIDE
 		TDSSOCKET *tds = dbc->tds_socket;
-		TDSICONV *conv = tds->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
+		TDSICONV *conv = tds->conn->char_convs[is_unicode_type(dest_type) ? client2ucs2 : client2server_chardata];
 
 		tds_set_param_type(tds, curcol, dest_type);
 		/* use binary format for binary to char */

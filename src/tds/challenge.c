@@ -111,7 +111,7 @@ convert_to_usc2le_string(TDSSOCKET * tds, const char *s, size_t len, char *out)
 	char *ob;
 	size_t il, ol;
 
-	const TDSICONV * char_conv = tds->char_convs[client2ucs2];
+	const TDSICONV * char_conv = tds->conn->char_convs[client2ucs2];
 
 	/* char_conv is only mostly const */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS *) & char_conv->suppress;

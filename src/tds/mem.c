@@ -1057,6 +1057,7 @@ tds_deinit_connection(TDSCONNECTION *conn)
 	tds_connection_close(conn);
 	CLOSESOCKET(conn->s_signal);
 	CLOSESOCKET(conn->s_signaled);
+	tds_iconv_free(conn);
 	free(conn->product_name);
 	tds_free_env(conn);
 #if ENABLE_ODBC_MARS
@@ -1078,6 +1079,10 @@ tds_alloc_connection(TDSCONTEXT *context)
 
 	TEST_MALLOC(conn, TDSCONNECTION);
 	TEST_CALLOC(conn->sessions, TDSSOCKET*, 64);
+
+	if (tds_iconv_alloc(conn))
+		goto Cleanup;
+
 	conn->num_sessions = 64;
 	conn->s_signal = conn->s_signaled = conn->s = INVALID_SOCKET;
 	conn->use_iconv = 1;
@@ -1109,9 +1114,6 @@ tds_alloc_socket_base(int bufsize)
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
 	tds_socket->out_buf_max = bufsize;
-
-	if (tds_iconv_alloc(tds_socket))
-		goto Cleanup;
 
 	/* Jeff's hack, init to no timeout */
 	tds_socket->query_timeout = 0;
@@ -1162,8 +1164,6 @@ tds_alloc_additional_socket(TDSCONNECTION *conn)
 	tds->sid = -1;
 	tds->conn = conn;
 	tds->state = TDS_IDLE;
-	/* FIXME use proper encoding */
-	tds_iconv_open(tds, "UTF-8");
 	return tds;
 }
 #else /* !ENABLE_ODBC_MARS */
@@ -1184,8 +1184,6 @@ tds_alloc_socket(TDSCONTEXT * context, int bufsize)
 	tds_conn(tds_socket)->env.block_size = tds_socket->out_buf_max = bufsize;
 
 	tds_conn(tds_socket)->use_iconv = 1;
-	if (tds_iconv_alloc(tds_socket))
-		goto Cleanup;
 
 	/* Jeff's hack, init to no timeout */
 	tds_socket->query_timeout = 0;
@@ -1273,7 +1271,6 @@ tds_free_socket(TDSSOCKET * tds)
 	tds_free_all_results(tds);
 	free(tds->in_buf);
 	free(tds->out_buf);
-	tds_iconv_free(tds);
 #if ENABLE_ODBC_MARS
 	tds_cond_destroy(&tds->packet_cond);
 #else

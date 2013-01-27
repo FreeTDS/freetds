@@ -398,9 +398,9 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 #endif
 
 	/* set up iconv if not already initialized*/
-	if (tds->char_convs[client2ucs2]->to_wire == (iconv_t) -1) {
+	if (tds->conn->char_convs[client2ucs2]->to_wire == (iconv_t) -1) {
 		if (!tds_dstr_isempty(&login->client_charset)) {
-			tds_iconv_open(tds, tds_dstr_cstr(&login->client_charset));
+			tds_iconv_open(tds->conn, tds_dstr_cstr(&login->client_charset));
 		}
 	}
 
@@ -906,14 +906,14 @@ tds7_send_login(TDSSOCKET * tds, TDSLOGIN * login)
 	if (!tds_conn(tds)->authentication) {
 		char unicode_string[256], *punicode = unicode_string;
 		const char *p;
-		TDSICONV *char_conv = tds->char_convs[client2ucs2];
+		TDSICONV *char_conv = tds->conn->char_convs[client2ucs2];
 
 		tds_put_string(tds, tds_dstr_cstr(&login->user_name), (int)user_name_len);
 		p = tds_dstr_cstr(&login->password);
 		unicode_left = sizeof(unicode_string);
 
 		memset(&char_conv->suppress, 0, sizeof(char_conv->suppress));
-		if (tds_iconv(tds, tds->char_convs[client2ucs2], to_server, &p, &password_len, &punicode, &unicode_left) ==
+		if (tds_iconv(tds, tds->conn->char_convs[client2ucs2], to_server, &p, &password_len, &punicode, &unicode_left) ==
 		    (size_t) - 1) {
 			tdsdump_log(TDS_DBG_INFO1, "password \"%s\" could not be converted to UCS-2\n", p);
 			assert(0);

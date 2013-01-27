@@ -99,7 +99,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	char outbuf[256], *poutbuf;
 	size_t inbytesleft, outbytesleft, bytes_out = 0;
 
-	client = &tds->char_convs[client2ucs2]->client_charset;
+	client = &tds->conn->char_convs[client2ucs2]->client_charset;
 
 	if (len < 0) {
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */
@@ -130,15 +130,15 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		return len;
 	}
 
-	memset(&tds->char_convs[client2ucs2]->suppress, 0, sizeof(tds->char_convs[client2ucs2]->suppress));
-	tds->char_convs[client2ucs2]->suppress.e2big = 1;
+	memset(&tds->conn->char_convs[client2ucs2]->suppress, 0, sizeof(tds->conn->char_convs[client2ucs2]->suppress));
+	tds->conn->char_convs[client2ucs2]->suppress.e2big = 1;
 	inbytesleft = len;
 	while (inbytesleft) {
 		tdsdump_log(TDS_DBG_NETWORK, "tds_put_string converting %d bytes of \"%.*s\"\n", (int) inbytesleft, (int) inbytesleft, s);
 		outbytesleft = sizeof(outbuf);
 		poutbuf = outbuf;
 		
-		if ((size_t)-1 == tds_iconv(tds, tds->char_convs[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)) {
+		if ((size_t)-1 == tds_iconv(tds, tds->conn->char_convs[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)) {
 		
 			if (errno == EINVAL) {
 				tdsdump_log(TDS_DBG_NETWORK, "tds_put_string: tds_iconv() encountered partial sequence. "

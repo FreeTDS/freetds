@@ -264,28 +264,28 @@ tds_iconv_reset(TDSICONV *conv)
  * \return 0 for success
  */
 int
-tds_iconv_alloc(TDSSOCKET * tds)
+tds_iconv_alloc(TDSCONNECTION * conn)
 {
 	int i;
 	TDSICONV *char_conv;
 
-	assert(!tds->char_convs);
-	if (!(tds->char_convs = (TDSICONV **) malloc(sizeof(TDSICONV *) * (initial_char_conv_count + 1))))
+	assert(!conn->char_convs);
+	if (!(conn->char_convs = (TDSICONV **) malloc(sizeof(TDSICONV *) * (initial_char_conv_count + 1))))
 		return 1;
 	char_conv = (TDSICONV *) calloc(initial_char_conv_count, sizeof(TDSICONV));
 	if (!char_conv) {
-		TDS_ZERO_FREE(tds->char_convs);
+		TDS_ZERO_FREE(conn->char_convs);
 		return 1;
 	}
-	tds->char_conv_count = initial_char_conv_count + 1;
+	conn->char_conv_count = initial_char_conv_count + 1;
 
 	for (i = 0; i < initial_char_conv_count; ++i) {
-		tds->char_convs[i] = &char_conv[i];
+		conn->char_convs[i] = &char_conv[i];
 		tds_iconv_reset(&char_conv[i]);
 	}
 
 	/* chardata is just a pointer to another iconv info */
-	tds->char_convs[initial_char_conv_count] = tds->char_convs[client2server_chardata];
+	conn->char_convs[initial_char_conv_count] = conn->char_convs[client2server_chardata];
 
 	return 0;
 }
@@ -314,18 +314,18 @@ tds_iconv_alloc(TDSSOCKET * tds)
  * canonic charset name we cache the iconv name found during discovery. 
  */
 void
-tds_iconv_open(TDSSOCKET * tds, const char *charset)
+tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 {
 	static const char UCS_2LE[] = "UCS-2LE";
 	int canonic;
 	int canonic_charset = tds_canonical_charset(charset);
-	int canonic_env_charset = tds_conn(tds)->env.charset ? tds_canonical_charset(tds_conn(tds)->env.charset) : -1;
+	int canonic_env_charset = conn->env.charset ? tds_canonical_charset(conn->env.charset) : -1;
 	int fOK, ret;
 
-	TDS_ENCODING *client = &tds->char_convs[client2ucs2]->client_charset;
-	TDS_ENCODING *server = &tds->char_convs[client2ucs2]->server_charset;
+	TDS_ENCODING *client = &conn->char_convs[client2ucs2]->client_charset;
+	TDS_ENCODING *server = &conn->char_convs[client2ucs2]->server_charset;
 
-	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open(%p, %s)\n", tds, charset);
+	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open(%p, %s)\n", conn, charset);
 
 	/* initialize */
 	if (!iconv_initialized) {
@@ -348,7 +348,7 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 
 	tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, UCS_2LE);
 
-	fOK = tds_iconv_info_init(tds->char_convs[client2ucs2], canonic_charset, TDS_CHARSET_UCS_2LE);
+	fOK = tds_iconv_info_init(conn->char_convs[client2ucs2], canonic_charset, TDS_CHARSET_UCS_2LE);
 	if (!fOK)
 		return;
 
@@ -366,28 +366,28 @@ tds_iconv_open(TDSSOCKET * tds, const char *charset)
 	 * TODO: the server hasn't reported its charset yet, so this logic can't work here.  
 	 *       not sure what to do about that yet.  
 	 */
-	tds->char_convs[client2server_chardata]->flags = TDS_ENCODING_MEMCPY;
+	conn->char_convs[client2server_chardata]->flags = TDS_ENCODING_MEMCPY;
 	if (canonic_env_charset >= 0) {
-		tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, tds_conn(tds)->env.charset);
-		fOK = tds_iconv_info_init(tds->char_convs[client2server_chardata], canonic_charset, canonic_env_charset);
+		tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", charset, conn->env.charset);
+		fOK = tds_iconv_info_init(conn->char_convs[client2server_chardata], canonic_charset, canonic_env_charset);
 		if (!fOK)
 			return;
 	} else {
-		tds->char_convs[client2server_chardata]->client_charset = canonic_charsets[canonic_charset];
-		tds->char_convs[client2server_chardata]->server_charset = canonic_charsets[canonic_charset];
+		conn->char_convs[client2server_chardata]->client_charset = canonic_charsets[canonic_charset];
+		conn->char_convs[client2server_chardata]->server_charset = canonic_charsets[canonic_charset];
 	}
 
 	/* 
 	 * ISO8859-1 <-> server meta data
 	 */
 	canonic = TDS_CHARSET_UCS_2LE;
-	if (!IS_TDS7_PLUS(tds->conn)) {
+	if (!IS_TDS7_PLUS(conn)) {
 		canonic = TDS_CHARSET_ISO_8859_1;
 		if (canonic_env_charset >= 0)
 			canonic = canonic_env_charset;
 	}
 	tdsdump_log(TDS_DBG_FUNC, "preparing iconv for \"%s\" <-> \"%s\" conversion\n", "ISO-8859-1", canonic_charsets[canonic].name);
-	fOK = tds_iconv_info_init(tds->char_convs[iso2server_metadata], TDS_CHARSET_ISO_8859_1, canonic);
+	fOK = tds_iconv_info_init(conn->char_convs[iso2server_metadata], TDS_CHARSET_ISO_8859_1, canonic);
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open: done\n");
 }
@@ -523,31 +523,30 @@ tds_iconv_info_close(TDSICONV * char_conv)
 }
 
 void
-tds_iconv_close(TDSSOCKET * tds)
+tds_iconv_close(TDSCONNECTION * conn)
 {
 	int i;
 
-	for (i = 0; i < tds->char_conv_count; ++i) {
-		tds_iconv_info_close(tds->char_convs[i]);
-	}
+	for (i = 0; i < conn->char_conv_count; ++i)
+		tds_iconv_info_close(conn->char_convs[i]);
 }
 
 #define CHUNK_ALLOC 4
 
 void
-tds_iconv_free(TDSSOCKET * tds)
+tds_iconv_free(TDSCONNECTION * conn)
 {
 	int i;
 
-	if (!tds->char_convs)
+	if (!conn->char_convs)
 		return;
-	tds_iconv_close(tds);
+	tds_iconv_close(conn);
 
-	free(tds->char_convs[0]);
-	for (i = initial_char_conv_count + 1; i < tds->char_conv_count; i += CHUNK_ALLOC)
-		free(tds->char_convs[i]);
-	TDS_ZERO_FREE(tds->char_convs);
-	tds->char_conv_count = 0;
+	free(conn->char_convs[0]);
+	for (i = initial_char_conv_count + 1; i < conn->char_conv_count; i += CHUNK_ALLOC)
+		free(conn->char_convs[i]);
+	TDS_ZERO_FREE(conn->char_convs);
+	conn->char_conv_count = 0;
 }
 
 /** 
@@ -914,45 +913,45 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
  * Get a iconv info structure, allocate and initialize if needed
  */
 static TDSICONV *
-tds_iconv_get_info(TDSSOCKET * tds, int canonic_client, int canonic_server)
+tds_iconv_get_info(TDSCONNECTION * conn, int canonic_client, int canonic_server)
 {
 	TDSICONV *info;
 	int i;
 
 	/* search a charset from already allocated charsets */
-	for (i = tds->char_conv_count; --i >= initial_char_conv_count;)
-		if (canonic_client == tds->char_convs[i]->client_charset.canonic
-		    && canonic_server == tds->char_convs[i]->server_charset.canonic)
-			return tds->char_convs[i];
+	for (i = conn->char_conv_count; --i >= initial_char_conv_count;)
+		if (canonic_client == conn->char_convs[i]->client_charset.canonic
+		    && canonic_server == conn->char_convs[i]->server_charset.canonic)
+			return conn->char_convs[i];
 
 	/* allocate a new iconv structure */
-	if (tds->char_conv_count % CHUNK_ALLOC == ((initial_char_conv_count + 1) % CHUNK_ALLOC)) {
+	if (conn->char_conv_count % CHUNK_ALLOC == ((initial_char_conv_count + 1) % CHUNK_ALLOC)) {
 		TDSICONV **p;
 		TDSICONV *infos;
 
 		infos = (TDSICONV *) malloc(sizeof(TDSICONV) * CHUNK_ALLOC);
 		if (!infos)
 			return NULL;
-		p = (TDSICONV **) realloc(tds->char_convs, sizeof(TDSICONV *) * (tds->char_conv_count + CHUNK_ALLOC));
+		p = (TDSICONV **) realloc(conn->char_convs, sizeof(TDSICONV *) * (conn->char_conv_count + CHUNK_ALLOC));
 		if (!p) {
 			free(infos);
 			return NULL;
 		}
-		tds->char_convs = p;
+		conn->char_convs = p;
 		memset(infos, 0, sizeof(TDSICONV) * CHUNK_ALLOC);
 		for (i = 0; i < CHUNK_ALLOC; ++i) {
-			tds->char_convs[i + tds->char_conv_count] = &infos[i];
+			conn->char_convs[i + conn->char_conv_count] = &infos[i];
 			tds_iconv_reset(&infos[i]);
 		}
 	}
-	info = tds->char_convs[tds->char_conv_count++];
+	info = conn->char_convs[conn->char_conv_count++];
 
 	/* init */
 	if (tds_iconv_info_init(info, canonic_client, canonic_server))
 		return info;
 
 	tds_iconv_info_close(info);
-	--tds->char_conv_count;
+	--conn->char_conv_count;
 	return NULL;
 }
 
@@ -971,14 +970,14 @@ tds_iconv_get(TDSSOCKET * tds, const char *client_charset, const char *server_ch
 		return NULL;
 	}
 
-	return tds_iconv_get_info(tds, canonic_client_charset_num, canonic_server_charset_num);
+	return tds_iconv_get_info(tds->conn, canonic_client_charset_num, canonic_server_charset_num);
 }
 
 /* change singlebyte conversions according to server */
 static void
 tds_srv_charset_changed_num(TDSSOCKET * tds, int canonic_charset_num)
 {
-	TDSICONV *char_conv = tds->char_convs[client2server_chardata];
+	TDSICONV *char_conv = tds->conn->char_convs[client2server_chardata];
 
 	if (IS_TDS7_PLUS(tds->conn) && canonic_charset_num == TDS_CHARSET_ISO_8859_1)
 		canonic_charset_num = TDS_CHARSET_CP1252;
@@ -989,15 +988,15 @@ tds_srv_charset_changed_num(TDSSOCKET * tds, int canonic_charset_num)
 		return;
 
 	/* find and set conversion */
-	char_conv = tds_iconv_get_info(tds, tds->char_convs[client2ucs2]->client_charset.canonic, canonic_charset_num);
+	char_conv = tds_iconv_get_info(tds->conn, tds->conn->char_convs[client2ucs2]->client_charset.canonic, canonic_charset_num);
 	if (char_conv)
-		tds->char_convs[client2server_chardata] = char_conv;
+		tds->conn->char_convs[client2server_chardata] = char_conv;
 
 	/* if sybase change also server conversions */
 	if (IS_TDS7_PLUS(tds->conn))
 		return;
 
-	char_conv = tds->char_convs[iso2server_metadata];
+	char_conv = tds->conn->char_convs[iso2server_metadata];
 
 	tds_iconv_info_close(char_conv);
 
@@ -1404,10 +1403,10 @@ tds_iconv_from_collate(TDSSOCKET * tds, TDS_UCHAR collate[5])
 	int canonic_charset = collate2charset(sql_collate, lcid);
 
 	/* same as client (usually this is true, so this improve performance) ? */
-	if (tds->char_convs[client2server_chardata]->server_charset.canonic == canonic_charset)
-		return tds->char_convs[client2server_chardata];
+	if (tds->conn->char_convs[client2server_chardata]->server_charset.canonic == canonic_charset)
+		return tds->conn->char_convs[client2server_chardata];
 
-	return tds_iconv_get_info(tds, tds->char_convs[client2ucs2]->client_charset.canonic, canonic_charset);
+	return tds_iconv_get_info(tds->conn, tds->conn->char_convs[client2ucs2]->client_charset.canonic, canonic_charset);
 }
 
 /** @} */

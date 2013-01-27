@@ -199,7 +199,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 			return string_len;
 		}
 
-		return read_and_convert(tds, tds->char_convs[client2ucs2], &wire_bytes, &dest, &dest_size);
+		return read_and_convert(tds, tds->conn->char_convs[client2ucs2], &wire_bytes, &dest, &dest_size);
 	} else {
 		/* FIXME convert to client charset */
 		assert(dest_size >= (size_t) string_len);

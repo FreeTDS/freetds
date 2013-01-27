@@ -109,7 +109,7 @@ tds_listen(TDSCONTEXT * ctx, int ip_port)
 	tds_set_s(tds, fd);
 	tds->out_flag = TDS_LOGIN;
 	/* TODO proper charset */
-	tds_iconv_open(tds, "ISO8859-1");
+	tds_iconv_open(tds->conn, "ISO8859-1");
 	/* get_incoming(tds->s); */
 	return tds;
 }
@@ -219,9 +219,9 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 	tds7_decrypt_pass((unsigned char *) unicode_string, unicode_len, (unsigned char *) unicode_string);
 	pbuf = tds_dstr_buf(&login->password);
 	
-	memset(&tds->char_convs[client2ucs2]->suppress, 0, sizeof(tds->char_convs[client2ucs2]->suppress));
+	memset(&tds->conn->char_convs[client2ucs2]->suppress, 0, sizeof(tds->conn->char_convs[client2ucs2]->suppress));
 	psrc = unicode_string;
-	a = tds_iconv(tds, tds->char_convs[client2ucs2], to_client, (const char **) &psrc, &unicode_len, &pbuf,
+	a = tds_iconv(tds, tds->conn->char_convs[client2ucs2], to_client, (const char **) &psrc, &unicode_len, &pbuf,
 			 &password_len);
 	if (a < 0 ) {
 		fprintf(stderr, "error: %s:%d: tds7_read_login: tds_iconv() failed\n", __FILE__, __LINE__);

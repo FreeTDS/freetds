@@ -2968,7 +2968,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_COLUMN_EXTRA(curcol);
 
 	if (is_unicode_type(curcol->on_server.column_type))
-		curcol->char_conv = tds->char_convs[client2ucs2];
+		curcol->char_conv = tds->conn->char_convs[client2ucs2];
 
 	/* Sybase UNI(VAR)CHAR fields are transmitted via SYBLONGBINARY and in UTF-16 */
 	if (curcol->on_server.column_type == SYBLONGBINARY && (
@@ -2980,17 +2980,17 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		static const char sybase_utf[] = "UTF-16LE";
 #endif
 
-		curcol->char_conv = tds_iconv_get(tds, tds->char_convs[client2ucs2]->client_charset.name, sybase_utf);
+		curcol->char_conv = tds_iconv_get(tds, tds->conn->char_convs[client2ucs2]->client_charset.name, sybase_utf);
 
 		/* fallback to UCS-2LE */
 		/* FIXME should be useless. Does not works always */
 		if (!curcol->char_conv)
-			curcol->char_conv = tds->char_convs[client2ucs2];
+			curcol->char_conv = tds->conn->char_convs[client2ucs2];
 	}
 
 	/* FIXME: and sybase ?? */
 	if (!curcol->char_conv && IS_TDS7_PLUS(tds->conn) && is_ascii_type(curcol->on_server.column_type))
-		curcol->char_conv = tds->char_convs[client2server_chardata];
+		curcol->char_conv = tds->conn->char_convs[client2server_chardata];
 
 	if (!USE_ICONV || !curcol->char_conv)
 		return;

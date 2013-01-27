@@ -1032,6 +1032,9 @@ struct tds_connection
 	 */
 	TDSDYNAMIC *dyns;
 
+	int char_conv_count;
+	TDSICONV **char_convs;
+
 	TDS_CAPABILITIES capabilities;
 	unsigned int broken_dates:1;
 	unsigned int emul_little_endian:1;
@@ -1116,9 +1119,6 @@ struct tds_socket
 
 	TDSDYNAMIC *cur_dyn;		/**< dynamic structure in use */
 
-	int char_conv_count;
-	TDSICONV **char_convs;
-
 	TDSLOGIN *login;	/**< config for login stuff. After login this field is NULL */
 
 	int spid;
@@ -1191,12 +1191,12 @@ int tds_get_cardinal_type(int datatype, int usertype);
 
 
 /* iconv.c */
-void tds_iconv_open(TDSSOCKET * tds, const char *charset);
-void tds_iconv_close(TDSSOCKET * tds);
+void tds_iconv_open(TDSCONNECTION * conn, const char *charset);
+void tds_iconv_close(TDSCONNECTION * conn);
 void tds_srv_charset_changed(TDSSOCKET * tds, const char *charset);
 void tds7_srv_charset_changed(TDSSOCKET * tds, int sql_collate, int lcid);
-int tds_iconv_alloc(TDSSOCKET * tds);
-void tds_iconv_free(TDSSOCKET * tds);
+int tds_iconv_alloc(TDSCONNECTION * conn);
+void tds_iconv_free(TDSCONNECTION * conn);
 TDSICONV *tds_iconv_from_collate(TDSSOCKET * tds, TDS_UCHAR collate[5]);
 
 /* threadsafe.c */

@@ -340,7 +340,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		size_t converted_query_len;
 		const char *converted_query;
  
-		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, (int)query_len, &converted_query_len);
+		converted_query = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], query, (int)query_len, &converted_query_len);
 		if (!converted_query) {
 			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
@@ -933,8 +933,8 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 			il = params->columns[i]->column_namelen;
 			ob = param_str + l;
 			ol = size - l;
-			memset(&tds->char_convs[iso2server_metadata]->suppress, 0, sizeof(tds->char_convs[iso2server_metadata]->suppress));
-			if (tds_iconv(tds, tds->char_convs[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
+			memset(&tds->conn->char_convs[iso2server_metadata]->suppress, 0, sizeof(tds->conn->char_convs[iso2server_metadata]->suppress));
+			if (tds_iconv(tds, tds->conn->char_convs[iso2server_metadata], to_server, &ib, &il, &ob, &ol) == (size_t) - 1)
 				goto Cleanup;
 			l = size - ol;
 		}
@@ -1090,7 +1090,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 		size_t converted_query_len;
 		const char *converted_query;
 
-		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, &converted_query_len);
+		converted_query = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], query, query_len, &converted_query_len);
 		if (!converted_query)
 			goto failure;
 
@@ -1207,7 +1207,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 		if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 			return TDS_FAIL;
 
-		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, (int)query_len, &converted_query_len);
+		converted_query = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], query, (int)query_len, &converted_query_len);
 		if (!converted_query) {
 			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
@@ -1359,7 +1359,7 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 
 	query_len = (int)strlen(query);
 
-	converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2], query, query_len, &converted_query_len);
+	converted_query = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], query, query_len, &converted_query_len);
 	if (!converted_query)
 		goto failure;
 
@@ -1484,7 +1484,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 
 			/* TODO use a fixed buffer to avoid error ? */
 			converted_param =
-				tds_convert_string(tds, tds->char_convs[client2ucs2], curcol->column_name, len,
+				tds_convert_string(tds, tds->conn->char_convs[client2ucs2], curcol->column_name, len,
 						   &converted_param_len);
 			if (!converted_param)
 				return TDS_FAIL;
@@ -1866,7 +1866,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 
 		tds->out_flag = TDS_RPC;
 		/* procedure name */
-		converted_name = tds_convert_string(tds, tds->char_convs[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
+		converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
 		if (!converted_name) {
 			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
@@ -2219,7 +2219,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 		int num_params = params ? params->num_cols : 0;
 
 		/* cursor statement */
-		converted_query = tds_convert_string(tds, tds->char_convs[client2ucs2],
+		converted_query = tds_convert_string(tds, tds->conn->char_convs[client2ucs2],
 						     cursor->query, (int)strlen(cursor->query), &converted_query_len);
 		if (!converted_query) {
 			if (!*something_to_send)
@@ -2844,7 +2844,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 			}
 			if (table_name) {
 				converted_table =
-					tds_convert_string(tds, tds->char_convs[client2ucs2], 
+					tds_convert_string(tds, tds->conn->char_convs[client2ucs2], 
 							   table_name, (int)strlen(table_name), &converted_table_len);
 				if (!converted_table) {
 					/* FIXME not here, in the middle of a packet */

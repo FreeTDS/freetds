@@ -96,7 +96,7 @@ test(int n, int type)
 
 	/* force tds to convert from utf8 to iso8859-1 (even on Sybase) */
 	tds_srv_charset_changed(tds, "UTF-8");
-	tds->current_results->columns[0]->char_conv = tds->char_convs[client2server_chardata];
+	tds->current_results->columns[0]->char_conv = tds->conn->char_convs[client2server_chardata];
 
 	rc = tds_process_tokens(tds, &result_type, NULL, TDS_STOPAT_ROWFMT|TDS_RETURN_DONE|TDS_RETURN_ROW|TDS_RETURN_COMPUTE);
 	if (rc != TDS_SUCCESS) {
