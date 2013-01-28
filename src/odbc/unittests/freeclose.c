@@ -186,16 +186,17 @@ static enum { sending, receiving } flow = sending;
 static TDS_THREAD_PROC_DECLARE(fake_thread_proc, arg)
 {
 	TDS_SYS_SOCKET s = ptr2int(arg), server_sock;
-	socklen_t len;
+	socklen_t sock_len;
+	int len;
 	char buf[128];
 	struct sockaddr_in sin;
 	fd_set fds_read, fds_write, fds_error;
 	int max_fd = 0;
 
 	memset(&sin, 0, sizeof(sin));
-	len = sizeof(sin);
+	sock_len = sizeof(sin);
 	alarm(30);
-	if ((fake_sock = tds_accept(s, (struct sockaddr *) &sin, &len)) < 0) {
+	if ((fake_sock = tds_accept(s, (struct sockaddr *) &sin, &sock_len)) < 0) {
 		perror("accept");
 		exit(1);
 	}
