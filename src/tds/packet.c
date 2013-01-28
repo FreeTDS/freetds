@@ -417,7 +417,7 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 
 		/* network ok ? process network */
 		if (!conn->in_net_tds) {
-			tds_connection_network(conn, tds, 1);
+			tds_connection_network(conn, tds, packet ? 0 : 1);
 			if (packet) continue;
 			/* FIXME we are not sure we sent the packet !!! */
 			break;
