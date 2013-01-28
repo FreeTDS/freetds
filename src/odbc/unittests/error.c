@@ -50,8 +50,12 @@ main(int argc, char *argv[])
 
 	odbc_stmt = stmt;
 
-	/* a statement is already active so you get error */
-	odbc_command2("SELECT * FROM sysobjects", "E");
+	/* a statement is already active so you get error... */
+	if (odbc_command2("SELECT *  FROM sysobjects", "SE") == SQL_SUCCESS) {
+		SQLMoreResults(odbc_stmt);
+		/* ...or we are using MARS! */
+		odbc_command2("BEGIN TRANSACTION", "E");
+	}
 
 	odbc_read_error();
 
