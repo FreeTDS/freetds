@@ -4272,12 +4272,14 @@ _SQLFreeDesc(SQLHDESC hdesc)
 		int i;
 
 		/* freeing descriptors associated to statements revert state of statements */
+		tds_mutex_lock(&dbc->mtx);
 		for (stmt = dbc->stmt_list; stmt != NULL; stmt = stmt->next) {
 			if (stmt->ard == desc)
 				stmt->ard = stmt->orig_ard;
 			if (stmt->apd == desc)
 				stmt->apd = stmt->orig_apd;
 		}
+		tds_mutex_unlock(&dbc->mtx);
 
 		for (i = 0; i < TDS_MAX_APP_DESC; ++i) {
 			if (dbc->uad[i] == desc) {
