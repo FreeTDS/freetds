@@ -4198,12 +4198,14 @@ _SQLFreeStmt(SQLHSTMT hstmt, SQLUSMALLINT fOption, int force)
 			ODBC_EXIT(stmt, retcode);
 
 		/* detatch from list */
+		tds_mutex_lock(&stmt->dbc->mtx);
 		if (stmt->next)
 			stmt->next->prev = stmt->prev;
 		if (stmt->prev)
 			stmt->prev->next = stmt->next;
 		if (stmt->dbc->stmt_list == stmt)
 			stmt->dbc->stmt_list = stmt->next;
+		tds_mutex_unlock(&stmt->dbc->mtx);
 
 		free(stmt->query);
 		free(stmt->prepared_query);
