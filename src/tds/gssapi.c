@@ -213,7 +213,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 			auth->sname = NULL;
 	}
 	if (auth->sname == NULL) {
-		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+		tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
 	tdsdump_log(TDS_DBG_NETWORK, "using kerberos name %s\n", auth->sname);
@@ -230,7 +230,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	case GSS_S_COMPLETE: 
 		tdsdump_log(TDS_DBG_NETWORK, "gss_import_name: GSS_S_COMPLETE: gss_import_name completed successfully.\n");
 		if (TDS_FAILED(tds_gss_continue(tds, auth, GSS_C_NO_BUFFER))) {
-			tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+			tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
 			return NULL;
 		}
 		break;
@@ -249,7 +249,7 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	}
 
 	if (GSS_ERROR(maj_stat)) {
-		tds_gss_free(tds, (TDSAUTHENTICATION *) auth);
+		tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
 		return NULL;
 	}
 
