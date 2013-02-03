@@ -165,6 +165,7 @@ tds_timestamp_str(char *str, int maxlen)
 # define NETDB_REENTRANT 1
 #endif /* _REENTRANT */
 
+#if !defined(HAVE_GETADDRINFO)
 
 #if defined(NETDB_REENTRANT)
 struct hostent *
@@ -303,98 +304,6 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 	return result;
 }
 
-#elif defined(HAVE_GETADDRINFO) && \
-	(!defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__OpenBSD__) && \
-	!defined(__bsdi__) && !defined(__DragonFly__))
-
-static int
-tds_addrinfo_to_hostent(struct addrinfo *ai, struct hostent *result, char *buffer, int buflen)
-{
-#define CHECK_BUF(len) \
-	if (p + sizeof(struct hostent) - buffer > buflen) return -1;
-#define ALIGN_P do { p += TDS_ALIGN_SIZE - 1; p -= (p-buffer) % TDS_ALIGN_SIZE; } while(0)
-
-	int n;
-	char *p = buffer;
-	int len;
-	char **addresses;
-	struct addrinfo *curr_ai;
-
-	memset(result, 0, sizeof(struct hostent));
-	result->h_addrtype = sizeof(struct sockaddr_in);
-
-	/* count addresses */
-	for (n = 0, curr_ai = ai; curr_ai; curr_ai = curr_ai->ai_next) {
-		if (curr_ai->ai_family != PF_INET)
-			continue;
-		++n;
-	}
-
-	/* copy addresses */
-	addresses = (char **) p;
-	result->h_addr_list = addresses;
-	result->h_length = sizeof(struct in_addr);
-	len = sizeof(char *) * (n + 1);
-	CHECK_BUF(len);
-	p += len;
-	ALIGN_P;
-	for (n = 0, curr_ai = ai; curr_ai; curr_ai = curr_ai->ai_next) {
-		if (curr_ai->ai_family != PF_INET)
-			continue;
-		addresses[n++] = p;
-
-		len = sizeof(struct in_addr);
-		CHECK_BUF(len);
-		memcpy(p, &((struct sockaddr_in *) curr_ai->ai_addr)->sin_addr, len);
-		p += len;
-		ALIGN_P;
-	}
-	addresses[n] = NULL;
-
-	/* copy name */
-	if (ai->ai_canonname) {
-		n = strlen(ai->ai_canonname) + 1;
-		result->h_name = p;
-		CHECK_BUF(n);
-		memcpy(p, ai->ai_canonname, n);
-		p += n;
-		ALIGN_P;
-	}
-	return 0;
-}
-
-struct hostent *
-tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
-{
-	struct addrinfo hints, *res;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = 0;
-	hints.ai_protocol = IPPROTO_TCP;
-
-	res = NULL;
-	/* default error */
-	if (h_errnop)
-		*h_errnop = HOST_NOT_FOUND;
-	if (getaddrinfo(servername, NULL, &hints, &res))
-		return NULL;
-	if (res->ai_family != PF_INET || !res->ai_addr) {
-		freeaddrinfo(res);
-		return NULL;
-	}
-	if (tds_addrinfo_to_hostent(res, result, buffer, buflen)) {
-		errno = ENOMEM;
-		if (h_errnop)
-			*h_errnop = NETDB_INTERNAL;
-		freeaddrinfo(res);
-		return NULL;
-	}
-	freeaddrinfo(res);
-	return result;
-}
-
 #elif defined(TDS_NO_THREADSAFE)
 struct hostent *
 tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop)
@@ -406,113 +315,103 @@ tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer
 #error gethostbyname_r style unknown
 #endif
 
-/* not used by FreeTDS, uncomment if needed */
-#ifdef ENABLE_DEVELOPING
-struct hostent *
-tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen, int *h_errnop)
-{
-#if defined(NETDB_REENTRANT)
-	return gethostbyaddr(addr, len, type);
-
-#elif defined(HAVE_GETIPNODEBYADDR)
-	struct hostent *he = getipnodebyaddr(addr, len, type, h_errnop);
-
-	if (!he)
-		return NULL;
-	if (tds_copy_hostent(he, result, buffer, buflen)) {
-		errno = ENOMEM;
-		if (h_errnop)
-			*h_errnop = NETDB_INTERNAL;
-		freehostent(he);
-		return NULL;
-	}
-	freehostent(he);
-	return result;
-
-#elif defined(HAVE_FUNC_GETHOSTBYADDR_R_8)
-	if (gethostbyaddr_r(addr, len, type, result, buffer, buflen, &result, h_errnop))
-		return NULL;
-	return result;
-
-#elif defined(HAVE_FUNC_GETHOSTBYADDR_R_7)
-	result = gethostbyaddr_r(addr, len, type, result, buffer, buflen, h_errnop);
-	return result;
-
-#elif defined(HAVE_FUNC_GETHOSTBYADDR_R_5)
-	struct hostent_data *data = (struct hostent_data *) buffer;
-
-	memset(buffer, 0, buflen);
-	if (gethostbyaddr_r(addr, len, type, result, data)) {
-		*h_errnop = 0;
-		result = NULL;
-	}
-	return result;
-
-#elif defined(TDS_NO_THREADSAFE)
-	return gethostbyaddr(addr, len, type);
-
-#else
-#error gethostbyaddr_r style unknown
-#endif
-}
 #endif
 
-const char *
-tds_inet_ntoa_r(struct in_addr iaddr, char *ip, size_t len)
-{
-#if defined(AF_INET) && HAVE_INET_NTOP
-	inet_ntop(AF_INET, &iaddr, ip, len);
-#elif HAVE_INET_NTOA_R
-	inet_ntoa_r(iaddr, ip, len);
-#else
-	tds_strlcpy(ip, inet_ntoa(iaddr), len);
-#endif
-	return ip;
-}
 
+#if 0
+#undef HAVE_GETADDRINFO
+#undef NETDB_REENTRANT
+#undef HAVE_FUNC_GETSERVBYNAME_R_6
+#undef HAVE_FUNC_GETSERVBYNAME_R_5
+#undef HAVE_FUNC_GETSERVBYNAME_R_4
+#undef TDS_NO_THREADSAFE
+
+# if 0
+#  define HAVE_FUNC_GETSERVBYNAME_R_6 1
+int test_getservbyname_r(const char *name, const char *proto,
+			 struct servent *result_buf, char *buffer,
+			 size_t buflen, struct servent **result);
+#  define getservbyname_r test_getservbyname_r
+# elif 0
+#  define HAVE_FUNC_GETSERVBYNAME_R_5 1
 struct servent *
-tds_getservbyname_r(const char *name, const char *proto, struct servent *result, char *buffer, int buflen)
+test_getservbyname_r(const char *name, const char *proto,
+		     struct servent *result_buf, char *buffer,
+		     size_t buflen);
+#  define getservbyname_r test_getservbyname_r
+# else
+#  define HAVE_FUNC_GETSERVBYNAME_R_4 1
+struct servent_data { int dummy; };
+int
+test_getservbyname_r(const char *name, const char *proto,
+		     struct servent *result_buf,
+		     struct servent_data *data);
+#  define getservbyname_r test_getservbyname_r
+# endif
+#endif
+
+/**
+ * Return service port given the name
+ */
+int
+tds_getservice(const char *name)
 {
-#if defined(NETDB_REENTRANT)
-	return getservbyname(name, proto);
-
-#elif defined(HAVE_FUNC_GETSERVBYNAME_R_6)
-	struct servent result_buf;
-
-	getservbyname_r(name, proto, &result_buf, buffer, buflen, &result);
-	return result;
-
-#elif defined(HAVE_FUNC_GETSERVBYNAME_R_5)
-	getservbyname_r(name, proto, result, buffer, buflen);
-	return result;
-
-#elif defined(HAVE_FUNC_GETSERVBYNAME_R_4)
-	struct servent_data data;
-
-	getservbyname_r(name, proto, result, &data);
-	return result;
-
-#elif defined(HAVE_GETADDRINFO)
+#if defined(HAVE_GETADDRINFO)
+	/* new OSes should implement this in a proper way */
 	struct addrinfo hints, *res;
+	int result;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_INET;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	res = NULL;
 	if (getaddrinfo(NULL, name, &hints, &res))
-		return NULL;
-	if (res->ai_family != PF_INET || !res->ai_addr) {
+		return 0;
+	if (res->ai_family != AF_INET || !res->ai_addr) {
 		freeaddrinfo(res);
-		return NULL;
+		return 0;
 	}
-	memset(result, 0, sizeof(*result));
-	result->s_port = ((struct sockaddr_in *) res->ai_addr)->sin_port;
+	result = ntohs(((struct sockaddr_in *) res->ai_addr)->sin_port);
 	freeaddrinfo(res);
 	return result;
 
+#elif defined(NETDB_REENTRANT)
+	/* HP-UX/Windows */
+	struct servent *result = getservbyname(name, "tcp");
+	return result ? ntohs(result->s_port) : 0;
+
+#elif defined(HAVE_FUNC_GETSERVBYNAME_R_6)
+	/* Linux variant */
+	struct servent *result = NULL;
+	struct servent result_buf;
+	char buffer[4096];
+
+	if (!getservbyname_r(name, "tcp", &result_buf, buffer, sizeof(buffer), &result))
+		return ntohs(result->s_port);
+	return 0;
+
+#elif defined(HAVE_FUNC_GETSERVBYNAME_R_5)
+	/* Solaris variant */
+	struct servent result;
+	char buffer[4096];
+
+	if (getservbyname_r(name, "tcp", &result, buffer, sizeof(buffer)))
+		return ntohs(result.s_port);
+	return 0;
+
+#elif defined(HAVE_FUNC_GETSERVBYNAME_R_4)
+	/* AIX/BSD variant */
+	struct servent result;
+	struct servent_data data;
+
+	if (!getservbyname_r(name, "tcp", &result, &data))
+		return ntohs(result.s_port);
+	return 0;
+
 #elif defined(TDS_NO_THREADSAFE)
-	return getservbyname(name, proto);
+	struct servent *result = getservbyname(name, "tcp");
+	return result ? ntohs(result->s_port) : 0;
 #else
 #error getservbyname_r style unknown
 #endif

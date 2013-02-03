@@ -912,19 +912,9 @@ tds_lookup_host_set(const char *servername, struct tds_addrinfo **addr)
 static int
 tds_lookup_port(const char *portname)
 {
-	int num = 0;
-
-	if (portname) {
-		num = atoi(portname);
-		if (!num) {
-			char buffer[4096];
-			struct servent serv_result;
-			struct servent *service = tds_getservbyname_r(portname, "tcp", &serv_result, buffer, sizeof(buffer));
-
-			if (service)
-				num = ntohs(service->s_port);
-		}
-	}
+	int num = atoi(portname);
+	if (!num)
+		num = tds_getservice(portname);
 	return num;
 }
 

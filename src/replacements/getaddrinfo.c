@@ -90,13 +90,23 @@ tds_getaddrinfo(const char *node, const char *service, const struct tds_addrinfo
 int
 tds_getnameinfo(const struct sockaddr *sa, size_t salen, char *host, size_t hostlen, char *serv, size_t servlen, int flags)
 {
-	int retcode = 0;
 	struct sockaddr_in *sin = (struct sockaddr_in *) sa;
 
-	if (host != NULL)
-		tds_inet_ntoa_r(sin->sin_addr, host, hostlen);
+	if (sa->sa_family != AF_INET)
+		return EAI_FAMILY;
 
-	return retcode;
+	if (host == NULL || hostlen < 16)
+		return EAI_OVERFLOW;
+
+#if defined(AF_INET) && HAVE_INET_NTOP
+	inet_ntop(AF_INET, &sin->sin_addr, host, hostlen);
+#elif HAVE_INET_NTOA_R
+	inet_ntoa_r(sin->sin_addr, host, hostlen);
+#else
+	tds_strlcpy(hostip, inet_ntoa(sin->sin_addr), hostlen);
+#endif
+
+	return 0;
 }
 
 void

@@ -1213,12 +1213,7 @@ TDSICONV *tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5]);
 char *tds_timestamp_str(char *str, int maxlen);
 struct tm *tds_localtime_r(const time_t *timep, struct tm *result);
 struct hostent *tds_gethostbyname_r(const char *servername, struct hostent *result, char *buffer, int buflen, int *h_errnop);
-struct hostent *tds_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *result, char *buffer, int buflen,
-				    int *h_errnop);
-struct servent *tds_getservbyname_r(const char *name, const char *proto, struct servent *result, char *buffer, int buflen);
-#ifdef INADDR_NONE
-const char *tds_inet_ntoa_r(struct in_addr iaddr, char *ip, size_t len);
-#endif
+int tds_getservice(const char *name);
 char *tds_get_homedir(void);
 
 /* mem.c */
