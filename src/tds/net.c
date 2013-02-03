@@ -177,35 +177,58 @@ typedef unsigned int ioctl_nonblocking_t;
 typedef u_long ioctl_nonblocking_t;
 #endif
 
-TDSERRNO
-tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout, int *p_oserr)
+static void
+tds_addrinfo_set_port(struct tds_addrinfo *addr, unsigned int port)
 {
-	struct sockaddr_in sin;
+	assert(addr != NULL);
+
+	switch(addr->ai_family) {
+	case AF_INET:
+		((struct sockaddr_in *) addr->ai_addr)->sin_port = htons(port);
+		break;
+
+#ifdef AF_INET6
+	case AF_INET6:
+		((struct sockaddr_in6 *) addr->ai_addr)->sin6_port = htons(port);
+		break;
+#endif
+	}
+}
+
+TDSRET
+tds_addrinfo2str(struct tds_addrinfo *addr, char *name, int namemax)
+{
+#ifndef NI_NUMERICHOST
+#define NI_NUMERICHOST 0
+#endif
+	if (namemax > 0)
+		*name = '\0';
+	if (tds_getnameinfo(addr->ai_addr, addr->ai_addrlen, name, namemax, NULL, 0, NI_NUMERICHOST) == 0)
+		return TDS_SUCCESS;
+	return TDS_FAIL;
+}
+
+TDSERRNO
+tds_open_socket(TDSSOCKET *tds, struct tds_addrinfo *addr, unsigned int port, int timeout, int *p_oserr)
+{
 	ioctl_nonblocking_t ioctl_nonblocking;
 	SOCKLEN_T optlen;
 	TDSCONNECTION *conn = tds_conn(tds);
+	char ipaddr[256];
 	
 	int retval, len;
 	TDSERRNO tds_error = TDSECONN;
 
 	*p_oserr = 0;
 
-	memset(&sin, 0, sizeof(sin));
-
-	sin.sin_addr.s_addr = inet_addr(ip_addr);
-	if (sin.sin_addr.s_addr == INADDR_NONE) {
-		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", ip_addr);
-		return TDSESOCK;
-	}
-
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(port);
+	tds_addrinfo_set_port(addr, port);
+	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
 	tdsdump_log(TDS_DBG_INFO1, "Connecting to %s port %d (TDS version %d.%d)\n", 
-			ip_addr, port, 
+			ipaddr, port,
 			TDS_MAJOR(conn), TDS_MINOR(conn));
 
-	conn->s = socket(AF_INET, SOCK_STREAM, 0);
+	conn->s = socket(addr->ai_family, SOCK_STREAM, 0);
 	if (TDS_IS_SOCKET_INVALID(conn->s)) {
 		*p_oserr = sock_errno;
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
@@ -244,11 +267,11 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 #endif
 
 #ifdef  DOS32X			/* the other connection doesn't work  on WATTCP32 */
-	if (connect(conn->s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+	if (connect(conn->s, addr->ai_addr, addr->ai_addrlen) < 0) {
 		char *message;
 
 		*p_oserr = sock_errno;
-		if (asprintf(&message, "tds_open_socket(): %s:%d", ip_addr, port) >= 0) {
+		if (asprintf(&message, "tds_open_socket(): %s:%d", ipaddr, port) >= 0) {
 			perror(message);
 			free(message);
 		}
@@ -268,8 +291,7 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		tds_connection_close(conn);
 		return TDSEUSCT; 	/* close enough: "Unable to set communications timer" */
 	}
-
-	retval = connect(conn->s, (struct sockaddr *) &sin, sizeof(sin));
+	retval = connect(conn->s, addr->ai_addr, addr->ai_addrlen);
 	if (retval == 0) {
 		tdsdump_log(TDS_DBG_INFO2, "connection established\n");
 	} else {
@@ -277,16 +299,14 @@ tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int tim
 		tdsdump_log(TDS_DBG_ERROR, "tds_open_socket: connect(2) returned \"%s\"\n", sock_strerror(err));
 #if DEBUGGING_CONNECTING_PROBLEM
 		if (err != ECONNREFUSED && err != ENETUNREACH && err != TDSSOCK_EINPROGRESS) {
-			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", &sin, sizeof(sin));
+			tdsdump_dump_buf(TDS_DBG_ERROR, "Contents of sockaddr_in", addr->ai_addr, addr->ai_addrlen);
 			tdsdump_log(TDS_DBG_ERROR, 	" sockaddr_in:\t"
 							      "%s = %x\n" 
 							"\t\t\t%s = %x\n" 
-							"\t\t\t%s = %x\n"
-							"\t\t\t%s = '%s'\n"
-							, "sin_family", sin.sin_family
-							, "sin_port", sin.sin_port
-							, "sin_addr.s_addr", sin.sin_addr.s_addr
-							, "(param ip_addr)", ip_addr
+							"\t\t\t%s = %s\n"
+							, "sin_family", addr->ai_family
+							, "port", port
+							, "address", ipaddr
 							);
 		}
 #endif
@@ -769,10 +789,9 @@ tds_connection_write(TDSSOCKET *tds, unsigned char *buf, int buflen, int final)
  * @remark experimental, cf. MC-SQLR.pdf.
  */
 int
-tds7_get_instance_ports(FILE *output, const char *ip_addr)
+tds7_get_instance_ports(FILE *output, struct tds_addrinfo *addr)
 {
 	int num_try;
-	struct sockaddr_in sin;
 	ioctl_nonblocking_t ioctl_nonblocking;
 	struct pollfd fd;
 	int retval;
@@ -780,20 +799,16 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 	char msg[16*1024];
 	size_t msg_len = 0;
 	int port = 0;
+	char ipaddr[256];
 
-	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_ports(%s)\n", ip_addr);
 
-	sin.sin_addr.s_addr = inet_addr(ip_addr);
-	if (sin.sin_addr.s_addr == INADDR_NONE) {
-		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", ip_addr);
-		return 0;
-	}
+	tds_addrinfo_set_port(addr, 1434);
+	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(1434);
+	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_ports(%s)\n", ipaddr);
 
 	/* create an UDP socket */
-	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_DGRAM, 0))) {
+	if (TDS_IS_SOCKET_INVALID(s = socket(addr->ai_family, SOCK_DGRAM, 0))) {
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return 0;
 	}
@@ -817,7 +832,7 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
 	for (num_try = 0; num_try < 16 && msg_len == 0; ++num_try) {
 		/* send the request */
 		msg[0] = 3;
-		sendto(s, msg, 1, 0, (struct sockaddr *) &sin, sizeof(sin));
+		sendto(s, msg, 1, 0, addr->ai_addr, addr->ai_addrlen);
 
 		fd.fd = s;
 		fd.events = POLLIN;
@@ -909,10 +924,9 @@ tds7_get_instance_ports(FILE *output, const char *ip_addr)
  * @return port number or 0 if error
  */
 int
-tds7_get_instance_port(const char *ip_addr, const char *instance)
+tds7_get_instance_port(struct tds_addrinfo *addr, const char *instance)
 {
 	int num_try;
-	struct sockaddr_in sin;
 	ioctl_nonblocking_t ioctl_nonblocking;
 	struct pollfd fd;
 	int retval;
@@ -920,20 +934,15 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 	char msg[1024];
 	size_t msg_len;
 	int port = 0;
+	char ipaddr[256];
 
-	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port(%s, %s)\n", ip_addr, instance);
+	tds_addrinfo_set_port(addr, 1434);
+	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
 
-	sin.sin_addr.s_addr = inet_addr(ip_addr);
-	if (sin.sin_addr.s_addr == INADDR_NONE) {
-		tdsdump_log(TDS_DBG_ERROR, "inet_addr() failed, IP = %s\n", ip_addr);
-		return 0;
-	}
-
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(1434);
+	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port(%s, %s)\n", ipaddr, instance);
 
 	/* create an UDP socket */
-	if (TDS_IS_SOCKET_INVALID(s = socket(AF_INET, SOCK_DGRAM, 0))) {
+	if (TDS_IS_SOCKET_INVALID(s = socket(addr->ai_family, SOCK_DGRAM, 0))) {
 		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", sock_strerror(sock_errno));
 		return 0;
 	}
@@ -958,7 +967,7 @@ tds7_get_instance_port(const char *ip_addr, const char *instance)
 		/* send the request */
 		msg[0] = 4;
 		tds_strlcpy(msg + 1, instance, sizeof(msg) - 1);
-		sendto(s, msg, (int)strlen(msg) + 1, 0, (struct sockaddr *) &sin, sizeof(sin));
+		sendto(s, msg, (int)strlen(msg) + 1, 0, addr->ai_addr, addr->ai_addrlen);
 
 		fd.fd = s;
 		fd.events = POLLIN;

@@ -108,7 +108,6 @@ static int SQLGetPrivateProfileString(LPCSTR pszSection, LPCSTR pszEntry, LPCSTR
 static int
 parse_server(TDS_ERRS *errs, char *server, TDSLOGIN * login)
 {
-	char ip[64];
 	char *p = (char *) strchr(server, '\\');
 
 	if (p) {
@@ -125,13 +124,8 @@ parse_server(TDS_ERRS *errs, char *server, TDSLOGIN * login)
 		}
 	}
 
-	if (TDS_SUCCEED(tds_lookup_host(server, ip)))
+	if (TDS_SUCCEED(tds_lookup_host_set(server, &login->ip_addrs)))
 		tds_dstr_copy(&login->server_host_name, server);
-
-	if (!tds_dstr_copy(&login->ip_addr, ip)) {
-		odbc_errs_add(errs, "HY001", NULL);
-		return 0;
-	}
 
 	return 1;
 }
@@ -177,8 +171,8 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 		if (myGetPrivateProfileString(DSN, odbc_param_Address, tmp) > 0) {
 			address_specified = 1;
 			/* TODO parse like MS */
-			tds_lookup_host(tmp, tmp);
-			tds_dstr_copy(&login->ip_addr, tmp);
+
+			tds_lookup_host_set(tmp, &login->ip_addrs);
 		}
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
 			tds_dstr_copy(&login->server_name, tmp);

@@ -317,6 +317,8 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	int erc = -TDSEFCON;
 	int connect_timeout = 0;
 	int db_selected = 0;
+	struct tds_addrinfo *addrs;
+	int orig_port;
 
 	/*
 	 * A major version of 0 means try to guess the TDS version. 
@@ -411,7 +413,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	/* end */
 
 	/* verify that ip_addr is not empty */
-	if (tds_dstr_isempty(&login->ip_addr)) {
+	if (login->ip_addrs == NULL) {
 		tdserror(tds_get_ctx(tds), tds, TDSEUHST, 0 );
 		tdsdump_log(TDS_DBG_ERROR, "IP address pointer is empty\n");
 		if (!tds_dstr_isempty(&login->server_name)) {
@@ -422,17 +424,30 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		return -TDSECONN;
 	}
 
-	if (!IS_TDS50(tds->conn) && !tds_dstr_isempty(&login->instance_name) && !login->port)
-		login->port = tds7_get_instance_port(tds_dstr_cstr(&login->ip_addr), tds_dstr_cstr(&login->instance_name));
-
-	if (login->port < 1) {
-		tdsdump_log(TDS_DBG_ERROR, "invalid port number\n");
-		return -TDSECONN;
-	}
-
 	tds_conn(tds)->capabilities = login->capabilities;
 
-	if ((erc = tds_open_socket(tds, tds_dstr_cstr(&login->ip_addr), login->port, connect_timeout, p_oserr)) != TDSEOK) {
+	erc = TDSEINTF;
+	orig_port = login->port;
+	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
+		login->port = orig_port;
+
+		if (!IS_TDS50(tds->conn) && !tds_dstr_isempty(&login->instance_name) && !login->port)
+			login->port = tds7_get_instance_port(addrs, tds_dstr_cstr(&login->instance_name));
+
+		if (login->port >= 1) {
+			if ((erc = tds_open_socket(tds, addrs, login->port, connect_timeout, p_oserr)) == TDSEOK) {
+				login->connected_addr = addrs;
+				break;
+			}
+		} else {
+			erc = TDSECONN;
+		}
+	}
+
+	if (erc != TDSEOK) {
+		if (login->port < 1)
+			tdsdump_log(TDS_DBG_ERROR, "invalid port number\n");
+
 		tdserror(tds_get_ctx(tds), tds, erc, *p_oserr);
 		return -erc;
 	}

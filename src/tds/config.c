@@ -146,6 +146,8 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	char *path;
 	pid_t pid;
 	int opened = 0, found;
+	struct tds_addrinfo *addrs;
+	char tmp[256];
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	connection = tds_alloc_login(0);
@@ -177,15 +179,13 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	found = tds_read_conf_file(connection, tds_dstr_cstr(&login->server_name));
 	if (!found) {
 		if (parse_server_name_for_port(connection, login)) {
-			char ip_addr[256];
 
 			found = tds_read_conf_file(connection, tds_dstr_cstr(&connection->server_name));
 			/* do it again to really override what found in freetds.conf */
 			if (found) {
 				parse_server_name_for_port(connection, login);
-			} else if (TDS_SUCCEED(tds_lookup_host(tds_dstr_cstr(&connection->server_name), ip_addr))) {
+			} else if (TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->server_name), &connection->ip_addrs))) {
 				tds_dstr_dup(&connection->server_host_name, &connection->server_name);
-				tds_dstr_copy(&connection->ip_addr, ip_addr);
 				found = 1;
 			}
 		}
@@ -196,7 +196,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		if (!tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection)) {
 			tdsdump_log(TDS_DBG_INFO1, "Failed to find [%s] in configuration files; trying '%s' instead.\n", 
 						   tds_dstr_cstr(&login->server_name), tds_dstr_cstr(&connection->server_name));
-			if (tds_dstr_isempty(&connection->ip_addr))
+			if (connection->ip_addrs == NULL)
 				tdserror(tds_get_ctx(tds), tds, TDSEINTF, 0);
 		}
 	}
@@ -211,7 +211,14 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "Final connection parameters:\n");
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_name", tds_dstr_cstr(&connection->server_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_host_name", tds_dstr_cstr(&connection->server_host_name));
-		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", tds_dstr_cstr(&connection->ip_addr));
+
+		for (addrs = connection->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
+			tds_addrinfo2str(addrs, tmp, sizeof(tmp));
+			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", tmp);
+		}
+		if (connection->ip_addrs == NULL)
+			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", "");
+
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "instance_name", tds_dstr_cstr(&connection->instance_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "port", connection->port);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "major_version", TDS_MAJOR(connection));
@@ -581,12 +588,19 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 			login->connect_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_HOST)) {
 		char tmp[256];
+		struct tds_addrinfo *addrs;
 
-		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s.\n", value);
-		tds_dstr_copy(&login->server_host_name, value);
-		tds_lookup_host(value, tmp);
-		tds_dstr_copy(&login->ip_addr, tmp);
-		tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tds_dstr_cstr(&login->ip_addr));
+		if (TDS_SUCCEED(tds_lookup_host_set(value, &login->ip_addrs))) {
+			tdsdump_log(TDS_DBG_INFO1, "Found host entry %s \n", value);
+			tds_dstr_copy(&login->server_host_name, value);
+			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
+				if (TDS_SUCCEED(tds_addrinfo2str(addrs, tmp, sizeof(tmp))))
+					tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tmp);
+			}
+		} else {
+			tdsdump_log(TDS_DBG_WARN, "Found host entry %s however name resolution failed. \n", value);
+		}
+
 	} else if (!strcmp(option, TDS_STR_PORT)) {
 		if (atoi(value))
 			login->port = atoi(value);
@@ -739,12 +753,19 @@ tds_config_env_tdshost(TDSLOGIN * login)
 {
 	char *tdshost;
 	char tmp[256];
+	struct tds_addrinfo *addrs;
 
 	if ((tdshost = getenv("TDSHOST"))) {
-		tds_dstr_copy(&login->server_host_name, tdshost);
-		tds_lookup_host(tdshost, tmp);
-		tds_dstr_copy(&login->ip_addr, tmp);
-		tdsdump_log(TDS_DBG_INFO1, "Setting 'ip_addr' to %s (%s) from $TDSHOST.\n", tmp, tdshost);
+
+		if (TDS_SUCCEED(tds_lookup_host_set(tdshost, &login->ip_addrs))) {
+			tds_dstr_copy(&login->server_host_name, tdshost);
+			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
+				if (TDS_SUCCEED(tds_addrinfo2str(addrs, tmp, sizeof(tmp))))
+					tdsdump_log(TDS_DBG_INFO1, "Setting IP Address to %s (%s) from $TDSHOST.\n", tmp, tdshost);
+			}
+		} else {
+			tdsdump_log(TDS_DBG_WARN, "Name resolution failed for '%s' from $TDSHOST.\n", tdshost);
+		}
 	}
 }
 #define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
@@ -849,37 +870,35 @@ tds_set_interfaces_file_loc(const char *interf)
  * string.
  */
 /* TODO callers seem to set always connection info... change it */
-TDSRET
-tds_lookup_host(const char *servername,	/* (I) name of the server                  */
-		char *ip	/* (O) dotted-decimal ip address of server */
-	)
+struct tds_addrinfo
+*tds_lookup_host(const char *servername)	/* (I) name of the server                  */
 {
-	struct hostent *host = NULL;
-	unsigned int ip_addr = 0;
+	struct tds_addrinfo hints, *addr = NULL;
+	assert(servername != NULL);
 
-	/* Storage for reentrant getaddrby* calls */
-	struct hostent result;
-	char buffer[4096];
-	int h_errnop;
+	memset(&hints, '\0', sizeof(hints));
+	#ifdef AF_UNSPEC
+	hints.ai_family = AF_UNSPEC;
+	#endif
 
-	/*
-	 * Call gethostbyname(3) only if servername is not an ip address. 
-	 * This call takes a while and is useless for an ip address.
-	 * mlilback 3/2/02
-	 */
-	ip_addr = inet_addr(servername);
-	if (ip_addr != INADDR_NONE) {
-		tds_strlcpy(ip, servername, 17);
-		return TDS_SUCCESS;
-	}
+	#ifdef AI_ADDRCONFIG
+	hints.ai_flags = AI_ADDRCONFIG;
+	#endif
 
-	host = tds_gethostbyname_r(servername, &result, buffer, sizeof(buffer), &h_errnop);
+	tds_getaddrinfo(servername, "1433", &hints, &addr);
+	return addr;
+}
 
-	ip[0] = '\0';
-	if (host) {
-		struct in_addr *ptr = (struct in_addr *) host->h_addr;
+TDSRET
+tds_lookup_host_set(const char *servername, struct tds_addrinfo **addr)
+{
+	struct tds_addrinfo *newaddr;
+	assert(servername != NULL && addr != NULL);
 
-		tds_inet_ntoa_r(*ptr, ip, 17);
+	if ((newaddr = tds_lookup_host(servername)) != NULL) {
+		if (*addr != NULL)
+			tds_freeaddrinfo(*addr);
+		*addr = newaddr;
 		return TDS_SUCCESS;
 	}
 	return TDS_FAIL;
@@ -1035,10 +1054,18 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 	 * Look up the host and service
 	 */
 	if (server_found) {
-		tds_dstr_copy(&login->server_host_name, tmp_ip);
-		tds_lookup_host(tmp_ip, line);
-		tdsdump_log(TDS_DBG_INFO1, "Resolved IP as '%s'.\n", line);
-		tds_dstr_copy(&login->ip_addr, line);
+
+		if (TDS_SUCCEED(tds_lookup_host_set(tmp_ip, &login->ip_addrs))) {
+			struct tds_addrinfo *addrs;
+			tds_dstr_copy(&login->server_host_name, tmp_ip);
+			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
+				if (TDS_SUCCEED(tds_addrinfo2str(login->ip_addrs, line, sizeof(line))))
+					tdsdump_log(TDS_DBG_INFO1, "Resolved IP as '%s'.\n", line);
+			}
+		} else {
+			tdsdump_log(TDS_DBG_WARN, "Name resolution failed for IP '%s'.\n", tmp_ip);
+		}
+
 		if (tmp_port[0])
 			login->port = tds_lookup_port(tmp_port);
 		if (tmp_ver[0])
@@ -1112,7 +1139,6 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 	 * typed an actual server host name.
 	 */
 	if (!found) {
-		char ip_addr[255];
 		int ip_port;
 		const char *env_port;
 
@@ -1142,11 +1168,10 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 		/*
 		 * look up the host
 		 */
-		tds_lookup_host(server, ip_addr);
-		if (ip_addr[0]) {
+
+		if (TDS_SUCCEED(tds_lookup_host_set(server, &login->ip_addrs)))
 			tds_dstr_copy(&login->server_host_name, server);
-			tds_dstr_copy(&login->ip_addr, ip_addr);
-		}
+
 		if (ip_port)
 			login->port = ip_port;
 	}

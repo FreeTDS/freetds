@@ -31,6 +31,10 @@
 #include <stddef.h>
 #endif
 
+#if HAVE_NETDB_H
+#include <netdb.h>
+#endif /* HAVE_NETDB_H */
+
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif /* HAVE_NET_INET_IN_H */
@@ -48,6 +52,7 @@ typedef struct tds_column TDSCOLUMN;
 #include "tds_sysdep_public.h"
 #include "tds_sysdep_private.h"
 #include "tdsthread.h"
+#include "replacements.h"
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
 #pragma GCC visibility push(hidden)
@@ -556,7 +561,8 @@ typedef struct tds_login
 	DSTR client_charset;
 	DSTR database;
 
-	DSTR ip_addr;	  	/**< ip of server */
+	struct tds_addrinfo *ip_addrs;	  		/**< ip(s) of server */
+	struct tds_addrinfo *connected_addr;	/* ip of connected server */
 	DSTR instance_name;
 	DSTR dump_file;
 	int debug_flags;
@@ -1174,7 +1180,10 @@ void tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSLOGIN *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_login(TDSLOGIN* login);
 TDS_USMALLINT * tds_config_verstr(const char *tdsver, TDSLOGIN* login);
-TDSRET tds_lookup_host(const char *servername, char *ip);
+struct tds_addrinfo *tds_lookup_host(const char *servername);
+TDSRET tds_lookup_host_set(const char *servername, struct tds_addrinfo **addr);
+TDSRET tds_addrinfo2str(struct tds_addrinfo *addr, char *name, int namemax);
+
 TDSRET tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
 int tds_config_boolean(const char *value);
@@ -1383,10 +1392,10 @@ extern int tds_debug_flags;
 extern int tds_g_append_mode;
 
 /* net.c */
-TDSERRNO tds_open_socket(TDSSOCKET * tds, const char *ip_addr, unsigned int port, int timeout, int *p_oserr);
+TDSERRNO tds_open_socket(TDSSOCKET * tds, struct tds_addrinfo *ipaddr, unsigned int port, int timeout, int *p_oserr);
 void tds_close_socket(TDSSOCKET * tds);
-int tds7_get_instance_ports(FILE *output, const char *ip_addr);
-int tds7_get_instance_port(const char *ip_addr, const char *instance);
+int tds7_get_instance_ports(FILE *output, struct tds_addrinfo *addr);
+int tds7_get_instance_port(struct tds_addrinfo *addr, const char *instance);
 TDSRET tds_ssl_init(TDSSOCKET *tds);
 void tds_ssl_deinit(TDSCONNECTION *conn);
 const char *tds_prwsaerror(int erc);

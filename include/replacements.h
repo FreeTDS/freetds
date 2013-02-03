@@ -88,6 +88,27 @@ char *strsep(char **stringp, const char *delim);
 size_t tds_strlcpy(char *dest, const char *src, size_t len);
 #endif
 
+#if HAVE_GETADDRINFO
+#define tds_addrinfo addrinfo
+#define tds_getaddrinfo getaddrinfo
+#define tds_getnameinfo getnameinfo
+#define tds_freeaddrinfo freeaddrinfo
+#else
+typedef struct tds_addrinfo {
+	int ai_flags;
+	int ai_family;
+	int ai_socktype;
+	int ai_protocol;
+	size_t ai_addrlen;
+	struct sockaddr *ai_addr;
+	struct tds_addrinfo *ai_next;
+} tds_addrinfo;
+
+int tds_getaddrinfo(const char *node, const char *service, const struct tds_addrinfo *hints, struct tds_addrinfo **res);
+int tds_getnameinfo(const struct sockaddr *sa, size_t salen, char *host, size_t hostlen, char *serv, size_t servlen, int flags);
+void tds_freeaddrinfo(struct tds_addrinfo *addr);
+#endif
+
 #if HAVE_STRLCAT
 #define tds_strlcat(d,s,l) strlcat(d,s,l)
 #else

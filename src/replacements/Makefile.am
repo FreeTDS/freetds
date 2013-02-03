@@ -11,6 +11,7 @@ EXTRA_DIST=	asprintf.c \
 		getopt.c \
 		readpassphrase.c \
 		strlcat.c \
+		getaddrinfo.c \
 		strlcpy.c \
 		strtok_r.c \
 		strsep.c \
