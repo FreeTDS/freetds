@@ -101,12 +101,17 @@ typedef struct tds_addrinfo {
 	int ai_protocol;
 	size_t ai_addrlen;
 	struct sockaddr *ai_addr;
+	char *ai_canonname;
 	struct tds_addrinfo *ai_next;
 } tds_addrinfo;
 
 int tds_getaddrinfo(const char *node, const char *service, const struct tds_addrinfo *hints, struct tds_addrinfo **res);
 int tds_getnameinfo(const struct sockaddr *sa, size_t salen, char *host, size_t hostlen, char *serv, size_t servlen, int flags);
 void tds_freeaddrinfo(struct tds_addrinfo *addr);
+#endif
+
+#ifndef AI_FQDN
+#define AI_FQDN 0
 #endif
 
 #if HAVE_STRLCAT

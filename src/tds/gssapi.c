@@ -179,8 +179,8 @@ tds_gss_get_auth(TDSSOCKET * tds)
 	/* same as GSS_KRB5_NT_PRINCIPAL_NAME but do not require .so library */
 	static gss_OID_desc nt_principal = { 10, (void*) "\x2a\x86\x48\x86\xf7\x12\x01\x02\x02\x01" };
 	const char *server_name;
-	/* Storage for reentrant getaddrby* calls */
-	char buffer[4096];
+	/* Storage for getaddrinfo calls */
+	struct tds_addrinfo *addrs = NULL;
 
 	struct tds_gss_auth *auth = (struct tds_gss_auth *) calloc(1, sizeof(struct tds_gss_auth));
 
@@ -194,12 +194,13 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 	server_name = tds_dstr_cstr(&tds->login->server_host_name);
 	if (strchr(server_name, '.') == NULL) {
-		struct hostent result;
-		int h_errnop;
-
-		struct hostent *host = tds_gethostbyname_r(server_name, &result, buffer, sizeof(buffer), &h_errnop);
-		if (host && strchr(host->h_name, '.') != NULL)
-			server_name = host->h_name;
+		struct tds_addrinfo hints;
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_flags = AI_V4MAPPED|AI_ADDRCONFIG|AI_CANONNAME|AI_FQDN;
+		if (!tds_getaddrinfo(server_name, NULL, &hints, &addrs) && addrs->ai_canonname
+		    && strchr(addrs->ai_canonname, '.') != NULL)
+			server_name = addrs->ai_canonname;
 	}
 
 	if (!tds_dstr_isempty(&tds->login->server_spn)) {
@@ -212,6 +213,8 @@ tds_gss_get_auth(TDSSOCKET * tds)
 		             tds_dstr_cstr(&tds->login->server_realm_name)) < 0)
 			auth->sname = NULL;
 	}
+	if (addrs)
+		tds_freeaddrinfo(addrs);
 	if (auth->sname == NULL) {
 		tds_gss_free(tds->conn, (TDSAUTHENTICATION *) auth);
 		return NULL;
@@ -258,13 +261,14 @@ tds_gss_get_auth(TDSSOCKET * tds)
 
 #ifndef HAVE_ERROR_MESSAGE
 static const char *
-error_message(OM_uint32 e)
+tds_error_message(OM_uint32 e)
 {
 	const char *m = strerror(e);
 	if (m == NULL)
 		return "";
 	return m;
 }
+#define error_message tds_error_message
 #endif
 
 static TDSRET
