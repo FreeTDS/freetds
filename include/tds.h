@@ -1182,7 +1182,7 @@ void tds_fix_login(TDSLOGIN* login);
 TDS_USMALLINT * tds_config_verstr(const char *tdsver, TDSLOGIN* login);
 struct tds_addrinfo *tds_lookup_host(const char *servername);
 TDSRET tds_lookup_host_set(const char *servername, struct tds_addrinfo **addr);
-TDSRET tds_addrinfo2str(struct tds_addrinfo *addr, char *name, int namemax);
+const char *tds_addrinfo2str(struct tds_addrinfo *addr, char *name, int namemax);
 
 TDSRET tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];

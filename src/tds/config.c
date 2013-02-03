@@ -147,7 +147,6 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	pid_t pid;
 	int opened = 0, found;
 	struct tds_addrinfo *addrs;
-	char tmp[256];
 
 	/* allocate a new structure with hard coded and build-time defaults */
 	connection = tds_alloc_login(0);
@@ -208,14 +207,15 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	tds_config_login(connection, login);
 	
 	if (opened) {
+		char tmp[128];
+
 		tdsdump_log(TDS_DBG_INFO1, "Final connection parameters:\n");
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_name", tds_dstr_cstr(&connection->server_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_host_name", tds_dstr_cstr(&connection->server_host_name));
 
-		for (addrs = connection->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
-			tds_addrinfo2str(addrs, tmp, sizeof(tmp));
-			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", tmp);
-		}
+		for (addrs = connection->ip_addrs; addrs != NULL; addrs = addrs->ai_next)
+			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", tds_addrinfo2str(addrs, tmp, sizeof(tmp)));
+
 		if (connection->ip_addrs == NULL)
 			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", "");
 
@@ -587,19 +587,18 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (atoi(value))
 			login->connect_timeout = atoi(value);
 	} else if (!strcmp(option, TDS_STR_HOST)) {
-		char tmp[256];
+		char tmp[128];
 		struct tds_addrinfo *addrs;
 
-		if (TDS_SUCCEED(tds_lookup_host_set(value, &login->ip_addrs))) {
-			tdsdump_log(TDS_DBG_INFO1, "Found host entry %s \n", value);
-			tds_dstr_copy(&login->server_host_name, value);
-			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
-				if (TDS_SUCCEED(tds_addrinfo2str(addrs, tmp, sizeof(tmp))))
-					tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tmp);
-			}
-		} else {
+		if (TDS_FAILED(tds_lookup_host_set(value, &login->ip_addrs))) {
 			tdsdump_log(TDS_DBG_WARN, "Found host entry %s however name resolution failed. \n", value);
+			return;
 		}
+
+		tdsdump_log(TDS_DBG_INFO1, "Found host entry %s \n", value);
+		tds_dstr_copy(&login->server_host_name, value);
+		for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next)
+			tdsdump_log(TDS_DBG_INFO1, "IP addr is %s.\n", tds_addrinfo2str(addrs, tmp, sizeof(tmp)));
 
 	} else if (!strcmp(option, TDS_STR_PORT)) {
 		if (atoi(value))
@@ -751,21 +750,22 @@ tds_config_env_tdsver(TDSLOGIN * login)
 static void
 tds_config_env_tdshost(TDSLOGIN * login)
 {
-	char *tdshost;
-	char tmp[256];
+	const char *tdshost;
+	char tmp[128];
 	struct tds_addrinfo *addrs;
 
-	if ((tdshost = getenv("TDSHOST"))) {
+	if (!(tdshost = getenv("TDSHOST")))
+		return;
 
-		if (TDS_SUCCEED(tds_lookup_host_set(tdshost, &login->ip_addrs))) {
-			tds_dstr_copy(&login->server_host_name, tdshost);
-			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
-				if (TDS_SUCCEED(tds_addrinfo2str(addrs, tmp, sizeof(tmp))))
-					tdsdump_log(TDS_DBG_INFO1, "Setting IP Address to %s (%s) from $TDSHOST.\n", tmp, tdshost);
-			}
-		} else {
-			tdsdump_log(TDS_DBG_WARN, "Name resolution failed for '%s' from $TDSHOST.\n", tdshost);
-		}
+	if (TDS_FAILED(tds_lookup_host_set(tdshost, &login->ip_addrs))) {
+		tdsdump_log(TDS_DBG_WARN, "Name resolution failed for '%s' from $TDSHOST.\n", tdshost);
+		return;
+	}
+
+	tds_dstr_copy(&login->server_host_name, tdshost);
+	for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
+		tdsdump_log(TDS_DBG_INFO1, "Setting IP Address to %s (%s) from $TDSHOST.\n",
+			    tds_addrinfo2str(addrs, tmp, sizeof(tmp)), tdshost);
 	}
 }
 #define TDS_FIND(k,b,c) tds_find(k, b, sizeof(b)/sizeof(b[0]), sizeof(b[0]), c)
@@ -1059,8 +1059,8 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 			struct tds_addrinfo *addrs;
 			tds_dstr_copy(&login->server_host_name, tmp_ip);
 			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
-				if (TDS_SUCCEED(tds_addrinfo2str(login->ip_addrs, line, sizeof(line))))
-					tdsdump_log(TDS_DBG_INFO1, "Resolved IP as '%s'.\n", line);
+				tdsdump_log(TDS_DBG_INFO1, "Resolved IP as '%s'.\n",
+					    tds_addrinfo2str(login->ip_addrs, line, sizeof(line)));
 			}
 		} else {
 			tdsdump_log(TDS_DBG_WARN, "Name resolution failed for IP '%s'.\n", tmp_ip);

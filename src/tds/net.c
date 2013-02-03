@@ -195,17 +195,18 @@ tds_addrinfo_set_port(struct tds_addrinfo *addr, unsigned int port)
 	}
 }
 
-TDSRET
+const char*
 tds_addrinfo2str(struct tds_addrinfo *addr, char *name, int namemax)
 {
 #ifndef NI_NUMERICHOST
 #define NI_NUMERICHOST 0
 #endif
-	if (namemax > 0)
-		*name = '\0';
+	if (!name || namemax <= 0)
+		return "";
 	if (tds_getnameinfo(addr->ai_addr, addr->ai_addrlen, name, namemax, NULL, 0, NI_NUMERICHOST) == 0)
-		return TDS_SUCCESS;
-	return TDS_FAIL;
+		return name;
+	name[0] = 0;
+	return name;
 }
 
 TDSERRNO
@@ -214,7 +215,7 @@ tds_open_socket(TDSSOCKET *tds, struct tds_addrinfo *addr, unsigned int port, in
 	ioctl_nonblocking_t ioctl_nonblocking;
 	SOCKLEN_T optlen;
 	TDSCONNECTION *conn = tds_conn(tds);
-	char ipaddr[256];
+	char ipaddr[128];
 	
 	int retval, len;
 	TDSERRNO tds_error = TDSECONN;
@@ -799,7 +800,7 @@ tds7_get_instance_ports(FILE *output, struct tds_addrinfo *addr)
 	char msg[16*1024];
 	size_t msg_len = 0;
 	int port = 0;
-	char ipaddr[256];
+	char ipaddr[128];
 
 
 	tds_addrinfo_set_port(addr, 1434);
@@ -934,7 +935,7 @@ tds7_get_instance_port(struct tds_addrinfo *addr, const char *instance)
 	char msg[1024];
 	size_t msg_len;
 	int port = 0;
-	char ipaddr[256];
+	char ipaddr[128];
 
 	tds_addrinfo_set_port(addr, 1434);
 	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
