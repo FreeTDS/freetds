@@ -252,7 +252,6 @@
 #endif
 
 /* define to format string used for 64bit integers */
-#define TDS_I64_FORMAT "I64d"
 #define TDS_I64_PREFIX "I64"
 
 /* Version number of package */

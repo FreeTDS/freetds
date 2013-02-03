@@ -71,7 +71,6 @@ return strcmp(buf, "320255973501901") != 0;
 	done
 fi
 if test "x$tds_i64_format" != "x"; then
-	AC_DEFINE_UNQUOTED(TDS_I64_FORMAT, ["${tds_i64_format}d"], [define to format string used for 64bit integers])
 	AC_DEFINE_UNQUOTED(TDS_I64_PREFIX, ["$tds_i64_format"],  [define to prefix format string used for 64bit integers])
 fi
 ])
