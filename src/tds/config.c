@@ -870,22 +870,18 @@ tds_set_interfaces_file_loc(const char *interf)
  * string.
  */
 /* TODO callers seem to set always connection info... change it */
-struct tds_addrinfo
-*tds_lookup_host(const char *servername)	/* (I) name of the server                  */
+struct tds_addrinfo *
+tds_lookup_host(const char *servername)	/* (I) name of the server                  */
 {
 	struct tds_addrinfo hints, *addr = NULL;
 	assert(servername != NULL);
 
 	memset(&hints, '\0', sizeof(hints));
-	#ifdef AF_UNSPEC
 	hints.ai_family = AF_UNSPEC;
-	#endif
+	hints.ai_flags = AI_ADDRCONFIG|AI_NUMERICSERV;
 
-	#ifdef AI_ADDRCONFIG
-	hints.ai_flags = AI_ADDRCONFIG;
-	#endif
-
-	tds_getaddrinfo(servername, "1433", &hints, &addr);
+	if (tds_getaddrinfo(servername, "1433", &hints, &addr))
+		return NULL;
 	return addr;
 }
 
