@@ -21,6 +21,8 @@
 #include <config.h>
 
 #if !defined(HAVE_GETADDRINFO)
+#include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include "tds.h"
@@ -31,59 +33,52 @@
 int
 tds_getaddrinfo(const char *node, const char *service, const struct tds_addrinfo *hints, struct tds_addrinfo **res)
 {
-	int retcode = 0;
 	struct tds_addrinfo *addr;
-	struct sockaddr_in *sin, *s;
-	struct hostent *host = NULL;
-	unsigned int ipaddr;
+	struct sockaddr_in *sin = NULL;
+	struct hostent *host;
+	in_addr_t ipaddr;
 	char buffer[4096];
 	struct hostent result;
-	int h_errnop;
+	int h_errnop, port = 0;
 
 	assert(node != NULL);
 
-	if ((addr = (tds_addrinfo *) malloc(sizeof(struct tds_addrinfo))) != NULL)
-		memset(addr, '\0', sizeof(struct tds_addrinfo));
-	else
-		retcode = -1;
+	if ((addr = (tds_addrinfo *) calloc(1, sizeof(struct tds_addrinfo))) == NULL)
+		goto Cleanup;
 
-	if ((sin = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in))) != NULL)
-		memset(sin, '\0', sizeof(struct sockaddr_in));
-	else
-		retcode = -1;
+	if ((sin = (struct sockaddr_in *) calloc(1, sizeof(struct sockaddr_in))) == NULL)
+		goto Cleanup;
 
-	if (retcode == 0) {
-		addr->ai_addr = (struct sockaddr *) sin;
-		addr->ai_addrlen = sizeof(struct sockaddr_in);
-		addr->ai_family = AF_INET;
-		sin = NULL;
+	addr->ai_addr = (struct sockaddr *) sin;
+	addr->ai_addrlen = sizeof(struct sockaddr_in);
+	addr->ai_family = AF_INET;
 
-		if ((ipaddr = inet_addr(node)) == INADDR_NONE) {
-			if ((host = tds_gethostbyname_r(node, &result, buffer, sizeof(buffer), &h_errnop)) != NULL)
-				ipaddr = *(unsigned int *) host->h_addr;
-			else
-				retcode = -1;
-		}
-	} else
-		retcode = -1;
-
-	if (retcode == 0) {
-		s = (struct sockaddr_in *) addr->ai_addr;
-		s->sin_family = AF_INET;
-		s->sin_addr.s_addr = ipaddr;
-		s->sin_port = htons(atoi(service));
-
-		*res = addr;
-		addr = NULL;
+	if ((ipaddr = inet_addr(node)) == INADDR_NONE) {
+		if ((host = tds_gethostbyname_r(node, &result, buffer, sizeof(buffer), &h_errnop)) == NULL)
+			goto Cleanup;
+		if (host->h_name)
+			addr->ai_canonname = strdup(host->h_name);
+		ipaddr = *(in_addr_t *) host->h_addr;
 	}
 
+	if (service) {
+		port = atoi(service);
+		if (!port)
+			port = tds_getservice(service);
+	}
+
+	sin->sin_family = AF_INET;
+	sin->sin_addr.s_addr = ipaddr;
+	sin->sin_port = htons(port);
+
+	*res = addr;
+	return 0;
+
+Cleanup:
 	if (addr != NULL)
 		tds_freeaddrinfo(addr);
 
-	if (sin != NULL)
-		free(sin);
-
-	return retcode;
+	return -1;
 }
 
 /* Incomplete implementation, ipv4 only, port does not work, flags do not work */
@@ -113,8 +108,8 @@ void
 tds_freeaddrinfo(struct tds_addrinfo *addr)
 {
 	assert(addr != NULL);
-	if (addr->ai_addr != NULL)
-		free(addr->ai_addr);
+	free(addr->ai_canonname);
+	free(addr->ai_addr);
 	free(addr);
 }
 
