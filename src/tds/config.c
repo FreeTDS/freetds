@@ -1192,7 +1192,15 @@ parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login)
 
 	/* seek the ':' in login server_name */
 	server = tds_dstr_cstr(&login->server_name);
-	pSep = strrchr(server, ':');
+
+	/* IPv6 address can be quoted */
+	if (server[0] == '[') {
+		pSep = strstr(server, "]:");
+		if (pSep)
+			++pSep;
+	} else {
+		pSep = strrchr(server, ':');
+	}
 
 	if (pSep && pSep != server) {	/* yes, i found it! */
 		/* modify connection-> && login->server_name & ->port */
