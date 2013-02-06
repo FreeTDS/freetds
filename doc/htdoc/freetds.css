@@ -10,3 +10,5 @@
 	}
 
 	hr { clear: left; }
+
+	kbd.input { font-weight: bold; }

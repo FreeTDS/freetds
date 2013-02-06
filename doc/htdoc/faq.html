@@ -294,10 +294,6 @@
     <!-- goes to http://www.microsoft.com/sql/techinfo/productdoc/2000/default.asp -->
     <!-- valid as at 12th november 2001 -->
 
-    <li><a href=
-    "http://www.SchemaMania.org/jkl/booksonline/SQLBOL70/">Microsoft
-    Documentation</a> converted to HTML.</li>
-
     <li><a href="http://www.sybase.com/support/manuals">Sybase's
     Product Manuals</a>.</li>
     <!-- valid as at 12th november 2001 -->
@@ -314,7 +310,7 @@
   <p>Microsoft published its specification, too.  
   It can currently be found on <a href="http://msdn2.microsoft.com/en-us/library/cc448436.aspx"
   	>MSDN</a> or search the web for 
-	&ldquo;ms-tds tabular data stream site:microsoft.com&rdquo;.</p>
+	&ldquo;MS-TDS tabular data stream site:microsoft.com&rdquo;.</p>
   
   <hr/>
   <!-- Implementation -->
@@ -393,7 +389,7 @@
 	
   <p>As of version 0.82, the TDS utility library is not built 
   as a shared object.  The static library <kbd>libtds.a</kbd>, 
-  is not installed by <b><kbd>make install</kbd></b> and is not needed by 
+  is not installed by <kbd class="input">make install</kbd> and is not needed by 
   an applications that uses a client 
   library (<kbd>CT-Library</kbd>, <kbd>DB-Library</kbd>, or <kbd>ODBC</kbd>).  
   Because <kbd>libtds</kbd> is statically linked to the client libraries, 
@@ -532,7 +528,7 @@
   <p><i>I'm not getting my output parameters returned, but I seem
          to be doing everything right!</i> </p> 
   <p>That's not a question!</p>
-  <p>Microsoft SQL Server 7 with SP3, and later versions, quietly changed (which is to say, broke) how they respond to queries that execute stored procedures with output parameters.  Earlier servers let you send a query like <font size="-1"><code>EXECUTE A @P OUTPUT</code></font> and fetch the output parameter as a special result row (technique varying by library).  Newer servers simply don't send back that data.  To elicit output parameters from them, you have to use the RPC protocols such as the DB-Library <a href="reference/a00336.html#a129">dbrpcparam</a>.  
+  <p>Microsoft SQL Server 7 with SP3, and later versions, quietly changed (which is to say, broke) how they respond to queries that execute stored procedures with output parameters.  Earlier servers let you send a query like <font size="-1"><code>EXECUTE A @P OUTPUT</code></font> and fetch the output parameter as a special result row (technique varying by library).  Newer servers simply don't send back that data.  To elicit output parameters from them, you have to use the RPC functions such as the DB-Library <a href="reference/a00336.html#a129">dbrpcparam</a>.  
   </p>
          
   <h3 id="unknownmarker">What does this <tt>unknown marker</tt> message mean?</h3>
@@ -565,26 +561,26 @@
   <p>Steps:</p>
 
   <ol>
-    <li>Try <tt><b>telnet <i>hostmachine port</i></b></tt> and
+    <li>Try <kbd class="input">telnet <i>hostmachine port</i></kbd> and
     see if it's listening. You should get some form of response
     from the server (actual text varies by vendor &amp;
     version).<br /></li>
 
     <li>
-      <p>Try <kbd><b>tsql -H <i>hostmachine</i> -p <i>port</i> -U
-      <i>username</i> -P <i>password</i></b></kbd></p>
+      <p>Try <kbd class="input">tsql -H <i>hostmachine</i> -p <i>port</i> -U
+      <i>username</i> -P <i>password</i></kbd></p>
 
       <p>That will connect to the server, bypassing the
-      freetds.conf file. If it doesn't work, the problem lies
+      <kbd>freetds.conf</kbd> file. If it doesn't work, the problem lies
       upstream.</p></li>
 
     <li>
-      <p>Try <kbd><b>tsql -S <i>servername</i> -p <i>port</i> -U
-      <i>username</i> -P <i>password</i></b></kbd></p>
+      <p>Try <kbd class="input">tsql -S <i>servername</i> -p <i>port</i> -U
+      <i>username</i> -P <i>password</i></kbd></p>
 
-      <p>That will connect to the server using freetds.conf. This
-      allows you to isolate freetds.conf mistakes. <kbd>man
-      tsql</kbd> for more.</p></li>
+      <p>That will connect to the server using <kbd>freetds.conf</kbd>. This
+      allows you to isolate <kbd>freetds.conf</kbd> mistakes. 
+	<kbd class="input">man tsql</kbd> for more.</p></li>
 
     <li>Check your ./configure and environment variables. The
     <tt>--with-tdsver</tt> determines what flavor of the TDS
@@ -630,8 +626,8 @@
     </li>
 
     <li>
-      <p>Edit the <b><tt>PWD</tt></b> file and try <tt>make
-      check</tt>. It will call unittests for libtds, ctlib, dblib
+      <p>Edit the <b><tt>PWD</tt></b> file and try <kbd class="input">make
+      check</kbd>. It will call unittests for libtds, ctlib, dblib
       and odbc in that order</p>
     </li>
 
