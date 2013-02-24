@@ -204,7 +204,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 
 		tds_set_param_type(tds, curcol, dest_type);
 
-                curcol->char_conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->server_charset.name);
+                curcol->char_conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->to.charset.name);
 		memcpy(curcol->column_collation, tds->collation, sizeof(tds->collation));
 	} else {
 #ifdef ENABLE_ODBC_WIDE
@@ -214,7 +214,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 		tds_set_param_type(tds, curcol, dest_type);
 		/* use binary format for binary to char */
 		if (is_char_type(dest_type))
-			curcol->char_conv = sql_src_type == SQL_C_BINARY ? NULL : tds_iconv_get(tds, tds_dstr_cstr(&dbc->original_charset), conv->server_charset.name);
+			curcol->char_conv = sql_src_type == SQL_C_BINARY ? NULL : tds_iconv_get(tds, tds_dstr_cstr(&dbc->original_charset), conv->to.charset.name);
 #else
 		tds_set_param_type(dbc->tds_socket, curcol, dest_type);
 		/* use binary format for binary to char */

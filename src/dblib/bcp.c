@@ -1230,7 +1230,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			int file_len;
 			size_t col_bytes_left;
 			offset_type file_bytes_left, len;
-			iconv_t cd;
+			TDSICONV * conv;
 
 			len = _bcp_measure_terminated_field(hostfile, hostcol->terminator, hostcol->term_len);
 			if (len > 0x7fffffffl || len < 0) {
@@ -1250,14 +1250,13 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 			file_len = collen;
 			if (bcpcol->char_conv) {
-				TDSICONV *char_conv = bcpcol->char_conv;
-				collen *= char_conv->server_charset.max_bytes_per_char;
-				collen += char_conv->client_charset.min_bytes_per_char - 1;
-				collen /= char_conv->client_charset.min_bytes_per_char;
-				cd = char_conv->to_wire;
+				conv = bcpcol->char_conv;
+				collen *= conv->to.charset.max_bytes_per_char;
+				collen += conv->from.charset.min_bytes_per_char - 1;
+				collen /= conv->from.charset.min_bytes_per_char;
 				tdsdump_log(TDS_DBG_FUNC, "Adjusted collen is %d.\n", collen);
 			} else {
-				cd = (iconv_t) - 1;
+				conv = NULL;
 			}
 
 			coldata = calloc(1, 1 + collen);
@@ -1273,7 +1272,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 			col_bytes_left = collen;
 			/* TODO make tds_iconv_fread handle terminator directly to avoid fseek in _bcp_measure_terminated_field */
-			file_bytes_left = tds_iconv_fread(cd, hostfile, file_len, hostcol->term_len, coldata, &col_bytes_left);
+			file_bytes_left = tds_iconv_fread(NULL, conv, hostfile, file_len, hostcol->term_len, coldata, &col_bytes_left);
 			collen -= (int)col_bytes_left;
 
 			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */

@@ -64,12 +64,12 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 		conv = tds->char_convs[client2server_chardata];
 	if (desttype == SQL_C_WCHAR) {
 		/* SQL_C_WCHAR, convert to wide encode */
-		conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->server_charset.name);
+		conv = tds_iconv_get(tds, ODBC_WIDE_NAME, conv->to.charset.name);
 		if (!conv)
 			conv = tds_iconv_get(tds, ODBC_WIDE_NAME, "ISO-8859-1");
 #ifdef ENABLE_ODBC_WIDE
 	} else {
-		conv = tds_iconv_get(tds, tds_dstr_cstr(&stmt->dbc->original_charset), conv->server_charset.name);
+		conv = tds_iconv_get(tds, tds_dstr_cstr(&stmt->dbc->original_charset), conv->to.charset.name);
 		if (!conv)
 			conv = tds_iconv_get(tds, tds_dstr_cstr(&stmt->dbc->original_charset), "ISO-8859-1");
 		if (!conv)
@@ -95,9 +95,9 @@ odbc_convert_char(TDS_STMT * stmt, TDSCOLUMN * curcol, TDS_CHAR * src, TDS_UINT 
 	}
 
 	/* returned size have to take into account buffer left unconverted */
-	if (il == 0 || (conv->client_charset.min_bytes_per_char == conv->client_charset.max_bytes_per_char
-	    && conv->server_charset.min_bytes_per_char == conv->server_charset.max_bytes_per_char)) {
-		ol += il * conv->client_charset.min_bytes_per_char / conv->server_charset.min_bytes_per_char;
+	if (il == 0 || (conv->from.charset.min_bytes_per_char == conv->from.charset.max_bytes_per_char
+	    && conv->to.charset.min_bytes_per_char == conv->to.charset.max_bytes_per_char)) {
+		ol += il * conv->from.charset.min_bytes_per_char / conv->to.charset.min_bytes_per_char;
 	} else {
 		/* TODO convert and discard ?? or return proper SQL_NO_TOTAL values ?? */
 		return SQL_NO_TOTAL;

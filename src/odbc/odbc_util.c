@@ -268,7 +268,7 @@ odbc_mb2utf(TDS_DBC *dbc, const char *s, int len)
 	il = len;
 
 	/* allocate needed buffer (+1 is to exclude 0 case) */
-	ol = il * char_conv->server_charset.max_bytes_per_char / char_conv->client_charset.min_bytes_per_char + 1;
+	ol = il * char_conv->to.charset.max_bytes_per_char / char_conv->from.charset.min_bytes_per_char + 1;
 	assert(ol > 0);
 	buf = (char *) malloc(ol);
 	if (!buf)

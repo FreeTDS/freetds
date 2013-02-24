@@ -405,7 +405,7 @@ tds_connect(TDSSOCKET * tds, TDSCONNECTION * connection, int *p_oserr)
 #endif
 
 	/* set up iconv if not already initialized*/
-	if (tds->char_convs[client2ucs2]->to_wire == (iconv_t) -1) {
+	if (tds->char_convs[client2ucs2]->to.cd == (iconv_t) -1) {
 		if (!tds_dstr_isempty(&connection->client_charset)) {
 			tds_iconv_open(tds, tds_dstr_cstr(&connection->client_charset));
 		}
