@@ -72,6 +72,10 @@ static const char *ucs2name;
 enum
 { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
 
+#if ENABLE_EXTRA_CHECKS
+int tds_iconv_force_double = 0;
+#endif
+
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
  */
@@ -467,11 +471,15 @@ tds_iconv_info_init(TDSICONV * char_conv, int client_canonical, int server_canon
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
 	}
 
-//	char_conv->from.cd = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
-	char_conv->from.cd = (iconv_t) -1;
+	char_conv->from.cd = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
 	if (char_conv->from.cd == (iconv_t) -1) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", server->name, client->name);
 	}
+
+#if ENABLE_EXTRA_CHECKS
+	if (tds_iconv_force_double)
+		_iconv_close(&char_conv->from.cd);
+#endif
 
 	/* try indirect conversions */
 	if (char_conv->to.cd == (iconv_t) -1 || char_conv->from.cd == (iconv_t) -1) {

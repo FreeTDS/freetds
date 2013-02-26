@@ -92,7 +92,8 @@ main(int argc, char **argv)
 		buf[i] = 0x90;
 		assert(res == 0);
 		if (sizeof(out) - out_len != i+1) {
-			fprintf(stderr, "out %u bytes expected %u\n", sizeof(out) - out_len, i+1);
+			fprintf(stderr, "out %u bytes expected %d\n",
+				(unsigned int) (sizeof(out) - out_len), i+1);
 			return 1;
 		}
 		assert(memcmp(out, buf, i+1) == 0);
