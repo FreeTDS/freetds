@@ -20,8 +20,13 @@
 #ifndef _tdsver_h_
 #define _tdsver_h_
 
-/* $Id: tdsver.h.in,v 1.6 2006-04-12 13:54:10 freddy77 Exp $ */
+/* $Id$ */
 
 #define TDS_VERSION_NO "@PACKAGE@ v@VERSION@"
+
+#define TDS_VERSION_MAJOR @MAJOR@
+#define TDS_VERSION_MINOR @MINOR@
+#define TDS_VERSION_SUBVERSION @SUBVERSION@
+#define TDS_VERSION_BUILD_NUMBER @BUILD_NUMBER@
 
 #endif

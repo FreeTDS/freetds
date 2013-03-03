@@ -5415,8 +5415,9 @@ _SQLGetInfo(TDS_DBC * dbc, SQLUSMALLINT fInfoType, SQLPOINTER rgbInfoValue, SQLS
 		p = "03.50";
 		break;
 	case SQL_DRIVER_VER:
-		/* TODO check ##.##.#### format */
-		p = VERSION;
+		sprintf(buf, "%02d.%02d.%04d", TDS_VERSION_MAJOR,
+			TDS_VERSION_MINOR, TDS_VERSION_SUBVERSION);
+		p = buf;
 		break;
 #if (ODBCVER >= 0x0300)
 	case SQL_DROP_ASSERTION:
