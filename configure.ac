@@ -24,11 +24,12 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl configuration directory will be /usr/local/etc
 AC_PREFIX_DEFAULT(/usr/local)
 
-MAJOR=$(echo $VERSION | sed 's,\..*,,g')
-MINOR=[$(echo $VERSION | sed 's,^[0-9]*\.\([0-9]*\).*,\1,g')]
-SUBVERSION=[$(echo $VERSION.0 | sed 's,^\([0-9]*\.[0-9]*\)\(rc\|RC\),\1.dev.,g; s,^[0-9]*\.[^.]*\.\([^.]*\).*,\1,g')]
-BUILD_NUMBER=$(date +"%y%j" | sed 's,^0*,,g')
-if test "X$SUBVERSION" = "Xdev"; then
+ver=$(echo $VERSION.0 | sed 's/^dev\.//; s,^\([0-9]*\.[0-9]*\)\(rc\|RC\),\1.dev.,g')
+MAJOR=[$(echo $ver | sed 's,^\([0-9]*\)\.\([0-9]*\).*,\1,g')]
+MINOR=[$(echo $ver | sed 's,^\([0-9]*\)\.\([0-9]*\).*,\2,g')]
+SUBVERSION=[$(echo $ver | sed 's,^[0-9]*\.[^.]*\.\([^.]*\).*,\1,g')]
+BUILD_NUMBER=$(( ( $(date +%Y) - 2000 ) * 366 + $(date +%j) ))
+if test "$SUBVERSION" = "dev"; then
 	MINOR=$(expr $MINOR - 1)
 	SUBVERSION=9999
 fi
