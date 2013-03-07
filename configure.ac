@@ -285,25 +285,13 @@ AC_STRUCT_TIMEZONE
 AC_CHECK_MEMBERS([struct tm.__tm_zone],,,[#include <sys/types.h>
 #include <$ac_cv_struct_tm>
 ])
-AC_CHECK_HEADERS([	errno.h \
-			getopt.h \
-			libgen.h \
-			limits.h \
-			locale.h \
-			poll.h \
-			readpassphrase.h \
-			signal.h \
-			stddef.h \
-			sys/param.h \
-			sys/select.h \
-			sys/stat.h \
-			sys/time.h \
-			sys/types.h \
-			sys/resource.h \
-			sys/wait.h \
-			unistd.h \
-			wchar.h \
-			inttypes.h])
+AC_CHECK_HEADERS([errno.h getopt.h libgen.h \
+	limits.h locale.h poll.h \
+	readpassphrase.h signal.h stddef.h \
+	sys/param.h sys/select.h sys/stat.h \
+	sys/time.h sys/types.h sys/resource.h \
+	sys/wait.h unistd.h netdb.h \
+	wchar.h inttypes.h winsock2.h])
 AC_CHECK_HEADERS([windows.h sql.h odbcss.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif
@@ -492,6 +480,22 @@ OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
 getaddrinfo getnameinfo inet_ntop gethostname poll socketpair])
+AC_TRY_LINK([#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif],
+[return getaddrinfo(NULL, NULL, NULL, NULL);],
+AC_DEFINE(HAVE_GETADDRINFO, 1, [Define if you have getaddrinfo function]))
+
 LIBS="$OLD_LIBS"
 AC_REPLACE_FUNCS([asprintf vasprintf atoll strtok_r readpassphrase \
 strlcpy strlcat basename getopt strsep])

@@ -19,6 +19,7 @@ AC_DEFUN([TYPE_SOCKLEN_T],
 #endif
 #ifdef HAVE_WINSOCK2_H
 # include <winsock2.h>
+# include <ws2tcpip.h>
 int PASCAL getpeername (SOCKET, $arg2 *, $t *);
 #elif defined(HAVE_SYS_SOCKET_H)
 # include <sys/socket.h>
@@ -43,6 +44,12 @@ int getpeername (int, $arg2 *, $t *);
     AC_DEFINE_UNQUOTED(socklen_t, $xml_cv_socklen_t_equiv,
                       [type to use in place of socklen_t if not defined])],
     [#include <sys/types.h>
-#include <sys/socket.h>])
+#ifdef HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#endif
+#ifdef HAVE_WINSOCK2_H
+# include <winsock2.h>
+# include <ws2tcpip.h>
+#endif])
 ])
 

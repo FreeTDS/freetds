@@ -878,7 +878,14 @@ tds_lookup_host(const char *servername)	/* (I) name of the server               
 
 	memset(&hints, '\0', sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
-	hints.ai_flags = AI_ADDRCONFIG|AI_NUMERICSERV;
+
+#ifdef AI_ADDRCONFIG
+	hints.ai_flags |= AI_ADDRCONFIG;
+#endif
+
+#ifdef AI_NUMERICSERV
+	hints.ai_flags |= AI_NUMERICSERV;
+#endif
 
 	if (tds_getaddrinfo(servername, "1433", &hints, &addr))
 		return NULL;
