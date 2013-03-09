@@ -194,12 +194,6 @@
 /* Define to 1 if you have the <wchar.h> header file. */
 #define HAVE_WCHAR_H 1
 
-/* Define to 1 if you have the <windows.h> header file. */
-#define HAVE_WINDOWS_H 1
-
-/* Define to 1 if you have the <winsock2.h> header file. */
-#define HAVE_WINSOCK2_H 1
-
 /* Define to 1 if you have the `_vsnprintf' function. */
 #define HAVE__VSNPRINTF 1
 

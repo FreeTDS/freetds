@@ -33,6 +33,8 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 #endif
 #endif
 
+#define FREETDS_SRCDIR FREETDS_TOPDIR "/src/odbc/unittests"
+
 extern HENV odbc_env;
 extern HDBC odbc_conn;
 extern HSTMT odbc_stmt;

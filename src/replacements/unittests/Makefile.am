@@ -6,5 +6,5 @@ condition_SOURCES	=	condition.c
 
 AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../
 LIBS		=	../../replacements/libreplacements.la @NETWORK_LIBS@
-#EXTRA_DIST	=	challenge.c
+EXTRA_DIST	=	CMakeLists.txt
 

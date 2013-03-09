@@ -285,7 +285,7 @@ AC_STRUCT_TIMEZONE
 AC_CHECK_MEMBERS([struct tm.__tm_zone],,,[#include <sys/types.h>
 #include <$ac_cv_struct_tm>
 ])
-AC_CHECK_HEADERS([errno.h getopt.h libgen.h \
+AC_CHECK_HEADERS([errno.h libgen.h \
 	limits.h locale.h poll.h \
 	readpassphrase.h signal.h stddef.h \
 	sys/param.h sys/select.h sys/stat.h \
@@ -479,7 +479,7 @@ _fseeki64 _ftelli64 setrlimit pthread_cond_timedwait])
 OLD_LIBS="$LIBS"
 LIBS="$LIBS $NETWORK_LIBS"
 AC_CHECK_FUNCS([inet_ntoa_r getipnodebyaddr getipnodebyname \
-getaddrinfo getnameinfo inet_ntop gethostname poll socketpair])
+getaddrinfo inet_ntop gethostname poll socketpair])
 AC_TRY_LINK([#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif

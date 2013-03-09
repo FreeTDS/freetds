@@ -30,13 +30,15 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 #include <sqlfront.h>
 #include <sqldb.h>
 
-#if !defined(FREETDS_SRCDIR)
-#define FREETDS_SRCDIR "../../../.."
-#endif
-
 #if !defined(EXIT_FAILURE)
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
+#endif
+
+#define FREETDS_SRCDIR FREETDS_TOPDIR "/src/dblib/unittests"
+
+#if defined(HAVE__SNPRINTF) && !defined(HAVE_SNPRINTF)
+#define snprintf _snprintf
 #endif
 
 #ifdef DBNTWIN32
