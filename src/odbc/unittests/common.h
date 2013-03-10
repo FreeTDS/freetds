@@ -194,7 +194,7 @@ extern ODBC_BUF *odbc_buf;
 void *odbc_buf_get(ODBC_BUF** buf, size_t s);
 void odbc_buf_free(ODBC_BUF** buf);
 #define ODBC_GET(s)  odbc_buf_get(&odbc_buf, s)
-#define ODBC_FREE(s) odbc_buf_free(&odbc_buf)
+#define ODBC_FREE() odbc_buf_free(&odbc_buf)
 
 SQLWCHAR *odbc_get_sqlwchar(ODBC_BUF** buf, const char *s);
 char *odbc_get_sqlchar(ODBC_BUF** buf, SQLWCHAR *s);
