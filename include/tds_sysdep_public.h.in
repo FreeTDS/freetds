@@ -32,6 +32,8 @@ extern "C"
 */
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#include <wspiapi.h>
 #include <windows.h>
 #define tds_sysdep_int16_type short	/* 16-bit int */
 #define tds_sysdep_int32_type int	/* 32-bit int */

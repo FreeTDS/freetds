@@ -41,9 +41,9 @@ extern "C"
 #define tds_sysdep_real32_type float	/* 32-bit real */
 #define tds_sysdep_real64_type double	/* 64-bit real */
 #if !defined(WIN64) && !defined(_WIN64)
-#define tds_sysdep_intptr_type int	/* 32-bit int */
+#define tds_sysdep_intptr_type int      /* 32-bit int */
 #else
-#define tds_sysdep_intptr_type __int64	/* 64-bit int */
+#define tds_sysdep_intptr_type __int64  /* 64-bit int */
 #endif
 #endif				/* defined(WIN32) || defined(_WIN32) || defined(__WIN32__) */
 

@@ -6598,7 +6598,7 @@ const char *
 dbversion()
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbversion(void)\n");
-	return rcsid_var;
+	return TDS_VERSION_NO;
 }
 
 #if defined(DBLIB_UNIMPLEMENTED)

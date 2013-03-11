@@ -85,22 +85,27 @@ typedef struct tds_errno_message_flags {
 	unsigned int einval:1;
 } TDS_ERRNO_MESSAGE_FLAGS;
 
+typedef struct tdsiconvdir
+{
+	TDS_ENCODING charset;
+
+	iconv_t cd;
+	iconv_t cd2;
+
+	unsigned char num_got;
+	unsigned char num_left;
+	char left[6];
+} TDSICONVDIR;
+
 struct tdsiconvinfo
 {
-	TDS_ENCODING client_charset;
-	TDS_ENCODING server_charset;
+	struct tdsiconvdir to, from;
 
 #define TDS_ENCODING_INDIRECT 1
 #define TDS_ENCODING_SWAPBYTE 2
 #define TDS_ENCODING_MEMCPY   4
 	unsigned int flags;
 
-	iconv_t to_wire;	/* conversion from client charset to server's format */
-	iconv_t from_wire;	/* conversion from server's format to client charset */
-
-	iconv_t to_wire2;	/* conversion from client charset to server's format - indirect */
-	iconv_t from_wire2;	/* conversion from server's format to client charset - indirect */
-	
 	/* 
 	 * Suppress error messages that would otherwise be emitted by tds_iconv().
 	 * Functions that process large buffers ask tds_iconv to convert it in "chunks".
@@ -110,6 +115,7 @@ struct tdsiconvinfo
 	 * can prepopulate it.  
 	 */ 
 	TDS_ERRNO_MESSAGE_FLAGS suppress;
+
 };
 
 /* We use ICONV_CONST for tds_iconv(), even if we don't have iconv() */
@@ -117,8 +123,8 @@ struct tdsiconvinfo
 # define ICONV_CONST const
 #endif
 
-size_t tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft);
-size_t tds_iconv(TDSSOCKET * tds, const TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
+size_t tds_iconv_fread(TDSSOCKET * tds, TDSICONV * conv, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft);
+size_t tds_iconv(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 		 const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
 const char *tds_canonical_charset_name(const char *charset_name);
 TDSICONV *tds_iconv_get(TDSCONNECTION * conn, const char *client_charset, const char *server_charset);

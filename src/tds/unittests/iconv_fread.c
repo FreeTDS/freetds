@@ -35,15 +35,25 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 int
 main(int argc, char **argv)
 {
-	iconv_t cd = tds_sys_iconv_open("ISO-8859-1", "UTF-8");
 	static const char out_file[] = "iconv_fread.out";
 	char buf[256];
 	int i;
 	FILE *f;
+	TDSCONTEXT *ctx = tds_alloc_context(NULL);
+	TDSSOCKET *tds = tds_alloc_socket(ctx, 512);
+	TDSICONV * conv;
 
-	if (cd == (iconv_t) - 1) {
+	if (!ctx || !tds) {
+		fprintf(stderr, "Error creating socket!\n");
+		return 1;
+	}
+
+	tds_iconv_open(tds_conn(tds), "ISO-8859-1");
+
+	conv = tds_iconv_get(tds_conn(tds), "UTF-8", "ISO-8859-1");
+	if (conv == NULL) {
 		fprintf(stderr, "Error creating conversion, giving up!\n");
-		return 0;
+		return 1;
 	}
 
 	f = fopen(out_file, "w+b");
@@ -74,19 +84,24 @@ main(int argc, char **argv)
 
 		/* convert it */
 		memset(out, 'x', sizeof(out));
-		res = tds_iconv_fread(cd, f, i+2, 0, out, &out_len);
+		res = tds_iconv_fread(NULL, conv, f, i+2, 0, out, &out_len);
 		printf("res %u out_len %u\n", (unsigned int) res, (unsigned int) out_len);
 
 		/* test */
 		memset(buf, 'a', i);
 		buf[i] = 0x90;
 		assert(res == 0);
-		assert(sizeof(out) - out_len == i+1);
+		if (sizeof(out) - out_len != i+1) {
+			fprintf(stderr, "out %u bytes expected %d\n",
+				(unsigned int) (sizeof(out) - out_len), i+1);
+			return 1;
+		}
 		assert(memcmp(out, buf, i+1) == 0);
 	}
 	fclose(f);
 	unlink(out_file);
 
-	tds_sys_iconv_close(cd);
+	tds_free_socket(tds);
+	tds_free_context(ctx);
 	return 0;
 }

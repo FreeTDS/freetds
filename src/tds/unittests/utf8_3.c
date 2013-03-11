@@ -84,7 +84,7 @@ test(const char *buf)
 				l = (sizeof(query) -1);
 			strncpy(query, curcol->column_name, l);
 			query[l] = 0;
-			fprintf(stderr, "Wrong result Got: '%s' len %d\n Expected: '%s' len %u\n", query,
+			fprintf(stderr, "Wrong result Got: '%s' len %d\n        Expected: '%s' len %u\n", query,
 				curcol->column_namelen, tmp, (unsigned int) strlen(tmp));
 			exit(1);
 		}

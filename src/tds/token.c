@@ -2980,7 +2980,7 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		static const char sybase_utf[] = "UTF-16LE";
 #endif
 
-		curcol->char_conv = tds_iconv_get(tds->conn, tds->conn->char_convs[client2ucs2]->client_charset.name, sybase_utf);
+		curcol->char_conv = tds_iconv_get(tds->conn, tds->conn->char_convs[client2ucs2]->from.charset.name, sybase_utf);
 
 		/* fallback to UCS-2LE */
 		/* FIXME should be useless. Does not works always */
@@ -3003,9 +3003,9 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
 				   "\tServer column_size: %d\n"
 				   "\tClient charset: %s\n"
 				   "\tClient column_size: %d\n", 
-				   curcol->char_conv->server_charset.name, 
+				   curcol->char_conv->to.charset.name, 
 				   curcol->on_server.column_size, 
-				   curcol->char_conv->client_charset.name, 
+				   curcol->char_conv->from.charset.name, 
 				   curcol->column_size);
 }
 
@@ -3026,10 +3026,10 @@ determine_adjusted_size(const TDSICONV * char_conv, int size)
 	if (size >= 0x10000000)
 		return 0x7fffffff;
 
-	size *= char_conv->client_charset.max_bytes_per_char;
-	if (size % char_conv->server_charset.min_bytes_per_char)
-		size += char_conv->server_charset.min_bytes_per_char;
-	size /= char_conv->server_charset.min_bytes_per_char;
+	size *= char_conv->from.charset.max_bytes_per_char;
+	if (size % char_conv->to.charset.min_bytes_per_char)
+		size += char_conv->to.charset.min_bytes_per_char;
+	size /= char_conv->to.charset.min_bytes_per_char;
 
 	return size;
 }

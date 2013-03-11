@@ -400,7 +400,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 #endif
 
 	/* set up iconv if not already initialized*/
-	if (tds->conn->char_convs[client2ucs2]->to_wire == (iconv_t) -1) {
+	if (tds->conn->char_convs[client2ucs2]->to.cd == (iconv_t) -1) {
 		if (!tds_dstr_isempty(&login->client_charset)) {
 			tds_iconv_open(tds->conn, tds_dstr_cstr(&login->client_charset));
 		}

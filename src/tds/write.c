@@ -99,7 +99,7 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 	char outbuf[256], *poutbuf;
 	size_t inbytesleft, outbytesleft, bytes_out = 0;
 
-	client = &tds->conn->char_convs[client2ucs2]->client_charset;
+	client = &tds->conn->char_convs[client2ucs2]->from.charset;
 
 	if (len < 0) {
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */

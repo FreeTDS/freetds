@@ -47,7 +47,7 @@
 
 TDS_RCSID(var, "$Id: read.c,v 1.117 2011-06-18 17:52:24 freddy77 Exp $");
 
-static int read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv,
+static int read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
 			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
 
 /**
@@ -316,7 +316,7 @@ tds_get_n(TDSSOCKET * tds, void *dest, int need)
  * moved to the beginning, ptemp is adjusted to point just behind them, and the next chunk is read.
  */
 static int
-read_and_convert(TDSSOCKET * tds, const TDSICONV * char_conv, size_t * wire_size, char **outbuf,
+read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char **outbuf,
 		 size_t * outbytesleft)
 {
 	TEMP_INIT(256);

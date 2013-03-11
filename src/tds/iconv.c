@@ -72,6 +72,10 @@ static const char *ucs2name;
 enum
 { POS_ISO1, POS_UTF8, POS_UCS2LE, POS_UCS2BE };
 
+#if ENABLE_EXTRA_CHECKS
+int tds_iconv_force_double = 0;
+#endif
+
 /**
  * Initialize charset searching for UTF-8, UCS-2 and ISO8859-1
  */
@@ -246,17 +250,17 @@ tds_iconv_reset(TDSICONV *conv)
 	 * (min|max)_bytes_per_char can be used to divide
 	 * so init to safe values
 	 */
-	conv->server_charset.min_bytes_per_char = 1;
-	conv->server_charset.max_bytes_per_char = 1;
-	conv->client_charset.min_bytes_per_char = 1;
-	conv->client_charset.max_bytes_per_char = 1;
+	conv->to.charset.min_bytes_per_char = 1;
+	conv->to.charset.max_bytes_per_char = 1;
+	conv->from.charset.min_bytes_per_char = 1;
+	conv->from.charset.max_bytes_per_char = 1;
 
-	conv->server_charset.name = conv->client_charset.name = "";
-	conv->server_charset.canonic = conv->client_charset.canonic = 0;
-	conv->to_wire = (iconv_t) -1;
-	conv->to_wire2 = (iconv_t) -1;
-	conv->from_wire = (iconv_t) -1;
-	conv->from_wire2 = (iconv_t) -1;
+	conv->to.charset.name = conv->from.charset.name = "";
+	conv->to.charset.canonic = conv->from.charset.canonic = 0;
+	conv->to.cd = (iconv_t) -1;
+	conv->to.cd2 = (iconv_t) -1;
+	conv->from.cd = (iconv_t) -1;
+	conv->from.cd2 = (iconv_t) -1;
 }
 
 /**
@@ -322,8 +326,8 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 	int canonic_env_charset = conn->env.charset ? tds_canonical_charset(conn->env.charset) : -1;
 	int fOK, ret;
 
-	TDS_ENCODING *client = &conn->char_convs[client2ucs2]->client_charset;
-	TDS_ENCODING *server = &conn->char_convs[client2ucs2]->server_charset;
+	TDS_ENCODING *client = &conn->char_convs[client2ucs2]->from.charset;
+	TDS_ENCODING *server = &conn->char_convs[client2ucs2]->to.charset;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_iconv_open(%p, %s)\n", conn, charset);
 
@@ -373,8 +377,8 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 		if (!fOK)
 			return;
 	} else {
-		conn->char_convs[client2server_chardata]->client_charset = canonic_charsets[canonic_charset];
-		conn->char_convs[client2server_chardata]->server_charset = canonic_charsets[canonic_charset];
+		conn->char_convs[client2server_chardata]->from.charset = canonic_charsets[canonic_charset];
+		conn->char_convs[client2server_chardata]->to.charset = canonic_charsets[canonic_charset];
 	}
 
 	/* 
@@ -404,13 +408,13 @@ tds_iconv_open(TDSCONNECTION * conn, const char *charset)
 static int
 tds_iconv_info_init(TDSICONV * char_conv, int client_canonical, int server_canonical)
 {
-	TDS_ENCODING *client = &char_conv->client_charset;
-	TDS_ENCODING *server = &char_conv->server_charset;
+	TDS_ENCODING *client = &char_conv->from.charset;
+	TDS_ENCODING *server = &char_conv->to.charset;
 
-	assert(char_conv->to_wire == (iconv_t) -1);
-	assert(char_conv->to_wire2 == (iconv_t) -1);
-	assert(char_conv->from_wire == (iconv_t) -1);
-	assert(char_conv->from_wire2 == (iconv_t) -1);
+	assert(char_conv->to.cd == (iconv_t) -1);
+	assert(char_conv->to.cd2 == (iconv_t) -1);
+	assert(char_conv->from.cd == (iconv_t) -1);
+	assert(char_conv->from.cd2 == (iconv_t) -1);
 
 	if (client_canonical < 0) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: client charset name \"%d\" invalid\n", client_canonical);
@@ -427,8 +431,8 @@ tds_iconv_info_init(TDSICONV * char_conv, int client_canonical, int server_canon
 
 	/* special case, same charset, no conversion */
 	if (client_canonical == server_canonical) {
-		char_conv->to_wire = (iconv_t) -1;
-		char_conv->from_wire = (iconv_t) -1;
+		char_conv->to.cd = (iconv_t) -1;
+		char_conv->from.cd = (iconv_t) -1;
 		char_conv->flags = TDS_ENCODING_MEMCPY;
 		return 1;
 	}
@@ -462,28 +466,33 @@ tds_iconv_info_init(TDSICONV * char_conv, int client_canonical, int server_canon
 		}
 	}
 
-	char_conv->to_wire = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[client_canonical]);
-	if (char_conv->to_wire == (iconv_t) -1) {
+	char_conv->to.cd = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[client_canonical]);
+	if (char_conv->to.cd == (iconv_t) -1) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", client->name, server->name);
 	}
 
-	char_conv->from_wire = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
-	if (char_conv->from_wire == (iconv_t) -1) {
+	char_conv->from.cd = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[server_canonical]);
+	if (char_conv->from.cd == (iconv_t) -1) {
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\"\n", server->name, client->name);
 	}
 
+#if ENABLE_EXTRA_CHECKS
+	if (tds_iconv_force_double)
+		_iconv_close(&char_conv->from.cd);
+#endif
+
 	/* try indirect conversions */
-	if (char_conv->to_wire == (iconv_t) -1 || char_conv->from_wire == (iconv_t) -1) {
+	if (char_conv->to.cd == (iconv_t) -1 || char_conv->from.cd == (iconv_t) -1) {
 		tds_iconv_info_close(char_conv);
 
 		/* TODO reuse some conversion, client charset is usually constant in all connection (or ISO8859-1) */
-		char_conv->to_wire = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_names[client_canonical]);
-		char_conv->to_wire2 = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[POS_UTF8]);
-		char_conv->from_wire = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_names[server_canonical]);
-		char_conv->from_wire2 = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[POS_UTF8]);
+		char_conv->to.cd = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_names[client_canonical]);
+		char_conv->to.cd2 = tds_sys_iconv_open(iconv_names[server_canonical], iconv_names[POS_UTF8]);
+		char_conv->from.cd = tds_sys_iconv_open(iconv_names[POS_UTF8], iconv_names[server_canonical]);
+		char_conv->from.cd2 = tds_sys_iconv_open(iconv_names[client_canonical], iconv_names[POS_UTF8]);
 
-		if (char_conv->to_wire == (iconv_t) -1 || char_conv->to_wire2 == (iconv_t) -1
-		    || char_conv->from_wire == (iconv_t) -1 || char_conv->from_wire2 == (iconv_t) -1) {
+		if (char_conv->to.cd == (iconv_t) -1 || char_conv->to.cd2 == (iconv_t) -1
+		    || char_conv->from.cd == (iconv_t) -1 || char_conv->from.cd2 == (iconv_t) -1) {
 
 			tds_iconv_info_close(char_conv);
 			tdsdump_log(TDS_DBG_FUNC, "tds_iconv_info_init: cannot convert \"%s\"->\"%s\" indirectly\n",
@@ -516,10 +525,10 @@ _iconv_close(iconv_t * cd)
 static void
 tds_iconv_info_close(TDSICONV * char_conv)
 {
-	_iconv_close(&char_conv->to_wire);
-	_iconv_close(&char_conv->to_wire2);
-	_iconv_close(&char_conv->from_wire);
-	_iconv_close(&char_conv->from_wire2);
+	_iconv_close(&char_conv->to.cd);
+	_iconv_close(&char_conv->to.cd2);
+	_iconv_close(&char_conv->from.cd);
+	_iconv_close(&char_conv->from.cd2);
 }
 
 void
@@ -549,6 +558,166 @@ tds_iconv_free(TDSCONNECTION * conn)
 	conn->char_conv_count = 0;
 }
 
+static size_t
+tds_iconv_indirect(TDSICONVDIR *from, TDSICONVDIR *to, int *peilseq_raised, const char **pb1, size_t * pil1, char **ob3, size_t * pil3)
+{
+#if ENABLE_EXTRA_CHECKS
+	char tmp[8];
+#else
+	char tmp[256];
+#endif
+	char *pb2;
+	size_t il1, il2, l;
+	int temp_errno;
+	size_t temp_irreversible, irreversible;
+
+	do {
+		pb2 = tmp;
+		il2 = sizeof(tmp);
+
+		if (to->num_left) {
+			if (*pil1 < to->num_got) {
+				errno = EINVAL;
+				return (size_t) -1;
+			}
+			*pil1 -= to->num_got;
+			*pb1  += to->num_got;
+			to->num_got = 0;
+
+			memcpy(tmp, to->left, to->num_left);
+			pb2 += to->num_left;
+			il2 -= to->num_left;
+			to->num_left = 0;
+		}
+
+		/* compute maximum to translate, making sure we don't get too much 
+		 * we can't read more characters than we can put into final output, we have two
+		 * consecutive conversion n * m1..M1 -> n * m2..M2 -> n * m3..M3
+		 * (n number of characters, m minimum, M maximum), we want to limit n * M3
+		 * to final output length, so maximum input bytes = n * m1, so
+		 *   inputlen = n * m1 = outlen / M3 * m1
+		 * We must handle the case where we must read a characters but we are
+		 * not sure it fit into output. Ie 1..2 -> 2..4 if we limit input to 1
+		 * and output to 2 could be that source characters occupy 2 bytes but
+		 * output encoding take 4 bytes. In this case we should record the position
+		 * to return, try to read at least one characters and if we cannot translate
+		 * store it for next step.
+		 */
+		il1 = *pil1;
+		l = *pil3 * from->charset.min_bytes_per_char / to->charset.max_bytes_per_char;
+		if (il1 > l)
+			il1 = l;
+
+		errno = 0;
+		l = il1;
+		temp_irreversible = tds_sys_iconv(to->cd, (ICONV_CONST char **) pb1, &il1, &pb2, &il2);
+		*pil1 -= l - il1;
+		temp_errno = errno;
+
+		/* here are the tricky part, assure we read at least one characters */
+		il2 = pb2 - tmp;
+		pb2 = tmp;
+		if (il2 == 0) {
+			l = from->charset.min_bytes_per_char;
+			while (temp_errno == EINVAL && l < from->charset.max_bytes_per_char && l < *pil1) {
+				il1 = l;
+				il2 = sizeof(to->left);
+				pb2 = to->left;
+
+				errno = 0;
+				l = il1;
+				temp_irreversible = tds_sys_iconv(to->cd, (ICONV_CONST char **) pb1, &il1, &pb2, &il2);
+				to->num_got = l - il1;
+				if (to->num_got) *pb1 -= to->num_got;
+				to->num_left = il2 = sizeof(to->left) - il2;
+				pb2 = to->left;
+				temp_errno = errno;
+				if (to->num_left)
+					break;
+				++l;
+			}
+		} else {
+			/* avoid EINVAL cause we make input shorter */
+			temp_errno = E2BIG;
+		}
+
+		/* convert partial */
+		for (;;) {
+			errno = 0;
+			irreversible = tds_sys_iconv(to->cd2, (ICONV_CONST char **) &pb2, &il2, ob3, pil3);
+
+			/* check if we consumed single character from input */
+			if (to->num_left && il2 == 0) {
+				*pil1 -= to->num_got;
+				*pb1  += to->num_got;
+				to->num_got = 0;
+
+				to->num_left = 0;
+			}
+			if (irreversible != (size_t) - 1) {
+				if (pil1 && *pil1)
+					break;
+				return irreversible;
+			}
+			/* EINVAL should be impossible, all characters came from previous iconv... */
+			if (errno == E2BIG || errno == EINVAL)
+				return irreversible;
+
+			/*
+			 * error should be EILSEQ, not convertible sequence 
+			 * skip UTF-8 sequence, replace with '?'
+			 */
+			/* avoid infinite recursion */
+			*peilseq_raised = 1;
+			if (*pb2 == '?')
+				return irreversible;
+			*pb2 = (char) 0x80;
+			while (il2 && (*pb2 & 0xC0) == 0x80)
+				++pb2, --il2;
+			--pb2;
+			++il2;
+			*pb2 = '?';
+		}
+	} while (temp_errno == E2BIG);
+	errno = temp_errno;
+	return temp_irreversible;
+}
+
+static size_t
+tds_iconv_swap(iconv_t cd, const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft)
+{
+	/* swap bytes if necessary */
+#if ENABLE_EXTRA_CHECKS
+	char tmp[8];
+#else
+	char tmp[256];
+#endif
+	char *pib;
+	size_t il, n, irreversible;
+
+	do {
+		pib = tmp;
+		il = *inbytesleft > sizeof(tmp) ? sizeof(tmp) : *inbytesleft;
+		for (n = 0; n < il; n += 2) {
+			tmp[n] = (*inbuf)[n + 1];
+			tmp[n + 1] = (*inbuf)[n];
+		}
+		irreversible = tds_sys_iconv(cd, (ICONV_CONST char **) &pib, &il, outbuf, outbytesleft);
+		il = pib - tmp;
+		*inbuf += il;
+		*inbytesleft -= il;
+	} while (irreversible != (size_t) - 1 && *inbytesleft);
+
+	return irreversible;
+}
+
+static void
+tds_iconv_err(TDSSOCKET *tds, int err)
+{
+	if (tds)
+		tdserror(tds_get_ctx(tds), tds, err, 0);
+}
+
 /** 
  * Wrapper around iconv(3).  Same parameters, with slightly different behavior.
  * \param tds state information for the socket and the TDS protocol
@@ -574,21 +743,20 @@ tds_iconv_free(TDSCONNECTION * conn)
  * 	On a write error we emit Msg 2402, Severity 16 (EX_USER):
  *		"Error converting client characters into server's character set. Some character(s) could not be converted."
  *  	  and return an error code.  Client libraries relying on this routine should reflect an error back to the application.  
- * 	
+ *
  * \todo Check for variable multibyte non-UTF-8 input character set.  
  * \todo Use more robust error message generation.  
  * \todo For reads, cope with \a outbuf encodings that don't have the equivalent of an ASCII '?'.  
  * \todo Support alternative to '?' for the replacement character.  
  */
 size_t
-tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
+tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	  const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft)
 {
 	static const iconv_t invalid = (iconv_t) -1;
-	const TDS_ENCODING *input_charset = NULL;
-	const char *output_charset_name = NULL;
+	TDSICONVDIR *from = NULL;
+	TDSICONVDIR *to = NULL;
 
-	iconv_t cd = invalid, cd2 = invalid;
 	iconv_t error_cd = invalid;
 
 	char quest_mark[] = "?";	/* best to leave non-const; implementations vary */
@@ -605,16 +773,12 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 
 	switch (io) {
 	case to_server:
-		cd = conv->to_wire;
-		cd2 = conv->to_wire2;
-		input_charset = &conv->client_charset;
-		output_charset_name = conv->server_charset.name;
+		from = &conv->from;
+		to = &conv->to;
 		break;
 	case to_client:
-		cd = conv->from_wire;
-		cd2 = conv->from_wire2;
-		input_charset = &conv->server_charset;
-		output_charset_name = conv->client_charset.name;
+		from = &conv->to;
+		to = &conv->from;
 		break;
 	default:
 		tdsdump_log(TDS_DBG_FUNC, "tds_iconv: unable to determine if %d means in or out.  \n", io);
@@ -623,7 +787,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	}
 
 	/* silly case, memcpy */
-	if (conv->flags & TDS_ENCODING_MEMCPY || cd == invalid) {
+	if (conv->flags & TDS_ENCODING_MEMCPY || to->cd == invalid) {
 		size_t len = *inbytesleft < *outbytesleft ? *inbytesleft : *outbytesleft;
 
 		memcpy(*outbuf, *inbuf, len);
@@ -642,79 +806,11 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	p = *outbuf;
 	for (;;) {
 		if (conv->flags & TDS_ENCODING_INDIRECT) {
-#if ENABLE_EXTRA_CHECKS
-			char tmp[8];
-#else
-			char tmp[128];
-#endif
-			char *pb = tmp;
-			size_t l = sizeof(tmp);
-			int temp_errno;
-			size_t temp_irreversible;
-
-			temp_irreversible = tds_sys_iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, &pb, &l);
-			temp_errno = errno;
-
-			/* convert partial */
-			pb = tmp;
-			l = sizeof(tmp) - l;
-			for (;;) {
-				errno = 0;
-				irreversible = tds_sys_iconv(cd2, (ICONV_CONST char **) &pb, &l, outbuf, outbytesleft);
-				if (irreversible != (size_t) - 1) {
-					if (inbytesleft && *inbytesleft)
-						break;
-					goto end_loop;
-				}
-				/* EINVAL should be impossible, all characters came from previous iconv... */
-				if (errno == E2BIG || errno == EINVAL)
-					goto end_loop;
-
-				/*
-				 * error should be EILSEQ, not convertible sequence 
-				 * skip UTF-8 sequence 
-				 */
-				/* avoid infinite recursion */
-				eilseq_raised = 1;
-				if (*pb == '?')
-					goto end_loop;
-				*pb = (char) 0x80;
-				while(l && (*pb & 0xC0) == 0x80)
-					++pb, --l;
-				--pb;
-				++l;
-				*pb = '?';
-			}
-			if (temp_errno == E2BIG) {
-				errno = 0;
-				continue;
-			}
-			errno = temp_errno;
-			irreversible = temp_irreversible;
-			break;
+			irreversible = tds_iconv_indirect(from, to, &eilseq_raised, inbuf, inbytesleft, outbuf, outbytesleft);
 		} else if (io == to_client && conv->flags & TDS_ENCODING_SWAPBYTE && inbuf) {
-			/* swap bytes if necessary */
-#if ENABLE_EXTRA_CHECKS
-			char tmp[8];
-#else
-			char tmp[128];
-#endif
-			char *pib = tmp;
-			size_t il = *inbytesleft > sizeof(tmp) ? sizeof(tmp) : *inbytesleft;
-			size_t n;
-
-			for (n = 0; n < il; n += 2) {
-				tmp[n] = (*inbuf)[n + 1];
-				tmp[n + 1] = (*inbuf)[n];
-			}
-			irreversible = tds_sys_iconv(cd, (ICONV_CONST char **) &pib, &il, outbuf, outbytesleft);
-			il = pib - tmp;
-			*inbuf += il;
-			*inbytesleft -= il;
-			if (irreversible != (size_t) - 1 && *inbytesleft)
-				continue;
+			irreversible = tds_iconv_swap(to->cd, inbuf, inbytesleft, outbuf, outbytesleft);
 		} else {
-			irreversible = tds_sys_iconv(cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
+			irreversible = tds_sys_iconv(to->cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
 		}
 		/* iconv success, return */
 		if (irreversible != (size_t) - 1) {
@@ -739,7 +835,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		 * Invalid input sequence encountered reading from server. 
 		 * Skip one input sequence, adjusting pointers. 
 		 */
-		one_character = skip_one_input_sequence(cd, input_charset, inbuf, inbytesleft);
+		one_character = skip_one_input_sequence(to->cd, &from->charset, inbuf, inbytesleft);
 
 		if (!one_character)
 			break;
@@ -751,7 +847,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		 * do not convert singlebyte <-> singlebyte.
 		 */
 		if (error_cd == invalid) {
-			error_cd = tds_sys_iconv_open(output_charset_name, iconv_names[POS_UTF8]);
+			error_cd = tds_sys_iconv_open(to->charset.name, iconv_names[POS_UTF8]);
 			if (error_cd == invalid) {
 				break;	/* what to do? */
 			}
@@ -769,8 +865,7 @@ tds_iconv(TDSSOCKET * tds, const TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		if (!*inbytesleft)
 			break;
 	}
-end_loop:
-	
+
 	/* swap bytes if necessary */
 	if (io == to_server && conv->flags & TDS_ENCODING_SWAPBYTE) {
 		assert((*outbuf - p) % 2 == 0);
@@ -786,13 +881,13 @@ end_loop:
 		/* invalid multibyte input sequence encountered */
 		if (io == to_client) {
 			if (irreversible == (size_t) - 1) {
-				tdserror(tds_get_ctx(tds), tds, TDSEICONV2BIG, 0);
+				tds_iconv_err(tds, TDSEICONV2BIG);
 			} else {
-				tdserror(tds_get_ctx(tds), tds, TDSEICONVI, 0);
+				tds_iconv_err(tds, TDSEICONVI);
 				errno = 0;
 			}
 		} else {
-			tdserror(tds_get_ctx(tds), tds, TDSEICONVO, 0);
+			tds_iconv_err(tds, TDSEICONVO);
 		}
 		suppress->eilseq = 1;
 	}
@@ -802,13 +897,13 @@ end_loop:
 		if (suppress->einval)
 			break;
 		/* in chunk conversion this can mean we end a chunk inside a character */
-		tdserror(tds_get_ctx(tds), tds, TDSEICONVAVAIL, 0);
+		tds_iconv_err(tds, TDSEICONVAVAIL);
 		suppress->einval = 1;
 		break;
 	case E2BIG:		/* output buffer has no more room */
 		if (suppress->e2big)
 			break;
-		tdserror(tds_get_ctx(tds), tds, TDSEICONVIU, 0);
+		tds_iconv_err(tds, TDSEICONVIU);
 		suppress->e2big = 1;
 		break;
 	default:
@@ -827,7 +922,7 @@ end_loop:
  * \return Count of bytes either not read, or read but not converted.  Returns zero on success.  
  */
 size_t
-tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft)
+tds_iconv_fread(TDSSOCKET * tds, TDSICONV * conv, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft)
 {
 #ifdef ENABLE_EXTRA_CHECKS
 	char buffer[16];
@@ -838,9 +933,9 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 	size_t isize = 0, nonreversible_conversions = 0;
 
 	/*
-	 * If cd isn't valid, it's just an indication that this column needs no conversion.  
+	 * If conv isn't valid, it's just an indication that this column needs no conversion.  
 	 */
-	if (cd == (iconv_t) -1) {
+	if (conv == NULL) {
 		assert(field_len <= *outbytesleft);
 		if (field_len > 0) {
 			if (1 != fread(outbuf, field_len, 1, stream)) {
@@ -874,7 +969,7 @@ tds_iconv_fread(iconv_t cd, FILE * stream, size_t field_len, size_t term_len, ch
 
 		isize += ib - buffer;
 		ib = buffer;
-		nonreversible_conversions += tds_sys_iconv(cd, (ICONV_CONST char **) &ib, &isize, &outbuf, outbytesleft);
+		nonreversible_conversions += tds_iconv(tds, conv, to_server, (const char **) &ib, &isize, &outbuf, outbytesleft);
 
 		if (isize != 0) {
 			memmove(buffer, ib, isize);
@@ -920,8 +1015,8 @@ tds_iconv_get_info(TDSCONNECTION * conn, int canonic_client, int canonic_server)
 
 	/* search a charset from already allocated charsets */
 	for (i = conn->char_conv_count; --i >= initial_char_conv_count;)
-		if (canonic_client == conn->char_convs[i]->client_charset.canonic
-		    && canonic_server == conn->char_convs[i]->server_charset.canonic)
+		if (canonic_client == conn->char_convs[i]->from.charset.canonic
+		    && canonic_server == conn->char_convs[i]->to.charset.canonic)
 			return conn->char_convs[i];
 
 	/* allocate a new iconv structure */
@@ -984,11 +1079,11 @@ tds_srv_charset_changed_num(TDSCONNECTION * conn, int canonic_charset_num)
 
 	tdsdump_log(TDS_DBG_FUNC, "setting server single-byte charset to \"%s\"\n", canonic_charsets[canonic_charset_num].name);
 
-	if (canonic_charset_num == char_conv->server_charset.canonic)
+	if (canonic_charset_num == char_conv->to.charset.canonic)
 		return;
 
 	/* find and set conversion */
-	char_conv = tds_iconv_get_info(conn, conn->char_convs[client2ucs2]->client_charset.canonic, canonic_charset_num);
+	char_conv = tds_iconv_get_info(conn, conn->char_convs[client2ucs2]->from.charset.canonic, canonic_charset_num);
 	if (char_conv)
 		conn->char_convs[client2server_chardata] = char_conv;
 
@@ -1403,10 +1498,10 @@ tds_iconv_from_collate(TDSCONNECTION * conn, TDS_UCHAR collate[5])
 	int canonic_charset = collate2charset(sql_collate, lcid);
 
 	/* same as client (usually this is true, so this improve performance) ? */
-	if (conn->char_convs[client2server_chardata]->server_charset.canonic == canonic_charset)
+	if (conn->char_convs[client2server_chardata]->to.charset.canonic == canonic_charset)
 		return conn->char_convs[client2server_chardata];
 
-	return tds_iconv_get_info(conn, conn->char_convs[client2ucs2]->client_charset.canonic, canonic_charset);
+	return tds_iconv_get_info(conn, conn->char_convs[client2ucs2]->from.charset.canonic, canonic_charset);
 }
 
 /** @} */
