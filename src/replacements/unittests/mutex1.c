@@ -31,6 +31,8 @@
 #define int2ptr(i) ((void*)(((char*)0)+(i)))
 #define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
 
+#if !defined(TDS_NO_THREADSAFE)
+
 static tds_mutex mtx = TDS_MUTEX_INITIALIZER;
 
 static TDS_THREAD_PROC_DECLARE(trylock_proc, arg)
@@ -105,4 +107,13 @@ int main(void)
 
 	return 0;
 }
+
+#else
+
+int main(void)
+{
+	return 0;
+}
+
+#endif
 

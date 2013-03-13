@@ -41,7 +41,7 @@
 #include <netinet/in.h>
 #endif /* HAVE_NETINET_IN_H */
 
-#if (defined(TDS_HAVE_PTHREAD_MUTEX) && HAVE_ALARM && HAVE_FSTAT && defined(S_IFSOCK)) || defined(_WIN32)
+#if (!defined(TDS_NO_THREADSAFE) && HAVE_ALARM && HAVE_FSTAT && defined(S_IFSOCK)) || defined(_WIN32)
 
 #include <ctype.h>
 

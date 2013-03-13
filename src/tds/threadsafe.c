@@ -488,7 +488,7 @@ tds_get_homedir(void)
 #endif
 }
 
-#if defined(TDS_HAVE_PTHREAD_MUTEX)
+#if defined(TDS_HAVE_PTHREAD_MUTEX) && !defined(TDS_NO_THREADSAFE)
 int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int timeout_sec)
 {
 	struct timespec ts;
