@@ -49,7 +49,20 @@ TDS_RCSID(var, "$Id: vasprintf.c,v 1.23 2011-05-16 08:51:40 freddy77 Exp $");
 int
 vasprintf(char **ret, const char *fmt, va_list ap)
 {
-#if HAVE_VSNPRINTF
+#if HAVE__VSCPRINTF
+	int len = _vscprintf(fmt, ap);
+
+	if (len >= 0) {
+		*ret = malloc(len + 1);
+		if (*ret) {
+			vsprintf(*ret, fmt, ap);
+			return len;
+		}
+		errno = ENOMEM;
+	}
+	*ret = NULL;
+	return -1;
+#elif HAVE_VSNPRINTF
 	size_t chunks;
 	size_t buflen;
 	char *buf;
