@@ -259,6 +259,8 @@ main(int argc, char *argv[])
 		type = SQL_C_CHAR;
 
 		for (;;) {
+			void *buf = ODBC_GET(lc);
+
 			odbc_command("SELECT CONVERT(TEXT,'')");
 
 			CHKFetch("S");
@@ -273,6 +275,25 @@ main(int argc, char *argv[])
 
 			CHKGetData(1, type, buf, lc, NULL, "No");
 			odbc_reset_statement();
+			ODBC_FREE();
+
+			buf = ODBC_GET(4096*lc);
+
+			odbc_command("SELECT CONVERT(TEXT,'')");
+
+			CHKFetch("S");
+
+			len = 1234;
+			CHKGetData(1, type, buf, lc*4096, &len, "S");
+
+			if (len != 0) {
+				fprintf(stderr, "Wrong len returned, returned %ld\n", (long) len);
+				return 1;
+			}
+
+			CHKGetData(1, type, buf, lc*4096, NULL, "No");
+			odbc_reset_statement();
+			ODBC_FREE();
 
 			if (type != SQL_C_CHAR)
 				break;
