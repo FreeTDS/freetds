@@ -471,7 +471,7 @@ TDS_NULL_IS_ZERO
 # ------------------------------------------------------------
 # Checks for library functions.
 # ------------------------------------------------------------
-AC_CHECK_FUNCS([vsnprintf _vsnprintf gettimeofday \
+AC_CHECK_FUNCS([_atoi64 vsnprintf _vsnprintf _vscprintf gettimeofday \
 nl_langinfo locale_charset setenv putenv \
 getuid getpwuid getpwuid_r fstat alarm fork \
 gethrtime localtime_r setitimer _lseeki64 _telli64 \

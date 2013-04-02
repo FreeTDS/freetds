@@ -213,7 +213,38 @@ static inline void tds_mutex_free(tds_mutex *mtx)
 {
 }
 
-#error Condition not supported!
+typedef struct {
+} tds_condition;
+
+static inline int tds_cond_init(tds_condition *cond)
+{
+	return 0;
+}
+static inline int tds_cond_destroy(tds_condition *cond)
+{
+	return 0;
+}
+#define tds_cond_signal(cond) \
+	FreeTDS_Condition_not_compiled
+
+#define tds_cond_wait(cond, mtx) \
+	FreeTDS_Condition_not_compiled
+
+#define tds_cond_timedwait(cond, mtx, timeout_sec) \
+	FreeTDS_Condition_not_compiled
+
+typedef struct {
+} tds_thread;
+
+typedef void *(*tds_thread_proc)(void *arg);
+#define TDS_THREAD_PROC_DECLARE(name, arg) \
+	void *name(void *arg)
+
+#define tds_thread_create(ret, proc, arg) \
+	FreeTDS_Thread_not_compiled
+
+#define tds_thread_join(th, ret) \
+	FreeTDS_Thread_not_compiled
 
 #endif
 

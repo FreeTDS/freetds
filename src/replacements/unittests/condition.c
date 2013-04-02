@@ -35,6 +35,8 @@
 #define int2ptr(i) ((void*)(((char*)0)+(i)))
 #define ptr2int(p) ((int)(((char*)(p))-((char*)0)))
 
+#if !defined(TDS_NO_THREADSAFE)
+
 #if defined(__MINGW32__) || defined(_WIN32)
 #define sleep(s) Sleep((s)*1000)
 #endif
@@ -89,4 +91,13 @@ int main(void)
 	check(tds_cond_destroy(&cond), "failed destroying condition");
 	return 0;
 }
+
+#else
+
+int main(void)
+{
+	return 0;
+}
+
+#endif
 

@@ -92,7 +92,9 @@ void tds_socket_done(void);
 #ifndef __MINGW32__
 typedef DWORD pid_t;
 #endif
+#undef strcasecmp
 #define strcasecmp stricmp
+#undef strncasecmp
 #define strncasecmp strnicmp
 #define atoll _atoi64
 #define vsnprintf _vsnprintf
