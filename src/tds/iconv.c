@@ -771,6 +771,14 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 
 	assert(inbuf && inbytesleft && outbuf && outbytesleft);
 
+	/* if empty there's nothing to return.
+	 * This fix case with some iconv implementation that does
+	 * not handle *inbuf == NULL and *inbytesleft == 0 as
+	 * empty strings
+	 */
+	if (*inbytesleft == 0)
+		return 0;
+
 	switch (io) {
 	case to_server:
 		from = &conv->from;
