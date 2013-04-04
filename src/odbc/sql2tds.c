@@ -321,10 +321,10 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 			len = strlen(src);
 		break;
 	case SQL_DEFAULT_PARAM:
-	case SQL_DATA_AT_EXEC:
 		odbc_errs_add(&stmt->errs, "07S01", NULL);	/* Invalid use of default parameter */
 		return SQL_ERROR;
 		break;
+	case SQL_DATA_AT_EXEC:
 	default:
 		len = sql_len;
 		if (sql_len < 0) {
