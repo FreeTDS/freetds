@@ -392,6 +392,9 @@ continue_parse_prepared_query(struct _hstmt *stmt, SQLPOINTER DataPtr, SQLLEN St
 			}
 		}
 
+		if (!len)
+			return SQL_SUCCESS;
+
 		if (blob->textvalue)
 			p = (TDS_CHAR *) realloc(blob->textvalue, len + curcol->column_cur_size);
 		else {
