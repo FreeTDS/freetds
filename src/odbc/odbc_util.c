@@ -853,6 +853,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 	SET_INFO(type, prefix, suffix); \
 	} while(0)
 
+	drec->sql_desc_unsigned = SQL_FALSE;
 	drec->sql_desc_octet_length = drec->sql_desc_length = col->on_server.column_size;
 
 	switch (tds_get_conversion_type(col->column_type, col->column_size)) {
@@ -872,6 +873,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 		SET_INFO("text", "'", "'");
 	case SYBBIT:
 	case SYBBITN:
+		drec->sql_desc_unsigned = SQL_TRUE;
 		SET_INFO2("bit", "", "", 1);
 #if (ODBCVER >= 0x0300)
 	case SYBINT8:
@@ -883,6 +885,7 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 	case SYBINT2:
 		SET_INFO2("smallint", "", "", 5);
 	case SYBINT1:
+		drec->sql_desc_unsigned = SQL_TRUE;
 		SET_INFO2("tinyint", "", "", 3);
 	case SYBREAL:
 		SET_INFO2("real", "", "", odbc_ver == SQL_OV_ODBC3 ? 24 : 7);
