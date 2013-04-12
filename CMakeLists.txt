@@ -11,8 +11,8 @@ set(PACKAGE freetds)
 file(STRINGS "configure" VERSION LIMIT_COUNT 1 REGEX "^[ 	]*VERSION[ 	]*=.*0")
 if(VERSION MATCHES "VERSION[      ]*=[      ]*'?([^' 	]+)")
 	set(VERSION ${CMAKE_MATCH_1})
-	string(REGEX REPLACE "^dev[.]" "" VERSION "${VERSION}")
-	if("${VERSION}.0" MATCHES "^([0-9]+)[.]([0-9]+)[.]([^.]*)")
+	string(REGEX REPLACE "^dev[.]" "" VER "${VERSION}")
+	if("${VER}.0" MATCHES "^([0-9]+)[.]([0-9]+)[.]([^.]*)")
 		set(MAJOR ${CMAKE_MATCH_1})
 		set(MINOR ${CMAKE_MATCH_2})
 		set(SUBVERSION ${CMAKE_MATCH_3})
@@ -221,8 +221,7 @@ foreach(flag ODBC_WIDE EXTRA_CHECKS KRB5 ODBC_MARS)
 	config_write("#cmakedefine ENABLE_${flag} 1\n\n")
 endforeach(flag)
 
-# TODO proper version
-config_write("#define VERSION \"0.1\"\n\n")
+config_write("#define VERSION \"\\@VERSION\\@\"\n\n")
 
 config_write("#define FREETDS_TOPDIR \"${FREETDS_TOPDIR}\"\n\n")
 
