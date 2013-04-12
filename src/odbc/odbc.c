@@ -3156,8 +3156,6 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_rowver = SQL_FALSE;
 		/* TODO seem not correct */
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
-		/* TODO perhaps TINYINY and BIT.. */
-		drec->sql_desc_unsigned = SQL_FALSE;
 		drec->sql_desc_updatable = col->column_writeable && !col->column_identity ? SQL_TRUE : SQL_FALSE;
 	}
 	return (SQL_SUCCESS);
