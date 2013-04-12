@@ -70,6 +70,23 @@ lookup(const char *name, const struct lookup_int *table)
 	return get_int(name);
 }
 
+static const char*
+unlookup(long int value, const struct lookup_int *table)
+{
+	static char buf[32];
+
+	sprintf(buf, "%ld", value);
+	if (!table)
+		return buf;
+
+	for (; table->name; ++table)
+		if (table->value == value)
+			return table->name;
+
+	return buf;
+}
+
+
 static struct lookup_int sql_types[] = {
 #define TYPE(s) { #s, s }
 	TYPE(SQL_CHAR),
@@ -102,6 +119,12 @@ static struct lookup_int sql_types[] = {
 	{ NULL, 0 }
 };
 
+static struct lookup_int sql_bools[] = {
+	{ "SQL_TRUE",  SQL_TRUE  },
+	{ "SQL_FALSE", SQL_FALSE },
+	{ NULL, 0 }
+};
+
 typedef enum
 {
 	type_INTEGER,
@@ -131,7 +154,8 @@ static const struct attribute attributes[] = {
 	ATTR(SQL_DESC_DISPLAY_SIZE, INTEGER),
 	ATTR(SQL_DESC_TYPE_NAME, CHARP),
 	ATTR2(SQL_DESC_CONCISE_TYPE, SMALLINT, sql_types),
-	ATTR2(SQL_DESC_TYPE, SMALLINT, sql_types)
+	ATTR2(SQL_DESC_TYPE, SMALLINT, sql_types),
+	ATTR2(SQL_DESC_UNSIGNED, SMALLINT, sql_bools)
 #undef ATTR2
 #undef ATTR
 };
@@ -188,7 +212,7 @@ check_attr_ird(ATTR_PARAMS)
 	}
 	if (i != lookup(expected_value, attr->lookup)) {
 		g_result = 1;
-		fprintf(stderr, "Line %u: invalid %s got %ld expected %s\n", line_num, attr->name, (long int) i, expected_value);
+		fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", line_num, attr->name, unlookup(i, attr->lookup), expected_value);
 	}
 }
 
@@ -235,7 +259,7 @@ check_attr_ard(ATTR_PARAMS)
 		fatal(": failure not expected\n");
 	if (i != lookup(expected_value, attr->lookup)) {
 		g_result = 1;
-		fprintf(stderr, "Line %u: invalid %s got %ld expected %s\n", line_num, attr->name, (long int) i, expected_value);
+		fprintf(stderr, "Line %u: invalid %s got %s expected %s\n", line_num, attr->name, unlookup(i, attr->lookup), expected_value);
 	}
 }
 
