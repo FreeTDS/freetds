@@ -119,7 +119,7 @@ free_file(void)
 int
 read_login_info(int argc, char **argv)
 {
-	size_t len;
+	int len;
 	FILE *in = NULL;
 #if !defined(__MINGW32__) && !defined(_MSC_VER)
 	int ch;
@@ -266,7 +266,7 @@ read_login_info(int argc, char **argv)
 	dbrecftos(BASENAME);
 #endif
 	len = snprintf(sql_file, sizeof(sql_file), "%s/%s.sql", FREETDS_SRCDIR, BASENAME);
-	assert(len <= sizeof(sql_file));
+	assert(len >= 0 && len <= sizeof(sql_file));
 
 	if (input_file)
 		fclose(input_file);
@@ -327,8 +327,8 @@ sql_rewind(void)
 RETCODE
 sql_reopen(const char *fn)
 {
-	size_t len = snprintf(sql_file, sizeof(sql_file), "%s/%s.sql", FREETDS_SRCDIR, fn);
-	assert(len <= sizeof(sql_file));
+	int len = snprintf(sql_file, sizeof(sql_file), "%s/%s.sql", FREETDS_SRCDIR, fn);
+	assert(len >= 0 && len <= sizeof(sql_file));
 
 	if (input_file)
 		fclose(input_file);

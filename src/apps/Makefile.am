@@ -41,3 +41,5 @@ datacopy_SOURCES= datacopy.c
 datacopy_LDADD	= ../dblib/libsybdb.la \
 		  ../replacements/libreplacements.la \
 		$(NETWORK_LIBS) $(LTLIBICONV)
+
+EXTRA_DIST = CMakeLists.txt

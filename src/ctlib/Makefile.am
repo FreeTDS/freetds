@@ -20,3 +20,5 @@ libct_la_LDFLAGS=	-version-info 4:0:0 $(SYMBOLS) $(FREETDS_SYMBOLIC)
 
 libct_la_LIBADD	=	../tds/libtds.la ../replacements/libreplacements.la $(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC)
 
+EXTRA_DIST		= ctlib.def CMakeLists.txt
+

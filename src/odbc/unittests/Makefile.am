@@ -102,7 +102,7 @@ long_error_SOURCES = long_error.c common.c common.h
 mars1_SOURCES = mars1.c common.c common.h
 array_error_SOURCES = array_error.c common.c common.h
 
-AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_SRCDIR=\"$(srcdir)\"
+AM_CPPFLAGS	=	-I$(top_srcdir)/include $(ODBC_INC) -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
@@ -110,18 +110,5 @@ AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	$(ODBCLIB) $(ODBCNODMLIB) ../../replacements/libreplacements.la @NETWORK_LIBS@
 DISTCLEANFILES	=	odbc.ini odbcinst.ini
-EXTRA_DIST	=	data.in describecol.in attributes.in $(EXTRA_DIST_WIN32)
-
-if HAVE_PERL_SOURCES
-odbc.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
-	rm -rf $@ odbc.mak vc6
-	perl $(top_srcdir)/win32/build_dsw.pl $@ $(TESTS)
-
-vc6: odbc.dsw
-
-distclean-local:
-	rm -rf vc6
-
-EXTRA_DIST_WIN32 = vc6 odbc.dsw odbc.mak
-endif
+EXTRA_DIST	=	data.in describecol.in attributes.in CMakeLists.txt
 

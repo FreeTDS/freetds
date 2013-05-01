@@ -19,6 +19,8 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 
 #include <tds.h>
 
+#define FREETDS_SRCDIR FREETDS_TOPDIR "/src/tds/unittests"
+
 extern char PASSWORD[512];
 extern char USER[512];
 extern char SERVER[512];

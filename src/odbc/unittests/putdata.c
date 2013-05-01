@@ -186,10 +186,10 @@ main(int argc, char *argv[])
 			RetCode = SQLParamData(odbc_stmt, &ptr);
 			if (RetCode == SQL_NEED_DATA) {
 				if (type == SQL_C_CHAR) {
-					SQLPutData(odbc_stmt, "abc", 3);
+					CHKPutData("abc", 3, "S");
 				} else {
 					SQLWCHAR buf[10];
-					SQLPutData(odbc_stmt, buf, to_sqlwchar(buf, "abc", 3));
+					CHKPutData(buf, to_sqlwchar(buf, "abc", 3), "S");
 				}
 			}
 		}
@@ -201,6 +201,34 @@ main(int argc, char *argv[])
 
 	/* check inserts ... */
 	CheckNoRow("IF EXISTS(SELECT * FROM #putdata WHERE c NOT LIKE 'abc') SELECT 1");
+
+	odbc_command("DELETE FROM #putdata");
+
+	/* test putting 0 bytes from Sebastien Flaesch */
+	if (odbc_db_is_microsoft()) {
+		type = SQL_C_CHAR;
+		for (;;) {
+			CHKPrepare(T("INSERT INTO #putdata(c) VALUES(?)"), SQL_NTS, "S");
+
+			CHKBindParameter(1, SQL_PARAM_INPUT, type, SQL_LONGVARCHAR, 10, 0, (PTR) 2, 10, &ind, "S");
+
+			ind = SQL_DATA_AT_EXEC;
+
+			RetCode = CHKExecute("Ne");
+			while (RetCode == SQL_NEED_DATA) {
+				RetCode = SQLParamData(odbc_stmt, &ptr);
+				if (RetCode == SQL_NEED_DATA)
+					CHKPutData("", 0, "S");
+			}
+			if (type != SQL_C_CHAR)
+				break;
+			type = SQL_C_WCHAR;
+			odbc_reset_statement();
+		}
+
+		/* check inserts ... */
+		CheckNoRow("IF EXISTS(SELECT * FROM #putdata WHERE c NOT LIKE '') SELECT 1");
+	}
 
 	/* TODO test cancel inside SQLExecute */
 

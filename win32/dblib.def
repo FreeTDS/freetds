@@ -1,12 +1,39 @@
 EXPORTS
+	bcp_batch
+	bcp_bind
+	bcp_colfmt
+	bcp_colfmt_ps
+	bcp_collen
+	bcp_colptr
+	bcp_columns
+	bcp_control
+	bcp_done
+	bcp_exec
+	bcp_getbatchsize
+	bcp_getl
+	bcp_init
+	bcp_options
+	bcp_readfmt
+	bcp_sendrow
+	dbadata
+	dbadlen
+	dbaltbind
+	dbaltcolid
+	dbaltlen
+	dbaltop
+	dbalttype
+	dbaltutype
+	dbanullbind
 	dbbind
+	dbbylist
 	dbcancel
 	dbcanquery
+	dbchange
 	dbclose
 	dbclrbuf
+	dbclropt
 	dbcmd
 	dbcmdrow
-	dbtablecolinfo
 	dbcolinfo
 	dbcollen
 	dbcolname
@@ -15,6 +42,7 @@ EXPORTS
 	dbcoltypeinfo
 	dbcolutype
 	dbconvert
+	dbconvert_ps
 	dbcount
 	dbcurcmd
 	dbcurrow
@@ -28,47 +56,103 @@ EXPORTS
 	dbfcmd
 	dbfirstrow
 	dbfreebuf
+	dbgetchar
+	dbgetmaxprocs
+	dbgetpacket
+	dbgetrow
+	dbgettime
+	dbgetuserdata
+	dbhasretstat
 	dbinit
+	dbiordesc
+	dbiowdesc
 	dbisavail
 	dbiscount
 	dbisopt
 	dblastrow
 	dblogin
 	dbloginfree
+	dbmny4add
+	dbmny4cmp
+	dbmny4copy
+	dbmny4minus
+	dbmny4sub
+	dbmny4zero
+	dbmnycmp
+	dbmnycopy
+	dbmnydec
+	dbmnyinc
+	dbmnymaxneg
+	dbmnymaxpos
+	dbmnyminus
+	dbmnyzero
+	dbmonthname
 	dbmorecmds
 	dbmoretext
 	dbmsghandle
 	dbname
 	dbnextrow
+	dbnextrow_pivoted
 	dbnullbind
 	dbnumalts
 	dbnumcols
 	dbnumcompute
 	dbnumrets
-	tdsdbopen
+	dbprhead
+	dbprrow
 	dbopen
+	dbpivot
+	dbpivot_lookup_name
 	dbprtype
+	dbreadtext
+	dbrecftos
 	dbresults
+	dbretdata
+	dbretlen
+	dbretname
+	dbretstatus
+	dbrettype
 	dbrows
 	dbrowtype
-
+	dbrpcinit
+	dbrpcparam
+	dbrpcsend
+	dbsafestr
+	dbservcharset
+	dbsetavail
+	dbsetifile
+	dbsetinterrupt
+	dbsetlbool
+	dbsetllong
 	dbsetlname
-	dbsetlversion
 	dbsetlogintime
+	dbsetlversion
+	dbsetmaxprocs
+	dbsetnull
 	dbsetopt
 	dbsetrow
 	dbsettime
 	dbsetuserdata
 	dbsetversion
-	dbservcharset
-
+	dbspid
+	dbspr1row
+	dbspr1rowlen
+	dbsprhead
+	dbsprline
 	dbsqlexec
 	dbsqlok
 	dbsqlsend
-
+	dbstrbuild
+	dbstrcpy
 	dbstrlen
+	dbtablecolinfo
 	dbtds
-	dbvarylen
-
+	dbtxptr
+	dbtxtimestamp
 	dbuse
+	dbvarylen
+	dbversion
 	dbwillconvert
+	dbwritetext
+	tdsdbopen
+	tdsdump_open

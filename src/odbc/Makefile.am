@@ -31,6 +31,8 @@ endif
 libtdsodbc_la_LDFLAGS = $(SYMBOLS) $(FREETDS_SYMBOLIC) $(FREETDS_ODBC_MODULE)
 endif
 
+EXTRA_DIST = CMakeLists.txt
+
 ## Need blank statement to avoid compiling odbc.c
 odbc: $(EXTRA_LTLIBRARIES)
 	@echo ''

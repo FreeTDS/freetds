@@ -50,3 +50,4 @@ AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libct.la ../../replacements/libreplacements.la $(LTLIBICONV) @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out
+EXTRA_DIST	=	CMakeLists.txt

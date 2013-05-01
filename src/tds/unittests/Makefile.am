@@ -38,7 +38,7 @@ challenge_SOURCES	= challenge.c
 endif
 readconf_SOURCES	= readconf.c
 
-AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../ -DFREETDS_SRCDIR=\"$(srcdir)\"
+AM_CPPFLAGS	=	-I$(top_srcdir)/include -I$(srcdir)/.. -I../ -DFREETDS_TOPDIR=\"$(top_srcdir)\"
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
@@ -46,5 +46,5 @@ AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libtds.la ../../replacements/libreplacements.la $(LTLIBICONV) @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out
-EXTRA_DIST	=	challenge.c
+EXTRA_DIST	=	challenge.c CMakeLists.txt
 

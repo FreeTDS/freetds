@@ -12,10 +12,6 @@ static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
 int failed = 0;
 
-#if !defined(FREETDS_SRCDIR)
-#define FREETDS_SRCDIR "../../../.."
-#endif
-
 #define TABLE_NAME "freetds_dblib_t0013"
 
 char *testargs[] = { "", FREETDS_SRCDIR "/data.bin", "t0013.out" };

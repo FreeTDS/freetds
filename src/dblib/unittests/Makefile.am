@@ -55,29 +55,16 @@ null2_SOURCES	=	null2.c common.c common.h
 setnull_SOURCES	=	setnull.c common.c common.h
 numeric_SOURCES =	numeric.c common.c common.h
 
-AM_CPPFLAGS	= 	-DFREETDS_SRCDIR=\"$(srcdir)\" -I$(top_srcdir)/include
+AM_CPPFLAGS	= 	-DFREETDS_TOPDIR=\"$(top_srcdir)\" -I$(top_srcdir)/include
 if MINGW32
 AM_LDFLAGS	=	-no-fast-install
 else
 AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libsybdb.la ../../replacements/libreplacements.la $(LTLIBICONV) @NETWORK_LIBS@
-EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin $(EXTRA_DIST_WIN32) $(SQL_DIST)
+EXTRA_DIST	=	t0016.in t0017.in t0017.in.be data.bin CMakeLists.txt $(SQL_DIST)
 CLEANFILES	=	tdsdump.out t0013.out t0014.out t0016.out \
 				t0016.err t0017.err t0017.out
-
-if HAVE_PERL_SOURCES
-dblib.dsw: $(top_srcdir)/win32/build_dsw.pl Makefile
-	rm -rf $@ dblib.mak vc6
-	perl $(top_srcdir)/win32/build_dsw.pl $@ $(TESTS)
-
-vc6: dblib.dsw
-
-distclean-local:
-	rm -rf vc6
-
-EXTRA_DIST_WIN32 = vc6 dblib.dsw dblib.mak
-endif
 
 $(SQL_DIST): 
 	ln -s $(srcdir)/$@ .
