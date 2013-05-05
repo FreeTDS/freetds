@@ -735,13 +735,12 @@ typedef enum tds_encryption_level {
 			x==SYBVOID      || \
 			x==SYBUNIQUE)
 #define is_nullable_type(x) ( \
-			x==SYBBITN      || \
+		     x==SYBBITN      || \
                      x==SYBINTN      || \
                      x==SYBFLTN      || \
                      x==SYBMONEYN    || \
                      x==SYBDATETIMN  || \
                      x==SYBVARCHAR   || \
-                     x==SYBBINARY    || \
                      x==SYBVARBINARY || \
                      x==SYBTEXT      || \
                      x==SYBNTEXT     || \
