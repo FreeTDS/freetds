@@ -561,9 +561,9 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 static int
 tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, TDS_UCHAR* rowbuffer, int start, int *pncols)
 {
-	TDS_SMALLINT offsets[256];
-	int i, row_pos;
-	int ncols = 0;
+	TDS_USMALLINT offsets[256];
+	unsigned int i, row_pos;
+	unsigned int ncols = 0;
 
 	assert(bcpinfo);
 	assert(rowbuffer);
@@ -590,7 +590,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %8s %8s\n", "col", "ncols", "row_pos", "cpbytes");
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-		int cpbytes = 0;
+		unsigned int cpbytes = 0;
 		TDSCOLUMN *bcpcol = bcpinfo->bindinfo->columns[i];
 
 		/*
@@ -660,17 +660,28 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 		ncols--;	/* trailing NULL columns are not sent and are not included in the offset table */
 
 	if (ncols) {
-		TDS_UCHAR *padj = rowbuffer + row_pos;
-		TDS_UCHAR *poff = offsets[ncols] > 0xFF? padj + ncols + 1 : padj;
+		TDS_UCHAR *poff = rowbuffer + row_pos;
+		unsigned int pfx_top = offsets[ncols] / 256;
 
-		*padj++ = 1 + ncols;
-		*poff++ = 1 + ncols;
-		
-		for (i=0; i <= ncols; i++) {
-			padj[i] = offsets[ncols-i] >> 8;
-			poff[i] = offsets[ncols-i] & 0xFF;
+		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%x [%u]\n", ncols, poff, offsets[ncols]);
+
+		*poff++ = ncols + 1;
+		/* this is some kind of run-length-prefix encoding */
+		while (pfx_top) {
+			unsigned int n_pfx = 1;
+
+			for (i = 0; i <= ncols ; ++i)
+				if ((offsets[i] / 256) < pfx_top)
+					++n_pfx;
+			*poff++ = n_pfx;
+			--pfx_top;
 		}
-		row_pos = (int)(poff + ncols + 1 - rowbuffer);
+   
+		tdsdump_log(TDS_DBG_FUNC, "poff=%x\n", poff);
+
+		for (i=0; i <= ncols; i++)
+			*poff++ = offsets[ncols-i] & 0xFF;
+		row_pos = (unsigned int)(poff - rowbuffer);
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d\n", i, ncols, row_pos);
