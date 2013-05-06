@@ -94,6 +94,9 @@ ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char 
 	return INT_CANCEL;
 }
 
+static char line1[2048];
+static char line2[2048];
+
 static void
 test_file(const char *fn)
 {
@@ -222,8 +225,6 @@ test_file(const char *fn)
 	input_file = fopen(in_file, "r");
 	output_file = fopen(out_file, "r");
 	if (!failed && input_file != NULL && output_file != NULL) {
-		char line1[128];
-		char line2[128];
 		char *p1, *p2;
 		int line = 1;
 
