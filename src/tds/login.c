@@ -325,18 +325,13 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 	 * We try them in an order that should work. 
 	 */
 	const static TDS_USMALLINT versions[] =
-		{ 0x702
+		{ 0x703
+		, 0x702
 		, 0x701
 		, 0x700
 		, 0x500
 		, 0x402
 		};
-
-	/* disable tds9 if iconv wanted, currently not supported */
-	if (IS_TDS72_PLUS(login) && tds_conn(tds)->use_iconv) {
-		login->tds_version = 0x701;
-		tdserror(tds_get_ctx(tds), tds, TDSEVERDOWN, 0);
-	}
 
 	if (TDS_MAJOR(login) == 0) {
 		unsigned int i;
@@ -353,7 +348,7 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		tds->env_chg_func = tds_save_env;
 		mod_ctx->err_handler = NULL;
 
-		for (i = tds_conn(tds)->use_iconv? 1 : 0; i < TDS_VECTOR_SIZE(versions); ++i) {
+		for (i = 0; i < TDS_VECTOR_SIZE(versions); ++i) {
 			login->tds_version = versions[i];
 			reset_save_context(&save_ctx);
 
