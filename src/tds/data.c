@@ -889,7 +889,11 @@ tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	col->column_size = tds_get_byte(tds);
 	col->column_prec = tds_get_byte(tds);        /* precision */
 	col->column_scale = tds_get_byte(tds);       /* scale */
-	/* FIXME check prec/scale, don't let server crash us */
+
+	/* check prec/scale, don't let server crash us */
+	if (col->column_prec < 1 || col->column_prec > 77
+	    || col->column_scale > col->column_prec)
+		return TDS_FAIL;
 
 	return TDS_SUCCESS;
 }
