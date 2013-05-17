@@ -123,7 +123,7 @@ struct tdsiconvinfo
 # define ICONV_CONST const
 #endif
 
-size_t tds_iconv_fread(TDSSOCKET * tds, TDSICONV * conv, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft);
+TDSRET tds_iconv_fread(TDSSOCKET * tds, TDSICONV * conv, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft);
 size_t tds_iconv(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION io,
 		 const char **inbuf, size_t * inbytesleft, char **outbuf, size_t * outbytesleft);
 const char *tds_canonical_charset_name(const char *charset_name);

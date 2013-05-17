@@ -113,8 +113,8 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.tds]query$(OBJ), [.src.tds]read$(OBJ), [.src.tds]tdsstring$(OBJ), \
 	[.src.tds]threadsafe$(OBJ), [.src.tds]token$(OBJ), [.src.tds]util$(OBJ), \
 	[.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), [.src.tds]md5$(OBJ), \
-	[.src.tds]net$(OBJ), [.src.tds]log$(OBJ), [.src.replacements]strlcpy$(OBJ), \
-	[.src.replacements]getpassarg$(OBJ), \
+	[.src.tds]net$(OBJ), [.src.tds]log$(OBJ), [.src.tds]stream$(OBJ), \
+	[.src.replacements]strlcpy$(OBJ), [.src.replacements]getpassarg$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) \
 	[.vms]getpass$(OBJ)
 

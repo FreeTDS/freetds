@@ -1216,7 +1216,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		if (hostcol->term_len > 0) { /* delimited data file */
 			int file_len;
 			size_t col_bytes_left;
-			offset_type file_bytes_left, len;
+			offset_type len;
+			TDSRET conv_res;
 			TDSICONV * conv;
 
 			len = _bcp_measure_terminated_field(hostfile, hostcol->terminator, hostcol->term_len);
@@ -1259,14 +1260,12 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 */
 			col_bytes_left = collen;
 			/* TODO make tds_iconv_fread handle terminator directly to avoid fseek in _bcp_measure_terminated_field */
-			file_bytes_left = tds_iconv_fread(NULL, conv, hostfile, file_len, hostcol->term_len, coldata, &col_bytes_left);
+			conv_res = tds_iconv_fread(NULL, conv, hostfile, file_len, hostcol->term_len, coldata, &col_bytes_left);
 			collen -= (int)col_bytes_left;
 
-			/* tdsdump_log(TDS_DBG_FUNC, "collen is %d after tds_iconv_fread()\n", collen); */
-
-			if (file_bytes_left != 0) {
-				tdsdump_log(TDS_DBG_FUNC, "col %d: %ld of %d bytes unread\nfile_bytes_left != 0!\n", 
-							(i+1), (long)file_bytes_left, collen);
+			if (TDS_FAILED(conv_res)) {
+				tdsdump_log(TDS_DBG_FUNC, "col %d: error converting %ld bytes!\n",
+							(i+1), (long) collen);
 				*row_error = TRUE;
 				free(coldata);
 				dbperror(dbproc, SYBEBCOR, 0);

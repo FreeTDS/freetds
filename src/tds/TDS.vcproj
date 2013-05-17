@@ -437,6 +437,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\stream.c"
+				>
+			</File>
+			<File
 				RelativePath=".\write.c"
 				>
 			</File>

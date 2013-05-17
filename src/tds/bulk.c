@@ -36,6 +36,8 @@
 #include <freetds/tds.h>
 #include "tds_checks.h"
 #include <freetds/bytes.h>
+#include <freetds/iconv.h>
+#include <freetds/stream.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -970,6 +972,69 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	}
 
 	return TDS_SUCCESS;
+}
+
+/** input stream to read a file */
+typedef struct tds_file_stream {
+	TDSINSTREAM stream;
+	FILE *f;
+	size_t left;
+} TDSFILESTREAM;
+
+static int
+tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
+{
+	TDSFILESTREAM *s = (TDSFILESTREAM *) stream;
+
+	if (len > s->left)
+		len = s->left;
+	if (!len)
+		return len;
+	len = fread(ptr, 1, len, s->f);
+	if (len) {
+		s->left -= len;
+		return len;
+	}
+	if (feof(s->f))
+		return len;
+	return -1;
+}
+
+/**
+ * Read a data file, passing the data through iconv().
+ * \return TDS_SUCCESS or TDS_FAIL.
+ */
+TDSRET
+tds_iconv_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft)
+{
+	TDSRET res;
+	TDSFILESTREAM r;
+	TDSSTATICSTREAM w;
+
+	r.stream.read = tds_file_stream_read;
+	r.f = stream;
+	r.left = field_len;
+	tds_static_stream_init(&w, outbuf, *outbytesleft);
+
+	if (char_conv == NULL)
+		res = tds_copy_stream(tds, &r.stream, &w.stream);
+	else
+		res = tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
+	if (TDS_FAILED(res))
+		return res;
+
+	*outbytesleft -= (char*) w.stream.buffer - outbuf;
+
+	if (term_len > 0 && !feof(stream)) {
+		char temp[1024];
+
+		if (1 != fread(temp, term_len, 1, stream)) {
+			tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: cannot read %u-byte terminator\n", (unsigned int) term_len);
+			res = TDS_FAIL;
+		}
+	}
+
+	return res;
 }
 
 TDSRET

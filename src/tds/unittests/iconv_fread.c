@@ -64,7 +64,8 @@ main(int argc, char **argv)
 
 	for (i = 0; i < 32; ++i) {
 		TDS_CHAR out[512];
-		size_t out_len = sizeof(out), res;
+		size_t out_len = sizeof(out);
+		TDSRET res;
 		const unsigned char x = 0x90;
 
 		/* write test string to file */
@@ -85,12 +86,12 @@ main(int argc, char **argv)
 		/* convert it */
 		memset(out, 'x', sizeof(out));
 		res = tds_iconv_fread(NULL, conv, f, i+2, 0, out, &out_len);
-		printf("res %u out_len %u\n", (unsigned int) res, (unsigned int) out_len);
+		printf("res %d out_len %u\n", (int) res, (unsigned int) out_len);
 
 		/* test */
 		memset(buf, 'a', i);
 		buf[i] = 0x90;
-		assert(res == 0);
+		assert(TDS_SUCCEED(res));
 		if (sizeof(out) - out_len != i+1) {
 			fprintf(stderr, "out %u bytes expected %d\n",
 				(unsigned int) (sizeof(out) - out_len), i+1);

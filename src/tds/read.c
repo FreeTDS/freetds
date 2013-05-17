@@ -41,6 +41,7 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/bytes.h>
+#include <freetds/stream.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -48,7 +49,7 @@
 TDS_RCSID(var, "$Id: read.c,v 1.117 2011-06-18 17:52:24 freddy77 Exp $");
 
 static int read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
-			    size_t * wire_size, char **outbuf, size_t * outbytesleft);
+			    size_t * wire_size, char *outbuf, size_t outbytesleft);
 
 /**
  * \ingroup libtds
@@ -153,16 +154,6 @@ tds_get_int8(TDSSOCKET * tds)
 	return (((TDS_INT8) h) << 32) | l;
 }
 
-#if ENABLE_EXTRA_CHECKS
-# define TEMP_INIT(s) char* temp = (char*)malloc(32); const size_t temp_size = 32
-# define TEMP_FREE free(temp);
-# define TEMP_SIZE temp_size
-#else
-# define TEMP_INIT(s) char temp[s]
-# define TEMP_FREE ;
-# define TEMP_SIZE sizeof(temp)
-#endif
-
 /**
  * Fetch a string from the wire.
  * Output string is NOT null terminated.
@@ -199,7 +190,7 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 			return string_len;
 		}
 
-		return read_and_convert(tds, tds->conn->char_convs[client2ucs2], &wire_bytes, &dest, &dest_size);
+		return read_and_convert(tds, tds->conn->char_convs[client2ucs2], &wire_bytes, dest, dest_size);
 	} else {
 		/* FIXME convert to client charset */
 		assert(dest_size >= (size_t) string_len);
@@ -257,8 +248,9 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		 * TDS5/UTF-16 -> use UTF-16
 		 */
 		in_left = blob ? curcol->column_cur_size : curcol->column_size;
-		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, &wire_size, &dest, &in_left);
+		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, &wire_size, dest, in_left);
 		if (wire_size > 0) {
+			tds_get_n(tds, NULL, wire_size);
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %u on wire while reading %d into client. \n", 
 							 (unsigned int) wire_size, curcol->column_cur_size);
 			return TDS_FAIL;
@@ -312,69 +304,23 @@ tds_get_n(TDSSOCKET * tds, void *dest, int need)
 /*
  * For UTF-8 and similar, tds_iconv() may encounter a partial sequence when the chunk boundary
  * is not aligned with the character boundary.  In that event, it will return an error, and
- * some number of bytes (less than a character) will remain in the tail end of temp[].  They are  
+ * some number of bytes (less than a character) will remain in the tail end of temp[].  They are
  * moved to the beginning, ptemp is adjusted to point just behind them, and the next chunk is read.
  */
 static int
-read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char **outbuf,
-		 size_t * outbytesleft)
+read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char *outbuf,
+		 size_t outbytesleft)
 {
-	TEMP_INIT(256);
-	/*
-	 * temp (above) is the "preconversion" buffer, the place where the UCS-2 data 
-	 * are parked before converting them to ASCII.  It has to have a size, 
-	 * and there's no advantage to allocating dynamically.  
-	 * This also avoids any memory allocation error.  
-	 */
-	const char *bufp;
-	size_t bufleft = 0;
-	const size_t max_output = *outbytesleft;
+	int res;
+	TDSDATASTREAM r;
+	TDSSTATICSTREAM w;
 
-	/* cast away const for message suppression sub-structure */
-	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &char_conv->suppress;
+	tds_data_stream_init(&r, tds, *wire_size);
+	tds_static_stream_init(&w, outbuf, outbytesleft);
 
-	memset(suppress, 0, sizeof(char_conv->suppress));
-	
-	for (bufp = temp; *wire_size > 0 && *outbytesleft > 0; bufp = temp + bufleft) {
-		assert(bufp >= temp);
-		/* read a chunk of data */
-		bufleft = TEMP_SIZE - bufleft;
-		if (bufleft > *wire_size)
-			bufleft = *wire_size;
-		tds_get_n(tds, (char *) bufp, (int)bufleft);
-		*wire_size -= bufleft;
-		bufleft += bufp - temp;
-
-		/* Convert chunk and write to dest. */
-		bufp = temp; /* always convert from start of buffer */
-		suppress->einval = *wire_size > 0; /* EINVAL matters only on the last chunk. */
-		if ((size_t)-1 == tds_iconv(tds, char_conv, to_client, &bufp, &bufleft, outbuf, outbytesleft)) {
-			tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: tds_iconv returned errno %d\n", errno);
-			if (errno != EILSEQ) {
-				tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: "
-							     "Gave up converting %u bytes due to error %d.\n",
-							     (unsigned int) bufleft, errno);
-				tdsdump_dump_buf(TDS_DBG_NETWORK, "Troublesome bytes:", bufp, bufleft);
-			}
-
-			if (bufp == temp) {	/* tds_iconv did not convert anything, avoid infinite loop */
-				tdsdump_log(TDS_DBG_NETWORK, "No conversion possible: draining remaining %u bytes.\n",
-							     (unsigned int) *wire_size);
-				tds_get_n(tds, NULL, (int)(*wire_size)); /* perhaps we should read unconverted data into outbuf? */
-				*wire_size = 0;
-				break;
-			}
-				
-			if (bufleft) {
-				memmove(temp, bufp, bufleft);
-			}
-		}
-	}
-
-	assert(*wire_size == 0 || *outbytesleft == 0);
-
-	TEMP_FREE;
-	return (int)(max_output - *outbytesleft);
+	res = tds_convert_stream(tds, char_conv, to_client, &r.stream, &w.stream);
+	*wire_size = r.wire_size;
+	return (char *) w.stream.buffer - outbuf;
 }
 
 /** @} */
