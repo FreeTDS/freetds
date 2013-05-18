@@ -272,8 +272,6 @@ put_utf16be(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 static int
 get_iso1(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
-	if (len < 1)
-		return -EINVAL;
 	*out = p[0];
 	return 1;
 }
@@ -292,8 +290,6 @@ put_iso1(unsigned char *buf, size_t buf_len, ICONV_CHAR c)
 static int
 get_ascii(const unsigned char *p, size_t len, ICONV_CHAR *out)
 {
-	if (len < 1)
-		return -EINVAL;
 	if (p[0] >= 0x80)
 		return -EILSEQ;
 	*out = p[0];
