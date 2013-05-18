@@ -1283,44 +1283,6 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 *    because English dates expressed as UTF-8 strings are indistinguishable from the ASCII.  
 			 */
 		} else {	/* unterminated field */
-#if 0
-			bcpcol = dbproc->bcpinfo->bindinfo->columns[hostcol->tab_colnum - 1];
-			if (collen == 0 || bcpcol->column_nullable) {
-				if (collen != 0) {
-					/* A fixed length type */
-					TDS_TINYINT len;
-					if (fread(&len, sizeof(len), 1, hostfile) != 1) {
-						if (i != 0)
-							dbperror(dbproc, SYBEBCRE, errno);
-						return FAIL;
-					}
-					if (len < 0)
-						dbperror(dbproc, SYBEBCNL, errno);
-						
-					/* TODO 255 for NULL ?? check it, perhaps 0 */
-					collen = len == 255 ? -1 : len;
-				} else {
-					TDS_SMALLINT len;
-
-					if (fread(&len, sizeof(len), 1, hostfile) != 1) {
-						if (i != 0)
-							dbperror(dbproc, SYBEBCRE, errno);
-						return FAIL;
-					}
-					if (len < 0)
-						dbperror(dbproc, SYBEBCNL, errno);
-					collen = len;
-				}
-				/* TODO if collen < -1 error */
-				if (collen <= -1) {
-					collen = 0;
-					data_is_null = 1;
-				}
-
-				tdsdump_log(TDS_DBG_FUNC, "Length read from hostfile: collen is now %d, data_is_null is %d\n", 
-							collen, data_is_null);
-			}
-#endif
 
 			coldata = (TDS_CHAR *) calloc(1, 1 + collen);
 			if (coldata == NULL) {
@@ -1362,12 +1324,6 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
 		 */
 		tdsdump_log(TDS_DBG_FUNC, "Data read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
-		if (i == 370 - 1) {
-			char buf[32];
-			memset(buf, '\0', sizeof(buf));
-			memcpy(buf, coldata, collen);
-			tdsdump_log(TDS_DBG_FUNC, "column 370 is '%s', converts to %f\n", buf, atof(buf));
-		}
 		if (hostcol->tab_colnum) {
 			if (data_is_null) {
 				bcpcol->bcp_column_data->is_null = 1;
