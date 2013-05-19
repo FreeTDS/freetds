@@ -662,7 +662,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 		TDS_UCHAR *poff = rowbuffer + row_pos;
 		unsigned int pfx_top = offsets[ncols] / 256;
 
-		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%x [%u]\n", ncols, poff, offsets[ncols]);
+		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%p [%u]\n", ncols, poff, offsets[ncols]);
 
 		*poff++ = ncols + 1;
 		/* this is some kind of run-length-prefix encoding */
@@ -676,7 +676,7 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 			--pfx_top;
 		}
    
-		tdsdump_log(TDS_DBG_FUNC, "poff=%x\n", poff);
+		tdsdump_log(TDS_DBG_FUNC, "poff=%p\n", poff);
 
 		for (i=0; i <= ncols; i++)
 			*poff++ = offsets[ncols-i] & 0xFF;
