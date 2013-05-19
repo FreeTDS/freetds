@@ -35,6 +35,7 @@
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
 #include "tds_checks.h"
+#include <freetds/stream.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -275,13 +276,45 @@ tds_data_row_len(TDSCOLUMN *col)
 	return col->column_size;
 }
 
+typedef struct tds_varmax_stream {
+	TDSINSTREAM stream;
+	TDSSOCKET *tds;
+	TDS_INT chunk_left;
+} TDSVARMAXSTREAM;
+
+static int
+tds_varmax_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
+{
+	TDSVARMAXSTREAM *s = (TDSVARMAXSTREAM *) stream;
+
+	/* read chunk len if needed */
+	if (s->chunk_left == 0) {
+		TDS_INT l = tds_get_int(s->tds);
+		if (l <= 0) l = -1;
+		s->chunk_left = l;
+	}
+
+	/* no more data ?? */
+	if (s->chunk_left < 0)
+		return 0;
+
+	/* read part of data */
+	if (len > s->chunk_left)
+		len = s->chunk_left;
+	s->chunk_left -= len;
+	tds_get_n(s->tds, ptr, len);
+	return len;
+}
+
 static TDSRET
 tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
-	TDS_INT8 len = tds_get_int8(tds);
-	TDS_INT chunk_len;
-	TDS_CHAR **p;
-	size_t offset;
+	TDS_INT8 len;
+	TDSRET res;
+	TDSVARMAXSTREAM r;
+	TDSDYNAMICSTREAM w;
+
+	len = tds_get_int8(tds);
 
 	/* NULL */
 	if (len == -1) {
@@ -289,27 +322,22 @@ tds72_get_varmax(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		return TDS_SUCCESS;
 	}
 
-	curcol->column_cur_size = 0;
-	offset = 0;
-	p = &(((TDSBLOB*) curcol->column_data)->textvalue);
-	for (;;) {
-		TDS_CHAR *tmp;
+	r.stream.read = tds_varmax_stream_read;
+	r.tds = tds;
+	r.chunk_left = 0;
 
-		chunk_len = tds_get_int(tds);
-		if (chunk_len <= 0) {
-			curcol->column_cur_size = offset;
-			return TDS_SUCCESS;
-		}
-		if (*p == NULL)
-			tmp = (TDS_CHAR*) malloc(chunk_len);
-		else
-			tmp = (TDS_CHAR*) realloc(*p, offset + chunk_len);
-		if (!tmp)
-			return TDS_FAIL;
-		*p = tmp;
-		tds_get_n(tds, *p + offset, chunk_len);
-		offset += chunk_len;
-	}
+	res = tds_dynamic_stream_init(&w, (void**) &(((TDSBLOB*) curcol->column_data)->textvalue), 0);
+	if (TDS_FAILED(res))
+		return res;
+
+	if (USE_ICONV && curcol->char_conv)
+		res = tds_convert_stream(tds, curcol->char_conv, to_client, &r.stream, &w.stream);
+	else
+		res = tds_copy_stream(tds, &r.stream, &w.stream);
+	if (TDS_FAILED(res))
+		return res;
+
+	curcol->column_cur_size = w.size;
 	return TDS_SUCCESS;
 }
 
