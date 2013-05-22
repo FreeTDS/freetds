@@ -314,6 +314,7 @@ tds_open_socket(TDSSOCKET *tds, struct tds_addrinfo *addr, unsigned int port, in
 		if (err != TDSSOCK_EINPROGRESS)
 			goto not_available;
 		
+		*p_oserr = TDSSOCK_ETIMEDOUT;
 		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) <= 0) {
 			tds_error = TDSECONN;
 			goto not_available;
