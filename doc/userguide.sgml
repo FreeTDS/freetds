@@ -156,7 +156,12 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 				<term><emphasis>was</emphasis> 9.0</term>
 				<listitem><para>Introduced for <productname>SQL Server 2005</productname>.  Includes support for varchar(max), varbinary(max), xml datatypes and MARS.</para></listitem>
 				</varlistentry>
+			</variablelist>
 
+			<varlistentry>
+				<term>TDS 7.3 Microsoft</term>
+				<listitem><para>Introduced for <productname>SQL Server 2008</productname>.  Includes support for extended date/time, table as parameters.</para></listitem>
+				</varlistentry>
 			</variablelist>
 		</sect1>
 	
@@ -362,7 +367,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 					<varlistentry>
 						<term><Option>--with-tdsver=<replaceable>VER</>
 							</Option></term>
-						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, <literal>7.1</literal> and <literal>7.2</literal>.</para>
+						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, <literal>7.1</literal>, <literal>7.2</literal> and <literal>7.3</literal>.</para>
 
 <para>The default is <literal>5.0</literal> if this argument is not passed to <Command>configure</Command>.</para>
 							</listitem>
