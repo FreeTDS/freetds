@@ -38,8 +38,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
-#include "tdsbytes.h"
+#include <freetds/tds.h>
+#include <freetds/bytes.h>
 #include "des.h"
 
 TDS_RCSID(var, "$Id: des.c,v 1.16 2011-05-16 08:51:40 freddy77 Exp $");

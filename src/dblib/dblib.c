@@ -58,9 +58,9 @@
  * 	This affects how certain application-addressable 
  * 	strucures are defined.  
  */
-#include <tds.h>
-#include <tdsthread.h>
-#include <tdsconvert.h>
+#include <freetds/tds.h>
+#include <freetds/thread.h>
+#include <freetds/convert.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>

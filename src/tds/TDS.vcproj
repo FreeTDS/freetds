@@ -291,7 +291,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\enum_cap.h"
+				RelativePath="..\..\include\freetds\enum_cap.h"
 				>
 			</File>
 			<File
@@ -307,7 +307,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\tds.h"
+				RelativePath="..\..\include\freetds\tds.h"
 				>
 			</File>
 			<File
@@ -315,7 +315,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\tds_sysdep_private.h"
+				RelativePath="..\..\include\freetds\sysdep_private.h"
 				>
 			</File>
 			<File

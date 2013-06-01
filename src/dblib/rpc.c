@@ -41,8 +41,8 @@
 
 #include <assert.h>
 
-#include <tds.h>
-#include <tdsconvert.h>
+#include <freetds/tds.h>
+#include <freetds/convert.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>

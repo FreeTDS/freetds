@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include <tds.h>
+#include <freetds/tds.h>
 #include <sybdb.h>
 #include <syberror.h>
 #include <dblib.h>

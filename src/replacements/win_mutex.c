@@ -29,8 +29,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
-#include "tdsthread.h"
+#include <freetds/tds.h>
+#include <freetds/thread.h>
 
 TDS_RCSID(var, "$Id: win_mutex.c,v 1.4 2011-09-01 07:55:57 freddy77 Exp $");
 

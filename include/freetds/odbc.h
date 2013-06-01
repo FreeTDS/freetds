@@ -21,8 +21,8 @@
 #ifndef _sql_h_
 #define _sql_h_
 
-#include "tds.h"
-#include "tdsthread.h"
+#include <freetds/tds.h>
+#include <freetds/thread.h>
 
 #if defined(UNIXODBC) || defined(TDS_NO_DM)
 #include <sql.h>

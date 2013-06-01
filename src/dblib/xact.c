@@ -26,7 +26,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#include <tds.h>
+#include <freetds/tds.h>
 #include <sybfront.h>
 #include <sybdb.h>
 #include <dblib.h>

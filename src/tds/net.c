@@ -84,8 +84,8 @@
 #include <poll.h>
 #endif /* HAVE_POLL_H */
 
-#include "tds.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/string.h>
 #include "replacements.h"
 
 #include <signal.h>
@@ -93,7 +93,7 @@
 
 #ifdef HAVE_GNUTLS
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
-#include "tdsthread.h"
+#include <freetds/thread.h>
 #include <gcrypt.h>
 #endif
 #include <gnutls/gnutls.h>

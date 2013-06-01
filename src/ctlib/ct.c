@@ -35,8 +35,8 @@
 
 #include "ctpublic.h"
 #include "ctlib.h"
-#include "tdsstring.h"
-#include "tds_enum_cap.h"
+#include <freetds/string.h>
+#include <freetds/enum_cap.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: ct.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");

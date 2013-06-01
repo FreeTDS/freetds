@@ -20,7 +20,7 @@
 #endif /* HAVE_NETINET_IN_H */
 
 #ifndef _WIN32
-#include "tds_sysdep_private.h"
+#include <freetds/sysdep_private.h>
 #else
 #define TDS_SDIR_SEPARATOR "\\"
 #endif

@@ -43,8 +43,8 @@
 #endif /* HAVE_SYS_SOCKET_H */
 
 #include "pool.h"
-#include "tdssrv.h"
-#include "tdsstring.h"
+#include <freetds/server.h>
+#include <freetds/string.h>
 
 TDS_RCSID(var, "$Id: user.c,v 1.38 2012-03-11 15:52:22 freddy77 Exp $");
 

@@ -23,7 +23,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds_sysdep_private.h"
+#include <freetds/sysdep_private.h>
 #include "replacements.h"
 
 #if ! HAVE_BASENAME

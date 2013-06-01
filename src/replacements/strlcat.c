@@ -23,7 +23,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds_sysdep_private.h"
+#include <freetds/sysdep_private.h>
 #include "replacements.h"
 
 /* $Id: strlcat.c,v 1.2 2011-05-16 08:51:40 freddy77 Exp $ */

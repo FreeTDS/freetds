@@ -18,7 +18,7 @@
  */
 
 #include "common.h"
-#include <tdsconvert.h>
+#include <freetds/convert.h>
 
 static TDSCONTEXT ctx;
 

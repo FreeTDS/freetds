@@ -17,8 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tdssrv_h_
-#define _tdssrv_h_
+#ifndef _tdsserver_h_
+#define _tdsserver_h_
 #endif
 
 #ifdef __cplusplus
@@ -28,9 +28,6 @@ extern "C"
 #if 0
 }
 #endif
-
-static const char rcsid_tdssrv_h[] = "$Id: tdssrv.h,v 1.11 2011-05-06 16:47:32 freddy77 Exp $";
-static const void *const no_unused_tdssrv_h_warn[] = { rcsid_tdssrv_h, no_unused_tdssrv_h_warn };
 
 /* login.c */
 unsigned char *tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass);

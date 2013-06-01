@@ -32,10 +32,10 @@
 
 #include <ctype.h>
 
-#include "tdsodbc.h"
-#include "tdsconvert.h"
-#include "tdsiconv.h"
-#include "tdsstring.h"
+#include <freetds/odbc.h>
+#include <freetds/convert.h>
+#include <freetds/iconv.h>
+#include <freetds/string.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>

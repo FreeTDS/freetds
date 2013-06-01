@@ -70,9 +70,9 @@
 #include <process.h>
 #endif
 
-#include "tds.h"
-#include "tds_configs.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/configs.h>
+#include <freetds/string.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>

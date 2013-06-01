@@ -36,8 +36,8 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include "tds.h"
-#include "tds_configs.h"
+#include <freetds/tds.h>
+#include <freetds/configs.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>

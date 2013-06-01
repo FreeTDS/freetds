@@ -27,8 +27,8 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-#include "tdsodbc.h"
-#include "tdsstring.h"
+#include <freetds/odbc.h>
+#include <freetds/string.h>
 #include "replacements.h"
 
 #ifdef DMALLOC

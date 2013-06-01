@@ -150,7 +150,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit13]
-FileName=..\freetds_sysconfdir.h
+FileName=..\freetds\sysconfdir.h
 Folder="Header Files"
 Compile=1
 CompileCpp=1
@@ -180,7 +180,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit16]
-FileName=..\..\include\tds.h
+FileName=..\..\include\freetds\tds.h
 Folder="Header Files"
 Compile=1
 CompileCpp=1
@@ -200,7 +200,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit18]
-FileName=..\..\include\tds_sysdep_private.h
+FileName=..\..\include\freetds\sysdep_private.h
 Folder="Header Files"
 Compile=1
 CompileCpp=1
@@ -230,7 +230,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit21]
-FileName=..\..\include\tdsconvert.h
+FileName=..\..\include\freetds\convert.h
 Folder="Header Files"
 Compile=1
 CompileCpp=1
@@ -240,7 +240,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit22]
-FileName=..\..\include\tdsiconv.h
+FileName=..\..\include\freetds\iconv.h
 Folder="Header Files"
 Compile=1
 CompileCpp=1
@@ -250,7 +250,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit23]
-FileName=..\..\include\tdsodbc.h
+FileName=..\..\include\freetds\odbc.h
 Folder="Header Files"
 Compile=1
 CompileCpp=1
@@ -260,7 +260,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit24]
-FileName=..\..\include\tdsstring.h
+FileName=..\..\include\freetds\string.h
 Folder="Header Files"
 Compile=1
 CompileCpp=1
@@ -270,7 +270,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit25]
-FileName=..\..\include\tdsver.h
+FileName=..\..\include\freetds\version.h
 Folder="Header Files"
 Compile=1
 CompileCpp=1

@@ -48,10 +48,10 @@ typedef struct tds_connection TDSCONNECTION;
 typedef struct tds_socket TDSSOCKET;
 typedef struct tds_column TDSCOLUMN;
 
-#include "tdsver.h"
+#include <freetds/version.h>
 #include "tds_sysdep_public.h"
-#include "tds_sysdep_private.h"
-#include "tdsthread.h"
+#include <freetds/sysdep_private.h>
+#include <freetds/thread.h>
 #include "replacements.h"
 
 #if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
@@ -128,7 +128,7 @@ typedef unsigned tds_sysdep_int64_type TDS_UINT8;	/* 64-bit unsigned */
 typedef tds_sysdep_intptr_type TDS_INTPTR;
 typedef unsigned tds_sysdep_intptr_type TDS_UINTPTR;
 
-#include "tdsproto.h"
+#include <freetds/proto.h>
 
 /* this structure is not directed connected to a TDS protocol but
  * keeps any DATE/TIME information

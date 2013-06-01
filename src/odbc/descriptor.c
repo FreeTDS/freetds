@@ -31,8 +31,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tdsodbc.h"
-#include "tdsstring.h"
+#include <freetds/odbc.h>
+#include <freetds/string.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>

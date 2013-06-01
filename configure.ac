@@ -855,10 +855,11 @@ AC_MSG_RESULT(done)
 # ------------------------------------------------------------
 # Final output
 # ------------------------------------------------------------
-AC_CONFIG_FILES(include/tdsver.h \
+AC_CONFIG_FILES(include/freetds/version.h \
 	include/tds_sysdep_public.h \
 	Makefile \
 	include/Makefile \
+	include/freetds/Makefile \
 	doc/Makefile \
 	samples/Makefile \
 	src/Makefile \

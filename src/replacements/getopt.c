@@ -52,7 +52,7 @@
 # include <unistd.h>
 #endif
 
-#include "tds_sysdep_private.h"
+#include <freetds/sysdep_private.h>
 
 #if defined(LIBC_SCCS) && !defined(lint)
 # if 0

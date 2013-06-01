@@ -25,7 +25,7 @@
  */
 #include "common.h"
 #include <assert.h>
-#include <tdsconvert.h>
+#include <freetds/convert.h>
 #include "replacements.h"
 
 #if HAVE_SYS_TIME_H

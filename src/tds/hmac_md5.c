@@ -21,7 +21,7 @@
 
 #include <config.h>
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "md5.h"
 #include "hmac_md5.h"
 #include <memory.h>

@@ -10,7 +10,7 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#include "tdsthread.h"
+#include <freetds/thread.h>
 
 #if TDS_HAVE_MUTEX
 

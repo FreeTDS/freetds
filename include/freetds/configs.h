@@ -17,16 +17,34 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _tdsver_h_
-#define _tdsver_h_
+#ifndef _tds_configs_h_
+#define _tds_configs_h_
 
-/* $Id$ */
+/* $Id: tds_configs.h,v 1.21 2005-07-08 08:22:53 freddy77 Exp $ */
 
-#define TDS_VERSION_NO "@PACKAGE@ v@VERSION@"
+#include <freetds/sysconfdir.h>
 
-#define TDS_VERSION_MAJOR @MAJOR@
-#define TDS_VERSION_MINOR @MINOR@
-#define TDS_VERSION_SUBVERSION @SUBVERSION@
-#define TDS_VERSION_BUILD_NUMBER @BUILD_NUMBER@
-
+#ifndef _tds_h_
+#error tds.h must be included before tds_configs.h
 #endif
+
+#ifdef __cplusplus
+extern "C"
+{
+#if 0
+}
+#endif
+#endif
+
+#define FREETDS_SYSCONFFILE FREETDS_SYSCONFDIR TDS_SDIR_SEPARATOR "freetds.conf"
+#define FREETDS_POOLCONFFILE FREETDS_SYSCONFDIR TDS_SDIR_SEPARATOR "pool.conf"
+#define FREETDS_LOCALECONFFILE FREETDS_SYSCONFDIR TDS_SDIR_SEPARATOR "locales.conf"
+
+#ifdef __cplusplus
+#if 0
+{
+#endif
+}
+#endif
+
+#endif /* _tds_configs_h_ */

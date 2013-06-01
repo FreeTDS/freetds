@@ -30,7 +30,7 @@
 #include <errno.h>
 #endif
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: socketpair.c,v 1.2 2012-03-04 11:34:22 freddy77 Exp $");

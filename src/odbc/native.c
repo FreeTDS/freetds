@@ -35,7 +35,7 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "tdsodbc.h"
+#include <freetds/odbc.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>

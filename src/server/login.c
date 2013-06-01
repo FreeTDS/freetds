@@ -51,10 +51,10 @@
 #include <arpa/inet.h>
 #endif /* HAVE_ARPA_INET_H */
 
-#include "tds.h"
-#include "tdsiconv.h"
-#include "tdssrv.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/iconv.h>
+#include <freetds/server.h>
+#include <freetds/string.h>
 
 static char software_version[] = "$Id: login.c,v 1.59 2012-03-11 15:52:22 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };

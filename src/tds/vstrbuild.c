@@ -30,7 +30,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: vstrbuild.c,v 1.21 2011-06-18 17:52:24 freddy77 Exp $");

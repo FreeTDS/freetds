@@ -20,7 +20,7 @@
 #include "common.h"
 
 #include <assert.h>
-#include <tdsconvert.h>
+#include <freetds/convert.h>
 
 static char software_version[] = "$Id: dataread.c,v 1.21 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };

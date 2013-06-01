@@ -33,10 +33,10 @@
 
 #include <ctype.h>
 
-#include "tds.h"
-#include "tds_enum_cap.h"
-#include "tdsiconv.h"
-#include "tdsconvert.h"
+#include <freetds/tds.h>
+#include <freetds/enum_cap.h>
+#include <freetds/iconv.h>
+#include <freetds/convert.h>
 #include "tds_checks.h"
 #include "replacements.h"
 #ifdef DMALLOC

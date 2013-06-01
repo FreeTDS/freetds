@@ -34,8 +34,8 @@
 
 #include <ctype.h>
 
-#include "tdsodbc.h"
-#include "tdsconvert.h"
+#include <freetds/odbc.h>
+#include <freetds/convert.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>

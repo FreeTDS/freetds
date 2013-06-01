@@ -41,9 +41,9 @@
 #include <process.h>
 #endif
 
-#include "tds.h"
-#include "tdsiconv.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/iconv.h>
+#include <freetds/string.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>

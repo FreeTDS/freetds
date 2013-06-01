@@ -33,9 +33,9 @@
 
 #include <assert.h>
 
-#include "tds.h"
-#include "tdsconvert.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/convert.h>
+#include <freetds/string.h>
 #include "tds_checks.h"
 
 #ifdef DMALLOC

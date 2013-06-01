@@ -18,7 +18,7 @@
  */
 
 #include "common.h"
-#include <tdsiconv.h>
+#include <freetds/iconv.h>
 
 #if HAVE_UNISTD_H
 #undef getpid

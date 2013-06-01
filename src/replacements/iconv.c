@@ -40,9 +40,9 @@
 #include <assert.h>
 #include <ctype.h>
 
-#include "tds.h"
-#include "tdsbytes.h"
-#include "tdsiconv.h"
+#include <freetds/tds.h>
+#include <freetds/bytes.h>
+#include <freetds/iconv.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>

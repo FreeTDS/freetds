@@ -26,7 +26,7 @@
 
 #include "cspublic.h"
 #include "ctlib.h"
-#include "tds.h"
+#include <freetds/tds.h>
 #include "replacements.h"
 /* #include "fortify.h" */
 

@@ -26,8 +26,8 @@
 
 #include <assert.h>
 
-#include "tds.h"
-#include "tdssrv.h"
+#include <freetds/tds.h>
+#include <freetds/server.h>
 
 static char software_version[] = "$Id: server.c,v 1.29 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };

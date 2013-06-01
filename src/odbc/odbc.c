@@ -49,10 +49,10 @@
 #include <assert.h>
 #include <ctype.h>
 
-#include "tdsodbc.h"
-#include "tdsiconv.h"
-#include "tdsstring.h"
-#include "tdsconvert.h"
+#include <freetds/odbc.h>
+#include <freetds/iconv.h>
+#include <freetds/string.h>
+#include <freetds/convert.h>
 #include "replacements.h"
 
 #ifdef DMALLOC

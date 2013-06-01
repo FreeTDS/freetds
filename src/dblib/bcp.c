@@ -40,9 +40,9 @@
 #include <io.h>
 #endif
 
-#include <tds.h>
-#include <tdsiconv.h>
-#include <tdsconvert.h>
+#include <freetds/tds.h>
+#include <freetds/iconv.h>
+#include <freetds/convert.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>

@@ -26,7 +26,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: getpassarg.c,v 1.1 2011-05-27 09:18:59 freddy77 Exp $");

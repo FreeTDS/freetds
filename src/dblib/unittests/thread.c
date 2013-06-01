@@ -3,7 +3,7 @@
  */
 
 #include "common.h"
-#include "tdsthread.h"
+#include <freetds/thread.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

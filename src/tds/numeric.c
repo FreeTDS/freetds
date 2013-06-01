@@ -27,9 +27,9 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include <tds.h>
-#include <tdsconvert.h>
-#include <tdsbytes.h>
+#include <freetds/tds.h>
+#include <freetds/convert.h>
+#include <freetds/bytes.h>
 #include <stdlib.h>
 #ifdef DMALLOC
 #include <dmalloc.h>

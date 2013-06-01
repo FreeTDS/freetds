@@ -29,8 +29,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
-#include "tdsthread.h"
+#include <freetds/tds.h>
+#include <freetds/thread.h>
 
 #include <errno.h>
 

@@ -30,10 +30,10 @@
 
 #include <assert.h>
 
-#include "tds.h"
-#include "tdsstring.h"
-#include "tdsconvert.h"
-#include "tdsiconv.h"
+#include <freetds/tds.h>
+#include <freetds/string.h>
+#include <freetds/convert.h>
+#include <freetds/iconv.h>
 #include "tds_checks.h"
 #include "replacements.h"
 

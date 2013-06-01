@@ -37,8 +37,8 @@
 #include <poll.h>
 #endif /* HAVE_POLL_H */
 
-#include "tds.h"
-#include "tdsthread.h"
+#include <freetds/tds.h>
+#include <freetds/thread.h>
 #include "replacements.h"
 
 #if TDS_HAVE_MUTEX

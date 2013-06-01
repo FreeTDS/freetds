@@ -43,9 +43,9 @@
 #include <poll.h>
 #endif /* HAVE_POLL_H */
 
-#include "tds.h"
-#include "tdsbytes.h"
-#include "tdsiconv.h"
+#include <freetds/tds.h>
+#include <freetds/bytes.h>
+#include <freetds/iconv.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>

@@ -31,9 +31,9 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include "tds.h"
-#include "tdsbytes.h"
-#include "tdsiconv.h"
+#include <freetds/tds.h>
+#include <freetds/bytes.h>
+#include <freetds/iconv.h>
 #include "tds_checks.h"
 #ifdef DMALLOC
 #include <dmalloc.h>

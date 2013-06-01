@@ -30,7 +30,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
+#include <freetds/tds.h>
 
 #ifdef __linux__
 #include <sys/ioctl.h>

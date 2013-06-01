@@ -38,9 +38,9 @@
 
 #include <assert.h>
 
-#include "tds.h"
-#include "tdsiconv.h"
-#include "tdsbytes.h"
+#include <freetds/tds.h>
+#include <freetds/iconv.h>
+#include <freetds/bytes.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
