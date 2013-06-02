@@ -275,7 +275,7 @@ static void
 tds_start_query(TDSSOCKET *tds)
 {
 	tds_put_n(tds, tds72_query_start, 10);
-	tds_put_n(tds, tds->tds72_transaction, 8);
+	tds_put_n(tds, tds->conn->tds72_transaction, 8);
 	tds_put_n(tds, tds72_query_start + 10 + 8, 4);
 }
 

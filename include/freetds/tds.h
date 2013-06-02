@@ -1049,6 +1049,7 @@ struct tds_connection
 	TDSICONV **char_convs;
 
 	TDS_UCHAR collation[5];
+	TDS_UCHAR tds72_transaction[8];
 
 	TDS_CAPABILITIES capabilities;
 	unsigned int broken_dates:1;
@@ -1137,7 +1138,6 @@ struct tds_socket
 	TDSLOGIN *login;	/**< config for login stuff. After login this field is NULL */
 
 	int spid;
-	TDS_UCHAR tds72_transaction[8];
 	void (*env_chg_func) (TDSSOCKET * tds, int type, char *oldval, char *newval);
 	TDS_OPERATION current_op;
 

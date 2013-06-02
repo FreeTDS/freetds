@@ -2099,13 +2099,13 @@ tds_process_env_chg(TDSSOCKET * tds)
 	if (type == TDS_ENV_BEGINTRANS) {
 		/* TODO check size */
 		size = tds_get_byte(tds);
-		tds_get_n(tds, tds->tds72_transaction, 8);
+		tds_get_n(tds, tds->conn->tds72_transaction, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;
 	}
 
 	if (type == TDS_ENV_COMMITTRANS || type == TDS_ENV_ROLLBACKTRANS) {
-		memset(tds->tds72_transaction, 0, 8);
+		memset(tds->conn->tds72_transaction, 0, 8);
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 		return TDS_SUCCESS;
