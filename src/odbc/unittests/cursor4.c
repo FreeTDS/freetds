@@ -1,6 +1,6 @@
 /* Test sp_cursorprepare / sp_cursorexecute usage to support SELECT FOR UPDATE
  * This test compiles and works fine with SQL Server Native Client, and uses
- * the sp_cursor* AIP Server Cursors ...
+ * the sp_cursor* API Server Cursors ...
  */
 
 #include "common.h"
@@ -38,9 +38,9 @@ main(int argc, char **argv)
 
 	CHKSetCursorName(T("c112"), SQL_NTS, "S");
 
-	CHKPrepare(T("SELECT * FROM #t1 FOR UPDATE"), SQL_NTS, "S");
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(SQL_AUTOCOMMIT_OFF), 0, "S");
 
-	exec_direct("BEGIN TRANSACTION");
+	CHKPrepare(T("SELECT * FROM #t1 FOR UPDATE"), SQL_NTS, "S");
 
 	CHKExecute("S");
 
@@ -50,7 +50,9 @@ main(int argc, char **argv)
 
 	CHKCloseCursor("SI");
 
-	exec_direct("COMMIT TRANSACTION");
+	CHKEndTran(SQL_HANDLE_DBC, odbc_conn, SQL_COMMIT, "S");
+
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(SQL_AUTOCOMMIT_ON), 0, "S");
 
 	CHKExecDirect(T("SELECT c FROM #t1 WHERE k = 1"), SQL_NTS, "S");
 
