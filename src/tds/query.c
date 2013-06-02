@@ -3441,7 +3441,7 @@ tds_submit_begin_tran(TDSSOCKET *tds)
 {
 	CHECK_TDS_EXTRA(tds);
 
-	if (!IS_TDS72(tds->conn))
+	if (!IS_TDS72_PLUS(tds->conn))
 		return tds_submit_query(tds, "BEGIN TRANSACTION");
 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
@@ -3464,7 +3464,7 @@ tds_submit_rollback(TDSSOCKET *tds, int cont)
 {
 	CHECK_TDS_EXTRA(tds);
 
-	if (!IS_TDS72(tds->conn))
+	if (!IS_TDS72_PLUS(tds->conn))
 		return tds_submit_query(tds, cont ? "IF @@TRANCOUNT > 0 ROLLBACK BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 ROLLBACK");
 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
@@ -3489,7 +3489,7 @@ tds_submit_commit(TDSSOCKET *tds, int cont)
 {
 	CHECK_TDS_EXTRA(tds);
 
-	if (!IS_TDS72(tds->conn))
+	if (!IS_TDS72_PLUS(tds->conn))
 		return tds_submit_query(tds, cont ? "IF @@TRANCOUNT > 0 COMMIT BEGIN TRANSACTION" : "IF @@TRANCOUNT > 0 COMMIT");
 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
