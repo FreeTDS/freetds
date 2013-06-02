@@ -693,7 +693,7 @@ AC_ARG_WITH(gnutls,
 AS_HELP_STRING([--with-gnutls], [build with TLS support]))
 if test "$with_gnutls" = "yes"; then
 	AC_DEFINE(HAVE_GNUTLS, 1, [Define to 1 if you have GNU tls.])
-	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --libs gnutls > /dev/null 2>&1; then
+	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gnutls > /dev/null 2>&1; then
 		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gnutls`"
 		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gnutls`"
 	else
@@ -755,6 +755,19 @@ else
 	AC_MSG_RESULT(disabled)
 fi
 AM_CONDITIONAL(ENABLE_THREADSAFE, test "$enable_threadsafe" != "no")
+
+# newer gcc are configured to fail to resolve references to libraries not
+# explicitly listed on the linker commandline.
+# So to make build add explicitly gcrypt library.
+if test "$enable_threadsafe" != "no" -a "$with_gnutls" = "yes"; then
+	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gcrypt> /dev/null 2>&1; then
+		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gcrypt`"
+		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gcrypt`"
+	else
+		CPPFLAGS="$CPPFLAGS `libgcrypt-config --cflags`"
+		NETWORK_LIBS="$NETWORK_LIBS `libgcrypt-config --libs`"
+	fi
+fi
 
 # we don't need to check netdb functions if they are already threadsafe
 if test $netdb_reentrant != yes; then
