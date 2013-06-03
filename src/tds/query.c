@@ -878,7 +878,10 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
  
 	param_str = (char *) malloc(512);
 	if (!param_str)
-		return NULL;
+		goto Cleanup;
+
+	if (!params)
+		goto no_params;
 
 	/* try to detect missing names */
 	if (params->num_cols) {
@@ -952,6 +955,8 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
  
 	}
 	free(ids);
+
+      no_params:
 	*out_len = l;
 	return param_str;
  
