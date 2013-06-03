@@ -921,7 +921,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
  
 		/* realloc on insufficient space */
 		il = ids[i].p ? ids[i].len : 2 * params->columns[i]->column_namelen;
-		while ((l + (2u * 26u) + il) > size) {
+		while ((l + (2u * 40u) + il) > size) {
 			p = (char *) realloc(param_str, size += 512);
 			if (!p)
 				goto Cleanup;
@@ -929,7 +929,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 		}
  
 		/* this part of buffer can be not-ascii compatible, use all ucs2... */
-		if (ids[i].len) {
+		if (ids[i].p) {
 			memcpy(param_str + l, ids[i].p, ids[i].len);
 			l += ids[i].len;
 		} else {
