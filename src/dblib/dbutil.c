@@ -193,9 +193,9 @@ _dblib_check_and_handle_interrupt(void * vdbproc)
 {
 	DBPROCESS * dbproc = (DBPROCESS*) vdbproc;
 	int ret = INT_CONTINUE;
-	
-	assert( ! (dbproc == NULL && DBDEAD(dbproc)) );  /* a non-process can't be a dead process */
-	
+
+	assert( dbproc != NULL && !DBDEAD(dbproc) );  /* a non-process can't be a dead process */
+
 	if (dbproc->chkintr == NULL || dbproc->hndlintr == NULL)
 		return INT_CONTINUE;
 		
