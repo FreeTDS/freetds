@@ -1814,20 +1814,12 @@ _bcp_fgets(char *buffer, int size, FILE *f)
 RETCODE
 bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 {
-	BCP_HOSTCOLINFO *hostcol;
+	BCP_HOSTCOLINFO hostcol[1];
 	FILE *ffile;
 	char buffer[1024];
 	float lf_version = 0.0;
 	int li_numcols = 0;
 	int colinfo_count = 0;
-
-	struct fflist
-	{
-		struct fflist *nextptr;
-		BCP_HOSTCOLINFO colinfo;
-	};
-	struct fflist *topptr = NULL;
-	struct fflist *curptr = NULL;
 
 	tdsdump_log(TDS_DBG_FUNC, "bcp_readfmt(%p, %s)\n", dbproc, filename? filename:"NULL");
 	CHECK_CONN(FAIL);
@@ -1853,62 +1845,49 @@ bcp_readfmt(DBPROCESS * dbproc, const char filename[])
 		return FAIL;
 	}
 
-	/* FIXME fix memory leak, if this function returns FAIL... */
-	while ((_bcp_fgets(buffer, sizeof(buffer), ffile)) != NULL) {
+	if (li_numcols <= 0)
+		return FAIL;
 
-		if (topptr == NULL) {	/* first time */
-			if ((curptr = (struct fflist*) malloc(sizeof(struct fflist))) == NULL) {
-				dbperror(dbproc, SYBEMEM, errno);
-				return FAIL;
-			}
-			topptr = curptr;
-		} else {
-			if ((curptr->nextptr = (struct fflist*) malloc(sizeof(struct fflist))) == NULL) {
-				dbperror(dbproc, SYBEMEM, errno);
-				return FAIL;
-			}
-			curptr = curptr->nextptr;
+	if (bcp_columns(dbproc, li_numcols) == FAIL)
+		return FAIL;
+
+	do {
+		memset(hostcol, 0, sizeof(hostcol));
+
+		if (_bcp_fgets(buffer, sizeof(buffer), ffile) == NULL)
+			goto Cleanup;
+
+		if (!_bcp_readfmt_colinfo(dbproc, buffer, hostcol))
+			goto Cleanup;
+
+		if (bcp_colfmt(dbproc, hostcol->host_column, hostcol->datatype,
+			       hostcol->prefix_len, hostcol->column_len,
+			       hostcol->terminator, hostcol->term_len, hostcol->tab_colnum) == FAIL) {
+			goto Cleanup;
 		}
-		curptr->nextptr = NULL;
-		if (_bcp_readfmt_colinfo(dbproc, buffer, &(curptr->colinfo)))
-			colinfo_count++;
-		else
-			return FAIL;
 
-	}
+		TDS_ZERO_FREE(hostcol->terminator);
+	} while (++colinfo_count < li_numcols);
+
 	if (ferror(ffile)) {
 		dbperror(dbproc, SYBEBRFF, errno);
-		return FAIL;
+		goto Cleanup;
 	}
 	
 	if (fclose(ffile) != 0) {
 		dbperror(dbproc, SYBEBUCF, 0);
-		return FAIL;
+		goto Cleanup;
 	}
 
 	if (colinfo_count != li_numcols)
-		return FAIL;
-
-	if (bcp_columns(dbproc, li_numcols) == FAIL) {
-		return FAIL;
-	}
-
-	for (curptr = topptr; curptr->nextptr != NULL; curptr = curptr->nextptr) {
-		hostcol = &(curptr->colinfo);
-		if (bcp_colfmt(dbproc, hostcol->host_column, hostcol->datatype,
-			       hostcol->prefix_len, hostcol->column_len,
-			       hostcol->terminator, hostcol->term_len, hostcol->tab_colnum) == FAIL) {
-			return FAIL;
-		}
-	}
-	hostcol = &(curptr->colinfo);
-	if (bcp_colfmt(dbproc, hostcol->host_column, hostcol->datatype,
-		       hostcol->prefix_len, hostcol->column_len,
-		       hostcol->terminator, hostcol->term_len, hostcol->tab_colnum) == FAIL) {
-		return FAIL;
-	}
+		goto Cleanup;
 
 	return SUCCEED;
+
+Cleanup:
+	TDS_ZERO_FREE(hostcol->terminator);
+	_bcp_free_columns(dbproc);
+	return FAIL;
 }
 
 /** 
