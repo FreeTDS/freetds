@@ -2292,12 +2292,14 @@ bcp_bind(DBPROCESS * dbproc, BYTE * varaddr, int prefixlen, DBINT varlen,
 
 	TDS_ZERO_FREE(colinfo->bcp_terminator);
 	colinfo->bcp_term_len = 0;
-	if((colinfo->bcp_terminator =  (TDS_CHAR*) malloc(termlen)) == NULL) {
-		dbperror(dbproc, SYBEMEM, errno);
-		return FAIL;
+	if (termlen) {
+		if ((colinfo->bcp_terminator =  (TDS_CHAR*) malloc(termlen)) == NULL) {
+			dbperror(dbproc, SYBEMEM, errno);
+			return FAIL;
+		}
+		memcpy(colinfo->bcp_terminator, terminator, termlen);
+		colinfo->bcp_term_len = termlen;
 	}
-	memcpy(colinfo->bcp_terminator, terminator, termlen);
-	colinfo->bcp_term_len = termlen;
 
 	return SUCCEED;
 }
