@@ -362,6 +362,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			 */
 			param_definition = tds7_build_param_def_from_query(tds, converted_query, converted_query_len, params, &definition_len);
 			if (!param_definition) {
+				tds_convert_string_free(query, converted_query);
 				tds_set_state(tds, TDS_IDLE);
 				return TDS_FAIL;
 			}
