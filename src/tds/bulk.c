@@ -978,26 +978,49 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 typedef struct tds_file_stream {
 	TDSINSTREAM stream;
 	FILE *f;
-	size_t left;
+
+	const char *terminator;
+	size_t term_len;
+
+	char *left;
+	size_t left_len;
 } TDSFILESTREAM;
+
+#ifndef TDS_HAVE_STDIO_LOCKED
+#undef getc_unlocked
+#undef flockfile
+#undef funlockfile
+#define getc_unlocked(s) getc(s)
+#define flockfile(s) do { } while(0)
+#define funlockfile(s) do { } while(0)
+#endif
 
 static int
 tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 {
 	TDSFILESTREAM *s = (TDSFILESTREAM *) stream;
+	int c;
+	char *p = (char *) ptr;
+#define GETC() do { c = getc_unlocked(s->f); if (c==EOF) return -1; } while(0)
 
-	if (len > s->left)
-		len = s->left;
-	if (!len)
-		return len;
-	len = fread(ptr, 1, len, s->f);
-	if (len) {
-		s->left -= len;
-		return len;
+	while (s->left_len < s->term_len) {
+		GETC();
+		s->left[s->left_len++] = c;
 	}
-	if (feof(s->f))
-		return len;
-	return -1;
+
+	while (len) {
+		if (memcmp(s->left, s->terminator, s->term_len) == 0)
+			return p - (char *) ptr;
+
+		GETC();
+
+		*p++ = s->left[0];
+		--len;
+
+		memmove(s->left, s->left+1, s->term_len-1);
+		s->left[s->term_len-1] = c;
+	}
+	return p - (char *) ptr;
 }
 
 /**
@@ -1005,34 +1028,47 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
  * \return TDS_SUCCESS or TDS_FAIL.
  */
 TDSRET
-tds_iconv_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, size_t field_len, size_t term_len, char *outbuf, size_t * outbytesleft)
+tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *terminator, size_t term_len, char **outbuf, size_t * outbytes)
 {
 	TDSRET res;
 	TDSFILESTREAM r;
-	TDSSTATICSTREAM w;
+	TDSDYNAMICSTREAM w;
 
+	/* prepare streams */
 	r.stream.read = tds_file_stream_read;
 	r.f = stream;
-	r.left = field_len;
-	tds_static_stream_init(&w, outbuf, *outbytesleft);
+	r.terminator = terminator;
+	r.term_len = term_len;
+	r.left = calloc(1, term_len);
+	if (!r.left) return TDS_FAIL;
+	r.left_len = 0;
 
+	res = tds_dynamic_stream_init(&w, (void**) outbuf, 0);
+	if (TDS_FAILED(res)) {
+		free(r.left);
+		return res;
+	}
+
+	/* convert/copy from input stream to output one */
+	flockfile(stream);
 	if (char_conv == NULL)
 		res = tds_copy_stream(tds, &r.stream, &w.stream);
 	else
 		res = tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
+	funlockfile(stream);
+	free(r.left);
+
 	if (TDS_FAILED(res))
 		return res;
 
-	*outbytesleft -= (char*) w.stream.buffer - outbuf;
+	*outbytes = w.size;
 
-	if (term_len > 0 && !feof(stream)) {
-		char temp[1024];
+	/* terminate buffer */
+	if (!w.stream.buf_len)
+		return TDS_FAIL;
 
-		if (1 != fread(temp, term_len, 1, stream)) {
-			tdsdump_log(TDS_DBG_FUNC, "tds_iconv_fread: cannot read %u-byte terminator\n", (unsigned int) term_len);
-			res = TDS_FAIL;
-		}
-	}
+	((char *) w.stream.buffer)[0] = 0;
+	w.stream.write(&w.stream, 1);
 
 	return res;
 }

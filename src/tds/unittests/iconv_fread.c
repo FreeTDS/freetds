@@ -32,11 +32,12 @@
 static char software_version[] = "$Id: iconv_fread.c,v 1.4 2007-11-26 14:44:37 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+static char buf[4096+80];
+
 int
 main(int argc, char **argv)
 {
 	static const char out_file[] = "iconv_fread.out";
-	char buf[256];
 	int i;
 	FILE *f;
 	TDSCONTEXT *ctx = tds_alloc_context(NULL);
@@ -62,9 +63,9 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	for (i = 0; i < 32; ++i) {
-		TDS_CHAR out[512];
-		size_t out_len = sizeof(out);
+	for (i = 4096-20; i < 4096+20; ++i) {
+		char *out = NULL;
+		size_t out_len = 0xdeadbeef;
 		TDSRET res;
 		const unsigned char x = 0x90;
 
@@ -76,28 +77,30 @@ main(int argc, char **argv)
 		memset(buf, 'a', i);
 		buf[i] = 0xC0 + (x >> 6);
 		buf[i+1] = 0x80 + (x & 0x3f);
+		buf[i+2] = '!';
+		buf[i+3] = '!';
 
-		fwrite(buf, 1, i+2, f);
+		fwrite(buf, 1, i+4, f);
 		if (fseek(f, 0L, SEEK_SET)) {
 			fprintf(stderr, "Error seeking!\n");
 			return 1;
 		}
 
 		/* convert it */
-		memset(out, 'x', sizeof(out));
-		res = tds_iconv_fread(NULL, conv, f, i+2, 0, out, &out_len);
+		res = tds_bcp_fread(NULL, conv, f, "!!", 2, &out, &out_len);
 		printf("res %d out_len %u\n", (int) res, (unsigned int) out_len);
 
 		/* test */
 		memset(buf, 'a', i);
-		buf[i] = 0x90;
+		buf[i] = (char) x;
 		assert(TDS_SUCCEED(res));
-		if (sizeof(out) - out_len != i+1) {
+		if (out_len != i+1) {
 			fprintf(stderr, "out %u bytes expected %d\n",
-				(unsigned int) (sizeof(out) - out_len), i+1);
+				(unsigned int) out_len, i+1);
 			return 1;
 		}
 		assert(memcmp(out, buf, i+1) == 0);
+		free(out);
 	}
 	fclose(f);
 	unlink(out_file);

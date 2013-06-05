@@ -73,5 +73,19 @@ typedef struct tds_static_stream {
 
 void tds_static_stream_init(TDSSTATICSTREAM * stream, void *ptr, size_t len);
 
+/** output stream to write data to a dynamic buffer */
+typedef struct tds_dynamic_stream {
+	TDSOUTSTREAM stream;
+	/** where is stored the pointer */
+	void **buf;
+	/** currently allocated buffer */
+	size_t allocated;
+	/** size of data inside buffer */
+	size_t size;
+} TDSDYNAMICSTREAM;
+
+TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated);
+
+
 #endif
 

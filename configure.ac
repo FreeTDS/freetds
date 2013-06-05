@@ -802,6 +802,13 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;],
 [pthread_mutex_lock(&mutex);
 pthread_mutex_unlock(&mutex)], AC_DEFINE(TDS_HAVE_PTHREAD_MUTEX, 1, [Define if you have pthread with mutex support]))
 
+# easy test for locking stdio
+AC_TRY_LINK([#include <stdio.h>],
+[int c;
+flockfile(stdin);
+c = getc_unlocked(stdin);
+funlockfile(stdin);], AC_DEFINE(TDS_HAVE_STDIO_LOCKED, 1, [Define if stdio support locking]))
+
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING([--disable-debug], [disable assert and other things]),
 	[use_debug=$enableval], [use_debug=yes])

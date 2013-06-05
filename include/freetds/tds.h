@@ -1468,6 +1468,9 @@ TDSRET tds_bcp_done(TDSSOCKET *tds, int *rows_copied);
 TDSRET tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 TDSRET tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo);
 
+TDSRET tds_bcp_fread(TDSSOCKET * tds, TDSICONV * conv, FILE * stream,
+		     const char *terminator, size_t term_len, char **outbuf, size_t * outbytes);
+
 TDSRET tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size);
 TDSRET tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size);
 TDSRET tds_writetext_end(TDSSOCKET *tds);

@@ -180,3 +180,42 @@ void tds_static_stream_init(TDSSTATICSTREAM * stream, void *ptr, size_t len)
 	stream->stream.buf_len = len;
 }
 
+static int
+tds_dynamic_stream_write(TDSOUTSTREAM *stream, size_t len)
+{
+	TDSDYNAMICSTREAM *s = (TDSDYNAMICSTREAM *) stream;
+	size_t wanted;
+
+	s->size += len;
+	/* TODO use a more smart algorithm */
+	wanted = s->size + 2048;
+	if (wanted > s->allocated) {
+		void *p = realloc(*s->buf, wanted);
+		if (!p) return -1;
+		*s->buf = p;
+		s->allocated = wanted;
+	}
+	assert(s->allocated > s->size);
+	stream->buffer = (char *) *s->buf + s->size;
+	stream->buf_len = s->allocated - s->size;
+	return len;
+}
+
+TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated)
+{
+	stream->stream.write = tds_dynamic_stream_write;
+	stream->buf = ptr;
+	if (allocated < 1024) {
+		if (*ptr) free(*ptr);
+		*ptr = malloc(1024);
+		if (!*ptr) return TDS_FAIL;
+		allocated = 1024;
+	}
+	stream->allocated = allocated;
+	stream->size = 0;
+	stream->stream.buffer = *ptr;
+	stream->stream.buf_len = allocated;
+	return TDS_SUCCESS;
+}
+
+
