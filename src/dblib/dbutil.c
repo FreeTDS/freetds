@@ -95,7 +95,7 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 		 */
 		/* Cannot call dbperror() here because server messsage numbers (and text) are not in its lookup table. */
 		static const char message[] = "General SQL Server error: Check messages from the SQL Server";
-		(*_dblib_err_handler)(dbproc, msg->severity, msg->msgno, DBNOERR, (char *) message, NULL);
+		(*_dblib_err_handler)(dbproc, msg->severity, SYBESMSG, DBNOERR, (char *) message, NULL);
 	}
 	return TDS_SUCCESS;
 }
