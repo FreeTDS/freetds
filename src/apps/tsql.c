@@ -79,6 +79,10 @@
 #include <langinfo.h>
 #endif /* HAVE_LANGINFO_H */
 
+#ifdef HAVE_LOCALCHARSET_H
+#include <localcharset.h>
+#endif /* HAVE_LOCALCHARSET_H */
+
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/string.h>
