@@ -2810,7 +2810,7 @@ DBBOOL
 dbwillconvert(int srctype, int desttype)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbwillconvert(%s, %s)\n", tds_prdatatype(srctype), tds_prdatatype(desttype));
-	return tds_willconvert(srctype, desttype);
+	return tds_willconvert(srctype, desttype) ? TRUE : FALSE;
 }
 
 /**
