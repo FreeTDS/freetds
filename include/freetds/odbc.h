@@ -83,6 +83,17 @@
 #define SQL_SS_TIMESTAMPOFFSET	(-155)
 #endif
 
+/*
+ * these types are used from conversion from client to server
+ */
+#ifndef SQL_C_SS_TIME2
+#define SQL_C_SS_TIME2	(0x4000)
+#endif
+
+#ifndef SQL_C_SS_TIMESTAMPOFFSET
+#define SQL_C_SS_TIMESTAMPOFFSET	(0x4001)
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
