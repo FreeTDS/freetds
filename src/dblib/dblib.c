@@ -6304,6 +6304,10 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 
 	blob = (TDSBLOB *) colinfo->column_data;
 
+	/* test if valid */
+	if (!blob->valid_ptr)
+		return NULL;
+
 	return (DBBINARY *) blob->timestamp;
 }
 
@@ -6330,6 +6334,10 @@ dbtxptr(DBPROCESS * dbproc, int column)
 		return NULL;
 
 	blob = (TDSBLOB *) colinfo->column_data;
+
+	/* test if valid */
+	if (!blob->valid_ptr)
+		return NULL;
 
 	return (DBBINARY *) blob->textptr;
 }

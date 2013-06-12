@@ -482,6 +482,10 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		if (len == 16) {	/*  Jeff's hack */
 			tds_get_n(tds, blob->textptr, 16);
 			tds_get_n(tds, blob->timestamp, 8);
+			blob->valid_ptr = 1;
+			if (IS_TDS72_PLUS(tds->conn) &&
+			    memcmp(blob->textptr, "dummy textptr\0\0",16) == 0)
+				blob->valid_ptr = 0;
 			colsize = tds_get_int(tds);
 		} else {
 			colsize = -1;
