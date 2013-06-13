@@ -149,14 +149,16 @@ static char *
 gets_alloc(void)
 {
 	char reply[256];
-	char *p;
+	char *p = NULL;
 
-	if (fgets(reply, sizeof(reply), stdin) == NULL)
-		return NULL;
-	p = strchr(reply, '\n');
-	if (p)
-		*p = 0;
-	return strdup(reply);
+	if (fgets(reply, sizeof(reply), stdin) != NULL) {
+		p = strchr(reply, '\n');
+		if (p)
+			*p = 0;
+		p = strdup(reply);
+	}
+	memset(reply, 0, sizeof(reply));
+	return p;
 }
 
 static int
@@ -182,6 +184,7 @@ process_objectinfo(OBJECTINFO *oi, char *arg, const char *prompt)
 		oi->pass = gets_alloc();
 	} else {
 		oi->pass = strdup(tok);
+		memset(tok, '*', strlen(tok));
 	}
 
 	tok = strsep(&arg, "/");
