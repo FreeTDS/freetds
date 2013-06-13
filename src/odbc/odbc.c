@@ -3245,7 +3245,6 @@ odbc_cursor_execute(TDS_STMT * stmt)
 			tds_release_cursor(&stmt->cursor);
 		}
 	}
-	odbc_unlock_statement(stmt);
 	return ret;
 }
 
