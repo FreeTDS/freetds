@@ -2791,8 +2791,7 @@ dbclrbuf(DBPROCESS * dbproc, DBINT n)
  * \param desttype type converting to
  * \remarks dbwillconvert() lies sometimes.  Some datatypes \em should be convertible but aren't yet in our implementation.  
  *          Legal unimplemented conversions return \em TRUE.  
- * \retval TRUE convertible, or should be. For conversions from a fix-length type to a character type (e.g. INT to VARCHAR), the value 
- *         returned is the number of bytes needed hold the output.  
+ * \retval TRUE convertible, or should be.
  * \retval FAIL not convertible.  
  * \sa dbaltbind(), dbbind(), dbconvert(), dbconvert_ps(), \c src/dblib/unittests/convert().c().
  */
