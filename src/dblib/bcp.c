@@ -1831,10 +1831,15 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 				ci->datatype = SYBDECIMAL;
 			else if (strcmp(tok, "SYBMONEY") == 0)
 				ci->datatype = SYBMONEY;
+			else if (strcmp(tok, "SYBMONEY4") == 0)
+				ci->datatype = SYBMONEY4;
 			else if (strcmp(tok, "SYBDATETIME") == 0)
 				ci->datatype = SYBDATETIME;
 			else if (strcmp(tok, "SYBDATETIME4") == 0)
 				ci->datatype = SYBDATETIME4;
+			/* TODO SQL* for MS
+			   SQLNCHAR SQLBIGINT SQLTINYINT SQLSMALLINT
+			   SQLUNIQUEID SQLVARIANT SQLUDT */
 			else {
 				dbperror(dbproc, SYBEBUDF, 0);
 				return (FALSE);
