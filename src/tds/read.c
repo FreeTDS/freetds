@@ -48,8 +48,8 @@
 
 TDS_RCSID(var, "$Id: read.c,v 1.117 2011-06-18 17:52:24 freddy77 Exp $");
 
-static int read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
-			    size_t * wire_size, char *outbuf, size_t outbytesleft);
+static size_t read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
+			       size_t * wire_size, char *outbuf, size_t outbytesleft);
 
 /**
  * \ingroup libtds
@@ -101,40 +101,40 @@ tds_peek(TDSSOCKET * tds)
 /**
  * Get an int16 from the server.
  */
-TDS_SMALLINT
-tds_get_smallint(TDSSOCKET * tds)
+TDS_USMALLINT
+tds_get_usmallint(TDSSOCKET * tds)
 {
 	unsigned char bytes[2];
 
 	tds_get_n(tds, bytes, 2);
 #if WORDS_BIGENDIAN
 	if (tds_conn(tds)->emul_little_endian)
-		return (TDS_SMALLINT) TDS_GET_A2LE(bytes);
+		return (TDS_USMALLINT) TDS_GET_A2LE(bytes);
 #endif
-	return (TDS_SMALLINT) TDS_GET_A2(bytes);
+	return (TDS_USMALLINT) TDS_GET_A2(bytes);
 }
 
 
 /**
  * Get an int32 from the server.
  */
-TDS_INT
-tds_get_int(TDSSOCKET * tds)
+TDS_UINT
+tds_get_uint(TDSSOCKET * tds)
 {
 	unsigned char bytes[4];
 
 	tds_get_n(tds, bytes, 4);
 #if WORDS_BIGENDIAN
 	if (tds_conn(tds)->emul_little_endian)
-		return (TDS_INT) TDS_GET_A4LE(bytes);
+		return TDS_GET_A4LE(bytes);
 #endif
-	return (TDS_INT) TDS_GET_A4(bytes);
+	return TDS_GET_A4(bytes);
 }
 
-TDS_INT8
-tds_get_int8(TDSSOCKET * tds)
+TDS_UINT8
+tds_get_uint8(TDSSOCKET * tds)
 {
-	TDS_INT h;
+	TDS_UINT h;
 	TDS_UINT l;
 	unsigned char bytes[8];
 
@@ -142,16 +142,16 @@ tds_get_int8(TDSSOCKET * tds)
 #if WORDS_BIGENDIAN
 	if (tds_conn(tds)->emul_little_endian) {
 		l = TDS_GET_A4LE(bytes);
-		h = (TDS_INT) TDS_GET_A4LE(bytes+4);
+		h = TDS_GET_A4LE(bytes+4);
 	} else {
-		h = (TDS_INT) TDS_GET_A4(bytes);
+		h = TDS_GET_A4(bytes);
 		l = TDS_GET_A4(bytes+4);
 	}
 #else
 	l = TDS_GET_A4(bytes);
-	h = (TDS_INT) TDS_GET_A4(bytes+4);
+	h = TDS_GET_A4(bytes+4);
 #endif
-	return (((TDS_INT8) h) << 32) | l;
+	return (((TDS_UINT8) h) << 32) | l;
 }
 
 /**
@@ -167,8 +167,8 @@ tds_get_int8(TDSSOCKET * tds)
  * @param dest destination buffer, if NULL string is read and discarded
  * @param dest_size destination buffer size, in bytes
  */
-int
-tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
+size_t
+tds_get_string(TDSSOCKET * tds, size_t string_len, char *dest, size_t dest_size)
 {
 	size_t wire_bytes;
 
@@ -176,17 +176,14 @@ tds_get_string(TDSSOCKET * tds, int string_len, char *dest, size_t dest_size)
 	 * FIX: 02-Jun-2000 by Scott C. Gray (SCG)
 	 * Bug to malloc(0) on some platforms.
 	 */
-	if (string_len == 0) {
+	if (string_len == 0)
 		return 0;
-	}
-
-	assert(string_len >= 0 && dest_size >= 0);
 
 	wire_bytes = IS_TDS7_PLUS(tds->conn) ? string_len * 2 : string_len;
 
 	if (IS_TDS7_PLUS(tds->conn)) {
 		if (dest == NULL) {
-			tds_get_n(tds, NULL, (int)wire_bytes);
+			tds_get_n(tds, NULL, wire_bytes);
 			return string_len;
 		}
 
@@ -257,7 +254,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		}
 	} else {
 		curcol->column_cur_size = (TDS_INT)wire_size;
-		if (tds_get_n(tds, dest, (int)wire_size) == NULL) {
+		if (tds_get_n(tds, dest, wire_size) == NULL) {
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: failed to read %u from wire. \n",
 				    (unsigned int) wire_size);
 			return TDS_FAIL;
@@ -273,12 +270,12 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
  * dest of NULL means we just want to eat the bytes.   (tetherow@nol.org)
  */
 void *
-tds_get_n(TDSSOCKET * tds, void *dest, int need)
+tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 {
 	assert(need >= 0);
 
 	for (;;) {
-		int have = tds->in_len - tds->in_pos;
+		unsigned int have = tds->in_len - tds->in_pos;
 
 		if (need <= have)
 			break;
@@ -307,7 +304,7 @@ tds_get_n(TDSSOCKET * tds, void *dest, int need)
  * some number of bytes (less than a character) will remain in the tail end of temp[].  They are
  * moved to the beginning, ptemp is adjusted to point just behind them, and the next chunk is read.
  */
-static int
+static size_t
 read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char *outbuf,
 		 size_t outbytesleft)
 {

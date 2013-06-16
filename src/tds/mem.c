@@ -89,7 +89,7 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
  * @{
  */
 
-static volatile int inc_num = 1;
+static volatile unsigned int inc_num = 1;
 
 /**
  * Get an id for dynamic query based on TDS information
@@ -269,7 +269,7 @@ tds_alloc_param_result(TDSPARAMINFO * old_param)
 	if (!old_param || !old_param->num_cols) {
 		cols = (TDSCOLUMN **) malloc(sizeof(TDSCOLUMN *));
 	} else {
-		cols = (TDSCOLUMN **) realloc(old_param->columns, sizeof(TDSCOLUMN *) * (old_param->num_cols + 1));
+		cols = (TDSCOLUMN **) realloc(old_param->columns, sizeof(TDSCOLUMN *) * (old_param->num_cols + 1u));
 	}
 	if (!cols)
 		goto Cleanup;
@@ -372,9 +372,9 @@ tds_alloc_param_data(TDSCOLUMN * curparam)
  */
 
 static TDSCOMPUTEINFO *
-tds_alloc_compute_result(int num_cols, int by_cols)
+tds_alloc_compute_result(TDS_USMALLINT num_cols, TDS_USMALLINT by_cols)
 {
-	int col;
+	TDS_USMALLINT col;
 	TDSCOMPUTEINFO *info;
 
 	TEST_MALLOC(info, TDSCOMPUTEINFO);
@@ -403,9 +403,9 @@ tds_alloc_compute_result(int num_cols, int by_cols)
 }
 
 TDSCOMPUTEINFO **
-tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols)
+tds_alloc_compute_results(TDSSOCKET * tds, TDS_USMALLINT num_cols, TDS_USMALLINT by_cols)
 {
-	int n;
+	TDS_UINT n;
 	TDSCOMPUTEINFO **comp_info;
 	TDSCOMPUTEINFO *cur_comp_info;
 
@@ -420,7 +420,7 @@ tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols)
 	if (n == 0)
 		comp_info = (TDSCOMPUTEINFO **) malloc(sizeof(TDSCOMPUTEINFO *));
 	else
-		comp_info = (TDSCOMPUTEINFO **) realloc(tds->comp_info, sizeof(TDSCOMPUTEINFO *) * (n + 1));
+		comp_info = (TDSCOMPUTEINFO **) realloc(tds->comp_info, sizeof(TDSCOMPUTEINFO *) * (n + 1u));
 
 	if (!comp_info) {
 		tds_free_compute_result(cur_comp_info);
@@ -429,7 +429,7 @@ tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols)
 
 	tds->comp_info = comp_info;
 	comp_info[n] = cur_comp_info;
-	tds->num_comp_info = n + 1;
+	tds->num_comp_info = n + 1u;
 
 	tdsdump_log(TDS_DBG_INFO1, "alloc_compute_result. num_comp_info = %d\n", tds->num_comp_info);
 
@@ -437,10 +437,10 @@ tds_alloc_compute_results(TDSSOCKET * tds, int num_cols, int by_cols)
 }
 
 TDSRESULTINFO *
-tds_alloc_results(int num_cols)
+tds_alloc_results(TDS_USMALLINT num_cols)
 {
 	TDSRESULTINFO *res_info;
-	int col;
+	TDS_USMALLINT col;
 
 	TEST_MALLOC(res_info, TDSRESULTINFO);
 	res_info->ref_count = 1;
@@ -564,9 +564,8 @@ tds_free_compute_result(TDSCOMPUTEINFO * comp_info)
 static void
 tds_free_compute_results(TDSSOCKET * tds)
 {
-	int i;
 	TDSCOMPUTEINFO ** comp_info = tds->comp_info;
-	TDS_INT num_comp = tds->num_comp_info;
+	TDS_UINT i, num_comp = tds->num_comp_info;
 
 	tds->comp_info = NULL;
 	tds->num_comp_info = 0;
@@ -1108,7 +1107,7 @@ Cleanup:
 }
 
 static TDSSOCKET *
-tds_alloc_socket_base(int bufsize)
+tds_alloc_socket_base(unsigned int bufsize)
 {
 	TDSSOCKET *tds_socket;
 
@@ -1137,7 +1136,7 @@ tds_alloc_socket_base(int bufsize)
 }
 
 TDSSOCKET *
-tds_alloc_socket(TDSCONTEXT * context, int bufsize)
+tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 {
 	TDSCONNECTION *conn = tds_alloc_connection(context);
 	TDSSOCKET *tds;
@@ -1174,7 +1173,7 @@ tds_alloc_additional_socket(TDSCONNECTION *conn)
 }
 #else /* !ENABLE_ODBC_MARS */
 TDSSOCKET *
-tds_alloc_socket(TDSCONTEXT * context, int bufsize)
+tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 {
 	int sv[2];
 	TDSSOCKET *tds_socket;
@@ -1226,7 +1225,7 @@ tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
 	if (tds->out_pos <= bufsize && bufsize > 0 && 
 	    (new_out_buf = (unsigned char *) realloc(tds->out_buf, bufsize + TDS_ADDITIONAL_SPACE)) != NULL) {
 		tds->out_buf = new_out_buf;
-		tds->out_buf_max = (int)bufsize;
+		tds->out_buf_max = bufsize;
 		return tds;
 	}
 	return NULL;

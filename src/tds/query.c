@@ -130,7 +130,7 @@ tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv, const char *s, int len
 
 	CHECK_TDS_EXTRA(tds);
 
-	il = len < 0 ? strlen(s) : len;
+	il = len < 0 ? strlen(s) : (size_t) len;
 	if (char_conv->flags == TDS_ENCODING_MEMCPY) {
 		*out_len = il;
 		return s;
@@ -391,7 +391,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			TDS_PUT_INT(tds, converted_query_len);
 			tds_put_n(tds, converted_query, converted_query_len);
 		} else {
-			tds7_put_query_params(tds, converted_query, (int)converted_query_len);
+			tds7_put_query_params(tds, converted_query, converted_query_len);
 		}
 		tds_convert_string_free(query, converted_query);
  
@@ -2036,10 +2036,10 @@ tds_send_cancel(TDSSOCKET * tds)
 #endif
 }
 
-static int
-tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
+static size_t
+tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, size_t len)
 {
-	int i;
+	size_t size;
 	const char *src, *pend;
 	char *dst;
 
@@ -2050,11 +2050,11 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
 	/* quote */
 	src = id;
 	if (!buffer) {
-		i = 2 + len;
+		size = 2u + len;
 		for (; src != pend; ++src)
 			if (*src == quoting)
-				++i;
-		return i;
+				++size;
+		return size;
 	}
 
 	dst = buffer;
@@ -2066,7 +2066,7 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
 	}
 	*dst++ = quoting;
 	*dst = 0;
-	return (int)(dst - buffer);
+	return dst - buffer;
 }
 
 /**
@@ -2078,22 +2078,21 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, int len)
  * \param idlen  id length
  * \result written chars (not including needed terminator)
  */
-int
+size_t
 tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 {
-	int i;
+	size_t i, len;
 
 	CHECK_TDS_EXTRA(tds);
 
-	if (idlen < 0)
-		idlen = (int)strlen(id);
+	len = idlen < 0 ? strlen(id) : (size_t) idlen;
 
 	/* quote always for mssql */
 	if (TDS_IS_MSSQL(tds) || tds_conn(tds)->product_version >= TDS_SYB_VER(12, 5, 1))
-		return tds_quote(tds, buffer, ']', id, idlen);
+		return tds_quote(tds, buffer, ']', id, len);
 
 	/* need quote ?? */
-	for (i = 0; i < idlen; ++i) {
+	for (i = 0; i < len; ++i) {
 		char c = id[i];
 
 		if (c >= 'a' && c <= 'z')
@@ -2104,14 +2103,14 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 			continue;
 		if (c == '_')
 			continue;
-		return tds_quote(tds, buffer, '\"', id, idlen);
+		return tds_quote(tds, buffer, '\"', id, len);
 	}
 
 	if (buffer) {
-		memcpy(buffer, id, idlen);
-		buffer[idlen] = '\0';
+		memcpy(buffer, id, len);
+		buffer[len] = '\0';
 	}
-	return idlen;
+	return len;
 }
 
 /**
@@ -2123,10 +2122,10 @@ tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
  * \param len    length of string (-1 for null terminated)
  * \result written chars (not including needed terminator)
  */
-int
+size_t
 tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len)
 {
-	return tds_quote(tds, buffer, '\'', str, len < 0 ? (int)strlen(str) : len);
+	return tds_quote(tds, buffer, '\'', str, len < 0 ? strlen(str) : (size_t) len);
 }
 
 static inline void

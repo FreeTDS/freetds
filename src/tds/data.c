@@ -245,11 +245,11 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 			/* TODO do not discard first ones */
 			for (; num_parts; --num_parts) {
 				col->table_namelen =
-				tds_get_string(tds, tds_get_smallint(tds), col->table_name, sizeof(col->table_name) - 1);
+				tds_get_string(tds, tds_get_usmallint(tds), col->table_name, sizeof(col->table_name) - 1);
 			}
 		} else {
 			col->table_namelen =
-				tds_get_string(tds, tds_get_smallint(tds), col->table_name, sizeof(col->table_name) - 1);
+				tds_get_string(tds, tds_get_usmallint(tds), col->table_name, sizeof(col->table_name) - 1);
 		}
 	} else if (IS_TDS72_PLUS(tds->conn) && col->on_server.column_type == SYBMSXML) {
 		unsigned char has_schema = tds_get_byte(tds);
@@ -257,7 +257,7 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 			/* discard schema informations */
 			tds_get_string(tds, tds_get_byte(tds), NULL, 0);        /* dbname */
 			tds_get_string(tds, tds_get_byte(tds), NULL, 0);        /* schema owner */
-			tds_get_string(tds, tds_get_smallint(tds), NULL, 0);    /* schema collection */
+			tds_get_string(tds, tds_get_usmallint(tds), NULL, 0);    /* schema collection */
 		}
 	}
 	return TDS_SUCCESS;

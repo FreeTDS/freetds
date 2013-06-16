@@ -79,7 +79,7 @@ TestBinding(int minimun)
 	
 	for (n = 1, p = strings; p[0] && p[1]; p += 2, ++n) {
 		SQLLEN s1_len, s2_len;
-		int len;
+		unsigned int len;
 
 		len = minimun ? (strlen(strings_hex[p-strings]) - 2) /4 : 40;
 		CHKBindParameter(2, SQL_PARAM_INPUT, SQL_C_CHAR,
