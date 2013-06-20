@@ -150,8 +150,8 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml \
 		cp $${SRCDOC}/userguide.css .; \
 	fi)
 # if still no joy, create a stub
-	@echo pwd is $$(pwd)
-	-ls -ld $$(dirname $@) $@
+	@echo pwd is `pwd`
+	-ls -ld `dirname $@` $@
 	if test ! -r $@ ; then \
 		echo '$(UG_STUB)' > .index.htm && mv .index.htm $@; \
 	fi
@@ -226,7 +226,7 @@ API_PAGE_FMT = \
 	</tbody></tgroup></table>\n
 
 dblib.api.body ctlib.api.body odbc.api.body: $(srcdir)/api_status.txt
-	NAME=$$(echo $@ | sed 's/\..*$$//') && \
+	NAME=`echo $@ | sed 's/\..*$$//'` && \
 	sed -ne "/^$${NAME}[	]/ s!!<row><entry>!p" \
 			$(srcdir)/api_status.txt \
 		| sed 	-e's![	][	]*!</> <entry>!g' \
@@ -238,13 +238,13 @@ ctlib.api.sgml: ctlib.api.body
 odbc.api.sgml: odbc.api.body
 
 dblib.api.sgml ctlib.api.sgml odbc.api.sgml: 
-	NAME=$$(echo $@ | sed 's/\..*$$//') && \
+	NAME=`echo $@ | sed 's/\..*$$//'` && \
 	HEAD='$(API_TABLE_HEADING)' && \
 	if [ $${NAME} = dblib ]; then \
-		HEAD=$$(echo '$(API_TABLE_HEADING)' \
-			| sed 's!$(API_FUNC_COL)!$(API_DBLIB_FUNC_COLS)!'); \
+		HEAD=`echo '$(API_TABLE_HEADING)' \
+			| sed 's!$(API_FUNC_COL)!$(API_DBLIB_FUNC_COLS)!'`; \
 	fi && \
-	BODY=$$(cat $(@:.sgml=.body)) && \
+	BODY=`cat $(@:.sgml=.body)` && \
 	printf '$(API_PAGE_FMT)' $${NAME} $${NAME} "$${HEAD}" "$${BODY}"  > $@~
 	mv $@~ $@
 
