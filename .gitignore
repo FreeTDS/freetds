@@ -20,3 +20,16 @@ doxyfile
 test-dist.log
 compile
 install-sh
+*.o
+*.lo
+*.la
+.deps/
+.libs/
+Makefile
+*~
+include/freetds/sysconfdir.h
+include/freetds/version.h
+test-driver
+*.log
+*.trs
+*.out
