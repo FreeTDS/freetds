@@ -1,1 +1,1 @@
-include/tdsver.h.in ident
+include/freetds/version.h.in ident

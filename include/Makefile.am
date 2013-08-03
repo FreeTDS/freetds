@@ -1,5 +1,7 @@
 AUTOMAKE_OPTIONS =	1.5.3
 
+SUBDIRS	=	freetds
+
 include_HEADERS	=	bkpublic.h \
 			cspublic.h cstypes.h ctpublic.h \
 			sqldb.h sqlfront.h \
@@ -13,23 +15,7 @@ noinst_HEADERS	=	ctlib.h \
 			fakepoll.h \
 			md4.h md5.h des.h hmac_md5.h \
 			replacements.h \
-			replacements/readpassphrase.h \
-			tds.h tdsver.h tdsconvert.h \
-			tds_sysdep_private.h \
-			tdsbytes.h \
-			tdsiconv.h \
-			tdsodbc.h \
-			tdssrv.h \
-			tdsstring.h \
-			tdsthread.h \
-			tds_configs.h \
-			tdsproto.h \
-			tds_enum_cap.h
+			replacements/readpassphrase.h
 
+DISTCLEANFILES	=	tds_sysdep_public.h
 
-DISTCLEANFILES	=	tds_sysdep_public.h freetds_sysconfdir.h
-
-freetds_sysconfdir.h: Makefile
-	echo '#define FREETDS_SYSCONFDIR "$(sysconfdir)"' >$@
-
-all-am: freetds_sysconfdir.h

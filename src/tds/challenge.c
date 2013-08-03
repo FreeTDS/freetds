@@ -34,14 +34,14 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
-#include "tdsbytes.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/bytes.h>
+#include <freetds/string.h>
 #include "md4.h"
 #include "md5.h"
 #include "hmac_md5.h"
 #include "des.h"
-#include "tdsiconv.h"
+#include <freetds/iconv.h>
 
 #if defined(HAVE_OPENSSL)
 #include <openssl/rand.h>

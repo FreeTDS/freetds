@@ -45,7 +45,7 @@
 
 #include "cspublic.h"
 #include "ctlib.h"
-#include "tdsconvert.h"
+#include <freetds/convert.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: cs.c,v 1.82 2011-09-25 11:36:24 freddy77 Exp $");

@@ -34,9 +34,9 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
-#include <tds.h>
-#include <tdsstring.h>
-#include <tdssrv.h>
+#include <freetds/tds.h>
+#include <freetds/string.h>
+#include <freetds/server.h>
 
 #ifdef __MINGW32__
 #define sleep(s) Sleep((s)*1000)

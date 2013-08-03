@@ -113,8 +113,8 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.tds]query$(OBJ), [.src.tds]read$(OBJ), [.src.tds]tdsstring$(OBJ), \
 	[.src.tds]threadsafe$(OBJ), [.src.tds]token$(OBJ), [.src.tds]util$(OBJ), \
 	[.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), [.src.tds]md5$(OBJ), \
-	[.src.tds]net$(OBJ), [.src.tds]log$(OBJ), [.src.replacements]strlcpy$(OBJ), \
-	[.src.replacements]getpassarg$(OBJ), \
+	[.src.tds]net$(OBJ), [.src.tds]log$(OBJ), [.src.tds]stream$(OBJ), \
+	[.src.replacements]strlcpy$(OBJ), [.src.replacements]getpassarg$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) \
 	[.vms]getpass$(OBJ)
 
@@ -146,7 +146,7 @@ all : []libtds$(OLB) []libct$(OLB) []libsybdb$(OLB) []libtdssrv$(OLB) $(TDSODBCS
 
 # Configuration dependencies
 
-CONFIGS = [.include]config.h [.include]freetds_sysconfdir.h [.include]tds_sysdep_public.h \
+CONFIGS = [.include]config.h [.include.freetds]sysconfdir.h [.include]tds_sysdep_public.h \
 	[.include]readline.h [.include]history.h
 
 $(TDSOBJS) : $(CONFIGS)
@@ -183,8 +183,8 @@ $(TDSODBCOBJS) : $(CONFIGS)
 	@ write sys$output "Run @[.vms]configure to generate config.h"
 	@ exit
 
-[.include]freetds_sysconfdir.h :
-	@ open/write sysconfh [.include]freetds_sysconfdir.h
+[.include.freetds]sysconfdir.h :
+	@ open/write sysconfh [.include.freetds]sysconfdir.h
 	@ write sysconfh "#define FREETDS_SYSCONFDIR ""/FREETDS_ROOT"""
 	@ close sysconfh
 
@@ -1467,7 +1467,7 @@ clean : distclean
 	@ if f$search("[.include]readline.h") .nes. "" then delete/noconfirm [.include]readline.h;*
 	@ if f$search("[.include]history.h") .nes. "" then delete/noconfirm [.include]history.h;*
 	@ if f$search("[]descrip.mms") .nes. "" then delete/noconfirm []descrip.mms;*
-	@ if f$search("[.include]freetds_sysconfdir.h") .nes. "" then delete/noconfirm [.include]freetds_sysconfdir.h;*
+	@ if f$search("[.include.freetds]sysconfdir.h") .nes. "" then delete/noconfirm [.include.freetds]sysconfdir.h;*
 	@ if f$search("[.include]tds_sysdep_public.h") .nes. "" then delete/noconfirm [.include]tds_sysdep_public.h;*
 	@ if f$search("[.src.replacements]libiconv.c") .nes. "" then delete/noconfirm [.src.replacements]libiconv.c;*
 

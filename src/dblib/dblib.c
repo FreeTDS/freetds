@@ -58,9 +58,9 @@
  * 	This affects how certain application-addressable 
  * 	strucures are defined.  
  */
-#include <tds.h>
-#include <tdsthread.h>
-#include <tdsconvert.h>
+#include <freetds/tds.h>
+#include <freetds/thread.h>
+#include <freetds/convert.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
@@ -2791,8 +2791,7 @@ dbclrbuf(DBPROCESS * dbproc, DBINT n)
  * \param desttype type converting to
  * \remarks dbwillconvert() lies sometimes.  Some datatypes \em should be convertible but aren't yet in our implementation.  
  *          Legal unimplemented conversions return \em TRUE.  
- * \retval TRUE convertible, or should be. For conversions from a fix-length type to a character type (e.g. INT to VARCHAR), the value 
- *         returned is the number of bytes needed hold the output.  
+ * \retval TRUE convertible, or should be.
  * \retval FAIL not convertible.  
  * \sa dbaltbind(), dbbind(), dbconvert(), dbconvert_ps(), \c src/dblib/unittests/convert().c().
  */
@@ -2800,7 +2799,7 @@ DBBOOL
 dbwillconvert(int srctype, int desttype)
 {
 	tdsdump_log(TDS_DBG_FUNC, "dbwillconvert(%s, %s)\n", tds_prdatatype(srctype), tds_prdatatype(desttype));
-	return tds_willconvert(srctype, desttype);
+	return tds_willconvert(srctype, desttype) ? TRUE : FALSE;
 }
 
 /**
@@ -6304,6 +6303,10 @@ dbtxtimestamp(DBPROCESS * dbproc, int column)
 
 	blob = (TDSBLOB *) colinfo->column_data;
 
+	/* test if valid */
+	if (!blob->valid_ptr)
+		return NULL;
+
 	return (DBBINARY *) blob->timestamp;
 }
 
@@ -6330,6 +6333,10 @@ dbtxptr(DBPROCESS * dbproc, int column)
 		return NULL;
 
 	blob = (TDSBLOB *) colinfo->column_data;
+
+	/* test if valid */
+	if (!blob->valid_ptr)
+		return NULL;
 
 	return (DBBINARY *) blob->textptr;
 }

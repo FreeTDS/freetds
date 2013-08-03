@@ -86,6 +86,7 @@ void tds_socket_done(void);
 
 #define TDSSOCK_EINTR WSAEINTR
 #define TDSSOCK_EINPROGRESS WSAEWOULDBLOCK
+#define TDSSOCK_ETIMEDOUT WSAETIMEDOUT
 #define TDSSOCK_WOULDBLOCK(e) ((e)==WSAEWOULDBLOCK)
 #define sock_errno WSAGetLastError()
 #define sock_strerror(n) tds_prwsaerror(n)
@@ -136,6 +137,10 @@ typedef DWORD pid_t;
 
 #ifndef TDSSOCK_EINPROGRESS 
 #define TDSSOCK_EINPROGRESS EINPROGRESS
+#endif
+
+#ifndef TDSSOCK_ETIMEDOUT
+#define TDSSOCK_ETIMEDOUT ETIMEDOUT
 #endif
 
 #ifndef TDSSOCK_WOULDBLOCK

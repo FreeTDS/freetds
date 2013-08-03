@@ -156,7 +156,12 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 				<term><emphasis>was</emphasis> 9.0</term>
 				<listitem><para>Introduced for <productname>SQL Server 2005</productname>.  Includes support for varchar(max), varbinary(max), xml datatypes and MARS.</para></listitem>
 				</varlistentry>
+			</variablelist>
 
+			<varlistentry>
+				<term>TDS 7.3 Microsoft</term>
+				<listitem><para>Introduced for <productname>SQL Server 2008</productname>.  Includes support for extended date/time, table as parameters.</para></listitem>
+				</varlistentry>
 			</variablelist>
 		</sect1>
 	
@@ -362,7 +367,7 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 					<varlistentry>
 						<term><Option>--with-tdsver=<replaceable>VER</>
 							</Option></term>
-						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, <literal>7.1</literal> and <literal>7.2</literal>.</para>
+						<listitem><para>Specifies the default <acronym>TDS</> version.  (There are a couple of ways to set the <acronym>TDS</> version at run-time.  This parameter takes effect if no run-time settings are provided.) Acceptable values of <parameter>VER</> are <literal>4.2</literal>, <literal>4.6</literal>, <literal>5.0</literal>, <literal>7.0</literal>, <literal>7.1</literal>, <literal>7.2</literal> and <literal>7.3</literal>.</para>
 
 <para>The default is <literal>5.0</literal> if this argument is not passed to <Command>configure</Command>.</para>
 							</listitem>
@@ -537,6 +542,12 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 
 		<sect2 id="Windows"><title>Win32 and Win64</title>
 
+<para>Recently &freetds; has added the possibility to compile using CMake. CMake is able to create project files for different development systems (like Visual C++).
+Install CMake on your box and point to the source directory to generate wanted files. Refer to CMake documentation on how to do it (I personally use CMake GUI passing source directory and a newly create build directory).
+Once project files are created you can open them with your environment.</para>
+
+			<sect3><title>Use <filename>NMakefile</filename></title>
+
 <para>Building for Windows using Microsoft's compiler is supported via the <filename>NMakefile</filename> included in the distribution.  Set up the command-line build environment per Microsoft's instructions, and run e.g. 
 
 <screen>
@@ -571,13 +582,12 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 
 	<para>For Windows applications that use &freetds; the hard-won wisdom is <emphasis>just use the <filename>NMakefile</filename>, please, thanks!</emphasis>  If you like a visual environment and visual debugging, no problem: Microsoft's tools support <quote>Makefile projects</quote>.  The author has direct knowledge of developers for whom that arrangement works quite well. </para></note>
 
+				</sect3>
+
 			<sect3><title>Other ways to build under Windows&reg;</title>
 				
 				<itemizedlist>
 					
-					<listitem><para>Visual Studio.  Project files are included in the <filename>win32</> directory.   See above note for why these might be out of date.</para></listitem>
-					
-					<listitem><para>Dev-C++</para></listitem>
 					<listitem><para>MingW</para></listitem>
 					
 					<listitem><para><application>gcc</> under <application>cygwin</>.</para></listitem>
@@ -679,7 +689,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 				know it is easily done:
 				
 <screen>
-	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-0.63RC9.tar.gz</userinput></screen></para>
+	<prompt>$ </prompt><userinput>rpmbuild -ta freetds-0.91.tar.bz2</userinput></screen></para>
 			</sect2>
 	
 		</sect1>

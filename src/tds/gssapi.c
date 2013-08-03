@@ -61,8 +61,8 @@
 
 #include <gssapi/gssapi_krb5.h>
 
-#include "tds.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/string.h>
 #include "replacements.h"
 
 #ifdef DMALLOC

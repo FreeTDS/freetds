@@ -35,8 +35,8 @@
 #include <dmalloc.h>
 #endif
 
-#include "tds.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/string.h>
 
 TDS_RCSID(var, "$Id: tdsstring.c,v 1.21 2011-05-16 08:51:40 freddy77 Exp $");
 

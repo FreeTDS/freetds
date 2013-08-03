@@ -41,7 +41,7 @@
 #include <netinet/in.h>
 #endif /* HAVE_NET_INET_IN_H */
 
-#include "tds_sysdep_private.h"
+#include <freetds/sysdep_private.h>
 
 static char software_version[] = "$Id: hang.c,v 1.3 2008-11-25 22:58:29 jklowden Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };

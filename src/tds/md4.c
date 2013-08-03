@@ -37,7 +37,7 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "md4.h"
 
 TDS_RCSID(var, "$Id: md4.c,v 1.9 2011-05-16 08:51:40 freddy77 Exp $");

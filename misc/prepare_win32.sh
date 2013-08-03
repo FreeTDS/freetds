@@ -14,7 +14,7 @@ errore() {
 
 NTWDBLIB=no
 TYPE=win32
-HOSTS='i386-mingw32 i586-mingw32msvc i686-w64-mingw32'
+HOSTS='i686-w64-mingw32 i586-mingw32msvc i386-mingw32'
 ARCHIVE='tar jcvf "freetds-$PACKAGE_VERSION.$TYPE.tar.bz2" "freetds-$PACKAGE_VERSION"'
 PACK=yes
 ONLINE=no
@@ -23,7 +23,7 @@ for param
 do
 	case $param in
 	--win64)
-		HOSTS='x86_64-w64-mingw32 x86_64-pc-mingw32 amd64-mingw32msvc'
+		HOSTS='x86_64-w64-mingw32 amd64-mingw32msvc x86_64-pc-mingw32'
 		TYPE=win64
 		;;
 	--zip)

@@ -303,4 +303,4 @@ add_subdirectory(src/apps)
 
 configure_file(${CMAKE_CURRENT_BINARY_DIR}/include/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/tds_sysdep_public.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/tds_sysdep_public.h)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/tdsver.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/tdsver.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/freetds/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/freetds/version.h)

@@ -19,7 +19,7 @@
 
 #include <config.h>
 
-#include <tds.h>
+#include <freetds/tds.h>
 #include <sybdb.h>
 
 #ifdef DMALLOC

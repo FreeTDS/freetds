@@ -35,8 +35,8 @@
 
 #include "ctpublic.h"
 #include "ctlib.h"
-#include "tdsstring.h"
-#include "tds_enum_cap.h"
+#include <freetds/string.h>
+#include <freetds/enum_cap.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: ct.c,v 1.225 2012-03-11 15:52:22 freddy77 Exp $");
@@ -2710,7 +2710,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
 
-		if (blob) {
+		if (blob && blob->valid_ptr) {
 			memcpy(cmd->iodesc->timestamp, blob->timestamp, CS_TS_SIZE);
 			cmd->iodesc->timestamplen = CS_TS_SIZE;
 			memcpy(cmd->iodesc->textptr, blob->textptr, CS_TP_SIZE);
@@ -2778,7 +2778,7 @@ ct_send_data(CS_COMMAND * cmd, CS_VOID * buffer, CS_INT buflen)
 	if (cmd->command_type != CS_SEND_DATA_CMD)
 		return CS_FAIL;
 
-	if (!cmd->iodesc)
+	if (!cmd->iodesc || !cmd->iodesc->textptrlen)
 		return CS_FAIL;
 
 	/* first ct_send_data for this column */
@@ -2835,9 +2835,12 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 
 	switch (action) {
 	case CS_SET:
-
+		if (iodesc->timestamplen < 0 || iodesc->timestamplen > CS_TS_SIZE)
+			return CS_FAIL;
+		if (iodesc->textptrlen < 0 || iodesc->textptrlen > CS_TP_SIZE)
+			return CS_FAIL;
 		free(cmd->iodesc);
-		cmd->iodesc = (CS_IODESC*) malloc(sizeof(CS_IODESC));
+		cmd->iodesc = (CS_IODESC*) calloc(1, sizeof(CS_IODESC));
 
 		cmd->iodesc->iotype = CS_IODATA;
 		cmd->iodesc->datatype = iodesc->datatype;
@@ -2848,10 +2851,10 @@ ct_data_info(CS_COMMAND * cmd, CS_INT action, CS_INT colnum, CS_IODESC * iodesc)
 		cmd->iodesc->log_on_update = iodesc->log_on_update;
 		strcpy(cmd->iodesc->name, iodesc->name);
 		cmd->iodesc->namelen = iodesc->namelen;
-		memcpy(cmd->iodesc->timestamp, iodesc->timestamp, CS_TS_SIZE);
-		cmd->iodesc->timestamplen = CS_TS_SIZE;
-		memcpy(cmd->iodesc->textptr, iodesc->textptr, CS_TP_SIZE);
-		cmd->iodesc->textptrlen = CS_TP_SIZE;
+		memcpy(cmd->iodesc->timestamp, iodesc->timestamp, iodesc->timestamplen);
+		cmd->iodesc->timestamplen = iodesc->timestamplen;
+		memcpy(cmd->iodesc->textptr, iodesc->textptr, iodesc->textptrlen);
+		cmd->iodesc->textptrlen = iodesc->textptrlen;
 		break;
 
 	case CS_GET:

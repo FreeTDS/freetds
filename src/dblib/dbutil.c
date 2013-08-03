@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include <tds.h>
+#include <freetds/tds.h>
 #include <sybdb.h>
 #include <syberror.h>
 #include <dblib.h>
@@ -95,7 +95,7 @@ _dblib_handle_info_message(const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, TDSMESSA
 		 */
 		/* Cannot call dbperror() here because server messsage numbers (and text) are not in its lookup table. */
 		static const char message[] = "General SQL Server error: Check messages from the SQL Server";
-		(*_dblib_err_handler)(dbproc, msg->severity, msg->msgno, DBNOERR, (char *) message, NULL);
+		(*_dblib_err_handler)(dbproc, msg->severity, SYBESMSG, DBNOERR, (char *) message, NULL);
 	}
 	return TDS_SUCCESS;
 }
@@ -193,9 +193,9 @@ _dblib_check_and_handle_interrupt(void * vdbproc)
 {
 	DBPROCESS * dbproc = (DBPROCESS*) vdbproc;
 	int ret = INT_CONTINUE;
-	
-	assert( ! (dbproc == NULL && DBDEAD(dbproc)) );  /* a non-process can't be a dead process */
-	
+
+	assert( dbproc != NULL && !DBDEAD(dbproc) );  /* a non-process can't be a dead process */
+
 	if (dbproc->chkintr == NULL || dbproc->hndlintr == NULL)
 		return INT_CONTINUE;
 		

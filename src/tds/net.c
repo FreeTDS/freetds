@@ -84,8 +84,8 @@
 #include <poll.h>
 #endif /* HAVE_POLL_H */
 
-#include "tds.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/string.h>
 #include "replacements.h"
 
 #include <signal.h>
@@ -93,7 +93,7 @@
 
 #ifdef HAVE_GNUTLS
 #if defined(_THREAD_SAFE) && defined(TDS_HAVE_PTHREAD_MUTEX)
-#include "tdsthread.h"
+#include <freetds/thread.h>
 #include <gcrypt.h>
 #endif
 #include <gnutls/gnutls.h>
@@ -314,6 +314,7 @@ tds_open_socket(TDSSOCKET *tds, struct tds_addrinfo *addr, unsigned int port, in
 		if (err != TDSSOCK_EINPROGRESS)
 			goto not_available;
 		
+		*p_oserr = TDSSOCK_ETIMEDOUT;
 		if (tds_select(tds, TDSSELWRITE|TDSSELERR, timeout) <= 0) {
 			tds_error = TDSECONN;
 			goto not_available;

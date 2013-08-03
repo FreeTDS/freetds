@@ -56,9 +56,9 @@
 # include <process.h>
 #endif
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "tds_checks.h"
-#include "tdsthread.h"
+#include <freetds/thread.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>

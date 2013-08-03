@@ -94,6 +94,7 @@ TDS_SRC =	$(TDS_DIR)\bulk.c \
 		$(TDS_DIR)\query.c \
 		$(TDS_DIR)\read.c \
 		$(TDS_DIR)\sspi.c \
+		$(TDS_DIR)\stream.c \
 		$(TDS_DIR)\tds_checks.c \
 		$(TDS_DIR)\tdsstring.c \
 		$(TDS_DIR)\threadsafe.c \
@@ -123,6 +124,7 @@ TDS_OBJ =	$(TDS_OUT)\bulk.obj \
 		$(TDS_OUT)\query.obj \
 		$(TDS_OUT)\read.obj \
 		$(TDS_OUT)\sspi.obj \
+		$(TDS_OUT)\stream.obj \
 		$(TDS_OUT)\tds_checks.obj \
 		$(TDS_OUT)\tdsstring.obj \
 		$(TDS_OUT)\threadsafe.obj \
@@ -237,7 +239,7 @@ $(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
 #
 # Generate distributed header files
 #
-include\tdsver.h:
+include\freetds\version.h:
 	perl -e"@a=localtime; printf qq(#undef  TDS_VERSION_NO\n#define TDS_VERSION_NO \"freetds v0.83.dev.%d%02d%02d\"\n), 1900+$$a[5], 1+$$a[-1], $$a[3]" \
 	> $@.err 
 	move /Y $@.err $@
@@ -259,7 +261,7 @@ src\tds\num_limits.h: src\tds\num_limits.pl
 	$(MV) $@.tmp $@
 !ENDIF
 
-GENERATED_FILES = include\tdsver.h src\tds\tds_types.h \
+GENERATED_FILES = include\freetds\version.h src\tds\tds_types.h \
 	src\tds\tds_willconvert.h src\tds\encodings.h src\tds\num_limits.h
 
 $(DBLIB_OUT)\db-lib.lib: $(GENERATED_FILES) $(DBLIB_OUT) $(DBLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib

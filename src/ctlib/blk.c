@@ -693,9 +693,8 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 			}
 		}
 		if (srclen == 0) {
-			if (*nullind == -1) {
+			if (nullind && *nullind == -1)
 				null_column = 1;
-			}
 		}
 
 		if (!null_column) {

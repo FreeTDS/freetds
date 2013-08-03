@@ -1,3 +1,6 @@
+/*
+ * Test reading data with SQLGetData
+ */
 #include "common.h"
 #include <assert.h>
 

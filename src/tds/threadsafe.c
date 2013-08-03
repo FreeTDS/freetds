@@ -81,8 +81,8 @@
 #include <shlobj.h>
 #endif
 
-#include "tds.h"
-#include "tdsthread.h"
+#include <freetds/tds.h>
+#include <freetds/thread.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>

@@ -33,9 +33,11 @@
 
 #include <assert.h>
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "tds_checks.h"
-#include "tdsbytes.h"
+#include <freetds/bytes.h>
+#include <freetds/iconv.h>
+#include <freetds/stream.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -299,7 +301,7 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 
 	static const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
 	static const unsigned char textptr[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-											 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+						 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 	static const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 	unsigned char *record;
@@ -507,44 +509,43 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 
 		bcpcol = bcpinfo->bindinfo->columns[i];
 
-		if (!is_nullable_type(bcpcol->column_type) && !(bcpcol->column_nullable)) {
+		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable)
+			continue;
 
-			tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
+		tdsdump_log(TDS_DBG_FUNC, "tds_bcp_add_fixed_columns column %d is a fixed column\n", i + 1);
 
-			if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset))) {
-				tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
-		 		return -1;
-			}
+		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset))) {
+			tdsdump_log(TDS_DBG_INFO1, "get_col_data (column %d) failed\n", i + 1);
+			return -1;
+		}
 
 #if USING_SYBEBCNN
-			Let the server reject if no default is defined for the column.
-			if (bcpcol->bcp_column_data->is_null) {
-				/* No value or default value available and NULL not allowed. */
-				null_error(bcpinfo, i, offset);
-				return -1;
-			}
+		Let the server reject if no default is defined for the column.
+		if (bcpcol->bcp_column_data->is_null) {
+			/* No value or default value available and NULL not allowed. */
+			null_error(bcpinfo, i, offset);
+			return -1;
+		}
 #endif
 
-			if (is_numeric_type(bcpcol->column_type)) {
-				num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
-				cpbytes = tds_numeric_bytes_per_prec[num->precision];
-				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
-			} else {
-				cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
-					  bcpcol->column_size : bcpcol->bcp_column_data->datalen;
-				memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
+		if (is_numeric_type(bcpcol->column_type)) {
+			num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
+			cpbytes = tds_numeric_bytes_per_prec[num->precision];
+			memcpy(&rowbuffer[row_pos], num->array, cpbytes);
+		} else {
+			cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
+				  bcpcol->column_size : bcpcol->bcp_column_data->datalen;
+			memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 
-				/* CHAR data may need padding out to the database length with blanks */
-
-				if (bcpcol->column_type == SYBCHAR && cpbytes < bcpcol->column_size) {
-					for (j = cpbytes; j <  bcpcol->column_size; j++)
-						rowbuffer[row_pos + j] = ' ';
-
-				}
+			/* CHAR data may need padding out to the database length with blanks */
+			/* TODO check binary !!! */
+			if (bcpcol->column_type == SYBCHAR && cpbytes < bcpcol->column_size) {
+				for (j = cpbytes; j <  bcpcol->column_size; j++)
+					rowbuffer[row_pos + j] = ' ';
 			}
-
-			row_pos += bcpcol->column_size;
 		}
+
+		row_pos += bcpcol->column_size;
 	}
 	return row_pos;
 }
@@ -561,9 +562,9 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 static int
 tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, TDS_UCHAR* rowbuffer, int start, int *pncols)
 {
-	TDS_SMALLINT offsets[256];
-	int i, row_pos;
-	int ncols = 0;
+	TDS_USMALLINT offsets[256];
+	unsigned int i, row_pos;
+	unsigned int ncols = 0;
 
 	assert(bcpinfo);
 	assert(rowbuffer);
@@ -590,50 +591,50 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 	tdsdump_log(TDS_DBG_FUNC, "%4s %8s %8s %8s\n", "col", "ncols", "row_pos", "cpbytes");
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-		int cpbytes = 0;
+		unsigned int cpbytes = 0;
 		TDSCOLUMN *bcpcol = bcpinfo->bindinfo->columns[i];
 
 		/*
 		 * Is this column of "variable" type, i.e. NULLable
 		 * or naturally variable length e.g. VARCHAR
 		 */
-		if (is_nullable_type(bcpcol->column_type) || bcpcol->column_nullable) {
+		if (!is_nullable_type(bcpcol->column_type) && !bcpcol->column_nullable)
+			continue;
 
-			tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
+		tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d %8d\n", i, ncols, row_pos, cpbytes);
 
-			if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset)))
-		 		return -1;
+		if (TDS_FAILED(get_col_data(bcpinfo, bcpcol, offset)))
+			return -1;
 
 #if USING_SYBEBCNN
-			/* If it's a NOT NULL column, and we have no data, throw an error. */
-			No, the column could have a default defined. 
-			if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->is_null) {
-				/* No value or default value available and NULL not allowed. */
-				null_error(bcpinfo, i, offset);
-				return -1;
-			}
+		/* If it's a NOT NULL column, and we have no data, throw an error. */
+		No, the column could have a default defined.
+		if (!(bcpcol->column_nullable) && bcpcol->bcp_column_data->is_null) {
+			/* No value or default value available and NULL not allowed. */
+			null_error(bcpinfo, i, offset);
+			return -1;
+		}
 #endif
 
-			/* move the column buffer into the rowbuffer */
-			if (!bcpcol->bcp_column_data->is_null) {
-				if (is_blob_type(bcpcol->column_type)) {
-					cpbytes = 16;
-					bcpcol->column_textpos = row_pos;               /* save for data write */
-				} else if (is_numeric_type(bcpcol->column_type)) {
-						TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
-					cpbytes = tds_numeric_bytes_per_prec[num->precision];
-					memcpy(&rowbuffer[row_pos], num->array, cpbytes);
-				} else {
-					cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
-					bcpcol->column_size : bcpcol->bcp_column_data->datalen;
-					memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
-				}
+		/* move the column buffer into the rowbuffer */
+		if (!bcpcol->bcp_column_data->is_null) {
+			if (is_blob_type(bcpcol->column_type)) {
+				cpbytes = 16;
+				bcpcol->column_textpos = row_pos;               /* save for data write */
+			} else if (is_numeric_type(bcpcol->column_type)) {
+					TDS_NUMERIC *num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
+				cpbytes = tds_numeric_bytes_per_prec[num->precision];
+				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
+			} else {
+				cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
+				bcpcol->column_size : bcpcol->bcp_column_data->datalen;
+				memcpy(&rowbuffer[row_pos], bcpcol->bcp_column_data->data, cpbytes);
 			}
-
-			row_pos += cpbytes;
-			offsets[++ncols] = row_pos;
-			tdsdump_dump_buf(TDS_DBG_NETWORK, "BCP row buffer so far", rowbuffer,  row_pos);
 		}
+
+		row_pos += cpbytes;
+		offsets[++ncols] = row_pos;
+		tdsdump_dump_buf(TDS_DBG_NETWORK, "BCP row buffer so far", rowbuffer,  row_pos);
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d\n", i, ncols, row_pos);
@@ -660,17 +661,28 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 		ncols--;	/* trailing NULL columns are not sent and are not included in the offset table */
 
 	if (ncols) {
-		TDS_UCHAR *padj = rowbuffer + row_pos;
-		TDS_UCHAR *poff = offsets[ncols] > 0xFF? padj + ncols + 1 : padj;
+		TDS_UCHAR *poff = rowbuffer + row_pos;
+		unsigned int pfx_top = offsets[ncols] / 256;
 
-		*padj++ = 1 + ncols;
-		*poff++ = 1 + ncols;
-		
-		for (i=0; i <= ncols; i++) {
-			padj[i] = offsets[ncols-i] >> 8;
-			poff[i] = offsets[ncols-i] & 0xFF;
+		tdsdump_log(TDS_DBG_FUNC, "ncols=%u poff=%p [%u]\n", ncols, poff, offsets[ncols]);
+
+		*poff++ = ncols + 1;
+		/* this is some kind of run-length-prefix encoding */
+		while (pfx_top) {
+			unsigned int n_pfx = 1;
+
+			for (i = 0; i <= ncols ; ++i)
+				if ((offsets[i] / 256) < pfx_top)
+					++n_pfx;
+			*poff++ = n_pfx;
+			--pfx_top;
 		}
-		row_pos = (int)(poff + ncols + 1 - rowbuffer);
+   
+		tdsdump_log(TDS_DBG_FUNC, "poff=%p\n", poff);
+
+		for (i=0; i <= ncols; i++)
+			*poff++ = offsets[ncols-i] & 0xFF;
+		row_pos = (unsigned int)(poff - rowbuffer);
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "%4d %8d %8d\n", i, ncols, row_pos);
@@ -924,20 +936,19 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			}
 
 			switch (bcpcol->column_varint_size) {
-				case 4:
-					if (is_blob_type(bcpcol->column_type)) {
-						bcp_record_size += 25;
-					}
-					bcp_record_size += 4;
-					break;
-				case 2:
-					bcp_record_size +=2;
-					break;
-				case 1:
-					bcp_record_size++;
-					break;
-				case 0:
-					break;
+			case 4:
+				if (is_blob_type(bcpcol->column_type))
+					bcp_record_size += 25;
+				bcp_record_size += 4;
+				break;
+			case 2:
+				bcp_record_size +=2;
+				break;
+			case 1:
+				bcp_record_size++;
+				break;
+			case 0:
+				break;
 			}
 
 			if (is_numeric_type(bcpcol->column_type)) {
@@ -961,6 +972,105 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	}
 
 	return TDS_SUCCESS;
+}
+
+/** input stream to read a file */
+typedef struct tds_file_stream {
+	TDSINSTREAM stream;
+	FILE *f;
+
+	const char *terminator;
+	size_t term_len;
+
+	char *left;
+	size_t left_len;
+} TDSFILESTREAM;
+
+#ifndef TDS_HAVE_STDIO_LOCKED
+#undef getc_unlocked
+#undef flockfile
+#undef funlockfile
+#define getc_unlocked(s) getc(s)
+#define flockfile(s) do { } while(0)
+#define funlockfile(s) do { } while(0)
+#endif
+
+static int
+tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
+{
+	TDSFILESTREAM *s = (TDSFILESTREAM *) stream;
+	int c;
+	char *p = (char *) ptr;
+#define GETC() do { c = getc_unlocked(s->f); if (c==EOF) return -1; } while(0)
+
+	while (s->left_len < s->term_len) {
+		GETC();
+		s->left[s->left_len++] = c;
+	}
+
+	while (len) {
+		if (memcmp(s->left, s->terminator, s->term_len) == 0)
+			return p - (char *) ptr;
+
+		GETC();
+
+		*p++ = s->left[0];
+		--len;
+
+		memmove(s->left, s->left+1, s->term_len-1);
+		s->left[s->term_len-1] = c;
+	}
+	return p - (char *) ptr;
+}
+
+/**
+ * Read a data file, passing the data through iconv().
+ * \return TDS_SUCCESS or TDS_FAIL.
+ */
+TDSRET
+tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *terminator, size_t term_len, char **outbuf, size_t * outbytes)
+{
+	TDSRET res;
+	TDSFILESTREAM r;
+	TDSDYNAMICSTREAM w;
+
+	/* prepare streams */
+	r.stream.read = tds_file_stream_read;
+	r.f = stream;
+	r.terminator = terminator;
+	r.term_len = term_len;
+	r.left = calloc(1, term_len);
+	if (!r.left) return TDS_FAIL;
+	r.left_len = 0;
+
+	res = tds_dynamic_stream_init(&w, (void**) outbuf, 0);
+	if (TDS_FAILED(res)) {
+		free(r.left);
+		return res;
+	}
+
+	/* convert/copy from input stream to output one */
+	flockfile(stream);
+	if (char_conv == NULL)
+		res = tds_copy_stream(tds, &r.stream, &w.stream);
+	else
+		res = tds_convert_stream(tds, char_conv, to_server, &r.stream, &w.stream);
+	funlockfile(stream);
+	free(r.left);
+
+	if (TDS_FAILED(res))
+		return res;
+
+	*outbytes = w.size;
+
+	/* terminate buffer */
+	if (!w.stream.buf_len)
+		return TDS_FAIL;
+
+	((char *) w.stream.buffer)[0] = 0;
+	w.stream.write(&w.stream, 1);
+
+	return res;
 }
 
 TDSRET

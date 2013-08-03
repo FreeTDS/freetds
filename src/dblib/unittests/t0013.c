@@ -131,7 +131,11 @@ test(int argc, char **argv, int over4k)
 		break; /* can't proceed until no more rows */
 	}
 	assert(REG_ROW == result || 0 < i);
-	assert(0 < textPtr);
+
+	if (!textPtr) {
+		fprintf(stderr, "Error getting textPtr\n");
+		exit(1);
+	}
 
 	/*
 	 * Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)

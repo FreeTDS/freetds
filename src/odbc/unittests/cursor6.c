@@ -19,7 +19,7 @@ static void Test(void)
 		SQLLEN ind_c;
 	} data[ROWS];
 	SQLUSMALLINT statuses[ROWS];
-	SQLULEN num_row;
+	SQLLEN num_row;
 
 	odbc_reset_statement();
 
@@ -43,15 +43,15 @@ static void Test(void)
 } while(0)
 	FILL(statuses, 9876);
 	num_row = -3;
-	data[0].i = 0xdeadbeef;
-	data[1].i = 0xdeadbeef;
+	data[0].i = (SQLINTEGER) 0xdeadbeef;
+	data[1].i = (SQLINTEGER) 0xdeadbeef;
 	if (normal_fetch)
 		CHKFetch("S");
 	else
 		CHKFetchScroll(SQL_FETCH_NEXT, 0, "S");
 
 	/* now check row numbers */
-	printf("num_row %d statuses[0] %d statuses[1] %d odbc3 %d\n", (int) num_row,
+	printf("num_row %ld statuses[0] %d statuses[1] %d odbc3 %d\n", (long int) num_row,
 		(int) statuses[0], (int) statuses[1], odbc_use_version3);
 
 	if (odbc_use_version3 || !normal_fetch) {

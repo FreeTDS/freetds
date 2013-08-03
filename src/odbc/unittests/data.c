@@ -1,8 +1,9 @@
+/*
+ * Test reading data with SQLBindCol
+ */
 #include "common.h"
 #include <assert.h>
 #include <ctype.h>
-
-/* Test various bind type */
 
 /*
  * This test is useful to test odbc_tds2sql function

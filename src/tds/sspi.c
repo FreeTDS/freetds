@@ -39,9 +39,9 @@
 #include <sspi.h>
 #include <rpc.h>
 
-#include "tds.h"
-#include "tdsthread.h"
-#include "tdsstring.h"
+#include <freetds/tds.h>
+#include <freetds/thread.h>
+#include <freetds/string.h>
 #include "replacements.h"
 
 #ifdef DMALLOC

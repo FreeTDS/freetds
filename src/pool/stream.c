@@ -36,7 +36,7 @@
 #endif /* HAVE_STDLIB_H */
 
 #include "pool.h"
-#include "tds.h"
+#include <freetds/tds.h>
 
 TDS_RCSID(var, "$Id: stream.c,v 1.27 2011-05-16 08:51:40 freddy77 Exp $");
 

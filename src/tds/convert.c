@@ -55,9 +55,9 @@
 #include <strings.h>
 #endif /* HAVE_STRINGS_H */
 
-#include "tds.h"
-#include "tdsconvert.h"
-#include "tdsbytes.h"
+#include <freetds/tds.h>
+#include <freetds/convert.h>
+#include <freetds/bytes.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>

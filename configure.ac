@@ -291,7 +291,8 @@ AC_CHECK_HEADERS([errno.h libgen.h \
 	sys/param.h sys/select.h sys/stat.h \
 	sys/time.h sys/types.h sys/resource.h \
 	sys/wait.h unistd.h netdb.h \
-	wchar.h inttypes.h winsock2.h])
+	wchar.h inttypes.h winsock2.h \
+	localcharset.h])
 AC_CHECK_HEADERS([windows.h sql.h odbcss.h],[],[],[[#ifdef HAVE_WINDOWS_H
 # include <windows.h>
 #endif
@@ -711,7 +712,7 @@ AC_ARG_WITH(gnutls,
 AS_HELP_STRING([--with-gnutls], [build with TLS support]))
 if test "$with_gnutls" = "yes"; then
 	AC_DEFINE(HAVE_GNUTLS, 1, [Define to 1 if you have GNU tls.])
-	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --libs gnutls > /dev/null 2>&1; then
+	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gnutls > /dev/null 2>&1; then
 		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gnutls`"
 		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gnutls`"
 	else
@@ -774,6 +775,19 @@ else
 fi
 AM_CONDITIONAL(ENABLE_THREADSAFE, test "$enable_threadsafe" != "no")
 
+# newer gcc are configured to fail to resolve references to libraries not
+# explicitly listed on the linker commandline.
+# So to make build add explicitly gcrypt library.
+if test "$enable_threadsafe" != "no" -a "$with_gnutls" = "yes"; then
+	if test "$PKG_CONFIG" != "" && "$PKG_CONFIG" --exists gcrypt> /dev/null 2>&1; then
+		CPPFLAGS="$CPPFLAGS `$PKG_CONFIG --cflags gcrypt`"
+		NETWORK_LIBS="$NETWORK_LIBS `$PKG_CONFIG --libs gcrypt`"
+	else
+		CPPFLAGS="$CPPFLAGS `libgcrypt-config --cflags`"
+		NETWORK_LIBS="$NETWORK_LIBS `libgcrypt-config --libs`"
+	fi
+fi
+
 # we don't need to check netdb functions if they are already threadsafe
 if test $netdb_reentrant != yes; then
 	AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R
@@ -788,6 +802,13 @@ AC_TRY_LINK([#include <pthread.h>
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;],
 [pthread_mutex_lock(&mutex);
 pthread_mutex_unlock(&mutex)], AC_DEFINE(TDS_HAVE_PTHREAD_MUTEX, 1, [Define if you have pthread with mutex support]))
+
+# easy test for locking stdio
+AC_TRY_LINK([#include <stdio.h>],
+[int c;
+flockfile(stdin);
+c = getc_unlocked(stdin);
+funlockfile(stdin);], AC_DEFINE(TDS_HAVE_STDIO_LOCKED, 1, [Define if stdio support locking]))
 
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING([--disable-debug], [disable assert and other things]),
@@ -855,10 +876,11 @@ AC_MSG_RESULT(done)
 # ------------------------------------------------------------
 # Final output
 # ------------------------------------------------------------
-AC_CONFIG_FILES(include/tdsver.h \
+AC_CONFIG_FILES(include/freetds/version.h \
 	include/tds_sysdep_public.h \
 	Makefile \
 	include/Makefile \
+	include/freetds/Makefile \
 	doc/Makefile \
 	samples/Makefile \
 	src/Makefile \

@@ -45,8 +45,8 @@
 
 #include <ctype.h>
 
-#include "tds.h"
-#include "tdsthread.h"
+#include <freetds/tds.h>
+#include <freetds/thread.h>
 
 static char software_version[] = "$Id: freeclose.c,v 1.17 2012-03-06 20:45:53 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };

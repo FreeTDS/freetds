@@ -22,7 +22,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "tdsodbc.h"
+#include <freetds/odbc.h>
 
 TDS_RCSID(var, "$Id: sqlwchar.c,v 1.4 2012-03-09 21:51:21 freddy77 Exp $");
 

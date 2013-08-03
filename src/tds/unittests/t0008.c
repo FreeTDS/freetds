@@ -18,7 +18,7 @@
  */
 
 #include "common.h"
-#include <tdsconvert.h>
+#include <freetds/convert.h>
 
 static char software_version[] = "$Id: t0008.c,v 1.13 2003-04-21 16:06:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };

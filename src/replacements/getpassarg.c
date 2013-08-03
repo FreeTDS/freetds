@@ -26,10 +26,8 @@
 #include <string.h>
 #endif /* HAVE_STRING_H */
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "replacements.h"
-
-TDS_RCSID(var, "$Id: getpassarg.c,v 1.1 2011-05-27 09:18:59 freddy77 Exp $");
 
 /*
  * return a copy of the password, reading from stdin if arg is '-'
@@ -41,7 +39,6 @@ getpassarg(char *arg)
 	char pwd[256], *ptr, *q;
 
 	if (strcmp(arg, "-") == 0) {
-		memset(pwd, 0, sizeof(pwd));
 		if (fgets(pwd, sizeof(pwd), stdin) == NULL)
 			return NULL;
 		ptr = strchr(pwd, '\n');
@@ -50,6 +47,7 @@ getpassarg(char *arg)
 	}
 
 	ptr = strdup(arg);
+	memset(pwd, 0, sizeof(pwd));
 
 	for (q = arg; *q; *q++ = '*')
 		continue;

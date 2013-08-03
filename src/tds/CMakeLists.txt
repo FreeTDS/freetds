@@ -36,7 +36,7 @@ add_library(tds STATIC
         locale.c threadsafe.c vstrbuild.c
         tdsstring.c getmac.c data.c net.c
         tds_checks.c tds_checks.h log.c
-        bulk.c packet.c
+        bulk.c packet.c stream.c
 	tds_willconvert.h encodings.h num_limits.h tds_types.h
 	${add_SRCS}
 )

@@ -25,8 +25,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "tds.h"
-#include "tds_sysdep_private.h"
+#include <freetds/tds.h>
+#include <freetds/sysdep_private.h>
 #include "replacements.h"
 
 /* Incomplete implementation, single ipv4 addr, service does not work, hints do not work */

@@ -30,11 +30,11 @@
 
 #include <assert.h>
 
-#include "tdsodbc.h"
-#include "tdsiconv.h"
-#include "tdsstring.h"
-#include "tdsconvert.h"
-#include "tds_enum_cap.h"
+#include <freetds/odbc.h>
+#include <freetds/iconv.h>
+#include <freetds/string.h>
+#include <freetds/convert.h>
+#include <freetds/enum_cap.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>

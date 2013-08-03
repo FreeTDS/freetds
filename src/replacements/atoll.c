@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
-#include "tds_sysdep_private.h"
+#include <freetds/sysdep_private.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: atoll.c,v 1.9 2011-05-16 08:51:40 freddy77 Exp $");

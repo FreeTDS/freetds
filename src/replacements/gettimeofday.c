@@ -25,7 +25,7 @@
 #include <errno.h>
 #endif
 
-#include "tds.h"
+#include <freetds/tds.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: gettimeofday.c,v 1.6 2011-05-16 08:51:40 freddy77 Exp $");

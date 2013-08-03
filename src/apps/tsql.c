@@ -79,10 +79,14 @@
 #include <langinfo.h>
 #endif /* HAVE_LANGINFO_H */
 
-#include "tds.h"
-#include "tdsiconv.h"
-#include "tdsstring.h"
-#include "tdsconvert.h"
+#ifdef HAVE_LOCALCHARSET_H
+#include <localcharset.h>
+#endif /* HAVE_LOCALCHARSET_H */
+
+#include <freetds/tds.h>
+#include <freetds/iconv.h>
+#include <freetds/string.h>
+#include <freetds/convert.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: tsql.c,v 1.153 2012-03-11 15:52:22 freddy77 Exp $");

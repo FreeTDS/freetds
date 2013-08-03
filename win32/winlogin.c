@@ -50,10 +50,10 @@
 
 #include "resource.h"
 
-#include "tds.h"
-#include "tdsodbc.h"
-#include "tdsstring.h"
-#include "tdsconvert.h"
+#include <freetds/tds.h>
+#include <freetds/odbc.h>
+#include <freetds/string.h>
+#include <freetds/convert.h>
 #include "replacements.h"
 
 #include <shlobj.h>
