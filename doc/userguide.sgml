@@ -1617,7 +1617,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 	<sect1 id="OdbcConnAttr">
 		<title>Connection attributes</title>
 
-<para>The following table defines all possible ODBC connection attributes for the <productname>FreeTDS</> ODBC driver.  Which ones you'll need depends on how you set yourself up.  They may appear in your connection string, or in <filename>odbc.ini</>.</para>
+<para>The following tables define all possible ODBC connection attributes for the <productname>FreeTDS</> ODBC driver.  Which ones you'll need depends on how you set yourself up.  They may appear in your connection string, or in <filename>odbc.ini</>.</para>
 		
 
 <para><table id="tab.Connection.attributes.stringonly"><title>Connection attributes used only in connection strings</title>
@@ -3499,8 +3499,8 @@ int msg_handler(DBPROCESS*, DBINT, int, int, char*, char*, char*, int);
 			fprintf(stderr, syntax);
 			exit(1);
 		}
-		</programlisting></example>
-					<calloutlist><title>Prolog Notes</title>
+		</programlisting></example></para>
+					<para><calloutlist><title>Prolog Notes</title>
 						<callout arearefs="samplecode.init.loginrec">
 
 	<para><symbol>LOGINREC</> is a structure that describes the client.  It's passed to the server at connect time.</para></callout>

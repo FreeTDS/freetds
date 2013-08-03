@@ -58,6 +58,10 @@ as:
 .Li osql -S myDSN 
 .Op .\|.\|.\&
 .\"
+.Sh FILES
+.Pa odbc.ini
+.Pa freetds.conf
+.\"
 .Sh NOTES
 If you can connect with
 .Ql osql -S servername -U user -P passwd Ns ,
