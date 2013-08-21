@@ -533,10 +533,7 @@ tds_read_packet(TDSSOCKET * tds)
 		/* GW ADDED */
 		if (len < 0) {
 			/* not needed because goodread() already called:  tdserror(tds->tds_ctx, tds, TDSEREAD, 0); */
-			tds_close_socket(tds);
-			tds->in_len = 0;
-			tds->in_pos = 0;
-			return -1;
+			goto Severe_Error;
 		}
 		
 		/* GW ADDED */
@@ -558,6 +555,8 @@ tds_read_packet(TDSSOCKET * tds)
 
 	/* Convert our packet length from network to host byte order */
 	len = (((unsigned int) header[2]) << 8) | header[3];
+	if (len < 8)
+		goto Severe_Error;
 
 	/*
 	 * If this packet size is the largest we have gotten allocate space for it
@@ -570,10 +569,8 @@ tds_read_packet(TDSSOCKET * tds)
 		} else {
 			p = (unsigned char *) realloc(tds->in_buf, len);
 		}
-		if (!p) {
-			tds_close_socket(tds);
-			return -1;
-		}
+		if (!p)
+			goto Severe_Error;
 		tds->in_buf = p;
 		/* Set the new maximum packet size */
 		tds->in_buf_max = len;
@@ -594,10 +591,7 @@ tds_read_packet(TDSSOCKET * tds)
 			 * being done.
 			 */
 			/* no need to call tdserror(), because goodread() already did */
-			tds->in_len = 0;
-			tds->in_pos = 0;
-			tds_close_socket(tds);
-			return -1;
+			goto Severe_Error;
 		}
 		have += nbytes;
 	}
@@ -611,6 +605,12 @@ tds_read_packet(TDSSOCKET * tds)
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Received packet", tds->in_buf, tds->in_len);
 
 	return (tds->in_len);
+
+Severe_Error:
+	tds->in_len = 0;
+	tds->in_pos = 0;
+	tds_close_socket(tds);
+	return -1;
 }
 
 int
