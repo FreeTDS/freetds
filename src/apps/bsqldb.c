@@ -928,7 +928,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 	
 	options->servername = getenv("DSQUERY");
 	
-	while ((ch = getopt(argc, argv, "U:P:R:S:dD:i:o:e:t:H:hqv")) != -1) {
+	while ((ch = getopt(argc, argv, "U:P:R:S:d:D:i:o:e:t:H:hqv")) != -1) {
 		switch (ch) {
 		case 'U':
 			username = strdup(optarg);
