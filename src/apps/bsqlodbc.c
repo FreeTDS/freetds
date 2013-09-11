@@ -830,7 +830,7 @@ get_login(int argc, char *argv[], OPTIONS *options)
 		perror("unable to get hostname");
 	} 
 
-	while ((ch = getopt(argc, argv, "U:P:S:dD:i:o:e:t:V:hqv")) != -1) {
+	while ((ch = getopt(argc, argv, "U:P:S:d:D:i:o:e:t:V:hqv")) != -1) {
 		char *p;
 		switch (ch) {
 		case 'U':
