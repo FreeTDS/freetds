@@ -455,8 +455,10 @@ login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest
 
 	slogin = dblogin();
 
-	DBSETLUSER(slogin, pdata->suser);
-	DBSETLPWD(slogin, pdata->spass);
+	if (pdata->suser)
+		DBSETLUSER(slogin, pdata->suser);
+	if (pdata->spass)
+		DBSETLPWD(slogin, pdata->spass);
 	DBSETLAPP(slogin, "Migrate Data");
 
 	/* if packet size specified, set in login record */
@@ -481,8 +483,10 @@ login_to_databases(BCPPARAMDATA * pdata, DBPROCESS ** dbsrc, DBPROCESS ** dbdest
 
 	dlogin = dblogin();
 
-	DBSETLUSER(dlogin, pdata->duser);
-	DBSETLPWD(dlogin, pdata->dpass);
+	if (pdata->duser)
+		DBSETLUSER(dlogin, pdata->duser);
+	if (pdata->dpass)
+		DBSETLPWD(dlogin, pdata->dpass);
 	DBSETLAPP(dlogin, "Migrate Data");
 
 	/* Enable bulk copy for this connection. */
