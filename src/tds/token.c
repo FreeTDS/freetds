@@ -2400,6 +2400,12 @@ tds_process_env_chg(TDSSOCKET * tds)
 	CHECK_TDS_EXTRA(tds);
 
 	size = tds_get_smallint(tds);
+	if (TDS_UNLIKELY(size < 1)) {
+		tdsdump_log(TDS_DBG_ERROR, "Got invalid size %d\n", size);
+		tds_close_socket(tds);
+		return TDS_FAIL;
+	}
+
 	/*
 	 * this came in a patch, apparently someone saw an env message
 	 * that was different from what we are handling? -- brian
@@ -2450,10 +2456,8 @@ tds_process_env_chg(TDSSOCKET * tds)
 	/* discard byte values, not still supported */
 	/* TODO support them */
 	if (IS_TDS71_PLUS(tds) && type > TDS_ENV_PACKSIZE) {
-		/* discard new one */
-		tds_get_n(tds, NULL, tds_get_byte(tds));
-		/* discard old one */
-		tds_get_n(tds, NULL, tds_get_byte(tds));
+		/* discard rest of the packet */
+		tds_get_n(tds, NULL, size - 1);
 		return TDS_SUCCEED;
 	}
 
