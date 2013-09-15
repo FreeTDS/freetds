@@ -25,6 +25,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+
 #include <assert.h>
 
 /* test tds_iconv_fread */
@@ -43,6 +47,11 @@ main(int argc, char **argv)
 	TDSCONTEXT *ctx = tds_alloc_context(NULL);
 	TDSSOCKET *tds = tds_alloc_socket(ctx, 512);
 	TDSICONV * conv;
+	const char *tdsdump;
+
+	tdsdump = getenv("TDSDUMP");
+	if (tdsdump)
+		tdsdump_open(tdsdump);
 
 	if (!ctx || !tds) {
 		fprintf(stderr, "Error creating socket!\n");
