@@ -107,11 +107,11 @@ convert_more:
 			break;
 
 		if ((size_t) -1 == ol) {
-			tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: tds_iconv returned errno %d\n", errno);
+			tdsdump_log(TDS_DBG_NETWORK, "Error: tds_convert_stream: tds_iconv returned errno %d, conv_errno %d\n", errno, conv_errno);
 			if (conv_errno == E2BIG && ostream->buf_len && bufleft)
 				goto convert_more;
 			if (conv_errno != EILSEQ) {
-				tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: "
+				tdsdump_log(TDS_DBG_NETWORK, "Error: tds_convert_stream: "
 							     "Gave up converting %u bytes due to error %d.\n",
 							     (unsigned int) bufleft, errno);
 				tdsdump_dump_buf(TDS_DBG_NETWORK, "Troublesome bytes:", ib, bufleft);
