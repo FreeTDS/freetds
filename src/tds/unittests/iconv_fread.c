@@ -63,11 +63,14 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	for (i = 4096-20; i < 4096+20; ++i) {
+	for (i = 0; i < 4096+20; ++i) {
 		char *out = NULL;
 		size_t out_len = 0xdeadbeef;
 		TDSRET res;
 		const unsigned char x = 0x90;
+
+		if (i == 32)
+			i = 4096-20;
 
 		/* write test string to file */
 		if (fseek(f, 0L, SEEK_SET)) {

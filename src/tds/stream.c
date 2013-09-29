@@ -92,6 +92,8 @@ tds_convert_stream(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION di
 
 		/* Convert chunk */
 		ib = temp; /* always convert from start of buffer */
+
+convert_more:
 		ob = (char *) ostream->buffer;
 		ol = ostream->buf_len;
 		/* FIXME not for last */
@@ -106,6 +108,8 @@ tds_convert_stream(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION di
 
 		if ((size_t) -1 == ol) {
 			tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: tds_iconv returned errno %d\n", errno);
+			if (conv_errno == E2BIG && ostream->buf_len && bufleft)
+				goto convert_more;
 			if (conv_errno != EILSEQ) {
 				tdsdump_log(TDS_DBG_NETWORK, "Error: read_and_convert: "
 							     "Gave up converting %u bytes due to error %d.\n",
@@ -203,13 +207,19 @@ tds_dynamic_stream_write(TDSOUTSTREAM *stream, size_t len)
 
 TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated)
 {
+#if ENABLE_EXTRA_CHECKS
+	const size_t initial_size = 16;
+#else
+	const size_t initial_size = 1024;
+#endif
+
 	stream->stream.write = tds_dynamic_stream_write;
 	stream->buf = ptr;
-	if (allocated < 1024) {
+	if (allocated < initial_size) {
 		if (*ptr) free(*ptr);
-		*ptr = malloc(1024);
+		*ptr = malloc(initial_size);
 		if (!*ptr) return TDS_FAIL;
-		allocated = 1024;
+		allocated = initial_size;
 	}
 	stream->allocated = allocated;
 	stream->size = 0;
