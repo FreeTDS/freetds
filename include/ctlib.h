@@ -20,6 +20,8 @@
 #ifndef _ctlib_h_
 #define _ctlib_h_
 
+#include <freetds/tds.h>
+
 /*
  * Internal (not part of the exposed API) prototypes and such.
  */
@@ -39,7 +41,6 @@ extern "C"
 static const char rcsid_ctlib_h[] = "$Id: ctlib.h,v 1.31 2011-06-18 17:52:24 freddy77 Exp $";
 static const void *const no_unused_ctlib_h_warn[] = { rcsid_ctlib_h, no_unused_ctlib_h_warn };
 
-#include <freetds/tds.h>
 /*
  * internal types
  */
