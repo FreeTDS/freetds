@@ -119,6 +119,13 @@ $ else
 $   snprintfobj = "[.src.replacements]snprintf$(OBJ),"
 $ endif
 $!
+$ if P1 .eqs. "--disable-thread-safe"
+$ then
+$   enable_thread_safe = " "
+$ else
+$   enable_thread_safe = "ENABLE_THREAD_SAFE = 1"
+$ endif
+$!
 $ open/write vmsconfigtmp vmsconfigtmp.com
 $ write vmsconfigtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
 $ write vmsconfigtmp "$ edit/tpu/nodisplay/noinitialization -"
@@ -136,6 +143,8 @@ $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@LIBICONVOBJ@"",""''libiconvobj'"");"
 $ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
 $ write vmsconfigtmp "eve_global_replace(""@SNPRINTFOBJ@"",""''snprintfobj'"");"
+$ write vmsconfigtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsconfigtmp "eve_global_replace(""@ENABLE_THREAD_SAFE@"",""''enable_thread_safe'"");"
 $ write vmsconfigtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
 $ write vmsconfigtmp "WRITE_FILE (main_buffer, out_file);"
 $ write vmsconfigtmp "quit;"
@@ -143,6 +152,27 @@ $ write vmsconfigtmp "$ exit"
 $ close vmsconfigtmp
 $ @vmsconfigtmp.com
 $ delete/noconfirm/nolog vmsconfigtmp.com;
+$!
+$! C99 requires t, z, and j modifiers to decimal format specifiers
+$! but the HP compiler doesn't handle them, so replace the one
+$! use of %td with %ld.
+$!
+$ open/write vmsbsqldbtmp vmsbsqldbtmp.com
+$ write vmsbsqldbtmp "$ define/user_mode/nolog SYS$OUTPUT _NLA0:"
+$ write vmsbsqldbtmp "$ edit/tpu/nodisplay/noinitialization -"
+$ write vmsbsqldbtmp "/section=sys$library:eve$section.tpu$section -"
+$ write vmsbsqldbtmp "/command=sys$input/output=[.src.apps]bsqldb.c [.src.apps]bsqldb.c"
+$ write vmsbsqldbtmp "input_file := GET_INFO (COMMAND_LINE, ""file_name"");"
+$ write vmsbsqldbtmp "main_buffer:= CREATE_BUFFER (""main"", input_file);"
+$ write vmsbsqldbtmp "POSITION (BEGINNING_OF (main_buffer));"
+$ write vmsbsqldbtmp "eve_global_replace("" %td "","" %ld "");"
+$ write vmsbsqldbtmp "out_file := GET_INFO (COMMAND_LINE, ""output_file"");"
+$ write vmsbsqldbtmp "WRITE_FILE (main_buffer, out_file);"
+$ write vmsbsqldbtmp "quit;"
+$ write vmsbsqldbtmp "$ exit"
+$ close vmsbsqldbtmp
+$ @vmsbsqldbtmp.com
+$ delete/noconfirm/nolog vmsbsqldbtmp.com;
 $!
 $ Say ""
 $ Say "Configuration complete; run MMK or MMS to build."

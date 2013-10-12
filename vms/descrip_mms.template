@@ -80,6 +80,14 @@ CODBCFLAGS = /NAMES=SHORTENED
 CPREFIX = ALL
 CINCLUDE = "./","./include"$(ODBC_INC)
 
+@ENABLE_THREAD_SAFE@
+.IFDEF ENABLE_THREAD_SAFE
+CDEFINE = $(CDEFINE),"_THREAD_SAFE"=1
+PTHREAD_LINK_FLAGS = /THREADS=UPCALLS
+.ELSE
+PTHREAD_LINK_FLAGS = 
+.ENDIF
+
 .IFDEF __DEBUG__
 CDBGFLAGS = /DEBUG/NOOPTIMIZE/LIST=$(MMS$TARGET_NAME)/SHOW=(EXPANSION,INCLUDE)
 LDBGFLAGS = /DEBUG/MAP
@@ -89,7 +97,7 @@ LDBGFLAGS = /NOTRACE
 .ENDIF
 
 CFLAGS = /DEFINE=($(CDEFINE))/PREFIX=($(CPREFIX))/FLOAT=IEEE/IEEE=DENORM/OBJECT=$(MMS$TARGET_NAME)$(OBJ) $(CODBCFLAGS) $(CDBGFLAGS)
-LINKFLAGS = $(LDBGFLAGS)
+LINKFLAGS = $(LDBGFLAGS)$(PTHREAD_LINK_FLAGS)
 
 .c$(OBJ) :
 	$(CC) $(CFLAGS)/INCLUDE=($(CINCLUDE)) $(MMS$SOURCE)
@@ -113,7 +121,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 	[.src.tds]query$(OBJ), [.src.tds]read$(OBJ), [.src.tds]tdsstring$(OBJ), \
 	[.src.tds]threadsafe$(OBJ), [.src.tds]token$(OBJ), [.src.tds]util$(OBJ), \
 	[.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), [.src.tds]md5$(OBJ), \
-	[.src.tds]net$(OBJ), [.src.tds]log$(OBJ), [.src.tds]stream$(OBJ), \
+	[.src.tds]net$(OBJ), [.src.tds]log$(OBJ), [.src.tds]packet$(OBJ), [.src.tds]stream$(OBJ), \
 	[.src.replacements]strlcpy$(OBJ), [.src.replacements]getpassarg$(OBJ), \
 	$(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) \
 	[.vms]getpass$(OBJ)
@@ -121,7 +129,7 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
 CTLIBOBJS = [.src.ctlib]blk$(OBJ), [.src.ctlib]cs$(OBJ), [.src.ctlib]ct$(OBJ), \
 	[.src.ctlib]ctutil$(OBJ)
 
-DBLIBOBJS = [.src.dblib]bcp$(OBJ), [.src.dblib]dblib$(OBJ), $(DBOPENOBJ) \
+DBLIBOBJS = [.src.dblib]bcp$(OBJ), [.src.dblib]dblib$(OBJ), [.src.dblib]dbpivot$(OBJ), $(DBOPENOBJ) \
 	[.src.dblib]dbutil$(OBJ), [.src.dblib]rpc$(OBJ), [.src.dblib]xact$(OBJ)
 
 TDSSRVOBJS = [.src.server]query$(OBJ), [.src.server]server$(OBJ), [.src.server]login$(OBJ)
@@ -386,6 +394,7 @@ libtdscheck :
 	@ run/nodebug []utf8_1$(E)
 	@ run/nodebug []utf8_2$(E)
 	@ run/nodebug []utf8_3$(E)
+	@ run/nodebug []toodynamic$(E)
 	@ set default [---]
 
 
@@ -538,7 +547,8 @@ libtdstests : [.src.tds.unittests]dynamic1$(E) [.src.tds.unittests]iconv_fread$(
 	[.src.tds.unittests]t0003$(E) [.src.tds.unittests]t0004$(E) [.src.tds.unittests]t0005$(E) \
 	[.src.tds.unittests]t0006$(E) [.src.tds.unittests]t0007$(E) [.src.tds.unittests]t0008$(E) \
 	[.src.tds.unittests]convert$(E) [.src.tds.unittests]dataread$(E) \
-	[.src.tds.unittests]utf8_1$(E) [.src.tds.unittests]utf8_2$(E) [.src.tds.unittests]utf8_3$(E)
+	[.src.tds.unittests]utf8_1$(E) [.src.tds.unittests]utf8_2$(E) [.src.tds.unittests]utf8_3$(E) \
+	[.src.tds.unittests]toodynamic$(E)
 	@ continue
 
 ctlibtests : [.src.ctlib.unittests]t0001$(E) [.src.ctlib.unittests]t0002$(E) [.src.ctlib.unittests]t0003$(E) \
@@ -699,6 +709,12 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
 	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
 
 [.src.tds.unittests]utf8_3$(OBJ) : [.src.tds.unittests]utf8_3.c
+	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
+
+[.src.tds.unittests]toodynamic$(E) : [.src.tds.unittests]toodynamic$(OBJ) [.src.tds.unittests]common$(OBJ)
+	link$(LINKFLAGS)/exe=$(MMS$TARGET) $(MMS$SOURCE_LIST),[]libtds$(OLB)/library
+
+[.src.tds.unittests]toodynamic$(OBJ) : [.src.tds.unittests]toodynamic.c
 	$(CC) $(CFLAGS)/NOWARN/INCLUDE=([.src.tds.unittests],$(CINCLUDE)) $(CDBGFLAGS) $(MMS$SOURCE)
 
 # ctlib test detailed dependencies
@@ -1457,6 +1473,7 @@ distclean :
 	@ if f$search("[...unittests]*$(E)") .nes. "" then delete/noconfirm [...unittests]*$(E);*
 	@ if f$search("[.src.odbc._libs]*$(E)") .nes. "" then delete/noconfirm [.src.odbc._libs]*$(E);*
 	@ if f$search("[...unittests]*.ini") .nes. "" then delete/noconfirm [...unittests]*.ini;*
+	@ if f$search("[...unittests]*.out") .nes. "" then delete/noconfirm [...unittests]*.out;*
 	@ if f$search("*$(OLB)") .nes. "" then purge/noconfirm *$(OLB)
 	@ if f$search("*$(E)") .nes. "" then purge/noconfirm *$(E)
 

@@ -41,6 +41,11 @@
 #define HAVE_BASENAME 0
 #endif
 
+/* Define if you have the clock_gettime function. */
+#if __CRTL_VER >= 70302000
+#define HAVE_CLOCK_GETTIME 1
+#endif
+
 /* Define to 1 if you have the <errno.h> header file. */
 #define HAVE_ERRNO_H 1
 
@@ -94,6 +99,9 @@
 
 /* Define to 1 if you have the `gethostent_r' function. */
 #undef HAVE_GETHOSTENT_R
+
+/* Define if you have getaddrinfo function */
+#define HAVE_GETADDRINFO 1
 
 /* Define to 1 if you have the `gethostname' function. */
 #define HAVE_GETHOSTNAME 1
@@ -156,11 +164,22 @@
 
 #endif
 
+/* Define if you have POSIX threads libraries and header files. */
+#define HAVE_PTHREAD 1
+
+/* Define to 1 if you have the `pthread_cond_timedwait' function. */
+#define HAVE_PTHREAD_COND_TIMEDWAIT 1
+
 /* Define to 1 if you have the GNU Readline library. */
 #define HAVE_READLINE 1
 
 /* Define to 1 if you have the `sethostent_r' function. */
 #undef HAVE_SETHOSTENT_R
+
+/* Define to 1 if you have the `socketpair' function. */
+#if __CRTL_VER >= 80200000
+#define HAVE_SOCKETPAIR 1
+#endif
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -266,6 +285,19 @@
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
+/* define to constant to use for clock_gettime */
+#if __CRTL_VER >= 70302000
+#define TDS_GETTIMEMILLI_CONST CLOCK_REALTIME
+#endif
+
+/* Define if you have pthread with mutex support */
+#define TDS_HAVE_PTHREAD_MUTEX 1
+
+/* Define if stdio support locking */
+#if __CRTL_VER >= 80200000
+#define TDS_HAVE_STDIO_LOCKED 1
+#endif
+
 /* define to prefix format string used for 64bit integers */
 #define TDS_I64_PREFIX "ll"
 
@@ -288,6 +320,9 @@
 
 /* This really just needs to be the current working directory for the tests */
 #define FREETDS_SRCDIR "."
+
+/* But some tests insist on redefining that in terms of this */
+#define FREETDS_TOPDIR "../../.."
 
 #include <limits.h>
 #define MAXPATHLEN PATH_MAX
