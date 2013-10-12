@@ -94,7 +94,7 @@ tds_convert_stream(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION di
 		ib = temp; /* always convert from start of buffer */
 
 convert_more:
-		ob = (char *) ostream->buffer;
+		ob = ostream->buffer;
 		ol = ostream->buf_len;
 		/* FIXME not for last */
 		suppress->einval = 1; /* EINVAL matters only on the last chunk. */
@@ -102,7 +102,7 @@ convert_more:
 		conv_errno = errno;
 
 		/* write converted chunk */
-		len = ostream->write(ostream, ob - (char *) ostream->buffer);
+		len = ostream->write(ostream, ob - ostream->buffer);
 		if (len < 0)
 			break;
 
@@ -136,7 +136,7 @@ tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * ostream)
 {
 	while (ostream->buf_len) {
 		/* read a chunk of data */
-		int len = istream->read(istream, (char*) ostream->buffer, ostream->buf_len);
+		int len = istream->read(istream, ostream->buffer, ostream->buf_len);
 		if (len == 0)
 			return TDS_SUCCESS;
 		if (len < 0)
@@ -180,7 +180,7 @@ tds_static_stream_write(TDSOUTSTREAM *stream, size_t len)
 void tds_static_stream_init(TDSSTATICSTREAM * stream, void *ptr, size_t len)
 {
 	stream->stream.write = tds_static_stream_write;
-	stream->stream.buffer = ptr;
+	stream->stream.buffer = (char *) ptr;
 	stream->stream.buf_len = len;
 }
 
@@ -223,7 +223,7 @@ TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t all
 	}
 	stream->allocated = allocated;
 	stream->size = 0;
-	stream->stream.buffer = *ptr;
+	stream->stream.buffer = (char *) *ptr;
 	stream->stream.buf_len = allocated;
 	return TDS_SUCCESS;
 }

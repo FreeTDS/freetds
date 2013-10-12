@@ -45,7 +45,7 @@ typedef struct tds_output_stream {
 	 * client should not cache buffer and buf_len before a call
 	 * to write as write can change these values.
 	 */
-	void *buffer;
+	char *buffer;
 	size_t buf_len;
 } TDSOUTSTREAM;
 
