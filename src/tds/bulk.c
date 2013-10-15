@@ -1001,7 +1001,7 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	TDSFILESTREAM *s = (TDSFILESTREAM *) stream;
 	int c;
 	char *p = (char *) ptr;
-#define GETC() do { c = getc_unlocked(s->f); if (c==EOF) return -1; } while(0)
+#define GETC() do { c = getc_unlocked(s->f); if (c==EOF) goto check_eof; } while(0)
 
 	while (s->left_len < s->term_len) {
 		GETC();
@@ -1021,11 +1021,18 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 		s->left[s->term_len-1] = c;
 	}
 	return p - (char *) ptr;
+
+check_eof:
+	if (!s->left_len && feof_unlocked(s->f))
+		return 0;
+	return -1;
 }
 
 /**
  * Read a data file, passing the data through iconv().
- * \return TDS_SUCCESS or TDS_FAIL.
+ * \retval TDS_SUCCESS  success
+ * \retval TDS_FAIL     error reading the column
+ * \retval TDS_NO_MORE_RESULTS end of file detected
  */
 TDSRET
 tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *terminator, size_t term_len, char **outbuf, size_t * outbytes)
@@ -1070,7 +1077,7 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	((char *) w.stream.buffer)[0] = 0;
 	w.stream.write(&w.stream, 1);
 
-	return res;
+	return r.left_len ? res : TDS_NO_MORE_RESULTS;
 }
 
 TDSRET

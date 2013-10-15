@@ -1119,16 +1119,6 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 	assert(hostfile);
 	assert(row_error);
 
-	/*
-	 * If we read no bytes and we're at end of file AND this is the first column,
-	 * then we've stumbled across the finish line.  Tell the caller we failed to read
-	 * anything but encountered no error.
-	 */
-	i = fgetc(hostfile);
-	if (i == EOF)
-		return _bcp_check_eof(dbproc, hostfile, 0);
-	ungetc(i, hostfile);
-
 	/* for each host file column defined by calls to bcp_colfmt */
 
 	for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
@@ -1239,6 +1229,11 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 				free(coldata);
 				dbperror(dbproc, SYBEBCOR, 0);
 				return FAIL;
+			}
+
+			if (conv_res == TDS_NO_MORE_RESULTS) {
+				free(coldata);
+				return _bcp_check_eof(dbproc, hostfile, i);
 			}
 
 			if (col_bytes > 0x7fffffffl) {
