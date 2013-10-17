@@ -1268,6 +1268,16 @@ tds_get_compiletime_settings(void)
 #		else
 			, 0
 #		endif
+#		ifdef HAVE_OPENSSL
+			, 1
+#		else
+			, 0
+#		endif
+#		ifdef HAVE_GNUTLS
+			, 1
+#		else
+			, 0
+#		endif
 	};
 
 	assert(settings.tdsver);

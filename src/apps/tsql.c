@@ -490,7 +490,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			break;
 		case 'C':
 			settings = tds_get_compiletime_settings();
-			printf("%s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n",
+			printf("%s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n%35s: %s\n",
 			       "Compile-time settings (established with the \"configure\" script)",
 			       "Version", settings->freetds_version,
 			       "freetds.conf directory", settings->sysconfdir, 
@@ -504,7 +504,9 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
 			       "iODBC", settings->iodbc ? "yes" : "no", 
 			       "unixodbc", settings->unixodbc ? "yes" : "no", 
 			       "SSPI \"trusted\" logins", have_sspi, 
-			       "Kerberos", enable_krb5);
+			       "Kerberos", enable_krb5,
+			       "OpenSSL", settings->openssl ? "yes" : "no",
+			       "GnuTLS", settings->gnutls ? "yes" : "no");
 			exit(0);
 			break;
 		default:
