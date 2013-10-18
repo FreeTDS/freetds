@@ -1057,8 +1057,6 @@ typedef struct tds_file_stream {
 
 	/** buffer for store bytes readed that could be the terminator */
 	char *left;
-	/** bytes left on left buffer */
-	size_t left_len;
 } TDSFILESTREAM;
 
 /** \cond HIDDEN_SYMBOLS */
@@ -1087,13 +1085,8 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	int c;
 	char *p = (char *) ptr;
 /** \cond HIDDEN_SYMBOLS */
-#define GETC() do { c = getc_unlocked(s->f); if (c==EOF) goto check_eof; } while(0)
+#define GETC() do { c = getc_unlocked(s->f); if (c==EOF) return -1; } while(0)
 /** \endcond */
-
-	while (s->left_len < s->term_len) {
-		GETC();
-		s->left[s->left_len++] = c;
-	}
 
 	while (len) {
 		if (memcmp(s->left, s->terminator, s->term_len) == 0)
@@ -1108,11 +1101,6 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 		s->left[s->term_len-1] = c;
 	}
 	return p - (char *) ptr;
-
-check_eof:
-	if (!s->left_len && feof_unlocked(s->f))
-		return 0;
-	return -1;
 }
 
 /**
@@ -1127,6 +1115,7 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	TDSRET res;
 	TDSFILESTREAM r;
 	TDSDYNAMICSTREAM w;
+	size_t readed;
 
 	/* prepare streams */
 	r.stream.read = tds_file_stream_read;
@@ -1135,7 +1124,15 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	r.term_len = term_len;
 	r.left = calloc(1, term_len);
 	if (!r.left) return TDS_FAIL;
-	r.left_len = 0;
+
+	/* read initial buffer to test with terminator */
+	readed = fread(r.left, 1, term_len, stream);
+	if (readed != term_len) {
+		free(r.left);
+		if (readed == 0 && feof(stream))
+			return TDS_NO_MORE_RESULTS;
+		return TDS_FAIL;
+	}
 
 	res = tds_dynamic_stream_init(&w, (void**) outbuf, 0);
 	if (TDS_FAILED(res)) {
@@ -1164,7 +1161,7 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	((char *) w.stream.buffer)[0] = 0;
 	w.stream.write(&w.stream, 1);
 
-	return r.left_len ? res : TDS_NO_MORE_RESULTS;
+	return res;
 }
 
 /**
