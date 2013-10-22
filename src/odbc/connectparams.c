@@ -226,12 +226,12 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	if (myGetPrivateProfileString(DSN, odbc_param_ServerSPN, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_SPN, tmp, login);
 
-	if (myGetPrivateProfileString(DSN, odbc_param_Trusted_Connection, tmp) > 0 && tds_config_boolean(tmp)) {
+	if (myGetPrivateProfileString(DSN, odbc_param_Trusted_Connection, tmp) > 0 && tds_config_boolean(tmp, login)) {
 		tds_dstr_copy(&login->user_name, "");
 		tds_dstr_copy(&login->password, "");
 	}
 
-	if (myGetPrivateProfileString(DSN, odbc_param_MARS_Connection, tmp) > 0 && tds_config_boolean(tmp)) {
+	if (myGetPrivateProfileString(DSN, odbc_param_MARS_Connection, tmp) > 0 && tds_config_boolean(tmp, login)) {
 		login->mars = 1;
 	}
 
@@ -389,12 +389,12 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 		} else if (CHK_PARAM(ServerSPN)) {
 			tds_parse_conf_section(TDS_STR_SPN, tds_dstr_cstr(&value), login);
 		} else if (CHK_PARAM(Trusted_Connection)) {
-			trusted = tds_config_boolean(tds_dstr_cstr(&value));
+			trusted = tds_config_boolean(tds_dstr_cstr(&value), login);
 			tdsdump_log(TDS_DBG_INFO1, "trusted %s -> %d\n", tds_dstr_cstr(&value), trusted);
 			num_param = -1;
 			/* TODO odbc_param_Address field */
 		} else if (CHK_PARAM(MARS_Connection)) {
-			if (tds_config_boolean(tds_dstr_cstr(&value)))
+			if (tds_config_boolean(tds_dstr_cstr(&value), login))
 				login->mars = 1;
 		}
 

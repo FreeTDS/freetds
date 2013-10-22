@@ -333,6 +333,9 @@ tds_connect(TDSSOCKET * tds, TDSLOGIN * login, int *p_oserr)
 		, 0x402
 		};
 
+	if (login->invalid_configuration)
+		return TDS_FAIL;
+
 	if (TDS_MAJOR(login) == 0) {
 		unsigned int i;
 		TDSSAVECONTEXT save_ctx;
