@@ -292,6 +292,7 @@ typedef enum {	TDSEOK    = TDS_SUCCESS,
 		TDSENEG  = 20210, 
 		TDSEUMSG = 20212, 
 		TDSECAPTYP  = 20213, 
+		TDSECONF = 20214,
 		TDSEBPROBADTYP = 20250,
 		TDSECLOSEIN = 20292 
 } TDSERRNO;
@@ -578,7 +579,7 @@ typedef struct tds_login
 	unsigned int use_ntlmv2:1;
 	unsigned int use_lanman:1;
 	unsigned int mars:1;
-	unsigned int invalid_configuration:1;
+	unsigned int valid_configuration:1;
 } TDSLOGIN;
 
 typedef struct tds_locale
@@ -1188,7 +1189,7 @@ const char *tds_addrinfo2str(struct tds_addrinfo *addr, char *name, int namemax)
 
 TDSRET tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
-int tds_config_boolean(const char *value, TDSLOGIN * login);
+int tds_config_boolean(const char *option, const char *value, TDSLOGIN * login);
 
 TDSLOCALE *tds_get_locale(void);
 TDSRET tds_alloc_row(TDSRESULTINFO * res_info);

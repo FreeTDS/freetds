@@ -399,7 +399,7 @@ tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login)
 	default_port = login->port;
 
 	found = tds_read_conf_section(in, server, tds_parse_conf_section, login);
-	if (login->invalid_configuration)
+	if (!login->valid_configuration)
 		return 0;
 
 	/* 
@@ -430,7 +430,7 @@ static const struct {
 };
 
 int
-tds_config_boolean(const char *value, TDSLOGIN *login)
+tds_config_boolean(const char *option, const char *value, TDSLOGIN *login)
 {
 	int p;
 
@@ -438,7 +438,9 @@ tds_config_boolean(const char *value, TDSLOGIN *login)
 		if (!strcasecmp(value, boolean_values[p].value))
 			return boolean_values[p].to_return;
 	}
-	login->invalid_configuration = 1;
+	tdsdump_log(TDS_DBG_ERROR, "UNRECOGNIZED option value '%s' for boolean setting '%s'!\n",
+		    value, option);
+	login->valid_configuration = 0;
 	return 0;
 }
 
@@ -454,8 +456,12 @@ tds_config_encryption(const char * value, TDSLOGIN * login)
 	else if (!strcasecmp(value, TDS_STR_ENCRYPTION_REQUIRE))
 		lvl = TDS_ENCRYPTION_REQUIRE;
 	else {
-		tdsdump_log(TDS_DBG_INFO1, "UNRECOGNIZED option value '%s'...ignoring.\n", value);
-		login->invalid_configuration = 1;
+		tdsdump_log(TDS_DBG_ERROR, "UNRECOGNIZED option value '%s' for '%s' setting!\n",
+			    value, TDS_STR_ENCRYPTION);
+		tdsdump_log(TDS_DBG_ERROR, "Valid settings are: ('%s', '%s', '%s')\n",
+		        TDS_STR_ENCRYPTION_OFF, TDS_STR_ENCRYPTION_REQUEST, TDS_STR_ENCRYPTION_REQUIRE);
+		lvl = TDS_ENCRYPTION_REQUIRE;  /* Assuming "require" is safer than "no" */
+		login->valid_configuration = 0;
 	}
 
 	login->encryption_level = lvl;
@@ -572,10 +578,10 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (val >= 512 && val < 65536)
 			login->block_size = val;
 	} else if (!strcmp(option, TDS_STR_SWAPDT)) {
-		login->broken_dates = tds_config_boolean(value, login);
+		login->broken_dates = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_GSSAPI_DELEGATION)) {
 		/* gssapi flag addition */
-		login->gssapi_use_delegation = tds_config_boolean(value, login);
+		login->gssapi_use_delegation = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_DUMPFILE)) {
 		tds_dstr_copy(&login->dump_file, value);
 	} else if (!strcmp(option, TDS_STR_DEBUGFLAGS)) {
@@ -608,7 +614,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 		if (atoi(value))
 			login->port = atoi(value);
 	} else if (!strcmp(option, TDS_STR_EMUL_LE)) {
-		login->emul_little_endian = tds_config_boolean(value, login);
+		login->emul_little_endian = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_TEXTSZ)) {
 		if (atoi(value))
 			login->text_size = atoi(value);
@@ -621,7 +627,7 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_LANGUAGE)) {
 		tds_dstr_copy(&login->language, value);
 	} else if (!strcmp(option, TDS_STR_APPENDMODE)) {
-		tds_g_append_mode = tds_config_boolean(value, login);
+		tds_g_append_mode = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_INSTANCE)) {
 		tds_dstr_copy(&login->instance_name, value);
 	} else if (!strcmp(option, TDS_STR_ENCRYPTION)) {
@@ -629,9 +635,9 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	} else if (!strcmp(option, TDS_STR_ASA_DATABASE)) {
 		tds_dstr_copy(&login->server_name, value);
 	} else if (!strcmp(option, TDS_STR_USENTLMV2)) {
-		login->use_ntlmv2 = tds_config_boolean(value, login);
+		login->use_ntlmv2 = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_USELANMAN)) {
-		login->use_lanman = tds_config_boolean(value, login);
+		login->use_lanman = tds_config_boolean(option, value, login);
 	} else if (!strcmp(option, TDS_STR_REALM)) {
 		tds_dstr_copy(&login->server_realm_name, value);
 	} else if (!strcmp(option, TDS_STR_SPN)) {

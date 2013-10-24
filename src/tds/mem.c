@@ -827,6 +827,8 @@ tds_init_login(TDSLOGIN *login, TDSLOCALE * locale)
 	if (!tds_dstr_copy(&login->client_host_name, hostname))
 		return NULL;
 
+	login->valid_configuration = 1;
+
 	return login;
 }
 

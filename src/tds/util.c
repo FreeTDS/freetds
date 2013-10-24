@@ -255,6 +255,8 @@ static const TDS_ERROR_MESSAGE tds_error_messages[] =
 	, { TDSEUSCT,              EXCOMM,	"Unable to set communications timer" }
 	, { TDSEUTDS,              EXCOMM,	"Unrecognized TDS version received from the server" }
 	, { TDSEWRIT,              EXCOMM,	"Write to the server failed" }
+	, { TDSECONF,              EXUSER,	"Local configuration error.  "
+						"Check TDSDUMPCONFIG log for details." }
 	/* last, with masgno == 0 */
 	, { 0,              EXCONSISTENCY,	"unrecognized msgno" }
 	};
