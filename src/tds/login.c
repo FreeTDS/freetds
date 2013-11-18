@@ -592,11 +592,11 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	 * do this, (well...mine was a kludge actually) so here's mostly his
 	 */
 
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->client_host_name), TDS_MAX_LOGIN_STR_SZ);	/* client host name */
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->user_name), TDS_MAX_LOGIN_STR_SZ);	/* account name */
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->password), TDS_MAX_LOGIN_STR_SZ);	/* account password */
+	tds_put_login_string(tds, tds_dstr_cstr(&connection->client_host_name), TDS_MAXNAME);	/* client host name */
+	tds_put_login_string(tds, tds_dstr_cstr(&connection->user_name), TDS_MAXNAME);	/* account name */
+	tds_put_login_string(tds, tds_dstr_cstr(&connection->password), TDS_MAXNAME);	/* account password */
 	sprintf(blockstr, "%d", (int) getpid());
-	tds_put_login_string(tds, blockstr, TDS_MAX_LOGIN_STR_SZ);	/* host process */
+	tds_put_login_string(tds, blockstr, TDS_MAXNAME);	/* host process */
 #ifdef WORDS_BIGENDIAN
 	if (tds->emul_little_endian) {
 		tds_put_n(tds, le1, 6);
@@ -614,8 +614,8 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		tds_put_int(tds, 0);
 	}
 	tds_put_n(tds, magic3, 3);
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->app_name), TDS_MAX_LOGIN_STR_SZ);
-	tds_put_login_string(tds, lservname, TDS_MAX_LOGIN_STR_SZ);
+	tds_put_login_string(tds, tds_dstr_cstr(&connection->app_name), TDS_MAXNAME);
+	tds_put_login_string(tds, lservname, TDS_MAXNAME);
 	if (IS_TDS42(tds)) {
 		tds_put_login_string(tds, tds_dstr_cstr(&connection->password), 255);
 	} else {
@@ -630,7 +630,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 	}
 
 	tds_put_n(tds, protocol_version, 4);	/* TDS version; { 0x04,0x02,0x00,0x00 } */
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->library), 10);	/* client program name */
+	tds_put_login_string(tds, tds_dstr_cstr(&connection->library), TDS_PROGNLEN);	/* client program name */
 	if (IS_TDS42(tds)) {
 		tds_put_int(tds, 0);
 	} else {
@@ -645,7 +645,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 #else
 	tds_put_n(tds, le2, 3);
 #endif
-	tds_put_login_string(tds, tds_dstr_cstr(&connection->language), TDS_MAX_LOGIN_STR_SZ);	/* language */
+	tds_put_login_string(tds, tds_dstr_cstr(&connection->language), TDS_MAXNAME);	/* language */
 	tds_put_byte(tds, connection->suppress_language);
 	tds_put_n(tds, magic5, 2);
 	tds_put_byte(tds, connection->encryption_level ? 1 : 0);
@@ -659,7 +659,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		server_charset = tds_sybase_charset_name(tds_dstr_cstr(&connection->client_charset));
 	if (!server_charset)
 		server_charset = "";
-	tds_put_login_string(tds, server_charset, TDS_MAX_LOGIN_STR_SZ);	/* charset */
+	tds_put_login_string(tds, server_charset, TDS_MAXNAME);	/* charset */
 	/* this is a flag, mean that server should use character set provided by client */
 	/* TODO notify charset change ?? what's correct meaning ?? -- freddy77 */
 	tds_put_byte(tds, 1);
@@ -669,7 +669,7 @@ tds_send_login(TDSSOCKET * tds, TDSCONNECTION * connection)
 		sprintf(blockstr, "%d", connection->block_size);
 	else
 		strcpy(blockstr, "512");
-	tds_put_login_string(tds, blockstr, 6);
+	tds_put_login_string(tds, blockstr, TDS_PKTLEN);
 
 	if (IS_TDS42(tds)) {
 		tds_put_n(tds, magic42, 8);
