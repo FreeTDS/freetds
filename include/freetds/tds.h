@@ -536,7 +536,7 @@ typedef struct tds_capabilities
 	TDS_CAPABILITY_TYPE types[2];
 } TDS_CAPABILITIES;
 
-#define TDS_MAX_LOGIN_STR_SZ 30
+#define TDS_MAX_LOGIN_STR_SZ 128
 typedef struct tds_login
 {
 	DSTR server_name;		/**< server name (in freetds.conf) */

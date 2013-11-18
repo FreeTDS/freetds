@@ -444,3 +444,8 @@ enum {
 	TDS_CUR_CONCUR_OPTIMISTIC_VALUES = 8
 };
 
+/* TDS 4/5 login*/
+#define TDS_MAXNAME 30	/* maximum login name lenghts */
+#define TDS_PROGNLEN 10	/* maximum program lenght */
+#define TDS_PKTLEN 6	/* maximum packet lenght in login */
+
