@@ -63,7 +63,7 @@ main(int argc, char **argv)
 
 	f = fopen(in_file, "r");
 	if (!f)
-		fopen("readconf.in", "r");
+		f = fopen("readconf.in", "r");
 	if (!f) {
 		fprintf(stderr, "error opening test file\n");
 		exit(1);

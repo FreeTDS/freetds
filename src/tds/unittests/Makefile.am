@@ -39,3 +39,4 @@ AM_LDFLAGS	=	-no-install -L../.libs -R $(abs_builddir)/../.libs
 endif
 LIBS		=	../libtds.la ../../replacements/libreplacements.la $(LIBICONV) @NETWORK_LIBS@
 CLEANFILES	=	tdsdump.out
+EXTRA_DIST	=	readconf.in
