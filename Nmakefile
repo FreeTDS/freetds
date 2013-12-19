@@ -24,11 +24,13 @@ MKDIR = MD
 MV = move /Y
 
 DBLIB_DIR        = src\dblib
+CTLIB_DIR        = src\ctlib
 REPLACEMENTS_DIR = src\replacements
 TDS_DIR          = src\tds
 APPS_DIR         = src\apps
 
 DBLIB_OUT        = $(DBLIB_DIR)\$(PLATFORM)\$(CONFIGURATION)
+CTLIB_OUT        = $(CTLIB_DIR)\$(PLATFORM)\$(CONFIGURATION)
 REPLACEMENTS_OUT = $(REPLACEMENTS_DIR)\$(PLATFORM)\$(CONFIGURATION)
 TDS_OUT          = $(TDS_DIR)\$(PLATFORM)\$(CONFIGURATION)
 APPS_OUT         = $(APPS_DIR)\$(PLATFORM)\$(CONFIGURATION)
@@ -46,6 +48,16 @@ DBLIB_OBJ = 	$(DBLIB_OUT)\bcp.obj \
 		$(DBLIB_OUT)\dbutil.obj \
 		$(DBLIB_OUT)\rpc.obj \
 		$(DBLIB_OUT)\xact.obj 
+
+CTLIB_SRC =	$(CTLIB_DIR)\blk.c \
+		$(CTLIB_DIR)\cs.c \
+		$(CTLIB_DIR)\ct.c \
+		$(CTLIB_DIR)\ctutil.c
+
+CTLIB_OBJ =	$(CTLIB_OUT)\blk.obj \
+		$(CTLIB_OUT)\cs.obj \
+		$(CTLIB_OUT)\ct.obj \
+		$(CTLIB_OUT)\ctutil.obj
 
 REPLACEMENTS_SRC =	$(REPLACEMENTS_DIR)\asprintf.c \
 			$(REPLACEMENTS_DIR)\basename.c \
@@ -152,7 +164,7 @@ APPS_EXE =	$(APPS_OUT)\bsqldb.exe \
 		$(APPS_OUT)\tsql.exe 
 
 db-lib: $(DBLIB_OUT)\db-lib.lib 
-
+libct: $(CTLIB_OUT)\libct.lib
 apps: $(DBLIB_OUT)\db-lib.lib $(APPS_EXE)
 tsql: $(APPS_OUT)\tsql.exe 
 bsqldb: $(APPS_OUT)\bsqldb.exe
@@ -204,6 +216,7 @@ clean:
 	@if "" equ "$(PLATFORM)" 	PLATFORM not defined, see comments in Nmakefile >&2 && exit 1
 	@if "" equ "$(CONFIGURATION)" 	CONFIGURATION not defined, see comments in Nmakefile >&2 && exit 1
 	if exist $(DBLIB_OUT) 		del /q $(DBLIB_OUT)\*.obj  $(DBLIB_OUT)\*.lib 
+	if exist $(CTLIB_OUT)		del /q $(CTLIB_OUT)\*.obj  $(CTLIB_OUT)\*.lib
 	if exist $(REPLACEMENTS_OUT) 	del /q $(REPLACEMENTS_OUT)\*.obj $(REPLACEMENTS_OUT)\*.lib
 	if exist $(TDS_OUT) 		del /q $(TDS_OUT)\*.obj $(TDS_OUT)\*.lib
 	if exist $(APPS_OUT) 		del /q $(APPS_OUT)\*.obj $(APPS_OUT)\*.exe
@@ -214,7 +227,7 @@ clean-app:
 	if exist $(APPS_OUT) 		del /q $(APPS_OUT)\*.obj $(APPS_OUT)\*.exe
 
 # Create output directories
-$(DBLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
+$(DBLIB_OUT) $(CTLIB_OUT) $(REPLACEMENTS_OUT) $(TDS_OUT) $(APPS_OUT):
 	@echo creating output directory for configuration: "$(PLATFORM)|$(CONFIGURATION)"
 	@if "" equ "$(PLATFORM)" 	PLATFORM not defined, see comments in Nmakefile >&2 && exit 1
 	@if "" equ "$(CONFIGURATION)" 	CONFIGURATION not defined, see comments in Nmakefile >&2 && exit 1
@@ -261,7 +274,11 @@ src\tds\num_limits.h: src\tds\num_limits.pl
 
 GENERATED_FILES = include\tdsver.h src\tds\tds_types.h \
 	src\tds\tds_willconvert.h src\tds\encodings.h src\tds\num_limits.h
-
+$(CTLIB_OUT)\libct.lib: $(GENERATED_FILES) $(CTLIB_OUT) $(CTLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
+	@echo building $@ >&2
+	lib -nologo -out:"$@"	$(CTLIB_OBJ) \
+				$(REPLACEMENTS_OUT)\replacements.lib \
+				$(TDS_OUT)\tds.lib
 $(DBLIB_OUT)\db-lib.lib: $(GENERATED_FILES) $(DBLIB_OUT) $(DBLIB_OBJ) $(REPLACEMENTS_OUT)\replacements.lib $(TDS_OUT)\tds.lib
 	@echo building $@ >&2
 	lib -nologo -out:"$@" 	$(DBLIB_OBJ) \
@@ -315,6 +332,29 @@ CC64 = $(CC)
 {$(DBLIB_DIR)}.c{$(DBLIB_DIR)\x64\release}.obj::
 	$(CC64) -c $(REL) 	-Fo"$(DBLIB_OUT)\\" \
 				-Fd"$(DBLIB_OUT)\vc80.pdb" \
+	$<
+
+#
+# ctlib
+#
+{$(CTLIB_DIR)\}.c{$(CTLIB_DIR)\win32\debug}.obj::
+	$(CC32) -c $(DBG)	-Fo"$(CTLIB_OUT)\\" \
+				-Fd"$(CTLIB_OUT)\vc80.pdb" \
+	$<
+
+{$(CTLIB_DIR)\}.c{$(CTLIB_DIR)\win32\release}.obj::
+	$(CC32) -c $(REL)	-Fo"$(CTLIB_OUT)\\" \
+				-Fd"$(CTLIB_OUT)\vc80.pdb" \
+	$<
+
+{$(CTLIB_DIR)\}.c{$(CTLIB_DIR)\x64\debug}.obj::
+	$(CC64) -c $(DBG)	-Fo"$(CTLIB_OUT)\\" \
+				-Fd"$(CTLIB_OUT)\vc80.pdb" \
+	$<
+
+{$(CTLIB_DIR)\}.c{$(CTLIB_DIR)\x64\release}.obj::
+	$(CC64) -c $(REL)	-Fo"$(CTLIB_OUT)\\" \
+				-Fd"$(CTLIB_OUT)\vc80.pdb" \
 	$<
 
 #
