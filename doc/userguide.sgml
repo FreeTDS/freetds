@@ -1717,7 +1717,7 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>Application name.  Identifies the connecting application to the server.  </entry>
 							</row>
 						<row>
-							<entry><literal>LANGUAGE</></entry>
+							<entry><literal>Language</></entry>
 							<entry>Any</entry>
 							<entry>us_english</entry>
 							<entry>(Human) language the server should use for error messages.</entry>
@@ -1751,6 +1751,36 @@ Which shouldn't be defined unless <filename>inttypes.h</filename> exists on your
 							<entry>Yes/No</entry>
 							<entry>No</entry>
 							<entry>Use your current account instead of <literal>UID</>/<literal>PWD</> attributes.  This option require SSPI or Kerberos and supersedes any <literal>UID</>/<literal>PWD</> attributes passed from the application.</entry>
+							</row>
+						<row>
+							<entry><literal>Encryption</></entry>
+							<entry>off/request/require</entry>
+							<entry>off</entry>
+							<entry>Specify encryption. See encryption on freetds.conf</entry>
+							</row>
+						<row>
+							<entry><literal>MARS_Connection</></entry>
+							<entry>Yes/No</entry>
+							<entry>No</entry>
+							<entry>Enable MARS for this connection.</entry>
+							</row>
+						<row>
+							<entry><literal>UseNTLMv2</></entry>
+							<entry>Yes/No</entry>
+							<entry>No</entry>
+							<entry>Use NTLMv2 instead of normal NTLM. Use this option if your Windows domain have this setting.</entry>
+							</row>
+						<row>
+							<entry><literal>REALM</></entry>
+							<entry>Machine domain</entry>
+							<entry>none</entry>
+							<entry>Kerberos REALM.</entry>
+							</row>
+						<row>
+							<entry><literal>ServerSPN</></entry>
+							<entry>Any valid SPN</entry>
+							<entry>MSSQLSvc/server FQDN:port</entry>
+							<entry>Full server Kerberos SPN.</entry>
 							</row>
 						</tbody>
 					</tgroup>
