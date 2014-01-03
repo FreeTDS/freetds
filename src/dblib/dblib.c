@@ -1154,7 +1154,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		if ((server = getenv("TDSQUERY")) == NULL)
 			if ((server = getenv("DSQUERY")) == NULL)
 				server = "SYBASE";
-		tdsdump_log(TDS_DBG_FUNC, "servername set to %s", server);
+		tdsdump_log(TDS_DBG_FUNC, "servername set to %s\n", server);
 	}
 
 	if ((dbproc = (DBPROCESS*) calloc(1, sizeof(DBPROCESS))) == NULL) {
