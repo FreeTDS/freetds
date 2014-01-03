@@ -1159,7 +1159,11 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	DBPROCESS *dbproc = NULL;
 	TDSLOGIN *connection;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbopen(%p, %s, [%s])\n", login, server? server : "0x0", msdblib? "microsoft" : "sybase");
+	char *tdsdump = getenv("TDSDUMP");
+	if (tdsdump && *tdsdump) {
+		tdsdump_open(tdsdump);
+		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen(%p, %s, [%s])\n", login, server? server : "0x0", msdblib? "microsoft" : "sybase");
+	}
 
 	/*
 	 * Sybase supports the DSQUERY environment variable and falls back to "SYBASE" if server is NULL. 
@@ -1170,7 +1174,7 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		if ((server = getenv("TDSQUERY")) == NULL)
 			if ((server = getenv("DSQUERY")) == NULL)
 				server = "SYBASE";
-		tdsdump_log(TDS_DBG_FUNC, "servername set to %s\n", server);
+		tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: servername set to %s\n", server);
 	}
 
 	if ((dbproc = (DBPROCESS*) calloc(1, sizeof(DBPROCESS))) == NULL) {
@@ -1184,12 +1188,14 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 		free(dbproc);
 		return NULL;
 	}
+	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: dbproc->dbopts = %p\n", dbproc->dbopts);
 	
 	dbproc->dboptcmd = NULL;
 	dbproc->avail_flag = TRUE;
 	dbproc->command_state = DBCMDNONE;
 
 	tds_set_server(login->tds_login, server);
+	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: tds_set_server(%p, \"%s\")\n", login->tds_login, server);
 
 	if ((dbproc->tds_socket = tds_alloc_socket(dblib_get_tds_ctx(), 512)) == NULL ){
 		dbperror(NULL, SYBEMEM, 0);
@@ -1205,6 +1211,8 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	dbproc->dbcurdb[0] = '\0';
 	dbproc->servcharset[0] = '\0';
+
+	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: About to call tds_read_config_info...\n");
 
 	connection = tds_read_config_info(dbproc->tds_socket, login->tds_login, g_dblib_ctx.tds_ctx->locale);
 	if (!connection) {
@@ -1231,7 +1239,12 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 
 	tds_mutex_unlock(&dblib_mutex);
 
+	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: Calling tds_connect_and_login(%p, %p)\n",
+		dbproc->tds_socket, connection);
+
 	if (TDS_FAILED(tds_connect_and_login(dbproc->tds_socket, connection))) {
+		tdsdump_log(TDS_DBG_ERROR, "tdsdbopen: tds_connect_and_login failed for \"%s\"!\n",
+			tds_dstr_cstr(&connection->server_name));
 		tds_free_login(connection);
 		dbclose(dbproc);
 		return NULL;
@@ -1268,6 +1281,8 @@ tdsdbopen(LOGINREC * login, const char *server, int msdblib)
 	memcpy(dbproc->nullreps, default_null_representations, sizeof(default_null_representations));
 
 	tds_mutex_unlock(&dblib_mutex);
+
+	tdsdump_log(TDS_DBG_FUNC, "tdsdbopen: Returning dbproc = %p\n", dbproc);
 
 	return dbproc;
 }
@@ -7954,7 +7969,8 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		}
 	}
 
-	tdsdump_log(TDS_DBG_FUNC, "%d: \"%s\"\n", msgno, msg->msgtext);
+	tdsdump_log(TDS_DBG_FUNC, "dbperror: Calling dblib_err_handler with msgno = %d; msg->msgtext = \"%s\"\n",
+		msgno, msg->msgtext);
 
 	/* call the error handler */
 	rc = (*_dblib_err_handler)(dbproc, msg->severity, msgno, errnum, (char*) msg->msgtext, (char*) os_msgtext);
@@ -7975,7 +7991,8 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		rc_name = "invalid";
 		break;
 	}
-	tdsdump_log(TDS_DBG_FUNC, "\"%s\", client returns %d (%s)\n", msg->msgtext, rc, rc_name);
+	tdsdump_log(TDS_DBG_FUNC, "dbperror: dblib_err_handler for msgno = %d; msg->msgtext = \"%s\" -- returns %d (%s)\n",
+		msgno, msg->msgtext, rc, rc_name);
 
 	/* we're done with the dynamic string now. */
 	free((char*) constructed_message.msgtext);
