@@ -61,6 +61,7 @@
 #include <freetds/tds.h>
 #include <freetds/thread.h>
 #include <freetds/convert.h>
+#include <freetds/string.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
@@ -7931,6 +7932,21 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 			break;
 		}
 	}
+
+	if (dbproc->tds_socket->login) {
+		DSTR server_name_dstr = dbproc->tds_socket->login->server_name;
+		if (!tds_dstr_isempty(&server_name_dstr)) {
+			char * buffer = NULL;
+			if (asprintf(&buffer, "%s (%s)", msg->msgtext,
+			             tds_dstr_cstr(&server_name_dstr)) >= 0) {
+				free((char*) constructed_message.msgtext);
+				constructed_message.msgtext = buffer;
+				constructed_message.severity = msg->severity;
+				msg = &constructed_message;
+			}
+		}
+	}
+
 	tdsdump_log(TDS_DBG_FUNC, "%d: \"%s\"\n", msgno, msg->msgtext);
 
 	/* call the error handler */
