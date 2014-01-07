@@ -87,6 +87,11 @@ typedef struct tds_compiletime_settings
 	int gnutls;   /*  build against OpenSSL */
 } TDS_COMPILETIME_SETTINGS;
 
+/**
+ * Structure to hold a string.
+ * Use tds_dstr_* functions/macros, do not access members directly.
+ * There should be always a buffer.
+ */
 typedef struct tds_dstr {
 	char *dstr_s;
 	size_t dstr_size;
