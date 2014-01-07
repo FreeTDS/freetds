@@ -615,8 +615,14 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		con->tds_socket = NULL;
 		return CS_FAIL;
 	}
-	if (con->server_addr)
+	if (con->server_addr) {
+		char ip_addr[256];
+
+		if (tds_lookup_host(tds_dstr_cstr(&connection->server_host_name), ip_addr) != TDS_SUCCEED)
+			return CS_FAIL;
 		tds_dstr_copy(&connection->server_host_name, con->server_addr);
+		tds_dstr_copy(&connection->ip_addr, ip_addr);
+	}
 
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
