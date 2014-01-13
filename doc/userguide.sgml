@@ -2706,15 +2706,28 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 		</sect1>
 	<sect1 id="Python">
 		<title>Python</title>
-		<tip><para>Your humble author is not enlightened enough to use Python, and the information contained in this section is a little rough.  Please contact the list for more assistance or (better yet) to improve these instructions.
-</para></tip>
+	<sect2 id="pymssql">
+	<title>pymssql</title>
+<para>The <productname>pymssql</productname> module is a simple database interface to Microsoft SQL Server for <productname>Python</productname> that builds on top of FreeTDS to provide a Python DB-API v2 (<ulink url="http://www.python.org/dev/peps/pep-0249/">PEP-249</ulink>) interface to SQL Server.</para>
 
-<para>Install <ulink url="http://www.python.org/sigs/distutils-sig/">distutils</ulink> if you haven't already.
-<screen>
-	<prompt>$ </prompt><userinput>tar xvfz distutils-latest.tgz</userinput>
-	<prompt>$ </prompt><userinput>cd distutils</userinput>
-	<prompt>$ </prompt><userinput>python setup.py install</userinput></screen></para>
+<para>The 2.x branch of <productname>pymssql</productname> take advantage of recent releases (0.91 and newer) of FreeTDS and by doing that removes many of the limitations previously found with older FreeTDS versions and the 1.x branch.</para>
 
+<para><productname>pymssql</productname> features include:</para>
+
+<itemizedlist>
+	<listitem><para>Unicode friendly</para></listitem>
+	<listitem><para>Python 3 friendly</para></listitem>
+	<listitem><para>Works on most popular operating systems</para></listitem>
+	<listitem><para>Written in <ulink url="http://www.python.org/dev/peps/pep-0249/">Cython</ulink> for performance</para></listitem>
+	<listitem><para>Includes a supported and documented low-level module (<filename>_mssql</filename>) that you can use instead of the DB-API</para></listitem>
+	<listitem><para>Supports stored procedures with both return values and output parameters</para></listitem>
+	<listitem><para>A comprehensive test suite</para></listitem>
+</itemizedlist>
+
+<para>Please refer to the <productname>pymssql</productname> <ulink url="http://pymssql.org">home page</ulink> where you'll find complete documentation on how to obtain, install and use it.</para>
+	</sect2>
+	<sect2 id="Sybase.Python.Module">
+	<title>Sybase module</title>
 <para>You can obtain the <productname>Python</productname> Sybase module <ulink url="http://object-craft.com.au/projects/sybase/download.html">here</ulink>.  This example uses version 0.34, the most current at the time of this writing, please adjust accordingly if using a different version.
 	<screen>
 	<prompt>$ </prompt><userinput>tar xvfz sybase-0.34.tgz</userinput>
@@ -2727,6 +2740,7 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 	symbols for version use 100
 <screen>
 	<prompt>$ </prompt><userinput>python example.py</userinput></screen></para>
+	</sect2>
 	</sect1>
 	
 	<sect1 id="qt">
