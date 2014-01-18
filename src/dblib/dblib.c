@@ -7933,7 +7933,7 @@ dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...)
 		}
 	}
 
-	if (dbproc->tds_socket->login) {
+	if (dbproc && dbproc->tds_socket && dbproc->tds_socket->login) {
 		DSTR server_name_dstr = dbproc->tds_socket->login->server_name;
 		if (!tds_dstr_isempty(&server_name_dstr)) {
 			char * buffer = NULL;
