@@ -13,12 +13,13 @@
 static char software_version[] = "$Id: get_send_data.c,v 1.6 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+static CS_CONNECTION *conn = NULL;
+
 /* Testing: Retrieve CS_TEXT_TYPE using ct_bind() */
 int
 main(int argc, char **argv)
 {
 	CS_CONTEXT *ctx;
-	CS_CONNECTION *conn;
 	CS_COMMAND *cmd;
 	int i, verbose = 0;
 
