@@ -53,6 +53,7 @@
 #include <freetds/iconv.h>
 #include <freetds/string.h>
 #include <freetds/convert.h>
+#include <freetds/data.h>
 #include "replacements.h"
 #include "sqlwparams.h"
 #include <odbcss.h>

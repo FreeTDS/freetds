@@ -1,3 +1,4 @@
+#define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include "common.h"
 
 static char software_version[] = "$Id: common.c,v 1.33 2012-03-11 15:52:22 freddy77 Exp $";

@@ -17,6 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 #undef NDEBUG
+#define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include "common.h"
 
 #include <ctype.h>

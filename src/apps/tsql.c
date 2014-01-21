@@ -87,6 +87,7 @@
 #include <freetds/iconv.h>
 #include <freetds/string.h>
 #include <freetds/convert.h>
+#include <freetds/data.h>
 #include "replacements.h"
 
 TDS_RCSID(var, "$Id: tsql.c,v 1.153 2012-03-11 15:52:22 freddy77 Exp $");

@@ -18,6 +18,7 @@ static void *no_unused_common_h_warn[] = { rcsid_common_h, no_unused_common_h_wa
 #endif /* HAVE_STRING_H */
 
 #include <freetds/tds.h>
+#include <freetds/data.h>
 
 #define FREETDS_SRCDIR FREETDS_TOPDIR "/src/tds/unittests"
 

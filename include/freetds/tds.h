@@ -628,17 +628,23 @@ typedef struct tds_bcpcoldata
 } BCPCOLDATA;
 
 
+typedef TDSRET  tds_func_get_info(TDSSOCKET *tds, TDSCOLUMN *col);
+typedef TDSRET  tds_func_get_data(TDSSOCKET *tds, TDSCOLUMN *col);
+typedef TDS_INT tds_func_row_len(TDSCOLUMN *col);
+typedef TDSRET  tds_func_put_info(TDSSOCKET *tds, TDSCOLUMN *col);
+typedef TDSRET  tds_func_put_data(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7);
+
 typedef struct tds_column_funcs
 {
-	TDSRET (*get_info)(TDSSOCKET *tds, TDSCOLUMN *col);
-	TDSRET (*get_data)(TDSSOCKET *tds, TDSCOLUMN *col);
-	TDS_INT (*row_len)(TDSCOLUMN *col);
+	tds_func_get_info *get_info;
+	tds_func_get_data *get_data;
+	tds_func_row_len  *row_len;
 	/**
 	 * Send metadata column information to server.
 	 * \tds
 	 * \param col  column to send
 	 */
-	TDSRET (*put_info)(TDSSOCKET *tds, TDSCOLUMN *col);
+	tds_func_put_info *put_info;
 	/**
 	 * Send column data to server.
 	 * Usually send parameters unless bcp7 is specified, in
@@ -648,7 +654,7 @@ typedef struct tds_column_funcs
 	 * \param col  column to send
 	 * \param bcp7 1 to send BCP column on TDS7+
 	 */
-	TDSRET (*put_data)(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7);
+	tds_func_put_data *put_data;
 #if 0
 	TDSRET (*convert)(TDSSOCKET *tds, TDSCOLUMN *col);
 #endif

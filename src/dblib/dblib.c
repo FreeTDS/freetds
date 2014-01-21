@@ -62,6 +62,7 @@
 #include <freetds/thread.h>
 #include <freetds/convert.h>
 #include <freetds/string.h>
+#include <freetds/data.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>

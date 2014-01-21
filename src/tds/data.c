@@ -36,11 +36,13 @@
 #include <stdlib.h>
 #endif /* HAVE_STDLIB_H */
 
+#define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
 #include "tds_checks.h"
 #include <freetds/stream.h>
+#include <freetds/data.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -51,7 +53,6 @@ TDS_RCSID(var, "$Id: data.c,v 1.45 2011-10-30 16:47:18 freddy77 Exp $");
 
 int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
-static TDSRET tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col);
 
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -203,7 +204,7 @@ tds_get_cardinal_type(int datatype, int usertype)
 	return datatype;
 }
 
-static TDSRET
+TDSRET
 tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 {
 	switch (col->column_varint_size) {
@@ -270,7 +271,7 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 /* tds_generic_row_len support also variant and return size to hold blob */
 TDS_COMPILE_CHECK(variant_size, sizeof(TDSBLOB) >= sizeof(TDSVARIANT));
 
-static TDS_INT
+TDS_INT
 tds_generic_row_len(TDSCOLUMN *col)
 {
 	CHECK_COLUMN_EXTRA(col);
@@ -356,7 +357,7 @@ TDS_COMPILE_CHECK(tds_variant_offset,TDS_OFFSET(TDSVARIANT, data) == TDS_OFFSET(
  * len (int32), type (int8), 7 (int8), collation, column size (int16) -- [n]char, [n]varchar, binary, varbinary 
  * BLOBS (text/image) not supported
  */
-static TDSRET
+TDSRET
 tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	int colsize = tds_get_int(tds), varint;
@@ -498,7 +499,7 @@ error_type:
  * \param curcol column where store column information
  * \return TDS_FAIL on error or TDS_SUCCESS
  */
-static TDSRET
+TDSRET
 tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	unsigned char *dest;
@@ -713,7 +714,7 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
  * \param col   column where to store information
  * \return TDS_SUCCESS or TDS_FAIL
  */
-static TDSRET
+TDSRET
 tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	size_t size;
@@ -753,7 +754,7 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
  * \param curcol column where store column information
  * \return TDS_FAIL on error or TDS_SUCCESS
  */
-static TDSRET
+TDSRET
 tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 {
 	unsigned char *src;
@@ -962,16 +963,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 	return TDS_SUCCESS;
 }
 
-#define DEFINE_FUNCS(name) \
-const TDSCOLUMNFUNCS name ## _funcs = { \
-	tds_ ## name ## _get_info, \
-	tds_ ## name ## _get, \
-	tds_ ## name ## _row_len, \
-	tds_ ## name ## _put_info, \
-	tds_ ## name ## _put, \
-};
-
-static TDSRET
+TDSRET
 tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 {
 	col->column_size = tds_get_byte(tds);
@@ -986,13 +978,13 @@ tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	return TDS_SUCCESS;
 }
 
-static TDS_INT
+TDS_INT
 tds_numeric_row_len(TDSCOLUMN *col)
 {
 	return sizeof(TDS_NUMERIC);
 }
 
-static TDSRET
+TDSRET
 tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	int colsize;
@@ -1035,7 +1027,7 @@ tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCESS;
 }
 
-static TDSRET
+TDSRET
 tds_numeric_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	CHECK_TDS_EXTRA(tds);
@@ -1055,7 +1047,7 @@ tds_numeric_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-static TDSRET
+TDSRET
 tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
 	TDS_NUMERIC *num = (TDS_NUMERIC *) col->column_data, buf;
@@ -1075,24 +1067,21 @@ tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 	return TDS_SUCCESS;
 }
 
-#define tds_variant_get_info tds_generic_get_info
-#define tds_variant_row_len  tds_generic_row_len
-
-static TDSRET
+TDSRET
 tds_variant_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	/* TODO */
 	return TDS_FAIL;
 }
 
-static TDSRET
+TDSRET
 tds_variant_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
 	/* TODO */
 	return TDS_FAIL;
 }
 
-static TDSRET
+TDSRET
 tds_msdatetime_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	col->column_scale = col->column_prec = 0;
@@ -1105,13 +1094,13 @@ tds_msdatetime_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-static TDS_INT
+TDS_INT
 tds_msdatetime_row_len(TDSCOLUMN *col)
 {
 	return sizeof(TDS_DATETIMEALL);
 }
 
-static TDSRET
+TDSRET
 tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	TDS_DATETIMEALL *dt = (TDS_DATETIMEALL*) col->column_data;
@@ -1176,7 +1165,7 @@ tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-static TDSRET
+TDSRET
 tds_msdatetime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	/* TODO precision */
@@ -1185,7 +1174,7 @@ tds_msdatetime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-static TDSRET
+TDSRET
 tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
 	const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) col->column_data;
@@ -1218,7 +1207,7 @@ tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 	return TDS_SUCCESS;
 }
 
-static TDSRET
+TDSRET
 tds_clrudt_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	/* TODO save fields */
@@ -1244,16 +1233,14 @@ tds_clrudt_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-static TDS_INT
+TDS_INT
 tds_clrudt_row_len(TDSCOLUMN *col)
 {
 	/* TODO save other fields */
 	return sizeof(TDSBLOB);
 }
 
-#define tds_clrudt_get tds_generic_get
-
-static TDSRET
+TDSRET
 tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	/* FIXME support properly*/
@@ -1264,13 +1251,19 @@ tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 	return TDS_SUCCESS;
 }
 
-#define tds_clrudt_put tds_generic_put
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
+#  define TDS_DECLARE_FUNCS(name) \
+     extern __attribute__ ((visibility ("hidden"))) const TDSCOLUMNFUNCS tds_ ## name ## _funcs
+#else
+#  define TDS_DECLARE_FUNCS(name) \
+     extern const TDSCOLUMNFUNCS tds_ ## name ## _funcs
+#endif
 
-DEFINE_FUNCS(generic);
-DEFINE_FUNCS(numeric);
-DEFINE_FUNCS(variant);
-DEFINE_FUNCS(msdatetime);
-DEFINE_FUNCS(clrudt);
+TDS_DECLARE_FUNCS(generic);
+TDS_DECLARE_FUNCS(numeric);
+TDS_DECLARE_FUNCS(variant);
+TDS_DECLARE_FUNCS(msdatetime);
+TDS_DECLARE_FUNCS(clrudt);
 
 static const TDSCOLUMNFUNCS *
 tds_get_column_funcs(TDSCONNECTION *conn, int type)
@@ -1278,19 +1271,19 @@ tds_get_column_funcs(TDSCONNECTION *conn, int type)
 	switch (type) {
 	case SYBNUMERIC:
 	case SYBDECIMAL:
-		return &numeric_funcs;
+		return &tds_numeric_funcs;
 	case SYBMSUDT:
-		return &clrudt_funcs;
+		return &tds_clrudt_funcs;
 	case SYBVARIANT:
 		if (IS_TDS7_PLUS(conn))
-			return &variant_funcs;
+			return &tds_variant_funcs;
 		break;
 	case SYBMSDATE:
 	case SYBMSTIME:
 	case SYBMSDATETIME2:
 	case SYBMSDATETIMEOFFSET:
-		return &msdatetime_funcs;
+		return &tds_msdatetime_funcs;
 	}
-	return &generic_funcs;
+	return &tds_generic_funcs;
 }
 #include "tds_types.h"
