@@ -687,17 +687,6 @@ set_result_column(TDSSOCKET * tds, TDSCOLUMN * curcol, const char name[], const 
 	curcol->column_writeable = false;
 	curcol->column_identity = false;
 
-	curcol->on_server.column_type = pvalue->type;
-#if 0
-	curcol->funcs = tds_get_column_funcs(tds, pvalue->type);
-#endif
-	curcol->column_type = pvalue->type;
-	
-	curcol->column_cur_size = -1;
-	curcol->column_varint_size = tds_get_varint_size(tds->conn, pvalue->type);
-	if (curcol->column_varint_size == 0)
-		curcol->column_cur_size = curcol->on_server.column_size = curcol->column_size = tds_get_size_by_type(pvalue->type);
-
 	tds_set_column_type(tds->conn, curcol, pvalue->type);	/* sets "cardinal" type */
 
 	curcol->column_timestamp = (curcol->column_type == SYBBINARY && curcol->column_usertype == TDS_UT_TIMESTAMP);
