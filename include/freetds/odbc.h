@@ -497,6 +497,7 @@ typedef struct {
 	/* this must be the first member */
 	TDSCOLUMNFUNCS common;
 	SQLSMALLINT (*server_to_sql_type)(TDSCOLUMN *col);
+	void (*set_type_info)(TDSCOLUMN *col, struct _drecord *drec, SQLINTEGER odbc_ver);
 } TDS_FUNCS;
 
 #define IS_HENV(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_ENV)
@@ -676,11 +677,16 @@ odbc_server_to_sql_type(TDSCOLUMN *col)
 	return ((TDS_FUNCS *) col->funcs)->server_to_sql_type(col);
 }
 
+static inline void
+odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver)
+{
+	return ((TDS_FUNCS *) col->funcs)->set_type_info(col, drec, odbc_ver);
+}
+
 int odbc_sql_to_c_type_default(int sql_type);
 int odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned);
 int odbc_c_to_server_type(int c_type);
 
-void odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_ver);
 SQLINTEGER odbc_sql_to_displaysize(int sqltype, TDSCOLUMN *col);
 int odbc_get_string_size(int size, ODBC_CHAR * str _WIDE);
 void odbc_rdbms_version(TDSSOCKET * tds_socket, char *pversion_string);
