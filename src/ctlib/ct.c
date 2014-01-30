@@ -1563,7 +1563,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 
 
 	marker = tds_peek(tds);
-	if ((cmd->curr_result_type == CS_ROW_RESULT    && marker != TDS_ROW_TOKEN)
+	if ((cmd->curr_result_type == CS_ROW_RESULT    && marker != TDS_ROW_TOKEN && marker != TDS_NBC_ROW_TOKEN)
 	||  (cmd->curr_result_type == CS_STATUS_RESULT && marker != TDS_RETURNSTATUS_TOKEN) )
 		return CS_END_DATA;
 
@@ -1604,7 +1604,7 @@ ct_fetch(CS_COMMAND * cmd, CS_INT type, CS_INT offset, CS_INT option, CS_INT * p
 
 		marker = tds_peek(tds);
 
-		if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN)
+		if (cmd->curr_result_type == CS_ROW_RESULT && marker != TDS_ROW_TOKEN && marker != TDS_NBC_ROW_TOKEN)
 			break;
 
 	}

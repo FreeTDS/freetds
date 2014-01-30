@@ -61,6 +61,7 @@ static TDSRET tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names);
 static TDSRET tds_process_compute(TDSSOCKET * tds, TDS_INT * computeid);
 static TDSRET tds_process_cursor_tokens(TDSSOCKET * tds);
 static TDSRET tds_process_row(TDSSOCKET * tds);
+static TDSRET tds_process_nbcrow(TDSSOCKET * tds);
 static TDSRET tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** info);
 static TDSRET tds7_process_result(TDSSOCKET * tds);
 static TDSDYNAMIC *tds_process_dynamic(TDSSOCKET * tds);
@@ -241,8 +242,8 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 		tds_get_n(tds, NULL, tds_get_uint(tds));
 		break;
 	case TDS_NBC_ROW_TOKEN:
-		tdsdump_log(TDS_DBG_ERROR, "error: cannot process TDS_NBC_ROW_TOKEN %d(%x)!\n", marker, (unsigned char) marker);
-		/* fall out */
+		return tds_process_nbcrow(tds);
+		break;
 	default: 
 		tds_close_socket(tds);
 		tdserror(tds_get_ctx(tds), tds, TDSEBTOK, 0);
@@ -663,6 +664,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 			rc = tds7_process_compute_result(tds);
 			break;
 		case TDS_ROW_TOKEN:
+		case TDS_NBC_ROW_TOKEN:
 			/* overstepped the mark... */
 			if (tds->cur_cursor) {
 				tds_set_current_results(tds, tds->cur_cursor->res_info);
@@ -677,7 +679,14 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 				tds->current_results->rows_exist = 1;
 			SET_RETURN(TDS_ROW_RESULT, ROW);
 
-			rc = tds_process_row(tds);
+			switch (marker) {
+			case TDS_ROW_TOKEN:
+				rc = tds_process_row(tds);
+				break;
+			case TDS_NBC_ROW_TOKEN:
+				rc = tds_process_nbcrow(tds);
+				break;
+			}
 			break;
 		case TDS_CMP_ROW_TOKEN:
 			/* I don't know when this it's false but it happened, also server can send garbage... */
@@ -1955,6 +1964,40 @@ tds_process_row(TDSSOCKET * tds)
 		curcol = info->columns[i];
 		if (TDS_FAILED(curcol->funcs->get_data(tds, curcol)))
 			return TDS_FAIL;
+	}
+	return TDS_SUCCESS;
+}
+
+/**
+ * tds_process_nbcrow() processes rows and places them in the row buffer.
+ */
+static TDSRET
+tds_process_nbcrow(TDSSOCKET * tds)
+{
+	unsigned int i;
+	TDSCOLUMN *curcol;
+	TDSRESULTINFO *info;
+	char *nbcbuf;
+
+	CHECK_TDS_EXTRA(tds);
+
+	info = tds->current_results;
+	if (!info)
+		return TDS_FAIL;
+
+	assert(info->num_cols > 0);
+
+	nbcbuf = alloca((info->num_cols + 7) / 8);
+	tds_get_n(tds, nbcbuf, (info->num_cols + 7) / 8);
+	for (i = 0; i < info->num_cols; i++) {
+		curcol = info->columns[i];
+		tdsdump_log(TDS_DBG_INFO1, "tds_process_nbcrow(): reading column %d \n", i);
+		if (nbcbuf[i / 8] & (1 << (i % 8))) {
+			curcol->column_cur_size = -1;
+		} else {
+			if (TDS_FAILED(curcol->funcs->get_data(tds, curcol)))
+				return TDS_FAIL;
+		}
 	}
 	return TDS_SUCCESS;
 }
