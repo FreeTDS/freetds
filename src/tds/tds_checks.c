@@ -179,7 +179,7 @@ tds_check_column_extra(const TDSCOLUMN * column)
 
 	varint_ok = 0;
 	if (column_varint_size == 8) {
-		assert(column->on_server.column_type == XSYBVARCHAR || column->on_server.column_type == XSYBVARBINARY || column->on_server.column_type == XSYBNVARCHAR || column->on_server.column_type == SYBMSXML);
+		assert(column->on_server.column_type == XSYBVARCHAR || column->on_server.column_type == XSYBVARBINARY || column->on_server.column_type == XSYBNVARCHAR || column->on_server.column_type == SYBMSXML || column->on_server.column_type == SYBMSUDT);
 		varint_ok = 1;
 	} else if (is_blob_type(column->column_type)) {
 		assert(column_varint_size >= 4);

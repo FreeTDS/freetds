@@ -198,7 +198,7 @@ tds_get_cardinal_type(int datatype, int usertype)
 }
 
 static TDSRET
-tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
+tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 {
 	switch (col->column_varint_size) {
 	case 8:
@@ -263,11 +263,11 @@ tds_data_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 	return TDS_SUCCESS;
 }
 
-/* tds_data_row_len support also variant and return size to hold blob */
+/* tds_generic_row_len support also variant and return size to hold blob */
 TDS_COMPILE_CHECK(variant_size, sizeof(TDSBLOB) >= sizeof(TDSVARIANT));
 
 static TDS_INT
-tds_data_row_len(TDSCOLUMN *col)
+tds_generic_row_len(TDSCOLUMN *col)
 {
 	CHECK_COLUMN_EXTRA(col);
 
@@ -454,7 +454,7 @@ error_type:
  * \return TDS_FAIL on error or TDS_SUCCESS
  */
 static TDSRET
-tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
+tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	unsigned char *dest;
 	int len, colsize;
@@ -669,7 +669,7 @@ tds_data_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
  * \return TDS_SUCCESS or TDS_FAIL
  */
 static TDSRET
-tds_data_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	size_t size;
 
@@ -709,7 +709,7 @@ tds_data_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
  * \return TDS_FAIL on error or TDS_SUCCESS
  */
 static TDSRET
-tds_data_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
+tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
 	unsigned char *src;
 	TDSBLOB *blob = NULL;
@@ -721,10 +721,10 @@ tds_data_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
-	tdsdump_log(TDS_DBG_INFO1, "tds_data_put: colsize = %d\n", (int) curcol->column_cur_size);
+	tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: colsize = %d\n", (int) curcol->column_cur_size);
 
 	if (curcol->column_cur_size < 0) {
-		tdsdump_log(TDS_DBG_INFO1, "tds_data_put: null param\n");
+		tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: null param\n");
 		switch (curcol->column_varint_size) {
 		case 5:
 			tds_put_int(tds, 0);
@@ -789,7 +789,7 @@ tds_data_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	 * Test proprietary behavior
 	 */
 	if (IS_TDS7_PLUS(tds->conn)) {
-		tdsdump_log(TDS_DBG_INFO1, "tds_data_put: not null param varint_size = %d\n",
+		tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: not null param varint_size = %d\n",
 			    curcol->column_varint_size);
 
 		switch (curcol->column_varint_size) {
@@ -904,16 +904,14 @@ tds_data_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	return TDS_SUCCESS;
 }
 
-#define DEFINE_FUNCS(prefix, name) \
-const TDSCOLUMNFUNCS prefix ## _funcs = { \
+#define DEFINE_FUNCS(name) \
+const TDSCOLUMNFUNCS name ## _funcs = { \
 	tds_ ## name ## _get_info, \
 	tds_ ## name ## _get, \
 	tds_ ## name ## _row_len, \
 	tds_ ## name ## _put_info, \
 	tds_ ## name ## _put, \
 };
-
-DEFINE_FUNCS(default, data);
 
 static TDSRET
 tds_numeric_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
@@ -1019,10 +1017,8 @@ tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col)
 	return TDS_SUCCESS;
 }
 
-DEFINE_FUNCS(numeric, numeric);
-
-#define tds_variant_get_info tds_data_get_info
-#define tds_variant_row_len  tds_data_row_len
+#define tds_variant_get_info tds_generic_get_info
+#define tds_variant_row_len  tds_generic_row_len
 
 static TDSRET
 tds_variant_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
@@ -1037,8 +1033,6 @@ tds_variant_put(TDSSOCKET *tds, TDSCOLUMN *col)
 	/* TODO */
 	return TDS_FAIL;
 }
-
-DEFINE_FUNCS(variant, variant);
 
 static TDSRET
 tds_msdatetime_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
@@ -1166,7 +1160,59 @@ tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col)
 	return TDS_SUCCESS;
 }
 
-DEFINE_FUNCS(msdatetime, msdatetime);
+static TDSRET
+tds_clrudt_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	/* TODO save fields */
+	/* FIXME support RPC */
+
+	/* MAX_BYTE_SIZE */
+	tds_get_usmallint(tds);
+
+	/* DB_NAME */
+	tds_get_string(tds, tds_get_byte(tds), NULL, 0);
+
+	/* SCHEMA_NAME */
+	tds_get_string(tds, tds_get_byte(tds), NULL, 0);
+
+	/* TYPE_NAME */
+	tds_get_string(tds, tds_get_byte(tds), NULL, 0);
+
+	/* UDT_METADATA */
+	tds_get_string(tds, tds_get_usmallint(tds), NULL, 0);
+
+	col->column_size = 0x7ffffffflu;
+
+	return TDS_SUCCESS;
+}
+
+static TDS_INT
+tds_clrudt_row_len(TDSCOLUMN *col)
+{
+	/* TODO safe other fields */
+	return sizeof(TDSBLOB);
+}
+
+#define tds_clrudt_get tds_generic_get
+
+static TDSRET
+tds_clrudt_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
+{
+	/* FIXME support properly*/
+	tds_put_byte(tds, 0);	/* db_name */
+	tds_put_byte(tds, 0);	/* schema_name */
+	tds_put_byte(tds, 0);	/* type_name */
+
+	return TDS_SUCCESS;
+}
+
+#define tds_clrudt_put tds_generic_put
+
+DEFINE_FUNCS(generic);
+DEFINE_FUNCS(numeric);
+DEFINE_FUNCS(variant);
+DEFINE_FUNCS(msdatetime);
+DEFINE_FUNCS(clrudt);
 
 static const TDSCOLUMNFUNCS *
 tds_get_column_funcs(TDSCONNECTION *conn, int type)
@@ -1175,6 +1221,8 @@ tds_get_column_funcs(TDSCONNECTION *conn, int type)
 	case SYBNUMERIC:
 	case SYBDECIMAL:
 		return &numeric_funcs;
+	case SYBMSUDT:
+		return &clrudt_funcs;
 	case SYBVARIANT:
 		if (IS_TDS7_PLUS(conn))
 			return &variant_funcs;
@@ -1185,6 +1233,6 @@ tds_get_column_funcs(TDSCONNECTION *conn, int type)
 	case SYBMSDATETIMEOFFSET:
 		return &msdatetime_funcs;
 	}
-	return &default_funcs;
+	return &generic_funcs;
 }
 #include "tds_types.h"
