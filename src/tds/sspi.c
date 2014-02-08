@@ -122,13 +122,11 @@ tds_sspi_free(TDSCONNECTION * conn, struct tds_authentication * tds_auth)
 
 	sec_fn->DeleteSecurityContext(&auth->cred_ctx);
 	sec_fn->FreeCredentialsHandle(&auth->cred);
-	free(auth->tds_auth.packet);
+	sec_fn->FreeContextBuffer(auth->tds_auth.packet);
 	free(auth->sname);
 	free(auth);
 	return TDS_SUCCESS;
 }
-
-enum { NTLMBUF_LEN = 4096 };
 
 static int
 tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size_t len)
@@ -142,7 +140,7 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 
 	TDSSSPIAUTH *auth = (TDSSSPIAUTH *) tds_auth;
 
-	if (len < 32 || len > NTLMBUF_LEN)
+	if (len < 32)
 		return TDS_FAIL;
 
 	auth_buf = (TDS_UCHAR *) malloc(len);
@@ -150,6 +148,11 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 		return TDS_FAIL;
 	tds_get_n(tds, auth_buf, (int)len);
 
+	/* free previously allocated buffer */
+	if (auth->tds_auth.packet) {
+		sec_fn->FreeContextBuffer(auth->tds_auth.packet);
+		auth->tds_auth.packet = NULL;
+	}
 	in_desc.ulVersion  = out_desc.ulVersion  = SECBUFFER_VERSION;
 	in_desc.cBuffers   = out_desc.cBuffers   = 1;
 	in_desc.pBuffers   = &in_buf;
@@ -160,16 +163,17 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size
 	in_buf.cbBuffer   = (ULONG)len;
 
 	out_buf.BufferType = SECBUFFER_TOKEN;
-	out_buf.pvBuffer   = auth->tds_auth.packet;
-	out_buf.cbBuffer   = NTLMBUF_LEN;
+	out_buf.pvBuffer   = NULL;
+	out_buf.cbBuffer   = 0;
 
 	status = sec_fn->InitializeSecurityContext(&auth->cred, &auth->cred_ctx, auth->sname,
-		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
+		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION | ISC_REQ_ALLOCATE_MEMORY,
 		0, SECURITY_NETWORK_DREP, &in_desc,
 		0, &auth->cred_ctx, &out_desc,
 		&attrs, &ts);
 
 	free(auth_buf);
+	auth->tds_auth.packet = out_buf.pvBuffer;
 
 	switch (status) {
 	case SEC_I_COMPLETE_AND_CONTINUE:
@@ -246,20 +250,13 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 		return NULL;
 	}
 
-	/* allocate buffer */
-	auth->tds_auth.packet = (TDS_UCHAR *) malloc(NTLMBUF_LEN);
-	if (!auth->tds_auth.packet) {
-		sec_fn->FreeCredentialsHandle(&auth->cred);
-		free(auth);
-		return NULL;
-	}
 	desc.ulVersion = SECBUFFER_VERSION;
 	desc.cBuffers  = 1;
 	desc.pBuffers  = &buf;
 
-	buf.cbBuffer   = NTLMBUF_LEN;
 	buf.BufferType = SECBUFFER_TOKEN;
-	buf.pvBuffer   = auth->tds_auth.packet;
+	buf.pvBuffer   = NULL;
+	buf.cbBuffer   = 0;
 
 	/* build SPN */
 	server_name = tds_dstr_cstr(&login->server_host_name);
@@ -270,7 +267,6 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	}
 	if (strchr(server_name, '.') != NULL) {
 		if (asprintf(&auth->sname, "MSSQLSvc/%s:%d", server_name, login->port) < 0) {
-			free(auth->tds_auth.packet);
 			sec_fn->FreeCredentialsHandle(&auth->cred);
 			free(auth);
 			return NULL;
@@ -279,7 +275,7 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 	}
 
 	status = sec_fn->InitializeSecurityContext(&auth->cred, NULL, auth->sname,
-		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
+		ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION | ISC_REQ_ALLOCATE_MEMORY,
 		0, SECURITY_NETWORK_DREP,
 		NULL, 0,
 		&auth->cred_ctx, &desc,
@@ -295,14 +291,13 @@ tds_sspi_get_auth(TDSSOCKET * tds)
 		break;
 
 	default:
-		free(auth->sname);
-		free(auth->tds_auth.packet);
-		sec_fn->FreeCredentialsHandle(&auth->cred);
-		free(auth);
+		tds_sspi_free(tds->conn, &auth->tds_auth);
 		return NULL;
 	}
 
 	auth->tds_auth.packet_len = buf.cbBuffer;
+	auth->tds_auth.packet     = buf.pvBuffer;
+
 	return &auth->tds_auth;
 }
 
