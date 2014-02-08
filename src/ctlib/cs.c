@@ -524,6 +524,8 @@ cs_convert(CS_CONTEXT * ctx, CS_DATAFMT * srcfmt, CS_VOID * srcdata, CS_DATAFMT 
 		destvc = (CS_VARCHAR *) destdata;
 		destlen  = sizeof(destvc->str);
 		destdata = destvc->str;
+	} else if (is_numeric_type(desttype)) {
+		destlen = sizeof(TDS_NUMERIC);
 	}
 
 	tdsdump_log(TDS_DBG_FUNC, "converting type %d (%d bytes) to type = %d (%d bytes)\n",
