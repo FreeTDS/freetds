@@ -46,6 +46,7 @@ void
 odbc_check_env_extra(TDS_ENV * env)
 {
 	assert(env && env->htype == SQL_HANDLE_ENV);
+	assert(env->attr.odbc_version == SQL_OV_ODBC3 || env->attr.odbc_version == SQL_OV_ODBC2);
 }
 
 void
