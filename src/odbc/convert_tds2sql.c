@@ -146,6 +146,10 @@ odbc_tds_convert_wide_iso(TDSCOLUMN *curcol, TDS_CHAR *src, TDS_UINT srclen, TDS
 	return p - buf;
 }
 
+/**
+ * Handle conversions from MSSQL 2008 DATE/TIME types to binary.
+ * These types have a different binary representation in libTDS.
+ */
 static SQLLEN
 odbc_convert_msdatetime_to_binary(TDS_STMT * stmt, TDSCOLUMN *curcol, int srctype, TDS_DATETIMEALL * dta, TDS_CHAR * dest, SQLULEN destlen)
 {
