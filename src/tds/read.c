@@ -42,6 +42,8 @@
 #include <freetds/iconv.h>
 #include <freetds/bytes.h>
 #include <freetds/stream.h>
+#include <freetds/string.h>
+#include "tds_checks.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -318,6 +320,24 @@ read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char
 	res = tds_convert_stream(tds, char_conv, to_client, &r.stream, &w.stream);
 	*wire_size = r.wire_size;
 	return (char *) w.stream.buffer - outbuf;
+}
+
+DSTR*
+tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len)
+{
+	size_t out_len;
+
+	CHECK_TDS_EXTRA(tds);
+
+	/* assure sufficient space for every conversion */
+	if (TDS_UNLIKELY(!tds_dstr_alloc(s, len * 4))) {
+		tds_get_n(tds, NULL, len);
+		return NULL;
+	}
+
+	out_len = tds_get_string(tds, len, tds_dstr_buf(s), len * 4);
+	tds_dstr_setlen(s, out_len);
+	return s;
 }
 
 /** @} */

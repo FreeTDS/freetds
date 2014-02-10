@@ -676,7 +676,6 @@ struct tds_column
 	TDS_TINYINT column_scale;	/**< scale for decimal/numeric */
 
 	TDS_SMALLINT column_namelen;	/**< length of column name */
-	TDS_SMALLINT table_namelen;
 	struct
 	{
 		TDS_TINYINT column_type;	/**< type of data, saved from wire */
@@ -685,7 +684,7 @@ struct tds_column
 
 	TDSICONV *char_conv;	/**< refers to previously allocated iconv information */
 
-	TDS_CHAR table_name[TDS_SYSNAME_SIZE];
+	DSTR table_name;
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
 	char * table_column_name;
 
@@ -1361,6 +1360,7 @@ size_t tds_get_string(TDSSOCKET * tds, size_t string_len, char *dest, size_t des
 TDSRET tds_get_char_data(TDSSOCKET * tds, char *dest, size_t wire_size, TDSCOLUMN * curcol);
 void *tds_get_n(TDSSOCKET * tds, /*@out@*/ /*@null@*/ void *dest, size_t n);
 int tds_get_size_by_type(int servertype);
+DSTR* tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len);
 
 
 /* util.c */

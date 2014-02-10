@@ -1171,8 +1171,7 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 		curcol->column_namelen = strlen(curcol->column_name);
 
 		/* TODO use all infos... */
-		tds_strlcpy(curcol->table_name, tds_dstr_cstr(&drec_ird->sql_desc_base_table_name), sizeof(curcol->table_name));
-		curcol->table_namelen = strlen(curcol->table_name);
+		tds_dstr_dup(&curcol->table_name, &drec_ird->sql_desc_base_table_name);
 
 		switch (odbc_sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
 		case SQL_NEED_DATA:
@@ -3080,7 +3079,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		/* extract sql_desc_(catalog/schema/base_table)_name */
 		/* TODO extract them dinamically (when needed) ? */
 		/* TODO store in libTDS in different way (separately) ? */
-		if (col->table_namelen) {
+		if (!tds_dstr_isempty(&col->table_name)) {
 			struct {
 				const char *start;
 				const char *end;
@@ -3089,7 +3088,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 			char buf[256];
 			int i;
 
-			p = col->table_name;
+			p = tds_dstr_cstr(&col->table_name);
 			for (i = 0; ; ++i) {
 				const char *pend;
 

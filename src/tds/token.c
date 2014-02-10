@@ -1185,10 +1185,8 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 			curcol->column_key = (col_info[2] & 0x8) > 0;
 			curcol->column_hidden = (col_info[2] & 0x10) > 0;
 
-			if (names && col_info[1] > 0 && col_info[1] <= num_names) {
-				tds_strlcpy(curcol->table_name, names[col_info[1] - 1], sizeof(curcol->table_name));
-				curcol->table_namelen = (TDS_SMALLINT)strlen(curcol->table_name);
-			}
+			if (names && col_info[1] > 0 && col_info[1] <= num_names)
+				tds_dstr_copy(&curcol->table_name, names[col_info[1] - 1]);
 		}
 		/* read real column name */
 		if (col_info[2] & 0x20) {
@@ -1768,9 +1766,7 @@ tds5_process_result(TDSSOCKET * tds)
 
 		/* table */
 		/* TODO use with owner and database */
-		curcol->table_namelen =
-			tds_get_string(tds, tds_get_byte(tds), curcol->table_name, sizeof(curcol->table_name) - 1);
-		curcol->table_name[curcol->table_namelen] = '\0';
+		tds_dstr_get(tds, &curcol->table_name, tds_get_byte(tds));
 
 		/* table column name */
 		if (curcol->table_column_name)

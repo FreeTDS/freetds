@@ -2697,7 +2697,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 
 		/* TODO quote needed ?? */
 		/* avoid possible buffer overflow */
-		table_namelen = curcol->table_namelen;
+		table_namelen = tds_dstr_len(&curcol->table_name);
 		if (table_namelen + 2 > sizeof(cmd->iodesc->name))
 			table_namelen = sizeof(cmd->iodesc->name) - 2;
 		column_namelen = curcol->column_namelen;
@@ -2705,7 +2705,7 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 			column_namelen = sizeof(cmd->iodesc->name) - 2 - table_namelen;
 
 		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
-			(int) table_namelen, (int) table_namelen, curcol->table_name,
+			(int) table_namelen, (int) table_namelen, tds_dstr_cstr(&curcol->table_name),
 			(int) column_namelen, (int) column_namelen, curcol->column_name);
 
 		cmd->iodesc->namelen = strlen(cmd->iodesc->name);

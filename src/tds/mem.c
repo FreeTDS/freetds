@@ -69,8 +69,6 @@ static void tds_free_compute_result(TDSCOMPUTEINFO * comp_info);
 #define TEST_CALLOC(dest,type,n) \
 	{if (!(dest = (type*)calloc((n), sizeof(type)))) goto Cleanup;}
 
-#define tds_alloc_column() ((TDSCOLUMN*) calloc(1, sizeof(TDSCOLUMN)))
-
 /**
  * \ingroup libtds
  * \defgroup mem Memory allocation
@@ -122,6 +120,26 @@ tds_get_dynid(TDSCONNECTION * conn, char *id)
 	}
 	*p = 0;
 	return id;
+}
+
+static TDSCOLUMN *
+tds_alloc_column(void)
+{
+	TDSCOLUMN *col;
+
+	TEST_MALLOC(col, TDSCOLUMN);
+	tds_dstr_init(&col->table_name);
+
+      Cleanup:
+	return col;
+}
+
+static void
+tds_free_column(TDSCOLUMN *col)
+{
+	tds_dstr_free(&col->table_name);
+	free(col->table_column_name);
+	free(col);
 }
 
 
@@ -318,8 +336,7 @@ tds_free_param_result(TDSPARAMINFO * param_info)
 	 * parameters
 	 * -- freddy77
 	 */
-	free(col->table_column_name);
-	free(col);
+	tds_free_column(col);
 }
 
 static void
@@ -619,10 +636,8 @@ tds_free_results(TDSRESULTINFO * res_info)
 
 	if (res_info->num_cols && res_info->columns) {
 		for (i = 0; i < res_info->num_cols; i++)
-			if ((curcol = res_info->columns[i]) != NULL) {
-				free(curcol->table_column_name);
-				free(curcol);
-			}
+			if ((curcol = res_info->columns[i]) != NULL)
+				tds_free_column(curcol);
 		free(res_info->columns);
 	}
 

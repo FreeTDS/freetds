@@ -37,6 +37,7 @@
 #include <freetds/enum_cap.h>
 #include <freetds/iconv.h>
 #include <freetds/convert.h>
+#include <freetds/string.h>
 #include "tds_checks.h"
 #include "replacements.h"
 #ifdef DMALLOC
@@ -2842,8 +2843,8 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 			num_params = params->num_cols;
 			for (n = 0; n < num_params; ++n) {
 				param = params->columns[n];
-				if (param->table_namelen > 0) {
-					table_name = param->table_name;
+				if (!tds_dstr_isempty(&param->table_name)) {
+					table_name = tds_dstr_cstr(&param->table_name);
 					break;
 				}
 			}

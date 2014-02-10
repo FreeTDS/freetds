@@ -244,12 +244,10 @@ tds_generic_get_info(TDSSOCKET *tds, TDSCOLUMN *col)
 			unsigned char num_parts = tds_get_byte(tds);
 			/* TODO do not discard first ones */
 			for (; num_parts; --num_parts) {
-				col->table_namelen =
-				tds_get_string(tds, tds_get_usmallint(tds), col->table_name, sizeof(col->table_name) - 1);
+				tds_dstr_get(tds, &col->table_name, tds_get_usmallint(tds));
 			}
 		} else {
-			col->table_namelen =
-				tds_get_string(tds, tds_get_usmallint(tds), col->table_name, sizeof(col->table_name) - 1);
+			tds_dstr_get(tds, &col->table_name, tds_get_usmallint(tds));
 		}
 	} else if (IS_TDS72_PLUS(tds->conn) && col->on_server.column_type == SYBMSXML) {
 		unsigned char has_schema = tds_get_byte(tds);

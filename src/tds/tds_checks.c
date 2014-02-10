@@ -164,7 +164,6 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(column->funcs);
 	assert(column->column_type > 0);
 
-	assert(strlen(column->table_name) < sizeof(column->table_name));
 	assert(strlen(column->column_name) < sizeof(column->column_name));
 
 	/* check type and server type same or SQLNCHAR -> SQLCHAR */

@@ -28,6 +28,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/server.h>
+#include <freetds/string.h>
 
 static char software_version[] = "$Id: server.c,v 1.29 2011-05-16 08:51:40 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
@@ -369,9 +370,12 @@ tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 			tds_put_tinyint(tds, curcol->column_prec);
 			tds_put_tinyint(tds, curcol->column_scale);
 		} else if (is_blob_type(curcol->column_type)) {
-			tds_put_smallint(tds, 2 * strlen(curcol->table_name));
-			for (j = 0; curcol->table_name[j] != '\0'; j++){
-				tds_put_byte(tds, curcol->table_name[j]);
+			size_t len = tds_dstr_len(&curcol->table_name);
+			const char *name = tds_dstr_cstr(&curcol->table_name);
+
+			tds_put_smallint(tds, 2 * len);
+			for (j = 0; name[j] != '\0'; j++){
+				tds_put_byte(tds, name[j]);
 				tds_put_byte(tds, 0);
 			}
 		}
