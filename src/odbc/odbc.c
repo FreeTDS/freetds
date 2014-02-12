@@ -173,8 +173,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 	if (colpos > 0 && stmt->tds != NULL && (resinfo = stmt->tds->current_results) != NULL) {
 		if (colpos <= resinfo->num_cols) {
 			/* no overflow possible, name is always shorter */
-			strcpy(resinfo->columns[colpos - 1]->column_name, name);
-			resinfo->columns[colpos - 1]->column_namelen = strlen(name);
+			tds_dstr_copy(&resinfo->columns[colpos - 1]->column_name, name);
 			tds_dstr_copy(&resinfo->columns[colpos - 1]->table_column_name, "");
 		}
 	}
@@ -1172,11 +1171,12 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
                 params = temp_params;
 
 		curcol = params->columns[params->num_cols - 1];
-		tds_strlcpy(curcol->column_name, tds_dstr_cstr(&drec_ird->sql_desc_name), sizeof(curcol->column_name));
-		curcol->column_namelen = strlen(curcol->column_name);
+		if (!tds_dstr_dup(&curcol->column_name, &drec_ird->sql_desc_name))
+			goto memory_error;
 
 		/* TODO use all infos... */
-		tds_dstr_dup(&curcol->table_name, &drec_ird->sql_desc_base_table_name);
+		if (!tds_dstr_dup(&curcol->table_name, &drec_ird->sql_desc_base_table_name))
+			goto memory_error;
 
 		switch (odbc_sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
 		case SQL_NEED_DATA:
@@ -2980,8 +2980,7 @@ odbc_ird_check(TDS_STMT * stmt)
 		struct _drecord *drec = &ird->records[i];
 		TDSCOLUMN *col = res_info->columns[i];
 
-		assert(tds_dstr_len(&drec->sql_desc_label) == col->column_namelen);
-		assert(memcmp(tds_dstr_cstr(&drec->sql_desc_label), col->column_name, col->column_namelen) == 0);
+		assert(strcmp(tds_dstr_cstr(&drec->sql_desc_label), tds_dstr_cstr(&col->column_name)) == 0);
 	}
 #endif
 }
@@ -3070,13 +3069,13 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_display_size =
 			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col);
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
-		if (!tds_dstr_copyn(&drec->sql_desc_label, col->column_name, col->column_namelen))
+		if (!tds_dstr_dup(&drec->sql_desc_label, &col->column_name))
 			return SQL_ERROR;
 
 		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
 
 		if (tds_dstr_isempty(&col->table_column_name)) {
-			if (!tds_dstr_copyn(&drec->sql_desc_name, col->column_name, col->column_namelen))
+			if (!tds_dstr_dup(&drec->sql_desc_name, &col->column_name))
 				return SQL_ERROR;
 		} else {
 			if (!tds_dstr_dup(&drec->sql_desc_name, &col->table_column_name))
@@ -5953,7 +5952,6 @@ odbc_upper_column_names(TDS_STMT * stmt)
 {
 #if ENABLE_EXTRA_CHECKS
 	TDSRESULTINFO *resinfo;
-	TDSCOLUMN *colinfo;
 	TDSSOCKET *tds;
 #endif
 	int icol;
@@ -5968,12 +5966,13 @@ odbc_upper_column_names(TDS_STMT * stmt)
 
 	resinfo = tds->current_results;
 	for (icol = 0; icol < resinfo->num_cols; ++icol) {
-		char *p;
+		TDSCOLUMN *colinfo = resinfo->columns[icol];
+		char *p = tds_dstr_buf(&colinfo->column_name);
+		unsigned n, len = tds_dstr_len(&colinfo->column_name);
 
-		colinfo = resinfo->columns[icol];
 		/* upper case */
 		/* TODO procedure */
-		for (p = colinfo->column_name; p < (colinfo->column_name + colinfo->column_namelen); ++p)
+		for (n = 0; n < len; ++n, ++p)
 			if ('a' <= *p && *p <= 'z')
 				*p = *p & (~0x20);
 	}

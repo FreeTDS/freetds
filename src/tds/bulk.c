@@ -149,11 +149,11 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		curcol->column_varint_size = resinfo->columns[i]->column_varint_size;
 		curcol->column_prec = resinfo->columns[i]->column_prec;
 		curcol->column_scale = resinfo->columns[i]->column_scale;
-		curcol->column_namelen = resinfo->columns[i]->column_namelen;
 		curcol->on_server.column_type = resinfo->columns[i]->on_server.column_type;
 		curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
 		curcol->char_conv = resinfo->columns[i]->char_conv;
-		memcpy(curcol->column_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
+		if (!tds_dstr_dup(&curcol->column_name, &resinfo->columns[i]->column_name))
+			goto cleanup;
 		if (!tds_dstr_dup(&curcol->table_column_name, &resinfo->columns[i]->table_column_name))
 			goto cleanup;
 		curcol->column_nullable = resinfo->columns[i]->column_nullable;
@@ -227,7 +227,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 	}
 
 	if (clause->cb < strlen(clause->pb)
-	    + tds_quote_id(tds, NULL, bcpcol->column_name, bcpcol->column_namelen)
+	    + tds_quote_id(tds, NULL, tds_dstr_cstr(&bcpcol->column_name), tds_dstr_len(&bcpcol->column_name))
 	    + strlen(column_type)
 	    + ((first) ? 2u : 4u)) {
 		char *temp = (char*) malloc(2 * clause->cb);
@@ -247,7 +247,7 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 	if (!first)
 		strcat(clause->pb, ", ");
 
-	tds_quote_id(tds, strchr(clause->pb, 0), bcpcol->column_name, bcpcol->column_namelen);
+	tds_quote_id(tds, strchr(clause->pb, 0), tds_dstr_cstr(&bcpcol->column_name), tds_dstr_len(&bcpcol->column_name));
 	strcat(clause->pb, " ");
 	strcat(clause->pb, column_type);
 
@@ -719,6 +719,8 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	tds_put_smallint(tds, num_cols);
 
 	for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
+		size_t len;
+
 		bcpcol = bcpinfo->bindinfo->columns[i];
 
 		/*
@@ -750,8 +752,9 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			tds_put_string(tds, bcpinfo->tablename, (int)strlen(bcpinfo->tablename));
 		}
 		/* FIXME support multibyte string */
-		tds_put_byte(tds, bcpcol->column_namelen);
-		tds_put_string(tds, bcpcol->column_name, bcpcol->column_namelen);
+		len = tds_dstr_len(&bcpcol->column_name);
+		tds_put_byte(tds, len);
+		tds_put_string(tds, tds_dstr_cstr(&bcpcol->column_name), len);
 
 	}
 

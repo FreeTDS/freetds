@@ -164,8 +164,6 @@ tds_check_column_extra(const TDSCOLUMN * column)
 	assert(column->funcs);
 	assert(column->column_type > 0);
 
-	assert(strlen(column->column_name) < sizeof(column->column_name));
-
 	/* check type and server type same or SQLNCHAR -> SQLCHAR */
 #define SPECIAL(ttype, server_type, varint) \
 	if (column->column_type == ttype && column->on_server.column_type == server_type && column_varint_size == varint) {} else

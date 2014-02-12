@@ -18,6 +18,8 @@
  */
 #include "common.h"
 
+#include <freetds/string.h>
+
 static char software_version[] = "$Id: t0002.c,v 1.15 2011-05-16 13:31:11 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
@@ -82,8 +84,8 @@ main(int argc, char **argv)
 				fprintf(stderr, "Wrong column_type in %s\n", __FILE__);
 				return 1;
 			}
-			if (strcmp(tds->res_info->columns[0]->column_name, "dbname")
-			    || strcmp(tds->res_info->columns[1]->column_name, "username")) {
+			if (strcmp(tds_dstr_cstr(&tds->res_info->columns[0]->column_name), "dbname")
+			    || strcmp(tds_dstr_cstr(&tds->res_info->columns[1]->column_name), "username")) {
 				fprintf(stderr, "Wrong column_name in %s\n", __FILE__);
 				return 1;
 			}

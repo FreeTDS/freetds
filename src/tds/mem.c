@@ -129,6 +129,7 @@ tds_alloc_column(void)
 
 	TEST_MALLOC(col, TDSCOLUMN);
 	tds_dstr_init(&col->table_name);
+	tds_dstr_init(&col->column_name);
 	tds_dstr_init(&col->table_column_name);
 
       Cleanup:
@@ -139,6 +140,7 @@ static void
 tds_free_column(TDSCOLUMN *col)
 {
 	tds_dstr_free(&col->table_name);
+	tds_dstr_free(&col->column_name);
 	tds_dstr_free(&col->table_column_name);
 	free(col);
 }

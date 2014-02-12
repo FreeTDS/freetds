@@ -2292,10 +2292,10 @@ ct_describe(CS_COMMAND * cmd, CS_INT item, CS_DATAFMT * datafmt)
 		return CS_FAIL;
 
 	curcol = resinfo->columns[item - 1];
-	len = curcol->column_namelen;
+	len = tds_dstr_len(&curcol->column_name);
 	if (len >= CS_MAX_NAME)
 		len = CS_MAX_NAME - 1;
-	strncpy(datafmt->name, curcol->column_name, len);
+	strncpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), len);
 	/* name is always null terminated */
 	datafmt->name[len] = 0;
 	datafmt->namelen = len;
@@ -2709,13 +2709,13 @@ ct_get_data(CS_COMMAND * cmd, CS_INT item, CS_VOID * buffer, CS_INT buflen, CS_I
 		table_namelen = tds_dstr_len(&curcol->table_name);
 		if (table_namelen + 2 > sizeof(cmd->iodesc->name))
 			table_namelen = sizeof(cmd->iodesc->name) - 2;
-		column_namelen = curcol->column_namelen;
+		column_namelen = tds_dstr_len(&curcol->column_name);
 		if (table_namelen + column_namelen + 2 > sizeof(cmd->iodesc->name))
 			column_namelen = sizeof(cmd->iodesc->name) - 2 - table_namelen;
 
 		sprintf(cmd->iodesc->name, "%*.*s.%*.*s",
 			(int) table_namelen, (int) table_namelen, tds_dstr_cstr(&curcol->table_name),
-			(int) column_namelen, (int) column_namelen, curcol->column_name);
+			(int) column_namelen, (int) column_namelen, tds_dstr_cstr(&curcol->column_name));
 
 		cmd->iodesc->namelen = strlen(cmd->iodesc->name);
 
@@ -3976,11 +3976,9 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		pcol = params->columns[i];
 
 		/* meta data */
-		pcol->column_namelen = 0;
-		if (p->name) {
-			tds_strlcpy(pcol->column_name, p->name, sizeof(pcol->column_name));
-			pcol->column_namelen = strlen(pcol->column_name);
-		}
+		if (p->name)
+			if (!tds_dstr_copy(&pcol->column_name, p->name))
+				goto memory_error;
 
 		tds_set_param_type(tds->conn, pcol, tds_type);
 
@@ -4010,9 +4008,9 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		/* actual data */
 		tdsdump_log(TDS_DBG_FUNC, "paraminfoalloc: status = %d, maxlen %d \n", p->status, p->maxlen);
 		tdsdump_log(TDS_DBG_FUNC,
-			    "paraminfoalloc: name = %*.*s, varint size %d "
+			    "paraminfoalloc: name = %s, varint size %d "
 			    "column_type %d size %d, %d column_cur_size %d column_output = %d\n",
-			    pcol->column_namelen, pcol->column_namelen, pcol->column_name,
+			    tds_dstr_cstr(&pcol->column_name),
 			    pcol->column_varint_size, pcol->column_type,
 			    pcol->on_server.column_size, pcol->column_size,
 			    pcol->column_cur_size, pcol->column_output);

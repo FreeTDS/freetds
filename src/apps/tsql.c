@@ -230,7 +230,7 @@ do_query(TDSSOCKET * tds, char *buf, int opt_flags)
 			if ((!(opt_flags & OPT_NOHEADER)) && tds->current_results) {
 				for (i = 0; i < tds->current_results->num_cols; i++) {
 					if (i) fputs(opt_col_term, stdout);
-					fputs(tds->current_results->columns[i]->column_name, stdout);
+					fputs(tds_dstr_cstr(&tds->current_results->columns[i]->column_name), stdout);
 				}
 				fputs(opt_row_term, stdout);
 			}

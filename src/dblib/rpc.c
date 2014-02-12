@@ -43,6 +43,7 @@
 
 #include <freetds/tds.h>
 #include <freetds/convert.h>
+#include <freetds/string.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
@@ -419,10 +420,8 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 		}
 
 		/* meta data */
-		if (p->name) {
-			tds_strlcpy(pcol->column_name, p->name, sizeof(pcol->column_name));
-			pcol->column_namelen = (int)strlen(pcol->column_name);
-		}
+		if (p->name)
+			tds_dstr_copy(&pcol->column_name, p->name);
 
 		tds_set_param_type(tds->conn, pcol, temp_type);
 

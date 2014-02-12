@@ -55,6 +55,7 @@
 #include <freetds/tds.h>
 #include <freetds/thread.h>
 #include <freetds/convert.h>
+#include <freetds/string.h>
 #include <replacements.h>
 #include <sybfront.h>
 #include <sybdb.h>
@@ -696,16 +697,15 @@ set_result_column(TDSSOCKET * tds, TDSCOLUMN * curcol, const char name[], const 
 #endif
 	curcol->on_server.column_size = curcol->column_size;
 
-	strcpy(curcol->column_name, name);
-	curcol->column_namelen = strlen(name);
+	tds_dstr_copy(&curcol->column_name, name);
 
 	tdsdump_log(TDS_DBG_INFO1, "tds7_get_data_info: \n"
-		    "\tcolname = %s (%d bytes)\n"
+		    "\tcolname = %s\n"
 		    "\ttype = %d (%s)\n"
 		    "\tserver's type = %d (%s)\n"
 		    "\tcolumn_varint_size = %d\n"
 		    "\tcolumn_size = %d (%d on server)\n",
-		    curcol->column_name, curcol->column_namelen, 
+		    tds_dstr_cstr(&curcol->column_name),
 		    curcol->column_type, tds_prtype(curcol->column_type), 
 		    curcol->on_server.column_type, tds_prtype(curcol->on_server.column_type), 
 		    curcol->column_varint_size,
@@ -756,15 +756,10 @@ reinit_results(TDSSOCKET * tds, size_t num_cols, const struct metadata_t meta[])
 		tdsdump_log(TDS_DBG_INFO1, " %-20s %15s %15s %7s\n", dashes+10, dashes+30-15, dashes+30-15, dashes+30-7);
 	}
 	for (i = 0; i < num_cols; i++) {
-		char name[TDS_SYSNAME_SIZE] = {'\0'};
 		TDSCOLUMN *curcol = info->columns[i];
 
-		if (curcol->column_namelen > 0) {
-			memcpy(name, curcol->column_name, curcol->column_namelen);
-			name[curcol->column_namelen] = '\0';
-		}
 		tdsdump_log(TDS_DBG_INFO1, " %-20s %7d/%-7d %7d/%-7d %7d\n", 
-						name, 
+						tds_dstr_cstr(&curcol->column_name),
 						curcol->column_size, curcol->on_server.column_size, 
 						curcol->column_type, curcol->on_server.column_type, 
 						curcol->column_usertype);

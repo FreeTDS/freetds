@@ -230,7 +230,10 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 	size_t len, pos;
 	const char *e, *s;
 	size_t size = *query_len + 30;
-	char *out = (char *) malloc(size);
+	char colname[32];
+	char *out;
+
+	out = (char *) malloc(size);
 	if (!out)
 		goto memory_error;
 	pos = 0;
@@ -254,8 +257,9 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 		pos += sprintf(out + pos, "@P%d", i + 1);
 		if (i >= params->num_cols)
 			goto memory_error;
-		sprintf(params->columns[i]->column_name, "@P%d", i + 1);
-		params->columns[i]->column_namelen = (TDS_SMALLINT)strlen(params->columns[i]->column_name);
+		sprintf(colname, "@P%d", i + 1);
+		if (!tds_dstr_copy(&params->columns[i]->column_name, colname))
+			goto memory_error;
 
 		s = e + 1;
 	}
@@ -398,7 +402,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		tds_put_n(tds, query, query_len);
 		if (params) {
 			/* add on parameters */
-			tds_put_params(tds, params, params->columns[0]->column_name[0] ? TDS_PUT_DATA_USE_NAME : 0);
+			tds_put_params(tds, params, tds_dstr_isempty(&params->columns[0]->column_name) ? 0 : TDS_PUT_DATA_USE_NAME);
 		}
 		free(new_query);
 	} else if (!IS_TDS7_PLUS(tds->conn) || !params || !params->num_cols) {
@@ -1004,7 +1008,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 		ids = (struct tds_ids *) calloc(params->num_cols, sizeof(struct tds_ids));
 		if (!ids)
 			goto Cleanup;
-		if (!params->columns[0]->column_name[0]) {
+		if (tds_dstr_isempty(&params->columns[0]->column_name)) {
 			const char *s = query, *e, *id_end;
 			const char *query_end = query + query_len;
 
@@ -1036,7 +1040,7 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 		}
  
 		/* realloc on insufficient space */
-		il = ids[i].p ? ids[i].len : 2 * params->columns[i]->column_namelen;
+		il = ids[i].p ? ids[i].len : 2 * tds_dstr_len(&params->columns[i]->column_name);
 		while ((l + (2u * 40u) + il) > size) {
 			p = (char *) realloc(param_str, size += 512);
 			if (!p)
@@ -1049,8 +1053,8 @@ tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 			memcpy(param_str + l, ids[i].p, ids[i].len);
 			l += ids[i].len;
 		} else {
-			ib = params->columns[i]->column_name;
-			il = params->columns[i]->column_namelen;
+			ib = tds_dstr_cstr(&params->columns[i]->column_name);
+			il = tds_dstr_len(&params->columns[i]->column_name);
 			ob = param_str + l;
 			ol = size - l;
 			memset(&tds->conn->char_convs[iso2server_metadata]->suppress, 0, sizeof(tds->conn->char_convs[iso2server_metadata]->suppress));
@@ -1601,7 +1605,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 	CHECK_COLUMN_EXTRA(curcol);
 
 	if (flags & TDS_PUT_DATA_USE_NAME) {
-		len = curcol->column_namelen;
+		len = tds_dstr_len(&curcol->column_name);
 		tdsdump_log(TDS_DBG_ERROR, "tds_put_data_info putting param_name \n");
 
 		if (IS_TDS7_PLUS(tds->conn)) {
@@ -1610,7 +1614,7 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 
 			/* TODO use a fixed buffer to avoid error ? */
 			converted_param =
-				tds_convert_string(tds, tds->conn->char_convs[client2ucs2], curcol->column_name, len,
+				tds_convert_string(tds, tds->conn->char_convs[client2ucs2], tds_dstr_cstr(&curcol->column_name), len,
 						   &converted_param_len);
 			if (!converted_param)
 				return TDS_FAIL;
@@ -1621,11 +1625,11 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 				tds_put_n(tds, "@", 2);
 			}
 			tds_put_n(tds, converted_param, converted_param_len);
-			tds_convert_string_free(curcol->column_name, converted_param);
+			tds_convert_string_free(tds_dstr_cstr(&curcol->column_name), converted_param);
 		} else {
 			/* TODO ICONV convert */
 			tds_put_byte(tds, len);	/* param name len */
-			tds_put_n(tds, curcol->column_name, len);
+			tds_put_n(tds, tds_dstr_cstr(&curcol->column_name), len);
 		}
 	} else {
 		tds_put_byte(tds, 0x00);	/* param name len */
@@ -1675,7 +1679,7 @@ tds_put_data_info_length(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 
 	/* TODO ICONV convert string if needed (see also tds_put_data_info) */
 	if (flags & TDS_PUT_DATA_USE_NAME)
-		len += curcol->column_namelen;
+		len += tds_dstr_len(&curcol->column_name);
 	if (is_numeric_type(curcol->on_server.column_type))
 		len += 2;
 	if (curcol->column_varint_size == 5)
@@ -1965,8 +1969,8 @@ tds_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * para
 	for (i = 0, n = 0; i < num_params; ++i) {
 		param = params->columns[i];
 		tds_put_string(tds, sep, -1);
-		if (param->column_namelen > 0) {
-			tds_put_string(tds, param->column_name, param->column_namelen);
+		if (!tds_dstr_isempty(&param->column_name)) {
+			tds_put_string(tds, tds_dstr_cstr(&param->column_name), tds_dstr_len(&param->column_name));
 			tds_put_string(tds, "=", 1);
 		}
 		if (param->column_output) {

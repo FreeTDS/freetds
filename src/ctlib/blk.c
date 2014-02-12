@@ -183,10 +183,10 @@ blk_describe(CS_BLKDESC * blkdesc, CS_INT item, CS_DATAFMT * datafmt)
 	}
 
 	curcol = blkdesc->bcpinfo.bindinfo->columns[item - 1];
-	len = curcol->column_namelen;
+	len = tds_dstr_len(&curcol->column_name);
 	if (len >= CS_MAX_NAME)
 		len = CS_MAX_NAME - 1;
-	strncpy(datafmt->name, curcol->column_name, len);
+	strncpy(datafmt->name, tds_dstr_cstr(&curcol->column_name), len);
 	/* name is always null terminated */
 	datafmt->name[len] = 0;
 	datafmt->namelen = len;

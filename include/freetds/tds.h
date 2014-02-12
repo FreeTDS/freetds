@@ -628,9 +628,6 @@ typedef struct tds_bcpcoldata
 } BCPCOLDATA;
 
 
-enum
-{ TDS_SYSNAME_SIZE = 512 };
-
 typedef struct tds_column_funcs
 {
 	TDSRET (*get_info)(TDSSOCKET *tds, TDSCOLUMN *col);
@@ -678,7 +675,6 @@ struct tds_column
 	TDS_TINYINT column_prec;	/**< precision for decimal/numeric */
 	TDS_TINYINT column_scale;	/**< scale for decimal/numeric */
 
-	TDS_SMALLINT column_namelen;	/**< length of column name */
 	struct
 	{
 		TDS_TINYINT column_type;	/**< type of data, saved from wire */
@@ -688,7 +684,7 @@ struct tds_column
 	TDSICONV *char_conv;	/**< refers to previously allocated iconv information */
 
 	DSTR table_name;
-	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
+	DSTR column_name;
 	DSTR table_column_name;
 
 	unsigned char *column_data;

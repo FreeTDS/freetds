@@ -19,6 +19,7 @@
  */
 #include "common.h"
 
+#include <freetds/string.h>
 #include <ctype.h>
 #include <assert.h>
 
@@ -77,15 +78,15 @@ test(const char *buf)
 
 		curcol = tds->current_results->columns[0];
 
-		if (strlen(tmp) != curcol->column_namelen || strncmp(tmp, curcol->column_name, curcol->column_namelen) != 0) {
-			int l = curcol->column_namelen;
+		if (strcmp(tmp, tds_dstr_cstr(&curcol->column_name)) != 0) {
+			int l = tds_dstr_len(&curcol->column_name);
 
 			if (l > (sizeof(query) -1))
 				l = (sizeof(query) -1);
-			strncpy(query, curcol->column_name, l);
+			strncpy(query, tds_dstr_cstr(&curcol->column_name), l);
 			query[l] = 0;
-			fprintf(stderr, "Wrong result Got: '%s' len %d\n        Expected: '%s' len %u\n", query,
-				curcol->column_namelen, tmp, (unsigned int) strlen(tmp));
+			fprintf(stderr, "Wrong result Got: '%s' len %u\n        Expected: '%s' len %u\n", query,
+				(unsigned) tds_dstr_len(&curcol->column_name), tmp, (unsigned int) strlen(tmp));
 			exit(1);
 		}
 		++i;

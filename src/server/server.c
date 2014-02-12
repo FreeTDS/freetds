@@ -262,16 +262,15 @@ tds_send_col_name(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	tds_put_byte(tds, TDS_COLNAME_TOKEN);
 	for (col = 0; col < resinfo->num_cols; col++) {
 		curcol = resinfo->columns[col];
-		assert(strlen(curcol->column_name) == curcol->column_namelen);
-		hdrsize += curcol->column_namelen + 1;
+		hdrsize += tds_dstr_len(&curcol->column_name) + 1;
 	}
 
 	tds_put_smallint(tds, hdrsize);
 	for (col = 0; col < resinfo->num_cols; col++) {
 		curcol = resinfo->columns[col];
-		tds_put_byte(tds, curcol->column_namelen);
+		tds_put_byte(tds, tds_dstr_len(&curcol->column_name));
 		/* exclude the null */
-		tds_put_n(tds, curcol->column_name, curcol->column_namelen);
+		tds_put_n(tds, tds_dstr_cstr(&curcol->column_name), tds_dstr_len(&curcol->column_name));
 	}
 }
 void
@@ -306,14 +305,15 @@ tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 {
 	TDSCOLUMN *curcol;
 	int i, totlen;
+	size_t len;
 
 	tds_put_byte(tds, TDS_RESULT_TOKEN);
 	totlen = 2;
 	for (i = 0; i < resinfo->num_cols; i++) {
 		curcol = resinfo->columns[i];
+		len = tds_dstr_len(&curcol->column_name);
 		totlen += 8;
-		assert(strlen(curcol->column_name) == curcol->column_namelen);
-		totlen += curcol->column_namelen;
+		totlen += len;
 		curcol = resinfo->columns[i];
 		if (!is_fixed_type(curcol->column_type)) {
 			totlen++;
@@ -323,8 +323,9 @@ tds_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 	tds_put_smallint(tds, resinfo->num_cols);
 	for (i = 0; i < resinfo->num_cols; i++) {
 		curcol = resinfo->columns[i];
-		tds_put_byte(tds, curcol->column_namelen);
-		tds_put_n(tds, curcol->column_name, curcol->column_namelen);
+		len = tds_dstr_len(&curcol->column_name);
+		tds_put_byte(tds, tds_dstr_len(&curcol->column_name));
+		tds_put_n(tds, tds_dstr_cstr(&curcol->column_name), len);
 		tds_put_byte(tds, '0');
 		tds_put_int(tds, curcol->column_usertype);
 		tds_put_byte(tds, curcol->column_type);
@@ -381,10 +382,9 @@ tds7_send_result(TDSSOCKET * tds, TDSRESULTINFO * resinfo)
 		}
 
 		/* finally the name, in UCS16 format */
-		assert(strlen(curcol->column_name) == curcol->column_namelen);
-		tds_put_byte(tds, curcol->column_namelen);
-		for (j = 0; j < curcol->column_namelen; j++) {
-			tds_put_byte(tds, curcol->column_name[j]);
+		tds_put_byte(tds, tds_dstr_len(&curcol->column_name));
+		for (j = 0; j < tds_dstr_len(&curcol->column_name); j++) {
+			tds_put_byte(tds, tds_dstr_cstr(&curcol->column_name)[j]);
 			tds_put_byte(tds, 0);
 		}
 	}

@@ -21,6 +21,7 @@
 #define _ctlib_h_
 
 #include <freetds/tds.h>
+#include <freetds/string.h>
 
 /*
  * Internal (not part of the exposed API) prototypes and such.

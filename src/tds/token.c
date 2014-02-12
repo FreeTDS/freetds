@@ -1019,8 +1019,7 @@ tds_process_col_name(TDSSOCKET * tds)
 		cur = head;
 		for (col = 0; col < num_names; ++col) {
 			curcol = info->columns[col];
-			tds_strlcpy(curcol->column_name, cur->name, sizeof(curcol->column_name));
-			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
+			tds_dstr_copy(&curcol->column_name, cur->name);
 			cur = cur->next;
 		}
 		tds_free_namelist(head);
@@ -1323,7 +1322,7 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	 * parameter name beginning with '@'. Ignore any other Spurious parameters
 	 * such as those returned from calls to writetext in the proc.
 	 */
-	if (curparam->column_namelen > 0 && curparam->column_name[0] != '@')
+	if (!tds_dstr_isempty(&curparam->column_name) && tds_dstr_cstr(&curparam->column_name)[0] != '@')
 		tds_free_param_result(*pinfo);
 
 	return token;
@@ -1447,10 +1446,8 @@ tds_process_compute_result(TDSSOCKET * tds)
 		curcol->column_operand = tds_get_byte(tds);
 
 		/* If no name has been defined for the compute column, use "max", "avg" etc. */
-		if (curcol->column_namelen == 0) {
-			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
-			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
-		}
+		if (tds_dstr_isempty(&curcol->column_name))
+			tds_dstr_copy(&curcol->column_name, tds_pr_op(curcol->column_operator));
 
 		/*  User defined data type of the column */
 		curcol->column_usertype = tds_get_int(tds);
@@ -1498,8 +1495,6 @@ tds_process_compute_result(TDSSOCKET * tds)
 static TDSRET
 tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
-	int colnamelen;
-
 	CHECK_TDS_EXTRA(tds);
 	CHECK_COLUMN_EXTRA(curcol);
 
@@ -1528,17 +1523,15 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	 * under 7.0 lengths are number of characters not
 	 * number of bytes...tds_get_string handles this
 	 */
-	colnamelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
-	curcol->column_name[colnamelen] = 0;
-	curcol->column_namelen = colnamelen;
+	tds_dstr_get(tds, &curcol->column_name, tds_get_byte(tds));
 
 	tdsdump_log(TDS_DBG_INFO1, "tds7_get_data_info: \n"
-		    "\tcolname = %s (%d bytes)\n"
+		    "\tcolname = %s\n"
 		    "\ttype = %d (%s)\n"
 		    "\tserver's type = %d (%s)\n"
 		    "\tcolumn_varint_size = %d\n"
 		    "\tcolumn_size = %d (%d on server)\n",
-		    curcol->column_name, curcol->column_namelen, 
+		    tds_dstr_cstr(&curcol->column_name),
 		    curcol->column_type, tds_prtype(curcol->column_type), 
 		    curcol->on_server.column_type, tds_prtype(curcol->on_server.column_type), 
 		    curcol->column_varint_size,
@@ -1608,15 +1601,10 @@ tds7_process_result(TDSSOCKET * tds)
 		tdsdump_log(TDS_DBG_INFO1, " %-20s %15s %15s %7s\n", dashes+10, dashes+30-15, dashes+30-15, dashes+30-7);
 	}
 	for (col = 0; col < num_cols; col++) {
-		char name[TDS_SYSNAME_SIZE] = {'\0'};
 		TDSCOLUMN *curcol = info->columns[col];
 
-		if (curcol->column_namelen > 0) {
-			memcpy(name, curcol->column_name, curcol->column_namelen);
-			name[curcol->column_namelen] = '\0';
-		}
 		tdsdump_log(TDS_DBG_INFO1, " %-20s %7d/%-7d %7d/%-7d %7d\n", 
-						name, 
+						tds_dstr_cstr(&curcol->column_name), 
 						curcol->column_size, curcol->on_server.column_size, 
 						curcol->column_type, curcol->on_server.column_type, 
 						curcol->column_usertype);
@@ -1643,8 +1631,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_get_data_info(%p, %p, %d) %s\n", tds, curcol, is_param, is_param? "[for parameter]" : "");
 
-	curcol->column_namelen = tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
-	curcol->column_name[curcol->column_namelen] = '\0';
+	tds_dstr_get(tds, &curcol->column_name, tds_get_byte(tds));
 
 	curcol->column_flags = tds_get_byte(tds);	/*  Flags */
 	if (!is_param) {
@@ -1823,9 +1810,7 @@ tds5_process_result(TDSSOCKET * tds)
 		curcol = info->columns[col];
 
 		/* label */
-		curcol->column_namelen =
-			tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
-		curcol->column_name[curcol->column_namelen] = '\0';
+		tds_dstr_get(tds, &curcol->column_name, tds_get_byte(tds));
 
 		/* TODO save informations somewhere */
 		/* database */
@@ -1852,10 +1837,9 @@ tds5_process_result(TDSSOCKET * tds)
 		tds_dstr_get(tds, &curcol->table_column_name, tds_get_byte(tds));
 
 		/* if label is empty, use the table column name */
-		if (!curcol->column_namelen && !tds_dstr_isempty(&curcol->table_column_name)) {
-			tds_strlcpy(curcol->column_name, tds_dstr_cstr(&curcol->table_column_name), sizeof(curcol->column_name));
-			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
-		}
+		if (tds_dstr_isempty(&curcol->column_name))
+			if (!tds_dstr_dup(&curcol->column_name, &curcol->table_column_name))
+				return TDS_FAIL;
 
 		/* flags (4 bytes) */
 		curcol->column_flags = tds_get_int(tds);
@@ -1882,7 +1866,7 @@ tds5_process_result(TDSSOCKET * tds)
 		 *  Dump all information on this column
 		 */
 		tdsdump_log(TDS_DBG_INFO1, "col %d:\n", col);
-		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_name);
+		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", tds_dstr_cstr(&curcol->column_name));
 /*
 		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_colname);
 		tdsdump_log(TDS_DBG_INFO1, "\tcatalog=[%s] schema=[%s] table=[%s]\n",
@@ -2576,9 +2560,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		/* TODO reuse tds_get_data_info code, sligthly different */
 
 		/* column name */
-		curcol->column_namelen =
-			tds_get_string(tds, tds_get_byte(tds), curcol->column_name, sizeof(curcol->column_name) - 1);
-		curcol->column_name[curcol->column_namelen] = '\0';
+		tds_dstr_get(tds, &curcol->column_name, tds_get_byte(tds));
 
 		/* column status */
 		curcol->column_flags = tds_get_int(tds);
@@ -2600,7 +2582,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 		tds_get_n(tds, NULL, tds_get_byte(tds));
 
 		tdsdump_log(TDS_DBG_INFO1, "elem %d:\n", col);
-		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", curcol->column_name);
+		tdsdump_log(TDS_DBG_INFO1, "\tcolumn_name=[%s]\n", tds_dstr_cstr(&curcol->column_name));
 		tdsdump_log(TDS_DBG_INFO1, "\tflags=%x utype=%d type=%d varint=%d\n",
 			    curcol->column_flags, curcol->column_usertype, curcol->column_type, curcol->column_varint_size);
 		tdsdump_log(TDS_DBG_INFO1, "\tcolsize=%d prec=%d scale=%d\n",
@@ -2727,9 +2709,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 		for (col = 0; col < num_cols; col++) {
 			TDSCOLUMN *curcol = info->columns[col];
 
-			assert(strlen(curcol->column_name) == curcol->column_namelen);
-			tds_strlcpy(curcol->column_name, cur->name, sizeof(curcol->column_name));
-			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
+			tds_dstr_copy(&curcol->column_name, cur->name);
 
 			cur = cur->next;
 		}
@@ -2819,10 +2799,8 @@ tds7_process_compute_result(TDSSOCKET * tds)
 
 		tds7_get_data_info(tds, curcol);
 
-		if (!curcol->column_namelen) {
-			strcpy(curcol->column_name, tds_pr_op(curcol->column_operator));
-			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
-		}
+		if (tds_dstr_isempty(&curcol->column_name))
+			tds_dstr_copy(&curcol->column_name, tds_pr_op(curcol->column_operator));
 	}
 
 	/* all done now allocate a row for tds_process_row to use */
