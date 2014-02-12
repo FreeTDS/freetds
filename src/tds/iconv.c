@@ -766,6 +766,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	size_t one_character;
 	char *p;
 	int eilseq_raised = 0;
+	int conv_errno;
 	/* cast away const-ness */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &conv->suppress;
 
@@ -810,9 +811,9 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 	/*
 	 * Call iconv() as many times as necessary, until we reach the end of input or exhaust output.  
 	 */
-	errno = 0;
 	p = *outbuf;
 	for (;;) {
+		conv_errno = 0;
 		if (conv->flags & TDS_ENCODING_INDIRECT) {
 			irreversible = tds_iconv_indirect(from, to, &eilseq_raised, inbuf, inbytesleft, outbuf, outbytesleft);
 		} else if (io == to_client && conv->flags & TDS_ENCODING_SWAPBYTE && inbuf) {
@@ -820,6 +821,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		} else {
 			irreversible = tds_sys_iconv(to->cd, (ICONV_CONST char **) inbuf, inbytesleft, outbuf, outbytesleft);
 		}
+
 		/* iconv success, return */
 		if (irreversible != (size_t) - 1) {
 			/* here we detect end of conversion and try to reset shift state */
@@ -834,10 +836,13 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 			break;
 		}
 
-		if (errno == EILSEQ)
+		/* save errno, other function could change its value */
+		conv_errno = errno;
+
+		if (conv_errno == EILSEQ)
 			eilseq_raised = 1;
 
-		if (errno != EILSEQ || io != to_client || !inbuf)
+		if (conv_errno != EILSEQ || io != to_client || !inbuf)
 			break;
 		/* 
 		 * Invalid input sequence encountered reading from server. 
@@ -892,7 +897,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 				tds_iconv_err(tds, TDSEICONV2BIG);
 			} else {
 				tds_iconv_err(tds, TDSEICONVI);
-				errno = 0;
+				conv_errno = 0;
 			}
 		} else {
 			tds_iconv_err(tds, TDSEICONVO);
@@ -900,7 +905,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		suppress->eilseq = 1;
 	}
 
-	switch (errno) {
+	switch (conv_errno) {
 	case EINVAL:		/* incomplete multibyte sequence is encountered */
 		if (suppress->einval)
 			break;
@@ -922,6 +927,7 @@ tds_iconv(TDSSOCKET * tds, TDSICONV * conv, TDS_ICONV_DIRECTION io,
 		tds_sys_iconv_close(error_cd);
 	}
 
+	errno = conv_errno;
 	return irreversible;
 }
 
