@@ -173,8 +173,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 			/* no overflow possible, name is always shorter */
 			strcpy(resinfo->columns[colpos - 1]->column_name, name);
 			resinfo->columns[colpos - 1]->column_namelen = strlen(name);
-			if (resinfo->columns[colpos - 1]->table_column_name)
-				TDS_ZERO_FREE(resinfo->columns[colpos - 1]->table_column_name);
+			tds_dstr_copy(&resinfo->columns[colpos - 1]->table_column_name, "");
 		}
 	}
 #endif
@@ -3066,13 +3065,13 @@ odbc_populate_ird(TDS_STMT * stmt)
 
 		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
 
-		if (!col->table_column_name) {
+		if (tds_dstr_isempty(&col->table_column_name)) {
 			if (!tds_dstr_copyn(&drec->sql_desc_name, col->column_name, col->column_namelen))
 				return SQL_ERROR;
 		} else {
-			if (!tds_dstr_copy(&drec->sql_desc_name, col->table_column_name))
+			if (!tds_dstr_dup(&drec->sql_desc_name, &col->table_column_name))
 				return SQL_ERROR;
-			if (!tds_dstr_copy(&drec->sql_desc_base_column_name, col->table_column_name))
+			if (!tds_dstr_dup(&drec->sql_desc_base_column_name, &col->table_column_name))
 				return SQL_ERROR;
 		}
 

@@ -686,7 +686,7 @@ struct tds_column
 
 	DSTR table_name;
 	TDS_CHAR column_name[TDS_SYSNAME_SIZE];
-	char * table_column_name;
+	DSTR table_column_name;
 
 	unsigned char *column_data;
 	void (*column_data_free)(struct tds_column *column);

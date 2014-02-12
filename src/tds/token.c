@@ -1192,9 +1192,7 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 		if (col_info[2] & 0x20) {
 			l = tds_get_byte(tds);
 			if (curcol) {
-				if (curcol->table_column_name)
-					TDS_ZERO_FREE(curcol->table_column_name);
-				tds_alloc_get_string(tds, &curcol->table_column_name, l);
+				tds_dstr_get(tds, &curcol->table_column_name, l);
 				if (IS_TDS7_PLUS(tds->conn))
 					l *= 2;
 			} else {
@@ -1769,13 +1767,11 @@ tds5_process_result(TDSSOCKET * tds)
 		tds_dstr_get(tds, &curcol->table_name, tds_get_byte(tds));
 
 		/* table column name */
-		if (curcol->table_column_name)
-			TDS_ZERO_FREE(curcol->table_column_name);
-		tds_alloc_get_string(tds, &curcol->table_column_name, tds_get_byte(tds));
+		tds_dstr_get(tds, &curcol->table_column_name, tds_get_byte(tds));
 
 		/* if label is empty, use the table column name */
-		if (!curcol->column_namelen && curcol->table_column_name) {
-			tds_strlcpy(curcol->column_name, curcol->table_column_name, sizeof(curcol->column_name));
+		if (!curcol->column_namelen && !tds_dstr_isempty(&curcol->table_column_name)) {
+			tds_strlcpy(curcol->column_name, tds_dstr_cstr(&curcol->table_column_name), sizeof(curcol->column_name));
 			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
 		}
 

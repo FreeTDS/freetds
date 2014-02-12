@@ -3026,7 +3026,9 @@ dbcolsource(DBPROCESS * dbproc, int column)
 	if (!colinfo)
 		return NULL;
 
-	return colinfo->table_column_name ? colinfo->table_column_name : colinfo->column_name;
+	return tds_dstr_isempty(&colinfo->table_column_name) ?
+		colinfo->column_name :
+		(char *) tds_dstr_cstr(&colinfo->table_column_name);
 }
 
 /**

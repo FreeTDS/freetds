@@ -38,6 +38,7 @@
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
 #include <freetds/stream.h>
+#include <freetds/string.h>
 #include "replacements.h"
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -135,9 +136,7 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		curcol->on_server.column_size = resinfo->columns[i]->on_server.column_size;
 		curcol->char_conv = resinfo->columns[i]->char_conv;
 		memcpy(curcol->column_name, resinfo->columns[i]->column_name, resinfo->columns[i]->column_namelen);
-		TDS_ZERO_FREE(curcol->table_column_name);
-		if (resinfo->columns[i]->table_column_name)
-			curcol->table_column_name = strdup(resinfo->columns[i]->table_column_name);
+		tds_dstr_dup(&curcol->table_column_name, &resinfo->columns[i]->table_column_name);
 		curcol->column_nullable = resinfo->columns[i]->column_nullable;
 		curcol->column_identity = resinfo->columns[i]->column_identity;
 		curcol->column_timestamp = resinfo->columns[i]->column_timestamp;
