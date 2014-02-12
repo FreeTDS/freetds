@@ -83,21 +83,22 @@ tds_dstr_free(DSTR * s)
 DSTR*
 tds_dstr_copyn(DSTR * s, const char *src, size_t length)
 {
-	if (s->dstr_s != tds_str_empty)
-		free(s->dstr_s);
 	if (!length) {
-		s->dstr_s = (char *) tds_str_empty;
-		s->dstr_size = 0;
-	} else {
-		s->dstr_s = (char *) malloc(length + 1);
-		if (!s->dstr_s) {
+		if (s->dstr_s != tds_str_empty) {
+			free(s->dstr_s);
 			s->dstr_s = (char *) tds_str_empty;
 			s->dstr_size = 0;
-			return NULL;
 		}
+	} else {
+		char *p = (char *) malloc(length + 1);
+		if (TDS_UNLIKELY(!p))
+			return NULL;
+		memcpy(p, src, length);
+		p[length] = 0;
+		if (s->dstr_s != tds_str_empty)
+			free(s->dstr_s);
+		s->dstr_s = p;
 		s->dstr_size = length;
-		memcpy(s->dstr_s, src, length);
-		s->dstr_s[length] = 0;
 	}
 	return s;
 }
@@ -171,15 +172,12 @@ tds_dstr_setlen(DSTR *s, size_t length)
 DSTR*
 tds_dstr_alloc(DSTR *s, size_t length)
 {
-	char *p;
+	char *p = (char *) malloc(length + 1);
+	if (TDS_UNLIKELY(!p))
+		return NULL;
+
 	if (s->dstr_s != tds_str_empty)
 		free(s->dstr_s);
-	p = (char *) malloc(length + 1);
-	if (!p) {
-		s->dstr_s = (char *) tds_str_empty;
-		s->dstr_size = 0;
-		return NULL;
-	}
 	s->dstr_s = p;
 	s->dstr_s[0] = 0;
 	s->dstr_size = length;
