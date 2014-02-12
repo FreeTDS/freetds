@@ -155,7 +155,7 @@ tds_dstr_setlen(DSTR *s, size_t length)
 	assert(s->dstr_size >= length);
 #endif
 	/* test required for empty strings */
-	if (s->dstr_size >= length) {
+	if (s->dstr_size >= length && s->dstr_s != tds_str_empty) {
 		s->dstr_size = length;
 		s->dstr_s[length] = 0;
 	}
