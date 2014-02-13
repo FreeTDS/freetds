@@ -93,9 +93,9 @@ typedef struct tds_compiletime_settings
  * There should be always a buffer.
  */
 typedef struct tds_dstr {
-	char *dstr_s;
 	size_t dstr_size;
-} DSTR;
+	char dstr_s[1];
+} *DSTR;
 
 /**
  * @file tds.h

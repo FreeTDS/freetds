@@ -26,7 +26,7 @@
 #pragma GCC visibility push(hidden)
 #endif
 
-extern const char tds_str_empty[1];
+extern const struct tds_dstr tds_str_empty;
 
 /* TODO do some function and use inline if available */
 
@@ -42,15 +42,15 @@ size_t tds_dstr_len(DSTR * s);
 #else
 /** init a string with empty */
 #define tds_dstr_init(s) \
-	do { DSTR *_tds_s = (s); _tds_s->dstr_size = 0; _tds_s->dstr_s = (char*) tds_str_empty; } while(0)
+	do { *(s) = (struct tds_dstr*) &tds_str_empty; } while(0)
 
 /** test if string is empty */
 #define tds_dstr_isempty(s) \
-	((s)->dstr_size == 0)
+	((*(s))->dstr_size == 0)
 #define tds_dstr_buf(s) \
-	((s)->dstr_s)
+	((*(s))->dstr_s)
 #define tds_dstr_len(s) \
-	((s)->dstr_size)
+	((*(s))->dstr_size)
 #endif
 
 #define tds_dstr_cstr(s) \

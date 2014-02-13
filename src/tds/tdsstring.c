@@ -49,7 +49,8 @@ TDS_RCSID(var, "$Id: tdsstring.c,v 1.21 2011-05-16 08:51:40 freddy77 Exp $");
  */
 
 /* This is in a separate module because we use the pointer to discriminate allocated and not allocated */
-const char tds_str_empty[1] = "";
+const struct tds_dstr tds_str_empty = { 0, "" };
+#define EMPTY ((struct tds_dstr*) &tds_str_empty)
 
 /**
  * \addtogroup dstring
@@ -60,17 +61,16 @@ const char tds_str_empty[1] = "";
 void
 tds_dstr_zero(DSTR * s)
 {
-	memset(s->dstr_s, 0, s->dstr_size);
+	memset((*s)->dstr_s, 0, (*s)->dstr_size);
 }
 
 /** free string */
 void
 tds_dstr_free(DSTR * s)
 {
-	if (s->dstr_s != tds_str_empty)
-		free(s->dstr_s);
-	s->dstr_size = 0;
-	s->dstr_s = (char*) tds_str_empty;
+	if (*s != EMPTY)
+		free(*s);
+	*s = EMPTY;
 }
 
 /**
@@ -84,21 +84,20 @@ DSTR*
 tds_dstr_copyn(DSTR * s, const char *src, size_t length)
 {
 	if (!length) {
-		if (s->dstr_s != tds_str_empty) {
-			free(s->dstr_s);
-			s->dstr_s = (char *) tds_str_empty;
-			s->dstr_size = 0;
+		if (*s != EMPTY) {
+			free(*s);
+			*s = EMPTY;
 		}
 	} else {
-		char *p = (char *) malloc(length + 1);
+		struct tds_dstr *p = (struct tds_dstr *) malloc(length + TDS_OFFSET(struct tds_dstr, dstr_s) + 1);
 		if (TDS_UNLIKELY(!p))
 			return NULL;
-		memcpy(p, src, length);
-		p[length] = 0;
-		if (s->dstr_s != tds_str_empty)
-			free(s->dstr_s);
-		s->dstr_s = p;
-		s->dstr_size = length;
+		memcpy(p->dstr_s, src, length);
+		p->dstr_s[length] = 0;
+		p->dstr_size = length;
+		if (*s != EMPTY)
+			free(*s);
+		*s = p;
 	}
 	return s;
 }
@@ -114,16 +113,10 @@ tds_dstr_copyn(DSTR * s, const char *src, size_t length)
 DSTR*
 tds_dstr_set(DSTR * s, char *src)
 {
-	size_t len = strlen(src);
-
-	if (s->dstr_s != tds_str_empty)
-		free(s->dstr_s);
-
-	s->dstr_s = len ? src : (char *) tds_str_empty;
-	if (!len)
+	DSTR *res = tds_dstr_copy(s, src);
+	if (TDS_LIKELY(res != NULL))
 		free(src);
-	s->dstr_size = len;
-	return s;
+	return res;
 }
 
 /**
@@ -141,7 +134,7 @@ tds_dstr_copy(DSTR * s, const char *src)
 DSTR*
 tds_dstr_dup(DSTR * s, const DSTR * src)
 {
-	return tds_dstr_copyn(s, src->dstr_s, src->dstr_size);
+	return tds_dstr_copyn(s, (*src)->dstr_s, (*src)->dstr_size);
 }
 
 /**
@@ -153,12 +146,12 @@ DSTR*
 tds_dstr_setlen(DSTR *s, size_t length)
 {
 #if ENABLE_EXTRA_CHECKS
-	assert(s->dstr_size >= length);
+	assert((*s)->dstr_size >= length);
 #endif
 	/* test required for empty strings */
-	if (s->dstr_size >= length && s->dstr_s != tds_str_empty) {
-		s->dstr_size = length;
-		s->dstr_s[length] = 0;
+	if ((*s)->dstr_size >= length && *s != EMPTY) {
+		(*s)->dstr_size = length;
+		(*s)->dstr_s[length] = 0;
 	}
 	return s;
 }
@@ -172,15 +165,15 @@ tds_dstr_setlen(DSTR *s, size_t length)
 DSTR*
 tds_dstr_alloc(DSTR *s, size_t length)
 {
-	char *p = (char *) malloc(length + 1);
+	struct tds_dstr *p = (struct tds_dstr *) malloc(length + TDS_OFFSET(struct tds_dstr, dstr_s) + 1);
 	if (TDS_UNLIKELY(!p))
 		return NULL;
 
-	if (s->dstr_s != tds_str_empty)
-		free(s->dstr_s);
-	s->dstr_s = p;
-	s->dstr_s[0] = 0;
-	s->dstr_size = length;
+	if (*s != EMPTY)
+		free(*s);
+	p->dstr_s[0] = 0;
+	p->dstr_size = length;
+	*s = p;
 	return s;
 }
 
@@ -188,26 +181,25 @@ tds_dstr_alloc(DSTR *s, size_t length)
 void
 tds_dstr_init(DSTR * s)
 {
-	s->dstr_s = (char *) tds_str_empty;
-	s->dstr_size = 0;
+	*s = EMPTY;
 }
 
 int
 tds_dstr_isempty(DSTR * s)
 {
-	return s->dstr_size == 0;
+	return (*s)->dstr_size == 0;
 }
 
 char *
 tds_dstr_buf(DSTR * s)
 {
-	return s->dstr_s;
+	return (*s)->dstr_s;
 }
 
 size_t
 tds_dstr_len(DSTR * s)
 {
-	return s->dstr_size;
+	return (*s)->dstr_size;
 }
 #endif
 
