@@ -987,9 +987,11 @@ typedef struct tds_file_stream {
 
 #ifndef TDS_HAVE_STDIO_LOCKED
 #undef getc_unlocked
+#undef feof_unlocked
 #undef flockfile
 #undef funlockfile
 #define getc_unlocked(s) getc(s)
+#define feof_unlocked(s) feof(s)
 #define flockfile(s) do { } while(0)
 #define funlockfile(s) do { } while(0)
 #endif
