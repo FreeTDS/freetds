@@ -474,31 +474,27 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 		}
 		free(set_buffer);
 	} else if (action == CS_GET) {
+		DSTR *s;
+
 		switch (property) {
 		case CS_USERNAME:
-			if (out_len)
-				*out_len = tds_dstr_len(&tds_login->user_name);
-			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->user_name), buflen);
-			break;
+			s = &tds_login->user_name;
+			goto str_copy;
 		case CS_PASSWORD:
-			if (out_len)
-				*out_len = tds_dstr_len(&tds_login->password);
-			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->password), buflen);
-			break;
+			s = &tds_login->password;
+			goto str_copy;
 		case CS_APPNAME:
-			if (out_len)
-				*out_len = tds_dstr_len(&tds_login->app_name);
-			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->app_name), buflen);
-			break;
+			s = &tds_login->app_name;
+			goto str_copy;
 		case CS_HOSTNAME:
-			if (out_len)
-				*out_len = tds_dstr_len(&tds_login->client_host_name);
-			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->client_host_name), buflen);
-			break;
+			s = &tds_login->client_host_name;
+			goto str_copy;
 		case CS_SERVERNAME:
+			s = &tds_login->server_name;
+		str_copy:
 			if (out_len)
-				*out_len = tds_dstr_len(&tds_login->server_name);
-			tds_strlcpy((char *) buffer, tds_dstr_cstr(&tds_login->server_name), buflen);
+				*out_len = tds_dstr_len(s);
+			tds_strlcpy((char *) buffer, tds_dstr_cstr(s), buflen);
 			break;
 		case CS_LOC_PROP:
 			if (buflen != CS_UNUSED || !con->locale || !buffer)
