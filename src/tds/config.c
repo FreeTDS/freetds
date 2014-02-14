@@ -399,8 +399,10 @@ tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login)
 	default_port = login->port;
 
 	found = tds_read_conf_section(in, server, tds_parse_conf_section, login);
-	if (!login->valid_configuration)
+	if (!login->valid_configuration) {
+		tds_dstr_free(&default_instance);
 		return 0;
+	}
 
 	/* 
 	 * If both instance and port are specified and neither one came from the default, it's an error 
