@@ -43,6 +43,7 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/bytes.h>
+#include <freetds/stream.h>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -95,13 +96,15 @@ tds_put_n(TDSSOCKET * tds, const void *buf, size_t n)
 int
 tds_put_string(TDSSOCKET * tds, const char *s, int len)
 {
-	TDS_ENCODING *client;
-	char outbuf[256], *poutbuf;
-	size_t inbytesleft, outbytesleft, bytes_out = 0;
+	int res;
+	TDSSTATICINSTREAM r;
+	TDSDATAOUTSTREAM w;
 
-	client = &tds->conn->char_convs[client2ucs2]->from.charset;
 
 	if (len < 0) {
+		TDS_ENCODING *client;
+		client = &tds->conn->char_convs[client2ucs2]->from.charset;
+
 		if (client->min_bytes_per_char == 1) {	/* ascii or UTF-8 */
 			len = (int)strlen(s);
 		} else if (client->min_bytes_per_char == 2) {	/* UCS-2 or variant */
@@ -130,40 +133,11 @@ tds_put_string(TDSSOCKET * tds, const char *s, int len)
 		return len;
 	}
 
-	memset(&tds->conn->char_convs[client2ucs2]->suppress, 0, sizeof(tds->conn->char_convs[client2ucs2]->suppress));
-	tds->conn->char_convs[client2ucs2]->suppress.e2big = 1;
-	inbytesleft = len;
-	while (inbytesleft) {
-		tdsdump_log(TDS_DBG_NETWORK, "tds_put_string converting %d bytes of \"%.*s\"\n", (int) inbytesleft, (int) inbytesleft, s);
-		outbytesleft = sizeof(outbuf);
-		poutbuf = outbuf;
-		
-		if ((size_t)-1 == tds_iconv(tds, tds->conn->char_convs[client2ucs2], to_server, &s, &inbytesleft, &poutbuf, &outbytesleft)) {
-		
-			if (errno == EINVAL) {
-				tdsdump_log(TDS_DBG_NETWORK, "tds_put_string: tds_iconv() encountered partial sequence. "
-							     "%d bytes remain.\n", (int) inbytesleft);
-				/* TODO return some sort or error ?? */
-				break;
-			} else if (errno != E2BIG) {
-				/* It's not an incomplete multibyte sequence, or it IS, but we're not anticipating one. */
-				tdsdump_log(TDS_DBG_NETWORK, "Error: tds_put_string: "
-							     "Gave up converting %d bytes due to error %d.\n", 
-							     (int) inbytesleft, errno);
-				tdsdump_dump_buf(TDS_DBG_NETWORK, "Troublesome bytes", s, inbytesleft);
-			}
+	tds_staticin_stream_init(&r, s, len);
+	tds_dataout_stream_init(&w, tds);
 
-			if (poutbuf == outbuf) {	/* tds_iconv did not convert anything, avoid infinite loop */
-				tdsdump_log(TDS_DBG_NETWORK, "Error: tds_put_string: No conversion possible, giving up.\n");
-				break;
-			}
-		}
-		
-		bytes_out += poutbuf - outbuf;
-		tds_put_n(tds, outbuf, poutbuf - outbuf);
-	}
-	tdsdump_log(TDS_DBG_NETWORK, "tds_put_string wrote %d bytes\n", (int) bytes_out);
-	return (int)bytes_out;
+	res = tds_convert_stream(tds, tds->conn->char_convs[client2ucs2], to_server, &r.stream, &w.stream);
+	return w.written;
 }
 
 int
