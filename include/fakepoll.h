@@ -1,4 +1,9 @@
 /* $Id: fakepoll.h,v 1.5 2011-05-16 08:51:40 freddy77 Exp $ */
+
+/** \file
+ *  \brief Provide poll call where missing
+ */
+
 #if !defined(_FAKE_POLL_H) && !defined(HAVE_POLL)
 #define _FAKE_POLL_H
 

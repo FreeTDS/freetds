@@ -84,6 +84,37 @@ general there will be one tds_process_*() function for each marker unless it is
 not worth looking at, in which case tds_process_default_tokens() will read past
 it. 
 
+libTDS
+------
+
+libTDS (src/tds) is the core of this projects
+
+Files details (not exaustive):
+* convert.c  Handles conversion between types;
+* bulk.c  Handles bulk transfer;
+* config.c  Handles configuration files;
+* data.c  Handles handling different column types;
+* numeric.c  Handles specific numeric stuff;
+* net.c  Low level network stuff including socket and SSL;
+* packet.c  Handles network stream at packet level, all TDS communication
+  is encapsulated in packets (TDS packets, do not confuse with network
+  ones);
+* locale.c  Deals with locale information;
+* log.c  Handles logging;
+* mem.c  Handles allocation and freeing of structures;
+* login.c  Handles login with server (contains tds_connect);
+* read.c, write.c  Handle reading and writing to TDS packets;
+* query.c  Contains all routines to send requests;
+* token.c  Contains all routines to get reply from server;
+* tds_checks.c, tds_checks.h  Internal checks;
+* iconv.c, alternative_character_sets.h, character_sets.h
+  and sybase_character_sets.h  Handle character conversions;
+* tdsstring.c  Dynamic string management;
+* challenge.c, des.c, gssapi.c, hmac_md5.c, md4.c, md5.c,
+  sspi.c  Deals with various authentications;
+* stream.c  Deals with large stream of data;
+* threadsafe.c  Utilities for thread safe.
+
 Misc
 ----
 

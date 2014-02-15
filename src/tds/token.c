@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005  Brian Bruns
- * Copyright (C) 2005-2011  Frediano Ziglio
+ * Copyright (C) 2005-2014  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -18,6 +18,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/**
+ * \file
+ * \brief Contains all routines to get replies from server
+ */
 #include <config.h>
 
 #if HAVE_STRING_H
@@ -41,9 +45,9 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: token.c,v 1.417 2011-10-08 01:13:30 jklowden Exp $");
-
+/** \cond HIDDEN_SYMBOLS */
 #define USE_ICONV tds_conn(tds)->use_iconv
+/** \endcond */
 
 static TDSRET tds_process_msg(TDSSOCKET * tds, int marker);
 static TDSRET tds_process_compute_result(TDSSOCKET * tds);
@@ -94,6 +98,8 @@ static int tds_alloc_get_string(TDSSOCKET * tds, /*@special@*/ char **string, si
 /**
  * tds_process_default_tokens() is a catch all function that is called to
  * process tokens not known to other tds_process_* routines
+ * @tds
+ * @param marker Token type
  */
 static TDSRET
 tds_process_default_tokens(TDSSOCKET * tds, int marker)
@@ -246,6 +252,10 @@ tds_process_default_tokens(TDSSOCKET * tds, int marker)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Retrieve and set @@spid
+ * \tds
+ */
 static TDSRET
 tds_set_spid(TDSSOCKET * tds)
 {
@@ -298,6 +308,7 @@ tds_set_spid(TDSSOCKET * tds)
  * to the server.  It returns the success or failure of the login 
  * dependent on the protocol version. 4.2 sends an ACK token only when
  * successful, TDS 5.0 sends it always with a success byte within
+ * @tds
  */
 TDSRET
 tds_process_login_tokens(TDSSOCKET * tds)
@@ -430,6 +441,11 @@ tds_process_login_tokens(TDSSOCKET * tds)
 	return succeed;
 }
 
+/**
+ * Process authentication token.
+ * This token is only TDS 7.0+.
+ * \tds
+ */
 static TDSRET
 tds_process_auth(TDSSOCKET * tds)
 {
@@ -456,7 +472,7 @@ tds_process_auth(TDSSOCKET * tds)
  * tds_process_tokens() is called after submitting a query with
  * tds_submit_query() and is responsible for calling the routines to
  * populate tds->res_info if appropriate (some query have no result sets)
- * @param tds A pointer to the TDSSOCKET structure managing a client/server operation.
+ * @tds
  * @param result_type A pointer to an integer variable which 
  *        tds_process_tokens sets to indicate the current type of result.
  *  @par
@@ -496,6 +512,7 @@ tds_process_auth(TDSSOCKET * tds)
  *    <td>TDS_STATUS_RESULT</td><td>Stored procedure status results</td>
  *    <td>tds->ret_status contain the returned code</td>
  *  </tr></table>
+ * @param done_flags Flags contained in the TDS_DONE*_TOKEN readed
  * @param flag Flags to select token type to stop/return
  * @todo Complete TDS_DESCRIBE_RESULT description
  * @retval TDS_SUCCESS if a result set is available for processing.
@@ -515,6 +532,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 	int cancel_seen = 0;
 	unsigned return_flag = 0;
 
+/** \cond HIDDEN_SYMBOLS */
 #define SET_RETURN(ret, f) \
 	*result_type = ret; \
 	return_flag = TDS_RETURN_##f | TDS_STOPAT_##f; \
@@ -523,6 +541,7 @@ tds_process_tokens(TDSSOCKET *tds, TDS_INT *result_type, int *done_flags, unsign
 		tdsdump_log(TDS_DBG_FUNC, "tds_process_tokens::SET_RETURN stopping on current token\n"); \
 		break; \
 	}
+/** \endcond */
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -870,12 +889,21 @@ tds_process_simple_query(TDSSOCKET * tds)
 	return ret;
 }
 
+/**
+ * Holds list of names
+ */
 struct namelist
 {
+	/** string name */
 	char *name;
+	/** next element in the list */
 	struct namelist *next;
 };
 
+/**
+ * Frees list of names
+ * \param head list head to free
+ */
 static void
 tds_free_namelist(struct namelist *head)
 {
@@ -889,6 +917,13 @@ tds_free_namelist(struct namelist *head)
 	}
 }
 
+/**
+ * Reads list of names (usually table names)
+ * \tds
+ * \param remainder bytes left to read
+ * \param p_head list head to return
+ * \param large true if name length from network are 2 byte (usually 1)
+ */
 static int
 tds_read_namelist(TDSSOCKET * tds, int remainder, struct namelist **p_head, int large)
 {
@@ -945,6 +980,7 @@ tds_read_namelist(TDSSOCKET * tds, int remainder, struct namelist **p_head, int 
  * it contains all the column names, a TDS_COLFMT_TOKEN should 
  * immediately follow this token with the datatype/size information
  * This is a 4.2 only function
+ * \tds
  */
 static TDSRET
 tds_process_col_name(TDSSOCKET * tds)
@@ -993,6 +1029,7 @@ tds_process_col_name(TDSSOCKET * tds)
  * under TDS 4.2. It follows tds_process_col_name(). It contains all the 
  * column type and size information.
  * This is a 4.2 only function
+ * \tds
  */
 static TDSRET
 tds_process_col_fmt(TDSSOCKET * tds)
@@ -1036,6 +1073,15 @@ tds_process_col_fmt(TDSSOCKET * tds)
 	return tds_alloc_row(info);
 }
 
+/**
+ * Reads table names for TDS 7.1+.
+ * TDS 7.1+ return table names as an array of names
+ * (so database.schema.owner.name as separate names)
+ * \tds
+ * \param remainder bytes left to read
+ * \param p_head pointer to list head to return
+ * \return number of element returned or -1 on error
+ */
 static int
 tds71_read_table_names(TDSSOCKET *tds, int remainder, struct namelist **p_head)
 {
@@ -1114,6 +1160,11 @@ tds71_read_table_names(TDSSOCKET *tds, int remainder, struct namelist **p_head)
 	return num_names;
 }
 
+/**
+ * Process list of table from network.
+ * This token is only TDS 4.2
+ * \tds
+ */
 static TDSRET
 tds_process_tabname(TDSSOCKET *tds)
 {
@@ -1156,6 +1207,13 @@ tds_process_tabname(TDSSOCKET *tds)
 	return rc;
 }
 
+/**
+ * Reads column information.
+ * This token is only TDS 4.2
+ * \tds
+ * \param[in] names table names
+ * \param[in] num_names number of table names
+ */
 static TDSRET
 tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 {
@@ -1212,6 +1270,9 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
  * process output parameters of a stored 
  * procedure. This differs from regular row/compute results in that there
  * is no total number of parameters given, they just show up singly.
+ * \tds
+ * \param[out] pinfo output parameter.
+ *             Should point to a not allocated structure
  */
 static TDSRET
 tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
@@ -1261,6 +1322,13 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 	return token;
 }
 
+/**
+ * Process parameters from networks.
+ * Read all consecutives paramaters, not a single one.
+ * Parameters are then stored in tds->param_info or tds->cur_dyn->res_info
+ * depending if we are reading cursor results or normal parameters.
+ * \tds
+ */
 static TDSRET
 tds_process_param_result_tokens(TDSSOCKET * tds)
 {
@@ -1289,6 +1357,7 @@ tds_process_param_result_tokens(TDSSOCKET * tds)
 
 /**
  * tds_process_params_result_token() processes params on TDS5.
+ * \tds
  */
 static TDSRET
 tds_process_params_result_token(TDSSOCKET * tds)
@@ -1316,6 +1385,7 @@ tds_process_params_result_token(TDSSOCKET * tds)
  * tds_process_compute_result() processes compute result sets.  These functions
  * need work but since they get little use, nobody has complained!
  * It is very similar to normal result sets.
+ * \tds
  */
 static TDSRET
 tds_process_compute_result(TDSSOCKET * tds)
@@ -1414,8 +1484,8 @@ tds_process_compute_result(TDSSOCKET * tds)
 }
 
 /**
- * Read data information from wire
- * \param tds state information for the socket and the TDS protocol
+ * Reads data information from wire
+ * \tds
  * \param curcol column where to store information
  */
 static TDSRET
@@ -1476,6 +1546,7 @@ tds7_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol)
  * tds7_process_result() is the TDS 7.0 result set processing routine.  It 
  * is responsible for populating the tds->res_info structure.
  * This is a TDS 7.0 only function
+ * \tds
  */
 static TDSRET
 tds7_process_result(TDSSOCKET * tds)
@@ -1551,9 +1622,11 @@ tds7_process_result(TDSSOCKET * tds)
 }
 
 /**
- * Read data information from wire
+ * Reads data metadata from wire
  * \param tds state information for the socket and the TDS protocol
  * \param curcol column where to store information
+ * \param is_param true if metadata are for a parameter (false for normal
+ *        column)
  */
 static TDSRET
 tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
@@ -1642,6 +1715,7 @@ tds_get_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int is_param)
  * tds_process_result() is the TDS 5.0 result set processing routine.  It 
  * is responsible for populating the tds->res_info structure.
  * This is a TDS 5.0 only function
+ * \tds
  */
 static TDSRET
 tds_process_result(TDSSOCKET * tds)
@@ -1695,6 +1769,7 @@ tds_process_result(TDSSOCKET * tds)
  * tds5_process_result() is the new TDS 5.0 result set processing routine.  
  * It is responsible for populating the tds->res_info structure.
  * This is a TDS 5.0 only function
+ * \tds
  */
 static TDSRET
 tds5_process_result(TDSSOCKET * tds)
@@ -1817,7 +1892,9 @@ tds5_process_result(TDSSOCKET * tds)
 
 /**
  * tds_process_compute() processes compute rows and places them in the row
- * buffer.  
+ * buffer.
+ * \tds
+ * \param pcomputeid store id of compute token
  */
 static TDSRET
 tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
@@ -1858,6 +1935,7 @@ tds_process_compute(TDSSOCKET * tds, TDS_INT * pcomputeid)
 
 /**
  * tds_process_row() processes rows and places them in the row buffer.
+ * \tds
  */
 static TDSRET
 tds_process_row(TDSSOCKET * tds)
@@ -1962,6 +2040,7 @@ tds_process_end(TDSSOCKET * tds, int marker, int *flags_parm)
  * set, language, or block size.  A environment change message is generated
  * There is no action taken currently, but certain functions at the CLI level
  * that return the name of the current database will need to use this.
+ * \tds
  */
 static TDSRET
 tds_process_env_chg(TDSSOCKET * tds)
@@ -2098,7 +2177,7 @@ tds_process_env_chg(TDSSOCKET * tds)
 /**
  * tds_process_msg() is called for MSG, ERR, or EED tokens and is responsible
  * for calling the CLI's message handling routine
- * returns TDS_SUCCESS if informational, TDS_FAIL if error.
+ * \returns TDS_SUCCESS if informational, TDS_FAIL if error.
  */
 static TDSRET
 tds_process_msg(TDSSOCKET * tds, int marker)
@@ -2257,9 +2336,11 @@ tds_process_msg(TDSSOCKET * tds, int marker)
 }
 
 /**
- * Read a string from wire in a new allocated buffer
- * \param tds state information for the socket and the TDS protocol
+ * Reads a string from wire in a new allocated buffer
+ * \tds
+ * \param string output string
  * \param len length of string to read
+ * \returns 0 for success, -1 on error.
  */
 static int
 tds_alloc_get_string(TDSSOCKET * tds, char **string, size_t len)
@@ -2286,6 +2367,7 @@ tds_alloc_get_string(TDSSOCKET * tds, char **string, size_t len)
  * \remarks Process the incoming token stream until it finds
  * an end token (DONE, DONEPROC, DONEINPROC) with the cancel flag set.
  * At that point the connection should be ready to handle a new query.
+ * \tds
  */
 TDSRET
 tds_process_cancel(TDSSOCKET * tds)
@@ -2315,9 +2397,9 @@ tds_process_cancel(TDSSOCKET * tds)
 }
 
 /**
- * Find a dynamic given string id
+ * Finds a dynamic given string id
  * \return dynamic or NULL is not found
- * \param tds  state information for the socket and the TDS protocol
+ * \param conn state information for the socket and the TDS protocol
  * \param id   dynamic id to search
  */
 TDSDYNAMIC *
@@ -2337,6 +2419,8 @@ tds_lookup_dynamic(TDSCONNECTION * conn, const char *id)
 /**
  * tds_process_dynamic()
  * finds the element of the dyns array for the id
+ * \tds
+ * \return allocated dynamic or NULL on failure.
  */
 static TDSDYNAMIC *
 tds_process_dynamic(TDSSOCKET * tds)
@@ -2370,6 +2454,10 @@ tds_process_dynamic(TDSSOCKET * tds)
 	return tds_lookup_dynamic(tds_conn(tds), id);
 }
 
+/**
+ * Process results from dynamic.
+ * \tds
+ */
 static TDSRET
 tds_process_dyn_result(TDSSOCKET * tds)
 {
@@ -2411,7 +2499,8 @@ tds_process_dyn_result(TDSSOCKET * tds)
 }
 
 /**
- *  New TDS 5.0 token for describing output parameters
+ * Process new TDS 5.0 token for describing output parameters
+ * \tds
  */
 static TDSRET
 tds5_process_dyn_result2(TDSSOCKET * tds)
@@ -2484,6 +2573,7 @@ tds5_process_dyn_result2(TDSSOCKET * tds)
 /**
  * tds_get_token_size() returns the size of a fixed length token
  * used by tds_process_cancel() to determine how to read past a token
+ * \param marker token type.
  */
 int
 tds_get_token_size(int marker)
@@ -2538,6 +2628,10 @@ tds_swap_datatype(int coltype, unsigned char *buf)
 }
 #endif
 
+/**
+ * Converts numeric from Microsoft representation to internal one (Sybase).
+ * \param num numeric data to convert
+ */
 void
 tds_swap_numeric(TDS_NUMERIC *num)
 {
@@ -2549,7 +2643,8 @@ tds_swap_numeric(TDS_NUMERIC *num)
 
 
 /**
- * tds_process_compute_names() processes compute result sets.  
+ * tds_process_compute_names() processes compute result sets.
+ * \tds
  */
 static TDSRET
 tds_process_compute_names(TDSSOCKET * tds)
@@ -2611,6 +2706,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 /**
  * tds7_process_compute_result() processes compute result sets for TDS 7/8.
  * They is are very  similar to normal result sets.
+ * \tds
  */
 static TDSRET
 tds7_process_compute_result(TDSSOCKET * tds)
@@ -2696,6 +2792,11 @@ tds7_process_compute_result(TDSSOCKET * tds)
 	return tds_alloc_compute_row(info);
 }
 
+/**
+ * Reads cursor command results.
+ * This contains status of cursors.
+ * \tds
+ */
 static TDSRET
 tds_process_cursor_tokens(TDSSOCKET * tds)
 {
@@ -2734,6 +2835,11 @@ tds_process_cursor_tokens(TDSSOCKET * tds)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Process option cmd results.
+ * This token is available only on TDS 5.0 (Sybase).
+ * \tds
+ */
 static TDSRET
 tds5_process_optioncmd(TDSSOCKET * tds)
 {
@@ -2779,10 +2885,17 @@ tds5_process_optioncmd(TDSSOCKET * tds)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Returns string representation for a given operation
+ * \param op operation code
+ * \return string representation. Empty if not found.
+ */
 static const char *
 tds_pr_op(int op)
 {
+/** \cond HIDDEN_SYMBOLS */
 #define TYPE(con, s) case con: return s; break
+/** \endcond */
 	switch (op) {
 		TYPE(SYBAOPAVG, "avg");
 		TYPE(SYBAOPAVGU, "avg");
@@ -2805,11 +2918,18 @@ tds_pr_op(int op)
 #undef TYPE
 }
 
+/**
+ * Returns string representation of the given type.
+ * \param type data type
+ * \return type as string. Empty if not found.
+ */
 const char *
-tds_prtype(int token)
+tds_prtype(int type)
 {
+/** \cond HIDDEN_SYMBOLS */
 #define TYPE(con, s) case con: return s; break
-	switch (token) {
+/** \endcond */
+	switch (type) {
 		TYPE(SYBAOPAVG, "avg");
 		TYPE(SYBAOPCNT, "count");
 		TYPE(SYBAOPMAX, "max");
@@ -2865,8 +2985,11 @@ tds_prtype(int token)
 #undef TYPE
 }
 
-/** @} */
-
+/**
+ * Returns string representation for a given token type
+ * \param marker token type
+ * \return string representation. Empty if not token not valid.
+ */
 static const char *
 tds_token_name(unsigned char marker)
 {
@@ -2953,7 +3076,9 @@ tds_token_name(unsigned char marker)
 }
 
 /** 
- * Adjust column size according to client's encoding 
+ * Adjust column size according to client's encoding
+ * \tds
+ * \param curcol column to adjust
  */
 static void
 adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
@@ -3009,6 +3134,9 @@ adjust_character_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol)
  * All character data pass through iconv.  It doesn't matter if the server side 
  * is Unicode or not; even Latin1 text need conversion if,
  * for example, the client is UTF-8.  
+ * \param char_conv conversion structure
+ * \param size unconverted byte size
+ * \return maximum size for converted string
  */
 int
 determine_adjusted_size(const TDSICONV * char_conv, int size)
@@ -3027,3 +3155,5 @@ determine_adjusted_size(const TDSICONV * char_conv, int size)
 
 	return size;
 }
+
+/** @} */

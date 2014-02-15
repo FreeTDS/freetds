@@ -19,3 +19,4 @@ INTERNAL_DOCS = 	YES
 EXAMPLE_PATH = 		$(SRCDIR)/src/tds/example
 SORT_BRIEF_DOCS = 	YES
 EXTRACT_STATIC = 	YES
+ALIASES += tds="@param tds A pointer to the TDSSOCKET structure managing a client/server operation."
