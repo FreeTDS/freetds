@@ -20,3 +20,8 @@ EXAMPLE_PATH = 		$(SRCDIR)/src/tds/example
 SORT_BRIEF_DOCS = 	YES
 EXTRACT_STATIC = 	YES
 ALIASES += tds="@param tds A pointer to the TDSSOCKET structure managing a client/server operation."
+
+CALL_GRAPH = YES
+CALLER_GRAPH = YES
+HAVE_DOT = YES
+MAX_DOT_GRAPH_DEPTH = 3

@@ -1,6 +1,6 @@
 /* FreeTDS - Library of routines accessing Sybase and Microsoft databases
  * Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004  Brian Bruns
- * Copyright (C) 2005, 2006, 2007, 2010  Frediano Ziglio
+ * Copyright (C) 2005-2014  Frediano Ziglio
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -16,6 +16,11 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
+ */
+
+/**
+ * \file
+ * \brief Grab data from TDS packets
  */
 
 #include <config.h>
@@ -48,8 +53,6 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: read.c,v 1.117 2011-06-18 17:52:24 freddy77 Exp $");
-
 static size_t read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
 			       size_t * wire_size, char *outbuf, size_t outbytesleft);
 
@@ -64,9 +67,10 @@ static size_t read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
  * @{ 
  */
 
-/*
-** Return a single byte from the input buffer
-*/
+/**
+ * Return a single byte from the input buffer
+ * \tds
+ */
 unsigned char
 tds_get_byte(TDSSOCKET * tds)
 {
@@ -82,6 +86,7 @@ tds_get_byte(TDSSOCKET * tds)
  * it may work if you call it multiple times as long as you don't backup
  * over the beginning of network packet boundary which can occur anywhere in
  * the token stream.
+ * \tds
  */
 void
 tds_unget_byte(TDSSOCKET * tds)
@@ -90,6 +95,10 @@ tds_unget_byte(TDSSOCKET * tds)
 	tds->in_pos--;
 }
 
+/**
+ * Reads a byte from the TDS stream without removing it
+ * \tds
+ */
 unsigned char
 tds_peek(TDSSOCKET * tds)
 {
@@ -119,6 +128,7 @@ tds_get_usmallint(TDSSOCKET * tds)
 
 /**
  * Get an int32 from the server.
+ * \tds
  */
 TDS_UINT
 tds_get_uint(TDSSOCKET * tds)
@@ -133,6 +143,10 @@ tds_get_uint(TDSSOCKET * tds)
 	return TDS_GET_A4(bytes);
 }
 
+/**
+ * Get an uint64 from the server.
+ * \tds
+ */
 TDS_UINT8
 tds_get_uint8(TDSSOCKET * tds)
 {
@@ -300,11 +314,17 @@ tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 	return dest;
 }
 
-/*
+/**
  * For UTF-8 and similar, tds_iconv() may encounter a partial sequence when the chunk boundary
  * is not aligned with the character boundary.  In that event, it will return an error, and
  * some number of bytes (less than a character) will remain in the tail end of temp[].  They are
  * moved to the beginning, ptemp is adjusted to point just behind them, and the next chunk is read.
+ * \tds
+ * \param char_conv conversion structure
+ * \param[out] wire_size size readed from wire
+ * \param outbuf buffer to write to
+ * \param outbytesleft buffer length
+ * \return bytes readed
  */
 static size_t
 read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char *outbuf,
@@ -322,6 +342,14 @@ read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char
 	return (char *) w.stream.buffer - outbuf;
 }
 
+/**
+ * Reads a string from wire and put in a DSTR.
+ * On error we read the bytes from the wire anyway.
+ * \tds
+ * \param[out] s output string
+ * \param[in] len string length (in characters)
+ * \return string or NULL on error
+ */
 DSTR*
 tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len)
 {

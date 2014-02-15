@@ -17,6 +17,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/**
+ * \file
+ * \brief Handle stream of data
+ */
+
 #include <config.h>
 
 #if HAVE_ERRNO_H
@@ -41,6 +46,7 @@
 #include <freetds/iconv.h>
 #include <freetds/stream.h>
 
+/** \cond HIDDEN_SYMBOLS */
 #if ENABLE_EXTRA_CHECKS
 # define TEMP_INIT(s) char* temp = (char*)malloc(32); const size_t temp_size = 32
 # define TEMP_FREE free(temp);
@@ -50,10 +56,16 @@
 # define TEMP_FREE ;
 # define TEMP_SIZE sizeof(temp)
 #endif
+/** \endcond */
 
 /**
- * Read and write from a stream converting characters
- * Return bytes written into output
+ * Reads and writes from a stream converting characters
+ * \tds
+ * \param char_conv conversion structure
+ * \param direction specify conversion to server or from server
+ * \param istream input stream
+ * \param ostream output stream
+ * \return TDS_SUCCESS of TDS_FAIL
  */
 TDSRET
 tds_convert_stream(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION direction,
@@ -131,6 +143,13 @@ convert_more:
 	return res;
 }
 
+/**
+ * Reads and writes from a stream to another
+ * \tds
+ * \param istream input stream
+ * \param ostream output stream
+ * \return TDS_SUCCESS or TDS_FAIL
+ */
 TDSRET
 tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * ostream)
 {
@@ -150,6 +169,9 @@ tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * ostream)
 	return TDS_FAIL;
 }
 
+/**
+ * Reads data from network for input stream
+ */
 static int
 tds_data_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 {
@@ -161,13 +183,24 @@ tds_data_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	return len;
 }
 
-void tds_data_stream_init(TDSDATASTREAM * stream, TDSSOCKET * tds, size_t wire_size)
+/**
+ * Initialize a data input stream.
+ * This stream read data from network.
+ * \param stream input stream to initialize
+ * \tds
+ * \param wire_size byte to read
+ */
+void
+tds_data_stream_init(TDSDATASTREAM * stream, TDSSOCKET * tds, size_t wire_size)
 {
 	stream->stream.read = tds_data_stream_read;
 	stream->wire_size = wire_size;
 	stream->tds = tds;
 }
 
+/**
+ * Writes data to a static allocated buffer
+ */
 static int
 tds_static_stream_write(TDSOUTSTREAM *stream, size_t len)
 {
@@ -177,13 +210,23 @@ tds_static_stream_write(TDSOUTSTREAM *stream, size_t len)
 	return len;
 }
 
-void tds_static_stream_init(TDSSTATICSTREAM * stream, void *ptr, size_t len)
+/**
+ * Initialize an output stream for write into a static allocated buffer
+ * \param stream stream to initialize
+ * \param ptr buffer to write to
+ * \param len buffer size in bytes
+ */
+void
+tds_static_stream_init(TDSSTATICSTREAM * stream, void *ptr, size_t len)
 {
 	stream->stream.write = tds_static_stream_write;
 	stream->stream.buffer = (char *) ptr;
 	stream->stream.buf_len = len;
 }
 
+/**
+ * Writes data to a dynamic allocated buffer
+ */
 static int
 tds_dynamic_stream_write(TDSOUTSTREAM *stream, size_t len)
 {
@@ -205,7 +248,18 @@ tds_dynamic_stream_write(TDSOUTSTREAM *stream, size_t len)
 	return len;
 }
 
-TDSRET tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated)
+/**
+ * Initialize a dynamic output stream.
+ * This stream write data into a dynamic allocated buffer.
+ * \param stream stream to initialize
+ * \param ptr pointer to pointer to buffer to fill. Buffer
+ *        will be extended as needed
+ * \param allocated bytes initialially allocated for the buffer.
+ *        Useful to reuse buffers
+ * \return TDS_SUCCESS on success, TDS_FAIL otherwise
+ */
+TDSRET
+tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated)
 {
 #if ENABLE_EXTRA_CHECKS
 	const size_t initial_size = 16;

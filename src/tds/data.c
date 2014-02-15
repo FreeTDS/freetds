@@ -18,7 +18,7 @@
  */
 
 /**
- * @file data.c
+ * @file
  * @brief Handle different data handling from network
  */
 
@@ -726,6 +726,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: colsize = %d\n", (int) curcol->column_cur_size);
 
+	/* output NULL data */
 	if (curcol->column_cur_size < 0) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: null param\n");
 		switch (curcol->column_varint_size) {

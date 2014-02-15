@@ -18,12 +18,13 @@
  * Boston, MA 02111-1307, USA.
  */
 
-/*
+/**
+ * \file
  * This file implements a very simple iconv.  
  * Its purpose is to allow ASCII clients to communicate with Microsoft servers
- * that encode their metadata in Unicode (UCS-2).  
+ * that encode their metadata in Unicode (UTF-16).
  *
- * It supports ISO-8859-1, ASCII, UCS-2, UCS-4 and UTF-8
+ * It supports ISO-8859-1, ASCII, UTF-16, UCS-4 and UTF-8
  */
 
 #include <config.h>

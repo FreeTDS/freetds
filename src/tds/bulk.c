@@ -17,6 +17,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
+/**
+ * \file
+ * \brief Handle bulk copy
+ */
+
 #include <config.h>
 
 #if HAVE_STRING_H
@@ -44,16 +49,22 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: bulk.c,v 1.27 2011-09-29 19:05:46 jklowden Exp $");
-
+/** \cond HIDDEN_SYMBOLS */
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #endif
+/** \endcond */
 
+/**
+ * Holds clause buffer
+ */
 typedef struct tds_pbcb
 {
+	/** buffer */
 	char *pb;
+	/** buffer length */
 	unsigned int cb;
+	/** true is buffer came from malloc */
 	unsigned int from_malloc;
 } TDSPBCB;
 
@@ -63,6 +74,13 @@ static int tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data g
 static int tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error null_error, int offset, TDS_UCHAR *rowbuffer, int start, int *pncols);
 static void tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row);
 
+/**
+ * Initialize BCP information.
+ * Query structure of the table to server.
+ * \tds
+ * \param bcpinfo BCP information to initialize. Structure should be allocate
+ *        and table name and direction should be already set.
+ */
 TDSRET
 tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
@@ -180,7 +198,15 @@ cleanup:
 	tds_free_results(bindinfo);
 	return rc;
 }
-/** 
+
+/**
+ * Help to build query to be sent to server.
+ * Append column declaration to the query.
+ * Only for TDS 7.0+.
+ * \tds
+ * \param[out] clause output string
+ * \param bcpcol column to append
+ * \param first  true if column is the first
  * \return TDS_SUCCESS or TDS_FAIL.
  */
 static TDSRET
@@ -225,6 +251,11 @@ tds7_build_bulk_insert_stmt(TDSSOCKET * tds, TDSPBCB * clause, TDSCOLUMN * bcpco
 	return TDS_SUCCESS;
 }
 
+/**
+ * Prepare the query to be sent to server to request BCP information
+ * \tds
+ * \param bcpinfo BCP information
+ */
 static TDSRET
 tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 {
@@ -287,7 +318,13 @@ tds_bcp_start_insert_stmt(TDSSOCKET * tds, TDSBCPINFO * bcpinfo)
 	return TDS_SUCCESS;
 }
 
-/** 
+/**
+ * Send one row of data to server
+ * \tds
+ * \param bcpinfo BCP information
+ * \param get_col_data function to call to retrieve data to be sent
+ * \param ignored function to call if we try to send NULL if not allowed (not used)
+ * \param offset passed to get_col_data and null_error to specify the row to get
  * \return TDS_SUCCESS or TDS_FAIL.
  */
 TDSRET
@@ -487,7 +524,13 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 
 /**
  * Add fixed size columns to the row
- * @returns length or -1 on error.
+ * \param bcpinfo BCP information
+ * \param get_col_data function to call to retrieve data to be sent
+ * \param ignored function to call if we try to send NULL if not allowed (not used)
+ * \param offset passed to get_col_data and null_error to specify the row to get
+ * \param rowbuffer row buffer to write to
+ * \param start row buffer last end position
+ * \returns new row length or -1 on error.
  */
 static int
 tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error ignored, 
@@ -552,6 +595,10 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 /**
  * Add variable size columns to the row
  *
+ * \param bcpinfo BCP information already prepared
+ * \param get_col_data function to call to retrieve data to be sent
+ * \param null_error function to call if we try to send NULL if not allowed
+ * \param offset passed to get_col_data and null_error to specify the row to get
  * \param rowbuffer The row image that will be sent to the server. 
  * \param start Where to begin copying data into the rowbuffer. 
  * \param pncols Address of output variable holding the count of columns added to the rowbuffer.  
@@ -692,7 +739,11 @@ tds_bcp_add_variable_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_d
 	return ncols == 0? start : row_pos;
 }
 
-/** 
+/**
+ * Send BCP metadata to server.
+ * Only for TDS 7.0+.
+ * \tds
+ * \param bcpinfo BCP information
  * \return TDS_SUCCESS or TDS_FAIL.
  */
 static TDSRET
@@ -779,6 +830,11 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Tell we finished sending BCP data to server
+ * \tds
+ * \param[out] rows_copied number of rows copied to server
+ */
 TDSRET
 tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 {
@@ -801,6 +857,12 @@ tds_bcp_done(TDSSOCKET *tds, int *rows_copied)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Start sending BCP data to server.
+ * Initialize stream to accept data.
+ * \tds
+ * \param bcpinfo BCP information already prepared
+ */
 TDSRET
 tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
@@ -828,6 +890,9 @@ tds_bcp_start(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Free row data allocated in the result set.
+ */
 static void 
 tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row)
 {
@@ -835,6 +900,11 @@ tds_bcp_row_free(TDSRESULTINFO* result, unsigned char *row)
 	TDS_ZERO_FREE(result->current_row);
 }
 
+/**
+ * Start bulk copy to server
+ * \tds
+ * \param bcpinfo BCP information already prepared
+ */
 TDSRET
 tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 {
@@ -975,16 +1045,23 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 /** input stream to read a file */
 typedef struct tds_file_stream {
+	/** common fields, must be the first field */
 	TDSINSTREAM stream;
+	/** file to read from */
 	FILE *f;
 
+	/** terminator */
 	const char *terminator;
+	/** terminator length in bytes */
 	size_t term_len;
 
+	/** buffer for store bytes readed that could be the terminator */
 	char *left;
+	/** bytes left on left buffer */
 	size_t left_len;
 } TDSFILESTREAM;
 
+/** \cond HIDDEN_SYMBOLS */
 #ifndef TDS_HAVE_STDIO_LOCKED
 #undef getc_unlocked
 #undef feof_unlocked
@@ -995,14 +1072,23 @@ typedef struct tds_file_stream {
 #define flockfile(s) do { } while(0)
 #define funlockfile(s) do { } while(0)
 #endif
+/** \endcond */
 
+/**
+ * Reads a chunk of data from file stream checking for terminator
+ * \param stream file stream
+ * \param ptr buffer where to read data
+ * \param len length of buffer
+ */
 static int
 tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 {
 	TDSFILESTREAM *s = (TDSFILESTREAM *) stream;
 	int c;
 	char *p = (char *) ptr;
+/** \cond HIDDEN_SYMBOLS */
 #define GETC() do { c = getc_unlocked(s->f); if (c==EOF) goto check_eof; } while(0)
+/** \endcond */
 
 	while (s->left_len < s->term_len) {
 		GETC();
@@ -1081,6 +1167,16 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	return r.left_len ? res : TDS_NO_MORE_RESULTS;
 }
 
+/**
+ * Start writing writetext request.
+ * This request start a bulk session.
+ * \tds
+ * \param objname table name
+ * \param textptr TEXTPTR (see sql documentation)
+ * \param timestamp data timestamp
+ * \param with_log is log is enabled during insert
+ * \param size bytes to be inserted
+ */
 TDSRET
 tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, const char *timestamp, int with_log, TDS_UINT size)
 {
@@ -1107,6 +1203,14 @@ tds_writetext_start(TDSSOCKET *tds, const char *objname, const char *textptr, co
 	return TDS_SUCCESS;
 }
 
+/**
+ * Send some data in the writetext request started by tds_writetext_start.
+ * You should write in total (with multiple calls to this function) all
+ * bytes declared calling tds_writetext_start.
+ * \tds
+ * \param text data to write
+ * \param size data size in bytes
+ */
 TDSRET
 tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
 {
@@ -1119,6 +1223,10 @@ tds_writetext_continue(TDSSOCKET *tds, const TDS_UCHAR *text, TDS_UINT size)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Finish sending writetext data.
+ * \tds
+ */
 TDSRET
 tds_writetext_end(TDSSOCKET *tds)
 {
