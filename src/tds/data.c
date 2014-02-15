@@ -305,8 +305,9 @@ tds_varmax_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 	if (len > s->chunk_left)
 		len = s->chunk_left;
 	s->chunk_left -= len;
-	tds_get_n(s->tds, ptr, len);
-	return len;
+	if (tds_get_n(s->tds, ptr, len))
+		return len;
+	return -1;
 }
 
 static TDSRET
