@@ -331,11 +331,11 @@ read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv, size_t * wire_size, char
 		 size_t outbytesleft)
 {
 	int res;
-	TDSDATASTREAM r;
-	TDSSTATICSTREAM w;
+	TDSDATAINSTREAM r;
+	TDSSTATICOUTSTREAM w;
 
-	tds_data_stream_init(&r, tds, *wire_size);
-	tds_static_stream_init(&w, outbuf, outbytesleft);
+	tds_datain_stream_init(&r, tds, *wire_size);
+	tds_staticout_stream_init(&w, outbuf, outbytesleft);
 
 	res = tds_convert_stream(tds, char_conv, to_client, &r.stream, &w.stream);
 	*wire_size = r.wire_size;

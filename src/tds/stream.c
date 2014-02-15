@@ -173,9 +173,9 @@ tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * ostream)
  * Reads data from network for input stream
  */
 static int
-tds_data_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
+tds_datain_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 {
-	TDSDATASTREAM *s = (TDSDATASTREAM *) stream;
+	TDSDATAINSTREAM *s = (TDSDATAINSTREAM *) stream;
 	if (len > s->wire_size)
 		len = s->wire_size;
 	tds_get_n(s->tds, ptr, len);
@@ -191,18 +191,78 @@ tds_data_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
  * \param wire_size byte to read
  */
 void
-tds_data_stream_init(TDSDATASTREAM * stream, TDSSOCKET * tds, size_t wire_size)
+tds_datain_stream_init(TDSDATAINSTREAM * stream, TDSSOCKET * tds, size_t wire_size)
 {
-	stream->stream.read = tds_data_stream_read;
+	stream->stream.read = tds_datain_stream_read;
 	stream->wire_size = wire_size;
 	stream->tds = tds;
 }
 
 /**
+ * Writes data to network for output stream
+ */
+static int
+tds_dataout_stream_write(TDSOUTSTREAM *stream, size_t len)
+{
+	TDSDATAOUTSTREAM *s = (TDSDATAOUTSTREAM *) stream;
+	assert(len < sizeof(s->real_buf));
+	assert(s->stream.buffer == s->real_buf);
+	tds_put_n(s->tds, s->real_buf, len);
+	s->written += len;
+	return len;
+}
+
+/**
+ * Initialize a data output stream.
+ * This stream writes data to network.
+ * \param stream output stream to initialize
+ * \tds
+ */
+void
+tds_dataout_stream_init(TDSDATAOUTSTREAM * stream, TDSSOCKET * tds)
+{
+	stream->stream.write = tds_dataout_stream_write;
+	stream->stream.buffer = stream->real_buf;
+	stream->stream.buf_len = sizeof(stream->real_buf);
+	stream->written = 0;
+	stream->tds = tds;
+}
+
+/**
+ * Reads data from a static allocated buffer
+ */
+static int
+tds_staticin_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
+{
+	TDSSTATICINSTREAM *s = (TDSSTATICINSTREAM *) stream;
+	size_t cp = (len <= s->buf_left) ? len : s->buf_left;
+
+	memcpy(ptr, s->buffer, cp);
+	s->buffer += cp;
+	s->buf_left -= cp;
+	return cp;
+}
+
+/**
+ * Initialize an input stream for read from a static allocated buffer
+ * \param stream stream to initialize
+ * \param ptr buffer to read from
+ * \param len buffer size in bytes
+ */
+void
+tds_staticin_stream_init(TDSSTATICINSTREAM * stream, const void *ptr, size_t len)
+{
+	stream->stream.read = tds_staticin_stream_read;
+	stream->buffer = (const char *) ptr;
+	stream->buf_left = len;
+}
+
+
+/**
  * Writes data to a static allocated buffer
  */
 static int
-tds_static_stream_write(TDSOUTSTREAM *stream, size_t len)
+tds_staticout_stream_write(TDSOUTSTREAM *stream, size_t len)
 {
 	assert(stream->buf_len >= len);
 	stream->buffer += len;
@@ -217,9 +277,9 @@ tds_static_stream_write(TDSOUTSTREAM *stream, size_t len)
  * \param len buffer size in bytes
  */
 void
-tds_static_stream_init(TDSSTATICSTREAM * stream, void *ptr, size_t len)
+tds_staticout_stream_init(TDSSTATICOUTSTREAM * stream, void *ptr, size_t len)
 {
-	stream->stream.write = tds_static_stream_write;
+	stream->stream.write = tds_staticout_stream_write;
 	stream->stream.buffer = (char *) ptr;
 	stream->stream.buf_len = len;
 }

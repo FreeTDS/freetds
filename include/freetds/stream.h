@@ -58,20 +58,39 @@ TDSRET tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * os
 /* Additional streams */
 
 /** input stream to read data from tds protocol */
-typedef struct tds_data_stream {
+typedef struct tds_datain_stream {
 	TDSINSTREAM stream;
 	size_t wire_size;
 	TDSSOCKET *tds;
-} TDSDATASTREAM;
+} TDSDATAINSTREAM;
 
-void tds_data_stream_init(TDSDATASTREAM * stream, TDSSOCKET * tds, size_t wire_size);
+void tds_datain_stream_init(TDSDATAINSTREAM * stream, TDSSOCKET * tds, size_t wire_size);
+
+/** output stream to write data to tds protocol */
+typedef struct tds_dataout_stream {
+	TDSOUTSTREAM stream;
+	TDSSOCKET *tds;
+	char real_buf[1024];
+	size_t written;
+} TDSDATAOUTSTREAM;
+
+void tds_dataout_stream_init(TDSDATAOUTSTREAM * stream, TDSSOCKET * tds);
+
+/** input stream to read data from a static buffer */
+typedef struct tds_staticin_stream {
+	TDSINSTREAM stream;
+	const char *buffer;
+	size_t buf_left;
+} TDSSTATICINSTREAM;
+
+void tds_staticin_stream_init(TDSSTATICINSTREAM * stream, const void *ptr, size_t len);
 
 /** output stream to write data to a static buffer */
-typedef struct tds_static_stream {
+typedef struct tds_staticout_stream {
 	TDSOUTSTREAM stream;
-} TDSSTATICSTREAM;
+} TDSSTATICOUTSTREAM;
 
-void tds_static_stream_init(TDSSTATICSTREAM * stream, void *ptr, size_t len);
+void tds_staticout_stream_init(TDSSTATICOUTSTREAM * stream, void *ptr, size_t len);
 
 /** output stream to write data to a dynamic buffer */
 typedef struct tds_dynamic_stream {
