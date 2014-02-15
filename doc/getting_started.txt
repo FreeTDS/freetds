@@ -1,28 +1,32 @@
 Introduction
 ------------
 
-This document is intended for people who want to help on the FreeTDS project and/or are interested in how the code works.
+This document is intended for people who want to help on the FreeTDS project
+and/or are interested in how the code works.
 
-TDS is a fairly simple request/response protocol. It comes in three major 
-flavors: 4.2, 5.0 and 7.0.  Microsoft SQL-Server versions through 6.5 still use 
-the 4.2 version as do Sybase servers before 10.0.  MS SQL 7.0 introduced TDS 7.0
-which so far is not implemented (but can still be accessed with 4.2). No version
-of MS SQL uses 5.0 and Sybase does not use 7.0, but both still support 4.2.
-TDS allows for negotiation of quite a few parameters at connection time, many of
-these are documented in the cap.txt file in this directory.
+TDS is a fairly simple request/response protocol. It comes in three major
+flavors: 4.2, 5.0 and 7.0.  Microsoft SQL-Server versions through 6.5 still
+use the 4.2 version as do Sybase servers before 10.0. MS SQL 7.0 introduced
+TDS 7.0. No version of MS SQL uses 5.0 and Sybase does not use 7.0, but both
+still support 4.2. TDS 5.0 allows for negotiation of quite a few parameters
+at connection time, many of these are documented in the cap.txt file in this
+directory.
 
-+---------------------------------------------------------------+
-|     | MS SQL       |     Sybase ASE         |    Sybase ASA   |
-+---------------------------------------------------------------+
-|ver  |6.5 |7.0 |2000| <10.x     | >11.0      |<5.5.03|5.5*|>6.0|
-+-----+----+----+----+-----------+------------+-------+----+----+
-| 4.2 | X  | X  |  X |    X      |      X     |       |    |    |
-| 5.0 |    |    |    |           |      X     |       | X  | X  |
-| 7.0 |    | X  |  X |           |            |       |    |    |
-| 8.0 |    |    |  X |           |            |       |    |    |
-+-----+----+----+----+-----------+------------+-------+----+----+
++--------------------------------------------------------------------------+
+|     | MS SQL                      |    Sybase ASE      |   Sybase ASA    |
++--------------------------------------------------------------------------+
+|ver  |6.5 |7.0 |2000|2005|2008|2012| <10.x   | >11.0    |<5.5.03|5.5*|>6.0|
++-----+----+----+----+----+----+----+---------+----------+-------+----+----+
+| 4.2 | X  | X  |  X |  X |  X |  X |    X    |    X     |       |    |    |
+| 5.0 |    |    |    |    |    |    |         |    X     |       | X  | X  |
+| 7.0 |    | X  |  X |  X |  X |  X |         |          |       |    |    |
+| 7.1 |    |    |  X |  X |  X |  X |         |          |       |    |    |
+| 7.2 |    |    |    |  X |  X |  X |         |          |       |    |    |
+| 7.3 |    |    |    |    |  X |  X |         |          |       |    |    |
+| 7.4 |    |    |    |    |    |  X |         |          |       |    |    |
++-----+----+----+----+----+----+----+---------+----------+-------+----+----+
 
-* Sybase ASA 5.5 requires 5.5.03 or better with the OpenServer Gateway 
+* Sybase ASA 5.5 requires 5.5.03 or better with the OpenServer Gateway
 (OSG).
 
 
@@ -31,21 +35,26 @@ Layers
 
 The FreeTDS code is broken down into two layers.
 
-The TDS layer handles the bulk of the processing of the protocol and dealing with the network, etc... Any code dealing with protocol issues should reside in this directory (src/tds). A related directory src/server has routines that are used
-only for server side processes.  These two directories may eventually be merged.
+The TDS layer handles the bulk of the processing of the protocol and dealing
+with the network, etc... Any code dealing with protocol issues should reside
+in this directory (src/tds). A related directory src/server has routines that
+are used only for server side processes. Actually server is not updated.
 
-On top of this layer is a thin layer specific to the 'Call Level Interface' (CLI).  A CLI is an API intended to be used by client programs.  The core FreeTDS 
-has three CLIs: dblib, the original Sybase API; ctlib, the newer Sybase API; and
-ODBC, the non-database specific API.
+On top of this layer is a thin layer specific to the 'Call Level Interface'
+(CLI).  A CLI is an API intended to be used by client programs.
+The core FreeTDS has three CLIs: dblib, the original Sybase API; ctlib, the
+newer Sybase API; and ODBC, the non-database specific API.
 
-Currently dblib and ODBC are the most robust CLIs we have, followed by ctlib, which is
-quite usable none-the-less.  The ODBC CLI is built using a driver manager (either iODBC or
-unixODBC), so you will need one of those to build it with.
+Currently dblib and ODBC are the most robust CLIs we have, followed by ctlib,
+which is quite usable none-the-less.
+The ODBC CLI is built using a driver manager (either iODBC or unixODBC), so
+you will need one of those to build it with.
 
 Outside of these there is also a JDBC driver for Java and a DBI driver for 
 Perl which do not reside atop the TDS layer. (FreeTDS/JDBC is a pure Java
 driver).  This document does not currently cover these libraries.  Those wishing
-to use Perl are also encouraged to look at DBD::Sybase which uses ctlib and works well with the FreeTDS libraries.
+to use Perl are also encouraged to look at DBD::Sybase which uses ctlib and
+works well with the FreeTDS libraries.
 
 The Nitty Gritty
 ----------------
@@ -78,6 +87,7 @@ it.
 Misc
 ----
 
-Please send fixes and updates to this document to Brian Bruns (brian@bruns.org)
-I realize it's a little rough right now but I wanted to at least put something
-out.
+Please send fixes and updates to this document to the mailing list (you can find
+the link on www.freetds.org).
+I (Brian Bruns) realize it's a little rough right now but I wanted to at least
+put something out.
