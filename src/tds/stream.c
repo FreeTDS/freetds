@@ -110,6 +110,7 @@ convert_more:
 		ol = ostream->buf_len;
 		/* FIXME not for last */
 		suppress->einval = 1; /* EINVAL matters only on the last chunk. */
+		suppress->e2big = 1;
 		ol = tds_iconv(tds, char_conv, direction, (const char **) &ib, &bufleft, &ob, &ol);
 		conv_errno = errno;
 
