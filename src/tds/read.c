@@ -262,7 +262,7 @@ tds_get_char_data(TDSSOCKET * tds, char *row_buffer, size_t wire_size, TDSCOLUMN
 		 */
 		in_left = blob ? curcol->column_cur_size : curcol->column_size;
 		curcol->column_cur_size = read_and_convert(tds, curcol->char_conv, &wire_size, dest, in_left);
-		if (wire_size > 0) {
+		if (TDS_UNLIKELY(wire_size > 0)) {
 			tds_get_n(tds, NULL, wire_size);
 			tdsdump_log(TDS_DBG_NETWORK, "error: tds_get_char_data: discarded %u on wire while reading %d into client. \n", 
 							 (unsigned int) wire_size, curcol->column_cur_size);
@@ -301,7 +301,7 @@ tds_get_n(TDSSOCKET * tds, void *dest, size_t need)
 			dest = (char *) dest + have;
 		}
 		need -= have;
-		if (tds_read_packet(tds) < 0)
+		if (TDS_UNLIKELY(tds_read_packet(tds) < 0))
 			return NULL;
 	}
 	if (need > 0) {

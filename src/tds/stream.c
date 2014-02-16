@@ -115,7 +115,7 @@ convert_more:
 
 		/* write converted chunk */
 		len = ostream->write(ostream, ob - ostream->buffer);
-		if (len < 0)
+		if (TDS_UNLIKELY(len < 0))
 			break;
 
 		if ((size_t) -1 == ol) {
@@ -129,7 +129,7 @@ convert_more:
 				tdsdump_dump_buf(TDS_DBG_NETWORK, "Troublesome bytes:", ib, bufleft);
 			}
 
-			if (ib == temp) {	/* tds_iconv did not convert anything, avoid infinite loop */
+			if (TDS_UNLIKELY(ib == temp)) {	/* tds_iconv did not convert anything, avoid infinite loop */
 				tdsdump_log(TDS_DBG_NETWORK, "No conversion possible: some bytes left.\n");
 				break;
 			}
@@ -158,12 +158,12 @@ tds_copy_stream(TDSSOCKET * tds, TDSINSTREAM * istream, TDSOUTSTREAM * ostream)
 		int len = istream->read(istream, ostream->buffer, ostream->buf_len);
 		if (len == 0)
 			return TDS_SUCCESS;
-		if (len < 0)
+		if (TDS_UNLIKELY(len < 0))
 			break;
 
 		/* write chunk */
 		len = ostream->write(ostream, len);
-		if (len < 0)
+		if (TDS_UNLIKELY(len < 0))
 			break;
 	}
 	return TDS_FAIL;
@@ -298,7 +298,7 @@ tds_dynamic_stream_write(TDSOUTSTREAM *stream, size_t len)
 	wanted = s->size + 2048;
 	if (wanted > s->allocated) {
 		void *p = realloc(*s->buf, wanted);
-		if (!p) return -1;
+		if (TDS_UNLIKELY(!p)) return -1;
 		*s->buf = p;
 		s->allocated = wanted;
 	}
@@ -332,7 +332,7 @@ tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated)
 	if (allocated < initial_size) {
 		if (*ptr) free(*ptr);
 		*ptr = malloc(initial_size);
-		if (!*ptr) return TDS_FAIL;
+		if (TDS_UNLIKELY(!*ptr)) return TDS_FAIL;
 		allocated = initial_size;
 	}
 	stream->allocated = allocated;
