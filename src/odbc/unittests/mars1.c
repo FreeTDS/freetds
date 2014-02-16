@@ -2,7 +2,13 @@
 
 /* first MARS test, test 2 concurrent recordset */
 
-#define SWAP_STMT(b) do { SQLHSTMT xyz = odbc_stmt; odbc_stmt = b; b = xyz; } while(0)
+#define SET_STMT(n) do { \
+	if (pcur_stmt != &n) { \
+		if (pcur_stmt) *pcur_stmt = odbc_stmt; \
+		pcur_stmt = &n; \
+		odbc_stmt = *pcur_stmt; \
+	} \
+} while(0)
 
 static void
 my_attrs(void)
@@ -15,11 +21,14 @@ main(int argc, char *argv[])
 {
 	SQLINTEGER len, out;
 	int i;
-	SQLHSTMT stmt2;
+	SQLHSTMT stmt1, stmt2;
+	SQLHSTMT *pcur_stmt = NULL;
 
 	odbc_use_version3 = 1;
 	odbc_set_conn_attr = my_attrs;
 	odbc_connect();
+
+	stmt1 = odbc_stmt;
 
 	out = 0;
 	len = sizeof(out);
@@ -58,32 +67,32 @@ main(int argc, char *argv[])
 
 	/* try to do other commands */
 	CHKAllocStmt(&stmt2, "S");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt2);
 	odbc_command("insert into #mars2 values(1, 'foo')");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt1);
 
 	CHKFetch("S");
 
 	/* reset statements */
 	odbc_reset_statement();
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt2);
 	odbc_reset_statement();
 
 	/* now to 2 select with prepare/execute */
 	CHKPrepare(T("select a.n, b.n, a.v from #mars1 a, #mars1 b order by a.n, b.n"), SQL_NTS, "S");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt1);
 	CHKPrepare(T("select a.n, b.n, a.v from #mars1 a, #mars1 b order by a.n desc, b.n"), SQL_NTS, "S");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt2);
 	CHKExecute("S");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt1);
 	CHKExecute("S");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt2);
 	CHKFetch("S");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt1);
 	CHKFetch("S");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt2);
 	CHKFetch("S");
-	SWAP_STMT(stmt2);
+	SET_STMT(stmt1);
 	CHKFetch("S");
 
 	/* TODO test receiving large data should not take much memory */
