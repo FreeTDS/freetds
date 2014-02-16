@@ -5,7 +5,7 @@ TESTS		=	t0001$(EXEEXT) t0002$(EXEEXT) t0003$(EXEEXT)\
 			convert$(EXEEXT) dataread$(EXEEXT) utf8_1$(EXEEXT)\
 			utf8_2$(EXEEXT) utf8_3$(EXEEXT) numeric$(EXEEXT) \
 			iconv_fread$(EXEEXT) toodynamic$(EXEEXT) \
-			$(CHALLENGE_TEST) readconf$(EXEEXT)
+			$(CHALLENGE_TEST) readconf$(EXEEXT) charconv$(EXEEXT)
 
 # flags test commented, not necessary for 0.62
 # TODO add flags test again when needed
@@ -29,6 +29,7 @@ utf8_2_SOURCES	=	utf8_2.c common.c common.h
 utf8_3_SOURCES	=	utf8_3.c common.c common.h utf8.c
 numeric_SOURCES =       numeric.c
 iconv_fread_SOURCES	= iconv_fread.c
+charconv_SOURCES	= charconv.c
 toodynamic_SOURCES	= toodynamic.c common.c common.h
 if HAVE_SSPI
 CHALLENGE_TEST =
