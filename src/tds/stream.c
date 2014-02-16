@@ -96,10 +96,12 @@ tds_convert_stream(TDSSOCKET * tds, TDSICONV * char_conv, TDS_ICONV_DIRECTION di
 
 		/* read a chunk of data */
 		len = istream->read(istream, (char*) ib, TEMP_SIZE - bufleft);
-		if (len == 0)
-			res = TDS_SUCCESS;
-		if (len <= 0)
+		if (len < 0)
 			break;
+		if (len == 0 && bufleft == 0) {
+			res = TDS_SUCCESS;
+			break;
+		}
 		bufleft += len;
 
 		/* Convert chunk */
