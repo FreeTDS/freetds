@@ -11,6 +11,19 @@
 } while(0)
 
 static void
+AutoCommit(int onoff)
+{
+	CHKSetConnectAttr(SQL_ATTR_AUTOCOMMIT, int2ptr(onoff), 0, "S");
+}
+
+static void
+EndTransaction(SQLSMALLINT type)
+{
+	CHKEndTran(SQL_HANDLE_DBC, odbc_conn, type, "S");
+}
+
+
+static void
 my_attrs(void)
 {
 	SQLSetConnectAttr(odbc_conn, 1224 /*SQL_COPT_SS_MARS_ENABLED*/, (SQLPOINTER) 1 /*SQL_MARS_ENABLED_YES*/, SQL_IS_UINTEGER);
@@ -61,6 +74,8 @@ main(int argc, char *argv[])
 	/* and another to avid locking problems */
 	odbc_command("create table #mars2 (n int, v varchar(100))");
 
+	AutoCommit(SQL_AUTOCOMMIT_OFF);
+
 	/* try to do a select which return a lot of data (to test server didn't cache everything) */
 	odbc_command("select a.n, b.n, a.v from #mars1 a, #mars1 b order by a.n, b.n");
 	CHKFetch("S");
@@ -92,8 +107,12 @@ main(int argc, char *argv[])
 	CHKFetch("S");
 	SET_STMT(stmt2);
 	CHKFetch("S");
+	odbc_reset_statement();
 	SET_STMT(stmt1);
 	CHKFetch("S");
+	odbc_reset_statement();
+
+	EndTransaction(SQL_COMMIT);
 
 	/* TODO test receiving large data should not take much memory */
 
