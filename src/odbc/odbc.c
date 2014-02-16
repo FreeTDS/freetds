@@ -2949,6 +2949,7 @@ SQLCopyDesc(SQLHDESC hsrc, SQLHDESC hdesc)
 static void
 odbc_ird_check(TDS_STMT * stmt)
 {
+#if !ENABLE_ODBC_MARS
 	TDS_DESC *ird = stmt->ird;
 	TDSRESULTINFO *res_info = NULL;
 	int cols = 0, i;
@@ -2974,6 +2975,7 @@ odbc_ird_check(TDS_STMT * stmt)
 		assert(tds_dstr_len(&drec->sql_desc_label) == col->column_namelen);
 		assert(memcmp(tds_dstr_cstr(&drec->sql_desc_label), col->column_name, col->column_namelen) == 0);
 	}
+#endif
 }
 #endif
 
