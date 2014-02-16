@@ -252,6 +252,51 @@ test(TDSSOCKET *tds, enum Odd odd_type)
 	}
 }
 
+static void
+big_test(TDSSOCKET *tds)
+{
+	int i, l;
+	const int limit = 1025;
+
+	captured_errno = 0;
+
+	printf("E2BIG test\n");
+
+	for (i = 0; i < 4096+20; ++i) {
+		size_t out_len;
+		TDSRET res;
+		int err;
+
+		if (i == 32)
+			i = 490;
+
+		l = i;
+		memset(buf, 0xa0, sizeof(buf));
+
+		/* convert it */
+		out_len = limit;
+		res = convert(tds, conv, to_client, buf, l, buf_out, &out_len);
+		printf("i %d res %d out_len %u errno %d captured_errno %d\n",
+		       i, (int) res, (unsigned int) out_len, last_errno, captured_errno);
+		err = l * 2 > limit ? E2BIG : 0;
+
+		if (err) {
+			assert(last_errno == err);
+			assert(TDS_FAILED(res));
+			assert(!tds || captured_errno == last_errno);
+		} else {
+			assert(TDS_SUCCEED(res));
+			assert(captured_errno == 0);
+		}
+		if (out_len != i*2 && i*2 <= limit) {
+			fprintf(stderr, "out %u bytes expected %d\n",
+				(unsigned int) out_len, i*2);
+			exit(1);
+		}
+	}
+}
+
+
 int
 main(int argc, char **argv)
 {
@@ -291,6 +336,10 @@ main(int argc, char **argv)
 
 		test(s, odd_type);
 	}
+
+	/* not try E2BIG error */
+	big_test(NULL);
+	big_test(tds);
 
 	tds_free_socket(tds);
 	tds_free_context(ctx);
