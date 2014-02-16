@@ -123,7 +123,7 @@ convert_more:
 
 		if ((size_t) -1 == ol) {
 			tdsdump_log(TDS_DBG_NETWORK, "Error: tds_convert_stream: tds_iconv returned errno %d, conv_errno %d\n", errno, conv_errno);
-			if (conv_errno == E2BIG && ostream->buf_len && bufleft)
+			if (conv_errno == E2BIG && ostream->buf_len && bufleft && len)
 				goto convert_more;
 			if (conv_errno != EILSEQ) {
 				tdsdump_log(TDS_DBG_NETWORK, "Error: tds_convert_stream: "
@@ -137,6 +137,8 @@ convert_more:
 				res = TDS_FAIL;
 				if (conv_errno == EINVAL && tds)
 					tdserror(tds_get_ctx(tds), tds, TDSEICONVAVAIL, 0);
+				if (conv_errno == E2BIG && tds)
+					tdserror(tds_get_ctx(tds), tds, TDSEICONVIU, 0);
 				errno = conv_errno;
 				break;
 			}
