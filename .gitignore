@@ -43,3 +43,5 @@ test-driver
 *.log
 *.trs
 *.out
+*.gcno
+*.gcda
