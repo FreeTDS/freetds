@@ -161,8 +161,8 @@ cd test1
 WORKDIR=$PWD
 ./misc/test-auto.sh --no-build --no-header >> logs/log.txt
 
-if test \( "$OUTDIR" = "out" -o "$OUTDIR" = "out82" \) -a -r doc/doxy.log; then
-	fixdoxyres < doc/doxy.log > doc/doxy.html
+if test \( "$OUTDIR" = "out" -o "$OUTDIR" = "out92" \) -a -r doc/doxy.log; then
+	./misc/fixdoxyres < doc/doxy.log > doc/doxy.html
 	upload_file "doxy.html" "doc/doxy.html"
 	if test -d doc/doc/freetds-*/reference; then
 		(cd doc/doc/freetds-*/reference; upload doxy '*')
