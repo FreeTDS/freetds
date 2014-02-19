@@ -265,18 +265,15 @@ static const TDS_UCHAR tds72_query_start[] = {
 	1, 0, 0, 0
 };
 
-#define START_QUERY \
-do { \
-	if (IS_TDS72_PLUS(tds->conn)) \
-		tds_start_query(tds); \
-} while(0)
-
 static void
-tds_start_query(TDSSOCKET *tds)
+tds_start_query(TDSSOCKET *tds, unsigned char packet_type)
 {
-	tds_put_n(tds, tds72_query_start, 10);
-	tds_put_n(tds, tds->conn->tds72_transaction, 8);
-	tds_put_n(tds, tds72_query_start + 10 + 8, 4);
+	tds->out_flag = packet_type;
+	if (IS_TDS72_PLUS(tds->conn)) {
+		tds_put_n(tds, tds72_query_start, 10);
+		tds_put_n(tds, tds->conn->tds72_transaction, 8);
+		tds_put_n(tds, tds72_query_start + 10 + 8, 4);
+	}
 }
 
 /**
@@ -330,8 +327,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		}
 		free(new_query);
 	} else if (!IS_TDS7_PLUS(tds->conn) || !params || !params->num_cols) {
-		tds->out_flag = TDS_QUERY;
-		START_QUERY;
+		tds_start_query(tds, TDS_QUERY);
 		tds_put_string(tds, query, (int)query_len);
 	} else {
 		TDSCOLUMN *param;
@@ -369,8 +365,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			}
 		}
  
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 		/* procedure name */
 		if (IS_TDS71_PLUS(tds->conn)) {
 			tds_put_smallint(tds, -1);
@@ -1107,8 +1102,7 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 			goto failure;
 		}
 
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 		/* procedure name */
 		if (IS_TDS71_PLUS(tds->conn)) {
 			tds_put_smallint(tds, -1);
@@ -1227,8 +1221,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			return TDS_FAIL;
 		}
 
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 		/* procedure name */
 		if (IS_TDS71_PLUS(tds->conn)) {
 			tds_put_smallint(tds, -1);
@@ -1376,8 +1369,7 @@ tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYN
 		goto failure;
 	}
 
-	tds->out_flag = TDS_RPC;
-	START_QUERY;
+	tds_start_query(tds, TDS_RPC);
 	/* procedure name */
 	if (IS_TDS71_PLUS(tds->conn)) {
 		tds_put_smallint(tds, -1);
@@ -1628,8 +1620,7 @@ tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 		}
 
 		/* RPC on sp_execute */
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 
 		tds7_send_execute(tds, dyn);
 
@@ -1740,8 +1731,8 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 
 	if (IS_TDS7_PLUS(tds->conn)) {
 		/* RPC on sp_execute */
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
+
 		/* procedure name */
 		if (IS_TDS71_PLUS(tds->conn)) {
 			/* save some byte for mssql2k */
@@ -1766,8 +1757,8 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	}
 
 	if (dyn->emulated) {
-		tds->out_flag = TDS_QUERY;
-		START_QUERY;
+		tds_start_query(tds, TDS_QUERY);
+
 		/* just a dummy select to return some data */
 		tds_put_string(tds, "select 1 where 0=1", -1);
 		return tds_query_flush_packet(tds);
@@ -1871,14 +1862,14 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 		const char *converted_name;
 		size_t converted_name_len;
 
-		tds->out_flag = TDS_RPC;
 		/* procedure name */
 		converted_name = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], rpc_name, rpc_name_len, &converted_name_len);
 		if (!converted_name) {
 			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
 		}
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
+
 		TDS_PUT_SMALLINT(tds, converted_name_len / 2);
 		tds_put_n(tds, converted_name, (int)converted_name_len);
 		tds_convert_string_free(rpc_name, converted_name);
@@ -2244,9 +2235,7 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 		}
 
 		/* RPC call to sp_cursoropen */
-
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 
 		/* procedure identifier by number */
 
@@ -2490,8 +2479,7 @@ tds_cursor_fetch(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_FETCH fetch_typ
 			0x20  /* TDS_CURSOR_FETCH_RELATIVE */
 		};
 
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 
 		/* TODO enum for 2 ... */
 		if (cursor->type == 2 && fetch_type == TDS_CURSOR_FETCH_ABSOLUTE) {
@@ -2541,8 +2529,7 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 		tds_set_cur_cursor(tds, cursor);
 
 		/* General initialization of server command */
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 
 		/* Create and send query to server */
 		if (IS_TDS71_PLUS(tds->conn)) {
@@ -2664,9 +2651,7 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 	if (IS_TDS7_PLUS(tds->conn)) {
 
 		/* RPC call to sp_cursorclose */
-
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 
 		if (IS_TDS71_PLUS(tds->conn)) {
 			tds_put_smallint(tds, -1);
@@ -2715,8 +2700,7 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 	tds_set_cur_cursor(tds, cursor);
 
 	/* RPC call to sp_cursoroption */
-	tds->out_flag = TDS_RPC;
-	START_QUERY;
+	tds_start_query(tds, TDS_RPC);
 
 	if (IS_TDS71_PLUS(tds->conn)) {
 		tds_put_smallint(tds, -1);
@@ -2790,9 +2774,7 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 	if (IS_TDS7_PLUS(tds->conn)) {
 
 		/* RPC call to sp_cursorclose */
-
-		tds->out_flag = TDS_RPC;
-		START_QUERY;
+		tds_start_query(tds, TDS_RPC);
 
 		if (IS_TDS71_PLUS(tds->conn)) {
 			tds_put_smallint(tds, -1);
@@ -3078,8 +3060,7 @@ tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * par
 	 * NOTE: even for TDS5 we use this packet so to avoid computing 
 	 * entire sql command
 	 */
-	tds->out_flag = TDS_QUERY;
-	START_QUERY;
+	tds_start_query(tds, TDS_QUERY);
 	if (!num_placeholders) {
 		tds_put_string(tds, query, -1);
 		return TDS_SUCCESS;
@@ -3105,23 +3086,24 @@ enum { MUL_STARTED = 1 };
 TDSRET
 tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type)
 {
+	unsigned char packet_type;
 	multiple->type = type;
 	multiple->flags = 0;
 
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->out_flag = TDS_QUERY;
+	packet_type = TDS_QUERY;
 	switch (type) {
 	case TDS_MULTIPLE_QUERY:
 		break;
 	case TDS_MULTIPLE_EXECUTE:
 	case TDS_MULTIPLE_RPC:
 		if (IS_TDS7_PLUS(tds->conn))
-			tds->out_flag = TDS_RPC;
+			packet_type = TDS_RPC;
 		break;
 	}
-	START_QUERY;
+	tds_start_query(tds, packet_type);
 
 	return TDS_SUCCESS;
 }
@@ -3453,8 +3435,7 @@ tds_submit_begin_tran(TDSSOCKET *tds)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->out_flag = TDS7_TRANS;
-	tds_start_query(tds);
+	tds_start_query(tds, TDS7_TRANS);
 
 	/* begin transaction */
 	tds_put_smallint(tds, 5);
@@ -3476,8 +3457,7 @@ tds_submit_rollback(TDSSOCKET *tds, int cont)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->out_flag = TDS7_TRANS;
-	tds_start_query(tds);
+	tds_start_query(tds, TDS7_TRANS);
 	tds_put_smallint(tds, 8);	/* rollback */
 	tds_put_byte(tds, 0);	/* name */
 	if (cont) {
@@ -3501,8 +3481,7 @@ tds_submit_commit(TDSSOCKET *tds, int cont)
 	if (tds_set_state(tds, TDS_QUERYING) != TDS_QUERYING)
 		return TDS_FAIL;
 
-	tds->out_flag = TDS7_TRANS;
-	tds_start_query(tds);
+	tds_start_query(tds, TDS7_TRANS);
 	tds_put_smallint(tds, 7);	/* commit */
 	tds_put_byte(tds, 0);	/* name */
 	if (cont) {
