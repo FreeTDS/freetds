@@ -270,9 +270,12 @@ tdsdump_start(FILE *file, const char *fname, int line)
 
 /**
  * Dump the contents of data into the log file in a human readable format.
- * \param msg      message to print before dump
- * \param buf      buffer to dump
- * \param length   number of bytes in the buffer
+ * \param file       source file name
+ * \param level_line line and level combined. This and file are automatically computed by
+ *                   TDS_DBG_* macros.
+ * \param msg        message to print before dump
+ * \param buf        buffer to dump
+ * \param length     number of bytes in the buffer
  */
 void
 tdsdump_dump_buf(const char* file, unsigned int level_line, const char *msg, const void *buf, size_t length)
@@ -423,7 +426,6 @@ tdsdump_log(const char* file, unsigned int level_line, const char *fmt, ...)
 
 /**
  * Write a column value to the debug log.  
- * \param file name of the log file
  * \param col column to dump
  */
 void

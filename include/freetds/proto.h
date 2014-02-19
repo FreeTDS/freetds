@@ -249,10 +249,10 @@ typedef enum
  */
 typedef enum
 {
-	  TDS_OPT_SET = 1	/* Set an option. */
-	, TDS_OPT_DEFAULT = 2	/* Set option to its default value. */
-	, TDS_OPT_LIST = 3	/* Request current setting of a specific option. */
-	, TDS_OPT_INFO = 4	/* Report current setting of a specific option. */
+	  TDS_OPT_SET = 1	/**< Set an option. */
+	, TDS_OPT_DEFAULT = 2	/**< Set option to its default value. */
+	, TDS_OPT_LIST = 3	/**< Request current setting of a specific option. */
+	, TDS_OPT_INFO = 4	/**< Report current setting of a specific option. */
 } TDS_OPTION_CMD;
 
 typedef enum
