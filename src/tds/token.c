@@ -1952,7 +1952,6 @@ tds_process_row(TDSSOCKET * tds)
 
 	assert(info->num_cols > 0);
 	
-	info->row_count++;
 	for (i = 0; i < info->num_cols; i++) {
 		tdsdump_log(TDS_DBG_INFO1, "tds_process_row(): reading column %d \n", i);
 		curcol = info->columns[i];

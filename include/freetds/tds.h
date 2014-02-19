@@ -747,8 +747,6 @@ typedef struct tds_result_info
 	void (*row_free)(struct tds_result_info* result, unsigned char *row);
 	TDS_INT row_size;
 
-	/* TODO remove ?? used only in dblib */
-	TDS_INT row_count;
 	TDS_SMALLINT *bycolumns;
 	TDS_USMALLINT by_cols;
 	TDS_TINYINT rows_exist;
