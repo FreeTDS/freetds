@@ -987,7 +987,7 @@ tds_process_col_name(TDSSOCKET * tds)
 {
 	int hdrsize;
 	int col, num_names = 0;
-	struct namelist *head = NULL, *cur = NULL, *prev;
+	struct namelist *head = NULL, *cur = NULL;
 	TDSCOLUMN *curcol;
 	TDSRESULTINFO *info;
 
@@ -1012,11 +1012,9 @@ tds_process_col_name(TDSSOCKET * tds)
 			curcol = info->columns[col];
 			tds_strlcpy(curcol->column_name, cur->name, sizeof(curcol->column_name));
 			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
-			prev = cur;
 			cur = cur->next;
-			free(prev->name);
-			free(prev);
 		}
+		tds_free_namelist(head);
 		return TDS_SUCCESS;
 	}
 
@@ -2653,7 +2651,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 	TDS_USMALLINT compute_id = 0;
 	TDSCOMPUTEINFO *info;
 
-	struct namelist *head = NULL, *cur, *next;
+	struct namelist *head = NULL, *cur;
 
 	CHECK_TDS_EXTRA(tds);
 
@@ -2690,11 +2688,9 @@ tds_process_compute_names(TDSSOCKET * tds)
 			tds_strlcpy(curcol->column_name, cur->name, sizeof(curcol->column_name));
 			curcol->column_namelen = (TDS_SMALLINT)strlen(curcol->column_name);
 
-			next = cur->next;
-			free(cur->name);
-			free(cur);
-			cur = next;
+			cur = cur->next;
 		}
+		tds_free_namelist(head);
 		return TDS_SUCCESS;
 	}
 
