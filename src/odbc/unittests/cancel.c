@@ -2,8 +2,6 @@
 
 #include "common.h"
 
-/* TODO port to windows, use thread */
-
 #include <signal.h>
 
 #if HAVE_UNISTD_H
