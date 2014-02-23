@@ -5,6 +5,8 @@
 static char software_version[] = "$Id: funccall.c,v 1.21 2012-03-03 22:14:00 freddy77 Exp $";
 static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
 
+static void test_with_conversions(void);
+
 int
 main(int argc, char *argv[])
 {
@@ -160,6 +162,19 @@ main(int argc, char *argv[])
 	}
 	odbc_disconnect();
 
+	if (odbc_db_is_microsoft())
+		test_with_conversions();
+
+	printf("Done.\n");
+	return 0;
+}
+
+static void
+test_with_conversions(void)
+{
+	SQLLEN ind, ind2, ind3;
+	char out2[30];
+
 	/*
 	 * test from Bower, Wayne
 	 * Cfr ML 2012-03-02 "[freetds] [unixODBC][Driver Manager]Function sequence error (SQL-HY010)"
@@ -191,7 +206,4 @@ main(int argc, char *argv[])
 
 
 	odbc_disconnect();
-
-	printf("Done.\n");
-	return 0;
 }
