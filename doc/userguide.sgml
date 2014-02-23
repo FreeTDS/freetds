@@ -156,12 +156,12 @@ The <quote>TDS</quote> part of the name comes from name of the protocol used to 
 				<term><emphasis>was</emphasis> 9.0</term>
 				<listitem><para>Introduced for <productname>SQL Server 2005</productname>.  Includes support for varchar(max), varbinary(max), xml datatypes and MARS.</para></listitem>
 				</varlistentry>
-			</variablelist>
 
 			<varlistentry>
 				<term>TDS 7.3 Microsoft</term>
 				<listitem><para>Introduced for <productname>SQL Server 2008</productname>.  Includes support for extended date/time, table as parameters.</para></listitem>
 				</varlistentry>
+
 			</variablelist>
 		</sect1>
 	
