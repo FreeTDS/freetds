@@ -3232,7 +3232,7 @@ odbc_cursor_execute(TDS_STMT * stmt)
 	tds_set_state(tds, TDS_PENDING);
 	/* set cursor name for TDS7+ */
 	if (TDS_SUCCEED(ret) && IS_TDS7_PLUS(tds->conn) && !tds_dstr_isempty(&stmt->cursor_name)) {
-		ret = odbc_process_tokens(stmt, TDS_RETURN_MSG|TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE);
+		ret = odbc_process_tokens(stmt, TDS_RETURN_DONE|TDS_STOPAT_ROW|TDS_STOPAT_COMPUTE);
 		stmt->row_count = tds->rows_affected;
 		if (ret == TDS_CMD_DONE && cursor->cursor_id != 0) {
 			ret = tds_cursor_setname(tds, cursor);
