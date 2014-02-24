@@ -941,6 +941,14 @@ odbc_set_sql_type_info(TDSCOLUMN * col, struct _drecord *drec, SQLINTEGER odbc_v
 		SET_INFO("sql_variant", "", "");
 		break;
 #endif
+	case SYBMSDATETIMEOFFSET:
+		SET_INFO2("datetimeoffset", "'", "'", col->column_prec + 27);
+	case SYBMSDATETIME2:
+		SET_INFO2("datetime2", "'", "'", col->column_prec + 20);
+	case SYBMSTIME:
+		SET_INFO2("time", "'", "'", col->column_prec + 9);
+	case SYBMSDATE:
+		SET_INFO2("date", "'", "'", 10);
 	case SYBMSXML:
 		SET_INFO("xml", "'", "'");
 	}
@@ -1453,6 +1461,7 @@ odbc_set_concise_c_type(SQLSMALLINT concise_type, struct _drecord * drec, int ch
 
 		switch (drec->sql_desc_type) {
 		case SQL_C_NUMERIC:
+			drec->sql_desc_length = 38;
 			drec->sql_desc_precision = 38;
 			drec->sql_desc_scale = 0;
 			break;
