@@ -149,7 +149,12 @@ main(int argc, char *argv[])
 	SQLSMALLINT len;
 	int port;
 	time_t start_time, end_time;
-	
+
+#ifdef _WIN32
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(1, 1), &wsaData);
+#endif
+
 	if (tds_mutex_init(&mtx))
 		return 1;
 
