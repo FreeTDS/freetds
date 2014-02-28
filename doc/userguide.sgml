@@ -2718,7 +2718,7 @@ You'll note this is the same program as for <systemitem class="library">DBD::Syb
 	<listitem><para>Unicode friendly</para></listitem>
 	<listitem><para>Python 3 friendly</para></listitem>
 	<listitem><para>Works on most popular operating systems</para></listitem>
-	<listitem><para>Written in <ulink url="http://www.python.org/dev/peps/pep-0249/">Cython</ulink> for performance</para></listitem>
+	<listitem><para>Written in <ulink url="http://cython.org/">Cython</ulink> for performance</para></listitem>
 	<listitem><para>Includes a supported and documented low-level module (<filename>_mssql</filename>) that you can use instead of the DB-API</para></listitem>
 	<listitem><para>Supports stored procedures with both return values and output parameters</para></listitem>
 	<listitem><para>A comprehensive test suite</para></listitem>
