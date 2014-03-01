@@ -205,7 +205,7 @@ static int
 tds_dataout_stream_write(TDSOUTSTREAM *stream, size_t len)
 {
 	TDSDATAOUTSTREAM *s = (TDSDATAOUTSTREAM *) stream;
-	assert(len < sizeof(s->real_buf));
+	assert(len <= sizeof(s->real_buf));
 	assert(s->stream.buffer == s->real_buf);
 	tds_put_n(s->tds, s->real_buf, len);
 	s->written += len;
