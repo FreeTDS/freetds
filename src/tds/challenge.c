@@ -43,7 +43,10 @@
 #include "des.h"
 #include <freetds/iconv.h>
 
-#if defined(HAVE_OPENSSL)
+#ifdef HAVE_GNUTLS
+#include <gnutls/gnutls.h>
+#include <gnutls/crypto.h>
+#elif defined(HAVE_OPENSSL)
 #include <openssl/rand.h>
 #endif
 
@@ -139,7 +142,12 @@ generate_random_buffer(unsigned char *out, int len)
 {
 	int i;
 
-#if defined(HAVE_OPENSSL)
+#ifdef HAVE_GNUTLS
+	if (gnutls_rnd(GNUTLS_RND_RANDOM, out, len) >= 0)
+		return;
+	if (gnutls_rnd(GNUTLS_RND_NONCE, out, len) >= 0)
+		return;
+#elif defined(HAVE_OPENSSL)
 	if (RAND_bytes(out, len) == 1)
 		return;
 	if (RAND_pseudo_bytes(out, len) >= 0)
