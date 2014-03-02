@@ -332,9 +332,8 @@ main(int argc, char **argv)
 		int n = i;
 		int odd_type = n % 4; n /= 4;
 		pos_type = n % 3; n /= 3;
-		TDSSOCKET *s = n ? tds : NULL;
 
-		test(s, odd_type);
+		test(n ? tds : NULL, odd_type);
 	}
 
 	/* not try E2BIG error */
