@@ -48,7 +48,7 @@
 
 /** \cond HIDDEN_SYMBOLS */
 #if ENABLE_EXTRA_CHECKS
-# define TEMP_INIT(s) char* temp = (char*)malloc(32); const size_t temp_size = 32
+# define TEMP_INIT(s) const size_t temp_size = s; char* temp = (char*)malloc(temp_size)
 # define TEMP_FREE free(temp);
 # define TEMP_SIZE temp_size
 #else
@@ -321,11 +321,7 @@ tds_dynamic_stream_write(TDSOUTSTREAM *stream, size_t len)
 TDSRET
 tds_dynamic_stream_init(TDSDYNAMICSTREAM * stream, void **ptr, size_t allocated)
 {
-#if ENABLE_EXTRA_CHECKS
-	const size_t initial_size = 16;
-#else
 	const size_t initial_size = 1024;
-#endif
 
 	stream->stream.write = tds_dynamic_stream_write;
 	stream->buf = ptr;
