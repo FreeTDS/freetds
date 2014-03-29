@@ -78,7 +78,7 @@ main(int argc, char **argv)
 				fprintf(stderr, "SYBINT value expected\n");
 				return 1;
 			}
-			if (*(int*)curcol->column_data != 12) {
+			if (*(TDS_INT*)curcol->column_data != 12) {
 				fprintf(stderr, "invalid integer returned\n");
 				return 1;
 			}
