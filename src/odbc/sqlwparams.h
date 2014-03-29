@@ -1,8 +1,7 @@
 #if 0
-# define FUNC NAME(SQLTest) (P(SQLSMALLINT, x), PCHAR(y) WIDE) 
+# ODBC_FUNC(SQLTest, (P(SQLSMALLINT, x), PCHAR(y) WIDE))
 #endif
 
-#undef NAME
 #undef WIDE
 #undef P
 #undef PCHAR
@@ -17,11 +16,10 @@
 #  define PCHAR(a) SQLCHAR* a
 #endif
 
-#define NAME(a) _ ## a
 #define P(a,b) a b
 #define PCHARIN(n,t) PCHAR(sz ## n), P(t, cb ## n)
 #define PCHAROUT(n,t) PCHAR(sz ## n), P(t, cb ## n ## Max), P(t FAR*, pcb ## n)
-static SQLRETURN FUNC
 
-#undef FUNC
+#define ODBC_FUNC(name, params) \
+	static SQLRETURN _ ## name params
 

@@ -37,6 +37,7 @@
 #include "odbcss.h"
 #include <freetds/string.h>
 #include "replacements.h"
+#include "sqlwparams.h"
 
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -512,9 +513,8 @@ sqlstate2to3(char *state)
 	SQLS_MAP("S1T00", "HYT00");
 }
 
-#define FUNC NAME(SQLGetDiagRec) (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQLSMALLINT,numRecord), PCHAR(szSqlState),\
-	P(SQLINTEGER FAR *,pfNativeError), PCHAROUT(ErrorMsg,SQLSMALLINT) WIDE)
-#include "sqlwparams.h"
+ODBC_FUNC(SQLGetDiagRec, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQLSMALLINT,numRecord), PCHAR(szSqlState),
+	P(SQLINTEGER FAR *,pfNativeError), PCHAROUT(ErrorMsg,SQLSMALLINT) WIDE))
 {
 	SQLRETURN result;
 	struct _sql_errors *errs;
@@ -583,9 +583,8 @@ sqlstate2to3(char *state)
 	return result;
 }
 
-#define FUNC NAME(SQLError) (P(SQLHENV,henv), P(SQLHDBC,hdbc), P(SQLHSTMT,hstmt), PCHAR(szSqlState), P(SQLINTEGER FAR *,pfNativeError),\
-	PCHAROUT(ErrorMsg,SQLSMALLINT) WIDE)
-#include "sqlwparams.h"
+ODBC_FUNC(SQLError,  (P(SQLHENV,henv), P(SQLHDBC,hdbc), P(SQLHSTMT,hstmt), PCHAR(szSqlState), P(SQLINTEGER FAR *,pfNativeError),
+	PCHAROUT(ErrorMsg,SQLSMALLINT) WIDE))
 {
 	SQLRETURN result;
 	SQLSMALLINT type;
@@ -613,9 +612,8 @@ sqlstate2to3(char *state)
 	return result;
 }
 
-#define FUNC NAME(SQLGetDiagField) (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQLSMALLINT,numRecord),\
-	P(SQLSMALLINT,diagIdentifier), P(SQLPOINTER,buffer), P(SQLSMALLINT,cbBuffer), P(SQLSMALLINT FAR *,pcbBuffer) WIDE)
-#include "sqlwparams.h"
+ODBC_FUNC(SQLGetDiagField, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQLSMALLINT,numRecord),
+	P(SQLSMALLINT,diagIdentifier), P(SQLPOINTER,buffer), P(SQLSMALLINT,cbBuffer), P(SQLSMALLINT FAR *,pcbBuffer) WIDE))
 {
 	SQLRETURN result = SQL_SUCCESS;
 	struct _sql_errors *errs;

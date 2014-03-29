@@ -12,15 +12,21 @@ my %fmt;
 
 while(<IN>) {
 	chomp;
-	while ($_ =~ m/\\$/) {
-		$_ =~ s/\\$//;
+	while(/ODBC_FUNC/) {
+		my $open = $_;
+		$open =~ s/[^(]//g;
+		$open = length($open);
+		my $close = $_;
+		$close =~ s/[^)]//g;
+		$close = length($close);
+		last if $open <= $close;
 		$_ .= <IN>;
 		chomp;
 	}
 	s/\s+/ /g;
 	s/ $//;
 	s/^ //;
-	if (/define FUNC NAME\(([^\)]+)\) \((.*)\)$/) {
+	if (/ODBC_FUNC\(([^\)]+), \((.*)\)$/) {
 		my $func = $1;
 		my $args = $2;
 		my $wide = 0;
