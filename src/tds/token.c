@@ -3033,77 +3033,79 @@ tds_token_name(unsigned char marker)
 {
 	switch (marker) {
 
-	case 0x20:
+	case TDS5_PARAMFMT2_TOKEN:
 		return "TDS5_PARAMFMT2";
-	case 0x22:
+	case TDS_ORDERBY2_TOKEN:
 		return "ORDERBY2";
-	case 0x61:
+	case TDS_ROWFMT2_TOKEN:
 		return "ROWFMT2";
-	case 0x71:
+	case TDS_LOGOUT_TOKEN:
 		return "LOGOUT";
-	case 0x79:
+	case TDS_RETURNSTATUS_TOKEN:
 		return "RETURNSTATUS";
-	case 0x7C:
+	case TDS_PROCID_TOKEN:
 		return "PROCID";
-	case 0x81:
+	case TDS7_RESULT_TOKEN:
 		return "TDS7_RESULT";
-	case 0x83:
+	case TDS_CURINFO_TOKEN:
 		return "TDS_CURINFO";
-	case 0x88:
+	case TDS7_COMPUTE_RESULT_TOKEN:
 		return "TDS7_COMPUTE_RESULT";
-	case 0xA0:
+	case TDS_COLNAME_TOKEN:
 		return "COLNAME";
-	case 0xA1:
+	case TDS_COLFMT_TOKEN:
 		return "COLFMT";
-	case 0xA3:
+	case TDS_DYNAMIC2_TOKEN:
 		return "DYNAMIC2";
-	case 0xA4:
+	case TDS_TABNAME_TOKEN:
 		return "TABNAME";
-	case 0xA5:
+	case TDS_COLINFO_TOKEN:
 		return "COLINFO";
-	case 0xA7:
+	case TDS_COMPUTE_NAMES_TOKEN:
 		return "COMPUTE_NAMES";
-	case 0xA8:
+	case TDS_COMPUTE_RESULT_TOKEN:
 		return "COMPUTE_RESULT";
-	case 0xA9:
+	case TDS_ORDERBY_TOKEN:
 		return "ORDERBY";
-	case 0xAA:
+	case TDS_ERROR_TOKEN:
 		return "ERROR";
-	case 0xAB:
+	case TDS_INFO_TOKEN:
 		return "INFO";
-	case 0xAC:
+	case TDS_PARAM_TOKEN:
 		return "PARAM";
-	case 0xAD:
+	case TDS_LOGINACK_TOKEN:
 		return "LOGINACK";
-	case 0xAE:
+	case TDS_CONTROL_TOKEN:
 		return "CONTROL";
-	case 0xD1:
+	case TDS_ROW_TOKEN:
 		return "ROW";
-	case 0xD3:
+	case TDS_NBC_ROW_TOKEN:
+		return "NBC_ROW";
+	case TDS_CMP_ROW_TOKEN:
 		return "CMP_ROW";
-	case 0xD7:
+	case TDS5_PARAMS_TOKEN:
 		return "TDS5_PARAMS";
-	case 0xE2:
+	case TDS_CAPABILITY_TOKEN:
 		return "CAPABILITY";
-	case 0xE3:
+	case TDS_ENVCHANGE_TOKEN:
 		return "ENVCHANGE";
-	case 0xE5:
+	case TDS_EED_TOKEN:
 		return "EED";
-	case 0xE6:
+	case TDS_DBRPC_TOKEN:
 		return "DBRPC";
-	case 0xE7:
+	case TDS5_DYNAMIC_TOKEN:
 		return "TDS5_DYNAMIC";
-	case 0xEC:
+	case TDS5_PARAMFMT_TOKEN:
 		return "TDS5_PARAMFMT";
-	case 0xED:
+	case TDS_AUTH_TOKEN:
 		return "AUTH";
-	case 0xEE:
+	case TDS_RESULT_TOKEN:
 		return "RESULT";
-	case 0xFD:
+	case TDS_DONE_TOKEN:
 		return "DONE";
-	case 0xFE:
+	case TDS_DONEPROC_TOKEN:
 		return "DONEPROC";
-	case 0xFF:
+	case TDS_DONEINPROC_TOKEN:
 		return "DONEINPROC";
 
 	default:
