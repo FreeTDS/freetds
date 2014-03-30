@@ -121,9 +121,10 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml \
 	sed -ne's!SYSTEM "docbook.dsl" CDATA!SYSTEM "${DOCBOOK_DSL}" CDATA!; p' \
 		$(srcdir)/userguide.dsl.in > .userguide.dsl
 	mv .userguide.dsl userguide.dsl
+	if test -h userguide; then rm userguide; fi
 	$(MKDIR_P) $(DOCDIR)/userguide 2>&1
 	touch $(DOCDIR)/userguide/t.htm
-	rm -f $(DOCDIR)/userguide/*
+	rm -rf $(DOCDIR)/userguide/*
 	$(MAKE) dblib.api.sgml ctlib.api.sgml odbc.api.sgml
 # if we're not using jade, copy the distribution's userguide
 	if test -z "${DOCBOOK_DSL}" ; then \
@@ -166,6 +167,7 @@ REF_STUB = <html> \
 	</html>
 
 $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
+	if test -h reference; then rm reference; fi
 	$(MKDIR_P) $(DOCDIR)/reference 2>&1
 	(cd .. && $(MAKE) doxy 2> doc/doxy.log)
 # If "make doxy" doesn't create anything, 
