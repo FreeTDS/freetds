@@ -656,9 +656,9 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 	unsigned int left = 0;
 
 #if TDS_ADDITIONAL_SPACE != 0
-	if (tds->out_pos > tds->env.block_size) {
-		left = tds->out_pos - tds->env.block_size;
-		tds->out_pos = tds->env.block_size;
+	if (tds->out_pos > tds->out_buf_max) {
+		left = tds->out_pos - tds->out_buf_max;
+		tds->out_pos = tds->out_buf_max;
 	}
 #endif
 
@@ -683,7 +683,7 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 #endif /* !ENABLE_ODBC_MARS */
 
 #if TDS_ADDITIONAL_SPACE != 0
-	memcpy(tds->out_buf + 8, tds->out_buf + tds->env.block_size, left);
+	memcpy(tds->out_buf + 8, tds->out_buf + tds->out_buf_max, left);
 #endif
 	tds->out_pos = left + 8;
 

@@ -70,7 +70,6 @@ void tds_datain_stream_init(TDSDATAINSTREAM * stream, TDSSOCKET * tds, size_t wi
 typedef struct tds_dataout_stream {
 	TDSOUTSTREAM stream;
 	TDSSOCKET *tds;
-	char real_buf[1024];
 	size_t written;
 } TDSDATAOUTSTREAM;
 

@@ -33,7 +33,7 @@
 	static const void *const no_unused_##name##_warn[] = { rcsid_##name, no_unused_##name##_warn }
 #endif
 
-#define TDS_ADDITIONAL_SPACE 0
+#define TDS_ADDITIONAL_SPACE 16
 
 #ifdef MSG_NOSIGNAL
 # define TDS_NOSIGNAL MSG_NOSIGNAL

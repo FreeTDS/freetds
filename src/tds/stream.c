@@ -214,9 +214,21 @@ static int
 tds_dataout_stream_write(TDSOUTSTREAM *stream, size_t len)
 {
 	TDSDATAOUTSTREAM *s = (TDSDATAOUTSTREAM *) stream;
-	assert(len <= sizeof(s->real_buf));
-	assert(s->stream.buffer == s->real_buf);
-	tds_put_n(s->tds, s->real_buf, len);
+	TDSSOCKET *tds = s->tds;
+
+	assert(len <= stream->buf_len);
+	assert(stream->buffer  == (char *) tds->out_buf + tds->out_pos);
+	assert(stream->buf_len == tds->out_buf_max - tds->out_pos + TDS_ADDITIONAL_SPACE);
+
+	tds->out_pos += len;
+	/* this must be strictly test as equal means we send a full packet
+	 * and we could be just at the end of packet so server would
+	 * wait for another packet with flag != 0
+	 */
+	if (tds->out_pos > tds->out_buf_max)
+		tds_write_packet(tds, 0x0);
+	stream->buffer  = (char *) tds->out_buf + tds->out_pos;
+	stream->buf_len = tds->out_buf_max - tds->out_pos + TDS_ADDITIONAL_SPACE;
 	s->written += len;
 	return len;
 }
@@ -230,9 +242,20 @@ tds_dataout_stream_write(TDSOUTSTREAM *stream, size_t len)
 void
 tds_dataout_stream_init(TDSDATAOUTSTREAM * stream, TDSSOCKET * tds)
 {
+#if TDS_ADDITIONAL_SPACE < 4
+#error Not supported
+#endif
+	/*
+	 * we use the extra space as we want possible space for converting
+	 * a character and cause we don't want to send an exactly entire
+	 * packet with 0 flag and then nothing
+	 */
+	size_t left = tds->out_buf_max - tds->out_pos + TDS_ADDITIONAL_SPACE;
+
+	assert(left > 0);
 	stream->stream.write = tds_dataout_stream_write;
-	stream->stream.buffer = stream->real_buf;
-	stream->stream.buf_len = sizeof(stream->real_buf);
+	stream->stream.buffer = (char *) tds->out_buf + tds->out_pos;
+	stream->stream.buf_len = left;
 	stream->written = 0;
 	stream->tds = tds;
 }
