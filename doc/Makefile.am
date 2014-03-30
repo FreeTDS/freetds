@@ -4,9 +4,9 @@
 # $Id: Makefile.am,v 1.68 2012-01-17 03:46:35 jklowden Exp $
 
 SHELL = /bin/sh
-DOCDIR = doc/freetds-$(VERSION)
+DOCDIR = .
 PRODUCT = FreeTDS
-TARGET_DOCDIR = $(DESTDIR)$(datadir)/$(DOCDIR)
+TARGET_DOCDIR = $(DESTDIR)$(datadir)/doc/freetds-$(VERSION)
 
 IMAGES = 	images/important.gif \
 		images/note.gif \
@@ -34,9 +34,6 @@ EXTRA_DIST =	api_status.txt bcp.txt cap.txt getting_started.txt \
 		images grep_sample_code tds_ssl.html \
 		freebcp.1.in tsql.1.in osql.1.in bsqldb.1.in bsqlodbc.1.in \
 		defncopy.1.in datacopy.1.in fisql.1.in freetds.conf.5.in
-
-dist-hook:
-	find $(distdir)/doc -name CVS -exec rm -rf {} ';'
 
 man_MANS = 	freebcp.1 \
 		tsql.1 \
@@ -85,7 +82,7 @@ uninstall-local:
 	rm -rf $(TARGET_DOCDIR)
 
 clean-local:
-	rm -rf userguide.dsl doxy.log userguide reference \
+	rm -rf userguide.dsl doxy.log \
 		dblib.api.sgml	\
 		ctlib.api.sgml	\
 		 odbc.api.sgml   
@@ -139,12 +136,12 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml \
 	(cd $(DOCDIR)/userguide && \
 	if test -n "${DOCBOOK_DSL}" ; then \
 ##		The crazy path is due to the above 'cd' command
-		SRCDOC=../../../$(srcdir); \
+		SRCDOC=../$(srcdir); \
 		if test ! -r userguide.sgml; then \
 			ln -s $${SRCDOC}/userguide.sgml userguide.sgml; \
 		fi; \
 		openjade -b utf-8 -w all -w no-empty -w no-unused-param \
-			 -d ../../../userguide.dsl -t sgml userguide.sgml; \
+			 -d ../userguide.dsl -t sgml userguide.sgml; \
 		if test -h userguide.sgml; then rm userguide.sgml; fi; \
 ## 		and copy the stylesheet
 		cp $${SRCDOC}/userguide.css .; \
@@ -158,9 +155,6 @@ $(DOCDIR)/userguide/index.htm: 	$(DOCDIR) userguide.sgml \
 	test -f $(DOCDIR)/userguide/index.htm
 	(cd $(DOCDIR)/userguide && \
 	if test ! -h index.html ; then ln -s index.htm index.html; fi)
-# for convenience, create a link in the build directory
-	if test -h userguide; then rm userguide; fi
-	ln -sf $(DOCDIR)/userguide userguide
 
 userguide: $(DOCDIR)/userguide/index.htm
 reference: $(DOCDIR)/reference/index.html
@@ -186,9 +180,6 @@ $(DOCDIR)/reference/index.html: $(top_srcdir)/ChangeLog
 			> .index.html &&  \
 		mv .index.html index.html); \
 	fi
-# For convenience, create a link in the build directory.
-	if test -h reference; then rm reference; fi
-	ln -sf $(DOCDIR)/reference reference
 
 #
 # The following sections generate API implementation reference tables

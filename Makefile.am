@@ -14,7 +14,7 @@ EXTRA_DIST = 	interfaces PWD.in BUGS \
 
 
 ETC	=	$(DESTDIR)$(sysconfdir)
-DOCDIR	=	doc/doc/freetds-$(VERSION)
+DOCDIR	=	doc
 
 install-data-local:
 	$(mkinstalldirs) $(ETC)

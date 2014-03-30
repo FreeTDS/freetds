@@ -67,6 +67,7 @@ PATH="$PWD/fakebin:$PATH"
 export PATH
 cd fakebin
 echo "#!/bin/sh
+echo \"\$0 should not be called\" >&2
 exit 1" > openjade
 cp openjade doxygen
 cp openjade txt2man
