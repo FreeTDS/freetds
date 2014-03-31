@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# This script test that Makefiles are able to produre a good 
+# This script test that Makefiles are able to produce a good
 # distribution
 #
-# It create a test-dist.log file in the mail directory, you
+# It create a test-dist.log file in the main directory, you
 # can tail this file to see the progress
 
 # stop on errors
@@ -29,7 +29,7 @@ do
 	esac
 done
 
-# do not create logs so diskcheck test do not fails
+# do not create logs so diskcheck test does not fail
 unset TDSDUMP || true
 
 # set correct directory
