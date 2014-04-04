@@ -224,6 +224,9 @@ DBVERSION_71;
 #ifdef TDS72
 DBVERSION_72;
 #endif
+#ifdef TDS73
+DBVERSION_73;
+#endif
 
 
 static int
@@ -941,6 +944,9 @@ dbsetlversion (LOGINREC * login, BYTE version)
 		return SUCCEED;
 	case DBVERSION_72:
 		tds_set_version(login->tds_login, 7, 2);
+		return SUCCEED;
+	case DBVERSION_73:
+		tds_set_version(login->tds_login, 7, 3);
 		return SUCCEED;
 	}
 	
@@ -5761,7 +5767,9 @@ dbsetversion(DBINT version)
 	case DBVERSION_46:
 	case DBVERSION_100:
 	case DBVERSION_70:
-	case DBVERSION_80:
+	case DBVERSION_71:
+	case DBVERSION_72:
+	case DBVERSION_73:
 		g_dblib_version = version;
 		return SUCCEED;
 	default:
