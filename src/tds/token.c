@@ -3016,6 +3016,7 @@ tds_prtype(int type)
 		TYPE(XSYBVARCHAR, "xvarchar");
 		TYPE(SYBMSDATE, "date");
 		TYPE(SYBMSTIME, "time");
+		TYPE(SYBMSDATETIME2, "datetime2");
 	default:
 		break;
 	}
