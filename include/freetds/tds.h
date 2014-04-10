@@ -144,10 +144,10 @@ typedef struct
 	TDS_UINT8   time;	/* time, 7 digit precision */
 	TDS_INT      date;	/* date, 0 = 1900-01-01 */
 	TDS_SMALLINT offset;	/* time offset */
-	unsigned     time_prec:4;
-	unsigned     has_time:1;
-	unsigned     has_date:1;
-	unsigned     has_offset:1;
+	TDS_USMALLINT time_prec:4;
+	TDS_USMALLINT has_time:1;
+	TDS_USMALLINT has_date:1;
+	TDS_USMALLINT has_offset:1;
 } TDS_DATETIMEALL;
 
 /** Used by tds_datecrack */
