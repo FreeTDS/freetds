@@ -3014,9 +3014,11 @@ tds_prtype(int type)
 		TYPE(XSYBNVARCHAR, "x UCS-2 varchar");
 		TYPE(XSYBVARBINARY, "xvarbinary");
 		TYPE(XSYBVARCHAR, "xvarchar");
+		TYPE(SYBMSXML, "xml");
 		TYPE(SYBMSDATE, "date");
 		TYPE(SYBMSTIME, "time");
 		TYPE(SYBMSDATETIME2, "datetime2");
+		TYPE(SYBMSDATETIMEOFFSET, "datetimeoffset");
 	default:
 		break;
 	}
