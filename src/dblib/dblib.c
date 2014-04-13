@@ -2325,6 +2325,14 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 			memcpy(dest, src, ret);
 			break;
 
+		case SYBMSDATE:
+		case SYBMSTIME:
+		case SYBMSDATETIME2:
+		case SYBMSDATETIMEOFFSET:
+			ret = sizeof(TDS_DATETIMEALL);
+			memcpy(dest, src, ret);
+			break;
+
 		default:
 			ret = -1;
 			break;
@@ -2446,6 +2454,13 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	case SYBUNIQUE:
 		memcpy(dest, &(dres.u), sizeof(TDS_UNIQUE));
 		ret = sizeof(TDS_UNIQUE);
+		break;
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		memcpy(dest, &(dres.dta), sizeof(TDS_DATETIMEALL));
+		ret = sizeof(TDS_DATETIMEALL);
 		break;
 	case SYBCHAR:
 	case SYBVARCHAR:
@@ -7166,6 +7181,11 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 	case SYBUINT8:		return "SYBUINT8";
 	case SYBUNIQUE:		return "SYBUNIQUE";
 	case SYBVARIANT:	return "SYBVARIANT";
+	case SYBMSXML:		return "SYBMSXML";
+	case SYBMSDATE:		return "SYBMSDATE";
+	case SYBMSTIME:		return "SYBMSTIME";
+	case SYBMSDATETIME2:	return "SYBMSDATETIME2";
+	case SYBMSDATETIMEOFFSET: return "SYBMSDATETIMEOFFSET";
 	default: break;
 	}
 	return "(unknown)";
