@@ -17,7 +17,7 @@ AC_CONFIG_SRCDIR(src/dblib/dblib.c)
 AC_PREREQ(2.53)
 AC_REVISION($Revision: 1.60.2.6 $)
 
-AM_INIT_AUTOMAKE([dist-bzip2])
+AM_INIT_AUTOMAKE([dist-bzip2 serial-tests])
 AC_CONFIG_HEADERS(include/config.h)
 
 dnl configuration directory will be /usr/local/etc
