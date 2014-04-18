@@ -138,7 +138,7 @@ static void odbc_ird_check(TDS_STMT * stmt);
  */
 
 static const char *
-odbc_prret(SQLRETURN ret, char *unknown)
+odbc_prret(SQLRETURN ret, char *unknown, size_t unknown_size)
 {
 	switch (ret) {
 	case SQL_ERROR:			return "SQL_ERROR";
@@ -152,12 +152,12 @@ odbc_prret(SQLRETURN ret, char *unknown)
 	case SQL_NEED_DATA:		return "SQL_NEED_DATA";
 	}
 	
-	snprintf(unknown, sizeof(unknown), "unknown: %d", (int)ret);
+	snprintf(unknown, unknown_size, "unknown: %d", (int)ret);
 
 	return unknown;
 }
 #define ODBC_PRRET_BUF	char unknown_prret_buf[24]
-#define odbc_prret(ret) odbc_prret(ret, unknown_prret_buf)
+#define odbc_prret(ret) odbc_prret(ret, unknown_prret_buf, sizeof(unknown_prret_buf))
 
 static void
 odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
