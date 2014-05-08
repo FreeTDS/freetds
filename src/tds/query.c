@@ -107,6 +107,7 @@ tds_ascii_to_ucs2(char *buffer, const char *buf)
 
 #define TDS_PUT_N_AS_UCS2(tds, s) do { \
 	char buffer[sizeof(s)*2-2]; \
+	tds_put_smallint(tds, sizeof(buffer)/2); \
 	tds_put_n(tds, buffer, tds_ascii_to_ucs2(buffer, s)); \
 } while(0)
 
@@ -359,7 +360,6 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, TDS_SP_EXECUTESQL);
 		} else {
-			tds_put_smallint(tds, 13);
 			TDS_PUT_N_AS_UCS2(tds, "sp_executesql");
 		}
 		tds_put_smallint(tds, 0);
@@ -1073,7 +1073,6 @@ tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMI
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, TDS_SP_PREPARE);
 		} else {
-			tds_put_smallint(tds, 10);
 			TDS_PUT_N_AS_UCS2(tds, "sp_prepare");
 		}
 		tds_put_smallint(tds, 0);
@@ -1196,7 +1195,6 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, TDS_SP_EXECUTESQL);
 		} else {
-			tds_put_smallint(tds, 13);
 			TDS_PUT_N_AS_UCS2(tds, "sp_executesql");
 		}
 		tds_put_smallint(tds, 0);
@@ -1341,7 +1339,6 @@ tds8_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNA
 		tds_put_smallint(tds, -1);
 		tds_put_smallint(tds, TDS_SP_PREPEXEC);
 	} else {
-		tds_put_smallint(tds, 10);
 		TDS_PUT_N_AS_UCS2(tds, "sp_prepexec");
 	}
 	tds_put_smallint(tds, 0);
@@ -1784,7 +1781,6 @@ tds7_send_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 	int i;
 
 	/* procedure name */
-	tds_put_smallint(tds, 10);
 	/* NOTE do not call this procedure using integer name (TDS_SP_EXECUTE) on mssql2k, it doesn't work! */
 	TDS_PUT_N_AS_UCS2(tds, "sp_execute");
 	tds_put_smallint(tds, 0);	/* flags */
@@ -1959,7 +1955,6 @@ tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn)
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, TDS_SP_UNPREPARE);
 		} else {
-			tds_put_smallint(tds, 12);
 			TDS_PUT_N_AS_UCS2(tds, "sp_unprepare");
 		}
 		tds_put_smallint(tds, 0);	/* flags */
@@ -2393,7 +2388,6 @@ tds_cursor_open(TDSSOCKET * tds, TDSCURSOR * cursor, TDSPARAMINFO *params, int *
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, TDS_SP_CURSOROPEN);
 		} else {
-			tds_put_smallint(tds, 13);
 			TDS_PUT_N_AS_UCS2(tds, "sp_cursoropen");
 		}
 
@@ -2524,7 +2518,6 @@ tds7_put_cursor_fetch(TDSSOCKET * tds, TDS_INT cursor_id, TDS_TINYINT fetch_type
 		tds_put_smallint(tds, -1);
 		tds_put_smallint(tds, TDS_SP_CURSORFETCH);
 	} else {
-		tds_put_smallint(tds, 14);
 		TDS_PUT_N_AS_UCS2(tds, "sp_cursorfetch");
 	}
 
@@ -2687,7 +2680,6 @@ tds_cursor_get_cursor_info(TDSSOCKET *tds, TDSCURSOR *cursor, TDS_UINT *prow_num
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, TDS_SP_CURSORFETCH);
 		} else {
-			tds_put_smallint(tds, 14);
 			TDS_PUT_N_AS_UCS2(tds, "sp_cursorfetch");
 		}
 
@@ -2811,7 +2803,6 @@ tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, TDS_SP_CURSORCLOSE);
 		} else {
-			tds_put_smallint(tds, 14);
 			TDS_PUT_N_AS_UCS2(tds, "sp_cursorclose");
 		}
 
@@ -2861,7 +2852,6 @@ tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor)
 		tds_put_smallint(tds, -1);
 		tds_put_smallint(tds, TDS_SP_CURSOROPTION);
 	} else {
-		tds_put_smallint(tds, 14);
 		TDS_PUT_N_AS_UCS2(tds, "sp_cursoroption");
 	}
 
@@ -2937,7 +2927,6 @@ tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, 
 			tds_put_smallint(tds, -1);
 			tds_put_smallint(tds, TDS_SP_CURSOR);
 		} else {
-			tds_put_smallint(tds, 14);
 			TDS_PUT_N_AS_UCS2(tds, "sp_cursor");
 		}
 
