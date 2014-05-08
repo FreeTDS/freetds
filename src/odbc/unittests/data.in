@@ -111,7 +111,11 @@ if msdb
 		select SQL_VARIANT "CAST('ciao' AS VARCHAR(10))" SQL_C_CHAR "4 ciao"
 		select SQL_VARIANT "CAST('foo' AS NVARCHAR(10))" SQL_C_CHAR "3 foo"
 		select SQL_VARIANT "CAST('Super' AS NCHAR(8))" SQL_C_CHAR "8 Super   "
-		select SQL_VARIANT "CAST('321' AS VARBINARY(10))" SQL_C_CHAR "6 333231"
+		# using protocol version 7.0 server returns NVARCHAR instead of NVARBINARY so test it
+		select_cond bug SQL_VARIANT "CAST(0x330032003100 AS VARBINARY(10))" SQL_C_CHAR "3 321"
+		if not bug
+			select SQL_VARIANT "CAST(0x333231 AS VARBINARY(10))" SQL_C_CHAR "6 333231"
+		endif
 		# for some reasons MS ODBC seems to convert -123.4 to -123.40000000000001
 		select SQL_VARIANT "CAST('-123.5' AS FLOAT)" SQL_C_CHAR "6 -123.5"
 		select SQL_VARIANT "CAST('-123.4' AS NUMERIC(10,2))" SQL_C_CHAR "7 -123.40"
