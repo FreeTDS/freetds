@@ -136,15 +136,17 @@ typedef unsigned tds_sysdep_intptr_type TDS_UINTPTR;
 
 #include <freetds/proto.h>
 
-/* this structure is not directed connected to a TDS protocol but
- * keeps any DATE/TIME information
+/**
+ * this structure is not directed connected to a TDS protocol but
+ * keeps any DATE/TIME information.
  */
 typedef struct
 {
-	TDS_UINT8   time;	/* time, 7 digit precision */
-	TDS_INT      date;	/* date, 0 = 1900-01-01 */
-	TDS_SMALLINT offset;	/* time offset */
-	TDS_USMALLINT time_prec:4;
+	TDS_UINT8   time;	/**< time, 7 digit precision */
+	TDS_INT      date;	/**< date, 0 = 1900-01-01 */
+	TDS_SMALLINT offset;	/**< time offset */
+	TDS_USMALLINT time_prec:3;
+	TDS_USMALLINT _res:10;
 	TDS_USMALLINT has_time:1;
 	TDS_USMALLINT has_date:1;
 	TDS_USMALLINT has_offset:1;
