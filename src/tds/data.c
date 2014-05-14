@@ -51,6 +51,7 @@ TDS_RCSID(var, "$Id: data.c,v 1.45 2011-10-30 16:47:18 freddy77 Exp $");
 
 int determine_adjusted_size(const TDSICONV * char_conv, int size);
 static const TDSCOLUMNFUNCS *tds_get_column_funcs(TDSCONNECTION *conn, int type);
+static TDSRET tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col);
 
 #undef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -361,6 +362,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	int colsize = tds_get_int(tds), varint;
 	TDS_UCHAR type, info_len;
 	TDSVARIANT *v;
+	TDSRET rc;
 
 	/* NULL */
 	curcol->column_cur_size = -1;
@@ -405,6 +407,37 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		if (IS_TDS7_PLUS(tds->conn))
 			tds_swap_numeric(num);
 		return TDS_SUCCESS;
+	}
+
+	/* special case for MS date/time */
+	switch (type) {
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		if (info_len != 1)
+			goto error_type;
+		curcol->column_scale = curcol->column_prec = tds_get_byte(tds);
+		if (curcol->column_prec > 7)
+			goto error_type;
+		colsize -= info_len;
+		info_len = 0;
+		/* fall through */
+	case SYBMSDATE:
+		if (info_len != 0)
+			goto error_type;
+		/* dirty trick */
+		tds->in_buf[--tds->in_pos] = colsize;
+		if (v->data)
+			TDS_ZERO_FREE(v->data);
+		v->data_len = sizeof(TDS_DATETIMEALL);
+		v->data = calloc(1, sizeof(TDS_DATETIMEALL));
+		curcol->column_type = type;
+		curcol->column_data = (void *) v->data;
+		/* trick, call get function */
+		rc = tds_msdatetime_get(tds, curcol);
+		curcol->column_type = SYBVARIANT;
+		curcol->column_data = (void *) v;
+		return rc;
 	}
 	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds->conn, type);
 	if (varint != info_len)
