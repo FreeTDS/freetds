@@ -301,7 +301,7 @@ dbrpcsend(DBPROCESS * dbproc)
 			if (!pparam_info)
 				return FAIL;
 		}
-		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info, NULL);
+		erc = tds_submit_rpc(dbproc->tds_socket, dbproc->rpc->name, pparam_info);
 		tds_free_param_results(pparam_info);
 		if (erc == TDS_FAIL) {
 			tdsdump_log(TDS_DBG_INFO1, "returning FAIL: tds_submit_rpc() failed\n");

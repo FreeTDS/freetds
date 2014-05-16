@@ -949,7 +949,7 @@ ct_send(CS_COMMAND * cmd)
 		}
 
 		pparam_info = paraminfoalloc(tds, rpc->param_list);
-		ret = tds_submit_rpc(tds, rpc->name, pparam_info, NULL);
+		ret = tds_submit_rpc(tds, rpc->name, pparam_info);
 
 		tds_free_param_results(pparam_info);
 
@@ -967,7 +967,7 @@ ct_send(CS_COMMAND * cmd)
 		ret = TDS_FAIL;
 		if (cmd->input_params) {
 			pparam_info = paraminfoalloc(tds, cmd->input_params);
-			ret = tds_submit_query_params(tds, cmd->query, pparam_info, NULL);
+			ret = tds_submit_query_params(tds, cmd->query, pparam_info);
 			tds_free_param_results(pparam_info);
 		} else {
 			ret = tds_submit_query(tds, cmd->query);

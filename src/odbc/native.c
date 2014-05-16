@@ -36,7 +36,6 @@
 #include <assert.h>
 
 #include <freetds/odbc.h>
-#include <freetds/string.h>
 
 #ifdef DMALLOC
 #include <dmalloc.h>
@@ -228,11 +227,6 @@ prepare_call(struct _hstmt * stmt)
 		buf = stmt->query;
 	else
 		return SQL_ERROR;
-
-	if ((!tds_dstr_isempty(&stmt->attr.qn_msgtext) || !tds_dstr_isempty(&stmt->attr.qn_options)) && !IS_TDS72_PLUS(stmt->dbc->tds_socket->conn)) {
-		odbc_errs_add(&stmt->errs, "HY000", "Feature is not supported by this server");
-		return SQL_SUCCESS_WITH_INFO;
-	}
 
 	if ((rc = to_native(stmt->dbc, stmt, buf)) != SQL_SUCCESS)
 		return rc;

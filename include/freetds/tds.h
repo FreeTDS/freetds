@@ -589,14 +589,6 @@ typedef struct tds_login
 	unsigned int valid_configuration:1;
 } TDSLOGIN;
 
-typedef struct tds_headers
-{
-	const char *qn_options;
-	const char *qn_msgtext;
-	TDS_INT qn_timeout;
-	/* TDS 7.4+: trace activity ID char[20] */
-} TDSHEADERS;
-
 typedef struct tds_locale
 {
 	char *language;
@@ -1284,10 +1276,10 @@ int tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login);
 
 /* query.c */
 TDSRET tds_submit_query(TDSSOCKET * tds, const char *query);
-TDSRET tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params, TDSHEADERS * head);
+TDSRET tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 TDSRET tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...);
 TDSRET tds_submit_prepare(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
-TDSRET tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params, TDSHEADERS * head);
+TDSRET tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
 TDSRET tds71_submit_prepexec(TDSSOCKET * tds, const char *query, const char *id, TDSDYNAMIC ** dyn_out, TDSPARAMINFO * params);
 TDSRET tds_submit_execute(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSRET tds_send_cancel(TDSSOCKET * tds);
@@ -1295,7 +1287,7 @@ const char *tds_next_placeholder(const char *start);
 int tds_count_placeholders(const char *query);
 int tds_needs_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
 TDSRET tds_submit_unprepare(TDSSOCKET * tds, TDSDYNAMIC * dyn);
-TDSRET tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDSHEADERS * head);
+TDSRET tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params);
 TDSRET tds_submit_optioncmd(TDSSOCKET * tds, TDS_OPTION_CMD command, TDS_OPTION option, TDS_OPTION_ARG *param, TDS_INT param_size);
 TDSRET tds_submit_begin_tran(TDSSOCKET *tds);
 TDSRET tds_submit_rollback(TDSSOCKET *tds, int cont);
@@ -1322,7 +1314,7 @@ TDSRET tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor);
 TDSRET tds_cursor_update(TDSSOCKET * tds, TDSCURSOR * cursor, TDS_CURSOR_OPERATION op, TDS_INT i_row, TDSPARAMINFO * params);
 TDSRET tds_cursor_setname(TDSSOCKET * tds, TDSCURSOR * cursor);
 
-TDSRET tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type, TDSHEADERS * head);
+TDSRET tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type);
 TDSRET tds_multiple_done(TDSSOCKET *tds, TDSMULTIPLE *multiple);
 TDSRET tds_multiple_query(TDSSOCKET *tds, TDSMULTIPLE *multiple, const char *query, TDSPARAMINFO * params);
 TDSRET tds_multiple_execute(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDSDYNAMIC * dyn);

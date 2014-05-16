@@ -209,7 +209,7 @@ tds_set_cur_dyn(TDSSOCKET *tds, TDSDYNAMIC *dyn)
 TDSRET
 tds_submit_query(TDSSOCKET * tds, const char *query)
 {
-	return tds_submit_query_params(tds, query, NULL, NULL);
+	return tds_submit_query_params(tds, query, NULL);
 }
 
 /**
@@ -281,62 +281,20 @@ tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 }
 
 /**
- * Start query packet of a given type
- * \tds
- * \param packet_type  packet type
- * \param head         extra information to put in a TDS7 header
+ * Start of TDS 7.2+ query packet.
  */
-static TDSRET
-tds_start_query_head(TDSSOCKET *tds, unsigned char packet_type, TDSHEADERS * head)
-{
-	tds->out_flag = packet_type;
-	if (IS_TDS72_PLUS(tds->conn)) {
-		int qn_len = 0;
-		const char *converted_msgtext = NULL;
-		const char *converted_options = NULL;
-		size_t converted_msgtext_len = 0;
-		size_t converted_options_len = 0;
-
-		if (head && head->qn_msgtext && head->qn_options) {
-			converted_msgtext = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], head->qn_msgtext, (int)strlen(head->qn_msgtext), &converted_msgtext_len);
-			if (!converted_msgtext) {
-				tds_set_state(tds, TDS_IDLE);
-				return TDS_FAIL;
-			}
-
-			converted_options = tds_convert_string(tds, tds->conn->char_convs[client2ucs2], head->qn_options, (int)strlen(head->qn_options), &converted_options_len);
-			if (!converted_options) {
-				tds_convert_string_free(head->qn_msgtext, converted_msgtext);
-				tds_set_state(tds, TDS_IDLE);
-				return TDS_FAIL;
-			}
-
-			qn_len = 6 + 2 + converted_msgtext_len + 2 + converted_options_len;
-			if (head->qn_timeout != 0)
-				qn_len += 4;
-		}
-
-		tds_put_int(tds, 4 + 18 + qn_len);             /* total length */
-		tds_put_int(tds, 18);                          /* length: transaction descriptor */
-		tds_put_smallint(tds, 2);                      /* type: transaction descriptor */
-		tds_put_n(tds, tds->conn->tds72_transaction, 8);  /* transaction */
-		tds_put_int(tds, 1);                           /* request count */
-		if (qn_len != 0) {
-			tds_put_int(tds, qn_len);                      /* length: query notification */
-			tds_put_smallint(tds, 1);                      /* type: query notification */
-			tds_put_smallint(tds, converted_msgtext_len);  /* notifyid */
-			tds_put_n(tds, converted_msgtext, converted_msgtext_len);
-			tds_put_smallint(tds, converted_options_len);  /* ssbdeployment */
-			tds_put_n(tds, converted_options, converted_options_len);
-			if (head->qn_timeout != 0)
-				tds_put_int(tds, head->qn_timeout);        /* timeout */
-
-			tds_convert_string_free(head->qn_options, converted_options);
-			tds_convert_string_free(head->qn_msgtext, converted_msgtext);
-		}
-	}
-	return TDS_SUCCESS;
-}
+static const TDS_UCHAR tds72_query_start[] = {
+	/* total length */
+	0x16, 0, 0, 0,
+	/* length */
+	0x12, 0, 0, 0,
+	/* type */
+	0x02, 0,
+	/* transaction */
+	0, 0, 0, 0, 0, 0, 0, 0,
+	/* request count */
+	1, 0, 0, 0
+};
 
 /**
  * Start query packet of a given type
@@ -346,9 +304,12 @@ tds_start_query_head(TDSSOCKET *tds, unsigned char packet_type, TDSHEADERS * hea
 static void
 tds_start_query(TDSSOCKET *tds, unsigned char packet_type)
 {
-	/* no need to check return value here because tds_start_query_head() cannot
-	fail when given a NULL head parameter */
-	tds_start_query_head(tds, packet_type, NULL);
+	tds->out_flag = packet_type;
+	if (IS_TDS72_PLUS(tds->conn)) {
+		tds_put_n(tds, tds72_query_start, 10);
+		tds_put_n(tds, tds->conn->tds72_transaction, 8);
+		tds_put_n(tds, tds72_query_start + 10 + 8, 4);
+	}
 }
 
 /**
@@ -362,7 +323,7 @@ tds_start_query(TDSSOCKET *tds, unsigned char packet_type)
  * \return TDS_FAIL or TDS_SUCCESS
  */
 TDSRET
-tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params, TDSHEADERS * head)
+tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	size_t query_len;
 	int num_params = params ? params->num_cols : 0;
@@ -402,8 +363,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 		}
 		free(new_query);
 	} else if (!IS_TDS7_PLUS(tds->conn) || !params || !params->num_cols) {
-		if (tds_start_query_head(tds, TDS_QUERY, head) != TDS_SUCCESS)
-			return TDS_FAIL;
+		tds_start_query(tds, TDS_QUERY);
 		tds_put_string(tds, query, (int)query_len);
 	} else {
 		TDSCOLUMN *param;
@@ -441,11 +401,7 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 			}
 		}
  
-		if (tds_start_query_head(tds, TDS_RPC, head) != TDS_SUCCESS) {
-			tds_convert_string_free(query, converted_query);
-			free(param_definition);
-			return TDS_FAIL;
-		}
+		tds_start_query(tds, TDS_RPC);
 		/* procedure name */
 		if (IS_TDS71_PLUS(tds->conn)) {
 			tds_put_smallint(tds, -1);
@@ -1309,7 +1265,7 @@ failure:
  * \return TDS_FAIL or TDS_SUCCESS
  */
 TDSRET
-tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params, TDSHEADERS * head)
+tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params)
 {
 	size_t query_len;
 	TDSCOLUMN *param;
@@ -1346,11 +1302,7 @@ tds_submit_execdirect(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params,
 			return TDS_FAIL;
 		}
 
-		if (tds_start_query_head(tds, TDS_RPC, head) != TDS_SUCCESS) {
-			tds_convert_string_free(query, converted_query);
-			free(param_definition);
-			return TDS_FAIL;
-		}
+		tds_start_query(tds, TDS_RPC);
 		/* procedure name */
 		if (IS_TDS71_PLUS(tds->conn)) {
 			tds_put_smallint(tds, -1);
@@ -1989,7 +1941,7 @@ tds_send_emulated_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * para
  * \param params   parameters informations. NULL for no parameters
  */
 TDSRET
-tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDSHEADERS * head)
+tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params)
 {
 	TDSCOLUMN *param;
 	int rpc_name_len, i;
@@ -2019,10 +1971,7 @@ tds_submit_rpc(TDSSOCKET * tds, const char *rpc_name, TDSPARAMINFO * params, TDS
 			tds_set_state(tds, TDS_IDLE);
 			return TDS_FAIL;
 		}
-		if (tds_start_query_head(tds, TDS_RPC, head) != TDS_SUCCESS) {
-			tds_convert_string_free(rpc_name, converted_name);
-			return TDS_FAIL;
-		}
+		tds_start_query(tds, TDS_RPC);
 
 		TDS_PUT_SMALLINT(tds, converted_name_len / 2);
 		tds_put_n(tds, converted_name, (int)converted_name_len);
@@ -3262,7 +3211,7 @@ tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * par
 enum { MUL_STARTED = 1 };
 
 TDSRET
-tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type, TDSHEADERS * head)
+tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type)
 {
 	unsigned char packet_type;
 	multiple->type = type;
@@ -3281,8 +3230,7 @@ tds_multiple_init(TDSSOCKET *tds, TDSMULTIPLE *multiple, TDS_MULTIPLE_TYPE type,
 			packet_type = TDS_RPC;
 		break;
 	}
-	if (tds_start_query_head(tds, packet_type, head) != TDS_SUCCESS)
-		return TDS_FAIL;
+	tds_start_query(tds, packet_type);
 
 	return TDS_SUCCESS;
 }
