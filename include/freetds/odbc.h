@@ -379,6 +379,9 @@ struct _hsattr
 	/* SQLGetStmtAttr only */
 /*	TDS_DESC *imp_row_desc; */
 /*	TDS_DESC *imp_param_desc; */
+	DSTR qn_msgtext;
+	DSTR qn_options;
+	SQLUINTEGER qn_timeout;
 };
 
 typedef enum
