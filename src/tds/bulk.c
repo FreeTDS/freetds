@@ -615,6 +615,7 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 	TDSCOLUMN *bcpcol;
 	int cpbytes;
 	int i, j;
+	int bitleft = 0, bitpos;
 
 	assert(bcpinfo);
 	assert(rowbuffer);
@@ -644,6 +645,17 @@ tds_bcp_add_fixed_columns(TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data
 				num = (TDS_NUMERIC *) bcpcol->bcp_column_data->data;
 				cpbytes = tds_numeric_bytes_per_prec[num->precision];
 				memcpy(&rowbuffer[row_pos], num->array, cpbytes);
+			} else if (bcpcol->column_type == SYBBIT) {
+				/* all bit are collapsed together */
+				if (!bitleft) {
+					bitpos = row_pos++;
+					bitleft = 8;
+					rowbuffer[bitpos] = 0;
+				}
+				if (bcpcol->bcp_column_data->data[0])
+					rowbuffer[bitpos] |= 256 >> bitleft;
+				--bitleft;
+				continue;
 			} else {
 				cpbytes = bcpcol->bcp_column_data->datalen > bcpcol->column_size ?
 					  bcpcol->column_size : bcpcol->bcp_column_data->datalen;
