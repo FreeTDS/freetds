@@ -94,8 +94,8 @@ ignore_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char 
 	return INT_CANCEL;
 }
 
-static char line1[2048];
-static char line2[2048];
+static char line1[1024*16];
+static char line2[1024*16];
 
 static void
 test_file(const char *fn)
