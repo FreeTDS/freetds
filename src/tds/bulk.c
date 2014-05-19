@@ -146,10 +146,12 @@ tds_bcp_init(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		}
 	}
 
-	bindinfo->current_row = malloc(bindinfo->row_size);
-	if (!bindinfo->current_row)
-		goto cleanup;
-	bindinfo->row_free = tds_bcp_row_free;
+	if (!IS_TDS7_PLUS(tds)) {
+		bindinfo->current_row = malloc(bindinfo->row_size);
+		if (!bindinfo->current_row)
+			goto cleanup;
+		bindinfo->row_free = tds_bcp_row_free;
+	}
 
 	if (bcpinfo->identity_insert_on) {
 
@@ -419,18 +421,14 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 											 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 	static const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-	unsigned char *record;
-	TDS_INT	 old_record_size;
 	int i;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, %p, %d)\n", tds, bcpinfo, get_col_data, null_error, offset);
 
-	record = bcpinfo->bindinfo->current_row;
-	old_record_size = bcpinfo->bindinfo->row_size;
-
 	if (IS_TDS7_PLUS(tds)) {
 		TDS_TINYINT  varint_1;
 
+		tds_put_byte(tds, TDS_ROW_TOKEN);   /* 0xd1 */
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 	
 			bindcol = bcpinfo->bindinfo->columns[i];
@@ -461,12 +459,10 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 					case XSYBVARBINARY:
 					case XSYBNCHAR:
 					case XSYBNVARCHAR:
-						memcpy(record, CHARBIN_NULL, 2);
-						record +=2;
+						tds_put_n(tds, CHARBIN_NULL, 2);
 						break;
 					default:
-						*record = GEN_NULL;
-						record++;
+						tds_put_byte(tds, GEN_NULL);
 						break;
 					}
 				} else {
@@ -479,16 +475,14 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 				switch (bindcol->column_varint_size) {
 				case 4:
 					if (is_blob_type(bindcol->on_server.column_type)) {
-						*record = textptr_size; record++;
-						memcpy(record, textptr, 16); record += 16;
-						memcpy(record, timestamp, 8); record += 8;
+						tds_put_byte(tds, textptr_size);
+						tds_put_n(tds, textptr, 16);
+						tds_put_n(tds, timestamp, 8);
 					}
-					TDS_PUT_UA4LE(record, bindcol->bcp_column_data->datalen);
-					record += 4;
+					tds_put_int(tds, bindcol->bcp_column_data->datalen);
 					break;
 				case 2:
-					TDS_PUT_UA2LE(record, bindcol->bcp_column_data->datalen);
-					record += 2;
+					tds_put_smallint(tds, bindcol->bcp_column_data->datalen);
 					break;
 				case 1:
 					varint_1 = bindcol->bcp_column_data->datalen;
@@ -500,14 +494,11 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 						varint_1 = bindcol->bcp_column_data->datalen;
 						tdsdump_log(TDS_DBG_INFO1, "varint_1 = %d\n", varint_1);
 					}
-					*record = varint_1; record++;
+					tds_put_byte(tds, varint_1);
 					break;
 				case 0:
 					break;
 				}
-
-				tdsdump_log(TDS_DBG_INFO1, "new_record_size = %ld datalen = %d\n", 
-							(long int) (record - bcpinfo->bindinfo->current_row), bindcol->bcp_column_data->datalen);
 
 #if WORDS_BIGENDIAN
 				tds_swap_datatype(tds_get_conversion_type(bindcol->column_type, bindcol->bcp_column_data->datalen),
@@ -520,20 +511,13 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 					if (IS_TDS7_PLUS(tds))
 						tds_swap_numeric(num);
 					size = tds_numeric_bytes_per_prec[num->precision];
-					memcpy(record, num->array, size);
-					record += size; 
+					tds_put_n(tds, num->array, size);
 				} else {
-					memcpy(record, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
-					record += bindcol->bcp_column_data->datalen;
+					tds_put_n(tds, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
 				}
 
 			}
-			tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %ld\n",
-					old_record_size, (long int) (record - bcpinfo->bindinfo->current_row));
 		}
-
-		tds_put_byte(tds, TDS_ROW_TOKEN);   /* 0xd1 */
-		tds_put_n(tds, bcpinfo->bindinfo->current_row, record - bcpinfo->bindinfo->current_row);
 	}  /* IS_TDS7_PLUS */
 	else {
 		int row_pos;
@@ -541,6 +525,8 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		TDS_SMALLINT row_size;
 		int blob_cols = 0;
 		int var_cols_written = 0;
+		TDS_INT	 old_record_size = bcpinfo->bindinfo->row_size;
+		unsigned char *record = bcpinfo->bindinfo->current_row;
 
 		memset(record, '\0', old_record_size);	/* zero the rowbuffer */
 
@@ -1025,57 +1011,6 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 
 		if (bcp_record_size > bcpinfo->bindinfo->row_size) {
 			/* FIXME remove memory leak */
-			bcpinfo->bindinfo->current_row = realloc(bcpinfo->bindinfo->current_row, bcp_record_size);
-			bcpinfo->bindinfo->row_free = tds_bcp_row_free;
-			if (bcpinfo->bindinfo->current_row == NULL) {
-				tdsdump_log(TDS_DBG_FUNC, "could not realloc current_row\n");
-				return TDS_FAIL;
-			}
-			bcpinfo->bindinfo->row_size = bcp_record_size;
-		}
-	}
-	if (IS_TDS7_PLUS(tds)) {
-		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
-	
-			bcpcol = bcpinfo->bindinfo->columns[i];
-
-			/*
-			 * dont send the (meta)data for timestamp columns, or
-			 * identity columns (unless indentity_insert is enabled
-			 */
-
-			if ((!bcpinfo->identity_insert_on && bcpcol->column_identity) || 
-				bcpcol->column_timestamp) {
-				continue;
-			}
-
-			switch (bcpcol->column_varint_size) {
-				case 4:
-					if (is_blob_type(bcpcol->column_type)) {
-						bcp_record_size += 25;
-					}
-					bcp_record_size += 4;
-					break;
-				case 2:
-					bcp_record_size +=2;
-					break;
-				case 1:
-					bcp_record_size++;
-					break;
-				case 0:
-					break;
-			}
-
-			if (is_numeric_type(bcpcol->column_type)) {
-				bcp_record_size += tds_numeric_bytes_per_prec[bcpcol->column_prec];
-			} else {
-				bcp_record_size += bcpcol->column_size;
-			}
-		}
-		tdsdump_log(TDS_DBG_FUNC, "current_record_size = %d\n", bcpinfo->bindinfo->row_size);
-		tdsdump_log(TDS_DBG_FUNC, "bcp_record_size     = %d\n", bcp_record_size);
-
-		if (bcp_record_size > bcpinfo->bindinfo->row_size) {
 			bcpinfo->bindinfo->current_row = realloc(bcpinfo->bindinfo->current_row, bcp_record_size);
 			bcpinfo->bindinfo->row_free = tds_bcp_row_free;
 			if (bcpinfo->bindinfo->current_row == NULL) {
