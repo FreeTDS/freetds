@@ -740,7 +740,6 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	int srctype;
 	int srclen;
 	int buflen;
-	int destlen;
 	int plen;
 
 	TDS_INT result_type;
@@ -816,96 +815,91 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		switch (hostcol->datatype) {
 
 		case SYBINT1:
-			buflen = destlen = 1;
+			buflen = 1;
 			break;
 		case SYBINT2:
-			buflen = destlen = 2;
+			buflen = 2;
 			break;
 		case SYBINT4:
-			buflen = destlen = 4;
+			buflen = 4;
 			break;
 		case SYBINT8:
-			buflen = destlen = 8;
+			buflen = 8;
 			break;
 		case SYBREAL:
-			buflen = destlen = 4;
+			buflen = 4;
 			break;
 		case SYBFLT8:
-			buflen = destlen = 8;
+			buflen = 8;
 			break;
 		case SYBDATETIME:
-			buflen = destlen = 8;
+			buflen = 8;
 			break;
 		case SYBDATETIME4:
-			buflen = destlen = 4;
+			buflen = 4;
 			break;
 		case SYBBIT:
-			buflen = destlen = 1;
+			buflen = 1;
 			break;
 		case SYBBITN:
-			buflen = destlen = 1;
+			buflen = 1;
 			break;
 		case SYBMONEY:
-			buflen = destlen = 8;
+			buflen = 8;
 			break;
 		case SYBMONEY4:
-			buflen = destlen = 4;
+			buflen = 4;
 			break;
 		case SYBCHAR:
 		case SYBVARCHAR:
 			switch (curcol->column_type) {
 			case SYBVARCHAR:
 				buflen = curcol->column_size + 1;
-				destlen = -1;
 				break;
 			case SYBCHAR:
 			case SYBTEXT:
 				/* FIXME column_size ?? if 2gb ?? */
 				buflen = curcol->column_size + 1;
-				destlen = -2;
+				break;
+			case SYBBINARY:
+			case SYBVARBINARY:
+			case SYBIMAGE:
+				buflen = curcol->column_size * 2 + 1;
 				break;
 			case SYBINT1:
 				buflen = 4 + 1;	/*  255         */
-				destlen = -1;
 				break;
 			case SYBINT2:
 				buflen = 6 + 1;	/* -32768       */
-				destlen = -1;
 				break;
 			case SYBINT4:
 				buflen = 11 + 1;	/* -2147483648  */
-				destlen = -1;
 				break;
 			case SYBINT8:
 				buflen = 20 + 1;	/* -9223372036854775808  */
-				destlen = -1;
 				break;
 			case SYBNUMERIC:
 			case SYBDECIMAL:
 				buflen = 40 + 1;	/* 10 to the 38 */
-				destlen = -1;
 				break;
 			case SYBFLT8:
 				buflen = 40 + 1;	/* 10 to the 38 */
-				destlen = -1;
 				break;
 			case SYBDATETIME:
 			case SYBDATETIME4:
 				buflen = 255 + 1;
-				destlen = -1;
 				break;
 			default:
 				buflen = 255 + 1;
-				destlen = -1;
 				break;
 			}
 			break;
 		default:
-			buflen = destlen = 255;
+			buflen = 255;
 		}
 
 		hostcol->bcp_column_data = tds_alloc_bcp_column_data(buflen);
-		hostcol->bcp_column_data->datalen = destlen;
+		hostcol->bcp_column_data->datalen = buflen;
 	}
 
 	/*
