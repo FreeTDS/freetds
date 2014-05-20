@@ -22,6 +22,7 @@ static int result = 0;
 static unsigned int line_num;
 
 static int ignore_select_error = 0;
+static int ignore_result = 0;
 
 static void
 Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, const char *expected)
@@ -44,12 +45,13 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	if (ignore_select_error) {
 		if (odbc_command2(sbuf, "SENo") == SQL_ERROR) {
 			odbc_reset_statement();
+			ignore_select_error = 0;
+			ignore_result = 0;
 			return;
 		}
 	} else {
 		odbc_command(sbuf);
 	}
-	ignore_select_error = 0;
 	SQLBindCol(odbc_stmt, 1, out_c_type, out_buf, sizeof(out_buf), &out_len);
 	CHKFetch("S");
 	CHKFetch("No");
@@ -58,10 +60,12 @@ Test(const char *type, const char *value_to_convert, SQLSMALLINT out_c_type, con
 	/* test results */
 	odbc_c2string(sbuf, out_c_type, out_buf, out_len);
 
-	if (strcmp(sbuf, expected) != 0) {
+	if (!ignore_result && strcmp(sbuf, expected) != 0) {
 		fprintf(stderr, "Wrong result\n  Got:      %s\n  Expected: %s\n", sbuf, expected);
 		result = 1;
 	}
+	ignore_select_error = 0;
+	ignore_result = 0;
 }
 
 static void
@@ -386,6 +390,7 @@ main(int argc, char *argv[])
 			if (!cond) continue;
 
 			ignore_select_error = 1;
+			ignore_result = 1;
 			result = 0;
 			Test(type, value, c_type, expected);
 			set_bool(bool_name, result == 0);
