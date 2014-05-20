@@ -386,6 +386,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		curcol->char_conv = is_unicode_type(type) ? 
 			tds->conn->char_convs[client2ucs2] : tds_iconv_from_collate(tds->conn, v->collation);
 	}
+
 	/* special case for numeric */
 	if (is_numeric_type(type)) {
 		TDS_NUMERIC *num;
@@ -399,7 +400,10 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		num->precision = tds_get_byte(tds);
 		num->scale     = tds_get_byte(tds);
 		colsize -= 2;
-		/* FIXME check prec/scale, don't let server crash us */
+		/* check prec/scale, don't let server crash us */
+		if (num->precision < 1 || num->precision > 77
+		    || num->scale > num->precision)
+			goto error_type;
 		if (colsize > sizeof(num->array))
 			goto error_type;
 		curcol->column_cur_size = colsize;
