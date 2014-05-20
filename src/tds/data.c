@@ -1122,7 +1122,6 @@ tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 		TDS_UINT8 u8;
 		int i;
 
-		assert(size >= 3 && size <= 5);
 		if (size < 3 || size > 5)
 			return TDS_FAIL;
 		u8 = 0;
@@ -1134,7 +1133,8 @@ tds_msdatetime_get(TDSSOCKET * tds, TDSCOLUMN * col)
 			u8 *= 10;
 		dt->time = u8;
 		dt->has_time = 1;
-	}
+	} else if (size != 0)
+		return TDS_FAIL;
 
 	/* get date part */
 	if (col->column_type != SYBMSTIME) {
