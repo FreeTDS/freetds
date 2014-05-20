@@ -29,6 +29,7 @@ odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len)
 		SQLINTEGER i;
 		SQLSMALLINT si;
 		SQL_NUMERIC_STRUCT num;
+		SQL_TIMESTAMP_STRUCT ts;
 	} buf_t;
 #undef IN
 #define IN (*((const buf_t*) in))
@@ -74,6 +75,12 @@ odbc_c2string(char *out, SQLSMALLINT out_c_type, const void *in, size_t in_len)
 	case SQL_C_SHORT:
 		assert(in_len == sizeof(SQLSMALLINT));
 		sprintf(s, "%d", (int) IN.si);
+		break;
+	case SQL_C_TIMESTAMP:
+		sprintf(s, "%04d-%02u-%02u %02u:%02u:%02u.%03u",
+			IN.ts.year, IN.ts.month, IN.ts.day,
+			IN.ts.hour, IN.ts.minute, IN.ts.second,
+			(unsigned) (IN.ts.fraction / 1000000u));
 		break;
 	default:
 		/* not supported */
