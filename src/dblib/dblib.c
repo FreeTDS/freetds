@@ -2534,7 +2534,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
  */
 DBINT
 dbconvert_ps(DBPROCESS * dbproc,
-	     int srctype, BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen, DBTYPEINFO * typeinfo)
+	     int srctype, const BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen, DBTYPEINFO * typeinfo)
 {
 	DBNUMERIC *s;
 	DBNUMERIC *d;

@@ -646,7 +646,7 @@ int dbcoltype(DBPROCESS * dbproc, int column);
 DBTYPEINFO *dbcoltypeinfo(DBPROCESS * dbproc, int column);
 DBINT dbcolutype(DBPROCESS * dbprocess, int column);
 DBINT dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen);
-DBINT dbconvert_ps(DBPROCESS * dbprocess, int srctype, BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen,
+DBINT dbconvert_ps(DBPROCESS * dbprocess, int srctype, const BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen,
 		   DBTYPEINFO * typeinfo);
 BOOL dbiscount(DBPROCESS * dbproc);
 DBINT dbcount(DBPROCESS * dbproc);
