@@ -891,7 +891,6 @@ dbnextrow_pivoted(DBPROCESS *dbproc, struct pivot_t *pp)
 					pval->type, 
 					col_buffer(pval), 
 					pval->len, 
-					dblib_bound_type(pcol->column_bindtype), 
 					(BYTE *) pcol->column_varaddr,  
 					pcol->column_bindlen,
 					pcol->column_bindtype, 

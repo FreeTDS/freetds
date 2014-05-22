@@ -299,7 +299,7 @@ static void
 buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute_id, DBPROCESS * dbproc, int idx)
 {
 	int i;
-	int srctype, desttype;
+	int srctype;
 	BYTE *src;
 	const DBLIB_BUFFER_ROW *row;
 
@@ -334,7 +334,6 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 		srclen = curcol->column_cur_size;
 		if (is_blob_col(curcol))
 			src = (BYTE *) ((TDSBLOB *) src)->textvalue;
-		desttype = dblib_bound_type(curcol->column_bindtype);
 		srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
 
 		if (srclen <= 0) {
@@ -342,7 +341,7 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 				dbgetnull(dbproc, curcol->column_bindtype, curcol->column_bindlen,
 						(BYTE *) curcol->column_varaddr);
 		} else {
-			copy_data_to_host_var(dbproc, srctype, src, srclen, desttype, 
+			copy_data_to_host_var(dbproc, srctype, src, srclen,
 						(BYTE *) curcol->column_varaddr,  curcol->column_bindlen,
 							 curcol->column_bindtype, (DBINT*) curcol->column_nullbind);
 		}

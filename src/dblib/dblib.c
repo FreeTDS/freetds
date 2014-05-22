@@ -82,7 +82,7 @@ static const char *tds_prdatatype(TDS_SERVER_TYPE datatype_token);
 
 static int default_err_handler(DBPROCESS * dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr);
 
-void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, DBINT, int, BYTE *, DBINT, int, DBINT *);
+void copy_data_to_host_var(DBPROCESS *, int, const BYTE *, int, BYTE *, DBINT, int, DBINT *);
 RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
 
 /**
@@ -2100,7 +2100,7 @@ dbnextrow(DBPROCESS * dbproc)
 	return result;
 } /* dbnextrow()  */
 
-int
+static int
 dblib_bound_type(int bindtype)
 {
 	switch (bindtype) {
@@ -7193,7 +7193,7 @@ tds_prdatatype(TDS_SERVER_TYPE datatype_token)
 #if 1
 void
 copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, 
-				int desttype, BYTE * dest, DBINT destlen,
+				BYTE * dest, DBINT destlen,
 				int bindtype, DBINT *indicator)
 {
 	CONV_RESULT dres;
@@ -7202,6 +7202,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 	DBINT indicator_value = 0;
 
 	int limited_dest_space = 0;
+	int desttype = dblib_bound_type(bindtype);
 
 	tdsdump_log(TDS_DBG_FUNC, "copy_data_to_host_var(%d [%s] len %d => %d [%s] len %d)\n", 
 		     srctype, tds_prdatatype(srctype), srclen, desttype, tds_prdatatype(desttype), destlen);

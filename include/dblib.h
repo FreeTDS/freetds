@@ -168,10 +168,9 @@ struct tds_dblib_dbprocess
 /*
  * internal prototypes
  */
-int dblib_bound_type(int bindtype);
 RETCODE dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr);
 void copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, 
-				int desttype, BYTE * dest, DBINT destlen,
+				BYTE * dest, DBINT destlen,
 				int bindtype, DBINT *indicator);
 				
 int dbperror (DBPROCESS *dbproc, DBINT msgno, long errnum, ...);
