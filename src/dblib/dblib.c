@@ -2228,19 +2228,38 @@ dblib_bound_type(int bindtype)
  * \todo Microsoft and Sybase define this function differently.  
  */
 DBINT
-dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen)
+dbconvert_ps(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen,
+	     int desttype, BYTE * dest, DBINT destlen, DBTYPEINFO * typeinfo)
 {
 	CONV_RESULT dres;
 	DBINT ret;
 	int i;
 	int len;
-	DBNUMERIC *num;
 
-	tdsdump_log(TDS_DBG_FUNC, "dbconvert(%p, %s, %p, %d, %s, %p, %d)\n", 
-			dbproc, tds_prdatatype(srctype), src, srclen, tds_prdatatype(desttype), dest, destlen);
+	tdsdump_log(TDS_DBG_FUNC, "dbconvert_ps(%p, %s, %p, %d, %s, %p, %d, %p)\n",
+		    dbproc, tds_prdatatype(srctype), src, srclen,
+		    tds_prdatatype(desttype), dest, destlen, typeinfo);
 	/* dbproc and src can be NULLs */
 	CHECK_PARAMETER(dest, SYBEACNV, -1);
-	
+
+	if (is_numeric_type(desttype)) {
+		TDS_NUMERIC *d = &dres.n;
+
+		if (typeinfo == NULL) {
+			if (is_numeric_type(srctype)) {
+				DBNUMERIC *s = (DBNUMERIC *) src;
+				d->precision = s->precision;
+				d->scale = s->scale;
+			} else {
+				d->precision = 18;
+				d->scale = 0;
+			}
+		} else {
+			d->precision = typeinfo->precision;
+			d->scale = typeinfo->scale;
+		}
+	}
+
 	if (0 == destlen) 
 		return 0; 
 
@@ -2271,21 +2290,10 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	if (srclen == -1)
 		srclen = (int)strlen((const char *) src);
 
-	/* FIXME what happen if client do not reset values ??? */
-	/* FIXME act differently for ms and sybase */
-	if (is_numeric_type(desttype)) {
-		num = (DBNUMERIC *) dest;	                         /* num->scale is unsigned */
-		if (num->precision <= 0 || num->precision > MAXPRECISION || num->scale > num->precision) { 
-			dres.n.precision = 18;
-			dres.n.scale = 0;
-		} else {
-			dres.n.precision = num->precision;
-			dres.n.scale = num->scale;
-		}
-	/* oft times we are asked to convert a data type to itself */
-	} else if (srctype == desttype) {
+	/* often times we are asked to convert a data type to itself */
+	if (srctype == desttype && !is_numeric_type(desttype)) {
 		ret = -2;  /* to make sure we always set it */
-		tdsdump_log(TDS_DBG_INFO1, "dbconvert() srctype == desttype\n");
+		tdsdump_log(TDS_DBG_INFO1, "dbconvert_ps() srctype == desttype\n");
 		switch (desttype) {
 
 		case SYBBINARY:
@@ -2381,10 +2389,10 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 		}
 	}
 
-	tdsdump_log(TDS_DBG_INFO1, "dbconvert() calling tds_convert\n");
+	tdsdump_log(TDS_DBG_INFO1, "dbconvert_ps() calling tds_convert\n");
 
 	len = tds_convert(g_dblib_ctx.tds_ctx, srctype, (const TDS_CHAR *) src, srclen, desttype, &dres);
-	tdsdump_log(TDS_DBG_INFO1, "dbconvert() called tds_convert returned %d\n", len);
+	tdsdump_log(TDS_DBG_INFO1, "dbconvert_ps() called tds_convert returned %d\n", len);
 
 	if (len < 0) {
 		_dblib_convert_err(dbproc, len);
@@ -2470,7 +2478,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 	case SYBCHAR:
 	case SYBVARCHAR:
 	case SYBTEXT:
-		tdsdump_log(TDS_DBG_INFO1, "dbconvert() outputting %d bytes character data destlen = %d \n", len, destlen);
+		tdsdump_log(TDS_DBG_INFO1, "dbconvert_ps() outputting %d bytes character data destlen = %d \n", len, destlen);
 
 		if (destlen < -2)
 			destlen = 0;	/* failure condition */
@@ -2514,7 +2522,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 		break;
 	default:
-		tdsdump_log(TDS_DBG_INFO1, "error: dbconvert(): unrecognized desttype %d \n", desttype);
+		tdsdump_log(TDS_DBG_INFO1, "error: dbconvert_ps(): unrecognized desttype %d \n", desttype);
 		ret = -1;
 		break;
 
@@ -2524,7 +2532,7 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
 
 /**
  * \ingroup dblib_core
- * \brief cf. dbconvert(), above
+ * \brief cf. dbconvert_ps(), above
  * 
  * \em Sybase: Convert numeric types.
  * \param dbproc contains all information needed by db-lib to manage communications with the server.
@@ -2535,34 +2543,32 @@ dbconvert(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT srclen, int d
  * \param dest output buffer
  * \param destlen size of \a dest
  * \param typeinfo address of a \c DBTYPEINFO structure that governs the precision & scale of the output, may be \c NULL.
- * \sa dbaltbind(), dbaltbind_ps(), dbbind(), dbbind_ps(), dbconvert(), dberrhandle(), dbsetnull(), dbsetversion(), dbwillconvert().
+ * \sa dbaltbind(), dbaltbind_ps(), dbbind(), dbbind_ps(), dbconvert_ps(), dberrhandle(), dbsetnull(), dbsetversion(), dbwillconvert().
  */
 DBINT
-dbconvert_ps(DBPROCESS * dbproc,
-	     int srctype, const BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen, DBTYPEINFO * typeinfo)
+dbconvert(DBPROCESS * dbproc,
+	  int srctype, const BYTE * src, DBINT srclen, int desttype, BYTE * dest, DBINT destlen)
 {
-	tdsdump_log(TDS_DBG_FUNC, "dbconvert_ps(%p)\n", dbproc);
+	DBTYPEINFO ti, *pti = NULL;
+
+	tdsdump_log(TDS_DBG_FUNC, "dbconvert(%p)\n", dbproc);
 	/* dbproc can be NULL*/
 
 	if (is_numeric_type(desttype)) {
-		DBNUMERIC *d = (DBNUMERIC *) dest;
+		DBNUMERIC *num;
 
-		if (typeinfo == NULL) {
-			if (is_numeric_type(srctype)) {
-				DBNUMERIC *s = (DBNUMERIC *) src;
-				d->precision = s->precision;
-				d->scale = s->scale;
-			} else {
-				d->precision = 18;
-				d->scale = 0;
-			}
+		/* FIXME what happen if client do not reset values ??? */
+		if (dbproc->msdblib) {
+			num = (DBNUMERIC *) dest;
+			ti.precision = num->precision;
+			ti.scale = num->scale;
+			pti = &ti;
 		} else {
-			d->precision = typeinfo->precision;
-			d->scale = typeinfo->scale;
+			/* for Sybase passing NULL as DBTYPEINFO is fine */
 		}
 	}
 
-	return dbconvert(dbproc, srctype, src, srclen, desttype, dest, destlen);
+	return dbconvert_ps(dbproc, srctype, src, srclen, desttype, dest, destlen, pti);
 }
 
 /**

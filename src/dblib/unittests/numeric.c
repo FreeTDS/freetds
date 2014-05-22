@@ -172,6 +172,7 @@ main(int argc, char **argv)
 {
 	read_login_info(argc, argv);
 
+	dbsetversion(DBVERSION_100);
 	dbinit();
 
 	/* tests with MS behaviour */
