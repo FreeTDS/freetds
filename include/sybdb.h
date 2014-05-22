@@ -473,6 +473,8 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define BITBIND           16
 #define NUMERICBIND       17
 #define DECIMALBIND       18
+#define SRCNUMERICBIND    19
+#define SRCDECIMALBIND    20
 #define BIGINTBIND        30
 #define MAXBINDTYPES      31	/* keep last */
 

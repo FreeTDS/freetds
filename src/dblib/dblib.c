@@ -473,8 +473,8 @@ static NULLREP default_null_representations[MAXBINDTYPES] = {
 	/* BITBIND	     16 */	, {         &null_BIT, sizeof(null_BIT) }
 	/* NUMERICBIND       17 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
 	/* DECIMALBIND       18 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
-	/* 	             19 */	, {         NULL, 0 }
-	/* 	             20 */	, {         NULL, 0 }
+	/* SRCNUMERICBIND    19 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
+	/* SRCDECIMALBIND    20 */	, { (BYTE*) &null_NUMERIC, sizeof(null_NUMERIC) }
 	/* 	             21 */	, {         NULL, 0 }
 	/* 	             22 */	, {         NULL, 0 }
 	/* 	             23 */	, {         NULL, 0 }
@@ -567,10 +567,12 @@ dbgetnull(DBPROCESS *dbproc, int bindtype, int varlen, BYTE* varaddr)
 	switch (bindtype) {
 	case DATETIMEBIND:
 	case DECIMALBIND:
+	case SRCDECIMALBIND:
 	case FLT8BIND:
 	case INTBIND:
 	case MONEYBIND:
 	case NUMERICBIND:
+	case SRCNUMERICBIND:
 	case REALBIND:
 	case SMALLBIND:
 	case SMALLDATETIMEBIND:
@@ -1905,10 +1907,12 @@ dbsetnull(DBPROCESS * dbproc, int bindtype, int bindlen, BYTE *bindval)
 	switch (bindtype) {
 	case DATETIMEBIND:
 	case DECIMALBIND:
+	case SRCDECIMALBIND:
 	case FLT8BIND:
 	case INTBIND:
 	case MONEYBIND:
 	case NUMERICBIND:
+	case SRCNUMERICBIND:
 	case REALBIND:
 	case SMALLBIND:
 	case SMALLDATETIMEBIND:
@@ -2152,10 +2156,10 @@ dblib_bound_type(int bindtype)
 		return SYBBIT;
 		break;
 	case NUMERICBIND:
-		return SYBNUMERIC;
-		break;
+	case SRCNUMERICBIND:
 	case DECIMALBIND:
-		return SYBDECIMAL;
+	case SRCDECIMALBIND:
+		return SYBNUMERIC;
 		break;
 	default:
 		return -1;
@@ -7218,9 +7222,25 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 
 	/* oft times we are asked to convert a data type to itself */
 
-	if (is_numeric_type(desttype)) {
-		DBNUMERIC *num = (DBNUMERIC *) dest;	                         /* num->scale is unsigned */
-		if (num->precision <= 0 || num->precision > MAXPRECISION || num->scale > num->precision) { 
+	if (desttype == SYBNUMERIC) {
+		DBNUMERIC *num = NULL;          /* num->scale is unsigned */
+
+		/* only MS, use always source */
+		if (bindtype == SRCNUMERICBIND || bindtype == SRCDECIMALBIND) {
+			if (is_numeric_type(srctype))
+				num = (DBNUMERIC*) src;
+			else
+				num = (DBNUMERIC*) dest;
+		} else if (dbproc->msdblib) {
+			/* MS by default use only destination informations */
+			num = (DBNUMERIC*) dest;
+		} else {
+			/* Sybase, dbbind means source or default */
+			/* TODO if dbbind_ps is used is more complicated */
+			if (is_numeric_type(srctype))
+				num = (DBNUMERIC*) src;
+		}
+		if (!num) {
 			dres.n.precision = 18;
 			dres.n.scale = 0;
 		} else {
