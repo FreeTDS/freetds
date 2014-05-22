@@ -299,7 +299,6 @@ static void
 buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute_id, DBPROCESS * dbproc, int idx)
 {
 	int i;
-	int srctype;
 	BYTE *src;
 	const DBLIB_BUFFER_ROW *row;
 
@@ -311,14 +310,17 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 	assert(row->resinfo);
 
 	for (i = 0; i < row->resinfo->num_cols; i++) {
+		int srctype;
 		DBINT srclen;
 		TDSCOLUMN *curcol = row->resinfo->columns[i];
-		
+
 		if (row->sizes)
 			curcol->column_cur_size = row->sizes[i];
 
+		srclen = curcol->column_cur_size;
+
 		if (curcol->column_nullbind) {
-			if (curcol->column_cur_size < 0) {
+			if (srclen < 0) {
 				*(DBINT *)(curcol->column_nullbind) = -1;
 			} else {
 				*(DBINT *)(curcol->column_nullbind) = 0;
@@ -327,24 +329,25 @@ buffer_transfer_bound_data(DBPROC_ROWBUF *buf, TDS_INT res_type, TDS_INT compute
 		if (!curcol->column_varaddr)
 			continue;
 
-		if (row->row_data)
-			src = &row->row_data[curcol->column_data - row->resinfo->current_row];
-		else
-			src = curcol->column_data;
-		srclen = curcol->column_cur_size;
-		if (is_blob_col(curcol))
-			src = (BYTE *) ((TDSBLOB *) src)->textvalue;
-		srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
-
 		if (srclen <= 0) {
 			if (srclen == 0 || !curcol->column_nullbind)
 				dbgetnull(dbproc, curcol->column_bindtype, curcol->column_bindlen,
 						(BYTE *) curcol->column_varaddr);
-		} else {
-			copy_data_to_host_var(dbproc, srctype, src, srclen,
-						(BYTE *) curcol->column_varaddr,  curcol->column_bindlen,
-							 curcol->column_bindtype, (DBINT*) curcol->column_nullbind);
+			continue;
 		}
+
+		srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
+
+		if (row->row_data)
+			src = &row->row_data[curcol->column_data - row->resinfo->current_row];
+		else
+			src = curcol->column_data;
+		if (is_blob_col(curcol))
+			src = (BYTE *) ((TDSBLOB *) src)->textvalue;
+
+		copy_data_to_host_var(dbproc, srctype, src, srclen,
+					(BYTE *) curcol->column_varaddr,  curcol->column_bindlen,
+						 curcol->column_bindtype, (DBINT*) curcol->column_nullbind);
 	}
 
 	/*
