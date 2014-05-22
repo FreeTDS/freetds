@@ -4230,7 +4230,7 @@ dbaltbind(DBPROCESS * dbproc, int computeid, int column, int vartype, DBINT varl
 
 	tdsdump_log(TDS_DBG_INFO1, "dbaltbind() srctype = %d desttype = %d \n", srctype, desttype);
 
-	if (!dbwillconvert(srctype, dblib_bound_type(vartype))) {
+	if (!dbwillconvert(srctype, desttype)) {
 		dbperror(dbproc, SYBEAAMT, 0);
 		return FAIL;
 	}
