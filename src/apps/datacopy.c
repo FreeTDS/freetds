@@ -831,7 +831,9 @@ transfer_data(BCPPARAMDATA params, DBPROCESS * dbsrc, DBPROCESS * dbdest)
 				printf("allocation error\n");
 				return FALSE;
 			}
-			dbbind(dbsrc, col + 1, NUMERICBIND, sizeof(DBNUMERIC), (BYTE *) srcdata[col]->data);
+			((DBNUMERIC *) srcdata[col]->data)->precision = 18;
+			((DBNUMERIC *) srcdata[col]->data)->scale = 0;
+			dbbind(dbsrc, col + 1, SRCNUMERICBIND, sizeof(DBNUMERIC), (BYTE *) srcdata[col]->data);
 			dbnullbind(dbsrc, col + 1, &(srcdata[col]->nullind));
 			if (bcp_bind(dbdest, (BYTE *) srcdata[col]->data, 0, sizeof(DBNUMERIC), NULL, 0, SYBNUMERIC, col + 1) ==
 			    FAIL) {
