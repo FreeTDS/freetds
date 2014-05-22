@@ -211,7 +211,7 @@ process_parameters(int argc, char **argv, BCPPARAMDATA * pdata)
 
 	/* get the rest of the arguments */
 
-	while ((opt = getopt(argc, argv, "b:p:tacdS:D:v")) != -1) {
+	while ((opt = getopt(argc, argv, "b:p:tac:dS:D:v")) != -1) {
 		switch (opt) {
 		case 'b':
 			pdata->bflag++;
