@@ -790,30 +790,12 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 		tds_put_smallint(tds, bcpcol->column_flags);
 		tds_put_byte(tds, bcpcol->on_server.column_type);
 
-		switch (bcpcol->column_varint_size) {
-		case 4:
-			tds_put_int(tds, bcpcol->column_size);
-			break;
-		case 2:
-			tds_put_smallint(tds, bcpcol->column_size);
-			break;
-		case 1:
-			tds_put_byte(tds, bcpcol->column_size);
-			break;
-		case 0:
-			break;
-		default:
-			break;
-		}
+		assert(bcpcol->funcs);
+		bcpcol->funcs->put_info(tds, bcpcol);
 
-		if (is_numeric_type(bcpcol->on_server.column_type)) {
-			tds_put_byte(tds, bcpcol->column_prec);
-			tds_put_byte(tds, bcpcol->column_scale);
-		}
-		if (IS_TDS71_PLUS(tds->conn)
-			&& is_collate_type(bcpcol->on_server.column_type)) {
-			tds_put_n(tds, bcpcol->column_collation, 5);
-		}
+		/* TODO put this in put_info. It seems that parameter format is
+		 * different from BCP format
+		 */
 		if (is_blob_type(bcpcol->on_server.column_type)) {
 			/* FIXME strlen return len in bytes not in characters required here */
 			TDS_PUT_SMALLINT(tds, strlen(bcpinfo->tablename));
