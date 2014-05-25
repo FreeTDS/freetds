@@ -987,6 +987,7 @@ typedef struct tds_file_stream {
 
 	/** buffer for store bytes readed that could be the terminator */
 	char *left;
+	size_t left_pos;
 } TDSFILESTREAM;
 
 /** \cond HIDDEN_SYMBOLS */
@@ -1019,16 +1020,16 @@ tds_file_stream_read(TDSINSTREAM *stream, void *ptr, size_t len)
 /** \endcond */
 
 	while (len) {
-		if (memcmp(s->left, s->terminator, s->term_len) == 0)
+		if (memcmp(s->left, s->terminator - s->left_pos, s->term_len) == 0)
 			return p - (char *) ptr;
 
 		GETC();
 
-		*p++ = s->left[0];
+		*p++ = s->left[s->left_pos];
 		--len;
 
-		memmove(s->left, s->left+1, s->term_len-1);
-		s->left[s->term_len-1] = c;
+		s->left[s->left_pos++] = c;
+		s->left_pos %= s->term_len;
 	}
 	return p - (char *) ptr;
 }
@@ -1050,10 +1051,15 @@ tds_bcp_fread(TDSSOCKET * tds, TDSICONV * char_conv, FILE * stream, const char *
 	/* prepare streams */
 	r.stream.read = tds_file_stream_read;
 	r.f = stream;
-	r.terminator = terminator;
 	r.term_len = term_len;
-	r.left = calloc(1, term_len);
+	r.left = calloc(1, term_len*3);
+	r.left_pos = 0;
 	if (!r.left) return TDS_FAIL;
+
+	/* copy terminator twice, let terminator points to second copy */
+	memcpy(r.left + term_len, terminator, term_len);
+	memcpy(r.left + term_len*2u, terminator, term_len);
+	r.terminator = r.left + term_len*2u;
 
 	/* read initial buffer to test with terminator */
 	readed = fread(r.left, 1, term_len, stream);
