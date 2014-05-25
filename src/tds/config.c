@@ -799,7 +799,7 @@ tds_find(const void *key, const void *base, size_t nelem, size_t width,
 
 struct tdsvername_t 
 {
-	const char *name;
+	const char name[6];
 	TDS_USMALLINT version;
 };
 
