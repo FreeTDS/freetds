@@ -822,14 +822,15 @@ odbc_lock_statement(TDS_STMT* stmt)
 static void
 odbc_unlock_statement(TDS_STMT* stmt)
 {
-	TDSSOCKET * tds = stmt->tds;
+	TDSSOCKET * tds;
 
 	tds_mutex_lock(&stmt->dbc->mtx);
+	tds = stmt->tds;
 	if (stmt->dbc->current_statement == stmt) {
-		assert(stmt->tds);
-		if (stmt->tds->state == TDS_IDLE) {
+		assert(tds);
+		if (tds->state == TDS_IDLE) {
 			stmt->dbc->current_statement = NULL;
-			tds_set_parent(stmt->tds, stmt->dbc);
+			tds_set_parent(tds, stmt->dbc);
 			stmt->tds = NULL;
 		}
 #if ENABLE_ODBC_MARS
