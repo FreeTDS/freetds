@@ -834,7 +834,8 @@ tds_config_verstr(const char *tdsver, TDSLOGIN * login)
 		, { "7.1", 0x701 }
 		, { "7.2", 0x702 }
 		, { "7.3", 0x703 }
-		}, *pver;
+		};
+	const struct tdsvername_t *pver;
 
 	if (!login) {
 		assert(login);
