@@ -90,7 +90,7 @@ if test $BUILD = yes; then
 	fi
 
 	echo Making tests ...
-	TESTS_ENVIRONMENT=true
+	TESTS_ENVIRONMENT="$DIR/tds-makeenvs"
 	export TESTS_ENVIRONMENT
 	output_save "make tests" maketest $MAKE check 
 	if  test $RES != 0; then
@@ -101,7 +101,9 @@ fi
 
 if test $TEST = yes; then
 	echo Testing ...
-	TESTS_ENVIRONMENT="$DIR/full-test.sh"
+	TDS_MAKEENVS_CMD="$DIR/full-test.sh"
+	export TDS_MAKEENVS_CMD
+	TESTS_ENVIRONMENT="$DIR/tds-makeenvs"
 	export TESTS_ENVIRONMENT
 	$MAKE check 2> /dev/null
 	if  test $? != 0; then

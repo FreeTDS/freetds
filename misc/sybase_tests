@@ -45,7 +45,7 @@ for dir in src/dblib/unittests src/ctlib/unittests; do
 		make clean
 	fi
 	make clean
-	TESTS_ENVIRONMENT=true make check
+	TESTS_ENVIRONMENT="$MAINDIR/misc/tds-makeenvs" make check
 	cd ../../..
 done
 

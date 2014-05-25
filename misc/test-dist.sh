@@ -9,11 +9,15 @@
 # stop on errors
 set -e
 
+# set correct directory
+DIR=`dirname $0`
+cd "$DIR/.."
+
 for param
 do
 	case $param in
 	--no-unittests)
-		TESTS_ENVIRONMENT=true
+		TESTS_ENVIRONMENT="$PWD/misc/tds-makeenvs"
 		export TESTS_ENVIRONMENT
 		;;
 	--help)
@@ -31,10 +35,6 @@ done
 
 # do not create logs so diskcheck test does not fail
 unset TDSDUMP || true
-
-# set correct directory
-DIR=`dirname $0`
-cd "$DIR/.."
 
 # remove old distributions
 touch freetds-dummy
