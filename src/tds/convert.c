@@ -2150,7 +2150,7 @@ string_to_datetime(const char *instr, int desttype, CONV_RESULT * cr)
 	cr->dta.has_time = 1;
 	cr->dta.time_prec = 7; /* TODO correct value */
 	dt_time = (t.tm_hour * 60 + t.tm_min) * 60 + t.tm_sec;
-	cr->dta.time = dt_time * 10000000u + t.tm_ns / 100u;
+	cr->dta.time = ((TDS_UINT8) dt_time) * 10000000u + t.tm_ns / 100u;
 	return sizeof(TDS_DATETIMEALL);
 }
 
