@@ -452,6 +452,7 @@ static const DBDATETIME4	null_SMALLDATETIME = { 0, 0 };
 static const DBMONEY		null_MONEY = { 0, 0 };
 static const DBMONEY4		null_SMALLMONEY = {0};
 static const DBNUMERIC		null_NUMERIC = { 0, 0, {0} };
+static const TDS_DATETIMEALL	null_DATETIMEALL = { 0, 0, 0, 0 };
 
 static NULLREP default_null_representations[MAXBINDTYPES] = {
 	/* CHARBIND	     0  */	  {         NULL, 0 }
@@ -485,7 +486,8 @@ static NULLREP default_null_representations[MAXBINDTYPES] = {
 	/* 	             28 */	, {         NULL, 0 }
 	/* 	             29 */	, {         NULL, 0 }
 	/* BIGINTBIND        30 */	, { (BYTE*) &null_BIGINT, sizeof(null_BIGINT) }
-	/* MAXBINDTYPES      31 */
+	/* DATETIME2BIND     31 */	, { (BYTE*) &null_DATETIMEALL, sizeof(null_DATETIMEALL) }
+	/* MAXBINDTYPES      32 */
 };
 
 static int
@@ -518,7 +520,13 @@ dbbindtype(int datatype)
 
 	case SYBMONEY:		return MONEYBIND;
 	case SYBMONEY4:		return SMALLMONEYBIND;
-	
+
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+				return DATETIME2BIND;
+
 	default:
 		assert(0 == "no such datatype");
 	}
@@ -2160,6 +2168,9 @@ dblib_bound_type(int bindtype)
 	case DECIMALBIND:
 	case SRCDECIMALBIND:
 		return SYBNUMERIC;
+		break;
+	case DATETIME2BIND:
+		return SYBMSDATETIMEOFFSET;
 		break;
 	default:
 		return -1;
@@ -7342,6 +7353,14 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 			memcpy(dest, src, ret);
 			break;
 
+		case SYBMSDATE:
+		case SYBMSTIME:
+		case SYBMSDATETIME2:
+		case SYBMSDATETIMEOFFSET:
+			ret = sizeof(TDS_DATETIMEALL);
+			memcpy(dest, src, ret);
+			break;
+
 		default:
 			break;
 		}
@@ -7448,6 +7467,12 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
 		break;
 	case SYBUNIQUE:
 		memcpy(dest, &(dres.u), sizeof(TDS_UNIQUE));
+		break;
+	case SYBMSDATE:
+	case SYBMSTIME:
+	case SYBMSDATETIME2:
+	case SYBMSDATETIMEOFFSET:
+		memcpy(dest, &(dres.dta), sizeof(TDS_DATETIMEALL));
 		break;
 	case SYBCHAR:
 	case SYBVARCHAR:

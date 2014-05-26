@@ -476,7 +476,8 @@ typedef int (*MHANDLEFUNC) (DBPROCESS * dbproc, DBINT msgno, int msgstate, int s
 #define SRCNUMERICBIND    19
 #define SRCDECIMALBIND    20
 #define BIGINTBIND        30
-#define MAXBINDTYPES      31	/* keep last */
+#define DATETIME2BIND     31
+#define MAXBINDTYPES      32	/* keep last */
 
 #define DBPRCOLSEP  21
 #define DBPRLINELEN 22
