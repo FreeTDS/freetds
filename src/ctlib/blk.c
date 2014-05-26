@@ -677,11 +677,17 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 					case CS_MONEY_TYPE:	    srclen = 8; break;
 					case CS_DATETIME_TYPE:  srclen = 8; break;
 					case CS_INT_TYPE:	    srclen = 4; break;
+					case CS_UINT_TYPE:	    srclen = 4; break;
 					case CS_REAL_TYPE:	    srclen = 4; break;
 					case CS_MONEY4_TYPE:	srclen = 4; break;
 					case CS_DATETIME4_TYPE: srclen = 4; break;
 					case CS_SMALLINT_TYPE:  srclen = 2; break;
+					case CS_USMALLINT_TYPE:  srclen = 2; break;
 					case CS_TINYINT_TYPE:   srclen = 1; break;
+					case CS_BIT_TYPE:   srclen = 1; break;
+					case CS_BIGINT_TYPE:	    srclen = 8; break;
+					case CS_UBIGINT_TYPE:	    srclen = 8; break;
+					case CS_UNIQUE_TYPE:	    srclen = 16; break;
 					default:
 						printf("error not fixed length type (%d) and datalen not specified\n",
 							bindcol->column_bindtype);
