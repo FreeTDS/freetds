@@ -719,16 +719,15 @@ bcp_getl(LOGINREC * login)
 static RETCODE
 _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 {
-	FILE *hostfile;
+	FILE *hostfile = NULL;
+	TDS_UCHAR *data = NULL;
+	TDS_INT    datalen;
 	int i;
 
 	TDSSOCKET *tds;
 	TDSRESULTINFO *resinfo;
 	TDSCOLUMN *curcol = NULL;
 	BCP_HOSTCOLINFO *hostcol;
-	BYTE *src;
-	int srctype;
-	int srclen;
 	int buflen;
 	int plen;
 
@@ -737,8 +736,6 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	TDS_TINYINT ti;
 	TDS_SMALLINT si;
 	TDS_INT li;
-
-	TDSDATEREC when;
 
 	int row_of_query;
 	int rows_written;
@@ -786,6 +783,9 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	 * the resulting data (converted to whatever host file format)
 	 */
 
+	/* allocate at least 256 bytes */
+	datalen = 256;
+
 	for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
 
 		hostcol = dbproc->hostfileinfo->host_columns[i];
@@ -799,45 +799,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 		/* work out how much space to allocate for output data */
 
-		/* TODO use a function for fixed types */
 		switch (hostcol->datatype) {
-
-		case SYBINT1:
-			buflen = 1;
-			break;
-		case SYBINT2:
-			buflen = 2;
-			break;
-		case SYBINT4:
-			buflen = 4;
-			break;
-		case SYBINT8:
-			buflen = 8;
-			break;
-		case SYBREAL:
-			buflen = 4;
-			break;
-		case SYBFLT8:
-			buflen = 8;
-			break;
-		case SYBDATETIME:
-			buflen = 8;
-			break;
-		case SYBDATETIME4:
-			buflen = 4;
-			break;
-		case SYBBIT:
-			buflen = 1;
-			break;
-		case SYBBITN:
-			buflen = 1;
-			break;
-		case SYBMONEY:
-			buflen = 8;
-			break;
-		case SYBMONEY4:
-			buflen = 4;
-			break;
 		case SYBCHAR:
 		case SYBVARCHAR:
 			switch (curcol->column_type) {
@@ -854,40 +816,19 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			case SYBIMAGE:
 				buflen = curcol->column_size * 2 + 1;
 				break;
-			case SYBINT1:
-				buflen = 4 + 1;	/*  255         */
-				break;
-			case SYBINT2:
-				buflen = 6 + 1;	/* -32768       */
-				break;
-			case SYBINT4:
-				buflen = 11 + 1;	/* -2147483648  */
-				break;
-			case SYBINT8:
-				buflen = 20 + 1;	/* -9223372036854775808  */
-				break;
-			case SYBNUMERIC:
-			case SYBDECIMAL:
-				buflen = 40 + 1;	/* 10 to the 38 */
-				break;
-			case SYBFLT8:
-				buflen = 40 + 1;	/* 10 to the 38 */
-				break;
-			case SYBDATETIME:
-			case SYBDATETIME4:
-				buflen = 255 + 1;
-				break;
-			default:
-				buflen = 255 + 1;
-				break;
 			}
 			break;
-		default:
-			buflen = 255;
 		}
 
-		hostcol->bcp_column_data = tds_alloc_bcp_column_data(buflen);
-		hostcol->bcp_column_data->datalen = buflen;
+		if (buflen > datalen)
+			datalen = buflen;
+	}
+
+	/* allocate data for buffer conversion */
+	data = (TDS_UCHAR *) malloc(datalen);
+	if (!data) {
+		dbperror(dbproc, SYBEMEM, errno);
+		goto Cleanup;
 	}
 
 	/*
@@ -897,7 +838,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 	if (!(hostfile = fopen(dbproc->hostfileinfo->hostfile, "w"))) {
 		dbperror(dbproc, SYBEBCUO, errno);
-		return FAIL;
+		goto Cleanup;
 	}
 
 	/* fetch a row of data from the server */
@@ -924,27 +865,21 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 
 			curcol = resinfo->columns[hostcol->tab_colnum - 1];
 
-			src = curcol->column_data;
-
-			if (is_blob_col(curcol))
-				src = (BYTE *) ((TDSBLOB *) src)->textvalue;
-
-			srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
-
 			if (curcol->column_cur_size < 0) {
-				srclen = 0;
-				hostcol->bcp_column_data->is_null = 1;
+				buflen = 0;
 			} else {
+				BYTE *src;
+				int srclen;
+				int srctype = tds_get_conversion_type(curcol->column_type, curcol->column_size);
+
+				src = curcol->column_data;
+				if (is_blob_col(curcol))
+					src = (BYTE *) ((TDSBLOB *) src)->textvalue;
+
 				if (is_numeric_type(curcol->column_type))
 					srclen = sizeof(TDS_NUMERIC);
 				else
 					srclen = curcol->column_cur_size;
-				hostcol->bcp_column_data->is_null = 0;
-			}
-
-			if (hostcol->bcp_column_data->is_null) {
-				buflen = 0;
-			} else {
 
 				/*
 				 * if we are converting datetime to string, need to override any
@@ -952,8 +887,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				 */
 				if ((srctype == SYBDATETIME || srctype == SYBDATETIME4)
 				    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
+					TDSDATEREC when;
+
 					tds_datecrack(srctype, src, &when);
-					buflen = (int)tds_strftime((TDS_CHAR *)hostcol->bcp_column_data->data, 256,
+					buflen = (int)tds_strftime((TDS_CHAR *)data, 256,
 								 bcpdatefmt, &when, 3);
 				} else {
 					/*
@@ -963,8 +900,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					 */
 					/* TODO check for text !!! */
 					buflen =  dbconvert(dbproc, srctype, src, srclen, hostcol->datatype,
-							    hostcol->bcp_column_data->data,
-							    hostcol->bcp_column_data->datalen);
+							    data, datalen);
 					/*
 					 * Special case:  When outputting database varchar data
 					 * (either varchar or nullable char) dbconvert may have
@@ -974,7 +910,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 					if (( curcol->column_type == SYBVARCHAR ||
 						 (curcol->column_type == SYBCHAR && curcol->column_nullable)
 					    ) && srclen > 0 && buflen == 0) {
-						strcpy ((char *)hostcol->bcp_column_data->data, " ");
+						strcpy ((char *)data, " ");
 						buflen = 1;
 					}
 				}
@@ -1010,9 +946,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				break;
 			}
 			if( plen != 0 && written != 1 ) {
-				fclose(hostfile);
 				dbperror(dbproc, SYBEBCWE, errno);
-				return FAIL;
+				goto Cleanup;
 			}
 
 			/* The data */
@@ -1021,11 +956,10 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			}
 
 			if (buflen > 0) {
-				written = fwrite(hostcol->bcp_column_data->data, buflen, 1, hostfile);
+				written = fwrite(data, buflen, 1, hostfile);
 				if (written < 1) {
-					fclose(hostfile);
 					dbperror(dbproc, SYBEBCWE, errno);
-					return FAIL;
+					goto Cleanup;
 				}
 			}
 
@@ -1033,9 +967,8 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			if (hostcol->terminator && hostcol->term_len > 0) {
 				written = fwrite(hostcol->terminator, hostcol->term_len, 1, hostfile);
 				if (written < 1) {
-					fclose(hostfile);
 					dbperror(dbproc, SYBEBCWE, errno);
-					return FAIL;
+					goto Cleanup;
 				}
 			}
 		}
@@ -1043,7 +976,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 	}
 	if (fclose(hostfile) != 0) {
 		dbperror(dbproc, SYBEBCUC, errno);
-		return FAIL;
+		goto Cleanup;
 	}
 	hostfile = NULL;
 
@@ -1055,11 +988,18 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 		 */
 		/* TODO reset TDSSOCKET state */
 		dbperror(dbproc, SYBETTS, 0);
-		return FAIL;
+		goto Cleanup;
 	}
 
 	*rows_copied = rows_written;
+	free(data);
 	return SUCCEED;
+
+Cleanup:
+	if (hostfile)
+		fclose(hostfile);
+	free(data);
+	return FAIL;
 }
 
 static STATUS
@@ -2248,6 +2188,10 @@ _bcp_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 	return TDS_SUCCESS;
 }
 
+/**
+ * Function to read data from file. I this case is empty as data
+ * are already on bcp_column_data
+ */
 static TDSRET
 _bcp_no_get_col_data(TDSBCPINFO *bcpinfo, TDSCOLUMN *bindcol, int offset)
 {
