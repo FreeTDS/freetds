@@ -798,7 +798,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 			hostcol->datatype = curcol->column_type;
 
 		/* work out how much space to allocate for output data */
-
+		buflen = 0;
 		switch (hostcol->datatype) {
 		case SYBCHAR:
 		case SYBVARCHAR:
