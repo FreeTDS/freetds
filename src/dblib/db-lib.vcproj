@@ -301,6 +301,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dbpivot.c"
+				>
+			</File>
+			<File
 				RelativePath=".\dbutil.c"
 				>
 			</File>

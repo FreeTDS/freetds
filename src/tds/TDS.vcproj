@@ -441,6 +441,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sspi.c"
+				>
+			</File>
+			<File
 				RelativePath=".\write.c"
 				>
 			</File>
