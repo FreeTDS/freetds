@@ -444,7 +444,7 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		return rc;
 	}
 	varint = (type == SYBUNIQUE) ? 0 : tds_get_varint_size(tds->conn, type);
-	if (varint != info_len)
+	if (varint != info_len || varint > 2)
 		goto error_type;
 	switch (varint) {
 	case 0:
