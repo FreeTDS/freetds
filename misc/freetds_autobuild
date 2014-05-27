@@ -155,6 +155,7 @@ mv $BASE.tmp test1
 cp -rl test1 test2
 cp -rl test1 test3
 cp -rl test1 test4
+cp -rl test1 test5
 
 grab_logs() {
 	find -path '*/unittests/*.log' -type f | sort | sed 's/\.log$//' | while read fn; do
@@ -295,6 +296,20 @@ upload "$OUTDIR/test4" '*.html'
 cd ..
 }
 
+test5() {
+cd test5
+WORKDIR=$PWD
+# do tests with mssql 2000
+set_pwd_file $ROOT/PWD.msde
+init_log
+./misc/test-auto.sh --no-build >> logs/log.txt
+grab_logs
+cd logs
+../misc/online.pl < log.txt
+upload "$OUTDIR/test5" '*.html'
+cd ..
+}
+
 pids=
 test1 &
 pids="$pids $!"
@@ -303,6 +318,8 @@ pids="$pids $!"
 test3 &
 pids="$pids $!"
 test4 &
+pids="$pids $!"
+test5 &
 pids="$pids $!"
 
 for pid in $pids; do
