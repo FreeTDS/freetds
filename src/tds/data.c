@@ -1231,7 +1231,7 @@ tds_clrudt_get_info(TDSSOCKET * tds, TDSCOLUMN * col)
 static TDS_INT
 tds_clrudt_row_len(TDSCOLUMN *col)
 {
-	/* TODO safe other fields */
+	/* TODO save other fields */
 	return sizeof(TDSBLOB);
 }
 
