@@ -800,7 +800,9 @@ AC_tds_FUNC_WHICH_LOCALTIME_R
 
 # easy test for pthread (no library, only mutex support)
 AC_TRY_LINK([#include <pthread.h>
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;],
+#if !defined(_WIN32)
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif],
 [pthread_mutex_lock(&mutex);
 pthread_mutex_unlock(&mutex)], AC_DEFINE(TDS_HAVE_PTHREAD_MUTEX, 1, [Define if you have pthread with mutex support]))
 
