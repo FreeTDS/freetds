@@ -333,26 +333,20 @@ TDSRET
 tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data get_col_data, tds_bcp_null_error ignored, int offset)
 {
 	TDSCOLUMN  *bindcol;
-
-	static const TDS_TINYINT textptr_size = 16;
-	static const unsigned char GEN_NULL = 0x00;
-
-	static const unsigned char CHARBIN_NULL[] = { 0xff, 0xff };
-	static const unsigned char textptr[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-						 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-	static const unsigned char timestamp[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-
 	int i;
 	TDSRET rc;
 
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_send_bcp_record(%p, %p, %p, ignored, %d)\n", tds, bcpinfo, get_col_data, offset);
 
 	if (IS_TDS7_PLUS(tds->conn)) {
-		TDS_TINYINT  varint_1;
 
 		tds_put_byte(tds, TDS_ROW_TOKEN);   /* 0xd1 */
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
 	
+			TDS_INT save_size;
+			unsigned char *save_data;
+			TDSBLOB blob;
+
 			bindcol = bcpinfo->bindinfo->columns[i];
 
 			/*
@@ -372,69 +366,27 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 			}
 			tdsdump_log(TDS_DBG_INFO1, "gotten column %d length %d null %d\n",
 					i + 1, bindcol->bcp_column_data->datalen, bindcol->bcp_column_data->is_null);
-	
+
+			save_size = bindcol->column_cur_size;
+			save_data = bindcol->column_data;
+			assert(bindcol->column_data == NULL);
 			if (bindcol->bcp_column_data->is_null) {
-				/* A default may be defined for the column; let server reject if not. */
-				switch (bindcol->on_server.column_type) {
-				case XSYBCHAR:
-				case XSYBVARCHAR:
-				case XSYBBINARY:
-				case XSYBVARBINARY:
-				case XSYBNCHAR:
-				case XSYBNVARCHAR:
-					tds_put_n(tds, CHARBIN_NULL, 2);
-					break;
-				default:
-					tds_put_byte(tds, GEN_NULL);
-					break;
-				}
+				bindcol->column_cur_size = -1;
+			} else if (is_blob_col(bindcol)) {
+				bindcol->column_cur_size = bindcol->bcp_column_data->datalen;
+				memset(&blob, 0, sizeof(blob));
+				blob.textvalue = (TDS_CHAR *) bindcol->bcp_column_data->data;
+				bindcol->column_data = (unsigned char *) &blob;
 			} else {
-
-				switch (bindcol->column_varint_size) {
-				case 4:
-					if (is_blob_type(bindcol->on_server.column_type)) {
-						tds_put_byte(tds, textptr_size);
-						tds_put_n(tds, textptr, 16);
-						tds_put_n(tds, timestamp, 8);
-					}
-					tds_put_int(tds, bindcol->bcp_column_data->datalen);
-					break;
-				case 2:
-					tds_put_smallint(tds, bindcol->bcp_column_data->datalen);
-					break;
-				case 1:
-					varint_1 = bindcol->bcp_column_data->datalen;
-					if (is_numeric_type(bindcol->on_server.column_type)) {
-						varint_1 = tds_numeric_bytes_per_prec[bindcol->column_prec];
-						tdsdump_log(TDS_DBG_INFO1, "numeric type prec = %d varint_1 = %d\n",
-										 bindcol->column_prec, varint_1);
-					} else {
-						varint_1 = bindcol->bcp_column_data->datalen;
-						tdsdump_log(TDS_DBG_INFO1, "varint_1 = %d\n", varint_1);
-					}
-					tds_put_byte(tds, varint_1);
-					break;
-				case 0:
-					break;
-				}
-
-#if WORDS_BIGENDIAN
-				tds_swap_datatype(tds_get_conversion_type(bindcol->column_type, bindcol->bcp_column_data->datalen),
-									bindcol->bcp_column_data->data);
-#endif
-				if (is_numeric_type(bindcol->on_server.column_type)) {
-					TDS_NUMERIC *num = (TDS_NUMERIC *) bindcol->bcp_column_data->data;
-					int size;
-					tdsdump_log(TDS_DBG_INFO1, "numeric type prec = %d\n", num->precision);
-					if (IS_TDS7_PLUS(tds->conn))
-						tds_swap_numeric(num);
-					size = tds_numeric_bytes_per_prec[num->precision];
-					tds_put_n(tds, num->array, size);
-				} else {
-					tds_put_n(tds, bindcol->bcp_column_data->data, bindcol->bcp_column_data->datalen);
-				}
-
+				bindcol->column_cur_size = bindcol->bcp_column_data->datalen;
+				bindcol->column_data = bindcol->bcp_column_data->data;
 			}
+			rc = bindcol->funcs->put_data(tds, bindcol, 1);
+			bindcol->column_cur_size = save_size;
+			bindcol->column_data = save_data;
+
+			if (TDS_FAILED(rc))
+				return rc;
 		}
 	}  /* IS_TDS7_PLUS */
 	else {
@@ -754,7 +706,7 @@ tds7_bcp_send_colmetadata(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	assert(tds && bcpinfo);
 
 	/* 
-	 * Deep joy! For TDS 8 we have to send a colmetadata message followed by row data 
+	 * Deep joy! For TDS 7 we have to send a colmetadata message followed by row data
 	 */
 	tds_put_byte(tds, TDS7_RESULT_TOKEN);	/* 0x81 */
 

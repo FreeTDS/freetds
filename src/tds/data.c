@@ -754,7 +754,7 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
  * \return TDS_FAIL on error or TDS_SUCCESS
  */
 static TDSRET
-tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
+tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 {
 	unsigned char *src;
 	TDSBLOB *blob = NULL;
@@ -776,7 +776,10 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
 			tds_put_int(tds, 0);
 			break;
 		case 4:
-			tds_put_int(tds, -1);
+			if (bcp7 && is_blob_type(curcol->on_server.column_type))
+				tds_put_byte(tds, 0);
+			else
+				tds_put_int(tds, -1);
 			break;
 		case 2:
 			tds_put_smallint(tds, -1);
@@ -805,7 +808,7 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	s = (char *) src;
 
 	/* convert string if needed */
-	if (curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY && colsize) {
+	if (!bcp7 && curcol->char_conv && curcol->char_conv->flags != TDS_ENCODING_MEMCPY && colsize) {
 		size_t output_size;
 #if 0
 		/* TODO this case should be optimized */
@@ -846,6 +849,15 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol)
 		case 4:	/* It's a BLOB... */
 			colsize = MIN(colsize, size);
 			/* mssql require only size */
+			if (bcp7 && is_blob_type(curcol->on_server.column_type)) {
+				static const unsigned char textptr[] = {
+					0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+					0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+				};
+				tds_put_byte(tds, 16);
+				tds_put_n(tds, textptr, 16);
+				tds_put_n(tds, textptr, 8);
+			}
 			tds_put_int(tds, colsize);
 			break;
 		case 2:
@@ -1044,7 +1056,7 @@ tds_numeric_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 static TDSRET
-tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col)
+tds_numeric_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
 	TDS_NUMERIC *num = (TDS_NUMERIC *) col->column_data, buf;
 	unsigned char colsize;
@@ -1074,7 +1086,7 @@ tds_variant_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 static TDSRET
-tds_variant_put(TDSSOCKET *tds, TDSCOLUMN *col)
+tds_variant_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
 	/* TODO */
 	return TDS_FAIL;
@@ -1174,7 +1186,7 @@ tds_msdatetime_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 }
 
 static TDSRET
-tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col)
+tds_msdatetime_put(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7)
 {
 	const TDS_DATETIMEALL *dta = (const TDS_DATETIMEALL *) col->column_data;
 	unsigned char buf[12], *p;

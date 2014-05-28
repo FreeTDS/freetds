@@ -657,8 +657,22 @@ typedef struct tds_column_funcs
 	TDSRET (*get_info)(TDSSOCKET *tds, TDSCOLUMN *col);
 	TDSRET (*get_data)(TDSSOCKET *tds, TDSCOLUMN *col);
 	TDS_INT (*row_len)(TDSCOLUMN *col);
+	/**
+	 * Send metadata column information to server.
+	 * \tds
+	 * \param col  column to send
+	 */
 	TDSRET (*put_info)(TDSSOCKET *tds, TDSCOLUMN *col);
-	TDSRET (*put_data)(TDSSOCKET *tds, TDSCOLUMN *col);
+	/**
+	 * Send column data to server.
+	 * Usually send parameters unless bcp7 is specified, in
+	 * this case send BCP for TDS7+ (Sybase use a completely
+	 * different format for BCP)
+	 * \tds
+	 * \param col  column to send
+	 * \param bcp7 1 to send BCP column on TDS7+
+	 */
+	TDSRET (*put_data)(TDSSOCKET *tds, TDSCOLUMN *col, int bcp7);
 #if 0
 	TDSRET (*convert)(TDSSOCKET *tds, TDSCOLUMN *col);
 #endif

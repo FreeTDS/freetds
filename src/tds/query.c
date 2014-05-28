@@ -277,7 +277,7 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 static inline TDSRET
 tds_put_data(TDSSOCKET * tds, TDSCOLUMN * curcol)
 {
-	return curcol->funcs->put_data(tds, curcol);
+	return curcol->funcs->put_data(tds, curcol, 0);
 }
 
 /**
