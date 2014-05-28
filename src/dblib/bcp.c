@@ -885,7 +885,7 @@ _bcp_exec_out(DBPROCESS * dbproc, DBINT * rows_copied)
 				 * if we are converting datetime to string, need to override any
 				 * date time formats already established
 				 */
-				if ((srctype == SYBDATETIME || srctype == SYBDATETIME4)
+				if (is_datetime_type(srctype)
 				    && (hostcol->datatype == SYBCHAR || hostcol->datatype == SYBVARCHAR)) {
 					TDSDATEREC when;
 

@@ -444,6 +444,8 @@ typedef enum tds_encryption_level {
 /* large type means it has a two byte size field */
 /* define is_large_type(x) (x>128) */
 #define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
+/** return true if type is a datetime (but not date or time) */
+#define is_datetime_type(x) ((x)==SYBDATETIME4 || (x)==SYBDATETIME || ((x)>=SYBMSDATETIME2 && (x)<=SYBMSDATETIMEOFFSET))
 #define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT || x==SYBMSXML)
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
