@@ -164,17 +164,18 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 }
 
 
-int
-tds_swap_bytes(unsigned char *buf, int bytes)
+void
+tds_swap_bytes(void *buf, int bytes)
 {
 	unsigned char tmp;
+	unsigned char * const p = (unsigned char *) buf;
 	int i;
 
 	/* if (bytes % 2) { return 0 }; */
 	for (i = 0; i < bytes / 2; i++) {
-		tmp = buf[i];
-		buf[i] = buf[bytes - i - 1];
-		buf[bytes - i - 1] = tmp;
+		tmp = p[i];
+		p[i] = p[bytes - i - 1];
+		p[bytes - i - 1] = tmp;
 	}
 	return bytes;
 }

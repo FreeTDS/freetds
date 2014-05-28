@@ -1374,7 +1374,7 @@ DSTR* tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len);
 /* util.c */
 int tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum);
 TDS_STATE tds_set_state(TDSSOCKET * tds, TDS_STATE state);
-int tds_swap_bytes(unsigned char *buf, int bytes);
+void tds_swap_bytes(void *buf, int bytes);
 #ifdef ENABLE_DEVELOPING
 unsigned int tds_gettime_ms(void);
 #endif

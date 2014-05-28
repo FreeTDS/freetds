@@ -616,7 +616,7 @@ fill_names_blob_prefix(names_blob_prefix_t * prefix)
 	prefix->reserved1 = 0x0000;
 	prefix->reserved2 = 0x00000000;
 #ifdef WORDS_BIGENDIAN
-	tds_swap_bytes((unsigned char *) &nttime, 8);
+	tds_swap_bytes(&nttime, 8);
 #endif
 	prefix->timestamp = nttime;
 	generate_random_buffer(prefix->challenge, sizeof(prefix->challenge));
