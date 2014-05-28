@@ -182,7 +182,7 @@ tds_put_int8(TDSSOCKET * tds, TDS_INT8 i)
 
 	p = &tds->out_buf[tds->out_pos];
 #if WORDS_BIGENDIAN
-	if (tds->emul_little_endian) {
+	if (tds_conn(tds)->emul_little_endian) {
 		TDS_PUT_UA4LE(p, (TDS_UINT) i);
 		TDS_PUT_UA4LE(p+4, (TDS_UINT) (i >> 32));
 	} else {

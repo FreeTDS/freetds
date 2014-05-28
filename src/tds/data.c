@@ -479,6 +479,10 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 				return TDS_FAIL;
 			tds_get_n(tds, v->data, colsize);
 		}
+#ifdef WORDS_BIGENDIAN
+		if (tds_conn(tds)->emul_little_endian)
+			tds_swap_datatype(tds_get_conversion_type(type, colsize), v->data);
+#endif
 	}
 	v->data_len = colsize;
 	return TDS_SUCCESS;
