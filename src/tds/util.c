@@ -167,17 +167,16 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 void
 tds_swap_bytes(void *buf, int bytes)
 {
-	unsigned char tmp;
-	unsigned char * const p = (unsigned char *) buf;
-	int i;
+	unsigned char tmp, *begin, *last;
 
-	/* if (bytes % 2) { return 0 }; */
-	for (i = 0; i < bytes / 2; i++) {
-		tmp = p[i];
-		p[i] = p[bytes - i - 1];
-		p[bytes - i - 1] = tmp;
+	begin = (unsigned char *) buf;
+	last  = begin + bytes;
+
+	while (begin < --last) {
+		tmp      = *last;
+		*last    = *begin;
+		*begin++ = tmp;
 	}
-	return bytes;
 }
 
 /* not used by FreeTDS, uncomment if needed */
