@@ -115,14 +115,14 @@ tds_peek(TDSSOCKET * tds)
 TDS_USMALLINT
 tds_get_usmallint(TDSSOCKET * tds)
 {
-	unsigned char bytes[2];
+	TDS_USMALLINT bytes[1];
 
-	tds_get_n(tds, bytes, 2);
+	tds_get_n(tds, &bytes, 2);
 #if WORDS_BIGENDIAN
 	if (tds_conn(tds)->emul_little_endian)
-		return (TDS_USMALLINT) TDS_GET_A2LE(bytes);
+		return (TDS_USMALLINT) TDS_GET_A2LE(&bytes);
 #endif
-	return (TDS_USMALLINT) TDS_GET_A2(bytes);
+	return (TDS_USMALLINT) TDS_GET_A2(&bytes);
 }
 
 
@@ -133,14 +133,14 @@ tds_get_usmallint(TDSSOCKET * tds)
 TDS_UINT
 tds_get_uint(TDSSOCKET * tds)
 {
-	unsigned char bytes[4];
+	TDS_UINT bytes;
 
-	tds_get_n(tds, bytes, 4);
+	tds_get_n(tds, &bytes, 4);
 #if WORDS_BIGENDIAN
 	if (tds_conn(tds)->emul_little_endian)
-		return TDS_GET_A4LE(bytes);
+		return TDS_GET_A4LE(&bytes);
 #endif
-	return TDS_GET_A4(bytes);
+	return TDS_GET_A4(&bytes);
 }
 
 /**
@@ -152,20 +152,20 @@ tds_get_uint8(TDSSOCKET * tds)
 {
 	TDS_UINT h;
 	TDS_UINT l;
-	unsigned char bytes[8];
+	TDS_UINT bytes[2];
 
 	tds_get_n(tds, bytes, 8);
 #if WORDS_BIGENDIAN
 	if (tds_conn(tds)->emul_little_endian) {
 		l = TDS_GET_A4LE(bytes);
-		h = TDS_GET_A4LE(bytes+4);
+		h = TDS_GET_A4LE(bytes+1);
 	} else {
 		h = TDS_GET_A4(bytes);
-		l = TDS_GET_A4(bytes+4);
+		l = TDS_GET_A4(bytes+1);
 	}
 #else
 	l = TDS_GET_A4(bytes);
-	h = TDS_GET_A4(bytes+4);
+	h = TDS_GET_A4(bytes+1);
 #endif
 	return (((TDS_UINT8) h) << 32) | l;
 }
