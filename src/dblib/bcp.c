@@ -2267,7 +2267,6 @@ _bcp_free_columns(DBPROCESS * dbproc)
 	if (dbproc->hostfileinfo->host_columns) {
 		for (i = 0; i < dbproc->hostfileinfo->host_colcount; i++) {
 			TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns[i]->terminator);
-			tds_free_bcp_column_data(dbproc->hostfileinfo->host_columns[i]->bcp_column_data);
 			TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns[i]);
 		}
 		TDS_ZERO_FREE(dbproc->hostfileinfo->host_columns);

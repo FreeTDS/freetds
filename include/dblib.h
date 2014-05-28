@@ -70,7 +70,6 @@ typedef struct
 	int term_len;
 	int tab_colnum;
 	int column_error;
-	BCPCOLDATA *bcp_column_data;
 } BCP_HOSTCOLINFO;
 
 typedef struct 
