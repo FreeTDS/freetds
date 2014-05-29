@@ -5,7 +5,7 @@ EXTRA_DIST      = config.h FreeTDS.def FreeTDS_w.def initnet.c \
 		version.rc version.rc.in \
 		freetds.nsh freetds.nsh.in \
 		installfreetds.bat freetds.nsi \
-		dblib.def
+		dblib.def config.h
 
 CLEANFILES = setup.res
 
