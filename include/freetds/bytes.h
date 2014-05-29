@@ -87,6 +87,7 @@
 #define TDS_PUT_A4BE(ptr,val) TDS_PUT_UA4BE(ptr,val)
 
 /* architecture dependent */
+/* map to generic macros or redefine for aligned and same endianess */
 #ifdef WORDS_BIGENDIAN
 # define TDS_GET_A1(ptr)  TDS_GET_A1BE(ptr)
 # define TDS_GET_UA1(ptr) TDS_GET_UA1BE(ptr)
@@ -142,6 +143,7 @@
 #endif
 
 /* these platform support unaligned fetch/store */
+/* map unaligned macro to aligned ones */
 #if defined(__i386__) || defined(__amd64__) || defined(__CRIS__) ||\
   defined(__powerpc__) || defined(__powerpc64__) || defined(__ppc__) || defined(__ppc64__) ||\
   defined(__s390__) || defined(__s390x__) || defined(__m68k__)
@@ -168,7 +170,7 @@
 # endif
 #endif
 
-#if defined(__linux__) && defined(__GNUC__) && defined(__i386__)
+#if defined(__linux__) && defined(__GNUC__) && (defined(__i386__) || defined(__amd64__))
 # include <byteswap.h>
 # undef TDS_GET_UA2BE
 # undef TDS_GET_UA4BE
