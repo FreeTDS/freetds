@@ -394,62 +394,39 @@ typedef enum tds_encryption_level {
 			x==TDS_COLNAME_TOKEN    || \
 			x==TDS_RETURNSTATUS_TOKEN)
 
-/* FIXME -- not a complete list */
-#define is_fixed_type(x) (x==SYBINT1    || \
-			x==SYBINT2      || \
-			x==SYBINT4      || \
-			x==SYBINT8      || \
-			x==SYBUINT1     || \
-			x==SYBUINT2     || \
-			x==SYBUINT4     || \
-			x==SYBUINT8     || \
-			x==SYBREAL      || \
-			x==SYBFLT8      || \
-			x==SYBDATETIME  || \
-			x==SYBDATETIME4 || \
-			x==SYBBIT       || \
-			x==SYBMONEY     || \
-			x==SYBMONEY4    || \
-			x==SYBVOID      || \
-			x==SYBUNIQUE    || \
-			x==SYBMSDATE)
-#define is_nullable_type(x) ( \
-		     x==SYBBITN      || \
-                     x==SYBINTN      || \
-                     x==SYBFLTN      || \
-                     x==SYBMONEYN    || \
-                     x==SYBDATETIMN  || \
-                     x==SYBVARCHAR   || \
-                     x==SYBVARBINARY || \
-                     x==SYBTEXT      || \
-                     x==SYBNTEXT     || \
-                     x==SYBIMAGE)
+enum {
+	TDS_TYPEFLAG_INVALID  = 0,
+	TDS_TYPEFLAG_NULLABLE = 1,
+	TDS_TYPEFLAG_FIXED    = 2,
+	TDS_TYPEFLAG_VARIABLE = 4,
+	TDS_TYPEFLAG_COLLATE  = 8,
+	TDS_TYPEFLAG_ASCII    = 16,
+	TDS_TYPEFLAG_UNICODE  = 32,
+	TDS_TYPEFLAG_NUMERIC  = 64,
+};
 
-#define is_variable_type(x) ( \
-	(x)==SYBTEXT	|| \
-	(x)==SYBIMAGE	|| \
-	(x)==SYBNTEXT	|| \
-	(x)==SYBCHAR	|| \
-	(x)==SYBVARCHAR	|| \
-	(x)==SYBBINARY	|| \
-	(x)==SYBVARBINARY	|| \
-	(x)==SYBLONGBINARY	|| \
-	(x)==XSYBCHAR	|| \
-	(x)==XSYBVARCHAR	|| \
-	(x)==XSYBNVARCHAR	|| \
-	(x)==XSYBNCHAR)
+extern const unsigned char tds_type_flags_ms[256];
+#if 0
+extern const unsigned char tds_type_flags_syb[256];
+extern const char *const tds_type_names[256];
+#endif
 
-#define is_blob_type(x) (x==SYBTEXT || x==SYBIMAGE || x==SYBNTEXT)
-#define is_blob_col(x) ((x)->column_varint_size > 2)
+#define is_fixed_type(x)      ((tds_type_flags_ms[x] & TDS_TYPEFLAG_FIXED)    != 0)
+#define is_nullable_type(x)   ((tds_type_flags_ms[x] & TDS_TYPEFLAG_NULLABLE) != 0)
+#define is_variable_type(x)   ((tds_type_flags_ms[x] & TDS_TYPEFLAG_VARIABLE) != 0)
+
+
+#define is_blob_type(x)       ((x)==SYBTEXT || (x)==SYBIMAGE || (x)==SYBNTEXT)
+#define is_blob_col(x)        ((x)->column_varint_size > 2)
 /* large type means it has a two byte size field */
 /* define is_large_type(x) (x>128) */
-#define is_numeric_type(x) (x==SYBNUMERIC || x==SYBDECIMAL)
+#define is_numeric_type(x)    ((x)==SYBNUMERIC || (x)==SYBDECIMAL)
 /** return true if type is a datetime (but not date or time) */
-#define is_datetime_type(x) ((x)==SYBDATETIME4 || (x)==SYBDATETIME || ((x)>=SYBMSDATETIME2 && (x)<=SYBMSDATETIMEOFFSET))
-#define is_unicode_type(x) (x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT || x==SYBMSXML)
-#define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
-#define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
-#define is_char_type(x) (is_unicode_type(x) || is_ascii_type(x))
+#define is_datetime_type(x)   ((x)==SYBDATETIME4 || (x)==SYBDATETIME || ((x)>=SYBMSDATETIME2 && (x)<=SYBMSDATETIMEOFFSET))
+#define is_unicode_type(x)    ((tds_type_flags_ms[x] & TDS_TYPEFLAG_UNICODE) != 0)
+#define is_collate_type(x)    ((tds_type_flags_ms[x] & TDS_TYPEFLAG_COLLATE) != 0)
+#define is_ascii_type(x)      ((tds_type_flags_ms[x] & TDS_TYPEFLAG_ASCII) != 0)
+#define is_char_type(x)       ((tds_type_flags_ms[x] & (TDS_TYPEFLAG_ASCII|TDS_TYPEFLAG_UNICODE)) != 0)
 #define is_similar_type(x, y) (is_char_type(x) && is_char_type(y))
 
 

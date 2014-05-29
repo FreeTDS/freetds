@@ -65,6 +65,6 @@ num_limits.h: num_limits.pl Makefile
 	mv $@.tmp $@
 
 tds_types.h: types.pl Makefile ../../misc/types.csv
-	perl $(srcdir)/types.pl < $(srcdir)/../../misc/types.csv > $@.tmp
+	perl $(srcdir)/types.pl $(top_srcdir)/misc/types.csv $(top_srcdir)/include/freetds/proto.h > $@.tmp
 	mv $@.tmp $@
 endif
