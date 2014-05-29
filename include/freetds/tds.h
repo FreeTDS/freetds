@@ -450,7 +450,7 @@ typedef enum tds_encryption_level {
 #define is_collate_type(x) (x==XSYBVARCHAR || x==XSYBCHAR || x==SYBTEXT || x==XSYBNVARCHAR || x==XSYBNCHAR || x==SYBNTEXT)
 #define is_ascii_type(x) ( x==XSYBCHAR || x==XSYBVARCHAR || x==SYBTEXT || x==SYBCHAR || x==SYBVARCHAR)
 #define is_char_type(x) (is_unicode_type(x) || is_ascii_type(x))
-#define is_similar_type(x, y) ((is_char_type(x) && is_char_type(y)) || ((is_unicode_type(x) && is_unicode_type(y))))
+#define is_similar_type(x, y) (is_char_type(x) && is_char_type(y))
 
 
 #define TDS_MAX_CAPABILITY	22
