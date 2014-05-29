@@ -1,6 +1,6 @@
 Name;vendor;varint;fixed;nullable;variable;blob;numeric;unicode;ascii;size;nullable type;display size;
 SYB5INT8;SYB;0;1;0;0;0;0;0;0;8;SYBINTN;20;
-SYBBINARY;ALL;1;0;1;1;0;0;0;0;-1;0;2S;
+SYBBINARY;ALL;1;0;1;1;0;0;0;0;-1;0;2*S;
 SYBBIT;ALL;0;1;0;0;0;0;0;0;1;SYBBITN;1;
 SYBBITN;MS;1;0;1;0;0;0;0;0;1;0;1;# Sybase bit is not nullable
 SYBBLOB;SYB;??;0;1;1;1;0;Depend;Depend;-1;0;;
@@ -18,14 +18,14 @@ SYBMSDATETIMEOFFSET;MS;1;0;1;0;0;0;0;0;-1;0;33;# display 10+1+16+1+5
 SYBDECIMAL;ALL;1;0;1;0;0;1;0;0;-1;0;P+2;
 SYBFLT8;ALL;0;1;0;0;0;0;0;0;8;SYBFLTN;24;# sure display??
 SYBFLTN;ALL;1;0;1;0;0;0;0;0;-1;0;;
-SYBIMAGE;ALL;4;0;1;1;1;0;0;0;-1;0;2S;
+SYBIMAGE;ALL;4;0;1;1;1;0;0;0;-1;0;2*S;
 SYBINT1;ALL;0;1;0;0;0;0;0;0;1;SYBINTN;3;
 SYBINT2;ALL;0;1;0;0;0;0;0;0;2;SYBINTN;6;
 SYBINT4;ALL;0;1;0;0;0;0;0;0;4;SYBINTN;11;
 SYBINT8;MS;0;1;0;0;0;0;0;0;8;SYBINTN;20;
 SYBINTERVAL;SYB;0;1;0;0;0;0;0;0;8;0;;
 SYBINTN;ALL;1;0;1;0;0;0;0;0;-1;0;;
-SYBLONGBINARY;SYB;5;0;1;1;1;0;Depend;Depend;-1;0;2S;
+SYBLONGBINARY;SYB;5;0;1;1;1;0;Depend;Depend;-1;0;2*S;
 SYBLONGCHAR;SYB;5;0;1;1;1;0;??;??;-1;0;S;
 SYBMONEY;ALL;0;1;0;0;0;0;0;0;8;SYBMONEYN;21;
 SYBMONEY4;ALL;0;1;0;0;0;0;0;0;4;SYBMONEYN;12;
@@ -48,7 +48,7 @@ SYBUINT8;SYB;0;1;0;0;0;0;0;0;8;SYBUINTN;20;
 SYBUINTN;SYB;1;0;1;0;0;0;0;0;-1;0;;
 SYBUNIQUE;MS;1;0;1;0;0;0;0;0;16;0;36;# have size but is nullable
 SYBUNITEXT;SYB;4;0;1;1;1;0;1;0;-1;0;S/2;# UTF-16
-SYBVARBINARY;ALL;1;0;1;1;0;0;0;0;-1;0;2S;
+SYBVARBINARY;ALL;1;0;1;1;0;0;0;0;-1;0;2*S;
 SYBVARCHAR;ALL;1;0;1;1;0;0;0;1;-1;0;S;
 SYBVARIANT;MS;4;0;1;1;0;0;Depend;Depend;-1;0;;# varint ok ?
 SYBVOID;ALL;0;1;0;0;0;0;0;0;0;0;;
@@ -57,7 +57,7 @@ XSYBBINARY;MS;2;0;1;1;0;0;0;0;-1;0;S;
 XSYBCHAR;MS;2;0;1;1;0;0;0;1;-1;0;S;
 XSYBNCHAR;MS;2;0;1;1;0;0;1;0;-1;0;S/2;
 XSYBNVARCHAR;MS;2;0;1;1;0;0;1;0;-1;0;S/2;
-XSYBVARBINARY;MS;2;0;1;1;0;0;0;0;-1;0;2S;
+XSYBVARBINARY;MS;2;0;1;1;0;0;0;0;-1;0;2*S;
 XSYBVARCHAR;MS;2;0;1;1;0;0;0;1;-1;0;S;
 ;;;;;;;;;;;;;
 # XSYBVARCHAR blob se TDS9 ??;;;;;;;;;;;;;
@@ -66,4 +66,3 @@ XSYBVARCHAR;MS;2;0;1;1;0;0;0;1;-1;0;S;
 # some type (BITN, DATEN, UNIQUE, MSDATE) have size but are nullable;;;;;;;;;;;;;
 # tds_get_conversion_type from nullable to not nullable;;;;;;;;;;;;;
 # tds_get_cardinal_type ??;;;;;;;;;;;;;
-;;;;;;;;;;;;;
