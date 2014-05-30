@@ -268,6 +268,7 @@ main(int argc, char *argv[])
 	int printedcompute = 0;
 	char adash;
 	const char *database_name = NULL;
+	int default_exit = EXIT_SUCCESS;
 
 	setlocale(LC_ALL, "");
 
@@ -588,7 +589,7 @@ main(int argc, char *argv[])
 			    || (!(strcasecmp(firstword, "quit")))) {
 				reset_term();
 				dbexit();
-				exit(EXIT_SUCCESS);
+				exit(default_exit);
 			}
 			if (!(strcasecmp(firstword, "reset"))) {
 				for (i = 0; i < ibuflines; i++) {
@@ -800,6 +801,11 @@ main(int argc, char *argv[])
 					}
 				}
 			}
+		} else {
+			/* Something failed, so change the default
+			 * exit status to reflect that.
+			 */
+			default_exit = EXIT_FAILURE;
 		}
 	}
 	reset_term();
