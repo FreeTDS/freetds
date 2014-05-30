@@ -279,7 +279,7 @@ getpass(const char *prompt)
 char *
 readline(char *prompt)
 {
-	char *buf = NULL, *s = NULL, *p = NULL;
+	char *buf = NULL, *s = NULL, *p = NULL, *newline = NULL;
 	if (tds_rl_instream == NULL)
 		s = readpassphrase((const char *) prompt, passbuf, sizeof(passbuf),
 					 RPP_ECHO_ON | RPP_TIMEOUT_OFF);
@@ -290,6 +290,13 @@ readline(char *prompt)
 		buf = (char *) malloc(strlen(s) + 1);
 		strcpy(buf, s);
 	}
+	/* readline is documented to eat the newline. */
+	if (buf) {
+		newline = strchr(buf, '\n');
+		if (newline)
+			*newline = '\0';
+	}
+
 	return buf;
 
 }				/* readline */
