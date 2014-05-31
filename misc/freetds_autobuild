@@ -211,6 +211,24 @@ else
 fi
 rm -f out.txt
 
+# test dump to file
+save_coverage
+# using tsql directly with grep do not update coverage informations
+echo -e 'select @@version\ngo\nbye' | TDSDUMP=dump.txt ./src/apps/tsql -S $tSRV -U "$tUID" -P "$tPWD" > out.txt || true
+res=ok
+grep -q 'Microsoft Corporation' out.txt || res=ko
+grep -q 'Starting log file for FreeTDS' dump.txt || res=ko
+grep -q 'tds_process_login_tokens() returning' dump.txt || res=ko
+grep -q 'Changed query state from' dump.txt || res=ko
+if test $res = ok; then
+	echo "dump test ok"
+else
+	echo "dump test failed!"
+	restore_coverage
+fi
+rm -f out.txt dump.txt
+
+#
 # test domain password and TDSPORT with service name
 if test "$DOMAIN_UID" != ""; then
 	save_coverage
@@ -327,6 +345,7 @@ for pid in $pids; do
 done
 
 # test autodiscovery
+set_pwd_file $ROOT/PWD.sybase15
 save_coverage
 # using tsql directly with grep do not update coverage informations
 echo -e 'select @@version\ngo\nbye' | TDSVER=0.0 ./src/apps/tsql -S "$tSRV" -U "$tUID" -P "$tPWD" > out.txt || true
