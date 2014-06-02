@@ -3006,28 +3006,9 @@ dbcolinfo (DBPROCESS *dbproc, CI_TYPE type, DBINT column, DBINT computeid, DBCOL
 
 		pdbcol->VarLength = FALSE;
 
-		if (colinfo->column_nullable)
+		if (colinfo->column_nullable
+		    || is_nullable_type(colinfo->column_type))
 			pdbcol->VarLength = TRUE;
-
-		switch (colinfo->column_type) {
-		case SYBNVARCHAR:
-		case SYBVARBINARY:
-		case SYBVARCHAR:
-		case SYBBITN:
-		case SYBDATETIMN:
-		case SYBDECIMAL:
-		case SYBFLTN:
-		case SYBINTN:
-		case SYBMONEYN:
-		case SYBNUMERIC:
-		case SYBIMAGE:
-		case SYBNTEXT:
-		case SYBTEXT:
-			pdbcol->VarLength = TRUE;
-			break;
-		default:
-			break;
-		}
 
 		pdbcol->Precision = colinfo->column_prec;
 		pdbcol->Scale = colinfo->column_scale;
@@ -6287,30 +6268,10 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 
 	pdbcol->VarLength = FALSE;
 
-	if (colinfo->column_nullable)
+	if (colinfo->column_nullable
+	    || is_nullable_type(colinfo->column_type))
 		pdbcol->VarLength = TRUE;
 	
-	switch (colinfo->column_type) {
-	case SYBNVARCHAR:
-	case SYBVARBINARY:
-	case SYBVARCHAR:
-	case SYBBITN:
-	case SYBDATETIMN:
-	case SYBDECIMAL:
-	case SYBFLTN:
-	case SYBINTN:
-	case SYBMONEYN:
-	case SYBNUMERIC:
-	case SYBIMAGE:
-	case SYBNTEXT:
-	case SYBTEXT:
-		pdbcol->VarLength = TRUE;
-		break;
-	default:
-		break;
-
-	}
-
 	pdbcol->Precision = colinfo->column_prec;
 	pdbcol->Scale = colinfo->column_scale;
 
