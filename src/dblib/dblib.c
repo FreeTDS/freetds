@@ -4155,38 +4155,8 @@ dbalttype(DBPROCESS * dbproc, int computeid, int column)
 		return SYBCHAR;
 	case SYBVARBINARY:
 		return SYBBINARY;
-	case SYBDATETIMN:
-		if (colinfo->column_size == 8)
-			return SYBDATETIME;
-		else if (colinfo->column_size == 4)
-			return SYBDATETIME4;
-		break;
-	case SYBMONEYN:
-		if (colinfo->column_size == 4)
-			return SYBMONEY4;
-		else if (colinfo->column_size == 8)
-			return SYBMONEY;
-		break;
-	case SYBFLTN:
-		if (colinfo->column_size == 8)
-			return SYBFLT8;
-		else if (colinfo->column_size == 4)
-			return SYBREAL;
-		break;
-	case SYBINTN:
-		if (colinfo->column_size == 8)
-			return SYBINT8;
-		else if (colinfo->column_size == 4)
-			return SYBINT4;
-		else if (colinfo->column_size == 2)
-			return SYBINT2;
-		else if (colinfo->column_size == 1)
-			return SYBINT1;
-		break;
-	default:
-		return colinfo->column_type;
 	}
-	return -1;		/* something went wrong */
+	return tds_get_conversion_type(colinfo->column_type, colinfo->column_size);
 }
 
 /**
