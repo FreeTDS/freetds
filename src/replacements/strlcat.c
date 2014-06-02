@@ -36,8 +36,10 @@ tds_strlcat(char *dest, const char *src, size_t len)
 
 	--len;
 	if (dest_len + src_len > len) {
-		memcpy(dest + dest_len, src, len - dest_len);
-		dest[len] = 0;
+		if (len > dest_len) {
+			memcpy(dest + dest_len, src, len - dest_len);
+			dest[len] = 0;
+		}
 	} else {
 		memcpy(dest + dest_len, src, src_len + 1);
 	}

@@ -72,6 +72,10 @@ int main(void)
 	tds_strlcat(buf, "123456789012345", 10);
 	assert(strcmp(buf, "xyz123456") == 0);
 
+	strcpy(buf, "123456789");
+	tds_strlcat(buf, "test", 4);
+	assert(strcmp(buf, "123456789") == 0);
+
 	free(buf);
 	return 0;
 }
