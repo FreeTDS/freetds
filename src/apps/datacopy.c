@@ -397,10 +397,12 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 {
 	char ls_command[2048];
 	int i;
+	const char *sep;
 
 	DBINT num_cols;
 	DBCHAR column_type[33];
 	DBCOL colinfo;
+#define strcat(d, s) tds_strlcat(d, s, sizeof(d))
 
 
 	sprintf(ls_command, "SET FMTONLY ON select * from %s SET FMTONLY OFF", sobjname);
@@ -421,15 +423,14 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 
 	num_cols = dbnumcols(dbsrc);
 
+	sep = "( ";
 	for (i = 1; i <= num_cols; i++) {
 
 		if (dbtablecolinfo(dbsrc, i, &colinfo) != SUCCEED)
 			return FALSE;
 
-		if (i == 1)
-			strcat(ls_command, "( ");
-		else
-			strcat(ls_command, ", ");
+		strcat(ls_command, sep);
+		sep = ", ";
 
 		strcat(ls_command, colinfo.Name);
 		strcat(ls_command, " ");
@@ -487,6 +488,9 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 		case SYBIMAGE:
 			strcat(ls_command, "image");
 			break;
+		default:
+			fprintf(stderr, "type not handled\n");
+			return FALSE;
 		}
 
 		if (colinfo.Null == TRUE) {
@@ -495,7 +499,11 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 			strcat(ls_command, " NOT NULL");
 		}
 	}
-	strcat(ls_command, " ) ");
+#undef strcat
+	if (tds_strlcat(ls_command, " )", sizeof(ls_command)) >= sizeof(ls_command)) {
+		fprintf(stderr, "Buffer overflow building command to create table\n");
+		return FALSE;
+	}
 
 	if (dbcmd(dbdest, ls_command) == FAIL) {
 		printf("dbcmd failed\n");
@@ -507,7 +515,8 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 		return FALSE;
 	}
 
-	while (NO_MORE_RESULTS != dbresults(dbdest));
+	while (NO_MORE_RESULTS != dbresults(dbdest))
+		continue;
 
 	return TRUE;
 }
