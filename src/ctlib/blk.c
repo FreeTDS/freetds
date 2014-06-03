@@ -663,72 +663,72 @@ _blk_get_col_data(TDSBCPINFO *bulk, TDSCOLUMN *bindcol, int offset)
 		datalen += offset;
 	}
 
-	if (src) {
-		srctype = bindcol->column_bindtype; 		/* passes to cs_convert */
-
-		tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data srctype = %d \n", srctype);
-		tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data datalen = %d \n", *datalen);
-	
-		if (*datalen) {
-			if (*datalen == CS_UNUSED) {
-				switch (srctype) {
-					case CS_LONG_TYPE:	    srclen = 8; break;
-					case CS_FLOAT_TYPE:	    srclen = 8; break;
-					case CS_MONEY_TYPE:	    srclen = 8; break;
-					case CS_DATETIME_TYPE:  srclen = 8; break;
-					case CS_INT_TYPE:	    srclen = 4; break;
-					case CS_UINT_TYPE:	    srclen = 4; break;
-					case CS_REAL_TYPE:	    srclen = 4; break;
-					case CS_MONEY4_TYPE:	srclen = 4; break;
-					case CS_DATETIME4_TYPE: srclen = 4; break;
-					case CS_SMALLINT_TYPE:  srclen = 2; break;
-					case CS_USMALLINT_TYPE:  srclen = 2; break;
-					case CS_TINYINT_TYPE:   srclen = 1; break;
-					case CS_BIT_TYPE:   srclen = 1; break;
-					case CS_BIGINT_TYPE:	    srclen = 8; break;
-					case CS_UBIGINT_TYPE:	    srclen = 8; break;
-					case CS_UNIQUE_TYPE:	    srclen = 16; break;
-					default:
-						printf("error not fixed length type (%d) and datalen not specified\n",
-							bindcol->column_bindtype);
-						return CS_FAIL;
-				}
-
-			} else {
-				srclen = *datalen;
-			}
-		}
-		if (srclen == 0) {
-			if (nullind && *nullind == -1)
-				null_column = 1;
-		}
-
-		if (!null_column) {
-
-			srcfmt.datatype = srctype;
-			srcfmt.maxlength = srclen;
-
-			destfmt.datatype  = _ct_get_client_type(bindcol);
-			destfmt.maxlength = bindcol->column_size;
-			destfmt.precision = bindcol->column_prec;
-			destfmt.scale     = bindcol->column_scale;
-
-			destfmt.format	= CS_FMT_UNUSED;
-	
-			/* if convert return FAIL mark error but process other columns */
-			if ((result = cs_convert(ctx, &srcfmt, (CS_VOID *) src, 
-						 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
-				tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srcfmt.datatype);
-				return CS_FAIL;
-			}
-		}
-
-		bindcol->bcp_column_data->datalen = destlen;
-		bindcol->bcp_column_data->is_null = null_column;
-
-		return TDS_SUCCESS;
-	} else {
+	if (!src) {
 		printf("error source field not addressable \n");
 		return TDS_FAIL;
 	}
+
+	srctype = bindcol->column_bindtype; 		/* passes to cs_convert */
+
+	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data srctype = %d \n", srctype);
+	tdsdump_log(TDS_DBG_INFO1, "blk_get_col_data datalen = %d \n", *datalen);
+
+	if (*datalen) {
+		if (*datalen == CS_UNUSED) {
+			switch (srctype) {
+			case CS_LONG_TYPE:	    srclen = 8; break;
+			case CS_FLOAT_TYPE:	    srclen = 8; break;
+			case CS_MONEY_TYPE:	    srclen = 8; break;
+			case CS_DATETIME_TYPE:  srclen = 8; break;
+			case CS_INT_TYPE:	    srclen = 4; break;
+			case CS_UINT_TYPE:	    srclen = 4; break;
+			case CS_REAL_TYPE:	    srclen = 4; break;
+			case CS_MONEY4_TYPE:	srclen = 4; break;
+			case CS_DATETIME4_TYPE: srclen = 4; break;
+			case CS_SMALLINT_TYPE:  srclen = 2; break;
+			case CS_USMALLINT_TYPE:  srclen = 2; break;
+			case CS_TINYINT_TYPE:   srclen = 1; break;
+			case CS_BIT_TYPE:   srclen = 1; break;
+			case CS_BIGINT_TYPE:	    srclen = 8; break;
+			case CS_UBIGINT_TYPE:	    srclen = 8; break;
+			case CS_UNIQUE_TYPE:	    srclen = 16; break;
+			default:
+				printf("error not fixed length type (%d) and datalen not specified\n",
+					bindcol->column_bindtype);
+				return CS_FAIL;
+			}
+
+		} else {
+			srclen = *datalen;
+		}
+	}
+	if (srclen == 0) {
+		if (nullind && *nullind == -1)
+			null_column = 1;
+	}
+
+	if (!null_column) {
+
+		srcfmt.datatype = srctype;
+		srcfmt.maxlength = srclen;
+
+		destfmt.datatype  = _ct_get_client_type(bindcol);
+		destfmt.maxlength = bindcol->column_size;
+		destfmt.precision = bindcol->column_prec;
+		destfmt.scale     = bindcol->column_scale;
+
+		destfmt.format	= CS_FMT_UNUSED;
+
+		/* if convert return FAIL mark error but process other columns */
+		if ((result = cs_convert(ctx, &srcfmt, (CS_VOID *) src, 
+					 &destfmt, (CS_VOID *) bindcol->bcp_column_data->data, &destlen)) != CS_SUCCEED) {
+			tdsdump_log(TDS_DBG_INFO1, "convert failed for %d \n", srcfmt.datatype);
+			return CS_FAIL;
+		}
+	}
+
+	bindcol->bcp_column_data->datalen = destlen;
+	bindcol->bcp_column_data->is_null = null_column;
+
+	return TDS_SUCCESS;
 }
