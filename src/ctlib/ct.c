@@ -464,6 +464,12 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 				tds_set_version(tds_login, 5, 0);
 			} else if (*(int *) buffer == CS_TDS_70) {
 				tds_set_version(tds_login, 7, 0);
+			} else if (*(int *) buffer == CS_TDS_71) {
+				tds_set_version(tds_login, 7, 1);
+			} else if (*(int *) buffer == CS_TDS_72) {
+				tds_set_version(tds_login, 7, 2);
+			} else if (*(int *) buffer == CS_TDS_73) {
+				tds_set_version(tds_login, 7, 3);
 			} else {
 				return CS_FAIL;
 			}
@@ -556,8 +562,14 @@ ct_con_props(CS_CONNECTION * con, CS_INT action, CS_INT property, CS_VOID * buff
 			case 0x700:
 				(*(int *) buffer = CS_TDS_70);
 				break;
-			case 0x800:
-				(*(int *) buffer = CS_TDS_80);
+			case 0x701:
+				(*(int *) buffer = CS_TDS_71);
+				break;
+			case 0x702:
+				(*(int *) buffer = CS_TDS_72);
+				break;
+			case 0x703:
+				(*(int *) buffer = CS_TDS_73);
 				break;
 			default:
 				return CS_FAIL;

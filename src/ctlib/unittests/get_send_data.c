@@ -47,6 +47,8 @@ main(int argc, char **argv)
 	char *textptr;
 	CS_IODESC iodesc;
 
+	int tds_version;
+
 	len600[0] = 0;
 	name[0] = 0;
 	for (i = 0; i < 60; i++) {
@@ -71,6 +73,15 @@ main(int argc, char **argv)
 	if (ret != CS_SUCCEED) {
 		fprintf(stderr, "Login failed\n");
 		return 1;
+	}
+
+	ret = ct_con_props(conn, CS_GET, CS_TDS_VERSION, &tds_version, CS_UNUSED, NULL);
+	if (ret == CS_SUCCEED) {
+		if (tds_version >= CS_TDS_72) {
+			printf("Protocol TDS7.2+ detected, test not supported\n");
+			try_ctlogout(ctx, conn, cmd, verbose);
+			return 0;
+		}
 	}
 
 	ret = run_command(cmd, "CREATE TABLE #test_table (id int, name text)");

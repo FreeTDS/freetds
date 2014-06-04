@@ -274,7 +274,10 @@ enum
 	CS_TDS_495,
 	CS_TDS_50,
 	CS_TDS_70,
-	CS_TDS_80
+	CS_TDS_71,
+	CS_TDS_72,
+	CS_TDS_73,
+	CS_TDS_80 = CS_TDS_71,
 };
 
 /* bit mask values used by CS_DATAFMT.status */
