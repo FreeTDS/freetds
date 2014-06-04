@@ -413,10 +413,8 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 
 		/* potential variable columns to write */
 
-		if (bcpinfo->var_cols) {
-			if ((row_pos = tds_bcp_add_variable_columns(bcpinfo, get_col_data, NULL, offset, record, row_pos, &var_cols_written)) < 0)
-				return TDS_FAIL;
-		}
+		if ((row_pos = tds_bcp_add_variable_columns(bcpinfo, get_col_data, NULL, offset, record, row_pos, &var_cols_written)) < 0)
+			return TDS_FAIL;
 
 		row_size = row_pos;
 
@@ -847,6 +845,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	int column_bcp_data_size  = 0;
 	int bcp_record_size       = 0;
 	TDSRET rc;
+	TDS_INT var_cols;
 	
 	tdsdump_log(TDS_DBG_FUNC, "tds_bcp_start_copy_in(%p, %p)\n", tds, bcpinfo);
 
@@ -864,7 +863,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 	 * Work out the number of "variable" columns.  These are either nullable or of 
 	 * varying length type e.g. varchar.   
 	 */
-	bcpinfo->var_cols = 0;
+	var_cols = 0;
 
 	if (IS_TDS50(tds->conn)) {
 		for (i = 0; i < bcpinfo->bindinfo->num_cols; i++) {
@@ -890,7 +889,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 			 */
 
 			if (is_nullable_type(bcpcol->on_server.column_type) || bcpcol->column_nullable) {
-				bcpinfo->var_cols++;
+				var_cols++;
 				variable_col_len_tot += column_bcp_data_size;
 			}
 			else {
@@ -904,7 +903,7 @@ tds_bcp_start_copy_in(TDSSOCKET *tds, TDSBCPINFO *bcpinfo)
 							fixed_col_len_tot +
 							variable_col_len_tot +
 							( (int)(variable_col_len_tot / 256 ) + 1 ) +
-							(bcpinfo->var_cols + 1) +
+							(var_cols + 1) +
 							2;
 
 		tdsdump_log(TDS_DBG_FUNC, "current_record_size = %d\n", bcpinfo->bindinfo->row_size);

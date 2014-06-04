@@ -211,7 +211,6 @@ bcp_init(DBPROCESS * dbproc, const char *tblname, const char *hfile, const char 
 	dbproc->bcpinfo->direction = direction;
 
 	dbproc->bcpinfo->xfer_init  = 0;
-	dbproc->bcpinfo->var_cols   = 0;
 	dbproc->bcpinfo->bind_count = 0;
 
 	if (TDS_FAILED(tds_bcp_init(dbproc->tds_socket, dbproc->bcpinfo))) {

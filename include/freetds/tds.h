@@ -1468,7 +1468,6 @@ typedef struct tds_bcpinfo
 	TDS_INT direction;
 	TDS_INT identity_insert_on;
 	TDS_INT xfer_init;
-	TDS_INT var_cols;
 	TDS_INT bind_count;
 	TDSRESULTINFO *bindinfo;
 } TDSBCPINFO;

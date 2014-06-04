@@ -267,7 +267,6 @@ blk_done(CS_BLKDESC * blkdesc, CS_INT type, CS_INT * outrow)
 		blkdesc->bcpinfo.direction = 0;
 		blkdesc->bcpinfo.bind_count = CS_UNUSED;
 		blkdesc->bcpinfo.xfer_init = 0;
-		blkdesc->bcpinfo.var_cols = 0;
 
 		break;
 
@@ -359,7 +358,6 @@ blk_init(CS_BLKDESC * blkdesc, CS_INT direction, CS_CHAR * tablename, CS_INT tna
 	blkdesc->bcpinfo.direction = direction;
 	blkdesc->bcpinfo.bind_count = CS_UNUSED;
 	blkdesc->bcpinfo.xfer_init = 0;
-	blkdesc->bcpinfo.var_cols = 0;
 
 	if (TDS_FAILED(tds_bcp_init(blkdesc->con->tds_socket, &blkdesc->bcpinfo))) {
 		_ctclient_msg(blkdesc->con, "blk_init", 2, 5, 1, 140, "");
