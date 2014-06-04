@@ -1037,7 +1037,7 @@ _bcp_check_eof(DBPROCESS * dbproc, FILE *file, int icol)
 static STATUS
 _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 {
-	TDSCOLUMN *bcpcol = NULL;
+	TDSCOLUMN *bcpcol;
 	BCP_HOSTCOLINFO *hostcol;
 
 	TDS_TINYINT ti;
@@ -1066,9 +1066,9 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		/* 
 		 * If this host file column contains table data,
 		 * find the right element in the table/column list.  
-		 * FIXME I think tab_colnum can be out of range - freddy77
 		 */
-		if (hostcol->tab_colnum) {
+		bcpcol = NULL;
+		if (hostcol->tab_colnum > 0) {
 			if (hostcol->tab_colnum > dbproc->bcpinfo->bindinfo->num_cols) {
 				tdsdump_log(TDS_DBG_FUNC, "error: file wider than table: %d/%d\n", 
 							  i+1, dbproc->bcpinfo->bindinfo->num_cols);
@@ -1154,7 +1154,8 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 			 * Read and convert the data
 			 */
 			coldata = NULL;
-			conv_res = tds_bcp_fread(dbproc->tds_socket, bcpcol->char_conv, hostfile, (const char *) hostcol->terminator, hostcol->term_len, &coldata, &col_bytes);
+			conv_res = tds_bcp_fread(dbproc->tds_socket, bcpcol ? bcpcol->char_conv : NULL, hostfile,
+						 (const char *) hostcol->terminator, hostcol->term_len, &coldata, &col_bytes);
 
 			if (TDS_FAILED(conv_res)) {
 				tdsdump_log(TDS_DBG_FUNC, "col %d: error converting %ld bytes!\n",
@@ -1221,7 +1222,7 @@ _bcp_read_hostfile(DBPROCESS * dbproc, FILE * hostfile, int *row_error)
 		 * At this point, however the field was read, however big it was, its address is coldata and its size is collen.
 		 */
 		tdsdump_log(TDS_DBG_FUNC, "Data read from hostfile: collen is now %d, data_is_null is %d\n", collen, data_is_null);
-		if (hostcol->tab_colnum) {
+		if (bcpcol) {
 			if (data_is_null) {
 				bcpcol->bcp_column_data->is_null = 1;
 				bcpcol->bcp_column_data->datalen = 0;
