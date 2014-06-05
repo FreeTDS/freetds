@@ -66,11 +66,11 @@ tds_put_n(TDSSOCKET * tds, const void *buf, size_t n)
 	const unsigned char *bufp = (const unsigned char *) buf;
 
 	for (; n;) {
-		left = tds->out_buf_max - tds->out_pos;
-		if (left <= 0) {
+		if (tds->out_buf_max <= tds->out_pos) {
 			tds_write_packet(tds, 0x0);
 			continue;
 		}
+		left = tds->out_buf_max - tds->out_pos;
 		if (left > n)
 			left = n;
 		if (bufp) {
