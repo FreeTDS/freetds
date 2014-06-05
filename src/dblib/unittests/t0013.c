@@ -107,8 +107,6 @@ test(int argc, char **argv, int over4k)
 		/* nop */
 	}
 
-	atexit(drop_table);
-
 	sql_cmd(dbproc);
 	dbsqlexec(dbproc);
 	while (dbresults(dbproc) != NO_MORE_RESULTS) {
@@ -131,6 +129,15 @@ test(int argc, char **argv, int over4k)
 		break; /* can't proceed until no more rows */
 	}
 	assert(REG_ROW == result || 0 < i);
+
+	if (!textPtr && !timeStamp && dbtds(dbproc) >= DBTDS_7_2) {
+		printf("Protocol 7.2+ detected, test not supported\n");
+		free(blob);
+		dbclose(dbproc);
+		dbproc = NULL;
+		dbexit();
+		exit(0);
+	}
 
 	if (!textPtr) {
 		fprintf(stderr, "Error getting textPtr\n");
@@ -268,15 +275,8 @@ test(int argc, char **argv, int over4k)
 
 	free(blob);
 	drop_table();
-#if 1
 	dbclose(dbproc);
-#else
-	if (SUCCEED != dbclose(dbproc)){
-		fprintf(stdout, "dbclose failed");
-		abort();
-	}
-#endif
-	dbproc = 0;
+	dbproc = NULL;
 
 	dbexit();
 

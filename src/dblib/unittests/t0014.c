@@ -121,6 +121,13 @@ test(int argc, char **argv, int over4k)
 			textPtr = dbtxptr(dbproc, 1);
 			timeStamp = dbtxtimestamp(dbproc, 1);
 
+			if (!textPtr && !timeStamp && dbtds(dbproc) >= DBTDS_7_2) {
+				printf("Protocol 7.2+ detected, test not supported\n");
+				free(blob);
+				dbexit();
+				exit(0);
+			}
+
 			/*
 			 * Use #ifdef if you want to test dbmoretext mode (needed for 16-bit apps)
 			 * Use #ifndef for big buffer version (32-bit)
