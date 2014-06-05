@@ -392,7 +392,6 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 	else {
 		int row_pos;
 		int row_sz_pos;
-		TDS_SMALLINT row_size;
 		int blob_cols = 0;
 		int var_cols_written = 0;
 		TDS_INT	 old_record_size = bcpinfo->bindinfo->row_size;
@@ -416,17 +415,15 @@ tds_bcp_send_record(TDSSOCKET *tds, TDSBCPINFO *bcpinfo, tds_bcp_get_col_data ge
 		if ((row_pos = tds_bcp_add_variable_columns(bcpinfo, get_col_data, NULL, offset, record, row_pos, &var_cols_written)) < 0)
 			return TDS_FAIL;
 
-		row_size = row_pos;
-
 		if (var_cols_written) {
-			memcpy(&record[row_sz_pos], &row_size, sizeof(row_size));
+			TDS_PUT_UA2(&record[row_sz_pos], row_pos);
 			record[0] = var_cols_written;
 		}
 
-		tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n", old_record_size, row_size);
+		tdsdump_log(TDS_DBG_INFO1, "old_record_size = %d new size = %d \n", old_record_size, row_pos);
 
-		tds_put_smallint(tds, row_size);
-		tds_put_n(tds, record, row_size);
+		tds_put_smallint(tds, row_pos);
+		tds_put_n(tds, record, row_pos);
 
 		/* row is done, now handle any text/image data */
 
