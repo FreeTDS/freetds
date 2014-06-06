@@ -71,14 +71,7 @@ test(int odbc3)
 		odbc_err[0] = 0;
 	}
 
-	if (!odbc3) {
-		if (tds_no_dm) {
-#if 0
-			ODBC_CHECK_COLS(-1);
-#endif
-			ODBC_CHECK_ROWS(-2);
-		}
-	} else {
+	if (odbc3) {
 		ODBC_CHECK_COLS(0);
 		ODBC_CHECK_ROWS(-1);
 
