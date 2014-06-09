@@ -395,7 +395,7 @@ tds_convert_char(const TDS_CHAR * src, TDS_UINT srclen, int desttype, CONV_RESUL
 
 		ib = cr->cb.ib;
 		if (desttype != TDS_CONVERT_BINARY) {
-			cr->ib = (TDS_CHAR *) malloc((srclen + 1u) / 2u);
+			cr->ib = (TDS_CHAR *) malloc((srclen + 2u) / 2u);
 			test_alloc(cr->ib);
 			ib = cr->ib;
 		}

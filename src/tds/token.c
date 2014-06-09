@@ -1190,7 +1190,7 @@ tds_process_tabname(TDSSOCKET *tds)
 		num_names = tds71_read_table_names(tds, hdrsize, &head);
 	else
 		num_names = tds_read_namelist(tds, hdrsize, &head, 1);
-	if (num_names < 0)
+	if (num_names <= 0)
 		return TDS_FAIL;
 
 	/* put in an array */
@@ -2708,7 +2708,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 	 */
 	compute_id = tds_get_usmallint(tds);
 
-	if ((num_cols = tds_read_namelist(tds, hdrsize - 2, &head, 0)) < 0)
+	if ((num_cols = tds_read_namelist(tds, hdrsize - 2, &head, 0)) <= 0)
 		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_INFO1, "processing tds5 compute names. num_cols = %d\n", num_cols);

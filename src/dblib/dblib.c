@@ -3924,6 +3924,10 @@ dbsetmaxprocs(int maxprocs)
 
 	tdsdump_log(TDS_DBG_FUNC, "UNTESTED dbsetmaxprocs(%d)\n", maxprocs);
 
+	/* not too few elements */
+	if (maxprocs <= 0)
+		return FAIL;
+
 	tds_mutex_lock(&dblib_mutex);
 
 	old_list = g_dblib_ctx.connection_list;
