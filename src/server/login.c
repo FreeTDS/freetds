@@ -312,7 +312,7 @@ tds_alloc_read_login(TDSSOCKET * tds)
 		/* ignore client and just send our reply TODO... finish */
 		tds71_send_prelogin(tds);
 		tds_flush_packet(tds);
-		if (tds_read_packet(tds) < 0 || tds->in_flag != 0x10) {
+		if (tds_read_packet(tds) < 0 || tds->in_flag != TDS7_LOGIN) {
 			tds_free_login(login);
 			return NULL;
 		}
