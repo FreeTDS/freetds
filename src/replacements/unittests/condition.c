@@ -47,15 +47,16 @@ static TDS_THREAD_PROC_DECLARE(signal_proc, arg)
 {
 	tds_condition *cond = (tds_condition *) arg;
 
+	/* success */
+	int res = 0;
+
 	tds_mutex_lock(&mtx);
 	if (tds_cond_signal(cond)) {
-		tds_mutex_unlock(&mtx);
 		/* failure */
-		return int2ptr(1);
+		res = 1;
 	}
 	tds_mutex_unlock(&mtx);
-	/* success */
-	return int2ptr(0);
+	return int2ptr(res);
 }
 
 static void check(int cond, const char *msg)
@@ -82,6 +83,22 @@ int main(void)
 
 	check(tds_cond_wait(&cond, &mtx), "failed waiting condition");
 
+	res = &th;
+	check(tds_thread_join(th, &res) != 0, "error waiting thread");
+
+	check(ptr2int(res) != 0, "error signaling condition");
+
+	check(tds_mutex_trylock(&mtx) == 0, "mutex should be locked");
+
+	/* check timed version */
+
+	check(tds_cond_timedwait(&cond, &mtx, 1) == 0, "should not succeed to wait condition");
+
+	check(tds_thread_create(&th, signal_proc, &cond) != 0, "error creating thread");
+
+	check(tds_cond_timedwait(&cond, &mtx, 1), "error on timed waiting condition");
+
+	res = &th;
 	check(tds_thread_join(th, &res) != 0, "error waiting thread");
 
 	check(ptr2int(res) != 0, "error signaling condition");

@@ -168,4 +168,67 @@ int (*tds_cond_init) (tds_condition * cond) = detect_cond_init;
 int (*tds_cond_destroy) (tds_condition * cond) = detect_cond_destroy;
 int (*tds_cond_signal) (tds_condition * cond) = detect_cond_signal;
 int (*tds_cond_timedwait) (tds_condition * cond, tds_mutex * mtx, int timeout_sec) = detect_cond_timedwait;
+
+#elif defined(TDS_HAVE_PTHREAD_MUTEX) && !defined(TDS_NO_THREADSAFE)
+
+#include <freetds/tds.h>
+#include <freetds/thread.h>
+
+/* check if we can use clock_gettime */
+#undef USE_CLOCK_IN_COND
+#if defined(HAVE_CLOCK_GETTIME) && (defined(CLOCK_REALTIME) || defined(CLOCK_MONOTONIC))
+#define USE_CLOCK_IN_COND 1
+#endif
+
+/* check if we can use CLOCK_MONOTONIC for conditions */
+#undef USE_MONOTONIC_CLOCK_IN_COND
+#if defined(USE_CLOCK_IN_COND) && defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined(CLOCK_MONOTONIC)
+#define USE_MONOTONIC_CLOCK_IN_COND 1
+#endif
+
+int tds_cond_init(tds_condition *cond)
+{
+#ifdef USE_MONOTONIC_CLOCK_IN_COND
+	int res;
+	pthread_condattr_t attr;
+
+	pthread_condattr_init(&attr);
+	res = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
+	if (!res)
+		res = pthread_cond_init(cond, &attr);
+	pthread_condattr_destroy(&attr);
+	return res;
+#else
+	return pthread_cond_init(cond, NULL);
+#endif
+}
+
+int tds_cond_timedwait(tds_condition *cond, pthread_mutex_t *mtx, int timeout_sec)
+{
+	struct timespec ts;
+#ifndef USE_CLOCK_IN_COND
+	struct timeval tv;
+#endif
+
+	if (timeout_sec < 0)
+		return tds_cond_wait(cond, mtx);
+
+#ifdef USE_CLOCK_IN_COND
+#  if defined(USE_MONOTONIC_CLOCK_IN_COND)
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+#  else
+	clock_gettime(CLOCK_REALTIME, &ts);
+#  endif
+#elif defined(HAVE_GETTIMEOFDAY)
+	gettimeofday(&tv, NULL);
+	ts.tv_sec = tv.tv_sec;
+	ts.tv_nsec = tv.tv_usec * 1000u;
+#else
+#error No way to get a proper time!
+#endif
+
+	ts.tv_sec += timeout_sec;
+	return pthread_cond_timedwait(cond, mtx, &ts);
+}
+
 #endif

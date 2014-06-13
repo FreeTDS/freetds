@@ -263,6 +263,8 @@ int main()
 	AM_CFLAGS="$AM_CFLAGS $PTHREAD_CFLAGS"
 	AC_SUBST(AM_CFLAGS)
 	LIBS="$PTHREAD_LIBS $LIBS"
+	AC_SEARCH_LIBS(pthread_condattr_setclock, [rt posix4 pthread])
+	AC_CHECK_FUNCS([pthread_condattr_setclock])
 fi
 
 # check for SSPI

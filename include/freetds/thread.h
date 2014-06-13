@@ -60,10 +60,7 @@ static inline void tds_mutex_free(tds_mutex *mtx)
 
 typedef pthread_cond_t tds_condition;
 
-static inline int tds_cond_init(tds_condition *cond)
-{
-	return pthread_cond_init(cond, NULL);
-}
+int tds_cond_init(tds_condition *cond);
 static inline int tds_cond_destroy(tds_condition *cond)
 {
 	return pthread_cond_destroy(cond);
