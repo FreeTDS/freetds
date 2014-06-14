@@ -264,7 +264,10 @@ change_database(TDS_DBC * dbc, const char *database, int database_len)
 			return SQL_ERROR;
 		}
 	} else {
-		tds_dstr_copyn(&dbc->attr.current_catalog, database, database_len);
+		if (!tds_dstr_copyn(&dbc->attr.current_catalog, database, database_len)) {
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+			return SQL_ERROR;
+		}
 	}
 	ODBC_RETURN_(dbc);
 }
@@ -386,8 +389,13 @@ odbc_connect(TDS_DBC * dbc, TDSLOGIN * login)
 
 #ifdef ENABLE_ODBC_WIDE
 	/* force utf-8 in order to support wide characters */
-	tds_dstr_dup(&dbc->original_charset, &login->client_charset);
-	tds_dstr_copy(&login->client_charset, "UTF-8");
+	if (!tds_dstr_dup(&dbc->original_charset, &login->client_charset) 
+	    || !tds_dstr_copy(&login->client_charset, "UTF-8")) {
+		tds_free_socket(dbc->tds_socket);
+		dbc->tds_socket = NULL;
+		odbc_errs_add(&dbc->errs, "HY001", NULL);
+		return SQL_ERROR;
+	}
 #endif
 
 	if (TDS_FAILED(tds_connect_and_login(dbc->tds_socket, login))) {
@@ -568,7 +576,12 @@ ODBC_FUNC(SQLDriverConnect, (P(SQLHDBC,hdbc), P(SQLHWND,hwnd), PCHARIN(ConnStrIn
 	}
 
 	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
-		tds_dstr_dup(&login->database, &dbc->attr.current_catalog);
+		if (!tds_dstr_dup(&login->database, &dbc->attr.current_catalog)) {
+			tds_free_login(login);
+			tds_dstr_free(&conn_str);
+			odbc_errs_add(&dbc->errs, "HY001", NULL);
+			ODBC_EXIT_(dbc);
+		}
 
 	/* parse the DSN string */
 	if (!odbc_parse_connect_string(&dbc->errs, tds_dstr_buf(&conn_str), tds_dstr_buf(&conn_str) + tds_dstr_len(&conn_str),
@@ -1154,11 +1167,8 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 			continue;
 
 		/* we have certainly a parameter */
-		if (!(temp_params = tds_alloc_param_result(params))) {
-			tds_free_param_results(params);
-			odbc_errs_add(&stmt->errs, "HY001", NULL);
-			return NULL;
-		}
+		if (!(temp_params = tds_alloc_param_result(params)))
+			goto memory_error;
                 params = temp_params;
 
 		curcol = params->columns[params->num_cols - 1];
@@ -1170,13 +1180,18 @@ odbc_build_update_params(TDS_STMT * stmt, unsigned int n_row)
 
 		switch (odbc_sql2tds(stmt, drec_ird, &stmt->ard->records[n], curcol, 1, stmt->ard, n_row)) {
 		case SQL_NEED_DATA:
-			odbc_errs_add(&stmt->errs, "HY001", NULL);
+			goto memory_error;
 		case SQL_ERROR:
 			tds_free_param_results(params);
 			return NULL;
 		}
 	}
 	return params;
+
+memory_error:
+	tds_free_param_results(params);
+	odbc_errs_add(&stmt->errs, "HY001", NULL);
+	return NULL;
 }
 
 SQLRETURN ODBC_PUBLIC ODBC_API
@@ -1896,6 +1911,7 @@ ODBC_FUNC(SQLConnect, (P(SQLHDBC,hdbc), PCHARIN(DSN,SQLSMALLINT), PCHARIN(UID,SQ
 	PCHARIN(AuthStr,SQLSMALLINT) WIDE))
 {
 	TDSLOGIN *login;
+	DSTR *s;
 
 	ODBC_ENTER_HDBC;
 
@@ -1917,17 +1933,16 @@ ODBC_FUNC(SQLConnect, (P(SQLHDBC,hdbc), PCHARIN(DSN,SQLSMALLINT), PCHARIN(UID,SQ
 #endif
 
 	login = tds_alloc_login(0);
-	if (!login || !tds_init_login(login, dbc->env->tds_ctx->locale)) {
-		tds_free_login(login);
-		odbc_errs_add(&dbc->errs, "HY001", NULL);
-		ODBC_EXIT_(dbc);
-	}
+	if (!login || !tds_init_login(login, dbc->env->tds_ctx->locale))
+		goto memory_error;
 
 	/* data source name */
 	if (odbc_get_string_size(cbDSN, szDSN _wide))
-		odbc_dstr_copy(dbc, &dbc->dsn, cbDSN, szDSN);
+		s = odbc_dstr_copy(dbc, &dbc->dsn, cbDSN, szDSN);
 	else
-		tds_dstr_copy(&dbc->dsn, "DEFAULT");
+		s = tds_dstr_copy(&dbc->dsn, "DEFAULT");
+	if (!s)
+		goto memory_error;
 
 
 	if (!odbc_get_dsn_info(&dbc->errs, tds_dstr_cstr(&dbc->dsn), login)) {
@@ -1936,7 +1951,8 @@ ODBC_FUNC(SQLConnect, (P(SQLHDBC,hdbc), PCHARIN(DSN,SQLSMALLINT), PCHARIN(UID,SQ
 	}
 
 	if (!tds_dstr_isempty(&dbc->attr.current_catalog))
-		tds_dstr_dup(&login->database, &dbc->attr.current_catalog);
+		if (!tds_dstr_dup(&login->database, &dbc->attr.current_catalog))
+			goto memory_error;
 
 	/*
 	 * username/password are never saved to ini file,
@@ -1944,26 +1960,25 @@ ODBC_FUNC(SQLConnect, (P(SQLHDBC,hdbc), PCHARIN(DSN,SQLSMALLINT), PCHARIN(UID,SQ
 	 */
 	/* user id */
 	if (odbc_get_string_size(cbUID, szUID _wide)) {
-		if (!odbc_dstr_copy(dbc, &login->user_name, cbUID, szUID)) {
-			tds_free_login(login);
-			odbc_errs_add(&dbc->errs, "HY001", NULL);
-			ODBC_EXIT_(dbc);
-		}
+		if (!odbc_dstr_copy(dbc, &login->user_name, cbUID, szUID))
+			goto memory_error;
 	}
 
 	/* password */
 	if (szAuthStr && !tds_dstr_isempty(&login->user_name)) {
-		if (!odbc_dstr_copy(dbc, &login->password, cbAuthStr, szAuthStr)) {
-			tds_free_login(login);
-			odbc_errs_add(&dbc->errs, "HY001", NULL);
-			ODBC_EXIT_(dbc);
-		}
+		if (!odbc_dstr_copy(dbc, &login->password, cbAuthStr, szAuthStr))
+			goto memory_error;
 	}
 
 	/* DO IT */
 	odbc_connect(dbc, login);
 
 	tds_free_login(login);
+	ODBC_EXIT_(dbc);
+
+memory_error:
+	tds_free_login(login);
+	odbc_errs_add(&dbc->errs, "HY001", NULL);
 	ODBC_EXIT_(dbc);
 }
 
@@ -6788,13 +6803,8 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 
 	if (!odbc_dstr_copy(stmt->dbc, &catalog_name, cbCatalogName, szCatalogName)
 	    || !odbc_dstr_copy(stmt->dbc, &schema_name, cbSchemaName, szSchemaName)
-	    || !odbc_dstr_copy(stmt->dbc, &table_type, cbTableType, szTableType)) {
-		tds_dstr_free(&schema_name);
-		tds_dstr_free(&catalog_name);
-		tds_dstr_free(&table_type);
-		odbc_errs_add(&stmt->errs, "HY001", NULL);
-		ODBC_EXIT_(stmt);
-	}
+	    || !odbc_dstr_copy(stmt->dbc, &table_type, cbTableType, szTableType))
+		goto memory_error;
 
 	/* support wildcards on catalog (only odbc 3) */
 	wildcards = 0;
@@ -6850,10 +6860,9 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 
 			tdsdump_log(TDS_DBG_INFO1, "fixing type elements\n");
 			type = (char *) malloc(tds_dstr_len(&table_type) + elements * 2 + 3);
-			if (!type) {
-				odbc_errs_add(&stmt->errs, "HY001", NULL);
-				ODBC_EXIT_(stmt);
-			}
+			if (!type)
+				goto memory_error;
+
 			p = tds_dstr_cstr(&table_type);
 			dst = type;
 			for (;;) {
@@ -6876,7 +6885,8 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 				*dst++ = *p++;
 			}
 			*dst = 0;
-			tds_dstr_set(&table_type, type);
+			if (!tds_dstr_set(&table_type, type))
+				goto memory_error;
 		}
 	}
 
@@ -6898,6 +6908,13 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 		odbc_col_setname(stmt, 1, "TABLE_CAT");
 		odbc_col_setname(stmt, 2, "TABLE_SCHEM");
 	}
+	ODBC_EXIT_(stmt);
+
+memory_error:
+	tds_dstr_free(&schema_name);
+	tds_dstr_free(&catalog_name);
+	tds_dstr_free(&table_type);
+	odbc_errs_add(&stmt->errs, "HY001", NULL);
 	ODBC_EXIT_(stmt);
 }
 

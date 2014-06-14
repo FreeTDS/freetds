@@ -59,15 +59,20 @@ size_t tds_dstr_len(DSTR * s);
 void tds_dstr_zero(DSTR * s);
 void tds_dstr_free(DSTR * s);
 
-DSTR* tds_dstr_dup(DSTR * s, const DSTR * src);
-DSTR* tds_dstr_copy(DSTR * s, const char *src);
-DSTR* tds_dstr_copyn(DSTR * s, const char *src, size_t length);
-DSTR* tds_dstr_set(DSTR * s, char *src);
+#if ENABLE_EXTRA_CHECKS && defined(__GNUC__) && __GNUC__ >= 4
+#define TDS_WUR __attribute__ ((__warn_unused_result__))
+#else
+#define TDS_WUR
+#endif
+DSTR* tds_dstr_dup(DSTR * s, const DSTR * src) TDS_WUR;
+DSTR* tds_dstr_copy(DSTR * s, const char *src) TDS_WUR;
+DSTR* tds_dstr_copyn(DSTR * s, const char *src, size_t length) TDS_WUR;
+DSTR* tds_dstr_set(DSTR * s, char *src) TDS_WUR;
 
 /** limit length of string, MUST be <= current length */
 DSTR* tds_dstr_setlen(DSTR *s, size_t length);
 /** allocate space for length char */
-DSTR* tds_dstr_alloc(DSTR *s, size_t length);
+DSTR* tds_dstr_alloc(DSTR *s, size_t length) TDS_WUR;
 
 /** @} */
 

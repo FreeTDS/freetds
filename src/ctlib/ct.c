@@ -622,7 +622,8 @@ ct_connect(CS_CONNECTION * con, CS_CHAR * servername, CS_INT snamelen)
 		return CS_FAIL;
 	}
 	if (con->server_addr)
-		tds_dstr_copy(&login->server_host_name, con->server_addr);
+		if (!tds_dstr_copy(&login->server_host_name, con->server_addr))
+			goto Cleanup;
 
 	/* override locale settings with CS_CONNECTION settings, if any */
 	if (con->locale) {
@@ -3914,7 +3915,7 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 	int i;
 	CS_PARAM *p;
 	TDSCOLUMN *pcol;
-	TDSPARAMINFO *params = NULL;
+	TDSPARAMINFO *params = NULL, *new_params;
 
 	int temp_type, tds_type;
 
@@ -3929,10 +3930,9 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		CS_BYTE *temp_value = NULL;
 		CS_INT temp_datalen = 0;
 
-		if (!(params = tds_alloc_param_result(params))) {
-			fprintf(stderr, "out of rpc memory!");
-			return NULL;
-		}
+		if (!(new_params = tds_alloc_param_result(params)))
+			goto memory_error;
+		params = new_params;
 
 		/*
 		 * The parameteter data has been passed by reference
@@ -3990,8 +3990,10 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 		pcol->column_prec = p->precision;
 		pcol->column_scale = p->scale;
 		if (pcol->column_varint_size) {
-			if (p->maxlen < 0)
+			if (p->maxlen < 0) {
+				tds_free_param_results(params);
 				return NULL;
+			}
 			pcol->on_server.column_size = pcol->column_size = p->maxlen;
 			pcol->column_cur_size = temp_value ? temp_datalen : -1;
 			if (temp_datalen > 0 && temp_datalen > p->maxlen)
@@ -4015,14 +4017,16 @@ paraminfoalloc(TDSSOCKET * tds, CS_PARAM * first_param)
 			    pcol->on_server.column_size, pcol->column_size,
 			    pcol->column_cur_size, pcol->column_output);
 		prow = paramrowalloc(params, pcol, i, temp_value, temp_datalen);
-		if (!prow) {
-			fprintf(stderr, "out of memory for rpc row!");
-			return NULL;
-		}
+		if (!prow)
+			goto memory_error;
 	}
 
 	return params;
 
+memory_error:
+	tds_free_param_results(params);
+	tdsdump_log(TDS_DBG_SEVERE, "out of memory for rpc!");
+	return NULL;
 }
 
 static void

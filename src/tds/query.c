@@ -232,7 +232,7 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 	size_t size = *query_len + 30;
 	char *out = (char *) malloc(size);
 	if (!out)
-		return NULL;
+		goto memory_error;
 	pos = 0;
 
 	s = query;
@@ -243,10 +243,8 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 			char *p;
 			size = pos + len + 30;
 			p = (char*) realloc(out, size);
-			if (!p) {
-				free(out);
-				return NULL;
-			}
+			if (!p)
+				goto memory_error;
 			out = p;
 		}
 		memcpy(out + pos, s, len);
@@ -254,10 +252,8 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 		if (!e)
 			break;
 		pos += sprintf(out + pos, "@P%d", i + 1);
-		if (i >= params->num_cols) {
-			free(out);
-			return NULL;
-		}
+		if (i >= params->num_cols)
+			goto memory_error;
 		sprintf(params->columns[i]->column_name, "@P%d", i + 1);
 		params->columns[i]->column_namelen = (TDS_SMALLINT)strlen(params->columns[i]->column_name);
 
@@ -266,6 +262,10 @@ tds5_fix_dot_query(const char *query, size_t *query_len, TDSPARAMINFO * params)
 	out[pos] = 0;
 	*query_len = pos;
 	return out;
+
+memory_error:
+	free(out);
+	return NULL;
 }
 
 /**

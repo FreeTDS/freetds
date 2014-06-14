@@ -125,7 +125,10 @@ parse_server(TDS_ERRS *errs, char *server, TDSLOGIN * login)
 	}
 
 	if (TDS_SUCCEED(tds_lookup_host_set(server, &login->ip_addrs)))
-		tds_dstr_copy(&login->server_host_name, server);
+		if (!tds_dstr_copy(&login->server_host_name, server)) {
+			odbc_errs_add(errs, "HY001", NULL);
+			return 0;
+		}
 
 	return 1;
 }
@@ -152,7 +155,10 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	/* use old servername */
 	if (myGetPrivateProfileString(DSN, odbc_param_Servername, tmp) > 0) {
 		freetds_conf_less = 0;
-		tds_dstr_copy(&login->server_name, tmp);
+		if (!tds_dstr_copy(&login->server_name, tmp)) {
+			odbc_errs_add(errs, "HY001", NULL);
+			return 0;
+		}
 		tds_read_conf_file(login, tmp);
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
 			odbc_errs_add(errs, "HY000", "You cannot specify both SERVERNAME and SERVER");
@@ -175,7 +181,10 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 			tds_lookup_host_set(tmp, &login->ip_addrs);
 		}
 		if (myGetPrivateProfileString(DSN, odbc_param_Server, tmp) > 0) {
-			tds_dstr_copy(&login->server_name, tmp);
+			if (!tds_dstr_copy(&login->server_name, tmp)) {
+				odbc_errs_add(errs, "HY001", NULL);
+				return 0;
+			}
 			if (!address_specified) {
 				if (!parse_server(errs, tmp, login))
 					return 0;
@@ -194,7 +203,10 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 
 	if (tds_dstr_isempty(&login->database)
 	    && myGetPrivateProfileString(DSN, odbc_param_Database, tmp) > 0)
-		tds_dstr_copy(&login->database, tmp);
+		if (!tds_dstr_copy(&login->database, tmp)) {
+			odbc_errs_add(errs, "HY001", NULL);
+			return 0;
+		}
 
 	if (myGetPrivateProfileString(DSN, odbc_param_TextSize, tmp) > 0)
 		tds_parse_conf_section(TDS_STR_TEXTSZ, tmp, login);
@@ -236,6 +248,17 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 	}
 
 	return 1;
+}
+
+/**
+ * Swap two DSTR
+ */
+static void
+odbc_dstr_swap(DSTR *a, DSTR *b)
+{
+	DSTR tmp = *a;
+	*a = *b;
+	*b = tmp;
 }
 
 /** 
@@ -331,8 +354,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 				return 0;
 			}
 			if (!cfgs) {
-				tds_dstr_dup(&login->server_name, &value);
-				tds_read_conf_file(login, tds_dstr_cstr(&value));
+				odbc_dstr_swap(&login->server_name, &value);
+				tds_read_conf_file(login, tds_dstr_cstr(&login->server_name));
 				cfgs = CFG_SERVERNAME;
 				p = connect_string;
 				continue;
@@ -404,11 +427,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 		}
 
 		/* copy to destination */
-		if (dest_s) {
-			DSTR tmp = *dest_s;
-			*dest_s = value;
-			value = tmp;
-		}
+		if (dest_s)
+			odbc_dstr_swap(dest_s, &value);
 
 		p = end;
 		/* handle "" ";.." "};.." cases */

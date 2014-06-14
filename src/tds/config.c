@@ -395,7 +395,8 @@ tds_read_conf_sections(FILE * in, const char *server, TDSLOGIN * login)
 	rewind(in);
 
 	tds_dstr_init(&default_instance);
-	tds_dstr_dup(&default_instance, &login->instance_name);
+	if (!tds_dstr_dup(&default_instance, &login->instance_name))
+		return 0;
 	default_port = login->port;
 
 	found = tds_read_conf_section(in, server, tds_parse_conf_section, login);

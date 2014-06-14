@@ -767,7 +767,8 @@ ODBC_FUNC(SQLGetDiagField, (P(SQLSMALLINT,handleType), P(SQLHANDLE,handle), P(SQ
 			 * from the errs structure
 			 */
 			if (!msg[0] && errs->errs[numRecord].server) {
-				tds_dstr_copy(&stmt->dbc->server, errs->errs[numRecord].server);
+				if (!tds_dstr_copy(&stmt->dbc->server, errs->errs[numRecord].server))
+					return SQL_ERROR;
 				msg = errs->errs[numRecord].server;
 			}
 			break;

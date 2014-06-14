@@ -775,12 +775,14 @@ main(int argc, char **argv)
 			charset = "ISO-8859-1";
 
 		tds_set_client_charset(login, charset);
-		tds_dstr_dup(&connection->client_charset, &login->client_charset);
+		if (!tds_dstr_dup(&connection->client_charset, &login->client_charset))
+			return 1;
 	}
 	if (!QUIET) printf("using default charset \"%s\"\n", tds_dstr_cstr(&connection->client_charset));
 
 	if (opt_default_db) {
-		tds_dstr_copy(&connection->database, opt_default_db);
+		if (!tds_dstr_copy(&connection->database, opt_default_db))
+			return 1;
 		if (!QUIET) fprintf(stderr, "Setting %s as default database in login packet\n", opt_default_db);
 	}
 
