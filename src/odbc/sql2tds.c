@@ -378,6 +378,7 @@ odbc_sql2tds(TDS_STMT * stmt, const struct _drecord *drec_ipd, const struct _dre
 				curcol->column_data_free(curcol);
 			curcol->column_data_free = NULL;
 			if (is_blob_col(curcol)) {
+				/* trick to set blob without freeing it, _odbc_blob_free does not free TDSBLOB->textvalue */
 				TDSBLOB *blob = (TDSBLOB *) calloc(1, sizeof(TDSBLOB));
 				if (!blob) {
 					odbc_errs_add(&stmt->errs, "HY001", NULL);
