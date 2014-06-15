@@ -98,7 +98,8 @@ main(int argc, char **argv)
 	resinfo = tds_alloc_results(1);
 	resinfo->columns[0]->column_type = SYBVARCHAR;
 	resinfo->columns[0]->column_size = 30;
-	tds_dstr_copy(&resinfo->columns[0]->column_name, "name");
+	if (!tds_dstr_copy(&resinfo->columns[0]->column_name, "name"))
+		exit(1);
 	resinfo->current_row = (TDS_UCHAR*) "pubs2";
 	resinfo->columns[0]->column_data = resinfo->current_row;
 	tds_send_result(tds, resinfo);

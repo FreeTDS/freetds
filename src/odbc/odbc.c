@@ -174,7 +174,7 @@ odbc_col_setname(TDS_STMT * stmt, int colpos, const char *name)
 		if (colpos <= resinfo->num_cols) {
 			/* no overflow possible, name is always shorter */
 			tds_dstr_copy(&resinfo->columns[colpos - 1]->column_name, name);
-			tds_dstr_copy(&resinfo->columns[colpos - 1]->table_column_name, "");
+			tds_dstr_empty(&resinfo->columns[colpos - 1]->table_column_name);
 		}
 	}
 #endif
@@ -3043,10 +3043,8 @@ odbc_populate_ird(TDS_STMT * stmt)
 	while (num_cols > 0 && res_info->columns[num_cols - 1]->column_hidden == 1)
 		--num_cols;
 
-	if (desc_alloc_records(ird, num_cols) != SQL_SUCCESS) {
-		odbc_errs_add(&stmt->errs, "HY001", NULL);
-		return SQL_ERROR;
-	}
+	if (desc_alloc_records(ird, num_cols) != SQL_SUCCESS)
+		goto memory_error;
 
 	for (i = 0; i < num_cols; i++) {
 		int type;
@@ -3070,18 +3068,18 @@ odbc_populate_ird(TDS_STMT * stmt)
 			odbc_sql_to_displaysize(drec->sql_desc_concise_type, col);
 		drec->sql_desc_fixed_prec_scale = (col->column_prec && col->column_scale) ? SQL_TRUE : SQL_FALSE;
 		if (!tds_dstr_dup(&drec->sql_desc_label, &col->column_name))
-			return SQL_ERROR;
+			goto memory_error;
 
 		odbc_set_sql_type_info(col, drec, stmt->dbc->env->attr.odbc_version);
 
 		if (tds_dstr_isempty(&col->table_column_name)) {
 			if (!tds_dstr_dup(&drec->sql_desc_name, &col->column_name))
-				return SQL_ERROR;
+				goto memory_error;
 		} else {
 			if (!tds_dstr_dup(&drec->sql_desc_name, &col->table_column_name))
-				return SQL_ERROR;
+				goto memory_error;
 			if (!tds_dstr_dup(&drec->sql_desc_base_column_name, &col->table_column_name))
-				return SQL_ERROR;
+				goto memory_error;
 		}
 
 		/* extract sql_desc_(catalog/schema/base_table)_name */
@@ -3117,18 +3115,21 @@ odbc_populate_ird(TDS_STMT * stmt)
 
 			/* here i points to last element */
 			odbc_unquote(buf, sizeof(buf), partials[i].start, partials[i].end);
-			tds_dstr_copy(&drec->sql_desc_base_table_name, buf);
+			if (!tds_dstr_copy(&drec->sql_desc_base_table_name, buf))
+				goto memory_error;
 
 			--i;
 			if (i >= 0) {
 				odbc_unquote(buf, sizeof(buf), partials[i].start, partials[i].end);
-				tds_dstr_copy(&drec->sql_desc_schema_name, buf);
+				if (!tds_dstr_copy(&drec->sql_desc_schema_name, buf))
+					goto memory_error;
 			}
 
 			--i;
 			if (i >= 0) {
 				odbc_unquote(buf, sizeof(buf), partials[i].start, partials[i].end);
-				tds_dstr_copy(&drec->sql_desc_catalog_name, buf);
+				if (!tds_dstr_copy(&drec->sql_desc_catalog_name, buf))
+					goto memory_error;
 			}
 		}
 
@@ -3165,7 +3166,11 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_searchable = (drec->sql_desc_unnamed == SQL_NAMED) ? SQL_PRED_SEARCHABLE : SQL_UNSEARCHABLE;
 		drec->sql_desc_updatable = col->column_writeable && !col->column_identity ? SQL_TRUE : SQL_FALSE;
 	}
-	return (SQL_SUCCESS);
+	return SQL_SUCCESS;
+
+memory_error:
+	odbc_errs_add(&stmt->errs, "HY001", NULL);
+	return SQL_ERROR;
 }
 
 static TDSRET
@@ -6818,7 +6823,8 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 			if (TDS_IS_MSSQL(tds) && tds_conn(tds)->product_version >= TDS_MS_VER(8,0,0)) {
 				proc = "sp_tableswc";
 				if (tds_dstr_isempty(&schema_name))
-					tds_dstr_copy(&schema_name, "%");
+					if (!tds_dstr_copy(&schema_name, "%"))
+						goto memory_error;
 			}
 			/*
 			 * TODO support wildcards on catalog even for Sybase
@@ -6884,8 +6890,10 @@ ODBC_FUNC(SQLTables, (P(SQLHSTMT,hstmt), PCHARIN(CatalogName,SQLSMALLINT),
 				*dst++ = *p++;
 			}
 			*dst = 0;
-			if (!tds_dstr_set(&table_type, type))
+			if (!tds_dstr_set(&table_type, type)) {
+				free(type);
 				goto memory_error;
+			}
 		}
 	}
 

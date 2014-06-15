@@ -78,9 +78,7 @@
 #include <dmalloc.h>
 #endif
 
-TDS_RCSID(var, "$Id: config.c,v 1.177 2012-03-11 15:52:22 freddy77 Exp $");
-
-static void tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
+static int tds_config_login(TDSLOGIN * connection, TDSLOGIN * login);
 static void tds_config_env_tdsdump(TDSLOGIN * login);
 static void tds_config_env_tdsver(TDSLOGIN * login);
 static void tds_config_env_tdsport(TDSLOGIN * login);
@@ -184,7 +182,10 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 			if (found) {
 				parse_server_name_for_port(connection, login);
 			} else if (TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->server_name), &connection->ip_addrs))) {
-				tds_dstr_dup(&connection->server_host_name, &connection->server_name);
+				if (!tds_dstr_dup(&connection->server_host_name, &connection->server_name)) {
+					tds_free_login(connection);
+					return NULL;
+				}
 				found = 1;
 			}
 		}
@@ -204,7 +205,10 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	tds_fix_login(connection);
 
 	/* And finally apply anything from the login structure */
-	tds_config_login(connection, login);
+	if (!tds_config_login(connection, login)) {
+		tds_free_login(connection);
+		return NULL;
+	}
 	
 	if (opened) {
 		char tmp[128];
@@ -650,47 +654,49 @@ tds_parse_conf_section(const char *option, const char *value, void *param)
 	}
 }
 
-static void
+static int
 tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 {
+	DSTR *res = &login->server_name;
+
 	if (!tds_dstr_isempty(&login->server_name)) {
 		if (1 || tds_dstr_isempty(&connection->server_name)) 
-			tds_dstr_dup(&connection->server_name, &login->server_name);
+			res = tds_dstr_dup(&connection->server_name, &login->server_name);
 	}
 	if (login->tds_version)
 		connection->tds_version = login->tds_version;
 	if (!tds_dstr_isempty(&login->language)) {
-		tds_dstr_dup(&connection->language, &login->language);
+		res = tds_dstr_dup(&connection->language, &login->language);
 	}
 	if (!tds_dstr_isempty(&login->server_charset)) {
-		tds_dstr_dup(&connection->server_charset, &login->server_charset);
+		res = tds_dstr_dup(&connection->server_charset, &login->server_charset);
 	}
 	if (!tds_dstr_isempty(&login->client_charset)) {
-		tds_dstr_dup(&connection->client_charset, &login->client_charset);
+		res = tds_dstr_dup(&connection->client_charset, &login->client_charset);
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "client_charset",
 			    tds_dstr_cstr(&connection->client_charset));
 	}
 	if (!tds_dstr_isempty(&login->database)) {
-		tds_dstr_dup(&connection->database, &login->database);
+		res = tds_dstr_dup(&connection->database, &login->database);
 		tdsdump_log(TDS_DBG_INFO1, "tds_config_login: %s is %s.\n", "database_name",
 			    tds_dstr_cstr(&connection->database));
 	}
 	if (!tds_dstr_isempty(&login->client_host_name)) {
-		tds_dstr_dup(&connection->client_host_name, &login->client_host_name);
+		res = tds_dstr_dup(&connection->client_host_name, &login->client_host_name);
 	}
 	if (!tds_dstr_isempty(&login->app_name)) {
-		tds_dstr_dup(&connection->app_name, &login->app_name);
+		res = tds_dstr_dup(&connection->app_name, &login->app_name);
 	}
 	if (!tds_dstr_isempty(&login->user_name)) {
-		tds_dstr_dup(&connection->user_name, &login->user_name);
+		res = tds_dstr_dup(&connection->user_name, &login->user_name);
 	}
 	if (!tds_dstr_isempty(&login->password)) {
 		/* for security reason clear memory */
 		tds_dstr_zero(&connection->password);
-		tds_dstr_dup(&connection->password, &login->password);
+		res = tds_dstr_dup(&connection->password, &login->password);
 	}
 	if (!tds_dstr_isempty(&login->library)) {
-		tds_dstr_dup(&connection->library, &login->library);
+		res = tds_dstr_dup(&connection->library, &login->library);
 	}
 	if (login->encryption_level) {
 		connection->encryption_level = login->encryption_level;
@@ -714,6 +720,8 @@ tds_config_login(TDSLOGIN * connection, TDSLOGIN * login)
 
 	/* copy other info not present in configuration file */
 	connection->capabilities = login->capabilities;
+
+	return res != NULL;
 }
 
 static void
@@ -727,7 +735,8 @@ tds_config_env_tdsdump(TDSLOGIN * login)
 		if (!strlen(s)) {
 			pid = getpid();
 			if (asprintf(&path, pid_logpath, pid) >= 0)
-				tds_dstr_set(&login->dump_file, path);
+				if (!tds_dstr_set(&login->dump_file, path))
+					free(path);
 		} else {
 			tds_dstr_copy(&login->dump_file, s);
 		}
@@ -741,7 +750,7 @@ tds_config_env_tdsport(TDSLOGIN * login)
 
 	if ((s = getenv("TDSPORT"))) {
 		login->port = tds_lookup_port(s);
-		tds_dstr_copy(&login->instance_name, "");
+		tds_dstr_empty(&login->instance_name);
 		tdsdump_log(TDS_DBG_INFO1, "Setting 'port' to %s from $TDSPORT.\n", s);
 	}
 	return;
@@ -1060,7 +1069,8 @@ search_interface_file(TDSLOGIN * login, const char *dir, const char *file, const
 
 		if (TDS_SUCCEED(tds_lookup_host_set(tmp_ip, &login->ip_addrs))) {
 			struct tds_addrinfo *addrs;
-			tds_dstr_copy(&login->server_host_name, tmp_ip);
+			if (!tds_dstr_copy(&login->server_host_name, tmp_ip))
+				return 0;
 			for (addrs = login->ip_addrs; addrs != NULL; addrs = addrs->ai_next) {
 				tdsdump_log(TDS_DBG_INFO1, "Resolved IP as '%s'.\n",
 					    tds_addrinfo2str(login->ip_addrs, line, sizeof(line)));
@@ -1173,7 +1183,8 @@ tds_read_interfaces(const char *server, TDSLOGIN * login)
 		 */
 
 		if (TDS_SUCCEED(tds_lookup_host_set(server, &login->ip_addrs)))
-			tds_dstr_copy(&login->server_host_name, server);
+			if (!tds_dstr_copy(&login->server_host_name, server))
+				return 0;
 
 		if (ip_port)
 			login->port = ip_port;
@@ -1208,14 +1219,15 @@ parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login)
 	if (pSep && pSep != server) {	/* yes, i found it! */
 		/* modify connection-> && login->server_name & ->port */
 		login->port = connection->port = atoi(pSep + 1);
-		tds_dstr_copy(&connection->instance_name, "");
+		tds_dstr_empty(&connection->instance_name);
 	} else {
 		/* handle instance name */
 		pSep = strrchr(server, '\\');
 		if (!pSep || pSep == server)
 			return 0;
 
-		tds_dstr_copy(&connection->instance_name, pSep + 1);
+		if (!tds_dstr_copy(&connection->instance_name, pSep + 1))
+			return 0;
 		connection->port = 0;
 	}
 

@@ -1019,13 +1019,15 @@ tds_process_col_name(TDSSOCKET * tds)
 		cur = head;
 		for (col = 0; col < num_names; ++col) {
 			curcol = info->columns[col];
-			tds_dstr_copy(&curcol->column_name, cur->name);
+			if (!tds_dstr_copy(&curcol->column_name, cur->name))
+				goto memory_error;
 			cur = cur->next;
 		}
 		tds_free_namelist(head);
 		return TDS_SUCCESS;
 	}
 
+memory_error:
 	tds_free_namelist(head);
 	return TDS_FAIL;
 }
@@ -1250,7 +1252,8 @@ tds_process_colinfo(TDSSOCKET * tds, char **names, int num_names)
 			curcol->column_hidden = (col_info[2] & 0x10) > 0;
 
 			if (names && col_info[1] > 0 && col_info[1] <= num_names)
-				tds_dstr_copy(&curcol->table_name, names[col_info[1] - 1]);
+				if (!tds_dstr_copy(&curcol->table_name, names[col_info[1] - 1]))
+					return TDS_FAIL;
 		}
 		/* read real column name */
 		if (col_info[2] & 0x20) {
@@ -1447,7 +1450,8 @@ tds_process_compute_result(TDSSOCKET * tds)
 
 		/* If no name has been defined for the compute column, use "max", "avg" etc. */
 		if (tds_dstr_isempty(&curcol->column_name))
-			tds_dstr_copy(&curcol->column_name, tds_pr_op(curcol->column_operator));
+			if (!tds_dstr_copy(&curcol->column_name, tds_pr_op(curcol->column_operator)))
+				return TDS_FAIL;
 
 		/*  User defined data type of the column */
 		curcol->column_usertype = tds_get_int(tds);
@@ -2709,7 +2713,8 @@ tds_process_compute_names(TDSSOCKET * tds)
 		for (col = 0; col < num_cols; col++) {
 			TDSCOLUMN *curcol = info->columns[col];
 
-			tds_dstr_copy(&curcol->column_name, cur->name);
+			if (!tds_dstr_copy(&curcol->column_name, cur->name))
+				goto memory_error;
 
 			cur = cur->next;
 		}
@@ -2717,6 +2722,7 @@ tds_process_compute_names(TDSSOCKET * tds)
 		return TDS_SUCCESS;
 	}
 
+memory_error:
 	tds_free_namelist(head);
 	return TDS_FAIL;
 }
@@ -2800,7 +2806,8 @@ tds7_process_compute_result(TDSSOCKET * tds)
 		tds7_get_data_info(tds, curcol);
 
 		if (tds_dstr_isempty(&curcol->column_name))
-			tds_dstr_copy(&curcol->column_name, tds_pr_op(curcol->column_operator));
+			if (!tds_dstr_copy(&curcol->column_name, tds_pr_op(curcol->column_operator)))
+				return TDS_FAIL;
 	}
 
 	/* all done now allocate a row for tds_process_row to use */

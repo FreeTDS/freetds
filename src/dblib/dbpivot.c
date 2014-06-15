@@ -697,7 +697,8 @@ set_result_column(TDSSOCKET * tds, TDSCOLUMN * curcol, const char name[], const 
 #endif
 	curcol->on_server.column_size = curcol->column_size;
 
-	tds_dstr_copy(&curcol->column_name, name);
+	if (!tds_dstr_copy(&curcol->column_name, name))
+		return TDS_FAIL;
 
 	tdsdump_log(TDS_DBG_INFO1, "tds7_get_data_info: \n"
 		    "\tcolname = %s\n"

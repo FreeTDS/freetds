@@ -59,6 +59,10 @@ size_t tds_dstr_len(DSTR * s);
 void tds_dstr_zero(DSTR * s);
 void tds_dstr_free(DSTR * s);
 
+/** Make a string empty */
+#define tds_dstr_empty(s) \
+	tds_dstr_free(s)
+
 #if ENABLE_EXTRA_CHECKS && defined(__GNUC__) && __GNUC__ >= 4
 #define TDS_WUR __attribute__ ((__warn_unused_result__))
 #else

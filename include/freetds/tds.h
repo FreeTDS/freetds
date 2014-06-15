@@ -1267,7 +1267,6 @@ void tds_set_library(TDSLOGIN * tds_login, const char *library);
 void tds_set_server(TDSLOGIN * tds_login, const char *server);
 void tds_set_client_charset(TDSLOGIN * tds_login, const char *charset);
 void tds_set_language(TDSLOGIN * tds_login, const char *language);
-void tds_set_database_name(TDSLOGIN * tds_login, const char *dbname);
 void tds_set_version(TDSLOGIN * tds_login, TDS_TINYINT major_ver, TDS_TINYINT minor_ver);
 int tds_connect_and_login(TDSSOCKET * tds, TDSLOGIN * login);
 

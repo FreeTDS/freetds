@@ -160,12 +160,6 @@ tds_set_language(TDSLOGIN * tds_login, const char *language)
 	tds_dstr_copy(&tds_login->language, language);
 }
 
-void
-tds_set_database_name(TDSLOGIN * tds_login, const char *dbname)
-{
-	tds_dstr_copy(&tds_login->database, dbname);
-}
-
 struct tds_save_msg
 {
 	TDSMESSAGE msg;

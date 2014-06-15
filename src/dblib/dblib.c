@@ -806,7 +806,8 @@ dbsetlname(LOGINREC * login, const char *value, int which)
 		return SUCCEED;
 		break;
 	case DBSETDBNAME:
-		tds_set_database_name(login->tds_login, value ? value : "");
+		if (!tds_dstr_copy(&login->tds_login->database, value ? value : ""))
+			return FAIL;
 		return SUCCEED;
 		break;
 	default:

@@ -421,7 +421,11 @@ param_info_alloc(TDSSOCKET * tds, DBREMOTE_PROC * rpc)
 
 		/* meta data */
 		if (p->name)
-			tds_dstr_copy(&pcol->column_name, p->name);
+			if (!tds_dstr_copy(&pcol->column_name, p->name)) {
+				tds_free_param_results(params);
+				tdsdump_log(TDS_DBG_ERROR, "out of rpc memory!");
+				return NULL;
+			}
 
 		tds_set_param_type(tds->conn, pcol, temp_type);
 

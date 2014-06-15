@@ -56,9 +56,6 @@
 #include <freetds/server.h>
 #include <freetds/string.h>
 
-static char software_version[] = "$Id: login.c,v 1.59 2012-03-11 15:52:22 freddy77 Exp $";
-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
-
 unsigned char *
 tds7_decrypt_pass(const unsigned char *crypt_pass, int len, unsigned char *clear_pass)
 {
@@ -240,7 +237,7 @@ tds7_read_login(TDSSOCKET * tds, TDSLOGIN * login)
 
 	tds_get_n(tds, NULL, auth_len);
 
-	tds_dstr_copy(&login->server_charset, "");	/*empty char_set for TDS 7.0 */
+	tds_dstr_empty(&login->server_charset);	/*empty char_set for TDS 7.0 */
 	login->block_size = 0;	/*0 block size for TDS 7.0 */
 	login->encryption_level = TDS_ENCRYPTION_OFF;
 	return (0);

@@ -239,8 +239,8 @@ odbc_get_dsn_info(TDS_ERRS *errs, const char *DSN, TDSLOGIN * login)
 		tds_parse_conf_section(TDS_STR_SPN, tmp, login);
 
 	if (myGetPrivateProfileString(DSN, odbc_param_Trusted_Connection, tmp) > 0 && tds_config_boolean(odbc_param_Trusted_Connection, tmp, login)) {
-		tds_dstr_copy(&login->user_name, "");
-		tds_dstr_copy(&login->password, "");
+		tds_dstr_empty(&login->user_name);
+		tds_dstr_empty(&login->password);
 	}
 
 	if (myGetPrivateProfileString(DSN, odbc_param_MARS_Connection, tmp) > 0 && tds_config_boolean(odbc_param_MARS_Connection, tmp, login)) {
@@ -446,8 +446,8 @@ odbc_parse_connect_string(TDS_ERRS *errs, const char *connect_string, const char
 			parsed_params[ODBC_PARAM_UID].p = NULL;
 			parsed_params[ODBC_PARAM_PWD].p = NULL;
 		}
-		tds_dstr_copy(&login->user_name, "");
-		tds_dstr_copy(&login->password, "");
+		tds_dstr_empty(&login->user_name);
+		tds_dstr_empty(&login->password);
 	}
 
 	tds_dstr_free(&value);
