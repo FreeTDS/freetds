@@ -1820,13 +1820,15 @@ _bcp_readfmt_colinfo(DBPROCESS * dbproc, char *buf, BCP_HOSTCOLINFO * ci)
 			if (*tok != '\"')
 				return (FALSE);
 
-			if ((ci->terminator = (BYTE*) malloc(i)) == NULL) {
-				dbperror(dbproc, SYBEMEM, errno);
-				return FALSE;
-			}
-			
-			memcpy(ci->terminator, term, i);
 			ci->term_len = i;
+			TDS_ZERO_FREE(ci->terminator);
+			if (i > 0) {
+				if ((ci->terminator = (BYTE*) malloc(i)) == NULL) {
+					dbperror(dbproc, SYBEMEM, errno);
+					return FALSE;
+				}
+				memcpy(ci->terminator, term, i);
+			}
 
 			whichcol = TAB_COLNUM;
 			break;
