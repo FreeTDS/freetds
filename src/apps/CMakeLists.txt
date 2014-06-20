@@ -7,7 +7,7 @@ endforeach(target)
 
 
 add_executable(tsql tsql.c)
-target_link_libraries(tsql tds replacements ${libs})
+target_link_libraries(tsql tds replacements ${lib_READLINE} ${libs})
 
 if(WIN32)
 	set(libs odbc32 ${lib_NETWORK} ${lib_BASE})

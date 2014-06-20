@@ -165,6 +165,7 @@ SELECT_TYPE(tds_sysdep_int32_type 4 "short;int;long" "No 32-bit int found.")
 SELECT_TYPE(tds_sysdep_int64_type 8 "long;long long;__int64" "No 64-bit int found.")
 SELECT_TYPE(tds_sysdep_real32_type 4 "float;double" "No 32-bit real found.")
 SELECT_TYPE(tds_sysdep_real64_type 8 "float;double;long double" "No 64-bit real found.")
+SELECT_TYPE(tds_sysdep_intptr_type ${SIZEOF_VOID_P} "short;int;long;__int64" "No intptr type found.")
 
 # find functions
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
@@ -210,7 +211,7 @@ check_library_exists(readline readline "" HAVE_READLINE)
 if(HAVE_READLINE)
 	config_write("#cmakedefine HAVE_READLINE 1\n\n")
 	search_library(tgetent HAVE_TGETENT lib_READLINE "readline;ncurses;curses;termcap")
-	set(lib_READLINE "readline ${lib_READLINE}")
+	set(lib_READLINE readline ${lib_READLINE})
 endif(HAVE_READLINE)
 
 # flags
@@ -247,7 +248,7 @@ else(WIN32)
 	include(FindGnuTLS)
 	if(GNUTLS_FOUND)
 		config_write("#define HAVE_GNUTLS 1\n#define HAVE_GNUTLS_RECORD_DISABLE_PADDING 1\n")
-		set(lib_GNUTLS ${GNUTLS_LIBRARIES})
+		set(lib_GNUTLS ${GNUTLS_LIBRARIES} gcrypt)
 	endif(GNUTLS_FOUND)
 
 	if(NOT HAVE_CLOCK_GETTIME AND NOT HAVE_GETHRTIME)
@@ -290,7 +291,7 @@ if(WIN32)
 	set(lib_NETWORK ws2_32)
 else(WIN32)
 	# TODO check libraries
-	set(lib_NETWORK ${GNUTLS_LIBRARIES} gssapi_krb5)
+	set(lib_NETWORK ${lib_GNUTLS} gssapi_krb5)
 endif(WIN32)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include include win32)
