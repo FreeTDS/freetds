@@ -6,7 +6,7 @@
 SHELL = /bin/sh
 DOCDIR = .
 PRODUCT = FreeTDS
-TARGET_DOCDIR = $(DESTDIR)$(datadir)/doc/freetds-$(VERSION)
+TARGET_DOCDIR = $(DESTDIR)$(docdir)
 
 IMAGES = 	images/important.gif \
 		images/note.gif \
