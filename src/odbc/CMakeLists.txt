@@ -22,7 +22,7 @@ if(WIN32)
 	set(win_SRCS ../../win32/winlogin.c ../../win32/winsetup.c ../../win32/initnet.c ../../win32/FreeTDS_w.def ../../win32/setup.rc)
 	set(libs odbccp32)
 else()
-	set(libs)
+	set(libs ${lib_ODBCINST})
 endif()
 
 add_library(tdsodbc SHARED

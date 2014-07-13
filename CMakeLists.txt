@@ -214,6 +214,9 @@ if(HAVE_READLINE)
 	set(lib_READLINE readline ${lib_READLINE})
 endif(HAVE_READLINE)
 
+config_write("#cmakedefine HAVE_SQLGETPRIVATEPROFILESTRING 1\n\n")
+search_library(SQLGetPrivateProfileString HAVE_SQLGETPRIVATEPROFILESTRING lib_ODBCINST "odbcinst;iodbcinst")
+
 # flags
 set(ENABLE_ODBC_WIDE    ON  CACHE BOOL "Enable ODBC wide character support")
 set(ENABLE_EXTRA_CHECKS OFF CACHE BOOL "Enable internal extra checks, do not use in production")
