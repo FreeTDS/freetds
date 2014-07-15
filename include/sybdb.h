@@ -338,6 +338,25 @@ typedef struct
     BOOL  Identity; 
 
 } DBCOL; 
+
+typedef struct
+{
+    DBINT SizeOfStruct;
+    DBCHAR  Name[MAXCOLNAMELEN+2];
+    DBCHAR  ActualName[MAXCOLNAMELEN+2];
+    DBCHAR  TableName[MAXCOLNAMELEN+2];
+    SHORT Type;
+    DBINT UserType;
+    DBINT MaxLength;
+    BYTE  Precision;
+    BYTE  Scale;
+    BOOL  VarLength;
+    BYTE  Null;
+    BYTE  CaseSensitive;
+    BYTE  Updatable;
+    BOOL  Identity;
+    DBCHAR  TypeDeclaration[256];
+} DBCOL2;
 /* end dbcolinfo stuff */
 
 
@@ -1128,6 +1147,7 @@ DBINT dbvarylen(DBPROCESS * dbproc, int column);
 #define SYBEDCL         20298	/* -004- DCL Error */
 #define SYBECS          20299	/* -004- cs context Error */
 #define SYBEBULKINSERT  20599	/* cannot build bulk insert statement */
+#define SYBECOLSIZE     22000   /* Invalid column information structure size */
 
 int dbtds(DBPROCESS * dbprocess);
 

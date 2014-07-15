@@ -6238,6 +6238,8 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 	tdsdump_log(TDS_DBG_FUNC, "dbtablecolinfo(%p, %d, %p)\n", dbproc, column, pdbcol);
 	CHECK_CONN(FAIL);
 	CHECK_NULP(pdbcol, "dbtablecolinfo", 3, FAIL);
+	DBPERROR_RETURN(pdbcol->SizeOfStruct != sizeof(DBCOL)
+			&& pdbcol->SizeOfStruct != sizeof(DBCOL2), SYBECOLSIZE);
 
 	colinfo = dbcolptr(dbproc, column);
 	if (!colinfo)
@@ -6265,6 +6267,15 @@ dbtablecolinfo (DBPROCESS *dbproc, DBINT column, DBCOL *pdbcol )
 
 	pdbcol->Updatable = colinfo->column_writeable ? TRUE : FALSE;
 	pdbcol->Identity = colinfo->column_identity ? TRUE : FALSE;
+
+	if (pdbcol->SizeOfStruct >= sizeof(DBCOL2)) {
+		DBCOL2 *col = (DBCOL2 *) pdbcol;
+		TDSRET rc =
+			tds_get_column_declaration(dbproc->tds_socket, colinfo, col->TypeDeclaration);
+
+		if (TDS_FAILED(rc))
+			return FAIL;
+	}
 
 	return SUCCEED;
 }
@@ -7837,6 +7848,7 @@ static const DBLIB_ERROR_MESSAGE dblib_error_messages[] =
 	, { SYBEXTSN,           EXPROGRAM,	"Warning: the xlt_tosrv parameter to dbfree_xlate was NULL. The space associated "
 						"with the xlt_todisp parameter has been freed\0" }
 	, { SYBEZTXT,              EXINFO,	"Attempt to send zero length TEXT or IMAGE to dataserver via dbwritetext\0" }
+	, { SYBECOLSIZE,           EXINFO,      "Invalid column information structure size\0" }
 	};
 
 /**  \internal

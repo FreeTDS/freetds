@@ -400,8 +400,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 	const char *sep;
 
 	DBINT num_cols;
-	DBCHAR column_type[33];
-	DBCOL colinfo;
+	DBCOL2 colinfo;
 #define strcat(d, s) tds_strlcat(d, s, sizeof(d))
 
 
@@ -436,63 +435,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 		strcat(ls_command, colinfo.Name);
 		strcat(ls_command, " ");
 
-		switch (colinfo.Type) {
-		case SYBINT1:
-			strcat(ls_command, "tinyint");
-			break;
-		case SYBBIT:
-			strcat(ls_command, "bit");
-			break;
-		case SYBINT2:
-			strcat(ls_command, "smallint");
-			break;
-		case SYBINT4:
-			strcat(ls_command, "int");
-			break;
-		case SYBDATETIME:
-			strcat(ls_command, "datetime");
-			break;
-		case SYBDATETIME4:
-			strcat(ls_command, "smalldatetime");
-			break;
-		case SYBREAL:
-			strcat(ls_command, "real");
-			break;
-		case SYBMONEY:
-			strcat(ls_command, "money");
-			break;
-		case SYBMONEY4:
-			strcat(ls_command, "smallmoney");
-			break;
-		case SYBFLT8:
-			strcat(ls_command, "float");
-			break;
-		case SYBDECIMAL:
-			sprintf(column_type, "decimal(%d,%d)", colinfo.Precision, colinfo.Scale);
-			strcat(ls_command, column_type);
-			break;
-		case SYBNUMERIC:
-			sprintf(column_type, "numeric(%d,%d)", colinfo.Precision, colinfo.Scale);
-			strcat(ls_command, column_type);
-			break;
-		case SYBCHAR:
-			sprintf(column_type, "char(%d)", colinfo.MaxLength);
-			strcat(ls_command, column_type);
-			break;
-		case SYBVARCHAR:
-			sprintf(column_type, "varchar(%d)", colinfo.MaxLength);
-			strcat(ls_command, column_type);
-			break;
-		case SYBTEXT:
-			strcat(ls_command, "text");
-			break;
-		case SYBIMAGE:
-			strcat(ls_command, "image");
-			break;
-		default:
-			fprintf(stderr, "type not handled\n");
-			return FALSE;
-		}
+		strcat(ls_command, colinfo.TypeDeclaration);
 
 		if (colinfo.Null == TRUE) {
 			strcat(ls_command, " NULL");
