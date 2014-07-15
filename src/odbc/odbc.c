@@ -320,7 +320,8 @@ change_txn(TDS_DBC * dbc, SQLUINTEGER txn_isolation)
 }
 
 static TDS_DBC*
-odbc_get_dbc(TDSSOCKET *tds) {
+odbc_get_dbc(TDSSOCKET *tds)
+{
 	TDS_CHK *chk = (TDS_CHK *) tds_get_parent(tds);
 	if (!chk)
 		return NULL;
@@ -331,7 +332,8 @@ odbc_get_dbc(TDSSOCKET *tds) {
 }
 
 static TDS_STMT*
-odbc_get_stmt(TDSSOCKET *tds) {
+odbc_get_stmt(TDSSOCKET *tds)
+{
 	TDS_CHK *chk = (TDS_CHK *) tds_get_parent(tds);
 	if (!chk || chk->htype != SQL_HANDLE_STMT)
 		return NULL;
@@ -344,9 +346,8 @@ odbc_env_change(TDSSOCKET * tds, int type, char *oldval, char *newval)
 {
 	TDS_DBC *dbc;
 
-	if (tds == NULL) {
-		return;
-	}
+	assert(tds);
+
 	dbc = odbc_get_dbc(tds);
 	if (!dbc)
 		return;
