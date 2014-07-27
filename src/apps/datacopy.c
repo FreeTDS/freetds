@@ -426,7 +426,7 @@ create_target_table(char *sobjname, char *owner, char *dobjname, DBPROCESS * dbs
 	for (i = 1; i <= num_cols; i++) {
 
 		colinfo.SizeOfStruct = sizeof(colinfo);
-		if (dbtablecolinfo(dbsrc, i, &colinfo) != SUCCEED)
+		if (dbtablecolinfo(dbsrc, i, (DBCOL *) &colinfo) != SUCCEED)
 			return FALSE;
 
 		strcat(ls_command, sep);
