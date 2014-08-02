@@ -12,7 +12,7 @@ endif
 libtdsodbc_la_SOURCES=	odbc.c connectparams.c convert_tds2sql.c \
 	descriptor.c prepare_query.c odbc_util.c \
 	native.c sql2tds.c error.c odbc_checks.c sqlwchar.c sqlwparams.h \
-	odbc_export.h error_export.h $(MINGW_SOURCES)
+	odbc_export.h error_export.h odbc_data.c $(MINGW_SOURCES)
 if MINGW32
 libtdsodbc_la_LIBADD=	../../win32/setup.res ../tds/libtds.la ../replacements/libreplacements.la $(ODBCINSTLIB) \
 	$(NETWORK_LIBS) $(LTLIBICONV) $(FREETDS_LIBGCC)

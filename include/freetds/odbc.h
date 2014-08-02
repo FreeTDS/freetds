@@ -21,8 +21,10 @@
 #ifndef _sql_h_
 #define _sql_h_
 
+#define TDS_DONT_DEFINE_DEFAULT_FUNCTIONS
 #include <freetds/tds.h>
 #include <freetds/thread.h>
+#include <freetds/data.h>
 
 #if defined(UNIXODBC) || defined(TDS_NO_DM)
 #include <sql.h>
@@ -491,6 +493,12 @@ typedef struct _hdbc TDS_DBC;
 typedef struct _hstmt TDS_STMT;
 typedef struct _hchk TDS_CHK;
 
+typedef struct {
+	/* this must be the first member */
+	TDSCOLUMNFUNCS common;
+	SQLSMALLINT (*server_to_sql_type)(TDSCOLUMN *col);
+} TDS_FUNCS;
+
 #define IS_HENV(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_ENV)
 #define IS_HDBC(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_DBC)
 #define IS_HSTMT(x) (((TDS_CHK *)x)->htype == SQL_HANDLE_STMT)
@@ -659,7 +667,15 @@ int odbc_set_stmt_prepared_query(struct _hstmt *stmt, const ODBC_CHAR *sql, int 
 void odbc_set_return_status(struct _hstmt *stmt, unsigned int n_row);
 void odbc_set_return_params(struct _hstmt *stmt, unsigned int n_row);
 
-SQLSMALLINT odbc_server_to_sql_type(int col_type, int col_size);
+/**
+ * Convert type from database to ODBC
+ */
+static inline SQLSMALLINT
+odbc_server_to_sql_type(TDSCOLUMN *col)
+{
+	return ((TDS_FUNCS *) col->funcs)->server_to_sql_type(col);
+}
+
 int odbc_sql_to_c_type_default(int sql_type);
 int odbc_sql_to_server_type(TDSCONNECTION * conn, int sql_type, int sql_unsigned);
 int odbc_c_to_server_type(int c_type);

@@ -53,7 +53,6 @@
 #include <freetds/iconv.h>
 #include <freetds/string.h>
 #include <freetds/convert.h>
-#include <freetds/data.h>
 #include "replacements.h"
 #include "sqlwparams.h"
 #include <odbcss.h>
@@ -3059,7 +3058,7 @@ odbc_populate_ird(TDS_STMT * stmt)
 		drec->sql_desc_case_sensitive = SQL_TRUE;
 		/* TODO test error ?? */
 		/* TODO handle unsigned flags ! */
-		odbc_set_concise_sql_type(odbc_server_to_sql_type(col->on_server.column_type, col->on_server.column_size), drec, 0);
+		odbc_set_concise_sql_type(odbc_server_to_sql_type(col), drec, 0);
 		/*
 		 * TODO how to handle when in datetime we change precision ?? 
 		 * should we change display size too ??
