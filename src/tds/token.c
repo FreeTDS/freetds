@@ -1318,7 +1318,8 @@ tds_process_param_result(TDSSOCKET * tds, TDSPARAMINFO ** pinfo)
 		return TDS_FAIL;
 
 	token = curparam->funcs->get_data(tds, curparam);
-	tdsdump_col(curparam);
+	if (TDS_UNLIKELY(tds_write_dump))
+		tdsdump_col(curparam);
 
 	/*
 	 * Real output parameters will either be unnamed or will have a valid

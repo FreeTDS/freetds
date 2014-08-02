@@ -439,33 +439,7 @@ tdsdump_col(const TDSCOLUMN *col)
 	assert(col->column_data);
 	
 	typename = tds_prtype(col->column_type);
-	type = col->column_type;
-	
-	switch(type) {
-	case SYBINTN:
-		switch(col->column_cur_size) {
-		case sizeof(TDS_INT):
-			type = SYBINT4;
-			break;
-		case sizeof(TDS_SMALLINT):
-			type = SYBINT2;
-			break;
-		case sizeof(TDS_TINYINT):
-			type = SYBINT1;
-			break;
-		}
-		break;
-	case SYBFLTN:
-		switch(col->column_cur_size) {
-		case sizeof(TDS_REAL):
-			type = SYBREAL;
-			break;
-		case sizeof(TDS_FLOAT):
-			type = SYBFLT8;
-			break;
-		}
-		break;
-	}
+	type = tds_get_conversion_type(col->column_type, col->column_size);
 	
 	switch(type) {
 	case SYBCHAR: 
