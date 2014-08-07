@@ -1525,7 +1525,7 @@ tds_convert_real(const TDS_REAL* src, int desttype, CONV_RESULT * cr)
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		sprintf(tmp_str, "%.7g", the_value);
+		sprintf(tmp_str, "%.9g", the_value);
 		return string_to_result(tmp_str, cr);
 		break;
 
@@ -1638,7 +1638,7 @@ tds_convert_flt8(const TDS_FLOAT* src, int desttype, CONV_RESULT * cr)
 	switch (desttype) {
 	case TDS_CONVERT_CHAR:
 	case CASE_ALL_CHAR:
-		sprintf(tmp_str, "%.16g", the_value);
+		sprintf(tmp_str, "%.17g", the_value);
 		return string_to_result(tmp_str, cr);
 		break;
 
