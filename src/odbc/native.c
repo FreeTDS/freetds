@@ -100,6 +100,15 @@ to_native(struct _hdbc *dbc, struct _hstmt *stmt, char *buf)
 	 */
 	d = s = buf;
 	while (*s) {
+		if (*s == '-' || *s == '/') {
+			size_t len_comment = tds_skip_comment(s) - s;
+
+			memmove(d, s, len_comment);
+			s += len_comment;
+			d += len_comment;
+			continue;
+		}
+
 		/* TODO: test syntax like "select 1 as [pi]]p)p{?=call]]]]o], 2" on mssql7+ */
 		if (*s == '"' || *s == '\'' || *s == '[') {
 			size_t len_quote = tds_skip_quoted(s) - s;

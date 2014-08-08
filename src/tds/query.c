@@ -60,7 +60,6 @@ static size_t tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
 
 static int tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n);
 static int tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
-static const char *tds_skip_comment(const char *s);
 static int tds_count_placeholders_ucs2le(const char *query, const char *query_end);
 
 #define TDS_PUT_DATA_USE_NAME 1
@@ -413,7 +412,7 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
 	return rc;
 }
 
-static const char *
+const char *
 tds_skip_comment(const char *s)
 {
 	const char *p = s;
