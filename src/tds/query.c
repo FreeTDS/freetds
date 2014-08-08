@@ -58,7 +58,6 @@ static char *tds7_build_param_def_from_params(TDSSOCKET * tds, const char* query
 
 static TDSRET tds_put_param_as_string(TDSSOCKET * tds, TDSPARAMINFO * params, int n);
 static TDSRET tds_send_emulated_execute(TDSSOCKET * tds, const char *query, TDSPARAMINFO * params);
-static const char *tds_skip_comment(const char *s);
 static int tds_count_placeholders_ucs2le(const char *query, const char *query_end);
 
 #define TDS_PUT_DATA_USE_NAME 1
@@ -518,7 +517,7 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
  * \param s    start of the string (or part of it)
  * \returns pointer to end of comment
  */
-static const char *
+const char *
 tds_skip_comment(const char *s)
 {
 	const char *p = s;

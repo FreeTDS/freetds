@@ -1296,6 +1296,7 @@ TDSRET tds_submit_rollback(TDSSOCKET *tds, int cont);
 TDSRET tds_submit_commit(TDSSOCKET *tds, int cont);
 size_t tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen);
 size_t tds_quote_string(TDSSOCKET * tds, char *buffer, const char *str, int len);
+const char *tds_skip_comment(const char *s);
 const char *tds_skip_quoted(const char *s);
 size_t tds_fix_column_size(TDSSOCKET * tds, TDSCOLUMN * curcol);
 const char *tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv, const char *s, int len, size_t *out_len);
