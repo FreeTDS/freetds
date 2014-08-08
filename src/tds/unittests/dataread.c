@@ -183,8 +183,8 @@ main(int argc, char **argv)
 	test("INT", "16909060", NULL);
 
 	/* floating point */
-	test("REAL", "1.23", NULL);
-	test("FLOAT", "-49586.345", NULL);
+	test("REAL", "1.25", NULL);
+	test("FLOAT", "-49586.345", "-49586.345000000001");
 
 	/* money */
 	test("MONEY", "-123.3400", "-123.34");
