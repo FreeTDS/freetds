@@ -8,8 +8,8 @@ fi
 
 # old style autoconf, just override TESTS_ENVIRONMENT with true to avoid
 # doing tests but just compile
-if test "$1" != "/bin/sh"; then
-	TESTS_ENVIRONMENT="$TDS_MAKEENVS_CMD" exec "$@"
+if test "$1" != "/bin/sh" -a "$1" != "/bin/bash"; then
+	$TDS_MAKEENVS_CMD "$@"
 	exit $?
 fi
 
