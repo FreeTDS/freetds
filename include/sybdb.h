@@ -600,7 +600,7 @@ int dbstrsort(DBPROCESS * dbprocess, char *s1, int l1, char *s2, int l2, DBSORTO
 DBBOOL dbtabbrowse(DBPROCESS * dbprocess, int tabnum);
 int dbtabcount(DBPROCESS * dbprocess);
 char *dbtabname(DBPROCESS * dbprocess, int tabnum);
-char *dbtabsoruce(DBPROCESS * dbprocess, int colnum, int *tabnum);
+char *dbtabsource(DBPROCESS * dbprocess, int colnum, int *tabnum);
 
 RETCODE dbsetlshort(LOGINREC * login, int value, int which);
 
