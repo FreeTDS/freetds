@@ -328,20 +328,24 @@ upload "$OUTDIR/test5" '*.html'
 cd ..
 }
 
-pids=
-test1 &
-pids="$pids $!"
-test2 &
-pids="$pids $!"
-test3 &
-pids="$pids $!"
-test4 &
-pids="$pids $!"
-test5 &
-pids="$pids $!"
+left=(test1 test2 test3 test4 test5)
 
-for pid in $pids; do
-	wait $pid
+limit=3
+while true; do
+	# get job pids
+	running=($(jobs -rp))
+
+	# launch another process if necessary
+	if [ ${#running[@]} -lt $limit -a ${#left[@]} -gt 0 ]; then
+		${left[0]} &
+		left=("${left[@]:1}")
+	elif [ ${#running[@]} = 0 ]; then
+		# we finish all jobs, done
+		break
+	else
+		# wait any process to finish
+		wait -n ${running[@]}
+	fi
 done
 
 # test autodiscovery
