@@ -1057,17 +1057,9 @@ tds_free_packets(TDSPACKET *packet)
 }
 #endif
 
-#if ENABLE_ODBC_MARS
-static void
-tds_free_connection(TDSCONNECTION *conn)
-{
-	if (!conn) return;
-	assert(conn->in_net_tds == NULL);
-#else
 static void
 tds_deinit_connection(TDSCONNECTION *conn)
 {
-#endif
 	if (conn->authentication)
 		conn->authentication->free(conn, conn->authentication);
 	conn->authentication = NULL;
@@ -1091,34 +1083,87 @@ tds_deinit_connection(TDSCONNECTION *conn)
 	tds_free_packets(conn->recv_packet);
 	tds_free_packets(conn->send_packets);
 	free(conn->sessions);
-	free(conn);
 #endif
 }
 
-#if ENABLE_ODBC_MARS
 static TDSCONNECTION *
-tds_alloc_connection(TDSCONTEXT *context)
+tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsize)
 {
 	int sv[2];
-	TDSCONNECTION *conn;
 
-	TEST_MALLOC(conn, TDSCONNECTION);
-	TEST_CALLOC(conn->sessions, TDSSOCKET*, 64);
-
-	if (tds_iconv_alloc(conn))
-		goto Cleanup;
-
-	conn->num_sessions = 64;
+	conn->env.block_size = bufsize;
 	conn->s_signal = conn->s_signaled = conn->s = INVALID_SOCKET;
 	conn->use_iconv = 1;
 	conn->parent = NULL;
 	conn->tds_ctx = context;
-	if (tds_mutex_init(&conn->list_mtx))
+
+	if (tds_iconv_alloc(conn))
 		goto Cleanup;
+
 	if (tds_socketpair(AF_UNIX, SOCK_STREAM, 0, sv))
 		goto Cleanup;
 	conn->s_signal   = sv[0];
 	conn->s_signaled = sv[1];
+
+#if ENABLE_ODBC_MARS
+	if (tds_mutex_init(&conn->list_mtx))
+		goto Cleanup;
+	TEST_CALLOC(conn->sessions, TDSSOCKET*, 64);
+	conn->num_sessions = 64;
+#endif
+	return conn;
+
+Cleanup:
+	return NULL;
+}
+
+static TDSSOCKET *
+tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
+{
+	TEST_CALLOC(tds_socket->in_buf, unsigned char, bufsize);
+	tds_socket->in_buf_max = bufsize;
+	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
+
+	tds_socket->out_buf_max = bufsize;
+
+	/* Jeff's hack, init to no timeout */
+	tds_socket->query_timeout = 0;
+	tds_init_write_buf(tds_socket);
+	tds_socket->state = TDS_DEAD;
+	tds_socket->env_chg_func = NULL;
+	if (tds_mutex_init(&tds_socket->wire_mtx))
+		goto Cleanup;
+
+#ifdef ENABLE_ODBC_MARS
+	tds_socket->sid = 0;
+	if (tds_cond_init(&tds_socket->packet_cond))
+		goto Cleanup;
+#endif
+	return tds_socket;
+
+      Cleanup:
+	return NULL;
+}
+
+
+#if ENABLE_ODBC_MARS
+static void
+tds_free_connection(TDSCONNECTION *conn)
+{
+	if (!conn) return;
+	assert(conn->in_net_tds == NULL);
+	tds_deinit_connection(conn);
+	free(conn);
+}
+
+static TDSCONNECTION *
+tds_alloc_connection(TDSCONTEXT *context, unsigned int bufsize)
+{
+	TDSCONNECTION *conn;
+
+	TEST_MALLOC(conn, TDSCONNECTION);
+	if (!tds_init_connection(conn, context, bufsize))
+		goto Cleanup;
 	return conn;
 
 Cleanup:
@@ -1132,24 +1177,10 @@ tds_alloc_socket_base(unsigned int bufsize)
 	TDSSOCKET *tds_socket;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
-
-	TEST_CALLOC(tds_socket->in_buf, unsigned char, bufsize);
-	tds_socket->in_buf_max = bufsize;
-	tds_socket->sid = 0;
-	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
-
-	tds_socket->out_buf_max = bufsize;
-
-	/* Jeff's hack, init to no timeout */
-	tds_socket->query_timeout = 0;
-	tds_init_write_buf(tds_socket);
-	tds_socket->state = TDS_DEAD;
-	tds_socket->env_chg_func = NULL;
-	if (tds_mutex_init(&tds_socket->wire_mtx))
-		goto Cleanup;
-	if (tds_cond_init(&tds_socket->packet_cond))
+	if (!tds_init_socket(tds_socket, bufsize))
 		goto Cleanup;
 	return tds_socket;
+
       Cleanup:
 	tds_free_socket(tds_socket);
 	return NULL;
@@ -1158,13 +1189,12 @@ tds_alloc_socket_base(unsigned int bufsize)
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 {
-	TDSCONNECTION *conn = tds_alloc_connection(context);
+	TDSCONNECTION *conn = tds_alloc_connection(context, bufsize);
 	TDSSOCKET *tds;
 
 	if (!conn)
 		return NULL;
 
-	conn->env.block_size = bufsize;
 	tds = tds_alloc_socket_base(bufsize);
 	if (tds) {
 		conn->sessions[0] = tds;
@@ -1195,36 +1225,15 @@ tds_alloc_additional_socket(TDSCONNECTION *conn)
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 {
-	int sv[2];
 	TDSSOCKET *tds_socket;
 
 	TEST_MALLOC(tds_socket, TDSSOCKET);
-	tds_set_ctx(tds_socket, context);
-	TEST_CALLOC(tds_socket->in_buf, unsigned char, bufsize);
-	tds_socket->in_buf_max = bufsize;
-	tds_conn(tds_socket)->s_signal = tds_conn(tds_socket)->s_signaled = INVALID_SOCKET;
-	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
-
-	tds_set_parent(tds_socket, NULL);
-	tds_conn(tds_socket)->env.block_size = tds_socket->out_buf_max = bufsize;
-
-	tds_conn(tds_socket)->use_iconv = 1;
-	if (tds_iconv_alloc(tds_socket->conn))
+	if (!tds_init_connection(tds_socket->conn, context, bufsize))
 		goto Cleanup;
-
-	/* Jeff's hack, init to no timeout */
-	tds_socket->query_timeout = 0;
-	tds_init_write_buf(tds_socket);
-	tds_set_s(tds_socket, INVALID_SOCKET);
-	if (tds_socketpair(AF_UNIX, SOCK_STREAM, 0, sv))
-		goto Cleanup;
-	tds_conn(tds_socket)->s_signal   = sv[0];
-	tds_conn(tds_socket)->s_signaled = sv[1];
-	tds_socket->state = TDS_DEAD;
-	tds_socket->env_chg_func = NULL;
-	if (tds_mutex_init(&tds_socket->wire_mtx))
+	if (!tds_init_socket(tds_socket, bufsize))
 		goto Cleanup;
 	return tds_socket;
+
       Cleanup:
 	tds_free_socket(tds_socket);
 	return NULL;
@@ -1279,7 +1288,11 @@ tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
 		tds_free_connection(conn);
 }
 #else
-#define tds_connection_remove_socket(c,t) do {} while(0)
+static void inline
+tds_connection_remove_socket(TDSCONNECTION *conn, TDSSOCKET *tds)
+{
+	tds_deinit_connection(conn);
+}
 #endif
 
 void
@@ -1291,18 +1304,16 @@ tds_free_socket(TDSSOCKET * tds)
 	/* detach this socket */
 	tds_release_cur_dyn(tds);
 	tds_release_cursor(&tds->cur_cursor);
-	if (tds->conn)
-		tds_connection_remove_socket(tds->conn, tds);
-
 	tds_detach_results(tds->current_results);
 	tds_free_all_results(tds);
 	free(tds->in_buf);
 	free(tds->out_buf);
 #if ENABLE_ODBC_MARS
 	tds_cond_destroy(&tds->packet_cond);
-#else
-	tds_deinit_connection(tds->conn);
 #endif
+
+	if (tds->conn)
+		tds_connection_remove_socket(tds->conn, tds);
 	free(tds);
 }
 

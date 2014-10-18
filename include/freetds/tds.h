@@ -1513,11 +1513,7 @@ int tds_capability_enabled(const TDS_CAPABILITY_TYPE *cap, unsigned cap_num)
 #define TDS_MAJOR(x) ((x)->tds_version >> 8)
 #define TDS_MINOR(x) ((x)->tds_version & 0xff)
 
-#if ENABLE_ODBC_MARS
 #define IS_TDSDEAD(x) (((x) == NULL) || (x)->state == TDS_DEAD)
-#else
-#define IS_TDSDEAD(x) (((x) == NULL) || TDS_IS_SOCKET_INVALID(tds_conn(x)->s))
-#endif
 
 /** Check if product is Sybase (such as Adaptive Server Enterrprice). x should be a TDSSOCKET*. */
 #define TDS_IS_SYBASE(x) (!(tds_conn(x)->product_version & 0x80000000u))
