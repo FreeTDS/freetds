@@ -328,7 +328,7 @@ upload "$OUTDIR/test5" '*.html'
 cd ..
 }
 
-left=(test1 test2 test3 test4 test5)
+left=(test1 test4 test5 test2 test3)
 
 limit=3
 while true; do
