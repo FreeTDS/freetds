@@ -551,7 +551,7 @@ tds_read_packet(TDSSOCKET * tds)
 
 		p += len;
 		if (p - pkt >= 4) {
-			unsigned pktlen = pkt[2] * 256u + pkt[3];
+			unsigned pktlen = TDS_GET_A2BE(pkt+2);
 			/* packet must at least contains header */
 			if (TDS_UNLIKELY(pktlen < 8)) {
 				tds_close_socket(tds);
