@@ -398,7 +398,7 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 	TDSCONNECTION *conn = tds->conn;
 	static const char zero = 0;
 
-	if (!packet) {
+	if (TDS_UNLIKELY(!packet)) {
 		tds_close_socket(tds);
 		return TDS_FAIL;
 	}
@@ -716,8 +716,7 @@ tds_packet_write(TDSCONNECTION *conn)
 	int sent;
 	TDSPACKET *packet = conn->send_packets;
 
-	if (!packet)
-		return -1;
+	assert(packet);
 
 	if (packet->pos == 0)
 		tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", packet->buf, packet->len);
@@ -725,7 +724,7 @@ tds_packet_write(TDSCONNECTION *conn)
 	/* final does not take into account other packets for this session */
 	sent = tds_connection_write(conn->in_net_tds, packet->buf+packet->pos, packet->len-packet->pos, packet->next == NULL);
 
-	if (sent < 0) {
+	if (TDS_UNLIKELY(sent < 0)) {
 		/* TODO tdserror called ?? */
 		tds_connection_close(conn);
 		return -1;
