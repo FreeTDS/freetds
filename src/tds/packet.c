@@ -51,6 +51,9 @@
 #include <dmalloc.h>
 #endif
 
+#undef MAX
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
 /**
  * \addtogroup network
  * @{ 
@@ -67,20 +70,20 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 	TDSPACKET *packet = conn->recv_packet;
 	int len;
 
-	/* allocate some space to read data (minimun 8 bytes) */
+	/* allocate some space to read data */
 	if (!packet) {
-		conn->recv_packet = packet = tds_alloc_packet(NULL, 8);
+		conn->recv_packet = packet = tds_alloc_packet(NULL, MAX(conn->env.block_size + sizeof(TDS72_SMP_HEADER), 512));
 		if (!packet) goto Memory_Error;
 		packet->len = 8;
 	}
 
-	assert(packet->pos >= 0 && packet->capacity > 0 && packet->pos <= packet->len && packet->len <= packet->capacity);
+	assert(packet->pos < packet->len && packet->len <= packet->capacity);
 
 	len = tds_connection_read(tds, packet->buf+packet->pos, packet->len - packet->pos);
 	if (len < 0)
 		goto Severe_Error;
 	packet->pos += len;
-	assert(packet->pos >= 0 && packet->len > 0 && packet->pos <= packet->len);
+	assert(packet->pos <= packet->len && packet->len <= packet->capacity);
 
 	/* handle SMP */
 	if (packet->pos > 0 && packet->buf[0] == TDS72_SMP) {
@@ -90,12 +93,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		TDS_UINT size;
 
 		if (packet->pos < 16) {
-			if (packet->len < 16) {
-				packet = tds_realloc_packet(packet, 16);
-				if (!packet) goto Memory_Error;
-				conn->recv_packet = packet;
-				packet->len = 16;
-			}
+			packet->len = 16;
 			return;
 		}
 
@@ -163,17 +161,14 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		if (mars_header.type != TDS_SMP_DATA)
 			return;
 		if (packet->len < 0x18) {
-			packet = tds_realloc_packet(packet, 0x18);
-			if (!packet) goto Memory_Error;
 			packet->len = 0x18;
-			conn->recv_packet = packet;
 			return;
 		}
 		packet->pos -= 16;
 		packet->len -= 16;
 		memmove(packet->buf, packet->buf+16, packet->pos);
 	}
-	assert(packet->pos >= 0 && packet->len > 0 && packet->pos <= packet->len);
+	assert(packet->pos <= packet->len && packet->len <= packet->capacity);
 
 	/* normal packet */
 	if (packet->pos >= 8) {
@@ -183,9 +178,9 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		if (packet->len < len) {
 			packet = tds_realloc_packet(packet, len);
 			if (!packet) goto Memory_Error;
+			conn->recv_packet = packet;
 		}
 		packet->len = len;
-		conn->recv_packet = packet;
 	}
 	return;
 
@@ -413,7 +408,7 @@ tds_connection_put_packet(TDSSOCKET *tds, TDSPACKET *packet)
 			break;
 		}
 
-		/* limit packet sending looking at sequence/window (blob1 test fails) */
+		/* limit packet sending looking at sequence/window */
 		if (tds->send_seq <= tds->send_wnd) {
 			/* append packet */
 			tds_append_packet(&conn->send_packets, packet);
