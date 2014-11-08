@@ -493,26 +493,12 @@ tds_read_packet(TDSSOCKET * tds)
 			if (tds->recv_seq + 2 >= tds->recv_wnd)
 				tds_update_recv_wnd(tds, tds->recv_seq + 4);
 
-			if (packet->len > tds->in_buf_max) {
-				void *p;
-				if (!tds->in_buf)
-					p = malloc(packet->len);
-				else
-					p = realloc(tds->in_buf, packet->len);
-				if (!p) {
-					tds_free_packets(packet);
-					tds_connection_close(tds_conn(tds));
-					return -1;
-				}
-				tds->in_buf = (unsigned char *) p;
-				tds->in_buf_max = packet->len;
-			}
-			/* TODO avoid copy reusing packet buffer */
-			memcpy(tds->in_buf, packet->buf, packet->len);
+			tds_free_packets(tds->recv_packet);
+			tds->recv_packet = packet;
+			tds->in_buf = packet->buf;
 			tds->in_len = packet->len;
 			tds->in_pos  = 8;
 			tds->in_flag = tds->in_buf[0];
-			tds_free_packets(packet);
 			/* ignore any SMP packet (already handled) */
 			if (tds->in_flag == TDS72_SMP)
 				continue;
@@ -562,16 +548,16 @@ tds_read_packet(TDSSOCKET * tds)
 				tds_close_socket(tds);
 				return -1;
 			}
-			if (TDS_UNLIKELY(pktlen > tds->in_buf_max)) {
-				pkt = (unsigned char *) realloc(tds->in_buf, pktlen);
-				if (TDS_UNLIKELY(!pkt)) {
+			if (TDS_UNLIKELY(pktlen > tds->recv_packet->capacity)) {
+				TDSPACKET *packet = tds_realloc_packet(tds->recv_packet, pktlen);
+				if (TDS_UNLIKELY(!packet)) {
 					tds_close_socket(tds);
 					return -1;
 				}
+				tds->recv_packet = packet;
+				pkt = packet->buf;
 				p = pkt + (p-tds->in_buf);
 				tds->in_buf = pkt;
-				/* Set the new maximum packet size */
-				tds->in_buf_max = pktlen;
 			}
 			end = pkt + pktlen;
 		}

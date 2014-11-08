@@ -119,13 +119,7 @@ pool_user_create(TDS_POOL * pool, TDS_SYS_SOCKET s, struct sockaddr_in *sin)
 	tds_set_parent(tds, NULL);
 	/* FIX ME - little endian emulation should be config file driven */
 	tds_conn(tds)->emul_little_endian = 1;
-	tds->in_buf = (unsigned char *) calloc(1, BLOCKSIZ);
 	tds_set_s(tds, fd);
-	if (!tds->in_buf) {
-		tds_free_socket(tds);
-		return NULL;
-	}
-	tds->in_buf_max = BLOCKSIZ;
 	tds->out_flag = TDS_LOGIN;
 	puser->tds = tds;
 	puser->user_state = TDS_SRV_LOGIN;
@@ -247,7 +241,7 @@ pool_user_read(TDS_POOL * pool, TDS_POOL_USER * puser)
 
 	tds = puser->tds;
 	/* FIXME read entire packet !!! */
-	tds->in_len = read(tds_get_s(tds), tds->in_buf, tds->in_buf_max);
+	tds->in_len = read(tds_get_s(tds), tds->in_buf, tds->recv_packet->capacity);
 	if (tds->in_len == 0) {
 		fprintf(stderr, "user disconnected\n");
 		pool_free_user(puser);

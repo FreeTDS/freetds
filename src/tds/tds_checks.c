@@ -83,13 +83,14 @@ tds_check_tds_extra(const TDSSOCKET * tds)
 
 	/* test buffers and positions */
 	assert(tds->in_pos <= tds->in_len);
-	assert(tds->in_len <= tds->in_buf_max);
+	assert(tds->in_len <= tds->recv_packet->capacity);
 	/* TODO remove blocksize from env and use out_len ?? */
 /*	assert(tds->out_pos <= tds->out_len); */
 /* 	assert(tds->out_len == 0 || tds->out_buf != NULL); */
 	assert(tds->out_pos <= tds->out_buf_max);
 	assert(tds->out_buf_max == 0 || tds->out_buf != NULL);
-	assert(tds->in_buf_max == 0 || tds->in_buf != NULL);
+	assert(tds->in_buf == tds->recv_packet->buf);
+	assert(tds->recv_packet->capacity == 0 || tds->in_buf != NULL);
 
 	/* test res_info */
 	if (tds->res_info)

@@ -1021,7 +1021,6 @@ tds_free_login(TDSLOGIN * login)
 	free(login);
 }
 
-#if ENABLE_ODBC_MARS
 TDSPACKET *
 tds_alloc_packet(void *buf, unsigned len)
 {
@@ -1060,7 +1059,6 @@ tds_free_packets(TDSPACKET *packet)
 		free(packet);
 	}
 }
-#endif
 
 static void
 tds_deinit_connection(TDSCONNECTION *conn)
@@ -1125,8 +1123,10 @@ Cleanup:
 static TDSSOCKET *
 tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 {
-	TEST_CALLOC(tds_socket->in_buf, unsigned char, bufsize);
-	tds_socket->in_buf_max = bufsize;
+	tds_socket->recv_packet = tds_alloc_packet(NULL, bufsize);
+	if (!tds_socket->recv_packet)
+		goto Cleanup;
+	tds_socket->in_buf = tds_socket->recv_packet->buf;
 	TEST_CALLOC(tds_socket->out_buf, unsigned char, bufsize + TDS_ADDITIONAL_SPACE);
 
 	tds_socket->out_buf_max = bufsize;
@@ -1311,7 +1311,6 @@ tds_free_socket(TDSSOCKET * tds)
 	tds_release_cursor(&tds->cur_cursor);
 	tds_detach_results(tds->current_results);
 	tds_free_all_results(tds);
-	free(tds->in_buf);
 	free(tds->out_buf);
 #if ENABLE_ODBC_MARS
 	tds_cond_destroy(&tds->packet_cond);
@@ -1319,6 +1318,7 @@ tds_free_socket(TDSSOCKET * tds)
 
 	if (tds->conn)
 		tds_connection_remove_socket(tds->conn, tds);
+	tds_free_packets(tds->recv_packet);
 	free(tds);
 }
 

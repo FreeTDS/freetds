@@ -1098,7 +1098,6 @@ struct tds_socket
 
 	unsigned char *in_buf;		/**< input buffer */
 	unsigned char *out_buf;		/**< output buffer */
-	unsigned int in_buf_max;	/**< allocated input buffer */
 	unsigned int out_buf_max;	/**< allocated output buffer */
 	unsigned in_pos;		/**< current position in in_buf */
 	unsigned out_pos;		/**< current position in out_buf */
@@ -1114,6 +1113,8 @@ struct tds_socket
 	TDS_UINT recv_wnd;
 	TDS_UINT send_wnd;
 #endif
+	/* packet we received */
+	TDSPACKET *recv_packet;
 
 	/**
 	 * Current query information. 
@@ -1255,11 +1256,9 @@ void tds_set_current_results(TDSSOCKET *tds, TDSRESULTINFO *info);
 void tds_detach_results(TDSRESULTINFO *info);
 
 
-#if ENABLE_ODBC_MARS
 TDSPACKET *tds_alloc_packet(void *buf, unsigned len);
 TDSPACKET *tds_realloc_packet(TDSPACKET *packet, unsigned len);
 void tds_free_packets(TDSPACKET *packet);
-#endif
 
 /* login.c */
 void tds_set_packet(TDSLOGIN * tds_login, int packet_size);
