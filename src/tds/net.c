@@ -1184,16 +1184,21 @@ tds_prwsaerror( int erc )
 #if defined(HAVE_GNUTLS) || defined(HAVE_OPENSSL)
 
 #ifdef HAVE_GNUTLS
-static ssize_t 
-tds_pull_func(gnutls_transport_ptr ptr, void* data, size_t len)
-{
-	TDSCONNECTION *conn = (TDSCONNECTION *) ptr;
+#define SSL_RET ssize_t
+#define SSL_PULL_ARGS gnutls_transport_ptr ptr, void *data, size_t len
+#define SSL_PUSH_ARGS gnutls_transport_ptr ptr, const void *data, size_t len
+#define SSL_PTR ptr
 #else
-static int
-tds_ssl_read(BIO *b, char* data, int len)
-{
-	TDSCONNECTION *conn = (TDSCONNECTION *) b->ptr;
+#define SSL_RET int
+#define SSL_PULL_ARGS BIO *bio, char *data, int len
+#define SSL_PUSH_ARGS BIO *bio, const char *data, int len
+#define SSL_PTR bio->ptr
 #endif
+
+static SSL_RET
+tds_pull_func(SSL_PULL_ARGS)
+{
+	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
 	int have;
 #if ENABLE_ODBC_MARS
 	TDSSOCKET *tds = conn->tls_session ? conn->in_net_tds : conn->sessions[0];
@@ -1239,17 +1244,10 @@ tds_ssl_read(BIO *b, char* data, int len)
 	return len;
 }
 
-#ifdef HAVE_GNUTLS
-static ssize_t 
-tds_push_func(gnutls_transport_ptr ptr, const void* data, size_t len)
+static SSL_RET
+tds_push_func(SSL_PUSH_ARGS)
 {
-	TDSCONNECTION *conn = (TDSCONNECTION *) ptr;
-#else
-static int
-tds_ssl_write(BIO *b, const char* data, int len)
-{
-	TDSCONNECTION *conn = (TDSCONNECTION *) b->ptr;
-#endif
+	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
 #if ENABLE_ODBC_MARS
 	TDSSOCKET *tds = conn->tls_session ? conn->in_net_tds : conn->sessions[0];
 	assert(tds);
@@ -1445,8 +1443,8 @@ static BIO_METHOD tds_method =
 {
 	BIO_TYPE_MEM,
 	"tds",
-	tds_ssl_write,
-	tds_ssl_read,
+	tds_push_func,
+	tds_pull_func,
 	NULL,
 	NULL,
 	tds_ssl_ctrl,
@@ -1459,7 +1457,7 @@ static BIO_METHOD tds_method =
 static SSL_CTX *
 tds_init_openssl(void)
 {
-	SSL_METHOD *meth;
+	const SSL_METHOD *meth;
 
 	if (!tls_initialized) {
 		tds_mutex_lock(&tls_mutex);
