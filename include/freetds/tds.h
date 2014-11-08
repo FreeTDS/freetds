@@ -1018,7 +1018,7 @@ typedef struct tds_packet
 {
 	struct tds_packet *next;
 	short sid;
-	unsigned pos, len;
+	unsigned pos, len, capacity;
 	unsigned char buf[1];
 } TDSPACKET;
 

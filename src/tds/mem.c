@@ -1028,11 +1028,14 @@ tds_alloc_packet(void *buf, unsigned len)
 	TDSPACKET *packet = (TDSPACKET *) malloc(len + TDS_OFFSET(TDSPACKET, buf));
 	if (TDS_LIKELY(packet)) {
 		packet->pos = 0;
-		packet->len = len;
+		packet->len = 0;
+		packet->capacity = len;
 		packet->sid = 0;
 		packet->next = NULL;
-		if (buf)
+		if (buf) {
 			memcpy(packet->buf, buf, len);
+			packet->len = len;
+		}
 	}
 	return packet;
 }
@@ -1040,9 +1043,11 @@ tds_alloc_packet(void *buf, unsigned len)
 TDSPACKET *
 tds_realloc_packet(TDSPACKET *packet, unsigned len)
 {
-	packet = (TDSPACKET *) realloc(packet, len + TDS_OFFSET(TDSPACKET, buf));
-	if (TDS_LIKELY(packet))
-		packet->len = len;
+	if (packet->capacity < len) {
+		packet = (TDSPACKET *) realloc(packet, len + TDS_OFFSET(TDSPACKET, buf));
+		if (TDS_LIKELY(packet))
+			packet->capacity = len;
+	}
 	return packet;
 }
 

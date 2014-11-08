@@ -71,9 +71,10 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 	if (!packet) {
 		conn->recv_packet = packet = tds_alloc_packet(NULL, 8);
 		if (!packet) goto Memory_Error;
+		packet->len = 8;
 	}
 
-	assert(packet->pos >= 0 && packet->len > 0 && packet->pos < packet->len);
+	assert(packet->pos >= 0 && packet->capacity > 0 && packet->pos <= packet->len && packet->len <= packet->capacity);
 
 	len = tds_connection_read(tds, packet->buf+packet->pos, packet->len - packet->pos);
 	if (len < 0)
@@ -93,6 +94,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 				packet = tds_realloc_packet(packet, 16);
 				if (!packet) goto Memory_Error;
 				conn->recv_packet = packet;
+				packet->len = 16;
 			}
 			return;
 		}
@@ -163,6 +165,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 		if (packet->len < 0x18) {
 			packet = tds_realloc_packet(packet, 0x18);
 			if (!packet) goto Memory_Error;
+			packet->len = 0x18;
 			conn->recv_packet = packet;
 			return;
 		}
@@ -181,6 +184,7 @@ tds_packet_read(TDSCONNECTION *conn, TDSSOCKET *tds)
 			packet = tds_realloc_packet(packet, len);
 			if (!packet) goto Memory_Error;
 		}
+		packet->len = len;
 		conn->recv_packet = packet;
 	}
 	return;
@@ -262,6 +266,7 @@ tds_build_packet(TDSSOCKET *tds, unsigned char *buf, unsigned len)
 		packet->sid = tds->sid;
 		memcpy(packet->buf, mars, start);
 		memcpy(packet->buf + start, buf, len);
+		packet->len = len + start;
 	}
 	return packet;
 }
