@@ -1196,27 +1196,13 @@ tds_prwsaerror( int erc )
 #endif
 
 static SSL_RET
-tds_pull_func(SSL_PULL_ARGS)
+tds_pull_func_login(SSL_PULL_ARGS)
 {
-	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
+	TDSSOCKET *tds = (TDSSOCKET *) SSL_PTR;
 	int have;
-#if ENABLE_ODBC_MARS
-	TDSSOCKET *tds = conn->tls_session ? conn->in_net_tds : conn->sessions[0];
-	assert(tds);
-#else
-	TDSSOCKET *tds = (TDSSOCKET *) conn;
-#endif
 
-	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func\n");
+	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func_login\n");
 	
-	/* test if we already initialized (crypted TDS packets) */
-	if (conn->tls_session) {
-		/* read directly from socket */
-		/* TODO we block write on other sessions */
-		/* also we should already have tested for data on socket */
-		return tds_goodread(tds, (unsigned char*) data, len);
-	}
-
 	/* here we are initializing (crypted inside TDS packets) */
 
 	/* if we have some data send it */
@@ -1245,32 +1231,59 @@ tds_pull_func(SSL_PULL_ARGS)
 }
 
 static SSL_RET
-tds_push_func(SSL_PUSH_ARGS)
+tds_push_func_login(SSL_PUSH_ARGS)
 {
-	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
-#if ENABLE_ODBC_MARS
-	TDSSOCKET *tds = conn->tls_session ? conn->in_net_tds : conn->sessions[0];
-	assert(tds);
-#else
-	TDSSOCKET *tds = (TDSSOCKET *) conn;
-#endif
-	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
+	TDSSOCKET *tds = (TDSSOCKET *) SSL_PTR;
 
-	if (conn->tls_session) {
-		/* write to socket directly */
-		/* TODO use cork if available here to flush only on last chunk of packet ?? */
-#if ENABLE_ODBC_MARS
-		TDSPACKET *packet = conn->send_packets;
-		assert(conn->in_net_tds);
-		/* FIXME with SMP trick to detect final is not ok */
-		return tds_goodwrite(tds, (const unsigned char*) data, len, packet->next == NULL);
-#else
-		return tds_goodwrite(tds, (const unsigned char*) data, len, tds->out_buf[1]);
-#endif
-	}
+	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func_login\n");
+
 	/* initializing SSL, write crypted data inside normal TDS packets */
 	tds_put_n(tds, data, len);
 	return len;
+}
+
+static SSL_RET
+tds_pull_func(SSL_PULL_ARGS)
+{
+	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
+	TDSSOCKET *tds;
+
+	tdsdump_log(TDS_DBG_INFO1, "in tds_pull_func\n");
+
+#if ENABLE_ODBC_MARS
+	tds = conn->in_net_tds;
+	assert(tds);
+#else
+	tds = (TDSSOCKET *) conn;
+#endif
+
+	/* already initialized (crypted TDS packets) */
+
+	/* read directly from socket */
+	/* TODO we block write on other sessions */
+	/* also we should already have tested for data on socket */
+	return tds_goodread(tds, (unsigned char*) data, len);
+}
+
+static SSL_RET
+tds_push_func(SSL_PUSH_ARGS)
+{
+	TDSCONNECTION *conn = (TDSCONNECTION *) SSL_PTR;
+	TDSSOCKET *tds;
+
+	tdsdump_log(TDS_DBG_INFO1, "in tds_push_func\n");
+
+	/* write to socket directly */
+	/* TODO use cork if available here to flush only on last chunk of packet ?? */
+#if ENABLE_ODBC_MARS
+	tds = conn->in_net_tds;
+	/* FIXME with SMP trick to detect final is not ok */
+	return tds_goodwrite(tds, (const unsigned char*) data, len,
+			     conn->send_packets->next == NULL);
+#else
+	tds = (TDSSOCKET *) conn;
+	return tds_goodwrite(tds, (const unsigned char*) data, len, tds->out_buf[1]);
+#endif
 }
 
 static int tls_initialized = 0;
@@ -1358,9 +1371,9 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 	
 	if (ret == 0) {
-		gnutls_transport_set_ptr(session, tds_conn(tds));
-		gnutls_transport_set_pull_function(session, tds_pull_func);
-		gnutls_transport_set_push_function(session, tds_push_func);
+		gnutls_transport_set_ptr(session, tds);
+		gnutls_transport_set_pull_function(session, tds_pull_func_login);
+		gnutls_transport_set_push_function(session, tds_push_func_login);
 
 		/* NOTE: there functions return int however they cannot fail */
 
@@ -1398,6 +1411,11 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
+
+	gnutls_transport_set_ptr(session, tds_conn(tds));
+	gnutls_transport_set_pull_function(session, tds_pull_func);
+	gnutls_transport_set_push_function(session, tds_push_func);
+
 	tds_conn(tds)->tls_session = session;
 	tds_conn(tds)->tls_credentials = xcred;
 
@@ -1419,7 +1437,7 @@ tds_ssl_deinit(TDSCONNECTION *conn)
 
 #else
 static long
-tds_ssl_ctrl(BIO *b, int cmd, long num, void *ptr)
+tds_ssl_ctrl_login(BIO *b, int cmd, long num, void *ptr)
 {
 	TDSSOCKET *tds = (TDSSOCKET *) b->ptr;
 
@@ -1439,6 +1457,20 @@ tds_ssl_free(BIO *a)
 	return 1;
 }
 
+static BIO_METHOD tds_method_login =
+{
+	BIO_TYPE_MEM,
+	"tds",
+	tds_push_func_login,
+	tds_pull_func_login,
+	NULL,
+	NULL,
+	tds_ssl_ctrl_login,
+	NULL,
+	tds_ssl_free,
+	NULL,
+};
+
 static BIO_METHOD tds_method =
 {
 	BIO_TYPE_MEM,
@@ -1447,7 +1479,7 @@ static BIO_METHOD tds_method =
 	tds_pull_func,
 	NULL,
 	NULL,
-	tds_ssl_ctrl,
+	NULL,
 	NULL,
 	tds_ssl_free,
 	NULL,
@@ -1484,13 +1516,14 @@ tds_ssl_init(TDSSOCKET *tds)
 	"DHE-DSS-AES128-SHA AES128-SHA RC2-CBC-MD5 RC4-SHA RC4-MD5"
 
 	SSL *con;
-	BIO *b;
+	BIO *b, *b2;
 
 	int ret;
 	const char *tls_msg;
 
 	con = NULL;
 	b = NULL;
+	b2 = NULL;
 	tls_msg = "initializing tls";
 
 	if (tds_conn(tds)->tls_ctx == NULL)
@@ -1504,16 +1537,21 @@ tds_ssl_init(TDSSOCKET *tds)
 	
 	if (con) {
 		tls_msg = "creating bio";
-		b = BIO_new(&tds_method);
+		b = BIO_new(&tds_method_login);
+	}
+
+	if (b) {
+		b2 = BIO_new(&tds_method);
 	}
 
 	ret = 0;
-	if (b) {
+	if (b2) {
 		b->shutdown=1;
 		b->init=1;
 		b->num= -1;
-		b->ptr = tds_conn(tds);
+		b->ptr = tds;
 		SSL_set_bio(con, b, b);
+		b = NULL;
 
 		/* use priorities... */
 		SSL_set_cipher_list(con, OPENSSL_CIPHERS);
@@ -1530,6 +1568,10 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 
 	if (ret != 0) {
+		if (b2)
+			BIO_free(b2);
+		if (b)
+			BIO_free(b);
 		if (con) {
 			SSL_shutdown(con);
 			SSL_free(con);
@@ -1541,6 +1583,13 @@ tds_ssl_init(TDSSOCKET *tds)
 	}
 
 	tdsdump_log(TDS_DBG_INFO1, "handshake succeeded!!\n");
+
+	b2->shutdown = 1;
+	b2->init = 1;
+	b2->num = -1;
+	b2->ptr = tds_conn(tds);
+	SSL_set_bio(con, b2, b2);
+
 	tds_conn(tds)->tls_session = con;
 
 	return TDS_SUCCESS;
